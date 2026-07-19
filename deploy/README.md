@@ -23,6 +23,14 @@ gcloud artifacts repositories create reploid \
   --location=us-central1
 ```
 
+Create a dedicated private adapter bucket with uniform bucket-level access,
+public access prevention, versioning, retention, and browser CORS for the exact
+Reploid origins. Grant the Cloud Run service account object-viewer access and
+permission to sign blobs; keep object creation on a separate release identity.
+Every release upload must use `ifGenerationMatch=0`, and the returned object
+generation must be sealed into AdapterPack v2 before publication. Do not grant
+the runtime service account object-create or object-delete permissions.
+
 ## Deploy sequence
 
 ```bash

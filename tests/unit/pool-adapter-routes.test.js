@@ -138,6 +138,20 @@ const createFixture = async () => {
 };
 
 describe('Poolday adapter coordinator routes', () => {
+  it('reports generation-pinned private delivery in deployment readiness', async () => {
+    const router = createPoolRouter({
+      store: createPoolStore(),
+      createAdapterDownloadUrl: async () => ({})
+    });
+    const readiness = await dispatchJson(router, '/deployment/check');
+
+    expect(readiness.status).toBe(200);
+    expect(readiness.body.store.adapterDelivery).toEqual({
+      configured: true,
+      provider: 'gcs-v4-generation-pinned'
+    });
+  });
+
   it('rejects an adapter whose converted-base identity differs from the model catalog', async () => {
     const fixture = await createFixture();
     const requirement = adapterRequirementFromPublication(fixture.publication, { state: 'cached' });

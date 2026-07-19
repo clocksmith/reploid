@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-07-19T20:45:50.888Z",
+  "generatedAt": "2026-07-19T21:54:08.962Z",
   "features": [
     {
       "id": "0x000003",
@@ -3352,7 +3352,8 @@
         }
       ],
       "files": [
-        "pool/adapter-pack.js"
+        "pool/adapter-pack.js",
+        "pool/artifact-origin.js"
       ]
     },
     {

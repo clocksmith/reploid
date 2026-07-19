@@ -1193,6 +1193,7 @@ export function createPoolRouter({
     const modelArtifactBaseConfigured = Boolean(configuredEnvValue('REPLOID_POOL_MODEL_BASE_URL', 'POOL_MODEL_BASE_URL'));
     const dopplerModuleConfigured = Boolean(configuredEnvValue('REPLOID_DOPPLER_MODULE_URL', 'POOL_DOPPLER_MODULE_URL'));
     const dopplerKernelBaseConfigured = Boolean(configuredEnvValue('REPLOID_DOPPLER_KERNEL_BASE_URL', 'POOL_DOPPLER_KERNEL_BASE_URL'));
+    const privateAdapterDeliveryConfigured = typeof createAdapterDownloadUrl === 'function';
     const configValidation = validatePoolConfig();
     const readinessConfig = POOL_CONFIG.deployment || {};
     const commitRevealSupported = typeof store.saveAssignmentCommitment === 'function'
@@ -1208,6 +1209,7 @@ export function createPoolRouter({
       && (!readinessConfig.requiresOffloadedModelArtifactBase || modelArtifactBaseConfigured)
       && (!readinessConfig.requiresDopplerModuleConfiguration || dopplerModuleConfigured)
       && (!readinessConfig.requiresDopplerKernelBaseConfiguration || dopplerKernelBaseConfigured)
+      && (!readinessConfig.requiresPrivateAdapterDeliverySigner || privateAdapterDeliveryConfigured)
       && (!readinessConfig.requiresCommitRevealStore || commitRevealSupported);
     return res.json({
       ok: productionReady,
@@ -1231,6 +1233,10 @@ export function createPoolRouter({
         dopplerModuleEnv: dopplerModuleConfigured ? 'configured' : 'missing',
         dopplerKernelBaseConfigured,
         dopplerKernelBaseEnv: dopplerKernelBaseConfigured ? 'configured' : 'missing',
+        adapterDelivery: {
+          configured: privateAdapterDeliveryConfigured,
+          provider: privateAdapterDeliveryConfigured ? 'gcs-v4-generation-pinned' : null
+        },
         hybridP2PAnchor: true,
         signaling: {
           supported: typeof store.createSignalingSession === 'function'

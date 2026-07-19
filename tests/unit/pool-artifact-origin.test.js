@@ -27,6 +27,10 @@ describe('immutable Poolday artifact origins', () => {
     expect(buildImmutableArtifactOriginUrl(huggingFace)).toContain(`/resolve/${'a'.repeat(40)}/`);
     expect(buildImmutableArtifactOriginUrl(gcs)).toContain('generation=1720000000000000');
     expect(validateArtifactOrigin({ ...gcs, generation: 'latest' })).toMatchObject({ ok: false });
+    expect(validateArtifactOrigin({ ...gcs, object: 'adapter.bin?generation=latest' }))
+      .toMatchObject({ ok: false });
+    expect(validateArtifactOrigin({ ...huggingFace, path: 'adapter.bin#mutable' }))
+      .toMatchObject({ ok: false });
   });
 
   it('resolves private GCS delivery without changing or embedding its signed URL in identity', async () => {

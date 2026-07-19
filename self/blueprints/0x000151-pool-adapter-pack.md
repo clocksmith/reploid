@@ -4,7 +4,7 @@
 
 **Target Upgrade:** pool/adapter-pack.js
 
-**Affected Artifacts:** /pool/adapter-pack.js
+**Affected Artifacts:** /pool/adapter-pack.js, /pool/artifact-origin.js
 
 ---
 
