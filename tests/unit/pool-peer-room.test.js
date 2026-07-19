@@ -110,6 +110,23 @@ function createFakeTransportFactories() {
 }
 
 const runtimeModel = () => buildLaunchProviderModel({ modelId: LAUNCH_MODEL.modelId });
+const fakeHash = (character) => `sha256:${character.repeat(64)}`;
+
+const fetchableAdapterRequirement = () => ({
+  schema: 'reploid.pool.adapter-requirement/v1',
+  packHash: fakeHash('1'),
+  adapterId: 'adapter-peer-room',
+  adapterSha256: fakeHash('2'),
+  baseModelId: LAUNCH_MODEL.modelId,
+  baseModelHash: LAUNCH_MODEL.modelHash,
+  baseManifestHash: LAUNCH_MODEL.manifestHash,
+  humanPromotionReceiptHash: fakeHash('3'),
+  dopplerParityReceiptHash: fakeHash('4'),
+  gammaSelectionReceiptHash: fakeHash('5'),
+  publicationHash: fakeHash('6'),
+  publisherId: 'publisher-peer-room',
+  state: 'fetchable'
+});
 
 const fakeRuntime = ({ generate = null } = {}) => ({
   isReady: () => true,
@@ -376,6 +393,64 @@ describe('pool peer room', () => {
               modelIds: ['different-model']
             }
           ]
+        }
+      });
+    } finally {
+      await providerNode.stop();
+    }
+  });
+
+  it('does not route adapter work to a base-model-only contributor', async () => {
+    installFakeBroadcastChannel();
+    const requesterClient = createRequesterClient({
+      requesterId: 'requester_adapter_mismatch',
+      keyPair: await createSigningKeyPair(),
+      identity: null,
+      sdk: null
+    });
+    const providerClient = {
+      async createPeerProviderAdvert() {
+        return {
+          messageHash: 'base_only_advert_hash',
+          fromPeerId: 'provider_base_only',
+          publicKey: 'test_public_key',
+          body: {
+            providerId: 'provider_base_only',
+            models: [runtimeModel()],
+            availability: { acceptedPolicies: ['fastest_receipt'] }
+          }
+        };
+      }
+    };
+    const transports = createFakeTransportFactories();
+    const providerNode = createPeerProviderNode({
+      roomId: 'adapter-mismatch-room',
+      providerClient,
+      providerTransportFactory: transports.providerTransportFactory,
+      advertIntervalMs: 100000
+    });
+    await providerNode.start({
+      models: [runtimeModel()],
+      availability: { acceptedPolicies: ['fastest_receipt'] }
+    });
+
+    try {
+      await expect(runPeerJob({
+        roomId: 'adapter-mismatch-room',
+        requesterClient,
+        requesterTransportFactory: transports.requesterTransportFactory,
+        prompt: 'Use the selected adapter',
+        modelRequirements: {
+          ...runtimeModel(),
+          adapter: fetchableAdapterRequirement()
+        },
+        discoveryWindowMs: 10,
+        receiptWindowMs: 100
+      })).rejects.toMatchObject({
+        code: 'peer_provider_model_mismatch',
+        payload: {
+          observedProviderCount: 1,
+          observedProviders: [{ providerId: 'provider_base_only' }]
         }
       });
     } finally {

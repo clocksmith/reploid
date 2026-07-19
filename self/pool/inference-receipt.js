@@ -16,6 +16,8 @@ export const SIGNATURE_DOMAINS = Object.freeze({
   providerReceipt: 'poolday.provider_receipt.v1',
   requesterAcceptance: 'poolday.requester_acceptance.v1',
   peerMessage: 'poolday.peer_message.v1',
+  deviceRoleDelegation: 'poolday.device_role_delegation.v1',
+  participationProfile: 'poolday.participation_profile.v1',
   adapterPublication: 'poolday.adapter_publication.v1',
   adapterRevocation: 'poolday.adapter_revocation.v1',
   adapterUseApproval: 'poolday.adapter_use_approval.v1'
@@ -232,6 +234,7 @@ export async function buildPoolReceipt({ assignment, provider, model, runtime, e
     signatureDomain: SIGNATURE_DOMAINS.providerReceipt,
     trustTier: TRUST_TIER_SIGNED_RECEIPT,
     assignmentId: assignment.assignmentId,
+    routeDecisionHash: assignment.routeDecisionHash || null,
     jobId: assignment.jobId,
     requesterId: assignment.requesterId,
     providerId: assignment.providerId,

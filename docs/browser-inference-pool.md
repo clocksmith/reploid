@@ -21,6 +21,10 @@ synthetic runtime tests exist, but no biological model is enabled in the
 Poolday catalog until immutable hosted artifacts and a matching Doppler release
 are qualified.
 
+Participation modes, device-root and passkey identity, adapter authority, route
+selection, and the model-shard boundary are specified in [Poolday Participation,
+Identity, and Routing](./poolday/participation-identity-routing.md).
+
 ---
 
 ## Product routes
@@ -106,6 +110,12 @@ This is full-model-plus-adapter execution on one provider. Poolday does not
 split adapter matrices, base-model layers, attention, or KV cache across peers.
 The current repository proof uses synthetic adapter bytes and mocked Doppler
 execution. No Tinker-produced adapter is published or deployed by this claim.
+
+The requester-visible route receipt binds every accepted and rejected provider
+candidate to the exact model and adapter requirement. Selection prefers an
+already active adapter, then verified cache, then a fetchable artifact, before
+considering capacity, evidence history, transfer duration, latency, and point
+cost. Provider adverts cannot exceed their signed participation limits.
 
 Current hosted implementation order:
 

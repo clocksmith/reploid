@@ -22,6 +22,7 @@ import {
   createPeerControlPlane,
   createSignedJobIntent,
   createSignedProviderAdvert,
+  validatePeerAssignmentForIntentAndAdvert,
   verifyPeerMessage
 } from '../../self/pool/peer-control-plane.js';
 import { createReceiptPayload } from '../../self/pool/p2p-payload.js';
@@ -192,6 +193,44 @@ describe('pool peer control plane', () => {
     expect(first.assignments.every((assignment) => assignment.prompt === undefined)).toBe(true);
   });
 
+  it('binds peer assignments to the advert, participation profile, limits, and route', async () => {
+    const requesterKeys = await createSigningKeyPair();
+    const providerKeys = await createSigningKeyPair();
+    const intent = await createSignedJobIntent({
+      requesterId: 'requester_bound_assignment',
+      requesterPublicKey: await exportPublicKey(requesterKeys.publicKey),
+      privateKey: requesterKeys.privateKey,
+      prompt: 'bound assignment prompt',
+      modelRequirements: launchModelAdvert()
+    });
+    const advert = await createSignedProviderAdvert({
+      providerId: 'provider_bound_assignment',
+      providerPublicKey: await exportPublicKey(providerKeys.publicKey),
+      privateKey: providerKeys.privateKey,
+      models: [launchModelAdvert()],
+      runtimeProfileHash: 'sha256:runtime_bound_assignment',
+      availability: {
+        acceptedPolicies: ['fastest_receipt'],
+        maxTokensPerJob: 128
+      }
+    });
+    const plan = await buildPeerAssignmentPlan({
+      jobIntent: intent.intent,
+      providerAdverts: [advert]
+    });
+
+    expect((await validatePeerAssignmentForIntentAndAdvert({
+      assignment: plan.assignment,
+      jobIntent: intent.intent,
+      providerAdvert: advert
+    })).ok).toBe(true);
+    expect((await validatePeerAssignmentForIntentAndAdvert({
+      assignment: { ...plan.assignment, routeDecisionHash: 'sha256:tampered' },
+      jobIntent: intent.intent,
+      providerAdvert: advert
+    })).reasons).toContain('assignmentHash mismatch');
+  });
+
   it('selects a homogeneous runtime-profile group for strict ring quorum', async () => {
     const requesterKeys = await createSigningKeyPair();
     const requesterPublicKey = await exportPublicKey(requesterKeys.publicKey);
@@ -266,6 +305,7 @@ describe('pool peer control plane', () => {
         receiptVersion: 'reploid_browser_inference/v1',
         signatureDomain: SIGNATURE_DOMAINS.providerReceipt,
         assignmentId: assignment.assignmentId,
+        routeDecisionHash: assignment.routeDecisionHash,
         jobId: assignment.jobId,
         requesterId: assignment.requesterId,
         providerId: assignment.providerId,
@@ -372,6 +412,7 @@ describe('pool peer control plane', () => {
         receiptVersion: 'reploid_browser_inference/v1',
         signatureDomain: SIGNATURE_DOMAINS.providerReceipt,
         assignmentId: assignment.assignmentId,
+        routeDecisionHash: assignment.routeDecisionHash,
         jobId: assignment.jobId,
         requesterId: assignment.requesterId,
         providerId: assignment.providerId,
@@ -457,6 +498,7 @@ describe('pool peer control plane', () => {
       receiptVersion: 'reploid_browser_inference/v1',
       signatureDomain: SIGNATURE_DOMAINS.providerReceipt,
       assignmentId: assignment.assignmentId,
+      routeDecisionHash: assignment.routeDecisionHash,
       jobId: assignment.jobId,
       requesterId: assignment.requesterId,
       providerId: assignment.providerId,

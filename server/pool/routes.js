@@ -30,6 +30,8 @@ import {
   verifyAdapterRevocation,
   verifyAdapterUseApproval
 } from '../../self/pool/adapter-publication.js';
+import { verifyPoolIdentityClaims, verifyAdvertisedLimitsAgainstProfile } from '../../self/pool/identity-claims.js';
+import { PARTICIPATION_CAPABILITIES } from '../../self/pool/participation-profile.js';
 
 const asyncRoute = (handler) => (req, res, next) => {
   Promise.resolve(handler(req, res, next)).catch(next);
@@ -1211,8 +1213,8 @@ export function createPoolRouter({ store = poolStore, verifyAuthToken = null, re
           browserEnabled: allowCanaryCreation,
           coordinatorClaimRequired: !allowCanaryCreation
         },
-        browserRequirement: 'Use Firebase Auth anonymous identity when available; local anonymous identity is fallback only.',
-        signingKeys: 'Browser role signing keys are persisted locally per role and used for provider receipts and requester acceptance.'
+        browserRequirement: 'A signed participation profile and device-root role delegation are required for hosted requests and providers.',
+        signingKeys: 'A browser device root delegates scoped requester and provider signing roles; an optional passkey can bind the root.'
       },
       metrics: hasCoordinatorClaim(req.poolAuth) ? metrics : {
         providers: metrics.providers,
@@ -1262,6 +1264,25 @@ export function createPoolRouter({ store = poolStore, verifyAuthToken = null, re
     }
     if (!body.publicKey) {
       return res.status(400).json({ error: 'publicKey is required' });
+    }
+    const providerIdentity = await verifyPoolIdentityClaims({
+      participationProfile: body.participationProfile,
+      identityProof: body.identityProof,
+      role: 'provider',
+      roleId: body.providerId,
+      rolePublicKey: body.publicKey,
+      requiredCapability: PARTICIPATION_CAPABILITIES.provideInference,
+      allowLegacy: false
+    });
+    const providerLimits = verifyAdvertisedLimitsAgainstProfile(
+      body.availability || {},
+      body.participationProfile || null
+    );
+    if (!providerIdentity.ok || !providerLimits.ok) {
+      return res.status(400).json({
+        error: 'invalid provider participation identity',
+        reasons: [...providerIdentity.reasons, ...providerLimits.reasons]
+      });
     }
     const ringPolicy = getPolicy('ring_quorum_receipt');
     const acceptsRing = (body.availability?.acceptedPolicies || []).length === 0
@@ -1328,6 +1349,25 @@ export function createPoolRouter({ store = poolStore, verifyAuthToken = null, re
       return res.status(400).json({ error: 'invalid job request', reasons: validation.reasons });
     }
     if (!requireBoundAnyRole(req, res, ['requester', 'agent'], req.body.requesterId)) return null;
+    const requesterRole = req.body.identityProof?.role || 'requester';
+    if (!['requester', 'agent'].includes(requesterRole)) {
+      return res.status(400).json({ error: 'invalid requester participation role' });
+    }
+    const requesterIdentity = await verifyPoolIdentityClaims({
+      participationProfile: req.body.participationProfile,
+      identityProof: req.body.identityProof,
+      role: requesterRole,
+      roleId: req.body.requesterId,
+      rolePublicKey: req.body.requesterPublicKey,
+      requiredCapability: PARTICIPATION_CAPABILITIES.requestInference,
+      allowLegacy: false
+    });
+    if (!requesterIdentity.ok) {
+      return res.status(400).json({
+        error: 'invalid requester participation identity',
+        reasons: requesterIdentity.reasons
+      });
+    }
     const adapterRequirement = req.body.modelRequirements?.adapter || null;
     if (adapterRequirement) {
       const requirementValidation = validatePublishedAdapterRequirement(adapterRequirement);
@@ -1367,6 +1407,8 @@ export function createPoolRouter({ store = poolStore, verifyAuthToken = null, re
       policyConfigVersion: POOL_CONFIG_VERSION,
       policyConfigHash: POOL_CONFIG_HASH,
       requesterPublicKey: req.body.requesterPublicKey,
+      participationProfile: req.body.participationProfile,
+      identityProof: req.body.identityProof,
       modelRequirements: req.body.modelRequirements || {},
       adapterUseApproval: req.body.adapterUseApproval || null,
       generationConfig: req.body.generationConfig || {},

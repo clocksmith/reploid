@@ -16,7 +16,10 @@ an unverified source to reach Doppler.
 The registry verifies signed publications, hashes bytes before caching, stores
 acquisition evidence, and deletes bytes on signed revocation.
 `acquireAdapterForAssignment()` checks the assignment requirement at every
-source boundary.
+source boundary. Browser discovery lists only signed public publications for an
+exact base-model identity, and origin fetches are resolved from the signed URL
+set before the registry verifies and caches their bytes.
+Every acquisition record binds the assignment's route-decision hash.
 
 ### 3. Implementation Notes
 The default registry is memory-local. Optional read/write/delete callbacks own

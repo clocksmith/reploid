@@ -47,13 +47,14 @@ describe('RD stylesheet ownership', () => {
     expect(poolday).toContain('.pool-home-stage');
     expect(poolday).toContain('.pool-home-toolbar');
     expect(poolday).toContain('.pool-home-toolbar-leading');
-    expect(poolday).toContain('.pool-home-toolbar-center');
+    expect(poolday).toContain('.pool-home-ask-dock');
     expect(poolday).not.toContain('.pool-home-toolbar-right');
     expect(poolday).not.toContain('.pool-home-status');
     expect(poolday).not.toContain('.pool-hot-path');
     expect(poolday).not.toContain('.pool-home-network-badge');
-    expect(poolday).toMatch(/\.pool-home-toolbar\s*\{[\s\S]*?grid-template-columns: minmax\(10rem, 0\.72fr\) minmax\(20rem, 34rem\);/);
+    expect(poolday).toMatch(/\.pool-home-toolbar\s*\{[\s\S]*?grid-template-columns: minmax\(10rem, 1fr\) auto auto;/);
     expect(poolday).toMatch(/\.pool-home-toolbar\s*\{[\s\S]*?background: var\(--bg\);/);
+    expect(poolday).toMatch(/\.pool-home-ask-dock\s*\{[\s\S]*?position: absolute;[\s\S]*?bottom: var\(--pool-home-ask-inset\);[\s\S]*?left: 50%;[\s\S]*?transform: translateX\(-50%\);/);
     expect(poolday).toMatch(/\.pool-simulation-shell\s*\{[\s\S]*?overflow: hidden;/);
     expect(poolday).toMatch(/\.pool-simulation-shell\s*\{[\s\S]*?background: var\(--bg\);/);
     expect(poolday).toMatch(/\.pool-simulation-canvas\s*\{[\s\S]*?background: var\(--bg\);/);

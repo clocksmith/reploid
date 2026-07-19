@@ -18,6 +18,10 @@ import {
 import { validatePublishedAdapterRequirement, verifyAdapterUseApproval } from './adapter-publication.js';
 import { acquireAdapterForAssignment, createAdapterRegistry } from './adapter-registry.js';
 import { createPoolIdentity } from './identity.js';
+import {
+  PARTICIPATION_CAPABILITIES,
+  participationAllows
+} from './participation-profile.js';
 import { listPolicies } from './policy-router.js';
 import { collectRuntimeProfile } from './runtime-profile.js';
 import {
@@ -66,6 +70,17 @@ export function createProviderClient({
     if (!activeProviderId) activeProviderId = identity ? await identity.getRoleId() : null;
     if (!activeProviderId) throw new Error('providerId is required');
     return activeProviderId;
+  };
+  const ensureIdentityClaims = async () => {
+    if (!identity?.getParticipationProfile || !identity?.getRoleProof) return {
+      participationProfile: null,
+      identityProof: null
+    };
+    const participationProfile = await identity.getParticipationProfile();
+    return {
+      participationProfile,
+      identityProof: await identity.getRoleProof({ participationProfile })
+    };
   };
 
   const modelMatchesRuntime = (model = {}, runtimeModel = {}) => (
@@ -208,8 +223,39 @@ export function createProviderClient({
     throw new Error('assignment input must be supplied over a WebRTC input payload');
   };
 
+  const enforceAssignmentParticipation = async (assignment = {}) => {
+    const requestedTokens = Math.max(0, Number(
+      assignment.generationConfig?.maxOutputTokens
+        ?? assignment.generationConfig?.maxTokens
+        ?? 0
+    ));
+    const assignedTokenLimit = Number(assignment.providerLimits?.maxTokensPerJob || 0);
+    if (assignedTokenLimit > 0 && requestedTokens > assignedTokenLimit) {
+      throw new Error('Assignment exceeds the provider token limit');
+    }
+    if (assignment.schema === 'reploid.peer.assignment/v1' && !assignment.routeDecisionHash) {
+      throw new Error('Peer assignment routeDecisionHash is required');
+    }
+    if (!identity?.getParticipationProfile) return;
+    const profile = await identity.getParticipationProfile();
+    if (!participationAllows(profile, PARTICIPATION_CAPABILITIES.provideInference)) {
+      throw new Error('Current participation mode does not allow provider execution');
+    }
+    if (assignment.providerParticipationProfileHash
+      && assignment.providerParticipationProfileHash !== profile.profileHash) {
+      throw new Error('Assignment participation profile is no longer active');
+    }
+    if (assignedTokenLimit > Number(profile.limits.maxTokensPerJob)) {
+      throw new Error('Assignment token limit exceeds the signed participation profile');
+    }
+    if (requestedTokens > Number(profile.limits.maxTokensPerJob)) {
+      throw new Error('Assignment exceeds the signed participation token limit');
+    }
+  };
+
   const runLocalAssignment = async (assignment, options = {}) => {
     await ensureKeys();
+    await enforceAssignmentParticipation(assignment);
     recordHistory({
       eventType: 'assignment_execution_started',
       assignmentId: assignment.assignmentId,
@@ -409,6 +455,7 @@ export function createProviderClient({
         ? await runtime.getDeviceInfo()
         : {};
       const { runtimeProfile, runtimeProfileHash } = await resolveRuntimeProfile();
+      const identityClaims = await ensureIdentityClaims();
       registration = await sdk.registerProvider({
         providerId: resolvedProviderId,
         models: advertisedModels,
@@ -426,6 +473,7 @@ export function createProviderClient({
           ...availability
         },
         publicKey,
+        ...identityClaims,
         timestamp: new Date().toISOString()
       });
       return registration;
@@ -451,10 +499,12 @@ export function createProviderClient({
       if (mismatchedModel) throw new Error('Provider advert cannot advertise models that differ from the loaded Doppler runtime');
       await validateAdvertisedAdapterPacks(advertisedModels, runtimeModel);
       const { runtimeProfile, runtimeProfileHash } = await resolveRuntimeProfile();
+      const identityClaims = await ensureIdentityClaims();
       return createSignedProviderAdvert({
         providerId: resolvedProviderId,
         providerPublicKey: publicKey,
         privateKey: activeKeyPair.privateKey,
+        ...identityClaims,
         models: advertisedModels,
         runtimeProfile,
         runtimeProfileHash,

@@ -73,6 +73,25 @@ const providerHeartbeatFresh = (provider = {}) => {
   return Number.isFinite(heartbeatAt) && Date.now() - heartbeatAt <= PROVIDER_HEARTBEAT_STALE_MS;
 };
 
+const requestedTokenCount = (job = {}) => Math.max(0, Number(
+  job.generationConfig?.maxOutputTokens
+    ?? job.generationConfig?.maxTokens
+    ?? 0
+));
+
+const providerTokenLimit = (provider = {}) => {
+  const advertised = Number(provider.availability?.maxTokensPerJob || Number.MAX_SAFE_INTEGER);
+  const signed = Number(provider.participationProfile?.limits?.maxTokensPerJob || Number.MAX_SAFE_INTEGER);
+  return Math.min(advertised, signed);
+};
+
+const providerAssignmentLimits = (provider = {}) => ({
+  maxConcurrentJobs: Number(provider.availability?.maxConcurrentJobs || 1),
+  maxTokensPerJob: Number(provider.availability?.maxTokensPerJob || 0),
+  storageBudgetMiB: Number(provider.availability?.storageBudgetMiB || 0),
+  bandwidthBudgetMbps: Number(provider.availability?.bandwidthBudgetMbps || 0)
+});
+
 const excludedProviderIdsForJob = (job = {}) => new Set([
   ...(Array.isArray(job.excludedProviderIds) ? job.excludedProviderIds : []),
   ...(Array.isArray(job.rejectedProviderIds) ? job.rejectedProviderIds : []),
@@ -89,6 +108,7 @@ const eligibleProviders = async (providers = [], job = {}, policy = {}, store) =
     if (provider.status !== 'available') continue;
     if (!providerHeartbeatFresh(provider)) continue;
     if (!providerAcceptsPolicy(provider, job.policyId)) continue;
+    if (requestedTokenCount(job) > providerTokenLimit(provider)) continue;
     if (!model) continue;
     if (!reputationAllowsPolicy(reputation, policy)) continue;
     const runtimeProfileReasons = validateRuntimeProfileForPolicy(provider, policy);
@@ -203,6 +223,8 @@ const buildAssignmentInput = ({ job, provider, model, policy, inputHash, generat
   assignmentAttemptId,
   ringAttemptId: ring?.ringAttemptId || null,
   runtimeProfileHash: provider.runtimeProfileHash || null,
+  providerParticipationProfileHash: provider.participationProfile?.profileHash || null,
+  providerLimits: providerAssignmentLimits(provider),
   runtimeProfileBucket: ring?.runtimeProfileBuckets?.[0] || null,
   providerAdmission: ring ? {
     policyId: ring.providerAdmissionPolicyId || null,

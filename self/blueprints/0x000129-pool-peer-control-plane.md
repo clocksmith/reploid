@@ -9,17 +9,24 @@
 ---
 
 ### 1. Intent
-Define the purpose and constraints for pool/peer-control-plane.js.
+Create and verify signed peer intents, provider adverts, route-bound assignments,
+receipts, agreement, and ledger events without exposing prompt text during
+discovery.
 
 ### 2. Architecture
-Outline the main responsibilities, dependencies, and data flow.
+The planner verifies participation roles, exact runtime and artifact identity,
+provider limits, and policy eligibility. `artifact-router.js` returns a
+deterministic route decision. Its hash and the provider advert/profile identity
+are included in every assignment and receipt.
 
 ### 3. Implementation Notes
-Record design decisions, edge cases, and integration details.
+Legacy unsigned participation claims are accepted only by explicitly compatible
+peer message fixtures. Hosted provider and requester routes require signed
+claims. Receipt agreement rejects route-hash drift.
 
 ### 4. Verification Checklist
-- [ ] Behavior matches blueprint intent
-- [ ] Dependencies are declared and available
-- [ ] Tests or verification steps updated as needed
+- [x] Prompt remains outside discovery messages
+- [x] Assignment binds route, advert, profile, and limits
+- [x] Agreement rejects receipts from a different route
 
 *Last updated: July 2026*

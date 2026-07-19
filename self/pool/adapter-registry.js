@@ -4,6 +4,7 @@
 
 import { sha256Hex } from './inference-receipt.js';
 import {
+  adapterRequirementFromPublication,
   publishedAdapterRequirementsEqual,
   verifyAdapterPublication,
   verifyAdapterRevocation
@@ -17,6 +18,88 @@ const toBytes = (value) => {
   if (ArrayBuffer.isView(value)) return new Uint8Array(value.buffer, value.byteOffset, value.byteLength);
   throw new TypeError('adapter bytes must be an ArrayBuffer or typed array');
 };
+
+const publicationMatchesModel = (publication = {}, model = {}) => (
+  publication?.pack?.baseModel?.modelId === model?.modelId
+  && publication?.pack?.baseModel?.modelHash === model?.modelHash
+  && publication?.pack?.baseModel?.manifestHash === model?.manifestHash
+);
+
+const publicOriginUrls = (publication = {}) => Array.from(new Set([
+  ...(Array.isArray(publication.originUrls) ? publication.originUrls : []),
+  publication.pack?.distribution?.originUrl
+].map((value) => String(value || '').trim()).filter(Boolean)));
+
+export async function resolveFetchableAdapterPublication({ sdk, packHash, model = null } = {}) {
+  if (!sdk?.getAdapter) throw new TypeError('adapter registry SDK with getAdapter() is required');
+  const response = await sdk.getAdapter(packHash);
+  const publication = response?.publication || response;
+  const verification = await verifyAdapterPublication(publication);
+  if (!verification.ok) throw new Error(`Adapter publication rejected: ${verification.reasons.join('; ')}`);
+  if (model && !publicationMatchesModel(publication, model)) {
+    throw new Error('Adapter publication does not match the selected base model');
+  }
+  return publication;
+}
+
+export async function listFetchableAdapterPublications({ sdk, model } = {}) {
+  if (!sdk?.listAdapters) throw new TypeError('adapter registry SDK with listAdapters() is required');
+  if (!model?.modelId || !model?.modelHash || !model?.manifestHash) {
+    throw new TypeError('exact base-model identity is required');
+  }
+  const response = await sdk.listAdapters({ visibility: 'public' });
+  const publications = Array.isArray(response?.publications) ? response.publications : [];
+  const verified = [];
+  for (const publication of publications) {
+    if (!publicationMatchesModel(publication, model) || publicOriginUrls(publication).length === 0) continue;
+    const verification = await verifyAdapterPublication(publication);
+    if (verification.ok) verified.push(publication);
+  }
+  return verified.sort((left, right) => (
+    String(left.pack?.label || left.pack?.packId || left.packHash)
+      .localeCompare(String(right.pack?.label || right.pack?.packId || right.packHash))
+  ));
+}
+
+export function createPublishedAdapterOriginFetcher({ sdk, fetchImpl = globalThis.fetch } = {}) {
+  if (typeof fetchImpl !== 'function') throw new TypeError('fetch implementation is required');
+  return async ({ assignment, requirement } = {}) => {
+    const publication = await resolveFetchableAdapterPublication({
+      sdk,
+      packHash: requirement?.packHash
+    });
+    const expected = adapterRequirementFromPublication(publication, { state: requirement?.state });
+    if (!publishedAdapterRequirementsEqual(requirement, expected)) {
+      throw new Error('Adapter publication does not match the assignment requirement');
+    }
+    const failures = [];
+    for (const url of publicOriginUrls(publication)) {
+      try {
+        const response = await fetchImpl(url, { cache: 'force-cache', credentials: 'omit' });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const bytes = new Uint8Array(await response.arrayBuffer());
+        return {
+          publication,
+          bytes,
+          acquisition: {
+            schema: ADAPTER_ACQUISITION_SCHEMA,
+            packHash: requirement.packHash,
+            adapterSha256: requirement.adapterSha256,
+            routeDecisionHash: assignment?.routeDecisionHash || null,
+            source: 'origin',
+            sourcePeerId: null,
+            sourceUrl: url,
+            bytes: bytes.byteLength,
+            verifiedAt: new Date().toISOString()
+          }
+        };
+      } catch (error) {
+        failures.push(`${url}: ${error.message}`);
+      }
+    }
+    throw new Error(`adapter origin fetch failed: ${failures.join('; ') || 'publication has no public origin'}`);
+  };
+}
 
 export function createAdapterRegistry({ readBytes = null, writeBytes = null, deleteBytes = null } = {}) {
   const publications = new Map();
@@ -135,6 +218,7 @@ export async function acquireAdapterForAssignment({
         schema: ADAPTER_ACQUISITION_SCHEMA,
         packHash: requirement.packHash,
         adapterSha256: requirement.adapterSha256,
+        routeDecisionHash: assignment?.routeDecisionHash || null,
         source: 'cache',
         sourcePeerId: null,
         bytes: cached.bytes.byteLength,
@@ -155,6 +239,7 @@ export async function acquireAdapterForAssignment({
         schema: ADAPTER_ACQUISITION_SCHEMA,
         packHash: requirement.packHash,
         adapterSha256: requirement.adapterSha256,
+        routeDecisionHash: assignment?.routeDecisionHash || null,
         source,
         sourcePeerId: artifact.sourcePeerId || null,
         bytes: toBytes(artifact.bytes).byteLength,
@@ -172,5 +257,8 @@ export async function acquireAdapterForAssignment({
 export default {
   ADAPTER_ACQUISITION_SCHEMA,
   createAdapterRegistry,
-  acquireAdapterForAssignment
+  acquireAdapterForAssignment,
+  resolveFetchableAdapterPublication,
+  listFetchableAdapterPublications,
+  createPublishedAdapterOriginFetcher
 };

@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-07-19T19:35:55.274Z",
+  "generatedAt": "2026-07-19T20:45:50.888Z",
   "features": [
     {
       "id": "0x000003",
@@ -3437,6 +3437,62 @@
       ],
       "files": [
         "pool/sequence-result.js"
+      ]
+    },
+    {
+      "id": "0x000158",
+      "name": "pool-participation-profile",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x000158",
+          "path": "blueprints/0x000158-pool-participation-profile.md"
+        }
+      ],
+      "files": [
+        "pool/participation-profile.js"
+      ]
+    },
+    {
+      "id": "0x000159",
+      "name": "pool-device-identity",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x000159",
+          "path": "blueprints/0x000159-pool-device-identity.md"
+        }
+      ],
+      "files": [
+        "pool/device-identity.js"
+      ]
+    },
+    {
+      "id": "0x00015a",
+      "name": "pool-identity-claims",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x00015a",
+          "path": "blueprints/0x00015a-pool-identity-claims.md"
+        }
+      ],
+      "files": [
+        "pool/identity-claims.js"
+      ]
+    },
+    {
+      "id": "0x00015b",
+      "name": "pool-artifact-router",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x00015b",
+          "path": "blueprints/0x00015b-pool-artifact-router.md"
+        }
+      ],
+      "files": [
+        "pool/artifact-router.js"
       ]
     }
   ]

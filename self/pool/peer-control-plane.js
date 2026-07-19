@@ -32,6 +32,15 @@ import {
 } from './model-contract.js';
 import { modelSupportsAdapterRequirement } from './adapter-pack.js';
 import {
+  compareProviderRouteCandidates,
+  evaluateProviderRouteCandidate,
+  sealArtifactRouteDecision
+} from './artifact-router.js';
+import {
+  PARTICIPATION_CAPABILITIES
+} from './participation-profile.js';
+import { verifyPoolIdentityClaims } from './identity-claims.js';
+import {
   createAdapterUseApproval,
   validatePublishedAdapterRequirement,
   verifyAdapterUseApproval
@@ -202,6 +211,8 @@ export async function createSignedJobIntent({
   requesterId,
   requesterPublicKey,
   privateKey,
+  participationProfile = null,
+  identityProof = null,
   prompt,
   sequence,
   sequenceRequest = null,
@@ -279,6 +290,8 @@ export async function createSignedJobIntent({
   const intentBody = {
     schema: 'reploid.peer.job_intent/v1',
     requesterId: resolvedRequesterId,
+    participationProfile,
+    identityProof,
     policyId,
     policyConfigVersion: POOL_CONFIG_VERSION,
     inputHash,
@@ -321,6 +334,8 @@ export async function createSignedProviderAdvert({
   providerId,
   providerPublicKey,
   privateKey,
+  participationProfile = null,
+  identityProof = null,
   models = null,
   runtimeProfile = null,
   runtimeProfileHash = null,
@@ -350,6 +365,8 @@ export async function createSignedProviderAdvert({
     body: {
       schema: 'reploid.peer.provider_advert/v1',
       providerId: resolvedProviderId,
+      participationProfile,
+      identityProof,
       models: resolvedModels,
       runtimeProfile,
       runtimeProfileHash,
@@ -370,6 +387,20 @@ export async function createSignedProviderAdvert({
 const peerIdForMessage = (message = {}) => (
   message.body?.providerId || message.body?.requesterId || message.fromPeerId
 );
+
+export async function verifyPeerRoleClaims(message = {}, {
+  role,
+  requiredCapability
+} = {}) {
+  return verifyPoolIdentityClaims({
+    participationProfile: message.body?.participationProfile || null,
+    identityProof: message.body?.identityProof || null,
+    role,
+    roleId: peerIdForMessage(message),
+    rolePublicKey: message.publicKey,
+    requiredCapability
+  });
+}
 
 const advertSupportsIntent = (advert = {}, intent = {}, policy = {}) => {
   const body = advert.body || {};
@@ -448,6 +479,22 @@ const intentWorkload = (intent = {}) => (
   || POOLDAY_MODEL_WORKLOADS.textGeneration
 );
 
+const intentMaxTokens = (intent = {}) => Math.max(0, Number(
+  intent.body?.generationConfig?.maxOutputTokens
+    ?? intent.body?.generationConfig?.maxTokens
+    ?? 0
+));
+
+const providerAssignmentLimits = (advert = {}) => {
+  const availability = advert.body?.availability || {};
+  return {
+    maxConcurrentJobs: Number(availability.maxConcurrentJobs || 1),
+    maxTokensPerJob: Number(availability.maxTokensPerJob || 0),
+    storageBudgetMiB: Number(availability.storageBudgetMiB || 0),
+    bandwidthBudgetMbps: Number(availability.bandwidthBudgetMbps || 0)
+  };
+};
+
 const agreementFieldForIntent = (intent = {}, policy = {}) => {
   const workload = intentWorkload(intent);
   const workloadField = agreementFieldForWorkload(workload);
@@ -519,6 +566,18 @@ export async function buildPeerAssignmentPlan({
       assignments: []
     };
   }
+  const requesterIdentity = await verifyPeerRoleClaims(intent, {
+    role: 'requester',
+    requiredCapability: PARTICIPATION_CAPABILITIES.requestInference
+  });
+  if (!requesterIdentity.ok) {
+    return {
+      ok: false,
+      reason: 'invalid_requester_identity',
+      reasons: requesterIdentity.reasons,
+      assignments: []
+    };
+  }
   if (intent.body?.modelRequirements?.adapter) {
     const approval = await verifyAdapterUseApproval(intent.body?.adapterUseApproval, {
       adapterRequirement: intent.body.modelRequirements.adapter,
@@ -536,16 +595,35 @@ export async function buildPeerAssignmentPlan({
     }
   }
   const verifiedAdverts = [];
+  const routeCandidates = [];
   for (const advert of providerAdverts) {
     const verification = await verifyPeerMessage(advert);
-    if (verification.ok
-      && advert.type === PEER_MESSAGE_TYPES.PROVIDER_ADVERT
-      && advertSupportsIntent(advert, intent, policy)
-      && await advertRuntimeProfileHashValid(advert)) {
-      verifiedAdverts.push({ advert, verification, sortKey: await candidateSortKey({ intentHash: intentVerification.messageHash, advert }) });
+    const providerIdentity = verification.ok
+      ? await verifyPeerRoleClaims(advert, {
+        role: 'provider',
+        requiredCapability: PARTICIPATION_CAPABILITIES.provideInference
+      })
+      : { ok: false };
+    const runtimeProfileValid = await advertRuntimeProfileHashValid(advert)
+      && (!policy.requireRuntimeProfileHash || Boolean(advert.body?.runtimeProfileHash));
+    const sortKey = await candidateSortKey({ intentHash: intentVerification.messageHash, advert });
+    const routeCandidate = evaluateProviderRouteCandidate({
+      advert,
+      intent,
+      messageValid: verification.ok && advert.type === PEER_MESSAGE_TYPES.PROVIDER_ADVERT,
+      identityValid: providerIdentity.ok,
+      runtimeProfileValid,
+      tieBreaker: sortKey
+    });
+    routeCandidates.push(routeCandidate);
+    if (routeCandidate.eligible && advertSupportsIntent(advert, intent, policy)) {
+      verifiedAdverts.push({ advert, verification, sortKey, routeCandidate });
     }
   }
-  verifiedAdverts.sort((left, right) => left.sortKey.localeCompare(right.sortKey));
+  verifiedAdverts.sort((left, right) => (
+    compareProviderRouteCandidates(left.routeCandidate, right.routeCandidate)
+    || left.sortKey.localeCompare(right.sortKey)
+  ));
   const adaptiveRing = policy.adaptiveRing === true;
   const minProviders = adaptiveRing ? Math.max(1, Number(policy.minRingSize || 1)) : Math.max(1, Number(policy.redundancy || 1));
   const maxProviders = adaptiveRing ? Math.max(minProviders, Number(policy.maxRingSize || minProviders)) : minProviders;
@@ -555,6 +633,7 @@ export async function buildPeerAssignmentPlan({
       reason: 'not_enough_peer_providers',
       requiredProviders: minProviders,
       eligibleProviders: verifiedAdverts.length,
+      routeCandidates,
       assignments: []
     };
   }
@@ -571,6 +650,7 @@ export async function buildPeerAssignmentPlan({
       requiredProviders: minProviders,
       eligibleProviders: verifiedAdverts.length,
       compatibleProviders: compatibleSelection.compatibleProviders || 0,
+      routeCandidates,
       assignments: []
     };
   }
@@ -585,6 +665,13 @@ export async function buildPeerAssignmentPlan({
     })
     : null;
   const selectedCandidates = ringPlan?.candidates || selected;
+  const routeDecision = await sealArtifactRouteDecision({
+    intentHash: intentVerification.messageHash,
+    policyId,
+    modelRequirements: intent.body.modelRequirements,
+    candidates: routeCandidates,
+    selectedProviderIds: selectedCandidates.map((candidate) => peerIdForMessage(candidate.advert))
+  });
   const providerCount = selectedCandidates.length;
   const requiredAgreement = ringPlan?.requiredAgreement || providerCount;
   const jobId = `peer_job_${intentVerification.messageHash.replace(/^sha256:/, '').slice(0, 16)}`;
@@ -596,16 +683,27 @@ export async function buildPeerAssignmentPlan({
     : null;
   for (const [index, candidate] of selectedCandidates.entries()) {
     const providerId = peerIdForMessage(candidate.advert);
+    const providerAdvertHash = candidate.advert.messageHash;
+    const providerParticipationProfileHash = candidate.advert.body?.participationProfile?.profileHash || null;
+    const providerLimits = providerAssignmentLimits(candidate.advert);
     const assignmentHash = await hashJson({
       schema: 'reploid.peer.assignment/v1',
       intentHash: intentVerification.messageHash,
       providerId,
-      assignmentAttemptId
+      assignmentAttemptId,
+      routeDecisionHash: routeDecision.decisionHash,
+      providerAdvertHash,
+      providerParticipationProfileHash,
+      providerLimits
     });
     assignments.push({
       schema: 'reploid.peer.assignment/v1',
       assignmentId: `peer_assignment_${assignmentHash.replace(/^sha256:/, '').slice(0, 16)}`,
       assignmentHash,
+      routeDecisionHash: routeDecision.decisionHash,
+      providerAdvertHash,
+      providerParticipationProfileHash,
+      providerLimits,
       jobId,
       intentHash: intentVerification.messageHash,
       requesterId: intent.body.requesterId,
@@ -672,6 +770,7 @@ export async function buildPeerAssignmentPlan({
     assignments,
     assignment: assignments[0] || null,
     providers: selectedCandidates.map((candidate) => candidate.advert),
+    routeDecision,
     ring: ringPlan ? {
       ringId: ringPlan.ringId,
       ringAttemptId: ringPlan.ringAttemptId,
@@ -823,13 +922,45 @@ export async function validatePeerAssignmentForIntentAndAdvert({
   if (!intentVerification.ok) reasons.push(...intentVerification.reasons.map((reason) => `intent: ${reason}`));
   if (!advertVerification.ok) reasons.push(...advertVerification.reasons.map((reason) => `advert: ${reason}`));
   const advertProviderId = providerAdvert?.body?.providerId || providerAdvert?.fromPeerId || null;
+  const requesterIdentity = await verifyPeerRoleClaims(intent, {
+    role: 'requester',
+    requiredCapability: PARTICIPATION_CAPABILITIES.requestInference
+  });
+  const providerIdentity = await verifyPeerRoleClaims(providerAdvert, {
+    role: 'provider',
+    requiredCapability: PARTICIPATION_CAPABILITIES.provideInference
+  });
+  reasons.push(...requesterIdentity.reasons.map((reason) => `requester identity: ${reason}`));
+  reasons.push(...providerIdentity.reasons.map((reason) => `provider identity: ${reason}`));
   if (!assignment.assignmentId) reasons.push('assignmentId is required');
   if (!assignment.jobId) reasons.push('jobId is required');
   if (assignment.intentHash !== intentVerification.messageHash) reasons.push('intentHash mismatch');
   if (assignment.requesterId !== intent?.body?.requesterId) reasons.push('requesterId mismatch');
   if (assignment.providerId !== advertProviderId) reasons.push('providerId mismatch');
+  if (!String(assignment.routeDecisionHash || '').startsWith('sha256:')) reasons.push('routeDecisionHash is required');
+  if (assignment.providerAdvertHash !== advertVerification.messageHash) reasons.push('providerAdvertHash mismatch');
+  const profileHash = providerAdvert?.body?.participationProfile?.profileHash || null;
+  if ((assignment.providerParticipationProfileHash || null) !== profileHash) {
+    reasons.push('provider participation profile hash mismatch');
+  }
+  const advertLimits = providerAssignmentLimits(providerAdvert);
+  if (JSON.stringify(assignment.providerLimits || null) !== JSON.stringify(advertLimits)) {
+    reasons.push('provider limits mismatch');
+  }
+  const expectedAssignmentHash = await hashJson({
+    schema: 'reploid.peer.assignment/v1',
+    intentHash: intentVerification.messageHash,
+    providerId: advertProviderId,
+    assignmentAttemptId: assignment.assignmentAttemptId,
+    routeDecisionHash: assignment.routeDecisionHash,
+    providerAdvertHash: advertVerification.messageHash,
+    providerParticipationProfileHash: profileHash,
+    providerLimits: advertLimits
+  });
+  if (assignment.assignmentHash !== expectedAssignmentHash) reasons.push('assignmentHash mismatch');
   if (assignment.inputHash !== intent?.body?.inputHash) reasons.push('inputHash mismatch');
   if (assignment.generationConfigHash !== intent?.body?.generationConfigHash) reasons.push('generationConfigHash mismatch');
+  if (intentMaxTokens(intent) > advertLimits.maxTokensPerJob) reasons.push('provider token limit exceeded');
   if ((assignment.workload || POOLDAY_MODEL_WORKLOADS.textGeneration) !== intentWorkload(intent)) reasons.push('workload mismatch');
   const requiredModel = intent?.body?.modelRequirements || {};
   const assignmentModel = assignment.model || {};
@@ -866,6 +997,14 @@ export async function validatePeerAssignmentForIntentAndAdvert({
   if (acceptedPolicies.length > 0 && !acceptedPolicies.includes(assignment.policyId)) {
     reasons.push('provider advert does not accept assignment policy');
   }
+  const routeCandidate = evaluateProviderRouteCandidate({
+    advert: providerAdvert,
+    intent,
+    messageValid: advertVerification.ok,
+    identityValid: providerIdentity.ok,
+    runtimeProfileValid: await advertRuntimeProfileHashValid(providerAdvert)
+  });
+  reasons.push(...routeCandidate.rejectionReasons.map((reason) => `provider route: ${reason}`));
   return {
     ok: reasons.length === 0,
     reasons,
@@ -885,6 +1024,7 @@ const receiptAgreementValue = (receipt = {}, agreementField = 'tokenIdsHash') =>
 const receiptMatchesAssignment = (receipt = {}, assignment = {}) => {
   const reasons = [];
   if (receipt.assignmentId !== assignment.assignmentId) reasons.push('receipt assignmentId mismatch');
+  if (receipt.routeDecisionHash !== assignment.routeDecisionHash) reasons.push('receipt routeDecisionHash mismatch');
   if (receipt.jobId !== assignment.jobId) reasons.push('receipt jobId mismatch');
   if (receipt.requesterId !== assignment.requesterId) reasons.push('receipt requesterId mismatch');
   if (receipt.providerId !== assignment.providerId) reasons.push('receipt providerId mismatch');
