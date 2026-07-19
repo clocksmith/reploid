@@ -5,6 +5,12 @@
 import { BROWSER_RUNTIME_CONFIG, LAUNCH_MODEL, MODEL_CATALOG } from './config.js';
 import { buildModelArtifactUrls } from './model-artifacts.js';
 import { modelSupportsAdapterRequirement, validateAdapterRequirement } from './adapter-pack.js';
+import {
+  SEQUENCE_EXECUTION_MODE,
+  SEQUENCE_WORKLOADS,
+  isSequenceWorkload,
+  validateSequenceRequest
+} from './sequence-workload.js';
 
 export { modelSupportsAdapterRequirement };
 
@@ -12,11 +18,14 @@ export { LAUNCH_MODEL, MODEL_CATALOG };
 
 export const POOLDAY_MODEL_WORKLOADS = Object.freeze({
   textGeneration: 'text_generation',
-  embedding: 'embedding'
+  embedding: 'embedding',
+  sequenceEmbedding: SEQUENCE_WORKLOADS.embedding,
+  sequenceMaskedLogits: SEQUENCE_WORKLOADS.maskedLogits
 });
 export const SUPPORTED_MODEL_EXECUTION_MODES = Object.freeze({
   textGeneration: 'full_model_browser_local',
-  embedding: 'full_model_browser_embedding'
+  embedding: 'full_model_browser_embedding',
+  sequence: SEQUENCE_EXECUTION_MODE
 });
 export const SUPPORTED_MODEL_EXECUTION_MODE = SUPPORTED_MODEL_EXECUTION_MODES.textGeneration;
 
@@ -38,7 +47,7 @@ const UNSUPPORTED_MODEL_SPLIT_FIELDS = Object.freeze([
 export function listPoolModels({ enabledOnly = false, workload = null } = {}) {
   const source = enabledOnly ? ENABLED_MODEL_CATALOG : MODEL_CATALOG;
   if (!workload) return source;
-  return source.filter((model) => getPoolModelWorkload(model) === workload);
+  return source.filter((model) => modelSupportsPoolWorkload(model, workload));
 }
 
 export function getPoolModelContract(modelId = LAUNCH_MODEL.modelId) {
@@ -50,17 +59,33 @@ export function getEnabledPoolModelContract(modelId = LAUNCH_MODEL.modelId) {
 }
 
 export function getPoolModelWorkload(model = {}) {
-  return model.workload || model.workloadType || model.modelType || POOLDAY_MODEL_WORKLOADS.textGeneration;
+  return model.workload
+    || model.workloadType
+    || model.modelType
+    || (Array.isArray(model.workloads) ? model.workloads[0] : null)
+    || POOLDAY_MODEL_WORKLOADS.textGeneration;
 }
 
-export function getPoolModelExecutionMode(model = {}) {
-  return model.executionMode
-    || model.execution
-    || (
-      getPoolModelWorkload(model) === POOLDAY_MODEL_WORKLOADS.embedding
-        ? SUPPORTED_MODEL_EXECUTION_MODES.embedding
-        : SUPPORTED_MODEL_EXECUTION_MODES.textGeneration
-    );
+export function getPoolModelWorkloads(model = {}) {
+  const declared = Array.isArray(model.workloads)
+    ? model.workloads
+    : (Array.isArray(model.requirements?.workloads) ? model.requirements.workloads : []);
+  return [...new Set([getPoolModelWorkload(model), ...declared].filter(Boolean))];
+}
+
+export function modelSupportsPoolWorkload(model = {}, workload) {
+  return getPoolModelWorkloads(model).includes(workload);
+}
+
+export function getPoolModelExecutionMode(model = {}, workload = getPoolModelWorkload(model)) {
+  const declaredModes = model.executionModes || model.requirements?.executionModes || {};
+  if (declaredModes[workload]) return declaredModes[workload];
+  if (workload === getPoolModelWorkload(model) && (model.executionMode || model.execution)) {
+    return model.executionMode || model.execution;
+  }
+  if (workload === POOLDAY_MODEL_WORKLOADS.embedding) return SUPPORTED_MODEL_EXECUTION_MODES.embedding;
+  if (isSequenceWorkload(workload)) return SUPPORTED_MODEL_EXECUTION_MODES.sequence;
+  return SUPPORTED_MODEL_EXECUTION_MODES.textGeneration;
 }
 
 const sortedFeatureList = (features) => (
@@ -150,14 +175,15 @@ export function buildLaunchModelArtifactUrls(options = {}) {
 
 export function buildLaunchModelRequirements(overrides = {}) {
   const base = getEnabledPoolModelContract(overrides.modelId) || LAUNCH_MODEL;
+  const workload = overrides.workload || overrides.workloadType || getPoolModelWorkload(base);
   return {
     modelId: base.modelId,
     modelHash: base.modelHash,
     manifestHash: base.manifestHash,
     runtime: base.runtime,
     backend: base.backend,
-    workload: getPoolModelWorkload(base),
-    executionMode: getPoolModelExecutionMode(base),
+    workload,
+    executionMode: getPoolModelExecutionMode(base, workload),
     ...overrides
   };
 }
@@ -185,18 +211,22 @@ export function validateLaunchModelRequirement(requirements = {}) {
   if (!model || !isLaunchModelRequirement(requirements)) {
     reasons.push('model requirements do not match an enabled model contract');
   }
+  const workload = requirements.workload || requirements.workloadType || null;
+  const expectedWorkload = model ? getPoolModelWorkload(model) : POOLDAY_MODEL_WORKLOADS.textGeneration;
+  const resolvedWorkload = workload || expectedWorkload;
   const executionMode = requirements.executionMode || requirements.execution || null;
-  const expectedExecutionMode = model ? getPoolModelExecutionMode(model) : SUPPORTED_MODEL_EXECUTION_MODE;
+  const expectedExecutionMode = model ? getPoolModelExecutionMode(model, resolvedWorkload) : SUPPORTED_MODEL_EXECUTION_MODE;
   if (executionMode && executionMode !== expectedExecutionMode) {
     reasons.push(`modelRequirements.executionMode ${executionMode} is not supported; only ${expectedExecutionMode} is supported`);
   }
   if (model && !executionMode && expectedExecutionMode !== SUPPORTED_MODEL_EXECUTION_MODE) {
     reasons.push(`modelRequirements.executionMode ${expectedExecutionMode} is required for ${requirements.modelId}`);
   }
-  const workload = requirements.workload || requirements.workloadType || null;
-  const expectedWorkload = model ? getPoolModelWorkload(model) : POOLDAY_MODEL_WORKLOADS.textGeneration;
-  if (workload && workload !== expectedWorkload) {
-    reasons.push(`modelRequirements.workload ${workload} is not supported for ${requirements.modelId || 'selected model'}; expected ${expectedWorkload}`);
+  if (workload && model && !modelSupportsPoolWorkload(model, workload)) {
+    reasons.push(`modelRequirements.workload ${workload} is not supported for ${requirements.modelId || 'selected model'}; supported workloads: ${getPoolModelWorkloads(model).join(', ')}`);
+  }
+  if (isSequenceWorkload(resolvedWorkload)) {
+    reasons.push(...validateSequenceRequest(requirements.sequenceRequest || {}, { model }).reasons);
   }
   for (const field of UNSUPPORTED_MODEL_SPLIT_FIELDS) {
     const value = requirements[field];
@@ -230,6 +260,8 @@ export default {
   getPoolModelContract,
   getEnabledPoolModelContract,
   getPoolModelWorkload,
+  getPoolModelWorkloads,
+  modelSupportsPoolWorkload,
   getPoolModelExecutionMode,
   buildLaunchModelArtifactUrls,
   buildLaunchModelRequirements,

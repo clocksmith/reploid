@@ -7,6 +7,7 @@ import { quorumForRingSize as configuredQuorumForRingSize } from './config.js';
 import {
   getPoolModelExecutionMode,
   getPoolModelWorkload,
+  modelSupportsPoolWorkload,
   modelSupportsAdapterRequirement
 } from './model-contract.js';
 import {
@@ -46,8 +47,8 @@ const selectModel = (provider, job = {}) => {
     if (model.manifestHash !== requestedManifestHash) return false;
     if (requestedRuntime && model.runtime !== requestedRuntime) return false;
     if (requestedBackend && model.backend !== requestedBackend) return false;
-    if (requestedWorkload && getPoolModelWorkload(model) !== requestedWorkload) return false;
-    if (requestedExecutionMode && getPoolModelExecutionMode(model) !== requestedExecutionMode) return false;
+    if (requestedWorkload && !modelSupportsPoolWorkload(model, requestedWorkload)) return false;
+    if (requestedExecutionMode && getPoolModelExecutionMode(model, requestedWorkload) !== requestedExecutionMode) return false;
     if (!modelSupportsAdapterRequirement(model, requirements.adapter || null)) return false;
     return true;
   }) || null;
@@ -222,8 +223,11 @@ const buildAssignmentInput = ({ job, provider, model, policy, inputHash, generat
     manifestHash: model.manifestHash,
     runtime: model.runtime || 'doppler',
     backend: model.backend || 'browser-webgpu',
-    workload: getPoolModelWorkload(model),
-    executionMode: getPoolModelExecutionMode(model),
+    workload: job.modelRequirements?.workload || getPoolModelWorkload(model),
+    executionMode: getPoolModelExecutionMode(
+      model,
+      job.modelRequirements?.workload || getPoolModelWorkload(model)
+    ),
     requirements: job.modelRequirements || {}
   },
   adapter: job.modelRequirements?.adapter || null,

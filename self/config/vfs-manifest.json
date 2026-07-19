@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-07-19T01:21:58.048Z",
+  "generatedAt": "2026-07-19T13:27:50.735Z",
   "files": [
     "audit.html",
     "blueprint-index.json",
@@ -335,6 +335,8 @@
     "blueprints/0x000153-pool-adapter-publisher-client.md",
     "blueprints/0x000154-pool-adapter-registry.md",
     "blueprints/0x000155-pool-p2p-artifact-transfer.md",
+    "blueprints/0x000156-pool-sequence-workload.md",
+    "blueprints/0x000157-pool-sequence-result.md",
     "blueprints/README.md",
     "blueprints/blueprint-index-contract.md",
     "blueprints/implementation-status.md",
@@ -493,6 +495,8 @@
     "pool/requester-client.js",
     "pool/runtime-profile.js",
     "pool/sdk.js",
+    "pool/sequence-result.js",
+    "pool/sequence-workload.js",
     "pool/shard-negotiation.js",
     "prompts/kernel.md",
     "providers/doppler-reploid.js",

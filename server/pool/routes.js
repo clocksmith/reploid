@@ -438,6 +438,7 @@ const compactAgreementForAcceptance = (agreement = null) => {
     outputHash: agreement.outputHash || null,
     tokenIdsHash: agreement.tokenIdsHash || null,
     vectorHash: agreement.vectorHash || null,
+    sequenceResultHash: agreement.sequenceResultHash || null,
     effectiveTrustTier: agreement.effectiveTrustTier || null
   };
 };
@@ -575,6 +576,7 @@ const evaluateAgreement = async ({ store, job, policy }) => {
       outputHash: matchingGroup[0].receipt?.outputHash,
       tokenIdsHash: matchingGroup[0].receipt?.tokenIdsHash,
       vectorHash: matchingGroup[0].receipt?.vectorHash || null,
+      sequenceResultHash: matchingGroup[0].receipt?.sequenceResultHash || null,
       agreementValue
     };
   }
@@ -1501,6 +1503,7 @@ export function createPoolRouter({ store = poolStore, verifyAuthToken = null, re
       outputHash: req.body?.outputHash || null,
       tokenIdsHash: req.body?.tokenIdsHash || null,
       vectorHash: req.body?.vectorHash || null,
+      sequenceResultHash: req.body?.sequenceResultHash || null,
       transcriptHash: req.body?.transcriptHash || null,
       salt: req.body?.salt || null
     };
@@ -1651,6 +1654,8 @@ export function createPoolRouter({ store = poolStore, verifyAuthToken = null, re
     const tokenIds = Array.isArray(req.body?.tokenIds) ? req.body.tokenIds : [];
     const outputKind = req.body?.outputKind || receipt?.outputKind || 'text_generation';
     const vectorHash = req.body?.vectorHash || receipt?.vectorHash || null;
+    const sequenceResultHash = req.body?.sequenceResultHash || receipt?.sequenceResultHash || null;
+    const sequenceResult = req.body?.sequenceResult || receipt?.sequence || null;
     const transcript = req.body?.transcript || { outputText, tokenIds };
     const provider = await store.getProvider(assignment.providerId);
     const decision = await verifyReceipt({
@@ -1660,6 +1665,8 @@ export function createPoolRouter({ store = poolStore, verifyAuthToken = null, re
       outputText,
       tokenIds,
       vectorHash,
+      sequenceResultHash,
+      sequenceResult,
       transcript
     });
     const receiptRecord = await store.saveReceipt(decision.receiptHash, {
@@ -1677,6 +1684,8 @@ export function createPoolRouter({ store = poolStore, verifyAuthToken = null, re
       tokenIds,
       outputKind,
       vectorHash,
+      sequenceResultHash,
+      sequenceResult,
       embeddingDimensions: req.body?.embeddingDimensions || receipt?.embedding?.dimensions || null,
       embeddingStats: req.body?.embeddingStats || receipt?.embedding?.stats || null,
       transcript,

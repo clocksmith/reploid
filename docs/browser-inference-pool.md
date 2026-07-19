@@ -15,6 +15,12 @@ Do not describe this as trustless compute, hardware-attested inference, or guara
 
 The target retrieval extension is documented in [Poolday Receipt-Backed Retrieval](./poolday/receipt-backed-retrieval.md). That document covers embeddings, vector indexes, query receipts, reranking receipts, and the competitive retrieval strategy. It is not a replacement for this current browser inference claim.
 
+The biological-sequence extension is documented in [Poolday Biological
+Sequence Lane](./poolday/biological-sequence-lane.md). Its peer protocol and
+synthetic runtime tests exist, but no biological model is enabled in the
+Poolday catalog until immutable hosted artifacts and a matching Doppler release
+are qualified.
+
 ---
 
 ## Product routes
@@ -85,7 +91,7 @@ publication adds publisher identity, visibility, capability tags, and origin
 locations. Revocation is a separate signed event; it does not rewrite the pack
 or publication.
 
-A requester approval binds one pack and publication to the requester, prompt
+A requester approval binds one pack and publication to the requester, input
 hash, model id, model hash, and manifest hash. The coordinator rejects adapter
 jobs without this signature. The peer-room planner applies the same check.
 
@@ -166,7 +172,9 @@ Ring agreement checks:
 - provider signature on every receipt;
 - ring id, seed, attempt id, layout hash, provider index, predecessor, successor, and provider set;
 - commit-reveal evidence before receipt submission, so providers must anchor private output commitments before reveal payloads can be copied;
-- quorum over matching `tokenIdsHash` plus `outputHash`;
+- quorum over the workload's result identity: `tokenIdsHash` for text,
+  `vectorHash` for embedding, or `sequenceResultHash` for biological sequence
+  work, plus the common receipt hashes;
 - per-provider invalid receipt or execution failure accounting while the remaining current assignments can still reach quorum;
 - requester acceptance before points and reputation mutation.
 - accepted quorum retires non-quorum sibling assignments so leftover providers are released and later timeouts cannot downgrade the verified job.
@@ -220,6 +228,8 @@ Commitment hash input:
   "providerId": "...",
   "outputHash": "sha256:...",
   "tokenIdsHash": "sha256:...",
+  "vectorHash": null,
+  "sequenceResultHash": null,
   "transcriptHash": "sha256:...",
   "salt": "..."
 }
@@ -276,13 +286,13 @@ Receipts for ring assignments are accepted only after:
 
 The current hosted mode is `hybrid_p2p_anchor`. In this mode, WebRTC is the primary transit for inference payloads and the browser-ring agreement path. The cloud coordinator is still the bootstrap, policy, receipt, and ledger anchor for hosted diagnostic and API flows. Treat this as a transitional deployment shape, not the final Reploid control plane.
 
-The primary browser-room path used by `/ask` and `/compute` does not create hosted jobs or poll hosted assignments. It uses signed peer intents, signed provider adverts, deterministic local assignment, WebRTC DataChannel prompt delivery, provider receipts, local receipt agreement, requester countersignature, and signed points/network events. Local rooms use same-origin `BroadcastChannel`. Remote rooms can use the optional `/pool/peer/rooms/:roomId/messages` metadata relay for signed room envelopes and WebRTC signaling. The relay does not create jobs, assign providers, decide quorum, mutate reputation, or carry prompt/output/full receipt/model payloads.
+The primary browser-room path used by `/ask` and `/compute` does not create hosted jobs or poll hosted assignments. It uses signed peer intents, signed provider adverts, deterministic local assignment, WebRTC DataChannel input delivery, provider receipts, local receipt agreement, requester countersignature, and signed points/network events. Inputs may be prompts or explicitly public biological sequences. Local rooms use same-origin `BroadcastChannel`. Remote rooms can use the optional `/pool/peer/rooms/:roomId/messages` metadata relay for signed room envelopes and WebRTC signaling. The relay does not create jobs, assign providers, decide quorum, mutate reputation, or carry input/output/full receipt/model payloads.
 
 | Layer | Owner |
 |-------|-------|
 | Job id, assignment hash, policy, model identity | Browser-room requester locally, cloud coordinator for hosted compatibility |
 | SDP/ICE rendezvous metadata | BroadcastChannel locally, optional peer-room metadata relay remotely |
-| Prompt payload | WebRTC DataChannel |
+| Prompt or public biological-sequence payload | WebRTC DataChannel |
 | Output payload | WebRTC DataChannel |
 | Full receipt payload | WebRTC DataChannel or content-addressed off-cloud storage |
 | Provider-to-provider ring payloads | WebRTC DataChannel |
@@ -290,7 +300,7 @@ The primary browser-room path used by `/ask` and `/compute` does not create host
 | Receipt hash, agreement hash, requester acceptance, ledger mutation | Browser-room signed events; cloud coordinator for hosted compatibility |
 | Points and reputation | Deterministic browser-room reducer; cloud coordinator for hosted compatibility |
 
-Cloud signaling and peer-room relay messages are metadata only. Prompts, outputs, token streams, full receipts, model shards, and ring payloads should not be sent through signaling or relay endpoints. Direct peer connection uses STUN where possible. TURN is a fallback for restrictive NATs and should be treated as paid bandwidth risk.
+Cloud signaling and peer-room relay messages are metadata only. Prompts, biological sequences, outputs, token streams, full receipts, model shards, and ring payloads should not be sent through signaling or relay endpoints. Direct peer connection uses STUN where possible. TURN is a fallback for restrictive NATs and should be treated as paid bandwidth risk.
 
 Browser modules:
 
@@ -313,7 +323,7 @@ In the current hosted mode, the cloud remains authoritative for abuse gates, pol
 
 The target Reploid control plane is also peer-to-peer. The coordinator should disappear from the normal path. Any server should be optional bootstrap, public anchor, or compatibility bridge.
 
-The browser implementation starts in `self/pool/peer-control-plane.js`, `self/pool/peer-room.js`, and `self/pool/peer-rendezvous.js`. The control-plane module defines signed peer messages, prompt payload validation, deterministic peer assignment planning, receipt agreement, signed ledger events, DataChannel-compatible peer buses, and deterministic points/network reducers. The peer room module wires the visible `/ask` and `/compute` paths through signed peer intents, provider adverts, WebRTC signaling, DataChannel prompt delivery, multi-provider receipt return, quorum agreement, requester countersignature, and ledger-event gossip without hosted job creation or hosted assignment polling. The rendezvous module supplies local BroadcastChannel rooms, in-memory test rooms, shareable invite URLs, and optional metadata relay buses.
+The browser implementation starts in `self/pool/peer-control-plane.js`, `self/pool/peer-room.js`, and `self/pool/peer-rendezvous.js`. The control-plane module defines signed peer messages, workload-specific input validation, deterministic peer assignment planning, receipt agreement, signed ledger events, DataChannel-compatible peer buses, and deterministic points/network reducers. The peer room module wires the visible `/ask` and `/compute` paths through signed peer intents, provider adverts, WebRTC signaling, DataChannel input delivery, multi-provider receipt return, quorum agreement, requester countersignature, and ledger-event gossip without hosted job creation or hosted assignment polling. The rendezvous module supplies local BroadcastChannel rooms, in-memory test rooms, shareable invite URLs, and optional metadata relay buses.
 
 | Layer | Target owner |
 |-------|--------------|
@@ -322,7 +332,7 @@ The browser implementation starts in `self/pool/peer-control-plane.js`, `self/po
 | Provider capability advertisement | Signed peer messages over WebRTC |
 | Job intent | Signed requester or agent intent gossiped over WebRTC |
 | Assignment selection | Deterministic local protocol from intent hash, provider adverts, policy, model identity, runtime profile, and reputation evidence |
-| Prompt payload | WebRTC DataChannel |
+| Prompt or explicitly public sequence payload | WebRTC DataChannel |
 | Output payload | WebRTC DataChannel |
 | Commit/reveal payloads | WebRTC DataChannel |
 | Quorum agreement | Browser ring consensus over WebRTC |
@@ -617,11 +627,11 @@ When `POOL_STORE=firestore` is set, the server must initialize Firebase Admin an
 
 ## Doppler boundary
 
-Poolday must not deep-import Doppler internals for the pool product. The browser runtime adapter loads through the public Doppler facade and calls public generation methods on the loaded handle.
+Poolday must not deep-import Doppler internals for the pool product. The browser runtime adapter loads through the public Doppler facade and calls the workload's public `generate`, `embed`, or `encodeSequence` method on the loaded handle.
 
 Firebase Hosting serves the app as browser ES modules. A hosted deployment must provide Doppler through a browser-resolvable public module URL or an attached public module/handle, and must provide a browser-resolvable Doppler WGSL kernel base URL for runtime shader fetches. Supported globals are `window.REPLOID_DOPPLER_MODULE_URL`, `window.REPLOID_DOPPLER_MODULE_URLS`, `window.REPLOID_DOPPLER_MODULE`, `window.REPLOID_DOPPLER_KERNEL_BASE_URL`, `window.REPLOID_DOPPLER_LOAD_OPTIONS`, and `window.REPLOID_POOL_ATTACH_DOPPLER_HANDLE(handle, model, runtimeInfo)`. Bare package imports are only a fallback for bundled or import-map deployments.
 
-The adapter supports both public Doppler call shapes: `generate(prompt, options)` / `generateText(prompt, options)` and object-style provider calls using `{ prompt, samplingOptions }`. Pool policy names stay product-owned; only the adapter maps them to Doppler `GenerateOptions`.
+The adapter supports both public Doppler text call shapes: `generate(prompt, options)` / `generateText(prompt, options)` and object-style provider calls using `{ prompt, samplingOptions }`. Embedding uses `embed` or `embedText`. Biological sequence work uses `encodeSequence(sequence, options)`. Pool policy names stay product-owned; only the adapter maps them to Doppler options.
 
 If the public Doppler handle does not expose token ids, Poolday records the missing evidence as a warning and still binds the available output artifact. Stronger token-level verification needs a narrow public Doppler export.
 

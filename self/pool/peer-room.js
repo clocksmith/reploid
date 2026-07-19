@@ -17,11 +17,11 @@ import {
 import {
   buildPeerAssignmentPlan,
   buildPeerReceiptAgreement,
-  createPeerPromptPayload,
   validatePeerAssignmentForIntentAndAdvert,
-  validatePromptPayloadForAssignment
+  validateInputPayloadForAssignment
 } from './peer-control-plane.js';
 import { getPolicy } from './config.js';
+import { modelSupportsPoolWorkload } from './model-contract.js';
 
 export const PEER_ROOM_VERSION = 'reploid_peer_room/v1';
 export const DEFAULT_PEER_ROOM_ID = 'reploid-default';
@@ -304,6 +304,8 @@ export async function runPeerJob({
   roomId = DEFAULT_PEER_ROOM_ID,
   requesterClient,
   prompt,
+  sequence,
+  sequenceRequest = null,
   policyId,
   modelRequirements,
   generationConfig,
@@ -332,6 +334,8 @@ export async function runPeerJob({
   try {
     const intent = await requesterClient.createPeerJobIntent({
       prompt,
+      sequence,
+      sequenceRequest,
       policyId,
       modelRequirements,
       generationConfig,
@@ -372,6 +376,7 @@ export async function runPeerJob({
         && model.manifestHash === requiredModel.manifestHash
         && (model.runtime || 'doppler') === (requiredModel.runtime || 'doppler')
         && (model.backend || 'browser-webgpu') === (requiredModel.backend || 'browser-webgpu')
+        && modelSupportsPoolWorkload(model, requiredModel.workload || 'text_generation')
       ))
     });
     const plan = await buildPeerAssignmentPlan({
@@ -471,11 +476,11 @@ export async function runPeerJob({
     reportActivity('peer_inference_started', 'infer', {
       providerCount: acceptedSessions.length
     });
-    const promptPayloads = new Array(acceptedSessions.length);
+    const inputPayloads = new Array(acceptedSessions.length);
     const receiptResults = new Array(acceptedSessions.length);
     let nextDispatchIndex = 0;
     const dispatchConcurrency = resolvePromptDispatchConcurrency(promptDispatchConcurrency, acceptedSessions.length);
-    const dispatchNextPrompt = async () => {
+    const dispatchNextInput = async () => {
       const index = nextDispatchIndex;
       nextDispatchIndex += 1;
       if (index >= acceptedSessions.length) return;
@@ -486,14 +491,20 @@ export async function runPeerJob({
           transportConnectWindowMs,
           `Peer transport did not connect for provider ${session.assignment.providerId}`
         );
-        const promptPayload = await requesterClient.createPeerPromptPayload({
-          assignment: session.assignment,
-          prompt: intent.prompt,
-          toPeerId: session.assignment.providerId
-        });
-        promptPayloads[index] = promptPayload;
+        const inputPayload = intent.inputKind === 'sequence'
+          ? await requesterClient.createPeerSequencePayload({
+            assignment: session.assignment,
+            sequence: intent.sequence,
+            toPeerId: session.assignment.providerId
+          })
+          : await requesterClient.createPeerPromptPayload({
+            assignment: session.assignment,
+            prompt: intent.prompt,
+            toPeerId: session.assignment.providerId
+          });
+        inputPayloads[index] = inputPayload;
         session.startReceiptTimer();
-        session.transport.send(promptPayload);
+        session.transport.send(inputPayload);
         receiptResults[index] = await Promise.allSettled([session.receiptPromise]).then((results) => results[0]);
       } catch (error) {
         session.clearReceiptTimer?.();
@@ -502,11 +513,11 @@ export async function runPeerJob({
           reason: error
         };
       }
-      await dispatchNextPrompt();
+      await dispatchNextInput();
     };
     await Promise.all(Array.from(
       { length: Math.min(dispatchConcurrency, acceptedSessions.length) },
-      () => dispatchNextPrompt()
+      () => dispatchNextInput()
     ));
     const receiptPayloads = receiptResults
       .filter((result) => result.status === 'fulfilled')
@@ -572,8 +583,10 @@ export async function runPeerJob({
       plan,
       assignment: primaryRecord?.assignment || plan.assignment,
       assignments: plan.assignments,
-      promptPayload: promptPayloads.find(Boolean) || null,
-      promptPayloads: promptPayloads.filter(Boolean),
+      inputPayload: inputPayloads.find(Boolean) || null,
+      inputPayloads: inputPayloads.filter(Boolean),
+      promptPayload: intent.inputKind === 'prompt' ? inputPayloads.find(Boolean) || null : null,
+      promptPayloads: intent.inputKind === 'prompt' ? inputPayloads.filter(Boolean) : [],
       receiptPayload,
       receiptPayloads,
       receiptRecord: receiptPayload?.body || null,
@@ -581,8 +594,11 @@ export async function runPeerJob({
       receiptHashes: agreement.receiptHashes,
       outputText: receiptPayload?.body?.outputText || '',
       tokenIds: receiptPayload?.body?.tokenIds || [],
-      outputKind: receiptPayload?.body?.outputKind || (agreement.agreementField === 'vectorHash' ? 'embedding' : 'text_generation'),
+      outputKind: receiptPayload?.body?.outputKind || plan.assignment?.workload || 'text_generation',
       vectorHash: agreement.vectorHash || receiptPayload?.body?.vectorHash || null,
+      sequenceResultHash: agreement.sequenceResultHash || receiptPayload?.body?.sequenceResultHash || null,
+      sequenceResult: receiptPayload?.body?.sequenceResult || null,
+      sequenceOutput: receiptPayload?.body?.sequenceOutput || null,
       embeddingDimensions: receiptPayload?.body?.embeddingDimensions || null,
       agreement,
       ledgerEvents,
@@ -626,7 +642,7 @@ export function createPeerProviderNode({
   let interval = null;
   let stopped = false;
   let drainingQueue = false;
-  const pendingPromptExecutions = [];
+  const pendingInputExecutions = [];
   const activeExecutionSessions = new Set();
 
   const maxActiveSessionCount = () => Math.max(
@@ -641,15 +657,15 @@ export function createPeerProviderNode({
   const releaseExecutionSlot = (sessionId) => {
     if (!sessionId || !activeExecutionSessions.has(sessionId)) return;
     activeExecutionSessions.delete(sessionId);
-    drainQueuedPromptExecutions();
+    drainQueuedInputExecutions();
   };
 
   const removeActiveEntry = async (activeEntry, transport, signaling, reason = 'session_done') => {
     if (!activeEntry) return;
     activeTransports.delete(activeEntry);
-    for (let index = pendingPromptExecutions.length - 1; index >= 0; index -= 1) {
-      if (pendingPromptExecutions[index]?.activeEntry === activeEntry) {
-        pendingPromptExecutions.splice(index, 1);
+    for (let index = pendingInputExecutions.length - 1; index >= 0; index -= 1) {
+      if (pendingInputExecutions[index]?.activeEntry === activeEntry) {
+        pendingInputExecutions.splice(index, 1);
       }
     }
     if (activeEntry.settleTimer) {
@@ -661,22 +677,22 @@ export function createPeerProviderNode({
     signaling?.close?.();
   };
 
-  const queuePromptExecution = (entry) => {
+  const queueInputExecution = (entry) => {
     const sessionId = entry?.activeEntry?.sessionId;
     if (!sessionId) return false;
-    if (pendingPromptExecutions.some((queued) => queued.activeEntry?.sessionId === sessionId)) return true;
-    if (pendingPromptExecutions.length >= Math.max(0, Number(maxQueuedSessions || 0))) {
+    if (pendingInputExecutions.some((queued) => queued.activeEntry?.sessionId === sessionId)) return true;
+    if (pendingInputExecutions.length >= Math.max(0, Number(maxQueuedSessions || 0))) {
       if (typeof onActivity === 'function') {
         onActivity({ status: 'peer_session_rejected', reason: 'provider_queue_full', sessionId });
       }
       return false;
     }
-    pendingPromptExecutions.push(entry);
+    pendingInputExecutions.push(entry);
     if (typeof onActivity === 'function') {
       onActivity({
         status: 'peer_session_queued',
         sessionId,
-        queueDepth: pendingPromptExecutions.length,
+        queueDepth: pendingInputExecutions.length,
         maxActiveSessions: maxActiveSessionCount()
       });
     }
@@ -702,10 +718,10 @@ export function createPeerProviderNode({
     }
   };
 
-  const executePromptPayload = async ({ assignment, activeEntry, transport, signaling, payload }) => {
+  const executeInputPayload = async ({ assignment, activeEntry, transport, signaling, payload }) => {
     activeExecutionSessions.add(activeEntry.sessionId);
     try {
-      const result = await providerClient.executePeerAssignment(assignment, { promptPayload: payload });
+      const result = await providerClient.executePeerAssignment(assignment, { inputPayload: payload });
       if (stopped || !activeTransports.has(activeEntry)) {
         releaseExecutionSlot(activeEntry?.sessionId);
         return;
@@ -720,6 +736,9 @@ export function createPeerProviderNode({
         tokenIds: result.execution.tokenIds || [],
         outputKind: result.execution.outputKind || assignment.outputKind || null,
         vectorHash: result.execution.vectorHash || result.receipt?.vectorHash || null,
+        sequenceResultHash: result.execution.sequenceResultHash || result.receipt?.sequenceResultHash || null,
+        sequenceResult: result.execution.sequenceResult || result.receipt?.sequence || null,
+        sequenceOutput: result.execution.sequenceOutput || null,
         embeddingDimensions: result.execution.embeddingDimensions || result.receipt?.embedding?.dimensions || null,
         embeddingStats: result.execution.embeddingStats || result.receipt?.embedding?.stats || null,
         transcript: result.execution.transcript || null,
@@ -762,26 +781,26 @@ export function createPeerProviderNode({
     }
   };
 
-  const drainQueuedPromptExecutions = () => {
-    if (drainingQueue || stopped || pendingPromptExecutions.length === 0) return;
+  const drainQueuedInputExecutions = () => {
+    if (drainingQueue || stopped || pendingInputExecutions.length === 0) return;
     drainingQueue = true;
     queueMicrotask(async () => {
       try {
-        while (!stopped && pendingPromptExecutions.length > 0 && activeExecutionSessions.size < maxActiveSessionCount()) {
-          const entry = pendingPromptExecutions.shift();
+        while (!stopped && pendingInputExecutions.length > 0 && activeExecutionSessions.size < maxActiveSessionCount()) {
+          const entry = pendingInputExecutions.shift();
           if (typeof onActivity === 'function') {
             onActivity({
               status: 'peer_session_dequeued',
               sessionId: entry?.activeEntry?.sessionId || null,
-              queueDepth: pendingPromptExecutions.length
+              queueDepth: pendingInputExecutions.length
             });
           }
-          void executePromptPayload(entry);
+          void executeInputPayload(entry);
         }
       } finally {
         drainingQueue = false;
-        if (!stopped && pendingPromptExecutions.length > 0 && activeExecutionSessions.size < maxActiveSessionCount()) {
-          drainQueuedPromptExecutions();
+        if (!stopped && pendingInputExecutions.length > 0 && activeExecutionSessions.size < maxActiveSessionCount()) {
+          drainQueuedInputExecutions();
         }
       }
     });
@@ -800,8 +819,8 @@ export function createPeerProviderNode({
     }
   };
 
-  const handlePromptPayload = async ({ assignment, activeEntry, transport, signaling, payload }) => {
-    const validation = await validatePromptPayloadForAssignment(payload, assignment);
+  const handleInputPayload = async ({ assignment, activeEntry, transport, signaling, payload }) => {
+    const validation = await validateInputPayloadForAssignment(payload, assignment);
     if (!validation.ok) {
       transport.send(createP2PPayload({
         type: P2P_PAYLOAD_TYPES.ERROR,
@@ -813,7 +832,7 @@ export function createPeerProviderNode({
           error: validation.reasons.join('; ')
         }
       }));
-      void removeActiveEntry(activeEntry, transport, signaling, 'prompt_rejected');
+      void removeActiveEntry(activeEntry, transport, signaling, 'input_rejected');
       return;
     }
     const executionEntry = {
@@ -824,7 +843,7 @@ export function createPeerProviderNode({
       payload
     };
     if (activeExecutionSessions.size >= maxActiveSessionCount()) {
-      if (queuePromptExecution(executionEntry)) return;
+      if (queueInputExecution(executionEntry)) return;
       transport.send(createP2PPayload({
         type: P2P_PAYLOAD_TYPES.ERROR,
         assignmentId: assignment.assignmentId,
@@ -838,7 +857,7 @@ export function createPeerProviderNode({
       void removeActiveEntry(activeEntry, transport, signaling, 'queue_full');
       return;
     }
-    await executePromptPayload(executionEntry);
+    await executeInputPayload(executionEntry);
   };
 
   const handleRunRequest = async (message) => {
@@ -890,8 +909,8 @@ export function createPeerProviderNode({
       signaling,
       initiator: false,
       onMessage(payload) {
-        if (payload?.type === P2P_PAYLOAD_TYPES.PROMPT) {
-          void handlePromptPayload({ assignment, activeEntry, transport, signaling, payload }).catch((error) => {
+        if (payload?.type === P2P_PAYLOAD_TYPES.PROMPT || payload?.type === P2P_PAYLOAD_TYPES.INPUT) {
+          void handleInputPayload({ assignment, activeEntry, transport, signaling, payload }).catch((error) => {
             try {
               transport.send(createP2PPayload({
                 type: P2P_PAYLOAD_TYPES.ERROR,
@@ -987,7 +1006,7 @@ export function createPeerProviderNode({
       stopped = true;
       if (interval) globalThis.clearInterval(interval);
       interval = null;
-      pendingPromptExecutions.length = 0;
+      pendingInputExecutions.length = 0;
       channel?.removeEventListener('message', handler);
       for (const entry of activeTransports) {
         releaseExecutionSlot(entry.sessionId);

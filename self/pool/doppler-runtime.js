@@ -15,6 +15,15 @@ import {
   validateModelRuntimeCapabilities
 } from './model-contract.js';
 import {
+  isSequenceWorkload,
+  validateSequenceRequest
+} from './sequence-workload.js';
+import {
+  callDopplerSequence,
+  reduceDopplerSequenceResult,
+  sequenceMethodName
+} from './sequence-result.js';
+import {
   adapterRequirementFromPack,
   verifyAdapterPack
 } from './adapter-pack.js';
@@ -190,11 +199,12 @@ const embeddingMethodName = (candidate) => {
   return null;
 };
 
-const publicMethodNameForWorkload = (candidate, model = {}) => (
-  getPoolModelWorkload(model) === POOLDAY_MODEL_WORKLOADS.embedding
-    ? embeddingMethodName(candidate)
-    : generateMethodName(candidate)
-);
+const publicMethodNameForWorkload = (candidate, model = {}) => {
+  const workload = getPoolModelWorkload(model);
+  if (workload === POOLDAY_MODEL_WORKLOADS.embedding) return embeddingMethodName(candidate);
+  if (isSequenceWorkload(workload)) return sequenceMethodName(candidate);
+  return generateMethodName(candidate);
+};
 
 const normalizeTokenIds = (value) => {
   const candidates = [
@@ -323,7 +333,10 @@ const normalizeModelInfo = async (model, handle) => {
     modelHash: model?.modelHash || evidence.modelHash || null,
     manifestHash: manifestHash || null,
     workload: getPoolModelWorkload(model || manifest || {}),
+    workloads: Array.isArray(model?.workloads) ? [...model.workloads] : undefined,
     executionMode: model?.executionMode || model?.execution || null,
+    executionModes: model?.executionModes || null,
+    sequence: model?.sequence || manifest?.inference?.sequence || null,
     contextLength: Number(model?.contextLength || handle?.contextLength || handle?.model?.contextLength || 0),
     quantization: model?.quantization || handle?.quantization || handle?.model?.quantization || null,
     runtime: 'doppler',
@@ -862,6 +875,65 @@ export function createDopplerRuntime({ modelSession = null, model = null, runtim
         };
       };
       const task = generationQueue.then(runEmbedding, runEmbedding);
+      generationQueue = task.catch(() => null);
+      return task;
+    },
+    async encodeSequence({ sequence, request, assignment }) {
+      if (!session || !sequenceMethodName(session)) {
+        throw new Error('Doppler browser sequence model session is not connected');
+      }
+      const validation = validateSequenceRequest(request, { model: modelInfo });
+      if (!validation.ok) throw new Error(`Sequence request rejected: ${validation.reasons.join('; ')}`);
+      if (await sha256Hex(sequence) !== request.sequenceHash) throw new Error('sequence input hash mismatch');
+      const runSequence = async () => {
+        await resetSessionGenerationState(session);
+        const startedAt = new Date().toISOString();
+        const result = await callDopplerSequence(session, sequence, request, assignment);
+        const completedAt = new Date().toISOString();
+        const reduced = await reduceDopplerSequenceResult(result, request);
+        const {
+          tokens,
+          pooledEmbedding,
+          tokenEmbeddings,
+          maskedLogits,
+          pooledEmbeddingHash,
+          pooledStats,
+          sequenceResult,
+          sequenceResultHash
+        } = reduced;
+        return {
+          outputKind: request.workload,
+          outputText: '',
+          tokenIds: [],
+          vectorHash: pooledEmbeddingHash,
+          sequenceResultHash,
+          sequenceResult,
+          sequenceOutput: {
+            pooledEmbedding,
+            tokenEmbeddings: request.includeTokenEmbeddings ? tokenEmbeddings : null,
+            maskedLogits
+          },
+          embeddingDimensions: pooledEmbedding.length,
+          embeddingStats: pooledStats,
+          transcript: {
+            outputKind: request.workload,
+            sequenceResultHash,
+            sequenceResult
+          },
+          tokenCounts: {
+            input: tokens.length,
+            output: 0
+          },
+          timing: result?.phase || { startedAt, completedAt },
+          dopplerProviderReceipt: result?.receipt || result?.dopplerProviderReceipt || null,
+          adapter: activeAdapter,
+          model: modelInfo,
+          runtime: runtimeInfo,
+          evidenceWarnings: [],
+          status: 'completed'
+        };
+      };
+      const task = generationQueue.then(runSequence, runSequence);
       generationQueue = task.catch(() => null);
       return task;
     }

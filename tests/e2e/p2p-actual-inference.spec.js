@@ -7,6 +7,9 @@ import { LAUNCH_MODEL } from '../../self/pool/model-contract.js';
 
 const BASE_URL = 'http://localhost:8000';
 const ACTUAL_INFERENCE_TIMEOUT_MS = 300000;
+const RELAY_MODE = 'local';
+const RELAY_LABEL = 'local tab';
+const TEXT_TOKEN_PATTERN = /[\p{L}\p{N}]/u;
 
 const roomIdFor = (testInfo) => (
   `actual-inference-${testInfo.workerIndex}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`
@@ -15,6 +18,7 @@ const roomIdFor = (testInfo) => (
 const routeUrl = (baseURL, route, roomId) => {
   const url = new URL(route, baseURL || BASE_URL);
   url.searchParams.set('room', roomId);
+  url.searchParams.set('relay', RELAY_MODE);
   return url.toString();
 };
 
@@ -51,7 +55,10 @@ const openPoolPage = async (context, baseURL, route, roomId, label) => {
   await page.goto(routeUrl(baseURL, route, roomId), { waitUntil: 'domcontentloaded' });
   await page.waitForSelector('.pool-home');
   await expect(page.locator('[data-pool-room-id]')).toHaveText(roomId);
-  await expect(page.locator('[data-pool-relay-mode]')).toHaveText('local');
+  await expect(page.locator('[data-pool-relay-mode]')).toHaveText(RELAY_LABEL);
+  await expect.poll(() => page.evaluate(() => (
+    new URL(window.location.href).searchParams.get('relay')
+  ))).toBe(RELAY_MODE);
   return page;
 };
 
@@ -140,7 +147,7 @@ test.describe('Run and Contribute actual browser inference', () => {
 
       expect(result.transport).toBe('webrtc_peer_room');
       expect(result.outputText.trim().length).toBeGreaterThan(0);
-      expect(result.outputText).toMatch(/[a-z0-9]/i);
+      expect(result.outputText).toMatch(TEXT_TOKEN_PATTERN);
       expect(result.receiptHash).toMatch(/^sha256:/);
       expect(result.receiptRecord?.receipt?.model?.id || result.receiptRecord?.receipt?.model?.modelId).toBe(LAUNCH_MODEL.modelId);
       expect(result.receiptPayloads).toHaveLength(1);
@@ -168,7 +175,7 @@ test.describe('Run and Contribute actual browser inference', () => {
       for (const result of [first, second]) {
         expect(result.transport).toBe('webrtc_peer_room');
         expect(result.outputText.trim().length).toBeGreaterThan(0);
-        expect(result.outputText).toMatch(/[a-z0-9]/i);
+        expect(result.outputText).toMatch(TEXT_TOKEN_PATTERN);
         expect(result.receiptHash).toMatch(/^sha256:/);
         expect(result.receiptRecord?.receipt?.model?.id || result.receiptRecord?.receipt?.model?.modelId).toBe(LAUNCH_MODEL.modelId);
         expect(result.receiptPayloads).toHaveLength(1);

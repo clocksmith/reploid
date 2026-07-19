@@ -8,6 +8,7 @@ export const P2P_PAYLOAD_VERSION = 'reploid_pool_p2p_payload/v1';
 
 export const P2P_PAYLOAD_TYPES = Object.freeze({
   PROMPT: 'prompt',
+  INPUT: 'input',
   EXECUTION_RESULT: 'execution_result',
   RECEIPT: 'receipt',
   ACCEPTANCE: 'acceptance',
@@ -110,6 +111,9 @@ export async function createExecutionResultPayload({ assignment, execution, from
       tokenIds: Array.isArray(execution?.tokenIds) ? execution.tokenIds : [],
       outputKind: execution?.outputKind || null,
       vectorHash: execution?.vectorHash || null,
+      sequenceResultHash: execution?.sequenceResultHash || null,
+      sequenceResult: execution?.sequenceResult || null,
+      sequenceOutput: execution?.sequenceOutput || null,
       embeddingDimensions: execution?.embeddingDimensions || null,
       embeddingStats: execution?.embeddingStats || null,
       transcript: execution?.transcript || null,
@@ -139,6 +143,9 @@ export async function createReceiptPayload({ assignment, receiptRecord, fromPeer
       tokenIds: Array.isArray(receiptRecord?.tokenIds) ? receiptRecord.tokenIds : [],
       outputKind: receiptRecord?.outputKind || receiptRecord?.receipt?.outputKind || null,
       vectorHash: receiptRecord?.vectorHash || receiptRecord?.receipt?.vectorHash || null,
+      sequenceResultHash: receiptRecord?.sequenceResultHash || receiptRecord?.receipt?.sequence?.resultHash || null,
+      sequenceResult: receiptRecord?.sequenceResult || receiptRecord?.receipt?.sequence || null,
+      sequenceOutput: receiptRecord?.sequenceOutput || null,
       embeddingDimensions: receiptRecord?.embeddingDimensions || receiptRecord?.receipt?.embedding?.dimensions || null,
       embeddingStats: receiptRecord?.embeddingStats || receiptRecord?.receipt?.embedding?.stats || null,
       transcript: receiptRecord?.transcript || null,
@@ -182,6 +189,7 @@ export async function buildAssignmentCommitmentPayload({
     outputHash: receipt?.outputHash || await sha256Hex(outputText),
     tokenIdsHash: receipt?.tokenIdsHash || await hashJson(tokenIds),
     vectorHash: receipt?.vectorHash || execution?.vectorHash || null,
+    sequenceResultHash: receipt?.sequenceResultHash || execution?.sequenceResultHash || null,
     transcriptHash: receipt?.transcriptHash || await hashJson(transcript),
     salt
   };
@@ -197,6 +205,7 @@ export async function buildAssignmentCommitmentPayload({
     outputHash: commitmentBody.outputHash,
     tokenIdsHash: commitmentBody.tokenIdsHash,
     vectorHash: commitmentBody.vectorHash,
+    sequenceResultHash: commitmentBody.sequenceResultHash,
     transcriptHash: commitmentBody.transcriptHash,
     receiptHash,
     commitmentHash
@@ -228,6 +237,7 @@ export async function buildAssignmentRevealPayload({
     outputText,
     tokenIds,
     vectorHash: receipt?.vectorHash || execution?.vectorHash || null,
+    sequenceResultHash: receipt?.sequenceResultHash || execution?.sequenceResultHash || null,
     transcript,
     receipt,
     receiptHash,

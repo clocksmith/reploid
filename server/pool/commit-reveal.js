@@ -14,6 +14,7 @@ export function buildCommitmentPayload(input = {}) {
     outputHash: input.outputHash || null,
     tokenIdsHash: input.tokenIdsHash || null,
     vectorHash: input.vectorHash || null,
+    sequenceResultHash: input.sequenceResultHash || null,
     transcriptHash: input.transcriptHash || null,
     salt: input.salt || null
   };
@@ -45,6 +46,9 @@ export function validateRevealInput(input = {}) {
   if (input.vectorHash && !String(input.vectorHash).startsWith('sha256:')) {
     reasons.push('vectorHash must be sha256-prefixed');
   }
+  if (input.sequenceResultHash && !String(input.sequenceResultHash).startsWith('sha256:')) {
+    reasons.push('sequenceResultHash must be sha256-prefixed');
+  }
   return reasons;
 }
 
@@ -57,6 +61,7 @@ export function revealMatchesCommitment({ commitment = {}, reveal = {} } = {}) {
     outputHash: reveal.outputHash,
     tokenIdsHash: reveal.tokenIdsHash,
     vectorHash: reveal.vectorHash || null,
+    sequenceResultHash: reveal.sequenceResultHash || null,
     transcriptHash: reveal.transcriptHash,
     salt: reveal.salt
   });

@@ -3,6 +3,7 @@
  */
 
 import { POOL_CONFIG, POOL_CONFIG_VERSION } from './config.js';
+import { isSequenceWorkload } from './sequence-workload.js';
 
 const textEncoder = new TextEncoder();
 
@@ -198,11 +199,28 @@ export async function buildPoolReceipt({ assignment, provider, model, runtime, e
   const tokenIds = Array.isArray(execution?.tokenIds) ? execution.tokenIds : [];
   const outputKind = execution?.outputKind || assignment?.workload || model?.workload || model?.requirements?.workload || 'text_generation';
   const vectorHash = execution?.vectorHash || execution?.embeddingHash || null;
+  const sequenceResult = execution?.sequenceResult || null;
+  const sequenceResultHash = execution?.sequenceResultHash || null;
+  let sequence = null;
+  if (isSequenceWorkload(outputKind)) {
+    if (!sequenceResult || !sequenceResultHash) throw new Error('sequence execution result and hash are required');
+    if (await hashJson(sequenceResult) !== sequenceResultHash) throw new Error('sequence result hash mismatch');
+    if (sequenceResult.workload !== outputKind) throw new Error('sequence result workload mismatch');
+    if (sequenceResult.sequenceHash !== assignment.inputHash) throw new Error('sequence result input hash mismatch');
+    const requestHash = assignment.sequenceRequestHash || await hashJson(assignment.sequenceRequest || null);
+    sequence = {
+      ...sequenceResult,
+      requestHash,
+      resultHash: sequenceResultHash
+    };
+  }
   const transcript = execution?.transcript || {
     outputKind,
     outputText,
     tokenIds,
-    vectorHash
+    vectorHash,
+    sequenceResultHash,
+    sequenceResult
   };
   const runtimeProfileHash = assignment.runtimeProfileHash
     || provider?.runtimeProfileHash
@@ -231,6 +249,8 @@ export async function buildPoolReceipt({ assignment, provider, model, runtime, e
     outputHash: await sha256Hex(outputText),
     tokenIdsHash: await hashJson(tokenIds),
     vectorHash,
+    sequenceResultHash,
+    sequence,
     transcriptHash: await hashJson(transcript),
     tokenCounts: execution?.tokenCounts || { input: 0, output: tokenIds.length },
     embedding: execution?.embeddingDimensions ? {
@@ -292,6 +312,7 @@ export function compactAgreementForAcceptance(agreement = null) {
     outputHash: agreement.outputHash || null,
     tokenIdsHash: agreement.tokenIdsHash || null,
     vectorHash: agreement.vectorHash || null,
+    sequenceResultHash: agreement.sequenceResultHash || null,
     effectiveTrustTier: agreement.effectiveTrustTier || null
   };
 }

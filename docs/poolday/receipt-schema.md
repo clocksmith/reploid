@@ -45,6 +45,23 @@ When an assignment requests an adapter, the receipt also requires:
 Adapter publication, requester approval, and revocation use separate signature
 domains. They are not inferred from the provider receipt.
 
+For `sequence.embedding.v1` or `sequence.masked_logits.v1`, the receipt also
+requires:
+
+- `sequenceResultHash`
+- `sequence.schema`
+- `sequence.workload`
+- `sequence.alphabet`
+- `sequence.sequenceHash`
+- `sequence.requestHash`
+- `sequence.resultHash`
+- hashes for each requested output class
+
+The raw sequence, pooled vector, token vectors, and logits are not receipt
+fields. Requested outputs travel to the requester through the assignment's
+WebRTC DataChannel. Redundant agreement and commit-reveal use
+`sequenceResultHash`.
+
 ## Requester Acceptance
 
 Requester acceptance is a separate artifact.

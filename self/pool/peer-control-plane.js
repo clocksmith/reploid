@@ -27,6 +27,7 @@ import {
   buildLaunchModelRequirements,
   buildLaunchProviderModel,
   getPoolModelWorkload,
+  modelSupportsPoolWorkload,
   validateLaunchModelRequirement
 } from './model-contract.js';
 import { modelSupportsAdapterRequirement } from './adapter-pack.js';
@@ -41,6 +42,14 @@ import {
   hashP2PPayload,
   validateP2PPayload
 } from './p2p-payload.js';
+import {
+  SEQUENCE_PUBLIC_SENSITIVITY,
+  agreementFieldForWorkload,
+  isSequenceWorkload,
+  normalizeSequenceInput,
+  normalizeSequenceRequest,
+  validateSequenceRequest
+} from './sequence-workload.js';
 
 export const PEER_CONTROL_VERSION = 'reploid_peer_control/v1';
 export const PEER_CONTROL_BUS_VERSION = 'reploid_peer_control_bus/v1';
@@ -194,6 +203,8 @@ export async function createSignedJobIntent({
   requesterPublicKey,
   privateKey,
   prompt,
+  sequence,
+  sequenceRequest = null,
   policyId = FASTEST_RECEIPT_POLICY_ID,
   modelRequirements = {},
   generationConfig = {},
@@ -203,22 +214,57 @@ export async function createSignedJobIntent({
   expiresAt = null
 } = {}) {
   const resolvedRequesterId = requireString(requesterId, 'requesterId');
-  const resolvedPrompt = requireString(prompt, 'prompt');
-  const resolvedModelRequirements = buildLaunchModelRequirements(modelRequirements);
+  let resolvedModelRequirements = buildLaunchModelRequirements(modelRequirements);
   const workload = resolvedModelRequirements.workload || getPoolModelWorkload(resolvedModelRequirements);
+  const sequenceWorkload = isSequenceWorkload(workload);
+  const resolvedInput = sequenceWorkload
+    ? normalizeSequenceInput(sequence, sequenceRequest?.alphabet)
+    : requireString(prompt, 'prompt');
+  const inputHash = await sha256Hex(resolvedInput);
+  const resolvedSequenceRequest = sequenceWorkload
+    ? normalizeSequenceRequest(sequenceRequest || {}, {
+      workload,
+      sequenceHash: inputHash,
+      sequenceLength: resolvedInput.length
+    })
+    : null;
+  if (resolvedSequenceRequest) {
+    resolvedModelRequirements = {
+      ...resolvedModelRequirements,
+      sequenceRequest: resolvedSequenceRequest
+    };
+  }
   const resolvedGenerationConfig = {
     ...DETERMINISTIC_GENERATION_CONFIG,
     ...generationConfig
   };
   const policy = getPolicy(policyId);
   if (!policy) throw new Error(`Unsupported pool policy: ${policyId}`);
-  const policyClassValidation = validatePooldayPolicyClasses({ prompt: resolvedPrompt, policyTags });
+  const policyClassValidation = sequenceWorkload
+    ? {
+      ok: resolvedSequenceRequest.sensitivity === SEQUENCE_PUBLIC_SENSITIVITY,
+      reasons: resolvedSequenceRequest.sensitivity === SEQUENCE_PUBLIC_SENSITIVITY
+        ? []
+        : ['public Poolday providers accept only sequences explicitly classified as public'],
+      classification: {
+        classes: ['public_biological_sequence'],
+        blockedClasses: [],
+        publicProviderSafe: resolvedSequenceRequest.sensitivity === SEQUENCE_PUBLIC_SENSITIVITY,
+        explicitTags: policyTags
+      }
+    }
+    : validatePooldayPolicyClasses({ prompt: resolvedInput, policyTags });
   if (!policyClassValidation.ok) throw new Error(policyClassValidation.reasons.join('; '));
+  if (resolvedSequenceRequest) {
+    const sequenceValidation = validateSequenceRequest(resolvedSequenceRequest, {
+      model: null
+    });
+    if (!sequenceValidation.ok) throw new Error(sequenceValidation.reasons.join('; '));
+  }
   const modelValidation = validateLaunchModelRequirement(resolvedModelRequirements);
   if (!modelValidation.ok) {
     throw new Error(modelValidation.reasons.join('; '));
   }
-  const inputHash = await sha256Hex(resolvedPrompt);
   const generationConfigHash = await hashJson(resolvedGenerationConfig);
   const adapterUseApproval = resolvedModelRequirements.adapter
     ? await createAdapterUseApproval({
@@ -236,9 +282,13 @@ export async function createSignedJobIntent({
     policyId,
     policyConfigVersion: POOL_CONFIG_VERSION,
     inputHash,
-    promptTransport: 'webrtc_datachannel',
-    promptDisclosure: 'selected_providers_only',
+    inputKind: sequenceWorkload ? 'sequence' : 'prompt',
+    inputTransport: 'webrtc_datachannel',
+    inputDisclosure: 'selected_providers_only',
+    promptTransport: sequenceWorkload ? null : 'webrtc_datachannel',
+    promptDisclosure: sequenceWorkload ? null : 'selected_providers_only',
     workload,
+    sequenceRequest: resolvedSequenceRequest,
     modelRequirements: resolvedModelRequirements,
     adapterUseApproval,
     generationConfig: resolvedGenerationConfig,
@@ -260,7 +310,9 @@ export async function createSignedJobIntent({
     intent: message,
     intentHash: message.messageHash,
     inputHash,
-    prompt,
+    ...(sequenceWorkload ? { sequence: resolvedInput } : { prompt: resolvedInput }),
+    inputKind: intentBody.inputKind,
+    inputTransport: intentBody.inputTransport,
     promptTransport: intentBody.promptTransport
   };
 }
@@ -331,6 +383,7 @@ const advertSupportsIntent = (advert = {}, intent = {}, policy = {}) => {
       && model.manifestHash === intent.body?.modelRequirements?.manifestHash
       && model.runtime === intent.body?.modelRequirements?.runtime
       && model.backend === intent.body?.modelRequirements?.backend
+      && modelSupportsPoolWorkload(model, intentWorkload(intent))
       && modelSupportsAdapterRequirement(model, intent.body?.modelRequirements?.adapter || null)
     ))
     && (!policy.requireRuntimeProfileHash || !!body.runtimeProfileHash);
@@ -395,11 +448,13 @@ const intentWorkload = (intent = {}) => (
   || POOLDAY_MODEL_WORKLOADS.textGeneration
 );
 
-const agreementFieldForIntent = (intent = {}, policy = {}) => (
-  intentWorkload(intent) === POOLDAY_MODEL_WORKLOADS.embedding
-    ? 'vectorHash'
-    : (policy.agreementField || 'tokenIdsHash')
-);
+const agreementFieldForIntent = (intent = {}, policy = {}) => {
+  const workload = intentWorkload(intent);
+  const workloadField = agreementFieldForWorkload(workload);
+  return workloadField === 'tokenIdsHash'
+    ? (policy.agreementField || workloadField)
+    : workloadField;
+};
 
 const buildPeerRingPlan = async ({ intent, intentHash, candidates, policy, assignmentAttemptId = 1 }) => {
   const providerIds = candidates.map((candidate) => peerIdForMessage(candidate.advert));
@@ -535,8 +590,9 @@ export async function buildPeerAssignmentPlan({
   const jobId = `peer_job_${intentVerification.messageHash.replace(/^sha256:/, '').slice(0, 16)}`;
   const assignments = [];
   const workload = intentWorkload(intent);
-  const assignmentAgreementField = workload === POOLDAY_MODEL_WORKLOADS.embedding
-    ? agreementFieldForIntent(intent, policy)
+  const assignmentAgreementField = agreementFieldForIntent(intent, policy);
+  const sequenceRequestHash = intent.body.sequenceRequest
+    ? await hashJson(intent.body.sequenceRequest)
     : null;
   for (const [index, candidate] of selectedCandidates.entries()) {
     const providerId = peerIdForMessage(candidate.advert);
@@ -562,9 +618,16 @@ export async function buildPeerAssignmentPlan({
       inputHash: intent.body.inputHash,
       workload,
       outputKind: workload,
-      ...(assignmentAgreementField ? { agreementField: assignmentAgreementField } : {}),
-      promptTransport: 'webrtc_datachannel',
-      requiresPromptPayload: true,
+      agreementField: ringPlan || assignmentAgreementField !== 'tokenIdsHash'
+        ? assignmentAgreementField
+        : undefined,
+      inputKind: intent.body.inputKind || 'prompt',
+      inputTransport: intent.body.inputTransport || intent.body.promptTransport || 'webrtc_datachannel',
+      sequenceRequest: intent.body.sequenceRequest || null,
+      sequenceRequestHash,
+      promptTransport: isSequenceWorkload(workload) ? null : 'webrtc_datachannel',
+      requiresInputPayload: true,
+      requiresPromptPayload: !isSequenceWorkload(workload),
       generationConfigHash: intent.body.generationConfigHash,
       generationConfig: intent.body.generationConfig,
       verificationLevel: policy.verificationLevel,
@@ -645,6 +708,38 @@ export async function createPeerPromptPayload({ assignment, prompt, fromPeerId, 
   };
 }
 
+export async function createPeerSequencePayload({ assignment, sequence, fromPeerId, toPeerId } = {}) {
+  const request = assignment?.sequenceRequest || assignment?.model?.requirements?.sequenceRequest || null;
+  const requestValidation = validateSequenceRequest(request || {});
+  if (!requestValidation.ok) throw new Error(requestValidation.reasons.join('; '));
+  const resolvedSequence = normalizeSequenceInput(sequence, request.alphabet);
+  const inputHash = await sha256Hex(resolvedSequence);
+  if (inputHash !== request.sequenceHash || (assignment?.inputHash && inputHash !== assignment.inputHash)) {
+    throw new Error('sequence inputHash mismatch');
+  }
+  const payload = createP2PPayload({
+    type: P2P_PAYLOAD_TYPES.INPUT,
+    assignmentId: assignment?.assignmentId,
+    jobId: assignment?.jobId,
+    fromPeerId,
+    toPeerId,
+    body: {
+      inputKind: 'sequence',
+      sequence: resolvedSequence,
+      inputHash,
+      sequenceRequest: request,
+      generationConfigHash: assignment?.generationConfigHash || null,
+      policyId: assignment?.policyId || null,
+      intentHash: assignment?.intentHash || null,
+      model: assignment?.model || null
+    }
+  });
+  return {
+    ...payload,
+    payloadHash: await hashP2PPayload(payload)
+  };
+}
+
 export async function validatePromptPayloadForAssignment(payload = {}, assignment = {}) {
   const reasons = [];
   const validation = validateP2PPayload(payload);
@@ -664,6 +759,55 @@ export async function validatePromptPayloadForAssignment(payload = {}, assignmen
     reasons,
     prompt: payload.body?.prompt || null,
     inputHash: payload.body?.inputHash || null
+  };
+}
+
+export async function validateSequencePayloadForAssignment(payload = {}, assignment = {}) {
+  const reasons = [];
+  const validation = validateP2PPayload(payload);
+  reasons.push(...validation.reasons);
+  if (payload.type !== P2P_PAYLOAD_TYPES.INPUT) reasons.push('payload type must be input');
+  if (payload.assignmentId !== assignment.assignmentId) reasons.push('assignmentId mismatch');
+  if (payload.jobId !== assignment.jobId) reasons.push('jobId mismatch');
+  if (payload.body?.inputKind !== 'sequence') reasons.push('inputKind must be sequence');
+  if (!payload.body?.sequence) reasons.push('sequence is required');
+  const request = assignment.sequenceRequest || assignment.model?.requirements?.sequenceRequest || null;
+  const requestValidation = validateSequenceRequest(request || {});
+  reasons.push(...requestValidation.reasons);
+  let sequence = null;
+  try {
+    sequence = payload.body?.sequence ? normalizeSequenceInput(payload.body.sequence, request?.alphabet) : null;
+  } catch (error) {
+    reasons.push(error.message);
+  }
+  const inputHash = sequence ? await sha256Hex(sequence) : null;
+  if (payload.body?.inputHash !== inputHash) reasons.push('sequence payload inputHash mismatch');
+  if (assignment.inputHash && payload.body?.inputHash !== assignment.inputHash) reasons.push('assignment inputHash mismatch');
+  if (request?.sequenceHash && payload.body?.inputHash !== request.sequenceHash) reasons.push('sequence request hash mismatch');
+  if (request?.sequenceLength && sequence?.length !== request.sequenceLength) reasons.push('sequence length mismatch');
+  if (await hashJson(payload.body?.sequenceRequest || null) !== await hashJson(request)) reasons.push('sequence request mismatch');
+  if (assignment.generationConfigHash && payload.body?.generationConfigHash !== assignment.generationConfigHash) {
+    reasons.push('generationConfigHash mismatch');
+  }
+  return {
+    ok: reasons.length === 0,
+    reasons,
+    inputKind: 'sequence',
+    sequence,
+    inputHash
+  };
+}
+
+export async function validateInputPayloadForAssignment(payload = {}, assignment = {}) {
+  const workload = assignment.workload
+    || assignment.model?.workload
+    || assignment.model?.requirements?.workload
+    || POOLDAY_MODEL_WORKLOADS.textGeneration;
+  if (isSequenceWorkload(workload)) return validateSequencePayloadForAssignment(payload, assignment);
+  const result = await validatePromptPayloadForAssignment(payload, assignment);
+  return {
+    ...result,
+    inputKind: 'prompt'
   };
 }
 
@@ -715,6 +859,7 @@ export async function validatePeerAssignmentForIntentAndAdvert({
     && model.manifestHash === requiredModel.manifestHash
     && (model.runtime || LAUNCH_MODEL.runtime) === (requiredModel.runtime || LAUNCH_MODEL.runtime)
     && (model.backend || LAUNCH_MODEL.backend) === (requiredModel.backend || LAUNCH_MODEL.backend)
+    && modelSupportsPoolWorkload(model, requiredModel.workload || POOLDAY_MODEL_WORKLOADS.textGeneration)
   ));
   if (!advertHasModel) reasons.push('provider advert does not support assignment model');
   const acceptedPolicies = providerAdvert?.body?.availability?.acceptedPolicies || [];
@@ -751,6 +896,8 @@ const receiptMatchesAssignment = (receipt = {}, assignment = {}) => {
   if (receipt.model?.manifestHash !== assignment.model?.manifestHash) reasons.push('receipt manifest hash mismatch');
   if ((receipt.model?.runtime || LAUNCH_MODEL.runtime) !== (assignment.model?.runtime || LAUNCH_MODEL.runtime)) reasons.push('receipt runtime mismatch');
   if ((receipt.model?.backend || LAUNCH_MODEL.backend) !== (assignment.model?.backend || LAUNCH_MODEL.backend)) reasons.push('receipt backend mismatch');
+  if ((receipt.model?.workload || POOLDAY_MODEL_WORKLOADS.textGeneration)
+    !== (assignment.model?.workload || POOLDAY_MODEL_WORKLOADS.textGeneration)) reasons.push('receipt workload mismatch');
   const expectedAdapter = assignment.adapter || assignment.model?.requirements?.adapter || null;
   const actualAdapter = receipt.adapter || null;
   if (!expectedAdapter && actualAdapter) reasons.push('receipt declares an adapter absent from the assignment');
@@ -790,10 +937,11 @@ const receiptMatchesAssignment = (receipt = {}, assignment = {}) => {
   if (receipt.signatureDomain !== SIGNATURE_DOMAINS.providerReceipt) reasons.push('receipt signature domain mismatch');
   if (!receipt.outputHash) reasons.push('receipt outputHash is required');
   const workload = assignment.workload || assignment.model?.workload || assignment.model?.requirements?.workload || POOLDAY_MODEL_WORKLOADS.textGeneration;
-  if (workload === POOLDAY_MODEL_WORKLOADS.embedding) {
-    if (!receipt.vectorHash) reasons.push('receipt vectorHash is required');
-  } else if (!receipt.tokenIdsHash) {
-    reasons.push('receipt tokenIdsHash is required');
+  const agreementField = agreementFieldForWorkload(workload);
+  if (!receipt[agreementField]) reasons.push(`receipt ${agreementField} is required`);
+  if (isSequenceWorkload(workload)) {
+    if (receipt.sequence?.requestHash !== assignment.sequenceRequestHash) reasons.push('receipt sequence request hash mismatch');
+    if (receipt.sequence?.sequenceHash !== assignment.inputHash) reasons.push('receipt sequence input hash mismatch');
   }
   return reasons;
 };
@@ -845,7 +993,8 @@ export async function buildPeerReceiptAgreement({
       agreementValue,
       outputHash: receipt.outputHash,
       tokenIdsHash: receipt.tokenIdsHash,
-      vectorHash: receipt.vectorHash || null
+      vectorHash: receipt.vectorHash || null,
+      sequenceResultHash: receipt.sequenceResultHash || null
     });
   }
   const groups = new Map();
@@ -898,6 +1047,7 @@ export async function buildPeerReceiptAgreement({
     outputHash: acceptedSlice[0]?.outputHash || null,
     tokenIdsHash: acceptedSlice[0]?.tokenIdsHash || null,
     vectorHash: acceptedSlice[0]?.vectorHash || null,
+    sequenceResultHash: acceptedSlice[0]?.sequenceResultHash || null,
     effectiveTrustTier: plan.ring?.effectiveTrustTier || plan.assignment?.trustTier || null,
     ring: plan.ring || null,
     maxPointSpend,
@@ -1160,12 +1310,14 @@ export function createPeerControlPlane({
     },
     ingest,
     publish,
-    async publishJobIntent({ prompt, policyId, modelRequirements, generationConfig, maxPointSpend } = {}) {
+    async publishJobIntent({ prompt, sequence, sequenceRequest, policyId, modelRequirements, generationConfig, maxPointSpend } = {}) {
       const result = await createSignedJobIntent({
         requesterId: localPeerId,
         requesterPublicKey: publicKey,
         privateKey,
         prompt,
+        sequence,
+        sequenceRequest,
         policyId,
         modelRequirements,
         generationConfig,
@@ -1220,7 +1372,10 @@ export default {
   createSignedProviderAdvert,
   buildPeerAssignmentPlan,
   createPeerPromptPayload,
+  createPeerSequencePayload,
   validatePromptPayloadForAssignment,
+  validateSequencePayloadForAssignment,
+  validateInputPayloadForAssignment,
   validatePeerAssignmentForIntentAndAdvert,
   buildPeerReceiptAgreement,
   createPeerLedgerEvents,
