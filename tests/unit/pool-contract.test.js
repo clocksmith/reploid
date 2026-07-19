@@ -360,6 +360,8 @@ describe('pool launch contract', () => {
       'modelId',
       'modelHash',
       'manifestHash',
+      'tokenizerHash',
+      'artifactIdentity',
       'runtime',
       'backend'
     ]);

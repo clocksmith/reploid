@@ -44,6 +44,8 @@ const requiredRuntimeEnv = [
   'POOL_VERIFY_FIREBASE_AUTH',
   'POOL_REQUIRE_FIREBASE_AUTH',
   'POOL_JSON_LIMIT',
+  'REPLOID_ADAPTER_GCS_SIGNED_URLS',
+  'REPLOID_ADAPTER_SIGNED_URL_TTL_MS',
   'REPLOID_POOL_MODEL_BASE_URL',
   'REPLOID_DOPPLER_MODULE_URL',
   'REPLOID_DOPPLER_KERNEL_BASE_URL'
@@ -100,6 +102,13 @@ const checkLocalFiles = () => {
   if (envConfig.runtimeEnv?.POOL_STORE !== 'firestore') reasons.push('POOL_STORE must be firestore for production');
   if (envConfig.runtimeEnv?.POOL_VERIFY_FIREBASE_AUTH !== 'true') reasons.push('POOL_VERIFY_FIREBASE_AUTH must be true');
   if (envConfig.runtimeEnv?.POOL_REQUIRE_FIREBASE_AUTH !== 'true') reasons.push('POOL_REQUIRE_FIREBASE_AUTH must be true');
+  if (envConfig.runtimeEnv?.REPLOID_ADAPTER_GCS_SIGNED_URLS !== 'true') {
+    reasons.push('REPLOID_ADAPTER_GCS_SIGNED_URLS must be true');
+  }
+  const adapterSignedUrlTtlMs = Number(envConfig.runtimeEnv?.REPLOID_ADAPTER_SIGNED_URL_TTL_MS);
+  if (!Number.isInteger(adapterSignedUrlTtlMs) || adapterSignedUrlTtlMs <= 0 || adapterSignedUrlTtlMs > 900000) {
+    reasons.push('REPLOID_ADAPTER_SIGNED_URL_TTL_MS must be an integer between 1 and 900000');
+  }
   if (envConfig.browserEnv?.REPLOID_DOPPLER_MODULE_URL !== POOL_CONFIG.browserRuntime?.dopplerModuleUrl) {
     reasons.push('browserEnv REPLOID_DOPPLER_MODULE_URL must match pool config browserRuntime.dopplerModuleUrl');
   }
@@ -187,6 +196,7 @@ const checkDeploymentUrl = async (baseUrl) => {
     if (deployment.store?.mode !== 'firestore') reasons.push('deployed store mode is not firestore');
     if (deployment.identity?.serverAuth?.required !== true) reasons.push('deployed server auth is not required');
     if (deployment.store?.commitReveal?.supported !== true) reasons.push('deployed commit-reveal store support is not true');
+    if (deployment.store?.adapterDelivery?.configured !== true) reasons.push('deployed private adapter signer is not configured');
   } catch (error) {
     reasons.push(`deployment readiness fetch failed: ${error.message}`);
   }

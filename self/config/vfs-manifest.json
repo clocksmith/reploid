@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-07-19T20:45:51.123Z",
+  "generatedAt": "2026-07-19T21:54:09.251Z",
   "files": [
     "audit.html",
     "blueprint-index.json",
@@ -475,6 +475,7 @@
     "pool/adapter-publisher-client.js",
     "pool/adapter-registry.js",
     "pool/agent-client.js",
+    "pool/artifact-origin.js",
     "pool/artifact-router.js",
     "pool/config.js",
     "pool/device-identity.js",

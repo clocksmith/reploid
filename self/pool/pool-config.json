@@ -544,6 +544,7 @@
     "requiresOffloadedModelArtifactBase": true,
     "requiresDopplerModuleConfiguration": true,
     "requiresDopplerKernelBaseConfiguration": true,
+    "requiresPrivateAdapterDeliverySigner": true,
     "discoveryRoutes": [
       "/deployment/check",
       "/status",

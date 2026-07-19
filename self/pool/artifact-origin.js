@@ -7,6 +7,8 @@ export const ARTIFACT_ORIGIN_PROVIDERS = Object.freeze([
 const HF_REVISION_PATTERN = /^[a-f0-9]{40,64}$/;
 const GCS_GENERATION_PATTERN = /^[1-9][0-9]*$/;
 const GCS_BUCKET_PATTERN = /^[a-z0-9][a-z0-9._-]{1,220}[a-z0-9]$/;
+const HF_REPO_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._-]*\/[A-Za-z0-9][A-Za-z0-9._-]*$/;
+const FORBIDDEN_ARTIFACT_PATH_PATTERN = /[\\?#\u0000-\u001f\u007f]/;
 
 const text = (value) => String(value || '').trim();
 const hasTraversal = (value) => text(value).split('/').includes('..');
@@ -15,7 +17,10 @@ const validateRelativePath = (reasons, value, field) => {
   const path = text(value);
   if (!path) reasons.push(`${field} is required`);
   if (path.startsWith('/') || hasTraversal(path)) reasons.push(`${field} must be artifact-relative`);
+  if (FORBIDDEN_ARTIFACT_PATH_PATTERN.test(path)) reasons.push(`${field} contains a forbidden URL delimiter`);
 };
+
+const encodeArtifactPath = (value) => text(value).split('/').map(encodeURIComponent).join('/');
 
 export function validateArtifactOrigin(origin = {}, { allowPreservation = false } = {}) {
   const reasons = [];
@@ -25,7 +30,9 @@ export function validateArtifactOrigin(origin = {}, { allowPreservation = false 
   if (!ARTIFACT_ORIGIN_PROVIDERS.includes(origin.provider)) {
     reasons.push('artifact origin provider is unsupported');
   } else if (origin.provider === 'huggingface') {
-    if (!text(origin.repoId)) reasons.push('Hugging Face origin repoId is required');
+    if (!HF_REPO_PATTERN.test(text(origin.repoId))) {
+      reasons.push('Hugging Face origin repoId must be an owner/repository identifier');
+    }
     if (!HF_REVISION_PATTERN.test(text(origin.revision))) {
       reasons.push('Hugging Face origin revision must be a full immutable commit hash');
     }
@@ -86,9 +93,9 @@ export function buildImmutableArtifactOriginUrl(origin = {}) {
   const validation = validateArtifactOrigin(origin);
   if (!validation.ok) throw new Error(validation.reasons.join('; '));
   if (origin.provider === 'huggingface') {
-    return `https://huggingface.co/${origin.repoId}/resolve/${origin.revision}/${origin.path}`;
+    return `https://huggingface.co/${origin.repoId}/resolve/${origin.revision}/${encodeArtifactPath(origin.path)}`;
   }
-  return `https://storage.googleapis.com/${origin.bucket}/${origin.object}?generation=${origin.generation}`;
+  return `https://storage.googleapis.com/${origin.bucket}/${encodeArtifactPath(origin.object)}?generation=${origin.generation}`;
 }
 
 export async function resolveArtifactDelivery(origin = {}, {

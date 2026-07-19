@@ -42,6 +42,10 @@ spec:
               value: "65536"
             - name: POOL_MAX_SIGNAL_MESSAGES_PER_POLL
               value: "100"
+            - name: REPLOID_ADAPTER_GCS_SIGNED_URLS
+              value: "true"
+            - name: REPLOID_ADAPTER_SIGNED_URL_TTL_MS
+              value: "300000"
             - name: REPLOID_POOL_MODEL_BASE_URL
               value: "https://huggingface.co/Clocksmith/rdrr/resolve/f58f1d0b58641c84e7ea50d13fea0dd4dc91389a/models"
             - name: REPLOID_DOPPLER_MODULE_URL
