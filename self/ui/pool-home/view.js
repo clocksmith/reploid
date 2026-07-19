@@ -1438,16 +1438,19 @@ const renderPolicyOptions = () => listPolicies().map((policy) => `
   <option value="${escapeHtml(policy.policyId)}">${escapeHtml(renderPolicyProductLabel(policy))} - ${escapeHtml(renderPolicyTrustLabel(policy))}</option>
 `).join('');
 
-const renderModelOptions = ({ workload = null, includeWorkloadLabel = false } = {}) => listPoolModels({
+const renderModelOptions = ({ workload = null, includeWorkloadLabel = false, disableSequence = false } = {}) => listPoolModels({
   enabledOnly: true,
   workload
 }).map((model) => {
   const label = model.label || model.modelId;
+  const modelWorkload = getPoolModelWorkload(model);
+  const isSequence = modelWorkload !== POOLDAY_MODEL_WORKLOADS.textGeneration;
   const selected = model.modelId === LAUNCH_MODEL.modelId ? ' selected' : '';
-  const workloadLabel = includeWorkloadLabel && getPoolModelWorkload(model) !== POOLDAY_MODEL_WORKLOADS.textGeneration
-    ? ` · ${getPoolModelWorkload(model)}`
+  const disabled = disableSequence && isSequence ? ' disabled' : '';
+  const workloadLabel = (includeWorkloadLabel || disableSequence) && isSequence
+    ? ` · ${modelWorkload}${disabled ? ' (sequence lane pending)' : ''}`
     : '';
-  return `<option value="${escapeHtml(model.modelId)}"${selected}>${escapeHtml(label)}${escapeHtml(workloadLabel)}</option>`;
+  return `<option value="${escapeHtml(model.modelId)}" data-workload="${escapeHtml(modelWorkload)}"${selected}${disabled}>${escapeHtml(label)}${escapeHtml(workloadLabel)}</option>`;
 }).join('');
 
 const renderFlowLabels = () => POOLDAY_GRAPH_LABEL_STAGES.map((stage) => ({
@@ -1540,8 +1543,21 @@ export const renderRouteDetail = (routeId) => {
         <div class="pool-form pool-route-grid pool-run-layout" data-pool-run data-pool-run-surface="run" data-run-state="idle" data-run-phase="">
           <div class="pool-run-compose">
             <label class="pool-field">
-              <span>Prompt</span>
+              <span data-pool-run-prompt-label>Prompt</span>
               <textarea id="pool-run-prompt" rows="6">Summarize Reploid in one sentence.</textarea>
+            </label>
+            <div class="pool-run-model-row">
+              <label class="pool-field pool-run-model-field">
+                <span>Model</span>
+                <select id="pool-run-model">${renderModelOptions({ disableSequence: true })}</select>
+              </label>
+              <span class="pool-workload-badge" data-pool-run-workload>text generation</span>
+            </div>
+            <label class="pool-field">
+              <span>Adapter pack</span>
+              <select id="pool-run-adapter" data-pool-run-adapter>
+                <option value="">Base model only</option>
+              </select>
             </label>
             <details class="pool-advanced">
               <summary>Settings</summary>
@@ -1549,10 +1565,6 @@ export const renderRouteDetail = (routeId) => {
                 <label class="pool-field">
                   <span>Check</span>
                   <select id="pool-run-policy">${renderPolicyOptions()}</select>
-                </label>
-                <label class="pool-field">
-                  <span>Model</span>
-                  <select id="pool-run-model">${renderModelOptions({ workload: POOLDAY_MODEL_WORKLOADS.textGeneration })}</select>
                 </label>
               </div>
             </details>
