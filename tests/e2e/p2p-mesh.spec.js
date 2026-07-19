@@ -112,8 +112,12 @@ const installDeterministicRuntime = async (context, {
         hasWebGPU: true,
         probeStatus: 'playwright',
         adapterInfo: { vendor: 'playwright', architecture: label },
-        features: ['datachannel'],
-        limits: { maxBufferSize: 1024 }
+        features: ['datachannel', 'shader-f16', 'subgroups'],
+        limits: {
+          maxBufferSize: 1_073_741_824,
+          maxStorageBufferBindingSize: 536_870_912,
+          maxComputeInvocationsPerWorkgroup: 256
+        }
       }),
       generate: async ({ prompt }) => {
         if (delayMs > 0) await new Promise((resolve) => setTimeout(resolve, delayMs));
@@ -174,7 +178,13 @@ const startProviderPage = async (page) => {
   await expect(toggle).toBeVisible();
   await expect(toggle).toHaveAttribute('data-contribution-action', 'start');
   await toggle.click();
-  await expect(page.locator('[data-pool-provider-status]')).toHaveText('Available');
+  await expect.poll(async () => {
+    const status = (await page.locator('[data-pool-provider-status]').textContent())?.trim();
+    if (status === 'Idle') {
+      throw new Error(`Contributor start failed: ${await page.locator('#pool-provider-result-raw').textContent()}`);
+    }
+    return status;
+  }).toBe('Available');
   await expect(page.locator('[data-pool-provider-status]')).toHaveAttribute('data-provider-state', 'online');
   await expect(toggle).toHaveText('Stop');
   await expect(toggle).toHaveAttribute('data-contribution-action', 'stop');

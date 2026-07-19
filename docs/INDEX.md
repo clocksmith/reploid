@@ -40,6 +40,7 @@ Guide to all documentation in the REPLOID project.
 - **[docs/poolday/receipt-backed-retrieval.md](./poolday/receipt-backed-retrieval.md)** - Target strategy for receipt-backed embeddings, retrieval, reranking, and vector memory
 - **[docs/poolday/biological-sequence-lane.md](./poolday/biological-sequence-lane.md)** - Governed protein/DNA sequence execution, receipt, privacy, and AdapterPack boundary
 - **[docs/poolday/p2p-envelope-protocol.md](./poolday/p2p-envelope-protocol.md)** - Signed peer envelope contract
+- **[docs/poolday/participation-identity-routing.md](./poolday/participation-identity-routing.md)** - Request/contribute modes, device identity, artifact authority, and deterministic routing
 - **[docs/poolday/reputation-ledger.md](./poolday/reputation-ledger.md)** - Event-sourced reputation reducer contract
 - **[docs/multi-model-evaluation.md](./multi-model-evaluation.md)** - Multi-model evaluation harness
 - **[docs/intent-bundle-lora.md](./intent-bundle-lora.md)** - Intent bundle LoRA workflow

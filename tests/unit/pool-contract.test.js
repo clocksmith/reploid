@@ -205,8 +205,8 @@ describe('pool launch contract', () => {
     const browserModel = getBrowserEnabledPoolModelContract(GEMMA4_INT4_PLE_MODEL_ID);
     expect(serverModel).toMatchObject({
       modelId: GEMMA4_INT4_PLE_MODEL_ID,
-      modelHash: 'sha256:7ae3b0075c41d6e846944a4dde8460b214d34d45c27aa49b214b87f18e63a32b',
-      manifestHash: 'sha256:d3bd97d3f9065d2950cbee4267b93f345eabbb626eb7b8b9c96c9b0f590b6264',
+      modelHash: 'sha256:7575f4e89b3938a3ca4f8d7fc50fb46d4cfbd1d4dcc3b6ed62b6fb53424678ea',
+      manifestHash: 'sha256:512d6e16602071cccff4cbe576bf3b2c20bd43fd32aefc271db4bb95cc9c7f17',
       tokenizerHash: 'sha256:4453a86456cdf02b3c8f79091ffda7ca017619ff5da495b9eda12141d5793962',
       runtime: 'doppler',
       backend: 'browser-webgpu',
@@ -229,10 +229,10 @@ describe('pool launch contract', () => {
     })).toMatchObject({ ok: true });
 
     expect(buildModelArtifactUrls(browserModel)).toEqual({
-      root: 'https://huggingface.co/Clocksmith/rdrr/resolve/dbb354acb00108965c5324ca7b6fecc198d12501/models/gemma-4-e2b-it-q4k-ehf16-af32-int4ple',
-      manifest: 'https://huggingface.co/Clocksmith/rdrr/resolve/dbb354acb00108965c5324ca7b6fecc198d12501/models/gemma-4-e2b-it-q4k-ehf16-af32-int4ple/manifest.json',
-      tokenizer: 'https://huggingface.co/Clocksmith/rdrr/resolve/dbb354acb00108965c5324ca7b6fecc198d12501/models/gemma-4-e2b-it-q4k-ehf16-af32-int4ple/tokenizer.json',
-      shards: 'https://huggingface.co/Clocksmith/rdrr/resolve/dbb354acb00108965c5324ca7b6fecc198d12501/models/gemma-4-e2b-it-q4k-ehf16-af32-int4ple/'
+      root: 'https://huggingface.co/Clocksmith/rdrr/resolve/16256bf16dc8f92b8fe5105b07628cef91587f0a/models/gemma-4-e2b-it-q4k-ehf16-af32-int4ple',
+      manifest: 'https://huggingface.co/Clocksmith/rdrr/resolve/16256bf16dc8f92b8fe5105b07628cef91587f0a/models/gemma-4-e2b-it-q4k-ehf16-af32-int4ple/manifest.json',
+      tokenizer: 'https://huggingface.co/Clocksmith/rdrr/resolve/16256bf16dc8f92b8fe5105b07628cef91587f0a/models/gemma-4-e2b-it-q4k-ehf16-af32-int4ple/tokenizer.json',
+      shards: 'https://huggingface.co/Clocksmith/rdrr/resolve/16256bf16dc8f92b8fe5105b07628cef91587f0a/models/gemma-4-e2b-it-q4k-ehf16-af32-int4ple/'
     });
   });
 
@@ -242,7 +242,7 @@ describe('pool launch contract', () => {
     expect(serverModel).toMatchObject({
       modelId: GEMMA3_270M_MODEL_ID,
       modelHash: 'sha256:c41b842878dbae11b1d6a052b193b0307c7c1518c41f00df99992f51f9a86fff',
-      manifestHash: 'sha256:219391bed08e6db6f9038e44dd5007af0ed3824317ece74863322f6b2c5cd346',
+      manifestHash: 'sha256:230104df762ff394095326d8e9fa4dc144d431bbd61ad5139e1030e66836ab78',
       tokenizerHash: 'sha256:be6955513a2509d69d18e82180c2a477ad99358d15212fb81d957566d8186075',
       runtime: 'doppler',
       backend: 'browser-webgpu',
@@ -250,10 +250,10 @@ describe('pool launch contract', () => {
     });
     expect(browserModel).toEqual(serverModel);
     expect(buildModelArtifactUrls(browserModel)).toEqual({
-      root: 'https://huggingface.co/Clocksmith/rdrr/resolve/f58f1d0b58641c84e7ea50d13fea0dd4dc91389a/models/gemma-3-270m-it-q4k-ehf16-af32',
-      manifest: 'https://huggingface.co/Clocksmith/rdrr/resolve/f58f1d0b58641c84e7ea50d13fea0dd4dc91389a/models/gemma-3-270m-it-q4k-ehf16-af32/manifest.json',
-      tokenizer: 'https://huggingface.co/Clocksmith/rdrr/resolve/f58f1d0b58641c84e7ea50d13fea0dd4dc91389a/models/gemma-3-270m-it-q4k-ehf16-af32/tokenizer.json',
-      shards: 'https://huggingface.co/Clocksmith/rdrr/resolve/f58f1d0b58641c84e7ea50d13fea0dd4dc91389a/models/gemma-3-270m-it-q4k-ehf16-af32/'
+      root: 'https://huggingface.co/Clocksmith/rdrr/resolve/a8591b20bce7c22d75becde1315482e76ff85fc9/models/gemma-3-270m-it-q4k-ehf16-af32',
+      manifest: 'https://huggingface.co/Clocksmith/rdrr/resolve/a8591b20bce7c22d75becde1315482e76ff85fc9/models/gemma-3-270m-it-q4k-ehf16-af32/manifest.json',
+      tokenizer: 'https://huggingface.co/Clocksmith/rdrr/resolve/a8591b20bce7c22d75becde1315482e76ff85fc9/models/gemma-3-270m-it-q4k-ehf16-af32/tokenizer.json',
+      shards: 'https://huggingface.co/Clocksmith/rdrr/resolve/a8591b20bce7c22d75becde1315482e76ff85fc9/models/gemma-3-270m-it-q4k-ehf16-af32/'
     });
   });
 

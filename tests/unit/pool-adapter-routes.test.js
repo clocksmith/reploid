@@ -7,8 +7,31 @@ import { adapterRequirementFromPublication, createAdapterUseApproval, createAdap
 import { modelSupportsAdapterRequirement, sealAdapterPack } from '../../self/pool/adapter-pack.js';
 import { createSigningKeyPair, exportPublicKey, sha256Hex } from '../../self/pool/inference-receipt.js';
 import { LAUNCH_MODEL } from '../../self/pool/model-contract.js';
+import { createRoleDelegation, getDeviceRootIdentity } from '../../self/pool/device-identity.js';
+import { createSignedParticipationProfile } from '../../self/pool/participation-profile.js';
 
 const fakeHash = (character) => `sha256:${character.repeat(64)}`;
+
+const identityClaims = async ({ role, roleId, rolePublicKey, mode }) => {
+  const deviceIdentity = await getDeviceRootIdentity();
+  const participationProfile = await createSignedParticipationProfile({
+    preferences: { mode },
+    deviceId: deviceIdentity.deviceId,
+    devicePublicKey: deviceIdentity.publicKey,
+    privateKey: deviceIdentity.keyPair.privateKey
+  });
+  return {
+    participationProfile,
+    identityProof: await createRoleDelegation({
+      deviceIdentity,
+      role,
+      roleId,
+      rolePublicKey,
+      capabilities: [role === 'provider' ? 'provide_inference' : 'request_inference'],
+      participationProfileHash: participationProfile.profileHash
+    })
+  };
+};
 
 const dispatchJson = async (router, path, { method = 'GET', body = null } = {}) => {
   const url = new URL(path, 'http://reploid.test');
@@ -115,11 +138,19 @@ describe('Poolday adapter coordinator routes', () => {
 
     const requirement = adapterRequirementFromPublication(fixture.publication, { state: 'cached' });
     const providerKeys = await createSigningKeyPair();
+    const providerPublicKey = await exportPublicKey(providerKeys.publicKey);
+    const providerIdentity = await identityClaims({
+      role: 'provider',
+      roleId: 'provider_route',
+      rolePublicKey: providerPublicKey,
+      mode: 'contribute'
+    });
     const provider = await dispatchJson(router, '/providers/register', {
       method: 'POST',
       body: {
         providerId: 'provider_route',
-        publicKey: await exportPublicKey(providerKeys.publicKey),
+        publicKey: providerPublicKey,
+        ...providerIdentity,
         models: [{ ...LAUNCH_MODEL, adapterPacks: [requirement] }],
         availability: { acceptedPolicies: ['fastest_receipt'] }
       }
@@ -128,6 +159,12 @@ describe('Poolday adapter coordinator routes', () => {
 
     const requesterKeys = await createSigningKeyPair();
     const requesterPublicKey = await exportPublicKey(requesterKeys.publicKey);
+    const requesterIdentity = await identityClaims({
+      role: 'requester',
+      roleId: 'requester_route',
+      rolePublicKey: requesterPublicKey,
+      mode: 'request'
+    });
     const prompt = 'Use the exact published adapter';
     const modelRequirements = {
       modelId: LAUNCH_MODEL.modelId,
@@ -155,6 +192,7 @@ describe('Poolday adapter coordinator routes', () => {
       body: {
         requesterId: 'requester_route',
         requesterPublicKey,
+        ...requesterIdentity,
         prompt,
         policyId: 'fastest_receipt',
         modelRequirements,

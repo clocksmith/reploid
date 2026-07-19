@@ -12,6 +12,12 @@ import {
   createAdapterUseApproval,
   createSignedAdapterPublication
 } from '../../self/pool/adapter-publication.js';
+import {
+  acquireAdapterForAssignment,
+  createAdapterRegistry,
+  createPublishedAdapterOriginFetcher,
+  listFetchableAdapterPublications
+} from '../../self/pool/adapter-registry.js';
 import { createDopplerRuntime } from '../../self/pool/doppler-runtime.js';
 import {
   buildPoolReceipt,
@@ -137,6 +143,39 @@ const assignmentFor = (requirement) => ({
 });
 
 describe('governed Poolday adapter packs', () => {
+  it('lists exact-model publications and acquires verified origin bytes for browser providers', async () => {
+    const { pack, bytes } = await buildPack();
+    const { publication, requirement } = await publishPack(pack);
+    const sdk = {
+      listAdapters: vi.fn().mockResolvedValue({ publications: [publication] }),
+      getAdapter: vi.fn().mockResolvedValue({ publication })
+    };
+    const publications = await listFetchableAdapterPublications({ sdk, model: LAUNCH_MODEL });
+    expect(publications.map((candidate) => candidate.packHash)).toEqual([pack.packHash]);
+
+    const fetchFromOrigin = createPublishedAdapterOriginFetcher({
+      sdk,
+      fetchImpl: vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        arrayBuffer: async () => bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength)
+      })
+    });
+    const assignment = assignmentFor(requirement);
+    const acquired = await acquireAdapterForAssignment({
+      assignment,
+      registry: createAdapterRegistry(),
+      fetchFromOrigin
+    });
+    expect(Array.from(acquired.bytes)).toEqual(Array.from(bytes));
+    expect(acquired.acquisition).toMatchObject({
+      source: 'origin',
+      packHash: requirement.packHash,
+      adapterSha256: requirement.adapterSha256,
+      bytes: bytes.byteLength
+    });
+  });
+
   it('publishes only a controller-approved NeuralCompiler registry entry', async () => {
     const { pack: template } = await buildPack();
     const approvalCore = {

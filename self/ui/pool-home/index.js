@@ -6,6 +6,7 @@ import { createDopplerRuntime } from '../../pool/doppler-runtime.js';
 import { POOLDAY_NAME, ROUTE_COPY } from './constants.js';
 import {
   bindRecordStorageSync,
+  getPoolDashboardView,
   getRouteId,
   isProductPath,
   refreshContributionPanels,
@@ -19,7 +20,11 @@ import {
 import { subscribeContributionState } from './contribution-state.js';
 import { resetPoolLedgerStore } from './ledger-store.js';
 import {
+  applyPoolDashboardView,
+  bindCapabilityAssessmentControls,
   bindHomeAskControls,
+  bindParticipationControls,
+  bindPoolDashboardControls,
   bindProviderControls,
   bindReceiptControls,
   bindRoomActivityControls,
@@ -126,6 +131,7 @@ export function initPoolHome(mount) {
 
   const render = () => {
     const routeId = getRouteId();
+    const dashboardView = routeId === 'home' ? getPoolDashboardView() : 'home';
     document.documentElement.dataset.poolRouteId = routeId;
     document.body.dataset.poolRouteId = routeId;
     if (routeId !== 'home') stopPoolHomeBackground();
@@ -136,9 +142,13 @@ export function initPoolHome(mount) {
       : `${POOLDAY_NAME} - ${ROUTE_COPY[routeId]?.eyebrow || 'Verified Browser Inference'}`;
     mount.innerHTML = `
       <main class="pool-home" data-pool-route-id="${routeId}">
-        ${renderNav(routeId, { open: navOpen })}
+        ${renderNav(routeId, {
+          open: navOpen,
+          dashboard: routeId === 'home',
+          dashboardView
+        })}
         ${renderContributionStatusBar()}
-        ${renderRoutePanel(routeId)}
+        ${renderRoutePanel(routeId, { dashboardView })}
         ${secondaryContent}
       </main>
     `;
@@ -150,11 +160,15 @@ export function initPoolHome(mount) {
     });
     bindHomeAskControls(render);
     bindHomeSimulation(mount);
+    bindPoolDashboardControls();
+    bindCapabilityAssessmentControls();
     bindRunControls();
     bindProviderControls();
+    bindParticipationControls();
     bindRoomActivityControls();
     bindReceiptControls();
     refreshRecordLedgerState();
+    if (routeId === 'home') applyPoolDashboardView(dashboardView, { updateHistory: false });
   };
 
   if (window.REPLOID_POOL_POPSTATE_HANDLER) {

@@ -1,6 +1,6 @@
 {
   "schema": "reploid.pool.config/v1",
-  "configVersion": "2026-07-10.qwen-manifest.v2",
+  "configVersion": "2026-07-19.doppler-0.4.11.v1",
   "claim": "receipt-backed, audit-backed, reputation-backed, policy-controlled browser inference",
   "forbiddenClaims": [
     "trustless",
@@ -115,6 +115,11 @@
     },
     "runtime": "doppler",
     "backend": "browser-webgpu",
+    "browserCapability": {
+      "minimumTier": "standard",
+      "minimumScore": 40,
+      "basis": "bounded_webgpu_profile_v1"
+    },
     "dopplerLoadRef": "qwen-3-5-0-8b-q4k-ehaf16",
     "loadInput": {
       "url": "https://huggingface.co/Clocksmith/rdrr/resolve/f58f1d0b58641c84e7ea50d13fea0dd4dc91389a/models/qwen-3-5-0-8b-q4k-ehaf16"
@@ -777,7 +782,7 @@
     {
       "modelId": "gemma-3-270m-it-q4k-ehf16-af32",
       "modelHash": "sha256:c41b842878dbae11b1d6a052b193b0307c7c1518c41f00df99992f51f9a86fff",
-      "manifestHash": "sha256:219391bed08e6db6f9038e44dd5007af0ed3824317ece74863322f6b2c5cd346",
+      "manifestHash": "sha256:230104df762ff394095326d8e9fa4dc144d431bbd61ad5139e1030e66836ab78",
       "tokenizerHash": "sha256:be6955513a2509d69d18e82180c2a477ad99358d15212fb81d957566d8186075",
       "contextLength": 32768,
       "quantization": "q4k",
@@ -789,14 +794,19 @@
       },
       "runtime": "doppler",
       "backend": "browser-webgpu",
+      "browserCapability": {
+        "minimumTier": "basic",
+        "minimumScore": 1,
+        "basis": "bounded_webgpu_profile_v1"
+      },
       "dopplerLoadRef": "gemma3-270m",
       "loadInput": {
-        "url": "https://huggingface.co/Clocksmith/rdrr/resolve/f58f1d0b58641c84e7ea50d13fea0dd4dc91389a/models/gemma-3-270m-it-q4k-ehf16-af32"
+        "url": "https://huggingface.co/Clocksmith/rdrr/resolve/a8591b20bce7c22d75becde1315482e76ff85fc9/models/gemma-3-270m-it-q4k-ehf16-af32"
       },
       "artifactPolicy": {
         "transport": "offloaded_content_addressed",
         "cache": "browser_opfs",
-        "baseUrl": "https://huggingface.co/Clocksmith/rdrr/resolve/f58f1d0b58641c84e7ea50d13fea0dd4dc91389a/models/gemma-3-270m-it-q4k-ehf16-af32",
+        "baseUrl": "https://huggingface.co/Clocksmith/rdrr/resolve/a8591b20bce7c22d75becde1315482e76ff85fc9/models/gemma-3-270m-it-q4k-ehf16-af32",
         "identityFields": [
           "modelId",
           "modelHash",
@@ -840,6 +850,11 @@
       },
       "runtime": "doppler",
       "backend": "browser-webgpu",
+      "browserCapability": {
+        "minimumTier": "standard",
+        "minimumScore": 40,
+        "basis": "bounded_webgpu_profile_v1"
+      },
       "dopplerLoadRef": "qwen-3-5-0-8b-q4k-ehaf16",
       "loadInput": {
         "url": "https://huggingface.co/Clocksmith/rdrr/resolve/f58f1d0b58641c84e7ea50d13fea0dd4dc91389a/models/qwen-3-5-0-8b-q4k-ehaf16"
@@ -909,6 +924,11 @@
       },
       "runtime": "doppler",
       "backend": "browser-webgpu",
+      "browserCapability": {
+        "minimumTier": "standard",
+        "minimumScore": 40,
+        "basis": "bounded_webgpu_profile_v1"
+      },
       "dopplerLoadRef": "qwen-3-embedding-0-6b-q4k-ehf16-af32",
       "loadInput": {
         "url": "https://huggingface.co/Clocksmith/rdrr/resolve/049000f49325dca7db2ed2c9de2c8881bd0f4603/models/qwen-3-embedding-0-6b-q4k-ehf16-af32"
@@ -946,8 +966,8 @@
     },
     {
       "modelId": "gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
-      "modelHash": "sha256:7ae3b0075c41d6e846944a4dde8460b214d34d45c27aa49b214b87f18e63a32b",
-      "manifestHash": "sha256:d3bd97d3f9065d2950cbee4267b93f345eabbb626eb7b8b9c96c9b0f590b6264",
+      "modelHash": "sha256:7575f4e89b3938a3ca4f8d7fc50fb46d4cfbd1d4dcc3b6ed62b6fb53424678ea",
+      "manifestHash": "sha256:512d6e16602071cccff4cbe576bf3b2c20bd43fd32aefc271db4bb95cc9c7f17",
       "tokenizerHash": "sha256:4453a86456cdf02b3c8f79091ffda7ca017619ff5da495b9eda12141d5793962",
       "contextLength": 131072,
       "quantization": "q4k-int4ple",
@@ -959,14 +979,19 @@
       },
       "runtime": "doppler",
       "backend": "browser-webgpu",
+      "browserCapability": {
+        "minimumTier": "advanced",
+        "minimumScore": 65,
+        "basis": "bounded_webgpu_profile_v1"
+      },
       "dopplerLoadRef": "gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
       "loadInput": {
-        "url": "https://huggingface.co/Clocksmith/rdrr/resolve/dbb354acb00108965c5324ca7b6fecc198d12501/models/gemma-4-e2b-it-q4k-ehf16-af32-int4ple"
+        "url": "https://huggingface.co/Clocksmith/rdrr/resolve/16256bf16dc8f92b8fe5105b07628cef91587f0a/models/gemma-4-e2b-it-q4k-ehf16-af32-int4ple"
       },
       "artifactPolicy": {
         "transport": "offloaded_content_addressed",
         "cache": "browser_opfs",
-        "baseUrl": "https://huggingface.co/Clocksmith/rdrr/resolve/dbb354acb00108965c5324ca7b6fecc198d12501/models/gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
+        "baseUrl": "https://huggingface.co/Clocksmith/rdrr/resolve/16256bf16dc8f92b8fe5105b07628cef91587f0a/models/gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
         "identityFields": [
           "modelId",
           "modelHash",

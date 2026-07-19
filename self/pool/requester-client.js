@@ -33,6 +33,17 @@ export function createRequesterClient({ requesterId, sdk = createPoolSdk(), keyP
     if (!activeRequesterId) throw new Error('requesterId is required');
     return activeRequesterId;
   };
+  const ensureIdentityClaims = async () => {
+    if (!identity?.getParticipationProfile || !identity?.getRoleProof) return {
+      participationProfile: null,
+      identityProof: null
+    };
+    const participationProfile = await identity.getParticipationProfile();
+    return {
+      participationProfile,
+      identityProof: await identity.getRoleProof({ participationProfile })
+    };
+  };
   return {
     async submitAdapterJob({ adapterPack, modelRequirements = {}, ...request } = {}) {
       const verification = await verifyAdapterPack(adapterPack, { requirePromoted: true });
@@ -78,6 +89,7 @@ export function createRequesterClient({ requesterId, sdk = createPoolSdk(), keyP
           modelRequirements: resolvedModelRequirements
         })
         : null;
+      const identityClaims = await ensureIdentityClaims();
       return sdk.submitJob({
         requesterId: resolvedRequesterId,
         requesterPublicKey,
@@ -85,6 +97,7 @@ export function createRequesterClient({ requesterId, sdk = createPoolSdk(), keyP
         policyId,
         modelRequirements: resolvedModelRequirements,
         adapterUseApproval,
+        ...identityClaims,
         generationConfig: {
           ...DETERMINISTIC_GENERATION_CONFIG,
           ...generationConfig
@@ -104,10 +117,12 @@ export function createRequesterClient({ requesterId, sdk = createPoolSdk(), keyP
     } = {}) {
       const keys = await ensureKeys();
       const resolvedRequesterId = await ensureRequesterId();
+      const identityClaims = await ensureIdentityClaims();
       return createSignedJobIntent({
         requesterId: resolvedRequesterId,
         requesterPublicKey,
         privateKey: keys.privateKey,
+        ...identityClaims,
         prompt,
         sequence,
         sequenceRequest,

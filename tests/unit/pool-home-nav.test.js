@@ -141,7 +141,7 @@ describe('poolday home navigation', () => {
     expect(html).toContain('class="pool-home-stage"');
     expect(html).toContain('class="pool-home-toolbar"');
     expect(html).toContain('class="pool-home-toolbar-leading pool-home-overlay"');
-    expect(html).toContain('class="pool-home-toolbar-center pool-home-cta-row pool-home-ask-form"');
+    expect(html).toContain('class="pool-home-ask-dock pool-home-cta-row pool-home-ask-form"');
     expect(html).not.toContain('class="pool-home-toolbar-right"');
     expect(html).toContain('class="pool-simulation-shell"');
     expect(html).toContain('data-pool-simulation');
@@ -153,6 +153,11 @@ describe('poolday home navigation', () => {
     expect(html).toContain('id="pool-home-ask-form"');
     expect(html).toContain('class="pool-home-ask-pill"');
     expect(html).toContain('id="pool-home-ask-prompt"');
+    expect(html).toContain('data-pool-lane="text"');
+    expect(html).toContain('data-pool-lane="adapters"');
+    expect(html).toContain('data-pool-home-adapter-picker hidden');
+    expect(html).toContain('id="pool-home-adapter"');
+    expect(html).toContain('Run signs approval for this pack, base model, and prompt.');
     const value = html.match(/value="([^"]+)"/)?.[1];
     expect(POOLDAY_ASK_PLACEHOLDERS).toContain(value);
     expect(value).not.toBe('Ask the network...');
@@ -174,7 +179,23 @@ describe('poolday home navigation', () => {
     expect(html).not.toContain('class="pool-home-status"');
     expect(html).not.toContain('aria-label="Current room and model"');
     expect(html.indexOf('class="pool-home-toolbar"')).toBeLessThan(html.indexOf('class="pool-simulation-shell"'));
-    expect(html).toMatch(/class="pool-home-toolbar"[\s\S]*pool-home-toolbar-leading[\s\S]*pool-home-toolbar-center[\s\S]*class="pool-simulation-shell"/);
+    expect(html).toMatch(/class="pool-home-toolbar"[\s\S]*pool-home-toolbar-leading[\s\S]*class="pool-simulation-shell"[\s\S]*class="pool-home-ask-dock/);
+    expect(html).toContain('class="pool-dashboard-inspector"');
+    expect(html).toContain('data-pool-capability-profile');
+    expect(html).toContain('class="pool-dashboard-activity"');
+    expect(html).toContain('Ask browser models.<br>Share compute. Or both.');
+  });
+
+  it('turns the Home rail into dashboard views without changing compatibility routes', () => {
+    const html = renderNav('home', { dashboard: true, dashboardView: 'compute' });
+
+    expect(html).toContain('href="/?view=ask" data-pool-dashboard-view="ask"');
+    expect(html).toContain('href="/?view=compute" data-pool-dashboard-view="compute"');
+    expect(html).toContain('href="/?view=records" data-pool-dashboard-view="records"');
+    expect(html).toMatch(/data-pool-dashboard-view="compute"[\s\S]*aria-current="page"/);
+    expect(PRODUCT_ROUTES['/ask']).toBe('ask');
+    expect(PRODUCT_ROUTES['/compute']).toBe('compute');
+    expect(PRODUCT_ROUTES['/records']).toBe('records');
   });
 
   it('maps room summaries to simulation, hybrid, and live graph modes', () => {
@@ -262,6 +283,7 @@ describe('poolday home navigation', () => {
     const html = renderRouteDetail('ask');
 
     expect(html).toContain('<span data-pool-run-prompt-label>Prompt</span>');
+    expect(html).toContain('Choosing a pack and running signs a prompt- and model-bound approval.');
     expect(html).toContain('<summary>Settings</summary>');
     expect(html).toContain('data-pool-run-output hidden');
     expect(html).toContain('id="pool-run-result-evidence"');

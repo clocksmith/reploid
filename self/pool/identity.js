@@ -9,6 +9,18 @@ import {
   importSigningKeyPair
 } from './inference-receipt.js';
 import { bootstrapPoolFirebaseAuth } from './firebase-auth.js';
+import {
+  createPasskeySessionProof,
+  createRoleDelegation,
+  enrollDevicePasskey,
+  getDeviceRootIdentity
+} from './device-identity.js';
+import {
+  PARTICIPATION_CAPABILITIES,
+  createSignedParticipationProfile,
+  participationAllows,
+  readParticipationPreferences
+} from './participation-profile.js';
 
 const ID_PREFIX = 'REPLOID_POOL';
 const SIGNING_KEY_VERSION = 'v1';
@@ -29,6 +41,119 @@ const scopedKind = (kind, namespace = null) => {
 };
 
 const makeLocalId = (kind) => `${kind}_${globalThis.crypto?.randomUUID ? globalThis.crypto.randomUUID() : Math.random().toString(36).slice(2)}`;
+
+const roleCapability = (kind) => ({
+  requester: PARTICIPATION_CAPABILITIES.requestInference,
+  provider: PARTICIPATION_CAPABILITIES.provideInference,
+  publisher: PARTICIPATION_CAPABILITIES.publishAdapters,
+  verifier: PARTICIPATION_CAPABILITIES.verifyResults
+}[kind] || null);
+
+const createEphemeralRoleKeyPair = () => globalThis.crypto.subtle.generateKey(
+  { name: 'ECDSA', namedCurve: 'P-256' },
+  false,
+  ['sign', 'verify']
+);
+
+const withDeviceIdentity = ({ role, resolveRoleIdentity, getRoleKeyPair, getAuthToken }) => {
+  let cachedRoot = null;
+  let cachedParticipationProfile = null;
+  let cachedParticipationPreferences = null;
+  let participationRevision = 0;
+  const getRoot = async () => {
+    if (!cachedRoot) cachedRoot = await getDeviceRootIdentity();
+    return cachedRoot;
+  };
+  return {
+    kind: role,
+    async resolve() {
+      const [resolved, root] = await Promise.all([resolveRoleIdentity(), getRoot()]);
+      return {
+        ...resolved,
+        deviceId: root.deviceId,
+        identityRootId: root.identityRootId,
+        devicePublicKey: root.publicKey,
+        keyProtection: root.passkey ? 'passkey' : root.protection
+      };
+    },
+    async getRoleId() {
+      return (await this.resolve()).roleId;
+    },
+    getSigningKeyPair() {
+      return getRoleKeyPair();
+    },
+    getAuthToken,
+    async getDeviceIdentity() {
+      const root = await getRoot();
+      return {
+        deviceId: root.deviceId,
+        identityRootId: root.identityRootId,
+        publicKey: root.publicKey,
+        keyProtection: root.passkey ? 'passkey' : root.protection,
+        passkey: root.passkey ? {
+          passkeyId: root.passkey.passkeyId,
+          credentialId: root.passkey.credentialId,
+          rpId: root.passkey.rpId
+        } : null
+      };
+    },
+    async getParticipationProfile(preferences = readParticipationPreferences()) {
+      const preferencesIdentity = JSON.stringify(preferences);
+      if (cachedParticipationProfile && cachedParticipationPreferences === preferencesIdentity) {
+        return cachedParticipationProfile;
+      }
+      const root = await getRoot();
+      participationRevision += 1;
+      cachedParticipationPreferences = preferencesIdentity;
+      cachedParticipationProfile = await createSignedParticipationProfile({
+        preferences,
+        deviceId: root.deviceId,
+        devicePublicKey: root.publicKey,
+        privateKey: root.keyPair.privateKey,
+        revision: participationRevision
+      });
+      return cachedParticipationProfile;
+    },
+    async getRoleProof({ capabilities = null, participationProfile = null } = {}) {
+      const root = await getRoot();
+      const resolved = await this.resolve();
+      const keyPair = await getRoleKeyPair();
+      const publicKey = await exportPublicKey(keyPair.publicKey);
+      const profile = participationProfile || await this.getParticipationProfile();
+      const required = roleCapability(role);
+      const delegatedCapabilities = capabilities || (required ? [required] : []);
+      if (required && !participationAllows(profile, required)) {
+        throw new Error(`Participation mode does not allow ${required}`);
+      }
+      for (const capability of delegatedCapabilities) {
+        if (!participationAllows(profile, capability)) {
+          throw new Error(`Participation profile does not allow delegated capability ${capability}`);
+        }
+      }
+      const passkeySessionProof = root.passkey
+        ? await createPasskeySessionProof({ deviceIdentity: root })
+        : null;
+      return createRoleDelegation({
+        deviceIdentity: root,
+        role,
+        roleId: resolved.roleId,
+        rolePublicKey: publicKey,
+        capabilities: delegatedCapabilities,
+        participationProfileHash: profile.profileHash,
+        passkeySessionProof
+      });
+    },
+    async enrollPasskey() {
+      await enrollDevicePasskey({ deviceIdentity: await getRoot() });
+      cachedRoot = await getDeviceRootIdentity();
+      return this.getDeviceIdentity();
+    },
+    async unlockPasskey() {
+      const root = await getRoot();
+      return createPasskeySessionProof({ deviceIdentity: root });
+    }
+  };
+};
 
 const storageGet = (key) => {
   if (!hasStorage()) return null;
@@ -164,9 +289,9 @@ export function createLocalPoolIdentity(kind = 'user', { namespace = null } = {}
   const storageRole = scopedKind(role, namespace);
   let cachedIdentity = null;
   let cachedKeyPair = null;
-  return {
-    kind: role,
-    async resolve() {
+  return withDeviceIdentity({
+    role,
+    async resolveRoleIdentity() {
       if (!cachedIdentity) {
         const roleId = getLocalRoleId(storageRole);
         cachedIdentity = {
@@ -180,17 +305,14 @@ export function createLocalPoolIdentity(kind = 'user', { namespace = null } = {}
       }
       return cachedIdentity;
     },
-    async getRoleId() {
-      return (await this.resolve()).roleId;
-    },
-    async getSigningKeyPair() {
-      if (!cachedKeyPair) cachedKeyPair = await getPoolSigningKeyPair(storageRole);
+    async getRoleKeyPair() {
+      if (!cachedKeyPair) cachedKeyPair = await createEphemeralRoleKeyPair();
       return cachedKeyPair;
     },
     async getAuthToken() {
       return null;
     }
-  };
+  });
 }
 
 export function createPoolIdentity(kind = 'user', { localOnly = false, namespace = null } = {}) {
@@ -198,23 +320,20 @@ export function createPoolIdentity(kind = 'user', { localOnly = false, namespace
   const role = safeKind(kind);
   let cachedIdentity = null;
   let cachedKeyPair = null;
-  return {
-    kind: role,
-    async resolve() {
+  return withDeviceIdentity({
+    role,
+    async resolveRoleIdentity() {
       if (!cachedIdentity) cachedIdentity = await resolvePoolIdentity(role);
       return cachedIdentity;
     },
-    async getRoleId() {
-      return (await this.resolve()).roleId;
-    },
-    async getSigningKeyPair() {
+    async getRoleKeyPair() {
       if (!cachedKeyPair) cachedKeyPair = await getPoolSigningKeyPair(role);
       return cachedKeyPair;
     },
     async getAuthToken() {
       return getPoolAuthToken();
     }
-  };
+  });
 }
 
 export default {

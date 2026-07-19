@@ -171,6 +171,7 @@ export async function assembleAdapterArtifact({ assignment, pack, chunkPayloads 
     jobId: assignment.jobId,
     packHash: pack.packHash,
     adapterSha256: pack.adapter.sha256,
+    routeDecisionHash: assignment.routeDecisionHash || null,
     source: 'peer',
     sourcePeerId,
     bytes: output.byteLength,

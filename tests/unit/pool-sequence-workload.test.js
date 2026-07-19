@@ -98,6 +98,7 @@ const makeRequest = async (sequence, workload = SEQUENCE_WORKLOADS.embedding, ov
 const makeAssignment = async (sequence, request) => ({
   schema: 'reploid.peer.assignment/v1',
   assignmentId: 'assignment_sequence_1',
+  routeDecisionHash: 'sha256:sequence-route-decision',
   jobId: 'job_sequence_1',
   requesterId: 'requester_sequence_1',
   providerId: 'provider_sequence_1',

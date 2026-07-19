@@ -113,6 +113,15 @@ test.describe('Route Entry Points', () => {
     expect(askValue.trim().split(/\s+/).length).toBeLessThanOrEqual(4);
     await expect(page.locator('#pool-home-ask-prompt')).toHaveAttribute('data-pool-suggested-prompt', askValue);
     await expect(page.locator('#pool-home-ask-form').getByRole('button', { name: 'Run', exact: true })).toBeVisible();
+    const adapterLane = page.locator('[data-pool-lane="adapters"]');
+    const textLane = page.locator('[data-pool-lane="text"]');
+    await adapterLane.click();
+    await expect(page.locator('.pool-home-stage')).toHaveAttribute('data-pool-lane', 'adapters');
+    await expect(page.locator('[data-pool-home-adapter-picker]')).toBeVisible();
+    await expect(page.locator('#pool-home-adapter')).toHaveAttribute('data-pool-adapter-status', /available|empty|error/);
+    await textLane.click();
+    await expect(page.locator('.pool-home-stage')).toHaveAttribute('data-pool-lane', 'text');
+    await expect(page.locator('[data-pool-home-adapter-picker]')).toBeHidden();
     await expect(page.getByRole('link', { name: /^Live Network/ })).toHaveCount(0);
     await expect(page.locator('.pool-home-toolbar')).toBeVisible();
     await expect(page.locator('.pool-simulation-shell')).toBeVisible();
@@ -122,18 +131,33 @@ test.describe('Route Entry Points', () => {
       const home = document.querySelector('.pool-home').getBoundingClientRect();
       const toolbar = document.querySelector('.pool-home-toolbar').getBoundingClientRect();
       const shell = document.querySelector('.pool-simulation-shell').getBoundingClientRect();
+      const ask = document.querySelector('#pool-home-ask-form').getBoundingClientRect();
+      const inspector = document.querySelector('.pool-dashboard-inspector').getBoundingClientRect();
+      const activity = document.querySelector('.pool-dashboard-activity').getBoundingClientRect();
       return {
         homeHeight: home.height,
         homeWidth: home.width,
         shellHeight: shell.height,
         shellWidth: shell.width,
         shellTop: shell.top,
-        toolbarBottom: toolbar.bottom
+        toolbarBottom: toolbar.bottom,
+        askCenterDelta: Math.abs((ask.left + ask.width / 2) - (home.left + home.width / 2)),
+        askInspectorGap: inspector.left - ask.right,
+        inspectorWidth: inspector.width,
+        activityHeight: activity.height,
+        askBottomGap: home.bottom - ask.bottom,
+        askInsideCanvas: ask.top >= shell.top && ask.bottom <= shell.bottom
       };
     });
     expect(Math.abs(stack.shellTop)).toBeLessThanOrEqual(1);
     expect(Math.abs(stack.shellWidth - stack.homeWidth)).toBeLessThan(2);
     expect(Math.abs(stack.shellHeight - stack.homeHeight)).toBeLessThan(2);
+    expect(stack.askCenterDelta).toBeGreaterThan(0);
+    expect(stack.askCenterDelta).toBeLessThanOrEqual(stack.inspectorWidth / 2 + 1);
+    expect(stack.askInspectorGap).toBeGreaterThan(0);
+    expect(stack.askBottomGap).toBeGreaterThan(stack.activityHeight);
+    expect(stack.askBottomGap).toBeLessThanOrEqual(stack.activityHeight + 32);
+    expect(stack.askInsideCanvas).toBe(true);
     const collapsedToggle = await nav.locator('.pool-nav-toggle').evaluate((toggle) => {
       const top = toggle.querySelector('.pool-nav-mark-seven-top');
       const bottom = toggle.querySelector('.pool-nav-mark-seven-bottom');
@@ -264,12 +288,14 @@ test.describe('Route Entry Points', () => {
     expect(Math.abs(expanded.height - expanded.viewportHeight)).toBeLessThanOrEqual(1);
     expect(expanded.bottomGap).toBeLessThanOrEqual(12);
     await page.getByRole('link', { name: 'Run', exact: true }).click();
-    await expect(page).toHaveURL(/\/ask$/);
+    await expect(page).toHaveURL(/\?view=ask$/);
     await expect(page.locator('.pool-nav-rail')).toHaveClass(/is-open/);
     await expect(page.getByRole('link', { name: 'Run', exact: true })).toHaveAttribute('aria-current', 'page');
+    await expect(page.locator('[data-pool-dashboard-panel="ask"]')).toBeVisible();
     await page.getByRole('link', { name: 'Home', exact: true }).click();
     await expect(page).toHaveURL(/\/$/);
     await expect(page.locator('.pool-nav-rail')).toHaveClass(/is-open/);
+    await expect(page.locator('[data-pool-dashboard-panel="home"]')).toBeVisible();
     await page.keyboard.press('Escape');
     await expect(page.locator('.pool-nav-rail')).not.toHaveClass(/is-open/);
     await expect(page.locator('.pool-nav-toggle')).toBeFocused();

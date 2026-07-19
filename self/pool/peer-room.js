@@ -21,7 +21,7 @@ import {
   validateInputPayloadForAssignment
 } from './peer-control-plane.js';
 import { getPolicy } from './config.js';
-import { modelSupportsPoolWorkload } from './model-contract.js';
+import { modelSupportsAdapterRequirement, modelSupportsPoolWorkload } from './model-contract.js';
 
 export const PEER_ROOM_VERSION = 'reploid_peer_room/v1';
 export const DEFAULT_PEER_ROOM_ID = 'reploid-default';
@@ -194,6 +194,20 @@ const createPeerDiscoveryError = ({ roomId, requiredModel, discoveryWindowMs, ob
     action: mismatch
       ? 'Start a worker with the same selected model, or switch the request model to one the worker advertises.'
       : 'Open Compute in another tab with the same room, click Start, then ask again.'
+  };
+  return error;
+};
+
+const createPeerPlanError = (plan = {}) => {
+  const error = new Error(plan.reason || 'No peer assignment could be built');
+  error.code = plan.reason || 'peer_assignment_plan_failed';
+  error.retryable = true;
+  error.payload = {
+    requiredProviders: plan.requiredProviders ?? null,
+    eligibleProviders: plan.eligibleProviders ?? null,
+    compatibleProviders: plan.compatibleProviders ?? null,
+    routeCandidates: plan.routeCandidates || [],
+    action: 'Review the contributor eligibility records, then retry with enough compatible contributors.'
   };
   return error;
 };
@@ -377,6 +391,7 @@ export async function runPeerJob({
         && (model.runtime || 'doppler') === (requiredModel.runtime || 'doppler')
         && (model.backend || 'browser-webgpu') === (requiredModel.backend || 'browser-webgpu')
         && modelSupportsPoolWorkload(model, requiredModel.workload || 'text_generation')
+        && modelSupportsAdapterRequirement(model, requiredModel.adapter || null)
       ))
     });
     const plan = await buildPeerAssignmentPlan({
@@ -384,7 +399,7 @@ export async function runPeerJob({
       providerAdverts
     });
     if (!plan.ok || !plan.assignment) {
-      throw new Error(plan.reason || 'No peer assignment could be built');
+      throw createPeerPlanError(plan);
     }
     reportActivity('peer_assignment_planned', 'match', {
       providerCount: plan.assignments.length

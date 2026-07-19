@@ -16,6 +16,8 @@ relay as an artifact host.
 The requester names assignment, pack, adapter, peers, and missing chunk indexes.
 The seeder emits chunk payloads from the pack's governed chunk table. Assembly
 checks payload hashes, chunk hashes, byte count, and final adapter SHA-256.
+The acquisition record also binds the route-decision hash that selected the
+provider and artifact source.
 
 ### 3. Implementation Notes
 Every payload is scoped to the assignment and peer pair. Successful assembly
@@ -26,5 +28,6 @@ transfer, not tensor, layer, attention, or KV sharding.
 - [x] Missing, duplicate, corrupt, and wrong-peer chunks fail closed
 - [x] Final bytes match the promoted adapter identity
 - [x] Transfer receipt identifies the seeding peer and assignment
+- [x] Transfer receipt binds the route decision
 
 *Last updated: July 2026*

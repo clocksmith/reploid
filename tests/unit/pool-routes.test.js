@@ -292,6 +292,22 @@ describe('pool coordinator routes', () => {
     expect(response.body.error).toBe('provider must advertise the exact launch model identity');
   });
 
+  it('rejects hosted providers without signed participation and role claims', async () => {
+    store.kind = 'memory';
+    const response = await dispatchJson(router, '/providers/register', {
+      method: 'POST',
+      body: {
+        providerId: 'provider_unsigned',
+        publicKey: 'public-key',
+        models: [launchModel()],
+        availability: { acceptedPolicies: ['fastest_receipt'] }
+      }
+    });
+
+    expect(response.status).toBe(400);
+    expect(response.body.error).toBe('invalid provider participation identity');
+  });
+
   it('creates a delayed challenge rerun from a prior receipt', async () => {
     store.kind = 'memory';
     router = createPoolRouter({ store, allowCanaryCreation: true });
