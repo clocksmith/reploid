@@ -168,6 +168,10 @@ test.describe('Route Entry Points', () => {
     await expect(nav.getByRole('link', { name: 'Run', exact: true })).toBeVisible();
     await expect(nav.getByRole('link', { name: 'Contribute', exact: true })).toBeVisible();
     await expect(nav.getByRole('link', { name: 'Records', exact: true })).toBeVisible();
+    await expect(nav.locator('.pool-nav-view-context')).toContainText('Current view');
+    await expect(nav.locator('.pool-nav-view-context')).toContainText('Run browser models together.');
+    await expect(nav.locator('.pool-nav-description').first()).toBeVisible();
+    await expect(nav.locator('.pool-room-context')).toBeVisible();
     await nav.locator('.pool-nav-more-summary').click();
     await expect(nav.getByRole('link', { name: 'Zero Experimental', exact: true })).toHaveAttribute('href', '/zero');
     await expect(nav.getByRole('link', { name: 'X Experimental', exact: true })).toHaveAttribute('href', '/x');
@@ -214,7 +218,7 @@ test.describe('Route Entry Points', () => {
     await expect(page.locator('body')).not.toContainText('Poolday');
   });
 
-  test('product navigation is collapsed and opens without covering the canvas controls', async ({ page }) => {
+  test('product navigation spans the viewport and opens into an informative sidebar', async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto(PRODUCT_HOME_PATH);
     await page.waitForSelector('.pool-nav-rail', { timeout: 20000 });
@@ -225,6 +229,7 @@ test.describe('Route Entry Points', () => {
       return {
         height: rail.height,
         open,
+        viewportHeight: window.innerHeight,
         width: rail.width,
         x: rail.x,
         y: rail.y,
@@ -232,17 +237,47 @@ test.describe('Route Entry Points', () => {
       };
     });
     expect(desktop.open).toBe(false);
-    expect(desktop.x).toBeLessThan(24);
-    expect(desktop.y).toBeLessThan(24);
-    expect(desktop.height).toBeGreaterThan(200);
-    expect(desktop.height).toBeLessThanOrEqual(320);
-    expect(desktop.width).toBeLessThanOrEqual(64);
+    expect(Math.abs(desktop.x)).toBeLessThanOrEqual(1);
+    expect(Math.abs(desktop.y)).toBeLessThanOrEqual(1);
+    expect(Math.abs(desktop.height - desktop.viewportHeight)).toBeLessThanOrEqual(1);
+    expect(desktop.width).toBeLessThanOrEqual(68);
     expect(desktop.overflowX).toBe(false);
 
     await page.locator('.pool-nav-toggle').click();
     await expect(page.locator('.pool-nav-rail')).toHaveClass(/is-open/);
     await expect(page.locator('.pool-nav-toggle')).toHaveAttribute('aria-expanded', 'true');
     await expect(page.getByRole('link', { name: 'Records', exact: true })).toBeVisible();
+    await expect(page.locator('.pool-nav-description').first()).toBeVisible();
+    await expect(page.locator('.pool-room-context')).toBeVisible();
+    await expect.poll(() => page.locator('.pool-nav-rail').evaluate((rail) => rail.getBoundingClientRect().width))
+      .toBeGreaterThan(260);
+    const expanded = await page.evaluate(() => {
+      const rail = document.querySelector('.pool-nav-rail').getBoundingClientRect();
+      const bottom = document.querySelector('.pool-nav-bottom').getBoundingClientRect();
+      return {
+        bottomGap: window.innerHeight - bottom.bottom,
+        height: rail.height,
+        viewportHeight: window.innerHeight,
+        width: rail.width
+      };
+    });
+    expect(expanded.width).toBeGreaterThan(260);
+    expect(Math.abs(expanded.height - expanded.viewportHeight)).toBeLessThanOrEqual(1);
+    expect(expanded.bottomGap).toBeLessThanOrEqual(12);
+    await page.getByRole('link', { name: 'Run', exact: true }).click();
+    await expect(page).toHaveURL(/\/ask$/);
+    await expect(page.locator('.pool-nav-rail')).toHaveClass(/is-open/);
+    await expect(page.locator('.pool-nav-view-context')).toContainText('Run');
+    await page.getByRole('link', { name: 'Home', exact: true }).click();
+    await expect(page).toHaveURL(/\/$/);
+    await expect(page.locator('.pool-nav-rail')).toHaveClass(/is-open/);
+    await page.keyboard.press('Escape');
+    await expect(page.locator('.pool-nav-rail')).not.toHaveClass(/is-open/);
+    await expect(page.locator('.pool-nav-toggle')).toBeFocused();
+    await page.locator('.pool-nav-more-summary').click();
+    await expect(page.locator('.pool-nav-rail')).toHaveClass(/is-open/);
+    await expect(page.locator('.pool-nav-more')).toHaveAttribute('open', '');
+    await expect(page.getByRole('link', { name: 'Zero Experimental', exact: true })).toBeVisible();
 
     await page.setViewportSize({ width: 390, height: 844 });
     await page.reload();
@@ -274,12 +309,11 @@ test.describe('Route Entry Points', () => {
       };
     });
     expect(mobile.open).toBe(false);
-    expect(mobile.y).toBeLessThan(16);
-    expect(mobile.left).toBeLessThan(16);
+    expect(Math.abs(mobile.y)).toBeLessThanOrEqual(1);
+    expect(Math.abs(mobile.left)).toBeLessThanOrEqual(1);
     expect(mobile.right).toBeGreaterThan(300);
-    expect(mobile.height).toBeGreaterThan(200);
-    expect(mobile.height).toBeLessThanOrEqual(320);
-    expect(mobile.width).toBeLessThanOrEqual(64);
+    expect(Math.abs(mobile.height - mobile.viewportHeight)).toBeLessThanOrEqual(1);
+    expect(mobile.width).toBeLessThanOrEqual(68);
     expect(mobile.overflowX).toBe(false);
     expect(mobile.overflowY).toBe(false);
     expect(Math.abs(mobile.canvasTop)).toBeLessThanOrEqual(1);
@@ -293,6 +327,8 @@ test.describe('Route Entry Points', () => {
     await expect(mobileNav.getByRole('link', { name: 'Run', exact: true })).toBeVisible();
     await expect(mobileNav.getByRole('link', { name: 'Contribute', exact: true })).toBeVisible();
     await expect(mobileNav.getByRole('link', { name: 'Records', exact: true })).toBeVisible();
+    await expect(mobileNav.locator('.pool-nav-description').first()).toBeVisible();
+    await expect(mobileNav.locator('.pool-room-context')).toBeVisible();
     await mobileNav.locator('.pool-nav-more-summary').click();
     await expect(mobileNav.getByRole('link', { name: 'Zero Experimental', exact: true })).toBeVisible();
     await expect(mobileNav.getByRole('link', { name: 'X Experimental', exact: true })).toBeVisible();

@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-07-19T13:27:50.735Z",
+  "generatedAt": "2026-07-19T19:06:23.546Z",
   "files": [
     "audit.html",
     "blueprint-index.json",
@@ -616,6 +616,7 @@
     "ui/pool-home/contribution-state.js",
     "ui/pool-home/controls.js",
     "ui/pool-home/index.js",
+    "ui/pool-home/ledger-store.js",
     "ui/pool-home/simulation-batches.js",
     "ui/pool-home/simulation-bind.js",
     "ui/pool-home/simulation-core.js",

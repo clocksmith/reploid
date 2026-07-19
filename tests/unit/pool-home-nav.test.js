@@ -90,11 +90,16 @@ describe('poolday home navigation', () => {
     expect(html).toContain('<button class="pool-nav-toggle"');
     expect(html).toContain('pool-nav-mark');
     expect(html).toContain('pool-nav-mark-seven-top');
+    expect(html).toContain('class="pool-nav-top"');
+    expect(html).toContain('class="pool-nav-bottom"');
+    expect(html).toContain('class="pool-nav-view-context"');
+    expect(html).toContain('<strong>Contribute</strong>');
+    expect(html).toContain('Let this tab answer compatible runs. Stop at any time.');
     expect(html).toContain('<details class="pool-nav-more">');
     expect(html).toContain('<summary class="pool-nav-more-summary">');
     expect(html).toContain('<span class="pool-nav-label">More</span>');
     expect(html).not.toContain('☰');
-    expect(html).toContain('data-pool-nav-tooltip="Open the route drawer from the left"');
+    expect(html).toContain('data-pool-nav-tooltip="Open the navigation details from the left"');
     expect(html).toContain('data-pool-nav-tooltip="Submit a prompt to browser model contributors"');
     expect(html).toContain('data-pool-nav-tooltip="Share this tab as browser compute"');
     expect(html).toContain('href="/" data-pool-route-link="/"');
@@ -113,6 +118,19 @@ describe('poolday home navigation', () => {
     expect(html).not.toContain('href="/run"');
     expect(html).not.toContain('href="/mesh"');
     expect(html).not.toContain('href="/record"');
+  });
+
+  it('renders expanded navigation as an informative persistent sidebar', () => {
+    const html = renderNav('records', { open: true });
+
+    expect(html).toContain('<nav class="pool-nav-rail is-open"');
+    expect(html).toContain('aria-label="Close navigation"');
+    expect(html).toContain('aria-expanded="true"');
+    expect(html).toContain('<strong>Records</strong>');
+    expect(html).toContain('Answers, contributions, and room events in one ledger.');
+    expect(html).toContain('<span class="pool-nav-description">Prompt peers and inspect the proof</span>');
+    expect(html).toContain('<span class="pool-nav-description">Zero and X workspaces</span>');
+    expect(html).toContain('<div class="pool-room-context-heading">');
   });
 
   it('renders the main home calls to action', () => {

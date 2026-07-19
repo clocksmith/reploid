@@ -38,28 +38,39 @@ const stopPoolHomeBackground = () => {
   }
 };
 
-const bindPoolRouteControls = (mount, render) => {
+const POOL_NAV_TOGGLE_TOOLTIPS = Object.freeze({
+  closed: 'Open the navigation details from the left',
+  open: 'Close the navigation details and keep the activity rail'
+});
+
+const applyPoolNavOpenState = (nav, navToggle, isOpen) => {
+  nav.classList.toggle('is-open', isOpen);
+  if (!isOpen) nav.querySelector('.pool-nav-more')?.removeAttribute('open');
+  navToggle.setAttribute('aria-expanded', String(isOpen));
+  navToggle.setAttribute('aria-label', isOpen ? 'Close navigation' : 'Open navigation');
+  navToggle.setAttribute('title', isOpen ? POOL_NAV_TOGGLE_TOOLTIPS.open : POOL_NAV_TOGGLE_TOOLTIPS.closed);
+  navToggle.dataset.poolNavTooltip = isOpen ? POOL_NAV_TOGGLE_TOOLTIPS.open : POOL_NAV_TOGGLE_TOOLTIPS.closed;
+};
+
+const bindPoolRouteControls = (mount, render, {
+  navOpen = false,
+  onNavOpenChange = () => {}
+} = {}) => {
   const nav = mount.querySelector('.pool-nav-rail');
   const navToggle = mount.querySelector('.pool-nav-toggle');
   const navMenu = mount.querySelector('.pool-nav-menu');
   if (nav && navToggle && navMenu) {
     navMenu.hidden = false;
-    const toggleTooltips = {
-      closed: 'Open the route drawer from the left',
-      open: 'Close the route drawer and keep rail'
-    };
     const setNavOpen = (isOpen) => {
-      nav.classList.toggle('is-open', isOpen);
-      navToggle.setAttribute('aria-expanded', String(isOpen));
-      navToggle.setAttribute('aria-label', isOpen ? 'Close navigation' : 'Open navigation');
-      navToggle.setAttribute('title', isOpen ? toggleTooltips.open : toggleTooltips.closed);
-      navToggle.dataset.poolNavTooltip = isOpen ? toggleTooltips.open : toggleTooltips.closed;
+      applyPoolNavOpenState(nav, navToggle, isOpen);
+      onNavOpenChange(isOpen);
     };
+    setNavOpen(navOpen);
     navToggle.addEventListener('click', () => {
       setNavOpen(!nav.classList.contains('is-open'));
     });
-    nav.addEventListener('keydown', (event) => {
-      if (event.key === 'Escape') setNavOpen(false);
+    nav.querySelector('.pool-nav-more-summary')?.addEventListener('click', () => {
+      if (!nav.classList.contains('is-open')) setNavOpen(true);
     });
   }
 
@@ -98,6 +109,20 @@ export function initPoolHome(mount) {
   window.REPLOID_POOL_ATTACH_DOPPLER_HANDLE = (handle, model = null, runtimeInfo = null) => runtime.attachHandle(handle, model, runtimeInfo);
   mount.style.display = 'block';
   bindRecordStorageSync();
+  let navOpen = false;
+  if (window.REPLOID_POOL_NAV_ESCAPE_HANDLER) {
+    window.removeEventListener('keydown', window.REPLOID_POOL_NAV_ESCAPE_HANDLER);
+  }
+  window.REPLOID_POOL_NAV_ESCAPE_HANDLER = (event) => {
+    if (event.key !== 'Escape' || !navOpen) return;
+    const nav = mount.querySelector('.pool-nav-rail');
+    const navToggle = mount.querySelector('.pool-nav-toggle');
+    if (!nav || !navToggle) return;
+    navOpen = false;
+    applyPoolNavOpenState(nav, navToggle, false);
+    navToggle.focus();
+  };
+  window.addEventListener('keydown', window.REPLOID_POOL_NAV_ESCAPE_HANDLER);
 
   const render = () => {
     const routeId = getRouteId();
@@ -111,13 +136,18 @@ export function initPoolHome(mount) {
       : `${POOLDAY_NAME} - ${ROUTE_COPY[routeId]?.eyebrow || 'Verified Browser Inference'}`;
     mount.innerHTML = `
       <main class="pool-home" data-pool-route-id="${routeId}">
-        ${renderNav(routeId)}
+        ${renderNav(routeId, { open: navOpen })}
         ${renderContributionStatusBar()}
         ${renderRoutePanel(routeId)}
         ${secondaryContent}
       </main>
     `;
-    bindPoolRouteControls(mount, render);
+    bindPoolRouteControls(mount, render, {
+      navOpen,
+      onNavOpenChange: (nextOpen) => {
+        navOpen = nextOpen;
+      }
+    });
     bindHomeAskControls(render);
     bindHomeSimulation(mount);
     bindRunControls();

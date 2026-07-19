@@ -1212,7 +1212,7 @@ export const setResult = (id, value, options = {}) => {
   }
 };
 
-export const renderNav = (activeRoute) => {
+export const renderNav = (activeRoute, { open = false } = {}) => {
   const glyphs = {
     home: '⌂',
     ask: '?',
@@ -1228,40 +1228,69 @@ export const renderNav = (activeRoute) => {
     records: 'Review receipts, room activity, and contributor scores',
     zero: 'Experimental: open the local tabula rasa runtime',
     x: 'Experimental: open the mature self-improving workspace runtime',
-    toggle: 'Open the route drawer from the left'
+    toggleClosed: 'Open the navigation details from the left',
+    toggleOpen: 'Close the navigation details and keep the activity rail'
   };
+  const descriptions = {
+    home: 'Live network and one-step runs',
+    ask: 'Prompt peers and inspect the proof',
+    compute: 'Offer browser compute; stop any time',
+    records: 'Answers, work, rooms, and receipts'
+  };
+  const activeDefinition = POOLDAY_NAV_ROUTES.find((route) => route.id === activeRoute)
+    || POOLDAY_NAV_ROUTES[0];
+  const activeCopy = ROUTE_COPY[activeDefinition.id] || ROUTE_COPY.home;
+  const toggleTooltip = open ? tooltips.toggleOpen : tooltips.toggleClosed;
   const renderItem = ({ id, path, label }) => {
     const isActive = activeRoute === id;
     const currentAttr = isActive ? ' aria-current="page"' : '';
     const ariaLabel = escapeHtml(label);
     const tooltip = escapeHtml(tooltips[id] || `Open ${label} in Reploid navigation`);
     const glyph = glyphs[id] || label.slice(0, 1);
-    return `<a class="pool-nav-link${isActive ? ' is-active' : ''}" href="${path}" data-pool-route-link="${path}" aria-label="${ariaLabel}" title="${tooltip}" data-pool-nav-tooltip="${tooltip}"${currentAttr}><span class="pool-nav-glyph" aria-hidden="true">${escapeHtml(glyph)}</span><span class="pool-nav-label">${ariaLabel}</span></a>`;
+    const description = escapeHtml(descriptions[id] || tooltips[id]);
+    return `<a class="pool-nav-link${isActive ? ' is-active' : ''}" href="${path}" data-pool-route-link="${path}" aria-label="${ariaLabel}" title="${tooltip}" data-pool-nav-tooltip="${tooltip}"${currentAttr}><span class="pool-nav-glyph" aria-hidden="true">${escapeHtml(glyph)}</span><span class="pool-nav-label">${ariaLabel}</span><span class="pool-nav-description">${description}</span></a>`;
   };
   const renderSubstrateItem = ({ id, path, label }) => {
     const tooltip = escapeHtml(tooltips[id] || `Open ${label} runtime`);
     const ariaLabel = escapeHtml(`${label} Experimental`);
-    return `<a class="pool-nav-link pool-nav-substrate-link pool-zero-link link-secondary" href="${path}" data-pool-substrate-route="${path}" aria-label="${ariaLabel}" title="${tooltip}" data-pool-nav-tooltip="${tooltip}"><span class="pool-nav-glyph" aria-hidden="true">${escapeHtml(glyphs[id])}</span><span class="pool-nav-label">${escapeHtml(label)}</span><span class="pool-nav-badge">Experimental</span></a>`;
+    const description = id === 'zero'
+      ? 'Blank local substrate'
+      : 'Self-modifying workspace';
+    return `<a class="pool-nav-link pool-nav-substrate-link pool-zero-link link-secondary" href="${path}" data-pool-substrate-route="${path}" aria-label="${ariaLabel}" title="${tooltip}" data-pool-nav-tooltip="${tooltip}"><span class="pool-nav-glyph" aria-hidden="true">${escapeHtml(glyphs[id])}</span><span class="pool-nav-label">${escapeHtml(label)}</span><span class="pool-nav-description">${escapeHtml(description)}</span><span class="pool-nav-badge">Experimental</span></a>`;
   };
   return `
-    <nav class="pool-nav-rail" aria-label="Navigation">
-      <button class="pool-nav-toggle" type="button" aria-label="Open navigation" title="${escapeHtml(tooltips.toggle)}" data-pool-nav-tooltip="${escapeHtml(tooltips.toggle)}" aria-controls="pool-nav-menu" aria-expanded="false">
-        <span class="pool-nav-mark" aria-hidden="true">
-          <span class="pool-nav-mark-seven pool-nav-mark-seven-top">7</span>
-          <span class="pool-nav-mark-seven pool-nav-mark-seven-bottom">7</span>
-        </span>
-      </button>
-      <div class="pool-nav-menu" id="pool-nav-menu">
-        ${POOLDAY_NAV_ROUTES.map(renderItem).join('')}
+    <nav class="pool-nav-rail${open ? ' is-open' : ''}" aria-label="Navigation">
+      <div class="pool-nav-top">
+        <button class="pool-nav-toggle" type="button" aria-label="${open ? 'Close navigation' : 'Open navigation'}" title="${escapeHtml(toggleTooltip)}" data-pool-nav-tooltip="${escapeHtml(toggleTooltip)}" aria-controls="pool-nav-menu" aria-expanded="${String(open)}">
+          <span class="pool-nav-mark" aria-hidden="true">
+            <span class="pool-nav-mark-seven pool-nav-mark-seven-top">7</span>
+            <span class="pool-nav-mark-seven pool-nav-mark-seven-bottom">7</span>
+          </span>
+          <span class="pool-nav-brand-copy" aria-hidden="true">
+            <strong>Reploid</strong>
+            <small>Peer inference</small>
+          </span>
+        </button>
+        <section class="pool-nav-view-context" aria-label="Current view">
+          <span>Current view</span>
+          <strong>${escapeHtml(activeDefinition.label)}</strong>
+          <p>${escapeHtml(activeCopy.body)}</p>
+        </section>
+        <div class="pool-nav-menu" id="pool-nav-menu">
+          ${POOLDAY_NAV_ROUTES.map(renderItem).join('')}
+        </div>
+      </div>
+      <div class="pool-nav-bottom">
+        ${renderRoomContext()}
         <details class="pool-nav-more">
           <summary class="pool-nav-more-summary">
             <span class="pool-nav-glyph" aria-hidden="true">···</span>
             <span class="pool-nav-label">More</span>
+            <span class="pool-nav-description">Zero and X workspaces</span>
           </summary>
           <div class="pool-nav-more-panel">
             ${renderSubstrateItem({ id: 'zero', path: '/zero', label: 'Zero' })}
             ${renderSubstrateItem({ id: 'x', path: '/x', label: 'X' })}
-            ${renderRoomContext()}
           </div>
         </details>
       </div>
@@ -1271,6 +1300,10 @@ export const renderNav = (activeRoute) => {
 
 const renderRoomContext = () => `
   <div class="pool-room-context" aria-label="Peer room details">
+    <div class="pool-room-context-heading">
+      <b>Peer room</b>
+      <small>Connection context</small>
+    </div>
     <span><b>Room</b><code data-pool-room-id>${escapeHtml(getPeerRoomId())}</code></span>
     <span><b>Relay</b><code data-pool-relay-mode>${escapeHtml(getPeerRelayLabel())}</code></span>
     <span><b>Version</b><code>${escapeHtml(POOLDAY_VERSION_TAG)}</code></span>
