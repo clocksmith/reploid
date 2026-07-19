@@ -77,7 +77,7 @@ describe('RD stylesheet ownership', () => {
     expect(poolday).toMatch(/\.pool-nav-rail\.is-open \.pool-nav-description\s*\{[\s\S]*?opacity: 1;[\s\S]*?visibility: visible;/);
     expect(poolday).toContain('.pool-nav-top');
     expect(poolday).toContain('.pool-nav-bottom');
-    expect(poolday).toContain('.pool-nav-view-context');
+    expect(poolday).not.toContain('.pool-nav-view-context');
     expect(poolday).toContain('.pool-room-context-heading');
     expect(poolday).toMatch(/\.pool-nav-rail\.is-open \.pool-nav-mark-seven-top\s*\{[\s\S]*?font-size: 26px;[\s\S]*?translate\(8px, 8px\)/);
     expect(poolday).toMatch(/\.pool-nav-rail\.is-open \.pool-nav-mark-seven-bottom\s*\{[\s\S]*?font-size: 16px;[\s\S]*?translate\(1px, 0\)/);

@@ -21,8 +21,8 @@ renders escaped state and emits controls that those modules bind.
 - `ledger-store.js` owns one stable room-scoped collection set for receipts,
   peer events, streams, and activity summaries.
 - The navigation remains a full-height activity rail when collapsed. Expansion
-  reveals current-view context, route explanations, peer-room details, and
-  secondary runtimes in a top-and-bottom sidebar composition.
+  reveals route explanations, peer-room details, and secondary runtimes in a
+  top-and-bottom sidebar composition.
 - Route changes preserve the current navigation expansion state. Page reloads
   begin collapsed.
 

@@ -168,8 +168,7 @@ test.describe('Route Entry Points', () => {
     await expect(nav.getByRole('link', { name: 'Run', exact: true })).toBeVisible();
     await expect(nav.getByRole('link', { name: 'Contribute', exact: true })).toBeVisible();
     await expect(nav.getByRole('link', { name: 'Records', exact: true })).toBeVisible();
-    await expect(nav.locator('.pool-nav-view-context')).toContainText('Current view');
-    await expect(nav.locator('.pool-nav-view-context')).toContainText('Run browser models together.');
+    await expect(nav.locator('.pool-nav-view-context')).toHaveCount(0);
     await expect(nav.locator('.pool-nav-description').first()).toBeVisible();
     await expect(nav.locator('.pool-room-context')).toBeVisible();
     await nav.locator('.pool-nav-more-summary').click();
@@ -267,7 +266,7 @@ test.describe('Route Entry Points', () => {
     await page.getByRole('link', { name: 'Run', exact: true }).click();
     await expect(page).toHaveURL(/\/ask$/);
     await expect(page.locator('.pool-nav-rail')).toHaveClass(/is-open/);
-    await expect(page.locator('.pool-nav-view-context')).toContainText('Run');
+    await expect(page.getByRole('link', { name: 'Run', exact: true })).toHaveAttribute('aria-current', 'page');
     await page.getByRole('link', { name: 'Home', exact: true }).click();
     await expect(page).toHaveURL(/\/$/);
     await expect(page.locator('.pool-nav-rail')).toHaveClass(/is-open/);
