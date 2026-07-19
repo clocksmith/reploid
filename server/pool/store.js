@@ -203,6 +203,7 @@ export function createPoolStore() {
   const signalingSessions = new Map();
   const signalingMessages = new Map();
   const peerRoomMessages = new Map();
+  const adapterPublications = new Map();
 
   return {
     kind: 'memory',
@@ -563,6 +564,35 @@ export function createPoolStore() {
         .sort((left, right) => Number(right.lastMessageAt || 0) - Number(left.lastMessageAt || 0))
         .slice(0, Number(limit || 50));
     },
+    saveAdapterPublication(publication = {}) {
+      const packHash = publication.packHash;
+      if (!packHash) throw new Error('adapter publication packHash is required');
+      const saved = {
+        ...publication,
+        createdAt: publication.createdAt || nowIso(),
+        updatedAt: nowIso()
+      };
+      adapterPublications.set(packHash, saved);
+      return saved;
+    },
+    getAdapterPublication(packHash) {
+      return adapterPublications.get(packHash) || null;
+    },
+    listAdapterPublications({ capability = null, publisherId = null, visibility = null } = {}) {
+      return Array.from(adapterPublications.values()).filter((publication) => (
+        publication.revoked !== true
+        && (!capability || publication.capabilities?.includes(capability))
+        && (!publisherId || publication.publisher?.publisherId === publisherId)
+        && (!visibility || publication.visibility === visibility)
+      ));
+    },
+    revokeAdapterPublication(packHash, revocation) {
+      const publication = adapterPublications.get(packHash);
+      if (!publication) return null;
+      const saved = { ...publication, revoked: true, revocation, updatedAt: nowIso() };
+      adapterPublications.set(packHash, saved);
+      return saved;
+    },
     appendLedger(event = {}) {
       const saved = {
         ledgerId: event.ledgerId || makeId('ledger'),
@@ -644,6 +674,7 @@ export function createPoolStore() {
         assignments: assignmentValues.length,
         assignmentStatus: countBy(assignmentValues, 'status'),
         receipts: receiptValues.length,
+        adapterPublications: adapterPublications.size,
         commitments: commitmentEvents.size,
         reveals: revealEvents.size,
         poolEvents: poolEvents.length,

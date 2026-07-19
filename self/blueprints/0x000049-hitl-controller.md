@@ -95,6 +95,13 @@ if (HITL.requiresApproval('SentinelFSM', HITL.CAPABILITIES.APPROVE_CODE_CHANGES)
   3. If autonomous mode or no capability match → auto-approve
   4. Otherwise, add to queue and emit `hitl:approval-pending`
   5. Set timeout if specified
+
+An approval request may set `alwaysRequireHuman: true`. That flag bypasses
+autonomous and security-disabled auto-approval, but not the approval queue. It
+is reserved for boundaries such as trained-adapter promotion where a human
+decision is part of the artifact contract rather than a configurable safety
+preference. The approval callback receives a controller-owned context with the
+approval ID, approval timestamp, source, and `humanRequired` state.
 - **Approval Flow**:
   1. UI emits `hitl:approve` with `{ approvalId, data }`
   2. Controller finds item in queue, calls `onApprove(data)`

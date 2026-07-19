@@ -73,6 +73,48 @@ const compareRuntime = (assignment, receipt, reasons) => {
   if (expected.backend && actual.backend !== expected.backend) reasons.push('receipt backend identity mismatch');
 };
 
+const compareAdapter = (assignment, receipt, reasons) => {
+  const expected = assignment?.adapter || assignment?.model?.requirements?.adapter || null;
+  const actual = receipt?.adapter || null;
+  if (!expected) {
+    if (actual) reasons.push('receipt declares an adapter absent from the assignment');
+    return;
+  }
+  if (!actual) {
+    reasons.push('receipt adapter identity missing');
+    return;
+  }
+  for (const field of [
+    'schema',
+    'packHash',
+    'adapterId',
+    'adapterSha256',
+    'baseModelId',
+    'baseModelHash',
+    'baseManifestHash',
+    'humanPromotionReceiptHash',
+    'dopplerParityReceiptHash',
+    'gammaSelectionReceiptHash',
+    'publicationHash',
+    'publisherId'
+  ]) {
+    if (actual[field] !== expected[field]) reasons.push(`receipt adapter ${field} mismatch`);
+  }
+  if (actual.adapterUseApprovalHash !== assignment.adapterUseApproval?.approvalHash) {
+    reasons.push('receipt adapter use approval hash mismatch');
+  }
+  if (actual.state !== 'active') reasons.push('receipt adapter was not active');
+  if (!Array.isArray(actual.artifactSources) || actual.artifactSources.length === 0) {
+    reasons.push('receipt adapter acquisition source evidence missing');
+  } else if (!actual.artifactSources.some((source) => (
+    ['cache', 'peer', 'origin'].includes(source?.source)
+    && source?.packHash === expected.packHash
+    && source?.adapterSha256 === expected.adapterSha256
+  ))) {
+    reasons.push('receipt adapter acquisition source evidence mismatch');
+  }
+};
+
 export async function verifyReceipt({ store, assignment, receipt, outputText = '', tokenIds = [], vectorHash = null, transcript = null }) {
   const reasons = [];
   const provider = assignment ? await store.getProvider(assignment.providerId) : null;
@@ -146,6 +188,7 @@ export async function verifyReceipt({ store, assignment, receipt, outputText = '
   if (!Array.isArray(tokenIds)) reasons.push('submitted tokenIds must be an array');
   compareModel(assignment, receipt, reasons);
   compareRuntime(assignment, receipt, reasons);
+  compareAdapter(assignment, receipt, reasons);
 
   if (receipt?.outputHash && receipt.outputHash !== sha256Hex(outputText)) {
     reasons.push('output hash does not match submitted outputText');

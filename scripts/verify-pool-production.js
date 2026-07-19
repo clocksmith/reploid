@@ -4,7 +4,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { POOL_CONFIG, POOL_CONFIG_HASH, POOL_CONFIG_VERSION, validatePoolConfig } from '../server/pool/config.js';
-import { LAUNCH_MODEL } from '../self/pool/model-contract.js';
+import { MODEL_CATALOG } from '../self/pool/model-contract.js';
 import {
   validateDopplerExecutionManifestShape,
   validateModelArtifactManifestShape,
@@ -56,6 +56,8 @@ const requiredRewrites = [
   '/pool/metrics',
   '/pool/deployment/check',
   '/pool/providers/**',
+  '/pool/adapters',
+  '/pool/adapters/**',
   '/pool/jobs',
   '/pool/jobs/**',
   '/pool/assignments/**',
@@ -197,30 +199,32 @@ const checkDeploymentUrl = async (baseUrl) => {
   return reasons;
 };
 
-const checkLaunchModelArtifact = async () => {
+const checkEnabledModelArtifacts = async () => {
   if (!verifyArtifact) return [];
   const reasons = [];
-  try {
-    const manifestResult = await verifyModelArtifactManifest({
-      model: LAUNCH_MODEL,
-      baseUrl: LAUNCH_MODEL.artifactPolicy?.baseUrl || POOL_CONFIG.browserRuntime?.modelBaseUrl,
-      fetchImpl: (url, options = {}) => fetch(url, {
-        ...options,
-        signal: AbortSignal.timeout(30000)
-      })
-    });
-    const packageShape = validateModelArtifactManifestShape(manifestResult.manifest, LAUNCH_MODEL);
-    if (!packageShape.ok) {
-      reasons.push(...packageShape.reasons.map((reason) => `launch artifact: ${reason}`));
-    }
-    if (LAUNCH_MODEL.runtime === 'doppler') {
-      const executionShape = validateDopplerExecutionManifestShape(manifestResult.manifest);
-      if (!executionShape.ok) {
-        reasons.push(...executionShape.reasons.map((reason) => `launch artifact: ${reason}`));
+  for (const model of MODEL_CATALOG.filter((entry) => entry.enabled !== false)) {
+    try {
+      const manifestResult = await verifyModelArtifactManifest({
+        model,
+        baseUrl: model.artifactPolicy?.baseUrl || POOL_CONFIG.browserRuntime?.modelBaseUrl,
+        fetchImpl: (url, options = {}) => fetch(url, {
+          ...options,
+          signal: AbortSignal.timeout(30000)
+        })
+      });
+      const packageShape = validateModelArtifactManifestShape(manifestResult.manifest, model);
+      if (!packageShape.ok) {
+        reasons.push(...packageShape.reasons.map((reason) => `${model.modelId} artifact: ${reason}`));
       }
+      if (model.runtime === 'doppler') {
+        const executionShape = validateDopplerExecutionManifestShape(manifestResult.manifest);
+        if (!executionShape.ok) {
+          reasons.push(...executionShape.reasons.map((reason) => `${model.modelId} artifact: ${reason}`));
+        }
+      }
+    } catch (error) {
+      reasons.push(`${model.modelId} artifact verification failed: ${error.message}`);
     }
-  } catch (error) {
-    reasons.push(`launch artifact verification failed: ${error.message}`);
   }
   return reasons;
 };
@@ -228,7 +232,7 @@ const checkLaunchModelArtifact = async () => {
 const reasons = [
   ...checkLocalFiles(),
   ...await checkDeploymentUrl(deploymentUrl),
-  ...await checkLaunchModelArtifact()
+  ...await checkEnabledModelArtifacts()
 ];
 
 if (reasons.length > 0) fail(reasons);

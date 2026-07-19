@@ -14,6 +14,10 @@ import {
   getPoolModelWorkload,
   validateModelRuntimeCapabilities
 } from './model-contract.js';
+import {
+  adapterRequirementFromPack,
+  verifyAdapterPack
+} from './adapter-pack.js';
 
 const DOPPLER_IMPORTS = Object.freeze([
   '@simulatte/doppler',
@@ -337,12 +341,33 @@ const normalizeModelInfo = async (model, handle) => {
 
 const normalizeRuntimeInfo = (runtime, handle) => ({
   runtime: 'doppler',
+  version: runtime?.version
+    || runtime?.packageVersion
+    || handle?.runtimeVersion
+    || handle?.version
+    || handle?.packageVersion
+    || null,
   backend: 'browser-webgpu',
   hasWebGPU: hasWebGpu(),
   publicApi: generateMethodName(handle),
   device: runtime?.device || handle?.deviceInfo || handle?.device || null,
   profile: runtime?.profile || handle?.runtimeProfile || handle?.profile || null
 });
+
+const semanticVersionParts = (value) => {
+  const match = String(value || '').trim().match(/^(\d+)\.(\d+)\.(\d+)/);
+  return match ? match.slice(1).map(Number) : null;
+};
+
+const versionAtLeast = (actual, minimum) => {
+  const left = semanticVersionParts(actual);
+  const right = semanticVersionParts(minimum);
+  if (!left || !right) return false;
+  for (let index = 0; index < 3; index += 1) {
+    if (left[index] !== right[index]) return left[index] > right[index];
+  }
+  return true;
+};
 
 const getHandleModelEvidence = async (handle) => {
   const manifest = handle?.manifest || handle?.model?.manifest || null;
@@ -628,6 +653,7 @@ export function createDopplerRuntime({ modelSession = null, model = null, runtim
   let loadState = session ? 'loaded' : 'empty';
   let deviceInfo = null;
   let generationQueue = Promise.resolve();
+  let activeAdapter = null;
 
   const attachHandle = async (handle, nextModel = null, nextRuntime = null) => {
     const nextModelInfo = nextModel || modelInfo || {};
@@ -637,6 +663,7 @@ export function createDopplerRuntime({ modelSession = null, model = null, runtim
     }
     await assertHandleMatchesDescriptor(handle, nextModelInfo);
     session = handle;
+    activeAdapter = null;
     modelInfo = await normalizeModelInfo(nextModelInfo, handle);
     runtimeInfo = {
       ...normalizeRuntimeInfo(nextRuntime || runtimeInfo, handle),
@@ -671,7 +698,14 @@ export function createDopplerRuntime({ modelSession = null, model = null, runtim
         const loadOptions = getConfiguredLoadOptions(nextModel);
         const result = await loader(getDopplerLoadInput(nextModel), loadOptions);
         const handle = pickHandle(result);
-        return await attachHandle(handle, nextModel, runtimeInfo);
+        return await attachHandle(handle, nextModel, {
+          ...runtimeInfo,
+          version: module?.DOPPLER_VERSION
+            || module?.default?.DOPPLER_VERSION
+            || result?.runtimeVersion
+            || runtimeInfo?.version
+            || null
+        });
       } catch (error) {
         loadState = 'failed';
         return {
@@ -679,6 +713,48 @@ export function createDopplerRuntime({ modelSession = null, model = null, runtim
           reason: error.message
         };
       }
+    },
+    async activateAdapterPack(pack, { source = null, loadOptions = {}, artifactSources = [] } = {}) {
+      if (!session || !modelInfo) throw new Error('Doppler base model must be loaded before an adapter pack');
+      const verification = await verifyAdapterPack(pack, { requirePromoted: true });
+      if (!verification.ok) throw new Error(`Adapter pack rejected: ${verification.reasons.join('; ')}`);
+      if (!versionAtLeast(runtimeInfo.version, pack.runtime.minimumVersion)) {
+        throw new Error(
+          `Adapter pack requires Doppler ${pack.runtime.minimumVersion} or newer; loaded runtime is ${runtimeInfo.version || 'unidentified'}`
+        );
+      }
+      if (pack.baseModel.modelId !== modelInfo.modelId
+        || normalizeHashIdentity(pack.baseModel.modelHash) !== normalizeHashIdentity(modelInfo.modelHash)
+        || normalizeHashIdentity(pack.baseModel.manifestHash) !== normalizeHashIdentity(modelInfo.manifestHash)) {
+        throw new Error('Adapter pack base model identity does not match the loaded Doppler model');
+      }
+      if (typeof session.loadLoRA !== 'function') {
+        throw new Error('Loaded Doppler session does not expose loadLoRA');
+      }
+      const loadSource = source || pack.runtimeManifest || pack.distribution?.originUrl;
+      if (!loadSource) throw new Error('Adapter pack has no runtime load source');
+      await session.loadLoRA(loadSource, loadOptions);
+      const requirement = adapterRequirementFromPack(pack);
+      activeAdapter = Object.freeze({
+        ...requirement,
+        state: 'active',
+        artifactSources: Array.isArray(artifactSources) ? artifactSources : [],
+        activatedAt: new Date().toISOString()
+      });
+      modelInfo = {
+        ...modelInfo,
+        adapterPacks: [activeAdapter]
+      };
+      return activeAdapter;
+    },
+    async deactivateAdapterPack() {
+      if (typeof session?.unloadLoRA === 'function') await session.unloadLoRA();
+      activeAdapter = null;
+      if (modelInfo) modelInfo = { ...modelInfo, adapterPacks: [] };
+      return { ok: true };
+    },
+    getActiveAdapterPack() {
+      return activeAdapter;
     },
     isReady() {
       return !!session && !!publicMethodNameForWorkload(session, modelInfo || {});
@@ -731,6 +807,7 @@ export function createDopplerRuntime({ modelSession = null, model = null, runtim
           tokenCounts: normalizeTokenCounts(result, tokenIds),
           timing: result?.timing || { startedAt, completedAt },
           dopplerProviderReceipt: result?.receipt || result?.dopplerProviderReceipt || null,
+          adapter: activeAdapter,
           model: modelInfo,
           runtime: runtimeInfo,
           evidenceWarnings,
@@ -777,6 +854,7 @@ export function createDopplerRuntime({ modelSession = null, model = null, runtim
           },
           timing: result?.timing || { startedAt, completedAt },
           dopplerProviderReceipt: result?.receipt || result?.dopplerProviderReceipt || null,
+          adapter: activeAdapter,
           model: modelInfo,
           runtime: runtimeInfo,
           evidenceWarnings: [],

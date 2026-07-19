@@ -46,6 +46,32 @@ const generationOptionsFromModel = (model = {}) => Object.fromEntries(Object.ent
   useChatTemplate: model.useChatTemplate
 }).filter(([, value]) => value !== undefined));
 
+const dopplerProgressPercent = (report = {}) => {
+  const raw = report.percent ?? report.progress;
+  if (!Number.isFinite(Number(raw))) return null;
+  const value = Number(raw);
+  return Math.max(0, Math.min(100, Math.round(value <= 1 ? value * 100 : value)));
+};
+
+const dopplerProgressText = (report) => {
+  if (typeof report === 'string') {
+    const text = report.trim();
+    return text ? `[System: ${text}]\n` : '';
+  }
+  if (!report || typeof report !== 'object') return '';
+  const stage = String(report.stage || '').toLowerCase();
+  const percent = dopplerProgressPercent(report);
+  const suffix = percent === null ? '' : ` ${percent}%`;
+  if (stage.includes('download') || stage.includes('cache') || stage.includes('import')) {
+    return `[System: Downloading model...${suffix}]\n`;
+  }
+  if (stage.includes('load') || stage.includes('gpu') || stage.includes('warm')) {
+    return `[System: Loading model into GPU...${suffix}]\n`;
+  }
+  const message = String(report.message || stage || 'Preparing model').trim();
+  return message ? `[System: ${message}${suffix}]\n` : '';
+};
+
 const configError = (Errors, message) => {
   const ConfigError = Errors?.ConfigError || Error;
   return new ConfigError(message);
@@ -97,6 +123,9 @@ export function createDopplerPublicProviderAdapter(dopplerModule, { Errors = nul
     },
     async *stream(messages, options = {}) {
       for await (const token of requireHandle().chat(messages, generationOptionsFromModel(options))) {
+        if (typeof token !== 'string') {
+          throw configError(Errors, 'Doppler chat stream emitted a non-text chunk');
+        }
         yield token;
       }
     },
@@ -218,7 +247,13 @@ export function createReploidDopplerProvider(baseProvider, {
   };
 
   const stream = async (messages, modelConfig, onUpdate, requestId) => {
-    const { provider, modelId } = await ensureModelLoaded(modelConfig, onUpdate);
+    const onLoadProgress = onUpdate
+      ? (report) => {
+          const text = dopplerProgressText(report);
+          if (text) onUpdate(text);
+        }
+      : null;
+    const { provider, modelId } = await ensureModelLoaded(modelConfig, onLoadProgress);
     let fullContent = '';
 
     for await (const token of provider.stream(messages, modelConfig)) {

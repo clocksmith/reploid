@@ -28,7 +28,8 @@ const HITLController = {
       APPROVE_TOOL_EXECUTION: 'approve_tool_execution',
       APPROVE_SELF_MODIFICATION: 'approve_self_modification',
       APPROVE_CORE_WRITES: 'approve_core_writes',
-      APPROVE_INTENT_BUNDLE: 'approve_intent_bundle'
+      APPROVE_INTENT_BUNDLE: 'approve_intent_bundle',
+      APPROVE_TRAINED_ADAPTER: 'approve_trained_adapter'
     };
 
     /** Mode constants */
@@ -266,13 +267,23 @@ const HITLController = {
      * @param {Function} request.onApprove - Called with data on approval
      * @param {Function} request.onReject - Called with reason on rejection
      * @param {number} [request.timeout] - Auto-reject after ms (optional)
+     * @param {boolean} [request.alwaysRequireHuman] - Queue even in autonomous mode
      * @returns {string|null} Approval ID if queued, null if auto-approved
      */
     const requestApproval = (request) => {
-      const { moduleId, capability, action, data, onApprove, onReject, timeout } = request;
+      const {
+        moduleId,
+        capability,
+        action,
+        data,
+        onApprove,
+        onReject,
+        timeout,
+        alwaysRequireHuman = false
+      } = request;
 
       // Check if approval is actually required
-      if (!requiresApproval(moduleId, capability)) {
+      if (!alwaysRequireHuman && !requiresApproval(moduleId, capability)) {
         // Auto-approve in autonomous mode
         _stats.autoApproved++;
         logger.debug(`[HITL] Auto-approved: ${moduleId}/${capability}`);
@@ -290,6 +301,7 @@ const HITLController = {
         data,
         onApprove,
         onReject,
+        alwaysRequireHuman: alwaysRequireHuman === true,
         timestamp: Date.now(),
         status: 'pending'
       };
@@ -337,8 +349,14 @@ const HITLController = {
       _addHistory('approved', item);
 
       // Execute callback
+      const approvedAt = Date.now();
       if (item.onApprove) {
-        item.onApprove(data !== null ? data : item.data);
+        item.onApprove(data !== null ? data : item.data, {
+          approvalId,
+          approvedAt,
+          source: 'hitl-controller',
+          humanRequired: item.alwaysRequireHuman === true
+        });
       }
 
       EventBus.emit('hitl:approval-granted', { approvalId, item });

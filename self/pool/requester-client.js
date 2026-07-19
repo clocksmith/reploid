@@ -3,15 +3,20 @@
  */
 
 import { createPoolSdk } from './sdk.js';
-import { buildAcceptanceSummary, countersignReceipt, createSigningKeyPair, exportPublicKey } from './inference-receipt.js';
+import { buildAcceptanceSummary, countersignReceipt, createSigningKeyPair, exportPublicKey, sha256Hex } from './inference-receipt.js';
 import { buildLaunchModelRequirements } from './model-contract.js';
 import { DETERMINISTIC_GENERATION_CONFIG, FASTEST_RECEIPT_POLICY_ID, getPolicy } from './policy-router.js';
 import { createPoolIdentity } from './identity.js';
+import { createAdapterUseApproval } from './adapter-publication.js';
 import {
   createPeerLedgerEvents,
   createPeerPromptPayload,
   createSignedJobIntent
 } from './peer-control-plane.js';
+import {
+  adapterRequirementFromPack,
+  verifyAdapterPack
+} from './adapter-pack.js';
 
 export function createRequesterClient({ requesterId, sdk = createPoolSdk(), keyPair = null, identity = createPoolIdentity('requester') } = {}) {
   let activeKeyPair = keyPair;
@@ -28,16 +33,57 @@ export function createRequesterClient({ requesterId, sdk = createPoolSdk(), keyP
     return activeRequesterId;
   };
   return {
+    async submitAdapterJob({ adapterPack, modelRequirements = {}, ...request } = {}) {
+      const verification = await verifyAdapterPack(adapterPack, { requirePromoted: true });
+      if (!verification.ok) throw new Error(`Adapter pack rejected: ${verification.reasons.join('; ')}`);
+      return this.submitJob({
+        ...request,
+        modelRequirements: {
+          ...modelRequirements,
+          modelId: adapterPack.baseModel.modelId,
+          modelHash: adapterPack.baseModel.modelHash,
+          manifestHash: adapterPack.baseModel.manifestHash,
+          adapter: adapterRequirementFromPack(adapterPack)
+        }
+      });
+    },
+    async createPeerAdapterJobIntent({ adapterPack, modelRequirements = {}, ...request } = {}) {
+      const verification = await verifyAdapterPack(adapterPack, { requirePromoted: true });
+      if (!verification.ok) throw new Error(`Adapter pack rejected: ${verification.reasons.join('; ')}`);
+      return this.createPeerJobIntent({
+        ...request,
+        modelRequirements: {
+          ...modelRequirements,
+          modelId: adapterPack.baseModel.modelId,
+          modelHash: adapterPack.baseModel.modelHash,
+          manifestHash: adapterPack.baseModel.manifestHash,
+          adapter: adapterRequirementFromPack(adapterPack)
+        }
+      });
+    },
     async submitJob({ prompt, policyId = FASTEST_RECEIPT_POLICY_ID, modelRequirements = {}, generationConfig = {}, maxPointSpend = null }) {
-      await ensureKeys();
+      const keys = await ensureKeys();
       const resolvedRequesterId = await ensureRequesterId();
       const policy = getPolicy(policyId);
+      const resolvedModelRequirements = buildLaunchModelRequirements(modelRequirements);
+      const inputHash = await sha256Hex(prompt);
+      const adapterUseApproval = resolvedModelRequirements.adapter
+        ? await createAdapterUseApproval({
+          adapterRequirement: resolvedModelRequirements.adapter,
+          requesterId: resolvedRequesterId,
+          requesterPublicKey,
+          privateKey: keys.privateKey,
+          inputHash,
+          modelRequirements: resolvedModelRequirements
+        })
+        : null;
       return sdk.submitJob({
         requesterId: resolvedRequesterId,
         requesterPublicKey,
         prompt,
         policyId,
-        modelRequirements: buildLaunchModelRequirements(modelRequirements),
+        modelRequirements: resolvedModelRequirements,
+        adapterUseApproval,
         generationConfig: {
           ...DETERMINISTIC_GENERATION_CONFIG,
           ...generationConfig

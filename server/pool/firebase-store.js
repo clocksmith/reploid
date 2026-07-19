@@ -34,7 +34,8 @@ const COLLECTIONS = Object.freeze({
   peerRoomMessages: 'peer_room_messages',
   pointsLedger: 'points_ledger',
   reputationState: 'reputation_state',
-  auditChallenges: 'audit_challenges'
+  auditChallenges: 'audit_challenges',
+  adapterPublications: 'adapter_publications'
 });
 
 const stripUndefined = (value) => {
@@ -707,6 +708,38 @@ export function createFirestorePoolStore({ firestore, collectionPrefix = '' } = 
         .sort((left, right) => Number(right.lastMessageAt || 0) - Number(left.lastMessageAt || 0))
         .slice(0, Number(limit || 50));
     },
+    async saveAdapterPublication(publication = {}) {
+      const packHash = publication.packHash;
+      if (!packHash) throw new Error('adapter publication packHash is required');
+      const saved = {
+        ...publication,
+        createdAt: publication.createdAt || nowIso(),
+        updatedAt: nowIso()
+      };
+      return writeDoc(COLLECTIONS.adapterPublications, packHash, saved, { merge: false });
+    },
+    async getAdapterPublication(packHash) {
+      return readDoc(COLLECTIONS.adapterPublications, packHash);
+    },
+    async listAdapterPublications({ capability = null, publisherId = null, visibility = null } = {}) {
+      const publications = await listDocs(COLLECTIONS.adapterPublications);
+      return publications.filter((publication) => (
+        publication.revoked !== true
+        && (!capability || publication.capabilities?.includes(capability))
+        && (!publisherId || publication.publisher?.publisherId === publisherId)
+        && (!visibility || publication.visibility === visibility)
+      ));
+    },
+    async revokeAdapterPublication(packHash, revocation) {
+      const publication = await readDoc(COLLECTIONS.adapterPublications, packHash);
+      if (!publication) return null;
+      return writeDoc(COLLECTIONS.adapterPublications, packHash, {
+        ...publication,
+        revoked: true,
+        revocation,
+        updatedAt: nowIso()
+      }, { merge: true });
+    },
     async appendLedger(event = {}) {
       const ledgerId = event.ledgerId || makeId('ledger');
       const saved = {
@@ -789,7 +822,8 @@ export function createFirestorePoolStore({ firestore, collectionPrefix = '' } = 
         poolEvents,
         ledger,
         audits,
-        reputations
+        reputations,
+        adapterPublications
       ] = await Promise.all([
         listDocs(COLLECTIONS.providers),
         listDocs(COLLECTIONS.jobs),
@@ -800,7 +834,8 @@ export function createFirestorePoolStore({ firestore, collectionPrefix = '' } = 
         listDocs(COLLECTIONS.poolEvents),
         listDocs(COLLECTIONS.pointsLedger),
         listDocs(COLLECTIONS.auditChallenges),
-        listDocs(COLLECTIONS.reputationState)
+        listDocs(COLLECTIONS.reputationState),
+        listDocs(COLLECTIONS.adapterPublications)
       ]);
       const countBy = (values, field) => values.reduce((acc, item) => {
         const key = item[field] || 'unknown';
@@ -815,6 +850,7 @@ export function createFirestorePoolStore({ firestore, collectionPrefix = '' } = 
         assignments: assignments.length,
         assignmentStatus: countBy(assignments, 'status'),
         receipts: receipts.length,
+        adapterPublications: adapterPublications.length,
         commitments: commitments.length,
         reveals: reveals.length,
         poolEvents: poolEvents.length,

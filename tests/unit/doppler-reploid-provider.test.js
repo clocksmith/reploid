@@ -81,6 +81,62 @@ describe('Reploid Doppler 0.4.9 provider adapter', () => {
     expect(handle.unload).toHaveBeenCalledOnce();
   });
 
+  it('keeps structured load progress out of the text token stream', async () => {
+    setWebGpu({});
+    const handle = {
+      loaded: true,
+      async *chat() {
+        yield 'ready';
+      },
+      unload: vi.fn(async () => {})
+    };
+    const load = vi.fn(async (_source, options) => {
+      options.onProgress?.({ stage: 'download-start', percent: 25 });
+      options.onProgress?.({ stage: 'warming', progress: 0.5 });
+      return handle;
+    });
+    const base = createDopplerPublicProviderAdapter({ load }, { Errors: { ConfigError } });
+    const provider = createReploidDopplerProvider(base, { Errors: { ConfigError } });
+    const updates = [];
+
+    const result = await provider.stream(
+      [{ role: 'user', content: 'hi' }],
+      { id: 'qwen-test' },
+      (text) => updates.push(text),
+      'request-progress'
+    );
+
+    expect(result.content).toBe('ready');
+    expect(updates).toEqual([
+      '[System: Downloading model... 25%]\n',
+      '[System: Loading model into GPU... 50%]\n',
+      'ready'
+    ]);
+    expect(updates.every((text) => typeof text === 'string')).toBe(true);
+  });
+
+  it('fails closed when Doppler emits a non-text generation chunk', async () => {
+    setWebGpu({});
+    const handle = {
+      loaded: true,
+      async *chat() {
+        yield { token: 'not-text' };
+      },
+      unload: vi.fn(async () => {})
+    };
+    const base = createDopplerPublicProviderAdapter({
+      load: vi.fn(async () => handle)
+    }, { Errors: { ConfigError } });
+    const provider = createReploidDopplerProvider(base, { Errors: { ConfigError } });
+
+    await expect(provider.stream(
+      [{ role: 'user', content: 'hi' }],
+      { id: 'qwen-test' },
+      vi.fn(),
+      'request-invalid-stream'
+    )).rejects.toThrow('Doppler chat stream emitted a non-text chunk');
+  });
+
   it('scopes promoted runtime options to the intended model', async () => {
     setWebGpu({});
     const handle = {
@@ -130,9 +186,9 @@ describe('Reploid Doppler 0.4.9 provider adapter', () => {
     const contract = { schema: 'test' };
 
     await expect(provider.tooling.runBrowserCommand({ request: {} })).resolves.toEqual({ ok: true });
-    expect(provider.tooling.optimization.validateContract(contract)).resolves.toBe(contract);
-    expect(provider.tooling.optimization.hashContract(contract)).resolves.toBe('sha256:contract');
-    expect(provider.tooling.optimization.enumerateCandidates(contract)).resolves.toEqual([
+    await expect(provider.tooling.optimization.validateContract(contract)).resolves.toBe(contract);
+    await expect(provider.tooling.optimization.hashContract(contract)).resolves.toBe('sha256:contract');
+    await expect(provider.tooling.optimization.enumerateCandidates(contract)).resolves.toEqual([
       { candidateId: 'candidate-a' }
     ]);
     expect(provider.bench).toBeUndefined();

@@ -11,6 +11,9 @@ export const P2P_PAYLOAD_TYPES = Object.freeze({
   EXECUTION_RESULT: 'execution_result',
   RECEIPT: 'receipt',
   ACCEPTANCE: 'acceptance',
+  ARTIFACT_REQUEST: 'artifact_request',
+  ARTIFACT_CHUNK: 'artifact_chunk',
+  ARTIFACT_COMPLETE: 'artifact_complete',
   ACK: 'ack',
   ERROR: 'error'
 });

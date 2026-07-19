@@ -30,6 +30,21 @@ Required fields:
 
 Provider signatures use the `poolday.provider_receipt.v1` domain.
 
+When an assignment requests an adapter, the receipt also requires:
+
+- `adapter.packHash`
+- `adapter.adapterId`
+- `adapter.adapterSha256`
+- exact base-model and manifest hashes
+- human-promotion, Doppler parity, and Gamma selection receipt hashes
+- publisher and publication identity
+- requester adapter-use approval hash
+- `adapter.state: "active"`
+- at least one verified cache, peer, or origin acquisition record bound to the pack and adapter hashes
+
+Adapter publication, requester approval, and revocation use separate signature
+domains. They are not inferred from the provider receipt.
+
 ## Requester Acceptance
 
 Requester acceptance is a separate artifact.

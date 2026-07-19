@@ -11,53 +11,7 @@ import {
   executeToolResult,
   sanitizeInstanceId
 } from './reploid-lab-helpers.js';
-
-const READ_FILE_TOOL_CODE = `
-export const tool = {
-  name: 'ReadFile',
-  description: 'Read a VFS file or list a VFS directory.',
-  activation: {
-    fixtures: {
-      vfs: { '/activation/read.txt': 'activation-read' }
-    },
-    checks: [{
-      name: 'reads a fixture file',
-      args: { path: '/activation/read.txt' },
-      expected: {
-        path: '/activation/read.txt',
-        kind: 'file',
-        content: 'activation-read'
-      }
-    }]
-  },
-  inputSchema: {
-    type: 'object',
-    required: ['path'],
-    properties: {
-      path: { type: 'string' }
-    }
-  }
-};
-
-export default async function(args = {}, deps = {}) {
-  const { VFS } = deps;
-  if (!VFS?.read || !VFS?.list) throw new Error('VFS read/list unavailable');
-  const rawPath = String(args.path || '/').trim() || '/';
-  const path = rawPath.startsWith('/') ? rawPath : '/' + rawPath;
-  if (path.split('/').includes('..')) throw new Error('Path traversal is not allowed');
-  try {
-    const content = await VFS.read(path);
-    return { path, kind: 'file', content };
-  } catch (fileError) {
-    try {
-      const entries = await VFS.list(path.endsWith('/') ? path : path + '/');
-      return { path, kind: 'directory', entries };
-    } catch {
-      throw fileError;
-    }
-  }
-}
-`.trim();
+import { ZERO_READ_FILE_TOOL_CODE } from './zero-tool-fixtures.js';
 
 const SELF_WRITE_TOOL_CODE = `
 const ACTIVE_PREFIXES = [
@@ -240,7 +194,7 @@ test('/zero boots with CreateTool only, then creates and uses ReadFile', async (
   const initialTools = await page.evaluate(() => window.REPLOID.toolRunner.list());
   expect(initialTools).toEqual(['CreateTool']);
 
-  await installTool(page, 'ReadFile', READ_FILE_TOOL_CODE);
+  await installTool(page, 'ReadFile', ZERO_READ_FILE_TOOL_CODE);
 
   const toolsAfterCreate = await page.evaluate(() => window.REPLOID.toolRunner.list());
   expect(toolsAfterCreate).toEqual(expect.arrayContaining(['CreateTool', 'ReadFile']));
@@ -269,7 +223,7 @@ export default async function() {
 
   await bootRouteWithServiceWorker(page, '/zero', instanceId);
   await awakenWithoutGoal(page);
-  await installTool(page, 'ReadFile', READ_FILE_TOOL_CODE);
+  await installTool(page, 'ReadFile', ZERO_READ_FILE_TOOL_CODE);
   await installTool(page, 'SelfWrite', SELF_WRITE_TOOL_CODE);
 
   const directRead = await executeToolResult(page, 'ReadFile', { path: '/self/tools/SelfWrite.js' });
@@ -324,7 +278,7 @@ test('/zero created self-writer applies a UI self patch and hot-reloads the runt
 
   await bootRouteWithServiceWorker(page, '/zero', instanceId);
   await awakenWithoutGoal(page);
-  await installTool(page, 'ReadFile', READ_FILE_TOOL_CODE);
+  await installTool(page, 'ReadFile', ZERO_READ_FILE_TOOL_CODE);
   await installTool(page, 'SelfWrite', SELF_WRITE_TOOL_CODE);
   await expect(page.locator('.zero-shell')).toBeVisible();
 
@@ -373,7 +327,7 @@ test('/zero created self-writer applies a core patch, mirrors it, and reloads cl
 
   await bootRouteWithServiceWorker(page, '/zero', instanceId);
   await awakenWithoutGoal(page);
-  await installTool(page, 'ReadFile', READ_FILE_TOOL_CODE);
+  await installTool(page, 'ReadFile', ZERO_READ_FILE_TOOL_CODE);
   await installTool(page, 'SelfWrite', SELF_WRITE_TOOL_CODE);
   await expect(page.locator('.zero-shell')).toBeVisible();
 
