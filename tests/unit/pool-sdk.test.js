@@ -49,4 +49,27 @@ describe('Pool SDK client identity', () => {
     expect(first).toMatch(/^pool_client_/);
     expect(second).toBe(first);
   });
+
+  it('uses the isolated adapter-canary publication routes', async () => {
+    const fetchMock = vi.fn(async () => ({
+      ok: true,
+      json: async () => ({ publications: [] })
+    }));
+    vi.stubGlobal('fetch', fetchMock);
+    const sdk = createPoolSdk({
+      baseUrl: 'https://pool.test',
+      authTokenProvider: null,
+      clientId: 'canary-client'
+    });
+
+    await sdk.publishAdapterCanary({ publicationHash: 'sha256:test' });
+    await sdk.listAdapterCanaries({ canaryId: 'ner-canary' });
+    await sdk.getAdapterCanary('sha256:test');
+
+    expect(fetchMock.mock.calls.map(([url]) => url)).toEqual([
+      'https://pool.test/adapter-canaries',
+      'https://pool.test/adapter-canaries?canaryId=ner-canary',
+      'https://pool.test/adapter-canaries/sha256%3Atest'
+    ]);
+  });
 });

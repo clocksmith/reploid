@@ -1,6 +1,6 @@
 {
   "schema": "reploid.pool.config/v1",
-  "configVersion": "2026-07-19.doppler-0.4.11.v1",
+  "configVersion": "2026-07-19.doppler-0.4.12.v1",
   "claim": "receipt-backed, audit-backed, reputation-backed, policy-controlled browser inference",
   "forbiddenClaims": [
     "trustless",
@@ -92,7 +92,7 @@
   "launchModel": {
     "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
     "modelHash": "sha256:fab133e49d6dc67912fc3a087222ec44ca1941d9b7bc36c60cb1379863a6dd4f",
-    "manifestHash": "sha256:c1564f7422cfb05f5404d7602b3531188de11b7f8409430b6671fe66431cc88b",
+    "manifestHash": "sha256:edeb69dd65cbb26971abf773a95bf6dc219a82942c0951d65e1893d442b607c9",
     "tokenizerHash": "sha256:8fc3b6de02de5a8e21d3867aba335e2d9a3c2263201f55daaed1feab3541bea4",
     "contextLength": 262144,
     "quantization": "q4k",
@@ -103,7 +103,7 @@
       "weightPackId": "qwen-3-5-0-8b-q4k-ehaf16-wp-catalog-v1",
       "weightPackHash": "sha256:fab133e49d6dc67912fc3a087222ec44ca1941d9b7bc36c60cb1379863a6dd4f",
       "manifestVariantId": "qwen-3-5-0-8b-q4k-ehaf16-mv-exec-v1",
-      "conversionConfigDigest": "sha256:e6273027b3d2413031f4ed55ecb0f0d8f77161bc05f1c46a89b9cfad792bc8a2",
+      "conversionConfigDigest": "sha256:f25a87e06dbb4b112fd8e3710894059f80904a35e1a95cb1ab0f1106c50a0ac9",
       "conversionConfigPath": "src/config/conversion/qwen3/qwen-3-5-0-8b-q4k-ehaf16.json",
       "materializationProfile": "auto",
       "modalitySet": [
@@ -122,12 +122,12 @@
     },
     "dopplerLoadRef": "qwen-3-5-0-8b-q4k-ehaf16",
     "loadInput": {
-      "url": "https://huggingface.co/Clocksmith/rdrr/resolve/f58f1d0b58641c84e7ea50d13fea0dd4dc91389a/models/qwen-3-5-0-8b-q4k-ehaf16"
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/80d7716270b6371d541de979eff3370edaf34e13/models/qwen-3-5-0-8b-q4k-ehaf16"
     },
     "artifactPolicy": {
       "transport": "offloaded_content_addressed",
       "cache": "browser_opfs",
-      "baseUrl": "https://huggingface.co/Clocksmith/rdrr/resolve/f58f1d0b58641c84e7ea50d13fea0dd4dc91389a/models/qwen-3-5-0-8b-q4k-ehaf16",
+      "baseUrl": "https://huggingface.co/clocksmith/rdrr/resolve/80d7716270b6371d541de979eff3370edaf34e13/models/qwen-3-5-0-8b-q4k-ehaf16",
       "identityFields": [
         "modelId",
         "modelHash",
@@ -151,7 +151,7 @@
           "whenMissingWebGpuFeatures": [
             "shader-f16"
           ],
-          "runtime": "doppler-gpu@0.4.11",
+          "runtime": "doppler-gpu@0.4.12",
           "transform": "widenToF32Activations",
           "prefillProjectionKernel": "fused_matmul_q4_batched_multicol_shared.wgsl",
           "kvDtype": "f32",
@@ -159,7 +159,7 @@
         }
       ],
       "fallbackStatus": "doppler_0_4_9_manifest_capability_remap",
-      "capabilityAction": "Use doppler-gpu@0.4.11 or newer with capability-aware kernelPathPolicy; browsers without shader-f16 run the declared f32 fallback lane."
+      "capabilityAction": "Use doppler-gpu@0.4.12 or newer with capability-aware kernelPathPolicy; browsers without shader-f16 run the declared f32 fallback lane."
     },
     "label": "Qwen 3.5 0.8B",
     "enabled": true
@@ -174,9 +174,9 @@
     "useChatTemplate": false
   },
   "browserRuntime": {
-    "dopplerModuleUrl": "https://esm.sh/doppler-gpu@0.4.11/src/client/doppler-api.js?bundle",
-    "dopplerKernelBaseUrl": "https://esm.sh/doppler-gpu@0.4.11/src/gpu/kernels",
-    "modelBaseUrl": "https://huggingface.co/Clocksmith/rdrr/resolve/f58f1d0b58641c84e7ea50d13fea0dd4dc91389a/models",
+    "dopplerModuleUrl": "https://esm.sh/doppler-gpu@0.4.12/src/client/doppler-api.js?bundle",
+    "dopplerKernelBaseUrl": "https://esm.sh/doppler-gpu@0.4.12/src/gpu/kernels",
+    "modelBaseUrl": "https://huggingface.co/clocksmith/rdrr/resolve/80d7716270b6371d541de979eff3370edaf34e13/models",
     "loadOptions": {
       "cache": "opfs",
       "runtimeConfig": {
@@ -814,12 +814,12 @@
       },
       "dopplerLoadRef": "gemma3-270m",
       "loadInput": {
-        "url": "https://huggingface.co/Clocksmith/rdrr/resolve/a8591b20bce7c22d75becde1315482e76ff85fc9/models/gemma-3-270m-it-q4k-ehf16-af32"
+        "url": "https://huggingface.co/clocksmith/rdrr/resolve/a8591b20bce7c22d75becde1315482e76ff85fc9/models/gemma-3-270m-it-q4k-ehf16-af32"
       },
       "artifactPolicy": {
         "transport": "offloaded_content_addressed",
         "cache": "browser_opfs",
-        "baseUrl": "https://huggingface.co/Clocksmith/rdrr/resolve/a8591b20bce7c22d75becde1315482e76ff85fc9/models/gemma-3-270m-it-q4k-ehf16-af32",
+        "baseUrl": "https://huggingface.co/clocksmith/rdrr/resolve/a8591b20bce7c22d75becde1315482e76ff85fc9/models/gemma-3-270m-it-q4k-ehf16-af32",
         "identityFields": [
           "modelId",
           "modelHash",
@@ -842,7 +842,7 @@
     {
       "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
       "modelHash": "sha256:fab133e49d6dc67912fc3a087222ec44ca1941d9b7bc36c60cb1379863a6dd4f",
-      "manifestHash": "sha256:c1564f7422cfb05f5404d7602b3531188de11b7f8409430b6671fe66431cc88b",
+      "manifestHash": "sha256:edeb69dd65cbb26971abf773a95bf6dc219a82942c0951d65e1893d442b607c9",
       "tokenizerHash": "sha256:8fc3b6de02de5a8e21d3867aba335e2d9a3c2263201f55daaed1feab3541bea4",
       "contextLength": 262144,
       "quantization": "q4k",
@@ -853,7 +853,7 @@
         "weightPackId": "qwen-3-5-0-8b-q4k-ehaf16-wp-catalog-v1",
         "weightPackHash": "sha256:fab133e49d6dc67912fc3a087222ec44ca1941d9b7bc36c60cb1379863a6dd4f",
         "manifestVariantId": "qwen-3-5-0-8b-q4k-ehaf16-mv-exec-v1",
-        "conversionConfigDigest": "sha256:e6273027b3d2413031f4ed55ecb0f0d8f77161bc05f1c46a89b9cfad792bc8a2",
+        "conversionConfigDigest": "sha256:f25a87e06dbb4b112fd8e3710894059f80904a35e1a95cb1ab0f1106c50a0ac9",
         "conversionConfigPath": "src/config/conversion/qwen3/qwen-3-5-0-8b-q4k-ehaf16.json",
         "materializationProfile": "auto",
         "modalitySet": [
@@ -872,12 +872,12 @@
       },
       "dopplerLoadRef": "qwen-3-5-0-8b-q4k-ehaf16",
       "loadInput": {
-        "url": "https://huggingface.co/Clocksmith/rdrr/resolve/f58f1d0b58641c84e7ea50d13fea0dd4dc91389a/models/qwen-3-5-0-8b-q4k-ehaf16"
+        "url": "https://huggingface.co/clocksmith/rdrr/resolve/80d7716270b6371d541de979eff3370edaf34e13/models/qwen-3-5-0-8b-q4k-ehaf16"
       },
       "artifactPolicy": {
         "transport": "offloaded_content_addressed",
         "cache": "browser_opfs",
-        "baseUrl": "https://huggingface.co/Clocksmith/rdrr/resolve/f58f1d0b58641c84e7ea50d13fea0dd4dc91389a/models/qwen-3-5-0-8b-q4k-ehaf16",
+        "baseUrl": "https://huggingface.co/clocksmith/rdrr/resolve/80d7716270b6371d541de979eff3370edaf34e13/models/qwen-3-5-0-8b-q4k-ehaf16",
         "identityFields": [
           "modelId",
           "modelHash",
@@ -901,7 +901,7 @@
             "whenMissingWebGpuFeatures": [
               "shader-f16"
             ],
-            "runtime": "doppler-gpu@0.4.11",
+            "runtime": "doppler-gpu@0.4.12",
             "transform": "widenToF32Activations",
             "prefillProjectionKernel": "fused_matmul_q4_batched_multicol_shared.wgsl",
             "kvDtype": "f32",
@@ -909,7 +909,7 @@
           }
         ],
         "fallbackStatus": "doppler_0_4_9_manifest_capability_remap",
-        "capabilityAction": "Use doppler-gpu@0.4.11 or newer with capability-aware kernelPathPolicy; browsers without shader-f16 run the declared f32 fallback lane."
+        "capabilityAction": "Use doppler-gpu@0.4.12 or newer with capability-aware kernelPathPolicy; browsers without shader-f16 run the declared f32 fallback lane."
       },
       "label": "Qwen 3.5 0.8B",
       "enabled": true
@@ -948,12 +948,12 @@
       },
       "dopplerLoadRef": "qwen-3-embedding-0-6b-q4k-ehf16-af32",
       "loadInput": {
-        "url": "https://huggingface.co/Clocksmith/rdrr/resolve/049000f49325dca7db2ed2c9de2c8881bd0f4603/models/qwen-3-embedding-0-6b-q4k-ehf16-af32"
+        "url": "https://huggingface.co/clocksmith/rdrr/resolve/049000f49325dca7db2ed2c9de2c8881bd0f4603/models/qwen-3-embedding-0-6b-q4k-ehf16-af32"
       },
       "artifactPolicy": {
         "transport": "offloaded_content_addressed",
         "cache": "browser_opfs",
-        "baseUrl": "https://huggingface.co/Clocksmith/rdrr/resolve/049000f49325dca7db2ed2c9de2c8881bd0f4603/models/qwen-3-embedding-0-6b-q4k-ehf16-af32",
+        "baseUrl": "https://huggingface.co/clocksmith/rdrr/resolve/049000f49325dca7db2ed2c9de2c8881bd0f4603/models/qwen-3-embedding-0-6b-q4k-ehf16-af32",
         "identityFields": [
           "modelId",
           "modelHash",
@@ -1003,12 +1003,12 @@
       },
       "dopplerLoadRef": "gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
       "loadInput": {
-        "url": "https://huggingface.co/Clocksmith/rdrr/resolve/16256bf16dc8f92b8fe5105b07628cef91587f0a/models/gemma-4-e2b-it-q4k-ehf16-af32-int4ple"
+        "url": "https://huggingface.co/clocksmith/rdrr/resolve/16256bf16dc8f92b8fe5105b07628cef91587f0a/models/gemma-4-e2b-it-q4k-ehf16-af32-int4ple"
       },
       "artifactPolicy": {
         "transport": "offloaded_content_addressed",
         "cache": "browser_opfs",
-        "baseUrl": "https://huggingface.co/Clocksmith/rdrr/resolve/16256bf16dc8f92b8fe5105b07628cef91587f0a/models/gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
+        "baseUrl": "https://huggingface.co/clocksmith/rdrr/resolve/16256bf16dc8f92b8fe5105b07628cef91587f0a/models/gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
         "identityFields": [
           "modelId",
           "modelHash",

@@ -99,6 +99,19 @@ export function createPoolSdk({ baseUrl = DEFAULT_BASE_URL, authTokenProvider = 
     publishAdapter(publication) {
       return request('/adapters', { method: 'POST', body: { publication } });
     },
+    publishAdapterCanary(publication) {
+      return request('/adapter-canaries', { method: 'POST', body: { publication } });
+    },
+    listAdapterCanaries({ canaryId = null, publisherId = null } = {}) {
+      const query = new URLSearchParams();
+      if (canaryId) query.set('canaryId', canaryId);
+      if (publisherId) query.set('publisherId', publisherId);
+      const suffix = query.toString() ? `?${query.toString()}` : '';
+      return request(`/adapter-canaries${suffix}`);
+    },
+    getAdapterCanary(publicationHash) {
+      return request(`/adapter-canaries/${encodeURIComponent(publicationHash)}`);
+    },
     listAdapters({ capability = null, publisherId = null, visibility = null } = {}) {
       const query = new URLSearchParams();
       if (capability) query.set('capability', capability);

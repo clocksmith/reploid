@@ -48,7 +48,7 @@ Identity, and Routing](./poolday/participation-identity-routing.md).
 {
   "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
   "modelHash": "sha256:fab133e49d6dc67912fc3a087222ec44ca1941d9b7bc36c60cb1379863a6dd4f",
-  "manifestHash": "sha256:c1564f7422cfb05f5404d7602b3531188de11b7f8409430b6671fe66431cc88b",
+  "manifestHash": "sha256:edeb69dd65cbb26971abf773a95bf6dc219a82942c0951d65e1893d442b607c9",
   "tokenizerHash": "sha256:8fc3b6de02de5a8e21d3867aba335e2d9a3c2263201f55daaed1feab3541bea4",
   "runtime": "doppler",
   "backend": "browser-webgpu",
@@ -70,7 +70,7 @@ Model bytes should not be served from Firebase Hosting or the Cloud Run coordina
 
 Browser providers derive artifact URLs from the selected model's `artifactPolicy`, with `window.REPLOID_POOL_MODEL_BASE_URL` as an override, through `self/pool/model-contract.js` and `self/pool/model-artifacts.js`. The storage backend can be object storage, a model hub, IPFS, or another CDN. The receipt identity does not include the storage URL; it includes the exact model id, model hash, manifest hash, runtime, and backend. Providers cache fetched model artifacts in OPFS after first load.
 
-The launch Qwen artifact is pinned to Hugging Face revision `f58f1d0b58641c84e7ea50d13fea0dd4dc91389a`. Production verification fetches that manifest, verifies its configured content hash and model identity, and rejects manifests missing runtime-significant Doppler execution fields. Changing the artifact revision requires changing the manifest hash and config version together.
+The launch Qwen artifact is pinned to Hugging Face revision `80d7716270b6371d541de979eff3370edaf34e13`. Production verification fetches that manifest, verifies its configured content hash and model identity, and rejects manifests missing runtime-significant Doppler execution fields. Changing the artifact revision requires changing the manifest hash and config version together.
 
 ## Governed adapter lifecycle
 
@@ -108,8 +108,10 @@ the pack and adapter hashes.
 
 This is full-model-plus-adapter execution on one provider. Poolday does not
 split adapter matrices, base-model layers, attention, or KV cache across peers.
-The current repository proof uses synthetic adapter bytes and mocked Doppler
-execution. No Tinker-produced adapter is published or deployed by this claim.
+The promoted publication path still uses synthetic adapter bytes in focused
+contract tests. A separate non-routable canary publication binds real hosted
+adapter bytes to a Chromium/WebGPU receipt. Canary records cannot become
+provider requirements and do not establish task quality or promotion.
 
 The requester-visible route receipt binds every accepted and rejected provider
 candidate to the exact model and adapter requirement. Selection prefers an
@@ -269,6 +271,9 @@ Receipts for ring assignments are accepted only after:
 | `GET` | `/pool/adapters` | List non-revoked publications visible to the authenticated caller |
 | `GET` | `/pool/adapters/:packHash` | Fetch one non-revoked publication by immutable pack hash |
 | `POST` | `/pool/adapters/:packHash/revoke` | Apply the publisher's signed revocation |
+| `POST` | `/pool/adapter-canaries` | Register one signed, non-routable adapter runtime canary |
+| `GET` | `/pool/adapter-canaries` | List public adapter canary evidence |
+| `GET` | `/pool/adapter-canaries/:publicationHash` | Fetch one immutable adapter canary publication |
 | `POST` | `/pool/providers/register` | Register provider model, device, availability, and public key |
 | `POST` | `/pool/providers/heartbeat` | Refresh provider session state |
 | `GET` | `/pool/providers/assignments/next` | Poll next assignment for a provider |
@@ -629,6 +634,7 @@ When `POOL_STORE=firestore` is set, the server must initialize Firebase Admin an
 - `signaling_sessions`
 - `signaling_messages`
 - `adapter_publications`
+- `adapter_canary_publications`
 - `points_ledger`
 - `reputation_state`
 - `audit_challenges`

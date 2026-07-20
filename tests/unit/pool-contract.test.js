@@ -143,7 +143,7 @@ describe('pool launch contract', () => {
     expect(serverModel).toMatchObject({
       modelId: QWEN_MODEL_ID,
       modelHash: 'sha256:fab133e49d6dc67912fc3a087222ec44ca1941d9b7bc36c60cb1379863a6dd4f',
-      manifestHash: 'sha256:c1564f7422cfb05f5404d7602b3531188de11b7f8409430b6671fe66431cc88b',
+      manifestHash: 'sha256:edeb69dd65cbb26971abf773a95bf6dc219a82942c0951d65e1893d442b607c9',
       tokenizerHash: 'sha256:8fc3b6de02de5a8e21d3867aba335e2d9a3c2263201f55daaed1feab3541bea4',
       runtime: 'doppler',
       backend: 'browser-webgpu',
@@ -155,7 +155,7 @@ describe('pool launch contract', () => {
       capabilityFallbacks: [
         expect.objectContaining({
           whenMissingWebGpuFeatures: ['shader-f16'],
-          runtime: 'doppler-gpu@0.4.11',
+          runtime: 'doppler-gpu@0.4.12',
           transform: 'widenToF32Activations',
           prefillProjectionKernel: 'fused_matmul_q4_batched_multicol_shared.wgsl',
           kvDtype: 'f32',
@@ -193,10 +193,10 @@ describe('pool launch contract', () => {
     expect(noF16.fallbackStatus).toBe('doppler_0_4_9_manifest_capability_remap');
 
     expect(buildModelArtifactUrls(browserModel)).toEqual({
-      root: 'https://huggingface.co/Clocksmith/rdrr/resolve/f58f1d0b58641c84e7ea50d13fea0dd4dc91389a/models/qwen-3-5-0-8b-q4k-ehaf16',
-      manifest: 'https://huggingface.co/Clocksmith/rdrr/resolve/f58f1d0b58641c84e7ea50d13fea0dd4dc91389a/models/qwen-3-5-0-8b-q4k-ehaf16/manifest.json',
-      tokenizer: 'https://huggingface.co/Clocksmith/rdrr/resolve/f58f1d0b58641c84e7ea50d13fea0dd4dc91389a/models/qwen-3-5-0-8b-q4k-ehaf16/tokenizer.json',
-      shards: 'https://huggingface.co/Clocksmith/rdrr/resolve/f58f1d0b58641c84e7ea50d13fea0dd4dc91389a/models/qwen-3-5-0-8b-q4k-ehaf16/'
+      root: 'https://huggingface.co/clocksmith/rdrr/resolve/80d7716270b6371d541de979eff3370edaf34e13/models/qwen-3-5-0-8b-q4k-ehaf16',
+      manifest: 'https://huggingface.co/clocksmith/rdrr/resolve/80d7716270b6371d541de979eff3370edaf34e13/models/qwen-3-5-0-8b-q4k-ehaf16/manifest.json',
+      tokenizer: 'https://huggingface.co/clocksmith/rdrr/resolve/80d7716270b6371d541de979eff3370edaf34e13/models/qwen-3-5-0-8b-q4k-ehaf16/tokenizer.json',
+      shards: 'https://huggingface.co/clocksmith/rdrr/resolve/80d7716270b6371d541de979eff3370edaf34e13/models/qwen-3-5-0-8b-q4k-ehaf16/'
     });
   });
 
@@ -229,10 +229,10 @@ describe('pool launch contract', () => {
     })).toMatchObject({ ok: true });
 
     expect(buildModelArtifactUrls(browserModel)).toEqual({
-      root: 'https://huggingface.co/Clocksmith/rdrr/resolve/16256bf16dc8f92b8fe5105b07628cef91587f0a/models/gemma-4-e2b-it-q4k-ehf16-af32-int4ple',
-      manifest: 'https://huggingface.co/Clocksmith/rdrr/resolve/16256bf16dc8f92b8fe5105b07628cef91587f0a/models/gemma-4-e2b-it-q4k-ehf16-af32-int4ple/manifest.json',
-      tokenizer: 'https://huggingface.co/Clocksmith/rdrr/resolve/16256bf16dc8f92b8fe5105b07628cef91587f0a/models/gemma-4-e2b-it-q4k-ehf16-af32-int4ple/tokenizer.json',
-      shards: 'https://huggingface.co/Clocksmith/rdrr/resolve/16256bf16dc8f92b8fe5105b07628cef91587f0a/models/gemma-4-e2b-it-q4k-ehf16-af32-int4ple/'
+      root: 'https://huggingface.co/clocksmith/rdrr/resolve/16256bf16dc8f92b8fe5105b07628cef91587f0a/models/gemma-4-e2b-it-q4k-ehf16-af32-int4ple',
+      manifest: 'https://huggingface.co/clocksmith/rdrr/resolve/16256bf16dc8f92b8fe5105b07628cef91587f0a/models/gemma-4-e2b-it-q4k-ehf16-af32-int4ple/manifest.json',
+      tokenizer: 'https://huggingface.co/clocksmith/rdrr/resolve/16256bf16dc8f92b8fe5105b07628cef91587f0a/models/gemma-4-e2b-it-q4k-ehf16-af32-int4ple/tokenizer.json',
+      shards: 'https://huggingface.co/clocksmith/rdrr/resolve/16256bf16dc8f92b8fe5105b07628cef91587f0a/models/gemma-4-e2b-it-q4k-ehf16-af32-int4ple/'
     });
   });
 
@@ -250,10 +250,10 @@ describe('pool launch contract', () => {
     });
     expect(browserModel).toEqual(serverModel);
     expect(buildModelArtifactUrls(browserModel)).toEqual({
-      root: 'https://huggingface.co/Clocksmith/rdrr/resolve/a8591b20bce7c22d75becde1315482e76ff85fc9/models/gemma-3-270m-it-q4k-ehf16-af32',
-      manifest: 'https://huggingface.co/Clocksmith/rdrr/resolve/a8591b20bce7c22d75becde1315482e76ff85fc9/models/gemma-3-270m-it-q4k-ehf16-af32/manifest.json',
-      tokenizer: 'https://huggingface.co/Clocksmith/rdrr/resolve/a8591b20bce7c22d75becde1315482e76ff85fc9/models/gemma-3-270m-it-q4k-ehf16-af32/tokenizer.json',
-      shards: 'https://huggingface.co/Clocksmith/rdrr/resolve/a8591b20bce7c22d75becde1315482e76ff85fc9/models/gemma-3-270m-it-q4k-ehf16-af32/'
+      root: 'https://huggingface.co/clocksmith/rdrr/resolve/a8591b20bce7c22d75becde1315482e76ff85fc9/models/gemma-3-270m-it-q4k-ehf16-af32',
+      manifest: 'https://huggingface.co/clocksmith/rdrr/resolve/a8591b20bce7c22d75becde1315482e76ff85fc9/models/gemma-3-270m-it-q4k-ehf16-af32/manifest.json',
+      tokenizer: 'https://huggingface.co/clocksmith/rdrr/resolve/a8591b20bce7c22d75becde1315482e76ff85fc9/models/gemma-3-270m-it-q4k-ehf16-af32/tokenizer.json',
+      shards: 'https://huggingface.co/clocksmith/rdrr/resolve/a8591b20bce7c22d75becde1315482e76ff85fc9/models/gemma-3-270m-it-q4k-ehf16-af32/'
     });
   });
 
@@ -295,10 +295,10 @@ describe('pool launch contract', () => {
     }))).toMatchObject({ ok: true });
 
     expect(buildModelArtifactUrls(browserModel)).toEqual({
-      root: 'https://huggingface.co/Clocksmith/rdrr/resolve/049000f49325dca7db2ed2c9de2c8881bd0f4603/models/qwen-3-embedding-0-6b-q4k-ehf16-af32',
-      manifest: 'https://huggingface.co/Clocksmith/rdrr/resolve/049000f49325dca7db2ed2c9de2c8881bd0f4603/models/qwen-3-embedding-0-6b-q4k-ehf16-af32/manifest.json',
-      tokenizer: 'https://huggingface.co/Clocksmith/rdrr/resolve/049000f49325dca7db2ed2c9de2c8881bd0f4603/models/qwen-3-embedding-0-6b-q4k-ehf16-af32/tokenizer.json',
-      shards: 'https://huggingface.co/Clocksmith/rdrr/resolve/049000f49325dca7db2ed2c9de2c8881bd0f4603/models/qwen-3-embedding-0-6b-q4k-ehf16-af32/'
+      root: 'https://huggingface.co/clocksmith/rdrr/resolve/049000f49325dca7db2ed2c9de2c8881bd0f4603/models/qwen-3-embedding-0-6b-q4k-ehf16-af32',
+      manifest: 'https://huggingface.co/clocksmith/rdrr/resolve/049000f49325dca7db2ed2c9de2c8881bd0f4603/models/qwen-3-embedding-0-6b-q4k-ehf16-af32/manifest.json',
+      tokenizer: 'https://huggingface.co/clocksmith/rdrr/resolve/049000f49325dca7db2ed2c9de2c8881bd0f4603/models/qwen-3-embedding-0-6b-q4k-ehf16-af32/tokenizer.json',
+      shards: 'https://huggingface.co/clocksmith/rdrr/resolve/049000f49325dca7db2ed2c9de2c8881bd0f4603/models/qwen-3-embedding-0-6b-q4k-ehf16-af32/'
     });
   });
 
@@ -331,9 +331,9 @@ describe('pool launch contract', () => {
 
   it('keeps browser runtime deployment config aligned across server and browser', () => {
     expect(BROWSER_BROWSER_RUNTIME_CONFIG).toEqual(SERVER_BROWSER_RUNTIME_CONFIG);
-    expect(BROWSER_BROWSER_RUNTIME_CONFIG.dopplerModuleUrl).toBe('https://esm.sh/doppler-gpu@0.4.11/src/client/doppler-api.js?bundle');
-    expect(BROWSER_BROWSER_RUNTIME_CONFIG.dopplerKernelBaseUrl).toBe('https://esm.sh/doppler-gpu@0.4.11/src/gpu/kernels');
-    expect(BROWSER_BROWSER_RUNTIME_CONFIG.modelBaseUrl).toBe('https://huggingface.co/Clocksmith/rdrr/resolve/f58f1d0b58641c84e7ea50d13fea0dd4dc91389a/models');
+    expect(BROWSER_BROWSER_RUNTIME_CONFIG.dopplerModuleUrl).toBe('https://esm.sh/doppler-gpu@0.4.12/src/client/doppler-api.js?bundle');
+    expect(BROWSER_BROWSER_RUNTIME_CONFIG.dopplerKernelBaseUrl).toBe('https://esm.sh/doppler-gpu@0.4.12/src/gpu/kernels');
+    expect(BROWSER_BROWSER_RUNTIME_CONFIG.modelBaseUrl).toBe('https://huggingface.co/clocksmith/rdrr/resolve/80d7716270b6371d541de979eff3370edaf34e13/models');
 
     for (const env of [deploymentEnv.runtimeEnv, deploymentEnv.browserEnv]) {
       expect(env.REPLOID_DOPPLER_MODULE_URL).toBe(BROWSER_BROWSER_RUNTIME_CONFIG.dopplerModuleUrl);

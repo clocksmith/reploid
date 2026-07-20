@@ -204,6 +204,7 @@ export function createPoolStore() {
   const signalingMessages = new Map();
   const peerRoomMessages = new Map();
   const adapterPublications = new Map();
+  const adapterCanaryPublications = new Map();
 
   return {
     kind: 'memory',
@@ -593,6 +594,25 @@ export function createPoolStore() {
       adapterPublications.set(packHash, saved);
       return saved;
     },
+    saveAdapterCanaryPublication(publication = {}) {
+      const publicationHash = publication.publicationHash;
+      if (!publicationHash) throw new Error('adapter canary publicationHash is required');
+      const saved = {
+        ...publication,
+        storedAt: publication.storedAt || nowIso()
+      };
+      adapterCanaryPublications.set(publicationHash, saved);
+      return saved;
+    },
+    getAdapterCanaryPublication(publicationHash) {
+      return adapterCanaryPublications.get(publicationHash) || null;
+    },
+    listAdapterCanaryPublications({ canaryId = null, publisherId = null } = {}) {
+      return Array.from(adapterCanaryPublications.values()).filter((publication) => (
+        (!canaryId || publication.canaryId === canaryId)
+        && (!publisherId || publication.publisher?.publisherId === publisherId)
+      ));
+    },
     appendLedger(event = {}) {
       const saved = {
         ledgerId: event.ledgerId || makeId('ledger'),
@@ -675,6 +695,7 @@ export function createPoolStore() {
         assignmentStatus: countBy(assignmentValues, 'status'),
         receipts: receiptValues.length,
         adapterPublications: adapterPublications.size,
+        adapterCanaryPublications: adapterCanaryPublications.size,
         commitments: commitmentEvents.size,
         reveals: revealEvents.size,
         poolEvents: poolEvents.length,

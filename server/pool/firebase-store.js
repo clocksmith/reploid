@@ -35,7 +35,8 @@ const COLLECTIONS = Object.freeze({
   pointsLedger: 'points_ledger',
   reputationState: 'reputation_state',
   auditChallenges: 'audit_challenges',
-  adapterPublications: 'adapter_publications'
+  adapterPublications: 'adapter_publications',
+  adapterCanaryPublications: 'adapter_canary_publications'
 });
 
 const stripUndefined = (value) => {
@@ -740,6 +741,24 @@ export function createFirestorePoolStore({ firestore, collectionPrefix = '' } = 
         updatedAt: nowIso()
       }, { merge: true });
     },
+    async saveAdapterCanaryPublication(publication = {}) {
+      const publicationHash = publication.publicationHash;
+      if (!publicationHash) throw new Error('adapter canary publicationHash is required');
+      return writeDoc(COLLECTIONS.adapterCanaryPublications, publicationHash, {
+        ...publication,
+        storedAt: publication.storedAt || nowIso()
+      }, { merge: false });
+    },
+    async getAdapterCanaryPublication(publicationHash) {
+      return readDoc(COLLECTIONS.adapterCanaryPublications, publicationHash);
+    },
+    async listAdapterCanaryPublications({ canaryId = null, publisherId = null } = {}) {
+      const publications = await listDocs(COLLECTIONS.adapterCanaryPublications);
+      return publications.filter((publication) => (
+        (!canaryId || publication.canaryId === canaryId)
+        && (!publisherId || publication.publisher?.publisherId === publisherId)
+      ));
+    },
     async appendLedger(event = {}) {
       const ledgerId = event.ledgerId || makeId('ledger');
       const saved = {
@@ -823,7 +842,8 @@ export function createFirestorePoolStore({ firestore, collectionPrefix = '' } = 
         ledger,
         audits,
         reputations,
-        adapterPublications
+        adapterPublications,
+        adapterCanaryPublications
       ] = await Promise.all([
         listDocs(COLLECTIONS.providers),
         listDocs(COLLECTIONS.jobs),
@@ -835,7 +855,8 @@ export function createFirestorePoolStore({ firestore, collectionPrefix = '' } = 
         listDocs(COLLECTIONS.pointsLedger),
         listDocs(COLLECTIONS.auditChallenges),
         listDocs(COLLECTIONS.reputationState),
-        listDocs(COLLECTIONS.adapterPublications)
+        listDocs(COLLECTIONS.adapterPublications),
+        listDocs(COLLECTIONS.adapterCanaryPublications)
       ]);
       const countBy = (values, field) => values.reduce((acc, item) => {
         const key = item[field] || 'unknown';
@@ -851,6 +872,7 @@ export function createFirestorePoolStore({ firestore, collectionPrefix = '' } = 
         assignmentStatus: countBy(assignments, 'status'),
         receipts: receipts.length,
         adapterPublications: adapterPublications.length,
+        adapterCanaryPublications: adapterCanaryPublications.length,
         commitments: commitments.length,
         reveals: reveals.length,
         poolEvents: poolEvents.length,

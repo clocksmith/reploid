@@ -1,11 +1,11 @@
 {
-  "schema": "reploid.network-canary-custody/v1",
-  "recordedAt": "2026-07-19T17:42:00.000Z",
-  "repository": "Clocksmith/rdrr",
+  "schema": "reploid.network-canary-custody/v2",
+  "recordedAt": "2026-07-19T23:51:08.000Z",
   "artifacts": [
     {
       "id": "gemma-3-270m-it-q4k-ehf16-af32",
       "role": "base_model_network_canary",
+      "repository": "clocksmith/rdrr",
       "revision": "a8591b20bce7c22d75becde1315482e76ff85fc9",
       "path": "models/gemma-3-270m-it-q4k-ehf16-af32/manifest.json",
       "sizeBytes": 112143,
@@ -17,11 +17,12 @@
     {
       "id": "qwen35-0.8b-ner-json-lora",
       "role": "external_adapter_interoperability_canary",
-      "revision": "fda0bfe9c0cb89b28bf344a8fbfbc146c0f3247e",
+      "repository": "clocksmith/lora",
+      "revision": "a618a2ccab25928a98694930376ebb3c3db241cb",
       "path": "adapters/network-canaries/qwen35-0.8b-ner-json-lora/adapter_model.safetensors",
       "sizeBytes": 43346432,
       "sha256": "dfed3509fdd54c04e80e362b6b14f98d9c326a8e732f539996a137086dc4f636",
-      "verification": { "method": "streamed_https_sha256", "verifiedAt": "2026-07-19T17:45:00.000Z" },
+      "verification": { "method": "streamed_https_sha256", "verifiedAt": "2026-07-19T23:51:08.000Z" },
       "source": {
         "repository": "Mike0021/qwen35-0.8b-ner-json-lora",
         "revision": "6d4e4cf3ebe7d8df10897b9f44cbf1e647386bcb",
@@ -49,7 +50,7 @@
           "in_proj_qkv"
         ],
         "weightsFormat": "safetensors",
-        "weightsPath": "https://huggingface.co/Clocksmith/rdrr/resolve/fda0bfe9c0cb89b28bf344a8fbfbc146c0f3247e/adapters/network-canaries/qwen35-0.8b-ner-json-lora/adapter_model.safetensors",
+        "weightsPath": "https://huggingface.co/clocksmith/lora/resolve/a618a2ccab25928a98694930376ebb3c3db241cb/adapters/network-canaries/qwen35-0.8b-ner-json-lora/adapter_model.safetensors",
         "weightsSize": 43346432,
         "checksum": "dfed3509fdd54c04e80e362b6b14f98d9c326a8e732f539996a137086dc4f636",
         "checksumAlgorithm": "sha256"
@@ -59,11 +60,12 @@
     {
       "id": "wgsl-repair-v12-external20-seed29",
       "role": "adapter_transfer_stress_canary",
-      "revision": "125b4b7ff0919137e2269793ce4860bd2b8dfe2a",
-      "path": "adapters/network-canaries/wgsl-repair-v12-external20-seed29/adapter_model.safetensors",
+      "repository": "clocksmith/lora",
+      "revision": "5662f8f7e3dbcf1e2ec353b5a04d0d4f2f5254ce",
+      "path": "adapters/seed29/adapter_model.safetensors",
       "sizeBytes": 232808939,
       "sha256": "0d9ab8e1348a3fcdd6ef2973b624cc1a3d962de90a571976a5a222df27b69394",
-      "verification": { "method": "streamed_https_sha256", "verifiedAt": "2026-07-19T17:45:00.000Z" },
+      "verification": { "method": "streamed_https_sha256", "verifiedAt": "2026-07-19T23:51:08.000Z" },
       "source": {
         "repository": "clocksmith/doppler",
         "revision": "9e33238db9a9d42bcf122967caf3563ee97d392c",

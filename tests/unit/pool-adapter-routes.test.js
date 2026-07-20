@@ -105,7 +105,7 @@ const createFixture = async () => {
       visibility: 'public',
       primaryOrigin: {
         provider: 'huggingface',
-        repoId: 'Clocksmith/lora-route-test',
+        repoId: 'clocksmith/lora-route-test',
         revision: 'a'.repeat(40),
         path: 'adapters/route-adapter/adapter_model.safetensors'
       },

@@ -8,7 +8,7 @@ signed publication, entitlement, routing, revocation, and execution receipt.
 
 | Store | Role | Identity pin |
 |---|---|---|
-| `Clocksmith/rdrr` on Hugging Face | Public or shared RDRR model packages | Full Hugging Face commit and SHA-256 package identity |
+| `clocksmith/rdrr` on Hugging Face | Public or shared RDRR model packages | Full Hugging Face commit and SHA-256 package identity |
 | Clocksmith adapter repositories on Hugging Face | Private custody and PEFT interoperability | Full Hugging Face commit, path, adapter SHA-256 |
 | Private GCS bucket | Columbo and entitled Reploid delivery | Bucket, object, object generation, adapter SHA-256 |
 | Browser OPFS | Verified local cache | Artifact SHA-256 only |

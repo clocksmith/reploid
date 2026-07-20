@@ -11,6 +11,12 @@ Canaries and challenges turn receipts into audit-backed evidence.
 - latency sanity canary
 - quorum disagreement canary
 - delayed challenge rerun
+- non-routable adapter runtime canary
+
+Adapter runtime canaries use a separate signed publication and Firestore
+collection. They bind custody, exact base identity, runtime integrity, and one
+browser receipt. They never enter provider discovery, job routing, requester
+approval, or adapter promotion.
 
 ## Challenge Policy
 

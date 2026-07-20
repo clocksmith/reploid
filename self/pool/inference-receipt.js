@@ -19,6 +19,7 @@ export const SIGNATURE_DOMAINS = Object.freeze({
   deviceRoleDelegation: 'poolday.device_role_delegation.v1',
   participationProfile: 'poolday.participation_profile.v1',
   adapterPublication: 'poolday.adapter_publication.v1',
+  adapterCanaryPublication: 'poolday.adapter_canary_publication.v1',
   adapterRevocation: 'poolday.adapter_revocation.v1',
   adapterUseApproval: 'poolday.adapter_use_approval.v1'
 });
