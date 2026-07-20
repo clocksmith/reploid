@@ -1631,15 +1631,14 @@ const renderDashboardCapability = () => `
 `;
 
 const renderDashboardInspector = (activeView) => `
-  <aside class="pool-dashboard-inspector" aria-label="Workspace inspector" data-pool-dashboard-inspector>
-    <header class="pool-dashboard-inspector-header">
-      <div>
-        <span class="pool-dashboard-kicker">Inspector</span>
-        <strong data-pool-dashboard-title>Workspace</strong>
-      </div>
-      <button type="button" class="pool-dashboard-close" data-pool-dashboard-view-target="home" aria-label="Close inspector">☈</button>
-    </header>
-    <div class="pool-dashboard-inspector-scroll">
+  <aside class="pool-dashboard-inspector" aria-label="Inspector" data-pool-dashboard-inspector>
+    <button class="pool-nav-toggle pool-inspector-toggle" type="button" aria-label="Open inspector" aria-controls="pool-inspector-panels" aria-expanded="false" data-pool-inspector-toggle>
+      <span class="pool-nav-mark" aria-hidden="true">
+        <span class="pool-nav-mark-seven pool-nav-mark-seven-top">7</span>
+        <span class="pool-nav-mark-seven pool-nav-mark-seven-bottom">7</span>
+      </span>
+    </button>
+    <div class="pool-dashboard-inspector-scroll" id="pool-inspector-panels">
       <section ${dashboardPanelAttributes('home', activeView)}>
         <div class="pool-dashboard-intro">
           <h2>One network, two ways to participate.</h2>
@@ -1654,7 +1653,6 @@ const renderDashboardInspector = (activeView) => `
         </ol>
       </section>
       <section ${dashboardPanelAttributes('ask', activeView)}>
-        <span class="pool-dashboard-kicker">Run</span>
         <h2>Ask the network</h2>
         <p>The composer stays over the topology. Choose Text or an approved Adapter, then Run.</p>
         <div class="pool-dashboard-facts">
@@ -1676,7 +1674,6 @@ const renderDashboardInspector = (activeView) => `
         </section>
       </section>
       <section ${dashboardPanelAttributes('compute', activeView)} data-pool-provider>
-        <span class="pool-dashboard-kicker">Contribute</span>
         <h2>Share this browser</h2>
         <p>Reploid qualifies the device before advertising work. Stop remains immediate.</p>
         <p class="pool-provider-status" data-pool-provider-status>Idle</p>
@@ -1689,7 +1686,6 @@ const renderDashboardInspector = (activeView) => `
         <div id="pool-provider-health" class="pool-ledger-shell" aria-live="polite">${renderProviderHealth()}</div>
       </section>
       <section ${dashboardPanelAttributes('records', activeView)}>
-        <span class="pool-dashboard-kicker">Records</span>
         <h2>Work and proof</h2>
         <p>Answers, contributions, and room events share one local timeline.</p>
         <button class="btn btn-primary" type="button" data-pool-activity-toggle aria-expanded="true">Open activity</button>
