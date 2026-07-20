@@ -70,7 +70,7 @@ const modeCapabilities = (mode, permissions = {}) => {
 };
 
 export function normalizeParticipationPreferences(preferences = {}) {
-  const mode = VALID_MODES.has(preferences.mode) ? preferences.mode : PARTICIPATION_MODES.request;
+  const mode = VALID_MODES.has(preferences.mode) ? preferences.mode : PARTICIPATION_MODES.both;
   const permissions = {
     relayArtifacts: preferences.permissions?.relayArtifacts !== false,
     verifyResults: preferences.permissions?.verifyResults !== false,

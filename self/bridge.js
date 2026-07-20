@@ -225,7 +225,7 @@ const createVfsAdapter = ({
 const normalizeModelConfig = (modelConfig = null) => {
   if (!modelConfig) return null;
   const next = { ...modelConfig };
-  if (next.hostType === 'browser-local' || next.provider === 'doppler') {
+  if (next.hostType === 'browser-local' && next.provider !== 'doppler') {
     next.provider = 'webllm';
     next.queryMethod = 'browser';
   } else if ((next.hostType === 'proxy-cloud' || next.hostType === 'proxy-local') && next.proxyUrl && !next.endpoint) {

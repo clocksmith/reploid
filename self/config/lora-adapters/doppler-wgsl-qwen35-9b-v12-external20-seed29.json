@@ -1,0 +1,53 @@
+{
+  "name": "doppler-wgsl-qwen35-9b-v12-external20-seed29",
+  "version": "1.0.0",
+  "description": "Doppler WGSL Qwen 3.5 9B adapter (seed 29, Candidate)",
+  "baseModel": "qwen-3-5-9b-f16-af32",
+  "format": "safetensors",
+  "quantization": "f16",
+  "lifecycleStatus": "Candidate",
+
+  "huggingface": {
+    "repo": "clocksmith/lora",
+    "filePath": "adapters/seed29/adapter_model.safetensors",
+    "url": "https://huggingface.co/clocksmith/lora/resolve/main/adapters/seed29/adapter_model.safetensors"
+  },
+
+  "lora": {
+    "rank": 16,
+    "alpha": 32,
+    "targetModules": ["q_proj", "k_proj", "v_proj", "o_proj"],
+    "dropout": 0.05
+  },
+
+  "shards": [
+    {
+      "name": "adapter_model.safetensors",
+      "path": "/.lora/doppler-wgsl-qwen35-9b-v12-external20-seed29/adapter_model.safetensors",
+      "sizeBytes": 2097152,
+      "hash": "sha256:placeholder"
+    }
+  ],
+
+  "routing": {
+    "keywords": ["wgsl", "webgpu", "shader", "inference", "doppler"],
+    "domains": ["webgpu", "gpgpu", "shaders"],
+    "examples": [
+      "Optimize WGSL compute shader for matrix multiplication",
+      "Debug WebGPU adapter error in local browser runner"
+    ]
+  },
+
+  "performance": {
+    "loadTimeMs": 50,
+    "mergeTimeMs": 100,
+    "contextOverhead": 0
+  },
+
+  "metadata": {
+    "author": "clocksmith",
+    "license": "Apache-2.0",
+    "trainedOn": "doppler-wgsl-v12-external20",
+    "createdAt": "2026-07-20T00:00:00Z"
+  }
+}

@@ -1,6 +1,6 @@
 {
   "schema": "reploid.pool.config/v1",
-  "configVersion": "2026-07-19.doppler-0.4.12.v1",
+  "configVersion": "2026-07-19.doppler-0.4.14.v1",
   "claim": "receipt-backed, audit-backed, reputation-backed, policy-controlled browser inference",
   "forbiddenClaims": [
     "trustless",
@@ -151,7 +151,7 @@
           "whenMissingWebGpuFeatures": [
             "shader-f16"
           ],
-          "runtime": "doppler-gpu@0.4.12",
+          "runtime": "doppler-gpu@0.4.14",
           "transform": "widenToF32Activations",
           "prefillProjectionKernel": "fused_matmul_q4_batched_multicol_shared.wgsl",
           "kvDtype": "f32",
@@ -159,7 +159,7 @@
         }
       ],
       "fallbackStatus": "doppler_0_4_9_manifest_capability_remap",
-      "capabilityAction": "Use doppler-gpu@0.4.12 or newer with capability-aware kernelPathPolicy; browsers without shader-f16 run the declared f32 fallback lane."
+      "capabilityAction": "Use doppler-gpu@0.4.14 or newer with capability-aware kernelPathPolicy; browsers without shader-f16 run the declared f32 fallback lane."
     },
     "label": "Qwen 3.5 0.8B",
     "enabled": true
@@ -174,8 +174,8 @@
     "useChatTemplate": false
   },
   "browserRuntime": {
-    "dopplerModuleUrl": "https://esm.sh/doppler-gpu@0.4.12/src/client/doppler-api.js?bundle",
-    "dopplerKernelBaseUrl": "https://esm.sh/doppler-gpu@0.4.12/src/gpu/kernels",
+    "dopplerModuleUrl": "https://esm.sh/doppler-gpu@0.4.14/src/client/doppler-api.js?bundle",
+    "dopplerKernelBaseUrl": "https://esm.sh/doppler-gpu@0.4.14/src/gpu/kernels",
     "modelBaseUrl": "https://huggingface.co/clocksmith/rdrr/resolve/80d7716270b6371d541de979eff3370edaf34e13/models",
     "loadOptions": {
       "cache": "opfs",
@@ -901,7 +901,7 @@
             "whenMissingWebGpuFeatures": [
               "shader-f16"
             ],
-            "runtime": "doppler-gpu@0.4.12",
+            "runtime": "doppler-gpu@0.4.14",
             "transform": "widenToF32Activations",
             "prefillProjectionKernel": "fused_matmul_q4_batched_multicol_shared.wgsl",
             "kvDtype": "f32",
@@ -909,7 +909,7 @@
           }
         ],
         "fallbackStatus": "doppler_0_4_9_manifest_capability_remap",
-        "capabilityAction": "Use doppler-gpu@0.4.12 or newer with capability-aware kernelPathPolicy; browsers without shader-f16 run the declared f32 fallback lane."
+        "capabilityAction": "Use doppler-gpu@0.4.14 or newer with capability-aware kernelPathPolicy; browsers without shader-f16 run the declared f32 fallback lane."
       },
       "label": "Qwen 3.5 0.8B",
       "enabled": true
@@ -1028,6 +1028,66 @@
         "fallbackStatus": "manifest_owned_f32_activation_lane"
       },
       "label": "Gemma 4 E2B INT4 PLE",
+      "enabled": true
+    },
+    {
+      "modelId": "esm2-t12-35m-ur50d-f32-af32",
+      "modelHash": "sha256:1092c098741472429a4c6b4cd6050d5967e0a606d01f713c0b4866fd98921ac8",
+      "manifestHash": "sha256:5612aa20ee2d5310da323d5c39986d0ab724ff727ce92e40762da6ea7b189730",
+      "tokenizerHash": "sha256:be6955513a2509d69d18e82180c2a477ad99358d15212fb81d957566d81860",
+      "contextLength": 1024,
+      "quantization": "f32",
+      "workload": "sequence.embedding.v1",
+      "executionMode": "full_model_browser_sequence",
+      "artifactIdentity": {
+        "sourceCheckpointId": "facebook/esm2_t12_35M_UR50D",
+        "sourceRepo": "facebook/esm2_t12_35M_UR50D",
+        "weightPackId": "esm2-t12-35m-ur50d-f32-af32-wp-v1",
+        "weightPackHash": "sha256:1092c098741472429a4c6b4cd6050d5967e0a606d01f713c0b4866fd98921ac8",
+        "manifestVariantId": "esm2-t12-35m-ur50d-f32-af32-mv-exec-v1",
+        "conversionConfigDigest": "sha256:25da72db3b9cbfae0c6fab4ad22f62ef7064f1a83edadc09c1ef694afb1f7203",
+        "conversionConfigPath": "src/config/conversion/esm/esm2-t12-35m-ur50d-f32-af32.json",
+        "materializationProfile": "auto",
+        "modalitySet": [
+          "sequence"
+        ],
+        "sourceFormat": "safetensors",
+        "artifactCompleteness": "complete"
+      },
+      "runtime": "doppler",
+      "backend": "browser-webgpu",
+      "browserCapability": {
+        "minimumTier": "standard",
+        "minimumScore": 30,
+        "basis": "bounded_webgpu_profile_v1"
+      },
+      "dopplerLoadRef": "esm2-35m",
+      "loadInput": {
+        "url": "https://huggingface.co/clocksmith/rdrr/resolve/main/models/esm2-t12-35m-ur50d-f32-af32"
+      },
+      "artifactPolicy": {
+        "transport": "offloaded_content_addressed",
+        "cache": "browser_opfs",
+        "baseUrl": "https://huggingface.co/clocksmith/rdrr/resolve/main/models/esm2-t12-35m-ur50d-f32-af32",
+        "identityFields": [
+          "modelId",
+          "modelHash",
+          "manifestHash",
+          "runtime",
+          "backend"
+        ],
+        "pathTemplate": "",
+        "paths": {
+          "manifest": "manifest.json",
+          "tokenizer": "tokenizer.json",
+          "shards": ""
+        }
+      },
+      "runtimeCompatibility": {
+        "requiredWebGpuFeatures": [],
+        "fallbackStatus": "manifest_owned_f32_activation_lane"
+      },
+      "label": "ESM-2 35M (Protein)",
       "enabled": true
     }
   ]

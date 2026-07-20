@@ -1253,11 +1253,84 @@ export const getPoolDashboardView = () => {
   }
 };
 
+const renderDrawerSection = (id, title, glyph, content, { open = false } = {}) => `
+  <details class="pool-drawer-section" data-pool-drawer-section="${escapeHtml(id)}"${open ? ' open' : ''}>
+    <summary>
+      <span class="pool-nav-glyph" aria-hidden="true">${escapeHtml(glyph)}</span>
+      <span class="pool-nav-label">${escapeHtml(title)}</span>
+      <span class="pool-drawer-disclosure" aria-hidden="true">▼</span>
+    </summary>
+    <div class="pool-drawer-section-body">${content}</div>
+  </details>
+`;
+
+const SUBSTRATE_OUTLINKS = Object.freeze({
+  zero: Object.freeze({
+    path: '/zero',
+    label: 'Zero',
+    glyph: '0',
+    description: 'Blank local substrate',
+    tooltip: 'Open local tabula rasa blank substrate'
+  }),
+  x: Object.freeze({
+    path: '/x',
+    label: 'X',
+    glyph: 'X',
+    description: 'Self-modifying workspace',
+    tooltip: 'Open mature self-modifying workspace'
+  })
+});
+
+// The only out-of-app links. Rendered identically in every rail's bottom area so
+// both rails collapse to a single icon+label and expand to icon+label+description.
+const renderRailOutlink = (id) => {
+  const link = SUBSTRATE_OUTLINKS[id];
+  const tooltip = escapeHtml(link.tooltip);
+  return `<a class="pool-nav-link pool-nav-substrate-link pool-${id}-link link-secondary" href="${link.path}" data-pool-substrate-route="${link.path}" aria-label="${escapeHtml(link.label)}" title="${tooltip}" data-pool-nav-tooltip="${tooltip}"><span class="pool-nav-glyph" aria-hidden="true">${escapeHtml(link.glyph)}</span><span class="pool-nav-description">${escapeHtml(link.description)}</span></a>`;
+};
+
+const renderHomeRequestDrawer = (open) => `
+  <nav class="pool-nav-rail pool-control-drawer${open ? ' is-open' : ''}" aria-label="Request controls">
+    <div class="pool-nav-top">
+      <button class="pool-nav-toggle" type="button" aria-label="${open ? 'Close request controls' : 'Open request controls'}" title="${open ? 'Close request controls' : 'Open request controls'}" data-pool-nav-tooltip="${open ? 'Close request controls' : 'Open request controls'}" aria-controls="pool-nav-menu" aria-expanded="${String(open)}">
+        <span class="pool-nav-mark" aria-hidden="true">
+          <span class="pool-nav-mark-seven pool-nav-mark-seven-top">7</span>
+          <span class="pool-nav-mark-seven pool-nav-mark-seven-bottom">7</span>
+        </span>
+        <span class="pool-nav-brand-copy" aria-hidden="true"><strong>Request</strong></span>
+      </button>
+      <div class="pool-nav-menu pool-drawer-stack" id="pool-nav-menu">
+        ${renderDrawerSection('request-workload', 'Workload', '⌥', `
+          <div class="pool-home-lane-chips" role="group" aria-label="Workload lanes">
+            <button type="button" class="pool-lane-chip is-active" data-pool-lane="text" data-pool-request-control aria-pressed="true">Text</button>
+            <button type="button" class="pool-lane-chip" data-pool-lane="adapters" data-pool-request-control aria-pressed="false">Adapters</button>
+            <button type="button" class="pool-lane-chip" data-pool-lane="sequence" data-pool-request-control aria-pressed="false">Sequence</button>
+          </div>
+          <label class="pool-home-adapter-picker" data-pool-home-adapter-picker hidden>
+            <span>Adapter pack</span>
+            <select id="pool-home-adapter" data-pool-run-adapter data-pool-request-control disabled>
+              <option value="">Loading published packs…</option>
+            </select>
+          </label>
+        `, { open: true })}
+        ${renderDrawerSection('request-model', 'Model', '⛝', `
+          <div class="pool-drawer-value"><span>Selected</span><b>${escapeHtml(LAUNCH_MODEL.label || LAUNCH_MODEL.modelId)}</b></div>
+        `)}
+        ${renderDrawerSection('request-participation', 'Participation', '⚿', renderParticipationControl({ surface: 'request-drawer' }))}
+      </div>
+    </div>
+    <div class="pool-nav-bottom">
+      ${renderRailOutlink('zero')}
+    </div>
+  </nav>
+`;
+
 export const renderNav = (activeRoute, {
   open = false,
   dashboard = false,
   dashboardView = 'home'
 } = {}) => {
+  if (dashboard) return renderHomeRequestDrawer(open);
   const glyphs = {
     home: '⌂',
     ask: '?',
@@ -1297,14 +1370,6 @@ export const renderNav = (activeRoute, {
       : ` href="${path}" data-pool-route-link="${path}"`;
     return `<a class="pool-nav-link${isActive ? ' is-active' : ''}"${dashboardAttributes} aria-label="${ariaLabel}" title="${tooltip}" data-pool-nav-tooltip="${tooltip}"${currentAttr}><span class="pool-nav-glyph" aria-hidden="true">${escapeHtml(glyph)}</span><span class="pool-nav-label">${ariaLabel}</span><span class="pool-nav-description">${description}</span></a>`;
   };
-  const renderSubstrateItem = ({ id, path, label }) => {
-    const tooltip = escapeHtml(tooltips[id] || `Open ${label} runtime`);
-    const ariaLabel = escapeHtml(`${label} Experimental`);
-    const description = id === 'zero'
-      ? 'Blank local substrate'
-      : 'Self-modifying workspace';
-    return `<a class="pool-nav-link pool-nav-substrate-link pool-zero-link link-secondary" href="${path}" data-pool-substrate-route="${path}" aria-label="${ariaLabel}" title="${tooltip}" data-pool-nav-tooltip="${tooltip}"><span class="pool-nav-glyph" aria-hidden="true">${escapeHtml(glyphs[id])}</span><span class="pool-nav-label">${escapeHtml(label)}</span><span class="pool-nav-description">${escapeHtml(description)}</span><span class="pool-nav-badge">Experimental</span></a>`;
-  };
   return `
     <nav class="pool-nav-rail${open ? ' is-open' : ''}" aria-label="Navigation">
       <div class="pool-nav-top">
@@ -1324,17 +1389,8 @@ export const renderNav = (activeRoute, {
       </div>
       <div class="pool-nav-bottom">
         ${renderRoomContext()}
-        <details class="pool-nav-more">
-          <summary class="pool-nav-more-summary">
-            <span class="pool-nav-glyph" aria-hidden="true">···</span>
-            <span class="pool-nav-label">More</span>
-            <span class="pool-nav-description">Zero and X workspaces</span>
-          </summary>
-          <div class="pool-nav-more-panel">
-            ${renderSubstrateItem({ id: 'zero', path: '/zero', label: 'Zero' })}
-            ${renderSubstrateItem({ id: 'x', path: '/x', label: 'X' })}
-          </div>
-        </details>
+        ${renderRailOutlink('zero')}
+        ${renderRailOutlink('x')}
       </div>
     </nav>
   `;
@@ -1571,13 +1627,16 @@ const renderParticipationControl = ({ surface = 'home', advanced = false, shareA
       aria-pressed="${preferences.mode === mode}"
     >${label}</button>
   `;
+  const showModeSwitcher = surface !== 'ask' && surface !== 'compute';
   return `
     <section class="pool-participation" data-pool-participation data-pool-participation-surface="${surface}" data-participation-mode="${preferences.mode}" aria-label="Network participation">
-      <div class="pool-participation-modes" role="group" aria-label="Network mode">
-        ${modeButton('request', 'Request')}
-        ${modeButton('contribute', 'Contribute')}
-        ${modeButton('both', 'Both')}
-      </div>
+      ${showModeSwitcher ? `
+        <div class="pool-participation-modes" role="group" aria-label="Network mode">
+          ${modeButton('request', 'Request')}
+          ${modeButton('contribute', 'Contribute')}
+          ${modeButton('both', 'Both')}
+        </div>
+      ` : ''}
       <span class="pool-device-identity" data-pool-device-identity title="This device signs its network roles">Identity</span>
       ${shareAction ? `
         <button class="btn btn-primary pool-home-share-toggle" id="pool-home-provider-toggle" type="button" aria-pressed="false">Start sharing</button>
@@ -1600,10 +1659,6 @@ const renderParticipationControl = ({ surface = 'home', advanced = false, shareA
     </section>
   `;
 };
-
-const dashboardPanelAttributes = (id, activeView) => (
-  `data-pool-dashboard-panel="${id}"${id === activeView ? '' : ' hidden'}`
-);
 
 const renderDashboardCapability = () => `
   <section class="pool-capability-card" data-pool-capability-profile data-capability-state="checking" aria-live="polite">
@@ -1630,83 +1685,44 @@ const renderDashboardCapability = () => `
   </section>
 `;
 
-const renderDashboardInspector = (activeView) => `
-  <aside class="pool-dashboard-inspector" aria-label="Inspector" data-pool-dashboard-inspector>
-    <button class="pool-nav-toggle pool-inspector-toggle" type="button" aria-label="Open inspector" aria-controls="pool-inspector-panels" aria-expanded="false" data-pool-inspector-toggle>
-      <span class="pool-nav-mark" aria-hidden="true">
-        <span class="pool-nav-mark-seven pool-nav-mark-seven-top">7</span>
-        <span class="pool-nav-mark-seven pool-nav-mark-seven-bottom">7</span>
-      </span>
-    </button>
-    <div class="pool-dashboard-inspector-scroll" id="pool-inspector-panels">
-      <section ${dashboardPanelAttributes('home', activeView)}>
-        <div class="pool-dashboard-intro">
-          <h2>One network, two ways to participate.</h2>
-          <p>Ask browser models, share this device's compute, or do both in the same room.</p>
-        </div>
-        ${renderDashboardCapability()}
-        <ol class="pool-dashboard-steps" aria-label="How a run works">
-          <li><b>Request</b><span>Your prompt and requirements are signed.</span></li>
-          <li><b>Match</b><span>Only compatible contributor tabs qualify.</span></li>
-          <li><b>Run</b><span>The selected model or approved adapter executes.</span></li>
-          <li><b>Verify</b><span>The answer returns with a signed receipt.</span></li>
-        </ol>
-      </section>
-      <section ${dashboardPanelAttributes('ask', activeView)}>
-        <h2>Ask the network</h2>
-        <p>The composer stays over the topology. Choose Text or an approved Adapter, then Run.</p>
-        <div class="pool-dashboard-facts">
-          <span><b>Model</b>${escapeHtml(LAUNCH_MODEL.label || LAUNCH_MODEL.modelId)}</span>
-          <span><b>Room</b>${escapeHtml(getPeerRoomId())}</span>
-          <span><b>Relay</b>${escapeHtml(getPeerRelayLabel())}</span>
-        </div>
-        <p class="pool-dashboard-consent"><span aria-hidden="true">⚿</span> Run signs approval bound to the prompt, model, and selected adapter.</p>
-        <section class="pool-home-result-panel" data-pool-run-output hidden aria-label="Run result">
-          <h2 class="type-h2">Answer</h2>
-          ${renderResultBox('pool-home-run-result', {
-            stream: true,
-            streamLabel: 'Answer',
-            evidence: true,
-            evidenceLabel: 'Proof',
-            rawLabel: 'Raw result',
-            rawFull: true
-          })}
-        </section>
-      </section>
-      <section ${dashboardPanelAttributes('compute', activeView)} data-pool-provider>
-        <h2>Share this browser</h2>
-        <p>Reploid qualifies the device before advertising work. Stop remains immediate.</p>
-        <p class="pool-provider-status" data-pool-provider-status>Idle</p>
-        <label class="pool-field">
-          <span>Model</span>
-          <select id="pool-provider-model">${renderModelOptions({ includeWorkloadLabel: true })}</select>
-        </label>
-        <p class="pool-provider-capability type-caption">This tab accepts <span class="pool-workload-badge" data-pool-provider-workload>text generation</span> jobs when the device qualifies.</p>
-        ${renderParticipationControl({ surface: 'dashboard', advanced: true, shareAction: true })}
-        <div id="pool-provider-health" class="pool-ledger-shell" aria-live="polite">${renderProviderHealth()}</div>
-      </section>
-      <section ${dashboardPanelAttributes('records', activeView)}>
-        <h2>Work and proof</h2>
-        <p>Answers, contributions, and room events share one local timeline.</p>
-        <button class="btn btn-primary" type="button" data-pool-activity-toggle aria-expanded="true">Open activity</button>
-      </section>
+const renderDashboardInspector = () => `
+  <aside class="pool-nav-rail pool-control-drawer pool-dashboard-inspector" aria-label="Compute controls" data-pool-dashboard-inspector>
+    <div class="pool-nav-top">
+      <button class="pool-nav-toggle pool-inspector-toggle" type="button" aria-label="Open compute controls" title="Open compute controls" data-pool-nav-tooltip="Open compute controls" aria-controls="pool-inspector-panels" aria-expanded="false" data-pool-inspector-toggle>
+        <span class="pool-nav-mark" aria-hidden="true">
+          <span class="pool-nav-mark-seven pool-nav-mark-seven-top">7</span>
+          <span class="pool-nav-mark-seven pool-nav-mark-seven-bottom">7</span>
+        </span>
+        <span class="pool-nav-brand-copy" aria-hidden="true"><strong>Compute</strong></span>
+      </button>
+      <div class="pool-nav-menu pool-drawer-stack" id="pool-inspector-panels">
+        ${renderDrawerSection('compute-device', 'Device', '⚙', renderDashboardCapability())}
+        ${renderDrawerSection('compute-sharing', 'Sharing', '⇄', `
+          <section data-pool-provider aria-label="Share this browser">
+          <p class="pool-provider-status" data-pool-provider-status>Idle</p>
+          <label class="pool-field">
+            <span>Model</span>
+            <select id="pool-provider-model">${renderModelOptions({ includeWorkloadLabel: true })}</select>
+          </label>
+          <p class="pool-provider-capability type-caption">This tab accepts <span class="pool-workload-badge" data-pool-provider-workload>text generation</span> jobs when the device qualifies.</p>
+          ${renderParticipationControl({ surface: 'dashboard', advanced: true, shareAction: true })}
+          <div id="pool-provider-health" class="pool-ledger-shell" aria-live="polite">${renderProviderHealth()}</div>
+          </section>
+        `, { open: true })}
+        ${renderDrawerSection('compute-room', 'Room', '☍', renderRoomContext())}
+        ${renderDrawerSection('compute-activity', 'Activity', '☷', `
+          <section data-pool-dashboard-activity aria-label="Activity">
+          <div id="pool-record-ledger" aria-live="polite" data-record-facet="all">${renderRecordLedger()}</div>
+          </section>
+        `)}
+      </div>
+    </div>
+    <div class="pool-nav-bottom">
+      ${renderRailOutlink('x')}
     </div>
   </aside>
 `;
 
-const renderDashboardActivity = (activeView) => `
-  <section class="pool-dashboard-activity${activeView === 'records' ? ' is-expanded' : ''}" data-pool-dashboard-activity aria-label="Activity" data-expanded="${activeView === 'records'}">
-    <button class="pool-dashboard-activity-bar" type="button" data-pool-activity-toggle aria-expanded="${activeView === 'records'}">
-      <span class="pool-dashboard-activity-dot" aria-hidden="true"></span>
-      <strong>Activity</strong>
-      <span>Runs, contributions, and receipts appear here.</span>
-      <span class="pool-dashboard-activity-chevron" aria-hidden="true">⌃</span>
-    </button>
-    <div class="pool-dashboard-activity-body">
-      <div id="pool-record-ledger" aria-live="polite" data-record-facet="all">${renderRecordLedger()}</div>
-    </div>
-  </section>
-`;
 
 const renderFlowLabels = () => POOLDAY_GRAPH_LABEL_STAGES.map((stage) => ({
   stage,
@@ -1735,29 +1751,10 @@ const renderHomeSimulation = ({ dashboardView = 'home' } = {}) => {
         <div class="pool-home-toolbar-leading pool-home-overlay" aria-label="Reploid overview">
           <div class="pool-home-title-lockup">
             <h1 class="type-h1 pool-home-brand-word">REPLOID</h1>
-            <p class="pool-hero-body">Run browser models together.</p>
           </div>
         </div>
-        <div class="pool-home-lane-chips" role="group" aria-label="Workload lanes">
-          <button type="button" class="pool-lane-chip is-active" data-pool-lane="text" data-pool-request-control aria-pressed="true">Text</button>
-          <button type="button" class="pool-lane-chip" data-pool-lane="adapters" data-pool-request-control aria-pressed="false"
-                  title="Adapter packs run through the same loop on top of a base model">Adapters</button>
-          <button type="button" class="pool-lane-chip" data-pool-lane="sequence" data-pool-request-control disabled
-                  title="No qualified sequence model artifacts yet">Sequence</button>
-        </div>
-        ${renderParticipationControl({ surface: 'home', shareAction: false })}
       </div>
       <p class="pool-home-run-status" data-pool-run-status aria-live="polite">Ready</p>
-      <div class="pool-dashboard-empty-state" aria-label="Network overview">
-        <span class="pool-dashboard-preview"><span aria-hidden="true">○</span> Network preview</span>
-        <h2>Ask browser models.<br>Share compute. Or both.</h2>
-        <p>Watch each request move from match to verified answer.</p>
-        <div class="pool-capability-compact" data-pool-capability-profile data-capability-state="checking">
-          <span>This device</span>
-          <b data-pool-capability-tier>Checking WebGPU</b>
-          <strong data-pool-capability-score>--</strong>
-        </div>
-      </div>
       <div class="pool-simulation-shell" data-pool-network-state data-network-mode="simulation" aria-label="Reploid network graph">
         <canvas class="pool-simulation-canvas" data-pool-simulation width="1200" height="680"></canvas>
         <div class="pool-simulation-labels">
@@ -1768,14 +1765,17 @@ const renderHomeSimulation = ({ dashboardView = 'home' } = {}) => {
           <span data-pool-tooltip-body></span>
         </div>
       </div>
+      <section class="pool-home-result-panel" data-pool-run-output hidden aria-label="Run result">
+        ${renderResultBox('pool-home-run-result', {
+          stream: true,
+          streamLabel: 'Answer',
+          evidence: true,
+          evidenceLabel: 'Proof',
+          rawLabel: 'Raw result',
+          rawFull: true
+        })}
+      </section>
       <form class="pool-home-ask-dock pool-home-cta-row pool-home-ask-form" id="pool-home-ask-form" aria-label="Ask the network">
-        <label class="pool-home-adapter-picker" data-pool-home-adapter-picker hidden>
-          <span>Adapter pack</span>
-          <select id="pool-home-adapter" data-pool-run-adapter data-pool-request-control disabled>
-            <option value="">Loading published packs…</option>
-          </select>
-          <small>Run signs approval for this pack, base model, and prompt.</small>
-        </label>
         <div class="pool-home-ask-pill">
           <input
             id="pool-home-ask-prompt"
@@ -1784,7 +1784,7 @@ const renderHomeSimulation = ({ dashboardView = 'home' } = {}) => {
             type="text"
             aria-label="Ask prompt"
             autocomplete="off"
-            value="${escapeHtml(suggestedPrompt)}"
+            placeholder="${escapeHtml(suggestedPrompt)}"
             data-pool-suggested-prompt="${escapeHtml(suggestedPrompt)}"
             data-pool-request-control
           >
@@ -1792,14 +1792,12 @@ const renderHomeSimulation = ({ dashboardView = 'home' } = {}) => {
                   id="pool-home-run-submit"
                   type="submit"
                   data-pool-request-control
-                  aria-label="Run">
-            <span class="pool-shape-action-glyph" aria-hidden="true">▶</span>
-            <span class="pool-shape-action-label">Run</span>
+                  aria-label="Ask">
+            <span class="pool-shape-action-glyph" aria-hidden="true">↑</span>
           </button>
         </div>
       </form>
-      ${renderDashboardInspector(activeView)}
-      ${renderDashboardActivity(activeView)}
+      ${renderDashboardInspector()}
     </section>
   `;
 };

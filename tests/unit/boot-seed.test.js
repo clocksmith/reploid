@@ -146,7 +146,7 @@ describe('boot seed manifest', () => {
     }
   });
 
-  it('hydrates the Doppler 0.4.12 provider adapter for Zero and X', () => {
+  it('hydrates the Doppler 0.4.14 provider adapter for Zero and X', () => {
     for (const profile of ['zero_home', 'x_home']) {
       const files = pickBootSeedFiles(manifest.files, profile);
       expect(files, profile).toContain('providers/doppler-reploid.js');

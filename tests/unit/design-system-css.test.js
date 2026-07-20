@@ -58,7 +58,7 @@ describe('RD stylesheet ownership', () => {
     expect(poolday).not.toContain('.pool-home-status');
     expect(poolday).not.toContain('.pool-hot-path');
     expect(poolday).not.toContain('.pool-home-network-badge');
-    expect(poolday).toMatch(/\.pool-home-toolbar\s*\{[\s\S]*?grid-template-columns: minmax\(10rem, 1fr\) auto auto;/);
+    expect(poolday).toMatch(/\.pool-home-toolbar\s*\{[\s\S]*?grid-template-columns: minmax\(0, 1fr\);/);
     expect(poolday).toMatch(/\.pool-home-toolbar\s*\{[\s\S]*?background: var\(--pool-surface-page\);/);
     expect(poolday).toMatch(/\.pool-home-ask-dock\s*\{[\s\S]*?position: absolute;[\s\S]*?bottom: var\(--pool-param-ask-inset\);[\s\S]*?left: 50%;[\s\S]*?transform: translateX\(-50%\);/);
     expect(poolday).toMatch(/\.pool-simulation-shell\s*\{[\s\S]*?overflow: hidden;/);

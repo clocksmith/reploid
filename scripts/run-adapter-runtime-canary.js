@@ -10,8 +10,8 @@ import { chromium } from '@playwright/test';
 import { LAUNCH_MODEL } from '../self/pool/model-contract.js';
 import { ADAPTER_RUNTIME_CANARY_RECEIPT_SCHEMA } from '../self/pool/adapter-canary-publication.js';
 
-const DOPPLER_VERSION = '0.4.12';
-const DOPPLER_INTEGRITY = 'sha512-FTsJMWPlR1m/7OnwaX2tNuMd6C6uMMPfg1wyB/jDZEQrjZdAQd3shCfFDRjPMOYPtQoPHKRyt2wIAnx8ktaGTQ==';
+const DOPPLER_VERSION = '0.4.14';
+const DOPPLER_INTEGRITY = 'sha512-Tbs8cOnOg+z+B8swuY29ydu11nmbaBajHc7zlYakpX57OSginazi3pOKGGtDfjDa2chxSWaPQopjZXr7CpLHaw==';
 const MODEL_REVISION = '80d7716270b6371d541de979eff3370edaf34e13';
 const ADAPTER_REVISION = 'a618a2ccab25928a98694930376ebb3c3db241cb';
 const MODULE_URL = `https://esm.sh/doppler-gpu@${DOPPLER_VERSION}/src/client/doppler-api.js?bundle`;
