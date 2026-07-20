@@ -30,7 +30,7 @@ const STYLES = path.join(ROOT, 'self', 'styles');
 const WARN_ONLY = process.argv.includes('--warn');
 
 const TOKEN_CATEGORY = /^--pool-(color|gradient|dim|size|motion-duration|motion-easing|font)(-|$)/;
-const PRIMITIVE_CATEGORY = /^--pool-(surface|frame|border|space|px|radius|z|transition|motion|text|type|opacity|metric)(-|$)/;
+const PRIMITIVE_CATEGORY = /^--pool-(surface|frame|border|space|px|radius|z|transition|motion|text|type|opacity|metric|hue|tint)(-|$)/;
 const JS_CONTRACT_VARS = new Set(['--tooltip-x', '--tooltip-y', '--pool-label-x', '--pool-label-y']);
 /* Component parameter vars: set by component rules (incl. media overrides),
    consumed by descendants. Values obey component-layer rules. */
@@ -171,6 +171,24 @@ const main = () => {
       }
     }
   });
+
+  /* Existence check: every --pool-* reference must be defined in some layer.
+     Category checks alone cannot catch a well-named but undefined var. */
+  const definedPool = new Set();
+  for (const layer of [tokens, primitives, components]) {
+    for (const match of layer.clean.matchAll(/(--pool-[\w-]+)\s*:/g)) definedPool.add(match[1]);
+  }
+  for (const layer of [primitives, components]) {
+    const lines = layer.clean.split('\n');
+    lines.forEach((text, index) => {
+      for (const match of text.matchAll(/var\(\s*(--pool-[\w-]+)/g)) {
+        const ref = match[1];
+        if (!definedPool.has(ref) && !JS_CONTRACT_VARS.has(ref)) {
+          report(layer.file, index + 1, `reference to undefined pool var ${ref}`);
+        }
+      }
+    });
+  }
 
   if (violations.length === 0) {
     console.log('[poolday-css-layers] OK: layering contract holds across tokens/primitives/components');

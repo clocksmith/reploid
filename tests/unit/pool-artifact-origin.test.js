@@ -12,7 +12,7 @@ describe('immutable Poolday artifact origins', () => {
   it('builds commit-pinned Hugging Face and generation-pinned GCS identities', () => {
     const huggingFace = {
       provider: 'huggingface',
-      repoId: 'Clocksmith/lora-qwen',
+      repoId: 'clocksmith/lora-qwen',
       revision: 'a'.repeat(40),
       path: 'adapters/unit/adapter_model.safetensors'
     };

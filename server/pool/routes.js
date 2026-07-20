@@ -30,6 +30,7 @@ import {
   verifyAdapterRevocation,
   verifyAdapterUseApproval
 } from '../../self/pool/adapter-publication.js';
+import { verifyAdapterCanaryPublication } from '../../self/pool/adapter-canary-publication.js';
 import { verifyPoolIdentityClaims, verifyAdvertisedLimitsAgainstProfile } from '../../self/pool/identity-claims.js';
 import { PARTICIPATION_CAPABILITIES } from '../../self/pool/participation-profile.js';
 
@@ -93,7 +94,12 @@ const isPublicDiscoveryRoute = (req) => (
   req.path === '/peer/rooms'
   || req.path.startsWith('/peer/rooms/')
   || (req.method === 'GET'
-    && (req.path === '/deployment/check' || req.path === '/status' || req.path === '/policies' || req.path === '/config'))
+    && (req.path === '/deployment/check'
+      || req.path === '/status'
+      || req.path === '/policies'
+      || req.path === '/config'
+      || req.path === '/adapter-canaries'
+      || req.path.startsWith('/adapter-canaries/')))
 );
 
 const normalizeUid = (uid) => String(uid || '').replace(/[^a-z0-9_-]/gi, '_');
@@ -828,6 +834,7 @@ export function createPoolRouter({
         signaling: 'assignment_bound_metadata_only',
         offloadedModelArtifacts: true,
         adapterRegistry: 'signed_metadata_only',
+        adapterCanaryRegistry: 'signed_non_routable_evidence',
         adapterArtifactTransport: 'cache_peer_origin',
         modelArtifactBaseConfigured: Boolean(process.env.REPLOID_POOL_MODEL_BASE_URL || process.env.POOL_MODEL_BASE_URL)
       },
@@ -860,6 +867,41 @@ export function createPoolRouter({
     return res.status(existing ? 200 : 201).json({
       publication: await store.saveAdapterPublication(publication)
     });
+  }));
+
+  router.post('/adapter-canaries', asyncRoute(async (req, res) => {
+    if (typeof store.saveAdapterCanaryPublication !== 'function') {
+      return res.status(501).json({ error: 'adapter canary registry is not supported by this store' });
+    }
+    const publication = req.body?.publication || req.body;
+    const verification = await verifyAdapterCanaryPublication(publication);
+    if (!verification.ok) return res.status(400).json({ error: 'invalid adapter canary publication', reasons: verification.reasons });
+    if (!requireBoundRole(req, res, 'publisher', publication.publisher.publisherId)) return null;
+    const existing = await store.getAdapterCanaryPublication?.(publication.publicationHash);
+    return res.status(existing ? 200 : 201).json({
+      publication: existing || await store.saveAdapterCanaryPublication(publication)
+    });
+  }));
+
+  router.get('/adapter-canaries', asyncRoute(async (req, res) => {
+    if (typeof store.listAdapterCanaryPublications !== 'function') {
+      return res.status(501).json({ error: 'adapter canary registry is not supported by this store' });
+    }
+    return res.json({
+      publications: await store.listAdapterCanaryPublications({
+        canaryId: req.query.canaryId || null,
+        publisherId: req.query.publisherId || null
+      })
+    });
+  }));
+
+  router.get('/adapter-canaries/:publicationHash', asyncRoute(async (req, res) => {
+    if (typeof store.getAdapterCanaryPublication !== 'function') {
+      return res.status(501).json({ error: 'adapter canary registry is not supported by this store' });
+    }
+    const publication = await store.getAdapterCanaryPublication(req.params.publicationHash);
+    if (!publication) return res.status(404).json({ error: 'adapter canary publication not found' });
+    return res.json({ publication });
   }));
 
   router.get('/adapters', asyncRoute(async (req, res) => {

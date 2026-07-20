@@ -26,7 +26,7 @@ describe('pool model artifact helpers', () => {
       modelId: 'qwen-3-5-0-8b-q4k-ehaf16',
       manifestHash: 'sha256:manifest',
       artifactPolicy: {
-        baseUrl: 'https://huggingface.co/Clocksmith/rdrr/resolve/pinned/models/qwen-3-5-0-8b-q4k-ehaf16',
+        baseUrl: 'https://huggingface.co/clocksmith/rdrr/resolve/pinned/models/qwen-3-5-0-8b-q4k-ehaf16',
         pathTemplate: '',
         paths: {
           manifest: 'manifest.json',
@@ -35,10 +35,10 @@ describe('pool model artifact helpers', () => {
         }
       }
     })).toEqual({
-      root: 'https://huggingface.co/Clocksmith/rdrr/resolve/pinned/models/qwen-3-5-0-8b-q4k-ehaf16',
-      manifest: 'https://huggingface.co/Clocksmith/rdrr/resolve/pinned/models/qwen-3-5-0-8b-q4k-ehaf16/manifest.json',
-      tokenizer: 'https://huggingface.co/Clocksmith/rdrr/resolve/pinned/models/qwen-3-5-0-8b-q4k-ehaf16/tokenizer.json',
-      shards: 'https://huggingface.co/Clocksmith/rdrr/resolve/pinned/models/qwen-3-5-0-8b-q4k-ehaf16/'
+      root: 'https://huggingface.co/clocksmith/rdrr/resolve/pinned/models/qwen-3-5-0-8b-q4k-ehaf16',
+      manifest: 'https://huggingface.co/clocksmith/rdrr/resolve/pinned/models/qwen-3-5-0-8b-q4k-ehaf16/manifest.json',
+      tokenizer: 'https://huggingface.co/clocksmith/rdrr/resolve/pinned/models/qwen-3-5-0-8b-q4k-ehaf16/tokenizer.json',
+      shards: 'https://huggingface.co/clocksmith/rdrr/resolve/pinned/models/qwen-3-5-0-8b-q4k-ehaf16/'
     });
   });
 
@@ -47,7 +47,7 @@ describe('pool model artifact helpers', () => {
       modelId: 'qwen-3-5-0-8b-q4k-ehaf16',
       manifestHash: 'sha256:manifest',
       artifactPolicy: {
-        baseUrl: 'https://huggingface.co/Clocksmith/rdrr/resolve/pinned/models/qwen-3-5-0-8b-q4k-ehaf16',
+        baseUrl: 'https://huggingface.co/clocksmith/rdrr/resolve/pinned/models/qwen-3-5-0-8b-q4k-ehaf16',
         pathTemplate: '',
         paths: {
           manifest: 'manifest.json',

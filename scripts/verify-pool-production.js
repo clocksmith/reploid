@@ -60,6 +60,8 @@ const requiredRewrites = [
   '/pool/providers/**',
   '/pool/adapters',
   '/pool/adapters/**',
+  '/pool/adapter-canaries',
+  '/pool/adapter-canaries/**',
   '/pool/jobs',
   '/pool/jobs/**',
   '/pool/assignments/**',

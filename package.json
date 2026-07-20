@@ -39,6 +39,8 @@
     "verify:deploy-surface": "node scripts/verify-deploy-surface.js",
     "smoke:pool": "node scripts/pool-browser-smoke.js",
     "smoke:pool:actual": "node scripts/pool-actual-browser-smoke.js",
+    "verify:adapter-canary": "node scripts/run-adapter-runtime-canary.js",
+    "publish:adapter-canary": "node scripts/publish-adapter-runtime-canary.js",
     "verify:surface-claims": "node scripts/verify-surface-claim-index.js",
     "verify:module-system": "node scripts/verify-module-system.js",
     "verify:pool:css": "node scripts/verify-poolday-css-layers.js"
@@ -54,7 +56,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "doppler-gpu": "0.4.11",
+    "doppler-gpu": "0.4.12",
     "dotenv": "^16.3.1",
     "express": "^4.22.2",
     "node-fetch": "^3.3.2",

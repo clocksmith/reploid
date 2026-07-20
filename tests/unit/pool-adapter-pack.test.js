@@ -93,7 +93,7 @@ const buildPack = async () => {
       visibility: 'public',
       primaryOrigin: {
         provider: 'huggingface',
-        repoId: 'Clocksmith/lora-unit',
+        repoId: 'clocksmith/lora-unit',
         revision: 'a'.repeat(40),
         path: 'adapters/adapter-unit/adapter_model.safetensors'
       },

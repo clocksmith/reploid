@@ -47,11 +47,11 @@ spec:
             - name: REPLOID_ADAPTER_SIGNED_URL_TTL_MS
               value: "300000"
             - name: REPLOID_POOL_MODEL_BASE_URL
-              value: "https://huggingface.co/Clocksmith/rdrr/resolve/f58f1d0b58641c84e7ea50d13fea0dd4dc91389a/models"
+              value: "https://huggingface.co/clocksmith/rdrr/resolve/80d7716270b6371d541de979eff3370edaf34e13/models"
             - name: REPLOID_DOPPLER_MODULE_URL
-              value: "https://esm.sh/doppler-gpu@0.4.11/src/client/doppler-api.js?bundle"
+              value: "https://esm.sh/doppler-gpu@0.4.12/src/client/doppler-api.js?bundle"
             - name: REPLOID_DOPPLER_KERNEL_BASE_URL
-              value: "https://esm.sh/doppler-gpu@0.4.11/src/gpu/kernels"
+              value: "https://esm.sh/doppler-gpu@0.4.12/src/gpu/kernels"
           resources:
             limits:
               cpu: "1"

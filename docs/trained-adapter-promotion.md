@@ -76,6 +76,11 @@ repository does not contain a real Tinker or Doppler training receipt, a promote
 adapter, or a deployed adapter publication. The synthetic Gamma fixture proves
 evaluator mechanics only.
 
+That statement applies to routable `reploid.pool.adapter-publication/v2`
+records. A signed `reploid.pool.adapter-canary-publication/v1` record may prove
+runtime interoperability for real bytes. Its schema requires `routable: false`,
+forbids AdapterPack requirement fields, and cannot satisfy promotion.
+
 Immutable network-mechanics canaries are recorded in
 [`artifact-custody/network-canaries-v1.json`](artifact-custody/network-canaries-v1.json).
 They cover the hosted Gemma 270M base model, an Apache-2.0 external Qwen 0.8B
