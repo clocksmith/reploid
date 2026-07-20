@@ -501,6 +501,15 @@ const setDashboardActivityExpanded = (expanded) => {
   });
 };
 
+const setInspectorRailOpen = (open) => {
+  const rail = document.querySelector('[data-pool-dashboard-inspector]');
+  const toggle = rail?.querySelector('[data-pool-inspector-toggle]');
+  if (!rail || !toggle) return;
+  rail.classList.toggle('is-open', open);
+  toggle.setAttribute('aria-expanded', String(open));
+  toggle.setAttribute('aria-label', open ? 'Close inspector' : 'Open inspector');
+};
+
 export const applyPoolDashboardView = (view = 'home', { updateHistory = true } = {}) => {
   const normalized = ['home', 'ask', 'compute', 'records'].includes(view) ? view : 'home';
   const stage = document.querySelector('.pool-home-stage');
@@ -515,10 +524,7 @@ export const applyPoolDashboardView = (view = 'home', { updateHistory = true } =
     if (active) control.setAttribute('aria-current', 'page');
     else control.removeAttribute('aria-current');
   });
-  const titles = { home: 'Workspace', ask: 'Run', compute: 'Contribute', records: 'Records' };
-  document.querySelectorAll('[data-pool-dashboard-title]').forEach((element) => {
-    element.textContent = titles[normalized];
-  });
+  if (normalized !== 'home') setInspectorRailOpen(true);
   if (normalized === 'records') setDashboardActivityExpanded(true);
   if (updateHistory) {
     const url = new URL(window.location.href);
@@ -546,6 +552,25 @@ export const bindPoolDashboardControls = () => {
       setDashboardActivityExpanded(activity?.dataset.expanded !== 'true');
     });
   });
+  document.querySelectorAll('[data-pool-inspector-toggle]').forEach((toggle) => {
+    if (toggle.dataset.poolInspectorBound === 'true') return;
+    toggle.dataset.poolInspectorBound = 'true';
+    toggle.addEventListener('click', () => {
+      const rail = toggle.closest('[data-pool-dashboard-inspector]');
+      setInspectorRailOpen(!rail?.classList.contains('is-open'));
+    });
+  });
+  if (window.REPLOID_POOL_INSPECTOR_ESCAPE_HANDLER) {
+    window.removeEventListener('keydown', window.REPLOID_POOL_INSPECTOR_ESCAPE_HANDLER);
+  }
+  window.REPLOID_POOL_INSPECTOR_ESCAPE_HANDLER = (event) => {
+    if (event.key !== 'Escape') return;
+    const rail = document.querySelector('[data-pool-dashboard-inspector].is-open');
+    if (!rail) return;
+    setInspectorRailOpen(false);
+    rail.querySelector('[data-pool-inspector-toggle]')?.focus();
+  };
+  window.addEventListener('keydown', window.REPLOID_POOL_INSPECTOR_ESCAPE_HANDLER);
 };
 
 const bindSuggestedPromptEditing = (input) => {
