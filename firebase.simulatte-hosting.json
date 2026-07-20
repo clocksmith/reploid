@@ -1,0 +1,147 @@
+{
+  "hosting": [
+    {
+      "site": "simulatte-world",
+      "public": "self",
+      "ignore": [
+        "**/.*",
+        "**/node_modules/**"
+      ],
+      "headers": [
+        {
+          "source": "**/*.html",
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "no-cache, no-store, must-revalidate"
+            }
+          ]
+        },
+        {
+          "source": "/",
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "no-cache, no-store, must-revalidate"
+            }
+          ]
+        },
+        {
+          "source": "/zero",
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "no-cache, no-store, must-revalidate"
+            }
+          ]
+        },
+        {
+          "source": "/x",
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "no-cache, no-store, must-revalidate"
+            }
+          ]
+        },
+        {
+          "source": "**/*.js",
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "no-cache, no-store, must-revalidate"
+            }
+          ]
+        },
+        {
+          "source": "**/*.css",
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "no-cache, no-store, must-revalidate"
+            }
+          ]
+        },
+        {
+          "source": "**/*.json",
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "no-cache, no-store, must-revalidate"
+            }
+          ]
+        }
+      ],
+      "rewrites": [
+        {
+          "source": "/styles/rd-tokens.css",
+          "destination": "/styles/rd.css"
+        },
+        {
+          "source": "/styles/rd-primitives.css",
+          "destination": "/styles/rd.css"
+        },
+        {
+          "source": "/styles/rd-components.css",
+          "destination": "/styles/rd.css"
+        },
+        {
+          "source": "/rd-tokens.css",
+          "destination": "/styles/rd.css"
+        },
+        {
+          "source": "/rd-primitives.css",
+          "destination": "/styles/rd.css"
+        },
+        {
+          "source": "/rd-components.css",
+          "destination": "/styles/rd.css"
+        },
+        {
+          "source": "/design",
+          "destination": "/design.html"
+        },
+        {
+          "source": "/audit",
+          "destination": "/audit.html"
+        },
+        {
+          "source": "/reset",
+          "destination": "/reset.html"
+        },
+        {
+          "source": "/ask",
+          "destination": "/index.html"
+        },
+        {
+          "source": "/compute",
+          "destination": "/index.html"
+        },
+        {
+          "source": "/records",
+          "destination": "/index.html"
+        },
+        {
+          "source": "/history",
+          "destination": "/index.html"
+        },
+        {
+          "source": "/network",
+          "destination": "/index.html"
+        },
+        {
+          "source": "/zero",
+          "destination": "/index.html"
+        },
+        {
+          "source": "/x",
+          "destination": "/index.html"
+        },
+        {
+          "source": "/",
+          "destination": "/index.html"
+        }
+      ]
+    }
+  ]
+}

@@ -26,7 +26,7 @@ The agent modes that expose `Promote` use these states:
 | X | Mature agent surface at `/x` with workers, memory, peer slots, verification, and promotion. |
 | Zero | Minimal agent surface at `/zero`; it begins with `CreateTool` and has no pool dependency. |
 
-The [Zero and X intent contract](self/config/surface-intents.js) owns their routes, boot profiles, modules, and tool surfaces. The root Poolday path is owned separately by the [product boot modes](self/config/boot-modes.js), [pool config](self/pool/pool-config.json), and [pool claim boundary](docs/poolday/claims-and-nonclaims.md). Current support claims resolve to the machine-checked [surface claim index](docs/status/surface-claim-index.json).
+The [Zero and X intent contract](self/config/surface-intents.js) defines their routes, boot profiles, modules, and tool surfaces. The root Poolday path is owned separately by the [product boot modes](self/config/boot-modes.js), [pool config](self/pool/pool-config.json), and [pool claim boundary](docs/poolday/claims-and-nonclaims.md). Current support claims point to the machine-checked [surface claim index](docs/status/surface-claim-index.json). Read each row by its declared boundary and status; a supported row on one surface does not imply support on another.
 
 ## Quick Start
 
@@ -72,7 +72,7 @@ blueprint, API, and operator inventory.
 
 ## License
 
-`package.json` declares MIT. This repository does not currently include a
-standalone `LICENSE` file.
+License metadata is in `package.json` (license: MIT). This repository does
+not currently include a standalone `LICENSE` file.
 
 *Last updated: July 2026*

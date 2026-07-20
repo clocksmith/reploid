@@ -49,9 +49,8 @@ const POOL_NAV_TOGGLE_TOOLTIPS = Object.freeze({
 });
 
 const applyPoolNavOpenState = (nav, navToggle, isOpen) => {
-  const requestControls = nav.classList.contains('pool-control-drawer');
-  const openLabel = requestControls ? 'Close request controls' : 'Close navigation';
-  const closedLabel = requestControls ? 'Open request controls' : 'Open navigation';
+  const openLabel = 'Close navigation';
+  const closedLabel = 'Open navigation';
   nav.classList.toggle('is-open', isOpen);
   if (!isOpen) nav.querySelector('.pool-nav-more')?.removeAttribute('open');
   navToggle.setAttribute('aria-expanded', String(isOpen));
