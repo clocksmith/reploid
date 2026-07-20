@@ -24,6 +24,13 @@ const createStorage = () => {
 afterEach(() => vi.unstubAllGlobals());
 
 describe('Poolday participation profile', () => {
+  it('defaults to both mode when mode is missing or invalid', () => {
+    const defaulted = normalizeParticipationPreferences({});
+    const invalid = normalizeParticipationPreferences({ mode: 'invalid' });
+    expect(defaulted.mode).toBe('both');
+    expect(invalid.mode).toBe('both');
+  });
+
   it('maps the three product modes to explicit capabilities', () => {
     const request = normalizeParticipationPreferences({ mode: PARTICIPATION_MODES.request });
     const contribute = normalizeParticipationPreferences({ mode: PARTICIPATION_MODES.contribute });

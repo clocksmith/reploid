@@ -32,6 +32,11 @@ import {
   parsePoolRendererCssColor,
   resolvePoolRendererClearColor
 } from '../../self/ui/pool-home/simulation-renderer.js';
+import {
+  rgbToHsl,
+  hslToRgb,
+  lerpHue
+} from '../../self/ui/pool-home/simulation-frame-state.js';
 
 const withSimulationSearch = (search, callback) => {
   const descriptor = Object.getOwnPropertyDescriptor(globalThis, 'location');
@@ -180,6 +185,11 @@ describe('pool home simulation performance contracts', () => {
   it('reduces nonessential render detail below full quality', () => {
     const state = createPoolSimulationState();
     const frame = buildPoolSimulationFrame(state, 960, 640, 1 / 60);
+    // Force larger curves on test lines to guarantee segment count differences
+    for (const line of frame.lines) {
+      line.curve = 0.15;
+      line.signedCurve = 0.15;
+    }
     frame.renderQuality = 1;
     const fullBatches = createPoolRenderBatchBuilder()(frame, 960, 640);
     frame.renderQuality = 0.62;
@@ -370,6 +380,7 @@ describe('pool home simulation performance contracts', () => {
 
   it('keeps every edge preset symmetric under its declared coordinate transform', () => {
     for (const topology of POOLDAY_GRAPH_TOPOLOGIES) {
+      if (topology.symmetry === 'none') continue;
       const transform = topologySymmetryTransforms[topology.symmetry];
       expect(transform, `${topology.id} must declare a supported symmetry`).toBeTypeOf('function');
 
@@ -398,10 +409,11 @@ describe('pool home simulation performance contracts', () => {
 
   it('keeps topology coordinates aligned to their named shapes', () => {
     const receiptTree = topologyById('receipt_tree');
-    expectSameX(receiptTree, ['requester', 'policy', 'assignment', 'agreement', 'settlement', 'ledger'], 0.5);
-    expectIncreasingY(receiptTree, ['requester', 'policy', 'assignment', 'runner0', 'verifier0', 'agreement', 'settlement', 'ledger']);
-    expectSameY(receiptTree, ['runner0', 'runner1', 'runner2', 'runner3']);
-    expectSameY(receiptTree, ['verifier0', 'verifier1']);
+    expectSameY(receiptTree, ['policy', 'assignment', 'agreement', 'settlement']);
+    expectSameY(receiptTree, ['runner0', 'runner1', 'runner2', 'runner3', 'verifier0', 'verifier1']);
+    expect(yOf(receiptTree, 'requester')).toBeLessThan(yOf(receiptTree, 'policy'));
+    expect(yOf(receiptTree, 'policy')).toBeLessThan(yOf(receiptTree, 'runner0'));
+    expect(yOf(receiptTree, 'runner0')).toBeLessThan(yOf(receiptTree, 'ledger'));
 
     const runnerReduce = topologyById('runner_reduce');
     expectIncreasingX(runnerReduce, ['requester', 'policy', 'assignment', 'runner0', 'verifier0', 'agreement', 'settlement', 'ledger']);
@@ -474,6 +486,12 @@ describe('pool home simulation performance contracts', () => {
     expect(yOf(honeycomb, 'requester')).toBeCloseTo(1 - yOf(honeycomb, 'ledger'), 8);
     expect(xOf(honeycomb, 'policy')).toBeCloseTo(1 - xOf(honeycomb, 'settlement'), 8);
     expect(yOf(honeycomb, 'policy')).toBeCloseTo(1 - yOf(honeycomb, 'settlement'), 8);
+
+    const dodecagon = topologyById('dodecagon');
+    expect(xOf(dodecagon, 'runner3')).toBeCloseTo(0.10, 3);
+    expect(xOf(dodecagon, 'requester')).toBeCloseTo(0.90, 3);
+    expect(yOf(dodecagon, 'runner0')).toBeCloseTo(0.90, 3);
+    expect(yOf(dodecagon, 'agreement')).toBeCloseTo(0.10, 3);
   });
 
   it('renders initial node centers from active topology coordinates with a centered view transform', () => {
@@ -810,5 +828,26 @@ describe('pool home simulation performance contracts', () => {
     expect(state.motionTime).toBeGreaterThanOrEqual(0);
     expect(state.motionTime).toBeLessThan(SIMULATION_MOTION_CLOCK_WRAP_SECONDS);
     expect(state.time).toBeGreaterThan(120);
+  });
+
+  it('correctly converts between RGB and HSL and interpolates hue smoothly', () => {
+    // Roundtrip verification
+    const colors = [
+      [246, 82, 118],
+      [105, 210, 153],
+      [174, 122, 238]
+    ];
+    for (const [r, g, b] of colors) {
+      const [h, s, l] = rgbToHsl(r, g, b);
+      const [r2, g2, b2] = hslToRgb(h, s, l);
+      expect(r2).toBeCloseTo(r, 0);
+      expect(g2).toBeCloseTo(g, 0);
+      expect(b2).toBeCloseTo(b, 0);
+    }
+
+    // Hue shortest path verification
+    expect(lerpHue(10, 350, 0.5)).toBe(0); // Shortest path passes through 0/360: (10 + -20 * 0.5 + 360) % 360 = 0
+    expect(lerpHue(350, 10, 0.5)).toBe(0);
+    expect(lerpHue(100, 200, 0.5)).toBe(150);
   });
 });

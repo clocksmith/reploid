@@ -92,6 +92,50 @@ test.describe('Boot Screen', () => {
 });
 
 test.describe('Route Entry Points', () => {
+  test('home drawers use persistent vertical disclosure sections', async ({ page }) => {
+    await page.goto(PRODUCT_HOME_PATH);
+    await page.evaluate(() => localStorage.removeItem('reploid.pool.drawerSections.v1'));
+    await page.reload();
+    await page.waitForSelector('.pool-home', { timeout: 20000 });
+
+    const anchoredLayout = await page.evaluate(() => {
+      const home = document.querySelector('.pool-home').getBoundingClientRect();
+      const wordmark = document.querySelector('.pool-home-brand-word').getBoundingClientRect();
+      const ask = document.querySelector('#pool-home-ask-form').getBoundingClientRect();
+      return {
+        wordmarkCenterDelta: Math.abs((wordmark.left + wordmark.width / 2) - (home.left + home.width / 2)),
+        askCenterDelta: Math.abs((ask.left + ask.width / 2) - (home.left + home.width / 2)),
+        askBottomGap: home.bottom - ask.bottom
+      };
+    });
+    expect(anchoredLayout.wordmarkCenterDelta).toBeLessThanOrEqual(1);
+    expect(anchoredLayout.askCenterDelta).toBeLessThanOrEqual(1);
+    expect(anchoredLayout.askBottomGap).toBeGreaterThan(0);
+    expect(anchoredLayout.askBottomGap).toBeLessThanOrEqual(48);
+    await expect(page.locator('#pool-home-run-submit')).toHaveText('↑');
+
+    const requestDrawer = page.locator('.pool-control-drawer');
+    await requestDrawer.locator('.pool-nav-toggle').click();
+    await expect(requestDrawer.locator('[data-pool-drawer-section]')).toHaveCount(3);
+    await expect(requestDrawer.locator('[data-pool-drawer-section="request-workload"]')).toHaveAttribute('open', '');
+    await requestDrawer.locator('[data-pool-drawer-section="request-model"] > summary').click();
+    await expect(requestDrawer.locator('[data-pool-drawer-section="request-model"]')).toHaveAttribute('open', '');
+
+    const computeDrawer = page.locator('[data-pool-dashboard-inspector]');
+    await computeDrawer.locator('[data-pool-inspector-toggle]').click();
+    await expect(computeDrawer.locator('[data-pool-drawer-section]')).toHaveCount(4);
+    await expect(computeDrawer.locator('[data-pool-drawer-section="compute-sharing"]')).toHaveAttribute('open', '');
+    await computeDrawer.locator('[data-pool-drawer-section="compute-device"] > summary').click();
+    await expect(computeDrawer.locator('[data-pool-drawer-section="compute-device"]')).toHaveAttribute('open', '');
+
+    await page.reload();
+    await page.waitForSelector('.pool-home', { timeout: 20000 });
+    await page.locator('.pool-control-drawer .pool-nav-toggle').click();
+    await page.locator('[data-pool-dashboard-inspector] [data-pool-inspector-toggle]').click();
+    await expect(page.locator('[data-pool-drawer-section="request-model"]')).toHaveAttribute('open', '');
+    await expect(page.locator('[data-pool-drawer-section="compute-device"]')).toHaveAttribute('open', '');
+  });
+
   test('product root renders the Reploid serving surface', async ({ page }) => {
     await page.goto(PRODUCT_HOME_PATH);
     await page.waitForSelector('.pool-home', { timeout: 20000 });
@@ -106,13 +150,15 @@ test.describe('Route Entry Points', () => {
     await expect(nav.locator('.pool-nav-mark-seven-bottom')).toHaveText('7');
     await expect(nav.locator('.pool-nav-menu')).toBeVisible();
     await expect(page.locator('#pool-home-ask-form')).toBeVisible();
-    const askValue = await page.locator('#pool-home-ask-prompt').inputValue();
-    expect(askValue).toBeTruthy();
-    expect(askValue).not.toBe('Ask the network...');
-    expect(askValue.trim().split(/\s+/).length).toBeGreaterThanOrEqual(2);
-    expect(askValue.trim().split(/\s+/).length).toBeLessThanOrEqual(4);
-    await expect(page.locator('#pool-home-ask-prompt')).toHaveAttribute('data-pool-suggested-prompt', askValue);
-    await expect(page.locator('#pool-home-ask-form').getByRole('button', { name: 'Run', exact: true })).toBeVisible();
+    await expect(page.locator('#pool-home-ask-prompt')).toHaveValue('');
+    const askPlaceholder = await page.locator('#pool-home-ask-prompt').getAttribute('placeholder');
+    expect(askPlaceholder).toBeTruthy();
+    expect(askPlaceholder).not.toBe('Ask the network...');
+    expect(askPlaceholder.trim().split(/\s+/).length).toBeGreaterThanOrEqual(2);
+    expect(askPlaceholder.trim().split(/\s+/).length).toBeLessThanOrEqual(4);
+    await expect(page.locator('#pool-home-ask-prompt')).toHaveAttribute('data-pool-suggested-prompt', askPlaceholder);
+    await expect(page.locator('label[for="pool-home-ask-prompt"]')).toHaveCount(0);
+    await expect(page.locator('#pool-home-ask-form').getByRole('button', { name: 'Ask', exact: true })).toBeVisible();
     const adapterLane = page.locator('[data-pool-lane="adapters"]');
     const textLane = page.locator('[data-pool-lane="text"]');
     await adapterLane.click();
@@ -130,10 +176,10 @@ test.describe('Route Entry Points', () => {
     const stack = await page.evaluate(() => {
       const home = document.querySelector('.pool-home').getBoundingClientRect();
       const toolbar = document.querySelector('.pool-home-toolbar').getBoundingClientRect();
+      const wordmark = document.querySelector('.pool-home-brand-word').getBoundingClientRect();
       const shell = document.querySelector('.pool-simulation-shell').getBoundingClientRect();
       const ask = document.querySelector('#pool-home-ask-form').getBoundingClientRect();
       const inspector = document.querySelector('.pool-dashboard-inspector').getBoundingClientRect();
-      const activity = document.querySelector('.pool-dashboard-activity').getBoundingClientRect();
       return {
         homeHeight: home.height,
         homeWidth: home.width,
@@ -141,10 +187,10 @@ test.describe('Route Entry Points', () => {
         shellWidth: shell.width,
         shellTop: shell.top,
         toolbarBottom: toolbar.bottom,
+        wordmarkCenterDelta: Math.abs((wordmark.left + wordmark.width / 2) - (home.left + home.width / 2)),
         askCenterDelta: Math.abs((ask.left + ask.width / 2) - (home.left + home.width / 2)),
         askInspectorGap: inspector.left - ask.right,
         inspectorWidth: inspector.width,
-        activityHeight: activity.height,
         askBottomGap: home.bottom - ask.bottom,
         askInsideCanvas: ask.top >= shell.top && ask.bottom <= shell.bottom
       };
@@ -152,11 +198,12 @@ test.describe('Route Entry Points', () => {
     expect(Math.abs(stack.shellTop)).toBeLessThanOrEqual(1);
     expect(Math.abs(stack.shellWidth - stack.homeWidth)).toBeLessThan(2);
     expect(Math.abs(stack.shellHeight - stack.homeHeight)).toBeLessThan(2);
-    expect(stack.askCenterDelta).toBeGreaterThan(0);
+    expect(stack.wordmarkCenterDelta).toBeLessThanOrEqual(1);
+    expect(stack.askCenterDelta).toBeGreaterThanOrEqual(0);
     expect(stack.askCenterDelta).toBeLessThanOrEqual(stack.inspectorWidth / 2 + 1);
     expect(stack.askInspectorGap).toBeGreaterThan(0);
-    expect(stack.askBottomGap).toBeGreaterThan(stack.activityHeight);
-    expect(stack.askBottomGap).toBeLessThanOrEqual(stack.activityHeight + 32);
+    expect(stack.askBottomGap).toBeGreaterThan(0);
+    expect(stack.askBottomGap).toBeLessThanOrEqual(48);
     expect(stack.askInsideCanvas).toBe(true);
     const collapsedToggle = await nav.locator('.pool-nav-toggle').evaluate((toggle) => {
       const top = toggle.querySelector('.pool-nav-mark-seven-top');
@@ -196,8 +243,8 @@ test.describe('Route Entry Points', () => {
     await expect(nav.locator('.pool-nav-description').first()).toBeVisible();
     await expect(nav.locator('.pool-room-context')).toBeVisible();
     await nav.locator('.pool-nav-more-summary').click();
-    await expect(nav.getByRole('link', { name: 'Zero Experimental', exact: true })).toHaveAttribute('href', '/zero');
-    await expect(nav.getByRole('link', { name: 'X Experimental', exact: true })).toHaveAttribute('href', '/x');
+    await expect(nav.getByRole('link', { name: 'Zero', exact: true })).toHaveAttribute('href', '/zero');
+    await expect(nav.getByRole('link', { name: 'X', exact: true })).toHaveAttribute('href', '/x');
     await expect(page.getByLabel('Reploid overview')).toContainText('REPLOID');
     await expect(page.getByLabel('Reploid overview')).toContainText('Run browser models together.');
     await expect(page.locator('[data-pool-flow-label]')).toHaveCount(6);
@@ -302,7 +349,7 @@ test.describe('Route Entry Points', () => {
     await page.locator('.pool-nav-more-summary').click();
     await expect(page.locator('.pool-nav-rail')).toHaveClass(/is-open/);
     await expect(page.locator('.pool-nav-more')).toHaveAttribute('open', '');
-    await expect(page.getByRole('link', { name: 'Zero Experimental', exact: true })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Zero', exact: true })).toBeVisible();
 
     await page.setViewportSize({ width: 390, height: 844 });
     await page.reload();
@@ -355,8 +402,8 @@ test.describe('Route Entry Points', () => {
     await expect(mobileNav.locator('.pool-nav-description').first()).toBeVisible();
     await expect(mobileNav.locator('.pool-room-context')).toBeVisible();
     await mobileNav.locator('.pool-nav-more-summary').click();
-    await expect(mobileNav.getByRole('link', { name: 'Zero Experimental', exact: true })).toBeVisible();
-    await expect(mobileNav.getByRole('link', { name: 'X Experimental', exact: true })).toBeVisible();
+    await expect(mobileNav.getByRole('link', { name: 'Zero', exact: true })).toBeVisible();
+    await expect(mobileNav.getByRole('link', { name: 'X', exact: true })).toBeVisible();
   });
 
   test('product routes fit a narrow mobile viewport without horizontal clipping', async ({ page }) => {

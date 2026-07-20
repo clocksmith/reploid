@@ -11,6 +11,11 @@ import {
   clamp01,
   resolveLineGeometryInto
 } from './simulation-core.js';
+import {
+  rgbToHsl,
+  hslToRgb,
+  lerpHue
+} from './simulation-frame-state.js';
 
 const wrapPoolIndex = (index, length) => ((index % length) + length) % length;
 
@@ -67,9 +72,15 @@ const resolvePoolRenderToneColorInto = (
   const blend = clamp01(toneBlend);
   if (toneTo && blend > 0) {
     resolvePoolRawToneRgbInto(mixScratch, frame, toneTo, toneToIndex);
-    target[0] += (mixScratch[0] - target[0]) * blend;
-    target[1] += (mixScratch[1] - target[1]) * blend;
-    target[2] += (mixScratch[2] - target[2]) * blend;
+    const [h1, s1, l1] = rgbToHsl(target[0], target[1], target[2]);
+    const [h2, s2, l2] = rgbToHsl(mixScratch[0], mixScratch[1], mixScratch[2]);
+    const h = lerpHue(h1, h2, blend);
+    const s = s1 + (s2 - s1) * blend;
+    const l = l1 + (l2 - l1) * blend;
+    const [r, g, b] = hslToRgb(h, s, l);
+    target[0] = r;
+    target[1] = g;
+    target[2] = b;
   }
   target[0] /= 255;
   target[1] /= 255;

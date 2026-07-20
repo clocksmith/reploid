@@ -53,6 +53,7 @@ import {
   recordContributionReceipt,
   updateContributionState
 } from './contribution-state.js';
+import { choosePooldayAskPlaceholder } from './constants.js';
 
 const errorString = (error) => String(error?.message || error?.error || error || 'Unknown error');
 const POOL_ROOM_ACTIVITY_POLL_MS = 5000;
@@ -153,7 +154,7 @@ export const refreshParticipationControls = async (preferences = readParticipati
     setRequestControlParticipation(control, canRequest);
   });
   document.querySelectorAll('.pool-home-ask-dock').forEach((form) => {
-    form.hidden = !canRequest;
+    form.hidden = false;
   });
   document.querySelectorAll('.pool-home-share-toggle').forEach((button) => {
     button.hidden = !canContribute;
@@ -491,23 +492,62 @@ export const bindCapabilityAssessmentControls = () => {
   void run(false);
 };
 
-const setDashboardActivityExpanded = (expanded) => {
-  const activity = document.querySelector('[data-pool-dashboard-activity]');
-  if (!activity) return;
-  activity.dataset.expanded = String(expanded);
-  activity.classList.toggle('is-expanded', expanded);
-  activity.querySelectorAll('[data-pool-activity-toggle]').forEach((button) => {
-    button.setAttribute('aria-expanded', String(expanded));
-  });
-};
-
 const setInspectorRailOpen = (open) => {
   const rail = document.querySelector('[data-pool-dashboard-inspector]');
   const toggle = rail?.querySelector('[data-pool-inspector-toggle]');
   if (!rail || !toggle) return;
   rail.classList.toggle('is-open', open);
   toggle.setAttribute('aria-expanded', String(open));
-  toggle.setAttribute('aria-label', open ? 'Close inspector' : 'Open inspector');
+  toggle.setAttribute('aria-label', open ? 'Close compute controls' : 'Open compute controls');
+};
+
+const POOL_DRAWER_SECTION_STATE_KEY = 'reploid.pool.drawerSections.v1';
+
+const readDrawerSectionState = () => {
+  try {
+    const parsed = JSON.parse(globalThis.localStorage?.getItem(POOL_DRAWER_SECTION_STATE_KEY) || '{}');
+    return parsed && typeof parsed === 'object' ? parsed : {};
+  } catch {
+    return {};
+  }
+};
+
+const writeDrawerSectionState = (state) => {
+  try {
+    globalThis.localStorage?.setItem(POOL_DRAWER_SECTION_STATE_KEY, JSON.stringify(state));
+  } catch {
+    // Disclosure remains usable when browser storage is unavailable.
+  }
+};
+
+const bindDrawerSections = () => {
+  const state = readDrawerSectionState();
+  document.querySelectorAll('details[data-pool-drawer-section]').forEach((section) => {
+    const id = section.dataset.poolDrawerSection;
+    if (typeof state[id] === 'boolean') section.open = state[id];
+    if (section.dataset.poolDrawerSectionBound === 'true') return;
+    section.dataset.poolDrawerSectionBound = 'true';
+    section.querySelector(':scope > summary')?.addEventListener('click', (event) => {
+      // Both rails (request drawer + compute inspector) are collapsible .pool-nav-rail
+      // panels. Clicking a collapsed section expands the rail and opens that section.
+      const rail = section.closest('.pool-nav-rail');
+      if (rail && !rail.classList.contains('is-open')) {
+        const toggle = rail.querySelector('.pool-nav-toggle');
+        toggle?.click();
+        section.open = true;
+        event.preventDefault();
+        return;
+      }
+      const next = readDrawerSectionState();
+      next[id] = !section.open;
+      writeDrawerSectionState(next);
+    });
+    section.addEventListener('toggle', () => {
+      const next = readDrawerSectionState();
+      next[id] = section.open;
+      writeDrawerSectionState(next);
+    });
+  });
 };
 
 export const applyPoolDashboardView = (view = 'home', { updateHistory = true } = {}) => {
@@ -515,17 +555,14 @@ export const applyPoolDashboardView = (view = 'home', { updateHistory = true } =
   const stage = document.querySelector('.pool-home-stage');
   if (!stage) return normalized;
   stage.dataset.poolDashboardView = normalized;
-  document.querySelectorAll('[data-pool-dashboard-panel]').forEach((panel) => {
-    panel.hidden = panel.dataset.poolDashboardPanel !== normalized;
-  });
   document.querySelectorAll('.pool-nav-link[data-pool-dashboard-view]').forEach((control) => {
     const active = control.dataset.poolDashboardView === normalized;
     control.classList.toggle('is-active', active);
     if (active) control.setAttribute('aria-current', 'page');
     else control.removeAttribute('aria-current');
   });
-  if (normalized !== 'home') setInspectorRailOpen(true);
-  if (normalized === 'records') setDashboardActivityExpanded(true);
+  if (normalized === 'ask') document.getElementById('pool-home-ask-prompt')?.focus();
+  if (normalized === 'compute' || normalized === 'records') setInspectorRailOpen(true);
   if (updateHistory) {
     const url = new URL(window.location.href);
     if (normalized === 'home') url.searchParams.delete('view');
@@ -536,20 +573,13 @@ export const applyPoolDashboardView = (view = 'home', { updateHistory = true } =
 };
 
 export const bindPoolDashboardControls = () => {
+  bindDrawerSections();
   document.querySelectorAll('.pool-nav-link[data-pool-dashboard-view], [data-pool-dashboard-view-target]').forEach((control) => {
     if (control.dataset.poolDashboardBound === 'true') return;
     control.dataset.poolDashboardBound = 'true';
     control.addEventListener('click', (event) => {
       event.preventDefault();
       applyPoolDashboardView(control.dataset.poolDashboardView || control.dataset.poolDashboardViewTarget || 'home');
-    });
-  });
-  document.querySelectorAll('[data-pool-activity-toggle]').forEach((button) => {
-    if (button.dataset.poolActivityBound === 'true') return;
-    button.dataset.poolActivityBound = 'true';
-    button.addEventListener('click', () => {
-      const activity = document.querySelector('[data-pool-dashboard-activity]');
-      setDashboardActivityExpanded(activity?.dataset.expanded !== 'true');
     });
   });
   document.querySelectorAll('[data-pool-inspector-toggle]').forEach((toggle) => {
@@ -586,6 +616,18 @@ const bindSuggestedPromptEditing = (input) => {
   };
   input.addEventListener('focus', clearSuggestedPrompt);
   input.addEventListener('pointerdown', clearSuggestedPrompt);
+
+  const intervalId = setInterval(() => {
+    if (!document.body.contains(input)) {
+      clearInterval(intervalId);
+      return;
+    }
+    if (document.activeElement !== input && !input.value.trim()) {
+      const nextPrompt = choosePooldayAskPlaceholder();
+      input.placeholder = nextPrompt;
+      input.dataset.poolSuggestedPrompt = nextPrompt;
+    }
+  }, 4000);
 };
 
 const refreshServerRoomActivity = async (isActive = () => true) => {
@@ -776,7 +818,11 @@ const bindPeerRunSurface = ({
     );
   };
   const submitRunRequest = async () => {
-    const promptText = prompt.value.trim();
+    let promptText = prompt.value.trim();
+    if (!promptText && prompt.placeholder) {
+      promptText = prompt.placeholder.trim();
+      prompt.value = promptText;
+    }
     if (!promptText) {
       updateRunState('error', 'prompt', 'Enter a prompt to run');
       setResult(resultId, {
@@ -793,7 +839,16 @@ const bindPeerRunSurface = ({
     button.textContent = 'Running';
     updateRunState('submitting', 'prompt', 'Preparing signed request');
     try {
-      const selectedModel = getEnabledPoolModelContract(modelSelect?.value || LAUNCH_MODEL.modelId) || LAUNCH_MODEL;
+      const lane = document.querySelector('.pool-home-stage')?.dataset.poolLane || 'text';
+      let targetModelId = modelSelect?.value;
+      if (!targetModelId) {
+        if (lane === 'sequence') {
+          targetModelId = 'esm2-t12-35m-ur50d-f32-af32';
+        } else {
+          targetModelId = LAUNCH_MODEL.modelId;
+        }
+      }
+      const selectedModel = getEnabledPoolModelContract(targetModelId) || LAUNCH_MODEL;
       const adapter = await resolveSelectedAdapter(adapterSelect, selectedModel, {
         required: Boolean(adapterRequired())
       });

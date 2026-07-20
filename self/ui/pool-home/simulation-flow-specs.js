@@ -160,162 +160,123 @@ const expandEdgeSpec = (spec, specIndex) => {
 };
 
 const buildPresetEdges = (preset) => {
-  if (preset === 'runner_reduce') {
-    return [
-      ...corePath({
-        ingress: { lanes: 2 },
-        ledger: { lanes: 2 }
-      }),
-      ...POOLDAY_RUNNER_NODE_IDS.map((runnerId, index) => edge('assignment', runnerId, 'peer', {
-        alpha: 0.13,
-        tone: 'pipe',
-        curve: index === 1 || index === 2 ? 0.008 : 0.022,
-        speed: 0.93
-      })),
-      ...runnerToVerifierEdges({ alpha: 0.13 }),
-      ...verifierToAgreementEdges({ alpha: 0.15 }),
-      edge('assignment', 'agreement', 'pipe', { lanes: 5, alpha: 0.18, pulsePhase: 1, pulseScale: 1.35, speed: 1.10 })
+  if (preset === 'dodecagon') {
+    const ids = [
+      'requester',
+      'policy',
+      'assignment',
+      'runner0',
+      'runner1',
+      'runner2',
+      'runner3',
+      'verifier0',
+      'verifier1',
+      'agreement',
+      'settlement',
+      'ledger'
     ];
+    return ids.map((id, index) => edge(
+      id,
+      ids[(index + 1) % ids.length],
+      'peer',
+      { alpha: 0.12, tone: 'pipe', speed: 0.88, curve: 0.015 }
+    ));
   }
-  if (preset === 'star_rendezvous') {
-    return [
-      ...corePath({ ingress: { lanes: 2 } }),
-      ...POOLDAY_RUNNER_NODE_IDS.map((runnerId) => edge('assignment', runnerId, 'peer', { tone: 'pipe', alpha: 0.12, speed: 0.94 })),
-      ...runnerToVerifierEdges({ alpha: 0.11, curve: 0.018 }),
-      ...verifierToAgreementEdges({ alpha: 0.14 }),
-      edge('assignment', 'agreement', 'pipe', { lanes: 4, pulsePhase: 1, speed: 1.08 })
-    ];
-  }
-  if (preset === 'hourglass') {
-    return [
-      ...corePath(),
-      ...POOLDAY_RUNNER_NODE_IDS.map((runnerId, index) => edge('assignment', runnerId, 'peer', {
-        alpha: 0.12,
-        tone: index < 2 ? 'pipe' : 'accent',
-        curve: index % 2 ? -0.034 : 0.034,
-        speed: 0.86
-      })),
-      ...runnerToVerifierEdges({ alpha: 0.12, curve: 0.026 }),
-      ...verifierToAgreementEdges({ alpha: 0.13 }),
-      edge('assignment', 'agreement', 'pipe', { lanes: 3, pulsePhase: 1, speed: 1.04 })
-    ];
-  }
-  if (preset === 'float') {
-    return [
-      ...corePath(),
-      edge('assignment', 'agreement', 'pipe', { lanes: 2, pulsePhase: 1, speed: 1.02 }),
-      ...runnerRing({ alpha: 0.08, tone: 'pipe' }),
-      ...verifierPair({ alpha: 0.08 }),
-      edge('assignment', 'runner0', 'peer', { alpha: 0.09, tone: 'pipe', speed: 0.8 }),
-      edge('assignment', 'runner2', 'peer', { alpha: 0.09, tone: 'pipe', speed: 0.8 }),
-      ...runnerToVerifierEdges({ alpha: 0.09 }),
-      ...verifierToAgreementEdges({ alpha: 0.10 })
-    ];
-  }
-  if (preset === 'braided_lanes') {
-    return [
-      edge('requester', 'policy', 'core', { alpha: 0.27, curve: 0.035, pulsePhase: 0, speed: 0.92 }),
-      edge('policy', 'runner0', 'peer', { alpha: 0.15, tone: 'pipe', curve: 0.065, pulsePhase: 0.7, speed: 0.90 }),
-      edge('policy', 'runner1', 'peer', { alpha: 0.15, tone: 'accent', curve: -0.065, pulsePhase: 0.9, speed: 0.92 }),
-      edge('runner0', 'assignment', 'core', { alpha: 0.22, curve: -0.052, pulsePhase: 1, speed: 0.96 }),
-      edge('runner1', 'assignment', 'core', { alpha: 0.22, curve: 0.052, pulsePhase: 1.4, speed: 0.97 }),
-      edge('assignment', 'runner2', 'pipe', { alpha: 0.18, curve: -0.062, speed: 1.03 }),
-      edge('assignment', 'runner3', 'pipe', { alpha: 0.18, curve: 0.062, speed: 1.04 }),
-      edge('runner2', 'verifier0', 'core', { alpha: 0.20, tone: 'evidence', curve: 0.054, pulsePhase: 2, speed: 0.98 }),
-      edge('runner3', 'verifier1', 'core', { alpha: 0.20, tone: 'evidence', curve: -0.054, pulsePhase: 2.5, speed: 0.98 }),
-      edge('verifier0', 'agreement', 'peer', { alpha: 0.14, tone: 'pipe', curve: -0.04, speed: 0.88 }),
-      edge('verifier1', 'agreement', 'peer', { alpha: 0.14, tone: 'accent', curve: 0.04, speed: 0.88 }),
-      edge('agreement', 'settlement', 'core', { tone: 'evidence', pulsePhase: 2.8, speed: 0.94 }),
-      edge('settlement', 'ledger', 'core', { tone: 'evidence', pulsePhase: 3.2, speed: 0.92 })
-    ];
-  }
-  if (preset === 'receipt_tree') {
-    return [
-      ...corePath({
-        ingress: { curve: 0.01 },
-        policy: { curve: 0.01 },
-        settle: { curve: 0.01 },
-        ledger: { curve: 0.01 }
-      }),
-      ...POOLDAY_RUNNER_NODE_IDS.map((runnerId) => edge('assignment', runnerId, 'peer', { alpha: 0.10, tone: 'pipe', speed: 0.86 })),
-      ...runnerToVerifierEdges({ alpha: 0.09, tone: 'accent', speed: 0.86 }),
-      ...verifierToAgreementEdges({ alpha: 0.12, tone: 'evidence', speed: 0.86 })
-    ];
-  }
-  if (preset === 'bowtie_exchange') {
-    return [
-      edge('requester', 'policy', 'core', { lanes: 2, pulsePhase: 0, curve: 0.01 }),
-      edge('policy', 'runner0', 'peer', { alpha: 0.15, tone: 'pipe', curve: 0.055, speed: 0.86 }),
-      edge('policy', 'runner1', 'peer', { alpha: 0.15, tone: 'accent', curve: -0.055, speed: 0.86 }),
-      edge('runner0', 'assignment', 'peer', { alpha: 0.16, tone: 'pipe', curve: 0.055, speed: 0.86 }),
-      edge('runner1', 'assignment', 'peer', { alpha: 0.16, tone: 'accent', curve: -0.055, speed: 0.86 }),
-      edge('runner2', 'assignment', 'pipe', { alpha: 0.17, curve: 0.026, pulsePhase: 1.2, speed: 0.96 }),
-      edge('runner3', 'assignment', 'pipe', { alpha: 0.17, curve: -0.026, pulsePhase: 1.2, speed: 0.96 }),
-      edge('assignment', 'agreement', 'core', { lanes: 3, alpha: 0.24, tone: 'primary', pulsePhase: 1.6, curve: 0.004, speed: 1.08 }),
-      edge('agreement', 'verifier0', 'pipe', { alpha: 0.17, curve: -0.026, pulsePhase: 2, speed: 0.96 }),
-      edge('agreement', 'verifier1', 'pipe', { alpha: 0.17, curve: 0.026, pulsePhase: 2, speed: 0.96 }),
-      edge('runner2', 'verifier0', 'peer', { alpha: 0.16, tone: 'accent', curve: -0.055, speed: 0.86 }),
-      edge('runner3', 'verifier1', 'peer', { alpha: 0.16, tone: 'accent', curve: 0.055, speed: 0.86 }),
-      edge('verifier0', 'settlement', 'core', { alpha: 0.20, tone: 'evidence', curve: 0.035, speed: 0.92 }),
-      edge('verifier1', 'settlement', 'core', { alpha: 0.20, tone: 'evidence', curve: -0.035, speed: 0.92 }),
-      edge('settlement', 'ledger', 'core', { alpha: 0.22, tone: 'evidence', curve: 0.02, speed: 0.92 })
-    ];
-  }
-  if (preset === 'triangulation') {
-    return [
-      edge('requester', 'policy', 'core', { alpha: 0.27, pulsePhase: 0, curve: 0.025, speed: 0.94 }),
-      edge('policy', 'assignment', 'core', { alpha: 0.25, pulsePhase: 0.5, curve: 0.018, speed: 0.96 }),
-      edge('policy', 'agreement', 'pipe', { alpha: 0.16, pulsePhase: 0.8, curve: -0.018, speed: 0.98 }),
-      edge('requester', 'runner0', 'peer', { alpha: 0.12, tone: 'pipe', curve: 0.045, speed: 0.86 }),
-      edge('requester', 'runner3', 'peer', { alpha: 0.12, tone: 'pipe', curve: -0.045, speed: 0.86 }),
-      edge('assignment', 'runner0', 'peer', { alpha: 0.12, tone: 'pipe', curve: -0.024, speed: 0.88 }),
-      edge('assignment', 'runner1', 'peer', { alpha: 0.12, tone: 'peer', curve: 0.018, speed: 0.90 }),
-      edge('agreement', 'runner2', 'peer', { alpha: 0.12, tone: 'peer', curve: -0.018, speed: 0.90 }),
-      edge('agreement', 'runner3', 'peer', { alpha: 0.12, tone: 'accent', curve: -0.045, speed: 0.86 }),
-      edge('runner0', 'verifier0', 'peer', { alpha: 0.11, tone: 'accent', curve: 0.022, speed: 0.88 }),
-      edge('runner1', 'verifier0', 'peer', { alpha: 0.11, tone: 'pipe', curve: -0.014, speed: 0.90 }),
-      edge('runner2', 'verifier1', 'peer', { alpha: 0.11, tone: 'pipe', curve: 0.014, speed: 0.90 }),
-      edge('runner3', 'verifier1', 'peer', { alpha: 0.11, tone: 'accent', curve: -0.022, speed: 0.88 }),
-      edge('assignment', 'verifier0', 'peer', { alpha: 0.12, tone: 'evidence', curve: 0.018, speed: 0.92 }),
-      edge('agreement', 'verifier1', 'peer', { alpha: 0.12, tone: 'evidence', curve: -0.018, speed: 0.92 }),
-      edge('verifier0', 'settlement', 'pipe', { alpha: 0.12, tone: 'evidence', curve: 0.018, speed: 0.88 }),
-      edge('verifier1', 'settlement', 'pipe', { alpha: 0.12, tone: 'evidence', curve: -0.018, speed: 0.88 }),
-      edge('settlement', 'ledger', 'core', { tone: 'evidence', pulsePhase: 2.8, curve: 0.01, speed: 0.94 })
-    ];
-  }
-  if (preset === 'honeycomb') {
-    return [
-      edge('requester', 'policy', 'core', { alpha: 0.26, pulsePhase: 0, curve: 0.014, speed: 0.92 }),
-      edge('policy', 'assignment', 'core', { alpha: 0.25, pulsePhase: 0.6, curve: 0.008, speed: 0.94 }),
-      edge('policy', 'runner0', 'peer', { alpha: 0.11, tone: 'pipe', curve: -0.018, speed: 0.84 }),
-      edge('assignment', 'runner1', 'peer', { alpha: 0.12, tone: 'pipe', curve: -0.022, speed: 0.84 }),
-      edge('runner0', 'runner1', 'peer', { alpha: 0.09, tone: 'accent', curve: 0.018, speed: 0.78 }),
-      edge('runner0', 'verifier0', 'pipe', { alpha: 0.12, tone: 'pipe', curve: -0.014, speed: 0.88 }),
-      edge('runner1', 'verifier0', 'pipe', { alpha: 0.12, tone: 'pipe', curve: 0.014, speed: 0.88 }),
-      edge('verifier0', 'verifier1', 'peer', { alpha: 0.11, tone: 'evidence', curve: 0.01, speed: 0.86 }),
-      edge('verifier0', 'agreement', 'pipe', { alpha: 0.12, tone: 'evidence', curve: -0.018, speed: 0.88 }),
-      edge('verifier1', 'assignment', 'pipe', { alpha: 0.12, tone: 'evidence', curve: 0.018, speed: 0.88 }),
-      edge('verifier0', 'assignment', 'pipe', { alpha: 0.12, tone: 'evidence', curve: -0.018, speed: 0.88 }),
-      edge('verifier1', 'agreement', 'pipe', { alpha: 0.12, tone: 'evidence', curve: 0.018, speed: 0.88 }),
-      edge('runner2', 'verifier1', 'pipe', { alpha: 0.12, tone: 'pipe', curve: -0.014, speed: 0.88 }),
-      edge('runner3', 'verifier1', 'pipe', { alpha: 0.12, tone: 'pipe', curve: 0.014, speed: 0.88 }),
-      edge('runner2', 'runner3', 'peer', { alpha: 0.09, tone: 'accent', curve: -0.018, speed: 0.78 }),
-      edge('runner2', 'agreement', 'peer', { alpha: 0.12, tone: 'pipe', curve: 0.022, speed: 0.84 }),
-      edge('runner3', 'settlement', 'peer', { alpha: 0.11, tone: 'pipe', curve: 0.018, speed: 0.84 }),
-      edge('agreement', 'settlement', 'core', { alpha: 0.20, tone: 'evidence', curve: -0.018, pulsePhase: 2.3, speed: 0.92 }),
-      edge('settlement', 'ledger', 'core', { alpha: 0.23, tone: 'evidence', curve: 0.01, pulsePhase: 2.7, speed: 0.92 })
-    ];
-  }
+
+  const isBraid = preset === 'braided_lanes';
+  const isTri = preset === 'triangulation';
+  const isHourglass = preset === 'hourglass';
+  const isBowtie = preset === 'bowtie_exchange';
+  const isReduce = preset === 'runner_reduce';
+  const isStar = preset === 'star_rendezvous';
+
   return [
-    ...corePath(),
-    edge('assignment', 'agreement', 'core', { pulsePhase: 1 }),
-    ...POOLDAY_RUNNER_NODE_IDS.flatMap((runnerId, index) => [
-      edge('assignment', runnerId, 'peer', { alpha: 0.10, speed: 0.84, tone: index % 2 ? 'pipe' : 'peer' }),
-      edge(runnerId, POOLDAY_VERIFIER_NODE_IDS[index % POOLDAY_VERIFIER_NODE_IDS.length], 'peer', { alpha: 0.09, tone: 'accent', speed: 0.82 })
-    ]),
-    ...verifierToAgreementEdges()
+    edge('requester', 'policy', 'core', {
+      pulsePhase: 0,
+      speed: 0.98,
+      curve: isBraid ? 0.035 : isTri ? 0.025 : 0.02,
+      lanes: isReduce || isStar || isBowtie ? 2 : 1
+    }),
+    edge('policy', 'assignment', 'core', {
+      pulsePhase: 0.5,
+      speed: 0.98,
+      curve: isTri ? 0.018 : 0.01
+    }),
+    edge('assignment', 'runner0', 'peer', {
+      alpha: 0.12,
+      tone: 'pipe',
+      speed: 0.86,
+      curve: isHourglass || isBowtie || isBraid ? 0.054 : isReduce ? 0.03 : isStar ? 0.04 : 0.024
+    }),
+    edge('assignment', 'runner1', 'peer', {
+      alpha: 0.12,
+      tone: 'pipe',
+      speed: 0.86,
+      curve: isHourglass || isBowtie || isBraid ? -0.054 : isReduce ? -0.03 : isStar ? -0.04 : -0.024
+    }),
+    edge('assignment', 'runner2', 'peer', {
+      alpha: 0.12,
+      tone: 'pipe',
+      speed: 0.86,
+      curve: isHourglass || isBowtie || isBraid ? 0.054 : isReduce ? 0.03 : isStar ? 0.04 : 0.024
+    }),
+    edge('assignment', 'runner3', 'peer', {
+      alpha: 0.12,
+      tone: 'pipe',
+      speed: 0.86,
+      curve: isHourglass || isBowtie || isBraid ? -0.054 : isReduce ? -0.03 : isStar ? -0.04 : -0.024
+    }),
+    edge('runner0', 'verifier0', 'peer', {
+      alpha: 0.11,
+      tone: 'accent',
+      speed: 0.90,
+      curve: isHourglass ? 0.048 : isBraid ? 0.045 : isReduce ? 0.03 : 0.024
+    }),
+    edge('runner1', 'verifier1', 'peer', {
+      alpha: 0.11,
+      tone: 'accent',
+      speed: 0.90,
+      curve: isHourglass ? -0.048 : isBraid ? -0.045 : isReduce ? -0.03 : -0.024
+    }),
+    edge('runner2', 'verifier0', 'peer', {
+      alpha: 0.11,
+      tone: 'pipe',
+      speed: 0.90,
+      curve: isHourglass ? 0.048 : isBraid ? 0.045 : isReduce ? 0.03 : 0.024
+    }),
+    edge('runner3', 'verifier1', 'peer', {
+      alpha: 0.11,
+      tone: 'pipe',
+      speed: 0.90,
+      curve: isHourglass ? -0.048 : isBraid ? -0.045 : isReduce ? -0.03 : -0.024
+    }),
+    edge('verifier0', 'agreement', 'peer', {
+      alpha: 0.14,
+      tone: 'evidence',
+      speed: 0.88,
+      curve: isBraid ? -0.04 : isReduce ? -0.03 : -0.024
+    }),
+    edge('verifier1', 'agreement', 'peer', {
+      alpha: 0.14,
+      tone: 'evidence',
+      speed: 0.88,
+      curve: isBraid ? 0.04 : isReduce ? 0.03 : 0.024
+    }),
+    edge('agreement', 'settlement', 'core', {
+      tone: 'evidence',
+      pulsePhase: 2,
+      speed: 0.96,
+      curve: isBraid ? 0.03 : 0.01
+    }),
+    edge('settlement', 'ledger', 'core', {
+      tone: 'evidence',
+      pulsePhase: 2.4,
+      speed: 0.94,
+      curve: isBraid ? 0.03 : 0.01,
+      lanes: isReduce ? 2 : 1
+    })
   ];
-};
+};;
 
 const SPEC_CACHE = new Map();
 

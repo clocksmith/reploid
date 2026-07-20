@@ -344,8 +344,8 @@ const resolveTransitionPoint = (id, transition) => {
   if (raw >= 1) return { x: to.x, y: to.y };
   const eased = easeInOutSine(raw);
   return {
-    x: clampRange(from.x + (to.x - from.x) * eased, 0.04, 0.96),
-    y: clampRange(from.y + (to.y - from.y) * eased, 0.06, 0.96)
+    x: clamp01(from.x + (to.x - from.x) * eased),
+    y: clamp01(from.y + (to.y - from.y) * eased)
   };
 };
 
