@@ -114,26 +114,15 @@ test.describe('Route Entry Points', () => {
     expect(anchoredLayout.askBottomGap).toBeLessThanOrEqual(48);
     await expect(page.locator('#pool-home-run-submit')).toHaveText('↑');
 
-    const requestDrawer = page.locator('.pool-control-drawer');
-    await requestDrawer.locator('.pool-nav-toggle').click();
-    await expect(requestDrawer.locator('[data-pool-drawer-section]')).toHaveCount(3);
-    await expect(requestDrawer.locator('[data-pool-drawer-section="request-workload"]')).toHaveAttribute('open', '');
-    await requestDrawer.locator('[data-pool-drawer-section="request-model"] > summary').click();
-    await expect(requestDrawer.locator('[data-pool-drawer-section="request-model"]')).toHaveAttribute('open', '');
-
-    const computeDrawer = page.locator('[data-pool-dashboard-inspector]');
-    await computeDrawer.locator('[data-pool-inspector-toggle]').click();
-    await expect(computeDrawer.locator('[data-pool-drawer-section]')).toHaveCount(4);
-    await expect(computeDrawer.locator('[data-pool-drawer-section="compute-sharing"]')).toHaveAttribute('open', '');
-    await computeDrawer.locator('[data-pool-drawer-section="compute-device"] > summary').click();
-    await expect(computeDrawer.locator('[data-pool-drawer-section="compute-device"]')).toHaveAttribute('open', '');
+    const nav = page.locator('.pool-nav-rail');
+    await expect(nav.locator('[data-pool-drawer-section="participation"]')).toHaveCount(1);
+    await expect(nav.locator('[data-pool-participation-surface="navigation"]')).toHaveCount(1);
+    await expect(nav.locator('.pool-room-context')).toHaveCount(1);
 
     await page.reload();
     await page.waitForSelector('.pool-home', { timeout: 20000 });
-    await page.locator('.pool-control-drawer .pool-nav-toggle').click();
-    await page.locator('[data-pool-dashboard-inspector] [data-pool-inspector-toggle]').click();
-    await expect(page.locator('[data-pool-drawer-section="request-model"]')).toHaveAttribute('open', '');
-    await expect(page.locator('[data-pool-drawer-section="compute-device"]')).toHaveAttribute('open', '');
+    await expect(page.locator('[data-pool-drawer-section="participation"]')).toHaveCount(1);
+    await expect(page.locator('[data-pool-participation-surface="navigation"]')).toHaveCount(1);
   });
 
   test('product root renders the Reploid serving surface', async ({ page }) => {
@@ -179,7 +168,6 @@ test.describe('Route Entry Points', () => {
       const wordmark = document.querySelector('.pool-home-brand-word').getBoundingClientRect();
       const shell = document.querySelector('.pool-simulation-shell').getBoundingClientRect();
       const ask = document.querySelector('#pool-home-ask-form').getBoundingClientRect();
-      const inspector = document.querySelector('.pool-dashboard-inspector').getBoundingClientRect();
       return {
         homeHeight: home.height,
         homeWidth: home.width,
@@ -189,8 +177,6 @@ test.describe('Route Entry Points', () => {
         toolbarBottom: toolbar.bottom,
         wordmarkCenterDelta: Math.abs((wordmark.left + wordmark.width / 2) - (home.left + home.width / 2)),
         askCenterDelta: Math.abs((ask.left + ask.width / 2) - (home.left + home.width / 2)),
-        askInspectorGap: inspector.left - ask.right,
-        inspectorWidth: inspector.width,
         askBottomGap: home.bottom - ask.bottom,
         askInsideCanvas: ask.top >= shell.top && ask.bottom <= shell.bottom
       };
@@ -200,8 +186,7 @@ test.describe('Route Entry Points', () => {
     expect(Math.abs(stack.shellHeight - stack.homeHeight)).toBeLessThan(2);
     expect(stack.wordmarkCenterDelta).toBeLessThanOrEqual(1);
     expect(stack.askCenterDelta).toBeGreaterThanOrEqual(0);
-    expect(stack.askCenterDelta).toBeLessThanOrEqual(stack.inspectorWidth / 2 + 1);
-    expect(stack.askInspectorGap).toBeGreaterThan(0);
+    expect(stack.askCenterDelta).toBeLessThanOrEqual(stack.homeWidth / 2);
     expect(stack.askBottomGap).toBeGreaterThan(0);
     expect(stack.askBottomGap).toBeLessThanOrEqual(48);
     expect(stack.askInsideCanvas).toBe(true);

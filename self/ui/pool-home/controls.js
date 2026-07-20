@@ -492,15 +492,6 @@ export const bindCapabilityAssessmentControls = () => {
   void run(false);
 };
 
-const setInspectorRailOpen = (open) => {
-  const rail = document.querySelector('[data-pool-dashboard-inspector]');
-  const toggle = rail?.querySelector('[data-pool-inspector-toggle]');
-  if (!rail || !toggle) return;
-  rail.classList.toggle('is-open', open);
-  toggle.setAttribute('aria-expanded', String(open));
-  toggle.setAttribute('aria-label', open ? 'Close compute controls' : 'Open compute controls');
-};
-
 const POOL_DRAWER_SECTION_STATE_KEY = 'reploid.pool.drawerSections.v1';
 
 const readDrawerSectionState = () => {
@@ -528,8 +519,8 @@ const bindDrawerSections = () => {
     if (section.dataset.poolDrawerSectionBound === 'true') return;
     section.dataset.poolDrawerSectionBound = 'true';
     section.querySelector(':scope > summary')?.addEventListener('click', (event) => {
-      // Both rails (request drawer + compute inspector) are collapsible .pool-nav-rail
-      // panels. Clicking a collapsed section expands the rail and opens that section.
+      // Drawer sections are hosted inside the left nav panel.
+      // Clicking a collapsed section expands the nav and opens that section.
       const rail = section.closest('.pool-nav-rail');
       if (rail && !rail.classList.contains('is-open')) {
         const toggle = rail.querySelector('.pool-nav-toggle');
@@ -562,7 +553,6 @@ export const applyPoolDashboardView = (view = 'home', { updateHistory = true } =
     else control.removeAttribute('aria-current');
   });
   if (normalized === 'ask') document.getElementById('pool-home-ask-prompt')?.focus();
-  if (normalized === 'compute' || normalized === 'records') setInspectorRailOpen(true);
   if (updateHistory) {
     const url = new URL(window.location.href);
     if (normalized === 'home') url.searchParams.delete('view');
@@ -582,25 +572,6 @@ export const bindPoolDashboardControls = () => {
       applyPoolDashboardView(control.dataset.poolDashboardView || control.dataset.poolDashboardViewTarget || 'home');
     });
   });
-  document.querySelectorAll('[data-pool-inspector-toggle]').forEach((toggle) => {
-    if (toggle.dataset.poolInspectorBound === 'true') return;
-    toggle.dataset.poolInspectorBound = 'true';
-    toggle.addEventListener('click', () => {
-      const rail = toggle.closest('[data-pool-dashboard-inspector]');
-      setInspectorRailOpen(!rail?.classList.contains('is-open'));
-    });
-  });
-  if (window.REPLOID_POOL_INSPECTOR_ESCAPE_HANDLER) {
-    window.removeEventListener('keydown', window.REPLOID_POOL_INSPECTOR_ESCAPE_HANDLER);
-  }
-  window.REPLOID_POOL_INSPECTOR_ESCAPE_HANDLER = (event) => {
-    if (event.key !== 'Escape') return;
-    const rail = document.querySelector('[data-pool-dashboard-inspector].is-open');
-    if (!rail) return;
-    setInspectorRailOpen(false);
-    rail.querySelector('[data-pool-inspector-toggle]')?.focus();
-  };
-  window.addEventListener('keydown', window.REPLOID_POOL_INSPECTOR_ESCAPE_HANDLER);
 };
 
 const bindSuggestedPromptEditing = (input) => {

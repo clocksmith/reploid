@@ -34,6 +34,7 @@
     "build:module-registry": "node scripts/build-module-registry.js",
     "build:vfs-manifest": "node scripts/build-vfs-manifest.js",
     "deploy:pool-env": "node scripts/print-pool-env.js",
+    "deploy:simulatte-hosting": "firebase deploy --config firebase.simulatte-hosting.json --project simulatte-world --only hosting:simulatte-world",
     "verify:pool": "node scripts/verify-pool-production.js",
     "verify:pool:release": "node scripts/verify-pool-release.js",
     "verify:deploy-surface": "node scripts/verify-deploy-surface.js",
