@@ -18,7 +18,7 @@ declared boundary and status.
 
 | Surface | Route | What it is | Boundary |
 | --- | --- | --- | --- |
-| **Poolday** | `/` | The root UI: receipt-backed browser inference under the internal Poolday pool contract. ("Poolday" is the internal/docs name; the public UI remains Reploid.) | Browser inference backed by signed records, audits, reputation, policy, and deterministic comparison — not trustless compute, hardware attestation, or guaranteed honest browser/GPU execution. |
+| **Poolday** | `/` | The root UI: receipt-backed browser inference under the internal Poolday pool contract. ("Poolday" is the internal/docs name; the public UI remains Reploid.) | Browser inference backed by signed records, audits, reputation, policy, and deterministic comparison. It does not claim hardware attestation or unconditionally honest browser/GPU execution. |
 | **Zero** | `/zero` | Minimal agent surface that begins from `CreateTool`, with no pool dependency. | Standalone; requires no inference pool. |
 | **X** | `/x` | Mature agent surface with workers, memory, peer slots, verification, and self-modification (Seed → Shadow → Promote). | Self-modification, swarm, validation, and promotion evidence stay separate from Poolday inference records. |
 
