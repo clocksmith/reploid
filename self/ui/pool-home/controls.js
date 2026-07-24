@@ -57,6 +57,21 @@ import { choosePooldayAskPlaceholder } from './constants.js';
 
 const errorString = (error) => String(error?.message || error?.error || error || 'Unknown error');
 const POOL_ROOM_ACTIVITY_POLL_MS = 5000;
+const POOL_ADAPTER_DISCOVERY_TIMEOUT_MS = 5000;
+
+const withTimeout = (promise, timeoutMs, message) => new Promise((resolve, reject) => {
+  const timer = setTimeout(() => reject(new Error(message)), timeoutMs);
+  Promise.resolve(promise).then(
+    (value) => {
+      clearTimeout(timer);
+      resolve(value);
+    },
+    (error) => {
+      clearTimeout(timer);
+      reject(error);
+    }
+  );
+});
 
 const displayPoolError = (error, {
   title = 'Request failed',
@@ -393,7 +408,11 @@ export const assessPoolDeviceCapability = async ({ runtime = null, force = false
     const deviceInfo = typeof activeRuntime?.getDeviceInfo === 'function'
       ? await activeRuntime.getDeviceInfo()
       : { hasWebGPU: !!navigator.gpu, features: [], limits: {} };
-    const benchmark = deviceInfo.hasWebGPU ? await runBoundedWebGpuProbe() : { status: 'unavailable', samplesMs: [] };
+    const benchmark = deviceInfo.capabilityBenchmark && typeof deviceInfo.capabilityBenchmark === 'object'
+      ? deviceInfo.capabilityBenchmark
+      : deviceInfo.hasWebGPU
+        ? await runBoundedWebGpuProbe()
+        : { status: 'unavailable', samplesMs: [] };
     const scored = scorePoolDeviceCapability({ deviceInfo, benchmark });
     const modelEligibility = listPoolModels({ enabledOnly: true }).map((model) => {
       const qualification = validateModelRuntimeCapabilities(model, deviceInfo);
@@ -1297,6 +1316,7 @@ const createProviderContributionController = () => {
 
   const ensurePeerProviderReady = async (generation) => {
     const runtime = getRuntime();
+    document.documentElement.dataset.poolProviderStartPhase = 'capability';
     const capabilityProfile = await assessPoolDeviceCapability({ runtime });
     if (generation !== undefined && generation !== lifecycleGeneration) throw new Error('Aborted');
     const selectedEligibility = capabilityProfile.modelEligibility.find((entry) => (
@@ -1316,6 +1336,7 @@ const createProviderContributionController = () => {
       capability: `${capabilityProfile.tier.id}_${capabilityProfile.score}`,
       hardware: formatDeviceLabel(capabilityProfile.deviceInfo)
     });
+    document.documentElement.dataset.poolProviderStartPhase = 'model';
     const loaded = await loadSelectedProviderModel(generation);
     if (generation !== undefined && generation !== lifecycleGeneration) throw new Error('Aborted');
     const model = loaded.model || runtime.getModelInfo();
@@ -1323,8 +1344,13 @@ const createProviderContributionController = () => {
     const participation = readParticipationPreferences();
     let adapterPacks = [];
     if (participation.permissions.relayArtifacts) {
+      document.documentElement.dataset.poolProviderStartPhase = 'adapters';
       try {
-        const publications = await listFetchableAdapterPublications({ sdk: adapterSdk, model });
+        const publications = await withTimeout(
+          listFetchableAdapterPublications({ sdk: adapterSdk, model }),
+          Number(window.REPLOID_POOL_ADAPTER_DISCOVERY_TIMEOUT_MS || POOL_ADAPTER_DISCOVERY_TIMEOUT_MS),
+          'Adapter publication discovery timed out'
+        );
         if (generation !== undefined && generation !== lifecycleGeneration) throw new Error('Aborted');
         const maxArtifactBytes = participation.limits.storageBudgetMiB * 1024 * 1024;
         adapterPacks = publications.filter((publication) => (
@@ -1340,6 +1366,7 @@ const createProviderContributionController = () => {
     } else {
       updateProviderHealth({ adapters: 'relay_disabled' });
     }
+    document.documentElement.dataset.poolProviderStartPhase = 'identity';
     const providerIdentityState = await getProviderIdentity().resolve();
     if (generation !== undefined && generation !== lifecycleGeneration) throw new Error('Aborted');
     const capabilityLimits = resolveCapabilityAvailabilityLimits(participation, capabilityProfile);
@@ -1352,6 +1379,7 @@ const createProviderContributionController = () => {
       onActivity: handlePeerActivity
     });
     peerProviderNode = node;
+    document.documentElement.dataset.poolProviderStartPhase = 'peer';
     const result = await node.start({
       models: [{ ...model, adapterPacks }],
       availability: {
@@ -1397,6 +1425,7 @@ const createProviderContributionController = () => {
       }
       workerStarting = false;
       workerRunning = true;
+      document.documentElement.dataset.poolProviderStartPhase = 'ready';
       setProviderStatus('Available');
       updateProviderHealth({ queue: 'listening' });
       setContributionState({ state: 'idle', optedIn: true, lastError: null });
@@ -1411,6 +1440,7 @@ const createProviderContributionController = () => {
       await stopPeerProvider().catch(() => null);
       workerStarting = false;
       workerRunning = false;
+      document.documentElement.dataset.poolProviderStartPhase = 'error';
       setProviderStatus('Idle');
       updateProviderHealth({ queue: 'stopped', model: 'load_failed' });
       setContributionState({

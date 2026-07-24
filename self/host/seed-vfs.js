@@ -8,7 +8,8 @@ import { normalizeVfsPath } from '../lab/mirrors.js';
 import {
   getCurrentReploidInstanceId,
   getCurrentReploidSessionStorage as getScopedSessionStorage,
-  getCurrentReploidStorage as getScopedLocalStorage
+  getCurrentReploidStorage as getScopedLocalStorage,
+  getSurfaceIdFromUrl
 } from '../instance.js';
 import {
   loadVfsManifest,
@@ -429,7 +430,10 @@ const registerServiceWorkerInstance = async () => {
 
   const message = {
     type: 'REGISTER_INSTANCE',
-    data: { instanceId }
+    data: {
+      instanceId,
+      surfaceId: getSurfaceIdFromUrl()
+    }
   };
   const controller = navigator.serviceWorker.controller;
   if (controller) {

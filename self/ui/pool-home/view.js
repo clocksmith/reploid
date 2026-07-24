@@ -918,6 +918,9 @@ const extractResultSummary = (value = {}) => {
     ['Model', firstPresent(job.model?.id, job.modelRequirements?.modelId, receipt?.model?.id, value.model?.modelId)],
     ['Spend', firstPresent(acceptance?.pointSpend, value.pointSpend)],
     ['Runtime hash', firstPresent(receipt?.verification?.runtimeProfileHash, job.runtimeProfileHash, record.runtimeProfileHash)],
+    ['Doppler evidence', receipt?.dopplerEvidenceComparison?.verified === true
+      ? firstPresent(receipt.dopplerEvidenceComparison.runtimeProfileHash, 'verified')
+      : null],
     ['Output', firstPresent(receipt?.outputHash, record.outputHash, job.outputHash)],
     ['Tokens', firstPresent(receipt?.tokenIdsHash, record.tokenIdsHash, job.tokenIdsHash)],
     ['Verifier', verifier ? (verifier.ok === true || verifier.accepted === true ? 'accepted' : verifier.reasons?.length ? verifier.reasons.join('; ') : 'rejected') : null]
@@ -1752,6 +1755,7 @@ const renderHomeSimulation = ({ dashboardView = 'home' } = {}) => {
         <div class="pool-home-toolbar-leading pool-home-overlay" aria-label="Reploid overview">
           <div class="pool-home-title-lockup">
             <h1 class="type-h1 pool-home-brand-word">REPLOID</h1>
+        <p class="type-caption pool-hero-body pool-home-brand-promise">${escapeHtml(ROUTE_COPY.home.body)}</p>
           </div>
         </div>
       </div>

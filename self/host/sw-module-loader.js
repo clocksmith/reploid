@@ -9,6 +9,7 @@ const VFS_DB_NAME = 'reploid-vfs-v0';
 const VFS_STORE_NAME = 'files';
 const INSTANCE_QUERY_PARAM = 'instance';
 const INSTANCE_ID_MAX_LENGTH = 64;
+const DEFAULT_SURFACE_ID = 'poolday';
 const LAB_RUNTIME_ROUTES = new Set(['/zero', '/x']);
 const LAB_RUNTIME_ASSET_PATHS = new Set([
   '/blueprint-index.json',
@@ -118,6 +119,7 @@ try {
 const vfsDBMap = new Map();
 const vfsDBOpening = new Map();
 const clientInstanceMap = new Map();
+const clientSurfaceMap = new Map();
 const invalidationTokens = new Map();
 
 function normalizeRoutePath(pathname = '/') {
@@ -179,9 +181,29 @@ function getInstanceIdFromUrl(urlString) {
   }
 }
 
-function getVfsDbName(instanceId) {
+function getSurfaceIdFromUrl(urlString) {
+  if (!urlString) return DEFAULT_SURFACE_ID;
+  try {
+    const url = new URL(urlString, self.location.origin);
+    const pathname = normalizeRoutePath(url.pathname);
+    if (pathname.startsWith('/zero')) return 'zero';
+    if (pathname.startsWith('/x')) return 'x';
+    return DEFAULT_SURFACE_ID;
+  } catch {
+    return DEFAULT_SURFACE_ID;
+  }
+}
+
+function normalizeSurfaceId(value) {
+  const surfaceId = String(value || '').trim().toLowerCase();
+  if (surfaceId === 'zero' || surfaceId === 'x') return surfaceId;
+  return DEFAULT_SURFACE_ID;
+}
+
+function getVfsDbName(instanceId, surfaceId = DEFAULT_SURFACE_ID) {
   const id = sanitizeInstanceId(instanceId);
-  return id ? `${VFS_DB_NAME}--${id}` : VFS_DB_NAME;
+  const surface = normalizeSurfaceId(surfaceId);
+  return id ? `${VFS_DB_NAME}--${surface}--${id}` : `${VFS_DB_NAME}--${surface}`;
 }
 
 function getInvalidationKey(dbName, path) {
@@ -241,6 +263,32 @@ async function resolveRequestInstanceId(event, request, url) {
   }
 
   return null;
+}
+
+async function resolveRequestSurfaceId(event, request, url) {
+  const directPath = getUrlPath(url?.href || url);
+  if (directPath && isLabRuntimeRoutePath(directPath)) {
+    return getSurfaceIdFromUrl(url?.href || url);
+  }
+
+  const referrerPath = getUrlPath(request?.referrer);
+  if (referrerPath && isLabRuntimeRoutePath(referrerPath)) {
+    return getSurfaceIdFromUrl(request.referrer);
+  }
+
+  const clientId = event.clientId || event.resultingClientId;
+  const mapped = clientId ? clientSurfaceMap.get(clientId) : null;
+  if (mapped) return normalizeSurfaceId(mapped);
+  if (!clientId) return DEFAULT_SURFACE_ID;
+
+  try {
+    const client = await self.clients.get(clientId);
+    if (client?.url) return getSurfaceIdFromUrl(client.url);
+  } catch {
+    return DEFAULT_SURFACE_ID;
+  }
+
+  return DEFAULT_SURFACE_ID;
 }
 
 async function openVFS(dbName) {
@@ -458,8 +506,11 @@ self.addEventListener('fetch', (event) => {
 
 async function handleModuleRequest(request, url, event) {
   const pathname = url.pathname;
-  const instanceId = await resolveRequestInstanceId(event, request, url);
-  const dbName = getVfsDbName(instanceId);
+  const [instanceId, surfaceId] = await Promise.all([
+    resolveRequestInstanceId(event, request, url),
+    resolveRequestSurfaceId(event, request, url)
+  ]);
+  const dbName = getVfsDbName(instanceId, surfaceId);
 
   // Convert URL path to VFS path
   let vfsPath = pathname;
@@ -547,10 +598,12 @@ self.addEventListener('message', (event) => {
   switch (type) {
     case 'REGISTER_INSTANCE': {
       const instanceId = sanitizeInstanceId(data?.instanceId);
+      const surfaceId = normalizeSurfaceId(data?.surfaceId);
       const clientId = event.source?.id;
       const registered = !!(instanceId && clientId);
       if (instanceId && clientId) {
         clientInstanceMap.set(clientId, instanceId);
+        clientSurfaceMap.set(clientId, surfaceId);
       }
       if (event.ports[0]) event.ports[0].postMessage({ success: registered });
       break;
@@ -559,7 +612,7 @@ self.addEventListener('message', (event) => {
     case 'INVALIDATE_MODULE': {
       // Clear cache for specific module to force reload
       const instanceId = sanitizeInstanceId(data?.instanceId);
-      const dbName = getVfsDbName(instanceId);
+      const dbName = getVfsDbName(instanceId, data?.surfaceId);
       const path = typeof data?.path === 'string' ? data.path : null;
       const token = markInvalidated(dbName, path);
       console.log(`[SW] Invalidating module cache: ${path || '*'} (${dbName})`);
@@ -571,7 +624,7 @@ self.addEventListener('message', (event) => {
     case 'INVALIDATE_ALL': {
       // Clear all module caches
       const instanceId = sanitizeInstanceId(data?.instanceId);
-      const dbName = getVfsDbName(instanceId);
+      const dbName = getVfsDbName(instanceId, data?.surfaceId);
       const token = markInvalidated(dbName, null);
       console.log('[SW] Invalidating all module caches');
       caches.delete(CACHE_NAME).catch(() => {});

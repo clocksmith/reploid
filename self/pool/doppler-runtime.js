@@ -185,6 +185,7 @@ export async function collectBrowserDeviceInfo() {
 
 const generateMethodName = (candidate) => {
   if (!candidate) return null;
+  if (typeof candidate.generateWithEvidence === 'function') return 'generateWithEvidence';
   if (typeof candidate.generate === 'function') return 'generate';
   if (typeof candidate.generateText === 'function') return 'generateText';
   if (typeof candidate.run === 'function') return 'run';
@@ -614,6 +615,9 @@ const runGenerationAttempts = async (attempts) => {
 const callGenerate = async (session, prompt, generationConfig, assignment) => {
   const dopplerOptions = toDopplerGenerationOptions(generationConfig);
   const request = toDopplerGenerationRequest(prompt, generationConfig, assignment);
+  if (typeof session.generateWithEvidence === 'function') {
+    return collectGenerationResult(await session.generateWithEvidence(prompt, dopplerOptions));
+  }
   if (typeof session.generateText === 'function') {
     const promptAttempt = () => session.generateText(prompt, dopplerOptions);
     const requestAttempt = () => session.generateText(request);
@@ -628,6 +632,107 @@ const callGenerate = async (session, prompt, generationConfig, assignment) => {
     return collectGenerationResult(await session.run(request));
   }
   throw new Error('Doppler public handle does not expose generate, generateText, or run');
+};
+
+const DOPPLER_GENERATION_EVIDENCE_SCHEMA = 'doppler_generation_evidence/v1';
+const DOPPLER_EVIDENCE_COMPARISON_SCHEMA = 'reploid.doppler_generation_evidence_comparison/v1';
+
+const compareEvidenceField = (field, expected, actual) => ({
+  field,
+  expected,
+  actual,
+  matched: expected === actual
+});
+
+const assertEvidenceFieldsMatched = (fields) => {
+  const mismatch = fields.find((field) => field.matched !== true);
+  if (mismatch) {
+    throw new Error(
+      `Doppler generation evidence ${mismatch.field} mismatch: ` +
+      `expected ${mismatch.expected}, got ${mismatch.actual}`
+    );
+  }
+};
+
+const compareDopplerGenerationEvidence = async ({
+  result,
+  generationConfig,
+  modelInfo
+}) => {
+  if (result?.schema !== DOPPLER_GENERATION_EVIDENCE_SCHEMA) return null;
+  if (!isObject(result.transcript) || !isObject(result.generationConfig)) {
+    throw new Error('Doppler generation evidence is missing transcript or generationConfig');
+  }
+  if (!isObject(result.runtimeProfile) || !isObject(result.backendIdentity)) {
+    throw new Error('Doppler generation evidence is missing runtimeProfile or backendIdentity');
+  }
+  const outputText = normalizeOutputText(result);
+  const tokenIds = normalizeTokenIds(result);
+  const translatedConfig = toDopplerGenerationOptions(generationConfig);
+  const configFields = await Promise.all(
+    Object.entries(translatedConfig)
+      .filter(([field]) => field !== 'stopTokens')
+      .map(async ([field, expected]) => compareEvidenceField(
+        `generationConfig.${field}`,
+        await hashJson(expected),
+        await hashJson(result.generationConfig[field])
+      ))
+  );
+  const fields = [
+    compareEvidenceField('outputText', outputText, result.transcript.outputText),
+    compareEvidenceField(
+      'tokenIdsHash',
+      await hashJson(tokenIds),
+      await hashJson(result.transcript.tokenIds)
+    ),
+    compareEvidenceField(
+      'transcriptHash',
+      await hashJson(result.transcript),
+      result.transcriptHash
+    ),
+    compareEvidenceField(
+      'generationConfigHash',
+      await hashJson(result.generationConfig),
+      result.generationConfigHash
+    ),
+    compareEvidenceField(
+      'runtimeProfileHash',
+      await hashJson(result.runtimeProfile),
+      result.runtimeProfileHash
+    ),
+    compareEvidenceField(
+      'backendIdentityHash',
+      await hashJson(result.backendIdentity),
+      result.backendIdentityHash
+    ),
+    compareEvidenceField(
+      'modelId',
+      modelInfo?.modelId || null,
+      result.runtimeProfile?.model?.modelId || null
+    ),
+    compareEvidenceField(
+      'manifestHash',
+      normalizeHashIdentity(modelInfo?.manifestHash),
+      normalizeHashIdentity(result.runtimeProfile?.model?.manifestHash)
+    ),
+    compareEvidenceField(
+      'backend',
+      'webgpu',
+      result.backendIdentity?.backend || null
+    ),
+    ...configFields
+  ];
+  assertEvidenceFieldsMatched(fields);
+  return {
+    schema: DOPPLER_EVIDENCE_COMPARISON_SCHEMA,
+    verified: true,
+    evidenceSchema: result.schema,
+    transcriptHash: result.transcriptHash,
+    generationConfigHash: result.generationConfigHash,
+    runtimeProfileHash: result.runtimeProfileHash,
+    backendIdentityHash: result.backendIdentityHash,
+    fields
+  };
 };
 
 const callEmbed = async (session, prompt, assignment) => {
@@ -804,8 +909,15 @@ export function createDopplerRuntime({ modelSession = null, model = null, runtim
         const completedAt = new Date().toISOString();
         const outputText = normalizeOutputText(result);
         const tokenIds = normalizeTokenIds(result);
+        const dopplerEvidenceComparison = await compareDopplerGenerationEvidence({
+          result,
+          generationConfig,
+          modelInfo
+        });
         const evidenceWarnings = [];
-        if (tokenIds.length === 0) evidenceWarnings.push('doppler_token_ids_unavailable_from_public_handle');
+        if (!dopplerEvidenceComparison && tokenIds.length === 0) {
+          evidenceWarnings.push('doppler_token_ids_unavailable_from_public_handle');
+        }
         const transcript = isObject(result?.transcript)
           ? result.transcript
           : {
@@ -820,6 +932,7 @@ export function createDopplerRuntime({ modelSession = null, model = null, runtim
           tokenCounts: normalizeTokenCounts(result, tokenIds),
           timing: result?.timing || { startedAt, completedAt },
           dopplerProviderReceipt: result?.receipt || result?.dopplerProviderReceipt || null,
+          dopplerEvidenceComparison,
           adapter: activeAdapter,
           model: modelInfo,
           runtime: runtimeInfo,

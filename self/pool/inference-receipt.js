@@ -281,6 +281,7 @@ export async function buildPoolReceipt({ assignment, provider, model, runtime, e
       programBundleHash: null
     },
     dopplerProviderReceipt: execution?.dopplerProviderReceipt || null,
+    dopplerEvidenceComparison: execution?.dopplerEvidenceComparison || null,
     status: execution?.status || 'completed',
     providerSignature: null,
     requesterAcceptance: null,

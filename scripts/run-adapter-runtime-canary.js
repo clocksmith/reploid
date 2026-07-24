@@ -10,11 +10,11 @@ import { chromium } from '@playwright/test';
 import { LAUNCH_MODEL } from '../self/pool/model-contract.js';
 import { ADAPTER_RUNTIME_CANARY_RECEIPT_SCHEMA } from '../self/pool/adapter-canary-publication.js';
 
-const DOPPLER_VERSION = '0.4.14';
+const DOPPLER_VERSION = '0.4.15';
 const DOPPLER_INTEGRITY = 'sha512-Tbs8cOnOg+z+B8swuY29ydu11nmbaBajHc7zlYakpX57OSginazi3pOKGGtDfjDa2chxSWaPQopjZXr7CpLHaw==';
 const MODEL_REVISION = '80d7716270b6371d541de979eff3370edaf34e13';
 const ADAPTER_REVISION = 'a618a2ccab25928a98694930376ebb3c3db241cb';
-const MODULE_URL = `https://esm.sh/doppler-gpu@${DOPPLER_VERSION}/src/client/doppler-api.js?bundle`;
+const MODULE_URL = `https://esm.sh/doppler-gpu@${DOPPLER_VERSION}?bundle`;
 const KERNEL_BASE_URL = `https://esm.sh/doppler-gpu@${DOPPLER_VERSION}/src/gpu/kernels`;
 const MODEL_URL = `https://huggingface.co/clocksmith/rdrr/resolve/${MODEL_REVISION}/models/${LAUNCH_MODEL.modelId}`;
 const ADAPTER_URL = `https://huggingface.co/clocksmith/lora/resolve/${ADAPTER_REVISION}/adapters/network-canaries/qwen35-0.8b-ner-json-lora/adapter_model.safetensors`;

@@ -2,7 +2,7 @@
  * @fileoverview Virtual File System (VFS)
  * IndexedDB-backed storage.
  *
- * Database: 'reploid-vfs-v0'
+ * Database: surface- and instance-scoped 'reploid-vfs-v0--<surface>[--<instance>]'
  */
 
 import { getScopedReploidVfsDbName } from '../instance.js';

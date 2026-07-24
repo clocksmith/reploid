@@ -180,7 +180,7 @@ async function readIndexedDbVfsFile(page, instanceId, path) {
       db.close();
     }
   }, {
-    dbName: `${DB_PREFIX}--${instanceId}`,
+    dbName: `${DB_PREFIX}--zero--${instanceId}`,
     path
   });
 }

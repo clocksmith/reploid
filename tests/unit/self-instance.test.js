@@ -45,6 +45,7 @@ describe('self instance helpers', () => {
     expect(getScopedReploidStorageKey('REPLOID_MODE', 'peer-a')).toBe('REPLOID_INSTANCE_peer-a::REPLOID_MODE');
     expect(getScopedReploidVfsDbName('peer-a', 'poolday')).toBe('reploid-vfs-v0--poolday--peer-a');
     expect(getScopedReploidVfsDbName('peer-a', 'zero')).toBe('reploid-vfs-v0--zero--peer-a');
+    expect(getScopedReploidVfsDbName('peer-a', '../zero')).toBe('reploid-vfs-v0--poolday--peer-a');
   });
 
   it('falls back to legacy unscoped storage reads when scoped data is absent', () => {

@@ -34,6 +34,15 @@ const requireText = (reasons, value, label) => {
   if (!String(value || '').trim()) reasons.push(`${label} is required`);
 };
 
+const hasPinnedDopplerPackageUrl = (value, packageVersion) => {
+  const marker = `doppler-gpu@${packageVersion}`;
+  const url = String(value || '');
+  const index = url.indexOf(marker);
+  if (index < 0) return false;
+  const boundary = url[index + marker.length] || '';
+  return boundary === '' || boundary === '/' || boundary === '?' || boundary === '#';
+};
+
 export const adapterCanaryPublicationSigningPayload = (publication = {}) => (
   withoutFields(publication, ['publicationHash', 'publisherSignature', 'storedAt'])
 );
@@ -83,9 +92,12 @@ export function validateAdapterCanaryPublication(publication = {}) {
   if (!String(publication.runtime?.packageIntegrity || '').startsWith('sha512-')) reasons.push('adapter canary runtime packageIntegrity is required');
   requireText(reasons, publication.runtime?.moduleUrl, 'adapter canary runtime moduleUrl');
   requireText(reasons, publication.runtime?.kernelBaseUrl, 'adapter canary runtime kernelBaseUrl');
-  const pinnedRuntimeSegment = `doppler-gpu@${publication.runtime?.packageVersion}/`;
-  if (!String(publication.runtime?.moduleUrl || '').includes(pinnedRuntimeSegment)) reasons.push('adapter canary runtime moduleUrl is not version-pinned');
-  if (!String(publication.runtime?.kernelBaseUrl || '').includes(pinnedRuntimeSegment)) reasons.push('adapter canary runtime kernelBaseUrl is not version-pinned');
+  if (!hasPinnedDopplerPackageUrl(publication.runtime?.moduleUrl, publication.runtime?.packageVersion)) {
+    reasons.push('adapter canary runtime moduleUrl is not version-pinned');
+  }
+  if (!hasPinnedDopplerPackageUrl(publication.runtime?.kernelBaseUrl, publication.runtime?.packageVersion)) {
+    reasons.push('adapter canary runtime kernelBaseUrl is not version-pinned');
+  }
 
   if (publication.runtimeProof?.schema !== ADAPTER_RUNTIME_CANARY_RECEIPT_SCHEMA) {
     reasons.push('adapter canary runtime proof schema mismatch');

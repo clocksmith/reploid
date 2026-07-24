@@ -151,7 +151,7 @@ describe('poolday home navigation', () => {
     expect(html).not.toContain('data-pool-hot-path');
     expect(html).toContain('class="pool-home-title-lockup"');
     expect(html).toContain('<h1 class="type-h1 pool-home-brand-word">REPLOID</h1>');
-    expect(html).not.toContain('Run browser models together.');
+    expect(html).toContain('Run browser models together.');
     expect(html).toContain('pool-home-cta-row pool-home-ask-form');
     expect(html).toContain('id="pool-home-ask-form"');
     expect(html).toContain('class="pool-home-ask-pill"');

@@ -67,7 +67,7 @@ const installDopplerImportMap = () => {
   }
 
   const base = (fromQuery || stored || '').replace(/\/$/, '');
-  const moduleUrl = base ? `${base}/src/client/doppler-api.js` : DOPPLER_MODULE_URL;
+  const moduleUrl = base ? `${base}/src/index-browser.js` : DOPPLER_MODULE_URL;
   const kernelBaseUrl = base ? `${base}/src/gpu/kernels` : DOPPLER_KERNEL_BASE_URL;
   window.DOPPLER_BASE_URL = base;
   window.REPLOID_DOPPLER_MODULE_URL = moduleUrl;
