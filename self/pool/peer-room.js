@@ -181,7 +181,7 @@ const createPeerDiscoveryError = ({ roomId, requiredModel, discoveryWindowMs, ob
   const mismatch = observedAdverts.length > 0;
   const modelLabel = requiredModel?.modelId || requiredModel?.id || 'selected model';
   const error = new Error(mismatch
-    ? `Peer providers were found in this room, but none advertised ${modelLabel}`
+    ? `Peer providers were found in room "${roomId}", but none offered ${modelLabel}`
     : `No peer providers advertised in room "${roomId}"`);
   error.code = mismatch ? 'peer_provider_model_mismatch' : 'peer_provider_not_found';
   error.retryable = true;
@@ -192,8 +192,8 @@ const createPeerDiscoveryError = ({ roomId, requiredModel, discoveryWindowMs, ob
     observedProviderCount: observedAdverts.length,
     observedProviders: observedAdverts,
     action: mismatch
-      ? 'Start a worker with the same selected model, or switch the request model to one the worker advertises.'
-      : 'Open Compute in another tab with the same room, click Start, then ask again.'
+      ? `Start contributing in Compute to download and host ${modelLabel} locally in this browser, or switch your request model to one offered in room "${roomId}".`
+      : `Start contributing in Compute to download and host ${modelLabel} locally in this browser, or open another tab in room "${roomId}".`
   };
   return error;
 };

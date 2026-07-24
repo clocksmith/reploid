@@ -2704,7 +2704,7 @@ ${personaSection ? `${personaSection}\n` : ''}
 
 ## Zero tool creation workflow
 - Use CreateTool for new runtime tools. In Zero it stages /shadow/tools/MyTool.js, runs declared activation checks, re-imports and replays them in a fresh fixture harness, requires matching transcripts, installs /self/tools/MyTool.js, loads it, and writes hash-bound activation evidence from the actual outcomes.
-- Every auto-activated Zero tool must export \`tool.activation = { fixtures, checks: [{ name, args, expected }] }\`. Keep checks deterministic and use fixture VFS files or tool results instead of live mutations.
+- Every auto-activated Zero tool must export \`tool.activation = { fixtures, checks: [{ name, args, expected }] }\`. Keep checks strictly deterministic and use fixture VFS files or tool results instead of live mutations, dynamic timestamps (\`Date.now()\`), or random IDs. Activation checks are re-imported and replayed in a fresh harness, so non-deterministic transcript state will fail replay comparison.
 - First create a directory-aware reader/lister if inspection is needed, then call it and continue from observed paths.
 - Created tools start read-only unless their exported tool metadata declares capabilities such as \`vfs:write\`, \`tool:load\`, or \`self:write\`.
 - For UI, core, prompt, config, style, and existing-tool patches, create a small self-write tool that writes evidence and rollback metadata, writes the canonical /self path and mapped active path, then reloads or refreshes the affected surface.

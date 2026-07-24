@@ -1591,12 +1591,47 @@ body[data-pool-route-id='home'] #app {
   background: color-mix(in srgb, var(--pool-surface-ink), transparent 68%);
 }
 
+@keyframes pool-pulse-gold {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.4;
+    transform: scale(0.85);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes pool-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.pool-health-loading-text {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--pool-px-4);
+  color: color-mix(in srgb, var(--pool-hue-gold), var(--pool-surface-ink) 20%);
+  font-weight: var(--pool-type-weight-bold);
+}
+
+.pool-health-loading-text::before {
+  content: '☍';
+  display: inline-block;
+  animation: pool-spin var(--pool-motion-time-1500) infinite linear;
+}
+
 .pool-provider-status[data-provider-state='starting'] {
   color: color-mix(in srgb, var(--pool-hue-gold), var(--pool-surface-ink) 20%);
 }
 
 .pool-provider-status[data-provider-state='starting']::before {
   background: var(--pool-hue-gold);
+  animation: pool-pulse-gold var(--pool-motion-time-1200) infinite ease-in-out;
 }
 
 .pool-provider-status[data-provider-state='online'] {

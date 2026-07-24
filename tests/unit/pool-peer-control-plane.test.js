@@ -1,11 +1,13 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  canonicalize,
   createSigningKeyPair,
   exportPublicKey,
   hashJson,
   SIGNATURE_DOMAINS,
-  sha256Hex
+  sha256Hex,
+  signProviderReceipt
 } from '../../self/pool/inference-receipt.js';
 import { createProviderClient } from '../../self/pool/provider-client.js';
 import { createRequesterClient } from '../../self/pool/requester-client.js';
@@ -282,11 +284,14 @@ describe('pool peer control plane', () => {
       modelRequirements: launchModelAdvert()
     });
     const adverts = [];
+    const providerKeysById = new Map();
     for (let index = 0; index < 3; index += 1) {
       const providerKeys = await createSigningKeyPair();
+      const providerId = `provider_agreement_${index}`;
+      providerKeysById.set(providerId, providerKeys);
       const providerPublicKey = await exportPublicKey(providerKeys.publicKey);
       adverts.push(await createSignedProviderAdvert({
-        providerId: `provider_agreement_${index}`,
+        providerId,
         providerPublicKey,
         privateKey: providerKeys.privateKey,
         models: [launchModelAdvert()],
@@ -300,8 +305,12 @@ describe('pool peer control plane', () => {
       jobIntent: intent.intent,
       providerAdverts: adverts
     });
+    const outputText = 'matching output';
+    const tokenIds = [1, 2, 3];
+    const outputHash = await sha256Hex(outputText);
+    const tokenIdsHash = await sha256Hex(canonicalize(tokenIds));
     const receiptPayloads = await Promise.all(plan.assignments.map(async (assignment) => {
-      const receipt = {
+      const rawReceipt = {
         receiptVersion: 'reploid_browser_inference/v1',
         signatureDomain: SIGNATURE_DOMAINS.providerReceipt,
         assignmentId: assignment.assignmentId,
@@ -313,8 +322,8 @@ describe('pool peer control plane', () => {
         model: assignment.model,
         inputHash: assignment.inputHash,
         generationConfigHash: assignment.generationConfigHash,
-        outputHash: 'sha256:matching_output',
-        tokenIdsHash: 'sha256:matching_tokens',
+        outputHash,
+        tokenIdsHash,
         tokenCounts: {
           input: 8,
           output: 3
@@ -322,9 +331,10 @@ describe('pool peer control plane', () => {
         verification: {
           runtimeProfileHash: assignment.runtimeProfileHash
         },
-        status: 'completed',
-        providerSignature: `signature_${assignment.providerId}`
+        status: 'completed'
       };
+      const keys = providerKeysById.get(assignment.providerId);
+      const receipt = await signProviderReceipt(rawReceipt, keys.privateKey);
       return createReceiptPayload({
         assignment,
         receiptRecord: {
@@ -332,8 +342,8 @@ describe('pool peer control plane', () => {
           providerId: assignment.providerId,
           requesterId: assignment.requesterId,
           receipt,
-          outputText: 'matching output',
-          tokenIds: [1, 2, 3]
+          outputText,
+          tokenIds
         },
         fromPeerId: assignment.providerId,
         toPeerId: assignment.requesterId
@@ -384,11 +394,14 @@ describe('pool peer control plane', () => {
       modelRequirements: embeddingModelAdvert()
     });
     const adverts = [];
+    const providerKeysById = new Map();
     for (let index = 0; index < 3; index += 1) {
       const providerKeys = await createSigningKeyPair();
+      const providerId = `provider_embedding_${index}`;
+      providerKeysById.set(providerId, providerKeys);
       const providerPublicKey = await exportPublicKey(providerKeys.publicKey);
       adverts.push(await createSignedProviderAdvert({
-        providerId: `provider_embedding_${index}`,
+        providerId,
         providerPublicKey,
         privateKey: providerKeys.privateKey,
         models: [embeddingModelAdvert()],
@@ -407,8 +420,11 @@ describe('pool peer control plane', () => {
     expect(plan.ring.agreementField).toBe('vectorHash');
     expect(plan.assignments.every((assignment) => assignment.workload === 'embedding')).toBe(true);
 
+    const outputHash = await sha256Hex('');
+    const tokenIdsHash = await sha256Hex(canonicalize([]));
+
     const receiptPayloads = await Promise.all(plan.assignments.map(async (assignment) => {
-      const receipt = {
+      const rawReceipt = {
         receiptVersion: 'reploid_browser_inference/v1',
         signatureDomain: SIGNATURE_DOMAINS.providerReceipt,
         assignmentId: assignment.assignmentId,
@@ -421,8 +437,8 @@ describe('pool peer control plane', () => {
         outputKind: 'embedding',
         inputHash: assignment.inputHash,
         generationConfigHash: assignment.generationConfigHash,
-        outputHash: await sha256Hex(''),
-        tokenIdsHash: await hashJson([]),
+        outputHash,
+        tokenIdsHash,
         vectorHash: 'sha256:matching_vector',
         tokenCounts: {
           input: 5,
@@ -439,9 +455,10 @@ describe('pool peer control plane', () => {
         verification: {
           runtimeProfileHash: assignment.runtimeProfileHash
         },
-        status: 'completed',
-        providerSignature: `signature_${assignment.providerId}`
+        status: 'completed'
       };
+      const keys = providerKeysById.get(assignment.providerId);
+      const receipt = await signProviderReceipt(rawReceipt, keys.privateKey);
       return createReceiptPayload({
         assignment,
         receiptRecord: {
@@ -494,7 +511,11 @@ describe('pool peer control plane', () => {
       providerAdverts: [advert]
     });
     const assignment = plan.assignment;
-    const receipt = {
+    const outputText = 'spend output';
+    const tokenIds = [1, 2, 3];
+    const outputHash = await sha256Hex(outputText);
+    const tokenIdsHash = await sha256Hex(canonicalize(tokenIds));
+    const rawReceipt = {
       receiptVersion: 'reploid_browser_inference/v1',
       signatureDomain: SIGNATURE_DOMAINS.providerReceipt,
       assignmentId: assignment.assignmentId,
@@ -506,8 +527,8 @@ describe('pool peer control plane', () => {
       model: assignment.model,
       inputHash: assignment.inputHash,
       generationConfigHash: assignment.generationConfigHash,
-      outputHash: 'sha256:spend_output',
-      tokenIdsHash: 'sha256:spend_tokens',
+      outputHash,
+      tokenIdsHash,
       tokenCounts: {
         input: 8,
         output: 3
@@ -515,16 +536,16 @@ describe('pool peer control plane', () => {
       verification: {
         runtimeProfileHash: assignment.runtimeProfileHash
       },
-      status: 'completed',
-      providerSignature: 'signature_provider_spend_limit'
+      status: 'completed'
     };
+    const receipt = await signProviderReceipt(rawReceipt, providerKeys.privateKey);
     const receiptPayload = await createReceiptPayload({
       assignment,
       receiptRecord: {
         receiptHash: await hashJson(receipt),
         receipt,
-        outputText: 'spend output',
-        tokenIds: [1, 2, 3]
+        outputText,
+        tokenIds
       },
       fromPeerId: assignment.providerId,
       toPeerId: assignment.requesterId

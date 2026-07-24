@@ -492,6 +492,15 @@ export const bindCapabilityAssessmentControls = () => {
   void run(false);
 };
 
+const setInspectorRailOpen = (open) => {
+  const rail = document.querySelector('[data-pool-dashboard-inspector]');
+  const toggle = rail?.querySelector('[data-pool-inspector-toggle]');
+  if (!rail || !toggle) return;
+  rail.classList.toggle('is-open', open);
+  toggle.setAttribute('aria-expanded', String(open));
+  toggle.setAttribute('aria-label', open ? 'Close compute controls' : 'Open compute controls');
+};
+
 const POOL_DRAWER_SECTION_STATE_KEY = 'reploid.pool.drawerSections.v1';
 
 const readDrawerSectionState = () => {
@@ -519,8 +528,8 @@ const bindDrawerSections = () => {
     if (section.dataset.poolDrawerSectionBound === 'true') return;
     section.dataset.poolDrawerSectionBound = 'true';
     section.querySelector(':scope > summary')?.addEventListener('click', (event) => {
-      // Drawer sections are hosted inside the left nav panel.
-      // Clicking a collapsed section expands the nav and opens that section.
+      // Both rails (request drawer + compute inspector) are collapsible .pool-nav-rail
+      // panels. Clicking a collapsed section expands the rail and opens that section.
       const rail = section.closest('.pool-nav-rail');
       if (rail && !rail.classList.contains('is-open')) {
         const toggle = rail.querySelector('.pool-nav-toggle');
@@ -553,6 +562,8 @@ export const applyPoolDashboardView = (view = 'home', { updateHistory = true } =
     else control.removeAttribute('aria-current');
   });
   if (normalized === 'ask') document.getElementById('pool-home-ask-prompt')?.focus();
+  if (normalized === 'compute' || normalized === 'records') setInspectorRailOpen(true);
+  else setInspectorRailOpen(false);
   if (updateHistory) {
     const url = new URL(window.location.href);
     if (normalized === 'home') url.searchParams.delete('view');
@@ -572,6 +583,25 @@ export const bindPoolDashboardControls = () => {
       applyPoolDashboardView(control.dataset.poolDashboardView || control.dataset.poolDashboardViewTarget || 'home');
     });
   });
+  document.querySelectorAll('[data-pool-inspector-toggle]').forEach((toggle) => {
+    if (toggle.dataset.poolInspectorBound === 'true') return;
+    toggle.dataset.poolInspectorBound = 'true';
+    toggle.addEventListener('click', () => {
+      const rail = toggle.closest('[data-pool-dashboard-inspector]');
+      setInspectorRailOpen(!rail?.classList.contains('is-open'));
+    });
+  });
+  if (window.REPLOID_POOL_INSPECTOR_ESCAPE_HANDLER) {
+    window.removeEventListener('keydown', window.REPLOID_POOL_INSPECTOR_ESCAPE_HANDLER);
+  }
+  window.REPLOID_POOL_INSPECTOR_ESCAPE_HANDLER = (event) => {
+    if (event.key !== 'Escape') return;
+    const rail = document.querySelector('[data-pool-dashboard-inspector].is-open');
+    if (!rail) return;
+    setInspectorRailOpen(false);
+    rail.querySelector('[data-pool-inspector-toggle]')?.focus();
+  };
+  window.addEventListener('keydown', window.REPLOID_POOL_INSPECTOR_ESCAPE_HANDLER);
 };
 
 const bindSuggestedPromptEditing = (input) => {
@@ -820,6 +850,11 @@ const bindPeerRunSurface = ({
         }
       }
       const selectedModel = getEnabledPoolModelContract(targetModelId) || LAUNCH_MODEL;
+      const providerModelSelect = document.getElementById('pool-provider-model');
+      if (providerModelSelect && selectedModel?.modelId) {
+        providerModelSelect.value = selectedModel.modelId;
+        syncProviderWorkloadCapability?.(providerModelSelect);
+      }
       const adapter = await resolveSelectedAdapter(adapterSelect, selectedModel, {
         required: Boolean(adapterRequired())
       });
@@ -853,13 +888,16 @@ const bindPeerRunSurface = ({
       setResult(resultId, result, { stream: true });
       updateRunState('complete', 'answer', 'Answer verified');
     } catch (error) {
+      const selectedModel = getEnabledPoolModelContract(modelSelect?.value || LAUNCH_MODEL.modelId) || LAUNCH_MODEL;
+      const modelLabel = selectedModel.modelId || 'selected model';
+      const defaultAction = `Start contributing in Compute with ${modelLabel} to download and host it locally in this browser, or open another tab in room "${getPeerRoomId()}".`;
       setResult(resultId, displayPoolError(error, {
         title: 'Request could not complete',
-        action: 'Open Contribute in another tab with the same room, start contributing, wait for the tab to say Available, then run again.',
+        action: error?.payload?.action || error?.action || defaultAction,
         context: {
           roomId: getPeerRoomId(),
           relay: getPeerRelayMode(),
-          model: getEnabledPoolModelContract(modelSelect?.value || LAUNCH_MODEL.modelId) || LAUNCH_MODEL,
+          model: selectedModel,
           adapterPackHash: adapterSelect?.value || null
         }
       }), { stream: true });
@@ -1029,16 +1067,26 @@ const createProviderContributionController = () => {
     }
     if (controls.workerToggleButton) {
       const active = workerRunning || workerStarting;
-      controls.workerToggleButton.disabled = false;
       const homeControl = controls.workerToggleButton.id === 'pool-home-provider-toggle';
-      controls.workerToggleButton.textContent = active
-        ? (homeControl ? 'Stop sharing' : 'Stop')
-        : (homeControl ? 'Start sharing' : 'Start contributing');
-      controls.workerToggleButton.dataset.op = active ? '■' : '▶';
-      controls.workerToggleButton.dataset.contributionAction = active ? 'stop' : 'start';
-      controls.workerToggleButton.setAttribute('aria-pressed', String(active));
-      controls.workerToggleButton.classList.toggle('btn-primary', !active);
-      controls.workerToggleButton.classList.toggle('btn-ghost', active);
+      if (workerStarting) {
+        controls.workerToggleButton.disabled = true;
+        controls.workerToggleButton.textContent = 'Starting...';
+        controls.workerToggleButton.dataset.op = '○';
+        controls.workerToggleButton.dataset.contributionAction = 'stop';
+        controls.workerToggleButton.setAttribute('aria-pressed', 'true');
+        controls.workerToggleButton.classList.remove('btn-primary');
+        controls.workerToggleButton.classList.add('btn-ghost');
+      } else {
+        controls.workerToggleButton.disabled = false;
+        controls.workerToggleButton.textContent = active
+          ? (homeControl ? 'Stop sharing' : 'Stop')
+          : (homeControl ? 'Start sharing' : 'Start contributing');
+        controls.workerToggleButton.dataset.op = active ? '■' : '▶';
+        controls.workerToggleButton.dataset.contributionAction = active ? 'stop' : 'start';
+        controls.workerToggleButton.setAttribute('aria-pressed', String(active));
+        controls.workerToggleButton.classList.toggle('btn-primary', !active);
+        controls.workerToggleButton.classList.toggle('btn-ghost', active);
+      }
     }
     if (controls.modelInput) controls.modelInput.disabled = workerRunning || workerStarting;
     refreshContributionStatusBar();
@@ -1074,10 +1122,11 @@ const createProviderContributionController = () => {
       && (loaded.workload || model.workload || 'text_generation') === (model.workload || 'text_generation');
   };
 
-  const loadSelectedProviderModel = async () => {
+  const loadSelectedProviderModel = async (generation) => {
     const runtime = getRuntime();
     setProviderStatus('Starting');
     await refreshProviderStorageHealth();
+    if (generation !== undefined && generation !== lifecycleGeneration) throw new Error('Aborted');
     updateProviderHealth({
       webgpu: navigator.gpu ? 'available' : 'unavailable',
       model: 'loading',
@@ -1090,6 +1139,7 @@ const createProviderContributionController = () => {
     const deviceInfo = typeof runtime?.getDeviceInfo === 'function'
       ? await runtime.getDeviceInfo()
       : { hasWebGPU: !!navigator.gpu, features: [] };
+    if (generation !== undefined && generation !== lifecycleGeneration) throw new Error('Aborted');
     updateProviderHealth({
       webgpu: deviceInfo.hasWebGPU ? 'available' : 'unavailable',
       hardware: formatDeviceLabel(deviceInfo),
@@ -1125,6 +1175,7 @@ const createProviderContributionController = () => {
       };
     }
     const artifactPreflight = await probeModelArtifacts(model);
+    if (generation !== undefined && generation !== lifecycleGeneration) throw new Error('Aborted');
     updateProviderHealth({
       artifact: artifactPreflight.ok ? artifactPreflight.status : 'manifest_unavailable'
     });
@@ -1145,6 +1196,7 @@ const createProviderContributionController = () => {
       ...model,
       ...(manifestByteHash ? { manifestByteHash } : {})
     });
+    if (generation !== undefined && generation !== lifecycleGeneration) throw new Error('Aborted');
     if (!loadResult?.ok || !runtime.isReady?.() || !modelMatchesLoadedRuntime(model)) {
       const reason = loadResult?.reason || 'Doppler runtime did not expose the selected model after load';
       const error = new Error(`Doppler model load failed: ${reason}`);
@@ -1243,9 +1295,10 @@ const createProviderContributionController = () => {
     void refreshServerRoomActivity();
   };
 
-  const ensurePeerProviderReady = async () => {
+  const ensurePeerProviderReady = async (generation) => {
     const runtime = getRuntime();
     const capabilityProfile = await assessPoolDeviceCapability({ runtime });
+    if (generation !== undefined && generation !== lifecycleGeneration) throw new Error('Aborted');
     const selectedEligibility = capabilityProfile.modelEligibility.find((entry) => (
       entry.modelId === getSelectedModelId()
     ));
@@ -1263,7 +1316,8 @@ const createProviderContributionController = () => {
       capability: `${capabilityProfile.tier.id}_${capabilityProfile.score}`,
       hardware: formatDeviceLabel(capabilityProfile.deviceInfo)
     });
-    const loaded = await loadSelectedProviderModel();
+    const loaded = await loadSelectedProviderModel(generation);
+    if (generation !== undefined && generation !== lifecycleGeneration) throw new Error('Aborted');
     const model = loaded.model || runtime.getModelInfo();
     currentModel = model;
     const participation = readParticipationPreferences();
@@ -1271,6 +1325,7 @@ const createProviderContributionController = () => {
     if (participation.permissions.relayArtifacts) {
       try {
         const publications = await listFetchableAdapterPublications({ sdk: adapterSdk, model });
+        if (generation !== undefined && generation !== lifecycleGeneration) throw new Error('Aborted');
         const maxArtifactBytes = participation.limits.storageBudgetMiB * 1024 * 1024;
         adapterPacks = publications.filter((publication) => (
           Number(publication.pack?.adapter?.bytes || 0) <= maxArtifactBytes
@@ -1279,14 +1334,17 @@ const createProviderContributionController = () => {
         ));
         updateProviderHealth({ adapters: adapterPacks.length ? `${adapterPacks.length}_fetchable` : 'none' });
       } catch (error) {
+        if (generation !== undefined && generation !== lifecycleGeneration) throw new Error('Aborted');
         updateProviderHealth({ adapters: 'registry_unavailable', adapterRegistryError: errorString(error) });
       }
     } else {
       updateProviderHealth({ adapters: 'relay_disabled' });
     }
     const providerIdentityState = await getProviderIdentity().resolve();
+    if (generation !== undefined && generation !== lifecycleGeneration) throw new Error('Aborted');
     const capabilityLimits = resolveCapabilityAvailabilityLimits(participation, capabilityProfile);
     await stopPeerProvider();
+    if (generation !== undefined && generation !== lifecycleGeneration) throw new Error('Aborted');
     const node = createPeerProviderNode({
       roomId: getPeerRoomId(),
       providerClient: getProviderClient(),
@@ -1332,7 +1390,7 @@ const createProviderContributionController = () => {
     });
     setProviderStatus('Starting');
     try {
-      const ready = await ensurePeerProviderReady();
+      const ready = await ensurePeerProviderReady(generation);
       if (generation !== lifecycleGeneration) {
         await stopPeerProvider().catch(() => null);
         return;
@@ -1392,6 +1450,8 @@ const createProviderContributionController = () => {
     syncWorkerControls();
   };
 
+  let preferenceApplyPromise = Promise.resolve();
+
   return {
     attachControls(nextControls = {}) {
       controls = {
@@ -1410,15 +1470,24 @@ const createProviderContributionController = () => {
       syncProviderPanel();
     },
     async applyParticipationPreferences(previous, next) {
-      if (!workerRunning && !workerStarting) {
-        syncProviderPanel();
-        return;
-      }
-      if (!canContributeWith(next)) {
-        await stopWorker();
-        return;
-      }
-      if (JSON.stringify(previous) !== JSON.stringify(next)) {
+      preferenceApplyPromise = preferenceApplyPromise.then(async () => {
+        if (!workerRunning && !workerStarting) {
+          syncProviderPanel();
+          return;
+        }
+        if (!canContributeWith(next)) {
+          await stopWorker();
+          return;
+        }
+        if (JSON.stringify(previous) !== JSON.stringify(next)) {
+          await stopWorker();
+          await startWorker();
+        }
+      }).catch(() => {});
+      await preferenceApplyPromise;
+    },
+    async handleModelChange() {
+      if (workerRunning || workerStarting) {
         await stopWorker();
         await startWorker();
       }
@@ -1452,7 +1521,10 @@ export const bindProviderControls = () => {
   });
   if (modelInput && modelInput.dataset.poolWorkloadBound !== 'true') {
     modelInput.dataset.poolWorkloadBound = 'true';
-    modelInput.addEventListener('change', () => syncProviderWorkloadCapability(modelInput));
+    modelInput.addEventListener('change', () => {
+      syncProviderWorkloadCapability(modelInput);
+      void getProviderContributionController().handleModelChange();
+    });
     syncProviderWorkloadCapability(modelInput);
   }
 };

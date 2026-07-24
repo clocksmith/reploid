@@ -359,6 +359,8 @@
   --pool-motion-time-320: var(--pool-motion-duration-320);
   --pool-motion-time-380: var(--pool-motion-duration-380);
   --pool-motion-time-1100: var(--pool-motion-duration-1100);
+  --pool-motion-time-1200: var(--pool-motion-duration-1200);
+  --pool-motion-time-1500: var(--pool-motion-duration-1500);
   --pool-motion-time-instant: var(--pool-motion-duration-instant);
 
 }
