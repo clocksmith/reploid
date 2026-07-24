@@ -114,15 +114,14 @@ test.describe('Route Entry Points', () => {
     expect(anchoredLayout.askBottomGap).toBeLessThanOrEqual(48);
     await expect(page.locator('#pool-home-run-submit')).toHaveText('↑');
 
-    const nav = page.locator('.pool-nav-rail');
-    await expect(nav.locator('[data-pool-drawer-section="participation"]')).toHaveCount(1);
-    await expect(nav.locator('[data-pool-participation-surface="navigation"]')).toHaveCount(1);
-    await expect(nav.locator('.pool-room-context')).toHaveCount(1);
+    const requestDrawer = page.getByRole('navigation', { name: 'Request controls' });
+    await expect(requestDrawer.locator('[data-pool-drawer-section="request-participation"]')).toHaveCount(1);
+    await expect(requestDrawer.locator('[data-pool-participation-surface="request-drawer"]')).toHaveCount(1);
 
     await page.reload();
     await page.waitForSelector('.pool-home', { timeout: 20000 });
-    await expect(page.locator('[data-pool-drawer-section="participation"]')).toHaveCount(1);
-    await expect(page.locator('[data-pool-participation-surface="navigation"]')).toHaveCount(1);
+    await expect(page.locator('[data-pool-drawer-section="request-participation"]')).toHaveCount(1);
+    await expect(page.locator('[data-pool-participation-surface="request-drawer"]')).toHaveCount(1);
   });
 
   test('product root renders the Reploid serving surface', async ({ page }) => {
@@ -130,14 +129,17 @@ test.describe('Route Entry Points', () => {
     await page.waitForSelector('.pool-home', { timeout: 20000 });
 
     await expect(page).toHaveTitle(/^Reploid$/i);
-    const nav = page.locator('.pool-nav-rail');
-    await expect(nav).toBeVisible();
+    const requestDrawer = page.getByRole('navigation', { name: 'Request controls' });
+    const computeDrawer = page.getByRole('complementary', { name: 'Compute controls' });
+    await expect(requestDrawer).toBeVisible();
+    await expect(computeDrawer).toBeVisible();
     await expect(page.locator('.pool-topbar')).toHaveCount(0);
     await expect(page.locator('.pool-home')).toHaveAttribute('data-pool-route-id', 'home');
-    await expect(nav.locator('.pool-nav-toggle')).toHaveAttribute('aria-expanded', 'false');
-    await expect(nav.locator('.pool-nav-mark-seven-top')).toHaveText('7');
-    await expect(nav.locator('.pool-nav-mark-seven-bottom')).toHaveText('7');
-    await expect(nav.locator('.pool-nav-menu')).toBeVisible();
+    await expect(requestDrawer.locator('.pool-nav-toggle')).toHaveAttribute('aria-expanded', 'false');
+    await expect(computeDrawer.locator('.pool-nav-toggle')).toHaveAttribute('aria-expanded', 'false');
+    await expect(requestDrawer.locator('.pool-nav-mark-seven-top')).toHaveText('7');
+    await expect(requestDrawer.locator('.pool-nav-mark-seven-bottom')).toHaveText('7');
+    await expect(requestDrawer.locator('.pool-nav-menu')).toBeVisible();
     await expect(page.locator('#pool-home-ask-form')).toBeVisible();
     await expect(page.locator('#pool-home-ask-prompt')).toHaveValue('');
     const askPlaceholder = await page.locator('#pool-home-ask-prompt').getAttribute('placeholder');
@@ -148,6 +150,19 @@ test.describe('Route Entry Points', () => {
     await expect(page.locator('#pool-home-ask-prompt')).toHaveAttribute('data-pool-suggested-prompt', askPlaceholder);
     await expect(page.locator('label[for="pool-home-ask-prompt"]')).toHaveCount(0);
     await expect(page.locator('#pool-home-ask-form').getByRole('button', { name: 'Ask', exact: true })).toBeVisible();
+    const collapsedToggle = await requestDrawer.locator('.pool-nav-toggle').evaluate((toggle) => {
+      const top = toggle.querySelector('.pool-nav-mark-seven-top');
+      const bottom = toggle.querySelector('.pool-nav-mark-seven-bottom');
+      return {
+        width: toggle.getBoundingClientRect().width,
+        topSize: Number.parseFloat(getComputedStyle(top).fontSize),
+        bottomSize: Number.parseFloat(getComputedStyle(bottom).fontSize),
+        topTransform: getComputedStyle(top).transform,
+        bottomTransform: getComputedStyle(bottom).transform
+      };
+    });
+    await requestDrawer.locator('.pool-nav-toggle').click();
+    await expect(requestDrawer).toHaveClass(/is-open/);
     const adapterLane = page.locator('[data-pool-lane="adapters"]');
     const textLane = page.locator('[data-pool-lane="text"]');
     await adapterLane.click();
@@ -190,22 +205,10 @@ test.describe('Route Entry Points', () => {
     expect(stack.askBottomGap).toBeGreaterThan(0);
     expect(stack.askBottomGap).toBeLessThanOrEqual(48);
     expect(stack.askInsideCanvas).toBe(true);
-    const collapsedToggle = await nav.locator('.pool-nav-toggle').evaluate((toggle) => {
-      const top = toggle.querySelector('.pool-nav-mark-seven-top');
-      const bottom = toggle.querySelector('.pool-nav-mark-seven-bottom');
-      return {
-        width: toggle.getBoundingClientRect().width,
-        topSize: Number.parseFloat(getComputedStyle(top).fontSize),
-        bottomSize: Number.parseFloat(getComputedStyle(bottom).fontSize),
-        topTransform: getComputedStyle(top).transform,
-        bottomTransform: getComputedStyle(bottom).transform
-      };
-    });
-    await nav.locator('.pool-nav-toggle').click();
-    await expect(nav.locator('.pool-nav-toggle')).toHaveAttribute('aria-expanded', 'true');
-    await expect.poll(() => nav.locator('.pool-nav-toggle').evaluate((toggle) => toggle.getBoundingClientRect().width))
+    await expect(requestDrawer.locator('.pool-nav-toggle')).toHaveAttribute('aria-expanded', 'true');
+    await expect.poll(() => requestDrawer.locator('.pool-nav-toggle').evaluate((toggle) => toggle.getBoundingClientRect().width))
       .toBeGreaterThan(collapsedToggle.width + 80);
-    const expandedToggle = await nav.locator('.pool-nav-toggle').evaluate((toggle) => {
+    const expandedToggle = await requestDrawer.locator('.pool-nav-toggle').evaluate((toggle) => {
       const top = toggle.querySelector('.pool-nav-mark-seven-top');
       const bottom = toggle.querySelector('.pool-nav-mark-seven-bottom');
       return {
@@ -219,17 +222,10 @@ test.describe('Route Entry Points', () => {
     expect(expandedToggle.topSize).toBeGreaterThan(expandedToggle.bottomSize);
     expect(expandedToggle.topTransform).not.toBe(collapsedToggle.topTransform);
     expect(expandedToggle.bottomTransform).not.toBe(collapsedToggle.bottomTransform);
-    await expect(nav.getByRole('link', { name: 'Home', exact: true })).toBeVisible();
-    await expect(nav.getByRole('link', { name: 'Home', exact: true })).toHaveAttribute('aria-current', 'page');
-    await expect(nav.getByRole('link', { name: 'Run', exact: true })).toBeVisible();
-    await expect(nav.getByRole('link', { name: 'Contribute', exact: true })).toBeVisible();
-    await expect(nav.getByRole('link', { name: 'Records', exact: true })).toBeVisible();
-    await expect(nav.locator('.pool-nav-view-context')).toHaveCount(0);
-    await expect(nav.locator('.pool-nav-description').first()).toBeVisible();
-    await expect(nav.locator('.pool-room-context')).toBeVisible();
-    await nav.locator('.pool-nav-more-summary').click();
-    await expect(nav.getByRole('link', { name: 'Zero', exact: true })).toHaveAttribute('href', '/zero');
-    await expect(nav.getByRole('link', { name: 'X', exact: true })).toHaveAttribute('href', '/x');
+    await expect(requestDrawer.locator('[data-pool-drawer-section="request-workload"]')).toBeVisible();
+    await expect(requestDrawer.locator('[data-pool-drawer-section="request-model"]')).toBeVisible();
+    await expect(requestDrawer.locator('[data-pool-drawer-section="request-participation"]')).toBeVisible();
+    await expect(requestDrawer.getByRole('link', { name: 'Zero', exact: true })).toHaveAttribute('href', '/zero');
     await expect(page.getByLabel('Reploid overview')).toContainText('REPLOID');
     await expect(page.getByLabel('Reploid overview')).toContainText('Run browser models together.');
     await expect(page.locator('[data-pool-flow-label]')).toHaveCount(6);
@@ -275,12 +271,12 @@ test.describe('Route Entry Points', () => {
 
   test('product navigation spans the viewport and opens into an informative sidebar', async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
-    await page.goto(PRODUCT_HOME_PATH);
-    await page.waitForSelector('.pool-nav-rail', { timeout: 20000 });
+    await page.goto('/ask');
+    await page.waitForSelector('nav.pool-nav-rail', { timeout: 20000 });
 
     const desktop = await page.evaluate(() => {
-      const rail = document.querySelector('.pool-nav-rail').getBoundingClientRect();
-      const open = document.querySelector('.pool-nav-rail').classList.contains('is-open');
+      const rail = document.querySelector('nav.pool-nav-rail').getBoundingClientRect();
+      const open = document.querySelector('nav.pool-nav-rail').classList.contains('is-open');
       return {
         height: rail.height,
         open,
@@ -298,17 +294,18 @@ test.describe('Route Entry Points', () => {
     expect(desktop.width).toBeLessThanOrEqual(68);
     expect(desktop.overflowX).toBe(false);
 
-    await page.locator('.pool-nav-toggle').click();
-    await expect(page.locator('.pool-nav-rail')).toHaveClass(/is-open/);
-    await expect(page.locator('.pool-nav-toggle')).toHaveAttribute('aria-expanded', 'true');
+    const nav = page.getByRole('navigation', { name: 'Navigation' });
+    await nav.locator('.pool-nav-toggle').click();
+    await expect(nav).toHaveClass(/is-open/);
+    await expect(nav.locator('.pool-nav-toggle')).toHaveAttribute('aria-expanded', 'true');
     await expect(page.getByRole('link', { name: 'Records', exact: true })).toBeVisible();
     await expect(page.locator('.pool-nav-description').first()).toBeVisible();
     await expect(page.locator('.pool-room-context')).toBeVisible();
-    await expect.poll(() => page.locator('.pool-nav-rail').evaluate((rail) => rail.getBoundingClientRect().width))
+    await expect.poll(() => nav.evaluate((rail) => rail.getBoundingClientRect().width))
       .toBeGreaterThan(260);
     const expanded = await page.evaluate(() => {
-      const rail = document.querySelector('.pool-nav-rail').getBoundingClientRect();
-      const bottom = document.querySelector('.pool-nav-bottom').getBoundingClientRect();
+      const rail = document.querySelector('nav.pool-nav-rail').getBoundingClientRect();
+      const bottom = document.querySelector('nav.pool-nav-rail .pool-nav-bottom').getBoundingClientRect();
       return {
         bottomGap: window.innerHeight - bottom.bottom,
         height: rail.height,
@@ -319,45 +316,33 @@ test.describe('Route Entry Points', () => {
     expect(expanded.width).toBeGreaterThan(260);
     expect(Math.abs(expanded.height - expanded.viewportHeight)).toBeLessThanOrEqual(1);
     expect(expanded.bottomGap).toBeLessThanOrEqual(12);
-    await page.getByRole('link', { name: 'Run', exact: true }).click();
-    await expect(page).toHaveURL(/\?view=ask$/);
-    await expect(page.locator('.pool-nav-rail')).toHaveClass(/is-open/);
-    await expect(page.getByRole('link', { name: 'Run', exact: true })).toHaveAttribute('aria-current', 'page');
-    await expect(page.locator('[data-pool-dashboard-panel="ask"]')).toBeVisible();
-    await page.getByRole('link', { name: 'Home', exact: true }).click();
-    await expect(page).toHaveURL(/\/$/);
-    await expect(page.locator('.pool-nav-rail')).toHaveClass(/is-open/);
-    await expect(page.locator('[data-pool-dashboard-panel="home"]')).toBeVisible();
+    await page.getByRole('link', { name: 'Contribute', exact: true }).click();
+    await expect(page).toHaveURL(/\/compute$/);
+    await expect(nav).toHaveClass(/is-open/);
+    await expect(page.getByRole('link', { name: 'Contribute', exact: true })).toHaveAttribute('aria-current', 'page');
     await page.keyboard.press('Escape');
-    await expect(page.locator('.pool-nav-rail')).not.toHaveClass(/is-open/);
-    await expect(page.locator('.pool-nav-toggle')).toBeFocused();
-    await page.locator('.pool-nav-more-summary').click();
-    await expect(page.locator('.pool-nav-rail')).toHaveClass(/is-open/);
-    await expect(page.locator('.pool-nav-more')).toHaveAttribute('open', '');
+    await expect(nav).not.toHaveClass(/is-open/);
+    await expect(nav.locator('.pool-nav-toggle')).toBeFocused();
+    await nav.locator('.pool-nav-toggle').click();
+    await expect(nav).toHaveClass(/is-open/);
     await expect(page.getByRole('link', { name: 'Zero', exact: true })).toBeVisible();
 
     await page.setViewportSize({ width: 390, height: 844 });
     await page.reload();
-    await page.waitForSelector('.pool-nav-rail', { timeout: 20000 });
+    await page.waitForSelector('nav.pool-nav-rail', { timeout: 20000 });
 
     const mobile = await page.evaluate(() => {
-      const rail = document.querySelector('.pool-nav-rail').getBoundingClientRect();
-      const canvas = document.querySelector('.pool-simulation-canvas').getBoundingClientRect();
-      const shell = document.querySelector('.pool-simulation-shell').getBoundingClientRect();
+      const rail = document.querySelector('nav.pool-nav-rail').getBoundingClientRect();
       const scrollHeight = Math.max(
         document.documentElement.scrollHeight,
         document.body?.scrollHeight || 0
       );
       return {
-        canvasHeight: canvas.height,
-        canvasTop: canvas.top,
         height: rail.height,
         left: rail.left,
-        open: document.querySelector('.pool-nav-rail').classList.contains('is-open'),
+        open: document.querySelector('nav.pool-nav-rail').classList.contains('is-open'),
         right: window.innerWidth - rail.right,
         scrollHeight,
-        shellHeight: shell.height,
-        shellTop: shell.top,
         viewportHeight: window.innerHeight,
         width: rail.width,
         y: rail.y,
@@ -373,12 +358,8 @@ test.describe('Route Entry Points', () => {
     expect(mobile.width).toBeLessThanOrEqual(68);
     expect(mobile.overflowX).toBe(false);
     expect(mobile.overflowY).toBe(false);
-    expect(Math.abs(mobile.canvasTop)).toBeLessThanOrEqual(1);
-    expect(Math.abs(mobile.shellTop)).toBeLessThanOrEqual(1);
-    expect(Math.abs(mobile.canvasHeight - mobile.viewportHeight)).toBeLessThanOrEqual(1);
-    expect(Math.abs(mobile.shellHeight - mobile.viewportHeight)).toBeLessThanOrEqual(1);
     expect(mobile.scrollHeight).toBeLessThanOrEqual(mobile.viewportHeight + 1);
-    const mobileNav = page.locator('.pool-nav-rail');
+    const mobileNav = page.getByRole('navigation', { name: 'Navigation' });
     await mobileNav.locator('.pool-nav-toggle').click();
     await expect(mobileNav.getByRole('link', { name: 'Home', exact: true })).toBeVisible();
     await expect(mobileNav.getByRole('link', { name: 'Run', exact: true })).toBeVisible();
@@ -386,9 +367,7 @@ test.describe('Route Entry Points', () => {
     await expect(mobileNav.getByRole('link', { name: 'Records', exact: true })).toBeVisible();
     await expect(mobileNav.locator('.pool-nav-description').first()).toBeVisible();
     await expect(mobileNav.locator('.pool-room-context')).toBeVisible();
-    await mobileNav.locator('.pool-nav-more-summary').click();
     await expect(mobileNav.getByRole('link', { name: 'Zero', exact: true })).toBeVisible();
-    await expect(mobileNav.getByRole('link', { name: 'X', exact: true })).toBeVisible();
   });
 
   test('product routes fit a narrow mobile viewport without horizontal clipping', async ({ page }) => {
@@ -403,6 +382,8 @@ test.describe('Route Entry Points', () => {
         const offenders = [...document.querySelectorAll('body *')].map((element) => {
           const rect = element.getBoundingClientRect();
           return {
+            tagName: element.tagName,
+            text: element.textContent?.trim().slice(0, 80) || '',
             id: element.id || '',
             className: String(element.className || ''),
             left: rect.left,
@@ -410,8 +391,8 @@ test.describe('Route Entry Points', () => {
             width: rect.width
           };
         }).filter((item) => item.width > 1 && (item.left < -1 || item.right > window.innerWidth + 1));
-        const nav = document.querySelector('.pool-nav-toggle')?.getBoundingClientRect();
-        const rail = document.querySelector('.pool-nav-rail')?.getBoundingClientRect();
+        const nav = document.querySelector('nav.pool-nav-rail .pool-nav-toggle')?.getBoundingClientRect();
+        const rail = document.querySelector('nav.pool-nav-rail')?.getBoundingClientRect();
         const routeHeading = document.querySelector('.pool-page-heading')?.getBoundingClientRect() || null;
         const ask = document.querySelector('.pool-home-ask-submit')?.getBoundingClientRect() || null;
         return {
@@ -468,7 +449,7 @@ test.describe('Route Entry Points', () => {
     await page.goto('/compute');
     await page.waitForSelector('.pool-home', { timeout: 20000 });
     await expect(page.locator('.pool-home')).toHaveAttribute('data-pool-route-id', 'compute');
-    await page.locator('.pool-nav-toggle').click();
+    await page.getByRole('navigation', { name: 'Navigation' }).locator('.pool-nav-toggle').click();
     await expect(page.getByRole('link', { name: 'Contribute', exact: true })).toHaveAttribute('aria-current', 'page');
     await expect(page.getByRole('heading', { name: 'Contribute', exact: true })).toBeVisible();
     await expect(page.locator('.pool-page-heading .pool-eyebrow')).toHaveCount(0);
@@ -900,7 +881,9 @@ test.describe('Same-Origin Multi-Peer', () => {
     const getPeerState = async (targetPage) => targetPage.evaluate(async () => {
       const instanceId = window.getReploidInstanceId?.() || window.REPLOID_INSTANCE_ID || null;
       const snapshot = window.REPLOID?.runtime?.getSnapshot?.() || null;
-      const dbName = instanceId ? `reploid-vfs-v0--${instanceId}` : 'reploid-vfs-v0';
+      const dbName = instanceId
+        ? `reploid-vfs-v0--poolday--${instanceId}`
+        : 'reploid-vfs-v0--poolday';
 
       const openDb = () => new Promise((resolve, reject) => {
         const request = indexedDB.open(dbName, 1);
@@ -1281,7 +1264,9 @@ test.describe('Reploid Runtime', () => {
     const vfsState = await page.evaluate(async () => {
       const openDb = () => new Promise((resolve, reject) => {
         const instanceId = window.getReploidInstanceId?.() || window.REPLOID_INSTANCE_ID || null;
-        const dbName = instanceId ? `reploid-vfs-v0--${instanceId}` : 'reploid-vfs-v0';
+        const dbName = instanceId
+          ? `reploid-vfs-v0--poolday--${instanceId}`
+          : 'reploid-vfs-v0--poolday';
         const request = indexedDB.open(dbName, 1);
         request.onsuccess = () => resolve(request.result);
         request.onerror = () => reject(request.error);

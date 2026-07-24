@@ -135,7 +135,13 @@ export async function executeToolResult(page, name, args = {}) {
 export async function runTransitiveImportSmoke(page, instanceId, prefix) {
   return page.evaluate(async ({ instanceId, prefix, dbPrefix }) => {
     const openDb = () => new Promise((resolve, reject) => {
-      const dbName = `${dbPrefix}--${instanceId}`;
+      const pathname = String(window.location.pathname || '/').replace(/\/+$/, '') || '/';
+      const surfaceId = pathname.startsWith('/zero')
+        ? 'zero'
+        : pathname.startsWith('/x')
+          ? 'x'
+          : 'poolday';
+      const dbName = `${dbPrefix}--${surfaceId}--${instanceId}`;
       const request = indexedDB.open(dbName, 1);
       request.onupgradeneeded = (event) => {
         const db = event.target.result;

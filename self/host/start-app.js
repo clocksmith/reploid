@@ -12,6 +12,7 @@ import {
   getCurrentReploidInstanceLabel,
   getCurrentReploidPeerQuery,
   getCurrentReploidStorage as getReploidStorage,
+  getSurfaceIdFromUrl,
   hasRequestedFreshIdentity
 } from '../instance.js';
 
@@ -458,6 +459,7 @@ async function completeAwaken(bootResult, goal, wizardContainer) {
     documentReloadRequested = true;
     postServiceWorkerMessage('INVALIDATE_ALL', {
       instanceId: getCurrentReploidInstanceLabel(),
+      surfaceId: getSurfaceIdFromUrl(),
       reason,
       path
     }).finally(() => {
@@ -477,6 +479,7 @@ async function completeAwaken(bootResult, goal, wizardContainer) {
     if (isModuleInvalidationPath(path)) {
       void postServiceWorkerMessage('INVALIDATE_MODULE', {
         instanceId: getCurrentReploidInstanceLabel(),
+        surfaceId: getSurfaceIdFromUrl(),
         path
       });
     }

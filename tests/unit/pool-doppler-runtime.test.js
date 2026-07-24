@@ -505,6 +505,120 @@ describe('Doppler browser runtime adapter', () => {
     expect(result.outputText).toBe('text:hello');
   });
 
+  it('prefers and verifies the public Doppler generation evidence surface', async () => {
+    const generationConfig = {
+      mode: 'greedy',
+      maxOutputTokens: 4
+    };
+    const dopplerGenerationConfig = {
+      maxTokens: 4,
+      temperature: 0,
+      topP: 1,
+      topK: 1,
+      repetitionPenalty: 1.1,
+      repetitionPenaltyWindow: 64,
+      greedyThreshold: 0,
+      suppressSpecialTokens: true,
+      suppressSpecialLikeTokens: true,
+      suppressTokenIds: [],
+      stopSequences: [],
+      useChatTemplate: false,
+      useSpeculative: false,
+      seed: null
+    };
+    const tokenIds = [808, 909];
+    const outputText = 'evidenced';
+    const transcript = {
+      schema: 'doppler_generation_transcript/v1',
+      outputText,
+      tokenIds
+    };
+    const backendIdentity = {
+      backend: 'webgpu',
+      adapter: {
+        vendor: 'test',
+        architecture: 'test',
+        device: 'test',
+        description: 'test'
+      },
+      hasF16: true,
+      hasSubgroups: false,
+      maxBufferSize: 4096,
+      deviceEpoch: 1,
+      kernelPathId: 'test',
+      kernelPathSource: 'execution-v1',
+      executionPlanId: 'primary',
+      activationDtype: 'f16'
+    };
+    const runtimeProfile = {
+      schema: 'doppler_runtime_profile/v1',
+      runtime: {
+        package: 'doppler-gpu',
+        version: '0.4.15',
+        surface: 'browser'
+      },
+      model: {
+        modelId: LAUNCH_MODEL.modelId,
+        manifestHash: LAUNCH_MODEL.manifestHash,
+        activeAdapter: null
+      },
+      backendIdentity
+    };
+    let fallbackCalls = 0;
+    const runtime = createDopplerRuntime({
+      model: LAUNCH_MODEL,
+      modelSession: {
+        modelId: LAUNCH_MODEL.modelId,
+        modelHash: LAUNCH_MODEL.modelHash,
+        manifestHash: LAUNCH_MODEL.manifestHash,
+        generate() {
+          fallbackCalls += 1;
+          return { outputText: 'fallback', tokenIds: [] };
+        },
+        async generateWithEvidence(prompt, options) {
+          expect(prompt).toBe('hello');
+          expect(options).toMatchObject({
+            maxTokens: 4,
+            temperature: 0,
+            topP: 1,
+            topK: 1
+          });
+          return {
+            schema: 'doppler_generation_evidence/v1',
+            outputText,
+            tokenIds,
+            transcript,
+            transcriptHash: await hashJson(transcript),
+            generationConfig: dopplerGenerationConfig,
+            generationConfigHash: await hashJson(dopplerGenerationConfig),
+            runtimeProfile,
+            runtimeProfileHash: await hashJson(runtimeProfile),
+            backendIdentity,
+            backendIdentityHash: await hashJson(backendIdentity),
+            stats: {}
+          };
+        }
+      }
+    });
+
+    const result = await runtime.generate({
+      prompt: 'hello',
+      generationConfig,
+      assignment: { assignmentId: 'assignment_evidence' }
+    });
+
+    expect(fallbackCalls).toBe(0);
+    expect(result.outputText).toBe(outputText);
+    expect(result.tokenIds).toEqual(tokenIds);
+    expect(result.evidenceWarnings).toEqual([]);
+    expect(result.dopplerEvidenceComparison).toMatchObject({
+      schema: 'reploid.doppler_generation_evidence_comparison/v1',
+      verified: true,
+      evidenceSchema: 'doppler_generation_evidence/v1'
+    });
+    expect(result.dopplerEvidenceComparison.fields.every((field) => field.matched)).toBe(true);
+  });
+
   it('calls single-arity Doppler generate handles with prompt and options before request-object fallback', async () => {
     const calls = [];
     const runtime = createDopplerRuntime({

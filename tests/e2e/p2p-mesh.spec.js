@@ -64,6 +64,7 @@ const installDeterministicRuntime = async (context, {
     window.REPLOID_POOL_DISCOVERY_WINDOW_MS = 30000;
     window.REPLOID_POOL_RECEIPT_WINDOW_MS = 30000;
     window.REPLOID_POOL_STRICT_ARTIFACT_PREFLIGHT = false;
+    window.REPLOID_POOL_ADAPTER_DISCOVERY_TIMEOUT_MS = 100;
     window.REPLOID_DOPPLER_RUNTIME = {
       isReady: () => runtimeState.ready,
       loadModel: async () => {
@@ -113,6 +114,13 @@ const installDeterministicRuntime = async (context, {
         probeStatus: 'playwright',
         adapterInfo: { vendor: 'playwright', architecture: label },
         features: ['datachannel', 'shader-f16', 'subgroups'],
+        capabilityBenchmark: {
+          status: 'measured',
+          samplesMs: [1, 1, 1, 1, 1],
+          medianMs: 1,
+          gigaOpsPerSecond: 100,
+          stability: 1
+        },
         limits: {
           maxBufferSize: 1_073_741_824,
           maxStorageBufferBindingSize: 536_870_912,
@@ -182,6 +190,10 @@ const startProviderPage = async (page) => {
     const status = (await page.locator('[data-pool-provider-status]').textContent())?.trim();
     if (status === 'Idle') {
       throw new Error(`Contributor start failed: ${await page.locator('#pool-provider-result-raw').textContent()}`);
+    }
+    if (status === 'Starting') {
+      const phase = await page.evaluate(() => document.documentElement.dataset.poolProviderStartPhase || 'unknown');
+      return `${status}:${phase}`;
     }
     return status;
   }).toBe('Available');
@@ -353,7 +365,9 @@ test.describe('Run, Contribute, Records peer room', () => {
       const toggle = providerPage.locator('#pool-provider-worker-toggle');
       await toggle.click();
       await expect(providerPage.locator('[data-pool-provider-status]')).toHaveText('Idle');
-      await expect(providerPage.locator('#pool-provider-result')).toContainText('This tab could not start');
+      await expect(providerPage.locator('#pool-provider-result')).toContainText(
+        'Doppler model load failed: synthetic load failure'
+      );
       await expect(providerPage.locator('#pool-provider-result-raw')).toContainText('synthetic load failure');
       await expect(toggle).toBeEnabled();
       await expect(toggle).toHaveText('Start contributing');
@@ -439,6 +453,7 @@ test.describe('Run, Contribute, Records peer room', () => {
       await openPoolNav(runPage);
       await runPage.getByRole('link', { name: 'Records', exact: true }).click();
       await expect(runPage.locator('[data-pool-room-id]')).toHaveText(roomId);
+      await runPage.keyboard.press('Escape');
       await runPage.locator('details.pool-record-tools > summary').click();
       await expect(runPage.locator('#pool-receipt-ledger')).toContainText('accepted');
       await receiptsPage.reload({ waitUntil: 'domcontentloaded' });

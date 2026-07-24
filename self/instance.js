@@ -187,9 +187,15 @@ export function getSurfaceIdFromUrl(input = globalThis.location?.href || '') {
   }
 }
 
+export function normalizeReploidSurfaceId(value) {
+  const surface = String(value || '').trim().toLowerCase();
+  if (surface === 'zero' || surface === 'x') return surface;
+  return 'poolday';
+}
+
 export function getScopedReploidVfsDbName(instanceId = getCurrentReploidInstanceId(), surfaceId = getSurfaceIdFromUrl()) {
   const id = sanitizeReploidInstanceId(instanceId);
-  const surface = String(surfaceId || getSurfaceIdFromUrl() || 'poolday').toLowerCase();
+  const surface = normalizeReploidSurfaceId(surfaceId || getSurfaceIdFromUrl());
   return id ? `${REPLOID_DEFAULT_VFS_DB_NAME}--${surface}--${id}` : `${REPLOID_DEFAULT_VFS_DB_NAME}--${surface}`;
 }
 
@@ -312,7 +318,9 @@ export default {
   getReploidInstanceStoragePrefix,
   getScopedReploidStorageKey,
   getScopedReploidVfsDbName,
+  getSurfaceIdFromUrl,
   hasRequestedFreshIdentity,
+  normalizeReploidSurfaceId,
   shouldHideAutoReploidInstanceInUrl,
   sanitizeReploidInstanceId
 };

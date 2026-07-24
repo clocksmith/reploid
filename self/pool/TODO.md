@@ -11,7 +11,7 @@ The current Cloud Run and Firestore path is transitional. The target Reploid con
 ## Current Local Checks
 
 - [x] `npm run verify:pool -- --allow-placeholders` passes locally.
-- [x] Unit suite passes: 1,385 passed and 25 skipped.
+- [x] Unit suite passes: 1,480 passed and 25 skipped.
 - [x] Integration suite passes: 358 passed and 9 skipped.
 - [x] `npm run verify:pool:release -- --url https://reploid.web.app --channel=chrome` passes production readiness, all public routes, synthetic peer flow, actual Doppler WebGPU inference, receipt agreement, requester signature verification, and signed points/reputation event verification.
 - [x] `npm audit` and the production-image `npm ci --omit=dev --include=optional` audit report zero vulnerabilities.
@@ -70,10 +70,10 @@ The current Cloud Run and Firestore path is transitional. The target Reploid con
 
 ## Doppler Evidence Contract
 
-- [x] Confirm the configured `doppler-gpu@0.4.7` browser module loads from the public module URL without import-map or bundler assumptions.
-- [ ] Add or consume a narrow public Doppler evidence export for token ids, transcript hashes, generation config, runtime profile hash, and backend identity.
-- [ ] Keep Reploid from deep-importing Doppler internals.
-- [ ] Show a visible comparison receipt for Doppler output fields versus Reploid receipt fields.
+- [ ] Publish `doppler-gpu@0.4.15`, then confirm the configured browser module loads from its public module URL without import-map or bundler assumptions.
+- [x] Consume the narrow public Doppler evidence export for token ids, transcript hashes, generation config, runtime profile hash, and backend identity.
+- [x] Keep Reploid from deep-importing Doppler internals.
+- [x] Show a visible comparison receipt for Doppler output fields versus Reploid receipt fields.
 - [ ] Remove token-level evidence warning only after the configured public Doppler evidence export exists and tests assert it.
 
 ---
@@ -127,7 +127,7 @@ The current Cloud Run and Firestore path is transitional. The target Reploid con
 - [ ] Do not launch paid settlement or payouts before accepted receipts and reputation work publicly.
 - [ ] Do not claim hardware attestation.
 - [ ] Do not make broad `/pool/**` Firebase backend rewrites.
-- [ ] Do not deep-import Doppler internals.
+- [x] Do not deep-import Doppler internals.
 - [ ] Do not let UI copy exceed `pool-config.json` claims.
 - [x] Present Reploid as the public product brand and substrate identity.
 - [ ] Do not treat Cloud Run or Firestore as the permanent Reploid authority.
@@ -146,9 +146,9 @@ The current Cloud Run and Firestore path is transitional. The target Reploid con
 - [x] Same-origin browser-room target path works without required Reploid server control-plane calls: peers discover local adverts, route signed intents, elect providers, reach quorum, countersign acceptance, and produce signed reputation events.
 - [x] Wider room path works with optional metadata relay and without required Reploid server job, assignment, quorum, acceptance, points, or reputation authority.
 - [ ] Wider peer graph path works without any Reploid server relay across remote browsers.
-- [ ] The receipt binds model hash, manifest hash, runtime, backend, generation config, output hash, token ids hash or documented warning, provider signature, verifier decision, and requester acceptance.
+- [x] The receipt binds model hash, manifest hash, runtime, backend, generation config, output hash, token ids hash or documented warning, provider signature, verifier decision, and requester acceptance.
 - [x] Docs, config, UI copy, and verifier claims match.
 
 ---
 
-*Last updated: July 10, 2026*
+*Last updated: July 24, 2026*
