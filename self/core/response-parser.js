@@ -385,7 +385,7 @@ const ResponseParser = {
             const blockLines = [];
             index++;
 
-            while (index < lines.length && lines[index].trim() !== marker) {
+            while (index < lines.length && stripProtocolInlineComment(lines[index].trim()).replace(/^`|`$/g, '') !== marker) {
               blockLines.push(lines[index]);
               index++;
             }

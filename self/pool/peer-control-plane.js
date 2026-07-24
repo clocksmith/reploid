@@ -4,8 +4,10 @@
 
 import {
   calculateReceiptPoints,
+  canonicalize,
   exportPublicKey,
   hashJson,
+  receiptSigningPayload,
   sha256Hex,
   SIGNATURE_DOMAINS,
   signCanonical,
@@ -1109,7 +1111,45 @@ export async function buildPeerReceiptAgreement({
     if (!assignment) reasons.push('assignment not in plan');
     const receipt = receiptPayload?.body?.receipt || null;
     if (!receipt) reasons.push('receipt body is required');
-    if (assignment && receipt) reasons.push(...receiptMatchesAssignment(receipt, assignment));
+    if (assignment && receipt) {
+      reasons.push(...receiptMatchesAssignment(receipt, assignment));
+
+      const providerPublicKey = assignment.providerPublicKey
+        || receiptPayload?.body?.providerPublicKey
+        || receiptPayload?.publicKey
+        || receipt.providerPublicKey;
+      if (!providerPublicKey) {
+        reasons.push('assignment providerPublicKey is missing for verification');
+      } else if (receipt.providerSignature) {
+        try {
+          const sigOk = await verifyCanonicalSignature(
+            receiptSigningPayload(receipt),
+            providerPublicKey,
+            receipt.providerSignature,
+            { domain: SIGNATURE_DOMAINS.providerReceipt }
+          );
+          if (!sigOk) reasons.push('receipt providerSignature verification failed');
+        } catch (err) {
+          reasons.push(`receipt providerSignature verification error: ${err.message}`);
+        }
+      }
+
+      const bodyOutputText = receiptPayload?.body?.outputText;
+      if (typeof bodyOutputText === 'string' && bodyOutputText.length > 0) {
+        const computedOutputHash = await sha256Hex(bodyOutputText);
+        if (receipt.outputHash && computedOutputHash !== receipt.outputHash) {
+          reasons.push(`receipt outputHash mismatch with returned outputText (${computedOutputHash} vs ${receipt.outputHash})`);
+        }
+      }
+
+      const bodyTokenIds = receiptPayload?.body?.tokenIds;
+      if (Array.isArray(bodyTokenIds) && bodyTokenIds.length > 0) {
+        const computedTokenIdsHash = await sha256Hex(canonicalize(bodyTokenIds));
+        if (receipt.tokenIdsHash && computedTokenIdsHash !== receipt.tokenIdsHash) {
+          reasons.push(`receipt tokenIdsHash mismatch with returned tokenIds (${computedTokenIdsHash} vs ${receipt.tokenIdsHash})`);
+        }
+      }
+    }
     const receiptHash = receipt ? await hashJson(receipt) : null;
     if (receiptPayload?.body?.receiptHash && receiptPayload.body.receiptHash !== receiptHash) {
       reasons.push('receiptHash mismatch');
@@ -1130,6 +1170,7 @@ export async function buildPeerReceiptAgreement({
       receipt,
       receiptHash,
       providerId: assignment.providerId,
+      providerPublicKey: assignment.providerPublicKey || receiptPayload?.body?.providerPublicKey || receipt.providerPublicKey,
       agreementValue,
       outputHash: receipt.outputHash,
       tokenIdsHash: receipt.tokenIdsHash,
@@ -1140,8 +1181,20 @@ export async function buildPeerReceiptAgreement({
   const groups = new Map();
   for (const record of validRecords) {
     const bucket = groups.get(record.agreementValue) || [];
-    bucket.push(record);
-    groups.set(record.agreementValue, bucket);
+    const isDuplicate = bucket.some((existing) => (
+      existing.providerId === record.providerId ||
+      (existing.providerPublicKey && record.providerPublicKey && existing.providerPublicKey === record.providerPublicKey)
+    ));
+    if (!isDuplicate) {
+      bucket.push(record);
+      groups.set(record.agreementValue, bucket);
+    } else {
+      rejectedRecords.push({
+        receiptPayload: record.receiptPayload,
+        receiptHash: record.receiptHash,
+        reasons: ['duplicate provider ID or public key in quorum bucket']
+      });
+    }
   }
   const rankedGroups = [...groups.entries()]
     .map(([agreementValue, records]) => [agreementValue, records.sort((left, right) => left.providerId.localeCompare(right.providerId))])

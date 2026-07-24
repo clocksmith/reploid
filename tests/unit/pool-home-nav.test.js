@@ -107,13 +107,13 @@ describe('poolday home navigation', () => {
     expect(html).toMatch(/href="\/compute"[\s\S]*data-pool-route-link="\/compute"[\s\S]*aria-current="page"/);
     expect(html).toContain('href="/records" data-pool-route-link="/records"');
     expect(html).toContain('href="/zero" data-pool-substrate-route="/zero"');
-    expect(html).toContain('href="/x" data-pool-substrate-route="/x"');
+    expect(html).not.toContain('href="/x" data-pool-substrate-route="/x"');
     expect(html).toContain('aria-label="Zero"');
-    expect(html).toContain('aria-label="X"');
+    expect(html).not.toContain('aria-label="X"');
     expect(html).not.toContain('pool-nav-badge">Experimental</span>');
     expect(html).toContain('class="pool-room-context"');
     expect(html).toContain('data-pool-room-id');
-    expect((html.match(/data-pool-nav-tooltip=/g) || []).length).toBeGreaterThanOrEqual(7);
+    expect((html.match(/data-pool-nav-tooltip=/g) || []).length).toBeGreaterThanOrEqual(6);
     expect(html).toContain('data-pool-drawer-section="participation"');
     expect(html).toContain('data-pool-participation-surface="navigation"');
     expect(html).toContain('data-pool-navigation-participation');
@@ -135,7 +135,7 @@ describe('poolday home navigation', () => {
     expect(html).toContain('<span class="pool-nav-description">Answers, work, rooms, and receipts</span>');
     expect(html).toContain('<span class="pool-nav-description">Prompt peers and inspect the proof</span>');
     expect(html).toContain('<span class="pool-nav-description">Blank local substrate</span>');
-    expect(html).toContain('<span class="pool-nav-description">Self-modifying workspace</span>');
+    expect(html).not.toContain('<span class="pool-nav-description">Self-modifying workspace</span>');
     expect(html).toContain('<div class="pool-room-context-heading">');
   });
 
@@ -180,20 +180,27 @@ describe('poolday home navigation', () => {
     expect(html).not.toContain('aria-label="Current room and model"');
     expect(html.indexOf('class="pool-home-toolbar"')).toBeLessThan(html.indexOf('class="pool-simulation-shell"'));
     expect(html).toMatch(/class="pool-home-toolbar"[\s\S]*pool-home-toolbar-leading[\s\S]*class="pool-simulation-shell"[\s\S]*class="pool-home-ask-dock/);
-    expect(html).not.toContain('pool-zero-link');
+    expect(html).toContain('data-pool-dashboard-inspector');
+    expect(html).toContain('pool-nav-rail pool-control-drawer pool-dashboard-inspector');
+    expect(html).toMatch(/pool-dashboard-inspector[\s\S]*pool-nav-brand-copy[\s\S]*<strong>Compute<\/strong>/);
+    expect(html).toMatch(/pool-dashboard-inspector[\s\S]*pool-nav-bottom[\s\S]*pool-x-link/);
+    expect(html).not.toContain('pool-dashboard-inspector[\s\S]*pool-zero-link');
+    expect(html).toContain('data-pool-capability-profile');
     expect(html).not.toContain('Ask browser models.<br>Share compute. Or both.');
   });
 
-  it('uses shared navigation on home, not request controls', () => {
+  it('turns the Home rail into vertically collapsible request controls', () => {
     const html = renderNav('home', { dashboard: true, dashboardView: 'compute' });
 
-    expect(html).toContain('class="pool-nav-rail');
-    expect(html).not.toContain('pool-control-drawer');
-    expect(html).toContain('href="/" data-pool-dashboard-view="home"');
-    expect(html).toContain('href="/?view=ask" data-pool-dashboard-view="ask"');
-    expect(html).toContain('href="/?view=compute" data-pool-dashboard-view="compute"');
-    expect(html).toContain('href="/?view=records" data-pool-dashboard-view="records"');
-    expect(html).toContain('data-pool-drawer-section="participation"');
+    expect(html).toContain('class="pool-nav-rail pool-control-drawer"');
+    expect(html).toContain('aria-label="Request controls"');
+    expect(html).toContain('data-pool-drawer-section="request-workload" open');
+    expect(html).toContain('data-pool-drawer-section="request-model"');
+    expect(html).toContain('data-pool-drawer-section="request-participation"');
+    expect(html).not.toContain('data-pool-dashboard-view');
+    expect(html).toMatch(/pool-nav-bottom[\s\S]*pool-zero-link/);
+    expect(html).not.toContain('pool-x-link');
+    expect(html).not.toContain('href="/records"');
     expect(PRODUCT_ROUTES['/ask']).toBe('ask');
     expect(PRODUCT_ROUTES['/compute']).toBe('compute');
     expect(PRODUCT_ROUTES['/records']).toBe('records');

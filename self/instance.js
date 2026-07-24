@@ -174,9 +174,23 @@ export function getScopedReploidStorageKey(baseKey, instanceId = getCurrentReplo
   return prefix ? `${prefix}${key}` : key;
 }
 
-export function getScopedReploidVfsDbName(instanceId = getCurrentReploidInstanceId()) {
+export function getSurfaceIdFromUrl(input = globalThis.location?.href || '') {
+  try {
+    const base = globalThis.location?.origin || 'http://localhost';
+    const url = input instanceof URL ? input : new URL(String(input), base);
+    const pathname = normalizeInstancePath(url.pathname);
+    if (pathname.startsWith('/zero')) return 'zero';
+    if (pathname.startsWith('/x')) return 'x';
+    return 'poolday';
+  } catch {
+    return 'poolday';
+  }
+}
+
+export function getScopedReploidVfsDbName(instanceId = getCurrentReploidInstanceId(), surfaceId = getSurfaceIdFromUrl()) {
   const id = sanitizeReploidInstanceId(instanceId);
-  return id ? `${REPLOID_DEFAULT_VFS_DB_NAME}--${id}` : REPLOID_DEFAULT_VFS_DB_NAME;
+  const surface = String(surfaceId || getSurfaceIdFromUrl() || 'poolday').toLowerCase();
+  return id ? `${REPLOID_DEFAULT_VFS_DB_NAME}--${surface}--${id}` : `${REPLOID_DEFAULT_VFS_DB_NAME}--${surface}`;
 }
 
 export function createScopedReploidStorage(storage = globalThis.localStorage, instanceId = getCurrentReploidInstanceId()) {

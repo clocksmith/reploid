@@ -784,12 +784,19 @@ const renderProviderHealth = (state = POOLDAY_PROVIDER_HEALTH) => {
     ['Local cache', state.storage],
     ['Reputation', state.reputation]
   ];
-  const renderRows = (rows) => rows.filter(([, value]) => value !== undefined && value !== null).map(([label, value]) => `
-    <span class="pool-summary-item">
-      <span class="rgr-status-label">${escapeHtml(label)}</span>
-      <span class="rgr-status-value">${escapeHtml(compactHash(label === 'GPU buffer' ? formatBytes(value) : formatHealthValue(value)))}</span>
-    </span>
-  `).join('');
+  const renderRows = (rows) => rows.filter(([, value]) => value !== undefined && value !== null).map(([label, value]) => {
+    const formatted = label === 'GPU buffer' ? formatBytes(value) : formatHealthValue(value);
+    const isValLoading = formatted.toLowerCase() === 'loading';
+    const valueHtml = isValLoading
+      ? `<span class="pool-health-loading-text">${escapeHtml(formatted)}</span>`
+      : escapeHtml(compactHash(formatted));
+    return `
+      <span class="pool-summary-item"${isValLoading ? ' data-loading="true"' : ''}>
+        <span class="rgr-status-label">${escapeHtml(label)}</span>
+        <span class="rgr-status-value">${valueHtml}</span>
+      </span>
+    `;
+  }).join('');
   return `
     <div class="pool-provider-health-stack">
       <div class="boot-status-strip pool-summary" aria-label="Contributor readiness">
@@ -885,20 +892,13 @@ const extractResultSummary = (value = {}) => {
   if (isErrorResult(value)) {
     const payload = value.payload || {};
     const model = value.model || payload.model || payload.requiredModel || null;
-    const artifact = payload.artifactPreflight || value.artifactPreflight || null;
     const fields = [
-      ['Error', value.error],
-      ['Reason', value.reason],
+      ['Status', value.error || 'Failed'],
       ['Code', value.code],
       ['Room', value.roomId || payload.roomId],
-      ['Relay', value.relay],
-      ['Model', model?.modelId || model?.id],
-      ['Artifact', artifact?.status],
-      ['Manifest', artifact?.urls?.manifest || payload.urls?.manifest],
-      ['Retryable', value.retryable === true ? 'yes' : value.retryable === false ? 'no' : null],
-      ['Action', value.action || payload.action]
+      ['Model', model?.modelId || model?.id]
     ].filter(([, fieldValue]) => fieldValue !== undefined && fieldValue !== null && fieldValue !== '');
-    return fields.slice(0, 10);
+    return fields.slice(0, 4);
   }
   const job = value.job || value;
   const record = value.receipt || value.record || value;
@@ -1126,11 +1126,9 @@ const formatResultMessage = (value = {}) => {
   if (value === undefined || value === null || value === '') return '';
   if (typeof value === 'string') return value;
   if (isErrorResult(value)) {
-    return [
-      value.error || 'Request failed',
-      value.reason,
-      value.action || value.payload?.action
-    ].filter(Boolean).join('\n');
+    const mainReason = value.reason || value.error || 'Request failed';
+    const actionText = value.action || value.payload?.action;
+    return actionText ? `${mainReason}\n\n${actionText}` : mainReason;
   }
   const output = extractOutputText(value);
   if (output) return output;
@@ -1180,6 +1178,7 @@ const formatErrorResultText = (value = {}) => {
   const lines = [
     value.error ? `Error: ${value.error}` : null,
     value.reason ? `Reason: ${value.reason}` : null,
+    value.code ? `Code: ${value.code}` : null,
     value.action || payload.action ? `Next: ${value.action || payload.action}` : null,
     value.roomId || payload.roomId ? `Room: ${value.roomId || payload.roomId}` : null,
     value.relay ? `Relay: ${value.relay}` : null,
@@ -1187,8 +1186,7 @@ const formatErrorResultText = (value = {}) => {
     artifact?.status ? `Artifact: ${artifact.status}` : null,
     artifact?.urls?.manifest || payload.urls?.manifest ? `Manifest: ${artifact?.urls?.manifest || payload.urls?.manifest}` : null
   ].filter(Boolean);
-  const detail = safeJsonStringify(value);
-  return `${lines.join('\n')}${lines.length ? '\n\n' : ''}${detail}`;
+  return lines.join('\n');
 };
 
 export const setResult = (id, value, options = {}) => {
@@ -1289,11 +1287,48 @@ const renderRailOutlink = (id) => {
   return `<a class="pool-nav-link pool-nav-substrate-link pool-${id}-link link-secondary" href="${link.path}" data-pool-substrate-route="${link.path}" aria-label="${escapeHtml(link.label)}" title="${tooltip}" data-pool-nav-tooltip="${tooltip}"><span class="pool-nav-glyph" aria-hidden="true">${escapeHtml(link.glyph)}</span><span class="pool-nav-description">${escapeHtml(link.description)}</span></a>`;
 };
 
+const renderHomeRequestDrawer = (open) => `
+  <nav class="pool-nav-rail pool-control-drawer${open ? ' is-open' : ''}" aria-label="Request controls">
+    <div class="pool-nav-top">
+      <button class="pool-nav-toggle" type="button" aria-label="${open ? 'Close request controls' : 'Open request controls'}" title="${open ? 'Close request controls' : 'Open request controls'}" data-pool-nav-tooltip="${open ? 'Close request controls' : 'Open request controls'}" aria-controls="pool-nav-menu" aria-expanded="${String(open)}">
+        <span class="pool-nav-mark" aria-hidden="true">
+          <span class="pool-nav-mark-seven pool-nav-mark-seven-top">7</span>
+          <span class="pool-nav-mark-seven pool-nav-mark-seven-bottom">7</span>
+        </span>
+        <span class="pool-nav-brand-copy" aria-hidden="true"><strong>Request</strong></span>
+      </button>
+      <div class="pool-nav-menu pool-drawer-stack" id="pool-nav-menu">
+        ${renderDrawerSection('request-workload', 'Workload', '⌥', `
+          <div class="pool-home-lane-chips" role="group" aria-label="Workload lanes">
+            <button type="button" class="pool-lane-chip is-active" data-pool-lane="text" data-pool-request-control aria-pressed="true">Text</button>
+            <button type="button" class="pool-lane-chip" data-pool-lane="adapters" data-pool-request-control aria-pressed="false">Adapters</button>
+            <button type="button" class="pool-lane-chip" data-pool-lane="sequence" data-pool-request-control aria-pressed="false">Sequence</button>
+          </div>
+          <label class="pool-home-adapter-picker" data-pool-home-adapter-picker hidden>
+            <span>Adapter pack</span>
+            <select id="pool-home-adapter" data-pool-run-adapter data-pool-request-control disabled>
+              <option value="">Loading published packs…</option>
+            </select>
+          </label>
+        `, { open: true })}
+        ${renderDrawerSection('request-model', 'Model', '⛝', `
+          <div class="pool-drawer-value"><span>Selected</span><b>${escapeHtml(LAUNCH_MODEL.label || LAUNCH_MODEL.modelId)}</b></div>
+        `)}
+        ${renderDrawerSection('request-participation', 'Participation', '⚿', renderParticipationControl({ surface: 'request-drawer' }))}
+      </div>
+    </div>
+    <div class="pool-nav-bottom">
+      ${renderRailOutlink('zero')}
+    </div>
+  </nav>
+`;
+
 export const renderNav = (activeRoute, {
   open = false,
   dashboard = false,
   dashboardView = 'home'
 } = {}) => {
+  if (dashboard) return renderHomeRequestDrawer(open);
   const glyphs = {
     home: '⌂',
     ask: '?',
@@ -1358,7 +1393,6 @@ export const renderNav = (activeRoute, {
           </section>
         `, { open: true })}
         ${renderRailOutlink('zero')}
-        ${renderRailOutlink('x')}
       </div>
     </nav>
   `;
@@ -1646,6 +1680,69 @@ const renderFlowLabels = () => POOLDAY_GRAPH_LABEL_STAGES.map((stage) => ({
   </span>
 `).join('');
 
+const renderDashboardCapability = () => `
+  <section class="pool-capability-card" data-pool-capability-profile data-capability-state="checking" aria-live="polite">
+    <div class="pool-capability-heading">
+      <div>
+        <span class="pool-dashboard-kicker">This device</span>
+        <h3 data-pool-capability-tier>Checking WebGPU</h3>
+      </div>
+      <strong data-pool-capability-score>--</strong>
+    </div>
+    <p data-pool-capability-summary>Measuring browser limits and a bounded compute kernel. No model is loaded.</p>
+    <div class="pool-capability-meter" aria-hidden="true"><span data-pool-capability-meter></span></div>
+    <dl class="pool-capability-metrics">
+      <div><dt>WebGPU</dt><dd data-pool-capability-webgpu>Checking</dd></div>
+      <div><dt>GPU buffer</dt><dd data-pool-capability-buffer>--</dd></div>
+      <div><dt>Kernel</dt><dd data-pool-capability-kernel>--</dd></div>
+      <div><dt>Stable</dt><dd data-pool-capability-stability>--</dd></div>
+    </dl>
+    <div class="pool-capability-models">
+      <b>Eligible here</b>
+      <div data-pool-capability-models><span>Checking model contracts</span></div>
+    </div>
+    <button class="btn btn-ghost" type="button" data-pool-capability-rerun>Check again</button>
+  </section>
+`;
+
+const renderDashboardInspector = () => `
+  <aside class="pool-nav-rail pool-control-drawer pool-dashboard-inspector" aria-label="Compute controls" data-pool-dashboard-inspector>
+    <div class="pool-nav-top">
+      <button class="pool-nav-toggle pool-inspector-toggle" type="button" aria-label="Open compute controls" title="Open compute controls" data-pool-nav-tooltip="Open compute controls" aria-controls="pool-inspector-panels" aria-expanded="false" data-pool-inspector-toggle>
+        <span class="pool-nav-mark" aria-hidden="true">
+          <span class="pool-nav-mark-seven pool-nav-mark-seven-top">7</span>
+          <span class="pool-nav-mark-seven pool-nav-mark-seven-bottom">7</span>
+        </span>
+        <span class="pool-nav-brand-copy" aria-hidden="true"><strong>Compute</strong></span>
+      </button>
+      <div class="pool-nav-menu pool-drawer-stack" id="pool-inspector-panels">
+        ${renderDrawerSection('compute-device', 'Device', '⚙', renderDashboardCapability())}
+        ${renderDrawerSection('compute-sharing', 'Sharing', '⇄', `
+          <section data-pool-provider aria-label="Share this browser">
+          <p class="pool-provider-status" data-pool-provider-status>Idle</p>
+          <label class="pool-field">
+            <span>Model</span>
+            <select id="pool-provider-model">${renderModelOptions({ includeWorkloadLabel: true })}</select>
+          </label>
+          <p class="pool-provider-capability type-caption">This tab accepts <span class="pool-workload-badge" data-pool-provider-workload>text generation</span> jobs when the device qualifies.</p>
+          ${renderParticipationControl({ surface: 'dashboard', advanced: true, shareAction: true })}
+          <div id="pool-provider-health" class="pool-ledger-shell" aria-live="polite">${renderProviderHealth()}</div>
+          </section>
+        `, { open: true })}
+        ${renderDrawerSection('compute-room', 'Room', '☍', renderRoomContext())}
+        ${renderDrawerSection('compute-activity', 'Activity', '☷', `
+          <section data-pool-dashboard-activity aria-label="Activity">
+          <div id="pool-record-ledger" aria-live="polite" data-record-facet="all">${renderRecordLedger()}</div>
+          </section>
+        `)}
+      </div>
+    </div>
+    <div class="pool-nav-bottom">
+      ${renderRailOutlink('x')}
+    </div>
+  </aside>
+`;
+
 const renderHomeSimulation = ({ dashboardView = 'home' } = {}) => {
   const activeView = normalizePoolDashboardView(dashboardView);
   const suggestedPrompt = choosePooldayAskPlaceholder();
@@ -1682,15 +1779,15 @@ const renderHomeSimulation = ({ dashboardView = 'home' } = {}) => {
       <form class="pool-home-ask-dock pool-home-cta-row pool-home-ask-form" id="pool-home-ask-form" aria-label="Ask the network">
         <div class="pool-home-ask-pill">
           <input
-            id="pool-home-ask-prompt"
-            class="pool-home-ask-input"
-            name="prompt"
-            type="text"
-            aria-label="Ask prompt"
-            autocomplete="off"
-            placeholder="${escapeHtml(suggestedPrompt)}"
-            data-pool-suggested-prompt="${escapeHtml(suggestedPrompt)}"
-            data-pool-request-control
+             id="pool-home-ask-prompt"
+             class="pool-home-ask-input"
+             name="prompt"
+             type="text"
+             aria-label="Ask prompt"
+             autocomplete="off"
+             placeholder="${escapeHtml(suggestedPrompt)}"
+             data-pool-suggested-prompt="${escapeHtml(suggestedPrompt)}"
+             data-pool-request-control
           >
           <button class="pool-shape-action pool-shape-action--circle pool-shape-action--ask pool-home-ask-submit"
                   id="pool-home-run-submit"
@@ -1701,6 +1798,7 @@ const renderHomeSimulation = ({ dashboardView = 'home' } = {}) => {
           </button>
         </div>
       </form>
+      ${renderDashboardInspector()}
     </section>
   `;
 };

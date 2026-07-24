@@ -323,7 +323,7 @@ describe('pool peer room', () => {
       payload: {
         roomId: 'empty-room-test',
         observedProviderCount: 0,
-        action: 'Open Compute in another tab with the same room, click Start, then ask again.'
+        action: 'Start contributing in Compute to download and host qwen-3-5-0-8b-q4k-ehaf16 locally in this browser, or open another tab in room "empty-room-test".'
       }
     });
   });
