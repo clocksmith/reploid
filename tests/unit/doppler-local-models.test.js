@@ -16,14 +16,15 @@ import {
 } from '../../self/config/doppler-local-models.js';
 
 const packageJson = JSON.parse(readFileSync('package.json', 'utf8'));
+const packageLock = JSON.parse(readFileSync('package-lock.json', 'utf8'));
 
 describe('local Doppler model contract', () => {
   it('exposes Qwen as the only local Doppler option for now', () => {
     expect(DOPPLER_PACKAGE_NAME).toBe('doppler-gpu');
     expect(DOPPLER_PACKAGE_VERSION).toBe('0.4.15');
-    expect(DOPPLER_MODULE_URL).toBe('https://esm.sh/doppler-gpu@0.4.15?bundle');
-    expect(DOPPLER_KERNEL_BASE_URL).toBe('https://esm.sh/doppler-gpu@0.4.15/src/gpu/kernels');
-    expect(DOPPLER_TOOLING_URL).toBe('https://esm.sh/doppler-gpu@0.4.15/tooling?bundle');
+    expect(DOPPLER_MODULE_URL).toBe('https://cdn.jsdelivr.net/npm/doppler-gpu@0.4.15/src/index.js');
+    expect(DOPPLER_KERNEL_BASE_URL).toBe('https://cdn.jsdelivr.net/npm/doppler-gpu@0.4.15/src/gpu/kernels');
+    expect(DOPPLER_TOOLING_URL).toBe('https://cdn.jsdelivr.net/npm/doppler-gpu@0.4.15/src/tooling-exports.browser.js');
     expect(DEFAULT_DOPPLER_MODEL_ID).toBe('qwen-3-5-2b-q4k-ehaf16');
     expect(LOCAL_DOPPLER_MODELS.map((model) => model.id)).toEqual([
       DEFAULT_DOPPLER_MODEL_ID
@@ -32,6 +33,12 @@ describe('local Doppler model contract', () => {
 
   it('keeps the Doppler package version pinned to package.json', () => {
     expect(packageJson.dependencies?.[DOPPLER_PACKAGE_NAME]).toBe(DOPPLER_PACKAGE_VERSION);
+    expect(packageLock.packages?.['']?.dependencies?.[DOPPLER_PACKAGE_NAME]).toBe(DOPPLER_PACKAGE_VERSION);
+    expect(packageLock.packages?.[`node_modules/${DOPPLER_PACKAGE_NAME}`]).toMatchObject({
+      version: DOPPLER_PACKAGE_VERSION,
+      resolved: `https://registry.npmjs.org/${DOPPLER_PACKAGE_NAME}/-/${DOPPLER_PACKAGE_NAME}-${DOPPLER_PACKAGE_VERSION}.tgz`
+    });
+    expect(packageLock.packages?.[`node_modules/${DOPPLER_PACKAGE_NAME}`]?.integrity).toMatch(/^sha512-/);
   });
 
   it('resolves only declared local Doppler model ids', () => {

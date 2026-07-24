@@ -174,8 +174,8 @@
     "useChatTemplate": false
   },
   "browserRuntime": {
-    "dopplerModuleUrl": "https://esm.sh/doppler-gpu@0.4.15?bundle",
-    "dopplerKernelBaseUrl": "https://esm.sh/doppler-gpu@0.4.15/src/gpu/kernels",
+    "dopplerModuleUrl": "https://cdn.jsdelivr.net/npm/doppler-gpu@0.4.15/src/index.js",
+    "dopplerKernelBaseUrl": "https://cdn.jsdelivr.net/npm/doppler-gpu@0.4.15/src/gpu/kernels",
     "modelBaseUrl": "https://huggingface.co/clocksmith/rdrr/resolve/80d7716270b6371d541de979eff3370edaf34e13/models",
     "loadOptions": {
       "cache": "opfs",

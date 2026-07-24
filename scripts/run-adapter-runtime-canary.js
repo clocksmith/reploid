@@ -7,15 +7,25 @@ import path from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { chromium } from '@playwright/test';
 
+import {
+  DOPPLER_KERNEL_BASE_URL,
+  DOPPLER_MODULE_URL,
+  DOPPLER_PACKAGE_VERSION
+} from '../self/config/doppler-local-models.js';
 import { LAUNCH_MODEL } from '../self/pool/model-contract.js';
 import { ADAPTER_RUNTIME_CANARY_RECEIPT_SCHEMA } from '../self/pool/adapter-canary-publication.js';
 
-const DOPPLER_VERSION = '0.4.15';
-const DOPPLER_INTEGRITY = 'sha512-Tbs8cOnOg+z+B8swuY29ydu11nmbaBajHc7zlYakpX57OSginazi3pOKGGtDfjDa2chxSWaPQopjZXr7CpLHaw==';
+const packageLock = JSON.parse(await fs.readFile(new URL('../package-lock.json', import.meta.url), 'utf8'));
+const lockedDoppler = packageLock.packages?.['node_modules/doppler-gpu'];
+if (lockedDoppler?.version !== DOPPLER_PACKAGE_VERSION || !String(lockedDoppler?.integrity || '').startsWith('sha512-')) {
+  throw new Error(`package-lock.json must bind doppler-gpu@${DOPPLER_PACKAGE_VERSION} with sha512 integrity`);
+}
+const DOPPLER_VERSION = DOPPLER_PACKAGE_VERSION;
+const DOPPLER_INTEGRITY = lockedDoppler.integrity;
 const MODEL_REVISION = '80d7716270b6371d541de979eff3370edaf34e13';
 const ADAPTER_REVISION = 'a618a2ccab25928a98694930376ebb3c3db241cb';
-const MODULE_URL = `https://esm.sh/doppler-gpu@${DOPPLER_VERSION}?bundle`;
-const KERNEL_BASE_URL = `https://esm.sh/doppler-gpu@${DOPPLER_VERSION}/src/gpu/kernels`;
+const MODULE_URL = DOPPLER_MODULE_URL;
+const KERNEL_BASE_URL = DOPPLER_KERNEL_BASE_URL;
 const MODEL_URL = `https://huggingface.co/clocksmith/rdrr/resolve/${MODEL_REVISION}/models/${LAUNCH_MODEL.modelId}`;
 const ADAPTER_URL = `https://huggingface.co/clocksmith/lora/resolve/${ADAPTER_REVISION}/adapters/network-canaries/qwen35-0.8b-ner-json-lora/adapter_model.safetensors`;
 const OUTPUT_PATH = path.resolve(
