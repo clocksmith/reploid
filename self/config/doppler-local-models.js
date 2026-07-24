@@ -4,9 +4,10 @@
 
 export const DOPPLER_PACKAGE_NAME = 'doppler-gpu';
 export const DOPPLER_PACKAGE_VERSION = '0.4.15';
-export const DOPPLER_MODULE_URL = `https://esm.sh/${DOPPLER_PACKAGE_NAME}@${DOPPLER_PACKAGE_VERSION}?bundle`;
-export const DOPPLER_KERNEL_BASE_URL = `https://esm.sh/${DOPPLER_PACKAGE_NAME}@${DOPPLER_PACKAGE_VERSION}/src/gpu/kernels`;
-export const DOPPLER_TOOLING_URL = `https://esm.sh/${DOPPLER_PACKAGE_NAME}@${DOPPLER_PACKAGE_VERSION}/tooling?bundle`;
+const DOPPLER_PACKAGE_BASE_URL = `https://cdn.jsdelivr.net/npm/${DOPPLER_PACKAGE_NAME}@${DOPPLER_PACKAGE_VERSION}`;
+export const DOPPLER_MODULE_URL = `${DOPPLER_PACKAGE_BASE_URL}/src/index.js`;
+export const DOPPLER_KERNEL_BASE_URL = `${DOPPLER_PACKAGE_BASE_URL}/src/gpu/kernels`;
+export const DOPPLER_TOOLING_URL = `${DOPPLER_PACKAGE_BASE_URL}/src/tooling-exports.browser.js`;
 
 export const DEFAULT_DOPPLER_MODEL_ID = 'qwen-3-5-2b-q4k-ehaf16';
 

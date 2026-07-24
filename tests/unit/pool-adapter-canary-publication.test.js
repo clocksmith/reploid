@@ -77,8 +77,8 @@ const createFixture = async () => {
       packageName: 'doppler-gpu',
       packageVersion: '0.4.15',
       packageIntegrity: 'sha512-test-integrity',
-      moduleUrl: 'https://esm.sh/doppler-gpu@0.4.15?bundle',
-      kernelBaseUrl: 'https://esm.sh/doppler-gpu@0.4.15/src/gpu/kernels'
+      moduleUrl: 'https://cdn.jsdelivr.net/npm/doppler-gpu@0.4.15/src/index.js',
+      kernelBaseUrl: 'https://cdn.jsdelivr.net/npm/doppler-gpu@0.4.15/src/gpu/kernels'
     },
     runtimeProof: {
       schema: ADAPTER_RUNTIME_CANARY_RECEIPT_SCHEMA,
