@@ -69,6 +69,7 @@ describe('RD stylesheet ownership', () => {
     expect(poolday).toContain('.pool-record-timeline');
     expect(poolday).toContain('.pool-record-event');
     expect(poolday).toContain('.pool-home-result-panel');
+    expect(poolday).toContain('var(--pool-home-ask-dock-height, var(--pool-metric-action))');
     expect(poolday).toContain("[data-pool-run-surface][data-run-state='idle']");
     expect(poolday).toContain(".pool-home-stage[data-run-state='running'][data-run-phase='verify']");
     expect(poolday).toMatch(/@media \(max-width: 720px\)\s*\{[\s\S]*?\.pool-ledger table\s*\{[\s\S]*?table-layout: fixed;/);

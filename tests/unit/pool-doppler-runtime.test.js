@@ -93,7 +93,6 @@ describe('Doppler browser runtime adapter', () => {
 
     expect(loaded.ok).toBe(true);
     expect(loadInput).toEqual(LAUNCH_MODEL.loadInput);
-    expect(loadInput.url).toContain(LAUNCH_MODEL.dopplerLoadRef);
     expect(loadOptions).toMatchObject({
       modelBaseUrl: '/models',
       cache: 'memory',
@@ -124,6 +123,34 @@ describe('Doppler browser runtime adapter', () => {
     });
     expect(result.outputText).toBe('answered:hello');
     expect(result.tokenIds).toEqual([101, 202]);
+  });
+
+  it('uses the explicit hosted ESM-2 load input before its non-registry alias', async () => {
+    const model = getEnabledPoolModelContract('esm2-t12-35m-ur50d-f32-af32');
+    let loadInput = null;
+    globalThis.REPLOID_DOPPLER_MODULE = {
+      load(input) {
+        loadInput = input;
+        return {
+          handle: {
+            modelId: model.modelId,
+            modelHash: model.modelHash,
+            manifestHash: model.manifestHash,
+            artifactIdentity: model.artifactIdentity,
+            encodeSequence() {
+              return {};
+            }
+          }
+        };
+      }
+    };
+
+    const runtime = createDopplerRuntime();
+    const loaded = await runtime.loadModel(model);
+
+    expect(loaded.ok).toBe(true);
+    expect(model.dopplerLoadRef).toBe('esm2-35m');
+    expect(loadInput).toEqual(model.loadInput);
   });
 
   it('honors the hosted Doppler kernel base override before loading the module', async () => {
@@ -581,7 +608,8 @@ describe('Doppler browser runtime adapter', () => {
             maxTokens: 4,
             temperature: 0,
             topP: 1,
-            topK: 1
+            topK: 1,
+            useSpeculative: false
           });
           return {
             schema: 'doppler_generation_evidence/v1',

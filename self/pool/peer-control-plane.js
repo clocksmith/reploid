@@ -26,7 +26,8 @@ import {
   buildLaunchProviderModel,
   getPoolModelWorkload,
   modelSupportsPoolWorkload,
-  validateLaunchModelRequirement
+  validateLaunchModelRequirement,
+  validateProviderModelContract
 } from './model-contract.js';
 import { modelSupportsAdapterRequirement } from './adapter-pack.js';
 import {
@@ -262,8 +263,11 @@ export async function createSignedProviderAdvert({
   const resolvedModels = Array.isArray(models) && models.length > 0
     ? models
     : [buildLaunchProviderModel()];
-  if (!resolvedModels.some((model) => validateLaunchModelRequirement(model).ok)) {
-    throw new Error('provider advert must include an enabled launch model contract');
+  const invalidModel = resolvedModels
+    .map((model) => ({ model, validation: validateProviderModelContract(model) }))
+    .find(({ validation }) => !validation.ok);
+  if (invalidModel) {
+    throw new Error(`provider advert model contract is invalid: ${invalidModel.validation.reasons.join('; ')}`);
   }
   for (const model of resolvedModels) {
     for (const adapter of model.adapterPacks || []) {
@@ -288,7 +292,7 @@ export async function createSignedProviderAdvert({
         maxConcurrentJobs: 1,
         maxTokensPerJob: 128,
         acceptedPolicies: [FASTEST_RECEIPT_POLICY_ID],
-        acceptedPolicyClasses: ['public_text', 'code_help', 'benchmark_eval'],
+        acceptedPolicyClasses: ['public_text', 'code_help', 'benchmark_eval', 'public_biological_sequence'],
         ...availability
       },
       reputationEvidence

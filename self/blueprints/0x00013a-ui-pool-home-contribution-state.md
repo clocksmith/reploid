@@ -9,17 +9,27 @@
 ---
 
 ### 1. Intent
-Define the purpose and constraints for ui/pool-home/contribution-state.js.
+Keep browser-local contribution state and recent receipt counters available to
+the Poolday Home presentation.
 
 ### 2. Architecture
-Outline the main responsibilities, dependencies, and data flow.
+`contribution-state.js` owns the in-memory live state and local receipt history.
+`view.js` renders that snapshot as readable status text and optional activity
+metrics. The status text itself carries the restrained state color treatment.
+Do not add a separate decorative state lamp or duplicate the written state.
 
 ### 3. Implementation Notes
-Record design decisions, edge cases, and integration details.
+- Render no global status when contribution is not enabled.
+- Use the explicit labels `Starting`, `Available`, `Answering`, and
+  `Needs attention`.
+- Keep decoration subordinate to the readable label. State must remain clear
+  without color.
+- Show hour, day, and recent-work metrics only when data exists.
 
 ### 4. Verification Checklist
-- [ ] Behavior matches blueprint intent
-- [ ] Dependencies are declared and available
-- [ ] Tests or verification steps updated as needed
+- [x] Non-contributing tabs render no global status
+- [x] Contributing tabs expose state through text and `data-contribution-state`
+- [x] Status presentation contains no redundant decorative state lamp
+- [x] Optional metrics render only when populated
 
 *Last updated: July 2026*

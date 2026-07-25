@@ -107,7 +107,8 @@ describe('pool launch contract', () => {
       topK: 1,
       topP: 1,
       seed: '0000000000000000',
-      useChatTemplate: false
+      useChatTemplate: false,
+      useSpeculative: false
     });
   });
 
@@ -249,6 +250,31 @@ describe('pool launch contract', () => {
       enabled: true
     });
     expect(browserModel).toEqual(serverModel);
+    expect(browserModel.artifactIdentity).toEqual({
+      sourceCheckpointId: 'google/gemma-3-270m-it',
+      weightPackId: 'gemma-3-270m-it-q4k-ehf16-af32-wp-catalog-v1',
+      manifestVariantId: 'gemma-3-270m-it-q4k-ehf16-af32-mv-exec-v1',
+      conversionConfigDigest: 'sha256:d3895907b9e7b17f1e6b015a66858c39889e1683b533fb0dde65f309d6a5854e',
+      artifactCompleteness: 'complete'
+    });
+    expect(browserModel.runtimeCompatibility).toMatchObject({
+      requiredWebGpuFeatures: ['shader-f16'],
+      fallbackStatus: 'no_declared_f32_kernel_path'
+    });
+    expect(validateModelRuntimeCapabilities(browserModel, {
+      hasWebGPU: true,
+      features: []
+    })).toMatchObject({
+      ok: false,
+      missingFeatures: ['shader-f16']
+    });
+    expect(validateModelRuntimeCapabilities(browserModel, {
+      hasWebGPU: true,
+      features: ['shader-f16']
+    })).toMatchObject({
+      ok: true,
+      missingFeatures: []
+    });
     expect(buildModelArtifactUrls(browserModel)).toEqual({
       root: 'https://huggingface.co/clocksmith/rdrr/resolve/a8591b20bce7c22d75becde1315482e76ff85fc9/models/gemma-3-270m-it-q4k-ehf16-af32',
       manifest: 'https://huggingface.co/clocksmith/rdrr/resolve/a8591b20bce7c22d75becde1315482e76ff85fc9/models/gemma-3-270m-it-q4k-ehf16-af32/manifest.json',

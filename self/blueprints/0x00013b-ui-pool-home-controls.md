@@ -24,10 +24,12 @@ Request, Contribute, and Both controls persist one signed participation profile.
 Contribution restarts when the signed profile changes so stale adverts cannot
 continue under old limits.
 
-Home is one persistent workspace. The left Request drawer owns the next job:
-Task, request Model, and answer Checks. The right Network drawer owns current
-execution context: Connection, This device, and Activity. Connection combines
-room and participation because both define how the browser joins the network.
+Home is one persistent workspace. The bottom composer owns the high-frequency
+task choice and submission. It exposes Text and Protein before a visitor opens
+either rail. The left Request drawer owns the lower-frequency request Model and
+answer Checks. The right Network drawer owns current execution context:
+Connection, This device, and Activity. Connection combines room and
+participation because both define how the browser joins the network.
 This device combines capability and sharing because the start/stop action must
 remain beside its readiness, model, cache, and health feedback. Both drawers use
 the same vertical disclosure sections and do not switch the center canvas to
@@ -41,18 +43,20 @@ budgets instead of acting as a decorative benchmark. Unsupported WebGPU is a
 separate state and cannot start a provider.
 
 ### 3. Implementation Notes
-Text remains the default lane. Sequence selects the enabled ESM-2 35M protein
-artifact, requires explicit public-input confirmation, and submits the raw
-sequence plus the governed sequence request over the peer-room input path.
-Adapter registry failure or an empty exact-model population fails closed in the
-picker and never falls back to a base-model job under an adapter label. Runtime
-adapter support and an empty publication registry are presented as distinct
-states.
+Text remains the default lane. Protein selects the enabled ESM-2 35M sequence
+artifact, reveals explicit public-input confirmation beside the composer, and
+submits the raw sequence plus the governed sequence request over the peer-room
+input path.
+Adapter registry failure or an empty exact-model population fails closed.
+Runtime adapter support and an empty publication registry remain distinct
+technical states, but an unavailable adapter mode is not rendered as an
+actionable composer lane. The composer reveals its secondary Adapter mode only
+when registry discovery finds a promoted pack for the selected text model.
 Task selection controls its explanation, placeholder, eligible request models,
-and conditional adapter field. The request Model control reaches the signed job
-requirements. Checks reaches the selected routing and verification policy.
-Collapsed section summaries expose the current selection or state without
-duplicating controls across rails.
+and conditional adapter or sequence field. The request Model control reaches
+the signed job requirements. Checks reaches the selected routing and
+verification policy. Collapsed section summaries expose the current selection
+or state without duplicating the primary mode control.
 Only enforceable controls are exposed: concurrency, output tokens, adapter cache,
 artifact relay, result verification, and advertised network capacity.
 Capability thresholds are conservative when the kernel cannot be measured.
@@ -75,9 +79,11 @@ reachable above the canvas.
 - [x] Provider model options enforce declared minimum capability scores
 - [x] Desktop, laptop, and mobile layouts retain all primary actions
 - [x] Request and Network drawers use consistent vertical disclosure sections
-- [x] Request Task, Model, and Checks reach the submitted peer job
+- [x] Composer Task, Request Model, and Checks reach the submitted peer job
 - [x] Sequence selects ESM-2 and submits a public protein sequence request
 - [x] Adapter empty state distinguishes runtime support from pack publication
+- [x] First-time visitors can choose Text or Protein without opening a rail
+- [x] Adapter mode appears only when a promoted exact-model pack is available
 - [x] Room and participation share one Connection section
 - [x] Device capability and sharing share one This device section
 - [x] Collapsed rail summaries expose current selections and states

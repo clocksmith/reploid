@@ -171,7 +171,8 @@
     "topP": 1,
     "maxOutputTokens": 128,
     "seed": "0000000000000000",
-    "useChatTemplate": false
+    "useChatTemplate": false,
+    "useSpeculative": false
   },
   "browserRuntime": {
     "dopplerModuleUrl": "https://cdn.jsdelivr.net/npm/doppler-gpu@0.4.15/src/index.js",
@@ -791,18 +792,9 @@
       "quantization": "q4k",
       "artifactIdentity": {
         "sourceCheckpointId": "google/gemma-3-270m-it",
-        "sourceRepo": "google/gemma-3-270m-it",
-        "sourceRevision": "ac82b4e820549b854eebf28ce6dedaf9fdfa17b3",
         "weightPackId": "gemma-3-270m-it-q4k-ehf16-af32-wp-catalog-v1",
-        "weightPackHash": "sha256:c41b842878dbae11b1d6a052b193b0307c7c1518c41f00df99992f51f9a86fff",
         "manifestVariantId": "gemma-3-270m-it-q4k-ehf16-af32-mv-exec-v1",
         "conversionConfigDigest": "sha256:d3895907b9e7b17f1e6b015a66858c39889e1683b533fb0dde65f309d6a5854e",
-        "conversionConfigPath": "src/config/conversion/gemma3/gemma-3-270m-it-q4k-ehf16-af32.json",
-        "materializationProfile": "auto",
-        "modalitySet": [
-          "text"
-        ],
-        "sourceFormat": "safetensors",
         "artifactCompleteness": "complete"
       },
       "runtime": "doppler",
@@ -835,6 +827,13 @@
           "tokenizer": "tokenizer.json",
           "shards": ""
         }
+      },
+      "runtimeCompatibility": {
+        "requiredWebGpuFeatures": [
+          "shader-f16"
+        ],
+        "fallbackStatus": "no_declared_f32_kernel_path",
+        "capabilityAction": "Use a browser/GPU that exposes shader-f16, or choose another enabled text model."
       },
       "label": "Gemma 3 270M",
       "enabled": true

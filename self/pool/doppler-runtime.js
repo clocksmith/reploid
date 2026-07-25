@@ -569,6 +569,9 @@ const toDopplerGenerationOptions = (generationConfig = {}) => {
     temperature,
     topP,
     topK,
+    useSpeculative: typeof generationConfig.useSpeculative === 'boolean'
+      ? generationConfig.useSpeculative
+      : false,
     stopTokens: normalizeStopList(generationConfig.stopTokens, (token) => (
       Number.isInteger(token) ? token : null
     )),
