@@ -10,17 +10,13 @@ import {
   receiptSigningPayload,
   sha256Hex,
   SIGNATURE_DOMAINS,
-  signCanonical,
   verifyCanonicalSignature
 } from './inference-receipt.js';
 import {
   DETERMINISTIC_GENERATION_CONFIG,
   FASTEST_RECEIPT_POLICY_ID,
   POOL_CONFIG_VERSION,
-  effectiveTrustTierForRingSize,
-  getLedgerReasons,
-  getPolicy,
-  quorumForRingSize
+  getPolicy
 } from './config.js';
 import { validatePooldayPolicyClasses } from './policy-router.js';
 import {
@@ -49,165 +45,81 @@ import {
 } from './adapter-publication.js';
 import {
   P2P_PAYLOAD_TYPES,
-  createP2PPayload,
-  hashP2PPayload,
   validateP2PPayload
 } from './p2p-payload.js';
 import {
   SEQUENCE_PUBLIC_SENSITIVITY,
-  agreementFieldForWorkload,
   isSequenceWorkload,
   normalizeSequenceInput,
   normalizeSequenceRequest,
   validateSequenceRequest
 } from './sequence-workload.js';
+import {
+  PEER_CONTROL_NETWORK,
+  PEER_CONTROL_VERSION,
+  PEER_MESSAGE_TYPES,
+  createPeerMessage,
+  createSignedPeerMessage,
+  hashPeerMessage,
+  peerMessageSigningPayload,
+  requirePeerString as requireString,
+  signPeerMessage,
+  validatePeerMessage,
+  verifyPeerMessage
+} from './peer-protocol.js';
+import {
+  PEER_CONTROL_BUS_VERSION,
+  createDataChannelPeerBus,
+  createInMemoryPeerBus
+} from './peer-transport.js';
+import {
+  createPeerEventReducer,
+  createPeerLedgerEvents
+} from './peer-ledger.js';
+import {
+  agreementFieldForIntent,
+  buildPeerRingPlan,
+  candidateSortKey,
+  intentMaxTokens,
+  intentWorkload,
+  peerIdForMessage,
+  providerAssignmentLimits,
+  selectRuntimeCompatibleAdverts
+} from './peer-planning.js';
+import {
+  createPeerPromptPayload,
+  createPeerSequencePayload,
+  validateInputPayloadForAssignment,
+  validatePromptPayloadForAssignment,
+  validateSequencePayloadForAssignment
+} from './peer-payload.js';
+import {
+  receiptAgreementValue,
+  receiptMatchesAssignment
+} from './peer-agreement.js';
 
-export const PEER_CONTROL_VERSION = 'reploid_peer_control/v1';
-export const PEER_CONTROL_BUS_VERSION = 'reploid_peer_control_bus/v1';
-export const PEER_CONTROL_NETWORK = 'poolday';
-
-export const PEER_MESSAGE_TYPES = Object.freeze({
-  JOB_INTENT: 'job_intent',
-  PROVIDER_ADVERT: 'provider_advert',
-  ASSIGNMENT_CLAIM: 'assignment_claim',
-  COMMITMENT: 'commitment',
-  REVEAL: 'reveal',
-  EXECUTION_RESULT: 'execution_result',
-  RECEIPT: 'receipt',
-  ACCEPTANCE: 'acceptance',
-  POINTS_EVENT: 'points_event',
-  REPUTATION_EVENT: 'reputation_event',
-  HEARTBEAT: 'heartbeat'
-});
-
-const MESSAGE_TYPES = new Set(Object.values(PEER_MESSAGE_TYPES));
-
-const requireString = (value, label) => {
-  const normalized = String(value || '').trim();
-  if (!normalized) throw new TypeError(`${label} is required`);
-  return normalized;
+export {
+  PEER_CONTROL_BUS_VERSION,
+  PEER_CONTROL_NETWORK,
+  PEER_CONTROL_VERSION,
+  PEER_MESSAGE_TYPES,
+  createDataChannelPeerBus,
+  createInMemoryPeerBus,
+  createPeerEventReducer,
+  createPeerLedgerEvents,
+  createPeerMessage,
+  createPeerPromptPayload,
+  createPeerSequencePayload,
+  createSignedPeerMessage,
+  hashPeerMessage,
+  peerMessageSigningPayload,
+  signPeerMessage,
+  validateInputPayloadForAssignment,
+  validatePeerMessage,
+  validatePromptPayloadForAssignment,
+  validateSequencePayloadForAssignment,
+  verifyPeerMessage
 };
-
-const optionalString = (value) => {
-  const normalized = String(value || '').trim();
-  return normalized || null;
-};
-
-const stripUndefined = (value) => {
-  if (Array.isArray(value)) return value.map(stripUndefined);
-  if (!value || typeof value !== 'object') return value;
-  return Object.fromEntries(
-    Object.entries(value)
-      .filter(([, child]) => child !== undefined)
-      .map(([key, child]) => [key, stripUndefined(child)])
-  );
-};
-
-const randomNonce = () => (
-  globalThis.crypto?.randomUUID
-    ? globalThis.crypto.randomUUID()
-    : `${Date.now().toString(36)}_${Math.random().toString(36).slice(2)}`
-);
-
-export function peerMessageSigningPayload(message = {}) {
-  const { signature, messageHash, ...payload } = message || {};
-  return stripUndefined(payload);
-}
-
-export function createPeerMessage({
-  type,
-  fromPeerId,
-  publicKey,
-  toPeerId = null,
-  body = {},
-  createdAt = new Date().toISOString(),
-  expiresAt = null,
-  nonce = randomNonce(),
-  causalRefs = []
-} = {}) {
-  if (!MESSAGE_TYPES.has(type)) throw new TypeError('peer message type is not allowed');
-  return stripUndefined({
-    peerControlVersion: PEER_CONTROL_VERSION,
-    network: PEER_CONTROL_NETWORK,
-    type,
-    fromPeerId: requireString(fromPeerId, 'fromPeerId'),
-    toPeerId: optionalString(toPeerId),
-    publicKey: requireString(publicKey, 'publicKey'),
-    body: body || {},
-    createdAt,
-    expiresAt,
-    nonce: requireString(nonce, 'nonce'),
-    causalRefs: Array.isArray(causalRefs) ? causalRefs.filter(Boolean) : []
-  });
-}
-
-export function validatePeerMessage(message = {}) {
-  const reasons = [];
-  if (message.peerControlVersion !== PEER_CONTROL_VERSION) reasons.push('peerControlVersion mismatch');
-  if (message.network !== PEER_CONTROL_NETWORK) reasons.push('peer control network mismatch');
-  if (!MESSAGE_TYPES.has(message.type)) reasons.push('peer message type is not allowed');
-  for (const field of ['fromPeerId', 'publicKey', 'createdAt', 'nonce']) {
-    if (!String(message[field] || '').trim()) reasons.push(`${field} is required`);
-  }
-  if (!message.body || typeof message.body !== 'object' || Array.isArray(message.body)) {
-    reasons.push('body must be an object');
-  }
-  if (message.expiresAt && Date.parse(message.expiresAt) <= Date.now()) {
-    reasons.push('peer message expired');
-  }
-  return {
-    ok: reasons.length === 0,
-    reasons
-  };
-}
-
-export async function hashPeerMessage(message = {}) {
-  return hashJson(peerMessageSigningPayload(message));
-}
-
-export async function signPeerMessage(message = {}, privateKey) {
-  if (!privateKey) throw new TypeError('privateKey is required');
-  const validation = validatePeerMessage(message);
-  if (!validation.ok) throw new Error(validation.reasons.join('; '));
-  const unsigned = peerMessageSigningPayload(message);
-  return {
-    ...unsigned,
-    messageHash: await hashJson(unsigned),
-    signature: await signCanonical(unsigned, privateKey, { domain: SIGNATURE_DOMAINS.peerMessage })
-  };
-}
-
-export async function createSignedPeerMessage({ privateKey, ...message } = {}) {
-  return signPeerMessage(createPeerMessage(message), privateKey);
-}
-
-export async function verifyPeerMessage(message = {}) {
-  const reasons = [];
-  const validation = validatePeerMessage(message);
-  reasons.push(...validation.reasons);
-  const messageHash = await hashPeerMessage(message);
-  if (message.messageHash !== messageHash) reasons.push('messageHash mismatch');
-  if (!message.signature) {
-    reasons.push('signature is required');
-  } else if (message.publicKey) {
-    try {
-      const ok = await verifyCanonicalSignature(
-        peerMessageSigningPayload(message),
-        message.publicKey,
-        message.signature,
-        { domain: SIGNATURE_DOMAINS.peerMessage }
-      );
-      if (!ok) reasons.push('signature invalid');
-    } catch (error) {
-      reasons.push(`signature verification failed: ${error.message}`);
-    }
-  }
-  return {
-    ok: reasons.length === 0,
-    messageHash,
-    reasons
-  };
-}
 
 export async function createSignedJobIntent({
   requesterId,
@@ -386,10 +298,6 @@ export async function createSignedProviderAdvert({
   });
 }
 
-const peerIdForMessage = (message = {}) => (
-  message.body?.providerId || message.body?.requesterId || message.fromPeerId
-);
-
 export async function verifyPeerRoleClaims(message = {}, {
   role,
   requiredCapability
@@ -426,122 +334,6 @@ const advertRuntimeProfileHashValid = async (advert = {}) => {
   const body = advert.body || {};
   if (!body.runtimeProfile || !body.runtimeProfileHash) return true;
   return await hashJson(body.runtimeProfile) === body.runtimeProfileHash;
-};
-
-const selectRuntimeCompatibleAdverts = ({ verifiedAdverts = [], policy = {}, minProviders = 1, maxProviders = verifiedAdverts.length } = {}) => {
-  if (!policy.requireHomogeneousRuntimeProfile) {
-    return {
-      ok: true,
-      selected: verifiedAdverts.slice(0, Math.min(maxProviders, verifiedAdverts.length))
-    };
-  }
-  const groups = new Map();
-  for (const candidate of verifiedAdverts) {
-    const runtimeProfileHash = candidate.advert.body?.runtimeProfileHash || 'runtime_profile_hash_missing';
-    const group = groups.get(runtimeProfileHash) || [];
-    group.push(candidate);
-    groups.set(runtimeProfileHash, group);
-  }
-  const rankedGroups = [...groups.entries()]
-    .map(([runtimeProfileHash, candidates]) => ({
-      runtimeProfileHash,
-      candidates,
-      firstSortKey: candidates[0]?.sortKey || ''
-    }))
-    .sort((left, right) => {
-      if (right.candidates.length !== left.candidates.length) return right.candidates.length - left.candidates.length;
-      const sortCompare = left.firstSortKey.localeCompare(right.firstSortKey);
-      return sortCompare || left.runtimeProfileHash.localeCompare(right.runtimeProfileHash);
-    });
-  const selectedGroup = rankedGroups[0] || null;
-  const selected = selectedGroup?.candidates.slice(0, Math.min(maxProviders, selectedGroup.candidates.length)) || [];
-  return {
-    ok: selected.length >= minProviders,
-    selected,
-    runtimeProfileHash: selectedGroup?.runtimeProfileHash || null,
-    compatibleProviders: selected.length
-  };
-};
-
-const candidateSortKey = async ({ intentHash, advert }) => hashJson({
-  intentHash,
-  providerId: peerIdForMessage(advert),
-  runtimeProfileHash: advert.body?.runtimeProfileHash || null,
-  publicKey: advert.publicKey
-});
-
-const ringAttemptIdFor = (intentHash, assignmentAttemptId = 1) => (
-  `peer_ring_attempt_${intentHash.replace(/^sha256:/, '').slice(0, 16)}_${assignmentAttemptId}`
-);
-
-const intentWorkload = (intent = {}) => (
-  intent.body?.workload
-  || intent.body?.modelRequirements?.workload
-  || intent.body?.modelRequirements?.workloadType
-  || POOLDAY_MODEL_WORKLOADS.textGeneration
-);
-
-const intentMaxTokens = (intent = {}) => Math.max(0, Number(
-  intent.body?.generationConfig?.maxOutputTokens
-    ?? intent.body?.generationConfig?.maxTokens
-    ?? 0
-));
-
-const providerAssignmentLimits = (advert = {}) => {
-  const availability = advert.body?.availability || {};
-  return {
-    maxConcurrentJobs: Number(availability.maxConcurrentJobs || 1),
-    maxTokensPerJob: Number(availability.maxTokensPerJob || 0),
-    storageBudgetMiB: Number(availability.storageBudgetMiB || 0),
-    bandwidthBudgetMbps: Number(availability.bandwidthBudgetMbps || 0)
-  };
-};
-
-const agreementFieldForIntent = (intent = {}, policy = {}) => {
-  const workload = intentWorkload(intent);
-  const workloadField = agreementFieldForWorkload(workload);
-  return workloadField === 'tokenIdsHash'
-    ? (policy.agreementField || workloadField)
-    : workloadField;
-};
-
-const buildPeerRingPlan = async ({ intent, intentHash, candidates, policy, assignmentAttemptId = 1 }) => {
-  const providerIds = candidates.map((candidate) => peerIdForMessage(candidate.advert));
-  const ringSeed = await hashJson({
-    schema: 'reploid.peer.ring_seed/v1',
-    intentHash,
-    policyId: policy.policyId,
-    providerIds: [...providerIds].sort()
-  });
-  const orderedWithKeys = await Promise.all(candidates.map(async (candidate) => ({
-    ...candidate,
-    ringSortKey: await hashJson({ ringSeed, providerId: peerIdForMessage(candidate.advert) })
-  })));
-  const ordered = orderedWithKeys.sort((left, right) => left.ringSortKey.localeCompare(right.ringSortKey));
-  const orderedProviderIds = ordered.map((candidate) => peerIdForMessage(candidate.advert));
-  const ringSize = orderedProviderIds.length;
-  const requiredAgreement = quorumForRingSize(ringSize, policy);
-  const layout = {
-    schema: 'reploid.peer.ring_layout/v1',
-    intentHash,
-    policyId: policy.policyId,
-    assignmentAttemptId,
-    ringAttemptId: ringAttemptIdFor(intentHash, assignmentAttemptId),
-    ringSize,
-    requiredAgreement,
-    agreementField: agreementFieldForIntent(intent, policy),
-    providerIds: orderedProviderIds,
-    ringSeed
-  };
-  const layoutHash = await hashJson(layout);
-  return {
-    ...layout,
-    ringId: `peer_ring_${layoutHash.replace(/^sha256:/, '').slice(0, 16)}`,
-    layout,
-    layoutHash,
-    effectiveTrustTier: effectiveTrustTierForRingSize(ringSize, policy),
-    candidates: ordered
-  };
 };
 
 export async function buildPeerAssignmentPlan({
@@ -786,132 +578,6 @@ export async function buildPeerAssignmentPlan({
   };
 }
 
-export async function createPeerPromptPayload({ assignment, prompt, fromPeerId, toPeerId } = {}) {
-  const resolvedPrompt = requireString(prompt, 'prompt');
-  const payload = createP2PPayload({
-    type: P2P_PAYLOAD_TYPES.PROMPT,
-    assignmentId: assignment?.assignmentId,
-    jobId: assignment?.jobId,
-    fromPeerId,
-    toPeerId,
-    body: {
-      prompt: resolvedPrompt,
-      inputHash: await sha256Hex(resolvedPrompt),
-      generationConfigHash: assignment?.generationConfigHash || null,
-      policyId: assignment?.policyId || null,
-      intentHash: assignment?.intentHash || null,
-      model: assignment?.model || null
-    }
-  });
-  return {
-    ...payload,
-    payloadHash: await hashP2PPayload(payload)
-  };
-}
-
-export async function createPeerSequencePayload({ assignment, sequence, fromPeerId, toPeerId } = {}) {
-  const request = assignment?.sequenceRequest || assignment?.model?.requirements?.sequenceRequest || null;
-  const requestValidation = validateSequenceRequest(request || {});
-  if (!requestValidation.ok) throw new Error(requestValidation.reasons.join('; '));
-  const resolvedSequence = normalizeSequenceInput(sequence, request.alphabet);
-  const inputHash = await sha256Hex(resolvedSequence);
-  if (inputHash !== request.sequenceHash || (assignment?.inputHash && inputHash !== assignment.inputHash)) {
-    throw new Error('sequence inputHash mismatch');
-  }
-  const payload = createP2PPayload({
-    type: P2P_PAYLOAD_TYPES.INPUT,
-    assignmentId: assignment?.assignmentId,
-    jobId: assignment?.jobId,
-    fromPeerId,
-    toPeerId,
-    body: {
-      inputKind: 'sequence',
-      sequence: resolvedSequence,
-      inputHash,
-      sequenceRequest: request,
-      generationConfigHash: assignment?.generationConfigHash || null,
-      policyId: assignment?.policyId || null,
-      intentHash: assignment?.intentHash || null,
-      model: assignment?.model || null
-    }
-  });
-  return {
-    ...payload,
-    payloadHash: await hashP2PPayload(payload)
-  };
-}
-
-export async function validatePromptPayloadForAssignment(payload = {}, assignment = {}) {
-  const reasons = [];
-  const validation = validateP2PPayload(payload);
-  reasons.push(...validation.reasons);
-  if (payload.type !== P2P_PAYLOAD_TYPES.PROMPT) reasons.push('payload type must be prompt');
-  if (payload.assignmentId !== assignment.assignmentId) reasons.push('assignmentId mismatch');
-  if (payload.jobId !== assignment.jobId) reasons.push('jobId mismatch');
-  if (!payload.body?.prompt) reasons.push('prompt is required');
-  const promptHash = payload.body?.prompt ? await sha256Hex(payload.body.prompt) : null;
-  if (payload.body?.inputHash !== promptHash) reasons.push('prompt payload inputHash mismatch');
-  if (assignment.inputHash && payload.body?.inputHash !== assignment.inputHash) reasons.push('assignment inputHash mismatch');
-  if (assignment.generationConfigHash && payload.body?.generationConfigHash !== assignment.generationConfigHash) {
-    reasons.push('generationConfigHash mismatch');
-  }
-  return {
-    ok: reasons.length === 0,
-    reasons,
-    prompt: payload.body?.prompt || null,
-    inputHash: payload.body?.inputHash || null
-  };
-}
-
-export async function validateSequencePayloadForAssignment(payload = {}, assignment = {}) {
-  const reasons = [];
-  const validation = validateP2PPayload(payload);
-  reasons.push(...validation.reasons);
-  if (payload.type !== P2P_PAYLOAD_TYPES.INPUT) reasons.push('payload type must be input');
-  if (payload.assignmentId !== assignment.assignmentId) reasons.push('assignmentId mismatch');
-  if (payload.jobId !== assignment.jobId) reasons.push('jobId mismatch');
-  if (payload.body?.inputKind !== 'sequence') reasons.push('inputKind must be sequence');
-  if (!payload.body?.sequence) reasons.push('sequence is required');
-  const request = assignment.sequenceRequest || assignment.model?.requirements?.sequenceRequest || null;
-  const requestValidation = validateSequenceRequest(request || {});
-  reasons.push(...requestValidation.reasons);
-  let sequence = null;
-  try {
-    sequence = payload.body?.sequence ? normalizeSequenceInput(payload.body.sequence, request?.alphabet) : null;
-  } catch (error) {
-    reasons.push(error.message);
-  }
-  const inputHash = sequence ? await sha256Hex(sequence) : null;
-  if (payload.body?.inputHash !== inputHash) reasons.push('sequence payload inputHash mismatch');
-  if (assignment.inputHash && payload.body?.inputHash !== assignment.inputHash) reasons.push('assignment inputHash mismatch');
-  if (request?.sequenceHash && payload.body?.inputHash !== request.sequenceHash) reasons.push('sequence request hash mismatch');
-  if (request?.sequenceLength && sequence?.length !== request.sequenceLength) reasons.push('sequence length mismatch');
-  if (await hashJson(payload.body?.sequenceRequest || null) !== await hashJson(request)) reasons.push('sequence request mismatch');
-  if (assignment.generationConfigHash && payload.body?.generationConfigHash !== assignment.generationConfigHash) {
-    reasons.push('generationConfigHash mismatch');
-  }
-  return {
-    ok: reasons.length === 0,
-    reasons,
-    inputKind: 'sequence',
-    sequence,
-    inputHash
-  };
-}
-
-export async function validateInputPayloadForAssignment(payload = {}, assignment = {}) {
-  const workload = assignment.workload
-    || assignment.model?.workload
-    || assignment.model?.requirements?.workload
-    || POOLDAY_MODEL_WORKLOADS.textGeneration;
-  if (isSequenceWorkload(workload)) return validateSequencePayloadForAssignment(payload, assignment);
-  const result = await validatePromptPayloadForAssignment(payload, assignment);
-  return {
-    ...result,
-    inputKind: 'prompt'
-  };
-}
-
 export async function validatePeerAssignmentForIntentAndAdvert({
   assignment = {},
   jobIntent,
@@ -1014,79 +680,6 @@ export async function validatePeerAssignmentForIntentAndAdvert({
     providerId: advertProviderId
   };
 }
-
-const receiptAgreementValue = (receipt = {}, agreementField = 'tokenIdsHash') => {
-  if (receipt[agreementField]) return receipt[agreementField];
-  if (agreementField === 'tokenIdsHash') return receipt.tokenIdsHash || null;
-  if (agreementField === 'outputHash') return receipt.outputHash || null;
-  if (agreementField === 'vectorHash') return receipt.vectorHash || null;
-  return null;
-};
-
-const receiptMatchesAssignment = (receipt = {}, assignment = {}) => {
-  const reasons = [];
-  if (receipt.assignmentId !== assignment.assignmentId) reasons.push('receipt assignmentId mismatch');
-  if (receipt.routeDecisionHash !== assignment.routeDecisionHash) reasons.push('receipt routeDecisionHash mismatch');
-  if (receipt.jobId !== assignment.jobId) reasons.push('receipt jobId mismatch');
-  if (receipt.requesterId !== assignment.requesterId) reasons.push('receipt requesterId mismatch');
-  if (receipt.providerId !== assignment.providerId) reasons.push('receipt providerId mismatch');
-  if (receipt.policyId !== assignment.policyId) reasons.push('receipt policyId mismatch');
-  if (receipt.inputHash !== assignment.inputHash) reasons.push('receipt inputHash mismatch');
-  if (receipt.generationConfigHash !== assignment.generationConfigHash) reasons.push('receipt generationConfigHash mismatch');
-  if (receipt.model?.id !== assignment.model?.id) reasons.push('receipt model id mismatch');
-  if (receipt.model?.hash !== assignment.model?.hash) reasons.push('receipt model hash mismatch');
-  if (receipt.model?.manifestHash !== assignment.model?.manifestHash) reasons.push('receipt manifest hash mismatch');
-  if ((receipt.model?.runtime || LAUNCH_MODEL.runtime) !== (assignment.model?.runtime || LAUNCH_MODEL.runtime)) reasons.push('receipt runtime mismatch');
-  if ((receipt.model?.backend || LAUNCH_MODEL.backend) !== (assignment.model?.backend || LAUNCH_MODEL.backend)) reasons.push('receipt backend mismatch');
-  if ((receipt.model?.workload || POOLDAY_MODEL_WORKLOADS.textGeneration)
-    !== (assignment.model?.workload || POOLDAY_MODEL_WORKLOADS.textGeneration)) reasons.push('receipt workload mismatch');
-  const expectedAdapter = assignment.adapter || assignment.model?.requirements?.adapter || null;
-  const actualAdapter = receipt.adapter || null;
-  if (!expectedAdapter && actualAdapter) reasons.push('receipt declares an adapter absent from the assignment');
-  if (expectedAdapter && !actualAdapter) reasons.push('receipt adapter identity missing');
-  if (expectedAdapter && actualAdapter) {
-    for (const field of [
-      'schema',
-      'packHash',
-      'adapterId',
-      'adapterSha256',
-      'baseModelId',
-      'baseModelHash',
-      'baseManifestHash',
-      'humanPromotionReceiptHash',
-      'dopplerParityReceiptHash',
-      'gammaSelectionReceiptHash',
-      'publicationHash',
-      'publisherId'
-    ]) {
-      if (actualAdapter[field] !== expectedAdapter[field]) reasons.push(`receipt adapter ${field} mismatch`);
-    }
-    if (actualAdapter.adapterUseApprovalHash !== assignment.adapterUseApproval?.approvalHash) {
-      reasons.push('receipt adapter use approval hash mismatch');
-    }
-    if (actualAdapter.state !== 'active') reasons.push('receipt adapter was not active');
-    if (!Array.isArray(actualAdapter.artifactSources) || actualAdapter.artifactSources.length === 0) {
-      reasons.push('receipt adapter acquisition source evidence missing');
-    } else if (!actualAdapter.artifactSources.some((source) => (
-      ['cache', 'peer', 'origin'].includes(source?.source)
-      && source?.packHash === expectedAdapter.packHash
-      && source?.adapterSha256 === expectedAdapter.adapterSha256
-    ))) {
-      reasons.push('receipt adapter acquisition source evidence mismatch');
-    }
-  }
-  if (!receipt.providerSignature) reasons.push('receipt providerSignature is required');
-  if (receipt.signatureDomain !== SIGNATURE_DOMAINS.providerReceipt) reasons.push('receipt signature domain mismatch');
-  if (!receipt.outputHash) reasons.push('receipt outputHash is required');
-  const workload = assignment.workload || assignment.model?.workload || assignment.model?.requirements?.workload || POOLDAY_MODEL_WORKLOADS.textGeneration;
-  const agreementField = agreementFieldForWorkload(workload);
-  if (!receipt[agreementField]) reasons.push(`receipt ${agreementField} is required`);
-  if (isSequenceWorkload(workload)) {
-    if (receipt.sequence?.requestHash !== assignment.sequenceRequestHash) reasons.push('receipt sequence request hash mismatch');
-    if (receipt.sequence?.sequenceHash !== assignment.inputHash) reasons.push('receipt sequence input hash mismatch');
-  }
-  return reasons;
-};
 
 export async function buildPeerReceiptAgreement({
   plan,
@@ -1256,164 +849,6 @@ export async function buildPeerReceiptAgreement({
     validRecords,
     rejectedRecords
   };
-}
-
-export async function createPeerLedgerEvents({
-  agreement,
-  requesterId,
-  requesterPublicKey,
-  privateKey
-} = {}) {
-  if (!agreement?.accepted) return [];
-  const resolvedRequesterId = requireString(requesterId, 'requesterId');
-  const resolvedPublicKey = requireString(requesterPublicKey, 'requesterPublicKey');
-  const reasons = getLedgerReasons(agreement.mode || 'single');
-  const messages = [];
-  for (const entry of agreement.providerPoints || []) {
-    messages.push(await createSignedPeerMessage({
-      type: PEER_MESSAGE_TYPES.POINTS_EVENT,
-      fromPeerId: resolvedRequesterId,
-      publicKey: resolvedPublicKey,
-      privateKey,
-      body: {
-        schema: 'reploid.peer.points_event/v1',
-        agreementHash: agreement.agreementHash,
-        receiptHash: entry.receiptHash,
-        userId: entry.providerId,
-        providerId: entry.providerId,
-        points: entry.points,
-        direction: 'credit',
-        reason: reasons.award || 'accepted_receipt'
-      }
-    }));
-    messages.push(await createSignedPeerMessage({
-      type: PEER_MESSAGE_TYPES.REPUTATION_EVENT,
-      fromPeerId: resolvedRequesterId,
-      publicKey: resolvedPublicKey,
-      privateKey,
-      body: {
-        schema: 'reploid.peer.reputation_event/v1',
-        agreementHash: agreement.agreementHash,
-        receiptHash: entry.receiptHash,
-        providerId: entry.providerId,
-        acceptedReceipts: 1,
-        rejectedReceipts: 0,
-        timeouts: 0,
-        points: entry.points,
-        reason: reasons.award || 'accepted_receipt'
-      }
-    }));
-  }
-  if (agreement.pointSpend > 0) {
-    messages.push(await createSignedPeerMessage({
-      type: PEER_MESSAGE_TYPES.POINTS_EVENT,
-      fromPeerId: resolvedRequesterId,
-      publicKey: resolvedPublicKey,
-      privateKey,
-      body: {
-        schema: 'reploid.peer.points_event/v1',
-        agreementHash: agreement.agreementHash,
-        receiptHash: agreement.receiptHash || null,
-        userId: resolvedRequesterId,
-        points: -agreement.pointSpend,
-        direction: 'debit',
-        reason: reasons.spend || 'accepted_receipt_spend'
-      }
-    }));
-  }
-  return messages;
-}
-
-export function createPeerEventReducer() {
-  return {
-    reduce(messages = []) {
-      const points = new Map();
-      const reputation = new Map();
-      const seen = new Set();
-      const ordered = [...messages].sort((left, right) => String(left.messageHash || '').localeCompare(String(right.messageHash || '')));
-      for (const message of ordered) {
-        const dedupeKey = message.messageHash || `${message.type}:${message.body?.agreementHash || ''}:${message.body?.receiptHash || ''}:${message.body?.userId || message.body?.providerId || ''}`;
-        if (seen.has(dedupeKey)) continue;
-        seen.add(dedupeKey);
-        if (message.type === PEER_MESSAGE_TYPES.POINTS_EVENT) {
-          const userId = message.body?.userId;
-          if (!userId) continue;
-          points.set(userId, Number(points.get(userId) || 0) + Number(message.body?.points || 0));
-        }
-        if (message.type === PEER_MESSAGE_TYPES.REPUTATION_EVENT) {
-          const providerId = message.body?.providerId;
-          if (!providerId) continue;
-          const current = reputation.get(providerId) || { providerId, acceptedReceipts: 0, rejectedReceipts: 0, timeouts: 0, points: 0 };
-          reputation.set(providerId, {
-            ...current,
-            acceptedReceipts: current.acceptedReceipts + Number(message.body?.acceptedReceipts || 0),
-            rejectedReceipts: current.rejectedReceipts + Number(message.body?.rejectedReceipts || 0),
-            timeouts: current.timeouts + Number(message.body?.timeouts || 0),
-            points: current.points + Number(message.body?.points || 0)
-          });
-        }
-      }
-      return {
-        points: Object.fromEntries(points),
-        reputation: Object.fromEntries(reputation)
-      };
-    }
-  };
-}
-
-export function createDataChannelPeerBus(dataChannel) {
-  if (!dataChannel || typeof dataChannel.send !== 'function') {
-    throw new TypeError('dataChannel with send() is required');
-  }
-  const listeners = new Set();
-  const handleMessage = (event) => {
-    let envelope = event?.data;
-    if (typeof envelope === 'string') {
-      try {
-        envelope = JSON.parse(envelope);
-      } catch {
-        return;
-      }
-    }
-    if (envelope?.peerControlBusVersion !== PEER_CONTROL_BUS_VERSION || !envelope.message) return;
-    for (const listener of listeners) listener(envelope.message);
-  };
-  if (typeof dataChannel.addEventListener === 'function') {
-    dataChannel.addEventListener('message', handleMessage);
-  } else {
-    const previous = dataChannel.onmessage;
-    dataChannel.onmessage = (event) => {
-      if (typeof previous === 'function') previous.call(dataChannel, event);
-      handleMessage(event);
-    };
-  }
-  return Object.freeze({
-    send(message) {
-      dataChannel.send(JSON.stringify({
-        peerControlBusVersion: PEER_CONTROL_BUS_VERSION,
-        message
-      }));
-    },
-    subscribe(listener) {
-      if (typeof listener !== 'function') throw new TypeError('listener must be a function');
-      listeners.add(listener);
-      return () => listeners.delete(listener);
-    }
-  });
-}
-
-export function createInMemoryPeerBus() {
-  const listeners = new Set();
-  return Object.freeze({
-    send(message) {
-      for (const listener of listeners) listener(message);
-    },
-    subscribe(listener) {
-      if (typeof listener !== 'function') throw new TypeError('listener must be a function');
-      listeners.add(listener);
-      return () => listeners.delete(listener);
-    }
-  });
 }
 
 export function createPeerControlPlane({

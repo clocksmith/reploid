@@ -6,6 +6,22 @@
 import { getCurrentReploidStorage as getReploidStorage } from '../instance.js';
 import { createCycleArtifactWriter } from './cycle-artifacts.js';
 import { ZERO_SEED_TOOLS } from '../config/tool-surfaces.js';
+import {
+  MANAGED_SERVER_PROXY_REJECT_STATUSES,
+  TRANSIENT_PROVIDER_STATUSES,
+  compactContextForManagedProvider,
+  getModelIterationLimit,
+  getProviderErrorStatus,
+  getProviderRetryAfterMs,
+  getToolSchemaName,
+  isManagedServerProxyModel,
+  measureContextChars,
+  parseWaitDirective,
+  renderModelContextForTrace,
+  resolveAgentCycleIntervalMs,
+  resolveProviderThrottleConfig,
+  stringifyMessageContent
+} from './agent-loop-policies.js';
 
 const AgentLoop = {
   metadata: {
@@ -31,31 +47,8 @@ const AgentLoop = {
     } = deps;
 
     const { logger, Errors } = Utils;
-    const MAX_ITERATIONS = 256;
-    const MANAGED_SERVER_PROXY_TYPE = 'firebase-function';
-    const MANAGED_SERVER_PROXY_MAX_ITERATIONS = 99;
-    const MANAGED_SERVER_PROXY_REJECT_STATUSES = new Set([400, 413]);
-    const MANAGED_SERVER_CONTEXT_ENVELOPE = Object.freeze({
-      maxMessages: 64,
-      targetMessages: 56,
-      maxInputChars: 120000,
-      targetInputChars: 100000,
-      keepRecentMessages: 32,
-      maxMessageChars: 16000
-    });
     const BUILD_READ_ONLY_DISCOVERY_LIMIT = 3;
     const DEFAULT_MAX_TOOL_CALLS = 8;
-    const TRANSIENT_PROVIDER_STATUSES = new Set([408, 429, 500, 502, 503, 504]);
-    const DEFAULT_PROVIDER_THROTTLE = Object.freeze({
-      minProviderRequestIntervalMs: 0,
-      providerBackoffBaseMs: 15000,
-      providerBackoffMaxMs: 300000,
-      providerBackoffJitterRatio: 0.20,
-      providerAutoResume: true
-    });
-    const DEFAULT_AGENT_CYCLE_THROTTLE = Object.freeze({
-      cycleIntervalMs: 7700
-    });
 
     // Configurable limits - can be overridden via StateManager config
     const getMaxToolCalls = () => {
@@ -75,65 +68,17 @@ const AgentLoop = {
       }
     };
 
-    const firstDefined = (...values) => values.find((value) => value !== undefined && value !== null);
-
-    const finiteNumber = (value, fallback) => {
-      const parsed = Number(value);
-      return Number.isFinite(parsed) ? parsed : fallback;
-    };
-
-    const clampNumber = (value, fallback, min, max) => {
-      const parsed = finiteNumber(value, fallback);
-      return Math.min(max, Math.max(min, parsed));
-    };
-
     const getProviderThrottleConfig = (model = _modelConfig) => {
       const stateConfig = getStateConfig();
       const localConfig = readLocalStorageJson('REPLOID_PROVIDER_THROTTLE');
-      const sources = [
+      return resolveProviderThrottleConfig([
         model?.agentThrottle,
         model?.providerThrottle,
         model?.throttle?.provider,
         stateConfig.agentThrottle,
         stateConfig.providerThrottle,
         localConfig
-      ].filter((entry) => entry && typeof entry === 'object');
-      const merged = Object.assign({}, DEFAULT_PROVIDER_THROTTLE, ...sources);
-
-      const maxBackoff = Math.floor(clampNumber(
-        firstDefined(merged.providerBackoffMaxMs, merged.backoffMaxMs),
-        DEFAULT_PROVIDER_THROTTLE.providerBackoffMaxMs,
-        0,
-        3600000
-      ));
-
-      return {
-        minProviderRequestIntervalMs: Math.floor(clampNumber(
-          firstDefined(
-            merged.minProviderRequestIntervalMs,
-            merged.providerMinRequestIntervalMs,
-            merged.minRequestIntervalMs,
-            merged.requestIntervalMs
-          ),
-          DEFAULT_PROVIDER_THROTTLE.minProviderRequestIntervalMs,
-          0,
-          3600000
-        )),
-        providerBackoffBaseMs: Math.floor(clampNumber(
-          firstDefined(merged.providerBackoffBaseMs, merged.backoffBaseMs),
-          DEFAULT_PROVIDER_THROTTLE.providerBackoffBaseMs,
-          0,
-          maxBackoff
-        )),
-        providerBackoffMaxMs: maxBackoff,
-        providerBackoffJitterRatio: clampNumber(
-          firstDefined(merged.providerBackoffJitterRatio, merged.backoffJitterRatio, merged.jitterRatio),
-          DEFAULT_PROVIDER_THROTTLE.providerBackoffJitterRatio,
-          0,
-          1
-        ),
-        providerAutoResume: merged.providerAutoResume !== false && merged.autoResume !== false
-      };
+      ]);
     };
 
     const sleepWithAbort = (delayMs, signal) => new Promise((resolve, reject) => {
@@ -154,217 +99,17 @@ const AgentLoop = {
       signal?.addEventListener?.('abort', onAbort, { once: true });
     });
 
-    const normalizeIterationLimit = (value, fallback = MAX_ITERATIONS) => {
-      const parsed = Number(value);
-      if (!Number.isFinite(parsed)) return fallback;
-      const limit = Math.floor(parsed);
-      if (limit < 1) return fallback;
-      return Math.min(limit, MAX_ITERATIONS);
-    };
-
-    const getModelIterationLimit = (model) => {
-      if (model?.managedServerProxy || model?.serverType === MANAGED_SERVER_PROXY_TYPE) {
-        return Math.min(
-          normalizeIterationLimit(
-            model?.maxIterations ?? model?.iterationLimit,
-            MANAGED_SERVER_PROXY_MAX_ITERATIONS
-          ),
-          MANAGED_SERVER_PROXY_MAX_ITERATIONS
-        );
-      }
-      return normalizeIterationLimit(model?.maxIterations ?? model?.iterationLimit);
-    };
-
     const getConfiguredMaxIterations = () =>
       getModelIterationLimit(_modelConfig || _modelConfigs[0]);
 
     const isBuildGoal = (goalText = '') => /\b(build|create|make|implement|write|edit|modify|update|fix|patch|add|inject|stage|load|promote)\b/i
       .test(String(goalText || ''));
 
-    const getToolSchemaName = (schema = {}) =>
-      schema?.function?.name || schema?.name || schema?.tool || '';
-
     const filterToolSchemasForMutation = (schemas = []) =>
       schemas.filter((schema) => {
         const name = getToolSchemaName(schema);
         return name && !isReadOnlyTool(name);
       });
-
-    const isManagedServerProxyModel = (model) =>
-      !!(model?.managedServerProxy || model?.serverType === MANAGED_SERVER_PROXY_TYPE);
-
-    const getManagedContextEnvelope = (model) => {
-      if (!isManagedServerProxyModel(model)) return null;
-      const configured = model?.contextEnvelope || model?.providerEnvelope || model?.requestEnvelope || {};
-      const maxMessages = Math.floor(clampNumber(
-        configured.maxMessages,
-        MANAGED_SERVER_CONTEXT_ENVELOPE.maxMessages,
-        4,
-        256
-      ));
-      const maxInputChars = Math.floor(clampNumber(
-        configured.maxInputChars,
-        MANAGED_SERVER_CONTEXT_ENVELOPE.maxInputChars,
-        4096,
-        1000000
-      ));
-      return {
-        maxMessages,
-        targetMessages: Math.min(maxMessages, Math.floor(clampNumber(
-          configured.targetMessages,
-          MANAGED_SERVER_CONTEXT_ENVELOPE.targetMessages,
-          4,
-          maxMessages
-        ))),
-        maxInputChars,
-        targetInputChars: Math.min(maxInputChars, Math.floor(clampNumber(
-          configured.targetInputChars,
-          MANAGED_SERVER_CONTEXT_ENVELOPE.targetInputChars,
-          2048,
-          maxInputChars
-        ))),
-        keepRecentMessages: Math.floor(clampNumber(
-          configured.keepRecentMessages,
-          MANAGED_SERVER_CONTEXT_ENVELOPE.keepRecentMessages,
-          4,
-          maxMessages
-        )),
-        maxMessageChars: Math.floor(clampNumber(
-          configured.maxMessageChars,
-          MANAGED_SERVER_CONTEXT_ENVELOPE.maxMessageChars,
-          1000,
-          maxInputChars
-        ))
-      };
-    };
-
-    const stringifyMessageContent = (content) => {
-      if (typeof content === 'string') return content;
-      if (content === null || content === undefined) return '';
-      try {
-        return JSON.stringify(content);
-      } catch {
-        return String(content);
-      }
-    };
-
-    const measureContextChars = (messages = []) =>
-      messages.reduce((sum, message) => sum + stringifyMessageContent(message?.content).length, 0);
-
-    const clipProviderMessage = (message, maxChars) => {
-      const content = stringifyMessageContent(message?.content);
-      if (content.length <= maxChars) {
-        return { ...message, content };
-      }
-      const headLength = Math.max(200, Math.floor(maxChars * 0.62));
-      const tailLength = Math.max(200, maxChars - headLength - 96);
-      const omitted = content.length - headLength - tailLength;
-      return {
-        ...message,
-        content: `${content.slice(0, headLength).trimEnd()}\n\n[provider context clipped ${omitted} chars]\n\n${content.slice(-tailLength).trimStart()}`
-      };
-    };
-
-    const compactContextForManagedProvider = (context, model) => {
-      const envelope = getManagedContextEnvelope(model);
-      if (!envelope) {
-        return {
-          context,
-          changed: false,
-          previousMessages: context.length,
-          newMessages: context.length,
-          previousChars: measureContextChars(context),
-          newChars: measureContextChars(context)
-        };
-      }
-
-      const previousMessages = context.length;
-      const previousChars = measureContextChars(context);
-      if (previousMessages <= envelope.targetMessages && previousChars <= envelope.targetInputChars) {
-        return {
-          context,
-          changed: false,
-          previousMessages,
-          newMessages: previousMessages,
-          previousChars,
-          newChars: previousChars
-        };
-      }
-
-      const anchored = new Map();
-      const addIndex = (index) => {
-        if (index >= 0 && index < context.length) anchored.set(index, context[index]);
-      };
-      addIndex(context.findIndex((message) => message?.role === 'system'));
-      addIndex(context.findIndex((message) => message?.role === 'user'));
-      const lastCompactionIndex = context.findLastIndex
-        ? context.findLastIndex((message) => stringifyMessageContent(message?.content).includes('[CONTEXT COMPACTED'))
-        : (() => {
-            for (let index = context.length - 1; index >= 0; index--) {
-              if (stringifyMessageContent(context[index]?.content).includes('[CONTEXT COMPACTED')) return index;
-            }
-            return -1;
-          })();
-      addIndex(lastCompactionIndex);
-
-      let tailCount = Math.min(envelope.keepRecentMessages, context.length);
-      let selected = [];
-      while (tailCount >= 4) {
-        const picked = new Map(anchored);
-        const tailStart = Math.max(0, context.length - tailCount);
-        for (let index = tailStart; index < context.length; index++) {
-          picked.set(index, context[index]);
-        }
-        selected = [...picked.entries()]
-          .sort(([left], [right]) => left - right)
-          .map(([, message]) => clipProviderMessage(message, envelope.maxMessageChars));
-
-        while (selected.length > envelope.targetMessages) {
-          const removableIndex = selected.findIndex((message, index) => (
-            index > 1
-            && !stringifyMessageContent(message?.content).includes('[CONTEXT COMPACTED')
-          ));
-          if (removableIndex === -1) break;
-          selected.splice(removableIndex, 1);
-        }
-
-        if (measureContextChars(selected) <= envelope.targetInputChars && selected.length <= envelope.targetMessages) {
-          break;
-        }
-        tailCount -= 4;
-      }
-
-      let newChars = measureContextChars(selected);
-      if (newChars > envelope.targetInputChars && selected.length > 0) {
-        const perMessageBudget = Math.max(800, Math.floor(envelope.targetInputChars / selected.length) - 64);
-        selected = selected.map((message) => clipProviderMessage(message, Math.min(envelope.maxMessageChars, perMessageBudget)));
-        newChars = measureContextChars(selected);
-      }
-
-      return {
-        context: selected,
-        changed: true,
-        previousMessages,
-        newMessages: selected.length,
-        previousChars,
-        newChars
-      };
-    };
-
-    const renderModelContextForTrace = (messages = [], tools = []) => {
-      const renderedMessages = messages.map((message, index) => {
-        const role = String(message?.role || 'unknown').toUpperCase();
-        const content = stringifyMessageContent(message?.content);
-        return `## Message ${index + 1} / ${messages.length} [${role}]\n${content}`;
-      }).join('\n\n');
-      const toolNames = tools
-        .map((schema) => getToolSchemaName(schema))
-        .filter(Boolean);
-      const toolText = toolNames.length > 0
-        ? `\n\n## Tools offered\n${toolNames.map((name) => `- ${name}`).join('\n')}`
-        : '\n\n## Tools offered\n- none';
-      return `${renderedMessages}${toolText}`;
-    };
 
     const messageSignature = (message = {}) =>
       `${message?.role || 'unknown'}\u0000${stringifyMessageContent(message?.content)}`;
@@ -449,24 +194,13 @@ const AgentLoop = {
       const stateConfig = getStateConfig();
       const localConfig = readLocalStorageJson('REPLOID_AGENT_CYCLE_THROTTLE');
       const localSeconds = readLocalStorageNumber('REPLOID_CYCLE_INTERVAL_SECONDS');
-      const sources = [
+      return resolveAgentCycleIntervalMs([
         stateConfig.agentCycleThrottle,
         stateConfig.cycleThrottle,
         model?.agentCycleThrottle,
         model?.cycleThrottle,
         localConfig
-      ].filter((entry) => entry && typeof entry === 'object');
-      const merged = Object.assign({}, DEFAULT_AGENT_CYCLE_THROTTLE, ...sources);
-      const intervalMs = firstDefined(
-        merged.cycleIntervalMs,
-        merged.secondsBetweenCyclesMs,
-        merged.cycleDelayMs,
-        merged.minCycleIntervalMs,
-        merged.secondsBetweenCycles !== undefined ? Number(merged.secondsBetweenCycles) * 1000 : undefined,
-        merged.cycleIntervalSeconds !== undefined ? Number(merged.cycleIntervalSeconds) * 1000 : undefined,
-        localSeconds !== null ? localSeconds * 1000 : undefined
-      );
-      return Math.floor(clampNumber(intervalMs, DEFAULT_AGENT_CYCLE_THROTTLE.cycleIntervalMs, 0, 3600000));
+      ], localSeconds);
     };
 
     const waitForCycleInterval = async (nextIteration) => {
@@ -940,13 +674,6 @@ const AgentLoop = {
       String(model.id || model.model || model.modelId || model.name || '')
     );
 
-    const getProviderErrorStatus = (error) => {
-      const direct = Number(error?.status ?? error?.details?.status ?? error?.details?.statusCode);
-      if (Number.isFinite(direct)) return direct;
-      const match = String(error?.message || error || '').match(/\b([45]\d\d)\b/);
-      return match ? Number(match[1]) : null;
-    };
-
     const isTransientProviderError = (error) => {
       const status = getProviderErrorStatus(error);
       return TRANSIENT_PROVIDER_STATUSES.has(status);
@@ -956,43 +683,6 @@ const AgentLoop = {
       const status = getProviderErrorStatus(error);
       return MANAGED_SERVER_PROXY_REJECT_STATUSES.has(status)
         && isManagedServerProxyModel(_modelConfig || _modelConfigs[0]);
-    };
-
-    const getProviderRetryAfterMs = (error) => {
-      const direct = Number(error?.retryAfterMs ?? error?.details?.retryAfterMs);
-      if (Number.isFinite(direct) && direct >= 0) return direct;
-      const retryAfter = error?.retryAfter ?? error?.details?.retryAfter;
-      if (retryAfter === undefined || retryAfter === null) return null;
-
-      const seconds = Number(retryAfter);
-      if (Number.isFinite(seconds) && seconds >= 0) return seconds * 1000;
-
-      const retryAt = Date.parse(String(retryAfter));
-      if (Number.isFinite(retryAt)) return Math.max(0, retryAt - Date.now());
-
-      return null;
-    };
-
-    const parseWaitDirective = (content = '') => {
-      const text = String(content || '').trim();
-      const match = text.match(/(?:^|\n)\s*(IDLE|PARK):\s*([\s\S]*)$/i);
-      if (!match) return null;
-      const directive = match[1].toUpperCase();
-      const reason = match[2].trim();
-      const durationMatch = reason.match(/\b(\d+(?:\.\d+)?)\s*(ms|milliseconds?|s|sec|secs|seconds?|m|min|mins|minutes?)\b/i);
-      if (!durationMatch) {
-        return { directive, reason, delayMs: 0 };
-      }
-      const amount = Number(durationMatch[1]);
-      const unit = durationMatch[2].toLowerCase();
-      let multiplier = 1000;
-      if (unit.startsWith('ms') || unit.startsWith('millisecond')) multiplier = 1;
-      if (unit === 'm' || unit.startsWith('min')) multiplier = 60000;
-      return {
-        directive,
-        reason,
-        delayMs: Math.max(0, Math.floor(amount * multiplier))
-      };
     };
 
     const clampProviderBackoffMs = (value, model) => {

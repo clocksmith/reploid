@@ -33,6 +33,7 @@
     "build:blueprints": "node scripts/build-blueprint-registry.js",
     "build:module-registry": "node scripts/build-module-registry.js",
     "build:vfs-manifest": "node scripts/build-vfs-manifest.js",
+    "sync:runtime-config": "node scripts/sync-runtime-config.js --write",
     "deploy:pool-env": "node scripts/print-pool-env.js",
     "deploy:simulatte-hosting": "firebase deploy --config firebase.simulatte-hosting.json --project simulatte-world --only hosting:simulatte-world",
     "verify:pool": "node scripts/verify-pool-production.js",
@@ -43,7 +44,9 @@
     "verify:adapter-canary": "node scripts/run-adapter-runtime-canary.js",
     "publish:adapter-canary": "node scripts/publish-adapter-runtime-canary.js",
     "verify:surface-claims": "node scripts/verify-surface-claim-index.js",
+    "verify:layers": "node scripts/verify-layers.js",
     "verify:module-system": "node scripts/verify-module-system.js",
+    "verify:runtime-config": "node scripts/sync-runtime-config.js",
     "verify:pool:css": "node scripts/verify-poolday-css-layers.js"
   },
   "keywords": [

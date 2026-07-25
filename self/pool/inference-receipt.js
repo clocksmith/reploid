@@ -3,6 +3,7 @@
  */
 
 import { POOL_CONFIG, POOL_CONFIG_VERSION } from './config.js';
+import { canonicalize } from './canonical-json.js';
 import { isSequenceWorkload } from './sequence-workload.js';
 
 const textEncoder = new TextEncoder();
@@ -24,16 +25,7 @@ export const SIGNATURE_DOMAINS = Object.freeze({
   adapterUseApproval: 'poolday.adapter_use_approval.v1'
 });
 
-export function canonicalize(value) {
-  if (value === null || typeof value !== 'object') {
-    return JSON.stringify(value);
-  }
-  if (Array.isArray(value)) {
-    return `[${value.map((item) => canonicalize(item)).join(',')}]`;
-  }
-  const keys = Object.keys(value).sort();
-  return `{${keys.map((key) => `${JSON.stringify(key)}:${canonicalize(value[key])}`).join(',')}}`;
-}
+export { canonicalize };
 
 const bytesToHex = (bytes) => Array.from(bytes)
   .map((byte) => byte.toString(16).padStart(2, '0'))

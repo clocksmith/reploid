@@ -8,17 +8,16 @@ import { DETERMINISTIC_GENERATION_CONFIG, getPolicy, listPolicies, validateJobRe
 import { LAUNCH_MODEL, isLaunchModelRequirement } from './model-contract.js';
 import { assignJob } from './scheduler.js';
 import { verifyReceipt, verifyRequesterAcceptance } from './verifier.js';
-import { awardAcceptedReceipt, calculateReceiptPoints, chargeRequester, penalizeProvider } from './points.js';
+import { awardAcceptedReceipt, chargeRequester, penalizeProvider } from './points.js';
 import { recordAcceptedReceipt, recordRejectedReceipt } from './reputation.js';
 import {
   CHALLENGE_AUDIT_KIND,
-  attachAuditAssignment,
   createCanaryChallenge,
   createChallengeRerun,
   verifyCanaryResult,
   applyCanaryReputation
 } from './audits.js';
-import { hashJson, sha256Hex } from './hash.js';
+import { sha256Hex } from './hash.js';
 import { POOL_CONFIG, POOL_CONFIG_HASH, POOL_CONFIG_VERSION, getLedgerReasons, getRingPhaseProtocol, validatePoolConfig } from './config.js';
 import { buildCommitmentHash, revealMatchesCommitment, validateCommitmentInput, validateRevealInput } from './commit-reveal.js';
 import { deriveProviderAdmission, runtimeProfileHash, validateRuntimeProfileForPolicy } from './runtime-profile.js';
@@ -33,6 +32,11 @@ import {
 import { verifyAdapterCanaryPublication } from '../../self/pool/adapter-canary-publication.js';
 import { verifyPoolIdentityClaims, verifyAdvertisedLimitsAgainstProfile } from '../../self/pool/identity-claims.js';
 import { PARTICIPATION_CAPABILITIES } from '../../self/pool/participation-profile.js';
+import {
+  assignQueuedJobs,
+  scheduleAuditExecution
+} from './services/job-assignment.js';
+import { buildAcceptanceSummary } from './services/acceptance.js';
 
 const asyncRoute = (handler) => (req, res, next) => {
   Promise.resolve(handler(req, res, next)).catch(next);
@@ -173,66 +177,6 @@ const requireSignalFromPeer = (req, res, session, fromPeerId) => {
 };
 
 const providerHasLaunchModel = (provider) => (provider?.models || []).find((model) => isLaunchModelRequirement(model));
-
-const scheduleAuditExecution = async ({ store, provider, model, audit }) => {
-  const policyId = audit.policyId || 'fastest_receipt';
-  const job = await store.createJob({
-    requesterId: 'coordinator_audit',
-    requesterPublicKey: null,
-    prompt: audit.prompt,
-    policyId,
-    modelRequirements: audit.modelRequirements,
-    generationConfig: audit.generationConfig,
-    verificationLevel: 'audit',
-    trustTier: 'T2_canary_audited',
-    auditId: audit.auditId,
-    auditKind: audit.kind
-  });
-  const assignment = await store.createAssignment({
-    jobId: job.jobId,
-    requesterId: job.requesterId,
-    providerId: provider.providerId,
-    modelId: model.modelId,
-    policyId,
-    inputHash: audit.inputHash,
-    generationConfigHash: audit.generationConfigHash,
-    verificationLevel: 'audit',
-    trustTier: 'T2_canary_audited',
-    auditId: audit.auditId,
-    auditKind: audit.kind,
-    expiresAt: new Date(Date.now() + 120000).toISOString(),
-    prompt: audit.prompt,
-    generationConfig: audit.generationConfig,
-    model: {
-      id: model.modelId,
-      hash: model.modelHash,
-      manifestHash: model.manifestHash,
-      runtime: model.runtime,
-      backend: model.backend,
-      requirements: audit.modelRequirements
-    }
-  });
-  await attachAuditAssignment({
-    store,
-    auditId: audit.auditId,
-    assignmentId: assignment.assignmentId,
-    providerId: provider.providerId
-  });
-  await store.updateJob(job.jobId, {
-    status: 'assigned',
-    assignmentId: assignment.assignmentId,
-    assignmentIds: [assignment.assignmentId],
-    providerId: provider.providerId,
-    providerIds: [provider.providerId],
-    inputHash: audit.inputHash,
-    generationConfigHash: audit.generationConfigHash
-  });
-  return {
-    audit: await store.getAuditChallenge(audit.auditId),
-    job: await store.getJob(job.jobId),
-    assignment
-  };
-};
 
 const activeAssignmentStatuses = new Set(['assigned', 'running', 'commit_submitted', 'reveal_open', 'reveal_submitted']);
 const finalizedJobStatuses = new Set(['accepted', 'acceptance_processing', 'rejected_by_requester']);
@@ -433,71 +377,6 @@ const acceptedLedgerReasonForJob = (job = {}, receiptCount = 1) => {
 const spendLedgerReasonForJob = (job = {}, receiptCount = 1) => {
   if (receiptCount <= 1) return getLedgerReasons('single').spend || 'accepted_receipt_spend';
   return getLedgerReasons(job?.agreement?.mode || 'redundant').spend || 'accepted_receipt_spend';
-};
-
-const compactAgreementForAcceptance = (agreement = null) => {
-  if (!agreement) return null;
-  return {
-    mode: agreement.mode || null,
-    status: agreement.status || null,
-    requiredAgreement: Number(agreement.requiredAgreement || agreement.requiredProviders || 1),
-    providerCount: Number(agreement.providerCount || 1),
-    agreementField: agreement.agreementField || 'tokenIdsHash',
-    outputHash: agreement.outputHash || null,
-    tokenIdsHash: agreement.tokenIdsHash || null,
-    vectorHash: agreement.vectorHash || null,
-    sequenceResultHash: agreement.sequenceResultHash || null,
-    effectiveTrustTier: agreement.effectiveTrustTier || null
-  };
-};
-
-const buildAcceptanceSummary = async ({ store, job, receiptHash } = {}) => {
-  const receiptHashes = Array.isArray(job?.agreement?.receiptHashes) && job.agreement.status === 'accepted'
-    ? job.agreement.receiptHashes
-    : [receiptHash];
-  const agreedRecords = [];
-  for (const currentReceiptHash of receiptHashes) {
-    const agreedRecord = await store.getReceipt(currentReceiptHash);
-    if (agreedRecord?.verifierDecision?.accepted) agreedRecords.push(agreedRecord);
-  }
-  const multiplier = 1 / Math.max(1, receiptHashes.length);
-  const providerPoints = [];
-  for (const record of agreedRecords) {
-    const provider = await store.getProvider?.(record.providerId);
-    const reputation = await store.getReputation?.(record.providerId);
-    const admission = deriveProviderAdmission({
-      provider: provider || {},
-      reputation: reputation || {},
-      policy: getPolicy(job?.policyId) || {}
-    });
-    const uncappedPoints = calculateReceiptPoints(record, { multiplier });
-    const cap = record.providerAdmission?.earningsCapPerAcceptance ?? admission?.lane?.earningsCapPerAcceptance;
-    providerPoints.push({
-      receiptHash: record.receiptHash,
-      providerId: record.providerId,
-      points: Number.isFinite(Number(cap)) ? Math.min(uncappedPoints, Number(cap)) : uncappedPoints
-    });
-  }
-  const pointSpend = providerPoints.reduce((sum, entry) => sum + entry.points, 0);
-  const payload = {
-    jobId: job?.jobId || null,
-    requesterId: job?.requesterId || null,
-    policyId: job?.policyId || null,
-    policyConfigVersion: job?.policyConfigVersion || POOL_CONFIG_VERSION,
-    policyConfigHash: job?.policyConfigHash || POOL_CONFIG_HASH,
-    receiptHash,
-    receiptHashes,
-    agreement: compactAgreementForAcceptance(job?.agreement || null),
-    pointSpend,
-    providerPoints
-  };
-  return {
-    ...payload,
-    agreementHash: hashJson(payload),
-    agreedRecords,
-    multiplier,
-    totalProviderPoints: pointSpend
-  };
 };
 
 const retireSupersededAssignments = async ({ store, job, agreement } = {}) => {
@@ -730,44 +609,6 @@ const updateJobAfterVerifiedReceipt = async ({ store, assignment, receiptRecord,
     verifierDecision: receiptRecord.verifierDecision
   });
   return { mode: 'single' };
-};
-
-const assignQueuedJobs = async ({ store, limit = 5 } = {}) => {
-  if (typeof store.listJobs !== 'function') return [];
-  const jobs = await store.listJobs();
-  const canRetry = (job = {}) => job.status === 'queued'
-    || (job.retryable === true && ['failed', 'receipt_rejected', 'redundant_disagreement', 'ring_quorum_disagreement'].includes(job.status));
-  const queued = jobs
-    .filter(canRetry)
-    .slice(0, limit);
-  const results = [];
-  for (const job of queued) {
-    const claimedJob = typeof store.claimJobForAssignment === 'function'
-      ? await store.claimJobForAssignment(job.jobId)
-      : job;
-    if (!claimedJob) continue;
-    const policy = getPolicy(claimedJob.policyId);
-    if (!policy) {
-      await store.updateJob(claimedJob.jobId, {
-        status: 'failed',
-        reason: 'unsupported_policy',
-        retryable: false
-      });
-      results.push({ jobId: claimedJob.jobId, ok: false, reason: 'unsupported_policy' });
-      continue;
-    }
-    const assignmentResult = await assignJob({ store, job: claimedJob, policy });
-    if (!assignmentResult.ok) {
-      await store.updateJob(claimedJob.jobId, {
-        status: 'queued',
-        assignmentBlockedReason: assignmentResult.reason,
-        requiredProviders: assignmentResult.requiredProviders,
-        eligibleProviders: assignmentResult.eligibleProviders
-      });
-    }
-    results.push({ jobId: claimedJob.jobId, ...assignmentResult });
-  }
-  return results;
 };
 
 export function createPoolRouter({

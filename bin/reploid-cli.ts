@@ -312,10 +312,14 @@ async function runDebug(opts: CLIOptions): Promise<number> {
 async function runStart(opts: CLIOptions): Promise<number> {
   header('REPLOID START');
 
-  log('Provisioning sealed Reploid Cloud access windows...', colors.cyan);
-  const buildCode = await runCommand('node', ['scripts/build-reploid-cloud-access.js']);
-  if (buildCode !== 0) {
-    return buildCode;
+  if (process.env.REPLOID_SKIP_CLOUD_ACCESS_BUILD === 'true') {
+    log('Using existing sealed Reploid Cloud access windows.', colors.dim);
+  } else {
+    log('Provisioning sealed Reploid Cloud access windows...', colors.cyan);
+    const buildCode = await runCommand('node', ['scripts/build-reploid-cloud-access.js']);
+    if (buildCode !== 0) {
+      return buildCode;
+    }
   }
 
   log('Starting proxy server...', colors.cyan);

@@ -26,10 +26,8 @@ import {
   POOLDAY_NAV_ROUTES,
   POOLDAY_NETWORK_VISUAL_EVENT,
   POOLDAY_RUN_VISUAL_EVENT,
-  POOLDAY_PARTICIPANT_NODE_IDS,
   POOLDAY_PEER_LEDGER_STORAGE_KEY,
   POOLDAY_PROTOCOL,
-  POOLDAY_RECEIPT_LEDGER_STORAGE_KEY,
   POOLDAY_RECEIPT_LEDGER_LIMIT,
   POOLDAY_STREAM_CHUNK_SIZE,
   POOLDAY_STREAM_TICK_MS,
@@ -39,6 +37,14 @@ import {
 } from './constants.js';
 import { getContributionSnapshot } from './contribution-state.js';
 import { getPoolLedgerStore } from './ledger-store.js';
+import {
+  createPoolRecordPersistence,
+  getPeerEventHash,
+  getPooldayRecordStorageKeys as buildPooldayRecordStorageKeys
+} from './record-persistence.js';
+import { resolvePoolNetworkVisualState } from './network-projection.js';
+
+export { resolvePoolNetworkVisualState };
 
 const ledgerStore = getPoolLedgerStore();
 
@@ -46,97 +52,6 @@ const ledgerStore = getPoolLedgerStore();
 // text values through escapeHtml before reaching this assignment.
 const setPoolHtml = (element, markup) => {
   element.innerHTML = String(markup ?? '');
-};
-
-const getPooldayStorage = () => {
-  try {
-    return globalThis.localStorage || null;
-  } catch {
-    return null;
-  }
-};
-
-const encodeStorageRoom = (roomId) => encodeURIComponent(String(roomId || DEFAULT_PEER_ROOM_ID));
-
-export const getPooldayRecordStorageKeys = (roomId = getPeerRoomId()) => ({
-  receipts: `${POOLDAY_RECEIPT_LEDGER_STORAGE_KEY}::${encodeStorageRoom(roomId)}`,
-  peerLedger: `${POOLDAY_PEER_LEDGER_STORAGE_KEY}::${encodeStorageRoom(roomId)}`
-});
-
-const readStorageArray = (key) => {
-  try {
-    const value = getPooldayStorage()?.getItem(key);
-    const parsed = value ? JSON.parse(value) : [];
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
-};
-
-const writeStorageArray = (key, value) => {
-  try {
-    getPooldayStorage()?.setItem(key, JSON.stringify(value));
-  } catch {
-    // Local storage can be unavailable in hardened browser contexts.
-  }
-};
-
-const replaceArrayContents = (target, values = []) => {
-  target.splice(0, target.length, ...values);
-};
-
-const getPeerEventHash = (event = {}) => (
-  event?.messageHash || `${event?.type || 'event'}:${event?.body?.agreementHash || ''}:${event?.body?.receiptHash || ''}:${event?.body?.userId || event?.body?.providerId || ''}`
-);
-
-const reloadPeerEventHashes = () => {
-  ledgerStore.peerEventHashes.clear();
-  for (const event of ledgerStore.peerEvents) {
-    const eventHash = getPeerEventHash(event);
-    if (eventHash) ledgerStore.peerEventHashes.add(eventHash);
-  }
-};
-
-const loadReceiptLedgerRows = (roomId = getPeerRoomId()) => {
-  const keys = getPooldayRecordStorageKeys(roomId);
-  return readStorageArray(keys.receipts).slice(0, POOLDAY_RECEIPT_LEDGER_LIMIT);
-};
-
-const persistReceiptLedgerRows = (roomId = getPeerRoomId()) => {
-  const keys = getPooldayRecordStorageKeys(roomId);
-  writeStorageArray(keys.receipts, ledgerStore.receipts.slice(0, POOLDAY_RECEIPT_LEDGER_LIMIT));
-};
-
-const loadPeerLedgerEvents = (roomId = getPeerRoomId()) => {
-  const keys = getPooldayRecordStorageKeys(roomId);
-  const scopedEvents = readStorageArray(keys.peerLedger);
-  if (scopedEvents.length > 0 || roomId !== DEFAULT_PEER_ROOM_ID) return scopedEvents;
-  const legacyEvents = readStorageArray(POOLDAY_PEER_LEDGER_STORAGE_KEY);
-  if (legacyEvents.length > 0) writeStorageArray(keys.peerLedger, legacyEvents.slice(-100));
-  return legacyEvents;
-};
-
-const persistPeerLedgerEvents = (roomId = getPeerRoomId()) => {
-  const keys = getPooldayRecordStorageKeys(roomId);
-  writeStorageArray(keys.peerLedger, ledgerStore.peerEvents.slice(-100));
-};
-
-const ensureReceiptLedgerLoaded = (roomId = getPeerRoomId()) => {
-  if (ledgerStore.receiptRoom === roomId) return;
-  ledgerStore.receiptRoom = roomId;
-  replaceArrayContents(ledgerStore.receipts, loadReceiptLedgerRows(roomId));
-};
-
-const ensurePeerLedgerLoaded = (roomId = getPeerRoomId()) => {
-  if (ledgerStore.peerRoom === roomId) return;
-  ledgerStore.peerRoom = roomId;
-  replaceArrayContents(ledgerStore.peerEvents, loadPeerLedgerEvents(roomId));
-  reloadPeerEventHashes();
-};
-
-const ensureRecordLedgersLoaded = (roomId = getPeerRoomId()) => {
-  ensureReceiptLedgerLoaded(roomId);
-  ensurePeerLedgerLoaded(roomId);
 };
 
 const POOLDAY_PROVIDER_HEALTH = {
@@ -154,6 +69,21 @@ export const getPeerRoomId = () => {
   const params = new URLSearchParams(window.location.search || '');
   return params.get('room') || window.REPLOID_POOL_ROOM_ID || DEFAULT_PEER_ROOM_ID;
 };
+
+const recordPersistence = createPoolRecordPersistence({
+  ledgerStore,
+  getRoomId: () => getPeerRoomId()
+});
+
+export const getPooldayRecordStorageKeys = (roomId = getPeerRoomId()) => (
+  buildPooldayRecordStorageKeys(roomId)
+);
+
+const ensureReceiptLedgerLoaded = (roomId = getPeerRoomId()) => recordPersistence.ensureReceiptsLoaded(roomId);
+const ensurePeerLedgerLoaded = (roomId = getPeerRoomId()) => recordPersistence.ensurePeerEventsLoaded(roomId);
+const ensureRecordLedgersLoaded = (roomId = getPeerRoomId()) => recordPersistence.ensureLoaded(roomId);
+const persistReceiptLedgerRows = (roomId = getPeerRoomId()) => recordPersistence.persistReceipts(roomId);
+const persistPeerLedgerEvents = (roomId = getPeerRoomId()) => recordPersistence.persistPeerEvents(roomId);
 
 export const getPeerRelayMode = () => {
   const params = new URLSearchParams(window.location.search || '');
@@ -602,66 +532,6 @@ export const renderRecordLedger = (facetId = 'all') => {
 export const refreshRecordTimelineState = () => {
   const ledger = document.getElementById('pool-record-ledger');
   if (ledger) setPoolHtml(ledger, renderRecordLedger(ledger.dataset.recordFacet || 'all'));
-};
-
-const networkCount = (value) => {
-  const number = Number(value || 0);
-  return Number.isFinite(number) && number > 0 ? Math.floor(number) : 0;
-};
-
-const uniqueNetworkIds = (values = []) => [...new Set(values
-  .map((value) => String(value || '').trim())
-  .filter(Boolean))];
-
-export const resolvePoolNetworkVisualState = (summary = null) => {
-  const unavailable = Boolean(summary?.error);
-  const providers = Array.isArray(summary?.providers) ? summary.providers : [];
-  const providerIds = uniqueNetworkIds(providers.map((provider) => provider?.providerId));
-  const recent = Array.isArray(summary?.recent) ? summary.recent : [];
-  const peerIds = uniqueNetworkIds([
-    ...(Array.isArray(summary?.peers) ? summary.peers : []),
-    ...recent.map((entry) => entry?.fromPeerId),
-    ...providerIds
-  ]);
-  const peerCount = unavailable ? 0 : Math.max(networkCount(summary?.peerCount), peerIds.length);
-  const providerCount = unavailable ? 0 : Math.max(networkCount(summary?.providerCount), providerIds.length);
-  const messageCount = unavailable ? 0 : networkCount(summary?.messageCount);
-  const reportedParticipants = unavailable ? 0 : Math.max(peerCount, providerCount, peerIds.length);
-  const liveParticipantCount = Math.min(POOLDAY_PARTICIPANT_NODE_IDS.length, reportedParticipants);
-  const providerSet = new Set(providerIds);
-  const orderedIds = uniqueNetworkIds([
-    ...providerIds,
-    ...peerIds.filter((id) => !providerSet.has(id))
-  ]);
-  const participants = Array.from({ length: liveParticipantCount }, (_, index) => {
-    const id = orderedIds[index] || null;
-    return {
-      id,
-      provider: id ? providerSet.has(id) : index < providerCount
-    };
-  });
-  const hasLiveData = liveParticipantCount > 0 || messageCount > 0 || recent.length > 0;
-  const mode = !hasLiveData
-    ? 'simulation'
-    : liveParticipantCount >= POOLDAY_PARTICIPANT_NODE_IDS.length
-      ? 'live'
-      : 'hybrid';
-  return {
-    mode,
-    available: !unavailable,
-    error: unavailable ? String(summary.error) : null,
-    roomId: summary?.roomId || null,
-    peerCount,
-    providerCount,
-    messageCount,
-    liveParticipantCount,
-    participants,
-    recent: recent.slice(0, 10).map((entry) => ({
-      type: String(entry?.type || 'unknown'),
-      fromPeerId: entry?.fromPeerId ? String(entry.fromPeerId) : null,
-      createdAt: entry?.createdAt || null
-    }))
-  };
 };
 
 export const applyPoolNetworkVisualState = (summary = null) => {
