@@ -115,13 +115,16 @@ test.describe('Route Entry Points', () => {
     await expect(page.locator('#pool-home-run-submit')).toHaveText('↑');
 
     const requestDrawer = page.getByRole('navigation', { name: 'Request controls' });
-    await expect(requestDrawer.locator('[data-pool-drawer-section="request-participation"]')).toHaveCount(1);
-    await expect(requestDrawer.locator('[data-pool-participation-surface="request-drawer"]')).toHaveCount(1);
+    const networkDrawer = page.getByRole('complementary', { name: 'Network controls' });
+    await expect(requestDrawer.locator('[data-pool-drawer-section="request-participation"]')).toHaveCount(0);
+    await expect(networkDrawer.locator('[data-pool-drawer-section="network-connection"]')).toHaveCount(1);
+    await expect(networkDrawer.locator('[data-pool-participation-surface="network-connection"]')).toHaveCount(1);
 
     await page.reload();
     await page.waitForSelector('.pool-home', { timeout: 20000 });
-    await expect(page.locator('[data-pool-drawer-section="request-participation"]')).toHaveCount(1);
-    await expect(page.locator('[data-pool-participation-surface="request-drawer"]')).toHaveCount(1);
+    await expect(page.locator('[data-pool-drawer-section="request-participation"]')).toHaveCount(0);
+    await expect(page.locator('[data-pool-drawer-section="network-connection"]')).toHaveCount(1);
+    await expect(page.locator('[data-pool-participation-surface="network-connection"]')).toHaveCount(1);
   });
 
   test('product root renders the Reploid serving surface', async ({ page }) => {
@@ -130,13 +133,13 @@ test.describe('Route Entry Points', () => {
 
     await expect(page).toHaveTitle(/^Reploid$/i);
     const requestDrawer = page.getByRole('navigation', { name: 'Request controls' });
-    const computeDrawer = page.getByRole('complementary', { name: 'Compute controls' });
+    const networkDrawer = page.getByRole('complementary', { name: 'Network controls' });
     await expect(requestDrawer).toBeVisible();
-    await expect(computeDrawer).toBeVisible();
+    await expect(networkDrawer).toBeVisible();
     await expect(page.locator('.pool-topbar')).toHaveCount(0);
     await expect(page.locator('.pool-home')).toHaveAttribute('data-pool-route-id', 'home');
     await expect(requestDrawer.locator('.pool-nav-toggle')).toHaveAttribute('aria-expanded', 'false');
-    await expect(computeDrawer.locator('.pool-nav-toggle')).toHaveAttribute('aria-expanded', 'false');
+    await expect(networkDrawer.locator('.pool-nav-toggle')).toHaveAttribute('aria-expanded', 'false');
     await expect(requestDrawer.locator('.pool-nav-mark-seven-top')).toHaveText('7');
     await expect(requestDrawer.locator('.pool-nav-mark-seven-bottom')).toHaveText('7');
     await expect(requestDrawer.locator('.pool-nav-menu')).toBeVisible();
@@ -164,14 +167,26 @@ test.describe('Route Entry Points', () => {
     await requestDrawer.locator('.pool-nav-toggle').click();
     await expect(requestDrawer).toHaveClass(/is-open/);
     const adapterLane = page.locator('[data-pool-lane="adapters"]');
+    const sequenceLane = page.locator('[data-pool-lane="sequence"]');
     const textLane = page.locator('[data-pool-lane="text"]');
     await adapterLane.click();
     await expect(page.locator('.pool-home-stage')).toHaveAttribute('data-pool-lane', 'adapters');
     await expect(page.locator('[data-pool-home-adapter-picker]')).toBeVisible();
+    await expect(page.locator('#pool-home-request-model')).toHaveValue('qwen-3-5-0-8b-q4k-ehaf16');
     await expect(page.locator('#pool-home-adapter')).toHaveAttribute('data-pool-adapter-status', /available|empty|error/);
+    await expect(sequenceLane).toBeEnabled();
+    await sequenceLane.click();
+    await expect(page.locator('.pool-home-stage')).toHaveAttribute('data-pool-lane', 'sequence');
+    await expect(page.locator('[data-pool-sequence-options]')).toBeVisible();
+    await expect(page.locator('#pool-home-sequence-public')).not.toBeChecked();
+    await expect(page.locator('#pool-home-request-model')).toHaveValue('esm2-t12-35m-ur50d-f32-af32');
+    await expect(page.locator('#pool-home-ask-prompt')).toHaveAttribute('name', 'sequence');
+    await expect(page.locator('#pool-home-ask-prompt')).toHaveAttribute('aria-label', 'Public protein sequence');
+    await expect(page.locator('#pool-home-run-submit')).toHaveAttribute('aria-label', 'Run protein sequence');
     await textLane.click();
     await expect(page.locator('.pool-home-stage')).toHaveAttribute('data-pool-lane', 'text');
     await expect(page.locator('[data-pool-home-adapter-picker]')).toBeHidden();
+    await expect(page.locator('[data-pool-sequence-options]')).toBeHidden();
     await expect(page.getByRole('link', { name: /^Live Network/ })).toHaveCount(0);
     await expect(page.locator('.pool-home-toolbar')).toBeVisible();
     await expect(page.locator('.pool-simulation-shell')).toBeVisible();
@@ -222,9 +237,9 @@ test.describe('Route Entry Points', () => {
     expect(expandedToggle.topSize).toBeGreaterThan(expandedToggle.bottomSize);
     expect(expandedToggle.topTransform).not.toBe(collapsedToggle.topTransform);
     expect(expandedToggle.bottomTransform).not.toBe(collapsedToggle.bottomTransform);
-    await expect(requestDrawer.locator('[data-pool-drawer-section="request-workload"]')).toBeVisible();
+    await expect(requestDrawer.locator('[data-pool-drawer-section="request-task"]')).toBeVisible();
     await expect(requestDrawer.locator('[data-pool-drawer-section="request-model"]')).toBeVisible();
-    await expect(requestDrawer.locator('[data-pool-drawer-section="request-participation"]')).toBeVisible();
+    await expect(requestDrawer.locator('[data-pool-drawer-section="request-checks"]')).toBeVisible();
     await expect(requestDrawer.getByRole('link', { name: 'Zero', exact: true })).toHaveAttribute('href', '/zero');
     await expect(page.getByLabel('Reploid overview')).toContainText('REPLOID');
     await expect(page.getByLabel('Reploid overview')).toContainText('Run browser models together.');

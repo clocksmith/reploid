@@ -4,10 +4,13 @@ import { describe, expect, it } from 'vitest';
 import {
   POOLDAY_NAV_ROUTES,
   POOLDAY_ASK_PLACEHOLDERS,
+  POOLDAY_SEQUENCE_ASK_PLACEHOLDERS,
+  POOLDAY_TEXT_ASK_PLACEHOLDERS,
   POOLDAY_ROUTE_DEFINITIONS,
   PRODUCT_ROUTES,
   ROUTE_COPY,
-  choosePooldayAskPlaceholder
+  choosePooldayAskPlaceholder,
+  choosePooldayAskPlaceholderForLane
 } from '../../self/ui/pool-home/constants.js';
 import {
   renderContributionStatusBar,
@@ -50,6 +53,10 @@ describe('poolday home navigation', () => {
     }
     expect(choosePooldayAskPlaceholder(() => 0)).toBe(POOLDAY_ASK_PLACEHOLDERS[0]);
     expect(choosePooldayAskPlaceholder(() => 0.999)).toBe(POOLDAY_ASK_PLACEHOLDERS.at(-1));
+    expect(POOLDAY_SEQUENCE_ASK_PLACEHOLDERS).toHaveLength(15);
+    expect(POOLDAY_TEXT_ASK_PLACEHOLDERS).toHaveLength(49);
+    expect(choosePooldayAskPlaceholderForLane('text', () => 0)).not.toMatch(/^Sequence:/);
+    expect(choosePooldayAskPlaceholderForLane('sequence', () => 0)).toBe('MRLGCSLAWLLLFLLLSVAA');
   });
 
   it('derives visible nav buttons and page copy from one route list', () => {
@@ -182,7 +189,13 @@ describe('poolday home navigation', () => {
     expect(html).toMatch(/class="pool-home-toolbar"[\s\S]*pool-home-toolbar-leading[\s\S]*class="pool-simulation-shell"[\s\S]*class="pool-home-ask-dock/);
     expect(html).toContain('data-pool-dashboard-inspector');
     expect(html).toContain('pool-nav-rail pool-control-drawer pool-dashboard-inspector');
-    expect(html).toMatch(/pool-dashboard-inspector[\s\S]*pool-nav-brand-copy[\s\S]*<strong>Compute<\/strong>/);
+    expect(html).toMatch(/pool-dashboard-inspector[\s\S]*pool-nav-brand-copy[\s\S]*<strong>Network<\/strong>/);
+    expect(html).toContain('aria-label="Network controls"');
+    expect(html).toContain('data-pool-drawer-section="network-connection"');
+    expect(html).toContain('data-pool-drawer-section="network-device" open');
+    expect(html).toContain('data-pool-drawer-section="network-activity"');
+    expect(html).not.toContain('data-pool-drawer-section="compute-sharing"');
+    expect(html).not.toContain('data-pool-drawer-section="compute-room"');
     expect(html).toMatch(/pool-dashboard-inspector[\s\S]*pool-nav-bottom[\s\S]*pool-x-link/);
     expect(html).not.toContain('pool-dashboard-inspector[\s\S]*pool-zero-link');
     expect(html).toContain('data-pool-capability-profile');
@@ -194,9 +207,17 @@ describe('poolday home navigation', () => {
 
     expect(html).toContain('class="pool-nav-rail pool-control-drawer"');
     expect(html).toContain('aria-label="Request controls"');
-    expect(html).toContain('data-pool-drawer-section="request-workload" open');
+    expect(html).toContain('data-pool-drawer-section="request-task" open');
     expect(html).toContain('data-pool-drawer-section="request-model"');
-    expect(html).toContain('data-pool-drawer-section="request-participation"');
+    expect(html).toContain('data-pool-drawer-section="request-checks"');
+    expect(html).toContain('id="pool-home-request-model"');
+    expect(html).toContain('id="pool-home-request-policy"');
+    expect(html).toContain('data-pool-lane="sequence"');
+    expect(html).not.toMatch(/data-pool-lane="sequence"[^>]+disabled/);
+    expect(html).toContain('data-pool-sequence-options');
+    expect(html).toContain('id="pool-home-sequence-public"');
+    expect(html).toContain('ESM-2 returns a pooled protein embedding');
+    expect(html).not.toContain('data-pool-drawer-section="request-participation"');
     expect(html).not.toContain('data-pool-dashboard-view');
     expect(html).toMatch(/pool-nav-bottom[\s\S]*pool-zero-link/);
     expect(html).not.toContain('pool-x-link');

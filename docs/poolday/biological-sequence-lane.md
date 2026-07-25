@@ -2,18 +2,20 @@
 
 Poolday can carry a governed biological-sequence assignment to one selected
 browser provider, execute it through Doppler, and return a signed result
-receipt. This is a protocol and runtime contract. No biological model is in the
-enabled Poolday catalog yet because the converted artifacts do not have final,
-immutable hosted URLs and release identities.
+receipt. This is a protocol and runtime contract. ESM-2 35M is enabled for
+public protein pooled embeddings. Its catalog entry pins the hosted RDRR
+manifest, tokenizer, shard identity, source revision, sequence capabilities,
+and Doppler browser execution mode. The other biological targets remain
+candidates.
 
 ## Target models
 
-| Model | Initial output | Doppler conversion | Kernel path |
-|---|---|---|---|
-| AMPLIFY 120M | Protein pooled/token embeddings and masked-token logits | `amplify-120m-f16-af32`; source tensors are renamed or split into Doppler Q/K/V/O and gated-FFN roles | F16 gather and weights, F32 activations, RMSNorm, RoPE, non-causal F16-KV attention, gated SiLU |
-| ESM-2 35M | Protein pooled/token embeddings | `esm2-t12-35m-ur50d-f32-af32`; ESM tensor names and character vocabulary are mapped into the RDRR encoder contract | F32 gather/matmul, LayerNorm plus bias, RoPE, non-causal attention, GELU |
-| ESMC 300M | Protein pooled/token embeddings | `esmc-300m-f32-af32`; fused QKV and gated FFN source tensors are split into explicit projections | F32 gather/matmul, projection-axis Q/K LayerNorm, RoPE, non-causal attention, gated SiLU |
-| Nucleotide Transformer v2 50M | DNA pooled/token embeddings | `nucleotide-transformer-v2-50m-f32-af32`; ESM-style tensors and greedy vocabulary are mapped into the RDRR encoder contract | F32 gather/matmul, LayerNorm plus bias, RoPE, non-causal attention, gated SiLU |
+| Model | Poolday state | Initial output | Doppler conversion | Kernel path |
+|---|---|---|---|---|
+| AMPLIFY 120M | Candidate | Protein pooled/token embeddings and masked-token logits | `amplify-120m-f16-af32`; source tensors are renamed or split into Doppler Q/K/V/O and gated-FFN roles | F16 gather and weights, F32 activations, RMSNorm, RoPE, non-causal F16-KV attention, gated SiLU |
+| ESM-2 35M | Enabled | Protein pooled embedding | `esm2-t12-35m-ur50d-f32-af32`; ESM tensor names and character vocabulary are mapped into the RDRR encoder contract | F32 gather/matmul, LayerNorm plus bias, RoPE, non-causal attention, GELU |
+| ESMC 300M | Candidate | Protein pooled/token embeddings | `esmc-300m-f32-af32`; fused QKV and gated FFN source tensors are split into explicit projections | F32 gather/matmul, projection-axis Q/K LayerNorm, RoPE, non-causal attention, gated SiLU |
+| Nucleotide Transformer v2 50M | Candidate | DNA pooled/token embeddings | `nucleotide-transformer-v2-50m-f32-af32`; ESM-style tensors and greedy vocabulary are mapped into the RDRR encoder contract | F32 gather/matmul, LayerNorm plus bias, RoPE, non-causal attention, gated SiLU |
 
 Each conversion config owns the source checkpoint revision, tensor rules,
 tokenizer behavior, execution graph, kernel digests, sequence alphabet,
@@ -81,5 +83,6 @@ A target becomes an enabled Poolday model only after all of these exist:
 - peer-room execution, receipt verification, and corruption tests against that
   exact catalog entry.
 
-Until then, the four targets are Doppler-qualified candidates, not deployable
-Poolday models.
+ESM-2 35M meets this gate for the public protein pooled-embedding path. AMPLIFY,
+ESMC, and Nucleotide Transformer remain Doppler-qualified candidates, not
+deployable Poolday models. No biological AdapterPack is published.

@@ -149,9 +149,32 @@ export const POOLDAY_ASK_PLACEHOLDERS = Object.freeze([
   'Meal prep ideas'
 ]);
 
-export const choosePooldayAskPlaceholder = (random = Math.random) => {
-  const index = Math.floor(Math.max(0, Math.min(0.999999999, Number(random()) || 0)) * POOLDAY_ASK_PLACEHOLDERS.length);
-  return POOLDAY_ASK_PLACEHOLDERS[index] || POOLDAY_ASK_PLACEHOLDERS[0];
+export const POOLDAY_SEQUENCE_ASK_PLACEHOLDERS = Object.freeze(
+  POOLDAY_ASK_PLACEHOLDERS
+    .filter((prompt) => prompt.startsWith('Sequence:'))
+    .map((prompt) => prompt.replace(/^Sequence:\s*/, ''))
+);
+
+export const POOLDAY_TEXT_ASK_PLACEHOLDERS = Object.freeze(
+  POOLDAY_ASK_PLACEHOLDERS.filter((prompt) => !prompt.startsWith('Sequence:'))
+);
+
+const choosePlaceholder = (placeholders, random = Math.random) => {
+  const index = Math.floor(
+    Math.max(0, Math.min(0.999999999, Number(random()) || 0)) * placeholders.length
+  );
+  return placeholders[index] || placeholders[0] || '';
+};
+
+export const choosePooldayAskPlaceholder = (random = Math.random) => (
+  choosePlaceholder(POOLDAY_ASK_PLACEHOLDERS, random)
+);
+
+export const choosePooldayAskPlaceholderForLane = (lane = 'text', random = Math.random) => {
+  const placeholders = lane === 'sequence'
+    ? POOLDAY_SEQUENCE_ASK_PLACEHOLDERS
+    : POOLDAY_TEXT_ASK_PLACEHOLDERS;
+  return choosePlaceholder(placeholders, random);
 };
 
 export const SIMULATION_TARGET_STEP_MS = 1000 / 60;

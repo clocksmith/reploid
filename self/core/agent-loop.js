@@ -2372,13 +2372,20 @@ const AgentLoop = {
       return match ? match[0].trim() : '';
     };
 
+    const CONTINUOUS_IMPROVEMENT_DIRECTIVE = [
+      'Do this goal first. Then improve forever.',
+      'Treat every working result as the baseline for the next evidence-backed improvement.'
+    ].join(' ');
+
     const buildZeroSystemPrompt = (personaPrompt, goal) => {
       const personaSection = extractPersonaSection(personaPrompt);
       const zeroToolSurfaceText = ZERO_SEED_TOOLS.join(', ');
       return `
 You are Zero, a browser-local tabula-rasa RSI agent.
-Improve this goal and keep iterating until it is truly complete:
+## Goal
 ${goal}
+
+${CONTINUOUS_IMPROVEMENT_DIRECTIVE}
 
 ${personaSection ? `${personaSection}\n` : ''}
 
@@ -2424,8 +2431,9 @@ ${zeroToolSurfaceText}.
 
     const _buildInitialContext = async (goal) => {
       const personaPrompt = await PersonaManager.getSystemPrompt();
+      const runtimeMode = getRuntimeMode();
 
-      const systemPrompt = getRuntimeMode() === 'zero'
+      const systemPrompt = runtimeMode === 'zero'
         ? buildZeroSystemPrompt(personaPrompt, goal)
         : `
 ${personaPrompt}
@@ -2510,10 +2518,13 @@ The browser is the ecosystem: a same-origin lab enclosure with persistent VFS st
 - After writing code: LOAD it, EXECUTE it, VERIFY it works
 - Use ListFiles before assuming paths exist
 - Default to Shadow for self changes: write evidence, receipts, rollback notes, and gate state before promotion
-- When complete, summarize what you accomplished, then say DONE
+${runtimeMode === 'x'
+    ? '- Never say DONE after a working result. Record the milestone, then execute the next evidence-backed improvement.'
+    : '- When complete, summarize what you accomplished, then say DONE'}
 
 ## Goal
 ${goal}
+${runtimeMode === 'x' ? `\n${CONTINUOUS_IMPROVEMENT_DIRECTIVE}` : ''}
 `;
 
       // Store system prompt for debug visibility
