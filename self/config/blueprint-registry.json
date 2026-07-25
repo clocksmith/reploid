@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-07-19T23:59:01.002Z",
+  "generatedAt": "2026-07-25T18:15:15.739Z",
   "features": [
     {
       "id": "0x000003",
@@ -3521,6 +3521,160 @@
       ],
       "files": [
         "pool/artifact-origin.js"
+      ]
+    },
+    {
+      "id": "0x00015e",
+      "name": "pool-canonical-json",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x00015e",
+          "path": "blueprints/0x00015e-pool-canonical-json.md"
+        }
+      ],
+      "files": [
+        "pool/canonical-json.js"
+      ]
+    },
+    {
+      "id": "0x00015f",
+      "name": "pool-config-contract",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x00015f",
+          "path": "blueprints/0x00015f-pool-config-contract.md"
+        }
+      ],
+      "files": [
+        "pool/config-contract.js"
+      ]
+    },
+    {
+      "id": "0x000160",
+      "name": "pool-peer-agreement",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x000160",
+          "path": "blueprints/0x000160-pool-peer-agreement.md"
+        }
+      ],
+      "files": [
+        "pool/peer-agreement.js"
+      ]
+    },
+    {
+      "id": "0x000161",
+      "name": "pool-peer-ledger",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x000161",
+          "path": "blueprints/0x000161-pool-peer-ledger.md"
+        }
+      ],
+      "files": [
+        "pool/peer-ledger.js"
+      ]
+    },
+    {
+      "id": "0x000162",
+      "name": "pool-peer-payload",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x000162",
+          "path": "blueprints/0x000162-pool-peer-payload.md"
+        }
+      ],
+      "files": [
+        "pool/peer-payload.js"
+      ]
+    },
+    {
+      "id": "0x000163",
+      "name": "pool-peer-planning",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x000163",
+          "path": "blueprints/0x000163-pool-peer-planning.md"
+        }
+      ],
+      "files": [
+        "pool/peer-planning.js"
+      ]
+    },
+    {
+      "id": "0x000164",
+      "name": "pool-peer-protocol",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x000164",
+          "path": "blueprints/0x000164-pool-peer-protocol.md"
+        }
+      ],
+      "files": [
+        "pool/peer-protocol.js"
+      ]
+    },
+    {
+      "id": "0x000165",
+      "name": "pool-peer-transport",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x000165",
+          "path": "blueprints/0x000165-pool-peer-transport.md"
+        }
+      ],
+      "files": [
+        "pool/peer-transport.js"
+      ]
+    },
+    {
+      "id": "0x000166",
+      "name": "core-agent-loop-policies",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x000166",
+          "path": "blueprints/0x000166-core-agent-loop-policies.md"
+        }
+      ],
+      "files": [
+        "core/agent-loop-policies.js"
+      ]
+    },
+    {
+      "id": "0x000167",
+      "name": "ui-pool-home-network-projection",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x000167",
+          "path": "blueprints/0x000167-ui-pool-home-network-projection.md"
+        }
+      ],
+      "files": [
+        "ui/pool-home/network-projection.js"
+      ]
+    },
+    {
+      "id": "0x000168",
+      "name": "ui-pool-home-record-persistence",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x000168",
+          "path": "blueprints/0x000168-ui-pool-home-record-persistence.md"
+        }
+      ],
+      "files": [
+        "ui/pool-home/record-persistence.js"
       ]
     }
   ]

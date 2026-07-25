@@ -33,7 +33,9 @@ jobs:
     - name: Verify surface and runtime contracts
       run: |
         npm run verify:surface-claims
+        npm run verify:layers
         npm run verify:module-system
+        npm run verify:runtime-config
         npm run verify:pool
 
     - name: Archive test results

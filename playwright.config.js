@@ -58,6 +58,10 @@ export default defineConfig({
     {
       command: 'npm start',
       url: 'http://localhost:8000',
+      env: {
+        ...process.env,
+        REPLOID_SKIP_CLOUD_ACCESS_BUILD: 'true'
+      },
       reuseExistingServer: !process.env.CI,
       timeout: 30000,
     },
