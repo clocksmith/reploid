@@ -355,6 +355,37 @@ describe('ZeroUI', () => {
     expect(root.textContent).toContain('Full envelope: 2 messages');
   });
 
+  it('renders the complete system prompt inside the initial model input details', () => {
+    const systemPrompt = [
+      'You are Zero.',
+      'x'.repeat(700),
+      '## BEHAVIORAL FOCUS',
+      'Do this goal first. Then improve forever.'
+    ].join('\n');
+    const context = [
+      `## Message 1 / 2 [SYSTEM]\n${systemPrompt}`,
+      '## Message 2 / 2 [USER]\nBegin. Goal: Build.',
+      '## Tools offered\n- ReadFile'
+    ].join('\n\n');
+
+    eventBus.emit('agent:history', {
+      type: 'model_request',
+      cycle: 1,
+      content: context,
+      messageCount: 2,
+      inputChars: context.length,
+      toolNames: ['ReadFile']
+    });
+
+    const contextRow = [...root.querySelectorAll('.zero-trace-entry')]
+      .find((row) => row.querySelector('.zero-trace-title')?.textContent === 'Model Input');
+    const details = contextRow.querySelector('.zero-trace-body').textContent;
+
+    expect(details).toContain('## BEHAVIORAL FOCUS');
+    expect(details).toContain('Do this goal first. Then improve forever.');
+    expect(details).not.toContain('continuous improvem...');
+  });
+
   it('uses runtime-emitted context deltas when full model context repeats', () => {
     const fullContext = [
       '## Message 1 / 3 [SYSTEM]\nYou are Zero.',

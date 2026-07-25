@@ -187,7 +187,7 @@ const ZeroUI = {
         lines.push(`${hiddenCount} earlier delta message(s) hidden from preview.`);
       }
       for (const message of visible) {
-        lines.push(`[${message.role}] ${summarize(message.content, 520)}`);
+        lines.push(`[${message.role}]\n${traceText(message.content)}`);
       }
       return lines.join('\n');
     };
