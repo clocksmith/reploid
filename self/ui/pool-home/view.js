@@ -1289,28 +1289,6 @@ const renderHomeRequestDrawer = (open) => `
         <span class="pool-nav-brand-copy" aria-hidden="true"><strong>Request</strong></span>
       </button>
       <div class="pool-nav-menu pool-drawer-stack" id="pool-nav-menu">
-        ${renderDrawerSection('request-task', 'Task', '⌥', `
-          <div class="pool-home-lane-chips" role="group" aria-label="Task types">
-            <button type="button" class="pool-lane-chip is-active" data-pool-lane="text" data-pool-task-description="${escapeHtml(REQUEST_TASK_COPY.text)}" data-pool-request-control aria-pressed="true">Text</button>
-            <button type="button" class="pool-lane-chip" data-pool-lane="adapters" data-pool-task-description="${escapeHtml(REQUEST_TASK_COPY.adapters)}" data-pool-request-control aria-pressed="false">Adapters</button>
-            <button type="button" class="pool-lane-chip" data-pool-lane="sequence" data-pool-task-description="${escapeHtml(REQUEST_TASK_COPY.sequence)}" data-pool-request-control aria-pressed="false">Sequence</button>
-          </div>
-          <p class="type-caption pool-drawer-help" data-pool-task-description>${escapeHtml(REQUEST_TASK_COPY.text)}</p>
-          <label class="pool-home-adapter-picker" data-pool-home-adapter-picker hidden>
-            <span>Adapter pack</span>
-            <select id="pool-home-adapter" data-pool-run-adapter data-pool-request-control disabled>
-              <option value="">Loading published packs…</option>
-            </select>
-            <small class="pool-drawer-help" data-pool-adapter-status hidden></small>
-          </label>
-          <div class="pool-sequence-options pool-control-stack" data-pool-sequence-options hidden>
-            <label class="pool-consent-row">
-              <input id="pool-home-sequence-public" type="checkbox" data-pool-request-control>
-              <span>This protein sequence is public and safe to send to selected contributors.</span>
-            </label>
-            <p class="type-caption pool-drawer-help">ESM-2 returns a pooled protein embedding. The sequence travels over the selected peer connection and is excluded from signed receipt metadata.</p>
-          </div>
-        `, { open: true, summary: 'Text' })}
         ${renderDrawerSection('request-model', 'Model', '⛝', `
           <label class="pool-field">
             <span>Request model</span>
@@ -1539,7 +1517,6 @@ export const renderContributionStatusBar = (snapshot = getContributionSnapshot()
       data-contribution-state="${escapeHtml(snapshot.state || 'inactive')}"
       aria-label="Contribution status"
     >
-      <span class="pool-contribution-dot" aria-hidden="true"></span>
       <span class="pool-contribution-state">${escapeHtml(snapshot.label || 'Not active')}</span>
       ${hasDayTokens ? `<span class="pool-contribution-metric"><b>24h</b> ${escapeHtml(formatContributionTokens(snapshot.tokens24h))}</span>` : ''}
       ${hasHourTokens ? `<span class="pool-contribution-metric"><b>1h</b> ${escapeHtml(formatContributionTokens(snapshot.tokensHour))}/hr</span>` : ''}
@@ -1818,6 +1795,30 @@ const renderHomeSimulation = ({ dashboardView = 'home' } = {}) => {
         })}
       </section>
       <form class="pool-home-ask-dock pool-home-cta-row pool-home-ask-form" id="pool-home-ask-form" aria-label="Ask the network">
+        <div class="pool-home-composer-bar">
+          <span class="pool-home-composer-label">Run</span>
+          <div class="pool-home-lane-chips" role="group" aria-label="Choose input type">
+            <button type="button" class="pool-lane-chip is-active" data-pool-lane="text" data-pool-task-description="${escapeHtml(REQUEST_TASK_COPY.text)}" data-pool-request-control aria-pressed="true">Text</button>
+            <button type="button" class="pool-lane-chip" data-pool-lane="sequence" data-pool-task-description="${escapeHtml(REQUEST_TASK_COPY.sequence)}" data-pool-request-control aria-pressed="false">Protein</button>
+            <button type="button" class="pool-lane-chip pool-lane-chip--secondary" data-pool-lane="adapters" data-pool-composer-adapter-lane data-pool-task-description="${escapeHtml(REQUEST_TASK_COPY.adapters)}" data-pool-request-control aria-pressed="false" hidden>Adapter</button>
+          </div>
+          <span class="pool-home-composer-hint" data-pool-task-description>${escapeHtml(REQUEST_TASK_COPY.text)}</span>
+        </div>
+        <label class="pool-home-adapter-picker" data-pool-home-adapter-picker hidden>
+          <span>Adapter pack</span>
+          <select id="pool-home-adapter" data-pool-run-adapter data-pool-request-control disabled>
+            <option value="">Loading published packs…</option>
+          </select>
+          <small data-pool-adapter-status hidden></small>
+        </label>
+        <div class="pool-sequence-options" data-pool-sequence-options hidden>
+          <label class="pool-consent-row" data-pool-sequence-consent-row>
+            <input id="pool-home-sequence-public" type="checkbox" data-pool-request-control>
+            <span>I confirm this protein sequence is public.</span>
+          </label>
+          <strong data-pool-sequence-consent-saved hidden>Public-sequence acknowledgement saved.</strong>
+          <span>ESM-2 returns a pooled embedding. The sequence is sent only to the selected contributor.</span>
+        </div>
         <div class="pool-home-ask-pill">
           <input
              id="pool-home-ask-prompt"

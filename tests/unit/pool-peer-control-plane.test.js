@@ -131,6 +131,20 @@ const embeddingModelAdvert = () => {
   };
 };
 
+const sequenceModelAdvert = () => {
+  const model = getEnabledPoolModelContract('esm2-t12-35m-ur50d-f32-af32');
+  return {
+    modelId: model.modelId,
+    modelHash: model.modelHash,
+    manifestHash: model.manifestHash,
+    runtime: model.runtime,
+    backend: model.backend,
+    workload: model.workload,
+    executionMode: model.executionMode,
+    sequence: model.sequence
+  };
+};
+
 describe('pool peer control plane', () => {
   it('creates signed job intents without leaking prompt text into the control plane', async () => {
     const keyPair = await createSigningKeyPair();
@@ -149,6 +163,29 @@ describe('pool peer control plane', () => {
     expect(result.intent.body.promptTransport).toBe('webrtc_datachannel');
     expect(JSON.stringify(result.intent)).not.toContain(prompt);
     expect(result.prompt).toBe(prompt);
+  });
+
+  it('advertises sequence capability without requiring request-specific sequence data', async () => {
+    const keyPair = await createSigningKeyPair();
+    const advert = await createSignedProviderAdvert({
+      providerId: 'provider_sequence',
+      providerPublicKey: await exportPublicKey(keyPair.publicKey),
+      privateKey: keyPair.privateKey,
+      models: [sequenceModelAdvert()]
+    });
+
+    expect(await verifyPeerMessage(advert)).toMatchObject({ ok: true });
+    expect(advert.body.models[0]).toMatchObject({
+      modelId: 'esm2-t12-35m-ur50d-f32-af32',
+      workload: 'sequence.embedding.v1',
+      executionMode: 'full_model_browser_sequence',
+      sequence: {
+        alphabet: 'amino_acid',
+        pooledEmbedding: { mode: 'mean' }
+      }
+    });
+    expect(advert.body.models[0]).not.toHaveProperty('sequenceRequest');
+    expect(advert.body.availability.acceptedPolicyClasses).toContain('public_biological_sequence');
   });
 
   it('builds deterministic peer assignment plans from signed provider adverts', async () => {

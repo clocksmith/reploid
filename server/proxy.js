@@ -97,6 +97,19 @@ try {
 
 const app = express();
 const PORT = appConfig?.server?.port || process.env.PORT || 8000;
+const DECO_VISUAL_FEEDBACK = process.env.DECO_VISUAL_FEEDBACK === '1';
+const decoFeedback = DECO_VISUAL_FEEDBACK
+  ? await import('../../ouroboros/deco/packages/visual-feedback-bridge/dist/node/dev-server.js')
+  : null;
+const decoFeedbackOptions = decoFeedback
+  ? {
+      projectRoot: path.join(__dirname, '..'),
+      devServerId: 'reploid-proxy',
+      allowedOrigins: [`http://localhost:${PORT}`],
+      browserModuleSpecifier: decoFeedback.feedbackBrowserModuleSpecifier,
+      reloadMode: 'reload'
+    }
+  : null;
 const GEMINI_API_KEY = appConfig?.api?.geminiKey || process.env.GEMINI_API_KEY;
 const GEMINI_REFERER = appConfig?.api?.geminiReferer || process.env.GEMINI_REFERER || 'https://replo.id';
 const LOCAL_MODEL_ENDPOINT = appConfig?.api?.localEndpoint || process.env.LOCAL_MODEL_ENDPOINT || 'http://localhost:11434';
@@ -486,6 +499,10 @@ if (!POOL_BACKEND_ONLY) {
 
 // Middleware to parse JSON bodies
 app.use(express.json({ limit: POOL_BACKEND_ONLY ? (process.env.POOL_JSON_LIMIT || '512kb') : '10mb' }));
+
+if (decoFeedback) {
+  app.use(decoFeedback.createFeedbackAssetMiddleware());
+}
 
 // CORS headers for API endpoints
 app.use((req, res, next) => {
@@ -1372,16 +1389,24 @@ const setStaticHeaders = (res, filePath) => {
 
 const PRODUCT_ROUTES = ['/', '/ask', '/compute', '/records', '/history', '/network'];
 const SUBSTRATE_ROUTES = ['/zero', '/x'];
+const sendUiFile = async (res, filePath) => {
+  if (!decoFeedback || !decoFeedbackOptions) {
+    res.sendFile(filePath);
+    return;
+  }
+  const html = await fs.promises.readFile(filePath, 'utf8');
+  res.type('html').send(decoFeedback.injectFeedbackBridgeHtml(html, decoFeedbackOptions));
+};
 
 // Main routes
-app.get(PRODUCT_ROUTES, (req, res) => {
+app.get(PRODUCT_ROUTES, async (req, res) => {
   res.setHeader('X-Reploid-Experience', 'browser-inference-pool');
-  res.sendFile(path.join(__dirname, '..', 'self', 'pool-entry.html'));
+  await sendUiFile(res, path.join(__dirname, '..', 'self', 'pool-entry.html'));
 });
 
-app.get(SUBSTRATE_ROUTES, (req, res) => {
+app.get(SUBSTRATE_ROUTES, async (req, res) => {
   res.setHeader('X-Reploid-Experience', req.path === '/zero' ? 'zero' : 'x');
-  res.sendFile(path.join(__dirname, '..', 'self', 'index.html'));
+  await sendUiFile(res, path.join(__dirname, '..', 'self', 'index.html'));
 });
 
 app.get(['/doppler', '/doppler/'], (req, res) => {

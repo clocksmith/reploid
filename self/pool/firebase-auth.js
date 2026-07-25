@@ -7,9 +7,15 @@ const DEFAULT_FIREBASE_AUTH_MODULE_URL = 'https://www.gstatic.com/firebasejs/10.
 
 let bootstrapPromise = null;
 
+const isLoopbackHost = () => {
+  const hostname = String(globalThis.location?.hostname || '').toLowerCase();
+  return hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '::1';
+};
+
 const getConfig = async () => {
   if (globalThis.REPLOID_FIREBASE_CONFIG) return globalThis.REPLOID_FIREBASE_CONFIG;
   if (globalThis.REPLOID_POOL_FIREBASE_CONFIG) return globalThis.REPLOID_POOL_FIREBASE_CONFIG;
+  if (isLoopbackHost()) return null;
   if (typeof fetch !== 'function') return null;
   try {
     const response = await fetch('/__/firebase/init.json', { cache: 'no-store' });

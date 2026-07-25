@@ -9,17 +9,23 @@
 ---
 
 ### 1. Intent
-Define the purpose and constraints for pool/firebase-auth.js.
+Bootstrap Firebase Auth only when a hosted Pool page has an explicit config or
+can obtain Firebase Hosting's generated config.
 
 ### 2. Architecture
-Outline the main responsibilities, dependencies, and data flow.
+Explicit Reploid config wins. Non-loopback hosted pages may then probe
+`/__/firebase/init.json` and lazily import the Firebase app and auth modules.
+Loopback development remains unauthenticated unless config is injected.
 
 ### 3. Implementation Notes
-Record design decisions, edge cases, and integration details.
+Do not probe Firebase Hosting's generated endpoint on localhost, `127.0.0.1`,
+or `::1`; the regular Reploid development server does not expose it and the
+404 is not an auth signal. Firebase emulator use remains available by injecting
+`REPLOID_FIREBASE_CONFIG` or `REPLOID_POOL_FIREBASE_CONFIG`.
 
 ### 4. Verification Checklist
-- [ ] Behavior matches blueprint intent
-- [ ] Dependencies are declared and available
-- [ ] Tests or verification steps updated as needed
+- [x] Loopback bootstrap does not issue the hosted-config request
+- [x] Explicit config remains available on loopback
+- [x] Hosted pages may probe Firebase Hosting config
 
 *Last updated: July 2026*

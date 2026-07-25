@@ -1,7 +1,8 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import {
-  createSigningKeyPair
+  createSigningKeyPair,
+  hashJson
 } from '../../self/pool/inference-receipt.js';
 import { buildLaunchProviderModel, LAUNCH_MODEL } from '../../self/pool/model-contract.js';
 import { createProviderClient } from '../../self/pool/provider-client.js';
@@ -110,6 +111,9 @@ function createFakeTransportFactories() {
 }
 
 const runtimeModel = () => buildLaunchProviderModel({ modelId: LAUNCH_MODEL.modelId });
+const sequenceRuntimeModel = () => buildLaunchProviderModel({
+  modelId: 'esm2-t12-35m-ur50d-f32-af32'
+});
 const fakeHash = (character) => `sha256:${character.repeat(64)}`;
 
 const fetchableAdapterRequirement = () => ({
@@ -194,6 +198,105 @@ const fakeRuntime = ({ generate = null } = {}) => ({
     status: 'completed'
   }))
 });
+
+const fakeSequenceRuntime = () => {
+  const model = sequenceRuntimeModel();
+  return {
+    isReady: () => true,
+    getModelInfo: () => model,
+    getRuntimeInfo: () => ({
+      runtime: model.runtime,
+      backend: model.backend,
+      publicApi: 'encodeSequence',
+      profile: { implementation: 'peer-room-sequence-test' }
+    }),
+    getRuntimeProfile: async () => {
+      const runtimeProfile = buildRuntimeProfile({
+        modelInfo: model,
+        runtimeInfo: {
+          runtime: model.runtime,
+          backend: model.backend,
+          publicApi: 'encodeSequence',
+          profile: { implementation: 'peer-room-sequence-test' }
+        },
+        deviceInfo: {
+          hasWebGPU: true,
+          probeStatus: 'ok',
+          adapterInfo: { vendor: 'peer-room-sequence-test' },
+          features: [],
+          limits: { maxBufferSize: 1024 }
+        },
+        browserProfile: {
+          userAgent: 'peer-room-sequence-test-browser',
+          platform: 'peer-room-sequence-test-platform',
+          brands: ['PeerRoomSequence:1'],
+          mobile: false
+        }
+      });
+      return {
+        runtimeProfile,
+        runtimeProfileHash: await hashRuntimeProfile(runtimeProfile)
+      };
+    },
+    getDeviceInfo: async () => ({
+      hasWebGPU: true,
+      probeStatus: 'ok'
+    }),
+    async encodeSequence({ sequence, request }) {
+      const pooledEmbedding = [0.25, -0.5, 0.75];
+      const pooledEmbeddingHash = await hashJson(pooledEmbedding);
+      const sequenceResult = {
+        schema: 'reploid.pool.sequence_result/v1',
+        workload: request.workload,
+        alphabet: request.alphabet,
+        sequenceHash: request.sequenceHash,
+        sequenceLength: request.sequenceLength,
+        tokenCount: sequence.length,
+        tokensHash: await hashJson([...sequence].map((_, index) => index)),
+        includedTokenCount: sequence.length,
+        embeddingDim: pooledEmbedding.length,
+        vocabSize: 33,
+        pooledEmbeddingHash,
+        tokenEmbeddingsHash: null,
+        maskedLogitsHash: null
+      };
+      const sequenceResultHash = await hashJson(sequenceResult);
+      return {
+        outputKind: request.workload,
+        outputText: '',
+        tokenIds: [],
+        vectorHash: pooledEmbeddingHash,
+        sequenceResultHash,
+        sequenceResult,
+        sequenceOutput: {
+          pooledEmbedding,
+          tokenEmbeddings: null,
+          maskedLogits: []
+        },
+        embeddingDimensions: pooledEmbedding.length,
+        embeddingStats: {
+          dimensions: pooledEmbedding.length,
+          nonFiniteCount: 0,
+          l2Norm: 0.935414
+        },
+        transcript: {
+          outputKind: request.workload,
+          sequenceResultHash,
+          sequenceResult
+        },
+        tokenCounts: {
+          input: sequence.length,
+          output: 0
+        },
+        timing: {
+          startedAt: '2026-07-25T00:00:00.000Z',
+          completedAt: '2026-07-25T00:00:01.000Z'
+        },
+        status: 'completed'
+      };
+    }
+  };
+};
 
 const createBlockingRuntime = () => {
   const releases = [];
@@ -816,6 +919,67 @@ describe('pool peer room', () => {
     expect(runActivity.every((event) => event.roomId === 'room-test')).toBe(true);
     expect(sessions.size).toBe(1);
     expect(stopped.status).toBe('peer_provider_stopped');
+  });
+
+  it('advertises and executes a public protein sequence through the browser room', async () => {
+    installFakeBroadcastChannel();
+    const sequence = 'MKTAYIAK';
+    const requesterClient = await createRoomRequesterClient('requester_sequence_room');
+    const providerClient = await createRoomProviderClient({
+      providerId: 'provider_sequence_room',
+      runtime: fakeSequenceRuntime()
+    });
+    const {
+      requesterTransportFactory,
+      providerTransportFactory
+    } = createFakeTransportFactories();
+    const providerNode = createPeerProviderNode({
+      roomId: 'sequence-room-test',
+      providerClient,
+      providerTransportFactory,
+      advertIntervalMs: 100000
+    });
+
+    try {
+      await providerNode.start({
+        models: [sequenceRuntimeModel()],
+        availability: {
+          acceptedPolicies: ['fastest_receipt']
+        }
+      });
+      const result = await runPeerJob({
+        roomId: 'sequence-room-test',
+        requesterClient,
+        requesterTransportFactory,
+        sequence,
+        sequenceRequest: {
+          workload: 'sequence.embedding.v1',
+          alphabet: 'amino_acid',
+          sensitivity: 'public',
+          includeTokenEmbeddings: false,
+          includeLogits: false
+        },
+        modelRequirements: sequenceRuntimeModel(),
+        discoveryWindowMs: 1000,
+        receiptWindowMs: 1000
+      });
+
+      expect(result.transport).toBe('webrtc_peer_room');
+      expect(result.outputKind).toBe('sequence.embedding.v1');
+      expect(result.sequenceResult).toMatchObject({
+        schema: 'reploid.pool.sequence_result/v1',
+        workload: 'sequence.embedding.v1',
+        alphabet: 'amino_acid',
+        sequenceLength: sequence.length,
+        embeddingDim: 3
+      });
+      expect(result.sequenceResultHash).toMatch(/^sha256:/);
+      expect(result.embeddingDimensions).toBe(3);
+      expect(result.inputPayload.body.sequence).toBe(sequence);
+      expect(JSON.stringify(result.receiptRecord.receipt)).not.toContain(sequence);
+    } finally {
+      await providerNode.stop();
+    }
   });
 
   it('runs a browser room job through the SDK relay bus', async () => {

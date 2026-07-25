@@ -190,7 +190,7 @@ describe('Poolday home ask controls', () => {
     document.body.innerHTML = `
       <section class="pool-home-stage" data-pool-run-surface="home" data-run-state="idle" data-pool-lane="text">
         <button class="pool-lane-chip is-active" data-pool-lane="text" aria-pressed="true">Text</button>
-        <button class="pool-lane-chip" data-pool-lane="adapters" aria-pressed="false">Adapters</button>
+        <button class="pool-lane-chip" data-pool-lane="adapters" data-pool-composer-adapter-lane aria-pressed="false">Adapters</button>
         <form id="pool-home-ask-form">
           <label data-pool-home-adapter-picker hidden>
             <select id="pool-home-adapter"></select>
@@ -230,6 +230,46 @@ describe('Poolday home ask controls', () => {
     expect(document.querySelector('.pool-home-stage').dataset.poolLane).toBe('adapters');
   });
 
+  it('returns to text and removes adapter controls when no promoted pack remains', async () => {
+    window.history.replaceState({}, '', '/?room=adapter-empty-room&relay=local');
+    document.body.innerHTML = `
+      <section class="pool-home-stage" data-pool-run-surface="home" data-run-state="idle" data-pool-lane="text">
+        <button class="pool-lane-chip is-active" data-pool-lane="text" aria-pressed="true">Text</button>
+        <button class="pool-lane-chip" data-pool-lane="adapters" data-pool-composer-adapter-lane aria-pressed="false" hidden>Adapter</button>
+        <select id="pool-home-request-model">
+          <option value="${LAUNCH_MODEL.modelId}" selected>${LAUNCH_MODEL.label}</option>
+        </select>
+        <form id="pool-home-ask-form">
+          <label data-pool-home-adapter-picker hidden>
+            <span>Adapter pack</span>
+            <select id="pool-home-adapter"></select>
+            <small data-pool-adapter-status hidden></small>
+          </label>
+          <input id="pool-home-ask-prompt" value="Explain browser inference">
+          <button id="pool-home-run-submit" type="submit">Run</button>
+        </form>
+        <p data-pool-run-status></p>
+        <section data-pool-run-output hidden>
+          <div id="pool-home-run-result-summary"></div>
+          <pre id="pool-home-run-result-stream"></pre>
+          <span id="pool-home-run-result-stream-cursor"></span>
+          <div id="pool-home-run-result-evidence"></div>
+          <pre id="pool-home-run-result-raw"></pre>
+        </section>
+      </section>
+    `;
+
+    bindHomeAskControls();
+    await vi.waitFor(() => expect(document.querySelector('[data-pool-lane="adapters"]').hidden).toBe(false));
+    adapterRegistryMocks.listFetchableAdapterPublications.mockResolvedValue([]);
+    document.querySelector('[data-pool-lane="adapters"]').click();
+
+    await vi.waitFor(() => expect(document.querySelector('.pool-home-stage').dataset.poolLane).toBe('text'));
+    expect(document.querySelector('[data-pool-lane="adapters"]').hidden).toBe(true);
+    expect(document.querySelector('[data-pool-home-adapter-picker]').hidden).toBe(true);
+    expect(document.querySelector('.pool-lane-chip[data-pool-lane="text"]').getAttribute('aria-pressed')).toBe('true');
+  });
+
   it('turns the sequence lane into a public ESM-2 peer request', async () => {
     window.history.replaceState({}, '', '/?room=sequence-room&relay=local');
     document.body.innerHTML = `
@@ -238,7 +278,10 @@ describe('Poolday home ask controls', () => {
         <button class="pool-lane-chip" data-pool-lane="adapters" aria-pressed="false">Adapters</button>
         <button class="pool-lane-chip" data-pool-lane="sequence" aria-pressed="false">Sequence</button>
         <div data-pool-sequence-options hidden>
-          <input id="pool-home-sequence-public" type="checkbox">
+          <label data-pool-sequence-consent-row>
+            <input id="pool-home-sequence-public" type="checkbox">
+          </label>
+          <strong data-pool-sequence-consent-saved hidden>Public-sequence acknowledgement saved.</strong>
         </div>
         <select id="pool-home-request-model">
           <option value="${LAUNCH_MODEL.modelId}" selected>${LAUNCH_MODEL.label}</option>
@@ -271,11 +314,19 @@ describe('Poolday home ask controls', () => {
 
     input.value = 'MKTAYIAKQRQISFVKSHFSRQ';
     document.getElementById('pool-home-sequence-public').checked = true;
+    document.getElementById('pool-home-sequence-public').dispatchEvent(new Event('change'));
+    expect(window.localStorage.getItem('reploid.pool.sequence-public-consent.v1')).toBe('true');
+    expect(document.querySelector('[data-pool-sequence-consent-row]').hidden).toBe(true);
+    expect(document.querySelector('[data-pool-sequence-consent-saved]').hidden).toBe(false);
     document.getElementById('pool-home-ask-form').dispatchEvent(new Event('submit', {
       bubbles: true,
       cancelable: true
     }));
     await vi.waitFor(() => expect(peerRoomMocks.runPeerJob).toHaveBeenCalledTimes(1));
+    document.querySelector('[data-pool-lane="text"]').click();
+    document.querySelector('[data-pool-lane="sequence"]').click();
+    expect(document.getElementById('pool-home-sequence-public').checked).toBe(true);
+    expect(document.querySelector('[data-pool-sequence-consent-row]').hidden).toBe(true);
 
     expect(peerRoomMocks.runPeerJob.mock.calls[0][0]).toMatchObject({
       roomId: 'sequence-room',

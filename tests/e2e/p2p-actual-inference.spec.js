@@ -157,6 +157,125 @@ test.describe('Run and Contribute actual browser inference', () => {
     }
   });
 
+  test('downloads ESM-2 as an optional local fallback and completes the preserved sequence request', async ({ browser, baseURL }, testInfo) => {
+    const roomId = roomIdFor(testInfo);
+    const context = await browser.newContext();
+    await installActualRuntimeConfig(context);
+    try {
+      const page = await openPoolPage(context, baseURL, '/', roomId, 'sequence-local-fallback');
+      await page.evaluate(() => {
+        window.REPLOID_POOL_DISCOVERY_WINDOW_MS = 250;
+        window.REPLOID_POOL_RECEIPT_WINDOW_MS = 300000;
+      });
+      await page.locator('[data-pool-lane="sequence"]').click();
+      await expect(page.locator('#pool-home-request-model')).toHaveValue('esm2-t12-35m-ur50d-f32-af32');
+      await page.locator('#pool-home-ask-prompt').fill('MKTAYIAKQRQISFVKSHFSRQ');
+      await page.locator('#pool-home-sequence-public').check();
+      await page.locator('#pool-home-run-submit').click();
+      await expect(page.locator('[data-pool-run-recovery-action="offer_local_provider"]')).toBeVisible();
+      await page.locator('[data-pool-run-recovery-action="offer_local_provider"]').click();
+      await expect(page.locator('[data-pool-run-recovery-action="confirm_local_provider"]')).toBeVisible();
+      await page.locator('[data-pool-run-recovery-action="confirm_local_provider"]').click();
+
+      try {
+        await expect.poll(async () => {
+          const snapshot = await readSnapshot(page, 'pool-home-run-result');
+          const parsed = snapshot.parsed || {};
+          if (/^Error:/m.test(snapshot.raw) || /could not complete|failed:/i.test(snapshot.stream)) {
+            return `error:${snapshot.stream || snapshot.raw}`;
+          }
+          if (parsed.status === 'error' || parsed.error) return `error:${parsed.reason || parsed.error}`;
+          if (parsed.transport === 'webrtc_peer_room' && parsed.sequenceResultHash) return 'complete';
+          return parsed.status || parsed.transport || snapshot.stream || 'waiting';
+        }, {
+          timeout: ACTUAL_INFERENCE_TIMEOUT_MS,
+          intervals: [1000, 2500, 5000]
+        }).toBe('complete');
+      } catch (error) {
+        const snapshot = await readSnapshot(page, 'pool-home-run-result');
+        throw new Error(`Actual ESM-2 local fallback did not complete.\n${stringifySnapshot(snapshot)}\n${error.message}`);
+      }
+
+      const result = (await readSnapshot(page, 'pool-home-run-result')).parsed;
+      expect(result.outputKind).toBe('sequence.embedding.v1');
+      expect(result.sequenceResultHash).toMatch(/^sha256:/);
+      expect(result.embeddingDimensions).toBeGreaterThan(0);
+      expect(result.receiptRecord?.receipt?.sequence?.sequenceLength).toBe(22);
+      expect(JSON.stringify(result.receiptRecord?.receipt || {})).not.toContain('MKTAYIAKQRQISFVKSHFSRQ');
+    } finally {
+      await context.close().catch(() => null);
+    }
+  });
+
+  test('gates or completes Gemma optional local fallback from the browser capability contract', async ({ browser, baseURL }, testInfo) => {
+    const roomId = roomIdFor(testInfo);
+    const context = await browser.newContext();
+    await installActualRuntimeConfig(context);
+    try {
+      const page = await openPoolPage(context, baseURL, '/', roomId, 'gemma-local-fallback');
+      await page.evaluate(() => {
+        window.REPLOID_POOL_DISCOVERY_WINDOW_MS = 250;
+        window.REPLOID_POOL_RECEIPT_WINDOW_MS = 300000;
+        const modelSelect = document.getElementById('pool-home-request-model');
+        modelSelect.value = 'gemma-3-270m-it-q4k-ehf16-af32';
+        modelSelect.dispatchEvent(new Event('change', { bubbles: true }));
+      });
+      const supportsShaderF16 = await page.evaluate(async () => {
+        const adapter = await navigator.gpu?.requestAdapter?.({ powerPreference: 'high-performance' });
+        return adapter?.features?.has?.('shader-f16') === true;
+      });
+      await expect(page.locator('#pool-home-request-model')).toHaveValue('gemma-3-270m-it-q4k-ehf16-af32');
+      await page.locator('#pool-home-ask-prompt').fill('Reply with one color word.');
+      await page.locator('#pool-home-run-submit').click();
+      await expect(page.locator('[data-pool-run-recovery-action="offer_local_provider"]')).toBeVisible();
+      await page.locator('[data-pool-run-recovery-action="offer_local_provider"]').click();
+      await expect(page.locator('[data-pool-run-recovery-action="confirm_local_provider"]')).toBeVisible();
+      await page.locator('[data-pool-run-recovery-action="confirm_local_provider"]').click();
+
+      if (!supportsShaderF16) {
+        await expect(page.locator('#pool-home-run-result-stream')).toContainText(
+          'requires WebGPU feature(s): shader-f16',
+          { timeout: 10000 }
+        );
+        await expect(page.locator('#pool-home-run-result-raw')).toContainText(
+          'Code: device_capability_model_ineligible'
+        );
+        return;
+      }
+
+      try {
+        await expect.poll(async () => {
+          const snapshot = await readSnapshot(page, 'pool-home-run-result');
+          const parsed = snapshot.parsed || {};
+          if (/^Error:/m.test(snapshot.raw) || /could not complete|failed:/i.test(snapshot.stream)) {
+            return `error:${snapshot.stream || snapshot.raw}`;
+          }
+          if (parsed.status === 'error' || parsed.error) return `error:${parsed.reason || parsed.error}`;
+          if (parsed.transport === 'webrtc_peer_room' && parsed.receiptHash && typeof parsed.outputText === 'string') {
+            return 'complete';
+          }
+          return parsed.status || parsed.transport || snapshot.stream || 'waiting';
+        }, {
+          timeout: ACTUAL_INFERENCE_TIMEOUT_MS,
+          intervals: [1000, 2500, 5000]
+        }).toBe('complete');
+      } catch (error) {
+        const snapshot = await readSnapshot(page, 'pool-home-run-result');
+        throw new Error(`Actual Gemma local fallback did not complete.\n${stringifySnapshot(snapshot)}\n${error.message}`);
+      }
+
+      const result = (await readSnapshot(page, 'pool-home-run-result')).parsed;
+      expect(result.outputText.trim()).toMatch(TEXT_TOKEN_PATTERN);
+      expect(result.receiptHash).toMatch(/^sha256:/);
+      expect(result.receiptRecord?.receipt?.model?.id || result.receiptRecord?.receipt?.model?.modelId).toBe(
+        'gemma-3-270m-it-q4k-ehf16-af32'
+      );
+      expect(result.agreement.accepted).toBe(true);
+    } finally {
+      await context.close().catch(() => null);
+    }
+  });
+
   test('queues two actual requester tabs through one loaded provider', async ({ browser, baseURL }, testInfo) => {
     const roomId = roomIdFor(testInfo);
     const context = await browser.newContext();

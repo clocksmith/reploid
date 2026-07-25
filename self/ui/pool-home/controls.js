@@ -65,6 +65,33 @@ import { choosePooldayAskPlaceholderForLane } from './constants.js';
 const errorString = (error) => String(error?.message || error?.error || error || 'Unknown error');
 const POOL_ROOM_ACTIVITY_POLL_MS = 5000;
 const POOL_ADAPTER_DISCOVERY_TIMEOUT_MS = 5000;
+const POOL_SEQUENCE_PUBLIC_CONSENT_KEY = 'reploid.pool.sequence-public-consent.v1';
+
+const readSequencePublicConsent = () => {
+  try {
+    return window.localStorage?.getItem(POOL_SEQUENCE_PUBLIC_CONSENT_KEY) === 'true';
+  } catch {
+    return false;
+  }
+};
+
+const writeSequencePublicConsent = () => {
+  try {
+    window.localStorage?.setItem(POOL_SEQUENCE_PUBLIC_CONSENT_KEY, 'true');
+  } catch {
+    // Consent still applies to the current page when storage is unavailable.
+  }
+};
+
+const syncSequencePublicConsent = (control) => {
+  if (!control) return;
+  if (readSequencePublicConsent()) control.checked = true;
+  const acknowledged = control.checked === true;
+  const row = control.closest('[data-pool-sequence-consent-row]');
+  const saved = document.querySelector('[data-pool-sequence-consent-saved]');
+  if (row) row.hidden = acknowledged;
+  if (saved) saved.hidden = !acknowledged;
+};
 
 const withTimeout = (promise, timeoutMs, message) => new Promise((resolve, reject) => {
   const timer = setTimeout(() => reject(new Error(message)), timeoutMs);
@@ -780,6 +807,25 @@ const updateAdapterPickerStatus = (adapterSelect, message, status) => {
   statusElement.dataset.poolAdapterStatus = status || '';
 };
 
+const syncComposerAdapterAvailability = (available) => {
+  document.querySelectorAll('[data-pool-composer-adapter-lane]').forEach((control) => {
+    control.hidden = !available;
+  });
+};
+
+const leaveUnavailableAdapterLane = () => {
+  const stage = document.querySelector('.pool-home-stage');
+  if (stage?.dataset.poolLane !== 'adapters') return;
+  const textLane = document.querySelector('.pool-lane-chip[data-pool-lane="text"]');
+  if (textLane) {
+    textLane.click();
+    return;
+  }
+  stage.dataset.poolLane = 'text';
+  const adapterPicker = document.querySelector('[data-pool-home-adapter-picker]');
+  if (adapterPicker) adapterPicker.hidden = true;
+};
+
 const refreshAdapterOptions = async (adapterSelect, model, { allowBaseModel = true } = {}) => {
   if (!adapterSelect || !model) return [];
   const previousValue = adapterSelect.value;
@@ -805,6 +851,8 @@ const refreshAdapterOptions = async (adapterSelect, model, { allowBaseModel = tr
     adapterSelect.disabled = publications.length === 0 && !allowBaseModel;
     adapterSelect.dataset.poolAdapterStatus = publications.length > 0 ? 'available' : 'empty';
     if (publications.length === 0) {
+      leaveUnavailableAdapterLane();
+      syncComposerAdapterAvailability(false);
       adapterSelect.options[adapterSelect.options.length - 1].textContent = allowBaseModel
         ? 'Base model only — no published packs for this model'
         : 'No published packs for this model';
@@ -814,6 +862,7 @@ const refreshAdapterOptions = async (adapterSelect, model, { allowBaseModel = tr
         'empty'
       );
     } else {
+      syncComposerAdapterAvailability(true);
       updateAdapterPickerStatus(
         adapterSelect,
         `${publications.length} promoted pack${publications.length === 1 ? '' : 's'} available for ${model.label || model.modelId}.`,
@@ -830,6 +879,8 @@ const refreshAdapterOptions = async (adapterSelect, model, { allowBaseModel = tr
     adapterSelect.disabled = !allowBaseModel;
     adapterSelect.dataset.poolAdapterStatus = 'error';
     adapterSelect.dataset.poolAdapterError = errorString(error);
+    leaveUnavailableAdapterLane();
+    syncComposerAdapterAvailability(false);
     updateAdapterPickerStatus(
       adapterSelect,
       `The adapter publication registry is unavailable: ${errorString(error)}`,
@@ -983,6 +1034,10 @@ const bindPeerRunSurface = ({
       error.code = 'sequence_public_consent_required';
       error.action = 'Check the public-sequence confirmation, then run again.';
       throw error;
+    }
+    if (lane === 'sequence') {
+      writeSequencePublicConsent();
+      syncSequencePublicConsent(sequencePublicControl);
     }
     const targetModelId = modelSelect?.value;
     const selectedModel = getEnabledPoolModelContract(targetModelId || LAUNCH_MODEL.modelId) || LAUNCH_MODEL;
@@ -1250,12 +1305,13 @@ const bindHomeLaneChips = (input, adapterSelect, modelSelect) => {
     if (chip.disabled || chip.dataset.poolLaneBound === 'true') return;
     chip.dataset.poolLaneBound = 'true';
     chip.addEventListener('click', () => {
+      const lane = chip.dataset.poolLane || 'text';
       chips.forEach((other) => {
-        other.classList.toggle('is-active', other === chip);
-        other.setAttribute('aria-pressed', String(other === chip));
+        const active = other.dataset.poolLane === lane;
+        other.classList.toggle('is-active', active);
+        other.setAttribute('aria-pressed', String(active));
       });
       const previousLane = stage.dataset.poolLane || 'text';
-      const lane = chip.dataset.poolLane || 'text';
       const previousModelId = modelSelect?.value || '';
       laneValues.set(previousLane, input.value);
       if (previousModelId) laneModels.set(previousLane, previousModelId);
@@ -1301,13 +1357,35 @@ export const bindHomeAskControls = () => {
   const policySelect = document.getElementById('pool-home-request-policy');
   const sequencePublicControl = document.getElementById('pool-home-sequence-public');
   if (!form || !input || !button) return;
+  const stage = form.closest('.pool-home-stage');
+  if (stage && form.dataset.poolDockMeasurementBound !== 'true') {
+    form.dataset.poolDockMeasurementBound = 'true';
+    const syncDockHeight = () => {
+      const height = Math.ceil(form.getBoundingClientRect().height);
+      if (height > 0) stage.style.setProperty('--pool-home-ask-dock-height', `${height}px`);
+    };
+    syncDockHeight();
+    if (typeof ResizeObserver === 'function') {
+      const observer = new ResizeObserver(syncDockHeight);
+      observer.observe(form);
+    }
+  }
+  if (sequencePublicControl && sequencePublicControl.dataset.poolConsentBound !== 'true') {
+    sequencePublicControl.dataset.poolConsentBound = 'true';
+    syncSequencePublicConsent(sequencePublicControl);
+    sequencePublicControl.addEventListener('change', () => {
+      if (sequencePublicControl.checked) writeSequencePublicConsent();
+      syncSequencePublicConsent(sequencePublicControl);
+    });
+  }
   bindSuggestedPromptEditing(input);
   bindHomeLaneChips(input, adapterSelect, modelSelect);
   if (modelSelect && modelSelect.dataset.poolRequestModelBound !== 'true') {
     modelSelect.dataset.poolRequestModelBound = 'true';
     const syncModel = () => {
       setDrawerSummary('request-model', modelSelect.selectedOptions[0]?.textContent || modelSelect.value);
-      if (document.querySelector('.pool-home-stage')?.dataset.poolLane === 'adapters') {
+      const lane = document.querySelector('.pool-home-stage')?.dataset.poolLane || 'text';
+      if (lane !== 'sequence') {
         void refreshAdapterOptions(
           adapterSelect,
           getEnabledPoolModelContract(modelSelect.value) || LAUNCH_MODEL,

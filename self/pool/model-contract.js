@@ -209,7 +209,9 @@ export function isLaunchModelRequirement(requirements = {}) {
     && requirements.backend === model.backend;
 }
 
-export function validateLaunchModelRequirement(requirements = {}) {
+const validateEnabledModelRequirement = (requirements = {}, {
+  requireSequenceRequest = true
+} = {}) => {
   const reasons = [];
   const model = getEnabledPoolModelContract(requirements.modelId);
   if (!model || !isLaunchModelRequirement(requirements)) {
@@ -229,7 +231,7 @@ export function validateLaunchModelRequirement(requirements = {}) {
   if (workload && model && !modelSupportsPoolWorkload(model, workload)) {
     reasons.push(`modelRequirements.workload ${workload} is not supported for ${requirements.modelId || 'selected model'}; supported workloads: ${getPoolModelWorkloads(model).join(', ')}`);
   }
-  if (isSequenceWorkload(resolvedWorkload)) {
+  if (requireSequenceRequest && isSequenceWorkload(resolvedWorkload)) {
     reasons.push(...validateSequenceRequest(requirements.sequenceRequest || {}, { model }).reasons);
   }
   for (const field of UNSUPPORTED_MODEL_SPLIT_FIELDS) {
@@ -248,6 +250,18 @@ export function validateLaunchModelRequirement(requirements = {}) {
     ok: reasons.length === 0,
     reasons
   };
+};
+
+export function validateLaunchModelRequirement(requirements = {}) {
+  return validateEnabledModelRequirement(requirements, {
+    requireSequenceRequest: true
+  });
+}
+
+export function validateProviderModelContract(requirements = {}) {
+  return validateEnabledModelRequirement(requirements, {
+    requireSequenceRequest: false
+  });
 }
 
 export default {
@@ -272,5 +286,6 @@ export default {
   isLaunchModelRequirement,
   validateModelRuntimeCapabilities,
   validateLaunchModelRequirement,
+  validateProviderModelContract,
   modelSupportsAdapterRequirement
 };

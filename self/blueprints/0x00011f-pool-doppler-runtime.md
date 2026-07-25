@@ -15,10 +15,15 @@ surfaces. It must not deep-import Doppler pipeline or kernel internals.
 
 ### 2. Architecture
 The selected model contract determines the public method. Text generation is
-serialized and reset between assignments. Embeddings are finite-checked and
-hashed. Biological sequence execution validates alphabet, length, disclosure,
-and output request before calling `encodeSequence`; vectors are Float32-hashed
-and masked logits are reduced with a bounded top-K heap.
+serialized and reset between assignments. The signed deterministic generation
+contract explicitly disables speculative decoding, and the adapter always
+passes Doppler a boolean `useSpeculative` option. Embeddings are finite-checked
+and hashed. Biological sequence execution validates alphabet, length,
+disclosure, and output request before calling `encodeSequence`; vectors are
+Float32-hashed and masked logits are reduced with a bounded top-K heap.
+Cataloged models load through their pinned public Doppler registry reference so
+generation evidence retains the canonical model ID; explicit URL/manifest
+inputs remain fallback surfaces for uncataloged handles.
 
 Adapter activation verifies a human-promoted AdapterPack, minimum Doppler
 version, exact base identity, bytes, and acquisition evidence before
@@ -32,6 +37,7 @@ the loaded runtime model contract.
 
 ### 4. Verification Checklist
 - [x] Text and embedding behavior remains covered
+- [x] Doppler generation receives an explicit speculative-decoding boolean
 - [x] Sequence embedding and masked-logit paths are covered
 - [x] Non-finite values and result-hash mismatches fail closed
 - [x] Adapter activation remains exact-model and evidence bound

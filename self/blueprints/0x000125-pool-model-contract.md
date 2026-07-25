@@ -12,6 +12,7 @@
 Keep model identity, supported workloads, execution modes, WebGPU requirements,
 sequence capabilities, and adapter compatibility in one catalog-owned
 contract. Unknown identities and undeclared workloads fail closed.
+Required WebGPU features are checked before artifact download or model load.
 
 ### 2. Architecture
 A catalog model may support text generation, embedding,
@@ -25,9 +26,15 @@ Biological models stay outside the enabled catalog until their exact Doppler
 release, hosted manifest, tokenizer, shards, hashes, and browser receipts are
 qualified. Adding a workload name without those artifacts is not support.
 Model splitting, KV sharding, and distributed attention remain rejected.
+Gemma 3 270M requires `shader-f16` because its published kernel path has no
+declared f32 capability remap; incompatible browsers must choose another model
+instead of downloading an artifact they cannot execute. Its catalog
+`artifactIdentity` mirrors only fields declared by the immutable hosted
+manifest; richer provenance is not inferred at registration time.
 
 ### 4. Verification Checklist
 - [x] Multi-workload capability checks are explicit
+- [x] Required WebGPU features block incompatible model loads before download
 - [x] Sequence execution mode is deterministic
 - [x] Sequence requests validate against model capability
 - [x] Adapter requirements bind the exact base model and manifest

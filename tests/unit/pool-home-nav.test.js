@@ -161,8 +161,17 @@ describe('poolday home navigation', () => {
     expect(html).toContain('Run browser models together.');
     expect(html).toContain('pool-home-cta-row pool-home-ask-form');
     expect(html).toContain('id="pool-home-ask-form"');
+    expect(html).toContain('class="pool-home-composer-bar"');
+    expect(html).toContain('aria-label="Choose input type"');
+    expect(html).toMatch(/data-pool-lane="text"[^>]*>Text<\/button>/);
+    expect(html).toMatch(/data-pool-lane="sequence"[^>]*>Protein<\/button>/);
+    expect(html).toMatch(/data-pool-composer-adapter-lane[^>]*hidden>Adapter<\/button>/);
     expect(html).toContain('class="pool-home-ask-pill"');
     expect(html).toContain('id="pool-home-ask-prompt"');
+    expect(html).toContain('id="pool-home-sequence-public"');
+    expect(html).toContain('I confirm this protein sequence is public.');
+    expect(html).toContain('data-pool-sequence-consent-saved hidden');
+    expect(html).toContain('id="pool-home-adapter"');
     expect(html).not.toContain('pool-home-ask-label');
     const placeholder = html.match(/placeholder="([^"]+)"/)?.[1];
     expect(POOLDAY_ASK_PLACEHOLDERS).toContain(placeholder);
@@ -207,16 +216,14 @@ describe('poolday home navigation', () => {
 
     expect(html).toContain('class="pool-nav-rail pool-control-drawer"');
     expect(html).toContain('aria-label="Request controls"');
-    expect(html).toContain('data-pool-drawer-section="request-task" open');
+    expect(html).not.toContain('data-pool-drawer-section="request-task"');
     expect(html).toContain('data-pool-drawer-section="request-model"');
     expect(html).toContain('data-pool-drawer-section="request-checks"');
     expect(html).toContain('id="pool-home-request-model"');
     expect(html).toContain('id="pool-home-request-policy"');
-    expect(html).toContain('data-pool-lane="sequence"');
-    expect(html).not.toMatch(/data-pool-lane="sequence"[^>]+disabled/);
-    expect(html).toContain('data-pool-sequence-options');
-    expect(html).toContain('id="pool-home-sequence-public"');
-    expect(html).toContain('ESM-2 returns a pooled protein embedding');
+    expect(html).not.toContain('data-pool-lane="sequence"');
+    expect(html).not.toContain('data-pool-sequence-options');
+    expect(html).not.toContain('id="pool-home-sequence-public"');
     expect(html).not.toContain('data-pool-drawer-section="request-participation"');
     expect(html).not.toContain('data-pool-dashboard-view');
     expect(html).toMatch(/pool-nav-bottom[\s\S]*pool-zero-link/);
@@ -382,6 +389,7 @@ describe('poolday home navigation', () => {
     expect(html).toContain('id="pool-contribution-status"');
     expect(html).toContain('data-contribution-state="idle"');
     expect(html).toContain('Available');
+    expect(html).not.toContain('pool-contribution-dot');
     expect(html).not.toContain('<b>24h</b>');
     expect(html).not.toContain('<b>1h</b>');
     expect(html).not.toContain('<b>Last</b>');
