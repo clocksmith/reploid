@@ -262,8 +262,10 @@ describe('AgentLoop - Integration Tests', () => {
       const prompt = agentLoop.getSystemPrompt();
       expect(prompt.match(/You are Zero/g)).toHaveLength(1);
       expect(prompt.length).toBeLessThan(5200);
-      expect(prompt).toContain('Improve this goal and keep iterating until it is truly complete');
+      expect(prompt).toContain('Do this goal first. Then improve forever.');
+      expect(prompt).toContain('Treat every working result as the baseline for the next evidence-backed improvement.');
       expect(prompt).toContain('Inspect the Zero VFS');
+      expect(prompt).not.toContain('until it is truly complete');
       expect(prompt).toContain('## Scope and constraints');
       expect(prompt).toContain('No host shell/filesystem/process claims');
       expect(prompt).toContain('## Writable boundary (critical)');
@@ -291,6 +293,24 @@ describe('AgentLoop - Integration Tests', () => {
       expect(prompt).not.toContain('ProposeSelfPatch');
       expect(prompt).not.toContain('Valid Promote syntax is candidatePath');
       expect(prompt).not.toContain('CreateTool -> WriteFile -> Promote -> LoadModule');
+    });
+
+    it('builds X context with continuous improvement as the stopping policy', async () => {
+      vi.stubGlobal('window', {
+        getReploidMode: () => 'x'
+      });
+      mockLLMClient.chat.mockResolvedValue({ content: 'DONE' });
+      mockResponseParser.isDone.mockReturnValue(true);
+
+      await agentLoop.run('Improve the mature substrate');
+
+      const prompt = agentLoop.getSystemPrompt();
+      expect(prompt).toContain('Improve the mature substrate');
+      expect(prompt).toContain('Do this goal first. Then improve forever.');
+      expect(prompt).toContain('Treat every working result as the baseline for the next evidence-backed improvement.');
+      expect(prompt).toContain('Never say DONE after a working result.');
+      expect(prompt).not.toContain('When complete, summarize what you accomplished, then say DONE');
+      expect(prompt).not.toContain('until it is truly complete');
     });
 
     it('normalizes structured awaken goal packets before starting a cycle', async () => {

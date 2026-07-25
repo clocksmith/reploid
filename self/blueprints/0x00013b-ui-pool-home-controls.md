@@ -24,10 +24,14 @@ Request, Contribute, and Both controls persist one signed participation profile.
 Contribution restarts when the signed profile changes so stale adverts cannot
 continue under old limits.
 
-Home is one persistent workspace. The left drawer owns request configuration.
-The right drawer owns device capability, contribution, room, and activity state.
-Both drawers use the same vertical disclosure sections and do not switch the
-center canvas to another page. The legacy routes remain compatible entry points.
+Home is one persistent workspace. The left Request drawer owns the next job:
+Task, request Model, and answer Checks. The right Network drawer owns current
+execution context: Connection, This device, and Activity. Connection combines
+room and participation because both define how the browser joins the network.
+This device combines capability and sharing because the start/stop action must
+remain beside its readiness, model, cache, and health feedback. Both drawers use
+the same vertical disclosure sections and do not switch the center canvas to
+another page. The legacy routes remain compatible entry points.
 
 The topology shares its WebGPU device evidence with a bounded capability probe.
 The probe combines supported limits with a short arithmetic kernel and assigns
@@ -37,10 +41,18 @@ budgets instead of acting as a decorative benchmark. Unsupported WebGPU is a
 separate state and cannot start a provider.
 
 ### 3. Implementation Notes
-Text remains the default lane. Sequence remains disabled until a qualified
-Poolday sequence artifact exists. Adapter registry failure or an empty exact-
-model population fails closed in the picker and never falls back to a base-model
-job under an adapter label.
+Text remains the default lane. Sequence selects the enabled ESM-2 35M protein
+artifact, requires explicit public-input confirmation, and submits the raw
+sequence plus the governed sequence request over the peer-room input path.
+Adapter registry failure or an empty exact-model population fails closed in the
+picker and never falls back to a base-model job under an adapter label. Runtime
+adapter support and an empty publication registry are presented as distinct
+states.
+Task selection controls its explanation, placeholder, eligible request models,
+and conditional adapter field. The request Model control reaches the signed job
+requirements. Checks reaches the selected routing and verification policy.
+Collapsed section summaries expose the current selection or state without
+duplicating controls across rails.
 Only enforceable controls are exposed: concurrency, output tokens, adapter cache,
 artifact relay, result verification, and advertised network capacity.
 Capability thresholds are conservative when the kernel cannot be measured.
@@ -62,6 +74,12 @@ reachable above the canvas.
 - [x] WebGPU evidence produces one of four capacity tiers
 - [x] Provider model options enforce declared minimum capability scores
 - [x] Desktop, laptop, and mobile layouts retain all primary actions
-- [x] Request and compute drawers use consistent vertical disclosure sections
+- [x] Request and Network drawers use consistent vertical disclosure sections
+- [x] Request Task, Model, and Checks reach the submitted peer job
+- [x] Sequence selects ESM-2 and submits a public protein sequence request
+- [x] Adapter empty state distinguishes runtime support from pack publication
+- [x] Room and participation share one Connection section
+- [x] Device capability and sharing share one This device section
+- [x] Collapsed rail summaries expose current selections and states
 
 *Last updated: July 2026*

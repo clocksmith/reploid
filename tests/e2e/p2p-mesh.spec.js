@@ -191,10 +191,6 @@ const startProviderPage = async (page) => {
     if (status === 'Idle') {
       throw new Error(`Contributor start failed: ${await page.locator('#pool-provider-result-raw').textContent()}`);
     }
-    if (status === 'Starting') {
-      const phase = await page.evaluate(() => document.documentElement.dataset.poolProviderStartPhase || 'unknown');
-      return `${status}:${phase}`;
-    }
     return status;
   }).toBe('Available');
   await expect(page.locator('[data-pool-provider-status]')).toHaveAttribute('data-provider-state', 'online');
@@ -426,8 +422,6 @@ test.describe('Run, Contribute, Records peer room', () => {
       await Promise.all(providerPages.map(startProviderPage));
 
       const runPage = await openPoolPage(context, baseURL, '/ask', roomId);
-      const receiptsPage = await openPoolPage(context, baseURL, '/history', roomId);
-      const reputationPage = await openPoolPage(context, baseURL, '/network', roomId);
 
       await runPeerPrompt(runPage, 'twelve page browser quorum');
       const result = await readRunResult(runPage);
@@ -444,8 +438,10 @@ test.describe('Run, Contribute, Records peer room', () => {
       });
       expect(new Set(result.assignments.map((assignment) => assignment.providerId)).size).toBe(12);
 
-      await reputationPage.reload({ waitUntil: 'domcontentloaded' });
-      await reputationPage.waitForSelector('.pool-home');
+      await Promise.all(providerPages.map((page) => page.close()));
+      const receiptsPage = await openPoolPage(context, baseURL, '/history', roomId);
+      const reputationPage = await openPoolPage(context, baseURL, '/network', roomId);
+
       await reputationPage.locator('details.pool-record-tools > summary').click();
       await expect(reputationPage.locator('#pool-peer-ledger table[aria-label="Local contributor scores"]')).toBeVisible();
       await expect(reputationPage.locator('#pool-peer-ledger')).toContainText('Matched');
@@ -456,8 +452,6 @@ test.describe('Run, Contribute, Records peer room', () => {
       await runPage.keyboard.press('Escape');
       await runPage.locator('details.pool-record-tools > summary').click();
       await expect(runPage.locator('#pool-receipt-ledger')).toContainText('accepted');
-      await receiptsPage.reload({ waitUntil: 'domcontentloaded' });
-      await receiptsPage.waitForSelector('.pool-home');
       await receiptsPage.locator('details.pool-record-tools > summary').click();
       await expect(receiptsPage.locator('#pool-receipt-ledger')).toContainText('accepted');
       await runPage.locator('details.pool-record-lookup > summary').click();

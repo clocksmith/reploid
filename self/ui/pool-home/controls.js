@@ -14,8 +14,10 @@ import { buildModelArtifactUrls, verifyModelArtifactManifest } from '../../pool/
 import { createRequesterClient } from '../../pool/requester-client.js';
 import {
   LAUNCH_MODEL,
+  POOLDAY_MODEL_WORKLOADS,
   buildLaunchProviderModel,
   getEnabledPoolModelContract,
+  getPoolModelWorkload,
   listPoolModels,
   validateModelRuntimeCapabilities
 } from '../../pool/model-contract.js';
@@ -28,6 +30,11 @@ import {
 import { FASTEST_RECEIPT_POLICY_ID, listPolicies } from '../../pool/policy-router.js';
 import { createPeerProviderNode, runPeerJob } from '../../pool/peer-room.js';
 import { createPoolSdk, verifyReceiptRecord } from '../../pool/sdk.js';
+import {
+  SEQUENCE_ALPHABETS,
+  SEQUENCE_PUBLIC_SENSITIVITY,
+  isSequenceWorkload
+} from '../../pool/sequence-workload.js';
 import {
   addReceiptLedgerRow,
   describeSelectedRun,
@@ -53,7 +60,7 @@ import {
   recordContributionReceipt,
   updateContributionState
 } from './contribution-state.js';
-import { choosePooldayAskPlaceholder } from './constants.js';
+import { choosePooldayAskPlaceholderForLane } from './constants.js';
 
 const errorString = (error) => String(error?.message || error?.error || error || 'Unknown error');
 const POOL_ROOM_ACTIVITY_POLL_MS = 5000;
@@ -174,6 +181,15 @@ export const refreshParticipationControls = async (preferences = readParticipati
   document.querySelectorAll('.pool-home-share-toggle').forEach((button) => {
     button.hidden = !canContribute;
   });
+  const connectionSummary = document.querySelector('[data-pool-drawer-summary="network-connection"]');
+  if (connectionSummary) {
+    const modeLabel = preferences.mode === PARTICIPATION_MODES.both
+      ? 'Both'
+      : preferences.mode === PARTICIPATION_MODES.contribute
+        ? 'Contribute'
+        : 'Request';
+    connectionSummary.textContent = `${getPeerRoomId()} · ${modeLabel}`;
+  }
   try {
     const identity = await participationIdentity.getDeviceIdentity();
     document.querySelectorAll('[data-pool-device-identity]').forEach((element) => {
@@ -517,7 +533,9 @@ const setInspectorRailOpen = (open) => {
   if (!rail || !toggle) return;
   rail.classList.toggle('is-open', open);
   toggle.setAttribute('aria-expanded', String(open));
-  toggle.setAttribute('aria-label', open ? 'Close compute controls' : 'Open compute controls');
+  toggle.setAttribute('aria-label', open ? 'Close network controls' : 'Open network controls');
+  toggle.setAttribute('title', open ? 'Close network controls' : 'Open network controls');
+  toggle.dataset.poolNavTooltip = open ? 'Close network controls' : 'Open network controls';
 };
 
 const POOL_DRAWER_SECTION_STATE_KEY = 'reploid.pool.drawerSections.v1';
@@ -643,7 +661,8 @@ const bindSuggestedPromptEditing = (input) => {
       return;
     }
     if (document.activeElement !== input && !input.value.trim()) {
-      const nextPrompt = choosePooldayAskPlaceholder();
+      const lane = document.querySelector('.pool-home-stage')?.dataset.poolLane || 'text';
+      const nextPrompt = choosePooldayAskPlaceholderForLane(lane);
       input.placeholder = nextPrompt;
       input.dataset.poolSuggestedPrompt = nextPrompt;
     }
@@ -751,6 +770,16 @@ const createSelectOption = (label, value = '') => {
   return option;
 };
 
+const updateAdapterPickerStatus = (adapterSelect, message, status) => {
+  const statusElement = adapterSelect
+    ?.closest('[data-pool-home-adapter-picker]')
+    ?.querySelector('small[data-pool-adapter-status]');
+  if (!statusElement) return;
+  statusElement.textContent = String(message || '');
+  statusElement.hidden = !message;
+  statusElement.dataset.poolAdapterStatus = status || '';
+};
+
 const refreshAdapterOptions = async (adapterSelect, model, { allowBaseModel = true } = {}) => {
   if (!adapterSelect || !model) return [];
   const previousValue = adapterSelect.value;
@@ -758,6 +787,7 @@ const refreshAdapterOptions = async (adapterSelect, model, { allowBaseModel = tr
   adapterSelect.dataset.poolAdapterRequestId = requestId;
   adapterSelect.disabled = true;
   adapterSelect.replaceChildren(createSelectOption('Loading published packs…'));
+  updateAdapterPickerStatus(adapterSelect, 'Checking promoted public AdapterPacks.', 'loading');
   try {
     const publications = await listFetchableAdapterPublications({
       sdk: createPoolSdk(),
@@ -778,6 +808,17 @@ const refreshAdapterOptions = async (adapterSelect, model, { allowBaseModel = tr
       adapterSelect.options[adapterSelect.options.length - 1].textContent = allowBaseModel
         ? 'Base model only — no published packs for this model'
         : 'No published packs for this model';
+      updateAdapterPickerStatus(
+        adapterSelect,
+        `Adapter execution is supported, but no promoted public pack matches ${model.label || model.modelId}.`,
+        'empty'
+      );
+    } else {
+      updateAdapterPickerStatus(
+        adapterSelect,
+        `${publications.length} promoted pack${publications.length === 1 ? '' : 's'} available for ${model.label || model.modelId}.`,
+        'available'
+      );
     }
     return publications;
   } catch (error) {
@@ -789,6 +830,11 @@ const refreshAdapterOptions = async (adapterSelect, model, { allowBaseModel = tr
     adapterSelect.disabled = !allowBaseModel;
     adapterSelect.dataset.poolAdapterStatus = 'error';
     adapterSelect.dataset.poolAdapterError = errorString(error);
+    updateAdapterPickerStatus(
+      adapterSelect,
+      `The adapter publication registry is unavailable: ${errorString(error)}`,
+      'error'
+    );
     return [];
   }
 };
@@ -815,6 +861,7 @@ const bindPeerRunSurface = ({
   modelSelect = null,
   adapterSelect = null,
   adapterRequired = () => false,
+  sequencePublicControl = null,
   resultId
 } = {}) => {
   if (!button || !prompt || !resultId || button.dataset.poolRunBound === 'true') return;
@@ -827,6 +874,11 @@ const bindPeerRunSurface = ({
     sdk: null,
     identity: requesterIdentity
   });
+  const recoveryElement = document.getElementById(`${resultId}-recovery`);
+  let pendingRequest = null;
+  let pendingErrorResult = null;
+  let requestInFlight = false;
+  let localFallbackInFlight = false;
   const updateRunState = (state, phase = '', message = '') => {
     setPoolRunVisualState({ state, phase, message });
   };
@@ -837,59 +889,164 @@ const bindPeerRunSurface = ({
       RUN_ACTIVITY_COPY[activity.status] || 'Running on the network'
     );
   };
-  const submitRunRequest = async () => {
-    let promptText = prompt.value.trim();
-    if (!promptText && prompt.placeholder) {
-      promptText = prompt.placeholder.trim();
-      prompt.value = promptText;
-    }
-    if (!promptText) {
-      updateRunState('error', 'prompt', 'Enter a prompt to run');
-      setResult(resultId, {
-        status: 'error',
-        error: 'Prompt is required',
-        reason: 'The request body is empty.',
-        action: 'Enter a prompt, then run again.'
-      }, { stream: true });
+
+  const recoveryCodeOf = (error) => error?.code || error?.payload?.code || null;
+  const canOfferLocalFallback = (error) => [
+    'peer_provider_not_found',
+    'peer_provider_model_mismatch'
+  ].includes(recoveryCodeOf(error));
+  const modelLabelOf = (model = {}) => model.label || model.name || model.modelId || 'the selected model';
+  const buildMissingProviderRecovery = (request) => ({
+    kind: 'provider_missing',
+    title: 'No matching browser is ready',
+    message: `No contributor in "${getPeerRoomId()}" is currently advertising ${modelLabelOf(request.selectedModel)}. Reploid tried the network first. You can keep searching or optionally prepare this device.`,
+    actions: [
+      {
+        id: 'retry_network',
+        label: 'Keep searching',
+        primary: true
+      },
+      {
+        id: 'offer_local_provider',
+        label: 'Run on this device'
+      },
+      {
+        id: 'invite_contributor',
+        label: 'Invite a contributor',
+        href: getPeerInviteUrl()
+      }
+    ]
+  });
+  const buildLocalConsentRecovery = (request) => ({
+    kind: 'local_provider_consent',
+    title: 'Run on this device?',
+    message: `${modelLabelOf(request.selectedModel)} may need to download before this browser can answer the preserved request.`,
+    details: [
+      'Uses WebGPU and browser storage after a capability check.',
+      `Changes participation to Both and advertises this tab in "${getPeerRoomId()}".`,
+      'This tab stays available to the room until you stop sharing.'
+    ],
+    actions: [
+      {
+        id: 'confirm_local_provider',
+        label: 'Download and run here',
+        primary: true
+      },
+      {
+        id: 'back_to_network',
+        label: 'Back'
+      },
+      {
+        id: 'invite_contributor',
+        label: 'Invite a contributor',
+        href: getPeerInviteUrl()
+      }
+    ]
+  });
+
+  const setRunButtonBusy = (busy, label = 'Running') => {
+    if (busy) {
+      if (!button.dataset.poolRunIdleLabel) button.dataset.poolRunIdleLabel = button.textContent;
+      button.disabled = true;
+      button.setAttribute('aria-busy', 'true');
+      button.textContent = label;
       return;
     }
-    button.disabled = true;
-    button.setAttribute('aria-busy', 'true');
-    const idleLabel = button.textContent;
-    button.textContent = 'Running';
-    updateRunState('submitting', 'prompt', 'Preparing signed request');
+    button.disabled = false;
+    button.removeAttribute('aria-busy');
+    if (button.dataset.poolRunIdleLabel) {
+      button.textContent = button.dataset.poolRunIdleLabel;
+      delete button.dataset.poolRunIdleLabel;
+    }
+  };
+
+  const prepareRunRequest = async () => {
+    const lane = document.querySelector('.pool-home-stage')?.dataset.poolLane || 'text';
+    let requestInput = prompt.value.trim();
+    if (!requestInput && prompt.placeholder) {
+      requestInput = prompt.placeholder.trim();
+      prompt.value = requestInput;
+    }
+    if (!requestInput) {
+      const inputLabel = lane === 'sequence' ? 'protein sequence' : 'prompt';
+      updateRunState('error', 'prompt', `Enter a ${inputLabel} to run`);
+      setResult(resultId, {
+        status: 'error',
+        error: lane === 'sequence' ? 'Protein sequence is required' : 'Prompt is required',
+        reason: 'The request body is empty.',
+        action: `Enter a ${inputLabel}, then run again.`
+      }, { stream: true });
+      return null;
+    }
+    if (lane === 'sequence' && sequencePublicControl?.checked !== true) {
+      const error = new Error('Confirm that this protein sequence is public before sending it to selected contributors');
+      error.code = 'sequence_public_consent_required';
+      error.action = 'Check the public-sequence confirmation, then run again.';
+      throw error;
+    }
+    const targetModelId = modelSelect?.value;
+    const selectedModel = getEnabledPoolModelContract(targetModelId || LAUNCH_MODEL.modelId) || LAUNCH_MODEL;
+    const sequenceWorkload = isSequenceWorkload(getPoolModelWorkload(selectedModel));
+    if (lane === 'sequence' && !sequenceWorkload) {
+      throw new Error('The selected request model does not support biological sequence work');
+    }
+    const adapter = await resolveSelectedAdapter(adapterSelect, selectedModel, {
+      required: Boolean(adapterRequired())
+    });
+    const sequence = lane === 'sequence'
+      ? requestInput.replace(/^Sequence:\s*/i, '')
+      : null;
+    const sequenceRequest = lane === 'sequence'
+      ? {
+        workload: getPoolModelWorkload(selectedModel),
+        alphabet: selectedModel.sequence?.alphabet || SEQUENCE_ALPHABETS.aminoAcid,
+        sensitivity: SEQUENCE_PUBLIC_SENSITIVITY,
+        includeTokenEmbeddings: false,
+        includeLogits: false
+      }
+      : null;
+    return {
+      lane,
+      promptText: lane === 'sequence' ? null : requestInput,
+      sequence,
+      sequenceRequest,
+      selectedModel,
+      modelRequirements: adapter ? { ...selectedModel, adapter } : selectedModel,
+      adapterPackHash: adapter?.packHash || null,
+      policyId: policySelect?.value || FASTEST_RECEIPT_POLICY_ID
+    };
+  };
+
+  const submitRunRequest = async (preparedRequest = null) => {
+    if (requestInFlight || localFallbackInFlight) return;
+    requestInFlight = true;
+    if (!preparedRequest) {
+      pendingRequest = null;
+      pendingErrorResult = null;
+    }
+    setRunButtonBusy(true);
+    updateRunState('submitting', 'prompt', preparedRequest
+      ? 'Checking the network again'
+      : 'Preparing signed request');
     try {
-      const lane = document.querySelector('.pool-home-stage')?.dataset.poolLane || 'text';
-      let targetModelId = modelSelect?.value;
-      if (!targetModelId) {
-        if (lane === 'sequence') {
-          targetModelId = 'esm2-t12-35m-ur50d-f32-af32';
-        } else {
-          targetModelId = LAUNCH_MODEL.modelId;
-        }
-      }
-      const selectedModel = getEnabledPoolModelContract(targetModelId) || LAUNCH_MODEL;
-      const providerModelSelect = document.getElementById('pool-provider-model');
-      if (providerModelSelect && selectedModel?.modelId) {
-        providerModelSelect.value = selectedModel.modelId;
-        syncProviderWorkloadCapability?.(providerModelSelect);
-      }
-      const adapter = await resolveSelectedAdapter(adapterSelect, selectedModel, {
-        required: Boolean(adapterRequired())
-      });
-      const modelRequirements = adapter ? { ...selectedModel, adapter } : selectedModel;
+      const request = preparedRequest || await prepareRunRequest();
+      if (!request) return;
+      pendingRequest = request;
+      pendingErrorResult = null;
       setResult(resultId, describeSelectedRun({
         status: 'finding_peer_provider',
-        policyId: policySelect?.value || FASTEST_RECEIPT_POLICY_ID,
-        modelId: selectedModel.modelId,
-        adapterPackHash: adapter?.packHash || null
+        policyId: request.policyId,
+        modelId: request.selectedModel.modelId,
+        adapterPackHash: request.adapterPackHash
       }), { stream: true });
       const result = await runPeerJob({
         roomId: getPeerRoomId(),
         requesterClient,
-        prompt: promptText,
-        policyId: policySelect?.value || FASTEST_RECEIPT_POLICY_ID,
-        modelRequirements,
+        prompt: request.promptText,
+        sequence: request.sequence,
+        sequenceRequest: request.sequenceRequest,
+        policyId: request.policyId,
+        modelRequirements: request.modelRequirements,
         discoveryWindowMs: getPeerDiscoveryWindowMs(),
         receiptWindowMs: getPeerReceiptWindowMs(),
         roomBusFactory: getPeerRoomBusFactory(),
@@ -905,28 +1062,107 @@ const bindPeerRunSurface = ({
       }, result.receiptHash);
       void refreshServerRoomActivity();
       setResult(resultId, result, { stream: true });
-      updateRunState('complete', 'answer', 'Answer verified');
+      updateRunState(
+        'complete',
+        'answer',
+        request.lane === 'sequence' ? 'Protein embedding verified' : 'Answer verified'
+      );
+      pendingRequest = null;
     } catch (error) {
-      const selectedModel = getEnabledPoolModelContract(modelSelect?.value || LAUNCH_MODEL.modelId) || LAUNCH_MODEL;
-      const modelLabel = selectedModel.modelId || 'selected model';
-      const defaultAction = `Start contributing in Compute with ${modelLabel} to download and host it locally in this browser, or open another tab in room "${getPeerRoomId()}".`;
-      setResult(resultId, displayPoolError(error, {
-        title: 'Request could not complete',
-        action: error?.payload?.action || error?.action || defaultAction,
+      const selectedModel = pendingRequest?.selectedModel
+        || getEnabledPoolModelContract(modelSelect?.value || LAUNCH_MODEL.modelId)
+        || LAUNCH_MODEL;
+      const networkUnavailable = pendingRequest && canOfferLocalFallback(error);
+      const displayError = displayPoolError(error, {
+        title: networkUnavailable ? 'No matching provider is currently available' : 'Request could not complete',
+        action: networkUnavailable
+          ? 'Reploid searched the peer network. Choose a recovery option below.'
+          : error?.payload?.action || error?.action || 'Check the technical details, then try again.',
         context: {
           roomId: getPeerRoomId(),
           relay: getPeerRelayMode(),
           model: selectedModel,
-          adapterPackHash: adapterSelect?.value || null
+          adapterPackHash: pendingRequest?.adapterPackHash || adapterSelect?.value || null
         }
-      }), { stream: true });
-      updateRunState('error', 'error', 'Run needs attention');
+      });
+      if (networkUnavailable) {
+        displayError.statusLabel = 'No provider';
+        displayError.action = 'The request is preserved. Choose a recovery option below.';
+        displayError.recovery = buildMissingProviderRecovery(pendingRequest);
+        pendingErrorResult = displayError;
+      }
+      setResult(resultId, displayError, { stream: true });
+      updateRunState('error', 'match', networkUnavailable
+        ? 'No matching provider is currently available'
+        : 'Run needs attention');
     } finally {
-      button.disabled = false;
-      button.removeAttribute('aria-busy');
-      button.textContent = idleLabel;
+      requestInFlight = false;
+      if (!localFallbackInFlight) setRunButtonBusy(false);
     }
   };
+
+  const startLocalProviderAndRetry = async () => {
+    if (!pendingRequest || requestInFlight || localFallbackInFlight) return;
+    localFallbackInFlight = true;
+    setInspectorRailOpen(true);
+    document.querySelector('[data-pool-drawer-section="network-device"]')?.setAttribute('open', '');
+    setRunButtonBusy(true, 'Preparing');
+    updateRunState('submitting', 'match', 'Preparing this device as an optional fallback');
+    setResult(resultId, {
+      status: 'local_provider_starting',
+      roomId: getPeerRoomId(),
+      model: pendingRequest.selectedModel,
+      action: 'Checking device capability, loading the selected model, and advertising this tab.'
+    }, { stream: true });
+    try {
+      await getProviderContributionController().startForModel(pendingRequest.selectedModel.modelId);
+      updateRunState('submitting', 'match', 'This device is available. Checking the network again');
+      localFallbackInFlight = false;
+      setRunButtonBusy(false);
+      await submitRunRequest(pendingRequest);
+    } catch (error) {
+      const displayError = displayPoolError(error, {
+        title: 'This device could not become a contributor',
+        action: error?.payload?.action || error?.action || 'Keep searching the network or invite another contributor.',
+        context: {
+          roomId: getPeerRoomId(),
+          relay: getPeerRelayMode(),
+          model: pendingRequest.selectedModel
+        }
+      });
+      displayError.recovery = buildMissingProviderRecovery(pendingRequest);
+      pendingErrorResult = displayError;
+      setResult(resultId, displayError, { stream: true });
+      updateRunState('error', 'match', 'Local fallback needs attention');
+    } finally {
+      localFallbackInFlight = false;
+      if (!requestInFlight) setRunButtonBusy(false);
+    }
+  };
+
+  recoveryElement?.addEventListener('click', (event) => {
+    const action = event.target.closest?.('[data-pool-run-recovery-action]');
+    if (!action || action.tagName === 'A') return;
+    const actionId = action.dataset.poolRunRecoveryAction;
+    if (actionId === 'retry_network') {
+      void submitRunRequest(pendingRequest);
+      return;
+    }
+    if (actionId === 'offer_local_provider' && pendingRequest && pendingErrorResult) {
+      setResult(resultId, {
+        ...pendingErrorResult,
+        recovery: buildLocalConsentRecovery(pendingRequest)
+      }, { stream: true });
+      return;
+    }
+    if (actionId === 'back_to_network' && pendingErrorResult) {
+      setResult(resultId, pendingErrorResult, { stream: true });
+      return;
+    }
+    if (actionId === 'confirm_local_provider') {
+      void startLocalProviderAndRetry();
+    }
+  });
   const submit = (event) => {
     event?.preventDefault?.();
     void submitRunRequest();
@@ -971,10 +1207,44 @@ export const bindRunControls = () => {
   void refreshAdapterOptions(adapterSelect, getEnabledPoolModelContract(modelSelect?.value) || LAUNCH_MODEL);
 };
 
-const bindHomeLaneChips = (input, adapterSelect) => {
-  const chips = [...document.querySelectorAll('.pool-lane-chip')];
+const setDrawerSummary = (sectionId, value) => {
+  const summary = document.querySelector(`[data-pool-drawer-summary="${sectionId}"]`);
+  if (summary) summary.textContent = String(value || '');
+};
+
+const requestModelsForLane = (lane) => listPoolModels({
+  enabledOnly: true,
+  workload: lane === 'sequence'
+    ? POOLDAY_MODEL_WORKLOADS.sequenceEmbedding
+    : POOLDAY_MODEL_WORKLOADS.textGeneration
+});
+
+const replaceRequestModelOptions = (modelSelect, lane, preferredModelId = null) => {
+  if (!modelSelect) return null;
+  const models = requestModelsForLane(lane);
+  modelSelect.replaceChildren(...models.map((model) => {
+    const option = createSelectOption(model.label || model.modelId, model.modelId);
+    option.dataset.workload = getPoolModelWorkload(model);
+    return option;
+  }));
+  const preferredExists = models.some((model) => model.modelId === preferredModelId);
+  const selectedModel = preferredExists ? preferredModelId : models[0]?.modelId || '';
+  modelSelect.value = selectedModel;
+  modelSelect.disabled = models.length === 0;
+  return getEnabledPoolModelContract(selectedModel);
+};
+
+const bindHomeLaneChips = (input, adapterSelect, modelSelect) => {
+  const chips = [...document.querySelectorAll('.pool-lane-chip[data-pool-lane]')];
   const stage = document.querySelector('.pool-home-stage');
   const adapterPicker = adapterSelect?.closest('[data-pool-home-adapter-picker]');
+  const sequenceOptions = document.querySelector('[data-pool-sequence-options]');
+  const sequencePublicControl = document.getElementById('pool-home-sequence-public');
+  const taskDescription = document.querySelector('[data-pool-task-description]:not(.pool-lane-chip)');
+  const submitButton = document.getElementById('pool-home-run-submit');
+  const resultLabel = document.querySelector('label[for="pool-home-run-result-stream"]');
+  const laneValues = new Map([[stage?.dataset.poolLane || 'text', input?.value || '']]);
+  const laneModels = new Map([[stage?.dataset.poolLane || 'text', modelSelect?.value || '']]);
   if (chips.length === 0 || !stage) return;
   chips.forEach((chip) => {
     if (chip.disabled || chip.dataset.poolLaneBound === 'true') return;
@@ -984,12 +1254,38 @@ const bindHomeLaneChips = (input, adapterSelect) => {
         other.classList.toggle('is-active', other === chip);
         other.setAttribute('aria-pressed', String(other === chip));
       });
+      const previousLane = stage.dataset.poolLane || 'text';
       const lane = chip.dataset.poolLane || 'text';
+      const previousModelId = modelSelect?.value || '';
+      laneValues.set(previousLane, input.value);
+      if (previousModelId) laneModels.set(previousLane, previousModelId);
       stage.dataset.poolLane = lane;
+      input.value = laneValues.get(lane) || '';
+      setDrawerSummary('request-task', chip.textContent.trim());
+      if (taskDescription) taskDescription.textContent = chip.dataset.poolTaskDescription || '';
+      const nextPrompt = choosePooldayAskPlaceholderForLane(lane);
+      input.placeholder = nextPrompt;
+      input.dataset.poolSuggestedPrompt = nextPrompt;
+      input.dataset.poolSuggestedPromptCleared = 'false';
+      input.name = lane === 'sequence' ? 'sequence' : 'prompt';
+      input.setAttribute('aria-label', lane === 'sequence' ? 'Public protein sequence' : 'Ask prompt');
+      if (submitButton) submitButton.setAttribute('aria-label', lane === 'sequence' ? 'Run protein sequence' : 'Ask');
+      if (resultLabel) resultLabel.textContent = lane === 'sequence' ? 'Embedding' : 'Answer';
       if (adapterPicker) adapterPicker.hidden = lane !== 'adapters';
-      if (lane === 'adapters') {
-        void refreshAdapterOptions(adapterSelect, LAUNCH_MODEL, { allowBaseModel: false });
-      } else if (adapterSelect) {
+      if (sequenceOptions) sequenceOptions.hidden = lane !== 'sequence';
+      if (sequencePublicControl) sequencePublicControl.required = lane === 'sequence';
+      const sameModelFamily = lane !== 'sequence' && previousLane !== 'sequence';
+      const selectedModel = replaceRequestModelOptions(
+        modelSelect,
+        lane,
+        laneModels.get(lane) || (sameModelFamily ? previousModelId : null)
+      );
+      if (modelSelect) {
+        modelSelect.dispatchEvent(new Event('change', { bubbles: true }));
+      } else if (lane === 'adapters') {
+        void refreshAdapterOptions(adapterSelect, selectedModel || LAUNCH_MODEL, { allowBaseModel: false });
+      }
+      if (lane !== 'adapters' && adapterSelect) {
         adapterSelect.value = '';
       }
     });
@@ -1001,15 +1297,45 @@ export const bindHomeAskControls = () => {
   const input = document.getElementById('pool-home-ask-prompt');
   const button = document.getElementById('pool-home-run-submit');
   const adapterSelect = document.getElementById('pool-home-adapter');
+  const modelSelect = document.getElementById('pool-home-request-model');
+  const policySelect = document.getElementById('pool-home-request-policy');
+  const sequencePublicControl = document.getElementById('pool-home-sequence-public');
   if (!form || !input || !button) return;
   bindSuggestedPromptEditing(input);
-  bindHomeLaneChips(input, adapterSelect);
+  bindHomeLaneChips(input, adapterSelect, modelSelect);
+  if (modelSelect && modelSelect.dataset.poolRequestModelBound !== 'true') {
+    modelSelect.dataset.poolRequestModelBound = 'true';
+    const syncModel = () => {
+      setDrawerSummary('request-model', modelSelect.selectedOptions[0]?.textContent || modelSelect.value);
+      if (document.querySelector('.pool-home-stage')?.dataset.poolLane === 'adapters') {
+        void refreshAdapterOptions(
+          adapterSelect,
+          getEnabledPoolModelContract(modelSelect.value) || LAUNCH_MODEL,
+          { allowBaseModel: false }
+        );
+      }
+    };
+    modelSelect.addEventListener('change', syncModel);
+    syncModel();
+  }
+  if (policySelect && policySelect.dataset.poolRequestPolicyBound !== 'true') {
+    policySelect.dataset.poolRequestPolicyBound = 'true';
+    const syncPolicy = () => {
+      const label = policySelect.selectedOptions[0]?.textContent || policySelect.value;
+      setDrawerSummary('request-checks', label.split(' - ')[0]);
+    };
+    policySelect.addEventListener('change', syncPolicy);
+    syncPolicy();
+  }
   bindPeerRunSurface({
     button,
     prompt: input,
     form,
+    policySelect,
+    modelSelect,
     adapterSelect,
     adapterRequired: () => document.querySelector('.pool-home-stage')?.dataset.poolLane === 'adapters',
+    sequencePublicControl,
     resultId: 'pool-home-run-result'
   });
 };
@@ -1022,6 +1348,8 @@ const createProviderContributionController = () => {
   let workerStarting = false;
   let lifecycleGeneration = 0;
   let currentModel = null;
+  let requestedModelId = null;
+  let workerStartPromise = null;
   let controls = {
     workerToggleButton: null,
     modelInput: null,
@@ -1061,7 +1389,8 @@ const createProviderContributionController = () => {
   };
 
   const getSelectedModelId = () => (
-    controls.modelInput?.value
+    requestedModelId
+    || controls.modelInput?.value
     || currentModel?.modelId
     || LAUNCH_MODEL.modelId
   );
@@ -1316,7 +1645,6 @@ const createProviderContributionController = () => {
 
   const ensurePeerProviderReady = async (generation) => {
     const runtime = getRuntime();
-    document.documentElement.dataset.poolProviderStartPhase = 'capability';
     const capabilityProfile = await assessPoolDeviceCapability({ runtime });
     if (generation !== undefined && generation !== lifecycleGeneration) throw new Error('Aborted');
     const selectedEligibility = capabilityProfile.modelEligibility.find((entry) => (
@@ -1336,7 +1664,6 @@ const createProviderContributionController = () => {
       capability: `${capabilityProfile.tier.id}_${capabilityProfile.score}`,
       hardware: formatDeviceLabel(capabilityProfile.deviceInfo)
     });
-    document.documentElement.dataset.poolProviderStartPhase = 'model';
     const loaded = await loadSelectedProviderModel(generation);
     if (generation !== undefined && generation !== lifecycleGeneration) throw new Error('Aborted');
     const model = loaded.model || runtime.getModelInfo();
@@ -1344,7 +1671,6 @@ const createProviderContributionController = () => {
     const participation = readParticipationPreferences();
     let adapterPacks = [];
     if (participation.permissions.relayArtifacts) {
-      document.documentElement.dataset.poolProviderStartPhase = 'adapters';
       try {
         const publications = await withTimeout(
           listFetchableAdapterPublications({ sdk: adapterSdk, model }),
@@ -1366,7 +1692,6 @@ const createProviderContributionController = () => {
     } else {
       updateProviderHealth({ adapters: 'relay_disabled' });
     }
-    document.documentElement.dataset.poolProviderStartPhase = 'identity';
     const providerIdentityState = await getProviderIdentity().resolve();
     if (generation !== undefined && generation !== lifecycleGeneration) throw new Error('Aborted');
     const capabilityLimits = resolveCapabilityAvailabilityLimits(participation, capabilityProfile);
@@ -1379,7 +1704,6 @@ const createProviderContributionController = () => {
       onActivity: handlePeerActivity
     });
     peerProviderNode = node;
-    document.documentElement.dataset.poolProviderStartPhase = 'peer';
     const result = await node.start({
       models: [{ ...model, adapterPacks }],
       availability: {
@@ -1401,66 +1725,97 @@ const createProviderContributionController = () => {
   };
 
   const startWorker = async () => {
-    if (workerRunning || workerStarting) return;
-    const participation = readParticipationPreferences();
-    if (!canContributeWith(participation)) {
-      writeParticipationPreferences({ ...participation, mode: PARTICIPATION_MODES.both });
-      await refreshParticipationControls(readParticipationPreferences());
+    if (workerRunning) {
+      return {
+        ok: true,
+        status: 'peer_room_listening',
+        model: currentModel
+      };
     }
-    const generation = ++lifecycleGeneration;
-    workerStarting = true;
-    setContributionState({ state: 'starting', optedIn: true, lastError: null });
-    syncWorkerControls();
-    setResult('pool-provider-result', {
-      runner: 'peer_room_starting',
-      roomId: getPeerRoomId(),
-      model: getProviderModel()
-    });
-    setProviderStatus('Starting');
-    try {
-      const ready = await ensurePeerProviderReady(generation);
-      if (generation !== lifecycleGeneration) {
-        await stopPeerProvider().catch(() => null);
-        return;
+    if (workerStartPromise) return workerStartPromise;
+    workerStartPromise = (async () => {
+      const participation = readParticipationPreferences();
+      if (!canContributeWith(participation)) {
+        writeParticipationPreferences({ ...participation, mode: PARTICIPATION_MODES.both });
+        await refreshParticipationControls(readParticipationPreferences());
       }
-      workerStarting = false;
-      workerRunning = true;
-      document.documentElement.dataset.poolProviderStartPhase = 'ready';
-      setProviderStatus('Available');
-      updateProviderHealth({ queue: 'listening' });
-      setContributionState({ state: 'idle', optedIn: true, lastError: null });
+      const generation = ++lifecycleGeneration;
+      workerStarting = true;
+      setContributionState({ state: 'starting', optedIn: true, lastError: null });
+      syncWorkerControls();
       setResult('pool-provider-result', {
-        runner: 'peer_room_listening',
-        relay: getPeerRelayMode(),
-        inviteUrl: getPeerInviteUrl(),
-        ...ready
+        runner: 'peer_room_starting',
+        roomId: getPeerRoomId(),
+        model: getProviderModel()
       });
-    } catch (error) {
-      if (generation !== lifecycleGeneration) return;
-      await stopPeerProvider().catch(() => null);
-      workerStarting = false;
-      workerRunning = false;
-      document.documentElement.dataset.poolProviderStartPhase = 'error';
-      setProviderStatus('Idle');
-      updateProviderHealth({ queue: 'stopped', model: 'load_failed' });
-      setContributionState({
-        state: 'error',
-        optedIn: false,
-        lastError: errorString(error)
-      });
-      setResult('pool-provider-result', displayPoolError(error, {
-        title: 'This tab could not start',
-        action: 'Load a compatible model first. If the manifest URL is missing, deploy the model artifacts or attach a Doppler runtime handle.',
-        context: {
-          runner: 'stopped',
-          roomId: getPeerRoomId(),
-          relay: getPeerRelayMode(),
-          model: getProviderModel()
+      setProviderStatus('Starting');
+      try {
+        const ready = await ensurePeerProviderReady(generation);
+        if (generation !== lifecycleGeneration) {
+          await stopPeerProvider().catch(() => null);
+          return {
+            ok: false,
+            status: 'aborted'
+          };
         }
-      }));
-      document.getElementById('pool-provider-details')?.setAttribute('open', '');
+        workerStarting = false;
+        workerRunning = true;
+        setProviderStatus('Available');
+        updateProviderHealth({ queue: 'listening' });
+        setContributionState({ state: 'idle', optedIn: true, lastError: null });
+        setResult('pool-provider-result', {
+          runner: 'peer_room_listening',
+          relay: getPeerRelayMode(),
+          inviteUrl: getPeerInviteUrl(),
+          ...ready
+        });
+        return {
+          ok: true,
+          status: 'peer_room_listening',
+          ...ready
+        };
+      } catch (error) {
+        if (generation !== lifecycleGeneration) {
+          return {
+            ok: false,
+            status: 'aborted',
+            error
+          };
+        }
+        await stopPeerProvider().catch(() => null);
+        workerStarting = false;
+        workerRunning = false;
+        setProviderStatus('Idle');
+        updateProviderHealth({ queue: 'stopped', model: 'load_failed' });
+        setContributionState({
+          state: 'error',
+          optedIn: false,
+          lastError: errorString(error)
+        });
+        setResult('pool-provider-result', displayPoolError(error, {
+          title: 'This tab could not start',
+          action: 'Load a compatible model first. If the manifest URL is missing, deploy the model artifacts or attach a Doppler runtime handle.',
+          context: {
+            runner: 'stopped',
+            roomId: getPeerRoomId(),
+            relay: getPeerRelayMode(),
+            model: getProviderModel()
+          }
+        }));
+        document.getElementById('pool-provider-details')?.setAttribute('open', '');
+        return {
+          ok: false,
+          status: 'error',
+          error
+        };
+      } finally {
+        if (generation === lifecycleGeneration) syncWorkerControls();
+      }
+    })();
+    try {
+      return await workerStartPromise;
     } finally {
-      if (generation === lifecycleGeneration) syncWorkerControls();
+      workerStartPromise = null;
     }
   };
 
@@ -1499,6 +1854,27 @@ const createProviderContributionController = () => {
       }
       syncProviderPanel();
     },
+    async startForModel(modelId) {
+      const model = getEnabledPoolModelContract(modelId);
+      if (!model) {
+        const error = new Error('Selected model is not enabled for peer contribution');
+        error.code = 'peer_provider_model_disabled';
+        throw error;
+      }
+      if (workerRunning && currentModel?.modelId !== model.modelId) {
+        await stopWorker();
+      }
+      requestedModelId = model.modelId;
+      if (controls.modelInput) {
+        controls.modelInput.value = model.modelId;
+        syncProviderWorkloadCapability(controls.modelInput);
+      }
+      const result = await startWorker();
+      if (!result?.ok) {
+        throw result?.error || new Error('This browser did not become available to the room');
+      }
+      return result;
+    },
     async applyParticipationPreferences(previous, next) {
       preferenceApplyPromise = preferenceApplyPromise.then(async () => {
         if (!workerRunning && !workerStarting) {
@@ -1517,6 +1893,7 @@ const createProviderContributionController = () => {
       await preferenceApplyPromise;
     },
     async handleModelChange() {
+      requestedModelId = controls.modelInput?.value || null;
       if (workerRunning || workerStarting) {
         await stopWorker();
         await startWorker();

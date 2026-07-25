@@ -13,7 +13,10 @@ import { DETERMINISTIC_GENERATION_CONFIG, FASTEST_RECEIPT_POLICY_ID, getPolicy, 
 import { DEFAULT_PEER_ROOM_ID } from '../../pool/peer-room.js';
 import { createPeerEventReducer } from '../../pool/peer-control-plane.js';
 import { createPoolSdk } from '../../pool/sdk.js';
-import { readParticipationPreferences } from '../../pool/participation-profile.js';
+import {
+  PARTICIPATION_MODES,
+  readParticipationPreferences
+} from '../../pool/participation-profile.js';
 import {
   createPeerRoomBusFactory,
   createPeerRoomInviteUrl
@@ -33,7 +36,7 @@ import {
   POOLDAY_STREAM_TICK_MS,
   POOLDAY_VERSION_TAG,
   ROUTE_COPY,
-  choosePooldayAskPlaceholder
+  choosePooldayAskPlaceholderForLane
 } from './constants.js';
 import { getContributionSnapshot } from './contribution-state.js';
 import { getPoolLedgerStore } from './ledger-store.js';
@@ -141,14 +144,21 @@ const getProviderStatusEl = (mount) => mount?.querySelector('[data-pool-provider
 
 export const updateProviderStatus = (mount, status = 'Idle') => {
   const statusEl = getProviderStatusEl(mount);
-  if (!statusEl) return;
-  statusEl.textContent = status;
   const normalized = String(status || '').toLowerCase();
-  statusEl.dataset.providerState = normalized.includes('available') || normalized.includes('ready') || normalized.includes('answering') || normalized.includes('online') || normalized.includes('running')
+  const providerState = normalized.includes('available') || normalized.includes('ready') || normalized.includes('answering') || normalized.includes('online') || normalized.includes('running')
     ? 'online'
     : normalized.includes('starting') || normalized.includes('opening')
       ? 'starting'
       : 'offline';
+  if (statusEl) {
+    statusEl.textContent = status;
+    statusEl.dataset.providerState = providerState;
+  }
+  const summary = mount?.querySelector('[data-pool-drawer-summary="network-device"]');
+  if (summary) {
+    summary.textContent = status === 'Idle' ? 'Not sharing' : status;
+    summary.dataset.providerState = providerState;
+  }
 };
 
 const streamOutputText = (elementId, text) => {
@@ -529,9 +539,44 @@ export const renderRecordLedger = (facetId = 'all') => {
   `;
 };
 
+const renderDashboardActivity = (allRows = unifiedRecordRows()) => {
+  const rows = allRows.slice(0, 5);
+  if (!rows.length) {
+    return '<p class="pool-record-empty">No recent work. Requests, contributions, and room events appear here.</p>';
+  }
+  return `
+    <ol class="pool-record-timeline pool-record-timeline-compact" aria-label="Recent network activity">
+      ${rows.map((row) => `
+        <li data-record-type="${escapeHtml(row.type)}">
+          <span>
+            <time datetime="${escapeHtml(row.occurredAt || '')}">${escapeHtml(formatRecordTime(row.occurredAt))}</time>
+            <strong>${escapeHtml(row.title)}</strong>
+            <small>${escapeHtml(row.meta || 'Recorded')}</small>
+          </span>
+        </li>
+      `).join('')}
+    </ol>
+    <a class="link-secondary pool-drawer-link" href="/records" data-pool-route-link="/records">View all records</a>
+  `;
+};
+
 export const refreshRecordTimelineState = () => {
   const ledger = document.getElementById('pool-record-ledger');
-  if (ledger) setPoolHtml(ledger, renderRecordLedger(ledger.dataset.recordFacet || 'all'));
+  if (ledger) {
+    const compact = ledger.dataset.recordPresentation === 'compact';
+    const activityRows = compact ? unifiedRecordRows() : null;
+    setPoolHtml(
+      ledger,
+      compact
+        ? renderDashboardActivity(activityRows)
+        : renderRecordLedger(ledger.dataset.recordFacet || 'all')
+    );
+    const summary = document.querySelector('[data-pool-drawer-summary="network-activity"]');
+    if (summary) {
+      const count = activityRows?.length || 0;
+      summary.textContent = count ? `${count} recent` : 'No recent work';
+    }
+  }
 };
 
 export const applyPoolNetworkVisualState = (summary = null) => {
@@ -539,6 +584,13 @@ export const applyPoolNetworkVisualState = (summary = null) => {
   const status = visual.available
     ? `${visual.peerCount} live tab${visual.peerCount === 1 ? '' : 's'}, ${visual.providerCount} contributor${visual.providerCount === 1 ? '' : 's'}, ${visual.messageCount} message${visual.messageCount === 1 ? '' : 's'}`
     : 'room status unavailable';
+  for (const connection of document.querySelectorAll('[data-pool-connection-activity]')) {
+    connection.textContent = visual.available
+      ? `${visual.peerCount} tab${visual.peerCount === 1 ? '' : 's'} · ${visual.providerCount} contributor${visual.providerCount === 1 ? '' : 's'}`
+      : getPeerRelayMode() === 'local'
+        ? 'Local tab · live discovery'
+        : 'Checking live room';
+  }
   for (const control of document.querySelectorAll('[data-pool-network-state]')) {
     control.dataset.networkMode = visual.mode;
     control.setAttribute('aria-label', `Live Network, ${status}`);
@@ -718,7 +770,17 @@ const extractOutputText = (value = {}) => {
     receipt?.output,
     receipt?.transcript?.outputText
   ];
-  return String(candidates.find((entry) => typeof entry === 'string' && entry.length > 0) || '');
+  const output = String(candidates.find((entry) => typeof entry === 'string' && entry.length > 0) || '');
+  if (output) return output;
+  if (value.sequenceResultHash) {
+    const dimensions = Number(value.embeddingDimensions || value.sequenceOutput?.pooledEmbedding?.length || 0);
+    return [
+      'Protein embedding ready',
+      dimensions > 0 ? `${dimensions} dimensions` : null,
+      `Result ${compactHash(value.sequenceResultHash)}`
+    ].filter(Boolean).join('\n');
+  }
+  return '';
 };
 
 const formatLedgerValue = (value, fallback = '—') => {
@@ -763,7 +825,7 @@ const extractResultSummary = (value = {}) => {
     const payload = value.payload || {};
     const model = value.model || payload.model || payload.requiredModel || null;
     const fields = [
-      ['Status', value.error || 'Failed'],
+      ['Status', value.statusLabel || value.error || 'Failed'],
       ['Code', value.code],
       ['Room', value.roomId || payload.roomId],
       ['Model', model?.modelId || model?.id]
@@ -786,6 +848,8 @@ const extractResultSummary = (value = {}) => {
     ['Connection', firstPresent(job.transport, value.transport, receipt?.promptTransport)],
     ['Route', firstPresent(routeDecision?.decisionHash, receipt?.routeDecisionHash)],
     ['Model', firstPresent(job.model?.id, job.modelRequirements?.modelId, receipt?.model?.id, value.model?.modelId)],
+    ['Sequence result', firstPresent(value.sequenceResultHash, receipt?.sequenceResultHash)],
+    ['Dimensions', firstPresent(value.embeddingDimensions, receipt?.embeddingDimensions)],
     ['Spend', firstPresent(acceptance?.pointSpend, value.pointSpend)],
     ['Runtime hash', firstPresent(receipt?.verification?.runtimeProfileHash, job.runtimeProfileHash, record.runtimeProfileHash)],
     ['Doppler evidence', receipt?.dopplerEvidenceComparison?.verified === true
@@ -952,6 +1016,7 @@ const renderResultBox = (id, options = {}) => {
           <span class="pool-stream-cursor" id="${id}-stream-cursor" aria-hidden="true">▍</span>
         </div>
       </div>
+      <div class="pool-run-recovery" id="${id}-recovery" aria-live="polite" hidden></div>
       ${options.evidence ? renderContributionDetails(id, options.evidenceLabel || 'Contributors') : ''}
       ${renderRawDetails(id, options.rawLabel || 'Full result', { full: options.rawFull === true })}
     `;
@@ -960,6 +1025,7 @@ const renderResultBox = (id, options = {}) => {
   return `
   <div class="boot-status-strip pool-summary" id="${id}-summary" aria-live="polite"></div>
   <p class="pool-result-message" id="${id}" aria-live="polite">${escapeHtml(placeholder)}</p>
+  <div class="pool-run-recovery" id="${id}-recovery" aria-live="polite" hidden></div>
   ${renderRawDetails(id, options.rawLabel || 'Full result', { full: options.rawFull === true })}
   `;
 };
@@ -1062,6 +1128,40 @@ const formatErrorResultText = (value = {}) => {
   return lines.join('\n');
 };
 
+const renderRecoveryAction = (action = {}) => {
+  const id = String(action.id || '').trim();
+  const label = String(action.label || '').trim();
+  if (!id || !label) return '';
+  const className = action.primary === true ? 'btn btn-primary' : 'btn btn-ghost';
+  if (action.href) {
+    return `
+      <a class="${className}" href="${escapeHtml(action.href)}" data-pool-run-recovery-action="${escapeHtml(id)}">${escapeHtml(label)}</a>
+    `;
+  }
+  return `
+    <button class="${className}" type="button" data-pool-run-recovery-action="${escapeHtml(id)}">${escapeHtml(label)}</button>
+  `;
+};
+
+const renderRunRecovery = (recovery = null) => {
+  if (!recovery || typeof recovery !== 'object') return '';
+  const actions = Array.isArray(recovery.actions)
+    ? recovery.actions.map(renderRecoveryAction).filter(Boolean).join('')
+    : '';
+  const details = Array.isArray(recovery.details)
+    ? recovery.details.filter(Boolean).map((detail) => `<li>${escapeHtml(detail)}</li>`).join('')
+    : '';
+  if (!recovery.title && !recovery.message && !actions && !details) return '';
+  return `
+    <section class="pool-run-recovery-card" data-pool-run-recovery-kind="${escapeHtml(recovery.kind || 'attention')}">
+      ${recovery.title ? `<h2 class="type-h3">${escapeHtml(recovery.title)}</h2>` : ''}
+      ${recovery.message ? `<p>${escapeHtml(recovery.message)}</p>` : ''}
+      ${details ? `<ul>${details}</ul>` : ''}
+      ${actions ? `<div class="pool-run-recovery-actions">${actions}</div>` : ''}
+    </section>
+  `;
+};
+
 export const setResult = (id, value, options = {}) => {
   if (value && typeof value === 'object') {
     recordPeerLedgerEvents(value.ledgerEvents || value.body?.ledgerEvents || []);
@@ -1083,9 +1183,17 @@ export const setResult = (id, value, options = {}) => {
   const streamCursor = streamMode ? document.getElementById(`${id}-stream-cursor`) : null;
   const rawEl = document.getElementById(`${id}-raw`);
   const evidenceEl = document.getElementById(`${id}-evidence`);
+  const recoveryEl = document.getElementById(`${id}-recovery`);
+  const answerBox = streamMode ? streamEl?.closest?.('.pool-answer-box') : null;
   if (summaryEl) {
     setPoolHtml(summaryEl, summary.length > 0 ? renderSummaryRows(summary) : '');
   }
+  if (recoveryEl) {
+    const recoveryHtml = renderRunRecovery(value?.recovery);
+    setPoolHtml(recoveryEl, recoveryHtml);
+    recoveryEl.hidden = !recoveryHtml;
+  }
+  if (answerBox) answerBox.hidden = Boolean(value?.recovery);
   if (rawEl) rawEl.textContent = raw;
   if (evidenceEl && value && typeof value === 'object') {
     setPoolHtml(evidenceEl, renderRunContributionLayer(value));
@@ -1124,11 +1232,15 @@ export const getPoolDashboardView = () => {
   }
 };
 
-const renderDrawerSection = (id, title, glyph, content, { open = false } = {}) => `
+const renderDrawerSection = (id, title, glyph, content, {
+  open = false,
+  summary = ''
+} = {}) => `
   <details class="pool-drawer-section" data-pool-drawer-section="${escapeHtml(id)}"${open ? ' open' : ''}>
     <summary>
       <span class="pool-nav-glyph" aria-hidden="true">${escapeHtml(glyph)}</span>
       <span class="pool-nav-label">${escapeHtml(title)}</span>
+      <span class="pool-drawer-summary-value" data-pool-drawer-summary="${escapeHtml(id)}">${escapeHtml(summary)}</span>
       <span class="pool-drawer-disclosure" aria-hidden="true">▼</span>
     </summary>
     <div class="pool-drawer-section-body">${content}</div>
@@ -1160,6 +1272,12 @@ const renderRailOutlink = (id) => {
   return `<a class="pool-nav-link pool-nav-substrate-link pool-${id}-link link-secondary" href="${link.path}" data-pool-substrate-route="${link.path}" aria-label="${escapeHtml(link.label)}" title="${tooltip}" data-pool-nav-tooltip="${tooltip}"><span class="pool-nav-glyph" aria-hidden="true">${escapeHtml(link.glyph)}</span><span class="pool-nav-description">${escapeHtml(link.description)}</span></a>`;
 };
 
+const REQUEST_TASK_COPY = Object.freeze({
+  text: 'Generate an answer with a browser language model.',
+  adapters: 'Run text with a published adapter tied to the exact base model.',
+  sequence: 'Generate a pooled embedding for a public protein sequence.'
+});
+
 const renderHomeRequestDrawer = (open) => `
   <nav class="pool-nav-rail pool-control-drawer${open ? ' is-open' : ''}" aria-label="Request controls">
     <div class="pool-nav-top">
@@ -1171,23 +1289,46 @@ const renderHomeRequestDrawer = (open) => `
         <span class="pool-nav-brand-copy" aria-hidden="true"><strong>Request</strong></span>
       </button>
       <div class="pool-nav-menu pool-drawer-stack" id="pool-nav-menu">
-        ${renderDrawerSection('request-workload', 'Workload', '⌥', `
-          <div class="pool-home-lane-chips" role="group" aria-label="Workload lanes">
-            <button type="button" class="pool-lane-chip is-active" data-pool-lane="text" data-pool-request-control aria-pressed="true">Text</button>
-            <button type="button" class="pool-lane-chip" data-pool-lane="adapters" data-pool-request-control aria-pressed="false">Adapters</button>
-            <button type="button" class="pool-lane-chip" data-pool-lane="sequence" data-pool-request-control aria-pressed="false">Sequence</button>
+        ${renderDrawerSection('request-task', 'Task', '⌥', `
+          <div class="pool-home-lane-chips" role="group" aria-label="Task types">
+            <button type="button" class="pool-lane-chip is-active" data-pool-lane="text" data-pool-task-description="${escapeHtml(REQUEST_TASK_COPY.text)}" data-pool-request-control aria-pressed="true">Text</button>
+            <button type="button" class="pool-lane-chip" data-pool-lane="adapters" data-pool-task-description="${escapeHtml(REQUEST_TASK_COPY.adapters)}" data-pool-request-control aria-pressed="false">Adapters</button>
+            <button type="button" class="pool-lane-chip" data-pool-lane="sequence" data-pool-task-description="${escapeHtml(REQUEST_TASK_COPY.sequence)}" data-pool-request-control aria-pressed="false">Sequence</button>
           </div>
+          <p class="type-caption pool-drawer-help" data-pool-task-description>${escapeHtml(REQUEST_TASK_COPY.text)}</p>
           <label class="pool-home-adapter-picker" data-pool-home-adapter-picker hidden>
             <span>Adapter pack</span>
             <select id="pool-home-adapter" data-pool-run-adapter data-pool-request-control disabled>
               <option value="">Loading published packs…</option>
             </select>
+            <small class="pool-drawer-help" data-pool-adapter-status hidden></small>
           </label>
-        `, { open: true })}
+          <div class="pool-sequence-options pool-control-stack" data-pool-sequence-options hidden>
+            <label class="pool-consent-row">
+              <input id="pool-home-sequence-public" type="checkbox" data-pool-request-control>
+              <span>This protein sequence is public and safe to send to selected contributors.</span>
+            </label>
+            <p class="type-caption pool-drawer-help">ESM-2 returns a pooled protein embedding. The sequence travels over the selected peer connection and is excluded from signed receipt metadata.</p>
+          </div>
+        `, { open: true, summary: 'Text' })}
         ${renderDrawerSection('request-model', 'Model', '⛝', `
-          <div class="pool-drawer-value"><span>Selected</span><b>${escapeHtml(LAUNCH_MODEL.label || LAUNCH_MODEL.modelId)}</b></div>
-        `)}
-        ${renderDrawerSection('request-participation', 'Participation', '⚿', renderParticipationControl({ surface: 'request-drawer' }))}
+          <label class="pool-field">
+            <span>Request model</span>
+            <select id="pool-home-request-model" data-pool-request-control>
+              ${renderModelOptions({ workload: POOLDAY_MODEL_WORKLOADS.textGeneration })}
+            </select>
+          </label>
+          <p class="type-caption pool-drawer-help" data-pool-request-model-help>Contributors must advertise this exact model and any selected adapter.</p>
+        `, { summary: LAUNCH_MODEL.label || LAUNCH_MODEL.modelId })}
+        ${renderDrawerSection('request-checks', 'Checks', '✓', `
+          <label class="pool-field">
+            <span>Answer check</span>
+            <select id="pool-home-request-policy" data-pool-request-control>
+              ${renderPolicyOptions()}
+            </select>
+          </label>
+          <p class="type-caption pool-drawer-help">Choose speed, sampling, or agreement before the request is signed.</p>
+        `, { summary: renderPolicyProductLabel(getPolicy(FASTEST_RECEIPT_POLICY_ID)) })}
       </div>
     </div>
     <div class="pool-nav-bottom">
@@ -1271,12 +1412,14 @@ export const renderNav = (activeRoute, {
   `;
 };
 
-const renderRoomContext = () => `
-  <div class="pool-room-context" aria-label="Peer room details">
-    <div class="pool-room-context-heading">
-      <b>Peer room</b>
-      <small>Connection context</small>
-    </div>
+const renderRoomContext = ({ compact = false } = {}) => `
+  <div class="pool-room-context${compact ? ' pool-room-context-compact' : ''}" aria-label="Peer room details">
+    ${compact ? '' : `
+      <div class="pool-room-context-heading">
+        <b>Peer room</b>
+        <small>Connection context</small>
+      </div>
+    `}
     <span><b>Room</b><code data-pool-room-id>${escapeHtml(getPeerRoomId())}</code></span>
     <span><b>Relay</b><code data-pool-relay-mode>${escapeHtml(getPeerRelayLabel())}</code></span>
     <span><b>Version</b><code>${escapeHtml(POOLDAY_VERSION_TAG)}</code></span>
@@ -1492,7 +1635,28 @@ const renderModelOptions = ({ workload = null, includeWorkloadLabel = false, dis
   return `<option value="${escapeHtml(model.modelId)}" data-workload="${escapeHtml(modelWorkload)}"${selected}${disabled}>${escapeHtml(label)}${escapeHtml(workloadLabel)}</option>`;
 }).join('');
 
-const renderParticipationControl = ({ surface = 'home', advanced = false, shareAction = surface === 'home' } = {}) => {
+const renderSharingLimits = (preferences = readParticipationPreferences()) => `
+  <details class="pool-advanced pool-sharing-limits">
+    <summary>Sharing limits</summary>
+    <div class="pool-sharing-limit-grid">
+      <label><input type="checkbox" data-pool-permission="relayArtifacts"${preferences.permissions.relayArtifacts ? ' checked' : ''}> Relay verified model and adapter files</label>
+      <label><input type="checkbox" data-pool-permission="verifyResults"${preferences.permissions.verifyResults ? ' checked' : ''}> Verify peer results</label>
+      <label><span>Concurrent runs</span><input type="number" min="1" max="4" step="1" value="${preferences.limits.maxConcurrentJobs}" data-pool-limit="maxConcurrentJobs"></label>
+      <label><span>Tokens per run</span><input type="number" min="16" max="2048" step="16" value="${preferences.limits.maxTokensPerJob}" data-pool-limit="maxTokensPerJob"></label>
+      <label><span>Adapter cache MiB</span><input type="number" min="128" max="65536" step="128" value="${preferences.limits.storageBudgetMiB}" data-pool-limit="storageBudgetMiB"></label>
+      <label><span>Available network Mbps</span><input type="number" min="1" max="10000" step="1" value="${preferences.limits.bandwidthBudgetMbps}" data-pool-limit="bandwidthBudgetMbps"></label>
+    </div>
+    <button class="btn btn-ghost" type="button" data-pool-passkey>Protect identity with passkey</button>
+    <p class="type-caption" data-pool-passkey-status></p>
+  </details>
+`;
+
+const renderParticipationControl = ({
+  surface = 'home',
+  advanced = false,
+  shareAction = surface === 'home',
+  showIdentity = true
+} = {}) => {
   const preferences = readParticipationPreferences();
   const modeButton = (mode, label) => `
     <button
@@ -1512,25 +1676,11 @@ const renderParticipationControl = ({ surface = 'home', advanced = false, shareA
           ${modeButton('both', 'Both')}
         </div>
       ` : ''}
-      <span class="pool-device-identity" data-pool-device-identity title="This device signs its network roles">Identity</span>
+      ${showIdentity ? '<span class="pool-device-identity" data-pool-device-identity title="This device signs its network roles">Identity</span>' : ''}
       ${shareAction ? `
         <button class="btn btn-primary pool-home-share-toggle" id="pool-home-provider-toggle" type="button" aria-pressed="false">Start sharing</button>
       ` : ''}
-      ${advanced ? `
-        <details class="pool-advanced pool-sharing-limits">
-          <summary>Sharing limits</summary>
-          <div class="pool-sharing-limit-grid">
-            <label><input type="checkbox" data-pool-permission="relayArtifacts"${preferences.permissions.relayArtifacts ? ' checked' : ''}> Relay verified model and adapter files</label>
-            <label><input type="checkbox" data-pool-permission="verifyResults"${preferences.permissions.verifyResults ? ' checked' : ''}> Verify peer results</label>
-            <label><span>Concurrent runs</span><input type="number" min="1" max="4" step="1" value="${preferences.limits.maxConcurrentJobs}" data-pool-limit="maxConcurrentJobs"></label>
-            <label><span>Tokens per run</span><input type="number" min="16" max="2048" step="16" value="${preferences.limits.maxTokensPerJob}" data-pool-limit="maxTokensPerJob"></label>
-            <label><span>Adapter cache MiB</span><input type="number" min="128" max="65536" step="128" value="${preferences.limits.storageBudgetMiB}" data-pool-limit="storageBudgetMiB"></label>
-            <label><span>Available network Mbps</span><input type="number" min="1" max="10000" step="1" value="${preferences.limits.bandwidthBudgetMbps}" data-pool-limit="bandwidthBudgetMbps"></label>
-          </div>
-          <button class="btn btn-ghost" type="button" data-pool-passkey>Protect identity with passkey</button>
-          <p class="type-caption" data-pool-passkey-status></p>
-        </details>
-      ` : ''}
+      ${advanced ? renderSharingLimits(preferences) : ''}
     </section>
   `;
 };
@@ -1557,7 +1707,7 @@ const renderDashboardCapability = () => `
   <section class="pool-capability-card" data-pool-capability-profile data-capability-state="checking" aria-live="polite">
     <div class="pool-capability-heading">
       <div>
-        <span class="pool-dashboard-kicker">This device</span>
+        <span class="pool-dashboard-kicker">Capability</span>
         <h3 data-pool-capability-tier>Checking WebGPU</h3>
       </div>
       <strong data-pool-capability-score>--</strong>
@@ -1578,47 +1728,64 @@ const renderDashboardCapability = () => `
   </section>
 `;
 
-const renderDashboardInspector = () => `
-  <aside class="pool-nav-rail pool-control-drawer pool-dashboard-inspector" aria-label="Compute controls" data-pool-dashboard-inspector>
+const renderDashboardNetworkInspector = () => {
+  const preferences = readParticipationPreferences();
+  return `
+  <aside class="pool-nav-rail pool-control-drawer pool-dashboard-inspector" aria-label="Network controls" data-pool-dashboard-inspector>
     <div class="pool-nav-top">
-      <button class="pool-nav-toggle pool-inspector-toggle" type="button" aria-label="Open compute controls" title="Open compute controls" data-pool-nav-tooltip="Open compute controls" aria-controls="pool-inspector-panels" aria-expanded="false" data-pool-inspector-toggle>
+      <button class="pool-nav-toggle pool-inspector-toggle" type="button" aria-label="Open network controls" title="Open network controls" data-pool-nav-tooltip="Open network controls" aria-controls="pool-inspector-panels" aria-expanded="false" data-pool-inspector-toggle>
         <span class="pool-nav-mark" aria-hidden="true">
           <span class="pool-nav-mark-seven pool-nav-mark-seven-top">7</span>
           <span class="pool-nav-mark-seven pool-nav-mark-seven-bottom">7</span>
         </span>
-        <span class="pool-nav-brand-copy" aria-hidden="true"><strong>Compute</strong></span>
+        <span class="pool-nav-brand-copy" aria-hidden="true"><strong>Network</strong></span>
       </button>
       <div class="pool-nav-menu pool-drawer-stack" id="pool-inspector-panels">
-        ${renderDrawerSection('compute-device', 'Device', '⚙', renderDashboardCapability())}
-        ${renderDrawerSection('compute-sharing', 'Sharing', '⇄', `
-          <section data-pool-provider aria-label="Share this browser">
-          <p class="pool-provider-status" data-pool-provider-status>Idle</p>
+        ${renderDrawerSection('network-connection', 'Connection', '☍', `
+          <section class="pool-control-stack" aria-label="Network connection">
+            ${renderParticipationControl({ surface: 'network-connection' })}
+            <div class="pool-drawer-value">
+              <span>Live network</span>
+              <b data-pool-connection-activity>${getPeerRelayMode() === 'local' ? 'Local tab · live discovery' : 'Checking live room'}</b>
+            </div>
+            ${renderRoomContext({ compact: true })}
+          </section>
+        `, {
+          summary: `${getPeerRoomId()} · ${preferences.mode === PARTICIPATION_MODES.both ? 'Both' : preferences.mode === PARTICIPATION_MODES.contribute ? 'Contribute' : 'Request'}`
+        })}
+        ${renderDrawerSection('network-device', 'This device', '⚙', `
+          <section class="pool-control-stack" data-pool-provider aria-label="Share this browser">
+          <div class="pool-device-primary">
+            <p class="pool-provider-status" data-pool-provider-status>Idle</p>
+            <button class="btn btn-primary pool-home-share-toggle" id="pool-home-provider-toggle" type="button" aria-pressed="false">Start sharing</button>
+          </div>
           <label class="pool-field">
-            <span>Model</span>
+            <span>Local model</span>
             <select id="pool-provider-model">${renderModelOptions({ includeWorkloadLabel: true })}</select>
           </label>
-          <p class="pool-provider-capability type-caption">This tab accepts <span class="pool-workload-badge" data-pool-provider-workload>text generation</span> jobs when the device qualifies.</p>
-          ${renderParticipationControl({ surface: 'dashboard', advanced: true, shareAction: true })}
+          <p class="pool-provider-capability type-caption">When sharing, this tab accepts <span class="pool-workload-badge" data-pool-provider-workload>text generation</span> jobs after the device and model qualify.</p>
+          ${renderDashboardCapability()}
           <div id="pool-provider-health" class="pool-ledger-shell" aria-live="polite">${renderProviderHealth()}</div>
+          ${renderSharingLimits(preferences)}
           </section>
-        `, { open: true })}
-        ${renderDrawerSection('compute-room', 'Room', '☍', renderRoomContext())}
-        ${renderDrawerSection('compute-activity', 'Activity', '☷', `
+        `, { open: true, summary: 'Not sharing' })}
+        ${renderDrawerSection('network-activity', 'Activity', '☷', `
           <section data-pool-dashboard-activity aria-label="Activity">
-          <div id="pool-record-ledger" aria-live="polite" data-record-facet="all">${renderRecordLedger()}</div>
+          <div id="pool-record-ledger" aria-live="polite" data-record-presentation="compact">${renderDashboardActivity()}</div>
           </section>
-        `)}
+        `, { summary: 'No recent work' })}
       </div>
     </div>
     <div class="pool-nav-bottom">
       ${renderRailOutlink('x')}
     </div>
   </aside>
-`;
+  `;
+};
 
 const renderHomeSimulation = ({ dashboardView = 'home' } = {}) => {
   const activeView = normalizePoolDashboardView(dashboardView);
-  const suggestedPrompt = choosePooldayAskPlaceholder();
+  const suggestedPrompt = choosePooldayAskPlaceholderForLane('text');
   return `
     <section class="pool-home-stage" aria-label="Reploid network" data-pool-run-surface="home" data-run-state="idle" data-run-phase="" data-pool-lane="text" data-pool-dashboard-view="${activeView}">
       <div class="pool-home-toolbar" aria-label="Reploid home controls">
@@ -1672,7 +1839,7 @@ const renderHomeSimulation = ({ dashboardView = 'home' } = {}) => {
           </button>
         </div>
       </form>
-      ${renderDashboardInspector()}
+      ${renderDashboardNetworkInspector()}
     </section>
   `;
 };
