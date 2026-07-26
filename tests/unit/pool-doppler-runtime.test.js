@@ -34,6 +34,27 @@ describe('Doppler browser runtime adapter', () => {
     resetDopplerModuleCacheForTests();
   });
 
+  it('prepares the Doppler module without loading model weights', async () => {
+    let loadCount = 0;
+    globalThis.REPLOID_DOPPLER_MODULE = {
+      DOPPLER_VERSION: 'test-runtime',
+      load() {
+        loadCount += 1;
+        return { handle: launchHandle() };
+      }
+    };
+    const runtime = createDopplerRuntime();
+
+    await expect(runtime.prepare()).resolves.toEqual({
+      ok: true,
+      version: 'test-runtime'
+    });
+    expect(loadCount).toBe(0);
+
+    await expect(runtime.loadModel(LAUNCH_MODEL)).resolves.toMatchObject({ ok: true });
+    expect(loadCount).toBe(1);
+  });
+
   it('disables the Node quickstart cache without changing Poolday load options', async () => {
     const previousWindow = globalThis.window;
     const previousDocument = globalThis.document;

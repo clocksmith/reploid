@@ -32,16 +32,18 @@ vi.mock('../../self/pool/adapter-registry.js', async (importOriginal) => ({
 
 import {
   POOL_CONTRIBUTION_RESUME_STORAGE_KEY,
+  bindCapabilityAssessmentControls,
   bindHomeAskControls,
   bindProviderControls,
   bindRunControls,
   refreshParticipationControls,
+  resetPoolDeviceCapabilityForTests,
   resetProviderContributionControllerForTests,
   resolveCapabilityAvailabilityLimits,
   scorePoolDeviceCapability
 } from '../../self/ui/pool-home/controls.js';
 import { findReceiptLedgerRecord } from '../../self/ui/pool-home/view.js';
-import { LAUNCH_MODEL } from '../../self/pool/model-contract.js';
+import { LAUNCH_MODEL, getEnabledPoolModelContract } from '../../self/pool/model-contract.js';
 import {
   normalizeParticipationPreferences,
   readParticipationPreferences,
@@ -179,6 +181,7 @@ describe('Poolday home ask controls', () => {
 
   afterEach(async () => {
     await resetProviderContributionControllerForTests();
+    resetPoolDeviceCapabilityForTests();
     document.body.innerHTML = '';
     clearStorage();
     delete window.REPLOID_POOL_DISCOVERY_WINDOW_MS;
@@ -562,7 +565,8 @@ describe('Poolday home ask controls', () => {
       loadModel: vi.fn(async (model) => {
         loadedModel = { ...model };
         return { ok: true };
-      })
+      }),
+      prepare: vi.fn(async () => ({ ok: true }))
     };
     const localProviderAdvert = {
       messageHash: 'local-provider-advert',
@@ -624,6 +628,7 @@ describe('Poolday home ask controls', () => {
     document.querySelector('[data-pool-run-recovery-action="offer_local_provider"]').click();
     expect(peerRoomMocks.createPeerProviderNode).not.toHaveBeenCalled();
     expect(readParticipationPreferences().mode).toBe('request');
+    expect(window.REPLOID_DOPPLER_RUNTIME.prepare).toHaveBeenCalledTimes(1);
 
     document.querySelector('[data-pool-run-recovery-action="confirm_local_provider"]').click();
     await vi.waitFor(
@@ -679,12 +684,134 @@ describe('Poolday home ask controls', () => {
     );
     expect(document.querySelector('[data-pool-provider-status]').textContent).toBe('Available');
 
+    document.getElementById('pool-provider-model').dispatchEvent(new Event('change', { bubbles: true }));
+    await Promise.resolve();
+    expect(peerRoomMocks.createPeerProviderNode).toHaveBeenCalledTimes(1);
+
     document.getElementById('pool-home-provider-toggle').click();
     await vi.waitFor(() => expect(stopProvider).toHaveBeenCalledTimes(2));
     await vi.waitFor(() => {
       expect(window.sessionStorage.getItem(POOL_CONTRIBUTION_RESUME_STORAGE_KEY)).toBeNull();
     });
   }, 15000);
+
+  it('does not emit a provider model change when capability rendering keeps the selection', async () => {
+    window.REPLOID_DOPPLER_RUNTIME = {
+      getDeviceInfo: vi.fn(async () => ({
+        hasWebGPU: true,
+        maxBufferSize: 512 * 1024 * 1024,
+        limits: {
+          maxBufferSize: 512 * 1024 * 1024,
+          maxStorageBufferBindingSize: 256 * 1024 * 1024,
+          maxComputeInvocationsPerWorkgroup: 256
+        },
+        hasF16: true,
+        hasSubgroups: true,
+        capabilityBenchmark: {
+          status: 'measured',
+          gigaOpsPerSecond: 120,
+          stability: 0.95
+        }
+      }))
+    };
+    document.body.innerHTML = `
+      <section data-pool-capability-profile>
+        <span data-pool-capability-tier></span>
+      </section>
+      <select id="pool-provider-model">
+        <option value="${LAUNCH_MODEL.modelId}" selected>${LAUNCH_MODEL.label}</option>
+      </select>
+    `;
+    const change = vi.fn();
+    document.getElementById('pool-provider-model').addEventListener('change', change);
+
+    bindCapabilityAssessmentControls();
+    await vi.waitFor(() => {
+      expect(document.querySelector('[data-pool-capability-profile]').dataset.capabilityState).toBe('ready');
+    });
+
+    expect(change).not.toHaveBeenCalled();
+  });
+
+  it('starts a registry-backed sequence provider without manifest or adapter preflight requests', async () => {
+    window.history.replaceState({}, '', '/?room=sequence-provider-room&relay=local');
+    writeParticipationPreferences({
+      mode: 'both',
+      permissions: { relayArtifacts: true }
+    });
+    const sequenceModel = getEnabledPoolModelContract('esm2-t12-35m-ur50d-f32-af32');
+    let loadedModel = null;
+    window.REPLOID_DOPPLER_RUNTIME = {
+      getDeviceInfo: vi.fn(async () => ({
+        hasWebGPU: true,
+        maxBufferSize: 512 * 1024 * 1024,
+        limits: {
+          maxBufferSize: 512 * 1024 * 1024,
+          maxStorageBufferBindingSize: 256 * 1024 * 1024,
+          maxComputeInvocationsPerWorkgroup: 256
+        },
+        hasF16: true,
+        hasSubgroups: true,
+        capabilityBenchmark: {
+          status: 'measured',
+          gigaOpsPerSecond: 120,
+          stability: 0.95
+        }
+      })),
+      getModelInfo: vi.fn(() => loadedModel),
+      getLoadState: vi.fn(() => ({ status: loadedModel ? 'ready' : 'idle' })),
+      getRuntimeInfo: vi.fn(() => ({ version: 'test' })),
+      isReady: vi.fn(() => Boolean(loadedModel)),
+      loadModel: vi.fn(async (model) => {
+        loadedModel = { ...model };
+        return { ok: true, model: loadedModel };
+      })
+    };
+    const fetchSpy = vi.spyOn(globalThis, 'fetch');
+    peerRoomMocks.createPeerProviderNode.mockReturnValue({
+      start: vi.fn(async ({ models }) => ({
+        status: 'peer_provider_listening',
+        advert: { body: { models } }
+      })),
+      stop: vi.fn(async () => ({ status: 'peer_provider_stopped' }))
+    });
+    document.body.innerHTML = `
+      <main id="app">
+        <section data-pool-provider>
+          <p data-pool-provider-status>Idle</p>
+          <select id="pool-provider-model">
+            <option value="${sequenceModel.modelId}" data-workload="${sequenceModel.workload}" selected>
+              ${sequenceModel.label}
+            </option>
+          </select>
+          <button id="pool-home-provider-toggle" type="button">Start sharing</button>
+          <div id="pool-provider-health"></div>
+          <div id="pool-provider-result-summary"></div>
+          <p id="pool-provider-result"></p>
+          <pre id="pool-provider-result-raw"></pre>
+        </section>
+      </main>
+    `;
+
+    bindProviderControls();
+    document.getElementById('pool-home-provider-toggle').click();
+    await vi.waitFor(() => expect(peerRoomMocks.createPeerProviderNode).toHaveBeenCalledTimes(1));
+
+    expect(window.REPLOID_DOPPLER_RUNTIME.loadModel).toHaveBeenCalledTimes(1);
+    expect(window.REPLOID_DOPPLER_RUNTIME.loadModel).toHaveBeenCalledWith(
+      expect.objectContaining({ modelId: sequenceModel.modelId })
+    );
+    expect(adapterRegistryMocks.listFetchableAdapterPublications).not.toHaveBeenCalled();
+    expect(fetchSpy).not.toHaveBeenCalled();
+    expect(peerRoomMocks.createPeerProviderNode.mock.results[0].value.start).toHaveBeenCalledWith(
+      expect.objectContaining({
+        models: [expect.objectContaining({
+          modelId: sequenceModel.modelId,
+          adapterPacks: []
+        })]
+      })
+    );
+  });
 
   it('clears the seeded prompt when the user starts editing', () => {
     document.body.innerHTML = `
