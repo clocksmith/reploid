@@ -1488,6 +1488,7 @@ const createProviderContributionController = () => {
   let currentModel = null;
   let requestedModelId = null;
   let workerStartPromise = null;
+  let providerReadyState = null;
   let restoreAttempted = false;
   let visibilityHandler = null;
   let controls = {
@@ -1774,7 +1775,8 @@ const createProviderContributionController = () => {
       });
     }
     setResult('pool-provider-result', {
-      runner: 'peer_room',
+      ...(providerReadyState || {}),
+      runner: providerReadyState ? 'peer_room_listening' : 'peer_room',
       roomId: getPeerRoomId(),
       relay: getPeerRelayMode(),
       inviteUrl: getPeerInviteUrl(),
@@ -1883,6 +1885,7 @@ const createProviderContributionController = () => {
         await refreshParticipationControls(readParticipationPreferences());
       }
       const generation = ++lifecycleGeneration;
+      providerReadyState = null;
       workerStarting = true;
       setContributionState({ state: 'starting', optedIn: true, lastError: null });
       syncWorkerControls();
@@ -1903,6 +1906,7 @@ const createProviderContributionController = () => {
         }
         workerStarting = false;
         workerRunning = true;
+        providerReadyState = ready;
         writeContributionResumeIntent({ modelId: currentModel?.modelId || getSelectedModelId() });
         setProviderStatus('Available');
         updateProviderHealth({ queue: 'listening' });
@@ -1929,6 +1933,7 @@ const createProviderContributionController = () => {
         await stopPeerProvider().catch(() => null);
         workerStarting = false;
         workerRunning = false;
+        providerReadyState = null;
         clearContributionResumeIntent();
         setProviderStatus('Idle');
         updateProviderHealth({ queue: 'stopped', model: 'load_failed' });
@@ -1973,6 +1978,7 @@ const createProviderContributionController = () => {
     }));
     workerStarting = false;
     workerRunning = false;
+    providerReadyState = null;
     clearContributionResumeIntent();
     setProviderStatus('Idle');
     updateProviderHealth({ queue: 'stopped' });
@@ -2083,6 +2089,7 @@ const createProviderContributionController = () => {
       workerStarting = false;
       workerRunning = false;
       workerStartPromise = null;
+      providerReadyState = null;
       if (!preserveResumeIntent) clearContributionResumeIntent();
     }
   };

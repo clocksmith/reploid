@@ -600,17 +600,21 @@ describe('Poolday home ask controls', () => {
       }
     };
     const stopProvider = vi.fn(async () => ({ status: 'peer_provider_stopped' }));
-    peerRoomMocks.createPeerProviderNode.mockImplementation(({ onActivity }) => ({
-      start: vi.fn(async () => {
-        onActivity?.({ status: 'provider_advertised' });
-        return {
-          status: 'peer_provider_listening',
-          roomId: 'local-fallback-room',
-          advert: localProviderAdvert
-        };
-      }),
-      stop: stopProvider
-    }));
+    let providerActivity = null;
+    peerRoomMocks.createPeerProviderNode.mockImplementation(({ onActivity }) => {
+      providerActivity = onActivity;
+      return {
+        start: vi.fn(async () => {
+          onActivity?.({ status: 'provider_advertised' });
+          return {
+            status: 'peer_provider_listening',
+            roomId: 'local-fallback-room',
+            advert: localProviderAdvert
+          };
+        }),
+        stop: stopProvider
+      };
+    });
 
     document.body.innerHTML = `
       <main id="app">
@@ -706,6 +710,13 @@ describe('Poolday home ask controls', () => {
       { timeout: 5000 }
     );
     expect(document.querySelector('[data-pool-provider-status]').textContent).toBe('Available');
+    providerActivity?.({ status: 'peer_acceptance_received', acceptance: { accepted: true } });
+    expect(JSON.parse(document.getElementById('pool-provider-result-raw').textContent)).toMatchObject({
+      runner: 'peer_room_listening',
+      roomId: 'local-fallback-room',
+      advert: localProviderAdvert,
+      status: 'peer_acceptance_received'
+    });
 
     document.getElementById('pool-provider-model').dispatchEvent(new Event('change', { bubbles: true }));
     await Promise.resolve();
