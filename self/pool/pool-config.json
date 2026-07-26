@@ -1,6 +1,6 @@
 {
   "schema": "reploid.pool.config/v1",
-  "configVersion": "2026-07-24.doppler-0.4.16.v1",
+  "configVersion": "2026-07-24.doppler-0.5.1.v1",
   "claim": "receipt-backed, audit-backed, reputation-backed, policy-controlled browser inference",
   "forbiddenClaims": [
     "trustless",
@@ -151,7 +151,7 @@
           "whenMissingWebGpuFeatures": [
             "shader-f16"
           ],
-          "runtime": "doppler-gpu@0.4.16",
+          "runtime": "doppler-gpu@0.5.1",
           "transform": "widenToF32Activations",
           "prefillProjectionKernel": "fused_matmul_q4_batched_multicol_shared.wgsl",
           "kvDtype": "f32",
@@ -159,7 +159,7 @@
         }
       ],
       "fallbackStatus": "doppler_0_4_9_manifest_capability_remap",
-      "capabilityAction": "Use doppler-gpu@0.4.16 or newer with capability-aware kernelPathPolicy; browsers without shader-f16 run the declared f32 fallback lane."
+      "capabilityAction": "Use doppler-gpu@0.5.1 or newer with capability-aware kernelPathPolicy; browsers without shader-f16 run the declared f32 fallback lane."
     },
     "label": "Qwen 3.5 0.8B",
     "enabled": true
@@ -175,8 +175,8 @@
     "useSpeculative": false
   },
   "browserRuntime": {
-    "dopplerModuleUrl": "https://cdn.jsdelivr.net/gh/clocksmith/doppler@v0.4.16/src/index.js",
-    "dopplerKernelBaseUrl": "https://cdn.jsdelivr.net/gh/clocksmith/doppler@v0.4.16/src/gpu/kernels",
+    "dopplerModuleUrl": "https://cdn.jsdelivr.net/gh/clocksmith/doppler@8c223f737d8e1d3578b976b01b7dc51e20e78dd6/src/index.js",
+    "dopplerKernelBaseUrl": "https://cdn.jsdelivr.net/gh/clocksmith/doppler@8c223f737d8e1d3578b976b01b7dc51e20e78dd6/src/gpu/kernels",
     "modelBaseUrl": "https://huggingface.co/clocksmith/rdrr/resolve/80d7716270b6371d541de979eff3370edaf34e13/models",
     "loadOptions": {
       "cache": "opfs",
@@ -900,7 +900,7 @@
             "whenMissingWebGpuFeatures": [
               "shader-f16"
             ],
-            "runtime": "doppler-gpu@0.4.16",
+            "runtime": "doppler-gpu@0.5.1",
             "transform": "widenToF32Activations",
             "prefillProjectionKernel": "fused_matmul_q4_batched_multicol_shared.wgsl",
             "kvDtype": "f32",
@@ -908,7 +908,7 @@
           }
         ],
         "fallbackStatus": "doppler_0_4_9_manifest_capability_remap",
-        "capabilityAction": "Use doppler-gpu@0.4.16 or newer with capability-aware kernelPathPolicy; browsers without shader-f16 run the declared f32 fallback lane."
+        "capabilityAction": "Use doppler-gpu@0.5.1 or newer with capability-aware kernelPathPolicy; browsers without shader-f16 run the declared f32 fallback lane."
       },
       "label": "Qwen 3.5 0.8B",
       "enabled": true

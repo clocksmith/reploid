@@ -3,6 +3,11 @@ import {
   replaceCloudRunEnvValue,
   synchronizeRuntimeConfig
 } from '../../scripts/sync-runtime-config.js';
+import {
+  DOPPLER_KERNEL_BASE_URL,
+  DOPPLER_MODULE_URL,
+  DOPPLER_PACKAGE_SPEC
+} from '../../self/config/doppler-local-models.js';
 
 const createFixture = () => ({
   poolConfig: {
@@ -34,13 +39,14 @@ const createFixture = () => ({
     ''
   ].join('\n'),
   packageManifest: {
-    dependencies: { 'doppler-gpu': '0.4.15' }
+    dependencies: { 'doppler-gpu': DOPPLER_PACKAGE_SPEC }
   },
   packageLock: {
     packages: {
-      '': { dependencies: { 'doppler-gpu': '0.4.15' } },
+      '': { dependencies: { 'doppler-gpu': DOPPLER_PACKAGE_SPEC } },
       'node_modules/doppler-gpu': {
-        version: '0.4.15',
+        version: '0.5.1',
+        resolved: DOPPLER_PACKAGE_SPEC,
         integrity: 'sha512-test'
       }
     }
@@ -51,19 +57,19 @@ describe('runtime config synchronization', () => {
   it('projects the canonical Doppler runtime into Pool and deployment mirrors', () => {
     const synchronized = synchronizeRuntimeConfig(createFixture());
 
-    expect(synchronized.poolConfig.configVersion).toBe('2026-07-24.doppler-0.4.16.v1');
+    expect(synchronized.poolConfig.configVersion).toBe('2026-07-24.doppler-0.5.1.v1');
     expect(synchronized.poolConfig.launchModel.runtimeCompatibility).toMatchObject({
-      capabilityFallbacks: [{ runtime: 'doppler-gpu@0.4.16' }],
-      capabilityAction: 'Use doppler-gpu@0.4.16 or newer.'
+      capabilityFallbacks: [{ runtime: 'doppler-gpu@0.5.1' }],
+      capabilityAction: 'Use doppler-gpu@0.5.1 or newer.'
     });
     expect(synchronized.deploymentConfig.runtimeEnv).toMatchObject({
       REPLOID_POOL_MODEL_BASE_URL: 'https://models.example.test',
-      REPLOID_DOPPLER_MODULE_URL: 'https://cdn.jsdelivr.net/gh/clocksmith/doppler@v0.4.16/src/index.js',
-      REPLOID_DOPPLER_KERNEL_BASE_URL: 'https://cdn.jsdelivr.net/gh/clocksmith/doppler@v0.4.16/src/gpu/kernels'
+      REPLOID_DOPPLER_MODULE_URL: DOPPLER_MODULE_URL,
+      REPLOID_DOPPLER_KERNEL_BASE_URL: DOPPLER_KERNEL_BASE_URL
     });
     expect(synchronized.deploymentConfig.browserEnv).toEqual(synchronized.deploymentConfig.runtimeEnv);
     expect(synchronized.cloudRunYaml).toContain(
-      'value: "https://cdn.jsdelivr.net/gh/clocksmith/doppler@v0.4.16/src/index.js"'
+      `value: "${DOPPLER_MODULE_URL}"`
     );
   });
 
@@ -72,7 +78,7 @@ describe('runtime config synchronization', () => {
     fixture.packageManifest.dependencies['doppler-gpu'] = '^0.4.15';
 
     expect(() => synchronizeRuntimeConfig(fixture)).toThrow(
-      'package.json must pin doppler-gpu exactly to 0.4.15'
+      `package.json must pin doppler-gpu exactly to ${DOPPLER_PACKAGE_SPEC}`
     );
   });
 

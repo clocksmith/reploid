@@ -3,12 +3,12 @@
  */
 
 export const DOPPLER_PACKAGE_NAME = 'doppler-gpu';
-// The npm package remains the Node-side tooling dependency. Browser execution
-// is pinned independently so a tagged, immutable browser release can advance
-// without claiming an npm publication that does not exist.
-export const DOPPLER_PACKAGE_VERSION = '0.4.15';
-export const DOPPLER_BROWSER_RUNTIME_VERSION = '0.4.16';
-export const DOPPLER_BROWSER_RELEASE_REF = `v${DOPPLER_BROWSER_RUNTIME_VERSION}`;
+export const DOPPLER_PACKAGE_VERSION = '0.5.1';
+export const DOPPLER_BROWSER_RUNTIME_VERSION = '0.5.1';
+export const DOPPLER_RELEASE_COMMIT = '8c223f737d8e1d3578b976b01b7dc51e20e78dd6';
+export const DOPPLER_PACKAGE_SPEC =
+  `https://codeload.github.com/clocksmith/doppler/tar.gz/${DOPPLER_RELEASE_COMMIT}`;
+export const DOPPLER_BROWSER_RELEASE_REF = DOPPLER_RELEASE_COMMIT;
 const DOPPLER_BROWSER_RELEASE_BASE_URL =
   `https://cdn.jsdelivr.net/gh/clocksmith/doppler@${DOPPLER_BROWSER_RELEASE_REF}`;
 export const DOPPLER_MODULE_URL = `${DOPPLER_BROWSER_RELEASE_BASE_URL}/src/index.js`;
