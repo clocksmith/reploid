@@ -263,6 +263,20 @@ describe('pool peer control plane', () => {
       jobIntent: intent.intent,
       providerAdvert: advert
     })).ok).toBe(true);
+    const relayedAssignment = JSON.parse(JSON.stringify({
+      ...plan.assignment,
+      providerLimits: {
+        maxTokensPerJob: plan.assignment.providerLimits.maxTokensPerJob,
+        maxConcurrentJobs: plan.assignment.providerLimits.maxConcurrentJobs,
+        bandwidthBudgetMbps: plan.assignment.providerLimits.bandwidthBudgetMbps,
+        storageBudgetMiB: plan.assignment.providerLimits.storageBudgetMiB
+      }
+    }));
+    expect((await validatePeerAssignmentForIntentAndAdvert({
+      assignment: relayedAssignment,
+      jobIntent: intent.intent,
+      providerAdvert: advert
+    })).ok).toBe(true);
     expect((await validatePeerAssignmentForIntentAndAdvert({
       assignment: { ...plan.assignment, routeDecisionHash: 'sha256:tampered' },
       jobIntent: intent.intent,

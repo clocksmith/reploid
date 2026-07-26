@@ -616,7 +616,7 @@ export async function validatePeerAssignmentForIntentAndAdvert({
     reasons.push('provider participation profile hash mismatch');
   }
   const advertLimits = providerAssignmentLimits(providerAdvert);
-  if (JSON.stringify(assignment.providerLimits || null) !== JSON.stringify(advertLimits)) {
+  if (canonicalize(assignment.providerLimits || null) !== canonicalize(advertLimits)) {
     reasons.push('provider limits mismatch');
   }
   const expectedAssignmentHash = await hashJson({
