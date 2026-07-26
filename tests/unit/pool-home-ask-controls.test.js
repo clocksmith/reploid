@@ -42,7 +42,11 @@ import {
   resolveCapabilityAvailabilityLimits,
   scorePoolDeviceCapability
 } from '../../self/ui/pool-home/controls.js';
-import { findReceiptLedgerRecord } from '../../self/ui/pool-home/view.js';
+import {
+  findReceiptLedgerRecord,
+  getPeerSessionAcceptWindowMs,
+  getPeerTransportConnectWindowMs
+} from '../../self/ui/pool-home/view.js';
 import { LAUNCH_MODEL, getEnabledPoolModelContract } from '../../self/pool/model-contract.js';
 import {
   normalizeParticipationPreferences,
@@ -91,6 +95,8 @@ describe('Poolday home ask controls', () => {
     window.history.replaceState({}, '', '/');
     window.REPLOID_POOL_DISCOVERY_WINDOW_MS = 1;
     window.REPLOID_POOL_RECEIPT_WINDOW_MS = 1;
+    window.REPLOID_POOL_SESSION_ACCEPT_WINDOW_MS = 11;
+    window.REPLOID_POOL_TRANSPORT_CONNECT_WINDOW_MS = 12;
   });
 
   it('preserves workload and registry availability across participation modes', async () => {
@@ -179,6 +185,19 @@ describe('Poolday home ask controls', () => {
     })).toEqual({ maxConcurrentJobs: 1, maxTokensPerJob: 64 });
   });
 
+  it('allows server relay polling enough time to accept and connect a peer session', () => {
+    delete window.REPLOID_POOL_SESSION_ACCEPT_WINDOW_MS;
+    delete window.REPLOID_POOL_TRANSPORT_CONNECT_WINDOW_MS;
+    window.history.replaceState({}, '', '/?relay=server');
+
+    expect(getPeerSessionAcceptWindowMs()).toBe(15000);
+    expect(getPeerTransportConnectWindowMs()).toBe(20000);
+
+    window.history.replaceState({}, '', '/?relay=local');
+    expect(getPeerSessionAcceptWindowMs()).toBe(5000);
+    expect(getPeerTransportConnectWindowMs()).toBe(5000);
+  });
+
   afterEach(async () => {
     await resetProviderContributionControllerForTests();
     resetPoolDeviceCapabilityForTests();
@@ -186,6 +205,8 @@ describe('Poolday home ask controls', () => {
     clearStorage();
     delete window.REPLOID_POOL_DISCOVERY_WINDOW_MS;
     delete window.REPLOID_POOL_RECEIPT_WINDOW_MS;
+    delete window.REPLOID_POOL_SESSION_ACCEPT_WINDOW_MS;
+    delete window.REPLOID_POOL_TRANSPORT_CONNECT_WINDOW_MS;
     delete window.REPLOID_POOL_RUN_VISUAL_STATE;
     delete window.REPLOID_DOPPLER_RUNTIME;
     peerRoomMocks.runPeerJob.mockClear();
@@ -396,6 +417,8 @@ describe('Poolday home ask controls', () => {
       roomId: 'test-room',
       prompt: 'Dinner ideas tonight',
       policyId: 'canary_audited',
+      sessionAcceptWindowMs: 11,
+      transportConnectWindowMs: 12,
       modelRequirements: {
         modelId: 'gemma-3-270m-it-q4k-ehf16-af32'
       }
