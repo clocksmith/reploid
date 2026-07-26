@@ -808,6 +808,15 @@ export function createDopplerRuntime({ modelSession = null, model = null, runtim
   };
 
   const api = {
+    async prepare() {
+      const module = await loadDopplerModule();
+      return {
+        ok: true,
+        version: module?.DOPPLER_VERSION
+          || module?.default?.DOPPLER_VERSION
+          || null
+      };
+    },
     async attachHandle(handle, nextModel = null, nextRuntime = null) {
       return attachHandle(handle, nextModel, nextRuntime);
     },

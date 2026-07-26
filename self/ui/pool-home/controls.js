@@ -162,8 +162,10 @@ const artifactPreflightFailureAction = (model) => (
 
 const usesRegistryBackedDopplerLoad = (model = {}) => (
   Boolean(model.dopplerLoadRef || model.registryId || model.loadRef)
-  && !model.modelBaseUrl
-  && !model.artifactPolicy?.baseUrl
+);
+
+const supportsAdapterPublications = (model = {}) => (
+  getPoolModelWorkload(model) === POOLDAY_MODEL_WORKLOADS.textGeneration
 );
 
 const formatDeviceLabel = (deviceInfo = {}) => {
@@ -493,6 +495,11 @@ const runBoundedWebGpuProbe = async () => {
 
 let capabilityAssessmentPromise = null;
 
+export const resetPoolDeviceCapabilityForTests = () => {
+  capabilityAssessmentPromise = null;
+  delete window.REPLOID_POOL_DEVICE_CAPABILITY;
+};
+
 export const assessPoolDeviceCapability = async ({ runtime = null, force = false } = {}) => {
   if (capabilityAssessmentPromise && !force) return capabilityAssessmentPromise;
   capabilityAssessmentPromise = (async () => {
@@ -571,6 +578,7 @@ const renderCapabilityProfileState = (root, profile) => {
   }
   const providerModel = document.getElementById('pool-provider-model');
   if (providerModel) {
+    const previousModelId = providerModel.value;
     for (const option of providerModel.options) {
       const eligibility = profile.modelEligibility.find((entry) => entry.modelId === option.value);
       option.disabled = eligibility ? !eligibility.eligible : true;
@@ -582,7 +590,9 @@ const renderCapabilityProfileState = (root, profile) => {
       const eligibleOption = [...providerModel.options].find((option) => !option.disabled);
       if (eligibleOption) providerModel.value = eligibleOption.value;
     }
-    providerModel.dispatchEvent(new Event('change', { bubbles: true }));
+    if (providerModel.value !== previousModelId) {
+      providerModel.dispatchEvent(new Event('change', { bubbles: true }));
+    }
   }
 };
 
@@ -1244,6 +1254,12 @@ const bindPeerRunSurface = ({
       return;
     }
     if (actionId === 'offer_local_provider' && pendingRequest && pendingErrorResult) {
+      const runtime = window.REPLOID_DOPPLER_RUNTIME;
+      if (typeof runtime?.prepare === 'function') {
+        void runtime.prepare().catch(() => {
+          // The confirmed load reports the actionable runtime error.
+        });
+      }
       setResult(resultId, {
         ...pendingErrorResult,
         recovery: buildLocalConsentRecovery(pendingRequest)
@@ -1790,7 +1806,7 @@ const createProviderContributionController = () => {
     currentModel = model;
     const participation = readParticipationPreferences();
     let adapterPacks = [];
-    if (participation.permissions.relayArtifacts) {
+    if (participation.permissions.relayArtifacts && supportsAdapterPublications(model)) {
       try {
         const publications = await withTimeout(
           listFetchableAdapterPublications({ sdk: adapterSdk, model }),
@@ -1809,8 +1825,10 @@ const createProviderContributionController = () => {
         if (generation !== undefined && generation !== lifecycleGeneration) throw new Error('Aborted');
         updateProviderHealth({ adapters: 'registry_unavailable', adapterRegistryError: errorString(error) });
       }
-    } else {
+    } else if (!participation.permissions.relayArtifacts) {
       updateProviderHealth({ adapters: 'relay_disabled' });
+    } else {
+      updateProviderHealth({ adapters: 'not_applicable' });
     }
     const providerIdentityState = await getProviderIdentity().resolve();
     if (generation !== undefined && generation !== lifecycleGeneration) throw new Error('Aborted');
@@ -2043,8 +2061,10 @@ const createProviderContributionController = () => {
       await preferenceApplyPromise;
     },
     async handleModelChange() {
-      requestedModelId = controls.modelInput?.value || null;
-      if (workerRunning || workerStarting) {
+      const nextModelId = controls.modelInput?.value || null;
+      const activeModelId = requestedModelId || currentModel?.modelId || null;
+      requestedModelId = nextModelId;
+      if ((workerRunning || workerStarting) && nextModelId !== activeModelId) {
         await stopWorker();
         await startWorker();
       }
