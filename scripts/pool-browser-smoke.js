@@ -101,6 +101,13 @@ await context.addInitScript((launchModel) => {
       probeStatus: 'smoke',
       adapterInfo: { vendor: 'playwright', architecture: 'pool-smoke' },
       features: ['datachannel', 'shader-f16', 'subgroups'],
+      capabilityBenchmark: {
+        status: 'measured',
+        samplesMs: [1, 1, 1, 1, 1],
+        medianMs: 1,
+        gigaOpsPerSecond: 100,
+        stability: 1
+      },
       limits: {
         maxBufferSize: 1_073_741_824,
         maxStorageBufferBindingSize: 536_870_912,
@@ -140,14 +147,6 @@ const gotoRoute = async (targetPage, route) => {
   return response;
 };
 
-const clickPoolDashboardView = async (targetPage, view) => {
-  const nav = targetPage.locator('.pool-nav-rail');
-  await nav.waitFor({ timeout: 30000 });
-  const isOpen = await nav.evaluate((node) => node.classList.contains('is-open'));
-  if (!isOpen) await nav.locator('.pool-nav-toggle').click();
-  await targetPage.locator(`[data-pool-dashboard-view="${view}"]`).click();
-};
-
 for (const route of routes) {
   try {
     console.log(`[pool-smoke] route ${route}`);
@@ -165,24 +164,22 @@ for (const route of routes) {
 }
 
 try {
-  console.log('[pool-smoke] same-document navigation');
+  console.log('[pool-smoke] same-document input lane switching');
   const routePage = await context.newPage();
   await gotoRoute(routePage, '/');
   await routePage.evaluate(() => {
     window.__REPLOID_POOL_SMOKE_MARKER = 'same-document-route';
   });
-  await clickPoolDashboardView(routePage, 'ask');
-  await routePage.waitForFunction(() => new URLSearchParams(window.location.search).get('view') === 'ask');
-  const runMarker = await routePage.evaluate(() => window.__REPLOID_POOL_SMOKE_MARKER);
-  if (runMarker !== 'same-document-route') failures.push('dashboard switch to Run reloaded the boot document');
-  await clickPoolDashboardView(routePage, 'compute');
-  await routePage.waitForFunction(() => new URLSearchParams(window.location.search).get('view') === 'compute');
-  const meshMarker = await routePage.evaluate(() => window.__REPLOID_POOL_SMOKE_MARKER);
-  if (meshMarker !== 'same-document-route') failures.push('dashboard switch to Contribute reloaded the boot document');
+  await routePage.locator('.pool-lane-chip[data-pool-lane="sequence"]').click();
+  await routePage.waitForSelector('.pool-home-stage[data-pool-lane="sequence"]');
+  await routePage.locator('.pool-lane-chip[data-pool-lane="text"]').click();
+  await routePage.waitForSelector('.pool-home-stage[data-pool-lane="text"]');
+  const laneMarker = await routePage.evaluate(() => window.__REPLOID_POOL_SMOKE_MARKER);
+  if (laneMarker !== 'same-document-route') failures.push('input lane switching reloaded the boot document');
   await routePage.close();
-  console.log('[pool-smoke] same-document navigation passed');
+  console.log('[pool-smoke] same-document input lane switching passed');
 } catch (error) {
-  failures.push(`same-document route smoke failed: ${error.message}`);
+  failures.push(`same-document input lane smoke failed: ${error.message}`);
 }
 
 let provider = null;
