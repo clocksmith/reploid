@@ -31,6 +31,16 @@ describe('self-first boot shell', () => {
     expect(sourceIndexHtml).toContain('await import(bootPath);');
   });
 
+  it('keeps the public release and kernel fallback on one build version', () => {
+    const sourceIndexHtml = readRepoFile('self/index.html');
+    const kernelBoot = readRepoFile('self/kernel/boot.js');
+    const publicVersion = sourceIndexHtml.match(/REPLOID_BUILD_VERSION = '([^']+)'/)?.[1];
+    const kernelVersion = kernelBoot.match(/const BUILD_VERSION = '([^']+)'/)?.[1];
+
+    expect(publicVersion).toMatch(/^\d{10}$/);
+    expect(kernelVersion).toBe(publicVersion);
+  });
+
   it('maps canonical /self files to the public browser tree', () => {
     expect(toSourceWebPath('/self/runtime.js')).toBe('/runtime.js');
     expect(toSourceWebPath('/self/host/start-app.js')).toBe('/host/start-app.js');

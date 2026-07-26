@@ -7,8 +7,8 @@ import { LAUNCH_MODEL } from '../../self/pool/model-contract.js';
 
 const BASE_URL = 'http://localhost:8000';
 const ACTUAL_INFERENCE_TIMEOUT_MS = 300000;
-const RELAY_MODE = 'local';
-const RELAY_LABEL = 'local tab';
+const RELAY_MODE = process.env.REPLOID_E2E_RELAY_MODE === 'server' ? 'server' : 'local';
+const RELAY_LABEL = RELAY_MODE === 'server' ? 'server relay' : 'local tab';
 const TEXT_TOKEN_PATTERN = /[\p{L}\p{N}]/u;
 const rawSha256 = (value) => String(value || '').replace(/^sha256:/, '');
 

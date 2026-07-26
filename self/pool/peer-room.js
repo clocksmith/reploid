@@ -329,6 +329,7 @@ export async function runPeerJob({
   receiptWindowMs = DEFAULT_RECEIPT_WINDOW_MS,
   transportConnectWindowMs = DEFAULT_PROVIDER_SESSION_SETTLE_MS,
   promptDispatchConcurrency = null,
+  knownProviderAdverts = [],
   requesterTransportFactory = createP2PRequesterTransport,
   roomBusFactory = createBroadcastPeerRoomBus,
   onActivity = null
@@ -372,32 +373,58 @@ export async function runPeerJob({
     const minAdverts = policy?.adaptiveRing
       ? Math.max(1, Number(policy.minRingSize || 1))
       : Math.max(1, Number(policy?.redundancy || 1));
+    const advertMatchesRequest = (advert) => advert?.body?.models?.some((model) => (
+      model.modelId === requiredModel.modelId
+      && model.modelHash === requiredModel.modelHash
+      && model.manifestHash === requiredModel.manifestHash
+      && (model.runtime || 'doppler') === (requiredModel.runtime || 'doppler')
+      && (model.backend || 'browser-webgpu') === (requiredModel.backend || 'browser-webgpu')
+      && modelSupportsPoolWorkload(model, requiredModel.workload || 'text_generation')
+      && modelSupportsAdapterRequirement(model, requiredModel.adapter || null)
+    ));
+    const compatibleKnownAdverts = (Array.isArray(knownProviderAdverts) ? knownProviderAdverts : [])
+      .filter(advertMatchesRequest)
+      .filter((advert, index, adverts) => adverts.findIndex((candidate) => (
+        (candidate.body?.providerId || candidate.fromPeerId) === (advert.body?.providerId || advert.fromPeerId)
+      )) === index)
+      .slice(0, maxAdverts);
     reportActivity('peer_provider_discovery_started', 'match', {
       requiredProviders: minAdverts,
-      maximumProviders: maxAdverts
+      maximumProviders: maxAdverts,
+      knownProviders: compatibleKnownAdverts.length
     });
-    const providerAdverts = await waitForProviderAdverts({
-      channel,
-      roomId: resolvedRoomId,
-      discoveryWindowMs,
-      maxAdverts,
-      minAdverts,
-      settleOnFirst: !policy?.adaptiveRing && maxAdverts <= 1,
-      requiredModel,
-      predicate: (advert) => advert?.body?.models?.some((model) => (
-        model.modelId === requiredModel.modelId
-        && model.modelHash === requiredModel.modelHash
-        && model.manifestHash === requiredModel.manifestHash
-        && (model.runtime || 'doppler') === (requiredModel.runtime || 'doppler')
-        && (model.backend || 'browser-webgpu') === (requiredModel.backend || 'browser-webgpu')
-        && modelSupportsPoolWorkload(model, requiredModel.workload || 'text_generation')
-        && modelSupportsAdapterRequirement(model, requiredModel.adapter || null)
-      ))
-    });
-    const plan = await buildPeerAssignmentPlan({
-      jobIntent: intent.intent,
-      providerAdverts
-    });
+    const knownPlan = compatibleKnownAdverts.length > 0
+      ? await buildPeerAssignmentPlan({
+        jobIntent: intent.intent,
+        providerAdverts: compatibleKnownAdverts
+      })
+      : null;
+    const discoveredAdverts = knownPlan?.ok
+      ? []
+      : await waitForProviderAdverts({
+        channel,
+        roomId: resolvedRoomId,
+        discoveryWindowMs,
+        maxAdverts,
+        minAdverts,
+        settleOnFirst: !policy?.adaptiveRing && maxAdverts <= 1,
+        requiredModel,
+        predicate: advertMatchesRequest
+      });
+    const providerAdverts = [
+      ...(knownPlan?.ok ? compatibleKnownAdverts : discoveredAdverts),
+      ...(knownPlan?.ok ? discoveredAdverts : compatibleKnownAdverts)
+    ]
+      .filter((advert, index, adverts) => adverts.findIndex((candidate) => (
+        (candidate.body?.providerId || candidate.fromPeerId) === (advert.body?.providerId || advert.fromPeerId)
+      )) === index)
+      .slice(0, maxAdverts);
+    const plan = knownPlan?.ok && discoveredAdverts.length === 0
+      ? knownPlan
+      : await buildPeerAssignmentPlan({
+        jobIntent: intent.intent,
+        providerAdverts
+      });
     if (!plan.ok || !plan.assignment) {
       throw createPeerPlanError(plan);
     }

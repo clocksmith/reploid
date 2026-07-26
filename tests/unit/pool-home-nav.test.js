@@ -196,38 +196,35 @@ describe('poolday home navigation', () => {
     expect(html).not.toContain('aria-label="Current room and model"');
     expect(html.indexOf('class="pool-home-toolbar"')).toBeLessThan(html.indexOf('class="pool-simulation-shell"'));
     expect(html).toMatch(/class="pool-home-toolbar"[\s\S]*pool-home-toolbar-leading[\s\S]*class="pool-simulation-shell"[\s\S]*class="pool-home-ask-dock/);
-    expect(html).toContain('data-pool-dashboard-inspector');
-    expect(html).toContain('pool-nav-rail pool-control-drawer pool-dashboard-inspector');
-    expect(html).toMatch(/pool-dashboard-inspector[\s\S]*pool-nav-brand-copy[\s\S]*<strong>Network<\/strong>/);
-    expect(html).toContain('aria-label="Network controls"');
-    expect(html).toContain('data-pool-drawer-section="network-connection"');
-    expect(html).toContain('data-pool-drawer-section="network-device" open');
-    expect(html).toContain('data-pool-drawer-section="network-activity"');
-    expect(html).not.toContain('data-pool-drawer-section="compute-sharing"');
-    expect(html).not.toContain('data-pool-drawer-section="compute-room"');
-    expect(html).toMatch(/pool-dashboard-inspector[\s\S]*pool-nav-bottom[\s\S]*pool-x-link/);
-    expect(html).not.toContain('pool-dashboard-inspector[\s\S]*pool-zero-link');
-    expect(html).toContain('data-pool-capability-profile');
+    expect(html).not.toContain('data-pool-dashboard-inspector');
+    expect(html).not.toContain('pool-dashboard-inspector');
     expect(html).not.toContain('Ask browser models.<br>Share compute. Or both.');
   });
 
-  it('turns the Home rail into vertically collapsible request controls', () => {
+  it('clusters all five Home control sections and both substrate links in one left rail', () => {
     const html = renderNav('home', { dashboard: true, dashboardView: 'compute' });
 
     expect(html).toContain('class="pool-nav-rail pool-control-drawer"');
-    expect(html).toContain('aria-label="Request controls"');
+    expect(html).toContain('aria-label="Reploid controls"');
+    expect(html).toContain('<strong>Reploid</strong><small>Peer inference</small>');
+    expect(html).not.toContain('pool-dashboard-inspector');
     expect(html).not.toContain('data-pool-drawer-section="request-task"');
     expect(html).toContain('data-pool-drawer-section="request-model"');
     expect(html).toContain('data-pool-drawer-section="request-checks"');
+    expect(html).toContain('data-pool-drawer-section="network-connection"');
+    expect(html).toContain('data-pool-drawer-section="network-device" open');
+    expect(html).toContain('data-pool-drawer-section="network-activity"');
+    expect((html.match(/data-pool-drawer-section=/g) || [])).toHaveLength(5);
     expect(html).toContain('id="pool-home-request-model"');
     expect(html).toContain('id="pool-home-request-policy"');
+    expect(html).toContain('data-pool-capability-profile');
     expect(html).not.toContain('data-pool-lane="sequence"');
     expect(html).not.toContain('data-pool-sequence-options');
     expect(html).not.toContain('id="pool-home-sequence-public"');
     expect(html).not.toContain('data-pool-drawer-section="request-participation"');
     expect(html).not.toContain('data-pool-dashboard-view');
     expect(html).toMatch(/pool-nav-bottom[\s\S]*pool-zero-link/);
-    expect(html).not.toContain('pool-x-link');
+    expect(html).toMatch(/pool-nav-bottom[\s\S]*pool-x-link/);
     expect(html).not.toContain('href="/records"');
     expect(PRODUCT_ROUTES['/ask']).toBe('ask');
     expect(PRODUCT_ROUTES['/compute']).toBe('compute');

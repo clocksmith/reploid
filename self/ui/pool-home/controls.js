@@ -603,15 +603,13 @@ export const bindCapabilityAssessmentControls = () => {
   void run(false);
 };
 
-const setInspectorRailOpen = (open) => {
-  const rail = document.querySelector('[data-pool-dashboard-inspector]');
-  const toggle = rail?.querySelector('[data-pool-inspector-toggle]');
+const setControlDrawerOpen = (open) => {
+  const rail = document.querySelector('.pool-control-drawer');
+  const toggle = rail?.querySelector('.pool-nav-toggle');
   if (!rail || !toggle) return;
-  rail.classList.toggle('is-open', open);
-  toggle.setAttribute('aria-expanded', String(open));
-  toggle.setAttribute('aria-label', open ? 'Close network controls' : 'Open network controls');
-  toggle.setAttribute('title', open ? 'Close network controls' : 'Open network controls');
-  toggle.dataset.poolNavTooltip = open ? 'Close network controls' : 'Open network controls';
+  if (rail.classList.contains('is-open') !== open) {
+    toggle.click();
+  }
 };
 
 const POOL_DRAWER_SECTION_STATE_KEY = 'reploid.pool.drawerSections.v1';
@@ -641,8 +639,7 @@ const bindDrawerSections = () => {
     if (section.dataset.poolDrawerSectionBound === 'true') return;
     section.dataset.poolDrawerSectionBound = 'true';
     section.querySelector(':scope > summary')?.addEventListener('click', (event) => {
-      // Both rails (request drawer + compute inspector) are collapsible .pool-nav-rail
-      // panels. Clicking a collapsed section expands the rail and opens that section.
+      // Clicking a collapsed section expands the single control rail and opens it.
       const rail = section.closest('.pool-nav-rail');
       if (rail && !rail.classList.contains('is-open')) {
         const toggle = rail.querySelector('.pool-nav-toggle');
@@ -675,8 +672,7 @@ export const applyPoolDashboardView = (view = 'home', { updateHistory = true } =
     else control.removeAttribute('aria-current');
   });
   if (normalized === 'ask') document.getElementById('pool-home-ask-prompt')?.focus();
-  if (normalized === 'compute' || normalized === 'records') setInspectorRailOpen(true);
-  else setInspectorRailOpen(false);
+  if (normalized === 'compute' || normalized === 'records') setControlDrawerOpen(true);
   if (updateHistory) {
     const url = new URL(window.location.href);
     if (normalized === 'home') url.searchParams.delete('view');
@@ -696,25 +692,10 @@ export const bindPoolDashboardControls = () => {
       applyPoolDashboardView(control.dataset.poolDashboardView || control.dataset.poolDashboardViewTarget || 'home');
     });
   });
-  document.querySelectorAll('[data-pool-inspector-toggle]').forEach((toggle) => {
-    if (toggle.dataset.poolInspectorBound === 'true') return;
-    toggle.dataset.poolInspectorBound = 'true';
-    toggle.addEventListener('click', () => {
-      const rail = toggle.closest('[data-pool-dashboard-inspector]');
-      setInspectorRailOpen(!rail?.classList.contains('is-open'));
-    });
-  });
   if (window.REPLOID_POOL_INSPECTOR_ESCAPE_HANDLER) {
     window.removeEventListener('keydown', window.REPLOID_POOL_INSPECTOR_ESCAPE_HANDLER);
+    window.REPLOID_POOL_INSPECTOR_ESCAPE_HANDLER = null;
   }
-  window.REPLOID_POOL_INSPECTOR_ESCAPE_HANDLER = (event) => {
-    if (event.key !== 'Escape') return;
-    const rail = document.querySelector('[data-pool-dashboard-inspector].is-open');
-    if (!rail) return;
-    setInspectorRailOpen(false);
-    rail.querySelector('[data-pool-inspector-toggle]')?.focus();
-  };
-  window.addEventListener('keydown', window.REPLOID_POOL_INSPECTOR_ESCAPE_HANDLER);
 };
 
 const bindSuggestedPromptEditing = (input) => {
@@ -1129,16 +1110,19 @@ const bindPeerRunSurface = ({
       pendingErrorResult = null;
     }
     setRunButtonBusy(true);
-    updateRunState('submitting', 'prompt', preparedRequest
-      ? 'Checking the network again'
-      : 'Preparing signed request');
+    const usingKnownProvider = Boolean(preparedRequest?.knownProviderAdverts?.length);
+    updateRunState('submitting', 'prompt', usingKnownProvider
+      ? 'Starting the preserved request on this device'
+      : preparedRequest
+        ? 'Checking the network again'
+        : 'Preparing signed request');
     try {
       const request = preparedRequest || await prepareRunRequest();
       if (!request) return;
       pendingRequest = request;
       pendingErrorResult = null;
       setResult(resultId, describeSelectedRun({
-        status: 'finding_peer_provider',
+        status: usingKnownProvider ? 'starting_known_provider' : 'finding_peer_provider',
         policyId: request.policyId,
         modelId: request.selectedModel.modelId,
         adapterPackHash: request.adapterPackHash
@@ -1155,6 +1139,7 @@ const bindPeerRunSurface = ({
         receiptWindowMs: getPeerReceiptWindowMs(),
         roomBusFactory: getPeerRoomBusFactory(),
         generationConfig: getPeerGenerationConfig(),
+        knownProviderAdverts: request.knownProviderAdverts || [],
         onActivity: handleRunActivity
       });
       result.inviteUrl = getPeerInviteUrl();
@@ -1209,7 +1194,7 @@ const bindPeerRunSurface = ({
   const startLocalProviderAndRetry = async () => {
     if (!pendingRequest || requestInFlight || localFallbackInFlight) return;
     localFallbackInFlight = true;
-    setInspectorRailOpen(true);
+    setControlDrawerOpen(true);
     document.querySelector('[data-pool-drawer-section="network-device"]')?.setAttribute('open', '');
     setRunButtonBusy(true, 'Preparing');
     updateRunState('submitting', 'match', 'Preparing this device as an optional fallback');
@@ -1220,11 +1205,16 @@ const bindPeerRunSurface = ({
       action: 'Checking device capability, loading the selected model, and advertising this tab.'
     }, { stream: true });
     try {
-      await getProviderContributionController().startForModel(pendingRequest.selectedModel.modelId);
-      updateRunState('submitting', 'match', 'This device is available. Checking the network again');
+      const provider = await getProviderContributionController().startForModel(
+        pendingRequest.selectedModel.modelId
+      );
+      updateRunState('submitting', 'match', 'Model ready. Starting the preserved request here');
       localFallbackInFlight = false;
       setRunButtonBusy(false);
-      await submitRunRequest(pendingRequest);
+      await submitRunRequest({
+        ...pendingRequest,
+        knownProviderAdverts: provider?.advert ? [provider.advert] : []
+      });
     } catch (error) {
       const displayError = displayPoolError(error, {
         title: 'This device could not become a contributor',
