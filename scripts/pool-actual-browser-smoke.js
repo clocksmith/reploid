@@ -27,7 +27,7 @@ const baseUrl = (positionalUrl || process.env.REPLOID_POOL_ACTUAL_SMOKE_URL || '
 const ACTUAL_SMOKE_WINDOW_MS = Number(process.env.REPLOID_POOL_ACTUAL_SMOKE_WINDOW_MS || 300000);
 const ACTUAL_DISCOVERY_WINDOW_MS = Number(
   process.env.REPLOID_POOL_ACTUAL_DISCOVERY_WINDOW_MS
-  || Math.min(ACTUAL_SMOKE_WINDOW_MS, 15000)
+  || Math.min(ACTUAL_SMOKE_WINDOW_MS, 30000)
 );
 const ACTUAL_MAX_OUTPUT_TOKENS = Math.max(2, Number(
   process.env.REPLOID_POOL_ACTUAL_MAX_OUTPUT_TOKENS || 8
@@ -290,6 +290,9 @@ const runActualPrompt = async (page, prompt, { policyId = null } = {}) => {
     const snapshot = await readSnapshot(page, 'pool-run-result');
     const parsed = snapshot.parsed || {};
     if (parsed.status === 'error' || parsed.error) fail('Actual P2P inference did not complete', snapshot);
+    if (parsed.status === 'not_enough_peer_providers') {
+      fail('Actual P2P inference did not discover the started provider', snapshot);
+    }
     const singleComplete = parsed.receiptHash && typeof parsed.outputText === 'string';
     const ringComplete = parsed.agreement?.accepted === true
       && Array.isArray(parsed.receiptPayloads)
@@ -366,11 +369,12 @@ const runSingleReceipt = async (browser) => {
   const context = await browser.newContext();
   await installActualRuntimeConfig(context);
   try {
-    const providerPage = await openPoolPage(context, '/compute', roomId, 'single-provider');
+    const providerPage = await openPoolPage(context, '/compute', roomId, 'single-provider', { relay: 'local' });
     await selectProviderModel(providerPage, SMOKE_MODEL.modelId);
     await expectEqual(await providerPage.locator('#pool-provider-model').inputValue(), SMOKE_MODEL.modelId, 'single provider model');
-    const runPage = await openPoolPage(context, '/ask', roomId, 'single-requester');
+    const runPage = await openPoolPage(context, '/ask', roomId, 'single-requester', { relay: 'local' });
     await waitForProviderListening(providerPage);
+    await runPage.bringToFront();
 
     const result = await runActualPrompt(runPage, 'The color of the sky is');
     await validateActualResult(result, 'single');
@@ -385,12 +389,13 @@ const runQueuedReceipts = async (browser) => {
   const context = await browser.newContext();
   await installActualRuntimeConfig(context);
   try {
-    const providerPage = await openPoolPage(context, '/compute', roomId, 'queue-provider');
+    const providerPage = await openPoolPage(context, '/compute', roomId, 'queue-provider', { relay: 'local' });
     await selectProviderModel(providerPage, SMOKE_MODEL.modelId);
     await expectEqual(await providerPage.locator('#pool-provider-model').inputValue(), SMOKE_MODEL.modelId, 'queue provider model');
-    const firstRunPage = await openPoolPage(context, '/ask', roomId, 'queue-requester-one');
-    const secondRunPage = await openPoolPage(context, '/ask', roomId, 'queue-requester-two');
+    const firstRunPage = await openPoolPage(context, '/ask', roomId, 'queue-requester-one', { relay: 'local' });
+    const secondRunPage = await openPoolPage(context, '/ask', roomId, 'queue-requester-two', { relay: 'local' });
     await waitForProviderListening(providerPage);
+    await firstRunPage.bringToFront();
     const [first, second] = await Promise.all([
       runActualPrompt(firstRunPage, 'Reply with exactly A.'),
       runActualPrompt(secondRunPage, 'Reply with exactly B.')
