@@ -3,6 +3,9 @@
  */
 import { defineConfig, devices } from '@playwright/test';
 
+const targetBaseUrl = process.env.REPLOID_E2E_BASE_URL || 'http://localhost:8000';
+const useLocalServer = new URL(targetBaseUrl).hostname === 'localhost';
+
 export default defineConfig({
   testDir: './tests/e2e',
   fullyParallel: false, // Run tests serially for GPU resource sharing
@@ -16,7 +19,7 @@ export default defineConfig({
   ],
 
   use: {
-    baseURL: 'http://localhost:8000',
+    baseURL: targetBaseUrl,
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'on-first-retry',
@@ -54,7 +57,7 @@ export default defineConfig({
   ],
 
   // Local dev server
-  webServer: [
+  webServer: useLocalServer ? [
     {
       command: 'npm start',
       url: 'http://localhost:8000',
@@ -65,7 +68,7 @@ export default defineConfig({
       reuseExistingServer: !process.env.CI,
       timeout: 30000,
     },
-  ],
+  ] : undefined,
 
   // Increase timeout for model loading
   timeout: 300000, // 5 minutes

@@ -87,4 +87,28 @@ describe('Poolday participation profile', () => {
     expect(verification.ok).toBe(false);
     expect(verification.reasons).toContain('participation capabilities do not match mode and permissions');
   });
+
+  it('verifies a signed profile after a relay reorders JSON object keys', async () => {
+    const keyPair = await createSigningKeyPair();
+    const profile = await createSignedParticipationProfile({
+      preferences: { mode: 'both' },
+      deviceId: 'device_relay_roundtrip',
+      devicePublicKey: await exportPublicKey(keyPair.publicKey),
+      privateKey: keyPair.privateKey
+    });
+    const relayedProfile = JSON.parse(JSON.stringify({
+      ...profile,
+      limits: {
+        maxTokensPerJob: profile.limits.maxTokensPerJob,
+        maxConcurrentJobs: profile.limits.maxConcurrentJobs,
+        bandwidthBudgetMbps: profile.limits.bandwidthBudgetMbps,
+        storageBudgetMiB: profile.limits.storageBudgetMiB
+      }
+    }));
+
+    expect(await verifyParticipationProfile(relayedProfile)).toMatchObject({
+      ok: true,
+      reasons: []
+    });
+  });
 });
