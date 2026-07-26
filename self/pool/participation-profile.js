@@ -158,7 +158,14 @@ export function validateParticipationProfile(profile = {}) {
     if (!VALID_CAPABILITIES.has(capability)) reasons.push(`unknown participation capability: ${capability}`);
   }
   const normalized = normalizeParticipationPreferences(profile);
-  if (JSON.stringify(profile.limits || {}) !== JSON.stringify(normalized.limits)) {
+  const actualLimits = profile.limits;
+  const expectedLimitEntries = Object.entries(normalized.limits);
+  const limitsMatch = actualLimits
+    && typeof actualLimits === 'object'
+    && !Array.isArray(actualLimits)
+    && Object.keys(actualLimits).length === expectedLimitEntries.length
+    && expectedLimitEntries.every(([field, value]) => actualLimits[field] === value);
+  if (!limitsMatch) {
     reasons.push('participation limits are invalid');
   }
   if (!Number.isInteger(Number(profile.revision)) || Number(profile.revision) < 1) {

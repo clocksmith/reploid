@@ -3,7 +3,7 @@
  */
 import { test, expect } from '@playwright/test';
 
-import { LAUNCH_MODEL } from '../../self/pool/model-contract.js';
+import { LAUNCH_MODEL, getEnabledPoolModelContract } from '../../self/pool/model-contract.js';
 
 const BASE_URL = 'http://localhost:8000';
 const ACTUAL_INFERENCE_TIMEOUT_MS = 300000;
@@ -11,6 +11,7 @@ const RELAY_MODE = process.env.REPLOID_E2E_RELAY_MODE === 'server' ? 'server' : 
 const RELAY_LABEL = RELAY_MODE === 'server' ? 'server relay' : 'local tab';
 const TEXT_TOKEN_PATTERN = /[\p{L}\p{N}]/u;
 const rawSha256 = (value) => String(value || '').replace(/^sha256:/, '');
+const SEQUENCE_MODEL = getEnabledPoolModelContract('esm2-t12-35m-ur50d-f32-af32');
 
 const roomIdFor = (testInfo) => (
   `actual-inference-${testInfo.workerIndex}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`
@@ -30,6 +31,27 @@ const installActualRuntimeConfig = async (context) => {
     window.REPLOID_POOL_MAX_OUTPUT_TOKENS = 2;
     window.REPLOID_POOL_STRICT_ARTIFACT_PREFLIGHT = false;
   });
+};
+
+const createInferenceNodeContexts = async (browser) => {
+  const providerContext = await browser.newContext();
+  const requesterContext = RELAY_MODE === 'server'
+    ? await browser.newContext()
+    : providerContext;
+  await installActualRuntimeConfig(providerContext);
+  if (requesterContext !== providerContext) {
+    await installActualRuntimeConfig(requesterContext);
+  }
+  return {
+    providerContext,
+    requesterContext,
+    async close() {
+      await requesterContext.close().catch(() => null);
+      if (providerContext !== requesterContext) {
+        await providerContext.close().catch(() => null);
+      }
+    }
+  };
 };
 
 const wireDiagnostics = (page, label) => {
@@ -155,10 +177,9 @@ test.describe('Run and Contribute actual browser inference', () => {
 
   test('loads Doppler, generates in a provider tab, and returns a signed peer receipt', async ({ browser, baseURL }, testInfo) => {
     const roomId = roomIdFor(testInfo);
-    const context = await browser.newContext();
-    await installActualRuntimeConfig(context);
+    const nodes = await createInferenceNodeContexts(browser);
     try {
-      const providerPage = await openPoolPage(context, baseURL, '/compute', roomId, 'provider');
+      const providerPage = await openPoolPage(nodes.providerContext, baseURL, '/compute', roomId, 'provider');
       let observeReloadRequests = false;
       let shardRequestsAfterReload = 0;
       providerPage.on('request', (request) => {
@@ -167,7 +188,7 @@ test.describe('Run and Contribute actual browser inference', () => {
         }
       });
       await expect(providerPage.locator('#pool-provider-model')).toHaveValue(LAUNCH_MODEL.modelId);
-      const runPage = await openPoolPage(context, baseURL, '/ask', roomId, 'requester');
+      const runPage = await openPoolPage(nodes.requesterContext, baseURL, '/ask', roomId, 'requester');
       await waitForProviderListening(providerPage);
       const firstProvider = (await readSnapshot(providerPage, 'pool-provider-result')).parsed;
       expect(firstProvider.runtime?.persistentCache).toMatchObject({
@@ -198,33 +219,30 @@ test.describe('Run and Contribute actual browser inference', () => {
       expect(restoredProvider.runtime?.persistentCache?.manifestHash).toBe(rawSha256(LAUNCH_MODEL.manifestHash));
       expect(shardRequestsAfterReload).toBe(0);
     } finally {
-      await context.close().catch(() => null);
+      await nodes.close();
     }
   });
 
-  test('downloads ESM-2 as an optional local fallback and completes the preserved sequence request', async ({ browser, baseURL }, testInfo) => {
+  test('runs ESM-2 sequence inference between separate provider and requester nodes', async ({ browser, baseURL }, testInfo) => {
     const roomId = roomIdFor(testInfo);
-    const context = await browser.newContext();
-    await installActualRuntimeConfig(context);
+    const nodes = await createInferenceNodeContexts(browser);
     try {
-      const page = await openPoolPage(context, baseURL, '/', roomId, 'sequence-local-fallback');
-      await page.evaluate(() => {
-        window.REPLOID_POOL_DISCOVERY_WINDOW_MS = 250;
-        window.REPLOID_POOL_RECEIPT_WINDOW_MS = 300000;
-      });
-      await page.locator('[data-pool-lane="sequence"]').click();
-      await expect(page.locator('#pool-home-request-model')).toHaveValue('esm2-t12-35m-ur50d-f32-af32');
-      await page.locator('#pool-home-ask-prompt').fill('MKTAYIAKQRQISFVKSHFSRQ');
-      await page.locator('#pool-home-sequence-public').check();
-      await page.locator('#pool-home-run-submit').click();
-      await expect(page.locator('[data-pool-run-recovery-action="offer_local_provider"]')).toBeVisible();
-      await page.locator('[data-pool-run-recovery-action="offer_local_provider"]').click();
-      await expect(page.locator('[data-pool-run-recovery-action="confirm_local_provider"]')).toBeVisible();
-      await page.locator('[data-pool-run-recovery-action="confirm_local_provider"]').click();
+      const providerPage = await openPoolPage(nodes.providerContext, baseURL, '/compute', roomId, 'sequence-provider');
+      await providerPage.locator('#pool-provider-model').selectOption(SEQUENCE_MODEL.modelId);
+      await expect(providerPage.locator('#pool-provider-model')).toHaveValue(SEQUENCE_MODEL.modelId);
+      const requesterPage = await openPoolPage(nodes.requesterContext, baseURL, '/', roomId, 'sequence-requester');
+      await waitForProviderListening(providerPage);
+      const provider = (await readSnapshot(providerPage, 'pool-provider-result')).parsed;
+      await requesterPage.bringToFront();
+      await requesterPage.locator('[data-pool-lane="sequence"]').click();
+      await expect(requesterPage.locator('#pool-home-request-model')).toHaveValue(SEQUENCE_MODEL.modelId);
+      await requesterPage.locator('#pool-home-ask-prompt').fill('MKTAYIAKQRQISFVKSHFSRQ');
+      await requesterPage.locator('#pool-home-sequence-public').check();
+      await requesterPage.locator('#pool-home-run-submit').click();
 
       try {
         await expect.poll(async () => {
-          const snapshot = await readSnapshot(page, 'pool-home-run-result');
+          const snapshot = await readSnapshot(requesterPage, 'pool-home-run-result');
           const parsed = snapshot.parsed || {};
           if (/^Error:/m.test(snapshot.raw) || /could not complete|failed:/i.test(snapshot.stream)) {
             return `error:${snapshot.stream || snapshot.raw}`;
@@ -237,18 +255,27 @@ test.describe('Run and Contribute actual browser inference', () => {
           intervals: [1000, 2500, 5000]
         }).toBe('complete');
       } catch (error) {
-        const snapshot = await readSnapshot(page, 'pool-home-run-result');
-        throw new Error(`Actual ESM-2 local fallback did not complete.\n${stringifySnapshot(snapshot)}\n${error.message}`);
+        const providerSnapshot = await readSnapshot(providerPage, 'pool-provider-result');
+        const requesterSnapshot = await readSnapshot(requesterPage, 'pool-home-run-result');
+        throw new Error(
+          `Actual ESM-2 cross-node inference did not complete.\n`
+          + `provider=${stringifySnapshot(providerSnapshot)}\n`
+          + `requester=${stringifySnapshot(requesterSnapshot)}\n`
+          + error.message
+        );
       }
 
-      const result = (await readSnapshot(page, 'pool-home-run-result')).parsed;
+      const result = (await readSnapshot(requesterPage, 'pool-home-run-result')).parsed;
+      expect(result.transport).toBe('webrtc_peer_room');
       expect(result.outputKind).toBe('sequence.embedding.v1');
       expect(result.sequenceResultHash).toMatch(/^sha256:/);
       expect(result.embeddingDimensions).toBeGreaterThan(0);
       expect(result.receiptRecord?.receipt?.sequence?.sequenceLength).toBe(22);
       expect(JSON.stringify(result.receiptRecord?.receipt || {})).not.toContain('MKTAYIAKQRQISFVKSHFSRQ');
+      expect(result.assignment?.providerId).toBe(provider.advert?.body?.providerId);
+      expect(result.requesterAcceptance?.requesterId).not.toBe(result.assignment?.providerId);
     } finally {
-      await context.close().catch(() => null);
+      await nodes.close();
     }
   });
 
