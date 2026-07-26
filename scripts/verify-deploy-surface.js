@@ -94,7 +94,7 @@ const checkRouteLayout = async () => {
         if (message.type() === 'error') pageErrors.push(message.text());
       });
       try {
-        await page.goto(`${baseUrl}${route}`, { waitUntil: 'networkidle', timeout: 45000 });
+        await page.goto(`${baseUrl}${route}`, { waitUntil: 'domcontentloaded', timeout: 45000 });
         await page.waitForSelector('.pool-home', { timeout: 20000 });
         await page.waitForTimeout(1500);
         const name = route === '/' ? 'home' : route.slice(1);
