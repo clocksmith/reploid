@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import {
+  DEFAULT_RTC_CONFIG,
   candidateToPayload,
   createAssignmentP2PPayloadChannel,
   createP2PTransport,
@@ -88,7 +89,8 @@ describe('pool p2p transport helpers', () => {
     class FakePeerConnection {
       static instances = [];
 
-      constructor() {
+      constructor(rtcConfig) {
+        this.rtcConfig = rtcConfig;
         this.localDescription = null;
         this.remoteDescription = null;
         this.connectionState = 'new';
@@ -150,6 +152,7 @@ describe('pool p2p transport helpers', () => {
     await Promise.resolve();
 
     const pc = FakePeerConnection.instances[0];
+    expect(pc.rtcConfig).toEqual(DEFAULT_RTC_CONFIG);
     signalHandler({
       type: SIGNAL_TYPES.ICE_CANDIDATE,
       payload: { candidate: 'candidate:early', sdpMid: '0' }
