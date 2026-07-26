@@ -5,6 +5,15 @@ import { defineConfig, devices } from '@playwright/test';
 
 const targetBaseUrl = process.env.REPLOID_E2E_BASE_URL || 'http://localhost:8000';
 const useLocalServer = new URL(targetBaseUrl).hostname === 'localhost';
+const chromiumChannel = String(process.env.REPLOID_E2E_CHROMIUM_CHANNEL || '').trim();
+const chromiumGpuArgs = process.platform === 'darwin'
+  ? ['--enable-unsafe-webgpu']
+  : [
+      '--enable-unsafe-webgpu',
+      '--enable-features=Vulkan',
+      '--use-angle=vulkan',
+      '--disable-gpu-sandbox',
+    ];
 
 export default defineConfig({
   testDir: './tests/e2e',
@@ -31,12 +40,8 @@ export default defineConfig({
       use: {
         ...devices['Desktop Chrome'],
         launchOptions: {
-          args: [
-            '--enable-unsafe-webgpu',
-            '--enable-features=Vulkan',
-            '--use-angle=vulkan',
-            '--disable-gpu-sandbox',
-          ],
+          ...(chromiumChannel ? { channel: chromiumChannel } : {}),
+          args: chromiumGpuArgs,
         },
       },
     },

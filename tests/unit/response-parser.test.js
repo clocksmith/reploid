@@ -421,6 +421,21 @@ TOOL: ListTools
         expect(calls[0].error).toBeUndefined();
       });
 
+      it('should keep prose after a blank line outside a no-arg tool call', () => {
+        const text = `REPLOID/0
+
+TOOL: WriteActualRsiArtifact
+
+Do this goal first. Then improve forever.`;
+
+        const calls = responseParser.parseToolCalls(text);
+
+        expect(calls).toEqual([{
+          name: 'WriteActualRsiArtifact',
+          args: {}
+        }]);
+      });
+
       it('should parse REPLOID/0 same-line JSON object args', () => {
         const text = `REPLOID/0
 

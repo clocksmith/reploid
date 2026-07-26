@@ -360,12 +360,14 @@ const ResponseParser = {
           }
         }
         index++;
+        let sawBlankArgumentBoundary = false;
 
         while (index < lines.length) {
           const nextRawLine = lines[index];
           const nextLine = stripProtocolInlineComment(nextRawLine.trimStart());
 
           if (!nextLine) {
+            sawBlankArgumentBoundary = true;
             index++;
             continue;
           }
@@ -421,6 +423,9 @@ const ResponseParser = {
 
           const argMatch = nextLine.match(INLINE_ARG_REGEX);
           if (!argMatch) {
+            if (sawBlankArgumentBoundary && Object.keys(args).length === 0) {
+              break;
+            }
             const continuationKey = getContinuationArgKey(args);
             if (continuationKey) {
               const continuationLines = [];

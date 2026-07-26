@@ -2412,6 +2412,10 @@ ${zeroToolSurfaceText}.
 
 ## Calling style
 - Use REPLOID/0 with TOOL blocks and one tool call minimum.
+- Tool modules have no ambient VFS or other runtime globals. The only runtime
+  capabilities are passed through the second \`deps\` argument. Always declare
+  \`async function(args = {}, deps = {})\` and read capabilities from
+  \`deps.VFS\`, \`deps.ToolRunner\`, \`deps.EventBus\`, or \`deps.Utils\`.
 - Canonical CreateTool syntax puts the complete module in the \`code\` argument. Do not send description, activation, inputSchema, capabilities, or call as unrelated top-level commentary:
   TOOL: CreateTool
   name: EchoTool
@@ -2423,7 +2427,11 @@ ${zeroToolSurfaceText}.
     inputSchema: { type: 'object', properties: { value: { type: 'string' } } },
     capabilities: []
   };
-  export default async function(args) { return args; }
+  export default async function(args = {}, deps = {}) {
+    const { VFS } = deps;
+    if (!VFS) throw new Error('VFS dependency unavailable');
+    return args;
+  }
   EOF
 - Never output an EVIDENCE block or claim a tool ran. CreateTool writes evidence only after the runtime executes matching activation and replay checks.
       `.trim();
