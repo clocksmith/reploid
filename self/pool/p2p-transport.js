@@ -15,6 +15,12 @@ export const P2P_TRANSPORT_STATES = Object.freeze({
 });
 
 export const DEFAULT_DATA_CHANNEL_LABEL = 'reploid-pool';
+export const DEFAULT_RTC_CONFIG = Object.freeze({
+  iceServers: Object.freeze([
+    Object.freeze({ urls: 'stun:stun.l.google.com:19302' }),
+    Object.freeze({ urls: 'stun:stun1.l.google.com:19302' })
+  ])
+});
 
 export function createP2PRequesterTransport(options = {}) {
   return createP2PTransport({
@@ -99,7 +105,7 @@ export async function createAssignmentP2PPayloadChannel({
 export function createP2PTransport({
   signaling,
   initiator,
-  rtcConfig = {},
+  rtcConfig = DEFAULT_RTC_CONFIG,
   dataChannelLabel = DEFAULT_DATA_CHANNEL_LABEL,
   dataChannelOptions = { ordered: true },
   serialize = defaultSerialize,
