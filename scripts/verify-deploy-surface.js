@@ -84,51 +84,72 @@ const checkStylesheetBytes = async (version) => {
 
 const checkRouteLayout = async () => {
   fs.mkdirSync(screenshotDir, { recursive: true });
-  const browser = await chromium.launch();
+  const browser = await chromium.launch({
+    args: [
+      '--enable-unsafe-webgpu',
+      '--use-angle=swiftshader',
+      '--disable-gpu-sandbox'
+    ]
+  });
   try {
     for (const route of SCREENSHOT_ROUTES) {
-      const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
-      const pageErrors = [];
-      page.on('pageerror', (error) => pageErrors.push(error.message));
-      page.on('console', (message) => {
-        if (message.type() === 'error') pageErrors.push(message.text());
-      });
-      try {
-        await page.goto(`${baseUrl}${route}`, { waitUntil: 'domcontentloaded', timeout: 45000 });
-        await page.waitForSelector('.pool-home', { timeout: 20000 });
-        await page.waitForTimeout(1500);
-        const name = route === '/' ? 'home' : route.slice(1);
-        await page.screenshot({ path: path.join(screenshotDir, `${name}.png`) });
-        if (!LAYOUT_ROUTES.includes(route)) continue;
-        const probe = await page.evaluate(() => {
-          const main = document.querySelector('.pool-home');
-          const rail = document.querySelector('.pool-nav-rail');
-          const shell = document.querySelector('.pool-route-shell');
-          if (!main || !rail || !shell) {
-            return { missing: [!main && '.pool-home', !rail && '.pool-nav-rail', !shell && '.pool-route-shell'].filter(Boolean) };
+      let routeFailure = null;
+      for (let attempt = 1; attempt <= 3; attempt += 1) {
+        const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+        const browserIssues = [];
+        page.on('pageerror', (error) => browserIssues.push(error.message));
+        page.on('console', (message) => {
+          if (message.type() === 'error' || message.type() === 'warning') {
+            browserIssues.push(`${message.type()}: ${message.text()}`);
           }
-          const railRect = rail.getBoundingClientRect();
-          const shellRect = shell.getBoundingClientRect();
-          return {
-            missing: [],
-            paddingLeft: parseFloat(getComputedStyle(main).paddingLeft),
-            railRight: railRect.right,
-            shellLeft: shellRect.left
-          };
         });
-        if (probe.missing.length) {
-          failures.push(`${route}: missing ${probe.missing.join(', ')}`);
-          continue;
+        try {
+          await page.goto(`${baseUrl}${route}`, { waitUntil: 'domcontentloaded', timeout: 45000 });
+          await page.waitForSelector('.pool-home', { timeout: 20000 });
+          await page.waitForTimeout(1500);
+          if (browserIssues.length) {
+            throw new Error(`browser issues: ${browserIssues.join(' | ')}`);
+          }
+          const name = route === '/' ? 'home' : route.slice(1);
+          await page.screenshot({ path: path.join(screenshotDir, `${name}.png`) });
+          if (LAYOUT_ROUTES.includes(route)) {
+            const probe = await page.evaluate(() => {
+              const main = document.querySelector('.pool-home');
+              const rail = document.querySelector('.pool-nav-rail');
+              const shell = document.querySelector('.pool-route-shell');
+              if (!main || !rail || !shell) {
+                return { missing: [!main && '.pool-home', !rail && '.pool-nav-rail', !shell && '.pool-route-shell'].filter(Boolean) };
+              }
+              const railRect = rail.getBoundingClientRect();
+              const shellRect = shell.getBoundingClientRect();
+              return {
+                missing: [],
+                railRight: railRect.right,
+                shellLeft: shellRect.left
+              };
+            });
+            if (probe.missing.length) {
+              throw new Error(`missing ${probe.missing.join(', ')}`);
+            }
+            if (probe.shellLeft < probe.railRight) {
+              throw new Error(
+                `route shell (left ${Math.round(probe.shellLeft)}px) overlaps `
+                + `nav rail (right ${Math.round(probe.railRight)}px)`
+              );
+            }
+          }
+          routeFailure = null;
+          break;
+        } catch (error) {
+          routeFailure = `${route}: attempt ${attempt} failed: ${error.message}`;
+        } finally {
+          await page.close();
         }
-        if (probe.shellLeft < probe.railRight) {
-          failures.push(`${route}: route shell (left ${Math.round(probe.shellLeft)}px) overlaps nav rail (right ${Math.round(probe.railRight)}px)`);
+        if (attempt < 3) {
+          await new Promise((resolve) => setTimeout(resolve, 250));
         }
-      } catch (error) {
-        const detail = pageErrors.length ? `; browser errors: ${pageErrors.join(' | ')}` : '';
-        failures.push(`${route}: failed to reach the Reploid surface: ${error.message}${detail}`);
-      } finally {
-        await page.close();
       }
+      if (routeFailure) failures.push(routeFailure);
     }
   } finally {
     await browser.close();
