@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-07-26T21:56:54.228Z",
+  "generatedAt": "2026-07-26T22:19:21.348Z",
   "features": [
     {
       "id": "0x000003",
@@ -3689,6 +3689,20 @@
       ],
       "files": [
         "core/doppler-runtime-service.js"
+      ]
+    },
+    {
+      "id": "0x00016a",
+      "name": "config-clockwork-gamma-receipts",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x00016a",
+          "path": "blueprints/0x00016a-config-clockwork-gamma-receipts.md"
+        }
+      ],
+      "files": [
+        "config/clockwork-gamma-receipts.js"
       ]
     }
   ]

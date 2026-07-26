@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-07-26T21:56:54.651Z",
+  "generatedAt": "2026-07-26T22:18:49.922Z",
   "files": [
     "audit.html",
     "blueprint-index.json",
@@ -355,6 +355,7 @@
     "blueprints/0x000167-ui-pool-home-network-projection.md",
     "blueprints/0x000168-ui-pool-home-record-persistence.md",
     "blueprints/0x000169-core-doppler-runtime-service.md",
+    "blueprints/0x00016a-config-clockwork-gamma-receipts.md",
     "blueprints/README.md",
     "blueprints/blueprint-index-contract.md",
     "blueprints/implementation-status.md",
@@ -402,6 +403,7 @@
     "config/blueprint-registry.json",
     "config/boot-modes.js",
     "config/boot-seed.js",
+    "config/clockwork-gamma-receipts.js",
     "config/doppler-local-models.js",
     "config/genesis-levels.json",
     "config/genesis-template.json",
