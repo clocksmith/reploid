@@ -36,9 +36,10 @@ The current Cloud Run and Firestore path is transitional. The target Reploid con
 ## Launch Proof
 
 - [x] Deploy Reploid public hosting plus the Reploid Cloud Run coordinator with `POOL_BACKEND_ONLY=true`, `POOL_STORE=firestore`, Firebase Auth verification, required rewrites, commit-reveal support, and metadata-only signaling.
-- [x] Run production verification against `https://reploid.web.app`; `/pool/deployment/check` returns `ok: true` for config `2026-07-10.qwen-manifest.v2`, Firestore, required auth, artifact base, and commit-reveal support.
+- [x] Run production verification against `https://reploid.web.app`; `/pool/deployment/check` returns `ok: true` for config `2026-07-24.doppler-0.4.16.v1` (`sha256:f15ad298576206e54a4448c424b694bb457960f244d08673d0445f90966a2836`), Firestore, required auth, artifact base, and commit-reveal support.
 - [x] Run public smoke against `https://reploid.web.app` and cover `/`, `/ask`, `/compute`, `/records`, `/history`, `/network`, and `/zero` plus the synthetic peer flow.
-- [ ] Prove one full loop with WebRTC as the main transit: requester submit, provider load, provider register, assignment claim, Doppler generation, commit, reveal, receipt submit, verifier decision, requester acceptance, points update, and reputation update.
+- [x] Prove the primary WebRTC loop on the hosted surface: requester intent, provider model load and advert, deterministic assignment, real Doppler generation, signed receipt agreement, verifier decision, requester acceptance, points event, and reputation event.
+- [ ] Prove the separate optional hosted diagnostic loop through provider registration, assignment claim, commit, reveal, and expired-assignment recovery.
 
 ---
 
@@ -103,12 +104,13 @@ The current Cloud Run and Firestore path is transitional. The target Reploid con
 
 ## Security And Abuse
 
-- [ ] Lock Firebase Auth role binding on requester, agent, provider, and verifier identities.
-- [ ] Verify direct Firestore access is denied outside declared server-mediated flows.
+- [x] Lock Firebase Auth role binding on requester, agent, provider, and verifier identities.
+- [x] Verify direct Firestore access is denied outside declared server-mediated flows.
 - [x] Exercise peer-room relay metadata-only limits, payload caps, TTLs, peer filtering, and rejection of prompt/output/receipt/model payloads.
-- [ ] Exercise hosted signaling metadata-only limits, stale peer cleanup, and production rate limits against deployed Firebase/Cloud Run.
+- [x] Exercise the distributed Firestore rate window against deployed Firebase/Cloud Run and require the expected accepted-versus-limited burst result.
+- [ ] Capture deployed expiration and stale-peer cleanup evidence for the optional hosted signaling path.
 - [x] Enforce a Firestore-transaction-backed per-client rate limit across hosted pool routes, including job, heartbeat, signaling, and receipt endpoints.
-- [ ] Add production evidence for Firestore rules, Cloud Run auth handling, and hosted route rewrites.
+- [x] Add production evidence for Firestore rules, Cloud Run auth handling, and hosted route rewrites.
 
 ---
 
