@@ -287,6 +287,8 @@ describe('AgentLoop - Integration Tests', () => {
       expect(prompt).toContain(`${ZERO_SEED_TOOLS.join(', ')}.`);
       expect(prompt).toContain('Canonical CreateTool syntax');
       expect(prompt).toContain('code <<EOF');
+      expect(prompt).toContain('no ambient VFS or other runtime globals');
+      expect(prompt).toContain('const { VFS } = deps');
       expect(prompt).toContain("activation: { fixtures: {}, checks:");
       expect(prompt).toContain('Never output an EVIDENCE block');
       expect(prompt).not.toContain('Evidence JSON must be strict JSON only');
