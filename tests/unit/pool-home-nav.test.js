@@ -298,8 +298,9 @@ describe('poolday home navigation', () => {
     }
 
     const syntheticSmoke = readFileSync('scripts/pool-browser-smoke.js', 'utf8');
-    expect(syntheticSmoke).toContain('data-pool-dashboard-view');
-    expect(syntheticSmoke).not.toContain("clickPoolRoute(routePage, '/ask')");
+    expect(syntheticSmoke).toContain('.pool-lane-chip[data-pool-lane="sequence"]');
+    expect(syntheticSmoke).toContain('.pool-home-stage[data-pool-lane="text"]');
+    expect(syntheticSmoke).not.toContain('data-pool-dashboard-view');
     expect(syntheticSmoke).toContain("const SYNTHETIC_MODEL_ID = 'gemma-3-270m-it-q4k-ehf16-af32'");
     expect(syntheticSmoke).toContain("url.searchParams.set('relay', 'local')");
     expect(syntheticSmoke).toContain("window.REPLOID_POOL_RELAY = 'local'");
