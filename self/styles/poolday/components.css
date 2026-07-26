@@ -15,11 +15,13 @@
    JS CONTRACT - runtime inputs set by self/ui/pool-home scripts:
    - --tooltip-x, --tooltip-y        simulation-bind.js (tooltip position)
    - --pool-label-x, --pool-label-y  simulation-bind.js (flow label position)
+   - --pool-param-ask-dock-height    controls.js (measured composer height)
    - data-run-state, data-run-phase  simulation-bind.js (run styling states)
    These names are load-bearing; do not rename without updating the JS.
    ============================================ */
 
 .pool-home {
+  --pool-param-ask-dock-height: var(--pool-metric-action);
   min-height: min(100vh, 100dvh);
   padding: calc(var(--pool-space-lg) + var(--pool-px-44)) var(--pool-space-lg) var(--pool-space-lg);
   overflow-x: hidden;
@@ -2183,7 +2185,7 @@ body[data-pool-route-id='home'] #app {
   left: 50%;
   bottom: calc(
     var(--pool-param-ask-inset)
-    + var(--pool-home-ask-dock-height, var(--pool-metric-action))
+    + var(--pool-param-ask-dock-height)
     + var(--pool-space-md)
   );
   display: grid;
@@ -2598,7 +2600,7 @@ body[data-pool-route-id='home'] #app {
     right: var(--pool-space-sm);
     bottom: calc(
       var(--pool-param-ask-inset)
-      + var(--pool-home-ask-dock-height, var(--pool-metric-action))
+      + var(--pool-param-ask-dock-height)
       + var(--pool-space-sm)
     );
     left: var(--pool-space-sm);

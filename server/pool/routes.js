@@ -42,10 +42,20 @@ const asyncRoute = (handler) => (req, res, next) => {
   Promise.resolve(handler(req, res, next)).catch(next);
 };
 
-const createPoolRateLimiter = ({ maxRequests = 30, bucketMs = 1000 } = {}) => {
+const createPoolRateLimiter = ({ store, maxRequests = 30, bucketMs = 1000 } = {}) => {
   const buckets = new Map();
-  return (req, res, next) => {
+  return async (req, res, next) => {
     const key = String(req.headers['x-reploid-client-id'] || req.body?.requesterId || req.body?.providerId || req.ip || 'unknown');
+    if (typeof store?.consumeRateLimit === 'function') {
+      const result = await store.consumeRateLimit({ key, maxRequests, bucketMs });
+      res.setHeader('X-RateLimit-Limit', String(result.limit));
+      res.setHeader('X-RateLimit-Remaining', String(Math.max(0, result.limit - result.count)));
+      res.setHeader('X-RateLimit-Reset', String(result.resetAt));
+      if (!result.allowed) {
+        return res.status(429).json({ error: 'pool rate limit exceeded', retryable: true });
+      }
+      return next();
+    }
     const now = Date.now();
     const bucket = buckets.get(key) || { count: 0, resetAt: now + bucketMs };
     if (now > bucket.resetAt) {
@@ -619,7 +629,7 @@ export function createPoolRouter({
   createAdapterDownloadUrl = null
 } = {}) {
   const router = express.Router();
-  router.use(createPoolRateLimiter());
+  router.use(asyncRoute(createPoolRateLimiter({ store })));
   router.use(asyncRoute(async (req, res, next) => {
     const authOptional = isPublicDiscoveryRoute(req);
     const routeRequiresAuth = requireAuth || store.kind === 'firestore';
@@ -1085,6 +1095,7 @@ export function createPoolRouter({
       && typeof store.getAssignmentReveal === 'function';
     const poolEventsSupported = typeof store.appendPoolEvent === 'function'
       && typeof store.listPoolEventsForJob === 'function';
+    const distributedRateLimitSupported = typeof store.consumeRateLimit === 'function';
     const productionReady = configValidation.ok
       && (!readinessConfig.requiresFirestore || storageMode === 'firestore')
       && (!readinessConfig.requiresFirebaseAuthVerifier || authVerifierConfigured)
@@ -1093,7 +1104,8 @@ export function createPoolRouter({
       && (!readinessConfig.requiresDopplerModuleConfiguration || dopplerModuleConfigured)
       && (!readinessConfig.requiresDopplerKernelBaseConfiguration || dopplerKernelBaseConfigured)
       && (!readinessConfig.requiresPrivateAdapterDeliverySigner || privateAdapterDeliveryConfigured)
-      && (!readinessConfig.requiresCommitRevealStore || commitRevealSupported);
+      && (!readinessConfig.requiresCommitRevealStore || commitRevealSupported)
+      && (storageMode !== 'firestore' || distributedRateLimitSupported);
     return res.json({
       ok: productionReady,
       configVersion: POOL_CONFIG_VERSION,
@@ -1137,6 +1149,12 @@ export function createPoolRouter({
           supported: poolEventsSupported,
           activeStateModeId: POOL_CONFIG.stateModes?.activeModeId || null,
           appendOnlyEventSourcedModeEnabled: POOL_CONFIG.stateModes?.modes?.append_only_event_sourced_v1?.enabled === true
+        },
+        rateLimit: {
+          supported: distributedRateLimitSupported,
+          distributed: storageMode === 'firestore' && distributedRateLimitSupported,
+          maxRequests: 30,
+          bucketMs: 1000
         },
         metricsAvailable: !!metrics
       },

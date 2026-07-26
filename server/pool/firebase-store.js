@@ -36,7 +36,8 @@ const COLLECTIONS = Object.freeze({
   reputationState: 'reputation_state',
   auditChallenges: 'audit_challenges',
   adapterPublications: 'adapter_publications',
-  adapterCanaryPublications: 'adapter_canary_publications'
+  adapterCanaryPublications: 'adapter_canary_publications',
+  rateLimits: 'rate_limits'
 });
 
 const stripUndefined = (value) => {
@@ -259,6 +260,50 @@ export function createFirestorePoolStore({ firestore, collectionPrefix = '' } = 
 
   const api = {
     kind: 'firestore',
+    async consumeRateLimit({
+      key,
+      maxRequests = 30,
+      bucketMs = 1000,
+      now = Date.now()
+    } = {}) {
+      const normalizedKey = String(key || 'unknown');
+      const bucketStart = Math.floor(Number(now) / bucketMs) * bucketMs;
+      const resetAt = bucketStart + bucketMs;
+      const bucketId = crypto
+        .createHash('sha256')
+        .update(`${normalizedKey}:${bucketStart}`)
+        .digest('hex');
+      const bucketRef = doc(COLLECTIONS.rateLimits, bucketId);
+      const consume = async (transaction = null) => {
+        const snapshot = transaction
+          ? await transaction.get(bucketRef)
+          : await bucketRef.get();
+        const current = snapshot.exists ? Number(snapshot.data()?.count || 0) : 0;
+        const count = current + 1;
+        const record = {
+          bucketId,
+          keyHash: crypto.createHash('sha256').update(normalizedKey).digest('hex'),
+          count,
+          limit: maxRequests,
+          bucketStart,
+          resetAt,
+          expiresAt: new Date(resetAt + bucketMs).toISOString(),
+          updatedAt: nowIso()
+        };
+        if (transaction) transaction.set(bucketRef, record);
+        else await bucketRef.set(record);
+        return {
+          allowed: count <= maxRequests,
+          count,
+          limit: maxRequests,
+          resetAt
+        };
+      };
+      if (typeof firestore.runTransaction === 'function') {
+        return firestore.runTransaction((transaction) => consume(transaction));
+      }
+      return consume();
+    },
     async registerProvider(input = {}) {
       const providerId = input.providerId || makeId('provider');
       const sessionId = input.sessionId || makeId('session');

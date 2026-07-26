@@ -343,6 +343,42 @@ test.describe('Run, Contribute, Records peer room', () => {
     }
   });
 
+  test('restores an active provider after reload with the same page identity', async ({ browser, baseURL }, testInfo) => {
+    const roomId = roomIdFor(testInfo, 'provider-reload');
+    const contexts = [];
+    try {
+      const context = await createPoolContext(browser, 'provider_reload');
+      contexts.push(context);
+      const providerPage = await openPoolPage(context, baseURL, '/compute', roomId);
+      await startProviderPage(providerPage);
+      const firstStart = await readProviderResult(providerPage);
+      const firstRoleId = firstStart.identity?.roleId;
+      expect(firstRoleId).toMatch(/^provider_/);
+
+      await providerPage.reload({ waitUntil: 'domcontentloaded' });
+      await providerPage.waitForSelector('.pool-home');
+      await expect(providerPage.locator('[data-pool-room-id]')).toHaveText(roomId);
+      await expect(providerPage.locator('[data-pool-relay-mode]')).toHaveText(RELAY_LABEL);
+      await expect(providerPage.locator('[data-pool-provider-status]')).toHaveText('Available');
+      await expect(providerPage.locator('#pool-provider-worker-toggle')).toHaveText('Stop');
+      await expect(providerPage.locator('#pool-provider-worker-toggle')).toHaveAttribute('data-contribution-action', 'stop');
+      const restored = await readProviderResult(providerPage);
+      expect(restored.identity?.roleId).toBe(firstRoleId);
+      expect(restored.status).toBe('peer_provider_listening');
+
+      const requesterPage = await openPoolPage(context, baseURL, '/ask', roomId);
+      await runPeerPrompt(requesterPage, 'provider survived reload', 'fastest_receipt');
+      const result = await readRunResult(requesterPage);
+      expect(result).toMatchObject({
+        roomId,
+        outputText: 'e2e:provider survived reload',
+        transport: 'webrtc_peer_room'
+      });
+    } finally {
+      await closeContexts(contexts);
+    }
+  });
+
   test('fails provider start closed when runtime model load fails', async ({ browser, baseURL }, testInfo) => {
     const roomId = roomIdFor(testInfo, 'load-fail');
     const contexts = [];

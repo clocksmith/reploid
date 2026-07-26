@@ -48,7 +48,16 @@ describe('Doppler browser runtime adapter', () => {
       globalThis.__POOL_DOPPLER_RUNTIME_TEST = {
         load(_input, options) {
           loadOptions = options;
-          return { handle: launchHandle() };
+          return {
+            handle: {
+              ...launchHandle(),
+              persistentCache: {
+                backend: 'opfs',
+                fromCache: true,
+                manifestHash: LAUNCH_MODEL.manifestHash
+              }
+            }
+          };
         }
       };
       globalThis.REPLOID_DOPPLER_MODULE_URL = 'data:text/javascript,export const load = (...args) => globalThis.__POOL_DOPPLER_RUNTIME_TEST.load(...args);';
@@ -58,6 +67,11 @@ describe('Doppler browser runtime adapter', () => {
 
       expect(loaded.ok).toBe(true);
       expect(loadOptions.cache).toBe('opfs');
+      expect(loaded.runtime.persistentCache).toMatchObject({
+        backend: 'opfs',
+        fromCache: true,
+        manifestHash: LAUNCH_MODEL.manifestHash
+      });
       expect(globalThis.process.env).toEqual({
         EXISTING_ENV: 'present',
         DOPPLER_QUICKSTART_CACHE: 'false'
@@ -125,7 +139,28 @@ describe('Doppler browser runtime adapter', () => {
     expect(result.tokenIds).toEqual([101, 202]);
   });
 
-  it('uses the explicit hosted ESM-2 load input before its non-registry alias', async () => {
+  it('uses a promoted Doppler quickstart reference to preserve canonical execution evidence identity', async () => {
+    let loadInput = null;
+    const load = (input) => {
+      loadInput = input;
+      return { handle: launchHandle() };
+    };
+    globalThis.REPLOID_DOPPLER_MODULE = {
+      load,
+      doppler: Object.assign(() => {}, {
+        load,
+        listModels: async () => [LAUNCH_MODEL.modelId]
+      })
+    };
+
+    const runtime = createDopplerRuntime();
+    const loaded = await runtime.loadModel(LAUNCH_MODEL);
+
+    expect(loaded.ok).toBe(true);
+    expect(loadInput).toBe(LAUNCH_MODEL.dopplerLoadRef);
+  });
+
+  it('uses the explicit hosted ESM-2 load input when the model is not in Doppler quickstart', async () => {
     const model = getEnabledPoolModelContract('esm2-t12-35m-ur50d-f32-af32');
     let loadInput = null;
     globalThis.REPLOID_DOPPLER_MODULE = {

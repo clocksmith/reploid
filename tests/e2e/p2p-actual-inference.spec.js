@@ -10,6 +10,7 @@ const ACTUAL_INFERENCE_TIMEOUT_MS = 300000;
 const RELAY_MODE = 'local';
 const RELAY_LABEL = 'local tab';
 const TEXT_TOKEN_PATTERN = /[\p{L}\p{N}]/u;
+const rawSha256 = (value) => String(value || '').replace(/^sha256:/, '');
 
 const roomIdFor = (testInfo) => (
   `actual-inference-${testInfo.workerIndex}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`
@@ -24,9 +25,9 @@ const routeUrl = (baseURL, route, roomId) => {
 
 const installActualRuntimeConfig = async (context) => {
   await context.addInitScript(() => {
-    window.REPLOID_POOL_DISCOVERY_WINDOW_MS = 300000;
+    window.REPLOID_POOL_DISCOVERY_WINDOW_MS = 30000;
     window.REPLOID_POOL_RECEIPT_WINDOW_MS = 300000;
-    window.REPLOID_POOL_MAX_OUTPUT_TOKENS = 8;
+    window.REPLOID_POOL_MAX_OUTPUT_TOKENS = 2;
     window.REPLOID_POOL_STRICT_ARTIFACT_PREFLIGHT = false;
   });
 };
@@ -108,8 +109,27 @@ const waitForProviderListening = async (page) => {
   }
 };
 
-const runActualPrompt = async (page, prompt) => {
+const waitForRestoredProviderListening = async (page) => {
+  await expect.poll(async () => {
+    const snapshot = await readSnapshot(page, 'pool-provider-result');
+    const parsed = snapshot.parsed || {};
+    if (parsed.status === 'error' || parsed.error) return `error:${parsed.reason || parsed.error}`;
+    if (snapshot.providerState === 'online' && parsed.runner === 'peer_room_listening') return 'ready';
+    return parsed.runner || parsed.status || snapshot.providerState || snapshot.providerStatus || 'waiting';
+  }, {
+    timeout: ACTUAL_INFERENCE_TIMEOUT_MS,
+    intervals: [1000, 2500, 5000]
+  }).toBe('ready');
+};
+
+const runActualPrompt = async (page, prompt, policyId = 'fastest_receipt') => {
   await expect(page.locator('#pool-run-submit')).toBeVisible();
+  if (policyId !== 'fastest_receipt') {
+    const advanced = page.locator('details.pool-advanced').first();
+    if (!(await advanced.evaluate((element) => element.open))) await advanced.locator('summary').click();
+    await expect(page.locator('#pool-run-policy')).toBeVisible();
+    await page.locator('#pool-run-policy').selectOption(policyId);
+  }
   await page.locator('#pool-run-prompt').fill(prompt);
   await page.locator('#pool-run-submit').click();
   try {
@@ -139,9 +159,21 @@ test.describe('Run and Contribute actual browser inference', () => {
     await installActualRuntimeConfig(context);
     try {
       const providerPage = await openPoolPage(context, baseURL, '/compute', roomId, 'provider');
+      let observeReloadRequests = false;
+      let shardRequestsAfterReload = 0;
+      providerPage.on('request', (request) => {
+        if (observeReloadRequests && /\/shard_\d+\.bin(?:$|[?#])/i.test(request.url())) {
+          shardRequestsAfterReload += 1;
+        }
+      });
       await expect(providerPage.locator('#pool-provider-model')).toHaveValue(LAUNCH_MODEL.modelId);
       const runPage = await openPoolPage(context, baseURL, '/ask', roomId, 'requester');
       await waitForProviderListening(providerPage);
+      const firstProvider = (await readSnapshot(providerPage, 'pool-provider-result')).parsed;
+      expect(firstProvider.runtime?.persistentCache).toMatchObject({
+        backend: 'opfs'
+      });
+      expect(firstProvider.runtime?.persistentCache?.manifestHash).toBe(rawSha256(LAUNCH_MODEL.manifestHash));
 
       const result = await runActualPrompt(runPage, 'The color of the sky is');
 
@@ -152,6 +184,19 @@ test.describe('Run and Contribute actual browser inference', () => {
       expect(result.receiptRecord?.receipt?.model?.id || result.receiptRecord?.receipt?.model?.modelId).toBe(LAUNCH_MODEL.modelId);
       expect(result.receiptPayloads).toHaveLength(1);
       expect(result.agreement.accepted).toBe(true);
+
+      observeReloadRequests = true;
+      await providerPage.reload({ waitUntil: 'domcontentloaded' });
+      await providerPage.waitForSelector('.pool-home');
+      await waitForRestoredProviderListening(providerPage);
+      const restoredProvider = (await readSnapshot(providerPage, 'pool-provider-result')).parsed;
+      expect(restoredProvider.identity?.roleId).toBe(firstProvider.identity?.roleId);
+      expect(restoredProvider.runtime?.persistentCache).toMatchObject({
+        backend: 'opfs',
+        fromCache: true
+      });
+      expect(restoredProvider.runtime?.persistentCache?.manifestHash).toBe(rawSha256(LAUNCH_MODEL.manifestHash));
+      expect(shardRequestsAfterReload).toBe(0);
     } finally {
       await context.close().catch(() => null);
     }
@@ -302,6 +347,47 @@ test.describe('Run and Contribute actual browser inference', () => {
       }
       expect(first.assignment.providerId).toBe(second.assignment.providerId);
       expect(first.receiptHash).not.toBe(second.receiptHash);
+    } finally {
+      await context.close().catch(() => null);
+    }
+  });
+
+  test('loads two independent Doppler provider tabs and settles a real ring quorum', async ({ browser, baseURL }, testInfo) => {
+    test.skip(
+      process.env.REPLOID_E2E_ACTUAL_MULTI_PROVIDER !== '1',
+      'Set REPLOID_E2E_ACTUAL_MULTI_PROVIDER=1 to load independent Doppler runtimes in two provider tabs.'
+    );
+    const roomId = roomIdFor(testInfo);
+    const context = await browser.newContext();
+    await installActualRuntimeConfig(context);
+    try {
+      const firstProviderPage = await openPoolPage(context, baseURL, '/compute', roomId, 'provider-one');
+      const secondProviderPage = await openPoolPage(context, baseURL, '/compute', roomId, 'provider-two');
+      await waitForProviderListening(firstProviderPage);
+      await waitForProviderListening(secondProviderPage);
+
+      const firstProvider = (await readSnapshot(firstProviderPage, 'pool-provider-result')).parsed;
+      const secondProvider = (await readSnapshot(secondProviderPage, 'pool-provider-result')).parsed;
+      expect(firstProvider.identity?.roleId).toMatch(/^provider_/);
+      expect(secondProvider.identity?.roleId).toMatch(/^provider_/);
+      expect(secondProvider.identity?.roleId).not.toBe(firstProvider.identity?.roleId);
+
+      const runPage = await openPoolPage(context, baseURL, '/ask', roomId, 'ring-requester');
+      const result = await runActualPrompt(
+        runPage,
+        'Reply with exactly the word blue.',
+        'ring_quorum_receipt'
+      );
+
+      expect(result.transport).toBe('webrtc_peer_room');
+      expect(result.outputText.trim().length).toBeGreaterThan(0);
+      expect(result.agreement?.accepted).toBe(true);
+      expect(result.assignments).toHaveLength(2);
+      expect(result.receiptPayloads).toHaveLength(2);
+      expect(new Set(result.assignments.map((assignment) => assignment.providerId)).size).toBe(2);
+      expect(result.receiptHashes?.length || 0).toBeGreaterThanOrEqual(
+        result.agreement?.requiredAgreement || 2
+      );
     } finally {
       await context.close().catch(() => null);
     }

@@ -31,13 +31,16 @@ vi.mock('../../self/pool/adapter-registry.js', async (importOriginal) => ({
 }));
 
 import {
+  POOL_CONTRIBUTION_RESUME_STORAGE_KEY,
   bindHomeAskControls,
   bindProviderControls,
   bindRunControls,
   refreshParticipationControls,
+  resetProviderContributionControllerForTests,
   resolveCapabilityAvailabilityLimits,
   scorePoolDeviceCapability
 } from '../../self/ui/pool-home/controls.js';
+import { findReceiptLedgerRecord } from '../../self/ui/pool-home/view.js';
 import { LAUNCH_MODEL } from '../../self/pool/model-contract.js';
 import {
   normalizeParticipationPreferences,
@@ -174,7 +177,8 @@ describe('Poolday home ask controls', () => {
     })).toEqual({ maxConcurrentJobs: 1, maxTokensPerJob: 64 });
   });
 
-  afterEach(() => {
+  afterEach(async () => {
+    await resetProviderContributionControllerForTests();
     document.body.innerHTML = '';
     clearStorage();
     delete window.REPLOID_POOL_DISCOVERY_WINDOW_MS;
@@ -398,6 +402,67 @@ describe('Poolday home ask controls', () => {
     expect(document.getElementById('pool-home-run-result-stream').textContent).toBe('network answer');
   });
 
+  it('persists provider rejection reasons with the accepted receipt', async () => {
+    window.history.replaceState({}, '', '/?room=route-reasons-room&relay=local');
+    peerRoomMocks.runPeerJob.mockResolvedValueOnce({
+      status: 'accepted',
+      outputText: 'network answer',
+      receiptHash: 'sha256:route-reasons',
+      receiptRecord: {
+        jobId: 'peer_job_route_reasons',
+        receiptHash: 'sha256:route-reasons'
+      },
+      plan: {
+        routeDecision: {
+          decisionHash: 'sha256:route-decision',
+          selectedProviderIds: ['provider_selected'],
+          candidates: [
+            {
+              providerId: 'provider_selected',
+              eligible: true,
+              rejectionReasons: []
+            },
+            {
+              providerId: 'provider_rejected',
+              eligible: false,
+              rejectionReasons: ['model_hash_mismatch']
+            }
+          ]
+        }
+      }
+    });
+    document.body.innerHTML = `
+      <section data-pool-run-surface="home" data-run-state="idle">
+        <form id="pool-home-ask-form">
+          <input id="pool-home-ask-prompt" value="Preserve route evidence">
+          <button id="pool-home-run-submit" type="submit">Run</button>
+        </form>
+        <p data-pool-run-status></p>
+        <section data-pool-run-output hidden>
+          <div id="pool-home-run-result-summary"></div>
+          <pre id="pool-home-run-result-stream"></pre>
+          <span id="pool-home-run-result-stream-cursor"></span>
+          <div id="pool-home-run-result-evidence"></div>
+          <pre id="pool-home-run-result-raw"></pre>
+        </section>
+      </section>
+    `;
+
+    bindHomeAskControls();
+    document.getElementById('pool-home-ask-form').requestSubmit();
+
+    await vi.waitFor(() => expect(findReceiptLedgerRecord('sha256:route-reasons')).not.toBeNull());
+    expect(findReceiptLedgerRecord('sha256:route-reasons')?.routeDecision).toMatchObject({
+      decisionHash: 'sha256:route-decision',
+      candidates: expect.arrayContaining([
+        expect.objectContaining({
+          providerId: 'provider_rejected',
+          rejectionReasons: ['model_hash_mismatch']
+        })
+      ])
+    });
+  });
+
   it('tries the peer network before offering an optional local fallback', async () => {
     window.history.replaceState({}, '', '/?room=network-first-room&relay=local');
     const discoveryError = new Error('No peer providers advertised in room "network-first-room"');
@@ -552,8 +617,14 @@ describe('Poolday home ask controls', () => {
     expect(readParticipationPreferences().mode).toBe('request');
 
     document.querySelector('[data-pool-run-recovery-action="confirm_local_provider"]').click();
-    await vi.waitFor(() => expect(peerRoomMocks.createPeerProviderNode).toHaveBeenCalledTimes(1));
-    await vi.waitFor(() => expect(peerRoomMocks.runPeerJob).toHaveBeenCalledTimes(2));
+    await vi.waitFor(
+      () => expect(peerRoomMocks.createPeerProviderNode).toHaveBeenCalledTimes(1),
+      { timeout: 5000 }
+    );
+    await vi.waitFor(
+      () => expect(peerRoomMocks.runPeerJob).toHaveBeenCalledTimes(2),
+      { timeout: 5000 }
+    );
     await vi.waitFor(() => {
       expect(document.getElementById('pool-home-run-result-stream').textContent).toBe('network answer');
     });
@@ -567,10 +638,43 @@ describe('Poolday home ask controls', () => {
       prompt: 'Preserve this exact prompt'
     });
     expect(document.getElementById('pool-home-ask-prompt').value).toBe('Preserve this exact prompt');
+    expect(JSON.parse(window.sessionStorage.getItem(POOL_CONTRIBUTION_RESUME_STORAGE_KEY))).toMatchObject({
+      active: true,
+      modelId: LAUNCH_MODEL.modelId,
+      roomId: 'local-fallback-room',
+      relay: 'local'
+    });
+
+    await resetProviderContributionControllerForTests({ preserveResumeIntent: true });
+    peerRoomMocks.createPeerProviderNode.mockClear();
+    document.body.innerHTML = `
+      <main id="app">
+        <section data-pool-provider>
+          <p data-pool-provider-status>Idle</p>
+          <select id="pool-provider-model">
+            <option value="${LAUNCH_MODEL.modelId}" selected>${LAUNCH_MODEL.label}</option>
+          </select>
+          <button id="pool-home-provider-toggle" type="button">Start sharing</button>
+          <div id="pool-provider-health"></div>
+          <div id="pool-provider-result-summary"></div>
+          <p id="pool-provider-result"></p>
+          <pre id="pool-provider-result-raw"></pre>
+        </section>
+      </main>
+    `;
+    bindProviderControls();
+    await vi.waitFor(
+      () => expect(peerRoomMocks.createPeerProviderNode).toHaveBeenCalledTimes(1),
+      { timeout: 5000 }
+    );
+    expect(document.querySelector('[data-pool-provider-status]').textContent).toBe('Available');
 
     document.getElementById('pool-home-provider-toggle').click();
-    await vi.waitFor(() => expect(stopProvider).toHaveBeenCalledTimes(1));
-  });
+    await vi.waitFor(() => expect(stopProvider).toHaveBeenCalledTimes(2));
+    await vi.waitFor(() => {
+      expect(window.sessionStorage.getItem(POOL_CONTRIBUTION_RESUME_STORAGE_KEY)).toBeNull();
+    });
+  }, 15000);
 
   it('clears the seeded prompt when the user starts editing', () => {
     document.body.innerHTML = `

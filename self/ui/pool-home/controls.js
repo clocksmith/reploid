@@ -66,6 +66,40 @@ const errorString = (error) => String(error?.message || error?.error || error ||
 const POOL_ROOM_ACTIVITY_POLL_MS = 5000;
 const POOL_ADAPTER_DISCOVERY_TIMEOUT_MS = 5000;
 const POOL_SEQUENCE_PUBLIC_CONSENT_KEY = 'reploid.pool.sequence-public-consent.v1';
+export const POOL_CONTRIBUTION_RESUME_STORAGE_KEY = 'reploid.pool.contribution-resume.v1';
+
+const readContributionResumeIntent = () => {
+  try {
+    const parsed = JSON.parse(window.sessionStorage?.getItem(POOL_CONTRIBUTION_RESUME_STORAGE_KEY) || 'null');
+    return parsed?.active === true ? parsed : null;
+  } catch {
+    return null;
+  }
+};
+
+const writeContributionResumeIntent = ({ modelId } = {}) => {
+  const intent = {
+    active: true,
+    modelId: modelId || LAUNCH_MODEL.modelId,
+    roomId: getPeerRoomId(),
+    relay: getPeerRelayMode(),
+    updatedAt: new Date().toISOString()
+  };
+  try {
+    window.sessionStorage?.setItem(POOL_CONTRIBUTION_RESUME_STORAGE_KEY, JSON.stringify(intent));
+  } catch {
+    // The current provider session remains active when persistence is unavailable.
+  }
+  return intent;
+};
+
+const clearContributionResumeIntent = () => {
+  try {
+    window.sessionStorage?.removeItem(POOL_CONTRIBUTION_RESUME_STORAGE_KEY);
+  } catch {
+    // The current provider session still stops when persistence is unavailable.
+  }
+};
 
 const readSequencePublicConsent = () => {
   try {
@@ -143,10 +177,25 @@ const formatDeviceLabel = (deviceInfo = {}) => {
 
 const getPageIdentityNamespace = (globalKey) => {
   if (window[globalKey]) return window[globalKey];
+  const storageKey = `reploid.pool.page-identity.${globalKey}`;
+  try {
+    const stored = window.sessionStorage?.getItem(storageKey);
+    if (stored) {
+      window[globalKey] = stored;
+      return stored;
+    }
+  } catch {
+    // A memory-only identity namespace remains valid for the current page.
+  }
   const id = window.crypto?.randomUUID
     ? window.crypto.randomUUID()
     : `${Date.now().toString(36)}_${Math.random().toString(36).slice(2)}`;
   window[globalKey] = `page_${id}`;
+  try {
+    window.sessionStorage?.setItem(storageKey, window[globalKey]);
+  } catch {
+    // A memory-only identity namespace remains valid for the current page.
+  }
   return window[globalKey];
 };
 
@@ -1113,7 +1162,8 @@ const bindPeerRunSurface = ({
       addReceiptLedgerRow({
         ...(result.receiptRecord || result),
         requesterAcceptance: result.requesterAcceptance || null,
-        agreement: result.agreement || null
+        agreement: result.agreement || null,
+        routeDecision: result.plan?.routeDecision || result.routeDecision || null
       }, result.receiptHash);
       void refreshServerRoomActivity();
       setResult(resultId, result, { stream: true });
@@ -1362,7 +1412,7 @@ export const bindHomeAskControls = () => {
     form.dataset.poolDockMeasurementBound = 'true';
     const syncDockHeight = () => {
       const height = Math.ceil(form.getBoundingClientRect().height);
-      if (height > 0) stage.style.setProperty('--pool-home-ask-dock-height', `${height}px`);
+      if (height > 0) stage.style.setProperty('--pool-param-ask-dock-height', `${height}px`);
     };
     syncDockHeight();
     if (typeof ResizeObserver === 'function') {
@@ -1428,6 +1478,8 @@ const createProviderContributionController = () => {
   let currentModel = null;
   let requestedModelId = null;
   let workerStartPromise = null;
+  let restoreAttempted = false;
+  let visibilityHandler = null;
   let controls = {
     workerToggleButton: null,
     modelInput: null,
@@ -1797,6 +1849,7 @@ const createProviderContributionController = () => {
     return {
       identity: providerIdentityState,
       capabilityProfile,
+      runtime: runtime.getRuntimeInfo?.() || loaded.runtime || null,
       transport: 'webrtc_peer_room',
       ...result
     };
@@ -1838,6 +1891,7 @@ const createProviderContributionController = () => {
         }
         workerStarting = false;
         workerRunning = true;
+        writeContributionResumeIntent({ modelId: currentModel?.modelId || getSelectedModelId() });
         setProviderStatus('Available');
         updateProviderHealth({ queue: 'listening' });
         setContributionState({ state: 'idle', optedIn: true, lastError: null });
@@ -1863,6 +1917,7 @@ const createProviderContributionController = () => {
         await stopPeerProvider().catch(() => null);
         workerStarting = false;
         workerRunning = false;
+        clearContributionResumeIntent();
         setProviderStatus('Idle');
         updateProviderHealth({ queue: 'stopped', model: 'load_failed' });
         setContributionState({
@@ -1906,6 +1961,7 @@ const createProviderContributionController = () => {
     }));
     workerStarting = false;
     workerRunning = false;
+    clearContributionResumeIntent();
     setProviderStatus('Idle');
     updateProviderHealth({ queue: 'stopped' });
     setContributionState({ state: 'inactive', optedIn: false, lastError: null });
@@ -1914,6 +1970,23 @@ const createProviderContributionController = () => {
   };
 
   let preferenceApplyPromise = Promise.resolve();
+
+  const restorePersistedContribution = async () => {
+    if (restoreAttempted || workerRunning || workerStarting) return null;
+    restoreAttempted = true;
+    const intent = readContributionResumeIntent();
+    const participation = readParticipationPreferences();
+    if (!intent || !canContributeWith(participation)) return null;
+    if (intent.roomId !== getPeerRoomId() || intent.relay !== getPeerRelayMode()) return null;
+    const model = getEnabledPoolModelContract(intent.modelId);
+    if (!model) {
+      clearContributionResumeIntent();
+      return null;
+    }
+    requestedModelId = model.modelId;
+    if (controls.modelInput) controls.modelInput.value = model.modelId;
+    return startWorker();
+  };
 
   return {
     attachControls(nextControls = {}) {
@@ -1931,6 +2004,15 @@ const createProviderContributionController = () => {
         });
       }
       syncProviderPanel();
+      if (!visibilityHandler && typeof document?.addEventListener === 'function') {
+        visibilityHandler = () => {
+          if (document.visibilityState !== 'visible') return;
+          restoreAttempted = false;
+          void restorePersistedContribution();
+        };
+        document.addEventListener('visibilitychange', visibilityHandler);
+      }
+      void restorePersistedContribution();
     },
     async startForModel(modelId) {
       const model = getEnabledPoolModelContract(modelId);
@@ -1976,6 +2058,18 @@ const createProviderContributionController = () => {
         await stopWorker();
         await startWorker();
       }
+    },
+    async dispose({ preserveResumeIntent = true } = {}) {
+      lifecycleGeneration += 1;
+      if (visibilityHandler) {
+        document.removeEventListener('visibilitychange', visibilityHandler);
+        visibilityHandler = null;
+      }
+      await stopPeerProvider().catch(() => null);
+      workerStarting = false;
+      workerRunning = false;
+      workerStartPromise = null;
+      if (!preserveResumeIntent) clearContributionResumeIntent();
     }
   };
 };
@@ -1987,6 +2081,14 @@ const getProviderContributionController = () => {
     providerContributionController = createProviderContributionController();
   }
   return providerContributionController;
+};
+
+export const resetProviderContributionControllerForTests = async ({
+  preserveResumeIntent = false
+} = {}) => {
+  const current = providerContributionController;
+  providerContributionController = null;
+  if (current?.dispose) await current.dispose({ preserveResumeIntent });
 };
 
 const syncProviderWorkloadCapability = (modelSelect) => {

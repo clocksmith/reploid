@@ -3,6 +3,8 @@ import { describe, expect, it } from 'vitest';
 
 import {
   DEFAULT_DOPPLER_MODEL_ID,
+  DOPPLER_BROWSER_RELEASE_REF,
+  DOPPLER_BROWSER_RUNTIME_VERSION,
   DOPPLER_PACKAGE_NAME,
   DOPPLER_PACKAGE_VERSION,
   DOPPLER_KERNEL_BASE_URL,
@@ -22,9 +24,11 @@ describe('local Doppler model contract', () => {
   it('exposes Qwen as the only local Doppler option for now', () => {
     expect(DOPPLER_PACKAGE_NAME).toBe('doppler-gpu');
     expect(DOPPLER_PACKAGE_VERSION).toBe('0.4.15');
-    expect(DOPPLER_MODULE_URL).toBe('https://cdn.jsdelivr.net/npm/doppler-gpu@0.4.15/src/index.js');
-    expect(DOPPLER_KERNEL_BASE_URL).toBe('https://cdn.jsdelivr.net/npm/doppler-gpu@0.4.15/src/gpu/kernels');
-    expect(DOPPLER_TOOLING_URL).toBe('https://cdn.jsdelivr.net/npm/doppler-gpu@0.4.15/src/tooling-exports.browser.js');
+    expect(DOPPLER_BROWSER_RUNTIME_VERSION).toBe('0.4.16');
+    expect(DOPPLER_BROWSER_RELEASE_REF).toBe('v0.4.16');
+    expect(DOPPLER_MODULE_URL).toBe('https://cdn.jsdelivr.net/gh/clocksmith/doppler@v0.4.16/src/index.js');
+    expect(DOPPLER_KERNEL_BASE_URL).toBe('https://cdn.jsdelivr.net/gh/clocksmith/doppler@v0.4.16/src/gpu/kernels');
+    expect(DOPPLER_TOOLING_URL).toBe('https://cdn.jsdelivr.net/gh/clocksmith/doppler@v0.4.16/src/tooling-exports.browser.js');
     expect(DEFAULT_DOPPLER_MODEL_ID).toBe('qwen-3-5-2b-q4k-ehaf16');
     expect(LOCAL_DOPPLER_MODELS.map((model) => model.id)).toEqual([
       DEFAULT_DOPPLER_MODEL_ID
@@ -44,7 +48,7 @@ describe('local Doppler model contract', () => {
   it('resolves only declared local Doppler model ids', () => {
     expect(getLocalDopplerModel(DEFAULT_DOPPLER_MODEL_ID)).toMatchObject({
       id: DEFAULT_DOPPLER_MODEL_ID,
-      packageVersion: '0.4.15'
+      packageVersion: '0.4.16'
     });
     expect(getDefaultLocalDopplerModel()?.id).toBe(DEFAULT_DOPPLER_MODEL_ID);
     expect(getLocalDopplerModel('smollm2-360m')).toBeNull();
@@ -59,7 +63,7 @@ describe('local Doppler model contract', () => {
       provider: 'doppler',
       hostType: 'browser-local',
       packageName: 'doppler-gpu',
-      packageVersion: '0.4.15'
+      packageVersion: '0.4.16'
     });
     expect(buildDefaultLocalDopplerModelConfig()).toMatchObject({
       id: DEFAULT_DOPPLER_MODEL_ID

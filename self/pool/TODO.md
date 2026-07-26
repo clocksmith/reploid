@@ -11,8 +11,8 @@ The current Cloud Run and Firestore path is transitional. The target Reploid con
 ## Current Local Checks
 
 - [x] `npm run verify:pool -- --allow-placeholders` passes locally.
-- [x] Unit suite passes: 1,480 passed and 25 skipped.
-- [x] Integration suite passes: 358 passed and 9 skipped.
+- [x] Unit suite passes: 1,511 passed and 25 skipped.
+- [x] Integration suite passes: 359 passed and 9 skipped.
 - [x] `npm run verify:pool:release -- --url https://reploid.web.app --channel=chrome` passes production readiness, all public routes, synthetic peer flow, actual Doppler WebGPU inference, receipt agreement, requester signature verification, and signed points/reputation event verification.
 - [x] `npm audit` and the production-image `npm ci --omit=dev --include=optional` audit report zero vulnerabilities.
 - [x] No literal `TODO`, `FIXME`, `TBD`, or `XXX` markers existed in pool files before this document.
@@ -62,19 +62,19 @@ The current Cloud Run and Firestore path is transitional. The target Reploid con
 
 - [x] Publish and pin launch model artifacts under the selected model's configured `artifactPolicy.baseUrl`, with `REPLOID_POOL_MODEL_BASE_URL` as an override for alternate artifact roots.
 - [x] Add strict artifact manifest preflight for CORS fetch, manifest JSON, manifest hash, model id, and model hash.
-- [ ] Verify tokenizer, shard hashes, range or resume behavior, and OPFS cache reuse against the published artifact host.
+- [x] Verify tokenizer and shard identities, independent HTTP range requests, and cold-to-warm OPFS cache reuse against the published artifact host.
 - [x] Make strict-preflight artifact failures legible in `/compute`: missing manifest, hash mismatch, CORS denial, and unsupported browser runtime.
-- [ ] Keep model bytes out of Firebase Hosting and Cloud Run.
+- [x] Keep model bytes out of Firebase Hosting and Cloud Run; the production verifier rejects bundled weight formats and requires external content-addressed HTTPS artifact roots.
 
 ---
 
 ## Doppler Evidence Contract
 
-- [x] Publish `doppler-gpu@0.4.15` and confirm its pinned jsDelivr browser entry loads without import-map or bundler assumptions.
+- [x] Keep `doppler-gpu@0.4.15` as the npm tooling dependency and pin the immutable Doppler browser runtime to GitHub release `v0.4.16`; confirm its jsDelivr entry loads without import-map or bundler assumptions.
 - [x] Consume the narrow public Doppler evidence export for token ids, transcript hashes, generation config, runtime profile hash, and backend identity.
 - [x] Keep Reploid from deep-importing Doppler internals.
 - [x] Show a visible comparison receipt for Doppler output fields versus Reploid receipt fields.
-- [ ] Remove token-level evidence warning only after the configured public Doppler evidence export exists and tests assert it.
+- [x] Use the configured public `generateWithEvidence` export without a token-level warning and assert the full evidence comparison; retain the warning only for unsupported third-party handles.
 
 ---
 
@@ -85,9 +85,10 @@ The current Cloud Run and Firestore path is transitional. The target Reploid con
 - [x] Surface provider health states: WebGPU unavailable, model loading, artifact failure, storage quota, queue state, last receipt, trust tier, and reputation.
 - [x] Test multiple same-origin browser-room providers on the same launch model and runtime profile through a ring quorum policy.
 - [x] Add browser smoke coverage that opens provider and requester pages, injects a deterministic browser runtime, and proves visible peer receipt flow.
-- [ ] Test multiple real browser tabs on the published launch model artifacts and runtime profile through a ring quorum policy.
+- [x] Test multiple real browser tabs on the published launch model artifacts and runtime profile through a ring quorum policy.
 - [x] Add provider hardening for duplicate peer sessions, provider busy rejection, stopped nodes, and completed session cleanup.
-- [ ] Add provider recovery behavior for tab sleep, refresh, expired hosted assignment, and reveal miss.
+- [x] Restore an opted-in peer provider after refresh or tab visibility recovery with the same role identity and warm OPFS model.
+- [ ] Recover hosted diagnostic assignments after expiration or a reveal miss.
 
 ---
 
@@ -95,7 +96,7 @@ The current Cloud Run and Firestore path is transitional. The target Reploid con
 
 - [x] Make `/ask` create a signed peer intent, discover multiple provider adverts for ring policies, send prompts over DataChannel, receive receipts, form quorum, countersign acceptance locally, and gossip signed ledger events to providers.
 - [x] Make `/ask` state the exact trust tier and receipt status in user language without forbidden claims.
-- [ ] Capture reject reasons and expose them in receipt history.
+- [x] Capture route and rejection decisions and expose them in receipt history.
 - [x] Show requester-visible spend, agreement threshold, verifier decision, model identity, runtime identity, output hash, token hash status, and provider signature.
 
 ---
@@ -106,7 +107,7 @@ The current Cloud Run and Firestore path is transitional. The target Reploid con
 - [ ] Verify direct Firestore access is denied outside declared server-mediated flows.
 - [x] Exercise peer-room relay metadata-only limits, payload caps, TTLs, peer filtering, and rejection of prompt/output/receipt/model payloads.
 - [ ] Exercise hosted signaling metadata-only limits, stale peer cleanup, and production rate limits against deployed Firebase/Cloud Run.
-- [ ] Enforce quota or rate limits for job submissions, provider heartbeats, signaling offers, and receipt submissions.
+- [x] Enforce a Firestore-transaction-backed per-client rate limit across hosted pool routes, including job, heartbeat, signaling, and receipt endpoints.
 - [ ] Add production evidence for Firestore rules, Cloud Run auth handling, and hosted route rewrites.
 
 ---
@@ -151,4 +152,4 @@ The current Cloud Run and Firestore path is transitional. The target Reploid con
 
 ---
 
-*Last updated: July 24, 2026*
+*Last updated: July 26, 2026*

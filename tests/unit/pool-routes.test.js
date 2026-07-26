@@ -272,6 +272,53 @@ describe('pool coordinator routes', () => {
     expect(jobs.body.error).toBe('Firebase auth token required');
   });
 
+  it('binds hosted provider mutations to the authenticated provider role', async () => {
+    store.kind = 'memory';
+    router = createPoolRouter({
+      store,
+      requireAuth: true,
+      verifyAuthToken: async () => ({ uid: 'alice' })
+    });
+
+    const response = await dispatchJson(router, '/providers/register', {
+      method: 'POST',
+      headers: { authorization: 'Bearer valid-alice-token' },
+      body: {
+        providerId: 'provider_bob',
+        publicKey: 'public-key',
+        models: [launchModel()],
+        availability: { acceptedPolicies: ['fastest_receipt'] }
+      }
+    });
+
+    expect(response.status).toBe(403);
+    expect(response.body).toMatchObject({
+      error: 'authenticated identity does not match requested pool role',
+      expectedRole: 'provider',
+      requestedRoleId: 'provider_bob'
+    });
+  });
+
+  it('rate limits repeated requests from the same client identity', async () => {
+    store.kind = 'memory';
+    router = createPoolRouter({ store });
+    const headers = { 'x-reploid-client-id': 'client_rate_limit_test' };
+
+    const responses = [];
+    for (let index = 0; index < 31; index += 1) {
+      responses.push(await dispatchJson(router, '/status', { headers }));
+    }
+
+    expect(responses.slice(0, 30).every((response) => response.status === 200)).toBe(true);
+    expect(responses[30]).toMatchObject({
+      status: 429,
+      body: {
+        error: 'pool rate limit exceeded',
+        retryable: true
+      }
+    });
+  });
+
   it('rejects providers that do not advertise the exact launch model identity', async () => {
     store.kind = 'memory';
     const response = await dispatchJson(router, '/providers/register', {

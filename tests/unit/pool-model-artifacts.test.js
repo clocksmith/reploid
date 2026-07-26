@@ -4,7 +4,8 @@ import {
   buildModelArtifactUrls,
   validateDopplerExecutionManifestShape,
   validateModelArtifactManifestShape,
-  verifyModelArtifactManifest
+  verifyModelArtifactManifest,
+  verifyModelArtifactRangeDelivery
 } from '../../self/pool/model-artifacts.js';
 import { hashJson, sha256Hex } from '../../self/pool/inference-receipt.js';
 
@@ -268,5 +269,103 @@ describe('pool model artifact helpers', () => {
       },
       retryable: true
     });
+  });
+
+  it('proves model shard delivery supports independent byte-range resume reads', async () => {
+    const manifest = {
+      modelId: 'model-range',
+      modelHash: 'sha256:model-range',
+      tokenizer: {
+        file: 'tokenizer.json',
+        hash: 'sha256:tokenizer'
+      },
+      shards: [{
+        filename: 'shard_00000.bin',
+        hash: 'sha256:shard'
+      }]
+    };
+    const manifestHash = await hashJson(manifest);
+    const requests = [];
+    const result = await verifyModelArtifactRangeDelivery({
+      model: {
+        modelId: 'model-range',
+        modelHash: 'sha256:model-range',
+        manifestHash
+      },
+      baseUrl: 'https://models.example',
+      fetchImpl: async (url, options = {}) => {
+        requests.push({ url, options });
+        if (url.endsWith('manifest.json')) {
+          return {
+            ok: true,
+            status: 200,
+            text: async () => JSON.stringify(manifest)
+          };
+        }
+        const range = options.headers?.Range;
+        const offset = range === 'bytes=0-0' ? 0 : 1;
+        return {
+          ok: true,
+          status: 206,
+          headers: {
+            get: (name) => name.toLowerCase() === 'content-range' ? `bytes ${offset}-${offset}/1024` : null
+          },
+          arrayBuffer: async () => new Uint8Array([offset + 1]).buffer
+        };
+      }
+    });
+
+    expect(result).toMatchObject({
+      ok: true,
+      resumable: true,
+      shard: {
+        path: 'shard_00000.bin'
+      },
+      ranges: [
+        { start: 0, end: 0, bytes: 1 },
+        { start: 1, end: 1, bytes: 1 }
+      ]
+    });
+    expect(requests.slice(1).map((request) => request.options.headers.Range)).toEqual([
+      'bytes=0-0',
+      'bytes=1-1'
+    ]);
+  });
+
+  it('fails closed when shard hosting ignores Range requests', async () => {
+    const manifest = {
+      modelId: 'model-no-range',
+      modelHash: 'sha256:model-no-range',
+      tokenizer: {
+        file: 'tokenizer.json',
+        hash: 'sha256:tokenizer'
+      },
+      shards: [{
+        filename: 'shard_00000.bin',
+        hash: 'sha256:shard'
+      }]
+    };
+    await expect(verifyModelArtifactRangeDelivery({
+      model: {
+        modelId: manifest.modelId,
+        modelHash: manifest.modelHash,
+        manifestHash: await hashJson(manifest)
+      },
+      baseUrl: 'https://models.example',
+      fetchImpl: async (url) => (
+        url.endsWith('manifest.json')
+          ? {
+              ok: true,
+              status: 200,
+              text: async () => JSON.stringify(manifest)
+            }
+          : {
+              ok: true,
+              status: 200,
+              headers: { get: () => null },
+              arrayBuffer: async () => new Uint8Array([1]).buffer
+            }
+      )
+    })).rejects.toThrow('model shard range request must return 206');
   });
 });
