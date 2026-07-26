@@ -109,6 +109,30 @@ const readSnapshot = async (page, resultId) => page.evaluate((id) => {
 
 const stringifySnapshot = (snapshot) => JSON.stringify(snapshot, null, 2);
 
+const waitForActualResult = async ({
+  page,
+  resultId,
+  isComplete,
+  timeoutMs = ACTUAL_INFERENCE_TIMEOUT_MS
+}) => {
+  const deadline = Date.now() + timeoutMs;
+  let snapshot = await readSnapshot(page, resultId);
+  while (Date.now() < deadline) {
+    const parsed = snapshot.parsed || {};
+    const terminalError = parsed.status === 'error'
+      || parsed.error
+      || /^Error:/m.test(snapshot.raw)
+      || /could not complete|failed:/i.test(snapshot.stream);
+    if (terminalError) {
+      throw new Error(snapshot.stream || snapshot.raw || parsed.reason || parsed.error);
+    }
+    if (isComplete(parsed)) return parsed;
+    await page.waitForTimeout(1000);
+    snapshot = await readSnapshot(page, resultId);
+  }
+  throw new Error(`Timed out waiting for ${resultId}.\n${stringifySnapshot(snapshot)}`);
+};
+
 const waitForProviderListening = async (page) => {
   const toggle = page.locator('#pool-provider-worker-toggle');
   await expect(toggle).toBeVisible();
@@ -155,27 +179,26 @@ const runActualPrompt = async (page, prompt, policyId = 'fastest_receipt') => {
   await page.locator('#pool-run-prompt').fill(prompt);
   await page.locator('#pool-run-submit').click();
   try {
-    await expect.poll(async () => {
-      const snapshot = await readSnapshot(page, 'pool-run-result');
-      const parsed = snapshot.parsed || {};
-      if (parsed.status === 'error' || parsed.error) return `error:${parsed.reason || parsed.error}`;
-      if (parsed.transport === 'webrtc_peer_room' && parsed.receiptHash && typeof parsed.outputText === 'string') return 'complete';
-      return parsed.status || parsed.transport || snapshot.stream || 'waiting';
-    }, {
-      timeout: ACTUAL_INFERENCE_TIMEOUT_MS,
-      intervals: [1000, 2500, 5000]
-    }).toBe('complete');
+    return await waitForActualResult({
+      page,
+      resultId: 'pool-run-result',
+      isComplete: (parsed) => (
+        parsed.transport === 'webrtc_peer_room'
+        && parsed.receiptHash
+        && typeof parsed.outputText === 'string'
+      )
+    });
   } catch (error) {
     const snapshot = await readSnapshot(page, 'pool-run-result');
     throw new Error(`Actual P2P inference did not complete.\n${stringifySnapshot(snapshot)}\n${error.message}`);
   }
-  return (await readSnapshot(page, 'pool-run-result')).parsed;
 };
 
 test.describe('Run and Contribute actual browser inference', () => {
   test.skip(process.env.REPLOID_E2E_ACTUAL_INFERENCE !== '1', 'Set REPLOID_E2E_ACTUAL_INFERENCE=1 to run the real Doppler browser workload.');
 
   test('loads Doppler, generates in a provider tab, and returns a signed peer receipt', async ({ browser, baseURL }, testInfo) => {
+    test.setTimeout(900000);
     const roomId = roomIdFor(testInfo);
     const nodes = await createInferenceNodeContexts(browser);
     try {
@@ -224,6 +247,7 @@ test.describe('Run and Contribute actual browser inference', () => {
   });
 
   test('runs ESM-2 sequence inference between separate provider and requester nodes', async ({ browser, baseURL }, testInfo) => {
+    test.setTimeout(600000);
     const roomId = roomIdFor(testInfo);
     const nodes = await createInferenceNodeContexts(browser);
     try {
@@ -241,19 +265,14 @@ test.describe('Run and Contribute actual browser inference', () => {
       await requesterPage.locator('#pool-home-run-submit').click();
 
       try {
-        await expect.poll(async () => {
-          const snapshot = await readSnapshot(requesterPage, 'pool-home-run-result');
-          const parsed = snapshot.parsed || {};
-          if (/^Error:/m.test(snapshot.raw) || /could not complete|failed:/i.test(snapshot.stream)) {
-            return `error:${snapshot.stream || snapshot.raw}`;
-          }
-          if (parsed.status === 'error' || parsed.error) return `error:${parsed.reason || parsed.error}`;
-          if (parsed.transport === 'webrtc_peer_room' && parsed.sequenceResultHash) return 'complete';
-          return parsed.status || parsed.transport || snapshot.stream || 'waiting';
-        }, {
-          timeout: ACTUAL_INFERENCE_TIMEOUT_MS,
-          intervals: [1000, 2500, 5000]
-        }).toBe('complete');
+        await waitForActualResult({
+          page: requesterPage,
+          resultId: 'pool-home-run-result',
+          isComplete: (parsed) => (
+            parsed.transport === 'webrtc_peer_room'
+            && Boolean(parsed.sequenceResultHash)
+          )
+        });
       } catch (error) {
         const providerSnapshot = await readSnapshot(providerPage, 'pool-provider-result');
         const requesterSnapshot = await readSnapshot(requesterPage, 'pool-home-run-result');
