@@ -612,6 +612,55 @@ describe('pool peer room', () => {
     }
   });
 
+  it('uses a compatible known provider advert without repeating discovery', async () => {
+    installFakeBroadcastChannel();
+    const requesterClient = await createRoomRequesterClient('requester_known_provider');
+    const providerClient = await createRoomProviderClient({
+      providerId: 'provider_already_ready'
+    });
+    const {
+      requesterTransportFactory,
+      providerTransportFactory
+    } = createFakeTransportFactories();
+    const providerNode = createPeerProviderNode({
+      roomId: 'known-provider-room',
+      providerClient,
+      providerTransportFactory,
+      advertIntervalMs: 100000
+    });
+    const started = await providerNode.start({
+      models: [runtimeModel()],
+      availability: {
+        acceptedPolicies: ['fastest_receipt']
+      }
+    });
+    const activity = [];
+
+    try {
+      const result = await runPeerJob({
+        roomId: 'known-provider-room',
+        requesterClient,
+        requesterTransportFactory,
+        prompt: 'start immediately',
+        policyId: 'fastest_receipt',
+        modelRequirements: runtimeModel(),
+        knownProviderAdverts: [started.advert],
+        discoveryWindowMs: 1,
+        receiptWindowMs: 1000,
+        onActivity: (event) => activity.push(event)
+      });
+
+      expect(result.outputText).toBe('room:start immediately');
+      expect(result.assignment.providerId).toBe('provider_already_ready');
+      expect(activity).toContainEqual(expect.objectContaining({
+        status: 'peer_provider_discovery_started',
+        knownProviders: 1
+      }));
+    } finally {
+      await providerNode.stop();
+    }
+  });
+
   it('ignores providers advertising in a different room', async () => {
     installFakeBroadcastChannel();
     const requesterClient = await createRoomRequesterClient('requester_wrong_room');

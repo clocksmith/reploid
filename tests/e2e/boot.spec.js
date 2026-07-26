@@ -114,11 +114,12 @@ test.describe('Route Entry Points', () => {
     expect(anchoredLayout.askBottomGap).toBeLessThanOrEqual(48);
     await expect(page.locator('#pool-home-run-submit')).toHaveText('↑');
 
-    const requestDrawer = page.getByRole('navigation', { name: 'Request controls' });
-    const networkDrawer = page.getByRole('complementary', { name: 'Network controls' });
-    await expect(requestDrawer.locator('[data-pool-drawer-section="request-participation"]')).toHaveCount(0);
-    await expect(networkDrawer.locator('[data-pool-drawer-section="network-connection"]')).toHaveCount(1);
-    await expect(networkDrawer.locator('[data-pool-participation-surface="network-connection"]')).toHaveCount(1);
+    const controlDrawer = page.getByRole('navigation', { name: 'Reploid controls' });
+    await expect(controlDrawer.locator('[data-pool-drawer-section]')).toHaveCount(5);
+    await expect(controlDrawer.locator('[data-pool-drawer-section="request-participation"]')).toHaveCount(0);
+    await expect(controlDrawer.locator('[data-pool-drawer-section="network-connection"]')).toHaveCount(1);
+    await expect(controlDrawer.locator('[data-pool-participation-surface="network-connection"]')).toHaveCount(1);
+    await expect(page.getByRole('complementary', { name: 'Network controls' })).toHaveCount(0);
 
     await page.reload();
     await page.waitForSelector('.pool-home', { timeout: 20000 });
@@ -132,17 +133,18 @@ test.describe('Route Entry Points', () => {
     await page.waitForSelector('.pool-home', { timeout: 20000 });
 
     await expect(page).toHaveTitle(/^Reploid$/i);
-    const requestDrawer = page.getByRole('navigation', { name: 'Request controls' });
-    const networkDrawer = page.getByRole('complementary', { name: 'Network controls' });
-    await expect(requestDrawer).toBeVisible();
-    await expect(networkDrawer).toBeVisible();
+    const controlDrawer = page.getByRole('navigation', { name: 'Reploid controls' });
+    await expect(controlDrawer).toBeVisible();
+    await expect(page.getByRole('complementary', { name: 'Network controls' })).toHaveCount(0);
     await expect(page.locator('.pool-topbar')).toHaveCount(0);
     await expect(page.locator('.pool-home')).toHaveAttribute('data-pool-route-id', 'home');
-    await expect(requestDrawer.locator('.pool-nav-toggle')).toHaveAttribute('aria-expanded', 'false');
-    await expect(networkDrawer.locator('.pool-nav-toggle')).toHaveAttribute('aria-expanded', 'false');
-    await expect(requestDrawer.locator('.pool-nav-mark-seven-top')).toHaveText('7');
-    await expect(requestDrawer.locator('.pool-nav-mark-seven-bottom')).toHaveText('7');
-    await expect(requestDrawer.locator('.pool-nav-menu')).toBeVisible();
+    await expect(controlDrawer.locator('.pool-nav-toggle')).toHaveAttribute('aria-expanded', 'false');
+    await expect(controlDrawer.locator('.pool-nav-mark-seven-top')).toHaveText('7');
+    await expect(controlDrawer.locator('.pool-nav-mark-seven-bottom')).toHaveText('7');
+    await expect(controlDrawer.locator('.pool-nav-menu')).toBeVisible();
+    await expect(controlDrawer.locator('[data-pool-drawer-section]')).toHaveCount(5);
+    await expect(controlDrawer.getByRole('link', { name: 'Zero', exact: true })).toHaveCount(1);
+    await expect(controlDrawer.getByRole('link', { name: 'X', exact: true })).toHaveCount(1);
     await expect(page.locator('#pool-home-ask-form')).toBeVisible();
     await expect(page.locator('#pool-home-ask-prompt')).toHaveValue('');
     const askPlaceholder = await page.locator('#pool-home-ask-prompt').getAttribute('placeholder');
@@ -172,7 +174,7 @@ test.describe('Route Entry Points', () => {
     await expect(page.locator('.pool-home-stage')).toHaveAttribute('data-pool-lane', 'text');
     await expect(page.locator('[data-pool-home-adapter-picker]')).toBeHidden();
     await expect(page.locator('[data-pool-sequence-options]')).toBeHidden();
-    const collapsedToggle = await requestDrawer.locator('.pool-nav-toggle').evaluate((toggle) => {
+    const collapsedToggle = await controlDrawer.locator('.pool-nav-toggle').evaluate((toggle) => {
       const top = toggle.querySelector('.pool-nav-mark-seven-top');
       const bottom = toggle.querySelector('.pool-nav-mark-seven-bottom');
       return {
@@ -183,11 +185,11 @@ test.describe('Route Entry Points', () => {
         bottomTransform: getComputedStyle(bottom).transform
       };
     });
-    await requestDrawer.locator('.pool-nav-toggle').click();
-    await expect(requestDrawer).toHaveClass(/is-open/);
-    await expect(requestDrawer.locator('[data-pool-drawer-section="request-task"]')).toHaveCount(0);
-    await expect(requestDrawer.locator('[data-pool-drawer-section="request-model"]')).toBeVisible();
-    await expect(requestDrawer.locator('[data-pool-drawer-section="request-checks"]')).toBeVisible();
+    await controlDrawer.locator('.pool-nav-toggle').click();
+    await expect(controlDrawer).toHaveClass(/is-open/);
+    await expect(controlDrawer.locator('[data-pool-drawer-section="request-task"]')).toHaveCount(0);
+    await expect(controlDrawer.locator('[data-pool-drawer-section="request-model"]')).toBeVisible();
+    await expect(controlDrawer.locator('[data-pool-drawer-section="request-checks"]')).toBeVisible();
     await expect(page.getByRole('link', { name: /^Live Network/ })).toHaveCount(0);
     await expect(page.locator('.pool-home-toolbar')).toBeVisible();
     await expect(page.locator('.pool-simulation-shell')).toBeVisible();
@@ -221,16 +223,16 @@ test.describe('Route Entry Points', () => {
     expect(stack.askBottomGap).toBeGreaterThan(0);
     expect(stack.askBottomGap).toBeLessThanOrEqual(48);
     expect(stack.askInsideCanvas).toBe(true);
-    await expect(requestDrawer.locator('.pool-nav-toggle')).toHaveAttribute('aria-expanded', 'true');
-    await expect.poll(() => requestDrawer.locator('.pool-nav-toggle').evaluate((toggle) => toggle.getBoundingClientRect().width))
+    await expect(controlDrawer.locator('.pool-nav-toggle')).toHaveAttribute('aria-expanded', 'true');
+    await expect.poll(() => controlDrawer.locator('.pool-nav-toggle').evaluate((toggle) => toggle.getBoundingClientRect().width))
       .toBeGreaterThan(collapsedToggle.width + 80);
-    await expect.poll(() => requestDrawer.locator('.pool-nav-toggle').evaluate((toggle) => {
+    await expect.poll(() => controlDrawer.locator('.pool-nav-toggle').evaluate((toggle) => {
       const top = toggle.querySelector('.pool-nav-mark-seven-top');
       const bottom = toggle.querySelector('.pool-nav-mark-seven-bottom');
       return Number.parseFloat(getComputedStyle(top).fontSize)
         > Number.parseFloat(getComputedStyle(bottom).fontSize);
     })).toBe(true);
-    const expandedToggle = await requestDrawer.locator('.pool-nav-toggle').evaluate((toggle) => {
+    const expandedToggle = await controlDrawer.locator('.pool-nav-toggle').evaluate((toggle) => {
       const top = toggle.querySelector('.pool-nav-mark-seven-top');
       const bottom = toggle.querySelector('.pool-nav-mark-seven-bottom');
       return {
@@ -244,10 +246,14 @@ test.describe('Route Entry Points', () => {
     expect(expandedToggle.topSize).toBeGreaterThan(expandedToggle.bottomSize);
     expect(expandedToggle.topTransform).not.toBe(collapsedToggle.topTransform);
     expect(expandedToggle.bottomTransform).not.toBe(collapsedToggle.bottomTransform);
-    await expect(requestDrawer.locator('[data-pool-drawer-section="request-task"]')).toHaveCount(0);
-    await expect(requestDrawer.locator('[data-pool-drawer-section="request-model"]')).toBeVisible();
-    await expect(requestDrawer.locator('[data-pool-drawer-section="request-checks"]')).toBeVisible();
-    await expect(requestDrawer.getByRole('link', { name: 'Zero', exact: true })).toHaveAttribute('href', '/zero');
+    await expect(controlDrawer.locator('[data-pool-drawer-section="request-task"]')).toHaveCount(0);
+    await expect(controlDrawer.locator('[data-pool-drawer-section="request-model"]')).toBeVisible();
+    await expect(controlDrawer.locator('[data-pool-drawer-section="request-checks"]')).toBeVisible();
+    await expect(controlDrawer.locator('[data-pool-drawer-section="network-connection"]')).toBeVisible();
+    await expect(controlDrawer.locator('[data-pool-drawer-section="network-device"]')).toBeVisible();
+    await expect(controlDrawer.locator('[data-pool-drawer-section="network-activity"]')).toBeVisible();
+    await expect(controlDrawer.getByRole('link', { name: 'Zero', exact: true })).toHaveAttribute('href', '/zero');
+    await expect(controlDrawer.getByRole('link', { name: 'X', exact: true })).toHaveAttribute('href', '/x');
     await expect(page.getByLabel('Reploid overview')).toContainText('REPLOID');
     await expect(page.getByLabel('Reploid overview')).toContainText('Run browser models together.');
     await expect(page.locator('[data-pool-flow-label]')).toHaveCount(6);

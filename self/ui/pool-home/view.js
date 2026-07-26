@@ -1264,8 +1264,7 @@ const SUBSTRATE_OUTLINKS = Object.freeze({
   })
 });
 
-// The only out-of-app links. Rendered identically in every rail's bottom area so
-// both rails collapse to a single icon+label and expand to icon+label+description.
+// The only out-of-app links. Both stay in the single navigation authority.
 const renderRailOutlink = (id) => {
   const link = SUBSTRATE_OUTLINKS[id];
   const tooltip = escapeHtml(link.tooltip);
@@ -1279,14 +1278,14 @@ const REQUEST_TASK_COPY = Object.freeze({
 });
 
 const renderHomeRequestDrawer = (open) => `
-  <nav class="pool-nav-rail pool-control-drawer${open ? ' is-open' : ''}" aria-label="Request controls">
+  <nav class="pool-nav-rail pool-control-drawer${open ? ' is-open' : ''}" aria-label="Reploid controls">
     <div class="pool-nav-top">
-      <button class="pool-nav-toggle" type="button" aria-label="${open ? 'Close request controls' : 'Open request controls'}" title="${open ? 'Close request controls' : 'Open request controls'}" data-pool-nav-tooltip="${open ? 'Close request controls' : 'Open request controls'}" aria-controls="pool-nav-menu" aria-expanded="${String(open)}">
+      <button class="pool-nav-toggle" type="button" aria-label="${open ? 'Close Reploid controls' : 'Open Reploid controls'}" title="${open ? 'Close Reploid controls' : 'Open Reploid controls'}" data-pool-nav-tooltip="${open ? 'Close Reploid controls' : 'Open Reploid controls'}" aria-controls="pool-nav-menu" aria-expanded="${String(open)}">
         <span class="pool-nav-mark" aria-hidden="true">
           <span class="pool-nav-mark-seven pool-nav-mark-seven-top">7</span>
           <span class="pool-nav-mark-seven pool-nav-mark-seven-bottom">7</span>
         </span>
-        <span class="pool-nav-brand-copy" aria-hidden="true"><strong>Request</strong></span>
+        <span class="pool-nav-brand-copy" aria-hidden="true"><strong>Reploid</strong><small>Peer inference</small></span>
       </button>
       <div class="pool-nav-menu pool-drawer-stack" id="pool-nav-menu">
         ${renderDrawerSection('request-model', 'Model', '⛝', `
@@ -1307,10 +1306,12 @@ const renderHomeRequestDrawer = (open) => `
           </label>
           <p class="type-caption pool-drawer-help">Choose speed, sampling, or agreement before the request is signed.</p>
         `, { summary: renderPolicyProductLabel(getPolicy(FASTEST_RECEIPT_POLICY_ID)) })}
+        ${renderDashboardNetworkSections()}
       </div>
     </div>
     <div class="pool-nav-bottom">
       ${renderRailOutlink('zero')}
+      ${renderRailOutlink('x')}
     </div>
   </nav>
 `;
@@ -1705,33 +1706,23 @@ const renderDashboardCapability = () => `
   </section>
 `;
 
-const renderDashboardNetworkInspector = () => {
+const renderDashboardNetworkSections = () => {
   const preferences = readParticipationPreferences();
   return `
-  <aside class="pool-nav-rail pool-control-drawer pool-dashboard-inspector" aria-label="Network controls" data-pool-dashboard-inspector>
-    <div class="pool-nav-top">
-      <button class="pool-nav-toggle pool-inspector-toggle" type="button" aria-label="Open network controls" title="Open network controls" data-pool-nav-tooltip="Open network controls" aria-controls="pool-inspector-panels" aria-expanded="false" data-pool-inspector-toggle>
-        <span class="pool-nav-mark" aria-hidden="true">
-          <span class="pool-nav-mark-seven pool-nav-mark-seven-top">7</span>
-          <span class="pool-nav-mark-seven pool-nav-mark-seven-bottom">7</span>
-        </span>
-        <span class="pool-nav-brand-copy" aria-hidden="true"><strong>Network</strong></span>
-      </button>
-      <div class="pool-nav-menu pool-drawer-stack" id="pool-inspector-panels">
-        ${renderDrawerSection('network-connection', 'Connection', '☍', `
-          <section class="pool-control-stack" aria-label="Network connection">
-            ${renderParticipationControl({ surface: 'network-connection' })}
-            <div class="pool-drawer-value">
-              <span>Live network</span>
-              <b data-pool-connection-activity>${getPeerRelayMode() === 'local' ? 'Local tab · live discovery' : 'Checking live room'}</b>
-            </div>
-            ${renderRoomContext({ compact: true })}
-          </section>
-        `, {
-          summary: `${getPeerRoomId()} · ${preferences.mode === PARTICIPATION_MODES.both ? 'Both' : preferences.mode === PARTICIPATION_MODES.contribute ? 'Contribute' : 'Request'}`
-        })}
-        ${renderDrawerSection('network-device', 'This device', '⚙', `
-          <section class="pool-control-stack" data-pool-provider aria-label="Share this browser">
+    ${renderDrawerSection('network-connection', 'Connection', '☍', `
+      <section class="pool-control-stack" aria-label="Network connection">
+        ${renderParticipationControl({ surface: 'network-connection' })}
+        <div class="pool-drawer-value">
+          <span>Live network</span>
+          <b data-pool-connection-activity>${getPeerRelayMode() === 'local' ? 'Local tab · live discovery' : 'Checking live room'}</b>
+        </div>
+        ${renderRoomContext({ compact: true })}
+      </section>
+    `, {
+      summary: `${getPeerRoomId()} · ${preferences.mode === PARTICIPATION_MODES.both ? 'Both' : preferences.mode === PARTICIPATION_MODES.contribute ? 'Contribute' : 'Request'}`
+    })}
+    ${renderDrawerSection('network-device', 'This device', '⚙', `
+      <section class="pool-control-stack" data-pool-provider aria-label="Share this browser">
           <div class="pool-device-primary">
             <p class="pool-provider-status" data-pool-provider-status>Idle</p>
             <button class="btn btn-primary pool-home-share-toggle" id="pool-home-provider-toggle" type="button" aria-pressed="false">Start sharing</button>
@@ -1744,19 +1735,13 @@ const renderDashboardNetworkInspector = () => {
           ${renderDashboardCapability()}
           <div id="pool-provider-health" class="pool-ledger-shell" aria-live="polite">${renderProviderHealth()}</div>
           ${renderSharingLimits(preferences)}
-          </section>
-        `, { open: true, summary: 'Not sharing' })}
-        ${renderDrawerSection('network-activity', 'Activity', '☷', `
-          <section data-pool-dashboard-activity aria-label="Activity">
-          <div id="pool-record-ledger" aria-live="polite" data-record-presentation="compact">${renderDashboardActivity()}</div>
-          </section>
-        `, { summary: 'No recent work' })}
-      </div>
-    </div>
-    <div class="pool-nav-bottom">
-      ${renderRailOutlink('x')}
-    </div>
-  </aside>
+      </section>
+    `, { open: true, summary: 'Not sharing' })}
+    ${renderDrawerSection('network-activity', 'Activity', '☷', `
+      <section data-pool-dashboard-activity aria-label="Activity">
+        <div id="pool-record-ledger" aria-live="polite" data-record-presentation="compact">${renderDashboardActivity()}</div>
+      </section>
+    `, { summary: 'No recent work' })}
   `;
 };
 
@@ -1840,7 +1825,6 @@ const renderHomeSimulation = ({ dashboardView = 'home' } = {}) => {
           </button>
         </div>
       </form>
-      ${renderDashboardNetworkInspector()}
     </section>
   `;
 };

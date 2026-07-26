@@ -564,13 +564,22 @@ describe('Poolday home ask controls', () => {
         return { ok: true };
       })
     };
+    const localProviderAdvert = {
+      messageHash: 'local-provider-advert',
+      fromPeerId: 'provider_local_fallback',
+      body: {
+        providerId: 'provider_local_fallback',
+        models: [{ ...LAUNCH_MODEL }]
+      }
+    };
     const stopProvider = vi.fn(async () => ({ status: 'peer_provider_stopped' }));
     peerRoomMocks.createPeerProviderNode.mockImplementation(({ onActivity }) => ({
       start: vi.fn(async () => {
         onActivity?.({ status: 'provider_advertised' });
         return {
           status: 'peer_provider_listening',
-          roomId: 'local-fallback-room'
+          roomId: 'local-fallback-room',
+          advert: localProviderAdvert
         };
       }),
       stop: stopProvider
@@ -635,7 +644,8 @@ describe('Poolday home ask controls', () => {
     );
     expect(peerRoomMocks.runPeerJob.mock.calls[1][0]).toMatchObject({
       roomId: 'local-fallback-room',
-      prompt: 'Preserve this exact prompt'
+      prompt: 'Preserve this exact prompt',
+      knownProviderAdverts: [localProviderAdvert]
     });
     expect(document.getElementById('pool-home-ask-prompt').value).toBe('Preserve this exact prompt');
     expect(JSON.parse(window.sessionStorage.getItem(POOL_CONTRIBUTION_RESUME_STORAGE_KEY))).toMatchObject({

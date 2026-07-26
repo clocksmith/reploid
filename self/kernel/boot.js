@@ -15,7 +15,7 @@ import {
   DOPPLER_MODULE_URL
 } from '../config/doppler-local-models.js';
 
-const BUILD_VERSION = '2026071201';
+const BUILD_VERSION = '2026072601';
 const IMPORTMAP_ID = 'reploid-doppler-importmap';
 const BASE_ID = 'reploid-base';
 const CORE_STYLE_ID = 'reploid-core-style';

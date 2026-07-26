@@ -1103,7 +1103,7 @@ body[data-pool-route-id='home'] #app {
   transition-delay: 0s;
 }
 
-.pool-dashboard-inspector .pool-room-context {
+.pool-control-drawer .pool-drawer-section-body .pool-room-context {
   max-height: none;
   margin: 0;
   padding: var(--pool-px-9);
@@ -2959,113 +2959,19 @@ body[data-pool-route-id='home'] #app {
   text-transform: uppercase;
 }
 
-.pool-dashboard-inspector {
-  position: fixed;
-  z-index: 10;
-  top: 0;
-  right: 0;
-  left: auto;
-  bottom: 0;
-  display: flex;
-  height: 100vh;
-  height: 100dvh;
-  flex-direction: column;
-  width: var(--pool-metric-nav-rail);
-  max-width: calc(100vw - var(--pool-px-16));
-  padding: var(--pool-px-8) var(--pool-px-5);
-  border-right: 0;
-  border-left: var(--pool-px-1) solid color-mix(in srgb, var(--pool-surface-ink), transparent 88%);
-  background: color-mix(in srgb, var(--pool-surface-page), white 38%);
-  box-shadow: calc(var(--pool-px-5) * -1) 0 var(--pool-px-20) var(--pool-tint-black-3);
-  color: var(--pool-surface-ink);
-  overflow: visible;
-  box-sizing: border-box;
-  backdrop-filter: blur(var(--pool-px-14));
-  transition:
-    width var(--pool-motion-nav-duration) var(--pool-motion-nav-easing),
-    padding var(--pool-motion-nav-duration) var(--pool-motion-nav-easing),
-    border-color var(--pool-motion-time-240) ease,
-    background var(--pool-motion-time-240) ease,
-    box-shadow var(--pool-motion-time-240) ease;
-}
-
-.pool-dashboard-inspector.is-open {
-  width: var(--pool-metric-nav-panel);
-  padding: var(--pool-px-8);
-  border-left-color: color-mix(in srgb, var(--pool-hue-cyan), var(--pool-surface-ink) 78%);
-  background: var(--pool-tint-paper-96);
-  box-shadow:
-    calc(var(--pool-px-14) * -1) 0 var(--pool-px-38) var(--pool-tint-black-9),
-    calc(var(--pool-px-5) * -1) 0 var(--pool-px-18) var(--pool-tint-teal-7);
-  overflow-x: hidden;
-  overflow-y: auto;
-  backdrop-filter: blur(var(--pool-px-20));
-}
-
-/* Right rail: brand copy sits to the left of the right-anchored 7,7 mark */
-.pool-dashboard-inspector .pool-nav-brand-copy {
-  right: var(--pool-px-50);
-  left: var(--pool-px-12);
-  align-items: flex-start;
-  text-align: left;
-  transform: translate(8px, -50%);
-}
-
-.pool-dashboard-inspector.is-open .pool-nav-brand-copy {
-  transform: translate(0, -50%);
-}
-
-/* Mirrored 7,7 mark and chevron on the right rail toggle */
-.pool-dashboard-inspector .pool-nav-mark {
-  transform: translateX(-50%) scaleX(-1);
-}
-
-.pool-dashboard-inspector .pool-nav-toggle::after {
-  right: auto;
-  left: var(--pool-px-8);
-  transform: rotate(225deg);
-}
-
-.pool-dashboard-inspector.is-open .pool-nav-mark {
-  left: auto;
-  right: var(--pool-px-8);
-  transform: scaleX(-1);
-}
-
-.pool-dashboard-inspector.is-open .pool-nav-mark-seven-top {
-  font-size: var(--pool-px-26);
-  transform: translate(8px, 8px) scale(1.06);
-}
-
-.pool-dashboard-inspector.is-open .pool-nav-mark-seven-bottom {
-  font-size: var(--pool-px-16);
-  opacity: 0.78;
-  transform: translate(1px, 0) scale(0.94);
-}
-
-.pool-dashboard-inspector.is-open .pool-nav-toggle::after {
-  left: var(--pool-px-10);
-  opacity: 0.58;
-  transform: rotate(45deg);
-}
-
-.pool-inspector-toggle {
-  flex: 0 0 auto;
-}
-
-.pool-dashboard-inspector .pool-drawer-section-body .pool-capability-card {
+.pool-control-drawer .pool-drawer-section-body .pool-capability-card {
   padding: var(--pool-px-9);
   border: 0;
   background: transparent;
 }
 
-.pool-dashboard-inspector h2,
-.pool-dashboard-inspector h3,
-.pool-dashboard-inspector p {
+.pool-control-drawer h2,
+.pool-control-drawer h3,
+.pool-control-drawer p {
   margin: 0;
 }
 
-.pool-dashboard-inspector h2 {
+.pool-control-drawer h2 {
   font-size: clamp(var(--pool-px-r1-05), 1.6vw, var(--pool-px-r1-35));
   line-height: 1.2;
 }
@@ -3183,16 +3089,16 @@ body[data-pool-route-id='home'] #app {
 
 
 
-.pool-dashboard-inspector .pool-participation {
+.pool-control-drawer .pool-participation {
   display: grid;
   width: 100%;
 }
 
-.pool-dashboard-inspector .pool-device-identity {
+.pool-control-drawer .pool-device-identity {
   max-width: 100%;
 }
 
-.pool-dashboard-inspector .pool-sharing-limit-grid {
+.pool-control-drawer .pool-sharing-limit-grid {
   grid-template-columns: 1fr;
 }
 
