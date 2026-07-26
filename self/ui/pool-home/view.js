@@ -116,6 +116,20 @@ export const getPeerReceiptWindowMs = () => {
   return 60000;
 };
 
+export const getPeerSessionAcceptWindowMs = () => {
+  const explicit = Number(window.REPLOID_POOL_SESSION_ACCEPT_WINDOW_MS || 0);
+  if (Number.isFinite(explicit) && explicit > 0) return explicit;
+  if (getPeerRelayMode() === 'server') return 15000;
+  return 5000;
+};
+
+export const getPeerTransportConnectWindowMs = () => {
+  const explicit = Number(window.REPLOID_POOL_TRANSPORT_CONNECT_WINDOW_MS || 0);
+  if (Number.isFinite(explicit) && explicit > 0) return explicit;
+  if (getPeerRelayMode() === 'server') return 20000;
+  return 5000;
+};
+
 export const getPeerGenerationConfig = () => {
   const override = window.REPLOID_POOL_GENERATION_CONFIG && typeof window.REPLOID_POOL_GENERATION_CONFIG === 'object'
     ? window.REPLOID_POOL_GENERATION_CONFIG
