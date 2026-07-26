@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-07-25T18:15:15.739Z",
+  "generatedAt": "2026-07-26T21:56:54.228Z",
   "features": [
     {
       "id": "0x000003",
@@ -3675,6 +3675,20 @@
       ],
       "files": [
         "ui/pool-home/record-persistence.js"
+      ]
+    },
+    {
+      "id": "0x000169",
+      "name": "core-doppler-runtime-service",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x000169",
+          "path": "blueprints/0x000169-core-doppler-runtime-service.md"
+        }
+      ],
+      "files": [
+        "core/doppler-runtime-service.js"
       ]
     }
   ]

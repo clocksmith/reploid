@@ -27,6 +27,7 @@ import {
   adapterRequirementFromPack,
   verifyAdapterPack
 } from './adapter-pack.js';
+import { DopplerRuntimeService } from '../core/doppler-runtime-service.js';
 
 const DOPPLER_IMPORTS = Object.freeze([
   '@simulatte/doppler',
@@ -508,9 +509,8 @@ const loadDopplerModule = async () => {
 
 export function resetDopplerModuleCacheForTests() {
   dopplerModulePromise = null;
+  DopplerRuntimeService.resetModuleForTests();
 }
-
-const pickHandle = (result) => result?.handle || result?.model || result?.session || result?.pipeline || result;
 
 const getDopplerLoadInput = async (model = {}, module = null) => {
   const registryReference = model.dopplerLoadRef || model.registryId || model.loadRef || null;
@@ -781,7 +781,9 @@ const resetSessionGenerationState = async (session) => {
 };
 
 export function createDopplerRuntime({ modelSession = null, model = null, runtime = null } = {}) {
+  const serviceScope = 'pool:provider';
   let session = modelSession;
+  let sessionOwnedByService = false;
   let modelInfo = model;
   let runtimeInfo = normalizeRuntimeInfo(runtime, modelSession);
   let loadState = session ? 'loaded' : 'empty';
@@ -789,7 +791,12 @@ export function createDopplerRuntime({ modelSession = null, model = null, runtim
   let generationQueue = Promise.resolve();
   let activeAdapter = null;
 
-  const attachHandle = async (handle, nextModel = null, nextRuntime = null) => {
+  const attachHandle = async (
+    handle,
+    nextModel = null,
+    nextRuntime = null,
+    { ownedByService = false } = {}
+  ) => {
     const nextModelInfo = nextModel || modelInfo || {};
     const method = publicMethodNameForWorkload(handle, nextModelInfo);
     if (!method) {
@@ -797,6 +804,7 @@ export function createDopplerRuntime({ modelSession = null, model = null, runtim
     }
     await assertHandleMatchesDescriptor(handle, nextModelInfo);
     session = handle;
+    sessionOwnedByService = ownedByService;
     activeAdapter = null;
     modelInfo = await normalizeModelInfo(nextModelInfo, handle);
     runtimeInfo = {
@@ -830,25 +838,20 @@ export function createDopplerRuntime({ modelSession = null, model = null, runtim
         }
         await assertModelRuntimeCapabilities(nextModel);
         const module = await loadDopplerModule();
-        const loader = module?.load || module?.loadModel || module?.doppler?.load || module?.default?.load;
-        if (typeof loader !== 'function') {
-          loadState = 'failed';
-          return {
-            ok: false,
-            reason: 'Public Doppler module does not expose load or loadModel'
-          };
-        }
         const loadOptions = getConfiguredLoadOptions(nextModel);
-        const result = await loader(await getDopplerLoadInput(nextModel, module), loadOptions);
-        const handle = pickHandle(result);
+        const handle = await DopplerRuntimeService.open({
+          scope: serviceScope,
+          source: await getDopplerLoadInput(nextModel, module),
+          options: loadOptions,
+          module
+        });
         return await attachHandle(handle, nextModel, {
           ...runtimeInfo,
           version: module?.DOPPLER_VERSION
             || module?.default?.DOPPLER_VERSION
-            || result?.runtimeVersion
             || runtimeInfo?.version
             || null
-        });
+        }, { ownedByService: true });
       } catch (error) {
         loadState = 'failed';
         return {
@@ -1074,6 +1077,25 @@ export function createDopplerRuntime({ modelSession = null, model = null, runtim
       const task = generationQueue.then(runSequence, runSequence);
       generationQueue = task.catch(() => null);
       return task;
+    },
+    async close() {
+      await generationQueue.catch(() => null);
+      const activeSession = session;
+      const ownedByService = sessionOwnedByService;
+      session = null;
+      sessionOwnedByService = false;
+      activeAdapter = null;
+      modelInfo = null;
+      deviceInfo = null;
+      runtimeInfo = normalizeRuntimeInfo(runtime, null);
+      loadState = 'empty';
+      if (ownedByService) {
+        await DopplerRuntimeService.close(serviceScope);
+      } else {
+        await activeSession?.close?.();
+        await activeSession?.unload?.();
+      }
+      return { ok: true, status: 'closed' };
     }
   };
   globalThis.REPLOID_POOL_ATTACH_DOPPLER_HANDLE = (handle, nextModel = null, nextRuntime = null) => (

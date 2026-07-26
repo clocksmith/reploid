@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-07-25T18:15:15.920Z",
+  "generatedAt": "2026-07-26T21:56:54.651Z",
   "files": [
     "audit.html",
     "blueprint-index.json",
@@ -354,6 +354,7 @@
     "blueprints/0x000166-core-agent-loop-policies.md",
     "blueprints/0x000167-ui-pool-home-network-projection.md",
     "blueprints/0x000168-ui-pool-home-record-persistence.md",
+    "blueprints/0x000169-core-doppler-runtime-service.md",
     "blueprints/README.md",
     "blueprints/blueprint-index-contract.md",
     "blueprints/implementation-status.md",
@@ -425,6 +426,7 @@
     "core/async-utils.js",
     "core/context-manager.js",
     "core/cycle-artifacts.js",
+    "core/doppler-runtime-service.js",
     "core/functiongemma-orchestrator.js",
     "core/import-rewrite.js",
     "core/llm-client.js",

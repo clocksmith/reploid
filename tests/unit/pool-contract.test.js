@@ -32,6 +32,10 @@ import {
   buildRuntimeProfile
 } from '../../self/pool/runtime-profile.js';
 import { verifyReceipt as verifyBrowserReceipt } from '../../self/pool/sdk.js';
+import {
+  DOPPLER_BROWSER_RUNTIME_VERSION,
+  DOPPLER_RELEASE_COMMIT
+} from '../../self/config/doppler-local-models.js';
 
 const makeJob = (overrides = {}) => ({
   requesterId: 'requester_test',
@@ -156,7 +160,7 @@ describe('pool launch contract', () => {
       capabilityFallbacks: [
         expect.objectContaining({
           whenMissingWebGpuFeatures: ['shader-f16'],
-          runtime: 'doppler-gpu@0.4.16',
+          runtime: `doppler-gpu@${DOPPLER_BROWSER_RUNTIME_VERSION}`,
           transform: 'widenToF32Activations',
           prefillProjectionKernel: 'fused_matmul_q4_batched_multicol_shared.wgsl',
           kvDtype: 'f32',
@@ -357,8 +361,8 @@ describe('pool launch contract', () => {
 
   it('keeps browser runtime deployment config aligned across server and browser', () => {
     expect(BROWSER_BROWSER_RUNTIME_CONFIG).toEqual(SERVER_BROWSER_RUNTIME_CONFIG);
-    expect(BROWSER_BROWSER_RUNTIME_CONFIG.dopplerModuleUrl).toBe('https://cdn.jsdelivr.net/gh/clocksmith/doppler@v0.4.16/src/index.js');
-    expect(BROWSER_BROWSER_RUNTIME_CONFIG.dopplerKernelBaseUrl).toBe('https://cdn.jsdelivr.net/gh/clocksmith/doppler@v0.4.16/src/gpu/kernels');
+    expect(BROWSER_BROWSER_RUNTIME_CONFIG.dopplerModuleUrl).toBe(`https://cdn.jsdelivr.net/gh/clocksmith/doppler@${DOPPLER_RELEASE_COMMIT}/src/index.js`);
+    expect(BROWSER_BROWSER_RUNTIME_CONFIG.dopplerKernelBaseUrl).toBe(`https://cdn.jsdelivr.net/gh/clocksmith/doppler@${DOPPLER_RELEASE_COMMIT}/src/gpu/kernels`);
     expect(BROWSER_BROWSER_RUNTIME_CONFIG.modelBaseUrl).toBe('https://huggingface.co/clocksmith/rdrr/resolve/80d7716270b6371d541de979eff3370edaf34e13/models');
 
     for (const env of [deploymentEnv.runtimeEnv, deploymentEnv.browserEnv]) {

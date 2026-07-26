@@ -8,7 +8,9 @@ import {
   DOPPLER_KERNEL_BASE_URL,
   DOPPLER_MODULE_URL,
   DOPPLER_PACKAGE_NAME,
-  DOPPLER_PACKAGE_VERSION
+  DOPPLER_PACKAGE_SPEC,
+  DOPPLER_PACKAGE_VERSION,
+  DOPPLER_RELEASE_COMMIT
 } from '../self/config/doppler-local-models.js';
 
 const RUNTIME_ENV_KEYS = Object.freeze({
@@ -64,15 +66,21 @@ export function synchronizeRuntimeConfig({
   moduleUrl = DOPPLER_MODULE_URL,
   kernelBaseUrl = DOPPLER_KERNEL_BASE_URL
 }) {
-  const manifestVersion = packageManifest.dependencies?.[DOPPLER_PACKAGE_NAME];
-  if (manifestVersion !== packageVersion) {
-    throw new Error(`package.json must pin ${DOPPLER_PACKAGE_NAME} exactly to ${packageVersion}`);
+  const manifestSpec = packageManifest.dependencies?.[DOPPLER_PACKAGE_NAME];
+  if (manifestSpec !== DOPPLER_PACKAGE_SPEC) {
+    throw new Error(`package.json must pin ${DOPPLER_PACKAGE_NAME} exactly to ${DOPPLER_PACKAGE_SPEC}`);
   }
 
-  const lockRootVersion = packageLock.packages?.['']?.dependencies?.[DOPPLER_PACKAGE_NAME];
+  const lockRootSpec = packageLock.packages?.['']?.dependencies?.[DOPPLER_PACKAGE_NAME];
   const lockedPackage = packageLock.packages?.[`node_modules/${DOPPLER_PACKAGE_NAME}`];
-  if (lockRootVersion !== packageVersion || lockedPackage?.version !== packageVersion) {
-    throw new Error(`package-lock.json must pin ${DOPPLER_PACKAGE_NAME} exactly to ${packageVersion}`);
+  if (lockRootSpec !== DOPPLER_PACKAGE_SPEC || lockedPackage?.version !== packageVersion) {
+    throw new Error(`package-lock.json must pin ${DOPPLER_PACKAGE_NAME} exactly to ${DOPPLER_PACKAGE_SPEC}`);
+  }
+  if (lockedPackage.resolved !== DOPPLER_PACKAGE_SPEC) {
+    throw new Error(
+      `package-lock.json must resolve ${DOPPLER_PACKAGE_NAME}@${packageVersion} `
+      + `to ${DOPPLER_PACKAGE_SPEC}`
+    );
   }
   if (!String(lockedPackage.integrity || '').startsWith('sha512-')) {
     throw new Error(`package-lock.json must include sha512 integrity for ${DOPPLER_PACKAGE_NAME}@${packageVersion}`);

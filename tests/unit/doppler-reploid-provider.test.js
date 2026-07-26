@@ -216,7 +216,7 @@ describe('Reploid Doppler provider adapter', () => {
     setWebGpu(undefined);
     expect(() => createDopplerPublicProviderAdapter({}, {
       Errors: { ConfigError }
-    })).toThrow('Doppler public module does not expose load');
+    })).toThrow('Doppler public module does not expose dr.open');
 
     const base = createDopplerPublicProviderAdapter({
       load: vi.fn()

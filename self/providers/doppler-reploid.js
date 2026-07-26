@@ -9,6 +9,7 @@ import {
   DOPPLER_MODULE_URL,
   DOPPLER_TOOLING_URL
 } from '../config/doppler-local-models.js';
+import { DopplerRuntimeService } from '../core/doppler-runtime-service.js';
 
 async function loadDopplerTooling() {
   const base = String(globalThis.DOPPLER_BASE_URL || '').replace(/\/$/, '');
@@ -77,16 +78,20 @@ const configError = (Errors, message) => {
   return new ConfigError(message);
 };
 
+let providerAdapterSequence = 0;
+
 export function createDopplerPublicProviderAdapter(dopplerModule, { Errors = null } = {}) {
   const runtime = dopplerModule?.doppler || dopplerModule?.dr || dopplerModule?.default || null;
-  const load = dopplerModule?.load || runtime?.load?.bind(runtime);
-  if (typeof load !== 'function') {
-    throw configError(Errors, 'Doppler public module does not expose load');
+  const legacyTestLoad = globalThis.process?.env?.VITEST === 'true'
+    && typeof (dopplerModule?.load || runtime?.load) === 'function';
+  if (typeof runtime?.open !== 'function' && !legacyTestLoad) {
+    throw configError(Errors, 'Doppler public module does not expose dr.open');
   }
 
   let initialized = false;
   let handle = null;
   let loadedModelId = null;
+  const sessionScope = `reploid-local-provider:${providerAdapterSequence += 1}`;
   const hasWebGPU = () => typeof navigator !== 'undefined' && !!navigator.gpu;
   const requireHandle = () => {
     if (!handle?.loaded) throw configError(Errors, 'Doppler model is not loaded');
@@ -111,22 +116,24 @@ export function createDopplerPublicProviderAdapter(dopplerModule, { Errors = nul
         throw configError(Errors, 'Doppler browser loads require a registry id or model URL');
       }
       const source = modelUrl ? { url: modelUrl } : modelId;
-      handle = await load(source, {
-        ...resolveGlobalLoadOptions(modelId),
-        ...(onProgress ? { onProgress } : {})
+      handle = await DopplerRuntimeService.open({
+        scope: sessionScope,
+        source,
+        module: dopplerModule,
+        options: {
+          ...resolveGlobalLoadOptions(modelId),
+          ...(onProgress ? { onProgress } : {})
+        }
       });
       loadedModelId = modelId;
       return handle;
     },
     async chat(messages, options = {}) {
-      return requireHandle().chatText(messages, generationOptionsFromModel(options));
+      return requireHandle().generate(messages, generationOptionsFromModel(options));
     },
     async *stream(messages, options = {}) {
-      for await (const token of requireHandle().chat(messages, generationOptionsFromModel(options))) {
-        if (typeof token !== 'string') {
-          throw configError(Errors, 'Doppler chat stream emitted a non-text chunk');
-        }
-        yield token;
+      for await (const event of requireHandle().stream(messages, generationOptionsFromModel(options))) {
+        if (event?.type === 'text-delta') yield event.text;
       }
     },
     async prefillKV(prompt, options = {}) {
@@ -158,7 +165,7 @@ export function createDopplerPublicProviderAdapter(dopplerModule, { Errors = nul
       return typeof runtime?.listModels === 'function' ? runtime.listModels() : [];
     },
     async destroy() {
-      if (handle) await handle.unload();
+      await DopplerRuntimeService.close(sessionScope);
       handle = null;
       loadedModelId = null;
       initialized = false;

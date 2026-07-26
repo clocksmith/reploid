@@ -1976,6 +1976,9 @@ const createProviderContributionController = () => {
       error: error.message,
       payload: error.payload || null
     }));
+    const runtimeClosed = await getRuntime().close?.().catch((error) => ({
+      error: error.message
+    }));
     workerStarting = false;
     workerRunning = false;
     providerReadyState = null;
@@ -1983,7 +1986,11 @@ const createProviderContributionController = () => {
     setProviderStatus('Idle');
     updateProviderHealth({ queue: 'stopped' });
     setContributionState({ state: 'inactive', optedIn: false, lastError: null });
-    setResult('pool-provider-result', { runner: 'stopped', peer: stopped });
+    setResult('pool-provider-result', {
+      runner: 'stopped',
+      peer: stopped,
+      runtime: runtimeClosed || null
+    });
     syncWorkerControls();
   };
 
