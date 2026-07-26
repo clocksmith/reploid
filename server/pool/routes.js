@@ -1001,7 +1001,10 @@ export function createPoolRouter({
         }
       },
       type: body.type,
-      createdAt: Number(body.relay?.createdAt || body.createdAt || now),
+      // Cursor ordering is server-owned. Client clocks can differ and concurrent
+      // relay requests can become visible out of order; the original timestamp
+      // remains in message.relay.createdAt for envelope evidence.
+      createdAt: now,
       expiresAt
     });
     return res.status(201).json({ message });

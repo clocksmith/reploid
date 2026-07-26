@@ -823,6 +823,7 @@ describe('pool signaling production guards', () => {
 
   it('relays peer-room rendezvous envelopes without accepting inference payloads', async () => {
     const roomId = 'peer_room_route_test';
+    const publishStartedAt = Date.now();
     const published = await dispatchJson(router, `/peer/rooms/${roomId}/messages`, {
       method: 'POST',
       body: {
@@ -852,6 +853,8 @@ describe('pool signaling production guards', () => {
       fromPeerId: 'provider_route',
       type: 'provider-advert'
     });
+    expect(published.body.message.createdAt).toBeGreaterThanOrEqual(publishStartedAt);
+    expect(published.body.message.message.relay.createdAt).toBe(1000);
 
     const listed = await dispatchJson(router, `/peer/rooms/${roomId}/messages?peerId=provider_route`);
     expect(listed.status).toBe(200);
