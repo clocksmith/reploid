@@ -1,5 +1,8 @@
 # TODO: Reploid Descriptor Peer Orchestration
 
+> [!CAUTION]
+> **Archived research, not the active Reploid plan.** This layer-pipelining proposal predates the shipped whole-job peer-room product and is not a release checklist. The canonical product contract and remaining work live in [`self/pool/pool-config.json`](./self/pool/pool-config.json) and [`self/pool/TODO.md`](./self/pool/TODO.md). Nothing below authorizes public claims that Reploid currently distributes individual model layers.
+
 > [!IMPORTANT]
 > **Primary Directive:** Browser-Native Distributed Inference
 > Establish a reliable, low-overhead coordination layer that distributes model layer execution across web browser peers running the Doppler WebGPU engine.

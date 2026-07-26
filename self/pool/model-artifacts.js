@@ -85,6 +85,12 @@ const readResponseBytes = async (response) => {
   return new TextEncoder().encode(await response.text());
 };
 
+const headerValue = (response, name) => {
+  if (typeof response?.headers?.get === 'function') return response.headers.get(name);
+  const headers = response?.headers || {};
+  return headers[name] || headers[name.toLowerCase()] || null;
+};
+
 const fetchOk = async (fetchImpl, url, label) => {
   let response = null;
   try {
@@ -343,11 +349,73 @@ export async function verifyModelArtifactPackage({
   };
 }
 
+export async function verifyModelArtifactRangeDelivery({
+  model,
+  baseUrl,
+  fetchImpl = globalThis.fetch,
+  manifestResult = null
+} = {}) {
+  if (typeof fetchImpl !== 'function') throw new Error('fetch is required for model artifact range verification');
+  const verifiedManifest = manifestResult || await verifyModelArtifactManifest({ model, baseUrl, fetchImpl });
+  const shape = validateModelArtifactManifestShape(verifiedManifest.manifest, model);
+  if (!shape.ok) {
+    const error = new Error(shape.reasons.join('; '));
+    error.reasons = shape.reasons;
+    throw error;
+  }
+  const shard = normalizeShardEntry(verifiedManifest.manifest.shards[0], 0);
+  const shardUrl = resolveArtifactChildUrl(verifiedManifest.urls.shards, shard.path);
+  const ranges = [];
+  for (const [start, end] of [[0, 0], [1, 1]]) {
+    const response = await fetchImpl(shardUrl, {
+      method: 'GET',
+      mode: 'cors',
+      cache: 'no-store',
+      headers: {
+        Range: `bytes=${start}-${end}`
+      }
+    });
+    if (response?.status !== 206) {
+      const error = new Error(`model shard range request must return 206, received ${response?.status || 'unknown'}`);
+      error.status = response?.status || null;
+      error.url = shardUrl;
+      throw error;
+    }
+    const contentRange = headerValue(response, 'content-range');
+    const expectedPrefix = `bytes ${start}-${end}/`;
+    if (!String(contentRange || '').toLowerCase().startsWith(expectedPrefix)) {
+      throw new Error(`model shard range response is missing ${expectedPrefix} Content-Range`);
+    }
+    const bytes = await readResponseBytes(response);
+    if (bytes.byteLength !== end - start + 1) {
+      throw new Error(`model shard range response returned ${bytes.byteLength} bytes instead of ${end - start + 1}`);
+    }
+    ranges.push({
+      start,
+      end,
+      contentRange,
+      bytes: bytes.byteLength
+    });
+  }
+  return {
+    ok: true,
+    shard: {
+      index: shard.index,
+      path: shard.path,
+      url: shardUrl,
+      declaredHash: normalizeSha256Hash(shard.hash)
+    },
+    ranges,
+    resumable: true
+  };
+}
+
 export default {
   resolveModelArtifactBaseUrl,
   buildModelArtifactUrls,
   verifyModelArtifactManifest,
   validateModelArtifactManifestShape,
   validateDopplerExecutionManifestShape,
-  verifyModelArtifactPackage
+  verifyModelArtifactPackage,
+  verifyModelArtifactRangeDelivery
 };

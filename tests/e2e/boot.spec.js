@@ -224,6 +224,12 @@ test.describe('Route Entry Points', () => {
     await expect(requestDrawer.locator('.pool-nav-toggle')).toHaveAttribute('aria-expanded', 'true');
     await expect.poll(() => requestDrawer.locator('.pool-nav-toggle').evaluate((toggle) => toggle.getBoundingClientRect().width))
       .toBeGreaterThan(collapsedToggle.width + 80);
+    await expect.poll(() => requestDrawer.locator('.pool-nav-toggle').evaluate((toggle) => {
+      const top = toggle.querySelector('.pool-nav-mark-seven-top');
+      const bottom = toggle.querySelector('.pool-nav-mark-seven-bottom');
+      return Number.parseFloat(getComputedStyle(top).fontSize)
+        > Number.parseFloat(getComputedStyle(bottom).fontSize);
+    })).toBe(true);
     const expandedToggle = await requestDrawer.locator('.pool-nav-toggle').evaluate((toggle) => {
       const top = toggle.querySelector('.pool-nav-mark-seven-top');
       const bottom = toggle.querySelector('.pool-nav-mark-seven-bottom');

@@ -205,9 +205,37 @@ export function createPoolStore() {
   const peerRoomMessages = new Map();
   const adapterPublications = new Map();
   const adapterCanaryPublications = new Map();
+  const rateLimits = new Map();
 
   return {
     kind: 'memory',
+    consumeRateLimit({
+      key,
+      maxRequests = 30,
+      bucketMs = 1000,
+      now = Date.now()
+    } = {}) {
+      const normalizedKey = String(key || 'unknown');
+      const bucketStart = Math.floor(Number(now) / bucketMs) * bucketMs;
+      const bucketKey = `${normalizedKey}:${bucketStart}`;
+      const previous = rateLimits.get(bucketKey) || {
+        count: 0,
+        resetAt: bucketStart + bucketMs
+      };
+      const count = previous.count + 1;
+      rateLimits.set(bucketKey, { count, resetAt: previous.resetAt });
+      if (rateLimits.size > 10000) {
+        for (const [candidateKey, candidate] of rateLimits) {
+          if (candidate.resetAt <= now) rateLimits.delete(candidateKey);
+        }
+      }
+      return {
+        allowed: count <= maxRequests,
+        count,
+        limit: maxRequests,
+        resetAt: previous.resetAt
+      };
+    },
     registerProvider(input = {}) {
       const providerId = input.providerId || makeId('provider');
       const sessionId = input.sessionId || makeId('session');

@@ -8,7 +8,8 @@ import { MODEL_CATALOG } from '../self/pool/model-contract.js';
 import {
   validateDopplerExecutionManifestShape,
   validateModelArtifactManifestShape,
-  verifyModelArtifactManifest
+  verifyModelArtifactManifest,
+  verifyModelArtifactRangeDelivery
 } from '../self/pool/model-artifacts.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -36,6 +37,18 @@ const fail = (reasons) => {
 
 const readJson = (filePath) => JSON.parse(fs.readFileSync(filePath, 'utf8'));
 const readText = (filePath) => fs.readFileSync(filePath, 'utf8');
+const findBundledModelBytes = (directory, relative = '') => {
+  const ignored = new Set(['.git', 'node_modules', 'test-results', 'playwright-report']);
+  const results = [];
+  for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
+    if (ignored.has(entry.name)) continue;
+    const childRelative = path.join(relative, entry.name);
+    const childPath = path.join(directory, entry.name);
+    if (entry.isDirectory()) results.push(...findBundledModelBytes(childPath, childRelative));
+    else if (/\.(?:bin|safetensors|gguf|onnx)$/i.test(entry.name)) results.push(childRelative);
+  }
+  return results;
+};
 
 const requiredRuntimeEnv = [
   'NODE_ENV',
@@ -87,6 +100,19 @@ const checkLocalFiles = () => {
   if (!configValidation.ok) reasons.push(...configValidation.reasons.map((reason) => `pool config: ${reason}`));
   if (POOL_CONFIG.claim !== 'receipt-backed, audit-backed, reputation-backed, policy-controlled browser inference') {
     reasons.push('pool config claim is not the approved trust language');
+  }
+  const bundledModelBytes = findBundledModelBytes(repoRoot);
+  if (bundledModelBytes.length > 0) {
+    reasons.push(`model bytes must stay outside Firebase Hosting and Cloud Run source: ${bundledModelBytes.join(', ')}`);
+  }
+  for (const model of MODEL_CATALOG.filter((entry) => entry.enabled !== false)) {
+    const artifactBaseUrl = String(model.artifactPolicy?.baseUrl || '').trim();
+    if (!/^https:\/\//.test(artifactBaseUrl)) {
+      reasons.push(`${model.modelId} artifactPolicy.baseUrl must use external HTTPS delivery`);
+    }
+    if (model.artifactPolicy?.transport !== 'offloaded_content_addressed') {
+      reasons.push(`${model.modelId} artifact transport must remain offloaded_content_addressed`);
+    }
   }
   if (!POOL_CONFIG.stateModes?.modes?.[POOL_CONFIG.stateModes?.activeModeId]?.appendOnlyCollections?.includes('pool_events')) {
     reasons.push('active state mode must declare pool_events append-only collection');
@@ -199,6 +225,7 @@ const checkDeploymentUrl = async (baseUrl) => {
     if (deployment.identity?.serverAuth?.required !== true) reasons.push('deployed server auth is not required');
     if (deployment.store?.commitReveal?.supported !== true) reasons.push('deployed commit-reveal store support is not true');
     if (deployment.store?.adapterDelivery?.configured !== true) reasons.push('deployed private adapter signer is not configured');
+    if (deployment.store?.rateLimit?.distributed !== true) reasons.push('deployed rate limiting is not Firestore-backed');
   } catch (error) {
     reasons.push(`deployment readiness fetch failed: ${error.message}`);
   }
@@ -208,7 +235,42 @@ const checkDeploymentUrl = async (baseUrl) => {
   } catch (error) {
     reasons.push(`deployment config fetch failed: ${error.message}`);
   }
+  try {
+    const clientId = `production-verifier-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    const responses = [];
+    for (let index = 0; index < 31; index += 1) {
+      responses.push(await fetch(`${normalized}/pool/status`, {
+        headers: { 'x-reploid-client-id': clientId }
+      }));
+    }
+    if (responses.slice(0, 30).some((response) => !response.ok)) {
+      reasons.push('deployed rate-limit probe rejected a request before the declared 30-request bucket');
+    }
+    if (responses[30]?.status !== 429) {
+      reasons.push('deployed rate-limit probe did not return 429 after the declared 30-request bucket');
+    }
+  } catch (error) {
+    reasons.push(`deployment rate-limit probe failed: ${error.message}`);
+  }
   return reasons;
+};
+
+const checkDirectFirestoreAccess = async () => {
+  if (!deploymentUrl) return [];
+  const envConfig = readJson(envPath);
+  const projectId = String(envConfig.projectId || '').trim();
+  if (!projectId) return ['production projectId is missing for direct Firestore denial proof'];
+  const probeId = `reploid_release_probe_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+  const url = `https://firestore.googleapis.com/v1/projects/${encodeURIComponent(projectId)}/databases/(default)/documents/pool_release_probes/${probeId}`;
+  try {
+    const response = await fetch(url, { signal: AbortSignal.timeout(30000) });
+    if (response.status !== 401 && response.status !== 403) {
+      return [`direct unauthenticated Firestore read was not denied (received ${response.status})`];
+    }
+    return [];
+  } catch (error) {
+    return [`direct Firestore denial probe failed: ${error.message}`];
+  }
 };
 
 const checkEnabledModelArtifacts = async () => {
@@ -234,6 +296,15 @@ const checkEnabledModelArtifacts = async () => {
           reasons.push(...executionShape.reasons.map((reason) => `${model.modelId} artifact: ${reason}`));
         }
       }
+      await verifyModelArtifactRangeDelivery({
+        model,
+        baseUrl: model.artifactPolicy?.baseUrl || POOL_CONFIG.browserRuntime?.modelBaseUrl,
+        manifestResult,
+        fetchImpl: (url, options = {}) => fetch(url, {
+          ...options,
+          signal: AbortSignal.timeout(30000)
+        })
+      });
     } catch (error) {
       reasons.push(`${model.modelId} artifact verification failed: ${error.message}`);
     }
@@ -244,6 +315,7 @@ const checkEnabledModelArtifacts = async () => {
 const reasons = [
   ...checkLocalFiles(),
   ...await checkDeploymentUrl(deploymentUrl),
+  ...await checkDirectFirestoreAccess(),
   ...await checkEnabledModelArtifacts()
 ];
 

@@ -365,7 +365,8 @@ const normalizeRuntimeInfo = (runtime, handle) => ({
   hasWebGPU: hasWebGpu(),
   publicApi: generateMethodName(handle),
   device: runtime?.device || handle?.deviceInfo || handle?.device || null,
-  profile: runtime?.profile || handle?.runtimeProfile || handle?.profile || null
+  profile: runtime?.profile || handle?.runtimeProfile || handle?.profile || null,
+  persistentCache: runtime?.persistentCache || handle?.persistentCache || null
 });
 
 const semanticVersionParts = (value) => {
@@ -511,9 +512,21 @@ export function resetDopplerModuleCacheForTests() {
 
 const pickHandle = (result) => result?.handle || result?.model || result?.session || result?.pipeline || result;
 
-const getDopplerLoadInput = (model = {}) => {
+const getDopplerLoadInput = async (model = {}, module = null) => {
+  const registryReference = model.dopplerLoadRef || model.registryId || model.loadRef || null;
+  const listModels = module?.doppler?.listModels;
+  if (registryReference && typeof listModels === 'function') {
+    try {
+      const promotedModels = await listModels();
+      if (Array.isArray(promotedModels) && promotedModels.includes(model.modelId || model.id)) {
+        return registryReference;
+      }
+    } catch {
+      // Explicit pinned artifact input remains the fail-closed fallback.
+    }
+  }
   if (model.loadInput) return model.loadInput;
-  if (model.dopplerLoadRef || model.registryId || model.loadRef) return model.dopplerLoadRef || model.registryId || model.loadRef;
+  if (registryReference) return registryReference;
   if (model.url) return { url: model.url };
   if (model.manifest) return { manifest: model.manifest, baseUrl: model.baseUrl };
   return model.modelId || model.id || model;
@@ -817,7 +830,7 @@ export function createDopplerRuntime({ modelSession = null, model = null, runtim
           };
         }
         const loadOptions = getConfiguredLoadOptions(nextModel);
-        const result = await loader(getDopplerLoadInput(nextModel), loadOptions);
+        const result = await loader(await getDopplerLoadInput(nextModel, module), loadOptions);
         const handle = pickHandle(result);
         return await attachHandle(handle, nextModel, {
           ...runtimeInfo,

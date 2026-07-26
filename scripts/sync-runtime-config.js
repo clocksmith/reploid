@@ -4,6 +4,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import {
+  DOPPLER_BROWSER_RUNTIME_VERSION,
   DOPPLER_KERNEL_BASE_URL,
   DOPPLER_MODULE_URL,
   DOPPLER_PACKAGE_NAME,
@@ -59,6 +60,7 @@ export function synchronizeRuntimeConfig({
   packageManifest,
   packageLock,
   packageVersion = DOPPLER_PACKAGE_VERSION,
+  browserRuntimeVersion = DOPPLER_BROWSER_RUNTIME_VERSION,
   moduleUrl = DOPPLER_MODULE_URL,
   kernelBaseUrl = DOPPLER_KERNEL_BASE_URL
 }) {
@@ -76,12 +78,12 @@ export function synchronizeRuntimeConfig({
     throw new Error(`package-lock.json must include sha512 integrity for ${DOPPLER_PACKAGE_NAME}@${packageVersion}`);
   }
 
-  const synchronizedPoolConfig = synchronizeCompatibility(clone(poolConfig), packageVersion);
+  const synchronizedPoolConfig = synchronizeCompatibility(clone(poolConfig), browserRuntimeVersion);
   synchronizedPoolConfig.configVersion = String(synchronizedPoolConfig.configVersion || '').replace(
     /doppler-\d+\.\d+\.\d+/,
-    `doppler-${packageVersion}`
+    `doppler-${browserRuntimeVersion}`
   );
-  if (!synchronizedPoolConfig.configVersion.includes(`doppler-${packageVersion}`)) {
+  if (!synchronizedPoolConfig.configVersion.includes(`doppler-${browserRuntimeVersion}`)) {
     throw new Error('Pool configVersion must contain a doppler-x.y.z segment');
   }
   synchronizedPoolConfig.browserRuntime = {
@@ -162,6 +164,9 @@ if (isMain) {
     console.error('Run npm run sync:runtime-config to regenerate it.');
     process.exitCode = 1;
   } else {
-    console.log(`Runtime config verified for ${DOPPLER_PACKAGE_NAME}@${DOPPLER_PACKAGE_VERSION}.`);
+    console.log(
+      `Runtime config verified for browser ${DOPPLER_PACKAGE_NAME}@${DOPPLER_BROWSER_RUNTIME_VERSION}`
+      + ` with npm tooling ${DOPPLER_PACKAGE_VERSION}.`
+    );
   }
 }
