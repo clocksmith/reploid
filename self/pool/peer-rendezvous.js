@@ -5,6 +5,7 @@
 export const PEER_ROOM_RELAY_VERSION = 'reploid_peer_room_relay/v1';
 export const DEFAULT_RELAY_POLL_INTERVAL_MS = 1000;
 export const DEFAULT_RELAY_TTL_MS = 120000;
+export const DEFAULT_RELAY_CURSOR_LOOKBACK_MS = 5000;
 
 const requireString = (value, label) => {
   const normalized = String(value || '').trim();
@@ -100,6 +101,7 @@ export function createSdkPeerRoomRelayBus({
   localPeerId = null,
   pollIntervalMs = DEFAULT_RELAY_POLL_INTERVAL_MS,
   relayTtlMs = DEFAULT_RELAY_TTL_MS,
+  cursorLookbackMs = DEFAULT_RELAY_CURSOR_LOOKBACK_MS,
   now = () => Date.now()
 } = {}) {
   if (!sdk || typeof sdk.publishPeerRoomMessage !== 'function' || typeof sdk.listPeerRoomMessages !== 'function') {
@@ -123,7 +125,10 @@ export function createSdkPeerRoomRelayBus({
     if (closed) return;
     try {
       const result = await sdk.listPeerRoomMessages(resolvedRoomId, {
-        after: Math.max(0, cursor - 1),
+        // Relay writes can complete out of order. Re-read a bounded overlap and
+        // deduplicate by relay id so a later message cannot advance the cursor
+        // past an acceptance or ICE signal that becomes visible afterward.
+        after: Math.max(0, cursor - Math.max(1, Number(cursorLookbackMs || 0))),
         peerId: localPeerId || null
       });
       const messages = Array.isArray(result?.messages) ? result.messages : Array.isArray(result) ? result : [];
@@ -215,6 +220,7 @@ export default {
   PEER_ROOM_RELAY_VERSION,
   DEFAULT_RELAY_POLL_INTERVAL_MS,
   DEFAULT_RELAY_TTL_MS,
+  DEFAULT_RELAY_CURSOR_LOOKBACK_MS,
   peerRoomMessageFromPeerId,
   createBroadcastPeerRoomBus,
   createInMemoryPeerRoomBusNetwork,

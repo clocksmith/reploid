@@ -115,6 +115,68 @@ describe('pool peer rendezvous', () => {
     vi.useRealTimers();
   });
 
+  it('re-reads a bounded cursor overlap so late-visible control messages are delivered', async () => {
+    vi.useFakeTimers();
+    const calls = [];
+    const sdk = {
+      publishPeerRoomMessage() {
+        return Promise.resolve({});
+      },
+      listPeerRoomMessages(roomId, { after }) {
+        calls.push({ roomId, after });
+        if (calls.length === 1) {
+          return Promise.resolve({
+            messages: [{
+              createdAt: 20000,
+              relayId: 'relay_newer_advert',
+              message: {
+                peerRoomVersion: 'reploid_peer_room/v1',
+                roomId,
+                type: 'provider-advert',
+                relay: { relayId: 'relay_newer_advert' },
+                body: {}
+              }
+            }]
+          });
+        }
+        return Promise.resolve({
+          messages: after < 18000
+            ? [{
+                createdAt: 18000,
+                relayId: 'relay_late_acceptance',
+                message: {
+                  peerRoomVersion: 'reploid_peer_room/v1',
+                  roomId,
+                  type: 'peer-run-accepted',
+                  relay: { relayId: 'relay_late_acceptance' },
+                  body: { sessionId: 'session_late' }
+                }
+              }]
+            : []
+        });
+      }
+    };
+    const bus = createSdkPeerRoomRelayBus({
+      sdk,
+      roomId: 'relay_reordering_room',
+      localPeerId: 'requester_relay',
+      pollIntervalMs: 1000
+    });
+    const received = [];
+    bus.addEventListener('message', (event) => received.push(event.data));
+
+    await vi.runOnlyPendingTimersAsync();
+    await Promise.resolve();
+
+    expect(calls[1].after).toBe(15000);
+    expect(received.map((message) => message.type)).toEqual([
+      'provider-advert',
+      'peer-run-accepted'
+    ]);
+    bus.close();
+    vi.useRealTimers();
+  });
+
   it('round-trips shareable room invite URLs', () => {
     const invite = createPeerRoomInviteUrl({
       roomId: 'invite_room',
