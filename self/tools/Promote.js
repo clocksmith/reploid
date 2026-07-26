@@ -14,7 +14,8 @@ import {
   parseEvidence,
   readRequired,
   sha256,
-  textBytes
+  textBytes,
+  validateClockworkPromotionEvidence
 } from '../core/promotion-policy.js';
 
 const pickArg = (args, keys) => {
@@ -131,6 +132,10 @@ export async function promoteShadowCandidate(args = {}, deps = {}) {
   if (replayPassed !== true) {
     reasons.push('evidence replayPassed must be true');
   }
+  const clockworkValidation = await validateClockworkPromotionEvidence(evidence, {
+    trustedReceipts: deps.trustedClockworkReceipts
+  });
+  reasons.push(...clockworkValidation.reasons);
 
   const expectedCandidateHash = getEvidenceHash(evidence, 'candidateHash') || getEvidenceHash(evidence, 'candidateSha256');
   const expectedTargetHash = getEvidenceHash(evidence, 'targetHash') || getEvidenceHash(evidence, 'targetSha256');
@@ -265,6 +270,7 @@ export async function promoteShadowCandidate(args = {}, deps = {}) {
     candidatePath,
     targetPath,
     evidencePath,
+    clockworkReceiptDigest: clockworkValidation.receiptDigest || null,
     bytesWritten: textBytes(candidateContent),
     targetExisted,
     previousHash,
@@ -289,7 +295,7 @@ async function call(args = {}, deps = {}) {
 
 export const tool = {
   name: 'Promote',
-  description: 'Promote a /shadow candidate into an allowlisted /self target when evidence JSON says replayPassed is true. Use candidatePath, targetPath, and evidencePath.',
+  description: 'Promote a /shadow candidate into an allowlisted /self target when replay evidence passes. Clockwork-tagged candidates additionally require a trusted accepted Gamma receipt.',
   inputSchema: {
     type: 'object',
     required: ['candidatePath', 'targetPath', 'evidencePath'],

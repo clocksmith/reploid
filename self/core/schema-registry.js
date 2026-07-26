@@ -84,7 +84,7 @@ const SchemaRegistry = {
         }
       },
       Promote: {
-        description: 'Mutating. Promote a /shadow candidate into an allowlisted /self target only after evidence JSON under /artifacts includes replayPassed: true. Use candidatePath, targetPath, and evidencePath.',
+        description: 'Mutating. Promote a /shadow candidate into an allowlisted /self target only after evidence JSON under /artifacts includes replayPassed: true. Clockwork-tagged candidates additionally require a trusted accepted Gamma receipt. Use candidatePath, targetPath, and evidencePath.',
         readOnly: false,
         parameters: {
           type: 'object',
