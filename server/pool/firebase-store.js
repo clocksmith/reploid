@@ -263,7 +263,7 @@ export function createFirestorePoolStore({ firestore, collectionPrefix = '' } = 
     async consumeRateLimit({
       key,
       maxRequests = 30,
-      bucketMs = 1000,
+      bucketMs = 10000,
       now = Date.now()
     } = {}) {
       const normalizedKey = String(key || 'unknown');

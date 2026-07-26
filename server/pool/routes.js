@@ -42,7 +42,14 @@ const asyncRoute = (handler) => (req, res, next) => {
   Promise.resolve(handler(req, res, next)).catch(next);
 };
 
-const createPoolRateLimiter = ({ store, maxRequests = 30, bucketMs = 1000 } = {}) => {
+const POOL_RATE_LIMIT_MAX_REQUESTS = 30;
+const POOL_RATE_LIMIT_BUCKET_MS = 10000;
+
+const createPoolRateLimiter = ({
+  store,
+  maxRequests = POOL_RATE_LIMIT_MAX_REQUESTS,
+  bucketMs = POOL_RATE_LIMIT_BUCKET_MS
+} = {}) => {
   const buckets = new Map();
   return async (req, res, next) => {
     const key = String(req.headers['x-reploid-client-id'] || req.body?.requesterId || req.body?.providerId || req.ip || 'unknown');
@@ -1153,8 +1160,8 @@ export function createPoolRouter({
         rateLimit: {
           supported: distributedRateLimitSupported,
           distributed: storageMode === 'firestore' && distributedRateLimitSupported,
-          maxRequests: 30,
-          bucketMs: 1000
+          maxRequests: POOL_RATE_LIMIT_MAX_REQUESTS,
+          bucketMs: POOL_RATE_LIMIT_BUCKET_MS
         },
         metricsAvailable: !!metrics
       },

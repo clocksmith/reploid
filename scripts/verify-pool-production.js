@@ -237,17 +237,24 @@ const checkDeploymentUrl = async (baseUrl) => {
   }
   try {
     const clientId = `production-verifier-${Date.now()}-${Math.random().toString(36).slice(2)}`;
-    const responses = [];
-    for (let index = 0; index < 31; index += 1) {
-      responses.push(await fetch(`${normalized}/pool/status`, {
+    const bucketMs = 10000;
+    const bucketPhase = Date.now() % bucketMs;
+    if (bucketPhase > 1000) {
+      await new Promise((resolve) => setTimeout(resolve, bucketMs + 50 - bucketPhase));
+    }
+    const responses = await Promise.all(
+      Array.from({ length: 31 }, () => fetch(`${normalized}/pool/status`, {
         headers: { 'x-reploid-client-id': clientId }
-      }));
-    }
-    if (responses.slice(0, 30).some((response) => !response.ok)) {
-      reasons.push('deployed rate-limit probe rejected a request before the declared 30-request bucket');
-    }
-    if (responses[30]?.status !== 429) {
-      reasons.push('deployed rate-limit probe did not return 429 after the declared 30-request bucket');
+      }))
+    );
+    const accepted = responses.filter((response) => response.ok).length;
+    const limited = responses.filter((response) => response.status === 429).length;
+    const unexpected = responses.filter((response) => !response.ok && response.status !== 429);
+    if (accepted !== 30 || limited !== 1 || unexpected.length > 0) {
+      reasons.push(
+        'deployed rate-limit probe expected 30 accepted requests and one 429 '
+        + `(received ${accepted} accepted, ${limited} limited, ${unexpected.length} unexpected)`
+      );
     }
   } catch (error) {
     reasons.push(`deployment rate-limit probe failed: ${error.message}`);
