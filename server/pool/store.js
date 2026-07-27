@@ -567,8 +567,13 @@ export function createPoolStore() {
       peerRoomMessages.set(resolvedRoomId, messages);
       return saved;
     },
-    listPeerRoomMessages(roomId, { after = 0, peerId = null, limit = 100 } = {}) {
-      const minCreatedAt = Number(after || 0);
+    listPeerRoomMessages(roomId, {
+      after = 0,
+      notBefore = 0,
+      peerId = null,
+      limit = 100
+    } = {}) {
+      const minCreatedAt = Math.max(Number(after || 0), Number(notBefore || 0));
       return (peerRoomMessages.get(String(roomId || '').trim()) || []).filter((message) => {
         if (Number(message.createdAt || 0) <= minCreatedAt) return false;
         if (message.expiresAt && toEpochMs(message.expiresAt) < Date.now()) return false;

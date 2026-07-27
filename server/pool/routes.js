@@ -1018,6 +1018,7 @@ export function createPoolRouter({
     if (!roomId) return res.status(400).json({ error: 'roomId is required' });
     const messages = await store.listPeerRoomMessages(roomId, {
       after: Number(req.query.after || 0),
+      notBefore: Date.now() - MAX_PEER_ROOM_MESSAGE_TTL_MS,
       peerId: req.query.peerId || null,
       limit: Math.min(Number(req.query.limit || MAX_PEER_ROOM_MESSAGES_PER_POLL), MAX_PEER_ROOM_MESSAGES_PER_POLL)
     });
@@ -1033,6 +1034,7 @@ export function createPoolRouter({
     const limit = Math.min(Number(req.query.limit || MAX_PEER_ROOM_MESSAGES_PER_POLL), MAX_PEER_ROOM_MESSAGES_PER_POLL);
     const messages = await store.listPeerRoomMessages(roomId, {
       after: 0,
+      notBefore: Date.now() - MAX_PEER_ROOM_MESSAGE_TTL_MS,
       peerId: null,
       limit
     });
