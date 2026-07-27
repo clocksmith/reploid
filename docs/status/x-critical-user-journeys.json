@@ -1,0 +1,460 @@
+{
+  "schema": "reploid/x-critical-user-journeys/v1",
+  "updated": "2026-07-27",
+  "surface": "/x",
+  "productName": "X",
+  "statusDefinitions": {
+    "supported": "The outcome has an executable implementation and automated end-to-end contract coverage.",
+    "conditional": "The outcome is executable only when named model, device, artifact, provider, peer, or evidence prerequisites are satisfied.",
+    "limited": "A component or local protocol path works, but the full operator outcome is not yet proved.",
+    "blocked": "The user outcome is intentionally unavailable and has explicit blockers."
+  },
+  "releaseEvidence": {
+    "gate": "scripts/verify-critical-user-journeys.js",
+    "retainedArtifact": null,
+    "status": "not-retained",
+    "requiredArtifactFields": [
+      "journeyIds",
+      "commit",
+      "deploymentUrl",
+      "bootProfile",
+      "modelId",
+      "provider",
+      "startedAt",
+      "completedAt",
+      "cycleArtifactHashes",
+      "promotionReceiptHashes",
+      "exportHash",
+      "screenshotHash",
+      "result"
+    ]
+  },
+  "journeys": [
+    {
+      "id": "configure-and-awaken-x",
+      "actor": "operator",
+      "outcome": "Choose browser, direct, or proxy inference, set the first objective and cycle interval, and awaken the full X substrate with its governed tool surface.",
+      "routes": [
+        "/x"
+      ],
+      "status": "conditional",
+      "releaseCritical": true,
+      "prerequisites": [
+        "The chosen provider configuration is complete and its runtime is reachable.",
+        "The objective is non-empty.",
+        "The full VFS seed and required modules load successfully."
+      ],
+      "implementationPaths": [
+        "self/ui/boot-home/index.js",
+        "self/ui/boot-wizard/state.js",
+        "self/host/start-app.js",
+        "self/lab/profiles.js",
+        "self/config/surface-intents.js"
+      ],
+      "testPaths": [
+        "tests/e2e/boot.spec.js",
+        "tests/e2e/boot-contract.spec.js",
+        "tests/unit/genesis-integrity.test.js"
+      ],
+      "limitations": [
+        "Configuration completeness can enable Awaken before a successful provider call.",
+        "A successful boot proves module and tool availability, not current model quality or the usefulness of every advanced subsystem."
+      ],
+      "openWorkIds": [
+        "retain-x-release-evidence",
+        "prove-x-inference-preflight"
+      ]
+    },
+    {
+      "id": "run-steer-pause-and-resume-x",
+      "actor": "operator",
+      "outcome": "Run an objective, inspect its timeline and tool results, inject a human message, stop the loop, resume it with the stored objective, and inspect status and telemetry.",
+      "routes": [
+        "/x"
+      ],
+      "status": "conditional",
+      "releaseCritical": true,
+      "prerequisites": [
+        "A configured inference provider returns parser-compatible responses.",
+        "The objective remains stored for resume."
+      ],
+      "implementationPaths": [
+        "self/core/agent-loop.js",
+        "self/ui/proto/index.js",
+        "self/ui/components/inline-chat.js",
+        "self/ui/proto/telemetry.js"
+      ],
+      "testPaths": [
+        "tests/e2e/iteration-artifacts.spec.js",
+        "tests/e2e/dashboard.spec.js",
+        "tests/e2e/agent-goals.spec.js"
+      ],
+      "limitations": [
+        "Most deterministic iteration tests use mock cognition.",
+        "Existing browser tests prove the controls and timeline separately, not one complete inject, stop, resume, and settle journey.",
+        "A DONE state does not independently prove that the objective was solved correctly."
+      ],
+      "openWorkIds": [
+        "retain-x-release-evidence",
+        "evaluate-x-goal-quality",
+        "prove-x-operator-control-loop"
+      ]
+    },
+    {
+      "id": "inspect-edit-and-recover-x-workspace",
+      "actor": "operator",
+      "outcome": "Browse and search the VFS, inspect or edit writable files, preserve Shadow and artifact state across reload, and keep direct live-self writes behind the promotion boundary.",
+      "routes": [
+        "/x"
+      ],
+      "status": "supported",
+      "releaseCritical": true,
+      "prerequisites": [
+        "IndexedDB and the service worker remain available for the same X instance."
+      ],
+      "implementationPaths": [
+        "self/ui/proto/vfs.js",
+        "self/core/vfs.js",
+        "self/config/vfs-policy.js",
+        "self/tools/WriteFile.js"
+      ],
+      "testPaths": [
+        "tests/e2e/vfs-roundtrip.spec.js",
+        "tests/e2e/boot-replay.spec.js",
+        "tests/integration/vfs.test.js",
+        "tests/unit/tools/write-file.test.js"
+      ],
+      "limitations": [
+        "Recovery is local to the browser instance.",
+        "The VFS editor does not convert an edited Shadow candidate into a safe live change by itself.",
+        "Browser persistence is not source-control history or a cross-device backup."
+      ],
+      "openWorkIds": [
+        "prove-x-export-recovery"
+      ]
+    },
+    {
+      "id": "evaluate-and-promote-x-candidate",
+      "actor": "agent_or_operator",
+      "outcome": "Evaluate a Shadow candidate in the arena, require byte-bound replay evidence, preserve rollback material, and promote an allowlisted target into the live self.",
+      "routes": [
+        "/x"
+      ],
+      "status": "supported",
+      "releaseCritical": true,
+      "prerequisites": [
+        "The candidate is under /shadow and the target is allowlisted under /self.",
+        "Evidence under /artifacts binds the requested paths and candidate bytes and records replayPassed true.",
+        "Validator and Clockwork targets satisfy their additional authority rules."
+      ],
+      "implementationPaths": [
+        "self/testing/arena/arena-harness.js",
+        "self/tools/Promote.js",
+        "self/core/promotion-policy.js"
+      ],
+      "testPaths": [
+        "tests/e2e/x-one-safe-candidate.spec.js",
+        "tests/e2e/minimal-candidate-harness.spec.js",
+        "tests/unit/tools/promote.test.js",
+        "tests/unit/clockwork-promotion-policy.test.js"
+      ],
+      "limitations": [
+        "Promote is callable by the X agent as well as the optimization UI; ordinary allowlisted promotion is not a universal human-approval gate.",
+        "The arena and replay evidence do not prove arbitrary semantic correctness.",
+        "Validator targets are quarantined, but other allowlisted self targets can be promoted after the defined evidence checks pass."
+      ],
+      "openWorkIds": [
+        "retain-x-release-evidence",
+        "make-x-promotion-authority-visible",
+        "evaluate-x-goal-quality"
+      ]
+    },
+    {
+      "id": "optimize-and-activate-doppler-profile",
+      "actor": "operator",
+      "outcome": "Edit a governed Doppler optimization contract, run candidate profiles, inspect receipts and scores, promote the selected profile, canary it, and activate the exact accepted profile.",
+      "routes": [
+        "/x"
+      ],
+      "status": "conditional",
+      "releaseCritical": false,
+      "prerequisites": [
+        "Doppler tooling and the selected local model support the requested optimization contract.",
+        "Candidate runs finish and produce valid receipt-bound evidence.",
+        "Promote and the activation canary accept the same profile bytes and hash."
+      ],
+      "implementationPaths": [
+        "self/ui/proto/optimization.js",
+        "self/capabilities/system/doppler-optimizer.js",
+        "self/tools/DopplerOptimize.js",
+        "self/tools/Promote.js"
+      ],
+      "testPaths": [
+        "tests/unit/doppler-optimization-ui.test.js",
+        "tests/unit/doppler-optimizer.test.js",
+        "tests/unit/doppler-reploid-provider.test.js"
+      ],
+      "limitations": [
+        "The UI and optimizer contracts have focused tests, but no retained deployed browser run proves a current model artifact completing the whole lane.",
+        "A better score on the declared contract does not establish general model improvement."
+      ],
+      "openWorkIds": [
+        "retain-x-optimization-evidence"
+      ]
+    },
+    {
+      "id": "delegate-and-monitor-x-workers",
+      "actor": "operator_or_agent",
+      "outcome": "Spawn restricted worker tasks, inspect active and completed workers, await results, and clear completed cards.",
+      "routes": [
+        "/x"
+      ],
+      "status": "limited",
+      "releaseCritical": false,
+      "prerequisites": [
+        "WorkerManager initializes with a compatible model configuration.",
+        "The requested worker type and allowed tools are present."
+      ],
+      "implementationPaths": [
+        "self/core/worker-manager.js",
+        "self/tools/SpawnWorker.js",
+        "self/tools/AwaitWorkers.js",
+        "self/ui/proto/workers.js"
+      ],
+      "testPaths": [
+        "tests/unit/worker-manager.test.js",
+        "tests/e2e/workers.spec.js"
+      ],
+      "limitations": [
+        "The browser worker suite currently proves the panel and empty states, not a real spawned worker reaching a useful result through the UI.",
+        "Worker tool restrictions are runtime policy, not operating-system isolation."
+      ],
+      "openWorkIds": [
+        "prove-x-worker-journey"
+      ]
+    },
+    {
+      "id": "inspect-x-memory-and-cognition",
+      "actor": "operator",
+      "outcome": "Inspect memory summaries, compactions, retrieval events, knowledge, and cognition state produced by the running agent.",
+      "routes": [
+        "/x"
+      ],
+      "status": "limited",
+      "releaseCritical": false,
+      "prerequisites": [
+        "The run has produced memory, retrieval, or knowledge records.",
+        "The relevant cognition services initialize successfully."
+      ],
+      "implementationPaths": [
+        "self/core/memory-manager.js",
+        "self/capabilities/cognition/semantic/semantic-memory-llm.js",
+        "self/capabilities/cognition/symbolic/knowledge-graph.js",
+        "self/ui/proto/index.js",
+        "self/ui/panels/cognition-panel.js"
+      ],
+      "testPaths": [
+        "tests/integration/prompt-memory.test.js",
+        "tests/unit/episodic-memory.test.js",
+        "tests/unit/knowledge-tree.test.js",
+        "tests/e2e/dashboard.spec.js"
+      ],
+      "limitations": [
+        "The visible panels prove inspectability, not that retrieval improves objective success.",
+        "No held-out evaluation currently measures memory relevance, contamination, or reuse for X journeys."
+      ],
+      "openWorkIds": [
+        "evaluate-x-memory-value"
+      ]
+    },
+    {
+      "id": "export-and-replay-x-run",
+      "actor": "operator",
+      "outcome": "Export state and VFS, import a run file into Replay, and play, pause, step, reset, and change replay speed while inspecting emitted events.",
+      "routes": [
+        "/x"
+      ],
+      "status": "limited",
+      "releaseCritical": true,
+      "prerequisites": [
+        "The browser permits file download and file selection.",
+        "The imported JSON satisfies the replay engine contract."
+      ],
+      "implementationPaths": [
+        "self/ui/proto/index.js",
+        "self/ui/proto/replay.js",
+        "self/infrastructure/replay-engine.js"
+      ],
+      "testPaths": [
+        "tests/integration/replay-engine.test.js",
+        "tests/e2e/dashboard.spec.js"
+      ],
+      "limitations": [
+        "Current browser coverage proves that replay and export controls exist, not that an exported X run round-trips through the importer.",
+        "Replay re-emits recorded events; it does not rerun model inference or verify the original model output."
+      ],
+      "openWorkIds": [
+        "prove-x-export-recovery",
+        "prove-x-replay-roundtrip"
+      ]
+    },
+    {
+      "id": "share-x-files-with-peers",
+      "actor": "agent",
+      "outcome": "Discover X swarm peers and share or request permitted files through the WebRTC swarm tool surface.",
+      "routes": [
+        "/x"
+      ],
+      "status": "limited",
+      "releaseCritical": false,
+      "prerequisites": [
+        "Compatible peers join the same session-scoped room.",
+        "Cross-host peers have a reachable signaling path.",
+        "The requested file and operation satisfy swarm transport policy."
+      ],
+      "implementationPaths": [
+        "self/capabilities/communication/webrtc-swarm.js",
+        "self/capabilities/communication/swarm-transport.js",
+        "self/tools/SwarmShareFile.js",
+        "self/tools/SwarmRequestFile.js"
+      ],
+      "testPaths": [
+        "tests/integration/webrtc-swarm.test.js",
+        "tests/unit/webrtc-swarm.test.js",
+        "tests/unit/swarm-sync.test.js"
+      ],
+      "limitations": [
+        "Component and protocol tests do not establish a currently available public peer network.",
+        "Cross-host WebRTC still requires signaling for rendezvous.",
+        "No retained remote two-browser X artifact proves file exchange on the deployed surface."
+      ],
+      "openWorkIds": [
+        "prove-x-remote-swarm-journey"
+      ]
+    }
+  ],
+  "openWork": [
+    {
+      "id": "retain-x-release-evidence",
+      "state": "open",
+      "priority": "P0",
+      "journeyIds": [
+        "configure-and-awaken-x",
+        "run-steer-pause-and-resume-x",
+        "evaluate-and-promote-x-candidate"
+      ],
+      "summary": "Persist an actual deployed X run and promotion as immutable journey evidence.",
+      "acceptance": "A retained artifact supplies every releaseEvidence.requiredArtifactFields value and is linked from releaseEvidence.retainedArtifact."
+    },
+    {
+      "id": "evaluate-x-goal-quality",
+      "state": "open",
+      "priority": "P0",
+      "journeyIds": [
+        "run-steer-pause-and-resume-x",
+        "evaluate-and-promote-x-candidate"
+      ],
+      "summary": "Evaluate whether X completes representative objectives correctly rather than merely advancing cycles or accepting its own declared evidence.",
+      "acceptance": "A versioned objective set binds model, trace, tool calls, mutations, independent checks, final artifacts, and human usefulness verdicts."
+    },
+    {
+      "id": "make-x-promotion-authority-visible",
+      "state": "open",
+      "priority": "P0",
+      "journeyIds": [
+        "evaluate-and-promote-x-candidate"
+      ],
+      "summary": "Make the actor, evidence, quarantine, rollback, and approval authority of each promotion visible before live activation.",
+      "acceptance": "The UI distinguishes agent-requested, operator-requested, externally authorized, quarantined, rejected, and accepted promotion, and a reviewer can inspect the bound evidence before activation."
+    },
+    {
+      "id": "prove-x-inference-preflight",
+      "state": "open",
+      "priority": "P1",
+      "journeyIds": [
+        "configure-and-awaken-x"
+      ],
+      "summary": "Prevent a syntactically complete but unreachable inference configuration from appearing ready.",
+      "acceptance": "Awaken readiness distinguishes configured from verified, with tested failure and recovery for browser, direct, and proxy paths."
+    },
+    {
+      "id": "prove-x-operator-control-loop",
+      "state": "open",
+      "priority": "P1",
+      "journeyIds": [
+        "run-steer-pause-and-resume-x"
+      ],
+      "summary": "Exercise X's user controls as one coherent run rather than testing control visibility separately.",
+      "acceptance": "Browser coverage injects a message, observes it in the next model input, stops, resumes, reaches a terminal state, and verifies timeline, status, and telemetry consistency."
+    },
+    {
+      "id": "retain-x-optimization-evidence",
+      "state": "open",
+      "priority": "P1",
+      "journeyIds": [
+        "optimize-and-activate-doppler-profile"
+      ],
+      "summary": "Retain a deployed browser optimization, promotion, canary, and activation chain for a current Doppler artifact.",
+      "acceptance": "One immutable artifact binds contract, candidates, scores, receipt hashes, selected profile bytes, promotion, canary rerun, and active profile identity."
+    },
+    {
+      "id": "prove-x-worker-journey",
+      "state": "open",
+      "priority": "P1",
+      "journeyIds": [
+        "delegate-and-monitor-x-workers"
+      ],
+      "summary": "Prove a real restricted X worker completes useful work visible to the operator.",
+      "acceptance": "An end-to-end browser test spawns a worker, shows progress, enforces its tool policy, awaits a result, renders completion, and clears it."
+    },
+    {
+      "id": "evaluate-x-memory-value",
+      "state": "open",
+      "priority": "P1",
+      "journeyIds": [
+        "inspect-x-memory-and-cognition"
+      ],
+      "summary": "Measure whether X memory and cognition retrievals are relevant and improve held-out objective performance.",
+      "acceptance": "Control and treatment runs on the same tasks bind retrieval receipts, relevance judgments, contamination checks, latency, token cost, and objective scores."
+    },
+    {
+      "id": "prove-x-export-recovery",
+      "state": "open",
+      "priority": "P1",
+      "journeyIds": [
+        "inspect-edit-and-recover-x-workspace",
+        "export-and-replay-x-run"
+      ],
+      "summary": "Prove that an X export is sufficient to recover the intended local workspace state.",
+      "acceptance": "A browser creates Shadow and artifact files, exports, clears the instance, restores from the export, and verifies hashes and policy boundaries."
+    },
+    {
+      "id": "prove-x-replay-roundtrip",
+      "state": "open",
+      "priority": "P1",
+      "journeyIds": [
+        "export-and-replay-x-run"
+      ],
+      "summary": "Prove the visible export and replay controls work together end to end.",
+      "acceptance": "A browser exports a completed run, imports that exact file, steps and plays its events, and verifies metadata, order, progress, pause, reset, and completion."
+    },
+    {
+      "id": "prove-x-remote-swarm-journey",
+      "state": "open",
+      "priority": "P2",
+      "journeyIds": [
+        "share-x-files-with-peers"
+      ],
+      "summary": "Retain evidence for a real cross-browser X peer exchange rather than inferring availability from transport tests.",
+      "acceptance": "Two remote deployed browsers discover through the configured signaling path, exchange a permitted file, verify its hash, and retain connection and transfer receipts."
+    }
+  ],
+  "constraints": [
+    "X must remain a strict declared superset of Zero without silently changing Zero's tool or module surface.",
+    "Tool inventory proves availability, not that an operator journey works or that a model uses the capability well.",
+    "Promotion replay and hashes prove the declared candidate and evidence chain, not general semantic correctness.",
+    "A mock-model browser pass must not be presented as actual inference quality evidence.",
+    "Replay re-emits recorded events and must not be described as rerunning inference.",
+    "Worker and swarm components must not be described as a currently available distributed agent network without retained cross-browser evidence."
+  ]
+}

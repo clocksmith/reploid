@@ -123,8 +123,6 @@ Treat experimental paths as implementation details until they move into the main
 | Module | Path | Purpose |
 |--------|------|---------|
 | Proto UI | `self/ui/proto/index.js` | Main operator UI |
-| UIManager | `self/ui/dashboard/ui-manager.js` | Dashboard orchestration |
-| VFSExplorer | `self/ui/dashboard/vfs-explorer.js` | File tree UI |
 
 ---
 
@@ -182,7 +180,7 @@ Important runtime storage paths:
 - `NeuralCompiler` currently lives under `self/experimental/intelligence/`, not `self/capabilities/intelligence/`.
 - There is no standalone runtime module at `self/infrastructure/introspector.js`.
 - There is no standalone runtime module at `self/core/sentinel-fsm.js`; the current reference is the blueprint `self/blueprints/0x000050-sentinel-fsm.md`.
-- Older docs may refer to `ui/diff-generator.js`; the current UI surface is centered on `self/ui/proto/` and `self/ui/dashboard/`.
+- Older docs may refer to `ui/diff-generator.js`; the current operator UI lives under `self/ui/proto/`.
 
 ---
 

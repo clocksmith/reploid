@@ -134,7 +134,6 @@ export const ZERO_HOME_BOOT_SEED_PREFIXES = Object.freeze([
   'config/doppler-local-models.js',
   'config/genesis-levels.json',
   'config/immutability.js',
-  'config/lab-route-profiles.js',
   'config/module-registry.json',
   'config/module-resolution.js',
   'config/reploid-environments.js',

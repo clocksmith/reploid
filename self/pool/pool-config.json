@@ -1,6 +1,6 @@
 {
   "schema": "reploid.pool.config/v1",
-  "configVersion": "2026-07-24.doppler-0.5.1.v1",
+  "configVersion": "2026-07-27.doppler-0.5.1.v1",
   "claim": "receipt-backed, audit-backed, reputation-backed, policy-controlled browser inference",
   "forbiddenClaims": [
     "trustless",
@@ -373,7 +373,8 @@
         "gemma-3-270m-it-q4k-ehf16-af32",
         "qwen-3-5-0-8b-q4k-ehaf16",
         "qwen-3-embedding-0-6b-q4k-ehf16-af32",
-        "gemma-4-e2b-it-q4k-ehf16-af32-int4ple"
+        "gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
+        "esm2-t12-35m-ur50d-f32-af32"
       ],
       "minProviderReputation": 0,
       "maxQueueDepth": 100,
@@ -404,7 +405,8 @@
         "gemma-3-270m-it-q4k-ehf16-af32",
         "qwen-3-5-0-8b-q4k-ehaf16",
         "qwen-3-embedding-0-6b-q4k-ehf16-af32",
-        "gemma-4-e2b-it-q4k-ehf16-af32-int4ple"
+        "gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
+        "esm2-t12-35m-ur50d-f32-af32"
       ],
       "minProviderReputation": 0,
       "maxQueueDepth": 100,
@@ -437,7 +439,8 @@
         "gemma-3-270m-it-q4k-ehf16-af32",
         "qwen-3-5-0-8b-q4k-ehaf16",
         "qwen-3-embedding-0-6b-q4k-ehf16-af32",
-        "gemma-4-e2b-it-q4k-ehf16-af32-int4ple"
+        "gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
+        "esm2-t12-35m-ur50d-f32-af32"
       ],
       "minProviderReputation": 0,
       "maxQueueDepth": 100,
@@ -472,7 +475,8 @@
         "gemma-3-270m-it-q4k-ehf16-af32",
         "qwen-3-5-0-8b-q4k-ehaf16",
         "qwen-3-embedding-0-6b-q4k-ehf16-af32",
-        "gemma-4-e2b-it-q4k-ehf16-af32-int4ple"
+        "gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
+        "esm2-t12-35m-ur50d-f32-af32"
       ],
       "minProviderReputation": 0,
       "maxQueueDepth": 100,
