@@ -100,4 +100,39 @@ describe('Firestore-backed peer-room relay', () => {
 
     expect(messages.map((message) => message.relayId)).toEqual(['fresh']);
   });
+
+  it('returns the newest live messages when room heartbeats exceed the message limit', async () => {
+    const now = Date.now();
+    const roomId = 'busy-live-room';
+    const fake = createQueryableFirestore();
+    for (let index = 0; index < 120; index += 1) {
+      fake.seed('peer_room_messages', `heartbeat-${index}`, {
+        roomId,
+        relayId: `heartbeat-${index}`,
+        createdAt: now - 1500 + index,
+        expiresAt: now + 60_000,
+        type: 'provider-advert'
+      });
+    }
+    fake.seed('peer_room_messages', 'fresh-nonce-response', {
+      roomId,
+      relayId: 'fresh-nonce-response',
+      createdAt: now - 100,
+      expiresAt: now + 60_000,
+      type: 'provider-advert',
+      body: {
+        discoveryNonce: 'requester-nonce'
+      }
+    });
+    const store = createFirestorePoolStore({ firestore: fake.firestore });
+
+    const messages = await store.listPeerRoomMessages(roomId, {
+      after: 0,
+      notBefore: now - 2000,
+      limit: 100
+    });
+
+    expect(messages).toHaveLength(100);
+    expect(messages.at(-1)?.relayId).toBe('fresh-nonce-response');
+  });
 });

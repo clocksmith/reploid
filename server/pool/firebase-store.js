@@ -723,7 +723,7 @@ export function createFirestorePoolStore({ firestore, collectionPrefix = '' } = 
         const snapshot = await collection(COLLECTIONS.peerRoomMessages)
           .where('roomId', '==', resolvedRoomId)
           .where('createdAt', '>', minCreatedAt)
-          .orderBy('createdAt', 'asc')
+          .orderBy('createdAt', 'desc')
           .limit(maxResults)
           .get();
         return filterMessages(snapshot.docs.map((entry) => entry.data()));
