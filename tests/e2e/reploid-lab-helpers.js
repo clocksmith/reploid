@@ -1,5 +1,5 @@
 import { expect } from '@playwright/test';
-import { getLabRouteCases } from '../../self/config/lab-route-profiles.js';
+import { getLabRouteCases } from '../../self/lab/profiles.js';
 
 export const DB_PREFIX = 'reploid-vfs-v0';
 

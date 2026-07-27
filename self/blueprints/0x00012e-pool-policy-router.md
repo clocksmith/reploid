@@ -1,15 +1,15 @@
 # Blueprint 0x00012e: pool policy router
 
-**Objective:** Describe implementation for pool/policy-router.js.
+**Objective:** Define shared Poolday policy validation and runtime-specific request routing.
 
 **Target Upgrade:** pool/policy-router.js
 
-**Affected Artifacts:** /pool/policy-router.js
+**Affected Artifacts:** /pool/policy-router.js, /pool/policy-validation.js
 
 ---
 
 ### 1. Intent
-Define the purpose and constraints for pool/policy-router.js.
+Keep policy classification and deterministic-generation validation identical across browser and server request paths.
 
 ### 2. Architecture
 Outline the main responsibilities, dependencies, and data flow.

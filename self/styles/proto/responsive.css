@@ -311,15 +311,6 @@
         gap: 2px;
     }
 
-    /* Schema panel */
-    .schema-columns {
-        grid-template-columns: 1fr;
-    }
-
-    .schema-search {
-        width: 100%;
-    }
-
     /* Telemetry panel */
     .telemetry-header {
         flex-direction: column;
@@ -359,9 +350,7 @@
     }
 
     .tool-summary-main,
-    .memory-entry summary,
-    .arena-entry-header,
-    .arena-entry-actions {
+    .memory-entry summary {
         align-items: flex-start;
         flex-direction: column;
     }

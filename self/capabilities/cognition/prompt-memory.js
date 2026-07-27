@@ -2,8 +2,6 @@
  * @fileoverview Prompt Memory
  * Integration layer between GEPA and SemanticMemory.
  * Stores evolved prompts, enables transfer learning, tracks performance drift.
- *
- * @see TODO.md: Memory + GEPA Integration (Phase 3)
  */
 
 const PromptMemory = {

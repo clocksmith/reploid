@@ -204,10 +204,51 @@ async function findStaleBlueprints(blueprintRegistry) {
   return issues;
 }
 
+/**
+ * Find browser files declared by genesis configuration but absent from self/.
+ */
+async function findMissingGenesisFiles(genesisConfig, source) {
+  const issues = [];
+  const groups = [];
+
+  for (const [category, files] of Object.entries(genesisConfig.sharedFiles || {})) {
+    groups.push({ scope: `sharedFiles.${category}`, files });
+  }
+
+  for (const [level, categories] of Object.entries(genesisConfig.levelFiles || {})) {
+    for (const [category, files] of Object.entries(categories || {})) {
+      groups.push({ scope: `levelFiles.${level}.${category}`, files });
+    }
+  }
+
+  for (const [moduleId, files] of Object.entries(genesisConfig.moduleFiles || {})) {
+    groups.push({ scope: `moduleFiles.${moduleId}`, files });
+  }
+
+  for (const { scope, files } of groups) {
+    for (const file of files || []) {
+      try {
+        await fs.access(path.join(ROOT, 'self', file));
+      } catch {
+        issues.push({
+          type: 'missing_genesis_file',
+          severity: 'high',
+          source,
+          scope,
+          file
+        });
+      }
+    }
+  }
+
+  return issues;
+}
+
 async function main() {
   console.log('[validate] Loading config files...');
 
-  const [genesisLevels, blueprintRegistry, moduleRegistry, vfsManifest] = await Promise.all([
+  const [genesisTemplate, genesisLevels, blueprintRegistry, moduleRegistry, vfsManifest] = await Promise.all([
+    loadJSON('genesis-template.json'),
     loadJSON('genesis-levels.json'),
     loadJSON('blueprint-registry.json'),
     loadJSON('module-registry.json'),
@@ -234,6 +275,10 @@ async function main() {
 
   console.log('[validate] Checking for stale blueprints...');
   allIssues.push(...await findStaleBlueprints(blueprintRegistry));
+
+  console.log('[validate] Checking genesis file inventory...');
+  allIssues.push(...await findMissingGenesisFiles(genesisTemplate, 'genesis-template.json'));
+  allIssues.push(...await findMissingGenesisFiles(genesisLevels, 'genesis-levels.json'));
 
   // Sort by severity
   allIssues.sort((a, b) => SEVERITY[a.severity] - SEVERITY[b.severity]);
@@ -262,6 +307,9 @@ async function main() {
           break;
         case 'stale_blueprint':
           log(issue.type, issue.severity, `${issue.blueprint} references missing ${issue.file}`);
+          break;
+        case 'missing_genesis_file':
+          log(issue.type, issue.severity, `${issue.source} ${issue.scope} references missing ${issue.file}`);
           break;
         default:
           log(issue.type, issue.severity, JSON.stringify(issue));

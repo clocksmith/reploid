@@ -7,7 +7,6 @@ Multi-model evaluation runs the same task suite across multiple model configs an
 ## Module
 
 **Path:** `core/multi-model-evaluator.js`
-**Capability shim:** `capabilities/intelligence/multi-model-evaluator.js`
 
 **Primary API:** `evaluate(tasks, modelConfigs, options)`
 

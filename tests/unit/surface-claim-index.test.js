@@ -10,6 +10,11 @@ describe('surface claim index', () => {
     const { index, errors } = await verifySurfaceClaimIndex();
 
     expect(errors).toEqual([]);
+    expect(index.journeyRegistries).toEqual({
+      '/': 'docs/status/poolday-critical-user-journeys.json',
+      '/zero': 'docs/status/zero-critical-user-journeys.json',
+      '/x': 'docs/status/x-critical-user-journeys.json'
+    });
     expect(index.entries.map((entry) => entry.surface)).toEqual(expect.arrayContaining([
       '/',
       '/zero',
@@ -23,7 +28,12 @@ describe('surface claim index', () => {
 
   it('denies claims for blocked rows', async () => {
     const errors = await validateSurfaceClaimIndex({
-      schema: 'reploid/surface-claim-index/v1',
+      schema: 'reploid/surface-claim-index/v2',
+      journeyRegistries: {
+        '/': 'docs/status/poolday-critical-user-journeys.json',
+        '/zero': 'docs/status/zero-critical-user-journeys.json',
+        '/x': 'docs/status/x-critical-user-journeys.json'
+      },
       entries: [{
         surface: 'future-surface',
         status: 'blocked',
