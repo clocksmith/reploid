@@ -700,9 +700,14 @@ export function createFirestorePoolStore({ firestore, collectionPrefix = '' } = 
       };
       return writeDoc(COLLECTIONS.peerRoomMessages, `${resolvedRoomId}_${relayId}`, saved, { merge: true });
     },
-    async listPeerRoomMessages(roomId, { after = 0, peerId = null, limit = 100 } = {}) {
+    async listPeerRoomMessages(roomId, {
+      after = 0,
+      notBefore = 0,
+      peerId = null,
+      limit = 100
+    } = {}) {
       const resolvedRoomId = String(roomId || '').trim();
-      const minCreatedAt = Number(after || 0);
+      const minCreatedAt = Math.max(Number(after || 0), Number(notBefore || 0));
       const maxResults = Number(limit || 100);
       const filterMessages = (messages) => messages
         .filter((message) => {

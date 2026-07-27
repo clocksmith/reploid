@@ -821,6 +821,26 @@ describe('pool signaling production guards', () => {
     expect(oversized.body.error).toBe('signal payload exceeds metadata size limit');
   });
 
+  it('queries only the live peer-room relay window before applying the result limit', async () => {
+    let query = null;
+    store.listPeerRoomMessages = async (roomId, options) => {
+      query = { roomId, ...options };
+      return [];
+    };
+    const startedAt = Date.now();
+
+    const response = await dispatchJson(router, '/peer/rooms/reploid-default/messages?limit=100');
+
+    expect(response.status).toBe(200);
+    expect(query).toMatchObject({
+      roomId: 'reploid-default',
+      after: 0,
+      limit: 100
+    });
+    expect(query.notBefore).toBeGreaterThanOrEqual(startedAt - 121_000);
+    expect(query.notBefore).toBeLessThanOrEqual(Date.now());
+  });
+
   it('relays peer-room rendezvous envelopes without accepting inference payloads', async () => {
     const roomId = 'peer_room_route_test';
     const publishStartedAt = Date.now();
