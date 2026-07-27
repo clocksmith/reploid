@@ -6,6 +6,8 @@ import {
 import {
   DOPPLER_KERNEL_BASE_URL,
   DOPPLER_MODULE_URL,
+  DOPPLER_PACKAGE_INTEGRITY,
+  DOPPLER_PACKAGE_TARBALL_URL,
   DOPPLER_PACKAGE_SPEC
 } from '../../self/config/doppler-local-models.js';
 
@@ -46,8 +48,8 @@ const createFixture = () => ({
       '': { dependencies: { 'doppler-gpu': DOPPLER_PACKAGE_SPEC } },
       'node_modules/doppler-gpu': {
         version: '0.5.1',
-        resolved: DOPPLER_PACKAGE_SPEC,
-        integrity: 'sha512-test'
+        resolved: DOPPLER_PACKAGE_TARBALL_URL,
+        integrity: DOPPLER_PACKAGE_INTEGRITY
       }
     }
   }

@@ -71,7 +71,7 @@ The current Cloud Run and Firestore path is transitional. The target Reploid con
 
 ## Doppler Evidence Contract
 
-- [x] Keep `doppler-gpu@0.4.15` as the npm tooling dependency and pin the immutable Doppler browser runtime to GitHub release `v0.4.16`; confirm its jsDelivr entry loads without import-map or bundler assumptions.
+- [x] Pin npm tooling and the immutable browser runtime to published `doppler-gpu@0.5.1`; verify the exact tarball integrity and npm jsDelivr entry without import-map or bundler assumptions.
 - [x] Consume the narrow public Doppler evidence export for token ids, transcript hashes, generation config, runtime profile hash, and backend identity.
 - [x] Keep Reploid from deep-importing Doppler internals.
 - [x] Show a visible comparison receipt for Doppler output fields versus Reploid receipt fields.
