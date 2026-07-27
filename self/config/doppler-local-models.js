@@ -5,12 +5,15 @@
 export const DOPPLER_PACKAGE_NAME = 'doppler-gpu';
 export const DOPPLER_PACKAGE_VERSION = '0.5.1';
 export const DOPPLER_BROWSER_RUNTIME_VERSION = '0.5.1';
-export const DOPPLER_RELEASE_COMMIT = '8c223f737d8e1d3578b976b01b7dc51e20e78dd6';
-export const DOPPLER_PACKAGE_SPEC =
-  `https://codeload.github.com/clocksmith/doppler/tar.gz/${DOPPLER_RELEASE_COMMIT}`;
-export const DOPPLER_BROWSER_RELEASE_REF = DOPPLER_RELEASE_COMMIT;
+export const DOPPLER_PACKAGE_SPEC = DOPPLER_PACKAGE_VERSION;
+export const DOPPLER_PACKAGE_TARBALL_URL =
+  `https://registry.npmjs.org/${DOPPLER_PACKAGE_NAME}/-/${DOPPLER_PACKAGE_NAME}-${DOPPLER_PACKAGE_VERSION}.tgz`;
+export const DOPPLER_PACKAGE_INTEGRITY =
+  'sha512-eVzxMdaRn5QN3z1lUQB3BSfSN+MNwB9uMMSAMa0MsAVGLUvy9vyj48jYqR2HfadXmmAsHpdMLXFYmNydjtjJrw==';
+export const DOPPLER_BROWSER_RELEASE_REF =
+  `${DOPPLER_PACKAGE_NAME}@${DOPPLER_BROWSER_RUNTIME_VERSION}`;
 const DOPPLER_BROWSER_RELEASE_BASE_URL =
-  `https://cdn.jsdelivr.net/gh/clocksmith/doppler@${DOPPLER_BROWSER_RELEASE_REF}`;
+  `https://cdn.jsdelivr.net/npm/${DOPPLER_BROWSER_RELEASE_REF}`;
 export const DOPPLER_MODULE_URL = `${DOPPLER_BROWSER_RELEASE_BASE_URL}/src/index.js`;
 export const DOPPLER_KERNEL_BASE_URL = `${DOPPLER_BROWSER_RELEASE_BASE_URL}/src/gpu/kernels`;
 export const DOPPLER_TOOLING_URL = `${DOPPLER_BROWSER_RELEASE_BASE_URL}/src/tooling-exports.browser.js`;

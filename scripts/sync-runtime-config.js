@@ -7,10 +7,11 @@ import {
   DOPPLER_BROWSER_RUNTIME_VERSION,
   DOPPLER_KERNEL_BASE_URL,
   DOPPLER_MODULE_URL,
+  DOPPLER_PACKAGE_INTEGRITY,
   DOPPLER_PACKAGE_NAME,
   DOPPLER_PACKAGE_SPEC,
-  DOPPLER_PACKAGE_VERSION,
-  DOPPLER_RELEASE_COMMIT
+  DOPPLER_PACKAGE_TARBALL_URL,
+  DOPPLER_PACKAGE_VERSION
 } from '../self/config/doppler-local-models.js';
 
 const RUNTIME_ENV_KEYS = Object.freeze({
@@ -76,14 +77,14 @@ export function synchronizeRuntimeConfig({
   if (lockRootSpec !== DOPPLER_PACKAGE_SPEC || lockedPackage?.version !== packageVersion) {
     throw new Error(`package-lock.json must pin ${DOPPLER_PACKAGE_NAME} exactly to ${DOPPLER_PACKAGE_SPEC}`);
   }
-  if (lockedPackage.resolved !== DOPPLER_PACKAGE_SPEC) {
+  if (lockedPackage.resolved !== DOPPLER_PACKAGE_TARBALL_URL) {
     throw new Error(
       `package-lock.json must resolve ${DOPPLER_PACKAGE_NAME}@${packageVersion} `
-      + `to ${DOPPLER_PACKAGE_SPEC}`
+      + `to ${DOPPLER_PACKAGE_TARBALL_URL}`
     );
   }
-  if (!String(lockedPackage.integrity || '').startsWith('sha512-')) {
-    throw new Error(`package-lock.json must include sha512 integrity for ${DOPPLER_PACKAGE_NAME}@${packageVersion}`);
+  if (lockedPackage.integrity !== DOPPLER_PACKAGE_INTEGRITY) {
+    throw new Error(`package-lock.json must include the published integrity for ${DOPPLER_PACKAGE_NAME}@${packageVersion}`);
   }
 
   const synchronizedPoolConfig = synchronizeCompatibility(clone(poolConfig), browserRuntimeVersion);

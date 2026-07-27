@@ -5,10 +5,11 @@ import {
   DEFAULT_DOPPLER_MODEL_ID,
   DOPPLER_BROWSER_RELEASE_REF,
   DOPPLER_BROWSER_RUNTIME_VERSION,
+  DOPPLER_PACKAGE_INTEGRITY,
   DOPPLER_PACKAGE_NAME,
   DOPPLER_PACKAGE_SPEC,
+  DOPPLER_PACKAGE_TARBALL_URL,
   DOPPLER_PACKAGE_VERSION,
-  DOPPLER_RELEASE_COMMIT,
   DOPPLER_KERNEL_BASE_URL,
   DOPPLER_MODULE_URL,
   DOPPLER_TOOLING_URL,
@@ -27,10 +28,10 @@ describe('local Doppler model contract', () => {
     expect(DOPPLER_PACKAGE_NAME).toBe('doppler-gpu');
     expect(DOPPLER_PACKAGE_VERSION).toBe('0.5.1');
     expect(DOPPLER_BROWSER_RUNTIME_VERSION).toBe(DOPPLER_PACKAGE_VERSION);
-    expect(DOPPLER_BROWSER_RELEASE_REF).toBe(DOPPLER_RELEASE_COMMIT);
-    expect(DOPPLER_MODULE_URL).toBe(`https://cdn.jsdelivr.net/gh/clocksmith/doppler@${DOPPLER_RELEASE_COMMIT}/src/index.js`);
-    expect(DOPPLER_KERNEL_BASE_URL).toBe(`https://cdn.jsdelivr.net/gh/clocksmith/doppler@${DOPPLER_RELEASE_COMMIT}/src/gpu/kernels`);
-    expect(DOPPLER_TOOLING_URL).toBe(`https://cdn.jsdelivr.net/gh/clocksmith/doppler@${DOPPLER_RELEASE_COMMIT}/src/tooling-exports.browser.js`);
+    expect(DOPPLER_BROWSER_RELEASE_REF).toBe('doppler-gpu@0.5.1');
+    expect(DOPPLER_MODULE_URL).toBe('https://cdn.jsdelivr.net/npm/doppler-gpu@0.5.1/src/index.js');
+    expect(DOPPLER_KERNEL_BASE_URL).toBe('https://cdn.jsdelivr.net/npm/doppler-gpu@0.5.1/src/gpu/kernels');
+    expect(DOPPLER_TOOLING_URL).toBe('https://cdn.jsdelivr.net/npm/doppler-gpu@0.5.1/src/tooling-exports.browser.js');
     expect(DEFAULT_DOPPLER_MODEL_ID).toBe('qwen-3-5-2b-q4k-ehaf16');
     expect(LOCAL_DOPPLER_MODELS.map((model) => model.id)).toEqual([
       DEFAULT_DOPPLER_MODEL_ID
@@ -42,9 +43,9 @@ describe('local Doppler model contract', () => {
     expect(packageLock.packages?.['']?.dependencies?.[DOPPLER_PACKAGE_NAME]).toBe(DOPPLER_PACKAGE_SPEC);
     expect(packageLock.packages?.[`node_modules/${DOPPLER_PACKAGE_NAME}`]).toMatchObject({
       version: DOPPLER_PACKAGE_VERSION,
-      resolved: DOPPLER_PACKAGE_SPEC
+      resolved: DOPPLER_PACKAGE_TARBALL_URL,
+      integrity: DOPPLER_PACKAGE_INTEGRITY
     });
-    expect(packageLock.packages?.[`node_modules/${DOPPLER_PACKAGE_NAME}`]?.integrity).toMatch(/^sha512-/);
   });
 
   it('resolves only declared local Doppler model ids', () => {

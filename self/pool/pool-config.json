@@ -175,8 +175,8 @@
     "useSpeculative": false
   },
   "browserRuntime": {
-    "dopplerModuleUrl": "https://cdn.jsdelivr.net/gh/clocksmith/doppler@8c223f737d8e1d3578b976b01b7dc51e20e78dd6/src/index.js",
-    "dopplerKernelBaseUrl": "https://cdn.jsdelivr.net/gh/clocksmith/doppler@8c223f737d8e1d3578b976b01b7dc51e20e78dd6/src/gpu/kernels",
+    "dopplerModuleUrl": "https://cdn.jsdelivr.net/npm/doppler-gpu@0.5.1/src/index.js",
+    "dopplerKernelBaseUrl": "https://cdn.jsdelivr.net/npm/doppler-gpu@0.5.1/src/gpu/kernels",
     "modelBaseUrl": "https://huggingface.co/clocksmith/rdrr/resolve/80d7716270b6371d541de979eff3370edaf34e13/models",
     "loadOptions": {
       "cache": "opfs",
