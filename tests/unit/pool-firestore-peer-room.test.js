@@ -15,15 +15,18 @@ const createQueryableFirestore = () => {
     exists: value !== undefined,
     data: () => value
   });
-  const queryFor = (name, filters = [], order = null, resultLimit = null) => ({
+  const queryFor = (name, filters = [], order = null, resultLimit = null, resultLimitToLast = null) => ({
     where(field, operator, value) {
-      return queryFor(name, [...filters, { field, operator, value }], order, resultLimit);
+      return queryFor(name, [...filters, { field, operator, value }], order, resultLimit, resultLimitToLast);
     },
     orderBy(field, direction) {
-      return queryFor(name, filters, { field, direction }, resultLimit);
+      return queryFor(name, filters, { field, direction }, resultLimit, resultLimitToLast);
     },
     limit(value) {
-      return queryFor(name, filters, order, Number(value));
+      return queryFor(name, filters, order, Number(value), resultLimitToLast);
+    },
+    limitToLast(value) {
+      return queryFor(name, filters, order, resultLimit, Number(value));
     },
     async get() {
       let values = Array.from(recordsFor(name).values());
@@ -41,6 +44,7 @@ const createQueryableFirestore = () => {
         ));
       }
       if (resultLimit !== null) values = values.slice(0, resultLimit);
+      if (resultLimitToLast !== null) values = values.slice(-resultLimitToLast);
       return {
         docs: values.map((value) => snapshotFor(value)),
         empty: values.length === 0

@@ -719,17 +719,13 @@ export function createFirestorePoolStore({ firestore, collectionPrefix = '' } = 
         })
         .sort((left, right) => Number(left.createdAt || 0) - Number(right.createdAt || 0))
         .slice(0, maxResults);
-      try {
-        const snapshot = await collection(COLLECTIONS.peerRoomMessages)
-          .where('roomId', '==', resolvedRoomId)
-          .where('createdAt', '>', minCreatedAt)
-          .orderBy('createdAt', 'desc')
-          .limit(maxResults)
-          .get();
-        return filterMessages(snapshot.docs.map((entry) => entry.data()));
-      } catch {
-        return filterMessages(await listDocs(COLLECTIONS.peerRoomMessages));
-      }
+      const snapshot = await collection(COLLECTIONS.peerRoomMessages)
+        .where('roomId', '==', resolvedRoomId)
+        .where('createdAt', '>', minCreatedAt)
+        .orderBy('createdAt', 'asc')
+        .limitToLast(maxResults)
+        .get();
+      return filterMessages(snapshot.docs.map((entry) => entry.data()));
     },
     async listPeerRooms({ limit = 50 } = {}) {
       const messages = await listDocs(COLLECTIONS.peerRoomMessages);
