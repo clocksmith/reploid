@@ -59,6 +59,8 @@ const run = (label, script, scriptArgs = [], env = {}) => new Promise((resolve, 
 });
 
 try {
+  await run('critical user journey contract', 'verify-pool-critical-user-journeys.js');
+
   await run('deploy-surface drift gate', 'verify-deploy-surface.js', [
     baseUrl,
     ...(isLocal ? ['--allow-local'] : [])

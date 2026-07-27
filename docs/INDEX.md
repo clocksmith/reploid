@@ -33,6 +33,13 @@ Guide to all documentation in the REPLOID project.
 ### Reference
 - **[docs/API.md](./API.md)** - Module API documentation
 - **[docs/status/surface-claim-index.json](./status/surface-claim-index.json)** - Machine-checked surface status, evidence, blockers, and claim permission
+- **[docs/critical-user-journeys.md](./critical-user-journeys.md)** - Canonical index for Poolday, Zero, and X user outcomes
+- **[docs/status/poolday-critical-user-journeys.json](./status/poolday-critical-user-journeys.json)** - Canonical Poolday user outcomes, prerequisites, evidence, limitations, and remaining work
+- **[docs/poolday/critical-user-journeys.md](./poolday/critical-user-journeys.md)** - Human-readable Poolday journey status
+- **[docs/status/zero-critical-user-journeys.json](./status/zero-critical-user-journeys.json)** - Canonical Zero user outcomes, evidence, limitations, and remaining work
+- **[docs/zero/critical-user-journeys.md](./zero/critical-user-journeys.md)** - Human-readable Zero journey status
+- **[docs/status/x-critical-user-journeys.json](./status/x-critical-user-journeys.json)** - Canonical X user outcomes, evidence, limitations, and remaining work
+- **[docs/x/critical-user-journeys.md](./x/critical-user-journeys.md)** - Human-readable X journey status
 - **[docs/browser-inference-pool.md](./browser-inference-pool.md)** - Poolday docs/internal contract for the public Reploid browser inference surface
 - **[docs/poolday/claims-and-nonclaims.md](./poolday/claims-and-nonclaims.md)** - Poolday claim boundary
 - **[docs/poolday/threat-model.md](./poolday/threat-model.md)** - Poolday adversaries, trust boundaries, and evidence
@@ -46,6 +53,7 @@ Guide to all documentation in the REPLOID project.
 - **[docs/multi-model-evaluation.md](./multi-model-evaluation.md)** - Multi-model evaluation harness
 - **[docs/intent-bundle-lora.md](./intent-bundle-lora.md)** - Intent bundle LoRA workflow
 - **[docs/trained-adapter-promotion.md](./trained-adapter-promotion.md)** - Tinker adapter evidence, Shadow staging, and human-only promotion
+- **[docs/archive/reploid-descriptor-peer-orchestration.md](./archive/reploid-descriptor-peer-orchestration.md)** - Archived layer-pipelining research; not the current Poolday execution contract
 - **[docs/CONFIGURATION.md](./CONFIGURATION.md)** - Boot UI settings and localStorage keys
 - **[docs/local-models.md](./local-models.md)** - WebLLM and Ollama setup
 - **[docs/style-guide.md](./style-guide.md)** - Code and UI conventions

@@ -3,7 +3,6 @@
  * Tests memory system performance over 100+ turns without degradation.
  *
  * @see Blueprint 0x000068: Hierarchical Memory Architecture
- * @see docs/TODO.md: Phase 4.4 Integration & Testing
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';

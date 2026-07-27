@@ -221,8 +221,7 @@ const WARM_BOOT_PROBE_PATHS = Object.freeze([
   '/host/start-app.js',
   '/lab/profiles.js',
   '/lab/mirrors.js',
-  '/config/boot-seed.js',
-  '/config/lab-route-profiles.js'
+  '/config/boot-seed.js'
 ]);
 
 const shouldUseServiceWorkerForBoot = (bootProfile) => SERVICE_WORKER_BOOT_PROFILES.has(bootProfile);

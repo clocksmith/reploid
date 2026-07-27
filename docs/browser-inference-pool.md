@@ -15,11 +15,15 @@ Do not describe this as trustless compute, hardware-attested inference, or guara
 
 The target retrieval extension is documented in [Poolday Receipt-Backed Retrieval](./poolday/receipt-backed-retrieval.md). That document covers embeddings, vector indexes, query receipts, reranking receipts, and the competitive retrieval strategy. It is not a replacement for this current browser inference claim.
 
+Current product outcomes, prerequisites, limitations, evidence, and remaining
+work are tracked in [Poolday Critical User Journeys](./poolday/critical-user-journeys.md).
+Architecture sections below explain mechanisms; they do not own completion
+status.
+
 The biological-sequence extension is documented in [Poolday Biological
-Sequence Lane](./poolday/biological-sequence-lane.md). Its peer protocol and
-synthetic runtime tests exist, but no biological model is enabled in the
-Poolday catalog until immutable hosted artifacts and a matching Doppler release
-are qualified.
+Sequence Lane](./poolday/biological-sequence-lane.md). ESM-2 35M is enabled for
+explicitly public protein pooled embeddings. The sequence lane is not biological
+interpretation, medical advice, or a private-sequence service.
 
 Participation modes, device-root and passkey identity, adapter authority, route
 selection, and the model-shard boundary are specified in [Poolday Participation,

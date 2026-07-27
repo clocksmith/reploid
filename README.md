@@ -4,15 +4,18 @@
 [![License metadata: MIT](https://img.shields.io/badge/license%20metadata-MIT-blue.svg)](package.json)
 
 Reploid is a browser runtime family for receipt-backed, self-modifying agents.
-Everything runs client-side; agent behavior stays in visible self files, prompts,
-blueprints, traces, and receipts, never on a server.
+Model execution and agent behavior stay in browser-visible self files, prompts,
+blueprints, traces, and receipts. Optional server services provide authentication,
+configuration, metadata relay, and hosted compatibility paths; the Poolday relay
+rejects inference payloads.
 
 It ships as **three distinct surfaces** — Poolday, Zero, and X — each with its own
 route, boot profile, and tool set. They are separate products with separate
 authority: a capability supported on one surface is **not** implied on another.
 Every support claim is machine-checked in the
 [surface claim index](docs/status/surface-claim-index.json); read each row by its
-declared boundary and status.
+declared boundary and status. Current user outcomes and remaining work are owned
+by the three registries in [Critical User Journeys](docs/critical-user-journeys.md).
 
 ## Surfaces
 
@@ -51,7 +54,11 @@ Open `http://localhost:8000`. For the managed Gemini path, set `GEMINI_API_KEY` 
 
 ## Self contract
 
-Awaken clears prior live VFS state, writes the generated self manifests, exposes canonical source through a copy-on-write `/self` overlay, mounts Capsule, and starts the runtime.
+Zero and X hydrate route-specific manifests into an instance-scoped VFS, expose
+canonical source through a copy-on-write `/self` overlay, mount their respective
+runtime UI, and start the agent loop. Writable Shadow and artifact state can
+survive reload; live changes require Zero's explicit activated capabilities or
+X's promotion path.
 
 The generated [VFS manifest](self/config/vfs-manifest.json) enumerates seeded files. The executable [tool-surface contract](self/config/tool-surfaces.js) enumerates tool membership. The [RGR runtime contract](self/blueprints/rgr-runtime-contract.md) defines candidate evidence, anchors, quarantine, rollback, and promotion.
 
@@ -76,7 +83,8 @@ Users can bypass the managed access-window path and supply their own browser inf
 | --- | --- |
 | Operators | [Quick start](docs/QUICK-START.md), [configuration](docs/CONFIGURATION.md), and [local models](docs/local-models.md) |
 | Agent and runtime contributors | [System architecture](docs/system-architecture.md), [RGR runtime contract](self/blueprints/rgr-runtime-contract.md), and [tool surfaces](self/config/tool-surfaces.js) |
-| Security and claim reviewers | [Security model](docs/SECURITY.md), [surface claim index](docs/status/surface-claim-index.json), [Poolday claims](docs/poolday/claims-and-nonclaims.md), and [threat model](docs/poolday/threat-model.md) |
+| Product and release reviewers | [Critical user journeys](docs/critical-user-journeys.md), the three [machine-readable journey registries](docs/status/surface-claim-index.json), and the [surface claim index](docs/status/surface-claim-index.json) |
+| Security and claim reviewers | [Security model](docs/SECURITY.md), [Poolday claims](docs/poolday/claims-and-nonclaims.md), and [threat model](docs/poolday/threat-model.md) |
 | Inference integrators | [Browser inference pool](docs/browser-inference-pool.md), [receipt schema](docs/poolday/receipt-schema.md), and [Doppler](https://github.com/clocksmith/doppler) |
 
 The [documentation index](docs/INDEX.md) owns the complete architecture, blueprint, API, and operator inventory.

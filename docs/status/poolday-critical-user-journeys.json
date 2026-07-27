@@ -1,0 +1,452 @@
+{
+  "schema": "reploid/poolday-critical-user-journeys/v1",
+  "updated": "2026-07-27",
+  "surface": "/",
+  "publicProductName": "Reploid",
+  "internalSurfaceName": "Poolday",
+  "statusDefinitions": {
+    "supported": "The outcome has an executable implementation and automated end-to-end contract coverage.",
+    "conditional": "The outcome is executable only when named device, artifact, provider, network, or registry prerequisites are satisfied.",
+    "limited": "A narrower local or protocol outcome works, but the broader user expectation is not yet met.",
+    "blocked": "The user outcome is intentionally unavailable and has explicit blockers."
+  },
+  "releaseEvidence": {
+    "gate": "scripts/verify-pool-release.js",
+    "retainedArtifact": null,
+    "status": "not-retained",
+    "requiredArtifactFields": [
+      "journeyIds",
+      "commit",
+      "deploymentUrl",
+      "configVersion",
+      "configHash",
+      "startedAt",
+      "completedAt",
+      "browserChannel",
+      "modelId",
+      "receiptHash",
+      "agreementHash",
+      "result"
+    ]
+  },
+  "journeys": [
+    {
+      "id": "request-text-answer",
+      "actor": "requester",
+      "outcome": "Send one text prompt to a compatible browser contributor and receive an answer with an inspectable signed receipt.",
+      "routes": [
+        "/",
+        "/ask"
+      ],
+      "status": "conditional",
+      "releaseCritical": true,
+      "prerequisites": [
+        "A compatible contributor advertises the exact requested model and runtime profile.",
+        "The requester and contributor establish a WebRTC DataChannel.",
+        "The prompt passes the public-provider policy classes."
+      ],
+      "modelIds": [
+        "gemma-3-270m-it-q4k-ehf16-af32",
+        "qwen-3-5-0-8b-q4k-ehaf16",
+        "gemma-4-e2b-it-q4k-ehf16-af32-int4ple"
+      ],
+      "policyIds": [
+        "fastest_receipt",
+        "canary_audited",
+        "redundant_agreement",
+        "ring_quorum_receipt"
+      ],
+      "implementationPaths": [
+        "self/ui/pool-home/controls.js",
+        "self/pool/requester-client.js",
+        "self/pool/peer-room.js"
+      ],
+      "testPaths": [
+        "tests/unit/pool-home-ask-controls.test.js",
+        "tests/unit/pool-peer-room.test.js",
+        "scripts/pool-actual-browser-smoke.js"
+      ],
+      "limitations": [
+        "There is no hosted inference fallback.",
+        "The default generation contract is a one-shot deterministic response capped at 128 output tokens.",
+        "Provider availability and answer quality are not established by protocol correctness alone."
+      ],
+      "openWorkIds": [
+        "retain-deployed-journey-evidence",
+        "measure-provider-availability",
+        "gate-text-answer-quality",
+        "capture-stale-peer-cleanup-evidence",
+        "build-serverless-wide-area-peer-graph"
+      ]
+    },
+    {
+      "id": "recover-with-local-inference",
+      "actor": "requester",
+      "outcome": "Preserve a request when no contributor is available and, after explicit consent, download the model and run it on this browser.",
+      "routes": [
+        "/",
+        "/ask"
+      ],
+      "status": "conditional",
+      "releaseCritical": true,
+      "prerequisites": [
+        "The device qualifies for the selected model's WebGPU requirements.",
+        "The pinned model artifacts are reachable and fit browser storage.",
+        "The user explicitly chooses Download and run here."
+      ],
+      "implementationPaths": [
+        "self/ui/pool-home/controls.js",
+        "self/pool/doppler-runtime.js",
+        "self/pool/peer-room.js"
+      ],
+      "testPaths": [
+        "tests/unit/pool-home-ask-controls.test.js",
+        "tests/unit/pool-doppler-runtime.test.js"
+      ],
+      "limitations": [
+        "The first run may require a large model download.",
+        "Unsupported browsers remain request-only."
+      ],
+      "openWorkIds": [
+        "retain-deployed-journey-evidence"
+      ]
+    },
+    {
+      "id": "contribute-browser-compute",
+      "actor": "contributor",
+      "outcome": "Qualify this browser, load one complete model, advertise availability, answer compatible jobs, sign receipts, and stop sharing at any time.",
+      "routes": [
+        "/",
+        "/compute"
+      ],
+      "status": "conditional",
+      "releaseCritical": true,
+      "prerequisites": [
+        "The device qualifies for the selected model.",
+        "The model artifacts load through Doppler and browser storage.",
+        "The tab remains open and reachable in the selected room."
+      ],
+      "implementationPaths": [
+        "self/ui/pool-home/controls.js",
+        "self/pool/provider-client.js",
+        "self/pool/peer-room.js"
+      ],
+      "testPaths": [
+        "tests/unit/pool-home-ask-controls.test.js",
+        "tests/unit/pool-peer-room.test.js",
+        "scripts/pool-actual-browser-smoke.js"
+      ],
+      "limitations": [
+        "Each contributor loads and executes the complete model; model layers and KV state are not distributed across peers.",
+        "Keeping a contributor tab available is voluntary and creates no uptime guarantee."
+      ],
+      "openWorkIds": [
+        "retain-deployed-journey-evidence",
+        "measure-provider-availability",
+        "capture-stale-peer-cleanup-evidence",
+        "recover-hosted-diagnostic-assignments",
+        "build-serverless-wide-area-peer-graph"
+      ]
+    },
+    {
+      "id": "verify-receipt-agreement",
+      "actor": "requester",
+      "outcome": "Choose a signed, canary-audited, redundant, or adaptive ring policy and inspect whether the required deterministic receipts agree.",
+      "routes": [
+        "/",
+        "/ask",
+        "/records"
+      ],
+      "status": "supported",
+      "releaseCritical": true,
+      "prerequisites": [
+        "Enough compatible contributors are available for the selected policy.",
+        "Compared contributors share the required exact model and runtime profile."
+      ],
+      "implementationPaths": [
+        "self/pool/peer-control-plane.js",
+        "self/pool/peer-planning.js",
+        "self/pool/peer-room.js",
+        "self/pool/inference-receipt.js"
+      ],
+      "testPaths": [
+        "tests/unit/pool-peer-control-plane.test.js",
+        "tests/unit/pool-peer-room.test.js",
+        "tests/unit/poolday-audit.test.js"
+      ],
+      "limitations": [
+        "Agreement proves matching signed artifacts, not factual correctness, honest GPU execution, or absence of collusion.",
+        "A one-provider policy supplies accountability but no independent comparison."
+      ],
+      "openWorkIds": [
+        "retain-deployed-journey-evidence"
+      ]
+    },
+    {
+      "id": "inspect-local-records",
+      "actor": "requester_or_contributor",
+      "outcome": "Inspect this browser's saved answers, contribution receipts, room activity, scores, and technical receipt details.",
+      "routes": [
+        "/records",
+        "/history",
+        "/network"
+      ],
+      "status": "limited",
+      "releaseCritical": true,
+      "prerequisites": [
+        "The browser permits localStorage for local records.",
+        "Authenticated coordinator access is available for hosted receipt lookup."
+      ],
+      "implementationPaths": [
+        "self/ui/pool-home/record-persistence.js",
+        "self/ui/pool-home/view.js",
+        "self/ui/pool-home/controls.js"
+      ],
+      "testPaths": [
+        "tests/unit/pool-home-record.test.js"
+      ],
+      "limitations": [
+        "Primary peer-room records are local to the browser and room.",
+        "History and network are compatibility aliases for records, not separate products.",
+        "There is no account-synchronized cross-device history."
+      ],
+      "openWorkIds": [
+        "add-durable-cross-device-records"
+      ]
+    },
+    {
+      "id": "run-public-protein-embedding",
+      "actor": "requester",
+      "outcome": "Send an explicitly public protein sequence to a selected ESM-2 contributor and receive a receipt-bound pooled embedding.",
+      "routes": [
+        "/"
+      ],
+      "status": "conditional",
+      "releaseCritical": true,
+      "prerequisites": [
+        "The user confirms the sequence is public.",
+        "A compatible ESM-2 contributor is available or this browser can load ESM-2.",
+        "The sequence satisfies the amino-acid and length contract."
+      ],
+      "modelIds": [
+        "esm2-t12-35m-ur50d-f32-af32"
+      ],
+      "policyIds": [
+        "fastest_receipt",
+        "canary_audited",
+        "redundant_agreement",
+        "ring_quorum_receipt"
+      ],
+      "implementationPaths": [
+        "self/ui/pool-home/controls.js",
+        "self/pool/sequence-workload.js",
+        "self/pool/peer-room.js"
+      ],
+      "testPaths": [
+        "tests/unit/pool-home-ask-controls.test.js",
+        "tests/unit/pool-sequence-workload.test.js",
+        "tests/unit/pool-peer-room.test.js"
+      ],
+      "limitations": [
+        "Private or sensitive biological sequences are not accepted.",
+        "The product returns an embedding, not biological interpretation or medical advice."
+      ],
+      "openWorkIds": [
+        "retain-deployed-journey-evidence"
+      ]
+    },
+    {
+      "id": "run-published-adapter",
+      "actor": "requester",
+      "outcome": "Select a promoted adapter pack for an exact base model and receive a receipt binding the pack, approval, acquisition, and inference result.",
+      "routes": [
+        "/",
+        "/ask",
+        "/compute"
+      ],
+      "status": "conditional",
+      "releaseCritical": false,
+      "prerequisites": [
+        "A promoted public adapter publication matches the exact selected base model.",
+        "The contributor can fetch, verify, and load the adapter bytes."
+      ],
+      "implementationPaths": [
+        "self/pool/adapter-registry.js",
+        "self/pool/adapter-publication.js",
+        "self/ui/pool-home/controls.js"
+      ],
+      "testPaths": [
+        "tests/unit/pool-home-ask-controls.test.js",
+        "tests/unit/pool-adapter-publication.test.js",
+        "tests/unit/pool-peer-room.test.js"
+      ],
+      "limitations": [
+        "The adapter lane is hidden when no compatible promoted publication is available.",
+        "A published pack proves custody and compatibility, not task quality."
+      ],
+      "openWorkIds": [
+        "retain-adapter-supply-evidence"
+      ]
+    },
+    {
+      "id": "earn-protocol-reputation",
+      "actor": "contributor",
+      "outcome": "Receive signed points and reputation events after the requester accepts a valid receipt or receipt agreement.",
+      "routes": [
+        "/compute",
+        "/records"
+      ],
+      "status": "limited",
+      "releaseCritical": true,
+      "prerequisites": [
+        "A requester accepts the contributor's valid receipt.",
+        "The participating peers retain the signed ledger events."
+      ],
+      "implementationPaths": [
+        "self/pool/peer-control-plane.js",
+        "self/pool/peer-ledger.js",
+        "self/ui/pool-home/record-persistence.js"
+      ],
+      "testPaths": [
+        "tests/unit/pool-peer-control-plane.test.js",
+        "tests/unit/pool-peer-room.test.js",
+        "tests/unit/pool-home-record.test.js"
+      ],
+      "limitations": [
+        "Peer-room points and reputation are local replicated protocol events, not money.",
+        "There is no globally durable, Sybil-resistant reputation network."
+      ],
+      "openWorkIds": [
+        "add-durable-cross-device-records",
+        "build-serverless-wide-area-peer-graph"
+      ]
+    },
+    {
+      "id": "receive-paid-compensation",
+      "actor": "contributor",
+      "outcome": "Receive monetary compensation for accepted browser inference work.",
+      "routes": [
+        "/compute"
+      ],
+      "status": "blocked",
+      "releaseCritical": false,
+      "prerequisites": [],
+      "implementationPaths": [],
+      "testPaths": [],
+      "limitations": [
+        "No payment, pricing, payout, tax, dispute, or settlement system exists."
+      ],
+      "openWorkIds": [
+        "design-paid-settlement"
+      ]
+    }
+  ],
+  "openWork": [
+    {
+      "id": "retain-deployed-journey-evidence",
+      "state": "open",
+      "priority": "P0",
+      "journeyIds": [
+        "request-text-answer",
+        "recover-with-local-inference",
+        "contribute-browser-compute",
+        "verify-receipt-agreement",
+        "run-public-protein-embedding"
+      ],
+      "summary": "Persist every actual-browser release run as an immutable journey artifact instead of recording a checked box.",
+      "acceptance": "The release gate writes all releaseEvidence.requiredArtifactFields to a repository-governed or content-addressed artifact and exposes its path from this registry."
+    },
+    {
+      "id": "measure-provider-availability",
+      "state": "open",
+      "priority": "P0",
+      "journeyIds": [
+        "request-text-answer",
+        "contribute-browser-compute"
+      ],
+      "summary": "Measure whether a requester can actually find a compatible contributor and reach a receipt.",
+      "acceptance": "A retained production report records discovery success, connection success, receipt success, no-provider recovery, and latency separately."
+    },
+    {
+      "id": "gate-text-answer-quality",
+      "state": "open",
+      "priority": "P0",
+      "journeyIds": [
+        "request-text-answer"
+      ],
+      "summary": "Evaluate whether enabled text models produce useful visible answers for the prompts the UI suggests.",
+      "acceptance": "A versioned prompt set has machine checks and human recognizability or usefulness verdicts bound to model, build, receipt, and output."
+    },
+    {
+      "id": "add-durable-cross-device-records",
+      "state": "open",
+      "priority": "P1",
+      "journeyIds": [
+        "inspect-local-records",
+        "earn-protocol-reputation"
+      ],
+      "summary": "Provide durable, identity-bound records without misrepresenting localStorage as synchronized history.",
+      "acceptance": "An authenticated user can recover accepted receipts and reputation events on a second browser with signature and hash verification."
+    },
+    {
+      "id": "retain-adapter-supply-evidence",
+      "state": "open",
+      "priority": "P1",
+      "journeyIds": [
+        "run-published-adapter"
+      ],
+      "summary": "Track whether any promoted public adapter is presently fetchable and executable.",
+      "acceptance": "A retained production artifact binds publication, adapter bytes, exact base model, browser execution, receipt, and current availability."
+    },
+    {
+      "id": "capture-stale-peer-cleanup-evidence",
+      "state": "open",
+      "priority": "P1",
+      "journeyIds": [
+        "request-text-answer",
+        "contribute-browser-compute"
+      ],
+      "summary": "Capture deployed expiration and stale-peer cleanup behavior for relay and hosted signaling paths.",
+      "acceptance": "A deployed test proves expired adverts and signaling messages stop affecting discovery and assignment."
+    },
+    {
+      "id": "recover-hosted-diagnostic-assignments",
+      "state": "open",
+      "priority": "P2",
+      "journeyIds": [
+        "contribute-browser-compute"
+      ],
+      "summary": "Recover the optional hosted diagnostic flow after assignment expiration or a missed reveal.",
+      "acceptance": "Hosted diagnostic tests cover registration, assignment claim, commit, reveal, expiration, recovery, and terminal receipt state."
+    },
+    {
+      "id": "build-serverless-wide-area-peer-graph",
+      "state": "open",
+      "priority": "P2",
+      "journeyIds": [
+        "request-text-answer",
+        "contribute-browser-compute",
+        "earn-protocol-reputation"
+      ],
+      "summary": "Move remote discovery and event gossip beyond the optional Reploid room relay.",
+      "acceptance": "Two remote browsers discover, connect, accept a receipt, and converge ledger state without any Reploid server relay."
+    },
+    {
+      "id": "design-paid-settlement",
+      "state": "blocked",
+      "priority": "P2",
+      "journeyIds": [
+        "receive-paid-compensation"
+      ],
+      "summary": "Define pricing, payout, tax, dispute, abuse, and settlement authority before monetary rewards exist.",
+      "acceptance": "Product, legal, security, identity, accounting, and dispute contracts are approved and tested before any paid contribution claim."
+    }
+  ],
+  "constraints": [
+    "Do not claim trustless, hardware-attested, or guaranteed honest browser execution.",
+    "The metadata relay must not carry prompts, outputs, token streams, model payloads, or full receipts.",
+    "Each contributor executes a complete model; Poolday does not claim distributed layer, attention, or KV-cache execution.",
+    "Local peer-room points are not money.",
+    "A journey status may advance only with executable evidence; narrative or a checked TODO item is insufficient."
+  ]
+}

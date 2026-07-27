@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-07-26T22:19:21.348Z",
+  "generatedAt": "2026-07-27T15:48:28.191Z",
   "features": [
     {
       "id": "0x000003",
@@ -87,20 +87,6 @@
       ]
     },
     {
-      "id": "0x00000D",
-      "name": "ui-manager",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x00000D",
-          "path": "blueprints/0x00000D-ui-manager.md"
-        }
-      ],
-      "files": [
-        "ui/dashboard/ui-manager.js"
-      ]
-    },
-    {
       "id": "0x000011",
       "name": "advanced-storage-backend-indexeddb",
       "status": "active",
@@ -130,20 +116,6 @@
       ]
     },
     {
-      "id": "0x000020",
-      "name": "vfs-explorer-interaction",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x000020",
-          "path": "blueprints/0x000020-vfs-explorer-interaction.md"
-        }
-      ],
-      "files": [
-        "ui/dashboard/vfs-explorer.js"
-      ]
-    },
-    {
       "id": "0x000023",
       "name": "performance-monitoring-stack",
       "status": "active",
@@ -155,20 +127,6 @@
       ],
       "files": [
         "capabilities/performance/performance-monitor.js"
-      ]
-    },
-    {
-      "id": "0x000024",
-      "name": "metrics-proto-visuals",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x000024",
-          "path": "blueprints/0x000024-metrics-proto-visuals.md"
-        }
-      ],
-      "files": [
-        "ui/dashboard/metrics-dashboard.js"
       ]
     },
     {
@@ -342,20 +300,6 @@
       ]
     },
     {
-      "id": "0x000044",
-      "name": "hitl-control-panel-ui",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x000044",
-          "path": "blueprints/0x000044-hitl-control-panel-ui.md"
-        }
-      ],
-      "files": [
-        "ui/components/hitl-widget.js"
-      ]
-    },
-    {
       "id": "0x000047",
       "name": "worker-pool-parallelization",
       "status": "active",
@@ -381,20 +325,6 @@
       ],
       "files": [
         "infrastructure/hitl-controller.js"
-      ]
-    },
-    {
-      "id": "0x00004C",
-      "name": "module-proto-orchestration",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x00004C",
-          "path": "blueprints/0x00004C-module-proto-orchestration.md"
-        }
-      ],
-      "files": [
-        "ui/proto.js"
       ]
     },
     {
@@ -751,34 +681,6 @@
       ]
     },
     {
-      "id": "0x00007C",
-      "name": "toast-notifications",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x00007C",
-          "path": "blueprints/0x00007C-toast-notifications.md"
-        }
-      ],
-      "files": [
-        "ui/components/toast-notifications.js"
-      ]
-    },
-    {
-      "id": "0x00007D",
-      "name": "diff-viewer-ui",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x00007D",
-          "path": "blueprints/0x00007D-diff-viewer-ui.md"
-        }
-      ],
-      "files": [
-        "ui/components/diff-viewer-ui.js"
-      ]
-    },
-    {
       "id": "0x000090",
       "name": "boot",
       "status": "active",
@@ -975,20 +877,6 @@
       ]
     },
     {
-      "id": "0x0000a2",
-      "name": "core-async-utils",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x0000a2",
-          "path": "blueprints/0x0000a2-core-async-utils.md"
-        }
-      ],
-      "files": [
-        "core/async-utils.js"
-      ]
-    },
-    {
       "id": "0x0000a3",
       "name": "core-schema-validator",
       "status": "active",
@@ -1056,34 +944,6 @@
       ],
       "files": [
         "sw-module-loader.js"
-      ]
-    },
-    {
-      "id": "0x0000a8",
-      "name": "testing-arena-doppler-integration",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x0000a8",
-          "path": "blueprints/0x0000a8-testing-arena-doppler-integration.md"
-        }
-      ],
-      "files": [
-        "testing/arena/doppler-integration.js"
-      ]
-    },
-    {
-      "id": "0x0000a9",
-      "name": "testing-arena-index",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x0000a9",
-          "path": "blueprints/0x0000a9-testing-arena-index.md"
-        }
-      ],
-      "files": [
-        "testing/arena/index.js"
       ]
     },
     {
@@ -1549,20 +1409,6 @@
       ]
     },
     {
-      "id": "0x0000ce",
-      "name": "ui-boot-steps-detect",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x0000ce",
-          "path": "blueprints/0x0000ce-ui-boot-steps-detect.md"
-        }
-      ],
-      "files": [
-        "ui/boot-wizard/steps/detect.js"
-      ]
-    },
-    {
       "id": "0x0000cf",
       "name": "ui-boot-steps-direct",
       "status": "active",
@@ -1605,48 +1451,6 @@
       ]
     },
     {
-      "id": "0x0000d2",
-      "name": "ui-components-arena-results",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x0000d2",
-          "path": "blueprints/0x0000d2-ui-components-arena-results.md"
-        }
-      ],
-      "files": [
-        "ui/components/arena-results.js"
-      ]
-    },
-    {
-      "id": "0x0000d3",
-      "name": "ui-components-confirmation-modal",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x0000d3",
-          "path": "blueprints/0x0000d3-ui-components-confirmation-modal.md"
-        }
-      ],
-      "files": [
-        "ui/components/confirmation-modal.js"
-      ]
-    },
-    {
-      "id": "0x0000d4",
-      "name": "ui-panels-metrics-panel",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x0000d4",
-          "path": "blueprints/0x0000d4-ui-panels-metrics-panel.md"
-        }
-      ],
-      "files": [
-        "ui/panels/metrics-panel.js"
-      ]
-    },
-    {
       "id": "0x0000d5",
       "name": "ui-proto-index",
       "status": "active",
@@ -1658,20 +1462,6 @@
       ],
       "files": [
         "ui/proto/index.js"
-      ]
-    },
-    {
-      "id": "0x0000d6",
-      "name": "ui-proto-schemas",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x0000d6",
-          "path": "blueprints/0x0000d6-ui-proto-schemas.md"
-        }
-      ],
-      "files": [
-        "ui/proto/schemas.js"
       ]
     },
     {
@@ -2389,20 +2179,6 @@
       ]
     },
     {
-      "id": "0x00010c",
-      "name": "ui-ui",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x00010c",
-          "path": "blueprints/0x00010c-ui-ui.md"
-        }
-      ],
-      "files": [
-        "ui/UI.js"
-      ]
-    },
-    {
       "id": "0x00010d",
       "name": "ui-boot-home-index",
       "status": "active",
@@ -2445,20 +2221,6 @@
       ]
     },
     {
-      "id": "0x000110",
-      "name": "ui-capsule-index",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x000110",
-          "path": "blueprints/0x000110-ui-capsule-index.md"
-        }
-      ],
-      "files": [
-        "ui/capsule/index.js"
-      ]
-    },
-    {
       "id": "0x000111",
       "name": "ui-zero-index",
       "status": "active",
@@ -2470,20 +2232,6 @@
       ],
       "files": [
         "ui/zero/index.js"
-      ]
-    },
-    {
-      "id": "0x000113",
-      "name": "config-lab-route-profiles",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x000113",
-          "path": "blueprints/0x000113-config-lab-route-profiles.md"
-        }
-      ],
-      "files": [
-        "config/lab-route-profiles.js"
       ]
     },
     {
@@ -2697,20 +2445,6 @@
       ]
     },
     {
-      "id": "0x000123",
-      "name": "pool-layer-scheduler",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x000123",
-          "path": "blueprints/0x000123-pool-layer-scheduler.md"
-        }
-      ],
-      "files": [
-        "pool/layer-scheduler.js"
-      ]
-    },
-    {
       "id": "0x000124",
       "name": "pool-model-artifacts",
       "status": "active",
@@ -2795,20 +2529,6 @@
       ]
     },
     {
-      "id": "0x00012a",
-      "name": "pool-peer-registry",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x00012a",
-          "path": "blueprints/0x00012a-pool-peer-registry.md"
-        }
-      ],
-      "files": [
-        "pool/peer-registry.js"
-      ]
-    },
-    {
       "id": "0x00012b",
       "name": "pool-peer-rendezvous",
       "status": "active",
@@ -2861,7 +2581,8 @@
         }
       ],
       "files": [
-        "pool/policy-router.js"
+        "pool/policy-router.js",
+        "pool/policy-validation.js"
       ]
     },
     {
@@ -2935,20 +2656,6 @@
       ]
     },
     {
-      "id": "0x000134",
-      "name": "pool-shard-negotiation",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x000134",
-          "path": "blueprints/0x000134-pool-shard-negotiation.md"
-        }
-      ],
-      "files": [
-        "pool/shard-negotiation.js"
-      ]
-    },
-    {
       "id": "0x000135",
       "name": "self-dream-instance",
       "status": "active",
@@ -2988,20 +2695,6 @@
       ],
       "files": [
         "tools/Promote.js"
-      ]
-    },
-    {
-      "id": "0x000138",
-      "name": "ui-boot-wizard-zero-function",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x000138",
-          "path": "blueprints/0x000138-ui-boot-wizard-zero-function.md"
-        }
-      ],
-      "files": [
-        "ui/boot-wizard/zero-function.js"
       ]
     },
     {
