@@ -212,6 +212,32 @@ const createPeerPlanError = (plan = {}) => {
   return error;
 };
 
+const createPeerAcceptanceError = ({
+  roomId,
+  requiredAcceptedSessions,
+  acceptedSessions = [],
+  sessions = [],
+  acceptErrors = []
+} = {}) => {
+  const error = new Error(
+    `Peer provider acceptance failed: ${acceptedSessions.length}/${requiredAcceptedSessions} accepted`
+    + `${acceptErrors.length ? `; ${acceptErrors.join('; ')}` : ''}`
+  );
+  error.code = 'peer_provider_unresponsive';
+  error.retryable = true;
+  error.payload = {
+    roomId,
+    requiredAcceptedSessions,
+    acceptedSessionCount: acceptedSessions.length,
+    unresponsiveProviderIds: sessions
+      .filter((session) => !acceptedSessions.includes(session))
+      .map((session) => session.assignment?.providerId)
+      .filter(Boolean),
+    action: 'The contributor stopped responding after discovery. Search again, run on this device, or invite another contributor.'
+  };
+  return error;
+};
+
 const waitForProviderAdverts = ({
   channel,
   roomId,
@@ -223,10 +249,17 @@ const waitForProviderAdverts = ({
   settleOnFirst = false,
   settleWindowMs = DEFAULT_PROVIDER_ADVERT_SETTLE_MS
 }) => new Promise((resolve, reject) => {
+  const discoveryRequestId = makeId('provider_discovery');
   const adverts = [];
   const observedAdverts = [];
   let settled = false;
   let settleTimer = null;
+  let discoveryRequestTimer = null;
+  const clearDiscoveryRequestTimer = () => {
+    if (!discoveryRequestTimer) return;
+    globalThis.clearInterval(discoveryRequestTimer);
+    discoveryRequestTimer = null;
+  };
   const clearSettleTimer = () => {
     if (!settleTimer) return;
     globalThis.clearTimeout(settleTimer);
@@ -236,6 +269,7 @@ const waitForProviderAdverts = ({
     if (settled) return;
     settled = true;
     clearSettleTimer();
+    clearDiscoveryRequestTimer();
     channel.removeEventListener('message', handler);
     if (adverts.length > 0) resolve(adverts);
     else reject(createPeerDiscoveryError({
@@ -250,6 +284,7 @@ const waitForProviderAdverts = ({
     settled = true;
     globalThis.clearTimeout(timer);
     clearSettleTimer();
+    clearDiscoveryRequestTimer();
     channel.removeEventListener('message', handler);
     resolve(adverts);
   };
@@ -267,6 +302,7 @@ const waitForProviderAdverts = ({
     const message = event?.data;
     if (message?.peerRoomVersion !== PEER_ROOM_VERSION) return;
     if (message.roomId !== roomId || message.type !== 'provider-advert') return;
+    if (message.body?.discoveryRequestId !== discoveryRequestId) return;
     const advert = message.body?.advert;
     if (!advert) return;
     const summary = summarizeAdvert(advert);
@@ -280,11 +316,19 @@ const waitForProviderAdverts = ({
     else armSettleTimer();
   };
   channel.addEventListener('message', handler);
-  Promise.resolve(postRoomMessage(channel, roomId, 'provider-advert-request', {})).catch((error) => {
+  const requestLiveAdverts = () => postRoomMessage(channel, roomId, 'provider-advert-request', {
+    discoveryRequestId
+  });
+  const requestIntervalMs = Math.max(1, Math.min(1000, Math.floor(Number(discoveryWindowMs || 1) / 2)));
+  discoveryRequestTimer = globalThis.setInterval(() => {
+    if (!settled) void Promise.resolve(requestLiveAdverts()).catch(() => null);
+  }, requestIntervalMs);
+  Promise.resolve(requestLiveAdverts()).catch((error) => {
     if (settled) return;
     settled = true;
     globalThis.clearTimeout(timer);
     clearSettleTimer();
+    clearDiscoveryRequestTimer();
     channel.removeEventListener('message', handler);
     reject(error);
   });
@@ -393,38 +437,20 @@ export async function runPeerJob({
       maximumProviders: maxAdverts,
       knownProviders: compatibleKnownAdverts.length
     });
-    const knownPlan = compatibleKnownAdverts.length > 0
-      ? await buildPeerAssignmentPlan({
-        jobIntent: intent.intent,
-        providerAdverts: compatibleKnownAdverts
-      })
-      : null;
-    const discoveredAdverts = knownPlan?.ok
-      ? []
-      : await waitForProviderAdverts({
-        channel,
-        roomId: resolvedRoomId,
-        discoveryWindowMs,
-        maxAdverts,
-        minAdverts,
-        settleOnFirst: !policy?.adaptiveRing && maxAdverts <= 1,
-        requiredModel,
-        predicate: advertMatchesRequest
-      });
-    const providerAdverts = [
-      ...(knownPlan?.ok ? compatibleKnownAdverts : discoveredAdverts),
-      ...(knownPlan?.ok ? discoveredAdverts : compatibleKnownAdverts)
-    ]
-      .filter((advert, index, adverts) => adverts.findIndex((candidate) => (
-        (candidate.body?.providerId || candidate.fromPeerId) === (advert.body?.providerId || advert.fromPeerId)
-      )) === index)
-      .slice(0, maxAdverts);
-    const plan = knownPlan?.ok && discoveredAdverts.length === 0
-      ? knownPlan
-      : await buildPeerAssignmentPlan({
-        jobIntent: intent.intent,
-        providerAdverts
-      });
+    const providerAdverts = await waitForProviderAdverts({
+      channel,
+      roomId: resolvedRoomId,
+      discoveryWindowMs,
+      maxAdverts,
+      minAdverts,
+      settleOnFirst: !policy?.adaptiveRing && maxAdverts <= 1,
+      requiredModel,
+      predicate: advertMatchesRequest
+    });
+    const plan = await buildPeerAssignmentPlan({
+      jobIntent: intent.intent,
+      providerAdverts
+    });
     if (!plan.ok || !plan.assignment) {
       throw createPeerPlanError(plan);
     }
@@ -513,7 +539,13 @@ export async function runPeerJob({
       ? Math.max(1, Number(plan.ring?.requiredAgreement || policy.quorum || minAdverts || 1))
       : sessions.length;
     if (acceptedSessions.length < requiredAcceptedSessions) {
-      throw new Error(`Peer provider acceptance failed: ${acceptedSessions.length}/${requiredAcceptedSessions} accepted${acceptErrors.length ? `; ${acceptErrors.join('; ')}` : ''}`);
+      throw createPeerAcceptanceError({
+        roomId: resolvedRoomId,
+        requiredAcceptedSessions,
+        acceptedSessions,
+        sessions,
+        acceptErrors
+      });
     }
     reportActivity('peer_inference_started', 'infer', {
       providerCount: acceptedSessions.length
@@ -848,10 +880,13 @@ export function createPeerProviderNode({
     });
   };
 
-  const publishAdvert = async () => {
+  const publishAdvert = async ({ discoveryRequestId = null } = {}) => {
     if (!advert || stopped) return;
     try {
-      await Promise.resolve(postRoomMessage(channel, resolvedRoomId, 'provider-advert', { advert }));
+      await Promise.resolve(postRoomMessage(channel, resolvedRoomId, 'provider-advert', {
+        advert,
+        ...(discoveryRequestId ? { discoveryRequestId } : {})
+      }));
       if (typeof onActivity === 'function') onActivity({ status: 'provider_advertised', advert });
     } catch (error) {
       if (typeof onActivity === 'function') {
@@ -1013,7 +1048,9 @@ export function createPeerProviderNode({
     const message = event?.data;
     if (message?.peerRoomVersion !== PEER_ROOM_VERSION || message.roomId !== resolvedRoomId) return;
     if (message.type === 'provider-advert-request') {
-      void publishAdvert().catch(() => null);
+      void publishAdvert({
+        discoveryRequestId: message.body?.discoveryRequestId || null
+      }).catch(() => null);
       return;
     }
     if (message.type === 'peer-run-request') {

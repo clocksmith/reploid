@@ -316,6 +316,46 @@ test.describe('Run, Contribute, Records peer room', () => {
     }
   });
 
+  test('preserves the Records facet and open disclosures across refreshes', async ({ browser, baseURL }, testInfo) => {
+    const roomId = roomIdFor(testInfo, 'record-view');
+    const contexts = [];
+    try {
+      const context = await createPoolContext(browser, 'record_view_refresh');
+      contexts.push(context);
+      const providerPage = await openPoolPage(context, baseURL, '/compute', roomId);
+      await startProviderPage(providerPage);
+      const runPage = await openPoolPage(context, baseURL, '/ask', roomId);
+      await runPeerPrompt(runPage, 'persist record view', 'fastest_receipt');
+
+      await openPoolNav(runPage);
+      await runPage.getByRole('link', { name: 'Records', exact: true }).click();
+      await runPage.getByRole('button', { name: /^Answers \(/ }).click();
+
+      const recordDetails = runPage.locator('details.pool-record-event').first();
+      const toolsDetails = runPage.locator('details.pool-record-tools');
+      const lookupDetails = runPage.locator('details.pool-record-lookup');
+      await recordDetails.locator(':scope > summary').click();
+      await toolsDetails.locator(':scope > summary').click();
+      await lookupDetails.locator(':scope > summary').click();
+      await expect(recordDetails).toHaveJSProperty('open', true);
+      await expect(toolsDetails).toHaveJSProperty('open', true);
+      await expect(lookupDetails).toHaveJSProperty('open', true);
+
+      await runPage.waitForTimeout(5500);
+      await expect(runPage.locator('#pool-record-ledger')).toHaveAttribute('data-record-facet', 'answer');
+      await expect(runPage.locator('details.pool-record-event').first()).toHaveJSProperty('open', true);
+
+      await runPage.reload({ waitUntil: 'domcontentloaded' });
+      await runPage.waitForSelector('.pool-home');
+      await expect(runPage.locator('#pool-record-ledger')).toHaveAttribute('data-record-facet', 'answer');
+      await expect(runPage.locator('details.pool-record-event').first()).toHaveJSProperty('open', true);
+      await expect(runPage.locator('details.pool-record-tools')).toHaveJSProperty('open', true);
+      await expect(runPage.locator('details.pool-record-lookup')).toHaveJSProperty('open', true);
+    } finally {
+      await closeContexts(contexts);
+    }
+  });
+
   test('starts and stops a provider with stable page identity', async ({ browser, baseURL }, testInfo) => {
     const roomId = roomIdFor(testInfo, 'stop');
     const contexts = [];
