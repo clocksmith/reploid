@@ -66,9 +66,10 @@ const bindPoolRouteControls = (mount, render, {
   const nav = mount.querySelector('.pool-nav-rail');
   const navToggle = mount.querySelector('.pool-nav-toggle');
   const navMenu = mount.querySelector('.pool-nav-menu');
+  let setNavOpen = () => {};
   if (nav && navToggle && navMenu) {
     navMenu.hidden = false;
-    const setNavOpen = (isOpen) => {
+    setNavOpen = (isOpen) => {
       applyPoolNavOpenState(nav, navToggle, isOpen);
       onNavOpenChange(isOpen);
     };
@@ -97,6 +98,7 @@ const bindPoolRouteControls = (mount, render, {
       if (`${window.location.pathname}${window.location.search}` !== nextPath) {
         window.history.pushState({ reploidPoolRoute: nextPath }, '', nextPath);
       }
+      setNavOpen(false);
       render();
     });
   });

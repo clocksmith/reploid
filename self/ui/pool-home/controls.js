@@ -52,7 +52,10 @@ import {
   refreshProviderStorageHealth,
   refreshRecordTimelineState,
   refreshRoomActivityState,
+  restorePoolRecordDisclosures,
   renderReceiptLedger,
+  setPoolRecordDisclosureOpen,
+  setPoolRecordFacet,
   setPoolRunVisualState,
   setResult,
   updateProviderHealth,
@@ -986,7 +989,8 @@ const bindPeerRunSurface = ({
   const recoveryCodeOf = (error) => error?.code || error?.payload?.code || null;
   const canOfferLocalFallback = (error) => [
     'peer_provider_not_found',
-    'peer_provider_model_mismatch'
+    'peer_provider_model_mismatch',
+    'peer_provider_unresponsive'
   ].includes(recoveryCodeOf(error));
   const modelLabelOf = (model = {}) => model.label || model.name || model.modelId || 'the selected model';
   const buildMissingProviderRecovery = (request) => ({
@@ -2151,13 +2155,27 @@ export const bindRecordFacetControls = () => {
   ledger.addEventListener('click', (event) => {
     const chip = event.target.closest?.('[data-pool-record-facet]');
     if (!chip) return;
-    ledger.dataset.recordFacet = chip.dataset.poolRecordFacet || 'all';
+    ledger.dataset.recordFacet = setPoolRecordFacet(chip.dataset.poolRecordFacet || 'all');
     refreshRecordTimelineState();
   });
 };
 
+const bindRecordDisclosureControls = () => {
+  const layout = document.querySelector('.pool-record-layout');
+  if (!layout || layout.dataset.poolRecordDisclosureBound === 'true') return;
+  layout.dataset.poolRecordDisclosureBound = 'true';
+  restorePoolRecordDisclosures(layout);
+  layout.addEventListener('toggle', (event) => {
+    const details = event.target;
+    const disclosureId = details?.dataset?.poolRecordDisclosure;
+    if (!disclosureId) return;
+    setPoolRecordDisclosureOpen(disclosureId, details.open);
+  }, true);
+};
+
 export const bindReceiptControls = () => {
   bindRecordFacetControls();
+  bindRecordDisclosureControls();
   const button = document.getElementById('pool-receipt-lookup');
   const input = document.getElementById('pool-receipt-hash');
   if (!button || !input) return;

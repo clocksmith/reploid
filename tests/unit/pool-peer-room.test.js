@@ -15,7 +15,10 @@ import {
   buildRuntimeProfile,
   hashRuntimeProfile
 } from '../../self/pool/runtime-profile.js';
-import { createPeerRoomBusFactory } from '../../self/pool/peer-rendezvous.js';
+import {
+  createInMemoryPeerRoomBusNetwork,
+  createPeerRoomBusFactory
+} from '../../self/pool/peer-rendezvous.js';
 
 const originalBroadcastChannel = globalThis.BroadcastChannel;
 
@@ -429,6 +432,118 @@ describe('pool peer room', () => {
         action: 'Start contributing in Compute to download and host qwen-3-5-0-8b-q4k-ehaf16 locally in this browser, or open another tab in room "empty-room-test".'
       }
     });
+  });
+
+  it('requires a live discovery response instead of routing to a cached provider advert', async () => {
+    const roomId = 'cached-provider-room';
+    const relaySdk = createMemoryRelaySdk();
+    const providerClient = await createRoomProviderClient({
+      providerId: 'provider_that_closed'
+    });
+    const advert = await providerClient.createPeerProviderAdvert({
+      models: [runtimeModel()],
+      availability: {
+        acceptedPolicies: ['fastest_receipt']
+      }
+    });
+    relaySdk.messages.push({
+      roomId,
+      createdAt: Date.now() - 1000,
+      relayId: 'cached-provider-advert',
+      message: {
+        peerRoomVersion: 'reploid_peer_room/v1',
+        roomId,
+        type: 'provider-advert',
+        body: { advert },
+        relay: {
+          relayId: 'cached-provider-advert',
+          fromPeerId: advert.body.providerId,
+          createdAt: Date.now() - 1000
+        }
+      }
+    });
+    const roomBusFactory = createPeerRoomBusFactory({
+      sdk: relaySdk,
+      relay: 'server',
+      pollIntervalMs: 1,
+      relayTtlMs: 10000
+    });
+
+    await expect(runPeerJob({
+      roomId,
+      requesterClient: await createRoomRequesterClient('requester_cached_provider'),
+      requesterTransportFactory: createFakeTransportFactories().requesterTransportFactory,
+      roomBusFactory,
+      prompt: 'do not route to a closed tab',
+      policyId: 'fastest_receipt',
+      modelRequirements: runtimeModel(),
+      knownProviderAdverts: [advert],
+      discoveryWindowMs: 20,
+      sessionAcceptWindowMs: 10,
+      receiptWindowMs: 100
+    })).rejects.toMatchObject({
+      code: 'peer_provider_not_found',
+      payload: {
+        roomId,
+        observedProviderCount: 0
+      }
+    });
+  });
+
+  it('classifies a provider that answers discovery but not the run session as unavailable', async () => {
+    const roomId = 'unresponsive-provider-room';
+    const network = createInMemoryPeerRoomBusNetwork();
+    const roomBusFactory = (options) => network.createBus(options);
+    const providerBus = roomBusFactory({ roomId });
+    const providerClient = await createRoomProviderClient({
+      providerId: 'provider_unresponsive'
+    });
+    const advert = await providerClient.createPeerProviderAdvert({
+      models: [runtimeModel()],
+      availability: {
+        acceptedPolicies: ['fastest_receipt']
+      }
+    });
+    providerBus.addEventListener('message', (event) => {
+      const message = event.data;
+      if (message.type !== 'provider-advert-request') return;
+      providerBus.postMessage({
+        peerRoomVersion: 'reploid_peer_room/v1',
+        roomId,
+        type: 'provider-advert',
+        body: {
+          advert,
+          discoveryRequestId: message.body.discoveryRequestId
+        }
+      });
+    });
+
+    try {
+      await expect(runPeerJob({
+        roomId,
+        requesterClient: await createRoomRequesterClient('requester_unresponsive_provider'),
+        requesterTransportFactory: createFakeTransportFactories().requesterTransportFactory,
+        roomBusFactory,
+        prompt: 'provider disappears after discovery',
+        policyId: 'fastest_receipt',
+        modelRequirements: runtimeModel(),
+        discoveryWindowMs: 50,
+        sessionAcceptWindowMs: 5,
+        receiptWindowMs: 100
+      })).rejects.toMatchObject({
+        code: 'peer_provider_unresponsive',
+        retryable: true,
+        payload: {
+          roomId,
+          acceptedSessionCount: 0,
+          requiredAcceptedSessions: 1,
+          unresponsiveProviderIds: ['provider_unresponsive']
+        }
+      });
+    } finally {
+      providerBus.close();
+      network.reset();
+    }
   });
 
   it('reports observed contributors when none match the requested model', async () => {

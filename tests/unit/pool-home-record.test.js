@@ -10,6 +10,8 @@ import {
   renderReceiptLedger,
   renderRoomActivity,
   renderRouteDetail,
+  setPoolRecordDisclosureOpen,
+  setPoolRecordFacet,
   setResult
 } from '../../self/ui/pool-home/view.js';
 
@@ -203,6 +205,31 @@ describe('Poolday record ledgers', () => {
     expect(historyAliasHtml).toContain('Contributor scores');
     expect(networkAliasHtml).toContain('Saved answer receipts');
     expect(networkAliasHtml).toContain('Room activity');
+  });
+
+  it('restores record facets and open disclosures after a route refresh', () => {
+    const roomId = `record-view-${crypto.randomUUID()}`;
+    setRoom(roomId);
+    addReceiptLedgerRow({
+      jobId: 'peer_job_open',
+      receiptHash: 'sha256:receipt-open',
+      receipt: {
+        jobId: 'peer_job_open',
+        providerId: 'provider_page_open'
+      },
+      agreement: { accepted: true }
+    }, 'sha256:receipt-open');
+
+    setPoolRecordFacet('answer');
+    setPoolRecordDisclosureOpen('record:receipt:sha256:receipt-open', true);
+    setPoolRecordDisclosureOpen('technical-tools', true);
+    setPoolRecordDisclosureOpen('receipt-lookup', true);
+
+    const html = renderRouteDetail('records');
+    expect(html).toContain('data-record-facet="answer"');
+    expect(html).toMatch(/data-pool-record-disclosure="record:receipt:sha256:receipt-open" open/);
+    expect(html).toMatch(/data-pool-record-disclosure="technical-tools" open/);
+    expect(html).toMatch(/data-pool-record-disclosure="receipt-lookup" open/);
   });
 
   it('renders compact server relay room activity summaries', () => {

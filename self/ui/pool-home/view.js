@@ -82,6 +82,59 @@ export const getPooldayRecordStorageKeys = (roomId = getPeerRoomId()) => (
   buildPooldayRecordStorageKeys(roomId)
 );
 
+const POOLDAY_RECORD_VIEW_STORAGE_KEY = 'reploid.pool.record-view.v1';
+const getRecordViewStorageKey = (roomId = getPeerRoomId()) => (
+  `${POOLDAY_RECORD_VIEW_STORAGE_KEY}::${encodeURIComponent(roomId)}`
+);
+const readRecordViewState = (roomId = getPeerRoomId()) => {
+  try {
+    const parsed = JSON.parse(globalThis.localStorage?.getItem(getRecordViewStorageKey(roomId)) || '{}');
+    return parsed && typeof parsed === 'object'
+      ? {
+          facet: typeof parsed.facet === 'string' ? parsed.facet : 'all',
+          open: parsed.open && typeof parsed.open === 'object' ? parsed.open : {}
+        }
+      : { facet: 'all', open: {} };
+  } catch {
+    return { facet: 'all', open: {} };
+  }
+};
+const writeRecordViewState = (state, roomId = getPeerRoomId()) => {
+  try {
+    globalThis.localStorage?.setItem(getRecordViewStorageKey(roomId), JSON.stringify(state));
+  } catch {
+    // Record disclosures remain usable when browser storage is unavailable.
+  }
+};
+
+export const getPoolRecordFacet = () => {
+  const facet = readRecordViewState().facet;
+  return ['all', 'answer', 'contribution', 'room'].includes(facet) ? facet : 'all';
+};
+
+export const setPoolRecordFacet = (facet = 'all') => {
+  const state = readRecordViewState();
+  state.facet = ['all', 'answer', 'contribution', 'room'].includes(facet) ? facet : 'all';
+  writeRecordViewState(state);
+  return state.facet;
+};
+
+export const setPoolRecordDisclosureOpen = (disclosureId, open) => {
+  const id = String(disclosureId || '').trim();
+  if (!id) return;
+  const state = readRecordViewState();
+  state.open[id] = Boolean(open);
+  writeRecordViewState(state);
+};
+
+export const restorePoolRecordDisclosures = (root = document) => {
+  const state = readRecordViewState();
+  root?.querySelectorAll?.('details[data-pool-record-disclosure]').forEach((details) => {
+    const id = details.dataset.poolRecordDisclosure;
+    if (typeof state.open[id] === 'boolean') details.open = state.open[id];
+  });
+};
+
 const ensureReceiptLedgerLoaded = (roomId = getPeerRoomId()) => recordPersistence.ensureReceiptsLoaded(roomId);
 const ensurePeerLedgerLoaded = (roomId = getPeerRoomId()) => recordPersistence.ensurePeerEventsLoaded(roomId);
 const ensureRecordLedgersLoaded = (roomId = getPeerRoomId()) => recordPersistence.ensureLoaded(roomId);
@@ -524,7 +577,7 @@ const renderRecordFacetChips = (rows, facetId) => RECORD_FACETS.map((facet) => {
     data-pool-record-facet="${escapeHtml(facet.id)}" aria-pressed="${facet.id === facetId ? 'true' : 'false'}">${escapeHtml(facet.label)} (${count})</button>`;
 }).join('');
 
-export const renderRecordLedger = (facetId = 'all') => {
+export const renderRecordLedger = (facetId = getPoolRecordFacet()) => {
   const rows = unifiedRecordRows();
   if (!rows.length) {
     return '<p class="pool-record-empty">No records yet. Completed runs and contributions will appear here.</p>';
@@ -539,7 +592,7 @@ export const renderRecordLedger = (facetId = 'all') => {
     <ol class="pool-record-timeline" aria-label="Reploid records">
       ${visible.map((row) => `
         <li data-record-type="${escapeHtml(row.type)}">
-          <details class="pool-record-event">
+          <details class="pool-record-event" data-pool-record-disclosure="record:${escapeHtml(row.id)}"${readRecordViewState().open[`record:${row.id}`] ? ' open' : ''}>
             <summary>
               <time datetime="${escapeHtml(row.occurredAt || '')}">${escapeHtml(formatRecordTime(row.occurredAt))}</time>
               <strong>${escapeHtml(row.title)}</strong>
@@ -585,6 +638,7 @@ export const refreshRecordTimelineState = () => {
         ? renderDashboardActivity(activityRows)
         : renderRecordLedger(ledger.dataset.recordFacet || 'all')
     );
+    restorePoolRecordDisclosures(ledger);
     const summary = document.querySelector('[data-pool-drawer-summary="network-activity"]');
     if (summary) {
       const count = activityRows?.length || 0;
@@ -1941,10 +1995,11 @@ export const renderRouteDetail = (routeId) => {
     `);
   }
   if (normalizedRouteId === 'records') {
+    const recordFacet = getPoolRecordFacet();
     return renderRouteShell(copy, `
         <div class="pool-form pool-route-grid pool-record-layout" data-pool-receipts data-pool-reputation>
-          <div id="pool-record-ledger" aria-live="polite" data-record-facet="all">${renderRecordLedger()}</div>
-          <details class="pool-advanced pool-record-tools">
+          <div id="pool-record-ledger" aria-live="polite" data-record-facet="${escapeHtml(recordFacet)}">${renderRecordLedger(recordFacet)}</div>
+          <details class="pool-advanced pool-record-tools" data-pool-record-disclosure="technical-tools"${readRecordViewState().open['technical-tools'] ? ' open' : ''}>
             <summary>Technical tools</summary>
             <div class="pool-record-tool-grid">
               <section data-pool-room-activity>
@@ -1959,7 +2014,7 @@ export const renderRouteDetail = (routeId) => {
                 <h2 class="type-h2">Saved answer receipts</h2>
                 <div id="pool-receipt-ledger" class="pool-ledger-shell" aria-live="polite">${renderReceiptLedger()}</div>
               </section>
-              <details class="pool-advanced pool-record-lookup">
+              <details class="pool-advanced pool-record-lookup" data-pool-record-disclosure="receipt-lookup"${readRecordViewState().open['receipt-lookup'] ? ' open' : ''}>
                 <summary>Find by receipt hash</summary>
                 <label class="pool-field">
                   <span>Hash</span>
