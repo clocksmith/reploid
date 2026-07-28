@@ -7,7 +7,9 @@ import {
   createP2PTransport,
   defaultDeserialize,
   defaultSerialize,
-  descriptionToPayload
+  descriptionToPayload,
+  normalizeRtcConfig,
+  resolveRtcConfig
 } from '../../self/pool/p2p-transport.js';
 import {
   P2P_PAYLOAD_TYPES,
@@ -16,6 +18,29 @@ import {
 import { SIGNAL_TYPES } from '../../self/pool/p2p-signaling.js';
 
 describe('pool p2p transport helpers', () => {
+  it('resolves validated runtime STUN and TURN configuration', () => {
+    const configured = {
+      iceTransportPolicy: 'all',
+      iceServers: [
+        { urls: 'stun:stun.example.test:3478' },
+        {
+          urls: ['turn:turn.example.test:3478?transport=udp', 'turns:turn.example.test:5349'],
+          username: 'temporary-user',
+          credential: 'temporary-secret'
+        }
+      ]
+    };
+
+    expect(resolveRtcConfig({ configured })).toEqual(configured);
+    expect(normalizeRtcConfig(DEFAULT_RTC_CONFIG).iceServers).toHaveLength(2);
+    expect(() => normalizeRtcConfig({ iceTransportPolicy: 'invalid' })).toThrow(
+      'RTC iceTransportPolicy must be all or relay'
+    );
+    expect(() => normalizeRtcConfig({ iceServers: [{ urls: '' }] })).toThrow(
+      'RTC iceServers entries require at least one URL'
+    );
+  });
+
   it('serializes JSON values while preserving binary and plain string payloads', () => {
     const bytes = new Uint8Array([1, 2, 3]);
 

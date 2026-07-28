@@ -70,7 +70,16 @@ Model bytes should not be served from Firebase Hosting or the Cloud Run coordina
 
 Browser providers derive artifact URLs from the selected model's `artifactPolicy`, with `window.REPLOID_POOL_MODEL_BASE_URL` as an override, through `self/pool/model-contract.js` and `self/pool/model-artifacts.js`. The storage backend can be object storage, a model hub, IPFS, or another CDN. The receipt identity does not include the storage URL; it includes the exact model id, model hash, manifest hash, runtime, and backend. Providers cache fetched model artifacts in OPFS after first load.
 
-The launch Qwen artifact is pinned to Hugging Face revision `80d7716270b6371d541de979eff3370edaf34e13`. Production verification fetches that manifest, verifies its configured content hash and model identity, and rejects manifests missing runtime-significant Doppler execution fields. Changing the artifact revision requires changing the manifest hash and config version together.
+The launch Qwen artifact is an immutable, publicly readable mirror in
+`gs://reploid-model-artifacts`, sourced from Hugging Face revision
+`80d7716270b6371d541de979eff3370edaf34e13`. The ESM-2 launch artifact is
+mirrored beside it. The bucket serves byte ranges with a `replo.id` CORS policy
+and immutable cache metadata, so browser cold starts do not depend on model-hub
+redirects or shared CDN throttling. Production verification fetches each
+manifest, verifies its configured content hash and model identity, probes shard
+range delivery, and rejects manifests missing runtime-significant Doppler
+execution fields. Changing artifact bytes still requires changing the declared
+hashes and config version together.
 
 ## Governed adapter lifecycle
 

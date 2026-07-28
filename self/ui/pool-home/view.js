@@ -1268,8 +1268,16 @@ export const setResult = (id, value, options = {}) => {
   }
   if (streamMode && streamEl) {
     if (outputText && outputText.length > 0) {
-      if (streamCursor) streamCursor.classList.add('is-visible', 'is-active');
-      streamOutputText(`${id}-stream`, outputText);
+      if (options.animate === false) {
+        const previous = ledgerStore.streams.get(`${id}-stream`);
+        if (previous?.timer) window.clearTimeout(previous.timer);
+        ledgerStore.streams.delete(`${id}-stream`);
+        streamEl.textContent = outputText;
+        if (streamCursor) streamCursor.classList.remove('is-visible', 'is-active');
+      } else {
+        if (streamCursor) streamCursor.classList.add('is-visible', 'is-active');
+        streamOutputText(`${id}-stream`, outputText);
+      }
     } else {
       const previous = ledgerStore.streams.get(`${id}-stream`);
       if (previous?.timer) window.clearTimeout(previous.timer);
@@ -1284,6 +1292,37 @@ export const setResult = (id, value, options = {}) => {
   if (outputEl) {
     outputEl.textContent = formatResultMessage(value);
   }
+};
+
+export const restoreLatestCompletedRun = (routeId = getRouteId()) => {
+  const targetId = routeId === 'home'
+    ? 'pool-home-run-result'
+    : routeId === 'ask'
+      ? 'pool-run-result'
+      : null;
+  if (!targetId || !document.getElementById(`${targetId}-raw`)) return null;
+  ensureReceiptLedgerLoaded();
+  const row = ledgerStore.receipts.find((candidate) => (
+    candidate?.record?.agreement?.accepted === true
+    || candidate?.record?.requesterAcceptance?.accepted === true
+  ));
+  if (!row) return null;
+  const restored = {
+    ...(row.record || {}),
+    receiptHash: row.receiptHash,
+    savedRecord: {
+      restored: true,
+      roomId: getPeerRoomId(),
+      occurredAt: row.occurredAt || null
+    }
+  };
+  setResult(targetId, restored, { stream: true, animate: false });
+  setPoolRunVisualState({
+    state: 'inspecting',
+    phase: 'saved',
+    message: 'Showing last saved answer'
+  });
+  return restored;
 };
 
 export const POOL_DASHBOARD_VIEWS = Object.freeze(['home', 'ask', 'compute', 'records']);

@@ -27,7 +27,6 @@ const baseUrl = String(
 const allowLocal = args.includes('--allow-local');
 const allowPlaceholders = args.includes('--allow-placeholders');
 const channel = valueArg('--channel') || process.env.REPLOID_POOL_ACTUAL_BROWSER_CHANNEL || '';
-const modelId = valueArg('--model') || '';
 
 if (!baseUrl) {
   console.error('A release URL is required through --url, REPLOID_POOL_RELEASE_URL, or REPLOID_POOL_DEPLOYMENT_URL');
@@ -41,9 +40,9 @@ if (isLocal && !allowLocal) {
   process.exit(1);
 }
 
-const run = (label, script, scriptArgs = [], env = {}) => new Promise((resolve, reject) => {
+const runCommand = (label, command, commandArgs = [], env = {}) => new Promise((resolve, reject) => {
   console.log(`[pool-release] ${label}`);
-  const child = spawn(process.execPath, [path.join(__dirname, script), ...scriptArgs], {
+  const child = spawn(command, commandArgs, {
     cwd: repoRoot,
     env: { ...process.env, ...env },
     stdio: 'inherit'
@@ -57,6 +56,13 @@ const run = (label, script, scriptArgs = [], env = {}) => new Promise((resolve, 
     reject(new Error(`${label} failed${signal ? ` with signal ${signal}` : ` with exit code ${code}`}`));
   });
 });
+
+const run = (label, script, scriptArgs = [], env = {}) => runCommand(
+  label,
+  process.execPath,
+  [path.join(__dirname, script), ...scriptArgs],
+  env
+);
 
 try {
   await run('deploy-surface drift gate', 'verify-deploy-surface.js', [
@@ -74,12 +80,25 @@ try {
     ...(isLocal ? ['--allow-local'] : [])
   ]);
 
-  await run('actual Doppler browser inference and receipt acceptance', 'pool-actual-browser-smoke.js', [
-    baseUrl,
-    '--only=single',
-    ...(channel ? [`--channel=${channel}`] : []),
-    ...(modelId ? [`--model=${modelId}`] : [])
-  ]);
+  await runCommand(
+    'deployed server-relayed Doppler text, protein, and two-provider inference with receipt acceptance',
+    process.execPath,
+    [
+      path.join(repoRoot, 'node_modules', '@playwright', 'test', 'cli.js'),
+      'test',
+      'tests/e2e/p2p-actual-inference.spec.js',
+      '--project=chromium',
+      '--grep',
+      'loads Doppler|runs ESM-2|loads two independent'
+    ],
+    {
+      REPLOID_E2E_ACTUAL_INFERENCE: '1',
+      REPLOID_E2E_ACTUAL_MULTI_PROVIDER: '1',
+      REPLOID_E2E_RELAY_MODE: 'server',
+      REPLOID_E2E_BASE_URL: baseUrl,
+      ...(channel ? { REPLOID_E2E_CHROMIUM_CHANNEL: channel } : {})
+    }
+  );
   console.log(`[pool-release] passed ${baseUrl}`);
 } catch (error) {
   console.error(`[pool-release] failed: ${error.message}`);

@@ -54,6 +54,23 @@ const createInferenceNodeContexts = async (browser) => {
   };
 };
 
+const createMultiProviderNodeContexts = async (browser, providerCount = 2) => {
+  const sharedContext = RELAY_MODE === 'local' ? await browser.newContext() : null;
+  const providerContexts = sharedContext
+    ? Array.from({ length: providerCount }, () => sharedContext)
+    : await Promise.all(Array.from({ length: providerCount }, () => browser.newContext()));
+  const requesterContext = sharedContext || await browser.newContext();
+  const uniqueContexts = [...new Set([...providerContexts, requesterContext])];
+  await Promise.all(uniqueContexts.map(installActualRuntimeConfig));
+  return {
+    providerContexts,
+    requesterContext,
+    async close() {
+      await Promise.all(uniqueContexts.map((context) => context.close().catch(() => null)));
+    }
+  };
+};
+
 const wireDiagnostics = (page, label) => {
   page.on('console', (message) => {
     const text = message.text();
@@ -108,6 +125,53 @@ const readSnapshot = async (page, resultId) => page.evaluate((id) => {
 }));
 
 const stringifySnapshot = (snapshot) => JSON.stringify(snapshot, null, 2);
+
+const trackModelArtifactRequests = (page, model) => {
+  const requests = [];
+  page.on('request', (request) => {
+    const url = request.url();
+    if (url.includes(model.modelId) && /(?:manifest\.json|tokenizer\.json|shard_\d+\.bin)(?:$|[?#])/i.test(url)) {
+      requests.push(url);
+    }
+  });
+  return requests;
+};
+
+const expectPinnedArtifactOrigin = (requests, model) => {
+  const expectedBase = String(model.loadInput?.url || '').replace(/\/+$/, '');
+  expect(expectedBase).toMatch(/^https:\/\/storage\.googleapis\.com\/reploid-model-artifacts\//);
+  expect(requests.some((url) => url.startsWith(`${expectedBase}/`))).toBe(true);
+  expect(requests.some((url) => url.includes('huggingface.co/'))).toBe(false);
+};
+
+const attachRelayReceipt = async (testInfo, lane, roomId, result = {}) => {
+  const receipt = result.receiptRecord?.receipt
+    || result.receiptPayload?.body?.receipt
+    || result.receiptPayloads?.[0]?.body?.receipt
+    || null;
+  await testInfo.attach(`poolday-${RELAY_MODE}-${lane}-receipt.json`, {
+    body: Buffer.from(JSON.stringify({
+      schema: 'reploid.pool.browser_lane_receipt/v1',
+      lane,
+      relay: RELAY_MODE,
+      roomId,
+      baseUrl: testInfo.project.use.baseURL || null,
+      modelId: receipt?.model?.id || receipt?.model?.modelId || result.assignment?.model?.modelId || null,
+      artifactIdentity: receipt?.model?.artifactIdentity || null,
+      providerId: result.assignment?.providerId || receipt?.providerId || null,
+      requesterId: result.requesterAcceptance?.requesterId || result.assignment?.requesterId || null,
+      transport: result.transport || null,
+      receiptHash: result.receiptHash || null,
+      agreementHash: result.agreement?.agreementHash || null,
+      agreementAccepted: result.agreement?.accepted === true,
+      requesterAccepted: result.requesterAcceptance?.accepted === true,
+      requesterSignature: result.requesterAcceptance?.requesterSignature || null,
+      sequenceResultHash: result.sequenceResultHash || null,
+      completedAt: new Date().toISOString()
+    }, null, 2)),
+    contentType: 'application/json'
+  });
+};
 
 const waitForActualResult = async ({
   page,
@@ -203,6 +267,7 @@ test.describe('Run and Contribute actual browser inference', () => {
     const nodes = await createInferenceNodeContexts(browser);
     try {
       const providerPage = await openPoolPage(nodes.providerContext, baseURL, '/compute', roomId, 'provider');
+      const initialArtifactRequests = trackModelArtifactRequests(providerPage, LAUNCH_MODEL);
       let observeReloadRequests = false;
       let shardRequestsAfterReload = 0;
       providerPage.on('request', (request) => {
@@ -214,6 +279,7 @@ test.describe('Run and Contribute actual browser inference', () => {
       const runPage = await openPoolPage(nodes.requesterContext, baseURL, '/ask', roomId, 'requester');
       await waitForProviderListening(providerPage);
       const firstProvider = (await readSnapshot(providerPage, 'pool-provider-result')).parsed;
+      expectPinnedArtifactOrigin(initialArtifactRequests, LAUNCH_MODEL);
       expect(firstProvider.runtime?.persistentCache).toMatchObject({
         backend: 'opfs'
       });
@@ -228,6 +294,10 @@ test.describe('Run and Contribute actual browser inference', () => {
       expect(result.receiptRecord?.receipt?.model?.id || result.receiptRecord?.receipt?.model?.modelId).toBe(LAUNCH_MODEL.modelId);
       expect(result.receiptPayloads).toHaveLength(1);
       expect(result.agreement.accepted).toBe(true);
+      expect(result.requesterAcceptance?.accepted).toBe(true);
+      expect(result.requesterAcceptance?.requesterSignature).toBeTruthy();
+      expect(result.requesterAcceptance?.requesterId).not.toBe(result.assignment?.providerId);
+      await attachRelayReceipt(testInfo, 'text', roomId, result);
 
       observeReloadRequests = true;
       await providerPage.reload({ waitUntil: 'domcontentloaded' });
@@ -252,10 +322,12 @@ test.describe('Run and Contribute actual browser inference', () => {
     const nodes = await createInferenceNodeContexts(browser);
     try {
       const providerPage = await openPoolPage(nodes.providerContext, baseURL, '/compute', roomId, 'sequence-provider');
+      const artifactRequests = trackModelArtifactRequests(providerPage, SEQUENCE_MODEL);
       await providerPage.locator('#pool-provider-model').selectOption(SEQUENCE_MODEL.modelId);
       await expect(providerPage.locator('#pool-provider-model')).toHaveValue(SEQUENCE_MODEL.modelId);
       const requesterPage = await openPoolPage(nodes.requesterContext, baseURL, '/', roomId, 'sequence-requester');
       await waitForProviderListening(providerPage);
+      expectPinnedArtifactOrigin(artifactRequests, SEQUENCE_MODEL);
       const provider = (await readSnapshot(providerPage, 'pool-provider-result')).parsed;
       await requesterPage.bringToFront();
       await requesterPage.locator('[data-pool-lane="sequence"]').click();
@@ -293,6 +365,9 @@ test.describe('Run and Contribute actual browser inference', () => {
       expect(JSON.stringify(result.receiptRecord?.receipt || {})).not.toContain('MKTAYIAKQRQISFVKSHFSRQ');
       expect(result.assignment?.providerId).toBe(provider.advert?.body?.providerId);
       expect(result.requesterAcceptance?.requesterId).not.toBe(result.assignment?.providerId);
+      expect(result.requesterAcceptance?.accepted).toBe(true);
+      expect(result.requesterAcceptance?.requesterSignature).toBeTruthy();
+      await attachRelayReceipt(testInfo, 'protein', roomId, result);
     } finally {
       await nodes.close();
     }
@@ -399,16 +474,16 @@ test.describe('Run and Contribute actual browser inference', () => {
   });
 
   test('loads two independent Doppler provider tabs and settles a real ring quorum', async ({ browser, baseURL }, testInfo) => {
+    test.setTimeout(1200000);
     test.skip(
       process.env.REPLOID_E2E_ACTUAL_MULTI_PROVIDER !== '1',
       'Set REPLOID_E2E_ACTUAL_MULTI_PROVIDER=1 to load independent Doppler runtimes in two provider tabs.'
     );
     const roomId = roomIdFor(testInfo);
-    const context = await browser.newContext();
-    await installActualRuntimeConfig(context);
+    const nodes = await createMultiProviderNodeContexts(browser, 2);
     try {
-      const firstProviderPage = await openPoolPage(context, baseURL, '/compute', roomId, 'provider-one');
-      const secondProviderPage = await openPoolPage(context, baseURL, '/compute', roomId, 'provider-two');
+      const firstProviderPage = await openPoolPage(nodes.providerContexts[0], baseURL, '/compute', roomId, 'provider-one');
+      const secondProviderPage = await openPoolPage(nodes.providerContexts[1], baseURL, '/compute', roomId, 'provider-two');
       await waitForProviderListening(firstProviderPage);
       await waitForProviderListening(secondProviderPage);
 
@@ -418,7 +493,7 @@ test.describe('Run and Contribute actual browser inference', () => {
       expect(secondProvider.identity?.roleId).toMatch(/^provider_/);
       expect(secondProvider.identity?.roleId).not.toBe(firstProvider.identity?.roleId);
 
-      const runPage = await openPoolPage(context, baseURL, '/ask', roomId, 'ring-requester');
+      const runPage = await openPoolPage(nodes.requesterContext, baseURL, '/ask', roomId, 'ring-requester');
       const result = await runActualPrompt(
         runPage,
         'Reply with exactly the word blue.',
@@ -434,8 +509,10 @@ test.describe('Run and Contribute actual browser inference', () => {
       expect(result.receiptHashes?.length || 0).toBeGreaterThanOrEqual(
         result.agreement?.requiredAgreement || 2
       );
+      expect(result.requesterAcceptance?.accepted).toBe(true);
+      await attachRelayReceipt(testInfo, 'text-ring-2', roomId, result);
     } finally {
-      await context.close().catch(() => null);
+      await nodes.close();
     }
   });
 });

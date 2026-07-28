@@ -22,6 +22,42 @@ export const DEFAULT_RTC_CONFIG = Object.freeze({
   ])
 });
 
+const normalizeIceServer = (server = {}) => {
+  const urls = Array.isArray(server.urls)
+    ? server.urls.map((url) => String(url || '').trim()).filter(Boolean)
+    : String(server.urls || '').trim();
+  if ((Array.isArray(urls) && urls.length === 0) || !urls) {
+    throw new TypeError('RTC iceServers entries require at least one URL');
+  }
+  const normalized = { urls };
+  if (server.username !== undefined) normalized.username = String(server.username);
+  if (server.credential !== undefined) normalized.credential = String(server.credential);
+  if (server.credentialType !== undefined) normalized.credentialType = String(server.credentialType);
+  return Object.freeze(normalized);
+};
+
+export const normalizeRtcConfig = (config = DEFAULT_RTC_CONFIG) => {
+  if (!config || typeof config !== 'object' || Array.isArray(config)) {
+    throw new TypeError('RTC config must be an object');
+  }
+  const iceServers = Array.isArray(config.iceServers)
+    ? config.iceServers.map(normalizeIceServer)
+    : DEFAULT_RTC_CONFIG.iceServers;
+  const normalized = {
+    ...config,
+    iceServers: Object.freeze(iceServers)
+  };
+  if (normalized.iceTransportPolicy && !['all', 'relay'].includes(normalized.iceTransportPolicy)) {
+    throw new TypeError('RTC iceTransportPolicy must be all or relay');
+  }
+  return Object.freeze(normalized);
+};
+
+export const resolveRtcConfig = ({
+  configured = globalThis.REPLOID_POOL_RTC_CONFIG,
+  fallback = DEFAULT_RTC_CONFIG
+} = {}) => normalizeRtcConfig(configured || fallback);
+
 export function createP2PRequesterTransport(options = {}) {
   return createP2PTransport({
     ...options,
@@ -105,7 +141,7 @@ export async function createAssignmentP2PPayloadChannel({
 export function createP2PTransport({
   signaling,
   initiator,
-  rtcConfig = DEFAULT_RTC_CONFIG,
+  rtcConfig = resolveRtcConfig(),
   dataChannelLabel = DEFAULT_DATA_CHANNEL_LABEL,
   dataChannelOptions = { ordered: true },
   serialize = defaultSerialize,
@@ -143,6 +179,11 @@ export function createP2PTransport({
   let resolveOpen = null;
   let rejectOpen = null;
   let pendingRemoteIceCandidates = [];
+  let lastConnectionState = null;
+  let lastIceConnectionState = null;
+  let lastIceGatheringState = null;
+  let localIceCandidateCount = 0;
+  let remoteIceCandidateCount = 0;
 
   function setState(nextState) {
     if (state === nextState) {
@@ -272,6 +313,7 @@ export function createP2PTransport({
         return;
       }
 
+      localIceCandidateCount += 1;
       void Promise.resolve(signaling.sendIceCandidate(candidateToPayload(event.candidate))).catch((error) => {
         fail(error);
       });
@@ -286,13 +328,25 @@ export function createP2PTransport({
     };
 
     pc.onconnectionstatechange = () => {
+      lastConnectionState = pc.connectionState || null;
       if (pc.connectionState === 'failed') {
-        fail(new Error('peer connection failed'));
+        fail(createConnectionError('peer connection failed'));
       }
 
       if (pc.connectionState === 'closed') {
         closeLocal();
       }
+    };
+
+    pc.oniceconnectionstatechange = () => {
+      lastIceConnectionState = pc.iceConnectionState || null;
+      if (pc.iceConnectionState === 'failed') {
+        fail(createConnectionError('ICE connection failed'));
+      }
+    };
+
+    pc.onicegatheringstatechange = () => {
+      lastIceGatheringState = pc.iceGatheringState || null;
     };
   }
 
@@ -358,6 +412,7 @@ export function createP2PTransport({
     }
 
     if (message.type === SIGNAL_TYPES.ICE_CANDIDATE) {
+      remoteIceCandidateCount += 1;
       if (!hasRemoteDescription(peerConnection)) {
         pendingRemoteIceCandidates.push(message.payload);
         return;
@@ -403,6 +458,39 @@ export function createP2PTransport({
     return payload;
   }
 
+  function getDiagnostics() {
+    const configuredServers = Array.isArray(rtcConfig?.iceServers) ? rtcConfig.iceServers : [];
+    return {
+      state,
+      connectionState: peerConnection?.connectionState || lastConnectionState,
+      iceConnectionState: peerConnection?.iceConnectionState || lastIceConnectionState,
+      iceGatheringState: peerConnection?.iceGatheringState || lastIceGatheringState,
+      signalingState: peerConnection?.signalingState || null,
+      localIceCandidateCount,
+      remoteIceCandidateCount,
+      pendingRemoteIceCandidateCount: pendingRemoteIceCandidates.length,
+      iceTransportPolicy: rtcConfig?.iceTransportPolicy || 'all',
+      stunConfigured: configuredServers.some((server) => (
+        (Array.isArray(server.urls) ? server.urls : [server.urls])
+          .some((url) => String(url || '').startsWith('stun:'))
+      )),
+      turnConfigured: configuredServers.some((server) => (
+        (Array.isArray(server.urls) ? server.urls : [server.urls])
+          .some((url) => /^turns?:/i.test(String(url || '')))
+      ))
+    };
+  }
+
+  function createConnectionError(message) {
+    const error = new Error(message);
+    error.code = 'webrtc_connection_failed';
+    error.diagnostics = getDiagnostics();
+    if (!error.diagnostics.turnConfigured) {
+      error.action = 'Direct ICE connectivity failed and no TURN relay is configured.';
+    }
+    return error;
+  }
+
   return Object.freeze({
     connect,
     ready,
@@ -411,6 +499,7 @@ export function createP2PTransport({
     getState: () => state,
     getPeerConnection: () => peerConnection,
     getDataChannel: () => dataChannel,
+    getDiagnostics,
   });
 }
 

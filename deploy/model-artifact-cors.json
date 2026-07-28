@@ -1,0 +1,20 @@
+[
+  {
+    "origin": [
+      "https://replo.id",
+      "http://localhost:8000"
+    ],
+    "method": [
+      "GET",
+      "HEAD"
+    ],
+    "responseHeader": [
+      "Accept-Ranges",
+      "Content-Length",
+      "Content-Range",
+      "Content-Type",
+      "ETag"
+    ],
+    "maxAgeSeconds": 86400
+  }
+]

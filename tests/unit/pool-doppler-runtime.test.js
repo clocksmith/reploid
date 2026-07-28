@@ -160,7 +160,7 @@ describe('Doppler browser runtime adapter', () => {
     expect(result.tokenIds).toEqual([101, 202]);
   });
 
-  it('uses a promoted Doppler quickstart reference to preserve canonical execution evidence identity', async () => {
+  it('keeps an explicit immutable artifact source even when Doppler promotes the model alias', async () => {
     let loadInput = null;
     const load = (input) => {
       loadInput = input;
@@ -178,7 +178,7 @@ describe('Doppler browser runtime adapter', () => {
     const loaded = await runtime.loadModel(LAUNCH_MODEL);
 
     expect(loaded.ok).toBe(true);
-    expect(loadInput).toBe(LAUNCH_MODEL.dopplerLoadRef);
+    expect(loadInput).toEqual(LAUNCH_MODEL.loadInput);
   });
 
   it('uses the explicit hosted ESM-2 load input when the model is not in Doppler quickstart', async () => {

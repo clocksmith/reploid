@@ -47,7 +47,7 @@ Then check:
 npm run verify:pool:release -- --url https://<hosting-domain> --channel=chrome
 ```
 
-`/pool/deployment/check` must return `ok: true` before public traffic. The release verifier checks local config validity, Firebase rewrites, Firestore indexes, Cloud Run env, required deployment values, config hash agreement, commit-reveal store support, Firebase auth readiness, the pinned launch manifest and Doppler execution fields, synthetic browser peer wiring, and one actual browser inference through signed receipt acceptance.
+`/pool/deployment/check` must return `ok: true` before public traffic. The release verifier checks local config validity, Firebase rewrites, Firestore indexes, Cloud Run env, required deployment values, config hash agreement, commit-reveal store support, Firebase auth readiness, the pinned launch manifests and Doppler execution fields, synthetic browser peer wiring, actual text and protein inference, and a two-provider ring quorum through signed requester acceptance.
 
 ## Runtime authority
 

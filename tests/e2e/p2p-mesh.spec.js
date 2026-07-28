@@ -351,6 +351,12 @@ test.describe('Run, Contribute, Records peer room', () => {
       await expect(runPage.locator('details.pool-record-event').first()).toHaveJSProperty('open', true);
       await expect(runPage.locator('details.pool-record-tools')).toHaveJSProperty('open', true);
       await expect(runPage.locator('details.pool-record-lookup')).toHaveJSProperty('open', true);
+
+      await openPoolNav(runPage);
+      await runPage.getByRole('link', { name: 'Run', exact: true }).click();
+      await expect(runPage.locator('[data-pool-run-status]')).toHaveText('Showing last saved answer');
+      await expect(runPage.locator('[data-pool-run-output]')).toBeVisible();
+      await expect(runPage.locator('#pool-run-result-stream')).toContainText('e2e:persist record view');
     } finally {
       await closeContexts(contexts);
     }
