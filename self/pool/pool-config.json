@@ -1,6 +1,6 @@
 {
   "schema": "reploid.pool.config/v1",
-  "configVersion": "2026-07-24.doppler-0.5.1.v1",
+  "configVersion": "2026-07-28.doppler-0.5.1.v2",
   "claim": "receipt-backed, audit-backed, reputation-backed, policy-controlled browser inference",
   "forbiddenClaims": [
     "trustless",
@@ -122,12 +122,12 @@
     },
     "dopplerLoadRef": "qwen-3-5-0-8b-q4k-ehaf16",
     "loadInput": {
-      "url": "https://huggingface.co/clocksmith/rdrr/resolve/80d7716270b6371d541de979eff3370edaf34e13/models/qwen-3-5-0-8b-q4k-ehaf16"
+      "url": "https://storage.googleapis.com/reploid-model-artifacts/models/qwen-3-5-0-8b-q4k-ehaf16"
     },
     "artifactPolicy": {
       "transport": "offloaded_content_addressed",
       "cache": "browser_opfs",
-      "baseUrl": "https://huggingface.co/clocksmith/rdrr/resolve/80d7716270b6371d541de979eff3370edaf34e13/models/qwen-3-5-0-8b-q4k-ehaf16",
+      "baseUrl": "https://storage.googleapis.com/reploid-model-artifacts/models/qwen-3-5-0-8b-q4k-ehaf16",
       "identityFields": [
         "modelId",
         "modelHash",
@@ -177,7 +177,7 @@
   "browserRuntime": {
     "dopplerModuleUrl": "https://cdn.jsdelivr.net/npm/doppler-gpu@0.5.1/src/index.js",
     "dopplerKernelBaseUrl": "https://cdn.jsdelivr.net/npm/doppler-gpu@0.5.1/src/gpu/kernels",
-    "modelBaseUrl": "https://huggingface.co/clocksmith/rdrr/resolve/80d7716270b6371d541de979eff3370edaf34e13/models",
+    "modelBaseUrl": "https://storage.googleapis.com/reploid-model-artifacts/models",
     "loadOptions": {
       "cache": "opfs",
       "runtimeConfig": {
@@ -871,12 +871,12 @@
       },
       "dopplerLoadRef": "qwen-3-5-0-8b-q4k-ehaf16",
       "loadInput": {
-        "url": "https://huggingface.co/clocksmith/rdrr/resolve/80d7716270b6371d541de979eff3370edaf34e13/models/qwen-3-5-0-8b-q4k-ehaf16"
+        "url": "https://storage.googleapis.com/reploid-model-artifacts/models/qwen-3-5-0-8b-q4k-ehaf16"
       },
       "artifactPolicy": {
         "transport": "offloaded_content_addressed",
         "cache": "browser_opfs",
-        "baseUrl": "https://huggingface.co/clocksmith/rdrr/resolve/80d7716270b6371d541de979eff3370edaf34e13/models/qwen-3-5-0-8b-q4k-ehaf16",
+        "baseUrl": "https://storage.googleapis.com/reploid-model-artifacts/models/qwen-3-5-0-8b-q4k-ehaf16",
         "identityFields": [
           "modelId",
           "modelHash",
@@ -1079,12 +1079,12 @@
       },
       "dopplerLoadRef": "esm2-35m",
       "loadInput": {
-        "url": "https://huggingface.co/clocksmith/rdrr/resolve/3968b13650e82f8111eef67b2376bd735ae9de55/models/esm2-t12-35m-ur50d-f32-af32"
+        "url": "https://storage.googleapis.com/reploid-model-artifacts/models/esm2-t12-35m-ur50d-f32-af32"
       },
       "artifactPolicy": {
         "transport": "offloaded_content_addressed",
         "cache": "browser_opfs",
-        "baseUrl": "https://huggingface.co/clocksmith/rdrr/resolve/3968b13650e82f8111eef67b2376bd735ae9de55/models/esm2-t12-35m-ur50d-f32-af32",
+        "baseUrl": "https://storage.googleapis.com/reploid-model-artifacts/models/esm2-t12-35m-ur50d-f32-af32",
         "identityFields": [
           "modelId",
           "modelHash",

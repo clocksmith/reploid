@@ -35,9 +35,9 @@ verification, and promotion.
 
 - The browser module, kernel base, package spec, semantic version, and Git commit
   come from `config/doppler-local-models.js`.
-- Because npm publication is unavailable on the release host, Node installs an
-  HTTPS tarball addressed by the exact Git commit. The browser CDN uses that
-  same commit, and the lockfile additionally binds the tarball integrity.
+- Node and the browser pin the published `doppler-gpu@0.5.1` package. The
+  lockfile binds the npm tarball integrity, while the browser module and kernel
+  URLs bind the same immutable version.
 - Different scopes can keep text and protein sessions independently.
 - Legacy handle adaptation exists only under Vitest and never runs in the
   deployed browser.
@@ -49,7 +49,9 @@ verification, and promotion.
 - [x] Local provider and Poolday adapters use the scoped API.
 - [x] Runtime-config synchronization binds Node and browser imports to one exact
   Git commit.
-- [ ] Real two-browser text and protein lanes pass after deployment.
+- [x] Real two-browser text and protein lanes pass after deployment.
+- [x] A real two-provider ring quorum passes through the deployed server relay
+  with signed requester acceptance.
 - [ ] Real Zero bounded RSI passes after deployment.
 
 *Last updated: July 2026*

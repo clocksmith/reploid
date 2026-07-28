@@ -1166,7 +1166,13 @@ const bindPeerRunSurface = ({
         ...(result.receiptRecord || result),
         requesterAcceptance: result.requesterAcceptance || null,
         agreement: result.agreement || null,
-        routeDecision: result.plan?.routeDecision || result.routeDecision || null
+        routeDecision: result.plan?.routeDecision || result.routeDecision || null,
+        transport: result.transport || null,
+        relay: result.relay || getPeerRelayMode(),
+        policyId: result.policyId || request.policyId,
+        outputKind: result.outputKind || null,
+        sequenceResultHash: result.sequenceResultHash || null,
+        embeddingDimensions: result.embeddingDimensions || null
       }, result.receiptHash);
       void refreshServerRoomActivity();
       setResult(resultId, result, { stream: true });

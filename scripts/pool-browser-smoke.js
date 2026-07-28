@@ -43,8 +43,7 @@ const browser = await chromium.launch({
     '--disable-gpu-sandbox'
   ]
 });
-const context = await browser.newContext();
-await context.addInitScript((launchModel) => {
+const installSmokeRuntime = (targetContext) => targetContext.addInitScript((launchModel) => {
   const model = { ...launchModel };
   const textEncoder = new TextEncoder();
   const bytesToHex = (bytes) => Array.from(bytes)
@@ -133,6 +132,8 @@ await context.addInitScript((launchModel) => {
     })
   };
 }, SYNTHETIC_MODEL);
+const context = await browser.newContext();
+await installSmokeRuntime(context);
 const page = await context.newPage();
 const failures = [];
 
@@ -148,18 +149,21 @@ const gotoRoute = async (targetPage, route) => {
 };
 
 for (const route of routes) {
+  const routePage = await context.newPage();
   try {
     console.log(`[pool-smoke] route ${route}`);
-    await gotoRoute(page, route);
+    await gotoRoute(routePage, route);
     const expected = String(requiredText[route] || '').toLowerCase();
-    await page.waitForFunction((text) => document.body.textContent.toLowerCase().includes(text), expected);
-    const body = String(await page.textContent('body') || '').toLowerCase();
+    await routePage.waitForFunction((text) => document.body.textContent.toLowerCase().includes(text), expected);
+    const body = String(await routePage.textContent('body') || '').toLowerCase();
     if (!body.includes(expected)) {
       failures.push(`${route} did not include expected text: ${requiredText[route]}`);
     }
     console.log(`[pool-smoke] route passed ${route}`);
   } catch (error) {
     failures.push(`${route} failed: ${error.message}`);
+  } finally {
+    await routePage.close();
   }
 }
 
@@ -184,11 +188,14 @@ try {
 
 let provider = null;
 let requester = null;
+let peerContext = null;
 try {
   console.log('[pool-smoke] synthetic peer receipt flow');
   const room = `pool-smoke-${Date.now().toString(36)}`;
-  provider = await context.newPage();
-  requester = await context.newPage();
+  peerContext = await browser.newContext();
+  await installSmokeRuntime(peerContext);
+  provider = await peerContext.newPage();
+  requester = await peerContext.newPage();
   await provider.goto(localPeerUrl('/compute', room), { waitUntil: 'domcontentloaded' });
   await provider.waitForSelector('.pool-home', { timeout: 30000 });
   await provider.waitForSelector('#pool-provider-worker-toggle');
@@ -219,6 +226,7 @@ try {
   }
   await provider.close();
   await requester.close();
+  await peerContext.close();
   console.log('[pool-smoke] synthetic peer receipt flow passed');
 } catch (error) {
   const providerState = provider && !provider.isClosed()
@@ -241,10 +249,13 @@ try {
     })).catch((stateError) => ({ diagnosticError: stateError.message }))
     : null;
   failures.push(`peer browser smoke failed: ${error.message}; provider=${JSON.stringify(providerState)}; requester=${JSON.stringify(requesterState)}`);
+} finally {
+  await peerContext?.close().catch(() => null);
 }
 
 try {
   console.log('[pool-smoke] deployment check');
+  await gotoRoute(page, '/');
   const deployment = await page.evaluate(async () => {
     const response = await fetch('/pool/deployment/check');
     return response.json();

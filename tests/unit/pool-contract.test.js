@@ -199,10 +199,10 @@ describe('pool launch contract', () => {
     expect(noF16.fallbackStatus).toBe('doppler_0_4_9_manifest_capability_remap');
 
     expect(buildModelArtifactUrls(browserModel)).toEqual({
-      root: 'https://huggingface.co/clocksmith/rdrr/resolve/80d7716270b6371d541de979eff3370edaf34e13/models/qwen-3-5-0-8b-q4k-ehaf16',
-      manifest: 'https://huggingface.co/clocksmith/rdrr/resolve/80d7716270b6371d541de979eff3370edaf34e13/models/qwen-3-5-0-8b-q4k-ehaf16/manifest.json',
-      tokenizer: 'https://huggingface.co/clocksmith/rdrr/resolve/80d7716270b6371d541de979eff3370edaf34e13/models/qwen-3-5-0-8b-q4k-ehaf16/tokenizer.json',
-      shards: 'https://huggingface.co/clocksmith/rdrr/resolve/80d7716270b6371d541de979eff3370edaf34e13/models/qwen-3-5-0-8b-q4k-ehaf16/'
+      root: 'https://storage.googleapis.com/reploid-model-artifacts/models/qwen-3-5-0-8b-q4k-ehaf16',
+      manifest: 'https://storage.googleapis.com/reploid-model-artifacts/models/qwen-3-5-0-8b-q4k-ehaf16/manifest.json',
+      tokenizer: 'https://storage.googleapis.com/reploid-model-artifacts/models/qwen-3-5-0-8b-q4k-ehaf16/tokenizer.json',
+      shards: 'https://storage.googleapis.com/reploid-model-artifacts/models/qwen-3-5-0-8b-q4k-ehaf16/'
     });
   });
 
@@ -364,7 +364,7 @@ describe('pool launch contract', () => {
     expect(BROWSER_BROWSER_RUNTIME_CONFIG).toEqual(SERVER_BROWSER_RUNTIME_CONFIG);
     expect(BROWSER_BROWSER_RUNTIME_CONFIG.dopplerModuleUrl).toBe(DOPPLER_MODULE_URL);
     expect(BROWSER_BROWSER_RUNTIME_CONFIG.dopplerKernelBaseUrl).toBe(DOPPLER_KERNEL_BASE_URL);
-    expect(BROWSER_BROWSER_RUNTIME_CONFIG.modelBaseUrl).toBe('https://huggingface.co/clocksmith/rdrr/resolve/80d7716270b6371d541de979eff3370edaf34e13/models');
+    expect(BROWSER_BROWSER_RUNTIME_CONFIG.modelBaseUrl).toBe('https://storage.googleapis.com/reploid-model-artifacts/models');
 
     for (const env of [deploymentEnv.runtimeEnv, deploymentEnv.browserEnv]) {
       expect(env.REPLOID_DOPPLER_MODULE_URL).toBe(BROWSER_BROWSER_RUNTIME_CONFIG.dopplerModuleUrl);

@@ -10,6 +10,7 @@ import {
   renderReceiptLedger,
   renderRoomActivity,
   renderRouteDetail,
+  restoreLatestCompletedRun,
   setPoolRecordDisclosureOpen,
   setPoolRecordFacet,
   setResult
@@ -30,7 +31,8 @@ const setRoom = (roomId) => {
   vi.stubGlobal('window', {
     location: { search: `?room=${encodeURIComponent(roomId)}` },
     addEventListener: vi.fn(),
-    removeEventListener: vi.fn()
+    removeEventListener: vi.fn(),
+    dispatchEvent: vi.fn()
   });
 };
 
@@ -230,6 +232,42 @@ describe('Poolday record ledgers', () => {
     expect(html).toMatch(/data-pool-record-disclosure="record:receipt:sha256:receipt-open" open/);
     expect(html).toMatch(/data-pool-record-disclosure="technical-tools" open/);
     expect(html).toMatch(/data-pool-record-disclosure="receipt-lookup" open/);
+  });
+
+  it('restores the latest accepted result as saved history without implying a live run', () => {
+    const roomId = `record-result-${crypto.randomUUID()}`;
+    setRoom(roomId);
+    document.body.innerHTML = `
+      <section data-pool-run-surface data-run-state="idle">
+        <p data-pool-run-status>Ready</p>
+        <section data-pool-run-output hidden>
+          <div id="pool-run-result-summary"></div>
+          <pre id="pool-run-result-stream"></pre>
+          <span id="pool-run-result-stream-cursor"></span>
+          <div id="pool-run-result-evidence"></div>
+          <div id="pool-run-result-recovery"></div>
+          <pre id="pool-run-result-raw"></pre>
+        </section>
+      </section>
+    `;
+    addReceiptLedgerRow({
+      outputText: 'persisted accepted answer',
+      receiptHash: 'sha256:persisted',
+      receipt: {
+        jobId: 'peer_job_persisted',
+        providerId: 'provider_page_persisted'
+      },
+      requesterAcceptance: { accepted: true },
+      agreement: { accepted: true }
+    }, 'sha256:persisted');
+
+    const restored = restoreLatestCompletedRun('ask');
+
+    expect(restored?.savedRecord).toMatchObject({ restored: true, roomId });
+    expect(document.getElementById('pool-run-result-stream').textContent).toBe('persisted accepted answer');
+    expect(document.querySelector('[data-pool-run-output]').hidden).toBe(false);
+    expect(document.querySelector('[data-pool-run-status]').textContent).toBe('Showing last saved answer');
+    expect(document.querySelector('[data-pool-run-surface]').dataset.runState).toBe('inspecting');
   });
 
   it('renders compact server relay room activity summaries', () => {

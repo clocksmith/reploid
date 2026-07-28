@@ -12,6 +12,7 @@ import {
   refreshContributionPanels,
   refreshContributionStatusBar,
   refreshRecordLedgerState,
+  restoreLatestCompletedRun,
   renderContributionStatusBar,
   renderNav,
   renderRouteDetail,
@@ -172,6 +173,7 @@ export function initPoolHome(mount) {
     bindRoomActivityControls();
     bindReceiptControls();
     refreshRecordLedgerState();
+    restoreLatestCompletedRun(routeId);
     if (routeId === 'home') applyPoolDashboardView(dashboardView, { updateHistory: false });
   };
 

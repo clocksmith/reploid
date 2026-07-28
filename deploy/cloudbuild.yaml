@@ -46,6 +46,7 @@ steps:
           --region ${_REGION} \
           --platform managed \
           --allow-unauthenticated \
+          --to-latest \
           --min-instances 0 \
           --max-instances 1 \
           --concurrency 80 \

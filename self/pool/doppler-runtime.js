@@ -513,6 +513,7 @@ export function resetDopplerModuleCacheForTests() {
 }
 
 const getDopplerLoadInput = async (model = {}, module = null) => {
+  if (model.loadInput) return model.loadInput;
   const registryReference = model.dopplerLoadRef || model.registryId || model.loadRef || null;
   const listModels = module?.doppler?.listModels;
   if (registryReference && typeof listModels === 'function') {
@@ -525,7 +526,6 @@ const getDopplerLoadInput = async (model = {}, module = null) => {
       // Explicit pinned artifact input remains the fail-closed fallback.
     }
   }
-  if (model.loadInput) return model.loadInput;
   if (registryReference) return registryReference;
   if (model.url) return { url: model.url };
   if (model.manifest) return { manifest: model.manifest, baseUrl: model.baseUrl };
