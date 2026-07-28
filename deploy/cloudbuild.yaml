@@ -51,6 +51,7 @@ steps:
           --max-instances 1 \
           --concurrency 80 \
           --timeout 300 \
+          --set-secrets REPLOID_TURN_SHARED_SECRET=reploid-turn-shared-secret:latest \
           --set-env-vars "$(cat /workspace/.pool-env)"
         gcloud run services update-traffic ${_SERVICE} \
           --region ${_REGION} \

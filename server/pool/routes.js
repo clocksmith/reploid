@@ -37,6 +37,10 @@ import {
   scheduleAuditExecution
 } from './services/job-assignment.js';
 import { buildAcceptanceSummary } from './services/acceptance.js';
+import {
+  createTurnRtcConfiguration,
+  getPublicTurnServiceStatus
+} from './turn-credentials.js';
 
 const asyncRoute = (handler) => (req, res, next) => {
   Promise.resolve(handler(req, res, next)).catch(next);
@@ -44,17 +48,27 @@ const asyncRoute = (handler) => (req, res, next) => {
 
 const POOL_RATE_LIMIT_MAX_REQUESTS = 30;
 const POOL_RATE_LIMIT_BUCKET_MS = 10000;
+const POOL_REALTIME_RATE_LIMIT_MAX_REQUESTS = 240;
+
+const isRealtimeRelayRequest = (req) => (
+  /\/(?:signal\/sessions|peer\/rooms)\/[^/]+\/messages(?:\/|$)/.test(String(req.path || req.url || ''))
+);
 
 const createPoolRateLimiter = ({
   store,
   maxRequests = POOL_RATE_LIMIT_MAX_REQUESTS,
-  bucketMs = POOL_RATE_LIMIT_BUCKET_MS
+  bucketMs = POOL_RATE_LIMIT_BUCKET_MS,
+  realtimeMaxRequests = POOL_REALTIME_RATE_LIMIT_MAX_REQUESTS
 } = {}) => {
   const buckets = new Map();
   return async (req, res, next) => {
-    const key = String(req.headers['x-reploid-client-id'] || req.body?.requesterId || req.body?.providerId || req.ip || 'unknown');
+    const realtime = isRealtimeRelayRequest(req);
+    const requestLimit = realtime ? realtimeMaxRequests : maxRequests;
+    const rateClass = realtime ? 'realtime-relay' : 'control';
+    const identity = String(req.headers['x-reploid-client-id'] || req.body?.requesterId || req.body?.providerId || req.ip || 'unknown');
+    const key = `${identity}:${rateClass}`;
     if (typeof store?.consumeRateLimit === 'function') {
-      const result = await store.consumeRateLimit({ key, maxRequests, bucketMs });
+      const result = await store.consumeRateLimit({ key, maxRequests: requestLimit, bucketMs });
       res.setHeader('X-RateLimit-Limit', String(result.limit));
       res.setHeader('X-RateLimit-Remaining', String(Math.max(0, result.limit - result.count)));
       res.setHeader('X-RateLimit-Reset', String(result.resetAt));
@@ -71,7 +85,7 @@ const createPoolRateLimiter = ({
     }
     bucket.count += 1;
     buckets.set(key, bucket);
-    if (bucket.count > maxRequests) {
+    if (bucket.count > requestLimit) {
       return res.status(429).json({ error: 'pool rate limit exceeded', retryable: true });
     }
     return next();
@@ -633,7 +647,8 @@ export function createPoolRouter({
   verifyAuthToken = null,
   requireAuth = false,
   allowCanaryCreation = false,
-  createAdapterDownloadUrl = null
+  createAdapterDownloadUrl = null,
+  turnEnv = process.env
 } = {}) {
   const router = express.Router();
   router.use(asyncRoute(createPoolRateLimiter({ store })));
@@ -677,6 +692,27 @@ export function createPoolRouter({
     });
   }));
 
+  router.get('/rtc-config', asyncRoute(async (req, res) => {
+    if (!req.poolAuth?.verified || !req.poolAuth.uid) {
+      return res.status(401).json({ error: 'Firebase auth token required for TURN credentials' });
+    }
+    try {
+      return res.json(createTurnRtcConfiguration({
+        subject: req.poolAuth.uid,
+        env: turnEnv
+      }));
+    } catch (error) {
+      if (error?.code === 'turn_not_configured') {
+        return res.status(503).json({
+          error: error.message,
+          code: error.code,
+          retryable: true
+        });
+      }
+      throw error;
+    }
+  }));
+
   router.get('/status', asyncRoute(async (req, res) => {
     const storageMode = store.kind || 'unknown';
     const authVerifierConfigured = typeof verifyAuthToken === 'function';
@@ -694,7 +730,8 @@ export function createPoolRouter({
         adapterRegistry: 'signed_metadata_only',
         adapterCanaryRegistry: 'signed_non_routable_evidence',
         adapterArtifactTransport: 'cache_peer_origin',
-        modelArtifactBaseConfigured: Boolean(process.env.REPLOID_POOL_MODEL_BASE_URL || process.env.POOL_MODEL_BASE_URL)
+        modelArtifactBaseConfigured: Boolean(process.env.REPLOID_POOL_MODEL_BASE_URL || process.env.POOL_MODEL_BASE_URL),
+        turn: getPublicTurnServiceStatus(turnEnv)
       },
       auth: {
         required: requireAuth || storageMode === 'firestore',
@@ -1099,6 +1136,7 @@ export function createPoolRouter({
     const dopplerModuleConfigured = Boolean(configuredEnvValue('REPLOID_DOPPLER_MODULE_URL', 'POOL_DOPPLER_MODULE_URL'));
     const dopplerKernelBaseConfigured = Boolean(configuredEnvValue('REPLOID_DOPPLER_KERNEL_BASE_URL', 'POOL_DOPPLER_KERNEL_BASE_URL'));
     const privateAdapterDeliveryConfigured = typeof createAdapterDownloadUrl === 'function';
+    const turn = getPublicTurnServiceStatus(turnEnv);
     const configValidation = validatePoolConfig();
     const readinessConfig = POOL_CONFIG.deployment || {};
     const commitRevealSupported = typeof store.saveAssignmentCommitment === 'function'
@@ -1117,6 +1155,7 @@ export function createPoolRouter({
       && (!readinessConfig.requiresDopplerKernelBaseConfiguration || dopplerKernelBaseConfigured)
       && (!readinessConfig.requiresPrivateAdapterDeliverySigner || privateAdapterDeliveryConfigured)
       && (!readinessConfig.requiresCommitRevealStore || commitRevealSupported)
+      && turn.configured
       && (storageMode !== 'firestore' || distributedRateLimitSupported);
     return res.json({
       ok: productionReady,
@@ -1153,6 +1192,7 @@ export function createPoolRouter({
           maxMessagesPerPoll: MAX_SIGNAL_MESSAGES_PER_POLL,
           sessionTtlMs: MAX_SIGNAL_SESSION_TTL_MS
         },
+        turn,
         commitReveal: {
           supported: commitRevealSupported,
           activeProtocolId: POOL_CONFIG.ringPhaseProtocols?.activeProtocolId || null

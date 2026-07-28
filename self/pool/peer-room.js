@@ -375,6 +375,7 @@ export async function runPeerJob({
   promptDispatchConcurrency = null,
   knownProviderAdverts = [],
   requesterTransportFactory = createP2PRequesterTransport,
+  rtcConfigProvider = null,
   roomBusFactory = createBroadcastPeerRoomBus,
   onActivity = null
 } = {}) {
@@ -457,6 +458,9 @@ export async function runPeerJob({
     reportActivity('peer_assignment_planned', 'match', {
       providerCount: plan.assignments.length
     });
+    const rtcConfig = typeof rtcConfigProvider === 'function'
+      ? await rtcConfigProvider()
+      : null;
     for (const assignment of plan.assignments) {
       const sessionId = makeId('peer_session');
       const signaling = createRoomSignaling({
@@ -486,6 +490,7 @@ export async function runPeerJob({
         transport = requesterTransportFactory({
           signaling,
           initiator: true,
+          ...(rtcConfig ? { rtcConfig } : {}),
           onMessage(payload) {
             if (payload?.type === P2P_PAYLOAD_TYPES.RECEIPT) {
               clearReceiptTimer();
@@ -679,7 +684,11 @@ export async function runPeerJob({
       requesterAcceptance: acceptance,
       receiptErrors,
       acceptedSessionCount: acceptedSessions.length,
-      acceptErrors
+      acceptErrors,
+      transportDiagnostics: acceptedSessions.map((session) => ({
+        providerId: session.assignment.providerId,
+        ...(session.transport.getDiagnostics?.() || {})
+      }))
     };
   } catch (error) {
     reportActivity('peer_run_failed', 'error', {
@@ -700,6 +709,7 @@ export function createPeerProviderNode({
   roomId = DEFAULT_PEER_ROOM_ID,
   providerClient,
   providerTransportFactory = createP2PProviderTransport,
+  rtcConfigProvider = null,
   roomBusFactory = createBroadcastPeerRoomBus,
   advertIntervalMs = DEFAULT_PROVIDER_ADVERT_INTERVAL_MS,
   maxActiveSessions = 4,
@@ -981,10 +991,14 @@ export function createPeerProviderNode({
       remotePeerId: assignment.requesterId,
       roomBusFactory
     });
+    const rtcConfig = typeof rtcConfigProvider === 'function'
+      ? await rtcConfigProvider()
+      : null;
     let activeEntry = null;
     const transport = providerTransportFactory({
       signaling,
       initiator: false,
+      ...(rtcConfig ? { rtcConfig } : {}),
       onMessage(payload) {
         if (payload?.type === P2P_PAYLOAD_TYPES.PROMPT || payload?.type === P2P_PAYLOAD_TYPES.INPUT) {
           void handleInputPayload({ assignment, activeEntry, transport, signaling, payload }).catch((error) => {

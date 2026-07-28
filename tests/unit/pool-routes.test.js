@@ -299,6 +299,45 @@ describe('pool coordinator routes', () => {
     });
   });
 
+  it('issues ephemeral TURN configuration only to authenticated browsers', async () => {
+    store.kind = 'memory';
+    const turnEnv = {
+      REPLOID_TURN_HOST: '203.0.113.10',
+      REPLOID_TURN_SHARED_SECRET: 'route-test-shared-secret',
+      REPLOID_TURN_CREDENTIAL_TTL_SECONDS: '600'
+    };
+    router = createPoolRouter({
+      store,
+      requireAuth: true,
+      verifyAuthToken: async () => ({ uid: 'alice' }),
+      turnEnv
+    });
+
+    const unauthenticated = await dispatchJson(router, '/rtc-config');
+    expect(unauthenticated).toMatchObject({
+      status: 401,
+      body: { error: 'Firebase auth token required' }
+    });
+
+    const authenticated = await dispatchJson(router, '/rtc-config', {
+      headers: { authorization: 'Bearer valid-alice-token' }
+    });
+    expect(authenticated.status).toBe(200);
+    expect(authenticated.body).toMatchObject({
+      schema: 'reploid.pool.turn_credentials/v1',
+      ttlSeconds: 600,
+      rtcConfig: {
+        iceTransportPolicy: 'all',
+        iceServers: [{
+          username: expect.stringMatching(/:alice$/),
+          credential: expect.any(String),
+          credentialType: 'password'
+        }]
+      }
+    });
+    expect(JSON.stringify(authenticated.body)).not.toContain(turnEnv.REPLOID_TURN_SHARED_SECRET);
+  });
+
   it('rate limits repeated requests from the same client identity', async () => {
     store.kind = 'memory';
     router = createPoolRouter({ store });
@@ -317,6 +356,27 @@ describe('pool coordinator routes', () => {
         retryable: true
       }
     });
+  });
+
+  it('gives realtime relay traffic an independent burst budget', async () => {
+    store.kind = 'memory';
+    router = createPoolRouter({ store });
+    const headers = { 'x-reploid-client-id': 'client_realtime_rate_limit_test' };
+
+    const controlResponses = [];
+    const relayResponses = [];
+    for (let index = 0; index < 31; index += 1) {
+      controlResponses.push(await dispatchJson(router, '/status', { headers }));
+      relayResponses.push(await dispatchJson(
+        router,
+        '/peer/rooms/rate-limit-room/messages?peerId=requester_rate_limit',
+        { headers }
+      ));
+    }
+
+    expect(controlResponses[30].status).toBe(429);
+    expect(relayResponses.every((response) => response.status === 200)).toBe(true);
+    expect(relayResponses[30].body).toEqual({ messages: [] });
   });
 
   it('rejects providers that do not advertise the exact launch model identity', async () => {

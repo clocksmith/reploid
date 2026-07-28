@@ -96,6 +96,9 @@ export function createPoolSdk({ baseUrl = DEFAULT_BASE_URL, authTokenProvider = 
     deploymentCheck() {
       return request('/deployment/check');
     },
+    rtcConfig() {
+      return request('/rtc-config');
+    },
     publishAdapter(publication) {
       return request('/adapters', { method: 'POST', body: { publication } });
     },
