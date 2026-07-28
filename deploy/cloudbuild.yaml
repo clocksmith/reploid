@@ -41,17 +41,21 @@ steps:
     args:
       - -lc
       - |
+        set -euo pipefail
         gcloud run deploy ${_SERVICE} \
           --image ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_IMAGE}:${_TAG} \
           --region ${_REGION} \
           --platform managed \
           --allow-unauthenticated \
-          --to-latest \
           --min-instances 0 \
           --max-instances 1 \
           --concurrency 80 \
           --timeout 300 \
           --set-env-vars "$(cat /workspace/.pool-env)"
+        gcloud run services update-traffic ${_SERVICE} \
+          --region ${_REGION} \
+          --platform managed \
+          --to-latest
 
 images:
   - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_IMAGE}:${_TAG}
