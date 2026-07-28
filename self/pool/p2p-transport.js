@@ -184,6 +184,18 @@ export function createP2PTransport({
   let lastIceGatheringState = null;
   let localIceCandidateCount = 0;
   let remoteIceCandidateCount = 0;
+  const localIceCandidateTypes = new Set();
+  const remoteIceCandidateTypes = new Set();
+
+  const recordCandidateType = (target, candidate) => {
+    const explicitType = String(candidate?.type || '').trim();
+    if (explicitType) {
+      target.add(explicitType);
+      return;
+    }
+    const match = String(candidate?.candidate || '').match(/\btyp\s+([a-z0-9_-]+)/i);
+    if (match?.[1]) target.add(match[1].toLowerCase());
+  };
 
   function setState(nextState) {
     if (state === nextState) {
@@ -314,6 +326,7 @@ export function createP2PTransport({
       }
 
       localIceCandidateCount += 1;
+      recordCandidateType(localIceCandidateTypes, event.candidate);
       void Promise.resolve(signaling.sendIceCandidate(candidateToPayload(event.candidate))).catch((error) => {
         fail(error);
       });
@@ -413,6 +426,7 @@ export function createP2PTransport({
 
     if (message.type === SIGNAL_TYPES.ICE_CANDIDATE) {
       remoteIceCandidateCount += 1;
+      recordCandidateType(remoteIceCandidateTypes, message.payload);
       if (!hasRemoteDescription(peerConnection)) {
         pendingRemoteIceCandidates.push(message.payload);
         return;
@@ -468,6 +482,8 @@ export function createP2PTransport({
       signalingState: peerConnection?.signalingState || null,
       localIceCandidateCount,
       remoteIceCandidateCount,
+      localIceCandidateTypes: [...localIceCandidateTypes].sort(),
+      remoteIceCandidateTypes: [...remoteIceCandidateTypes].sort(),
       pendingRemoteIceCandidateCount: pendingRemoteIceCandidates.length,
       iceTransportPolicy: rtcConfig?.iceTransportPolicy || 'all',
       stunConfigured: configuredServers.some((server) => (

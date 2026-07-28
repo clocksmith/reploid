@@ -9,6 +9,7 @@ This directory keeps production deployment settings in source control.
 | `env.production.json` | JSON | JavaScript-friendly source of deployment constants and required env values. |
 | `cloud-run-service.yaml` | YAML | Native Cloud Run service import/export format. |
 | `cloudbuild.yaml` | YAML | Native Cloud Build pipeline format. |
+| `turn/provision.sh` | Shell | Idempotent TURN relay, secret, address, firewall, and service-account provisioning. |
 
 The project uses JSON where Firebase/GCP accepts JSON directly. YAML is used only where Google Cloud tools expect it as the normal config surface.
 
@@ -22,6 +23,19 @@ gcloud artifacts repositories create reploid \
   --repository-format=docker \
   --location=us-central1
 ```
+
+Provision the credentialed WebRTC relay once, or rerun the same command to
+repair its declarative resources:
+
+```bash
+TURN_HOST="$(./deploy/turn/provision.sh)"
+```
+
+Write the returned public IP to `REPLOID_TURN_HOST` in
+`deploy/env.production.json` and `deploy/cloud-run-service.yaml`. Cloud Build
+binds `REPLOID_TURN_SHARED_SECRET` from Secret Manager. Browsers receive only
+short-lived TURN REST credentials from the authenticated `/pool/rtc-config`
+endpoint. The shared secret never enters source control or Firebase Hosting.
 
 Create a dedicated private adapter bucket with uniform bucket-level access,
 public access prevention, versioning, retention, and browser CORS for the exact

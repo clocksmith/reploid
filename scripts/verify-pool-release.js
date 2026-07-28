@@ -80,25 +80,34 @@ try {
     ...(isLocal ? ['--allow-local'] : [])
   ]);
 
-  await runCommand(
-    'deployed server-relayed Doppler text, protein, and two-provider inference with receipt acceptance',
-    process.execPath,
-    [
-      path.join(repoRoot, 'node_modules', '@playwright', 'test', 'cli.js'),
-      'test',
-      'tests/e2e/p2p-actual-inference.spec.js',
-      '--project=chromium',
-      '--grep',
-      'loads Doppler|runs ESM-2|loads two independent'
-    ],
-    {
-      REPLOID_E2E_ACTUAL_INFERENCE: '1',
-      REPLOID_E2E_ACTUAL_MULTI_PROVIDER: '1',
-      REPLOID_E2E_RELAY_MODE: 'server',
-      REPLOID_E2E_BASE_URL: baseUrl,
-      ...(channel ? { REPLOID_E2E_CHROMIUM_CHANNEL: channel } : {})
-    }
-  );
+  const actualInferenceEnv = {
+    REPLOID_E2E_ACTUAL_INFERENCE: '1',
+    REPLOID_E2E_ACTUAL_MULTI_PROVIDER: '1',
+    REPLOID_E2E_RELAY_MODE: 'server',
+    REPLOID_E2E_FORCE_TURN: '1',
+    REPLOID_E2E_BASE_URL: baseUrl,
+    ...(channel ? { REPLOID_E2E_CHROMIUM_CHANNEL: channel } : {})
+  };
+  const actualInferenceLanes = [
+    ['deployed relay-only Doppler text inference and receipt acceptance', 'loads Doppler'],
+    ['deployed relay-only ESM-2 protein inference and receipt acceptance', 'runs ESM-2'],
+    ['deployed relay-only two-provider quorum inference and receipt acceptance', 'loads two independent']
+  ];
+  for (const [label, grep] of actualInferenceLanes) {
+    await runCommand(
+      label,
+      process.execPath,
+      [
+        path.join(repoRoot, 'node_modules', '@playwright', 'test', 'cli.js'),
+        'test',
+        'tests/e2e/p2p-actual-inference.spec.js',
+        '--project=chromium',
+        '--grep',
+        grep
+      ],
+      actualInferenceEnv
+    );
+  }
   console.log(`[pool-release] passed ${baseUrl}`);
 } catch (error) {
   console.error(`[pool-release] failed: ${error.message}`);

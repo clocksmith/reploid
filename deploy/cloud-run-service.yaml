@@ -52,6 +52,15 @@ spec:
               value: "https://cdn.jsdelivr.net/npm/doppler-gpu@0.5.1/src/index.js"
             - name: REPLOID_DOPPLER_KERNEL_BASE_URL
               value: "https://cdn.jsdelivr.net/npm/doppler-gpu@0.5.1/src/gpu/kernels"
+            - name: REPLOID_TURN_HOST
+              value: "34.57.174.48"
+            - name: REPLOID_TURN_CREDENTIAL_TTL_SECONDS
+              value: "600"
+            - name: REPLOID_TURN_SHARED_SECRET
+              valueFrom:
+                secretKeyRef:
+                  key: latest
+                  name: reploid-turn-shared-secret
           resources:
             limits:
               cpu: "1"

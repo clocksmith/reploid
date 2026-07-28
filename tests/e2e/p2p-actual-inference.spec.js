@@ -9,6 +9,7 @@ const BASE_URL = 'http://localhost:8000';
 const ACTUAL_INFERENCE_TIMEOUT_MS = 300000;
 const RELAY_MODE = process.env.REPLOID_E2E_RELAY_MODE === 'server' ? 'server' : 'local';
 const RELAY_LABEL = RELAY_MODE === 'server' ? 'server relay' : 'local tab';
+const FORCE_TURN = process.env.REPLOID_E2E_FORCE_TURN === '1';
 const TEXT_TOKEN_PATTERN = /[\p{L}\p{N}]/u;
 const rawSha256 = (value) => String(value || '').replace(/^sha256:/, '');
 const SEQUENCE_MODEL = getEnabledPoolModelContract('esm2-t12-35m-ur50d-f32-af32');
@@ -25,12 +26,13 @@ const routeUrl = (baseURL, route, roomId) => {
 };
 
 const installActualRuntimeConfig = async (context) => {
-  await context.addInitScript(() => {
+  await context.addInitScript((forceTurn) => {
     window.REPLOID_POOL_DISCOVERY_WINDOW_MS = 30000;
     window.REPLOID_POOL_RECEIPT_WINDOW_MS = 300000;
     window.REPLOID_POOL_MAX_OUTPUT_TOKENS = 2;
     window.REPLOID_POOL_STRICT_ARTIFACT_PREFLIGHT = false;
-  });
+    window.REPLOID_POOL_FORCE_RELAY = forceTurn;
+  }, FORCE_TURN);
 };
 
 const createInferenceNodeContexts = async (browser) => {
@@ -79,7 +81,7 @@ const wireDiagnostics = (page, label) => {
     }
   });
   page.on('pageerror', (error) => {
-    console.log(`[${label}:pageerror] ${error.message}`);
+    console.log(`[${label}:pageerror] ${error.stack || error.message}`);
   });
   page.on('requestfailed', (request) => {
     const url = request.url();
@@ -161,6 +163,7 @@ const attachRelayReceipt = async (testInfo, lane, roomId, result = {}) => {
       providerId: result.assignment?.providerId || receipt?.providerId || null,
       requesterId: result.requesterAcceptance?.requesterId || result.assignment?.requesterId || null,
       transport: result.transport || null,
+      transportDiagnostics: result.transportDiagnostics || null,
       receiptHash: result.receiptHash || null,
       agreementHash: result.agreement?.agreementHash || null,
       agreementAccepted: result.agreement?.accepted === true,
@@ -171,6 +174,20 @@ const attachRelayReceipt = async (testInfo, lane, roomId, result = {}) => {
     }, null, 2)),
     contentType: 'application/json'
   });
+};
+
+const expectForcedTurnTransport = (result) => {
+  if (!FORCE_TURN) return;
+  expect(result.transportDiagnostics?.length || 0).toBeGreaterThan(0);
+  for (const diagnostics of result.transportDiagnostics) {
+    expect(diagnostics).toMatchObject({
+      state: 'connected',
+      iceTransportPolicy: 'relay',
+      turnConfigured: true,
+      localIceCandidateTypes: ['relay'],
+      remoteIceCandidateTypes: ['relay']
+    });
+  }
 };
 
 const waitForActualResult = async ({
@@ -288,6 +305,7 @@ test.describe('Run and Contribute actual browser inference', () => {
       const result = await runActualPrompt(runPage, 'The color of the sky is');
 
       expect(result.transport).toBe('webrtc_peer_room');
+      expectForcedTurnTransport(result);
       expect(result.outputText.trim().length).toBeGreaterThan(0);
       expect(result.outputText).toMatch(TEXT_TOKEN_PATTERN);
       expect(result.receiptHash).toMatch(/^sha256:/);
@@ -358,6 +376,7 @@ test.describe('Run and Contribute actual browser inference', () => {
 
       const result = (await readSnapshot(requesterPage, 'pool-home-run-result')).parsed;
       expect(result.transport).toBe('webrtc_peer_room');
+      expectForcedTurnTransport(result);
       expect(result.outputKind).toBe('sequence.embedding.v1');
       expect(result.sequenceResultHash).toMatch(/^sha256:/);
       expect(result.embeddingDimensions).toBeGreaterThan(0);
@@ -501,6 +520,7 @@ test.describe('Run and Contribute actual browser inference', () => {
       );
 
       expect(result.transport).toBe('webrtc_peer_room');
+      expectForcedTurnTransport(result);
       expect(result.outputText.trim().length).toBeGreaterThan(0);
       expect(result.agreement?.accepted).toBe(true);
       expect(result.assignments).toHaveLength(2);

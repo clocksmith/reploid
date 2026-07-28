@@ -30,6 +30,7 @@ import {
 import { FASTEST_RECEIPT_POLICY_ID, listPolicies } from '../../pool/policy-router.js';
 import { createPeerProviderNode, runPeerJob } from '../../pool/peer-room.js';
 import { createPoolSdk, verifyReceiptRecord } from '../../pool/sdk.js';
+import { getPoolRtcConfig } from '../../pool/rtc-config.js';
 import {
   SEQUENCE_ALPHABETS,
   SEQUENCE_PUBLIC_SENSITIVITY,
@@ -970,6 +971,7 @@ const bindPeerRunSurface = ({
     sdk: null,
     identity: requesterIdentity
   });
+  const rtcSdk = createPoolSdk();
   const recoveryElement = document.getElementById(`${resultId}-recovery`);
   let pendingRequest = null;
   let pendingErrorResult = null;
@@ -1158,6 +1160,9 @@ const bindPeerRunSurface = ({
         roomBusFactory: getPeerRoomBusFactory(),
         generationConfig: getPeerGenerationConfig(),
         knownProviderAdverts: request.knownProviderAdverts || [],
+        rtcConfigProvider: getPeerRelayMode() === 'server'
+          ? () => getPoolRtcConfig({ sdk: rtcSdk })
+          : null,
         onActivity: handleRunActivity
       });
       result.inviteUrl = getPeerInviteUrl();
@@ -1855,6 +1860,9 @@ const createProviderContributionController = () => {
       roomId: getPeerRoomId(),
       providerClient: getProviderClient(),
       roomBusFactory: getPeerRoomBusFactory(),
+      rtcConfigProvider: getPeerRelayMode() === 'server'
+        ? () => getPoolRtcConfig({ sdk: adapterSdk })
+        : null,
       onActivity: handlePeerActivity
     });
     peerProviderNode = node;

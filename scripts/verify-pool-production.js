@@ -61,12 +61,15 @@ const requiredRuntimeEnv = [
   'REPLOID_ADAPTER_SIGNED_URL_TTL_MS',
   'REPLOID_POOL_MODEL_BASE_URL',
   'REPLOID_DOPPLER_MODULE_URL',
-  'REPLOID_DOPPLER_KERNEL_BASE_URL'
+  'REPLOID_DOPPLER_KERNEL_BASE_URL',
+  'REPLOID_TURN_HOST',
+  'REPLOID_TURN_CREDENTIAL_TTL_SECONDS'
 ];
 
 const requiredRewrites = [
   '/pool/policies',
   '/pool/config',
+  '/pool/rtc-config',
   '/pool/status',
   '/pool/metrics',
   '/pool/deployment/check',
@@ -202,6 +205,9 @@ const checkLocalFiles = () => {
   if (!cloudBuildYaml.includes('scripts/print-pool-env.js deploy/env.production.json')) {
     reasons.push('Cloud Build does not use print-pool-env placeholder guard');
   }
+  if (!cloudBuildYaml.includes('--set-secrets REPLOID_TURN_SHARED_SECRET=reploid-turn-shared-secret:latest')) {
+    reasons.push('Cloud Build does not bind the TURN shared secret from Secret Manager');
+  }
 
   return reasons;
 };
@@ -226,6 +232,7 @@ const checkDeploymentUrl = async (baseUrl) => {
     if (deployment.store?.commitReveal?.supported !== true) reasons.push('deployed commit-reveal store support is not true');
     if (deployment.store?.adapterDelivery?.configured !== true) reasons.push('deployed private adapter signer is not configured');
     if (deployment.store?.rateLimit?.distributed !== true) reasons.push('deployed rate limiting is not Firestore-backed');
+    if (deployment.store?.turn?.configured !== true) reasons.push('deployed TURN relay is not configured');
   } catch (error) {
     reasons.push(`deployment readiness fetch failed: ${error.message}`);
   }
