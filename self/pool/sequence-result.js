@@ -45,6 +45,89 @@ const canonicalFloat32Bytes = (values) => {
 
 const hashFloat32Values = (values) => sha256Hex(canonicalFloat32Bytes(values));
 
+const isNumericVector = (value) => ArrayBuffer.isView(value) || Array.isArray(value);
+
+/**
+ * Recompute the tensor commitments carried by a sequence receipt before raw
+ * tensors are returned to a requester. Receipt metadata alone is insufficient:
+ * the tensors travel in a separate P2P payload and can otherwise be replaced.
+ */
+export async function validateSequenceOutputIntegrity({
+  sequenceResult,
+  sequenceOutput,
+  expectedResultHash = null
+} = {}) {
+  const reasons = [];
+  if (!sequenceResult || typeof sequenceResult !== 'object' || Array.isArray(sequenceResult)) {
+    return { ok: false, reasons: ['sequence result metadata is required'] };
+  }
+  if (!sequenceOutput || typeof sequenceOutput !== 'object' || Array.isArray(sequenceOutput)) {
+    return { ok: false, reasons: ['sequence output tensors are required'] };
+  }
+
+  if (expectedResultHash && await hashJson(sequenceResult) !== expectedResultHash) {
+    reasons.push('sequence result metadata does not match the signed result hash');
+  }
+
+  const embeddingDim = Number(sequenceResult.embeddingDim);
+  if (!Number.isInteger(embeddingDim) || embeddingDim <= 0) {
+    reasons.push('sequence result embeddingDim is invalid');
+  }
+
+  if (!isNumericVector(sequenceOutput.pooledEmbedding)) {
+    reasons.push('sequence pooled embedding is missing');
+  } else {
+    const pooledEmbedding = normalizeFloat32Values(sequenceOutput.pooledEmbedding);
+    try {
+      assertFiniteValues(pooledEmbedding, 'sequence pooled embedding');
+      if (Number.isInteger(embeddingDim) && pooledEmbedding.length !== embeddingDim) {
+        reasons.push('sequence pooled embedding dimensions do not match receipt metadata');
+      }
+      if (await hashFloat32Values(pooledEmbedding) !== sequenceResult.pooledEmbeddingHash) {
+        reasons.push('sequence pooled embedding hash mismatch');
+      }
+    } catch (error) {
+      reasons.push(error.message);
+    }
+  }
+
+  const hasTokenEmbeddings = sequenceResult.tokenEmbeddingsHash !== null && sequenceResult.tokenEmbeddingsHash !== undefined;
+  if (hasTokenEmbeddings) {
+    if (!isNumericVector(sequenceOutput.tokenEmbeddings)) {
+      reasons.push('sequence token embeddings are missing');
+    } else {
+      const tokenEmbeddings = normalizeFloat32Values(sequenceOutput.tokenEmbeddings);
+      try {
+        assertFiniteValues(tokenEmbeddings, 'sequence token embeddings');
+        if (Number.isInteger(embeddingDim)
+          && tokenEmbeddings.length !== Number(sequenceResult.tokenCount) * embeddingDim) {
+          reasons.push('sequence token embedding dimensions do not match receipt metadata');
+        }
+        if (await hashFloat32Values(tokenEmbeddings) !== sequenceResult.tokenEmbeddingsHash) {
+          reasons.push('sequence token embeddings hash mismatch');
+        }
+      } catch (error) {
+        reasons.push(error.message);
+      }
+    }
+  } else if (sequenceOutput.tokenEmbeddings != null && sequenceOutput.tokenEmbeddings.length > 0) {
+    reasons.push('unexpected sequence token embeddings');
+  }
+
+  const hasMaskedLogits = sequenceResult.maskedLogitsHash !== null && sequenceResult.maskedLogitsHash !== undefined;
+  if (hasMaskedLogits) {
+    if (!Array.isArray(sequenceOutput.maskedLogits)) {
+      reasons.push('sequence masked logits are missing');
+    } else if (await hashJson(sequenceOutput.maskedLogits) !== sequenceResult.maskedLogitsHash) {
+      reasons.push('sequence masked logits hash mismatch');
+    }
+  } else if (Array.isArray(sequenceOutput.maskedLogits) && sequenceOutput.maskedLogits.length > 0) {
+    reasons.push('unexpected sequence masked logits');
+  }
+
+  return { ok: reasons.length === 0, reasons };
+}
+
 const lessLogit = (left, right) => (
   left.score < right.score || (left.score === right.score && left.tokenId > right.tokenId)
 );
@@ -207,5 +290,6 @@ export async function reduceDopplerSequenceResult(result, request) {
 export default {
   sequenceMethodName,
   callDopplerSequence,
-  reduceDopplerSequenceResult
+  reduceDopplerSequenceResult,
+  validateSequenceOutputIntegrity
 };

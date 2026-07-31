@@ -93,7 +93,7 @@ describe('WebSocket routing', () => {
       type: 'join',
       peerId: 'probe-peer',
       roomId: 'reploid-swarm-openclaw',
-      token: 'openclaw',
+      token: 'test-room-capability-4ac3c462b01e4bce9ca7',
       metadata: { alias: 'probe' }
     }));
 

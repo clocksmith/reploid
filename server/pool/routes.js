@@ -125,6 +125,13 @@ const extractBearerToken = (req) => {
   return match ? match[1].trim() : null;
 };
 
+const isLoopbackRequest = (req) => {
+  const address = String(req.ip || req.socket?.remoteAddress || '').trim().toLowerCase();
+  return address === '127.0.0.1'
+    || address === '::1'
+    || address === '::ffff:127.0.0.1';
+};
+
 const isPublicDiscoveryRoute = (req) => (
   req.path === '/peer/rooms'
   || req.path.startsWith('/peer/rooms/')
@@ -142,12 +149,14 @@ const roleIdForUid = (role, uid) => `${role}_${normalizeUid(uid)}`;
 
 const authMatchesRoleId = (auth, role, roleId) => {
   if (hasCoordinatorClaim(auth)) return true;
-  if (!auth?.verified || !auth.uid) return true;
+  if (auth?.localDevelopment === true) return true;
+  if (!auth?.verified || !auth.uid) return false;
   return roleId === roleIdForUid(role, auth.uid);
 };
 
 const authMatchesAnyRoleId = (auth, roles, roleId) => {
-  if (!auth?.verified || !auth.uid) return true;
+  if (auth?.localDevelopment === true) return true;
+  if (!auth?.verified || !auth.uid) return false;
   return roles.some((role) => authMatchesRoleId(auth, role, roleId));
 };
 
@@ -184,7 +193,8 @@ const hasCoordinatorClaim = (auth) => auth?.decoded?.admin === true
 const signalingRoles = Object.freeze(['requester', 'agent', 'provider']);
 
 const signalingParticipantAllowed = (auth, participantIds = []) => {
-  if (!auth?.verified || !auth.uid) return true;
+  if (auth?.localDevelopment === true) return true;
+  if (!auth?.verified || !auth.uid) return false;
   if (hasCoordinatorClaim(auth)) return true;
   return participantIds.some((participantId) => authMatchesAnyRoleId(auth, signalingRoles, participantId));
 };
@@ -201,7 +211,11 @@ const requireSignalFromPeer = (req, res, session, fromPeerId) => {
     res.status(400).json({ error: 'signal fromPeerId is not a session participant' });
     return false;
   }
-  if (!req.poolAuth?.verified || !req.poolAuth.uid || hasCoordinatorClaim(req.poolAuth)) return true;
+  if (req.poolAuth?.localDevelopment === true || hasCoordinatorClaim(req.poolAuth)) return true;
+  if (!req.poolAuth?.verified || !req.poolAuth.uid) {
+    res.status(403).json({ error: 'authenticated identity is required to publish signaling messages' });
+    return false;
+  }
   if (authMatchesAnyRoleId(req.poolAuth, signalingRoles, fromPeerId)) return true;
   res.status(403).json({ error: 'authenticated identity does not match signal fromPeerId' });
   return false;
@@ -646,6 +660,7 @@ export function createPoolRouter({
   store = poolStore,
   verifyAuthToken = null,
   requireAuth = false,
+  allowUnauthenticatedLocal = false,
   allowCanaryCreation = false,
   createAdapterDownloadUrl = null,
   turnEnv = process.env
@@ -654,16 +669,25 @@ export function createPoolRouter({
   router.use(asyncRoute(createPoolRateLimiter({ store })));
   router.use(asyncRoute(async (req, res, next) => {
     const authOptional = isPublicDiscoveryRoute(req);
-    const routeRequiresAuth = requireAuth || store.kind === 'firestore';
+    const localDevelopment = !authOptional && allowUnauthenticatedLocal && isLoopbackRequest(req);
+    const routeRequiresAuth = !authOptional && !localDevelopment;
     const token = extractBearerToken(req);
     if (!token) {
       if (routeRequiresAuth && !authOptional) return res.status(401).json({ error: 'Firebase auth token required' });
-      req.poolAuth = { verified: false, tokenPresent: false };
+      req.poolAuth = {
+        verified: false,
+        tokenPresent: false,
+        localDevelopment
+      };
       return next();
     }
     if (typeof verifyAuthToken !== 'function') {
       if (routeRequiresAuth) return res.status(503).json({ error: 'Firebase auth verifier unavailable' });
-      req.poolAuth = { verified: false, tokenPresent: true };
+      req.poolAuth = {
+        verified: false,
+        tokenPresent: true,
+        localDevelopment
+      };
       return next();
     }
     try {

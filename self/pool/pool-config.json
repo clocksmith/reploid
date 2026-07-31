@@ -1045,6 +1045,7 @@
       },
       "sequence": {
         "alphabet": "amino_acid",
+        "maxSequenceLength": 1024,
         "tokenEmbeddings": true,
         "pooledEmbedding": {
           "mode": "mean",

@@ -2,6 +2,33 @@
 
 import { WebSocketServer, WebSocket } from 'ws';
 import { EventEmitter } from 'events';
+import crypto from 'node:crypto';
+import { isLoopbackAddress } from './signaling-server.js';
+
+const isLoopbackOrigin = (origin) => {
+  if (!origin) return false;
+  try {
+    const host = new URL(origin).hostname.toLowerCase();
+    return host === 'localhost' || isLoopbackAddress(host);
+  } catch {
+    return false;
+  }
+};
+
+const tokensEqual = (left, right) => {
+  if (typeof left !== 'string' || typeof right !== 'string') return false;
+  const leftBytes = Buffer.from(left);
+  const rightBytes = Buffer.from(right);
+  return leftBytes.length === rightBytes.length && crypto.timingSafeEqual(leftBytes, rightBytes);
+};
+
+const accessTokenFromRequest = (req) => {
+  try {
+    return new URL(req.url, 'ws://reploid.local').searchParams.get('access_token');
+  } catch {
+    return null;
+  }
+};
 
 class AgentBridge extends EventEmitter {
   constructor(options = {}) {
@@ -11,6 +38,9 @@ class AgentBridge extends EventEmitter {
       path: options.path || '/agent-bridge',
       heartbeatInterval: options.heartbeatInterval || 30000,
       agentTimeout: options.agentTimeout || 120000,
+      localOnly: options.localOnly !== false,
+      allowedOrigins: Array.isArray(options.allowedOrigins) ? [...options.allowedOrigins] : [],
+      accessToken: typeof options.accessToken === 'string' && options.accessToken ? options.accessToken : null,
       ...options
     };
 
@@ -39,7 +69,53 @@ class AgentBridge extends EventEmitter {
     return this.wss.shouldHandle(req);
   }
 
+  rejectUpgrade(socket, statusCode, message) {
+    const body = String(message || 'Forbidden');
+    try {
+      socket.write([
+        `HTTP/1.1 ${statusCode} ${statusCode === 503 ? 'Service Unavailable' : 'Forbidden'}`,
+        'Connection: close',
+        'Content-Type: text/plain; charset=utf-8',
+        `Content-Length: ${Buffer.byteLength(body)}`,
+        '',
+        body
+      ].join('\r\n'));
+    } finally {
+      socket.destroy();
+    }
+  }
+
+  isOriginAllowed(origin) {
+    if (this.options.localOnly) return !origin || isLoopbackOrigin(origin);
+    if (!origin || this.options.allowedOrigins.length === 0) return false;
+    return this.options.allowedOrigins.some((candidate) => (
+      candidate instanceof RegExp ? candidate.test(origin) : String(candidate) === origin
+    ));
+  }
+
   handleUpgrade(req, socket, head) {
+    if (!this.shouldHandle(req)) {
+      this.rejectUpgrade(socket, 403, 'Not found');
+      return;
+    }
+    if (this.options.localOnly && !isLoopbackAddress(req.socket?.remoteAddress)) {
+      this.rejectUpgrade(socket, 403, 'Loopback connections only');
+      return;
+    }
+    if (!this.isOriginAllowed(req.headers.origin)) {
+      this.rejectUpgrade(socket, 403, 'Origin not allowed');
+      return;
+    }
+    if (!this.options.localOnly) {
+      if (!this.options.accessToken) {
+        this.rejectUpgrade(socket, 503, 'Remote Agent Bridge requires an access token');
+        return;
+      }
+      if (!tokensEqual(accessTokenFromRequest(req), this.options.accessToken)) {
+        this.rejectUpgrade(socket, 403, 'Agent Bridge access denied');
+        return;
+      }
+    }
     this.wss.handleUpgrade(req, socket, head, (ws) => {
       this.wss.emit('connection', ws, req);
     });

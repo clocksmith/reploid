@@ -78,6 +78,11 @@ export function parseStandaloneSignalingOptions(argv = process.argv.slice(2), en
       'local-only',
       !(envLocalOnly === 'false' || envLocalOnly === '0' || envLocalOnly === 'no')
     ),
+    accessToken: String(env.REPLOID_SIGNALING_ACCESS_TOKEN || '').trim() || null,
+    allowedOrigins: String(env.REPLOID_SIGNALING_ALLOWED_ORIGINS || '')
+      .split(',')
+      .map((origin) => origin.trim())
+      .filter(Boolean),
     heartbeatInterval: parseIntOption(env.REPLOID_SIGNALING_HEARTBEAT_MS, 30000),
     peerTimeout: parseIntOption(env.REPLOID_SIGNALING_PEER_TIMEOUT_MS, 60000),
     maxMessageBytes: parseIntOption(env.REPLOID_SIGNALING_MAX_MESSAGE_BYTES, 64 * 1024),
@@ -193,6 +198,8 @@ export function createStandaloneSignalingServer(options = {}) {
   const signalingServer = new SignalingServer({
     path: resolvedOptions.path,
     localOnly: resolvedOptions.localOnly,
+    accessToken: resolvedOptions.accessToken,
+    allowedOrigins: resolvedOptions.allowedOrigins,
     heartbeatInterval: resolvedOptions.heartbeatInterval,
     peerTimeout: resolvedOptions.peerTimeout,
     maxMessageBytes: resolvedOptions.maxMessageBytes,

@@ -4,16 +4,22 @@ import express from 'express';
 import http from 'http';
 import path from 'path';
 import fs from 'fs';
+import crypto from 'crypto';
 import dotenv from 'dotenv';
 import { fileURLToPath } from 'url';
 import { spawn, exec } from 'child_process';
 import { promisify } from 'util';
-import SignalingServer from './signaling-server.js';
+import SignalingServer, { isLoopbackAddress } from './signaling-server.js';
 import AgentBridge from './agent-bridge.js';
 import fetch from 'node-fetch';
 import createPoolRouter from './pool/routes.js';
 import { createFirebaseStore } from './pool/firebase-store.js';
 import { createGcsAdapterOriginSigner } from './pool/adapter-origin-signer.js';
+import {
+  createPublicInferenceConfig,
+  createPublicInferenceGuard,
+  createPublicInferenceMiddleware
+} from './public-inference-guard.js';
 
 // Crash protection - keep server alive on uncaught errors
 process.on('uncaughtException', (err) => {
@@ -96,6 +102,10 @@ try {
 }
 
 const app = express();
+const TRUST_PROXY_HOPS = Number(process.env.REPLOID_TRUST_PROXY_HOPS || 0);
+if (Number.isInteger(TRUST_PROXY_HOPS) && TRUST_PROXY_HOPS > 0) {
+  app.set('trust proxy', TRUST_PROXY_HOPS);
+}
 const PORT = appConfig?.server?.port || process.env.PORT || 8000;
 const DECO_VISUAL_FEEDBACK = process.env.DECO_VISUAL_FEEDBACK === '1';
 const decoFeedback = DECO_VISUAL_FEEDBACK
@@ -126,6 +136,8 @@ const CORS_ORIGINS = appConfig?.server?.corsOrigins || ENV_CORS_ORIGINS || DEFAU
 const AUTO_START_OLLAMA = appConfig?.ollama?.autoStart || process.env.AUTO_START_OLLAMA === 'true';
 const SSE_DONE = 'data: [DONE]';
 const POOL_BACKEND_ONLY = process.env.POOL_BACKEND_ONLY === 'true';
+const SERVER_ACCESS_TOKEN = process.env.REPLOID_SERVER_ACCESS_TOKEN || null;
+const ALLOW_UNAUTHENTICATED_LOOPBACK = process.env.REPLOID_ALLOW_UNAUTHENTICATED_LOOPBACK === 'true';
 const getGeminiHeaders = () => ({
   'Content-Type': 'application/json',
   Referer: GEMINI_REFERER
@@ -187,6 +199,68 @@ const createConfiguredAdapterOriginSigner = async () => {
 const configuredPoolStore = await createConfiguredPoolStore();
 const configuredPoolAuth = await createConfiguredPoolAuth();
 const configuredAdapterOriginSigner = await createConfiguredAdapterOriginSigner();
+let publicInferenceGuard = null;
+let publicInferenceConfigError = null;
+try {
+  publicInferenceGuard = createPublicInferenceGuard({
+    config: createPublicInferenceConfig(process.env),
+    getClientKey: (req) => String(req.ip || req.socket?.remoteAddress || 'unknown')
+  });
+} catch (error) {
+  publicInferenceConfigError = error.message;
+  console.error(`[Public inference] Disabled: ${publicInferenceConfigError}`);
+}
+const admitAnonymousInference = createPublicInferenceMiddleware({
+  guard: publicInferenceGuard,
+  configurationError: publicInferenceConfigError
+});
+
+const extractAuthorizationToken = (req) => {
+  const header = req.headers.authorization || req.headers.Authorization;
+  if (typeof header !== 'string') return null;
+  const match = header.match(/^Bearer\s+(.+)$/i);
+  return match ? match[1].trim() : null;
+};
+
+const tokensEqual = (left, right) => {
+  if (typeof left !== 'string' || typeof right !== 'string') return false;
+  const leftBytes = Buffer.from(left);
+  const rightBytes = Buffer.from(right);
+  return leftBytes.length === rightBytes.length && crypto.timingSafeEqual(leftBytes, rightBytes);
+};
+
+const requireServerAccess = async (req, res, next) => {
+  if (!rateLimiter.check(getRateLimitKey(req))) {
+    return res.status(429).json({ error: 'Rate limit exceeded. Please try again later.' });
+  }
+
+  if (ALLOW_UNAUTHENTICATED_LOOPBACK && isLoopbackAddress(req.socket?.remoteAddress)) {
+    req.reploidAccessSubject = 'loopback-development';
+    return next();
+  }
+
+  const token = extractAuthorizationToken(req);
+  if (SERVER_ACCESS_TOKEN && tokensEqual(token, SERVER_ACCESS_TOKEN)) {
+    req.reploidAccessSubject = 'server-access-token';
+    return next();
+  }
+
+  if (token && typeof configuredPoolAuth.verifyAuthToken === 'function') {
+    try {
+      const decoded = await configuredPoolAuth.verifyAuthToken(token);
+      req.reploidAccessSubject = `firebase:${decoded?.uid || 'unknown'}`;
+      return next();
+    } catch {
+      return res.status(401).json({ error: 'Server access token is invalid' });
+    }
+  }
+
+  if (!SERVER_ACCESS_TOKEN && typeof configuredPoolAuth.verifyAuthToken !== 'function') {
+    return res.status(503).json({ error: 'Protected server endpoints are not configured' });
+  }
+
+  return res.status(401).json({ error: 'Server access token is required' });
+};
 
 if (!GEMINI_API_KEY) {
   console.error('☡  WARNING: GEMINI_API_KEY not found in .env file');
@@ -531,6 +605,7 @@ app.use('/pool', express.static(path.join(__dirname, '..', 'self', 'pool'), {
 app.use('/pool', createPoolRouter({
   ...(configuredPoolStore ? { store: configuredPoolStore } : {}),
   ...configuredPoolAuth,
+  allowUnauthenticatedLocal: process.env.POOL_ALLOW_UNAUTHENTICATED_LOCAL === 'true',
   allowCanaryCreation: process.env.POOL_ALLOW_BROWSER_CANARY_CREATE === 'true',
   createAdapterDownloadUrl: configuredAdapterOriginSigner
 }));
@@ -560,7 +635,7 @@ app.get('/api/health', (req, res) => {
 });
 
 // Proxy endpoint for Gemini API
-app.post('/api/gemini/*', async (req, res) => {
+app.post('/api/gemini/*', requireServerAccess, async (req, res) => {
   if (!GEMINI_API_KEY) {
     return res.status(500).json({
       error: 'Server is not configured with Gemini API key'
@@ -605,7 +680,7 @@ app.post('/api/gemini/*', async (req, res) => {
 });
 
 // Proxy endpoint for local models (Ollama, LM Studio, etc.)
-app.post('/api/local/*', async (req, res) => {
+app.post('/api/local/*', requireServerAccess, async (req, res) => {
   const requestId = Math.random().toString(36).substring(7);
   const localPath = req.params[0];
   const localUrl = `${LOCAL_MODEL_ENDPOINT}/${localPath}`;
@@ -655,7 +730,7 @@ app.post('/api/local/*', async (req, res) => {
 });
 
 // Proxy endpoint for OpenAI API
-app.post('/api/openai/*', async (req, res) => {
+app.post('/api/openai/*', requireServerAccess, async (req, res) => {
   if (!OPENAI_API_KEY) {
     return res.status(500).json({
       error: 'Server is not configured with OpenAI API key'
@@ -701,7 +776,7 @@ app.post('/api/openai/*', async (req, res) => {
 });
 
 // Proxy endpoint for Anthropic API
-app.post('/api/anthropic/*', async (req, res) => {
+app.post('/api/anthropic/*', requireServerAccess, async (req, res) => {
   if (!ANTHROPIC_API_KEY) {
     return res.status(500).json({
       error: 'Server is not configured with Anthropic API key'
@@ -749,7 +824,7 @@ app.post('/api/anthropic/*', async (req, res) => {
 });
 
 // Proxy endpoint for HuggingFace Inference API
-app.post('/api/huggingface/models/:model(*)', async (req, res) => {
+app.post('/api/huggingface/models/:model(*)', requireServerAccess, async (req, res) => {
   if (!HUGGINGFACE_API_KEY) {
     return res.status(500).json({
       error: 'Server is not configured with HuggingFace API key'
@@ -796,21 +871,10 @@ app.post('/api/huggingface/models/:model(*)', async (req, res) => {
 });
 
 // Unified chat endpoint (routes to appropriate provider)
-app.post('/api/chat', async (req, res) => {
+app.post('/api/chat', admitAnonymousInference, async (req, res) => {
   const requestId = Math.random().toString(36).substring(7);
-  const rateLimitKey = getRateLimitKey(req);
-
-  // Rate limiting check
-  if (!rateLimiter.check(rateLimitKey)) {
-    console.log(`[API Chat ${requestId}] Rate limited: ${rateLimitKey}`);
-    return res.status(429).json({
-      error: 'Too many requests. Please slow down.',
-      retryAfter: 1
-    });
-  }
-
-  console.log(`[API Chat ${requestId}] Incoming request from ${req.headers['user-agent']?.substring(0, 50) || 'unknown'}`);
-  console.log(`[API Chat ${requestId}] Request body:`, JSON.stringify(req.body, null, 2).substring(0, 500));
+  const admission = req.publicInferenceAdmission;
+  console.log(`[API Chat ${requestId}] Accepted anonymous ${admission.policy.provider}/${admission.policy.model} request (${admission.inputTokens} input tokens, ${admission.outputTokens} output-token cap)`);
 
   try {
     const { provider, model, messages } = req.body;
@@ -842,7 +906,10 @@ app.post('/api/chat', async (req, res) => {
             contents: messages.map(m => ({
               role: m.role === 'assistant' ? 'model' : 'user',
               parts: [{ text: m.content }]
-            }))
+            })),
+            generationConfig: {
+              maxOutputTokens: admission.outputTokens
+            }
           })
         });
         data = await response.json();
@@ -873,7 +940,7 @@ app.post('/api/chat', async (req, res) => {
           return res.status(500).json({ error: 'OpenAI API key not configured' });
         }
         console.log(`[API Chat ${requestId}] Calling OpenAI API`);
-        const openAiBody = { model, messages };
+        const openAiBody = { model, messages, max_tokens: admission.outputTokens };
         if (shouldStream) openAiBody.stream = true;
         response = await fetch('https://api.openai.com/v1/chat/completions', {
           method: 'POST',
@@ -917,7 +984,7 @@ app.post('/api/chat', async (req, res) => {
         const anthropicBody = {
           model,
           messages,
-          max_tokens: 4096
+          max_tokens: admission.outputTokens
         };
         if (shouldStream) anthropicBody.stream = true;
 
@@ -961,7 +1028,7 @@ app.post('/api/chat', async (req, res) => {
           return res.status(500).json({ error: 'Groq API key not configured' });
         }
         console.log(`[API Chat ${requestId}] Calling Groq API`);
-        const groqBody = { model, messages };
+        const groqBody = { model, messages, max_tokens: admission.outputTokens };
         if (shouldStream) groqBody.stream = true;
         response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
           method: 'POST',
@@ -999,7 +1066,7 @@ app.post('/api/chat', async (req, res) => {
         console.log(`[API Chat ${requestId}] Handling vLLM request`);
         const vllmUrl = `${VLLM_ENDPOINT}/v1/chat/completions`;
         console.log(`[API Chat ${requestId}] Calling vLLM at: ${vllmUrl} with model: ${model}`);
-        const vllmBody = { model, messages };
+        const vllmBody = { model, messages, max_tokens: admission.outputTokens };
         if (shouldStream) vllmBody.stream = true;
         response = await fetch(vllmUrl, {
           method: 'POST',
@@ -1075,7 +1142,12 @@ app.post('/api/chat', async (req, res) => {
             response = await fetch(ollamaUrl, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ model, messages, stream: shouldStream }),
+              body: JSON.stringify({
+                model,
+                messages,
+                stream: shouldStream,
+                options: { num_predict: admission.outputTokens }
+              }),
               signal: controller.signal
             });
             clearTimeout(timeout);
@@ -1265,12 +1337,29 @@ app.get('/api/gpu/logs', (req, res) => {
 });
 
 // --- VFS Persistence Endpoints ---
-const VFS_BACKUP_PATH = path.join(__dirname, '..', 'vfs_backup.json');
+const VFS_BACKUP_DIRECTORY = path.join(__dirname, '..', 'vfs_backups');
+const VFS_BACKUP_MAX_BYTES = Number(process.env.REPLOID_VFS_BACKUP_MAX_BYTES || 1024 * 1024);
+const vfsBackupPathFor = (req) => {
+  const subject = String(req.reploidAccessSubject || 'unknown');
+  const namespace = crypto.createHash('sha256').update(subject).digest('hex');
+  return path.join(VFS_BACKUP_DIRECTORY, `${namespace}.json`);
+};
+
+const serializeVfsBackup = (value) => {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    throw new Error('VFS backup must be a JSON object');
+  }
+  const serialized = JSON.stringify(value);
+  if (Buffer.byteLength(serialized) > VFS_BACKUP_MAX_BYTES) {
+    throw new Error(`VFS backup exceeds ${VFS_BACKUP_MAX_BYTES} byte limit`);
+  }
+  return serialized;
+};
 
 // Endpoint to check for VFS state
-app.get('/api/vfs/status', (req, res) => {
+app.get('/api/vfs/status', requireServerAccess, (req, res) => {
   try {
-    const backupExists = fs.existsSync(VFS_BACKUP_PATH);
+    const backupExists = fs.existsSync(vfsBackupPathFor(req));
     res.status(200).json({ backupExists });
   } catch (error) {
     console.error('Error checking VFS status:', error);
@@ -1279,9 +1368,14 @@ app.get('/api/vfs/status', (req, res) => {
 });
 
 // Endpoint to save the VFS state
-app.post('/api/vfs/backup', (req, res) => {
+app.post('/api/vfs/backup', requireServerAccess, (req, res) => {
   try {
-    fs.writeFileSync(VFS_BACKUP_PATH, JSON.stringify(req.body, null, 2));
+    const backupPath = vfsBackupPathFor(req);
+    const serialized = serializeVfsBackup(req.body);
+    fs.mkdirSync(VFS_BACKUP_DIRECTORY, { recursive: true, mode: 0o700 });
+    const temporaryPath = `${backupPath}.${process.pid}.${crypto.randomUUID()}.tmp`;
+    fs.writeFileSync(temporaryPath, serialized, { encoding: 'utf8', mode: 0o600 });
+    fs.renameSync(temporaryPath, backupPath);
     res.status(200).json({ message: 'VFS state saved successfully.' });
   } catch (error) {
     console.error('Error saving VFS state:', error);
@@ -1290,10 +1384,11 @@ app.post('/api/vfs/backup', (req, res) => {
 });
 
 // Endpoint to load the VFS state
-app.get('/api/vfs/restore', (req, res) => {
+app.get('/api/vfs/restore', requireServerAccess, (req, res) => {
   try {
-    if (fs.existsSync(VFS_BACKUP_PATH)) {
-      const vfsState = fs.readFileSync(VFS_BACKUP_PATH, 'utf8');
+    const backupPath = vfsBackupPathFor(req);
+    if (fs.existsSync(backupPath)) {
+      const vfsState = fs.readFileSync(backupPath, 'utf8');
       res.status(200).json(JSON.parse(vfsState));
     } else {
       res.status(404).json({ error: 'No VFS backup found.' });
@@ -1474,7 +1569,10 @@ if (!POOL_BACKEND_ONLY) {
     signalingServer = new SignalingServer({
       path: '/signaling',
       heartbeatInterval: 30000,
-      peerTimeout: 60000
+      peerTimeout: 60000,
+      localOnly: process.env.REPLOID_SIGNALING_LOCAL_ONLY !== 'false',
+      allowedOrigins: CORS_ORIGINS,
+      accessToken: process.env.REPLOID_SIGNALING_ACCESS_TOKEN || null
     });
 
     signalingServer.on('peer-joined', ({ peerId, roomId }) => {
@@ -1495,7 +1593,10 @@ if (!POOL_BACKEND_ONLY) {
     agentBridge = new AgentBridge({
       path: '/agent-bridge',
       heartbeatInterval: 30000,
-      agentTimeout: 120000
+      agentTimeout: 120000,
+      localOnly: process.env.REPLOID_AGENT_BRIDGE_LOCAL_ONLY !== 'false',
+      allowedOrigins: CORS_ORIGINS,
+      accessToken: process.env.REPLOID_AGENT_BRIDGE_ACCESS_TOKEN || null
     });
 
     agentBridge.on('agent-joined', ({ agentId, name }) => {

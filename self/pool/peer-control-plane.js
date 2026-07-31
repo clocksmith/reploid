@@ -55,6 +55,7 @@ import {
   normalizeSequenceRequest,
   validateSequenceRequest
 } from './sequence-workload.js';
+import { validateSequenceOutputIntegrity } from './sequence-result.js';
 import {
   PEER_CONTROL_NETWORK,
   PEER_CONTROL_VERSION,
@@ -745,6 +746,19 @@ export async function buildPeerReceiptAgreement({
         if (receipt.tokenIdsHash && computedTokenIdsHash !== receipt.tokenIdsHash) {
           reasons.push(`receipt tokenIdsHash mismatch with returned tokenIds (${computedTokenIdsHash} vs ${receipt.tokenIdsHash})`);
         }
+      }
+
+      if (isSequenceWorkload(assignment.workload)) {
+        const expectedSequenceResultHash = receipt.sequenceResultHash || receipt.sequence?.resultHash || null;
+        if (receiptPayload?.body?.sequenceResultHash !== expectedSequenceResultHash) {
+          reasons.push('sequenceResultHash does not match the signed receipt');
+        }
+        const sequenceValidation = await validateSequenceOutputIntegrity({
+          sequenceResult: receiptPayload?.body?.sequenceResult,
+          sequenceOutput: receiptPayload?.body?.sequenceOutput,
+          expectedResultHash: expectedSequenceResultHash
+        });
+        reasons.push(...sequenceValidation.reasons);
       }
     }
     const receiptHash = receipt ? await hashJson(receipt) : null;

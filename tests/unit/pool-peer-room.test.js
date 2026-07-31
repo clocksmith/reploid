@@ -2,7 +2,8 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import {
   createSigningKeyPair,
-  hashJson
+  hashJson,
+  sha256Hex
 } from '../../self/pool/inference-receipt.js';
 import { buildLaunchProviderModel, LAUNCH_MODEL } from '../../self/pool/model-contract.js';
 import { createProviderClient } from '../../self/pool/provider-client.js';
@@ -21,6 +22,13 @@ import {
 } from '../../self/pool/peer-rendezvous.js';
 
 const originalBroadcastChannel = globalThis.BroadcastChannel;
+
+const hashFloat32Values = (values) => {
+  const bytes = new Uint8Array(values.length * 4);
+  const view = new DataView(bytes.buffer);
+  values.forEach((value, index) => view.setFloat32(index * 4, value, true));
+  return sha256Hex(bytes);
+};
 
 class FakeBroadcastChannel {
   static channels = new Map();
@@ -247,7 +255,7 @@ const fakeSequenceRuntime = () => {
     }),
     async encodeSequence({ sequence, request }) {
       const pooledEmbedding = [0.25, -0.5, 0.75];
-      const pooledEmbeddingHash = await hashJson(pooledEmbedding);
+      const pooledEmbeddingHash = await hashFloat32Values(pooledEmbedding);
       const sequenceResult = {
         schema: 'reploid.pool.sequence_result/v1',
         workload: request.workload,
