@@ -134,7 +134,7 @@ export async function validateInputPayloadForAssignment(payload = {}, assignment
   const workload = assignment.workload
     || assignment.model?.workload
     || assignment.model?.requirements?.workload
-    || POOLDAY_MODEL_WORKLOADS.textGeneration;
+    || POOLDAY_MODEL_WORKLOADS.sequenceEmbedding;
   if (isSequenceWorkload(workload)) return validateSequencePayloadForAssignment(payload, assignment);
   const result = await validatePromptPayloadForAssignment(payload, assignment);
   return {

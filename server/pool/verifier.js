@@ -141,7 +141,7 @@ export async function verifyReceipt({
   const workload = assignment?.workload
     || assignment?.model?.workload
     || assignment?.model?.requirements?.workload
-    || 'text_generation';
+    || 'sequence.embedding.v1';
   const provider = assignment ? await store.getProvider(assignment.providerId) : null;
   if (!assignment) reasons.push('assignment not found');
   if (!receipt) reasons.push('receipt missing');

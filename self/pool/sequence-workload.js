@@ -13,10 +13,7 @@ export const SEQUENCE_WORKLOADS = Object.freeze({
 export const SEQUENCE_EXECUTION_MODE = 'full_model_browser_sequence';
 
 export const SEQUENCE_ALPHABETS = Object.freeze({
-  aminoAcid: 'amino_acid',
-  nucleotide: 'nucleotide',
-  dna: 'dna',
-  rna: 'rna'
+  aminoAcid: 'amino_acid'
 });
 
 export const SEQUENCE_DISCLOSURE = 'selected_providers_only';
@@ -35,13 +32,7 @@ export function normalizeSequenceInput(sequence, alphabet) {
   }
   const normalized = String(sequence || '').replace(/\s+/g, '').toUpperCase();
   if (!normalized) throw new TypeError('sequence is required');
-  const allowed = normalizedAlphabet === SEQUENCE_ALPHABETS.aminoAcid
-    ? /^[A-Z*.-]+$/
-    : normalizedAlphabet === SEQUENCE_ALPHABETS.dna
-      ? /^[ACGTNRYKMSWBDHVX.-]+$/
-      : normalizedAlphabet === SEQUENCE_ALPHABETS.rna
-        ? /^[ACGUNRYKMSWBDHVX.-]+$/
-        : /^[ACGTUNRYKMSWBDHVX.-]+$/;
+  const allowed = /^[A-Z*.-]+$/;
   if (!allowed.test(normalized)) {
     throw new TypeError(`sequence contains symbols outside the ${normalizedAlphabet} alphabet`);
   }

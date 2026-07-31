@@ -199,7 +199,7 @@ const normalizeReceiptAdapter = (adapter = null) => adapter ? ({
 export async function buildPoolReceipt({ assignment, provider, model, runtime, execution }) {
   const outputText = execution?.outputText || '';
   const tokenIds = Array.isArray(execution?.tokenIds) ? execution.tokenIds : [];
-  const outputKind = execution?.outputKind || assignment?.workload || model?.workload || model?.requirements?.workload || 'text_generation';
+  const outputKind = execution?.outputKind || assignment?.workload || model?.workload || model?.requirements?.workload || 'sequence.embedding.v1';
   const vectorHash = execution?.vectorHash || execution?.embeddingHash || null;
   const sequenceResult = execution?.sequenceResult || null;
   const sequenceResultHash = execution?.sequenceResultHash || null;

@@ -89,7 +89,7 @@
       "claim": "Requester countersigned the verifier-accepted agreement and spend."
     }
   },
-  "launchModel": {
+  "legacyLaunchModel": {
     "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
     "modelHash": "sha256:fab133e49d6dc67912fc3a087222ec44ca1941d9b7bc36c60cb1379863a6dd4f",
     "manifestHash": "sha256:edeb69dd65cbb26971abf773a95bf6dc219a82942c0951d65e1893d442b607c9",
@@ -162,8 +162,9 @@
       "capabilityAction": "Use doppler-gpu@0.5.1 or newer with capability-aware kernelPathPolicy; browsers without shader-f16 run the declared f32 fallback lane."
     },
     "label": "Qwen 3.5 0.8B",
-    "enabled": true
+    "enabled": false
   },
+  "launchModelId": "esm2-t12-35m-ur50d-f32-af32",
   "generationConfig": {
     "mode": "greedy",
     "temperature": 0,
@@ -370,10 +371,7 @@
       "trustTier": "T1_signed_receipt",
       "agreementMode": "single",
       "allowedModels": [
-        "gemma-3-270m-it-q4k-ehf16-af32",
-        "qwen-3-5-0-8b-q4k-ehaf16",
-        "qwen-3-embedding-0-6b-q4k-ehf16-af32",
-        "gemma-4-e2b-it-q4k-ehf16-af32-int4ple"
+        "esm2-t12-35m-ur50d-f32-af32"
       ],
       "minProviderReputation": 0,
       "maxQueueDepth": 100,
@@ -401,10 +399,7 @@
       "trustTier": "T2_canary_audited",
       "agreementMode": "single",
       "allowedModels": [
-        "gemma-3-270m-it-q4k-ehf16-af32",
-        "qwen-3-5-0-8b-q4k-ehaf16",
-        "qwen-3-embedding-0-6b-q4k-ehf16-af32",
-        "gemma-4-e2b-it-q4k-ehf16-af32-int4ple"
+        "esm2-t12-35m-ur50d-f32-af32"
       ],
       "minProviderReputation": 0,
       "maxQueueDepth": 100,
@@ -434,10 +429,7 @@
       "trustTier": "T3_redundant_agreement",
       "agreementMode": "redundant",
       "allowedModels": [
-        "gemma-3-270m-it-q4k-ehf16-af32",
-        "qwen-3-5-0-8b-q4k-ehaf16",
-        "qwen-3-embedding-0-6b-q4k-ehf16-af32",
-        "gemma-4-e2b-it-q4k-ehf16-af32-int4ple"
+        "esm2-t12-35m-ur50d-f32-af32"
       ],
       "minProviderReputation": 0,
       "maxQueueDepth": 100,
@@ -469,10 +461,7 @@
       "policyTrustTier": "T4_ring_quorum_receipt",
       "agreementMode": "ring_quorum",
       "allowedModels": [
-        "gemma-3-270m-it-q4k-ehf16-af32",
-        "qwen-3-5-0-8b-q4k-ehaf16",
-        "qwen-3-embedding-0-6b-q4k-ehf16-af32",
-        "gemma-4-e2b-it-q4k-ehf16-af32-int4ple"
+        "esm2-t12-35m-ur50d-f32-af32"
       ],
       "minProviderReputation": 0,
       "maxQueueDepth": 100,
@@ -836,7 +825,7 @@
         "capabilityAction": "Use a browser/GPU that exposes shader-f16, or choose another enabled text model."
       },
       "label": "Gemma 3 270M",
-      "enabled": true
+      "enabled": false
     },
     {
       "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
@@ -911,7 +900,7 @@
         "capabilityAction": "Use doppler-gpu@0.5.1 or newer with capability-aware kernelPathPolicy; browsers without shader-f16 run the declared f32 fallback lane."
       },
       "label": "Qwen 3.5 0.8B",
-      "enabled": true
+      "enabled": false
     },
     {
       "modelId": "qwen-3-embedding-0-6b-q4k-ehf16-af32",
@@ -978,7 +967,7 @@
         ]
       },
       "label": "Qwen3 Embedding 0.6B",
-      "enabled": true
+      "enabled": false
     },
     {
       "modelId": "gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
@@ -1027,7 +1016,7 @@
         "fallbackStatus": "manifest_owned_f32_activation_lane"
       },
       "label": "Gemma 4 E2B INT4 PLE",
-      "enabled": true
+      "enabled": false
     },
     {
       "modelId": "esm2-t12-35m-ur50d-f32-af32",

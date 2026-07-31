@@ -32,8 +32,8 @@ export function receiptMatchesAssignment(receipt = {}, assignment = {}) {
   if (receipt.model?.manifestHash !== assignment.model?.manifestHash) reasons.push('receipt manifest hash mismatch');
   if ((receipt.model?.runtime || LAUNCH_MODEL.runtime) !== (assignment.model?.runtime || LAUNCH_MODEL.runtime)) reasons.push('receipt runtime mismatch');
   if ((receipt.model?.backend || LAUNCH_MODEL.backend) !== (assignment.model?.backend || LAUNCH_MODEL.backend)) reasons.push('receipt backend mismatch');
-  if ((receipt.model?.workload || POOLDAY_MODEL_WORKLOADS.textGeneration)
-    !== (assignment.model?.workload || POOLDAY_MODEL_WORKLOADS.textGeneration)) reasons.push('receipt workload mismatch');
+  if ((receipt.model?.workload || POOLDAY_MODEL_WORKLOADS.sequenceEmbedding)
+    !== (assignment.model?.workload || POOLDAY_MODEL_WORKLOADS.sequenceEmbedding)) reasons.push('receipt workload mismatch');
   const expectedAdapter = assignment.adapter || assignment.model?.requirements?.adapter || null;
   const actualAdapter = receipt.adapter || null;
   if (!expectedAdapter && actualAdapter) reasons.push('receipt declares an adapter absent from the assignment');
@@ -75,7 +75,7 @@ export function receiptMatchesAssignment(receipt = {}, assignment = {}) {
   const workload = assignment.workload
     || assignment.model?.workload
     || assignment.model?.requirements?.workload
-    || POOLDAY_MODEL_WORKLOADS.textGeneration;
+    || POOLDAY_MODEL_WORKLOADS.sequenceEmbedding;
   const agreementField = agreementFieldForWorkload(workload);
   if (!receipt[agreementField]) reasons.push(`receipt ${agreementField} is required`);
   if (isSequenceWorkload(workload)) {

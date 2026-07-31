@@ -170,9 +170,7 @@ const usesRegistryBackedDopplerLoad = (model = {}) => (
   Boolean(model.dopplerLoadRef || model.registryId || model.loadRef)
 );
 
-const supportsAdapterPublications = (model = {}) => (
-  getPoolModelWorkload(model) === POOLDAY_MODEL_WORKLOADS.textGeneration
-);
+const supportsAdapterPublications = () => false;
 
 const formatDeviceLabel = (deviceInfo = {}) => {
   const adapter = deviceInfo.adapterInfo || {};
@@ -734,7 +732,7 @@ const bindSuggestedPromptEditing = (input) => {
       return;
     }
     if (document.activeElement !== input && !input.value.trim()) {
-      const lane = document.querySelector('.pool-home-stage')?.dataset.poolLane || 'text';
+      const lane = document.querySelector('.pool-home-stage')?.dataset.poolLane || 'sequence';
       const nextPrompt = choosePooldayAskPlaceholderForLane(lane);
       input.placeholder = nextPrompt;
       input.dataset.poolSuggestedPrompt = nextPrompt;
@@ -1060,7 +1058,7 @@ const bindPeerRunSurface = ({
   };
 
   const prepareRunRequest = async () => {
-    const lane = document.querySelector('.pool-home-stage')?.dataset.poolLane || 'text';
+    const lane = document.querySelector('.pool-home-stage')?.dataset.poolLane || 'sequence';
     let requestInput = prompt.value.trim();
     if (!requestInput && prompt.placeholder) {
       requestInput = prompt.placeholder.trim();
@@ -1303,38 +1301,36 @@ const bindPeerRunSurface = ({
 };
 
 const runWorkloadOf = (modelSelect) => (
-  modelSelect?.selectedOptions?.[0]?.dataset?.workload || 'text-generation'
+  modelSelect?.selectedOptions?.[0]?.dataset?.workload || POOLDAY_MODEL_WORKLOADS.sequenceEmbedding
 );
 
 const syncRunWorkloadAffordance = (modelSelect) => {
   const badge = document.querySelector('[data-pool-run-workload]');
   const promptLabel = document.querySelector('[data-pool-run-prompt-label]');
   const workload = runWorkloadOf(modelSelect);
-  const isSequence = workload !== 'text-generation';
+  const isSequence = true;
   if (badge) badge.textContent = workload.replace(/[-_]/g, ' ');
   if (promptLabel) promptLabel.textContent = isSequence ? 'Sequence' : 'Prompt';
 };
 
 export const bindRunControls = () => {
   const modelSelect = document.getElementById('pool-run-model');
-  const adapterSelect = document.getElementById('pool-run-adapter');
+  const sequencePublicControl = document.getElementById('pool-run-sequence-public');
   bindPeerRunSurface({
     button: document.getElementById('pool-run-submit'),
     prompt: document.getElementById('pool-run-prompt'),
     policySelect: document.getElementById('pool-run-policy'),
     modelSelect,
-    adapterSelect,
+    sequencePublicControl,
     resultId: 'pool-run-result'
   });
   if (modelSelect && modelSelect.dataset.poolWorkloadBound !== 'true') {
     modelSelect.dataset.poolWorkloadBound = 'true';
     modelSelect.addEventListener('change', () => {
       syncRunWorkloadAffordance(modelSelect);
-      void refreshAdapterOptions(adapterSelect, getEnabledPoolModelContract(modelSelect.value) || LAUNCH_MODEL);
     });
     syncRunWorkloadAffordance(modelSelect);
   }
-  void refreshAdapterOptions(adapterSelect, getEnabledPoolModelContract(modelSelect?.value) || LAUNCH_MODEL);
 };
 
 const setDrawerSummary = (sectionId, value) => {
@@ -1344,9 +1340,7 @@ const setDrawerSummary = (sectionId, value) => {
 
 const requestModelsForLane = (lane) => listPoolModels({
   enabledOnly: true,
-  workload: lane === 'sequence'
-    ? POOLDAY_MODEL_WORKLOADS.sequenceEmbedding
-    : POOLDAY_MODEL_WORKLOADS.textGeneration
+  workload: POOLDAY_MODEL_WORKLOADS.sequenceEmbedding
 });
 
 const replaceRequestModelOptions = (modelSelect, lane, preferredModelId = null) => {
@@ -1373,20 +1367,20 @@ const bindHomeLaneChips = (input, adapterSelect, modelSelect) => {
   const taskDescription = document.querySelector('[data-pool-task-description]:not(.pool-lane-chip)');
   const submitButton = document.getElementById('pool-home-run-submit');
   const resultLabel = document.querySelector('label[for="pool-home-run-result-stream"]');
-  const laneValues = new Map([[stage?.dataset.poolLane || 'text', input?.value || '']]);
-  const laneModels = new Map([[stage?.dataset.poolLane || 'text', modelSelect?.value || '']]);
+  const laneValues = new Map([[stage?.dataset.poolLane || 'sequence', input?.value || '']]);
+  const laneModels = new Map([[stage?.dataset.poolLane || 'sequence', modelSelect?.value || '']]);
   if (chips.length === 0 || !stage) return;
   chips.forEach((chip) => {
     if (chip.disabled || chip.dataset.poolLaneBound === 'true') return;
     chip.dataset.poolLaneBound = 'true';
     chip.addEventListener('click', () => {
-      const lane = chip.dataset.poolLane || 'text';
+      const lane = chip.dataset.poolLane || 'sequence';
       chips.forEach((other) => {
         const active = other.dataset.poolLane === lane;
         other.classList.toggle('is-active', active);
         other.setAttribute('aria-pressed', String(active));
       });
-      const previousLane = stage.dataset.poolLane || 'text';
+      const previousLane = stage.dataset.poolLane || 'sequence';
       const previousModelId = modelSelect?.value || '';
       laneValues.set(previousLane, input.value);
       if (previousModelId) laneModels.set(previousLane, previousModelId);
@@ -1405,7 +1399,7 @@ const bindHomeLaneChips = (input, adapterSelect, modelSelect) => {
       if (adapterPicker) adapterPicker.hidden = lane !== 'adapters';
       if (sequenceOptions) sequenceOptions.hidden = lane !== 'sequence';
       if (sequencePublicControl) sequencePublicControl.required = lane === 'sequence';
-      const sameModelFamily = lane !== 'sequence' && previousLane !== 'sequence';
+      const sameModelFamily = true;
       const selectedModel = replaceRequestModelOptions(
         modelSelect,
         lane,
@@ -1413,10 +1407,8 @@ const bindHomeLaneChips = (input, adapterSelect, modelSelect) => {
       );
       if (modelSelect) {
         modelSelect.dispatchEvent(new Event('change', { bubbles: true }));
-      } else if (lane === 'adapters') {
-        void refreshAdapterOptions(adapterSelect, selectedModel || LAUNCH_MODEL, { allowBaseModel: false });
       }
-      if (lane !== 'adapters' && adapterSelect) {
+      if (adapterSelect) {
         adapterSelect.value = '';
       }
     });
@@ -1459,14 +1451,7 @@ export const bindHomeAskControls = () => {
     modelSelect.dataset.poolRequestModelBound = 'true';
     const syncModel = () => {
       setDrawerSummary('request-model', modelSelect.selectedOptions[0]?.textContent || modelSelect.value);
-      const lane = document.querySelector('.pool-home-stage')?.dataset.poolLane || 'text';
-      if (lane !== 'sequence') {
-        void refreshAdapterOptions(
-          adapterSelect,
-          getEnabledPoolModelContract(modelSelect.value) || LAUNCH_MODEL,
-          { allowBaseModel: false }
-        );
-      }
+      const lane = document.querySelector('.pool-home-stage')?.dataset.poolLane || 'sequence';
     };
     modelSelect.addEventListener('change', syncModel);
     syncModel();
@@ -1623,7 +1608,7 @@ const createProviderContributionController = () => {
       && loaded.manifestHash === model.manifestHash
       && loaded.runtime === model.runtime
       && loaded.backend === model.backend
-      && (loaded.workload || model.workload || 'text_generation') === (model.workload || 'text_generation');
+      && (loaded.workload || model.workload || POOLDAY_MODEL_WORKLOADS.sequenceEmbedding) === (model.workload || POOLDAY_MODEL_WORKLOADS.sequenceEmbedding);
   };
 
   const loadSelectedProviderModel = async (generation) => {
@@ -2140,7 +2125,7 @@ export const resetProviderContributionControllerForTests = async ({
 const syncProviderWorkloadCapability = (modelSelect) => {
   const badge = document.querySelector('[data-pool-provider-workload]');
   if (!badge) return;
-  const workload = modelSelect?.selectedOptions?.[0]?.dataset?.workload || 'text_generation';
+  const workload = modelSelect?.selectedOptions?.[0]?.dataset?.workload || POOLDAY_MODEL_WORKLOADS.sequenceEmbedding;
   badge.textContent = workload.replace(/[-_]/g, ' ');
 };
 

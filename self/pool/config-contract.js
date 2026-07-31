@@ -30,12 +30,28 @@ const requireField = (value, path, reasons) => {
   }
 };
 
+const isProteinPoolModel = (model = {}) => (
+  model.sequence?.alphabet === 'amino_acid'
+  && String(model.workload || model.workloadType || model.modelType || '')
+    .startsWith('sequence.')
+);
+
 export function validatePoolConfigValue(config = {}) {
   const reasons = [];
+  const modelCatalog = Array.isArray(config.modelCatalog) ? config.modelCatalog : [];
+  const launchModel = typeof config.launchModelId === 'string'
+    ? modelCatalog.find((model) => model.modelId === config.launchModelId)
+    : config.launchModel;
   requireField(config.schema, 'schema', reasons);
   requireField(config.configVersion, 'configVersion', reasons);
   for (const field of ['modelId', 'modelHash', 'manifestHash', 'runtime', 'backend', 'dopplerLoadRef']) {
-    requireField(config.launchModel?.[field], `launchModel.${field}`, reasons);
+    requireField(launchModel?.[field], `launchModel.${field}`, reasons);
+  }
+  if (!isProteinPoolModel(launchModel)) reasons.push('launchModel must be a protein sequence model');
+  for (const model of modelCatalog.filter((candidate) => candidate.enabled !== false)) {
+    if (!isProteinPoolModel(model)) {
+      reasons.push(`enabled model ${model.modelId || 'unknown'} must be a protein sequence model`);
+    }
   }
   requireField(config.browserRuntime?.dopplerModuleUrl, 'browserRuntime.dopplerModuleUrl', reasons);
   requireField(config.browserRuntime?.dopplerKernelBaseUrl, 'browserRuntime.dopplerKernelBaseUrl', reasons);
@@ -43,7 +59,7 @@ export function validatePoolConfigValue(config = {}) {
 
   for (const [policyId, policy] of Object.entries(config.policies || {})) {
     if (policy.policyId !== policyId) reasons.push(`policies.${policyId}.policyId must match key`);
-    if (!policy.allowedModels?.includes(config.launchModel?.modelId)) {
+    if (!policy.allowedModels?.includes(launchModel?.modelId)) {
       reasons.push(`policies.${policyId}.allowedModels must include launch model`);
     }
     if (policy.allowFallbackModel !== false) reasons.push(`policies.${policyId}.allowFallbackModel must be false`);
@@ -144,9 +160,15 @@ export function createPoolConfigContract(config, { hashJson = null } = {}) {
   const POOL_CONFIG_VERSION = POOL_CONFIG.configVersion;
   const POOL_CONFIG_HASH = typeof hashJson === 'function' ? hashJson(POOL_CONFIG) : null;
   const FASTEST_RECEIPT_POLICY_ID = POLICY_IDS.fastestReceipt;
-  const LAUNCH_MODEL = deepFreeze(cloneValue(POOL_CONFIG.launchModel || {}));
   const MODEL_CATALOG = deepFreeze(cloneValue(
     POOL_CONFIG.modelCatalog || [POOL_CONFIG.launchModel]
+  ));
+  const LAUNCH_MODEL = deepFreeze(cloneValue(
+    (typeof POOL_CONFIG.launchModelId === 'string'
+      ? MODEL_CATALOG.find((model) => model.modelId === POOL_CONFIG.launchModelId)
+      : null)
+    || POOL_CONFIG.launchModel
+    || {}
   ));
   const DETERMINISTIC_GENERATION_CONFIG = deepFreeze(cloneValue(POOL_CONFIG.generationConfig || {}));
   const BROWSER_RUNTIME_CONFIG = deepFreeze(cloneValue(POOL_CONFIG.browserRuntime || {}));

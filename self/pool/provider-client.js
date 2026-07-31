@@ -100,7 +100,7 @@ export function createProviderClient({
     && (assignmentModel.backend || 'browser-webgpu') === (runtimeModel.backend || 'browser-webgpu')
     && modelSupportsPoolWorkload(
       runtimeModel,
-      assignmentModel.workload || assignmentModel.requirements?.workload || POOLDAY_MODEL_WORKLOADS.textGeneration
+      assignmentModel.workload || assignmentModel.requirements?.workload || POOLDAY_MODEL_WORKLOADS.sequenceEmbedding
     )
     && runtimeHasActiveAdapterRequirement(
       runtimeModel,
@@ -195,7 +195,7 @@ export function createProviderClient({
     prompt = null,
     sequence = null
   } = {}) => {
-    const workload = assignment.workload || assignment.model?.requirements?.workload || POOLDAY_MODEL_WORKLOADS.textGeneration;
+    const workload = assignment.workload || assignment.model?.requirements?.workload || POOLDAY_MODEL_WORKLOADS.sequenceEmbedding;
     const payload = inputPayload || promptPayload;
     if (payload) {
       const validation = await validateInputPayloadForAssignment(payload, assignment);

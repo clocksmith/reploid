@@ -23,7 +23,7 @@ export const POOLDAY_ROUTE_DEFINITIONS = Object.freeze([
     label: 'Home',
     eyebrow: POOLDAY_PROTOCOL,
     title: POOLDAY_NAME,
-    body: 'Run browser models together.'
+    body: 'Run protein models together.'
   }),
   createPooldayRoute({
     id: 'ask',
@@ -31,7 +31,7 @@ export const POOLDAY_ROUTE_DEFINITIONS = Object.freeze([
     label: 'Run',
     eyebrow: 'Run',
     title: 'Run',
-    body: 'Send one prompt. Read the answer, then inspect its proof.'
+    body: 'Send one public protein sequence. Read its embedding, then inspect its proof.'
   }),
   createPooldayRoute({
     id: 'compute',
@@ -39,7 +39,7 @@ export const POOLDAY_ROUTE_DEFINITIONS = Object.freeze([
     label: 'Contribute',
     eyebrow: 'Contribute',
     title: 'Contribute',
-    body: 'Let this tab answer compatible runs. Stop at any time.'
+    body: 'Let this tab embed compatible protein sequences. Stop at any time.'
   }),
   createPooldayRoute({
     id: 'records',
@@ -78,12 +78,10 @@ export const ROUTE_COPY = Object.freeze(Object.fromEntries(
 ));
 
 export const POOLDAY_ASK_PLACEHOLDERS = Object.freeze([
-  // Biological / Protein Sequence Workloads
   'Sequence: MRLGCSLAWLLLFLLLSVAA',
   'Sequence: MSKKSTAEQLAAQQAELRQ',
   'Sequence: MAGAASPCANGCGPGP',
   'Sequence: MSSGSSAVAAALPVAAAP',
-  'Sequence: ATGCGTACGTTACGTAGCTAG',
   'Sequence: MKVLVVLLCLVPAYG',
   'Sequence: MRPSGTAAALAALLA',
   'Sequence: MKLALFLVLLCFTAS',
@@ -92,61 +90,7 @@ export const POOLDAY_ASK_PLACEHOLDERS = Object.freeze([
   'Sequence: MSGQGQGQGQGQGQG',
   'Sequence: MSFSSASARVSSARS',
   'Sequence: MGGKWSKSSVIGWPT',
-  'Sequence: MASLSQLAAQQAELR',
-  'Sequence: MATGGTGGTAGCTAG',
-
-  // Tech-heavy / Agent Substrate Workloads
-  'Optimize WGSL compute shader',
-  'Write WebRTC routing validator',
-  'Generate canvas particle system',
-  'Audit IndexedDB VFS connector',
-  'Repair EventBus subscription leaks',
-  'Implement Custom Schema Parser',
-  'Validate peer consensus signatures',
-  'Compile custom WASM bindings',
-  'Resolve dependency injection cycles',
-  'Verify transaction ledger history',
-  'Measure WebGPU device memory',
-  'Optimize Float32 matrix transposition',
-  'Benchmark peer network latency',
-  'Trace agent loop execution',
-  'Build Genesis snapshot recovery',
-  'Qualify LoRA adapter shards',
-  'Decompound nested transaction hashes',
-  'Enforce runtime safety boundaries',
-  'Audit secret exposure risks',
-  'Inspect signature verification workers',
-  'Synchronize decentralized client logs',
-  'Verify ring consensus quorum',
-  'Optimize WebGPU pipeline layouts',
-  'Rebuild virtual filesystem indexes',
-  'Profile browser memory overhead',
-
-  // Common / General Use Cases
-  'Dinner ideas tonight',
-  'Plan a roadtrip',
-  'Debug this error',
-  'Write a resignation',
-  'Summarize this article',
-  'Healthy lunch ideas',
-  'Translate this sentence',
-  'Create budget plan',
-  'Explain compound interest',
-  'Plan weekly meals',
-  'Write apology note',
-  'Find movie recommendations',
-  'Write wedding toast',
-  'Plan morning routine',
-  'Find book recommendations',
-  'Compare electric cars',
-  'Learn Spanish basics',
-  'Write a poem',
-  'Name my startup',
-  'Create workout plan',
-  'Explain tax brackets',
-  'Write thank you',
-  'Compare phone plans',
-  'Meal prep ideas'
+  'Sequence: MASLSQLAAQQAELR'
 ]);
 
 export const POOLDAY_SEQUENCE_ASK_PLACEHOLDERS = Object.freeze(
@@ -170,7 +114,7 @@ export const choosePooldayAskPlaceholder = (random = Math.random) => (
   choosePlaceholder(POOLDAY_ASK_PLACEHOLDERS, random)
 );
 
-export const choosePooldayAskPlaceholderForLane = (lane = 'text', random = Math.random) => {
+export const choosePooldayAskPlaceholderForLane = (lane = 'sequence', random = Math.random) => {
   const placeholders = lane === 'sequence'
     ? POOLDAY_SEQUENCE_ASK_PLACEHOLDERS
     : POOLDAY_TEXT_ASK_PLACEHOLDERS;

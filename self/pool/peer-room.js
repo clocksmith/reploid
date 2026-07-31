@@ -424,7 +424,7 @@ export async function runPeerJob({
       && model.manifestHash === requiredModel.manifestHash
       && (model.runtime || 'doppler') === (requiredModel.runtime || 'doppler')
       && (model.backend || 'browser-webgpu') === (requiredModel.backend || 'browser-webgpu')
-      && modelSupportsPoolWorkload(model, requiredModel.workload || 'text_generation')
+      && modelSupportsPoolWorkload(model, requiredModel.workload || 'sequence.embedding.v1')
       && modelSupportsAdapterRequirement(model, requiredModel.adapter || null)
     ));
     const compatibleKnownAdverts = (Array.isArray(knownProviderAdverts) ? knownProviderAdverts : [])
@@ -673,7 +673,7 @@ export async function runPeerJob({
       receiptHashes: agreement.receiptHashes,
       outputText: receiptPayload?.body?.outputText || '',
       tokenIds: receiptPayload?.body?.tokenIds || [],
-      outputKind: receiptPayload?.body?.outputKind || plan.assignment?.workload || 'text_generation',
+      outputKind: receiptPayload?.body?.outputKind || plan.assignment?.workload || 'sequence.embedding.v1',
       vectorHash: agreement.vectorHash || receiptPayload?.body?.vectorHash || null,
       sequenceResultHash: agreement.sequenceResultHash || receiptPayload?.body?.sequenceResultHash || null,
       sequenceResult: receiptPayload?.body?.sequenceResult || null,

@@ -1703,7 +1703,7 @@ export function createPoolRouter({
     const receipt = req.body?.receipt;
     const outputText = req.body?.outputText || '';
     const tokenIds = Array.isArray(req.body?.tokenIds) ? req.body.tokenIds : [];
-    const outputKind = req.body?.outputKind || receipt?.outputKind || 'text_generation';
+    const outputKind = req.body?.outputKind || receipt?.outputKind || 'sequence.embedding.v1';
     const vectorHash = req.body?.vectorHash || receipt?.vectorHash || null;
     const sequenceResultHash = req.body?.sequenceResultHash || receipt?.sequenceResultHash || null;
     const sequenceResult = req.body?.sequenceResult || receipt?.sequence || null;

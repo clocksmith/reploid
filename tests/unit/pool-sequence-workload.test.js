@@ -144,8 +144,9 @@ describe('Poolday biological-sequence workload', () => {
     expect(getPoolModelExecutionMode(sequenceModel, SEQUENCE_WORKLOADS.maskedLogits)).toBe(SEQUENCE_EXECUTION_MODE);
   });
 
-  it('accepts the nucleotide alphabet emitted by Doppler sequence manifests', () => {
-    expect(normalizeSequenceInput(' acgtnry ', SEQUENCE_ALPHABETS.nucleotide)).toBe('ACGTNRY');
+  it('rejects non-protein alphabets', () => {
+    expect(() => normalizeSequenceInput(' acgtnry ', 'nucleotide'))
+      .toThrow('Unsupported sequence alphabet: nucleotide');
   });
 
   it('dispatches sequence embeddings through Doppler and hashes float32 bytes deterministically', async () => {
@@ -199,7 +200,7 @@ describe('Poolday biological-sequence workload', () => {
     const originalEncode = wrongAlphabet.encodeSequence;
     wrongAlphabet.encodeSequence = (...args) => ({
       ...originalEncode(...args),
-      alphabet: SEQUENCE_ALPHABETS.nucleotide
+      alphabet: 'nucleotide'
     });
     await expect(createDopplerRuntime({
       model: sequenceModel,
