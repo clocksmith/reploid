@@ -6,6 +6,7 @@
 
 import { EventEmitter } from 'node:events';
 import { WebSocketServer, WebSocket } from 'ws';
+import crypto from 'node:crypto';
 
 export const SIGNALING_MESSAGE_TYPES = new Set([
   'join',
@@ -89,6 +90,23 @@ const isLoopbackOrigin = (origin) => {
   }
 };
 
+const tokensEqual = (left, right) => {
+  if (typeof left !== 'string' || typeof right !== 'string') return false;
+  const leftBytes = Buffer.from(left);
+  const rightBytes = Buffer.from(right);
+  return leftBytes.length === rightBytes.length && crypto.timingSafeEqual(leftBytes, rightBytes);
+};
+
+const accessTokenFromRequest = (req) => {
+  try {
+    return new URL(req.url, 'ws://reploid.local').searchParams.get('access_token');
+  } catch {
+    return null;
+  }
+};
+
+const roomCapabilityHash = (token) => crypto.createHash('sha256').update(token).digest('hex');
+
 class SignalingServer extends EventEmitter {
   constructor(options = {}) {
     super();
@@ -103,8 +121,9 @@ class SignalingServer extends EventEmitter {
       maxRooms: ensurePositiveInteger(options.maxRooms, DEFAULT_MAX_ROOMS),
       maxMessagesPerWindow: ensurePositiveInteger(options.maxMessagesPerWindow, DEFAULT_MAX_MESSAGES_PER_WINDOW),
       rateLimitWindowMs: ensurePositiveInteger(options.rateLimitWindowMs, DEFAULT_RATE_LIMIT_WINDOW_MS),
-      localOnly: options.localOnly === true,
+      localOnly: options.localOnly !== false,
       allowedOrigins: Array.isArray(options.allowedOrigins) ? [...options.allowedOrigins] : [],
+      accessToken: typeof options.accessToken === 'string' && options.accessToken ? options.accessToken : null,
       logger: options.logger || console
     };
 
@@ -120,6 +139,7 @@ class SignalingServer extends EventEmitter {
     });
 
     this.rooms = new Map();
+    this.roomCapabilities = new Map();
     this.peers = new Map();
     this.connectionMeta = new WeakMap();
     this.heartbeatMonitor = null;
@@ -170,15 +190,8 @@ class SignalingServer extends EventEmitter {
   }
 
   isOriginAllowed(origin) {
-    if (!origin) return true;
-
-    if (this.options.localOnly && !isLoopbackOrigin(origin)) {
-      return false;
-    }
-
-    if (!this.options.allowedOrigins.length) {
-      return true;
-    }
+    if (this.options.localOnly) return !origin || isLoopbackOrigin(origin);
+    if (!origin || !this.options.allowedOrigins.length) return false;
 
     return this.options.allowedOrigins.some((candidate) => {
       if (candidate instanceof RegExp) {
@@ -206,6 +219,19 @@ class SignalingServer extends EventEmitter {
       return;
     }
 
+    if (!this.options.localOnly) {
+      if (!this.options.accessToken) {
+        this.metrics.rejectedConnections += 1;
+        this.rejectUpgrade(socket, 503, 'Remote signaling requires an access token');
+        return;
+      }
+      if (!tokensEqual(accessTokenFromRequest(req), this.options.accessToken)) {
+        this.metrics.rejectedConnections += 1;
+        this.rejectUpgrade(socket, 403, 'Signaling access denied');
+        return;
+      }
+    }
+
     socket.setNoDelay?.(true);
     this.wss.handleUpgrade(req, socket, head, (ws) => {
       this.wss.emit('connection', ws, req);
@@ -215,6 +241,7 @@ class SignalingServer extends EventEmitter {
   handleConnection(ws, req) {
     this.metrics.totalConnections += 1;
     this.connectionMeta.set(ws, {
+      ws,
       connectedAt: Date.now(),
       lastSeen: Date.now(),
       resetAt: Date.now() + this.options.rateLimitWindowMs,
@@ -401,12 +428,15 @@ class SignalingServer extends EventEmitter {
       return { valid: false, error: 'roomId is invalid' };
     }
 
-    const expectedToken = String(roomId).replace('reploid-swarm-', '');
-    if (!token || token !== expectedToken) {
-      return { valid: false, error: 'Unauthorized room access' };
+    if (!token || typeof token !== 'string' || token.length < 32) {
+      return { valid: false, error: 'A high-entropy room capability is required' };
     }
 
     const existingRoom = this.rooms.get(roomId);
+    const expectedCapability = this.roomCapabilities.get(roomId);
+    if (expectedCapability && !tokensEqual(roomCapabilityHash(token), expectedCapability)) {
+      return { valid: false, error: 'Unauthorized room access' };
+    }
     const existingPeer = this.peers.get(peerId);
     if (!existingRoom && this.rooms.size >= this.options.maxRooms) {
       return { valid: false, error: 'Room limit reached' };
@@ -428,6 +458,10 @@ class SignalingServer extends EventEmitter {
       return { valid: false, error: 'Connection is already bound to a different peerId' };
     }
 
+    if (existingPeer && existingPeer.ws !== meta.ws) {
+      return { valid: false, error: 'peerId is already connected' };
+    }
+
     if (metadata !== undefined && (typeof metadata !== 'object' || Array.isArray(metadata))) {
       return { valid: false, error: 'metadata must be an object' };
     }
@@ -436,16 +470,12 @@ class SignalingServer extends EventEmitter {
   }
 
   handleJoin(ws, message, meta) {
-    const { peerId, roomId, metadata } = message;
+    const { peerId, roomId, token, metadata } = message;
 
     const oldPeer = this.peers.get(peerId);
     if (oldPeer && oldPeer.ws !== ws) {
-      this.removePeer(peerId, oldPeer.roomId, {
-        closeSocket: true,
-        closeCode: 4000,
-        closeReason: 'Peer session replaced',
-        reason: 'replaced'
-      });
+      this.sendError(ws, 'peerId is already connected');
+      return;
     }
 
     if (meta.roomId && meta.roomId !== roomId && meta.peerId === peerId) {
@@ -454,11 +484,15 @@ class SignalingServer extends EventEmitter {
         priorRoom.delete(peerId);
         if (priorRoom.size === 0) {
           this.rooms.delete(meta.roomId);
+          this.roomCapabilities.delete(meta.roomId);
         }
       }
     }
 
     const room = this.rooms.get(roomId) || new Set();
+    if (!this.roomCapabilities.has(roomId)) {
+      this.roomCapabilities.set(roomId, roomCapabilityHash(token));
+    }
     const peers = Array.from(room).filter((id) => id !== peerId);
     room.add(peerId);
     this.rooms.set(roomId, room);
@@ -709,6 +743,7 @@ class SignalingServer extends EventEmitter {
       room.delete(peerId);
       if (room.size === 0) {
         this.rooms.delete(targetRoomId);
+        this.roomCapabilities.delete(targetRoomId);
       } else {
         this.broadcastToRoom(targetRoomId, {
           type: 'peer-left',

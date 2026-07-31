@@ -22,7 +22,9 @@ import {
   buildAssignmentRevealPayload
 } from '../../self/pool/p2p-payload.js';
 
-const dispatchJson = async (router, path, { method = 'GET', body = null, headers = {} } = {}) => {
+const dispatchJson = async (router, path, {
+  method = 'GET', body = null, headers = {}, ip = '127.0.0.1'
+} = {}) => {
   const url = new URL(path, 'http://reploid.test');
   return new Promise((resolve, reject) => {
     const req = {
@@ -33,7 +35,7 @@ const dispatchJson = async (router, path, { method = 'GET', body = null, headers
       query: Object.fromEntries(url.searchParams.entries()),
       headers,
       body,
-      ip: '127.0.0.1'
+      ip
     };
     const res = {
       statusCode: 200,
@@ -247,10 +249,11 @@ describe('pool coordinator routes', () => {
   beforeEach(() => {
     store = createPoolStore();
     store.kind = 'firestore';
-    router = createPoolRouter({ store });
+    router = createPoolRouter({ store, allowUnauthenticatedLocal: true });
   });
 
   it('keeps safe discovery routes public when persistent storage requires auth', async () => {
+    router = createPoolRouter({ store });
     const status = await dispatchJson(router, '/status');
     expect(status.status).toBe(200);
     expect(status.body.product).toBe('reploid_browser_inference_pool');
@@ -270,6 +273,43 @@ describe('pool coordinator routes', () => {
     });
     expect(jobs.status).toBe(401);
     expect(jobs.body.error).toBe('Firebase auth token required');
+  });
+
+  it('fails closed for role-bound routes even with the in-memory store', async () => {
+    store.kind = 'memory';
+    router = createPoolRouter({ store });
+
+    const heartbeat = await dispatchJson(router, '/providers/heartbeat', {
+      method: 'POST',
+      body: { providerId: 'provider_attacker' }
+    });
+    expect(heartbeat).toMatchObject({
+      status: 401,
+      body: { error: 'Firebase auth token required' }
+    });
+
+    const signaling = await dispatchJson(router, '/signaling/sessions', {
+      method: 'POST',
+      body: { participantIds: ['provider_attacker', 'requester_victim'] }
+    });
+    expect(signaling).toMatchObject({
+      status: 401,
+      body: { error: 'Firebase auth token required' }
+    });
+  });
+
+  it('limits the explicit unauthenticated development mode to loopback requests', async () => {
+    store.kind = 'memory';
+    router = createPoolRouter({ store, allowUnauthenticatedLocal: true });
+    const response = await dispatchJson(router, '/providers/heartbeat', {
+      method: 'POST',
+      ip: '203.0.113.25',
+      body: { providerId: 'provider_attacker' }
+    });
+    expect(response).toMatchObject({
+      status: 401,
+      body: { error: 'Firebase auth token required' }
+    });
   });
 
   it('binds hosted provider mutations to the authenticated provider role', async () => {
@@ -417,7 +457,7 @@ describe('pool coordinator routes', () => {
 
   it('creates a delayed challenge rerun from a prior receipt', async () => {
     store.kind = 'memory';
-    router = createPoolRouter({ store, allowCanaryCreation: true });
+    router = createPoolRouter({ store, allowUnauthenticatedLocal: true, allowCanaryCreation: true });
     const providerKeys = await createSigningKeyPair();
     const provider = store.registerProvider({
       providerId: 'provider_challenge',
@@ -645,7 +685,7 @@ describe('pool ring quorum timeout and acceptance binding', () => {
   beforeEach(() => {
     store = createPoolStore();
     store.kind = 'memory';
-    router = createPoolRouter({ store });
+    router = createPoolRouter({ store, allowUnauthenticatedLocal: true });
   });
 
   it('keeps ring quorum pending when one current assignment expires and quorum is still reachable', async () => {
@@ -741,7 +781,7 @@ describe('pool hybrid p2p signaling routes', () => {
   beforeEach(() => {
     store = createPoolStore();
     store.kind = 'memory';
-    router = createPoolRouter({ store });
+    router = createPoolRouter({ store, allowUnauthenticatedLocal: true });
   });
 
   it('creates assignment-bound signaling sessions and exchanges metadata messages', async () => {
@@ -828,7 +868,7 @@ describe('pool signaling production guards', () => {
   beforeEach(() => {
     store = createPoolStore();
     store.kind = 'memory';
-    router = createPoolRouter({ store });
+    router = createPoolRouter({ store, allowUnauthenticatedLocal: true });
   });
 
   it('rejects signaling sessions for expired assignments', async () => {

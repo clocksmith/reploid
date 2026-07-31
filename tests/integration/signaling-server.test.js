@@ -5,6 +5,8 @@ import SignalingServer from '../../server/signaling-server.js';
 import { resolveInferenceServiceConfig } from '../../server/inference-service.js';
 import { createStandaloneSignalingServer } from '../../server/reploid-signaling.js';
 
+const ROOM_CAPABILITY = 'test-room-capability-4ac3c462b01e4bce9ca7';
+
 const waitForMessage = (socket, predicate, timeoutMs = 3000) =>
   new Promise((resolve, reject) => {
     const timeout = setTimeout(() => {
@@ -95,7 +97,7 @@ describe('SignalingServer', () => {
     await bootServer();
 
     const roomId = 'reploid-swarm-openclaw';
-    const token = 'openclaw';
+    const token = ROOM_CAPABILITY;
     const peerA = new WebSocket(`ws://127.0.0.1:${port}/signaling`, { perMessageDeflate: false });
     const peerB = new WebSocket(`ws://127.0.0.1:${port}/signaling`, { perMessageDeflate: false });
 
@@ -139,7 +141,7 @@ describe('SignalingServer', () => {
       type: 'join',
       peerId: 'peer_alpha',
       roomId: 'reploid-swarm-openclaw',
-      token: 'openclaw'
+      token: ROOM_CAPABILITY
     }));
     await waitForMessage(socket, (message) => message.type === 'joined');
 
@@ -176,6 +178,38 @@ describe('SignalingServer', () => {
         // unexpected-response carries the assertion.
       });
     })).resolves.toBe(403);
+  });
+
+  it('binds a room to its first capability and never replaces an existing peer ID', async () => {
+    await bootServer();
+    const roomId = 'reploid-swarm-private-room';
+    const peerA = new WebSocket(`ws://127.0.0.1:${port}/signaling`, { perMessageDeflate: false });
+    const peerB = new WebSocket(`ws://127.0.0.1:${port}/signaling`, { perMessageDeflate: false });
+    await Promise.all([
+      new Promise((resolve) => peerA.once('open', resolve)),
+      new Promise((resolve) => peerB.once('open', resolve))
+    ]);
+
+    peerA.send(JSON.stringify({
+      type: 'join', peerId: 'peer_alpha', roomId, token: ROOM_CAPABILITY
+    }));
+    await waitForMessage(peerA, (message) => message.type === 'joined');
+
+    peerB.send(JSON.stringify({
+      type: 'join', peerId: 'peer_beta', roomId, token: 'different-capability-9a7612441ff64439b42d'
+    }));
+    await expect(waitForMessage(peerB, (message) => message.type === 'error'))
+      .resolves.toMatchObject({ error: 'Unauthorized room access' });
+
+    peerB.send(JSON.stringify({
+      type: 'join', peerId: 'peer_alpha', roomId, token: ROOM_CAPABILITY
+    }));
+    await expect(waitForMessage(peerB, (message) => message.type === 'error'))
+      .resolves.toMatchObject({ error: 'peerId is already connected' });
+    expect(signalingServer.getStats().rooms[0].peers).toEqual(['peer_alpha']);
+
+    peerA.close();
+    peerB.close();
   });
 
   it('syncs a server-backed inference peer and relays generation results', async () => {
@@ -232,7 +266,7 @@ describe('SignalingServer', () => {
     await bootServer({ virtualPeers: [virtualPeer] });
 
     const roomId = 'reploid-swarm-openclaw';
-    const token = 'openclaw';
+    const token = ROOM_CAPABILITY;
     const socket = new WebSocket(`ws://127.0.0.1:${port}/signaling`, { perMessageDeflate: false });
     const messages = [];
     socket.on('message', (raw) => {

@@ -58,6 +58,7 @@ const WebRTCSwarm = {
     let _peerId = null;
     let _sessionId = null;
     let _roomId = null;
+    let _roomToken = null;
     let _signalingWs = null;
     let _connectionState = 'disconnected'; // disconnected | connecting | connected | reconnecting
     let _reconnectAttempt = 0;
@@ -158,33 +159,48 @@ const WebRTCSwarm = {
     };
 
     /**
-     * Get room token from URL param or session
+     * Resolve a non-public room identifier and its bearer capability. The room
+     * ID is deliberately not derived from the capability: signaling metadata
+     * is observable to the server and must not disclose membership authority.
      */
-    const getRoomToken = () => {
+    const getRoomCredentials = () => {
       if (typeof window === 'undefined') return null;
 
       const urlParams = new URLSearchParams(window.location.search);
       const swarmParam = urlParams.get('swarm');
+      const suppliedToken = urlParams.get('swarmToken');
+      const storage = getCurrentReploidStorage();
+      const storedRoomId = storage?.getItem('REPLOID_SWARM_ROOM_ID');
+      const storedToken = storage?.getItem('REPLOID_SWARM_ROOM_TOKEN');
 
-      // If swarm param is a custom string, use it as token
-      if (swarmParam && swarmParam !== 'true') {
-        return swarmParam;
+      const roomSuffix = swarmParam && swarmParam !== 'true'
+        ? swarmParam.trim()
+        : String(storedRoomId || '').trim() || uuid();
+      const token = String(suppliedToken || storedToken || '').trim() || `${uuid()}${uuid()}`;
+
+      if (!/^[a-z0-9][a-z0-9_-]{0,127}$/i.test(roomSuffix)) {
+        throw new Error('Swarm room identifier contains unsupported characters');
+      }
+      if (token.length < 32) {
+        throw new Error('Swarm room capability must contain at least 32 characters');
       }
 
-      const storedRoom = window.localStorage?.getItem('REPLOID_SWARM_ROOM');
-      if (storedRoom && typeof storedRoom === 'string') {
-        const normalized = storedRoom.trim();
-        if (normalized) return normalized;
-      }
-
-      return 'public';
+      storage?.setItem('REPLOID_SWARM_ROOM_ID', roomSuffix);
+      storage?.setItem('REPLOID_SWARM_ROOM_TOKEN', token);
+      return {
+        roomId: `reploid-swarm-${roomSuffix}`,
+        token
+      };
     };
 
     /**
      * Get room ID from token
      */
-    const getRoomId = (token) => {
-      return `reploid-swarm-${token}`;
+    const getRoomId = (credentials) => {
+      if (!credentials?.roomId || !credentials?.token) {
+        throw new Error('Swarm room credentials are required');
+      }
+      return credentials.roomId;
     };
 
     /**
@@ -202,9 +218,10 @@ const WebRTCSwarm = {
       _sessionId = localStorage.getItem('REPLOID_SESSION_ID') || uuid();
       localStorage.setItem('REPLOID_SESSION_ID', _sessionId);
 
-      // Get room token (from URL param or session)
-      const roomToken = getRoomToken();
-      _roomId = getRoomId(roomToken);
+      // A room capability is distinct from the room ID and is never public by default.
+      const roomCredentials = getRoomCredentials();
+      _roomId = getRoomId(roomCredentials);
+      _roomToken = roomCredentials.token;
 
       CONFIG.signalingServer = getResolvedSignalingConfig().url;
 
@@ -249,13 +266,12 @@ const WebRTCSwarm = {
               _reconnectTimer = null;
             }
 
-            // Join room (token must match room suffix for auth)
-            const token = _roomId.replace('reploid-swarm-', '');
+            // Join with the private room capability, never a value derived from the room ID.
             sendSignaling({
               type: 'join',
               peerId: _peerId,
               roomId: _roomId,
-              token,
+              token: _roomToken,
               metadata: { capabilities: [] }
             });
 

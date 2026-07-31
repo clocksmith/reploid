@@ -18,10 +18,12 @@ export const SEQUENCE_ALPHABETS = Object.freeze({
 
 export const SEQUENCE_DISCLOSURE = 'selected_providers_only';
 export const SEQUENCE_PUBLIC_SENSITIVITY = 'public';
+export const MAX_PUBLIC_PROTEIN_SEQUENCE_LENGTH = 1024;
 
 const SEQUENCE_WORKLOAD_SET = new Set(Object.values(SEQUENCE_WORKLOADS));
 const SEQUENCE_ALPHABET_SET = new Set(Object.values(SEQUENCE_ALPHABETS));
 const SHA256_PATTERN = /^sha256:[a-f0-9]{64}$/;
+const CANONICAL_AMINO_ACID_PATTERN = /^[ACDEFGHIKLMNPQRSTVWY]+$/;
 
 export const isSequenceWorkload = (workload) => SEQUENCE_WORKLOAD_SET.has(workload);
 
@@ -32,9 +34,8 @@ export function normalizeSequenceInput(sequence, alphabet) {
   }
   const normalized = String(sequence || '').replace(/\s+/g, '').toUpperCase();
   if (!normalized) throw new TypeError('sequence is required');
-  const allowed = /^[A-Z*.-]+$/;
-  if (!allowed.test(normalized)) {
-    throw new TypeError(`sequence contains symbols outside the ${normalizedAlphabet} alphabet`);
+  if (!CANONICAL_AMINO_ACID_PATTERN.test(normalized)) {
+    throw new TypeError('sequence contains non-canonical amino-acid residues');
   }
   return normalized;
 }
@@ -74,6 +75,9 @@ export function validateSequenceRequest(request = {}, { model = null } = {}) {
   if (!SEQUENCE_ALPHABET_SET.has(request.alphabet)) reasons.push('sequence alphabet is not supported');
   if (!SHA256_PATTERN.test(String(request.sequenceHash || ''))) reasons.push('sequenceHash must be a SHA-256 identity');
   if (!Number.isInteger(request.sequenceLength) || request.sequenceLength <= 0) reasons.push('sequenceLength must be a positive integer');
+  if (request.sequenceLength > MAX_PUBLIC_PROTEIN_SEQUENCE_LENGTH) {
+    reasons.push(`sequence exceeds the maximum public protein length (${MAX_PUBLIC_PROTEIN_SEQUENCE_LENGTH})`);
+  }
   if (request.disclosure !== SEQUENCE_DISCLOSURE) reasons.push(`sequence disclosure must be ${SEQUENCE_DISCLOSURE}`);
   if (request.sensitivity !== SEQUENCE_PUBLIC_SENSITIVITY) {
     reasons.push('public Poolday providers accept only sequences explicitly classified as public');
@@ -94,8 +98,15 @@ export function validateSequenceRequest(request = {}, { model = null } = {}) {
   if (model) {
     const sequence = model.sequence || model.requirements?.sequence || {};
     if (sequence.alphabet && sequence.alphabet !== request.alphabet) reasons.push('sequence alphabet does not match the selected model');
-    if (Number(sequence.maxSequenceLength || 0) > 0 && request.sequenceLength > Number(sequence.maxSequenceLength)) {
-      reasons.push('sequence exceeds the selected model maximum length');
+    const configuredLimits = [
+      Number(sequence.maxSequenceLength || 0),
+      Number(model.contextLength || model.requirements?.contextLength || 0)
+    ].filter((limit) => Number.isInteger(limit) && limit > 0);
+    const maximumSequenceLength = configuredLimits.length > 0 ? Math.min(...configuredLimits) : null;
+    if (maximumSequenceLength
+      && maximumSequenceLength < MAX_PUBLIC_PROTEIN_SEQUENCE_LENGTH
+      && request.sequenceLength > maximumSequenceLength) {
+      reasons.push(`sequence exceeds the selected model maximum length (${maximumSequenceLength})`);
     }
     if (request.includeTokenEmbeddings && sequence.tokenEmbeddings !== true) {
       reasons.push('selected model does not expose token embeddings');
@@ -122,6 +133,7 @@ export default {
   SEQUENCE_ALPHABETS,
   SEQUENCE_DISCLOSURE,
   SEQUENCE_PUBLIC_SENSITIVITY,
+  MAX_PUBLIC_PROTEIN_SEQUENCE_LENGTH,
   isSequenceWorkload,
   normalizeSequenceInput,
   normalizeSequenceRequest,

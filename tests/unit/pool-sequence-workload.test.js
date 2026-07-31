@@ -16,7 +16,7 @@ import {
   createPeerSequencePayload,
   validateSequencePayloadForAssignment
 } from '../../self/pool/peer-control-plane.js';
-import { createReceiptPayload } from '../../self/pool/p2p-payload.js';
+import { createReceiptPayload, hashP2PPayload } from '../../self/pool/p2p-payload.js';
 import { createProviderClient } from '../../self/pool/provider-client.js';
 import {
   SEQUENCE_ALPHABETS,
@@ -39,6 +39,7 @@ const sequenceModel = Object.freeze({
   manifestHash: `sha256:${'2'.repeat(64)}`,
   runtime: 'doppler',
   backend: 'browser-webgpu',
+  contextLength: 1024,
   workload: SEQUENCE_WORKLOADS.embedding,
   workloads: [SEQUENCE_WORKLOADS.embedding, SEQUENCE_WORKLOADS.maskedLogits],
   executionModes: {
@@ -147,6 +148,37 @@ describe('Poolday biological-sequence workload', () => {
   it('rejects non-protein alphabets', () => {
     expect(() => normalizeSequenceInput(' acgtnry ', 'nucleotide'))
       .toThrow('Unsupported sequence alphabet: nucleotide');
+  });
+
+  it('rejects arbitrary uppercase text and non-canonical protein symbols', () => {
+    expect(() => normalizeSequenceInput('PASSWORDRESETTOKEN', SEQUENCE_ALPHABETS.aminoAcid))
+      .toThrow('non-canonical amino-acid residues');
+    expect(() => normalizeSequenceInput('MKTAX', SEQUENCE_ALPHABETS.aminoAcid))
+      .toThrow('non-canonical amino-acid residues');
+  });
+
+  it('enforces global and model-specific public protein length ceilings', async () => {
+    const oversizedRequest = await makeRequest('A'.repeat(1025));
+    expect(validateSequenceRequest(oversizedRequest)).toMatchObject({
+      ok: false,
+      reasons: ['sequence exceeds the maximum public protein length (1024)']
+    });
+
+    const sequence = 'A'.repeat(513);
+    const request = await makeRequest(sequence);
+    const contextBoundModel = {
+      ...sequenceModel,
+      contextLength: 512,
+      sequence: {
+        ...sequenceModel.sequence,
+        maxSequenceLength: undefined
+      }
+    };
+
+    expect(validateSequenceRequest(request, { model: contextBoundModel })).toMatchObject({
+      ok: false,
+      reasons: ['sequence exceeds the selected model maximum length (512)']
+    });
   });
 
   it('dispatches sequence embeddings through Doppler and hashes float32 bytes deterministically', async () => {
@@ -282,6 +314,16 @@ describe('Poolday biological-sequence workload', () => {
       agreementField: 'sequenceResultHash',
       sequenceResultHash: result.execution.sequenceResultHash
     });
+
+    const tamperedPayload = structuredClone(receiptPayload);
+    tamperedPayload.body.sequenceOutput.pooledEmbedding[0] = 99;
+    tamperedPayload.payloadHash = await hashP2PPayload(tamperedPayload);
+    const tamperedAgreement = await buildPeerReceiptAgreement({
+      plan: { jobId: assignment.jobId, assignment, assignments: [assignment] },
+      receiptPayloads: [tamperedPayload]
+    });
+    expect(tamperedAgreement.accepted).toBe(false);
+    expect(tamperedAgreement.rejectedRecords[0].reasons).toContain('sequence pooled embedding hash mismatch');
   });
 
   it('fails receipt construction when sequence metadata does not hash to the claimed result', async () => {
