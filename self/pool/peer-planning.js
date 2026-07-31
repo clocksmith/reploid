@@ -69,7 +69,7 @@ export const intentWorkload = (intent = {}) => (
   intent.body?.workload
   || intent.body?.modelRequirements?.workload
   || intent.body?.modelRequirements?.workloadType
-  || POOLDAY_MODEL_WORKLOADS.textGeneration
+  || POOLDAY_MODEL_WORKLOADS.sequenceEmbedding
 );
 
 export const intentMaxTokens = (intent = {}) => Math.max(0, Number(

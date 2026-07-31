@@ -44,10 +44,10 @@ const workloadForIntent = (intent = {}) => (
   intent.body?.workload
   || intent.body?.modelRequirements?.workload
   || intent.body?.modelRequirements?.workloadType
-  || POOLDAY_MODEL_WORKLOADS.textGeneration
+  || POOLDAY_MODEL_WORKLOADS.sequenceEmbedding
 );
 
-const exactModelReasons = (model = {}, requirement = {}, workload = POOLDAY_MODEL_WORKLOADS.textGeneration) => {
+const exactModelReasons = (model = {}, requirement = {}, workload = POOLDAY_MODEL_WORKLOADS.sequenceEmbedding) => {
   const reasons = [];
   if (model.modelId !== requirement.modelId) reasons.push('model_id_mismatch');
   if (model.modelHash !== requirement.modelHash) reasons.push('model_hash_mismatch');

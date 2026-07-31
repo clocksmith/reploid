@@ -43,19 +43,17 @@ describe('poolday home navigation', () => {
     document.body.innerHTML = '';
   });
 
-  it('keeps the home Ask hint pool short, diverse, and finite', () => {
-    expect(POOLDAY_ASK_PLACEHOLDERS).toHaveLength(64);
-    expect(new Set(POOLDAY_ASK_PLACEHOLDERS).size).toBe(64);
+  it('keeps the home protein hint pool finite and amino-acid-only', () => {
+    expect(POOLDAY_ASK_PLACEHOLDERS).toHaveLength(13);
+    expect(new Set(POOLDAY_ASK_PLACEHOLDERS).size).toBe(13);
     for (const prompt of POOLDAY_ASK_PLACEHOLDERS) {
-      const words = prompt.trim().split(/\s+/);
-      expect(words.length).toBeGreaterThanOrEqual(2);
-      expect(words.length).toBeLessThanOrEqual(4);
+      expect(prompt).toMatch(/^Sequence: [A-Z]+$/);
     }
     expect(choosePooldayAskPlaceholder(() => 0)).toBe(POOLDAY_ASK_PLACEHOLDERS[0]);
     expect(choosePooldayAskPlaceholder(() => 0.999)).toBe(POOLDAY_ASK_PLACEHOLDERS.at(-1));
-    expect(POOLDAY_SEQUENCE_ASK_PLACEHOLDERS).toHaveLength(15);
-    expect(POOLDAY_TEXT_ASK_PLACEHOLDERS).toHaveLength(49);
-    expect(choosePooldayAskPlaceholderForLane('text', () => 0)).not.toMatch(/^Sequence:/);
+    expect(POOLDAY_SEQUENCE_ASK_PLACEHOLDERS).toHaveLength(13);
+    expect(POOLDAY_TEXT_ASK_PLACEHOLDERS).toHaveLength(0);
+    expect(choosePooldayAskPlaceholderForLane('text', () => 0)).toBe('');
     expect(choosePooldayAskPlaceholderForLane('sequence', () => 0)).toBe('MRLGCSLAWLLLFLLLSVAA');
   });
 
@@ -87,7 +85,7 @@ describe('poolday home navigation', () => {
     expect(ROUTE_COPY.compute).toEqual({
       eyebrow: 'Contribute',
       title: 'Contribute',
-      body: 'Let this tab answer compatible runs. Stop at any time.'
+      body: 'Let this tab embed compatible protein sequences. Stop at any time.'
     });
   });
 
@@ -158,14 +156,14 @@ describe('poolday home navigation', () => {
     expect(html).not.toContain('data-pool-hot-path');
     expect(html).toContain('class="pool-home-title-lockup"');
     expect(html).toContain('<h1 class="type-h1 pool-home-brand-word">REPLOID</h1>');
-    expect(html).toContain('Run browser models together.');
+    expect(html).toContain('Run protein models together.');
     expect(html).toContain('pool-home-cta-row pool-home-ask-form');
     expect(html).toContain('id="pool-home-ask-form"');
     expect(html).toContain('class="pool-home-composer-bar"');
-    expect(html).toContain('aria-label="Choose input type"');
-    expect(html).toMatch(/data-pool-lane="text"[^>]*>Text<\/button>/);
-    expect(html).toMatch(/data-pool-lane="sequence"[^>]*>Protein<\/button>/);
-    expect(html).toMatch(/data-pool-composer-adapter-lane[^>]*hidden>Adapter<\/button>/);
+    expect(html).toContain('aria-label="Input type"');
+    expect(html).toContain('<span class="pool-lane-chip is-active" data-pool-lane="sequence" aria-current="true">Protein</span>');
+    expect(html).not.toContain('data-pool-lane="text"');
+    expect(html).not.toContain('data-pool-composer-adapter-lane');
     expect(html).toContain('class="pool-home-ask-pill"');
     expect(html).toContain('id="pool-home-ask-prompt"');
     expect(html).toContain('id="pool-home-sequence-public"');
@@ -174,7 +172,7 @@ describe('poolday home navigation', () => {
     expect(html).toContain('id="pool-home-adapter"');
     expect(html).not.toContain('pool-home-ask-label');
     const placeholder = html.match(/placeholder="([^"]+)"/)?.[1];
-    expect(POOLDAY_ASK_PLACEHOLDERS).toContain(placeholder);
+    expect(POOLDAY_ASK_PLACEHOLDERS).toContain(`Sequence: ${placeholder}`);
     expect(placeholder).not.toBe('Ask the network...');
     expect(html).toContain(`data-pool-suggested-prompt="${placeholder}"`);
     expect(html).not.toContain('placeholder="Ask the network..."');
@@ -305,28 +303,23 @@ describe('poolday home navigation', () => {
     expect(syntheticSmoke).toContain('maxComputeInvocationsPerWorkgroup: 256');
   });
 
-  it('renders Qwen as the visible default model on Run and Contribute', () => {
+  it('renders ESM-2 as the only visible model on Run and Contribute', () => {
     const askHtml = renderRouteDetail('ask');
     const computeHtml = renderRouteDetail('compute');
 
-    expect(askHtml).toContain('<option value="qwen-3-5-0-8b-q4k-ehaf16" data-workload="text_generation" selected>Qwen 3.5 0.8B</option>');
-    expect(computeHtml).toContain('<option value="qwen-3-5-0-8b-q4k-ehaf16" data-workload="text_generation" selected>Qwen 3.5 0.8B</option>');
-    expect(askHtml).toContain('<option value="gemma-4-e2b-it-q4k-ehf16-af32-int4ple" data-workload="text_generation">Gemma 4 E2B INT4 PLE</option>');
-    expect(computeHtml).toContain('<option value="gemma-4-e2b-it-q4k-ehf16-af32-int4ple" data-workload="text_generation">Gemma 4 E2B INT4 PLE</option>');
-    expect(askHtml).toContain('<option value="qwen-3-embedding-0-6b-q4k-ehf16-af32" data-workload="embedding" disabled>Qwen3 Embedding 0.6B · embedding (sequence lane pending)</option>');
-    expect(computeHtml).toContain('<option value="qwen-3-embedding-0-6b-q4k-ehf16-af32" data-workload="embedding">Qwen3 Embedding 0.6B · embedding</option>');
-    expect(askHtml).not.toContain('gemma-3-1b-it-q4k-ehf16-af32');
-    expect(computeHtml).not.toContain('gemma-3-1b-it-q4k-ehf16-af32');
-    expect(askHtml).not.toContain('<option value="gemma-3-270m-it-q4k-ehf16-af32" selected>');
-    expect(computeHtml).not.toContain('<option value="gemma-3-270m-it-q4k-ehf16-af32" selected>');
+    expect(askHtml).toContain('<option value="esm2-t12-35m-ur50d-f32-af32" data-workload="sequence.embedding.v1" selected>ESM-2 35M (Protein)</option>');
+    expect(computeHtml).toContain('<option value="esm2-t12-35m-ur50d-f32-af32" data-workload="sequence.embedding.v1" selected>ESM-2 35M (Protein) · sequence.embedding.v1</option>');
+    expect(askHtml).toContain('id="pool-run-sequence-public"');
+    expect(askHtml).not.toContain('qwen-3-5-0-8b-q4k-ehaf16');
+    expect(computeHtml).not.toContain('qwen-3-5-0-8b-q4k-ehaf16');
     expect(computeHtml).not.toMatch(/<option[^>]+disabled/);
   });
 
   it('renders Run as answer-first with proof and raw-result layers', () => {
     const html = renderRouteDetail('ask');
 
-    expect(html).toContain('<span data-pool-run-prompt-label>Prompt</span>');
-    expect(html).toContain('Choosing a pack and running signs a prompt- and model-bound approval.');
+    expect(html).toContain('<span data-pool-run-prompt-label>Protein sequence</span>');
+    expect(html).toContain('I confirm this protein sequence is public.');
     expect(html).toContain('<summary>Settings</summary>');
     expect(html).toContain('data-pool-run-output hidden');
     expect(html).toContain('id="pool-run-result-evidence"');

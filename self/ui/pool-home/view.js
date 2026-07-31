@@ -1379,8 +1379,6 @@ const renderRailOutlink = (id) => {
 };
 
 const REQUEST_TASK_COPY = Object.freeze({
-  text: 'Generate an answer with a browser language model.',
-  adapters: 'Run text with a published adapter tied to the exact base model.',
   sequence: 'Generate a pooled embedding for a public protein sequence.'
 });
 
@@ -1399,7 +1397,7 @@ const renderHomeRequestDrawer = (open) => `
           <label class="pool-field">
             <span>Request model</span>
             <select id="pool-home-request-model" data-pool-request-control>
-              ${renderModelOptions({ workload: POOLDAY_MODEL_WORKLOADS.textGeneration })}
+              ${renderModelOptions({ workload: POOLDAY_MODEL_WORKLOADS.sequenceEmbedding })}
             </select>
           </label>
           <p class="type-caption pool-drawer-help" data-pool-request-model-help>Contributors must advertise this exact model and any selected adapter.</p>
@@ -1711,7 +1709,7 @@ const renderModelOptions = ({ workload = null, includeWorkloadLabel = false, dis
 }).map((model) => {
   const label = model.label || model.modelId;
   const modelWorkload = getPoolModelWorkload(model);
-  const isSequence = modelWorkload !== POOLDAY_MODEL_WORKLOADS.textGeneration;
+  const isSequence = true;
   const selected = model.modelId === LAUNCH_MODEL.modelId ? ' selected' : '';
   const disabled = disableSequence && isSequence ? ' disabled' : '';
   const workloadLabel = (includeWorkloadLabel || disableSequence) && isSequence
@@ -1854,9 +1852,9 @@ const renderDashboardNetworkSections = () => {
 
 const renderHomeSimulation = ({ dashboardView = 'home' } = {}) => {
   const activeView = normalizePoolDashboardView(dashboardView);
-  const suggestedPrompt = choosePooldayAskPlaceholderForLane('text');
+  const suggestedPrompt = choosePooldayAskPlaceholderForLane('sequence');
   return `
-    <section class="pool-home-stage" aria-label="Reploid network" data-pool-run-surface="home" data-run-state="idle" data-run-phase="" data-pool-lane="text" data-pool-dashboard-view="${activeView}">
+    <section class="pool-home-stage" aria-label="Reploid network" data-pool-run-surface="home" data-run-state="idle" data-run-phase="" data-pool-lane="sequence" data-pool-dashboard-view="${activeView}">
       <div class="pool-home-toolbar" aria-label="Reploid home controls">
         <div class="pool-home-toolbar-leading pool-home-overlay" aria-label="Reploid overview">
           <div class="pool-home-title-lockup">
@@ -1889,12 +1887,10 @@ const renderHomeSimulation = ({ dashboardView = 'home' } = {}) => {
       <form class="pool-home-ask-dock pool-home-cta-row pool-home-ask-form" id="pool-home-ask-form" aria-label="Ask the network">
         <div class="pool-home-composer-bar">
           <span class="pool-home-composer-label">Run</span>
-          <div class="pool-home-lane-chips" role="group" aria-label="Choose input type">
-            <button type="button" class="pool-lane-chip is-active" data-pool-lane="text" data-pool-task-description="${escapeHtml(REQUEST_TASK_COPY.text)}" data-pool-request-control aria-pressed="true">Text</button>
-            <button type="button" class="pool-lane-chip" data-pool-lane="sequence" data-pool-task-description="${escapeHtml(REQUEST_TASK_COPY.sequence)}" data-pool-request-control aria-pressed="false">Protein</button>
-            <button type="button" class="pool-lane-chip pool-lane-chip--secondary" data-pool-lane="adapters" data-pool-composer-adapter-lane data-pool-task-description="${escapeHtml(REQUEST_TASK_COPY.adapters)}" data-pool-request-control aria-pressed="false" hidden>Adapter</button>
+          <div class="pool-home-lane-chips" role="group" aria-label="Input type">
+            <span class="pool-lane-chip is-active" data-pool-lane="sequence" aria-current="true">Protein</span>
           </div>
-          <span class="pool-home-composer-hint" data-pool-task-description>${escapeHtml(REQUEST_TASK_COPY.text)}</span>
+          <span class="pool-home-composer-hint" data-pool-task-description>${escapeHtml(REQUEST_TASK_COPY.sequence)}</span>
         </div>
         <label class="pool-home-adapter-picker" data-pool-home-adapter-picker hidden>
           <span>Adapter pack</span>
@@ -1903,7 +1899,7 @@ const renderHomeSimulation = ({ dashboardView = 'home' } = {}) => {
           </select>
           <small data-pool-adapter-status hidden></small>
         </label>
-        <div class="pool-sequence-options" data-pool-sequence-options hidden>
+        <div class="pool-sequence-options" data-pool-sequence-options>
           <label class="pool-consent-row" data-pool-sequence-consent-row>
             <input id="pool-home-sequence-public" type="checkbox" data-pool-request-control>
             <span>I confirm this protein sequence is public.</span>
@@ -1915,9 +1911,9 @@ const renderHomeSimulation = ({ dashboardView = 'home' } = {}) => {
           <input
              id="pool-home-ask-prompt"
              class="pool-home-ask-input"
-             name="prompt"
+             name="sequence"
              type="text"
-             aria-label="Ask prompt"
+             aria-label="Public protein sequence"
              autocomplete="off"
              placeholder="${escapeHtml(suggestedPrompt)}"
              data-pool-suggested-prompt="${escapeHtml(suggestedPrompt)}"
@@ -1927,7 +1923,7 @@ const renderHomeSimulation = ({ dashboardView = 'home' } = {}) => {
                   id="pool-home-run-submit"
                   type="submit"
                   data-pool-request-control
-                  aria-label="Ask">
+                  aria-label="Run protein sequence">
             <span class="pool-shape-action-glyph" aria-hidden="true">↑</span>
           </button>
         </div>
@@ -1950,22 +1946,20 @@ export const renderRouteDetail = (routeId) => {
         <div class="pool-form pool-route-grid pool-run-layout" data-pool-run data-pool-run-surface="run" data-run-state="idle" data-run-phase="">
           <div class="pool-run-compose">
             <label class="pool-field">
-              <span data-pool-run-prompt-label>Prompt</span>
-              <textarea id="pool-run-prompt" rows="6">Summarize Reploid in one sentence.</textarea>
+              <span data-pool-run-prompt-label>Protein sequence</span>
+              <textarea id="pool-run-prompt" rows="6">MAPLALLLLGLVAGA</textarea>
             </label>
             <div class="pool-run-model-row">
               <label class="pool-field pool-run-model-field">
                 <span>Model</span>
-                <select id="pool-run-model">${renderModelOptions({ disableSequence: true })}</select>
+                <select id="pool-run-model">${renderModelOptions()}</select>
               </label>
-              <span class="pool-workload-badge" data-pool-run-workload>text generation</span>
+              <span class="pool-workload-badge" data-pool-run-workload>protein embedding</span>
             </div>
             <label class="pool-field">
-              <span>Adapter pack</span>
-              <select id="pool-run-adapter" data-pool-run-adapter>
-                <option value="">Base model only</option>
-              </select>
-              <small>Choosing a pack and running signs a prompt- and model-bound approval.</small>
+              <span>Input disclosure</span>
+              <span class="pool-consent-row"><input id="pool-run-sequence-public" type="checkbox">I confirm this protein sequence is public.</span>
+              <small>The sequence travels only to the selected contributor.</small>
             </label>
             <details class="pool-advanced">
               <summary>Settings</summary>
@@ -1982,7 +1976,7 @@ export const renderRouteDetail = (routeId) => {
             </div>
           </div>
           <section class="pool-run-output" data-pool-run-output hidden>
-            <h2 class="type-h2">Answer</h2>
+            <h2 class="type-h2">Protein embedding</h2>
             ${renderResultBox('pool-run-result', {
               stream: true,
               streamLabel: 'Answer',
@@ -2008,7 +2002,7 @@ export const renderRouteDetail = (routeId) => {
               <span>Model</span>
               <select id="pool-provider-model">${renderModelOptions({ includeWorkloadLabel: true })}</select>
             </label>
-            <p class="pool-provider-capability type-caption">This tab accepts <span class="pool-workload-badge" data-pool-provider-workload>text generation</span> jobs for the selected model.</p>
+            <p class="pool-provider-capability type-caption">This tab accepts <span class="pool-workload-badge" data-pool-provider-workload>protein embedding</span> jobs for the selected model.</p>
             <div class="pool-control-row pool-primary-actions" aria-label="Contribution controls">
               <button class="btn btn-primary btn-op" data-op="▶" id="pool-provider-worker-toggle" type="button" aria-pressed="false">Start contributing</button>
             </div>

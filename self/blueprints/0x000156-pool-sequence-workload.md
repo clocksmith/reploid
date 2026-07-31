@@ -1,6 +1,6 @@
 # Blueprint 0x000156: pool sequence workload
 
-**Objective:** Define privacy-bounded biological sequence inputs and result agreement for Poolday.
+**Objective:** Define privacy-bounded protein sequence inputs and result agreement for Poolday.
 
 **Target Upgrade:** pool/sequence-workload.js
 
@@ -9,11 +9,11 @@
 ---
 
 ### 1. Intent
-Represent biological sequence work without leaking raw sequence data into peer
+Represent protein sequence work without leaking raw sequence data into peer
 discovery, coordinator jobs, signed intents, receipts, or quorum records.
 
 ### 2. Architecture
-The contract normalizes amino-acid, nucleotide, DNA, or RNA text and exposes two workloads:
+The contract normalizes amino-acid text and exposes two workloads:
 pooled/token embeddings and bounded masked-token logits. A request binds the
 alphabet, sequence hash and length, sensitivity, disclosure rule, requested
 outputs, token positions, and top-K bound. The agreement field for both

@@ -633,7 +633,7 @@ export async function validatePeerAssignmentForIntentAndAdvert({
   if (assignment.inputHash !== intent?.body?.inputHash) reasons.push('inputHash mismatch');
   if (assignment.generationConfigHash !== intent?.body?.generationConfigHash) reasons.push('generationConfigHash mismatch');
   if (intentMaxTokens(intent) > advertLimits.maxTokensPerJob) reasons.push('provider token limit exceeded');
-  if ((assignment.workload || POOLDAY_MODEL_WORKLOADS.textGeneration) !== intentWorkload(intent)) reasons.push('workload mismatch');
+  if ((assignment.workload || POOLDAY_MODEL_WORKLOADS.sequenceEmbedding) !== intentWorkload(intent)) reasons.push('workload mismatch');
   const requiredModel = intent?.body?.modelRequirements || {};
   const assignmentModel = assignment.model || {};
   if (assignmentModel.id !== requiredModel.modelId) reasons.push('model id mismatch');
@@ -641,7 +641,7 @@ export async function validatePeerAssignmentForIntentAndAdvert({
   if (assignmentModel.manifestHash !== requiredModel.manifestHash) reasons.push('manifest hash mismatch');
   if ((assignmentModel.runtime || LAUNCH_MODEL.runtime) !== (requiredModel.runtime || LAUNCH_MODEL.runtime)) reasons.push('runtime mismatch');
   if ((assignmentModel.backend || LAUNCH_MODEL.backend) !== (requiredModel.backend || LAUNCH_MODEL.backend)) reasons.push('backend mismatch');
-  if ((assignmentModel.workload || POOLDAY_MODEL_WORKLOADS.textGeneration) !== (requiredModel.workload || POOLDAY_MODEL_WORKLOADS.textGeneration)) reasons.push('model workload mismatch');
+  if ((assignmentModel.workload || POOLDAY_MODEL_WORKLOADS.sequenceEmbedding) !== (requiredModel.workload || POOLDAY_MODEL_WORKLOADS.sequenceEmbedding)) reasons.push('model workload mismatch');
   if (requiredModel.adapter) {
     const approval = await verifyAdapterUseApproval(assignment.adapterUseApproval, {
       adapterRequirement: requiredModel.adapter,
@@ -662,7 +662,7 @@ export async function validatePeerAssignmentForIntentAndAdvert({
     && model.manifestHash === requiredModel.manifestHash
     && (model.runtime || LAUNCH_MODEL.runtime) === (requiredModel.runtime || LAUNCH_MODEL.runtime)
     && (model.backend || LAUNCH_MODEL.backend) === (requiredModel.backend || LAUNCH_MODEL.backend)
-    && modelSupportsPoolWorkload(model, requiredModel.workload || POOLDAY_MODEL_WORKLOADS.textGeneration)
+    && modelSupportsPoolWorkload(model, requiredModel.workload || POOLDAY_MODEL_WORKLOADS.sequenceEmbedding)
   ));
   if (!advertHasModel) reasons.push('provider advert does not support assignment model');
   const acceptedPolicies = providerAdvert?.body?.availability?.acceptedPolicies || [];

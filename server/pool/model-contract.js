@@ -20,20 +20,26 @@ export { modelSupportsAdapterRequirement };
 export { LAUNCH_MODEL, MODEL_CATALOG };
 
 export const POOLDAY_MODEL_WORKLOADS = Object.freeze({
-  textGeneration: 'text_generation',
-  embedding: 'embedding',
   sequenceEmbedding: SEQUENCE_WORKLOADS.embedding,
   sequenceMaskedLogits: SEQUENCE_WORKLOADS.maskedLogits
 });
 export const SUPPORTED_MODEL_EXECUTION_MODES = Object.freeze({
-  textGeneration: 'full_model_browser_local',
-  embedding: 'full_model_browser_embedding',
   sequence: SEQUENCE_EXECUTION_MODE
 });
-export const SUPPORTED_MODEL_EXECUTION_MODE = SUPPORTED_MODEL_EXECUTION_MODES.textGeneration;
+export const SUPPORTED_MODEL_EXECUTION_MODE = SUPPORTED_MODEL_EXECUTION_MODES.sequence;
+
+export const isProteinPoolModel = (model = {}) => (
+  model.sequence?.alphabet === 'amino_acid'
+  && isSequenceWorkload(getPoolModelWorkload(model))
+);
 
 export const ENABLED_MODEL_CATALOG = Object.freeze(
-  MODEL_CATALOG.filter((model) => model.enabled !== false && model.modelHash && model.manifestHash)
+  MODEL_CATALOG.filter((model) => (
+    model.enabled !== false
+    && model.modelHash
+    && model.manifestHash
+    && isProteinPoolModel(model)
+  ))
 );
 
 const UNSUPPORTED_MODEL_SPLIT_FIELDS = Object.freeze([
@@ -56,7 +62,7 @@ export function getPoolModelWorkload(model = {}) {
     || model.workloadType
     || model.modelType
     || (Array.isArray(model.workloads) ? model.workloads[0] : null)
-    || POOLDAY_MODEL_WORKLOADS.textGeneration;
+    || POOLDAY_MODEL_WORKLOADS.sequenceEmbedding;
 }
 
 export function getPoolModelWorkloads(model = {}) {
@@ -67,7 +73,7 @@ export function getPoolModelWorkloads(model = {}) {
 }
 
 export function modelSupportsPoolWorkload(model = {}, workload) {
-  return getPoolModelWorkloads(model).includes(workload);
+  return isProteinPoolModel(model) && getPoolModelWorkloads(model).includes(workload);
 }
 
 export function getPoolModelExecutionMode(model = {}, workload = getPoolModelWorkload(model)) {
@@ -76,9 +82,7 @@ export function getPoolModelExecutionMode(model = {}, workload = getPoolModelWor
   if (workload === getPoolModelWorkload(model) && (model.executionMode || model.execution)) {
     return model.executionMode || model.execution;
   }
-  if (workload === POOLDAY_MODEL_WORKLOADS.embedding) return SUPPORTED_MODEL_EXECUTION_MODES.embedding;
-  if (isSequenceWorkload(workload)) return SUPPORTED_MODEL_EXECUTION_MODES.sequence;
-  return SUPPORTED_MODEL_EXECUTION_MODES.textGeneration;
+  return SUPPORTED_MODEL_EXECUTION_MODES.sequence;
 }
 
 export function isLaunchModelRequirement(requirements = {}) {
@@ -97,7 +101,7 @@ export function validateLaunchModelRequirement(requirements = {}) {
     reasons.push('model requirements do not match an enabled model contract');
   }
   const workload = requirements.workload || requirements.workloadType || null;
-  const expectedWorkload = model ? getPoolModelWorkload(model) : POOLDAY_MODEL_WORKLOADS.textGeneration;
+  const expectedWorkload = model ? getPoolModelWorkload(model) : POOLDAY_MODEL_WORKLOADS.sequenceEmbedding;
   const resolvedWorkload = workload || expectedWorkload;
   const executionMode = requirements.executionMode || requirements.execution || null;
   const expectedExecutionMode = model ? getPoolModelExecutionMode(model, resolvedWorkload) : SUPPORTED_MODEL_EXECUTION_MODE;
@@ -106,6 +110,9 @@ export function validateLaunchModelRequirement(requirements = {}) {
   }
   if (model && !executionMode && expectedExecutionMode !== SUPPORTED_MODEL_EXECUTION_MODE) {
     reasons.push(`modelRequirements.executionMode ${expectedExecutionMode} is required for ${requirements.modelId}`);
+  }
+  if (model && !isProteinPoolModel(model)) {
+    reasons.push('selected model is not a protein sequence model');
   }
   if (workload && model && !modelSupportsPoolWorkload(model, workload)) {
     reasons.push(`modelRequirements.workload ${workload} is not supported for ${requirements.modelId || 'selected model'}; supported workloads: ${getPoolModelWorkloads(model).join(', ')}`);
@@ -141,6 +148,7 @@ export default {
   getPoolModelWorkload,
   getPoolModelWorkloads,
   modelSupportsPoolWorkload,
+  isProteinPoolModel,
   getPoolModelExecutionMode,
   SUPPORTED_MODEL_EXECUTION_MODE,
   isLaunchModelRequirement,

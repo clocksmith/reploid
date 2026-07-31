@@ -1,12 +1,11 @@
-# Poolday Biological Sequence Lane
+# Poolday Protein Sequence Lane
 
-Poolday can carry a governed biological-sequence assignment to one selected
-browser provider, execute it through Doppler, and return a signed result
-receipt. This is a protocol and runtime contract. ESM-2 35M is enabled for
-public protein pooled embeddings. Its catalog entry pins the hosted RDRR
-manifest, tokenizer, shard identity, source revision, sequence capabilities,
-and Doppler browser execution mode. The other biological targets remain
-candidates.
+Poolday carries governed protein-sequence assignments to one selected browser
+provider, executes them through Doppler, and returns signed result receipts.
+ESM-2 35M is the only enabled Poolday model. Its catalog entry pins the hosted
+RDRR manifest, tokenizer, shard identity, source revision, protein-sequence
+capabilities, and Doppler browser execution mode. Text, generic embedding,
+vision, DNA, and RNA models are not admitted by Poolday.
 
 ## Target models
 
@@ -83,6 +82,6 @@ A target becomes an enabled Poolday model only after all of these exist:
 - peer-room execution, receipt verification, and corruption tests against that
   exact catalog entry.
 
-ESM-2 35M meets this gate for the public protein pooled-embedding path. AMPLIFY,
-ESMC, and Nucleotide Transformer remain Doppler-qualified candidates, not
-deployable Poolday models. No biological AdapterPack is published.
+ESM-2 35M meets this gate for the public protein pooled-embedding path. AMPLIFY
+and ESMC remain Doppler-qualified candidates, not deployable Poolday models.
+No protein AdapterPack is published.
