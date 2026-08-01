@@ -169,6 +169,19 @@ export function createPoolSdk({ baseUrl = DEFAULT_BASE_URL, authTokenProvider = 
     getReceipt(receiptHash) {
       return request(`/receipts/${encodeURIComponent(receiptHash)}`);
     },
+    publishResearchRecord(record) {
+      return request('/research/records', { method: 'POST', body: { record } });
+    },
+    listResearchRecords(roomId, { kind = null, limit = null } = {}) {
+      const query = new URLSearchParams();
+      if (kind) query.set('kind', kind);
+      if (limit) query.set('limit', String(limit));
+      const suffix = query.toString() ? `?${query.toString()}` : '';
+      return request(`/research/rooms/${encodeURIComponent(roomId)}/records${suffix}`);
+    },
+    getResearchRecord(recordHash) {
+      return request(`/research/records/${encodeURIComponent(recordHash)}`);
+    },
     registerProvider(registration) {
       return request('/providers/register', { method: 'POST', body: registration });
     },

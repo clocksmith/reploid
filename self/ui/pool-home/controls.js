@@ -37,6 +37,10 @@ import {
   isSequenceWorkload
 } from '../../pool/sequence-workload.js';
 import {
+  createSignedResearchResult,
+  createSignedResearchSubmission
+} from '../../pool/evidence-network.js';
+import {
   addReceiptLedgerRow,
   describeSelectedRun,
   findReceiptLedgerRecord,
@@ -58,6 +62,7 @@ import {
   setPoolRecordDisclosureOpen,
   setPoolRecordFacet,
   setPoolRunVisualState,
+  setResearchPublicationStatus,
   setResult,
   updateProviderHealth,
   updateProviderStatus
@@ -67,6 +72,7 @@ import {
   updateContributionState
 } from './contribution-state.js';
 import { choosePooldayAskPlaceholderForLane } from './constants.js';
+import { publishResearchRecord } from './research-store.js';
 
 const errorString = (error) => String(error?.message || error?.error || error || 'Unknown error');
 const POOL_ROOM_ACTIVITY_POLL_MS = 5000;
@@ -153,6 +159,7 @@ const writePendingRequestRecovery = (request) => {
     sequence: request.sequence,
     selectedModelId: request.selectedModel?.modelId || null,
     policyId: request.policyId || FASTEST_RECEIPT_POLICY_ID,
+    researchSubmission: request.researchSubmission || null,
     roomId: getPeerRoomId(),
     relay: getPeerRelayMode(),
     sensitivity: SEQUENCE_PUBLIC_SENSITIVITY,
@@ -1046,6 +1053,10 @@ const bindPeerRunSurface = ({
   adapterSelect = null,
   adapterRequired = () => false,
   sequencePublicControl = null,
+  researchPublicControl = null,
+  intentKindControl = null,
+  intentLabelControl = null,
+  intentTextControl = null,
   resultId
 } = {}) => {
   if (!button || !prompt || !resultId || button.dataset.poolRunBound === 'true') return;
@@ -1054,6 +1065,7 @@ const bindPeerRunSurface = ({
     localOnly: true,
     namespace: getRequesterIdentityNamespace()
   });
+  const researchIdentity = createPoolIdentity('requester');
   const requesterClient = createRequesterClient({
     sdk: null,
     identity: requesterIdentity
@@ -1146,7 +1158,8 @@ const bindPeerRunSurface = ({
       selectedModel,
       modelRequirements: selectedModel,
       adapterPackHash: null,
-      policyId: record.policyId || FASTEST_RECEIPT_POLICY_ID
+      policyId: record.policyId || FASTEST_RECEIPT_POLICY_ID,
+      researchSubmission: record.researchSubmission || null
     };
   };
   const buildInterruptedRequestRecovery = (request) => ({
@@ -1185,6 +1198,10 @@ const bindPeerRunSurface = ({
       sequencePublicControl.checked = true;
       syncSequencePublicConsent(sequencePublicControl);
     }
+    if (researchPublicControl && restoredRequest.researchSubmission) researchPublicControl.checked = true;
+    if (intentKindControl && restoredRequest.researchSubmission) intentKindControl.value = restoredRequest.researchSubmission.requesterIntent?.kind || 'question';
+    if (intentLabelControl && restoredRequest.researchSubmission) intentLabelControl.value = restoredRequest.researchSubmission.requesterIntent?.label || '';
+    if (intentTextControl && restoredRequest.researchSubmission) intentTextControl.value = restoredRequest.researchSubmission.requesterIntent?.text || '';
     const interrupted = {
       status: 'error',
       statusLabel: 'Interrupted',
@@ -1244,6 +1261,19 @@ const bindPeerRunSurface = ({
       error.action = 'Check the public-sequence confirmation, then run again.';
       throw error;
     }
+    if (lane === 'sequence' && researchPublicControl && researchPublicControl.checked !== true) {
+      const error = new Error('Consent to the public evidence-network record before submitting this research input');
+      error.code = 'research_publication_consent_required';
+      error.action = 'Check the public evidence-network consent, then run again.';
+      throw error;
+    }
+    if (lane === 'sequence' && (intentTextControl || intentLabelControl)
+      && !String(intentTextControl?.value || intentLabelControl?.value || '').trim()) {
+      const error = new Error('Add the requester question, hypothesis, label, or task context before submitting');
+      error.code = 'research_intent_required';
+      error.action = 'Describe why this sequence is being submitted.';
+      throw error;
+    }
     if (lane === 'sequence') {
       writeSequencePublicConsent();
       syncSequencePublicConsent(sequencePublicControl);
@@ -1269,7 +1299,7 @@ const bindPeerRunSurface = ({
         includeLogits: false
       }
       : null;
-    return {
+    const request = {
       lane,
       promptText: lane === 'sequence' ? null : requestInput,
       sequence,
@@ -1279,6 +1309,32 @@ const bindPeerRunSurface = ({
       adapterPackHash: adapter?.packHash || null,
       policyId: policySelect?.value || FASTEST_RECEIPT_POLICY_ID
     };
+    if (lane === 'sequence' && researchPublicControl?.checked === true) {
+      const researchSubmission = await createSignedResearchSubmission({
+        identity: researchIdentity,
+        roomId: getPeerRoomId(),
+        sequence,
+        intent: {
+          kind: intentKindControl?.value || 'question',
+          text: intentTextControl?.value || '',
+          label: intentLabelControl?.value || '',
+          context: ''
+        },
+        consent: {
+          publicSequence: true,
+          publicEvidenceNetwork: true,
+          publishEmbedding: true
+        },
+        modelContract: selectedModel,
+        policyId: request.policyId
+      });
+      const publication = await publishResearchRecord(researchSubmission, { roomId: getPeerRoomId() });
+      request.researchSubmission = researchSubmission;
+      setResearchPublicationStatus(resultId, publication.remote
+        ? `Submission ${researchSubmission.recordHash} published before compute.`
+        : `Submission ${researchSubmission.recordHash} preserved locally; coordinator sync is pending.`);
+    }
+    return request;
   };
 
   const submitRunRequest = async (preparedRequest = null) => {
@@ -1333,6 +1389,21 @@ const bindPeerRunSurface = ({
       });
       result.inviteUrl = getPeerInviteUrl();
       result.relay = getPeerRelayMode();
+      if (request.researchSubmission && request.lane === 'sequence') {
+        const researchResult = await createSignedResearchResult({
+          identity: researchIdentity,
+          roomId: getPeerRoomId(),
+          submission: request.researchSubmission,
+          receiptRecord: result.receiptRecord || result,
+          agreement: result.agreement || null,
+          routeDecision: result.plan?.routeDecision || result.routeDecision || null,
+          embedding: result.sequenceOutput?.pooledEmbedding || result.receiptRecord?.sequenceOutput?.pooledEmbedding || null
+        });
+        const publication = await publishResearchRecord(researchResult, { roomId: getPeerRoomId() });
+        result.researchSubmissionHash = request.researchSubmission.recordHash;
+        result.researchResultHash = researchResult.recordHash;
+        result.researchPublication = publication.remote ? 'coordinator_synced' : 'local_sync_pending';
+      }
       addReceiptLedgerRow({
         ...(result.receiptRecord || result),
         requesterAcceptance: result.requesterAcceptance || null,
@@ -1347,6 +1418,9 @@ const bindPeerRunSurface = ({
       }, result.receiptHash);
       void refreshServerRoomActivity();
       setResult(resultId, result, { stream: true });
+      if (result.researchResultHash) {
+        setResearchPublicationStatus(resultId, `Evidence result ${result.researchResultHash} preserved. Open Records to review, connect, and discover.`);
+      }
       updateRunState(
         'complete',
         'answer',
@@ -1504,6 +1578,10 @@ export const bindRunControls = () => {
     policySelect: document.getElementById('pool-run-policy'),
     modelSelect,
     sequencePublicControl,
+    researchPublicControl: document.getElementById('pool-run-research-public'),
+    intentKindControl: document.getElementById('pool-run-intent-kind'),
+    intentLabelControl: document.getElementById('pool-run-intent-label'),
+    intentTextControl: document.getElementById('pool-run-intent-text'),
     resultId: 'pool-run-result'
   });
   if (modelSelect && modelSelect.dataset.poolWorkloadBound !== 'true') {
@@ -1682,6 +1760,10 @@ export const bindHomeAskControls = () => {
     adapterSelect,
     adapterRequired: () => document.querySelector('.pool-home-stage')?.dataset.poolLane === 'adapters',
     sequencePublicControl,
+    researchPublicControl: document.getElementById('pool-home-research-public'),
+    intentKindControl: document.getElementById('pool-home-intent-kind'),
+    intentLabelControl: document.getElementById('pool-home-intent-label'),
+    intentTextControl: document.getElementById('pool-home-intent-text'),
     resultId: 'pool-home-run-result'
   });
 };

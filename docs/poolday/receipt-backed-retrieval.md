@@ -3,8 +3,11 @@
 This is the missing Poolday strategy note for retrieval, embeddings, reranking,
 and vector memory.
 
-Status: target strategy and contract direction. This is not yet a public product
-claim and not a claim that Reploid is currently a managed vector database.
+Status: broader retrieval strategy and contract direction. Poolday now supports
+a bounded public protein evidence collection with exact flat similarity,
+evidence-aware reranking, and deterministic clustering over explicitly
+published exact-contract embeddings. It is not a managed vector database and
+does not yet provide receipt-backed index-build, query, or reranker workloads.
 
 ## Thesis
 
@@ -62,16 +65,16 @@ needs a stricter receipt, index, policy, and benchmark layer.
 
 ## Current Boundary
 
-Current claim:
+Base compute claim:
 
 ```text
 receipt-backed, audit-backed, reputation-backed, policy-controlled browser inference
 ```
 
-Allowed internal extension:
+Supported public protein collection:
 
 ```text
-receipt-backed embeddings as a Poolday workload
+signed public submissions and human claims + receipt-linked embeddings + exact-contract flat similarity
 ```
 
 Target extension:

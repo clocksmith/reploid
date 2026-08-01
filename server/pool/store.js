@@ -226,6 +226,7 @@ export function createPoolStore() {
   const peerRoomMessageById = new Map();
   const adapterPublications = new Map();
   const adapterCanaryPublications = new Map();
+  const researchRecords = new Map();
   const rateLimits = new Map();
 
   return {
@@ -663,6 +664,25 @@ export function createPoolStore() {
         .sort((left, right) => Number(right.lastMessageAt || 0) - Number(left.lastMessageAt || 0))
         .slice(0, Number(limit || 50));
     },
+    saveResearchRecord(record = {}) {
+      if (!record.recordHash) throw new Error('research recordHash is required');
+      const existing = researchRecords.get(record.recordHash);
+      if (existing) return existing;
+      const saved = structuredClone(record);
+      researchRecords.set(record.recordHash, saved);
+      return structuredClone(saved);
+    },
+    getResearchRecord(recordHash) {
+      const record = researchRecords.get(recordHash);
+      return record ? structuredClone(record) : null;
+    },
+    listResearchRecords({ roomId = null, kind = null, limit = 1000 } = {}) {
+      return Array.from(researchRecords.values())
+        .filter((record) => (!roomId || record.roomId === roomId) && (!kind || record.kind === kind))
+        .sort((left, right) => String(left.createdAt || '').localeCompare(String(right.createdAt || '')))
+        .slice(-Math.max(1, Math.min(1000, Number(limit || 1000))))
+        .map((record) => structuredClone(record));
+    },
     saveAdapterPublication(publication = {}) {
       const packHash = publication.packHash;
       if (!packHash) throw new Error('adapter publication packHash is required');
@@ -792,6 +812,8 @@ export function createPoolStore() {
         assignments: assignmentValues.length,
         assignmentStatus: countBy(assignmentValues, 'status'),
         receipts: receiptValues.length,
+        researchRecords: researchRecords.size,
+        researchRecordKinds: countBy(Array.from(researchRecords.values()), 'kind'),
         adapterPublications: adapterPublications.size,
         adapterCanaryPublications: adapterCanaryPublications.size,
         commitments: commitmentEvents.size,

@@ -3,9 +3,9 @@
 **Objective:** Define the single Reploid owner for Doppler imports and scoped
 model sessions.
 
-**Target Upgrade:** core/doppler-runtime-service.js
+**Target Upgrade:** infrastructure/doppler-runtime-service.js
 
-**Affected Artifacts:** /core/doppler-runtime-service.js
+**Affected Artifacts:** /infrastructure/doppler-runtime-service.js, /core/doppler-runtime-service.js
 
 ---
 
@@ -15,6 +15,10 @@ Local chat, Poolday, Zero, Semantic Memory, and inspection may apply different
 policies, but they must not independently select Doppler versions or own hidden
 GPU-session caches. This module centralizes those mechanics without merging the
 authority of those surfaces.
+
+The implementation lives in infrastructure so Poolday and core consumers share
+it without crossing their dependency boundary. The former core path is a thin
+compatibility export.
 
 ### 2. Architecture
 

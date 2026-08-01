@@ -27,7 +27,11 @@ conversion contract.
 
 The signed job intent contains a normalized sequence hash, length, alphabet,
 workload, and output limits. It never contains the sequence. The normalized
-sequence travels only through the selected provider's WebRTC DataChannel.
+sequence travels only through the selected provider's WebRTC DataChannel
+during the compute job. A requester may separately opt in to a signed public
+evidence record containing the normalized sequence, requester intent, consent
+scope, and exact model contract. That publication is not part of `/jobs` or
+relay payload transport.
 
 The public Poolday lane accepts only inputs explicitly classified `public`.
 Private, medical, proprietary, or personally identifying sequences require a
@@ -49,7 +53,25 @@ receipt binds the input hash, request hash, model and manifest identity,
 sequence result metadata, and `sequenceResultHash`. Redundant providers agree
 on `sequenceResultHash`; ring commit-reveal binds the same field before reveal.
 The requester may receive the requested vectors over WebRTC, but they are not
-placed in control-plane messages or signed receipt metadata.
+placed in control-plane messages or signed receipt metadata. With separate
+public evidence-network consent, the requester may publish an accepted vector
+in a signed research-result record linked to its compute receipt and original
+submission. Similarity rejects model-contract or dimension mismatches.
+
+## Evidence and review
+
+Public research records use three separate signature domains:
+
+- submission: sequence, consent, intent, model contract, and policy;
+- result: submission, receipt, route, provider, runtime profile, agreement, and
+  optionally consented embedding;
+- human claim: target, relationship, annotation or correction, confidence,
+  sources, reviewer identity, and any review decision.
+
+Human claims never alter a signed submission or model result. Corrections and
+contradictions are new linked records. Review decisions must come from an
+independent identity root. Evidence credit is projected from independently
+accepted and later-durable claims, not from activity count.
 
 ## AdapterPack integration
 

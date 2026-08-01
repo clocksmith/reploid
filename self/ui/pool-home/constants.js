@@ -23,7 +23,7 @@ export const POOLDAY_ROUTE_DEFINITIONS = Object.freeze([
     label: 'Home',
     eyebrow: POOLDAY_PROTOCOL,
     title: POOLDAY_NAME,
-    body: 'Run protein models together.'
+    body: 'Submit → compute → review → connect → discover across a public protein evidence network.'
   }),
   createPooldayRoute({
     id: 'ask',
@@ -31,7 +31,7 @@ export const POOLDAY_ROUTE_DEFINITIONS = Object.freeze([
     label: 'Run',
     eyebrow: 'Run',
     title: 'Run',
-    body: 'Send one public protein sequence. Read its embedding, then inspect its proof.'
+    body: 'Preserve public sequence intent, compute a receipt-backed embedding, then invite review.'
   }),
   createPooldayRoute({
     id: 'compute',
@@ -47,7 +47,7 @@ export const POOLDAY_ROUTE_DEFINITIONS = Object.freeze([
     label: 'Records',
     eyebrow: 'Records',
     title: 'Records',
-    body: 'Answers, contributions, and room events in one ledger.'
+    body: 'Search signed evidence, review claims, inspect connections, and approve bounded next work.'
   })
 ]);
 

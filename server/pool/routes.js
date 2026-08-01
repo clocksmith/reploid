@@ -44,6 +44,10 @@ import {
 import { cursorForRelayRecord } from './relay-cursor.js';
 import { verifyPeerMessage } from '../../self/pool/peer-protocol.js';
 import { isSequenceWorkload } from '../../self/pool/sequence-workload.js';
+import {
+  RESEARCH_RECORD_KINDS,
+  verifyResearchRecord
+} from '../../self/pool/evidence-network.js';
 
 const asyncRoute = (handler) => (req, res, next) => {
   Promise.resolve(handler(req, res, next)).catch(next);
@@ -155,6 +159,7 @@ const isPublicDiscoveryRoute = (req) => (
       || req.path === '/status'
       || req.path === '/policies'
       || req.path === '/config'
+      || req.path.startsWith('/research/')
       || req.path === '/adapter-canaries'
       || req.path.startsWith('/adapter-canaries/')))
 );
@@ -803,6 +808,73 @@ export function createPoolRouter({
         coordinatorClaimRequired: !allowCanaryCreation
       }
     });
+  }));
+
+  router.post('/research/records', asyncRoute(async (req, res) => {
+    if (typeof store.saveResearchRecord !== 'function') {
+      return res.status(501).json({ error: 'research evidence registry is not supported by this store' });
+    }
+    const record = req.body?.record || req.body;
+    if (Buffer.byteLength(JSON.stringify(record || {}), 'utf8') > 1_000_000) {
+      return res.status(413).json({ error: 'research record exceeds the maximum size' });
+    }
+    const verification = await verifyResearchRecord(record);
+    if (!verification.ok) return res.status(400).json({ error: 'invalid research record', reasons: verification.reasons });
+    if (!requireBoundRole(req, res, record.author.role, record.author.roleId)) return null;
+    const targetHash = record.kind === RESEARCH_RECORD_KINDS.result
+      ? record.submissionHash
+      : record.kind === RESEARCH_RECORD_KINDS.claim
+        ? record.targetHash
+        : null;
+    const target = targetHash ? await store.getResearchRecord?.(targetHash) : null;
+    if (targetHash && !target) return res.status(409).json({ error: 'research record target does not exist', targetHash });
+    if (target && target.roomId !== record.roomId) {
+      return res.status(409).json({ error: 'research record target belongs to a different room' });
+    }
+    if (record.kind === RESEARCH_RECORD_KINDS.result) {
+      if (record.sequenceHash !== target.sequence?.hash) {
+        return res.status(409).json({ error: 'research result sequence does not match its submission' });
+      }
+      if (hashJson(record.modelContract) !== hashJson(target.modelContract)) {
+        return res.status(409).json({ error: 'research result model contract does not match its submission' });
+      }
+      if (record.embedding && target.consent?.publishEmbedding !== true) {
+        return res.status(409).json({ error: 'research submission did not consent to embedding publication' });
+      }
+    }
+    if (record.kind === RESEARCH_RECORD_KINDS.claim
+      && record.claim?.kind === 'review_decision'
+      && target?.author?.identityRootId === record.author?.identityRootId) {
+      return res.status(409).json({ error: 'review decisions must be independently authored' });
+    }
+    const existing = await store.getResearchRecord?.(record.recordHash);
+    return res.status(existing ? 200 : 201).json({
+      record: existing || await store.saveResearchRecord(record)
+    });
+  }));
+
+  router.get('/research/rooms/:roomId/records', asyncRoute(async (req, res) => {
+    if (typeof store.listResearchRecords !== 'function') {
+      return res.status(501).json({ error: 'research evidence registry is not supported by this store' });
+    }
+    const limit = Math.max(1, Math.min(1000, Number(req.query.limit || 250)));
+    return res.json({
+      roomId: req.params.roomId,
+      records: await store.listResearchRecords({
+        roomId: req.params.roomId,
+        kind: req.query.kind || null,
+        limit
+      })
+    });
+  }));
+
+  router.get('/research/records/:recordHash', asyncRoute(async (req, res) => {
+    if (typeof store.getResearchRecord !== 'function') {
+      return res.status(501).json({ error: 'research evidence registry is not supported by this store' });
+    }
+    const record = await store.getResearchRecord(req.params.recordHash);
+    if (!record) return res.status(404).json({ error: 'research record not found' });
+    return res.json({ record });
   }));
 
   router.post('/adapters', asyncRoute(async (req, res) => {

@@ -40,6 +40,7 @@ const DEFAULT_PROVIDER_ADVERT_SETTLE_MS = 250;
 // settle window is appropriate for a one-provider job, but it silently
 // collapsed an adaptive ring to whichever provider responded first.
 const DEFAULT_ADAPTIVE_RING_ADVERT_SETTLE_MS = 2500;
+const MIN_DISCOVERY_EXECUTION_MARGIN_MS = 500;
 
 const requireString = (value, label) => {
   const normalized = String(value || '').trim();
@@ -560,7 +561,7 @@ export async function runPeerJob({
       // hard limits.
       settleWindowMs: policy?.adaptiveRing
         ? Math.min(
-          Math.max(1, Number(discoveryWindowMs || 1)),
+          Math.max(1, Number(discoveryWindowMs || 1) - MIN_DISCOVERY_EXECUTION_MARGIN_MS),
           DEFAULT_ADAPTIVE_RING_ADVERT_SETTLE_MS
         )
         : DEFAULT_PROVIDER_ADVERT_SETTLE_MS,

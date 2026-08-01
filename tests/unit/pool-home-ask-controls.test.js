@@ -48,7 +48,8 @@ import {
 import {
   findReceiptLedgerRecord,
   getPeerSessionAcceptWindowMs,
-  getPeerTransportConnectWindowMs
+  getPeerTransportConnectWindowMs,
+  renderRoutePanel
 } from '../../self/ui/pool-home/view.js';
 import { LAUNCH_MODEL, getEnabledPoolModelContract } from '../../self/pool/model-contract.js';
 import {
@@ -345,6 +346,36 @@ describe('Poolday home ask controls', () => {
       },
       rtcConfigProvider: null
     });
+  });
+
+  it('preserves the signed public research submission before peer compute can fail', async () => {
+    window.history.replaceState({}, '', '/?room=evidence-room&relay=local');
+    document.body.innerHTML = `${renderRoutePanel('home')}<select id="pool-home-request-model"><option value="${LAUNCH_MODEL.modelId}" selected>${LAUNCH_MODEL.label}</option></select>`;
+    const unavailable = Object.assign(new Error('No provider'), { code: 'peer_provider_not_found' });
+    peerRoomMocks.runPeerJob.mockRejectedValueOnce(unavailable);
+    bindHomeAskControls();
+
+    document.getElementById('pool-home-ask-prompt').value = 'MKTAYIAKQRQISFVKSHFSRQ';
+    document.getElementById('pool-home-sequence-public').checked = true;
+    document.getElementById('pool-home-research-public').checked = true;
+    document.getElementById('pool-home-intent-kind').value = 'hypothesis';
+    document.getElementById('pool-home-intent-label').value = 'Public candidate';
+    document.getElementById('pool-home-intent-text').value = 'Review this sequence against related accepted evidence.';
+    document.getElementById('pool-home-ask-form').requestSubmit();
+
+    await vi.waitFor(() => expect(peerRoomMocks.runPeerJob).toHaveBeenCalledTimes(1));
+    const key = Array.from({ length: window.localStorage.length }, (_, index) => window.localStorage.key(index))
+      .find((candidate) => candidate?.startsWith('reploid.pool.research-evidence.v1::'));
+    const records = JSON.parse(window.localStorage.getItem(key) || '[]');
+    expect(records).toHaveLength(1);
+    expect(records[0]).toMatchObject({
+      kind: 'research_submission',
+      roomId: 'evidence-room',
+      consent: { publicSequence: true, publicEvidenceNetwork: true, publishEmbedding: true },
+      requesterIntent: { kind: 'hypothesis', label: 'Public candidate' }
+    });
+    expect(records[0].recordHash).toMatch(/^sha256:[a-f0-9]{64}$/);
+    expect(records[0].signature).toBeTruthy();
   });
 
   it('restores an interrupted public request after reload without resubmitting it', async () => {

@@ -46,6 +46,7 @@ import {
   getPooldayRecordStorageKeys as buildPooldayRecordStorageKeys
 } from './record-persistence.js';
 import { resolvePoolNetworkVisualState } from './network-projection.js';
+import { renderResearchWorkspace } from './research-view.js';
 
 export { resolvePoolNetworkVisualState };
 
@@ -1096,13 +1097,20 @@ const renderProteinEmbeddingOutcome = (id) => `
     <h3 class="type-h3">Ready for compatible comparison</h3>
     <p class="pool-embedding-outcome-meta" id="${id}-embedding-outcome-meta"></p>
     <p class="pool-embedding-outcome-copy">This is a 480-number representation for software, not a result to read manually. Use it with embeddings made by the same ESM-2 model and contract when comparing sequences.</p>
-    <p class="pool-embedding-outcome-copy">Copy the vector into compatible similarity or retrieval software. Poolday records how it was produced and accepted, but does not yet provide search, interpretation, or diagnosis.</p>
+    <p class="pool-embedding-outcome-copy">Poolday can now compare this result with exact-contract compatible public embeddings and connect it to separately signed human evidence. It does not generate biological interpretation or diagnosis.</p>
     <div class="pool-embedding-outcome-actions">
       <button class="btn btn-ghost" type="button" data-pool-copy-embedding data-pool-embedding-result-id="${id}" disabled>Copy vector</button>
+      <a class="btn btn-ghost" href="/records">Review and discover</a>
       <p class="pool-embedding-copy-status" data-pool-embedding-copy-status aria-live="polite"></p>
     </div>
+    <p class="pool-embedding-copy-status" id="${id}-research-status" aria-live="polite"></p>
   </section>
 `;
+
+export const setResearchPublicationStatus = (resultId, message) => {
+  const element = document.getElementById(`${resultId}-research-status`);
+  if (element) element.textContent = String(message || '');
+};
 
 const renderResultBox = (id, options = {}) => {
   if (options?.stream) {
@@ -2006,13 +2014,15 @@ const renderHomeSimulation = ({ dashboardView = 'home' } = {}) => {
           <span data-pool-tooltip-body></span>
         </div>
       </div>
-      <section class="pool-home-purpose" data-pool-home-purpose aria-label="How a protein embedding run works">
+      <section class="pool-home-purpose" data-pool-home-purpose aria-label="How the protein evidence journey works">
         <p class="pool-home-purpose-kicker">What this does</p>
-        <h2 class="type-h2">Turn a public protein sequence into a reusable representation.</h2>
+        <h2 class="type-h2">Grow inspectable protein evidence, from public input to reviewed discovery.</h2>
         <ol class="pool-home-purpose-steps">
-          <li><b>1</b><span><strong>Submit</strong> one explicitly public protein sequence.</span></li>
-          <li><b>2</b><span><strong>Embed</strong> it in a participating browser with ESM-2.</span></li>
-          <li><b>3</b><span><strong>Use</strong> the 480-dimensional result to compare compatible sequences.</span></li>
+          <li><b>1</b><span><strong>Submit</strong> public sequence, intent, consent, and exact model contract.</span></li>
+          <li><b>2</b><span><strong>Compute</strong> through participating browsers with signed, comparable receipts.</span></li>
+          <li><b>3</b><span><strong>Review</strong> with attributable human evidence, confidence, and corrections.</span></li>
+          <li><b>4</b><span><strong>Connect</strong> sequences, results, sources, reviewers, and contradictions.</span></li>
+          <li><b>5</b><span><strong>Discover</strong> compatible neighbors and approve bounded next work.</span></li>
         </ol>
         <p class="pool-home-purpose-boundary">The result is a model representation, not a biological interpretation or diagnosis.</p>
       </section>
@@ -2048,7 +2058,16 @@ const renderHomeSimulation = ({ dashboardView = 'home' } = {}) => {
             <span>I confirm this protein sequence is public.</span>
           </label>
           <strong data-pool-sequence-consent-saved hidden>Public-sequence acknowledgement saved.</strong>
-          <span>ESM-2 returns a pooled embedding. The sequence is sent only to the selected contributor.</span>
+          <label class="pool-consent-row">
+            <input id="pool-home-research-public" type="checkbox" data-pool-request-control>
+            <span>Publish this sequence, intent, accepted embedding, and provenance to the public evidence network.</span>
+          </label>
+          <div class="pool-research-intent-fields">
+            <label><span>Intent</span><select id="pool-home-intent-kind"><option value="question">Question</option><option value="hypothesis">Hypothesis</option><option value="label">Label</option><option value="task_context">Task context</option></select></label>
+            <label><span>Short label</span><input id="pool-home-intent-label" maxlength="240" placeholder="Signal peptide candidate"></label>
+            <label><span>Question, hypothesis, or context</span><input id="pool-home-intent-text" maxlength="8000" placeholder="What should reviewers examine?" required></label>
+          </div>
+          <span>The peer job still sends the sequence only to selected contributors. Publication is a separate signed action under this consent.</span>
         </div>
         <div class="pool-home-ask-pill">
           <input
@@ -2102,8 +2121,14 @@ export const renderRouteDetail = (routeId) => {
             <label class="pool-field">
               <span>Input disclosure</span>
               <span class="pool-consent-row"><input id="pool-run-sequence-public" type="checkbox">I confirm this protein sequence is public.</span>
-              <small>The sequence travels only to the selected contributor.</small>
+              <span class="pool-consent-row"><input id="pool-run-research-public" type="checkbox">Publish the sequence, intent, accepted embedding, and provenance to the public evidence network.</span>
+              <small>The peer job sends the sequence only to selected contributors. Publication is a separate signed action.</small>
             </label>
+            <div class="pool-research-intent-fields">
+              <label class="pool-field"><span>Intent</span><select id="pool-run-intent-kind"><option value="question">Question</option><option value="hypothesis">Hypothesis</option><option value="label">Label</option><option value="task_context">Task context</option></select></label>
+              <label class="pool-field"><span>Short label</span><input id="pool-run-intent-label" maxlength="240" placeholder="Signal peptide candidate"></label>
+              <label class="pool-field"><span>Question, hypothesis, or context</span><textarea id="pool-run-intent-text" rows="3" maxlength="8000" required></textarea></label>
+            </div>
             <details class="pool-advanced">
               <summary>Settings</summary>
               <div class="pool-advanced-grid">
@@ -2175,6 +2200,7 @@ export const renderRouteDetail = (routeId) => {
     const recordFacet = getPoolRecordFacet();
     return renderRouteShell(copy, `
         <div class="pool-form pool-route-grid pool-record-layout" data-pool-receipts data-pool-reputation>
+          <div id="pool-research-workspace-host">${renderResearchWorkspace(getPeerRoomId())}</div>
           <div id="pool-record-ledger" aria-live="polite" data-record-facet="${escapeHtml(recordFacet)}">${renderRecordLedger(recordFacet)}</div>
           <details class="pool-advanced pool-record-tools" data-pool-record-disclosure="technical-tools"${readRecordViewState().open['technical-tools'] ? ' open' : ''}>
             <summary>Technical tools</summary>

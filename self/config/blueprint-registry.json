@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-07-26T22:19:21.348Z",
+  "generatedAt": "2026-08-01T19:40:02.195Z",
   "features": [
     {
       "id": "0x000003",
@@ -3688,7 +3688,8 @@
         }
       ],
       "files": [
-        "core/doppler-runtime-service.js"
+        "core/doppler-runtime-service.js",
+        "infrastructure/doppler-runtime-service.js"
       ]
     },
     {
@@ -3703,6 +3704,63 @@
       ],
       "files": [
         "config/clockwork-gamma-receipts.js"
+      ]
+    },
+    {
+      "id": "0x00016b",
+      "name": "pool-evidence-network",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x00016b",
+          "path": "blueprints/0x00016b-pool-evidence-network.md"
+        }
+      ],
+      "files": [
+        "pool/evidence-network.js"
+      ]
+    },
+    {
+      "id": "0x00016c",
+      "name": "ui-pool-home-research-store",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x00016c",
+          "path": "blueprints/0x00016c-ui-pool-home-research-store.md"
+        }
+      ],
+      "files": [
+        "ui/pool-home/research-store.js",
+        "ui/pool-home/research-view.js"
+      ]
+    },
+    {
+      "id": "0x00016d",
+      "name": "pool-retry-policy",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x00016d",
+          "path": "blueprints/0x00016d-pool-retry-policy.md"
+        }
+      ],
+      "files": [
+        "pool/retry-policy.js"
+      ]
+    },
+    {
+      "id": "0x00016e",
+      "name": "pool-rtc-config",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x00016e",
+          "path": "blueprints/0x00016e-pool-rtc-config.md"
+        }
+      ],
+      "files": [
+        "pool/rtc-config.js"
       ]
     }
   ]
