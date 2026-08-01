@@ -1,8 +1,10 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import {
   SIGNAL_TYPES,
   createCallbackSignalingAdapter,
+  createPollingSignalingAdapter,
+  createPoolSdkSignalingAdapter,
   createSignalMessage,
   createSignalingChannel,
   isSignalForPeer,
@@ -165,5 +167,82 @@ describe('pool p2p signaling helpers', () => {
     channel.close();
     now = 1100;
     await expect(channel.sendPing()).rejects.toThrow('signaling channel is closed');
+  });
+
+  it('advances polling with the server tuple cursor for same-millisecond signals', async () => {
+    vi.useFakeTimers();
+    const calls = [];
+    const pages = [
+      {
+        messages: [
+          createSignalMessage({ id: 'signal-a', sessionId: 'session_1', type: SIGNAL_TYPES.OFFER, fromPeerId: 'requester_1', createdAt: 100 }),
+          createSignalMessage({ id: 'signal-b', sessionId: 'session_1', type: SIGNAL_TYPES.ICE_CANDIDATE, fromPeerId: 'requester_1', createdAt: 100 })
+        ],
+        nextCursor: { sequence: 2, createdAt: 100, messageId: 'signal-b' }
+      },
+      {
+        messages: [
+          createSignalMessage({ id: 'signal-c', sessionId: 'session_1', type: SIGNAL_TYPES.ICE_CANDIDATE, fromPeerId: 'requester_1', createdAt: 100 })
+        ],
+        nextCursor: { sequence: 3, createdAt: 100, messageId: 'signal-c' }
+      }
+    ];
+    const adapter = createPollingSignalingAdapter({
+      publishSignal: () => Promise.resolve(),
+      listSignals(options) {
+        calls.push(options);
+        return Promise.resolve(pages.shift() || { messages: [] });
+      },
+      pollIntervalMs: 1
+    });
+    const received = [];
+    const unsubscribe = adapter.subscribe((message) => received.push(message.id));
+
+    await vi.runOnlyPendingTimersAsync();
+    await Promise.resolve();
+
+    expect(calls[1]).toMatchObject({ after: 100, afterId: 'signal-b', afterSequence: 2 });
+    expect(received).toEqual(['signal-a', 'signal-b', 'signal-c']);
+    unsubscribe();
+    vi.useRealTimers();
+  });
+
+  it('forwards the tuple cursor through the Pool SDK signaling adapter', async () => {
+    vi.useFakeTimers();
+    const calls = [];
+    const pages = [
+      {
+        messages: [
+          createSignalMessage({ id: 'signal-a', sessionId: 'session_1', type: SIGNAL_TYPES.OFFER, fromPeerId: 'requester_1', createdAt: 100 })
+        ],
+        nextCursor: { createdAt: 100, messageId: 'signal-a' }
+      },
+      { messages: [] }
+    ];
+    const adapter = createPoolSdkSignalingAdapter({
+      sdk: {
+        publishSignal: () => Promise.resolve(),
+        listSignals(sessionId, options) {
+          calls.push({ sessionId, ...options });
+          return Promise.resolve(pages.shift());
+        }
+      },
+      sessionId: 'session_1',
+      peerId: 'provider_1',
+      pollIntervalMs: 1
+    });
+    const unsubscribe = adapter.subscribe(() => {});
+
+    await vi.runOnlyPendingTimersAsync();
+    await Promise.resolve();
+
+    expect(calls[1]).toMatchObject({
+      sessionId: 'session_1',
+      after: 100,
+      afterId: 'signal-a',
+      peerId: 'provider_1'
+    });
+    unsubscribe();
+    vi.useRealTimers();
   });
 });

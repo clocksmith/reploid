@@ -165,7 +165,11 @@ export function createPollingSignalingAdapter({
     throw new TypeError('listSignals must be a function');
   }
 
-  let cursor = Number(after || 0);
+  let cursor = {
+    sequence: null,
+    createdAt: Number(after || 0),
+    messageId: ''
+  };
   let timer = null;
   let stopped = false;
 
@@ -175,12 +179,32 @@ export function createPollingSignalingAdapter({
       const poll = async () => {
         if (stopped) return;
         try {
-          const result = await listSignals({ after: cursor, peerId });
+          const result = await listSignals({
+            after: cursor.createdAt,
+            afterId: cursor.messageId,
+            afterSequence: cursor.sequence,
+            peerId
+          });
           const messages = Array.isArray(result?.messages) ? result.messages : Array.isArray(result) ? result : [];
           for (const message of messages) {
             const normalized = normalizeSignalMessage(message);
-            cursor = Math.max(cursor, Number(normalized.createdAt || 0));
             onMessage(normalized);
+          }
+          const nextCursor = result?.nextCursor;
+          const hasSequence = Number.isSafeInteger(nextCursor?.sequence) && nextCursor.sequence >= 0;
+          if (nextCursor && (hasSequence || Number.isFinite(Number(nextCursor.createdAt)))) {
+            cursor = {
+              sequence: hasSequence ? nextCursor.sequence : null,
+              createdAt: Number(nextCursor.createdAt),
+              messageId: String(nextCursor.messageId || '')
+            };
+          } else if (messages.length > 0) {
+            const last = normalizeSignalMessage(messages.at(-1));
+            cursor = {
+              sequence: Number.isSafeInteger(last.relaySequence) ? last.relaySequence : null,
+              createdAt: Number(last.createdAt || 0),
+              messageId: String(last.id || '')
+            };
           }
         } finally {
           if (!stopped) timer = globalThis.setTimeout(poll, pollIntervalMs);
@@ -225,6 +249,8 @@ export function createPoolSdkSignalingAdapter({
     listSignals(options = {}) {
       return sdk.listSignals(boundSessionId, {
         after: options.after,
+        afterId: options.afterId,
+        afterSequence: options.afterSequence,
         peerId: options.peerId ?? boundPeerId
       });
     },

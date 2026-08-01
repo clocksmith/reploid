@@ -15,6 +15,12 @@ Primary `/` Reploid keeps boot minimal:
 
 Zero and X keep the broader research configuration surface.
 
+### Zero Managed Proxy Admission
+
+The hosted `/zero/gemini` function requires both Firebase Auth and Firebase App Check. Enable anonymous Firebase Auth for Zero's browser session and configure a reCAPTCHA v3 App Check provider for the hosted app. Publish that provider's site key as `window.REPLOID_ZERO_APP_CHECK_SITE_KEY` before the Zero boot shell loads.
+
+The function accepts only `GEMINI_MODEL` by default. Set `ZERO_GEMINI_ALLOWED_MODELS` to an explicit comma-separated allowlist only when additional models are intentionally sponsored. `ZERO_GEMINI_MAX_RATE_BUCKETS` bounds retained authenticated-client rate-limit state.
+
 ### Runtime Mode
 
 | Setting | localStorage Key | Values | Default |

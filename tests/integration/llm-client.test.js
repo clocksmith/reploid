@@ -96,6 +96,7 @@ describe('LLMClient - Integration Tests', () => {
     delete global.fetch;
     delete global.localStorage;
     delete global.window;
+    delete global.REPLOID_ZERO_ACCESS_HEADERS;
   });
 
   describe('metadata', () => {
@@ -159,6 +160,32 @@ describe('LLMClient - Integration Tests', () => {
 
       expect(result.content).toBe('Hello from LLM');
       expect(result.model).toBe('gpt-4');
+    });
+
+    it('attaches fresh Firebase Auth and App Check headers for Zero managed proxy requests', async () => {
+      global.REPLOID_ZERO_ACCESS_HEADERS = vi.fn().mockResolvedValue({
+        Authorization: 'Bearer zero-id-token',
+        'X-Firebase-AppCheck': 'zero-app-check-token'
+      });
+      global.fetch.mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve({ content: 'Hello from Zero' })
+      });
+
+      await llmClient.chat([{ role: 'user', content: 'Hi' }], {
+        id: 'gemini-3.1-flash-lite',
+        provider: 'gemini',
+        endpoint: '/zero/gemini',
+        authMode: 'firebase_auth_and_app_check'
+      });
+
+      expect(global.REPLOID_ZERO_ACCESS_HEADERS).toHaveBeenCalledTimes(1);
+      expect(global.fetch).toHaveBeenCalledWith('/zero/gemini', expect.objectContaining({
+        headers: expect.objectContaining({
+          Authorization: 'Bearer zero-id-token',
+          'X-Firebase-AppCheck': 'zero-app-check-token'
+        })
+      }));
     });
 
     it('should handle streaming responses via proxy', async () => {

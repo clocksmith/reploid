@@ -1,5 +1,8 @@
 import { onRequest } from 'firebase-functions/v2/https';
 import { defineSecret } from 'firebase-functions/params';
+import { getApps, initializeApp } from 'firebase-admin/app';
+import { getAppCheck } from 'firebase-admin/app-check';
+import { getAuth } from 'firebase-admin/auth';
 
 const geminiApiKey = defineSecret('GEMINI_API_KEY');
 
@@ -7,7 +10,7 @@ const DEFAULT_GEMINI_MODEL = 'gemini-3.1-flash-lite';
 const DEFAULT_REFERER = 'https://replo.id';
 const PROVIDER = 'gemini';
 const ALLOWED_METHODS = 'GET,POST,OPTIONS';
-const ALLOWED_HEADERS = 'Content-Type, X-Reploid-Client-Id';
+const ALLOWED_HEADERS = 'Authorization, Content-Type, X-Firebase-AppCheck, X-Reploid-Client-Id';
 const DEFAULT_ALLOWED_ORIGINS = Object.freeze([
   'https://replo.id',
   'https://www.replo.id',
@@ -24,6 +27,7 @@ const DEFAULT_MAX_OUTPUT_TOKENS = 8192;
 const DEFAULT_CLIENT_REQUESTS_PER_MINUTE = 12;
 const DEFAULT_GLOBAL_REQUESTS_PER_MINUTE = 120;
 const RATE_LIMIT_WINDOW_MS = 60 * 1000;
+const DEFAULT_MAX_RATE_BUCKETS = 2048;
 const rateBuckets = new Map();
 
 const numberEnv = (name, fallback) => {
@@ -41,8 +45,7 @@ const getAllowedOrigins = () => {
 };
 
 const isAllowedOrigin = (origin) => {
-  if (!origin) return true;
-  return getAllowedOrigins().includes(origin);
+  return !origin || getAllowedOrigins().includes(origin);
 };
 
 const setHeaders = (req, res) => {
@@ -123,11 +126,22 @@ const getSecretValue = () => {
 };
 
 const getClientKey = (req) => {
-  const explicit = String(req.headers['x-reploid-client-id'] || '').trim();
-  if (explicit) return `client:${explicit.slice(0, 96)}`;
-  const forwarded = String(req.headers['x-forwarded-for'] || '').split(',')[0].trim();
-  if (forwarded) return `ip:${forwarded}`;
-  return `ip:${req.ip || 'unknown'}`;
+  return `uid:${String(req.zeroIdentity?.uid || '').trim()}`;
+};
+
+const pruneRateBuckets = (now) => {
+  for (const [key, timestamps] of rateBuckets) {
+    const recent = timestamps.filter((timestamp) => now - timestamp < RATE_LIMIT_WINDOW_MS);
+    if (recent.length === 0) rateBuckets.delete(key);
+    else rateBuckets.set(key, recent);
+  }
+  const maximumBuckets = Math.floor(numberEnv('ZERO_GEMINI_MAX_RATE_BUCKETS', DEFAULT_MAX_RATE_BUCKETS));
+  if (rateBuckets.size <= maximumBuckets) return;
+  const oldestFirst = [...rateBuckets.entries()]
+    .sort(([, left], [, right]) => (left.at(-1) || 0) - (right.at(-1) || 0));
+  for (const [key] of oldestFirst.slice(0, rateBuckets.size - maximumBuckets)) {
+    rateBuckets.delete(key);
+  }
 };
 
 const checkBucket = (key, limit, now) => {
@@ -151,6 +165,7 @@ const checkBucket = (key, limit, now) => {
 
 const enforceRateLimit = (req) => {
   const now = Date.now();
+  pruneRateBuckets(now);
   const clientLimit = numberEnv('ZERO_GEMINI_CLIENT_RPM', DEFAULT_CLIENT_REQUESTS_PER_MINUTE);
   const globalLimit = numberEnv('ZERO_GEMINI_GLOBAL_RPM', DEFAULT_GLOBAL_REQUESTS_PER_MINUTE);
   const clientKey = getClientKey(req);
@@ -165,6 +180,39 @@ const enforceRateLimit = (req) => {
     retryAfterMs,
     retryAfterSeconds: Math.max(1, Math.ceil(retryAfterMs / 1000))
   };
+};
+
+const getFirebaseAdminApp = () => {
+  if (getApps().length === 0) initializeApp();
+  return getApps()[0];
+};
+
+const bearerToken = (req) => {
+  const value = String(req.headers.authorization || '').trim();
+  const match = value.match(/^Bearer\s+(.+)$/i);
+  return match ? match[1].trim() : null;
+};
+
+const verifyZeroAccess = async (req) => {
+  const idToken = bearerToken(req);
+  const appCheckToken = String(req.headers['x-firebase-appcheck'] || '').trim();
+  if (!idToken || !appCheckToken) throw new Error('Firebase Auth and App Check credentials are required.');
+  const app = getFirebaseAdminApp();
+  const [identity] = await Promise.all([
+    getAuth(app).verifyIdToken(idToken),
+    getAppCheck(app).verifyToken(appCheckToken)
+  ]);
+  if (!identity?.uid) throw new Error('Firebase Auth identity is missing a uid.');
+  return Object.freeze({ uid: identity.uid });
+};
+
+const getAllowedModels = () => {
+  const configured = String(process.env.GEMINI_MODEL || DEFAULT_GEMINI_MODEL).trim();
+  const configuredList = String(process.env.ZERO_GEMINI_ALLOWED_MODELS || '')
+    .split(',')
+    .map((model) => model.trim())
+    .filter(Boolean);
+  return new Set(configuredList.length > 0 ? configuredList : [configured]);
 };
 
 const validateMessages = (messages) => {
@@ -184,6 +232,13 @@ const validateMessages = (messages) => {
   }
 };
 
+export const zeroGeminiPolicy = Object.freeze({
+  getAllowedModels,
+  isAllowedOrigin,
+  pruneRateBuckets,
+  rateBuckets
+});
+
 export const zeroGemini = onRequest({
   region: 'us-central1',
   cors: false,
@@ -202,6 +257,13 @@ export const zeroGemini = onRequest({
 
   if (req.method === 'OPTIONS') {
     res.status(204).send('');
+    return;
+  }
+
+  try {
+    req.zeroIdentity = await verifyZeroAccess(req);
+  } catch {
+    res.status(401).json({ error: 'Verified Firebase Auth and App Check credentials are required.' });
     return;
   }
 
@@ -265,6 +327,10 @@ export const zeroGemini = onRequest({
   }
 
   const model = String(req.body?.model || process.env.GEMINI_MODEL || DEFAULT_GEMINI_MODEL).trim();
+  if (!getAllowedModels().has(model)) {
+    res.status(400).json({ error: 'Requested model is not enabled for Zero.' });
+    return;
+  }
   const maxOutputTokens = Number(req.body?.max_tokens || req.body?.maxOutputTokens || 8192);
   const maxAllowedOutputTokens = numberEnv('ZERO_GEMINI_MAX_OUTPUT_TOKENS', DEFAULT_MAX_OUTPUT_TOKENS);
   const payload = toGeminiPayload(req.body?.messages || [], {

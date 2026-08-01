@@ -199,9 +199,11 @@ export function createPoolSdk({ baseUrl = DEFAULT_BASE_URL, authTokenProvider = 
         body: message
       });
     },
-    listSignals(sessionId, { after = 0, peerId = null } = {}) {
+    listSignals(sessionId, { after = 0, afterId = '', afterSequence = null, peerId = null } = {}) {
       const query = new URLSearchParams();
       if (after) query.set('after', String(after));
+      if (afterId) query.set('afterId', String(afterId));
+      if (Number.isSafeInteger(afterSequence) && afterSequence >= 0) query.set('afterSequence', String(afterSequence));
       if (peerId) query.set('peerId', String(peerId));
       const suffix = query.toString() ? `?${query.toString()}` : '';
       return request(`/signaling/sessions/${encodeURIComponent(sessionId)}/messages${suffix}`);
@@ -212,9 +214,11 @@ export function createPoolSdk({ baseUrl = DEFAULT_BASE_URL, authTokenProvider = 
         body: message
       });
     },
-    listPeerRoomMessages(roomId, { after = 0, peerId = null, limit = null } = {}) {
+    listPeerRoomMessages(roomId, { after = 0, afterId = '', afterSequence = null, peerId = null, limit = null } = {}) {
       const query = new URLSearchParams();
       if (after) query.set('after', String(after));
+      if (afterId) query.set('afterId', String(afterId));
+      if (Number.isSafeInteger(afterSequence) && afterSequence >= 0) query.set('afterSequence', String(afterSequence));
       if (peerId) query.set('peerId', String(peerId));
       if (limit) query.set('limit', String(limit));
       const suffix = query.toString() ? `?${query.toString()}` : '';

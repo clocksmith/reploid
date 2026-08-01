@@ -184,8 +184,8 @@ describe('WebRTCSwarm', () => {
   });
 
   describe('Connection State', () => {
-    it('should start in disconnected state', () => {
-      expect(swarm.getConnectionState()).toBe('disconnected');
+    it('should start in stopped state', () => {
+      expect(swarm.getConnectionState()).toBe('stopped');
     });
 
     it('should expose getConnectionState function', () => {
@@ -214,6 +214,9 @@ describe('WebRTCSwarm', () => {
       expect(stats).toHaveProperty('messagesReceived');
       expect(stats).toHaveProperty('bytesSent');
       expect(stats).toHaveProperty('bytesReceived');
+      expect(stats).toHaveProperty('relayMessagesSent');
+      expect(stats).toHaveProperty('latencyByPeer');
+      expect(stats).toHaveProperty('pendingIceCandidateCount');
       expect(stats).toHaveProperty('uptime');
     });
 
@@ -259,6 +262,24 @@ describe('WebRTCSwarm', () => {
         expect.stringContaining('Disabled')
       );
     });
+
+    it('settles an initial signaling failure and enters retrying state', async () => {
+      class ClosingWebSocket {
+        static OPEN = 1;
+
+        constructor() {
+          queueMicrotask(() => this.onclose?.());
+        }
+
+        close() {}
+      }
+      vi.stubGlobal('WebSocket', ClosingWebSocket);
+
+      await expect(swarm.init()).resolves.toBe(false);
+      expect(swarm.getConnectionState()).toBe('retrying');
+      swarm.disconnect();
+      expect(swarm.getConnectionState()).toBe('stopped');
+    });
   });
 
   describe('Broadcast', () => {
@@ -282,9 +303,9 @@ describe('WebRTCSwarm', () => {
       }).not.toThrow();
     });
 
-    it('should set connection state to disconnected', () => {
+    it('should set connection state to stopped', () => {
       swarm.disconnect();
-      expect(swarm.getConnectionState()).toBe('disconnected');
+      expect(swarm.getConnectionState()).toBe('stopped');
     });
   });
 

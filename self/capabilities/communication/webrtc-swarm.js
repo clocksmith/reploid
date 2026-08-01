@@ -12,6 +12,8 @@ const MAX_PAYLOAD_SIZE = 64 * 1024; // 64KB
 const MAX_BACKOFF_MS = 30000;
 const HEARTBEAT_INTERVAL = 30000;
 const PEER_TIMEOUT = 60000;
+const MAX_PENDING_ICE_PER_PEER = 32;
+const PENDING_ICE_TTL_MS = 30000;
 
 // Valid message types
 const MESSAGE_TYPES = new Set([
@@ -60,13 +62,16 @@ const WebRTCSwarm = {
     let _roomId = null;
     let _roomToken = null;
     let _signalingWs = null;
-    let _connectionState = 'disconnected'; // disconnected | connecting | connected | reconnecting
+    let _connectionState = 'stopped'; // connecting | connected | stopping | stopped | retrying
     let _reconnectAttempt = 0;
     let _reconnectTimer = null;
     let _heartbeatTimer = null;
+    let _manualStop = false;
     let _peers = new Map(); // peerId -> { connection, dataChannel, metadata, status, lastSeen }
     let _messageHandlers = new Map(); // type -> handler function
     let _logicalClock = 0;
+    const _pendingIceCandidates = new Map();
+    const _latencyByPeer = new Map();
 
     // Bandwidth tracking
     const _stats = {
@@ -75,7 +80,16 @@ const WebRTCSwarm = {
       bytesSent: 0,
       bytesReceived: 0,
       startTime: Date.now(),
-      rejected: 0
+      rejected: 0,
+      relayMessagesSent: 0,
+      relayBytesSent: 0,
+      relayLastSendAt: null,
+      relayLastEnqueueMs: null
+    };
+
+    const setConnectionState = (state, detail = {}) => {
+      _connectionState = state;
+      EventBus.emit('swarm:state-change', { state, ...detail });
     };
 
     /**
@@ -213,6 +227,8 @@ const WebRTCSwarm = {
         return false;
       }
 
+      _manualStop = false;
+
       // Generate or restore IDs
       _peerId = generateId('peer');
       _sessionId = localStorage.getItem('REPLOID_SESSION_ID') || uuid();
@@ -228,9 +244,7 @@ const WebRTCSwarm = {
       logger.info(`[WebRTCSwarm] Initializing - peerId: ${_peerId}, room: ${_roomId}`);
 
       // Connect to signaling server
-      await connectToSignaling();
-
-      return true;
+      return connectToSignaling();
     };
 
     /**
@@ -247,18 +261,34 @@ const WebRTCSwarm = {
           _signalingWs.close();
         }
 
-        _connectionState = 'connecting';
-        EventBus.emit('swarm:state-change', { state: _connectionState });
+        setConnectionState('connecting');
         logger.info(`[WebRTCSwarm] Connecting to ${CONFIG.signalingServer}`);
 
         try {
-          _signalingWs = new WebSocket(CONFIG.signalingServer);
+          const signalingWs = new WebSocket(CONFIG.signalingServer);
+          _signalingWs = signalingWs;
 
-          _signalingWs.onopen = () => {
+          let settled = false;
+          const settle = (value) => {
+            if (settled) return;
+            settled = true;
+            resolve(value);
+          };
+
+          signalingWs.onopen = () => {
+            if (_signalingWs !== signalingWs) {
+              signalingWs.close();
+              settle(false);
+              return;
+            }
+            if (_manualStop) {
+              signalingWs.close();
+              settle(false);
+              return;
+            }
             logger.info('[WebRTCSwarm] Connected to signaling server');
-            _connectionState = 'connected';
+            setConnectionState('connected');
             _reconnectAttempt = 0;
-            EventBus.emit('swarm:state-change', { state: _connectionState });
 
             // Clear any pending reconnect
             if (_reconnectTimer) {
@@ -278,10 +308,11 @@ const WebRTCSwarm = {
             // Start heartbeat
             startHeartbeat();
 
-            resolve(true);
+            settle(true);
           };
 
-          _signalingWs.onmessage = (event) => {
+          signalingWs.onmessage = (event) => {
+            if (_signalingWs !== signalingWs) return;
             try {
               const message = JSON.parse(event.data);
               handleSignalingMessage(message);
@@ -290,26 +321,42 @@ const WebRTCSwarm = {
             }
           };
 
-          _signalingWs.onerror = (error) => {
+          signalingWs.onerror = (error) => {
+            if (_signalingWs !== signalingWs) {
+              settle(false);
+              return;
+            }
             logger.error('[WebRTCSwarm] WebSocket error:', error);
+            settle(false);
+            // Browsers normally follow an error with close. Cover the rare
+            // non-closing failure too, while onopen can cancel this timer.
+            if (!_manualStop) scheduleReconnect();
           };
 
-          _signalingWs.onclose = () => {
+          signalingWs.onclose = () => {
+            if (_signalingWs !== signalingWs) {
+              settle(false);
+              return;
+            }
             logger.warn('[WebRTCSwarm] Disconnected from signaling server');
-            _connectionState = 'disconnected';
             stopHeartbeat();
-            EventBus.emit('swarm:state-change', { state: _connectionState });
 
             // Clear peers so reconnect will re-dial
             clearPeers();
 
-            // Schedule reconnect
+            if (_manualStop) {
+              setConnectionState('stopped');
+              settle(false);
+              return;
+            }
+
+            settle(false);
             scheduleReconnect();
           };
         } catch (e) {
           logger.error('[WebRTCSwarm] Failed to create WebSocket:', e);
-          _connectionState = 'disconnected';
-          scheduleReconnect();
+          setConnectionState('stopped');
+          if (!_manualStop) scheduleReconnect();
           reject(e);
         }
       });
@@ -319,7 +366,7 @@ const WebRTCSwarm = {
      * Schedule reconnection with exponential backoff
      */
     const scheduleReconnect = () => {
-      if (_reconnectTimer) return;
+      if (_manualStop || _reconnectTimer) return;
 
       _reconnectAttempt++;
       const backoff = Math.min(
@@ -328,11 +375,11 @@ const WebRTCSwarm = {
       );
 
       logger.info(`[WebRTCSwarm] Reconnecting in ${backoff}ms (attempt ${_reconnectAttempt})`);
-      _connectionState = 'reconnecting';
-      EventBus.emit('swarm:state-change', { state: _connectionState, attempt: _reconnectAttempt });
+      setConnectionState('retrying', { attempt: _reconnectAttempt });
 
       _reconnectTimer = setTimeout(() => {
         _reconnectTimer = null;
+        if (_manualStop) return;
         connectToSignaling().catch(e => {
           logger.error('[WebRTCSwarm] Reconnect failed:', e);
         });
@@ -523,6 +570,7 @@ const WebRTCSwarm = {
 
       // Set remote description and create answer
       await connection.setRemoteDescription(offer);
+      await flushPendingIceCandidates(remotePeerId, connection);
       const answer = await connection.createAnswer();
       await connection.setLocalDescription(answer);
 
@@ -541,6 +589,24 @@ const WebRTCSwarm = {
       const peer = _peers.get(remotePeerId);
       if (peer) {
         await peer.connection.setRemoteDescription(answer);
+        await flushPendingIceCandidates(remotePeerId, peer.connection);
+      }
+    };
+
+    const queuePendingIceCandidate = (remotePeerId, candidate) => {
+      const now = Date.now();
+      const pending = (_pendingIceCandidates.get(remotePeerId) || [])
+        .filter((entry) => now - entry.receivedAt <= PENDING_ICE_TTL_MS);
+      pending.push({ candidate, receivedAt: now });
+      _pendingIceCandidates.set(remotePeerId, pending.slice(-MAX_PENDING_ICE_PER_PEER));
+    };
+
+    const flushPendingIceCandidates = async (remotePeerId, connection) => {
+      const pending = _pendingIceCandidates.get(remotePeerId) || [];
+      _pendingIceCandidates.delete(remotePeerId);
+      for (const entry of pending) {
+        if (Date.now() - entry.receivedAt > PENDING_ICE_TTL_MS) continue;
+        await connection.addIceCandidate(entry.candidate);
       }
     };
 
@@ -549,12 +615,15 @@ const WebRTCSwarm = {
      */
     const handleIceCandidate = async (remotePeerId, candidate) => {
       const peer = _peers.get(remotePeerId);
-      if (peer && candidate) {
-        try {
-          await peer.connection.addIceCandidate(candidate);
-        } catch (e) {
-          logger.error(`[WebRTCSwarm] Failed to add ICE candidate for ${remotePeerId}:`, e);
-        }
+      if (!candidate) return;
+      if (!peer?.connection || !peer.connection.remoteDescription) {
+        queuePendingIceCandidate(remotePeerId, candidate);
+        return;
+      }
+      try {
+        await peer.connection.addIceCandidate(candidate);
+      } catch (e) {
+        logger.error(`[WebRTCSwarm] Failed to add ICE candidate for ${remotePeerId}:`, e);
       }
     };
 
@@ -625,6 +694,8 @@ const WebRTCSwarm = {
         }
         _peers.delete(remotePeerId);
       }
+      _pendingIceCandidates.delete(remotePeerId);
+      _latencyByPeer.delete(remotePeerId);
     };
 
     /**
@@ -719,13 +790,23 @@ const WebRTCSwarm = {
         const data = JSON.stringify(envelope);
 
         if (peer.transport === 'signaling-relay') {
-          return sendSignaling({
+          const startedAt = globalThis.performance?.now?.() ?? Date.now();
+          const sent = sendSignaling({
             type: 'relay-message',
             peerId: _peerId,
             roomId: _roomId,
             targetPeer: remotePeerId,
             envelope
           });
+          if (sent) {
+            _stats.messagesSent++;
+            _stats.bytesSent += data.length;
+            _stats.relayMessagesSent++;
+            _stats.relayBytesSent += data.length;
+            _stats.relayLastSendAt = Date.now();
+            _stats.relayLastEnqueueMs = (globalThis.performance?.now?.() ?? Date.now()) - startedAt;
+          }
+          return sent;
         }
 
         if (!peer.dataChannel || peer.dataChannel.readyState !== 'open') {
@@ -793,6 +874,11 @@ const WebRTCSwarm = {
             EventBus.emit('swarm:peer-timeout', { peerId });
           }
         }
+        for (const [peerId, candidates] of _pendingIceCandidates) {
+          const liveCandidates = candidates.filter((entry) => now - entry.receivedAt <= PENDING_ICE_TTL_MS);
+          if (liveCandidates.length > 0) _pendingIceCandidates.set(peerId, liveCandidates);
+          else _pendingIceCandidates.delete(peerId);
+        }
       }, HEARTBEAT_INTERVAL);
     };
 
@@ -810,6 +896,12 @@ const WebRTCSwarm = {
      * Disconnect from swarm
      */
     const disconnect = () => {
+      _manualStop = true;
+      if (_reconnectTimer) {
+        clearTimeout(_reconnectTimer);
+        _reconnectTimer = null;
+      }
+      setConnectionState('stopping');
       stopHeartbeat();
 
       // Close all peer connections
@@ -823,9 +915,7 @@ const WebRTCSwarm = {
         _signalingWs.close();
         _signalingWs = null;
       }
-
-      _connectionState = 'disconnected';
-      EventBus.emit('swarm:state-change', { state: _connectionState });
+      setConnectionState('stopped');
     };
 
     /**
@@ -857,6 +947,9 @@ const WebRTCSwarm = {
       connectedPeers: getConnectedPeers().length,
       totalPeers: _peers.size,
       ..._stats,
+      latencyByPeer: Object.fromEntries(_latencyByPeer),
+      pendingIceCandidateCount: Array.from(_pendingIceCandidates.values())
+        .reduce((total, candidates) => total + candidates.length, 0),
       uptime: Date.now() - _stats.startTime
     });
 
@@ -872,6 +965,11 @@ const WebRTCSwarm = {
 
     onMessage('pong', (peerId, payload) => {
       const latency = Date.now() - payload.ts;
+      _latencyByPeer.set(peerId, {
+        roundTripMs: latency,
+        measuredAt: Date.now()
+      });
+      EventBus.emit('swarm:latency', { peerId, roundTripMs: latency });
       logger.debug(`[WebRTCSwarm] Latency to ${peerId}: ${latency}ms`);
     });
 

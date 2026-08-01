@@ -26,6 +26,7 @@ reploid/
 - Read `docs/INDEX.md` for documentation overview
 - Read `docs/style-guide.md` for complete style guidelines
 - Read `EMOJI.md` for approved Unicode symbols
+- Read [`docs/maverick-hunting.md`](docs/maverick-hunting.md) before diagnosing, containing, or repairing evidence-backed provider, mutation, or tool failures
 - Review `self/blueprints/` for architectural documentation
 
 ### Key Paths
