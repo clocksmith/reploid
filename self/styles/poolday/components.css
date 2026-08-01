@@ -2951,6 +2951,25 @@ body[data-pool-route-id='home'] #app {
   );
 }
 
+/* An expanded desktop rail reserves layout space instead of overlaying the
+   active Poolday surface. The stage then centers within the visible region. */
+@media (min-width: 721px) {
+  .pool-home:not([data-pool-route-id='home']):has(.pool-nav-rail.is-open) {
+    padding-left: calc(var(--pool-metric-nav-panel) + var(--pool-space-md));
+  }
+
+  .pool-home[data-pool-route-id='home']:has(.pool-nav-rail.is-open) .pool-home-toolbar {
+    margin-left: var(--pool-metric-nav-panel);
+    padding-left: clamp(0.9rem, 2vw, 1.5rem);
+    padding-right: clamp(0.9rem, 2vw, 1.5rem);
+  }
+
+  .pool-home[data-pool-route-id='home']:has(.pool-nav-rail.is-open) .pool-home-stage {
+    width: auto;
+    margin-left: var(--pool-metric-nav-panel);
+  }
+}
+
 .pool-dashboard-kicker {
   color: color-mix(in srgb, var(--pool-surface-ink), transparent 48%);
   font-size: var(--pool-px-r0-62);

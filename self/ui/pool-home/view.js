@@ -530,12 +530,16 @@ const unifiedRecordRows = () => {
     }));
   const peerRows = ledgerStore.peerEvents.map((event) => {
     const body = event.body || {};
-    const isScore = event.type === 'reputation_event' || event.type === 'points_event';
+    const title = event.type === 'points_event'
+      ? (Number(body.points || 0) < 0 ? 'Requester points spent' : 'Contributor points credited')
+      : event.type === 'reputation_event'
+        ? 'Contributor reputation updated'
+        : 'Room activity';
     return {
       id: `peer:${getPeerEventHash(event)}`,
       type: 'room',
       occurredAt: event.createdAt,
-      title: isScore ? 'Contributor score updated' : 'Room activity',
+      title,
       meta: [
         body.providerId || body.userId || event.fromPeerId,
         body.reason
@@ -1073,6 +1077,14 @@ const renderContributionDetails = (id, label = 'Contributors') => `
   </details>
 `;
 
+const renderProteinEmbeddingDetails = (id) => `
+  <details class="pool-raw-details pool-protein-embedding-details" id="${id}-embedding-details" hidden>
+    <summary>Protein embedding</summary>
+    <p class="type-caption" id="${id}-embedding-meta"></p>
+    <pre id="${id}-embedding" aria-label="Pooled protein embedding"></pre>
+  </details>
+`;
+
 const renderResultBox = (id, options = {}) => {
   if (options?.stream) {
     return `
@@ -1086,6 +1098,7 @@ const renderResultBox = (id, options = {}) => {
       </div>
       <div class="pool-run-recovery" id="${id}-recovery" aria-live="polite" hidden></div>
       ${options.evidence ? renderContributionDetails(id, options.evidenceLabel || 'Contributors') : ''}
+      ${options.proteinEmbedding ? renderProteinEmbeddingDetails(id) : ''}
       ${renderRawDetails(id, options.rawLabel || 'Full result', { full: options.rawFull === true })}
     `;
   }
@@ -1148,10 +1161,27 @@ const formatResultMessage = (value = {}) => {
   return 'Local peer state updated.';
 };
 
-const safeJsonStringify = (value) => {
+const summarizedSequenceOutput = (sequenceOutput = {}) => {
+  const pooledEmbedding = Array.isArray(sequenceOutput.pooledEmbedding)
+    ? sequenceOutput.pooledEmbedding
+    : null;
+  return {
+    omitted: 'Rendered in Protein embedding',
+    pooledEmbeddingDimensions: pooledEmbedding?.length || 0,
+    tokenEmbeddings: sequenceOutput.tokenEmbeddings == null ? null : '[omitted from raw result]',
+    maskedLogits: Array.isArray(sequenceOutput.maskedLogits) && sequenceOutput.maskedLogits.length > 0
+      ? '[omitted from raw result]'
+      : []
+  };
+};
+
+const safeJsonStringify = (value, { redactSequenceOutput = false } = {}) => {
   const ancestors = [];
   try {
     return JSON.stringify(value, function replaceJsonEntry(_key, entry) {
+      if (redactSequenceOutput && _key === 'sequenceOutput' && entry && typeof entry === 'object') {
+        return summarizedSequenceOutput(entry);
+      }
       if (typeof entry === 'function') return `[Function ${entry.name || 'anonymous'}]`;
       if (entry instanceof Error) {
         return {
@@ -1176,6 +1206,33 @@ const safeJsonStringify = (value) => {
       reason: error.message
     }, null, 2);
   }
+};
+
+const sequenceOutputFor = (value = {}) => (
+  value.sequenceOutput
+  || value.receiptRecord?.sequenceOutput
+  || value.receiptPayload?.body?.sequenceOutput
+  || value.receipt?.sequenceOutput
+  || value.record?.sequenceOutput
+  || value.body?.sequenceOutput
+  || null
+);
+
+const renderProteinEmbeddingOutput = (id, value = {}) => {
+  const details = document.getElementById(`${id}-embedding-details`);
+  const output = document.getElementById(`${id}-embedding`);
+  const meta = document.getElementById(`${id}-embedding-meta`);
+  const pooledEmbedding = sequenceOutputFor(value)?.pooledEmbedding;
+  if (!details || !output || !meta) return;
+  if (!Array.isArray(pooledEmbedding) || pooledEmbedding.length === 0) {
+    details.hidden = true;
+    output.textContent = '';
+    meta.textContent = '';
+    return;
+  }
+  details.hidden = false;
+  meta.textContent = `${pooledEmbedding.length} dimensions · ${compactHash(value.sequenceResultHash || value.vectorHash || '')}`;
+  output.textContent = safeJsonStringify(pooledEmbedding) || '[]';
 };
 
 const formatErrorResultText = (value = {}) => {
@@ -1246,7 +1303,7 @@ export const setResult = (id, value, options = {}) => {
       ? value
       : isErrorResult(value)
         ? formatErrorResultText(value)
-      : safeJsonStringify(value) || String(value);
+      : safeJsonStringify(value, { redactSequenceOutput: true }) || String(value);
   const streamEl = streamMode ? document.getElementById(`${id}-stream`) : document.getElementById(id);
   const streamCursor = streamMode ? document.getElementById(`${id}-stream-cursor`) : null;
   const rawEl = document.getElementById(`${id}-raw`);
@@ -1263,6 +1320,7 @@ export const setResult = (id, value, options = {}) => {
   }
   if (answerBox) answerBox.hidden = Boolean(value?.recovery);
   if (rawEl) rawEl.textContent = raw;
+  if (value && typeof value === 'object') renderProteinEmbeddingOutput(id, value);
   if (evidenceEl && value && typeof value === 'object') {
     setPoolHtml(evidenceEl, renderRunContributionLayer(value));
   }
@@ -1880,6 +1938,7 @@ const renderHomeSimulation = ({ dashboardView = 'home' } = {}) => {
           streamLabel: 'Answer',
           evidence: true,
           evidenceLabel: 'Proof',
+          proteinEmbedding: true,
           rawLabel: 'Raw result',
           rawFull: true
         })}
@@ -1982,6 +2041,7 @@ export const renderRouteDetail = (routeId) => {
               streamLabel: 'Answer',
               evidence: true,
               evidenceLabel: 'Proof',
+              proteinEmbedding: true,
               rawLabel: 'Raw result',
               rawFull: true
             })}
