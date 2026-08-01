@@ -18,21 +18,25 @@ const localPeerUrl = (route, room) => {
 };
 
 const { getEnabledPoolModelContract } = await import('../self/pool/model-contract.js');
-const SYNTHETIC_MODEL_ID = 'gemma-3-270m-it-q4k-ehf16-af32';
+// Keep the synthetic lane on the same enabled contract as production.  A
+// mocked text-only model made this gate fail before it could exercise the
+// browser route and peer receipt path.
+const SYNTHETIC_MODEL_ID = 'esm2-t12-35m-ur50d-f32-af32';
 const SYNTHETIC_MODEL = getEnabledPoolModelContract(SYNTHETIC_MODEL_ID);
 if (!SYNTHETIC_MODEL) {
   console.error(`Synthetic pool smoke model is not enabled: ${SYNTHETIC_MODEL_ID}`);
   process.exit(1);
 }
-const routes = ['/', '/ask', '/compute', '/records', '/history', '/network', '/zero'];
+// This is a Poolday release gate.  Zero is an experimental, separately
+// governed surface and must not make Poolday deployment health depend on it.
+const routes = ['/', '/ask', '/compute', '/records', '/history', '/network'];
 const requiredText = {
-  '/': 'Run browser models together',
-  '/ask': 'Prompt',
+  '/': 'Run protein models together',
+  '/ask': 'Send one public protein sequence',
   '/compute': 'This tab',
   '/records': 'Records',
   '/history': 'Records',
-  '/network': 'Records',
-  '/zero': 'Zero'
+  '/network': 'Records'
 };
 
 const { chromium } = await import('@playwright/test');
@@ -63,13 +67,19 @@ const installSmokeRuntime = (targetContext) => targetContext.addInitScript((laun
     return `sha256:${bytesToHex(new Uint8Array(digest))}`;
   };
   const hashJson = async (value) => sha256Hex(canonicalize(value));
+  const hashFloat32 = async (values) => {
+    const bytes = new Uint8Array(values.length * 4);
+    const view = new DataView(bytes.buffer);
+    values.forEach((value, index) => view.setFloat32(index * 4, Number(value), true));
+    return sha256Hex(bytes);
+  };
   const buildRuntimeProfile = () => ({
     profileVersion: 'pool-smoke',
     model,
     runtime: {
       runtime: model.runtime,
       backend: model.backend,
-      publicApi: 'generate'
+      publicApi: 'encodeSequence'
     },
     device: { hasWebGPU: true, probeStatus: 'smoke' },
     browser: { userAgent: 'pool-smoke' }
@@ -85,7 +95,7 @@ const installSmokeRuntime = (targetContext) => targetContext.addInitScript((laun
     getRuntimeInfo: () => ({
       runtime: 'doppler',
       backend: 'browser-webgpu',
-      publicApi: 'generate',
+      publicApi: 'encodeSequence',
       profile: { smoke: true }
     }),
     getRuntimeProfile: async () => {
@@ -113,23 +123,55 @@ const installSmokeRuntime = (targetContext) => targetContext.addInitScript((laun
         maxComputeInvocationsPerWorkgroup: 256
       }
     }),
-    generate: async ({ prompt }) => ({
-      outputText: `smoke:${prompt}`,
-      tokenIds: [101, 102, 103],
-      transcript: {
-        outputText: `smoke:${prompt}`,
-        tokenIds: [101, 102, 103]
-      },
-      tokenCounts: {
-        input: 8,
-        output: 3
-      },
-      timing: {
-        startedAt: '2026-06-14T00:00:00.000Z',
-        completedAt: '2026-06-14T00:00:01.000Z'
-      },
-      status: 'completed'
-    })
+    encodeSequence: async ({ sequence, request }) => {
+      const tokens = Array.from(sequence, (_, index) => index % 33);
+      const pooledEmbedding = [0.25, -0.5, 0.75];
+      const pooledEmbeddingHash = await hashFloat32(pooledEmbedding);
+      const sequenceResult = {
+        schema: 'reploid.pool.sequence_result/v1',
+        workload: request.workload,
+        alphabet: request.alphabet,
+        sequenceHash: request.sequenceHash,
+        sequenceLength: request.sequenceLength,
+        tokenCount: tokens.length,
+        tokensHash: await hashJson(tokens),
+        includedTokenCount: tokens.length,
+        embeddingDim: pooledEmbedding.length,
+        vocabSize: 33,
+        pooledEmbeddingHash,
+        tokenEmbeddingsHash: null,
+        maskedLogitsHash: null,
+        tokenIndices: request.tokenIndices,
+        topK: request.topK
+      };
+      const sequenceResultHash = await hashJson(sequenceResult);
+      return {
+        outputKind: request.workload,
+        outputText: '',
+        tokenIds: [],
+        vectorHash: pooledEmbeddingHash,
+        sequenceResultHash,
+        sequenceResult,
+        sequenceOutput: {
+          pooledEmbedding,
+          tokenEmbeddings: null,
+          maskedLogits: []
+        },
+        embeddingDimensions: pooledEmbedding.length,
+        embeddingStats: { dimensions: pooledEmbedding.length, nonFiniteCount: 0, l2Norm: 0.935414 },
+        transcript: {
+          outputKind: request.workload,
+          sequenceResultHash,
+          sequenceResult
+        },
+        tokenCounts: { input: sequence.length, output: 0 },
+        timing: {
+          startedAt: '2026-06-14T00:00:00.000Z',
+          completedAt: '2026-06-14T00:00:01.000Z'
+        },
+        status: 'completed'
+      };
+    }
   };
 }, SYNTHETIC_MODEL);
 const context = await browser.newContext();
@@ -140,10 +182,6 @@ const failures = [];
 const gotoRoute = async (targetPage, route) => {
   const response = await targetPage.goto(`${baseUrl}${route}`, { waitUntil: 'domcontentloaded' });
   if (!response || !response.ok()) failures.push(`${route} returned ${response?.status() || 'no response'}`);
-  if (route === '/zero') {
-    await targetPage.waitForFunction(() => document.title === 'Zero' || document.body.textContent.includes('Zero'));
-    return response;
-  }
   await targetPage.waitForSelector('.pool-home', { timeout: 30000 });
   return response;
 };
@@ -154,7 +192,11 @@ for (const route of routes) {
     console.log(`[pool-smoke] route ${route}`);
     await gotoRoute(routePage, route);
     const expected = String(requiredText[route] || '').toLowerCase();
-    await routePage.waitForFunction((text) => document.body.textContent.toLowerCase().includes(text), expected);
+    await routePage.waitForFunction(
+      (text) => document.body.textContent.toLowerCase().includes(text),
+      expected,
+      { timeout: 30000 }
+    );
     const body = String(await routePage.textContent('body') || '').toLowerCase();
     if (!body.includes(expected)) {
       failures.push(`${route} did not include expected text: ${requiredText[route]}`);
@@ -168,22 +210,21 @@ for (const route of routes) {
 }
 
 try {
-  console.log('[pool-smoke] same-document input lane switching');
+  console.log('[pool-smoke] protein input lane');
   const routePage = await context.newPage();
   await gotoRoute(routePage, '/');
   await routePage.evaluate(() => {
-    window.__REPLOID_POOL_SMOKE_MARKER = 'same-document-route';
+    window.__REPLOID_POOL_SMOKE_MARKER = 'protein-lane';
   });
-  await routePage.locator('.pool-lane-chip[data-pool-lane="sequence"]').click();
   await routePage.waitForSelector('.pool-home-stage[data-pool-lane="sequence"]');
-  await routePage.locator('.pool-lane-chip[data-pool-lane="text"]').click();
-  await routePage.waitForSelector('.pool-home-stage[data-pool-lane="text"]');
+  const laneCount = await routePage.locator('.pool-lane-chip[data-pool-lane="sequence"]').count();
+  if (laneCount !== 1) failures.push(`expected one active protein lane, found ${laneCount}`);
   const laneMarker = await routePage.evaluate(() => window.__REPLOID_POOL_SMOKE_MARKER);
-  if (laneMarker !== 'same-document-route') failures.push('input lane switching reloaded the boot document');
+  if (laneMarker !== 'protein-lane') failures.push('protein lane check reloaded the boot document');
   await routePage.close();
-  console.log('[pool-smoke] same-document input lane switching passed');
+  console.log('[pool-smoke] protein input lane passed');
 } catch (error) {
-  failures.push(`same-document input lane smoke failed: ${error.message}`);
+  failures.push(`protein input lane smoke failed: ${error.message}`);
 }
 
 let provider = null;
@@ -207,9 +248,10 @@ try {
   await requester.waitForSelector('.pool-home', { timeout: 30000 });
   await requester.waitForSelector('#pool-run-submit');
   await requester.selectOption('#pool-run-model', SYNTHETIC_MODEL_ID);
-  await requester.fill('#pool-run-prompt', 'browser peer smoke');
+  await requester.fill('#pool-run-prompt', 'MKTAYIAKQRQISFVKSHFSRQ');
+  await requester.check('#pool-run-sequence-public');
   await requester.click('#pool-run-submit');
-  await requester.waitForFunction(() => document.body.textContent.includes('smoke:browser peer smoke'));
+  await requester.waitForFunction(() => document.body.textContent.includes('Protein embedding ready'));
   await requester.goto(localPeerUrl('/network', room), { waitUntil: 'domcontentloaded' });
   await requester.waitForSelector('.pool-home', { timeout: 30000 });
   await requester.waitForSelector('#pool-peer-ledger', { timeout: 30000, state: 'attached' });
