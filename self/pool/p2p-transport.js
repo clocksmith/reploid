@@ -189,6 +189,8 @@ export function createP2PTransport({
   let lastIceGatheringState = null;
   let localIceCandidateCount = 0;
   let remoteIceCandidateCount = 0;
+  let expiredRemoteIceCandidateCount = 0;
+  let overflowRemoteIceCandidateCount = 0;
   const localIceCandidateTypes = new Set();
   const remoteIceCandidateTypes = new Set();
   const maxPendingIceCandidates = Math.max(1, Number(maxPendingRemoteIceCandidates || DEFAULT_MAX_PENDING_REMOTE_ICE_CANDIDATES));
@@ -196,7 +198,9 @@ export function createP2PTransport({
 
   const prunePendingRemoteIceCandidates = () => {
     const cutoff = now() - pendingIceTtlMs;
-    pendingRemoteIceCandidates = pendingRemoteIceCandidates.filter((entry) => entry.receivedAt >= cutoff);
+    const retained = pendingRemoteIceCandidates.filter((entry) => entry.receivedAt >= cutoff);
+    expiredRemoteIceCandidateCount += pendingRemoteIceCandidates.length - retained.length;
+    pendingRemoteIceCandidates = retained;
   };
 
   const recordCandidateType = (target, candidate) => {
@@ -245,11 +249,16 @@ export function createP2PTransport({
       });
     });
 
-    if (transportInitiator) {
-      attachDataChannel(peerConnection.createDataChannel(dataChannelLabel, dataChannelOptions));
-      const offer = await peerConnection.createOffer();
-      await peerConnection.setLocalDescription(offer);
-      await signaling.sendOffer(descriptionToPayload(peerConnection.localDescription));
+    try {
+      if (transportInitiator) {
+        attachDataChannel(peerConnection.createDataChannel(dataChannelLabel, dataChannelOptions));
+        const offer = await peerConnection.createOffer();
+        await peerConnection.setLocalDescription(offer);
+        await signaling.sendOffer(descriptionToPayload(peerConnection.localDescription));
+      }
+    } catch (error) {
+      fail(error);
+      return ready();
     }
 
     return ready();
@@ -462,7 +471,9 @@ export function createP2PTransport({
         prunePendingRemoteIceCandidates();
         pendingRemoteIceCandidates.push({ payload: message.payload, receivedAt: now() });
         if (pendingRemoteIceCandidates.length > maxPendingIceCandidates) {
-          pendingRemoteIceCandidates.splice(0, pendingRemoteIceCandidates.length - maxPendingIceCandidates);
+          const droppedCount = pendingRemoteIceCandidates.length - maxPendingIceCandidates;
+          pendingRemoteIceCandidates.splice(0, droppedCount);
+          overflowRemoteIceCandidateCount += droppedCount;
         }
         return;
       }
@@ -522,6 +533,8 @@ export function createP2PTransport({
       localIceCandidateTypes: [...localIceCandidateTypes].sort(),
       remoteIceCandidateTypes: [...remoteIceCandidateTypes].sort(),
       pendingRemoteIceCandidateCount: pendingRemoteIceCandidates.length,
+      expiredRemoteIceCandidateCount,
+      overflowRemoteIceCandidateCount,
       iceTransportPolicy: rtcConfig?.iceTransportPolicy || 'all',
       stunConfigured: configuredServers.some((server) => (
         (Array.isArray(server.urls) ? server.urls : [server.urls])

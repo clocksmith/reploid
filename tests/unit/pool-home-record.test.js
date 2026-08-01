@@ -13,7 +13,8 @@ import {
   restoreLatestCompletedRun,
   setPoolRecordDisclosureOpen,
   setPoolRecordFacet,
-  setResult
+  setResult,
+  updateProviderStatus
 } from '../../self/ui/pool-home/view.js';
 
 const createMemoryStorage = () => {
@@ -111,6 +112,30 @@ describe('Poolday record ledgers', () => {
     expect(html).toContain('<td>0</td>');
   });
 
+  it('keeps a contributor visibly active while its relay is recovering', () => {
+    const mount = document.createElement('section');
+    mount.innerHTML = `
+      <span data-pool-provider-status></span>
+      <span data-pool-drawer-summary="network-device"></span>
+    `;
+
+    updateProviderStatus(mount, 'Relay retrying');
+    expect(mount.querySelector('[data-pool-provider-status]')).toMatchObject({
+      textContent: 'Relay retrying',
+      dataset: { providerState: 'degraded' }
+    });
+    expect(mount.querySelector('[data-pool-drawer-summary="network-device"]')).toMatchObject({
+      textContent: 'Relay retrying',
+      dataset: { providerState: 'degraded' }
+    });
+
+    updateProviderStatus(mount, 'Relay unavailable');
+    expect(mount.querySelector('[data-pool-provider-status]')).toHaveProperty('dataset.providerState', 'degraded');
+
+    updateProviderStatus(mount, 'Available');
+    expect(mount.querySelector('[data-pool-provider-status]')).toHaveProperty('dataset.providerState', 'online');
+  });
+
   it('labels points, reputation, and requester spend as distinct room records', () => {
     const room = `record-event-labels-${crypto.randomUUID()}`;
     setRoom(room);
@@ -170,6 +195,11 @@ describe('Poolday record ledgers', () => {
       <pre id="pool-run-result-raw"></pre>
       <pre id="pool-run-result-stream"></pre>
       <span id="pool-run-result-stream-cursor"></span>
+      <section id="pool-run-result-embedding-outcome" hidden>
+        <p id="pool-run-result-embedding-outcome-meta"></p>
+        <button data-pool-copy-embedding disabled></button>
+        <p data-pool-embedding-copy-status></p>
+      </section>
       <details id="pool-run-result-embedding-details" hidden><p id="pool-run-result-embedding-meta"></p><pre id="pool-run-result-embedding"></pre></details>
     `;
 
@@ -184,9 +214,51 @@ describe('Poolday record ledgers', () => {
 
     expect(document.getElementById('pool-run-result-raw').textContent).not.toContain('0.25');
     expect(document.getElementById('pool-run-result-raw').textContent).toContain('Rendered in Protein embedding');
+    expect(document.getElementById('pool-run-result-embedding-outcome').hidden).toBe(false);
+    expect(document.getElementById('pool-run-result-embedding-outcome-meta').textContent).toContain('3 dimensions');
+    expect(document.querySelector('[data-pool-copy-embedding]').disabled).toBe(false);
     expect(document.getElementById('pool-run-result-embedding-details').hidden).toBe(false);
     expect(document.getElementById('pool-run-result-embedding-meta').textContent).toContain('3 dimensions');
     expect(document.getElementById('pool-run-result-embedding').textContent).toContain('0.25');
+  });
+
+  it('retains contributor timeout diagnostics in the raw error details', () => {
+    document.body.innerHTML = `
+      <div id="pool-run-result-summary"></div>
+      <pre id="pool-run-result-raw"></pre>
+      <pre id="pool-run-result-stream"></pre>
+      <span id="pool-run-result-stream-cursor"></span>
+    `;
+
+    setResult('pool-run-result', {
+      status: 'error',
+      error: 'No matching provider is currently available',
+      reason: 'Peer receipt agreement failed: 0/1 matching receipts',
+      code: 'peer_provider_unresponsive',
+      payload: {
+        failedProviderIds: ['provider_reloaded'],
+        providerFailures: [{
+          providerId: 'provider_reloaded',
+          code: 'peer_receipt_timeout',
+          message: 'No peer receipt returned before the delivery deadline',
+          diagnostics: {
+            state: 'failed',
+            iceConnectionState: 'failed',
+            expiredRemoteIceCandidateCount: 2,
+            overflowRemoteIceCandidateCount: 1,
+            turnConfigured: false
+          }
+        }]
+      }
+    }, { stream: true, animate: false });
+
+    const raw = document.getElementById('pool-run-result-raw').textContent;
+    expect(raw).toContain('Code: peer_provider_unresponsive');
+    expect(raw).toContain('Contributors: provider_reloaded');
+    expect(raw).toContain('Contributor failures: provider_reloaded (peer_receipt_timeout)');
+    expect(raw).toContain('expired-ice=2');
+    expect(raw).toContain('dropped-ice=1');
+    expect(raw).toContain('turn=not-configured');
   });
 
   it('renders clean answer contributors while preserving the full result', () => {

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   canonicalize,
+  buildPoolReceipt,
   createSigningKeyPair,
   exportPublicKey,
   hashJson,
@@ -32,6 +33,11 @@ import {
   buildRuntimeProfile,
   hashRuntimeProfile
 } from '../../self/pool/runtime-profile.js';
+import {
+  TEST_PUBLIC_PROTEIN_SEQUENCE,
+  makePublicProteinJobFields,
+  makeSequenceExecution
+} from '../helpers/pool-sequence-fixture.js';
 
 const runtimeModel = () => ({
   modelId: LAUNCH_MODEL.modelId,
@@ -40,7 +46,10 @@ const runtimeModel = () => ({
   runtime: LAUNCH_MODEL.runtime,
   backend: LAUNCH_MODEL.backend,
   contextLength: LAUNCH_MODEL.contextLength,
-  quantization: LAUNCH_MODEL.quantization
+  quantization: LAUNCH_MODEL.quantization,
+  workload: LAUNCH_MODEL.workload,
+  executionMode: LAUNCH_MODEL.executionMode,
+  sequence: LAUNCH_MODEL.sequence
 });
 
 const fakeRuntime = () => ({
@@ -49,7 +58,7 @@ const fakeRuntime = () => ({
   getRuntimeInfo: () => ({
     runtime: LAUNCH_MODEL.runtime,
     backend: LAUNCH_MODEL.backend,
-    publicApi: 'generate',
+    publicApi: 'encodeSequence',
     profile: { implementation: 'peer-test' }
   }),
   getDeviceInfo: async () => ({
@@ -69,7 +78,7 @@ const fakeRuntime = () => ({
       runtimeInfo: {
         runtime: LAUNCH_MODEL.runtime,
         backend: LAUNCH_MODEL.backend,
-        publicApi: 'generate',
+        publicApi: 'encodeSequence',
         profile: { implementation: 'peer-test' }
       },
       deviceInfo: {
@@ -91,22 +100,13 @@ const fakeRuntime = () => ({
       runtimeProfileHash: await hashRuntimeProfile(runtimeProfile)
     };
   },
-  generate: async ({ prompt }) => ({
-    outputText: `peer:${prompt}`,
-    tokenIds: [7, 8, 9],
-    transcript: {
-      outputText: `peer:${prompt}`,
-      tokenIds: [7, 8, 9]
-    },
-    tokenCounts: {
-      input: 2,
-      output: 3
-    },
+  encodeSequence: async ({ sequence, request, assignment }) => makeSequenceExecution({
+    assignment: { ...assignment, sequenceRequest: request },
+    sequence,
     timing: {
       startedAt: '2026-06-14T00:00:00.000Z',
       completedAt: '2026-06-14T00:00:01.000Z'
-    },
-    status: 'completed'
+    }
   })
 });
 
@@ -115,20 +115,25 @@ const launchModelAdvert = () => ({
   modelHash: LAUNCH_MODEL.modelHash,
   manifestHash: LAUNCH_MODEL.manifestHash,
   runtime: LAUNCH_MODEL.runtime,
-  backend: LAUNCH_MODEL.backend
+  backend: LAUNCH_MODEL.backend,
+  workload: LAUNCH_MODEL.workload,
+  executionMode: LAUNCH_MODEL.executionMode,
+  sequence: LAUNCH_MODEL.sequence
 });
 
-const embeddingModelAdvert = () => {
-  const model = getEnabledPoolModelContract('qwen-3-embedding-0-6b-q4k-ehf16-af32');
-  return {
-    modelId: model.modelId,
-    modelHash: model.modelHash,
-    manifestHash: model.manifestHash,
-    runtime: model.runtime,
-    backend: model.backend,
-    workload: model.workload,
-    executionMode: model.executionMode
-  };
+const createSequenceJobIntent = async (options = {}) => {
+  const sequenceFields = await makePublicProteinJobFields(options.sequence || TEST_PUBLIC_PROTEIN_SEQUENCE);
+  return createSignedJobIntent({
+    ...options,
+    prompt: undefined,
+    sequence: options.sequence || TEST_PUBLIC_PROTEIN_SEQUENCE,
+    sequenceRequest: options.sequenceRequest || sequenceFields.sequenceRequest,
+    modelRequirements: {
+      ...launchModelAdvert(),
+      ...(options.modelRequirements || {}),
+      sequenceRequest: options.sequenceRequest || sequenceFields.sequenceRequest
+    }
+  });
 };
 
 const sequenceModelAdvert = () => {
@@ -150,19 +155,20 @@ describe('pool peer control plane', () => {
     const keyPair = await createSigningKeyPair();
     const publicKey = await exportPublicKey(keyPair.publicKey);
     const prompt = 'private requester prompt';
-    const result = await createSignedJobIntent({
+    const result = await createSequenceJobIntent({
       requesterId: 'requester_peer',
       requesterPublicKey: publicKey,
       privateKey: keyPair.privateKey,
-      prompt,
+      sequence: TEST_PUBLIC_PROTEIN_SEQUENCE,
       modelRequirements: launchModelAdvert()
     });
 
     expect(await verifyPeerMessage(result.intent)).toMatchObject({ ok: true });
-    expect(result.inputHash).toBe(await sha256Hex(prompt));
-    expect(result.intent.body.promptTransport).toBe('webrtc_datachannel');
-    expect(JSON.stringify(result.intent)).not.toContain(prompt);
-    expect(result.prompt).toBe(prompt);
+    expect(result.inputHash).toBe(await sha256Hex(TEST_PUBLIC_PROTEIN_SEQUENCE));
+    expect(result.intent.body.inputTransport).toBe('webrtc_datachannel');
+    expect(result.intent.body.sequenceRequest).toMatchObject({ alphabet: 'amino_acid' });
+    expect(JSON.stringify(result.intent)).not.toContain(TEST_PUBLIC_PROTEIN_SEQUENCE);
+    expect(result.sequence).toBe(TEST_PUBLIC_PROTEIN_SEQUENCE);
   });
 
   it('advertises sequence capability without requiring request-specific sequence data', async () => {
@@ -191,11 +197,10 @@ describe('pool peer control plane', () => {
   it('builds deterministic peer assignment plans from signed provider adverts', async () => {
     const requesterKeys = await createSigningKeyPair();
     const requesterPublicKey = await exportPublicKey(requesterKeys.publicKey);
-    const intent = await createSignedJobIntent({
+    const intent = await createSequenceJobIntent({
       requesterId: 'requester_ring',
       requesterPublicKey,
       privateKey: requesterKeys.privateKey,
-      prompt: 'ring peer prompt',
       policyId: 'ring_quorum_receipt',
       modelRequirements: launchModelAdvert()
     });
@@ -228,18 +233,18 @@ describe('pool peer control plane', () => {
     expect(first.assignments.map((assignment) => assignment.assignmentId)).toEqual(
       second.assignments.map((assignment) => assignment.assignmentId)
     );
-    expect(first.assignments.every((assignment) => assignment.requiresPromptPayload === true)).toBe(true);
-    expect(first.assignments.every((assignment) => assignment.prompt === undefined)).toBe(true);
+    expect(first.assignments.every((assignment) => assignment.requiresInputPayload === true)).toBe(true);
+    expect(first.assignments.every((assignment) => assignment.requiresPromptPayload === false)).toBe(true);
+    expect(first.assignments.every((assignment) => assignment.sequenceRequest?.alphabet === 'amino_acid')).toBe(true);
   });
 
   it('binds peer assignments to the advert, participation profile, limits, and route', async () => {
     const requesterKeys = await createSigningKeyPair();
     const providerKeys = await createSigningKeyPair();
-    const intent = await createSignedJobIntent({
+    const intent = await createSequenceJobIntent({
       requesterId: 'requester_bound_assignment',
       requesterPublicKey: await exportPublicKey(requesterKeys.publicKey),
       privateKey: requesterKeys.privateKey,
-      prompt: 'bound assignment prompt',
       modelRequirements: launchModelAdvert()
     });
     const advert = await createSignedProviderAdvert({
@@ -287,11 +292,10 @@ describe('pool peer control plane', () => {
   it('selects a homogeneous runtime-profile group for strict ring quorum', async () => {
     const requesterKeys = await createSigningKeyPair();
     const requesterPublicKey = await exportPublicKey(requesterKeys.publicKey);
-    const intent = await createSignedJobIntent({
+    const intent = await createSequenceJobIntent({
       requesterId: 'requester_runtime_group',
       requesterPublicKey,
       privateKey: requesterKeys.privateKey,
-      prompt: 'runtime compatible ring prompt',
       policyId: 'ring_quorum_receipt',
       modelRequirements: launchModelAdvert()
     });
@@ -326,11 +330,10 @@ describe('pool peer control plane', () => {
   it('forms receipt agreement and signed ledger events from matching peer receipts', async () => {
     const requesterKeys = await createSigningKeyPair();
     const requesterPublicKey = await exportPublicKey(requesterKeys.publicKey);
-    const intent = await createSignedJobIntent({
+    const intent = await createSequenceJobIntent({
       requesterId: 'requester_agreement',
       requesterPublicKey,
       privateKey: requesterKeys.privateKey,
-      prompt: 'agreement prompt',
       policyId: 'ring_quorum_receipt',
       modelRequirements: launchModelAdvert()
     });
@@ -356,36 +359,16 @@ describe('pool peer control plane', () => {
       jobIntent: intent.intent,
       providerAdverts: adverts
     });
-    const outputText = 'matching output';
-    const tokenIds = [1, 2, 3];
-    const outputHash = await sha256Hex(outputText);
-    const tokenIdsHash = await sha256Hex(canonicalize(tokenIds));
     const receiptPayloads = await Promise.all(plan.assignments.map(async (assignment) => {
-      const rawReceipt = {
-        receiptVersion: 'reploid_browser_inference/v1',
-        signatureDomain: SIGNATURE_DOMAINS.providerReceipt,
-        assignmentId: assignment.assignmentId,
-        routeDecisionHash: assignment.routeDecisionHash,
-        jobId: assignment.jobId,
-        requesterId: assignment.requesterId,
-        providerId: assignment.providerId,
-        policyId: assignment.policyId,
-        model: assignment.model,
-        inputHash: assignment.inputHash,
-        generationConfigHash: assignment.generationConfigHash,
-        outputHash,
-        tokenIdsHash,
-        tokenCounts: {
-          input: 8,
-          output: 3
-        },
-        verification: {
-          runtimeProfileHash: assignment.runtimeProfileHash
-        },
-        status: 'completed'
-      };
       const keys = providerKeysById.get(assignment.providerId);
-      const receipt = await signProviderReceipt(rawReceipt, keys.privateKey);
+      const execution = await makeSequenceExecution({ assignment });
+      const receipt = await signProviderReceipt(await buildPoolReceipt({
+        assignment,
+        provider: { device: {}, runtimeProfileHash: assignment.runtimeProfileHash },
+        model: assignment.model,
+        runtime: { runtime: LAUNCH_MODEL.runtime, backend: LAUNCH_MODEL.backend },
+        execution
+      }), keys.privateKey);
       return createReceiptPayload({
         assignment,
         receiptRecord: {
@@ -393,8 +376,7 @@ describe('pool peer control plane', () => {
           providerId: assignment.providerId,
           requesterId: assignment.requesterId,
           receipt,
-          outputText,
-          tokenIds
+          ...execution
         },
         fromPeerId: assignment.providerId,
         toPeerId: assignment.requesterId
@@ -433,30 +415,29 @@ describe('pool peer control plane', () => {
     }
   });
 
-  it('forms embedding agreement from matching vector hashes instead of token ids', async () => {
+  it('forms sequence agreement from matching signed sequence-result hashes', async () => {
     const requesterKeys = await createSigningKeyPair();
     const requesterPublicKey = await exportPublicKey(requesterKeys.publicKey);
-    const intent = await createSignedJobIntent({
-      requesterId: 'requester_embedding_agreement',
+    const intent = await createSequenceJobIntent({
+      requesterId: 'requester_sequence_agreement',
       requesterPublicKey,
       privateKey: requesterKeys.privateKey,
-      prompt: 'find semantically similar documents',
       policyId: 'ring_quorum_receipt',
-      modelRequirements: embeddingModelAdvert()
+      modelRequirements: launchModelAdvert()
     });
     const adverts = [];
     const providerKeysById = new Map();
     for (let index = 0; index < 3; index += 1) {
       const providerKeys = await createSigningKeyPair();
-      const providerId = `provider_embedding_${index}`;
+      const providerId = `provider_sequence_${index}`;
       providerKeysById.set(providerId, providerKeys);
       const providerPublicKey = await exportPublicKey(providerKeys.publicKey);
       adverts.push(await createSignedProviderAdvert({
         providerId,
         providerPublicKey,
         privateKey: providerKeys.privateKey,
-        models: [embeddingModelAdvert()],
-        runtimeProfileHash: 'sha256:runtime_embedding_shared',
+        models: [launchModelAdvert()],
+        runtimeProfileHash: 'sha256:runtime_sequence_shared',
         availability: {
           acceptedPolicies: ['ring_quorum_receipt']
         }
@@ -468,48 +449,19 @@ describe('pool peer control plane', () => {
     });
 
     expect(plan.ok).toBe(true);
-    expect(plan.ring.agreementField).toBe('vectorHash');
-    expect(plan.assignments.every((assignment) => assignment.workload === 'embedding')).toBe(true);
-
-    const outputHash = await sha256Hex('');
-    const tokenIdsHash = await sha256Hex(canonicalize([]));
+    expect(plan.ring.agreementField).toBe('sequenceResultHash');
+    expect(plan.assignments.every((assignment) => assignment.workload === 'sequence.embedding.v1')).toBe(true);
 
     const receiptPayloads = await Promise.all(plan.assignments.map(async (assignment) => {
-      const rawReceipt = {
-        receiptVersion: 'reploid_browser_inference/v1',
-        signatureDomain: SIGNATURE_DOMAINS.providerReceipt,
-        assignmentId: assignment.assignmentId,
-        routeDecisionHash: assignment.routeDecisionHash,
-        jobId: assignment.jobId,
-        requesterId: assignment.requesterId,
-        providerId: assignment.providerId,
-        policyId: assignment.policyId,
-        model: assignment.model,
-        outputKind: 'embedding',
-        inputHash: assignment.inputHash,
-        generationConfigHash: assignment.generationConfigHash,
-        outputHash,
-        tokenIdsHash,
-        vectorHash: 'sha256:matching_vector',
-        tokenCounts: {
-          input: 5,
-          output: 0
-        },
-        embedding: {
-          dimensions: 1024,
-          stats: {
-            dimensions: 1024,
-            nonFiniteCount: 0,
-            l2Norm: 1
-          }
-        },
-        verification: {
-          runtimeProfileHash: assignment.runtimeProfileHash
-        },
-        status: 'completed'
-      };
       const keys = providerKeysById.get(assignment.providerId);
-      const receipt = await signProviderReceipt(rawReceipt, keys.privateKey);
+      const execution = await makeSequenceExecution({ assignment });
+      const receipt = await signProviderReceipt(await buildPoolReceipt({
+        assignment,
+        provider: { device: {}, runtimeProfileHash: assignment.runtimeProfileHash },
+        model: assignment.model,
+        runtime: { runtime: LAUNCH_MODEL.runtime, backend: LAUNCH_MODEL.backend },
+        execution
+      }), keys.privateKey);
       return createReceiptPayload({
         assignment,
         receiptRecord: {
@@ -517,9 +469,7 @@ describe('pool peer control plane', () => {
           providerId: assignment.providerId,
           requesterId: assignment.requesterId,
           receipt,
-          outputKind: 'embedding',
-          vectorHash: receipt.vectorHash,
-          embeddingDimensions: 1024
+          ...execution
         },
         fromPeerId: assignment.providerId,
         toPeerId: assignment.requesterId
@@ -529,8 +479,8 @@ describe('pool peer control plane', () => {
     const agreement = await buildPeerReceiptAgreement({ plan, receiptPayloads });
 
     expect(agreement.accepted).toBe(true);
-    expect(agreement.agreementField).toBe('vectorHash');
-    expect(agreement.vectorHash).toBe('sha256:matching_vector');
+    expect(agreement.agreementField).toBe('sequenceResultHash');
+    expect(agreement.sequenceResultHash).toBe(receiptPayloads[0].body.sequenceResultHash);
     expect(agreement.tokenIdsHash).toBe(await hashJson([]));
   });
 
@@ -539,11 +489,10 @@ describe('pool peer control plane', () => {
     const providerKeys = await createSigningKeyPair();
     const requesterPublicKey = await exportPublicKey(requesterKeys.publicKey);
     const providerPublicKey = await exportPublicKey(providerKeys.publicKey);
-    const intent = await createSignedJobIntent({
+    const intent = await createSequenceJobIntent({
       requesterId: 'requester_spend_limit',
       requesterPublicKey,
       privateKey: requesterKeys.privateKey,
-      prompt: 'spend limited prompt',
       maxPointSpend: 1,
       modelRequirements: launchModelAdvert()
     });
@@ -562,41 +511,20 @@ describe('pool peer control plane', () => {
       providerAdverts: [advert]
     });
     const assignment = plan.assignment;
-    const outputText = 'spend output';
-    const tokenIds = [1, 2, 3];
-    const outputHash = await sha256Hex(outputText);
-    const tokenIdsHash = await sha256Hex(canonicalize(tokenIds));
-    const rawReceipt = {
-      receiptVersion: 'reploid_browser_inference/v1',
-      signatureDomain: SIGNATURE_DOMAINS.providerReceipt,
-      assignmentId: assignment.assignmentId,
-      routeDecisionHash: assignment.routeDecisionHash,
-      jobId: assignment.jobId,
-      requesterId: assignment.requesterId,
-      providerId: assignment.providerId,
-      policyId: assignment.policyId,
+    const execution = await makeSequenceExecution({ assignment });
+    const receipt = await signProviderReceipt(await buildPoolReceipt({
+      assignment,
+      provider: { device: {}, runtimeProfileHash: assignment.runtimeProfileHash },
       model: assignment.model,
-      inputHash: assignment.inputHash,
-      generationConfigHash: assignment.generationConfigHash,
-      outputHash,
-      tokenIdsHash,
-      tokenCounts: {
-        input: 8,
-        output: 3
-      },
-      verification: {
-        runtimeProfileHash: assignment.runtimeProfileHash
-      },
-      status: 'completed'
-    };
-    const receipt = await signProviderReceipt(rawReceipt, providerKeys.privateKey);
+      runtime: { runtime: LAUNCH_MODEL.runtime, backend: LAUNCH_MODEL.backend },
+      execution
+    }), providerKeys.privateKey);
     const receiptPayload = await createReceiptPayload({
       assignment,
       receiptRecord: {
         receiptHash: await hashJson(receipt),
         receipt,
-        outputText,
-        tokenIds
+        ...execution
       },
       fromPeerId: assignment.providerId,
       toPeerId: assignment.requesterId
@@ -644,9 +572,14 @@ describe('pool peer control plane', () => {
         }
       }
     });
+    const sequenceFields = await makePublicProteinJobFields();
     const intent = await requester.createPeerJobIntent({
-      prompt: 'peer-only prompt',
-      modelRequirements: launchModelAdvert()
+      sequence: TEST_PUBLIC_PROTEIN_SEQUENCE,
+      sequenceRequest: sequenceFields.sequenceRequest,
+      modelRequirements: {
+        ...launchModelAdvert(),
+        sequenceRequest: sequenceFields.sequenceRequest
+      }
     });
     const advert = await provider.createPeerProviderAdvert({
       availability: {
@@ -657,17 +590,17 @@ describe('pool peer control plane', () => {
       jobIntent: intent.intent,
       providerAdverts: [advert]
     });
-    const promptPayload = await requester.createPeerPromptPayload({
+    const sequencePayload = await requester.createPeerSequencePayload({
       assignment: plan.assignment,
-      prompt: intent.prompt,
+      sequence: intent.sequence,
       toPeerId: plan.assignment.providerId
     });
-    const result = await provider.executePeerAssignment(plan.assignment, { promptPayload });
+    const result = await provider.executePeerAssignment(plan.assignment, { inputPayload: sequencePayload });
 
     expect(plan.ok).toBe(true);
-    expect(promptPayload.body.prompt).toBe('peer-only prompt');
+    expect(sequencePayload.body.sequence).toBe(TEST_PUBLIC_PROTEIN_SEQUENCE);
     expect(result.transport).toBe('webrtc_peer_control');
-    expect(result.execution.outputText).toBe('peer:peer-only prompt');
+    expect(result.execution.sequenceResult).toMatchObject({ workload: 'sequence.embedding.v1' });
     expect(result.receipt.inputHash).toBe(plan.assignment.inputHash);
     expect(result.receipt.providerSignature).toBeTruthy();
   });
@@ -698,9 +631,14 @@ describe('pool peer control plane', () => {
         acceptedPolicies: ['fastest_receipt']
       }
     });
+    const sequenceFields = await makePublicProteinJobFields();
     const intent = await requesterPlane.publishJobIntent({
-      prompt: 'bus prompt',
-      modelRequirements: launchModelAdvert()
+      sequence: TEST_PUBLIC_PROTEIN_SEQUENCE,
+      sequenceRequest: sequenceFields.sequenceRequest,
+      modelRequirements: {
+        ...launchModelAdvert(),
+        sequenceRequest: sequenceFields.sequenceRequest
+      }
     });
     await new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -730,11 +668,10 @@ describe('pool peer control plane', () => {
 
     const keyPair = await createSigningKeyPair();
     const publicKey = await exportPublicKey(keyPair.publicKey);
-    const result = await createSignedJobIntent({
+    const result = await createSequenceJobIntent({
       requesterId: 'requester_datachannel',
       requesterPublicKey: publicKey,
       privateKey: keyPair.privateKey,
-      prompt: 'datachannel prompt',
       modelRequirements: launchModelAdvert()
     });
 

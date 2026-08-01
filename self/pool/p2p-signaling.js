@@ -1,3 +1,5 @@
+import { boundedRetryDelay, retryAfterMsFromError } from './retry-policy.js';
+
 export const SIGNAL_TYPES = Object.freeze({
   OFFER: 'offer',
   ANSWER: 'answer',
@@ -7,6 +9,9 @@ export const SIGNAL_TYPES = Object.freeze({
 });
 
 export const DEFAULT_SIGNAL_POLL_TIMEOUT_MS = 5000;
+export const DEFAULT_SIGNAL_FAILURE_THRESHOLD = 3;
+export const DEFAULT_SIGNAL_POLL_BACKOFF_BASE_MS = 1000;
+export const DEFAULT_SIGNAL_POLL_BACKOFF_MAX_MS = 30000;
 
 export function createSignalId(prefix = 'sig') {
   if (globalThis.crypto?.randomUUID) {
@@ -158,6 +163,9 @@ export function createPollingSignalingAdapter({
   peerId = null,
   after = 0,
   pollTimeoutMs = DEFAULT_SIGNAL_POLL_TIMEOUT_MS,
+  failureThreshold = DEFAULT_SIGNAL_FAILURE_THRESHOLD,
+  pollBackoffBaseMs = DEFAULT_SIGNAL_POLL_BACKOFF_BASE_MS,
+  pollBackoffMaxMs = DEFAULT_SIGNAL_POLL_BACKOFF_MAX_MS,
   onStatus = null,
   close = null,
 } = {}) {
@@ -176,6 +184,34 @@ export function createPollingSignalingAdapter({
   };
   let timer = null;
   let stopped = false;
+  let circuitState = 'closed';
+  let consecutivePollFailures = 0;
+  let lastPollRetryAfterMs = 0;
+  const normalizedPollIntervalMs = Math.max(1, Number(pollIntervalMs || 1));
+  const emitStatus = (type, detail = {}) => {
+    if (typeof onStatus !== 'function') return;
+    try {
+      onStatus({ type, circuitState, consecutivePollFailures, ...detail });
+    } catch {
+      // Status presentation cannot break signaling recovery.
+    }
+  };
+  const nextPollDelay = (retryAfterMs = 0) => {
+    if (consecutivePollFailures === 0) return Math.max(normalizedPollIntervalMs, Number(retryAfterMs || 0));
+    return boundedRetryDelay({
+      consecutiveFailures: consecutivePollFailures,
+      baseDelayMs: pollBackoffBaseMs,
+      maxDelayMs: pollBackoffMaxMs,
+      retryAfterMs
+    });
+  };
+  const schedulePoll = (poll, delay = nextPollDelay()) => {
+    if (stopped || timer) return;
+    timer = globalThis.setTimeout(() => {
+      timer = null;
+      void poll();
+    }, Math.max(0, Number(delay || 0)));
+  };
   const withTimeout = (promise) => new Promise((resolve, reject) => {
     const timeout = globalThis.setTimeout(() => reject(new Error('signaling relay poll timed out')), Math.max(1, Number(pollTimeoutMs || 1)));
     Promise.resolve(promise).then(
@@ -190,11 +226,16 @@ export function createPollingSignalingAdapter({
     );
   });
 
-  return createCallbackSignalingAdapter({
+  const adapter = createCallbackSignalingAdapter({
     publish: publishSignal,
     subscribe(onMessage) {
       const poll = async () => {
         if (stopped) return;
+        let scheduledPollDelay = nextPollDelay();
+        if (circuitState === 'open') {
+          circuitState = 'half_open';
+          emitStatus('signaling-circuit-half-open');
+        }
         try {
           const result = await withTimeout(listSignals({
             after: cursor.createdAt,
@@ -223,12 +264,32 @@ export function createPollingSignalingAdapter({
               messageId: String(last.id || '')
             };
           }
+          if (consecutivePollFailures > 0) emitStatus('signaling-poll-recovered');
+          if (circuitState !== 'closed') {
+            circuitState = 'closed';
+            emitStatus('signaling-circuit-closed');
+          }
+          consecutivePollFailures = 0;
+          lastPollRetryAfterMs = 0;
         } catch (error) {
-          if (typeof onStatus === 'function') {
-            onStatus({ type: 'signaling-poll-failed', error: String(error?.message || error) });
+          consecutivePollFailures += 1;
+          const threshold = Math.max(1, Number(failureThreshold || 1));
+          lastPollRetryAfterMs = retryAfterMsFromError(error, { maxDelayMs: pollBackoffMaxMs });
+          const retryDelayMs = nextPollDelay(lastPollRetryAfterMs);
+          scheduledPollDelay = retryDelayMs;
+          emitStatus('signaling-poll-failed', {
+            error: String(error?.message || error),
+            retryDelayMs,
+            retryAfterMs: lastPollRetryAfterMs || null
+          });
+          if (consecutivePollFailures >= threshold) {
+            circuitState = 'open';
+            emitStatus('signaling-circuit-open', { retryDelayMs });
+          } else {
+            circuitState = 'retrying';
           }
         } finally {
-          if (!stopped) timer = globalThis.setTimeout(poll, pollIntervalMs);
+          schedulePoll(poll, scheduledPollDelay);
         }
       };
       void poll();
@@ -245,6 +306,17 @@ export function createPollingSignalingAdapter({
       if (typeof close === 'function') close();
     },
   });
+  return Object.freeze({
+    ...adapter,
+    getStatus() {
+      return Object.freeze({
+        cursor: { ...cursor },
+        circuitState,
+        consecutivePollFailures,
+        lastPollRetryAfterMs
+      });
+    }
+  });
 }
 
 export function createPoolSdkSignalingAdapter({
@@ -254,6 +326,9 @@ export function createPoolSdkSignalingAdapter({
   pollIntervalMs = 1000,
   after = 0,
   pollTimeoutMs = DEFAULT_SIGNAL_POLL_TIMEOUT_MS,
+  failureThreshold = DEFAULT_SIGNAL_FAILURE_THRESHOLD,
+  pollBackoffBaseMs = DEFAULT_SIGNAL_POLL_BACKOFF_BASE_MS,
+  pollBackoffMaxMs = DEFAULT_SIGNAL_POLL_BACKOFF_MAX_MS,
   onStatus = null,
 } = {}) {
   if (!sdk || typeof sdk.publishSignal !== 'function' || typeof sdk.listSignals !== 'function') {
@@ -267,6 +342,9 @@ export function createPoolSdkSignalingAdapter({
     peerId: boundPeerId,
     after,
     pollTimeoutMs,
+    failureThreshold,
+    pollBackoffBaseMs,
+    pollBackoffMaxMs,
     onStatus,
     publishSignal(message) {
       return sdk.publishSignal(boundSessionId, message).then((result) => result?.message || result);

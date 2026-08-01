@@ -72,4 +72,25 @@ describe('Pool SDK client identity', () => {
       'https://pool.test/adapter-canaries/sha256%3Atest'
     ]);
   });
+
+  it('preserves a trusted relay retry deadline on rate-limit errors', async () => {
+    const fetchMock = vi.fn(async () => ({
+      ok: false,
+      status: 429,
+      headers: { get: (name) => name === 'Retry-After' ? '7' : null },
+      json: async () => ({ error: 'pool rate limit exceeded', retryable: true, retryAfter: 7 })
+    }));
+    vi.stubGlobal('fetch', fetchMock);
+    const sdk = createPoolSdk({
+      baseUrl: 'https://pool.test',
+      authTokenProvider: null,
+      clientId: 'rate-limited-client'
+    });
+
+    await expect(sdk.listPeerRoomMessages('room-a')).rejects.toMatchObject({
+      status: 429,
+      retryAfterMs: 7000,
+      payload: { retryAfter: 7 }
+    });
+  });
 });

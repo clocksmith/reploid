@@ -73,12 +73,20 @@ const POOL_ROOM_ACTIVITY_POLL_MS = 5000;
 const POOL_ADAPTER_DISCOVERY_TIMEOUT_MS = 5000;
 const POOL_SEQUENCE_PUBLIC_CONSENT_KEY = 'reploid.pool.sequence-public-consent.v1';
 export const POOL_CONTRIBUTION_RESUME_STORAGE_KEY = 'reploid.pool.contribution-resume.v1';
+export const POOL_PENDING_REQUEST_STORAGE_KEY = 'reploid.pool.pending-request.v1';
+const POOL_PENDING_REQUEST_VERSION = 1;
+const POOL_PENDING_REQUEST_TTL_MS = 15 * 60 * 1000;
 
 const readContributionResumeIntent = () => {
   try {
     const parsed = JSON.parse(window.sessionStorage?.getItem(POOL_CONTRIBUTION_RESUME_STORAGE_KEY) || 'null');
     return parsed?.active === true ? parsed : null;
   } catch {
+    try {
+      window.sessionStorage?.removeItem(POOL_CONTRIBUTION_RESUME_STORAGE_KEY);
+    } catch {
+      // A malformed recovery record must not prevent the current page from loading.
+    }
     return null;
   }
 };
@@ -104,6 +112,64 @@ const clearContributionResumeIntent = () => {
     window.sessionStorage?.removeItem(POOL_CONTRIBUTION_RESUME_STORAGE_KEY);
   } catch {
     // The current provider session still stops when persistence is unavailable.
+  }
+};
+
+const pendingRequestIsRecoverable = (record, { navigationType = pageIdentityNavigationType() } = {}) => {
+  if (!record || typeof record !== 'object') return false;
+  if (navigationType !== 'reload' && navigationType !== 'back_forward') return false;
+  if (record.version !== POOL_PENDING_REQUEST_VERSION || record.lane !== 'sequence') return false;
+  if (record.sensitivity !== SEQUENCE_PUBLIC_SENSITIVITY || typeof record.sequence !== 'string' || !record.sequence.trim()) return false;
+  if (record.roomId !== getPeerRoomId() || record.relay !== getPeerRelayMode()) return false;
+  const startedAt = Date.parse(record.startedAt || '');
+  return Number.isFinite(startedAt) && Date.now() - startedAt >= 0 && Date.now() - startedAt <= POOL_PENDING_REQUEST_TTL_MS;
+};
+
+const readPendingRequestRecovery = () => {
+  try {
+    const record = JSON.parse(window.sessionStorage?.getItem(POOL_PENDING_REQUEST_STORAGE_KEY) || 'null');
+    if (pendingRequestIsRecoverable(record)) return record;
+    window.sessionStorage?.removeItem(POOL_PENDING_REQUEST_STORAGE_KEY);
+  } catch {
+    try {
+      window.sessionStorage?.removeItem(POOL_PENDING_REQUEST_STORAGE_KEY);
+    } catch {
+      // A malformed recovery record must not prevent the current page from loading.
+    }
+  }
+  return null;
+};
+
+const writePendingRequestRecovery = (request) => {
+  if (
+    request?.lane !== 'sequence'
+    || request?.sequenceRequest?.sensitivity !== SEQUENCE_PUBLIC_SENSITIVITY
+    || typeof request.sequence !== 'string'
+    || !request.sequence.trim()
+  ) return;
+  const record = {
+    version: POOL_PENDING_REQUEST_VERSION,
+    lane: 'sequence',
+    sequence: request.sequence,
+    selectedModelId: request.selectedModel?.modelId || null,
+    policyId: request.policyId || FASTEST_RECEIPT_POLICY_ID,
+    roomId: getPeerRoomId(),
+    relay: getPeerRelayMode(),
+    sensitivity: SEQUENCE_PUBLIC_SENSITIVITY,
+    startedAt: new Date().toISOString()
+  };
+  try {
+    window.sessionStorage?.setItem(POOL_PENDING_REQUEST_STORAGE_KEY, JSON.stringify(record));
+  } catch {
+    // The current run continues, but a reload cannot offer restoration.
+  }
+};
+
+const clearPendingRequestRecovery = () => {
+  try {
+    window.sessionStorage?.removeItem(POOL_PENDING_REQUEST_STORAGE_KEY);
+  } catch {
+    // The in-memory request state remains valid for the current page.
   }
 };
 
@@ -834,6 +900,13 @@ const RUN_ACTIVITY_COPY = Object.freeze({
   peer_run_intent_created: 'Request signed',
   peer_provider_discovery_started: 'Finding compatible contributor tabs',
   peer_assignment_planned: 'Contributor tabs matched',
+  'relay-publish-retrying': 'Retrying relay publish',
+  'relay-poll-failed': 'Relay delayed — retrying',
+  'relay-dispatch-retrying': 'Retrying local message delivery',
+  'relay-dispatch-recovered': 'Message delivery recovered',
+  'relay-circuit-open': 'Relay unavailable — retrying shortly',
+  'relay-circuit-half-open': 'Checking relay recovery',
+  'relay-circuit-closed': 'Relay connection recovered',
   peer_inference_started: 'Contributor tabs are answering',
   peer_transport_retrying: 'Retrying through relay transport',
   peer_receipts_received: 'Checking returned receipts',
@@ -1056,6 +1129,80 @@ const bindPeerRunSurface = ({
       }
     ]
   });
+  const requestFromPendingRecovery = (record) => {
+    const selectedModel = getEnabledPoolModelContract(record?.selectedModelId);
+    if (!selectedModel || !isSequenceWorkload(getPoolModelWorkload(selectedModel))) return null;
+    return {
+      lane: 'sequence',
+      promptText: null,
+      sequence: record.sequence.trim(),
+      sequenceRequest: {
+        workload: getPoolModelWorkload(selectedModel),
+        alphabet: selectedModel.sequence?.alphabet || SEQUENCE_ALPHABETS.aminoAcid,
+        sensitivity: SEQUENCE_PUBLIC_SENSITIVITY,
+        includeTokenEmbeddings: false,
+        includeLogits: false
+      },
+      selectedModel,
+      modelRequirements: selectedModel,
+      adapterPackHash: null,
+      policyId: record.policyId || FASTEST_RECEIPT_POLICY_ID
+    };
+  };
+  const buildInterruptedRequestRecovery = (request) => ({
+    kind: 'request_interrupted',
+    title: 'Previous request was interrupted',
+    message: `This tab reloaded before a verified result arrived from "${getPeerRoomId()}". The request has not been resumed or sent again.`,
+    details: [
+      `The explicitly public protein sequence remains in this browser tab for ${Math.round(POOL_PENDING_REQUEST_TTL_MS / 60000)} minutes.`,
+      'Retry creates a new peer request and a new receipt path.',
+      `Selected model: ${modelLabelOf(request.selectedModel)}.`
+    ],
+    actions: [
+      {
+        id: 'retry_interrupted_request',
+        label: 'Retry request',
+        primary: true
+      },
+      {
+        id: 'discard_interrupted_request',
+        label: 'Discard'
+      }
+    ]
+  });
+  const restoreInterruptedRequest = () => {
+    const persisted = readPendingRequestRecovery();
+    if (!persisted) return false;
+    const restoredRequest = requestFromPendingRecovery(persisted);
+    if (!restoredRequest) {
+      clearPendingRequestRecovery();
+      return false;
+    }
+    pendingRequest = restoredRequest;
+    if (prompt) prompt.value = restoredRequest.sequence;
+    if (modelSelect) modelSelect.value = restoredRequest.selectedModel.modelId;
+    if (sequencePublicControl) {
+      sequencePublicControl.checked = true;
+      syncSequencePublicConsent(sequencePublicControl);
+    }
+    const interrupted = {
+      status: 'error',
+      statusLabel: 'Interrupted',
+      error: 'Previous request needs a decision',
+      reason: 'This tab reloaded before a verified result arrived.',
+      code: 'peer_request_interrupted',
+      retryable: true,
+      action: 'Retry the request or discard the preserved input.',
+      roomId: getPeerRoomId(),
+      relay: getPeerRelayMode(),
+      model: restoredRequest.selectedModel,
+      recovery: buildInterruptedRequestRecovery(restoredRequest)
+    };
+    pendingErrorResult = interrupted;
+    setResult(resultId, interrupted, { stream: true });
+    updateRunState('error', 'recovery', 'Previous request needs a decision');
+    return true;
+  };
 
   const setRunButtonBusy = (busy, label = 'Running') => {
     if (busy) {
@@ -1153,6 +1300,7 @@ const bindPeerRunSurface = ({
       if (!request) return;
       pendingRequest = request;
       pendingErrorResult = null;
+      writePendingRequestRecovery(request);
       setResult(resultId, describeSelectedRun({
         status: usingKnownProvider ? 'starting_known_provider' : 'finding_peer_provider',
         policyId: request.policyId,
@@ -1175,11 +1323,10 @@ const bindPeerRunSurface = ({
         relayAckSigner: requesterClient.createRelayAcknowledgement.bind(requesterClient),
         generationConfig: getPeerGenerationConfig(),
         knownProviderAdverts: request.knownProviderAdverts || [],
-        rtcConfigProvider: getPeerRelayMode() === 'server'
-          // Server-relayed rooms need an Internet-safe data path.  Direct ICE
-          // remains available for local rooms; server rooms use their scoped
-          // TURN credentials so separate tabs and NAT-restricted peers do not
-          // depend on a host/srflx candidate pair winning the race.
+        rtcConfigProvider: getPeerRelayMode() === 'server' && window.REPLOID_POOL_FORCE_RELAY === true
+          // Public server-relay discovery may be anonymous.  Do not request
+          // scoped TURN credentials unless the caller explicitly requires the
+          // relay-only transport; direct ICE remains available by default.
           ? () => getPoolRtcConfig({ sdk: rtcSdk, forceRelay: true })
           : null,
         onActivity: handleRunActivity
@@ -1206,6 +1353,7 @@ const bindPeerRunSurface = ({
         request.lane === 'sequence' ? 'Protein embedding verified' : 'Answer verified'
       );
       pendingRequest = null;
+      clearPendingRequestRecovery();
     } catch (error) {
       const selectedModel = pendingRequest?.selectedModel
         || getEnabledPoolModelContract(modelSelect?.value || LAUNCH_MODEL.modelId)
@@ -1230,6 +1378,7 @@ const bindPeerRunSurface = ({
         pendingErrorResult = displayError;
       }
       setResult(resultId, displayError, { stream: true });
+      clearPendingRequestRecovery();
       updateRunState('error', 'match', networkUnavailable
         ? 'No matching provider is currently available'
         : 'Run needs attention');
@@ -1291,6 +1440,18 @@ const bindPeerRunSurface = ({
       void submitRunRequest(pendingRequest);
       return;
     }
+    if (actionId === 'retry_interrupted_request' && pendingRequest) {
+      void submitRunRequest(pendingRequest);
+      return;
+    }
+    if (actionId === 'discard_interrupted_request') {
+      clearPendingRequestRecovery();
+      pendingRequest = null;
+      pendingErrorResult = null;
+      setResult(resultId, '', { stream: true });
+      updateRunState('idle', '', 'Ready for a new request');
+      return;
+    }
     if (actionId === 'offer_local_provider' && pendingRequest && pendingErrorResult) {
       const runtime = window.REPLOID_DOPPLER_RUNTIME;
       if (typeof runtime?.prepare === 'function') {
@@ -1318,7 +1479,7 @@ const bindPeerRunSurface = ({
   };
   if (form) form.addEventListener('submit', submit);
   else button.addEventListener('click', submit);
-  updateRunState('idle');
+  if (!restoreInterruptedRequest()) updateRunState('idle');
 };
 
 const runWorkloadOf = (modelSelect) => (
@@ -1352,6 +1513,32 @@ export const bindRunControls = () => {
     });
     syncRunWorkloadAffordance(modelSelect);
   }
+};
+
+export const bindEmbeddingResultControls = () => {
+  document.querySelectorAll('[data-pool-copy-embedding]').forEach((button) => {
+    if (button.dataset.poolEmbeddingCopyBound === 'true') return;
+    button.dataset.poolEmbeddingCopyBound = 'true';
+    button.addEventListener('click', async () => {
+      const resultId = String(button.dataset.poolEmbeddingResultId || '').trim();
+      const vector = resultId ? document.getElementById(`${resultId}-embedding`)?.textContent?.trim() : '';
+      const status = button.closest('.pool-embedding-outcome')?.querySelector('[data-pool-embedding-copy-status]');
+      if (!vector) {
+        if (status) status.textContent = 'The embedding is not available to copy.';
+        return;
+      }
+      if (typeof navigator.clipboard?.writeText !== 'function') {
+        if (status) status.textContent = 'Clipboard access is unavailable. Open View embedding vector and copy it manually.';
+        return;
+      }
+      try {
+        await navigator.clipboard.writeText(vector);
+        if (status) status.textContent = 'Embedding vector copied.';
+      } catch {
+        if (status) status.textContent = 'Copy failed. Open View embedding vector and copy it manually.';
+      }
+    });
+  });
 };
 
 const setDrawerSummary = (sectionId, value) => {
@@ -1743,6 +1930,24 @@ const createProviderContributionController = () => {
   };
 
   const handlePeerActivity = (event) => {
+    if (event?.status === 'relay-publish-retrying'
+      || event?.status === 'relay-poll-failed'
+      || event?.status === 'relay-dispatch-retrying') {
+      setProviderStatus('Relay retrying');
+      updateProviderHealth({ queue: 'relay_retrying' });
+    }
+    if (event?.status === 'relay-circuit-open') {
+      setProviderStatus('Relay unavailable');
+      updateProviderHealth({ queue: 'relay_unavailable' });
+    }
+    if (event?.status === 'relay-circuit-half-open') {
+      setProviderStatus('Checking relay');
+      updateProviderHealth({ queue: 'relay_recovery_check' });
+    }
+    if (event?.status === 'relay-circuit-closed') {
+      setProviderStatus(workerRunning ? 'Available' : 'Starting');
+      updateProviderHealth({ queue: workerRunning ? 'listening' : 'starting' });
+    }
     if (event?.status === 'provider_advertised') {
       setProviderStatus('Available');
       updateProviderHealth({ queue: 'listening' });
@@ -1867,7 +2072,7 @@ const createProviderContributionController = () => {
       providerClient: getProviderClient(),
       roomBusFactory: getPeerRoomBusFactory(),
       relayAckSigner: getProviderClient().createRelayAcknowledgement.bind(getProviderClient()),
-      rtcConfigProvider: getPeerRelayMode() === 'server'
+      rtcConfigProvider: getPeerRelayMode() === 'server' && window.REPLOID_POOL_FORCE_RELAY === true
         ? () => getPoolRtcConfig({ sdk: adapterSdk, forceRelay: true })
         : null,
       onActivity: handlePeerActivity

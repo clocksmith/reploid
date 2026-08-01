@@ -10,6 +10,7 @@ import { LAUNCH_MODEL } from '../../self/pool/model-contract.js';
 import { createRoleDelegation, getDeviceRootIdentity } from '../../self/pool/device-identity.js';
 import { createSignedParticipationProfile } from '../../self/pool/participation-profile.js';
 import { validateLaunchModelRequirement } from '../../server/pool/model-contract.js';
+import { makePublicProteinJobFields } from '../helpers/pool-sequence-fixture.js';
 
 const fakeHash = (character) => `sha256:${character.repeat(64)}`;
 
@@ -167,9 +168,9 @@ describe('Poolday adapter coordinator routes', () => {
     expect(validation.reasons).toContain('adapter requirement does not match the selected exact base-model identity');
   });
 
-  it('publishes, advertises, approves, and schedules one exact adapter', async () => {
+  it('publishes, advertises, and approves one exact adapter while keeping sequence work on the peer lane', async () => {
     const store = createPoolStore();
-    const router = createPoolRouter({ store });
+    const router = createPoolRouter({ store, allowUnauthenticatedLocal: true });
     const fixture = await createFixture();
     const published = await dispatchJson(router, '/adapters', {
       method: 'POST',
@@ -207,12 +208,10 @@ describe('Poolday adapter coordinator routes', () => {
       mode: 'request'
     });
     const prompt = 'Use the exact published adapter';
+    const sequenceFields = await makePublicProteinJobFields();
     const modelRequirements = {
-      modelId: LAUNCH_MODEL.modelId,
-      modelHash: LAUNCH_MODEL.modelHash,
-      manifestHash: LAUNCH_MODEL.manifestHash,
-      runtime: LAUNCH_MODEL.runtime,
-      backend: LAUNCH_MODEL.backend,
+      ...LAUNCH_MODEL,
+      sequenceRequest: sequenceFields.sequenceRequest,
       adapter: { ...requirement, state: 'fetchable' }
     };
     const approval = await createAdapterUseApproval({
@@ -241,15 +240,18 @@ describe('Poolday adapter coordinator routes', () => {
         generationConfig: { ...DETERMINISTIC_GENERATION_CONFIG }
       }
     });
-    expect(job.status, JSON.stringify(job.body)).toBe(200);
-    expect(job.body.assignment.providerId).toBe('provider_route');
-    expect(job.body.assignment.adapter.packHash).toBe(fixture.pack.packHash);
-    expect(job.body.assignment.adapterUseApproval.approvalHash).toBe(approval.approvalHash);
+    expect(job).toMatchObject({
+      status: 400,
+      body: {
+        error: 'invalid job request',
+        reasons: expect.arrayContaining(['biological sequence jobs require the peer-room WebRTC input lane'])
+      }
+    });
   });
 
   it('rejects adapter jobs without signed use approval and after publisher revocation', async () => {
     const store = createPoolStore();
-    const router = createPoolRouter({ store });
+    const router = createPoolRouter({ store, allowUnauthenticatedLocal: true });
     const fixture = await createFixture();
     await dispatchJson(router, '/adapters', { method: 'POST', body: { publication: fixture.publication } });
     const requirement = adapterRequirementFromPublication(fixture.publication);

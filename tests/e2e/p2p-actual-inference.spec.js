@@ -10,9 +10,10 @@ const ACTUAL_INFERENCE_TIMEOUT_MS = 300000;
 const RELAY_MODE = process.env.REPLOID_E2E_RELAY_MODE === 'server' ? 'server' : 'local';
 const RELAY_LABEL = RELAY_MODE === 'server' ? 'server relay' : 'local tab';
 const FORCE_TURN = process.env.REPLOID_E2E_FORCE_TURN === '1';
-const TEXT_TOKEN_PATTERN = /[\p{L}\p{N}]/u;
 const rawSha256 = (value) => String(value || '').replace(/^sha256:/, '');
 const SEQUENCE_MODEL = getEnabledPoolModelContract('esm2-t12-35m-ur50d-f32-af32');
+const PUBLIC_PROTEIN_SEQUENCE = 'MKTAYIAKQRQISFVKSHFSRQ';
+const SECOND_PUBLIC_PROTEIN_SEQUENCE = 'ACDEFGHIKLMNPQRSTVWY';
 
 const roomIdFor = (testInfo) => (
   `actual-inference-${testInfo.workerIndex}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`
@@ -164,6 +165,8 @@ const attachRelayReceipt = async (testInfo, lane, roomId, result = {}) => {
       requesterId: result.requesterAcceptance?.requesterId || result.assignment?.requesterId || null,
       transport: result.transport || null,
       transportDiagnostics: result.transportDiagnostics || null,
+      relayMetrics: result.relayMetrics || null,
+      embeddingDimensions: result.embeddingDimensions || receipt?.sequence?.embeddingDim || null,
       receiptHash: result.receiptHash || null,
       agreementHash: result.agreement?.agreementHash || null,
       agreementAccepted: result.agreement?.accepted === true,
@@ -249,7 +252,7 @@ const waitForRestoredProviderListening = async (page) => {
   }).toBe('ready');
 };
 
-const runActualPrompt = async (page, prompt, policyId = 'fastest_receipt') => {
+const runActualSequence = async (page, sequence, policyId = 'fastest_receipt') => {
   await expect(page.locator('#pool-run-submit')).toBeVisible();
   if (policyId !== 'fastest_receipt') {
     const advanced = page.locator('details.pool-advanced').first();
@@ -257,7 +260,9 @@ const runActualPrompt = async (page, prompt, policyId = 'fastest_receipt') => {
     await expect(page.locator('#pool-run-policy')).toBeVisible();
     await page.locator('#pool-run-policy').selectOption(policyId);
   }
-  await page.locator('#pool-run-prompt').fill(prompt);
+  const publicSequence = page.locator('#pool-run-sequence-public');
+  if (!(await publicSequence.isChecked())) await publicSequence.check();
+  await page.locator('#pool-run-prompt').fill(sequence);
   await page.locator('#pool-run-submit').click();
   try {
     return await waitForActualResult({
@@ -266,7 +271,7 @@ const runActualPrompt = async (page, prompt, policyId = 'fastest_receipt') => {
       isComplete: (parsed) => (
         parsed.transport === 'webrtc_peer_room'
         && parsed.receiptHash
-        && typeof parsed.outputText === 'string'
+        && typeof parsed.sequenceResultHash === 'string'
       )
     });
   } catch (error) {
@@ -278,7 +283,7 @@ const runActualPrompt = async (page, prompt, policyId = 'fastest_receipt') => {
 test.describe('Run and Contribute actual browser inference', () => {
   test.skip(process.env.REPLOID_E2E_ACTUAL_INFERENCE !== '1', 'Set REPLOID_E2E_ACTUAL_INFERENCE=1 to run the real Doppler browser workload.');
 
-  test('loads Doppler, generates in a provider tab, and returns a signed peer receipt', async ({ browser, baseURL }, testInfo) => {
+  test('loads ESM-2, embeds a public protein sequence, and returns a signed peer receipt', async ({ browser, baseURL }, testInfo) => {
     test.setTimeout(900000);
     const roomId = roomIdFor(testInfo);
     const nodes = await createInferenceNodeContexts(browser);
@@ -302,12 +307,13 @@ test.describe('Run and Contribute actual browser inference', () => {
       });
       expect(firstProvider.runtime?.persistentCache?.manifestHash).toBe(rawSha256(LAUNCH_MODEL.manifestHash));
 
-      const result = await runActualPrompt(runPage, 'The color of the sky is');
+      const result = await runActualSequence(runPage, PUBLIC_PROTEIN_SEQUENCE);
 
       expect(result.transport).toBe('webrtc_peer_room');
       expectForcedTurnTransport(result);
-      expect(result.outputText.trim().length).toBeGreaterThan(0);
-      expect(result.outputText).toMatch(TEXT_TOKEN_PATTERN);
+      expect(result.outputKind).toBe('sequence.embedding.v1');
+      expect(result.sequenceResultHash).toMatch(/^sha256:/);
+      expect(result.embeddingDimensions).toBe(480);
       expect(result.receiptHash).toMatch(/^sha256:/);
       expect(result.receiptRecord?.receipt?.model?.id || result.receiptRecord?.receipt?.model?.modelId).toBe(LAUNCH_MODEL.modelId);
       expect(result.receiptPayloads).toHaveLength(1);
@@ -315,7 +321,18 @@ test.describe('Run and Contribute actual browser inference', () => {
       expect(result.requesterAcceptance?.accepted).toBe(true);
       expect(result.requesterAcceptance?.requesterSignature).toBeTruthy();
       expect(result.requesterAcceptance?.requesterId).not.toBe(result.assignment?.providerId);
-      await attachRelayReceipt(testInfo, 'text', roomId, result);
+      await expect(runPage.locator('#pool-run-result-embedding-outcome')).toBeVisible();
+      await expect(runPage.locator('#pool-run-result-embedding-outcome')).toContainText('480 dimensions');
+      await expect(runPage.locator('[data-pool-copy-embedding]')).toBeEnabled();
+      const contributorEvidence = runPage.locator('details.pool-contributor-details');
+      await expect(contributorEvidence).toBeVisible();
+      await contributorEvidence.locator(':scope > summary').click();
+      await expect(contributorEvidence).toHaveJSProperty('open', true);
+      await testInfo.attach(`poolday-${RELAY_MODE}-protein-requester-journey.png`, {
+        body: await runPage.screenshot({ fullPage: true }),
+        contentType: 'image/png'
+      });
+      await attachRelayReceipt(testInfo, 'protein', roomId, result);
 
       observeReloadRequests = true;
       await providerPage.reload({ waitUntil: 'domcontentloaded' });
@@ -350,7 +367,7 @@ test.describe('Run and Contribute actual browser inference', () => {
       await requesterPage.bringToFront();
       await requesterPage.locator('[data-pool-lane="sequence"]').click();
       await expect(requesterPage.locator('#pool-home-request-model')).toHaveValue(SEQUENCE_MODEL.modelId);
-      await requesterPage.locator('#pool-home-ask-prompt').fill('MKTAYIAKQRQISFVKSHFSRQ');
+      await requesterPage.locator('#pool-home-ask-prompt').fill(PUBLIC_PROTEIN_SEQUENCE);
       await requesterPage.locator('#pool-home-sequence-public').check();
       await requesterPage.locator('#pool-home-run-submit').click();
 
@@ -381,7 +398,7 @@ test.describe('Run and Contribute actual browser inference', () => {
       expect(result.sequenceResultHash).toMatch(/^sha256:/);
       expect(result.embeddingDimensions).toBeGreaterThan(0);
       expect(result.receiptRecord?.receipt?.sequence?.sequenceLength).toBe(22);
-      expect(JSON.stringify(result.receiptRecord?.receipt || {})).not.toContain('MKTAYIAKQRQISFVKSHFSRQ');
+      expect(JSON.stringify(result.receiptRecord?.receipt || {})).not.toContain(PUBLIC_PROTEIN_SEQUENCE);
       expect(result.assignment?.providerId).toBe(provider.advert?.body?.providerId);
       expect(result.requesterAcceptance?.requesterId).not.toBe(result.assignment?.providerId);
       expect(result.requesterAcceptance?.accepted).toBe(true);
@@ -392,76 +409,7 @@ test.describe('Run and Contribute actual browser inference', () => {
     }
   });
 
-  test('gates or completes Gemma optional local fallback from the browser capability contract', async ({ browser, baseURL }, testInfo) => {
-    const roomId = roomIdFor(testInfo);
-    const context = await browser.newContext();
-    await installActualRuntimeConfig(context);
-    try {
-      const page = await openPoolPage(context, baseURL, '/', roomId, 'gemma-local-fallback');
-      await page.evaluate(() => {
-        window.REPLOID_POOL_DISCOVERY_WINDOW_MS = 250;
-        window.REPLOID_POOL_RECEIPT_WINDOW_MS = 300000;
-        const modelSelect = document.getElementById('pool-home-request-model');
-        modelSelect.value = 'gemma-3-270m-it-q4k-ehf16-af32';
-        modelSelect.dispatchEvent(new Event('change', { bubbles: true }));
-      });
-      const supportsShaderF16 = await page.evaluate(async () => {
-        const adapter = await navigator.gpu?.requestAdapter?.({ powerPreference: 'high-performance' });
-        return adapter?.features?.has?.('shader-f16') === true;
-      });
-      await expect(page.locator('#pool-home-request-model')).toHaveValue('gemma-3-270m-it-q4k-ehf16-af32');
-      await page.locator('#pool-home-ask-prompt').fill('Reply with one color word.');
-      await page.locator('#pool-home-run-submit').click();
-      await expect(page.locator('[data-pool-run-recovery-action="offer_local_provider"]')).toBeVisible();
-      await page.locator('[data-pool-run-recovery-action="offer_local_provider"]').click();
-      await expect(page.locator('[data-pool-run-recovery-action="confirm_local_provider"]')).toBeVisible();
-      await page.locator('[data-pool-run-recovery-action="confirm_local_provider"]').click();
-
-      if (!supportsShaderF16) {
-        await expect(page.locator('#pool-home-run-result-stream')).toContainText(
-          'requires WebGPU feature(s): shader-f16',
-          { timeout: 10000 }
-        );
-        await expect(page.locator('#pool-home-run-result-raw')).toContainText(
-          'Code: device_capability_model_ineligible'
-        );
-        return;
-      }
-
-      try {
-        await expect.poll(async () => {
-          const snapshot = await readSnapshot(page, 'pool-home-run-result');
-          const parsed = snapshot.parsed || {};
-          if (/^Error:/m.test(snapshot.raw) || /could not complete|failed:/i.test(snapshot.stream)) {
-            return `error:${snapshot.stream || snapshot.raw}`;
-          }
-          if (parsed.status === 'error' || parsed.error) return `error:${parsed.reason || parsed.error}`;
-          if (parsed.transport === 'webrtc_peer_room' && parsed.receiptHash && typeof parsed.outputText === 'string') {
-            return 'complete';
-          }
-          return parsed.status || parsed.transport || snapshot.stream || 'waiting';
-        }, {
-          timeout: ACTUAL_INFERENCE_TIMEOUT_MS,
-          intervals: [1000, 2500, 5000]
-        }).toBe('complete');
-      } catch (error) {
-        const snapshot = await readSnapshot(page, 'pool-home-run-result');
-        throw new Error(`Actual Gemma local fallback did not complete.\n${stringifySnapshot(snapshot)}\n${error.message}`);
-      }
-
-      const result = (await readSnapshot(page, 'pool-home-run-result')).parsed;
-      expect(result.outputText.trim()).toMatch(TEXT_TOKEN_PATTERN);
-      expect(result.receiptHash).toMatch(/^sha256:/);
-      expect(result.receiptRecord?.receipt?.model?.id || result.receiptRecord?.receipt?.model?.modelId).toBe(
-        'gemma-3-270m-it-q4k-ehf16-af32'
-      );
-      expect(result.agreement.accepted).toBe(true);
-    } finally {
-      await context.close().catch(() => null);
-    }
-  });
-
-  test('queues two actual requester tabs through one loaded provider', async ({ browser, baseURL }, testInfo) => {
+  test('queues two public protein sequences through one loaded provider', async ({ browser, baseURL }, testInfo) => {
     const roomId = roomIdFor(testInfo);
     const context = await browser.newContext();
     await installActualRuntimeConfig(context);
@@ -472,14 +420,15 @@ test.describe('Run and Contribute actual browser inference', () => {
       const secondRunPage = await openPoolPage(context, baseURL, '/ask', roomId, 'requester-two');
       await waitForProviderListening(providerPage);
       const [first, second] = await Promise.all([
-        runActualPrompt(firstRunPage, 'Reply with exactly A.'),
-        runActualPrompt(secondRunPage, 'Reply with exactly B.')
+        runActualSequence(firstRunPage, PUBLIC_PROTEIN_SEQUENCE),
+        runActualSequence(secondRunPage, SECOND_PUBLIC_PROTEIN_SEQUENCE)
       ]);
 
       for (const result of [first, second]) {
         expect(result.transport).toBe('webrtc_peer_room');
-        expect(result.outputText.trim().length).toBeGreaterThan(0);
-        expect(result.outputText).toMatch(TEXT_TOKEN_PATTERN);
+        expect(result.outputKind).toBe('sequence.embedding.v1');
+        expect(result.sequenceResultHash).toMatch(/^sha256:/);
+        expect(result.embeddingDimensions).toBeGreaterThan(0);
         expect(result.receiptHash).toMatch(/^sha256:/);
         expect(result.receiptRecord?.receipt?.model?.id || result.receiptRecord?.receipt?.model?.modelId).toBe(LAUNCH_MODEL.modelId);
         expect(result.receiptPayloads).toHaveLength(1);
@@ -492,7 +441,7 @@ test.describe('Run and Contribute actual browser inference', () => {
     }
   });
 
-  test('loads two independent Doppler provider tabs and settles a real ring quorum', async ({ browser, baseURL }, testInfo) => {
+  test('loads two independent ESM-2 provider tabs and settles a real ring quorum', async ({ browser, baseURL }, testInfo) => {
     test.setTimeout(1200000);
     test.skip(
       process.env.REPLOID_E2E_ACTUAL_MULTI_PROVIDER !== '1',
@@ -513,15 +462,16 @@ test.describe('Run and Contribute actual browser inference', () => {
       expect(secondProvider.identity?.roleId).not.toBe(firstProvider.identity?.roleId);
 
       const runPage = await openPoolPage(nodes.requesterContext, baseURL, '/ask', roomId, 'ring-requester');
-      const result = await runActualPrompt(
+      const result = await runActualSequence(
         runPage,
-        'Reply with exactly the word blue.',
+        PUBLIC_PROTEIN_SEQUENCE,
         'ring_quorum_receipt'
       );
 
       expect(result.transport).toBe('webrtc_peer_room');
       expectForcedTurnTransport(result);
-      expect(result.outputText.trim().length).toBeGreaterThan(0);
+      expect(result.outputKind).toBe('sequence.embedding.v1');
+      expect(result.sequenceResultHash).toMatch(/^sha256:/);
       expect(result.agreement?.accepted).toBe(true);
       expect(result.assignments).toHaveLength(2);
       expect(result.receiptPayloads).toHaveLength(2);
@@ -530,7 +480,7 @@ test.describe('Run and Contribute actual browser inference', () => {
         result.agreement?.requiredAgreement || 2
       );
       expect(result.requesterAcceptance?.accepted).toBe(true);
-      await attachRelayReceipt(testInfo, 'text-ring-2', roomId, result);
+      await attachRelayReceipt(testInfo, 'protein-ring-2', roomId, result);
     } finally {
       await nodes.close();
     }

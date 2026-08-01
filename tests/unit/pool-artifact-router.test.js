@@ -6,6 +6,7 @@ import {
   evaluateProviderRouteCandidate,
   sealArtifactRouteDecision
 } from '../../self/pool/artifact-router.js';
+import { LAUNCH_MODEL } from '../../self/pool/model-contract.js';
 
 const hash = (character) => `sha256:${character.repeat(64)}`;
 const adapter = (state = 'fetchable') => ({
@@ -13,16 +14,16 @@ const adapter = (state = 'fetchable') => ({
   packHash: hash('1'),
   adapterId: 'legal-extract-v1',
   adapterSha256: hash('2'),
-  baseModelId: 'qwen',
-  baseModelHash: hash('3'),
-  baseManifestHash: hash('4'),
-  baseTokenizerHash: hash('9'),
-  baseSourceRepo: 'Qwen/Qwen3.5-0.8B',
-  baseSourceRevision: 'a'.repeat(40),
-  baseWeightPackId: 'qwen-weight-pack-v1',
-  baseWeightPackHash: hash('3'),
-  baseManifestVariantId: 'qwen-manifest-variant-v1',
-  baseConversionConfigDigest: hash('a'),
+  baseModelId: LAUNCH_MODEL.modelId,
+  baseModelHash: LAUNCH_MODEL.modelHash,
+  baseManifestHash: LAUNCH_MODEL.manifestHash,
+  baseTokenizerHash: LAUNCH_MODEL.tokenizerHash,
+  baseSourceRepo: LAUNCH_MODEL.artifactIdentity.sourceRepo,
+  baseSourceRevision: LAUNCH_MODEL.artifactIdentity.sourceRevision,
+  baseWeightPackId: LAUNCH_MODEL.artifactIdentity.weightPackId,
+  baseWeightPackHash: LAUNCH_MODEL.artifactIdentity.weightPackHash,
+  baseManifestVariantId: LAUNCH_MODEL.artifactIdentity.manifestVariantId,
+  baseConversionConfigDigest: LAUNCH_MODEL.artifactIdentity.conversionConfigDigest,
   humanPromotionReceiptHash: hash('5'),
   dopplerParityReceiptHash: hash('6'),
   gammaSelectionReceiptHash: hash('7'),
@@ -33,24 +34,19 @@ const adapter = (state = 'fetchable') => ({
 const intent = (requirement = adapter()) => ({
   body: {
     policyId: 'fastest_receipt',
-    workload: 'text_generation',
+    workload: LAUNCH_MODEL.workload,
     generationConfig: { maxOutputTokens: 128 },
     modelRequirements: {
-      modelId: 'qwen',
-      modelHash: hash('3'),
-      manifestHash: hash('4'),
-      tokenizerHash: hash('9'),
-      artifactIdentity: {
-        sourceRepo: 'Qwen/Qwen3.5-0.8B',
-        sourceRevision: 'a'.repeat(40),
-        weightPackId: 'qwen-weight-pack-v1',
-        weightPackHash: hash('3'),
-        manifestVariantId: 'qwen-manifest-variant-v1',
-        conversionConfigDigest: hash('a')
-      },
-      runtime: 'doppler',
-      backend: 'browser-webgpu',
-      workload: 'text_generation',
+      modelId: LAUNCH_MODEL.modelId,
+      modelHash: LAUNCH_MODEL.modelHash,
+      manifestHash: LAUNCH_MODEL.manifestHash,
+      tokenizerHash: LAUNCH_MODEL.tokenizerHash,
+      artifactIdentity: LAUNCH_MODEL.artifactIdentity,
+      runtime: LAUNCH_MODEL.runtime,
+      backend: LAUNCH_MODEL.backend,
+      workload: LAUNCH_MODEL.workload,
+      executionMode: LAUNCH_MODEL.executionMode,
+      sequence: LAUNCH_MODEL.sequence,
       adapter: requirement
     }
   }
@@ -60,21 +56,16 @@ const advert = (providerId, state, availability = {}) => ({
   body: {
     providerId,
     models: [{
-      modelId: 'qwen',
-      modelHash: hash('3'),
-      manifestHash: hash('4'),
-      tokenizerHash: hash('9'),
-      artifactIdentity: {
-        sourceRepo: 'Qwen/Qwen3.5-0.8B',
-        sourceRevision: 'a'.repeat(40),
-        weightPackId: 'qwen-weight-pack-v1',
-        weightPackHash: hash('3'),
-        manifestVariantId: 'qwen-manifest-variant-v1',
-        conversionConfigDigest: hash('a')
-      },
-      runtime: 'doppler',
-      backend: 'browser-webgpu',
-      workload: 'text_generation',
+      modelId: LAUNCH_MODEL.modelId,
+      modelHash: LAUNCH_MODEL.modelHash,
+      manifestHash: LAUNCH_MODEL.manifestHash,
+      tokenizerHash: LAUNCH_MODEL.tokenizerHash,
+      artifactIdentity: LAUNCH_MODEL.artifactIdentity,
+      runtime: LAUNCH_MODEL.runtime,
+      backend: LAUNCH_MODEL.backend,
+      workload: LAUNCH_MODEL.workload,
+      executionMode: LAUNCH_MODEL.executionMode,
+      sequence: LAUNCH_MODEL.sequence,
       adapterPacks: [{ ...adapter(state), state }]
     }],
     availability: {

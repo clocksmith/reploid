@@ -44,6 +44,11 @@ import { assignJob } from '../../server/pool/scheduler.js';
 import { createPoolStore } from '../../server/pool/store.js';
 import { runtimeProfileHash } from '../../server/pool/runtime-profile.js';
 import { verifyReceipt } from '../../server/pool/verifier.js';
+import {
+  TEST_PUBLIC_PROTEIN_SEQUENCE,
+  makePublicProteinJobFields,
+  makeSequenceExecution
+} from '../helpers/pool-sequence-fixture.js';
 
 const fakeHash = (character) => `sha256:${character.repeat(64)}`;
 
@@ -343,15 +348,17 @@ describe('governed Poolday adapter packs', () => {
     const { pack, bytes } = await buildPack();
     const { publication, requirement } = await publishPack(pack);
     const loadLoRA = vi.fn().mockResolvedValue({ ok: true });
-    const transcript = { outputText: 'adapted by peer', tokenIds: [3, 5, 8] };
     const runtime = createDopplerRuntime({
       model: { ...LAUNCH_MODEL },
       runtime: { version: '0.4.10' },
       modelSession: {
-        generate: vi.fn().mockResolvedValue({
-          outputText: transcript.outputText,
-          tokenIds: transcript.tokenIds,
-          transcript
+        encodeSequence: vi.fn().mockResolvedValue({
+          alphabet: 'amino_acid',
+          tokens: Uint32Array.from({ length: TEST_PUBLIC_PROTEIN_SEQUENCE.length }, (_, index) => index % 33),
+          includedTokenCount: TEST_PUBLIC_PROTEIN_SEQUENCE.length,
+          pooledEmbedding: new Float32Array([0.25, -0.5, 0.75]),
+          embeddingDim: 3,
+          vocabSize: 33
         }),
         loadLoRA,
         unloadLoRA: vi.fn().mockResolvedValue({ ok: true })
@@ -382,7 +389,8 @@ describe('governed Poolday adapter packs', () => {
       requesterId: 'requester-adapter-peer',
       requesterPublicKey: await exportPublicKey(requesterKeys.publicKey),
       privateKey: requesterKeys.privateKey,
-      prompt: 'Use the peer adapter',
+      sequence: TEST_PUBLIC_PROTEIN_SEQUENCE,
+      sequenceRequest: (await makePublicProteinJobFields()).sequenceRequest,
       modelRequirements: {
         modelId: LAUNCH_MODEL.modelId,
         modelHash: LAUNCH_MODEL.modelHash,
@@ -403,7 +411,7 @@ describe('governed Poolday adapter packs', () => {
     expect(plan.ok).toBe(true);
 
     const result = await provider.executePeerAssignment(plan.assignment, {
-      prompt: 'Use the peer adapter'
+      sequence: TEST_PUBLIC_PROTEIN_SEQUENCE
     });
     expect(loadLoRA).toHaveBeenCalledOnce();
     const [, loadOptions] = loadLoRA.mock.calls[0];
@@ -430,9 +438,7 @@ describe('governed Poolday adapter packs', () => {
       store,
       assignment: plan.assignment,
       receipt: result.receipt,
-      outputText: result.execution.outputText,
-      tokenIds: result.execution.tokenIds,
-      transcript: result.execution.transcript
+      ...result.execution
     })).accepted).toBe(true);
   });
 
@@ -457,16 +463,14 @@ describe('governed Poolday adapter packs', () => {
       runtimeProfileHash: runtimeProfileHash(runtimeProfile),
       availability: { acceptedPolicies: ['fastest_receipt'] }
     });
+    const sequenceFields = await makePublicProteinJobFields();
     const job = store.createJob({
       requesterId: 'requester-unit',
-      prompt: 'Use the promoted specialization',
       policyId: 'fastest_receipt',
+      ...sequenceFields,
       modelRequirements: {
-        modelId: LAUNCH_MODEL.modelId,
-        modelHash: LAUNCH_MODEL.modelHash,
-        manifestHash: LAUNCH_MODEL.manifestHash,
-        runtime: LAUNCH_MODEL.runtime,
-        backend: LAUNCH_MODEL.backend,
+        ...LAUNCH_MODEL,
+        sequenceRequest: sequenceFields.sequenceRequest,
         adapter: requirement
       },
       generationConfig: { ...DETERMINISTIC_GENERATION_CONFIG }
@@ -488,7 +492,8 @@ describe('governed Poolday adapter packs', () => {
       requesterId: 'requester-unit',
       requesterPublicKey,
       privateKey: requesterKeys.privateKey,
-      prompt: 'Use the promoted specialization',
+      sequence: TEST_PUBLIC_PROTEIN_SEQUENCE,
+      sequenceRequest: (await makePublicProteinJobFields()).sequenceRequest,
       modelRequirements: {
         modelId: LAUNCH_MODEL.modelId,
         modelHash: LAUNCH_MODEL.modelHash,
@@ -535,15 +540,13 @@ describe('governed Poolday adapter packs', () => {
     const { requirement } = await publishPack(pack);
     const requesterKeys = await createSigningKeyPair();
     const requesterPublicKey = await exportPublicKey(requesterKeys.publicKey);
+    const sequenceFields = await makePublicProteinJobFields();
     const modelRequirements = {
-      modelId: LAUNCH_MODEL.modelId,
-      modelHash: LAUNCH_MODEL.modelHash,
-      manifestHash: LAUNCH_MODEL.manifestHash,
-      runtime: LAUNCH_MODEL.runtime,
-      backend: LAUNCH_MODEL.backend,
+      ...LAUNCH_MODEL,
+      sequenceRequest: sequenceFields.sequenceRequest,
       adapter: requirement
     };
-    const inputHash = await sha256Hex('prompt');
+    const inputHash = sequenceFields.inputHash;
     const adapterUseApproval = await createAdapterUseApproval({
       adapterRequirement: requirement,
       requesterId: 'requester-unit',
@@ -556,6 +559,8 @@ describe('governed Poolday adapter packs', () => {
       ...assignmentFor(requirement),
       policyId: 'fastest_receipt',
       inputHash,
+      sequenceRequest: sequenceFields.sequenceRequest,
+      sequenceRequestHash: sequenceFields.sequenceRequestHash,
       generationConfigHash: await hashJson(DETERMINISTIC_GENERATION_CONFIG),
       verificationLevel: 'signed_receipt',
       adapterUseApproval,
@@ -568,16 +573,14 @@ describe('governed Poolday adapter packs', () => {
     const publicKey = await exportPublicKey(keys.publicKey);
     const store = createPoolStore();
     store.registerProvider({ providerId: assignment.providerId, publicKey });
-    const transcript = { outputText: 'adapted', tokenIds: [1, 2] };
+    const execution = await makeSequenceExecution({ assignment });
     const receipt = await signProviderReceipt(await buildPoolReceipt({
       assignment,
       provider: { providerId: assignment.providerId, publicKey },
       model: assignment.model,
       runtime: { runtime: 'doppler', version: '0.4.10', backend: 'browser-webgpu' },
       execution: {
-        outputText: 'adapted',
-        tokenIds: [1, 2],
-        transcript,
+        ...execution,
         adapter: {
           ...requirement,
           state: 'active',
@@ -595,9 +598,7 @@ describe('governed Poolday adapter packs', () => {
       store,
       assignment,
       receipt,
-      outputText: 'adapted',
-      tokenIds: [1, 2],
-      transcript
+      ...execution
     })).accepted).toBe(true);
 
     const wrongIdentity = await signProviderReceipt({
@@ -609,9 +610,7 @@ describe('governed Poolday adapter packs', () => {
       store,
       assignment,
       receipt: wrongIdentity,
-      outputText: 'adapted',
-      tokenIds: [1, 2],
-      transcript
+      ...execution
     });
     expect(rejected.accepted).toBe(false);
     expect(rejected.reasons).toContain('receipt adapter packHash mismatch');
@@ -625,9 +624,7 @@ describe('governed Poolday adapter packs', () => {
       store,
       assignment,
       receipt: wrongConvertedBase,
-      outputText: 'adapted',
-      tokenIds: [1, 2],
-      transcript
+      ...execution
     });
     expect(convertedBaseRejected.accepted).toBe(false);
     expect(convertedBaseRejected.reasons)

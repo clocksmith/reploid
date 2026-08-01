@@ -3,6 +3,10 @@
 Poolday is the docs/internal name for the receipt-backed browser inference pool.
 The public UI for this surface uses the Reploid name. Do not expose Poolday as user-facing product copy unless that naming decision changes.
 
+The [Poolday product intent](./poolday/product-intent.md) defines the product
+outcome, surface hierarchy, P2P boundary, and long-term Zero/X promotion path.
+This document owns current runtime, protocol, and deployment behavior.
+
 Reploid supplies the governed browser substrate underneath the pool surface.
 
 The product claim is narrow:
@@ -15,11 +19,11 @@ Do not describe this as trustless compute, hardware-attested inference, or guara
 
 The target retrieval extension is documented in [Poolday Receipt-Backed Retrieval](./poolday/receipt-backed-retrieval.md). That document covers embeddings, vector indexes, query receipts, reranking receipts, and the competitive retrieval strategy. It is not a replacement for this current browser inference claim.
 
-The biological-sequence extension is documented in [Poolday Biological
-Sequence Lane](./poolday/biological-sequence-lane.md). Its peer protocol and
-synthetic runtime tests exist, but no biological model is enabled in the
-Poolday catalog until immutable hosted artifacts and a matching Doppler release
-are qualified.
+The enabled launch lane is documented in [Poolday Biological Sequence
+Lane](./poolday/biological-sequence-lane.md). The current catalog selects ESM-2
+35M for public protein-sequence embeddings. Other biological models remain
+candidates until they pass the lane's artifact, Doppler, parity, browser, and
+peer-room promotion gates.
 
 Participation modes, device-root and passkey identity, adapter authority, route
 selection, and the model-shard boundary are specified in [Poolday Participation,
@@ -31,8 +35,8 @@ Identity, and Routing](./poolday/participation-identity-routing.md).
 
 | Route | Purpose |
 |-------|---------|
-| `/` | Public Reploid model-serving home. Docs/internal surface name: Poolday |
-| `/ask` | Requester prompt flow and local acceptance |
+| `/` | Public Reploid model-serving home. The current launch lane is public protein-sequence embedding. Docs/internal surface name: Poolday |
+| `/ask` | Requester work flow and local acceptance; the current launch lane accepts explicitly public protein sequences |
 | `/compute` | Browser contributor tab and local receipt generation |
 | `/records` | Saved answers, room activity, contributor scores, receipt lookup, and protocol details |
 | `/history` | Compatibility alias for `/records` |
@@ -42,25 +46,32 @@ Identity, and Routing](./poolday/participation-identity-routing.md).
 
 ---
 
-## Launch model contract
+## Configured launch model contract
 
 ```json
 {
-  "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
-  "modelHash": "sha256:fab133e49d6dc67912fc3a087222ec44ca1941d9b7bc36c60cb1379863a6dd4f",
-  "manifestHash": "sha256:edeb69dd65cbb26971abf773a95bf6dc219a82942c0951d65e1893d442b607c9",
-  "tokenizerHash": "sha256:8fc3b6de02de5a8e21d3867aba335e2d9a3c2263201f55daaed1feab3541bea4",
+  "modelId": "esm2-t12-35m-ur50d-f32-af32",
+  "modelHash": "sha256:1092c098741472429a4c6b4cd6050d5967e0a606d01f713c0b4866fd98921ac8",
+  "manifestHash": "sha256:5612aa20ee2d5310da323d5c39986d0ab724ff727ce92e40762da6ea7b189730",
+  "tokenizerHash": "sha256:f874eed68372c76988edf4556383c10404dd27b5fee33e7dd96440aba31d9a37",
+  "workload": "sequence.embedding.v1",
+  "executionMode": "full_model_browser_sequence",
   "runtime": "doppler",
   "backend": "browser-webgpu",
-  "dopplerLoadRef": "qwen-3-5-0-8b-q4k-ehaf16"
+  "dopplerLoadRef": "esm2-35m"
 }
 ```
 
-`dopplerLoadRef` is the public Doppler registry alias used by the browser runtime. It is not the receipt identity. Receipts bind the full model id, model hash, manifest hash, runtime, and backend.
+`self/pool/pool-config.json` owns this exact selection through
+`launchModelId`; this block mirrors config version
+`2026-07-28.doppler-0.5.1.v2`. `dopplerLoadRef` is the public Doppler registry
+alias used by the browser runtime. It is not the receipt identity. Receipts
+bind the full model id, model hash, manifest hash, runtime, backend, workload,
+and sequence-result identity.
 
 ## Offloaded model artifacts
 
-Model bytes should not be served from Firebase Hosting or the Cloud Run coordinator. The launch path is offloaded, content-addressed artifact hosting. The active Qwen launch model uses a pinned model artifact root:
+Model bytes should not be served from Firebase Hosting or the Cloud Run coordinator. The launch path is offloaded, content-addressed artifact hosting. The enabled launch model uses a pinned model artifact root:
 
 | Artifact | Path shape |
 |----------|------------|
@@ -70,10 +81,9 @@ Model bytes should not be served from Firebase Hosting or the Cloud Run coordina
 
 Browser providers derive artifact URLs from the selected model's `artifactPolicy`, with `window.REPLOID_POOL_MODEL_BASE_URL` as an override, through `self/pool/model-contract.js` and `self/pool/model-artifacts.js`. The storage backend can be object storage, a model hub, IPFS, or another CDN. The receipt identity does not include the storage URL; it includes the exact model id, model hash, manifest hash, runtime, and backend. Providers cache fetched model artifacts in OPFS after first load.
 
-The launch Qwen artifact is an immutable, publicly readable mirror in
-`gs://reploid-model-artifacts`, sourced from Hugging Face revision
-`80d7716270b6371d541de979eff3370edaf34e13`. The ESM-2 launch artifact is
-mirrored beside it. The bucket serves byte ranges with a `replo.id` CORS policy
+The ESM-2 launch artifact is an immutable, publicly readable mirror in
+`gs://reploid-model-artifacts`, sourced from the exact checkpoint revision
+declared by `pool-config.json`. The bucket serves byte ranges with a `replo.id` CORS policy
 and immutable cache metadata, so browser cold starts do not depend on model-hub
 redirects or shared CDN throttling. Production verification fetches each
 manifest, verifies its configured content hash and model identity, probes shard
@@ -145,7 +155,11 @@ Target migration order:
 
 ---
 
-## Deterministic generation contract
+## Text generation contract
+
+This contract applies when an admitted text-generation model is enabled. The
+current launch catalog enables only the ESM-2 sequence-embedding lane, whose
+request and result rules live in the biological sequence document.
 
 ```json
 {
@@ -797,4 +811,4 @@ The target production line is:
 
 ---
 
-*Last updated: June 2026*
+*Last updated: August 2026*

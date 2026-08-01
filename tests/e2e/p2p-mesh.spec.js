@@ -7,8 +7,8 @@ import { test, expect } from '@playwright/test';
 import { LAUNCH_MODEL } from '../../self/pool/model-contract.js';
 
 const BASE_URL = 'http://localhost:8000';
-const RELAY_MODE = 'local';
-const RELAY_LABEL = 'local tab';
+const RELAY_MODE = process.env.REPLOID_E2E_RELAY_MODE === 'server' ? 'server' : 'local';
+const RELAY_LABEL = RELAY_MODE === 'server' ? 'server relay' : 'local tab';
 
 const model = {
   modelId: LAUNCH_MODEL.modelId,
@@ -18,7 +18,20 @@ const model = {
   quantization: LAUNCH_MODEL.quantization,
   artifactIdentity: LAUNCH_MODEL.artifactIdentity,
   runtime: LAUNCH_MODEL.runtime,
-  backend: LAUNCH_MODEL.backend
+  backend: LAUNCH_MODEL.backend,
+  workload: LAUNCH_MODEL.workload,
+  executionMode: LAUNCH_MODEL.executionMode,
+  sequence: LAUNCH_MODEL.sequence
+};
+
+const TEST_PUBLIC_SEQUENCE = 'MKTAYIAKQRQISFVKSHFSRQ';
+const TEST_AMINO_ACIDS = 'ACDEFGHIKLMNPQRSTVWY';
+const sequenceFor = (label = '') => {
+  const normalized = String(label || '').trim();
+  if (!normalized) return TEST_PUBLIC_SEQUENCE;
+  return [...normalized].map((character) => (
+    TEST_AMINO_ACIDS[character.codePointAt(0) % TEST_AMINO_ACIDS.length]
+  )).join('');
 };
 
 const roomIdFor = (testInfo, label) => (
@@ -32,13 +45,21 @@ const routeUrl = (baseURL, route, roomId) => {
   return url.toString();
 };
 
+const ensureDetailsOpen = async (details) => {
+  await expect(details).toBeVisible();
+  if (!await details.evaluate((element) => element.open)) {
+    await details.locator(':scope > summary').click();
+  }
+  await expect(details).toHaveJSProperty('open', true);
+};
+
 const installDeterministicRuntime = async (context, {
   runtimeLabel,
   generationDelayMs = 0,
   startReady = true,
   loadModelResult = null
 }) => {
-  await context.addInitScript(({ launchModel, label, delayMs, initialReady, loadResult }) => {
+  await context.addInitScript(({ launchModel, label, delayMs, initialReady, loadResult, relayMode }) => {
     const textEncoder = new TextEncoder();
     const bytesToHex = (bytes) => Array.from(bytes)
       .map((byte) => byte.toString(16).padStart(2, '0'))
@@ -55,12 +76,18 @@ const installDeterministicRuntime = async (context, {
       return `sha256:${bytesToHex(new Uint8Array(digest))}`;
     };
     const hashJson = async (value) => sha256Hex(canonicalize(value));
+    const hashFloat32 = async (values) => {
+      const bytes = new Uint8Array(values.length * 4);
+      const view = new DataView(bytes.buffer);
+      values.forEach((value, index) => view.setFloat32(index * 4, Number(value), true));
+      return sha256Hex(bytes);
+    };
     const runtimeModel = { ...launchModel };
     const runtimeState = {
       ready: initialReady,
       model: initialReady ? runtimeModel : null
     };
-    window.REPLOID_POOL_RELAY_MODE = 'local';
+    window.REPLOID_POOL_RELAY_MODE = relayMode;
     window.REPLOID_POOL_DISCOVERY_WINDOW_MS = 30000;
     window.REPLOID_POOL_RECEIPT_WINDOW_MS = 30000;
     window.REPLOID_POOL_STRICT_ARTIFACT_PREFLIGHT = false;
@@ -82,7 +109,7 @@ const installDeterministicRuntime = async (context, {
       getRuntimeInfo: () => ({
         runtime: runtimeModel.runtime,
         backend: runtimeModel.backend,
-        publicApi: 'generate',
+        publicApi: 'encodeSequence',
         profile: { implementation: 'playwright-p2p', label }
       }),
       getRuntimeProfile: async () => {
@@ -92,7 +119,7 @@ const installDeterministicRuntime = async (context, {
           runtime: {
             runtime: runtimeModel.runtime,
             backend: runtimeModel.backend,
-            publicApi: 'generate'
+            publicApi: 'encodeSequence'
           },
           device: {
             hasWebGPU: true,
@@ -127,18 +154,55 @@ const installDeterministicRuntime = async (context, {
           maxComputeInvocationsPerWorkgroup: 256
         }
       }),
-      generate: async ({ prompt }) => {
+      encodeSequence: async ({ sequence, request }) => {
+        window.REPLOID_E2E_ENCODE_STARTED = [
+          ...(window.REPLOID_E2E_ENCODE_STARTED || []),
+          { sequence, startedAt: Date.now() }
+        ];
         if (delayMs > 0) await new Promise((resolve) => setTimeout(resolve, delayMs));
+        const tokens = Array.from(sequence, (_, index) => index % 33);
+        const pooledEmbedding = [0.25, -0.5, 0.75];
+        const pooledEmbeddingHash = await hashFloat32(pooledEmbedding);
+        const sequenceResult = {
+          schema: 'reploid.pool.sequence_result/v1',
+          workload: request.workload,
+          alphabet: request.alphabet,
+          sequenceHash: request.sequenceHash,
+          sequenceLength: request.sequenceLength,
+          tokenCount: tokens.length,
+          tokensHash: await hashJson(tokens),
+          includedTokenCount: tokens.length,
+          embeddingDim: pooledEmbedding.length,
+          vocabSize: 33,
+          pooledEmbeddingHash,
+          tokenEmbeddingsHash: null,
+          maskedLogitsHash: null,
+          tokenIndices: request.tokenIndices,
+          topK: request.topK
+        };
+        const sequenceResultHash = await hashJson(sequenceResult);
         return {
-          outputText: `e2e:${prompt}`,
-          tokenIds: [401, 402, 403, 404],
+          outputKind: request.workload,
+          outputText: `e2e:${sequence}`,
+          tokenIds: [],
+          vectorHash: pooledEmbeddingHash,
+          sequenceResultHash,
+          sequenceResult,
+          sequenceOutput: {
+            pooledEmbedding,
+            tokenEmbeddings: null,
+            maskedLogits: []
+          },
+          embeddingDimensions: pooledEmbedding.length,
+          embeddingStats: { dimensions: pooledEmbedding.length, nonFiniteCount: 0, l2Norm: 0.935414 },
           transcript: {
-            outputText: `e2e:${prompt}`,
-            tokenIds: [401, 402, 403, 404]
+            outputKind: request.workload,
+            sequenceResultHash,
+            sequenceResult
           },
           tokenCounts: {
-            input: String(prompt || '').split(/\s+/).filter(Boolean).length,
-            output: 4
+            input: sequence.length,
+            output: 0
           },
           timing: {
             startedAt: '2026-06-27T00:00:00.000Z',
@@ -153,7 +217,8 @@ const installDeterministicRuntime = async (context, {
     label: runtimeLabel,
     delayMs: generationDelayMs,
     initialReady: startReady,
-    loadResult: loadModelResult
+    loadResult: loadModelResult,
+    relayMode: RELAY_MODE
   });
 };
 
@@ -212,13 +277,16 @@ const stopProviderPage = async (page) => {
 };
 
 const runPeerPrompt = async (page, prompt, policyId = 'ring_quorum_receipt') => {
+  const sequence = sequenceFor(prompt);
   await expect(page.locator('#pool-run-submit')).toBeVisible();
   await page.locator('details.pool-advanced summary').first().click();
   await expect(page.locator('#pool-run-policy')).toBeVisible();
   await page.locator('#pool-run-policy').selectOption(policyId);
-  await page.locator('#pool-run-prompt').fill(prompt);
+  const publicSequence = page.locator('#pool-run-sequence-public');
+  if (!(await publicSequence.isChecked())) await publicSequence.check();
+  await page.locator('#pool-run-prompt').fill(sequence);
   await page.locator('#pool-run-submit').click();
-  await expect(page.locator('#pool-run-result-stream')).toContainText(`e2e:${prompt}`, { timeout: 60000 });
+  await expect(page.locator('#pool-run-result-stream')).toContainText(`e2e:${sequence}`, { timeout: 60000 });
   return expect.poll(async () => {
     const text = await page.locator('#pool-run-result-raw').textContent();
     try {
@@ -258,21 +326,29 @@ test.describe('Run, Contribute, Records peer room', () => {
       });
 
       const prompt = 'home graph follows execution';
-      await homePage.locator('#pool-home-ask-prompt').fill(prompt);
+      const sequence = sequenceFor(prompt);
+      const publicSequence = homePage.locator('#pool-home-sequence-public');
+      if (!(await publicSequence.isChecked())) await publicSequence.check();
+      await homePage.locator('#pool-home-ask-prompt').fill(sequence);
       await homePage.locator('#pool-home-run-submit').click();
-      await expect(homePage.locator('#pool-home-run-result-stream')).toContainText(`e2e:${prompt}`, { timeout: 60000 });
+      await expect(homePage.locator('#pool-home-run-result-stream')).toContainText(`e2e:${sequence}`, { timeout: 60000 });
       await expect(homePage.locator('[data-pool-run-surface="home"]')).toHaveAttribute('data-run-state', 'complete');
       await expect(homePage.locator('[data-pool-run-surface="home"]')).toHaveAttribute('data-run-phase', 'answer');
       await expect(homePage.locator('[data-pool-run-output]')).toBeVisible();
-      await expect(homePage.locator('[data-pool-run-status]')).toHaveText('Answer verified');
+      await expect(homePage.locator('[data-pool-run-status]')).toHaveText('Protein embedding verified');
 
       const result = JSON.parse(await homePage.locator('#pool-home-run-result-raw').textContent() || '{}');
       const states = await homePage.evaluate(() => window.REPLOID_E2E_RUN_VISUAL_STATES || []);
       expect(result).toMatchObject({
         roomId,
-        outputText: `e2e:${prompt}`,
+        outputText: `e2e:${sequence}`,
         transport: 'webrtc_peer_room'
       });
+      await expect(homePage.locator('#pool-home-run-result-embedding-outcome')).toBeVisible();
+      await expect(homePage.locator('#pool-home-run-result-embedding-outcome')).toContainText(
+        'Copy the vector into compatible similarity or retrieval software.'
+      );
+      await expect(homePage.locator('[data-pool-copy-embedding]')).toBeEnabled();
       expect(states).toEqual(expect.arrayContaining([
         expect.objectContaining({ state: 'submitting', phase: 'prompt' }),
         expect.objectContaining({ state: 'running', phase: 'match' }),
@@ -303,7 +379,33 @@ test.describe('Run, Contribute, Records peer room', () => {
 
       expect(result.roomId).toBe(roomId);
       expect(result.transport).toBe('webrtc_peer_room');
-      expect(result.outputText).toBe('e2e:run tab existed before mesh');
+      expect(result.outputText).toBe(`e2e:${sequenceFor('run tab existed before mesh')}`);
+      expect(result.relayMetrics).toMatchObject({
+        published: expect.any(Number),
+        received: expect.any(Number),
+        duplicateSuppressed: expect.any(Number),
+        publishLatencyCount: expect.any(Number),
+        deliveryLagCount: expect.any(Number),
+        backlogSampleCount: expect.any(Number),
+        acknowledgementLatencyCount: expect.any(Number),
+        reconnectSuccesses: expect.any(Number)
+      });
+      expect(result.relayMetrics.published).toBeGreaterThan(0);
+      expect(result.relayMetrics.received).toBeGreaterThan(0);
+      await testInfo.attach(`poolday-${RELAY_MODE}-relay-metrics.json`, {
+        body: Buffer.from(JSON.stringify({
+          schema: 'reploid.pool.relay_metrics/v1',
+          roomId,
+          relay: RELAY_MODE,
+          transport: result.transport,
+          accepted: result.agreement?.accepted === true,
+          relayMetrics: result.relayMetrics
+        }, null, 2)),
+        contentType: 'application/json'
+      });
+      await expect(runPage.locator('#pool-run-result-embedding-outcome')).toBeVisible();
+      await expect(runPage.locator('#pool-run-result-embedding-outcome')).toContainText('3 dimensions');
+      await expect(runPage.locator('[data-pool-copy-embedding]')).toBeEnabled();
 
       await openPoolNav(runPage);
       await runPage.getByRole('link', { name: 'Contribute', exact: true }).click();
@@ -356,7 +458,7 @@ test.describe('Run, Contribute, Records peer room', () => {
       await runPage.getByRole('link', { name: 'Run', exact: true }).click();
       await expect(runPage.locator('[data-pool-run-status]')).toHaveText('Showing last saved answer');
       await expect(runPage.locator('[data-pool-run-output]')).toBeVisible();
-      await expect(runPage.locator('#pool-run-result-stream')).toContainText('e2e:persist record view');
+      await expect(runPage.locator('#pool-run-result-stream')).toContainText(`e2e:${sequenceFor('persist record view')}`);
     } finally {
       await closeContexts(contexts);
     }
@@ -417,9 +519,83 @@ test.describe('Run, Contribute, Records peer room', () => {
       const result = await readRunResult(requesterPage);
       expect(result).toMatchObject({
         roomId,
-        outputText: 'e2e:provider survived reload',
+        outputText: `e2e:${sequenceFor('provider survived reload')}`,
         transport: 'webrtc_peer_room'
       });
+    } finally {
+      await closeContexts(contexts);
+    }
+  });
+
+  test('asks before retrying a requester run interrupted by reload', async ({ browser, baseURL }, testInfo) => {
+    const roomId = roomIdFor(testInfo, 'requester-reload-during-work');
+    const contexts = [];
+    try {
+      const context = await createPoolContext(browser, 'requester_reload_during_work', {
+        generationDelayMs: 1000
+      });
+      contexts.push(context);
+      const providerPage = await openPoolPage(context, baseURL, '/compute', roomId);
+      const requesterPage = await openPoolPage(context, baseURL, '/ask', roomId);
+      await startProviderPage(providerPage);
+
+      const sequence = sequenceFor('requester reload during active work');
+      const publicSequence = requesterPage.locator('#pool-run-sequence-public');
+      if (!(await publicSequence.isChecked())) await publicSequence.check();
+      await requesterPage.locator('#pool-run-prompt').fill(sequence);
+      await requesterPage.locator('#pool-run-submit').click();
+      await expect.poll(() => providerPage.evaluate(() => (
+        window.REPLOID_E2E_ENCODE_STARTED?.length || 0
+      ))).toBe(1);
+
+      await requesterPage.reload({ waitUntil: 'domcontentloaded' });
+      await requesterPage.waitForSelector('.pool-home');
+      await expect(requesterPage.locator('[data-pool-run-status]')).toHaveText('Previous request needs a decision');
+      await expect(requesterPage.locator('#pool-run-result-raw')).toContainText('Code: peer_request_interrupted');
+      await expect(requesterPage.locator('#pool-run-result-recovery')).toContainText('has not been resumed or sent again');
+      await expect(requesterPage.locator('#pool-run-prompt')).toHaveValue(sequence);
+
+      await requesterPage.locator('[data-pool-run-recovery-action="discard_interrupted_request"]').click();
+      await expect(requesterPage.locator('[data-pool-run-status]')).toHaveText('Ready for a new request');
+      await expect(requesterPage.locator('[data-pool-run-output]')).toBeHidden();
+    } finally {
+      await closeContexts(contexts);
+    }
+  });
+
+  test('classifies a contributor reload during inference as recoverable unavailability', async ({ browser, baseURL }, testInfo) => {
+    const roomId = roomIdFor(testInfo, 'provider-reload-during-work');
+    const contexts = [];
+    try {
+      const context = await createPoolContext(browser, 'provider_reload_during_work', {
+        generationDelayMs: 1000
+      });
+      contexts.push(context);
+      const providerPage = await openPoolPage(context, baseURL, '/compute', roomId);
+      const requesterPage = await openPoolPage(context, baseURL, '/ask', roomId);
+      await startProviderPage(providerPage);
+      await requesterPage.evaluate(() => {
+        window.REPLOID_POOL_RECEIPT_WINDOW_MS = 100;
+      });
+
+      const sequence = sequenceFor('provider reload during active work');
+      const publicSequence = requesterPage.locator('#pool-run-sequence-public');
+      if (!(await publicSequence.isChecked())) await publicSequence.check();
+      await requesterPage.locator('#pool-run-prompt').fill(sequence);
+      await requesterPage.locator('#pool-run-submit').click();
+      await expect.poll(() => providerPage.evaluate(() => (
+        window.REPLOID_E2E_ENCODE_STARTED?.length || 0
+      ))).toBe(1);
+
+      await providerPage.reload({ waitUntil: 'domcontentloaded' });
+      await providerPage.waitForSelector('.pool-home');
+      await expect(requesterPage.locator('[data-pool-run-status]')).toHaveText(
+        'No matching provider is currently available'
+      );
+      const failureRaw = await requesterPage.locator('#pool-run-result-raw').textContent();
+      expect(failureRaw).toContain('Code: peer_provider_unresponsive');
+      expect(failureRaw).toContain('Contributor failures:');
+      expect(failureRaw).toContain('(peer_receipt_timeout)');
     } finally {
       await closeContexts(contexts);
     }
@@ -455,6 +631,128 @@ test.describe('Run, Contribute, Records peer room', () => {
     }
   });
 
+  test('recovers contributor startup after a server-relay publish outage', async ({ browser, baseURL }, testInfo) => {
+    test.skip(RELAY_MODE !== 'server', 'Requires the SDK-backed server relay.');
+    const roomId = roomIdFor(testInfo, 'relay-recovery');
+    const contexts = [];
+    try {
+      const context = await createPoolContext(browser, 'relay_recovery');
+      contexts.push(context);
+      const providerPage = await openPoolPage(context, baseURL, '/compute', roomId);
+      await providerPage.route('**/pool/peer/rooms/**/messages', async (route) => {
+        if (route.request().method() !== 'POST') return route.continue();
+        await route.fulfill({
+          status: 503,
+          contentType: 'application/json',
+          body: JSON.stringify({ error: 'relay unavailable', retryable: true })
+        });
+      });
+
+      await providerPage.locator('#pool-provider-worker-toggle').click();
+      await expect(providerPage.locator('[data-pool-provider-status]')).toHaveText('Idle');
+      await expect(providerPage.locator('#pool-provider-result-raw')).toContainText('relay unavailable');
+      await expect(providerPage.locator('#pool-provider-worker-toggle')).toHaveAttribute('data-contribution-action', 'start');
+
+      await providerPage.unroute('**/pool/peer/rooms/**/messages');
+      await startProviderPage(providerPage);
+    } finally {
+      await closeContexts(contexts);
+    }
+  });
+
+  test('reports and recovers a live server-relay polling outage', async ({ browser, baseURL }, testInfo) => {
+    test.skip(RELAY_MODE !== 'server', 'Requires the SDK-backed server relay.');
+    const roomId = roomIdFor(testInfo, 'relay-poll-recovery');
+    const contexts = [];
+    try {
+      const context = await createPoolContext(browser, 'relay_poll_recovery');
+      contexts.push(context);
+      const providerPage = await openPoolPage(context, baseURL, '/compute', roomId);
+      await startProviderPage(providerPage);
+
+      await providerPage.route('**/pool/peer/rooms/**/messages**', async (route) => {
+        if (route.request().method() !== 'GET') return route.continue();
+        await route.fulfill({
+          status: 503,
+          contentType: 'application/json',
+          body: JSON.stringify({ error: 'relay unavailable', retryable: true })
+        });
+      });
+      await expect(providerPage.locator('[data-pool-provider-status]')).toHaveText('Relay unavailable', {
+        timeout: 15000
+      });
+      await expect(providerPage.locator('[data-pool-provider-status]')).toHaveAttribute('data-provider-state', 'degraded');
+
+      await providerPage.unrouteAll({ behavior: 'ignoreErrors' });
+      await expect(providerPage.locator('[data-pool-provider-status]')).toHaveText('Available', {
+        timeout: 15000
+      });
+      await expect(providerPage.locator('[data-pool-provider-status]')).toHaveAttribute('data-provider-state', 'online');
+    } finally {
+      await closeContexts(contexts);
+    }
+  });
+
+  test('honors a server relay rate limit and returns contributor status to Available', async ({ browser, baseURL }, testInfo) => {
+    test.skip(RELAY_MODE !== 'server', 'Requires the SDK-backed server relay.');
+    const roomId = roomIdFor(testInfo, 'relay-rate-limit-recovery');
+    const contexts = [];
+    try {
+      const context = await createPoolContext(browser, 'relay_rate_limit_recovery');
+      contexts.push(context);
+      const providerPage = await openPoolPage(context, baseURL, '/compute', roomId);
+      await startProviderPage(providerPage);
+
+      await providerPage.route('**/pool/peer/rooms/**/messages**', async (route) => {
+        if (route.request().method() !== 'GET') return route.continue();
+        await route.fulfill({
+          status: 429,
+          headers: { 'Retry-After': '1' },
+          contentType: 'application/json',
+          body: JSON.stringify({ error: 'pool rate limit exceeded', retryable: true, retryAfter: 1 })
+        });
+      });
+      await expect(providerPage.locator('[data-pool-provider-status]')).toHaveText('Relay unavailable', {
+        timeout: 15000
+      });
+      await expect(providerPage.locator('[data-pool-provider-status]')).toHaveAttribute('data-provider-state', 'degraded');
+
+      await providerPage.unrouteAll({ behavior: 'ignoreErrors' });
+      await expect(providerPage.locator('[data-pool-provider-status]')).toHaveText('Available', {
+        timeout: 15000
+      });
+      await expect(providerPage.locator('[data-pool-provider-status]')).toHaveAttribute('data-provider-state', 'online');
+    } finally {
+      await closeContexts(contexts);
+    }
+  });
+
+  test('reports and recovers from a contributor network transition', async ({ browser, baseURL }, testInfo) => {
+    test.skip(RELAY_MODE !== 'server', 'Requires the SDK-backed server relay.');
+    const roomId = roomIdFor(testInfo, 'network-transition-recovery');
+    const contexts = [];
+    try {
+      const context = await createPoolContext(browser, 'network_transition_recovery');
+      contexts.push(context);
+      const providerPage = await openPoolPage(context, baseURL, '/compute', roomId);
+      await startProviderPage(providerPage);
+
+      await context.setOffline(true);
+      await expect(providerPage.locator('[data-pool-provider-status]')).toHaveText('Relay unavailable', {
+        timeout: 15000
+      });
+      await expect(providerPage.locator('[data-pool-provider-status]')).toHaveAttribute('data-provider-state', 'degraded');
+
+      await context.setOffline(false);
+      await expect(providerPage.locator('[data-pool-provider-status]')).toHaveText('Available', {
+        timeout: 15000
+      });
+      await expect(providerPage.locator('[data-pool-provider-status]')).toHaveAttribute('data-provider-state', 'online');
+    } finally {
+      await closeContexts(contexts);
+    }
+  });
+
   test('completes a five-page ring quorum through real UI routes', async ({ browser, baseURL }, testInfo) => {
     const roomId = roomIdFor(testInfo, 'five');
     const contexts = [];
@@ -474,7 +772,7 @@ test.describe('Run, Contribute, Records peer room', () => {
 
       expect(providerPages.length + 1).toBe(5);
       expect(result.transport).toBe('webrtc_peer_room');
-      expect(result.outputText).toBe('e2e:five page browser quorum');
+      expect(result.outputText).toBe(`e2e:${sequenceFor('five page browser quorum')}`);
       expect(result.assignments).toHaveLength(4);
       expect(result.receiptPayloads).toHaveLength(4);
       expect(result.agreement).toMatchObject({
@@ -492,6 +790,10 @@ test.describe('Run, Contribute, Records peer room', () => {
   });
 
   test('runs a twelve-provider mesh and records the accepted ledger locally', async ({ browser, baseURL }, testInfo) => {
+    test.skip(
+      testInfo.project.name === 'chromium-swiftshader',
+      'SwiftShader cannot reliably initialize twelve background browser tabs; Chromium owns this topology check.'
+    );
     const roomId = roomIdFor(testInfo, 'twelve');
     const contexts = [];
     try {
@@ -524,7 +826,7 @@ test.describe('Run, Contribute, Records peer room', () => {
       const receiptsPage = await openPoolPage(context, baseURL, '/history', roomId);
       const reputationPage = await openPoolPage(context, baseURL, '/network', roomId);
 
-      await reputationPage.locator('details.pool-record-tools > summary').click();
+      await ensureDetailsOpen(reputationPage.locator('details.pool-record-tools'));
       await expect(reputationPage.locator('#pool-peer-ledger table[aria-label="Local contributor scores"]')).toBeVisible();
       await expect(reputationPage.locator('#pool-peer-ledger')).toContainText('Matched');
 
@@ -532,11 +834,11 @@ test.describe('Run, Contribute, Records peer room', () => {
       await runPage.getByRole('link', { name: 'Records', exact: true }).click();
       await expect(runPage.locator('[data-pool-room-id]')).toHaveText(roomId);
       await runPage.keyboard.press('Escape');
-      await runPage.locator('details.pool-record-tools > summary').click();
+      await ensureDetailsOpen(runPage.locator('details.pool-record-tools'));
       await expect(runPage.locator('#pool-receipt-ledger')).toContainText('accepted');
-      await receiptsPage.locator('details.pool-record-tools > summary').click();
+      await ensureDetailsOpen(receiptsPage.locator('details.pool-record-tools'));
       await expect(receiptsPage.locator('#pool-receipt-ledger')).toContainText('accepted');
-      await runPage.locator('details.pool-record-lookup > summary').click();
+      await ensureDetailsOpen(runPage.locator('details.pool-record-lookup'));
       await runPage.locator('#pool-receipt-hash').fill(result.receiptHash);
       await runPage.locator('#pool-receipt-lookup').click();
       await expect(runPage.locator('#pool-receipt-result-raw')).toContainText(result.receiptHash);
@@ -569,8 +871,8 @@ test.describe('Run, Contribute, Records peer room', () => {
 
       expect(first.transport).toBe('webrtc_peer_room');
       expect(second.transport).toBe('webrtc_peer_room');
-      expect(first.outputText).toBe('e2e:queued browser request one');
-      expect(second.outputText).toBe('e2e:queued browser request two');
+      expect(first.outputText).toBe(`e2e:${sequenceFor('queued browser request one')}`);
+      expect(second.outputText).toBe(`e2e:${sequenceFor('queued browser request two')}`);
       expect(first.receiptPayloads).toHaveLength(1);
       expect(second.receiptPayloads).toHaveLength(1);
       expect(first.assignment.providerId).toBe(second.assignment.providerId);
@@ -605,8 +907,8 @@ test.describe('Run, Contribute, Records peer room', () => {
 
       expect(resultOne.roomId).toBe(roomOne);
       expect(resultTwo.roomId).toBe(roomTwo);
-      expect(resultOne.outputText).toBe('e2e:room one prompt');
-      expect(resultTwo.outputText).toBe('e2e:room two prompt');
+      expect(resultOne.outputText).toBe(`e2e:${sequenceFor('room one prompt')}`);
+      expect(resultTwo.outputText).toBe(`e2e:${sequenceFor('room two prompt')}`);
       expect(resultOne.assignment.providerId).toBe(providerStartOne.identity.roleId);
       expect(resultTwo.assignment.providerId).toBe(providerStartTwo.identity.roleId);
       expect(resultOne.assignment.providerId).not.toBe(resultTwo.assignment.providerId);
@@ -649,8 +951,8 @@ test.describe('Run, Contribute, Records peer room', () => {
         });
         expect(new Set(result.assignments.map((assignment) => assignment.providerId)).size).toBe(4);
       }
-      expect(first.outputText).toBe('e2e:distributed browser quorum one');
-      expect(second.outputText).toBe('e2e:distributed browser quorum two');
+      expect(first.outputText).toBe(`e2e:${sequenceFor('distributed browser quorum one')}`);
+      expect(second.outputText).toBe(`e2e:${sequenceFor('distributed browser quorum two')}`);
     } finally {
       await closeContexts(contexts);
     }

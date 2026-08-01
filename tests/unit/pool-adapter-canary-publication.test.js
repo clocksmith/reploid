@@ -122,7 +122,7 @@ describe('Poolday adapter canary publication', () => {
 
   it('stores signed canaries separately and exposes public read-only discovery', async () => {
     const store = createPoolStore();
-    const writeRouter = createPoolRouter({ store });
+    const writeRouter = createPoolRouter({ store, allowUnauthenticatedLocal: true });
     const { publication } = await createFixture();
     const normalRoute = await dispatchJson(writeRouter, '/adapters', {
       method: 'POST',

@@ -13,6 +13,11 @@ import {
   buildRuntimeProfile,
   hashRuntimeProfile
 } from '../../self/pool/runtime-profile.js';
+import {
+  TEST_PUBLIC_PROTEIN_SEQUENCE,
+  makePublicProteinJobFields,
+  makeSequenceExecution
+} from '../helpers/pool-sequence-fixture.js';
 
 const runtimeModel = () => ({
   modelId: LAUNCH_MODEL.modelId,
@@ -21,7 +26,10 @@ const runtimeModel = () => ({
   runtime: LAUNCH_MODEL.runtime,
   backend: LAUNCH_MODEL.backend,
   contextLength: LAUNCH_MODEL.contextLength,
-  quantization: LAUNCH_MODEL.quantization
+  quantization: LAUNCH_MODEL.quantization,
+  workload: LAUNCH_MODEL.workload,
+  executionMode: LAUNCH_MODEL.executionMode,
+  sequence: LAUNCH_MODEL.sequence
 });
 
 const assignmentModel = () => ({
@@ -29,10 +37,15 @@ const assignmentModel = () => ({
   hash: LAUNCH_MODEL.modelHash,
   manifestHash: LAUNCH_MODEL.manifestHash,
   runtime: LAUNCH_MODEL.runtime,
-  backend: LAUNCH_MODEL.backend
+  backend: LAUNCH_MODEL.backend,
+  workload: LAUNCH_MODEL.workload,
+  executionMode: LAUNCH_MODEL.executionMode,
+  sequence: LAUNCH_MODEL.sequence
 });
 
-const assignment = () => ({
+const assignment = async () => {
+  const sequenceFields = await makePublicProteinJobFields();
+  return {
   assignmentId: 'assignment_lane_b',
   jobId: 'job_lane_b',
   requesterId: 'requester_lane_b',
@@ -40,10 +53,9 @@ const assignment = () => ({
   policyId: 'ring_quorum_receipt',
   assignmentAttemptId: 1,
   ringAttemptId: 'ring_attempt_1',
-  inputHash: 'sha256:input',
+  ...sequenceFields,
   generationConfigHash: 'sha256:generation',
   verificationLevel: 'ring_quorum_receipt',
-  prompt: 'test prompt',
   generationConfig: {
     mode: 'greedy',
     temperature: 0,
@@ -52,13 +64,20 @@ const assignment = () => ({
     maxOutputTokens: 8,
     seed: '0000000000000000'
   },
-  model: assignmentModel(),
+  model: {
+    ...assignmentModel(),
+    requirements: {
+      ...runtimeModel(),
+      sequenceRequest: sequenceFields.sequenceRequest
+    }
+  },
   ring: {
     ringId: 'ring_test',
     ringAttemptId: 'ring_attempt_1',
     phaseProtocol: 'commit_reveal_v1'
   }
-});
+  };
+};
 
 const fakeRuntime = () => ({
   isReady: () => true,
@@ -66,7 +85,7 @@ const fakeRuntime = () => ({
   getRuntimeInfo: () => ({
     runtime: LAUNCH_MODEL.runtime,
     backend: LAUNCH_MODEL.backend,
-    publicApi: 'generate',
+    publicApi: 'encodeSequence',
     profile: { implementation: 'test' }
   }),
   getDeviceInfo: async () => ({
@@ -90,7 +109,7 @@ const fakeRuntime = () => ({
       runtimeInfo: {
         runtime: LAUNCH_MODEL.runtime,
         backend: LAUNCH_MODEL.backend,
-        publicApi: 'generate',
+        publicApi: 'encodeSequence',
         profile: { implementation: 'test' }
       },
       deviceInfo: {
@@ -118,22 +137,13 @@ const fakeRuntime = () => ({
       runtimeProfileHash: await hashRuntimeProfile(runtimeProfile)
     };
   },
-  generate: async () => ({
-    outputText: 'test output',
-    tokenIds: [11, 22, 33],
-    transcript: {
-      outputText: 'test output',
-      tokenIds: [11, 22, 33]
-    },
-    tokenCounts: {
-      input: 2,
-      output: 3
-    },
+  encodeSequence: async ({ sequence, request, assignment: currentAssignment }) => makeSequenceExecution({
+    assignment: { ...currentAssignment, sequenceRequest: request },
+    sequence,
     timing: {
       startedAt: '2026-06-07T00:00:00.000Z',
       completedAt: '2026-06-07T00:00:01.000Z'
-    },
-    status: 'completed'
+    }
   })
 });
 
@@ -144,7 +154,7 @@ describe('pool browser Lane B contract', () => {
       runtimeInfo: {
         runtime: LAUNCH_MODEL.runtime,
         backend: LAUNCH_MODEL.backend,
-        publicApi: 'generate'
+        publicApi: 'encodeSequence'
       },
       deviceInfo: {
         hasWebGPU: true,
@@ -243,8 +253,10 @@ describe('pool browser Lane B contract', () => {
     });
     await provider.register({});
 
-    const result = await provider.executeAssignment(assignment(), {
-      commitReveal: 'required'
+    const currentAssignment = await assignment();
+    const result = await provider.executeAssignment(currentAssignment, {
+      commitReveal: 'required',
+      sequence: TEST_PUBLIC_PROTEIN_SEQUENCE
     });
 
     expect(calls.map((call) => call.type)).toEqual(['commit', 'reveal', 'receipt']);
@@ -253,25 +265,19 @@ describe('pool browser Lane B contract', () => {
     expect(calls[0].payload.assignmentAttemptId).toBe(1);
     expect(calls[0].payload.receiptHash).toMatch(/^sha256:/);
     expect(calls[1].payload.commitmentHash).toBe(calls[0].payload.commitmentHash);
-    expect(calls[1].payload.outputText).toBe('test output');
+    expect(calls[1].payload.sequenceResultHash).toMatch(/^sha256:/);
     expect(calls[2].payload.receipt.verification.runtimeProfileHash).toBeTruthy();
     expect(calls[2].payload.receipt.providerSignature).toBeTruthy();
     expect(result.commitReveal.revealResult.phase).toBe('reveal_accepted');
   });
 
   it('builds reveal payloads that bind back to the original commitment', async () => {
-    const currentAssignment = assignment();
-    const execution = {
-      outputText: 'test output',
-      tokenIds: [11, 22, 33],
-      transcript: {
-        outputText: 'test output',
-        tokenIds: [11, 22, 33]
-      }
-    };
+    const currentAssignment = await assignment();
+    const execution = await makeSequenceExecution({ assignment: currentAssignment });
     const receipt = {
       outputHash: 'sha256:output',
       tokenIdsHash: 'sha256:tokens',
+      sequenceResultHash: execution.sequenceResultHash,
       transcriptHash: 'sha256:transcript'
     };
     const commitment = await buildAssignmentCommitmentPayload({
@@ -297,6 +303,8 @@ describe('pool browser Lane B contract', () => {
       providerId: currentAssignment.providerId,
       outputHash: receipt.outputHash,
       tokenIdsHash: receipt.tokenIdsHash,
+      vectorHash: execution.vectorHash,
+      sequenceResultHash: execution.sequenceResultHash,
       transcriptHash: receipt.transcriptHash,
       salt: 'fixed_salt'
     }));
