@@ -120,12 +120,14 @@ describe('Firestore-backed peer-room relay', () => {
       id: 'signal-one',
       type: 'offer',
       fromPeerId: 'requester_1',
+      idempotencyHash: 'sha256:signal-one',
       createdAt: 1
     });
     const duplicate = await store.appendSignalMessage(session.sessionId, {
       id: 'signal-one',
       type: 'offer',
       fromPeerId: 'requester_1',
+      idempotencyHash: 'sha256:signal-one',
       createdAt: 999
     });
     const second = await store.appendSignalMessage(session.sessionId, {
@@ -151,11 +153,13 @@ describe('Firestore-backed peer-room relay', () => {
     const first = await store.appendPeerRoomMessage(roomId, {
       relayId: 'relay-one',
       fromPeerId: 'provider_1',
+      idempotencyHash: 'sha256:relay-one',
       createdAt: 1
     });
     const duplicate = await store.appendPeerRoomMessage(roomId, {
       relayId: 'relay-one',
       fromPeerId: 'provider_1',
+      idempotencyHash: 'sha256:relay-one',
       createdAt: 999
     });
     const second = await store.appendPeerRoomMessage(roomId, {
@@ -171,6 +175,20 @@ describe('Firestore-backed peer-room relay', () => {
     const page = await store.listPeerRoomMessages(roomId, { afterSequence: 1 });
     expect(page.map((message) => message.relayId)).toEqual(['relay-two']);
     expect(page.nextCursor).toMatchObject({ sequence: 2, messageId: 'relay-two' });
+  });
+
+  it('rejects reuse of a relay id for a different payload', async () => {
+    const fake = createQueryableFirestore();
+    const store = createFirestorePoolStore({ firestore: fake.firestore });
+    await store.appendPeerRoomMessage('conflict-room', {
+      relayId: 'reused-id',
+      idempotencyHash: 'sha256:original'
+    });
+
+    await expect(store.appendPeerRoomMessage('conflict-room', {
+      relayId: 'reused-id',
+      idempotencyHash: 'sha256:replacement'
+    })).rejects.toMatchObject({ code: 'relay_id_conflict' });
   });
 
   it('paginates same-millisecond signal messages by message id without loss', async () => {

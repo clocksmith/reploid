@@ -6,6 +6,8 @@ export const SIGNAL_TYPES = Object.freeze({
   PING: 'ping',
 });
 
+export const DEFAULT_SIGNAL_POLL_TIMEOUT_MS = 5000;
+
 export function createSignalId(prefix = 'sig') {
   if (globalThis.crypto?.randomUUID) {
     return `${prefix}_${globalThis.crypto.randomUUID()}`;
@@ -155,6 +157,8 @@ export function createPollingSignalingAdapter({
   pollIntervalMs = 1000,
   peerId = null,
   after = 0,
+  pollTimeoutMs = DEFAULT_SIGNAL_POLL_TIMEOUT_MS,
+  onStatus = null,
   close = null,
 } = {}) {
   if (typeof publishSignal !== 'function') {
@@ -172,6 +176,19 @@ export function createPollingSignalingAdapter({
   };
   let timer = null;
   let stopped = false;
+  const withTimeout = (promise) => new Promise((resolve, reject) => {
+    const timeout = globalThis.setTimeout(() => reject(new Error('signaling relay poll timed out')), Math.max(1, Number(pollTimeoutMs || 1)));
+    Promise.resolve(promise).then(
+      (value) => {
+        globalThis.clearTimeout(timeout);
+        resolve(value);
+      },
+      (error) => {
+        globalThis.clearTimeout(timeout);
+        reject(error);
+      }
+    );
+  });
 
   return createCallbackSignalingAdapter({
     publish: publishSignal,
@@ -179,12 +196,12 @@ export function createPollingSignalingAdapter({
       const poll = async () => {
         if (stopped) return;
         try {
-          const result = await listSignals({
+          const result = await withTimeout(listSignals({
             after: cursor.createdAt,
             afterId: cursor.messageId,
             afterSequence: cursor.sequence,
             peerId
-          });
+          }));
           const messages = Array.isArray(result?.messages) ? result.messages : Array.isArray(result) ? result : [];
           for (const message of messages) {
             const normalized = normalizeSignalMessage(message);
@@ -205,6 +222,10 @@ export function createPollingSignalingAdapter({
               createdAt: Number(last.createdAt || 0),
               messageId: String(last.id || '')
             };
+          }
+        } catch (error) {
+          if (typeof onStatus === 'function') {
+            onStatus({ type: 'signaling-poll-failed', error: String(error?.message || error) });
           }
         } finally {
           if (!stopped) timer = globalThis.setTimeout(poll, pollIntervalMs);
@@ -232,6 +253,8 @@ export function createPoolSdkSignalingAdapter({
   peerId,
   pollIntervalMs = 1000,
   after = 0,
+  pollTimeoutMs = DEFAULT_SIGNAL_POLL_TIMEOUT_MS,
+  onStatus = null,
 } = {}) {
   if (!sdk || typeof sdk.publishSignal !== 'function' || typeof sdk.listSignals !== 'function') {
     throw new TypeError('sdk must provide publishSignal() and listSignals()');
@@ -243,6 +266,8 @@ export function createPoolSdkSignalingAdapter({
     pollIntervalMs,
     peerId: boundPeerId,
     after,
+    pollTimeoutMs,
+    onStatus,
     publishSignal(message) {
       return sdk.publishSignal(boundSessionId, message).then((result) => result?.message || result);
     },

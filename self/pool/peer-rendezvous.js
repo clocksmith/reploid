@@ -2,6 +2,8 @@
  * @fileoverview Peer-room rendezvous buses for Reploid browser peers.
  */
 
+import { verifyPeerMessage } from './peer-protocol.js';
+
 export const PEER_ROOM_RELAY_VERSION = 'reploid_peer_room_relay/v1';
 export const DEFAULT_RELAY_POLL_INTERVAL_MS = 1000;
 export const DEFAULT_RELAY_TTL_MS = 120000;
@@ -10,6 +12,7 @@ export const DEFAULT_RELAY_DEDUP_WINDOW_MS = 120000;
 export const DEFAULT_RELAY_MAX_DEDUP_IDS = 2048;
 export const DEFAULT_RELAY_PUBLISH_ATTEMPTS = 3;
 export const DEFAULT_RELAY_RETRY_BASE_MS = 250;
+export const DEFAULT_RELAY_POLL_TIMEOUT_MS = 5000;
 
 const requireString = (value, label) => {
   const normalized = String(value || '').trim();
@@ -110,6 +113,8 @@ export function createSdkPeerRoomRelayBus({
   maxDedupIds = DEFAULT_RELAY_MAX_DEDUP_IDS,
   publishAttempts = DEFAULT_RELAY_PUBLISH_ATTEMPTS,
   retryBaseMs = DEFAULT_RELAY_RETRY_BASE_MS,
+  pollTimeoutMs = DEFAULT_RELAY_POLL_TIMEOUT_MS,
+  relayAckSigner = null,
   onStatus = null,
   now = () => Date.now()
 } = {}) {
@@ -166,6 +171,22 @@ export function createSdkPeerRoomRelayBus({
     record?.relayId || message?.relay?.relayId || message?.relayId || message?.id || null
   );
   const waitFor = (milliseconds) => new Promise((resolve) => globalThis.setTimeout(resolve, milliseconds));
+  const withTimeout = (promise, timeoutMs, message) => new Promise((resolve, reject) => {
+    const timeout = globalThis.setTimeout(() => reject(new Error(message)), Math.max(1, Number(timeoutMs || 1)));
+    Promise.resolve(promise).then(
+      (value) => {
+        globalThis.clearTimeout(timeout);
+        resolve(value);
+      },
+      (error) => {
+        globalThis.clearTimeout(timeout);
+        reject(error);
+      }
+    );
+  });
+  const acknowledgementTargetFor = (message = {}) => (
+    message.body?.toPeerId || message.body?.signal?.toPeerId || null
+  );
   const publish = async (message, { awaitAcknowledgement = message?.type !== 'relay-ack' } = {}) => {
     const relayId = message?.relay?.relayId || message?.relayId || null;
     const maxAttempts = Math.max(1, Number(publishAttempts || 1));
@@ -176,7 +197,10 @@ export function createSdkPeerRoomRelayBus({
       try {
         const result = await sdk.publishPeerRoomMessage(resolvedRoomId, message);
         counters.published += 1;
-        if (relayId && awaitAcknowledgement) pendingAcks.set(relayId, { publishedAt: startedAt });
+        const targetPeerId = acknowledgementTargetFor(message);
+        if (relayId && awaitAcknowledgement && targetPeerId) {
+          pendingAcks.set(relayId, { publishedAt: startedAt, targetPeerId });
+        }
         emitStatus('relay-published', {
           relayId,
           attempt,
@@ -197,17 +221,23 @@ export function createSdkPeerRoomRelayBus({
     emitStatus('relay-publish-failed', { relayId, error: String(lastError?.message || lastError) });
     throw lastError;
   };
-  const acknowledge = (record) => {
+  const acknowledge = async (record) => {
     const relayId = relayIdFor(record, record?.message || record);
-    if (!relayId || !localPeerId) return;
-    void publish({
+    if (!relayId || !localPeerId || typeof relayAckSigner !== 'function') return;
+    const proof = await relayAckSigner({
+      roomId: resolvedRoomId,
+      relayId,
+      relaySequence: record?.relaySequence ?? null
+    });
+    await publish({
       peerRoomVersion: 'reploid_peer_room/v1',
       roomId: resolvedRoomId,
       type: 'relay-ack',
       body: {
         fromPeerId: localPeerId,
         relayId,
-        relaySequence: record?.relaySequence ?? null
+        relaySequence: record?.relaySequence ?? null,
+        proof
       },
       relay: {
         version: PEER_ROOM_RELAY_VERSION,
@@ -216,9 +246,23 @@ export function createSdkPeerRoomRelayBus({
         createdAt: now(),
         expiresAt: relayTtlMs === null ? null : now() + relayTtlMs
       }
-    }, { awaitAcknowledgement: false }).catch(() => null);
+    }, { awaitAcknowledgement: false });
   };
-  const deliver = (record) => {
+  const verifyAcknowledgement = async (message, pending) => {
+    const proof = message?.body?.proof;
+    if (!proof || !pending?.targetPeerId) return false;
+    const verification = await verifyPeerMessage(proof);
+    if (!verification.ok) return false;
+    const signed = proof.body || {};
+    return proof.type === 'heartbeat'
+      && proof.fromPeerId === pending.targetPeerId
+      && message.body?.fromPeerId === pending.targetPeerId
+      && signed.schema === 'reploid.peer.relay_ack/v1'
+      && signed.roomId === resolvedRoomId
+      && signed.relayId === message.body?.relayId
+      && Number(signed.relaySequence) === Number(message.body?.relaySequence);
+  };
+  const deliver = async (record) => {
     const message = record?.message || record;
     const id = relayIdFor(record, message) || JSON.stringify(message);
     pruneSeen();
@@ -227,35 +271,45 @@ export function createSdkPeerRoomRelayBus({
       emitStatus('relay-duplicate-suppressed', { relayId: id });
       return;
     }
-    if (id) seen.set(id, now() + Math.max(1, Number(dedupWindowMs || 1)));
     if (message?.type === 'relay-ack') {
       const acknowledgedRelayId = message.body?.relayId || null;
-      if (acknowledgedRelayId && pendingAcks.delete(acknowledgedRelayId)) {
+      const pending = pendingAcks.get(acknowledgedRelayId);
+      if (acknowledgedRelayId && pending && await verifyAcknowledgement(message, pending)) {
+        pendingAcks.delete(acknowledgedRelayId);
         counters.acknowledgements += 1;
         emitStatus('relay-acknowledged', { relayId: acknowledgedRelayId, byPeerId: message.body?.fromPeerId || null });
+      } else {
+        emitStatus('relay-ack-rejected', { relayId: acknowledgedRelayId, byPeerId: message.body?.fromPeerId || null });
       }
+      if (id) seen.set(id, now() + Math.max(1, Number(dedupWindowMs || 1)));
       return;
     }
     counters.received += 1;
     for (const listener of listeners) listener({ data: message });
-    if (Number.isSafeInteger(record?.relaySequence) && record.relaySequence > 0) acknowledge(record);
+    if (id) seen.set(id, now() + Math.max(1, Number(dedupWindowMs || 1)));
+    if (Number.isSafeInteger(record?.relaySequence) && record.relaySequence > 0) {
+      void acknowledge(record).catch((error) => emitStatus('relay-ack-failed', {
+        relayId: id,
+        error: String(error?.message || error)
+      }));
+    }
   };
 
   const poll = async () => {
     if (closed) return;
     try {
-      const result = await sdk.listPeerRoomMessages(resolvedRoomId, {
+      const result = await withTimeout(sdk.listPeerRoomMessages(resolvedRoomId, {
         // The server orders pages by its receive timestamp and relay id. Advance
         // only from the returned page cursor, after every scanned relay record.
         after: cursor.createdAt,
         afterId: cursor.messageId,
         afterSequence: cursor.sequence,
         peerId: localPeerId || null
-      });
+      }), pollTimeoutMs, 'peer-room relay poll timed out');
       const messages = Array.isArray(result?.messages) ? result.messages : Array.isArray(result) ? result : [];
       for (const record of messages) {
         const message = record.message || record;
-        if (message?.peerRoomVersion) deliver(record);
+        if (message?.peerRoomVersion) await deliver(record);
       }
       const nextCursor = result?.nextCursor;
       const hasSequence = Number.isSafeInteger(nextCursor?.sequence) && nextCursor.sequence >= 0;
@@ -345,6 +399,7 @@ export function createPeerRoomBusFactory({ sdk = null, relay = 'local', pollInte
         localPeerId: options.localPeerId,
         pollIntervalMs,
         relayTtlMs,
+        relayAckSigner: options.relayAckSigner,
         onStatus: options.onStatus
       });
     }

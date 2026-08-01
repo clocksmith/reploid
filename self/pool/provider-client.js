@@ -18,6 +18,7 @@ import {
 import { validatePublishedAdapterRequirement, verifyAdapterUseApproval } from './adapter-publication.js';
 import { acquireAdapterForAssignment, createAdapterRegistry } from './adapter-registry.js';
 import { createPoolIdentity } from './identity.js';
+import { createSignedPeerMessage, PEER_MESSAGE_TYPES } from './peer-protocol.js';
 import {
   PARTICIPATION_CAPABILITIES,
   participationAllows
@@ -647,6 +648,23 @@ export function createProviderClient({
     },
     getPublicKey() {
       return publicKey;
+    },
+    async createRelayAcknowledgement({ roomId, relayId, relaySequence } = {}) {
+      const keys = await ensureKeys();
+      const resolvedProviderId = await ensureProviderId();
+      return createSignedPeerMessage({
+        type: PEER_MESSAGE_TYPES.HEARTBEAT,
+        fromPeerId: resolvedProviderId,
+        publicKey,
+        body: {
+          schema: 'reploid.peer.relay_ack/v1',
+          roomId,
+          relayId,
+          relaySequence
+        },
+        expiresAt: new Date(Date.now() + 2 * 60 * 1000).toISOString(),
+        privateKey: keys.privateKey
+      });
     },
     publishAdapter(publication) {
       return adapterRegistry.publish(publication);

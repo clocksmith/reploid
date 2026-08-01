@@ -51,9 +51,9 @@ claim exactly-once delivery across browser, WebRTC, or Firestore restarts.
   sequence.
 - Consumers resume with `afterSequence`, retain a bounded dedupe window, and
   suppress duplicate relay IDs.
-- `relay-ack` confirms another peer received a durable relay record. It does
-  not confirm inference execution, output validity, receipt acceptance, or
-  hardware behavior.
+- `relay-ack` is a signed, target-bound peer proof for a durable relay record.
+  It confirms relay receipt only. It does not confirm inference execution,
+  output validity, receipt acceptance, or hardware behavior.
 - Relay records remain replayable only until their bounded expiry. A receiver
   that resumes after expiry must re-run discovery or the applicable assignment
   recovery flow.
