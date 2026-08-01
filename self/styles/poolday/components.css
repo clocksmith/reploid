@@ -265,7 +265,7 @@ body[data-pool-route-id='home'] #app {
   display: inline-flex;
   min-height: var(--pool-px-36);
   min-width: var(--pool-px-r4-75);
-  align-items: baseline;
+  align-items: center;
   justify-content: center;
   gap: var(--pool-px-5);
   padding: 0 var(--pool-px-9);
@@ -2960,8 +2960,8 @@ body[data-pool-route-id='home'] #app {
 
   .pool-home[data-pool-route-id='home']:has(.pool-nav-rail.is-open) .pool-home-toolbar {
     margin-left: var(--pool-metric-nav-panel);
-    padding-left: clamp(0.9rem, 2vw, 1.5rem);
-    padding-right: clamp(0.9rem, 2vw, 1.5rem);
+    padding-left: clamp(var(--pool-px-r0-9), 2vw, var(--pool-px-r1-5));
+    padding-right: clamp(var(--pool-px-r0-9), 2vw, var(--pool-px-r1-5));
   }
 
   .pool-home[data-pool-route-id='home']:has(.pool-nav-rail.is-open) .pool-home-stage {
