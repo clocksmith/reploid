@@ -10,6 +10,11 @@ import {
   projectProviderReputation,
   reputationEventIdFor
 } from './reputation-projection.js';
+import {
+  attachRelayPage,
+  cursorForRelayRecord,
+  normalizeRelayCursor
+} from './relay-cursor.js';
 
 const makeId = (prefix) => `${prefix}_${crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2)}`;
 const nowIso = () => new Date().toISOString();
@@ -31,7 +36,9 @@ const COLLECTIONS = Object.freeze({
   poolEvents: 'pool_events',
   signalingSessions: 'signaling_sessions',
   signalingMessages: 'signaling_messages',
+  signalingRelaySequences: 'signaling_relay_sequences',
   peerRoomMessages: 'peer_room_messages',
+  peerRoomRelaySequences: 'peer_room_relay_sequences',
   pointsLedger: 'points_ledger',
   reputationState: 'reputation_state',
   auditChallenges: 'audit_challenges',
@@ -655,77 +662,123 @@ export function createFirestorePoolStore({ firestore, collectionPrefix = '' } = 
       const session = await api.getSignalingSession(sessionId);
       if (!session) return null;
       const signalId = message.id || makeId('signal');
-      const saved = {
-        ...message,
-        sessionId,
-        id: signalId,
-        createdAt: message.createdAt || Date.now(),
-        receivedAt: nowIso()
-      };
-      await Promise.all([
-        writeDoc(COLLECTIONS.signalingMessages, `${sessionId}_${signalId}`, saved, { merge: true }),
-        writeDoc(COLLECTIONS.signalingSessions, sessionId, { ...session, updatedAt: nowIso() }, { merge: true })
-      ]);
-      return saved;
-    },
-    async listSignalMessages(sessionId, { after = 0, peerId = null, limit = 100 } = {}) {
-      const minCreatedAt = Number(after || 0);
-      const snapshot = await collection(COLLECTIONS.signalingMessages)
-        .where('sessionId', '==', sessionId)
-        .where('createdAt', '>', minCreatedAt)
-        .orderBy('createdAt', 'asc')
-        .limit(Number(limit || 100))
-        .get();
-      return snapshot.docs
-        .map((entry) => entry.data())
-        .filter((message) => {
-          if (message.expiresAt && toEpochMs(message.expiresAt) < Date.now()) return false;
-          if (peerId && message.fromPeerId === peerId) return false;
-          if (peerId && message.toPeerId && message.toPeerId !== peerId) return false;
-          return true;
+      if (typeof firestore.runTransaction !== 'function') {
+        throw new Error('Firestore transactions are required for durable signaling relay sequencing');
+      }
+      const messageRef = doc(COLLECTIONS.signalingMessages, `${sessionId}_${signalId}`);
+      const sequenceRef = doc(COLLECTIONS.signalingRelaySequences, sessionId);
+      const sessionRef = doc(COLLECTIONS.signalingSessions, sessionId);
+      return firestore.runTransaction(async (transaction) => {
+        const existing = await transaction.get(messageRef);
+        if (existing.exists) return existing.data();
+        const sequenceSnapshot = await transaction.get(sequenceRef);
+        const relaySequence = Number(sequenceSnapshot.data()?.nextSequence || 0) + 1;
+        const saved = {
+          ...message,
+          sessionId,
+          id: signalId,
+          relaySequence,
+          createdAt: message.createdAt || Date.now(),
+          receivedAt: nowIso()
+        };
+        transaction.set(messageRef, stripUndefined(saved));
+        transaction.set(sequenceRef, {
+          sessionId,
+          nextSequence: relaySequence,
+          updatedAt: nowIso()
         });
+        transaction.set(sessionRef, { ...session, updatedAt: nowIso() }, { merge: true });
+        return saved;
+      });
+    },
+    async listSignalMessages(sessionId, { after = 0, afterId = '', afterSequence = null, peerId = null, limit = 100 } = {}) {
+      const cursor = normalizeRelayCursor({ after, afterId, afterSequence });
+      let query = collection(COLLECTIONS.signalingMessages).where('sessionId', '==', sessionId);
+      if (cursor.sequence !== null) {
+        query = query.where('relaySequence', '>', cursor.sequence).orderBy('relaySequence', 'asc');
+      } else {
+        query = query.orderBy('createdAt', 'asc').orderBy('id', 'asc');
+        if (cursor.createdAt > 0 || cursor.messageId) {
+          query = query.startAfter(cursor.createdAt, cursor.messageId);
+        }
+      }
+      const snapshot = await query.limit(Number(limit || 100)).get();
+      const scanned = snapshot.docs.map((entry) => entry.data());
+      const messages = scanned.filter((message) => {
+        if (message.expiresAt && toEpochMs(message.expiresAt) < Date.now()) return false;
+        if (peerId && message.fromPeerId === peerId) return false;
+        if (peerId && message.toPeerId && message.toPeerId !== peerId) return false;
+        return true;
+      });
+      return attachRelayPage(messages, scanned.length ? cursorForRelayRecord(scanned.at(-1), 'id') : null);
     },
     async appendPeerRoomMessage(roomId, message = {}) {
       const resolvedRoomId = String(roomId || '').trim();
       if (!resolvedRoomId) return null;
       const relayId = message.relayId || makeId('peer_room');
-      const saved = {
-        ...message,
-        roomId: resolvedRoomId,
-        relayId,
-        fromPeerId: message.fromPeerId || null,
-        createdAt: Number(message.createdAt || Date.now()),
-        expiresAt: message.expiresAt || null,
-        receivedAt: nowIso()
-      };
-      return writeDoc(COLLECTIONS.peerRoomMessages, `${resolvedRoomId}_${relayId}`, saved, { merge: true });
+      if (typeof firestore.runTransaction !== 'function') {
+        throw new Error('Firestore transactions are required for durable peer-room relay sequencing');
+      }
+      const messageRef = doc(COLLECTIONS.peerRoomMessages, `${resolvedRoomId}_${relayId}`);
+      const sequenceRef = doc(COLLECTIONS.peerRoomRelaySequences, resolvedRoomId);
+      return firestore.runTransaction(async (transaction) => {
+        const existing = await transaction.get(messageRef);
+        if (existing.exists) return existing.data();
+        const sequenceSnapshot = await transaction.get(sequenceRef);
+        const relaySequence = Number(sequenceSnapshot.data()?.nextSequence || 0) + 1;
+        const saved = {
+          ...message,
+          roomId: resolvedRoomId,
+          relayId,
+          relaySequence,
+          fromPeerId: message.fromPeerId || null,
+          createdAt: Number(message.createdAt || Date.now()),
+          expiresAt: message.expiresAt || null,
+          receivedAt: nowIso()
+        };
+        transaction.set(messageRef, stripUndefined(saved));
+        transaction.set(sequenceRef, {
+          roomId: resolvedRoomId,
+          nextSequence: relaySequence,
+          updatedAt: nowIso()
+        });
+        return saved;
+      });
     },
     async listPeerRoomMessages(roomId, {
       after = 0,
+      afterId = '',
+      afterSequence = null,
       notBefore = 0,
       peerId = null,
       limit = 100
     } = {}) {
       const resolvedRoomId = String(roomId || '').trim();
-      const minCreatedAt = Math.max(Number(after || 0), Number(notBefore || 0));
-      const maxResults = Number(limit || 100);
-      const filterMessages = (messages) => messages
-        .filter((message) => {
-          if (message.roomId !== resolvedRoomId) return false;
-          if (Number(message.createdAt || 0) <= minCreatedAt) return false;
-          if (message.expiresAt && toEpochMs(message.expiresAt) < Date.now()) return false;
-          if (peerId && message.fromPeerId === peerId) return false;
-          return true;
-        })
-        .sort((left, right) => Number(left.createdAt || 0) - Number(right.createdAt || 0))
-        .slice(0, maxResults);
-      const snapshot = await collection(COLLECTIONS.peerRoomMessages)
-        .where('roomId', '==', resolvedRoomId)
-        .where('createdAt', '>', minCreatedAt)
-        .orderBy('createdAt', 'asc')
-        .limitToLast(maxResults)
-        .get();
-      return filterMessages(snapshot.docs.map((entry) => entry.data()));
+      const cursor = normalizeRelayCursor({
+        after: Math.max(Number(after || 0), Number(notBefore || 0)),
+        afterId,
+        afterSequence
+      });
+      let query = collection(COLLECTIONS.peerRoomMessages).where('roomId', '==', resolvedRoomId);
+      if (cursor.sequence !== null) {
+        query = query.where('relaySequence', '>', cursor.sequence).orderBy('relaySequence', 'asc');
+      } else {
+        query = query
+          .where('createdAt', '>=', cursor.createdAt)
+          .orderBy('createdAt', 'asc')
+          .orderBy('relayId', 'asc');
+        if (cursor.messageId) {
+          query = query.startAfter(cursor.createdAt, cursor.messageId);
+        }
+      }
+      const snapshot = await query.limit(Number(limit || 100)).get();
+      const scanned = snapshot.docs.map((entry) => entry.data());
+      const messages = scanned.filter((message) => {
+        if (message.expiresAt && toEpochMs(message.expiresAt) < Date.now()) return false;
+        if (peerId && message.fromPeerId === peerId) return false;
+        return true;
+      });
+      return attachRelayPage(messages, scanned.length ? cursorForRelayRecord(scanned.at(-1), 'relayId') : null);
     },
     async listPeerRooms({ limit = 50 } = {}) {
       const messages = await listDocs(COLLECTIONS.peerRoomMessages);

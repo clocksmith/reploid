@@ -167,6 +167,7 @@ describe('pool p2p transport helpers', () => {
     const transport = createP2PTransport({
       signaling,
       initiator: true,
+      maxPendingRemoteIceCandidates: 1,
       RTCPeerConnectionImpl: FakePeerConnection,
       RTCSessionDescriptionImpl: null,
       RTCIceCandidateImpl: null
@@ -182,6 +183,10 @@ describe('pool p2p transport helpers', () => {
       type: SIGNAL_TYPES.ICE_CANDIDATE,
       payload: { candidate: 'candidate:early', sdpMid: '0' }
     });
+    signalHandler({
+      type: SIGNAL_TYPES.ICE_CANDIDATE,
+      payload: { candidate: 'candidate:latest', sdpMid: '0' }
+    });
     await Promise.resolve();
     expect(pc.addedIceCandidates).toEqual([]);
 
@@ -192,7 +197,7 @@ describe('pool p2p transport helpers', () => {
     await ready;
 
     expect(pc.remoteDescription).toEqual({ type: 'answer', sdp: 'answer-sdp' });
-    expect(pc.addedIceCandidates).toEqual([{ candidate: 'candidate:early', sdpMid: '0' }]);
+    expect(pc.addedIceCandidates).toEqual([{ candidate: 'candidate:latest', sdpMid: '0' }]);
   });
 
   it('creates an assignment payload channel with cloud metadata signaling and DataChannel payload sends', async () => {

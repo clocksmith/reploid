@@ -50,6 +50,7 @@ Guide to all documentation in the REPLOID project.
 - **[docs/local-models.md](./local-models.md)** - WebLLM and Ollama setup
 - **[docs/style-guide.md](./style-guide.md)** - Code and UI conventions
 - **[docs/SECURITY.md](./SECURITY.md)** - Security model and containment layers
+- **[docs/maverick-hunting.md](./maverick-hunting.md)** - Evidence-backed provider/candidate containment and bounded bug hinting
 
 ---
 

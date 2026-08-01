@@ -16,6 +16,12 @@ export const ZERO_GEMINI_AGENT_THROTTLE = Object.freeze({
   providerAutoResume: true
 });
 
+const DEFAULT_FIREBASE_APP_MODULE_URL = 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js';
+const DEFAULT_FIREBASE_AUTH_MODULE_URL = 'https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js';
+const DEFAULT_FIREBASE_APP_CHECK_MODULE_URL = 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app-check.js';
+
+let zeroAccessPromise = null;
+
 const trimTrailingSlash = (value) => String(value || '').replace(/\/$/, '');
 
 export const getZeroGeminiFunctionUrl = () => {
@@ -60,3 +66,64 @@ export const getProxyChatEndpoint = (url, serverType) => {
   const base = trimTrailingSlash(url);
   return isZeroGeminiFunctionServer(serverType) ? base : `${base}/api/chat`;
 };
+
+const isLoopbackHost = () => {
+  const hostname = String(globalThis.location?.hostname || '').toLowerCase();
+  return hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '::1';
+};
+
+const getZeroFirebaseConfig = async () => {
+  if (globalThis.REPLOID_ZERO_FIREBASE_CONFIG) return globalThis.REPLOID_ZERO_FIREBASE_CONFIG;
+  if (globalThis.REPLOID_FIREBASE_CONFIG) return globalThis.REPLOID_FIREBASE_CONFIG;
+  if (isLoopbackHost() || typeof fetch !== 'function') return null;
+  const response = await fetch('/__/firebase/init.json', { cache: 'no-store' });
+  return response.ok ? response.json() : null;
+};
+
+const requireZeroAppCheckSiteKey = () => {
+  const siteKey = String(globalThis.REPLOID_ZERO_APP_CHECK_SITE_KEY || '').trim();
+  if (!siteKey) throw new Error('Zero App Check is not configured. Set REPLOID_ZERO_APP_CHECK_SITE_KEY.');
+  return siteKey;
+};
+
+const getZeroFirebaseModuleUrls = () => ({
+  app: globalThis.REPLOID_FIREBASE_APP_MODULE_URL || DEFAULT_FIREBASE_APP_MODULE_URL,
+  auth: globalThis.REPLOID_FIREBASE_AUTH_MODULE_URL || DEFAULT_FIREBASE_AUTH_MODULE_URL,
+  appCheck: globalThis.REPLOID_FIREBASE_APP_CHECK_MODULE_URL || DEFAULT_FIREBASE_APP_CHECK_MODULE_URL
+});
+
+const bootstrapZeroAccess = async () => {
+  const config = await getZeroFirebaseConfig();
+  if (!config) throw new Error('Zero Firebase configuration is unavailable.');
+  const urls = getZeroFirebaseModuleUrls();
+  const [appModule, authModule, appCheckModule] = await Promise.all([
+    import(urls.app),
+    import(urls.auth),
+    import(urls.appCheck)
+  ]);
+  const app = appModule.getApps().at(0) || appModule.initializeApp(config);
+  const auth = authModule.getAuth(app);
+  if (authModule.setPersistence && authModule.browserLocalPersistence) {
+    await authModule.setPersistence(auth, authModule.browserLocalPersistence).catch(() => null);
+  }
+  const appCheck = appCheckModule.initializeAppCheck(app, {
+    provider: new appCheckModule.ReCaptchaV3Provider(requireZeroAppCheckSiteKey()),
+    isTokenAutoRefreshEnabled: true
+  });
+  return { auth, authModule, appCheck, appCheckModule };
+};
+
+export async function getZeroAccessHeaders() {
+  if (!zeroAccessPromise) zeroAccessPromise = bootstrapZeroAccess();
+  const { auth, authModule, appCheck, appCheckModule } = await zeroAccessPromise;
+  const user = auth.currentUser || (await authModule.signInAnonymously(auth)).user;
+  const [idToken, appCheckToken] = await Promise.all([
+    user.getIdToken(),
+    appCheckModule.getToken(appCheck)
+  ]);
+  if (!idToken || !appCheckToken?.token) throw new Error('Zero Firebase credentials are unavailable.');
+  return Object.freeze({
+    Authorization: `Bearer ${idToken}`,
+    'X-Firebase-AppCheck': appCheckToken.token
+  });
+}

@@ -6,6 +6,10 @@ export const PEER_ROOM_RELAY_VERSION = 'reploid_peer_room_relay/v1';
 export const DEFAULT_RELAY_POLL_INTERVAL_MS = 1000;
 export const DEFAULT_RELAY_TTL_MS = 120000;
 export const DEFAULT_RELAY_CURSOR_LOOKBACK_MS = 5000;
+export const DEFAULT_RELAY_DEDUP_WINDOW_MS = 120000;
+export const DEFAULT_RELAY_MAX_DEDUP_IDS = 2048;
+export const DEFAULT_RELAY_PUBLISH_ATTEMPTS = 3;
+export const DEFAULT_RELAY_RETRY_BASE_MS = 250;
 
 const requireString = (value, label) => {
   const normalized = String(value || '').trim();
@@ -102,6 +106,11 @@ export function createSdkPeerRoomRelayBus({
   pollIntervalMs = DEFAULT_RELAY_POLL_INTERVAL_MS,
   relayTtlMs = DEFAULT_RELAY_TTL_MS,
   cursorLookbackMs = DEFAULT_RELAY_CURSOR_LOOKBACK_MS,
+  dedupWindowMs = DEFAULT_RELAY_DEDUP_WINDOW_MS,
+  maxDedupIds = DEFAULT_RELAY_MAX_DEDUP_IDS,
+  publishAttempts = DEFAULT_RELAY_PUBLISH_ATTEMPTS,
+  retryBaseMs = DEFAULT_RELAY_RETRY_BASE_MS,
+  onStatus = null,
   now = () => Date.now()
 } = {}) {
   if (!sdk || typeof sdk.publishPeerRoomMessage !== 'function' || typeof sdk.listPeerRoomMessages !== 'function') {
@@ -109,36 +118,165 @@ export function createSdkPeerRoomRelayBus({
   }
   const resolvedRoomId = requireString(roomId, 'roomId');
   const listeners = new Set();
-  const seen = new Set();
-  let cursor = 0;
+  const statusListeners = new Set();
+  const seen = new Map();
+  const pendingAcks = new Map();
+  const counters = {
+    published: 0,
+    publishRetries: 0,
+    publishFailures: 0,
+    received: 0,
+    duplicateSuppressed: 0,
+    acknowledgements: 0,
+    acknowledgementExpired: 0,
+    pollFailures: 0
+  };
+  let cursor = {
+    sequence: null,
+    createdAt: 0,
+    messageId: ''
+  };
   let timer = null;
   let closed = false;
 
-  const deliver = (message) => {
-    const id = message.relay?.relayId || message.relayId || message.id || message.createdAt || JSON.stringify(message);
-    if (id && seen.has(id)) return;
-    if (id) seen.add(id);
+  const emitStatus = (type, detail = {}) => {
+    const event = Object.freeze({ type, roomId: resolvedRoomId, at: now(), ...detail });
+    if (typeof onStatus === 'function') onStatus(event);
+    for (const listener of statusListeners) listener({ data: event });
+  };
+  const pruneSeen = () => {
+    const expiresBefore = now();
+    for (const [id, expiresAt] of seen) {
+      if (expiresAt <= expiresBefore) seen.delete(id);
+    }
+    while (seen.size > Math.max(1, Number(maxDedupIds || 1))) {
+      seen.delete(seen.keys().next().value);
+    }
+  };
+  const prunePendingAcks = () => {
+    const expiresBefore = now() - Math.max(1, Number(dedupWindowMs || 1));
+    for (const [relayId, pending] of pendingAcks) {
+      if (pending.publishedAt > expiresBefore) continue;
+      pendingAcks.delete(relayId);
+      counters.acknowledgementExpired += 1;
+      emitStatus('relay-ack-expired', { relayId });
+    }
+  };
+  const relayIdFor = (record, message) => (
+    record?.relayId || message?.relay?.relayId || message?.relayId || message?.id || null
+  );
+  const waitFor = (milliseconds) => new Promise((resolve) => globalThis.setTimeout(resolve, milliseconds));
+  const publish = async (message, { awaitAcknowledgement = message?.type !== 'relay-ack' } = {}) => {
+    const relayId = message?.relay?.relayId || message?.relayId || null;
+    const maxAttempts = Math.max(1, Number(publishAttempts || 1));
+    let lastError = null;
+    for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+      prunePendingAcks();
+      const startedAt = now();
+      try {
+        const result = await sdk.publishPeerRoomMessage(resolvedRoomId, message);
+        counters.published += 1;
+        if (relayId && awaitAcknowledgement) pendingAcks.set(relayId, { publishedAt: startedAt });
+        emitStatus('relay-published', {
+          relayId,
+          attempt,
+          elapsedMs: Math.max(0, now() - startedAt),
+          relaySequence: result?.message?.relaySequence ?? null
+        });
+        return result;
+      } catch (error) {
+        lastError = error;
+        if (attempt >= maxAttempts) break;
+        counters.publishRetries += 1;
+        const retryDelayMs = Math.max(0, Number(retryBaseMs || 0)) * (2 ** (attempt - 1));
+        emitStatus('relay-publish-retrying', { relayId, attempt, retryDelayMs, error: String(error?.message || error) });
+        await waitFor(retryDelayMs);
+      }
+    }
+    counters.publishFailures += 1;
+    emitStatus('relay-publish-failed', { relayId, error: String(lastError?.message || lastError) });
+    throw lastError;
+  };
+  const acknowledge = (record) => {
+    const relayId = relayIdFor(record, record?.message || record);
+    if (!relayId || !localPeerId) return;
+    void publish({
+      peerRoomVersion: 'reploid_peer_room/v1',
+      roomId: resolvedRoomId,
+      type: 'relay-ack',
+      body: {
+        fromPeerId: localPeerId,
+        relayId,
+        relaySequence: record?.relaySequence ?? null
+      },
+      relay: {
+        version: PEER_ROOM_RELAY_VERSION,
+        relayId: makeRelayId('peer_room_ack'),
+        fromPeerId: localPeerId,
+        createdAt: now(),
+        expiresAt: relayTtlMs === null ? null : now() + relayTtlMs
+      }
+    }, { awaitAcknowledgement: false }).catch(() => null);
+  };
+  const deliver = (record) => {
+    const message = record?.message || record;
+    const id = relayIdFor(record, message) || JSON.stringify(message);
+    pruneSeen();
+    if (id && seen.has(id)) {
+      counters.duplicateSuppressed += 1;
+      emitStatus('relay-duplicate-suppressed', { relayId: id });
+      return;
+    }
+    if (id) seen.set(id, now() + Math.max(1, Number(dedupWindowMs || 1)));
+    if (message?.type === 'relay-ack') {
+      const acknowledgedRelayId = message.body?.relayId || null;
+      if (acknowledgedRelayId && pendingAcks.delete(acknowledgedRelayId)) {
+        counters.acknowledgements += 1;
+        emitStatus('relay-acknowledged', { relayId: acknowledgedRelayId, byPeerId: message.body?.fromPeerId || null });
+      }
+      return;
+    }
+    counters.received += 1;
     for (const listener of listeners) listener({ data: message });
+    if (Number.isSafeInteger(record?.relaySequence) && record.relaySequence > 0) acknowledge(record);
   };
 
   const poll = async () => {
     if (closed) return;
     try {
       const result = await sdk.listPeerRoomMessages(resolvedRoomId, {
-        // Relay writes can complete out of order. Re-read a bounded overlap and
-        // deduplicate by relay id so a later message cannot advance the cursor
-        // past an acceptance or ICE signal that becomes visible afterward.
-        after: Math.max(0, cursor - Math.max(1, Number(cursorLookbackMs || 0))),
+        // The server orders pages by its receive timestamp and relay id. Advance
+        // only from the returned page cursor, after every scanned relay record.
+        after: cursor.createdAt,
+        afterId: cursor.messageId,
+        afterSequence: cursor.sequence,
         peerId: localPeerId || null
       });
       const messages = Array.isArray(result?.messages) ? result.messages : Array.isArray(result) ? result : [];
       for (const record of messages) {
         const message = record.message || record;
-        cursor = Math.max(cursor, Number(record.createdAt || message.createdAt || 0));
-        if (message?.peerRoomVersion) deliver(message);
+        if (message?.peerRoomVersion) deliver(record);
       }
-    } catch {
+      const nextCursor = result?.nextCursor;
+      const hasSequence = Number.isSafeInteger(nextCursor?.sequence) && nextCursor.sequence >= 0;
+      if (nextCursor && (hasSequence || Number.isFinite(Number(nextCursor.createdAt)))) {
+        cursor = {
+          sequence: hasSequence ? nextCursor.sequence : null,
+          createdAt: Number(nextCursor.createdAt),
+          messageId: String(nextCursor.messageId || '')
+        };
+      } else if (messages.length > 0) {
+        const last = messages.at(-1);
+        cursor = {
+          sequence: Number.isSafeInteger(last?.relaySequence) ? last.relaySequence : null,
+          createdAt: Number(last.createdAt || last.message?.createdAt || 0),
+          messageId: String(last.relayId || last.message?.relay?.relayId || '')
+        };
+      }
+    } catch (error) {
       // Relay failure should not break an already-open room loop.
+      counters.pollFailures += 1;
+      emitStatus('relay-poll-failed', { error: String(error?.message || error) });
     } finally {
       if (!closed) timer = globalThis.setTimeout(poll, pollIntervalMs);
     }
@@ -146,12 +284,18 @@ export function createSdkPeerRoomRelayBus({
 
   return Object.freeze({
     addEventListener(type, listener) {
-      if (type !== 'message') return;
-      listeners.add(listener);
-      if (!timer && !closed) void poll();
+      if (type === 'status') {
+        statusListeners.add(listener);
+        return;
+      }
+      if (type === 'message') {
+        listeners.add(listener);
+        if (!timer && !closed) void poll();
+      }
     },
     removeEventListener(type, listener) {
       if (type === 'message') listeners.delete(listener);
+      if (type === 'status') statusListeners.delete(listener);
     },
     async postMessage(data) {
       const createdAt = now();
@@ -166,14 +310,28 @@ export function createSdkPeerRoomRelayBus({
           expiresAt: relayTtlMs === null ? null : createdAt + relayTtlMs
         }
       };
-      await sdk.publishPeerRoomMessage(resolvedRoomId, message);
+      await publish(message);
       return message;
+    },
+    getStatus() {
+      pruneSeen();
+      prunePendingAcks();
+      return Object.freeze({
+        roomId: resolvedRoomId,
+        cursor: { ...cursor },
+        pendingAcknowledgements: pendingAcks.size,
+        dedupWindowSize: seen.size,
+        ...counters
+      });
     },
     close() {
       closed = true;
       if (timer) globalThis.clearTimeout(timer);
       timer = null;
       listeners.clear();
+      statusListeners.clear();
+      seen.clear();
+      pendingAcks.clear();
     }
   });
 }
@@ -186,7 +344,8 @@ export function createPeerRoomBusFactory({ sdk = null, relay = 'local', pollInte
         roomId: options.roomId,
         localPeerId: options.localPeerId,
         pollIntervalMs,
-        relayTtlMs
+        relayTtlMs,
+        onStatus: options.onStatus
       });
     }
     return createBroadcastPeerRoomBus({ roomId: options.roomId });

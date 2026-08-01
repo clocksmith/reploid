@@ -9,6 +9,13 @@ import {
   projectProviderReputation,
   reputationEventIdFor
 } from './reputation-projection.js';
+import {
+  attachRelayPage,
+  compareRelayCursors,
+  cursorForRelayRecord,
+  isAfterRelayCursor,
+  normalizeRelayCursor
+} from './relay-cursor.js';
 
 const makeId = (prefix) => `${prefix}_${crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2)}`;
 const nowIso = () => new Date().toISOString();
@@ -202,7 +209,11 @@ export function createPoolStore() {
   const auditChallenges = new Map();
   const signalingSessions = new Map();
   const signalingMessages = new Map();
+  const signalingRelaySequences = new Map();
+  const signalingMessageById = new Map();
   const peerRoomMessages = new Map();
+  const peerRoomRelaySequences = new Map();
+  const peerRoomMessageById = new Map();
   const adapterPublications = new Map();
   const adapterCanaryPublications = new Map();
   const rateLimits = new Map();
@@ -527,36 +538,60 @@ export function createPoolStore() {
     appendSignalMessage(sessionId, message = {}) {
       const session = signalingSessions.get(sessionId);
       if (!session) return null;
+      const signalId = message.id || makeId('signal');
+      const messageKey = `${sessionId}:${signalId}`;
+      const existing = signalingMessageById.get(messageKey);
+      if (existing) return existing;
+      const relaySequence = (signalingRelaySequences.get(sessionId) || 0) + 1;
       const saved = {
         ...message,
         sessionId,
-        id: message.id || makeId('signal'),
+        id: signalId,
+        relaySequence,
         createdAt: message.createdAt || Date.now(),
         receivedAt: nowIso()
       };
       const messages = signalingMessages.get(sessionId) || [];
       messages.push(saved);
       signalingMessages.set(sessionId, messages);
+      signalingRelaySequences.set(sessionId, relaySequence);
+      signalingMessageById.set(messageKey, saved);
       signalingSessions.set(sessionId, { ...session, updatedAt: nowIso() });
       return saved;
     },
-    listSignalMessages(sessionId, { after = 0, peerId = null, limit = 100 } = {}) {
-      const minCreatedAt = Number(after || 0);
-      return (signalingMessages.get(sessionId) || []).filter((message) => {
-        if (Number(message.createdAt || 0) <= minCreatedAt) return false;
-        if (message.expiresAt && toEpochMs(message.expiresAt) < Date.now()) return false;
-        if (peerId && message.fromPeerId === peerId) return false;
-        if (peerId && message.toPeerId && message.toPeerId !== peerId) return false;
-        return true;
-      }).slice(0, Number(limit || 100));
+    listSignalMessages(sessionId, { after = 0, afterId = '', afterSequence = null, peerId = null, limit = 100 } = {}) {
+      const cursor = normalizeRelayCursor({ after, afterId, afterSequence });
+      const messages = [];
+      let nextCursor = null;
+      const ordered = (signalingMessages.get(sessionId) || [])
+        .filter((message) => isAfterRelayCursor(message, cursor, 'id'))
+        .sort((left, right) => compareRelayCursors(
+          cursorForRelayRecord(left, 'id'),
+          cursorForRelayRecord(right, 'id')
+        ));
+      for (const message of ordered) {
+        nextCursor = cursorForRelayRecord(message, 'id');
+        if (message.expiresAt && toEpochMs(message.expiresAt) < Date.now()) continue;
+        if (peerId && message.fromPeerId === peerId) continue;
+        if (peerId && message.toPeerId && message.toPeerId !== peerId) continue;
+        messages.push(message);
+        if (messages.length >= Number(limit || 100)) break;
+      }
+      return attachRelayPage(messages, nextCursor);
     },
     appendPeerRoomMessage(roomId, message = {}) {
       const resolvedRoomId = String(roomId || '').trim();
       if (!resolvedRoomId) return null;
+      const relayId = message.relayId || makeId('peer_room');
+      const messageKey = `${resolvedRoomId}:${relayId}`;
+      const existing = peerRoomMessageById.get(messageKey);
+      if (existing) return existing;
+      const relaySequence = (peerRoomRelaySequences.get(resolvedRoomId) || 0) + 1;
       const saved = {
         ...message,
         roomId: resolvedRoomId,
-        relayId: message.relayId || makeId('peer_room'),
+        relayId,
+        relaySequence,
         fromPeerId: message.fromPeerId || null,
         createdAt: Number(message.createdAt || Date.now()),
         expiresAt: message.expiresAt || null,
@@ -565,21 +600,39 @@ export function createPoolStore() {
       const messages = peerRoomMessages.get(resolvedRoomId) || [];
       messages.push(saved);
       peerRoomMessages.set(resolvedRoomId, messages);
+      peerRoomRelaySequences.set(resolvedRoomId, relaySequence);
+      peerRoomMessageById.set(messageKey, saved);
       return saved;
     },
     listPeerRoomMessages(roomId, {
       after = 0,
+      afterId = '',
+      afterSequence = null,
       notBefore = 0,
       peerId = null,
       limit = 100
     } = {}) {
-      const minCreatedAt = Math.max(Number(after || 0), Number(notBefore || 0));
-      return (peerRoomMessages.get(String(roomId || '').trim()) || []).filter((message) => {
-        if (Number(message.createdAt || 0) <= minCreatedAt) return false;
-        if (message.expiresAt && toEpochMs(message.expiresAt) < Date.now()) return false;
-        if (peerId && message.fromPeerId === peerId) return false;
-        return true;
-      }).slice(0, Number(limit || 100));
+      const cursor = normalizeRelayCursor({
+        after: Math.max(Number(after || 0), Number(notBefore || 0)),
+        afterId,
+        afterSequence
+      });
+      const messages = [];
+      let nextCursor = null;
+      const ordered = (peerRoomMessages.get(String(roomId || '').trim()) || [])
+        .filter((message) => isAfterRelayCursor(message, cursor, 'relayId'))
+        .sort((left, right) => compareRelayCursors(
+          cursorForRelayRecord(left, 'relayId'),
+          cursorForRelayRecord(right, 'relayId')
+        ));
+      for (const message of ordered) {
+        nextCursor = cursorForRelayRecord(message, 'relayId');
+        if (message.expiresAt && toEpochMs(message.expiresAt) < Date.now()) continue;
+        if (peerId && message.fromPeerId === peerId) continue;
+        messages.push(message);
+        if (messages.length >= Number(limit || 100)) break;
+      }
+      return attachRelayPage(messages, nextCursor);
     },
     listPeerRooms({ limit = 50 } = {}) {
       const rooms = [];

@@ -15,6 +15,8 @@ export const P2P_TRANSPORT_STATES = Object.freeze({
 });
 
 export const DEFAULT_DATA_CHANNEL_LABEL = 'reploid-pool';
+export const DEFAULT_MAX_PENDING_REMOTE_ICE_CANDIDATES = 64;
+export const DEFAULT_PENDING_REMOTE_ICE_TTL_MS = 30000;
 export const DEFAULT_RTC_CONFIG = Object.freeze({
   iceServers: Object.freeze([
     Object.freeze({ urls: 'stun:stun.l.google.com:19302' }),
@@ -150,6 +152,9 @@ export function createP2PTransport({
   onStateChange = null,
   onPeerConnection = null,
   onDataChannel = null,
+  maxPendingRemoteIceCandidates = DEFAULT_MAX_PENDING_REMOTE_ICE_CANDIDATES,
+  pendingRemoteIceTtlMs = DEFAULT_PENDING_REMOTE_ICE_TTL_MS,
+  now = () => Date.now(),
   RTCPeerConnectionImpl = globalThis.RTCPeerConnection,
   RTCSessionDescriptionImpl = globalThis.RTCSessionDescription,
   RTCIceCandidateImpl = globalThis.RTCIceCandidate,
@@ -186,6 +191,13 @@ export function createP2PTransport({
   let remoteIceCandidateCount = 0;
   const localIceCandidateTypes = new Set();
   const remoteIceCandidateTypes = new Set();
+  const maxPendingIceCandidates = Math.max(1, Number(maxPendingRemoteIceCandidates || DEFAULT_MAX_PENDING_REMOTE_ICE_CANDIDATES));
+  const pendingIceTtlMs = Math.max(1, Number(pendingRemoteIceTtlMs || DEFAULT_PENDING_REMOTE_ICE_TTL_MS));
+
+  const prunePendingRemoteIceCandidates = () => {
+    const cutoff = now() - pendingIceTtlMs;
+    pendingRemoteIceCandidates = pendingRemoteIceCandidates.filter((entry) => entry.receivedAt >= cutoff);
+  };
 
   const recordCandidateType = (target, candidate) => {
     const explicitType = String(candidate?.type || '').trim();
@@ -428,7 +440,11 @@ export function createP2PTransport({
       remoteIceCandidateCount += 1;
       recordCandidateType(remoteIceCandidateTypes, message.payload);
       if (!hasRemoteDescription(peerConnection)) {
-        pendingRemoteIceCandidates.push(message.payload);
+        prunePendingRemoteIceCandidates();
+        pendingRemoteIceCandidates.push({ payload: message.payload, receivedAt: now() });
+        if (pendingRemoteIceCandidates.length > maxPendingIceCandidates) {
+          pendingRemoteIceCandidates.splice(0, pendingRemoteIceCandidates.length - maxPendingIceCandidates);
+        }
         return;
       }
       await peerConnection.addIceCandidate(makeIceCandidate(message.payload));
@@ -445,10 +461,11 @@ export function createP2PTransport({
       return;
     }
 
+    prunePendingRemoteIceCandidates();
     const candidates = pendingRemoteIceCandidates;
     pendingRemoteIceCandidates = [];
     for (const candidate of candidates) {
-      await peerConnection.addIceCandidate(makeIceCandidate(candidate));
+      await peerConnection.addIceCandidate(makeIceCandidate(candidate.payload));
     }
   }
 
@@ -473,6 +490,7 @@ export function createP2PTransport({
   }
 
   function getDiagnostics() {
+    prunePendingRemoteIceCandidates();
     const configuredServers = Array.isArray(rtcConfig?.iceServers) ? rtcConfig.iceServers : [];
     return {
       state,

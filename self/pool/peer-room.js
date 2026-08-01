@@ -26,7 +26,10 @@ import { modelSupportsAdapterRequirement, modelSupportsPoolWorkload } from './mo
 export const PEER_ROOM_VERSION = 'reploid_peer_room/v1';
 export const DEFAULT_PEER_ROOM_ID = 'reploid-default';
 
-const DEFAULT_DISCOVERY_WINDOW_MS = 1200;
+// A server relay requires a requester poll, provider poll, provider write, and
+// requester poll. Keep the default above that round trip with room for network
+// scheduling; callers may choose a longer budget for higher-latency relays.
+const DEFAULT_DISCOVERY_WINDOW_MS = 3500;
 const DEFAULT_RECEIPT_WINDOW_MS = 60000;
 const DEFAULT_PROVIDER_ADVERT_INTERVAL_MS = 30000;
 const DEFAULT_PROVIDER_SESSION_SETTLE_MS = 5000;
@@ -244,6 +247,7 @@ const waitForProviderAdverts = ({
   predicate,
   requiredModel = null,
   discoveryWindowMs,
+  knownProviderAdverts = [],
   maxAdverts = null,
   minAdverts = 1,
   settleOnFirst = false,
@@ -252,6 +256,9 @@ const waitForProviderAdverts = ({
   const discoveryRequestId = makeId('provider_discovery');
   const adverts = [];
   const observedAdverts = [];
+  const knownByProviderId = new Map((Array.isArray(knownProviderAdverts) ? knownProviderAdverts : [])
+    .map((advert) => [advert?.body?.providerId || advert?.fromPeerId || null, advert])
+    .filter(([providerId, advert]) => providerId && advert));
   let settled = false;
   let settleTimer = null;
   let discoveryRequestTimer = null;
@@ -303,13 +310,20 @@ const waitForProviderAdverts = ({
     if (message?.peerRoomVersion !== PEER_ROOM_VERSION) return;
     if (message.roomId !== roomId || message.type !== 'provider-advert') return;
     if (message.body?.discoveryRequestId !== discoveryRequestId) return;
-    const advert = message.body?.advert;
-    if (!advert) return;
-    const summary = summarizeAdvert(advert);
+    const liveAdvert = message.body?.advert;
+    if (!liveAdvert) return;
+    const providerId = liveAdvert.body?.providerId || liveAdvert.fromPeerId || null;
+    const knownAdvert = knownByProviderId.get(providerId);
+    // A live response proves liveness; reuse the preserved advert only when it
+    // is exactly the same signed record. Do not plan with stale provider data.
+    const advert = knownAdvert?.messageHash === liveAdvert.messageHash
+      ? knownAdvert
+      : liveAdvert;
+    const summary = summarizeAdvert(liveAdvert);
     if (!observedAdverts.some((entry) => entry.providerId === summary.providerId)) {
       observedAdverts.push(summary);
     }
-    if (predicate && !predicate(advert)) return;
+    if (predicate && (!predicate(liveAdvert) || !predicate(advert))) return;
     if (adverts.some((entry) => entry.messageHash === advert.messageHash)) return;
     adverts.push(advert);
     if (settleOnFirst || maxAdverts && adverts.length >= maxAdverts) finish();
@@ -446,6 +460,7 @@ export async function runPeerJob({
       minAdverts,
       settleOnFirst: !policy?.adaptiveRing && maxAdverts <= 1,
       requiredModel,
+      knownProviderAdverts: compatibleKnownAdverts,
       predicate: advertMatchesRequest
     });
     const plan = await buildPeerAssignmentPlan({

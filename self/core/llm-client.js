@@ -466,12 +466,21 @@ const LLMClient = {
             requestBody.options = { temperature: 0.7 };
         }
 
+        const proxyHeaders = {
+          'Content-Type': 'application/json',
+          'X-Reploid-Client-Id': getProxyClientId()
+        };
+        if (modelConfig.authMode === 'firebase_auth_and_app_check') {
+          const getAccessHeaders = globalThis.REPLOID_ZERO_ACCESS_HEADERS;
+          if (typeof getAccessHeaders !== 'function') {
+            throw new Error('Zero managed proxy credentials are unavailable.');
+          }
+          Object.assign(proxyHeaders, await getAccessHeaders());
+        }
+
         const response = await fetchWithTransientRetry(endpoint, {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-Reploid-Client-Id': getProxyClientId()
-          },
+          headers: proxyHeaders,
           body: JSON.stringify(requestBody),
           signal: controller.signal
         }, 'Proxy API');

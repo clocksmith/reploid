@@ -115,15 +115,15 @@ describe('pool peer rendezvous', () => {
     vi.useRealTimers();
   });
 
-  it('re-reads a bounded cursor overlap so late-visible control messages are delivered', async () => {
+  it('advances with the server page cursor instead of rereading an overlapping timestamp range', async () => {
     vi.useFakeTimers();
     const calls = [];
     const sdk = {
       publishPeerRoomMessage() {
         return Promise.resolve({});
       },
-      listPeerRoomMessages(roomId, { after }) {
-        calls.push({ roomId, after });
+      listPeerRoomMessages(roomId, { after, afterId, afterSequence }) {
+        calls.push({ roomId, after, afterId, afterSequence });
         if (calls.length === 1) {
           return Promise.resolve({
             messages: [{
@@ -136,23 +136,16 @@ describe('pool peer rendezvous', () => {
                 relay: { relayId: 'relay_newer_advert' },
                 body: {}
               }
-            }]
+            }],
+            nextCursor: {
+              sequence: 1,
+              createdAt: 20000,
+              messageId: 'relay_newer_advert'
+            }
           });
         }
         return Promise.resolve({
-          messages: after < 18000
-            ? [{
-                createdAt: 18000,
-                relayId: 'relay_late_acceptance',
-                message: {
-                  peerRoomVersion: 'reploid_peer_room/v1',
-                  roomId,
-                  type: 'peer-run-accepted',
-                  relay: { relayId: 'relay_late_acceptance' },
-                  body: { sessionId: 'session_late' }
-                }
-              }]
-            : []
+          messages: []
         });
       }
     };
@@ -168,11 +161,62 @@ describe('pool peer rendezvous', () => {
     await vi.runOnlyPendingTimersAsync();
     await Promise.resolve();
 
-    expect(calls[1].after).toBe(15000);
+    expect(calls[1].after).toBe(20000);
+    expect(calls[1]).toMatchObject({ afterId: 'relay_newer_advert', afterSequence: 1 });
     expect(received.map((message) => message.type)).toEqual([
-      'provider-advert',
-      'peer-run-accepted'
+      'provider-advert'
     ]);
+    bus.close();
+    vi.useRealTimers();
+  });
+
+  it('uses bounded idempotent delivery and reports relay receipt acknowledgements', async () => {
+    vi.useFakeTimers();
+    const published = [];
+    const statuses = [];
+    const sdk = {
+      publishPeerRoomMessage(roomId, message) {
+        published.push({ roomId, message });
+        return Promise.resolve({ message: { ...message, relaySequence: published.length } });
+      },
+      listPeerRoomMessages() {
+        const relayId = published[0]?.message?.relay?.relayId;
+        return Promise.resolve({
+          messages: relayId ? [{
+            relayId: 'provider-ack',
+            relaySequence: 2,
+            message: {
+              peerRoomVersion: 'reploid_peer_room/v1',
+              roomId: 'ack-room',
+              type: 'relay-ack',
+              relay: { relayId: 'provider-ack' },
+              body: { relayId, fromPeerId: 'provider_1' }
+            }
+          }] : [],
+          nextCursor: { sequence: 2, createdAt: 10, messageId: 'provider-ack' }
+        });
+      }
+    };
+    const bus = createSdkPeerRoomRelayBus({
+      sdk,
+      roomId: 'ack-room',
+      localPeerId: 'requester_1',
+      pollIntervalMs: 1000,
+      onStatus: (status) => statuses.push(status)
+    });
+
+    await bus.postMessage({
+      peerRoomVersion: 'reploid_peer_room/v1',
+      roomId: 'ack-room',
+      type: 'provider-advert-request',
+      body: {}
+    });
+    bus.addEventListener('message', () => {});
+    await vi.runOnlyPendingTimersAsync();
+    await Promise.resolve();
+
+    expect(bus.getStatus()).toMatchObject({ acknowledgements: 1, pendingAcknowledgements: 0 });
+    expect(statuses.some((status) => status.type === 'relay-acknowledged')).toBe(true);
     bus.close();
     vi.useRealTimers();
   });

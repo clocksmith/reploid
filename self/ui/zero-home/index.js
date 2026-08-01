@@ -8,7 +8,8 @@ import {
   ZERO_GEMINI_SERVER_TYPE,
   ZERO_MANAGED_MAX_ITERATIONS,
   buildZeroGeminiProxyConfig,
-  getProxyHealthEndpoint
+  getProxyHealthEndpoint,
+  getZeroAccessHeaders
 } from '../../config/zero-inference.js';
 import {
   DEFAULT_ZERO_GOAL,
@@ -476,6 +477,7 @@ const saveZeroConfig = () => {
       serverType: state.proxyConfig.serverType || ZERO_GEMINI_SERVER_TYPE,
       maxIterations: ZERO_MANAGED_MAX_ITERATIONS,
       managedServerProxy: true,
+      authMode: 'firebase_auth_and_app_check',
       agentThrottle: state.proxyConfig.agentThrottle || ZERO_GEMINI_AGENT_THROTTLE
     }));
   }
@@ -572,6 +574,7 @@ async function handleTestProxy() {
   try {
     const response = await fetch(getProxyHealthEndpoint(url, serverType), {
       method: 'GET',
+      headers: await getZeroAccessHeaders(),
       signal: AbortSignal.timeout(PROBE_TIMEOUT_MS)
     });
     if (!response.ok) {
@@ -684,6 +687,7 @@ async function probeBrowserCapabilities() {
 }
 
 export function initZeroBootHome(containerEl) {
+  globalThis.REPLOID_ZERO_ACCESS_HEADERS = getZeroAccessHeaders;
   detachEventListeners();
   container = containerEl;
   listenersAttached = false;

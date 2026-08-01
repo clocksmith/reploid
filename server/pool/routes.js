@@ -41,9 +41,17 @@ import {
   createTurnRtcConfiguration,
   getPublicTurnServiceStatus
 } from './turn-credentials.js';
+import { cursorForRelayRecord } from './relay-cursor.js';
 
 const asyncRoute = (handler) => (req, res, next) => {
   Promise.resolve(handler(req, res, next)).catch(next);
+};
+
+const relayPageResponse = (messages, idField) => {
+  const nextCursor = messages?.nextCursor || (messages?.length
+    ? cursorForRelayRecord(messages.at(-1), idField)
+    : null);
+  return nextCursor ? { messages, nextCursor } : { messages };
 };
 
 const POOL_RATE_LIMIT_MAX_REQUESTS = 30;
@@ -239,7 +247,8 @@ const PEER_ROOM_MESSAGE_TYPES = new Set([
   'provider-advert',
   'peer-run-request',
   'peer-run-accepted',
-  'webrtc-signal'
+  'webrtc-signal',
+  'relay-ack'
 ]);
 
 const jsonByteLength = (value) => Buffer.byteLength(JSON.stringify(value ?? null), 'utf8');
@@ -986,7 +995,9 @@ export function createPoolRouter({
       fromPeerId: body.fromPeerId,
       toPeerId: body.toPeerId || null,
       payload: body.payload ?? null,
-      createdAt: Number(body.createdAt || Date.now()),
+      // Relay ordering is server-owned. Client clocks can be stale, skewed, or
+      // intentionally manipulated and must not control pagination cursors.
+      createdAt: Date.now(),
       expiresAt: body.expiresAt || null
     });
     return res.status(201).json({ message });
@@ -1006,10 +1017,12 @@ export function createPoolRouter({
     }
     const messages = await store.listSignalMessages(session.sessionId, {
       after: Number(req.query.after || 0),
+      afterId: String(req.query.afterId || ''),
+      afterSequence: req.query.afterSequence === undefined ? null : Number(req.query.afterSequence),
       peerId,
       limit: MAX_SIGNAL_MESSAGES_PER_POLL
     });
-    return res.json({ messages });
+    return res.json(relayPageResponse(messages, 'id'));
   }));
 
   router.get('/peer/rooms', asyncRoute(async (req, res) => {
@@ -1079,11 +1092,13 @@ export function createPoolRouter({
     if (!roomId) return res.status(400).json({ error: 'roomId is required' });
     const messages = await store.listPeerRoomMessages(roomId, {
       after: Number(req.query.after || 0),
+      afterId: String(req.query.afterId || ''),
+      afterSequence: req.query.afterSequence === undefined ? null : Number(req.query.afterSequence),
       notBefore: Date.now() - MAX_PEER_ROOM_MESSAGE_TTL_MS,
       peerId: req.query.peerId || null,
       limit: Math.min(Number(req.query.limit || MAX_PEER_ROOM_MESSAGES_PER_POLL), MAX_PEER_ROOM_MESSAGES_PER_POLL)
     });
-    return res.json({ messages });
+    return res.json(relayPageResponse(messages, 'relayId'));
   }));
 
   router.get('/peer/rooms/:roomId/summary', asyncRoute(async (req, res) => {
