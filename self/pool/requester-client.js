@@ -7,6 +7,7 @@ import { buildAcceptanceSummary, countersignReceipt, createSigningKeyPair, expor
 import { buildLaunchModelRequirements } from './model-contract.js';
 import { DETERMINISTIC_GENERATION_CONFIG, FASTEST_RECEIPT_POLICY_ID, getPolicy } from './policy-router.js';
 import { createPoolIdentity } from './identity.js';
+import { createSignedPeerMessage, PEER_MESSAGE_TYPES } from './peer-protocol.js';
 import { createAdapterUseApproval } from './adapter-publication.js';
 import {
   createPeerLedgerEvents,
@@ -175,6 +176,23 @@ export function createRequesterClient({ requesterId, sdk = createPoolSdk(), keyP
         providerPoints: agreement?.providerPoints || null,
         receiptHashes: acceptedReceiptHashes
       }, keys.privateKey);
+    },
+    async createRelayAcknowledgement({ roomId, relayId, relaySequence } = {}) {
+      const keys = await ensureKeys();
+      const resolvedRequesterId = await ensureRequesterId();
+      return createSignedPeerMessage({
+        type: PEER_MESSAGE_TYPES.HEARTBEAT,
+        fromPeerId: resolvedRequesterId,
+        publicKey: requesterPublicKey,
+        body: {
+          schema: 'reploid.peer.relay_ack/v1',
+          roomId,
+          relayId,
+          relaySequence
+        },
+        expiresAt: new Date(Date.now() + 2 * 60 * 1000).toISOString(),
+        privateKey: keys.privateKey
+      });
     },
     async createPeerLedgerEvents({ agreement } = {}) {
       const keys = await ensureKeys();

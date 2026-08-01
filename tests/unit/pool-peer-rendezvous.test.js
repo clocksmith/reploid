@@ -7,6 +7,8 @@ import {
   parsePeerRoomInviteUrl,
   peerRoomMessageFromPeerId
 } from '../../self/pool/peer-rendezvous.js';
+import { createSigningKeyPair, exportPublicKey } from '../../self/pool/inference-receipt.js';
+import { createSignedPeerMessage, PEER_MESSAGE_TYPES } from '../../self/pool/peer-protocol.js';
 
 describe('pool peer rendezvous', () => {
   it('extracts peer ids from signed room envelopes', () => {
@@ -171,9 +173,11 @@ describe('pool peer rendezvous', () => {
   });
 
   it('uses bounded idempotent delivery and reports relay receipt acknowledgements', async () => {
-    vi.useFakeTimers();
     const published = [];
     const statuses = [];
+    const providerKeys = await createSigningKeyPair();
+    const providerPublicKey = await exportPublicKey(providerKeys.publicKey);
+    let acknowledgementProof = null;
     const sdk = {
       publishPeerRoomMessage(roomId, message) {
         published.push({ roomId, message });
@@ -190,7 +194,7 @@ describe('pool peer rendezvous', () => {
               roomId: 'ack-room',
               type: 'relay-ack',
               relay: { relayId: 'provider-ack' },
-              body: { relayId, fromPeerId: 'provider_1' }
+              body: { relayId, relaySequence: 1, fromPeerId: 'provider_1', proof: acknowledgementProof }
             }
           }] : [],
           nextCursor: { sequence: 2, createdAt: 10, messageId: 'provider-ack' }
@@ -201,7 +205,7 @@ describe('pool peer rendezvous', () => {
       sdk,
       roomId: 'ack-room',
       localPeerId: 'requester_1',
-      pollIntervalMs: 1000,
+      pollIntervalMs: 60_000,
       onStatus: (status) => statuses.push(status)
     });
 
@@ -209,14 +213,64 @@ describe('pool peer rendezvous', () => {
       peerRoomVersion: 'reploid_peer_room/v1',
       roomId: 'ack-room',
       type: 'provider-advert-request',
-      body: {}
+      body: { toPeerId: 'provider_1' }
+    });
+    const relayId = published[0].message.relay.relayId;
+    acknowledgementProof = await createSignedPeerMessage({
+      type: PEER_MESSAGE_TYPES.HEARTBEAT,
+      fromPeerId: 'provider_1',
+      publicKey: providerPublicKey,
+      body: {
+        schema: 'reploid.peer.relay_ack/v1',
+        roomId: 'ack-room',
+        relayId,
+        relaySequence: 1
+      },
+      privateKey: providerKeys.privateKey
     });
     bus.addEventListener('message', () => {});
-    await vi.runOnlyPendingTimersAsync();
-    await Promise.resolve();
+    await new Promise((resolve) => setTimeout(resolve, 20));
 
+    expect(statuses.map((status) => status.type)).toContain('relay-acknowledged');
     expect(bus.getStatus()).toMatchObject({ acknowledgements: 1, pendingAcknowledgements: 0 });
-    expect(statuses.some((status) => status.type === 'relay-acknowledged')).toBe(true);
+    bus.close();
+  });
+
+  it('retries a record when a consumer throws instead of suppressing it as a duplicate', async () => {
+    vi.useFakeTimers();
+    const record = {
+      relayId: 'retry-after-handler-error',
+      relaySequence: 1,
+      message: {
+        peerRoomVersion: 'reploid_peer_room/v1',
+        roomId: 'consumer-error-room',
+        type: 'provider-advert',
+        relay: { relayId: 'retry-after-handler-error' },
+        body: {}
+      }
+    };
+    let polls = 0;
+    const sdk = {
+      publishPeerRoomMessage: () => Promise.resolve({}),
+      listPeerRoomMessages: () => {
+        polls += 1;
+        return Promise.resolve(polls <= 2 ? {
+          messages: [record],
+          nextCursor: { sequence: 1, createdAt: 1, messageId: record.relayId }
+        } : { messages: [] });
+      }
+    };
+    const bus = createSdkPeerRoomRelayBus({ sdk, roomId: 'consumer-error-room', pollIntervalMs: 1 });
+    let deliveries = 0;
+    bus.addEventListener('message', () => {
+      deliveries += 1;
+      if (deliveries === 1) throw new Error('transient consumer failure');
+    });
+
+    await vi.advanceTimersByTimeAsync(5);
+
+    expect(deliveries).toBeGreaterThanOrEqual(2);
+    expect(bus.getStatus().duplicateSuppressed).toBe(0);
     bus.close();
     vi.useRealTimers();
   });

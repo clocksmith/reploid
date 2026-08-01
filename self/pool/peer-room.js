@@ -77,6 +77,7 @@ const openPeerRoomBus = ({
   localPeerId = null,
   remotePeerId = null,
   sessionId = null,
+  relayAckSigner = null,
   role = 'peer'
 } = {}) => {
   const resolvedRoomId = roomId || DEFAULT_PEER_ROOM_ID;
@@ -85,6 +86,7 @@ const openPeerRoomBus = ({
     localPeerId,
     remotePeerId,
     sessionId,
+    relayAckSigner,
     role
   });
 };
@@ -104,6 +106,7 @@ function createRoomSignaling({
   sessionId,
   localPeerId,
   remotePeerId = null,
+  relayAckSigner = null,
   roomBusFactory = createBroadcastPeerRoomBus
 } = {}) {
   const resolvedRoomId = roomId || DEFAULT_PEER_ROOM_ID;
@@ -116,6 +119,7 @@ function createRoomSignaling({
     sessionId: resolvedSessionId,
     localPeerId: resolvedLocalPeerId,
     remotePeerId: resolvedRemotePeerId,
+    relayAckSigner,
     role: 'signaling'
   });
   const listeners = new Set();
@@ -391,6 +395,7 @@ export async function runPeerJob({
   requesterTransportFactory = createP2PRequesterTransport,
   rtcConfigProvider = null,
   roomBusFactory = createBroadcastPeerRoomBus,
+  relayAckSigner = null,
   onActivity = null
 } = {}) {
   if (!requesterClient?.createPeerJobIntent) throw new TypeError('requesterClient with createPeerJobIntent() is required');
@@ -421,6 +426,7 @@ export async function runPeerJob({
     channel = openPeerRoomBus({
       roomId: resolvedRoomId,
       roomBusFactory,
+      relayAckSigner,
       localPeerId: intent.intent.body.requesterId,
       role: 'requester'
     });
@@ -483,6 +489,7 @@ export async function runPeerJob({
         sessionId,
         localPeerId: assignment.requesterId,
         remotePeerId: assignment.providerId,
+        relayAckSigner,
         roomBusFactory
       });
       let receiptTimer = null;
@@ -726,6 +733,7 @@ export function createPeerProviderNode({
   providerTransportFactory = createP2PProviderTransport,
   rtcConfigProvider = null,
   roomBusFactory = createBroadcastPeerRoomBus,
+  relayAckSigner = null,
   advertIntervalMs = DEFAULT_PROVIDER_ADVERT_INTERVAL_MS,
   maxActiveSessions = 4,
   maxQueuedSessions = 16,
@@ -1004,6 +1012,7 @@ export function createPeerProviderNode({
       sessionId: body.sessionId,
       localPeerId: assignment.providerId,
       remotePeerId: assignment.requesterId,
+      relayAckSigner,
       roomBusFactory
     });
     const rtcConfig = typeof rtcConfigProvider === 'function'
@@ -1096,6 +1105,7 @@ export function createPeerProviderNode({
       channel = openPeerRoomBus({
         roomId: resolvedRoomId,
         roomBusFactory,
+        relayAckSigner,
         localPeerId: advert.body?.providerId || advert.fromPeerId,
         role: 'provider'
       });

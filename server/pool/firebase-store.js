@@ -18,6 +18,16 @@ import {
 
 const makeId = (prefix) => `${prefix}_${crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2)}`;
 const nowIso = () => new Date().toISOString();
+const rejectRelayIdConflict = (kind) => {
+  const error = new Error(`${kind} id is already bound to a different relay payload`);
+  error.code = 'relay_id_conflict';
+  throw error;
+};
+const resolveIdempotentRelay = (existing, incoming, kind) => {
+  if (!existing) return null;
+  if (existing.idempotencyHash && incoming.idempotencyHash === existing.idempotencyHash) return existing;
+  return rejectRelayIdConflict(kind);
+};
 const toEpochMs = (value) => {
   if (typeof value === 'number') return value;
   const parsed = Date.parse(value);
@@ -670,7 +680,8 @@ export function createFirestorePoolStore({ firestore, collectionPrefix = '' } = 
       const sessionRef = doc(COLLECTIONS.signalingSessions, sessionId);
       return firestore.runTransaction(async (transaction) => {
         const existing = await transaction.get(messageRef);
-        if (existing.exists) return existing.data();
+        const prior = resolveIdempotentRelay(existing.exists ? existing.data() : null, message, 'signal');
+        if (prior) return prior;
         const sequenceSnapshot = await transaction.get(sequenceRef);
         const relaySequence = Number(sequenceSnapshot.data()?.nextSequence || 0) + 1;
         const saved = {
@@ -723,7 +734,8 @@ export function createFirestorePoolStore({ firestore, collectionPrefix = '' } = 
       const sequenceRef = doc(COLLECTIONS.peerRoomRelaySequences, resolvedRoomId);
       return firestore.runTransaction(async (transaction) => {
         const existing = await transaction.get(messageRef);
-        if (existing.exists) return existing.data();
+        const prior = resolveIdempotentRelay(existing.exists ? existing.data() : null, message, 'peer room relay');
+        if (prior) return prior;
         const sequenceSnapshot = await transaction.get(sequenceRef);
         const relaySequence = Number(sequenceSnapshot.data()?.nextSequence || 0) + 1;
         const saved = {

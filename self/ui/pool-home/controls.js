@@ -1156,6 +1156,7 @@ const bindPeerRunSurface = ({
         receiptWindowMs: getPeerReceiptWindowMs(),
         transportConnectWindowMs: getPeerTransportConnectWindowMs(),
         roomBusFactory: getPeerRoomBusFactory(),
+        relayAckSigner: requesterClient.createRelayAcknowledgement.bind(requesterClient),
         generationConfig: getPeerGenerationConfig(),
         knownProviderAdverts: request.knownProviderAdverts || [],
         rtcConfigProvider: getPeerRelayMode() === 'server'
@@ -1845,6 +1846,7 @@ const createProviderContributionController = () => {
       roomId: getPeerRoomId(),
       providerClient: getProviderClient(),
       roomBusFactory: getPeerRoomBusFactory(),
+      relayAckSigner: getProviderClient().createRelayAcknowledgement.bind(getProviderClient()),
       rtcConfigProvider: getPeerRelayMode() === 'server'
         ? () => getPoolRtcConfig({ sdk: adapterSdk })
         : null,

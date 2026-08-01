@@ -17,7 +17,7 @@ import {
   verifyCanaryResult,
   applyCanaryReputation
 } from './audits.js';
-import { sha256Hex } from './hash.js';
+import { hashJson, sha256Hex } from './hash.js';
 import { POOL_CONFIG, POOL_CONFIG_HASH, POOL_CONFIG_VERSION, getLedgerReasons, getRingPhaseProtocol, validatePoolConfig } from './config.js';
 import { buildCommitmentHash, revealMatchesCommitment, validateCommitmentInput, validateRevealInput } from './commit-reveal.js';
 import { deriveProviderAdmission, runtimeProfileHash, validateRuntimeProfileForPolicy } from './runtime-profile.js';
@@ -42,6 +42,7 @@ import {
   getPublicTurnServiceStatus
 } from './turn-credentials.js';
 import { cursorForRelayRecord } from './relay-cursor.js';
+import { verifyPeerMessage } from '../../self/pool/peer-protocol.js';
 
 const asyncRoute = (handler) => (req, res, next) => {
   Promise.resolve(handler(req, res, next)).catch(next);
@@ -270,6 +271,24 @@ const peerRoomMessageFromPeerId = (message = {}) => {
     || body.assignment?.providerId
     || body.signal?.fromPeerId
     || null;
+};
+
+const validateRelayAcknowledgement = async (body = {}, roomId) => {
+  const acknowledgement = body.body || {};
+  const proof = acknowledgement.proof;
+  if (!proof) return 'relay acknowledgement proof is required';
+  const verification = await verifyPeerMessage(proof);
+  if (!verification.ok) return `relay acknowledgement proof invalid: ${verification.reasons.join('; ')}`;
+  const signed = proof.body || {};
+  if (proof.type !== 'heartbeat') return 'relay acknowledgement proof type is invalid';
+  if (proof.fromPeerId !== acknowledgement.fromPeerId) return 'relay acknowledgement signer mismatch';
+  if (signed.schema !== 'reploid.peer.relay_ack/v1') return 'relay acknowledgement proof schema is invalid';
+  if (signed.roomId !== roomId) return 'relay acknowledgement room mismatch';
+  if (signed.relayId !== acknowledgement.relayId) return 'relay acknowledgement relay id mismatch';
+  if (Number(signed.relaySequence) !== Number(acknowledgement.relaySequence)) {
+    return 'relay acknowledgement sequence mismatch';
+  }
+  return null;
 };
 
 const peerRoomPayloadLooksForbidden = (message = {}) => {
@@ -988,18 +1007,35 @@ export function createPoolRouter({
     if (jsonByteLength(body.payload) > MAX_SIGNAL_PAYLOAD_BYTES) {
       return res.status(413).json({ error: 'signal payload exceeds metadata size limit' });
     }
-    const message = await store.appendSignalMessage(session.sessionId, {
-      id: body.id || null,
-      assignmentId: session.assignmentId,
-      type: body.type,
-      fromPeerId: body.fromPeerId,
-      toPeerId: body.toPeerId || null,
-      payload: body.payload ?? null,
-      // Relay ordering is server-owned. Client clocks can be stale, skewed, or
-      // intentionally manipulated and must not control pagination cursors.
-      createdAt: Date.now(),
-      expiresAt: body.expiresAt || null
-    });
+    let message;
+    try {
+      message = await store.appendSignalMessage(session.sessionId, {
+        id: body.id || null,
+        assignmentId: session.assignmentId,
+        type: body.type,
+        fromPeerId: body.fromPeerId,
+        toPeerId: body.toPeerId || null,
+        payload: body.payload ?? null,
+        idempotencyHash: hashJson({
+          sessionId: session.sessionId,
+          id: body.id || null,
+          assignmentId: session.assignmentId,
+          type: body.type,
+          fromPeerId: body.fromPeerId,
+          toPeerId: body.toPeerId || null,
+          payload: body.payload ?? null,
+          createdAt: body.createdAt || null,
+          expiresAt: body.expiresAt || null
+        }),
+        // Relay ordering is server-owned. Client clocks can be stale, skewed, or
+        // intentionally manipulated and must not control pagination cursors.
+        createdAt: Date.now(),
+        expiresAt: body.expiresAt || null
+      });
+    } catch (error) {
+      if (error?.code === 'relay_id_conflict') return res.status(409).json({ error: error.message });
+      throw error;
+    }
     return res.status(201).json({ message });
   }));
 
@@ -1051,6 +1087,10 @@ export function createPoolRouter({
     if (!PEER_ROOM_MESSAGE_TYPES.has(body.type)) {
       return res.status(400).json({ error: 'peer room message type is not allowed' });
     }
+    if (body.type === 'relay-ack') {
+      const acknowledgementError = await validateRelayAcknowledgement(body, roomId);
+      if (acknowledgementError) return res.status(400).json({ error: acknowledgementError });
+    }
     if (jsonByteLength(body) > MAX_PEER_ROOM_PAYLOAD_BYTES) {
       return res.status(413).json({ error: 'peer room message exceeds metadata size limit' });
     }
@@ -1063,24 +1103,31 @@ export function createPoolRouter({
     const expiresAt = Number.isFinite(requestedExpiresAt) && requestedExpiresAt > now
       ? Math.min(requestedExpiresAt, maxExpiresAt)
       : maxExpiresAt;
-    const message = await store.appendPeerRoomMessage(roomId, {
-      relayId: body.relay?.relayId || body.relayId || null,
-      fromPeerId: peerRoomMessageFromPeerId(body) || body.relay?.fromPeerId || body.fromPeerId || null,
-      message: {
-        ...body,
-        roomId,
-        relay: {
-          ...(body.relay || {}),
-          expiresAt
-        }
-      },
-      type: body.type,
-      // Cursor ordering is server-owned. Client clocks can differ and concurrent
-      // relay requests can become visible out of order; the original timestamp
-      // remains in message.relay.createdAt for envelope evidence.
-      createdAt: now,
-      expiresAt
-    });
+    let message;
+    try {
+      message = await store.appendPeerRoomMessage(roomId, {
+        relayId: body.relay?.relayId || body.relayId || null,
+        fromPeerId: peerRoomMessageFromPeerId(body) || body.relay?.fromPeerId || body.fromPeerId || null,
+        idempotencyHash: hashJson({ roomId, body }),
+        message: {
+          ...body,
+          roomId,
+          relay: {
+            ...(body.relay || {}),
+            expiresAt
+          }
+        },
+        type: body.type,
+        // Cursor ordering is server-owned. Client clocks can differ and concurrent
+        // relay requests can become visible out of order; the original timestamp
+        // remains in message.relay.createdAt for envelope evidence.
+        createdAt: now,
+        expiresAt
+      });
+    } catch (error) {
+      if (error?.code === 'relay_id_conflict') return res.status(409).json({ error: error.message });
+      throw error;
+    }
     return res.status(201).json({ message });
   }));
 
