@@ -54,6 +54,7 @@ const COLLECTIONS = Object.freeze({
   auditChallenges: 'audit_challenges',
   adapterPublications: 'adapter_publications',
   adapterCanaryPublications: 'adapter_canary_publications',
+  researchRecords: 'research_records',
   rateLimits: 'rate_limits'
 });
 
@@ -820,6 +821,24 @@ export function createFirestorePoolStore({ firestore, collectionPrefix = '' } = 
         .sort((left, right) => Number(right.lastMessageAt || 0) - Number(left.lastMessageAt || 0))
         .slice(0, Number(limit || 50));
     },
+    async saveResearchRecord(record = {}) {
+      if (!record.recordHash) throw new Error('research recordHash is required');
+      const existing = await readDoc(COLLECTIONS.researchRecords, record.recordHash);
+      if (existing) return existing;
+      return writeDoc(COLLECTIONS.researchRecords, record.recordHash, record, { merge: false });
+    },
+    async getResearchRecord(recordHash) {
+      return readDoc(COLLECTIONS.researchRecords, recordHash);
+    },
+    async listResearchRecords({ roomId = null, kind = null, limit = 1000 } = {}) {
+      const records = roomId
+        ? (await collection(COLLECTIONS.researchRecords).where('roomId', '==', roomId).get()).docs.map((entry) => entry.data())
+        : await listDocs(COLLECTIONS.researchRecords);
+      return records
+        .filter((record) => (!roomId || record.roomId === roomId) && (!kind || record.kind === kind))
+        .sort((left, right) => String(left.createdAt || '').localeCompare(String(right.createdAt || '')))
+        .slice(-Math.max(1, Math.min(1000, Number(limit || 1000))));
+    },
     async saveAdapterPublication(publication = {}) {
       const packHash = publication.packHash;
       if (!packHash) throw new Error('adapter publication packHash is required');
@@ -954,7 +973,8 @@ export function createFirestorePoolStore({ firestore, collectionPrefix = '' } = 
         audits,
         reputations,
         adapterPublications,
-        adapterCanaryPublications
+        adapterCanaryPublications,
+        researchRecords
       ] = await Promise.all([
         listDocs(COLLECTIONS.providers),
         listDocs(COLLECTIONS.jobs),
@@ -967,7 +987,8 @@ export function createFirestorePoolStore({ firestore, collectionPrefix = '' } = 
         listDocs(COLLECTIONS.auditChallenges),
         listDocs(COLLECTIONS.reputationState),
         listDocs(COLLECTIONS.adapterPublications),
-        listDocs(COLLECTIONS.adapterCanaryPublications)
+        listDocs(COLLECTIONS.adapterCanaryPublications),
+        listDocs(COLLECTIONS.researchRecords)
       ]);
       const countBy = (values, field) => values.reduce((acc, item) => {
         const key = item[field] || 'unknown';
@@ -982,6 +1003,8 @@ export function createFirestorePoolStore({ firestore, collectionPrefix = '' } = 
         assignments: assignments.length,
         assignmentStatus: countBy(assignments, 'status'),
         receipts: receipts.length,
+        researchRecords: researchRecords.length,
+        researchRecordKinds: countBy(researchRecords, 'kind'),
         adapterPublications: adapterPublications.length,
         adapterCanaryPublications: adapterCanaryPublications.length,
         commitments: commitments.length,

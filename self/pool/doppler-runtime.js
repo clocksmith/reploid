@@ -27,7 +27,7 @@ import {
   adapterRequirementFromPack,
   verifyAdapterPack
 } from './adapter-pack.js';
-import { DopplerRuntimeService } from '../core/doppler-runtime-service.js';
+import { DopplerRuntimeService } from '../infrastructure/doppler-runtime-service.js';
 
 const DOPPLER_IMPORTS = Object.freeze([
   '@simulatte/doppler',

@@ -10,10 +10,12 @@ by [`pool-config.json`](../../self/pool/pool-config.json) and the
 
 ## Product outcome
 
-A person or agent submits approved work. Opted-in contributor browsers run the
-complete approved model through Doppler. The requester receives a useful
-result plus evidence that can be inspected, verified, accepted or rejected,
-and reduced into policy and reputation state.
+A person or agent submits approved work with explicit intent and consent.
+Opted-in contributor browsers run the complete approved model through Doppler.
+The requester receives a useful result plus evidence that can be inspected,
+verified, accepted or rejected, and reduced into policy and reputation state.
+For the public protein lane, signed submissions, results, human claims,
+corrections, and review decisions form a room-scoped evidence network.
 
 The immediate public value is:
 
@@ -38,6 +40,7 @@ execution.
 | Requester | Submit admitted work, inspect the result and evidence, then accept or reject it. |
 | Contributor | Opt in an eligible browser and execute assignments under declared capacity and policy limits. |
 | Agent | Request, verify, accept, and budget work through the same contracts. |
+| Reviewer or curator | Attach separately signed human claims, sources, corrections, confidence, experimental context, and bounded follow-up proposals. |
 
 Contributors earn points only after accepted work. Participation does not grant
 publisher, adapter-creation, or policy authority.
@@ -56,6 +59,9 @@ publisher, adapter-creation, or policy authority.
    evidence does not match.
 6. Keep experimental RSI evidence separate from Poolday product evidence until
    a capability passes the promotion boundary below.
+7. Keep model facts and human claims separate. A human annotation is attributable
+   evidence, not a model output, and earns evidence credit only after independent
+   acceptance.
 
 ## P2P boundary
 
@@ -79,10 +85,12 @@ optional in the normal work path without changing the receipt contract.
   interpretation.
 - Each selected provider loads and executes the complete model. Poolday does
   not claim tensor, layer, attention, or KV-cache sharding.
-- Retrieval remains a target direction. Poolday is not currently a managed
-  vector database.
-- Poolday is not a compute marketplace, biological interpretation tool, or
-  human-review network.
+- The public protein collection supports exact-contract flat similarity,
+  evidence-aware reranking, deterministic clustering, text search, and
+  approval-gated discovery tasks. Poolday is not a managed vector database.
+- Poolday supports signed human review of public protein evidence. It is not a
+  biological interpretation or diagnosis tool, and submitted human claims do
+  not become model facts.
 
 See the [claim boundary](./claims-and-nonclaims.md),
 [biological sequence lane](./biological-sequence-lane.md), and
@@ -120,9 +128,9 @@ Before promotion, the behavior remains experimental. After promotion, Poolday
 must support the capability through its own configuration, admission rules,
 receipts, tests, and user-visible evidence.
 
-Outcome-oriented human-and-agent workflows and receipt-backed retrieval are
-possible product directions built on this boundary. They are not supported
-Poolday claims until their own contracts and operational evidence exist.
+Broader corpus indexing, private retrieval, ANN infrastructure, and autonomous
+research action remain future directions. The supported evidence-network path
+is public, room-scoped, exact-contract, local-first, and human-approved.
 
 ## Authority order
 

@@ -33,6 +33,8 @@ import {
   bindRunControls
 } from './controls.js';
 import { bindHomeSimulation } from './simulation-bind.js';
+import { bindResearchWorkspace, hydrateAndBindResearchWorkspace } from './research-view.js';
+import { resetResearchStore } from './research-store.js';
 
 const stopPoolHomeBackground = () => {
   const stopSimulation = window.REPLOID_POOL_SIMULATION_STOP;
@@ -115,6 +117,7 @@ const bindPoolRouteControls = (mount, render, {
 export function initPoolHome(mount) {
   if (!mount) return;
   resetPoolLedgerStore();
+  resetResearchStore();
   const runtime = window.REPLOID_DOPPLER_RUNTIME || createDopplerRuntime();
   window.REPLOID_DOPPLER_RUNTIME = runtime;
   window.REPLOID_POOL_ATTACH_DOPPLER_HANDLE = (handle, model = null, runtimeInfo = null) => runtime.attachHandle(handle, model, runtimeInfo);
@@ -174,6 +177,8 @@ export function initPoolHome(mount) {
     bindParticipationControls();
     bindRoomActivityControls();
     bindReceiptControls();
+    bindResearchWorkspace();
+    void hydrateAndBindResearchWorkspace();
     refreshRecordLedgerState();
     restoreLatestCompletedRun(routeId);
     if (routeId === 'home') applyPoolDashboardView(dashboardView, { updateHistory: false });

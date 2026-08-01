@@ -20,6 +20,10 @@ Poolday provides:
 - provider reputation
 - requester countersignatures
 - policy-controlled admission
+- immutable signed public protein submissions with requester intent and consent
+- separately signed and attributable human claims, reviews, and corrections
+- public room-scoped evidence links and exact-contract embedding comparison
+- deterministic flat similarity, evidence-aware reranking, clustering, and approval-gated task proposals
 
 The approved product claim is:
 
@@ -27,7 +31,11 @@ The approved product claim is:
 receipt-backed, audit-backed, reputation-backed, policy-controlled browser inference
 ```
 
-The retrieval extension in [Poolday Receipt-Backed Retrieval](./receipt-backed-retrieval.md) is a target strategy. It does not replace this approved claim until retrieval receipts, vector indexes, reranking receipts, and policy checks exist as supported behavior.
+The evidence collection is not a managed vector database. It compares only
+explicitly published embeddings made by the same exact model contract and
+dimensions. The broader retrieval extension in [Poolday Receipt-Backed
+Retrieval](./receipt-backed-retrieval.md) remains a target until index, query,
+and reranking receipts exist.
 
 ## Nonclaims
 
@@ -39,6 +47,9 @@ Poolday does not provide:
 - proof that a provider did not simulate a result
 - proof that a GPU performed the computation
 - trustless compute
+- model-generated biological meaning or diagnosis
+- conversion of submitted human claims into model facts
+- private-sequence protection in the public evidence collection
 
 A receipt proves that a provider key signed an assignment-bound artifact.
 It does not prove untampered browser execution or hardware-attested GPU computation.
