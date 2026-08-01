@@ -35,6 +35,11 @@ const DEFAULT_RECEIPT_WINDOW_MS = 60000;
 const DEFAULT_PROVIDER_ADVERT_INTERVAL_MS = 30000;
 const DEFAULT_PROVIDER_SESSION_SETTLE_MS = 5000;
 const DEFAULT_PROVIDER_ADVERT_SETTLE_MS = 250;
+// A server relay needs requester poll -> provider poll -> provider publish ->
+// requester poll before every live advert is visible.  The normal short
+// settle window is appropriate for a one-provider job, but it silently
+// collapsed an adaptive ring to whichever provider responded first.
+const DEFAULT_ADAPTIVE_RING_ADVERT_SETTLE_MS = 2500;
 
 const requireString = (value, label) => {
   const normalized = String(value || '').trim();
@@ -544,6 +549,16 @@ export async function runPeerJob({
       maxAdverts,
       minAdverts,
       settleOnFirst: !policy?.adaptiveRing && maxAdverts <= 1,
+      // A quorum-capable policy must give all already-online providers enough
+      // time to answer the same live discovery request.  Each new advert
+      // resets this bounded window; maxAdverts and discoveryWindowMs remain
+      // hard limits.
+      settleWindowMs: policy?.adaptiveRing
+        ? Math.min(
+          Math.max(1, Number(discoveryWindowMs || 1)),
+          DEFAULT_ADAPTIVE_RING_ADVERT_SETTLE_MS
+        )
+        : DEFAULT_PROVIDER_ADVERT_SETTLE_MS,
       requiredModel,
       knownProviderAdverts: compatibleKnownAdverts,
       predicate: advertMatchesRequest
