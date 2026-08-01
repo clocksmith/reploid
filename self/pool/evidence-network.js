@@ -87,7 +87,9 @@ const normalizeIntent = (intent = {}) => {
   const text = compactText(intent.text);
   const label = compactText(intent.label, 240);
   const context = compactText(intent.context);
-  if (!text && !label && !context) throw new TypeError('requester intent content is required');
+  // A sequence and its signed provenance are sufficient to enter the evidence
+  // network. Intent is optional context for reviewers, never an admission
+  // requirement for a public protein proposal.
   return { kind, text, label, context };
 };
 

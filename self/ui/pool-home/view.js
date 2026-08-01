@@ -2065,7 +2065,7 @@ const renderHomeSimulation = ({ dashboardView = 'home' } = {}) => {
           <div class="pool-research-intent-fields">
             <label><span>Intent</span><select id="pool-home-intent-kind"><option value="question">Question</option><option value="hypothesis">Hypothesis</option><option value="label">Label</option><option value="task_context">Task context</option></select></label>
             <label><span>Short label</span><input id="pool-home-intent-label" maxlength="240" placeholder="Signal peptide candidate"></label>
-            <label><span>Question, hypothesis, or context</span><input id="pool-home-intent-text" maxlength="8000" placeholder="What should reviewers examine?" required></label>
+            <label><span>Question, hypothesis, or context <small>(optional)</small></span><input id="pool-home-intent-text" maxlength="8000" placeholder="What should reviewers examine?"></label>
           </div>
           <span>The peer job still sends the sequence only to selected contributors. Publication is a separate signed action under this consent.</span>
         </div>
@@ -2127,7 +2127,7 @@ export const renderRouteDetail = (routeId) => {
             <div class="pool-research-intent-fields">
               <label class="pool-field"><span>Intent</span><select id="pool-run-intent-kind"><option value="question">Question</option><option value="hypothesis">Hypothesis</option><option value="label">Label</option><option value="task_context">Task context</option></select></label>
               <label class="pool-field"><span>Short label</span><input id="pool-run-intent-label" maxlength="240" placeholder="Signal peptide candidate"></label>
-              <label class="pool-field"><span>Question, hypothesis, or context</span><textarea id="pool-run-intent-text" rows="3" maxlength="8000" required></textarea></label>
+              <label class="pool-field"><span>Question, hypothesis, or context <small>(optional)</small></span><textarea id="pool-run-intent-text" rows="3" maxlength="8000"></textarea></label>
             </div>
             <details class="pool-advanced">
               <summary>Settings</summary>

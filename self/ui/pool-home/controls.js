@@ -1267,13 +1267,6 @@ const bindPeerRunSurface = ({
       error.action = 'Check the public evidence-network consent, then run again.';
       throw error;
     }
-    if (lane === 'sequence' && (intentTextControl || intentLabelControl)
-      && !String(intentTextControl?.value || intentLabelControl?.value || '').trim()) {
-      const error = new Error('Add the requester question, hypothesis, label, or task context before submitting');
-      error.code = 'research_intent_required';
-      error.action = 'Describe why this sequence is being submitted.';
-      throw error;
-    }
     if (lane === 'sequence') {
       writeSequencePublicConsent();
       syncSequencePublicConsent(sequencePublicControl);
