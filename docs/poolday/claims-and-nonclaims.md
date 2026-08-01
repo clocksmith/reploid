@@ -37,6 +37,12 @@ dimensions. The broader retrieval extension in [Poolday Receipt-Backed
 Retrieval](./receipt-backed-retrieval.md) remains a target until index, query,
 and reranking receipts exist.
 
+The [Discovery Contract](./discovery-contract.md) and active-science objective in
+the [product intent](./product-intent.md) define target product direction. They
+do not expand this supported claim. In particular, the current claim does not
+include calibrated information-gain ranking, laboratory qualification,
+scientific conclusion, independent biological replication, or contract closure.
+
 ## Nonclaims
 
 Poolday does not provide:
@@ -50,6 +56,8 @@ Poolday does not provide:
 - model-generated biological meaning or diagnosis
 - conversion of submitted human claims into model facts
 - private-sequence protection in the public evidence collection
+- proof that an action is maximally informative
+- proof that a scientific conclusion is true or independently replicated
 
 A receipt proves that a provider key signed an assignment-bound artifact.
 It does not prove untampered browser execution or hardware-attested GPU computation.

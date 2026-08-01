@@ -45,7 +45,8 @@ import { cursorForRelayRecord } from './relay-cursor.js';
 import { verifyPeerMessage } from '../../self/pool/peer-protocol.js';
 import { isSequenceWorkload } from '../../self/pool/sequence-workload.js';
 import {
-  RESEARCH_RECORD_KINDS,
+  researchRecordTargetHashes,
+  validateResearchRecordLinks,
   verifyResearchRecord
 } from '../../self/pool/evidence-network.js';
 
@@ -821,31 +822,21 @@ export function createPoolRouter({
     const verification = await verifyResearchRecord(record);
     if (!verification.ok) return res.status(400).json({ error: 'invalid research record', reasons: verification.reasons });
     if (!requireBoundRole(req, res, record.author.role, record.author.roleId)) return null;
-    const targetHash = record.kind === RESEARCH_RECORD_KINDS.result
-      ? record.submissionHash
-      : record.kind === RESEARCH_RECORD_KINDS.claim
-        ? record.targetHash
-        : null;
-    const target = targetHash ? await store.getResearchRecord?.(targetHash) : null;
-    if (targetHash && !target) return res.status(409).json({ error: 'research record target does not exist', targetHash });
-    if (target && target.roomId !== record.roomId) {
-      return res.status(409).json({ error: 'research record target belongs to a different room' });
-    }
-    if (record.kind === RESEARCH_RECORD_KINDS.result) {
-      if (record.sequenceHash !== target.sequence?.hash) {
-        return res.status(409).json({ error: 'research result sequence does not match its submission' });
-      }
-      if (hashJson(record.modelContract) !== hashJson(target.modelContract)) {
-        return res.status(409).json({ error: 'research result model contract does not match its submission' });
-      }
-      if (record.embedding && target.consent?.publishEmbedding !== true) {
-        return res.status(409).json({ error: 'research submission did not consent to embedding publication' });
+    const roomRecords = typeof store.listResearchRecords === 'function'
+      ? await store.listResearchRecords({ roomId: record.roomId, limit: 1000 })
+      : [];
+    const known = new Map(roomRecords.map((entry) => [entry.recordHash, entry]));
+    for (const targetHash of researchRecordTargetHashes(record)) {
+      if (known.has(targetHash)) continue;
+      const target = await store.getResearchRecord?.(targetHash);
+      if (target) {
+        roomRecords.push(target);
+        known.set(targetHash, target);
       }
     }
-    if (record.kind === RESEARCH_RECORD_KINDS.claim
-      && record.claim?.kind === 'review_decision'
-      && target?.author?.identityRootId === record.author?.identityRootId) {
-      return res.status(409).json({ error: 'review decisions must be independently authored' });
+    const links = validateResearchRecordLinks(record, roomRecords);
+    if (!links.ok) {
+      return res.status(409).json({ error: 'invalid research record links', reasons: links.reasons });
     }
     const existing = await store.getResearchRecord?.(record.recordHash);
     return res.status(existing ? 200 : 201).json({

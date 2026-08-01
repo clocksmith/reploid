@@ -43,7 +43,8 @@ const canonicalFloat32Bytes = (values) => {
   return output;
 };
 
-const hashFloat32Values = (values) => sha256Hex(canonicalFloat32Bytes(values));
+export const hashSequenceFloat32Values = (values) => sha256Hex(canonicalFloat32Bytes(values));
+const hashFloat32Values = hashSequenceFloat32Values;
 
 const isNumericVector = (value) => ArrayBuffer.isView(value) || Array.isArray(value);
 
@@ -123,6 +124,35 @@ export async function validateSequenceOutputIntegrity({
     }
   } else if (Array.isArray(sequenceOutput.maskedLogits) && sequenceOutput.maskedLogits.length > 0) {
     reasons.push('unexpected sequence masked logits');
+  }
+
+  const hasResidueEmbeddings = sequenceResult.residueEmbeddingsHash !== null
+    && sequenceResult.residueEmbeddingsHash !== undefined;
+  if (hasResidueEmbeddings) {
+    if (!Array.isArray(sequenceOutput.residueEmbeddings)) {
+      reasons.push('bounded residue embeddings are missing');
+    } else {
+      for (const evidence of sequenceOutput.residueEmbeddings) {
+        const values = normalizeFloat32Values(evidence?.values);
+        try {
+          assertFiniteValues(values, 'bounded residue embedding');
+          if (values.length !== embeddingDim || evidence.dimensions !== embeddingDim) {
+            reasons.push('bounded residue embedding dimensions do not match receipt metadata');
+          }
+          if (await hashFloat32Values(values) !== evidence.vectorHash) {
+            reasons.push('bounded residue embedding hash mismatch');
+          }
+        } catch (error) {
+          reasons.push(error.message);
+        }
+      }
+      if (await hashJson(sequenceOutput.residueEmbeddings) !== sequenceResult.residueEmbeddingsHash) {
+        reasons.push('bounded residue embeddings collection hash mismatch');
+      }
+    }
+  } else if (Array.isArray(sequenceOutput.residueEmbeddings)
+    && sequenceOutput.residueEmbeddings.length > 0) {
+    reasons.push('unexpected bounded residue embeddings');
   }
 
   return { ok: reasons.length === 0, reasons };
@@ -247,10 +277,34 @@ export async function reduceDopplerSequenceResult(result, request) {
     if (result.logits.length !== tokens.length * vocabSize) {
       throw new Error('Doppler sequence logits do not match token count and vocabSize');
     }
-    maskedLogits = request.tokenIndices.map((tokenIndex) => ({
+    maskedLogits = request.tokenIndices.map((tokenIndex, positionIndex) => ({
+      coordinateSystem: request.coordinateSystem,
+      sequenceIndex: request.sequenceIndices?.[positionIndex] ?? null,
       tokenIndex,
       candidates: topKLogits(result.logits, tokenIndex, vocabSize, request.topK)
     }));
+  }
+
+  const residueEmbeddings = [];
+  if (tokenEmbeddings.length > 0 && request.sequenceIndices?.length > 0) {
+    for (let positionIndex = 0; positionIndex < request.sequenceIndices.length; positionIndex += 1) {
+      const sequenceIndex = request.sequenceIndices[positionIndex];
+      const tokenIndex = request.tokenIndices[positionIndex];
+      const offset = tokenIndex * embeddingDim;
+      if (offset < 0 || offset + embeddingDim > tokenEmbeddings.length) {
+        throw new Error(`sequence position ${sequenceIndex} maps outside the token embedding tensor`);
+      }
+      const values = tokenEmbeddings.slice(offset, offset + embeddingDim);
+      residueEmbeddings.push({
+        coordinateSystem: request.coordinateSystem,
+        sequenceIndex,
+        tokenIndex,
+        dimensions: embeddingDim,
+        values,
+        vectorHash: await hashFloat32Values(values),
+        l2Norm: summarizeValues(values).l2Norm
+      });
+    }
   }
 
   const pooledEmbeddingHash = await hashFloat32Values(pooledEmbedding);
@@ -258,6 +312,7 @@ export async function reduceDopplerSequenceResult(result, request) {
     ? await hashFloat32Values(tokenEmbeddings)
     : null;
   const maskedLogitsHash = maskedLogits.length > 0 ? await hashJson(maskedLogits) : null;
+  const residueEmbeddingsHash = residueEmbeddings.length > 0 ? await hashJson(residueEmbeddings) : null;
   const sequenceResult = {
     schema: SEQUENCE_RESULT_SCHEMA,
     workload: request.workload,
@@ -272,6 +327,9 @@ export async function reduceDopplerSequenceResult(result, request) {
     pooledEmbeddingHash,
     tokenEmbeddingsHash,
     maskedLogitsHash,
+    residueEmbeddingsHash,
+    coordinateSystem: request.coordinateSystem,
+    sequenceIndices: request.sequenceIndices,
     tokenIndices: request.tokenIndices,
     topK: request.topK
   };
@@ -279,6 +337,7 @@ export async function reduceDopplerSequenceResult(result, request) {
     tokens,
     pooledEmbedding,
     tokenEmbeddings,
+    residueEmbeddings,
     maskedLogits,
     pooledEmbeddingHash,
     pooledStats: summarizeValues(pooledEmbedding),
@@ -291,5 +350,6 @@ export default {
   sequenceMethodName,
   callDopplerSequence,
   reduceDopplerSequenceResult,
+  hashSequenceFloat32Values,
   validateSequenceOutputIntegrity
 };

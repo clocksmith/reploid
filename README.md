@@ -3,11 +3,18 @@
 [![Test Suite](https://img.shields.io/github/actions/workflow/status/clocksmith/reploid/test.yml?branch=main&label=tests)](https://github.com/clocksmith/reploid/actions/workflows/test.yml)
 [![License metadata: MIT](https://img.shields.io/badge/license%20metadata-MIT-blue.svg)](package.json)
 
-Reploid is a browser runtime family whose main product surface provides
-receipt-backed browser inference. Model execution and agent state stay in the
-browser. Current Poolday compatibility services may handle authentication,
-rendezvous, policy enforcement, receipt anchors, and ledger projections, but
-they do not perform the claimed browser-local model execution.
+Reploid is a browser runtime family working toward a proof-carrying,
+self-improving active-science network. Its goal is to select the computation,
+review, replication, or experiment expected to reduce scientific uncertainty
+most efficiently, then carry the evidence needed to inspect and reproduce that
+decision.
+
+The current main product surface provides receipt-backed browser inference.
+Model execution and agent state stay in the browser. Current Poolday
+compatibility services may handle authentication, rendezvous, policy
+enforcement, receipt anchors, and ledger projections, but they do not perform
+the claimed browser-local model execution. The active-science goal does not
+expand the current supported claim.
 
 It ships as **three distinct surfaces**: Poolday, Zero, and X. Each has its own
 route, boot profile, tool set, and evidence authority. Poolday is the main
@@ -32,6 +39,24 @@ the [product boot modes](self/config/boot-modes.js),
 [Poolday product intent](docs/poolday/product-intent.md). Proven Zero or X
 capabilities may enter Poolday only through a governed promotion boundary and a
 new Poolday-owned policy, user contract, and operational proof.
+
+## Product direction
+
+The target atomic product object is a signed, evolving
+[Discovery Contract](docs/poolday/discovery-contract.md). It binds a bounded
+question, competing hypotheses, uncertainty, candidate actions, predicted
+observations, scientific costs, outcomes, and predeclared replication or closure
+criteria.
+
+```text
+Bring Reploid an uncertain problem. Leave with the most informative next action,
+and leave the network better at solving the next problem
+```
+
+The canonical [Poolday product intent](docs/poolday/product-intent.md) defines
+this objective, the initial protein-discovery wedge, the north-star metric, and
+the separate authority of Poolday, Zero, and X. It also separates target
+capabilities from the current browser-inference boundary.
 
 ### X self-modification states
 
@@ -82,7 +107,7 @@ Users can bypass the managed access-window path and supply their own browser inf
 | Operators | [Quick start](docs/QUICK-START.md), [configuration](docs/CONFIGURATION.md), and [local models](docs/local-models.md) |
 | Agent and runtime contributors | [System architecture](docs/system-architecture.md), [RGR runtime contract](self/blueprints/rgr-runtime-contract.md), and [tool surfaces](self/config/tool-surfaces.js) |
 | Security and claim reviewers | [Security model](docs/SECURITY.md), [surface claim index](docs/status/surface-claim-index.json), [Poolday claims](docs/poolday/claims-and-nonclaims.md), and [threat model](docs/poolday/threat-model.md) |
-| Product and inference integrators | [Poolday product intent](docs/poolday/product-intent.md), [browser inference pool](docs/browser-inference-pool.md), [receipt schema](docs/poolday/receipt-schema.md), and [Doppler](https://github.com/clocksmith/doppler) |
+| Product and inference integrators | [Poolday product intent](docs/poolday/product-intent.md), [Discovery Contract](docs/poolday/discovery-contract.md), [browser inference pool](docs/browser-inference-pool.md), [receipt schema](docs/poolday/receipt-schema.md), and [Doppler](https://github.com/clocksmith/doppler) |
 
 The [documentation index](docs/INDEX.md) owns the complete architecture, blueprint, API, and operator inventory.
 

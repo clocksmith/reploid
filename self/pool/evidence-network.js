@@ -11,16 +11,29 @@ import {
   verifyCanonicalSignature
 } from './inference-receipt.js';
 import {
-  MAX_PUBLIC_PROTEIN_SEQUENCE_LENGTH,
+  MAX_SEQUENCE_POSITIONS,
   SEQUENCE_ALPHABETS,
+  getMaxPublicSequenceLength,
   normalizeSequenceInput
 } from './sequence-workload.js';
+import { exactModelContractKey } from './model-contract.js';
+import { validateSequenceOutputIntegrity } from './sequence-result.js';
 
 export const RESEARCH_RECORD_VERSION = 'poolday.research_evidence/v1';
 export const RESEARCH_RECORD_KINDS = Object.freeze({
   submission: 'research_submission',
   result: 'research_result',
-  claim: 'human_claim'
+  claim: 'human_claim',
+  hypothesis: 'research_hypothesis',
+  priorEvidence: 'research_prior_evidence',
+  prediction: 'research_prediction',
+  workOrder: 'research_work_order',
+  workClaim: 'research_work_claim',
+  outcome: 'research_outcome',
+  cohort: 'research_cohort',
+  evaluation: 'research_evaluation',
+  sequenceLink: 'research_sequence_link',
+  revocation: 'research_revocation'
 });
 export const RESEARCH_INTENT_KINDS = Object.freeze([
   'question',
@@ -46,6 +59,34 @@ export const EVIDENCE_RELATIONS = Object.freeze([
   'proposes',
   'approves'
 ]);
+export const PRIOR_EVIDENCE_KINDS = Object.freeze([
+  'sequence',
+  'structure',
+  'domain',
+  'annotation',
+  'experiment',
+  'publication'
+]);
+export const RESEARCH_WORK_KINDS = Object.freeze([
+  'human_review',
+  'experimental_assay',
+  'computational_replication'
+]);
+export const RESEARCH_OUTCOME_CLASSES = Object.freeze(['positive', 'negative', 'ambiguous']);
+export const RESEARCH_ATTEMPT_STATUSES = Object.freeze(['completed', 'failed']);
+export const RESEARCH_FAILURE_CATEGORIES = Object.freeze([
+  'none',
+  'expression_failure',
+  'folding_failure',
+  'solubility_failure',
+  'binding_failure',
+  'selectivity_failure',
+  'environment_failure',
+  'protocol_failure',
+  'analysis_failure',
+  'inconclusive'
+]);
+export const RESEARCH_REVIEW_DECISIONS = Object.freeze(['accepted', 'rejected', 'needs_revision']);
 
 const SHA256_PATTERN = /^sha256:[a-f0-9]{64}$/;
 const MAX_TEXT_LENGTH = 8000;
@@ -53,7 +94,17 @@ const MAX_EMBEDDING_DIMENSIONS = 4096;
 const DOMAIN_BY_KIND = Object.freeze({
   [RESEARCH_RECORD_KINDS.submission]: SIGNATURE_DOMAINS.researchSubmission,
   [RESEARCH_RECORD_KINDS.result]: SIGNATURE_DOMAINS.researchResult,
-  [RESEARCH_RECORD_KINDS.claim]: SIGNATURE_DOMAINS.humanClaim
+  [RESEARCH_RECORD_KINDS.claim]: SIGNATURE_DOMAINS.humanClaim,
+  [RESEARCH_RECORD_KINDS.hypothesis]: SIGNATURE_DOMAINS.researchHypothesis,
+  [RESEARCH_RECORD_KINDS.priorEvidence]: SIGNATURE_DOMAINS.researchPriorEvidence,
+  [RESEARCH_RECORD_KINDS.prediction]: SIGNATURE_DOMAINS.researchPrediction,
+  [RESEARCH_RECORD_KINDS.workOrder]: SIGNATURE_DOMAINS.researchWorkOrder,
+  [RESEARCH_RECORD_KINDS.workClaim]: SIGNATURE_DOMAINS.researchWorkClaim,
+  [RESEARCH_RECORD_KINDS.outcome]: SIGNATURE_DOMAINS.researchOutcome,
+  [RESEARCH_RECORD_KINDS.cohort]: SIGNATURE_DOMAINS.researchCohort,
+  [RESEARCH_RECORD_KINDS.evaluation]: SIGNATURE_DOMAINS.researchEvaluation,
+  [RESEARCH_RECORD_KINDS.sequenceLink]: SIGNATURE_DOMAINS.researchSequenceLink,
+  [RESEARCH_RECORD_KINDS.revocation]: SIGNATURE_DOMAINS.researchRevocation
 });
 
 const clone = (value) => value === undefined ? undefined : JSON.parse(JSON.stringify(value));
@@ -93,34 +144,185 @@ const normalizeIntent = (intent = {}) => {
   return { kind, text, label, context };
 };
 
-const normalizeConsent = (consent = {}) => {
+const normalizeConsent = (consent = {}, alphabet = SEQUENCE_ALPHABETS.aminoAcid) => {
   if (consent.publicSequence !== true) throw new TypeError('public sequence consent is required');
   if (consent.publicEvidenceNetwork !== true) throw new TypeError('public evidence-network consent is required');
   return {
-    scope: 'public_protein_evidence_network',
+    scope: alphabet === SEQUENCE_ALPHABETS.nucleotide
+      ? 'public_dna_evidence_network'
+      : 'public_protein_evidence_network',
     publicSequence: true,
     publicEvidenceNetwork: true,
     publishEmbedding: consent.publishEmbedding === true,
+    publishResidueEvidence: consent.publishResidueEvidence === true,
     acknowledgedAt: compactText(consent.acknowledgedAt, 64) || new Date().toISOString()
   };
 };
 
 const normalizeModelContract = (model = {}) => {
+  const sequence = model.sequence || model.requirements?.sequence || null;
   const contract = {
     id: compactText(model.id || model.modelId, 240),
     hash: compactText(model.hash || model.modelHash, 160),
     manifestHash: compactText(model.manifestHash, 160),
+    tokenizerHash: compactText(model.tokenizerHash || model.requirements?.tokenizerHash, 160) || null,
     runtime: compactText(model.runtime, 120),
     backend: compactText(model.backend, 120),
     workload: compactText(model.workload || model.requirements?.workload, 120),
     executionMode: compactText(model.executionMode || model.requirements?.executionMode, 120),
     dimensions: Number(model.dimensions || model.embeddingDimensions || model.requirements?.embeddingDimensions || 0) || null,
-    artifactIdentity: clone(model.artifactIdentity || model.requirements?.artifactIdentity || null)
+    quantization: compactText(model.quantization || model.requirements?.quantization, 80) || null,
+    contextLength: Number(model.contextLength || model.requirements?.contextLength || 0) || null,
+    sequence: sequence ? clone(sequence) : null,
+    runtimeContract: clone(model.runtimeContract || model.requirements?.runtimeContract || null),
+    artifactIdentity: clone(model.artifactIdentity || model.requirements?.artifactIdentity || null),
+    license: clone(model.license || model.requirements?.license || null)
   };
   if (!contract.id || !contract.hash || !contract.manifestHash || !contract.runtime || !contract.workload) {
     throw new TypeError('exact model id, hash, manifest hash, runtime, and workload are required');
   }
   return contract;
+};
+
+const requireHash = (value, label) => {
+  const normalized = compactText(value, 160);
+  if (!SHA256_PATTERN.test(normalized)) throw new TypeError(`${label} must be a SHA-256 identity`);
+  return normalized;
+};
+
+const normalizeHashList = (values, label, { min = 0, max = 128 } = {}) => {
+  const hashes = unique(Array.isArray(values) ? values : []).slice(0, max);
+  if (hashes.length < min) throw new TypeError(`${label} requires at least ${min} record ${min === 1 ? 'identity' : 'identities'}`);
+  return hashes.map((value) => requireHash(value, label));
+};
+
+const normalizeTextList = (values, { min = 0, max = 64, itemMax = 1000, label = 'values' } = {}) => {
+  const normalized = unique((Array.isArray(values) ? values : []).map((value) => compactText(value, itemMax))).slice(0, max);
+  if (normalized.length < min) throw new TypeError(`${label} requires at least ${min} ${min === 1 ? 'entry' : 'entries'}`);
+  return normalized;
+};
+
+const normalizeConditions = (conditions = {}) => {
+  const normalized = {
+    organism: compactText(conditions.organism, 240),
+    biologicalSystem: compactText(conditions.biologicalSystem || conditions.system, 500),
+    cellType: compactText(conditions.cellType, 240),
+    compartment: compactText(conditions.compartment, 240),
+    background: compactText(conditions.background, 500),
+    variant: compactText(conditions.variant, 500),
+    partners: normalizeTextList(conditions.partners, { max: 32, itemMax: 240 }),
+    ligands: normalizeTextList(conditions.ligands, { max: 32, itemMax: 240 }),
+    modifications: normalizeTextList(conditions.modifications, { max: 32, itemMax: 240 }),
+    concentration: compactText(conditions.concentration, 240),
+    temperature: compactText(conditions.temperature, 120),
+    pH: compactText(conditions.pH, 120),
+    timepoint: compactText(conditions.timepoint, 240),
+    notes: compactText(conditions.notes, 2000)
+  };
+  return normalized;
+};
+
+const conditionsHaveContent = (conditions = {}) => Object.values(conditions).some((value) => (
+  Array.isArray(value) ? value.length > 0 : Boolean(value)
+));
+
+const normalizeUncertainty = (uncertainty = {}) => ({
+  method: compactText(uncertainty.method, 240),
+  value: Number.isFinite(Number(uncertainty.value)) ? Number(uncertainty.value) : null,
+  unit: compactText(uncertainty.unit, 120),
+  interval: compactText(uncertainty.interval, 240),
+  description: compactText(uncertainty.description, 2000)
+});
+
+const normalizeReferenceIdentity = (reference = {}, label = 'reference') => {
+  const normalized = {
+    uri: compactText(reference.uri || reference.url, 2000),
+    accession: compactText(reference.accession, 240),
+    version: compactText(reference.version, 240),
+    contentHash: compactText(reference.contentHash, 160)
+  };
+  if (normalized.uri) {
+    const url = new URL(normalized.uri);
+    if (!['http:', 'https:'].includes(url.protocol)) throw new TypeError(`${label} URI must use http or https`);
+    normalized.uri = url.href;
+  }
+  if (!normalized.uri && !normalized.accession) throw new TypeError(`${label} URI or accession is required`);
+  if (!normalized.version && !SHA256_PATTERN.test(normalized.contentHash)) {
+    throw new TypeError(`${label} requires a version or content hash`);
+  }
+  if (normalized.contentHash && !SHA256_PATTERN.test(normalized.contentHash)) {
+    throw new TypeError(`${label} content hash must be a SHA-256 identity`);
+  }
+  return normalized;
+};
+
+const normalizeTransformations = (values = []) => (Array.isArray(values) ? values : []).slice(0, 32).map((value, index) => {
+  const normalized = {
+    id: compactText(value.id || value.name, 240),
+    version: compactText(value.version, 120),
+    parametersHash: compactText(value.parametersHash, 160),
+    description: compactText(value.description, 1000)
+  };
+  if (!normalized.id || !normalized.version) throw new TypeError(`transformation ${index + 1} requires id and version`);
+  if (normalized.parametersHash && !SHA256_PATTERN.test(normalized.parametersHash)) {
+    throw new TypeError(`transformation ${index + 1} parametersHash must be a SHA-256 identity`);
+  }
+  return normalized;
+});
+
+const normalizeAnalysisIdentity = async (analysis = {}) => {
+  const normalized = {
+    methodId: compactText(analysis.methodId || analysis.id, 240),
+    version: compactText(analysis.version, 120),
+    artifactHash: compactText(analysis.artifactHash, 160),
+    parametersHash: compactText(analysis.parametersHash, 160),
+    runtimeIdentity: compactText(analysis.runtimeIdentity, 500),
+    lineageHashes: normalizeHashList(analysis.lineageHashes || [], 'analysis lineage', { max: 64 })
+  };
+  if (!normalized.methodId || !normalized.version) throw new TypeError('analysis method id and version are required');
+  if (normalized.artifactHash && !SHA256_PATTERN.test(normalized.artifactHash)) throw new TypeError('analysis artifactHash must be a SHA-256 identity');
+  if (normalized.parametersHash && !SHA256_PATTERN.test(normalized.parametersHash)) throw new TypeError('analysis parametersHash must be a SHA-256 identity');
+  normalized.analysisHash = await hashJson(normalized);
+  return normalized;
+};
+
+const normalizeAssayProtocol = async (protocol = {}) => {
+  const normalized = {
+    protocolId: compactText(protocol.protocolId || protocol.id, 240),
+    version: compactText(protocol.version, 120),
+    assayType: compactText(protocol.assayType, 240),
+    executableUri: compactText(protocol.executableUri, 2000),
+    referenceIdentities: (Array.isArray(protocol.referenceIdentities) ? protocol.referenceIdentities : [])
+      .slice(0, 32)
+      .map((entry, index) => normalizeReferenceIdentity(entry, `protocol reference ${index + 1}`)),
+    conditions: normalizeConditions(protocol.conditions),
+    controls: normalizeTextList(protocol.controls, { min: 1, max: 32, itemMax: 500, label: 'assay controls' }),
+    readouts: normalizeTextList(protocol.readouts, { min: 1, max: 32, itemMax: 500, label: 'assay readouts' }),
+    normalization: {
+      method: compactText(protocol.normalization?.method, 240),
+      version: compactText(protocol.normalization?.version, 120),
+      reference: compactText(protocol.normalization?.reference, 500)
+    },
+    transformations: normalizeTransformations(protocol.transformations),
+    uncertaintyPlan: compactText(protocol.uncertaintyPlan, 2000),
+    acceptanceCriteria: compactText(protocol.acceptanceCriteria, 2000)
+  };
+  if (!normalized.protocolId || !normalized.version || !normalized.assayType) {
+    throw new TypeError('protocol id, version, and assay type are required');
+  }
+  if (!conditionsHaveContent(normalized.conditions)) throw new TypeError('protocol conditions are required');
+  if (!normalized.normalization.method || !normalized.normalization.version) {
+    throw new TypeError('protocol normalization method and version are required');
+  }
+  if (!normalized.uncertaintyPlan || !normalized.acceptanceCriteria) {
+    throw new TypeError('protocol uncertainty plan and acceptance criteria are required');
+  }
+  if (normalized.executableUri) {
+    const url = new URL(normalized.executableUri);
+    if (!['http:', 'https:'].includes(url.protocol)) throw new TypeError('protocol executable URI must use http or https');
+    normalized.executableUri = url.href;
+  }
+  return { ...normalized, protocolHash: await hashJson(normalized) };
 };
 
 const createAuthor = async (identity, expectedRoles = []) => {
@@ -155,15 +357,24 @@ export async function createSignedResearchSubmission({
   identity,
   roomId,
   sequence,
+  alphabet = null,
   intent,
   consent,
   modelContract,
   policyId,
   createdAt = new Date().toISOString()
 } = {}) {
-  const normalizedSequence = normalizeSequenceInput(sequence, SEQUENCE_ALPHABETS.aminoAcid);
-  if (normalizedSequence.length > MAX_PUBLIC_PROTEIN_SEQUENCE_LENGTH) {
-    throw new TypeError(`sequence exceeds the maximum public protein length (${MAX_PUBLIC_PROTEIN_SEQUENCE_LENGTH})`);
+  const resolvedAlphabet = alphabet || modelContract?.sequence?.alphabet || SEQUENCE_ALPHABETS.aminoAcid;
+  const normalizedSequence = normalizeSequenceInput(sequence, resolvedAlphabet);
+  const maximumLength = getMaxPublicSequenceLength(resolvedAlphabet);
+  if (maximumLength && normalizedSequence.length > maximumLength) {
+    const label = resolvedAlphabet === SEQUENCE_ALPHABETS.nucleotide ? 'DNA' : 'protein';
+    throw new TypeError(`sequence exceeds the maximum public ${label} length (${maximumLength})`);
+  }
+  const normalizedModelContract = normalizeModelContract(modelContract);
+  if (normalizedModelContract.sequence?.alphabet
+    && normalizedModelContract.sequence.alphabet !== resolvedAlphabet) {
+    throw new TypeError('research sequence alphabet does not match the exact model contract');
   }
   const { author, privateKey } = await createAuthor(identity, ['requester', 'researcher']);
   const payload = {
@@ -174,19 +385,100 @@ export async function createSignedResearchSubmission({
     createdAt,
     author,
     sequence: {
-      alphabet: SEQUENCE_ALPHABETS.aminoAcid,
+      alphabet: resolvedAlphabet,
       value: normalizedSequence,
       length: normalizedSequence.length,
       hash: await sha256Hex(normalizedSequence)
     },
-    consent: normalizeConsent(consent),
+    consent: normalizeConsent(consent, resolvedAlphabet),
     requesterIntent: normalizeIntent(intent),
-    modelContract: normalizeModelContract(modelContract),
+    modelContract: normalizedModelContract,
     policyId: compactText(policyId, 160)
   };
   if (!payload.policyId) throw new TypeError('policyId is required');
   return signRecord(payload, privateKey, SIGNATURE_DOMAINS.researchSubmission);
 }
+
+const normalizePublishedSequenceEvidence = async ({
+  submission,
+  receipt,
+  receiptRecord,
+  sequenceResult,
+  sequenceOutput
+} = {}) => {
+  const metadata = sequenceResult
+    || receiptRecord?.sequenceResult
+    || receiptRecord?.execution?.sequenceResult
+    || receipt?.sequence
+    || null;
+  if (!metadata) return null;
+  const expectedResultHash = receipt?.sequenceResultHash
+    || receipt?.sequence?.resultHash
+    || receiptRecord?.sequenceResultHash
+    || receiptRecord?.execution?.sequenceResultHash
+    || null;
+  if (sequenceOutput) {
+    const integrity = await validateSequenceOutputIntegrity({
+      sequenceResult: metadata,
+      sequenceOutput,
+      expectedResultHash
+    });
+    if (!integrity.ok) {
+      throw new TypeError(`sequence evidence integrity failed: ${integrity.reasons.join('; ')}`);
+    }
+  }
+  const residueEmbeddings = Array.isArray(sequenceOutput?.residueEmbeddings)
+    ? sequenceOutput.residueEmbeddings.slice(0, MAX_SEQUENCE_POSITIONS).map((entry) => ({
+      coordinateSystem: compactText(entry.coordinateSystem, 80),
+      sequenceIndex: Number(entry.sequenceIndex),
+      tokenIndex: Number(entry.tokenIndex),
+      dimensions: Number(entry.dimensions),
+      values: Array.from(entry.values || [], Number),
+      vectorHash: compactText(entry.vectorHash, 160),
+      l2Norm: Number(entry.l2Norm)
+    }))
+    : [];
+  const maskedResidueProposals = Array.isArray(sequenceOutput?.maskedLogits)
+    ? clone(sequenceOutput.maskedLogits.slice(0, MAX_SEQUENCE_POSITIONS))
+    : [];
+  if ((residueEmbeddings.length > 0 || maskedResidueProposals.length > 0)
+    && submission.consent?.publishResidueEvidence !== true) {
+    throw new TypeError('residue-level evidence publication is not consented');
+  }
+  const evidence = {
+    schema: 'poolday.model_sequence_evidence/v1',
+    workload: compactText(metadata.workload, 120),
+    alphabet: compactText(metadata.alphabet || submission.sequence?.alphabet, 80),
+    sequenceHash: compactText(metadata.sequenceHash || submission.sequence?.hash, 160),
+    sequenceLength: Number(metadata.sequenceLength || submission.sequence?.length || 0),
+    tokenCount: Number(metadata.tokenCount || 0),
+    includedTokenCount: Number(metadata.includedTokenCount || 0),
+    embeddingDimensions: Number(metadata.embeddingDim || submission.modelContract?.dimensions || 0),
+    coordinateSystem: compactText(metadata.coordinateSystem, 80) || null,
+    sequenceIndices: Array.isArray(metadata.sequenceIndices) ? metadata.sequenceIndices.map(Number) : [],
+    tokenIndices: Array.isArray(metadata.tokenIndices) ? metadata.tokenIndices.map(Number) : [],
+    pooledEmbeddingHash: compactText(metadata.pooledEmbeddingHash, 160) || null,
+    tokenEmbeddingsHash: compactText(metadata.tokenEmbeddingsHash, 160) || null,
+    residueEmbeddingsHash: compactText(metadata.residueEmbeddingsHash, 160) || null,
+    maskedLogitsHash: compactText(metadata.maskedLogitsHash, 160) || null,
+    sequenceResultHash: compactText(expectedResultHash, 160) || null,
+    residueEmbeddings,
+    maskedResidueProposals,
+    claimBoundary: maskedResidueProposals.length > 0
+      ? 'Masked-token logits are model-specific residue plausibility evidence, not mutation fitness.'
+      : 'Token representations are model-specific evidence and are not directly comparable across model contracts.'
+  };
+  if (evidence.sequenceHash !== submission.sequence?.hash) {
+    throw new TypeError('sequence evidence does not match the submitted sequence');
+  }
+  if (evidence.alphabet !== submission.sequence?.alphabet) {
+    throw new TypeError('sequence evidence alphabet does not match the submitted sequence');
+  }
+  return {
+    ...evidence,
+    evidenceHash: await hashJson(evidence)
+  };
+};
 
 export async function createSignedResearchResult({
   identity,
@@ -196,6 +488,8 @@ export async function createSignedResearchResult({
   agreement = null,
   routeDecision = null,
   embedding = null,
+  sequenceResult = null,
+  sequenceOutput = null,
   createdAt = new Date().toISOString()
 } = {}) {
   const { author, privateKey } = await createAuthor(identity, ['requester', 'researcher']);
@@ -213,13 +507,20 @@ export async function createSignedResearchResult({
     throw new TypeError('embedding publication is not consented or is invalid');
   }
   const receiptModelContract = normalizeModelContract(receipt.model || submission.modelContract);
-  const requiredModelFields = ['id', 'hash', 'manifestHash', 'runtime', 'backend', 'workload', 'executionMode'];
+  const requiredModelFields = ['id', 'hash', 'manifestHash', 'tokenizerHash', 'runtime', 'backend', 'workload', 'executionMode'];
   for (const field of requiredModelFields) {
     if (receiptModelContract[field] !== submission.modelContract[field]) {
       throw new TypeError(`compute receipt ${field} does not match the submitted exact model contract`);
     }
   }
   const modelContract = clone(submission.modelContract);
+  const sequenceEvidence = await normalizePublishedSequenceEvidence({
+    submission,
+    receipt,
+    receiptRecord,
+    sequenceResult,
+    sequenceOutput
+  });
   const payload = {
     version: RESEARCH_RECORD_VERSION,
     kind: RESEARCH_RECORD_KINDS.result,
@@ -249,7 +550,8 @@ export async function createSignedResearchResult({
       dimensions: vector.length,
       values: vector,
       vectorHash: receipt.vectorHash || await hashJson(vector)
-    } : null
+    } : null,
+    sequenceEvidence
   };
   return signRecord(payload, privateKey, SIGNATURE_DOMAINS.researchResult);
 }
@@ -311,6 +613,502 @@ export async function createSignedHumanClaim({
   };
   return signRecord(payload, privateKey, SIGNATURE_DOMAINS.humanClaim);
 }
+
+export async function createSignedResearchHypothesis({
+  identity,
+  roomId,
+  questionHash,
+  statement,
+  rationale = '',
+  conditions = {},
+  discriminatingObservations = [],
+  priorEvidenceHashes = [],
+  alternativeToHashes = [],
+  createdAt = new Date().toISOString()
+} = {}) {
+  const { author, privateKey } = await createAuthor(identity, ['requester', 'researcher', 'reviewer']);
+  const normalizedStatement = compactText(statement);
+  if (!normalizedStatement) throw new TypeError('hypothesis statement is required');
+  const normalizedConditions = normalizeConditions(conditions);
+  if (!conditionsHaveContent(normalizedConditions)) throw new TypeError('hypothesis conditions are required');
+  const payload = {
+    version: RESEARCH_RECORD_VERSION,
+    kind: RESEARCH_RECORD_KINDS.hypothesis,
+    signatureDomain: SIGNATURE_DOMAINS.researchHypothesis,
+    roomId: normalizeRoomId(roomId),
+    createdAt,
+    author,
+    questionHash: requireHash(questionHash, 'questionHash'),
+    hypothesis: {
+      statement: normalizedStatement,
+      rationale: compactText(rationale),
+      conditions: normalizedConditions,
+      discriminatingObservations: normalizeTextList(discriminatingObservations, {
+        min: 1,
+        max: 32,
+        itemMax: 1000,
+        label: 'discriminating observations'
+      }),
+      priorEvidenceHashes: normalizeHashList(priorEvidenceHashes, 'prior evidence', { max: 128 }),
+      alternativeToHashes: normalizeHashList(alternativeToHashes, 'alternative hypotheses', { max: 64 })
+    }
+  };
+  return signRecord(payload, privateKey, SIGNATURE_DOMAINS.researchHypothesis);
+}
+
+export async function createSignedPriorEvidence({
+  identity,
+  roomId,
+  questionHash,
+  evidenceKind,
+  summary,
+  reference,
+  conditions = {},
+  transformations = [],
+  uncertainty = {},
+  provenance = {},
+  createdAt = new Date().toISOString()
+} = {}) {
+  const { author, privateKey } = await createAuthor(identity, ['researcher', 'reviewer', 'verifier']);
+  const category = compactText(evidenceKind, 40).toLowerCase();
+  if (!PRIOR_EVIDENCE_KINDS.includes(category)) throw new TypeError('prior evidence kind is not supported');
+  const normalizedSummary = compactText(summary);
+  if (!normalizedSummary) throw new TypeError('prior evidence summary is required');
+  const retrievalMethod = compactText(provenance.retrievalMethod || provenance.method, 500);
+  const retrievedAt = compactText(provenance.retrievedAt, 64) || createdAt;
+  if (!retrievalMethod || !Number.isFinite(Date.parse(retrievedAt))) {
+    throw new TypeError('prior evidence retrieval method and timestamp are required');
+  }
+  const payload = {
+    version: RESEARCH_RECORD_VERSION,
+    kind: RESEARCH_RECORD_KINDS.priorEvidence,
+    signatureDomain: SIGNATURE_DOMAINS.researchPriorEvidence,
+    roomId: normalizeRoomId(roomId),
+    createdAt,
+    author,
+    questionHash: requireHash(questionHash, 'questionHash'),
+    evidence: {
+      kind: category,
+      summary: normalizedSummary,
+      reference: normalizeReferenceIdentity(reference),
+      conditions: normalizeConditions(conditions),
+      transformations: normalizeTransformations(transformations),
+      uncertainty: normalizeUncertainty(uncertainty),
+      provenance: {
+        retrievedAt,
+        retrievalMethod,
+        retrievedBy: compactText(provenance.retrievedBy, 500) || author.roleId,
+        sourceIdentity: compactText(provenance.sourceIdentity, 500),
+        license: compactText(provenance.license, 240)
+      }
+    }
+  };
+  return signRecord(payload, privateKey, SIGNATURE_DOMAINS.researchPriorEvidence);
+}
+
+export async function createSignedResearchPrediction({
+  identity,
+  roomId,
+  questionHash,
+  hypothesisHash,
+  method,
+  expectedObservation,
+  normalizedLabel,
+  conditions = {},
+  confidence,
+  outcomeAccess = 'blinded',
+  receiptHashes = [],
+  frozenAt = new Date().toISOString(),
+  createdAt = frozenAt
+} = {}) {
+  const { author, privateKey } = await createAuthor(identity, ['researcher', 'requester', 'verifier']);
+  const normalizedObservation = compactText(expectedObservation);
+  const label = compactText(normalizedLabel, 240).toLowerCase();
+  if (!normalizedObservation || !label) throw new TypeError('predicted observation and normalized label are required');
+  const normalizedConfidence = Number(confidence);
+  if (!Number.isFinite(normalizedConfidence) || normalizedConfidence < 0 || normalizedConfidence > 1) {
+    throw new TypeError('prediction confidence must be between 0 and 1');
+  }
+  if (!['blinded', 'not_available'].includes(outcomeAccess)) throw new TypeError('prediction outcome access must be blinded or not_available');
+  if (!Number.isFinite(Date.parse(frozenAt))) throw new TypeError('prediction frozenAt must be an ISO timestamp');
+  const analysis = await normalizeAnalysisIdentity(method);
+  const linkedReceipts = normalizeHashList(receiptHashes, 'prediction receipt', { max: 64 });
+  if (!analysis.artifactHash && linkedReceipts.length === 0) {
+    throw new TypeError('prediction requires an exact method artifact hash or receipt hash');
+  }
+  const payload = {
+    version: RESEARCH_RECORD_VERSION,
+    kind: RESEARCH_RECORD_KINDS.prediction,
+    signatureDomain: SIGNATURE_DOMAINS.researchPrediction,
+    roomId: normalizeRoomId(roomId),
+    createdAt,
+    author,
+    questionHash: requireHash(questionHash, 'questionHash'),
+    hypothesisHash: requireHash(hypothesisHash, 'hypothesisHash'),
+    prediction: {
+      method: analysis,
+      expectedObservation: normalizedObservation,
+      normalizedLabel: label,
+      conditions: normalizeConditions(conditions),
+      confidence: normalizedConfidence,
+      outcomeAccess,
+      receiptHashes: linkedReceipts,
+      frozenAt
+    }
+  };
+  return signRecord(payload, privateKey, SIGNATURE_DOMAINS.researchPrediction);
+}
+
+export async function createSignedResearchWorkOrder({
+  identity,
+  roomId,
+  questionHash,
+  hypothesisHashes,
+  workKind = 'experimental_assay',
+  title,
+  protocol,
+  replicaTarget = 1,
+  blindness = {},
+  feasibility = {},
+  createdAt = new Date().toISOString()
+} = {}) {
+  const { author, privateKey } = await createAuthor(identity, ['researcher', 'reviewer', 'requester']);
+  const kind = compactText(workKind, 40).toLowerCase();
+  if (!RESEARCH_WORK_KINDS.includes(kind)) throw new TypeError('research work kind is not supported');
+  const normalizedTitle = compactText(title, 500);
+  if (!normalizedTitle) throw new TypeError('work order title is required');
+  const replicas = Number(replicaTarget);
+  if (!Number.isInteger(replicas) || replicas < 1 || replicas > 100) throw new TypeError('replicaTarget must be an integer from 1 to 100');
+  const allocationHash = compactText(blindness.allocationHash, 160);
+  if (blindness.required !== false && !SHA256_PATTERN.test(allocationHash)) {
+    throw new TypeError('blinded work requires an allocationHash');
+  }
+  const payload = {
+    version: RESEARCH_RECORD_VERSION,
+    kind: RESEARCH_RECORD_KINDS.workOrder,
+    signatureDomain: SIGNATURE_DOMAINS.researchWorkOrder,
+    roomId: normalizeRoomId(roomId),
+    createdAt,
+    author,
+    questionHash: requireHash(questionHash, 'questionHash'),
+    hypothesisHashes: normalizeHashList(hypothesisHashes, 'work order hypotheses', { min: 1, max: 32 }),
+    work: {
+      kind,
+      title: normalizedTitle,
+      status: 'proposed',
+      protocol: await normalizeAssayProtocol(protocol),
+      replicaTarget: replicas,
+      blindness: {
+        required: blindness.required !== false,
+        allocationHash: allocationHash || null,
+        revealRule: compactText(blindness.revealRule, 1000) || 'Reveal only after all planned outcomes are signed.'
+      },
+      feasibility: {
+        resources: compactText(feasibility.resources, 2000),
+        biosafety: compactText(feasibility.biosafety, 1000),
+        limitations: compactText(feasibility.limitations, 2000)
+      }
+    }
+  };
+  return signRecord(payload, privateKey, SIGNATURE_DOMAINS.researchWorkOrder);
+}
+
+export async function createSignedResearchWorkClaim({
+  identity,
+  roomId,
+  workOrderHash,
+  laboratory,
+  capabilities = [],
+  consent = {},
+  conflictDisclosure = '',
+  createdAt = new Date().toISOString()
+} = {}) {
+  const { author, privateKey } = await createAuthor(identity, ['researcher', 'verifier']);
+  const lab = {
+    id: compactText(laboratory?.id, 240),
+    name: compactText(laboratory?.name, 500),
+    institution: compactText(laboratory?.institution, 500),
+    ror: compactText(laboratory?.ror, 500)
+  };
+  if (!lab.id || !lab.name) throw new TypeError('laboratory id and name are required');
+  if (consent.publicLaboratoryIdentity !== true || consent.publishOutcome !== true) {
+    throw new TypeError('laboratory identity and outcome publication consent are required');
+  }
+  const payload = {
+    version: RESEARCH_RECORD_VERSION,
+    kind: RESEARCH_RECORD_KINDS.workClaim,
+    signatureDomain: SIGNATURE_DOMAINS.researchWorkClaim,
+    roomId: normalizeRoomId(roomId),
+    createdAt,
+    author,
+    workOrderHash: requireHash(workOrderHash, 'workOrderHash'),
+    workClaim: {
+      status: 'claimed',
+      laboratory: lab,
+      capabilities: normalizeTextList(capabilities, { min: 1, max: 32, itemMax: 500, label: 'laboratory capabilities' }),
+      consent: {
+        publicLaboratoryIdentity: true,
+        publishOutcome: true,
+        acknowledgedAt: compactText(consent.acknowledgedAt, 64) || createdAt
+      },
+      conflictDisclosure: compactText(conflictDisclosure, 2000) || 'none declared'
+    }
+  };
+  return signRecord(payload, privateKey, SIGNATURE_DOMAINS.researchWorkClaim);
+}
+
+export async function createSignedExperimentalOutcome({
+  identity,
+  roomId,
+  questionHash,
+  workOrderHash,
+  workClaimHash,
+  hypothesisHashes,
+  classification,
+  summary,
+  attempt = {},
+  observations = [],
+  protocol,
+  analysis,
+  uncertainty = {},
+  blind = {},
+  replicationOfHash = null,
+  createdAt = new Date().toISOString()
+} = {}) {
+  const { author, privateKey } = await createAuthor(identity, ['researcher', 'verifier']);
+  const normalizedClass = compactText(classification, 40).toLowerCase();
+  if (!RESEARCH_OUTCOME_CLASSES.includes(normalizedClass)) throw new TypeError('outcome must be positive, negative, or ambiguous');
+  const normalizedSummary = compactText(summary);
+  if (!normalizedSummary) throw new TypeError('outcome summary is required');
+  const attemptStatus = compactText(attempt.status, 40).toLowerCase();
+  const failureCategory = compactText(attempt.failureCategory || 'none', 80).toLowerCase();
+  if (!RESEARCH_ATTEMPT_STATUSES.includes(attemptStatus)) throw new TypeError('attempt status must be completed or failed');
+  if (!RESEARCH_FAILURE_CATEGORIES.includes(failureCategory)) throw new TypeError('attempt failure category is not supported');
+  if (attemptStatus === 'failed' && failureCategory === 'none') throw new TypeError('failed attempts require a failure category');
+  if (attemptStatus === 'completed' && failureCategory !== 'none') throw new TypeError('completed attempts must use the none failure category');
+  const blindState = compactText(blind.state, 40).toLowerCase();
+  const codeHash = compactText(blind.codeHash, 160);
+  const allocationHash = compactText(blind.allocationHash, 160);
+  if (!['sealed', 'revealed'].includes(blindState) || !SHA256_PATTERN.test(codeHash) || !SHA256_PATTERN.test(allocationHash)) {
+    throw new TypeError('outcome requires sealed or revealed blinding with codeHash and allocationHash');
+  }
+  const revealedAt = compactText(blind.revealedAt, 64) || null;
+  if (blindState === 'sealed' && revealedAt) throw new TypeError('sealed outcomes cannot include revealedAt');
+  if (blindState === 'revealed' && !Number.isFinite(Date.parse(revealedAt))) throw new TypeError('revealed outcomes require revealedAt');
+  const normalizedObservations = (Array.isArray(observations) ? observations : []).slice(0, 128).map((entry, index) => {
+    const readout = compactText(entry.readout, 500);
+    if (!readout) throw new TypeError(`observation ${index + 1} requires a readout`);
+    const value = Number(entry.value);
+    const normalizedValue = Number(entry.normalizedValue);
+    if (!Number.isFinite(value) || !Number.isFinite(normalizedValue)) {
+      throw new TypeError(`observation ${index + 1} requires numeric raw and normalized values`);
+    }
+    return {
+      readout,
+      value,
+      unit: compactText(entry.unit, 120),
+      normalizedValue,
+      normalizedUnit: compactText(entry.normalizedUnit || entry.unit, 120),
+      uncertainty: normalizeUncertainty(entry.uncertainty)
+    };
+  });
+  if (normalizedObservations.length === 0) throw new TypeError('at least one experimental observation is required');
+  const payload = {
+    version: RESEARCH_RECORD_VERSION,
+    kind: RESEARCH_RECORD_KINDS.outcome,
+    signatureDomain: SIGNATURE_DOMAINS.researchOutcome,
+    roomId: normalizeRoomId(roomId),
+    createdAt,
+    author,
+    questionHash: requireHash(questionHash, 'questionHash'),
+    workOrderHash: requireHash(workOrderHash, 'workOrderHash'),
+    workClaimHash: requireHash(workClaimHash, 'workClaimHash'),
+    hypothesisHashes: normalizeHashList(hypothesisHashes, 'outcome hypotheses', { min: 1, max: 32 }),
+    replicationOfHash: replicationOfHash ? requireHash(replicationOfHash, 'replicationOfHash') : null,
+    outcome: {
+      classification: normalizedClass,
+      summary: normalizedSummary,
+      attempt: {
+        status: attemptStatus,
+        failureCategory,
+        failureDetail: compactText(attempt.failureDetail, 2000),
+        startedAt: compactText(attempt.startedAt, 64),
+        completedAt: compactText(attempt.completedAt, 64) || createdAt
+      },
+      observations: normalizedObservations,
+      protocol: await normalizeAssayProtocol(protocol),
+      analysis: await normalizeAnalysisIdentity(analysis),
+      uncertainty: normalizeUncertainty(uncertainty),
+      blind: { state: blindState, codeHash, allocationHash, revealedAt }
+    }
+  };
+  return signRecord(payload, privateKey, SIGNATURE_DOMAINS.researchOutcome);
+}
+
+export async function createSignedEvaluationCohort({
+  identity,
+  roomId,
+  label,
+  questionHashes,
+  predictionHashes,
+  workOrderHashes,
+  metrics,
+  frozenAt = new Date().toISOString(),
+  blindingRequired = true,
+  createdAt = frozenAt
+} = {}) {
+  const { author, privateKey } = await createAuthor(identity, ['verifier', 'researcher', 'reviewer']);
+  const normalizedLabel = compactText(label, 500);
+  if (!normalizedLabel) throw new TypeError('cohort label is required');
+  if (!Number.isFinite(Date.parse(frozenAt))) throw new TypeError('cohort frozenAt must be an ISO timestamp');
+  const normalizedMetrics = (Array.isArray(metrics) ? metrics : []).slice(0, 32).map((metric, index) => {
+    const direction = compactText(metric.direction, 40).toLowerCase();
+    const normalized = {
+      id: compactText(metric.id, 120),
+      label: compactText(metric.label, 500),
+      direction,
+      unit: compactText(metric.unit, 120)
+    };
+    if (!normalized.id || !normalized.label || !['higher_is_better', 'lower_is_better'].includes(direction)) {
+      throw new TypeError(`cohort metric ${index + 1} requires id, label, and direction`);
+    }
+    return normalized;
+  });
+  if (normalizedMetrics.length === 0) throw new TypeError('cohort requires at least one metric');
+  const payload = {
+    version: RESEARCH_RECORD_VERSION,
+    kind: RESEARCH_RECORD_KINDS.cohort,
+    signatureDomain: SIGNATURE_DOMAINS.researchCohort,
+    roomId: normalizeRoomId(roomId),
+    createdAt,
+    author,
+    cohort: {
+      label: normalizedLabel,
+      questionHashes: normalizeHashList(questionHashes, 'cohort questions', { min: 1, max: 128 }),
+      predictionHashes: normalizeHashList(predictionHashes, 'cohort predictions', { min: 1, max: 512 }),
+      workOrderHashes: normalizeHashList(workOrderHashes, 'cohort work orders', { min: 1, max: 256 }),
+      metrics: normalizedMetrics,
+      frozenAt,
+      blindingRequired: blindingRequired !== false,
+      state: 'frozen'
+    }
+  };
+  return signRecord(payload, privateKey, SIGNATURE_DOMAINS.researchCohort);
+}
+
+export async function createSignedCohortEvaluation({
+  identity,
+  roomId,
+  cohortHash,
+  outcomeHashes,
+  metricResults,
+  disagreementSummary,
+  failureAnalysis,
+  nextCohortQuestionHashes = [],
+  createdAt = new Date().toISOString()
+} = {}) {
+  const { author, privateKey } = await createAuthor(identity, ['verifier', 'reviewer']);
+  const normalizedMetrics = (Array.isArray(metricResults) ? metricResults : []).slice(0, 32).map((metric, index) => {
+    const direction = compactText(metric.direction, 40).toLowerCase();
+    const baselineValue = Number(metric.baselineValue);
+    const currentValue = Number(metric.currentValue);
+    if (!compactText(metric.metricId, 120) || !['higher_is_better', 'lower_is_better'].includes(direction)
+      || !Number.isFinite(baselineValue) || !Number.isFinite(currentValue)) {
+      throw new TypeError(`evaluation metric ${index + 1} is invalid`);
+    }
+    const absoluteDelta = currentValue - baselineValue;
+    return {
+      metricId: compactText(metric.metricId, 120),
+      direction,
+      baselineValue,
+      currentValue,
+      absoluteDelta,
+      relativeDelta: baselineValue === 0 ? null : absoluteDelta / Math.abs(baselineValue),
+      improved: direction === 'higher_is_better' ? currentValue > baselineValue : currentValue < baselineValue
+    };
+  });
+  if (normalizedMetrics.length === 0) throw new TypeError('evaluation requires at least one measured metric');
+  const disagreement = compactText(disagreementSummary, 4000);
+  const failures = compactText(failureAnalysis, 4000);
+  if (!disagreement || !failures) throw new TypeError('evaluation requires disagreement summary and failure analysis');
+  const payload = {
+    version: RESEARCH_RECORD_VERSION,
+    kind: RESEARCH_RECORD_KINDS.evaluation,
+    signatureDomain: SIGNATURE_DOMAINS.researchEvaluation,
+    roomId: normalizeRoomId(roomId),
+    createdAt,
+    author,
+    cohortHash: requireHash(cohortHash, 'cohortHash'),
+    evaluation: {
+      outcomeHashes: normalizeHashList(outcomeHashes, 'evaluation outcomes', { min: 1, max: 512 }),
+      metricResults: normalizedMetrics,
+      disagreementSummary: disagreement,
+      failureAnalysis: failures,
+      nextCohortQuestionHashes: normalizeHashList(nextCohortQuestionHashes, 'next cohort questions', { max: 128 }),
+      acceptedOutcomePolicy: 'independent_review_required'
+    }
+  };
+  return signRecord(payload, privateKey, SIGNATURE_DOMAINS.researchEvaluation);
+}
+
+export async function createSignedResearchRevocation({
+  identity,
+  roomId,
+  targetHash,
+  reason,
+  createdAt = new Date().toISOString()
+} = {}) {
+  const { author, privateKey } = await createAuthor(identity, ['requester', 'researcher', 'reviewer', 'verifier']);
+  const normalizedReason = compactText(reason, 2000);
+  if (!normalizedReason) throw new TypeError('revocation reason is required');
+  const payload = {
+    version: RESEARCH_RECORD_VERSION,
+    kind: RESEARCH_RECORD_KINDS.revocation,
+    signatureDomain: SIGNATURE_DOMAINS.researchRevocation,
+    roomId: normalizeRoomId(roomId),
+    createdAt,
+    author,
+    targetHash: requireHash(targetHash, 'targetHash'),
+    revocation: {
+      scope: 'future_use',
+      reason: normalizedReason,
+      effectiveAt: createdAt
+    }
+  };
+  return signRecord(payload, privateKey, SIGNATURE_DOMAINS.researchRevocation);
+}
+
+const verifyProtocolEvidence = async (protocol, reasons, label = 'protocol') => {
+  if (!protocol || typeof protocol !== 'object') {
+    reasons.push(`${label} is required`);
+    return;
+  }
+  const { protocolHash, ...identity } = protocol;
+  if (!SHA256_PATTERN.test(String(protocolHash || ''))) reasons.push(`${label} hash is invalid`);
+  else if (await hashJson(identity) !== protocolHash) reasons.push(`${label} hash mismatch`);
+  if (!protocol.protocolId || !protocol.version || !protocol.assayType) reasons.push(`${label} identity is incomplete`);
+  if (!conditionsHaveContent(protocol.conditions)) reasons.push(`${label} conditions are required`);
+  if (!Array.isArray(protocol.controls) || protocol.controls.length === 0) reasons.push(`${label} controls are required`);
+  if (!Array.isArray(protocol.readouts) || protocol.readouts.length === 0) reasons.push(`${label} readouts are required`);
+  if (!protocol.normalization?.method || !protocol.normalization?.version) reasons.push(`${label} normalization identity is required`);
+  if (!protocol.uncertaintyPlan || !protocol.acceptanceCriteria) reasons.push(`${label} uncertainty and acceptance criteria are required`);
+};
+
+const verifyAnalysisEvidence = async (analysis, reasons, label = 'analysis') => {
+  if (!analysis || typeof analysis !== 'object') {
+    reasons.push(`${label} identity is required`);
+    return;
+  }
+  const { analysisHash, ...identity } = analysis;
+  if (!SHA256_PATTERN.test(String(analysisHash || ''))) reasons.push(`${label} hash is invalid`);
+  else if (await hashJson(identity) !== analysisHash) reasons.push(`${label} hash mismatch`);
+  if (!analysis.methodId || !analysis.version) reasons.push(`${label} method id and version are required`);
+  if (analysis.artifactHash && !SHA256_PATTERN.test(analysis.artifactHash)) reasons.push(`${label} artifact hash is invalid`);
+  if (analysis.parametersHash && !SHA256_PATTERN.test(analysis.parametersHash)) reasons.push(`${label} parameters hash is invalid`);
+  if (!Array.isArray(analysis.lineageHashes) || analysis.lineageHashes.some((hash) => !SHA256_PATTERN.test(hash))) {
+    reasons.push(`${label} lineage hashes are invalid`);
+  }
+};
 
 export async function verifyResearchRecord(record = {}) {
   const reasons = [];
@@ -398,18 +1196,449 @@ export async function verifyResearchRecord(record = {}) {
       reasons.push('human task approval is invalid');
     }
   }
+  if (record.kind === RESEARCH_RECORD_KINDS.hypothesis) {
+    if (!['requester', 'researcher', 'reviewer'].includes(record.author?.role)) reasons.push('hypothesis author role is invalid');
+    if (!SHA256_PATTERN.test(String(record.questionHash || ''))) reasons.push('hypothesis questionHash is invalid');
+    if (!record.hypothesis?.statement) reasons.push('hypothesis statement is required');
+    if (!conditionsHaveContent(record.hypothesis?.conditions)) reasons.push('hypothesis conditions are required');
+    if (!Array.isArray(record.hypothesis?.discriminatingObservations) || record.hypothesis.discriminatingObservations.length === 0) {
+      reasons.push('hypothesis discriminating observations are required');
+    }
+    for (const hash of [...(record.hypothesis?.priorEvidenceHashes || []), ...(record.hypothesis?.alternativeToHashes || [])]) {
+      if (!SHA256_PATTERN.test(String(hash || ''))) reasons.push('hypothesis linked record hash is invalid');
+    }
+  }
+  if (record.kind === RESEARCH_RECORD_KINDS.priorEvidence) {
+    if (!['researcher', 'reviewer', 'verifier'].includes(record.author?.role)) reasons.push('prior evidence author role is invalid');
+    if (!SHA256_PATTERN.test(String(record.questionHash || ''))) reasons.push('prior evidence questionHash is invalid');
+    if (!PRIOR_EVIDENCE_KINDS.includes(record.evidence?.kind)) reasons.push('prior evidence kind is invalid');
+    if (!record.evidence?.summary) reasons.push('prior evidence summary is required');
+    try {
+      normalizeReferenceIdentity(record.evidence?.reference);
+      normalizeTransformations(record.evidence?.transformations);
+    } catch (error) {
+      reasons.push(error.message);
+    }
+    if (!record.evidence?.provenance?.retrievalMethod || !Number.isFinite(Date.parse(record.evidence?.provenance?.retrievedAt || ''))) {
+      reasons.push('prior evidence provenance is incomplete');
+    }
+  }
+  if (record.kind === RESEARCH_RECORD_KINDS.prediction) {
+    if (!['researcher', 'requester', 'verifier'].includes(record.author?.role)) reasons.push('prediction author role is invalid');
+    if (!SHA256_PATTERN.test(String(record.questionHash || '')) || !SHA256_PATTERN.test(String(record.hypothesisHash || ''))) {
+      reasons.push('prediction question or hypothesis identity is invalid');
+    }
+    if (!record.prediction?.expectedObservation || !record.prediction?.normalizedLabel) reasons.push('prediction observation and label are required');
+    if (!Number.isFinite(record.prediction?.confidence) || record.prediction.confidence < 0 || record.prediction.confidence > 1) reasons.push('prediction confidence is invalid');
+    if (!['blinded', 'not_available'].includes(record.prediction?.outcomeAccess)) reasons.push('prediction outcome access is invalid');
+    if (!Number.isFinite(Date.parse(record.prediction?.frozenAt || ''))) reasons.push('prediction frozenAt is invalid');
+    if (!Array.isArray(record.prediction?.receiptHashes) || record.prediction.receiptHashes.some((hash) => !SHA256_PATTERN.test(hash))) {
+      reasons.push('prediction receipt hashes are invalid');
+    }
+    await verifyAnalysisEvidence(record.prediction?.method, reasons, 'prediction method');
+    if (!record.prediction?.method?.artifactHash && record.prediction?.receiptHashes?.length === 0) {
+      reasons.push('prediction exact method artifact or receipt evidence is required');
+    }
+  }
+  if (record.kind === RESEARCH_RECORD_KINDS.workOrder) {
+    if (!['researcher', 'reviewer', 'requester'].includes(record.author?.role)) reasons.push('work order author role is invalid');
+    if (!SHA256_PATTERN.test(String(record.questionHash || ''))) reasons.push('work order questionHash is invalid');
+    if (!Array.isArray(record.hypothesisHashes) || record.hypothesisHashes.length === 0
+      || record.hypothesisHashes.some((hash) => !SHA256_PATTERN.test(hash))) reasons.push('work order hypothesis hashes are invalid');
+    if (!RESEARCH_WORK_KINDS.includes(record.work?.kind) || record.work?.status !== 'proposed' || !record.work?.title) {
+      reasons.push('work order identity is invalid');
+    }
+    if (!Number.isInteger(record.work?.replicaTarget) || record.work.replicaTarget < 1 || record.work.replicaTarget > 100) {
+      reasons.push('work order replicaTarget is invalid');
+    }
+    if (record.work?.blindness?.required !== false && !SHA256_PATTERN.test(String(record.work?.blindness?.allocationHash || ''))) {
+      reasons.push('work order blinded allocation identity is invalid');
+    }
+    await verifyProtocolEvidence(record.work?.protocol, reasons, 'work order protocol');
+  }
+  if (record.kind === RESEARCH_RECORD_KINDS.workClaim) {
+    if (!['researcher', 'verifier'].includes(record.author?.role)) reasons.push('work claim author role is invalid');
+    if (!SHA256_PATTERN.test(String(record.workOrderHash || ''))) reasons.push('work claim workOrderHash is invalid');
+    if (record.workClaim?.status !== 'claimed' || !record.workClaim?.laboratory?.id || !record.workClaim?.laboratory?.name) {
+      reasons.push('work claim laboratory identity is incomplete');
+    }
+    if (!Array.isArray(record.workClaim?.capabilities) || record.workClaim.capabilities.length === 0) reasons.push('work claim capabilities are required');
+    if (record.workClaim?.consent?.publicLaboratoryIdentity !== true || record.workClaim?.consent?.publishOutcome !== true) {
+      reasons.push('work claim publication consent is invalid');
+    }
+  }
+  if (record.kind === RESEARCH_RECORD_KINDS.outcome) {
+    if (!['researcher', 'verifier'].includes(record.author?.role)) reasons.push('outcome author role is invalid');
+    for (const hash of [record.questionHash, record.workOrderHash, record.workClaimHash, ...(record.hypothesisHashes || [])]) {
+      if (!SHA256_PATTERN.test(String(hash || ''))) reasons.push('outcome linked record hash is invalid');
+    }
+    if (record.replicationOfHash && !SHA256_PATTERN.test(record.replicationOfHash)) reasons.push('outcome replication identity is invalid');
+    if (!RESEARCH_OUTCOME_CLASSES.includes(record.outcome?.classification)) reasons.push('outcome classification is invalid');
+    if (!record.outcome?.summary || !RESEARCH_ATTEMPT_STATUSES.includes(record.outcome?.attempt?.status)
+      || !RESEARCH_FAILURE_CATEGORIES.includes(record.outcome?.attempt?.failureCategory)) reasons.push('outcome attempt is invalid');
+    if (record.outcome?.attempt?.status === 'failed' && record.outcome?.attempt?.failureCategory === 'none') reasons.push('failed outcome attempt lacks a failure category');
+    if (!Array.isArray(record.outcome?.observations) || record.outcome.observations.length === 0
+      || record.outcome.observations.some((entry) => !entry.readout || !Number.isFinite(entry.value) || !Number.isFinite(entry.normalizedValue))) {
+      reasons.push('outcome observations are invalid');
+    }
+    if (!['sealed', 'revealed'].includes(record.outcome?.blind?.state)
+      || !SHA256_PATTERN.test(String(record.outcome?.blind?.codeHash || ''))
+      || !SHA256_PATTERN.test(String(record.outcome?.blind?.allocationHash || ''))) reasons.push('outcome blinding evidence is invalid');
+    if (record.outcome?.blind?.state === 'sealed' && record.outcome?.blind?.revealedAt) reasons.push('sealed outcome includes reveal evidence');
+    if (record.outcome?.blind?.state === 'revealed' && !Number.isFinite(Date.parse(record.outcome?.blind?.revealedAt || ''))) reasons.push('revealed outcome timestamp is invalid');
+    await verifyProtocolEvidence(record.outcome?.protocol, reasons, 'outcome protocol');
+    await verifyAnalysisEvidence(record.outcome?.analysis, reasons, 'outcome analysis');
+  }
+  if (record.kind === RESEARCH_RECORD_KINDS.cohort) {
+    if (!['verifier', 'researcher', 'reviewer'].includes(record.author?.role)) reasons.push('cohort author role is invalid');
+    if (!record.cohort?.label || record.cohort?.state !== 'frozen' || !Number.isFinite(Date.parse(record.cohort?.frozenAt || ''))) {
+      reasons.push('frozen cohort identity is invalid');
+    }
+    for (const values of [record.cohort?.questionHashes, record.cohort?.predictionHashes, record.cohort?.workOrderHashes]) {
+      if (!Array.isArray(values) || values.length === 0 || values.some((hash) => !SHA256_PATTERN.test(hash))) reasons.push('cohort linked record hashes are invalid');
+    }
+    if (!Array.isArray(record.cohort?.metrics) || record.cohort.metrics.length === 0
+      || record.cohort.metrics.some((metric) => !metric.id || !metric.label || !['higher_is_better', 'lower_is_better'].includes(metric.direction))) {
+      reasons.push('cohort metric definitions are invalid');
+    }
+  }
+  if (record.kind === RESEARCH_RECORD_KINDS.evaluation) {
+    if (!['verifier', 'reviewer'].includes(record.author?.role)) reasons.push('evaluation author role is invalid');
+    if (!SHA256_PATTERN.test(String(record.cohortHash || ''))) reasons.push('evaluation cohortHash is invalid');
+    if (!Array.isArray(record.evaluation?.outcomeHashes) || record.evaluation.outcomeHashes.length === 0
+      || record.evaluation.outcomeHashes.some((hash) => !SHA256_PATTERN.test(hash))) reasons.push('evaluation outcome hashes are invalid');
+    if (!Array.isArray(record.evaluation?.metricResults) || record.evaluation.metricResults.length === 0
+      || record.evaluation.metricResults.some((metric) => !metric.metricId || !Number.isFinite(metric.baselineValue)
+        || !Number.isFinite(metric.currentValue) || !Number.isFinite(metric.absoluteDelta) || typeof metric.improved !== 'boolean')) {
+      reasons.push('evaluation metric results are invalid');
+    }
+    if (!record.evaluation?.disagreementSummary || !record.evaluation?.failureAnalysis
+      || record.evaluation?.acceptedOutcomePolicy !== 'independent_review_required') reasons.push('evaluation evidence policy is incomplete');
+  }
+  if (record.kind === RESEARCH_RECORD_KINDS.revocation) {
+    if (!['requester', 'researcher', 'reviewer', 'verifier'].includes(record.author?.role)) reasons.push('revocation author role is invalid');
+    if (!SHA256_PATTERN.test(String(record.targetHash || ''))) reasons.push('revocation targetHash is invalid');
+    if (record.revocation?.scope !== 'future_use' || !record.revocation?.reason
+      || !Number.isFinite(Date.parse(record.revocation?.effectiveAt || ''))) reasons.push('revocation evidence is invalid');
+  }
   return { ok: reasons.length === 0, reasons, recordHash: record.recordHash || null };
 }
+
+export function researchRecordTargetHashes(record = {}) {
+  const targets = [];
+  if (record.kind === RESEARCH_RECORD_KINDS.result) targets.push(record.submissionHash);
+  if ([RESEARCH_RECORD_KINDS.claim, RESEARCH_RECORD_KINDS.revocation].includes(record.kind)) targets.push(record.targetHash);
+  if ([RESEARCH_RECORD_KINDS.hypothesis, RESEARCH_RECORD_KINDS.priorEvidence, RESEARCH_RECORD_KINDS.prediction, RESEARCH_RECORD_KINDS.workOrder, RESEARCH_RECORD_KINDS.outcome].includes(record.kind)) {
+    targets.push(record.questionHash);
+  }
+  if (record.kind === RESEARCH_RECORD_KINDS.hypothesis) {
+    targets.push(...(record.hypothesis?.priorEvidenceHashes || []), ...(record.hypothesis?.alternativeToHashes || []));
+  }
+  if (record.kind === RESEARCH_RECORD_KINDS.prediction) targets.push(record.hypothesisHash);
+  if ([RESEARCH_RECORD_KINDS.workOrder, RESEARCH_RECORD_KINDS.outcome].includes(record.kind)) targets.push(...(record.hypothesisHashes || []));
+  if (record.kind === RESEARCH_RECORD_KINDS.workClaim) targets.push(record.workOrderHash);
+  if (record.kind === RESEARCH_RECORD_KINDS.outcome) {
+    targets.push(record.workOrderHash, record.workClaimHash, record.replicationOfHash);
+  }
+  if (record.kind === RESEARCH_RECORD_KINDS.cohort) {
+    targets.push(...(record.cohort?.questionHashes || []), ...(record.cohort?.predictionHashes || []), ...(record.cohort?.workOrderHashes || []));
+  }
+  if (record.kind === RESEARCH_RECORD_KINDS.evaluation) {
+    targets.push(record.cohortHash, ...(record.evaluation?.outcomeHashes || []), ...(record.evaluation?.nextCohortQuestionHashes || []));
+  }
+  return unique(targets);
+}
+
+export function revokedResearchHashes(records = []) {
+  return new Set(records
+    .filter((record) => record.kind === RESEARCH_RECORD_KINDS.revocation)
+    .map((record) => record.targetHash));
+}
+
+export function invalidatedResearchHashes(records = []) {
+  const invalidated = revokedResearchHashes(records);
+  let changed = true;
+  while (changed) {
+    changed = false;
+    for (const record of records) {
+      if (record.kind === RESEARCH_RECORD_KINDS.revocation || invalidated.has(record.recordHash)) continue;
+      if (researchRecordTargetHashes(record).some((targetHash) => invalidated.has(targetHash))) {
+        invalidated.add(record.recordHash);
+        changed = true;
+      }
+    }
+  }
+  return invalidated;
+}
+
+export function activeResearchRecords(records = []) {
+  const invalidated = invalidatedResearchHashes(records);
+  return records.filter((record) => record.kind !== RESEARCH_RECORD_KINDS.revocation && !invalidated.has(record.recordHash));
+}
+
+const independentReviewDecisions = (records, target) => {
+  const invalidated = invalidatedResearchHashes(records);
+  return records.filter((record) => record.kind === RESEARCH_RECORD_KINDS.claim
+    && record.claim?.kind === 'review_decision'
+    && record.targetHash === target?.recordHash
+    && record.author?.identityRootId !== target?.author?.identityRootId
+    && !invalidated.has(record.recordHash));
+};
+
+export function projectResearchReviewStates(records = []) {
+  const active = activeResearchRecords(records);
+  return active.map((record) => {
+    const decisions = independentReviewDecisions(records, record)
+      .sort((left, right) => String(left.createdAt).localeCompare(String(right.createdAt)));
+    const accepted = decisions.some((decision) => decision.claim?.decision === 'accepted');
+    const rejected = decisions.some((decision) => decision.claim?.decision === 'rejected');
+    const needsRevision = decisions.some((decision) => decision.claim?.decision === 'needs_revision');
+    const state = accepted && !rejected
+      ? 'accepted'
+      : rejected && !accepted
+        ? 'rejected'
+        : needsRevision && !accepted && !rejected
+          ? 'needs_revision'
+          : 'unresolved';
+    return {
+      recordHash: record.recordHash,
+      state,
+      disagreement: accepted && rejected,
+      decisions
+    };
+  });
+}
+
+const independentlyAccepted = (records, target) => projectResearchReviewStates(records)
+  .some((entry) => entry.recordHash === target?.recordHash && entry.state === 'accepted');
+
+export function validateResearchRecordLinks(record = {}, records = []) {
+  const reasons = [];
+  const recordsByHash = new Map(records.map((entry) => [entry.recordHash, entry]));
+  const targets = researchRecordTargetHashes(record);
+  const revoked = revokedResearchHashes(records);
+  const invalidated = invalidatedResearchHashes(records);
+  for (const targetHash of targets) {
+    const target = recordsByHash.get(targetHash);
+    if (!target) reasons.push(`linked research record does not exist: ${targetHash}`);
+    else if (target.roomId !== record.roomId) reasons.push(`linked research record belongs to a different room: ${targetHash}`);
+    else if (record.kind !== RESEARCH_RECORD_KINDS.revocation && invalidated.has(targetHash)) reasons.push(`linked research record is revoked or invalidated: ${targetHash}`);
+  }
+  const target = (hash) => recordsByHash.get(hash);
+  if (record.kind === RESEARCH_RECORD_KINDS.result) {
+    const submission = target(record.submissionHash);
+    if (submission && submission.kind !== RESEARCH_RECORD_KINDS.submission) reasons.push('research result must target a submission');
+    if (submission && record.sequenceHash !== submission.sequence?.hash) reasons.push('research result sequence does not match its submission');
+    if (submission && JSON.stringify(record.modelContract) !== JSON.stringify(submission.modelContract)) reasons.push('research result model contract does not match its submission');
+    if (record.embedding && submission?.consent?.publishEmbedding !== true) reasons.push('research submission did not consent to embedding publication');
+  }
+  if (record.kind === RESEARCH_RECORD_KINDS.claim) {
+    const reviewed = target(record.targetHash);
+    if (record.claim?.kind === 'review_decision' && reviewed?.author?.identityRootId === record.author?.identityRootId) {
+      reasons.push('review decisions must be independently authored');
+    }
+  }
+  if (record.kind === RESEARCH_RECORD_KINDS.hypothesis) {
+    if (target(record.questionHash)?.kind !== RESEARCH_RECORD_KINDS.submission) reasons.push('hypothesis must target a research question submission');
+    for (const hash of record.hypothesis?.priorEvidenceHashes || []) {
+      if (target(hash)?.kind !== RESEARCH_RECORD_KINDS.priorEvidence) reasons.push(`hypothesis prior evidence kind mismatch: ${hash}`);
+    }
+    for (const hash of record.hypothesis?.alternativeToHashes || []) {
+      const alternative = target(hash);
+      if (alternative?.kind !== RESEARCH_RECORD_KINDS.hypothesis || alternative.questionHash !== record.questionHash) {
+        reasons.push(`competing hypothesis does not share the question: ${hash}`);
+      }
+    }
+  }
+  if (record.kind === RESEARCH_RECORD_KINDS.priorEvidence
+    && target(record.questionHash)?.kind !== RESEARCH_RECORD_KINDS.submission) reasons.push('prior evidence must target a research question submission');
+  if (record.kind === RESEARCH_RECORD_KINDS.prediction) {
+    const hypothesis = target(record.hypothesisHash);
+    if (target(record.questionHash)?.kind !== RESEARCH_RECORD_KINDS.submission) reasons.push('prediction must target a research question submission');
+    if (hypothesis?.kind !== RESEARCH_RECORD_KINDS.hypothesis || hypothesis.questionHash !== record.questionHash) {
+      reasons.push('prediction hypothesis does not belong to its question');
+    }
+  }
+  if (record.kind === RESEARCH_RECORD_KINDS.workOrder) {
+    if (target(record.questionHash)?.kind !== RESEARCH_RECORD_KINDS.submission) reasons.push('work order must target a research question submission');
+    for (const hash of record.hypothesisHashes || []) {
+      const hypothesis = target(hash);
+      if (hypothesis?.kind !== RESEARCH_RECORD_KINDS.hypothesis || hypothesis.questionHash !== record.questionHash) {
+        reasons.push(`work order hypothesis does not belong to its question: ${hash}`);
+      }
+    }
+  }
+  if (record.kind === RESEARCH_RECORD_KINDS.workClaim) {
+    const order = target(record.workOrderHash);
+    if (order?.kind !== RESEARCH_RECORD_KINDS.workOrder) reasons.push('work claim must target a work order');
+    else if (!independentlyAccepted(records, order)) reasons.push('work order requires independent acceptance before laboratory claiming');
+  }
+  if (record.kind === RESEARCH_RECORD_KINDS.outcome) {
+    const order = target(record.workOrderHash);
+    const claim = target(record.workClaimHash);
+    if (order?.kind !== RESEARCH_RECORD_KINDS.workOrder || claim?.kind !== RESEARCH_RECORD_KINDS.workClaim) {
+      reasons.push('outcome requires a work order and laboratory work claim');
+    } else {
+      if (claim.workOrderHash !== order.recordHash) reasons.push('outcome work claim does not belong to its work order');
+      if (claim.author?.identityRootId !== record.author?.identityRootId) reasons.push('outcome author does not own its laboratory work claim');
+      if (order.questionHash !== record.questionHash) reasons.push('outcome question does not match its work order');
+      if (order.work?.protocol?.protocolHash !== record.outcome?.protocol?.protocolHash) reasons.push('outcome protocol does not match its accepted work order');
+      if (order.work?.blindness?.allocationHash !== record.outcome?.blind?.allocationHash) reasons.push('outcome blind allocation does not match its work order');
+      for (const hash of record.hypothesisHashes || []) {
+        if (!order.hypothesisHashes.includes(hash)) reasons.push(`outcome hypothesis is outside its work order: ${hash}`);
+      }
+    }
+    if (record.replicationOfHash) {
+      const original = target(record.replicationOfHash);
+      if (original?.kind !== RESEARCH_RECORD_KINDS.outcome) reasons.push('replication must target an experimental outcome');
+      else if (original.author?.identityRootId === record.author?.identityRootId) reasons.push('replication must be independently authored');
+    }
+  }
+  if (record.kind === RESEARCH_RECORD_KINDS.cohort) {
+    const frozenAt = Date.parse(record.cohort?.frozenAt || '');
+    for (const hash of record.cohort?.questionHashes || []) {
+      if (target(hash)?.kind !== RESEARCH_RECORD_KINDS.submission) reasons.push(`cohort question kind mismatch: ${hash}`);
+    }
+    for (const hash of record.cohort?.predictionHashes || []) {
+      const prediction = target(hash);
+      if (prediction?.kind !== RESEARCH_RECORD_KINDS.prediction) reasons.push(`cohort prediction kind mismatch: ${hash}`);
+      else {
+        if (!record.cohort.questionHashes.includes(prediction.questionHash)) reasons.push(`cohort prediction belongs to an excluded question: ${hash}`);
+        if (Date.parse(prediction.prediction?.frozenAt || prediction.createdAt) > frozenAt) reasons.push(`cohort prediction was not frozen before cohort activation: ${hash}`);
+      }
+    }
+    for (const hash of record.cohort?.workOrderHashes || []) {
+      const order = target(hash);
+      if (order?.kind !== RESEARCH_RECORD_KINDS.workOrder) reasons.push(`cohort work order kind mismatch: ${hash}`);
+      else if (!record.cohort.questionHashes.includes(order.questionHash)) reasons.push(`cohort work order belongs to an excluded question: ${hash}`);
+    }
+  }
+  if (record.kind === RESEARCH_RECORD_KINDS.evaluation) {
+    const cohort = target(record.cohortHash);
+    if (cohort?.kind !== RESEARCH_RECORD_KINDS.cohort) reasons.push('evaluation must target a frozen cohort');
+    for (const hash of record.evaluation?.outcomeHashes || []) {
+      const outcome = target(hash);
+      if (outcome?.kind !== RESEARCH_RECORD_KINDS.outcome) reasons.push(`evaluation outcome kind mismatch: ${hash}`);
+      else if (cohort) {
+        if (!cohort.cohort.workOrderHashes.includes(outcome.workOrderHash)) reasons.push(`evaluation outcome is outside the frozen cohort: ${hash}`);
+        if (Date.parse(outcome.createdAt) < Date.parse(cohort.cohort.frozenAt)) reasons.push(`evaluation outcome predates the frozen cohort: ${hash}`);
+        if (!independentlyAccepted(records, outcome)) reasons.push(`evaluation outcome lacks independent acceptance: ${hash}`);
+        if (outcome.author?.identityRootId === record.author?.identityRootId) reasons.push(`evaluation outcome is not independent from the evaluator: ${hash}`);
+      }
+    }
+    if (cohort) {
+      const metricDefinitions = new Map(cohort.cohort.metrics.map((metric) => [metric.id, metric]));
+      for (const metric of record.evaluation?.metricResults || []) {
+        const definition = metricDefinitions.get(metric.metricId);
+        if (!definition || definition.direction !== metric.direction) reasons.push(`evaluation metric is outside the frozen definition: ${metric.metricId}`);
+      }
+    }
+  }
+  if (record.kind === RESEARCH_RECORD_KINDS.revocation) {
+    const revokedTarget = target(record.targetHash);
+    if (revokedTarget?.author?.identityRootId !== record.author?.identityRootId) reasons.push('only the original identity root may revoke its evidence');
+    if (revokedTarget?.kind === RESEARCH_RECORD_KINDS.revocation) reasons.push('revocation records cannot be revoked');
+    if (revoked.has(record.targetHash)) reasons.push('research record is already revoked');
+  }
+  return { ok: reasons.length === 0, reasons, targetHashes: targets };
+}
+
+export function buildPredictionDisagreementMap(records = [], questionHash = null) {
+  const active = activeResearchRecords(records);
+  const predictions = active.filter((record) => record.kind === RESEARCH_RECORD_KINDS.prediction
+    && (!questionHash || record.questionHash === questionHash));
+  const conditions = new Map();
+  for (const prediction of predictions) {
+    const conditionKey = JSON.stringify(prediction.prediction.conditions || {});
+    if (!conditions.has(conditionKey)) conditions.set(conditionKey, {
+      conditionKey,
+      conditions: prediction.prediction.conditions,
+      predictions: [],
+      labels: new Map()
+    });
+    const group = conditions.get(conditionKey);
+    group.predictions.push(prediction);
+    const label = prediction.prediction.normalizedLabel;
+    group.labels.set(label, [...(group.labels.get(label) || []), prediction]);
+  }
+  return [...conditions.values()].map((group) => {
+    const labels = [...group.labels.entries()].map(([label, entries]) => ({
+      label,
+      count: entries.length,
+      meanConfidence: entries.reduce((sum, entry) => sum + entry.prediction.confidence, 0) / entries.length,
+      methodIds: unique(entries.map((entry) => entry.prediction.method.methodId)),
+      predictionHashes: entries.map((entry) => entry.recordHash)
+    }));
+    return {
+      conditionKey: group.conditionKey,
+      conditions: group.conditions,
+      predictionCount: group.predictions.length,
+      labels,
+      disagreement: labels.length > 1,
+      unresolved: labels.length !== 1
+    };
+  });
+}
+
+export function buildQuestionLifecycles(records = []) {
+  const active = activeResearchRecords(records);
+  const reviews = new Map(projectResearchReviewStates(records).map((entry) => [entry.recordHash, entry]));
+  return active
+    .filter((record) => record.kind === RESEARCH_RECORD_KINDS.submission)
+    .map((question) => {
+      const matchesQuestion = (record) => record.questionHash === question.recordHash;
+      const hypotheses = active.filter((record) => record.kind === RESEARCH_RECORD_KINDS.hypothesis && matchesQuestion(record));
+      const priorEvidence = active.filter((record) => record.kind === RESEARCH_RECORD_KINDS.priorEvidence && matchesQuestion(record));
+      const predictions = active.filter((record) => record.kind === RESEARCH_RECORD_KINDS.prediction && matchesQuestion(record));
+      const workOrders = active.filter((record) => record.kind === RESEARCH_RECORD_KINDS.workOrder && matchesQuestion(record));
+      const workOrderHashes = new Set(workOrders.map((record) => record.recordHash));
+      const workClaims = active.filter((record) => record.kind === RESEARCH_RECORD_KINDS.workClaim && workOrderHashes.has(record.workOrderHash));
+      const outcomes = active.filter((record) => record.kind === RESEARCH_RECORD_KINDS.outcome && matchesQuestion(record));
+      const cohorts = active.filter((record) => record.kind === RESEARCH_RECORD_KINDS.cohort && record.cohort.questionHashes.includes(question.recordHash));
+      const cohortHashes = new Set(cohorts.map((record) => record.recordHash));
+      const evaluations = active.filter((record) => record.kind === RESEARCH_RECORD_KINDS.evaluation && cohortHashes.has(record.cohortHash));
+      return {
+        question,
+        hypotheses,
+        priorEvidence,
+        predictions,
+        disagreementMap: buildPredictionDisagreementMap(active, question.recordHash),
+        workOrders,
+        workClaims,
+        outcomes,
+        claimStates: [...hypotheses, ...priorEvidence, ...predictions, ...workOrders, ...outcomes]
+          .map((record) => reviews.get(record.recordHash) || { recordHash: record.recordHash, state: 'unresolved', decisions: [] }),
+        cohorts,
+        evaluations,
+        measuredEffects: evaluations.flatMap((record) => record.evaluation.metricResults.map((metric) => ({
+          evaluationHash: record.recordHash,
+          cohortHash: record.cohortHash,
+          ...metric
+        })))
+      };
+    });
+}
+
+const researchRecordLabel = (record = {}) => ({
+  [RESEARCH_RECORD_KINDS.submission]: record.requesterIntent?.label || record.requesterIntent?.text || record.sequence?.hash,
+  [RESEARCH_RECORD_KINDS.result]: record.modelContract?.id,
+  [RESEARCH_RECORD_KINDS.claim]: record.claim?.text,
+  [RESEARCH_RECORD_KINDS.hypothesis]: record.hypothesis?.statement,
+  [RESEARCH_RECORD_KINDS.priorEvidence]: record.evidence?.summary,
+  [RESEARCH_RECORD_KINDS.prediction]: record.prediction?.expectedObservation,
+  [RESEARCH_RECORD_KINDS.workOrder]: record.work?.title,
+  [RESEARCH_RECORD_KINDS.workClaim]: record.workClaim?.laboratory?.name,
+  [RESEARCH_RECORD_KINDS.outcome]: record.outcome?.summary,
+  [RESEARCH_RECORD_KINDS.cohort]: record.cohort?.label,
+  [RESEARCH_RECORD_KINDS.evaluation]: record.evaluation?.metricResults?.map((metric) => metric.metricId).join(', '),
+  [RESEARCH_RECORD_KINDS.revocation]: record.revocation?.reason
+}[record.kind] || record.recordHash);
 
 export function buildEvidenceGraph(records = []) {
   const nodes = records.map((record) => ({
     id: record.recordHash,
     kind: record.kind,
-    label: record.kind === RESEARCH_RECORD_KINDS.submission
-      ? record.requesterIntent?.label || record.requesterIntent?.text || record.sequence?.hash
-      : record.kind === RESEARCH_RECORD_KINDS.result
-        ? record.modelContract?.id
-        : record.claim?.text,
+    label: researchRecordLabel(record),
     record
   }));
   const nodeIds = new Set(nodes.map((node) => node.id));
@@ -482,6 +1711,29 @@ export function buildEvidenceGraph(records = []) {
     if (record.kind === RESEARCH_RECORD_KINDS.claim && nodeIds.has(record.targetHash)) {
       edges.push({ from: record.recordHash, to: record.targetHash, relation: record.claim.relation });
     }
+    const lifecycleRelation = {
+      [RESEARCH_RECORD_KINDS.hypothesis]: 'frames',
+      [RESEARCH_RECORD_KINDS.priorEvidence]: 'retrieved_for',
+      [RESEARCH_RECORD_KINDS.prediction]: 'predicts',
+      [RESEARCH_RECORD_KINDS.workOrder]: 'orders',
+      [RESEARCH_RECORD_KINDS.workClaim]: 'claims',
+      [RESEARCH_RECORD_KINDS.outcome]: record.replicationOfHash ? 'replicates' : 'reports',
+      [RESEARCH_RECORD_KINDS.cohort]: 'freezes',
+      [RESEARCH_RECORD_KINDS.evaluation]: 'evaluates',
+      [RESEARCH_RECORD_KINDS.revocation]: 'revokes'
+    }[record.kind];
+    if (lifecycleRelation) {
+      for (const targetHash of researchRecordTargetHashes(record)) {
+        if (nodeIds.has(targetHash)) edges.push({ from: record.recordHash, to: targetHash, relation: lifecycleRelation });
+      }
+    }
+    if (record.kind === RESEARCH_RECORD_KINDS.priorEvidence && record.evidence?.reference) {
+      const reference = record.evidence.reference;
+      const sourceIdentity = reference.uri || `${reference.accession}@${reference.version}`;
+      const sourceNodeId = `source:${sourceIdentity}`;
+      addNode({ id: sourceNodeId, kind: 'evidence_source', label: sourceIdentity, ...reference });
+      edges.push({ from: record.recordHash, to: sourceNodeId, relation: 'retrieved_from' });
+    }
     for (const source of record.claim?.evidenceLinks || []) {
       const sourceNodeId = `source:${source.url}`;
       addNode({
@@ -522,16 +1774,9 @@ export function cosineSimilarity(left = [], right = []) {
 }
 
 const acceptedClaimHashes = (records) => {
-  const recordsByHash = new Map(records.map((record) => [record.recordHash, record]));
-  return new Set(records
-    .filter((record) => {
-      if (record.kind !== RESEARCH_RECORD_KINDS.claim
-        || record.claim.kind !== 'review_decision'
-        || record.claim.decision !== 'accepted') return false;
-      const target = recordsByHash.get(record.targetHash);
-      return target && target.author?.identityRootId !== record.author?.identityRootId;
-    })
-    .map((record) => record.targetHash));
+  return new Set(projectResearchReviewStates(records)
+    .filter((entry) => entry.state === 'accepted')
+    .map((entry) => entry.recordHash));
 };
 
 const claimsForTarget = (records, targetHash) => records.filter((record) => (
@@ -546,15 +1791,25 @@ export function searchEvidence(records = [], query = '') {
     intent: record.requesterIntent,
     model: record.modelContract?.id,
     claim: record.claim,
+    hypothesis: record.hypothesis,
+    evidence: record.evidence,
+    prediction: record.prediction,
+    work: record.work,
+    workClaim: record.workClaim,
+    outcome: record.outcome,
+    cohort: record.cohort,
+    evaluation: record.evaluation,
+    revocation: record.revocation,
     author: record.author?.roleId
   }).toLowerCase().includes(needle));
 }
 
 export function findSimilarSequences(records = [], targetHash, { limit = 12 } = {}) {
-  const target = records.find((record) => record.recordHash === targetHash && record.embedding);
+  const active = activeResearchRecords(records);
+  const target = active.find((record) => record.recordHash === targetHash && record.embedding);
   if (!target) return [];
   const accepted = acceptedClaimHashes(records);
-  return records
+  return active
     .filter((record) => record.recordHash !== targetHash && embeddingsAreCompatible(target, record))
     .map((record) => {
       const annotations = [
@@ -579,7 +1834,7 @@ export function findSimilarSequences(records = [], targetHash, { limit = 12 } = 
 }
 
 export function clusterCompatibleResults(records = [], { threshold = 0.8 } = {}) {
-  const results = records.filter((record) => record.kind === RESEARCH_RECORD_KINDS.result && record.embedding?.values);
+  const results = activeResearchRecords(records).filter((record) => record.kind === RESEARCH_RECORD_KINDS.result && record.embedding?.values);
   const remaining = new Set(results.map((record) => record.recordHash));
   const byHash = new Map(results.map((record) => [record.recordHash, record]));
   const clusters = [];
@@ -610,10 +1865,12 @@ export function clusterCompatibleResults(records = [], { threshold = 0.8 } = {})
 
 export function proposeDiscoveryTasks(records = []) {
   const tasks = [];
-  const results = records.filter((record) => record.kind === RESEARCH_RECORD_KINDS.result);
-  const claims = records.filter((record) => record.kind === RESEARCH_RECORD_KINDS.claim);
+  const active = activeResearchRecords(records);
+  const results = active.filter((record) => record.kind === RESEARCH_RECORD_KINDS.result);
+  const claims = active.filter((record) => record.kind === RESEARCH_RECORD_KINDS.claim);
   const approvals = new Set(claims.filter((record) => record.claim.kind === 'task_approval').map((record) => record.claim.taskId));
-  for (const submission of records.filter((record) => record.kind === RESEARCH_RECORD_KINDS.submission)) {
+  const reviewStates = new Map(projectResearchReviewStates(records).map((entry) => [entry.recordHash, entry]));
+  for (const submission of active.filter((record) => record.kind === RESEARCH_RECORD_KINDS.submission)) {
     const linkedResults = results.filter((record) => record.submissionHash === submission.recordHash);
     if (linkedResults.length === 0) tasks.push({ kind: 'compute', targetHash: submission.recordHash, reason: 'No receipt-backed result exists.' });
     for (const result of linkedResults) {
@@ -622,6 +1879,58 @@ export function proposeDiscoveryTasks(records = []) {
         && claim.author.identityRootId !== result.author.identityRootId);
       if (independentReviews.length === 0) tasks.push({ kind: 'independent_review', targetHash: result.recordHash, reason: 'No independent reviewer decision exists.' });
       if ((result.compute?.receiptHashes || []).length < 2) tasks.push({ kind: 'reproduce', targetHash: result.recordHash, reason: 'Only one compute receipt backs this result.' });
+    }
+    const priorEvidence = active.filter((record) => record.kind === RESEARCH_RECORD_KINDS.priorEvidence && record.questionHash === submission.recordHash);
+    const hypotheses = active.filter((record) => record.kind === RESEARCH_RECORD_KINDS.hypothesis && record.questionHash === submission.recordHash);
+    const predictions = active.filter((record) => record.kind === RESEARCH_RECORD_KINDS.prediction && record.questionHash === submission.recordHash);
+    const workOrders = active.filter((record) => record.kind === RESEARCH_RECORD_KINDS.workOrder && record.questionHash === submission.recordHash);
+    const workOrderHashes = new Set(workOrders.map((record) => record.recordHash));
+    const workClaims = active.filter((record) => record.kind === RESEARCH_RECORD_KINDS.workClaim && workOrderHashes.has(record.workOrderHash));
+    const outcomes = active.filter((record) => record.kind === RESEARCH_RECORD_KINDS.outcome && record.questionHash === submission.recordHash);
+    const cohorts = active.filter((record) => record.kind === RESEARCH_RECORD_KINDS.cohort && record.cohort.questionHashes.includes(submission.recordHash));
+    const cohortHashes = new Set(cohorts.map((record) => record.recordHash));
+    const evaluations = active.filter((record) => record.kind === RESEARCH_RECORD_KINDS.evaluation && cohortHashes.has(record.cohortHash));
+    if (priorEvidence.length === 0) tasks.push({ kind: 'retrieve_prior_evidence', targetHash: submission.recordHash, reason: 'No versioned sequence, structure, domain, annotation, experiment, or publication evidence is linked.' });
+    if (hypotheses.length < 2) tasks.push({ kind: 'add_competing_hypothesis', targetHash: submission.recordHash, reason: 'At least two condition-specific hypotheses are required to map disagreement.' });
+    for (const hypothesis of hypotheses) {
+      const methods = new Set(predictions.filter((prediction) => prediction.hypothesisHash === hypothesis.recordHash)
+        .map((prediction) => prediction.prediction.method.analysisHash));
+      if (methods.size < 2) tasks.push({ kind: 'run_diverse_predictor', targetHash: hypothesis.recordHash, reason: 'This hypothesis needs frozen predictions from another exact method identity.' });
+    }
+    if (hypotheses.length >= 2 && workOrders.length === 0) tasks.push({ kind: 'design_discriminating_assay', targetHash: submission.recordHash, reason: 'Competing hypotheses have no machine-verifiable work order.' });
+    for (const order of workOrders) {
+      const orderState = reviewStates.get(order.recordHash)?.state || 'unresolved';
+      if (orderState === 'unresolved' || orderState === 'needs_revision') tasks.push({ kind: 'expert_refine_assay', targetHash: order.recordHash, reason: 'The assay protocol needs an independent expert decision.' });
+      if (orderState === 'accepted' && !workClaims.some((claim) => claim.workOrderHash === order.recordHash)) {
+        tasks.push({ kind: 'claim_experimental_work', targetHash: order.recordHash, reason: 'The accepted work order has not been claimed by a laboratory.' });
+      }
+      const orderOutcomes = outcomes.filter((outcome) => outcome.workOrderHash === order.recordHash);
+      if (workClaims.some((claim) => claim.workOrderHash === order.recordHash) && orderOutcomes.length < order.work.replicaTarget) {
+        tasks.push({ kind: orderOutcomes.length ? 'replicate_assay' : 'perform_assay', targetHash: order.recordHash, reason: `${orderOutcomes.length} of ${order.work.replicaTarget} planned outcome records exist.` });
+      }
+    }
+    for (const outcome of outcomes) {
+      if ((reviewStates.get(outcome.recordHash)?.state || 'unresolved') !== 'accepted') {
+        tasks.push({ kind: 'review_outcome', targetHash: outcome.recordHash, reason: 'Positive, negative, and ambiguous outcomes require the same independent review gate.' });
+      }
+    }
+    if (predictions.length > 0 && workOrders.length > 0 && cohorts.length === 0) {
+      tasks.push({ kind: 'freeze_prospective_cohort', targetHash: submission.recordHash, reason: 'Predictions and work orders are not yet frozen into a blinded prospective cohort.' });
+    }
+    for (const cohort of cohorts) {
+      const eligible = outcomes.filter((outcome) => cohort.cohort.workOrderHashes.includes(outcome.workOrderHash)
+        && reviewStates.get(outcome.recordHash)?.state === 'accepted');
+      if (eligible.length > 0 && !evaluations.some((evaluation) => evaluation.cohortHash === cohort.recordHash)) {
+        tasks.push({ kind: 'evaluate_frozen_cohort', targetHash: cohort.recordHash, reason: 'The frozen cohort has accepted blinded outcomes but no measured evaluation.' });
+      }
+    }
+    for (const evaluation of evaluations) {
+      if (!evaluation.evaluation.metricResults.some((metric) => metric.improved)) {
+        tasks.push({ kind: 'analyze_cohort_failure', targetHash: evaluation.recordHash, reason: 'The measured cohort did not improve its frozen metric.' });
+      }
+      if (evaluation.evaluation.nextCohortQuestionHashes.length === 0) {
+        tasks.push({ kind: 'define_next_cohort', targetHash: evaluation.recordHash, reason: 'The evaluation does not yet bind its effect to a next-cohort question set.' });
+      }
     }
   }
   for (const claim of claims) {
@@ -636,7 +1945,8 @@ export function proposeDiscoveryTasks(records = []) {
 }
 
 export function projectResearchRewards(records = []) {
-  const claims = records.filter((record) => record.kind === RESEARCH_RECORD_KINDS.claim);
+  const active = activeResearchRecords(records);
+  const claims = active.filter((record) => record.kind === RESEARCH_RECORD_KINDS.claim);
   const accepted = acceptedClaimHashes(records);
   const contradicted = new Set(claims.filter((record) => ['contradicts', 'corrects'].includes(record.claim.relation)).map((record) => record.targetHash));
   const state = new Map();
@@ -649,15 +1959,33 @@ export function projectResearchRewards(records = []) {
       durableEvidence: 0,
       acceptedReviews: 0,
       durableReviews: 0,
+      experimentalOutcomes: 0,
+      independentReplications: 0,
+      prospectiveEvaluations: 0,
       points: 0
     });
     return state.get(id);
   };
-  for (const result of records.filter((record) => record.kind === RESEARCH_RECORD_KINDS.result)) {
+  for (const result of active.filter((record) => record.kind === RESEARCH_RECORD_KINDS.result)) {
     const contributor = ensure({ roleId: result.compute?.providerId });
     const receiptCount = unique(result.compute?.receiptHashes || [result.compute?.receiptHash]).length;
     contributor.verifiedCompute += receiptCount;
     contributor.points += receiptCount * 2;
+  }
+  for (const outcome of active.filter((record) => record.kind === RESEARCH_RECORD_KINDS.outcome)) {
+    if (!accepted.has(outcome.recordHash)) continue;
+    const contributor = ensure(outcome.author);
+    contributor.experimentalOutcomes += 1;
+    contributor.points += 8;
+    if (outcome.replicationOfHash) {
+      contributor.independentReplications += 1;
+      contributor.points += 5;
+    }
+  }
+  for (const evaluation of active.filter((record) => record.kind === RESEARCH_RECORD_KINDS.evaluation)) {
+    const contributor = ensure(evaluation.author);
+    contributor.prospectiveEvaluations += 1;
+    contributor.points += 3 + evaluation.evaluation.metricResults.filter((metric) => metric.improved).length * 2;
   }
   for (const claim of claims.filter((record) => !['review_decision', 'task_approval'].includes(record.claim.kind))) {
     if (!accepted.has(claim.recordHash)) continue;
@@ -693,8 +2021,24 @@ export default {
   createSignedResearchSubmission,
   createSignedResearchResult,
   createSignedHumanClaim,
+  createSignedResearchHypothesis,
+  createSignedPriorEvidence,
+  createSignedResearchPrediction,
+  createSignedResearchWorkOrder,
+  createSignedResearchWorkClaim,
+  createSignedExperimentalOutcome,
+  createSignedEvaluationCohort,
+  createSignedCohortEvaluation,
+  createSignedResearchRevocation,
   verifyResearchRecord,
+  validateResearchRecordLinks,
+  researchRecordTargetHashes,
+  activeResearchRecords,
+  invalidatedResearchHashes,
   buildEvidenceGraph,
+  buildPredictionDisagreementMap,
+  buildQuestionLifecycles,
+  projectResearchReviewStates,
   searchEvidence,
   findSimilarSequences,
   clusterCompatibleResults,

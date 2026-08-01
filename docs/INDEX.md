@@ -29,7 +29,8 @@ Guide to all documentation in the REPLOID project.
 
 ### Vision and Contracts
 - **[docs/substrate.md](./substrate.md)** - Substrate + Ouroboros contract
-- **[docs/poolday/product-intent.md](./poolday/product-intent.md)** - Canonical Poolday purpose, product hierarchy, P2P boundary, and Zero/X promotion path
+- **[docs/poolday/product-intent.md](./poolday/product-intent.md)** - Canonical active-science goal, Poolday purpose, north-star metric, surface hierarchy, and promotion path
+- **[docs/poolday/discovery-contract.md](./poolday/discovery-contract.md)** - Target atomic active-science object, action-value boundary, epistemic updates, replication, and closure
 
 ### Reference
 - **[docs/API.md](./API.md)** - Module API documentation

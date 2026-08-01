@@ -152,7 +152,8 @@ export async function createSignedJobIntent({
     ? normalizeSequenceRequest(sequenceRequest || {}, {
       workload,
       sequenceHash: inputHash,
-      sequenceLength: resolvedInput.length
+      sequenceLength: resolvedInput.length,
+      model: resolvedModelRequirements
     })
     : null;
   if (resolvedSequenceRequest) {

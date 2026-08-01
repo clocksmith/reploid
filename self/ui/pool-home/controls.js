@@ -1390,7 +1390,9 @@ const bindPeerRunSurface = ({
           receiptRecord: result.receiptRecord || result,
           agreement: result.agreement || null,
           routeDecision: result.plan?.routeDecision || result.routeDecision || null,
-          embedding: result.sequenceOutput?.pooledEmbedding || result.receiptRecord?.sequenceOutput?.pooledEmbedding || null
+          embedding: result.sequenceOutput?.pooledEmbedding || result.receiptRecord?.sequenceOutput?.pooledEmbedding || null,
+          sequenceResult: result.sequenceResult || result.receiptRecord?.sequenceResult || null,
+          sequenceOutput: result.sequenceOutput || result.receiptRecord?.sequenceOutput || null
         });
         const publication = await publishResearchRecord(researchResult, { roomId: getPeerRoomId() });
         result.researchSubmissionHash = request.researchSubmission.recordHash;

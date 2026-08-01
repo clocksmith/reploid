@@ -1,6 +1,6 @@
 {
   "schema": "reploid.pool.config/v1",
-  "configVersion": "2026-07-28.doppler-0.5.1.v2",
+  "configVersion": "2026-08-01.sequence-model-contracts.v1",
   "claim": "receipt-backed, audit-backed, reputation-backed, policy-controlled browser inference",
   "forbiddenClaims": [
     "trustless",
@@ -1024,8 +1024,12 @@
       "manifestHash": "sha256:5612aa20ee2d5310da323d5c39986d0ab724ff727ce92e40762da6ea7b189730",
       "tokenizerHash": "sha256:f874eed68372c76988edf4556383c10404dd27b5fee33e7dd96440aba31d9a37",
       "contextLength": 1024,
+      "embeddingDimensions": 480,
       "quantization": "f32",
       "workload": "sequence.embedding.v1",
+      "workloads": [
+        "sequence.embedding.v1"
+      ],
       "executionMode": "full_model_browser_sequence",
       "artifactIdentity": {
         "sourceCheckpointId": "facebook/esm2_t12_35M_UR50D@6fbf070e65b0b7291e7bbcd451118c216cff79d8",
@@ -1033,6 +1037,7 @@
         "sourceRevision": "6fbf070e65b0b7291e7bbcd451118c216cff79d8",
         "weightPackId": "esm2-t12-35m-ur50d-f32-af32-wp-v1",
         "weightPackHash": "sha256:1092c098741472429a4c6b4cd6050d5967e0a606d01f713c0b4866fd98921ac8",
+        "shardSetHash": "sha256:02d771a5ddf516cd4d01338a229309d87822b46b2317fd8432b756fd45ce924e",
         "manifestVariantId": "esm2-t12-35m-ur50d-f32-af32-mv-exec-v1",
         "conversionConfigDigest": "sha256:25da72db3b9cbfae0c6fab4ad22f62ef7064f1a83edadc09c1ef694afb1f7203",
         "conversionConfigPath": "src/config/conversion/esm/esm2-t12-35m-ur50d-f32-af32.json",
@@ -1046,6 +1051,15 @@
       "sequence": {
         "alphabet": "amino_acid",
         "maxSequenceLength": 1024,
+        "normalization": "remove_ascii_whitespace_and_uppercase",
+        "canonicalSymbols": "ACDEFGHIKLMNPQRSTVWY",
+        "ambiguitySymbols": [],
+        "coordinates": {
+          "mapping": "one_token_per_sequence_symbol",
+          "sequenceIndexBase": 0,
+          "prefixTokens": 1,
+          "suffixTokens": 1
+        },
         "tokenEmbeddings": true,
         "pooledEmbedding": {
           "mode": "mean",
@@ -1095,8 +1109,385 @@
         "requiredWebGpuFeatures": [],
         "fallbackStatus": "manifest_owned_f32_activation_lane"
       },
+      "runtimeContract": {
+        "minimumDopplerVersion": "0.5.1",
+        "executionSchema": "doppler.execution/v1",
+        "kernelPathId": "esm2-t12-35m-ur50d-f32-af32-execution-inline"
+      },
+      "license": {
+        "sourceTerms": [
+          "MIT"
+        ],
+        "sourceRevision": "6fbf070e65b0b7291e7bbcd451118c216cff79d8",
+        "admission": "approved",
+        "productUse": "admitted"
+      },
+      "admission": {
+        "pooldayState": "enabled",
+        "nodeWebGpu": "qualified",
+        "browserWebGpu": "enabled_release_receipt_required",
+        "browserJourney": "tests/e2e/p2p-actual-inference.spec.js",
+        "scientificFitness": "pooled_similarity_baseline",
+        "claimBoundary": "Embedding execution and reproducibility do not establish biological function."
+      },
       "label": "ESM-2 35M (Protein)",
       "enabled": true
+    },
+    {
+      "modelId": "amplify-120m-f16-af32",
+      "modelHash": "sha256:6943813494fc75d352c29852dfb285251f06009db99529d566e076159a3aa43b",
+      "manifestHash": "sha256:741a6a6af9f69b986d0ccf3bd722777c9e44513d7f452a3ff7190ef1f5951b3b",
+      "manifestByteHash": "sha256:741a6a6af9f69b986d0ccf3bd722777c9e44513d7f452a3ff7190ef1f5951b3b",
+      "tokenizerHash": "sha256:959581e28395d522a10b4b8cc9a798cb0cedff0c80fab3f9729a416cbcdb3c30",
+      "contextLength": 2048,
+      "embeddingDimensions": 640,
+      "quantization": "f16",
+      "workload": "sequence.embedding.v1",
+      "workloads": [
+        "sequence.embedding.v1",
+        "sequence.masked_logits.v1"
+      ],
+      "executionMode": "full_model_browser_sequence",
+      "executionModes": {
+        "sequence.embedding.v1": "full_model_browser_sequence",
+        "sequence.masked_logits.v1": "full_model_browser_sequence"
+      },
+      "artifactIdentity": {
+        "sourceCheckpointId": "chandar-lab/AMPLIFY_120M@d918a9e8c64dc43f6ec4996022c3deba14d66470",
+        "sourceRepo": "chandar-lab/AMPLIFY_120M",
+        "sourceRevision": "d918a9e8c64dc43f6ec4996022c3deba14d66470",
+        "weightPackId": "amplify-120m-f16-af32-wp-v1",
+        "weightPackHash": "sha256:6943813494fc75d352c29852dfb285251f06009db99529d566e076159a3aa43b",
+        "shardSetHash": "sha256:b97fe5d4f452be69bbdbb6a9b569aa4c9cc5882291dee36ac2aa703506392ba8",
+        "manifestVariantId": "amplify-120m-f16-af32-mv-exec-v1",
+        "conversionConfigDigest": "sha256:cdcc8eaf3c18df8f9849889cefe89c5652e3e5e582710435a47ea038c0fe1e2e",
+        "conversionConfigPath": "src/config/conversion/amplify/amplify-120m-f16-af32.json",
+        "materializationProfile": "f16-weights-f32-activations",
+        "modalitySet": [
+          "protein_sequence"
+        ],
+        "sourceFormat": "safetensors",
+        "artifactCompleteness": "complete"
+      },
+      "sequence": {
+        "alphabet": "amino_acid",
+        "maxSequenceLength": 1024,
+        "normalization": "remove_ascii_whitespace_and_uppercase",
+        "canonicalSymbols": "ACDEFGHIKLMNPQRSTVWY",
+        "ambiguitySymbols": [],
+        "coordinates": {
+          "mapping": "one_token_per_sequence_symbol",
+          "sequenceIndexBase": 0,
+          "prefixTokens": 1,
+          "suffixTokens": 1
+        },
+        "tokenEmbeddings": true,
+        "pooledEmbedding": {
+          "mode": "mean",
+          "excludeTokenIds": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        "logits": true
+      },
+      "runtime": "doppler",
+      "backend": "browser-webgpu",
+      "browserCapability": {
+        "minimumTier": "advanced",
+        "minimumScore": 65,
+        "basis": "bounded_webgpu_profile_v1"
+      },
+      "dopplerLoadRef": "amplify-120m-f16-af32",
+      "loadInput": {
+        "url": "https://huggingface.co/Clocksmith/rdrr/resolve/990de206946a0972cc92e9dbcc9726399d257cac/models/amplify-120m-f16-af32"
+      },
+      "artifactPolicy": {
+        "transport": "offloaded_content_addressed",
+        "cache": "browser_opfs",
+        "baseUrl": "https://huggingface.co/Clocksmith/rdrr/resolve/990de206946a0972cc92e9dbcc9726399d257cac/models/amplify-120m-f16-af32",
+        "identityFields": [
+          "modelId",
+          "modelHash",
+          "manifestHash",
+          "tokenizerHash",
+          "artifactIdentity",
+          "runtime",
+          "backend"
+        ],
+        "pathTemplate": "",
+        "paths": {
+          "manifest": "manifest.json",
+          "tokenizer": "tokenizer.json",
+          "shards": ""
+        }
+      },
+      "runtimeCompatibility": {
+        "requiredWebGpuFeatures": [
+          "shader-f16"
+        ],
+        "fallbackStatus": "no_undeclared_fallback"
+      },
+      "runtimeContract": {
+        "minimumDopplerVersion": "0.5.1",
+        "executionSchema": "doppler.execution/v1",
+        "kernelPathId": "amplify-120m-f16-af32-execution-inline"
+      },
+      "license": {
+        "sourceTerms": [
+          "MIT"
+        ],
+        "sourceRevision": "d918a9e8c64dc43f6ec4996022c3deba14d66470",
+        "admission": "approved",
+        "productUse": "admitted_after_technical_and_scientific_promotion"
+      },
+      "admission": {
+        "pooldayState": "candidate",
+        "nodeWebGpu": "qualified",
+        "nodeQualificationReceipt": "docs/status/amplify-120m-sequence-hosted-webgpu-lora-qualification-2026-07-19.json",
+        "browserWebGpu": "missing",
+        "scientificFitness": "missing",
+        "claimBoundary": "Masked-token logits are residue plausibility evidence, not mutation fitness."
+      },
+      "label": "AMPLIFY 120M (Protein candidate)",
+      "enabled": false
+    },
+    {
+      "modelId": "esmc-300m-f32-af32",
+      "modelHash": "sha256:e08669de53de410cd9eaa04ef845c4c38e807d409eb0aafced5c7a52b7502f19",
+      "manifestHash": "sha256:6290fea657af25e0a119a087d544d08756e2de513261b3031f9287fcc22fff26",
+      "manifestByteHash": "sha256:6290fea657af25e0a119a087d544d08756e2de513261b3031f9287fcc22fff26",
+      "tokenizerHash": "sha256:7894e0261b5dea045fc4ff08a4cccd276535f6a58a5e8483e8346645be3e29d8",
+      "contextLength": 2048,
+      "embeddingDimensions": 960,
+      "quantization": "f32",
+      "workload": "sequence.embedding.v1",
+      "workloads": [
+        "sequence.embedding.v1"
+      ],
+      "executionMode": "full_model_browser_sequence",
+      "artifactIdentity": {
+        "sourceCheckpointId": "biohub/ESMC-300M@a59b831785f907e96e6a246b1d142bfb76df31ee",
+        "sourceRepo": "biohub/ESMC-300M",
+        "sourceRevision": "a59b831785f907e96e6a246b1d142bfb76df31ee",
+        "weightPackId": "esmc-300m-f32-af32-wp-v1",
+        "weightPackHash": "sha256:e08669de53de410cd9eaa04ef845c4c38e807d409eb0aafced5c7a52b7502f19",
+        "shardSetHash": "sha256:bfff66da5d8aebfdc5eb4bde3477f148bb50b1cd4c8151116b92e90597daf63d",
+        "manifestVariantId": "esmc-300m-f32-af32-mv-exec-v1",
+        "conversionConfigDigest": "sha256:8198a1962ca4d2214dafed6ff8d5d85f53246b56c5aab1c057f1b0483a0f517d",
+        "conversionConfigPath": "src/config/conversion/esmc/esmc-300m-f32-af32.json",
+        "materializationProfile": "f32-weights-f32-activations",
+        "modalitySet": [
+          "protein_sequence"
+        ],
+        "sourceFormat": "safetensors",
+        "artifactCompleteness": "complete"
+      },
+      "sequence": {
+        "alphabet": "amino_acid",
+        "maxSequenceLength": 1024,
+        "normalization": "remove_ascii_whitespace_and_uppercase",
+        "canonicalSymbols": "ACDEFGHIKLMNPQRSTVWY",
+        "ambiguitySymbols": [],
+        "coordinates": {
+          "mapping": "one_token_per_sequence_symbol",
+          "sequenceIndexBase": 0,
+          "prefixTokens": 1,
+          "suffixTokens": 1
+        },
+        "tokenEmbeddings": true,
+        "pooledEmbedding": {
+          "mode": "mean",
+          "excludeTokenIds": [
+            0,
+            1,
+            2,
+            3,
+            31,
+            32
+          ]
+        },
+        "logits": false
+      },
+      "runtime": "doppler",
+      "backend": "browser-webgpu",
+      "browserCapability": {
+        "minimumTier": "advanced",
+        "minimumScore": 65,
+        "basis": "bounded_webgpu_profile_v1"
+      },
+      "dopplerLoadRef": "esmc-300m-f32-af32",
+      "loadInput": {
+        "url": "https://huggingface.co/Clocksmith/rdrr/resolve/8354795dc544798ca7a4419bf00f844648f4b6f0/models/esmc-300m-f32-af32"
+      },
+      "artifactPolicy": {
+        "transport": "offloaded_content_addressed",
+        "cache": "browser_opfs",
+        "baseUrl": "https://huggingface.co/Clocksmith/rdrr/resolve/8354795dc544798ca7a4419bf00f844648f4b6f0/models/esmc-300m-f32-af32",
+        "identityFields": [
+          "modelId",
+          "modelHash",
+          "manifestHash",
+          "tokenizerHash",
+          "artifactIdentity",
+          "runtime",
+          "backend"
+        ],
+        "pathTemplate": "",
+        "paths": {
+          "manifest": "manifest.json",
+          "tokenizer": "tokenizer.json",
+          "shards": ""
+        }
+      },
+      "runtimeCompatibility": {
+        "requiredWebGpuFeatures": [],
+        "fallbackStatus": "manifest_owned_f32_activation_lane"
+      },
+      "runtimeContract": {
+        "minimumDopplerVersion": "0.5.1",
+        "executionSchema": "doppler.execution/v1",
+        "kernelPathId": "esmc-300m-f32-af32-execution-inline"
+      },
+      "license": {
+        "sourceTerms": [
+          "MIT",
+          "OTHER-THIRD-PARTY-NOTICE"
+        ],
+        "sourceRevision": "a59b831785f907e96e6a246b1d142bfb76df31ee",
+        "admission": "pending_third_party_notice_review",
+        "productUse": "not_yet_admitted"
+      },
+      "admission": {
+        "pooldayState": "candidate",
+        "nodeWebGpu": "qualified",
+        "nodeQualificationReceipt": "docs/status/esmc-300m-sequence-hosted-webgpu-lora-qualification-2026-07-19.json",
+        "browserWebGpu": "missing",
+        "scientificFitness": "missing",
+        "claimBoundary": "The larger representation must show incremental decision value beyond ESM-2."
+      },
+      "label": "ESMC 300M (Protein candidate)",
+      "enabled": false
+    },
+    {
+      "modelId": "nucleotide-transformer-v2-50m-f32-af32",
+      "modelHash": "sha256:78ce445d4e2aff491574e8917e188913c35b9ba188617354ddb7b5f25f9be467",
+      "manifestHash": "sha256:5259a920c191277cf929ab1ecde0239620f3271eb77c9eb51df941847af11cae",
+      "manifestByteHash": "sha256:5259a920c191277cf929ab1ecde0239620f3271eb77c9eb51df941847af11cae",
+      "tokenizerHash": "sha256:f58e8d10aa7792113f479ddc6c0e82a7662e7d9b915d26710ab60fa2b628bac7",
+      "contextLength": 2050,
+      "embeddingDimensions": 512,
+      "quantization": "f32",
+      "workload": "sequence.embedding.v1",
+      "workloads": [
+        "sequence.embedding.v1"
+      ],
+      "executionMode": "full_model_browser_sequence",
+      "artifactIdentity": {
+        "sourceCheckpointId": "InstaDeepAI/nucleotide-transformer-v2-50m-multi-species@81b29e5786726d891dbf929404ef20adca5b36f1",
+        "sourceRepo": "InstaDeepAI/nucleotide-transformer-v2-50m-multi-species",
+        "sourceRevision": "81b29e5786726d891dbf929404ef20adca5b36f1",
+        "weightPackId": "nucleotide-transformer-v2-50m-f32-af32-wp-v1",
+        "weightPackHash": "sha256:78ce445d4e2aff491574e8917e188913c35b9ba188617354ddb7b5f25f9be467",
+        "shardSetHash": "sha256:15d09437f46a28151766182805dcc891b0ba80a2f1479ab17a7deb0c4a676cfd",
+        "manifestVariantId": "nucleotide-transformer-v2-50m-f32-af32-mv-exec-v1",
+        "conversionConfigDigest": "sha256:4723476d3a695e1269a6c9fe71c04742d5c5c64fad94bf214b74cc0fbfa858c3",
+        "conversionConfigPath": "src/config/conversion/nucleotide-transformer/nucleotide-transformer-v2-50m-f32-af32.json",
+        "materializationProfile": "f32-weights-f32-activations",
+        "modalitySet": [
+          "dna_sequence"
+        ],
+        "sourceFormat": "safetensors",
+        "artifactCompleteness": "complete"
+      },
+      "sequence": {
+        "alphabet": "nucleotide",
+        "maxSequenceLength": 2048,
+        "normalization": "remove_ascii_whitespace_and_uppercase",
+        "canonicalSymbols": "ACGT",
+        "ambiguitySymbols": [
+          "N"
+        ],
+        "coordinates": {
+          "mapping": "tokenizer_defined_subsequence",
+          "sequenceIndexBase": 0,
+          "prefixTokens": 1,
+          "suffixTokens": 0
+        },
+        "tokenEmbeddings": true,
+        "pooledEmbedding": {
+          "mode": "mean",
+          "excludeTokenIds": [
+            0,
+            1,
+            2,
+            3
+          ]
+        },
+        "logits": false
+      },
+      "runtime": "doppler",
+      "backend": "browser-webgpu",
+      "browserCapability": {
+        "minimumTier": "standard",
+        "minimumScore": 30,
+        "basis": "bounded_webgpu_profile_v1"
+      },
+      "dopplerLoadRef": "nucleotide-transformer-v2-50m-f32-af32",
+      "loadInput": {
+        "url": "https://huggingface.co/Clocksmith/rdrr/resolve/a5703ef6971cc883438a393d73f2f54dccf94976/models/nucleotide-transformer-v2-50m-f32-af32"
+      },
+      "artifactPolicy": {
+        "transport": "offloaded_content_addressed",
+        "cache": "browser_opfs",
+        "baseUrl": "https://huggingface.co/Clocksmith/rdrr/resolve/a5703ef6971cc883438a393d73f2f54dccf94976/models/nucleotide-transformer-v2-50m-f32-af32",
+        "identityFields": [
+          "modelId",
+          "modelHash",
+          "manifestHash",
+          "tokenizerHash",
+          "artifactIdentity",
+          "runtime",
+          "backend"
+        ],
+        "pathTemplate": "",
+        "paths": {
+          "manifest": "manifest.json",
+          "tokenizer": "tokenizer.json",
+          "shards": ""
+        }
+      },
+      "runtimeCompatibility": {
+        "requiredWebGpuFeatures": [],
+        "fallbackStatus": "manifest_owned_f32_activation_lane"
+      },
+      "runtimeContract": {
+        "minimumDopplerVersion": "0.5.1",
+        "executionSchema": "doppler.execution/v1",
+        "kernelPathId": "nucleotide-transformer-v2-50m-f32-af32-execution-inline"
+      },
+      "license": {
+        "sourceTerms": [
+          "CC-BY-NC-SA-4.0"
+        ],
+        "sourceRevision": "81b29e5786726d891dbf929404ef20adca5b36f1",
+        "admission": "pending_noncommercial_product_decision",
+        "productUse": "not_yet_admitted"
+      },
+      "admission": {
+        "pooldayState": "candidate_dna_lane",
+        "nodeWebGpu": "qualified",
+        "nodeQualificationReceipt": "docs/status/nucleotide-transformer-v2-50m-sequence-hosted-webgpu-lora-qualification-2026-07-19.json",
+        "browserWebGpu": "missing",
+        "scientificFitness": "missing",
+        "privacyReferenceAndLicenseGate": "required",
+        "claimBoundary": "DNA embeddings do not establish regulation, pathogenicity, or function."
+      },
+      "label": "Nucleotide Transformer v2 50M (DNA candidate)",
+      "enabled": false
     }
   ]
 }
