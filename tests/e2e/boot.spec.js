@@ -433,6 +433,47 @@ test.describe('Route Entry Points', () => {
     expect(layout.dockBlockedByNav).toBe(false);
   });
 
+  test('contribution status labels and values are vertically centered in their metric chips', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForSelector('.pool-home', { timeout: 20000 });
+    await page.evaluate(() => {
+      document.getElementById('pool-contribution-status')?.remove();
+      const status = document.createElement('aside');
+      status.id = 'pool-contribution-status';
+      status.className = 'pool-contribution-status';
+      status.dataset.contributionState = 'idle';
+      status.innerHTML = `
+        <span class="pool-contribution-state">Available</span>
+        <span class="pool-contribution-metric"><b>24h</b> 52</span>
+        <span class="pool-contribution-metric"><b>1h</b> 52/hr</span>
+        <span class="pool-contribution-metric pool-contribution-last"><b>Last</b> 18 sha256:f585e9a32...c94efefd</span>
+      `;
+      document.body.append(status);
+    });
+
+    const metrics = await page.locator('.pool-contribution-metric').evaluateAll((chips) => chips.map((chip) => {
+      const chipBox = chip.getBoundingClientRect();
+      const labelBox = chip.querySelector('b')?.getBoundingClientRect();
+      const valueNode = [...chip.childNodes].find((node) => node.nodeType === Node.TEXT_NODE && node.textContent.trim());
+      const range = document.createRange();
+      range.selectNode(valueNode);
+      const valueBox = range.getBoundingClientRect();
+      const centerOf = (box) => box.top + (box.height / 2);
+      return {
+        alignItems: getComputedStyle(chip).alignItems,
+        labelOffset: Math.abs(centerOf(labelBox) - centerOf(chipBox)),
+        valueOffset: Math.abs(centerOf(valueBox) - centerOf(chipBox))
+      };
+    }));
+
+    expect(metrics).toHaveLength(3);
+    for (const metric of metrics) {
+      expect(metric.alignItems).toBe('center');
+      expect(metric.labelOffset).toBeLessThanOrEqual(1);
+      expect(metric.valueOffset).toBeLessThanOrEqual(1);
+    }
+  });
+
   test('product routes fit a narrow mobile viewport without horizontal clipping', async ({ page }) => {
     await page.setViewportSize({ width: 320, height: 844 });
 
