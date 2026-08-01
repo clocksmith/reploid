@@ -3,27 +3,73 @@
 Poolday is the internal documentation name for the main Reploid product
 surface. The public UI uses the Reploid name.
 
-This document owns Poolday's product purpose and boundaries. Exact enabled
-models, policies, trust tiers, routes, and transport requirements remain owned
-by [`pool-config.json`](../../self/pool/pool-config.json) and the
+This document owns Reploid's product goal, Poolday's purpose, and the authority
+boundary between Poolday, Zero, and X. Exact enabled models, policies, trust
+tiers, routes, and transport requirements remain owned by
+[`pool-config.json`](../../self/pool/pool-config.json) and the
 [browser inference contract](../browser-inference-pool.md).
+
+## Product goal
+
+Reploid's goal is to become a proof-carrying, self-improving active-science
+network that minimizes the computations and real-world experiments required to
+turn an uncertain question into an independently reproduced discovery.
+
+The product promise is:
+
+```text
+Bring Reploid an uncertain problem. Leave with the most informative next action,
+and leave the network better at solving the next problem
+```
+
+Poolday maintains a governed account of competing hypotheses, uncertainty,
+supporting and contradictory evidence, unresolved experimental choices, and
+replication state. It routes the computation, review, replication, or experiment
+expected to improve that state most efficiently.
+
+"Proof-carrying" means that a decision carries inspectable signatures,
+provenance, contracts, protocols, outcomes, independence evidence, and measured
+evaluations. It does not mean proof of biological truth, honest browser code,
+hardware-attested execution, or guaranteed scientific correctness.
+
+## Optimization objective
+
+The governing objective is:
+
+```text
+maximize verified uncertainty reduction per unit of scarce scientific cost
+```
+
+Scientific cost can include browser compute, money, researcher time, laboratory
+work, instrument access, samples, and elapsed time. Poolday must preserve the
+components instead of collapsing incomparable costs into an unexplained score.
+
+Network activity is not the objective. Peer count, jobs, receipts, records,
+claims, and total compute remain operational measures. A contribution improves
+the network only when later evidence shows that it reduces uncertainty, avoids
+duplicated work, improves action selection, detects failure earlier, or survives
+independent replication.
 
 ## Product outcome
 
-A person or agent submits approved work with explicit intent and consent.
-Opted-in contributor browsers run the complete approved model through Doppler.
-The requester receives a useful result plus evidence that can be inspected,
-verified, accepted or rejected, and reduced into policy and reputation state.
-For the public protein lane, signed submissions, results, human claims,
-corrections, and review decisions form a room-scoped evidence network.
+The target product journey begins when a person or agent submits a bounded
+uncertain question with explicit intent and consent. Poolday creates or extends a signed
+[Discovery Contract](./discovery-contract.md). The contract represents competing
+hypotheses, current evidence, uncertainty, candidate next actions, predicted
+observations, falsifiers, action value, and replication or closure criteria.
 
-The immediate public value is:
+Distributed models, opted-in browser providers, reviewers, and participating
+laboratories can contribute candidate epistemic updates. Each update remains an
+attributable claim. Poolday admits it into the governed state only under the
+declared provenance, independence, review, and evaluation policy.
+
+The immediate supported value remains:
 
 ```text
 get a result you can inspect and govern
 ```
 
-The approved supporting claim is:
+The current approved supporting claim remains:
 
 ```text
 receipt-backed, audit-backed, reputation-backed, policy-controlled browser inference
@@ -33,46 +79,77 @@ The receipt is evidence about an assignment and its declared execution
 artifacts. It is not proof of honest browser code or hardware-attested GPU
 execution.
 
+## The Discovery Contract
+
+The Discovery Contract is the target atomic product object. It binds:
+
+1. A bounded question and its declared decision context.
+2. Competing hypotheses, including a none-of-the-above alternative when
+   applicable.
+3. Current evidence, contradictions, uncertainty, provenance, and blind spots.
+4. Candidate computations, reviews, experiments, and replications.
+5. Predicted observations and falsifiers for the affected hypotheses.
+6. Expected information gain, cost, latency, feasibility, independence, safety,
+   and probability of changing the next decision.
+7. Outcomes, protocol conditions, failures, and the resulting candidate
+   epistemic update.
+8. Predeclared replication, provisional acceptance, rejection, reopening, and
+   closure criteria.
+
+The contract evolves through signed append-only records and reproducible
+projections. No participant edits prior evidence in place. Corrections,
+revocations, superseding versions, and changed conclusions remain linked and
+inspectable.
+
 ## User roles
 
 | Role | Product job |
 | --- | --- |
-| Requester | Submit admitted work, inspect the result and evidence, then accept or reject it. |
+| Requester | Submit a bounded question, constraints, consent, and decision context. Inspect and accept or reject admitted work. |
 | Contributor | Opt in an eligible browser and execute assignments under declared capacity and policy limits. |
-| Agent | Request, verify, accept, and budget work through the same contracts. |
-| Reviewer or curator | Attach separately signed human claims, sources, corrections, confidence, experimental context, and bounded follow-up proposals. |
+| Agent | Propose hypotheses and actions, request admitted work, verify evidence, and manage an approved budget through the same contracts. |
+| Reviewer or curator | Attach separately signed critiques, sources, corrections, confidence, experimental context, and bounded follow-up proposals. |
+| Laboratory or instrument operator | Claim approved physical work, execute a signed protocol, and report positive, negative, failed, or ambiguous outcomes with conditions and controls. |
+| Independent evaluator | Measure prospective decision-policy performance against a frozen baseline and held-out outcomes. |
 
-Contributors earn points only after accepted work. Participation does not grant
-publisher, adapter-creation, or policy authority.
+Contributors earn credit only under the declared evidence and evaluation policy.
+Participation does not grant publisher, adapter-creation, scientific-policy, or
+closure authority.
 
 ## Product principles
 
-1. Lead with the useful result. Receipts, peers, hashes, and routing explain why
-   the result is accountable.
-2. Bind every result to the assignment, exact model artifacts, workload,
+1. Lead with the most informative next action and the evidence that justifies it.
+2. Keep competing hypotheses explicit. Preserve disagreement when the evidence
+   does not justify resolution.
+3. Bind every computation to the assignment, exact model artifacts, workload,
    runtime profile, policy, route, provider signature, and requester decision.
-3. Keep execution consent explicit. A browser contributes only after its owner
-   opts in and advertises bounded capacity.
-4. Make additional participation improve availability, payload delivery, or
-   redundant comparison. Peer count has no product value by itself.
-5. Fail closed when model, artifact, workload, identity, policy, or receipt
-   evidence does not match.
-6. Keep experimental RSI evidence separate from Poolday product evidence until
-   a capability passes the promotion boundary below.
-7. Keep model facts and human claims separate. A human annotation is attributable
-   evidence, not a model output, and earns evidence credit only after independent
-   acceptance.
+4. Bind every experiment to its protocol, conditions, controls, readouts,
+   analysis identity, uncertainty plan, operator identity, and consent.
+5. Keep execution consent explicit. A browser, reviewer, or laboratory
+   contributes only after accepting bounded work and publication terms.
+6. Fail closed when model, artifact, workload, identity, policy, protocol,
+   receipt, or lineage evidence does not match.
+7. Treat positive, negative, failed, ambiguous, corrected, and contradictory
+   outcomes under the same provenance and review rules.
+8. Keep model facts, human claims, experimental outcomes, and policy evaluations
+   separate. None becomes truth or training data merely by being signed.
+9. Require demonstrated prospective improvement before a scientific decision
+   policy enters Poolday.
+10. Keep experimental Zero and X evidence separate from Poolday product evidence
+    until a capability passes the promotion boundary below.
 
 ## P2P boundary
 
 P2P is infrastructure. It supports provider discovery, direct payload transit,
-availability, and quorum comparison. It is not the product claim and does not
-turn Poolday into a decentralized compute marketplace.
+availability, bounded at-least-once relay delivery, and quorum comparison. It is
+not the product claim and does not turn Poolday into a decentralized compute
+marketplace.
 
 Servers may provide authentication, rendezvous, compatibility coordination,
 public anchoring, or rebuildable projections. They do not perform the claimed
-browser-local model execution. The target control plane makes those services
-optional in the normal work path without changing the receipt contract.
+browser-local model execution. A relay acknowledgement proves recipient receipt
+of that relay record only. It does not prove exactly-once delivery, scientific
+validity, or final contract acceptance.
 
 ## Current product boundary
 
@@ -91,52 +168,102 @@ optional in the normal work path without changing the receipt contract.
 - Poolday supports signed human review of public protein evidence. It is not a
   biological interpretation or diagnosis tool, and submitted human claims do
   not become model facts.
+- The full Discovery Contract, calibrated action-value ranking, scientific-cost
+  accounting, prospective policy comparison, laboratory qualification, and
+  contract closure workflow remain target capabilities unless separately listed
+  as supported in the surface claim index.
 
 See the [claim boundary](./claims-and-nonclaims.md),
 [biological sequence lane](./biological-sequence-lane.md), and
-[retrieval direction](./receipt-backed-retrieval.md) for the corresponding
-supported behavior and promotion gates.
+[retrieval direction](./receipt-backed-retrieval.md) for supported behavior and
+promotion gates.
 
 ## Reploid surface hierarchy
 
 Reploid contains three browser surfaces with separate authority:
 
-| Surface | Role now | Evidence boundary |
+| Surface | Current authority | Active-science role |
 | --- | --- | --- |
-| Poolday `/` | Main product surface for governed browser inference and participation. | Poolday assignments, routes, receipts, agreement, requester acceptance, points, and reputation. |
-| Zero `/zero` | Experimental minimal RSI harness for growing capabilities from a small self and constrained tools. | Zero-local tool, state, verification, and recovery evidence. |
-| X `/x` | Experimental governed RSI harness for self-modification, validation, swarm work, promotion, and rollback. | X candidate, validation, promotion, quarantine, replay, and rollback evidence. |
+| Poolday `/` | Assignments, routes, receipts, agreement, requester acceptance, points, reputation, and admitted public evidence. | Own durable Discovery Contracts, uncertainty projections, action routing, replication state, and promoted scientific policy. |
+| Zero `/zero` | Zero-local tools, state, verification, and recovery evidence. | Propose hypothesis decompositions, analyses, uncertainty estimators, experiment-ranking methods, and contradiction detectors. |
+| X `/x` | Candidate, validation, promotion, quarantine, replay, and rollback evidence. | Evaluate candidate scientific decision policies in Shadow against frozen historical and prospective contracts. |
 
-Zero or X evidence never substantiates a Poolday claim by itself.
+Zero or X evidence never substantiates a Poolday claim by itself. Zero proposes.
+X evaluates. Poolday admits and governs.
 
-## Long-term promotion boundary
+## Scientific-policy promotion boundary
 
-Zero and X are discovery engines for automation, self-improvement, and new
-capabilities. The long-term goal is governed integration into the main Reploid
-product, not permanent isolation.
+Zero and X are discovery engines for candidate automation, self-improvement, and
+new capabilities. A candidate scientific policy must remain in Shadow until it
+shows a measured improvement against a predeclared baseline and held-out
+contracts.
 
 ```text
-Zero/X experiment
-  -> evidence and verification
-  -> human approval and rollback coverage
-  -> Poolday-owned policy and user contract
-  -> Poolday operational proof
+Zero candidate method or policy
+  -> X Shadow evaluation on frozen contracts
+  -> independent evidence and evaluator separation
+  -> safety, revocation, and rollback coverage
+  -> human approval
+  -> Poolday-owned policy, configuration, and user contract
+  -> prospective Poolday operational proof
   -> governed product capability
 ```
 
+Evaluation asks whether the candidate selected more discriminating actions,
+reached the same conclusion with fewer resources, identified contradictions or
+failure earlier, generalized across held-out protein families, and preserved
+safety and rollback. A candidate cannot approve its own evaluator.
+
 Before promotion, the behavior remains experimental. After promotion, Poolday
 must support the capability through its own configuration, admission rules,
-receipts, tests, and user-visible evidence.
+receipts, tests, user-visible evidence, revocation path, and rollback path.
 
-Broader corpus indexing, private retrieval, ANN infrastructure, and autonomous
-research action remain future directions. The supported evidence-network path
-is public, room-scoped, exact-contract, local-first, and human-approved.
+## First product wedge
+
+The first active-science campaign is a federated protein uncertainty map for
+poorly characterized public proteins. It prioritizes cases where exact-contract
+model similarity, public annotation, reviewer judgment, and experimental
+evidence diverge.
+
+The target loop is:
+
+1. Retrieve compatible sequences, representations, annotations, assays, negative
+   results, and contradictions with source and version identity.
+2. Run bounded receipt-backed representations and admitted analyses.
+3. Construct competing condition-specific hypotheses.
+4. Make model, evidence-source, and reviewer disagreement explicit.
+5. Rank candidate computations, reviews, assays, and replications by expected
+   information gain and declared scientific cost.
+6. Route an approved action to a qualified, consenting peer or laboratory.
+7. Record positive, negative, failed, and ambiguous outcomes with protocol and
+   condition context.
+8. Update the uncertainty projection without converting evidence into automatic
+   truth.
+9. Freeze completed campaigns as held-out evaluations for future routing,
+   models, and scientific policies.
+
+## North-star metric
+
+The primary product metric is:
+
+```text
+median real-world cost required to reach a predeclared, independently replicated
+conclusion, relative to a fixed baseline research policy
+```
+
+Before real-world laboratory campaigns are available, software-only evaluation
+uses frozen historical or hidden outcomes. It measures information gained per
+action, actions required to identify the declared functional or fitness region,
+uncertainty calibration, contradiction-resolution cost, duplicate work avoided
+through reusable negative evidence, and prospective performance on unseen
+protein families.
 
 ## Authority order
 
 | Question | Canonical source |
 | --- | --- |
-| Why Poolday exists and how it relates to Zero and X | This document |
+| Reploid's product goal and how Poolday relates to Zero and X | This document |
+| Discovery Contract fields, lifecycle, scoring boundary, and closure rules | [Discovery Contract](./discovery-contract.md) |
 | Exact enabled model, policy, trust, and transport configuration | [`pool-config.json`](../../self/pool/pool-config.json) |
 | Current runtime, peer, coordinator, and deployment behavior | [Browser inference contract](../browser-inference-pool.md) |
 | Supported public language and nonclaims | [Claims and nonclaims](./claims-and-nonclaims.md) |

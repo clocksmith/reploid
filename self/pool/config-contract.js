@@ -36,6 +36,78 @@ const isProteinPoolModel = (model = {}) => (
     .startsWith('sequence.')
 );
 
+const isBiologicalSequencePoolModel = (model = {}) => (
+  ['amino_acid', 'nucleotide'].includes(model.sequence?.alphabet)
+  && String(model.workload || model.workloadType || model.modelType || '')
+    .startsWith('sequence.')
+);
+
+const validateSequenceModelContract = (model, index, reasons) => {
+  const path = `modelCatalog.${index}`;
+  for (const field of [
+    'modelId',
+    'modelHash',
+    'manifestHash',
+    'tokenizerHash',
+    'contextLength',
+    'embeddingDimensions',
+    'quantization',
+    'runtime',
+    'backend',
+    'dopplerLoadRef'
+  ]) {
+    requireField(model?.[field], `${path}.${field}`, reasons);
+  }
+  for (const field of [
+    'sourceCheckpointId',
+    'sourceRepo',
+    'sourceRevision',
+    'weightPackId',
+    'weightPackHash',
+    'shardSetHash',
+    'manifestVariantId',
+    'conversionConfigDigest',
+    'materializationProfile',
+    'artifactCompleteness'
+  ]) {
+    requireField(model?.artifactIdentity?.[field], `${path}.artifactIdentity.${field}`, reasons);
+  }
+  for (const field of [
+    'alphabet',
+    'maxSequenceLength',
+    'normalization',
+    'canonicalSymbols',
+    'pooledEmbedding'
+  ]) {
+    requireField(model?.sequence?.[field], `${path}.sequence.${field}`, reasons);
+  }
+  requireField(model?.sequence?.coordinates?.mapping, `${path}.sequence.coordinates.mapping`, reasons);
+  requireField(model?.runtimeContract?.minimumDopplerVersion, `${path}.runtimeContract.minimumDopplerVersion`, reasons);
+  requireField(model?.runtimeContract?.executionSchema, `${path}.runtimeContract.executionSchema`, reasons);
+  requireField(model?.runtimeContract?.kernelPathId, `${path}.runtimeContract.kernelPathId`, reasons);
+  requireField(model?.license?.sourceRevision, `${path}.license.sourceRevision`, reasons);
+  requireField(model?.license?.admission, `${path}.license.admission`, reasons);
+  requireField(model?.license?.productUse, `${path}.license.productUse`, reasons);
+  requireField(model?.admission?.pooldayState, `${path}.admission.pooldayState`, reasons);
+  requireField(model?.admission?.nodeWebGpu, `${path}.admission.nodeWebGpu`, reasons);
+  requireField(model?.admission?.browserWebGpu, `${path}.admission.browserWebGpu`, reasons);
+  requireField(model?.admission?.scientificFitness, `${path}.admission.scientificFitness`, reasons);
+  if (!Array.isArray(model?.license?.sourceTerms) || model.license.sourceTerms.length === 0) {
+    reasons.push(`${path}.license.sourceTerms must contain at least one frozen source term`);
+  }
+  if (model?.enabled !== false) {
+    if (model.license?.admission !== 'approved') {
+      reasons.push(`${path}.license.admission must be approved before enabling the model`);
+    }
+    if (!['qualified', 'enabled_release_receipt_required'].includes(model.admission?.browserWebGpu)) {
+      reasons.push(`${path}.admission.browserWebGpu must be qualified before enabling the model`);
+    }
+    if (model.admission?.scientificFitness === 'missing') {
+      reasons.push(`${path}.admission.scientificFitness cannot be missing for an enabled model`);
+    }
+  }
+};
+
 export function validatePoolConfigValue(config = {}) {
   const reasons = [];
   const modelCatalog = Array.isArray(config.modelCatalog) ? config.modelCatalog : [];
@@ -48,11 +120,12 @@ export function validatePoolConfigValue(config = {}) {
     requireField(launchModel?.[field], `launchModel.${field}`, reasons);
   }
   if (!isProteinPoolModel(launchModel)) reasons.push('launchModel must be a protein sequence model');
-  for (const model of modelCatalog.filter((candidate) => candidate.enabled !== false)) {
-    if (!isProteinPoolModel(model)) {
-      reasons.push(`enabled model ${model.modelId || 'unknown'} must be a protein sequence model`);
+  modelCatalog.forEach((model, index) => {
+    if (isBiologicalSequencePoolModel(model)) validateSequenceModelContract(model, index, reasons);
+    if (model.enabled !== false && !isBiologicalSequencePoolModel(model)) {
+      reasons.push(`enabled model ${model.modelId || 'unknown'} must be a biological sequence model`);
     }
-  }
+  });
   requireField(config.browserRuntime?.dopplerModuleUrl, 'browserRuntime.dopplerModuleUrl', reasons);
   requireField(config.browserRuntime?.dopplerKernelBaseUrl, 'browserRuntime.dopplerKernelBaseUrl', reasons);
   requireField(config.browserRuntime?.modelBaseUrl, 'browserRuntime.modelBaseUrl', reasons);

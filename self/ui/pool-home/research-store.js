@@ -3,7 +3,10 @@
  */
 
 import { createPoolSdk } from '../../pool/sdk.js';
-import { verifyResearchRecord } from '../../pool/evidence-network.js';
+import {
+  validateResearchRecordLinks,
+  verifyResearchRecord
+} from '../../pool/evidence-network.js';
 import { DEFAULT_PEER_ROOM_ID } from '../../pool/peer-room.js';
 
 export const POOLDAY_RESEARCH_STORAGE_KEY = 'reploid.pool.research-evidence.v1';
@@ -60,23 +63,8 @@ export async function appendResearchRecord(record, { roomId = record?.roomId || 
     if (!recordsEqual(existing, record)) throw new Error('recordHash is already bound to different immutable evidence');
     return clone(existing);
   }
-  const targetHash = record.kind === 'research_result'
-    ? record.submissionHash
-    : record.kind === 'human_claim'
-      ? record.targetHash
-      : null;
-  const target = targetHash ? state.records.find((candidate) => candidate.recordHash === targetHash) : null;
-  if (targetHash && !target) throw new Error('research record target does not exist in this room');
-  if (record.kind === 'research_result') {
-    if (record.sequenceHash !== target.sequence?.hash) throw new Error('research result sequence does not match its submission');
-    if (JSON.stringify(record.modelContract) !== JSON.stringify(target.modelContract)) throw new Error('research result model contract does not match its submission');
-    if (record.embedding && target.consent?.publishEmbedding !== true) throw new Error('research submission did not consent to embedding publication');
-  }
-  if (record.kind === 'human_claim'
-    && record.claim?.kind === 'review_decision'
-    && target.author?.identityRootId === record.author?.identityRootId) {
-    throw new Error('review decisions must be independently authored');
-  }
+  const links = validateResearchRecordLinks(record, state.records);
+  if (!links.ok) throw new Error(`Invalid research record links: ${links.reasons.join('; ')}`);
   state.records.push(clone(record));
   persist();
   return clone(record);

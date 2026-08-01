@@ -33,12 +33,17 @@ export const isProteinPoolModel = (model = {}) => (
   && isSequenceWorkload(getPoolModelWorkload(model))
 );
 
+export const isBiologicalSequencePoolModel = (model = {}) => (
+  ['amino_acid', 'nucleotide'].includes(model.sequence?.alphabet)
+  && isSequenceWorkload(getPoolModelWorkload(model))
+);
+
 export const ENABLED_MODEL_CATALOG = Object.freeze(
   MODEL_CATALOG.filter((model) => (
     model.enabled !== false
     && model.modelHash
     && model.manifestHash
-    && isProteinPoolModel(model)
+    && isBiologicalSequencePoolModel(model)
   ))
 );
 
@@ -73,7 +78,7 @@ export function getPoolModelWorkloads(model = {}) {
 }
 
 export function modelSupportsPoolWorkload(model = {}, workload) {
-  return isProteinPoolModel(model) && getPoolModelWorkloads(model).includes(workload);
+  return isBiologicalSequencePoolModel(model) && getPoolModelWorkloads(model).includes(workload);
 }
 
 export function getPoolModelExecutionMode(model = {}, workload = getPoolModelWorkload(model)) {
@@ -90,6 +95,7 @@ export function isLaunchModelRequirement(requirements = {}) {
   return !!model
     && requirements.modelHash === model.modelHash
     && requirements.manifestHash === model.manifestHash
+    && requirements.tokenizerHash === model.tokenizerHash
     && requirements.runtime === model.runtime
     && requirements.backend === model.backend;
 }
@@ -111,8 +117,8 @@ export function validateLaunchModelRequirement(requirements = {}) {
   if (model && !executionMode && expectedExecutionMode !== SUPPORTED_MODEL_EXECUTION_MODE) {
     reasons.push(`modelRequirements.executionMode ${expectedExecutionMode} is required for ${requirements.modelId}`);
   }
-  if (model && !isProteinPoolModel(model)) {
-    reasons.push('selected model is not a protein sequence model');
+  if (model && !isBiologicalSequencePoolModel(model)) {
+    reasons.push('selected model is not a supported biological-sequence model');
   }
   if (workload && model && !modelSupportsPoolWorkload(model, workload)) {
     reasons.push(`modelRequirements.workload ${workload} is not supported for ${requirements.modelId || 'selected model'}; supported workloads: ${getPoolModelWorkloads(model).join(', ')}`);
@@ -149,6 +155,7 @@ export default {
   getPoolModelWorkloads,
   modelSupportsPoolWorkload,
   isProteinPoolModel,
+  isBiologicalSequencePoolModel,
   getPoolModelExecutionMode,
   SUPPORTED_MODEL_EXECUTION_MODE,
   isLaunchModelRequirement,

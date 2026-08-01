@@ -1036,6 +1036,7 @@ export function createDopplerRuntime({ modelSession = null, model = null, runtim
           tokens,
           pooledEmbedding,
           tokenEmbeddings,
+          residueEmbeddings,
           maskedLogits,
           pooledEmbeddingHash,
           pooledStats,
@@ -1052,6 +1053,7 @@ export function createDopplerRuntime({ modelSession = null, model = null, runtim
           sequenceOutput: {
             pooledEmbedding,
             tokenEmbeddings: request.includeTokenEmbeddings ? tokenEmbeddings : null,
+            residueEmbeddings,
             maskedLogits
           },
           embeddingDimensions: pooledEmbedding.length,

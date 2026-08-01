@@ -34,12 +34,17 @@ export const isProteinPoolModel = (model = {}) => (
   && isSequenceWorkload(getPoolModelWorkload(model))
 );
 
+export const isBiologicalSequencePoolModel = (model = {}) => (
+  ['amino_acid', 'nucleotide'].includes(model.sequence?.alphabet)
+  && isSequenceWorkload(getPoolModelWorkload(model))
+);
+
 export const ENABLED_MODEL_CATALOG = Object.freeze(
   MODEL_CATALOG.filter((model) => (
     model.enabled !== false
     && model.modelHash
     && model.manifestHash
-    && isProteinPoolModel(model)
+    && isBiologicalSequencePoolModel(model)
   ))
 );
 
@@ -54,14 +59,16 @@ const UNSUPPORTED_MODEL_SPLIT_FIELDS = Object.freeze([
   'attentionShardPlan'
 ]);
 
-export function listPoolModels({ enabledOnly = false, workload = null } = {}) {
-  const source = enabledOnly ? ENABLED_MODEL_CATALOG : MODEL_CATALOG.filter(isProteinPoolModel);
-  if (!workload) return source;
-  return source.filter((model) => modelSupportsPoolWorkload(model, workload));
+export function listPoolModels({ enabledOnly = false, workload = null, alphabet = null } = {}) {
+  const source = enabledOnly ? ENABLED_MODEL_CATALOG : MODEL_CATALOG.filter(isBiologicalSequencePoolModel);
+  return source.filter((model) => (
+    (!workload || modelSupportsPoolWorkload(model, workload))
+    && (!alphabet || model.sequence?.alphabet === alphabet)
+  ));
 }
 
 export function getPoolModelContract(modelId = LAUNCH_MODEL.modelId) {
-  return MODEL_CATALOG.find((model) => model.modelId === modelId && isProteinPoolModel(model)) || null;
+  return MODEL_CATALOG.find((model) => model.modelId === modelId && isBiologicalSequencePoolModel(model)) || null;
 }
 
 export function getEnabledPoolModelContract(modelId = LAUNCH_MODEL.modelId) {
@@ -84,7 +91,30 @@ export function getPoolModelWorkloads(model = {}) {
 }
 
 export function modelSupportsPoolWorkload(model = {}, workload) {
-  return isProteinPoolModel(model) && getPoolModelWorkloads(model).includes(workload);
+  return isBiologicalSequencePoolModel(model) && getPoolModelWorkloads(model).includes(workload);
+}
+
+export function exactModelContractKey(model = {}, {
+  workload = getPoolModelWorkload(model),
+  dimensions = model.embeddingDimensions || model.dimensions || model.requirements?.embeddingDimensions || 0
+} = {}) {
+  const identity = model.artifactIdentity || model.requirements?.artifactIdentity || {};
+  return [
+    model.modelId || model.id || '',
+    model.modelHash || model.hash || '',
+    model.manifestHash || '',
+    model.tokenizerHash || identity.tokenizerHash || '',
+    identity.sourceRevision || '',
+    identity.conversionConfigDigest || '',
+    identity.weightPackHash || '',
+    identity.shardSetHash || '',
+    model.runtime || '',
+    model.backend || '',
+    workload || '',
+    getPoolModelExecutionMode(model, workload) || '',
+    model.sequence?.alphabet || model.requirements?.sequence?.alphabet || '',
+    Number(dimensions || 0)
+  ].join('|');
 }
 
 export function getPoolModelExecutionMode(model = {}, workload = getPoolModelWorkload(model)) {
@@ -188,10 +218,18 @@ export function buildLaunchModelRequirements(overrides = {}) {
     modelId: base.modelId,
     modelHash: base.modelHash,
     manifestHash: base.manifestHash,
+    tokenizerHash: base.tokenizerHash || null,
     runtime: base.runtime,
     backend: base.backend,
     workload,
     executionMode: getPoolModelExecutionMode(base, workload),
+    contextLength: base.contextLength || null,
+    embeddingDimensions: base.embeddingDimensions || null,
+    quantization: base.quantization || null,
+    artifactIdentity: base.artifactIdentity || null,
+    sequence: base.sequence || null,
+    runtimeContract: base.runtimeContract || null,
+    license: base.license || null,
     ...overrides
   };
 }
@@ -209,6 +247,7 @@ export function isLaunchModelRequirement(requirements = {}) {
   return !!model
     && requirements.modelHash === model.modelHash
     && requirements.manifestHash === model.manifestHash
+    && requirements.tokenizerHash === model.tokenizerHash
     && requirements.runtime === model.runtime
     && requirements.backend === model.backend;
 }
@@ -232,8 +271,8 @@ const validateEnabledModelRequirement = (requirements = {}, {
   if (model && !executionMode && expectedExecutionMode !== SUPPORTED_MODEL_EXECUTION_MODE) {
     reasons.push(`modelRequirements.executionMode ${expectedExecutionMode} is required for ${requirements.modelId}`);
   }
-  if (model && !isProteinPoolModel(model)) {
-    reasons.push('selected model is not a protein sequence model');
+  if (model && !isBiologicalSequencePoolModel(model)) {
+    reasons.push('selected model is not a supported biological-sequence model');
   }
   if (workload && model && !modelSupportsPoolWorkload(model, workload)) {
     reasons.push(`modelRequirements.workload ${workload} is not supported for ${requirements.modelId || 'selected model'}; supported workloads: ${getPoolModelWorkloads(model).join(', ')}`);
@@ -286,6 +325,8 @@ export default {
   getPoolModelWorkloads,
   modelSupportsPoolWorkload,
   isProteinPoolModel,
+  isBiologicalSequencePoolModel,
+  exactModelContractKey,
   getPoolModelExecutionMode,
   buildLaunchModelArtifactUrls,
   buildLaunchModelRequirements,

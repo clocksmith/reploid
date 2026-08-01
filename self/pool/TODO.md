@@ -2,7 +2,13 @@
 
 Reploid is the market-facing browser inference network and governed browser substrate. Browser providers serve model runs through signed peer intents, WebRTC payload transit, receipts, verification, reputation, and requester acceptance. Public-facing product copy should use Reploid.
 
-Canonical claim and deployment truth stay in [`pool-config.json`](./pool-config.json). Architecture and production contracts stay in [`../../docs/browser-inference-pool.md`](../../docs/browser-inference-pool.md).
+The product goal is proof-carrying active science: minimize the computation and
+real-world experimentation required to turn an uncertain question into an
+independently reproduced discovery. Receipt-backed browser inference is the
+current execution substrate and first evidence source. It is not the final
+optimization target.
+
+Canonical claim and deployment truth stay in [`pool-config.json`](./pool-config.json). Architecture and production contracts stay in [`../../docs/browser-inference-pool.md`](../../docs/browser-inference-pool.md). The [product intent](../../docs/poolday/product-intent.md) owns the active-science goal, and the [Discovery Contract](../../docs/poolday/discovery-contract.md) owns its target atomic object and gates.
 
 The current Cloud Run and Firestore path is transitional. The target Reploid control plane is WebRTC peer-to-peer: signed job intents, provider capability adverts, assignment selection, quorum agreement, receipts, acceptance, points, and reputation should move without a required Reploid server.
 
@@ -24,6 +30,8 @@ The current Cloud Run and Firestore path is transitional. The target Reploid con
 | Surface | Path | Purpose |
 |---------|------|---------|
 | Product config | [`pool-config.json`](./pool-config.json) | Product-owned claim, launch model, trust tiers, policies, routes, transport, and deployment requirements. |
+| Product intent | [`../../docs/poolday/product-intent.md`](../../docs/poolday/product-intent.md) | Active-science objective, surface authority, first wedge, and north-star metric. |
+| Discovery Contract | [`../../docs/poolday/discovery-contract.md`](../../docs/poolday/discovery-contract.md) | Target question, hypothesis, action-value, outcome, replication, and closure contract. |
 | Product doc | [`../../docs/browser-inference-pool.md`](../../docs/browser-inference-pool.md) | Public architecture, API contract, production readiness, and forbidden claims. |
 | Product UI | [`../ui/pool-home/index.js`](../ui/pool-home/index.js) | `/`, `/ask`, `/compute`, `/history`, `/network`, and `/zero` browser surface. |
 | Peer control plane | [`peer-control-plane.js`](./peer-control-plane.js) | Signed peer messages, deterministic assignment planning, DataChannel bus helpers, and peer reducers. |
@@ -125,6 +133,106 @@ The current Cloud Run and Firestore path is transitional. The target Reploid con
 
 ---
 
+## Proof-Carrying Active Science
+
+These gates extend the current public protein evidence path. They do not expand
+the supported public claim until the matching implementation, test, surface
+claim, and deployment evidence exist.
+
+### Discovery Contract Projection
+
+- [ ] Define a domain-separated signed contract-checkpoint record that binds the
+  question, parent revisions, Poolday policy, projection implementation, ordered
+  input records, and checkpoint signer.
+- [ ] Derive one deterministic contract state from signed question, hypothesis,
+  prior-evidence, prediction, result, claim, work-order, work-claim, outcome,
+  cohort, evaluation, correction, and revocation records.
+- [ ] Reject checkpoints whose inputs are missing, revoked, cross-room,
+  signature-invalid, or inconsistent with the declared projection version.
+- [ ] Add deterministic reopen behavior when a contradiction, correction,
+  revocation, failed replication, or policy-invalidating record arrives.
+- [ ] Add unit and browser coverage proving reload recovery, projection replay,
+  invalid-input rejection, supersession, revocation, and reopening.
+
+### Uncertainty And Candidate Actions
+
+- [ ] Represent uncertainty source separately for measurement variance, model
+  uncertainty, cross-source disagreement, missing alternatives, protocol risk,
+  and decision-change uncertainty.
+- [ ] Require numeric probabilities to bind a calibration method and frozen
+  evaluation cohort. Preserve ordinal or set-valued uncertainty otherwise.
+- [ ] Define signed candidate-action records for computation, retrieval, review,
+  assay, and replication without granting the proposer allocation authority.
+- [ ] Bind each action to affected hypotheses, predicted observations,
+  falsifiers, exact protocol or workload, feasibility, independence, safety,
+  and consent requirements.
+- [ ] Record scientific cost as separate compute, money, labor, instrument,
+  sample, and elapsed-time components.
+- [ ] Bind every action ranking to its policy, method, version, parameters, input
+  hashes, cost assumptions, calibration evidence, and heuristic or calibrated
+  status.
+- [ ] Expose the admitted candidate set, rejected actions, raw value components,
+  selected action, and human approval state in the Poolday UI.
+
+### Protein Uncertainty Campaign
+
+- [ ] Admit version-pinned public sequence, structure, domain, annotation,
+  publication, assay, negative-result, and failed-attempt evidence with source,
+  transformation, condition, license, and retrieval provenance.
+- [ ] Build a queue that prioritizes proteins where exact-contract embeddings,
+  public annotations, reviewers, and experimental evidence disagree.
+- [ ] Freeze a baseline research policy before using hidden or future outcomes
+  to compare action selection.
+- [ ] Measure information gained per action, contradiction-resolution cost,
+  duplicate work avoided, uncertainty calibration, and performance on held-out
+  protein families.
+- [ ] Preserve negative, failed, and ambiguous outcomes in retrieval and action
+  selection even when they do not support a conclusion.
+- [ ] Keep ESM-2 as the only enabled Poolday protein model until another model
+  view passes its own artifact, workload, runtime, receipt, policy, and surface
+  admission gates.
+
+### Laboratory And Replication Boundary
+
+- [ ] Define capability, institution, protocol-custody, consent, safety, and
+  availability records for participating laboratories and instrument operators.
+- [ ] Require approved work orders to bind controls, conditions, readouts,
+  normalization, uncertainty, analysis identity, failure categories, custody,
+  and publication scope before allocation.
+- [ ] Plan replication against declared independence dimensions instead of
+  identity-root difference alone.
+- [ ] Define predeclared provisional acceptance, continued uncertainty,
+  rejection, reopening, and closure criteria.
+- [ ] Keep biological interpretation, medical use, unsafe protocols, private
+  samples, and laboratory authority outside Poolday until separately admitted.
+
+### Scientific-Policy Promotion
+
+- [ ] Define the Zero candidate schema for hypothesis decomposition, uncertainty
+  estimation, contradiction detection, and action-selection policy proposals.
+- [ ] Freeze historical and prospective Discovery Contract cohorts before X
+  evaluates a candidate in Shadow.
+- [ ] Enforce candidate, evaluator, approver, and Poolday policy-owner separation
+  at the promotion gate.
+- [ ] Compare each candidate with a fixed baseline on cost to the same declared
+  conclusion, action count, failure detection, held-out generalization,
+  replication, safety, and rollback.
+- [ ] Require human approval, Poolday-owned configuration, operational proof,
+  revocation, and rollback before activation.
+- [ ] Record realized action value after reviewed outcomes so a contribution is
+  rewarded for measured downstream usefulness rather than activity alone.
+
+### North-Star Evidence
+
+- [ ] Freeze the baseline policy, cost representation, conclusion criteria,
+  independence criteria, and aggregation method before reporting improvement.
+- [ ] Report median real-world cost to a predeclared independently replicated
+  conclusion relative to that baseline.
+- [ ] Keep peers, jobs, receipts, records, claims, and total compute as
+  operational metrics, not success metrics.
+
+---
+
 ## Explicit Non-Goals
 
 - [ ] Do not launch paid settlement or payouts before accepted receipts and reputation work publicly.
@@ -154,4 +262,4 @@ The current Cloud Run and Firestore path is transitional. The target Reploid con
 
 ---
 
-*Last updated: July 26, 2026*
+*Last updated: August 2026*
