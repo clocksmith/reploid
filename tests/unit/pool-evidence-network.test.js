@@ -79,6 +79,20 @@ describe('Poolday evidence network', () => {
     expect(verification.reasons).toContain('record hash mismatch');
   });
 
+  it('accepts a public protein proposal without optional reviewer intent', async () => {
+    const record = await createSignedResearchSubmission({
+      identity: await identity('requester', 'intent-optional'),
+      roomId: 'protein-room',
+      sequence: 'MAPLALLLLGLVAGA',
+      intent: { kind: 'question' },
+      consent: { publicSequence: true, publicEvidenceNetwork: true, publishEmbedding: true },
+      modelContract: model,
+      policyId: 'redundant_agreement'
+    });
+    expect(record.requesterIntent).toEqual({ kind: 'question', text: '', label: '', context: '' });
+    expect(await verifyResearchRecord(record)).toMatchObject({ ok: true });
+  });
+
   it('keeps human claims separate, attributable, and linked in the evidence graph', async () => {
     const requester = await identity('requester', 'one');
     const reviewer = await identity('reviewer', 'two');
