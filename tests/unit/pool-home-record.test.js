@@ -111,6 +111,36 @@ describe('Poolday record ledgers', () => {
     expect(html).toContain('<td>0</td>');
   });
 
+  it('labels points, reputation, and requester spend as distinct room records', () => {
+    const room = `record-event-labels-${crypto.randomUUID()}`;
+    setRoom(room);
+
+    setResult('missing-result-element', {
+      ledgerEvents: [
+        {
+          messageHash: 'points-provider-label',
+          type: PEER_MESSAGE_TYPES.POINTS_EVENT,
+          body: { userId: 'provider_page_a', points: 4, reason: 'accepted_receipt' }
+        },
+        {
+          messageHash: 'reputation-provider-label',
+          type: PEER_MESSAGE_TYPES.REPUTATION_EVENT,
+          body: { providerId: 'provider_page_a', points: 4, reason: 'accepted_receipt' }
+        },
+        {
+          messageHash: 'points-requester-label',
+          type: PEER_MESSAGE_TYPES.POINTS_EVENT,
+          body: { userId: 'requester_page_a', points: -4, reason: 'accepted_receipt_spend' }
+        }
+      ]
+    });
+
+    const html = renderRecordLedger('room');
+    expect(html).toContain('Contributor points credited');
+    expect(html).toContain('Contributor reputation updated');
+    expect(html).toContain('Requester points spent');
+  });
+
   it('serializes repeated result objects without losing arrays as circular values', () => {
     document.body.innerHTML = `
       <div id="pool-run-result-summary"></div>
@@ -132,6 +162,31 @@ describe('Poolday record ledgers', () => {
     expect(parsed.assignments[0].providerId).toBe('provider_a');
     expect(parsed.assignments[0].self).toBe('[Circular]');
     expect(parsed.firstAssignment.providerId).toBe('provider_a');
+  });
+
+  it('moves pooled embeddings out of raw results into the Protein embedding disclosure', () => {
+    document.body.innerHTML = `
+      <div id="pool-run-result-summary"></div>
+      <pre id="pool-run-result-raw"></pre>
+      <pre id="pool-run-result-stream"></pre>
+      <span id="pool-run-result-stream-cursor"></span>
+      <details id="pool-run-result-embedding-details" hidden><p id="pool-run-result-embedding-meta"></p><pre id="pool-run-result-embedding"></pre></details>
+    `;
+
+    setResult('pool-run-result', {
+      sequenceResultHash: 'sha256:embedding-result',
+      sequenceOutput: {
+        pooledEmbedding: [0.25, -0.5, 0.75],
+        tokenEmbeddings: null,
+        maskedLogits: []
+      }
+    }, { stream: true, animate: false });
+
+    expect(document.getElementById('pool-run-result-raw').textContent).not.toContain('0.25');
+    expect(document.getElementById('pool-run-result-raw').textContent).toContain('Rendered in Protein embedding');
+    expect(document.getElementById('pool-run-result-embedding-details').hidden).toBe(false);
+    expect(document.getElementById('pool-run-result-embedding-meta').textContent).toContain('3 dimensions');
+    expect(document.getElementById('pool-run-result-embedding').textContent).toContain('0.25');
   });
 
   it('renders clean answer contributors while preserving the full result', () => {

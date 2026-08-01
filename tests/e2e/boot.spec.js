@@ -398,6 +398,41 @@ test.describe('Route Entry Points', () => {
     await expect(mobileNav.getByRole('link', { name: 'Zero', exact: true })).toBeVisible();
   });
 
+  test('expanded desktop navigation reserves the Poolday home surface and keeps it centered', async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto('/');
+    await page.waitForSelector('nav.pool-nav-rail', { timeout: 20000 });
+    const rail = page.locator('nav.pool-nav-rail');
+    await rail.locator('.pool-nav-toggle').click();
+    await expect(rail).toHaveClass(/is-open/);
+    await expect.poll(() => rail.evaluate((node) => node.getBoundingClientRect().width)).toBeGreaterThanOrEqual(299);
+
+    const layout = await page.evaluate(() => {
+      const nav = document.querySelector('nav.pool-nav-rail')?.getBoundingClientRect();
+      const toolbar = document.querySelector('.pool-home-toolbar')?.getBoundingClientRect();
+      const stage = document.querySelector('.pool-home-stage')?.getBoundingClientRect();
+      const dock = document.querySelector('.pool-home-ask-dock')?.getBoundingClientRect();
+      const visibleCenter = nav ? nav.right + ((window.innerWidth - nav.right) / 2) : null;
+      const centerOf = (rect) => rect ? rect.left + (rect.width / 2) : null;
+      const atDockCenter = dock ? document.elementFromPoint(centerOf(dock), dock.top + (dock.height / 2)) : null;
+      return {
+        navRight: nav?.right ?? null,
+        stageLeft: stage?.left ?? null,
+        toolbarLeft: toolbar?.left ?? null,
+        dockLeft: dock?.left ?? null,
+        dockCenter: centerOf(dock),
+        visibleCenter,
+        dockBlockedByNav: !!atDockCenter?.closest?.('.pool-nav-rail')
+      };
+    });
+
+    expect(layout.stageLeft).toBeGreaterThanOrEqual((layout.navRight || 0) - 1);
+    expect(layout.toolbarLeft).toBeGreaterThanOrEqual((layout.navRight || 0) - 1);
+    expect(layout.dockLeft).toBeGreaterThanOrEqual((layout.navRight || 0) - 1);
+    expect(Math.abs((layout.dockCenter || 0) - (layout.visibleCenter || 0))).toBeLessThanOrEqual(2);
+    expect(layout.dockBlockedByNav).toBe(false);
+  });
+
   test('product routes fit a narrow mobile viewport without horizontal clipping', async ({ page }) => {
     await page.setViewportSize({ width: 320, height: 844 });
 

@@ -200,6 +200,61 @@ describe('pool p2p transport helpers', () => {
     expect(pc.addedIceCandidates).toEqual([{ candidate: 'candidate:latest', sdpMid: '0' }]);
   });
 
+  it('settles a connecting transport when explicitly closed', async () => {
+    class FakeDataChannel {
+      constructor() {
+        this.readyState = 'connecting';
+      }
+
+      close() {
+        this.readyState = 'closed';
+      }
+    }
+
+    class FakePeerConnection {
+      createDataChannel() {
+        return new FakeDataChannel();
+      }
+
+      async createOffer() {
+        return { type: 'offer', sdp: 'offer-sdp' };
+      }
+
+      async setLocalDescription(description) {
+        this.localDescription = description;
+      }
+
+      close() {
+        this.connectionState = 'closed';
+      }
+    }
+
+    const transport = createP2PTransport({
+      initiator: true,
+      signaling: {
+        subscribe: () => () => {},
+        sendOffer: vi.fn(),
+        sendAnswer: vi.fn(),
+        sendIceCandidate: vi.fn(),
+        sendClose: vi.fn()
+      },
+      RTCPeerConnectionImpl: FakePeerConnection,
+      RTCSessionDescriptionImpl: null,
+      RTCIceCandidateImpl: null
+    });
+
+    const connecting = transport.connect();
+    await Promise.resolve();
+    await Promise.resolve();
+    await transport.close('requester_connection_retry');
+
+    await expect(connecting).rejects.toMatchObject({
+      code: 'webrtc_connection_failed',
+      diagnostics: expect.objectContaining({ state: 'closing' })
+    });
+    expect(transport.getState()).toBe('closed');
+  });
+
   it('creates an assignment payload channel with cloud metadata signaling and DataChannel payload sends', async () => {
     const sentPayloads = [];
     let createdSessionRequest = null;

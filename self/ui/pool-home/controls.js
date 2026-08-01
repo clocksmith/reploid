@@ -158,6 +158,7 @@ const displayPoolError = (error, {
   code: error?.code || error?.payload?.code || null,
   retryable: error?.retryable ?? error?.payload?.retryable ?? null,
   action: error?.payload?.action || error?.action || action,
+  transportDiagnostics: error?.diagnostics || error?.payload?.diagnostics || null,
   ...context,
   payload: error?.payload || null
 });
@@ -181,28 +182,42 @@ const formatDeviceLabel = (deviceInfo = {}) => {
   ].filter(Boolean).join(' / ') || deviceInfo.probeStatus || 'unknown';
 };
 
-const getPageIdentityNamespace = (globalKey) => {
-  if (window[globalKey]) return window[globalKey];
+const pageIdentityNavigationType = (performanceRef = globalThis.performance) => {
+  try {
+    return performanceRef?.getEntriesByType?.('navigation')?.[0]?.type || null;
+  } catch {
+    return null;
+  }
+};
+
+export const getPageIdentityNamespace = (globalKey, {
+  windowRef = window,
+  navigationType = pageIdentityNavigationType()
+} = {}) => {
+  if (windowRef[globalKey]) return windowRef[globalKey];
   const storageKey = `reploid.pool.page-identity.${globalKey}`;
   try {
-    const stored = window.sessionStorage?.getItem(storageKey);
-    if (stored) {
-      window[globalKey] = stored;
+    const stored = windowRef.sessionStorage?.getItem(storageKey);
+    // sessionStorage is copied when a tab is duplicated or opened by an
+    // opener. Restore only after a reload/history traversal so a copied tab
+    // cannot impersonate the source tab's ephemeral role namespace.
+    if (stored && (navigationType === 'reload' || navigationType === 'back_forward')) {
+      windowRef[globalKey] = stored;
       return stored;
     }
   } catch {
     // A memory-only identity namespace remains valid for the current page.
   }
-  const id = window.crypto?.randomUUID
-    ? window.crypto.randomUUID()
+  const id = windowRef.crypto?.randomUUID
+    ? windowRef.crypto.randomUUID()
     : `${Date.now().toString(36)}_${Math.random().toString(36).slice(2)}`;
-  window[globalKey] = `page_${id}`;
+  windowRef[globalKey] = `page_${id}`;
   try {
-    window.sessionStorage?.setItem(storageKey, window[globalKey]);
+    windowRef.sessionStorage?.setItem(storageKey, windowRef[globalKey]);
   } catch {
     // A memory-only identity namespace remains valid for the current page.
   }
-  return window[globalKey];
+  return windowRef[globalKey];
 };
 
 const getProviderIdentityNamespace = () => getPageIdentityNamespace('REPLOID_POOL_PROVIDER_NAMESPACE');
@@ -820,6 +835,7 @@ const RUN_ACTIVITY_COPY = Object.freeze({
   peer_provider_discovery_started: 'Finding compatible contributor tabs',
   peer_assignment_planned: 'Contributor tabs matched',
   peer_inference_started: 'Contributor tabs are answering',
+  peer_transport_retrying: 'Retrying through relay transport',
   peer_receipts_received: 'Checking returned receipts',
   peer_agreement_verified: 'Agreement verified',
   peer_run_completed: 'Answer verified',
@@ -1160,7 +1176,11 @@ const bindPeerRunSurface = ({
         generationConfig: getPeerGenerationConfig(),
         knownProviderAdverts: request.knownProviderAdverts || [],
         rtcConfigProvider: getPeerRelayMode() === 'server'
-          ? () => getPoolRtcConfig({ sdk: rtcSdk })
+          // Server-relayed rooms need an Internet-safe data path.  Direct ICE
+          // remains available for local rooms; server rooms use their scoped
+          // TURN credentials so separate tabs and NAT-restricted peers do not
+          // depend on a host/srflx candidate pair winning the race.
+          ? () => getPoolRtcConfig({ sdk: rtcSdk, forceRelay: true })
           : null,
         onActivity: handleRunActivity
       });
@@ -1848,7 +1868,7 @@ const createProviderContributionController = () => {
       roomBusFactory: getPeerRoomBusFactory(),
       relayAckSigner: getProviderClient().createRelayAcknowledgement.bind(getProviderClient()),
       rtcConfigProvider: getPeerRelayMode() === 'server'
-        ? () => getPoolRtcConfig({ sdk: adapterSdk })
+        ? () => getPoolRtcConfig({ sdk: adapterSdk, forceRelay: true })
         : null,
       onActivity: handlePeerActivity
     });

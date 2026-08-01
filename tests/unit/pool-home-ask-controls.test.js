@@ -36,6 +36,7 @@ import {
   bindHomeAskControls,
   bindProviderControls,
   bindRunControls,
+  getPageIdentityNamespace,
   refreshParticipationControls,
   resetPoolDeviceCapabilityForTests,
   resetProviderContributionControllerForTests,
@@ -57,6 +58,14 @@ import {
 const clearStorage = () => {
   window.localStorage?.clear();
   window.sessionStorage?.clear();
+};
+
+const createMemoryStorage = (entries = []) => {
+  const values = new Map(entries);
+  return {
+    getItem: (key) => values.get(key) || null,
+    setItem: (key, value) => values.set(key, String(value))
+  };
 };
 
 describe('Poolday home ask controls', () => {
@@ -97,6 +106,36 @@ describe('Poolday home ask controls', () => {
     window.REPLOID_POOL_RECEIPT_WINDOW_MS = 1;
     window.REPLOID_POOL_SESSION_ACCEPT_WINDOW_MS = 11;
     window.REPLOID_POOL_TRANSPORT_CONNECT_WINDOW_MS = 12;
+  });
+
+  it('does not reuse a duplicated tab identity namespace but restores it after reload', () => {
+    const key = 'REPLOID_POOL_REQUESTER_NAMESPACE';
+    const storage = createMemoryStorage();
+    const sourceTab = { sessionStorage: storage, crypto: { randomUUID: () => 'source' } };
+    const sourceNamespace = getPageIdentityNamespace(key, {
+      windowRef: sourceTab,
+      navigationType: 'navigate'
+    });
+    const duplicateTab = {
+      sessionStorage: createMemoryStorage(Object.entries({
+        [`reploid.pool.page-identity.${key}`]: sourceNamespace
+      })),
+      crypto: { randomUUID: () => 'duplicate' }
+    };
+    const duplicateNamespace = getPageIdentityNamespace(key, {
+      windowRef: duplicateTab,
+      navigationType: 'navigate'
+    });
+    const reloadedDuplicate = {
+      sessionStorage: duplicateTab.sessionStorage,
+      crypto: { randomUUID: () => 'unexpected' }
+    };
+
+    expect(duplicateNamespace).not.toBe(sourceNamespace);
+    expect(getPageIdentityNamespace(key, {
+      windowRef: reloadedDuplicate,
+      navigationType: 'reload'
+    })).toBe(duplicateNamespace);
   });
 
   it('preserves workload and registry availability across participation modes', async () => {

@@ -290,10 +290,29 @@ export function createP2PTransport({
       // Closing is best-effort.
     }
 
-    closeLocal();
+    closeLocal(createConnectionError(
+      reason ? `peer transport closed while connecting: ${String(reason)}` : 'peer transport closed while connecting'
+    ));
   }
 
-  function closeLocal() {
+  function rejectPendingOpen(error) {
+    if (!rejectOpen) return;
+    rejectOpen(error);
+    rejectOpen = null;
+    resolveOpen = null;
+  }
+
+  function closeLocal(reason = null) {
+    // A close can occur before a DataChannel opens: explicit cancellation,
+    // remote close, and RTCPeerConnection.close() all take this path.  The
+    // connect() caller must settle in every case so a failed session cannot
+    // strand a provider slot or hide a retryable transport failure.
+    if (rejectOpen) {
+      rejectPendingOpen(reason instanceof Error
+        ? reason
+        : createConnectionError('peer transport closed before data channel opened'));
+    }
+
     if (unsubscribeSignals) {
       unsubscribeSignals();
       unsubscribeSignals = null;
@@ -328,7 +347,7 @@ export function createP2PTransport({
       rejectOpen = null;
     }
 
-    closeLocal();
+    closeLocal(error);
   }
 
   function wirePeerConnection(pc) {
@@ -403,7 +422,7 @@ export function createP2PTransport({
 
     channel.onclose = () => {
       if (state !== P2P_TRANSPORT_STATES.CLOSED && state !== P2P_TRANSPORT_STATES.FAILED) {
-        closeLocal();
+        closeLocal(createConnectionError('data channel closed before completion'));
       }
     };
   }

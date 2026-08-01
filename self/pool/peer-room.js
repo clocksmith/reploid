@@ -66,6 +66,29 @@ const withTimeout = (promise, timeoutMs, message) => new Promise((resolve, rejec
   );
 });
 
+const connectPeerTransport = async ({ session, timeoutMs } = {}) => {
+  try {
+    await withTimeout(
+      session.transport.connect(),
+      timeoutMs,
+      `Peer transport did not connect for provider ${session.assignment.providerId}`
+    );
+  } catch (error) {
+    const connectionError = error instanceof Error ? error : new Error(String(error));
+    if (!connectionError.code) connectionError.code = 'webrtc_connection_timeout';
+    if (!connectionError.diagnostics) {
+      connectionError.diagnostics = session.transport?.getDiagnostics?.() || null;
+    }
+    if (!connectionError.action) {
+      connectionError.action = connectionError.diagnostics?.turnConfigured
+        ? 'WebRTC did not connect through the configured TURN relay. Check network policy or TURN service health, then try again.'
+        : 'Direct ICE connectivity did not settle and no TURN relay is configured.';
+    }
+    connectionError.retryable = true;
+    throw connectionError;
+  }
+};
+
 const resolvePromptDispatchConcurrency = (value, sessionCount) => {
   const configured = value ?? globalThis.REPLOID_POOL_PROMPT_DISPATCH_CONCURRENCY ?? 1;
   return Math.max(1, Math.min(Math.max(1, Number(sessionCount || 1)), positiveInteger(configured, 1)));
@@ -587,11 +610,10 @@ export async function runPeerJob({
       if (index >= acceptedSessions.length) return;
       const session = acceptedSessions[index];
       try {
-        await withTimeout(
-          session.transport.connect(),
-          transportConnectWindowMs,
-          `Peer transport did not connect for provider ${session.assignment.providerId}`
-        );
+        await connectPeerTransport({
+          session,
+          timeoutMs: transportConnectWindowMs
+        });
         const inputPayload = intent.inputKind === 'sequence'
           ? await requesterClient.createPeerSequencePayload({
             assignment: session.assignment,
