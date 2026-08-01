@@ -87,6 +87,21 @@ Treat a finding as source-fixed only after the invariant and regression test pas
 
 ---
 
+## Delivery and Release Evidence
+
+Poolday relay delivery follows the bounded at-least-once contract in the [P2P envelope protocol](./poolday/p2p-envelope-protocol.md). It is not an exactly-once claim across browser reloads, overlapping clients, or Firestore restarts.
+
+For a relay or signaling repair, close these evidence layers separately:
+
+1. **Source contract.** The server assigns a transactionally monotonic sequence scoped to the peer room or signaling session. The publisher supplies an idempotent relay or signal ID. Repeating an ID with the same content returns the original record; reusing it with different content fails.
+2. **Consumer contract.** Clients page by the server sequence, retain a bounded dedupe window, and advance a cursor only after successful consumer dispatch. A listener failure leaves the record eligible for replay. Retry promises are handled, polling has a deadline, and failure, retry, and recovery state are observable.
+3. **Acknowledgement scope.** The server validates the signed proof and its room, relay ID, and sequence bindings. The receiving client matches the signer to the expected recipient in its persisted pending-delivery record. Together, those checks prove receipt of that relay record only. They do not prove inference execution, output correctness, receipt acceptance, hardware behavior, or terminal delivery after a reload.
+4. **Deployment contract.** Cursor and sequence queries require their Firestore indexes in the deployed project. Record the source commit, deployed service revision and traffic assignment, Hosting client build, effective indexes, and the HTTP result from the affected route. A green local test and a successful deployment command are different evidence.
+
+Treat a missing index, an unhandled polling rejection, a dispatch-before-dedupe mistake, a forged acknowledgement, or a relay ID collision as a containment event. Preserve the failing record and recovery state, then repair the owning relay, signaling, or client boundary. Do not hide the event with a generic retry.
+
+---
+
 ## State and Evidence Discipline
 
 These practices are general. Apply them within the owner surface rather than creating cross-surface state or authority.
@@ -177,6 +192,10 @@ Each repair needs a focused regression that fails on the old path. Useful fixtur
 | Authority side channel | Poison a non-authoritative input and assert the consumer is unchanged or rejects the missing authoritative input |
 | Missing evidence | Remove a required provider, artifact, receipt, or validation result and assert a blocked or unsupported result |
 | Cache identity mismatch | Change a behavior-affecting identity and assert the cache is not reused |
+| Relay ordering and idempotency | Publish same-timestamp records and replay an ID with changed content; assert monotonic ordering and collision rejection |
+| Dispatch and cursor recovery | Make a consumer throw, then retry the record; assert it is dispatched again before the cursor advances |
+| Acknowledgement authority | Submit a wrong-recipient, wrong-sequence, unsigned, or forged acknowledgement and assert sender delivery state remains pending |
+| Deployment query contract | Exercise the deployed cursor query against the provisioned Firestore indexes and assert the affected route returns its expected HTTP result |
 
 Run this focused lane before broader checks. Treat broader suites as release evidence, not as a substitute for the boundary regression. If a wrapper is blocked by an external guard or unrelated dirty worktree, report that condition and the direct focused result separately.
 
@@ -192,9 +211,9 @@ Source review is especially valuable at boundaries where a small default control
 
 - **Authorization fails closed.** Missing, malformed, or unverifiable identity must not satisfy a role, participant, provider, or coordinator check. Development exceptions must be explicit, disabled by default, and tied to a trustworthy local boundary.
 - **WebSocket upgrade is an authorization boundary.** Check the upgrade handler, not only message handlers. A remote bridge needs an authenticated connection before it can register an identity, enumerate peers, or delegate work. Origin policy is an additional browser control, not authentication for direct clients.
-- **Relay cursors form a total order.** A timestamp alone is not a durable cursor when multiple messages can share a millisecond. Use an ordered tuple such as `(createdAt, messageId)`, paginate from that exact position, and deduplicate retried records. Never advance the cursor beyond messages that were not returned.
-- **Pagination cannot silently discard backlog.** A newest-N query paired with a cursor advanced to the newest result loses older unseen records under load. Continue paging until caught up, or expose an explicit bounded-loss policy and make it unacceptable for offers, answers, acceptance, and ICE.
-- **Connection attempts always settle.** Every initial-connect promise must resolve or reject on open, error, close, timeout, and cancellation. Explicit stop/disconnect must suppress retry scheduling; retry must have bounded backoff and a visible terminal state.
+- **Relay cursors form a total order.** A timestamp alone is not a durable cursor when multiple messages can share a millisecond. Use a transactionally assigned, monotonic sequence scoped to the room or signaling session. Treat client timestamps as evidence, not cursor authority. An idempotency ID must return its original record only for byte-equivalent content and reject conflicting reuse.
+- **Pagination cannot silently discard backlog.** A newest-N query paired with a cursor advanced to the newest result loses older unseen records under load. Page in stable sequence order until caught up. Deduplicate only after consumer dispatch succeeds, and never advance the cursor past an unprocessed record.
+- **Polling and connection attempts always settle.** Every initial-connect or poll promise must resolve or reject on open, error, close, timeout, and cancellation. Handle rejected retry promises, use deadlines and bounded exponential backoff, and expose failure, recovery, and circuit state. Explicit stop/disconnect must suppress retry scheduling.
 - **Ordering-sensitive WebRTC messages are buffered.** ICE received before a remote description should be queued per peer, bounded, expired, and drained after the description is applied. Treat overflow and expiry as observable transport failures, not silent drops.
 - **Receipts bind returned bytes, not only metadata.** Recompute canonical hashes for returned tensors or other raw result bodies and compare them to the signed record before making the body available to a caller.
 - **Input contracts enforce the actual boundary.** A declared public biological-input policy needs a canonical alphabet and an unconditional resource limit; model metadata may tighten the limit but must not be its only enforcement point.
@@ -212,4 +231,4 @@ When two transports implement the same cursor, retry, ICE, or status concept, co
 | Zero tool error and retry trace | Retry is bounded or operator action is needed | A general code defect has been localized |
 | Static source review | A code path permits or fails to prevent the demonstrated condition | Production deployment has the same configuration or exposure |
 
-*Last updated: July 2026*
+*Last updated: August 2026*
