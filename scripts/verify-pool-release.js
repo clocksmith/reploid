@@ -89,8 +89,8 @@ try {
     ...(channel ? { REPLOID_E2E_CHROMIUM_CHANNEL: channel } : {})
   };
   const actualInferenceLanes = [
-    ['deployed relay-only Doppler text inference and receipt acceptance', 'loads Doppler'],
-    ['deployed relay-only ESM-2 protein inference and receipt acceptance', 'runs ESM-2'],
+    ['deployed relay-only ESM-2 protein inference and receipt acceptance', 'loads ESM-2, embeds'],
+    ['deployed relay-only queued-provider continuity and receipt acceptance', 'queues two public protein sequences'],
     ['deployed relay-only two-provider quorum inference and receipt acceptance', 'loads two independent']
   ];
   for (const [label, grep] of actualInferenceLanes) {
