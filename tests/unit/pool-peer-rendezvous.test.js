@@ -260,7 +260,13 @@ describe('pool peer rendezvous', () => {
         } : { messages: [] });
       }
     };
-    const bus = createSdkPeerRoomRelayBus({ sdk, roomId: 'consumer-error-room', pollIntervalMs: 1 });
+    const bus = createSdkPeerRoomRelayBus({
+      sdk,
+      roomId: 'consumer-error-room',
+      pollIntervalMs: 1,
+      pollBackoffBaseMs: 1,
+      pollBackoffMaxMs: 1
+    });
     let deliveries = 0;
     bus.addEventListener('message', () => {
       deliveries += 1;
@@ -273,6 +279,41 @@ describe('pool peer rendezvous', () => {
     expect(bus.getStatus().duplicateSuppressed).toBe(0);
     bus.close();
     vi.useRealTimers();
+  });
+
+  it('restores pending direct-delivery acknowledgement state after reload', async () => {
+    const entries = new Map();
+    const storage = {
+      getItem: (key) => entries.get(key) || null,
+      setItem: (key, value) => entries.set(key, value)
+    };
+    const sdk = {
+      publishPeerRoomMessage: () => Promise.resolve({}),
+      listPeerRoomMessages: () => Promise.resolve({ messages: [] })
+    };
+    const first = createSdkPeerRoomRelayBus({
+      sdk,
+      roomId: 'reload-room',
+      localPeerId: 'requester_1',
+      pendingAcknowledgementStorage: storage
+    });
+    await first.postMessage({
+      peerRoomVersion: 'reploid_peer_room/v1',
+      roomId: 'reload-room',
+      type: 'webrtc-signal',
+      body: { toPeerId: 'provider_1' }
+    });
+    expect(first.getStatus().pendingAcknowledgements).toBe(1);
+    first.close();
+
+    const restored = createSdkPeerRoomRelayBus({
+      sdk,
+      roomId: 'reload-room',
+      localPeerId: 'requester_1',
+      pendingAcknowledgementStorage: storage
+    });
+    expect(restored.getStatus().pendingAcknowledgements).toBe(1);
+    restored.close();
   });
 
   it('round-trips shareable room invite URLs', () => {

@@ -88,6 +88,7 @@ npm start                   # Start server
 - If the user asks what a route or UI does, inspect the actual route files, boot profile, VFS seed, and rendered state before proposing names or navigation changes.
 - The user controls public naming and product copy. Do not rename routes, labels, buttons, or trust language without direction.
 - For Poolday, claim only browser inference backed by signed records, audits, reputation, policy, and deterministic comparison. Do not imply trustless compute, hardware attestation, or guaranteed honest browser/GPU execution.
+- For Poolday relay or signaling work, describe delivery as bounded at-least-once; do not claim exactly-once delivery across browser reloads, restarts, or partitions. Verify source, deployed Firestore indexes, running revision and traffic, and the matching browser bundle as separate release evidence. A relay acknowledgement proves only recipient receipt of that relay record.
 - For Zero, operational questions require process parentage, provider status, VFS readability/writability, tool-call logs, and resume state before explanation.
 - For X, keep self-modification, swarm, validation, and promotion evidence separate from Poolday inference records.
 - If the user asks "deployed?", answer with deployed URL/build identifier, not general progress language.
