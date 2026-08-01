@@ -6,20 +6,27 @@ import {
 } from '../../self/pool/doppler-runtime.js';
 import { BROWSER_RUNTIME_CONFIG } from '../../self/pool/config.js';
 import { hashJson, sha256Hex } from '../../self/pool/inference-receipt.js';
-import { LAUNCH_MODEL, POOLDAY_MODEL_WORKLOADS, getEnabledPoolModelContract } from '../../self/pool/model-contract.js';
+import { LAUNCH_MODEL, getEnabledPoolModelContract } from '../../self/pool/model-contract.js';
+import {
+  TEST_PUBLIC_PROTEIN_SEQUENCE,
+  makePublicProteinJobFields
+} from '../helpers/pool-sequence-fixture.js';
+
+const testSequenceEncoding = (sequence) => ({
+  alphabet: 'amino_acid',
+  tokens: Uint32Array.from({ length: sequence.length }, (_, index) => index % 33),
+  includedTokenCount: sequence.length,
+  pooledEmbedding: new Float32Array([0.25, -0.5, 0.75]),
+  embeddingDim: 3,
+  vocabSize: 33
+});
 
 const launchHandle = () => ({
   modelId: LAUNCH_MODEL.modelId,
   modelHash: LAUNCH_MODEL.modelHash,
   manifestHash: LAUNCH_MODEL.manifestHash,
   artifactIdentity: LAUNCH_MODEL.artifactIdentity,
-  generate(prompt) {
-    return {
-      outputText: `answered:${prompt}`,
-      tokenIds: [101, 202],
-      tokenCounts: { input: 1, output: 2 }
-    };
-  }
+  encodeSequence: testSequenceEncoding
 });
 
 describe('Doppler browser runtime adapter', () => {
@@ -145,19 +152,14 @@ describe('Doppler browser runtime adapter', () => {
     });
     expect(globalThis.__DOPPLER_KERNEL_BASE_PATH__).toBe(BROWSER_RUNTIME_CONFIG.dopplerKernelBaseUrl);
 
-    const result = await runtime.generate({
-      prompt: 'hello',
-      generationConfig: {
-        mode: 'greedy',
-        maxOutputTokens: 4,
-        temperature: 0,
-        topK: 1,
-        topP: 1
-      },
-      assignment: { assignmentId: 'assignment_test' }
+    const sequenceFields = await makePublicProteinJobFields();
+    const result = await runtime.encodeSequence({
+      sequence: TEST_PUBLIC_PROTEIN_SEQUENCE,
+      request: sequenceFields.sequenceRequest,
+      assignment: { assignmentId: 'assignment_test', sequenceRequest: sequenceFields.sequenceRequest }
     });
-    expect(result.outputText).toBe('answered:hello');
-    expect(result.tokenIds).toEqual([101, 202]);
+    expect(result.sequenceResult).toMatchObject({ workload: 'sequence.embedding.v1' });
+    expect(result.embeddingDimensions).toBe(3);
   });
 
   it('keeps an explicit immutable artifact source even when Doppler promotes the model alias', async () => {
@@ -229,9 +231,7 @@ describe('Doppler browser runtime adapter', () => {
       load() {
         return {
           handle: {
-            generate() {
-              return { outputText: 'no identity' };
-            }
+            encodeSequence: testSequenceEncoding
           }
         };
       }
@@ -243,74 +243,9 @@ describe('Doppler browser runtime adapter', () => {
     expect(loaded.reason).toContain('Loaded Doppler handle must expose modelId');
   });
 
-  it('lets Qwen loads reach Doppler so the manifest capability fallback can remap shader-f16 paths', async () => {
-    const qwenModel = getEnabledPoolModelContract('qwen-3-5-0-8b-q4k-ehaf16');
-    let loadCalled = false;
-    globalThis.REPLOID_DOPPLER_MODULE = {
-      load() {
-        loadCalled = true;
-        return {
-          handle: {
-            modelId: qwenModel.modelId,
-            modelHash: qwenModel.modelHash,
-            manifestHash: qwenModel.manifestHash,
-            artifactIdentity: qwenModel.artifactIdentity,
-            generate(request) {
-              return {
-                outputText: `qwen:${request.prompt}`,
-                tokenIds: [404],
-                tokenCounts: { input: 1, output: 1 }
-              };
-            }
-          }
-        };
-      }
-    };
-
-    const runtime = createDopplerRuntime();
-    const loaded = await runtime.loadModel(qwenModel);
-
-    expect(loaded.ok).toBe(true);
-    expect(loadCalled).toBe(true);
-    expect(runtime.getModelInfo().modelId).toBe(qwenModel.modelId);
-  });
-
-  it('runs Qwen embedding handles through the explicit embedding workload path', async () => {
-    const embeddingModel = getEnabledPoolModelContract('qwen-3-embedding-0-6b-q4k-ehf16-af32');
-    const runtime = createDopplerRuntime({
-      model: embeddingModel,
-      modelSession: {
-        modelId: embeddingModel.modelId,
-        modelHash: embeddingModel.modelHash,
-        manifestHash: embeddingModel.manifestHash,
-        workload: POOLDAY_MODEL_WORKLOADS.embedding,
-        resetGenerationState() {},
-        embed(prompt, options = {}) {
-          return {
-            embedding: new Float32Array([0.6, 0.8]),
-            tokenCount: prompt.split(/\s+/).length,
-            options
-          };
-        }
-      }
-    });
-
-    expect(runtime.isReady()).toBe(true);
-    const result = await runtime.embed({
-      prompt: 'semantic search',
-      assignment: { assignmentId: 'assignment_embedding' }
-    });
-
-    expect(result.outputKind).toBe(POOLDAY_MODEL_WORKLOADS.embedding);
-    expect(result.embeddingDimensions).toBe(2);
-    expect(result.embeddingStats).toMatchObject({
-      dimensions: 2,
-      nonFiniteCount: 0,
-      l2Norm: 1
-    });
-    expect(result.vectorHash).toBe(await hashJson([Math.fround(0.6), Math.fround(0.8)]));
-    expect(result.tokenIds).toEqual([]);
-    expect(result.outputText).toBe('');
+  it('keeps retired text and Qwen embedding lanes out of the enabled Poolday catalog', () => {
+    expect(getEnabledPoolModelContract('qwen-3-5-0-8b-q4k-ehaf16')).toBeNull();
+    expect(getEnabledPoolModelContract('qwen-3-embedding-0-6b-q4k-ehf16-af32')).toBeNull();
   });
 
   it('derives public handle model hash from manifest shard identity', async () => {
@@ -338,6 +273,7 @@ describe('Doppler browser runtime adapter', () => {
         return {
           modelId: manifest.modelId,
           manifest,
+          encodeSequence: testSequenceEncoding,
           generate() {
             return { outputText: 'manifest evidence', tokenIds: [303] };
           }
@@ -386,6 +322,7 @@ describe('Doppler browser runtime adapter', () => {
           modelHash: artifactIdentity.weightPackHash,
           manifestHash: rawManifestHash,
           manifest,
+          encodeSequence: testSequenceEncoding,
           generate() {
             return { outputText: 'manifest hash representations agree', tokenIds: [505] };
           }
@@ -438,6 +375,7 @@ describe('Doppler browser runtime adapter', () => {
           manifestHash: manifestByteHash,
           manifest: runtimeManifest,
           artifactIdentity,
+          encodeSequence: testSequenceEncoding,
           generate() {
             return { outputText: 'verified byte identity', tokenIds: [606] };
           }
@@ -507,6 +445,7 @@ describe('Doppler browser runtime adapter', () => {
           modelId: 'https://cdn.example.test/models/qwen-3-5-0-8b-q4k-ehaf16',
           modelHash: 'loader-cache-id',
           manifest,
+          encodeSequence: testSequenceEncoding,
           generate() {
             return { outputText: 'manifest wins', tokenIds: [404] };
           }
@@ -542,6 +481,7 @@ describe('Doppler browser runtime adapter', () => {
       load() {
         return {
           manifest,
+          encodeSequence: testSequenceEncoding,
           generate() {
             return { outputText: 'wrong manifest hash' };
           }

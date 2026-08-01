@@ -10,6 +10,7 @@ import {
   modelSupportsPoolWorkload,
   modelSupportsAdapterRequirement
 } from './model-contract.js';
+import { isSequenceWorkload } from '../../self/pool/sequence-workload.js';
 import {
   deriveProviderAdmission,
   effectiveTrustTierForRingAdmissions,
@@ -207,7 +208,7 @@ const buildRingPlan = ({ job, policy, candidates, inputHash, generationConfigHas
   };
 };
 
-const buildAssignmentInput = ({ job, provider, model, policy, inputHash, generationConfigHash, groupSize, requiredAgreement = groupSize, assignmentAttemptId, ring = null, admission = null }) => ({
+const buildAssignmentInput = ({ job, provider, model, policy, inputHash, sequenceRequestHash = null, generationConfigHash, groupSize, requiredAgreement = groupSize, assignmentAttemptId, ring = null, admission = null }) => ({
   jobId: job.jobId,
   requesterId: job.requesterId,
   providerId: provider.providerId,
@@ -235,7 +236,21 @@ const buildAssignmentInput = ({ job, provider, model, policy, inputHash, generat
   redundancyGroupSize: groupSize,
   requiredAgreement,
   expiresAt: new Date(Date.now() + ASSIGNMENT_EXPIRY_MS).toISOString(),
-  prompt: job.prompt,
+  inputKind: isSequenceWorkload(job.modelRequirements?.workload || getPoolModelWorkload(model))
+    ? 'sequence'
+    : 'prompt',
+  // A coordinator schedules private sequence work using an immutable input
+  // commitment and request metadata. The raw sequence remains on the selected
+  // peer-to-peer data channel and is never copied into an assignment record.
+  prompt: isSequenceWorkload(job.modelRequirements?.workload || getPoolModelWorkload(model))
+    ? null
+    : job.prompt,
+  sequenceRequest: isSequenceWorkload(job.modelRequirements?.workload || getPoolModelWorkload(model))
+    ? job.sequenceRequest || null
+    : null,
+  sequenceRequestHash: isSequenceWorkload(job.modelRequirements?.workload || getPoolModelWorkload(model))
+    ? sequenceRequestHash
+    : null,
   generationConfig: job.generationConfig,
   auditId: job.auditId || null,
   ring,
@@ -285,7 +300,20 @@ export async function assignJob({ store, job, policy }) {
     };
   }
 
-  const inputHash = sha256Hex(job.prompt);
+  const workload = job.modelRequirements?.workload || getPoolModelWorkload(job.modelRequirements || {});
+  const sequenceWorkload = isSequenceWorkload(workload);
+  if (sequenceWorkload && (!job.inputHash || !job.sequenceRequest)) {
+    return {
+      ok: false,
+      reason: 'invalid_sequence_job_contract',
+      requiredProviders: minProviders,
+      eligibleProviders: providers.length
+    };
+  }
+  const inputHash = sequenceWorkload ? job.inputHash : sha256Hex(job.prompt);
+  const sequenceRequestHash = sequenceWorkload
+    ? job.sequenceRequestHash || hashJson(job.sequenceRequest)
+    : null;
   const generationConfigHash = hashJson(job.generationConfig || {});
   const assignmentAttemptId = assignmentAttemptIdForJob(job);
   const candidatePool = adaptiveRing
@@ -340,6 +368,7 @@ export async function assignJob({ store, job, policy }) {
       model: candidate.model,
       policy,
       inputHash,
+      sequenceRequestHash,
       generationConfigHash,
       groupSize: providerCount,
       requiredAgreement,
@@ -358,6 +387,7 @@ export async function assignJob({ store, job, policy }) {
     providerId: providerIds[0],
     providerIds,
     inputHash,
+    sequenceRequestHash,
     generationConfigHash,
     assignmentAttempts: assignmentAttemptId,
     assignmentAttemptId,

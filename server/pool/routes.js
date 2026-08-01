@@ -43,6 +43,7 @@ import {
 } from './turn-credentials.js';
 import { cursorForRelayRecord } from './relay-cursor.js';
 import { verifyPeerMessage } from '../../self/pool/peer-protocol.js';
+import { isSequenceWorkload } from '../../self/pool/sequence-workload.js';
 
 const asyncRoute = (handler) => (req, res, next) => {
   Promise.resolve(handler(req, res, next)).catch(next);
@@ -70,6 +71,11 @@ const createPoolRateLimiter = ({
   realtimeMaxRequests = POOL_REALTIME_RATE_LIMIT_MAX_REQUESTS
 } = {}) => {
   const buckets = new Map();
+  const rejectRateLimitedRequest = (res, resetAt) => {
+    const retryAfter = Math.max(1, Math.ceil((Number(resetAt) - Date.now()) / 1000));
+    res.setHeader('Retry-After', String(retryAfter));
+    return res.status(429).json({ error: 'pool rate limit exceeded', retryable: true, retryAfter });
+  };
   return async (req, res, next) => {
     const realtime = isRealtimeRelayRequest(req);
     const requestLimit = realtime ? realtimeMaxRequests : maxRequests;
@@ -82,7 +88,7 @@ const createPoolRateLimiter = ({
       res.setHeader('X-RateLimit-Remaining', String(Math.max(0, result.limit - result.count)));
       res.setHeader('X-RateLimit-Reset', String(result.resetAt));
       if (!result.allowed) {
-        return res.status(429).json({ error: 'pool rate limit exceeded', retryable: true });
+        return rejectRateLimitedRequest(res, result.resetAt);
       }
       return next();
     }
@@ -95,7 +101,7 @@ const createPoolRateLimiter = ({
     bucket.count += 1;
     buckets.set(key, bucket);
     if (bucket.count > requestLimit) {
-      return res.status(429).json({ error: 'pool rate limit exceeded', retryable: true });
+      return rejectRateLimitedRequest(res, bucket.resetAt);
     }
     return next();
   };
@@ -2270,6 +2276,13 @@ export function createPoolRouter({
     if (!sourceReceipt) return res.status(404).json({ error: 'source receipt not found' });
     const sourceJob = await store.getJob(sourceReceipt.jobId);
     if (!sourceJob) return res.status(404).json({ error: 'source job not found' });
+    if (isSequenceWorkload(sourceJob.modelRequirements?.workload)) {
+      return res.status(409).json({
+        error: 'sequence challenge rerun requires requester-mediated peer input',
+        retryable: false,
+        action: 'Ask the requester to submit a new public sequence challenge through the peer-room lane. Poolday does not retain raw sequences for coordinator reruns.'
+      });
+    }
     const providerId = body.providerId || sourceReceipt.providerId;
     const provider = await store.getProvider(providerId);
     if (!provider) return res.status(404).json({ error: 'provider not found' });

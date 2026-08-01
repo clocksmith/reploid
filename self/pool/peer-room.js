@@ -3,6 +3,7 @@
  */
 
 import {
+  P2P_TRANSPORT_STATES,
   createP2PProviderTransport,
   createP2PRequesterTransport
 } from './p2p-transport.js';
@@ -101,6 +102,7 @@ const openPeerRoomBus = ({
   remotePeerId = null,
   sessionId = null,
   relayAckSigner = null,
+  onRelayStatus = null,
   role = 'peer'
 } = {}) => {
   const resolvedRoomId = roomId || DEFAULT_PEER_ROOM_ID;
@@ -110,6 +112,7 @@ const openPeerRoomBus = ({
     remotePeerId,
     sessionId,
     relayAckSigner,
+    onStatus: onRelayStatus,
     role
   });
 };
@@ -130,21 +133,27 @@ function createRoomSignaling({
   localPeerId,
   remotePeerId = null,
   relayAckSigner = null,
+  onRelayStatus = null,
+  sharedChannel = null,
   roomBusFactory = createBroadcastPeerRoomBus
 } = {}) {
   const resolvedRoomId = roomId || DEFAULT_PEER_ROOM_ID;
   const resolvedSessionId = requireString(sessionId, 'sessionId');
   const resolvedLocalPeerId = requireString(localPeerId, 'localPeerId');
   const resolvedRemotePeerId = remotePeerId ? requireString(remotePeerId, 'remotePeerId') : null;
-  const channel = openPeerRoomBus({
+  const channel = sharedChannel || openPeerRoomBus({
     roomId: resolvedRoomId,
     roomBusFactory,
     sessionId: resolvedSessionId,
     localPeerId: resolvedLocalPeerId,
     remotePeerId: resolvedRemotePeerId,
     relayAckSigner,
+    onRelayStatus,
     role: 'signaling'
   });
+  if (!channel?.addEventListener || !channel?.removeEventListener || !channel?.postMessage) {
+    throw new TypeError('sharedChannel must implement the peer room bus contract');
+  }
   const listeners = new Set();
   const handler = (event) => {
     const message = event?.data;
@@ -194,7 +203,7 @@ function createRoomSignaling({
     sendClose: (reason = null) => sendSignal('close', { reason }),
     close() {
       channel.removeEventListener('message', handler);
-      channel.close();
+      if (!sharedChannel) channel.close();
       listeners.clear();
     }
   });
@@ -264,6 +273,47 @@ const createPeerAcceptanceError = ({
       .map((session) => session.assignment?.providerId)
       .filter(Boolean),
     action: 'The contributor stopped responding after discovery. Search again, run on this device, or invite another contributor.'
+  };
+  return error;
+};
+
+const createPeerReceiptAgreementError = ({
+  roomId,
+  agreement,
+  receiptPayloads = [],
+  receiptFailures = []
+} = {}) => {
+  const validReceiptCount = Number(agreement?.validRecords?.length || 0);
+  const requiredAgreement = Number(agreement?.requiredAgreement || 1);
+  const providerFailures = receiptFailures.map((failure) => ({
+    providerId: failure.providerId || null,
+    code: failure.code || null,
+    message: failure.message || 'Contributor did not return a receipt',
+    diagnostics: failure.diagnostics || null
+  }));
+  const providerUnavailable = receiptPayloads.length === 0
+    && providerFailures.length > 0
+    && providerFailures.every((failure) => (
+      failure.code === 'webrtc_connection_timeout'
+      || failure.code === 'peer_receipt_timeout'
+    ));
+  const error = new Error(
+    `Peer receipt agreement failed: ${validReceiptCount}/${requiredAgreement} matching receipts`
+    + `${providerFailures.length ? `; ${providerFailures.map((failure) => failure.message).join('; ')}` : ''}`
+  );
+  error.code = providerUnavailable ? 'peer_provider_unresponsive' : 'peer_receipt_agreement_failed';
+  error.retryable = true;
+  error.diagnostics = { providerFailures };
+  error.payload = {
+    roomId,
+    requiredAgreement,
+    validReceiptCount,
+    receiptCount: receiptPayloads.length,
+    failedProviderIds: providerFailures.map((failure) => failure.providerId).filter(Boolean),
+    providerFailures,
+    action: providerUnavailable
+      ? 'The selected contributor stopped responding before a signed receipt arrived. Search again, run on this device, or invite another contributor.'
+      : 'The returned receipts did not satisfy the selected agreement policy. Retry with compatible contributors or inspect the provider evidence.'
   };
   return error;
 };
@@ -433,6 +483,11 @@ export async function runPeerJob({
       // Presentation telemetry must not change peer execution or its receipts.
     }
   };
+  const reportRelayStatus = (event = {}) => {
+    const status = String(event.type || 'relay-status');
+    const phase = /publish|signal/.test(status) ? 'match' : 'infer';
+    reportActivity(status, phase, { relayStatus: event });
+  };
   try {
     const intent = await requesterClient.createPeerJobIntent({
       prompt,
@@ -451,6 +506,7 @@ export async function runPeerJob({
       roomBusFactory,
       relayAckSigner,
       localPeerId: intent.intent.body.requesterId,
+      onRelayStatus: reportRelayStatus,
       role: 'requester'
     });
     const requiredModel = intent.intent.body.modelRequirements || {};
@@ -513,6 +569,8 @@ export async function runPeerJob({
         localPeerId: assignment.requesterId,
         remotePeerId: assignment.providerId,
         relayAckSigner,
+        onRelayStatus: reportRelayStatus,
+        sharedChannel: channel,
         roomBusFactory
       });
       let receiptTimer = null;
@@ -526,7 +584,11 @@ export async function runPeerJob({
       const startReceiptTimer = () => {
         if (receiptTimer) return;
         receiptTimer = globalThis.setTimeout(() => {
-          rejectReceipt?.(new Error('No peer receipt returned in this room'));
+          const error = new Error('No peer receipt returned before the delivery deadline');
+          error.code = 'peer_receipt_timeout';
+          error.retryable = true;
+          error.diagnostics = transport?.getDiagnostics?.() || null;
+          rejectReceipt?.(error);
         }, receiptWindowMs);
       };
       const receiptPromise = new Promise((resolve, reject) => {
@@ -645,16 +707,27 @@ export async function runPeerJob({
     const receiptPayloads = receiptResults
       .filter((result) => result.status === 'fulfilled')
       .map((result) => result.value);
-    const receiptErrors = receiptResults
-      .filter((result) => result.status === 'rejected')
-      .map((result) => result.reason?.message || String(result.reason));
+    const receiptFailures = receiptResults
+      .map((result, index) => ({ result, session: acceptedSessions[index] }))
+      .filter(({ result }) => result.status === 'rejected')
+      .map(({ result, session }) => ({
+        providerId: session?.assignment?.providerId || null,
+        code: result.reason?.code || result.reason?.payload?.code || null,
+        message: result.reason?.message || String(result.reason),
+        diagnostics: result.reason?.diagnostics || result.reason?.payload?.diagnostics || null
+      }));
     reportActivity('peer_receipts_received', 'verify', {
       receiptCount: receiptPayloads.length,
-      receiptErrorCount: receiptErrors.length
+      receiptErrorCount: receiptFailures.length
     });
     const agreement = await buildPeerReceiptAgreement({ plan, receiptPayloads });
     if (!agreement.accepted) {
-      throw new Error(`Peer receipt agreement failed: ${agreement.validRecords.length}/${agreement.requiredAgreement} matching receipts${receiptErrors.length ? `; ${receiptErrors.join('; ')}` : ''}`);
+      throw createPeerReceiptAgreementError({
+        roomId,
+        agreement,
+        receiptPayloads,
+        receiptFailures
+      });
     }
     reportActivity('peer_agreement_verified', 'verify', {
       acceptedProviderCount: agreement.acceptedProviderCount,
@@ -726,9 +799,11 @@ export async function runPeerJob({
       agreement,
       ledgerEvents,
       requesterAcceptance: acceptance,
-      receiptErrors,
+      receiptErrors: receiptFailures.map((failure) => failure.message),
+      receiptFailures,
       acceptedSessionCount: acceptedSessions.length,
       acceptErrors,
+      relayMetrics: channel?.getStatus?.() || null,
       transportDiagnostics: acceptedSessions.map((session) => ({
         providerId: session.assignment.providerId,
         ...(session.transport.getDiagnostics?.() || {})
@@ -740,12 +815,12 @@ export async function runPeerJob({
     });
     throw error;
   } finally {
-    channel?.close();
     for (const session of sessions) {
       session.clearReceiptTimer?.();
       if (session.transport?.close) await Promise.resolve(session.transport.close('requester_done')).catch(() => {});
       if (session.signaling?.close) session.signaling.close();
     }
+    channel?.close();
   }
 }
 
@@ -790,7 +865,8 @@ export function createPeerProviderNode({
   };
 
   const removeActiveEntry = async (activeEntry, transport, signaling, reason = 'session_done') => {
-    if (!activeEntry) return;
+    if (!activeEntry || activeEntry.closing) return;
+    activeEntry.closing = true;
     activeTransports.delete(activeEntry);
     for (let index = pendingInputExecutions.length - 1; index >= 0; index -= 1) {
       if (pendingInputExecutions[index]?.activeEntry === activeEntry) {
@@ -951,6 +1027,18 @@ export function createPeerProviderNode({
     }
   };
 
+  const reportRelayStatus = (event = {}) => {
+    if (typeof onActivity !== 'function') return;
+    try {
+      onActivity({
+        status: String(event.type || 'relay-status'),
+        relayStatus: event
+      });
+    } catch {
+      // UI and telemetry must not interfere with the provider relay loop.
+    }
+  };
+
   const handleInputPayload = async ({ assignment, activeEntry, transport, signaling, payload }) => {
     const validation = await validateInputPayloadForAssignment(payload, assignment);
     if (!validation.ok) {
@@ -1035,16 +1123,26 @@ export function createPeerProviderNode({
       localPeerId: assignment.providerId,
       remotePeerId: assignment.requesterId,
       relayAckSigner,
+      onRelayStatus: reportRelayStatus,
+      sharedChannel: channel,
       roomBusFactory
     });
     const rtcConfig = typeof rtcConfigProvider === 'function'
       ? await rtcConfigProvider()
       : null;
     let activeEntry = null;
-    const transport = providerTransportFactory({
+    let transport = null;
+    transport = providerTransportFactory({
       signaling,
       initiator: false,
       ...(rtcConfig ? { rtcConfig } : {}),
+      onStateChange(state) {
+        if (!activeEntry || ![
+          P2P_TRANSPORT_STATES.CLOSED,
+          P2P_TRANSPORT_STATES.FAILED
+        ].includes(state)) return;
+        void removeActiveEntry(activeEntry, transport, signaling, `transport_${state}`);
+      },
       onMessage(payload) {
         if (payload?.type === P2P_PAYLOAD_TYPES.PROMPT || payload?.type === P2P_PAYLOAD_TYPES.INPUT) {
           void handleInputPayload({ assignment, activeEntry, transport, signaling, payload }).catch((error) => {
@@ -1084,7 +1182,8 @@ export function createPeerProviderNode({
       sessionId: body.sessionId,
       transport,
       signaling,
-      settleTimer: null
+      settleTimer: null,
+      closing: false
     };
     activeTransports.add(activeEntry);
     if (typeof onActivity === 'function') onActivity({ status: 'peer_session_opening', assignment });
@@ -1129,6 +1228,7 @@ export function createPeerProviderNode({
         roomBusFactory,
         relayAckSigner,
         localPeerId: advert.body?.providerId || advert.fromPeerId,
+        onRelayStatus: reportRelayStatus,
         role: 'provider'
       });
       channel.addEventListener('message', handler);

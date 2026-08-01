@@ -29,11 +29,12 @@ Guide to all documentation in the REPLOID project.
 
 ### Vision and Contracts
 - **[docs/substrate.md](./substrate.md)** - Substrate + Ouroboros contract
+- **[docs/poolday/product-intent.md](./poolday/product-intent.md)** - Canonical Poolday purpose, product hierarchy, P2P boundary, and Zero/X promotion path
 
 ### Reference
 - **[docs/API.md](./API.md)** - Module API documentation
 - **[docs/status/surface-claim-index.json](./status/surface-claim-index.json)** - Machine-checked surface status, evidence, blockers, and claim permission
-- **[docs/browser-inference-pool.md](./browser-inference-pool.md)** - Poolday docs/internal contract for the public Reploid browser inference surface
+- **[docs/browser-inference-pool.md](./browser-inference-pool.md)** - Current Poolday runtime, peer, coordinator, and deployment contract
 - **[docs/poolday/claims-and-nonclaims.md](./poolday/claims-and-nonclaims.md)** - Poolday claim boundary
 - **[docs/poolday/threat-model.md](./poolday/threat-model.md)** - Poolday adversaries, trust boundaries, and evidence
 - **[docs/poolday/receipt-schema.md](./poolday/receipt-schema.md)** - Provider receipts and requester acceptances
@@ -147,4 +148,4 @@ reploid/
 
 ---
 
-*Last updated: March 2026*
+*Last updated: August 2026*

@@ -23,6 +23,7 @@ import { resetPoolLedgerStore } from './ledger-store.js';
 import {
   applyPoolDashboardView,
   bindCapabilityAssessmentControls,
+  bindEmbeddingResultControls,
   bindHomeAskControls,
   bindParticipationControls,
   bindPoolDashboardControls,
@@ -168,6 +169,7 @@ export function initPoolHome(mount) {
     bindPoolDashboardControls();
     bindCapabilityAssessmentControls();
     bindRunControls();
+    bindEmbeddingResultControls();
     bindProviderControls();
     bindParticipationControls();
     bindRoomActivityControls();

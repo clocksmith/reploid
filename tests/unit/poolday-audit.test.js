@@ -39,6 +39,10 @@ import {
   REPUTATION_EVENT_TYPES,
   reduceReputationEvents
 } from '../../self/pool/reputation.js';
+import {
+  makePublicProteinJobFields,
+  makeSequenceExecution
+} from '../helpers/pool-sequence-fixture.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -52,13 +56,15 @@ const launchModelRequirement = () => ({
   backend: LAUNCH_MODEL.backend
 });
 
-const assignmentFixture = async () => ({
+const assignmentFixture = async () => {
+  const sequenceFields = await makePublicProteinJobFields();
+  return {
   assignmentId: 'assignment_audit',
   jobId: 'job_audit',
   requesterId: 'requester_audit',
   providerId: 'provider_audit',
   policyId: 'fastest_receipt',
-  inputHash: await sha256Hex('audit prompt'),
+  ...sequenceFields,
   generationConfigHash: await hashJson(DETERMINISTIC_GENERATION_CONFIG),
   generationConfig: { ...DETERMINISTIC_GENERATION_CONFIG },
   model: {
@@ -66,9 +72,17 @@ const assignmentFixture = async () => ({
     hash: LAUNCH_MODEL.modelHash,
     manifestHash: LAUNCH_MODEL.manifestHash,
     runtime: LAUNCH_MODEL.runtime,
-    backend: LAUNCH_MODEL.backend
+    backend: LAUNCH_MODEL.backend,
+    workload: LAUNCH_MODEL.workload,
+    executionMode: LAUNCH_MODEL.executionMode,
+    sequence: LAUNCH_MODEL.sequence,
+    requirements: {
+      ...launchModelRequirement(),
+      sequenceRequest: sequenceFields.sequenceRequest
+    }
   }
-});
+  };
+};
 
 describe('Poolday audit boundaries', () => {
   it('keeps Poolday, Zero, and X route profiles separate', () => {
@@ -127,6 +141,7 @@ describe('Poolday signatures and receipts', () => {
     const keyPair = await createSigningKeyPair();
     const publicKey = await exportPublicKey(keyPair.publicKey);
     const assignment = await assignmentFixture();
+    const execution = await makeSequenceExecution({ assignment });
     const receipt = await buildPoolReceipt({
       assignment,
       provider: {
@@ -138,18 +153,7 @@ describe('Poolday signatures and receipts', () => {
         runtime: LAUNCH_MODEL.runtime,
         backend: LAUNCH_MODEL.backend
       },
-      execution: {
-        outputText: 'audit output',
-        tokenIds: [1, 2, 3],
-        transcript: {
-          outputText: 'audit output',
-          tokenIds: [1, 2, 3]
-        },
-        tokenCounts: {
-          input: 2,
-          output: 3
-        }
-      }
+      execution
     });
     const signed = await signProviderReceipt(receipt, keyPair.privateKey);
 
@@ -168,49 +172,35 @@ describe('Poolday signatures and receipts', () => {
     )).resolves.toBe(false);
 
     await expect(verifyReceipt(signed, publicKey, {
-      outputText: 'audit output',
-      tokenIds: [1, 2, 3],
-      transcript: {
-        outputText: 'audit output',
-        tokenIds: [1, 2, 3]
-      }
+      ...execution
     })).resolves.toMatchObject({ ok: true });
 
     await expect(verifyReceipt({
       ...signed,
       signatureDomain: SIGNATURE_DOMAINS.requesterAcceptance
     }, publicKey, {
-      outputText: 'audit output',
-      tokenIds: [1, 2, 3],
-      transcript: {
-        outputText: 'audit output',
-        tokenIds: [1, 2, 3]
-      }
+      ...execution
     })).resolves.toMatchObject({
       ok: false,
       reasons: expect.arrayContaining(['provider receipt signature domain mismatch'])
     });
   });
 
-  it('changes canonical receipt hash when assignment, model, prompt, runtime, or token output changes', async () => {
+  it('changes canonical receipt hash when assignment, model, sequence, runtime, or result output changes', async () => {
     const assignment = await assignmentFixture();
     const base = await buildPoolReceipt({
       assignment,
       provider: { device: {}, runtimeProfileHash: 'sha256:runtime_a' },
       model: assignment.model,
       runtime: { runtime: LAUNCH_MODEL.runtime, backend: LAUNCH_MODEL.backend },
-      execution: {
-        outputText: 'same',
-        tokenIds: [1],
-        transcript: { outputText: 'same', tokenIds: [1] }
-      }
+      execution: await makeSequenceExecution({ assignment })
     });
     const variants = [
       { ...base, assignmentId: 'assignment_other' },
       { ...base, model: { ...base.model, hash: 'sha256:other_model' } },
-      { ...base, inputHash: 'sha256:other_prompt' },
+      { ...base, inputHash: 'sha256:other_sequence' },
       { ...base, verification: { ...base.verification, runtimeProfileHash: 'sha256:runtime_b' } },
-      { ...base, tokenIdsHash: 'sha256:other_tokens' }
+      { ...base, sequenceResultHash: 'sha256:other_sequence_result' }
     ];
     const baseHash = await hashJson(base);
     for (const variant of variants) {

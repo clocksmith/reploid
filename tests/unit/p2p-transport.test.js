@@ -200,6 +200,98 @@ describe('pool p2p transport helpers', () => {
     expect(pc.addedIceCandidates).toEqual([{ candidate: 'candidate:latest', sdpMid: '0' }]);
   });
 
+  it('counts early ICE candidates that expire before the remote description arrives', async () => {
+    let signalHandler = null;
+    let timestamp = 0;
+    class FakeDataChannel {
+      constructor() {
+        this.readyState = 'connecting';
+      }
+
+      close() {
+        this.readyState = 'closed';
+      }
+    }
+
+    class FakePeerConnection {
+      static instances = [];
+
+      constructor() {
+        this.localDescription = null;
+        this.remoteDescription = null;
+        this.addedIceCandidates = [];
+        FakePeerConnection.instances.push(this);
+      }
+
+      createDataChannel() {
+        this.channel = new FakeDataChannel();
+        return this.channel;
+      }
+
+      async createOffer() {
+        return { type: 'offer', sdp: 'offer-sdp' };
+      }
+
+      async setLocalDescription(description) {
+        this.localDescription = description;
+      }
+
+      async setRemoteDescription(description) {
+        this.remoteDescription = description;
+        this.channel.readyState = 'open';
+        this.channel.onopen?.();
+      }
+
+      async addIceCandidate(candidate) {
+        this.addedIceCandidates.push(candidate);
+      }
+
+      close() {}
+    }
+
+    const transport = createP2PTransport({
+      initiator: true,
+      signaling: {
+        subscribe(callback) {
+          signalHandler = callback;
+          return () => {};
+        },
+        sendOffer: vi.fn(),
+        sendAnswer: vi.fn(),
+        sendIceCandidate: vi.fn()
+      },
+      pendingRemoteIceTtlMs: 10,
+      now: () => timestamp,
+      RTCPeerConnectionImpl: FakePeerConnection,
+      RTCSessionDescriptionImpl: null,
+      RTCIceCandidateImpl: null
+    });
+
+    const ready = transport.connect();
+    await Promise.resolve();
+    await Promise.resolve();
+    signalHandler({
+      type: SIGNAL_TYPES.ICE_CANDIDATE,
+      payload: { candidate: 'candidate:early', sdpMid: '0' }
+    });
+    await Promise.resolve();
+    timestamp = 11;
+    signalHandler({
+      type: SIGNAL_TYPES.ANSWER,
+      payload: { type: 'answer', sdp: 'answer-sdp' }
+    });
+    await ready;
+
+    const diagnostics = transport.getDiagnostics();
+    expect(FakePeerConnection.instances[0].addedIceCandidates).toEqual([]);
+    expect(diagnostics).toMatchObject({
+      remoteIceCandidateCount: 1,
+      pendingRemoteIceCandidateCount: 0,
+      expiredRemoteIceCandidateCount: 1,
+      overflowRemoteIceCandidateCount: 0
+    });
+  });
+
   it('settles a connecting transport when explicitly closed', async () => {
     class FakeDataChannel {
       constructor() {
@@ -253,6 +345,62 @@ describe('pool p2p transport helpers', () => {
       diagnostics: expect.objectContaining({ state: 'closing' })
     });
     expect(transport.getState()).toBe('closed');
+  });
+
+  it('cleans up the peer connection and signal subscription when offer setup fails', async () => {
+    let unsubscribed = false;
+    const states = [];
+    class FakeDataChannel {
+      constructor() {
+        this.readyState = 'connecting';
+      }
+
+      close() {
+        this.readyState = 'closed';
+      }
+    }
+
+    class FakePeerConnection {
+      constructor() {
+        this.closed = false;
+      }
+
+      createDataChannel() {
+        return new FakeDataChannel();
+      }
+
+      async createOffer() {
+        throw new Error('synthetic offer failure');
+      }
+
+      close() {
+        this.closed = true;
+      }
+    }
+
+    const transport = createP2PTransport({
+      initiator: true,
+      signaling: {
+        subscribe: () => () => {
+          unsubscribed = true;
+        },
+        sendOffer: vi.fn(),
+        sendAnswer: vi.fn(),
+        sendIceCandidate: vi.fn()
+      },
+      onStateChange: (state) => states.push(state),
+      RTCPeerConnectionImpl: FakePeerConnection,
+      RTCSessionDescriptionImpl: null,
+      RTCIceCandidateImpl: null
+    });
+
+    await expect(transport.connect()).rejects.toThrow('synthetic offer failure');
+
+    expect(unsubscribed).toBe(true);
+    expect(transport.getPeerConnection()).toBeNull();
+    expect(transport.getDataChannel()).toBeNull();
+    expect(transport.getState()).toBe('failed');
+    expect(states).toEqual(['connecting', 'failed']);
   });
 
   it('creates an assignment payload channel with cloud metadata signaling and DataChannel payload sends', async () => {

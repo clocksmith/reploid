@@ -21,6 +21,10 @@ import {
   buildAssignmentCommitmentPayload,
   buildAssignmentRevealPayload
 } from '../../self/pool/p2p-payload.js';
+import {
+  makePublicProteinJobFields,
+  makeSequenceExecution
+} from '../helpers/pool-sequence-fixture.js';
 
 const dispatchJson = async (router, path, {
   method = 'GET', body = null, headers = {}, ip = '127.0.0.1'
@@ -51,11 +55,11 @@ const dispatchJson = async (router, path, {
         return this;
       },
       json(payload) {
-        resolve({ status: this.statusCode, body: payload });
+        resolve({ status: this.statusCode, body: payload, headers: this.headers });
         return this;
       },
       end(payload) {
-        resolve({ status: this.statusCode, body: payload || null });
+        resolve({ status: this.statusCode, body: payload || null, headers: this.headers });
         return this;
       }
     };
@@ -71,7 +75,10 @@ const launchModel = () => ({
   modelHash: LAUNCH_MODEL.modelHash,
   manifestHash: LAUNCH_MODEL.manifestHash,
   runtime: LAUNCH_MODEL.runtime,
-  backend: LAUNCH_MODEL.backend
+  backend: LAUNCH_MODEL.backend,
+  workload: LAUNCH_MODEL.workload,
+  executionMode: LAUNCH_MODEL.executionMode,
+  sequence: LAUNCH_MODEL.sequence
 });
 
 const registerRingProviders = async (store, count) => {
@@ -137,12 +144,16 @@ const createRingJob = async ({ store, providerCount = 4 } = {}) => {
   const providers = await registerRingProviders(store, providerCount);
   const requesterKeys = await createSigningKeyPair();
   const policy = getPolicy('ring_quorum_receipt');
+  const sequenceFields = await makePublicProteinJobFields();
   const job = store.createJob({
     requesterId: 'requester_ring',
     requesterPublicKey: await exportPublicKey(requesterKeys.publicKey),
-    prompt: 'deterministic ring prompt',
     policyId: 'ring_quorum_receipt',
-    modelRequirements: launchModel(),
+    ...sequenceFields,
+    modelRequirements: {
+      ...launchModel(),
+      sequenceRequest: sequenceFields.sequenceRequest
+    },
     generationConfig: { ...DETERMINISTIC_GENERATION_CONFIG },
     verificationLevel: policy.verificationLevel,
     trustTier: policy.trustTier
@@ -157,26 +168,18 @@ const createRingJob = async ({ store, providerCount = 4 } = {}) => {
   };
 };
 
-const signedReceiptFor = async ({ assignment, providerKeys, outputText = 'same output', tokenIds = [1, 2, 3] }) => {
-  const transcript = { outputText, tokenIds };
+const signedReceiptFor = async ({ assignment, providerKeys, pooledEmbedding = [0.25, -0.5, 0.75] }) => {
+  const execution = await makeSequenceExecution({ assignment, pooledEmbedding });
   const receipt = await buildPoolReceipt({
     assignment,
     provider: { device: {} },
     model: assignment.model,
     runtime: { runtime: 'doppler', backend: 'browser-webgpu' },
-    execution: {
-      outputText,
-      tokenIds,
-      transcript,
-      tokenCounts: { input: 1, output: tokenIds.length },
-      timing: {}
-    }
+    execution
   });
   receipt.verification.runtimeProfileHash = assignment.runtimeProfileHash;
   return {
-    outputText,
-    tokenIds,
-    transcript,
+    ...execution,
     receipt: await signProviderReceipt(receipt, providerKeys.keyPair.privateKey)
   };
 };
@@ -191,26 +194,19 @@ const unlockRingP2pTransport = async (store, assignment) => {
   await store.updateAssignment(assignment.assignmentId, { status: 'reveal_open' });
 };
 
-const openRingReveal = async ({ router, assignments, providers, outputText = 'same output', tokenIds = [1, 2, 3] }) => {
+const openRingReveal = async ({ router, assignments, providers }) => {
   const payloads = new Map();
   const commitments = new Map();
   for (const assignment of assignments) {
     const payload = await signedReceiptFor({
       assignment,
       providerKeys: providers.get(assignment.providerId),
-      outputText,
-      tokenIds
     });
     payloads.set(assignment.assignmentId, payload);
-    const execution = {
-      outputText: payload.outputText,
-      tokenIds: payload.tokenIds,
-      transcript: payload.transcript
-    };
     const commitment = await buildAssignmentCommitmentPayload({
       assignment,
       providerId: assignment.providerId,
-      execution,
+      execution: payload,
       receipt: payload.receipt,
       salt: `salt_${assignment.assignmentId}`
     });
@@ -225,11 +221,7 @@ const openRingReveal = async ({ router, assignments, providers, outputText = 'sa
     const reveal = await buildAssignmentRevealPayload({
       assignment,
       providerId: assignment.providerId,
-      execution: {
-        outputText: payload.outputText,
-        tokenIds: payload.tokenIds,
-        transcript: payload.transcript
-      },
+      execution: payload,
       receipt: payload.receipt,
       salt: `salt_${assignment.assignmentId}`,
       commitmentHash: commitments.get(assignment.assignmentId).commitmentHash
@@ -393,8 +385,10 @@ describe('pool coordinator routes', () => {
       status: 429,
       body: {
         error: 'pool rate limit exceeded',
-        retryable: true
-      }
+        retryable: true,
+        retryAfter: expect.any(Number)
+      },
+      headers: { 'retry-after': expect.any(String) }
     });
   });
 
@@ -455,7 +449,7 @@ describe('pool coordinator routes', () => {
     expect(response.body.error).toBe('invalid provider participation identity');
   });
 
-  it('creates a delayed challenge rerun from a prior receipt', async () => {
+  it('does not create a coordinator rerun for a retained-hash-only sequence receipt', async () => {
     store.kind = 'memory';
     router = createPoolRouter({ store, allowUnauthenticatedLocal: true, allowCanaryCreation: true });
     const providerKeys = await createSigningKeyPair();
@@ -465,20 +459,22 @@ describe('pool coordinator routes', () => {
       models: [launchModel()],
       availability: { acceptedPolicies: ['fastest_receipt'] }
     });
+    const sequenceFields = await makePublicProteinJobFields();
     const sourceJob = store.createJob({
       requesterId: 'requester_challenge',
       requesterPublicKey: 'requester-challenge-key',
-      prompt: 'repeat this deterministic result',
       policyId: 'fastest_receipt',
-      modelRequirements: launchModel(),
+      ...sequenceFields,
+      modelRequirements: {
+        ...launchModel(),
+        sequenceRequest: sequenceFields.sequenceRequest
+      },
       generationConfig: { ...DETERMINISTIC_GENERATION_CONFIG }
     });
     store.saveReceipt('sha256:challenge-source', {
       receiptHash: 'sha256:challenge-source',
       jobId: sourceJob.jobId,
       providerId: provider.providerId,
-      outputText: 'deterministic result',
-      tokenIds: [41, 42],
       receipt: {
         providerId: provider.providerId,
         model: {
@@ -496,48 +492,13 @@ describe('pool coordinator routes', () => {
       body: { receiptHash: 'sha256:challenge-source' }
     });
 
-    expect(response.status).toBe(200);
-    expect(response.body.audit).toMatchObject({
-      kind: 'delayed_challenge_rerun',
-      providerId: provider.providerId,
-      status: 'assigned',
-      metadata: {
-        sourceReceiptHash: 'sha256:challenge-source',
-        sourceJobId: sourceJob.jobId
+    expect(response).toMatchObject({
+      status: 409,
+      body: {
+        error: 'sequence challenge rerun requires requester-mediated peer input',
+        retryable: false
       }
     });
-    expect(response.body.job).toMatchObject({
-      auditKind: 'delayed_challenge_rerun',
-      status: 'assigned'
-    });
-    expect(response.body.assignment).toMatchObject({
-      providerId: provider.providerId,
-      auditKind: 'delayed_challenge_rerun',
-      prompt: sourceJob.prompt
-    });
-
-    const challengePayload = await signedReceiptFor({
-      assignment: response.body.assignment,
-      providerKeys: { keyPair: providerKeys },
-      outputText: 'deterministic result',
-      tokenIds: [41, 42]
-    });
-    const completed = await submitReceipt(router, response.body.assignment, challengePayload);
-
-    expect(completed.status).toBe(200);
-    expect(completed.body.routeDecision).toMatchObject({
-      mode: 'canary',
-      canary: {
-        accepted: true,
-        audit: { kind: 'delayed_challenge_rerun', status: 'passed' }
-      },
-      reputation: {
-        challengePasses: 1,
-        challengeFailures: 0,
-        routingBlocked: false
-      }
-    });
-    expect((await store.listPoolEventsForProvider(provider.providerId)).map((event) => event.type)).toContain('challenge_passed');
   });
 
   it('absorbs one invalid ring receipt while quorum remains possible', async () => {

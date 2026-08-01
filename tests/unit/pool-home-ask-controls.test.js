@@ -32,7 +32,9 @@ vi.mock('../../self/pool/adapter-registry.js', async (importOriginal) => ({
 
 import {
   POOL_CONTRIBUTION_RESUME_STORAGE_KEY,
+  POOL_PENDING_REQUEST_STORAGE_KEY,
   bindCapabilityAssessmentControls,
+  bindEmbeddingResultControls,
   bindHomeAskControls,
   bindProviderControls,
   bindRunControls,
@@ -106,6 +108,30 @@ describe('Poolday home ask controls', () => {
     window.REPLOID_POOL_RECEIPT_WINDOW_MS = 1;
     window.REPLOID_POOL_SESSION_ACCEPT_WINDOW_MS = 11;
     window.REPLOID_POOL_TRANSPORT_CONNECT_WINDOW_MS = 12;
+  });
+
+  it('copies a completed embedding vector without copying its receipt metadata', async () => {
+    const writeText = vi.fn(async () => {});
+    const originalClipboard = Object.getOwnPropertyDescriptor(navigator, 'clipboard');
+    Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText } });
+    document.body.innerHTML = `
+      <section class="pool-embedding-outcome">
+        <button data-pool-copy-embedding data-pool-embedding-result-id="pool-run-result"></button>
+        <p data-pool-embedding-copy-status></p>
+      </section>
+      <pre id="pool-run-result-embedding">[0.25,-0.5,0.75]</pre>
+    `;
+
+    try {
+      bindEmbeddingResultControls();
+      document.querySelector('[data-pool-copy-embedding]').click();
+
+      await vi.waitFor(() => expect(writeText).toHaveBeenCalledWith('[0.25,-0.5,0.75]'));
+      expect(document.querySelector('[data-pool-embedding-copy-status]').textContent).toBe('Embedding vector copied.');
+    } finally {
+      if (originalClipboard) Object.defineProperty(navigator, 'clipboard', originalClipboard);
+      else delete navigator.clipboard;
+    }
   });
 
   it('does not reuse a duplicated tab identity namespace but restores it after reload', () => {
@@ -247,104 +273,18 @@ describe('Poolday home ask controls', () => {
     delete window.REPLOID_POOL_SESSION_ACCEPT_WINDOW_MS;
     delete window.REPLOID_POOL_TRANSPORT_CONNECT_WINDOW_MS;
     delete window.REPLOID_POOL_RUN_VISUAL_STATE;
+    delete window.REPLOID_POOL_FORCE_RELAY;
     delete window.REPLOID_DOPPLER_RUNTIME;
     peerRoomMocks.runPeerJob.mockClear();
     vi.restoreAllMocks();
   });
 
-  it('turns the adapter lane into an exact adapter job instead of a visual mode', async () => {
-    window.history.replaceState({}, '', '/?room=adapter-room&relay=local');
+  it('submits the public ESM-2 protein lane as a peer request', async () => {
+    window.history.replaceState({}, '', '/?room=sequence-room&relay=server');
     document.body.innerHTML = `
-      <section class="pool-home-stage" data-pool-run-surface="home" data-run-state="idle" data-pool-lane="text">
-        <button class="pool-lane-chip is-active" data-pool-lane="text" aria-pressed="true">Text</button>
-        <button class="pool-lane-chip" data-pool-lane="adapters" data-pool-composer-adapter-lane aria-pressed="false">Adapters</button>
-        <form id="pool-home-ask-form">
-          <label data-pool-home-adapter-picker hidden>
-            <select id="pool-home-adapter"></select>
-          </label>
-          <input id="pool-home-ask-prompt" value="Explain browser inference" data-pool-suggested-prompt="Explain browser inference">
-          <button id="pool-home-run-submit" type="submit">Run</button>
-        </form>
-        <p data-pool-run-status></p>
-        <section data-pool-run-output hidden>
-          <div id="pool-home-run-result-summary"></div>
-          <pre id="pool-home-run-result-stream"></pre>
-          <span id="pool-home-run-result-stream-cursor"></span>
-          <div id="pool-home-run-result-evidence"></div>
-          <pre id="pool-home-run-result-raw"></pre>
-        </section>
-      </section>
-    `;
-
-    bindHomeAskControls();
-    document.querySelector('[data-pool-lane="adapters"]').click();
-    await vi.waitFor(() => expect(adapterRegistryMocks.listFetchableAdapterPublications).toHaveBeenCalled());
-    await vi.waitFor(() => expect(document.getElementById('pool-home-adapter').options.length).toBe(2));
-    expect(document.querySelector('[data-pool-home-adapter-picker]').hidden).toBe(false);
-    document.getElementById('pool-home-adapter').value = adapterPublication.packHash;
-    document.getElementById('pool-home-ask-form').dispatchEvent(new Event('submit', {
-      bubbles: true,
-      cancelable: true
-    }));
-    await vi.waitFor(() => expect(peerRoomMocks.runPeerJob).toHaveBeenCalledTimes(1));
-
-    expect(peerRoomMocks.runPeerJob.mock.calls[0][0].modelRequirements.adapter).toMatchObject({
-      packHash: adapterPublication.packHash,
-      publicationHash: adapterPublication.publicationHash,
-      publisherId: 'publisher-ui',
-      state: 'fetchable'
-    });
-    expect(document.querySelector('.pool-home-stage').dataset.poolLane).toBe('adapters');
-  });
-
-  it('returns to text and removes adapter controls when no promoted pack remains', async () => {
-    window.history.replaceState({}, '', '/?room=adapter-empty-room&relay=local');
-    document.body.innerHTML = `
-      <section class="pool-home-stage" data-pool-run-surface="home" data-run-state="idle" data-pool-lane="text">
-        <button class="pool-lane-chip is-active" data-pool-lane="text" aria-pressed="true">Text</button>
-        <button class="pool-lane-chip" data-pool-lane="adapters" data-pool-composer-adapter-lane aria-pressed="false" hidden>Adapter</button>
-        <select id="pool-home-request-model">
-          <option value="${LAUNCH_MODEL.modelId}" selected>${LAUNCH_MODEL.label}</option>
-        </select>
-        <form id="pool-home-ask-form">
-          <label data-pool-home-adapter-picker hidden>
-            <span>Adapter pack</span>
-            <select id="pool-home-adapter"></select>
-            <small data-pool-adapter-status hidden></small>
-          </label>
-          <input id="pool-home-ask-prompt" value="Explain browser inference">
-          <button id="pool-home-run-submit" type="submit">Run</button>
-        </form>
-        <p data-pool-run-status></p>
-        <section data-pool-run-output hidden>
-          <div id="pool-home-run-result-summary"></div>
-          <pre id="pool-home-run-result-stream"></pre>
-          <span id="pool-home-run-result-stream-cursor"></span>
-          <div id="pool-home-run-result-evidence"></div>
-          <pre id="pool-home-run-result-raw"></pre>
-        </section>
-      </section>
-    `;
-
-    bindHomeAskControls();
-    await vi.waitFor(() => expect(document.querySelector('[data-pool-lane="adapters"]').hidden).toBe(false));
-    adapterRegistryMocks.listFetchableAdapterPublications.mockResolvedValue([]);
-    document.querySelector('[data-pool-lane="adapters"]').click();
-
-    await vi.waitFor(() => expect(document.querySelector('.pool-home-stage').dataset.poolLane).toBe('text'));
-    expect(document.querySelector('[data-pool-lane="adapters"]').hidden).toBe(true);
-    expect(document.querySelector('[data-pool-home-adapter-picker]').hidden).toBe(true);
-    expect(document.querySelector('.pool-lane-chip[data-pool-lane="text"]').getAttribute('aria-pressed')).toBe('true');
-  });
-
-  it('turns the sequence lane into a public ESM-2 peer request', async () => {
-    window.history.replaceState({}, '', '/?room=sequence-room&relay=local');
-    document.body.innerHTML = `
-      <section class="pool-home-stage" data-pool-run-surface="home" data-run-state="idle" data-pool-lane="text">
-        <button class="pool-lane-chip is-active" data-pool-lane="text" aria-pressed="true">Text</button>
-        <button class="pool-lane-chip" data-pool-lane="adapters" aria-pressed="false">Adapters</button>
-        <button class="pool-lane-chip" data-pool-lane="sequence" aria-pressed="false">Sequence</button>
-        <div data-pool-sequence-options hidden>
+      <section class="pool-home-stage" data-pool-run-surface="home" data-run-state="idle" data-pool-lane="sequence">
+        <button class="pool-lane-chip is-active" data-pool-lane="sequence" aria-pressed="true">Protein</button>
+        <div data-pool-sequence-options>
           <label data-pool-sequence-consent-row>
             <input id="pool-home-sequence-public" type="checkbox">
           </label>
@@ -369,15 +309,9 @@ describe('Poolday home ask controls', () => {
     `;
 
     bindHomeAskControls();
-    document.querySelector('[data-pool-lane="sequence"]').click();
 
     const input = document.getElementById('pool-home-ask-prompt');
     const modelSelect = document.getElementById('pool-home-request-model');
-    expect(document.querySelector('[data-pool-sequence-options]').hidden).toBe(false);
-    expect(input.name).toBe('sequence');
-    expect(input.placeholder).toMatch(/^[A-Z*.-]+$/);
-    expect(modelSelect.value).toBe('esm2-t12-35m-ur50d-f32-af32');
-    expect(modelSelect.selectedOptions[0].textContent).toBe('ESM-2 35M (Protein)');
 
     input.value = 'MKTAYIAKQRQISFVKSHFSRQ';
     document.getElementById('pool-home-sequence-public').checked = true;
@@ -390,8 +324,6 @@ describe('Poolday home ask controls', () => {
       cancelable: true
     }));
     await vi.waitFor(() => expect(peerRoomMocks.runPeerJob).toHaveBeenCalledTimes(1));
-    document.querySelector('[data-pool-lane="text"]').click();
-    document.querySelector('[data-pool-lane="sequence"]').click();
     expect(document.getElementById('pool-home-sequence-public').checked).toBe(true);
     expect(document.querySelector('[data-pool-sequence-consent-row]').hidden).toBe(true);
 
@@ -410,16 +342,126 @@ describe('Poolday home ask controls', () => {
         modelId: 'esm2-t12-35m-ur50d-f32-af32',
         workload: 'sequence.embedding.v1',
         executionMode: 'full_model_browser_sequence'
-      }
+      },
+      rtcConfigProvider: null
     });
   });
 
-  it('runs a home prompt in place without losing the room or relay', async () => {
+  it('restores an interrupted public request after reload without resubmitting it', async () => {
+    const navigation = vi.spyOn(performance, 'getEntriesByType').mockReturnValue([{ type: 'reload' }]);
+    window.history.replaceState({}, '', '/?room=reload-room&relay=local');
+    window.sessionStorage.setItem(POOL_PENDING_REQUEST_STORAGE_KEY, JSON.stringify({
+      version: 1,
+      lane: 'sequence',
+      sequence: 'MKTAYIAKQRQISFVKSHFSRQ',
+      selectedModelId: LAUNCH_MODEL.modelId,
+      policyId: 'fastest_receipt',
+      roomId: 'reload-room',
+      relay: 'local',
+      sensitivity: 'public',
+      startedAt: new Date().toISOString()
+    }));
+    document.body.innerHTML = `
+      <section class="pool-home-stage" data-pool-run-surface="home" data-run-state="idle" data-pool-lane="sequence">
+        <select id="pool-home-request-model">
+          <option value="${LAUNCH_MODEL.modelId}" selected>${LAUNCH_MODEL.label}</option>
+        </select>
+        <form id="pool-home-ask-form">
+          <input id="pool-home-ask-prompt" value="">
+          <input id="pool-home-sequence-public" type="checkbox">
+          <button id="pool-home-run-submit" type="submit">Run</button>
+        </form>
+        <p data-pool-run-status></p>
+        <section data-pool-run-output hidden>
+          <div id="pool-home-run-result-summary"></div>
+          <pre id="pool-home-run-result-stream"></pre>
+          <span id="pool-home-run-result-stream-cursor"></span>
+          <div id="pool-home-run-result-evidence"></div>
+          <div id="pool-home-run-result-recovery" hidden></div>
+          <pre id="pool-home-run-result-raw"></pre>
+        </section>
+      </section>
+    `;
+
+    bindHomeAskControls();
+
+    expect(peerRoomMocks.runPeerJob).not.toHaveBeenCalled();
+    expect(document.getElementById('pool-home-ask-prompt').value).toBe('MKTAYIAKQRQISFVKSHFSRQ');
+    expect(document.getElementById('pool-home-sequence-public').checked).toBe(true);
+    expect(document.getElementById('pool-home-run-result-raw').textContent).toContain('Code: peer_request_interrupted');
+    expect(document.getElementById('pool-home-run-result-recovery').textContent).toContain('has not been resumed or sent again');
+
+    document.querySelector('[data-pool-run-recovery-action="retry_interrupted_request"]').click();
+    await vi.waitFor(() => expect(peerRoomMocks.runPeerJob).toHaveBeenCalledTimes(1));
+    expect(peerRoomMocks.runPeerJob).toHaveBeenCalledWith(expect.objectContaining({
+      roomId: 'reload-room',
+      sequence: 'MKTAYIAKQRQISFVKSHFSRQ',
+      policyId: 'fastest_receipt'
+    }));
+    await vi.waitFor(() => expect(window.sessionStorage.getItem(POOL_PENDING_REQUEST_STORAGE_KEY)).toBeNull());
+    navigation.mockRestore();
+  });
+
+  it('clears a corrupted interrupted-request record without resubmitting it', () => {
+    const navigation = vi.spyOn(performance, 'getEntriesByType').mockReturnValue([{ type: 'reload' }]);
+    window.history.replaceState({}, '', '/?room=corrupt-reload-room&relay=local');
+    window.sessionStorage.setItem(POOL_PENDING_REQUEST_STORAGE_KEY, '{not valid json');
+    document.body.innerHTML = `
+      <section class="pool-home-stage" data-pool-run-surface="home" data-run-state="idle" data-pool-lane="sequence">
+        <select id="pool-home-request-model"><option value="${LAUNCH_MODEL.modelId}" selected>${LAUNCH_MODEL.label}</option></select>
+        <form id="pool-home-ask-form"><input id="pool-home-ask-prompt"><input id="pool-home-sequence-public" type="checkbox"><button id="pool-home-run-submit" type="submit">Run</button></form>
+        <p data-pool-run-status></p>
+        <section data-pool-run-output hidden><div id="pool-home-run-result-summary"></div><pre id="pool-home-run-result-stream"></pre><span id="pool-home-run-result-stream-cursor"></span><div id="pool-home-run-result-evidence"></div><div id="pool-home-run-result-recovery" hidden></div><pre id="pool-home-run-result-raw"></pre></section>
+      </section>
+    `;
+
+    bindHomeAskControls();
+
+    expect(peerRoomMocks.runPeerJob).not.toHaveBeenCalled();
+    expect(window.sessionStorage.getItem(POOL_PENDING_REQUEST_STORAGE_KEY)).toBeNull();
+    expect(document.querySelector('[data-pool-run-output]').hidden).toBe(true);
+    navigation.mockRestore();
+  });
+
+  it('allows an interrupted request to be discarded without retrying', () => {
+    const navigation = vi.spyOn(performance, 'getEntriesByType').mockReturnValue([{ type: 'reload' }]);
+    window.history.replaceState({}, '', '/?room=discard-room&relay=local');
+    window.sessionStorage.setItem(POOL_PENDING_REQUEST_STORAGE_KEY, JSON.stringify({
+      version: 1,
+      lane: 'sequence',
+      sequence: 'MKTAYIAKQRQISFVKSHFSRQ',
+      selectedModelId: LAUNCH_MODEL.modelId,
+      policyId: 'fastest_receipt',
+      roomId: 'discard-room',
+      relay: 'local',
+      sensitivity: 'public',
+      startedAt: new Date().toISOString()
+    }));
+    document.body.innerHTML = `
+      <section class="pool-home-stage" data-pool-run-surface="home" data-run-state="idle" data-pool-lane="sequence">
+        <select id="pool-home-request-model"><option value="${LAUNCH_MODEL.modelId}" selected>${LAUNCH_MODEL.label}</option></select>
+        <form id="pool-home-ask-form"><input id="pool-home-ask-prompt"><input id="pool-home-sequence-public" type="checkbox"><button id="pool-home-run-submit" type="submit">Run</button></form>
+        <p data-pool-run-status></p>
+        <section data-pool-run-output hidden><div id="pool-home-run-result-summary"></div><pre id="pool-home-run-result-stream"></pre><span id="pool-home-run-result-stream-cursor"></span><div id="pool-home-run-result-evidence"></div><div id="pool-home-run-result-recovery" hidden></div><pre id="pool-home-run-result-raw"></pre></section>
+      </section>
+    `;
+
+    bindHomeAskControls();
+    document.querySelector('[data-pool-run-recovery-action="discard_interrupted_request"]').click();
+
+    expect(peerRoomMocks.runPeerJob).not.toHaveBeenCalled();
+    expect(window.sessionStorage.getItem(POOL_PENDING_REQUEST_STORAGE_KEY)).toBeNull();
+    expect(document.querySelector('[data-pool-run-surface]').dataset.runState).toBe('idle');
+    expect(document.querySelector('[data-pool-run-output]').hidden).toBe(true);
+    navigation.mockRestore();
+  });
+
+  it('runs a public protein sequence in place without losing the room or relay', async () => {
     window.history.replaceState({}, '', '/?room=test-room&relay=local');
     document.body.innerHTML = `
-      <section data-pool-run-surface="home" data-run-state="idle">
+      <section class="pool-home-stage" data-pool-run-surface="home" data-run-state="idle" data-pool-lane="sequence">
       <select id="pool-home-request-model">
-        <option value="gemma-3-270m-it-q4k-ehf16-af32" selected>Gemma 3 270M</option>
+        <option value="${LAUNCH_MODEL.modelId}" selected>${LAUNCH_MODEL.label}</option>
       </select>
       <select id="pool-home-request-policy">
         <option value="canary_audited" selected>Sample checked - one tab</option>
@@ -427,9 +469,10 @@ describe('Poolday home ask controls', () => {
       <form id="pool-home-ask-form">
         <input
           id="pool-home-ask-prompt"
-          value="Dinner ideas tonight"
-          data-pool-suggested-prompt="Dinner ideas tonight"
+          value="MKTAYIAKQRQISFVKSHFSRQ"
+          data-pool-suggested-prompt="MKTAYIAKQRQISFVKSHFSRQ"
         >
+        <input id="pool-home-sequence-public" type="checkbox" checked>
         <button id="pool-home-run-submit" type="submit">Run</button>
       </form>
       <p data-pool-run-status></p>
@@ -454,12 +497,13 @@ describe('Poolday home ask controls', () => {
     expect(window.location.search).toBe('?room=test-room&relay=local');
     expect(peerRoomMocks.runPeerJob.mock.calls[0][0]).toMatchObject({
       roomId: 'test-room',
-      prompt: 'Dinner ideas tonight',
+      prompt: null,
+      sequence: 'MKTAYIAKQRQISFVKSHFSRQ',
       policyId: 'canary_audited',
       sessionAcceptWindowMs: 11,
       transportConnectWindowMs: 12,
       modelRequirements: {
-        modelId: 'gemma-3-270m-it-q4k-ehf16-af32'
+        modelId: LAUNCH_MODEL.modelId
       }
     });
     expect(document.querySelector('[data-pool-run-surface]').dataset.runState).toBe('complete');
@@ -497,9 +541,10 @@ describe('Poolday home ask controls', () => {
       }
     });
     document.body.innerHTML = `
-      <section data-pool-run-surface="home" data-run-state="idle">
+      <section class="pool-home-stage" data-pool-run-surface="home" data-run-state="idle" data-pool-lane="sequence">
         <form id="pool-home-ask-form">
-          <input id="pool-home-ask-prompt" value="Preserve route evidence">
+          <input id="pool-home-ask-prompt" value="MKTAYIAKQRQISFVKSHFSRQ">
+          <input id="pool-home-sequence-public" type="checkbox" checked>
           <button id="pool-home-run-submit" type="submit">Run</button>
         </form>
         <p data-pool-run-status></p>
@@ -528,21 +573,26 @@ describe('Poolday home ask controls', () => {
     });
   });
 
-  it('tries the peer network before offering an optional local fallback', async () => {
+  it('offers recovery when browser-to-browser transport does not connect', async () => {
     window.history.replaceState({}, '', '/?room=network-first-room&relay=local');
-    const discoveryError = new Error('No peer providers advertised in room "network-first-room"');
-    discoveryError.code = 'peer_provider_not_found';
+    const discoveryError = new Error('Peer receipt agreement failed: 0/1 matching receipts; Peer transport did not connect for provider provider_transport_timeout');
+    discoveryError.code = 'peer_provider_unresponsive';
     discoveryError.retryable = true;
     discoveryError.payload = {
       code: discoveryError.code,
       retryable: true,
-      roomId: 'network-first-room'
+      roomId: 'network-first-room',
+      providerFailures: [{
+        providerId: 'provider_transport_timeout',
+        code: 'webrtc_connection_timeout'
+      }]
     };
     peerRoomMocks.runPeerJob.mockRejectedValueOnce(discoveryError);
     document.body.innerHTML = `
-      <section data-pool-run-surface="home" data-run-state="idle">
+      <section class="pool-home-stage" data-pool-run-surface="home" data-run-state="idle" data-pool-lane="sequence">
         <form id="pool-home-ask-form">
-          <input id="pool-home-ask-prompt" value="Use the network first">
+          <input id="pool-home-ask-prompt" value="MKTAYIAKQRQISFVKSHFSRQ">
+          <input id="pool-home-sequence-public" type="checkbox" checked>
           <button id="pool-home-run-submit" type="submit">Run</button>
         </form>
         <p data-pool-run-status></p>
@@ -564,7 +614,8 @@ describe('Poolday home ask controls', () => {
     await vi.waitFor(() => expect(document.getElementById('pool-home-run-result-recovery').hidden).toBe(false));
     expect(peerRoomMocks.runPeerJob.mock.calls[0][0]).toMatchObject({
       roomId: 'network-first-room',
-      prompt: 'Use the network first'
+      prompt: null,
+      sequence: 'MKTAYIAKQRQISFVKSHFSRQ'
     });
     expect(peerRoomMocks.createPeerProviderNode).not.toHaveBeenCalled();
     expect(document.getElementById('pool-home-run-result-recovery').textContent).toContain(
@@ -586,7 +637,8 @@ describe('Poolday home ask controls', () => {
     });
     expect(peerRoomMocks.runPeerJob.mock.calls[1][0]).toMatchObject({
       roomId: 'network-first-room',
-      prompt: 'Use the network first'
+      prompt: null,
+      sequence: 'MKTAYIAKQRQISFVKSHFSRQ'
     });
   });
 
@@ -657,9 +709,10 @@ describe('Poolday home ask controls', () => {
 
     document.body.innerHTML = `
       <main id="app">
-        <section data-pool-run-surface="home" data-run-state="idle">
+        <section class="pool-home-stage" data-pool-run-surface="home" data-run-state="idle" data-pool-lane="sequence">
           <form id="pool-home-ask-form">
-            <input id="pool-home-ask-prompt" value="Preserve this exact prompt">
+            <input id="pool-home-ask-prompt" value="MKTAYIAKQRQISFVKSHFSRQ">
+            <input id="pool-home-sequence-public" type="checkbox" checked>
             <button id="pool-home-run-submit" type="submit">Run</button>
           </form>
           <p data-pool-run-status></p>
@@ -715,10 +768,11 @@ describe('Poolday home ask controls', () => {
     );
     expect(peerRoomMocks.runPeerJob.mock.calls[1][0]).toMatchObject({
       roomId: 'local-fallback-room',
-      prompt: 'Preserve this exact prompt',
+      prompt: null,
+      sequence: 'MKTAYIAKQRQISFVKSHFSRQ',
       knownProviderAdverts: [localProviderAdvert]
     });
-    expect(document.getElementById('pool-home-ask-prompt').value).toBe('Preserve this exact prompt');
+    expect(document.getElementById('pool-home-ask-prompt').value).toBe('MKTAYIAKQRQISFVKSHFSRQ');
     expect(JSON.parse(window.sessionStorage.getItem(POOL_CONTRIBUTION_RESUME_STORAGE_KEY))).toMatchObject({
       active: true,
       modelId: LAUNCH_MODEL.modelId,
@@ -910,13 +964,14 @@ describe('Poolday home ask controls', () => {
     expect(peerRoomMocks.runPeerJob).not.toHaveBeenCalled();
   });
 
-  it('submits the Run route prompt through runPeerJob', async () => {
+  it('submits the public Run sequence through runPeerJob', async () => {
     window.history.replaceState({}, '', '/ask?room=test-room');
     document.body.innerHTML = `
       <section data-pool-run-surface="run" data-run-state="idle">
-      <textarea id="pool-run-prompt">Explain browser inference</textarea>
+      <textarea id="pool-run-prompt">MKTAYIAKQRQISFVKSHFSRQ</textarea>
+      <input id="pool-run-sequence-public" type="checkbox" checked>
       <select id="pool-run-policy"><option value="fastest_receipt" selected>First answer</option></select>
-      <select id="pool-run-model"><option value="qwen-3-5-0-8b-q4k-ehaf16" selected>Qwen 3.5 0.8B</option></select>
+      <select id="pool-run-model"><option value="${LAUNCH_MODEL.modelId}" selected>${LAUNCH_MODEL.label}</option></select>
       <button id="pool-run-submit" type="button">Run</button>
       <p data-pool-run-status></p>
       <section data-pool-run-output hidden>
@@ -933,10 +988,11 @@ describe('Poolday home ask controls', () => {
     document.getElementById('pool-run-submit').click();
     await vi.waitFor(() => expect(peerRoomMocks.runPeerJob).toHaveBeenCalledTimes(1));
 
-    expect(document.getElementById('pool-run-prompt').value).toBe('Explain browser inference');
+    expect(document.getElementById('pool-run-prompt').value).toBe('MKTAYIAKQRQISFVKSHFSRQ');
     expect(peerRoomMocks.runPeerJob.mock.calls[0][0]).toMatchObject({
       roomId: 'test-room',
-      prompt: 'Explain browser inference',
+      prompt: null,
+      sequence: 'MKTAYIAKQRQISFVKSHFSRQ',
       policyId: 'fastest_receipt'
     });
     expect(document.getElementById('pool-run-result-stream').textContent).toBe('network answer');

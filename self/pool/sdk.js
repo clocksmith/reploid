@@ -15,6 +15,19 @@ const DEFAULT_BASE_URL = '/pool';
 const POOL_CLIENT_ID_STORAGE_KEY = 'reploid.pool.clientId.v1';
 let fallbackClientId = null;
 
+const retryAfterMsFromResponse = (response, payload = {}) => {
+  const fromPayloadMs = Number(payload?.retryAfterMs);
+  if (Number.isFinite(fromPayloadMs) && fromPayloadMs >= 0) return fromPayloadMs;
+  const fromPayloadSeconds = Number(payload?.retryAfter);
+  if (Number.isFinite(fromPayloadSeconds) && fromPayloadSeconds >= 0) return fromPayloadSeconds * 1000;
+  const header = response?.headers?.get?.('Retry-After');
+  if (!header) return null;
+  const seconds = Number(header);
+  if (Number.isFinite(seconds) && seconds >= 0) return seconds * 1000;
+  const at = Date.parse(header);
+  return Number.isFinite(at) ? Math.max(0, at - Date.now()) : null;
+};
+
 const makePoolClientId = () => {
   const randomId = globalThis.crypto?.randomUUID
     ? globalThis.crypto.randomUUID()
@@ -68,6 +81,8 @@ async function requestJson(path, {
     const error = new Error(payload?.error || `Pool request failed: ${response.status}`);
     error.status = response.status;
     error.payload = payload;
+    const retryAfterMs = retryAfterMsFromResponse(response, payload);
+    if (retryAfterMs !== null) error.retryAfterMs = retryAfterMs;
     throw error;
   }
   return payload;

@@ -3,7 +3,7 @@
  * @fileoverview Deploy-surface drift gate.
  * Fails when the deployed hosting surface differs from the local tree:
  * - served index.html build version must match local REPLOID_BUILD_VERSION;
- * - served poolday layer css and rd.css bytes must hash-match the local files;
+ * - served Poolday route modules and styles must hash-match the local files;
  * - product routes must lay out clear of the fixed nav rail.
  * Screenshots for each checked route are written to artifacts/deploy-surface.
  */
@@ -39,6 +39,20 @@ const STYLE_FILES = [
   'styles/poolday/primitives.css',
   'styles/poolday/components.css',
   'styles/rd.css'
+];
+// These modules make up the requester, provider, relay, and visible result
+// path. A build label alone cannot prove that Hosting served the matching
+// browser bundle, especially after a partial static deployment.
+const POOLDAY_MODULE_FILES = [
+  'ui/pool-home/index.js',
+  'ui/pool-home/controls.js',
+  'ui/pool-home/view.js',
+  'pool/sdk.js',
+  'pool/peer-rendezvous.js',
+  'pool/p2p-signaling.js',
+  'pool/p2p-transport.js',
+  'pool/peer-room.js',
+  'pool/retry-policy.js'
 ];
 const LAYOUT_ROUTES = ['/ask', '/compute', '/records'];
 const SCREENSHOT_ROUTES = ['/', ...LAYOUT_ROUTES];
@@ -78,6 +92,20 @@ const checkStylesheetBytes = async (version) => {
     const servedHash = sha256(await fetchBytes(`${baseUrl}/${relative}?v=${encodeURIComponent(version)}`));
     if (localHash !== servedHash) {
       failures.push(`stylesheet drift: ${relative} served sha256:${servedHash.slice(0, 16)} does not match local sha256:${localHash.slice(0, 16)}`);
+    }
+  }
+};
+
+const checkPooldayModuleBytes = async (version) => {
+  for (const relative of POOLDAY_MODULE_FILES) {
+    const localHash = sha256(fs.readFileSync(path.join(repoRoot, 'self', relative)));
+    try {
+      const servedHash = sha256(await fetchBytes(`${baseUrl}/${relative}?v=${encodeURIComponent(version)}&deploy-surface=1`));
+      if (localHash !== servedHash) {
+        failures.push(`Poolday module drift: ${relative} served sha256:${servedHash.slice(0, 16)} does not match local sha256:${localHash.slice(0, 16)}`);
+      }
+    } catch (error) {
+      failures.push(`Poolday module missing or unreadable: ${relative} (${error.message})`);
     }
   }
 };
@@ -160,6 +188,7 @@ try {
   console.log(`[deploy-surface] ${baseUrl}`);
   const { expected, deployed } = await checkBuildVersion();
   await checkStylesheetBytes(deployed === '(missing)' ? expected : deployed);
+  await checkPooldayModuleBytes(deployed === '(missing)' ? expected : deployed);
   await checkRouteLayout();
   if (failures.length) {
     console.error('Deploy-surface verification failed:');

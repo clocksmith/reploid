@@ -412,17 +412,22 @@ test.describe('Route Entry Points', () => {
       const toolbar = document.querySelector('.pool-home-toolbar')?.getBoundingClientRect();
       const stage = document.querySelector('.pool-home-stage')?.getBoundingClientRect();
       const dock = document.querySelector('.pool-home-ask-dock')?.getBoundingClientRect();
+      const purpose = document.querySelector('[data-pool-home-purpose]')?.getBoundingClientRect();
       const visibleCenter = nav ? nav.right + ((window.innerWidth - nav.right) / 2) : null;
       const centerOf = (rect) => rect ? rect.left + (rect.width / 2) : null;
       const atDockCenter = dock ? document.elementFromPoint(centerOf(dock), dock.top + (dock.height / 2)) : null;
+      const atPurposeCenter = purpose ? document.elementFromPoint(centerOf(purpose), purpose.top + (purpose.height / 2)) : null;
       return {
         navRight: nav?.right ?? null,
         stageLeft: stage?.left ?? null,
         toolbarLeft: toolbar?.left ?? null,
         dockLeft: dock?.left ?? null,
         dockCenter: centerOf(dock),
+        purposeLeft: purpose?.left ?? null,
+        purposeCenter: centerOf(purpose),
         visibleCenter,
-        dockBlockedByNav: !!atDockCenter?.closest?.('.pool-nav-rail')
+        dockBlockedByNav: !!atDockCenter?.closest?.('.pool-nav-rail'),
+        purposeBlockedByNav: !!atPurposeCenter?.closest?.('.pool-nav-rail')
       };
     });
 
@@ -431,6 +436,9 @@ test.describe('Route Entry Points', () => {
     expect(layout.dockLeft).toBeGreaterThanOrEqual((layout.navRight || 0) - 1);
     expect(Math.abs((layout.dockCenter || 0) - (layout.visibleCenter || 0))).toBeLessThanOrEqual(2);
     expect(layout.dockBlockedByNav).toBe(false);
+    expect(layout.purposeLeft).toBeGreaterThanOrEqual((layout.navRight || 0) - 1);
+    expect(Math.abs((layout.purposeCenter || 0) - (layout.visibleCenter || 0))).toBeLessThanOrEqual(2);
+    expect(layout.purposeBlockedByNav).toBe(false);
   });
 
   test('contribution status labels and values are vertically centered in their metric chips', async ({ page }) => {

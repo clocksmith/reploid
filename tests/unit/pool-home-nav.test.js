@@ -153,6 +153,16 @@ describe('poolday home navigation', () => {
     expect(html).not.toContain('class="pool-home-toolbar-right"');
     expect(html).toContain('class="pool-simulation-shell"');
     expect(html).toContain('data-pool-simulation');
+    expect(html).toContain('data-pool-home-purpose');
+    expect(html).toContain('Turn a public protein sequence into a reusable representation.');
+    expect(html).toContain('Submit</strong> one explicitly public protein sequence.');
+    expect(html).toContain('Embed</strong> it in a participating browser with ESM-2.');
+    expect(html).toContain('Use</strong> the 480-dimensional result to compare compatible sequences.');
+    expect(html).toContain('not a biological interpretation or diagnosis');
+    expect(html).toContain('This is a 480-number representation for software, not a result to read manually.');
+    expect(html).toContain('Use it with embeddings made by the same ESM-2 model and contract when comparing sequences.');
+    expect(html).toContain('Poolday records how it was produced and accepted, but does not yet provide search, interpretation, or diagnosis.');
+    expect(html).toContain('data-pool-copy-embedding');
     expect(html).not.toContain('data-pool-hot-path');
     expect(html).toContain('class="pool-home-title-lockup"');
     expect(html).toContain('<h1 class="type-h1 pool-home-brand-word">REPLOID</h1>');
@@ -322,8 +332,11 @@ describe('poolday home navigation', () => {
     expect(html).toContain('I confirm this protein sequence is public.');
     expect(html).toContain('<summary>Settings</summary>');
     expect(html).toContain('data-pool-run-output hidden');
+    expect(html).toContain('Protein representation');
+    expect(html).toContain('Ready for compatible comparison');
     expect(html).toContain('id="pool-run-result-evidence"');
     expect(html).toContain('<summary>Proof</summary>');
+    expect(html).toContain('<summary>View embedding vector</summary>');
     expect(html).toContain('<summary>Raw result</summary>');
     expect(html).toContain('pool-raw-details-full');
   });

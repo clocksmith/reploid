@@ -212,11 +212,16 @@ const getProviderStatusEl = (mount) => mount?.querySelector('[data-pool-provider
 export const updateProviderStatus = (mount, status = 'Idle') => {
   const statusEl = getProviderStatusEl(mount);
   const normalized = String(status || '').toLowerCase();
-  const providerState = normalized.includes('available') || normalized.includes('ready') || normalized.includes('answering') || normalized.includes('online') || normalized.includes('running')
-    ? 'online'
-    : normalized.includes('starting') || normalized.includes('opening')
-      ? 'starting'
-      : 'offline';
+  const recovering = normalized.includes('retry')
+    || normalized.includes('relay unavailable')
+    || normalized.includes('checking relay');
+  const providerState = recovering
+    ? 'degraded'
+    : normalized.includes('available') || normalized.includes('ready') || normalized.includes('answering') || normalized.includes('online') || normalized.includes('running')
+      ? 'online'
+      : normalized.includes('starting') || normalized.includes('opening')
+        ? 'starting'
+        : 'offline';
   if (statusEl) {
     statusEl.textContent = status;
     statusEl.dataset.providerState = providerState;
@@ -1079,16 +1084,31 @@ const renderContributionDetails = (id, label = 'Contributors') => `
 
 const renderProteinEmbeddingDetails = (id) => `
   <details class="pool-raw-details pool-protein-embedding-details" id="${id}-embedding-details" hidden>
-    <summary>Protein embedding</summary>
+    <summary>View embedding vector</summary>
     <p class="type-caption" id="${id}-embedding-meta"></p>
     <pre id="${id}-embedding" aria-label="Pooled protein embedding"></pre>
   </details>
+`;
+
+const renderProteinEmbeddingOutcome = (id) => `
+  <section class="pool-embedding-outcome" id="${id}-embedding-outcome" aria-live="polite" hidden>
+    <p class="pool-embedding-outcome-kicker">Protein representation</p>
+    <h3 class="type-h3">Ready for compatible comparison</h3>
+    <p class="pool-embedding-outcome-meta" id="${id}-embedding-outcome-meta"></p>
+    <p class="pool-embedding-outcome-copy">This is a 480-number representation for software, not a result to read manually. Use it with embeddings made by the same ESM-2 model and contract when comparing sequences.</p>
+    <p class="pool-embedding-outcome-copy">Copy the vector into compatible similarity or retrieval software. Poolday records how it was produced and accepted, but does not yet provide search, interpretation, or diagnosis.</p>
+    <div class="pool-embedding-outcome-actions">
+      <button class="btn btn-ghost" type="button" data-pool-copy-embedding data-pool-embedding-result-id="${id}" disabled>Copy vector</button>
+      <p class="pool-embedding-copy-status" data-pool-embedding-copy-status aria-live="polite"></p>
+    </div>
+  </section>
 `;
 
 const renderResultBox = (id, options = {}) => {
   if (options?.stream) {
     return `
       <div class="boot-status-strip pool-summary" id="${id}-summary" aria-live="polite"></div>
+      ${options.proteinEmbedding ? renderProteinEmbeddingOutcome(id) : ''}
       <div class="pool-stream-box pool-answer-box">
         <label class="pool-result-label" for="${id}-stream">${escapeHtml(options.streamLabel || 'Output stream')}</label>
         <div class="pool-stream-shell">
@@ -1222,16 +1242,29 @@ const renderProteinEmbeddingOutput = (id, value = {}) => {
   const details = document.getElementById(`${id}-embedding-details`);
   const output = document.getElementById(`${id}-embedding`);
   const meta = document.getElementById(`${id}-embedding-meta`);
+  const outcome = document.getElementById(`${id}-embedding-outcome`);
+  const outcomeMeta = document.getElementById(`${id}-embedding-outcome-meta`);
+  const copyButton = outcome?.querySelector('[data-pool-copy-embedding]');
+  const copyStatus = outcome?.querySelector('[data-pool-embedding-copy-status]');
   const pooledEmbedding = sequenceOutputFor(value)?.pooledEmbedding;
   if (!details || !output || !meta) return;
   if (!Array.isArray(pooledEmbedding) || pooledEmbedding.length === 0) {
     details.hidden = true;
     output.textContent = '';
     meta.textContent = '';
+    if (outcome) outcome.hidden = true;
+    if (outcomeMeta) outcomeMeta.textContent = '';
+    if (copyButton) copyButton.disabled = true;
+    if (copyStatus) copyStatus.textContent = '';
     return;
   }
+  const resultIdentity = compactHash(value.sequenceResultHash || value.vectorHash || '');
   details.hidden = false;
-  meta.textContent = `${pooledEmbedding.length} dimensions · ${compactHash(value.sequenceResultHash || value.vectorHash || '')}`;
+  meta.textContent = `${pooledEmbedding.length} dimensions · ${resultIdentity}`;
+  if (outcome) outcome.hidden = false;
+  if (outcomeMeta) outcomeMeta.textContent = `${pooledEmbedding.length} dimensions · Result ${resultIdentity}`;
+  if (copyButton) copyButton.disabled = false;
+  if (copyStatus) copyStatus.textContent = '';
   output.textContent = safeJsonStringify(pooledEmbedding) || '[]';
 };
 
@@ -1239,6 +1272,44 @@ const formatErrorResultText = (value = {}) => {
   const payload = value.payload || {};
   const model = value.model || payload.model || payload.requiredModel || null;
   const artifact = payload.artifactPreflight || value.artifactPreflight || null;
+  const providerFailures = Array.isArray(value.providerFailures)
+    ? value.providerFailures
+    : Array.isArray(payload.providerFailures)
+      ? payload.providerFailures
+      : [];
+  const failedProviderIds = Array.isArray(value.failedProviderIds)
+    ? value.failedProviderIds
+    : Array.isArray(payload.failedProviderIds)
+      ? payload.failedProviderIds
+      : [];
+  const summarizeTransportDiagnostics = (diagnostics = {}) => {
+    if (!diagnostics || typeof diagnostics !== 'object') return '';
+    const fields = [
+      diagnostics.state ? `state=${diagnostics.state}` : null,
+      diagnostics.connectionState ? `connection=${diagnostics.connectionState}` : null,
+      diagnostics.iceConnectionState ? `ice=${diagnostics.iceConnectionState}` : null,
+      Number.isFinite(Number(diagnostics.pendingRemoteIceCandidateCount))
+        ? `pending-ice=${Number(diagnostics.pendingRemoteIceCandidateCount)}`
+        : null,
+      Number.isFinite(Number(diagnostics.expiredRemoteIceCandidateCount)) && Number(diagnostics.expiredRemoteIceCandidateCount) > 0
+        ? `expired-ice=${Number(diagnostics.expiredRemoteIceCandidateCount)}`
+        : null,
+      Number.isFinite(Number(diagnostics.overflowRemoteIceCandidateCount)) && Number(diagnostics.overflowRemoteIceCandidateCount) > 0
+        ? `dropped-ice=${Number(diagnostics.overflowRemoteIceCandidateCount)}`
+        : null,
+      diagnostics.turnConfigured === true ? 'turn=configured' : diagnostics.turnConfigured === false ? 'turn=not-configured' : null
+    ].filter(Boolean);
+    return fields.join(', ');
+  };
+  const providerFailureText = providerFailures.map((failure) => {
+    const providerId = String(failure?.providerId || 'unknown contributor');
+    const code = failure?.code ? ` (${failure.code})` : '';
+    const message = failure?.message ? `: ${failure.message}` : '';
+    const transport = summarizeTransportDiagnostics(failure?.diagnostics);
+    return `${providerId}${code}${message}${transport ? ` [transport: ${transport}]` : ''}`;
+  }).join('; ');
+  const transportDiagnostics = value.transportDiagnostics || payload.transportDiagnostics || value.diagnostics || payload.diagnostics;
+  const transportText = summarizeTransportDiagnostics(transportDiagnostics);
   const lines = [
     value.error ? `Error: ${value.error}` : null,
     value.reason ? `Reason: ${value.reason}` : null,
@@ -1247,6 +1318,9 @@ const formatErrorResultText = (value = {}) => {
     value.roomId || payload.roomId ? `Room: ${value.roomId || payload.roomId}` : null,
     value.relay ? `Relay: ${value.relay}` : null,
     model?.modelId || model?.id ? `Model: ${model.modelId || model.id}` : null,
+    failedProviderIds.length > 0 ? `Contributors: ${failedProviderIds.join(', ')}` : null,
+    providerFailureText ? `Contributor failures: ${providerFailureText}` : null,
+    transportText ? `Transport: ${transportText}` : null,
     artifact?.status ? `Artifact: ${artifact.status}` : null,
     artifact?.urls?.manifest || payload.urls?.manifest ? `Manifest: ${artifact?.urls?.manifest || payload.urls?.manifest}` : null
   ].filter(Boolean);
@@ -1932,10 +2006,20 @@ const renderHomeSimulation = ({ dashboardView = 'home' } = {}) => {
           <span data-pool-tooltip-body></span>
         </div>
       </div>
+      <section class="pool-home-purpose" data-pool-home-purpose aria-label="How a protein embedding run works">
+        <p class="pool-home-purpose-kicker">What this does</p>
+        <h2 class="type-h2">Turn a public protein sequence into a reusable representation.</h2>
+        <ol class="pool-home-purpose-steps">
+          <li><b>1</b><span><strong>Submit</strong> one explicitly public protein sequence.</span></li>
+          <li><b>2</b><span><strong>Embed</strong> it in a participating browser with ESM-2.</span></li>
+          <li><b>3</b><span><strong>Use</strong> the 480-dimensional result to compare compatible sequences.</span></li>
+        </ol>
+        <p class="pool-home-purpose-boundary">The result is a model representation, not a biological interpretation or diagnosis.</p>
+      </section>
       <section class="pool-home-result-panel" data-pool-run-output hidden aria-label="Run result">
         ${renderResultBox('pool-home-run-result', {
           stream: true,
-          streamLabel: 'Answer',
+          streamLabel: 'Result',
           evidence: true,
           evidenceLabel: 'Proof',
           proteinEmbedding: true,
@@ -2038,7 +2122,7 @@ export const renderRouteDetail = (routeId) => {
             <h2 class="type-h2">Protein embedding</h2>
             ${renderResultBox('pool-run-result', {
               stream: true,
-              streamLabel: 'Answer',
+              streamLabel: 'Result',
               evidence: true,
               evidenceLabel: 'Proof',
               proteinEmbedding: true,

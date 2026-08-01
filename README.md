@@ -3,13 +3,16 @@
 [![Test Suite](https://img.shields.io/github/actions/workflow/status/clocksmith/reploid/test.yml?branch=main&label=tests)](https://github.com/clocksmith/reploid/actions/workflows/test.yml)
 [![License metadata: MIT](https://img.shields.io/badge/license%20metadata-MIT-blue.svg)](package.json)
 
-Reploid is a browser runtime family for receipt-backed, self-modifying agents.
-Everything runs client-side; agent behavior stays in visible self files, prompts,
-blueprints, traces, and receipts, never on a server.
+Reploid is a browser runtime family whose main product surface provides
+receipt-backed browser inference. Model execution and agent state stay in the
+browser. Current Poolday compatibility services may handle authentication,
+rendezvous, policy enforcement, receipt anchors, and ledger projections, but
+they do not perform the claimed browser-local model execution.
 
-It ships as **three distinct surfaces** — Poolday, Zero, and X — each with its own
-route, boot profile, and tool set. They are separate products with separate
-authority: a capability supported on one surface is **not** implied on another.
+It ships as **three distinct surfaces**: Poolday, Zero, and X. Each has its own
+route, boot profile, tool set, and evidence authority. Poolday is the main
+product surface. Zero and X are experimental RSI harnesses. A capability
+supported on one surface is **not** implied on another.
 Every support claim is machine-checked in the
 [surface claim index](docs/status/surface-claim-index.json); read each row by its
 declared boundary and status.
@@ -18,15 +21,17 @@ declared boundary and status.
 
 | Surface | Route | What it is | Boundary |
 | --- | --- | --- | --- |
-| **Poolday** | `/` | The root UI: receipt-backed browser inference under the internal Poolday pool contract. ("Poolday" is the internal/docs name; the public UI remains Reploid.) | Browser inference backed by signed records, audits, reputation, policy, and deterministic comparison. It does not claim hardware attestation or unconditionally honest browser/GPU execution. |
-| **Zero** | `/zero` | Minimal agent surface that begins from `CreateTool`, with no pool dependency. | Standalone; requires no inference pool. |
-| **X** | `/x` | Mature agent surface with workers, memory, peer slots, verification, and self-modification (Seed → Shadow → Promote). | Self-modification, swarm, validation, and promotion evidence stay separate from Poolday inference records. |
+| **Poolday** | `/` | Main product UI: receipt-backed browser inference under the internal Poolday pool contract. ("Poolday" is the internal/docs name; the public UI remains Reploid.) | Browser inference backed by signed records, audits, reputation, policy, and deterministic comparison. It does not claim hardware attestation or unconditionally honest browser/GPU execution. |
+| **Zero** | `/zero` | Experimental minimal RSI harness that begins from `CreateTool`, with no pool dependency. | Standalone experimental evidence; requires no inference pool. |
+| **X** | `/x` | Experimental governed RSI harness with workers, memory, peer slots, verification, and self-modification (Seed → Shadow → Promote). | Self-modification, swarm, validation, and promotion evidence stay separate from Poolday inference records. |
 
 The [Zero and X intent contract](self/config/surface-intents.js) defines their routes,
 boot profiles, modules, and tool surfaces. The root Poolday path is owned separately by
 the [product boot modes](self/config/boot-modes.js),
 [pool config](self/pool/pool-config.json), and
-[pool claim boundary](docs/poolday/claims-and-nonclaims.md).
+[Poolday product intent](docs/poolday/product-intent.md). Proven Zero or X
+capabilities may enter Poolday only through a governed promotion boundary and a
+new Poolday-owned policy, user contract, and operational proof.
 
 ### X self-modification states
 
@@ -77,7 +82,7 @@ Users can bypass the managed access-window path and supply their own browser inf
 | Operators | [Quick start](docs/QUICK-START.md), [configuration](docs/CONFIGURATION.md), and [local models](docs/local-models.md) |
 | Agent and runtime contributors | [System architecture](docs/system-architecture.md), [RGR runtime contract](self/blueprints/rgr-runtime-contract.md), and [tool surfaces](self/config/tool-surfaces.js) |
 | Security and claim reviewers | [Security model](docs/SECURITY.md), [surface claim index](docs/status/surface-claim-index.json), [Poolday claims](docs/poolday/claims-and-nonclaims.md), and [threat model](docs/poolday/threat-model.md) |
-| Inference integrators | [Browser inference pool](docs/browser-inference-pool.md), [receipt schema](docs/poolday/receipt-schema.md), and [Doppler](https://github.com/clocksmith/doppler) |
+| Product and inference integrators | [Poolday product intent](docs/poolday/product-intent.md), [browser inference pool](docs/browser-inference-pool.md), [receipt schema](docs/poolday/receipt-schema.md), and [Doppler](https://github.com/clocksmith/doppler) |
 
 The [documentation index](docs/INDEX.md) owns the complete architecture, blueprint, API, and operator inventory.
 

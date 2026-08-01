@@ -10,7 +10,7 @@ import { createProviderClient } from '../../self/pool/provider-client.js';
 import { createRequesterClient } from '../../self/pool/requester-client.js';
 import {
   createPeerProviderNode,
-  runPeerJob
+  runPeerJob as executePeerJob
 } from '../../self/pool/peer-room.js';
 import {
   buildRuntimeProfile,
@@ -126,6 +126,29 @@ const sequenceRuntimeModel = () => buildLaunchProviderModel({
   modelId: 'esm2-t12-35m-ur50d-f32-af32'
 });
 const fakeHash = (character) => `sha256:${character.repeat(64)}`;
+const TEST_PUBLIC_SEQUENCE = 'MKTAYIAKQRQISFVKSHFSRQ';
+const TEST_AMINO_ACIDS = 'ACDEFGHIKLMNPQRSTVWY';
+const testSequenceFor = (label = '') => {
+  const normalized = String(label || '').trim();
+  if (!normalized) return TEST_PUBLIC_SEQUENCE;
+  return [...normalized].map((character) => (
+    TEST_AMINO_ACIDS[character.codePointAt(0) % TEST_AMINO_ACIDS.length]
+  )).join('');
+};
+const testSequenceRequest = () => ({
+  workload: 'sequence.embedding.v1',
+  alphabet: 'amino_acid',
+  sensitivity: 'public',
+  includeTokenEmbeddings: false,
+  includeLogits: false
+});
+
+const runPeerJob = (options = {}) => executePeerJob({
+  ...options,
+  prompt: undefined,
+  sequence: options.sequence || testSequenceFor(options.prompt),
+  sequenceRequest: options.sequenceRequest || testSequenceRequest()
+});
 
 const fetchableAdapterRequirement = () => ({
   schema: 'reploid.pool.adapter-requirement/v2',
@@ -150,65 +173,127 @@ const fetchableAdapterRequirement = () => ({
   state: 'fetchable'
 });
 
-const fakeRuntime = ({ generate = null } = {}) => ({
-  isReady: () => true,
-  getModelInfo: () => runtimeModel(),
-  getRuntimeInfo: () => ({
-    runtime: LAUNCH_MODEL.runtime,
-    backend: LAUNCH_MODEL.backend,
-    publicApi: 'generate',
-    profile: { implementation: 'peer-room-test' }
-  }),
-  getRuntimeProfile: async () => {
-    const runtimeProfile = buildRuntimeProfile({
-      modelInfo: runtimeModel(),
-      runtimeInfo: {
-        runtime: LAUNCH_MODEL.runtime,
-        backend: LAUNCH_MODEL.backend,
-        publicApi: 'generate',
-        profile: { implementation: 'peer-room-test' }
-      },
-      deviceInfo: {
-        hasWebGPU: true,
-        probeStatus: 'ok',
-        adapterInfo: { vendor: 'peer-room-test' },
-        features: ['shader-f16'],
-        limits: { maxBufferSize: 1024 }
-      },
-      browserProfile: {
-        userAgent: 'peer-room-test-browser',
-        platform: 'peer-room-test-platform',
-        brands: ['PeerRoom:1'],
-        mobile: false
-      }
-    });
-    return {
-      runtimeProfile,
-      runtimeProfileHash: await hashRuntimeProfile(runtimeProfile)
-    };
-  },
-  getDeviceInfo: async () => ({
-    hasWebGPU: true,
-    probeStatus: 'ok'
-  }),
-  generate: generate || (async ({ prompt }) => ({
-    outputText: `room:${prompt}`,
-    tokenIds: [11, 12, 13],
+const createFakeSequenceExecution = async ({
+  sequence,
+  request,
+  outputText = '',
+  tokenIds = []
+} = {}) => {
+  const seed = Number(tokenIds[0]);
+  const pooledEmbedding = Number.isFinite(seed)
+    ? [seed, -0.5, 0.75]
+    : [0.25, -0.5, 0.75];
+  const pooledEmbeddingHash = await hashFloat32Values(pooledEmbedding);
+  const sequenceResult = {
+    schema: 'reploid.pool.sequence_result/v1',
+    workload: request.workload,
+    alphabet: request.alphabet,
+    sequenceHash: request.sequenceHash,
+    sequenceLength: request.sequenceLength,
+    tokenCount: sequence.length,
+    tokensHash: await hashJson([...sequence].map((_, index) => index)),
+    includedTokenCount: sequence.length,
+    embeddingDim: pooledEmbedding.length,
+    vocabSize: 33,
+    pooledEmbeddingHash,
+    tokenEmbeddingsHash: null,
+    maskedLogitsHash: null
+  };
+  const sequenceResultHash = await hashJson(sequenceResult);
+  return {
+    outputKind: request.workload,
+    outputText,
+    tokenIds,
+    vectorHash: pooledEmbeddingHash,
+    sequenceResultHash,
+    sequenceResult,
+    sequenceOutput: {
+      pooledEmbedding,
+      tokenEmbeddings: null,
+      maskedLogits: []
+    },
+    embeddingDimensions: pooledEmbedding.length,
+    embeddingStats: {
+      dimensions: pooledEmbedding.length,
+      nonFiniteCount: 0,
+      l2Norm: 0.935414
+    },
     transcript: {
-      outputText: `room:${prompt}`,
-      tokenIds: [11, 12, 13]
+      outputKind: request.workload,
+      sequenceResultHash,
+      sequenceResult
     },
     tokenCounts: {
-      input: 2,
-      output: 3
+      input: sequence.length,
+      output: 0
     },
     timing: {
-      startedAt: '2026-06-14T00:00:00.000Z',
-      completedAt: '2026-06-14T00:00:01.000Z'
+      startedAt: '2026-07-25T00:00:00.000Z',
+      completedAt: '2026-07-25T00:00:01.000Z'
     },
     status: 'completed'
-  }))
-});
+  };
+};
+
+const fakeRuntime = ({ generate = null } = {}) => {
+  const run = generate || (async ({ prompt }) => ({
+    outputText: `room:${prompt}`,
+    tokenIds: [11, 12, 13]
+  }));
+  const model = runtimeModel();
+  return {
+    isReady: () => true,
+    getModelInfo: () => model,
+    getRuntimeInfo: () => ({
+      runtime: model.runtime,
+      backend: model.backend,
+      publicApi: 'encodeSequence',
+      profile: { implementation: 'peer-room-test' }
+    }),
+    getRuntimeProfile: async () => {
+      const runtimeProfile = buildRuntimeProfile({
+        modelInfo: model,
+        runtimeInfo: {
+          runtime: model.runtime,
+          backend: model.backend,
+          publicApi: 'encodeSequence',
+          profile: { implementation: 'peer-room-test' }
+        },
+        deviceInfo: {
+          hasWebGPU: true,
+          probeStatus: 'ok',
+          adapterInfo: { vendor: 'peer-room-test' },
+          features: ['shader-f16'],
+          limits: { maxBufferSize: 1024 }
+        },
+        browserProfile: {
+          userAgent: 'peer-room-test-browser',
+          platform: 'peer-room-test-platform',
+          brands: ['PeerRoom:1'],
+          mobile: false
+        }
+      });
+      return {
+        runtimeProfile,
+        runtimeProfileHash: await hashRuntimeProfile(runtimeProfile)
+      };
+    },
+    getDeviceInfo: async () => ({
+      hasWebGPU: true,
+      probeStatus: 'ok'
+    }),
+    generate: run,
+    async encodeSequence({ sequence, request }) {
+      const legacy = await run({ prompt: sequence });
+      return createFakeSequenceExecution({
+        sequence,
+        request,
+        outputText: legacy.outputText || '',
+        tokenIds: legacy.tokenIds || []
+      });
+    }
+  };
+};
 
 const fakeSequenceRuntime = () => {
   const model = sequenceRuntimeModel();
@@ -254,57 +339,7 @@ const fakeSequenceRuntime = () => {
       probeStatus: 'ok'
     }),
     async encodeSequence({ sequence, request }) {
-      const pooledEmbedding = [0.25, -0.5, 0.75];
-      const pooledEmbeddingHash = await hashFloat32Values(pooledEmbedding);
-      const sequenceResult = {
-        schema: 'reploid.pool.sequence_result/v1',
-        workload: request.workload,
-        alphabet: request.alphabet,
-        sequenceHash: request.sequenceHash,
-        sequenceLength: request.sequenceLength,
-        tokenCount: sequence.length,
-        tokensHash: await hashJson([...sequence].map((_, index) => index)),
-        includedTokenCount: sequence.length,
-        embeddingDim: pooledEmbedding.length,
-        vocabSize: 33,
-        pooledEmbeddingHash,
-        tokenEmbeddingsHash: null,
-        maskedLogitsHash: null
-      };
-      const sequenceResultHash = await hashJson(sequenceResult);
-      return {
-        outputKind: request.workload,
-        outputText: '',
-        tokenIds: [],
-        vectorHash: pooledEmbeddingHash,
-        sequenceResultHash,
-        sequenceResult,
-        sequenceOutput: {
-          pooledEmbedding,
-          tokenEmbeddings: null,
-          maskedLogits: []
-        },
-        embeddingDimensions: pooledEmbedding.length,
-        embeddingStats: {
-          dimensions: pooledEmbedding.length,
-          nonFiniteCount: 0,
-          l2Norm: 0.935414
-        },
-        transcript: {
-          outputKind: request.workload,
-          sequenceResultHash,
-          sequenceResult
-        },
-        tokenCounts: {
-          input: sequence.length,
-          output: 0
-        },
-        timing: {
-          startedAt: '2026-07-25T00:00:00.000Z',
-          completedAt: '2026-07-25T00:00:01.000Z'
-        },
-        status: 'completed'
-      };
+      return createFakeSequenceExecution({ sequence, request });
     }
   };
 };
@@ -437,7 +472,7 @@ describe('pool peer room', () => {
       payload: {
         roomId: 'empty-room-test',
         observedProviderCount: 0,
-        action: 'Start contributing in Compute to download and host qwen-3-5-0-8b-q4k-ehaf16 locally in this browser, or open another tab in room "empty-room-test".'
+        action: 'Start contributing in Compute to download and host esm2-t12-35m-ur50d-f32-af32 locally in this browser, or open another tab in room "empty-room-test".'
       }
     });
   });
@@ -551,6 +586,169 @@ describe('pool peer room', () => {
     } finally {
       providerBus.close();
       network.reset();
+    }
+  });
+
+  it('preserves a WebRTC transport timeout as recoverable provider unavailability', async () => {
+    installFakeBroadcastChannel();
+    const roomId = 'transport-timeout-room';
+    const requesterClient = await createRoomRequesterClient('requester_transport_timeout');
+    const providerClient = await createRoomProviderClient({
+      providerId: 'provider_transport_timeout',
+      runtime: fakeSequenceRuntime()
+    });
+    const transports = createFakeTransportFactories();
+    const requesterTransportFactory = (options) => {
+      const transport = transports.requesterTransportFactory(options);
+      transport.connect = () => Promise.reject(new Error('simulated WebRTC transport timeout'));
+      transport.getDiagnostics = () => ({ turnConfigured: true, state: 'connecting' });
+      return transport;
+    };
+    const providerNode = createPeerProviderNode({
+      roomId,
+      providerClient,
+      providerTransportFactory: transports.providerTransportFactory,
+      advertIntervalMs: 100000
+    });
+    await providerNode.start({
+      models: [sequenceRuntimeModel()],
+      availability: { acceptedPolicies: ['fastest_receipt'] }
+    });
+
+    try {
+      await expect(runPeerJob({
+        roomId,
+        requesterClient,
+        requesterTransportFactory,
+        sequence: 'MKTAYIAKQRQISFVKSHFSRQ',
+        sequenceRequest: {
+          workload: 'sequence.embedding.v1',
+          alphabet: 'amino_acid',
+          sensitivity: 'public'
+        },
+        policyId: 'fastest_receipt',
+        modelRequirements: sequenceRuntimeModel(),
+        discoveryWindowMs: 1000,
+        transportConnectWindowMs: 10,
+        receiptWindowMs: 100
+      })).rejects.toMatchObject({
+        code: 'peer_provider_unresponsive',
+        retryable: true,
+        payload: {
+          roomId,
+          validReceiptCount: 0,
+          requiredAgreement: 1,
+          failedProviderIds: ['provider_transport_timeout'],
+          providerFailures: [
+            expect.objectContaining({
+              providerId: 'provider_transport_timeout',
+              code: 'webrtc_connection_timeout',
+              message: 'simulated WebRTC transport timeout'
+            })
+          ]
+        },
+        diagnostics: {
+          providerFailures: [
+            expect.objectContaining({
+              diagnostics: { turnConfigured: true, state: 'connecting' }
+            })
+          ]
+        }
+      });
+    } finally {
+      await providerNode.stop();
+    }
+  });
+
+  it('releases a provider session when a requester transport closes before input', async () => {
+    installFakeBroadcastChannel();
+    const roomId = 'transport-close-releases-provider-session';
+    const requesterClient = await createRoomRequesterClient('requester_transport_close_release');
+    const providerClient = await createRoomProviderClient({
+      providerId: 'provider_transport_close_release',
+      runtime: fakeSequenceRuntime()
+    });
+    const transports = createFakeTransportFactories();
+    let requesterConnects = 0;
+    let providerClosedSessions = 0;
+    const requesterTransportFactory = (options) => {
+      const transport = transports.requesterTransportFactory(options);
+      const connect = transport.connect.bind(transport);
+      const close = transport.close.bind(transport);
+      transport.connect = () => {
+        requesterConnects += 1;
+        if (requesterConnects === 1) {
+          return Promise.reject(new Error('simulated requester connection failure'));
+        }
+        return connect();
+      };
+      transport.close = async (reason) => {
+        await options.signaling.sendClose?.(reason);
+        return close(reason);
+      };
+      return transport;
+    };
+    const providerTransportFactory = (options) => {
+      const transport = transports.providerTransportFactory(options);
+      const unsubscribe = options.signaling.subscribe((message) => {
+        if (message.type === 'close') options.onStateChange?.('closed');
+      });
+      const close = transport.close.bind(transport);
+      transport.close = async (reason) => {
+        providerClosedSessions += 1;
+        unsubscribe();
+        options.onStateChange?.('closed');
+        return close(reason);
+      };
+      return transport;
+    };
+    const providerNode = createPeerProviderNode({
+      roomId,
+      providerClient,
+      providerTransportFactory,
+      advertIntervalMs: 100000,
+      maxActiveSessions: 1,
+      maxQueuedSessions: 0
+    });
+    await providerNode.start({
+      models: [sequenceRuntimeModel()],
+      availability: { acceptedPolicies: ['fastest_receipt'], maxConcurrentJobs: 1 }
+    });
+
+    try {
+      await expect(runPeerJob({
+        roomId,
+        requesterClient,
+        requesterTransportFactory,
+        sequence: TEST_PUBLIC_SEQUENCE,
+        sequenceRequest: testSequenceRequest(),
+        policyId: 'fastest_receipt',
+        modelRequirements: sequenceRuntimeModel(),
+        discoveryWindowMs: 1000,
+        transportConnectWindowMs: 10,
+        receiptWindowMs: 100
+      })).rejects.toMatchObject({
+        code: 'peer_provider_unresponsive'
+      });
+      await vi.waitFor(() => expect(providerClosedSessions).toBeGreaterThan(0));
+
+      const result = await runPeerJob({
+        roomId,
+        requesterClient,
+        requesterTransportFactory,
+        sequence: TEST_PUBLIC_SEQUENCE,
+        sequenceRequest: testSequenceRequest(),
+        policyId: 'fastest_receipt',
+        modelRequirements: sequenceRuntimeModel(),
+        discoveryWindowMs: 1000,
+        receiptWindowMs: 1000
+      });
+
+      expect(result.receiptHash).toMatch(/^sha256:/);
+      expect(result.sequenceOutput?.pooledEmbedding).toHaveLength(3);
+      expect(requesterConnects).toBe(2);
+    } finally {
+      await providerNode.stop();
     }
   });
 
@@ -728,7 +926,7 @@ describe('pool peer room', () => {
 
     try {
       const result = await pending;
-      expect(result.outputText).toBe('room:late provider prompt');
+      expect(result.outputText).toBe(`room:${testSequenceFor('late provider prompt')}`);
       expect(result.assignment.providerId).toBe('provider_late_join');
     } finally {
       await providerNode.stop();
@@ -773,7 +971,7 @@ describe('pool peer room', () => {
         onActivity: (event) => activity.push(event)
       });
 
-      expect(result.outputText).toBe('room:start immediately');
+      expect(result.outputText).toBe(`room:${testSequenceFor('start immediately')}`);
       expect(result.assignment.providerId).toBe('provider_already_ready');
       expect(activity).toContainEqual(expect.objectContaining({
         status: 'peer_provider_discovery_started',
@@ -871,8 +1069,23 @@ describe('pool peer room', () => {
     blocking.releaseNext();
 
     const error = await pending;
-    expect(error).toBeInstanceOf(Error);
-    expect(error.message).toMatch(/No peer receipt returned|Peer receipt agreement failed/);
+    expect(error).toMatchObject({
+      code: 'peer_provider_unresponsive',
+      retryable: true,
+      payload: {
+        roomId: 'provider-leaves-room',
+        validReceiptCount: 0,
+        requiredAgreement: 1,
+        failedProviderIds: ['provider_leaves_mid_job'],
+        providerFailures: [
+          expect.objectContaining({
+            providerId: 'provider_leaves_mid_job',
+            code: 'peer_receipt_timeout',
+            message: 'No peer receipt returned before the delivery deadline'
+          })
+        ]
+      }
+    });
   });
 
   it('returns provider runtime failures to the requester', async () => {
@@ -1045,10 +1258,10 @@ describe('pool peer room', () => {
     const stopped = await providerNode.stop();
 
     expect(result.transport).toBe('webrtc_peer_room');
-    expect(result.outputText).toBe('room:peer room prompt');
+    expect(result.outputText).toBe(`room:${testSequenceFor('peer room prompt')}`);
     expect(result.assignment.providerId).toBe('provider_room');
     expect(result.assignment.requesterId).toBe('requester_room');
-    expect(result.promptPayload.body.prompt).toBe('peer room prompt');
+    expect(result.inputPayload.body.sequence).toBe(testSequenceFor('peer room prompt'));
     expect(result.receiptHash).toMatch(/^sha256:/);
     expect(result.receiptRecord.providerPublicKey).toMatch(/^[A-Za-z0-9+/=]+$/);
     expect(result.receiptRecord.peerDecision).toMatchObject({
@@ -1158,12 +1371,17 @@ describe('pool peer room', () => {
     const requesterClient = await createRoomRequesterClient('requester_relay_room');
     const providerClient = await createRoomProviderClient({ providerId: 'provider_relay_room' });
     const relaySdk = createMemoryRelaySdk();
-    const roomBusFactory = createPeerRoomBusFactory({
+    const relayBusFactory = createPeerRoomBusFactory({
       sdk: relaySdk,
       relay: 'server',
       pollIntervalMs: 1,
       relayTtlMs: 10000
     });
+    const busRoles = [];
+    const roomBusFactory = (options) => {
+      busRoles.push(options.role);
+      return relayBusFactory(options);
+    };
     const {
       requesterTransportFactory,
       providerTransportFactory
@@ -1194,16 +1412,57 @@ describe('pool peer room', () => {
         receiptWindowMs: 1000
       });
 
-      expect(result.outputText).toBe('room:relay room prompt');
+      expect(result.outputText).toBe(`room:${testSequenceFor('relay room prompt')}`);
       expect(result.assignment.providerId).toBe('provider_relay_room');
       expect(result.assignment.requesterId).toBe('requester_relay_room');
       expect(result.receiptHash).toMatch(/^sha256:/);
       expect(relaySdk.messages.some((entry) => entry.message.type === 'provider-advert')).toBe(true);
       expect(relaySdk.messages.some((entry) => entry.message.type === 'peer-run-request')).toBe(true);
       expect(relaySdk.messages.some((entry) => entry.message.type === 'peer-run-accepted')).toBe(true);
-      expect(JSON.stringify(relaySdk.messages)).not.toContain('relay room prompt');
+      expect(JSON.stringify(relaySdk.messages)).not.toContain(testSequenceFor('relay room prompt'));
       expect(JSON.stringify(relaySdk.messages)).not.toContain('outputText');
       expect(JSON.stringify(relaySdk.messages)).not.toContain('tokenIds');
+      expect(busRoles).toEqual(['provider', 'requester']);
+    } finally {
+      await providerNode.stop();
+    }
+  });
+
+  it('forwards relay health transitions to provider activity', async () => {
+    const activity = [];
+    const channel = {
+      addEventListener() {},
+      removeEventListener() {},
+      postMessage: vi.fn(() => Promise.resolve()),
+      close() {}
+    };
+    const providerNode = createPeerProviderNode({
+      roomId: 'relay-health-room',
+      providerClient: await createRoomProviderClient({ providerId: 'provider_relay_health' }),
+      roomBusFactory: ({ onStatus }) => {
+        onStatus?.({ type: 'relay-circuit-open', circuitState: 'open' });
+        onStatus?.({ type: 'relay-circuit-closed', circuitState: 'closed' });
+        return channel;
+      },
+      advertIntervalMs: 100000,
+      onActivity: (event) => activity.push(event)
+    });
+
+    try {
+      await providerNode.start({
+        models: [runtimeModel()],
+        availability: { acceptedPolicies: ['fastest_receipt'] }
+      });
+      expect(activity).toEqual(expect.arrayContaining([
+        expect.objectContaining({
+          status: 'relay-circuit-open',
+          relayStatus: expect.objectContaining({ circuitState: 'open' })
+        }),
+        expect.objectContaining({
+          status: 'relay-circuit-closed',
+          relayStatus: expect.objectContaining({ circuitState: 'closed' })
+        })
+      ]));
     } finally {
       await providerNode.stop();
     }
@@ -1291,7 +1550,7 @@ describe('pool peer room', () => {
         mode: 'ring_quorum',
         requiredAgreement: 2,
         acceptedProviderCount: 3,
-        agreementField: 'tokenIdsHash'
+        agreementField: 'sequenceResultHash'
       });
       expect(result.ledgerEvents.length).toBeGreaterThan(0);
       expect(result.requesterAcceptance).toMatchObject({
@@ -1357,7 +1616,7 @@ describe('pool peer room', () => {
         requiredAgreement: 7
       });
       expect(result.assignments).toHaveLength(12);
-      expect(result.promptPayloads).toHaveLength(12);
+      expect(result.inputPayloads).toHaveLength(12);
       expect(result.receiptPayloads).toHaveLength(12);
       expect(result.receiptHashes).toHaveLength(12);
       expect(result.agreement).toMatchObject({
@@ -1365,7 +1624,7 @@ describe('pool peer room', () => {
         mode: 'ring_quorum',
         requiredAgreement: 7,
         acceptedProviderCount: 12,
-        agreementField: 'tokenIdsHash'
+        agreementField: 'sequenceResultHash'
       });
       expect(new Set(result.assignments.map((assignment) => assignment.providerId)).size).toBe(12);
       expect(new Set(result.receiptPayloads.map((payload) => payload.assignmentId)).size).toBe(12);
@@ -1514,6 +1773,10 @@ describe('pool peer room', () => {
         discoveryWindowMs: 1000,
         receiptWindowMs: 1000
       });
+      const firstSettled = first.then(
+        (result) => ({ result }),
+        (error) => ({ error })
+      );
       await expect.poll(() => blocking.prompts.length).toBe(1);
 
       const second = runPeerJob({
@@ -1524,21 +1787,32 @@ describe('pool peer room', () => {
         policyId: 'fastest_receipt',
         modelRequirements: runtimeModel(),
         discoveryWindowMs: 1000,
-        sessionAcceptWindowMs: 25,
+        // The queue signal is asynchronous across two independent browser
+        // transports. Keep this above a single event-loop turn so a loaded
+        // unit suite does not turn expected backpressure into a false timeout.
+        sessionAcceptWindowMs: 500,
         receiptWindowMs: 1000
       });
+      const secondSettled = second.then(
+        (result) => ({ result }),
+        (error) => ({ error })
+      );
       await expect.poll(() => activity.some((event) => event.status === 'peer_session_queued')).toBe(true);
       await expect.poll(() => sessions.size).toBe(2);
-      expect(blocking.prompts).toEqual(['first queued prompt']);
+      expect(blocking.prompts).toEqual([testSequenceFor('first queued prompt')]);
 
       blocking.releaseNext();
-      const firstResult = await first;
+      const firstOutcome = await firstSettled;
+      if (firstOutcome.error) throw firstOutcome.error;
+      const firstResult = firstOutcome.result;
       await expect.poll(() => blocking.prompts.length).toBe(2);
       blocking.releaseNext();
-      const secondResult = await second;
+      const secondOutcome = await secondSettled;
+      if (secondOutcome.error) throw secondOutcome.error;
+      const secondResult = secondOutcome.result;
 
-      expect(firstResult.outputText).toBe('queued:first queued prompt');
-      expect(secondResult.outputText).toBe('queued:second queued prompt');
+      expect(firstResult.outputText).toBe(`queued:${testSequenceFor('first queued prompt')}`);
+      expect(secondResult.outputText).toBe(`queued:${testSequenceFor('second queued prompt')}`);
       expect(firstResult.assignment.providerId).toBe('provider_room_queue');
       expect(secondResult.assignment.providerId).toBe('provider_room_queue');
       expect(activity.map((event) => event.status)).toContain('peer_session_dequeued');

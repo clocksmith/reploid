@@ -3,6 +3,7 @@
  */
 
 import { verifyPeerMessage } from './peer-protocol.js';
+import { boundedRetryDelay, retryAfterMsFromError } from './retry-policy.js';
 
 export const PEER_ROOM_RELAY_VERSION = 'reploid_peer_room_relay/v1';
 export const DEFAULT_RELAY_POLL_INTERVAL_MS = 1000;
@@ -13,6 +14,7 @@ export const DEFAULT_RELAY_MAX_DEDUP_IDS = 2048;
 export const DEFAULT_RELAY_PUBLISH_ATTEMPTS = 3;
 export const DEFAULT_RELAY_RETRY_BASE_MS = 250;
 export const DEFAULT_RELAY_POLL_TIMEOUT_MS = 5000;
+export const DEFAULT_RELAY_PUBLISH_TIMEOUT_MS = 5000;
 export const DEFAULT_RELAY_FAILURE_THRESHOLD = 3;
 export const DEFAULT_RELAY_BACKOFF_BASE_MS = 1000;
 export const DEFAULT_RELAY_BACKOFF_MAX_MS = 30000;
@@ -116,6 +118,7 @@ export function createSdkPeerRoomRelayBus({
   maxDedupIds = DEFAULT_RELAY_MAX_DEDUP_IDS,
   publishAttempts = DEFAULT_RELAY_PUBLISH_ATTEMPTS,
   retryBaseMs = DEFAULT_RELAY_RETRY_BASE_MS,
+  publishTimeoutMs = DEFAULT_RELAY_PUBLISH_TIMEOUT_MS,
   pollTimeoutMs = DEFAULT_RELAY_POLL_TIMEOUT_MS,
   failureThreshold = DEFAULT_RELAY_FAILURE_THRESHOLD,
   pollBackoffBaseMs = DEFAULT_RELAY_BACKOFF_BASE_MS,
@@ -141,7 +144,22 @@ export function createSdkPeerRoomRelayBus({
     duplicateSuppressed: 0,
     acknowledgements: 0,
     acknowledgementExpired: 0,
-    pollFailures: 0
+    pollFailures: 0,
+    dispatchFailures: 0,
+    publishLatencyCount: 0,
+    publishLatencyTotalMs: 0,
+    publishLatencyMaxMs: 0,
+    deliveryLagCount: 0,
+    deliveryLagTotalMs: 0,
+    deliveryLagMaxMs: 0,
+    backlogSampleCount: 0,
+    backlogOldestAgeTotalMs: 0,
+    backlogOldestAgeMaxMs: 0,
+    lastBacklogOldestAgeMs: 0,
+    acknowledgementLatencyCount: 0,
+    acknowledgementLatencyTotalMs: 0,
+    acknowledgementLatencyMaxMs: 0,
+    reconnectSuccesses: 0
   };
   let cursor = {
     sequence: null,
@@ -153,14 +171,30 @@ export function createSdkPeerRoomRelayBus({
   let polling = false;
   let circuitState = 'closed';
   let consecutivePollFailures = 0;
+  let consecutiveDispatchFailures = 0;
+  let lastPollRetryAfterMs = 0;
   const pendingAckStorageKey = localPeerId
     ? `reploid.peer-room.pending-acks/v1:${resolvedRoomId}:${localPeerId}`
     : null;
 
   const emitStatus = (type, detail = {}) => {
     const event = Object.freeze({ type, roomId: resolvedRoomId, at: now(), ...detail });
-    if (typeof onStatus === 'function') onStatus(event);
-    for (const listener of statusListeners) listener({ data: event });
+    // Status is observability, not a delivery dependency. A UI or metrics
+    // callback must never turn a successful relay poll into another failure.
+    if (typeof onStatus === 'function') {
+      try {
+        onStatus(event);
+      } catch {
+        // Keep the relay state machine independent from its observers.
+      }
+    }
+    for (const listener of statusListeners) {
+      try {
+        listener({ data: event });
+      } catch {
+        // A second observer must not prevent other observers or recovery.
+      }
+    }
   };
   const persistPendingAcks = () => {
     if (!pendingAckStorageKey || !pendingAcknowledgementStorage) return;
@@ -180,7 +214,13 @@ export function createSdkPeerRoomRelayBus({
         }
       }
     } catch {
-      // Ignore malformed local recovery state and continue from relay history.
+      // A relay record remains the durable source. Clear corrupt same-tab state so
+      // the next reload does not repeat a failed recovery parse.
+      try {
+        pendingAcknowledgementStorage.removeItem(pendingAckStorageKey);
+      } catch {
+        // Storage is a recovery aid. Continue from relay history when unavailable.
+      }
     }
   };
   const pruneSeen = () => {
@@ -230,17 +270,25 @@ export function createSdkPeerRoomRelayBus({
       prunePendingAcks();
       const startedAt = now();
       try {
-        const result = await sdk.publishPeerRoomMessage(resolvedRoomId, message);
+        const result = await withTimeout(
+          sdk.publishPeerRoomMessage(resolvedRoomId, message),
+          publishTimeoutMs,
+          'peer-room relay publish timed out'
+        );
         counters.published += 1;
         const targetPeerId = acknowledgementTargetFor(message);
         if (relayId && awaitAcknowledgement && targetPeerId) {
           pendingAcks.set(relayId, { publishedAt: startedAt, targetPeerId });
           persistPendingAcks();
         }
+        const elapsedMs = Math.max(0, now() - startedAt);
+        counters.publishLatencyCount += 1;
+        counters.publishLatencyTotalMs += elapsedMs;
+        counters.publishLatencyMaxMs = Math.max(counters.publishLatencyMaxMs, elapsedMs);
         emitStatus('relay-published', {
           relayId,
           attempt,
-          elapsedMs: Math.max(0, now() - startedAt),
+          elapsedMs,
           relaySequence: result?.message?.relaySequence ?? null
         });
         return result;
@@ -314,7 +362,11 @@ export function createSdkPeerRoomRelayBus({
         pendingAcks.delete(acknowledgedRelayId);
         persistPendingAcks();
         counters.acknowledgements += 1;
-        emitStatus('relay-acknowledged', { relayId: acknowledgedRelayId, byPeerId: message.body?.fromPeerId || null });
+        const elapsedMs = Math.max(0, now() - pending.publishedAt);
+        counters.acknowledgementLatencyCount += 1;
+        counters.acknowledgementLatencyTotalMs += elapsedMs;
+        counters.acknowledgementLatencyMaxMs = Math.max(counters.acknowledgementLatencyMaxMs, elapsedMs);
+        emitStatus('relay-acknowledged', { relayId: acknowledgedRelayId, byPeerId: message.body?.fromPeerId || null, elapsedMs });
       } else {
         emitStatus('relay-ack-rejected', { relayId: acknowledgedRelayId, byPeerId: message.body?.fromPeerId || null });
       }
@@ -322,6 +374,13 @@ export function createSdkPeerRoomRelayBus({
       return;
     }
     counters.received += 1;
+    const recordedAt = Number(record?.createdAt || 0);
+    if (Number.isFinite(recordedAt) && recordedAt > 0) {
+      const deliveryLagMs = Math.max(0, now() - recordedAt);
+      counters.deliveryLagCount += 1;
+      counters.deliveryLagTotalMs += deliveryLagMs;
+      counters.deliveryLagMaxMs = Math.max(counters.deliveryLagMaxMs, deliveryLagMs);
+    }
     for (const listener of listeners) listener({ data: message });
     if (id) seen.set(id, now() + Math.max(1, Number(dedupWindowMs || 1)));
     if (Number.isSafeInteger(record?.relaySequence) && record.relaySequence > 0) {
@@ -332,12 +391,23 @@ export function createSdkPeerRoomRelayBus({
     }
   };
 
-  const nextPollDelay = () => {
-    if (consecutivePollFailures === 0) return pollIntervalMs;
-    return Math.min(
-      Math.max(1, Number(pollBackoffMaxMs || 1)),
-      Math.max(1, Number(pollBackoffBaseMs || 1)) * (2 ** Math.max(0, consecutivePollFailures - 1))
-    );
+  const nextPollDelay = (retryAfterMs = 0) => {
+    const consecutiveFailures = Math.max(consecutivePollFailures, consecutiveDispatchFailures);
+    if (consecutiveFailures === 0) return Math.max(Number(pollIntervalMs || 0), Number(retryAfterMs || 0));
+    return boundedRetryDelay({
+      consecutiveFailures,
+      baseDelayMs: pollBackoffBaseMs,
+      maxDelayMs: pollBackoffMaxMs,
+      retryAfterMs
+    });
+  };
+  const cursorForRecord = (record = {}) => {
+    const message = record.message || record;
+    return {
+      sequence: Number.isSafeInteger(record?.relaySequence) ? record.relaySequence : null,
+      createdAt: Number(record.createdAt || message?.createdAt || 0),
+      messageId: String(relayIdFor(record, message) || '')
+    };
   };
   const schedulePoll = (delay) => {
     if (closed || timer) return;
@@ -349,6 +419,8 @@ export function createSdkPeerRoomRelayBus({
   const poll = async () => {
     if (closed || polling) return;
     polling = true;
+    let scheduledPollDelay = nextPollDelay();
+    prunePendingAcks();
     if (circuitState === 'open') {
       circuitState = 'half_open';
       emitStatus('relay-circuit-half-open', { consecutivePollFailures });
@@ -363,44 +435,87 @@ export function createSdkPeerRoomRelayBus({
         peerId: localPeerId || null
       }), pollTimeoutMs, 'peer-room relay poll timed out');
       const messages = Array.isArray(result?.messages) ? result.messages : Array.isArray(result) ? result : [];
+      const relayTimestamps = messages
+        .map((record) => Number(record?.createdAt || 0))
+        .filter((createdAt) => Number.isFinite(createdAt) && createdAt > 0);
+      if (relayTimestamps.length > 0) {
+        const oldestAgeMs = Math.max(0, now() - Math.min(...relayTimestamps));
+        counters.backlogSampleCount += 1;
+        counters.backlogOldestAgeTotalMs += oldestAgeMs;
+        counters.backlogOldestAgeMaxMs = Math.max(counters.backlogOldestAgeMaxMs, oldestAgeMs);
+        counters.lastBacklogOldestAgeMs = oldestAgeMs;
+      }
+      let lastDispatchedCursor = null;
+      let dispatchError = null;
+      let failedRelayId = null;
       for (const record of messages) {
         const message = record.message || record;
-        if (message?.peerRoomVersion) await deliver(record);
+        if (!message?.peerRoomVersion) {
+          lastDispatchedCursor = cursorForRecord(record);
+          continue;
+        }
+        try {
+          await deliver(record);
+          lastDispatchedCursor = cursorForRecord(record);
+        } catch (error) {
+          dispatchError = error;
+          failedRelayId = relayIdFor(record, message);
+          break;
+        }
       }
-      const nextCursor = result?.nextCursor;
-      const hasSequence = Number.isSafeInteger(nextCursor?.sequence) && nextCursor.sequence >= 0;
-      if (nextCursor && (hasSequence || Number.isFinite(Number(nextCursor.createdAt)))) {
-        cursor = {
-          sequence: hasSequence ? nextCursor.sequence : null,
-          createdAt: Number(nextCursor.createdAt),
-          messageId: String(nextCursor.messageId || '')
-        };
-      } else if (messages.length > 0) {
-        const last = messages.at(-1);
-        cursor = {
-          sequence: Number.isSafeInteger(last?.relaySequence) ? last.relaySequence : null,
-          createdAt: Number(last.createdAt || last.message?.createdAt || 0),
-          messageId: String(last.relayId || last.message?.relay?.relayId || '')
-        };
+      if (dispatchError) {
+        counters.dispatchFailures += 1;
+        consecutiveDispatchFailures += 1;
+        if (lastDispatchedCursor) cursor = lastDispatchedCursor;
+        emitStatus('relay-dispatch-retrying', {
+          relayId: failedRelayId,
+          consecutiveDispatchFailures,
+          retryDelayMs: nextPollDelay(),
+          error: String(dispatchError?.message || dispatchError)
+        });
+      } else {
+        const nextCursor = result?.nextCursor;
+        const hasSequence = Number.isSafeInteger(nextCursor?.sequence) && nextCursor.sequence >= 0;
+        if (nextCursor && (hasSequence || Number.isFinite(Number(nextCursor.createdAt)))) {
+          cursor = {
+            sequence: hasSequence ? nextCursor.sequence : null,
+            createdAt: Number(nextCursor.createdAt),
+            messageId: String(nextCursor.messageId || '')
+          };
+        } else if (messages.length > 0) {
+          cursor = lastDispatchedCursor || cursorForRecord(messages.at(-1));
+        }
+        if (consecutiveDispatchFailures > 0) emitStatus('relay-dispatch-recovered');
+        consecutiveDispatchFailures = 0;
       }
       if (circuitState !== 'closed') emitStatus('relay-circuit-closed');
+      if (consecutivePollFailures > 0) counters.reconnectSuccesses += 1;
       circuitState = 'closed';
       consecutivePollFailures = 0;
+      lastPollRetryAfterMs = 0;
     } catch (error) {
       // Relay failure should not break an already-open room loop.
       counters.pollFailures += 1;
       consecutivePollFailures += 1;
       const threshold = Math.max(1, Number(failureThreshold || 1));
+      lastPollRetryAfterMs = retryAfterMsFromError(error, { maxDelayMs: pollBackoffMaxMs });
+      const retryDelayMs = nextPollDelay(lastPollRetryAfterMs);
+      scheduledPollDelay = retryDelayMs;
+      emitStatus('relay-poll-failed', {
+        error: String(error?.message || error),
+        consecutivePollFailures,
+        retryDelayMs,
+        retryAfterMs: lastPollRetryAfterMs || null
+      });
       if (consecutivePollFailures >= threshold) {
         circuitState = 'open';
-        emitStatus('relay-circuit-open', { consecutivePollFailures, retryDelayMs: nextPollDelay() });
+        emitStatus('relay-circuit-open', { consecutivePollFailures, retryDelayMs });
       } else {
         circuitState = 'retrying';
       }
-      emitStatus('relay-poll-failed', { error: String(error?.message || error) });
     } finally {
       polling = false;
-      schedulePoll(nextPollDelay());
+      schedulePoll(scheduledPollDelay);
     }
   };
 
@@ -448,6 +563,8 @@ export function createSdkPeerRoomRelayBus({
         dedupWindowSize: seen.size,
         circuitState,
         consecutivePollFailures,
+        consecutiveDispatchFailures,
+        lastPollRetryAfterMs,
         ...counters
       });
     },
@@ -462,7 +579,13 @@ export function createSdkPeerRoomRelayBus({
   });
 }
 
-export function createPeerRoomBusFactory({ sdk = null, relay = 'local', pollIntervalMs, relayTtlMs } = {}) {
+export function createPeerRoomBusFactory({
+  sdk = null,
+  relay = 'local',
+  pollIntervalMs,
+  relayTtlMs,
+  publishTimeoutMs
+} = {}) {
   return (options = {}) => {
     if (relay === 'server' || relay === 'sdk') {
       return createSdkPeerRoomRelayBus({
@@ -471,6 +594,7 @@ export function createPeerRoomBusFactory({ sdk = null, relay = 'local', pollInte
         localPeerId: options.localPeerId,
         pollIntervalMs,
         relayTtlMs,
+        publishTimeoutMs,
         relayAckSigner: options.relayAckSigner,
         onStatus: options.onStatus
       });

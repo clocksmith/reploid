@@ -3,6 +3,10 @@
 Poolday is the internal/docs name for the public Reploid browser inference pool.
 The public UI uses the Reploid name.
 
+The [Poolday product intent](./product-intent.md) owns the user proposition,
+surface hierarchy, and long-term Zero/X promotion boundary. This document owns
+the narrower supported public claim.
+
 ## Claim
 
 Poolday provides:
@@ -52,4 +56,4 @@ Public copy must use terms such as:
 
 Public copy must not imply hardware-backed or tamper-proof execution.
 
-*Last updated: June 2026*
+*Last updated: August 2026*

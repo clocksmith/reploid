@@ -245,4 +245,93 @@ describe('pool p2p signaling helpers', () => {
     unsubscribe();
     vi.useRealTimers();
   });
+
+  it('backs off signaling polls, exposes circuit recovery, and returns to normal cadence', async () => {
+    vi.useFakeTimers();
+    const statuses = [];
+    let calls = 0;
+    const adapter = createPollingSignalingAdapter({
+      publishSignal: () => Promise.resolve(),
+      listSignals: () => {
+        calls += 1;
+        if (calls <= 2) return Promise.reject(new Error('synthetic signaling outage'));
+        return Promise.resolve({ messages: [] });
+      },
+      pollIntervalMs: 1,
+      pollBackoffBaseMs: 5,
+      pollBackoffMaxMs: 10,
+      failureThreshold: 2,
+      onStatus: (status) => statuses.push(status)
+    });
+    const unsubscribe = adapter.subscribe(() => {});
+
+    await vi.advanceTimersByTimeAsync(0);
+    expect(calls).toBe(1);
+    expect(adapter.getStatus()).toMatchObject({
+      circuitState: 'retrying',
+      consecutivePollFailures: 1
+    });
+
+    await vi.advanceTimersByTimeAsync(5);
+    expect(calls).toBe(2);
+    expect(adapter.getStatus()).toMatchObject({
+      circuitState: 'open',
+      consecutivePollFailures: 2
+    });
+
+    await vi.advanceTimersByTimeAsync(9);
+    expect(calls).toBe(2);
+    await vi.advanceTimersByTimeAsync(1);
+    expect(calls).toBe(3);
+    expect(adapter.getStatus()).toMatchObject({
+      circuitState: 'closed',
+      consecutivePollFailures: 0
+    });
+    expect(statuses.map((status) => status.type)).toEqual(expect.arrayContaining([
+      'signaling-poll-failed',
+      'signaling-circuit-open',
+      'signaling-circuit-half-open',
+      'signaling-poll-recovered',
+      'signaling-circuit-closed'
+    ]));
+
+    unsubscribe();
+    vi.useRealTimers();
+  });
+
+  it('honors a bounded server retry deadline while polling signaling', async () => {
+    vi.useFakeTimers();
+    const statuses = [];
+    let calls = 0;
+    const retryableError = Object.assign(new Error('signaling rate limited'), { retryAfterMs: 8 });
+    const adapter = createPollingSignalingAdapter({
+      publishSignal: () => Promise.resolve(),
+      listSignals: () => {
+        calls += 1;
+        return calls === 1 ? Promise.reject(retryableError) : Promise.resolve({ messages: [] });
+      },
+      pollIntervalMs: 1,
+      pollBackoffBaseMs: 1,
+      pollBackoffMaxMs: 10,
+      onStatus: (status) => statuses.push(status)
+    });
+    const unsubscribe = adapter.subscribe(() => {});
+
+    await vi.advanceTimersByTimeAsync(0);
+    expect(calls).toBe(1);
+    expect(statuses.find((status) => status.type === 'signaling-poll-failed')).toMatchObject({
+      retryDelayMs: 8,
+      retryAfterMs: 8
+    });
+    await vi.advanceTimersByTimeAsync(7);
+    expect(calls).toBe(1);
+    await vi.advanceTimersByTimeAsync(1);
+    expect(calls).toBe(2);
+    expect(adapter.getStatus()).toMatchObject({
+      circuitState: 'closed',
+      lastPollRetryAfterMs: 0
+    });
+    unsubscribe();
+    vi.useRealTimers();
+  });
 });
