@@ -79,6 +79,11 @@ const connectPeerTransport = async ({ session, timeoutMs } = {}) => {
       timeoutMs,
       `Peer transport did not connect for provider ${session.assignment.providerId}`
     );
+    // Receipt agreement can trigger an intentional remote teardown before the
+    // requester renders its result. Keep an immutable connection-time sample
+    // so the receipt describes the transport that actually carried the input
+    // and receipt, rather than a later ICE terminal transition.
+    session.connectedDiagnostics = session.transport?.getDiagnostics?.() || null;
   } catch (error) {
     const connectionError = error instanceof Error ? error : new Error(String(error));
     if (!connectionError.code) connectionError.code = 'webrtc_connection_timeout';
@@ -821,7 +826,7 @@ export async function runPeerJob({
       relayMetrics: channel?.getStatus?.() || null,
       transportDiagnostics: acceptedSessions.map((session) => ({
         providerId: session.assignment.providerId,
-        ...(session.transport.getDiagnostics?.() || {})
+        ...(session.connectedDiagnostics || session.transport.getDiagnostics?.() || {})
       }))
     };
   } catch (error) {
