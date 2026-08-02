@@ -5,8 +5,16 @@
 import { attachAuditAssignment } from '../audits.js';
 import { getPolicy } from '../policy-router.js';
 import { assignJob } from '../scheduler.js';
+import {
+  exactModelContractKey,
+  getEnabledPoolModelContract,
+  getPoolModelExecutionMode,
+  getPoolModelWorkload
+} from '../model-contract.js';
 
 export async function scheduleAuditExecution({ store, provider, model, audit }) {
+  const assignedModel = getEnabledPoolModelContract(model?.modelId);
+  if (!assignedModel) throw new Error('audit provider model is not an enabled Poolday model');
   const policyId = audit.policyId || 'fastest_receipt';
   const job = await store.createJob({
     requesterId: 'coordinator_audit',
@@ -36,11 +44,17 @@ export async function scheduleAuditExecution({ store, provider, model, audit }) 
     prompt: audit.prompt,
     generationConfig: audit.generationConfig,
     model: {
-      id: model.modelId,
-      hash: model.modelHash,
-      manifestHash: model.manifestHash,
-      runtime: model.runtime,
-      backend: model.backend,
+      ...assignedModel,
+      id: assignedModel.modelId,
+      hash: assignedModel.modelHash,
+      workload: audit.modelRequirements?.workload || getPoolModelWorkload(assignedModel),
+      executionMode: getPoolModelExecutionMode(
+        assignedModel,
+        audit.modelRequirements?.workload || getPoolModelWorkload(assignedModel)
+      ),
+      exactModelContractKey: exactModelContractKey(assignedModel, {
+        workload: audit.modelRequirements?.workload || getPoolModelWorkload(assignedModel)
+      }),
       requirements: audit.modelRequirements
     }
   });

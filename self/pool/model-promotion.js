@@ -7,6 +7,7 @@
  */
 
 import { validateBrowserQualificationRecord } from './browser-qualification.js';
+import { validateDnaLaneAdmissionRecord } from './dna-lane-admission.js';
 import { exactModelContractKey } from './model-contract.js';
 import { validateScientificFitnessRecord } from './scientific-fitness.js';
 
@@ -19,7 +20,9 @@ export function validateModelPromotionEvidence({
   modelCatalog = [],
   launchModel = null,
   browserQualificationRecord = null,
-  scientificFitnessRecord = null
+  scientificFitnessRecord = null,
+  scientificEvaluationRecord = null,
+  dnaAdmissionRecords = {}
 } = {}) {
   const reasons = [];
   const admission = model.admission || {};
@@ -40,6 +43,25 @@ export function validateModelPromotionEvidence({
     }
     if (dnaLane.scientificFitness === 'qualified' && !dnaLane.scientificFitnessReceipt) {
       reasons.push('DNA promotion requires a persisted DNA scientific-fitness admission receipt');
+    }
+    const requiredDnaRecords = [
+      ['privacy', dnaLane.privacy, 'privacyReceipt'],
+      ['referenceCoordinates', dnaLane.referenceCoordinates, 'referenceCoordinateReceipt'],
+      ['scientificFitness', dnaLane.scientificFitness, 'scientificFitnessReceipt'],
+      ['licensing', dnaLane.licensing, 'licensingReceipt'],
+      ['productUse', dnaLane.productUse, 'productUseReceipt']
+    ];
+    for (const [gate, state, receiptField] of requiredDnaRecords) {
+      const requiredState = gate === 'licensing' ? 'approved' : gate === 'productUse' ? 'admitted' : 'qualified';
+      if (state !== requiredState) continue;
+      const validation = validateDnaLaneAdmissionRecord(dnaAdmissionRecords[gate], {
+        gate,
+        exactModelContractKey: candidateContractKey
+      });
+      if (!validation.ok) {
+        reasons.push(`DNA promotion requires a valid persisted ${gate} admission record`);
+      }
+      if (!dnaLane[receiptField]) reasons.push(`DNA promotion requires a persisted ${gate} admission receipt`);
     }
   }
 
@@ -83,7 +105,8 @@ export function validateModelPromotionEvidence({
         candidate: model,
         candidateContractKey,
         baselines,
-        baselineContractKeys: baselines.map((baseline) => exactModelContractKey(baseline))
+        baselineContractKeys: baselines.map((baseline) => exactModelContractKey(baseline)),
+        scientificEvaluationRecord
       });
       reasons.push(...validation.reasons.map((reason) => `scientific fitness: ${reason}`));
     }

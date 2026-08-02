@@ -18,6 +18,46 @@ export const canClaimJobForAssignment = (job = {}) => job.status === 'queued'
     'failed', 'receipt_rejected', 'redundant_disagreement', 'ring_quorum_disagreement'
   ].includes(job.status));
 
+/**
+ * Persistence-neutral job claim transitions. Adapters provide atomic storage,
+ * but a memory run and a Firestore run must make the same claim decision.
+ */
+export const buildAssignmentClaimPatch = (job = {}) => {
+  if (!canClaimJobForAssignment(job)) return null;
+  return {
+    status: 'assignment_processing',
+    assignmentAttempts: Number(job.assignmentAttempts || 0) + 1
+  };
+};
+
+export const canClaimJobForAcceptance = (job = {}) => Boolean(job)
+  && !['accepted', 'acceptance_processing', 'rejected_by_requester'].includes(job.status);
+
+export const buildAcceptanceClaimPatch = (job = {}) => {
+  if (!canClaimJobForAcceptance(job)) return null;
+  return { status: 'acceptance_processing' };
+};
+
+/**
+ * Adapters may query differently, but must expose the same queued assignment
+ * as the next claimable provider dispatch.
+ */
+export const compareAssignmentDispatchOrder = (left = {}, right = {}) => (
+  String(left.createdAt || '').localeCompare(String(right.createdAt || ''))
+  || String(left.assignmentId || '').localeCompare(String(right.assignmentId || ''))
+);
+
+export const selectNextAssignmentForProvider = (assignments = [], providerId = '') => (
+  assignments
+    .filter((assignment) => assignment?.providerId === providerId && assignment.status === 'assigned')
+    .sort(compareAssignmentDispatchOrder)[0] || null
+);
+
+export const buildAssignmentStartPatch = (assignment = {}, now = new Date().toISOString()) => {
+  if (!assignment || assignment.status !== 'assigned') return null;
+  return { status: 'running', startedAt: assignment.startedAt || now };
+};
+
 export const agreementModeForJob = (job = {}) => (
   job?.agreement?.mode || (job?.policyId === 'ring_quorum_receipt' ? 'ring_quorum' : 'redundant')
 );

@@ -8,6 +8,7 @@ import { createDopplerRuntime } from './doppler-runtime.js';
 import {
   POOLDAY_MODEL_WORKLOADS,
   buildLaunchProviderModel,
+  exactModelContractKey,
   getPoolModelWorkload,
   modelSupportsPoolWorkload
 } from './model-contract.js';
@@ -85,29 +86,26 @@ export function createProviderClient({
   };
 
   const modelMatchesRuntime = (model = {}, runtimeModel = {}) => (
-    model.modelId === runtimeModel.modelId
-    && model.modelHash === runtimeModel.modelHash
-    && model.manifestHash === runtimeModel.manifestHash
-    && (model.runtime || 'doppler') === (runtimeModel.runtime || 'doppler')
-    && (model.backend || 'browser-webgpu') === (runtimeModel.backend || 'browser-webgpu')
+    exactModelContractKey(model) === exactModelContractKey(runtimeModel)
     && modelSupportsPoolWorkload(runtimeModel, getPoolModelWorkload(model))
   );
 
-  const assignmentMatchesRuntime = (assignmentModel = {}, runtimeModel = {}) => (
-    assignmentModel.id === runtimeModel.modelId
-    && assignmentModel.hash === runtimeModel.modelHash
-    && assignmentModel.manifestHash === runtimeModel.manifestHash
-    && (assignmentModel.runtime || 'doppler') === (runtimeModel.runtime || 'doppler')
-    && (assignmentModel.backend || 'browser-webgpu') === (runtimeModel.backend || 'browser-webgpu')
-    && modelSupportsPoolWorkload(
-      runtimeModel,
-      assignmentModel.workload || assignmentModel.requirements?.workload || POOLDAY_MODEL_WORKLOADS.sequenceEmbedding
-    )
-    && runtimeHasActiveAdapterRequirement(
-      runtimeModel,
-      assignmentModel.requirements?.adapter || assignmentModel.adapter || null
-    )
-  );
+  const assignmentMatchesRuntime = (assignmentModel = {}, runtimeModel = {}, {
+    requireAdapterActive = true
+  } = {}) => {
+    const expectedKey = assignmentModel.exactModelContractKey;
+    const workload = assignmentModel.workload
+      || assignmentModel.requirements?.workload
+      || POOLDAY_MODEL_WORKLOADS.sequenceEmbedding;
+    return Boolean(expectedKey)
+      && exactModelContractKey(assignmentModel) === expectedKey
+      && exactModelContractKey(runtimeModel) === expectedKey
+      && modelSupportsPoolWorkload(runtimeModel, workload)
+      && (!requireAdapterActive || runtimeHasActiveAdapterRequirement(
+        runtimeModel,
+        assignmentModel.requirements?.adapter || assignmentModel.adapter || null
+      ));
+  };
 
   const resolveRuntimeProfile = async () => {
     if (typeof runtime?.getRuntimeProfile === 'function') {
@@ -264,20 +262,15 @@ export function createProviderClient({
       policyId: assignment.policyId
     });
     let runtimeModel = typeof runtime?.getModelInfo === 'function' ? runtime.getModelInfo() : null;
-    if (!modelMatchesRuntime({
-      modelId: assignment.model?.id,
-      modelHash: assignment.model?.hash,
-      manifestHash: assignment.model?.manifestHash,
-      runtime: assignment.model?.runtime,
-      backend: assignment.model?.backend,
-      workload: assignment.model?.workload || assignment.model?.requirements?.workload
-    }, runtimeModel || {})) {
-      throw new Error('Assignment model identity does not match the loaded Doppler runtime');
+    if (!assignmentMatchesRuntime(assignment.model || {}, runtimeModel || {}, {
+      requireAdapterActive: false
+    })) {
+      throw new Error('Assignment exact model contract does not match the loaded Doppler runtime');
     }
     const adapter = await prepareAssignmentAdapter(assignment);
     runtimeModel = typeof runtime?.getModelInfo === 'function' ? runtime.getModelInfo() : runtimeModel;
     if (!assignmentMatchesRuntime(assignment.model || {}, runtimeModel || {})) {
-      throw new Error('Assignment adapter identity does not match the active Doppler runtime');
+      throw new Error('Assignment exact model or adapter contract does not match the active Doppler runtime');
     }
     const input = await resolveAssignmentInput(assignment, options);
     const workload = assignment.workload || assignment.model?.requirements?.workload || getPoolModelWorkload(runtimeModel || {});

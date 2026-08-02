@@ -3,7 +3,11 @@ import { describe, expect, it } from 'vitest';
 import { createProviderClient } from '../../self/pool/provider-client.js';
 import { buildCommitmentHash } from '../../server/pool/commit-reveal.js';
 import { createSigningKeyPair } from '../../self/pool/inference-receipt.js';
-import { LAUNCH_MODEL } from '../../self/pool/model-contract.js';
+import {
+  buildLaunchProviderModel,
+  exactModelContractKey,
+  LAUNCH_MODEL
+} from '../../self/pool/model-contract.js';
 import {
   buildAssignmentCommitmentPayload,
   buildAssignmentRevealPayload
@@ -19,29 +23,17 @@ import {
   makeSequenceExecution
 } from '../helpers/pool-sequence-fixture.js';
 
-const runtimeModel = () => ({
-  modelId: LAUNCH_MODEL.modelId,
-  modelHash: LAUNCH_MODEL.modelHash,
-  manifestHash: LAUNCH_MODEL.manifestHash,
-  runtime: LAUNCH_MODEL.runtime,
-  backend: LAUNCH_MODEL.backend,
-  contextLength: LAUNCH_MODEL.contextLength,
-  quantization: LAUNCH_MODEL.quantization,
-  workload: LAUNCH_MODEL.workload,
-  executionMode: LAUNCH_MODEL.executionMode,
-  sequence: LAUNCH_MODEL.sequence
-});
+const runtimeModel = () => buildLaunchProviderModel();
 
-const assignmentModel = () => ({
-  id: LAUNCH_MODEL.modelId,
-  hash: LAUNCH_MODEL.modelHash,
-  manifestHash: LAUNCH_MODEL.manifestHash,
-  runtime: LAUNCH_MODEL.runtime,
-  backend: LAUNCH_MODEL.backend,
-  workload: LAUNCH_MODEL.workload,
-  executionMode: LAUNCH_MODEL.executionMode,
-  sequence: LAUNCH_MODEL.sequence
-});
+const assignmentModel = () => {
+  const model = runtimeModel();
+  return {
+    ...model,
+    id: model.modelId,
+    hash: model.modelHash,
+    exactModelContractKey: exactModelContractKey(model)
+  };
+};
 
 const assignment = async () => {
   const sequenceFields = await makePublicProteinJobFields();
@@ -269,6 +261,25 @@ describe('pool browser Lane B contract', () => {
     expect(calls[2].payload.receipt.verification.runtimeProfileHash).toBeTruthy();
     expect(calls[2].payload.receipt.providerSignature).toBeTruthy();
     expect(result.commitReveal.revealResult.phase).toBe('reveal_accepted');
+  });
+
+  it('rejects an assignment whose tokenizer drifted after its exact contract key was sealed', async () => {
+    const keyPair = await createSigningKeyPair();
+    const provider = createProviderClient({
+      providerId: 'provider_lane_b',
+      runtime: fakeRuntime(),
+      keyPair,
+      identity: null
+    });
+    const currentAssignment = await assignment();
+    currentAssignment.model = {
+      ...currentAssignment.model,
+      tokenizerHash: `sha256:${'f'.repeat(64)}`
+    };
+
+    await expect(provider.executePeerAssignment(currentAssignment, {
+      sequence: TEST_PUBLIC_PROTEIN_SEQUENCE
+    })).rejects.toThrow('Assignment exact model contract does not match the loaded Doppler runtime');
   });
 
   it('builds reveal payloads that bind back to the original commitment', async () => {

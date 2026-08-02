@@ -8,6 +8,7 @@ import { PROVIDER_RECEIPT_TRUST_TIER, RECEIPT_VERSION } from './receipt-contract
 import { getRingPhaseProtocol } from './config.js';
 import { revealMatchesCommitment } from './commit-reveal.js';
 import { isSequenceWorkload } from '../../self/pool/sequence-workload.js';
+import { exactModelContractKey } from './model-contract.js';
 
 const textEncoder = new TextEncoder();
 const SIGNATURE_DOMAINS = Object.freeze({
@@ -61,6 +62,14 @@ const compareModel = (assignment, receipt, reasons) => {
   if (expected.backend && actual.backend !== expected.backend) reasons.push('backend mismatch');
   if (expectedWorkload && actualWorkload !== expectedWorkload) reasons.push('model workload mismatch');
   if (expectedExecutionMode && actualExecutionMode !== expectedExecutionMode) reasons.push('model execution mode mismatch');
+  if (expected.exactModelContractKey) {
+    if (actual.exactModelContractKey !== expected.exactModelContractKey) {
+      reasons.push('receipt exact model contract key mismatch');
+    }
+    if (exactModelContractKey(actual) !== expected.exactModelContractKey) {
+      reasons.push('receipt model fields do not match the exact model contract key');
+    }
+  }
 };
 
 const compareRuntime = (assignment, receipt, reasons) => {

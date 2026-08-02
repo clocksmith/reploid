@@ -24,7 +24,10 @@ The promotion validator checks browser evidence only for catalog entries marked
 browser-qualified. It checks scientific evidence only for entries marked
 scientifically qualified. Scientific evidence resolves each baseline from the
 governed catalog and requires the enabled ESM-2 exact contract as a baseline.
-Unknown, disabled, or self-declared baseline identities fail closed.
+Unknown, disabled, or self-declared baseline identities fail closed. The DNA
+lane additionally requires one hash-addressed, exact-contract admission record
+for privacy, reference coordinates, DNA scientific fitness, licensing, and
+product use. Admission strings and filenames alone cannot satisfy that gate.
 
 The production verifier accepts receipt paths only beneath `docs/status`, parses
 them as JSON, and sends the records through the validator. Baseline-release
@@ -36,6 +39,7 @@ evidence is published.
 - [x] Qualified browser state reads and validates persisted record content
 - [x] Qualified scientific state resolves governed exact baseline contracts
 - [x] ESM-2 baseline identity is required for candidate scientific value claims
+- [x] DNA qualification requires hash-addressed exact-contract admission records
 - [x] Receipt paths are constrained to durable status records
 - [ ] Persist clean-release ESM-2 browser and baseline-evaluation evidence
 - [ ] Validate each candidate's browser and scientific record before promotion

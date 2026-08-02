@@ -4,8 +4,7 @@ import createPoolRouter from '../../server/pool/routes.js';
 import { createPoolStore } from '../../server/pool/store.js';
 import { createSignedResearchSubmission } from '../../self/pool/evidence-network.js';
 import { createSigningKeyPair } from '../../self/pool/inference-receipt.js';
-
-const fakeHash = (character) => `sha256:${character.repeat(64)}`;
+import { buildLaunchProviderModel, getPoolModelContract } from '../../self/pool/model-contract.js';
 
 const requesterIdentity = async () => {
   const keyPair = await createSigningKeyPair();
@@ -53,16 +52,7 @@ const makeSubmission = async () => createSignedResearchSubmission({
   sequence: 'MAPLALLLLGLVAGA',
   intent: { kind: 'question', text: 'Which related public records have reviewed evidence?' },
   consent: { publicSequence: true, publicEvidenceNetwork: true, publishEmbedding: true },
-  modelContract: {
-    id: 'esm2-small',
-    hash: fakeHash('1'),
-    manifestHash: fakeHash('2'),
-    runtime: 'doppler',
-    backend: 'browser-webgpu',
-    workload: 'sequence.embedding.v1',
-    executionMode: 'full_model_browser_sequence',
-    dimensions: 3
-  },
+  modelContract: buildLaunchProviderModel(),
   policyId: 'redundant_agreement'
 });
 
@@ -105,5 +95,27 @@ describe('Poolday research evidence coordinator routes', () => {
     const response = await dispatchJson(router, '/research/records', { method: 'POST', body: { record: tampered } });
     expect(response.status).toBe(400);
     expect(response.body.reasons).toContain('record hash mismatch');
+  });
+
+  it('rejects a signed disabled-model record before it reaches the evidence registry', async () => {
+    const router = createPoolRouter({ store: createPoolStore(), allowUnauthenticatedLocal: true });
+    const candidate = getPoolModelContract('amplify-120m-f16-af32');
+    const record = await createSignedResearchSubmission({
+      identity: await requesterIdentity(),
+      roomId: 'route-room',
+      sequence: 'MAPLALLLLGLVAGA',
+      intent: { kind: 'question', text: 'Candidate records must not publish before promotion.' },
+      consent: { publicSequence: true, publicEvidenceNetwork: true, publishEmbedding: true },
+      modelContract: candidate,
+      policyId: 'redundant_agreement'
+    });
+    const response = await dispatchJson(router, '/research/records', { method: 'POST', body: { record } });
+    expect(response).toMatchObject({
+      status: 409,
+      body: {
+        error: 'unadmitted research model contract',
+        reasons: ['model contract is not a currently enabled Poolday model']
+      }
+    });
   });
 });

@@ -45,7 +45,7 @@ Guide to all documentation in the REPLOID project.
 - **[docs/poolday/p2p-envelope-protocol.md](./poolday/p2p-envelope-protocol.md)** - Signed peer envelope contract
 - **[docs/poolday/participation-identity-routing.md](./poolday/participation-identity-routing.md)** - Request/contribute modes, device identity, artifact authority, and deterministic routing
 - **[docs/poolday/reputation-ledger.md](./poolday/reputation-ledger.md)** - Event-sourced reputation reducer contract
-- **[docs/multi-model-evaluation.md](./multi-model-evaluation.md)** - Multi-model evaluation harness
+- **[docs/multi-model-evaluation.md](./multi-model-evaluation.md)** - Generic LLM evaluation harness, not Poolday promotion evidence
 - **[docs/intent-bundle-lora.md](./intent-bundle-lora.md)** - Intent bundle LoRA workflow
 - **[docs/trained-adapter-promotion.md](./trained-adapter-promotion.md)** - Tinker adapter evidence, Shadow staging, and human-only promotion
 - **[docs/CONFIGURATION.md](./CONFIGURATION.md)** - Boot UI settings and localStorage keys

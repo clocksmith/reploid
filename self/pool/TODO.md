@@ -1,14 +1,17 @@
 # Reploid Pool TODO
 
-Reploid is the market-facing browser inference network and governed browser substrate. Browser providers serve model runs through signed peer intents, WebRTC payload transit, receipts, verification, reputation, and requester acceptance. Public-facing product copy should use Reploid.
+Reploid is a proof-carrying protein-model network. Browser providers, peer
+transit, receipts, verification, reputation, and requester acceptance are
+implementation mechanisms for reproducible protein evidence, not the product
+goal in themselves. Public-facing product copy should use Reploid.
 
-The product goal is proof-carrying active science: minimize the computation and
-real-world experimentation required to turn an uncertain question into an
-independently reproduced discovery. Receipt-backed browser inference is the
-current execution substrate and first evidence source. It is not the final
-optimization target.
+The product goal is to reduce the verified cost of resolving bounded public
+protein questions: less duplicated computation, earlier disagreement, more
+useful model-specific residue evidence, and stronger independent reproduction.
+Receipt-backed browser inference is an evidence substrate. It does not establish
+biological function, mutation fitness, experimental truth, or honest hardware.
 
-Canonical claim and deployment truth stay in [`pool-config.json`](./pool-config.json). Architecture and production contracts stay in [`../../docs/browser-inference-pool.md`](../../docs/browser-inference-pool.md). The [product intent](../../docs/poolday/product-intent.md) owns the active-science goal, and the [Discovery Contract](../../docs/poolday/discovery-contract.md) owns its target atomic object and gates.
+Canonical claim and deployment truth stay in [`pool-config.json`](./pool-config.json). Architecture and production contracts stay in [`../../docs/browser-inference-pool.md`](../../docs/browser-inference-pool.md). The [product intent](../../docs/poolday/product-intent.md) owns the protein-network goal, and the [Discovery Contract](../../docs/poolday/discovery-contract.md) owns its target atomic object and gates.
 
 The current Cloud Run and Firestore path is transitional. The target Reploid control plane is WebRTC peer-to-peer: signed job intents, provider capability adverts, assignment selection, quorum agreement, receipts, acceptance, points, and reputation should move without a required Reploid server.
 
@@ -19,7 +22,7 @@ The current Cloud Run and Firestore path is transitional. The target Reploid con
 - [x] `npm run verify:pool -- --allow-placeholders` passes locally.
 - [x] Unit suite passes: 1,511 passed and 25 skipped.
 - [x] Integration suite passes: 359 passed and 9 skipped.
-- [x] `npm run verify:pool:release -- --url https://reploid.web.app --channel=chrome` passes production readiness, all public routes, synthetic peer flow, actual Doppler WebGPU inference, receipt agreement, requester signature verification, and signed points/reputation event verification.
+- [ ] Re-run `npm run verify:pool:release -- --url https://replo.id --channel=chrome` after deployment. The current release reports `2026-07-28.doppler-0.5.1.v2` while the governed local contract is `2026-08-01.sequence-model-contracts.v1`; release verification now fails before any browser workload on this mismatch.
 - [x] `npm audit` and the production-image `npm ci --omit=dev --include=optional` audit report zero vulnerabilities.
 - [x] No literal `TODO`, `FIXME`, `TBD`, or `XXX` markers existed in pool files before this document.
 
@@ -30,7 +33,7 @@ The current Cloud Run and Firestore path is transitional. The target Reploid con
 | Surface | Path | Purpose |
 |---------|------|---------|
 | Product config | [`pool-config.json`](./pool-config.json) | Product-owned claim, launch model, trust tiers, policies, routes, transport, and deployment requirements. |
-| Product intent | [`../../docs/poolday/product-intent.md`](../../docs/poolday/product-intent.md) | Active-science objective, surface authority, first wedge, and north-star metric. |
+| Product intent | [`../../docs/poolday/product-intent.md`](../../docs/poolday/product-intent.md) | Protein-model-network objective, surface authority, first wedge, and north-star metric. |
 | Discovery Contract | [`../../docs/poolday/discovery-contract.md`](../../docs/poolday/discovery-contract.md) | Target question, hypothesis, action-value, outcome, replication, and closure contract. |
 | Product doc | [`../../docs/browser-inference-pool.md`](../../docs/browser-inference-pool.md) | Public architecture, API contract, production readiness, and forbidden claims. |
 | Product UI | [`../ui/pool-home/index.js`](../ui/pool-home/index.js) | `/`, `/ask`, `/compute`, `/history`, `/network`, and `/zero` browser surface. |
@@ -44,7 +47,7 @@ The current Cloud Run and Firestore path is transitional. The target Reploid con
 ## Launch Proof
 
 - [x] Deploy Reploid public hosting plus the Reploid Cloud Run coordinator with `POOL_BACKEND_ONLY=true`, `POOL_STORE=firestore`, Firebase Auth verification, required rewrites, commit-reveal support, and metadata-only signaling.
-- [x] Run production verification against `https://reploid.web.app`; `/pool/deployment/check` returns `ok: true` for config `2026-07-24.doppler-0.4.16.v1` (`sha256:f15ad298576206e54a4448c424b694bb457960f244d08673d0445f90966a2836`), Firestore, required auth, artifact base, and commit-reveal support.
+- [ ] Re-establish production verification against `https://replo.id` with the current local config version and hash. A historical readiness result for an earlier release is not current browser or promotion evidence.
 - [x] Run public smoke against `https://reploid.web.app` and cover `/`, `/ask`, `/compute`, `/records`, `/history`, `/network`, and `/zero` plus the synthetic peer flow.
 - [x] Prove the primary WebRTC loop on the hosted surface: requester intent, provider model load and advert, deterministic assignment, real Doppler generation, signed receipt agreement, verifier decision, requester acceptance, points event, and reputation event.
 - [ ] Prove the separate optional hosted diagnostic loop through provider registration, assignment claim, commit, reveal, and expired-assignment recovery.
@@ -94,7 +97,11 @@ The current Cloud Run and Firestore path is transitional. The target Reploid con
 - [x] Surface provider health states: WebGPU unavailable, model loading, artifact failure, storage quota, queue state, last receipt, trust tier, and reputation.
 - [x] Test multiple same-origin browser-room providers on the same launch model and runtime profile through a ring quorum policy.
 - [x] Add browser smoke coverage that opens provider and requester pages, injects a deterministic browser runtime, and proves visible peer receipt flow.
-- [x] Test multiple real browser tabs on the published launch model artifacts and runtime profile through a ring quorum policy.
+- [ ] Persist clean-release browser qualification for ESM-2: all governed recovery,
+  corruption, cancellation, stale-result, and independent-reproduction checks need
+  a persisted exact-contract record. The isolated harness currently fails closed
+  at GCS artifact CORS for its non-production local origin; this is not a browser
+  qualification pass or an OPFS recovery result.
 - [x] Add provider hardening for duplicate peer sessions, provider busy rejection, stopped nodes, and completed session cleanup.
 - [x] Restore an opted-in peer provider after refresh or tab visibility recovery with the same role identity and warm OPFS model.
 - [ ] Recover hosted diagnostic assignments after expiration or a reveal miss.
@@ -133,7 +140,7 @@ The current Cloud Run and Firestore path is transitional. The target Reploid con
 
 ---
 
-## Proof-Carrying Active Science
+## Proof-Carrying Protein Evidence Network
 
 These gates extend the current public protein evidence path. They do not expand
 the supported public claim until the matching implementation, test, surface

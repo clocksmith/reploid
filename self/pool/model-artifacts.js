@@ -25,6 +25,21 @@ const hashesMatch = (left, right) => (
   !!left && !!right && normalizeSha256Hash(left) === normalizeSha256Hash(right)
 );
 
+export const REQUIRED_ARTIFACT_CORS_ORIGINS = Object.freeze([
+  'https://replo.id',
+  'http://localhost:8000'
+]);
+
+export const REQUIRED_ARTIFACT_CORS_METHODS = Object.freeze(['GET', 'HEAD']);
+
+export const REQUIRED_ARTIFACT_CORS_RESPONSE_HEADERS = Object.freeze([
+  'Accept-Ranges',
+  'Content-Length',
+  'Content-Range',
+  'Content-Type',
+  'ETag'
+]);
+
 const replaceModelPathTokens = (template, model = {}) => String(template || '')
   .replace(/<modelId>/g, model.modelId || model.id || '')
   .replace(/<manifestHash>/g, model.manifestHash || '')
@@ -138,6 +153,38 @@ export function resolveModelArtifactBaseUrl(baseUrl = globalThis.REPLOID_POOL_MO
   const normalized = String(baseUrl || '').trim();
   if (!normalized) throw new Error('model artifact base URL is not configured');
   return normalized.replace(/\/+$/g, '');
+}
+
+/**
+ * Validate the source-controlled CORS policy required for browser artifact
+ * delivery. A passing source policy does not prove the deployed bucket has
+ * applied it, so browser qualification still requires an authentic fetch.
+ */
+export function validateModelArtifactCorsPolicy(policy = [], {
+  requiredOrigins = REQUIRED_ARTIFACT_CORS_ORIGINS,
+  requiredMethods = REQUIRED_ARTIFACT_CORS_METHODS,
+  requiredResponseHeaders = REQUIRED_ARTIFACT_CORS_RESPONSE_HEADERS
+} = {}) {
+  const reasons = [];
+  const entries = Array.isArray(policy) ? policy : [];
+  if (entries.length < 1) reasons.push('artifact CORS policy must contain at least one rule');
+  for (const origin of requiredOrigins) {
+    const matchingRules = entries.filter((entry) => Array.isArray(entry?.origin) && entry.origin.includes(origin));
+    if (matchingRules.length < 1) {
+      reasons.push(`artifact CORS policy does not allow required origin: ${origin}`);
+      continue;
+    }
+    const validRule = matchingRules.some((entry) => {
+      const methods = Array.isArray(entry.method) ? entry.method.map((value) => String(value).toUpperCase()) : [];
+      const headers = Array.isArray(entry.responseHeader) ? entry.responseHeader.map((value) => String(value).toLowerCase()) : [];
+      return requiredMethods.every((method) => methods.includes(method))
+        && requiredResponseHeaders.every((header) => headers.includes(header.toLowerCase()));
+    });
+    if (!validRule) {
+      reasons.push(`artifact CORS policy rule for ${origin} lacks required methods or response headers`);
+    }
+  }
+  return { ok: reasons.length === 0, reasons };
 }
 
 export function buildModelArtifactUrls(model = {}, { baseUrl } = {}) {
@@ -411,7 +458,11 @@ export async function verifyModelArtifactRangeDelivery({
 }
 
 export default {
+  REQUIRED_ARTIFACT_CORS_ORIGINS,
+  REQUIRED_ARTIFACT_CORS_METHODS,
+  REQUIRED_ARTIFACT_CORS_RESPONSE_HEADERS,
   resolveModelArtifactBaseUrl,
+  validateModelArtifactCorsPolicy,
   buildModelArtifactUrls,
   verifyModelArtifactManifest,
   validateModelArtifactManifestShape,

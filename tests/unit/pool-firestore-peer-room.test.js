@@ -125,15 +125,52 @@ describe('Firestore-backed peer-room relay', () => {
       await store.registerProvider({ providerId: 'provider_contract', sessionId: 'session_contract' });
       await store.createJob({ jobId: 'job_contract' });
       await store.createAssignment({
-        assignmentId: 'assignment_contract', jobId: 'job_contract', providerId: 'provider_contract'
+        assignmentId: 'assignment_later', jobId: 'job_contract', providerId: 'provider_contract'
       });
+      await store.createAssignment({
+        assignmentId: 'assignment_earlier', jobId: 'job_contract', providerId: 'provider_contract'
+      });
+      await store.updateAssignment('assignment_later', { createdAt: '2026-08-01T00:00:02.000Z' });
+      await store.updateAssignment('assignment_earlier', { createdAt: '2026-08-01T00:00:01.000Z' });
       const pending = await store.nextPendingAssignmentForProvider('provider_contract');
       const claimed = await store.nextAssignmentForProvider('provider_contract');
-      return { pendingStatus: pending?.status, claimedStatus: claimed?.status };
+      return {
+        pendingId: pending?.assignmentId,
+        pendingStatus: pending?.status,
+        claimedId: claimed?.assignmentId,
+        claimedStatus: claimed?.status,
+        claimedStarted: Boolean(claimed?.startedAt)
+      };
     };
 
-    await expect(exerciseAssignmentRead(memory)).resolves.toEqual({ pendingStatus: 'assigned', claimedStatus: 'running' });
-    await expect(exerciseAssignmentRead(firestore)).resolves.toEqual({ pendingStatus: 'assigned', claimedStatus: 'running' });
+    const expected = {
+      pendingId: 'assignment_earlier', pendingStatus: 'assigned',
+      claimedId: 'assignment_earlier', claimedStatus: 'running', claimedStarted: true
+    };
+    await expect(exerciseAssignmentRead(memory)).resolves.toEqual(expected);
+    await expect(exerciseAssignmentRead(firestore)).resolves.toEqual(expected);
+  });
+
+  it('preserves the first immutable research record and refuses a non-transactional Firestore adapter', async () => {
+    const fake = createQueryableFirestore();
+    const store = createFirestorePoolStore({ firestore: fake.firestore });
+    const first = {
+      recordHash: 'sha256:research-record',
+      roomId: 'research-room',
+      kind: 'research_submission',
+      signature: 'first-signature'
+    };
+    const conflicting = { ...first, signature: 'later-signature', extra: 'must-not-overwrite' };
+
+    expect(await store.saveResearchRecord(first)).toEqual(first);
+    expect(await store.saveResearchRecord(conflicting)).toEqual(first);
+    expect(await store.getResearchRecord(first.recordHash)).toEqual(first);
+
+    const withoutTransactions = { ...fake.firestore };
+    delete withoutTransactions.runTransaction;
+    await expect(
+      createFirestorePoolStore({ firestore: withoutTransactions }).saveResearchRecord(first)
+    ).rejects.toThrow('Firestore transactions are required for immutable research-record publication');
   });
 
   it('applies the same expired-assignment agreement decision in both adapters', async () => {
@@ -174,6 +211,46 @@ describe('Firestore-backed peer-room relay', () => {
       {
         status: 'redundant_disagreement', retryable: true,
         failedAssignmentIds: ['assignment_expired'], timedOutProviderIds: ['provider_expired'], agreement: 'rejected'
+      }
+    ]);
+  });
+
+  it('applies the same assignment and acceptance claim transitions in both adapters', async () => {
+    const fake = createQueryableFirestore();
+    const stores = [createPoolStore(), createFirestorePoolStore({ firestore: fake.firestore })];
+    const exerciseClaims = async (store) => {
+      await store.createJob({ jobId: 'job_claim', retryable: true });
+      await store.updateJob('job_claim', { status: 'failed' });
+      const assignmentClaim = await store.claimJobForAssignment('job_claim');
+      const assignmentStatus = assignmentClaim?.status;
+      const assignmentAttempts = assignmentClaim?.assignmentAttempts;
+      const repeatedAssignmentClaim = await store.claimJobForAssignment('job_claim');
+      const acceptanceClaim = await store.claimJobForAcceptance('job_claim');
+      const acceptanceStatus = acceptanceClaim?.status;
+      const repeatedAcceptanceClaim = await store.claimJobForAcceptance('job_claim');
+      return {
+        assignmentStatus,
+        assignmentAttempts,
+        repeatedAssignmentClaim,
+        acceptanceStatus,
+        repeatedAcceptanceClaim
+      };
+    };
+
+    await expect(Promise.all(stores.map(exerciseClaims))).resolves.toEqual([
+      {
+        assignmentStatus: 'assignment_processing',
+        assignmentAttempts: 1,
+        repeatedAssignmentClaim: null,
+        acceptanceStatus: 'acceptance_processing',
+        repeatedAcceptanceClaim: null
+      },
+      {
+        assignmentStatus: 'assignment_processing',
+        assignmentAttempts: 1,
+        repeatedAssignmentClaim: null,
+        acceptanceStatus: 'acceptance_processing',
+        repeatedAcceptanceClaim: null
       }
     ]);
   });

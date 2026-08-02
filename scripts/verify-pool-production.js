@@ -4,10 +4,12 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { POOL_CONFIG, POOL_CONFIG_HASH, POOL_CONFIG_VERSION, validatePoolConfig } from '../server/pool/config.js';
+import { hashJson } from '../server/pool/hash.js';
 import { LAUNCH_MODEL, MODEL_CATALOG } from '../self/pool/model-contract.js';
 import { validateModelPromotionEvidence } from '../self/pool/model-promotion.js';
 import {
   validateDopplerExecutionManifestShape,
+  validateModelArtifactCorsPolicy,
   validateModelArtifactManifestShape,
   verifyModelArtifactManifest,
   verifyModelArtifactRangeDelivery
@@ -39,6 +41,7 @@ const fail = (reasons) => {
 const readJson = (filePath) => JSON.parse(fs.readFileSync(filePath, 'utf8'));
 const readText = (filePath) => fs.readFileSync(filePath, 'utf8');
 const statusDirectory = path.join(repoRoot, 'docs', 'status');
+const artifactCorsPolicyPath = path.join(repoRoot, 'deploy', 'model-artifact-cors.json');
 
 const readPromotionReceipt = (receiptPath, label, reasons) => {
   const source = String(receiptPath || '').trim();
@@ -74,12 +77,43 @@ const checkEnabledModelPromotionEvidence = () => {
     const scientificFitnessRecord = admission.scientificFitness === 'qualified'
       ? readPromotionReceipt(admission.scientificFitnessReceipt, `${model.modelId} scientific fitness`, reasons)
       : null;
+    const scientificEvaluationRecord = scientificFitnessRecord
+      ? readPromotionReceipt(
+        scientificFitnessRecord.evaluation?.receiptPath,
+        `${model.modelId} frozen scientific evaluation`,
+        reasons
+      )
+      : null;
+    if (scientificEvaluationRecord
+      && scientificFitnessRecord.evaluation?.receiptHash !== hashJson(scientificEvaluationRecord)) {
+      reasons.push(`${model.modelId} frozen scientific evaluation receipt hash does not match its persisted content`);
+    }
+    const dnaLane = admission.dnaLane || {};
+    const dnaAdmissionRecords = {
+      privacy: dnaLane.privacy === 'qualified'
+        ? readPromotionReceipt(dnaLane.privacyReceipt, `${model.modelId} DNA privacy`, reasons)
+        : null,
+      referenceCoordinates: dnaLane.referenceCoordinates === 'qualified'
+        ? readPromotionReceipt(dnaLane.referenceCoordinateReceipt, `${model.modelId} DNA reference coordinates`, reasons)
+        : null,
+      scientificFitness: dnaLane.scientificFitness === 'qualified'
+        ? readPromotionReceipt(dnaLane.scientificFitnessReceipt, `${model.modelId} DNA scientific fitness`, reasons)
+        : null,
+      licensing: dnaLane.licensing === 'approved'
+        ? readPromotionReceipt(dnaLane.licensingReceipt, `${model.modelId} DNA licensing`, reasons)
+        : null,
+      productUse: dnaLane.productUse === 'admitted'
+        ? readPromotionReceipt(dnaLane.productUseReceipt, `${model.modelId} DNA product use`, reasons)
+        : null
+    };
     const validation = validateModelPromotionEvidence({
       model,
       modelCatalog: MODEL_CATALOG,
       launchModel: LAUNCH_MODEL,
       browserQualificationRecord,
-      scientificFitnessRecord
+      scientificFitnessRecord,
+      scientificEvaluationRecord,
+      dnaAdmissionRecords
     });
     reasons.push(...validation.reasons.map((reason) => `${model.modelId} promotion evidence: ${reason}`));
   }
@@ -149,6 +183,12 @@ const checkLocalFiles = () => {
   const reasons = [];
   const configValidation = validatePoolConfig();
   if (!configValidation.ok) reasons.push(...configValidation.reasons.map((reason) => `pool config: ${reason}`));
+  try {
+    const corsValidation = validateModelArtifactCorsPolicy(readJson(artifactCorsPolicyPath));
+    if (!corsValidation.ok) reasons.push(...corsValidation.reasons.map((reason) => `model artifact CORS: ${reason}`));
+  } catch (error) {
+    reasons.push(`model artifact CORS policy is not valid JSON: ${error.message}`);
+  }
   reasons.push(...checkEnabledModelPromotionEvidence());
   if (POOL_CONFIG.claim !== 'receipt-backed, audit-backed, reputation-backed, policy-controlled browser inference') {
     reasons.push('pool config claim is not the approved trust language');
@@ -218,8 +258,12 @@ const checkLocalFiles = () => {
   const indexes = readJson(path.join(repoRoot, 'firestore.indexes.json'));
   const hasAssignmentIndex = indexes.indexes?.some((index) => (
     index.collectionGroup === 'assignments'
-    && index.fields?.some((field) => field.fieldPath === 'providerId')
-    && index.fields?.some((field) => field.fieldPath === 'status')
+    && JSON.stringify(index.fields) === JSON.stringify([
+      { fieldPath: 'providerId', order: 'ASCENDING' },
+      { fieldPath: 'status', order: 'ASCENDING' },
+      { fieldPath: 'createdAt', order: 'ASCENDING' },
+      { fieldPath: 'assignmentId', order: 'ASCENDING' }
+    ])
   ));
   const hasSignalIndex = indexes.indexes?.some((index) => (
     index.collectionGroup === 'signaling_messages'
@@ -231,7 +275,9 @@ const checkLocalFiles = () => {
     && index.fields?.some((field) => field.fieldPath === 'roomId')
     && index.fields?.some((field) => field.fieldPath === 'createdAt')
   ));
-  if (!hasAssignmentIndex) reasons.push('Firestore assignments providerId/status index missing');
+  if (!hasAssignmentIndex) {
+    reasons.push('Firestore deterministic assignments providerId/status/createdAt/assignmentId index missing');
+  }
   if (!hasSignalIndex) reasons.push('Firestore signaling_messages sessionId/createdAt index missing');
   if (!hasPeerRoomIndex) reasons.push('Firestore peer_room_messages roomId/createdAt index missing');
 

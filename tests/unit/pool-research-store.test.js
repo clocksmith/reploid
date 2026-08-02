@@ -1,7 +1,9 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { createSignedResearchSubmission } from '../../self/pool/evidence-network.js';
+import { createSignedResearchResult, createSignedResearchSubmission } from '../../self/pool/evidence-network.js';
 import { createSigningKeyPair } from '../../self/pool/inference-receipt.js';
+import { buildLaunchProviderModel, getPoolModelContract } from '../../self/pool/model-contract.js';
+import { hashSequenceFloat32Values } from '../../self/pool/sequence-result.js';
 import {
   appendResearchRecord,
   hydrateResearchRecords,
@@ -10,12 +12,14 @@ import {
   resetResearchStore
 } from '../../self/ui/pool-home/research-store.js';
 
-const fakeHash = (character) => `sha256:${character.repeat(64)}`;
 const storage = () => {
   const values = new Map();
   return {
     getItem: vi.fn((key) => values.get(key) || null),
-    setItem: vi.fn((key, value) => values.set(key, String(value)))
+    setItem: vi.fn((key, value) => values.set(key, String(value))),
+    seed(key, value) {
+      values.set(key, String(value));
+    }
   };
 };
 
@@ -30,10 +34,23 @@ const makeRecord = async (roomId = 'store-room') => {
     sequence: 'MAPLALLLLGLVAGA',
     intent: { kind: 'question', text: 'Which related records have accepted evidence?' },
     consent: { publicSequence: true, publicEvidenceNetwork: true, publishEmbedding: true },
-    modelContract: {
-      id: 'esm2-small', hash: fakeHash('1'), manifestHash: fakeHash('2'), runtime: 'doppler',
-      backend: 'browser-webgpu', workload: 'sequence.embedding.v1', executionMode: 'full_model_browser_sequence', dimensions: 3
+    modelContract: buildLaunchProviderModel(),
+    policyId: 'redundant_agreement'
+  });
+};
+
+const makeCandidateRecord = async (roomId = 'store-room') => {
+  const keyPair = await createSigningKeyPair();
+  return createSignedResearchSubmission({
+    identity: {
+      resolve: async () => ({ kind: 'requester', roleId: 'requester_candidate', userId: 'user_candidate', deviceId: 'device_candidate', identityRootId: 'root_candidate' }),
+      getSigningKeyPair: async () => keyPair
     },
+    roomId,
+    sequence: 'MAPLALLLLGLVAGA',
+    intent: { kind: 'question', text: 'Candidate records must not enter the enabled evidence lane.' },
+    consent: { publicSequence: true, publicEvidenceNetwork: true, publishEmbedding: true },
+    modelContract: getPoolModelContract('amplify-120m-f16-af32'),
     policyId: 'redundant_agreement'
   });
 };
@@ -69,5 +86,84 @@ describe('Poolday research store', () => {
     });
     expect(hydrated.remote).toBe(true);
     expect(hydrated.records.map((record) => record.recordHash)).toEqual([local.recordHash, remote.recordHash]);
+  });
+
+  it('rejects a structurally valid but disabled candidate model before local persistence', async () => {
+    vi.stubGlobal('localStorage', storage());
+    const record = await makeRecord('store-room');
+    const candidateRecord = await makeCandidateRecord(record.roomId);
+    await expect(appendResearchRecord(candidateRecord)).rejects.toThrow('model contract is not a currently enabled Poolday model');
+  });
+
+  it('contains a remote candidate record while hydrating the remaining valid evidence', async () => {
+    vi.stubGlobal('localStorage', storage());
+    const candidate = await makeCandidateRecord();
+    const admitted = await makeRecord();
+    const hydrated = await hydrateResearchRecords('store-room', {
+      sdk: { listResearchRecords: vi.fn().mockResolvedValue({ records: [candidate, admitted] }) }
+    });
+    expect(hydrated).toMatchObject({
+      remote: true,
+      records: [admitted],
+      rejectedRecords: [{
+        recordHash: candidate.recordHash,
+        reason: expect.stringContaining('model contract is not a currently enabled Poolday model')
+      }]
+    });
+  });
+
+  it('does not project a persisted record until signature and admission checks pass', async () => {
+    const localStorage = storage();
+    vi.stubGlobal('localStorage', localStorage);
+    const record = await makeRecord('store-room');
+    const tampered = {
+      ...record,
+      requesterIntent: { ...record.requesterIntent, text: 'tampered after persistence' }
+    };
+    localStorage.seed('reploid.pool.research-evidence.v1::store-room', JSON.stringify([tampered]));
+
+    expect(loadResearchRecords('store-room')).toEqual([]);
+    const hydrated = await hydrateResearchRecords('store-room', {
+      sdk: { listResearchRecords: vi.fn().mockRejectedValue(new Error('offline')) }
+    });
+    expect(hydrated).toMatchObject({
+      remote: false,
+      records: [],
+      rejectedRecords: [{
+        recordHash: record.recordHash,
+        reason: expect.stringContaining('record hash mismatch')
+      }]
+    });
+    expect(localStorage.getItem('reploid.pool.research-evidence.v1::store-room')).toBe('[]');
+  });
+
+  it('rejects a candidate result even when its question uses the enabled ESM-2 contract', async () => {
+    vi.stubGlobal('localStorage', storage());
+    const source = await makeRecord('store-room');
+    const candidate = getPoolModelContract('amplify-120m-f16-af32');
+    const vector = Array.from({ length: candidate.embeddingDimensions }, (_, index) => (index === 0 ? 1 : 0));
+    const resultIdentity = {
+      resolve: async () => ({ kind: 'researcher', roleId: 'researcher_candidate_result', userId: 'user_candidate_result', deviceId: 'device_candidate_result', identityRootId: 'root_candidate_result' }),
+      getSigningKeyPair: async () => (await createSigningKeyPair())
+    };
+    const candidateResult = await createSignedResearchResult({
+      identity: resultIdentity,
+      submission: source,
+      modelContract: candidate,
+      receiptRecord: {
+        receiptHash: `sha256:${'c'.repeat(64)}`,
+        verifierDecision: { accepted: true },
+        receipt: {
+          model: candidate,
+          providerId: 'provider_candidate_result',
+          assignmentId: 'assignment_candidate_result',
+          jobId: 'job_candidate_result',
+          outputKind: 'sequence.embedding.v1',
+          vectorHash: await hashSequenceFloat32Values(vector)
+        }
+      },
+      embedding: vector
+    });
+    await expect(appendResearchRecord(candidateResult)).rejects.toThrow('model contract is not a currently enabled Poolday model');
   });
 });

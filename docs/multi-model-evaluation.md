@@ -1,6 +1,16 @@
-# Multi-Model Evaluation
+# Generic Multi-Model Evaluation
 
-Multi-model evaluation runs the same task suite across multiple model configs and scores outputs. It is a lightweight harness for comparing quality, latency, and schema compliance.
+This is a generic chat-model quality harness. It runs the same task suite across
+LLM configurations and scores output quality, latency, and schema compliance.
+It is not a Poolday scientific-fitness evaluation, a protein-model comparison,
+or evidence for model promotion.
+
+Poolday scientific promotion uses the separate
+`pool/scientific-evaluation.js` and `pool/scientific-fitness.js` contracts. A
+candidate requires a frozen public cohort, family-disjoint partition, exact
+model contracts, adjudication, model result sets, and a persisted manifest
+whose contents and hash match the scientific-fitness receipt. This generic
+harness cannot supply those gates.
 
 ---
 

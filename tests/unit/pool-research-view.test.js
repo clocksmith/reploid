@@ -5,6 +5,7 @@ import {
   createSignedResearchSubmission
 } from '../../self/pool/evidence-network.js';
 import { createSigningKeyPair } from '../../self/pool/inference-receipt.js';
+import { hashSequenceFloat32Values } from '../../self/pool/sequence-result.js';
 import { renderResearchWorkspace } from '../../self/ui/pool-home/research-view.js';
 
 const fakeHash = (character) => `sha256:${character.repeat(64)}`;
@@ -57,7 +58,7 @@ describe('Poolday research Records model evidence view', () => {
           assignmentId: 'assignment_record_view',
           jobId: 'job_record_view',
           outputKind: 'sequence.embedding.v1',
-          vectorHash: fakeHash('b')
+          vectorHash: await hashSequenceFloat32Values([1, 0, 0])
         }
       },
       embedding: [1, 0, 0]
@@ -68,6 +69,8 @@ describe('Poolday research Records model evidence view', () => {
     expect(html).toContain('esm2-record-view');
     expect(html).toContain('No cross-model agreement is asserted because only one or no exact model contract has published evidence.');
     expect(html).toContain('Embedding vectors and tokenizer-local masked-token IDs remain in separate exact-model coordinate systems.');
+    expect(html).toContain('non-calibrated heuristic');
+    expect(html).toContain('does not estimate biological truth, mutation fitness, or a decision-change probability');
     expect(html).not.toContain('[1,0,0]');
   });
 });

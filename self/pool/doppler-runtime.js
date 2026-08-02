@@ -330,14 +330,19 @@ const normalizeModelInfo = async (model, handle) => {
   const manifestHash = model?.manifestHash
     || evidence.manifestHash
     || (manifest ? await hashJson(manifest) : null);
+  // Preserve the full governed descriptor in runtime state. Provider routing and
+  // receipt construction compare this exact contract, not a checkpoint subset.
   return {
+    ...(model || {}),
     modelId: model?.modelId || model?.id || evidence.modelId || null,
     modelHash: model?.modelHash || evidence.modelHash || null,
     manifestHash: manifestHash || null,
+    tokenizerHash: model?.tokenizerHash || model?.artifactIdentity?.tokenizerHash || null,
     workload: getPoolModelWorkload(model || manifest || {}),
     workloads: Array.isArray(model?.workloads) ? [...model.workloads] : undefined,
     executionMode: model?.executionMode || model?.execution || null,
     executionModes: model?.executionModes || null,
+    embeddingDimensions: Number(model?.embeddingDimensions || model?.dimensions || 0) || null,
     sequence: model?.sequence || manifest?.inference?.sequence || null,
     contextLength: Number(model?.contextLength || handle?.contextLength || handle?.model?.contextLength || 0),
     quantization: model?.quantization || handle?.quantization || handle?.model?.quantization || null,

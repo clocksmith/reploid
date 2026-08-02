@@ -5,6 +5,8 @@
  * WebGPU receipt, a catalog entry, or a passing test as browser evidence.
  */
 
+import { exactModelContractKey as computeExactModelContractKey } from './model-contract.js';
+
 export const BROWSER_QUALIFICATION_SCHEMA = 'poolday.browser_model_qualification/v1';
 
 export const BROWSER_QUALIFICATION_CHECKS = Object.freeze([
@@ -31,10 +33,14 @@ const isSha256 = (value) => SHA256_PATTERN.test(String(value || ''));
 const isIsoDate = (value) => Number.isFinite(Date.parse(value));
 
 const qualificationBindings = (record = {}) => ({
+  modelId: record.identity?.modelId || null,
   modelHash: record.identity?.modelHash || null,
   manifestHash: record.artifacts?.manifestHash || null,
   tokenizerHash: record.artifacts?.tokenizerHash || null,
   shardSetHash: record.artifacts?.shardSetHash || null,
+  runtime: record.identity?.runtime || null,
+  backend: record.identity?.backend || null,
+  exactModelContractKey: record.identity?.exactModelContractKey || null,
   sourceTreeHash: record.release?.sourceTreeHash || null,
   browserBundleHash: record.release?.browserBundleHash || null,
   userAgentHash: record.browser?.userAgentHash || null,
@@ -53,10 +59,14 @@ const validateCheckEvidence = (check, evidence = {}) => {
     && isIsoDate(evidence.observedAt)
     && isSha256(evidence.resultHash)
     && isSha256(evidence.artifactHash)
+    && nonEmptyText(bindings.modelId)
     && isSha256(bindings.modelHash)
     && isSha256(bindings.manifestHash)
     && isSha256(bindings.tokenizerHash)
     && isSha256(bindings.shardSetHash)
+    && nonEmptyText(bindings.runtime)
+    && nonEmptyText(bindings.backend)
+    && nonEmptyText(bindings.exactModelContractKey)
     && isSha256(bindings.sourceTreeHash)
     && isSha256(bindings.browserBundleHash)
     && isSha256(bindings.userAgentHash)
@@ -66,7 +76,31 @@ const validateCheckEvidence = (check, evidence = {}) => {
     && isSha256(bindings.receiptHash);
 };
 
+const validateIndependentReproduction = (reproduction = {}, record = {}) => {
+  if (!nonEmptyText(reproduction.reproductionId) || !nonEmptyText(reproduction.participantId)
+    || !nonEmptyText(reproduction.browserRunId) || !nonEmptyText(reproduction.browserIdentity)
+    || !isIsoDate(reproduction.observedAt) || !isSha256(reproduction.userAgentHash)
+    || !nonEmptyText(reproduction.gpuAdapterIdentity) || !isSha256(reproduction.resultHash)
+    || !isSha256(reproduction.outputHash) || !isSha256(reproduction.receiptHash)) {
+    return false;
+  }
+  const bindings = reproduction.bindings || {};
+  return bindings.modelHash === record.identity?.modelHash
+    && bindings.manifestHash === record.artifacts?.manifestHash
+    && bindings.tokenizerHash === record.artifacts?.tokenizerHash
+    && bindings.shardSetHash === record.artifacts?.shardSetHash
+    && bindings.runtime === record.identity?.runtime
+    && bindings.backend === record.identity?.backend
+    && bindings.exactModelContractKey === record.identity?.exactModelContractKey
+    && bindings.sourceTreeHash === record.release?.sourceTreeHash
+    && bindings.browserBundleHash === record.release?.browserBundleHash
+    && bindings.policyHash === record.policyHash
+    && reproduction.outputHash === record.outputHash
+    && reproduction.receiptHash === record.receiptHash;
+};
+
 export function browserQualificationIdentity(model = {}, exactModelContractKey = '') {
+  const computedContractKey = computeExactModelContractKey(model);
   return Object.freeze({
     modelId: String(model.modelId || model.id || '').trim(),
     modelHash: String(model.modelHash || model.hash || '').trim(),
@@ -74,7 +108,10 @@ export function browserQualificationIdentity(model = {}, exactModelContractKey =
     tokenizerHash: String(model.tokenizerHash || '').trim(),
     runtime: String(model.runtime || '').trim(),
     backend: String(model.backend || '').trim(),
-    exactModelContractKey: String(exactModelContractKey || '').trim()
+    // The model descriptor is the authority. Callers may provide a key for
+    // compatibility, but cannot substitute one for the descriptor's exact
+    // contract identity.
+    exactModelContractKey: computedContractKey
   });
 }
 
@@ -246,16 +283,20 @@ export function validateBrowserQualificationRecord(record = {}, {
   const reproductions = Array.isArray(record.independentReproductions) ? record.independentReproductions : [];
   const reproductionIds = new Set();
   const participantIds = new Set();
+  const browserRunIds = new Set();
+  const browserIdentities = new Set();
   for (const reproduction of reproductions) {
-    if (!nonEmptyText(reproduction?.reproductionId) || !nonEmptyText(reproduction?.participantId)
-      || !nonEmptyText(reproduction?.browserIdentity) || reproduction?.outputHash !== record.outputHash) {
+    if (!validateIndependentReproduction(reproduction, record)) {
       reasons.push('browser qualification independent reproduction is invalid');
       continue;
     }
     reproductionIds.add(reproduction.reproductionId);
     participantIds.add(reproduction.participantId);
+    browserRunIds.add(reproduction.browserRunId);
+    browserIdentities.add(reproduction.browserIdentity);
   }
-  if (reproductionIds.size < 2 || participantIds.size < 2) {
+  if (reproductionIds.size < 2 || participantIds.size < 2 || browserRunIds.size < 2
+    || browserIdentities.size < 2) {
     reasons.push('browser qualification requires two independent reproductions');
   }
   return { ok: reasons.length === 0, reasons };

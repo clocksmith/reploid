@@ -11,7 +11,7 @@
 import { promises as fs } from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { toCanonicalBrowserPath, toPosix } from './browser-tree-paths.js';
+import { toCanonicalBrowserPath } from './browser-tree-paths.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -113,50 +113,6 @@ async function loadBlueprintIndex() {
   return map;
 }
 
-function slugFromPath(relPath) {
-  return relPath
-    .replace(/\.[^.]+$/, '')
-    .replace(/[\\/]/g, '-')
-    .replace(/[^a-zA-Z0-9-]+/g, '-')
-    .replace(/--+/g, '-')
-    .replace(/^-|-$/g, '')
-    .toLowerCase();
-}
-
-async function writeBlueprintStub(id, slug, relFile) {
-  const name = `${id}-${slug}.md`;
-  const outPath = path.join(BLUEPRINT_DIR, name);
-
-  // Check if file already exists
-  try {
-    await fs.access(outPath);
-    return name; // Already exists
-  } catch {
-    // File doesn't exist, create it
-  }
-
-  const content = `# Blueprint ${id}: ${slug.replace(/-/g, ' ')}\n\n` +
-    `**Objective:** Describe implementation for ${relFile}.\n\n` +
-    `**Target Upgrade:** ${relFile}\n\n` +
-    `**Affected Artifacts:** /${relFile}\n\n` +
-    `---\n\n` +
-    `### 1. Intent\n` +
-    `Define the purpose and constraints for ${relFile}.\n\n` +
-    `### 2. Architecture\n` +
-    `Outline the main responsibilities, dependencies, and data flow.\n\n` +
-    `### 3. Implementation Notes\n` +
-    `Record design decisions, edge cases, and integration details.\n\n` +
-    `### 4. Verification Checklist\n` +
-    `- [ ] Behavior matches blueprint intent\n` +
-    `- [ ] Dependencies are declared and available\n` +
-    `- [ ] Tests or verification steps updated as needed\n\n` +
-    `*Last updated: ${new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}*\n`;
-
-  await fs.writeFile(outPath, content, 'utf8');
-  console.log(`[blueprint-registry] Created stub: ${name}`);
-  return name;
-}
-
 async function main() {
   // Load existing mappings from multiple sources
   const existingRegistry = await loadExistingRegistry();
@@ -177,19 +133,6 @@ async function main() {
   const jsFiles = await walkFiles(SELF_DIR);
   const relFiles = jsFiles.map((file) => toCanonicalBrowserPath(path.relative(SELF_DIR, file))).sort();
 
-  // Find max existing blueprint ID
-  let maxId = 0;
-  for (const id of existingBlueprints.keys()) {
-    const value = parseInt(id.slice(2), 16);
-    if (value > maxId) maxId = value;
-  }
-
-  const assignNewId = () => {
-    maxId += 1;
-    return `0x${maxId.toString(16).padStart(6, '0')}`;
-  };
-
-  const fileToBlueprint = new Map();
   const blueprintToFiles = new Map();
 
   for (const relFile of relFiles) {
@@ -203,12 +146,11 @@ async function main() {
     else if (refFileToBlueprint.has(relFile)) {
       blueprintId = refFileToBlueprint.get(relFile);
     }
-    // Priority 3: Assign new ID
+    // Unmapped source belongs in module-inventory.json. Only a maintained
+    // architectural decision may add a blueprint mapping.
     else {
-      blueprintId = assignNewId();
+      continue;
     }
-
-    fileToBlueprint.set(relFile, blueprintId);
 
     if (!blueprintToFiles.has(blueprintId)) {
       blueprintToFiles.set(blueprintId, []);
@@ -221,11 +163,7 @@ async function main() {
   for (const [blueprintId, files] of blueprintToFiles.entries()) {
     let blueprintFile = existingBlueprints.get(blueprintId);
 
-    if (!blueprintFile) {
-      const slug = slugFromPath(files[0]);
-      blueprintFile = await writeBlueprintStub(blueprintId, slug, files[0]);
-      existingBlueprints.set(blueprintId, blueprintFile);
-    }
+    if (!blueprintFile) continue;
 
     const name = blueprintFile
       .replace(/^0x[0-9A-Fa-f]{6}-/, '')
