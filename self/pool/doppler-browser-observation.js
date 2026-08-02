@@ -12,7 +12,9 @@ import { exactModelContractKey } from './model-contract.js';
 export const DOPPLER_BROWSER_PROTEIN_OBSERVATION_SCHEMA = 'poolday.doppler_browser_protein_observation/v1';
 
 const SHA256_PATTERN = /^sha256:[a-f0-9]{64}$/;
+const GIT_OBJECT_PATTERN = /^[a-f0-9]{40}$/;
 const isSha256 = (value) => SHA256_PATTERN.test(String(value || ''));
+const isGitObject = (value) => GIT_OBJECT_PATTERN.test(String(value || ''));
 const text = (value) => typeof value === 'string' && value.trim().length > 0;
 
 export function validateDopplerBrowserProteinObservation(observation = {}, { model = {} } = {}) {
@@ -46,8 +48,21 @@ export function validateDopplerBrowserProteinObservation(observation = {}, { mod
   if (!isSha256(observation.release?.sourceStateHash) || !isSha256(observation.release?.browserModuleDigest)) {
     reasons.push('browser observation release hashes are invalid');
   }
-  if (observation.release?.sourceDirty !== true) {
-    reasons.push('browser observation must explicitly retain dirty-source status when it is not clean-release evidence');
+  if (!isGitObject(observation.release?.dopplerSourceRevision)
+    || !isGitObject(observation.release?.dopplerGitTree)
+    || typeof observation.release?.sourceDirty !== 'boolean') {
+    reasons.push('browser observation must bind an exact Doppler commit, tree, and dirty-state boolean');
+  }
+  const moduleScope = observation.release?.browserModuleDigestScope;
+  if (!Array.isArray(moduleScope) || moduleScope.length === 0
+    || moduleScope.some((entry) => !text(entry?.path) || !isSha256(entry?.sha256))) {
+    reasons.push('browser observation browser module digest scope is incomplete');
+  }
+  const artifactSource = observation.release?.qualificationArtifactSource;
+  if (!isGitObject(artifactSource?.revision)
+    || !text(artifactSource?.baseUrl)
+    || artifactSource?.pooldayLaunchRoute !== false) {
+    reasons.push('browser observation must identify the pinned non-Poolday qualification artifact source');
   }
   if (!isSha256(observation.browser?.userAgentHash) || !text(observation.browser?.family)
     || observation.browser?.hardwareGpuRequested !== true || !text(observation.browser?.adapter?.description)) {
@@ -59,6 +74,12 @@ export function validateDopplerBrowserProteinObservation(observation = {}, { mod
   }
   if (!isSha256(observation.fixture?.runtimeFixtureHash)) {
     reasons.push('browser observation fixture runtime hash is invalid');
+  }
+  if (observation.fixture?.referenceRepository !== 'doppler'
+    || observation.fixture?.referenceSourceRevision !== observation.release?.dopplerSourceRevision
+    || !text(observation.fixture?.referencePath)
+    || !isSha256(observation.fixture?.referenceHash)) {
+    reasons.push('browser observation fixture reference is not bound to the exact Doppler source');
   }
   const prime = observation.runs?.primeHttp;
   const restored = observation.runs?.opfsRestore;

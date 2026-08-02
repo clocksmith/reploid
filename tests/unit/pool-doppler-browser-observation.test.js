@@ -32,4 +32,40 @@ describe('Poolday persisted Doppler protein browser observation', () => {
       ]),
     });
   });
+
+  it('does not confuse an incomplete qualification set with dirty source', () => {
+    expect(validateDopplerBrowserProteinObservation({
+      ...observation,
+      release: {
+        ...observation.release,
+        sourceDirty: true,
+        sourceStateHash: 'sha256:ab385475d1a8732696a92d6087650a525157177724cf2074330103efec78d5fd',
+      },
+    }, { model })).toMatchObject({
+      ok: true,
+      promotable: false,
+    });
+  });
+
+  it('rejects evidence without exact producer, fixture, and artifact-source identities', () => {
+    expect(validateDopplerBrowserProteinObservation({
+      ...observation,
+      fixture: {
+        ...observation.fixture,
+        referenceHash: null,
+      },
+      release: {
+        ...observation.release,
+        browserModuleDigestScope: ['src/inference/browser-harness.js'],
+        qualificationArtifactSource: null,
+      },
+    }, { model })).toMatchObject({
+      ok: false,
+      reasons: expect.arrayContaining([
+        'browser observation browser module digest scope is incomplete',
+        'browser observation must identify the pinned non-Poolday qualification artifact source',
+        'browser observation fixture reference is not bound to the exact Doppler source',
+      ]),
+    });
+  });
 });
