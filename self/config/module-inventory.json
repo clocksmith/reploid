@@ -861,7 +861,7 @@
     {
       "path": "pool/doppler-browser-observation.js",
       "owner": "pool",
-      "sha256": "sha256:24976af1a36e10091c08f1efc89b5ce635680576c583cd55bb74307f78a64b21",
+      "sha256": "sha256:0c1f596b2c056101a44f976bd85e60536bfed29786ba5a03e8866be69e1944ae",
       "imports": [
         "./browser-qualification.js",
         "./model-contract.js"

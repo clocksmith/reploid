@@ -1,7 +1,7 @@
 {
   "schema": "poolday.doppler_browser_protein_observation/v1",
   "status": "incomplete",
-  "observedAt": "2026-08-02T00:00:00.000Z",
+  "observedAt": "2026-08-02T16:56:29.000Z",
   "claimBoundary": "This is a persisted browser-run observation for a frozen protein-sequence fixture. It proves neither honest hardware nor biological truth, and it cannot qualify or promote a model.",
   "model": {
     "modelId": "esm2-t12-35m-ur50d-f32-af32",
@@ -20,7 +20,10 @@
     "sequenceLength": 24,
     "tokenCount": 26,
     "embeddingDimension": 480,
-    "referencePath": "../../doppler/tools/data/esm2-t12-35m-ur50d-sequence-reference.json",
+    "referenceRepository": "doppler",
+    "referenceSourceRevision": "1c985dbc27ab2c57ac52a1a7a3817c05b71c3bfc",
+    "referencePath": "tools/data/esm2-t12-35m-ur50d-sequence-reference.json",
+    "referenceHash": "sha256:dbca1163755bed5e1eb2365d08a3d0f286fa7d5b6d8408281e7ba28f48948221",
     "runtimeFixtureHash": "sha256:e4d400afcee40c0fb82bc71846ee099ebf9440787dfce07880756ecb6c11fc10",
     "checks": [
       "exact tokenizer ids",
@@ -31,17 +34,37 @@
     ]
   },
   "release": {
-    "dopplerSourceRevision": "0238cbd184b2c29221be0955952f278222d08dda",
-    "dopplerGitTree": "748c823d104a11e6b483b80af6768e2d5537d388",
-    "sourceStateHash": "sha256:9c5ed1ef700cd8ef13b69d6cc677a05bed9f5a3b10660962e49497fe2cb124e8",
-    "sourceDirty": true,
-    "browserModuleDigest": "sha256:4fbee56e4d88004d687e3d376e962e7849a8af0f237b2027d562d389b1aeb1e2",
+    "dopplerSourceRevision": "1c985dbc27ab2c57ac52a1a7a3817c05b71c3bfc",
+    "dopplerGitTree": "6652dcb6148e9aac850baf858656c7427ae7fdd2",
+    "sourceStateHash": "sha256:6a5c53cfc7fcb8565c2a883827e6416a9384dd94c92c8528fb4ef691d0e30934",
+    "sourceStateHashAlgorithm": "sha256(JSON.stringify({dopplerSourceRevision,dopplerGitTree,sourceDirty}))",
+    "sourceDirty": false,
+    "browserModuleDigest": "sha256:f04744083bc4d4057ed8d6865c10017164c800f14223fc62284c82536fba60e9",
+    "browserModuleDigestAlgorithm": "sha256(JSON.stringify([{path,sha256},...]))",
     "browserModuleDigestScope": [
-      "src/tooling/command-runner.html",
-      "src/tooling/browser-command-runner.js",
-      "src/inference/browser-harness.js",
-      "src/inference/browser-harness-text-helpers.js"
-    ]
+      {
+        "path": "src/tooling/command-runner.html",
+        "sha256": "sha256:b46fe6232766b11d1751938531cd1f65fadd07e595c0225e7f64c8dbc734f380"
+      },
+      {
+        "path": "src/tooling/browser-command-runner.js",
+        "sha256": "sha256:5947521fb2feb0f82fe748028e7f33d2343598d0f08c7a5b0a3fb13b781e8f13"
+      },
+      {
+        "path": "src/inference/browser-harness.js",
+        "sha256": "sha256:5e9a0511301129bdbfa8903fb28d110ce1dd0ff9682389d9fb6fba837a1d1dca"
+      },
+      {
+        "path": "src/inference/browser-harness-text-helpers.js",
+        "sha256": "sha256:dc733f2f4407307346390eff735ec6281f9f25c68a514b12d3cf31983e023463"
+      }
+    ],
+    "qualificationArtifactSource": {
+      "revision": "feea324bae6c06c9d129ce39e188a75478ccdbbc",
+      "baseUrl": "https://huggingface.co/clocksmith/rdrr/resolve/feea324bae6c06c9d129ce39e188a75478ccdbbc/models/esm2-t12-35m-ur50d-f32-af32",
+      "pooldayLaunchRoute": false,
+      "claimBoundary": "This pinned Doppler qualification source is not the configured Poolday GCS artifact route, so it does not satisfy immutable Poolday artifact delivery."
+    }
   },
   "browser": {
     "family": "Chromium",
@@ -59,7 +82,7 @@
     "primeHttp": {
       "loadMode": "http",
       "outputHash": "sha256:470d79a8abd0733dee02faaae661e51719f44c2805a8bf6afc417406cfb15936",
-      "resultHash": "sha256:2051c25524f8f5d606dba48aa80246e0633d896f552b3503b2ed6b3546389392",
+      "resultHash": "sha256:e85688dff6884b96c0214679b5289cdaa76bd219f23332f6adceedc6830fa227",
       "loadedBytes": 133077120,
       "loadedShards": 2,
       "kvDtype": "f32"
@@ -67,7 +90,7 @@
     "opfsRestore": {
       "loadMode": "opfs",
       "outputHash": "sha256:470d79a8abd0733dee02faaae661e51719f44c2805a8bf6afc417406cfb15936",
-      "resultHash": "sha256:86ecd57acadd83bdad940c55274924785ee847a8fbdd4287ec024d4a85806dfb",
+      "resultHash": "sha256:d978d578a34d02a5c9df250d5d036dc30d9d52709e2944d709bc388b54793de9",
       "loadedBytes": 133077120,
       "loadedShards": 2,
       "kvDtype": "f32"
@@ -111,7 +134,7 @@
   "promotion": {
     "eligible": false,
     "reasons": [
-      "source tree is dirty and therefore not clean-release evidence",
+      "the clean Doppler run is not a signed Poolday release qualification receipt",
       "the required browser-qualification check set is incomplete",
       "the run has no independent reproduction",
       "scientific fitness remains a separate required gate"
