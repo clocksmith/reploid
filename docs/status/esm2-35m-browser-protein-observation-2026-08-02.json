@@ -71,20 +71,40 @@
       "loadedBytes": 133077120,
       "loadedShards": 2,
       "kvDtype": "f32"
+    },
+    "corruptionRecovery": {
+      "mutatedTarget": "manifest-declared-shard",
+      "opfsOnlyResolver": "rejected",
+      "recoverySource": "immutable-source-http",
+      "recoveredLoadMode": "opfs",
+      "recoveredOutputHash": "sha256:470d79a8abd0733dee02faaae661e51719f44c2805a8bf6afc417406cfb15936",
+      "claimBoundary": "The resolver rejected mutated cached bytes by their declared hash and a subsequent source-backed load restored the frozen browser output. This does not prove immutable hosted delivery, signed receipt integrity, or hardware honesty."
+    },
+    "cancellation": {
+      "mode": "after_start",
+      "errorName": "AbortError",
+      "resultEnvelopePublished": false,
+      "claimBoundary": "The bounded qualification probe cancelled a sequence request after it entered the async execution path. This does not yet prove stale-result rejection across independently versioned user requests."
+    },
+    "staleResultRejection": {
+      "mode": "after_start",
+      "errorName": "StaleResultError",
+      "resultEnvelopePublished": false,
+      "claimBoundary": "The bounded qualification probe advanced its request generation after sequence execution started and rejected the superseded result before serialization. This does not constitute a signed production receipt."
     }
   },
   "passedChecks": [
     "webGpuExecution",
     "opfsPersistence",
-    "opfsRestoration"
+    "opfsRestoration",
+    "completeHashVerification",
+    "corruptionRejection",
+    "cancellation",
+    "staleResultRejection"
   ],
   "unmetChecks": [
     "immutableArtifactDelivery",
-    "completeHashVerification",
     "receiptIntegrity",
-    "cancellation",
-    "staleResultRejection",
-    "corruptionRejection",
     "interruptionRecovery",
     "independentReproduction"
   ],

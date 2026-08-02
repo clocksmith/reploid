@@ -75,9 +75,43 @@ export function validateDopplerBrowserProteinObservation(observation = {}, { mod
   if (prime?.kvDtype !== 'f32' || restored?.kvDtype !== 'f32') {
     reasons.push('browser observation does not bind the required F32 KV lane');
   }
+  const corruptionRecovery = observation.runs?.corruptionRecovery;
+  if (
+    corruptionRecovery?.mutatedTarget !== 'manifest-declared-shard'
+    || corruptionRecovery?.opfsOnlyResolver !== 'rejected'
+    || corruptionRecovery?.recoverySource !== 'immutable-source-http'
+    || corruptionRecovery?.recoveredLoadMode !== 'opfs'
+    || corruptionRecovery?.recoveredOutputHash !== restored?.outputHash
+  ) {
+    reasons.push('browser observation corruption evidence is incomplete or does not restore the frozen OPFS output');
+  }
+  const cancellation = observation.runs?.cancellation;
+  if (
+    cancellation?.mode !== 'after_start'
+    || cancellation?.resultEnvelopePublished !== false
+    || cancellation?.errorName !== 'AbortError'
+  ) {
+    reasons.push('browser observation cancellation evidence does not prove an after-start abort without a published result');
+  }
+  const staleResult = observation.runs?.staleResultRejection;
+  if (
+    staleResult?.mode !== 'after_start'
+    || staleResult?.resultEnvelopePublished !== false
+    || staleResult?.errorName !== 'StaleResultError'
+  ) {
+    reasons.push('browser observation stale-result evidence does not prove superseded output rejection before publication');
+  }
   const passed = Array.isArray(observation.passedChecks) ? observation.passedChecks : [];
   const unmet = Array.isArray(observation.unmetChecks) ? observation.unmetChecks : [];
-  if (!passed.includes('webGpuExecution') || !passed.includes('opfsPersistence') || !passed.includes('opfsRestoration')) {
+  if (![
+    'webGpuExecution',
+    'opfsPersistence',
+    'opfsRestoration',
+    'completeHashVerification',
+    'corruptionRejection',
+    'cancellation',
+    'staleResultRejection',
+  ].every((check) => passed.includes(check))) {
     reasons.push('browser observation is missing executed browser or OPFS evidence');
   }
   if (passed.some((check) => !BROWSER_QUALIFICATION_CHECKS.includes(check))
