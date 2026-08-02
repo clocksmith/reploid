@@ -7,6 +7,10 @@
  */
 
 import { browserQualificationIdentity } from './browser-qualification.js';
+import {
+  validateScientificEvaluationRecord,
+  validateScientificFitnessEvaluationBinding
+} from './scientific-evaluation.js';
 
 export const SCIENTIFIC_FITNESS_SCHEMA = 'poolday.model_scientific_fitness/v1';
 
@@ -47,7 +51,8 @@ export function validateScientificFitnessRecord(record = {}, {
   candidate = {},
   candidateContractKey = '',
   baselines = [],
-  baselineContractKeys = []
+  baselineContractKeys = [],
+  scientificEvaluationRecord = null
 } = {}) {
   const reasons = [];
   const plan = buildScientificFitnessPlan({
@@ -77,6 +82,11 @@ export function validateScientificFitnessRecord(record = {}, {
     }
   }
   if (!isSha256(record.frozenCohortHash)) reasons.push('scientific fitness frozen cohort hash is invalid');
+  if (!nonEmptyText(record.evaluation?.evaluationId) || !isSha256(record.evaluation?.protocolHash)
+    || !isSha256(record.evaluation?.runHash) || !isSha256(record.evaluation?.resultSetHash)
+    || !nonEmptyText(record.evaluation?.receiptPath) || !isSha256(record.evaluation?.receiptHash)) {
+    reasons.push('scientific fitness frozen evaluation identity is invalid');
+  }
   const partition = record.familyPartition || {};
   if (!nonEmptyText(partition.methodId) || !nonEmptyText(partition.version) || !isSha256(partition.definitionHash)) {
     reasons.push('scientific fitness family partition identity is invalid');
@@ -97,14 +107,19 @@ export function validateScientificFitnessRecord(record = {}, {
     reasons.push('scientific fitness adjudication evidence is invalid');
   }
   const metrics = Array.isArray(record.metricResults) ? record.metricResults : [];
+  const baselineKeys = new Set(plan.baselines.map((baseline) => baseline.exactModelContractKey));
   if (metrics.length < 1 || metrics.some((metric) => (
     !nonEmptyText(metric?.metricId)
     || !['higher_is_better', 'lower_is_better'].includes(metric?.direction)
     || !Number.isFinite(metric?.baselineValue)
     || !Number.isFinite(metric?.candidateValue)
+    || !isSha256(metric?.definitionHash)
+    || !isSha256(metric?.resultHash)
+    || metric?.evaluationRunHash !== record.evaluation?.runHash
+    || !baselineKeys.has(metric?.baselineExactModelContractKey)
     || typeof metric?.improved !== 'boolean'
   ))) {
-    reasons.push('scientific fitness metric results are invalid');
+    reasons.push('scientific fitness metric results are not bound to the frozen evaluation and baseline');
   }
   for (const metric of metrics) {
     if (!Number.isFinite(metric?.baselineValue) || !Number.isFinite(metric?.candidateValue)) continue;
@@ -122,6 +137,18 @@ export function validateScientificFitnessRecord(record = {}, {
   if (!nonEmptyText(record.claimBoundary)) reasons.push('scientific fitness claim boundary is required');
   if (record.claimBoundary !== candidate.admission?.claimBoundary) {
     reasons.push('scientific fitness claim boundary does not match the exact candidate contract');
+  }
+  const evaluationValidation = validateScientificEvaluationRecord(scientificEvaluationRecord, {
+    candidate,
+    candidateContractKey,
+    baselines,
+    baselineContractKeys
+  });
+  if (!evaluationValidation.ok) {
+    reasons.push('scientific fitness requires a valid frozen evaluation record');
+  } else {
+    const binding = validateScientificFitnessEvaluationBinding(record, scientificEvaluationRecord);
+    reasons.push(...binding.reasons);
   }
   return { ok: reasons.length === 0, reasons };
 }

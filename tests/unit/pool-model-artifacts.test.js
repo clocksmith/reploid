@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   buildModelArtifactUrls,
+  validateModelArtifactCorsPolicy,
   validateDopplerExecutionManifestShape,
   validateModelArtifactManifestShape,
   verifyModelArtifactManifest,
@@ -10,6 +11,19 @@ import {
 import { hashJson, sha256Hex } from '../../self/pool/inference-receipt.js';
 
 describe('pool model artifact helpers', () => {
+  it('requires the approved browser origins, range methods, and exposed artifact headers', () => {
+    const policy = [{
+      origin: ['https://replo.id', 'http://localhost:8000'],
+      method: ['GET', 'HEAD'],
+      responseHeader: ['Accept-Ranges', 'Content-Length', 'Content-Range', 'Content-Type', 'ETag']
+    }];
+    expect(validateModelArtifactCorsPolicy(policy)).toEqual({ ok: true, reasons: [] });
+    expect(validateModelArtifactCorsPolicy([{ ...policy[0], origin: ['https://replo.id'] }])).toMatchObject({
+      ok: false,
+      reasons: ['artifact CORS policy does not allow required origin: http://localhost:8000']
+    });
+  });
+
   it('builds content-addressed artifact URLs from model identity', () => {
     expect(buildModelArtifactUrls({
       modelId: 'model-a',

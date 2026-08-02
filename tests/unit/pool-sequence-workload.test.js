@@ -8,6 +8,8 @@ import {
   sha256Hex
 } from '../../self/pool/inference-receipt.js';
 import {
+  buildLaunchProviderModel,
+  exactModelContractKey,
   getPoolModelExecutionMode,
   modelSupportsPoolWorkload
 } from '../../self/pool/model-contract.js';
@@ -34,6 +36,7 @@ import {
 } from '../../server/pool/commit-reveal.js';
 
 const sequenceModel = Object.freeze({
+  ...buildLaunchProviderModel(),
   modelId: 'amplify-120m-f32-sequence-test',
   modelHash: `sha256:${'1'.repeat(64)}`,
   manifestHash: `sha256:${'2'.repeat(64)}`,
@@ -117,13 +120,16 @@ const makeAssignment = async (sequence, request) => ({
   requiredAgreement: 1,
   verificationLevel: 'signed_receipt',
   model: {
+    ...sequenceModel,
     id: sequenceModel.modelId,
     hash: sequenceModel.modelHash,
-    manifestHash: sequenceModel.manifestHash,
-    runtime: sequenceModel.runtime,
-    backend: sequenceModel.backend,
     workload: request.workload,
     executionMode: SEQUENCE_EXECUTION_MODE,
+    exactModelContractKey: exactModelContractKey({
+      ...sequenceModel,
+      workload: request.workload,
+      executionMode: SEQUENCE_EXECUTION_MODE
+    }),
     requirements: {
       ...sequenceModel,
       workload: request.workload,

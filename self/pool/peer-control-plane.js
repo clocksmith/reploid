@@ -24,6 +24,9 @@ import {
   POOLDAY_MODEL_WORKLOADS,
   buildLaunchModelRequirements,
   buildLaunchProviderModel,
+  exactModelContractKey,
+  getEnabledPoolModelContract,
+  getPoolModelExecutionMode,
   getPoolModelWorkload,
   modelSupportsPoolWorkload,
   validateLaunchModelRequirement,
@@ -477,6 +480,14 @@ export async function buildPeerAssignmentPlan({
   const jobId = `peer_job_${intentVerification.messageHash.replace(/^sha256:/, '').slice(0, 16)}`;
   const assignments = [];
   const workload = intentWorkload(intent);
+  const assignedModel = getEnabledPoolModelContract(intent.body?.modelRequirements?.modelId);
+  if (!assignedModel || !modelSupportsPoolWorkload(assignedModel, workload)) {
+    return {
+      ok: false,
+      reason: 'model_contract_not_enabled_for_workload',
+      assignments: []
+    };
+  }
   const assignmentAgreementField = agreementFieldForIntent(intent, policy);
   const sequenceRequestHash = intent.body.sequenceRequest
     ? await hashJson(intent.body.sequenceRequest)
@@ -535,13 +546,12 @@ export async function buildPeerAssignmentPlan({
       redundancyGroupSize: providerCount,
       requiredAgreement,
       model: {
-        id: intent.body.modelRequirements.modelId,
-        hash: intent.body.modelRequirements.modelHash,
-        manifestHash: intent.body.modelRequirements.manifestHash,
-        runtime: intent.body.modelRequirements.runtime || LAUNCH_MODEL.runtime,
-        backend: intent.body.modelRequirements.backend || LAUNCH_MODEL.backend,
+        ...assignedModel,
+        id: assignedModel.modelId,
+        hash: assignedModel.modelHash,
         workload,
-        executionMode: intent.body.modelRequirements.executionMode || null,
+        executionMode: getPoolModelExecutionMode(assignedModel, workload),
+        exactModelContractKey: exactModelContractKey(assignedModel, { workload }),
         requirements: intent.body.modelRequirements
       },
       adapter: intent.body.modelRequirements.adapter || null,
@@ -638,12 +648,26 @@ export async function validatePeerAssignmentForIntentAndAdvert({
   if ((assignment.workload || POOLDAY_MODEL_WORKLOADS.sequenceEmbedding) !== intentWorkload(intent)) reasons.push('workload mismatch');
   const requiredModel = intent?.body?.modelRequirements || {};
   const assignmentModel = assignment.model || {};
+  const enabledModel = getEnabledPoolModelContract(requiredModel.modelId);
   if (assignmentModel.id !== requiredModel.modelId) reasons.push('model id mismatch');
   if (assignmentModel.hash !== requiredModel.modelHash) reasons.push('model hash mismatch');
   if (assignmentModel.manifestHash !== requiredModel.manifestHash) reasons.push('manifest hash mismatch');
   if ((assignmentModel.runtime || LAUNCH_MODEL.runtime) !== (requiredModel.runtime || LAUNCH_MODEL.runtime)) reasons.push('runtime mismatch');
   if ((assignmentModel.backend || LAUNCH_MODEL.backend) !== (requiredModel.backend || LAUNCH_MODEL.backend)) reasons.push('backend mismatch');
   if ((assignmentModel.workload || POOLDAY_MODEL_WORKLOADS.sequenceEmbedding) !== (requiredModel.workload || POOLDAY_MODEL_WORKLOADS.sequenceEmbedding)) reasons.push('model workload mismatch');
+  if (!enabledModel) {
+    reasons.push('assignment model is not an enabled Poolday model');
+  } else {
+    const expectedModelContractKey = exactModelContractKey(enabledModel, {
+      workload: intentWorkload(intent)
+    });
+    if (assignmentModel.exactModelContractKey !== expectedModelContractKey) {
+      reasons.push('assignment exact model contract key mismatch');
+    }
+    if (exactModelContractKey(assignmentModel) !== expectedModelContractKey) {
+      reasons.push('assignment model fields do not match the enabled exact model contract');
+    }
+  }
   if (requiredModel.adapter) {
     const approval = await verifyAdapterUseApproval(assignment.adapterUseApproval, {
       adapterRequirement: requiredModel.adapter,

@@ -13,6 +13,8 @@ test('shows and exercises the governed protein evidence journey', async ({ page 
   await page.evaluate(async () => {
     const evidence = await import('/pool/evidence-network.js');
     const receipts = await import('/pool/inference-receipt.js');
+    const modelContracts = await import('/pool/model-contract.js');
+    const sequenceResults = await import('/pool/sequence-result.js');
     const store = await import('/ui/pool-home/research-store.js');
     const fakeHash = (character) => `sha256:${character.repeat(64)}`;
     const createIdentity = async (kind, id) => {
@@ -28,16 +30,11 @@ test('shows and exercises the governed protein evidence journey', async ({ page 
         getSigningKeyPair: async () => keyPair
       };
     };
-    const model = {
-      id: 'esm2-e2e',
-      hash: fakeHash('1'),
-      manifestHash: fakeHash('2'),
-      runtime: 'doppler',
-      backend: 'browser-webgpu',
-      workload: 'sequence.embedding.v1',
-      executionMode: 'full_model_browser_sequence',
-      dimensions: 3
-    };
+    const model = modelContracts.buildLaunchProviderModel();
+    const embedding = (firstValue, secondValue = 0) => Array.from(
+      { length: model.embeddingDimensions },
+      (_, index) => (index === 0 ? firstValue : (index === 1 ? secondValue : 0))
+    );
     const requester = await createIdentity('requester', 'e2e-requester');
     const researcher = await createIdentity('researcher', 'e2e-researcher');
     const curator = await createIdentity('reviewer', 'e2e-curator');
@@ -56,7 +53,7 @@ test('shows and exercises the governed protein evidence journey', async ({ page 
     });
     const firstSubmission = await createSubmission('MAPLALLLLGLVAGA', 'First public candidate');
     const secondSubmission = await createSubmission('MKVLVVLLCLVPAYG', 'Second public candidate');
-    const createResult = (submission, vector, receiptCharacter) => evidence.createSignedResearchResult({
+    const createResult = async (submission, vector, receiptCharacter) => evidence.createSignedResearchResult({
       identity: requester,
       submission,
       receiptRecord: {
@@ -68,14 +65,14 @@ test('shows and exercises the governed protein evidence journey', async ({ page 
           assignmentId: `assignment_${receiptCharacter}`,
           jobId: `job_${receiptCharacter}`,
           outputKind: 'sequence.embedding.v1',
-          vectorHash: fakeHash('c')
+          vectorHash: await sequenceResults.hashSequenceFloat32Values(vector)
         }
       },
       agreement: { status: 'accepted', receiptHashes: [fakeHash(receiptCharacter), fakeHash('d')] },
       embedding: vector
     });
-    const firstResult = await createResult(firstSubmission, [1, 0, 0], 'a');
-    const secondResult = await createResult(secondSubmission, [0.99, 0.01, 0], 'b');
+    const firstResult = await createResult(firstSubmission, embedding(1), 'a');
+    const secondResult = await createResult(secondSubmission, embedding(0.99, 0.01), 'b');
     const annotation = await evidence.createSignedHumanClaim({
       identity: curator,
       roomId: 'reploid-default',

@@ -21,6 +21,7 @@ import {
   buildAssignmentCommitmentPayload,
   buildAssignmentRevealPayload
 } from '../../self/pool/p2p-payload.js';
+import { createSignedResearchSubmission } from '../../self/pool/evidence-network.js';
 import {
   makePublicProteinJobFields,
   makeSequenceExecution
@@ -70,17 +71,21 @@ const dispatchJson = async (router, path, {
   });
 };
 
-const launchModel = () => ({
-  modelId: LAUNCH_MODEL.modelId,
-  modelHash: LAUNCH_MODEL.modelHash,
-  manifestHash: LAUNCH_MODEL.manifestHash,
-  tokenizerHash: LAUNCH_MODEL.tokenizerHash,
-  runtime: LAUNCH_MODEL.runtime,
-  backend: LAUNCH_MODEL.backend,
-  workload: LAUNCH_MODEL.workload,
-  executionMode: LAUNCH_MODEL.executionMode,
-  sequence: LAUNCH_MODEL.sequence
-});
+const launchModel = () => ({ ...LAUNCH_MODEL });
+
+const researchIdentity = async (id = 'route_researcher') => {
+  const keyPair = await createSigningKeyPair();
+  return {
+    resolve: async () => ({
+      kind: 'requester',
+      roleId: `requester_${id}`,
+      userId: `user_${id}`,
+      deviceId: `device_${id}`,
+      identityRootId: `root_${id}`
+    }),
+    getSigningKeyPair: async () => keyPair
+  };
+};
 
 const registerRingProviders = async (store, count) => {
   const providers = new Map();
@@ -243,6 +248,33 @@ describe('pool coordinator routes', () => {
     store = createPoolStore();
     store.kind = 'firestore';
     router = createPoolRouter({ store, allowUnauthenticatedLocal: true });
+  });
+
+  it('publishes and reads a signed public protein research record through the isolated research route', async () => {
+    const record = await createSignedResearchSubmission({
+      identity: await researchIdentity(),
+      roomId: 'route-research-room',
+      sequence: 'MKTAYIAKQRQISFVKSHFSRQ',
+      intent: { kind: 'question', text: 'What protein evidence should be reviewed next?' },
+      consent: { publicSequence: true, publicEvidenceNetwork: true, publishEmbedding: false },
+      modelContract: LAUNCH_MODEL,
+      policyId: 'fastest_receipt'
+    });
+
+    const published = await dispatchJson(router, '/research/records', {
+      method: 'POST',
+      body: { record }
+    });
+    expect(published).toMatchObject({ status: 201, body: { record: { recordHash: record.recordHash } } });
+
+    const listed = await dispatchJson(router, '/research/rooms/route-research-room/records?kind=research_submission');
+    expect(listed).toMatchObject({
+      status: 200,
+      body: { roomId: 'route-research-room', records: [expect.objectContaining({ recordHash: record.recordHash })] }
+    });
+
+    const fetched = await dispatchJson(router, `/research/records/${record.recordHash}`);
+    expect(fetched).toMatchObject({ status: 200, body: { record: { recordHash: record.recordHash } } });
   });
 
   it('keeps safe discovery routes public when persistent storage requires auth', async () => {
@@ -533,6 +565,32 @@ describe('pool coordinator routes', () => {
     expect(acceptedJob.agreement.acceptedReceipts).toBe(3);
     expect(acceptedJob.agreement.rejectedReceipts).toBe(1);
     expect(acceptedJob.receiptHashes).toHaveLength(3);
+  });
+
+  it('rejects a re-signed receipt whose tokenizer no longer matches the assigned exact contract', async () => {
+    store.kind = 'memory';
+    const { providers, assignments } = await createRingJob({ store, providerCount: 4 });
+    const assignment = assignments[0];
+    const payloads = await openRingReveal({ router, assignments, providers });
+    const payload = payloads.get(assignment.assignmentId);
+    const alteredReceipt = {
+      ...payload.receipt,
+      model: {
+        ...payload.receipt.model,
+        tokenizerHash: 'sha256:altered-tokenizer'
+      }
+    };
+    const rejected = await submitReceipt(router, assignment, {
+      ...payload,
+      receipt: await signProviderReceipt(
+        alteredReceipt,
+        providers.get(assignment.providerId).keyPair.privateKey
+      )
+    });
+
+    expect(rejected.status).toBe(400);
+    expect(rejected.body.verifierDecision.accepted).toBe(false);
+    expect(rejected.body.verifierDecision.reasons).toContain('receipt model fields do not match the exact model contract key');
   });
 
   it('rejects ring receipts before the assignment reveal is submitted', async () => {

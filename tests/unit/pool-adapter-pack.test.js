@@ -27,7 +27,7 @@ import {
   sha256Hex,
   signProviderReceipt
 } from '../../self/pool/inference-receipt.js';
-import { LAUNCH_MODEL } from '../../self/pool/model-contract.js';
+import { exactModelContractKey, LAUNCH_MODEL } from '../../self/pool/model-contract.js';
 import {
   assembleAdapterArtifact,
   createAdapterArtifactChunks,
@@ -149,12 +149,11 @@ const assignmentFor = (requirement) => ({
   providerId: 'provider-unit',
   adapter: requirement,
   model: {
+    ...LAUNCH_MODEL,
     id: LAUNCH_MODEL.modelId,
     hash: LAUNCH_MODEL.modelHash,
-    manifestHash: LAUNCH_MODEL.manifestHash,
-    runtime: LAUNCH_MODEL.runtime,
-    backend: LAUNCH_MODEL.backend,
-    requirements: { adapter: requirement }
+    exactModelContractKey: exactModelContractKey(LAUNCH_MODEL),
+    requirements: { ...LAUNCH_MODEL, adapter: requirement }
   }
 });
 

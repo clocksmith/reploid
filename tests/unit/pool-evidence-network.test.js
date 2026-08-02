@@ -15,7 +15,7 @@ import {
   verifyResearchRecord
 } from '../../self/pool/evidence-network.js';
 import { createSigningKeyPair } from '../../self/pool/inference-receipt.js';
-import { reduceDopplerSequenceResult } from '../../self/pool/sequence-result.js';
+import { hashSequenceFloat32Values, reduceDopplerSequenceResult } from '../../self/pool/sequence-result.js';
 
 const fakeHash = (character) => `sha256:${character.repeat(64)}`;
 const model = Object.freeze({
@@ -102,7 +102,7 @@ const result = async (author, source, vector, providerId = 'provider_one', model
       assignmentId: 'assignment-1',
       jobId: 'job-1',
       outputKind: 'sequence.embedding.v1',
-      vectorHash: fakeHash('c')
+      vectorHash: await hashSequenceFloat32Values(vector)
     }
   },
   agreement: { receiptHashes: [fakeHash('a'), fakeHash('d')], status: 'accepted' },
@@ -166,13 +166,20 @@ describe('Poolday evidence network', () => {
     const secondSubmission = await submission(requester, 'MKVLVVLLCLVPAYG', 'second');
     const otherModel = { ...model, runtime: 'other-runtime' };
     const thirdSubmission = await submission(requester, 'MSSGSSAVAAALPVAAAP', 'third', otherModel);
+    const tokenizerVariant = { ...model, tokenizerHash: fakeHash('c') };
+    const fourthSubmission = await submission(requester, 'MALWMRLLPLLALLALWGPDPAAA', 'fourth', tokenizerVariant);
     const first = await result(requester, firstSubmission, [1, 0, 0]);
     const second = await result(requester, secondSubmission, [0.99, 0.01, 0]);
     const incompatible = await result(requester, thirdSubmission, [1, 0, 0], 'provider_one', otherModel);
+    const tokenizerIncompatible = await result(requester, fourthSubmission, [1, 0, 0], 'provider_one', tokenizerVariant);
 
-    const records = [firstSubmission, secondSubmission, thirdSubmission, first, second, incompatible];
+    const records = [
+      firstSubmission, secondSubmission, thirdSubmission, fourthSubmission,
+      first, second, incompatible, tokenizerIncompatible
+    ];
     expect(findSimilarSequences(records, first.recordHash).map((entry) => entry.record.recordHash)).toEqual([second.recordHash]);
-    expect(clusterCompatibleResults(records, { threshold: 0.9 }).map((cluster) => cluster.members.length)).toEqual([2, 1]);
+    expect(clusterCompatibleResults(records, { threshold: 0.9 }).map((cluster) => cluster.members.length)).toEqual([2, 1, 1]);
+    expect(buildEvidenceGraph(records).nodes.filter((node) => node.kind === 'model_artifact')).toHaveLength(3);
   });
 
   it('projects model evidence through durable identities without comparing vector spaces', async () => {
@@ -200,7 +207,7 @@ describe('Poolday evidence network', () => {
           assignmentId: 'assignment-independent',
           jobId: 'job-independent',
           outputKind: 'sequence.embedding.v1',
-          vectorHash: fakeHash('c')
+          vectorHash: await hashSequenceFloat32Values([0.1, 0.2, 0.3, 0.4])
         }
       },
       agreement: { receiptHashes: [fakeHash('e')], status: 'accepted' },
@@ -229,6 +236,47 @@ describe('Poolday evidence network', () => {
     expect(validateResearchRecordLinks(independent, [source, baseline, independent])).toMatchObject({ ok: true });
   });
 
+  it('rejects an embedding whose float32 bytes do not match the receipt commitment', async () => {
+    const requester = await identity('requester', 'vector-commitment');
+    const source = await submission(requester);
+    await expect(createSignedResearchResult({
+      identity: requester,
+      submission: source,
+      receiptRecord: {
+        receiptHash: fakeHash('e'),
+        verifierDecision: { accepted: true },
+        receipt: {
+          model,
+          providerId: 'provider-vector-commitment',
+          assignmentId: 'assignment-vector-commitment',
+          jobId: 'job-vector-commitment',
+          outputKind: 'sequence.embedding.v1',
+          vectorHash: await hashSequenceFloat32Values([1, 0, 0])
+        }
+      },
+      embedding: [0, 1, 0]
+    })).rejects.toThrow('published embedding does not match the receipt vector commitment');
+  });
+
+  it('rejects a result when no verifier explicitly accepted the receipt', async () => {
+    const requester = await identity('requester', 'missing-verifier-decision');
+    const source = await submission(requester);
+    await expect(createSignedResearchResult({
+      identity: requester,
+      submission: source,
+      receiptRecord: {
+        receiptHash: fakeHash('e'),
+        receipt: {
+          model,
+          providerId: 'provider-unverified',
+          assignmentId: 'assignment-unverified',
+          jobId: 'job-unverified',
+          outputKind: 'sequence.embedding.v1'
+        }
+      }
+    })).rejects.toThrow('an explicitly accepted verifier decision is required for a research result');
+  });
+
   it('rejects published evidence when its receipt-model identity is detached from its exact model contract', async () => {
     const requester = await identity('requester', 'receipt-model-identity');
     const source = await submission(requester);
@@ -250,6 +298,49 @@ describe('Poolday evidence network', () => {
         'research result receipt model contract identity does not match its published exact model contract'
       ])
     });
+  });
+
+  it('rejects a record whose receipt set omits its primary receipt', async () => {
+    const requester = await identity('requester', 'receipt-set-binding');
+    const source = await submission(requester);
+    const computed = await result(requester, source, [1, 0, 0]);
+    const tampered = {
+      ...computed,
+      compute: { ...computed.compute, receiptHashes: [fakeHash('f')] }
+    };
+    expect(await verifyResearchRecord(tampered)).toMatchObject({
+      ok: false,
+      reasons: expect.arrayContaining(['result receiptHashes must include the primary receiptHash'])
+    });
+  });
+
+  it('rejects a receipt that changes an exact-contract field not covered by legacy identity fields', async () => {
+    const requester = await identity('requester', 'receipt-artifact-identity');
+    const source = await submission(requester);
+    const declaredModel = {
+      ...model,
+      artifactIdentity: { sourceRevision: 'revision-one', conversionDigest: fakeHash('c') }
+    };
+    const receiptModel = {
+      ...declaredModel,
+      artifactIdentity: { sourceRevision: 'revision-two', conversionDigest: fakeHash('c') }
+    };
+    await expect(createSignedResearchResult({
+      identity: requester,
+      submission: source,
+      modelContract: declaredModel,
+      receiptRecord: {
+        receiptHash: fakeHash('d'),
+        verifierDecision: { accepted: true },
+        receipt: {
+          model: receiptModel,
+          providerId: 'provider-artifact-identity',
+          assignmentId: 'assignment-artifact-identity',
+          jobId: 'job-artifact-identity',
+          outputKind: 'sequence.embedding.v1'
+        }
+      }
+    })).rejects.toThrow('compute receipt model contract does not exactly match the result exact model contract');
   });
 
   it('gates proposed work and rewards independently accepted durable evidence', async () => {
@@ -369,6 +460,81 @@ describe('Poolday evidence network', () => {
     });
     expect(view.agreement.status).toBe('insufficient_independent_model_sources');
     expect(view.nextAction.kind).toBe('independent_residue_review');
+  });
+
+  it('rejects residue evidence that drifts from its submitted length or exact token coordinates', async () => {
+    const author = await identity('researcher', 'residue-coordinate-binding');
+    const source = await createSignedResearchSubmission({
+      identity: author,
+      roomId: 'protein-room',
+      sequence: 'MKTA',
+      intent: { kind: 'question', text: 'Which residue coordinate is reviewable?' },
+      consent: {
+        publicSequence: true,
+        publicEvidenceNetwork: true,
+        publishEmbedding: true,
+        publishResidueEvidence: true
+      },
+      modelContract: residueEvidenceModel,
+      policyId: 'redundant_agreement'
+    });
+    const request = {
+      workload: 'sequence.masked_logits.v1', alphabet: 'amino_acid',
+      sequenceHash: source.sequence.hash, sequenceLength: source.sequence.length,
+      coordinateSystem: 'zero_based_sequence_index', sequenceIndices: [1], tokenIndices: [1],
+      includeTokenEmbeddings: true, topK: 1
+    };
+    const reduced = await reduceDopplerSequenceResult({
+      alphabet: 'amino_acid', tokens: [0, 1, 2, 3], includedTokenCount: 4,
+      pooledEmbedding: [0.25, -0.5, 0.75], tokenEmbeddings: Array(12).fill(0.125),
+      logits: [0, 0.1, 0.2, 0.3, 1, 1.1, 1.2, 1.3, 2, 2.1, 2.2, 2.3, 3, 3.1, 3.2, 3.3],
+      embeddingDim: 3, vocabSize: 4
+    }, request);
+    const record = await createSignedResearchResult({
+      identity: author,
+      submission: source,
+      receiptRecord: {
+        receiptHash: fakeHash('8'), verifierDecision: { accepted: true },
+        receipt: {
+          model: residueEvidenceModel, providerId: 'provider-coordinate-binding',
+          assignmentId: 'assignment-coordinate-binding', jobId: 'job-coordinate-binding',
+          outputKind: 'sequence.masked_logits.v1', sequenceResultHash: reduced.sequenceResultHash
+        }
+      },
+      sequenceResult: reduced.sequenceResult,
+      sequenceOutput: {
+        pooledEmbedding: reduced.pooledEmbedding, tokenEmbeddings: reduced.tokenEmbeddings,
+        residueEmbeddings: reduced.residueEmbeddings, maskedLogits: reduced.maskedLogits
+      }
+    });
+
+    const wrongLength = structuredClone(record);
+    wrongLength.sequenceLength = 3;
+    expect(await verifyResearchRecord(wrongLength)).toMatchObject({
+      ok: false,
+      reasons: expect.arrayContaining(['sequence evidence length does not match the result sequence'])
+    });
+    expect(validateResearchRecordLinks(wrongLength, [source, wrongLength])).toMatchObject({
+      ok: false,
+      reasons: expect.arrayContaining(['research result sequence length does not match its submission'])
+    });
+
+    const wrongCoordinates = structuredClone(record);
+    wrongCoordinates.sequenceEvidence.tokenIndices = [2];
+    expect(await verifyResearchRecord(wrongCoordinates)).toMatchObject({
+      ok: false,
+      reasons: expect.arrayContaining(['sequence evidence token coordinates do not match the exact model contract'])
+    });
+
+    const tokenizerLocal = structuredClone(record);
+    tokenizerLocal.sequenceEvidence.coordinateSystem = 'model_token_index';
+    expect(await verifyResearchRecord(tokenizerLocal)).toMatchObject({
+      ok: false,
+      reasons: expect.arrayContaining([
+        'model-token sequence evidence must not claim residue indices',
+        'model-token sequence evidence must not publish residue embeddings'
+      ])
+    });
   });
 
   it('links separately governed DNA and protein submissions without treating the translation artifact hash as a protein hash', async () => {

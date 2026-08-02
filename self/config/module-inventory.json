@@ -1,0 +1,2301 @@
+{
+  "version": 1,
+  "modules": [
+    {
+      "path": "boot-helpers/config.js",
+      "owner": "boot-helpers",
+      "sha256": "sha256:12e8b36a54cc437b7deb08f358a125a5a62d7fce70afa08d9edfe8ad4ff28aca",
+      "imports": [
+        "../config/boot-modes.js",
+        "../config/lab-route-profiles.js",
+        "../config/module-resolution.js",
+        "./vfs-bootstrap.js"
+      ]
+    },
+    {
+      "path": "boot-helpers/error-ui.js",
+      "owner": "boot-helpers",
+      "sha256": "sha256:b183c8b8a1e133e6e9d2ca47f31f572b5075fc96e592f7b91956a2d2a0b7f22e",
+      "imports": []
+    },
+    {
+      "path": "boot-helpers/iframe-bridge.js",
+      "owner": "boot-helpers",
+      "sha256": "sha256:0a290e1a5e0be25a61bd2bcfeb99ae4bbb7100ce79c4b7546071b45a13c2a253",
+      "imports": []
+    },
+    {
+      "path": "boot-helpers/index.js",
+      "owner": "boot-helpers",
+      "sha256": "sha256:8132794f3a66da22f812949317358b9d03a2fd7347131e3f6f909fbe6533b515",
+      "imports": [
+        "../config/module-resolution.js",
+        "./config.js",
+        "./error-ui.js",
+        "./iframe-bridge.js",
+        "./modules.js",
+        "./services.js",
+        "./vfs-hydrate.js"
+      ]
+    },
+    {
+      "path": "boot-helpers/modules.js",
+      "owner": "boot-helpers",
+      "sha256": "sha256:7298c5c804ce8e21335dd2cf48b85f9b32981390131809b6aa79cb6bd51caa80",
+      "imports": []
+    },
+    {
+      "path": "boot-helpers/services.js",
+      "owner": "boot-helpers",
+      "sha256": "sha256:7cbf279d9627a49b38b108d17ad594d7ca8129faddb5c31254e2ab74d235aded",
+      "imports": []
+    },
+    {
+      "path": "boot-helpers/vfs-bootstrap.js",
+      "owner": "boot-helpers",
+      "sha256": "sha256:8c93c28eba5f7bf8928f5fd4f2b7e10055b12046cad1455b4fd31a65ea23305f",
+      "imports": [
+        "../host/vfs-bootstrap.js"
+      ]
+    },
+    {
+      "path": "boot-helpers/vfs-hydrate.js",
+      "owner": "boot-helpers",
+      "sha256": "sha256:27452dcb61e0c2cd7200307a72948b47ec80013cf54c43ea8610bb2e30715fe3",
+      "imports": [
+        "../boot-spec.js",
+        "../config/boot-seed.js",
+        "./config.js"
+      ]
+    },
+    {
+      "path": "capabilities/cognition/cognition-api.js",
+      "owner": "capabilities",
+      "sha256": "sha256:2a4cfe14bbf0acb6f1b0eaed4337fec087ab13ec0152e9b49c4f7abe45ff1a96",
+      "imports": []
+    },
+    {
+      "path": "capabilities/cognition/episodic-memory.js",
+      "owner": "capabilities",
+      "sha256": "sha256:9a61704a2bfeb211d4dedb1228f5ccb552b6a639360f78615b3bc07fadb153ab",
+      "imports": []
+    },
+    {
+      "path": "capabilities/cognition/gepa-optimizer.js",
+      "owner": "capabilities",
+      "sha256": "sha256:bc46b600aac41b9f8b94c62b10088a5b0600b7e25f32f5fe97874f1b401ef936",
+      "imports": []
+    },
+    {
+      "path": "capabilities/cognition/hybrid-retrieval.js",
+      "owner": "capabilities",
+      "sha256": "sha256:d69bd55d380b62e2608010a1c1e78e4427fc927d795c79d9ba194e44b2c9e33a",
+      "imports": []
+    },
+    {
+      "path": "capabilities/cognition/knowledge-tree.js",
+      "owner": "capabilities",
+      "sha256": "sha256:9d6f899be5683b45484df01611fa3a93d907c933c0db9283b09dc0cf5a52935b",
+      "imports": []
+    },
+    {
+      "path": "capabilities/cognition/prompt-memory.js",
+      "owner": "capabilities",
+      "sha256": "sha256:9fbc14f87b51cbd25b2557770f44b6b3ba57ad05e9f9070f5fafb6b94bd5f765",
+      "imports": []
+    },
+    {
+      "path": "capabilities/cognition/semantic/embedding-store.js",
+      "owner": "capabilities",
+      "sha256": "sha256:ab157597ac259c4dc3cd45573a140edf8df92d1216e7b19876a47a158fe627b2",
+      "imports": []
+    },
+    {
+      "path": "capabilities/cognition/semantic/semantic-memory-llm.js",
+      "owner": "capabilities",
+      "sha256": "sha256:8286fc9b950d265b62143ddaa45c1be1d7f259c133b358d502693a13786ee875",
+      "imports": []
+    },
+    {
+      "path": "capabilities/cognition/symbolic/knowledge-graph.js",
+      "owner": "capabilities",
+      "sha256": "sha256:04f30f177b094d7b1e5b5f276d57fed4db4e3ac289ae902ce5bc8d0c01f5e61e",
+      "imports": []
+    },
+    {
+      "path": "capabilities/cognition/symbolic/rule-engine.js",
+      "owner": "capabilities",
+      "sha256": "sha256:670f11ed05ef283abaef635ecd10f45aa155226b627e2503a47238440c958b6b",
+      "imports": [
+        "../../../core/security-config.js"
+      ]
+    },
+    {
+      "path": "capabilities/cognition/symbolic/symbol-grounder.js",
+      "owner": "capabilities",
+      "sha256": "sha256:768b6df8b2c553d63cf219518b4149e6720bd5c097bfaaeec348c6facfb93c37",
+      "imports": []
+    },
+    {
+      "path": "capabilities/communication/consensus.js",
+      "owner": "capabilities",
+      "sha256": "sha256:23827dd703fdac5ea473ea1eeaadec33541459dfc4d23e094df4e0da83b89edf",
+      "imports": []
+    },
+    {
+      "path": "capabilities/communication/signaling-config.js",
+      "owner": "capabilities",
+      "sha256": "sha256:4eac565aeb950653979473efd41db587e7dff81f8b34384e12c245c2a6d282ec",
+      "imports": []
+    },
+    {
+      "path": "capabilities/communication/swarm-sync.js",
+      "owner": "capabilities",
+      "sha256": "sha256:7e069c3b19ef0966963317cf13548d64a31daba1d0049ddca737daecfaf31421",
+      "imports": []
+    },
+    {
+      "path": "capabilities/communication/swarm-transport.js",
+      "owner": "capabilities",
+      "sha256": "sha256:ea41924b00358d1ec7ddd47231b35c188216e4abc51460310b06cc6b13440ffe",
+      "imports": [
+        "../../instance.js",
+        "./signaling-config.js"
+      ]
+    },
+    {
+      "path": "capabilities/communication/webrtc-swarm.js",
+      "owner": "capabilities",
+      "sha256": "sha256:8327c7878f4d571c92e4825b60280bf9fd9c545b68146e9b6e8287b6e9b7afea",
+      "imports": [
+        "../../instance.js",
+        "./signaling-config.js"
+      ]
+    },
+    {
+      "path": "capabilities/intelligence/intent-bundle-lora.js",
+      "owner": "capabilities",
+      "sha256": "sha256:96718f822b98881052e1804ec554cf98a2c2dd5770ce56e7cd2bd02a76d11206",
+      "imports": []
+    },
+    {
+      "path": "capabilities/performance/performance-monitor.js",
+      "owner": "capabilities",
+      "sha256": "sha256:a9314f8e252f42f7fb32966bcbc10b011f1a04bc3e39eb50bb7ae4ee4e7234ce",
+      "imports": []
+    },
+    {
+      "path": "capabilities/reflection/prompt-score-map.js",
+      "owner": "capabilities",
+      "sha256": "sha256:e8ad214bd02ad33bddf92a0e4b140d3a01e92aac6bb1b81e6e0382c3f1622d7e",
+      "imports": []
+    },
+    {
+      "path": "capabilities/reflection/reflection-analyzer.js",
+      "owner": "capabilities",
+      "sha256": "sha256:9b81037440e855e98fe55155b308d64b8508fdd91cdf52a048794d3abb58cca5",
+      "imports": []
+    },
+    {
+      "path": "capabilities/reflection/reflection-store.js",
+      "owner": "capabilities",
+      "sha256": "sha256:24efa9ec63023fe6e42bdb4b6cad05962e5a319d89c33f253aefd77e2b7e6feb",
+      "imports": []
+    },
+    {
+      "path": "capabilities/system/doppler-optimizer.js",
+      "owner": "capabilities",
+      "sha256": "sha256:9d1f7ab2ff587dadfdbdfedb7a6559079655d2e2cc197bc2e5e854c145fe8c02",
+      "imports": []
+    },
+    {
+      "path": "capabilities/system/doppler-toolbox.js",
+      "owner": "capabilities",
+      "sha256": "sha256:0733ee52d53c2c6df5a5cf2f4b42255252088eed1b2ee6a1ca3be2646e665116",
+      "imports": []
+    },
+    {
+      "path": "capabilities/system/substrate-loader.js",
+      "owner": "capabilities",
+      "sha256": "sha256:20d9c17538558b35ab028efc264f41cde56daa920fe6efc9eafe66aed27f7503",
+      "imports": [
+        "../../core/security-config.js",
+        "../../core/vfs-module-loader.js"
+      ]
+    },
+    {
+      "path": "config/boot-modes.js",
+      "owner": "config",
+      "sha256": "sha256:22a20b55ac6a8e3fd88ecadbc87cf138405040183560964141bc313f3a621219",
+      "imports": [
+        "./surface-intents.js"
+      ]
+    },
+    {
+      "path": "config/boot-seed.js",
+      "owner": "config",
+      "sha256": "sha256:5ae125bcfd8ea3ad79e58d10797524c5763d2f355e3ac2f265b595964d44bb90",
+      "imports": []
+    },
+    {
+      "path": "config/clockwork-gamma-receipts.js",
+      "owner": "config",
+      "sha256": "sha256:d28d8b76a3e170071cea8987e49e57144be2c1b93521bd0569b58b6e3f4c9555",
+      "imports": []
+    },
+    {
+      "path": "config/doppler-local-models.js",
+      "owner": "config",
+      "sha256": "sha256:3f1623010f57b783cac927346f2f5a47ec09d713abb7c6ecb7bd2d6150144866",
+      "imports": []
+    },
+    {
+      "path": "config/immutability.js",
+      "owner": "config",
+      "sha256": "sha256:6f343344d22c601c0bd1c99320d608c96e37dfd62f569dceb806d33b22592169",
+      "imports": []
+    },
+    {
+      "path": "config/lab-route-profiles.js",
+      "owner": "config",
+      "sha256": "sha256:9b3f2d6458877e721c7e266f73f507523f505a07a6eaf1786f5fdfa8327dcba2",
+      "imports": [
+        "../lab/profiles.js"
+      ]
+    },
+    {
+      "path": "config/module-resolution.js",
+      "owner": "config",
+      "sha256": "sha256:602e355114727e6e6332e33d33d3444f1d78839db21642c303189f585c002e0a",
+      "imports": []
+    },
+    {
+      "path": "config/reploid-environments.js",
+      "owner": "config",
+      "sha256": "sha256:b5d06712aba8aef30790fe9995feffcf6f507c1887bef67eb87a9615e88683c2",
+      "imports": [
+        "./tool-surfaces.js"
+      ]
+    },
+    {
+      "path": "config/surface-intents.js",
+      "owner": "config",
+      "sha256": "sha256:d9f4c3e4aa0b6dfb9b53d8d77f597d1d3ba9440fbccde94d1931fc91d0b1b72a",
+      "imports": [
+        "./immutability.js",
+        "./tool-surfaces.js"
+      ]
+    },
+    {
+      "path": "config/tool-surfaces.js",
+      "owner": "config",
+      "sha256": "sha256:d23c9e13ddea4b41b3f940e7b63f084df4ec7b7ecf35502d68767c67bb20947e",
+      "imports": []
+    },
+    {
+      "path": "config/vfs-policy.js",
+      "owner": "config",
+      "sha256": "sha256:fec5a0a8f71ab317fc35c8efe65c7b1dac263121b087e1cedd4b883a641ad1be",
+      "imports": []
+    },
+    {
+      "path": "config/zero-goals.js",
+      "owner": "config",
+      "sha256": "sha256:da78aa3979be77a8ae35ba7fd46f01caa14183e0bd4a172591cd4840a2d08e9b",
+      "imports": []
+    },
+    {
+      "path": "config/zero-inference.js",
+      "owner": "config",
+      "sha256": "sha256:337cbc95f05ea32c29d420413c108a2dfe7281a80bbfc54e86c6c9d1d41e3d8b",
+      "imports": []
+    },
+    {
+      "path": "core/agent-loop-policies.js",
+      "owner": "core",
+      "sha256": "sha256:e736a51111abb74ee500474825861653a520c01237362037b589c7777c2bac52",
+      "imports": []
+    },
+    {
+      "path": "core/agent-loop.js",
+      "owner": "core",
+      "sha256": "sha256:90ad7f1aaae103229098a64d9f654679b8f77c3587244596221304e5f59f568b",
+      "imports": [
+        "../config/tool-surfaces.js",
+        "../instance.js",
+        "./agent-loop-policies.js",
+        "./cycle-artifacts.js"
+      ]
+    },
+    {
+      "path": "core/async-utils.js",
+      "owner": "core",
+      "sha256": "sha256:43f68d43533ec7bb035781b28770f25d2ad1ed0009039629ab66ba9af9da1900",
+      "imports": []
+    },
+    {
+      "path": "core/context-manager.js",
+      "owner": "core",
+      "sha256": "sha256:8dd3be5751c97a6783e49756a6bf82ee229ea9cd078fe85e0046546048c8c298",
+      "imports": []
+    },
+    {
+      "path": "core/cycle-artifacts.js",
+      "owner": "core",
+      "sha256": "sha256:68e814f84d2ec565f5deb14ed4181381f3b88dd5fdc781d6a66c1f7dd6446696",
+      "imports": []
+    },
+    {
+      "path": "core/doppler-runtime-service.js",
+      "owner": "core",
+      "sha256": "sha256:d6f2f6a0aa315e77c1cc752383ad4bcae6cc6843c63b5c2e5064b0695fc33666",
+      "imports": [
+        "../infrastructure/doppler-runtime-service.js"
+      ]
+    },
+    {
+      "path": "core/functiongemma-orchestrator.js",
+      "owner": "core",
+      "sha256": "sha256:0a997079c07c1d8c0e0387f81be5bfabd25acc247665e6115d92e117c1d87b3a",
+      "imports": []
+    },
+    {
+      "path": "core/import-rewrite.js",
+      "owner": "core",
+      "sha256": "sha256:e5bca0c0129d1461a19f3967bcb767518e2f01452850a08033fec5080ebf667b",
+      "imports": []
+    },
+    {
+      "path": "core/llm-client.js",
+      "owner": "core",
+      "sha256": "sha256:4d4a69d6f3b00e9da005bf177d4f4d5b00537b9234f12fd4022d88f94e4eed57",
+      "imports": [
+        "../instance.js"
+      ]
+    },
+    {
+      "path": "core/memory-manager.js",
+      "owner": "core",
+      "sha256": "sha256:0498cd6849006da7c5edeefa3070d849efbac3b0d05c5184a012520d6bf593f7",
+      "imports": []
+    },
+    {
+      "path": "core/multi-model-evaluator.js",
+      "owner": "core",
+      "sha256": "sha256:c5bdb8dadf661911abb531b1c51fe697800f3f6edd713771e1bd9e22c962cb8d",
+      "imports": []
+    },
+    {
+      "path": "core/persona-manager.js",
+      "owner": "core",
+      "sha256": "sha256:45b5d4e6d7d342ef61846b9615cab4be553b4939160fdc44cc122abb57bff5ee",
+      "imports": [
+        "../config/tool-surfaces.js",
+        "../instance.js"
+      ]
+    },
+    {
+      "path": "core/promotion-policy.js",
+      "owner": "core",
+      "sha256": "sha256:f68ab1737499e26fc5d873afdf76180dfe1bae69ad617b912a97411325b4c6d4",
+      "imports": [
+        "../config/clockwork-gamma-receipts.js",
+        "../config/vfs-policy.js"
+      ]
+    },
+    {
+      "path": "core/provider-registry.js",
+      "owner": "core",
+      "sha256": "sha256:cecc4ee3036fac36a108c1e15965b2082e48e0b922f4afec3c8026e837242505",
+      "imports": []
+    },
+    {
+      "path": "core/response-parser.js",
+      "owner": "core",
+      "sha256": "sha256:b01e15d8de74f6f14b034eac94695a5c3a6be9e075099a5b02b9b3e59a1e5921",
+      "imports": []
+    },
+    {
+      "path": "core/schema-registry.js",
+      "owner": "core",
+      "sha256": "sha256:5a1799b5066213ea07125ea7eba5da405f1435b256b764958e54c6764f62e720",
+      "imports": [
+        "../config/tool-surfaces.js",
+        "../instance.js"
+      ]
+    },
+    {
+      "path": "core/schema-validator.js",
+      "owner": "core",
+      "sha256": "sha256:bab624d40a26a37c3553ada4d0eccaede9f6925d451747e801898a9b33989758",
+      "imports": []
+    },
+    {
+      "path": "core/security-config.js",
+      "owner": "core",
+      "sha256": "sha256:7100a52f13026aa705657137781fb3c4733d071c29f61c4d2c8941d02390f22f",
+      "imports": [
+        "../instance.js"
+      ]
+    },
+    {
+      "path": "core/state-helpers-pure.js",
+      "owner": "core",
+      "sha256": "sha256:17747bafcfa1c1cd409d08e573de39e4d1103c37664f1109b5ae355594e40014",
+      "imports": []
+    },
+    {
+      "path": "core/state-manager.js",
+      "owner": "core",
+      "sha256": "sha256:612c16a166208d8b701db9b5610f25b4d781477023c1e89912cb64cec70b9172",
+      "imports": []
+    },
+    {
+      "path": "core/tool-runner.js",
+      "owner": "core",
+      "sha256": "sha256:00c31974fac8c0c0570093b182fd39fe2e878dc939f856401d0d9508a293985a",
+      "imports": [
+        "../config/tool-surfaces.js",
+        "../instance.js",
+        "./security-config.js",
+        "./vfs-module-loader.js"
+      ]
+    },
+    {
+      "path": "core/tool-writer.js",
+      "owner": "core",
+      "sha256": "sha256:b1361eeda5827f9f6c0c798fc23887b63b3d12e731a53a5180bc37e5973664f7",
+      "imports": []
+    },
+    {
+      "path": "core/transformers-client.js",
+      "owner": "core",
+      "sha256": "sha256:8562aaef569b603b22ee2a708cd4a72c0ac9b599e6f98f1a1dbfb4d45e9a9144",
+      "imports": []
+    },
+    {
+      "path": "core/utils.js",
+      "owner": "core",
+      "sha256": "sha256:441df6f72ef0a3806a55dca2531ad840b82d272711bb0cfa09d6b8d4aa6610fd",
+      "imports": []
+    },
+    {
+      "path": "core/verification-manager.js",
+      "owner": "core",
+      "sha256": "sha256:c524e6267866436ebf739747ec754d829e4885ac2fb3959be22dcbef988757bc",
+      "imports": [
+        "./security-config.js"
+      ]
+    },
+    {
+      "path": "core/verification-worker.js",
+      "owner": "core",
+      "sha256": "sha256:55308069e373f6334df88fcab8bdc734f3be7be4945a75ede753623f971565e2",
+      "imports": []
+    },
+    {
+      "path": "core/vfs-module-loader.js",
+      "owner": "core",
+      "sha256": "sha256:a3a4d7b43132439ebc9d7fedac48afd138eb41a43ba95972d796dc34261a0b2f",
+      "imports": [
+        "./import-rewrite.js",
+        "./security-config.js"
+      ]
+    },
+    {
+      "path": "core/vfs.js",
+      "owner": "core",
+      "sha256": "sha256:83dec7c1efe61da5cd59e3bd8407641614ac17eb3d59c4710eb5c3cd9245a0ae",
+      "imports": [
+        "../instance.js"
+      ]
+    },
+    {
+      "path": "core/worker-agent.js",
+      "owner": "core",
+      "sha256": "sha256:22969b46df28120fd8fab4fe6c7dc2091dbb436a0eaeec94c7def1d04d4136e3",
+      "imports": []
+    },
+    {
+      "path": "core/worker-manager.js",
+      "owner": "core",
+      "sha256": "sha256:e9aab596ad6a7be13375b57237e9cbcf8be32e16702436821ff6a3e94d65cca9",
+      "imports": []
+    },
+    {
+      "path": "entry/seed-vfs.js",
+      "owner": "entry",
+      "sha256": "sha256:86819a7b43eaae261267480141d4a2abdce84100c45ac38ba4ffbf6d8b27df13",
+      "imports": [
+        "../host/seed-vfs.js"
+      ]
+    },
+    {
+      "path": "entry/start-app.js",
+      "owner": "entry",
+      "sha256": "sha256:0331402154195ea6e168f787bf03f91dc06eef94baf54ce898fdf46f6f635271",
+      "imports": [
+        "../host/start-app.js"
+      ]
+    },
+    {
+      "path": "experimental/intelligence/federated-learning.js",
+      "owner": "experimental",
+      "sha256": "sha256:1917fc1936afc19259d35b63b19788f8bab8a956272601c6d9675b9ad2b856fa",
+      "imports": []
+    },
+    {
+      "path": "experimental/intelligence/multi-model-coordinator.js",
+      "owner": "experimental",
+      "sha256": "sha256:01a6087fa2691a96c33752db0ee8225c1157ada31e0190b49fc635ac995958bd",
+      "imports": []
+    },
+    {
+      "path": "experimental/intelligence/neural-compiler.js",
+      "owner": "experimental",
+      "sha256": "sha256:0e0d155a98afe35c3dc3c86cc01691de4a37c082ddff8ef7d97196be775d5dd5",
+      "imports": []
+    },
+    {
+      "path": "experimental/openclaw-audit/audit-mesh.js",
+      "owner": "experimental",
+      "sha256": "sha256:1388dcabd5da49adf58228f76c4e2d9dcfbd5d0e88de96ed3b4be8f2205b5725",
+      "imports": []
+    },
+    {
+      "path": "experimental/openclaw-audit/index.js",
+      "owner": "experimental",
+      "sha256": "sha256:675de09a38d6e80ec200748d440441f8965f8920c2fc05950cfbef37582f023e",
+      "imports": [
+        "./audit-mesh.js",
+        "./self-audit.js"
+      ]
+    },
+    {
+      "path": "experimental/openclaw-audit/self-audit.js",
+      "owner": "experimental",
+      "sha256": "sha256:98d4ad6d18f5229b49033fdddaa58809f47986103f4aaa576bac6a3f26195ca5",
+      "imports": []
+    },
+    {
+      "path": "infrastructure/audit-logger.js",
+      "owner": "infrastructure",
+      "sha256": "sha256:9796dc2cf9c2ca3f175fcdd55b549a365b8dd1e4f7e86da99a58f474b1b4a83f",
+      "imports": []
+    },
+    {
+      "path": "infrastructure/browser-apis.js",
+      "owner": "infrastructure",
+      "sha256": "sha256:e91a1f7cb2b1cf78bd6b5ae4b899c25c256984d8ed6cadfa940561170788cdf0",
+      "imports": []
+    },
+    {
+      "path": "infrastructure/circuit-breaker.js",
+      "owner": "infrastructure",
+      "sha256": "sha256:62357fd7907c40aa911b94ad6a8ec2c2a7ec83f2c2af8d545870ca98801af8d3",
+      "imports": []
+    },
+    {
+      "path": "infrastructure/di-container.js",
+      "owner": "infrastructure",
+      "sha256": "sha256:7eaaf7000082bb03b4b1dcd7aaabf57ad05ca665377f0feed630215091c937e4",
+      "imports": []
+    },
+    {
+      "path": "infrastructure/doppler-runtime-service.js",
+      "owner": "infrastructure",
+      "sha256": "sha256:9ef0de59f4576d0c15f5bff7424afe83202925e4bbafc01135b7d1d2a766ddb9",
+      "imports": [
+        "../config/doppler-local-models.js"
+      ]
+    },
+    {
+      "path": "infrastructure/error-store.js",
+      "owner": "infrastructure",
+      "sha256": "sha256:e6c9d916b259e5ddbab2694a1f876f5653e420f9ddca0a6eedf2d295e2bb50e3",
+      "imports": []
+    },
+    {
+      "path": "infrastructure/event-bus.js",
+      "owner": "infrastructure",
+      "sha256": "sha256:d47740a5533ee663c94f1398e7f26711f10e5e2f6d96e6aa6ac9de965aa362b1",
+      "imports": []
+    },
+    {
+      "path": "infrastructure/genesis-snapshot.js",
+      "owner": "infrastructure",
+      "sha256": "sha256:dd078ef4f82719148a78b0367807814a9aa62c1e7c723ad8f617625f9e88061c",
+      "imports": []
+    },
+    {
+      "path": "infrastructure/hitl-controller.js",
+      "owner": "infrastructure",
+      "sha256": "sha256:cabd57137e96c9a608ac8f717527de77d3534fddd3614e99c950264a8f88caef",
+      "imports": [
+        "../core/security-config.js"
+      ]
+    },
+    {
+      "path": "infrastructure/intent-bundle-gate.js",
+      "owner": "infrastructure",
+      "sha256": "sha256:ff0dcf7ca998e74787da92b0075739cc065a89572bf295d4a7fe53367c7b8304",
+      "imports": [
+        "../core/security-config.js"
+      ]
+    },
+    {
+      "path": "infrastructure/observability.js",
+      "owner": "infrastructure",
+      "sha256": "sha256:4cf63d537362058055af54c9b71230fd334234759236fb17d8b48a170a865d2a",
+      "imports": []
+    },
+    {
+      "path": "infrastructure/policy-engine.js",
+      "owner": "infrastructure",
+      "sha256": "sha256:e9b4853298522532ef4462996b524e717be33a08449169ae05f5b5458625c298",
+      "imports": []
+    },
+    {
+      "path": "infrastructure/rate-limiter.js",
+      "owner": "infrastructure",
+      "sha256": "sha256:83c92711fab9aa4837865a0794131ed8044f251103cf4c708dea369558648b41",
+      "imports": []
+    },
+    {
+      "path": "infrastructure/replay-engine.js",
+      "owner": "infrastructure",
+      "sha256": "sha256:8ea0b7a3e1ad1f0aa632682070a6805d4e59ed67a4ea591deb784c7b66455159",
+      "imports": []
+    },
+    {
+      "path": "infrastructure/stream-parser.js",
+      "owner": "infrastructure",
+      "sha256": "sha256:699298c960571326ad45d0ab6487354d8d9a950ec64a257c42c0a9841468f741",
+      "imports": []
+    },
+    {
+      "path": "infrastructure/telemetry-timeline.js",
+      "owner": "infrastructure",
+      "sha256": "sha256:18d9f1d4f17dc15f3f10436d132326926c61e0edca98ea2391cc4678f33f7278",
+      "imports": []
+    },
+    {
+      "path": "infrastructure/tool-executor.js",
+      "owner": "infrastructure",
+      "sha256": "sha256:a552bb1f25c32372660fad95d015308a5c5ecbfc8addb73687a1fd2b30ca5790",
+      "imports": []
+    },
+    {
+      "path": "infrastructure/trace-store.js",
+      "owner": "infrastructure",
+      "sha256": "sha256:3facff851642358d06d2b06414e04cb28276b9ebded8a57d6fb80cd4c4e5ec95",
+      "imports": []
+    },
+    {
+      "path": "lab/mirrors.js",
+      "owner": "lab",
+      "sha256": "sha256:d1092de8c36da1c7653565dc3239c8535e312e9936b50f9d49f6407bfaae9008",
+      "imports": []
+    },
+    {
+      "path": "lab/profiles.js",
+      "owner": "lab",
+      "sha256": "sha256:64018ffdfbfc062c35c8294983b3a85bbcd196e9ae13083f4f39f459d11022ba",
+      "imports": [
+        "../config/surface-intents.js",
+        "../config/tool-surfaces.js",
+        "./mirrors.js",
+        "./runtime-ui.js",
+        "./surface.js"
+      ]
+    },
+    {
+      "path": "lab/runtime-ui.js",
+      "owner": "lab",
+      "sha256": "sha256:5cbf85434df23a8d682066d9bb1c618501d4494e9efc7aa42c4d65bb943c4882",
+      "imports": []
+    },
+    {
+      "path": "lab/surface.js",
+      "owner": "lab",
+      "sha256": "sha256:9c0376a523216660ce1bc3d2287dd017e83c7bfa7fc8acdb3e6ccf680d84262d",
+      "imports": [
+        "../config/immutability.js"
+      ]
+    },
+    {
+      "path": "pool/adapter-canary-publication.js",
+      "owner": "pool",
+      "sha256": "sha256:1c537f6a10fff65e8d64bca37a20271b66291db04986e43da915a718c1a57095",
+      "imports": [
+        "./inference-receipt.js"
+      ]
+    },
+    {
+      "path": "pool/adapter-pack-publisher.js",
+      "owner": "pool",
+      "sha256": "sha256:94a7d20b0098b7d70b25d948487d3550b1684fddb9cc5afc3da14da2b0053570",
+      "imports": [
+        "./adapter-pack.js",
+        "./inference-receipt.js"
+      ]
+    },
+    {
+      "path": "pool/adapter-pack.js",
+      "owner": "pool",
+      "sha256": "sha256:d48b0bf5089b1dffb65ec0e12458ee89dfb5af82a86a513428e1f7bdd25f09ca",
+      "imports": [
+        "./artifact-origin.js",
+        "./inference-receipt.js"
+      ]
+    },
+    {
+      "path": "pool/adapter-publication.js",
+      "owner": "pool",
+      "sha256": "sha256:8855494e2ccbdcccdb7f1db2f6d910f124c74ada77c4ed8209f1bee977fc24c7",
+      "imports": [
+        "./adapter-pack.js",
+        "./inference-receipt.js"
+      ]
+    },
+    {
+      "path": "pool/adapter-publisher-client.js",
+      "owner": "pool",
+      "sha256": "sha256:981b8d66a7ad4189540ea3a40ae00afcaaf46d805b2f39139b9478ba4e4188a5",
+      "imports": [
+        "./adapter-publication.js",
+        "./identity.js",
+        "./inference-receipt.js",
+        "./sdk.js"
+      ]
+    },
+    {
+      "path": "pool/adapter-registry.js",
+      "owner": "pool",
+      "sha256": "sha256:3238949b2580fd63ab4dd80e611845735a4d772456db78b1e27b37e0f141c9d3",
+      "imports": [
+        "./adapter-publication.js",
+        "./artifact-origin.js",
+        "./inference-receipt.js"
+      ]
+    },
+    {
+      "path": "pool/agent-client.js",
+      "owner": "pool",
+      "sha256": "sha256:78c6de6c21999fe709d26e75d8ed91f7fd3c5e4ceb70cf07b02902e241eaa3bb",
+      "imports": [
+        "./identity.js",
+        "./inference-receipt.js",
+        "./model-contract.js",
+        "./peer-control-plane.js",
+        "./policy-router.js",
+        "./sdk.js"
+      ]
+    },
+    {
+      "path": "pool/artifact-origin.js",
+      "owner": "pool",
+      "sha256": "sha256:579b8e7681654bfb18977c965c14a89cf033afc9f39317d1506bbc35df786976",
+      "imports": []
+    },
+    {
+      "path": "pool/artifact-router.js",
+      "owner": "pool",
+      "sha256": "sha256:28b505084bf2b81fada9517fd7e7703403ef4a8f8252b1bea782f260c0e8f5f5",
+      "imports": [
+        "./adapter-pack.js",
+        "./inference-receipt.js",
+        "./model-contract.js",
+        "./participation-profile.js"
+      ]
+    },
+    {
+      "path": "pool/browser-qualification.js",
+      "owner": "pool",
+      "sha256": "sha256:0e1352665d7f6440609b7bf247b73f87fbae10e53e1163f546e52c4a1a2d20d2",
+      "imports": [
+        "./model-contract.js"
+      ]
+    },
+    {
+      "path": "pool/canonical-json.js",
+      "owner": "pool",
+      "sha256": "sha256:8c03ba8fc289d21bb99b3f2595ae8493397dfeb134cbb02e45311f2b43d561f4",
+      "imports": []
+    },
+    {
+      "path": "pool/config-contract.js",
+      "owner": "pool",
+      "sha256": "sha256:3a37b5c04e6d7dc990c987cb47aff2e7cbb3f23c6c9f1ec615f14a810c888742",
+      "imports": []
+    },
+    {
+      "path": "pool/config.js",
+      "owner": "pool",
+      "sha256": "sha256:892ff8ff5dcc9f3aa4c9bbeaeabd29880ab4eedb5258d383efb12f0fe6d6ff75",
+      "imports": [
+        "./config-contract.js",
+        "./pool-config.json"
+      ]
+    },
+    {
+      "path": "pool/device-identity.js",
+      "owner": "pool",
+      "sha256": "sha256:f05a9b3df4c164f7faf4b3f7d79c1f7585c0ab5bb20a69e674f21a4760e8f8d3",
+      "imports": [
+        "./inference-receipt.js"
+      ]
+    },
+    {
+      "path": "pool/discovery-action-value.js",
+      "owner": "pool",
+      "sha256": "sha256:8bcff7631b1178fd48312915ec82ccf51dfcfb1e5b1381f3e3b9b631047b7255",
+      "imports": []
+    },
+    {
+      "path": "pool/dna-lane-admission.js",
+      "owner": "pool",
+      "sha256": "sha256:656dc45f36a4f13b64680ae252d3d64773bc0a813a6312eda7bc31330212197f",
+      "imports": []
+    },
+    {
+      "path": "pool/doppler-browser-observation.js",
+      "owner": "pool",
+      "sha256": "sha256:b2243c4909d18853fdd78de6dbf725a48f37889f4c065d0adaa1ee5eebfdae6d",
+      "imports": [
+        "./browser-qualification.js",
+        "./model-contract.js"
+      ]
+    },
+    {
+      "path": "pool/doppler-runtime.js",
+      "owner": "pool",
+      "sha256": "sha256:4069069c75fd064953074aa79933b1529347b25f87ac59535fe9e3aa8d0b8364",
+      "imports": [
+        "../infrastructure/doppler-runtime-service.js",
+        "./adapter-pack.js",
+        "./config.js",
+        "./inference-receipt.js",
+        "./model-contract.js",
+        "./runtime-profile.js",
+        "./sequence-result.js",
+        "./sequence-workload.js"
+      ]
+    },
+    {
+      "path": "pool/evidence-network.js",
+      "owner": "pool",
+      "sha256": "sha256:45efd16b7e8cff10ba8416c69bf3bfa03f3a270b3860488a0265c6020f29ae71",
+      "imports": [
+        "./discovery-action-value.js",
+        "./inference-receipt.js",
+        "./model-contract.js",
+        "./model-evidence-view.js",
+        "./sequence-result.js",
+        "./sequence-workload.js"
+      ]
+    },
+    {
+      "path": "pool/firebase-auth.js",
+      "owner": "pool",
+      "sha256": "sha256:677c2c7e22cb98d1b01d2fdb849795a91b929a48cde983b1e5d79bf6181d976e",
+      "imports": []
+    },
+    {
+      "path": "pool/identity-claims.js",
+      "owner": "pool",
+      "sha256": "sha256:0686e6f3320b14192c080ee18dbae142aa1163bc415e62bee2f10327c5daec45",
+      "imports": [
+        "./device-identity.js",
+        "./participation-profile.js"
+      ]
+    },
+    {
+      "path": "pool/identity.js",
+      "owner": "pool",
+      "sha256": "sha256:b2d5c550381b9755b3e04589fe3ac9a572a7bcc45c78b74aca940968a7200d67",
+      "imports": [
+        "./device-identity.js",
+        "./firebase-auth.js",
+        "./inference-receipt.js",
+        "./participation-profile.js"
+      ]
+    },
+    {
+      "path": "pool/inference-receipt.js",
+      "owner": "pool",
+      "sha256": "sha256:c62c260779fb7f17c0d556797e177c6305bc422979719aab700cbc5fea97309d",
+      "imports": [
+        "./canonical-json.js",
+        "./config.js",
+        "./model-contract.js",
+        "./sequence-workload.js"
+      ]
+    },
+    {
+      "path": "pool/layer-scheduler.js",
+      "owner": "pool",
+      "sha256": "sha256:8f0b2257f1c264a6ed7c65c41783e754bb386b2a98c6f6b6d25b423e71856179",
+      "imports": []
+    },
+    {
+      "path": "pool/model-artifacts.js",
+      "owner": "pool",
+      "sha256": "sha256:f0bd692c716bd21416da9955edbeb12c011fb5a7560bbe75578257842c0b00db",
+      "imports": [
+        "./config.js",
+        "./inference-receipt.js"
+      ]
+    },
+    {
+      "path": "pool/model-contract.js",
+      "owner": "pool",
+      "sha256": "sha256:1ecf0cff4a485d44c3283b0a89011cd695c76530a3c662d474219efeb25f5e5d",
+      "imports": [
+        "./adapter-pack.js",
+        "./config.js",
+        "./model-artifacts.js",
+        "./sequence-workload.js"
+      ]
+    },
+    {
+      "path": "pool/model-evidence-view.js",
+      "owner": "pool",
+      "sha256": "sha256:c2cd51e1784e5357e5d07a52af5c49db51efbde229a10c3b3064a2042d9d49ac",
+      "imports": [
+        "./model-contract.js"
+      ]
+    },
+    {
+      "path": "pool/model-promotion.js",
+      "owner": "pool",
+      "sha256": "sha256:98a16964269b76ad69bd1447ed6b081f830709e2938922b9458d0f82c8063520",
+      "imports": [
+        "./browser-qualification.js",
+        "./dna-lane-admission.js",
+        "./model-contract.js",
+        "./scientific-fitness.js"
+      ]
+    },
+    {
+      "path": "pool/p2p-artifact-transfer.js",
+      "owner": "pool",
+      "sha256": "sha256:86db5d4e7fcc86e3f9464aefe89bbe58fe176b5def761498ee27f75c77437ce8",
+      "imports": [
+        "./adapter-pack.js",
+        "./inference-receipt.js",
+        "./p2p-payload.js"
+      ]
+    },
+    {
+      "path": "pool/p2p-payload.js",
+      "owner": "pool",
+      "sha256": "sha256:a4d9787afffc3be0abac09e0f94890cec09c32cf7ed61cec0ef5b2fcc0bf6529",
+      "imports": [
+        "./inference-receipt.js"
+      ]
+    },
+    {
+      "path": "pool/p2p-signaling.js",
+      "owner": "pool",
+      "sha256": "sha256:2d2cfbb9628ab325a61ab3731c8bdf8a247428cc6b19308fdd0e18ea36962612",
+      "imports": [
+        "./retry-policy.js"
+      ]
+    },
+    {
+      "path": "pool/p2p-transport.js",
+      "owner": "pool",
+      "sha256": "sha256:d54d30bfc34d94a1f44fbf7b6043340db01ee27aefaa057284ef1672733762a9",
+      "imports": [
+        "./p2p-payload.js",
+        "./p2p-signaling.js"
+      ]
+    },
+    {
+      "path": "pool/participation-profile.js",
+      "owner": "pool",
+      "sha256": "sha256:0af14eedd3d3c907da5be4c8db65d46272801e6fb0927e3694f2c5d35f4c77e3",
+      "imports": [
+        "./inference-receipt.js"
+      ]
+    },
+    {
+      "path": "pool/peer-agreement.js",
+      "owner": "pool",
+      "sha256": "sha256:7f015a5cbf06b650745847bb8db195aeca09161d0c47c2ad51555b64e5ae72c2",
+      "imports": [
+        "./inference-receipt.js",
+        "./model-contract.js",
+        "./sequence-workload.js"
+      ]
+    },
+    {
+      "path": "pool/peer-control-plane.js",
+      "owner": "pool",
+      "sha256": "sha256:6987e7a8bd5a894ff59486de040e2fc5d149758fd4d55d6292c69e9ff6a444f9",
+      "imports": [
+        "./adapter-pack.js",
+        "./adapter-publication.js",
+        "./artifact-router.js",
+        "./config.js",
+        "./identity-claims.js",
+        "./inference-receipt.js",
+        "./model-contract.js",
+        "./p2p-payload.js",
+        "./participation-profile.js",
+        "./peer-agreement.js",
+        "./peer-ledger.js",
+        "./peer-payload.js",
+        "./peer-planning.js",
+        "./peer-protocol.js",
+        "./peer-transport.js",
+        "./policy-router.js",
+        "./sequence-result.js",
+        "./sequence-workload.js"
+      ]
+    },
+    {
+      "path": "pool/peer-ledger.js",
+      "owner": "pool",
+      "sha256": "sha256:471b434d1227b001fa9c47e3692c51ada2367f734f9bb844c92036e64d809c48",
+      "imports": [
+        "./config.js",
+        "./peer-protocol.js"
+      ]
+    },
+    {
+      "path": "pool/peer-payload.js",
+      "owner": "pool",
+      "sha256": "sha256:d38b6615d7ab92ef0bb9c0b7202bd784969609328f29c3907f56663cc14deaa6",
+      "imports": [
+        "./inference-receipt.js",
+        "./model-contract.js",
+        "./p2p-payload.js",
+        "./peer-protocol.js",
+        "./sequence-workload.js"
+      ]
+    },
+    {
+      "path": "pool/peer-planning.js",
+      "owner": "pool",
+      "sha256": "sha256:8c8fde6f0bd8ed29ec738b938ce12545cab0829f533d6e10e28eb747f831c1cc",
+      "imports": [
+        "./config.js",
+        "./inference-receipt.js",
+        "./model-contract.js",
+        "./sequence-workload.js"
+      ]
+    },
+    {
+      "path": "pool/peer-protocol.js",
+      "owner": "pool",
+      "sha256": "sha256:d22080a2c5f1d1b53c4c28e7a277da96bc9297e510e6cbac1af2e8cd4e81a723",
+      "imports": [
+        "./inference-receipt.js"
+      ]
+    },
+    {
+      "path": "pool/peer-registry.js",
+      "owner": "pool",
+      "sha256": "sha256:fff2837ccb23249d94e46129debba1572eba992573d378a38011d3c4080383b8",
+      "imports": []
+    },
+    {
+      "path": "pool/peer-rendezvous.js",
+      "owner": "pool",
+      "sha256": "sha256:9f24f0dc4142013c220d331222e5438038fd2bfcbf0f56f5c4ea66f7d841b67e",
+      "imports": [
+        "./peer-protocol.js",
+        "./retry-policy.js"
+      ]
+    },
+    {
+      "path": "pool/peer-room.js",
+      "owner": "pool",
+      "sha256": "sha256:0baf5f506651c54f916ad9c2064aee0da6a2798031625d12aa27b79c884e153b",
+      "imports": [
+        "./config.js",
+        "./model-contract.js",
+        "./p2p-payload.js",
+        "./p2p-transport.js",
+        "./peer-control-plane.js",
+        "./peer-rendezvous.js"
+      ]
+    },
+    {
+      "path": "pool/peer-transport.js",
+      "owner": "pool",
+      "sha256": "sha256:5fa1abd8520055c51f90b48d189130f3fe94e7c614ba74dbf2034ace8a0fd149",
+      "imports": []
+    },
+    {
+      "path": "pool/points-ledger.js",
+      "owner": "pool",
+      "sha256": "sha256:5d035188de53fe639c031e7d87cd88872bd39a20407bd462329c8e1e7d291ce4",
+      "imports": []
+    },
+    {
+      "path": "pool/policy-router.js",
+      "owner": "pool",
+      "sha256": "sha256:56b352ebdb5d190307e576da85c9f985511f9509f2628d904701a2e5ec79f898",
+      "imports": [
+        "./config.js",
+        "./model-contract.js"
+      ]
+    },
+    {
+      "path": "pool/provider-client.js",
+      "owner": "pool",
+      "sha256": "sha256:6af51367ad996f76b7942096639c68488beaa25efa8f15e2a6b49153ba6f374e",
+      "imports": [
+        "./adapter-pack.js",
+        "./adapter-publication.js",
+        "./adapter-registry.js",
+        "./doppler-runtime.js",
+        "./identity.js",
+        "./inference-receipt.js",
+        "./model-contract.js",
+        "./p2p-payload.js",
+        "./participation-profile.js",
+        "./peer-control-plane.js",
+        "./peer-protocol.js",
+        "./policy-router.js",
+        "./runtime-profile.js",
+        "./sdk.js",
+        "./sequence-workload.js"
+      ]
+    },
+    {
+      "path": "pool/reputation.js",
+      "owner": "pool",
+      "sha256": "sha256:663d53292b40323502b1f70f269d73fab8d43a05ab7b15ba91f5bba5d190abd2",
+      "imports": []
+    },
+    {
+      "path": "pool/requester-client.js",
+      "owner": "pool",
+      "sha256": "sha256:6259ff921d92dba60f38022363a940056f30bcab1c5cbffc43108b7965e133c4",
+      "imports": [
+        "./adapter-pack.js",
+        "./adapter-publication.js",
+        "./identity.js",
+        "./inference-receipt.js",
+        "./model-contract.js",
+        "./peer-control-plane.js",
+        "./peer-protocol.js",
+        "./policy-router.js",
+        "./sdk.js"
+      ]
+    },
+    {
+      "path": "pool/retry-policy.js",
+      "owner": "pool",
+      "sha256": "sha256:635a4fc46e997934e2ad6810dae726dab9e917a156b6a3e23b20fb67ce5fd7bf",
+      "imports": []
+    },
+    {
+      "path": "pool/rtc-config.js",
+      "owner": "pool",
+      "sha256": "sha256:609b7df4f79b4d5b0753aada8ec1103978f82b51cb57dbd8034f710f670d38c9",
+      "imports": [
+        "./p2p-transport.js",
+        "./sdk.js"
+      ]
+    },
+    {
+      "path": "pool/runtime-profile.js",
+      "owner": "pool",
+      "sha256": "sha256:75fbdcc839f05c20015fa2eaf044c0b1832c86cfd9c04f09c0049742385ef3c5",
+      "imports": [
+        "./inference-receipt.js",
+        "./model-contract.js"
+      ]
+    },
+    {
+      "path": "pool/scientific-evaluation.js",
+      "owner": "pool",
+      "sha256": "sha256:49c3e7b9466fe8d0ede8fc2c724db41cd78d20a1a1b7275bf69da02aca5a35da",
+      "imports": [
+        "./browser-qualification.js"
+      ]
+    },
+    {
+      "path": "pool/scientific-fitness.js",
+      "owner": "pool",
+      "sha256": "sha256:b6afdbbbb26660746a5866ad799c6371c2258ad7b0a3555981e2745435d84edc",
+      "imports": [
+        "./browser-qualification.js",
+        "./scientific-evaluation.js"
+      ]
+    },
+    {
+      "path": "pool/sdk.js",
+      "owner": "pool",
+      "sha256": "sha256:626a8f78dd9dba490d47fa63a8b2ac9d7ee6818f2ea6ac46e56ccdfcdd552bef",
+      "imports": [
+        "./identity.js",
+        "./inference-receipt.js"
+      ]
+    },
+    {
+      "path": "pool/sequence-result.js",
+      "owner": "pool",
+      "sha256": "sha256:296f7717664167fced11331b965d57a8c4dbbcf64bafdf5a371dfbed31a6e9a9",
+      "imports": [
+        "./inference-receipt.js",
+        "./sequence-workload.js"
+      ]
+    },
+    {
+      "path": "pool/sequence-workload.js",
+      "owner": "pool",
+      "sha256": "sha256:026bd1944e69ce4bfb931489d216ebfe22add4ed4ecefb9fe7348d4ed2feec3c",
+      "imports": []
+    },
+    {
+      "path": "pool/shard-negotiation.js",
+      "owner": "pool",
+      "sha256": "sha256:563c163e42abb3979e7488881b62cb1bdc8f4bd8ef46b2c90f718bc95d2e06c7",
+      "imports": []
+    },
+    {
+      "path": "providers/doppler-reploid.js",
+      "owner": "providers",
+      "sha256": "sha256:6da1f7478ad015e3ef14846edc8bd9d15f3d9f502517d94d17140020efb662af",
+      "imports": [
+        "../config/doppler-local-models.js",
+        "../core/doppler-runtime-service.js"
+      ]
+    },
+    {
+      "path": "self/boot-spec.js",
+      "owner": "self",
+      "sha256": "sha256:cd7b97b117bdbec440fc6e43147c6996e1fa4653d5a89ae6fa0416bc6f8ab869",
+      "imports": [
+        "./config/lab-route-profiles.js",
+        "./config/vfs-policy.js"
+      ]
+    },
+    {
+      "path": "self/bridge.js",
+      "owner": "self",
+      "sha256": "sha256:5064662b1a69403162ca4505d2887861d328c1cdf5b744d32cdf123e8a0e5932",
+      "imports": [
+        "./capabilities/communication/swarm-transport.js",
+        "./core/llm-client.js",
+        "./core/provider-registry.js",
+        "./core/utils.js",
+        "./host/vfs-bootstrap.js",
+        "./identity.js",
+        "./infrastructure/event-bus.js",
+        "./infrastructure/stream-parser.js",
+        "./instance.js",
+        "./manifest.js",
+        "./receipt.js",
+        "./reward-policy.js",
+        "./swarm.js",
+        "./tool-runner.js",
+        "./tools/Promote.js"
+      ]
+    },
+    {
+      "path": "self/capsule/index.js",
+      "owner": "self",
+      "sha256": "sha256:102fe865af01130191340e0767f50025888d060e31f0ce5208adedf637b77370",
+      "imports": []
+    },
+    {
+      "path": "self/cloud-access-status.js",
+      "owner": "self",
+      "sha256": "sha256:baae26ecc29e82df5a650a9dcc137b579008361625504184c2698e49184c621c",
+      "imports": []
+    },
+    {
+      "path": "self/cloud-access-windows.js",
+      "owner": "self",
+      "sha256": "sha256:93dc2937ae4f959b0528e0e63baf30ef14807740fe513eebf4fe26d51fcbf441",
+      "imports": []
+    },
+    {
+      "path": "self/cloud-access.js",
+      "owner": "self",
+      "sha256": "sha256:d760b1e8864410dbe925124c3e266d7134aa5504bc67384d0bcf556ae40b76a6",
+      "imports": [
+        "./cloud-access-status.js",
+        "./key-unsealer.js"
+      ]
+    },
+    {
+      "path": "self/dream-instance.js",
+      "owner": "self",
+      "sha256": "sha256:5bb2c1453c1971a067b939a6d4827f97340a69b8094f8a1bd9f5e47bcfabf8fc",
+      "imports": [
+        "./instance.js"
+      ]
+    },
+    {
+      "path": "self/environment.js",
+      "owner": "self",
+      "sha256": "sha256:2a235a7b565440eb705df2cf23fd0a72688b4d7a0023f465c57cd3a156455edd",
+      "imports": [
+        "./config/reploid-environments.js"
+      ]
+    },
+    {
+      "path": "self/host/seed-vfs.js",
+      "owner": "self",
+      "sha256": "sha256:b87b5898505455132145d0d5cf7364f0e9469ef207b81c5693ca313e502542bf",
+      "imports": [
+        "../boot-spec.js",
+        "../config/boot-seed.js",
+        "../instance.js",
+        "../lab/mirrors.js",
+        "../lab/profiles.js",
+        "./vfs-bootstrap.js"
+      ]
+    },
+    {
+      "path": "self/host/start-app.js",
+      "owner": "self",
+      "sha256": "sha256:cd527918c54d9717d60d4800b44857fdbb5583970a6b7e66d120fac6bd740d7c",
+      "imports": [
+        "../boot-spec.js",
+        "../config/doppler-local-models.js",
+        "../config/zero-inference.js",
+        "../core/utils.js",
+        "../instance.js",
+        "../lab/profiles.js"
+      ]
+    },
+    {
+      "path": "self/host/start-reploid.js",
+      "owner": "self",
+      "sha256": "sha256:b76e45f285d3092356e6080004c55ac1a496bb759cca8eeb203dbd34cdcbaa38",
+      "imports": [
+        "../boot-spec.js",
+        "../identity.js",
+        "../instance.js"
+      ]
+    },
+    {
+      "path": "self/host/sw-module-loader.js",
+      "owner": "self",
+      "sha256": "sha256:dc555401478c9bb54d5556aac0bfdce81cf0432a72c6c397a9149324346c07d0",
+      "imports": []
+    },
+    {
+      "path": "self/host/vfs-bootstrap.js",
+      "owner": "self",
+      "sha256": "sha256:731fdae5f9190e126aae29a06f719f9827933731738ccc9bab830cad32e78b73",
+      "imports": [
+        "../boot-spec.js",
+        "../instance.js"
+      ]
+    },
+    {
+      "path": "self/identity.js",
+      "owner": "self",
+      "sha256": "sha256:018072637cd0743a74415fc24c3193306f54e397e59f5bedb6d26c4f5b926d76",
+      "imports": [
+        "./instance.js",
+        "./reward-policy.js",
+        "./swarm.js"
+      ]
+    },
+    {
+      "path": "self/image/export.js",
+      "owner": "self",
+      "sha256": "sha256:115891783750fb851be9f4eca284b0efd41960eb13fa77c07c1f1bb3110f76ae",
+      "imports": [
+        "../boot-spec.js",
+        "./manifest.js"
+      ]
+    },
+    {
+      "path": "self/image/manifest.js",
+      "owner": "self",
+      "sha256": "sha256:357dd38012e38189e9eed03ba8ff08fe059f601e8e36f193506679112831c27e",
+      "imports": [
+        "../boot-spec.js"
+      ]
+    },
+    {
+      "path": "self/instance.js",
+      "owner": "self",
+      "sha256": "sha256:de48aa1d83156b84df2f84c9513a6f532963caa522393216e613798ca1bcc659",
+      "imports": []
+    },
+    {
+      "path": "self/kernel/boot.js",
+      "owner": "self",
+      "sha256": "sha256:5e1d3a7488e50815a2b742f1d97e1efcd4a964230c5f2ddbc967dbbd4e7d037c",
+      "imports": [
+        "../boot-spec.js",
+        "../config/doppler-local-models.js",
+        "../instance.js"
+      ]
+    },
+    {
+      "path": "self/key-unsealer.js",
+      "owner": "self",
+      "sha256": "sha256:9ea2198c06f47321422b7c36af01bdc7c75afa49dc2f4683fcdc76d466da408e",
+      "imports": []
+    },
+    {
+      "path": "self/manifest.js",
+      "owner": "self",
+      "sha256": "sha256:c4ff27ccd8f7e18dc9c8fb9cc6d481767074123e238357480f825450990eb3aa",
+      "imports": [
+        "./boot-spec.js",
+        "./config/vfs-policy.js",
+        "./environment.js",
+        "./identity.js",
+        "./instance.js",
+        "./swarm.js"
+      ]
+    },
+    {
+      "path": "self/receipt.js",
+      "owner": "self",
+      "sha256": "sha256:20db41850ade3fb8a0dd5613e7e7f4477d0b07c2ce5e2ede1cac2cd3290145a7",
+      "imports": [
+        "./identity.js"
+      ]
+    },
+    {
+      "path": "self/reward-policy.js",
+      "owner": "self",
+      "sha256": "sha256:abc5508df42d2f24e88907b349bc24bbafd53536b2ad403f290ab358b8f6ffdb",
+      "imports": []
+    },
+    {
+      "path": "self/runtime.js",
+      "owner": "self",
+      "sha256": "sha256:bc4bece667fac85cdb7187a39a776f4e733111d6018df4e17aafd5a3e8facf84",
+      "imports": [
+        "./bridge.js",
+        "./core/response-parser.js",
+        "./core/utils.js",
+        "./instance.js",
+        "./manifest.js"
+      ]
+    },
+    {
+      "path": "self/swarm.js",
+      "owner": "self",
+      "sha256": "sha256:88bddbd1bb51a3928b5a4fc59826673d7b960c66283ec4627b0ee884d596c721",
+      "imports": [
+        "./reward-policy.js"
+      ]
+    },
+    {
+      "path": "self/tool-runner.js",
+      "owner": "self",
+      "sha256": "sha256:b0738d5e8d5f9942f922a875db3a147ac4119a41d06f825fb3fe97b7fcba4262",
+      "imports": [
+        "./core/vfs-module-loader.js"
+      ]
+    },
+    {
+      "path": "sw-module-loader.js",
+      "owner": "sw-module-loader.js",
+      "sha256": "sha256:2b4aabf6249a54b11022523ee79efa0652024c41217f8f90117108d74c62c86c",
+      "imports": []
+    },
+    {
+      "path": "sw.js",
+      "owner": "sw.js",
+      "sha256": "sha256:2b4aabf6249a54b11022523ee79efa0652024c41217f8f90117108d74c62c86c",
+      "imports": []
+    },
+    {
+      "path": "testing/arena/arena-harness.js",
+      "owner": "testing",
+      "sha256": "sha256:877ad71952377ffbf65e77d9818080cb40b3bd69484ab9840d583be918b20b7b",
+      "imports": []
+    },
+    {
+      "path": "testing/arena/arena-metrics.js",
+      "owner": "testing",
+      "sha256": "sha256:3309d3767c7bcd33b793213fac1fd26ea554f4a16f6c8177b5b431c2d45abe10",
+      "imports": []
+    },
+    {
+      "path": "testing/arena/competitor.js",
+      "owner": "testing",
+      "sha256": "sha256:51dd6d314c8fb6946da148c4a732b62612130d97d57abb3999a2f2060696d4c0",
+      "imports": []
+    },
+    {
+      "path": "testing/arena/doppler-integration.js",
+      "owner": "testing",
+      "sha256": "sha256:fcd76020f1e42238fb95f8d134e99cd38bee2279ee315c19e5fc804543888e90",
+      "imports": []
+    },
+    {
+      "path": "testing/arena/index.js",
+      "owner": "testing",
+      "sha256": "sha256:5c557f192dbd2bbca9ee56c13cfa09d1e40b5a94d7f55283fc400040de8f9a11",
+      "imports": [
+        "./arena-harness.js",
+        "./arena-metrics.js",
+        "./competitor.js",
+        "./doppler-integration.js",
+        "./vfs-sandbox.js"
+      ]
+    },
+    {
+      "path": "testing/arena/vfs-sandbox.js",
+      "owner": "testing",
+      "sha256": "sha256:13bc042f55dc98ddae0c9f4ed8cd028c3e7874b4e342b8f69ed8ecbc4f430158",
+      "imports": []
+    },
+    {
+      "path": "tools/AwaitWorkers.js",
+      "owner": "tools",
+      "sha256": "sha256:62c41e50318e166436424b073540c6cb2ff33fd405ab69c231c1b6643387a49a",
+      "imports": []
+    },
+    {
+      "path": "tools/CopyFile.js",
+      "owner": "tools",
+      "sha256": "sha256:1de3110981a7fc30e2f881dd5a0a5f425af6afc8ca10fb6738e061c43e6ec687",
+      "imports": [
+        "../config/vfs-policy.js"
+      ]
+    },
+    {
+      "path": "tools/CreateTool.js",
+      "owner": "tools",
+      "sha256": "sha256:8da740bbaa25ee54704ee1c7064f03c218a986f280ea72738cb050e4f4a2d925",
+      "imports": [
+        "../core/promotion-policy.js",
+        "../core/vfs-module-loader.js"
+      ]
+    },
+    {
+      "path": "tools/DeleteFile.js",
+      "owner": "tools",
+      "sha256": "sha256:6c506fec6414444303749c1b61b408b7e2a0ac7e0cfd5693e586dcf920d44d5b",
+      "imports": [
+        "../config/vfs-policy.js"
+      ]
+    },
+    {
+      "path": "tools/DopplerOptimize.js",
+      "owner": "tools",
+      "sha256": "sha256:01ac60dcfa3b3f40e61f0c60665c4371273aa351c753d610ca7dab18919cc044",
+      "imports": []
+    },
+    {
+      "path": "tools/EditFile.js",
+      "owner": "tools",
+      "sha256": "sha256:6e88bf8b08645b9e01cb62dc42c27eda265d2c737aa0ddc0c3309e4f0160337b",
+      "imports": [
+        "../config/vfs-policy.js"
+      ]
+    },
+    {
+      "path": "tools/FileOutline.js",
+      "owner": "tools",
+      "sha256": "sha256:dd3a22a28a1e239c9ba24715ded1174bde9074649b1f85e0cf4254ce7da2d4f6",
+      "imports": [
+        ")) {\n        structure.exports.push({ line: i, sig: trim.split(",
+        ")) {\n        structure.imports.push({ line: i, sig: trim });\n    }\n\n    // Exports\n    if (trim.startsWith("
+      ]
+    },
+    {
+      "path": "tools/Find.js",
+      "owner": "tools",
+      "sha256": "sha256:7189017e7495f548ade26de70f72fdb1d343bb9362ea2daf09000a63ac8cc5e0",
+      "imports": []
+    },
+    {
+      "path": "tools/git.js",
+      "owner": "tools",
+      "sha256": "sha256:cd0658d0007323ade598c8acdf2dc9f41dc91823d829d60fefccbe75d8339a25",
+      "imports": []
+    },
+    {
+      "path": "tools/Grep.js",
+      "owner": "tools",
+      "sha256": "sha256:c04ab6e6fdb76c5ecd8b533556292ed986431007caacb0157393a9ead9a26c54",
+      "imports": []
+    },
+    {
+      "path": "tools/Head.js",
+      "owner": "tools",
+      "sha256": "sha256:afa7a859d78a34e4ab66ff9db312c4470fa98f3a6c64257bf33f44d5e6ed4332",
+      "imports": []
+    },
+    {
+      "path": "tools/ListFiles.js",
+      "owner": "tools",
+      "sha256": "sha256:909eac8dd442f7cc364581882a81c1b19c0b879ab17e4a9eaa62db5a4703e504",
+      "imports": []
+    },
+    {
+      "path": "tools/ListKnowledge.js",
+      "owner": "tools",
+      "sha256": "sha256:bf6743bb7d010ac0fb63bb3cc1557f7b367ca6ccf4c61cc1888101d589e2c178",
+      "imports": []
+    },
+    {
+      "path": "tools/ListMemories.js",
+      "owner": "tools",
+      "sha256": "sha256:af21a84a197658da2a7ee89b744150d1cb014ef84998f678ef64d75ec7b70eac",
+      "imports": []
+    },
+    {
+      "path": "tools/ListTools.js",
+      "owner": "tools",
+      "sha256": "sha256:dcc6a116d612d7a6d3460c1f3a2e9f7d4a8887c68e6001ed2121ca1f377a3ef7",
+      "imports": []
+    },
+    {
+      "path": "tools/ListWorkers.js",
+      "owner": "tools",
+      "sha256": "sha256:c315dbeb1827afa70ec50b1792bbcde6210b58a4f653f7e9e92c2c6b2a62c7f3",
+      "imports": []
+    },
+    {
+      "path": "tools/LoadModule.js",
+      "owner": "tools",
+      "sha256": "sha256:82b88621b445a5a18d5f3dc3621bd41eb104db5bc8b85e99266bec09969e8498",
+      "imports": []
+    },
+    {
+      "path": "tools/MakeDirectory.js",
+      "owner": "tools",
+      "sha256": "sha256:e54128780d06703ef06fc09e93845662ce3cc3b3438e0512f26180d5c40db62c",
+      "imports": [
+        "../config/vfs-policy.js"
+      ]
+    },
+    {
+      "path": "tools/MoveFile.js",
+      "owner": "tools",
+      "sha256": "sha256:af89642e34bf2db4e686b2672b398a5ea142e25e75a8e437fd0c28fa2064098e",
+      "imports": [
+        "../config/vfs-policy.js"
+      ]
+    },
+    {
+      "path": "tools/Promote.js",
+      "owner": "tools",
+      "sha256": "sha256:bac784278a76d1fd2b63bc4c981e04e6a316d4efa1648480a195ecd9eaff5e8b",
+      "imports": [
+        "../core/promotion-policy.js"
+      ]
+    },
+    {
+      "path": "tools/ReadFile.js",
+      "owner": "tools",
+      "sha256": "sha256:01d33cfb29569c11c267734b0b0092d7f4a32aba98623a2052db8d6fa06ec59e",
+      "imports": []
+    },
+    {
+      "path": "tools/RunGEPA.js",
+      "owner": "tools",
+      "sha256": "sha256:f7f96c9f8d242f593a9fc3b0501bfc32ecdb34418916214e85a7428b66139b8a",
+      "imports": []
+    },
+    {
+      "path": "tools/SpawnWorker.js",
+      "owner": "tools",
+      "sha256": "sha256:74335ee66b1768cfff76517a593fa6c48e4e45d306f43d60da2b9f3021906c4a",
+      "imports": []
+    },
+    {
+      "path": "tools/SwarmGetStatus.js",
+      "owner": "tools",
+      "sha256": "sha256:613e2416e3c57b22ef64f82ef9d7d7b8b82af2734f50620857590f0bc88fa57b",
+      "imports": []
+    },
+    {
+      "path": "tools/SwarmListPeers.js",
+      "owner": "tools",
+      "sha256": "sha256:a243129ea58e17c3dc4a31789ae3e91b194f3148f543a78fccd78af53b4ef07f",
+      "imports": []
+    },
+    {
+      "path": "tools/SwarmRequestFile.js",
+      "owner": "tools",
+      "sha256": "sha256:a7641998ec6c61c9566c8203fb89c9d6415c29e19b0993b75dcfc45c77814766",
+      "imports": []
+    },
+    {
+      "path": "tools/SwarmShareFile.js",
+      "owner": "tools",
+      "sha256": "sha256:d4fbaded25b6d77b7657f0a87020f4c8104c767ca85a4a0ec0e66159c0284b28",
+      "imports": []
+    },
+    {
+      "path": "tools/Tail.js",
+      "owner": "tools",
+      "sha256": "sha256:ca6832f2dbb20c2ec0224327c22d5c36c9d25651942d8aed9cd48a1214a06efe",
+      "imports": []
+    },
+    {
+      "path": "tools/WriteFile.js",
+      "owner": "tools",
+      "sha256": "sha256:7ba51ec247e425d75299698e9708faf742b2d8c69e98a870a734d1886962ac03",
+      "imports": [
+        "../config/vfs-policy.js"
+      ]
+    },
+    {
+      "path": "ui/boot-home/index.js",
+      "owner": "ui",
+      "sha256": "sha256:72b03784c7f88dddb43a43914caa50afe63b7483ff8d263f0ab49f71a4f8f59d",
+      "imports": [
+        "../../boot-helpers/vfs-bootstrap.js",
+        "../../config/boot-seed.js",
+        "../../config/doppler-local-models.js",
+        "../../config/reploid-environments.js",
+        "../../config/zero-inference.js",
+        "../../instance.js",
+        "../../lab/profiles.js",
+        "../boot-wizard/detection.js",
+        "../boot-wizard/goals.js",
+        "../boot-wizard/reploid-inference.js",
+        "../boot-wizard/state.js",
+        "../boot-wizard/steps/browser.js",
+        "../boot-wizard/steps/choose.js",
+        "../boot-wizard/steps/direct.js",
+        "../boot-wizard/steps/goal.js",
+        "../boot-wizard/steps/proxy.js"
+      ]
+    },
+    {
+      "path": "ui/boot-wizard/detection.js",
+      "owner": "ui",
+      "sha256": "sha256:fc0f114d25b3417147c1740711e334ab23ebecf12442cfab9dd29f24c764412e",
+      "imports": [
+        "../../config/doppler-local-models.js",
+        "../../config/zero-inference.js",
+        "./goals.js",
+        "./state.js"
+      ]
+    },
+    {
+      "path": "ui/boot-wizard/goals.js",
+      "owner": "ui",
+      "sha256": "sha256:1e27f82c9f972927e829414b49d79b98d2a311cce823950432340fc5a416fd07",
+      "imports": [
+        "../../config/zero-goals.js",
+        "../shared/reploid-contract.js"
+      ]
+    },
+    {
+      "path": "ui/boot-wizard/index.js",
+      "owner": "ui",
+      "sha256": "sha256:a79761793bd82f9961e2fbb4e2c6c3f4cf16293a12dafbf1b972b3b44a3c14d2",
+      "imports": [
+        "../../boot-helpers/vfs-bootstrap.js",
+        "../../config/boot-modes.js",
+        "../../config/boot-seed.js",
+        "../../config/doppler-local-models.js",
+        "../../config/module-resolution.js",
+        "../../config/reploid-environments.js",
+        "../../config/zero-inference.js",
+        "../../core/security-config.js",
+        "../../instance.js",
+        "./detection.js",
+        "./goals.js",
+        "./self-preview.js",
+        "./state.js",
+        "./steps/awaken.js",
+        "./steps/browser.js",
+        "./steps/choose.js",
+        "./steps/direct.js",
+        "./steps/goal.js",
+        "./steps/proxy.js"
+      ]
+    },
+    {
+      "path": "ui/boot-wizard/reploid-inference.js",
+      "owner": "ui",
+      "sha256": "sha256:12a6f1701918f20459e76d681d8a5e52469f4e081e92159068a65f43e53b3500",
+      "imports": [
+        "../../cloud-access.js",
+        "../../swarm.js"
+      ]
+    },
+    {
+      "path": "ui/boot-wizard/self-preview.js",
+      "owner": "ui",
+      "sha256": "sha256:c53d4f8416f6d59d13df80e3a40f172ef57354c37152f16e05e372585a129674",
+      "imports": [
+        "../../manifest.js",
+        "./state.js"
+      ]
+    },
+    {
+      "path": "ui/boot-wizard/state.js",
+      "owner": "ui",
+      "sha256": "sha256:0a40b6113dd3ef86975efc06bc8ca982194d93a94d847b570203ee723e2900c7",
+      "imports": [
+        "../../config/boot-modes.js",
+        "../../config/doppler-local-models.js",
+        "../../config/module-resolution.js",
+        "../../config/reploid-environments.js",
+        "../../config/zero-inference.js",
+        "../../core/security-config.js",
+        "../../instance.js",
+        "./reploid-inference.js"
+      ]
+    },
+    {
+      "path": "ui/boot-wizard/steps/awaken.js",
+      "owner": "ui",
+      "sha256": "sha256:e529d55a3818b1af8f51334939b7ad33354f934e8face44179357744acdbd746",
+      "imports": [
+        "../../../config/boot-modes.js",
+        "../../../config/module-resolution.js"
+      ]
+    },
+    {
+      "path": "ui/boot-wizard/steps/browser.js",
+      "owner": "ui",
+      "sha256": "sha256:74783d5f3c76d6c3775135fd80fd9b14a1beecf27b0b7a83f17b81ad6a76742c",
+      "imports": [
+        "../../../config/doppler-local-models.js"
+      ]
+    },
+    {
+      "path": "ui/boot-wizard/steps/choose.js",
+      "owner": "ui",
+      "sha256": "sha256:83d6300b4720ff7ac767b417c36fe55a25bc0f74b45a4df91534de1a5c27e79d",
+      "imports": [
+        "../../../config/boot-modes.js"
+      ]
+    },
+    {
+      "path": "ui/boot-wizard/steps/detect.js",
+      "owner": "ui",
+      "sha256": "sha256:d1bd1cab6e3504d290064484d7b736d51f864c32524d9dea4ca2293774364ab6",
+      "imports": []
+    },
+    {
+      "path": "ui/boot-wizard/steps/direct.js",
+      "owner": "ui",
+      "sha256": "sha256:1b4c2cc6b6d062eac04f4886230860d5a0a18e1228046d404974c771795d2da1",
+      "imports": [
+        "../state.js"
+      ]
+    },
+    {
+      "path": "ui/boot-wizard/steps/goal.js",
+      "owner": "ui",
+      "sha256": "sha256:c4757bf267166ad630fd69c0fa239be362ceb0daa992ed0179a61c430c81c8a2",
+      "imports": [
+        "../../../config/reploid-environments.js",
+        "../../../manifest.js",
+        "../goals.js",
+        "../reploid-inference.js"
+      ]
+    },
+    {
+      "path": "ui/boot-wizard/steps/proxy.js",
+      "owner": "ui",
+      "sha256": "sha256:297e3ac4b91972b6c5db60fe131241154c57566ecc35232cc73af8e9596db402",
+      "imports": [
+        "../state.js",
+        "./direct.js"
+      ]
+    },
+    {
+      "path": "ui/boot-wizard/zero-function.js",
+      "owner": "ui",
+      "sha256": "sha256:4f1822420c815219d7559d721c507a3c2323a9e4c099e230fd02a2fa298fe5e3",
+      "imports": [
+        "../../config/zero-inference.js"
+      ]
+    },
+    {
+      "path": "ui/capsule/index.js",
+      "owner": "ui",
+      "sha256": "sha256:4ac532af99085e4121a149a537c17c31892498264181690671bca748eadab0fe",
+      "imports": [
+        "../../capsule/index.js"
+      ]
+    },
+    {
+      "path": "ui/components/arena-results.js",
+      "owner": "ui",
+      "sha256": "sha256:785fdb54eb1737e31a1160ab4f9504485addff752ad3fd3cee6fbf96f9b57f25",
+      "imports": []
+    },
+    {
+      "path": "ui/components/confirmation-modal.js",
+      "owner": "ui",
+      "sha256": "sha256:8fdb0c67b61c7a1c31aaea27712ab6483b9d5ac3dc38a3198c1710b9a3fe36a8",
+      "imports": []
+    },
+    {
+      "path": "ui/components/diff-viewer-ui.js",
+      "owner": "ui",
+      "sha256": "sha256:931da4219b06110e9c50a29a7022f922bce52477d528f7a19b7d84f0c7ca9bb7",
+      "imports": []
+    },
+    {
+      "path": "ui/components/hitl-widget.js",
+      "owner": "ui",
+      "sha256": "sha256:149eeeb6cf2738a5da56ca865b96d84567d0fd6de9c03d7ffe483ed14c9229f1",
+      "imports": []
+    },
+    {
+      "path": "ui/components/inline-chat.js",
+      "owner": "ui",
+      "sha256": "sha256:0d79640b4676b6c77b65f94e836b87d9b2ad712e0b46ca7ecbb4d995c0c52ade",
+      "imports": []
+    },
+    {
+      "path": "ui/components/toast-notifications.js",
+      "owner": "ui",
+      "sha256": "sha256:becebcaa01690dbcccf0fa1e896f24e1b56090241b21aa3f790ffe44bd50e286",
+      "imports": []
+    },
+    {
+      "path": "ui/dashboard/metrics-dashboard.js",
+      "owner": "ui",
+      "sha256": "sha256:6a061a00ed2b825d140cb7edd8f353240e8b1d1fed67f8833e961bc7b5ed31c4",
+      "imports": []
+    },
+    {
+      "path": "ui/dashboard/ui-manager.js",
+      "owner": "ui",
+      "sha256": "sha256:b4348b041353c41f9fb3c884a64db8d2818de5bba9c52556ee205ec8adb775fa",
+      "imports": []
+    },
+    {
+      "path": "ui/dashboard/vfs-explorer.js",
+      "owner": "ui",
+      "sha256": "sha256:2ed4176c1ea6265b0b58d8bd5b5897cf664264cafbb5b5c91a5696e6d3791d77",
+      "imports": []
+    },
+    {
+      "path": "ui/panels/cognition-panel.js",
+      "owner": "ui",
+      "sha256": "sha256:de6508f0755f40d8828d5273f4fd99afcde82f503b3f5087d2062a5907d33ab3",
+      "imports": []
+    },
+    {
+      "path": "ui/panels/metrics-panel.js",
+      "owner": "ui",
+      "sha256": "sha256:e5c844cbb9e5340d17e185b37f5f08911c3e9a06429ea2c678903ba0fedf68e5",
+      "imports": []
+    },
+    {
+      "path": "ui/pool-home/constants.js",
+      "owner": "ui",
+      "sha256": "sha256:ca521ae431c02e743313ea0a134fc938a0a93418bec9220e63e34414f291ae29",
+      "imports": []
+    },
+    {
+      "path": "ui/pool-home/contribution-state.js",
+      "owner": "ui",
+      "sha256": "sha256:857492caf03672ab69e76f97d071df151604bad99612ae365ad7fe5fb2cf0f04",
+      "imports": []
+    },
+    {
+      "path": "ui/pool-home/controls.js",
+      "owner": "ui",
+      "sha256": "sha256:03580a3d5854710287cbe086231025ee6dbac8768e8ebffe7c94d32a7ff24681",
+      "imports": [
+        "../../pool/adapter-publication.js",
+        "../../pool/adapter-registry.js",
+        "../../pool/doppler-runtime.js",
+        "../../pool/evidence-network.js",
+        "../../pool/identity.js",
+        "../../pool/model-artifacts.js",
+        "../../pool/model-contract.js",
+        "../../pool/participation-profile.js",
+        "../../pool/peer-room.js",
+        "../../pool/policy-router.js",
+        "../../pool/provider-client.js",
+        "../../pool/requester-client.js",
+        "../../pool/rtc-config.js",
+        "../../pool/sdk.js",
+        "../../pool/sequence-workload.js",
+        "./constants.js",
+        "./contribution-state.js",
+        "./research-store.js",
+        "./view.js"
+      ]
+    },
+    {
+      "path": "ui/pool-home/index.js",
+      "owner": "ui",
+      "sha256": "sha256:4001fc1a41eb035308374a179887eab3b8121015aee5d381ca9e5de1c0f93404",
+      "imports": [
+        "../../pool/doppler-runtime.js",
+        "./constants.js",
+        "./contribution-state.js",
+        "./controls.js",
+        "./ledger-store.js",
+        "./research-store.js",
+        "./research-view.js",
+        "./simulation-bind.js",
+        "./view.js"
+      ]
+    },
+    {
+      "path": "ui/pool-home/ledger-store.js",
+      "owner": "ui",
+      "sha256": "sha256:b6d3604976cfb28de125a9fa01e1181dadc9e4ee27db96d91403fcaabbd27891",
+      "imports": []
+    },
+    {
+      "path": "ui/pool-home/network-projection.js",
+      "owner": "ui",
+      "sha256": "sha256:1828eb9a3196cc0edf1cc84e211ab985a589aff7f56c11b00f78a17a909066db",
+      "imports": [
+        "./constants.js"
+      ]
+    },
+    {
+      "path": "ui/pool-home/record-persistence.js",
+      "owner": "ui",
+      "sha256": "sha256:8c98e5b4eb5acd9232bcf9768bb862b0d25d67d021846b75c20957eabce7992b",
+      "imports": [
+        "../../pool/peer-room.js",
+        "./constants.js"
+      ]
+    },
+    {
+      "path": "ui/pool-home/research-store.js",
+      "owner": "ui",
+      "sha256": "sha256:b386da8463ec6f5c661a7906a895c97c8b5e15a00840d629eed7cffb6a118b04",
+      "imports": [
+        "../../pool/evidence-network.js",
+        "../../pool/peer-room.js",
+        "../../pool/sdk.js"
+      ]
+    },
+    {
+      "path": "ui/pool-home/research-view.js",
+      "owner": "ui",
+      "sha256": "sha256:9f450a889fbdbc1138d1b5e0befe7b23612321533fc602713136462af562585e",
+      "imports": [
+        "../../pool/evidence-network.js",
+        "../../pool/identity.js",
+        "./research-store.js"
+      ]
+    },
+    {
+      "path": "ui/pool-home/simulation-batches.js",
+      "owner": "ui",
+      "sha256": "sha256:deede92d3d5dbd7574949f6a8b49e760b1608012668e2d4cdae313aff309af17",
+      "imports": [
+        "./constants.js",
+        "./simulation-core.js",
+        "./simulation-frame-state.js"
+      ]
+    },
+    {
+      "path": "ui/pool-home/simulation-bind.js",
+      "owner": "ui",
+      "sha256": "sha256:86a35b62c5e0b8504930bd09def2ee7e38405b64e68d64a60b098be1fb59275e",
+      "imports": [
+        "./constants.js",
+        "./simulation-batches.js",
+        "./simulation-core.js",
+        "./simulation-renderer.js"
+      ]
+    },
+    {
+      "path": "ui/pool-home/simulation-core.js",
+      "owner": "ui",
+      "sha256": "sha256:123e5a0ad0ec10428bee865d929b6d6b282372c92462666fbaae6c12aed9f0fb",
+      "imports": [
+        "./constants.js",
+        "./simulation-flow-specs.js",
+        "./simulation-flow-transition.js",
+        "./simulation-frame-state.js"
+      ]
+    },
+    {
+      "path": "ui/pool-home/simulation-flow-specs.js",
+      "owner": "ui",
+      "sha256": "sha256:1cddaf0a5fe79c8da48d5ae92e794e7683fd2f9de67e58a359ea73c8a4c0b19f",
+      "imports": [
+        "./constants.js",
+        "./simulation-flow-transition.js"
+      ]
+    },
+    {
+      "path": "ui/pool-home/simulation-flow-transition.js",
+      "owner": "ui",
+      "sha256": "sha256:dd4f17f39c298531879f284056c154265577dbfa55ae39c6c62e5898522fdbe8",
+      "imports": []
+    },
+    {
+      "path": "ui/pool-home/simulation-frame-state.js",
+      "owner": "ui",
+      "sha256": "sha256:2fcef7c417e262c69f756955d5a98959e6ebfe1f8a057e02177d13e7b68dc50a",
+      "imports": [
+        "./constants.js"
+      ]
+    },
+    {
+      "path": "ui/pool-home/simulation-renderer.js",
+      "owner": "ui",
+      "sha256": "sha256:ac748da193c8117253b57b7f8361273db2fe1259b150635e2e7f0303fc8428f6",
+      "imports": []
+    },
+    {
+      "path": "ui/pool-home/view.js",
+      "owner": "ui",
+      "sha256": "sha256:d824cdbc2745ecc73e67ed70e66c9e9a2d914c0ecf8e9a3c71ab32bd523c1aa2",
+      "imports": [
+        "../../pool/model-contract.js",
+        "../../pool/participation-profile.js",
+        "../../pool/peer-control-plane.js",
+        "../../pool/peer-rendezvous.js",
+        "../../pool/peer-room.js",
+        "../../pool/policy-router.js",
+        "../../pool/sdk.js",
+        "./constants.js",
+        "./contribution-state.js",
+        "./ledger-store.js",
+        "./network-projection.js",
+        "./record-persistence.js",
+        "./research-view.js"
+      ]
+    },
+    {
+      "path": "ui/proto.js",
+      "owner": "ui",
+      "sha256": "sha256:ef2999bc76df371546c5dc29a190b1d47c3edc252ddcb3d57634c8ef110df145",
+      "imports": [
+        "./proto/index.js"
+      ]
+    },
+    {
+      "path": "ui/proto/index.js",
+      "owner": "ui",
+      "sha256": "sha256:a8e6f30a8793fa4e452d7a7b58a18179980e57a23cbef24ca106ca1c8cfff14b",
+      "imports": [
+        "../../instance.js",
+        "../components/inline-chat.js",
+        "../panels/cognition-panel.js",
+        "../toast.js",
+        "./optimization.js",
+        "./replay.js",
+        "./telemetry.js",
+        "./utils.js",
+        "./vfs.js",
+        "./workers.js"
+      ]
+    },
+    {
+      "path": "ui/proto/optimization.js",
+      "owner": "ui",
+      "sha256": "sha256:403f6feab6a4bdf5076f044f99bc3ac2d5555ad5a3d5ecb23eac6a20326b751f",
+      "imports": []
+    },
+    {
+      "path": "ui/proto/replay.js",
+      "owner": "ui",
+      "sha256": "sha256:021f16e38f7924bd1a9af493d911dbfc9c6bcee230398e5893d27b84a3717370",
+      "imports": [
+        "./utils.js"
+      ]
+    },
+    {
+      "path": "ui/proto/schemas.js",
+      "owner": "ui",
+      "sha256": "sha256:a281252326478b70d301f49f505fb03404e3fa9978e4ff6cc8deb0f8429aa90c",
+      "imports": []
+    },
+    {
+      "path": "ui/proto/telemetry.js",
+      "owner": "ui",
+      "sha256": "sha256:0dae59dd1df939c1a4620216dc20ffe29f7ecb1de1f053260f62a532f8b2740b",
+      "imports": [
+        "./utils.js"
+      ]
+    },
+    {
+      "path": "ui/proto/template.js",
+      "owner": "ui",
+      "sha256": "sha256:5eb0a93934622804f4b4972837461480e8781ee1130e01483fe3450f1ff6296f",
+      "imports": []
+    },
+    {
+      "path": "ui/proto/utils.js",
+      "owner": "ui",
+      "sha256": "sha256:3f9d2f8392fa97bdceb9dc303d4fb39260ba499802d38519a96d2deb785572f5",
+      "imports": []
+    },
+    {
+      "path": "ui/proto/vfs.js",
+      "owner": "ui",
+      "sha256": "sha256:8d6001fd441b3a4028953dcaa3e4f5c2645fd6c4e73c83099674434ffcc1f42d",
+      "imports": []
+    },
+    {
+      "path": "ui/proto/workers.js",
+      "owner": "ui",
+      "sha256": "sha256:45412d256de654008c72d4302a6263285f6638402fb5c228372d4acd9e833fec",
+      "imports": [
+        "./utils.js"
+      ]
+    },
+    {
+      "path": "ui/reploid-home/index.js",
+      "owner": "ui",
+      "sha256": "sha256:0d0267e6956431c00389ff62e009161639fc8b621edf9d05bad0d8ac133418f9",
+      "imports": [
+        "../../config/reploid-environments.js",
+        "../../instance.js",
+        "../shared/reploid-contract.js"
+      ]
+    },
+    {
+      "path": "ui/shared/reploid-contract.js",
+      "owner": "ui",
+      "sha256": "sha256:cc6455ec72f97bb3b2a208850e3660d61094ce110bb3476da874cfbeca645ce9",
+      "imports": []
+    },
+    {
+      "path": "ui/toast.js",
+      "owner": "ui",
+      "sha256": "sha256:52e2bb48c3a74bd5290ee140eccbe883d3cf03b7267c47a8c0c56610ad828a76",
+      "imports": []
+    },
+    {
+      "path": "ui/UI.js",
+      "owner": "ui",
+      "sha256": "sha256:81a9e8f376264544fc92c3edd76440cafcc63dbcc9d7c3df58d420ab88cba9d0",
+      "imports": [
+        "./proto.js"
+      ]
+    },
+    {
+      "path": "ui/zero-home/index.js",
+      "owner": "ui",
+      "sha256": "sha256:5a97269439834cac78ff2a3a7333301e493f0227226f440792d5e214c55699bf",
+      "imports": [
+        "../../boot-helpers/vfs-bootstrap.js",
+        "../../config/boot-seed.js",
+        "../../config/doppler-local-models.js",
+        "../../config/zero-goals.js",
+        "../../config/zero-inference.js",
+        "../../instance.js",
+        "../../lab/profiles.js"
+      ]
+    },
+    {
+      "path": "ui/zero/index.js",
+      "owner": "ui",
+      "sha256": "sha256:77ee749b66bc4c7a51eeee5e3fbcc113b1dbbc91687565afc8247641befc8933",
+      "imports": [
+        "../../instance.js"
+      ]
+    }
+  ]
+}

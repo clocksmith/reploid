@@ -3,7 +3,7 @@
  */
 
 import { SIGNATURE_DOMAINS } from './inference-receipt.js';
-import { LAUNCH_MODEL, POOLDAY_MODEL_WORKLOADS } from './model-contract.js';
+import { LAUNCH_MODEL, POOLDAY_MODEL_WORKLOADS, exactModelContractKey } from './model-contract.js';
 import {
   agreementFieldForWorkload,
   isSequenceWorkload
@@ -34,6 +34,14 @@ export function receiptMatchesAssignment(receipt = {}, assignment = {}) {
   if ((receipt.model?.backend || LAUNCH_MODEL.backend) !== (assignment.model?.backend || LAUNCH_MODEL.backend)) reasons.push('receipt backend mismatch');
   if ((receipt.model?.workload || POOLDAY_MODEL_WORKLOADS.sequenceEmbedding)
     !== (assignment.model?.workload || POOLDAY_MODEL_WORKLOADS.sequenceEmbedding)) reasons.push('receipt workload mismatch');
+  if (assignment.model?.exactModelContractKey) {
+    if (receipt.model?.exactModelContractKey !== assignment.model.exactModelContractKey) {
+      reasons.push('receipt exact model contract key mismatch');
+    }
+    if (exactModelContractKey(receipt.model || {}) !== assignment.model.exactModelContractKey) {
+      reasons.push('receipt model fields do not match the exact model contract key');
+    }
+  }
   const expectedAdapter = assignment.adapter || assignment.model?.requirements?.adapter || null;
   const actualAdapter = receipt.adapter || null;
   if (!expectedAdapter && actualAdapter) reasons.push('receipt declares an adapter absent from the assignment');

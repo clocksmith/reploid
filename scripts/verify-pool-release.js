@@ -4,6 +4,8 @@ import { spawn } from 'child_process';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
+import { POOL_CONFIG_HASH, POOL_CONFIG_VERSION } from '../server/pool/config.js';
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
@@ -64,7 +66,35 @@ const run = (label, script, scriptArgs = [], env = {}) => runCommand(
   env
 );
 
+const verifyDeployedPoolContract = async () => {
+  const endpoint = new URL('/pool/deployment/check', `${baseUrl}/`);
+  let response;
+  try {
+    response = await fetch(endpoint, { headers: { Accept: 'application/json' } });
+  } catch (error) {
+    throw new Error(`could not read deployed Pool contract: ${error.message}`);
+  }
+  if (!response.ok) {
+    throw new Error(`deployed Pool contract returned ${response.status}`);
+  }
+  let deployed;
+  try {
+    deployed = await response.json();
+  } catch (error) {
+    throw new Error(`deployed Pool contract was not valid JSON: ${error.message}`);
+  }
+  const deployedVersion = deployed.configVersion || deployed.config?.version || null;
+  const deployedHash = deployed.configHash || deployed.config?.hash || null;
+  if (deployedVersion !== POOL_CONFIG_VERSION || deployedHash !== POOL_CONFIG_HASH) {
+    throw new Error(
+      `deployed Pool contract does not match local governed config: expected ${POOL_CONFIG_VERSION} ${POOL_CONFIG_HASH}, received ${deployedVersion || 'missing'} ${deployedHash || 'missing'}`
+    );
+  }
+};
+
 try {
+  await verifyDeployedPoolContract();
+
   await run('deploy-surface drift gate', 'verify-deploy-surface.js', [
     baseUrl,
     ...(isLocal ? ['--allow-local'] : [])

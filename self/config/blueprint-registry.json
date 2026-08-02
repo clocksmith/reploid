@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-08-01T19:40:02.195Z",
+  "generatedAt": "2026-08-02T01:41:48.504Z",
   "features": [
     {
       "id": "0x000003",
@@ -3717,6 +3717,7 @@
         }
       ],
       "files": [
+        "pool/discovery-action-value.js",
         "pool/evidence-network.js",
         "pool/model-evidence-view.js"
       ]
@@ -3789,6 +3790,7 @@
         }
       ],
       "files": [
+        "pool/scientific-evaluation.js",
         "pool/scientific-fitness.js"
       ]
     },
@@ -3803,6 +3805,7 @@
         }
       ],
       "files": [
+        "pool/dna-lane-admission.js",
         "pool/model-promotion.js"
       ]
     }

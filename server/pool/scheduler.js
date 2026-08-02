@@ -5,6 +5,8 @@
 import { hashJson, sha256Hex } from './hash.js';
 import { quorumForRingSize as configuredQuorumForRingSize } from './config.js';
 import {
+  exactModelContractKey,
+  getEnabledPoolModelContract,
   getPoolModelExecutionMode,
   getPoolModelWorkload,
   modelSupportsPoolWorkload,
@@ -42,7 +44,9 @@ const selectModel = (provider, job = {}) => {
   const requestedWorkload = requirements.workload || requirements.workloadType;
   const requestedExecutionMode = requirements.executionMode || requirements.execution;
   if (!requestedModel || !requestedModelHash || !requestedManifestHash) return null;
-  return models.find((model) => {
+  const enabledModel = getEnabledPoolModelContract(requestedModel);
+  if (!enabledModel) return null;
+  const providerModel = models.find((model) => {
     if (model.modelId !== requestedModel) return false;
     if (model.modelHash !== requestedModelHash) return false;
     if (model.manifestHash !== requestedManifestHash) return false;
@@ -52,7 +56,12 @@ const selectModel = (provider, job = {}) => {
     if (requestedExecutionMode && getPoolModelExecutionMode(model, requestedWorkload) !== requestedExecutionMode) return false;
     if (!modelSupportsAdapterRequirement(model, requirements.adapter || null)) return false;
     return true;
-  }) || null;
+  });
+  // An advert proves only that a provider claims compatible capability. The
+  // assignment always carries the catalog contract that policy admitted, so a
+  // provider cannot substitute an altered tokenizer, artifact set, or runtime
+  // contract while preserving the few fields used for capability matching.
+  return providerModel ? enabledModel : null;
 };
 
 const providerAcceptsPolicy = (provider, policyId) => {
@@ -255,16 +264,17 @@ const buildAssignmentInput = ({ job, provider, model, policy, inputHash, sequenc
   auditId: job.auditId || null,
   ring,
   model: {
+    ...model,
     id: model.modelId,
     hash: model.modelHash,
-    manifestHash: model.manifestHash,
-    runtime: model.runtime || 'doppler',
-    backend: model.backend || 'browser-webgpu',
     workload: job.modelRequirements?.workload || getPoolModelWorkload(model),
     executionMode: getPoolModelExecutionMode(
       model,
       job.modelRequirements?.workload || getPoolModelWorkload(model)
     ),
+    exactModelContractKey: exactModelContractKey(model, {
+      workload: job.modelRequirements?.workload || getPoolModelWorkload(model)
+    }),
     requirements: job.modelRequirements || {}
   },
   adapter: job.modelRequirements?.adapter || null,

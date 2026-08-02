@@ -143,10 +143,23 @@ const stringifySnapshot = (snapshot) => JSON.stringify(snapshot, null, 2);
 
 const trackModelArtifactRequests = (page, model) => {
   const requests = [];
+  Object.defineProperty(requests, 'failures', {
+    value: [],
+    enumerable: false
+  });
   page.on('request', (request) => {
     const url = request.url();
     if (url.includes(model.modelId) && /(?:manifest\.json|tokenizer\.json|shard_\d+\.bin)(?:$|[?#])/i.test(url)) {
       requests.push(url);
+    }
+  });
+  page.on('requestfailed', (request) => {
+    const url = request.url();
+    if (url.includes(model.modelId) && /(?:manifest\.json|tokenizer\.json|shard_\d+\.bin)(?:$|[?#])/i.test(url)) {
+      requests.failures.push({
+        url,
+        error: request.failure()?.errorText || 'unknown browser request failure'
+      });
     }
   });
   return requests;
@@ -306,22 +319,29 @@ const waitForActualResult = async ({
   throw new Error(`Timed out waiting for ${resultId}.\n${stringifySnapshot(snapshot)}`);
 };
 
-const waitForProviderListening = async (page) => {
+const waitForProviderListening = async (page, artifactRequests = null) => {
   const toggle = page.locator('#pool-provider-worker-toggle');
   await expect(toggle).toBeVisible();
   await expect(toggle).toHaveAttribute('data-contribution-action', 'start');
   await toggle.click();
   try {
-    await expect.poll(async () => {
-      const snapshot = await readSnapshot(page, 'pool-provider-result');
+    const deadline = Date.now() + ACTUAL_INFERENCE_TIMEOUT_MS;
+    let snapshot = await readSnapshot(page, 'pool-provider-result');
+    while (Date.now() < deadline) {
+      const artifactFailure = artifactRequests?.failures?.[0];
+      if (artifactFailure) {
+        throw new Error(`Model artifact delivery failed: ${artifactFailure.url} (${artifactFailure.error})`);
+      }
+      snapshot = await readSnapshot(page, 'pool-provider-result');
       const parsed = snapshot.parsed || {};
-      if (parsed.status === 'error' || parsed.error) return `error:${parsed.reason || parsed.error}`;
-      if (snapshot.providerState === 'online' && parsed.runner === 'peer_room_listening') return 'ready';
-      return parsed.runner || parsed.status || snapshot.providerState || snapshot.providerStatus || 'waiting';
-    }, {
-      timeout: ACTUAL_INFERENCE_TIMEOUT_MS,
-      intervals: [1000, 2500, 5000]
-    }).toBe('ready');
+      if (parsed.status === 'error' || parsed.error) {
+        throw new Error(parsed.reason || parsed.error || 'provider entered an error state');
+      }
+      if (snapshot.providerState === 'online' && parsed.runner === 'peer_room_listening') return;
+      await page.waitForTimeout(1000);
+      snapshot = await readSnapshot(page, 'pool-provider-result');
+    }
+    throw new Error(`Timed out waiting for provider startup.\n${stringifySnapshot(snapshot)}`);
   } catch (error) {
     const snapshot = await readSnapshot(page, 'pool-provider-result');
     throw new Error(`Actual Doppler provider did not start.\n${stringifySnapshot(snapshot)}\n${error.message}`);
@@ -393,7 +413,7 @@ test.describe('Run and Contribute actual browser inference', () => {
       });
       await expect(providerPage.locator('#pool-provider-model')).toHaveValue(LAUNCH_MODEL.modelId);
       const runPage = await openPoolPage(nodes.requesterContext, baseURL, '/ask', roomId, 'requester');
-      await waitForProviderListening(providerPage);
+      await waitForProviderListening(providerPage, initialArtifactRequests);
       const firstProvider = (await readSnapshot(providerPage, 'pool-provider-result')).parsed;
       expectPinnedArtifactOrigin(initialArtifactRequests, LAUNCH_MODEL);
       expect(firstProvider.runtime?.persistentCache).toMatchObject({
@@ -465,7 +485,7 @@ test.describe('Run and Contribute actual browser inference', () => {
       await providerPage.locator('#pool-provider-model').selectOption(SEQUENCE_MODEL.modelId);
       await expect(providerPage.locator('#pool-provider-model')).toHaveValue(SEQUENCE_MODEL.modelId);
       const requesterPage = await openPoolPage(nodes.requesterContext, baseURL, '/', roomId, 'sequence-requester');
-      await waitForProviderListening(providerPage);
+      await waitForProviderListening(providerPage, artifactRequests);
       expectPinnedArtifactOrigin(artifactRequests, SEQUENCE_MODEL);
       const provider = (await readSnapshot(providerPage, 'pool-provider-result')).parsed;
       await requesterPage.bringToFront();
@@ -522,10 +542,11 @@ test.describe('Run and Contribute actual browser inference', () => {
     await installActualRuntimeConfig(context);
     try {
       const providerPage = await openPoolPage(context, baseURL, '/compute', roomId, 'provider');
+      const artifactRequests = trackModelArtifactRequests(providerPage, LAUNCH_MODEL);
       await expect(providerPage.locator('#pool-provider-model')).toHaveValue(LAUNCH_MODEL.modelId);
       const firstRunPage = await openPoolPage(context, baseURL, '/ask', roomId, 'requester-one');
       const secondRunPage = await openPoolPage(context, baseURL, '/ask', roomId, 'requester-two');
-      await waitForProviderListening(providerPage);
+      await waitForProviderListening(providerPage, artifactRequests);
       const [first, second] = await Promise.all([
         runActualSequence(firstRunPage, PUBLIC_PROTEIN_SEQUENCE),
         runActualSequence(secondRunPage, SECOND_PUBLIC_PROTEIN_SEQUENCE)
@@ -561,8 +582,10 @@ test.describe('Run and Contribute actual browser inference', () => {
     try {
       const firstProviderPage = await openPoolPage(nodes.providerContexts[0], baseURL, '/compute', roomId, 'provider-one');
       const secondProviderPage = await openPoolPage(nodes.providerContexts[1], baseURL, '/compute', roomId, 'provider-two');
-      await waitForProviderListening(firstProviderPage);
-      await waitForProviderListening(secondProviderPage);
+      const firstArtifactRequests = trackModelArtifactRequests(firstProviderPage, LAUNCH_MODEL);
+      const secondArtifactRequests = trackModelArtifactRequests(secondProviderPage, LAUNCH_MODEL);
+      await waitForProviderListening(firstProviderPage, firstArtifactRequests);
+      await waitForProviderListening(secondProviderPage, secondArtifactRequests);
 
       const firstProvider = (await readSnapshot(firstProviderPage, 'pool-provider-result')).parsed;
       const secondProvider = (await readSnapshot(secondProviderPage, 'pool-provider-result')).parsed;

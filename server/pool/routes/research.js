@@ -7,6 +7,7 @@
 
 import {
   researchRecordTargetHashes,
+  validateResearchRecordModelAdmission,
   validateResearchRecordLinks,
   verifyResearchRecord
 } from '../../../self/pool/evidence-network.js';
@@ -32,6 +33,8 @@ export function registerResearchRoutes(router, {
     }
     const verification = await verifyResearchRecord(record);
     if (!verification.ok) return res.status(400).json({ error: 'invalid research record', reasons: verification.reasons });
+    const admission = validateResearchRecordModelAdmission(record);
+    if (!admission.ok) return res.status(409).json({ error: 'unadmitted research model contract', reasons: admission.reasons });
     if (!requireBoundRole(req, res, record.author.role, record.author.roleId)) return null;
     const roomRecords = typeof store.listResearchRecords === 'function'
       ? await store.listResearchRecords({ roomId: record.roomId, limit: 1000 })

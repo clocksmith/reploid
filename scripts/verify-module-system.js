@@ -3,6 +3,7 @@
  * Verifies module system invariants: hydration, blueprints, and genesis levels.
  */
 
+import crypto from 'crypto';
 import { promises as fs } from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -16,6 +17,7 @@ const SELF_DIR = path.join(ROOT, 'self');
 const GENESIS_PATH = path.join(SELF_DIR, 'config', 'genesis-levels.json');
 const MANIFEST_PATH = path.join(SELF_DIR, 'config', 'vfs-manifest.json');
 const BLUEPRINT_REGISTRY_PATH = path.join(SELF_DIR, 'config', 'blueprint-registry.json');
+const MODULE_INVENTORY_PATH = path.join(SELF_DIR, 'config', 'module-inventory.json');
 const BLUEPRINT_DIR = path.join(SELF_DIR, 'blueprints');
 
 async function walkFiles(dir) {
@@ -59,6 +61,8 @@ function parseBlueprintId(filename) {
   return match ? match[1] : null;
 }
 
+const sha256 = (content) => `sha256:${crypto.createHash('sha256').update(content).digest('hex')}`;
+
 async function main() {
   const errors = [];
 
@@ -88,6 +92,8 @@ async function main() {
 
   const registry = JSON.parse(await fs.readFile(BLUEPRINT_REGISTRY_PATH, 'utf8'));
   const features = Array.isArray(registry.features) ? registry.features : [];
+  const inventory = JSON.parse(await fs.readFile(MODULE_INVENTORY_PATH, 'utf8'));
+  const inventoryModules = Array.isArray(inventory.modules) ? inventory.modules : [];
 
   const fileCoverage = new Map();
 
@@ -123,9 +129,32 @@ async function main() {
     }
   }
 
+  const inventoryCoverage = new Map();
+  for (const entry of inventoryModules) {
+    const file = entry?.path;
+    if (!jsSet.has(file)) {
+      errors.push(`Module inventory references unknown JS file: ${file || 'missing'}`);
+      continue;
+    }
+    if (inventoryCoverage.has(file)) {
+      errors.push(`Module inventory lists file multiple times: ${file}`);
+      continue;
+    }
+    const content = await fs.readFile(path.join(SELF_DIR, toBrowserSourcePath(file)), 'utf8');
+    if (typeof entry.owner !== 'string' || !entry.owner) {
+      errors.push(`Module inventory owner is missing: ${file}`);
+    }
+    if (!Array.isArray(entry.imports)) {
+      errors.push(`Module inventory imports are invalid: ${file}`);
+    }
+    if (entry.sha256 !== sha256(content)) {
+      errors.push(`Module inventory hash is stale: ${file}`);
+    }
+    inventoryCoverage.set(file, entry);
+  }
   for (const file of jsSet) {
-    if (!fileCoverage.has(file)) {
-      errors.push(`Blueprint registry missing JS file: ${file}`);
+    if (!inventoryCoverage.has(file)) {
+      errors.push(`Module inventory missing JS file: ${file}`);
     }
   }
 

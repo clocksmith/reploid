@@ -68,7 +68,8 @@ existing.
 - [x] Discovery work remains proposed until separately approved
 - [x] Evidence rewards require independent acceptance and durability
 - [x] Coordinator publication is authenticated and public discovery is read-only
-- [ ] Action-value estimates bind replayable methods, inputs, and cost assumptions
+- [x] Advisory next-action ranking binds its heuristic policy, version, input records, and separate scientific-cost components without allocating work or claiming calibration
+- [ ] Calibrated action-value estimates bind replayable methods, inputs, cost assumptions, and frozen evaluation evidence
 - [ ] Candidate actions compare uncertainty reduction against declared scientific cost
 - [ ] Replication and closure use predeclared independent evidence criteria
 - [ ] Scientific-policy promotion measures prospective performance against a frozen baseline

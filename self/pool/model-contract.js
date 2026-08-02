@@ -59,6 +59,12 @@ const UNSUPPORTED_MODEL_SPLIT_FIELDS = Object.freeze([
   'attentionShardPlan'
 ]);
 
+const stableContractValue = (value) => {
+  if (Array.isArray(value)) return value.map(stableContractValue);
+  if (!value || typeof value !== 'object') return value;
+  return Object.fromEntries(Object.keys(value).sort().map((key) => [key, stableContractValue(value[key])]))
+};
+
 export function listPoolModels({ enabledOnly = false, workload = null, alphabet = null } = {}) {
   const source = enabledOnly ? ENABLED_MODEL_CATALOG : MODEL_CATALOG.filter(isBiologicalSequencePoolModel);
   return source.filter((model) => (
@@ -73,6 +79,29 @@ export function getPoolModelContract(modelId = LAUNCH_MODEL.modelId) {
 
 export function getEnabledPoolModelContract(modelId = LAUNCH_MODEL.modelId) {
   return ENABLED_MODEL_CATALOG.find((model) => model.modelId === modelId) || null;
+}
+
+/**
+ * Admission check for evidence that claims to come from a selectable Poolday
+ * model. A self-consistent contract is not enough: its complete exact key must
+ * be the key of a currently enabled catalog entry.
+ */
+export function validateEnabledPoolModelContract(model = {}) {
+  const modelId = model.modelId || model.id || '';
+  const enabled = getEnabledPoolModelContract(modelId);
+  const reasons = [];
+  if (!enabled) {
+    reasons.push('model contract is not a currently enabled Poolday model');
+  } else if (exactModelContractKey(model) !== exactModelContractKey(enabled)) {
+    reasons.push('model contract does not exactly match the enabled Poolday catalog contract');
+  }
+  return {
+    ok: reasons.length === 0,
+    reasons,
+    modelId,
+    enabledModelContractKey: enabled ? exactModelContractKey(enabled) : null,
+    observedModelContractKey: exactModelContractKey(model)
+  };
 }
 
 export function getPoolModelWorkload(model = {}) {
@@ -99,22 +128,26 @@ export function exactModelContractKey(model = {}, {
   dimensions = model.embeddingDimensions || model.dimensions || model.requirements?.embeddingDimensions || 0
 } = {}) {
   const identity = model.artifactIdentity || model.requirements?.artifactIdentity || {};
-  return [
-    model.modelId || model.id || '',
-    model.modelHash || model.hash || '',
-    model.manifestHash || '',
-    model.tokenizerHash || identity.tokenizerHash || '',
-    identity.sourceRevision || '',
-    identity.conversionConfigDigest || '',
-    identity.weightPackHash || '',
-    identity.shardSetHash || '',
-    model.runtime || '',
-    model.backend || '',
-    workload || '',
-    getPoolModelExecutionMode(model, workload) || '',
-    model.sequence?.alphabet || model.requirements?.sequence?.alphabet || '',
-    Number(dimensions || 0)
-  ].join('|');
+  return JSON.stringify(stableContractValue({
+    modelId: model.modelId || model.id || '',
+    modelHash: model.modelHash || model.hash || '',
+    manifestHash: model.manifestHash || '',
+    tokenizerHash: model.tokenizerHash || identity.tokenizerHash || '',
+    artifactIdentity: identity,
+    runtime: model.runtime || '',
+    backend: model.backend || '',
+    workload: workload || '',
+    executionMode: getPoolModelExecutionMode(model, workload) || '',
+    dimensions: Number(dimensions || 0),
+    contextLength: Number(model.contextLength || model.requirements?.contextLength || 0),
+    quantization: model.quantization || model.dtype || '',
+    sequence: model.sequence || model.requirements?.sequence || {},
+    runtimeCompatibility: model.runtimeCompatibility || model.requirements?.runtimeCompatibility || {},
+    runtimeContract: model.runtimeContract || model.requirements?.runtimeContract || {},
+    outputs: model.outputs || model.requirements?.outputs || {},
+    license: model.license || model.requirements?.license || {},
+    claimBoundary: model.admission?.claimBoundary || model.requirements?.admission?.claimBoundary || ''
+  }));
 }
 
 export function getPoolModelExecutionMode(model = {}, workload = getPoolModelWorkload(model)) {
@@ -215,21 +248,11 @@ export function buildLaunchModelRequirements(overrides = {}) {
   const base = getEnabledPoolModelContract(overrides.modelId) || LAUNCH_MODEL;
   const workload = overrides.workload || overrides.workloadType || getPoolModelWorkload(base);
   return {
-    modelId: base.modelId,
-    modelHash: base.modelHash,
-    manifestHash: base.manifestHash,
-    tokenizerHash: base.tokenizerHash || null,
-    runtime: base.runtime,
-    backend: base.backend,
+    // Requests carry the entire frozen contract. A checkpoint tuple is not
+    // sufficient to route, compare, sign, or later reproduce an execution.
+    ...base,
     workload,
     executionMode: getPoolModelExecutionMode(base, workload),
-    contextLength: base.contextLength || null,
-    embeddingDimensions: base.embeddingDimensions || null,
-    quantization: base.quantization || null,
-    artifactIdentity: base.artifactIdentity || null,
-    sequence: base.sequence || null,
-    runtimeContract: base.runtimeContract || null,
-    license: base.license || null,
     ...overrides
   };
 }
@@ -244,12 +267,7 @@ export function buildLaunchProviderModel(overrides = {}) {
 
 export function isLaunchModelRequirement(requirements = {}) {
   const model = getEnabledPoolModelContract(requirements.modelId);
-  return !!model
-    && requirements.modelHash === model.modelHash
-    && requirements.manifestHash === model.manifestHash
-    && requirements.tokenizerHash === model.tokenizerHash
-    && requirements.runtime === model.runtime
-    && requirements.backend === model.backend;
+  return !!model && exactModelContractKey(requirements) === exactModelContractKey(model);
 }
 
 const validateEnabledModelRequirement = (requirements = {}, {

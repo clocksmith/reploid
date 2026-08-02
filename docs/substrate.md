@@ -174,7 +174,11 @@ Set `CORS_ORIGINS` environment variable or add to config:
 
 ## Blueprints
 
-The `self/blueprints/` directory (VFS path `/blueprints/`) contains 216+ architectural blueprints organized into 7 domains:
+The `self/blueprints/` directory (VFS path `/blueprints/`) contains maintained
+architectural decisions plus legacy generated compatibility stubs. The generated
+stubs are not architecture specifications. `self/config/module-inventory.json`
+is the authoritative generated inventory for source paths, ownership, imports,
+and hashes. Maintained blueprints are organized into these seven domains:
 
 1. **Core Infrastructure** - Bootstrapping, DI, configuration
 2. **State & Memory** - VFS, persistence, context management

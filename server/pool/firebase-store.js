@@ -6,8 +6,10 @@ import crypto from 'crypto';
 import poolStore from './store.js';
 import { assertPoolStoreContract } from './store-contract.js';
 import {
+  buildAcceptanceClaimPatch,
+  buildAssignmentClaimPatch,
+  buildAssignmentStartPatch,
   buildExpiredAssignmentJobPatch as buildSharedExpiredAssignmentJobPatch,
-  canClaimJobForAssignment as canClaimSharedJobForAssignment,
   EXPIRABLE_ASSIGNMENT_STATUSES
 } from './coordinator-transitions.js';
 import {
@@ -229,11 +231,11 @@ export function createFirestorePoolStore({ firestore, collectionPrefix = '' } = 
       const jobRef = doc(COLLECTIONS.jobs, jobId);
       const claim = async (snapshot, writer = null) => {
         const job = snapshot.exists ? snapshot.data() : null;
-        if (!job || !canClaimSharedJobForAssignment(job)) return null;
+        const patch = buildAssignmentClaimPatch(job);
+        if (!patch) return null;
         const next = {
           ...job,
-          status: 'assignment_processing',
-          assignmentAttempts: Number(job.assignmentAttempts || 0) + 1,
+          ...patch,
           updatedAt: nowIso()
         };
         if (writer) writer.set(jobRef, stripUndefined(next), { merge: true });
@@ -255,13 +257,11 @@ export function createFirestorePoolStore({ firestore, collectionPrefix = '' } = 
       const jobRef = doc(COLLECTIONS.jobs, jobId);
       const claim = async (snapshot, writer = null) => {
         const job = snapshot.exists ? snapshot.data() : null;
-        if (!job) return null;
-        if (job.status === 'accepted' || job.status === 'acceptance_processing' || job.status === 'rejected_by_requester') {
-          return null;
-        }
+        const patch = buildAcceptanceClaimPatch(job);
+        if (!patch) return null;
         const next = {
           ...job,
-          status: 'acceptance_processing',
+          ...patch,
           updatedAt: nowIso()
         };
         if (writer) writer.set(jobRef, stripUndefined(next), { merge: true });
@@ -308,19 +308,17 @@ export function createFirestorePoolStore({ firestore, collectionPrefix = '' } = 
       const snapshot = await collection(COLLECTIONS.assignments)
         .where('providerId', '==', providerId)
         .where('status', '==', 'assigned')
+        .orderBy('createdAt', 'asc')
+        .orderBy('assignmentId', 'asc')
         .limit(1)
         .get();
       if (snapshot.empty) return null;
       const assignmentRef = snapshot.docs[0].ref;
       const claimAssignment = async (snapshotToClaim) => {
         const assignment = snapshotToClaim.exists ? snapshotToClaim.data() : null;
-        if (!assignment || assignment.status !== 'assigned') return null;
-        const next = {
-          ...assignment,
-          status: 'running',
-          startedAt: assignment.startedAt || nowIso(),
-          updatedAt: nowIso()
-        };
+        const patch = buildAssignmentStartPatch(assignment, nowIso());
+        if (!patch) return null;
+        const next = { ...assignment, ...patch, updatedAt: nowIso() };
         return next;
       };
       if (typeof firestore.runTransaction === 'function') {
@@ -341,6 +339,8 @@ export function createFirestorePoolStore({ firestore, collectionPrefix = '' } = 
       const snapshot = await collection(COLLECTIONS.assignments)
         .where('providerId', '==', providerId)
         .where('status', '==', 'assigned')
+        .orderBy('createdAt', 'asc')
+        .orderBy('assignmentId', 'asc')
         .limit(1)
         .get();
       return snapshot.empty ? null : snapshot.docs[0].data();
@@ -670,9 +670,21 @@ export function createFirestorePoolStore({ firestore, collectionPrefix = '' } = 
     },
     async saveResearchRecord(record = {}) {
       if (!record.recordHash) throw new Error('research recordHash is required');
-      const existing = await readDoc(COLLECTIONS.researchRecords, record.recordHash);
-      if (existing) return existing;
-      return writeDoc(COLLECTIONS.researchRecords, record.recordHash, record, { merge: false });
+      // Research records are immutable evidence. A read followed by a plain
+      // set could overwrite the first accepted record when concurrent browser
+      // publications race on the same content address. Firestore retries this
+      // transaction against the current document before committing its write.
+      if (typeof firestore.runTransaction !== 'function') {
+        throw new Error('Firestore transactions are required for immutable research-record publication');
+      }
+      const recordRef = doc(COLLECTIONS.researchRecords, record.recordHash);
+      return firestore.runTransaction(async (transaction) => {
+        const existing = await transaction.get(recordRef);
+        if (existing.exists) return existing.data();
+        const saved = stripUndefined(record);
+        transaction.set(recordRef, saved, { merge: false });
+        return saved;
+      });
     },
     async getResearchRecord(recordHash) {
       return readDoc(COLLECTIONS.researchRecords, recordHash);

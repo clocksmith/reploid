@@ -16,8 +16,9 @@ import {
   getMaxPublicSequenceLength,
   normalizeSequenceInput
 } from './sequence-workload.js';
-import { exactModelContractKey } from './model-contract.js';
+import { exactModelContractKey, validateEnabledPoolModelContract } from './model-contract.js';
 import { buildExactModelEvidenceView } from './model-evidence-view.js';
+import { rankDiscoveryActions } from './discovery-action-value.js';
 import {
   hashSequenceFloat32Values,
   validateSequenceOutputIntegrity
@@ -178,9 +179,12 @@ const normalizeModelContract = (model = {}) => {
     quantization: compactText(model.quantization || model.requirements?.quantization, 80) || null,
     contextLength: Number(model.contextLength || model.requirements?.contextLength || 0) || null,
     sequence: sequence ? clone(sequence) : null,
+    outputs: clone(model.outputs || model.requirements?.outputs || null),
+    runtimeCompatibility: clone(model.runtimeCompatibility || model.requirements?.runtimeCompatibility || null),
     runtimeContract: clone(model.runtimeContract || model.requirements?.runtimeContract || null),
     artifactIdentity: clone(model.artifactIdentity || model.requirements?.artifactIdentity || null),
-    license: clone(model.license || model.requirements?.license || null)
+    license: clone(model.license || model.requirements?.license || null),
+    admission: clone(model.admission || model.requirements?.admission || null)
   };
   if (!contract.id || !contract.hash || !contract.manifestHash || !contract.runtime || !contract.workload) {
     throw new TypeError('exact model id, hash, manifest hash, runtime, and workload are required');
@@ -474,6 +478,9 @@ const normalizePublishedSequenceEvidence = async ({
   if (evidence.sequenceHash !== submission.sequence?.hash) {
     throw new TypeError('sequence evidence does not match the submitted sequence');
   }
+  if (evidence.sequenceLength !== submission.sequence?.length) {
+    throw new TypeError('sequence evidence length does not match the submitted sequence');
+  }
   if (evidence.alphabet !== submission.sequence?.alphabet) {
     throw new TypeError('sequence evidence alphabet does not match the submitted sequence');
   }
@@ -504,11 +511,16 @@ export async function createSignedResearchResult({
   const receiptHash = receiptRecord?.receiptHash || await hashJson(receipt);
   if (!SHA256_PATTERN.test(String(receiptHash || ''))) throw new TypeError('accepted receipt hash is required');
   const accepted = receiptRecord?.requesterAcceptance || receipt.requesterAcceptance || null;
-  const verified = receiptRecord?.verifierDecision?.accepted !== false;
-  if (!verified) throw new TypeError('rejected compute receipts cannot become research results');
+  const verified = receiptRecord?.verifierDecision?.accepted === true;
+  if (!verified) throw new TypeError('an explicitly accepted verifier decision is required for a research result');
   const vector = Array.isArray(embedding) ? embedding.map(Number) : null;
   if (vector && (!submission.consent.publishEmbedding || vector.length === 0 || vector.length > MAX_EMBEDDING_DIMENSIONS || vector.some((value) => !Number.isFinite(value)))) {
     throw new TypeError('embedding publication is not consented or is invalid');
+  }
+  const publishedVectorHash = vector ? await hashSequenceFloat32Values(vector) : null;
+  const receiptVectorHash = receipt.vectorHash || receipt.sequence?.vectorHash || receiptRecord?.vectorHash || null;
+  if (vector && receiptVectorHash && receiptVectorHash !== publishedVectorHash) {
+    throw new TypeError('published embedding does not match the receipt vector commitment');
   }
   const resultModelContract = normalizeModelContract(declaredModelContract || receipt.model || submission.modelContract);
   const receiptModelContract = normalizeModelContract(receipt.model || resultModelContract);
@@ -517,6 +529,9 @@ export async function createSignedResearchResult({
     if (receiptModelContract[field] !== resultModelContract[field]) {
       throw new TypeError(`compute receipt ${field} does not match the result exact model contract`);
     }
+  }
+  if (exactModelContractKey(receiptModelContract) !== exactModelContractKey(resultModelContract)) {
+    throw new TypeError('compute receipt model contract does not exactly match the result exact model contract');
   }
   if (resultModelContract.sequence?.alphabet
     && resultModelContract.sequence.alphabet !== submission.sequence?.alphabet) {
@@ -540,12 +555,16 @@ export async function createSignedResearchResult({
     author,
     submissionHash: submission.recordHash,
     sequenceHash: submission.sequence.hash,
+    sequenceLength: submission.sequence.length,
     modelContract,
     compute: {
       receiptHash,
+      verifierDecision: { accepted: true },
       submissionModelContractKey: exactModelContractKey(submission.modelContract),
       receiptModelContractKey: exactModelContractKey(receiptModelContract),
-      receiptHashes: unique(agreement?.receiptHashes || [receiptHash]),
+      // The primary receipt is the immutable execution anchor for this result.
+      // Agreement receipts may add reproductions but cannot replace it.
+      receiptHashes: unique([receiptHash, ...(agreement?.receiptHashes || [])]),
       requesterAcceptanceHash: accepted?.acceptanceHash || accepted?.receiptHash || null,
       agreementHash: agreement ? await hashJson(agreement) : null,
       agreement: clone(agreement),
@@ -556,12 +575,12 @@ export async function createSignedResearchResult({
       runtimeProfileHash: receipt.verification?.runtimeProfileHash || receipt.runtime?.runtimeProfileHash || null,
       outputKind: receipt.outputKind || null,
       sequenceResultHash: receipt.sequenceResultHash || receiptRecord?.sequenceResultHash || null,
-      vectorHash: receipt.vectorHash || receipt.sequence?.vectorHash || receiptRecord?.vectorHash || null
+      vectorHash: receiptVectorHash
     },
     embedding: vector ? {
       dimensions: vector.length,
       values: vector,
-      vectorHash: receipt.vectorHash || await hashJson(vector)
+      vectorHash: publishedVectorHash
     } : null,
     sequenceEvidence
   };
@@ -1226,6 +1245,12 @@ const verifyPublishedSequenceEvidence = async (evidence, record, reasons) => {
   if (!Number.isInteger(evidence.sequenceLength) || evidence.sequenceLength <= 0) {
     reasons.push('sequence evidence length is invalid');
   }
+  if (evidence.sequenceLength !== record.sequenceLength) {
+    reasons.push('sequence evidence length does not match the result sequence');
+  }
+  if (evidence.sequenceLength > Number(record.modelContract?.sequence?.maxSequenceLength || 0)) {
+    reasons.push('sequence evidence length exceeds the exact model contract limit');
+  }
   if (!Number.isInteger(evidence.embeddingDimensions) || evidence.embeddingDimensions <= 0
     || (record.modelContract?.dimensions && evidence.embeddingDimensions !== record.modelContract.dimensions)) {
     reasons.push('sequence evidence dimensions do not match the exact model contract');
@@ -1244,6 +1269,20 @@ const verifyPublishedSequenceEvidence = async (evidence, record, reasons) => {
   if (evidence.coordinateSystem === 'zero_based_sequence_index'
     && evidence.sequenceIndices?.length !== evidence.tokenIndices?.length) {
     reasons.push('sequence evidence residue and model-token indices do not align');
+  }
+  if (evidence.coordinateSystem === 'model_token_index' && evidence.sequenceIndices?.length !== 0) {
+    reasons.push('model-token sequence evidence must not claim residue indices');
+  }
+  const coordinatePolicy = record.modelContract?.sequence?.coordinates || {};
+  if (evidence.coordinateSystem === 'zero_based_sequence_index'
+    && coordinatePolicy.mapping === 'one_token_per_sequence_symbol') {
+    const prefixTokens = Number(coordinatePolicy.prefixTokens || 0);
+    for (const [index, sequenceIndex] of evidence.sequenceIndices.entries()) {
+      if (evidence.tokenIndices?.[index] !== sequenceIndex + prefixTokens) {
+        reasons.push('sequence evidence token coordinates do not match the exact model contract');
+        break;
+      }
+    }
   }
   const selectedResiduePositions = new Set((evidence.sequenceIndices || []).map((sequenceIndex, index) => (
     `${sequenceIndex}:${evidence.tokenIndices?.[index]}`
@@ -1267,6 +1306,9 @@ const verifyPublishedSequenceEvidence = async (evidence, record, reasons) => {
     || evidence.residueEmbeddings.length > MAX_SEQUENCE_POSITIONS) {
     reasons.push('bounded residue embeddings are invalid');
   } else {
+    if (evidence.coordinateSystem === 'model_token_index' && evidence.residueEmbeddings.length > 0) {
+      reasons.push('model-token sequence evidence must not publish residue embeddings');
+    }
     for (const entry of evidence.residueEmbeddings) {
       if (entry.coordinateSystem !== evidence.coordinateSystem) reasons.push('bounded residue embedding coordinate system is invalid');
       if (!Number.isInteger(entry.sequenceIndex) || entry.sequenceIndex < 0 || entry.sequenceIndex >= evidence.sequenceLength) {
@@ -1373,9 +1415,13 @@ export async function verifyResearchRecord(record = {}) {
     if (!['requester', 'researcher'].includes(record.author?.role)) reasons.push('result author role is invalid');
     if (!SHA256_PATTERN.test(String(record.submissionHash || ''))) reasons.push('result submissionHash is invalid');
     if (!SHA256_PATTERN.test(String(record.sequenceHash || ''))) reasons.push('result sequenceHash is invalid');
+    if (!Number.isInteger(record.sequenceLength) || record.sequenceLength <= 0) reasons.push('result sequenceLength is invalid');
     if (!SHA256_PATTERN.test(String(record.compute?.receiptHash || ''))) reasons.push('result receiptHash is invalid');
+    if (record.compute?.verifierDecision?.accepted !== true) reasons.push('result requires an explicitly accepted verifier decision');
     if (!Array.isArray(record.compute?.receiptHashes) || record.compute.receiptHashes.some((hash) => !SHA256_PATTERN.test(String(hash || '')))) {
       reasons.push('result receiptHashes are invalid');
+    } else if (!record.compute.receiptHashes.includes(record.compute.receiptHash)) {
+      reasons.push('result receiptHashes must include the primary receiptHash');
     }
     try {
       normalizeModelContract(record.modelContract);
@@ -1391,6 +1437,12 @@ export async function verifyResearchRecord(record = {}) {
         reasons.push('published embedding is invalid');
       }
       if (!SHA256_PATTERN.test(String(record.embedding.vectorHash || ''))) reasons.push('embedding vectorHash is invalid');
+      else if (Array.isArray(values) && await hashSequenceFloat32Values(values) !== record.embedding.vectorHash) {
+        reasons.push('published embedding vectorHash does not match its float32 values');
+      }
+      if (record.compute?.vectorHash && record.compute.vectorHash !== record.embedding.vectorHash) {
+        reasons.push('published embedding vectorHash does not match the receipt vector commitment');
+      }
       if (record.modelContract?.dimensions && record.modelContract.dimensions !== record.embedding.dimensions) reasons.push('embedding dimensions do not match the exact model contract');
     }
     if (record.sequenceEvidence) await verifyPublishedSequenceEvidence(record.sequenceEvidence, record, reasons);
@@ -1572,6 +1624,19 @@ export async function verifyResearchRecord(record = {}) {
   return { ok: reasons.length === 0, reasons, recordHash: record.recordHash || null };
 }
 
+/**
+ * Verify the publication boundary separately from signature and link checks.
+ * Historical fixtures may be structurally valid with an unavailable contract,
+ * but a new Poolday submission or model result may cite only an enabled exact
+ * catalog contract.
+ */
+export function validateResearchRecordModelAdmission(record = {}) {
+  if (![RESEARCH_RECORD_KINDS.submission, RESEARCH_RECORD_KINDS.result].includes(record?.kind)) {
+    return { ok: true, reasons: [] };
+  }
+  return validateEnabledPoolModelContract(record.modelContract);
+}
+
 export function researchRecordTargetHashes(record = {}) {
   const targets = [];
   if (record.kind === RESEARCH_RECORD_KINDS.result) targets.push(record.submissionHash);
@@ -1680,6 +1745,7 @@ export function validateResearchRecordLinks(record = {}, records = []) {
     const submission = target(record.submissionHash);
     if (submission && submission.kind !== RESEARCH_RECORD_KINDS.submission) reasons.push('research result must target a submission');
     if (submission && record.sequenceHash !== submission.sequence?.hash) reasons.push('research result sequence does not match its submission');
+    if (submission && record.sequenceLength !== submission.sequence?.length) reasons.push('research result sequence length does not match its submission');
     if (submission && record.compute?.submissionModelContractKey !== exactModelContractKey(submission.modelContract)) {
       reasons.push('research result submission model contract identity does not match its submission');
     }
@@ -1689,6 +1755,9 @@ export function validateResearchRecordLinks(record = {}, records = []) {
     if (submission && record.modelContract?.sequence?.alphabet
       && record.modelContract.sequence.alphabet !== submission.sequence?.alphabet) {
       reasons.push('research result model contract alphabet does not match its submission');
+    }
+    if (record.sequenceEvidence && record.sequenceEvidence.sequenceLength !== submission?.sequence?.length) {
+      reasons.push('research result sequence evidence length does not match its submission');
     }
     if (record.embedding && submission?.consent?.publishEmbedding !== true) reasons.push('research submission did not consent to embedding publication');
     if ((record.sequenceEvidence?.residueEmbeddings?.length > 0
@@ -1950,7 +2019,10 @@ export function buildEvidenceGraph(records = []) {
     }
     const contract = record.modelContract;
     if (contract?.hash && contract?.manifestHash) {
-      const modelNodeId = `model:${contract.hash}:${contract.manifestHash}`;
+      // A graph node represents an exact model contract, not a broad checkpoint
+      // family. Two tokenizer or execution contracts can share weights and a
+      // manifest while still producing incomparable representations.
+      const modelNodeId = `model:${exactModelContractKey(contract)}`;
       addNode({
         id: modelNodeId,
         kind: 'model_artifact',
@@ -2040,8 +2112,10 @@ export function buildEvidenceGraph(records = []) {
 
 const modelCompatibilityKey = (record = {}) => {
   const model = record.modelContract || {};
-  const dimensions = record.embedding?.dimensions || model.dimensions || 0;
-  return [model.id, model.hash, model.manifestHash, model.runtime, model.backend, model.workload, model.executionMode, dimensions].join('|');
+  // Vectors have meaning only within the complete model contract. A model id,
+  // manifest, and dimension match is insufficient when tokenizer, artifacts,
+  // execution graph, runtime policy, license, or claim boundary differs.
+  return exactModelContractKey(model);
 };
 
 export const embeddingsAreCompatible = (left, right) => Boolean(
@@ -2234,6 +2308,10 @@ export function proposeDiscoveryTasks(records = []) {
   });
 }
 
+export function rankProposedDiscoveryActions(records = []) {
+  return rankDiscoveryActions(records, proposeDiscoveryTasks(records));
+}
+
 export function projectResearchRewards(records = []) {
   const active = activeResearchRecords(records);
   const claims = active.filter((record) => record.kind === RESEARCH_RECORD_KINDS.claim);
@@ -2321,6 +2399,7 @@ export default {
   createSignedCohortEvaluation,
   createSignedResearchRevocation,
   verifyResearchRecord,
+  validateResearchRecordModelAdmission,
   validateResearchRecordLinks,
   researchRecordTargetHashes,
   activeResearchRecords,
@@ -2334,5 +2413,6 @@ export default {
   findSimilarSequences,
   clusterCompatibleResults,
   proposeDiscoveryTasks,
+  rankProposedDiscoveryActions,
   projectResearchRewards
 };

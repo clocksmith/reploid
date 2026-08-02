@@ -4,7 +4,10 @@
 import { defineConfig, devices } from '@playwright/test';
 
 const targetBaseUrl = process.env.REPLOID_E2E_BASE_URL || 'http://localhost:8000';
-const useLocalServer = new URL(targetBaseUrl).hostname === 'localhost';
+const targetUrl = new URL(targetBaseUrl);
+const useLocalServer = targetUrl.hostname === 'localhost';
+const localServerPort = targetUrl.port || '8000';
+const skipLocalServer = process.env.REPLOID_E2E_SKIP_LOCAL_SERVER === '1';
 const chromiumChannel = String(process.env.REPLOID_E2E_CHROMIUM_CHANNEL || '').trim();
 const chromiumGpuArgs = process.platform === 'darwin'
   ? ['--enable-unsafe-webgpu']
@@ -62,12 +65,13 @@ export default defineConfig({
   ],
 
   // Local dev server
-  webServer: useLocalServer ? [
+  webServer: useLocalServer && !skipLocalServer ? [
     {
       command: 'npm start',
-      url: 'http://localhost:8000',
+      url: targetBaseUrl,
       env: {
         ...process.env,
+        PORT: localServerPort,
         REPLOID_SKIP_CLOUD_ACCESS_BUILD: 'true'
       },
       reuseExistingServer: !process.env.CI,

@@ -5,9 +5,12 @@
 import crypto from 'crypto';
 import { assertPoolStoreContract } from './store-contract.js';
 import {
+  buildAcceptanceClaimPatch,
+  buildAssignmentClaimPatch,
+  buildAssignmentStartPatch,
   buildExpiredAssignmentJobPatch as buildSharedExpiredAssignmentJobPatch,
-  canClaimJobForAssignment as canClaimSharedJobForAssignment,
-  EXPIRABLE_ASSIGNMENT_STATUSES
+  EXPIRABLE_ASSIGNMENT_STATUSES,
+  selectNextAssignmentForProvider
 } from './coordinator-transitions.js';
 import {
   createReputationSeedEvent,
@@ -168,20 +171,16 @@ export function createPoolStore() {
     },
     claimJobForAssignment(jobId) {
       const job = jobs.get(jobId);
-      if (!job || !canClaimSharedJobForAssignment(job)) return null;
-      job.status = 'assignment_processing';
-      job.assignmentAttempts = Number(job.assignmentAttempts || 0) + 1;
-      job.updatedAt = nowIso();
+      const patch = buildAssignmentClaimPatch(job);
+      if (!patch) return null;
+      Object.assign(job, patch, { updatedAt: nowIso() });
       return job;
     },
     claimJobForAcceptance(jobId) {
       const job = jobs.get(jobId);
-      if (!job) return null;
-      if (job.status === 'accepted' || job.status === 'acceptance_processing' || job.status === 'rejected_by_requester') {
-        return null;
-      }
-      job.status = 'acceptance_processing';
-      job.updatedAt = nowIso();
+      const patch = buildAcceptanceClaimPatch(job);
+      if (!patch) return null;
+      Object.assign(job, patch, { updatedAt: nowIso() });
       return job;
     },
     getJob(jobId) {
@@ -212,19 +211,15 @@ export function createPoolStore() {
       return assignments.get(assignmentId) || null;
     },
     nextAssignmentForProvider(providerId) {
-      const assignment = Array.from(assignments.values()).find((entry) => (
-        entry.providerId === providerId && entry.status === 'assigned'
-      )) || null;
-      if (!assignment) return null;
-      assignment.status = 'running';
-      assignment.startedAt = assignment.startedAt || nowIso();
+      const assignment = selectNextAssignmentForProvider(Array.from(assignments.values()), providerId);
+      const patch = buildAssignmentStartPatch(assignment, nowIso());
+      if (!patch) return null;
+      Object.assign(assignment, patch);
       assignment.updatedAt = nowIso();
       return assignment;
     },
     nextPendingAssignmentForProvider(providerId) {
-      const assignment = Array.from(assignments.values()).find((assignment) => (
-        assignment.providerId === providerId && assignment.status === 'assigned'
-      ));
+      const assignment = selectNextAssignmentForProvider(Array.from(assignments.values()), providerId);
       return assignment ? { ...assignment } : null;
     },
     setProviderStatus(providerId, status) {

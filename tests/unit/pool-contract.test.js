@@ -23,6 +23,7 @@ import {
   getEnabledPoolModelContract as getBrowserEnabledPoolModelContract,
   getPoolModelContract,
   listPoolModels,
+  validateEnabledPoolModelContract,
   validateLaunchModelRequirement,
   validateModelRuntimeCapabilities
 } from '../../self/pool/model-contract.js';
@@ -98,10 +99,25 @@ describe('Poolday protein-first sequence model contract', () => {
     const keys = models.map((model) => exactModelContractKey(model));
 
     expect(new Set(keys).size).toBe(models.length);
-    expect(keys.every((key) => key.split('|').length === 14)).toBe(true);
+    expect(keys.every((key) => {
+      const contract = JSON.parse(key);
+      return contract.claimBoundary
+        && contract.runtimeContract
+        && contract.sequence
+        && contract.artifactIdentity;
+    })).toBe(true);
     expect(exactModelContractKey(getPoolModelContract(AMPLIFY_MODEL_ID))).not.toBe(
       exactModelContractKey(getPoolModelContract(ESMC_MODEL_ID))
     );
+    const amplify = getPoolModelContract(AMPLIFY_MODEL_ID);
+    expect(exactModelContractKey({ ...amplify, admission: {
+      ...amplify.admission,
+      claimBoundary: 'A changed claim boundary must create a new exact contract identity.'
+    } })).not.toBe(exactModelContractKey(amplify));
+    expect(exactModelContractKey({ ...amplify, runtimeContract: {
+      ...amplify.runtimeContract,
+      kernelPathId: 'different-execution-graph'
+    } })).not.toBe(exactModelContractKey(amplify));
   });
 
   it('accepts exact public protein peer requirements', () => {
@@ -139,6 +155,23 @@ describe('Poolday protein-first sequence model contract', () => {
     })).toMatchObject({
       ok: false,
       reasons: expect.arrayContaining(['model requirements do not match an enabled model contract'])
+    });
+  });
+
+  it('requires published research evidence to bind the complete enabled catalog contract', () => {
+    const enabled = getPoolModelContract(PROTEIN_MODEL_ID);
+    const candidate = getPoolModelContract(AMPLIFY_MODEL_ID);
+    expect(validateEnabledPoolModelContract(enabled)).toMatchObject({ ok: true });
+    expect(validateEnabledPoolModelContract({ ...enabled, runtimeContract: {
+      ...enabled.runtimeContract,
+      kernelPathId: 'different-execution-graph'
+    } })).toMatchObject({
+      ok: false,
+      reasons: ['model contract does not exactly match the enabled Poolday catalog contract']
+    });
+    expect(validateEnabledPoolModelContract(candidate)).toMatchObject({
+      ok: false,
+      reasons: ['model contract is not a currently enabled Poolday model']
     });
   });
 

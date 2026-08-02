@@ -23,6 +23,7 @@ import {
   projectResearchReviewStates,
   projectResearchRewards,
   proposeDiscoveryTasks,
+  rankProposedDiscoveryActions,
   searchEvidence
 } from '../../pool/evidence-network.js';
 import {
@@ -337,6 +338,8 @@ export function renderResearchWorkspace(roomId, records = loadResearchRecords(ro
   const submissionsByHash = new Map(submissions.map((record) => [record.recordHash, record]));
   const visible = searchEvidence(records, query);
   const tasks = proposeDiscoveryTasks(records);
+  const actionRanking = rankProposedDiscoveryActions(records);
+  const rankedTasks = actionRanking.rankedCandidates;
   const clusters = clusterCompatibleResults(records);
   const target = similarityTarget || results.at(-1)?.recordHash || '';
   const similar = target ? findSimilarSequences(records, target) : [];
@@ -350,7 +353,7 @@ export function renderResearchWorkspace(roomId, records = loadResearchRecords(ro
           <h2 class="type-h2">Question lifecycle: predict, test, review, learn</h2>
           <p>Competing hypotheses, condition-specific evidence, blinded work, failures, replications, and cohort effects remain separately signed and challengeable.</p>
         </div>
-        <span class="pool-research-sync" data-pool-research-sync>Local evidence loaded</span>
+        <span class="pool-research-sync" data-pool-research-sync>Verifying local evidence</span>
       </header>
       <dl class="pool-research-stats">
         <div><dt>Submissions</dt><dd>${submissions.length}</dd></div>
@@ -427,8 +430,9 @@ export function renderResearchWorkspace(roomId, records = loadResearchRecords(ro
           <p class="pool-dashboard-kicker">Next work</p>
           <h3 class="type-h3">Approval-gated discovery queue</h3>
           <div class="pool-research-tasks">
-            ${tasks.length ? tasks.map((task) => `<article><div><b>${escapeHtml(task.kind.replace(/_/g, ' '))}</b><span>${escapeHtml(task.reason)}</span></div>${task.status === 'approved' ? '<strong>Approved</strong>' : `<button class="btn btn-ghost" type="button" data-research-approve-task="${escapeHtml(task.taskId)}" data-research-task-target="${escapeHtml(task.targetHash)}">Approve</button>`}</article>`).join('') : '<p class="type-caption">No bounded follow-up is currently proposed.</p>'}
+            ${rankedTasks.length ? rankedTasks.map((task) => `<article><div><b>${escapeHtml(task.actionKind.replace(/_/g, ' '))}</b><span>${escapeHtml(task.reason)}</span><small>Heuristic priority ${escapeHtml(task.heuristicPriority)} · ordinal uncertainty reduction ${escapeHtml(task.expectedInformationGain.estimate)} · planning cost ${escapeHtml(task.valueComponents.totalCost)}.</small></div>${task.status === 'approved' ? '<strong>Approved</strong>' : `<button class="btn btn-ghost" type="button" data-research-approve-task="${escapeHtml(task.actionId)}" data-research-task-target="${escapeHtml(task.targetHash)}">Approve</button>`}</article>`).join('') : '<p class="type-caption">No bounded follow-up is currently proposed.</p>'}
           </div>
+          <p class="type-caption">Ranking policy ${escapeHtml(actionRanking.policy.policyId)} is an inspectable, non-calibrated heuristic. It does not estimate biological truth, mutation fitness, or a decision-change probability, and it cannot allocate work.</p>
         </section>
         <section class="pool-research-panel">
           <p class="pool-dashboard-kicker">Participation quality</p>
@@ -738,7 +742,16 @@ export async function hydrateAndBindResearchWorkspace(workspace = document.query
   const hydrated = await hydrateResearchRecords(roomId);
   if (document.body.contains(workspace)) replaceWorkspace(workspace);
   const current = document.querySelector('[data-pool-research-sync]');
-  if (current) current.textContent = hydrated.remote ? 'Coordinator evidence synchronized' : 'Local evidence loaded; coordinator sync unavailable';
+  if (current) {
+    const rejectedCount = hydrated.rejectedRecords?.length || 0;
+    current.textContent = hydrated.remote
+      ? (rejectedCount
+        ? `Coordinator evidence synchronized; ${rejectedCount} unadmitted or invalid record${rejectedCount === 1 ? '' : 's'} rejected by policy`
+        : 'Coordinator evidence synchronized')
+      : (rejectedCount
+        ? `Local evidence verified; ${rejectedCount} unadmitted or invalid record${rejectedCount === 1 ? '' : 's'} rejected by policy; coordinator sync unavailable`
+        : 'Local evidence verified; coordinator sync unavailable');
+  }
   if (sync && !document.body.contains(sync)) return;
 }
 

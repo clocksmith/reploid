@@ -1,6 +1,9 @@
 # REPLOID Blueprint Atlas
 
-Purpose: Canonical index of Reploid blueprints with deduped IDs and domains.
+Purpose: Canonical index of maintained Reploid architectural blueprints with
+deduped IDs and domains. Generated module records belong in
+`self/config/module-inventory.json`; legacy stub documents remain only for
+compatibility and are not architectural authority.
 
 ## Scope
 

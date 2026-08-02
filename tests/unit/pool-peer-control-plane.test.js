@@ -211,6 +211,11 @@ describe('pool peer control plane', () => {
     expect(first.assignments.every((assignment) => assignment.requiresInputPayload === true)).toBe(true);
     expect(first.assignments.every((assignment) => assignment.requiresPromptPayload === false)).toBe(true);
     expect(first.assignments.every((assignment) => assignment.sequenceRequest?.alphabet === 'amino_acid')).toBe(true);
+    expect(first.assignments.every((assignment) => (
+      assignment.model.exactModelContractKey
+      && assignment.model.modelId === LAUNCH_MODEL.modelId
+      && assignment.model.tokenizerHash === LAUNCH_MODEL.tokenizerHash
+    ))).toBe(true);
   });
 
   it('binds peer assignments to the advert, participation profile, limits, and route', async () => {
@@ -262,6 +267,18 @@ describe('pool peer control plane', () => {
       jobIntent: intent.intent,
       providerAdvert: advert
     })).reasons).toContain('assignmentHash mismatch');
+    const alteredContract = {
+      ...plan.assignment,
+      model: {
+        ...plan.assignment.model,
+        tokenizerHash: 'sha256:altered-tokenizer'
+      }
+    };
+    expect((await validatePeerAssignmentForIntentAndAdvert({
+      assignment: alteredContract,
+      jobIntent: intent.intent,
+      providerAdvert: advert
+    })).reasons).toContain('assignment model fields do not match the enabled exact model contract');
   });
 
   it('selects a homogeneous runtime-profile group for strict ring quorum', async () => {

@@ -1,0 +1,100 @@
+{
+  "schema": "poolday.doppler_browser_protein_observation/v1",
+  "status": "incomplete",
+  "observedAt": "2026-08-02T00:00:00.000Z",
+  "claimBoundary": "This is a persisted browser-run observation for a frozen protein-sequence fixture. It proves neither honest hardware nor biological truth, and it cannot qualify or promote a model.",
+  "model": {
+    "modelId": "esm2-t12-35m-ur50d-f32-af32",
+    "modelHash": "sha256:1092c098741472429a4c6b4cd6050d5967e0a606d01f713c0b4866fd98921ac8",
+    "manifestHash": "sha256:5612aa20ee2d5310da323d5c39986d0ab724ff727ce92e40762da6ea7b189730",
+    "tokenizerHash": "sha256:f874eed68372c76988edf4556383c10404dd27b5fee33e7dd96440aba31d9a37",
+    "shardSetHash": "sha256:02d771a5ddf516cd4d01338a229309d87822b46b2317fd8432b756fd45ce924e",
+    "sourceCheckpointId": "facebook/esm2_t12_35M_UR50D@6fbf070e65b0b7291e7bbcd451118c216cff79d8",
+    "sourceRevision": "6fbf070e65b0b7291e7bbcd451118c216cff79d8",
+    "runtime": "doppler",
+    "backend": "browser-webgpu"
+  },
+  "fixture": {
+    "id": "esm2-35m",
+    "sequenceAlphabet": "amino_acid",
+    "sequenceLength": 24,
+    "tokenCount": 26,
+    "embeddingDimension": 480,
+    "referencePath": "../../doppler/tools/data/esm2-t12-35m-ur50d-sequence-reference.json",
+    "runtimeFixtureHash": "sha256:e4d400afcee40c0fb82bc71846ee099ebf9440787dfce07880756ecb6c11fc10",
+    "checks": [
+      "exact tokenizer ids",
+      "finite pooled embedding",
+      "frozen pooled embedding probes",
+      "finite residue embeddings",
+      "frozen residue embedding probes"
+    ]
+  },
+  "release": {
+    "dopplerSourceRevision": "0238cbd184b2c29221be0955952f278222d08dda",
+    "dopplerGitTree": "748c823d104a11e6b483b80af6768e2d5537d388",
+    "sourceStateHash": "sha256:9c5ed1ef700cd8ef13b69d6cc677a05bed9f5a3b10660962e49497fe2cb124e8",
+    "sourceDirty": true,
+    "browserModuleDigest": "sha256:4fbee56e4d88004d687e3d376e962e7849a8af0f237b2027d562d389b1aeb1e2",
+    "browserModuleDigestScope": [
+      "src/tooling/command-runner.html",
+      "src/tooling/browser-command-runner.js",
+      "src/inference/browser-harness.js",
+      "src/inference/browser-harness-text-helpers.js"
+    ]
+  },
+  "browser": {
+    "family": "Chromium",
+    "version": "145.0.0.0",
+    "userAgentHash": "sha256:3fb76196f6a81ba9c7a88a818f5fca1dd2c667ae359f7e823590272d471e740f",
+    "hardwareGpuRequested": true,
+    "adapter": {
+      "vendor": "apple",
+      "architecture": "metal-3",
+      "device": "0x0000",
+      "description": "Apple M3"
+    }
+  },
+  "runs": {
+    "primeHttp": {
+      "loadMode": "http",
+      "outputHash": "sha256:470d79a8abd0733dee02faaae661e51719f44c2805a8bf6afc417406cfb15936",
+      "resultHash": "sha256:2051c25524f8f5d606dba48aa80246e0633d896f552b3503b2ed6b3546389392",
+      "loadedBytes": 133077120,
+      "loadedShards": 2,
+      "kvDtype": "f32"
+    },
+    "opfsRestore": {
+      "loadMode": "opfs",
+      "outputHash": "sha256:470d79a8abd0733dee02faaae661e51719f44c2805a8bf6afc417406cfb15936",
+      "resultHash": "sha256:86ecd57acadd83bdad940c55274924785ee847a8fbdd4287ec024d4a85806dfb",
+      "loadedBytes": 133077120,
+      "loadedShards": 2,
+      "kvDtype": "f32"
+    }
+  },
+  "passedChecks": [
+    "webGpuExecution",
+    "opfsPersistence",
+    "opfsRestoration"
+  ],
+  "unmetChecks": [
+    "immutableArtifactDelivery",
+    "completeHashVerification",
+    "receiptIntegrity",
+    "cancellation",
+    "staleResultRejection",
+    "corruptionRejection",
+    "interruptionRecovery",
+    "independentReproduction"
+  ],
+  "promotion": {
+    "eligible": false,
+    "reasons": [
+      "source tree is dirty and therefore not clean-release evidence",
+      "the required browser-qualification check set is incomplete",
+      "the run has no independent reproduction",
+      "scientific fitness remains a separate required gate"
+    ]
+  }
+}

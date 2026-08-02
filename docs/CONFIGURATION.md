@@ -229,11 +229,26 @@ List of all files under `self/` used for VFS hydration at bootstrap.
 
 ## Blueprint Registry (`config/blueprint-registry.json`)
 
-Canonical map of runtime JavaScript files to blueprint documents.
+Legacy compatibility map of runtime JavaScript files to maintained decision
+blueprints. It does not turn every source file into an architecture document.
 
 | Key | Purpose |
 |-----|---------|
 | `features` | Blueprint entries with file lists |
+
+---
+
+## Module Inventory (`config/module-inventory.json`)
+
+Generated inventory of browser source paths, owning top-level subsystem,
+import specifiers, and content hashes. `npm run build:blueprints` updates this
+inventory before the legacy blueprint map. New source modules belong here unless
+they introduce an architectural decision, invariant, protocol, or failure
+boundary that warrants a maintained blueprint.
+
+| Key | Purpose |
+|-----|---------|
+| `modules` | Source paths, owners, imports, and SHA-256 hashes |
 
 ---
 

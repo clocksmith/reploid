@@ -4,6 +4,7 @@
 
 import { POOL_CONFIG, POOL_CONFIG_VERSION } from './config.js';
 import { canonicalize } from './canonical-json.js';
+import { exactModelContractKey } from './model-contract.js';
 import { isSequenceWorkload } from './sequence-workload.js';
 
 const textEncoder = new TextEncoder();
@@ -170,24 +171,34 @@ export function acceptanceSigningPayload(acceptance) {
   return payload;
 }
 
-const normalizeReceiptModel = (model = {}) => ({
-  id: model.id || model.modelId || null,
-  hash: model.hash || model.modelHash || null,
-  manifestHash: model.manifestHash || null,
-  tokenizerHash: model.tokenizerHash || model.requirements?.tokenizerHash || null,
-  runtime: model.runtime || 'doppler',
-  backend: model.backend || 'browser-webgpu',
-  workload: model.workload || model.workloadType || model.modelType || model.requirements?.workload || null,
-  executionMode: model.executionMode || model.execution || model.requirements?.executionMode || null,
-  contextLength: Number(model.contextLength || 0),
-  embeddingDimensions: Number(model.embeddingDimensions || model.dimensions || 0) || null,
-  quantization: model.quantization || null,
-  sequence: model.sequence || model.requirements?.sequence || null,
-  runtimeContract: model.runtimeContract || model.requirements?.runtimeContract || null,
-  license: model.license || model.requirements?.license || null,
-  artifactIdentity: model.artifactIdentity || model.requirements?.artifactIdentity || null,
-  requirements: model.requirements || null
-});
+const normalizeReceiptModel = (model = {}) => {
+  const normalized = {
+    id: model.id || model.modelId || null,
+    hash: model.hash || model.modelHash || null,
+    manifestHash: model.manifestHash || null,
+    tokenizerHash: model.tokenizerHash || model.requirements?.tokenizerHash || null,
+    runtime: model.runtime || 'doppler',
+    backend: model.backend || 'browser-webgpu',
+    workload: model.workload || model.workloadType || model.modelType || model.requirements?.workload || null,
+    executionMode: model.executionMode || model.execution || model.requirements?.executionMode || null,
+    executionModes: model.executionModes || model.requirements?.executionModes || null,
+    contextLength: Number(model.contextLength || 0),
+    embeddingDimensions: Number(model.embeddingDimensions || model.dimensions || 0) || null,
+    quantization: model.quantization || null,
+    sequence: model.sequence || model.requirements?.sequence || null,
+    outputs: model.outputs || model.requirements?.outputs || null,
+    runtimeCompatibility: model.runtimeCompatibility || model.requirements?.runtimeCompatibility || null,
+    runtimeContract: model.runtimeContract || model.requirements?.runtimeContract || null,
+    license: model.license || model.requirements?.license || null,
+    artifactIdentity: model.artifactIdentity || model.requirements?.artifactIdentity || null,
+    admission: model.admission || model.requirements?.admission || null,
+    requirements: model.requirements || null
+  };
+  return {
+    ...normalized,
+    exactModelContractKey: model.exactModelContractKey || exactModelContractKey(normalized)
+  };
+};
 
 const normalizeReceiptAdapter = (adapter = null) => adapter ? ({
   schema: adapter.schema || null,

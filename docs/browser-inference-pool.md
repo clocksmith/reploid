@@ -83,7 +83,11 @@ Browser providers derive artifact URLs from the selected model's `artifactPolicy
 
 The ESM-2 launch artifact is an immutable, publicly readable mirror in
 `gs://reploid-model-artifacts`, sourced from the exact checkpoint revision
-declared by `pool-config.json`. The bucket serves byte ranges with a `replo.id` CORS policy
+declared by `pool-config.json`. [`deploy/model-artifact-cors.json`](../deploy/model-artifact-cors.json)
+defines the required `replo.id` and default local browser origins, byte-range
+methods, and observable artifact headers. The source policy is machine-checked,
+but it is not proof that the deployed bucket has applied it. Authentic browser
+qualification must independently verify the delivered CORS behavior.
 and immutable cache metadata, so browser cold starts do not depend on model-hub
 redirects or shared CDN throttling. Production verification fetches each
 manifest, verifies its configured content hash and model identity, probes shard
@@ -621,7 +625,7 @@ The `/pool` namespace is split:
 
 Do not add a broad `/pool/**` backend rewrite. It would capture the browser module files and break the app shell.
 
-Firestore rules are deny-by-default because browser clients use the coordinator API, not direct Firestore reads or writes. The Firestore index file declares the compound `assignments(providerId, status)` query used by provider polling and heartbeat availability checks.
+Firestore rules are deny-by-default because browser clients use the coordinator API, not direct Firestore reads or writes. The Firestore index file declares the compound `assignments(providerId, status, createdAt, assignmentId)` query used by provider polling. It preserves the same deterministic dispatch order as the memory adapter.
 
 Cloud Run service requirements for `reploid-pool`:
 
@@ -748,7 +752,12 @@ The standard smoke injects a deterministic runtime and proves route and protocol
 npm run verify:pool:release -- --url https://<hosting-domain> --channel=chrome
 ```
 
-The release gate runs production/deployment verification, the synthetic browser peer flow, then one actual Doppler WebGPU generation through provider advert, requester intent, signed receipt, agreement, and requester acceptance. Any missing phase fails the release.
+The release gate first requires the deployed `/pool/deployment/check` version and
+hash to match the local governed Pool contract. It then runs production/deployment
+verification, the synthetic browser peer flow, and actual Doppler WebGPU
+generation through provider advert, requester intent, signed receipt, agreement,
+and requester acceptance. Any missing phase or identity mismatch fails the
+release.
 
 ---
 

@@ -32,7 +32,9 @@ must include a hash-addressed browser-run observation with a check identifier,
 browser-run identity, timestamp, observed-result hash, and artifact hash. Each
 check repeats the parent record's exact model/artifact set, release,
 browser/GPU, policy, output, and receipt bindings, preventing a check from one
-release from qualifying another. A
+release from qualifying another. Each independent reproduction separately binds
+the exact model contract, artifact set, release, policy, output, receipt,
+browser-run identity, and browser/GPU identity. A
 harness begins with an explicitly incomplete observation and cannot finalize it
 unless every governed check is both passed and evidenced. The actual ESM-2
 browser journey attaches an incomplete observation for the checks it has
@@ -41,6 +43,11 @@ executed. That attachment is not a persisted qualification receipt.
 A qualified catalog entry also requires a persisted qualification receipt path
 before it can be enabled. This is not evidence that a GPU was honest or that a
 model output is biologically true.
+
+The Playwright harness may target an already-running, separately inspected
+local server with `REPLOID_E2E_SKIP_LOCAL_SERVER=1`. This only suppresses its
+second local-server launch. It does not suppress artifact preflight, browser
+checks, OPFS recovery, or promotion validation.
 
 ### 3. Promotion Boundary
 

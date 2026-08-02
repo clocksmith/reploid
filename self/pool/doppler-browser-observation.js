@@ -1,0 +1,101 @@
+/**
+ * @fileoverview Validation for persisted, non-promotable Doppler browser observations.
+ *
+ * A browser observation is useful durable evidence, but it is deliberately a
+ * narrower object than a Poolday browser qualification receipt. It cannot
+ * authorize model selection or promotion.
+ */
+
+import { BROWSER_QUALIFICATION_CHECKS } from './browser-qualification.js';
+import { exactModelContractKey } from './model-contract.js';
+
+export const DOPPLER_BROWSER_PROTEIN_OBSERVATION_SCHEMA = 'poolday.doppler_browser_protein_observation/v1';
+
+const SHA256_PATTERN = /^sha256:[a-f0-9]{64}$/;
+const isSha256 = (value) => SHA256_PATTERN.test(String(value || ''));
+const text = (value) => typeof value === 'string' && value.trim().length > 0;
+
+export function validateDopplerBrowserProteinObservation(observation = {}, { model = {} } = {}) {
+  const reasons = [];
+  if (observation.schema !== DOPPLER_BROWSER_PROTEIN_OBSERVATION_SCHEMA) {
+    reasons.push('browser observation schema is invalid');
+  }
+  if (observation.status !== 'incomplete') {
+    reasons.push('browser observation must remain incomplete until the full qualification record exists');
+  }
+  if (observation.promotion?.eligible !== false) {
+    reasons.push('browser observation must not be promotion eligible');
+  }
+  if (observation.model?.modelId !== model.modelId) {
+    reasons.push('browser observation modelId does not match the exact model contract');
+  }
+  for (const field of ['modelHash', 'manifestHash', 'tokenizerHash']) {
+    if (observation.model?.[field] !== model[field]) {
+      reasons.push(`browser observation ${field} does not match the exact model contract`);
+    }
+  }
+  if (observation.model?.shardSetHash !== model.artifactIdentity?.shardSetHash) {
+    reasons.push('browser observation shardSetHash does not match the exact model contract');
+  }
+  if (observation.model?.sourceCheckpointId !== model.artifactIdentity?.sourceCheckpointId) {
+    reasons.push('browser observation source checkpoint does not match the exact model contract');
+  }
+  if (observation.model?.runtime !== model.runtime || observation.model?.backend !== model.backend) {
+    reasons.push('browser observation runtime identity does not match the exact model contract');
+  }
+  if (!isSha256(observation.release?.sourceStateHash) || !isSha256(observation.release?.browserModuleDigest)) {
+    reasons.push('browser observation release hashes are invalid');
+  }
+  if (observation.release?.sourceDirty !== true) {
+    reasons.push('browser observation must explicitly retain dirty-source status when it is not clean-release evidence');
+  }
+  if (!isSha256(observation.browser?.userAgentHash) || !text(observation.browser?.family)
+    || observation.browser?.hardwareGpuRequested !== true || !text(observation.browser?.adapter?.description)) {
+    reasons.push('browser observation browser and GPU identity is incomplete');
+  }
+  if (observation.fixture?.sequenceAlphabet !== model.sequence?.alphabet
+    || observation.fixture?.embeddingDimension !== model.embeddingDimensions) {
+    reasons.push('browser observation fixture does not match the exact protein model contract');
+  }
+  if (!isSha256(observation.fixture?.runtimeFixtureHash)) {
+    reasons.push('browser observation fixture runtime hash is invalid');
+  }
+  const prime = observation.runs?.primeHttp;
+  const restored = observation.runs?.opfsRestore;
+  if (prime?.loadMode !== 'http' || restored?.loadMode !== 'opfs') {
+    reasons.push('browser observation must bind an HTTP prime and OPFS restoration run');
+  }
+  if (!isSha256(prime?.outputHash) || !isSha256(prime?.resultHash)
+    || !isSha256(restored?.outputHash) || !isSha256(restored?.resultHash)) {
+    reasons.push('browser observation run hashes are invalid');
+  }
+  if (prime?.outputHash !== restored?.outputHash) {
+    reasons.push('browser observation HTTP and OPFS output hashes do not match');
+  }
+  if (prime?.kvDtype !== 'f32' || restored?.kvDtype !== 'f32') {
+    reasons.push('browser observation does not bind the required F32 KV lane');
+  }
+  const passed = Array.isArray(observation.passedChecks) ? observation.passedChecks : [];
+  const unmet = Array.isArray(observation.unmetChecks) ? observation.unmetChecks : [];
+  if (!passed.includes('webGpuExecution') || !passed.includes('opfsPersistence') || !passed.includes('opfsRestoration')) {
+    reasons.push('browser observation is missing executed browser or OPFS evidence');
+  }
+  if (passed.some((check) => !BROWSER_QUALIFICATION_CHECKS.includes(check))
+    || unmet.some((check) => !BROWSER_QUALIFICATION_CHECKS.includes(check))) {
+    reasons.push('browser observation contains an unknown qualification check');
+  }
+  if (new Set([...passed, ...unmet]).size !== BROWSER_QUALIFICATION_CHECKS.length) {
+    reasons.push('browser observation must account for every qualification check');
+  }
+  return {
+    ok: reasons.length === 0,
+    reasons,
+    exactModelContractKey: exactModelContractKey(model),
+    promotable: false,
+  };
+}
+
+export default {
+  DOPPLER_BROWSER_PROTEIN_OBSERVATION_SCHEMA,
+  validateDopplerBrowserProteinObservation,
+};

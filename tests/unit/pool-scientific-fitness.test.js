@@ -6,6 +6,12 @@ import {
   buildScientificFitnessPlan,
   validateScientificFitnessRecord
 } from '../../self/pool/scientific-fitness.js';
+import {
+  SCIENTIFIC_EVALUATION_SCHEMA,
+  buildScientificEvaluationPlan,
+  validateScientificEvaluationRecord,
+  validateScientificFitnessEvaluationBinding
+} from '../../self/pool/scientific-evaluation.js';
 
 const fakeHash = (character) => `sha256:${character.repeat(64)}`;
 const candidate = getPoolModelContract('amplify-120m-f16-af32');
@@ -25,6 +31,11 @@ const qualifiedRecord = () => {
     candidate: plan.candidate,
     baselines: plan.baselines,
     frozenCohortHash: fakeHash('1'),
+    evaluation: {
+      evaluationId: 'protein-family-disjoint-evaluation', protocolHash: fakeHash('a'),
+      runHash: fakeHash('b'), resultSetHash: fakeHash('c'),
+      receiptPath: 'docs/status/amplify-scientific-evaluation.json', receiptHash: fakeHash('f')
+    },
     familyPartition: {
       methodId: 'protein-family-clusters',
       version: '1',
@@ -44,10 +55,51 @@ const qualifiedRecord = () => {
       direction: 'higher_is_better',
       baselineValue: 0.5,
       candidateValue: 0.7,
+      definitionHash: fakeHash('d'), resultHash: fakeHash('e'),
+      evaluationRunHash: fakeHash('b'), baselineExactModelContractKey: baselineKey,
       improved: true
     }],
     decision: 'qualified',
     claimBoundary: candidate.admission.claimBoundary
+  };
+};
+
+const evaluationRecord = () => {
+  const fitness = qualifiedRecord();
+  const plan = buildScientificEvaluationPlan({
+    candidate,
+    candidateContractKey: candidateKey,
+    baselines: [baseline],
+    baselineContractKeys: [baselineKey]
+  });
+  return {
+    schema: SCIENTIFIC_EVALUATION_SCHEMA,
+    candidate: plan.candidate,
+    baselines: plan.baselines,
+    evaluation: {
+      evaluationId: fitness.evaluation.evaluationId,
+      protocolHash: fitness.evaluation.protocolHash,
+      runHash: fitness.evaluation.runHash,
+      resultSetHash: fitness.evaluation.resultSetHash
+    },
+    frozenCohort: {
+      cohortId: 'public-protein-family-disjoint-v1',
+      cohortHash: fitness.frozenCohortHash,
+      sourceManifestHash: fakeHash('8'),
+      publicOnly: true,
+      members: [
+        { sampleHash: fakeHash('9'), familyHash: fakeHash('3'), inputHash: fakeHash('a'), observationHash: fakeHash('b') },
+        { sampleHash: fakeHash('c'), familyHash: fakeHash('4'), inputHash: fakeHash('d'), observationHash: fakeHash('e') },
+        { sampleHash: fakeHash('f'), familyHash: fakeHash('5'), inputHash: fakeHash('6'), observationHash: fakeHash('7') }
+      ]
+    },
+    familyPartition: fitness.familyPartition,
+    adjudication: fitness.adjudication,
+    modelRuns: [
+      { exactModelContractKey: candidateKey, evaluationRunHash: fitness.evaluation.runHash, resultHash: fakeHash('0'), outputSetHash: fakeHash('1') },
+      { exactModelContractKey: baselineKey, evaluationRunHash: fitness.evaluation.runHash, resultHash: fakeHash('2'), outputSetHash: fakeHash('3') }
+    ],
+    metricResults: fitness.metricResults
   };
 };
 
@@ -57,8 +109,35 @@ describe('Poolday model scientific-fitness contract', () => {
       candidate,
       candidateContractKey: candidateKey,
       baselines: [baseline],
+      baselineContractKeys: [baselineKey],
+      scientificEvaluationRecord: evaluationRecord()
+    })).toEqual({ ok: true, reasons: [] });
+  });
+
+  it('requires a valid frozen evaluation manifest whose metrics exactly match the fitness claim', () => {
+    const evaluation = evaluationRecord();
+    expect(validateScientificEvaluationRecord(evaluation, {
+      candidate,
+      candidateContractKey: candidateKey,
+      baselines: [baseline],
       baselineContractKeys: [baselineKey]
     })).toEqual({ ok: true, reasons: [] });
+    evaluation.metricResults[0].candidateValue = 0.6;
+    expect(validateScientificFitnessEvaluationBinding(qualifiedRecord(), evaluation)).toMatchObject({
+      ok: false,
+      reasons: ['scientific fitness does not exactly bind the frozen evaluation evidence']
+    });
+  });
+
+  it('rejects a partition that declares holdout families absent from the frozen cohort', () => {
+    const evaluation = evaluationRecord();
+    evaluation.frozenCohort.members[1].familyHash = fakeHash('5');
+    expect(validateScientificEvaluationRecord(evaluation, {
+      candidate, candidateContractKey: candidateKey, baselines: [baseline], baselineContractKeys: [baselineKey]
+    })).toMatchObject({
+      ok: false,
+      reasons: expect.arrayContaining(['scientific evaluation frozen cohort lacks a declared holdout family'])
+    });
   });
 
   it('rejects overlapping family partitions and a decision without measured improvement', () => {
@@ -70,7 +149,8 @@ describe('Poolday model scientific-fitness contract', () => {
       candidate,
       candidateContractKey: candidateKey,
       baselines: [baseline],
-      baselineContractKeys: [baselineKey]
+      baselineContractKeys: [baselineKey],
+      scientificEvaluationRecord: evaluationRecord()
     })).toMatchObject({
       ok: false,
       reasons: expect.arrayContaining([
@@ -89,7 +169,8 @@ describe('Poolday model scientific-fitness contract', () => {
       candidate,
       candidateContractKey: candidateKey,
       baselines: [baseline],
-      baselineContractKeys: [baselineKey]
+      baselineContractKeys: [baselineKey],
+      scientificEvaluationRecord: evaluationRecord()
     })).toMatchObject({
       ok: false,
       reasons: expect.arrayContaining([
@@ -106,7 +187,8 @@ describe('Poolday model scientific-fitness contract', () => {
       candidate,
       candidateContractKey: candidateKey,
       baselines: [candidate],
-      baselineContractKeys: [candidateKey]
+      baselineContractKeys: [candidateKey],
+      scientificEvaluationRecord: evaluationRecord()
     })).toMatchObject({
       ok: false,
       reasons: expect.arrayContaining([
