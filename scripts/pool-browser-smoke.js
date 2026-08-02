@@ -255,7 +255,8 @@ try {
   await requester.selectOption('#pool-run-model', SYNTHETIC_MODEL_ID);
   await requester.fill('#pool-run-prompt', 'MKTAYIAKQRQISFVKSHFSRQ');
   await requester.check('#pool-run-sequence-public');
-  await requester.check('#pool-run-research-public');
+  // A provider-signed local peer receipt proves receipt flow only. It is not a
+  // verifier decision and therefore cannot authorize research-record publication.
   await requester.click('#pool-run-submit');
   await requester.waitForFunction(() => (
     document.querySelector('[data-pool-run-status]')?.textContent.includes('Protein embedding verified')
