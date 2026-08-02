@@ -229,6 +229,29 @@ describe('Poolday evidence network', () => {
     expect(validateResearchRecordLinks(independent, [source, baseline, independent])).toMatchObject({ ok: true });
   });
 
+  it('rejects published evidence when its receipt-model identity is detached from its exact model contract', async () => {
+    const requester = await identity('requester', 'receipt-model-identity');
+    const source = await submission(requester);
+    const computed = await result(requester, source, [1, 0, 0]);
+    const tampered = {
+      ...computed,
+      compute: { ...computed.compute, receiptModelContractKey: 'wrong-contract' }
+    };
+    expect(await verifyResearchRecord(tampered)).toMatchObject({
+      ok: false,
+      reasons: expect.arrayContaining([
+        'record hash mismatch',
+        'result receipt model contract identity does not match the published exact model contract'
+      ])
+    });
+    expect(validateResearchRecordLinks(tampered, [source, tampered])).toMatchObject({
+      ok: false,
+      reasons: expect.arrayContaining([
+        'research result receipt model contract identity does not match its published exact model contract'
+      ])
+    });
+  });
+
   it('gates proposed work and rewards independently accepted durable evidence', async () => {
     const requester = await identity('requester', 'one', 'root-one');
     const curator = await identity('reviewer', 'two', 'root-two');

@@ -42,6 +42,23 @@ const isBiologicalSequencePoolModel = (model = {}) => (
     .startsWith('sequence.')
 );
 
+const validateDnaLaneAdmission = (model, path, reasons) => {
+  if (model?.sequence?.alphabet !== 'nucleotide') return;
+  const gate = model.admission?.dnaLane || {};
+  for (const field of ['privacy', 'referenceCoordinates', 'scientificFitness', 'licensing', 'productUse']) {
+    requireField(gate[field], `${path}.admission.dnaLane.${field}`, reasons);
+  }
+  if (model.enabled === false) return;
+  if (gate.privacy !== 'qualified') reasons.push(`${path}.admission.dnaLane.privacy must be qualified before enabling a DNA model`);
+  if (gate.referenceCoordinates !== 'qualified') reasons.push(`${path}.admission.dnaLane.referenceCoordinates must be qualified before enabling a DNA model`);
+  if (gate.scientificFitness !== 'qualified') reasons.push(`${path}.admission.dnaLane.scientificFitness must be qualified before enabling a DNA model`);
+  if (gate.licensing !== 'approved') reasons.push(`${path}.admission.dnaLane.licensing must be approved before enabling a DNA model`);
+  if (gate.productUse !== 'admitted') reasons.push(`${path}.admission.dnaLane.productUse must be admitted before enabling a DNA model`);
+  if (gate.privacy === 'qualified') requireField(gate.privacyReceipt, `${path}.admission.dnaLane.privacyReceipt`, reasons);
+  if (gate.referenceCoordinates === 'qualified') requireField(gate.referenceCoordinateReceipt, `${path}.admission.dnaLane.referenceCoordinateReceipt`, reasons);
+  if (gate.scientificFitness === 'qualified') requireField(gate.scientificFitnessReceipt, `${path}.admission.dnaLane.scientificFitnessReceipt`, reasons);
+};
+
 const validateSequenceModelContract = (model, index, reasons, { isLaunchModel = false } = {}) => {
   const path = `modelCatalog.${index}`;
   for (const field of [
@@ -92,6 +109,7 @@ const validateSequenceModelContract = (model, index, reasons, { isLaunchModel = 
   requireField(model?.admission?.nodeWebGpu, `${path}.admission.nodeWebGpu`, reasons);
   requireField(model?.admission?.browserWebGpu, `${path}.admission.browserWebGpu`, reasons);
   requireField(model?.admission?.scientificFitness, `${path}.admission.scientificFitness`, reasons);
+  validateDnaLaneAdmission(model, path, reasons);
   if (!Array.isArray(model?.license?.sourceTerms) || model.license.sourceTerms.length === 0) {
     reasons.push(`${path}.license.sourceTerms must contain at least one frozen source term`);
   }

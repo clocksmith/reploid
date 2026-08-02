@@ -544,6 +544,7 @@ export async function createSignedResearchResult({
     compute: {
       receiptHash,
       submissionModelContractKey: exactModelContractKey(submission.modelContract),
+      receiptModelContractKey: exactModelContractKey(receiptModelContract),
       receiptHashes: unique(agreement?.receiptHashes || [receiptHash]),
       requesterAcceptanceHash: accepted?.acceptanceHash || accepted?.receiptHash || null,
       agreementHash: agreement ? await hashJson(agreement) : null,
@@ -1381,6 +1382,9 @@ export async function verifyResearchRecord(record = {}) {
     } catch (error) {
       reasons.push(error.message);
     }
+    if (record.compute?.receiptModelContractKey !== exactModelContractKey(record.modelContract)) {
+      reasons.push('result receipt model contract identity does not match the published exact model contract');
+    }
     if (record.embedding) {
       const values = record.embedding.values;
       if (!Array.isArray(values) || values.length !== record.embedding.dimensions || values.length > MAX_EMBEDDING_DIMENSIONS || values.some((value) => !Number.isFinite(value))) {
@@ -1678,6 +1682,9 @@ export function validateResearchRecordLinks(record = {}, records = []) {
     if (submission && record.sequenceHash !== submission.sequence?.hash) reasons.push('research result sequence does not match its submission');
     if (submission && record.compute?.submissionModelContractKey !== exactModelContractKey(submission.modelContract)) {
       reasons.push('research result submission model contract identity does not match its submission');
+    }
+    if (record.compute?.receiptModelContractKey !== exactModelContractKey(record.modelContract)) {
+      reasons.push('research result receipt model contract identity does not match its published exact model contract');
     }
     if (submission && record.modelContract?.sequence?.alphabet
       && record.modelContract.sequence.alphabet !== submission.sequence?.alphabet) {

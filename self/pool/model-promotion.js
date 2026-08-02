@@ -25,6 +25,24 @@ export function validateModelPromotionEvidence({
   const admission = model.admission || {};
   const candidateContractKey = exactModelContractKey(model);
 
+  if (model.sequence?.alphabet === 'nucleotide') {
+    const dnaLane = admission.dnaLane || {};
+    if (dnaLane.privacy !== 'qualified') reasons.push('DNA promotion requires qualified privacy admission');
+    if (dnaLane.referenceCoordinates !== 'qualified') reasons.push('DNA promotion requires qualified reference-coordinate admission');
+    if (dnaLane.scientificFitness !== 'qualified') reasons.push('DNA promotion requires qualified DNA scientific-fitness admission');
+    if (dnaLane.licensing !== 'approved') reasons.push('DNA promotion requires approved licensing admission');
+    if (dnaLane.productUse !== 'admitted') reasons.push('DNA promotion requires admitted product use');
+    if (dnaLane.privacy === 'qualified' && !dnaLane.privacyReceipt) {
+      reasons.push('DNA promotion requires a persisted privacy admission receipt');
+    }
+    if (dnaLane.referenceCoordinates === 'qualified' && !dnaLane.referenceCoordinateReceipt) {
+      reasons.push('DNA promotion requires a persisted reference-coordinate admission receipt');
+    }
+    if (dnaLane.scientificFitness === 'qualified' && !dnaLane.scientificFitnessReceipt) {
+      reasons.push('DNA promotion requires a persisted DNA scientific-fitness admission receipt');
+    }
+  }
+
   if (admission.browserWebGpu === 'qualified') {
     if (!browserQualificationRecord) {
       reasons.push('qualified browser admission is missing its persisted qualification record');
