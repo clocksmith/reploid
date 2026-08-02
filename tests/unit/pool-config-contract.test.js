@@ -62,6 +62,31 @@ describe('Poolday configuration contract', () => {
     });
   });
 
+  it('requires independent privacy, reference-coordinate, scientific, licensing, and product-use gates for DNA promotion', () => {
+    const invalid = structuredClone(poolConfig);
+    const nucleotide = invalid.modelCatalog.find((model) => (
+      model.modelId === 'nucleotide-transformer-v2-50m-f32-af32'
+    ));
+    nucleotide.enabled = true;
+    nucleotide.license.admission = 'approved';
+    nucleotide.license.productUse = 'admitted';
+    nucleotide.admission.browserWebGpu = 'qualified';
+    nucleotide.admission.browserQualificationReceipt = 'docs/status/nucleotide-browser-qualification.json';
+    nucleotide.admission.scientificFitness = 'qualified';
+    nucleotide.admission.scientificFitnessReceipt = 'docs/status/nucleotide-scientific-fitness.json';
+
+    expect(validatePoolConfigValue(invalid)).toMatchObject({
+      ok: false,
+      reasons: expect.arrayContaining([
+        expect.stringContaining('.admission.dnaLane.privacy must be qualified before enabling a DNA model'),
+        expect.stringContaining('.admission.dnaLane.referenceCoordinates must be qualified before enabling a DNA model'),
+        expect.stringContaining('.admission.dnaLane.scientificFitness must be qualified before enabling a DNA model'),
+        expect.stringContaining('.admission.dnaLane.licensing must be approved before enabling a DNA model'),
+        expect.stringContaining('.admission.dnaLane.productUse must be admitted before enabling a DNA model')
+      ])
+    });
+  });
+
   it('requires a persisted browser-qualification receipt before a qualified browser lane can be enabled', () => {
     const invalid = structuredClone(poolConfig);
     const amplify = invalid.modelCatalog.find((model) => model.modelId === 'amplify-120m-f16-af32');

@@ -1483,7 +1483,13 @@
         "nodeQualificationReceipt": "docs/status/nucleotide-transformer-v2-50m-sequence-hosted-webgpu-lora-qualification-2026-07-19.json",
         "browserWebGpu": "missing",
         "scientificFitness": "missing",
-        "privacyReferenceAndLicenseGate": "required",
+        "dnaLane": {
+          "privacy": "required",
+          "referenceCoordinates": "required",
+          "scientificFitness": "missing",
+          "licensing": "pending_noncommercial_product_decision",
+          "productUse": "not_yet_admitted"
+        },
         "claimBoundary": "DNA embeddings do not establish regulation, pathogenicity, or function."
       },
       "label": "Nucleotide Transformer v2 50M (DNA candidate)",

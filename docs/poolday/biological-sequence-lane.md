@@ -4,8 +4,10 @@ Poolday carries governed protein-sequence assignments to one selected browser
 provider, executes them through Doppler, and returns signed result receipts.
 ESM-2 35M is the only enabled Poolday model. Its catalog entry pins the hosted
 RDRR manifest, tokenizer, shard identity, source revision, protein-sequence
-capabilities, and Doppler browser execution mode. Text, generic embedding,
-vision, DNA, and RNA models are not admitted by Poolday.
+capabilities, and Doppler browser execution mode. Nucleotide Transformer is a
+disabled, separately governed future DNA candidate; it is not admitted to the
+protein lane. Text, generic embedding, vision, and RNA models are not admitted
+by Poolday.
 
 ## Target models
 
@@ -99,11 +101,20 @@ A target becomes an enabled Poolday model only after all of these exist:
 - a published Doppler release containing `encodeSequence()` and the required
   conversion/runtime support;
 - exact output parity receipts on the hosted bytes;
-- a browser load and inference receipt on a supported WebGPU device;
+- persisted clean-release authentic-browser evidence proving immutable delivery,
+  complete hash verification, WebGPU execution, OPFS recovery, receipt
+  integrity, cancellation/stale-result handling, corruption rejection,
+  interruption recovery, and independent reproduction;
+- frozen, adjudicated, family-disjoint scientific-fitness evidence against the
+  enabled ESM-2 baseline, within the model's declared claim boundary;
 - a Poolday catalog entry with matching hashes and sequence capabilities;
 - peer-room execution, receipt verification, and corruption tests against that
   exact catalog entry.
 
-ESM-2 35M meets this gate for the public protein pooled-embedding path. AMPLIFY
-and ESMC remain Doppler-qualified candidates, not deployable Poolday models.
-No protein AdapterPack is published.
+ESM-2 35M is enabled as the frozen protein baseline but still requires its
+persisted clean-release browser and baseline scientific-fitness evidence before
+those gates can be claimed complete. AMPLIFY and ESMC remain disabled
+Doppler-qualified candidates, not deployable Poolday models. Nucleotide
+Transformer additionally requires independent DNA privacy, reference-coordinate,
+scientific-fitness, licensing, and product-use admission. No protein AdapterPack
+is published.

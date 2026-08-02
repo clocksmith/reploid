@@ -13,6 +13,7 @@ import { SCIENTIFIC_FITNESS_SCHEMA, buildScientificFitnessPlan } from '../../sel
 const fakeHash = (character) => `sha256:${character.repeat(64)}`;
 const candidate = getPoolModelContract('amplify-120m-f16-af32');
 const baseline = getPoolModelContract('esm2-t12-35m-ur50d-f32-af32');
+const nucleotide = getPoolModelContract('nucleotide-transformer-v2-50m-f32-af32');
 const candidateKey = exactModelContractKey(candidate);
 const baselineKey = exactModelContractKey(baseline);
 const browserCheckEvidence = (check, record) => buildBrowserQualificationCheckEvidence(record, {
@@ -113,6 +114,31 @@ describe('Poolday persisted model-promotion evidence', () => {
       reasons: expect.arrayContaining([
         'qualified browser admission is missing its persisted qualification record',
         'scientific fitness must include the enabled ESM-2 baseline contract'
+      ])
+    });
+  });
+
+  it('rejects direct DNA promotion until every independent DNA-lane gate is qualified', () => {
+    const model = {
+      ...nucleotide,
+      admission: {
+        ...nucleotide.admission,
+        browserWebGpu: 'qualified',
+        scientificFitness: 'qualified'
+      }
+    };
+    expect(validateModelPromotionEvidence({
+      model,
+      modelCatalog: MODEL_CATALOG,
+      launchModel: baseline
+    })).toMatchObject({
+      ok: false,
+      reasons: expect.arrayContaining([
+        'DNA promotion requires qualified privacy admission',
+        'DNA promotion requires qualified reference-coordinate admission',
+        'DNA promotion requires qualified DNA scientific-fitness admission',
+        'DNA promotion requires approved licensing admission',
+        'DNA promotion requires admitted product use'
       ])
     });
   });
