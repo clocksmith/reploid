@@ -353,6 +353,9 @@ const runActualSequence = async (page, sequence, policyId = 'fastest_receipt') =
   if (!(await publicSequence.isChecked())) await publicSequence.check();
   const publicEvidence = page.locator('#pool-run-research-public');
   if (!(await publicEvidence.isChecked())) await publicEvidence.check();
+  await page.locator('#pool-run-intent-kind').selectOption('question');
+  await page.locator('#pool-run-intent-label').fill('Public ESM-2 qualification sequence');
+  await page.locator('#pool-run-intent-text').fill('Produce receipt-backed embedding evidence for the declared public protein sequence.');
   await page.locator('#pool-run-prompt').fill(sequence);
   await page.locator('#pool-run-submit').click();
   try {
