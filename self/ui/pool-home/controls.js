@@ -1261,12 +1261,6 @@ const bindPeerRunSurface = ({
       error.action = 'Check the public-sequence confirmation, then run again.';
       throw error;
     }
-    if (lane === 'sequence' && researchPublicControl && researchPublicControl.checked !== true) {
-      const error = new Error('Consent to the public evidence-network record before submitting this research input');
-      error.code = 'research_publication_consent_required';
-      error.action = 'Check the public evidence-network consent, then run again.';
-      throw error;
-    }
     if (lane === 'sequence') {
       writeSequencePublicConsent();
       syncSequencePublicConsent(sequencePublicControl);
