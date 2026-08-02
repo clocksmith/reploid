@@ -1127,7 +1127,7 @@
         "nodeWebGpu": "qualified",
         "browserWebGpu": "enabled_release_receipt_required",
         "browserJourney": "tests/e2e/p2p-actual-inference.spec.js",
-        "scientificFitness": "pooled_similarity_baseline",
+        "scientificFitness": "baseline_release_receipt_required",
         "claimBoundary": "Embedding execution and reproducibility do not establish biological function."
       },
       "label": "ESM-2 35M (Protein)",

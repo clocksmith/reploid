@@ -3717,7 +3717,8 @@
         }
       ],
       "files": [
-        "pool/evidence-network.js"
+        "pool/evidence-network.js",
+        "pool/model-evidence-view.js"
       ]
     },
     {
@@ -3761,6 +3762,48 @@
       ],
       "files": [
         "pool/rtc-config.js"
+      ]
+    },
+    {
+      "id": "0x00016f",
+      "name": "pool-browser-qualification",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x00016f",
+          "path": "blueprints/0x00016f-pool-browser-qualification.md"
+        }
+      ],
+      "files": [
+        "pool/browser-qualification.js"
+      ]
+    },
+    {
+      "id": "0x000170",
+      "name": "pool-scientific-fitness",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x000170",
+          "path": "blueprints/0x000170-pool-scientific-fitness.md"
+        }
+      ],
+      "files": [
+        "pool/scientific-fitness.js"
+      ]
+    },
+    {
+      "id": "0x000171",
+      "name": "pool-model-promotion",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x000171",
+          "path": "blueprints/0x000171-pool-model-promotion.md"
+        }
+      ],
+      "files": [
+        "pool/model-promotion.js"
       ]
     }
   ]

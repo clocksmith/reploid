@@ -5,7 +5,9 @@ import { BROWSER_RUNTIME_CONFIG as SERVER_BROWSER_RUNTIME_CONFIG } from '../../s
 import { getPolicy, validateJobRequest } from '../../server/pool/policy-router.js';
 import {
   LAUNCH_MODEL as SERVER_LAUNCH_MODEL,
-  getEnabledPoolModelContract as getServerEnabledPoolModelContract
+  exactModelContractKey as exactServerModelContractKey,
+  getEnabledPoolModelContract as getServerEnabledPoolModelContract,
+  validateLaunchModelRequirement as validateServerLaunchModelRequirement
 } from '../../server/pool/model-contract.js';
 import {
   BROWSER_RUNTIME_CONFIG as BROWSER_BROWSER_RUNTIME_CONFIG,
@@ -17,7 +19,9 @@ import {
   POOLDAY_MODEL_WORKLOADS,
   buildLaunchModelArtifactUrls,
   buildLaunchModelRequirements,
+  exactModelContractKey,
   getEnabledPoolModelContract as getBrowserEnabledPoolModelContract,
+  getPoolModelContract,
   listPoolModels,
   validateLaunchModelRequirement,
   validateModelRuntimeCapabilities
@@ -29,6 +33,9 @@ import {
 } from '../../self/config/doppler-local-models.js';
 
 const PROTEIN_MODEL_ID = 'esm2-t12-35m-ur50d-f32-af32';
+const AMPLIFY_MODEL_ID = 'amplify-120m-f16-af32';
+const ESMC_MODEL_ID = 'esmc-300m-f32-af32';
+const NUCLEOTIDE_MODEL_ID = 'nucleotide-transformer-v2-50m-f32-af32';
 const RETIRED_TEXT_MODEL_ID = 'qwen-3-5-0-8b-q4k-ehaf16';
 const deploymentEnv = JSON.parse(readFileSync('deploy/env.production.json', 'utf8'));
 const cloudRunService = readFileSync('deploy/cloud-run-service.yaml', 'utf8');
@@ -43,11 +50,14 @@ const proteinRequirements = () => buildLaunchModelRequirements({
     disclosure: 'selected_providers_only',
     sensitivity: 'public',
     includeTokenEmbeddings: false,
-    includeLogits: false
+    includeLogits: false,
+    coordinateSystem: 'zero_based_sequence_index',
+    sequenceIndices: [],
+    tokenIndices: []
   }
 });
 
-describe('Poolday protein-only contract', () => {
+describe('Poolday protein-first sequence model contract', () => {
   it('selects ESM-2 as the browser and server launch model', () => {
     expect(SERVER_LAUNCH_MODEL.modelId).toBe(PROTEIN_MODEL_ID);
     expect(BROWSER_LAUNCH_MODEL).toEqual(SERVER_LAUNCH_MODEL);
@@ -59,14 +69,39 @@ describe('Poolday protein-only contract', () => {
     });
   });
 
-  it('exposes only the enabled protein model to browser and server consumers', () => {
+  it('uses the same exact-model identity and requirement decision in both environments', () => {
+    const requirements = proteinRequirements();
+    expect(exactServerModelContractKey(SERVER_LAUNCH_MODEL)).toBe(exactModelContractKey(BROWSER_LAUNCH_MODEL));
+    expect(validateServerLaunchModelRequirement(requirements)).toEqual(
+      validateLaunchModelRequirement(requirements)
+    );
+  });
+
+  it('exposes only ESM-2 for execution while retaining four isolated declared model contracts', () => {
     const browserModel = getBrowserEnabledPoolModelContract(PROTEIN_MODEL_ID);
     const serverModel = getServerEnabledPoolModelContract(PROTEIN_MODEL_ID);
     expect(browserModel).toEqual(serverModel);
     expect(listPoolModels({ enabledOnly: true })).toEqual([browserModel]);
     expect(getBrowserEnabledPoolModelContract(RETIRED_TEXT_MODEL_ID)).toBeNull();
     expect(getServerEnabledPoolModelContract(RETIRED_TEXT_MODEL_ID)).toBeNull();
-    expect(listPoolModels()).toEqual([browserModel]);
+    expect(listPoolModels().map((model) => model.modelId)).toEqual([
+      PROTEIN_MODEL_ID,
+      AMPLIFY_MODEL_ID,
+      ESMC_MODEL_ID,
+      NUCLEOTIDE_MODEL_ID
+    ]);
+    expect(listPoolModels().filter((model) => model.enabled !== false)).toEqual([browserModel]);
+  });
+
+  it('keeps every model in its own exact-contract coordinate system', () => {
+    const models = listPoolModels();
+    const keys = models.map((model) => exactModelContractKey(model));
+
+    expect(new Set(keys).size).toBe(models.length);
+    expect(keys.every((key) => key.split('|').length === 14)).toBe(true);
+    expect(exactModelContractKey(getPoolModelContract(AMPLIFY_MODEL_ID))).not.toBe(
+      exactModelContractKey(getPoolModelContract(ESMC_MODEL_ID))
+    );
   });
 
   it('accepts exact public protein peer requirements', () => {
@@ -88,6 +123,23 @@ describe('Poolday protein-only contract', () => {
       ...requirements,
       workload: 'text_generation'
     }).ok).toBe(false);
+  });
+
+  it('rejects fully identified candidate models until their independent promotion gates pass', () => {
+    const candidate = getPoolModelContract(AMPLIFY_MODEL_ID);
+    const requirements = proteinRequirements();
+    expect(validateLaunchModelRequirement({
+      ...requirements,
+      modelId: candidate.modelId,
+      modelHash: candidate.modelHash,
+      manifestHash: candidate.manifestHash,
+      tokenizerHash: candidate.tokenizerHash,
+      runtime: candidate.runtime,
+      backend: candidate.backend
+    })).toMatchObject({
+      ok: false,
+      reasons: expect.arrayContaining(['model requirements do not match an enabled model contract'])
+    });
   });
 
   it('keeps sequence work out of the coordinator prompt route', () => {

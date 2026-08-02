@@ -11,21 +11,27 @@ tiers, routes, and transport requirements remain owned by
 
 ## Product goal
 
-Reploid's goal is to become a proof-carrying, self-improving active-science
-network that minimizes the computations and real-world experiments required to
-turn an uncertain question into an independently reproduced discovery.
+Reploid's goal is to become a proof-carrying, continuously improving
+protein-model network. It helps researchers resolve bounded public-protein
+questions with less duplicated computation, more useful disagreement, and
+stronger independent reproduction. It is not a generic science platform, a
+distributed model demonstration, or a system that mistakes authenticated
+execution for biological truth.
 
-The product promise is:
+A researcher begins with an explicitly public protein sequence and a bounded
+question. The target discovery object preserves:
 
-```text
-Bring Reploid an uncertain problem. Leave with the most informative next action,
-and leave the network better at solving the next problem
-```
+1. Verified, independently reproducible model outputs.
+2. Model-specific similarity and residue evidence.
+3. Agreement, disagreement, and stated uncertainty across qualified evidence.
+4. The most informative justified next computation, review, bounded mutation
+   set, or experiment.
+5. A durable record of what succeeded, failed, remained ambiguous, contradicted
+   earlier evidence, or changed the conclusion.
 
-Poolday maintains a governed account of competing hypotheses, uncertainty,
-supporting and contradictory evidence, unresolved experimental choices, and
-replication state. It routes the computation, review, replication, or experiment
-expected to improve that state most efficiently.
+Poolday maintains a governed account of this evidence. It may propose a next
+action, but it does not assert that a proposal is biologically correct or that
+an experiment has been performed or validated.
 
 "Proof-carrying" means that a decision carries inspectable signatures,
 provenance, contracts, protocols, outcomes, independence evidence, and measured
@@ -37,7 +43,7 @@ hardware-attested execution, or guaranteed scientific correctness.
 The governing objective is:
 
 ```text
-maximize verified uncertainty reduction per unit of scarce scientific cost
+reduce the verified cost of resolving protein uncertainty
 ```
 
 Scientific cost can include browser compute, money, researcher time, laboratory
@@ -45,23 +51,25 @@ work, instrument access, samples, and elapsed time. Poolday must preserve the
 components instead of collapsing incomparable costs into an unexplained score.
 
 Network activity is not the objective. Peer count, jobs, receipts, records,
-claims, and total compute remain operational measures. A contribution improves
-the network only when later evidence shows that it reduces uncertainty, avoids
-duplicated work, improves action selection, detects failure earlier, or survives
-independent replication.
+model count, and total compute remain operational measures. A contribution
+improves the network only when later evidence shows fewer unnecessary
+computations or experiments, earlier disagreement detection, better retrieval,
+more informative residue selection, less repeated failed work, or stronger
+independent reproduction.
 
 ## Product outcome
 
-The target product journey begins when a person or agent submits a bounded
-uncertain question with explicit intent and consent. Poolday creates or extends a signed
-[Discovery Contract](./discovery-contract.md). The contract represents competing
-hypotheses, current evidence, uncertainty, candidate next actions, predicted
-observations, falsifiers, action value, and replication or closure criteria.
+The target product journey begins when a researcher submits a bounded question
+about an explicitly public protein sequence with explicit intent and consent.
+Poolday creates or extends a signed [Discovery Contract](./discovery-contract.md).
+The contract represents competing hypotheses, exact model evidence, current
+uncertainty, candidate next actions, predicted observations, falsifiers, action
+value, and replication or closure criteria.
 
-Distributed models, opted-in browser providers, reviewers, and participating
-laboratories can contribute candidate epistemic updates. Each update remains an
-attributable claim. Poolday admits it into the governed state only under the
-declared provenance, independence, review, and evaluation policy.
+Qualified model contracts, opted-in browser providers, reviewers, and
+participating laboratories can contribute candidate epistemic updates. Each
+update remains an attributable claim. Poolday admits it into the governed state
+only under the declared provenance, independence, review, and evaluation policy.
 
 The immediate supported value remains:
 
@@ -78,6 +86,58 @@ receipt-backed, audit-backed, reputation-backed, policy-controlled browser infer
 The receipt is evidence about an assignment and its declared execution
 artifacts. It is not proof of honest browser code or hardware-attested GPU
 execution.
+
+## Deliberately separate model ensemble
+
+The four-model plan has separate roles and separate promotion authority.
+
+| Model | Role | Current state |
+| --- | --- | --- |
+| ESM-2 35M | Fast protein similarity, retrieval, and clustering baseline. | Enabled baseline only. |
+| AMPLIFY 120M | Independent protein representation and bounded masked-residue proposals. Its logits mean model-specific residue plausibility, not mutation fitness. | Disabled pending qualification and scientific value evidence. |
+| ESMC 300M | Larger independent representation for retrieval, residue localization, and useful disagreement with ESM-2. | Disabled pending browser memory and incremental-value evidence. |
+| Nucleotide Transformer v2 50M | Separately governed later DNA lane. | Disabled pending privacy, reference-coordinate, scientific-fitness, licensing, and product-use gates. |
+
+Models do not work together by averaging vectors. Each exact model contract owns
+its own representation index because its vectors occupy a distinct coordinate
+system. Poolday joins evidence only through durable identities: sequence and
+question hashes; exact checkpoint, weights, tokenizer, manifest, conversion,
+runtime, and execution identities; protein residue or DNA coordinates;
+hypotheses and predicted observations; reviews; outcomes; corrections; and
+replications.
+
+Every model contract freezes the checkpoint revision, conversion digest,
+manifest and artifact hashes, tokenizer identity, shard set, alphabet,
+normalization, ambiguity policy, sequence limits, dimensions, pooling, output
+capabilities, dtype lane, WebGPU requirements, execution graph, runtime
+version, license, and claim boundary. Any identity mismatch blocks comparison,
+routing, receipt acceptance, evidence publication, and promotion.
+
+## Model promotion boundary
+
+Promotion is independent and fail-closed. Node WebGPU conversion, loading, or
+numerical parity does not qualify a model for Poolday. Authentic browser
+qualification must bind immutable hosted artifacts, complete hash verification,
+WebGPU execution, OPFS persistence and restoration, receipt integrity,
+cancellation, stale-result rejection, corruption handling, interruption
+recovery, and independent reproduction to the release source, model bytes,
+runtime, browser, GPU, policy, and output.
+
+Technical qualification alone is insufficient. Each model also needs frozen,
+adjudicated, family-disjoint scientific evaluation. AMPLIFY must demonstrate
+useful residue-plausibility evidence without fitness claims. ESMC must show
+incremental decision value or useful disagreement beyond ESM-2. Nucleotide
+Transformer must pass its own DNA evaluation and cannot inherit protein-model
+authority.
+
+The promotion order is:
+
+1. Re-establish ESM-2 as the frozen baseline with persisted clean-release
+   browser evidence.
+2. Admit AMPLIFY only after browser execution and bounded residue evidence pass.
+3. Admit ESMC only after memory behavior and incremental value pass.
+4. Consider Nucleotide Transformer only through its independent DNA and
+   licensing gate.
 
 ## The Discovery Contract
 
@@ -157,9 +217,13 @@ validity, or final contract acceptance.
 - The configured launch model is the enabled ESM-2 35M protein-sequence model.
   The exact model, manifest, tokenizer, artifact, workload, and runtime identity
   come from `pool-config.json`.
-- Public Poolday sequence work accepts only explicitly public protein sequences.
-  It returns model outputs and evidence, not biological or medical
-  interpretation.
+- AMPLIFY, ESMC, and Nucleotide Transformer have disabled exact contracts. Their
+  catalog presence is not execution, browser qualification, scientific-fitness
+  evidence, licensing approval, or permission to select them.
+- Public Poolday execution currently accepts only explicitly public protein
+  sequences for ESM-2. The separately governed DNA contract does not make DNA
+  execution a current product capability. Poolday returns model outputs and
+  evidence, not biological, medical, or fitness interpretation.
 - Each selected provider loads and executes the complete model. Poolday does
   not claim tensor, layer, attention, or KV-cache sharding.
 - The public protein collection supports exact-contract flat similarity,
@@ -220,16 +284,17 @@ receipts, tests, user-visible evidence, revocation path, and rollback path.
 
 ## First product wedge
 
-The first active-science campaign is a federated protein uncertainty map for
-poorly characterized public proteins. It prioritizes cases where exact-contract
-model similarity, public annotation, reviewer judgment, and experimental
-evidence diverge.
+The first product wedge is a protein uncertainty network for poorly
+characterized public proteins. It prioritizes cases where exact-contract model
+similarity, public annotation, reviewer judgment, and experimental evidence
+diverge. It does not claim to determine protein structure, biological function,
+mutation fitness, or experimental truth.
 
 The target loop is:
 
 1. Retrieve compatible sequences, representations, annotations, assays, negative
    results, and contradictions with source and version identity.
-2. Run bounded receipt-backed representations and admitted analyses.
+2. Run bounded receipt-backed representations under one exact model contract.
 3. Construct competing condition-specific hypotheses.
 4. Make model, evidence-source, and reviewer disagreement explicit.
 5. Rank candidate computations, reviews, assays, and replications by expected
@@ -239,24 +304,24 @@ The target loop is:
    condition context.
 8. Update the uncertainty projection without converting evidence into automatic
    truth.
-9. Freeze completed campaigns as held-out evaluations for future routing,
-   models, and scientific policies.
+9. Freeze completed campaigns as held-out, family-disjoint evaluations for
+   future model and scientific-policy promotion.
 
 ## North-star metric
 
 The primary product metric is:
 
 ```text
-median real-world cost required to reach a predeclared, independently replicated
-conclusion, relative to a fixed baseline research policy
+verified cost required to resolve a bounded protein uncertainty relative to a
+fixed baseline research policy
 ```
 
 Before real-world laboratory campaigns are available, software-only evaluation
 uses frozen historical or hidden outcomes. It measures information gained per
-action, actions required to identify the declared functional or fitness region,
-uncertainty calibration, contradiction-resolution cost, duplicate work avoided
-through reusable negative evidence, and prospective performance on unseen
-protein families.
+action, uncertainty calibration, contradiction-resolution cost, duplicate work
+avoided through reusable negative evidence, and prospective performance on
+unseen protein families. It does not treat these evaluation measures as proof of
+biological function or mutation fitness.
 
 ## Authority order
 

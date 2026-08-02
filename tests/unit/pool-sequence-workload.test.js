@@ -92,7 +92,8 @@ const makeRequest = async (sequence, workload = SEQUENCE_WORKLOADS.embedding, ov
   }, {
     workload,
     sequenceHash: await sha256Hex(sequence),
-    sequenceLength: sequence.length
+    sequenceLength: sequence.length,
+    model: sequenceModel
   })
 );
 
@@ -145,9 +146,25 @@ describe('Poolday biological-sequence workload', () => {
     expect(getPoolModelExecutionMode(sequenceModel, SEQUENCE_WORKLOADS.maskedLogits)).toBe(SEQUENCE_EXECUTION_MODE);
   });
 
-  it('rejects non-protein alphabets', () => {
-    expect(() => normalizeSequenceInput(' acgtnry ', 'nucleotide'))
-      .toThrow('Unsupported sequence alphabet: nucleotide');
+  it('normalizes the separate DNA alphabet without admitting unsupported ambiguity symbols', () => {
+    expect(normalizeSequenceInput(' acgtn ', SEQUENCE_ALPHABETS.nucleotide)).toBe('ACGTN');
+    expect(() => normalizeSequenceInput(' acgtnry ', SEQUENCE_ALPHABETS.nucleotide))
+      .toThrow('sequence contains nucleotide symbols outside A, C, G, T, and N');
+  });
+
+  it('returns validation reasons instead of throwing when coordinate fields are missing', async () => {
+    const normalized = await makeRequest('MKTA');
+    const { coordinateSystem: _coordinateSystem, sequenceIndices: _sequenceIndices, tokenIndices: _tokenIndices, ...request } = normalized;
+
+    expect(() => validateSequenceRequest(request, { model: sequenceModel })).not.toThrow();
+    expect(validateSequenceRequest(request, { model: sequenceModel })).toMatchObject({
+      ok: false,
+      reasons: expect.arrayContaining([
+        'sequence coordinate system is not supported',
+        'sequenceIndices must contain at most 64 in-range sequence positions',
+        'tokenIndices must contain at most 64 non-negative model-token positions'
+      ])
+    });
   });
 
   it('rejects arbitrary uppercase text and non-canonical protein symbols', () => {
@@ -213,6 +230,8 @@ describe('Poolday biological-sequence workload', () => {
     const result = await runtime.encodeSequence({ sequence, request, assignment: { assignmentId: 'masked' } });
 
     expect(result.sequenceOutput.maskedLogits).toEqual([{
+      coordinateSystem: 'model_token_index',
+      sequenceIndex: null,
       tokenIndex: 1,
       candidates: [
         { tokenId: 3, score: Math.fround(1.3) },

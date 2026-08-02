@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import {
+  createBroadcastPeerRoomBus,
   createInMemoryPeerRoomBusNetwork,
   createPeerRoomInviteUrl,
   createSdkPeerRoomRelayBus,
@@ -11,6 +12,61 @@ import { createSigningKeyPair, exportPublicKey } from '../../self/pool/inference
 import { createSignedPeerMessage, PEER_MESSAGE_TYPES } from '../../self/pool/peer-protocol.js';
 
 describe('pool peer rendezvous', () => {
+  it('reports bounded local BroadcastChannel delivery counters', async () => {
+    const originalBroadcastChannel = globalThis.BroadcastChannel;
+    const channels = new Map();
+    class TestBroadcastChannel {
+      constructor(name) {
+        this.name = name;
+        this.listeners = new Set();
+        this.closed = false;
+        if (!channels.has(name)) channels.set(name, new Set());
+        channels.get(name).add(this);
+      }
+      addEventListener(type, listener) {
+        if (type === 'message') this.listeners.add(listener);
+      }
+      removeEventListener(type, listener) {
+        if (type === 'message') this.listeners.delete(listener);
+      }
+      postMessage(data) {
+        for (const peer of channels.get(this.name) || []) {
+          if (peer === this || peer.closed) continue;
+          queueMicrotask(() => {
+            for (const listener of peer.listeners) listener({ data });
+          });
+        }
+      }
+      close() {
+        this.closed = true;
+        channels.get(this.name)?.delete(this);
+      }
+    }
+    globalThis.BroadcastChannel = TestBroadcastChannel;
+    try {
+      const left = createBroadcastPeerRoomBus({ roomId: 'local-status-room' });
+      const right = createBroadcastPeerRoomBus({ roomId: 'local-status-room' });
+      const received = [];
+      right.addEventListener('message', (event) => received.push(event.data));
+
+      left.postMessage({ type: 'provider-advert', body: { providerId: 'provider_local' } });
+      await new Promise((resolve) => queueMicrotask(resolve));
+
+      expect(received).toHaveLength(1);
+      expect(left.getStatus()).toMatchObject({
+        relay: 'local_broadcast_channel',
+        published: 1,
+        publishLatencyCount: 1,
+        received: 0
+      });
+      expect(right.getStatus()).toMatchObject({ received: 1, pollFailures: 0, reconnectSuccesses: 0 });
+      left.close();
+      right.close();
+    } finally {
+      globalThis.BroadcastChannel = originalBroadcastChannel;
+    }
+  });
+
   it('extracts peer ids from signed room envelopes', () => {
     expect(peerRoomMessageFromPeerId({
       body: {

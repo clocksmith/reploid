@@ -2,18 +2,30 @@
  * E2E Test: actual browser Doppler inference over the P2P room.
  */
 import { test, expect } from '@playwright/test';
+import { createHash } from 'node:crypto';
 
-import { LAUNCH_MODEL, getEnabledPoolModelContract } from '../../self/pool/model-contract.js';
+import {
+  LAUNCH_MODEL,
+  exactModelContractKey,
+  getEnabledPoolModelContract
+} from '../../self/pool/model-contract.js';
+import {
+  buildBrowserQualificationCheckEvidence,
+  buildBrowserQualificationObservation,
+  recordBrowserQualificationCheck
+} from '../../self/pool/browser-qualification.js';
 
 const BASE_URL = 'http://localhost:8000';
 const ACTUAL_INFERENCE_TIMEOUT_MS = 300000;
 const RELAY_MODE = process.env.REPLOID_E2E_RELAY_MODE === 'server' ? 'server' : 'local';
 const RELAY_LABEL = RELAY_MODE === 'server' ? 'server relay' : 'local tab';
 const FORCE_TURN = process.env.REPLOID_E2E_FORCE_TURN === '1';
+const STRICT_ARTIFACT_PREFLIGHT = process.env.REPLOID_E2E_STRICT_ARTIFACT_PREFLIGHT === '1';
 const rawSha256 = (value) => String(value || '').replace(/^sha256:/, '');
 const SEQUENCE_MODEL = getEnabledPoolModelContract('esm2-t12-35m-ur50d-f32-af32');
 const PUBLIC_PROTEIN_SEQUENCE = 'MKTAYIAKQRQISFVKSHFSRQ';
 const SECOND_PUBLIC_PROTEIN_SEQUENCE = 'ACDEFGHIKLMNPQRSTVWY';
+const browserQualificationHash = (value) => `sha256:${createHash('sha256').update(JSON.stringify(value)).digest('hex')}`;
 
 const roomIdFor = (testInfo) => (
   `actual-inference-${testInfo.workerIndex}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`
@@ -27,13 +39,13 @@ const routeUrl = (baseURL, route, roomId) => {
 };
 
 const installActualRuntimeConfig = async (context) => {
-  await context.addInitScript((forceTurn) => {
+  await context.addInitScript(({ forceTurn, strictArtifactPreflight }) => {
     window.REPLOID_POOL_DISCOVERY_WINDOW_MS = 30000;
     window.REPLOID_POOL_RECEIPT_WINDOW_MS = 300000;
     window.REPLOID_POOL_MAX_OUTPUT_TOKENS = 2;
-    window.REPLOID_POOL_STRICT_ARTIFACT_PREFLIGHT = false;
+    window.REPLOID_POOL_STRICT_ARTIFACT_PREFLIGHT = strictArtifactPreflight;
     window.REPLOID_POOL_FORCE_RELAY = forceTurn;
-  }, FORCE_TURN);
+  }, { forceTurn: FORCE_TURN, strictArtifactPreflight: STRICT_ARTIFACT_PREFLIGHT });
 };
 
 const createInferenceNodeContexts = async (browser) => {
@@ -179,6 +191,83 @@ const attachRelayReceipt = async (testInfo, lane, roomId, result = {}) => {
   });
 };
 
+const attachIncompleteBrowserQualificationObservation = async (testInfo, {
+  model,
+  providerPage,
+  artifactRequests,
+  firstProvider,
+  restoredProvider,
+  result
+} = {}) => {
+  const browserIdentity = await providerPage?.evaluate(() => navigator.userAgent).catch(() => null)
+    || process.env.REPLOID_BROWSER_QUALIFICATION_BROWSER
+    || 'unrecorded-browser';
+  const gpuIdentity = firstProvider?.capabilityProfile?.deviceInfo?.adapterInfo
+    || firstProvider?.runtime?.device?.adapterInfo
+    || firstProvider?.runtime?.profile?.device?.adapterInfo
+    || 'unrecorded-gpu';
+  const policyHash = result?.assignment?.policyConfigHash || result?.assignment?.generationConfigHash || null;
+  let observation = buildBrowserQualificationObservation({
+    model,
+    exactModelContractKey: exactModelContractKey(model),
+    release: {
+      sourceRevision: process.env.REPLOID_BROWSER_QUALIFICATION_SOURCE_REVISION || null,
+      sourceTreeHash: process.env.REPLOID_BROWSER_QUALIFICATION_SOURCE_TREE_HASH || null,
+      browserBundleHash: process.env.REPLOID_BROWSER_QUALIFICATION_BUNDLE_HASH || null
+    },
+    browser: {
+      family: 'Chromium',
+      version: String(process.env.REPLOID_BROWSER_QUALIFICATION_BROWSER_VERSION || 'unrecorded'),
+      userAgentHash: browserQualificationHash(browserIdentity)
+    },
+    gpu: { adapterIdentity: typeof gpuIdentity === 'string' ? gpuIdentity : JSON.stringify(gpuIdentity) },
+    policyHash,
+    outputHash: result?.sequenceResultHash || null,
+    receiptHash: result?.receiptHash || null,
+    artifacts: {
+      manifestHash: model.manifestHash,
+      tokenizerHash: model.tokenizerHash,
+      shardSetHash: model.artifactIdentity?.shardSetHash || null
+    },
+    independentReproductions: []
+  });
+  const artifactEvidenceHash = browserQualificationHash({
+    modelId: model.modelId,
+    manifestHash: model.manifestHash,
+    tokenizerHash: model.tokenizerHash,
+    shardSetHash: model.artifactIdentity?.shardSetHash || null,
+    artifactRequests
+  });
+  const recordCheck = (check, passed, facts) => {
+    if (!passed) return;
+    observation = recordBrowserQualificationCheck(observation, {
+      check,
+      status: 'passed',
+      evidence: buildBrowserQualificationCheckEvidence(observation, {
+        check,
+        browserRunId: `${testInfo.project.name}:${testInfo.workerIndex}:${testInfo.testId}`,
+        observedAt: new Date().toISOString(),
+        resultHash: browserQualificationHash(facts),
+        artifactHash: artifactEvidenceHash
+      })
+    });
+  };
+  recordCheck('immutableArtifactDelivery', artifactRequests.some((url) => url.startsWith(String(model.loadInput?.url || '').replace(/\/+$/, '') + '/')), artifactRequests);
+  recordCheck('completeHashVerification', STRICT_ARTIFACT_PREFLIGHT === true, firstProvider?.runtime?.persistentCache || null);
+  recordCheck('webGpuExecution', firstProvider?.capabilityProfile?.deviceInfo?.hasWebGPU === true, firstProvider?.capabilityProfile?.deviceInfo || null);
+  recordCheck('opfsPersistence', firstProvider?.runtime?.persistentCache?.backend === 'opfs', firstProvider?.runtime?.persistentCache || null);
+  recordCheck('opfsRestoration', restoredProvider?.runtime?.persistentCache?.fromCache === true, restoredProvider?.runtime?.persistentCache || null);
+  recordCheck('receiptIntegrity', result?.agreement?.accepted === true && result?.requesterAcceptance?.accepted === true, {
+    receiptHash: result?.receiptHash,
+    agreement: result?.agreement,
+    requesterAcceptance: result?.requesterAcceptance
+  });
+  await testInfo.attach('poolday-browser-qualification-observation.incomplete.json', {
+    body: Buffer.from(JSON.stringify(observation, null, 2)),
+    contentType: 'application/json'
+  });
+};
+
 const expectForcedTurnTransport = (result) => {
   if (!FORCE_TURN) return;
   expect(result.transportDiagnostics?.length || 0).toBeGreaterThan(0);
@@ -262,6 +351,8 @@ const runActualSequence = async (page, sequence, policyId = 'fastest_receipt') =
   }
   const publicSequence = page.locator('#pool-run-sequence-public');
   if (!(await publicSequence.isChecked())) await publicSequence.check();
+  const publicEvidence = page.locator('#pool-run-research-public');
+  if (!(await publicEvidence.isChecked())) await publicEvidence.check();
   await page.locator('#pool-run-prompt').fill(sequence);
   await page.locator('#pool-run-submit').click();
   try {
@@ -319,6 +410,8 @@ test.describe('Run and Contribute actual browser inference', () => {
       expect(result.receiptPayloads).toHaveLength(1);
       expect(result.agreement.accepted).toBe(true);
       expect(result.requesterAcceptance?.accepted).toBe(true);
+      expect(result.researchSubmissionHash).toMatch(/^sha256:/);
+      expect(result.researchResultHash).toMatch(/^sha256:/);
       expect(result.requesterAcceptance?.requesterSignature).toBeTruthy();
       expect(result.requesterAcceptance?.requesterId).not.toBe(result.assignment?.providerId);
       await expect(runPage.locator('#pool-run-result-embedding-outcome')).toBeVisible();
@@ -346,6 +439,14 @@ test.describe('Run and Contribute actual browser inference', () => {
       });
       expect(restoredProvider.runtime?.persistentCache?.manifestHash).toBe(rawSha256(LAUNCH_MODEL.manifestHash));
       expect(shardRequestsAfterReload).toBe(0);
+      await attachIncompleteBrowserQualificationObservation(testInfo, {
+        model: LAUNCH_MODEL,
+        providerPage,
+        artifactRequests: initialArtifactRequests,
+        firstProvider,
+        restoredProvider,
+        result
+      });
     } finally {
       await nodes.close();
     }
@@ -369,6 +470,7 @@ test.describe('Run and Contribute actual browser inference', () => {
       await expect(requesterPage.locator('#pool-home-request-model')).toHaveValue(SEQUENCE_MODEL.modelId);
       await requesterPage.locator('#pool-home-ask-prompt').fill(PUBLIC_PROTEIN_SEQUENCE);
       await requesterPage.locator('#pool-home-sequence-public').check();
+      await requesterPage.locator('#pool-home-research-public').check();
       await requesterPage.locator('#pool-home-run-submit').click();
 
       try {
@@ -403,6 +505,8 @@ test.describe('Run and Contribute actual browser inference', () => {
       expect(result.requesterAcceptance?.requesterId).not.toBe(result.assignment?.providerId);
       expect(result.requesterAcceptance?.accepted).toBe(true);
       expect(result.requesterAcceptance?.requesterSignature).toBeTruthy();
+      expect(result.researchSubmissionHash).toMatch(/^sha256:/);
+      expect(result.researchResultHash).toMatch(/^sha256:/);
       await attachRelayReceipt(testInfo, 'protein', roomId, result);
     } finally {
       await nodes.close();
@@ -433,6 +537,8 @@ test.describe('Run and Contribute actual browser inference', () => {
         expect(result.receiptRecord?.receipt?.model?.id || result.receiptRecord?.receipt?.model?.modelId).toBe(LAUNCH_MODEL.modelId);
         expect(result.receiptPayloads).toHaveLength(1);
         expect(result.agreement.accepted).toBe(true);
+        expect(result.researchSubmissionHash).toMatch(/^sha256:/);
+        expect(result.researchResultHash).toMatch(/^sha256:/);
       }
       expect(first.assignment.providerId).toBe(second.assignment.providerId);
       expect(first.receiptHash).not.toBe(second.receiptHash);

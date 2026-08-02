@@ -56,7 +56,75 @@ export function createBroadcastPeerRoomBus({ roomId } = {}) {
   if (typeof globalThis.BroadcastChannel !== 'function') {
     throw new Error('BroadcastChannel is required for local peer room bootstrap');
   }
-  return new globalThis.BroadcastChannel(roomChannelName(resolvedRoomId));
+  const channel = new globalThis.BroadcastChannel(roomChannelName(resolvedRoomId));
+  const listeners = new Set();
+  const counters = {
+    published: 0,
+    publishRetries: 0,
+    publishFailures: 0,
+    received: 0,
+    duplicateSuppressed: 0,
+    acknowledgements: 0,
+    acknowledgementExpired: 0,
+    pollFailures: 0,
+    dispatchFailures: 0,
+    publishLatencyCount: 0,
+    publishLatencyTotalMs: 0,
+    publishLatencyMaxMs: 0,
+    deliveryLagCount: 0,
+    deliveryLagTotalMs: 0,
+    deliveryLagMaxMs: 0,
+    backlogSampleCount: 0,
+    backlogOldestAgeTotalMs: 0,
+    backlogOldestAgeMaxMs: 0,
+    lastBacklogOldestAgeMs: 0,
+    acknowledgementLatencyCount: 0,
+    acknowledgementLatencyTotalMs: 0,
+    acknowledgementLatencyMaxMs: 0,
+    reconnectSuccesses: 0
+  };
+  let closed = false;
+  const dispatch = (event) => {
+    counters.received += 1;
+    for (const listener of listeners) listener(event);
+  };
+  channel.addEventListener('message', dispatch);
+  return Object.freeze({
+    addEventListener(type, listener) {
+      if (type === 'message' && typeof listener === 'function') listeners.add(listener);
+    },
+    removeEventListener(type, listener) {
+      if (type === 'message') listeners.delete(listener);
+    },
+    postMessage(data) {
+      if (closed) throw new Error('local peer-room bus is closed');
+      const startedAt = Date.now();
+      channel.postMessage(data);
+      const elapsed = Math.max(0, Date.now() - startedAt);
+      counters.published += 1;
+      counters.publishLatencyCount += 1;
+      counters.publishLatencyTotalMs += elapsed;
+      counters.publishLatencyMaxMs = Math.max(counters.publishLatencyMaxMs, elapsed);
+    },
+    getStatus() {
+      return Object.freeze({
+        roomId: resolvedRoomId,
+        relay: 'local_broadcast_channel',
+        circuitState: closed ? 'closed' : 'local',
+        consecutivePollFailures: 0,
+        consecutiveDispatchFailures: 0,
+        lastPollRetryAfterMs: 0,
+        ...counters
+      });
+    },
+    close() {
+      if (closed) return;
+      closed = true;
+      channel.removeEventListener('message', dispatch);
+      listeners.clear();
+      channel.close();
+    }
+  });
 }
 
 export function createInMemoryPeerRoomBusNetwork() {

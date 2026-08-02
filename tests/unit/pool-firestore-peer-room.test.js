@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 
 import { createFirestorePoolStore } from '../../server/pool/firebase-store.js';
+import { createPoolStore } from '../../server/pool/store.js';
+import { POOL_STORE_OPERATIONS, validatePoolStoreContract } from '../../server/pool/store-contract.js';
 
 const createQueryableFirestore = () => {
   const records = new Map();
@@ -109,6 +111,73 @@ const createQueryableFirestore = () => {
 };
 
 describe('Firestore-backed peer-room relay', () => {
+  it('keeps the memory and Firestore stores on one coordinator operation contract', async () => {
+    const fake = createQueryableFirestore();
+    const firestoreApi = { ...fake.firestore };
+    delete firestoreApi.runTransaction;
+    const firestore = createFirestorePoolStore({ firestore: firestoreApi });
+    const memory = createPoolStore();
+    expect(POOL_STORE_OPERATIONS).toHaveLength(58);
+    expect(validatePoolStoreContract(memory)).toEqual({ ok: true, missing: [] });
+    expect(validatePoolStoreContract(firestore)).toEqual({ ok: true, missing: [] });
+
+    const exerciseAssignmentRead = async (store) => {
+      await store.registerProvider({ providerId: 'provider_contract', sessionId: 'session_contract' });
+      await store.createJob({ jobId: 'job_contract' });
+      await store.createAssignment({
+        assignmentId: 'assignment_contract', jobId: 'job_contract', providerId: 'provider_contract'
+      });
+      const pending = await store.nextPendingAssignmentForProvider('provider_contract');
+      const claimed = await store.nextAssignmentForProvider('provider_contract');
+      return { pendingStatus: pending?.status, claimedStatus: claimed?.status };
+    };
+
+    await expect(exerciseAssignmentRead(memory)).resolves.toEqual({ pendingStatus: 'assigned', claimedStatus: 'running' });
+    await expect(exerciseAssignmentRead(firestore)).resolves.toEqual({ pendingStatus: 'assigned', claimedStatus: 'running' });
+  });
+
+  it('applies the same expired-assignment agreement decision in both adapters', async () => {
+    const fake = createQueryableFirestore();
+    const stores = [createPoolStore(), createFirestorePoolStore({ firestore: fake.firestore })];
+    const exerciseExpiry = async (store) => {
+      await store.registerProvider({ providerId: 'provider_expired', sessionId: 'session_expired' });
+      await store.registerProvider({ providerId: 'provider_live', sessionId: 'session_live' });
+      await store.createJob({
+        jobId: 'job_expiry', providerCount: 2,
+        assignmentIds: ['assignment_expired', 'assignment_live'],
+        agreement: { mode: 'redundant', requiredAgreement: 2, requiredProviders: 2 }
+      });
+      await store.createAssignment({
+        assignmentId: 'assignment_expired', jobId: 'job_expiry', providerId: 'provider_expired',
+        expiresAt: new Date(Date.now() - 1_000).toISOString()
+      });
+      await store.createAssignment({
+        assignmentId: 'assignment_live', jobId: 'job_expiry', providerId: 'provider_live',
+        expiresAt: new Date(Date.now() + 60_000).toISOString()
+      });
+      await store.expireStaleAssignments();
+      const job = await store.getJob('job_expiry');
+      return {
+        status: job?.status,
+        retryable: job?.retryable,
+        failedAssignmentIds: job?.failedAssignmentIds,
+        timedOutProviderIds: job?.timedOutProviderIds,
+        agreement: job?.agreement?.status
+      };
+    };
+
+    await expect(Promise.all(stores.map(exerciseExpiry))).resolves.toEqual([
+      {
+        status: 'redundant_disagreement', retryable: true,
+        failedAssignmentIds: ['assignment_expired'], timedOutProviderIds: ['provider_expired'], agreement: 'rejected'
+      },
+      {
+        status: 'redundant_disagreement', retryable: true,
+        failedAssignmentIds: ['assignment_expired'], timedOutProviderIds: ['provider_expired'], agreement: 'rejected'
+      }
+    ]);
+  });
+
   it('allocates a durable per-session signal sequence and preserves idempotent signal ids', async () => {
     const fake = createQueryableFirestore();
     const store = createFirestorePoolStore({ firestore: fake.firestore });

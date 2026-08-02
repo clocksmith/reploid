@@ -85,6 +85,41 @@ const renderRecord = (record, { invalidated = new Set(), reviewStates = new Map(
   </article>
 `;
 
+const renderModelEvidenceView = (view, submissionsByHash) => {
+  const question = submissionsByHash.get(view.submissionHash);
+  const sourceRows = view.modelSources.length
+    ? view.modelSources.map((source) => `
+      <article>
+        <b>${escapeHtml(source.model.id || 'Unknown exact model')}</b>
+        <span>${escapeHtml(source.resultHashes.length)} signed result${source.resultHashes.length === 1 ? '' : 's'} · ${escapeHtml(source.receiptHashes.length)} receipt${source.receiptHashes.length === 1 ? '' : 's'} · ${escapeHtml(source.providerIds.length)} provider${source.providerIds.length === 1 ? '' : 's'}</span>
+        <small>Model ${escapeHtml(compactHash(source.model.hash))} · manifest ${escapeHtml(compactHash(source.model.manifestHash))} · tokenizer ${escapeHtml(compactHash(source.model.tokenizerHash))} · ${escapeHtml(source.model.runtime || 'unknown runtime')} / ${escapeHtml(source.model.backend || 'unknown backend')}</small>
+        <small>${source.maskedResidueProposalCount > 0
+          ? `${source.maskedResidueProposalCount} bounded masked-residue proposal${source.maskedResidueProposalCount === 1 ? '' : 's'} at sequence positions ${escapeHtml(source.residuePositions.join(', ') || 'not residue-mapped')}`
+          : source.residueEmbeddingCount > 0
+            ? `${source.residueEmbeddingCount} bounded residue embedding${source.residueEmbeddingCount === 1 ? '' : 's'} at sequence positions ${escapeHtml(source.residuePositions.join(', ') || 'not residue-mapped')}`
+            : 'Model-specific embedding evidence only; no bounded residue evidence was published.'}</small>
+        <small>${escapeHtml(source.claimBoundaries.join(' '))}</small>
+      </article>
+    `).join('')
+    : '<p class="type-caption">No receipt-backed model output is linked yet.</p>';
+  return `
+    <article class="pool-research-model-evidence">
+      <div>
+        <b>${escapeHtml(question ? recordLabel(question) : compactHash(view.submissionHash))}</b>
+        <span>${escapeHtml(view.modelSources.length)} isolated exact-model source${view.modelSources.length === 1 ? '' : 's'}</span>
+      </div>
+      <div class="pool-research-similar">${sourceRows}</div>
+      <p><strong>Agreement:</strong> ${escapeHtml(view.agreement.detail)}</p>
+      <p><strong>Disagreement:</strong> ${escapeHtml(view.disagreement.detail)}</p>
+      ${view.sharedResiduePositions.length ? `<small>Shared protein residue coordinates: ${escapeHtml(view.sharedResiduePositions.map((position) => `${position.sequenceIndex} (${position.sourceCount} sources)`).join(', '))}. Coordinates are shared identities, not a comparison of vectors or tokenizer-local logits.</small>` : ''}
+      <details><summary>Uncertainty and proposed next action</summary>
+        <ul>${view.uncertainty.map((entry) => `<li>${escapeHtml(entry.detail)}</li>`).join('')}</ul>
+        <p><strong>${escapeHtml(view.nextAction.kind.replace(/_/g, ' '))}:</strong> ${escapeHtml(view.nextAction.reason)}</p>
+      </details>
+    </article>
+  `;
+};
+
 const renderLifecycleForms = ({
   questions,
   priorEvidence,
@@ -299,6 +334,7 @@ export function renderResearchWorkspace(roomId, records = loadResearchRecords(ro
   const cohorts = active.filter((record) => record.kind === 'research_cohort');
   const evaluations = active.filter((record) => record.kind === 'research_evaluation');
   const lifecycles = buildQuestionLifecycles(records);
+  const submissionsByHash = new Map(submissions.map((record) => [record.recordHash, record]));
   const visible = searchEvidence(records, query);
   const tasks = proposeDiscoveryTasks(records);
   const clusters = clusterCompatibleResults(records);
@@ -337,6 +373,14 @@ export function renderResearchWorkspace(roomId, records = loadResearchRecords(ro
           <div class="pool-research-records" data-research-records>
             ${visible.length ? visible.map((record) => renderRecord(record, { invalidated, reviewStates })).join('') : '<p class="type-caption">No matching signed evidence yet.</p>'}
           </div>
+        </section>
+        <section class="pool-research-panel">
+          <p class="pool-dashboard-kicker">Model evidence</p>
+          <h3 class="type-h3">Exact-model evidence, not vector averaging</h3>
+          <div class="pool-research-similar">
+            ${lifecycles.length ? lifecycles.map((lifecycle) => renderModelEvidenceView(lifecycle.modelEvidence, submissionsByHash)).join('') : '<p class="type-caption">Submit a public protein sequence and bounded question to start an inspectable model-evidence record.</p>'}
+          </div>
+          <p class="type-caption">Only shared sequence and residue identities join model records. Model vectors and tokenizer-local logits remain isolated by exact contract.</p>
         </section>
         <section class="pool-research-panel">
           <p class="pool-dashboard-kicker">Review</p>

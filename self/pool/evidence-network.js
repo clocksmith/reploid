@@ -17,7 +17,11 @@ import {
   normalizeSequenceInput
 } from './sequence-workload.js';
 import { exactModelContractKey } from './model-contract.js';
-import { validateSequenceOutputIntegrity } from './sequence-result.js';
+import { buildExactModelEvidenceView } from './model-evidence-view.js';
+import {
+  hashSequenceFloat32Values,
+  validateSequenceOutputIntegrity
+} from './sequence-result.js';
 
 export const RESEARCH_RECORD_VERSION = 'poolday.research_evidence/v1';
 export const RESEARCH_RECORD_KINDS = Object.freeze({
@@ -401,6 +405,7 @@ export async function createSignedResearchSubmission({
 
 const normalizePublishedSequenceEvidence = async ({
   submission,
+  modelContract = submission?.modelContract,
   receipt,
   receiptRecord,
   sequenceResult,
@@ -411,21 +416,19 @@ const normalizePublishedSequenceEvidence = async ({
     || receiptRecord?.execution?.sequenceResult
     || receipt?.sequence
     || null;
-  if (!metadata) return null;
+  if (!metadata || !sequenceOutput) return null;
   const expectedResultHash = receipt?.sequenceResultHash
     || receipt?.sequence?.resultHash
     || receiptRecord?.sequenceResultHash
     || receiptRecord?.execution?.sequenceResultHash
     || null;
-  if (sequenceOutput) {
-    const integrity = await validateSequenceOutputIntegrity({
-      sequenceResult: metadata,
-      sequenceOutput,
-      expectedResultHash
-    });
-    if (!integrity.ok) {
-      throw new TypeError(`sequence evidence integrity failed: ${integrity.reasons.join('; ')}`);
-    }
+  const integrity = await validateSequenceOutputIntegrity({
+    sequenceResult: metadata,
+    sequenceOutput,
+    expectedResultHash
+  });
+  if (!integrity.ok) {
+    throw new TypeError(`sequence evidence integrity failed: ${integrity.reasons.join('; ')}`);
   }
   const residueEmbeddings = Array.isArray(sequenceOutput?.residueEmbeddings)
     ? sequenceOutput.residueEmbeddings.slice(0, MAX_SEQUENCE_POSITIONS).map((entry) => ({
@@ -453,7 +456,7 @@ const normalizePublishedSequenceEvidence = async ({
     sequenceLength: Number(metadata.sequenceLength || submission.sequence?.length || 0),
     tokenCount: Number(metadata.tokenCount || 0),
     includedTokenCount: Number(metadata.includedTokenCount || 0),
-    embeddingDimensions: Number(metadata.embeddingDim || submission.modelContract?.dimensions || 0),
+    embeddingDimensions: Number(metadata.embeddingDim || modelContract?.dimensions || 0),
     coordinateSystem: compactText(metadata.coordinateSystem, 80) || null,
     sequenceIndices: Array.isArray(metadata.sequenceIndices) ? metadata.sequenceIndices.map(Number) : [],
     tokenIndices: Array.isArray(metadata.tokenIndices) ? metadata.tokenIndices.map(Number) : [],
@@ -485,6 +488,7 @@ export async function createSignedResearchResult({
   roomId,
   submission,
   receiptRecord,
+  modelContract: declaredModelContract = null,
   agreement = null,
   routeDecision = null,
   embedding = null,
@@ -506,16 +510,22 @@ export async function createSignedResearchResult({
   if (vector && (!submission.consent.publishEmbedding || vector.length === 0 || vector.length > MAX_EMBEDDING_DIMENSIONS || vector.some((value) => !Number.isFinite(value)))) {
     throw new TypeError('embedding publication is not consented or is invalid');
   }
-  const receiptModelContract = normalizeModelContract(receipt.model || submission.modelContract);
+  const resultModelContract = normalizeModelContract(declaredModelContract || receipt.model || submission.modelContract);
+  const receiptModelContract = normalizeModelContract(receipt.model || resultModelContract);
   const requiredModelFields = ['id', 'hash', 'manifestHash', 'tokenizerHash', 'runtime', 'backend', 'workload', 'executionMode'];
   for (const field of requiredModelFields) {
-    if (receiptModelContract[field] !== submission.modelContract[field]) {
-      throw new TypeError(`compute receipt ${field} does not match the submitted exact model contract`);
+    if (receiptModelContract[field] !== resultModelContract[field]) {
+      throw new TypeError(`compute receipt ${field} does not match the result exact model contract`);
     }
   }
-  const modelContract = clone(submission.modelContract);
+  if (resultModelContract.sequence?.alphabet
+    && resultModelContract.sequence.alphabet !== submission.sequence?.alphabet) {
+    throw new TypeError('result exact model contract alphabet does not match the submitted sequence');
+  }
+  const modelContract = clone(resultModelContract);
   const sequenceEvidence = await normalizePublishedSequenceEvidence({
     submission,
+    modelContract,
     receipt,
     receiptRecord,
     sequenceResult,
@@ -533,6 +543,7 @@ export async function createSignedResearchResult({
     modelContract,
     compute: {
       receiptHash,
+      submissionModelContractKey: exactModelContractKey(submission.modelContract),
       receiptHashes: unique(agreement?.receiptHashes || [receiptHash]),
       requesterAcceptanceHash: accepted?.acceptanceHash || accepted?.receiptHash || null,
       agreementHash: agreement ? await hashJson(agreement) : null,
@@ -1051,6 +1062,93 @@ export async function createSignedCohortEvaluation({
   return signRecord(payload, privateKey, SIGNATURE_DOMAINS.researchEvaluation);
 }
 
+export async function createSignedSequenceEvidenceLink({
+  identity,
+  roomId,
+  nucleotideSubmissionHash,
+  proteinSubmissionHash,
+  reference,
+  coordinates,
+  transcript,
+  translation,
+  createdAt = new Date().toISOString()
+} = {}) {
+  const { author, privateKey } = await createAuthor(identity, ['researcher', 'reviewer', 'verifier']);
+  const coordinateSystem = compactText(coordinates?.coordinateSystem, 80).toLowerCase();
+  const strand = compactText(coordinates?.strand, 20).toLowerCase();
+  const start = Number(coordinates?.start);
+  const end = Number(coordinates?.end);
+  if (!['zero_based_half_open', 'one_based_closed'].includes(coordinateSystem)) {
+    throw new TypeError('DNA-to-protein linkage requires an explicit coordinate system');
+  }
+  if (!['forward', 'reverse'].includes(strand)) {
+    throw new TypeError('DNA-to-protein linkage strand must be forward or reverse');
+  }
+  if (!Number.isInteger(start) || !Number.isInteger(end) || start < 0 || end <= start) {
+    throw new TypeError('DNA-to-protein linkage coordinates are invalid');
+  }
+  const readingFrame = Number(translation?.readingFrame);
+  if (![0, 1, 2].includes(readingFrame)) throw new TypeError('translation reading frame must be 0, 1, or 2');
+  const normalizedReference = {
+    assemblyAccession: compactText(reference?.assemblyAccession, 240),
+    assemblyVersion: compactText(reference?.assemblyVersion, 120),
+    assemblyHash: requireHash(reference?.assemblyHash, 'assemblyHash'),
+    sequenceAccession: compactText(reference?.sequenceAccession, 240),
+    sequenceVersion: compactText(reference?.sequenceVersion, 120),
+    referenceHash: requireHash(reference?.referenceHash, 'referenceHash')
+  };
+  if (!normalizedReference.assemblyAccession || !normalizedReference.assemblyVersion
+    || !normalizedReference.sequenceAccession || !normalizedReference.sequenceVersion) {
+    throw new TypeError('assembly and reference accession versions are required');
+  }
+  const normalizedTranscript = {
+    accession: compactText(transcript?.accession, 240),
+    version: compactText(transcript?.version, 120),
+    transcriptHash: requireHash(transcript?.transcriptHash, 'transcriptHash')
+  };
+  if (!normalizedTranscript.accession || !normalizedTranscript.version) {
+    throw new TypeError('transcript accession and version are required');
+  }
+  const normalizedTranslation = {
+    readingFrame,
+    geneticCode: compactText(translation?.geneticCode, 120),
+    methodId: compactText(translation?.methodId, 240),
+    methodVersion: compactText(translation?.methodVersion, 120),
+    nucleotideSequenceHash: requireHash(translation?.nucleotideSequenceHash, 'nucleotideSequenceHash'),
+    proteinSequenceHash: requireHash(translation?.proteinSequenceHash, 'proteinSequenceHash'),
+    translationHash: requireHash(translation?.translationHash, 'translationHash')
+  };
+  if (!normalizedTranslation.geneticCode || !normalizedTranslation.methodId || !normalizedTranslation.methodVersion) {
+    throw new TypeError('translation genetic code, method id, and method version are required');
+  }
+  const link = {
+    nucleotideSubmissionHash: requireHash(nucleotideSubmissionHash, 'nucleotideSubmissionHash'),
+    proteinSubmissionHash: requireHash(proteinSubmissionHash, 'proteinSubmissionHash'),
+    reference: normalizedReference,
+    coordinates: {
+      coordinateSystem,
+      start,
+      end,
+      strand
+    },
+    transcript: normalizedTranscript,
+    translation: normalizedTranslation
+  };
+  const payload = {
+    version: RESEARCH_RECORD_VERSION,
+    kind: RESEARCH_RECORD_KINDS.sequenceLink,
+    signatureDomain: SIGNATURE_DOMAINS.researchSequenceLink,
+    roomId: normalizeRoomId(roomId),
+    createdAt,
+    author,
+    link: {
+      ...link,
+      linkHash: await hashJson(link)
+    }
+  };
+  return signRecord(payload, privateKey, SIGNATURE_DOMAINS.researchSequenceLink);
+}
+
 export async function createSignedResearchRevocation({
   identity,
   roomId,
@@ -1110,6 +1208,122 @@ const verifyAnalysisEvidence = async (analysis, reasons, label = 'analysis') => 
   }
 };
 
+const verifyPublishedSequenceEvidence = async (evidence, record, reasons) => {
+  if (!evidence || typeof evidence !== 'object' || Array.isArray(evidence)) {
+    reasons.push('published sequence evidence is invalid');
+    return;
+  }
+  if (evidence.schema !== 'poolday.model_sequence_evidence/v1') {
+    reasons.push('published sequence evidence schema is invalid');
+  }
+  const { evidenceHash, ...identity } = evidence;
+  if (!SHA256_PATTERN.test(String(evidenceHash || ''))) reasons.push('sequence evidence hash is invalid');
+  else if (await hashJson(identity) !== evidenceHash) reasons.push('sequence evidence hash mismatch');
+  if (evidence.sequenceHash !== record.sequenceHash) reasons.push('sequence evidence hash does not match the result sequence');
+  if (evidence.alphabet !== record.modelContract?.sequence?.alphabet) reasons.push('sequence evidence alphabet does not match the exact model contract');
+  if (evidence.workload !== record.modelContract?.workload) reasons.push('sequence evidence workload does not match the exact model contract');
+  if (!Number.isInteger(evidence.sequenceLength) || evidence.sequenceLength <= 0) {
+    reasons.push('sequence evidence length is invalid');
+  }
+  if (!Number.isInteger(evidence.embeddingDimensions) || evidence.embeddingDimensions <= 0
+    || (record.modelContract?.dimensions && evidence.embeddingDimensions !== record.modelContract.dimensions)) {
+    reasons.push('sequence evidence dimensions do not match the exact model contract');
+  }
+  if (!['zero_based_sequence_index', 'model_token_index'].includes(evidence.coordinateSystem)) {
+    reasons.push('sequence evidence coordinate system is invalid');
+  }
+  if (!Array.isArray(evidence.sequenceIndices) || evidence.sequenceIndices.length > MAX_SEQUENCE_POSITIONS
+    || evidence.sequenceIndices.some((index) => !Number.isInteger(index) || index < 0 || index >= evidence.sequenceLength)) {
+    reasons.push('sequence evidence sequence indices are invalid');
+  }
+  if (!Array.isArray(evidence.tokenIndices) || evidence.tokenIndices.length > MAX_SEQUENCE_POSITIONS
+    || evidence.tokenIndices.some((index) => !Number.isInteger(index) || index < 0)) {
+    reasons.push('sequence evidence model-token indices are invalid');
+  }
+  if (evidence.coordinateSystem === 'zero_based_sequence_index'
+    && evidence.sequenceIndices?.length !== evidence.tokenIndices?.length) {
+    reasons.push('sequence evidence residue and model-token indices do not align');
+  }
+  const selectedResiduePositions = new Set((evidence.sequenceIndices || []).map((sequenceIndex, index) => (
+    `${sequenceIndex}:${evidence.tokenIndices?.[index]}`
+  )));
+  const selectedModelTokens = new Set(evidence.tokenIndices || []);
+  for (const [label, value] of [
+    ['pooled embedding', evidence.pooledEmbeddingHash],
+    ['token embeddings', evidence.tokenEmbeddingsHash],
+    ['residue embeddings', evidence.residueEmbeddingsHash],
+    ['masked logits', evidence.maskedLogitsHash],
+    ['sequence result', evidence.sequenceResultHash]
+  ]) {
+    if (value !== null && value !== undefined && !SHA256_PATTERN.test(String(value))) {
+      reasons.push(`sequence evidence ${label} hash is invalid`);
+    }
+  }
+  if (evidence.sequenceResultHash && evidence.sequenceResultHash !== record.compute?.sequenceResultHash) {
+    reasons.push('sequence evidence result hash does not match compute provenance');
+  }
+  if (!Array.isArray(evidence.residueEmbeddings)
+    || evidence.residueEmbeddings.length > MAX_SEQUENCE_POSITIONS) {
+    reasons.push('bounded residue embeddings are invalid');
+  } else {
+    for (const entry of evidence.residueEmbeddings) {
+      if (entry.coordinateSystem !== evidence.coordinateSystem) reasons.push('bounded residue embedding coordinate system is invalid');
+      if (!Number.isInteger(entry.sequenceIndex) || entry.sequenceIndex < 0 || entry.sequenceIndex >= evidence.sequenceLength) {
+        reasons.push('bounded residue embedding sequence index is invalid');
+      }
+      if (!Number.isInteger(entry.tokenIndex) || entry.tokenIndex < 0) reasons.push('bounded residue embedding token index is invalid');
+      if (!selectedResiduePositions.has(`${entry.sequenceIndex}:${entry.tokenIndex}`)) {
+        reasons.push('bounded residue embedding is outside the selected coordinate set');
+      }
+      if (!Number.isInteger(entry.dimensions) || entry.dimensions !== evidence.embeddingDimensions
+        || !Array.isArray(entry.values)
+        || entry.values.length !== entry.dimensions
+        || entry.values.some((value) => !Number.isFinite(value))) {
+        reasons.push('bounded residue embedding values are invalid');
+      } else if (!SHA256_PATTERN.test(String(entry.vectorHash || ''))
+        || await hashSequenceFloat32Values(entry.values) !== entry.vectorHash) {
+        reasons.push('bounded residue embedding vector hash mismatch');
+      }
+      if (!Number.isFinite(entry.l2Norm)) reasons.push('bounded residue embedding norm is invalid');
+    }
+    if (evidence.residueEmbeddings.length > 0
+      && await hashJson(evidence.residueEmbeddings) !== evidence.residueEmbeddingsHash) {
+      reasons.push('bounded residue embeddings collection hash mismatch');
+    }
+  }
+  if (!Array.isArray(evidence.maskedResidueProposals)
+    || evidence.maskedResidueProposals.length > MAX_SEQUENCE_POSITIONS) {
+    reasons.push('masked residue proposals are invalid');
+  } else {
+    for (const proposal of evidence.maskedResidueProposals) {
+      if (proposal.coordinateSystem !== evidence.coordinateSystem) reasons.push('masked residue proposal coordinate system is invalid');
+      if (!Number.isInteger(proposal.tokenIndex) || proposal.tokenIndex < 0) reasons.push('masked residue proposal token index is invalid');
+      if (evidence.coordinateSystem === 'zero_based_sequence_index'
+        && (!Number.isInteger(proposal.sequenceIndex) || proposal.sequenceIndex < 0 || proposal.sequenceIndex >= evidence.sequenceLength)) {
+        reasons.push('masked residue proposal sequence index is invalid');
+      }
+      if (evidence.coordinateSystem === 'model_token_index' && proposal.sequenceIndex !== null) {
+        reasons.push('model-token proposal must not claim a residue index');
+      }
+      if (evidence.coordinateSystem === 'zero_based_sequence_index'
+        && !selectedResiduePositions.has(`${proposal.sequenceIndex}:${proposal.tokenIndex}`)) {
+        reasons.push('masked residue proposal is outside the selected coordinate set');
+      }
+      if (evidence.coordinateSystem === 'model_token_index' && !selectedModelTokens.has(proposal.tokenIndex)) {
+        reasons.push('masked residue proposal is outside the selected model-token set');
+      }
+      if (!Array.isArray(proposal.candidates) || proposal.candidates.length < 1 || proposal.candidates.length > 64
+        || proposal.candidates.some((candidate) => !Number.isInteger(candidate?.tokenId) || candidate.tokenId < 0 || !Number.isFinite(candidate.score))) {
+        reasons.push('masked residue proposal candidates are invalid');
+      }
+    }
+    if (evidence.maskedResidueProposals.length > 0
+      && await hashJson(evidence.maskedResidueProposals) !== evidence.maskedLogitsHash) {
+      reasons.push('masked residue proposals hash mismatch');
+    }
+  }
+};
+
 export async function verifyResearchRecord(record = {}) {
   const reasons = [];
   const domain = DOMAIN_BY_KIND[record.kind];
@@ -1140,11 +1354,16 @@ export async function verifyResearchRecord(record = {}) {
     try {
       const normalized = normalizeSequenceInput(record.sequence?.value, record.sequence?.alphabet);
       if (normalized.length !== record.sequence?.length) reasons.push('sequence length mismatch');
-      if (normalized.length > MAX_PUBLIC_PROTEIN_SEQUENCE_LENGTH) reasons.push('sequence exceeds the maximum public protein length');
+      const maximumLength = getMaxPublicSequenceLength(record.sequence?.alphabet);
+      if (maximumLength && normalized.length > maximumLength) reasons.push('sequence exceeds the maximum public sequence length');
       if (await sha256Hex(normalized) !== record.sequence?.hash) reasons.push('sequence hash mismatch');
       normalizeIntent(record.requesterIntent);
-      normalizeConsent(record.consent);
-      normalizeModelContract(record.modelContract);
+      normalizeConsent(record.consent, record.sequence?.alphabet);
+      const modelContract = normalizeModelContract(record.modelContract);
+      if (modelContract.sequence?.alphabet
+        && modelContract.sequence.alphabet !== record.sequence?.alphabet) {
+        reasons.push('research sequence alphabet does not match the exact model contract');
+      }
     } catch (error) {
       reasons.push(error.message);
     }
@@ -1170,6 +1389,7 @@ export async function verifyResearchRecord(record = {}) {
       if (!SHA256_PATTERN.test(String(record.embedding.vectorHash || ''))) reasons.push('embedding vectorHash is invalid');
       if (record.modelContract?.dimensions && record.modelContract.dimensions !== record.embedding.dimensions) reasons.push('embedding dimensions do not match the exact model contract');
     }
+    if (record.sequenceEvidence) await verifyPublishedSequenceEvidence(record.sequenceEvidence, record, reasons);
   }
   if (record.kind === RESEARCH_RECORD_KINDS.claim) {
     if (!['reviewer', 'verifier', 'researcher'].includes(record.author?.role)) reasons.push('human claim author role is invalid');
@@ -1315,6 +1535,30 @@ export async function verifyResearchRecord(record = {}) {
     if (!record.evaluation?.disagreementSummary || !record.evaluation?.failureAnalysis
       || record.evaluation?.acceptedOutcomePolicy !== 'independent_review_required') reasons.push('evaluation evidence policy is incomplete');
   }
+  if (record.kind === RESEARCH_RECORD_KINDS.sequenceLink) {
+    if (!['researcher', 'reviewer', 'verifier'].includes(record.author?.role)) reasons.push('sequence link author role is invalid');
+    const { linkHash, ...identity } = record.link || {};
+    if (!SHA256_PATTERN.test(String(linkHash || ''))) reasons.push('sequence link hash is invalid');
+    else if (await hashJson(identity) !== linkHash) reasons.push('sequence link hash mismatch');
+    for (const hash of [
+      record.link?.nucleotideSubmissionHash,
+      record.link?.proteinSubmissionHash,
+      record.link?.reference?.assemblyHash,
+      record.link?.reference?.referenceHash,
+      record.link?.transcript?.transcriptHash,
+      record.link?.translation?.nucleotideSequenceHash,
+      record.link?.translation?.proteinSequenceHash,
+      record.link?.translation?.translationHash
+    ]) {
+      if (!SHA256_PATTERN.test(String(hash || ''))) reasons.push('sequence link contains an invalid identity hash');
+    }
+    if (!['zero_based_half_open', 'one_based_closed'].includes(record.link?.coordinates?.coordinateSystem)
+      || !['forward', 'reverse'].includes(record.link?.coordinates?.strand)
+      || !Number.isInteger(record.link?.coordinates?.start)
+      || !Number.isInteger(record.link?.coordinates?.end)
+      || record.link.coordinates.end <= record.link.coordinates.start) reasons.push('sequence link coordinates are invalid');
+    if (![0, 1, 2].includes(record.link?.translation?.readingFrame)) reasons.push('sequence link reading frame is invalid');
+  }
   if (record.kind === RESEARCH_RECORD_KINDS.revocation) {
     if (!['requester', 'researcher', 'reviewer', 'verifier'].includes(record.author?.role)) reasons.push('revocation author role is invalid');
     if (!SHA256_PATTERN.test(String(record.targetHash || ''))) reasons.push('revocation targetHash is invalid');
@@ -1345,6 +1589,9 @@ export function researchRecordTargetHashes(record = {}) {
   }
   if (record.kind === RESEARCH_RECORD_KINDS.evaluation) {
     targets.push(record.cohortHash, ...(record.evaluation?.outcomeHashes || []), ...(record.evaluation?.nextCohortQuestionHashes || []));
+  }
+  if (record.kind === RESEARCH_RECORD_KINDS.sequenceLink) {
+    targets.push(record.link?.nucleotideSubmissionHash, record.link?.proteinSubmissionHash);
   }
   return unique(targets);
 }
@@ -1429,8 +1676,37 @@ export function validateResearchRecordLinks(record = {}, records = []) {
     const submission = target(record.submissionHash);
     if (submission && submission.kind !== RESEARCH_RECORD_KINDS.submission) reasons.push('research result must target a submission');
     if (submission && record.sequenceHash !== submission.sequence?.hash) reasons.push('research result sequence does not match its submission');
-    if (submission && JSON.stringify(record.modelContract) !== JSON.stringify(submission.modelContract)) reasons.push('research result model contract does not match its submission');
+    if (submission && record.compute?.submissionModelContractKey !== exactModelContractKey(submission.modelContract)) {
+      reasons.push('research result submission model contract identity does not match its submission');
+    }
+    if (submission && record.modelContract?.sequence?.alphabet
+      && record.modelContract.sequence.alphabet !== submission.sequence?.alphabet) {
+      reasons.push('research result model contract alphabet does not match its submission');
+    }
     if (record.embedding && submission?.consent?.publishEmbedding !== true) reasons.push('research submission did not consent to embedding publication');
+    if ((record.sequenceEvidence?.residueEmbeddings?.length > 0
+      || record.sequenceEvidence?.maskedResidueProposals?.length > 0)
+      && submission?.consent?.publishResidueEvidence !== true) {
+      reasons.push('research submission did not consent to residue evidence publication');
+    }
+  }
+  if (record.kind === RESEARCH_RECORD_KINDS.sequenceLink) {
+    const nucleotide = target(record.link?.nucleotideSubmissionHash);
+    const protein = target(record.link?.proteinSubmissionHash);
+    if (nucleotide?.kind !== RESEARCH_RECORD_KINDS.submission
+      || nucleotide?.sequence?.alphabet !== SEQUENCE_ALPHABETS.nucleotide) {
+      reasons.push('sequence link must target a nucleotide submission');
+    }
+    if (protein?.kind !== RESEARCH_RECORD_KINDS.submission
+      || protein?.sequence?.alphabet !== SEQUENCE_ALPHABETS.aminoAcid) {
+      reasons.push('sequence link must target a protein submission');
+    }
+    if (nucleotide && record.link?.translation?.nucleotideSequenceHash !== nucleotide.sequence?.hash) {
+      reasons.push('sequence link nucleotide identity does not match its submission');
+    }
+    if (protein && record.link?.translation?.proteinSequenceHash !== protein.sequence?.hash) {
+      reasons.push('sequence link protein identity does not match its submission');
+    }
   }
   if (record.kind === RESEARCH_RECORD_KINDS.claim) {
     const reviewed = target(record.targetHash);
@@ -1580,6 +1856,10 @@ export function buildPredictionDisagreementMap(records = [], questionHash = null
   });
 }
 
+export function buildModelEvidenceView(records = [], submissionHash) {
+  return buildExactModelEvidenceView(activeResearchRecords(records), submissionHash);
+}
+
 export function buildQuestionLifecycles(records = []) {
   const active = activeResearchRecords(records);
   const reviews = new Map(projectResearchReviewStates(records).map((entry) => [entry.recordHash, entry]));
@@ -1599,6 +1879,7 @@ export function buildQuestionLifecycles(records = []) {
       const evaluations = active.filter((record) => record.kind === RESEARCH_RECORD_KINDS.evaluation && cohortHashes.has(record.cohortHash));
       return {
         question,
+        modelEvidence: buildModelEvidenceView(active, question.recordHash),
         hypotheses,
         priorEvidence,
         predictions,
@@ -1631,6 +1912,7 @@ const researchRecordLabel = (record = {}) => ({
   [RESEARCH_RECORD_KINDS.outcome]: record.outcome?.summary,
   [RESEARCH_RECORD_KINDS.cohort]: record.cohort?.label,
   [RESEARCH_RECORD_KINDS.evaluation]: record.evaluation?.metricResults?.map((metric) => metric.metricId).join(', '),
+  [RESEARCH_RECORD_KINDS.sequenceLink]: 'DNA-to-protein linkage',
   [RESEARCH_RECORD_KINDS.revocation]: record.revocation?.reason
 }[record.kind] || record.recordHash);
 
@@ -1678,7 +1960,7 @@ export function buildEvidenceGraph(records = []) {
       const sequenceNodeId = `sequence:${record.sequence.hash}`;
       addNode({
         id: sequenceNodeId,
-        kind: 'protein_sequence',
+        kind: record.sequence.alphabet === SEQUENCE_ALPHABETS.nucleotide ? 'dna_sequence' : 'protein_sequence',
         label: record.sequence.hash,
         sequenceHash: record.sequence.hash,
         sequence: record.sequence.value
@@ -1720,6 +2002,7 @@ export function buildEvidenceGraph(records = []) {
       [RESEARCH_RECORD_KINDS.outcome]: record.replicationOfHash ? 'replicates' : 'reports',
       [RESEARCH_RECORD_KINDS.cohort]: 'freezes',
       [RESEARCH_RECORD_KINDS.evaluation]: 'evaluates',
+      [RESEARCH_RECORD_KINDS.sequenceLink]: 'links_translation',
       [RESEARCH_RECORD_KINDS.revocation]: 'revokes'
     }[record.kind];
     if (lifecycleRelation) {
@@ -2037,6 +2320,7 @@ export default {
   invalidatedResearchHashes,
   buildEvidenceGraph,
   buildPredictionDisagreementMap,
+  buildModelEvidenceView,
   buildQuestionLifecycles,
   projectResearchReviewStates,
   searchEvidence,

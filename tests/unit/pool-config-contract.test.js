@@ -30,4 +30,82 @@ describe('Poolday configuration contract', () => {
       reasons: expect.arrayContaining(['browserRuntime.dopplerModuleUrl is required'])
     });
   });
+
+  it('fails closed when a candidate is enabled before browser and scientific qualification', () => {
+    const invalid = structuredClone(poolConfig);
+    const amplify = invalid.modelCatalog.find((model) => model.modelId === 'amplify-120m-f16-af32');
+    amplify.enabled = true;
+
+    expect(validatePoolConfigValue(invalid)).toMatchObject({
+      ok: false,
+      reasons: expect.arrayContaining([
+        expect.stringContaining('admission.browserWebGpu must be qualified before enabling the model'),
+        expect.stringContaining('admission.scientificFitness must be qualified before enabling the model')
+      ])
+    });
+  });
+
+  it('fails closed when a candidate license has not been admitted for product use', () => {
+    const invalid = structuredClone(poolConfig);
+    const nucleotide = invalid.modelCatalog.find((model) => (
+      model.modelId === 'nucleotide-transformer-v2-50m-f32-af32'
+    ));
+    nucleotide.enabled = true;
+    nucleotide.admission.browserWebGpu = 'qualified';
+    nucleotide.admission.scientificFitness = 'qualified';
+
+    expect(validatePoolConfigValue(invalid)).toMatchObject({
+      ok: false,
+      reasons: expect.arrayContaining([
+        expect.stringContaining('license.admission must be approved before enabling the model')
+      ])
+    });
+  });
+
+  it('requires a persisted browser-qualification receipt before a qualified browser lane can be enabled', () => {
+    const invalid = structuredClone(poolConfig);
+    const amplify = invalid.modelCatalog.find((model) => model.modelId === 'amplify-120m-f16-af32');
+    amplify.enabled = true;
+    amplify.admission.browserWebGpu = 'qualified';
+    amplify.admission.scientificFitness = 'qualified';
+
+    expect(validatePoolConfigValue(invalid)).toMatchObject({
+      ok: false,
+      reasons: expect.arrayContaining([
+        expect.stringContaining('.admission.browserQualificationReceipt is required')
+      ])
+    });
+  });
+
+  it('requires a persisted scientific-fitness receipt before a qualified candidate can be enabled', () => {
+    const invalid = structuredClone(poolConfig);
+    const amplify = invalid.modelCatalog.find((model) => model.modelId === 'amplify-120m-f16-af32');
+    amplify.enabled = true;
+    amplify.admission.browserWebGpu = 'qualified';
+    amplify.admission.browserQualificationReceipt = 'docs/status/amplify-browser-qualification.json';
+    amplify.admission.scientificFitness = 'qualified';
+
+    expect(validatePoolConfigValue(invalid)).toMatchObject({
+      ok: false,
+      reasons: expect.arrayContaining([
+        expect.stringContaining('.admission.scientificFitnessReceipt is required')
+      ])
+    });
+  });
+
+  it('does not let a candidate reuse the ESM-2 baseline-release states', () => {
+    const invalid = structuredClone(poolConfig);
+    const amplify = invalid.modelCatalog.find((model) => model.modelId === 'amplify-120m-f16-af32');
+    amplify.enabled = true;
+    amplify.admission.browserWebGpu = 'enabled_release_receipt_required';
+    amplify.admission.scientificFitness = 'baseline_release_receipt_required';
+
+    expect(validatePoolConfigValue(invalid)).toMatchObject({
+      ok: false,
+      reasons: expect.arrayContaining([
+        expect.stringContaining('.admission.browserWebGpu baseline-release state is reserved for the launch model'),
+        expect.stringContaining('.admission.scientificFitness baseline-release state is reserved for the launch model')
+      ])
+    });
+  });
 });

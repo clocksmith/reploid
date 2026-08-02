@@ -3,6 +3,12 @@
  */
 
 import crypto from 'crypto';
+import { assertPoolStoreContract } from './store-contract.js';
+import {
+  buildExpiredAssignmentJobPatch as buildSharedExpiredAssignmentJobPatch,
+  canClaimJobForAssignment as canClaimSharedJobForAssignment,
+  EXPIRABLE_ASSIGNMENT_STATUSES
+} from './coordinator-transitions.js';
 import {
   createReputationSeedEvent,
   hasLegacyReputationEvidence,
@@ -34,176 +40,6 @@ const toEpochMs = (value) => {
   const parsed = Date.parse(value);
   return Number.isFinite(parsed) ? parsed : null;
 };
-const canClaimJobForAssignment = (job = {}) => job.status === 'queued'
-  || (job.retryable === true && ['failed', 'receipt_rejected', 'redundant_disagreement', 'ring_quorum_disagreement'].includes(job.status));
-const finalReceiptStatuses = new Set(['receipt_verified', 'accepted', 'acceptance_processing', 'rejected_by_requester']);
-const expirableAssignmentStatuses = new Set(['assigned', 'running', 'commit_submitted', 'reveal_open', 'reveal_submitted']);
-
-const agreementModeForJob = (job = {}) => (
-  job?.agreement?.mode || (job?.policyId === 'ring_quorum_receipt' ? 'ring_quorum' : 'redundant')
-);
-
-const statusForPendingAgreement = (job = {}) => (
-  agreementModeForJob(job) === 'ring_quorum' ? 'awaiting_ring_quorum_receipts' : 'awaiting_redundant_receipts'
-);
-
-const statusForRejectedAgreement = (job = {}) => (
-  agreementModeForJob(job) === 'ring_quorum' ? 'ring_quorum_disagreement' : 'redundant_disagreement'
-);
-
-const currentAssignmentSet = (job = {}) => new Set(Array.isArray(job.assignmentIds) ? job.assignmentIds : []);
-
-const assignmentIsCurrent = (assignment = {}, job = {}) => {
-  const current = currentAssignmentSet(job);
-  if (current.size > 0 && !current.has(assignment.assignmentId)) return false;
-  if (job.assignmentAttemptId !== undefined
-    && assignment.assignmentAttemptId !== undefined
-    && Number(job.assignmentAttemptId) !== Number(assignment.assignmentAttemptId)) {
-    return false;
-  }
-  if (job.ringAttemptId && assignment.ringAttemptId && job.ringAttemptId !== assignment.ringAttemptId) return false;
-  return true;
-};
-
-const receiptsForCurrentAttempt = (receiptRecords = [], job = {}) => {
-  const current = currentAssignmentSet(job);
-  return receiptRecords.filter((record) => {
-    if (record.jobId !== job.jobId) return false;
-    if (current.size > 0 && !current.has(record.assignmentId)) return false;
-    if (job.assignmentAttemptId !== undefined
-      && record.assignmentAttemptId !== undefined
-      && Number(job.assignmentAttemptId) !== Number(record.assignmentAttemptId)) {
-      return false;
-    }
-    if (job.ringAttemptId && record.ringAttemptId && job.ringAttemptId !== record.ringAttemptId) return false;
-    return true;
-  });
-};
-
-const buildExpiredAssignmentJobPatch = ({ job, assignment, receiptRecords = [] } = {}) => {
-  if (!job || !assignmentIsCurrent(assignment, job)) return null;
-  if (finalReceiptStatuses.has(job.status) || job?.agreement?.status === 'accepted') return null;
-  const failedAssignmentIds = Array.from(new Set([
-    ...(Array.isArray(job.failedAssignmentIds) ? job.failedAssignmentIds : []),
-    assignment.assignmentId
-  ].filter(Boolean)));
-  const timedOutProviderIds = Array.from(new Set([
-    ...(Array.isArray(job.timedOutProviderIds) ? job.timedOutProviderIds : []),
-    assignment.providerId
-  ].filter(Boolean)));
-  const required = Number(job?.agreement?.requiredAgreement || job?.agreement?.requiredProviders || 1);
-  if (required <= 1) {
-    return {
-      status: 'failed',
-      reason: 'assignment_expired',
-      retryable: true,
-      failedAssignmentIds,
-      timedOutProviderIds
-    };
-  }
-
-  const currentReceipts = receiptsForCurrentAttempt(receiptRecords, job);
-  const acceptedRecords = currentReceipts.filter((record) => record.verifierDecision?.accepted);
-  const rejectedRecords = currentReceipts.filter((record) => record.verifierDecision && !record.verifierDecision.accepted);
-  const agreementField = job?.agreement?.agreementField || 'tokenIdsHash';
-  const groups = new Map();
-  for (const record of acceptedRecords) {
-    const key = `${record.receipt?.[agreementField] || record.receipt?.tokenIdsHash || ''}::${record.receipt?.outputHash || ''}`;
-    const group = groups.get(key) || [];
-    group.push(record);
-    groups.set(key, group);
-  }
-  const matchingGroup = Array.from(groups.values()).find((group) => group.length >= required);
-  const providerCount = Number(job?.providerCount || job?.providerIds?.length || job?.assignmentIds?.length || required);
-  const blockedAssignmentIds = new Set([
-    ...currentReceipts.map((record) => record.assignmentId).filter(Boolean),
-    ...failedAssignmentIds
-  ]);
-  const remainingProviders = Math.max(0, providerCount - blockedAssignmentIds.size);
-  const largestGroupSize = Math.max(0, ...Array.from(groups.values()).map((group) => group.length));
-  const agreementBase = {
-    ...(job.agreement || {}),
-    mode: agreementModeForJob(job),
-    requiredProviders: required,
-    requiredAgreement: required,
-    providerCount,
-    agreementField,
-    acceptedReceipts: acceptedRecords.length,
-    rejectedReceipts: rejectedRecords.length,
-    failedAssignments: failedAssignmentIds.length,
-    remainingProviders,
-    receiptHashes: acceptedRecords.map((record) => record.receiptHash),
-    rejectedReceiptHashes: rejectedRecords.map((record) => record.receiptHash),
-    failedAssignmentIds,
-    effectiveTrustTier: job.effectiveTrustTier || job.trustTier
-  };
-  if (matchingGroup) {
-    const receiptHashes = matchingGroup.slice(0, required).map((record) => record.receiptHash);
-    const agreementValue = matchingGroup[0].receipt?.[agreementField] || matchingGroup[0].receipt?.tokenIdsHash || null;
-    return {
-      status: 'receipt_verified',
-      reason: null,
-      retryable: false,
-      receiptHash: receiptHashes[0],
-      receiptHashes,
-      failedAssignmentIds,
-      timedOutProviderIds,
-      agreement: {
-        ...agreementBase,
-        status: 'accepted',
-        acceptedReceipts: matchingGroup.length,
-        receiptHash: receiptHashes[0],
-        receiptHashes,
-        outputHash: matchingGroup[0].receipt?.outputHash,
-        tokenIdsHash: matchingGroup[0].receipt?.tokenIdsHash,
-        vectorHash: matchingGroup[0].receipt?.vectorHash || null,
-        agreementValue
-      }
-    };
-  }
-  if (largestGroupSize + remainingProviders >= required) {
-    return {
-      status: statusForPendingAgreement(job),
-      reason: 'assignment_expired',
-      retryable: false,
-      failedAssignmentIds,
-      timedOutProviderIds,
-      agreement: {
-        ...agreementBase,
-        status: 'pending',
-        reason: agreementModeForJob(job) === 'ring_quorum'
-          ? 'waiting for possible ring quorum after assignment expiration'
-          : 'waiting for possible redundant agreement after assignment expiration'
-      }
-    };
-  }
-  const reason = agreementModeForJob(job) === 'ring_quorum'
-    ? 'ring quorum receipts cannot reach quorum after assignment expiration'
-    : 'redundant receipts cannot reach agreement after assignment expiration';
-  return {
-    status: statusForRejectedAgreement(job),
-    reason,
-    retryable: true,
-    failedAssignmentIds,
-    timedOutProviderIds,
-    agreement: {
-      ...agreementBase,
-      status: 'rejected',
-      reason
-    },
-    verifierDecision: {
-      accepted: false,
-      reasons: [reason],
-      verifiedAt: nowIso(),
-      agreement: {
-        ...agreementBase,
-        status: 'rejected',
-        reason
-      }
-    }
-  };
-};
-
 export function createPoolStore() {
   const providers = new Map();
   const providerSessions = new Map();
@@ -229,7 +65,7 @@ export function createPoolStore() {
   const researchRecords = new Map();
   const rateLimits = new Map();
 
-  return {
+  const api = {
     kind: 'memory',
     consumeRateLimit({
       key,
@@ -294,7 +130,7 @@ export function createPoolStore() {
       if (!provider || !session) return null;
       const hasActiveAssignment = Array.from(assignments.values()).some((assignment) => (
         assignment.providerId === providerId
-        && expirableAssignmentStatuses.has(assignment.status)
+        && EXPIRABLE_ASSIGNMENT_STATUSES.includes(assignment.status)
       ));
       const status = hasActiveAssignment ? 'busy' : 'available';
       provider.heartbeatAt = timestamp;
@@ -332,7 +168,7 @@ export function createPoolStore() {
     },
     claimJobForAssignment(jobId) {
       const job = jobs.get(jobId);
-      if (!job || !canClaimJobForAssignment(job)) return null;
+      if (!job || !canClaimSharedJobForAssignment(job)) return null;
       job.status = 'assignment_processing';
       job.assignmentAttempts = Number(job.assignmentAttempts || 0) + 1;
       job.updatedAt = nowIso();
@@ -386,9 +222,10 @@ export function createPoolStore() {
       return assignment;
     },
     nextPendingAssignmentForProvider(providerId) {
-      return Array.from(assignments.values()).find((assignment) => (
+      const assignment = Array.from(assignments.values()).find((assignment) => (
         assignment.providerId === providerId && assignment.status === 'assigned'
-      )) || null;
+      ));
+      return assignment ? { ...assignment } : null;
     },
     setProviderStatus(providerId, status) {
       const provider = providers.get(providerId);
@@ -401,14 +238,14 @@ export function createPoolStore() {
       const expired = [];
       const now = Date.now();
       for (const assignment of assignments.values()) {
-        if (!expirableAssignmentStatuses.has(assignment.status)) continue;
+        if (!EXPIRABLE_ASSIGNMENT_STATUSES.includes(assignment.status)) continue;
         if (!assignment.expiresAt || Date.parse(assignment.expiresAt) >= now) continue;
         assignment.status = 'expired';
         assignment.updatedAt = nowIso();
         expired.push(assignment);
         const job = jobs.get(assignment.jobId);
         if (job) {
-          const patch = buildExpiredAssignmentJobPatch({
+          const patch = buildSharedExpiredAssignmentJobPatch({
             job,
             assignment,
             receiptRecords: Array.from(receipts.values())
@@ -827,6 +664,7 @@ export function createPoolStore() {
       };
     }
   };
+  return assertPoolStoreContract(api);
 }
 
 export const poolStore = createPoolStore();
