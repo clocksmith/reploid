@@ -214,6 +214,13 @@ describe('boot seed manifest', () => {
         region: 'us-central1'
       }
     });
+    expect(hosting?.rewrites).toContainEqual({
+      source: '/pool/research/**',
+      run: {
+        serviceId: 'reploid-pool',
+        region: 'us-central1'
+      }
+    });
   });
 
   it('rewrites the Zero model proxy to a Firebase function', () => {

@@ -164,6 +164,7 @@ const requiredRewrites = [
   '/pool/jobs/**',
   '/pool/assignments/**',
   '/pool/receipts/**',
+  '/pool/research/**',
   '/pool/audits/**',
   '/pool/points/**',
   '/pool/reputation/**',
