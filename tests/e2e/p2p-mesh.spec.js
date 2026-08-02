@@ -4,25 +4,16 @@
  */
 import { test, expect } from '@playwright/test';
 
-import { LAUNCH_MODEL } from '../../self/pool/model-contract.js';
+import { buildLaunchProviderModel } from '../../self/pool/model-contract.js';
 
 const BASE_URL = 'http://localhost:8000';
 const RELAY_MODE = process.env.REPLOID_E2E_RELAY_MODE === 'server' ? 'server' : 'local';
 const RELAY_LABEL = RELAY_MODE === 'server' ? 'server relay' : 'local tab';
 
-const model = {
-  modelId: LAUNCH_MODEL.modelId,
-  modelHash: LAUNCH_MODEL.modelHash,
-  manifestHash: LAUNCH_MODEL.manifestHash,
-  contextLength: LAUNCH_MODEL.contextLength,
-  quantization: LAUNCH_MODEL.quantization,
-  artifactIdentity: LAUNCH_MODEL.artifactIdentity,
-  runtime: LAUNCH_MODEL.runtime,
-  backend: LAUNCH_MODEL.backend,
-  workload: LAUNCH_MODEL.workload,
-  executionMode: LAUNCH_MODEL.executionMode,
-  sequence: LAUNCH_MODEL.sequence
-};
+// The deterministic browser runtime must advertise the full frozen contract.
+// A partial fixture would bypass the same exact-identity checks used in a live
+// provider advert and would no longer exercise server-browser contract parity.
+const model = buildLaunchProviderModel();
 
 const TEST_PUBLIC_SEQUENCE = 'MKTAYIAKQRQISFVKSHFSRQ';
 const TEST_AMINO_ACIDS = 'ACDEFGHIKLMNPQRSTVWY';
@@ -161,7 +152,10 @@ const installDeterministicRuntime = async (context, {
         ];
         if (delayMs > 0) await new Promise((resolve) => setTimeout(resolve, delayMs));
         const tokens = Array.from(sequence, (_, index) => index % 33);
-        const pooledEmbedding = [0.25, -0.5, 0.75];
+        const pooledEmbedding = Array.from(
+          { length: Number(runtimeModel.embeddingDimensions) },
+          (_, index) => ((index % 17) - 8) / 16
+        );
         const pooledEmbeddingHash = await hashFloat32(pooledEmbedding);
         const sequenceResult = {
           schema: 'reploid.pool.sequence_result/v1',
@@ -177,6 +171,8 @@ const installDeterministicRuntime = async (context, {
           pooledEmbeddingHash,
           tokenEmbeddingsHash: null,
           maskedLogitsHash: null,
+          coordinateSystem: request.coordinateSystem,
+          sequenceIndices: request.sequenceIndices,
           tokenIndices: request.tokenIndices,
           topK: request.topK
         };
@@ -276,14 +272,26 @@ const stopProviderPage = async (page) => {
   await expect(toggle).toHaveAttribute('data-contribution-action', 'start');
 };
 
+const confirmPublicResearchPublication = async (page, {
+  sequenceSelector,
+  researchSelector
+}) => {
+  const publicSequence = page.locator(sequenceSelector);
+  if (!(await publicSequence.isChecked())) await publicSequence.check();
+  const publicResearch = page.locator(researchSelector);
+  if (!(await publicResearch.isChecked())) await publicResearch.check();
+};
+
 const runPeerPrompt = async (page, prompt, policyId = 'ring_quorum_receipt') => {
   const sequence = sequenceFor(prompt);
   await expect(page.locator('#pool-run-submit')).toBeVisible();
   await page.locator('details.pool-advanced summary').first().click();
   await expect(page.locator('#pool-run-policy')).toBeVisible();
   await page.locator('#pool-run-policy').selectOption(policyId);
-  const publicSequence = page.locator('#pool-run-sequence-public');
-  if (!(await publicSequence.isChecked())) await publicSequence.check();
+  await confirmPublicResearchPublication(page, {
+    sequenceSelector: '#pool-run-sequence-public',
+    researchSelector: '#pool-run-research-public'
+  });
   await page.locator('#pool-run-prompt').fill(sequence);
   await page.locator('#pool-run-submit').click();
   await expect(page.locator('#pool-run-result-stream')).toContainText(`e2e:${sequence}`, { timeout: 60000 });
@@ -327,8 +335,10 @@ test.describe('Run, Contribute, Records peer room', () => {
 
       const prompt = 'home graph follows execution';
       const sequence = sequenceFor(prompt);
-      const publicSequence = homePage.locator('#pool-home-sequence-public');
-      if (!(await publicSequence.isChecked())) await publicSequence.check();
+      await confirmPublicResearchPublication(homePage, {
+        sequenceSelector: '#pool-home-sequence-public',
+        researchSelector: '#pool-home-research-public'
+      });
       await homePage.locator('#pool-home-ask-prompt').fill(sequence);
       await homePage.locator('#pool-home-run-submit').click();
       await expect(homePage.locator('#pool-home-run-result-stream')).toContainText(`e2e:${sequence}`, { timeout: 60000 });
@@ -346,7 +356,7 @@ test.describe('Run, Contribute, Records peer room', () => {
       });
       await expect(homePage.locator('#pool-home-run-result-embedding-outcome')).toBeVisible();
       await expect(homePage.locator('#pool-home-run-result-embedding-outcome')).toContainText(
-        'Copy the vector into compatible similarity or retrieval software.'
+        'Use it with embeddings made by the same ESM-2 model and contract when comparing sequences.'
       );
       await expect(homePage.locator('[data-pool-copy-embedding]')).toBeEnabled();
       expect(states).toEqual(expect.arrayContaining([
@@ -404,7 +414,9 @@ test.describe('Run, Contribute, Records peer room', () => {
         contentType: 'application/json'
       });
       await expect(runPage.locator('#pool-run-result-embedding-outcome')).toBeVisible();
-      await expect(runPage.locator('#pool-run-result-embedding-outcome')).toContainText('3 dimensions');
+      await expect(runPage.locator('#pool-run-result-embedding-outcome')).toContainText(
+        `${model.embeddingDimensions} dimensions`
+      );
       await expect(runPage.locator('[data-pool-copy-embedding]')).toBeEnabled();
 
       await openPoolNav(runPage);
@@ -540,8 +552,10 @@ test.describe('Run, Contribute, Records peer room', () => {
       await startProviderPage(providerPage);
 
       const sequence = sequenceFor('requester reload during active work');
-      const publicSequence = requesterPage.locator('#pool-run-sequence-public');
-      if (!(await publicSequence.isChecked())) await publicSequence.check();
+      await confirmPublicResearchPublication(requesterPage, {
+        sequenceSelector: '#pool-run-sequence-public',
+        researchSelector: '#pool-run-research-public'
+      });
       await requesterPage.locator('#pool-run-prompt').fill(sequence);
       await requesterPage.locator('#pool-run-submit').click();
       await expect.poll(() => providerPage.evaluate(() => (
@@ -579,8 +593,10 @@ test.describe('Run, Contribute, Records peer room', () => {
       });
 
       const sequence = sequenceFor('provider reload during active work');
-      const publicSequence = requesterPage.locator('#pool-run-sequence-public');
-      if (!(await publicSequence.isChecked())) await publicSequence.check();
+      await confirmPublicResearchPublication(requesterPage, {
+        sequenceSelector: '#pool-run-sequence-public',
+        researchSelector: '#pool-run-research-public'
+      });
       await requesterPage.locator('#pool-run-prompt').fill(sequence);
       await requesterPage.locator('#pool-run-submit').click();
       await expect.poll(() => providerPage.evaluate(() => (

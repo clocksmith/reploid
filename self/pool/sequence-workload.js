@@ -141,6 +141,8 @@ export function normalizeSequenceRequest(request = {}, {
 
 export function validateSequenceRequest(request = {}, { model = null } = {}) {
   const reasons = [];
+  const sequenceIndices = Array.isArray(request.sequenceIndices) ? request.sequenceIndices : [];
+  const tokenIndices = Array.isArray(request.tokenIndices) ? request.tokenIndices : [];
   if (request.schema !== SEQUENCE_REQUEST_SCHEMA) reasons.push('sequence request schema mismatch');
   if (!isSequenceWorkload(request.workload)) reasons.push('sequence workload is not supported');
   if (!isSequenceAlphabet(request.alphabet)) reasons.push('sequence alphabet is not supported');
@@ -159,13 +161,13 @@ export function validateSequenceRequest(request = {}, { model = null } = {}) {
     reasons.push('sequence coordinate system is not supported');
   }
   if (!Array.isArray(request.sequenceIndices)
-    || request.sequenceIndices.length > MAX_SEQUENCE_POSITIONS
-    || request.sequenceIndices.some((index) => !Number.isInteger(index) || index < 0 || index >= request.sequenceLength)) {
+    || sequenceIndices.length > MAX_SEQUENCE_POSITIONS
+    || sequenceIndices.some((index) => !Number.isInteger(index) || index < 0 || index >= request.sequenceLength)) {
     reasons.push(`sequenceIndices must contain at most ${MAX_SEQUENCE_POSITIONS} in-range sequence positions`);
   }
   if (!Array.isArray(request.tokenIndices)
-    || request.tokenIndices.length > MAX_SEQUENCE_POSITIONS
-    || request.tokenIndices.some((index) => !Number.isInteger(index) || index < 0)) {
+    || tokenIndices.length > MAX_SEQUENCE_POSITIONS
+    || tokenIndices.some((index) => !Number.isInteger(index) || index < 0)) {
     reasons.push(`tokenIndices must contain at most ${MAX_SEQUENCE_POSITIONS} non-negative model-token positions`);
   }
   if (request.workload === SEQUENCE_WORKLOADS.embedding && request.includeLogits !== false) {
@@ -188,7 +190,7 @@ export function validateSequenceRequest(request = {}, { model = null } = {}) {
       && coordinates.mapping !== 'one_token_per_sequence_symbol') {
       reasons.push('selected model does not declare one-token-per-sequence-symbol coordinates');
     }
-    if (request.sequenceIndices.length !== request.tokenIndices.length
+    if (sequenceIndices.length !== tokenIndices.length
       && request.coordinateSystem === 'zero_based_sequence_index') {
       reasons.push('sequence and model-token position counts do not match');
     }

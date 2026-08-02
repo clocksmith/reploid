@@ -12,7 +12,11 @@ import {
 } from '../../self/pool/inference-receipt.js';
 import { createProviderClient } from '../../self/pool/provider-client.js';
 import { createRequesterClient } from '../../self/pool/requester-client.js';
-import { LAUNCH_MODEL, getEnabledPoolModelContract } from '../../self/pool/model-contract.js';
+import {
+  LAUNCH_MODEL,
+  buildLaunchProviderModel,
+  getEnabledPoolModelContract
+} from '../../self/pool/model-contract.js';
 import { POOL_CONFIG_VERSION } from '../../self/pool/config.js';
 import {
   PEER_MESSAGE_TYPES,
@@ -39,18 +43,7 @@ import {
   makeSequenceExecution
 } from '../helpers/pool-sequence-fixture.js';
 
-const runtimeModel = () => ({
-  modelId: LAUNCH_MODEL.modelId,
-  modelHash: LAUNCH_MODEL.modelHash,
-  manifestHash: LAUNCH_MODEL.manifestHash,
-  runtime: LAUNCH_MODEL.runtime,
-  backend: LAUNCH_MODEL.backend,
-  contextLength: LAUNCH_MODEL.contextLength,
-  quantization: LAUNCH_MODEL.quantization,
-  workload: LAUNCH_MODEL.workload,
-  executionMode: LAUNCH_MODEL.executionMode,
-  sequence: LAUNCH_MODEL.sequence
-});
+const runtimeModel = () => buildLaunchProviderModel();
 
 const fakeRuntime = () => ({
   isReady: () => true,
@@ -110,16 +103,7 @@ const fakeRuntime = () => ({
   })
 });
 
-const launchModelAdvert = () => ({
-  modelId: LAUNCH_MODEL.modelId,
-  modelHash: LAUNCH_MODEL.modelHash,
-  manifestHash: LAUNCH_MODEL.manifestHash,
-  runtime: LAUNCH_MODEL.runtime,
-  backend: LAUNCH_MODEL.backend,
-  workload: LAUNCH_MODEL.workload,
-  executionMode: LAUNCH_MODEL.executionMode,
-  sequence: LAUNCH_MODEL.sequence
-});
+const launchModelAdvert = () => buildLaunchProviderModel();
 
 const createSequenceJobIntent = async (options = {}) => {
   const sequenceFields = await makePublicProteinJobFields(options.sequence || TEST_PUBLIC_PROTEIN_SEQUENCE);
@@ -138,16 +122,7 @@ const createSequenceJobIntent = async (options = {}) => {
 
 const sequenceModelAdvert = () => {
   const model = getEnabledPoolModelContract('esm2-t12-35m-ur50d-f32-af32');
-  return {
-    modelId: model.modelId,
-    modelHash: model.modelHash,
-    manifestHash: model.manifestHash,
-    runtime: model.runtime,
-    backend: model.backend,
-    workload: model.workload,
-    executionMode: model.executionMode,
-    sequence: model.sequence
-  };
+  return buildLaunchProviderModel({ modelId: model.modelId });
 };
 
 describe('pool peer control plane', () => {

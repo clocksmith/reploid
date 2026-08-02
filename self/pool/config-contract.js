@@ -42,7 +42,7 @@ const isBiologicalSequencePoolModel = (model = {}) => (
     .startsWith('sequence.')
 );
 
-const validateSequenceModelContract = (model, index, reasons) => {
+const validateSequenceModelContract = (model, index, reasons, { isLaunchModel = false } = {}) => {
   const path = `modelCatalog.${index}`;
   for (const field of [
     'modelId',
@@ -102,8 +102,20 @@ const validateSequenceModelContract = (model, index, reasons) => {
     if (!['qualified', 'enabled_release_receipt_required'].includes(model.admission?.browserWebGpu)) {
       reasons.push(`${path}.admission.browserWebGpu must be qualified before enabling the model`);
     }
-    if (model.admission?.scientificFitness === 'missing') {
-      reasons.push(`${path}.admission.scientificFitness cannot be missing for an enabled model`);
+    if (model.admission?.browserWebGpu === 'enabled_release_receipt_required' && !isLaunchModel) {
+      reasons.push(`${path}.admission.browserWebGpu baseline-release state is reserved for the launch model`);
+    }
+    if (model.admission?.browserWebGpu === 'qualified') {
+      requireField(model.admission?.browserQualificationReceipt, `${path}.admission.browserQualificationReceipt`, reasons);
+    }
+    if (!['qualified', 'baseline_release_receipt_required'].includes(model.admission?.scientificFitness)) {
+      reasons.push(`${path}.admission.scientificFitness must be qualified before enabling the model`);
+    }
+    if (model.admission?.scientificFitness === 'baseline_release_receipt_required' && !isLaunchModel) {
+      reasons.push(`${path}.admission.scientificFitness baseline-release state is reserved for the launch model`);
+    }
+    if (model.admission?.scientificFitness === 'qualified') {
+      requireField(model.admission?.scientificFitnessReceipt, `${path}.admission.scientificFitnessReceipt`, reasons);
     }
   }
 };
@@ -121,7 +133,11 @@ export function validatePoolConfigValue(config = {}) {
   }
   if (!isProteinPoolModel(launchModel)) reasons.push('launchModel must be a protein sequence model');
   modelCatalog.forEach((model, index) => {
-    if (isBiologicalSequencePoolModel(model)) validateSequenceModelContract(model, index, reasons);
+    if (isBiologicalSequencePoolModel(model)) {
+      validateSequenceModelContract(model, index, reasons, {
+        isLaunchModel: model.modelId === launchModel?.modelId
+      });
+    }
     if (model.enabled !== false && !isBiologicalSequencePoolModel(model)) {
       reasons.push(`enabled model ${model.modelId || 'unknown'} must be a biological sequence model`);
     }

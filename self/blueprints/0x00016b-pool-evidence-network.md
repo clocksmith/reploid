@@ -29,6 +29,15 @@ proposals, approval state, question lifecycles, disagreement views, review state
 and quality or durability rewards. These are rebuildable projections over signed
 records.
 
+The Records workspace also projects per-question exact-model evidence. A result
+binds its own exact model contract to its receipt while the signed submission
+remains the question and sequence anchor. The projection joins model sources only
+by those durable identities and by declared protein residue coordinates. It does
+not compare raw embeddings, average vectors, or interpret tokenizer-local token
+IDs as shared residue proposals. Until a signed shared semantic observation or an
+adjudicated outcome exists, it explicitly reports agreement and disagreement as
+not assessed rather than inferring either one.
+
 ### 4. Target Discovery Contract Projection
 The target projection freezes one bounded question, competing hypotheses,
 uncertainty, candidate next actions, predicted observations, falsifiers,
@@ -55,6 +64,7 @@ existing.
 - [x] Signed records fail verification after content mutation
 - [x] Result and claim edges remain inspectable
 - [x] Similarity excludes incompatible embeddings
+- [x] Cross-model Records projection preserves exact-contract isolation and reports unassessed agreement explicitly
 - [x] Discovery work remains proposed until separately approved
 - [x] Evidence rewards require independent acceptance and durability
 - [x] Coordinator publication is authenticated and public discovery is read-only

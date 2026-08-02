@@ -4,7 +4,8 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { POOL_CONFIG, POOL_CONFIG_HASH, POOL_CONFIG_VERSION, validatePoolConfig } from '../server/pool/config.js';
-import { MODEL_CATALOG } from '../self/pool/model-contract.js';
+import { LAUNCH_MODEL, MODEL_CATALOG } from '../self/pool/model-contract.js';
+import { validateModelPromotionEvidence } from '../self/pool/model-promotion.js';
 import {
   validateDopplerExecutionManifestShape,
   validateModelArtifactManifestShape,
@@ -37,6 +38,53 @@ const fail = (reasons) => {
 
 const readJson = (filePath) => JSON.parse(fs.readFileSync(filePath, 'utf8'));
 const readText = (filePath) => fs.readFileSync(filePath, 'utf8');
+const statusDirectory = path.join(repoRoot, 'docs', 'status');
+
+const readPromotionReceipt = (receiptPath, label, reasons) => {
+  const source = String(receiptPath || '').trim();
+  if (!source) {
+    reasons.push(`${label} receipt path is required`);
+    return null;
+  }
+  const resolved = path.resolve(repoRoot, source);
+  const relativeToStatus = path.relative(statusDirectory, resolved);
+  if (relativeToStatus.startsWith('..') || path.isAbsolute(relativeToStatus)) {
+    reasons.push(`${label} receipt must be stored under docs/status`);
+    return null;
+  }
+  if (!fs.existsSync(resolved)) {
+    reasons.push(`${label} receipt does not exist: ${source}`);
+    return null;
+  }
+  try {
+    return readJson(resolved);
+  } catch (error) {
+    reasons.push(`${label} receipt is not valid JSON: ${source} (${error.message})`);
+    return null;
+  }
+};
+
+const checkEnabledModelPromotionEvidence = () => {
+  const reasons = [];
+  for (const model of MODEL_CATALOG.filter((entry) => entry.enabled !== false)) {
+    const admission = model.admission || {};
+    const browserQualificationRecord = admission.browserWebGpu === 'qualified'
+      ? readPromotionReceipt(admission.browserQualificationReceipt, `${model.modelId} browser qualification`, reasons)
+      : null;
+    const scientificFitnessRecord = admission.scientificFitness === 'qualified'
+      ? readPromotionReceipt(admission.scientificFitnessReceipt, `${model.modelId} scientific fitness`, reasons)
+      : null;
+    const validation = validateModelPromotionEvidence({
+      model,
+      modelCatalog: MODEL_CATALOG,
+      launchModel: LAUNCH_MODEL,
+      browserQualificationRecord,
+      scientificFitnessRecord
+    });
+    reasons.push(...validation.reasons.map((reason) => `${model.modelId} promotion evidence: ${reason}`));
+  }
+  return reasons;
+};
 const findBundledModelBytes = (directory, relative = '') => {
   const ignored = new Set(['.git', 'node_modules', 'test-results', 'playwright-report']);
   const results = [];
@@ -101,6 +149,7 @@ const checkLocalFiles = () => {
   const reasons = [];
   const configValidation = validatePoolConfig();
   if (!configValidation.ok) reasons.push(...configValidation.reasons.map((reason) => `pool config: ${reason}`));
+  reasons.push(...checkEnabledModelPromotionEvidence());
   if (POOL_CONFIG.claim !== 'receipt-backed, audit-backed, reputation-backed, policy-controlled browser inference') {
     reasons.push('pool config claim is not the approved trust language');
   }

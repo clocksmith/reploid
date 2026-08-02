@@ -780,6 +780,23 @@ const resetSessionGenerationState = async (session) => {
   }
 };
 
+const cancelledRuntimeWorkError = (reason = 'cancelled') => {
+  const error = new Error(`Doppler runtime work was cancelled: ${reason}`);
+  error.code = 'pool_runtime_work_cancelled';
+  error.reason = reason;
+  return error;
+};
+
+const requestPublicSessionCancellation = async (session, reason) => {
+  if (!session) return { requested: false, method: null };
+  for (const method of ['abort', 'cancel']) {
+    if (typeof session[method] !== 'function') continue;
+    await session[method]({ reason });
+    return { requested: true, method };
+  }
+  return { requested: false, method: null };
+};
+
 export function createDopplerRuntime({ modelSession = null, model = null, runtime = null } = {}) {
   const serviceScope = 'pool:provider';
   let session = modelSession;
@@ -790,6 +807,30 @@ export function createDopplerRuntime({ modelSession = null, model = null, runtim
   let deviceInfo = null;
   let generationQueue = Promise.resolve();
   let activeAdapter = null;
+  let workEpoch = 0;
+  let activeWork = null;
+
+  const assertWorkCurrent = (expectedEpoch) => {
+    if (expectedEpoch !== workEpoch) throw cancelledRuntimeWorkError(activeWork?.reason || 'superseded');
+  };
+
+  const enqueueWork = (operation) => {
+    const expectedEpoch = workEpoch;
+    const run = async () => {
+      assertWorkCurrent(expectedEpoch);
+      activeWork = { epoch: expectedEpoch, startedAt: new Date().toISOString(), reason: null };
+      try {
+        const result = await operation(() => assertWorkCurrent(expectedEpoch));
+        assertWorkCurrent(expectedEpoch);
+        return result;
+      } finally {
+        if (activeWork?.epoch === expectedEpoch) activeWork = null;
+      }
+    };
+    const task = generationQueue.then(run, run);
+    generationQueue = task.catch(() => null);
+    return task;
+  };
 
   const attachHandle = async (
     handle,
@@ -926,14 +967,32 @@ export function createDopplerRuntime({ modelSession = null, model = null, runtim
         deviceInfo: await api.getDeviceInfo()
       });
     },
+    async cancelActiveWork({ reason = 'cancelled' } = {}) {
+      workEpoch += 1;
+      if (activeWork) activeWork.reason = reason;
+      const cancellation = await requestPublicSessionCancellation(session, reason).catch((error) => ({
+        requested: false,
+        method: null,
+        error: error.message
+      }));
+      return {
+        ok: true,
+        status: 'cancelled',
+        reason,
+        invalidatedEpoch: workEpoch - 1,
+        cancellation
+      };
+    },
     async generate({ prompt, generationConfig, assignment }) {
       if (!session || !generateMethodName(session)) {
         throw new Error('Doppler browser model session is not connected');
       }
-      const runGeneration = async () => {
+      const runGeneration = async (assertCurrent) => {
         await resetSessionGenerationState(session);
+        assertCurrent();
         const startedAt = new Date().toISOString();
         const result = await callGenerate(session, prompt, generationConfig, assignment);
+        assertCurrent();
         const completedAt = new Date().toISOString();
         const outputText = normalizeOutputText(result);
         const tokenIds = normalizeTokenIds(result);
@@ -968,18 +1027,18 @@ export function createDopplerRuntime({ modelSession = null, model = null, runtim
           status: 'completed'
         };
       };
-      const task = generationQueue.then(runGeneration, runGeneration);
-      generationQueue = task.catch(() => null);
-      return task;
+      return enqueueWork(runGeneration);
     },
     async embed({ prompt, assignment }) {
       if (!session || !embeddingMethodName(session)) {
         throw new Error('Doppler browser embedding session is not connected');
       }
-      const runEmbedding = async () => {
+      const runEmbedding = async (assertCurrent) => {
         await resetSessionGenerationState(session);
+        assertCurrent();
         const startedAt = new Date().toISOString();
         const result = await callEmbed(session, prompt, assignment);
+        assertCurrent();
         const completedAt = new Date().toISOString();
         const values = normalizeEmbeddingValues(result);
         if (values.length === 0) throw new Error('Doppler embedding result did not include an embedding vector');
@@ -1015,9 +1074,7 @@ export function createDopplerRuntime({ modelSession = null, model = null, runtim
           status: 'completed'
         };
       };
-      const task = generationQueue.then(runEmbedding, runEmbedding);
-      generationQueue = task.catch(() => null);
-      return task;
+      return enqueueWork(runEmbedding);
     },
     async encodeSequence({ sequence, request, assignment }) {
       if (!session || !sequenceMethodName(session)) {
@@ -1026,10 +1083,12 @@ export function createDopplerRuntime({ modelSession = null, model = null, runtim
       const validation = validateSequenceRequest(request, { model: modelInfo });
       if (!validation.ok) throw new Error(`Sequence request rejected: ${validation.reasons.join('; ')}`);
       if (await sha256Hex(sequence) !== request.sequenceHash) throw new Error('sequence input hash mismatch');
-      const runSequence = async () => {
+      const runSequence = async (assertCurrent) => {
         await resetSessionGenerationState(session);
+        assertCurrent();
         const startedAt = new Date().toISOString();
         const result = await callDopplerSequence(session, sequence, request, assignment);
+        assertCurrent();
         const completedAt = new Date().toISOString();
         const reduced = await reduceDopplerSequenceResult(result, request);
         const {
@@ -1076,11 +1135,10 @@ export function createDopplerRuntime({ modelSession = null, model = null, runtim
           status: 'completed'
         };
       };
-      const task = generationQueue.then(runSequence, runSequence);
-      generationQueue = task.catch(() => null);
-      return task;
+      return enqueueWork(runSequence);
     },
     async close() {
+      await api.cancelActiveWork({ reason: 'runtime_closed' });
       await generationQueue.catch(() => null);
       const activeSession = session;
       const ownedByService = sessionOwnedByService;

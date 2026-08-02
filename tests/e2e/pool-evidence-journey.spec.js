@@ -39,6 +39,7 @@ test('shows and exercises the governed protein evidence journey', async ({ page 
       dimensions: 3
     };
     const requester = await createIdentity('requester', 'e2e-requester');
+    const researcher = await createIdentity('researcher', 'e2e-researcher');
     const curator = await createIdentity('reviewer', 'e2e-curator');
     const independent = await createIdentity('reviewer', 'e2e-independent');
     const laboratoryOne = await createIdentity('researcher', 'e2e-laboratory-one');
@@ -138,7 +139,7 @@ test('shows and exercises the governed protein evidence journey', async ({ page 
       alternativeToHashes: [hypothesisOne.recordHash]
     });
     const predictionOne = await evidence.createSignedResearchPrediction({
-      identity: curator,
+      identity: researcher,
       roomId: 'reploid-default',
       questionHash: firstSubmission.recordHash,
       hypothesisHash: hypothesisOne.recordHash,
@@ -260,6 +261,9 @@ test('shows and exercises the governed protein evidence journey', async ({ page 
 
   await page.goto('/records');
   await expect(page.locator('[data-pool-research-workspace]')).toBeVisible();
+  await expect(page.getByText('Exact-model evidence, not vector averaging', { exact: true })).toBeVisible();
+  await expect(page.locator('.pool-research-model-evidence p').filter({ hasText: 'No cross-model agreement is asserted because only one or no exact model contract has published evidence.' }).first()).toBeVisible();
+  await expect(page.locator('.pool-research-panel').filter({ hasText: 'Model vectors and tokenizer-local logits remain isolated by exact contract.' }).first()).toBeVisible();
   await expect(page.locator('.pool-research-stats div').filter({ hasText: 'Submissions' }).locator('dd')).toHaveText('2');
   await expect(page.locator('.pool-research-stats div').filter({ hasText: 'Hypotheses' }).locator('dd')).toHaveText('2');
   await expect(page.locator('.pool-research-stats div').filter({ hasText: 'Predictions' }).locator('dd')).toHaveText('2');
@@ -268,7 +272,7 @@ test('shows and exercises the governed protein evidence journey', async ({ page 
   await expect(page.locator('.pool-research-stats div').filter({ hasText: 'Evaluations' }).locator('dd')).toHaveText('1');
   await expect(page.getByText('accepted annotations', { exact: false })).toBeVisible();
   await expect(page.getByText('deterministic similarity clusters', { exact: false })).toBeVisible();
-  await expect(page.getByText('The independent replica retained a high-variance failure.')).toBeVisible();
+  await expect(page.locator('.pool-research-record b').filter({ hasText: 'The independent replica retained a high-variance failure.' })).toBeVisible();
   await expect(page.getByText('balanced_accuracy improved', { exact: false })).toBeVisible();
   await expect(page.locator('[data-research-action="prior-evidence"]')).toBeAttached();
   await expect(page.locator('[data-research-action="work-order"]')).toBeAttached();

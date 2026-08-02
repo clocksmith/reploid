@@ -31,8 +31,8 @@ if (!SYNTHETIC_MODEL) {
 // governed surface and must not make Poolday deployment health depend on it.
 const routes = ['/', '/ask', '/compute', '/records', '/history', '/network'];
 const requiredText = {
-  '/': 'Run protein models together',
-  '/ask': 'Send one public protein sequence',
+  '/': 'Grow inspectable protein evidence, from public input to reviewed discovery.',
+  '/ask': 'Protein sequence',
   '/compute': 'This tab',
   '/records': 'Records',
   '/history': 'Records',
@@ -125,7 +125,10 @@ const installSmokeRuntime = (targetContext) => targetContext.addInitScript((laun
     }),
     encodeSequence: async ({ sequence, request }) => {
       const tokens = Array.from(sequence, (_, index) => index % 33);
-      const pooledEmbedding = [0.25, -0.5, 0.75];
+      const pooledEmbedding = Array.from(
+        { length: Number(model.embeddingDimensions) },
+        (_, index) => ((index % 17) - 8) / 16
+      );
       const pooledEmbeddingHash = await hashFloat32(pooledEmbedding);
       const sequenceResult = {
         schema: 'reploid.pool.sequence_result/v1',
@@ -141,6 +144,8 @@ const installSmokeRuntime = (targetContext) => targetContext.addInitScript((laun
         pooledEmbeddingHash,
         tokenEmbeddingsHash: null,
         maskedLogitsHash: null,
+        coordinateSystem: request.coordinateSystem,
+        sequenceIndices: request.sequenceIndices,
         tokenIndices: request.tokenIndices,
         topK: request.topK
       };
@@ -250,8 +255,11 @@ try {
   await requester.selectOption('#pool-run-model', SYNTHETIC_MODEL_ID);
   await requester.fill('#pool-run-prompt', 'MKTAYIAKQRQISFVKSHFSRQ');
   await requester.check('#pool-run-sequence-public');
+  await requester.check('#pool-run-research-public');
   await requester.click('#pool-run-submit');
-  await requester.waitForFunction(() => document.body.textContent.includes('Protein embedding ready'));
+  await requester.waitForFunction(() => (
+    document.querySelector('[data-pool-run-status]')?.textContent.includes('Protein embedding verified')
+  ));
   await requester.goto(localPeerUrl('/network', room), { waitUntil: 'domcontentloaded' });
   await requester.waitForSelector('.pool-home', { timeout: 30000 });
   await requester.waitForSelector('#pool-peer-ledger', { timeout: 30000, state: 'attached' });

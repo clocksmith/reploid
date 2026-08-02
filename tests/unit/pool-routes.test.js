@@ -74,6 +74,7 @@ const launchModel = () => ({
   modelId: LAUNCH_MODEL.modelId,
   modelHash: LAUNCH_MODEL.modelHash,
   manifestHash: LAUNCH_MODEL.manifestHash,
+  tokenizerHash: LAUNCH_MODEL.tokenizerHash,
   runtime: LAUNCH_MODEL.runtime,
   backend: LAUNCH_MODEL.backend,
   workload: LAUNCH_MODEL.workload,

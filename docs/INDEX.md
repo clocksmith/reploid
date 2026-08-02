@@ -16,7 +16,7 @@ Guide to all documentation in the REPLOID project.
 
 ### Architecture
 - **[docs/system-architecture.md](./system-architecture.md)** - Complete system design
-- **[./self/blueprints/](../self/blueprints/)** - Architectural specifications (216+ files)
+- **[./self/blueprints/](../self/blueprints/)** - Decision blueprints and legacy generated module entries (368 files)
 
 **Key Blueprints:**
 - [0x000002 - Application Orchestration](../self/blueprints/0x000002-application-orchestration.md) - Boot and DI
@@ -29,7 +29,7 @@ Guide to all documentation in the REPLOID project.
 
 ### Vision and Contracts
 - **[docs/substrate.md](./substrate.md)** - Substrate + Ouroboros contract
-- **[docs/poolday/product-intent.md](./poolday/product-intent.md)** - Canonical active-science goal, Poolday purpose, north-star metric, surface hierarchy, and promotion path
+- **[docs/poolday/product-intent.md](./poolday/product-intent.md)** - Canonical proof-carrying protein-model-network goal, bounded protein journey, evidence boundary, and promotion path
 - **[docs/poolday/discovery-contract.md](./poolday/discovery-contract.md)** - Target atomic active-science object, action-value boundary, epistemic updates, replication, and closure
 
 ### Reference
@@ -91,8 +91,8 @@ reploid/
 │   ├── config/                 # Configuration
 │   │   └── genesis-levels.json # Module/worker/role definitions
 │   │
-│   ├── blueprints/             # Architectural specifications
-│   │   └── (216+ design docs)
+│   ├── blueprints/             # Decision blueprints plus legacy generated module entries
+│   │   └── (368 documents; migrate generated entries to inventory records)
 │   │
 ├── tests/                      # Test suites
 │
@@ -103,6 +103,21 @@ reploid/
 ---
 
 ## Reading Guide
+
+## Documentation hierarchy
+
+Read and maintain documentation by authority rather than by file count:
+
+1. Product intent defines the purpose and win condition.
+2. The claim index records what may currently be claimed and its evidence.
+3. Runtime contracts define implemented behavior.
+4. Protocol documents define exact schemas and wire rules.
+5. Subsystem blueprints capture architectural decisions, invariants, and failure modes.
+6. Generated module inventory records paths, ownership, dependencies, and hashes.
+
+Existing generated blueprint stubs remain compatibility records during migration;
+they are not evidence of an architectural decision. New module inventory should
+not create Markdown blueprints unless the module introduces such a decision.
 
 ### For New Users
 1. [README.md](../README.md) - Understand REPLOID

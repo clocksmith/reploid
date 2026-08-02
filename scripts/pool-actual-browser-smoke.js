@@ -23,6 +23,8 @@ const selectedModelId = modelArg ? modelArg.split('=').slice(1).join('=').trim()
 const selectedBrowserChannel = channelArg
   ? channelArg.split('=').slice(1).join('=').trim()
   : String(process.env.REPLOID_POOL_ACTUAL_BROWSER_CHANNEL || '').trim();
+const strictArtifactPreflight = args.includes('--strict-artifact-preflight')
+  || process.env.REPLOID_POOL_ACTUAL_STRICT_ARTIFACT_PREFLIGHT === '1';
 const baseUrl = (positionalUrl || process.env.REPLOID_POOL_ACTUAL_SMOKE_URL || '').replace(/\/+$/, '');
 const ACTUAL_SMOKE_WINDOW_MS = Number(process.env.REPLOID_POOL_ACTUAL_SMOKE_WINDOW_MS || 300000);
 const ACTUAL_DISCOVERY_WINDOW_MS = Number(
@@ -167,11 +169,11 @@ const summarizeProviderAdvert = (advert = {}) => ({
 });
 
 const installActualRuntimeConfig = async (context) => {
-  await context.addInitScript(({ windowMs, discoveryWindowMs, maxOutputTokens, moduleUrl, kernelBaseUrl, loadOptions }) => {
+  await context.addInitScript(({ windowMs, discoveryWindowMs, maxOutputTokens, moduleUrl, kernelBaseUrl, loadOptions, strictArtifacts }) => {
     window.REPLOID_POOL_DISCOVERY_WINDOW_MS = discoveryWindowMs;
     window.REPLOID_POOL_RECEIPT_WINDOW_MS = windowMs;
     window.REPLOID_POOL_MAX_OUTPUT_TOKENS = maxOutputTokens;
-    window.REPLOID_POOL_STRICT_ARTIFACT_PREFLIGHT = false;
+    window.REPLOID_POOL_STRICT_ARTIFACT_PREFLIGHT = strictArtifacts;
     if (moduleUrl) window.REPLOID_DOPPLER_MODULE_URL = moduleUrl;
     if (kernelBaseUrl) window.REPLOID_DOPPLER_KERNEL_BASE_URL = kernelBaseUrl;
     if (loadOptions) window.REPLOID_DOPPLER_LOAD_OPTIONS = loadOptions;
@@ -182,6 +184,7 @@ const installActualRuntimeConfig = async (context) => {
     moduleUrl: dopplerModuleUrl,
     kernelBaseUrl: dopplerKernelBaseUrl,
     loadOptions: dopplerLoadOptions,
+    strictArtifacts: strictArtifactPreflight,
   });
 };
 
@@ -580,7 +583,7 @@ try {
   if (selectedMode === 'all' || selectedMode === 'single') await runSingleReceipt(browser);
   if (selectedMode === 'all' || selectedMode === 'queue') await runQueuedReceipts(browser);
   if (selectedMode === 'all' || selectedMode === 'ring12') await runTwelveProviderRing(browser);
-  console.log(`[actual-smoke] passed ${baseUrl}`);
+  console.log(`[actual-smoke] passed ${baseUrl} (strict artifacts: ${strictArtifactPreflight ? 'on' : 'off'})`);
 } catch (error) {
   console.error(error.message);
   if (error.details) console.error(JSON.stringify(error.details, null, 2));

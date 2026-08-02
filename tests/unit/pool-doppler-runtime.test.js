@@ -162,6 +162,62 @@ describe('Doppler browser runtime adapter', () => {
     expect(result.embeddingDimensions).toBe(3);
   });
 
+  it('invalidates cancelled sequence work and rejects its late result before it can be published', async () => {
+    const sequenceFields = await makePublicProteinJobFields();
+    let resolveDelayedSequence = null;
+    let abortCalls = 0;
+    let markStarted = null;
+    const delayedResult = new Promise((resolve) => {
+      resolveDelayedSequence = resolve;
+    });
+    const started = new Promise((resolve) => {
+      markStarted = resolve;
+    });
+    const runtime = createDopplerRuntime({
+      model: LAUNCH_MODEL,
+      modelSession: {
+        ...launchHandle(),
+        abort() {
+          abortCalls += 1;
+        },
+        encodeSequence(sequence) {
+          if (sequence === TEST_PUBLIC_PROTEIN_SEQUENCE) {
+            markStarted();
+            return delayedResult;
+          }
+          return testSequenceEncoding(sequence);
+        }
+      }
+    });
+
+    const cancelled = runtime.encodeSequence({
+      sequence: TEST_PUBLIC_PROTEIN_SEQUENCE,
+      request: sequenceFields.sequenceRequest,
+      assignment: { assignmentId: 'assignment_cancelled', sequenceRequest: sequenceFields.sequenceRequest }
+    });
+    await started;
+    await expect(runtime.cancelActiveWork({ reason: 'qualification_cancellation_probe' })).resolves.toMatchObject({
+      ok: true,
+      status: 'cancelled',
+      cancellation: { requested: true, method: 'abort' }
+    });
+    resolveDelayedSequence(testSequenceEncoding(TEST_PUBLIC_PROTEIN_SEQUENCE));
+    await expect(cancelled).rejects.toMatchObject({
+      code: 'pool_runtime_work_cancelled',
+      reason: 'qualification_cancellation_probe'
+    });
+    expect(abortCalls).toBe(1);
+
+    await expect(runtime.encodeSequence({
+      sequence: TEST_PUBLIC_PROTEIN_SEQUENCE,
+      request: sequenceFields.sequenceRequest,
+      assignment: { assignmentId: 'assignment_after_cancellation', sequenceRequest: sequenceFields.sequenceRequest }
+    })).resolves.toMatchObject({
+      status: 'completed',
+      embeddingDimensions: 3
+    });
+  });
+
   it('keeps an explicit immutable artifact source even when Doppler promotes the model alias', async () => {
     let loadInput = null;
     const load = (input) => {
