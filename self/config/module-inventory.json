@@ -2003,7 +2003,7 @@
     {
       "path": "ui/pool-home/controls.js",
       "owner": "ui",
-      "sha256": "sha256:03580a3d5854710287cbe086231025ee6dbac8768e8ebffe7c94d32a7ff24681",
+      "sha256": "sha256:ba128fcb6f17e82cbc277308cdbe776e5a95a6daecd5818d4f0fdae9fdff61db",
       "imports": [
         "../../pool/adapter-publication.js",
         "../../pool/adapter-registry.js",
