@@ -7,6 +7,12 @@ on:
     paths:
       - .github/workflows/blueprint-audit-snapshot.yml
       - scripts/blueprint-audit-snapshot.mjs
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/blueprint-audit-snapshot.yml
+      - scripts/blueprint-audit-snapshot.mjs
   workflow_dispatch:
 
 permissions:
