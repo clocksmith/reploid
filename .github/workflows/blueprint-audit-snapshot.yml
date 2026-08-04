@@ -31,7 +31,9 @@ jobs:
           cp -R self audit-snapshot/self
           cp -R scripts audit-snapshot/scripts
           cp -R tests audit-snapshot/tests
-          cp package.json package-lock.json vitest.config.js audit-snapshot/
+          for path in docs server bin config .github README.md AGENTS.md package.json package-lock.json vitest.config.js; do
+            if [ -e "$path" ]; then cp -R "$path" audit-snapshot/; fi
+          done
           printf '%s\n' "$(git rev-parse HEAD)" > audit-snapshot/COMMIT_SHA
       - uses: actions/upload-artifact@v4
         with:
