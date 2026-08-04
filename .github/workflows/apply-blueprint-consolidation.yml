@@ -7,6 +7,12 @@ on:
     paths:
       - .blueprint-bootstrap-min2/**
       - .github/workflows/apply-blueprint-consolidation.yml
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .blueprint-bootstrap-min2/**
+      - .github/workflows/apply-blueprint-consolidation.yml
   workflow_dispatch:
 
 permissions:
