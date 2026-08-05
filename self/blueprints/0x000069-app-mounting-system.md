@@ -1,10 +1,21 @@
-# Blueprint 0x000080: App Mounting System
+# Blueprint 0x000069: App Mounting System
 
+**Classification:** Canonical Full Specification
+
+**Implementation Status:** Proposed
+
+**Verified Artifacts:** None
+
+**Planned Artifacts:** `/apps/*/manifest.js`, `/core/app-bridge.js`, `/core/app-mount-manager.js`, `/ui/panels/apps-panel.js`, `app-bridge.js`, `app-mount-manager.js`
+
+**Owned Source Files:** None
+
+**Former Blueprint Paths:** `self/blueprints/0x000069-app-mounting-system.md`
 **Target Upgrade:** APPM (`app-mount-manager.js`), APPB (`app-bridge.js`)
 
 **Objective:** Enable agents to create persistent UI applications that live in VFS and mount into the proto via sandboxed iframes with controlled API access.
 
-**Prerequisites:** 0x000048 (Module Widget Protocol), 0x000049 (Dependency Injection Container), 0x000047 (Verification Manager)
+**Prerequisites:** 0x000041 (Module Widget Protocol), 0x000042 (Dependency Injection Container), 0x000040 (Verification Manager)
 
 **Affected Artifacts:** `/core/app-mount-manager.js`, `/core/app-bridge.js`, `/ui/panels/apps-panel.js`, `/apps/*/manifest.json`
 
@@ -636,9 +647,7 @@ const AppBridge = {
 
 ---
 
-**Status:** Phase 1 - Design complete, implementation pending.
-
 **See Also:**
-- [Blueprint 0x000048: Module Widget Protocol](0x000048-module-widget-protocol.md)
-- [Blueprint 0x000047: Verification Manager](0x000047-verification-manager.md)
+- [Blueprint 0x000041: Module Widget Protocol](0x000048-module-widget-protocol.md)
+- [Blueprint 0x000040: Verification Manager](0x000047-verification-manager.md)
 - [docs/security.md](../docs/security.md)

@@ -1,9 +1,19 @@
 # Blueprint 0x000009: Pure Agent Logic Helpers
 
+**Classification:** Canonical Full Specification
+
+**Implementation Status:** Proposed
+
+**Verified Artifacts:** None
+
+**Planned Artifacts:** `/core/agent-cycle.js`, `/core/agent-logic-pure.js`, `agent-logic-pure.js`
+
+**Owned Source Files:** None
+
+**Former Blueprint Paths:** `self/blueprints/0x000009-pure-agent-logic-helpers.md`
 **Objective:** To explain how to isolate complex prompt assembly and other deterministic reasoning logic into a testable, pure helper module.
 
 **Target Upgrade:** AGLP (`agent-logic-pure.js`)
-
 
 **Prerequisites:** `0x000001`, `0x000048` (Module Widget Protocol)
 

@@ -1,5 +1,16 @@
-# Blueprint 0x00004D: Sentinel Tools Library
+# Blueprint 0x000045: Sentinel Tools Library
 
+**Classification:** Canonical Full Specification
+
+**Implementation Status:** Proposed
+
+**Verified Artifacts:** None
+
+**Planned Artifacts:** `/capabilities/cognition/sentinel-tools.js`, `sentinel-tools.js`
+
+**Owned Source Files:** None
+
+**Former Blueprint Paths:** `self/blueprints/0x000045-sentinel-tools-library.md`
 **Objective:** Provide specialized tools for Sentinel Agent's Research-Synthesize-Implement workflow.
 
 **Target Upgrade:** STLS (`sentinel-tools.js`)

@@ -1,10 +1,21 @@
-# Blueprint 0x00008B-MCFG: Model Configuration UI
+# Blueprint 0x000074: Model Configuration UI
 
+**Classification:** Canonical Full Specification
+
+**Implementation Status:** Proposed
+
+**Verified Artifacts:** None
+
+**Planned Artifacts:** `/self/ui/boot-wizard/model-config/`
+
+**Owned Source Files:** None
+
+**Former Blueprint Paths:** `self/blueprints/0x000074-model-config-ui.md`, `self/blueprints/0x000074-model-config-ui.md`
 **Objective:** Pre-boot configuration screen for selecting and configuring LLM providers before agent initialization.
 
 **Target Module:** `ModelConfig`
 
-**Implementation:** `/ui/boot-wizard/model-config/`
+**Planned Module:** `/self/ui/boot-wizard/model-config/`
 
 **Prerequisites:** `0x000089` (Proxy Server), `0x000058` (Event Bus)
 
@@ -268,8 +279,6 @@ Supports auto-opening form from external tools (e.g., serve-cli):
 ```
 
 ---
-
-**Status:** Implemented
 
 **Files:**
 - `/ui/boot-wizard/model-config/index.js` - Public API

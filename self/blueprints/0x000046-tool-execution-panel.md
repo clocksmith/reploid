@@ -1,10 +1,21 @@
-# Blueprint 0x00004E: Tool Execution Visual Panel
+# Blueprint 0x000046: Tool Execution Visual Panel
 
+**Classification:** Canonical Full Specification
+
+**Implementation Status:** Proposed
+
+**Verified Artifacts:** None
+
+**Planned Artifacts:** `/ui/panels/tool-execution-panel.js`, `/ui/style.css`, `/ui/ui-manager.js`, `tool-execution-panel.js`
+
+**Owned Source Files:** None
+
+**Former Blueprint Paths:** `self/blueprints/0x000046-tool-execution-panel.md`
 **Target Upgrade:** TEXP (`tool-execution-panel.js`)
 
 **Objective:** Provide real-time visual representation of tool executions with interactive cards showing status, progress, and results for enhanced observability during agent operations.
 
-**Prerequisites:** 0x00000D (UI Management), 0x00000A (Tool Runner Engine), 0x000058 (Event Bus Infrastructure)
+**Prerequisites:** 0x00000D (UI Management), 0x00000A (Tool Runner Engine), 0x00004F (Event Bus Infrastructure)
 
 **Affected Artifacts:** `/ui/panels/tool-execution-panel.js`, `/ui/ui-manager.js`, `/ui/style.css`
 

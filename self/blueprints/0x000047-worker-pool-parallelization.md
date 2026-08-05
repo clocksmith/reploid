@@ -1,5 +1,16 @@
-# Blueprint 0x00004F: Worker Pool for Parallel Execution
+# Blueprint 0x000047: Worker Pool for Parallel Execution
 
+**Classification:** Canonical Full Specification
+
+**Implementation Status:** In-Progress
+
+**Verified Artifacts:** `/self/core/worker-manager.js`
+
+**Planned Artifacts:** `/infrastructure/worker-pool.js`, `worker-pool.js`
+
+**Owned Source Files:** `core/worker-manager.js`
+
+**Former Blueprint Paths:** `self/blueprints/0x000047-worker-pool-parallelization.md`
 **Objective:** Enable parallel execution of tools and computations across multiple Web Workers for improved performance.
 
 **Target Upgrade:** WPOOL (`worker-pool.js`)

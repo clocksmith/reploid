@@ -1,5 +1,16 @@
-# Blueprint 0x000083-ERST: Error Store
+# Blueprint 0x00006C: Error Store
 
+**Classification:** Canonical Full Specification
+
+**Implementation Status:** Implemented
+
+**Verified Artifacts:** `/self/infrastructure/error-store.js`
+
+**Planned Artifacts:** None
+
+**Owned Source Files:** `infrastructure/error-store.js`
+
+**Former Blueprint Paths:** `self/blueprints/0x00006C-error-store.md`
 **Module:** `ErrorStore`
 **File:** `infrastructure/error-store.js`
 **Purpose:** Persist errors to VFS for display in Status tab
@@ -164,5 +175,3 @@ const init = () => {
 **tabula** - Core infrastructure module, part of the immutable genesis kernel. Cannot be modified without gate approval.
 
 ---
-
-**Status:** Implemented

@@ -1,11 +1,21 @@
-# Blueprint 0x00008E-CDPNL: Code Panel
+# Blueprint 0x000077: Code Panel
 
+**Classification:** Canonical Full Specification
+
+**Implementation Status:** Proposed
+
+**Verified Artifacts:** None
+
+**Planned Artifacts:** `/self/ui/panels/code-panel.js`
+
+**Owned Source Files:** None
+
+**Former Blueprint Paths:** `self/blueprints/0x000077-code-panel.md`, `self/blueprints/0x000077-code-panel.md`
 **Objective:** Provide a full-featured code editor panel for viewing and editing VFS files with syntax highlighting, file navigation, and VFS integration.
 
 **Target Module:** `CodePanel`
 
-**Implementation:** `/ui/panels/code-panel.js`
-
+**Planned Module:** `/self/ui/panels/code-panel.js`
 **Prerequisites:** `0x000003` (Core Utilities), `0x000058` (Event Bus), `0x000011` (Storage Backend)
 
 **Category:** UI
@@ -454,6 +464,3 @@ EventBus.on('code-panel:open-file', openFileHandler);   // Request to open file
 6. **Minimap** - Code overview for large files
 
 ---
-
-**Status:** Planned
-

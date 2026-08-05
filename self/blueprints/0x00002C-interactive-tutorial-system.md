@@ -1,10 +1,21 @@
-# Blueprint 0x00002F: Interactive Tutorial System
+# Blueprint 0x00002C: Interactive Tutorial System
 
+**Classification:** Canonical Full Specification
+
+**Implementation Status:** In-Progress
+
+**Verified Artifacts:** `/self/infrastructure/event-bus.js`, `/self/styles/proto/index.css`
+
+**Planned Artifacts:** `/ui/components/tutorial-system.js`, `tutorial-system.js`
+
+**Owned Source Files:** None
+
+**Former Blueprint Paths:** `self/blueprints/0x00002C-interactive-tutorial-system.md`
 **Objective:** Outline the structure and lifecycle of the in-app tutorial engine that guides new operators through REPLOID.
 
 **Target Upgrade:** TUTR (`tutorial-system.js`)
 
-**Prerequisites:** 0x00000D (UI Management), 0x000005 (State Management Architecture), 0x00002B (Toast Notification System)
+**Prerequisites:** 0x00000D (UI Management), 0x000005 (State Management Architecture), 0x000028 (Toast Notification System)
 
 **Affected Artifacts:** `/ui/components/tutorial-system.js`, `/styles/proto/index.css`, `/infrastructure/event-bus.js`
 

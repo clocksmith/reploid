@@ -1,10 +1,21 @@
-# Blueprint 0x000029: AST Visualization Framework
+# Blueprint 0x000026: AST Visualization Framework
 
+**Classification:** Canonical Full Specification
+
+**Implementation Status:** In-Progress
+
+**Verified Artifacts:** `/self/index.html`, `/self/styles/proto/index.css`
+
+**Planned Artifacts:** `/ui/panels/ast-visualizer.js`, `ast-visualizer.js`
+
+**Owned Source Files:** None
+
+**Former Blueprint Paths:** `self/blueprints/0x000026-ast-visualization-framework.md`
 **Objective:** Describe how REPLOID parses, transforms, and renders JavaScript ASTs for introspection and education.
 
 **Target Upgrade:** ASTV (`ast-visualizer.js`)
 
-**Prerequisites:** 0x000003 (Core Utilities & Error Handling), 0x000019 (Visual Self-Improvement), Acorn CDN load (`index.html`)
+**Prerequisites:** 0x000003 (Core Utilities & Error Handling), 0x000018 (Visual Self-Improvement), Acorn CDN load (`index.html`)
 
 **Affected Artifacts:** `/ui/panels/ast-visualizer.js`, `/styles/proto/index.css`, `/index.html` (Acorn + D3 includes)
 

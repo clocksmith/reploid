@@ -1,9 +1,19 @@
 # Blueprint 0x00000A: Tool Runner Engine
 
+**Classification:** Canonical Full Specification
+
+**Implementation Status:** In-Progress
+
+**Verified Artifacts:** `/self/core/tool-runner.js`, `/self/tool-runner.js`
+
+**Planned Artifacts:** `/tools/tool-runner.js`
+
+**Owned Source Files:** `core/tool-runner.js`
+
+**Former Blueprint Paths:** `self/blueprints/0x00000A-tool-runner-engine.md`
 **Objective:** To describe the architecture of the engine responsible for executing the agent's static and dynamic tools, providing a bridge between the LLM's intent and tangible actions.
 
 **Target Upgrade:** TRUN (`tool-runner.js`)
-
 
 **Prerequisites:** `0x000003`, `0x000004`, `0x000005`, `0x00000B`, `0x00000C`
 

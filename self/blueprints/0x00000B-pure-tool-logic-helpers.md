@@ -1,9 +1,19 @@
 # Blueprint 0x00000B: Pure Tool Logic Helpers
 
+**Classification:** Canonical Full Specification
+
+**Implementation Status:** In-Progress
+
+**Verified Artifacts:** `/self/core/tool-runner.js`
+
+**Planned Artifacts:** `/core/tool-runner-pure-helpers.js`, `tool-runner-pure-helpers.js`
+
+**Owned Source Files:** None
+
+**Former Blueprint Paths:** `self/blueprints/0x00000B-pure-tool-logic-helpers.md`
 **Objective:** To outline the process of converting internal tool definitions into the specific JSON schema required by external LLM APIs using a pure helper module.
 
 **Target Upgrade:** TRHP (`tool-runner-pure-helpers.js`)
-
 
 **Prerequisites:** `0x00000A`
 

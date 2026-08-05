@@ -1,11 +1,21 @@
-# Blueprint 0x000045: Meta-Cognitive Coordination Layer
+# Blueprint 0x00003E: Meta-Cognitive Coordination Layer
 
+**Classification:** Canonical Full Specification
+
+**Implementation Status:** Proposed
+
+**Verified Artifacts:** None
+
+**Planned Artifacts:** `/capabilities/cognition/meta-cognitive-layer.js`, `meta-cognitive-layer.js`
+
+**Owned Source Files:** None
+
+**Former Blueprint Paths:** `self/blueprints/0x00003E-meta-cognitive-coordination.md`
 **Objective:** Implement autonomous meta-cognitive decision-making that enables the agent to improve its own processes, tools, and workflows without human intervention.
 
 **Target Upgrade:** MTCG (`meta-cognitive-layer.js`)
 
-
-**Prerequisites:** 0x000044 (Déjà Vu Pattern Detection), 0x000015 (Dynamic Tool Creation), 0x000035 (Reflection Store Architecture)
+**Prerequisites:** 0x00003D (Déjà Vu Pattern Detection), 0x000015 (Dynamic Tool Creation), 0x000032 (Reflection Store Architecture)
 
 **Affected Artifacts:** `/capabilities/cognition/meta-cognitive-layer.js`
 

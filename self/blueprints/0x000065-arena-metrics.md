@@ -1,5 +1,16 @@
-# Blueprint 0x000076: Arena Metrics
+# Blueprint 0x000065: Arena Metrics
 
+**Classification:** Canonical Full Specification
+
+**Implementation Status:** Implemented
+
+**Verified Artifacts:** `/self/testing/arena/arena-metrics.js`
+
+**Planned Artifacts:** None
+
+**Owned Source Files:** `testing/arena/arena-metrics.js`
+
+**Former Blueprint Paths:** `self/blueprints/0x000065-arena-metrics.md`
 **Module:** `ArenaMetrics`
 **File:** `./testing/arena/arena-metrics.js`
 **Purpose:** Scores and compares arena competitor performance

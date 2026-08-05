@@ -1,10 +1,21 @@
-# Blueprint 0x00003D: Browser API Integration Layer
+# Blueprint 0x000037: Browser API Integration Layer
 
+**Classification:** Canonical Full Specification
+
+**Implementation Status:** In-Progress
+
+**Verified Artifacts:** `/self/core/state-manager.js`, `/self/infrastructure/browser-apis.js`, `/self/infrastructure/event-bus.js`, `/self/styles/proto/index.css`
+
+**Planned Artifacts:** `/capabilities/browser-apis.js`, `browser-apis.js`
+
+**Owned Source Files:** `infrastructure/browser-apis.js`
+
+**Former Blueprint Paths:** `self/blueprints/0x000037-browser-api-integration.md`
 **Objective:** Outline how REPLOID leverages native browser capabilities (filesystem, notifications, clipboard, share, storage, wake locks) to outperform CLI environments.
 
 **Target Upgrade:** BAPI (`browser-apis.js`)
 
-**Prerequisites:** 0x000005 (State Management Architecture), 0x000022 (Confirmation Modal & Safety Interlocks), 0x00002B (Toast Notification System)
+**Prerequisites:** 0x000005 (State Management Architecture), 0x00001F (Confirmation Modal & Safety Interlocks), 0x000028 (Toast Notification System)
 
 **Affected Artifacts:** `/capabilities/browser-apis.js`, `/styles/proto/index.css`, `/core/state-manager.js`, `/infrastructure/event-bus.js`
 

@@ -1,5 +1,16 @@
-# Blueprint 0x000063: Browser-Native Multi-Model Arena
+# Blueprint 0x000058: Browser-Native Multi-Model Arena
 
+**Classification:** Canonical Full Specification
+
+**Implementation Status:** Proposed
+
+**Verified Artifacts:** None
+
+**Planned Artifacts:** `/capabilities/cognition/multi-model-paxos.js`, `/config/config.js`, `/testing/unit/multi-model-paxos.test.js`, `multi-model-arena.js`
+
+**Owned Source Files:** None
+
+**Former Blueprint Paths:** `self/blueprints/0x000058-browser-native-paxos.md`
 **Objective:** Enable browser-native multi-model competitive testing for REPLOID without requiring Node.js proxy or Python CLI, making Arena a first-class citizen in the RSI workflow.
 
 **Target Upgrade:** AREN (`multi-model-arena.js`)
@@ -897,5 +908,3 @@ describe('MultiModelArena Module', () => {
 ---
 
 **Remember:** This module makes Arena a first-class RSI capability in REPLOID, enabling true browser-native multi-model competitive testing without any external dependencies.
-
-**Status:** Ready for implementation - architecture fully designed.

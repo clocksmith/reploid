@@ -1,9 +1,19 @@
 # Blueprint 0x000007: API Client and Communication
 
+**Classification:** Canonical Full Specification
+
+**Implementation Status:** In-Progress
+
+**Verified Artifacts:** `/self/core/llm-client.js`
+
+**Planned Artifacts:** `/core/api-client.js`, `api-client.js`
+
+**Owned Source Files:** `core/llm-client.js`
+
+**Former Blueprint Paths:** `self/blueprints/0x000007-api-client-and-communication.md`
 **Objective:** To detail the architecture for a robust API client module responsible for all communication with the external Large Language Model.
 
 **Target Upgrade:** APIC (`api-client.js`)
-
 
 **Prerequisites:** `0x000003`, `0x000048` (Module Widget Protocol)
 

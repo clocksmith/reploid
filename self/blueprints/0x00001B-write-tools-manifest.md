@@ -1,5 +1,16 @@
-# Blueprint 0x00001C: Write Tools Manifest
+# Blueprint 0x00001B: Write Tools Manifest
 
+**Classification:** Canonical Full Specification
+
+**Implementation Status:** In-Progress
+
+**Verified Artifacts:** `/self/core/state-manager.js`, `/self/core/tool-runner.js`
+
+**Planned Artifacts:** `/tools/tools-write.js`, `tools-write.js`
+
+**Owned Source Files:** None
+
+**Former Blueprint Paths:** `self/blueprints/0x00001B-write-tools-manifest.md`
 **Objective:** To explain the structure and purpose of the JSON artifact that defines the agent's write-capable toolset, enabling recursive self-improvement through code modification.
 
 **Target Upgrade:** TLWR (tools-write.json)
@@ -460,7 +471,7 @@ The write tools manifest (`tools-write.json`) defines the **contract for self-ev
 - 0x000015 (Dynamic Tool Creation) - Runtime tool generation
 - 0x000015 (Dynamic Tool Creation) - Design principles
 - 0x00003C (Self-Testing Framework) - Validation before apply
-- 0x00001B (Code Introspection) - Analyze own architecture
+- 0x00001A (Code Introspection) - Analyze own architecture
 
 **Related RFCs:**
 - Project Sentinel (Sentinel Agent with human approvals)

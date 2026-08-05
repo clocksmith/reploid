@@ -1,10 +1,21 @@
-# Blueprint 0x000031: Python Tool Interface
+# Blueprint 0x00002E: Python Tool Interface
 
+**Classification:** Canonical Full Specification
+
+**Implementation Status:** In-Progress
+
+**Verified Artifacts:** `/self/core/tool-runner.js`
+
+**Planned Artifacts:** `/capabilities/cognition/python-tool.js`, `/config/tools-write.js`, `python-tool.js`
+
+**Owned Source Files:** None
+
+**Former Blueprint Paths:** `self/blueprints/0x00002E-python-tool-interface.md`
 **Objective:** Specify the tool contract that exposes Pyodide capabilities to the agent via structured tool calls.
 
 **Target Upgrade:** PYTH (`python-tool.js`)
 
-**Prerequisites:** 0x000030 (Pyodide Runtime Orchestration), 0x000010 (Static Tool Manifest), 0x00001F (Universal Module Loader)
+**Prerequisites:** 0x00002D (Pyodide Runtime Orchestration), 0x000010 (Static Tool Manifest), 0x00001F (Universal Module Loader)
 
 **Affected Artifacts:** `/capabilities/cognition/python-tool.js`, `/config/tools-write.json`, `/core/tool-runner.js`
 

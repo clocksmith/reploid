@@ -1,5 +1,16 @@
-# Blueprint 0x00002D: Module Integrity Verification
+# Blueprint 0x00002A: Module Integrity Verification
 
+**Classification:** Canonical Full Specification
+
+**Implementation Status:** In-Progress
+
+**Verified Artifacts:** `/self/core/verification-worker.js`
+
+**Planned Artifacts:** `/core/boot-module-loader.js`, `/infrastructure/module-integrity.js`, `/vfs/security/module-signatures.js`, `module-integrity.js`
+
+**Owned Source Files:** `core/verification-worker.js`
+
+**Former Blueprint Paths:** `self/blueprints/0x00002A-module-integrity-verification.md`
 **Objective:** Define the signing, hashing, and verification processes that guard REPLOID against tampered upgrades.
 
 **Target Upgrade:** MINT (`module-integrity.js`)

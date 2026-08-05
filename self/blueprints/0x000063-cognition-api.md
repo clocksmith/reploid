@@ -1,5 +1,16 @@
-# Blueprint 0x000074: Cognition API
+# Blueprint 0x000063: Cognition API
 
+**Classification:** Canonical Full Specification
+
+**Implementation Status:** Implemented
+
+**Verified Artifacts:** `/self/capabilities/cognition/cognition-api.js`
+
+**Planned Artifacts:** None
+
+**Owned Source Files:** `capabilities/cognition/cognition-api.js`
+
+**Former Blueprint Paths:** `self/blueprints/0x000063-cognition-api.md`
 **Module:** `CognitionAPI`
 **File:** `./capabilities/cognition/cognition-api.js`
 **Purpose:** Unified interface combining semantic + symbolic reasoning

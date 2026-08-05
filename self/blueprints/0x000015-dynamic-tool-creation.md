@@ -1,5 +1,16 @@
 # Blueprint 0x000015: Dynamic Tool Creation System
 
+**Classification:** Canonical Full Specification
+
+**Implementation Status:** In-Progress
+
+**Verified Artifacts:** `/self/core/tool-runner.js`, `/self/core/tool-writer.js`, `/self/tools/CreateTool.js`
+
+**Planned Artifacts:** `/config/tools-dynamic.js`, `system-tools-dynamic.js`
+
+**Owned Source Files:** `core/tool-writer.js`, `tools/CreateTool.js`
+
+**Former Blueprint Paths:** `self/blueprints/0x000015-dynamic-tool-creation.md`
 **Objective:** To enable the agent to create, register, and execute custom tools at runtime, extending its capabilities beyond static tools.
 
 **Target Upgrade:** STLD (system-tools-dynamic.json)

@@ -1,5 +1,16 @@
-# Blueprint 0x000073: Symbol Grounder
+# Blueprint 0x000062: Symbol Grounder
 
+**Classification:** Canonical Full Specification
+
+**Implementation Status:** Implemented
+
+**Verified Artifacts:** `/self/capabilities/cognition/symbolic/symbol-grounder.js`
+
+**Planned Artifacts:** None
+
+**Owned Source Files:** `capabilities/cognition/symbolic/symbol-grounder.js`
+
+**Former Blueprint Paths:** `self/blueprints/0x000062-symbol-grounder.md`
 **Module:** `SymbolGrounder`
 **File:** `./capabilities/cognition/symbolic/symbol-grounder.js`
 **Purpose:** Connects abstract symbols to concrete meanings/actions

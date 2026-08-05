@@ -1,5 +1,16 @@
-# Blueprint 0x000068: Transformers.js Client
+# Blueprint 0x00005D: Transformers.js Client
 
+**Classification:** Canonical Full Specification
+
+**Implementation Status:** Implemented
+
+**Verified Artifacts:** `/self/core/transformers-client.js`
+
+**Planned Artifacts:** None
+
+**Owned Source Files:** `core/transformers-client.js`
+
+**Former Blueprint Paths:** `self/blueprints/0x00005D-transformers-client.md`
 **Module:** `TransformersClient`
 **File:** `./core/transformers-client.js`
 **Purpose:** Browser-native LLM inference using Transformers.js and WebGPU

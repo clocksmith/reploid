@@ -1,5 +1,16 @@
-# Blueprint 0x000071: Knowledge Graph
+# Blueprint 0x000060: Knowledge Graph
 
+**Classification:** Canonical Full Specification
+
+**Implementation Status:** Implemented
+
+**Verified Artifacts:** `/self/capabilities/cognition/symbolic/knowledge-graph.js`
+
+**Planned Artifacts:** None
+
+**Owned Source Files:** `capabilities/cognition/symbolic/knowledge-graph.js`
+
+**Former Blueprint Paths:** `self/blueprints/0x000060-knowledge-graph.md`
 **Module:** `KnowledgeGraph`
 **File:** `./capabilities/cognition/symbolic/knowledge-graph.js`
 **Purpose:** Structured knowledge as entities and relationships

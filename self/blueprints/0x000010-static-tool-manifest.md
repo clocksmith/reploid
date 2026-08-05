@@ -1,9 +1,19 @@
 # Blueprint 0x000010: Static Tool Manifest
 
+**Classification:** Canonical Full Specification
+
+**Implementation Status:** In-Progress
+
+**Verified Artifacts:** `/self/core/tool-runner.js`
+
+**Planned Artifacts:** `/config/data-tools-static.js`, `tools-read.js`
+
+**Owned Source Files:** None
+
+**Former Blueprint Paths:** `self/blueprints/0x000010-static-tool-manifest.md`
 **Objective:** To explain the structure and purpose of the JSON artifact that defines the agent's built-in, static toolset.
 
 **Target Upgrade:** TLRD (`tools-read.json`)
-
 
 **Prerequisites:** `0x00000A`
 

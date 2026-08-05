@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-08-03T19:32:47.407Z",
+  "generatedAt": "2026-08-05T20:14:57.982Z",
   "features": [
     {
       "id": "0x000003",
@@ -127,6 +127,20 @@
       "files": [
         "core/tool-writer.js",
         "tools/CreateTool.js"
+      ]
+    },
+    {
+      "id": "0x00001F",
+      "name": "confirmation-modal-safety",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x00001F",
+          "path": "blueprints/0x00001F-confirmation-modal-safety.md"
+        }
+      ],
+      "files": [
+        "ui/components/confirmation-modal.js"
       ]
     },
     {
@@ -752,26 +766,27 @@
     },
     {
       "id": "0x00007C",
-      "name": "toast-notifications",
+      "name": "hot-swappable-neural-compiler",
       "status": "active",
       "blueprints": [
         {
           "id": "0x00007C",
-          "path": "blueprints/0x00007C-toast-notifications.md"
+          "path": "blueprints/0x00007C-hot-swappable-neural-compiler.md"
         }
       ],
       "files": [
+        "experimental/intelligence/neural-compiler.js",
         "ui/components/toast-notifications.js"
       ]
     },
     {
       "id": "0x00007D",
-      "name": "diff-viewer-ui",
+      "name": "capabilities-intelligence-functiongemma-orchestrator",
       "status": "active",
       "blueprints": [
         {
           "id": "0x00007D",
-          "path": "blueprints/0x00007D-diff-viewer-ui.md"
+          "path": "blueprints/0x00007D-capabilities-intelligence-functiongemma-orchestrator.md"
         }
       ],
       "files": [
@@ -779,181 +794,13 @@
       ]
     },
     {
-      "id": "0x000090",
-      "name": "boot",
+      "id": "0x00007E",
+      "name": "sponsor-peer-protocol",
       "status": "active",
       "blueprints": [
         {
-          "id": "0x000090",
-          "path": "blueprints/0x000090-boot.md"
-        }
-      ],
-      "files": [
-        "entry/start-app.js"
-      ]
-    },
-    {
-      "id": "0x000091",
-      "name": "boot-config",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x000091",
-          "path": "blueprints/0x000091-boot-config.md"
-        }
-      ],
-      "files": [
-        "boot-helpers/config.js"
-      ]
-    },
-    {
-      "id": "0x000092",
-      "name": "boot-error-ui",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x000092",
-          "path": "blueprints/0x000092-boot-error-ui.md"
-        }
-      ],
-      "files": [
-        "boot-helpers/error-ui.js"
-      ]
-    },
-    {
-      "id": "0x000093",
-      "name": "boot-index",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x000093",
-          "path": "blueprints/0x000093-boot-index.md"
-        }
-      ],
-      "files": [
-        "boot-helpers/index.js"
-      ]
-    },
-    {
-      "id": "0x000094",
-      "name": "boot-modules",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x000094",
-          "path": "blueprints/0x000094-boot-modules.md"
-        }
-      ],
-      "files": [
-        "boot-helpers/modules.js"
-      ]
-    },
-    {
-      "id": "0x000095",
-      "name": "boot-services",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x000095",
-          "path": "blueprints/0x000095-boot-services.md"
-        }
-      ],
-      "files": [
-        "boot-helpers/services.js"
-      ]
-    },
-    {
-      "id": "0x000096",
-      "name": "boot-vfs-hydrate",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x000096",
-          "path": "blueprints/0x000096-boot-vfs-hydrate.md"
-        }
-      ],
-      "files": [
-        "boot-helpers/vfs-hydrate.js"
-      ]
-    },
-    {
-      "id": "0x000097",
-      "name": "capabilities-cognition-episodic-memory",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x000097",
-          "path": "blueprints/0x000097-capabilities-cognition-episodic-memory.md"
-        }
-      ],
-      "files": [
-        "capabilities/cognition/episodic-memory.js"
-      ]
-    },
-    {
-      "id": "0x000098",
-      "name": "capabilities-cognition-hybrid-retrieval",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x000098",
-          "path": "blueprints/0x000098-capabilities-cognition-hybrid-retrieval.md"
-        }
-      ],
-      "files": [
-        "capabilities/cognition/hybrid-retrieval.js"
-      ]
-    },
-    {
-      "id": "0x00009a",
-      "name": "capabilities-cognition-prompt-memory",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x00009a",
-          "path": "blueprints/0x00009a-capabilities-cognition-prompt-memory.md"
-        }
-      ],
-      "files": [
-        "capabilities/cognition/prompt-memory.js"
-      ]
-    },
-    {
-      "id": "0x00009b",
-      "name": "capabilities-communication-consensus",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x00009b",
-          "path": "blueprints/0x00009b-capabilities-communication-consensus.md"
-        }
-      ],
-      "files": [
-        "capabilities/communication/consensus.js"
-      ]
-    },
-    {
-      "id": "0x00009c",
-      "name": "capabilities-communication-swarm-sync",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x00009c",
-          "path": "blueprints/0x00009c-capabilities-communication-swarm-sync.md"
-        }
-      ],
-      "files": [
-        "capabilities/communication/swarm-sync.js"
-      ]
-    },
-    {
-      "id": "0x00009d",
-      "name": "capabilities-communication-swarm-transport",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x00009d",
-          "path": "blueprints/0x00009d-capabilities-communication-swarm-transport.md"
+          "id": "0x00007E",
+          "path": "blueprints/0x00007E-sponsor-peer-protocol.md"
         }
       ],
       "files": [
@@ -961,1595 +808,13 @@
       ]
     },
     {
-      "id": "0x0000a1",
-      "name": "capabilities-reflection-prompt-score-map",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x0000a1",
-          "path": "blueprints/0x0000a1-capabilities-reflection-prompt-score-map.md"
-        }
-      ],
-      "files": [
-        "capabilities/reflection/prompt-score-map.js"
-      ]
-    },
-    {
-      "id": "0x0000a2",
-      "name": "core-async-utils",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x0000a2",
-          "path": "blueprints/0x0000a2-core-async-utils.md"
-        }
-      ],
-      "files": [
-        "core/async-utils.js"
-      ]
-    },
-    {
-      "id": "0x0000a3",
-      "name": "core-schema-validator",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x0000a3",
-          "path": "blueprints/0x0000a3-core-schema-validator.md"
-        }
-      ],
-      "files": [
-        "core/schema-validator.js"
-      ]
-    },
-    {
-      "id": "0x0000a4",
-      "name": "core-worker-agent",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x0000a4",
-          "path": "blueprints/0x0000a4-core-worker-agent.md"
-        }
-      ],
-      "files": [
-        "core/worker-agent.js"
-      ]
-    },
-    {
-      "id": "0x0000a5",
-      "name": "infrastructure-policy-engine",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x0000a5",
-          "path": "blueprints/0x0000a5-infrastructure-policy-engine.md"
-        }
-      ],
-      "files": [
-        "infrastructure/policy-engine.js"
-      ]
-    },
-    {
-      "id": "0x0000a6",
-      "name": "infrastructure-trace-store",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x0000a6",
-          "path": "blueprints/0x0000a6-infrastructure-trace-store.md"
-        }
-      ],
-      "files": [
-        "infrastructure/trace-store.js"
-      ]
-    },
-    {
-      "id": "0x0000a7",
-      "name": "sw-module-loader",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x0000a7",
-          "path": "blueprints/0x0000a7-sw-module-loader.md"
-        }
-      ],
-      "files": [
-        "sw-module-loader.js"
-      ]
-    },
-    {
-      "id": "0x0000a8",
-      "name": "testing-arena-doppler-integration",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x0000a8",
-          "path": "blueprints/0x0000a8-testing-arena-doppler-integration.md"
-        }
-      ],
-      "files": [
-        "testing/arena/doppler-integration.js"
-      ]
-    },
-    {
-      "id": "0x0000a9",
-      "name": "testing-arena-index",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x0000a9",
-          "path": "blueprints/0x0000a9-testing-arena-index.md"
-        }
-      ],
-      "files": [
-        "testing/arena/index.js"
-      ]
-    },
-    {
-      "id": "0x0000aa",
-      "name": "tools-awaitworkers",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x0000aa",
-          "path": "blueprints/0x0000aa-tools-awaitworkers.md"
-        }
-      ],
-      "files": [
-        "tools/AwaitWorkers.js"
-      ]
-    },
-    {
-      "id": "0x0000ab",
-      "name": "tools-copyfile",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x0000ab",
-          "path": "blueprints/0x0000ab-tools-copyfile.md"
-        }
-      ],
-      "files": [
-        "tools/CopyFile.js"
-      ]
-    },
-    {
-      "id": "0x0000ac",
-      "name": "tools-deletefile",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x0000ac",
-          "path": "blueprints/0x0000ac-tools-deletefile.md"
-        }
-      ],
-      "files": [
-        "tools/DeleteFile.js"
-      ]
-    },
-    {
-      "id": "0x0000ad",
-      "name": "tools-edit-file",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x0000ad",
-          "path": "blueprints/0x0000ad-tools-edit-file.md"
-        }
-      ],
-      "files": [
-        "tools/EditFile.js"
-      ]
-    },
-    {
-      "id": "0x0000ae",
-      "name": "tools-fileoutline",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x0000ae",
-          "path": "blueprints/0x0000ae-tools-fileoutline.md"
-        }
-      ],
-      "files": [
-        "tools/FileOutline.js"
-      ]
-    },
-    {
-      "id": "0x0000af",
-      "name": "tools-find",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x0000af",
-          "path": "blueprints/0x0000af-tools-find.md"
-        }
-      ],
-      "files": [
-        "tools/Find.js"
-      ]
-    },
-    {
-      "id": "0x0000b0",
-      "name": "tools-git",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x0000b0",
-          "path": "blueprints/0x0000b0-tools-git.md"
-        }
-      ],
-      "files": [
-        "tools/git.js"
-      ]
-    },
-    {
-      "id": "0x0000b1",
-      "name": "tools-grep",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x0000b1",
-          "path": "blueprints/0x0000b1-tools-grep.md"
-        }
-      ],
-      "files": [
-        "tools/Grep.js"
-      ]
-    },
-    {
-      "id": "0x0000b2",
-      "name": "tools-head",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x0000b2",
-          "path": "blueprints/0x0000b2-tools-head.md"
-        }
-      ],
-      "files": [
-        "tools/Head.js"
-      ]
-    },
-    {
-      "id": "0x0000b3",
-      "name": "tools-listfiles",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x0000b3",
-          "path": "blueprints/0x0000b3-tools-listfiles.md"
-        }
-      ],
-      "files": [
-        "tools/ListFiles.js"
-      ]
-    },
-    {
-      "id": "0x0000b4",
-      "name": "tools-listknowledge",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x0000b4",
-          "path": "blueprints/0x0000b4-tools-listknowledge.md"
-        }
-      ],
-      "files": [
-        "tools/ListKnowledge.js"
-      ]
-    },
-    {
-      "id": "0x0000b5",
-      "name": "tools-listmemories",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x0000b5",
-          "path": "blueprints/0x0000b5-tools-listmemories.md"
-        }
-      ],
-      "files": [
-        "tools/ListMemories.js"
-      ]
-    },
-    {
-      "id": "0x0000b6",
-      "name": "tools-listtools",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x0000b6",
-          "path": "blueprints/0x0000b6-tools-listtools.md"
-        }
-      ],
-      "files": [
-        "tools/ListTools.js"
-      ]
-    },
-    {
-      "id": "0x0000b7",
-      "name": "tools-listworkers",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x0000b7",
-          "path": "blueprints/0x0000b7-tools-listworkers.md"
-        }
-      ],
-      "files": [
-        "tools/ListWorkers.js"
-      ]
-    },
-    {
-      "id": "0x0000b8",
-      "name": "tools-loadmodule",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x0000b8",
-          "path": "blueprints/0x0000b8-tools-loadmodule.md"
-        }
-      ],
-      "files": [
-        "tools/LoadModule.js"
-      ]
-    },
-    {
-      "id": "0x0000ba",
-      "name": "tools-makedirectory",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x0000ba",
-          "path": "blueprints/0x0000ba-tools-makedirectory.md"
-        }
-      ],
-      "files": [
-        "tools/MakeDirectory.js"
-      ]
-    },
-    {
-      "id": "0x0000bb",
-      "name": "tools-movefile",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x0000bb",
-          "path": "blueprints/0x0000bb-tools-movefile.md"
-        }
-      ],
-      "files": [
-        "tools/MoveFile.js"
-      ]
-    },
-    {
-      "id": "0x0000bc",
-      "name": "tools-readfile",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x0000bc",
-          "path": "blueprints/0x0000bc-tools-readfile.md"
-        }
-      ],
-      "files": [
-        "tools/ReadFile.js"
-      ]
-    },
-    {
-      "id": "0x0000be",
-      "name": "tools-rungepa",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x0000be",
-          "path": "blueprints/0x0000be-tools-rungepa.md"
-        }
-      ],
-      "files": [
-        "tools/RunGEPA.js"
-      ]
-    },
-    {
-      "id": "0x0000bf",
-      "name": "tools-spawnworker",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x0000bf",
-          "path": "blueprints/0x0000bf-tools-spawnworker.md"
-        }
-      ],
-      "files": [
-        "tools/SpawnWorker.js"
-      ]
-    },
-    {
-      "id": "0x0000c0",
-      "name": "tools-swarmgetstatus",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x0000c0",
-          "path": "blueprints/0x0000c0-tools-swarmgetstatus.md"
-        }
-      ],
-      "files": [
-        "tools/SwarmGetStatus.js"
-      ]
-    },
-    {
-      "id": "0x0000c1",
-      "name": "tools-swarmlistpeers",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x0000c1",
-          "path": "blueprints/0x0000c1-tools-swarmlistpeers.md"
-        }
-      ],
-      "files": [
-        "tools/SwarmListPeers.js"
-      ]
-    },
-    {
-      "id": "0x0000c2",
-      "name": "tools-swarmrequestfile",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x0000c2",
-          "path": "blueprints/0x0000c2-tools-swarmrequestfile.md"
-        }
-      ],
-      "files": [
-        "tools/SwarmRequestFile.js"
-      ]
-    },
-    {
-      "id": "0x0000c3",
-      "name": "tools-swarmsharefile",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x0000c3",
-          "path": "blueprints/0x0000c3-tools-swarmsharefile.md"
-        }
-      ],
-      "files": [
-        "tools/SwarmShareFile.js"
-      ]
-    },
-    {
-      "id": "0x0000c4",
-      "name": "tools-tail",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x0000c4",
-          "path": "blueprints/0x0000c4-tools-tail.md"
-        }
-      ],
-      "files": [
-        "tools/Tail.js"
-      ]
-    },
-    {
-      "id": "0x0000c5",
-      "name": "tools-writefile",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x0000c5",
-          "path": "blueprints/0x0000c5-tools-writefile.md"
-        }
-      ],
-      "files": [
-        "tools/WriteFile.js"
-      ]
-    },
-    {
-      "id": "0x0000c7",
-      "name": "ui-boot-detection",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x0000c7",
-          "path": "blueprints/0x0000c7-ui-boot-detection.md"
-        }
-      ],
-      "files": [
-        "ui/boot-wizard/detection.js"
-      ]
-    },
-    {
-      "id": "0x0000c8",
-      "name": "ui-boot-goals",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x0000c8",
-          "path": "blueprints/0x0000c8-ui-boot-goals.md"
-        }
-      ],
-      "files": [
-        "ui/boot-wizard/goals.js"
-      ]
-    },
-    {
-      "id": "0x0000c9",
-      "name": "ui-boot-index",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x0000c9",
-          "path": "blueprints/0x0000c9-ui-boot-index.md"
-        }
-      ],
-      "files": [
-        "ui/boot-wizard/index.js"
-      ]
-    },
-    {
-      "id": "0x0000ca",
-      "name": "ui-boot-state",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x0000ca",
-          "path": "blueprints/0x0000ca-ui-boot-state.md"
-        }
-      ],
-      "files": [
-        "ui/boot-wizard/state.js"
-      ]
-    },
-    {
-      "id": "0x0000cb",
-      "name": "ui-boot-steps-awaken",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x0000cb",
-          "path": "blueprints/0x0000cb-ui-boot-steps-awaken.md"
-        }
-      ],
-      "files": [
-        "ui/boot-wizard/steps/awaken.js"
-      ]
-    },
-    {
-      "id": "0x0000cc",
-      "name": "ui-boot-steps-browser",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x0000cc",
-          "path": "blueprints/0x0000cc-ui-boot-steps-browser.md"
-        }
-      ],
-      "files": [
-        "ui/boot-wizard/steps/browser.js"
-      ]
-    },
-    {
-      "id": "0x0000cd",
-      "name": "ui-boot-steps-choose",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x0000cd",
-          "path": "blueprints/0x0000cd-ui-boot-steps-choose.md"
-        }
-      ],
-      "files": [
-        "ui/boot-wizard/steps/choose.js"
-      ]
-    },
-    {
-      "id": "0x0000ce",
-      "name": "ui-boot-steps-detect",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x0000ce",
-          "path": "blueprints/0x0000ce-ui-boot-steps-detect.md"
-        }
-      ],
-      "files": [
-        "ui/boot-wizard/steps/detect.js"
-      ]
-    },
-    {
-      "id": "0x0000cf",
-      "name": "ui-boot-steps-direct",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x0000cf",
-          "path": "blueprints/0x0000cf-ui-boot-steps-direct.md"
-        }
-      ],
-      "files": [
-        "ui/boot-wizard/steps/direct.js"
-      ]
-    },
-    {
-      "id": "0x0000d0",
-      "name": "ui-boot-steps-goal",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x0000d0",
-          "path": "blueprints/0x0000d0-ui-boot-steps-goal.md"
-        }
-      ],
-      "files": [
-        "ui/boot-wizard/steps/goal.js"
-      ]
-    },
-    {
-      "id": "0x0000d1",
-      "name": "ui-boot-steps-proxy",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x0000d1",
-          "path": "blueprints/0x0000d1-ui-boot-steps-proxy.md"
-        }
-      ],
-      "files": [
-        "ui/boot-wizard/steps/proxy.js"
-      ]
-    },
-    {
-      "id": "0x0000d2",
-      "name": "ui-components-arena-results",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x0000d2",
-          "path": "blueprints/0x0000d2-ui-components-arena-results.md"
-        }
-      ],
-      "files": [
-        "ui/components/arena-results.js"
-      ]
-    },
-    {
-      "id": "0x0000d3",
-      "name": "ui-components-confirmation-modal",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x0000d3",
-          "path": "blueprints/0x0000d3-ui-components-confirmation-modal.md"
-        }
-      ],
-      "files": [
-        "ui/components/confirmation-modal.js"
-      ]
-    },
-    {
-      "id": "0x0000d4",
-      "name": "ui-panels-metrics-panel",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x0000d4",
-          "path": "blueprints/0x0000d4-ui-panels-metrics-panel.md"
-        }
-      ],
-      "files": [
-        "ui/panels/metrics-panel.js"
-      ]
-    },
-    {
-      "id": "0x0000d5",
-      "name": "ui-proto-index",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x0000d5",
-          "path": "blueprints/0x0000d5-ui-proto-index.md"
-        }
-      ],
-      "files": [
-        "ui/proto/index.js"
-      ]
-    },
-    {
-      "id": "0x0000d6",
-      "name": "ui-proto-schemas",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x0000d6",
-          "path": "blueprints/0x0000d6-ui-proto-schemas.md"
-        }
-      ],
-      "files": [
-        "ui/proto/schemas.js"
-      ]
-    },
-    {
-      "id": "0x0000d7",
-      "name": "ui-proto-telemetry",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x0000d7",
-          "path": "blueprints/0x0000d7-ui-proto-telemetry.md"
-        }
-      ],
-      "files": [
-        "ui/proto/telemetry.js"
-      ]
-    },
-    {
-      "id": "0x0000d8",
-      "name": "ui-proto-template",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x0000d8",
-          "path": "blueprints/0x0000d8-ui-proto-template.md"
-        }
-      ],
-      "files": [
-        "ui/proto/template.js"
-      ]
-    },
-    {
-      "id": "0x0000d9",
-      "name": "ui-proto-utils",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x0000d9",
-          "path": "blueprints/0x0000d9-ui-proto-utils.md"
-        }
-      ],
-      "files": [
-        "ui/proto/utils.js"
-      ]
-    },
-    {
-      "id": "0x0000da",
-      "name": "ui-proto-vfs",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x0000da",
-          "path": "blueprints/0x0000da-ui-proto-vfs.md"
-        }
-      ],
-      "files": [
-        "ui/proto/vfs.js"
-      ]
-    },
-    {
-      "id": "0x0000db",
-      "name": "ui-proto-workers",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x0000db",
-          "path": "blueprints/0x0000db-ui-proto-workers.md"
-        }
-      ],
-      "files": [
-        "ui/proto/workers.js"
-      ]
-    },
-    {
-      "id": "0x0000dc",
-      "name": "ui-toast",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x0000dc",
-          "path": "blueprints/0x0000dc-ui-toast.md"
-        }
-      ],
-      "files": [
-        "ui/toast.js"
-      ]
-    },
-    {
-      "id": "0x0000dd",
-      "name": "config-module-resolution",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x0000dd",
-          "path": "blueprints/0x0000dd-config-module-resolution.md"
-        }
-      ],
-      "files": [
-        "config/module-resolution.js"
-      ]
-    },
-    {
-      "id": "0x0000df",
-      "name": "boot-vfs-bootstrap",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x0000df",
-          "path": "blueprints/0x0000df-boot-vfs-bootstrap.md"
-        }
-      ],
-      "files": [
-        "boot-helpers/vfs-bootstrap.js"
-      ]
-    },
-    {
-      "id": "0x0000e0",
-      "name": "bootstrap",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x0000e0",
-          "path": "blueprints/0x0000e0-bootstrap.md"
-        }
-      ],
-      "files": [
-        "entry/seed-vfs.js"
-      ]
-    },
-    {
-      "id": "0x0000e2",
-      "name": "capabilities-communication-signaling-config",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x0000e2",
-          "path": "blueprints/0x0000e2-capabilities-communication-signaling-config.md"
-        }
-      ],
-      "files": [
-        "capabilities/communication/signaling-config.js"
-      ]
-    },
-    {
-      "id": "0x0000e3",
-      "name": "capabilities-intelligence-intent-bundle-lora",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x0000e3",
-          "path": "blueprints/0x0000e3-capabilities-intelligence-intent-bundle-lora.md"
-        }
-      ],
-      "files": [
-        "capabilities/intelligence/intent-bundle-lora.js"
-      ]
-    },
-    {
-      "id": "0x0000e4",
-      "name": "capabilities-system-doppler-toolbox",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x0000e4",
-          "path": "blueprints/0x0000e4-capabilities-system-doppler-toolbox.md"
-        }
-      ],
-      "files": [
-        "capabilities/system/doppler-toolbox.js"
-      ]
-    },
-    {
-      "id": "0x0000e5",
-      "name": "config-boot-modes",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x0000e5",
-          "path": "blueprints/0x0000e5-config-boot-modes.md"
-        }
-      ],
-      "files": [
-        "config/boot-modes.js"
-      ]
-    },
-    {
-      "id": "0x0000e6",
-      "name": "config-boot-seed",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x0000e6",
-          "path": "blueprints/0x0000e6-config-boot-seed.md"
-        }
-      ],
-      "files": [
-        "config/boot-seed.js"
-      ]
-    },
-    {
-      "id": "0x0000e7",
-      "name": "config-reploid-environments",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x0000e7",
-          "path": "blueprints/0x0000e7-config-reploid-environments.md"
-        }
-      ],
-      "files": [
-        "config/reploid-environments.js"
-      ]
-    },
-    {
-      "id": "0x0000e8",
-      "name": "core-functiongemma-orchestrator",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x0000e8",
-          "path": "blueprints/0x0000e8-core-functiongemma-orchestrator.md"
-        }
-      ],
-      "files": [
-        "core/functiongemma-orchestrator.js"
-      ]
-    },
-    {
-      "id": "0x0000e9",
-      "name": "core-multi-model-evaluator",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x0000e9",
-          "path": "blueprints/0x0000e9-core-multi-model-evaluator.md"
-        }
-      ],
-      "files": [
-        "core/multi-model-evaluator.js"
-      ]
-    },
-    {
-      "id": "0x0000ea",
-      "name": "core-provider-registry",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x0000ea",
-          "path": "blueprints/0x0000ea-core-provider-registry.md"
-        }
-      ],
-      "files": [
-        "core/provider-registry.js"
-      ]
-    },
-    {
-      "id": "0x0000eb",
-      "name": "core-security-config",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x0000eb",
-          "path": "blueprints/0x0000eb-core-security-config.md"
-        }
-      ],
-      "files": [
-        "core/security-config.js"
-      ]
-    },
-    {
-      "id": "0x0000ec",
-      "name": "experimental-intelligence-federated-learning",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x0000ec",
-          "path": "blueprints/0x0000ec-experimental-intelligence-federated-learning.md"
-        }
-      ],
-      "files": [
-        "experimental/intelligence/federated-learning.js"
-      ]
-    },
-    {
-      "id": "0x0000ed",
-      "name": "experimental-intelligence-multi-model-coordinator",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x0000ed",
-          "path": "blueprints/0x0000ed-experimental-intelligence-multi-model-coordinator.md"
-        }
-      ],
-      "files": [
-        "experimental/intelligence/multi-model-coordinator.js"
-      ]
-    },
-    {
-      "id": "0x0000ee",
-      "name": "experimental-intelligence-neural-compiler",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x0000ee",
-          "path": "blueprints/0x0000ee-experimental-intelligence-neural-compiler.md"
-        }
-      ],
-      "files": [
-        "experimental/intelligence/neural-compiler.js"
-      ]
-    },
-    {
-      "id": "0x0000ef",
-      "name": "experimental-openclaw-audit-audit-mesh",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x0000ef",
-          "path": "blueprints/0x0000ef-experimental-openclaw-audit-audit-mesh.md"
-        }
-      ],
-      "files": [
-        "experimental/openclaw-audit/audit-mesh.js"
-      ]
-    },
-    {
-      "id": "0x0000f0",
-      "name": "experimental-openclaw-audit-index",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x0000f0",
-          "path": "blueprints/0x0000f0-experimental-openclaw-audit-index.md"
-        }
-      ],
-      "files": [
-        "experimental/openclaw-audit/index.js"
-      ]
-    },
-    {
-      "id": "0x0000f1",
-      "name": "experimental-openclaw-audit-self-audit",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x0000f1",
-          "path": "blueprints/0x0000f1-experimental-openclaw-audit-self-audit.md"
-        }
-      ],
-      "files": [
-        "experimental/openclaw-audit/self-audit.js"
-      ]
-    },
-    {
-      "id": "0x0000f2",
-      "name": "infrastructure-intent-bundle-gate",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x0000f2",
-          "path": "blueprints/0x0000f2-infrastructure-intent-bundle-gate.md"
-        }
-      ],
-      "files": [
-        "infrastructure/intent-bundle-gate.js"
-      ]
-    },
-    {
-      "id": "0x0000f3",
-      "name": "providers-doppler-reploid",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x0000f3",
-          "path": "blueprints/0x0000f3-providers-doppler-reploid.md"
-        }
-      ],
-      "files": [
-        "providers/doppler-reploid.js"
-      ]
-    },
-    {
-      "id": "0x0000f4",
-      "name": "self-boot-spec",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x0000f4",
-          "path": "blueprints/0x0000f4-self-boot-spec.md"
-        }
-      ],
-      "files": [
-        "self/boot-spec.js"
-      ]
-    },
-    {
-      "id": "0x0000f5",
-      "name": "self-bridge",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x0000f5",
-          "path": "blueprints/0x0000f5-self-bridge.md"
-        }
-      ],
-      "files": [
-        "self/bridge.js"
-      ]
-    },
-    {
-      "id": "0x0000f6",
-      "name": "self-capsule-index",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x0000f6",
-          "path": "blueprints/0x0000f6-self-capsule-index.md"
-        }
-      ],
-      "files": [
-        "self/capsule/index.js"
-      ]
-    },
-    {
-      "id": "0x0000f7",
-      "name": "self-cloud-access-status",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x0000f7",
-          "path": "blueprints/0x0000f7-self-cloud-access-status.md"
-        }
-      ],
-      "files": [
-        "self/cloud-access-status.js"
-      ]
-    },
-    {
-      "id": "0x0000f8",
-      "name": "self-cloud-access-windows",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x0000f8",
-          "path": "blueprints/0x0000f8-self-cloud-access-windows.md"
-        }
-      ],
-      "files": [
-        "self/cloud-access-windows.js"
-      ]
-    },
-    {
-      "id": "0x0000f9",
-      "name": "self-cloud-access",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x0000f9",
-          "path": "blueprints/0x0000f9-self-cloud-access.md"
-        }
-      ],
-      "files": [
-        "self/cloud-access.js"
-      ]
-    },
-    {
-      "id": "0x0000fa",
-      "name": "self-environment",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x0000fa",
-          "path": "blueprints/0x0000fa-self-environment.md"
-        }
-      ],
-      "files": [
-        "self/environment.js"
-      ]
-    },
-    {
-      "id": "0x0000fb",
-      "name": "self-host-seed-vfs",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x0000fb",
-          "path": "blueprints/0x0000fb-self-host-seed-vfs.md"
-        }
-      ],
-      "files": [
-        "self/host/seed-vfs.js"
-      ]
-    },
-    {
-      "id": "0x0000fc",
-      "name": "self-host-start-app",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x0000fc",
-          "path": "blueprints/0x0000fc-self-host-start-app.md"
-        }
-      ],
-      "files": [
-        "self/host/start-app.js"
-      ]
-    },
-    {
-      "id": "0x0000fd",
-      "name": "self-host-sw-module-loader",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x0000fd",
-          "path": "blueprints/0x0000fd-self-host-sw-module-loader.md"
-        }
-      ],
-      "files": [
-        "self/host/sw-module-loader.js"
-      ]
-    },
-    {
-      "id": "0x0000fe",
-      "name": "self-host-vfs-bootstrap",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x0000fe",
-          "path": "blueprints/0x0000fe-self-host-vfs-bootstrap.md"
-        }
-      ],
-      "files": [
-        "self/host/vfs-bootstrap.js"
-      ]
-    },
-    {
-      "id": "0x0000ff",
-      "name": "self-identity",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x0000ff",
-          "path": "blueprints/0x0000ff-self-identity.md"
-        }
-      ],
-      "files": [
-        "self/identity.js"
-      ]
-    },
-    {
-      "id": "0x000100",
-      "name": "self-image-export",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x000100",
-          "path": "blueprints/0x000100-self-image-export.md"
-        }
-      ],
-      "files": [
-        "self/image/export.js"
-      ]
-    },
-    {
-      "id": "0x000101",
-      "name": "self-image-manifest",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x000101",
-          "path": "blueprints/0x000101-self-image-manifest.md"
-        }
-      ],
-      "files": [
-        "self/image/manifest.js"
-      ]
-    },
-    {
-      "id": "0x000102",
-      "name": "self-instance",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x000102",
-          "path": "blueprints/0x000102-self-instance.md"
-        }
-      ],
-      "files": [
-        "self/instance.js"
-      ]
-    },
-    {
-      "id": "0x000103",
-      "name": "self-kernel-boot",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x000103",
-          "path": "blueprints/0x000103-self-kernel-boot.md"
-        }
-      ],
-      "files": [
-        "self/kernel/boot.js"
-      ]
-    },
-    {
-      "id": "0x000104",
-      "name": "self-key-unsealer",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x000104",
-          "path": "blueprints/0x000104-self-key-unsealer.md"
-        }
-      ],
-      "files": [
-        "self/key-unsealer.js"
-      ]
-    },
-    {
-      "id": "0x000105",
-      "name": "self-manifest",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x000105",
-          "path": "blueprints/0x000105-self-manifest.md"
-        }
-      ],
-      "files": [
-        "self/manifest.js"
-      ]
-    },
-    {
-      "id": "0x000106",
-      "name": "self-receipt",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x000106",
-          "path": "blueprints/0x000106-self-receipt.md"
-        }
-      ],
-      "files": [
-        "self/receipt.js"
-      ]
-    },
-    {
-      "id": "0x000107",
-      "name": "self-reward-policy",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x000107",
-          "path": "blueprints/0x000107-self-reward-policy.md"
-        }
-      ],
-      "files": [
-        "self/reward-policy.js"
-      ]
-    },
-    {
-      "id": "0x000108",
-      "name": "self-runtime",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x000108",
-          "path": "blueprints/0x000108-self-runtime.md"
-        }
-      ],
-      "files": [
-        "self/runtime.js"
-      ]
-    },
-    {
-      "id": "0x000109",
-      "name": "self-swarm",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x000109",
-          "path": "blueprints/0x000109-self-swarm.md"
-        }
-      ],
-      "files": [
-        "self/swarm.js"
-      ]
-    },
-    {
-      "id": "0x00010a",
-      "name": "self-tool-runner",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x00010a",
-          "path": "blueprints/0x00010a-self-tool-runner.md"
-        }
-      ],
-      "files": [
-        "self/tool-runner.js"
-      ]
-    },
-    {
-      "id": "0x00010b",
-      "name": "sw",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x00010b",
-          "path": "blueprints/0x00010b-sw.md"
-        }
-      ],
-      "files": [
-        "sw.js"
-      ]
-    },
-    {
-      "id": "0x00010c",
-      "name": "ui-ui",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x00010c",
-          "path": "blueprints/0x00010c-ui-ui.md"
-        }
-      ],
-      "files": [
-        "ui/UI.js"
-      ]
-    },
-    {
-      "id": "0x00010d",
-      "name": "ui-boot-home-index",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x00010d",
-          "path": "blueprints/0x00010d-ui-boot-home-index.md"
-        }
-      ],
-      "files": [
-        "ui/boot-home/index.js"
-      ]
-    },
-    {
-      "id": "0x00010e",
-      "name": "ui-boot-wizard-reploid-inference",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x00010e",
-          "path": "blueprints/0x00010e-ui-boot-wizard-reploid-inference.md"
-        }
-      ],
-      "files": [
-        "ui/boot-wizard/reploid-inference.js"
-      ]
-    },
-    {
-      "id": "0x00010f",
-      "name": "ui-boot-wizard-self-preview",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x00010f",
-          "path": "blueprints/0x00010f-ui-boot-wizard-self-preview.md"
-        }
-      ],
-      "files": [
-        "ui/boot-wizard/self-preview.js"
-      ]
-    },
-    {
-      "id": "0x000110",
-      "name": "ui-capsule-index",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x000110",
-          "path": "blueprints/0x000110-ui-capsule-index.md"
-        }
-      ],
-      "files": [
-        "ui/capsule/index.js"
-      ]
-    },
-    {
-      "id": "0x000111",
-      "name": "ui-zero-index",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x000111",
-          "path": "blueprints/0x000111-ui-zero-index.md"
-        }
-      ],
-      "files": [
-        "ui/zero/index.js"
-      ]
-    },
-    {
-      "id": "0x000113",
-      "name": "config-lab-route-profiles",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x000113",
-          "path": "blueprints/0x000113-config-lab-route-profiles.md"
-        }
-      ],
-      "files": [
-        "config/lab-route-profiles.js"
-      ]
-    },
-    {
-      "id": "0x000114",
-      "name": "config-tool-surfaces",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x000114",
-          "path": "blueprints/0x000114-config-tool-surfaces.md"
-        }
-      ],
-      "files": [
-        "config/tool-surfaces.js"
-      ]
-    },
-    {
-      "id": "0x000115",
-      "name": "config-vfs-policy",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x000115",
-          "path": "blueprints/0x000115-config-vfs-policy.md"
-        }
-      ],
-      "files": [
-        "config/vfs-policy.js"
-      ]
-    },
-    {
-      "id": "0x000116",
-      "name": "core-cycle-artifacts",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x000116",
-          "path": "blueprints/0x000116-core-cycle-artifacts.md"
-        }
-      ],
-      "files": [
-        "core/cycle-artifacts.js"
-      ]
-    },
-    {
-      "id": "0x000117",
-      "name": "core-import-rewrite",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x000117",
-          "path": "blueprints/0x000117-core-import-rewrite.md"
-        }
-      ],
-      "files": [
-        "core/import-rewrite.js"
-      ]
-    },
-    {
-      "id": "0x000118",
+      "id": "0x000080",
       "name": "core-promotion-policy",
       "status": "active",
       "blueprints": [
         {
-          "id": "0x000118",
-          "path": "blueprints/0x000118-core-promotion-policy.md"
+          "id": "0x000080",
+          "path": "blueprints/0x000080-core-promotion-policy.md"
         }
       ],
       "files": [
@@ -2557,97 +822,13 @@
       ]
     },
     {
-      "id": "0x000119",
-      "name": "lab-mirrors",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x000119",
-          "path": "blueprints/0x000119-lab-mirrors.md"
-        }
-      ],
-      "files": [
-        "lab/mirrors.js"
-      ]
-    },
-    {
-      "id": "0x00011a",
-      "name": "lab-profiles",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x00011a",
-          "path": "blueprints/0x00011a-lab-profiles.md"
-        }
-      ],
-      "files": [
-        "lab/profiles.js"
-      ]
-    },
-    {
-      "id": "0x00011b",
-      "name": "lab-runtime-ui",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x00011b",
-          "path": "blueprints/0x00011b-lab-runtime-ui.md"
-        }
-      ],
-      "files": [
-        "lab/runtime-ui.js"
-      ]
-    },
-    {
-      "id": "0x00011c",
-      "name": "lab-surface",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x00011c",
-          "path": "blueprints/0x00011c-lab-surface.md"
-        }
-      ],
-      "files": [
-        "lab/surface.js"
-      ]
-    },
-    {
-      "id": "0x00011d",
-      "name": "pool-agent-client",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x00011d",
-          "path": "blueprints/0x00011d-pool-agent-client.md"
-        }
-      ],
-      "files": [
-        "pool/agent-client.js"
-      ]
-    },
-    {
-      "id": "0x00011e",
-      "name": "pool-config",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x00011e",
-          "path": "blueprints/0x00011e-pool-config.md"
-        }
-      ],
-      "files": [
-        "pool/config.js"
-      ]
-    },
-    {
-      "id": "0x00011f",
+      "id": "0x000081",
       "name": "pool-doppler-runtime",
       "status": "active",
       "blueprints": [
         {
-          "id": "0x00011f",
-          "path": "blueprints/0x00011f-pool-doppler-runtime.md"
+          "id": "0x000081",
+          "path": "blueprints/0x000081-pool-doppler-runtime.md"
         }
       ],
       "files": [
@@ -2655,13 +836,13 @@
       ]
     },
     {
-      "id": "0x000120",
+      "id": "0x000082",
       "name": "pool-firebase-auth",
       "status": "active",
       "blueprints": [
         {
-          "id": "0x000120",
-          "path": "blueprints/0x000120-pool-firebase-auth.md"
+          "id": "0x000082",
+          "path": "blueprints/0x000082-pool-firebase-auth.md"
         }
       ],
       "files": [
@@ -2669,13 +850,13 @@
       ]
     },
     {
-      "id": "0x000121",
+      "id": "0x000083",
       "name": "pool-identity",
       "status": "active",
       "blueprints": [
         {
-          "id": "0x000121",
-          "path": "blueprints/0x000121-pool-identity.md"
+          "id": "0x000083",
+          "path": "blueprints/0x000083-pool-identity.md"
         }
       ],
       "files": [
@@ -2683,13 +864,13 @@
       ]
     },
     {
-      "id": "0x000122",
+      "id": "0x000084",
       "name": "pool-inference-receipt",
       "status": "active",
       "blueprints": [
         {
-          "id": "0x000122",
-          "path": "blueprints/0x000122-pool-inference-receipt.md"
+          "id": "0x000084",
+          "path": "blueprints/0x000084-pool-inference-receipt.md"
         }
       ],
       "files": [
@@ -2697,41 +878,13 @@
       ]
     },
     {
-      "id": "0x000123",
-      "name": "pool-layer-scheduler",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x000123",
-          "path": "blueprints/0x000123-pool-layer-scheduler.md"
-        }
-      ],
-      "files": [
-        "pool/layer-scheduler.js"
-      ]
-    },
-    {
-      "id": "0x000124",
-      "name": "pool-model-artifacts",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x000124",
-          "path": "blueprints/0x000124-pool-model-artifacts.md"
-        }
-      ],
-      "files": [
-        "pool/model-artifacts.js"
-      ]
-    },
-    {
-      "id": "0x000125",
+      "id": "0x000085",
       "name": "pool-model-contract",
       "status": "active",
       "blueprints": [
         {
-          "id": "0x000125",
-          "path": "blueprints/0x000125-pool-model-contract.md"
+          "id": "0x000085",
+          "path": "blueprints/0x000085-pool-model-contract.md"
         }
       ],
       "files": [
@@ -2739,55 +892,13 @@
       ]
     },
     {
-      "id": "0x000126",
-      "name": "pool-p2p-payload",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x000126",
-          "path": "blueprints/0x000126-pool-p2p-payload.md"
-        }
-      ],
-      "files": [
-        "pool/p2p-payload.js"
-      ]
-    },
-    {
-      "id": "0x000127",
-      "name": "pool-p2p-signaling",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x000127",
-          "path": "blueprints/0x000127-pool-p2p-signaling.md"
-        }
-      ],
-      "files": [
-        "pool/p2p-signaling.js"
-      ]
-    },
-    {
-      "id": "0x000128",
-      "name": "pool-p2p-transport",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x000128",
-          "path": "blueprints/0x000128-pool-p2p-transport.md"
-        }
-      ],
-      "files": [
-        "pool/p2p-transport.js"
-      ]
-    },
-    {
-      "id": "0x000129",
+      "id": "0x000086",
       "name": "pool-peer-control-plane",
       "status": "active",
       "blueprints": [
         {
-          "id": "0x000129",
-          "path": "blueprints/0x000129-pool-peer-control-plane.md"
+          "id": "0x000086",
+          "path": "blueprints/0x000086-pool-peer-control-plane.md"
         }
       ],
       "files": [
@@ -2795,237 +906,13 @@
       ]
     },
     {
-      "id": "0x00012a",
-      "name": "pool-peer-registry",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x00012a",
-          "path": "blueprints/0x00012a-pool-peer-registry.md"
-        }
-      ],
-      "files": [
-        "pool/peer-registry.js"
-      ]
-    },
-    {
-      "id": "0x00012b",
-      "name": "pool-peer-rendezvous",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x00012b",
-          "path": "blueprints/0x00012b-pool-peer-rendezvous.md"
-        }
-      ],
-      "files": [
-        "pool/peer-rendezvous.js"
-      ]
-    },
-    {
-      "id": "0x00012c",
-      "name": "pool-peer-room",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x00012c",
-          "path": "blueprints/0x00012c-pool-peer-room.md"
-        }
-      ],
-      "files": [
-        "pool/peer-room.js"
-      ]
-    },
-    {
-      "id": "0x00012d",
-      "name": "pool-points-ledger",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x00012d",
-          "path": "blueprints/0x00012d-pool-points-ledger.md"
-        }
-      ],
-      "files": [
-        "pool/points-ledger.js"
-      ]
-    },
-    {
-      "id": "0x00012e",
-      "name": "pool-policy-router",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x00012e",
-          "path": "blueprints/0x00012e-pool-policy-router.md"
-        }
-      ],
-      "files": [
-        "pool/policy-router.js"
-      ]
-    },
-    {
-      "id": "0x00012f",
-      "name": "pool-provider-client",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x00012f",
-          "path": "blueprints/0x00012f-pool-provider-client.md"
-        }
-      ],
-      "files": [
-        "pool/provider-client.js"
-      ]
-    },
-    {
-      "id": "0x000130",
-      "name": "pool-reputation",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x000130",
-          "path": "blueprints/0x000130-pool-reputation.md"
-        }
-      ],
-      "files": [
-        "pool/reputation.js"
-      ]
-    },
-    {
-      "id": "0x000131",
-      "name": "pool-requester-client",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x000131",
-          "path": "blueprints/0x000131-pool-requester-client.md"
-        }
-      ],
-      "files": [
-        "pool/requester-client.js"
-      ]
-    },
-    {
-      "id": "0x000132",
-      "name": "pool-runtime-profile",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x000132",
-          "path": "blueprints/0x000132-pool-runtime-profile.md"
-        }
-      ],
-      "files": [
-        "pool/runtime-profile.js"
-      ]
-    },
-    {
-      "id": "0x000133",
-      "name": "pool-sdk",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x000133",
-          "path": "blueprints/0x000133-pool-sdk.md"
-        }
-      ],
-      "files": [
-        "pool/sdk.js"
-      ]
-    },
-    {
-      "id": "0x000134",
-      "name": "pool-shard-negotiation",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x000134",
-          "path": "blueprints/0x000134-pool-shard-negotiation.md"
-        }
-      ],
-      "files": [
-        "pool/shard-negotiation.js"
-      ]
-    },
-    {
-      "id": "0x000135",
-      "name": "self-dream-instance",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x000135",
-          "path": "blueprints/0x000135-self-dream-instance.md"
-        }
-      ],
-      "files": [
-        "self/dream-instance.js"
-      ]
-    },
-    {
-      "id": "0x000136",
-      "name": "self-host-start-reploid",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x000136",
-          "path": "blueprints/0x000136-self-host-start-reploid.md"
-        }
-      ],
-      "files": [
-        "self/host/start-reploid.js"
-      ]
-    },
-    {
-      "id": "0x000137",
-      "name": "tools-promote",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x000137",
-          "path": "blueprints/0x000137-tools-promote.md"
-        }
-      ],
-      "files": [
-        "tools/Promote.js"
-      ]
-    },
-    {
-      "id": "0x000138",
-      "name": "ui-boot-wizard-zero-function",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x000138",
-          "path": "blueprints/0x000138-ui-boot-wizard-zero-function.md"
-        }
-      ],
-      "files": [
-        "ui/boot-wizard/zero-function.js"
-      ]
-    },
-    {
-      "id": "0x000139",
-      "name": "ui-pool-home-constants",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x000139",
-          "path": "blueprints/0x000139-ui-pool-home-constants.md"
-        }
-      ],
-      "files": [
-        "ui/pool-home/constants.js"
-      ]
-    },
-    {
-      "id": "0x00013a",
+      "id": "0x000087",
       "name": "ui-pool-home-contribution-state",
       "status": "active",
       "blueprints": [
         {
-          "id": "0x00013a",
-          "path": "blueprints/0x00013a-ui-pool-home-contribution-state.md"
+          "id": "0x000087",
+          "path": "blueprints/0x000087-ui-pool-home-contribution-state.md"
         }
       ],
       "files": [
@@ -3033,13 +920,13 @@
       ]
     },
     {
-      "id": "0x00013b",
+      "id": "0x000088",
       "name": "ui-pool-home-controls",
       "status": "active",
       "blueprints": [
         {
-          "id": "0x00013b",
-          "path": "blueprints/0x00013b-ui-pool-home-controls.md"
+          "id": "0x000088",
+          "path": "blueprints/0x000088-ui-pool-home-controls.md"
         }
       ],
       "files": [
@@ -3047,125 +934,13 @@
       ]
     },
     {
-      "id": "0x00013c",
-      "name": "ui-pool-home-index",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x00013c",
-          "path": "blueprints/0x00013c-ui-pool-home-index.md"
-        }
-      ],
-      "files": [
-        "ui/pool-home/index.js"
-      ]
-    },
-    {
-      "id": "0x00013d",
-      "name": "ui-pool-home-simulation-batches",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x00013d",
-          "path": "blueprints/0x00013d-ui-pool-home-simulation-batches.md"
-        }
-      ],
-      "files": [
-        "ui/pool-home/simulation-batches.js"
-      ]
-    },
-    {
-      "id": "0x00013e",
-      "name": "ui-pool-home-simulation-bind",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x00013e",
-          "path": "blueprints/0x00013e-ui-pool-home-simulation-bind.md"
-        }
-      ],
-      "files": [
-        "ui/pool-home/simulation-bind.js"
-      ]
-    },
-    {
-      "id": "0x00013f",
-      "name": "ui-pool-home-simulation-core",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x00013f",
-          "path": "blueprints/0x00013f-ui-pool-home-simulation-core.md"
-        }
-      ],
-      "files": [
-        "ui/pool-home/simulation-core.js"
-      ]
-    },
-    {
-      "id": "0x000140",
-      "name": "ui-pool-home-simulation-flow-specs",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x000140",
-          "path": "blueprints/0x000140-ui-pool-home-simulation-flow-specs.md"
-        }
-      ],
-      "files": [
-        "ui/pool-home/simulation-flow-specs.js"
-      ]
-    },
-    {
-      "id": "0x000141",
-      "name": "ui-pool-home-simulation-flow-transition",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x000141",
-          "path": "blueprints/0x000141-ui-pool-home-simulation-flow-transition.md"
-        }
-      ],
-      "files": [
-        "ui/pool-home/simulation-flow-transition.js"
-      ]
-    },
-    {
-      "id": "0x000142",
-      "name": "ui-pool-home-simulation-frame-state",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x000142",
-          "path": "blueprints/0x000142-ui-pool-home-simulation-frame-state.md"
-        }
-      ],
-      "files": [
-        "ui/pool-home/simulation-frame-state.js"
-      ]
-    },
-    {
-      "id": "0x000143",
-      "name": "ui-pool-home-simulation-renderer",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x000143",
-          "path": "blueprints/0x000143-ui-pool-home-simulation-renderer.md"
-        }
-      ],
-      "files": [
-        "ui/pool-home/simulation-renderer.js"
-      ]
-    },
-    {
-      "id": "0x000144",
+      "id": "0x000089",
       "name": "ui-pool-home-view",
       "status": "active",
       "blueprints": [
         {
-          "id": "0x000144",
-          "path": "blueprints/0x000144-ui-pool-home-view.md"
+          "id": "0x000089",
+          "path": "blueprints/0x000089-ui-pool-home-view.md"
         }
       ],
       "files": [
@@ -3174,125 +949,13 @@
       ]
     },
     {
-      "id": "0x000145",
-      "name": "ui-reploid-home-index",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x000145",
-          "path": "blueprints/0x000145-ui-reploid-home-index.md"
-        }
-      ],
-      "files": [
-        "ui/reploid-home/index.js"
-      ]
-    },
-    {
-      "id": "0x000146",
-      "name": "ui-shared-reploid-contract",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x000146",
-          "path": "blueprints/0x000146-ui-shared-reploid-contract.md"
-        }
-      ],
-      "files": [
-        "ui/shared/reploid-contract.js"
-      ]
-    },
-    {
-      "id": "0x000147",
-      "name": "config-doppler-local-models",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x000147",
-          "path": "blueprints/0x000147-config-doppler-local-models.md"
-        }
-      ],
-      "files": [
-        "config/doppler-local-models.js"
-      ]
-    },
-    {
-      "id": "0x000148",
-      "name": "config-immutability",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x000148",
-          "path": "blueprints/0x000148-config-immutability.md"
-        }
-      ],
-      "files": [
-        "config/immutability.js"
-      ]
-    },
-    {
-      "id": "0x000149",
-      "name": "config-surface-intents",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x000149",
-          "path": "blueprints/0x000149-config-surface-intents.md"
-        }
-      ],
-      "files": [
-        "config/surface-intents.js"
-      ]
-    },
-    {
-      "id": "0x00014a",
-      "name": "config-zero-goals",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x00014a",
-          "path": "blueprints/0x00014a-config-zero-goals.md"
-        }
-      ],
-      "files": [
-        "config/zero-goals.js"
-      ]
-    },
-    {
-      "id": "0x00014b",
-      "name": "config-zero-inference",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x00014b",
-          "path": "blueprints/0x00014b-config-zero-inference.md"
-        }
-      ],
-      "files": [
-        "config/zero-inference.js"
-      ]
-    },
-    {
-      "id": "0x00014c",
-      "name": "ui-zero-home-index",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x00014c",
-          "path": "blueprints/0x00014c-ui-zero-home-index.md"
-        }
-      ],
-      "files": [
-        "ui/zero-home/index.js"
-      ]
-    },
-    {
-      "id": "0x00014d",
+      "id": "0x00008A",
       "name": "capabilities-system-doppler-optimizer",
       "status": "active",
       "blueprints": [
         {
-          "id": "0x00014d",
-          "path": "blueprints/0x00014d-capabilities-system-doppler-optimizer.md"
+          "id": "0x00008A",
+          "path": "blueprints/0x00008A-capabilities-system-doppler-optimizer.md"
         }
       ],
       "files": [
@@ -3300,13 +963,13 @@
       ]
     },
     {
-      "id": "0x00014e",
+      "id": "0x00008B",
       "name": "tools-doppleroptimize",
       "status": "active",
       "blueprints": [
         {
-          "id": "0x00014e",
-          "path": "blueprints/0x00014e-tools-doppleroptimize.md"
+          "id": "0x00008B",
+          "path": "blueprints/0x00008B-tools-doppleroptimize.md"
         }
       ],
       "files": [
@@ -3314,13 +977,13 @@
       ]
     },
     {
-      "id": "0x00014f",
+      "id": "0x00008C",
       "name": "ui-proto-optimization",
       "status": "active",
       "blueprints": [
         {
-          "id": "0x00014f",
-          "path": "blueprints/0x00014f-ui-proto-optimization.md"
+          "id": "0x00008C",
+          "path": "blueprints/0x00008C-ui-proto-optimization.md"
         }
       ],
       "files": [
@@ -3328,13 +991,13 @@
       ]
     },
     {
-      "id": "0x000150",
+      "id": "0x00008D",
       "name": "pool-adapter-pack-publisher",
       "status": "active",
       "blueprints": [
         {
-          "id": "0x000150",
-          "path": "blueprints/0x000150-pool-adapter-pack-publisher.md"
+          "id": "0x00008D",
+          "path": "blueprints/0x00008D-pool-adapter-pack-publisher.md"
         }
       ],
       "files": [
@@ -3342,13 +1005,13 @@
       ]
     },
     {
-      "id": "0x000151",
+      "id": "0x00008E",
       "name": "pool-adapter-pack",
       "status": "active",
       "blueprints": [
         {
-          "id": "0x000151",
-          "path": "blueprints/0x000151-pool-adapter-pack.md"
+          "id": "0x00008E",
+          "path": "blueprints/0x00008E-pool-adapter-pack.md"
         }
       ],
       "files": [
@@ -3356,13 +1019,13 @@
       ]
     },
     {
-      "id": "0x000152",
+      "id": "0x00008F",
       "name": "pool-adapter-publication",
       "status": "active",
       "blueprints": [
         {
-          "id": "0x000152",
-          "path": "blueprints/0x000152-pool-adapter-publication.md"
+          "id": "0x00008F",
+          "path": "blueprints/0x00008F-pool-adapter-publication.md"
         }
       ],
       "files": [
@@ -3370,139 +1033,148 @@
       ]
     },
     {
-      "id": "0x000153",
+      "id": "0x000090",
       "name": "pool-adapter-publisher-client",
       "status": "active",
       "blueprints": [
         {
-          "id": "0x000153",
-          "path": "blueprints/0x000153-pool-adapter-publisher-client.md"
+          "id": "0x000090",
+          "path": "blueprints/0x000090-pool-adapter-publisher-client.md"
         }
       ],
       "files": [
+        "entry/start-app.js",
         "pool/adapter-publisher-client.js"
       ]
     },
     {
-      "id": "0x000154",
+      "id": "0x000091",
       "name": "pool-adapter-registry",
       "status": "active",
       "blueprints": [
         {
-          "id": "0x000154",
-          "path": "blueprints/0x000154-pool-adapter-registry.md"
+          "id": "0x000091",
+          "path": "blueprints/0x000091-pool-adapter-registry.md"
         }
       ],
       "files": [
+        "boot-helpers/config.js",
         "pool/adapter-registry.js"
       ]
     },
     {
-      "id": "0x000155",
+      "id": "0x000092",
       "name": "pool-p2p-artifact-transfer",
       "status": "active",
       "blueprints": [
         {
-          "id": "0x000155",
-          "path": "blueprints/0x000155-pool-p2p-artifact-transfer.md"
+          "id": "0x000092",
+          "path": "blueprints/0x000092-pool-p2p-artifact-transfer.md"
         }
       ],
       "files": [
+        "boot-helpers/error-ui.js",
         "pool/p2p-artifact-transfer.js"
       ]
     },
     {
-      "id": "0x000156",
+      "id": "0x000093",
       "name": "pool-sequence-workload",
       "status": "active",
       "blueprints": [
         {
-          "id": "0x000156",
-          "path": "blueprints/0x000156-pool-sequence-workload.md"
+          "id": "0x000093",
+          "path": "blueprints/0x000093-pool-sequence-workload.md"
         }
       ],
       "files": [
+        "boot-helpers/index.js",
         "pool/sequence-workload.js"
       ]
     },
     {
-      "id": "0x000157",
+      "id": "0x000094",
       "name": "pool-sequence-result",
       "status": "active",
       "blueprints": [
         {
-          "id": "0x000157",
-          "path": "blueprints/0x000157-pool-sequence-result.md"
+          "id": "0x000094",
+          "path": "blueprints/0x000094-pool-sequence-result.md"
         }
       ],
       "files": [
+        "boot-helpers/modules.js",
         "pool/sequence-result.js"
       ]
     },
     {
-      "id": "0x000158",
+      "id": "0x000095",
       "name": "pool-participation-profile",
       "status": "active",
       "blueprints": [
         {
-          "id": "0x000158",
-          "path": "blueprints/0x000158-pool-participation-profile.md"
+          "id": "0x000095",
+          "path": "blueprints/0x000095-pool-participation-profile.md"
         }
       ],
       "files": [
+        "boot-helpers/services.js",
         "pool/participation-profile.js"
       ]
     },
     {
-      "id": "0x000159",
+      "id": "0x000096",
       "name": "pool-device-identity",
       "status": "active",
       "blueprints": [
         {
-          "id": "0x000159",
-          "path": "blueprints/0x000159-pool-device-identity.md"
+          "id": "0x000096",
+          "path": "blueprints/0x000096-pool-device-identity.md"
         }
       ],
       "files": [
+        "boot-helpers/vfs-hydrate.js",
         "pool/device-identity.js"
       ]
     },
     {
-      "id": "0x00015a",
+      "id": "0x000097",
       "name": "pool-identity-claims",
       "status": "active",
       "blueprints": [
         {
-          "id": "0x00015a",
-          "path": "blueprints/0x00015a-pool-identity-claims.md"
+          "id": "0x000097",
+          "path": "blueprints/0x000097-pool-identity-claims.md"
         }
       ],
       "files": [
+        "capabilities/cognition/episodic-memory.js",
         "pool/identity-claims.js"
       ]
     },
     {
-      "id": "0x00015b",
+      "id": "0x000098",
       "name": "pool-artifact-router",
       "status": "active",
       "blueprints": [
         {
-          "id": "0x00015b",
-          "path": "blueprints/0x00015b-pool-artifact-router.md"
+          "id": "0x000098",
+          "path": "blueprints/0x000098-pool-artifact-router.md"
         }
       ],
       "files": [
+        "capabilities/cognition/hybrid-retrieval.js",
         "pool/artifact-router.js"
       ]
     },
     {
-      "id": "0x00015c",
+      "id": "0x000099",
       "name": "pool-adapter-canary-publication",
       "status": "active",
       "blueprints": [
         {
-          "id": "0x00015c",
-          "path": "blueprints/0x00015c-pool-adapter-canary-publication.md"
+          "id": "0x000099",
+          "path": "blueprints/0x000099-pool-adapter-canary-publication.md"
         }
       ],
       "files": [
@@ -3510,13 +1182,13 @@
       ]
     },
     {
-      "id": "0x00015d",
+      "id": "0x00009A",
       "name": "pool-artifact-origin",
       "status": "active",
       "blueprints": [
         {
-          "id": "0x00015d",
-          "path": "blueprints/0x00015d-pool-artifact-origin.md"
+          "id": "0x00009A",
+          "path": "blueprints/0x00009A-pool-artifact-origin.md"
         }
       ],
       "files": [
@@ -3524,13 +1196,13 @@
       ]
     },
     {
-      "id": "0x00015e",
+      "id": "0x00009B",
       "name": "pool-canonical-json",
       "status": "active",
       "blueprints": [
         {
-          "id": "0x00015e",
-          "path": "blueprints/0x00015e-pool-canonical-json.md"
+          "id": "0x00009B",
+          "path": "blueprints/0x00009B-pool-canonical-json.md"
         }
       ],
       "files": [
@@ -3538,13 +1210,13 @@
       ]
     },
     {
-      "id": "0x00015f",
+      "id": "0x00009C",
       "name": "pool-config-contract",
       "status": "active",
       "blueprints": [
         {
-          "id": "0x00015f",
-          "path": "blueprints/0x00015f-pool-config-contract.md"
+          "id": "0x00009C",
+          "path": "blueprints/0x00009C-pool-config-contract.md"
         }
       ],
       "files": [
@@ -3552,13 +1224,13 @@
       ]
     },
     {
-      "id": "0x000160",
+      "id": "0x00009D",
       "name": "pool-peer-agreement",
       "status": "active",
       "blueprints": [
         {
-          "id": "0x000160",
-          "path": "blueprints/0x000160-pool-peer-agreement.md"
+          "id": "0x00009D",
+          "path": "blueprints/0x00009D-pool-peer-agreement.md"
         }
       ],
       "files": [
@@ -3566,13 +1238,13 @@
       ]
     },
     {
-      "id": "0x000161",
+      "id": "0x00009E",
       "name": "pool-peer-ledger",
       "status": "active",
       "blueprints": [
         {
-          "id": "0x000161",
-          "path": "blueprints/0x000161-pool-peer-ledger.md"
+          "id": "0x00009E",
+          "path": "blueprints/0x00009E-pool-peer-ledger.md"
         }
       ],
       "files": [
@@ -3580,13 +1252,13 @@
       ]
     },
     {
-      "id": "0x000162",
+      "id": "0x00009F",
       "name": "pool-peer-payload",
       "status": "active",
       "blueprints": [
         {
-          "id": "0x000162",
-          "path": "blueprints/0x000162-pool-peer-payload.md"
+          "id": "0x00009F",
+          "path": "blueprints/0x00009F-pool-peer-payload.md"
         }
       ],
       "files": [
@@ -3594,13 +1266,13 @@
       ]
     },
     {
-      "id": "0x000163",
+      "id": "0x0000A0",
       "name": "pool-peer-planning",
       "status": "active",
       "blueprints": [
         {
-          "id": "0x000163",
-          "path": "blueprints/0x000163-pool-peer-planning.md"
+          "id": "0x0000A0",
+          "path": "blueprints/0x0000A0-pool-peer-planning.md"
         }
       ],
       "files": [
@@ -3608,13 +1280,13 @@
       ]
     },
     {
-      "id": "0x000164",
+      "id": "0x0000A1",
       "name": "pool-peer-protocol",
       "status": "active",
       "blueprints": [
         {
-          "id": "0x000164",
-          "path": "blueprints/0x000164-pool-peer-protocol.md"
+          "id": "0x0000A1",
+          "path": "blueprints/0x0000A1-pool-peer-protocol.md"
         }
       ],
       "files": [
@@ -3622,13 +1294,13 @@
       ]
     },
     {
-      "id": "0x000165",
+      "id": "0x0000A2",
       "name": "pool-peer-transport",
       "status": "active",
       "blueprints": [
         {
-          "id": "0x000165",
-          "path": "blueprints/0x000165-pool-peer-transport.md"
+          "id": "0x0000A2",
+          "path": "blueprints/0x0000A2-pool-peer-transport.md"
         }
       ],
       "files": [
@@ -3636,13 +1308,13 @@
       ]
     },
     {
-      "id": "0x000166",
+      "id": "0x0000A3",
       "name": "core-agent-loop-policies",
       "status": "active",
       "blueprints": [
         {
-          "id": "0x000166",
-          "path": "blueprints/0x000166-core-agent-loop-policies.md"
+          "id": "0x0000A3",
+          "path": "blueprints/0x0000A3-core-agent-loop-policies.md"
         }
       ],
       "files": [
@@ -3650,13 +1322,13 @@
       ]
     },
     {
-      "id": "0x000167",
+      "id": "0x0000A4",
       "name": "ui-pool-home-network-projection",
       "status": "active",
       "blueprints": [
         {
-          "id": "0x000167",
-          "path": "blueprints/0x000167-ui-pool-home-network-projection.md"
+          "id": "0x0000A4",
+          "path": "blueprints/0x0000A4-ui-pool-home-network-projection.md"
         }
       ],
       "files": [
@@ -3664,13 +1336,13 @@
       ]
     },
     {
-      "id": "0x000168",
+      "id": "0x0000A5",
       "name": "ui-pool-home-record-persistence",
       "status": "active",
       "blueprints": [
         {
-          "id": "0x000168",
-          "path": "blueprints/0x000168-ui-pool-home-record-persistence.md"
+          "id": "0x0000A5",
+          "path": "blueprints/0x0000A5-ui-pool-home-record-persistence.md"
         }
       ],
       "files": [
@@ -3678,28 +1350,29 @@
       ]
     },
     {
-      "id": "0x000169",
+      "id": "0x0000A6",
       "name": "core-doppler-runtime-service",
       "status": "active",
       "blueprints": [
         {
-          "id": "0x000169",
-          "path": "blueprints/0x000169-core-doppler-runtime-service.md"
+          "id": "0x0000A6",
+          "path": "blueprints/0x0000A6-core-doppler-runtime-service.md"
         }
       ],
       "files": [
+        "config/doppler-local-models.js",
         "core/doppler-runtime-service.js",
         "infrastructure/doppler-runtime-service.js"
       ]
     },
     {
-      "id": "0x00016a",
+      "id": "0x0000A7",
       "name": "config-clockwork-gamma-receipts",
       "status": "active",
       "blueprints": [
         {
-          "id": "0x00016a",
-          "path": "blueprints/0x00016a-config-clockwork-gamma-receipts.md"
+          "id": "0x0000A7",
+          "path": "blueprints/0x0000A7-config-clockwork-gamma-receipts.md"
         }
       ],
       "files": [
@@ -3707,29 +1380,30 @@
       ]
     },
     {
-      "id": "0x00016b",
+      "id": "0x0000A8",
       "name": "pool-evidence-network",
       "status": "active",
       "blueprints": [
         {
-          "id": "0x00016b",
-          "path": "blueprints/0x00016b-pool-evidence-network.md"
+          "id": "0x0000A8",
+          "path": "blueprints/0x0000A8-pool-evidence-network.md"
         }
       ],
       "files": [
         "pool/discovery-action-value.js",
         "pool/evidence-network.js",
-        "pool/model-evidence-view.js"
+        "pool/model-evidence-view.js",
+        "pool/sdk.js"
       ]
     },
     {
-      "id": "0x00016c",
+      "id": "0x0000A9",
       "name": "ui-pool-home-research-store",
       "status": "active",
       "blueprints": [
         {
-          "id": "0x00016c",
-          "path": "blueprints/0x00016c-ui-pool-home-research-store.md"
+          "id": "0x0000A9",
+          "path": "blueprints/0x0000A9-ui-pool-home-research-store.md"
         }
       ],
       "files": [
@@ -3738,13 +1412,13 @@
       ]
     },
     {
-      "id": "0x00016d",
+      "id": "0x0000AA",
       "name": "pool-retry-policy",
       "status": "active",
       "blueprints": [
         {
-          "id": "0x00016d",
-          "path": "blueprints/0x00016d-pool-retry-policy.md"
+          "id": "0x0000AA",
+          "path": "blueprints/0x0000AA-pool-retry-policy.md"
         }
       ],
       "files": [
@@ -3752,13 +1426,13 @@
       ]
     },
     {
-      "id": "0x00016e",
+      "id": "0x0000AB",
       "name": "pool-rtc-config",
       "status": "active",
       "blueprints": [
         {
-          "id": "0x00016e",
-          "path": "blueprints/0x00016e-pool-rtc-config.md"
+          "id": "0x0000AB",
+          "path": "blueprints/0x0000AB-pool-rtc-config.md"
         }
       ],
       "files": [
@@ -3766,13 +1440,13 @@
       ]
     },
     {
-      "id": "0x00016f",
+      "id": "0x0000AC",
       "name": "pool-browser-qualification",
       "status": "active",
       "blueprints": [
         {
-          "id": "0x00016f",
-          "path": "blueprints/0x00016f-pool-browser-qualification.md"
+          "id": "0x0000AC",
+          "path": "blueprints/0x0000AC-pool-browser-qualification.md"
         }
       ],
       "files": [
@@ -3780,13 +1454,13 @@
       ]
     },
     {
-      "id": "0x000170",
+      "id": "0x0000AD",
       "name": "pool-scientific-fitness",
       "status": "active",
       "blueprints": [
         {
-          "id": "0x000170",
-          "path": "blueprints/0x000170-pool-scientific-fitness.md"
+          "id": "0x0000AD",
+          "path": "blueprints/0x0000AD-pool-scientific-fitness.md"
         }
       ],
       "files": [
@@ -3795,13 +1469,13 @@
       ]
     },
     {
-      "id": "0x000171",
+      "id": "0x0000AE",
       "name": "pool-model-promotion",
       "status": "active",
       "blueprints": [
         {
-          "id": "0x000171",
-          "path": "blueprints/0x000171-pool-model-promotion.md"
+          "id": "0x0000AE",
+          "path": "blueprints/0x0000AE-pool-model-promotion.md"
         }
       ],
       "files": [

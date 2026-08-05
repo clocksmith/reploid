@@ -83,7 +83,7 @@
     {
       "path": "capabilities/cognition/gepa-optimizer.js",
       "owner": "capabilities",
-      "sha256": "sha256:bc46b600aac41b9f8b94c62b10088a5b0600b7e25f32f5fe97874f1b401ef936",
+      "sha256": "sha256:87bf99983091e9ce89fa165380489c6792fd906a6cc8f9c45de75dde723bed09",
       "imports": []
     },
     {
@@ -1445,7 +1445,7 @@
     {
       "path": "self/manifest.js",
       "owner": "self",
-      "sha256": "sha256:c4ff27ccd8f7e18dc9c8fb9cc6d481767074123e238357480f825450990eb3aa",
+      "sha256": "sha256:78c23911d4ec632fb317ba49f77307f1247c57cb6dfe0f10d6dd0f4b78ee4eca",
       "imports": [
         "./boot-spec.js",
         "./config/vfs-policy.js",
@@ -2248,7 +2248,7 @@
     {
       "path": "ui/reploid-home/index.js",
       "owner": "ui",
-      "sha256": "sha256:0d0267e6956431c00389ff62e009161639fc8b621edf9d05bad0d8ac133418f9",
+      "sha256": "sha256:0b3bb27b6890c89fa834440dde6a1cf6cb22c3d71bb4dbac6234de1baa616a56",
       "imports": [
         "../../config/reploid-environments.js",
         "../../instance.js",

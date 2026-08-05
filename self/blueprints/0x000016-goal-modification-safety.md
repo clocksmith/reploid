@@ -1,5 +1,16 @@
-# Blueprint 0x000017: Safe Goal Modification Patterns
+# Blueprint 0x000016: Safe Goal Modification Patterns
 
+**Classification:** Canonical Full Specification
+
+**Implementation Status:** Proposed
+
+**Verified Artifacts:** None
+
+**Planned Artifacts:** `/config/state.js`, `/core/agent-cycle.js`, `goal-modifier.js`
+
+**Owned Source Files:** None
+
+**Former Blueprint Paths:** `self/blueprints/0x000016-goal-modification-safety.md`
 **Objective:** To establish principles and mechanisms for the agent to safely modify its own goals without losing alignment or coherence.
 
 **Target Upgrade:** GMOD (`goal-modifier.js`)

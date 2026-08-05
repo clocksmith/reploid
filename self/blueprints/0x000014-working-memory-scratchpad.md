@@ -1,5 +1,16 @@
 # Blueprint 0x000014: Working Memory Scratchpad
 
+**Classification:** Canonical Full Specification
+
+**Implementation Status:** Proposed
+
+**Verified Artifacts:** None
+
+**Planned Artifacts:** `/core/agent-cycle.js`, `/core/scratchpad.md`, `system-scratchpad.md`
+
+**Owned Source Files:** None
+
+**Former Blueprint Paths:** `self/blueprints/0x000014-working-memory-scratchpad.md`
 **Objective:** To establish a transient working memory system for the agent to maintain context, notes, and reasoning traces within and across cycles.
 
 **Target Upgrade:** SCRT (system-scratchpad.md)

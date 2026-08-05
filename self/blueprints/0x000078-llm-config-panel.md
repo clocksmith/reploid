@@ -1,11 +1,21 @@
-# Blueprint 0x000078-LLMCFG: LLM Config Panel
+# Blueprint 0x000078: LLM Config Panel
 
+**Classification:** Canonical Full Specification
+
+**Implementation Status:** Proposed
+
+**Verified Artifacts:** None
+
+**Planned Artifacts:** `/self/ui/panels/llm-config-panel.js`
+
+**Owned Source Files:** None
+
+**Former Blueprint Paths:** `self/blueprints/0x000078-llm-config-panel.md`, `self/blueprints/0x000078-llm-config-panel.md`
 **Objective:** Provide a comprehensive runtime configuration panel for LLM model selection, provider management, parameter tuning, and connection testing.
 
 **Target Module:** `LLMConfigPanel`
 
-**Implementation:** `/ui/panels/llm-config-panel.js`
-
+**Planned Module:** `/self/ui/panels/llm-config-panel.js`
 **Prerequisites:** `0x000003` (Core Utilities), `0x000058` (Event Bus), `0x000007` (LLM Client), `0x000021` (Multi-Provider API Gateway)
 
 **Category:** UI
@@ -675,6 +685,3 @@ EventBus.on('llm:model-error', handleModelError);
 6. **Rate limit display** - Show remaining API quota
 
 ---
-
-**Status:** Planned
-

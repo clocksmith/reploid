@@ -1,5 +1,16 @@
-# Blueprint 0x00001B: Code Introspection & Self-Analysis
+# Blueprint 0x00001A: Code Introspection & Self-Analysis
 
+**Classification:** Canonical Full Specification
+
+**Implementation Status:** Proposed
+
+**Verified Artifacts:** None
+
+**Planned Artifacts:** `/capabilities/cognition/introspector.js`, `/core/agent-cycle.js`, `introspector.js`
+
+**Owned Source Files:** None
+
+**Former Blueprint Paths:** `self/blueprints/0x00001A-code-introspection-self-analysis.md`
 **Objective:** To enable the agent to analyze its own source code, dependencies, architecture, and complexity metrics for intelligent self-improvement.
 
 **Target Upgrade:** INTR (introspector.js)
@@ -495,7 +506,7 @@ The agent can:
 ---
 
 **Related Blueprints:**
-- 0x00001C (Write Tools Manifest) - Apply modifications based on introspection
-- 0x000035 (Reflection Store Architecture) - Persist learnings from introspection
+- 0x00001B (Write Tools Manifest) - Apply modifications based on introspection
+- 0x000032 (Reflection Store Architecture) - Persist learnings from introspection
 - 0x00003C (Self-Testing & Validation Framework) - Validate introspection-driven changes
-- 0x000026 (Performance Monitoring Stack) - Runtime metrics complement static analysis
+- 0x000023 (Performance Monitoring Stack) - Runtime metrics complement static analysis

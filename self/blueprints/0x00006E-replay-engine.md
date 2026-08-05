@@ -1,5 +1,16 @@
-# Blueprint 0x000085: Replay Engine
+# Blueprint 0x00006E: Replay Engine
 
+**Classification:** Canonical Full Specification
+
+**Implementation Status:** Implemented
+
+**Verified Artifacts:** `/self/infrastructure/replay-engine.js`, `/self/ui/proto/replay.js`
+
+**Planned Artifacts:** None
+
+**Owned Source Files:** `infrastructure/replay-engine.js`, `ui/proto/replay.js`
+
+**Former Blueprint Paths:** `self/blueprints/0x00006E-replay-engine.md`
 **Objective:** Replay timeline events from exported run files with speed control for debugging and analysis.
 
 **Target Module:** `ReplayEngine` (RPLY)
@@ -580,7 +591,5 @@ customElements.define('replay-engine-widget', ReplayEngineWidget);
 - Add event search/filter during playback
 
 ---
-
-**Status:** Blueprint
 
 Maintain this blueprint as the replay engine capabilities evolve or new playback features are introduced.

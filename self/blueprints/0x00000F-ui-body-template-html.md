@@ -1,9 +1,19 @@
 # Blueprint 0x00000F: UI Body Template (HTML)
 
+**Classification:** Canonical Full Specification
+
+**Implementation Status:** In-Progress
+
+**Verified Artifacts:** `/self/index.html`, `/self/pool-entry.html`
+
+**Planned Artifacts:** `/ui/ui-body-template.html`, `/ui/ui-manager.js`, `ui-body-template.html`
+
+**Owned Source Files:** None
+
+**Former Blueprint Paths:** `self/blueprints/0x00000F-ui-body-template-html.md`
 **Objective:** To describe the foundational HTML skeleton artifact that structures the agent's user interface.
 
 **Target Upgrade:** BODY (`ui-body-template.html`)
-
 
 **Prerequisites:** `0x00000D`
 

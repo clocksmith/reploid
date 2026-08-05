@@ -1,10 +1,21 @@
-# Blueprint 0x000023: VFS Explorer & Artifact Navigation
+# Blueprint 0x000020: VFS Explorer & Artifact Navigation
 
+**Classification:** Canonical Full Specification
+
+**Implementation Status:** In-Progress
+
+**Verified Artifacts:** `/self/core/state-manager.js`, `/self/styles/proto/index.css`, `/self/ui/components/toast-notifications.js`, `/self/ui/dashboard/vfs-explorer.js`
+
+**Planned Artifacts:** `/ui/panels/vfs-explorer.js`, `vfs-explorer.js`
+
+**Owned Source Files:** `ui/dashboard/vfs-explorer.js`
+
+**Former Blueprint Paths:** `self/blueprints/0x000020-vfs-explorer-interaction.md`
 **Objective:** Describe the information architecture and interaction model for the REPLOID Virtual File System explorer.
 
 **Target Upgrade:** VFSX (`vfs-explorer.js`)
 
-**Prerequisites:** 0x000005 (State Management Architecture), 0x000006 (Pure State Helpers), 0x000022 (Confirmation Modal & Safety Interlocks), 0x00002B (Toast Notification System)
+**Prerequisites:** 0x000005 (State Management Architecture), 0x000006 (Pure State Helpers), 0x00001F (Confirmation Modal & Safety Interlocks), 0x000028 (Toast Notification System)
 
 **Affected Artifacts:** `/ui/panels/vfs-explorer.js`, `/styles/proto/index.css`, `/core/state-manager.js`, `/ui/components/toast-notifications.js`
 

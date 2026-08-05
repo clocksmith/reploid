@@ -49,5 +49,5 @@ This directory contains support services and cross-cutting concerns. Modules spa
 ## Related
 
 - [Genesis Levels Config](../config/genesis-levels.json)
-- [Blueprint 0x000049: Dependency Injection Container](../blueprints/0x000049-dependency-injection-container.md)
-- [Blueprint 0x000058: Event Bus Infrastructure](../blueprints/0x000058-event-bus-infrastructure.md)
+- [Blueprint 0x000042: Dependency Injection Container](../blueprints/0x000049-dependency-injection-container.md)
+- [Blueprint 0x00004F: Event Bus Infrastructure](../blueprints/0x000058-event-bus-infrastructure.md)

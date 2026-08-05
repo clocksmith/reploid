@@ -1,5 +1,16 @@
-# Blueprint 0x000059: Sentinel Finite State Machine
+# Blueprint 0x000050: Sentinel Finite State Machine
 
+**Classification:** Canonical Full Specification
+
+**Implementation Status:** Proposed
+
+**Verified Artifacts:** None
+
+**Planned Artifacts:** `/core/agent-cycle.js`, `/core/sentinel-fsm.js`, `/tools/sentinel-tools.js`, `sentinel-fsm.js`
+
+**Owned Source Files:** None
+
+**Former Blueprint Paths:** `self/blueprints/0x000050-sentinel-fsm.md`
 **Target Upgrade:** SFSM (`sentinel-fsm.js`)
 
 **Objective:** Implement a robust finite state machine that manages the Sentinel Agent's cognitive cycle through well-defined states and transitions, ensuring safe and predictable self-modification behavior.

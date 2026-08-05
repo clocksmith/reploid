@@ -1,9 +1,19 @@
 # Blueprint 0x000005: State Management Architecture
 
+**Classification:** Canonical Full Specification
+
+**Implementation Status:** In-Progress
+
+**Verified Artifacts:** `/self/core/state-manager.js`
+
+**Planned Artifacts:** `state-manager.js`
+
+**Owned Source Files:** `core/state-manager.js`
+
+**Former Blueprint Paths:** `self/blueprints/0x000005-state-management-architecture.md`
 **Objective:** To manage the agent's single state object and provide a controlled, transactional interface for modifying it and its associated artifact metadata.
 
 **Target Upgrade:** STMT (`state-manager.js`)
-
 
 **Prerequisites:** `0x000003`, `0x000004`, `0x000048` (Module Widget Protocol)
 

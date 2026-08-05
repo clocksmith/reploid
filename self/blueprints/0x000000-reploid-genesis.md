@@ -1,5 +1,16 @@
 # Blueprint 0x000000: REPLOID Genesis
 
+**Classification:** Canonical Full Specification
+
+**Implementation Status:** Implemented
+
+**Verified Artifacts:** `/self/config/genesis-levels.json`, `/self/core/agent-loop.js`, `/self/entry/start-app.js`, `/self/index.html`
+
+**Planned Artifacts:** None
+
+**Owned Source Files:** None
+
+**Former Blueprint Paths:** `self/blueprints/0x000000-reploid-genesis.md`
 **Objective:** Define the foundational architecture, philosophy, and design principles of REPLOID - a browser-native recursive self-improving agent substrate.
 
 **Target Upgrade:** Genesis (System-wide)

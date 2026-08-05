@@ -1,5 +1,16 @@
-# Blueprint 0x000066: Recursive Goal Decomposition
+# Blueprint 0x00005B: Recursive Goal Decomposition
 
+**Classification:** Canonical Full Specification
+
+**Implementation Status:** Proposed
+
+**Verified Artifacts:** None
+
+**Planned Artifacts:** `/capabilities/cognition/goal-decomposer.js`, `/config/decomposition-patterns.js`, `/config/decomposition-strategy.js`, `recursive-goal-decomp.js`
+
+**Owned Source Files:** None
+
+**Former Blueprint Paths:** `self/blueprints/0x00005B-recursive-goal-decomposition.md`
 **Objective:** Implement a system that breaks down goals into subgoals, then recursively improves the decomposition algorithm itself based on success patterns.
 
 **Target Upgrade:** RGDP (`recursive-goal-decomp.js`)

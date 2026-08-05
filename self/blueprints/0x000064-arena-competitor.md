@@ -1,5 +1,16 @@
-# Blueprint 0x000075: Arena Competitor
+# Blueprint 0x000064: Arena Competitor
 
+**Classification:** Canonical Full Specification
+
+**Implementation Status:** Implemented
+
+**Verified Artifacts:** `/self/testing/arena/competitor.js`
+
+**Planned Artifacts:** None
+
+**Owned Source Files:** `testing/arena/competitor.js`
+
+**Former Blueprint Paths:** `self/blueprints/0x000064-arena-competitor.md`
 **Module:** `ArenaCompetitor`
 **File:** `./testing/arena/competitor.js`
 **Purpose:** Represents agent competitor in multi-agent arena battles

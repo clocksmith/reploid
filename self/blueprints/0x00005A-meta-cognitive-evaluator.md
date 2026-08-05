@@ -1,5 +1,16 @@
-# Blueprint 0x000065: Meta-Cognitive Evaluator
+# Blueprint 0x00005A: Meta-Cognitive Evaluator
 
+**Classification:** Canonical Full Specification
+
+**Implementation Status:** Proposed
+
+**Verified Artifacts:** None
+
+**Planned Artifacts:** `/capabilities/cognition/reasoning-analyzer.js`, `/config/cognitive-strategy.js`, `meta-cognitive-eval.js`
+
+**Owned Source Files:** None
+
+**Former Blueprint Paths:** `self/blueprints/0x00005A-meta-cognitive-evaluator.md`
 **Objective:** Create a system that scores the agent's own reasoning quality and dynamically adjusts cognitive strategies based on performance patterns.
 
 **Target Upgrade:** MCOG (`meta-cognitive-eval.js`)

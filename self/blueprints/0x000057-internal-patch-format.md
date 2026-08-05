@@ -1,5 +1,16 @@
-# Blueprint 0x000062: Internal Patch Format
+# Blueprint 0x000057: Internal Patch Format
 
+**Classification:** Canonical Full Specification
+
+**Implementation Status:** Proposed
+
+**Verified Artifacts:** None
+
+**Planned Artifacts:** `/config/config.js`, `/core/internal-patch-format.js`, `/testing/unit/internal-patch-format.test.js`, `internal-patch-format.js`
+
+**Owned Source Files:** None
+
+**Former Blueprint Paths:** `self/blueprints/0x000057-internal-patch-format.md`
 **Objective:** Replace DOGS/CATS markdown format with fast JSON-based patch format for internal RSI operations, maintaining backward compatibility via export/import.
 
 **Target Upgrade:** IPAT (`internal-patch-format.js`)
@@ -786,5 +797,3 @@ async function exportForCommit() {
 ---
 
 **Remember:** This module enables 10x faster RSI cycles while maintaining full backward compatibility with DOGS/CATS format. The dual-format architecture ensures we get performance benefits without breaking existing workflows.
-
-**Status:** Ready for implementation - all design decisions documented.

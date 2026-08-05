@@ -1,5 +1,16 @@
 # Blueprint 0x000013: System Configuration Structure
 
+**Classification:** Canonical Full Specification
+
+**Implementation Status:** In-Progress
+
+**Verified Artifacts:** `/self/core/state-manager.js`
+
+**Planned Artifacts:** `/config/system-config.js`, `system-config.js`
+
+**Owned Source Files:** None
+
+**Former Blueprint Paths:** `self/blueprints/0x000013-system-configuration-structure.md`
 **Objective:** To define the architecture for the agent's runtime configuration system, enabling dynamic behavior modification through a centralized configuration artifact.
 
 **Target Upgrade:** SCFG (system-config.json)

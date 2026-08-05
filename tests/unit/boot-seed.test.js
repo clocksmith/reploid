@@ -49,7 +49,7 @@ describe('boot seed manifest', () => {
     expect(bootFiles).toContain('blueprints/blueprint-index-contract.md');
     expect(bootFiles).toContain('blueprints/tool-contract.md');
     expect(bootFiles).toContain('blueprints/promotion-contract.md');
-    expect(bootFiles).not.toContain('blueprints/0x000112-recursive-gepa-ring.md');
+    expect(bootFiles).not.toContain('blueprints/0x00007F-recursive-gepa-ring.md');
     expect(bootFiles).not.toContain('blueprints/rgr-dream-instance-manifest.md');
     expect(bootFiles).toContain('ui/reploid-home/index.js');
     expect(bootFiles).toContain('capabilities/communication/swarm-transport.js');

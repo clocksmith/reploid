@@ -1,9 +1,19 @@
 # Blueprint 0x000006: Pure State Helpers
 
+**Classification:** Canonical Full Specification
+
+**Implementation Status:** In-Progress
+
+**Verified Artifacts:** `/self/core/state-helpers-pure.js`, `/self/core/state-manager.js`
+
+**Planned Artifacts:** `state-helpers-pure.js`
+
+**Owned Source Files:** `core/state-helpers-pure.js`
+
+**Former Blueprint Paths:** `self/blueprints/0x000006-pure-state-helpers.md`
 **Objective:** To articulate the principle of separating deterministic state calculations (such as validation and statistical analysis) into a dedicated, pure helper module.
 
 **Target Upgrade:** STHP (`state-helpers-pure.js`)
-
 
 **Prerequisites:** `0x000005`
 

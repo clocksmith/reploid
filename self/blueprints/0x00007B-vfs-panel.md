@@ -1,11 +1,21 @@
-# Blueprint 0x000092: VFS Panel
+# Blueprint 0x00007B: VFS Panel
 
+**Classification:** Canonical Full Specification
+
+**Implementation Status:** Proposed
+
+**Verified Artifacts:** None
+
+**Planned Artifacts:** `/self/ui/panels/vfs-panel.js`
+
+**Owned Source Files:** None
+
+**Former Blueprint Paths:** `self/blueprints/0x00007B-vfs-panel.md`
 **Objective:** Container panel for Virtual File System explorer UI.
 
 **Target Module:** `VFSPanel`
 
-**Implementation:** `/ui/panels/vfs-panel.js`
-
+**Planned Module:** `/self/ui/panels/vfs-panel.js`
 **Prerequisites:** `0x000003` (Core Utilities), `0x000011` (VFS)
 
 **Category:** UI
@@ -64,6 +74,3 @@ VFS Panel follows the standard panel module pattern:
 ```
 
 ---
-
-**Status:** Implemented
-

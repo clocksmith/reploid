@@ -1,5 +1,7 @@
 # Promotion Contract
 
+**Classification:** Index & Meta Contract
+
 `Promote` is the only model-visible request path for durable `/self` changes.
 
 ## Required Inputs

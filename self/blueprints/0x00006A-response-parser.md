@@ -1,5 +1,16 @@
-# Blueprint 0x000081-RSPR: Response Parser
+# Blueprint 0x00006A: Response Parser
 
+**Classification:** Canonical Full Specification
+
+**Implementation Status:** Implemented
+
+**Verified Artifacts:** `/self/core/response-parser.js`
+
+**Planned Artifacts:** None
+
+**Owned Source Files:** `core/response-parser.js`
+
+**Former Blueprint Paths:** `self/blueprints/0x00006A-response-parser.md`
 **Module:** `ResponseParser`
 **File:** `core/response-parser.js`
 **Purpose:** Extract tool calls from LLM text using robust regex parsing with brace counting
@@ -134,5 +145,3 @@ const TOOL_CALL_PATTERN = /TOOL_CALL:\s*(\w+)\s*\nARGS:\s*(\{)/g;
 **spark** - Core agent module, part of the minimal agent core. Cannot be modified without gate approval.
 
 ---
-
-**Status:** Implemented

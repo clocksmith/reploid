@@ -1,5 +1,16 @@
-# Blueprint 0x000087: Tool Executor
+# Blueprint 0x000070: Tool Executor
 
+**Classification:** Canonical Full Specification
+
+**Implementation Status:** Implemented
+
+**Verified Artifacts:** `/self/infrastructure/tool-executor.js`
+
+**Planned Artifacts:** None
+
+**Owned Source Files:** `infrastructure/tool-executor.js`
+
+**Former Blueprint Paths:** `self/blueprints/0x000070-tool-executor.md`
 **Objective:** Shared tool execution with retry, timeout, and batching capabilities for robust tool invocation.
 
 **Target Module:** `ToolExecutor` (TEXC)
@@ -821,7 +832,5 @@ customElements.define('tool-executor-widget', ToolExecutorWidget);
 - Add tool execution audit log
 
 ---
-
-**Status:** Blueprint
 
 Maintain this blueprint as the tool execution capabilities evolve or new execution strategies are introduced.

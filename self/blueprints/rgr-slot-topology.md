@@ -1,6 +1,8 @@
 # RGR Slot Topology Support Blueprint
 
-Purpose: Keep peer transport as optional slot placement for Blueprint `0x000112`, not a separate operating model.
+**Classification:** Index & Meta Contract
+
+Purpose: Keep peer transport as optional slot placement for Blueprint `0x00007F`, not a separate operating model.
 
 Core invariant:
 
@@ -18,7 +20,7 @@ Ring slots can be local or remote.
 | Bridge | Expose files, tools, local generation, and remote peer generation. |
 | Swarm | Advertise local executors and remote slot capacity, route generation requests, stream results. |
 | Capsule | Render current state, transcript, peer status, and basic controls. |
-| Blueprints | Carry Blueprint `0x000112`, slot topology notes, prompts, traces, receipts, and improvement plans. |
+| Blueprints | Carry Blueprint `0x00007F`, slot topology notes, prompts, traces, receipts, and improvement plans. |
 
 ## Root Route Policy
 
@@ -33,7 +35,7 @@ Ring slots can be local or remote.
 
 | State | Behavior |
 |-------|----------|
-| `Seed` | Load identity, prompt, tools, VFS, objective, and Blueprint `0x000112`. No mutation. No promotion. |
+| `Seed` | Load identity, prompt, tools, VFS, objective, and Blueprint `0x00007F`. No mutation. No promotion. |
 | `Shadow` | Run the RGR loop provisionally: execute, trace, reflect, mutate, score, archive. |
 | `Promote` | Change the active self only after the anchored promotion gate passes. |
 
@@ -54,7 +56,7 @@ The archive format, score vector, lineage, validator quarantine, and merge rule 
 
 1. Read `/self/self.json`.
 2. Read `/self/prompts/kernel.md`.
-3. Read `/self/blueprints/rgr-runtime-contract.md` for boot rules, then `/self/blueprints/0x000112-recursive-gepa-ring.md` only for formal promotion or archive changes.
+3. Read `/self/blueprints/rgr-runtime-contract.md` for boot rules, then `/self/blueprints/0x00007F-recursive-gepa-ring.md` only for formal promotion or archive changes.
 4. Read this support blueprint.
 5. Enter Shadow unless the user explicitly asks for promotion.
 6. Choose the smallest reversible prompt, blueprint, trace, receipt, artifact, or self edit that advances the objective.
@@ -85,7 +87,7 @@ The root self manifest must expose:
 
 /self/prompts/kernel.md
 /self/blueprints/rgr-runtime-contract.md
-/self/blueprints/0x000112-recursive-gepa-ring.md
+/self/blueprints/0x00007F-recursive-gepa-ring.md
 /self/blueprints/rgr-slot-topology.md
 
 ## Promotion Rule
@@ -93,7 +95,7 @@ The root self manifest must expose:
 A root route change is valid only if:
 
 - the boot UI still awakens with remote slots and no local inference
-- the runtime still receives the kernel prompt, Blueprint `0x000112`, and this support blueprint in bootstrap context
+- the runtime still receives the kernel prompt, Blueprint `0x00007F`, and this support blueprint in bootstrap context
 - `ReadFile` can read those files from the awakened self
 - `/zero` and `/x` still route to their lab modes
 - the product model remains: ring slots can be local or remote

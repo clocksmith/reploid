@@ -1,9 +1,19 @@
 # Blueprint 0x00000D: UI Management
 
+**Classification:** Canonical Full Specification
+
+**Implementation Status:** In-Progress
+
+**Verified Artifacts:** `/self/ui/dashboard/ui-manager.js`
+
+**Planned Artifacts:** `/ui/ui-manager.js`, `ui-manager.js`
+
+**Owned Source Files:** `ui/dashboard/ui-manager.js`
+
+**Former Blueprint Paths:** `self/blueprints/0x00000D-ui-manager.md`
 **Objective:** To detail the architecture for managing the agent's developer console UI, including rendering, event handling, and state display.
 
 **Target Upgrade:** UIMN (`ui-manager.js`)
-
 
 **Prerequisites:** `0x00000E`, `0x00000F`, `0x000048` (Module Widget Protocol)
 
@@ -515,8 +525,6 @@ This architecture separates UI concerns from core agent logic while providing co
 ---
 
 ## Phase 9: Modular Panel Integration (CLUSTER 1 + CLUSTER 2)
-
-**Status:** [x] COMPLETE
 
 ### Overview
 

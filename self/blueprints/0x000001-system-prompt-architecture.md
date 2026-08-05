@@ -1,9 +1,19 @@
 # Blueprint 0x000001: System Prompt Architecture
 
+**Classification:** Canonical Full Specification
+
+**Implementation Status:** In-Progress
+
+**Verified Artifacts:** `/self/config/boot-seed.js`, `/self/prompts/kernel.md`
+
+**Planned Artifacts:** `/core/agent-cycle.js`, `/core/agent-logic-pure.js`, `/core/prompt-system.md`, `prompt-system.md`
+
+**Owned Source Files:** None
+
+**Former Blueprint Paths:** `self/blueprints/0x000001-system-prompt-architecture.md`
 **Objective:** To define the structure and philosophy of the agent's core identity prompt, enabling dynamic context injection for state-aware reasoning.
 
 **Target Upgrade:** PRMT (`prompt-system.md`)
-
 
 **Prerequisites:** None
 

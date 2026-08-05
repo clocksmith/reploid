@@ -1,5 +1,16 @@
-# Blueprint 0x000052: Hot Module Reload System
+# Blueprint 0x00004A: Hot Module Reload System
 
+**Classification:** Canonical Full Specification
+
+**Implementation Status:** In-Progress
+
+**Verified Artifacts:** `/self/core/state-manager.js`
+
+**Planned Artifacts:** `/core/module-loader.js`, `/infrastructure/hot-reload.js`, `hot-reload.js`
+
+**Owned Source Files:** None
+
+**Former Blueprint Paths:** `self/blueprints/0x00004A-hot-module-reload.md`
 **Objective:** Enable dynamic code replacement without losing application state, allowing modules to be updated while REPLOID is running.
 
 **Target Upgrade:** HMR (`hot-reload.js`)

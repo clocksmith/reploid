@@ -1,10 +1,21 @@
-# Blueprint 0x00002B: Toast Notification System
+# Blueprint 0x000028: Toast Notification System
 
+**Classification:** Canonical Full Specification
+
+**Implementation Status:** Implemented
+
+**Verified Artifacts:** `/self/ui/components/toast-notifications.js`, `/tests/unit/toast-notifications.test.js`
+
+**Planned Artifacts:** None
+
+**Owned Source Files:** `ui/components/toast-notifications.js`
+
+**Former Blueprint Paths:** `self/blueprints/0x000028-toast-notification-system.md`, `self/blueprints/0x000028-toast-notification-system.md`
 **Objective:** Define the behavioural contract for non-blocking toast notifications that surface agent status to users without halting workflows.
 
 **Target Upgrade:** TSTN (`toast-notifications.js`)
 
-**Prerequisites:** 0x000003 (Core Utilities & Error Handling), 0x00000D (UI Management), 0x000022 (Confirmation Modal & Safety Interlocks)
+**Prerequisites:** 0x000003 (Core Utilities & Error Handling), 0x00000D (UI Management), 0x00001F (Confirmation Modal & Safety Interlocks)
 
 **Affected Artifacts:** `/ui/components/toast-notifications.js`, `/styles/proto/index.css`, `/core/app-logic.js`
 

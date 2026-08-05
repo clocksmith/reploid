@@ -1,5 +1,16 @@
-# Blueprint 0x000086: Telemetry Timeline
+# Blueprint 0x00006F: Telemetry Timeline
 
+**Classification:** Canonical Full Specification
+
+**Implementation Status:** Implemented
+
+**Verified Artifacts:** `/self/infrastructure/telemetry-timeline.js`
+
+**Planned Artifacts:** None
+
+**Owned Source Files:** `infrastructure/telemetry-timeline.js`
+
+**Former Blueprint Paths:** `self/blueprints/0x00006F-telemetry-timeline.md`
 **Objective:** Unified append-only event log for audit, performance, and agent state changes.
 
 **Target Module:** `TelemetryTimeline` (TTML)
@@ -543,7 +554,5 @@ customElements.define('telemetry-timeline-widget', TelemetryTimelineWidget);
 - Add performance flame graph generation from events
 
 ---
-
-**Status:** Blueprint
 
 Maintain this blueprint as the telemetry capabilities evolve or new event types are introduced.

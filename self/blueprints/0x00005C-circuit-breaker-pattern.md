@@ -1,5 +1,16 @@
-# Blueprint 0x000067: Circuit Breaker Pattern
+# Blueprint 0x00005C: Circuit Breaker Pattern
 
+**Classification:** Canonical Full Specification
+
+**Implementation Status:** Implemented
+
+**Verified Artifacts:** `/self/infrastructure/circuit-breaker.js`
+
+**Planned Artifacts:** None
+
+**Owned Source Files:** `infrastructure/circuit-breaker.js`
+
+**Former Blueprint Paths:** `self/blueprints/0x00005C-circuit-breaker-pattern.md`
 **Module:** `CircuitBreaker`
 **File:** `./infrastructure/circuit-breaker.js`
 **Purpose:** Failure isolation - prevents cascading failures when services degrade

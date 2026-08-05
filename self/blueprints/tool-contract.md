@@ -1,5 +1,7 @@
 # Tool Contract
 
+**Classification:** Index & Meta Contract
+
 The tabula-rasa runtime exposes a small primitive tool surface.
 
 | Tool | Purpose |

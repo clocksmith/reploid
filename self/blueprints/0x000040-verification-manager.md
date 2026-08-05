@@ -1,5 +1,16 @@
-# Blueprint 0x000047: Verification Manager
+# Blueprint 0x000040: Verification Manager
 
+**Classification:** Canonical Full Specification
+
+**Implementation Status:** In-Progress
+
+**Verified Artifacts:** `/self/core/tool-runner.js`, `/self/core/verification-manager.js`, `/self/core/verification-worker.js`, `/self/testing/arena/vfs-sandbox.js`
+
+**Planned Artifacts:** `/tools/sentinel-tools.js`, `verification-manager.js`
+
+**Owned Source Files:** `core/verification-manager.js`, `testing/arena/vfs-sandbox.js`
+
+**Former Blueprint Paths:** `self/blueprints/0x000040-verification-manager.md`
 **Target Upgrade:** VRFY (`verification-manager.js`)
 
 **Objective:** Provide safe, sandboxed execution of verification commands (tests, linting, type-checking) in a Web Worker to validate self-modifications without risking the main application.

@@ -1,10 +1,21 @@
-# Blueprint 0x000028: Agent FSM Visualizer
+# Blueprint 0x000025: Agent FSM Visualizer
 
+**Classification:** Canonical Full Specification
+
+**Implementation Status:** In-Progress
+
+**Verified Artifacts:** `/self/styles/proto/index.css`
+
+**Planned Artifacts:** `/core/sentinel-fsm.js`, `/ui/panels/agent-visualizer.js`, `agent-visualizer.js`
+
+**Owned Source Files:** None
+
+**Former Blueprint Paths:** `self/blueprints/0x000025-agent-fsm-visualizer.md`
 **Objective:** Capture the design of the D3.js visualization that renders Sentinel’s finite-state machine in real time.
 
 **Target Upgrade:** AVIS (`agent-visualizer.js`)
 
-**Prerequisites:** 0x00000D (UI Management), 0x000002 (Application Orchestration), 0x000026 (Performance Monitoring Stack), Sentinel FSM schema (`/core/sentinel-fsm.js`)
+**Prerequisites:** 0x00000D (UI Management), 0x000002 (Application Orchestration), 0x000023 (Performance Monitoring Stack), Sentinel FSM schema (`/core/sentinel-fsm.js`)
 
 **Affected Artifacts:** `/ui/panels/agent-visualizer.js`, `/styles/proto/index.css`, `/core/sentinel-fsm.js`
 

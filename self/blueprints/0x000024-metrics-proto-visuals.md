@@ -1,10 +1,21 @@
-# Blueprint 0x000027: Metrics Proto & Charting
+# Blueprint 0x000024: Metrics Proto & Charting
 
+**Classification:** Canonical Full Specification
+
+**Implementation Status:** In-Progress
+
+**Verified Artifacts:** `/self/index.html`, `/self/styles/proto/index.css`, `/self/ui/dashboard/metrics-dashboard.js`
+
+**Planned Artifacts:** `/ui/panels/metrics-proto.js`, `Chart.js`, `metrics-proto.js`
+
+**Owned Source Files:** `ui/dashboard/metrics-dashboard.js`
+
+**Former Blueprint Paths:** `self/blueprints/0x000024-metrics-proto-visuals.md`
 **Objective:** Govern the Chart.js-powered proto that visualises REPLOID performance metrics in real time.
 
 **Target Upgrade:** MDSH (`metrics-proto.js`)
 
-**Prerequisites:** 0x000026 (Performance Monitoring Stack), 0x000019 (Visual Self-Improvement), 0x00001F (Universal Module Loader)
+**Prerequisites:** 0x000023 (Performance Monitoring Stack), 0x000018 (Visual Self-Improvement), 0x00001F (Universal Module Loader)
 
 **Affected Artifacts:** `/ui/panels/metrics-proto.js`, `/styles/proto/index.css`, `/index.html` (Chart.js CDN include)
 
