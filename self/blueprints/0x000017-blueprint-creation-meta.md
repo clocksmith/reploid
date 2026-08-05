@@ -1,5 +1,16 @@
-# Blueprint 0x000018: Meta-Blueprint for Creating Blueprints
+# Blueprint 0x000017: Meta-Blueprint for Creating Blueprints
 
+**Classification:** Canonical Full Specification
+
+**Implementation Status:** Proposed
+
+**Verified Artifacts:** None
+
+**Planned Artifacts:** `/docs/0x*-*.md`, `blueprint-creator.js`
+
+**Owned Source Files:** None
+
+**Former Blueprint Paths:** `self/blueprints/0x000017-blueprint-creation-meta.md`
 **Objective:** To teach the agent how to document architectural patterns and create new blueprints that enable future capabilities.
 
 **Target Upgrade:** BLPR (`blueprint-creator.js`)
@@ -60,7 +71,7 @@ Blueprints are **knowledge artifacts** that describe HOW to build capabilities, 
 **Upgrade Blueprints (0x000001-0x000FFF):**
 - Describe how to build specific upgrades/modules
 - Map 1:1 to upgrade files
-- **MUST reference 0x000048 (Module Widget Protocol)** in prerequisites
+- **MUST reference 0x000041 (Module Widget Protocol)** in prerequisites
 - **MUST describe widget implementation** (all upgrades require widgets)
 - Example: "How to build a state manager"
 

@@ -66,7 +66,7 @@ Promote writes an allowlisted candidate into the live self only after its eviden
 
 | State | File mutation | Evidence | Activation boundary |
 | --- | --- | --- | --- |
-| Seed | Writes the recoverable identity, prompt, tools, VFS, objective, and Blueprint `0x000112`. | Boot manifest. | Establishes the self that can be restored. |
+| Seed | Writes the recoverable identity, prompt, tools, VFS, objective, and Blueprint `0x00007F`. | Boot manifest. | Establishes the self that can be restored. |
 | Shadow | Writes candidates under `/shadow`; the active `/self` stays unchanged. | RGR traces, scores, receipts, and rollback paths under `/artifacts/rgr`. | Candidate code remains provisional. |
 | Promote | Copies an allowlisted candidate from `/shadow` into `/self`. | Anchored gate result, replay result, and candidate hash. | Changes `/self`; validator mutations enter quarantine instead. |
 

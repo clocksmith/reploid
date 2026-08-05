@@ -1,10 +1,21 @@
-# Blueprint 0x000026: Performance Monitoring Stack
+# Blueprint 0x000023: Performance Monitoring Stack
 
+**Classification:** Canonical Full Specification
+
+**Implementation Status:** In-Progress
+
+**Verified Artifacts:** `/self/capabilities/performance/performance-monitor.js`
+
+**Planned Artifacts:** `/infrastructure/performance-monitor.js`, `/tools/tool-analytics.js`, `/ui/panels/metrics-proto.js`, `performance-monitor.js`
+
+**Owned Source Files:** `capabilities/performance/performance-monitor.js`
+
+**Former Blueprint Paths:** `self/blueprints/0x000023-performance-monitoring-stack.md`
 **Objective:** Define the observability contract for tracking tool execution, state transitions, LLM usage, and memory across REPLOID sessions.
 
 **Target Upgrade:** PMON (`performance-monitor.js`)
 
-**Prerequisites:** 0x000006 (Pure State Helpers), 0x000007 (API Client & Communication), 0x000008 (Agent Cognitive Cycle), 0x00002B (Toast Notification System)
+**Prerequisites:** 0x000006 (Pure State Helpers), 0x000007 (API Client & Communication), 0x000008 (Agent Cognitive Cycle), 0x000028 (Toast Notification System)
 
 **Affected Artifacts:** `/infrastructure/performance-monitor.js`, `/ui/panels/metrics-proto.js`, `/tools/tool-analytics.js`
 

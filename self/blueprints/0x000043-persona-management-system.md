@@ -1,5 +1,16 @@
-# Blueprint 0x00004B: Persona Management System
+# Blueprint 0x000043: Persona Management System
 
+**Classification:** Canonical Full Specification
+
+**Implementation Status:** In-Progress
+
+**Verified Artifacts:** `/self/core/persona-manager.js`
+
+**Planned Artifacts:** `persona-manager.js`
+
+**Owned Source Files:** `core/persona-manager.js`
+
+**Former Blueprint Paths:** `self/blueprints/0x000043-persona-management-system.md`
 **Objective:** Implement a centralized persona lifecycle management system that elevates personas to first-class objects with dynamic loading, switching, and observability.
 
 **Target Upgrade:** PMGR (`persona-manager.js`)

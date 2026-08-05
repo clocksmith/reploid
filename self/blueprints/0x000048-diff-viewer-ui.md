@@ -1,12 +1,23 @@
-# Blueprint 0x000050: Interactive Diff Viewer UI
+# Blueprint 0x000048: Interactive Diff Viewer UI
 
+**Classification:** Canonical Full Specification
+
+**Implementation Status:** In-Progress
+
+**Verified Artifacts:** `/self/ui/components/diff-viewer-ui.js`
+
+**Planned Artifacts:** `/self/capabilities/cognition/sentinel-tools.js`, `/self/core/dogs-parser-browser.js`
+
+**Owned Source Files:** `ui/components/diff-viewer-ui.js`
+
+**Former Blueprint Paths:** `self/blueprints/0x000048-diff-viewer-ui.md`, `self/blueprints/0x000048-diff-viewer-ui.md`
 **Objective:** Provide rich visual diff comparison with syntax highlighting, approval controls, and export capabilities for code changes.
 
 **Target Upgrade:** DIFF (`diff-viewer-ui.js`)
 
-**Prerequisites:** 0x000003 (Core Utilities & Error Handling), 0x000005 (State Management Architecture), 0x000007 (API Client & Communication), 0x00002E (Audit Logging Policy)
+**Prerequisites:** 0x000003 (Core Utilities & Error Handling), 0x000005 (State Management Architecture), 0x000007 (API Client & Communication), 0x00002B (Audit Logging Policy)
 
-**Affected Artifacts:** `/ui/panels/diff-viewer-ui.js`, `/core/dogs-parser-browser.js`, `/capabilities/cognition/sentinel-tools.js`
+**Affected Artifacts:** `/ui/components/diff-viewer-ui.js`, `/core/dogs-parser-browser.js`, `/capabilities/cognition/sentinel-tools.js`
 
 ---
 

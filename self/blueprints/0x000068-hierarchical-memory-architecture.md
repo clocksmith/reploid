@@ -1,5 +1,16 @@
 # Blueprint 0x000068: Hierarchical Memory Architecture
 
+**Classification:** Canonical Full Specification
+
+**Implementation Status:** In-Progress
+
+**Verified Artifacts:** `/self/capabilities/cognition/knowledge-tree.js`, `/self/core/memory-manager.js`
+
+**Planned Artifacts:** `memory-manager.js`
+
+**Owned Source Files:** `capabilities/cognition/knowledge-tree.js`, `core/memory-manager.js`
+
+**Former Blueprint Paths:** `self/blueprints/0x000068-hierarchical-memory-architecture.md`
 **Objective:** Implement a three-tier memory system (Working/Episodic/Semantic) enabling effectively infinite context through intelligent storage, summarization, and retrieval.
 
 **Target Upgrade:** MMAN (`memory-manager.js`)
@@ -540,7 +551,7 @@ const recall = async (query, topK = 5) => {
 
 ### Related Blueprints
 - [0x00005F: Semantic Memory](0x00005F-semantic-memory.md)
-- [0x00003B: Context Management](0x00003B-context-management.md)
+- [0x00003A: Context Management](0x00003B-context-management.md)
 - [0x00005E: Embedding Store](0x00005E-embedding-store.md)
 - [0x000060: Knowledge Graph](0x000060-knowledge-graph.md)
 

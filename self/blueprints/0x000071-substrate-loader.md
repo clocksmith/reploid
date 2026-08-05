@@ -1,5 +1,16 @@
-# Blueprint 0x000088-SLDR: Substrate Loader
+# Blueprint 0x000071: Substrate Loader
 
+**Classification:** Canonical Full Specification
+
+**Implementation Status:** Implemented
+
+**Verified Artifacts:** `/self/capabilities/system/substrate-loader.js`, `/self/core/vfs-module-loader.js`
+
+**Planned Artifacts:** None
+
+**Owned Source Files:** `capabilities/system/substrate-loader.js`, `core/vfs-module-loader.js`
+
+**Former Blueprint Paths:** `self/blueprints/0x000071-substrate-loader.md`
 **Objective:** Dynamically load ES modules and widgets from VFS at runtime using blob URLs for RSI substrate execution.
 
 **Target Module:** `SubstrateLoader`
@@ -297,5 +308,3 @@ await SubstrateLoader.loadWidget('/widgets/status-display.js', 'widget-container
 - **Import Maps**: Support import maps for VFS module resolution
 
 ---
-
-**Status:** Implemented

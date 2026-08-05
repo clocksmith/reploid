@@ -1,5 +1,16 @@
-# Blueprint 0x000046: Diff Utilities
+# Blueprint 0x00003F: Diff Utilities
 
+**Classification:** Canonical Full Specification
+
+**Implementation Status:** In-Progress
+
+**Verified Artifacts:** `/self/core/tool-runner.js`
+
+**Planned Artifacts:** `/core/diff-utils.js`, `diff-utils.js`
+
+**Owned Source Files:** None
+
+**Former Blueprint Paths:** `self/blueprints/0x00003F-diff-utilities.md`
 **Target Upgrade:** DIFF (`diff-utils.js`)
 
 **Objective:** Provide browser-native line-based diff comparison without external dependencies, enabling the agent to compare file versions and track changes during self-modification.

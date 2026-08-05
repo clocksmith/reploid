@@ -1,9 +1,19 @@
-# Blueprint 0x00001D: Autonomous Orchestrator - Curator Mode
+# Blueprint 0x00001C: Autonomous Orchestrator - Curator Mode
 
+**Classification:** Canonical Full Specification
+
+**Implementation Status:** Proposed
+
+**Verified Artifacts:** None
+
+**Planned Artifacts:** None
+
+**Owned Source Files:** None
+
+**Former Blueprint Paths:** `self/blueprints/0x00001C-autonomous-orchestrator-curator-mode.md`
 **Module ID:** AUOR
 **Module Path:** `upgrades/autonomous-orchestrator.js`
 **Category:** Service
-**Status:** Implemented
 **Version:** 1.0.0
 **Created:** 2025-10-05
 
@@ -848,4 +858,4 @@ The Autonomous Orchestrator (Curator Mode) enables REPLOID to operate overnight,
 **Blueprint Version:** 1.0.0
 **Author:** REPLOID Core Team
 **Last Updated:** 2025-10-05
-**Related Blueprints:** 0x000008 (Agent Cycle), 0x000005 (State Management), 0x00001B (Introspection)
+**Related Blueprints:** 0x000008 (Agent Cycle), 0x000005 (State Management), 0x00001A (Introspection)

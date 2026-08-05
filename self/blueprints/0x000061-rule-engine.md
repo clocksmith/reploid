@@ -1,5 +1,16 @@
-# Blueprint 0x000072: Rule Engine
+# Blueprint 0x000061: Rule Engine
 
+**Classification:** Canonical Full Specification
+
+**Implementation Status:** Implemented
+
+**Verified Artifacts:** `/self/capabilities/cognition/symbolic/rule-engine.js`
+
+**Planned Artifacts:** None
+
+**Owned Source Files:** `capabilities/cognition/symbolic/rule-engine.js`
+
+**Former Blueprint Paths:** `self/blueprints/0x000061-rule-engine.md`
 **Module:** `RuleEngine`
 **File:** `./capabilities/cognition/symbolic/rule-engine.js`
 **Purpose:** IF-THEN rules for deterministic reasoning

@@ -1,5 +1,16 @@
-# Blueprint 0x000064: Recursive Prompt Engineering
+# Blueprint 0x000059: Recursive Prompt Engineering
 
+**Classification:** Canonical Full Specification
+
+**Implementation Status:** In-Progress
+
+**Verified Artifacts:** `/self/core/agent-loop.js`
+
+**Planned Artifacts:** `/capabilities/cognition/prompt-evaluator.js`, `/config/prompt-history.js`, `/config/prompt-template.md`, `recursive-prompt-engineer.js`
+
+**Owned Source Files:** None
+
+**Former Blueprint Paths:** `self/blueprints/0x000059-recursive-prompt-engineering.md`
 **Objective:** Enable the agent to improve its own system prompt across iterations, creating a self-improving reasoning system.
 
 **Target Upgrade:** RPRT (`recursive-prompt-engineer.js`)

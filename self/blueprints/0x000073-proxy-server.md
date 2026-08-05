@@ -1,393 +1,91 @@
-# Blueprint 0x00008A-PRXY: Proxy Server
+# Blueprint 0x000073: Proxy Server
 
-**Objective:** Multi-provider LLM API proxy server with SSE streaming, GPU monitoring, VFS backup, and integrated WebSocket services.
+**Classification:** Canonical Full Specification
 
-**Target Module:** `proxy.js`
+**Implementation Status:** Implemented
 
-**Implementation:** `/server/proxy.js`
+**Verified Artifacts:** `/server/agent-bridge.js`, `/server/pool/routes.js`, `/server/proxy.js`, `/server/signaling-server.js`
 
-**Prerequisites:** `0x000089-ABRG` (Agent Bridge), `0x00008A` (Signaling Server)
+**Planned Artifacts:** None
 
-**Category:** Server
+**Owned Source Files:** None
+
+**Former Blueprint Paths:** `self/blueprints/0x000073-proxy-server.md`, `self/blueprints/0x000073-proxy-server.md`
+**Objective:** Define the Reploid HTTP and WebSocket host that serves product surfaces, enforces access policy, proxies approved model requests, and attaches signaling and agent-coordination services without becoming the browser-inference authority.
+
+**Target Module:** `server/proxy.js`
+
+**Affected Artifacts:** `/server/proxy.js`, `/server/signaling-server.js`, `/server/agent-bridge.js`, `/server/pool/routes.js`
 
 ---
 
-## 1. The Strategic Imperative
+## 1. Intent
 
-Browser-based agents cannot directly call LLM APIs due to CORS restrictions and the need to protect API keys. The Proxy Server acts as a unified gateway that:
+The proxy is the development and compatibility host for Reploid. It serves static browser assets, exposes bounded model-provider and operational routes, mounts the Poolday compatibility router, and owns the HTTP upgrade seam for signaling and the Agent Bridge. Browser-local or peer-local execution remains in the browser; the proxy must not convert a Poolday browser-execution claim into hidden server inference.
 
-- **Routes LLM Requests**: Proxies to Gemini, OpenAI, Anthropic, Groq, HuggingFace, Ollama, and vLLM
-- **Streams Responses**: Translates provider-specific streaming to unified SSE format
-- **Manages Local Models**: Auto-starts and monitors Ollama for local inference
-- **Provides Coordination**: Hosts WebSocket services for multi-agent coordination
-- **Persists State**: Backup/restore VFS state to disk for persistence across sessions
+## 2. Process shape
 
-## 2. The Architectural Solution
-
-The `/server/proxy.js` implements an Express.js server that serves as the backend for all REPLOID browser clients.
-
-### High-Level Architecture
-
-```
-Browser Client
-      |
-      v
-  [Proxy Server]
-      |
-      +---> /api/chat ---------> [Provider Router] ---> Gemini/OpenAI/Anthropic/...
-      |
-      +---> /api/gemini/* -----> [Gemini Direct Proxy]
-      +---> /api/openai/* -----> [OpenAI Direct Proxy]
-      +---> /api/anthropic/* --> [Anthropic Direct Proxy]
-      +---> /api/local/* ------> [Ollama/LM Studio Proxy]
-      |
-      +---> /api/gpu/status ---> [GPU Monitor]
-      +---> /api/vfs/* --------> [VFS Persistence]
-      +---> /api/console ------> [Console Logging]
-      |
-      +---> /agent-bridge -----> [WebSocket: Agent Coordination]
-      +---> /signaling --------> [WebSocket: WebRTC Signaling]
+```text
+Express application
+  +-- product and lab HTML routes
+  +-- static self/, Poolday, Doppler, proto, and WGSL assets
+  +-- provider proxy and operational APIs
+  +-- /pool compatibility router
+  +-- HTTP server
+        +-- /signaling upgrade -> SignalingServer
+        +-- /agent-bridge upgrade -> AgentBridge
 ```
 
-## 3. API Routes
-
-### Chat Routes (Unified Interface)
-
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/api/chat` | POST | Unified chat endpoint (routes by provider) |
-| `/api/health` | GET | Server and provider health status |
-
-### Provider-Specific Routes
-
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/api/gemini/*` | POST | Direct Gemini API proxy |
-| `/api/openai/*` | POST | Direct OpenAI API proxy |
-| `/api/anthropic/*` | POST | Direct Anthropic API proxy |
-| `/api/local/*` | POST | Ollama/LM Studio proxy |
-| `/api/groq/*` | POST | Groq API proxy |
-| `/api/huggingface/*` | POST | HuggingFace Inference API proxy |
-| `/api/vllm/*` | POST | vLLM server proxy |
-
-### System Routes
-
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/api/gpu/status` | GET | GPU and Ollama status |
-| `/api/ollama/models` | GET | List available Ollama models |
-| `/api/ollama/unload` | POST | Unload model from GPU memory |
-| `/api/vfs/backup` | POST | Save VFS state to disk |
-| `/api/vfs/restore` | GET | Load VFS state from disk |
-| `/api/console` | POST | Server-side console logging |
-| `/api/agent-bridge/stats` | GET | Agent Bridge statistics |
-
-## 4. Chat Request Format
-
-The unified `/api/chat` endpoint accepts requests in a standard format:
-
-```javascript
-// POST /api/chat
-{
-  provider: 'openai',              // gemini|openai|anthropic|groq|ollama|vllm|huggingface
-  model: 'gpt-4',                  // Provider-specific model ID
-  messages: [
-    { role: 'system', content: 'You are a helpful assistant.' },
-    { role: 'user', content: 'Hello!' }
-  ],
-  stream: true,                    // Enable SSE streaming (optional)
-  temperature: 0.7,                // Optional parameters
-  max_tokens: 4096
-}
-```
-
-## 5. SSE Streaming Support
-
-All providers support Server-Sent Events for real-time token streaming:
-
-### Streaming Response Format
-
-```
-data: {"choices":[{"delta":{"content":"Hello"}}]}
-
-data: {"choices":[{"delta":{"content":" world"}}]}
-
-data: {"choices":[{"delta":{"content":"!"}}]}
-
-data: [DONE]
-```
-
-### Streaming Implementation
-
-```javascript
-app.post('/api/chat', async (req, res) => {
-  const { provider, model, messages, stream } = req.body;
-
-  if (stream) {
-    // Set SSE headers
-    res.setHeader('Content-Type', 'text/event-stream');
-    res.setHeader('Cache-Control', 'no-cache');
-    res.setHeader('Connection', 'keep-alive');
-
-    // Stream from provider
-    const providerStream = await getProviderStream(provider, model, messages);
-
-    for await (const chunk of providerStream) {
-      // Normalize to unified format
-      const normalized = normalizeChunk(provider, chunk);
-      res.write(`data: ${JSON.stringify(normalized)}\n\n`);
-    }
-
-    res.write('data: [DONE]\n\n');
-    res.end();
-  } else {
-    // Non-streaming response
-    const response = await callProvider(provider, model, messages);
-    res.json(response);
-  }
-});
-```
-
-## 6. Provider Configuration
-
-### Environment Variables
-
-```bash
-# API Keys
-GEMINI_API_KEY=your-gemini-key
-OPENAI_API_KEY=your-openai-key
-ANTHROPIC_API_KEY=your-anthropic-key
-GROQ_API_KEY=your-groq-key
-HUGGINGFACE_API_KEY=your-hf-key
-
-# Local Model Endpoints
-LOCAL_MODEL_ENDPOINT=http://localhost:11434    # Ollama default
-VLLM_ENDPOINT=http://localhost:8000            # vLLM default
-LM_STUDIO_ENDPOINT=http://localhost:1234       # LM Studio default
-
-# Server Configuration
-PORT=3000
-AUTO_START_OLLAMA=true                         # Auto-launch Ollama on startup
-```
-
-### Provider Routing Logic
-
-```javascript
-const routeToProvider = async (provider, model, messages, options) => {
-  switch (provider) {
-    case 'gemini':
-      return await callGemini(model, messages, options);
-    case 'openai':
-      return await callOpenAI(model, messages, options);
-    case 'anthropic':
-      return await callAnthropic(model, messages, options);
-    case 'groq':
-      return await callGroq(model, messages, options);
-    case 'ollama':
-    case 'local':
-      return await callOllama(model, messages, options);
-    case 'vllm':
-      return await callVLLM(model, messages, options);
-    case 'huggingface':
-      return await callHuggingFace(model, messages, options);
-    default:
-      throw new Error(`Unknown provider: ${provider}`);
-  }
-};
-```
-
-## 7. GPU Monitoring
-
-For systems with AMD GPUs (ROCm) or NVIDIA GPUs, the proxy provides GPU status:
-
-```javascript
-// GET /api/gpu/status
-{
-  gpu: {
-    available: true,
-    type: 'AMD',                   // or 'NVIDIA'
-    memory: {
-      total: 16384,                // MB
-      used: 8192,
-      free: 8192
-    }
-  },
-  ollama: {
-    running: true,
-    models: ['llama3.2:3b', 'qwen2.5:7b'],
-    loadedModel: 'llama3.2:3b'
-  }
-}
-```
-
-## 8. VFS Persistence
-
-The proxy provides backup/restore for browser VFS state:
-
-### Backup VFS
-
-```javascript
-// POST /api/vfs/backup
-// Request body: VFS state JSON
-{
-  artifacts: { ... },
-  checkpoints: [ ... ],
-  metadata: { ... }
-}
-
-// Response
-{ success: true, path: './data/vfs-backup.json' }
-```
-
-### Restore VFS
-
-```javascript
-// GET /api/vfs/restore
-// Response: VFS state JSON (or empty if no backup exists)
-{
-  artifacts: { ... },
-  checkpoints: [ ... ],
-  metadata: { ... }
-}
-```
-
-## 9. Console Logging Endpoint
-
-Browser clients can log to the server console for debugging:
-
-```javascript
-// POST /api/console
-{
-  level: 'info',                   // debug|info|warn|error
-  message: 'Agent cycle completed',
-  data: { iteration: 42, duration: 1500 }
-}
-```
-
-## 10. WebRTC Signaling Integration
-
-The proxy initializes the Signaling Server for WebRTC peer coordination:
-
-```javascript
-const SignalingServer = require('./signaling-server');
-
-const server = app.listen(PORT);
-const signalingServer = new SignalingServer(server, {
-  path: '/signaling'
-});
-```
-
-## 11. Agent Bridge Integration
-
-The proxy initializes the Agent Bridge for multi-agent coordination:
-
-```javascript
-const AgentBridge = require('./agent-bridge');
-
-const agentBridge = new AgentBridge(server, {
-  path: '/agent-bridge'
-});
-
-app.get('/api/agent-bridge/stats', (req, res) => {
-  res.json(agentBridge.getStats());
-});
-```
-
-## 12. Static File Serving
-
-The proxy serves the REPLOID frontend:
-
-```javascript
-app.use(express.static('public'));
-app.use('/dist', express.static('dist'));
-```
-
-## 13. CORS Configuration
-
-```javascript
-const cors = require('cors');
-
-app.use(cors({
-  origin: true,                    // Allow all origins (development)
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
-```
-
-## 14. Error Handling
-
-```javascript
-// Global error handler
-app.use((err, req, res, next) => {
-  console.error('[Proxy] Error:', err);
-
-  res.status(err.status || 500).json({
-    error: {
-      message: err.message,
-      code: err.code || 'INTERNAL_ERROR'
-    }
-  });
-});
-
-// Provider-specific error normalization
-const normalizeProviderError = (provider, error) => {
-  switch (provider) {
-    case 'openai':
-      return { message: error.error?.message, code: error.error?.code };
-    case 'anthropic':
-      return { message: error.error?.message, code: error.error?.type };
-    case 'gemini':
-      return { message: error.error?.message, code: error.error?.status };
-    default:
-      return { message: error.message, code: 'PROVIDER_ERROR' };
-  }
-};
-```
-
-## 15. Startup Sequence
-
-```javascript
-const startServer = async () => {
-  // 1. Load configuration
-  loadConfig();
-
-  // 2. Auto-start Ollama if configured
-  if (process.env.AUTO_START_OLLAMA === 'true') {
-    await startOllama();
-  }
-
-  // 3. Start HTTP server
-  const server = app.listen(PORT, () => {
-    console.log(`[Proxy] Server running on port ${PORT}`);
-  });
-
-  // 4. Initialize WebSocket services
-  new SignalingServer(server, { path: '/signaling' });
-  const bridge = new AgentBridge(server, { path: '/agent-bridge' });
-
-  // 5. Register stats endpoint
-  app.get('/api/agent-bridge/stats', (req, res) => {
-    res.json(bridge.getStats());
-  });
-
-  return server;
-};
-
-startServer();
-```
-
-## 16. Operational Safeguards
-
-| Concern | Mitigation |
-|---------|------------|
-| API key exposure | Keys stored server-side only |
-| CORS attacks | Configurable origin whitelist |
-| Rate limiting | Per-client request throttling |
-| Large payloads | Request body size limits |
-| Timeouts | Provider-specific timeout handling |
-| Memory leaks | Stream cleanup on client disconnect |
-
----
-
-**Status:** Implemented
+`POOL_BACKEND_ONLY` disables the product-side signaling and Agent Bridge initialization while retaining the declared backend router surface.
+
+## 3. HTTP route families
+
+The exact route implementation in `server/proxy.js` is authoritative. Current families include:
+
+| Family | Examples | Boundary |
+| --- | --- | --- |
+| Health and status | `/api/health`, `/api/proxy-status`, `/api/gpu/status`, `/api/gpu/logs` | Operational diagnostics. |
+| Provider proxy | `/api/gemini/*`, `/api/local/*`, `/api/openai/*`, `/api/anthropic/*`, `/api/huggingface/models/:model(*)`, `/api/chat` | Access-controlled provider compatibility. |
+| Local model control | `/api/ollama/models` | Local runtime discovery. |
+| VFS compatibility | `/api/vfs/status`, `/api/vfs/backup`, `/api/vfs/restore` | Explicit server-side backup/restore; not the browser VFS authority. |
+| Logs | `/api/console-logs` | Bounded diagnostic logging. |
+| WebSocket stats | `/api/signaling/stats`, `/api/agent-bridge/stats` | Read-only operational projections. |
+| Product routes | `/`, `/ask`, `/compute`, `/records`, `/history`, `/network` | Poolday/Reploid product entry. |
+| Lab routes | `/zero`, `/x` | Separate Zero and X surfaces. |
+
+The removed proxy summary shell named `/api/llm/:provider`, `/api/models`, `/api/run`, `/health`, and `/claude-bridge`. Those are not the current route contract and are not retained as aliases.
+
+## 4. Access, rate, and failure policy
+
+- JSON request size is bounded and tighter in backend-only mode.
+- Protected server routes use the configured server-access guard.
+- Anonymous inference, where admitted, passes the public-inference guard.
+- Rate limiting uses a client-id, forwarded address, request address, or origin bucket; it does not rely on one global counter.
+- CORS policy is explicit and origin-bound.
+- Uncaught exceptions and unhandled rejections are logged so the host can report failures, but this is not a substitute for route-level error handling.
+- Provider errors preserve upstream status where possible and return bounded diagnostics when payload parsing fails.
+
+## 5. Static and browser route policy
+
+WGSL files are served as text. Product routes return `pool-entry.html`; `/zero` and `/x` return the lab host `index.html`. Doppler and proto assets retain explicit roots. The final static fallback serves tracked `self/` content and unknown routes return 404.
+
+## 6. WebSocket ownership
+
+The HTTP server owns one `upgrade` handler. It dispatches matching requests to `SignalingServer` or `AgentBridge`; unknown upgrade paths are destroyed. Both services apply their own path, origin, local-only, token, heartbeat, and timeout contracts.
+
+Signaling carries rendezvous metadata. It must not be described as the model-execution path. The Agent Bridge coordinates agents and tasks. Neither service is Poolday consensus authority.
+
+## 7. Shutdown
+
+Graceful shutdown stops GPU monitoring, closes signaling and Agent Bridge resources, and closes the HTTP server. New long-lived resources must join this shutdown path.
+
+## 8. Verification checklist
+
+- [x] Product and lab routes remain separate.
+- [x] Provider proxy, VFS compatibility, diagnostics, Poolday router, static assets, and WebSocket services share one explicit host.
+- [x] Signaling and Agent Bridge use one upgrade dispatcher and unknown paths fail closed.
+- [x] Local-only/origin/token policy is delegated to the owning WebSocket service.
+- [x] Route families reflect the current source rather than deprecated shell endpoints.
+- [ ] Add a focused route inventory test that fails when public documentation drifts from source.
+
+*Last updated: August 2026*

@@ -1,11 +1,21 @@
-# Blueprint 0x00001A: RFC Authoring
+# Blueprint 0x000019: RFC Authoring
 
+**Classification:** Canonical Full Specification
+
+**Implementation Status:** Proposed
+
+**Verified Artifacts:** None
+
+**Planned Artifacts:** `/docs/rfc-*.md`, `/templates/rfc.md`, `rfc-author.js`
+
+**Owned Source Files:** None
+
+**Former Blueprint Paths:** `self/blueprints/0x000019-rfc-authoring.md`
 **Objective:** To define the structure, tone, and required components for a standard Request for Change document.
 
 **Target Upgrade:** RFCA (`rfc-author.js`)
 
-
-**Prerequisites:** 0x000012 (Structured Self-Evaluation), 0x000048 (Module Widget Protocol)
+**Prerequisites:** 0x000012 (Structured Self-Evaluation), 0x000041 (Module Widget Protocol)
 
 **Affected Artifacts:** `/docs/rfc-*.md`, `/templates/rfc.md`
 

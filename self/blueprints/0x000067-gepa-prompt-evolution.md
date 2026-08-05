@@ -1,5 +1,16 @@
 # Blueprint 0x000067: GEPA Prompt Evolution
 
+**Classification:** Canonical Full Specification
+
+**Implementation Status:** In-Progress
+
+**Verified Artifacts:** `/self/capabilities/cognition/gepa-optimizer.js`, `/self/core/agent-loop.js`
+
+**Planned Artifacts:** `/tests/unit/gepa-optimizer.test.js`, `gepa-optimizer.js`
+
+**Owned Source Files:** `capabilities/cognition/gepa-optimizer.js`
+
+**Former Blueprint Paths:** `self/blueprints/0x000067-gepa-prompt-evolution.md`
 **Objective:** Implement Genetic-Pareto prompt evolution with execution trace reflection, enabling multi-objective optimization of prompts and text components.
 
 **Target Upgrade:** GEPA (`gepa-optimizer.js`)

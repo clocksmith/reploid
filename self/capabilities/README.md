@@ -72,5 +72,5 @@ This directory contains advanced capabilities organized by domain. These are NOT
 ## Related
 
 - [Genesis Levels Config](../config/genesis-levels.json)
-- [Blueprint 0x000078: GEPA Prompt Evolution](../blueprints/0x000078-gepa-prompt-evolution.md)
-- [Blueprint 0x000079: Hierarchical Memory](../blueprints/0x000079-hierarchical-memory-architecture.md)
+- [Blueprint 0x000067: GEPA Prompt Evolution](../blueprints/0x000078-gepa-prompt-evolution.md)
+- [Blueprint 0x000068: Hierarchical Memory](../blueprints/0x000079-hierarchical-memory-architecture.md)

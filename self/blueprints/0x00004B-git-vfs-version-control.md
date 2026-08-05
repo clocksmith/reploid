@@ -1,5 +1,16 @@
-# Blueprint 0x000053: git-based Virtual File System
+# Blueprint 0x00004B: git-based Virtual File System
 
+**Classification:** Canonical Full Specification
+
+**Implementation Status:** Proposed
+
+**Verified Artifacts:** None
+
+**Planned Artifacts:** `/core/git-vfs.js`, `git-vfs.js`
+
+**Owned Source Files:** None
+
+**Former Blueprint Paths:** `self/blueprints/0x00004B-git-vfs-version-control.md`
 **Objective:** To provide version control, commit history, and rollback capabilities for the REPLOID virtual file system using isomorphic-git.
 
 **Target Upgrade:** GVFS (`git-vfs.js`)

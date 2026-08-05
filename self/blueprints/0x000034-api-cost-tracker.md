@@ -1,10 +1,21 @@
-# Blueprint 0x000039: API Cost Tracker & Rate Governance
+# Blueprint 0x000034: API Cost Tracker & Rate Governance
 
+**Classification:** Canonical Full Specification
+
+**Implementation Status:** In-Progress
+
+**Verified Artifacts:** `/self/styles/proto/index.css`
+
+**Planned Artifacts:** `/capabilities/cognition/cost-tracker.js`, `/core/api-client-multi.js`, `cost-tracker.js`
+
+**Owned Source Files:** None
+
+**Former Blueprint Paths:** `self/blueprints/0x000034-api-cost-tracker.md`
 **Objective:** Provide a framework for tracking token usage, estimating spend, and enforcing rate limits across LLM providers.
 
 **Target Upgrade:** COST (`cost-tracker.js`)
 
-**Prerequisites:** 0x000021 (Multi-Provider API Gateway), 0x00002C (Rate Limiting Strategies), 0x000026 (Performance Monitoring Stack)
+**Prerequisites:** 0x00001E (Multi-Provider API Gateway), 0x000029 (Rate Limiting Strategies), 0x000023 (Performance Monitoring Stack)
 
 **Affected Artifacts:** `/capabilities/cognition/cost-tracker.js`, `/core/api-client-multi.js`, `/styles/proto/index.css`
 

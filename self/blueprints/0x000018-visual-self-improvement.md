@@ -1,5 +1,16 @@
-# Blueprint 0x000019: Visual Self-Improvement Through Canvas Visualization
+# Blueprint 0x000018: Visual Self-Improvement Through Canvas Visualization
 
+**Classification:** Canonical Full Specification
+
+**Implementation Status:** Proposed
+
+**Verified Artifacts:** None
+
+**Planned Artifacts:** `visual-self-improvement.js`
+
+**Owned Source Files:** None
+
+**Former Blueprint Paths:** `self/blueprints/0x000018-visual-self-improvement.md`
 **Target Upgrade:** VRSI (`visual-self-improvement.js`)
 
 ## Purpose

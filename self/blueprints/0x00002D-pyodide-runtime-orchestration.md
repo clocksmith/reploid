@@ -1,5 +1,16 @@
-# Blueprint 0x000030: Pyodide Runtime Orchestration
+# Blueprint 0x00002D: Pyodide Runtime Orchestration
 
+**Classification:** Canonical Full Specification
+
+**Implementation Status:** In-Progress
+
+**Verified Artifacts:** `/self/core/state-manager.js`
+
+**Planned Artifacts:** `/core/pyodide-runtime.js`, `/core/pyodide-worker.js`, `/tools/PythonTool.js`, `pyodide-runtime.js`
+
+**Owned Source Files:** None
+
+**Former Blueprint Paths:** `self/blueprints/0x00002D-pyodide-runtime-orchestration.md`
 **Objective:** Document the worker-based Python runtime that powers REPLOID’s Pyodide integration.
 
 **Target Upgrade:** PYOD (`pyodide-runtime.js`)

@@ -1,9 +1,19 @@
 # Blueprint 0x000012: Structured Self-Evaluation
 
+**Classification:** Canonical Full Specification
+
+**Implementation Status:** In-Progress
+
+**Verified Artifacts:** `/self/core/agent-loop.js`
+
+**Planned Artifacts:** `/capabilities/cognition/tool-evaluator.js`, `/config/tool-definitions.js`, `tool-evaluator.js`
+
+**Owned Source Files:** None
+
+**Former Blueprint Paths:** `self/blueprints/0x000012-structured-self-evaluation.md`
 **Objective:** To propose a framework for a structured, LLM-driven self-evaluation tool and its integration into the agent's cognitive cycle.
 
 **Target Upgrade:** EVAL (`tool-evaluator.js`)
-
 
 **Prerequisites:** `0x00000A`
 

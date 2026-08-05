@@ -1,5 +1,16 @@
-# Blueprint 0x000021: Multi-Provider API Gateway
+# Blueprint 0x00001E: Multi-Provider API Gateway
 
+**Classification:** Canonical Full Specification
+
+**Implementation Status:** In-Progress
+
+**Verified Artifacts:** `/self/core/state-manager.js`
+
+**Planned Artifacts:** `/config/config.js`, `/core/api-client-multi.js`, `api-client-multi.js`
+
+**Owned Source Files:** None
+
+**Former Blueprint Paths:** `self/blueprints/0x00001E-multi-provider-api-gateway.md`
 **Objective:** Establish the contract for routing LLM traffic across Gemini, OpenAI, Anthropic, and local inference backends through a unified client.
 
 **Target Upgrade:** APMC (`api-client-multi.js`)

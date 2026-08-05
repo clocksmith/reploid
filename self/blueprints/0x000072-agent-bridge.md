@@ -1,402 +1,97 @@
-# Blueprint 0x000089-ABRG: Agent Bridge
+# Blueprint 0x000072: Agent Bridge
 
-**Objective:** WebSocket server for multi-agent coordination, enabling browser agents to communicate through centralized signaling.
+**Classification:** Canonical Full Specification
+
+**Implementation Status:** Implemented
+
+**Verified Artifacts:** `/self/boot-helpers/iframe-bridge.js`, `/server/agent-bridge.js`, `/server/proxy.js`
+
+**Planned Artifacts:** None
+
+**Owned Source Files:** `boot-helpers/iframe-bridge.js`
+
+**Former Blueprint Paths:** `self/blueprints/0x000072-agent-bridge.md`, `self/blueprints/0x000072-agent-bridge.md`
+**Objective:** Define the authenticated JSON-RPC WebSocket coordination server used by browser and agent processes for discovery, direct messaging, task delegation, shared context, and liveness.
 
 **Target Module:** `AgentBridge`
 
-**Implementation:** `/server/agent-bridge.js`
-
-**Prerequisites:** `0x000058` (Event Bus)
-
-**Category:** Server
+**Affected Artifacts:** `/server/agent-bridge.js`, `/server/proxy.js`
 
 ---
 
-## 1. The Strategic Imperative
+## 1. Intent
 
-Multi-agent systems require coordination infrastructure for agents to discover, communicate, and collaborate. The Agent Bridge provides a WebSocket-based signaling server that enables browser-based REPLOID agents to:
+The Agent Bridge is a coordination service, not an inference authority. It lets registered agents discover peers, exchange bounded messages, delegate work, publish task status, and share explicitly named context through one WebSocket endpoint. The bridge must keep transport identity, origin policy, and liveness visible rather than silently accepting arbitrary remote clients.
 
-- **Discover Peers**: Find other agents in the network
-- **Exchange Messages**: Send direct or broadcast messages
-- **Coordinate Tasks**: Share state and synchronize actions
-- **Form Swarms**: Enable emergent multi-agent behaviors
+## 2. Runtime boundary
 
-This is the server-side counterpart to the `AgentBridgeClient` (browser-side), providing the centralized coordination hub.
+`server/agent-bridge.js` owns a `WebSocketServer` in `noServer` mode. `server/proxy.js` owns the HTTP server and routes matching upgrade requests to the bridge at `/agent-bridge`.
 
-## 2. The Architectural Solution
+The bridge maintains three in-memory projections:
 
-The `/server/agent-bridge.js` implements a WebSocket server that manages agent connections, maintains an agent registry, and routes messages between connected agents.
-
-### Module Structure
-
-```javascript
-const WebSocket = require('ws');
-
-class AgentBridge {
-  constructor(server, options = {}) {
-    this.wss = new WebSocket.Server({
-      server,
-      path: options.path || '/agent-bridge'
-    });
-
-    this.agents = new Map();          // agentId -> { ws, metadata, capabilities }
-    this.heartbeatInterval = options.heartbeatInterval || 30000;
-
-    this._setupWebSocket();
-    this._startHeartbeat();
-  }
-
-  _setupWebSocket() {
-    this.wss.on('connection', (ws, req) => {
-      const agentId = this._generateAgentId();
-
-      ws.on('message', (data) => {
-        this._handleMessage(agentId, ws, JSON.parse(data));
-      });
-
-      ws.on('close', () => {
-        this._handleDisconnect(agentId);
-      });
-
-      ws.on('error', (error) => {
-        console.error(`[AgentBridge] WebSocket error for ${agentId}:`, error);
-      });
-    });
-  }
-
-  _handleMessage(agentId, ws, message) {
-    switch (message.type) {
-      case 'register':
-        this._registerAgent(agentId, ws, message);
-        break;
-      case 'request':
-        this._handleRequest(agentId, message);
-        break;
-      case 'broadcast':
-        this._broadcastMessage(agentId, message);
-        break;
-      case 'direct':
-        this._directMessage(agentId, message);
-        break;
-      case 'pong':
-        this._handlePong(agentId);
-        break;
-    }
-  }
-
-  _registerAgent(agentId, ws, message) {
-    const agent = {
-      ws,
-      name: message.name || `Agent-${agentId}`,
-      capabilities: message.capabilities || [],
-      metadata: message.metadata || {},
-      lastSeen: Date.now()
-    };
-
-    this.agents.set(agentId, agent);
-
-    // Confirm registration
-    ws.send(JSON.stringify({
-      type: 'registered',
-      agentId,
-      agents: this._getAgentList()
-    }));
-
-    // Notify other agents
-    this._emitEvent('agent-joined', {
-      agentId,
-      name: agent.name,
-      capabilities: agent.capabilities
-    });
-  }
-
-  _handleDisconnect(agentId) {
-    const agent = this.agents.get(agentId);
-    if (agent) {
-      this.agents.delete(agentId);
-
-      // Notify other agents
-      this._emitEvent('agent-left', {
-        agentId,
-        name: agent.name
-      });
-    }
-  }
-
-  _emitEvent(eventName, data) {
-    const message = JSON.stringify({
-      type: 'event',
-      event: eventName,
-      data,
-      timestamp: Date.now()
-    });
-
-    this.agents.forEach((agent) => {
-      if (agent.ws.readyState === WebSocket.OPEN) {
-        agent.ws.send(message);
-      }
-    });
-  }
-
-  _getAgentList() {
-    return Array.from(this.agents.entries()).map(([id, agent]) => ({
-      agentId: id,
-      name: agent.name,
-      capabilities: agent.capabilities
-    }));
-  }
-
-  getStats() {
-    return {
-      connectedAgents: this.agents.size,
-      agents: this._getAgentList(),
-      uptime: process.uptime()
-    };
-  }
-}
-
-module.exports = AgentBridge;
+```text
+agents         agentId -> socket, name, capabilities, metadata, timestamps
+tasks          taskId  -> assignment, delegator, assignee, status, result/error
+sharedContext  key     -> value, author, timestamp
 ```
 
-## 3. WebSocket Endpoint
+These projections are operational state. They are not durable room memory, Poolday evidence, or permission to mutate another agent.
 
-The Agent Bridge exposes a WebSocket endpoint for agent connections:
+## 3. Access and upgrade contract
 
-| Endpoint | Protocol | Description |
-|----------|----------|-------------|
-| `/agent-bridge` | WebSocket | Primary agent coordination channel |
+A connection is accepted only when all applicable checks pass:
 
-## 4. Message Protocol
+1. The request path matches the configured bridge path.
+2. In local-only mode, the remote address and any supplied origin are loopback.
+3. In remote mode, the origin matches the configured allowlist.
+4. Remote mode has an explicit access token and the request supplies the same token.
+5. Token comparison is timing-safe.
 
-### Client to Server Messages
+Rejected upgrades close with an explicit HTTP status. Remote operation without a configured token fails closed.
 
-#### Register Agent
+## 4. JSON-RPC contract
 
-```javascript
-{
-  type: 'register',
-  name: 'Reploid-Agent-1',
-  capabilities: ['code-generation', 'analysis', 'tool-execution'],
-  metadata: {
-    version: '1.0.0',
-    platform: 'browser'
-  }
-}
-```
+Every inbound message is JSON-RPC 2.0 and names a method. Requests with an `id` receive a result or error response; notifications may omit the `id`.
 
-#### Send Request (RPC)
+| Method | Registration required | Result |
+| --- | --- | --- |
+| `register` | No | Creates a unique agent identity and returns the active roster. |
+| `broadcast` | Yes | Sends `broadcast_received` to every other connected agent. |
+| `send_to` | Yes | Sends `message_received` to one named connected agent. |
+| `query_agents` | No | Returns agents, optionally filtered by capability. |
+| `delegate_task` | Yes | Assigns a task to a named or capability-compatible agent. |
+| `update_task_status` | Yes, assignee only | Updates the task and notifies the delegator. |
+| `get_shared_context` | No | Returns one key or the complete context projection. |
+| `set_shared_context` | Yes | Writes a value and broadcasts `context_updated`. |
+| `heartbeat` | Yes | Refreshes the agent liveness timestamp. |
 
-```javascript
-{
-  type: 'request',
-  requestId: 'req-123',
-  action: 'listAgents',
-  params: {}
-}
-```
+The earlier summary shell used `get-agents`, `assign-task`, `update-task`, `/claude-bridge`, and ad-hoc message types. Those names do not match the implementation and are intentionally not preserved.
 
-#### Broadcast Message
+## 5. Task and context invariants
 
-```javascript
-{
-  type: 'broadcast',
-  payload: {
-    event: 'task-completed',
-    data: { taskId: 'task-456' }
-  }
-}
-```
+- Only a registered agent may broadcast, send direct messages, delegate work, change context, or heartbeat.
+- Only the assigned agent may update a task.
+- Capability-based assignment must require every declared capability.
+- Task status changes preserve delegator and assignee identity.
+- Shared-context changes name the author and timestamp and notify other agents.
+- The bridge does not treat shared context as verified knowledge.
 
-#### Direct Message
+## 6. Liveness and shutdown
 
-```javascript
-{
-  type: 'direct',
-  targetAgentId: 'agent-xyz',
-  payload: {
-    action: 'collaborate',
-    data: { ... }
-  }
-}
-```
+A periodic monitor closes agents whose `lastSeen` exceeds `agentTimeout`, removes them from the roster, and emits `agent-timeout`. Explicit disconnect emits `agent-left`. Shutdown stops the monitor, clears operational projections, closes open sockets, and closes the WebSocket server.
 
-### Server to Client Messages
+## 7. Observable surface
 
-#### Registration Confirmed
+`getStats()` returns active-agent, active-task, and shared-context counts plus bounded agent and task projections. `server/proxy.js` exposes that projection at `GET /api/agent-bridge/stats`.
 
-```javascript
-{
-  type: 'registered',
-  agentId: 'agent-abc123',
-  agents: [
-    { agentId: 'agent-xyz', name: 'Agent-2', capabilities: [...] }
-  ]
-}
-```
+## 8. Verification checklist
 
-#### Event Notification
+- [x] Upgrade routing is owned by the shared HTTP server.
+- [x] Local-only, origin, and remote-token checks fail closed.
+- [x] JSON-RPC version and method are validated.
+- [x] Registration, broadcast, direct messaging, capability queries, task delegation, task updates, shared context, and heartbeats are implemented.
+- [x] Task updates are assignee-bound.
+- [x] Stale agents time out and shutdown clears timers and sockets.
+- [ ] Add focused unit coverage for access policy, JSON-RPC errors, task authorization, and timeout cleanup.
 
-```javascript
-{
-  type: 'event',
-  event: 'agent-joined',
-  data: {
-    agentId: 'agent-new',
-    name: 'Agent-3',
-    capabilities: ['analysis']
-  },
-  timestamp: 1703712000000
-}
-```
-
-#### Request Response
-
-```javascript
-{
-  type: 'response',
-  requestId: 'req-123',
-  success: true,
-  data: { ... }
-}
-```
-
-## 5. Event Types
-
-The Agent Bridge emits the following events to all connected agents:
-
-| Event | Trigger | Data |
-|-------|---------|------|
-| `agent-joined` | New agent registers | `{ agentId, name, capabilities }` |
-| `agent-left` | Agent disconnects | `{ agentId, name }` |
-| `broadcast` | Agent sends broadcast | `{ fromAgentId, payload }` |
-
-## 6. Stats Endpoint
-
-The Agent Bridge provides a stats endpoint for monitoring:
-
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/api/agent-bridge/stats` | GET | Bridge statistics and agent list |
-
-### Stats Response
-
-```javascript
-{
-  connectedAgents: 3,
-  agents: [
-    { agentId: 'agent-1', name: 'Reploid-1', capabilities: ['code'] },
-    { agentId: 'agent-2', name: 'Reploid-2', capabilities: ['analysis'] },
-    { agentId: 'agent-3', name: 'Reploid-3', capabilities: ['code', 'analysis'] }
-  ],
-  uptime: 3600.5
-}
-```
-
-## 7. The Implementation Pathway
-
-### Step 1: Initialize WebSocket Server
-
-```javascript
-const AgentBridge = require('./agent-bridge');
-
-// Attach to existing HTTP server
-const bridge = new AgentBridge(httpServer, {
-  path: '/agent-bridge',
-  heartbeatInterval: 30000
-});
-```
-
-### Step 2: Register Stats Endpoint
-
-```javascript
-app.get('/api/agent-bridge/stats', (req, res) => {
-  res.json(bridge.getStats());
-});
-```
-
-### Step 3: Handle Agent Lifecycle
-
-```
-Browser Agent                    Agent Bridge
-     |                                |
-     |------ WebSocket Connect ------>|
-     |                                |
-     |------ Register Message ------->|
-     |                                |
-     |<----- Registered + Agents -----|
-     |                                |
-     |<----- agent-joined Events -----|
-     |                                |
-     |------ Broadcast/Direct ------->|
-     |                                |
-     |<----- Events/Responses --------|
-     |                                |
-     |------ WebSocket Close -------->|
-     |                                |
-     |      (agent-left Event) ------>| (to other agents)
-```
-
-## 8. Heartbeat Mechanism
-
-The bridge implements heartbeat monitoring to detect stale connections:
-
-```javascript
-_startHeartbeat() {
-  setInterval(() => {
-    this.agents.forEach((agent, agentId) => {
-      if (agent.ws.readyState === WebSocket.OPEN) {
-        agent.ws.send(JSON.stringify({ type: 'ping' }));
-      }
-    });
-  }, this.heartbeatInterval);
-}
-
-_handlePong(agentId) {
-  const agent = this.agents.get(agentId);
-  if (agent) {
-    agent.lastSeen = Date.now();
-  }
-}
-```
-
-## 9. Operational Safeguards
-
-| Concern | Mitigation |
-|---------|------------|
-| Stale connections | Heartbeat monitoring with automatic cleanup |
-| Message flooding | Rate limiting per agent (configurable) |
-| Large payloads | Message size limits |
-| Memory leaks | Proper cleanup on disconnect |
-| Connection storms | Connection throttling |
-
-## 10. Integration with Proxy Server
-
-The Agent Bridge is typically initialized alongside the main proxy server:
-
-```javascript
-// In proxy.js
-const AgentBridge = require('./agent-bridge');
-
-const server = app.listen(PORT);
-const agentBridge = new AgentBridge(server, {
-  path: '/agent-bridge'
-});
-
-// Stats endpoint
-app.get('/api/agent-bridge/stats', (req, res) => {
-  res.json(agentBridge.getStats());
-});
-```
-
-## 11. Extension Points
-
-- **Agent Groups**: Group agents by capability or project
-- **Message Queuing**: Queue messages for offline agents
-- **Presence Tracking**: Detailed presence states (active, idle, busy)
-- **Agent Roles**: Define coordinator, worker, observer roles
-- **Authentication**: Token-based agent authentication
-- **Persistence**: Store agent registry across restarts
-
----
-
-**Status:** Implemented
+*Last updated: August 2026*

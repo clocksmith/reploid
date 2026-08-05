@@ -1,10 +1,21 @@
-# Blueprint 0x000055: Pyodide Worker & Visualization Widget
+# Blueprint 0x00004D: Pyodide Worker & Visualization Widget
 
+**Classification:** Canonical Full Specification
+
+**Implementation Status:** Proposed
+
+**Verified Artifacts:** None
+
+**Planned Artifacts:** `/infrastructure/pyodide-worker.js`, `pyodide-worker.js`
+
+**Owned Source Files:** None
+
+**Former Blueprint Paths:** `self/blueprints/0x00004D-pyodide-worker-visualization.md`
 **Objective:** Provide a sandboxed Python runtime using Pyodide WebAssembly in a Web Worker, with real-time status visualization.
 
 **Target Upgrade:** PyodideWorker (`pyodide-worker.js`)
 
-**Prerequisites:** 0x00004F (Worker Pool Parallelization), 0x000030 (Pyodide Runtime Orchestration)
+**Prerequisites:** 0x000047 (Worker Pool Parallelization), 0x00002D (Pyodide Runtime Orchestration)
 
 **Affected Artifacts:** `/infrastructure/pyodide-worker.js`
 

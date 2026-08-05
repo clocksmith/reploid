@@ -1,6 +1,8 @@
 # RGR Runtime Contract
 
-This is the compact boot contract for Reploid's Recursive GEPA Ring. The full formal reference remains at `/self/blueprints/0x000112-recursive-gepa-ring.md`.
+**Classification:** Index & Meta Contract
+
+This is the compact boot contract for Reploid's Recursive GEPA Ring. The full formal reference remains at `/self/blueprints/0x00007F-recursive-gepa-ring.md`.
 
 ## Purpose
 
@@ -106,7 +108,7 @@ Default boot context should stay small:
 2. `/self/blueprints/rgr-runtime-contract.md`
 3. `/self/blueprints/rgr-slot-topology.md`
 
-Read the full `/self/blueprints/0x000112-recursive-gepa-ring.md` only for promotion logic, archive math, validator quarantine, anchor governance, or formal RGR changes.
+Read the full `/self/blueprints/0x00007F-recursive-gepa-ring.md` only for promotion logic, archive math, validator quarantine, anchor governance, or formal RGR changes.
 
 Select additional blueprints by matching the task surface:
 

@@ -1,10 +1,21 @@
-# Blueprint 0x000048: Module Widget Protocol
+# Blueprint 0x000041: Module Widget Protocol
 
+**Classification:** Canonical Full Specification
+
+**Implementation Status:** Proposed
+
+**Verified Artifacts:** None
+
+**Planned Artifacts:** `/boot-helpers/index.html`, `/ui/module-proto.js`, `/ui/module-widget-protocol.js`, `module-proto.js`, `module-widget-protocol.js`
+
+**Owned Source Files:** None
+
+**Former Blueprint Paths:** `self/blueprints/0x000041-module-widget-protocol.md`
 **Target Upgrade:** MWPR (`module-widget-protocol.js`), MDSH (`module-proto.js`)
 
 **Objective:** Establish standardized interface for ALL modules to expose their state, metrics, and controls in the proto, enabling consistent presentation and meta-cognitive awareness.
 
-**Prerequisites:** 0x000049 (Dependency Injection Container), 0x000058 (Event Bus Infrastructure)
+**Prerequisites:** 0x000042 (Dependency Injection Container), 0x00004F (Event Bus Infrastructure)
 
 **Affected Artifacts:** `/ui/module-widget-protocol.js`, `/ui/module-proto.js`, `/boot-helpers/index.html`, all module files
 
@@ -522,5 +533,3 @@ const health = ModuleProto.getSystemHealth();
 ---
 
 **Remember:** This protocol makes REPLOID self-aware of its own internal state. Every subsystem becomes visible and queryable, enabling true meta-cognitive monitoring and control.
-
-**Status:** Phase 2 in progress - systematically adding widgets to all 75 modules.

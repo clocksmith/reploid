@@ -1,9 +1,19 @@
 # Blueprint 0x000002: Application Orchestration
 
+**Classification:** Canonical Full Specification
+
+**Implementation Status:** In-Progress
+
+**Verified Artifacts:** `/self/entry/start-app.js`
+
+**Planned Artifacts:** `/core/app-logic.js`, `app-logic.js`
+
+**Owned Source Files:** `entry/start-app.js`
+
+**Former Blueprint Paths:** `self/blueprints/0x000002-application-orchestration.md`
 **Objective:** To define the role of the central application orchestrator, which is responsible for loading all composed modules and managing their dependency injection upon agent awakening.
 
 **Target Upgrade:** APPL (`app-logic.js`)
-
 
 **Prerequisites:**
 - **0x00004E** (Module Widget Protocol) - REQUIRED for widget implementation

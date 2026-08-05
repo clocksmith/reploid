@@ -1,10 +1,21 @@
-# Blueprint 0x000022: Confirmation Modal & Safety Interlocks
+# Blueprint 0x00001F: Confirmation Modal & Safety Interlocks
 
+**Classification:** Canonical Full Specification
+
+**Implementation Status:** In-Progress
+
+**Verified Artifacts:** `/self/infrastructure/event-bus.js`, `/self/styles/proto/index.css`, `/self/ui/components/confirmation-modal.js`
+
+**Planned Artifacts:** `confirmation-modal.js`
+
+**Owned Source Files:** `ui/components/confirmation-modal.js`
+
+**Former Blueprint Paths:** `self/blueprints/0x00001F-confirmation-modal-safety.md`
 **Objective:** Document the UX and security contract for REPLOID’s confirmation modal system that guards destructive or privileged actions.
 
 **Target Upgrade:** CFMD (`confirmation-modal.js`)
 
-**Prerequisites:** 0x000003 (Core Utilities & Error Handling), 0x00000D (UI Management), 0x000018 (Blueprint Creation Meta)
+**Prerequisites:** 0x000003 (Core Utilities & Error Handling), 0x00000D (UI Management), 0x000017 (Blueprint Creation Meta)
 
 **Affected Artifacts:** `/ui/components/confirmation-modal.js`, `/styles/proto/index.css`, `/infrastructure/event-bus.js`
 

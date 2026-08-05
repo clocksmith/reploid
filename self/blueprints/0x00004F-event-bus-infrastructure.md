@@ -1,5 +1,16 @@
-# Blueprint 0x000058: Event Bus Infrastructure
+# Blueprint 0x00004F: Event Bus Infrastructure
 
+**Classification:** Canonical Full Specification
+
+**Implementation Status:** In-Progress
+
+**Verified Artifacts:** `/self/infrastructure/event-bus.js`
+
+**Planned Artifacts:** `event-bus.js`
+
+**Owned Source Files:** `infrastructure/event-bus.js`
+
+**Former Blueprint Paths:** `self/blueprints/0x00004F-event-bus-infrastructure.md`
 **Objective:** Provide a foundational pub/sub event system for decoupling REPLOID modules through asynchronous communication.
 
 **Target Upgrade:** EventBus (`event-bus.js`)

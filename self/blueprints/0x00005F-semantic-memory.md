@@ -1,5 +1,16 @@
-# Blueprint 0x000070: Semantic Memory
+# Blueprint 0x00005F: Semantic Memory
 
+**Classification:** Canonical Full Specification
+
+**Implementation Status:** Implemented
+
+**Verified Artifacts:** `/self/capabilities/cognition/semantic/semantic-memory-llm.js`
+
+**Planned Artifacts:** None
+
+**Owned Source Files:** `capabilities/cognition/semantic/semantic-memory-llm.js`
+
+**Former Blueprint Paths:** `self/blueprints/0x00005F-semantic-memory.md`
 **Module:** `SemanticMemory`
 **File:** `./capabilities/cognition/semantic/semantic-memory.js`
 **Purpose:** Long-term memory retrieval by meaning, not keywords

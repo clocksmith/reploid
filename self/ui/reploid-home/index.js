@@ -48,7 +48,7 @@ const migrateStoredGoal = (goal) => {
   const isLegacyDefault = (
     normalized.startsWith('Run an')
     && normalized.includes('Shadow RSI cycle')
-    && normalized.includes('Blueprint 0x000112')
+    && normalized.includes('Blueprint 0x00007F')
   ) || (
     normalized.startsWith('Run a Shadow')
     && normalized.includes('cycle over the boot path')

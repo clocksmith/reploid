@@ -1,10 +1,21 @@
-# Blueprint 0x00003E: WebRTC Swarm Transport
+# Blueprint 0x000038: WebRTC Swarm Transport
 
+**Classification:** Canonical Full Specification
+
+**Implementation Status:** In-Progress
+
+**Verified Artifacts:** `/self/capabilities/communication/webrtc-swarm.js`, `/self/styles/proto/index.css`
+
+**Planned Artifacts:** `/capabilities/communication/webrtc-coordinator.js`, `webrtc-swarm.js`
+
+**Owned Source Files:** `capabilities/communication/webrtc-swarm.js`
+
+**Former Blueprint Paths:** `self/blueprints/0x000038-webrtc-swarm-transport.md`
 **Objective:** Establish the signalling, connection, and messaging model for peer-to-peer coordination across REPLOID instances.
 
 **Target Upgrade:** WRTS (`webrtc-swarm.js`)
 
-**Prerequisites:** 0x000034 (Swarm Orchestration), 0x00003D (Browser API Integration), signalling server deployment
+**Prerequisites:** 0x000031 (Swarm Orchestration), 0x000037 (Browser API Integration), signalling server deployment
 
 **Affected Artifacts:** `/capabilities/communication/webrtc-swarm.js`, `/capabilities/communication/webrtc-coordinator.js`, `/styles/proto/index.css`
 

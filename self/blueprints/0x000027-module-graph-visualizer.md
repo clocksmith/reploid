@@ -1,10 +1,21 @@
-# Blueprint 0x00002A: Module Dependency Graph Visualizer
+# Blueprint 0x000027: Module Dependency Graph Visualizer
 
+**Classification:** Canonical Full Specification
+
+**Implementation Status:** In-Progress
+
+**Verified Artifacts:** `/self/styles/proto/index.css`
+
+**Planned Artifacts:** `/capabilities/cognition/introspector.js`, `/ui/panels/module-graph-visualizer.js`, `module-graph-visualizer.js`
+
+**Owned Source Files:** None
+
+**Former Blueprint Paths:** `self/blueprints/0x000027-module-graph-visualizer.md`
 **Objective:** Standardize the D3.js visual representation of REPLOID’s module dependency graph, powered by Introspector data.
 
 **Target Upgrade:** MGRV (`module-graph-visualizer.js`)
 
-**Prerequisites:** 0x00001B (Code Introspection & Self-Analysis), 0x00001F (Universal Module Loader), 0x000020 (Module Manifest & Dependency Governance)
+**Prerequisites:** 0x00001A (Code Introspection & Self-Analysis), 0x00001F (Universal Module Loader), 0x000020 (Module Manifest & Dependency Governance)
 
 **Affected Artifacts:** `/ui/panels/module-graph-visualizer.js`, `/styles/proto/index.css`, `/capabilities/cognition/introspector.js`
 

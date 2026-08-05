@@ -1,10 +1,21 @@
-# Blueprint 0x00003B: Tool Documentation Generator
+# Blueprint 0x000036: Tool Documentation Generator
 
+**Classification:** Canonical Full Specification
+
+**Implementation Status:** Proposed
+
+**Verified Artifacts:** None
+
+**Planned Artifacts:** `/capabilities/cognition/tool-doc-generator.js`, `/config/tools-read.js`, `/config/tools-write.js`, `/docs/tools/*.md`, `tool-doc-generator.js`
+
+**Owned Source Files:** None
+
+**Former Blueprint Paths:** `self/blueprints/0x000036-tool-documentation-generator.md`
 **Objective:** Ensure tool schemas are automatically documented into comprehensive markdown references.
 
 **Target Upgrade:** TDOC (`tool-doc-generator.js`)
 
-**Prerequisites:** 0x000010 (Static Tool Manifest), 0x00000A (Tool Runner Engine), 0x00002B (Toast Notification System)
+**Prerequisites:** 0x000010 (Static Tool Manifest), 0x00000A (Tool Runner Engine), 0x000028 (Toast Notification System)
 
 **Affected Artifacts:** `/capabilities/cognition/tool-doc-generator.js`, `/config/tools-read.json`, `/config/tools-write.json`, `/docs/tools/*.md`
 

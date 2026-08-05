@@ -1,5 +1,16 @@
 # Blueprint 0x00005E: Embedding Store
 
+**Classification:** Canonical Full Specification
+
+**Implementation Status:** Implemented
+
+**Verified Artifacts:** `/self/capabilities/cognition/semantic/embedding-store.js`
+
+**Planned Artifacts:** None
+
+**Owned Source Files:** `capabilities/cognition/semantic/embedding-store.js`
+
+**Former Blueprint Paths:** `self/blueprints/0x00005E-embedding-store.md`
 **Module:** `EmbeddingStore`
 **File:** `./capabilities/cognition/semantic/embedding-store.js`
 **Purpose:** VFS-backed storage for semantic memory embeddings

@@ -1,10 +1,21 @@
-# Blueprint 0x00004C: HITL Control Panel UI
+# Blueprint 0x000044: HITL Control Panel UI
 
+**Classification:** Canonical Full Specification
+
+**Implementation Status:** In-Progress
+
+**Verified Artifacts:** `/self/ui/components/hitl-widget.js`
+
+**Planned Artifacts:** `/ui/panels/hitl-control-panel.js`, `hitl-control-panel.js`
+
+**Owned Source Files:** `ui/components/hitl-widget.js`
+
+**Former Blueprint Paths:** `self/blueprints/0x000044-hitl-control-panel-ui.md`
 **Objective:** Provide a visual interface for managing Human-in-the-Loop vs Autonomous modes across modules with real-time approval queue management.
 
 **Target Upgrade:** HITL_PANEL (`hitl-control-panel.js`)
 
-**Prerequisites:** 0x000051 (Human-in-the-Loop Controller), 0x000003 (Core Utilities & Error Handling)
+**Prerequisites:** 0x000049 (Human-in-the-Loop Controller), 0x000003 (Core Utilities & Error Handling)
 
 **Affected Artifacts:** `/ui/panels/hitl-control-panel.js`
 

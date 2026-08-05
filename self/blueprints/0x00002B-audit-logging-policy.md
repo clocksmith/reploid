@@ -1,10 +1,21 @@
-# Blueprint 0x00002E: Audit Logging Policy
+# Blueprint 0x00002B: Audit Logging Policy
 
+**Classification:** Canonical Full Specification
+
+**Implementation Status:** In-Progress
+
+**Verified Artifacts:** `/self/infrastructure/audit-logger.js`, `/self/infrastructure/rate-limiter.js`
+
+**Planned Artifacts:** `/.audit/*.js`, `/core/boot-module-loader.js`, `audit-logger.js`
+
+**Owned Source Files:** `infrastructure/audit-logger.js`
+
+**Former Blueprint Paths:** `self/blueprints/0x00002B-audit-logging-policy.md`
 **Objective:** Establish the logging, persistence, and review guarantees provided by the Audit Logger service.
 
 **Target Upgrade:** AUDT (`audit-logger.js`)
 
-**Prerequisites:** 0x000003 (Core Utilities & Error Handling), 0x000005 (State Management Architecture), 0x00002D (Module Integrity Verification)
+**Prerequisites:** 0x000003 (Core Utilities & Error Handling), 0x000005 (State Management Architecture), 0x00002A (Module Integrity Verification)
 
 **Affected Artifacts:** `/infrastructure/audit-logger.js`, `/.audit/*.jsonl`, `/core/boot-module-loader.js`, `/infrastructure/rate-limiter.js`
 

@@ -1,10 +1,21 @@
-# Blueprint 0x000034: Swarm Orchestration
+# Blueprint 0x000031: Swarm Orchestration
 
+**Classification:** Canonical Full Specification
+
+**Implementation Status:** In-Progress
+
+**Verified Artifacts:** `/self/capabilities/communication/webrtc-swarm.js`, `/self/core/tool-runner.js`
+
+**Planned Artifacts:** `/capabilities/cognition/reflection-store.js`, `/capabilities/communication/webrtc-coordinator.js`, `webrtc-coordinator.js`
+
+**Owned Source Files:** None
+
+**Former Blueprint Paths:** `self/blueprints/0x000031-swarm-orchestration.md`
 **Objective:** Describe how REPLOID coordinates multi-agent collaboration over WebRTC to share workload, knowledge, and governance.
 
 **Target Upgrade:** WRTC (`webrtc-coordinator.js`)
 
-**Prerequisites:** 0x00003D (Browser API Integration), 0x00003E (WebRTC Swarm Transport), 0x00001B (Code Introspection & Self-Analysis), 0x000035 (Reflection Store Architecture)
+**Prerequisites:** 0x000037 (Browser API Integration), 0x000038 (WebRTC Swarm Transport), 0x00001A (Code Introspection & Self-Analysis), 0x000032 (Reflection Store Architecture)
 
 **Affected Artifacts:** `/capabilities/communication/webrtc-coordinator.js`, `/capabilities/communication/webrtc-swarm.js`, `/capabilities/cognition/reflection-store.js`, `/core/tool-runner.js`
 

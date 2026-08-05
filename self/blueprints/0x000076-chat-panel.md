@@ -1,11 +1,21 @@
-# Blueprint 0x00008D-CPNL: Chat Panel
+# Blueprint 0x000076: Chat Panel
 
+**Classification:** Canonical Full Specification
+
+**Implementation Status:** Proposed
+
+**Verified Artifacts:** None
+
+**Planned Artifacts:** `/self/ui/panels/chat-panel.js`
+
+**Owned Source Files:** None
+
+**Former Blueprint Paths:** `self/blueprints/0x000076-chat-panel.md`, `self/blueprints/0x000076-chat-panel.md`
 **Objective:** Main chat interface panel for agent conversation with full message history and streaming support.
 
 **Target Module:** `ChatPanel`
 
-**Implementation:** `/ui/panels/chat-panel.js`
-
+**Planned Module:** `/self/ui/panels/chat-panel.js`
 **Prerequisites:** `0x000003` (Core Utilities), `0x000058` (Event Bus)
 
 **Category:** UI
@@ -356,8 +366,6 @@ const scrollToBottom = () => {
 | User input | Textarea | Single-line input |
 
 ---
-
-**Status:** Implemented (Layout Only)
 
 **File:** `/ui/panels/chat-panel.js`
 

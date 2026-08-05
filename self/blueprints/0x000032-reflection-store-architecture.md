@@ -1,10 +1,21 @@
-# Blueprint 0x000035: Reflection Store Architecture
+# Blueprint 0x000032: Reflection Store Architecture
 
+**Classification:** Canonical Full Specification
+
+**Implementation Status:** In-Progress
+
+**Verified Artifacts:** `/self/capabilities/reflection/reflection-analyzer.js`, `/self/capabilities/reflection/reflection-store.js`, `/self/styles/proto/index.css`
+
+**Planned Artifacts:** `/capabilities/cognition/reflection-analyzer.js`, `/capabilities/cognition/reflection-search.js`, `/capabilities/cognition/reflection-store.js`, `reflection-store.js`
+
+**Owned Source Files:** `capabilities/reflection/reflection-analyzer.js`, `capabilities/reflection/reflection-store.js`
+
+**Former Blueprint Paths:** `self/blueprints/0x000032-reflection-store-architecture.md`
 **Objective:** Define the persistence and querying strategy that allows REPLOID to learn from past actions.
 
 **Target Upgrade:** REFL (`reflection-store.js`)
 
-**Prerequisites:** 0x000003 (Core Utilities & Error Handling), 0x000008 (Agent Cognitive Cycle), 0x00002E (Audit Logging Policy)
+**Prerequisites:** 0x000003 (Core Utilities & Error Handling), 0x000008 (Agent Cognitive Cycle), 0x00002B (Audit Logging Policy)
 
 **Affected Artifacts:** `/capabilities/cognition/reflection-store.js`, `/styles/proto/index.css`, `/capabilities/cognition/reflection-analyzer.js`, `/capabilities/cognition/reflection-search.js`
 

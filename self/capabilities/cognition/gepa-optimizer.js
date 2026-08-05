@@ -10,7 +10,7 @@
  * - VFS Checkpoints: Save/resume population state
  * - Transfer Learning: Seed population from historical prompts via PromptMemory
  *
- * @see Blueprint 0x000070: Genetic Evolution of Prompt Architectures
+ * @see Blueprint 0x000001: Genetic Evolution of Prompt Architectures
  */
 
 const GEPAOptimizer = {

@@ -1,9 +1,19 @@
 # Blueprint 0x00000C: Sandboxed Tool Worker
 
+**Classification:** Canonical Full Specification
+
+**Implementation Status:** In-Progress
+
+**Verified Artifacts:** `/self/core/tool-runner.js`
+
+**Planned Artifacts:** `/core/tool-worker.js`, `tool-worker.js`
+
+**Owned Source Files:** None
+
+**Former Blueprint Paths:** `self/blueprints/0x00000C-sandboxed-tool-worker.md`
 **Objective:** To explain the security and concurrency benefits of executing dynamically created tools within a sandboxed Web Worker.
 
 **Target Upgrade:** WRKR (`tool-worker.js`)
-
 
 **Prerequisites:** `0x00000A`
 

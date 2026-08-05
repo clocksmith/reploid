@@ -1,9 +1,19 @@
 # Blueprint 0x000011: Advanced Storage Backend (IndexedDB)
 
+**Classification:** Canonical Full Specification
+
+**Implementation Status:** In-Progress
+
+**Verified Artifacts:** `/self/core/state-manager.js`, `/self/core/tool-runner.js`, `/self/core/vfs.js`
+
+**Planned Artifacts:** `/core/agent-cycle.js`, `/core/storage-indexeddb.js`, `storage-indexeddb.js`
+
+**Owned Source Files:** `core/vfs.js`
+
+**Former Blueprint Paths:** `self/blueprints/0x000011-advanced-storage-backend-indexeddb.md`
 **Objective:** To outline the architectural upgrade from the default, synchronous `localStorage` backend to a more robust, asynchronous `IndexedDB` backend.
 
 **Target Upgrade:** IDXB (`storage-indexeddb.js`)
-
 
 **Prerequisites:** `0x000004`
 

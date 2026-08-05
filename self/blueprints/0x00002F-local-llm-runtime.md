@@ -1,10 +1,21 @@
-# Blueprint 0x000032: Local LLM Runtime
+# Blueprint 0x00002F: Local LLM Runtime
 
+**Classification:** Canonical Full Specification
+
+**Implementation Status:** In-Progress
+
+**Verified Artifacts:** `/self/index.html`, `/self/styles/proto/index.css`
+
+**Planned Artifacts:** `/capabilities/cognition/hybrid-llm-provider.js`, `/capabilities/cognition/local-llm.js`, `local-llm.js`
+
+**Owned Source Files:** None
+
+**Former Blueprint Paths:** `self/blueprints/0x00002F-local-llm-runtime.md`
 **Objective:** Capture the design considerations for running quantized LLMs inside the browser via WebLLM and WebGPU.
 
 **Target Upgrade:** LLMR (`local-llm.js`)
 
-**Prerequisites:** 0x000021 (Multi-Provider API Gateway), 0x000026 (Performance Monitoring Stack), WebLLM CDN import
+**Prerequisites:** 0x00001E (Multi-Provider API Gateway), 0x000023 (Performance Monitoring Stack), WebLLM CDN import
 
 **Affected Artifacts:** `/capabilities/cognition/local-llm.js`, `/index.html` (WebLLM script tag), `/styles/proto/index.css`, `/capabilities/cognition/hybrid-llm-provider.js`
 

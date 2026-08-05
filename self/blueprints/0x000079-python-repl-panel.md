@@ -1,11 +1,21 @@
-# Blueprint 0x000090-PYREPL: Python REPL Panel
+# Blueprint 0x000079: Python REPL Panel
 
+**Classification:** Canonical Full Specification
+
+**Implementation Status:** Proposed
+
+**Verified Artifacts:** None
+
+**Planned Artifacts:** `/self/ui/panels/python-repl-panel.js`
+
+**Owned Source Files:** None
+
+**Former Blueprint Paths:** `self/blueprints/0x000079-python-repl-panel.md`, `self/blueprints/0x000079-python-repl-panel.md`
 **Objective:** Provide an interactive Python execution environment in the browser using Pyodide (WebAssembly Python) with VFS integration, package management, and proper stdout/stderr separation.
 
 **Target Module:** `PythonReplPanel`
 
-**Implementation:** `/ui/panels/python-repl-panel.js`
-
+**Planned Module:** `/self/ui/panels/python-repl-panel.js`
 **Prerequisites:** `0x000003` (Core Utilities), `0x000058` (Event Bus), `0x000030` (Pyodide Runtime Orchestration), `0x000011` (Storage Backend)
 
 **Category:** UI
@@ -905,6 +915,3 @@ EventBus.on('python-repl:execute', handleExternalExecute);
 6. **Package search** - Search Pyodide package index
 
 ---
-
-**Status:** Planned
-

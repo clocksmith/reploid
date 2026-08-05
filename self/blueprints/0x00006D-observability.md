@@ -1,5 +1,16 @@
-# Blueprint 0x000084: Observability
+# Blueprint 0x00006D: Observability
 
+**Classification:** Canonical Full Specification
+
+**Implementation Status:** Implemented
+
+**Verified Artifacts:** `/self/infrastructure/observability.js`
+
+**Planned Artifacts:** None
+
+**Owned Source Files:** `infrastructure/observability.js`
+
+**Former Blueprint Paths:** `self/blueprints/0x00006D-observability.md`
 **Objective:** Token tracking, mutation stream, and metrics for real-time visibility into agent behavior.
 
 **Target Module:** `Observability`
@@ -53,5 +64,3 @@ const byModel = Observability.getUsageByModel();
 | gpt-4-turbo | $0.01 | $0.03 |
 
 ---
-
-**Status:** Implemented

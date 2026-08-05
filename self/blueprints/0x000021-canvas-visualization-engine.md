@@ -1,10 +1,21 @@
-# Blueprint 0x000024: Canvas Visualization Engine
+# Blueprint 0x000021: Canvas Visualization Engine
 
+**Classification:** Canonical Full Specification
+
+**Implementation Status:** In-Progress
+
+**Verified Artifacts:** `/self/styles/proto/index.css`
+
+**Planned Artifacts:** `/ui/components/viz-data-adapter.js`, `/ui/panels/canvas-visualizer.js`, `canvas-visualizer.js`
+
+**Owned Source Files:** None
+
+**Former Blueprint Paths:** `self/blueprints/0x000021-canvas-visualization-engine.md`
 **Objective:** Codify the behaviour of the 2D canvas overlay that visualises module dependencies, cognition pathways, and performance signals in real time.
 
 **Target Upgrade:** CNVS (`canvas-visualizer.js`)
 
-**Prerequisites:** 0x000019 (Visual Self-Improvement), 0x00001F (Universal Module Loader), 0x000025 (Visualization Data Adapter)
+**Prerequisites:** 0x000018 (Visual Self-Improvement), 0x00001F (Universal Module Loader), 0x000022 (Visualization Data Adapter)
 
 **Affected Artifacts:** `/ui/panels/canvas-visualizer.js`, `/ui/components/viz-data-adapter.js`, `/styles/proto/index.css`
 

@@ -61,7 +61,7 @@ cognition/
 
 ## Related
 
-- [Blueprint 0x000070: Semantic Memory](../blueprints/0x000070-semantic-memory.md)
-- [Blueprint 0x000071: Knowledge Graph](../blueprints/0x000071-knowledge-graph.md)
-- [Blueprint 0x000074: Cognition API](../blueprints/0x000074-cognition-api.md)
-- [Blueprint 0x000078: GEPA Prompt Evolution](../blueprints/0x000078-gepa-prompt-evolution.md)
+- [Blueprint 0x00005F: Semantic Memory](../blueprints/0x000070-semantic-memory.md)
+- [Blueprint 0x000060: Knowledge Graph](../blueprints/0x000071-knowledge-graph.md)
+- [Blueprint 0x000063: Cognition API](../blueprints/0x000074-cognition-api.md)
+- [Blueprint 0x000067: GEPA Prompt Evolution](../blueprints/0x000078-gepa-prompt-evolution.md)

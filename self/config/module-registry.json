@@ -364,7 +364,7 @@
           "optional": true
         }
       ],
-      "blueprint": "blueprints/0x00014d-capabilities-system-doppler-optimizer.md"
+      "blueprint": "blueprints/0x00008A-capabilities-system-doppler-optimizer.md"
     },
     "DopplerToolbox": {
       "id": "DopplerToolbox",
@@ -533,7 +533,7 @@
           "optional": false
         }
       ],
-      "blueprint": "blueprints/0x0000e8-core-functiongemma-orchestrator.md"
+      "blueprint": "blueprints/0x00007D-core-functiongemma-orchestrator.md"
     },
     "GEPAOptimizer": {
       "id": "GEPAOptimizer",
@@ -912,7 +912,7 @@
           "optional": true
         }
       ],
-      "blueprint": "blueprints/0x0000ee-experimental-intelligence-neural-compiler.md"
+      "blueprint": "blueprints/0x00007C-hot-swappable-neural-compiler.md"
     },
     "Observability": {
       "id": "Observability",
@@ -1055,7 +1055,7 @@
           "optional": false
         }
       ],
-      "blueprint": "blueprints/0x00009a-capabilities-cognition-prompt-memory.md"
+      "blueprint": "blueprints/0x000001-capabilities-cognition-prompt-memory.md"
     },
     "PromptScoreMap": {
       "id": "PromptScoreMap",
@@ -1074,7 +1074,7 @@
           "optional": false
         }
       ],
-      "blueprint": "blueprints/0x0000a1-capabilities-reflection-prompt-score-map.md"
+      "blueprint": "blueprints/0x000001-capabilities-reflection-prompt-score-map.md"
     },
     "ProviderRegistry": {
       "id": "ProviderRegistry",

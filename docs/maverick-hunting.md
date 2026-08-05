@@ -34,7 +34,7 @@ Poolday evidence supports a routing decision. It does not prove that a browser, 
 
 ### X
 
-X hunts unsafe self-modification candidates. A risky candidate remains provisional until it has verifier-backed evidence for promotion. Substrate changes use sandbox verification and Arena gating when enabled, with a snapshot available for rollback. See [tool runner](../self/core/tool-runner.js) and [Recursive GEPA Ring](../self/blueprints/0x000112-recursive-gepa-ring.md).
+X hunts unsafe self-modification candidates. A risky candidate remains provisional until it has verifier-backed evidence for promotion. Substrate changes use sandbox verification and Arena gating when enabled, with a snapshot available for rollback. See [tool runner](../self/core/tool-runner.js) and [Recursive GEPA Ring](../self/blueprints/0x00007F-recursive-gepa-ring.md).
 
 Validator changes are a special case. They require quarantine, and no candidate may approve the judge that evaluates it. A candidate that fails verification stays unpromoted. Its evidence and failure reason remain available for review.
 

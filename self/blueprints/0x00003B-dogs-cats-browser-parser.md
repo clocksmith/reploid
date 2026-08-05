@@ -1,9 +1,19 @@
-# Blueprint 0x000042: Browser-Native DOGS/CATS Parser
+# Blueprint 0x00003B: Browser-Native DOGS/CATS Parser
 
+**Classification:** Canonical Full Specification
+
+**Implementation Status:** Proposed
+
+**Verified Artifacts:** None
+
+**Planned Artifacts:** None
+
+**Owned Source Files:** None
+
+**Former Blueprint Paths:** `self/blueprints/0x00003B-dogs-cats-browser-parser.md`
 **Module ID:** `DGPR`
 **File:** `dogs-parser-browser.js`
 **Category:** Pure (Zero Dependencies)
-**Status:** [x] Implemented
 
 ---
 
@@ -621,4 +631,3 @@ This module is essential for REPLOID's independence from PAWS CLI packages.
 
 **Blueprint Version:** 1.0.0
 **Last Updated:** 2025-10-19
-**Implementation Status:** [x] Complete (336 LOC)

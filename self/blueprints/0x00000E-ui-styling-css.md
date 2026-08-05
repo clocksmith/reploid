@@ -1,9 +1,19 @@
 # Blueprint 0x00000E: UI Styling (CSS)
 
+**Classification:** Canonical Full Specification
+
+**Implementation Status:** In-Progress
+
+**Verified Artifacts:** `/self/styles/proto/index.css`
+
+**Planned Artifacts:** `/ui/ui-manager.js`, `/ui/ui-style.css`, `ui-style.css`
+
+**Owned Source Files:** None
+
+**Former Blueprint Paths:** `self/blueprints/0x00000E-ui-styling-css.md`
 **Objective:** To cover the role of the `/ui/ui-style.css` artifact in defining the visual appearance of the agent's developer console interface.
 
 **Target Upgrade:** STYL (`ui-style.css`)
-
 
 **Prerequisites:** `0x00000D`
 

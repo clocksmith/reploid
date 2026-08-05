@@ -1,5 +1,16 @@
-# Blueprint 0x000051: Human-in-the-Loop Controller
+# Blueprint 0x000049: Human-in-the-Loop Controller
 
+**Classification:** Canonical Full Specification
+
+**Implementation Status:** In-Progress
+
+**Verified Artifacts:** `/self/infrastructure/hitl-controller.js`, `/self/ui/components/confirmation-modal.js`
+
+**Planned Artifacts:** `/capabilities/cognition/sentinel-fsm.js`, `hitl-controller.js`
+
+**Owned Source Files:** `infrastructure/hitl-controller.js`
+
+**Former Blueprint Paths:** `self/blueprints/0x000049-hitl-controller.md`
 **Objective:** Provide centralized control over HITL vs Autonomous mode, allowing dynamic switching between human approval requirements and autonomous operation.
 
 **Target Upgrade:** HITL (`hitl-controller.js`)

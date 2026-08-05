@@ -1,9 +1,19 @@
-# Blueprint 0x00001E: Penteract Analytics & Visualization
+# Blueprint 0x00001D: Penteract Analytics & Visualization
 
+**Classification:** Canonical Full Specification
+
+**Implementation Status:** Proposed
+
+**Verified Artifacts:** None
+
+**Planned Artifacts:** `/js/cats.js`, `/js/dogs.js`, `/js/progress-bus.js`, `/py/paws_arena.py`, `/reploid/ui/panels/penteract-visualizer.js`, `/reploid/ui/ui-manager.js`, `penteract-analytics.js`
+
+**Owned Source Files:** None
+
+**Former Blueprint Paths:** `self/blueprints/0x00001D-penteract-analytics-and-visualization.md`
 **Objective:** Transform Arena and Penteract competition telemetry into a real-time, human-auditable proto that guides approval decisions and future persona tuning.
 
 **Target Upgrade:** PAXA (`penteract-analytics.js`)
-
 
 **Prerequisites:** 0x000007, 0x00000D, 0x000019
 

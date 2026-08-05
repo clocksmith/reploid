@@ -1,10 +1,21 @@
-# Blueprint 0x00002C: Rate Limiting Strategies
+# Blueprint 0x000029: Rate Limiting Strategies
 
+**Classification:** Canonical Full Specification
+
+**Implementation Status:** In-Progress
+
+**Verified Artifacts:** `/self/infrastructure/rate-limiter.js`
+
+**Planned Artifacts:** `/core/api-client-multi.js`, `/core/api-client.js`, `/infrastructure/performance-monitor.js`, `rate-limiter.js`
+
+**Owned Source Files:** `infrastructure/rate-limiter.js`
+
+**Former Blueprint Paths:** `self/blueprints/0x000029-rate-limiting-strategies.md`
 **Objective:** Govern the token-bucket and sliding-window rate limiter utilities used to protect external APIs and internal resources.
 
 **Target Upgrade:** RATE (`rate-limiter.js`)
 
-**Prerequisites:** 0x000007 (API Client & Communication), 0x000021 (Multi-Provider API Gateway), 0x000002 (Application Orchestration)
+**Prerequisites:** 0x000007 (API Client & Communication), 0x00001E (Multi-Provider API Gateway), 0x000002 (Application Orchestration)
 
 **Affected Artifacts:** `/infrastructure/rate-limiter.js`, `/core/api-client.js`, `/core/api-client-multi.js`, `/infrastructure/performance-monitor.js`
 

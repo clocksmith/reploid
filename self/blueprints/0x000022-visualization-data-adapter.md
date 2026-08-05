@@ -1,10 +1,21 @@
-# Blueprint 0x000025: Visualization Data Adapter
+# Blueprint 0x000022: Visualization Data Adapter
 
+**Classification:** Canonical Full Specification
+
+**Implementation Status:** Proposed
+
+**Verified Artifacts:** None
+
+**Planned Artifacts:** `/ui/components/viz-data-adapter.js`, `/ui/panels/canvas-visualizer.js`, `/ui/panels/metrics-proto.js`, `viz-data-adapter.js`
+
+**Owned Source Files:** None
+
+**Former Blueprint Paths:** `self/blueprints/0x000022-visualization-data-adapter.md`
 **Objective:** Document the transformation layer that converts REPLOID’s state, metrics, and manifests into geometry consumable by visualization upgrades.
 
 **Target Upgrade:** VDAT (`viz-data-adapter.js`)
 
-**Prerequisites:** 0x000005 (State Management Architecture), 0x000006 (Pure State Helpers), 0x000013 (System Configuration Structure), 0x000024 (Canvas Visualization Engine)
+**Prerequisites:** 0x000005 (State Management Architecture), 0x000006 (Pure State Helpers), 0x000013 (System Configuration Structure), 0x000021 (Canvas Visualization Engine)
 
 **Affected Artifacts:** `/ui/components/viz-data-adapter.js`, `/ui/panels/canvas-visualizer.js`, `/ui/panels/metrics-proto.js`
 

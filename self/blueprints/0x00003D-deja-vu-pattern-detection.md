@@ -1,11 +1,21 @@
-# Blueprint 0x000044: Déjà Vu Pattern Detection
+# Blueprint 0x00003D: Déjà Vu Pattern Detection
 
+**Classification:** Canonical Full Specification
+
+**Implementation Status:** In-Progress
+
+**Verified Artifacts:** `/self/core/agent-loop.js`
+
+**Planned Artifacts:** `/capabilities/cognition/deja-vu-detector.js`, `deja-vu-detector.js`
+
+**Owned Source Files:** None
+
+**Former Blueprint Paths:** `self/blueprints/0x00003D-deja-vu-pattern-detection.md`
 **Objective:** Detect repetitive patterns in agent actions to identify opportunities for automation and efficiency improvement, mimicking the human brain's déjà vu mechanism.
 
 **Target Upgrade:** DEJA (`deja-vu-detector.js`)
 
-
-**Prerequisites:** 0x000035 (Reflection Store Architecture), 0x000003 (Core Utilities & Error Handling)
+**Prerequisites:** 0x000032 (Reflection Store Architecture), 0x000003 (Core Utilities & Error Handling)
 
 **Affected Artifacts:** `/capabilities/cognition/deja-vu-detector.js`, `/core/agent-loop.js`
 

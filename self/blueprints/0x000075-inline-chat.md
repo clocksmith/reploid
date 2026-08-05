@@ -1,5 +1,16 @@
-# Blueprint 0x00008C-ICHAT: Inline Chat Component
+# Blueprint 0x000075: Inline Chat Component
 
+**Classification:** Canonical Full Specification
+
+**Implementation Status:** Implemented
+
+**Verified Artifacts:** `/self/styles/proto/inline-chat.css`, `/self/ui/components/inline-chat.js`
+
+**Planned Artifacts:** None
+
+**Owned Source Files:** `ui/components/inline-chat.js`
+
+**Former Blueprint Paths:** `self/blueprints/0x000075-inline-chat.md`, `self/blueprints/0x000075-inline-chat.md`
 **Objective:** Human-in-the-loop message injection for real-time agent context modification.
 
 **Target Module:** `InlineChat`
@@ -295,7 +306,5 @@ InlineChat.cleanup();
 | Streaming | No | Yes |
 
 ---
-
-**Status:** Implemented
 
 **File:** `/ui/components/inline-chat.js`

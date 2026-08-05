@@ -1,9 +1,19 @@
 # Blueprint 0x000004: Default Storage Backend (localStorage)
 
+**Classification:** Canonical Full Specification
+
+**Implementation Status:** Proposed
+
+**Verified Artifacts:** None
+
+**Planned Artifacts:** `/core/storage.js`, `storage-localstorage.js`
+
+**Owned Source Files:** None
+
+**Former Blueprint Paths:** `self/blueprints/0x000004-default-storage-backend-localstorage.md`
 **Objective:** To provide a simple, synchronous persistence layer for the agent's Virtual File System (VFS) using the browser's `localStorage` API.
 
 **Target Upgrade:** LSTR (`storage-localstorage.js`)
-
 
 **Prerequisites:** `0x000003`
 

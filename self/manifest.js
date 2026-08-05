@@ -27,7 +27,7 @@ export const SELF_SOURCE_MIRRORS = Object.freeze([
   { webPath: '/blueprints/tool-contract.md', vfsPath: '/self/blueprints/tool-contract.md' },
   { webPath: '/blueprints/promotion-contract.md', vfsPath: '/self/blueprints/promotion-contract.md' },
   { webPath: '/blueprints/rgr-runtime-contract.md', vfsPath: '/self/blueprints/rgr-runtime-contract.md' },
-  { webPath: '/blueprints/0x000112-recursive-gepa-ring.md', vfsPath: '/self/blueprints/0x000112-recursive-gepa-ring.md' },
+  { webPath: '/blueprints/0x00007F-recursive-gepa-ring.md', vfsPath: '/self/blueprints/0x00007F-recursive-gepa-ring.md' },
   { webPath: '/blueprints/rgr-slot-topology.md', vfsPath: '/self/blueprints/rgr-slot-topology.md' },
   { webPath: '/runtime.js', vfsPath: '/self/runtime.js' },
   { webPath: '/bridge.js', vfsPath: '/self/bridge.js' },
@@ -174,7 +174,7 @@ export function buildSelfManifest(options = {}) {
       indexPath: '/self/blueprint-index.json',
       activePaths: [...SELF_BLUEPRINT_PATHS],
       lazyReferencePaths: [
-        '/self/blueprints/0x000112-recursive-gepa-ring.md',
+        '/self/blueprints/0x00007F-recursive-gepa-ring.md',
         '/self/blueprints/rgr-runtime-contract.md',
         '/self/blueprints/rgr-slot-topology.md'
       ],

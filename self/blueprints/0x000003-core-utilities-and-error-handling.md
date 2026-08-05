@@ -1,9 +1,19 @@
 # Blueprint 0x000003: Core Utilities and Error Handling
 
+**Classification:** Canonical Full Specification
+
+**Implementation Status:** In-Progress
+
+**Verified Artifacts:** `/self/core/utils.js`
+
+**Planned Artifacts:** `utils.js`
+
+**Owned Source Files:** `core/utils.js`
+
+**Former Blueprint Paths:** `self/blueprints/0x000003-core-utilities-and-error-handling.md`
 **Objective:** To centralize common helper functions and custom error classes into a single, foundational utility module.
 
 **Target Upgrade:** UTIL (`utils.js`)
-
 
 **Prerequisites:** None
 

@@ -76,7 +76,7 @@ REPLOID studies RSI (recursive self-improvement) without giving agents access to
 
 Reploid supports a pure P2P free tier where opted-in peers form small custody committees for one or more shared demo Gemini keys. This enables zero-install, zero-config demo usage without backend key custody.
 
-See [Blueprint 0x0000e1: Sponsor-Peer Protocol](../self/blueprints/0x0000e1-sponsor-peer-protocol.md) for the canonical specification. The blueprint is the source of truth for topology, routing, quotas, and scaling. This section summarizes policy only.
+See [Blueprint 0x00007E: Sponsor-Peer Protocol](../self/blueprints/0x00007E-sponsor-peer-protocol.md) for the canonical specification. The blueprint is the source of truth for topology, routing, quotas, and scaling. This section summarizes policy only.
 
 ### Trust Model
 
@@ -171,7 +171,7 @@ The right product framing is sponsored serverless demo capacity, not a secure sh
 | Code Injection | `eval()`, dynamic imports | [0x000040](../self/blueprints/0x000040-verification-manager.md) |
 | Resource Exhaustion | Infinite loops, API flooding | [0x00005C](../self/blueprints/0x00005C-circuit-breaker-pattern.md), [0x000029](../self/blueprints/0x000029-rate-limiting-strategies.md) |
 | Data Exfiltration | Arbitrary fetch | VFS containment, no network access |
-| Sponsor Key Abuse | Sybil peers, quota bypass | [0x0000e1](../self/blueprints/0x0000e1-sponsor-peer-protocol.md) - signed leases, per-key quotas, sharded key buckets |
+| Sponsor Key Abuse | Sybil peers, quota bypass | [0x00007E](../self/blueprints/0x00007E-sponsor-peer-protocol.md) - signed leases, per-key quotas, sharded key buckets |
 | Sponsor Compromise | Malicious executor/custodian | Short-lived leases, committee quorum, key rotation, monitoring |
 
 ---
@@ -212,7 +212,7 @@ For implementation details, see:
 - **[0x000049: HITL Controller](../self/blueprints/0x000049-hitl-controller.md)** - Human oversight modes
 - **[0x00005C: Circuit Breaker](../self/blueprints/0x00005C-circuit-breaker-pattern.md)** - Failure isolation
 - **[0x00003C: Genesis Snapshots](../self/blueprints/0x00003C-genesis-snapshot-system.md)** - Rollback system
-- **[0x0000e1: Sponsor-Peer Protocol](../self/blueprints/0x0000e1-sponsor-peer-protocol.md)** - P2P free tier inference
+- **[0x00007E: Sponsor-Peer Protocol](../self/blueprints/0x00007E-sponsor-peer-protocol.md)** - P2P free tier inference
 
 ---
 

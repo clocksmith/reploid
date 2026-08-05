@@ -1,5 +1,7 @@
 # Tabula Rasa Runtime
 
+**Classification:** Index & Meta Contract
+
 Reploid starts from a small live context and reads blueprints only when the current objective needs them.
 
 ## Runtime Rules

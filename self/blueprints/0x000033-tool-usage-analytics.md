@@ -1,10 +1,21 @@
-# Blueprint 0x000038: Tool Usage Analytics
+# Blueprint 0x000033: Tool Usage Analytics
 
+**Classification:** Canonical Full Specification
+
+**Implementation Status:** In-Progress
+
+**Verified Artifacts:** `/self/core/tool-runner.js`, `/self/styles/proto/index.css`
+
+**Planned Artifacts:** `/capabilities/cognition/tool-analytics.js`, `tool-analytics.js`
+
+**Owned Source Files:** None
+
+**Former Blueprint Paths:** `self/blueprints/0x000033-tool-usage-analytics.md`
 **Objective:** Establish the telemetry required to understand how tools perform, fail, and evolve over time.
 
 **Target Upgrade:** TOAN (`tool-analytics.js`)
 
-**Prerequisites:** 0x000026 (Performance Monitoring Stack), 0x00000A (Tool Runner Engine), 0x00002B (Toast Notification System)
+**Prerequisites:** 0x000023 (Performance Monitoring Stack), 0x00000A (Tool Runner Engine), 0x000028 (Toast Notification System)
 
 **Affected Artifacts:** `/capabilities/cognition/tool-analytics.js`, `/core/tool-runner.js`, `/styles/proto/index.css`
 

@@ -1,9 +1,19 @@
-# Blueprint 0x000043: Genesis Snapshot System
+# Blueprint 0x00003C: Genesis Snapshot System
 
+**Classification:** Canonical Full Specification
+
+**Implementation Status:** Implemented
+
+**Verified Artifacts:** `/self/infrastructure/genesis-snapshot.js`
+
+**Planned Artifacts:** None
+
+**Owned Source Files:** `infrastructure/genesis-snapshot.js`
+
+**Former Blueprint Paths:** `self/blueprints/0x00003C-genesis-snapshot-system.md`
 **Module ID:** `GENS`
 **File:** `genesis-snapshot.js`
 **Category:** RSI (Recursive Self-Improvement)
-**Status:** [x] Implemented
 
 ---
 
@@ -740,4 +750,3 @@ This is the **memory system** for recursive self-improvement.
 
 **Blueprint Version:** 1.0.0
 **Last Updated:** 2025-10-19
-**Implementation Status:** [x] Complete (280 LOC)

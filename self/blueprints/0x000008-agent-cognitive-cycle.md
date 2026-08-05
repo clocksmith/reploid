@@ -1,9 +1,19 @@
 # Blueprint 0x000008: Agent Cognitive Cycle
 
+**Classification:** Canonical Full Specification
+
+**Implementation Status:** In-Progress
+
+**Verified Artifacts:** `/self/core/agent-loop.js`
+
+**Planned Artifacts:** `/core/agent-cycle.js`, `agent-cycle.js`
+
+**Owned Source Files:** `core/agent-loop.js`
+
+**Former Blueprint Paths:** `self/blueprints/0x000008-agent-cognitive-cycle.md`
 **Objective:** To provide the architectural model for the agent's primary "think-act" loop, which orchestrates the entire process of receiving a goal, reasoning, and executing a plan.
 
 **Target Upgrade:** CYCL (`agent-cycle.js`)
-
 
 **Prerequisites:** `0x000001`, `0x000005`, `0x000007`, `0x00000A`
 

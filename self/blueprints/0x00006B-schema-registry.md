@@ -1,5 +1,16 @@
-# Blueprint 0x000082-SREG: Schema Registry
+# Blueprint 0x00006B: Schema Registry
 
+**Classification:** Canonical Full Specification
+
+**Implementation Status:** Implemented
+
+**Verified Artifacts:** `/self/core/schema-registry.js`
+
+**Planned Artifacts:** None
+
+**Owned Source Files:** `core/schema-registry.js`
+
+**Former Blueprint Paths:** `self/blueprints/0x00006B-schema-registry.md`
 **Module:** `SchemaRegistry`
 **File:** `core/schema-registry.js`
 **Purpose:** Central registry for tool input schemas and worker type definitions
@@ -166,5 +177,3 @@ const sequential = toolCalls.filter(c => !isToolReadOnly(c.name));
 **spark** - Core agent module, part of the minimal agent core. Cannot be modified without gate approval.
 
 ---
-
-**Status:** Implemented

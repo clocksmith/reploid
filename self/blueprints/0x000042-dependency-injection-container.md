@@ -1,5 +1,16 @@
-# Blueprint 0x000049: Dependency Injection Container
+# Blueprint 0x000042: Dependency Injection Container
 
+**Classification:** Canonical Full Specification
+
+**Implementation Status:** In-Progress
+
+**Verified Artifacts:** `/self/infrastructure/di-container.js`
+
+**Planned Artifacts:** `/config/module-manifest.js`, `di-container.js`
+
+**Owned Source Files:** `infrastructure/di-container.js`
+
+**Former Blueprint Paths:** `self/blueprints/0x000042-dependency-injection-container.md`
 **Objective:** To formalize the Dependency Injection (DI) Container architecture that manages module registration, dependency resolution, and lifecycle management for the REPLOID agent system.
 
 **Target Upgrade:** DIC (`di-container.js`)

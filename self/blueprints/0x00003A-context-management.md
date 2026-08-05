@@ -1,6 +1,16 @@
-# Blueprint 0x000040: Context Management
+# Blueprint 0x00003A: Context Management
 
-**Status:** [x] Implemented
+**Classification:** Canonical Full Specification
+
+**Implementation Status:** Implemented
+
+**Verified Artifacts:** `/self/core/context-manager.js`
+
+**Planned Artifacts:** None
+
+**Owned Source Files:** `core/context-manager.js`
+
+**Former Blueprint Paths:** `self/blueprints/0x00003A-context-management.md`
 **Module ID:** CTXM
 **File:** `upgrades/context-manager.js`
 **Version:** 1.0.0
@@ -394,8 +404,8 @@ const widget = {
 
 - **0x000008:** Agent Cognitive Cycle (primary consumer)
 - **0x000007:** API Client (benefits from reduced token usage)
-- **0x00003B:** Reflection Store (archives pruned context)
-- **0x000045:** Streaming Response Handler (faster feedback loop)
+- **0x000032:** Reflection Store (archives pruned context)
+- **0x000039:** Streaming Response Handler (faster feedback loop)
 
 ---
 

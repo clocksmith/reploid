@@ -1,5 +1,7 @@
 # RGR Dream Instance Manifest Blueprint
 
+**Classification:** Index & Meta Contract
+
 Purpose: Let the Reploid self manifest Dream as a browser-governed instance without merging Dream's runtime contract into Reploid's core loop.
 
 Core invariant:
@@ -57,7 +59,7 @@ When working on Dream orchestration, read these first:
 /self/instances/dream/default.instance.json
 /self/blueprints/rgr-dream-instance-manifest.md
 /self/blueprints/rgr-runtime-contract.md
-/self/blueprints/0x000112-recursive-gepa-ring.md
+/self/blueprints/0x00007F-recursive-gepa-ring.md
 /self/blueprints/rgr-slot-topology.md
 ```
 
