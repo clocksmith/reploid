@@ -1,0 +1,80 @@
+name: Apply blueprint consolidation
+
+on:
+  push:
+    branches:
+      - agent/consolidate-blueprints
+    paths:
+      - .blueprint-bootstrap-min2/**
+      - .github/workflows/apply-blueprint-consolidation.yml
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .blueprint-bootstrap-min2/**
+      - .github/workflows/apply-blueprint-consolidation.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: agent/consolidate-blueprints
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Reconstruct and apply audited migration
+        run: |
+          cat .blueprint-bootstrap-min2/parts/part-* | base64 -d > /tmp/blueprint-bootstrap.tar.xz
+          echo "703226d2f874a741538d9e445cb3c4ee8e318d844ef503cc5e2f0b04d88aa221  /tmp/blueprint-bootstrap.tar.xz" | sha256sum -c -
+          mkdir -p /tmp/blueprint-bootstrap
+          tar -xJf /tmp/blueprint-bootstrap.tar.xz -C /tmp/blueprint-bootstrap
+          export REPO_ROOT="$GITHUB_WORKSPACE"
+          python3 /tmp/blueprint-bootstrap/migration/plan.py
+          python3 /tmp/blueprint-bootstrap/migration/apply.py
+          python3 /tmp/blueprint-bootstrap/migration/normalize.py
+          cp -R /tmp/blueprint-bootstrap/overlay/. .
+          rm -f migration-plan.json final-blueprint-rows.json
+          rm -rf .blueprint-bootstrap-min2
+          rm -f .audit-source-link.md
+          rm -f .github/workflows/blueprint-audit-snapshot.yml
+          rm -f .github/workflows/apply-blueprint-consolidation.yml
+      - name: Refresh lockfile
+        run: npm install --package-lock-only --ignore-scripts
+      - name: Install dependencies
+        run: npm ci
+      - name: Build canonical projections
+        run: |
+          node scripts/build-module-inventory.js
+          node scripts/build-blueprint-registry.js
+          node scripts/build-module-registry.js
+          node scripts/build-genesis-manifest.js
+          node scripts/build-vfs-manifest.js
+          node scripts/verify-blueprint-registry.js
+          npm run build:blueprints
+          npm run build:genesis
+          git diff --check
+      - name: Verify repository
+        run: |
+          npm run test:unit
+          npm run verify:surface-claims
+          npm run verify:layers
+          npm run verify:module-system
+          npm run verify:runtime-config
+          npm run verify:pool -- --allow-placeholders
+          npm run verify:blueprints
+      - name: Commit verified consolidation
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "refactor(blueprints): consolidate canonical registry"
+          git push origin HEAD:agent/consolidate-blueprints

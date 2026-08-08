@@ -1,0 +1,43 @@
+name: Blueprint audit snapshot
+
+on:
+  push:
+    branches:
+      - agent/consolidate-blueprints
+    paths:
+      - .github/workflows/blueprint-audit-snapshot.yml
+      - scripts/blueprint-audit-snapshot.mjs
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/blueprint-audit-snapshot.yml
+      - scripts/blueprint-audit-snapshot.mjs
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - name: Build audit snapshot
+        run: |
+          mkdir -p audit-snapshot
+          cp -R self audit-snapshot/self
+          cp -R scripts audit-snapshot/scripts
+          cp -R tests audit-snapshot/tests
+          for path in docs server bin config .github README.md AGENTS.md package.json package-lock.json vitest.config.js; do
+            if [ -e "$path" ]; then cp -R "$path" audit-snapshot/; fi
+          done
+          printf '%s\n' "$(git rev-parse HEAD)" > audit-snapshot/COMMIT_SHA
+      - uses: actions/upload-artifact@v4
+        with:
+          name: reploid-blueprint-audit-snapshot
+          path: audit-snapshot
+          if-no-files-found: error
+          retention-days: 3
