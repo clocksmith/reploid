@@ -42,6 +42,7 @@ import {
 } from '../../pool/evidence-network.js';
 import {
   addReceiptLedgerRow,
+  clearPoolRoomDraft,
   describeSelectedRun,
   findReceiptLedgerRecord,
   getPeerDiscoveryWindowMs,
@@ -1316,6 +1317,7 @@ const bindPeerRunSurface = ({
         policyId: request.policyId
       });
       const publication = await publishResearchRecord(researchSubmission, { roomId: getPeerRoomId() });
+      clearPoolRoomDraft(getPeerRoomId());
       request.researchSubmission = researchSubmission;
       setResearchPublicationStatus(resultId, publication.remote
         ? `Submission ${researchSubmission.recordHash} published before compute.`

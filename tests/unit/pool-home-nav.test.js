@@ -107,10 +107,10 @@ describe('poolday home navigation', () => {
     expect(html).toContain('data-pool-nav-tooltip="Open the navigation details from the left"');
     expect(html).toContain('data-pool-nav-tooltip="Submit a prompt to browser model contributors"');
     expect(html).toContain('data-pool-nav-tooltip="Share this tab as browser compute"');
-    expect(html).toContain('href="/" data-pool-route-link="/"');
-    expect(html).toContain('href="/ask" data-pool-route-link="/ask"');
-    expect(html).toMatch(/href="\/compute"[\s\S]*data-pool-route-link="\/compute"[\s\S]*aria-current="page"/);
-    expect(html).toContain('href="/records" data-pool-route-link="/records"');
+    expect(html).toContain('href="/?room=reploid-default" data-pool-route-link="/?room=reploid-default"');
+    expect(html).toContain('href="/ask?room=reploid-default" data-pool-route-link="/ask?room=reploid-default"');
+    expect(html).toMatch(/href="\/compute\?room=reploid-default"[\s\S]*data-pool-route-link="\/compute\?room=reploid-default"[\s\S]*aria-current="page"/);
+    expect(html).toContain('href="/records?room=reploid-default" data-pool-route-link="/records?room=reploid-default"');
     expect(html).toContain('href="/zero" data-pool-substrate-route="/zero"');
     expect(html).not.toContain('href="/x" data-pool-substrate-route="/x"');
     expect(html).toContain('aria-label="Zero"');
@@ -144,6 +144,20 @@ describe('poolday home navigation', () => {
     expect(html).toContain('<div class="pool-room-context-heading">');
   });
 
+  it('renders the active room query on every compatibility navigation link', () => {
+    const original = `${window.location.pathname}${window.location.search}`;
+    window.history.replaceState({}, '', '/records?room=canonical-room');
+    try {
+      const html = renderNav('records', { open: true });
+      expect(html).toContain('href="/?room=canonical-room" data-pool-route-link="/?room=canonical-room"');
+      expect(html).toContain('href="/ask?room=canonical-room" data-pool-route-link="/ask?room=canonical-room"');
+      expect(html).toContain('href="/compute?room=canonical-room" data-pool-route-link="/compute?room=canonical-room"');
+      expect(html).toContain('href="/records?room=canonical-room" data-pool-route-link="/records?room=canonical-room"');
+    } finally {
+      window.history.replaceState({}, '', original || '/');
+    }
+  });
+
   it('renders the main home calls to action', () => {
     const html = renderRoutePanel('home');
     expect(html).toContain('class="pool-home-stage"');
@@ -152,6 +166,8 @@ describe('poolday home navigation', () => {
     expect(html).toContain('class="pool-home-ask-dock pool-home-cta-row pool-home-ask-form"');
     expect(html).not.toContain('class="pool-home-toolbar-right"');
     expect(html).toContain('class="pool-simulation-shell"');
+    expect(html).toContain('data-pool-network-disclosure');
+    expect(html).toContain('<summary>How peers produced this result</summary>');
     expect(html).toContain('data-pool-simulation');
     expect(html).toContain('data-pool-home-purpose');
     expect(html).toContain('Grow inspectable protein evidence, from public input to reviewed discovery.');
@@ -163,7 +179,7 @@ describe('poolday home navigation', () => {
     expect(html).toContain('not a biological interpretation or diagnosis');
     expect(html).toContain('This is a 480-number representation for software, not a result to read manually.');
     expect(html).toContain('Use it with embeddings made by the same ESM-2 model and contract when comparing sequences.');
-    expect(html).toContain('Poolday can now compare this result with exact-contract compatible public embeddings');
+    expect(html).toContain('Reploid can now compare this result with exact-contract compatible public embeddings');
     expect(html).toContain('does not generate biological interpretation or diagnosis.');
     expect(html).toContain('data-pool-copy-embedding');
     expect(html).not.toContain('data-pool-hot-path');

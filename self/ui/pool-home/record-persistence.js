@@ -13,7 +13,8 @@ const encodeRoom = (roomId) => encodeURIComponent(String(roomId || DEFAULT_PEER_
 
 export const getPooldayRecordStorageKeys = (roomId = DEFAULT_PEER_ROOM_ID) => ({
   receipts: `${POOLDAY_RECEIPT_LEDGER_STORAGE_KEY}::${encodeRoom(roomId)}`,
-  peerLedger: `${POOLDAY_PEER_LEDGER_STORAGE_KEY}::${encodeRoom(roomId)}`
+  peerLedger: `${POOLDAY_PEER_LEDGER_STORAGE_KEY}::${encodeRoom(roomId)}`,
+  draft: `reploid.pool.room-draft.v1::${encodeRoom(roomId)}`
 });
 
 export const getPeerEventHash = (event = {}) => (
@@ -52,6 +53,29 @@ export function createPoolRecordPersistence({
     }
   };
 
+  const readDraft = (roomId = getRoomId()) => {
+    try {
+      const value = getStorage()?.getItem(getPooldayRecordStorageKeys(roomId).draft);
+      const parsed = value ? JSON.parse(value) : null;
+      return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : null;
+    } catch {
+      return null;
+    }
+  };
+
+  const writeDraft = (roomId, draft) => {
+    try {
+      const key = getPooldayRecordStorageKeys(roomId).draft;
+      if (!draft || typeof draft !== 'object') {
+        getStorage()?.removeItem(key);
+        return;
+      }
+      getStorage()?.setItem(key, JSON.stringify({ ...draft, updatedAt: new Date().toISOString() }));
+    } catch {
+      // Draft recovery remains optional when browser storage is unavailable.
+    }
+  };
+
   const replaceContents = (target, values = []) => {
     target.splice(0, target.length, ...values);
   };
@@ -79,6 +103,15 @@ export function createPoolRecordPersistence({
 
   return Object.freeze({
     getStorageKeys: (roomId = getRoomId()) => getPooldayRecordStorageKeys(roomId),
+    loadDraft(roomId = getRoomId()) {
+      return readDraft(roomId);
+    },
+    persistDraft(draft, roomId = getRoomId()) {
+      writeDraft(roomId, draft);
+    },
+    clearDraft(roomId = getRoomId()) {
+      writeDraft(roomId, null);
+    },
     ensureReceiptsLoaded(roomId = getRoomId()) {
       if (ledgerStore.receiptRoom === roomId) return;
       ledgerStore.receiptRoom = roomId;
