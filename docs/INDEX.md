@@ -29,6 +29,7 @@ Guide to all documentation in the REPLOID project.
 
 ### Vision and Contracts
 - **[docs/substrate.md](./substrate.md)** - Substrate + Ouroboros contract
+- **[Ouroboros documentation authority](../../ouroboros/docs/authority/README.md)** - Cross-project record routing; Reploid remains canonical for product and runtime behavior
 - **[docs/poolday/product-intent.md](./poolday/product-intent.md)** - Canonical proof-carrying protein-model-network goal, bounded protein journey, evidence boundary, and promotion path
 - **[docs/poolday/discovery-contract.md](./poolday/discovery-contract.md)** - Target atomic active-science object, action-value boundary, epistemic updates, replication, and closure
 
@@ -53,6 +54,7 @@ Guide to all documentation in the REPLOID project.
 - **[docs/style-guide.md](./style-guide.md)** - Code and UI conventions
 - **[docs/SECURITY.md](./SECURITY.md)** - Security model and containment layers
 - **[docs/maverick-hunting.md](./maverick-hunting.md)** - Evidence-backed provider/candidate containment and bounded bug hinting
+- **[self/blueprints/0x0000AF-reploid-rooms-distributed-cognition.md](../self/blueprints/0x0000AF-reploid-rooms-distributed-cognition.md)** - Proposed Rooms runtime specification; not implementation evidence
 
 ---
 
