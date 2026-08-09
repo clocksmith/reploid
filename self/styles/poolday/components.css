@@ -1952,6 +1952,44 @@ body[data-pool-route-id='home'] #app {
   transition: opacity var(--pool-motion-time-180) ease, visibility var(--pool-motion-time-180) ease;
 }
 
+.pool-room-network-disclosure {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  pointer-events: none;
+}
+
+.pool-room-network-disclosure[open] {
+  pointer-events: auto;
+}
+
+.pool-room-network-disclosure summary {
+  position: absolute;
+  z-index: 2;
+  top: calc(var(--pool-metric-menu-square) + var(--pool-space-lg) + var(--pool-px-10));
+  right: var(--pool-space-lg);
+  max-width: min(var(--pool-px-r18), calc(100% - var(--pool-space-lg)));
+  padding: var(--pool-px-8) var(--pool-px-12);
+  border: var(--pool-border-hairline) solid var(--pool-tint-black-14);
+  border-radius: var(--pool-px-999);
+  background: var(--pool-tint-white-84);
+  box-shadow: 0 var(--pool-px-8) var(--pool-px-22) var(--pool-tint-black-5);
+  color: var(--pool-surface-ink);
+  font-size: var(--pool-text-xs);
+  font-weight: var(--pool-type-weight-bold);
+  letter-spacing: var(--pool-type-tracking-label);
+  text-transform: uppercase;
+  pointer-events: auto;
+}
+
+.pool-room-network-disclosure .pool-simulation-shell {
+  inset: 0;
+}
+
 .pool-home-stage[data-run-state="complete"] .pool-simulation-shell,
 .pool-home-stage[data-run-state="error"] .pool-simulation-shell,
 .pool-home-stage[data-run-state="inspecting"] .pool-simulation-shell {
@@ -3539,5 +3577,422 @@ body[data-pool-route-id='home'] #app {
   .pool-research-rewards article {
     align-items: stretch;
     flex-direction: column;
+  }
+}
+
+/* === RESEARCH ROOM === */
+
+.pool-research-room {
+  display: grid;
+  gap: var(--pool-space-lg);
+  margin: var(--pool-space-lg) auto;
+  width: min(var(--pool-px-1180), calc(100% - var(--pool-space-lg)));
+}
+
+.pool-room-header,
+.pool-room-result-heading,
+.pool-room-section-heading,
+.pool-room-list-item,
+.pool-room-action-card,
+.pool-room-role-grid article,
+.pool-room-participant {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--pool-space-sm);
+}
+
+.pool-room-header {
+  padding: var(--pool-space-lg);
+  border: var(--pool-border-hairline) solid var(--pool-tint-black-14);
+  border-radius: var(--pool-px-12);
+  background: color-mix(in srgb, var(--pool-surface-page) 94%, var(--pool-surface-ink));
+}
+
+.pool-room-header h1,
+.pool-room-header p,
+.pool-room-question h2,
+.pool-room-result-card h2,
+.pool-room-section h2,
+.pool-room-action-card h2 {
+  margin: 0;
+}
+
+.pool-room-header > div:first-child,
+.pool-room-question,
+.pool-room-result-card,
+.pool-room-empty-state,
+.pool-room-section,
+.pool-room-action-card {
+  display: grid;
+  gap: var(--pool-space-sm);
+}
+
+.pool-room-header-meta {
+  display: grid;
+  align-content: start;
+  justify-items: end;
+  gap: var(--pool-space-xs);
+  white-space: nowrap;
+}
+
+.pool-room-header-meta code,
+.pool-room-facts dd,
+.pool-room-timeline small {
+  overflow-wrap: anywhere;
+}
+
+.pool-room-status,
+.pool-room-count,
+.pool-room-event-status {
+  display: inline-flex;
+  align-items: center;
+  width: max-content;
+  padding: var(--pool-px-4) var(--pool-px-8);
+  border: var(--pool-border-hairline) solid var(--pool-tint-black-14);
+  border-radius: var(--pool-px-999);
+  font-size: var(--pool-text-xs);
+  text-transform: capitalize;
+}
+
+.pool-room-status[data-status="remembered"],
+.pool-room-status[data-status="accepted"] {
+  border-color: color-mix(in srgb, var(--pool-hue-teal) 55%, transparent);
+}
+
+.pool-room-recovery {
+  display: grid;
+  gap: var(--pool-space-xs);
+  padding: var(--pool-space-sm) var(--pool-space-md);
+  border: var(--pool-border-hairline) solid var(--pool-tint-black-14);
+  border-radius: var(--pool-px-8);
+  background: color-mix(in srgb, var(--pool-surface-page) 96%, var(--pool-hue-teal));
+}
+
+.pool-room-recovery-states {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--pool-px-8);
+}
+
+.pool-room-recovery-state {
+  display: inline-flex;
+  padding: var(--pool-px-4) var(--pool-px-8);
+  border: var(--pool-border-hairline) solid var(--pool-tint-black-14);
+  border-radius: var(--pool-px-999);
+  font-size: var(--pool-text-xs);
+  text-transform: capitalize;
+}
+
+.pool-room-recovery ul {
+  margin: 0;
+  padding-left: var(--pool-space-md);
+  color: color-mix(in srgb, var(--pool-surface-ink), transparent 28%);
+  font-size: var(--pool-text-xs);
+}
+
+.pool-room-participants {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--pool-px-8);
+}
+
+.pool-room-participant {
+  display: grid;
+  justify-content: start;
+  gap: 0 var(--pool-px-8);
+  padding: var(--pool-px-8) var(--pool-px-12);
+  border: var(--pool-border-hairline) solid var(--pool-tint-black-14);
+  border-radius: var(--pool-px-8);
+}
+
+.pool-room-participant strong {
+  grid-row: span 2;
+  align-self: center;
+  font-size: var(--pool-text-xs);
+  text-transform: capitalize;
+}
+
+.pool-room-participant span,
+.pool-room-participant small {
+  color: color-mix(in srgb, var(--pool-surface-ink), transparent 28%);
+  font-size: var(--pool-text-xs);
+}
+
+.pool-room-main-grid,
+.pool-room-columns {
+  display: grid;
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+  gap: var(--pool-space-md);
+}
+
+.pool-room-question-card,
+.pool-room-result-card,
+.pool-room-section,
+.pool-room-action-card {
+  min-width: 0;
+  padding: var(--pool-space-md);
+  border: var(--pool-border-hairline) solid var(--pool-tint-black-14);
+  border-radius: var(--pool-px-12);
+}
+
+.pool-room-question-card {
+  align-content: start;
+}
+
+.pool-room-result-card {
+  background: color-mix(in srgb, var(--pool-surface-page) 96%, var(--pool-hue-teal));
+}
+
+.pool-room-result-card.is-empty {
+  align-content: center;
+}
+
+.pool-room-result-grid,
+.pool-room-facts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--pool-space-sm);
+  margin: 0;
+}
+
+.pool-room-result-grid > div,
+.pool-room-facts > div {
+  display: grid;
+  gap: var(--pool-px-4);
+  min-width: 0;
+}
+
+.pool-room-facts dt,
+.pool-room-facts dd {
+  margin: 0;
+}
+
+.pool-room-facts dt,
+.rgr-status-label {
+  color: color-mix(in srgb, var(--pool-surface-ink), transparent 38%);
+  font-size: var(--pool-text-xs);
+  text-transform: uppercase;
+  letter-spacing: var(--pool-px-e0-04);
+}
+
+.pool-room-facts dd {
+  font-size: var(--pool-text-sm);
+}
+
+.pool-room-boundary,
+.pool-room-muted,
+.pool-room-section p,
+.pool-room-action-card p,
+.pool-room-role-grid p {
+  margin: 0;
+  color: color-mix(in srgb, var(--pool-surface-ink), transparent 30%);
+}
+
+.pool-room-action-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--pool-space-sm);
+}
+
+.pool-room-disclosure {
+  border-top: var(--pool-border-hairline) solid var(--pool-tint-black-14);
+  padding-top: var(--pool-space-sm);
+}
+
+.pool-room-disclosure summary {
+  cursor: pointer;
+}
+
+.pool-room-uncertainty {
+  display: grid;
+  gap: var(--pool-px-4);
+  margin-top: var(--pool-space-sm);
+  padding-top: var(--pool-space-sm);
+  border-top: var(--pool-border-hairline) solid var(--pool-tint-black-14);
+}
+
+.pool-room-uncertainty ul {
+  display: grid;
+  gap: var(--pool-px-4);
+  margin: 0;
+  padding-left: var(--pool-space-md);
+}
+
+.pool-room-list,
+.pool-room-role-grid,
+.pool-room-timeline {
+  display: grid;
+  gap: var(--pool-space-sm);
+}
+
+.pool-room-list-item {
+  align-items: center;
+  padding: var(--pool-space-sm);
+  border: var(--pool-border-hairline) solid var(--pool-tint-black-14);
+  border-radius: var(--pool-px-8);
+}
+
+.pool-room-list-item > div {
+  display: grid;
+  gap: var(--pool-px-4);
+}
+
+.pool-room-proposal-list {
+  display: grid;
+  gap: var(--pool-space-sm);
+  margin-top: var(--pool-space-sm);
+}
+
+.pool-room-proposal-card {
+  display: grid;
+  gap: var(--pool-space-sm);
+  padding: var(--pool-space-sm);
+  border: var(--pool-border-hairline) solid var(--pool-tint-black-14);
+  border-radius: var(--pool-px-8);
+  background: color-mix(in srgb, var(--pool-surface-page) 98%, var(--pool-hue-violet));
+}
+
+.pool-room-proposal-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--pool-px-8);
+}
+
+.pool-room-proposal-card p {
+  margin: 0;
+}
+
+.pool-room-proposal-facts {
+  display: grid;
+  gap: var(--pool-space-sm);
+  margin: 0;
+}
+
+.pool-room-proposal-facts div {
+  display: grid;
+  gap: var(--pool-px-4);
+}
+
+.pool-room-proposal-facts dt,
+.pool-room-proposal-facts dd {
+  margin: 0;
+}
+
+.pool-room-proposal-facts dt {
+  color: color-mix(in srgb, var(--pool-surface-ink), transparent 38%);
+  font-size: var(--pool-text-xs);
+  text-transform: uppercase;
+  letter-spacing: var(--pool-px-e0-04);
+}
+
+.pool-room-proposal-facts dd {
+  overflow-wrap: anywhere;
+  font-size: var(--pool-text-sm);
+}
+
+.pool-room-role-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.pool-room-role-grid article {
+  display: grid;
+  align-content: start;
+  justify-content: initial;
+  padding: var(--pool-space-sm);
+  border: var(--pool-border-hairline) solid var(--pool-tint-black-14);
+  border-radius: var(--pool-px-8);
+}
+
+.pool-room-role-grid a {
+  width: max-content;
+  color: var(--pool-surface-ink);
+  font-size: var(--pool-text-sm);
+  text-decoration: underline;
+}
+
+.pool-room-timeline {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.pool-room-timeline li {
+  display: grid;
+  grid-template-columns: var(--pool-px-12) minmax(0, 1fr);
+  gap: var(--pool-space-sm);
+}
+
+.pool-room-timeline-marker {
+  width: var(--pool-px-8);
+  height: var(--pool-px-8);
+  margin-top: var(--pool-px-4);
+  border-radius: 50%;
+  background: var(--pool-surface-ink);
+}
+
+.pool-room-timeline-body {
+  display: grid;
+  gap: var(--pool-px-4);
+  padding-bottom: var(--pool-space-sm);
+  border-bottom: var(--pool-border-hairline) solid var(--pool-tint-black-14);
+}
+
+.pool-room-timeline-body > div {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--pool-px-8);
+}
+
+.pool-room-timeline small {
+  color: color-mix(in srgb, var(--pool-surface-ink), transparent 42%);
+  font-size: var(--pool-text-xs);
+}
+
+.pool-room-technical-disclosure {
+  padding: var(--pool-space-md);
+  border: var(--pool-border-hairline) solid var(--pool-tint-black-14);
+  border-radius: var(--pool-px-8);
+}
+
+.pool-room-secondary-workspace {
+  margin-bottom: var(--pool-space-md);
+}
+
+.pool-room-contextual-panel {
+  display: grid;
+  gap: var(--pool-space-sm);
+  margin-bottom: var(--pool-space-md);
+  padding: var(--pool-space-md);
+  border: var(--pool-border-hairline) solid var(--pool-tint-black-14);
+  border-radius: var(--pool-px-12);
+  background: color-mix(in srgb, var(--pool-surface-page) 96%, var(--pool-hue-teal));
+}
+
+.pool-room-contextual-panel p {
+  margin: 0;
+}
+
+@media (max-width: 760px) {
+  .pool-room-header,
+  .pool-room-list-item,
+  .pool-room-action-card {
+    flex-direction: column;
+  }
+
+  .pool-room-header-meta {
+    justify-items: start;
+  }
+
+  .pool-room-main-grid,
+  .pool-room-columns,
+  .pool-room-result-grid,
+  .pool-room-facts,
+  .pool-room-role-grid {
+    grid-template-columns: 1fr;
   }
 }

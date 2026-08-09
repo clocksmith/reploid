@@ -256,6 +256,15 @@ test('shows and exercises the governed protein evidence journey', async ({ page 
     }
   });
 
+  await expect(page.locator('[data-pool-research-room]')).toBeVisible();
+  await expect(page.locator('[data-pool-room-recovery]')).toBeVisible();
+  await expect(page.locator('[data-recovery-state="awaiting_review"]')).toBeVisible();
+  await expect(page.getByText('Remembered evidence', { exact: true })).toBeAttached();
+  const roomApproval = page.locator('[data-pool-room-approve-task]').first();
+  await expect(roomApproval).toBeVisible();
+  await roomApproval.click();
+  await expect(page.getByText('Inspect approved action', { exact: true }).first()).toBeVisible();
+
   await page.goto('/records');
   await expect(page.locator('[data-pool-research-workspace]')).toBeVisible();
   await expect(page.getByText('Exact-model evidence, not vector averaging', { exact: true })).toBeVisible();
@@ -286,5 +295,17 @@ test('shows and exercises the governed protein evidence journey', async ({ page 
   await expect(approve).toBeVisible();
   await approve.click();
   await expect(page.getByText('Approved', { exact: true }).first()).toBeVisible();
+
+  await page.goto('/ask?room=journey-room');
+  await expect(page.locator('[data-pool-research-room]')).toHaveAttribute('data-room-id', 'journey-room');
+  await page.locator('.pool-nav-link[data-pool-route-link="/records?room=journey-room"]').click();
+  await expect(page).toHaveURL(/\/records\?room=journey-room$/);
+  await expect(page.locator('[data-pool-research-room]')).toHaveAttribute('data-room-id', 'journey-room');
+  await page.goto('/history?room=journey-room');
+  await expect(page.locator('[data-pool-research-room]')).toHaveAttribute('data-room-id', 'journey-room');
+  await page.goto('/network?room=journey-room');
+  await expect(page.locator('[data-pool-research-room]')).toHaveAttribute('data-room-id', 'journey-room');
+  await page.reload();
+  await expect(page.locator('[data-pool-research-room]')).toHaveAttribute('data-room-id', 'journey-room');
   expect(pageErrors).toEqual([]);
 });

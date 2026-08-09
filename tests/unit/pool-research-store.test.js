@@ -6,6 +6,7 @@ import { buildLaunchProviderModel, getPoolModelContract } from '../../self/pool/
 import { hashSequenceFloat32Values } from '../../self/pool/sequence-result.js';
 import {
   appendResearchRecord,
+  getResearchSyncState,
   hydrateResearchRecords,
   loadResearchRecords,
   publishResearchRecord,
@@ -68,7 +69,27 @@ describe('Poolday research store', () => {
     await appendResearchRecord(record);
     await appendResearchRecord(record);
     expect(loadResearchRecords('store-room')).toEqual([record]);
+    expect(getResearchSyncState('store-room')).toMatchObject({ phase: 'local_only', remote: 'unknown' });
     expect(localStorage.setItem).toHaveBeenCalled();
+  });
+
+  it('notifies the active room after a verified local append', async () => {
+    const localStorage = storage();
+    const dispatchEvent = vi.fn();
+    vi.stubGlobal('localStorage', localStorage);
+    vi.stubGlobal('dispatchEvent', dispatchEvent);
+    const record = await makeRecord();
+
+    await appendResearchRecord(record);
+
+    expect(dispatchEvent).toHaveBeenCalledWith(expect.objectContaining({
+      type: 'reploid:pool-research-update',
+      detail: {
+        roomId: 'store-room',
+        recordHash: record.recordHash,
+        kind: 'research_submission'
+      }
+    }));
   });
 
   it('preserves locally before a failed remote publication and merges remote evidence on hydration', async () => {
@@ -80,12 +101,18 @@ describe('Poolday research store', () => {
     });
     expect(failed.remote).toBe(false);
     expect(loadResearchRecords('store-room')).toEqual([local]);
+    expect(getResearchSyncState('store-room')).toMatchObject({
+      phase: 'stale',
+      remote: 'unavailable',
+      remoteError: 'offline'
+    });
 
     const hydrated = await hydrateResearchRecords('store-room', {
       sdk: { listResearchRecords: vi.fn().mockResolvedValue({ records: [remote] }) }
     });
     expect(hydrated.remote).toBe(true);
     expect(hydrated.records.map((record) => record.recordHash)).toEqual([local.recordHash, remote.recordHash]);
+    expect(getResearchSyncState('store-room')).toMatchObject({ phase: 'synchronized', remote: 'synchronized' });
   });
 
   it('rejects a structurally valid but disabled candidate model before local persistence', async () => {
@@ -110,6 +137,11 @@ describe('Poolday research store', () => {
         reason: expect.stringContaining('model contract is not a currently enabled Poolday model')
       }]
     });
+    expect(getResearchSyncState('store-room')).toMatchObject({
+      phase: 'synchronized',
+      remote: 'synchronized',
+      rejectedRecords: [{ recordHash: candidate.recordHash }]
+    });
   });
 
   it('does not project a persisted record until signature and admission checks pass', async () => {
@@ -133,6 +165,11 @@ describe('Poolday research store', () => {
         recordHash: record.recordHash,
         reason: expect.stringContaining('record hash mismatch')
       }]
+    });
+    expect(getResearchSyncState('store-room')).toMatchObject({
+      phase: 'stale',
+      remote: 'unavailable',
+      rejectedRecords: [{ recordHash: record.recordHash }]
     });
     expect(localStorage.getItem('reploid.pool.research-evidence.v1::store-room')).toBe('[]');
   });

@@ -7,16 +7,20 @@ import { POOLDAY_NAME, ROUTE_COPY } from './constants.js';
 import {
   bindRecordStorageSync,
   getPoolDashboardView,
+  getPeerRoomId,
   getRouteId,
   isProductPath,
   refreshContributionPanels,
   refreshContributionStatusBar,
   refreshRecordLedgerState,
+  refreshResearchRoomState,
   restoreLatestCompletedRun,
   renderContributionStatusBar,
   renderNav,
   renderRouteDetail,
-  renderRoutePanel
+  renderRoutePanel,
+  loadPoolRoomDraft,
+  persistPoolRoomDraft
 } from './view.js';
 import { subscribeContributionState } from './contribution-state.js';
 import { resetPoolLedgerStore } from './ledger-store.js';
@@ -33,7 +37,7 @@ import {
   bindRunControls
 } from './controls.js';
 import { bindHomeSimulation } from './simulation-bind.js';
-import { bindResearchWorkspace, hydrateAndBindResearchWorkspace } from './research-view.js';
+import { bindResearchRoomActions, bindResearchWorkspace, hydrateAndBindResearchWorkspace } from './research-view.js';
 import { resetResearchStore } from './research-store.js';
 
 const stopPoolHomeBackground = () => {
@@ -51,6 +55,57 @@ const POOL_NAV_TOGGLE_TOOLTIPS = Object.freeze({
   closed: 'Open the navigation details from the left',
   open: 'Close the navigation details and keep the activity rail'
 });
+
+const roomDraftFields = (root) => ({
+  sequence: root.querySelector('#pool-home-ask-prompt, #pool-run-prompt')?.value || '',
+  intentKind: root.querySelector('#pool-home-intent-kind, #pool-run-intent-kind')?.value || 'question',
+  intentLabel: root.querySelector('#pool-home-intent-label, #pool-run-intent-label')?.value || '',
+  intentText: root.querySelector('#pool-home-intent-text, #pool-run-intent-text')?.value || '',
+  sequencePublic: Boolean(root.querySelector('#pool-home-sequence-public, #pool-run-sequence-public')?.checked),
+  researchPublic: Boolean(root.querySelector('#pool-home-research-public, #pool-run-research-public')?.checked)
+});
+
+const restoreRoomDraft = (root) => {
+  const draft = loadPoolRoomDraft();
+  if (!draft) return;
+  const setValue = (selector, value) => {
+    root.querySelectorAll(selector).forEach((field) => {
+      if (value !== undefined && value !== '') field.value = value;
+    });
+  };
+  const setChecked = (selector, value) => {
+    root.querySelectorAll(selector).forEach((field) => {
+      if (value !== undefined) field.checked = value === true;
+    });
+  };
+  setValue('#pool-home-ask-prompt, #pool-run-prompt', draft.sequence);
+  setValue('#pool-home-intent-kind, #pool-run-intent-kind', draft.intentKind);
+  setValue('#pool-home-intent-label, #pool-run-intent-label', draft.intentLabel);
+  setValue('#pool-home-intent-text, #pool-run-intent-text', draft.intentText);
+  setChecked('#pool-home-sequence-public, #pool-run-sequence-public', draft.sequencePublic);
+  setChecked('#pool-home-research-public, #pool-run-research-public', draft.researchPublic);
+};
+
+const bindRoomDraft = (root) => {
+  const controls = root.querySelectorAll('#pool-home-ask-prompt, #pool-run-prompt, #pool-home-intent-kind, #pool-run-intent-kind, #pool-home-intent-label, #pool-run-intent-label, #pool-home-intent-text, #pool-run-intent-text, #pool-home-sequence-public, #pool-run-sequence-public, #pool-home-research-public, #pool-run-research-public');
+  if (!controls.length) return;
+  const persist = () => persistPoolRoomDraft(roomDraftFields(root));
+  controls.forEach((control) => {
+    control.addEventListener('input', persist);
+    control.addEventListener('change', persist);
+  });
+};
+
+const bindResearchStoreSync = () => {
+  if (window.REPLOID_POOL_RESEARCH_UPDATE_HANDLER) {
+    window.removeEventListener('reploid:pool-research-update', window.REPLOID_POOL_RESEARCH_UPDATE_HANDLER);
+  }
+  window.REPLOID_POOL_RESEARCH_UPDATE_HANDLER = (event) => {
+    if (event.detail?.roomId !== getPeerRoomId()) return;
+    refreshResearchRoomState(getRouteId());
+  };
+  window.addEventListener('reploid:pool-research-update', window.REPLOID_POOL_RESEARCH_UPDATE_HANDLER);
+};
 
 const applyPoolNavOpenState = (nav, navToggle, isOpen) => {
   const openLabel = 'Close navigation';
@@ -123,6 +178,7 @@ export function initPoolHome(mount) {
   window.REPLOID_POOL_ATTACH_DOPPLER_HANDLE = (handle, model = null, runtimeInfo = null) => runtime.attachHandle(handle, model, runtimeInfo);
   mount.style.display = 'block';
   bindRecordStorageSync();
+  bindResearchStoreSync();
   let navOpen = false;
   if (window.REPLOID_POOL_NAV_ESCAPE_HANDLER) {
     window.removeEventListener('keydown', window.REPLOID_POOL_NAV_ESCAPE_HANDLER);
@@ -161,6 +217,8 @@ export function initPoolHome(mount) {
         ${secondaryContent}
       </main>
     `;
+    restoreRoomDraft(mount);
+    bindRoomDraft(mount);
     bindPoolRouteControls(mount, render, {
       navOpen,
       onNavOpenChange: (nextOpen) => {
@@ -177,8 +235,11 @@ export function initPoolHome(mount) {
     bindParticipationControls();
     bindRoomActivityControls();
     bindReceiptControls();
+    bindResearchRoomActions(mount);
     bindResearchWorkspace();
-    void hydrateAndBindResearchWorkspace();
+    void hydrateAndBindResearchWorkspace().then(() => {
+      if (document.body.dataset.poolRouteId === routeId) refreshResearchRoomState(routeId);
+    });
     refreshRecordLedgerState();
     restoreLatestCompletedRun(routeId);
     if (routeId === 'home') applyPoolDashboardView(dashboardView, { updateHistory: false });

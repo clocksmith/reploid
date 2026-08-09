@@ -2003,7 +2003,7 @@
     {
       "path": "ui/pool-home/controls.js",
       "owner": "ui",
-      "sha256": "sha256:ba128fcb6f17e82cbc277308cdbe776e5a95a6daecd5818d4f0fdae9fdff61db",
+      "sha256": "sha256:067dc64b1f39592ed93b8f4c5fce3fd79f865ee785a2964d653794d7605e4850",
       "imports": [
         "../../pool/adapter-publication.js",
         "../../pool/adapter-registry.js",
@@ -2029,7 +2029,7 @@
     {
       "path": "ui/pool-home/index.js",
       "owner": "ui",
-      "sha256": "sha256:4001fc1a41eb035308374a179887eab3b8121015aee5d381ca9e5de1c0f93404",
+      "sha256": "sha256:74b5093f0cd50df06104860e16c6b9a44770b8a064d5fa85ea381bbfb6449cb3",
       "imports": [
         "../../pool/doppler-runtime.js",
         "./constants.js",
@@ -2059,16 +2059,28 @@
     {
       "path": "ui/pool-home/record-persistence.js",
       "owner": "ui",
-      "sha256": "sha256:8c98e5b4eb5acd9232bcf9768bb862b0d25d67d021846b75c20957eabce7992b",
+      "sha256": "sha256:7cae87cfc24b4b844659f152d48042fce0bccc9078ad1bef979e55bc882cb509",
       "imports": [
         "../../pool/peer-room.js",
         "./constants.js"
       ]
     },
     {
+      "path": "ui/pool-home/requester-controls.js",
+      "owner": "ui",
+      "sha256": "sha256:702e6289f6a2b8c0f47141c8daeb061f30375486eff231146028fe3d81610f8a",
+      "imports": []
+    },
+    {
+      "path": "ui/pool-home/research-panels.js",
+      "owner": "ui",
+      "sha256": "sha256:266bf9f921d2c485ff33b933730ad87a1aaf1cddb6e0dcff8a7b6b71a5664539",
+      "imports": []
+    },
+    {
       "path": "ui/pool-home/research-store.js",
       "owner": "ui",
-      "sha256": "sha256:b386da8463ec6f5c661a7906a895c97c8b5e15a00840d629eed7cffb6a118b04",
+      "sha256": "sha256:a7abf7cc25113d039d499d88fa5a887dd3c55e550c991edb3a91a1ed683348ea",
       "imports": [
         "../../pool/evidence-network.js",
         "../../pool/peer-room.js",
@@ -2078,11 +2090,37 @@
     {
       "path": "ui/pool-home/research-view.js",
       "owner": "ui",
-      "sha256": "sha256:9f450a889fbdbc1138d1b5e0befe7b23612321533fc602713136462af562585e",
+      "sha256": "sha256:efeb8e98c5dafed964915b226ba0cbbe1e34f9a2951916a2b7b9855ce8ec2fa2",
       "imports": [
         "../../pool/evidence-network.js",
         "../../pool/identity.js",
+        "./research-panels.js",
         "./research-store.js"
+      ]
+    },
+    {
+      "path": "ui/pool-home/room-projection.js",
+      "owner": "ui",
+      "sha256": "sha256:851dea6f56ab2d1052cc82a95eb40699a200b571e9c70a499b61fe666bfaaa47",
+      "imports": [
+        "../../pool/evidence-network.js"
+      ]
+    },
+    {
+      "path": "ui/pool-home/room-record-projection.js",
+      "owner": "ui",
+      "sha256": "sha256:06380e1d92e5c909da0b92a4582d4fe8fcb8468d8cbff07680c7ca201c752081",
+      "imports": [
+        "../../pool/model-contract.js",
+        "./record-persistence.js"
+      ]
+    },
+    {
+      "path": "ui/pool-home/room-view.js",
+      "owner": "ui",
+      "sha256": "sha256:19b3120fe42b797eef3c58b45f313bf00aac28af048882a0ea6687987716133d",
+      "imports": [
+        "./room-projection.js"
       ]
     },
     {
@@ -2149,7 +2187,7 @@
     {
       "path": "ui/pool-home/view.js",
       "owner": "ui",
-      "sha256": "sha256:d824cdbc2745ecc73e67ed70e66c9e9a2d914c0ecf8e9a3c71ab32bd523c1aa2",
+      "sha256": "sha256:90fa8b9b35946964c2e2817cdadf9c639e1b302aaf29bdf2dcd238b6afb501f1",
       "imports": [
         "../../pool/model-contract.js",
         "../../pool/participation-profile.js",
@@ -2163,7 +2201,11 @@
         "./ledger-store.js",
         "./network-projection.js",
         "./record-persistence.js",
-        "./research-view.js"
+        "./requester-controls.js",
+        "./research-store.js",
+        "./research-view.js",
+        "./room-record-projection.js",
+        "./room-view.js"
       ]
     },
     {

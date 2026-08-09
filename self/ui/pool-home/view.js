@@ -47,6 +47,16 @@ import {
 } from './record-persistence.js';
 import { resolvePoolNetworkVisualState } from './network-projection.js';
 import { renderResearchWorkspace } from './research-view.js';
+import { getResearchSyncState, loadResearchRecords } from './research-store.js';
+import { renderResearchRoom, roomHref } from './room-view.js';
+import { renderRequesterConsentRows, renderRequesterIntentFields } from './requester-controls.js';
+import {
+  formatContributionModel,
+  formatContributionTokens,
+  projectRoomRecordRows,
+  receiptOccurredAt,
+  recordTimeMs
+} from './room-record-projection.js';
 
 export { resolvePoolNetworkVisualState };
 
@@ -74,6 +84,11 @@ export const getPeerRoomId = () => {
   return params.get('room') || window.REPLOID_POOL_ROOM_ID || DEFAULT_PEER_ROOM_ID;
 };
 
+export const getPoolRoomPanel = () => {
+  const panel = new URLSearchParams(window.location.search || '').get('panel');
+  return ['review', 'discovery'].includes(panel) ? panel : 'overview';
+};
+
 const recordPersistence = createPoolRecordPersistence({
   ledgerStore,
   getRoomId: () => getPeerRoomId()
@@ -82,6 +97,10 @@ const recordPersistence = createPoolRecordPersistence({
 export const getPooldayRecordStorageKeys = (roomId = getPeerRoomId()) => (
   buildPooldayRecordStorageKeys(roomId)
 );
+
+export const loadPoolRoomDraft = (roomId = getPeerRoomId()) => recordPersistence.loadDraft(roomId);
+export const persistPoolRoomDraft = (draft, roomId = getPeerRoomId()) => recordPersistence.persistDraft(draft, roomId);
+export const clearPoolRoomDraft = (roomId = getPeerRoomId()) => recordPersistence.clearDraft(roomId);
 
 const POOLDAY_RECORD_VIEW_STORAGE_KEY = 'reploid.pool.record-view.v1';
 const getRecordViewStorageKey = (roomId = getPeerRoomId()) => (
@@ -293,16 +312,6 @@ const normalizeReceiptSpeed = (value) => {
   return Number.isFinite(parsed) ? `${parsed.toFixed(2)} t/s` : String(candidate);
 };
 
-const receiptOccurredAt = (record = {}) => firstPresent(
-  record?.receipt?.timing?.completedAt,
-  record?.receipt?.timing?.endedAt,
-  record?.receipt?.endTimestamp,
-  record?.timing?.completedAt,
-  record?.completedAt,
-  record?.createdAt,
-  new Date().toISOString()
-);
-
 export const addReceiptLedgerRow = (record = {}, receiptHash = '') => {
   ensureReceiptLedgerLoaded();
   const jobId = firstPresent(
@@ -487,11 +496,6 @@ export const renderRoomActivity = (summary = null) => {
   `;
 };
 
-const recordTimeMs = (value) => {
-  const parsed = Date.parse(String(value || ''));
-  return Number.isFinite(parsed) ? parsed : 0;
-};
-
 const formatRecordTime = (value) => {
   const parsed = recordTimeMs(value);
   if (!parsed) return 'Unknown time';
@@ -501,76 +505,14 @@ const formatRecordTime = (value) => {
   }).format(new Date(parsed));
 };
 
-const receiptRecordKind = (row = {}) => {
-  const record = row.record || {};
-  return record.requesterAcceptance || record.agreement
-    ? 'Answer completed'
-    : 'Contribution made';
-};
-
 const unifiedRecordRows = () => {
   ensureRecordLedgersLoaded();
-  const receiptRows = ledgerStore.receipts.map((row) => ({
-    id: `receipt:${row.receiptHash}`,
-    type: 'answer',
-    occurredAt: row.occurredAt || receiptOccurredAt(row.record),
-    title: receiptRecordKind(row),
-    meta: [row.fidelity, row.provider !== '—' ? compactHash(row.provider) : null]
-      .filter(Boolean)
-      .join(' · '),
-    detail: row.record
-  }));
-  const knownReceiptHashes = new Set(receiptRows.map((row) => row.detail?.receiptHash || row.detail?.receipt?.receiptHash).filter(Boolean));
-  const contributionRows = (getContributionSnapshot().recent || [])
-    .filter((row) => row.receiptHash && !knownReceiptHashes.has(row.receiptHash))
-    .map((row) => ({
-      id: `contribution:${row.receiptHash}`,
-      type: 'contribution',
-      occurredAt: row.completedAt,
-      title: 'Contribution made',
-      meta: [
-        row.tokens > 0 ? `${formatContributionTokens(row.tokens)} tokens` : null,
-        row.modelId ? formatContributionModel(row.modelId) : null
-      ].filter(Boolean).join(' · '),
-      detail: row
-    }));
-  const peerRows = ledgerStore.peerEvents.map((event) => {
-    const body = event.body || {};
-    const title = event.type === 'points_event'
-      ? (Number(body.points || 0) < 0 ? 'Requester points spent' : 'Contributor points credited')
-      : event.type === 'reputation_event'
-        ? 'Contributor reputation updated'
-        : 'Room activity';
-    return {
-      id: `peer:${getPeerEventHash(event)}`,
-      type: 'room',
-      occurredAt: event.createdAt,
-      title,
-      meta: [
-        body.providerId || body.userId || event.fromPeerId,
-        body.reason
-      ].filter(Boolean).map(compactHash).join(' · '),
-      detail: event
-    };
+  return projectRoomRecordRows({
+    receipts: ledgerStore.receipts,
+    contributions: getContributionSnapshot().recent || [],
+    peerEvents: ledgerStore.peerEvents,
+    roomActivitySummary: ledgerStore.roomActivitySummary
   });
-  const roomRows = ledgerStore.roomActivitySummary && !ledgerStore.roomActivitySummary.error
-    && (Number(ledgerStore.roomActivitySummary.messageCount || 0) > 0 || ledgerStore.roomActivitySummary.recent?.length)
-    ? [{
-        id: `room:${getPeerRoomId()}`,
-        type: 'room',
-        occurredAt: ledgerStore.roomActivitySummary.recent?.[0]?.createdAt || new Date().toISOString(),
-        title: 'Room activity',
-        meta: `${Number(ledgerStore.roomActivitySummary.peerCount || 0)} tabs · ${Number(ledgerStore.roomActivitySummary.providerCount || 0)} contributors`,
-        detail: ledgerStore.roomActivitySummary
-      }]
-    : [];
-  const byId = new Map();
-  for (const row of [...receiptRows, ...contributionRows, ...peerRows, ...roomRows]) {
-    byId.set(row.id, row);
-  }
-  return [...byId.values()]
-    .sort((left, right) => recordTimeMs(right.occurredAt) - recordTimeMs(left.occurredAt))
-    .slice(0, 60);
 };
 
 const RECORD_FACETS = Object.freeze([
@@ -633,7 +575,7 @@ const renderDashboardActivity = (allRows = unifiedRecordRows()) => {
         </li>
       `).join('')}
     </ol>
-    <a class="link-secondary pool-drawer-link" href="/records" data-pool-route-link="/records">View all records</a>
+    <a class="link-secondary pool-drawer-link" href="${escapeHtml(roomHref('/records', getPeerRoomId()))}" data-pool-route-link="${escapeHtml(roomHref('/records', getPeerRoomId()))}">View all records</a>
   `;
 };
 
@@ -737,6 +679,7 @@ export const refreshRecordLedgerState = (options = {}) => {
   refreshRecordTimelineState();
   refreshReceiptLedgerState();
   refreshPeerLedgerState();
+  refreshResearchRoomState(getRouteId());
 };
 
 let recordStorageSyncBound = false;
@@ -1097,10 +1040,10 @@ const renderProteinEmbeddingOutcome = (id) => `
     <h3 class="type-h3">Ready for compatible comparison</h3>
     <p class="pool-embedding-outcome-meta" id="${id}-embedding-outcome-meta"></p>
     <p class="pool-embedding-outcome-copy">This is a 480-number representation for software, not a result to read manually. Use it with embeddings made by the same ESM-2 model and contract when comparing sequences.</p>
-    <p class="pool-embedding-outcome-copy">Poolday can now compare this result with exact-contract compatible public embeddings and connect it to separately signed human evidence. It does not generate biological interpretation or diagnosis.</p>
+    <p class="pool-embedding-outcome-copy">Reploid can now compare this result with exact-contract compatible public embeddings and connect it to separately signed human evidence. It does not generate biological interpretation or diagnosis.</p>
     <div class="pool-embedding-outcome-actions">
       <button class="btn btn-ghost" type="button" data-pool-copy-embedding data-pool-embedding-result-id="${id}" disabled>Copy vector</button>
-      <a class="btn btn-ghost" href="/records">Review and discover</a>
+      <a class="btn btn-ghost" href="${escapeHtml(roomHref('/records', getPeerRoomId()))}">Review and discover</a>
       <p class="pool-embedding-copy-status" data-pool-embedding-copy-status aria-live="polite"></p>
     </div>
     <p class="pool-embedding-copy-status" id="${id}-research-status" aria-live="polite"></p>
@@ -1601,9 +1544,11 @@ export const renderNav = (activeRoute, {
     const tooltip = escapeHtml(tooltips[id] || `Open ${label} in Reploid navigation`);
     const glyph = glyphs[id] || label.slice(0, 1);
     const description = escapeHtml(descriptions[id] || tooltips[id]);
+    const roomPath = roomHref(path, getPeerRoomId());
+    const dashboardPath = roomHref(id === 'home' ? '/' : `/?view=${id}`, getPeerRoomId());
     const dashboardAttributes = dashboard
-      ? ` href="${id === 'home' ? '/' : `/?view=${id}`}" data-pool-dashboard-view="${id}"`
-      : ` href="${path}" data-pool-route-link="${path}"`;
+      ? ` href="${escapeHtml(dashboardPath)}" data-pool-dashboard-view="${id}"`
+      : ` href="${escapeHtml(roomPath)}" data-pool-route-link="${escapeHtml(roomPath)}"`;
     return `<a class="pool-nav-link${isActive ? ' is-active' : ''}"${dashboardAttributes} aria-label="${ariaLabel}" title="${tooltip}" data-pool-nav-tooltip="${tooltip}"${currentAttr}><span class="pool-nav-glyph" aria-hidden="true">${escapeHtml(glyph)}</span><span class="pool-nav-label">${ariaLabel}</span><span class="pool-nav-description">${description}</span></a>`;
   };
   return `
@@ -1651,8 +1596,28 @@ const renderRoomContext = ({ compact = false } = {}) => `
   </div>
 `;
 
-const renderRouteShell = (copy, content) => `
+export const renderActiveResearchRoom = (routeId = getRouteId()) => {
+  const roomId = getPeerRoomId();
+  return renderResearchRoom({
+    roomId,
+    routeId,
+    panel: getPoolRoomPanel(),
+    researchRecords: loadResearchRecords(roomId),
+    receipts: ledgerStore.receipts,
+    peerEvents: ledgerStore.peerEvents,
+    syncState: getResearchSyncState(roomId)
+  });
+};
+
+export const refreshResearchRoomState = (routeId = getRouteId()) => {
+  const room = document.querySelector('[data-pool-research-room]');
+  if (!room) return;
+  room.outerHTML = renderActiveResearchRoom(routeId);
+};
+
+const renderRouteShell = (copy, content, { routeId = 'records' } = {}) => `
   <section class="panel pool-panel pool-route-shell">
+    ${renderActiveResearchRoom(routeId)}
     <div class="pool-page-heading">
       <h1 class="type-h1">${escapeHtml(copy.title)}</h1>
       <p class="type-caption pool-hero-body">${escapeHtml(copy.body)}</p>
@@ -1665,25 +1630,11 @@ const renderPolicyTrustLabel = (policy) => (
   policy.adaptiveRing ? 'group check' : 'one tab'
 );
 
-const formatContributionTokens = (value) => {
-  const tokens = Number(value || 0);
-  if (!Number.isFinite(tokens) || tokens <= 0) return '0';
-  if (tokens >= 1000000) return `${(tokens / 1000000).toFixed(1)}M`;
-  if (tokens >= 1000) return `${(tokens / 1000).toFixed(1)}k`;
-  return String(Math.round(tokens));
-};
-
 const formatContributionLast = (snapshot = {}) => {
   const recent = snapshot.recent?.[0];
   if (!recent) return 'none';
   const hash = recent.receiptHash ? ` ${compactHex(recent.receiptHash)}` : '';
   return `${formatContributionTokens(recent.tokens)}${hash}`;
-};
-
-const formatContributionModel = (modelId) => {
-  if (!modelId) return 'none loaded';
-  const contract = getEnabledPoolModelContract(modelId);
-  return contract?.label || modelId;
 };
 
 const renderRecentContributionRows = (snapshot = {}) => {
@@ -1994,6 +1945,7 @@ const renderHomeSimulation = ({ dashboardView = 'home' } = {}) => {
   const activeView = normalizePoolDashboardView(dashboardView);
   const suggestedPrompt = choosePooldayAskPlaceholderForLane('sequence');
   return `
+    ${renderActiveResearchRoom('home')}
     <section class="pool-home-stage" aria-label="Reploid network" data-pool-run-surface="home" data-run-state="idle" data-run-phase="" data-pool-lane="sequence" data-pool-dashboard-view="${activeView}">
       <div class="pool-home-toolbar" aria-label="Reploid home controls">
         <div class="pool-home-toolbar-leading pool-home-overlay" aria-label="Reploid overview">
@@ -2004,16 +1956,19 @@ const renderHomeSimulation = ({ dashboardView = 'home' } = {}) => {
         </div>
       </div>
       <p class="pool-home-run-status" data-pool-run-status aria-live="polite">Ready</p>
-      <div class="pool-simulation-shell" data-pool-network-state data-network-mode="simulation" aria-label="Reploid network graph">
-        <canvas class="pool-simulation-canvas" data-pool-simulation width="1200" height="680"></canvas>
-        <div class="pool-simulation-labels">
-          ${renderFlowLabels()}
+      <details class="pool-advanced pool-room-network-disclosure" data-pool-network-disclosure>
+        <summary>How peers produced this result</summary>
+        <div class="pool-simulation-shell" data-pool-network-state data-network-mode="simulation" aria-label="Reploid network graph">
+          <canvas class="pool-simulation-canvas" data-pool-simulation width="1200" height="680"></canvas>
+          <div class="pool-simulation-labels">
+            ${renderFlowLabels()}
+          </div>
+          <div class="pool-simulation-tooltip" data-pool-tooltip data-placement="above" role="tooltip" aria-hidden="true">
+            <b data-pool-tooltip-title></b>
+            <span data-pool-tooltip-body></span>
+          </div>
         </div>
-        <div class="pool-simulation-tooltip" data-pool-tooltip data-placement="above" role="tooltip" aria-hidden="true">
-          <b data-pool-tooltip-title></b>
-          <span data-pool-tooltip-body></span>
-        </div>
-      </div>
+      </details>
       <section class="pool-home-purpose" data-pool-home-purpose aria-label="How the protein evidence journey works">
         <p class="pool-home-purpose-kicker">What this does</p>
         <h2 class="type-h2">Grow inspectable protein evidence, from public input to reviewed discovery.</h2>
@@ -2053,20 +2008,13 @@ const renderHomeSimulation = ({ dashboardView = 'home' } = {}) => {
           <small data-pool-adapter-status hidden></small>
         </label>
         <div class="pool-sequence-options" data-pool-sequence-options>
-          <label class="pool-consent-row" data-pool-sequence-consent-row>
-            <input id="pool-home-sequence-public" type="checkbox" data-pool-request-control>
-            <span>I confirm this protein sequence is public.</span>
-          </label>
-          <strong data-pool-sequence-consent-saved hidden>Public-sequence acknowledgement saved.</strong>
-          <label class="pool-consent-row">
-            <input id="pool-home-research-public" type="checkbox" data-pool-request-control>
-            <span>Publish this sequence, intent, accepted embedding, and provenance to the public evidence network.</span>
-          </label>
-          <div class="pool-research-intent-fields">
-            <label><span>Intent</span><select id="pool-home-intent-kind"><option value="question">Question</option><option value="hypothesis">Hypothesis</option><option value="label">Label</option><option value="task_context">Task context</option></select></label>
-            <label><span>Short label</span><input id="pool-home-intent-label" maxlength="240" placeholder="Signal peptide candidate"></label>
-            <label><span>Question, hypothesis, or context <small>(optional)</small></span><input id="pool-home-intent-text" maxlength="8000" placeholder="What should reviewers examine?"></label>
-          </div>
+          ${renderRequesterConsentRows({
+            prefix: 'pool-home',
+            includeSavedNotice: true,
+            sequenceConsentAttributes: ' data-pool-sequence-consent-row',
+            requestAttributes: ' data-pool-request-control'
+          })}
+          ${renderRequesterIntentFields({ prefix: 'pool-home' })}
           <span>The peer job still sends the sequence only to selected contributors. Publication is a separate signed action under this consent.</span>
         </div>
         <div class="pool-home-ask-pill">
@@ -2120,15 +2068,10 @@ export const renderRouteDetail = (routeId) => {
             </div>
             <label class="pool-field">
               <span>Input disclosure</span>
-              <span class="pool-consent-row"><input id="pool-run-sequence-public" type="checkbox">I confirm this protein sequence is public.</span>
-              <span class="pool-consent-row"><input id="pool-run-research-public" type="checkbox">Publish the sequence, intent, accepted embedding, and provenance to the public evidence network.</span>
+              ${renderRequesterConsentRows({ prefix: 'pool-run', rowElement: 'span' })}
               <small>The peer job sends the sequence only to selected contributors. Publication is a separate signed action.</small>
             </label>
-            <div class="pool-research-intent-fields">
-              <label class="pool-field"><span>Intent</span><select id="pool-run-intent-kind"><option value="question">Question</option><option value="hypothesis">Hypothesis</option><option value="label">Label</option><option value="task_context">Task context</option></select></label>
-              <label class="pool-field"><span>Short label</span><input id="pool-run-intent-label" maxlength="240" placeholder="Signal peptide candidate"></label>
-              <label class="pool-field"><span>Question, hypothesis, or context <small>(optional)</small></span><textarea id="pool-run-intent-text" rows="3" maxlength="8000"></textarea></label>
-            </div>
+            ${renderRequesterIntentFields({ prefix: 'pool-run', textTag: 'textarea' })}
             <details class="pool-advanced">
               <summary>Settings</summary>
               <div class="pool-advanced-grid">
@@ -2156,7 +2099,7 @@ export const renderRouteDetail = (routeId) => {
             })}
           </section>
         </div>
-    `);
+    `, { routeId: normalizedRouteId });
   }
   if (normalizedRouteId === 'compute') {
     return renderRouteShell(copy, `
@@ -2194,13 +2137,31 @@ export const renderRouteDetail = (routeId) => {
             </div>
           </details>
         </div>
-    `);
+    `, { routeId: normalizedRouteId });
   }
   if (normalizedRouteId === 'records') {
     const recordFacet = getPoolRecordFacet();
+    const roomPanel = getPoolRoomPanel();
+    const contextualPanel = roomPanel === 'review'
+      ? {
+          title: 'Review evidence',
+          body: 'Make a signed decision or attach a correction to the evidence shown above.',
+          target: 'pool-room-review'
+        }
+      : roomPanel === 'discovery'
+        ? {
+            title: 'Discover the next action',
+            body: 'Inspect compatible evidence and approve a bounded follow-up without promoting a proposal into memory.',
+            target: 'pool-room-discovery'
+          }
+        : null;
     return renderRouteShell(copy, `
         <div class="pool-form pool-route-grid pool-record-layout" data-pool-receipts data-pool-reputation>
-          <div id="pool-research-workspace-host">${renderResearchWorkspace(getPeerRoomId())}</div>
+          ${contextualPanel ? `<section class="pool-room-contextual-panel" data-pool-room-contextual-panel="${escapeHtml(roomPanel)}"><p class="pool-dashboard-kicker">Room panel</p><h2 class="type-h2">${escapeHtml(contextualPanel.title)}</h2><p>${escapeHtml(contextualPanel.body)}</p><a class="btn btn-ghost" href="#${escapeHtml(contextualPanel.target)}">Open panel controls</a></section>` : ''}
+          <details class="pool-advanced pool-room-secondary-workspace" data-pool-room-panel="research" open>
+            <summary>Review and discovery workspace</summary>
+            <div id="pool-research-workspace-host">${renderResearchWorkspace(getPeerRoomId())}</div>
+          </details>
           <div id="pool-record-ledger" aria-live="polite" data-record-facet="${escapeHtml(recordFacet)}">${renderRecordLedger(recordFacet)}</div>
           <details class="pool-advanced pool-record-tools" data-pool-record-disclosure="technical-tools"${readRecordViewState().open['technical-tools'] ? ' open' : ''}>
             <summary>Technical tools</summary>
@@ -2232,7 +2193,7 @@ export const renderRouteDetail = (routeId) => {
             <p class="type-caption pool-protocol-version" aria-label="protocol identifier">Protocol ${POOLDAY_VERSION_TAG}</p>
           </details>
         </div>
-    `);
+    `, { routeId: normalizedRouteId });
   }
   return '';
 };

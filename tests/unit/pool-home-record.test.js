@@ -4,7 +4,11 @@ import { PEER_MESSAGE_TYPES } from '../../self/pool/peer-control-plane.js';
 import {
   addReceiptLedgerRow,
   findReceiptLedgerRecord,
+  getPoolRoomPanel,
   getPooldayRecordStorageKeys,
+  loadPoolRoomDraft,
+  persistPoolRoomDraft,
+  clearPoolRoomDraft,
   renderPeerLedgerState,
   renderRecordLedger,
   renderReceiptLedger,
@@ -28,9 +32,11 @@ const createMemoryStorage = () => {
   };
 };
 
-const setRoom = (roomId) => {
+const setRoom = (roomId, panel = '') => {
+  const params = new URLSearchParams({ room: roomId });
+  if (panel) params.set('panel', panel);
   vi.stubGlobal('window', {
-    location: { search: `?room=${encodeURIComponent(roomId)}` },
+    location: { search: `?${params.toString()}` },
     addEventListener: vi.fn(),
     removeEventListener: vi.fn(),
     dispatchEvent: vi.fn()
@@ -76,6 +82,43 @@ describe('Poolday record ledgers', () => {
 
     setRoom(roomA);
     expect(findReceiptLedgerRecord('sha256:receipt-a')?.receipt?.providerId).toBe('provider_page_nested');
+  });
+
+  it('persists unsent room drafts by room without treating them as evidence', () => {
+    const roomA = `draft-room-a-${crypto.randomUUID()}`;
+    const roomB = `draft-room-b-${crypto.randomUUID()}`;
+    setRoom(roomA);
+    persistPoolRoomDraft({ sequence: 'MAPLALLLLGLVAGA', intentText: 'Review this sequence' });
+    expect(storage.getItem(getPooldayRecordStorageKeys().draft)).toContain('MAPLALLLLGLVAGA');
+    expect(loadPoolRoomDraft()).toMatchObject({
+      sequence: 'MAPLALLLLGLVAGA',
+      intentText: 'Review this sequence'
+    });
+
+    setRoom(roomB);
+    expect(loadPoolRoomDraft()).toBeNull();
+    setRoom(roomA);
+    clearPoolRoomDraft();
+    expect(loadPoolRoomDraft()).toBeNull();
+    expect(loadPoolRoomDraft()).not.toEqual(expect.objectContaining({ kind: 'research_submission' }));
+  });
+
+  it('projects contextual review and discovery panels from the room query', () => {
+    const room = `contextual-room-${crypto.randomUUID()}`;
+
+    setRoom(room, 'review');
+    const reviewHtml = renderRouteDetail('records');
+    expect(getPoolRoomPanel()).toBe('review');
+    expect(reviewHtml).toContain('data-pool-room-contextual-panel="review"');
+    expect(reviewHtml).toContain('id="pool-room-review"');
+    expect(reviewHtml).toContain('data-room-panel="review"');
+
+    setRoom(room, 'discovery');
+    const discoveryHtml = renderRouteDetail('records');
+    expect(getPoolRoomPanel()).toBe('discovery');
+    expect(discoveryHtml).toContain('data-pool-room-contextual-panel="discovery"');
+    expect(discoveryHtml).toContain('id="pool-room-discovery"');
+    expect(discoveryHtml).toContain('data-room-panel="discovery"');
   });
 
   it('renders peer ledger zero counts instead of blank cells', () => {
