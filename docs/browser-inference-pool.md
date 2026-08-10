@@ -84,8 +84,8 @@ Browser providers derive artifact URLs from the selected model's `artifactPolicy
 The ESM-2 launch artifact is an immutable, publicly readable mirror in
 `gs://reploid-model-artifacts`, sourced from the exact checkpoint revision
 declared by `pool-config.json`. [`deploy/model-artifact-cors.json`](../deploy/model-artifact-cors.json)
-defines the required `replo.id` and default local browser origins, byte-range
-methods, and observable artifact headers. The source policy is machine-checked,
+defines the required `replo.id`, Firebase Hosting, and default local browser
+origins, byte-range methods, and observable artifact headers. The source policy is machine-checked,
 but it is not proof that the deployed bucket has applied it. Authentic browser
 qualification must independently verify the delivered CORS behavior.
 and immutable cache metadata, so browser cold starts do not depend on model-hub

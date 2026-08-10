@@ -27,6 +27,8 @@ const hashesMatch = (left, right) => (
 
 export const REQUIRED_ARTIFACT_CORS_ORIGINS = Object.freeze([
   'https://replo.id',
+  'https://reploid.web.app',
+  'https://reploid.firebaseapp.com',
   'http://localhost:8000'
 ]);
 

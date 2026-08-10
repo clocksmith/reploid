@@ -2,6 +2,8 @@
   {
     "origin": [
       "https://replo.id",
+      "https://reploid.web.app",
+      "https://reploid.firebaseapp.com",
       "http://localhost:8000"
     ],
     "method": [
