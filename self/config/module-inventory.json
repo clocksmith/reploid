@@ -490,7 +490,7 @@
     {
       "path": "core/verification-worker.js",
       "owner": "core",
-      "sha256": "sha256:55308069e373f6334df88fcab8bdc734f3be7be4945a75ede753623f971565e2",
+      "sha256": "sha256:f99cdc919726f5a7820d684945ae176b859c21c4547b982e38ed824e271865f7",
       "imports": []
     },
     {
@@ -885,7 +885,7 @@
     {
       "path": "pool/evidence-network.js",
       "owner": "pool",
-      "sha256": "sha256:a2f1a9387d1719a31c3bc49d2f81c226f6f1c8e788dbc49aab4ef9e286e5ba13",
+      "sha256": "sha256:22b078877c60355dbc59bdc5313a21e09dc0953dd81ab5d2f1ef3270d67ad511",
       "imports": [
         "./discovery-action-value.js",
         "./inference-receipt.js",
@@ -1191,7 +1191,7 @@
     {
       "path": "pool/research-cycle.js",
       "owner": "pool",
-      "sha256": "sha256:e3754fe99f834ad0bf4deba604aee7b3052e410d188d43c46136be707551a4e6",
+      "sha256": "sha256:ee7bea5689045103772bba5ae0940c10239d9b91a3cb021dc5760904c68291e0",
       "imports": [
         "./evidence-network.js"
       ]
@@ -2011,7 +2011,7 @@
     {
       "path": "ui/pool-home/controls.js",
       "owner": "ui",
-      "sha256": "sha256:805e1ae9127b6c525c45363322a0058161cbf313fc80f8b4da490270c8f78bf9",
+      "sha256": "sha256:53362c180a5cd1fb519ee36f2f13b8fd870d46d6954c2336b98affa53fb79fa2",
       "imports": [
         "../../pool/adapter-publication.js",
         "../../pool/adapter-registry.js",
@@ -2114,7 +2114,7 @@
     {
       "path": "ui/pool-home/research-view.js",
       "owner": "ui",
-      "sha256": "sha256:c8b9dcdd042f32232b442097f96d80fa73462840f05078cf7a5f48ca45540581",
+      "sha256": "sha256:7680b6822e715f1d6b495a9bd1dfd66d0c8f4b73c170002782b1a12392a4e492",
       "imports": [
         "../../pool/evidence-network.js",
         "../../pool/identity.js",
@@ -2127,7 +2127,7 @@
     {
       "path": "ui/pool-home/room-projection.js",
       "owner": "ui",
-      "sha256": "sha256:bbf152896b3fce2d5aa3dc029bd2852e8feff09c2f2be2dfc992df2b6ae8312b",
+      "sha256": "sha256:5998040540401f0e4db1047753b055e5b29998ff79a91ff3ca5ba4a43d401fb2",
       "imports": [
         "../../pool/evidence-network.js",
         "../../pool/research-cycle.js"
@@ -2145,7 +2145,7 @@
     {
       "path": "ui/pool-home/room-view.js",
       "owner": "ui",
-      "sha256": "sha256:9918bf3b700ec4ca438c3eda3974361c079692c33b2a90b87a616dda15312886",
+      "sha256": "sha256:25b8582d0aaefedef252c0cc307a6c21b12bb36ce7092fc07c36be4f4d5ae8cf",
       "imports": [
         "./room-projection.js"
       ]

@@ -20,8 +20,8 @@ The current Cloud Run and Firestore path is transitional. The target Reploid con
 ## Current Local Checks
 
 - [x] `npm run verify:pool -- --allow-placeholders` passes locally.
-- [x] Unit suite passes: 1,511 passed and 25 skipped.
-- [x] Integration suite passes: 359 passed and 9 skipped.
+- [x] Unit suite passes: 1,712 passed and 25 skipped.
+- [x] Integration suite passes: 363 passed and 9 skipped.
 - [ ] Re-run `npm run verify:pool:release -- --url https://replo.id --channel=chrome` after deployment. The current release reports `2026-07-28.doppler-0.5.1.v2` while the governed local contract is `2026-08-01.sequence-model-contracts.v1.doppler-0.5.1`; release verification now fails before any browser workload on this mismatch.
 - [x] `npm audit` and the production-image `npm ci --omit=dev --include=optional` audit report zero vulnerabilities.
 - [x] No literal `TODO`, `FIXME`, `TBD`, or `XXX` markers existed in pool files before this document.
@@ -157,8 +157,10 @@ claim, and deployment evidence exist.
 - [x] Permit agent-authored hypotheses, prior evidence, predictions, and work
   orders without granting agents review, approval, memory, or execution
   authority.
-- [x] Require accepted compute agreement to bind at least two distinct receipt
-  identities.
+- [x] Require accepted compute agreement and reusable compute memory to bind at
+  least two distinct receipt identities and two distinct provider identities.
+- [x] Bind task approval to the exact projected rationale, basis, target, and
+  ranking policy so stale approval cannot authorize changed work.
 - [x] Require cohort predictions, work orders, outcomes, and the cohort itself
   to pass independent acceptance before evaluation consumes them.
 - [x] Cover the governed projection, contextual review, reload recovery,

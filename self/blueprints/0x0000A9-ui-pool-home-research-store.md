@@ -4,11 +4,11 @@
 
 **Implementation Status:** Implemented
 
-**Verified Artifacts:** `/self/ui/pool-home/controls.js`, `/self/ui/pool-home/research-store.js`, `/self/ui/pool-home/research-view.js`, `/self/ui/pool-home/view.js`
+**Verified Artifacts:** `/self/ui/pool-home/controls.js`, `/self/ui/pool-home/requester-controls.js`, `/self/ui/pool-home/research-panels.js`, `/self/ui/pool-home/research-store.js`, `/self/ui/pool-home/research-view.js`, `/self/ui/pool-home/room-projection.js`, `/self/ui/pool-home/room-view.js`, `/self/ui/pool-home/view.js`
 
 **Planned Artifacts:** None
 
-**Owned Source Files:** `ui/pool-home/research-store.js`, `ui/pool-home/research-view.js`
+**Owned Source Files:** `ui/pool-home/requester-controls.js`, `ui/pool-home/research-panels.js`, `ui/pool-home/research-store.js`, `ui/pool-home/research-view.js`, `ui/pool-home/room-projection.js`, `ui/pool-home/room-view.js`
 
 **Former Blueprint Paths:** `self/blueprints/0x0000A9-ui-pool-home-research-store.md`
 **Objective:** Keep signed public research evidence available across browser reloads and coordinator outages without weakening immutability.
@@ -33,6 +33,8 @@ Coordinator failure leaves a verified local record and reports synchronization a
 - [x] Publication persists locally before remote I/O
 - [x] Duplicate hashes are idempotent
 - [x] Remote evidence merges only after signature and hash validation
-- [x] Human task execution requires an explicit signed approval
+- [x] Human task execution requires an explicit signed approval bound to the
+  exact current task contract
+- [x] Accepted single-provider compute remains visible but outside room memory
 
 *Last updated: August 2026*

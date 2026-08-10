@@ -80,7 +80,9 @@ over verified, room-scoped signed records:
    conditions, desired observation, decision context, scope, exclusions, and
    known unknowns. Missing structure remains an explicit clarification gap.
 2. Peers execute the exact model contract. An accepted execution-agreement
-   claim requires at least two distinct receipt identities.
+   claim requires at least two distinct receipt identities and two distinct
+   provider identities. Public Research requests select a policy that guarantees
+   at least two providers.
 3. Results preserve exact model, receipt, provider, runtime, output, consent,
    and provenance identities.
 4. The room exposes agreement, disagreement, question gaps, missing receipts,
@@ -89,11 +91,14 @@ over verified, room-scoped signed records:
    replication, or attach a separately reviewed correction. Conflicting latest
    reviewer decisions project as disputed.
 6. Only independently accepted active evidence enters reusable room memory.
-   Revoked records, disputed records, replication requests, and records
+   Receipt-backed results also require independent execution. Revoked records,
+   disputed records, replication requests, single-provider results, and records
    superseded by accepted corrections remain visible but excluded.
 7. Governance actions can respond to provisional records, but scientific next
-   actions must identify accepted-memory basis hashes. Every proposed action
-   requires human approval and carries no allocation or execution authority.
+   actions must identify accepted-memory basis hashes. A signed approval binds
+   the exact projected task contract, including rationale, basis hashes, and
+   ranking policy. Every proposed action carries no allocation or execution
+   authority.
 
 The source projection is [`research-cycle.js`](../../self/pool/research-cycle.js).
 This slice does not implement calibrated biological action value, laboratory

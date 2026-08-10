@@ -49,8 +49,10 @@ their review, but scientific next actions cannot cite them as basis until they
 enter accepted memory.
 
 `projectGovernedResearchCycle(records, { questionHash })` is a read-only,
-deterministic projection. Its `nextQuestion` output always has
-`humanApprovalRequired: true` and `executionAuthority: "none"`.
+deterministic projection. Its `nextQuestion` output exposes whether the exact
+current task contract still requires approval or names the signed approval
+record that already satisfied it. It always has `executionAuthority: "none"`.
+Approval never lets an agent allocate or execute work.
 
 Poolday receipts are inference evidence.
 They are not self-improvement promotion evidence unless `/x` adds a separate validator gate.

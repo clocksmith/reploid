@@ -376,7 +376,9 @@ describe('Poolday home ask controls', () => {
 
   it('preserves the signed public research submission before peer compute can fail', async () => {
     window.history.replaceState({}, '', '/?room=evidence-room&relay=local');
-    document.body.innerHTML = `${renderRoutePanel('home')}<select id="pool-home-request-model"><option value="${LAUNCH_MODEL.modelId}" selected>${LAUNCH_MODEL.label}</option></select>`;
+    document.body.innerHTML = `${renderRoutePanel('home')}
+      <select id="pool-home-request-model"><option value="${LAUNCH_MODEL.modelId}" selected>${LAUNCH_MODEL.label}</option></select>
+      <select id="pool-home-request-policy"><option value="ring_quorum_receipt" selected>Adaptive ring</option></select>`;
     const unavailable = Object.assign(new Error('No provider'), { code: 'peer_provider_not_found' });
     peerRoomMocks.runPeerJob.mockRejectedValueOnce(unavailable);
     bindHomeAskControls();
@@ -393,6 +395,9 @@ describe('Poolday home ask controls', () => {
     document.getElementById('pool-home-ask-form').requestSubmit();
 
     await vi.waitFor(() => expect(peerRoomMocks.runPeerJob).toHaveBeenCalledTimes(1));
+    expect(peerRoomMocks.runPeerJob).toHaveBeenCalledWith(expect.objectContaining({
+      policyId: 'redundant_agreement'
+    }));
     const key = Array.from({ length: window.localStorage.length }, (_, index) => window.localStorage.key(index))
       .find((candidate) => candidate?.startsWith('reploid.pool.research-evidence.v1::'));
     const records = JSON.parse(window.localStorage.getItem(key) || '[]');

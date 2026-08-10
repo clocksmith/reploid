@@ -3,7 +3,10 @@ import { describe, expect, it } from 'vitest';
 import { projectResearchRoom } from '../../self/ui/pool-home/room-projection.js';
 import { renderResearchRoom } from '../../self/ui/pool-home/room-view.js';
 
-const hash = (character) => `sha256:${character.repeat(64)}`;
+const hash = (character) => {
+  const hex = String(character).codePointAt(0).toString(16).padStart(2, '0');
+  return `sha256:${hex.repeat(Math.ceil(64 / hex.length)).slice(0, 64)}`;
+};
 
 const model = {
   id: 'room-model',
@@ -144,6 +147,38 @@ describe('Research Room projection', () => {
       expect.objectContaining({ kind: 'review', title: 'Result awaits review' })
     ]));
     expect(room.memory).toHaveLength(0);
+  });
+
+  it('does not remember a reviewed result until independent execution exists', () => {
+    const question = submission({ roomId: 'single-provider-room' });
+    const answer = result({ roomId: question.roomId, submissionHash: question.recordHash });
+    answer.recordHash = hash('q');
+    const acceptance = {
+      ...acceptedReview(answer.recordHash),
+      roomId: question.roomId,
+      recordHash: hash('w')
+    };
+    const room = projectResearchRoom({
+      roomId: question.roomId,
+      researchRecords: [question, answer, acceptance]
+    });
+
+    expect(room.status).toBe('awaiting_replication');
+    expect(room.latestResult).toMatchObject({
+      sourceHash: answer.recordHash,
+      reviewState: 'accepted',
+      status: 'accepted_pending_replication'
+    });
+    expect(room.memory).toEqual([]);
+    expect(room.memoryExclusions).toContainEqual(expect.objectContaining({
+      recordHash: answer.recordHash,
+      reason: 'independent_execution_missing'
+    }));
+    expect(room.unresolved).toContainEqual(expect.objectContaining({
+      kind: 'replication',
+      title: 'Accepted result needs independent execution'
+    }));
+    expect(room.recovery.states).toContain('awaiting_replication');
   });
 
   it('keeps rejected and needs-revision results out of memory while exposing the decision', () => {
@@ -320,6 +355,41 @@ describe('Research Room projection', () => {
     })]);
     expect(renderResearchRoom({ roomId: question.roomId, researchRecords: [question, hypothesis] }))
       .toContain('The sequence may contain a cleavable signal peptide.');
+  });
+
+  it('shows exact signed task approval without implying execution authority', () => {
+    const question = submission({ roomId: 'approved-task-room' });
+    const initial = projectResearchRoom({ roomId: question.roomId, researchRecords: [question] });
+    const task = initial.cycle.actions[0];
+    const approval = {
+      kind: 'human_claim',
+      recordHash: hash('y'),
+      roomId: question.roomId,
+      createdAt: '2026-08-09T10:03:00.000Z',
+      targetHash: task.targetHash,
+      author: { identityRootId: 'reviewer-task-root', userId: 'reviewer-task', roleId: 'reviewer' },
+      claim: {
+        kind: 'task_approval',
+        relation: 'approves',
+        decision: 'approved',
+        text: 'Approve the exact current task.',
+        taskId: task.taskId,
+        taskContract: task.taskContract
+      }
+    };
+    const records = [question, approval];
+    const room = projectResearchRoom({ roomId: question.roomId, researchRecords: records });
+    const html = renderResearchRoom({ roomId: question.roomId, researchRecords: records });
+
+    expect(room.nextQuestion).toMatchObject({
+      humanApprovalRequired: false,
+      humanApprovalStatus: 'approved',
+      approvalRecordHashes: [approval.recordHash],
+      executionAuthority: 'none'
+    });
+    expect(html).toContain('Signed approval: 1 exact task contract.');
+    expect(html).toContain('Approval does not allocate or execute work.');
+    expect(html).not.toContain('data-pool-room-approve-task=');
   });
 
   it('isolates rooms and keeps participant identity labels consent-scoped', () => {

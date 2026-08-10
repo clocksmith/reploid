@@ -121,6 +121,21 @@ describe('Poolday governed research cycle', () => {
     });
   });
 
+  it('keeps question clarification ahead of downstream work', () => {
+    const source = question();
+    source.requesterIntent.conditions = '';
+    source.requesterIntent.desiredObservation = '';
+    const cycle = projectGovernedResearchCycle([source]);
+
+    expect(cycle.clarity.status).toBe('needs_clarification');
+    expect(cycle.nextQuestion).toMatchObject({
+      status: 'needs_clarification',
+      actionKind: 'clarify_question',
+      basis: 'question_anchor',
+      basisHashes: []
+    });
+  });
+
   it('derives scientific actions only from independently accepted memory', () => {
     const source = question();
     const computed = result();

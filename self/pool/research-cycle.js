@@ -11,6 +11,7 @@ import {
   activeResearchRecords,
   buildPredictionDisagreementMap,
   projectAcceptedResearchMemory,
+  projectResearchExecutionIndependence,
   projectResearchQuestionClarity,
   projectResearchReviewStates,
   proposeDiscoveryTasks,
@@ -63,25 +64,18 @@ const recordsForQuestion = (records, question) => {
 const projectExecution = (records, reviewStates) => records
   .filter((record) => record.kind === RESEARCH_RECORD_KINDS.result)
   .map((record) => {
-    const receiptHashes = unique(record.compute?.receiptHashes || [record.compute?.receiptHash]);
-    const providerIds = unique([
-      record.compute?.providerId,
-      ...(record.compute?.agreement?.providerIds || record.compute?.agreement?.acceptedProviderIds || [])
-    ]);
+    const independence = projectResearchExecutionIndependence(record);
     const agreementStatus = text(record.compute?.agreement?.status).toLowerCase() || 'not_assessed';
     return {
       recordHash: record.recordHash,
       modelContract: record.modelContract || null,
       primaryReceiptHash: record.compute?.receiptHash || null,
-      receiptHashes,
-      providerIds,
-      independentReceiptCount: receiptHashes.length,
-      reproducibility: receiptHashes.length >= 2 && providerIds.length >= 2
-        ? 'independently_reproduced'
-        : receiptHashes.length < 2
-          ? 'single_receipt'
-          : 'provider_independence_missing',
-      agreement: ['accepted', 'agreed'].includes(agreementStatus) && (receiptHashes.length < 2 || providerIds.length < 2)
+      receiptHashes: independence.receiptHashes,
+      providerIds: independence.providerIds,
+      independentReceiptCount: independence.independentReceiptCount,
+      independentProviderCount: independence.independentProviderCount,
+      reproducibility: independence.status,
+      agreement: ['accepted', 'agreed'].includes(agreementStatus) && !independence.independentlyExecuted
         ? 'invalid_independence_claim'
         : agreementStatus,
       reviewState: reviewStates.get(record.recordHash)?.state || 'unresolved'
@@ -183,16 +177,21 @@ const projectNextQuestion = ({ question, clarity, memory, tasks, rankedCandidate
   }))
     .sort((left, right) => Number(right.heuristicPriority || 0) - Number(left.heuristicPriority || 0)
       || left.taskId.localeCompare(right.taskId));
-  const action = candidates[0] || null;
+  const action = clarity.status !== 'bounded'
+    ? candidates.find((candidate) => (candidate.actionKind || candidate.kind) === 'clarify_question') || candidates[0] || null
+    : candidates[0] || null;
   const acceptedBasis = action?.basis === 'accepted_memory'
     ? unique((action.basisHashes || []).filter((hash) => memory.acceptedHashes.includes(hash)))
     : [];
-  const status = !clarity.minimumReady
+  const approvalRecordHashes = unique(action?.approvalRecordHashes || []);
+  const status = clarity.status !== 'bounded'
     ? 'needs_clarification'
     : !memory.acceptedHashes.length
       ? 'awaiting_accepted_evidence'
       : action
-        ? 'proposal_ready_for_human_review'
+        ? approvalRecordHashes.length
+          ? 'approved_proposal_requires_allocation'
+          : 'proposal_ready_for_human_review'
         : 'cycle_review_required';
   return {
     status,
@@ -204,11 +203,13 @@ const projectNextQuestion = ({ question, clarity, memory, tasks, rankedCandidate
     targetHash: action?.targetHash || question.recordHash,
     basis: action?.basis || 'question_anchor',
     basisHashes: acceptedBasis,
+    approvalRecordHashes,
     uncertainty: unique([
       ...gaps.slice(0, 8).map((gap) => gap.detail),
       ...disagreements.map((entry) => entry.detail)
     ]),
-    humanApprovalRequired: true,
+    humanApprovalRequired: approvalRecordHashes.length === 0,
+    humanApprovalStatus: approvalRecordHashes.length ? 'approved' : 'required',
     executionAuthority: 'none'
   };
 };

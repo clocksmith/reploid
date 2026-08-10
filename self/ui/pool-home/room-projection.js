@@ -10,6 +10,7 @@ import {
   activeResearchRecords,
   buildQuestionLifecycles,
   invalidatedResearchHashes,
+  projectResearchExecutionIndependence,
   projectResearchReviewStates
 } from '../../pool/evidence-network.js';
 import { projectGovernedResearchCycle } from '../../pool/research-cycle.js';
@@ -139,14 +140,9 @@ const evidenceAgreement = (result, records) => {
   if (!result) return { state: 'evidence_unavailable', label: 'Evidence unavailable', sourceHash: null };
   const agreement = result.compute?.agreement || null;
   const explicitStatus = asText(agreement?.status).toLowerCase();
-  const independentReceiptCount = unique(result.compute?.receiptHashes || [result.compute?.receiptHash]).length;
-  const independentProviderCount = unique([
-    result.compute?.providerId,
-    ...(agreement?.providerIds || agreement?.acceptedProviderIds || [])
-  ]).length;
+  const independence = projectResearchExecutionIndependence(result);
   if ((explicitStatus === 'accepted' || explicitStatus === 'agreed')
-    && independentReceiptCount >= 2
-    && independentProviderCount >= 2) {
+    && independence.independentlyExecuted) {
     return { state: 'agreement_assessed', label: 'Agreement assessed', sourceHash: result.recordHash };
   }
   if (
@@ -317,7 +313,15 @@ const projectProposals = (active, reviewStates, acceptedCorrections) => active
     };
   });
 
-const projectUnresolved = ({ active, reviewStates, latestResult, agreement, tasks, acceptedCorrections }) => {
+const projectUnresolved = ({
+  active,
+  reviewStates,
+  latestResult,
+  latestResultRemembered,
+  agreement,
+  tasks,
+  acceptedCorrections
+}) => {
   const unresolved = [];
   if (!latestResult) {
     unresolved.push({
@@ -359,6 +363,15 @@ const projectUnresolved = ({ active, reviewStates, latestResult, agreement, task
       detail: `An accepted correction supersedes this result: ${asText(correction.claim?.text, 'inspect the linked correction')}`,
       sourceHash: correction.recordHash,
       action: 'Review evidence'
+    });
+  } else if (latestResult && latestReviewState === 'accepted' && !latestResultRemembered) {
+    unresolved.push({
+      id: 'result-independent-execution',
+      kind: 'replication',
+      title: 'Accepted result needs independent execution',
+      detail: 'Human review accepted this result, but reusable room memory still requires two distinct receipt and provider identities.',
+      sourceHash: latestResult.recordHash,
+      action: 'Reproduce result'
     });
   } else if (latestResult && latestReviewState !== 'accepted') {
     const reviewBoundary = {
@@ -514,14 +527,25 @@ const buildTimeline = ({ records, peerEvents, receipts, reviewStates, invalidate
   return entries.sort(sortByTime);
 };
 
-const projectResult = (result, submission, reviewStates, agreement, modelEvidence, acceptedCorrections) => {
+const projectResult = (
+  result,
+  submission,
+  reviewStates,
+  agreement,
+  modelEvidence,
+  acceptedCorrections,
+  rememberedHashes
+) => {
   if (!result) return null;
   const consent = publicationConsent(submission);
+  const reviewState = reviewStates.get(result.recordHash)?.state || 'unreviewed';
   return {
     sourceHash: result.recordHash,
     status: acceptedCorrections.has(result.recordHash)
       ? 'corrected'
-      : reviewStates.get(result.recordHash)?.state || 'unreviewed',
+      : reviewState === 'accepted' && !rememberedHashes.has(result.recordHash)
+        ? 'accepted_pending_replication'
+        : reviewState,
     embeddingDimensions: result.embedding?.dimensions || result.modelContract?.dimensions || null,
     model: {
       id: result.modelContract?.id || null,
@@ -543,7 +567,7 @@ const projectResult = (result, submission, reviewStates, agreement, modelEvidenc
           targetHash: modelEvidence.nextAction.targetHash
         }
       : null,
-    reviewState: reviewStates.get(result.recordHash)?.state || 'unreviewed',
+    reviewState,
     publication: {
       sequence: consent.sequence,
       embedding: consent.embedding,
@@ -561,10 +585,17 @@ const RECOVERY_LABELS = Object.freeze({
   stale: 'Stale coordinator view',
   rejected: 'Rejected records',
   invalidated: 'Invalidated evidence',
-  awaiting_review: 'Awaiting review'
+  awaiting_review: 'Awaiting review',
+  awaiting_replication: 'Awaiting independent execution'
 });
 
-const projectRecovery = ({ syncState = {}, invalidatedCount = 0, awaitingReview = false, activeCount = 0 } = {}) => {
+const projectRecovery = ({
+  syncState = {},
+  invalidatedCount = 0,
+  awaitingReview = false,
+  awaitingReplication = false,
+  activeCount = 0
+} = {}) => {
   const phase = ['local_only', 'synchronizing', 'synchronized', 'stale'].includes(syncState.phase)
     ? syncState.phase
     : 'local_only';
@@ -574,6 +605,7 @@ const projectRecovery = ({ syncState = {}, invalidatedCount = 0, awaitingReview 
   if (Array.isArray(syncState.rejectedRecords) && syncState.rejectedRecords.length) states.push('rejected');
   if (invalidatedCount > 0) states.push('invalidated');
   if (awaitingReview) states.push('awaiting_review');
+  if (awaitingReplication) states.push('awaiting_replication');
   const uniqueStates = [...new Set(states)];
   return {
     phase,
@@ -619,6 +651,7 @@ export function projectResearchRoom({
   const result = resultForQuestion(active, submission);
   const agreement = evidenceAgreement(result, scopedRecords);
   const cycle = projectGovernedResearchCycle(scopedRecords, { questionHash: submission?.recordHash || null });
+  const rememberedHashes = new Set(cycle.memory.acceptedHashes);
   const tasks = cycle.actions;
   const ranked = cycle.ranking.rankedCandidates || [];
   const rankedById = new Map(ranked.map((task) => [task.actionId, task]));
@@ -660,6 +693,7 @@ export function projectResearchRoom({
     active,
     reviewStates,
     latestResult: result,
+    latestResultRemembered: result ? rememberedHashes.has(result.recordHash) : false,
     agreement,
     tasks: nextActions,
     acceptedCorrections
@@ -680,12 +714,13 @@ export function projectResearchRoom({
       : acceptedCorrections.has(result.recordHash)
         ? 'corrected'
         : reviewStates.get(result.recordHash)?.state === 'accepted'
-          ? 'remembered'
+          ? rememberedHashes.has(result.recordHash) ? 'remembered' : 'awaiting_replication'
           : 'awaiting_review';
   const recovery = projectRecovery({
     syncState,
     invalidatedCount: invalidated.size,
     awaitingReview: status === 'awaiting_review',
+    awaitingReplication: status === 'awaiting_replication',
     activeCount: active.length
   });
   const modelEvidence = submission
@@ -698,7 +733,15 @@ export function projectResearchRoom({
     recovery,
     question,
     participants,
-    latestResult: projectResult(result, submission, reviewStates, agreement, modelEvidence, acceptedCorrections),
+    latestResult: projectResult(
+      result,
+      submission,
+      reviewStates,
+      agreement,
+      modelEvidence,
+      acceptedCorrections,
+      rememberedHashes
+    ),
     unresolved,
     nextActions: nextActions.slice(0, 5).map((task) => ({
       id: task.actionId || task.taskId,
@@ -708,7 +751,8 @@ export function projectResearchRoom({
       status: task.status || 'proposed',
       priority: task.heuristicPriority || null,
       basis: task.basis || 'governance',
-      basisHashes: task.basisHashes || []
+      basisHashes: task.basisHashes || [],
+      approvalRecordHashes: task.approvalRecordHashes || []
     })),
     memory,
     memoryExclusions: cycle.memory.excluded,
