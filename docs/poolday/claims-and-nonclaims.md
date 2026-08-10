@@ -27,7 +27,10 @@ Poolday provides:
 - public room-scoped evidence links and exact-contract embedding comparison
 - fail-closed accepted room memory that excludes provisional, disputed,
   replication-requested, corrected, revoked, and compute evidence without
-  independent receipt and provider identities
+  embedded signed receipt evidence from distinct receipt identities, provider
+  identities, and provider keys
+- versioned v1 evidence retention and a separate quarantine cache for records
+  that fail current verification or admission
 - deterministic flat similarity, evidence-aware reranking, clustering, and
   exact-contract approval-gated task proposals with explicit accepted-memory
   basis
@@ -70,6 +73,7 @@ Poolday does not provide:
 
 A receipt proves that a provider key signed an assignment-bound artifact.
 It does not prove untampered browser execution or hardware-attested GPU computation.
+Distinct provider keys do not prove distinct people, devices, or organizations.
 
 ## Required Copy Rule
 

@@ -19,8 +19,9 @@ The current `poolday.governed_research_cycle/v1` projection implements a
 strict subset of this target contract:
 
 - signed sequence and question anchors with deterministic clarity gaps;
-- exact receipt-backed result provenance and distinct-receipt plus
-  distinct-provider reproduction checks;
+- exact receipt-backed result provenance and reproduction checks bound to
+  embedded provider-signed receipts, distinct receipt identities, distinct
+  provider identities, and distinct provider keys;
 - independent review states for acceptance, rejection, revision, replication,
   and disputed reviewer decisions;
 - fail-closed accepted room memory with correction, revocation, dispute, and
@@ -31,6 +32,8 @@ strict subset of this target contract:
   basis, target, or ranking policy changes;
 - a deterministic next-question brief with explicit uncertainty, human
   approval, and no execution authority.
+- v1 history preservation and fail-closed quarantine for records that cannot
+  satisfy the current admission contract.
 
 The projection is defined by
 [`research-cycle.js`](../../self/pool/research-cycle.js), with record and link

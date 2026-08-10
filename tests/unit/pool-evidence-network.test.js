@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  LEGACY_RESEARCH_RECORD_VERSION,
   buildEvidenceGraph,
   buildModelEvidenceView,
   clusterCompatibleResults,
@@ -11,6 +12,7 @@ import {
   createSignedSequenceEvidenceLink,
   findSimilarSequences,
   projectAcceptedResearchMemory,
+  projectResearchExecutionIndependence,
   projectResearchQuestionClarity,
   projectResearchReviewStates,
   projectResearchRewards,
@@ -18,8 +20,14 @@ import {
   validateResearchRecordLinks,
   verifyResearchRecord
 } from '../../self/pool/evidence-network.js';
-import { createSigningKeyPair } from '../../self/pool/inference-receipt.js';
+import {
+  SIGNATURE_DOMAINS,
+  createSigningKeyPair,
+  hashJson,
+  signCanonical
+} from '../../self/pool/inference-receipt.js';
 import { hashSequenceFloat32Values, reduceDopplerSequenceResult } from '../../self/pool/sequence-result.js';
+import { createVerifiedResearchAgreement } from '../helpers/pool-research-receipt.js';
 
 const fakeHash = (character) => `sha256:${character.repeat(64)}`;
 const model = Object.freeze({
@@ -94,28 +102,22 @@ const submission = async (author, sequence = 'MAPLALLLLGLVAGA', label = 'secreto
   policyId: 'redundant_agreement'
 });
 
-const result = async (author, source, vector, providerId = 'provider_one', modelOverride = model) => createSignedResearchResult({
-  identity: author,
-  submission: source,
-  receiptRecord: {
-    receiptHash: fakeHash(vector[0] > 0.5 ? 'a' : 'b'),
-    verifierDecision: { accepted: true },
-    receipt: {
-      model: modelOverride,
-      providerId,
-      assignmentId: 'assignment-1',
-      jobId: 'job-1',
-      outputKind: 'sequence.embedding.v1',
-      vectorHash: await hashSequenceFloat32Values(vector)
-    }
-  },
-  agreement: {
-    receiptHashes: [fakeHash('a'), fakeHash('d')],
+const result = async (author, source, vector, providerId = 'provider_one', modelOverride = model) => {
+  const vectorHash = await hashSequenceFloat32Values(vector);
+  const verifiedAgreement = await createVerifiedResearchAgreement({
+    model: modelOverride,
+    sequenceHash: source.sequence.hash,
+    agreementValue: vectorHash,
     providerIds: [providerId, `${providerId}_independent`],
-    status: 'accepted'
-  },
-  embedding: vector
-});
+    jobId: `job-${providerId}`
+  });
+  return createSignedResearchResult({
+    identity: author,
+    submission: source,
+    ...verifiedAgreement,
+    embedding: vector
+  });
+};
 
 describe('Poolday evidence network', () => {
   it('signs immutable submissions and detects tampering', async () => {
@@ -232,6 +234,30 @@ describe('Poolday evidence network', () => {
     })).rejects.toThrow('compute agreement provider identities must be non-empty strings');
   });
 
+  it('does not treat unbound receipt hashes and provider labels as independent execution', () => {
+    const forged = {
+      kind: 'research_result',
+      compute: {
+        receiptHash: fakeHash('a'),
+        receiptHashes: [fakeHash('a'), fakeHash('b')],
+        providerId: 'provider-one',
+        agreement: {
+          status: 'accepted',
+          receiptHashes: [fakeHash('a'), fakeHash('b')],
+          providerIds: ['provider-one', 'provider-two']
+        }
+      }
+    };
+
+    expect(projectResearchExecutionIndependence(forged)).toMatchObject({
+      independentlyExecuted: false,
+      independentReceiptCount: 0,
+      independentProviderCount: 0,
+      agreementEvidenceBound: false,
+      status: 'single_verified_receipt'
+    });
+  });
+
   it('allows agent proposals but reserves review decisions for human roles', async () => {
     const requester = await identity('requester', 'agent-question');
     const agent = await identity('agent', 'proposal-agent');
@@ -327,6 +353,100 @@ describe('Poolday evidence network', () => {
     }));
   });
 
+  it('preserves signed v1 results for inspection without admitting legacy independence claims', async () => {
+    const keyPair = await createSigningKeyPair();
+    const requester = {
+      resolve: async () => ({
+        kind: 'requester',
+        roleId: 'requester_legacy_result',
+        userId: 'user_legacy_result',
+        deviceId: 'device_legacy_result',
+        identityRootId: 'root_legacy_result'
+      }),
+      getSigningKeyPair: async () => keyPair
+    };
+    const source = await submission(requester);
+    const modern = await createSignedResearchResult({
+      identity: requester,
+      submission: source,
+      receiptRecord: {
+        receiptHash: fakeHash('a'),
+        verifierDecision: { accepted: true },
+        receipt: {
+          model,
+          providerId: 'provider-legacy',
+          assignmentId: 'legacy-assignment',
+          jobId: 'legacy-job'
+        }
+      }
+    });
+    const { recordHash: _modernHash, signature: _modernSignature, ...modernPayload } = modern;
+    const { receiptAdmission: _admission, receiptEvidence: _evidence, ...legacyCompute } = modernPayload.compute;
+    const legacyPayload = {
+      ...modernPayload,
+      version: LEGACY_RESEARCH_RECORD_VERSION,
+      compute: legacyCompute
+    };
+    const legacyHash = await hashJson(legacyPayload);
+    const unsignedLegacy = { ...legacyPayload, recordHash: legacyHash };
+    const legacy = {
+      ...unsignedLegacy,
+      signature: await signCanonical(unsignedLegacy, keyPair.privateKey, {
+        domain: SIGNATURE_DOMAINS.researchResult
+      })
+    };
+
+    expect(await verifyResearchRecord(legacy)).toMatchObject({ ok: true });
+    expect(projectResearchExecutionIndependence(legacy)).toMatchObject({ independentlyExecuted: false });
+  });
+
+  it('preserves signed v1 task approvals without replaying them as exact v2 approvals', async () => {
+    const requester = await identity('requester', 'legacy-approval-requester');
+    const reviewerKeys = await createSigningKeyPair();
+    const reviewer = {
+      resolve: async () => ({
+        kind: 'reviewer',
+        roleId: 'reviewer_legacy_approval',
+        userId: 'user_legacy_approval',
+        deviceId: 'device_legacy_approval',
+        identityRootId: 'root_legacy_approval'
+      }),
+      getSigningKeyPair: async () => reviewerKeys
+    };
+    const source = await submission(requester);
+    const task = proposeDiscoveryTasks([source]).find((candidate) => candidate.kind === 'compute');
+    const modern = await createSignedHumanClaim({
+      identity: reviewer,
+      roomId: source.roomId,
+      targetHash: source.recordHash,
+      claimKind: 'task_approval',
+      relation: 'approves',
+      text: 'Legacy approval remains attributable history.',
+      confidence: 1,
+      decision: 'approved',
+      taskId: task.taskId,
+      taskContract: task.taskContract
+    });
+    const { recordHash: _modernHash, signature: _modernSignature, ...modernPayload } = modern;
+    const legacyPayload = {
+      ...modernPayload,
+      version: LEGACY_RESEARCH_RECORD_VERSION,
+      claim: { ...modernPayload.claim, taskContract: null }
+    };
+    const legacyHash = await hashJson(legacyPayload);
+    const unsignedLegacy = { ...legacyPayload, recordHash: legacyHash };
+    const legacy = {
+      ...unsignedLegacy,
+      signature: await signCanonical(unsignedLegacy, reviewerKeys.privateKey, {
+        domain: SIGNATURE_DOMAINS.humanClaim
+      })
+    };
+
+    expect(await verifyResearchRecord(legacy)).toMatchObject({ ok: true });
+    expect(proposeDiscoveryTasks([source, legacy]).find((candidate) => candidate.kind === 'compute'))
+      .toMatchObject({ status: 'proposed', approvalRecordHashes: [] });
+  });
+
   it('requires task approval to replay the exact projected task contract', async () => {
     const requester = await identity('requester', 'task-contract-requester', 'task-contract-requester');
     const reviewer = await identity('reviewer', 'task-contract-reviewer', 'task-contract-reviewer');
@@ -379,6 +499,33 @@ describe('Poolday evidence network', () => {
         status: 'approved',
         approvalRecordHashes: [exactApproval.recordHash]
       });
+
+    const unrelated = await createSignedResearchSubmission({
+      identity: requester,
+      roomId: source.roomId,
+      sequence: 'MKVLVVLLCLVPAYG',
+      intent: {
+        kind: 'question',
+        text: 'What evidence exists for the unrelated sequence?',
+        conditions: 'Public sequence under the exact model contract.',
+        desiredObservation: 'A receipt-backed exact model output.'
+      },
+      consent: { publicSequence: true, publicEvidenceNetwork: true, publishEmbedding: true },
+      modelContract: model,
+      policyId: 'redundant_agreement'
+    });
+    await expect(createSignedHumanClaim({
+      identity: reviewer,
+      roomId: source.roomId,
+      targetHash: unrelated.recordHash,
+      claimKind: 'task_approval',
+      relation: 'approves',
+      text: 'Attempt to reuse approval identity against another target.',
+      confidence: 1,
+      decision: 'approved',
+      taskId: computeTask.taskId,
+      taskContract: computeTask.taskContract
+    })).rejects.toThrow('task approval contract does not match its task or target identity');
   });
 
   it('keeps human claims separate, attributable, and linked in the evidence graph', async () => {
@@ -441,28 +588,20 @@ describe('Poolday evidence network', () => {
       dimensions: 4
     };
     const baseline = await result(requester, source, [1, 0, 0]);
+    const independentVector = [0.1, 0.2, 0.3, 0.4];
+    const independentAgreement = await createVerifiedResearchAgreement({
+      model: independentModel,
+      sequenceHash: source.sequence.hash,
+      agreementValue: await hashSequenceFloat32Values(independentVector),
+      providerIds: ['provider_two', 'provider_three'],
+      jobId: 'job-independent'
+    });
     const independent = await createSignedResearchResult({
       identity: requester,
       submission: source,
       modelContract: independentModel,
-      receiptRecord: {
-        receiptHash: fakeHash('e'),
-        verifierDecision: { accepted: true },
-        receipt: {
-          model: independentModel,
-          providerId: 'provider_two',
-          assignmentId: 'assignment-independent',
-          jobId: 'job-independent',
-          outputKind: 'sequence.embedding.v1',
-          vectorHash: await hashSequenceFloat32Values([0.1, 0.2, 0.3, 0.4])
-        }
-      },
-      agreement: {
-        receiptHashes: [fakeHash('e'), fakeHash('d')],
-        providerIds: ['provider_two', 'provider_three'],
-        status: 'accepted'
-      },
-      embedding: [0.1, 0.2, 0.3, 0.4]
+      ...independentAgreement,
+      embedding: independentVector
     });
 
     const view = buildModelEvidenceView([source, baseline, independent], source.recordHash);
@@ -525,7 +664,7 @@ describe('Poolday evidence network', () => {
           outputKind: 'sequence.embedding.v1'
         }
       }
-    })).rejects.toThrow('an explicitly accepted verifier decision is required for a research result');
+    })).rejects.toThrow('an accepted verifier decision or verified peer agreement is required for a research result');
   });
 
   it('rejects published evidence when its receipt-model identity is detached from its exact model contract', async () => {

@@ -9,6 +9,12 @@ import { buildLaunchProviderModel, LAUNCH_MODEL } from '../../self/pool/model-co
 import { createProviderClient } from '../../self/pool/provider-client.js';
 import { createRequesterClient } from '../../self/pool/requester-client.js';
 import {
+  createSignedResearchResult,
+  createSignedResearchSubmission,
+  projectResearchExecutionIndependence,
+  verifyResearchRecord
+} from '../../self/pool/evidence-network.js';
+import {
   createPeerProviderNode,
   runPeerJob as executePeerJob
 } from '../../self/pool/peer-room.js';
@@ -1551,6 +1557,42 @@ describe('pool peer room', () => {
         requiredAgreement: 2,
         acceptedProviderCount: 3,
         agreementField: 'sequenceResultHash'
+      });
+      const researchIdentity = {
+        resolve: async () => ({
+          kind: 'requester',
+          roleId: 'requester_room_ring',
+          userId: 'requester_room_ring',
+          deviceId: 'requester_room_ring_device',
+          identityRootId: 'requester_room_ring_root'
+        }),
+        getSigningKeyPair: async () => requesterKeys
+      };
+      const researchSubmission = await createSignedResearchSubmission({
+        identity: researchIdentity,
+        roomId: 'room-ring-test',
+        sequence: testSequenceFor('peer room ring prompt'),
+        intent: { kind: 'question', text: 'Can authentic peers publish this result?' },
+        consent: { publicSequence: true, publicEvidenceNetwork: true },
+        modelContract: runtimeModel(),
+        policyId: 'ring_quorum_receipt'
+      });
+      const researchResult = await createSignedResearchResult({
+        identity: researchIdentity,
+        submission: researchSubmission,
+        receiptRecord: result.receiptRecord,
+        receiptEvidence: result.receiptEvidence,
+        agreement: result.agreement
+      });
+      expect(await verifyResearchRecord(researchResult)).toMatchObject({ ok: true });
+      expect(researchResult.compute.receiptAdmission).toEqual({
+        accepted: true,
+        source: 'verified_peer_agreement'
+      });
+      expect(projectResearchExecutionIndependence(researchResult)).toMatchObject({
+        independentlyExecuted: true,
+        independentProviderCount: 3,
+        independentProviderKeyCount: 3
       });
       expect(result.ledgerEvents.length).toBeGreaterThan(0);
       expect(result.requesterAcceptance).toMatchObject({

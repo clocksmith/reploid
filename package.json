@@ -62,6 +62,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
+    "acorn": "^8.15.0",
     "doppler-gpu": "0.5.1",
     "dotenv": "^16.3.1",
     "express": "^4.22.2",

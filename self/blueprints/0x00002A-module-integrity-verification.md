@@ -4,11 +4,11 @@
 
 **Implementation Status:** In-Progress
 
-**Verified Artifacts:** `/self/core/verification-worker.js`
+**Verified Artifacts:** `/self/core/verification-worker.js`, `/self/core/vendor/acorn.js`, `/self/core/vendor/ACORN-LICENSE.txt`
 
 **Planned Artifacts:** `/core/boot-module-loader.js`, `/infrastructure/module-integrity.js`, `/vfs/security/module-signatures.js`, `module-integrity.js`
 
-**Owned Source Files:** `core/verification-worker.js`
+**Owned Source Files:** `core/verification-worker.js`, `core/vendor/acorn.js`, `core/vendor/ACORN-LICENSE.txt`
 
 **Former Blueprint Paths:** `self/blueprints/0x00002A-module-integrity-verification.md`
 **Objective:** Define the signing, hashing, and verification processes that guard REPLOID against tampered upgrades.

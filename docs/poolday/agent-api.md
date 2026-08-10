@@ -54,6 +54,12 @@ current task contract still requires approval or names the signed approval
 record that already satisfied it. It always has `executionAuthority: "none"`.
 Approval never lets an agent allocate or execute work.
 
+Research result v2 admits either a server-verifier acceptance or an authentic
+peer agreement whose embedded provider receipts are re-hashed and signature
+verified. Hash strings and provider labels without those signed receipts never
+establish independent execution. Legacy v1 approvals remain attributable
+history but cannot authorize an exact v2 task contract.
+
 Poolday receipts are inference evidence.
 They are not self-improvement promotion evidence unless `/x` adds a separate validator gate.
 

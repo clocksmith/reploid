@@ -36,6 +36,20 @@ const result = ({ recordHash = hash('c'), submissionHash = hash('a') } = {}) => 
   compute: {
     receiptHash: hash('d'),
     receiptHashes: [hash('d'), hash('e')],
+    receiptEvidence: [
+      {
+        receiptHash: hash('d'),
+        providerId: 'provider-one',
+        providerPublicKey: 'provider-one-public-key',
+        receipt: { providerId: 'provider-one', providerSignature: 'provider-one-signature' }
+      },
+      {
+        receiptHash: hash('e'),
+        providerId: 'provider-two',
+        providerPublicKey: 'provider-two-public-key',
+        receipt: { providerId: 'provider-two', providerSignature: 'provider-two-signature' }
+      }
+    ],
     providerId: 'provider-one',
     agreement: {
       status: 'accepted',
