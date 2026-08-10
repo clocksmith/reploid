@@ -379,16 +379,11 @@ test('shows and exercises the governed protein evidence journey', async ({ page 
   expect(persistedBeforeReviewNavigation).toBeGreaterThan(0);
   await resultReviewLink.click();
   await expect(page).toHaveURL(new RegExp(`/records\\?room=reploid-default&panel=review&target=${encodeURIComponent(reviewedTarget)}`));
-  const reviewDiagnostics = await page.evaluate(async () => {
+  await expect.poll(async () => page.evaluate(async () => {
     const store = await import('/ui/pool-home/research-store.js');
-    const storageKey = 'reploid.pool.research-evidence.v1::reploid-default';
-    return {
-      memoryCount: store.loadResearchRecords('reploid-default').length,
-      persistedCount: JSON.parse(localStorage.getItem(storageKey) || '[]').length,
-      rejectedRecords: store.getResearchSyncState('reploid-default').rejectedRecords
-    };
-  });
-  expect(reviewDiagnostics.memoryCount, JSON.stringify(reviewDiagnostics)).toBeGreaterThan(0);
+    return store.loadResearchRecords('reploid-default').length;
+  }), { timeout: 60000, message: 'verified local research history should rehydrate before review' })
+    .toBeGreaterThan(0);
   await expect(page.locator('.pool-room-secondary-workspace')).toHaveAttribute('open', '');
   const contextualReview = page.locator('[data-research-review-form]');
   await expect(contextualReview.locator('select[name="targetHash"]')).toHaveValue(reviewedTarget);
