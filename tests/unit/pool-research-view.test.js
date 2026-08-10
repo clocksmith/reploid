@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import {
   createSignedResearchResult,
@@ -6,7 +6,7 @@ import {
 } from '../../self/pool/evidence-network.js';
 import { createSigningKeyPair } from '../../self/pool/inference-receipt.js';
 import { hashSequenceFloat32Values } from '../../self/pool/sequence-result.js';
-import { renderResearchWorkspace } from '../../self/ui/pool-home/research-view.js';
+import { hydrateAndBindResearchWorkspace, renderResearchWorkspace } from '../../self/ui/pool-home/research-view.js';
 
 const fakeHash = (character) => `sha256:${character.repeat(64)}`;
 const model = {
@@ -35,6 +35,20 @@ const identity = async () => {
 };
 
 describe('Poolday research Records model evidence view', () => {
+  it('hydrates the active room even when the technical workspace is not mounted', async () => {
+    const hydrate = vi.fn(async (roomId) => ({
+      roomId,
+      remote: true,
+      records: [],
+      rejectedRecords: []
+    }));
+
+    const result = await hydrateAndBindResearchWorkspace(null, 'home-room', { hydrate });
+
+    expect(hydrate).toHaveBeenCalledWith('home-room');
+    expect(result).toMatchObject({ roomId: 'home-room', remote: true });
+  });
+
   it('renders exact-model evidence and explicit non-comparison boundaries', async () => {
     const requester = await identity();
     const submission = await createSignedResearchSubmission({

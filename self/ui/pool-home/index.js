@@ -70,7 +70,7 @@ const restoreRoomDraft = (root) => {
   if (!draft) return;
   const setValue = (selector, value) => {
     root.querySelectorAll(selector).forEach((field) => {
-      if (value !== undefined && value !== '') field.value = value;
+      if (value !== undefined) field.value = value;
     });
   };
   const setChecked = (selector, value) => {
@@ -237,7 +237,7 @@ export function initPoolHome(mount) {
     bindReceiptControls();
     bindResearchRoomActions(mount);
     bindResearchWorkspace();
-    void hydrateAndBindResearchWorkspace().then(() => {
+    void hydrateAndBindResearchWorkspace(undefined, getPeerRoomId()).then(() => {
       if (document.body.dataset.poolRouteId === routeId) refreshResearchRoomState(routeId);
     });
     refreshRecordLedgerState();

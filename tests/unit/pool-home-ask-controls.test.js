@@ -117,7 +117,7 @@ describe('Poolday home ask controls', () => {
     Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText } });
     document.body.innerHTML = `
       <section class="pool-embedding-outcome">
-        <button data-pool-copy-embedding data-pool-embedding-result-id="pool-run-result"></button>
+        <button data-pool-copy-embedding data-pool-embedding-result-id="pool-run-result" data-pool-embedding-publication-permitted="true"></button>
         <p data-pool-embedding-copy-status></p>
       </section>
       <pre id="pool-run-result-embedding">[0.25,-0.5,0.75]</pre>
@@ -129,6 +129,32 @@ describe('Poolday home ask controls', () => {
 
       await vi.waitFor(() => expect(writeText).toHaveBeenCalledWith('[0.25,-0.5,0.75]'));
       expect(document.querySelector('[data-pool-embedding-copy-status]').textContent).toBe('Embedding vector copied.');
+    } finally {
+      if (originalClipboard) Object.defineProperty(navigator, 'clipboard', originalClipboard);
+      else delete navigator.clipboard;
+    }
+  });
+
+  it('does not copy a vector when the publication-consent gate is absent', async () => {
+    const writeText = vi.fn(async () => {});
+    const originalClipboard = Object.getOwnPropertyDescriptor(navigator, 'clipboard');
+    Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText } });
+    document.body.innerHTML = `
+      <section class="pool-embedding-outcome">
+        <button data-pool-copy-embedding data-pool-embedding-result-id="pool-run-result"></button>
+        <p data-pool-embedding-copy-status></p>
+      </section>
+      <pre id="pool-run-result-embedding">[0.25,-0.5,0.75]</pre>
+    `;
+
+    try {
+      bindEmbeddingResultControls();
+      document.querySelector('[data-pool-copy-embedding]').click();
+
+      await Promise.resolve();
+      expect(writeText).not.toHaveBeenCalled();
+      expect(document.querySelector('[data-pool-embedding-copy-status]').textContent)
+        .toBe('The raw embedding is withheld because publication consent was not granted.');
     } finally {
       if (originalClipboard) Object.defineProperty(navigator, 'clipboard', originalClipboard);
       else delete navigator.clipboard;

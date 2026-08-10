@@ -149,6 +149,44 @@ export async function publishResearchRecord(record, {
   }
 }
 
+const isMissingLinkError = (error) => (
+  error instanceof Error
+  && error.message.startsWith('Invalid research record links:')
+  && error.message.includes('does not exist:')
+);
+
+const appendHydrationBatch = async (records, roomId, rejectedRecords) => {
+  let pending = records.slice();
+  while (pending.length) {
+    const deferred = [];
+    let progress = false;
+    for (const record of pending) {
+      try {
+        await appendResearchRecord(record, { roomId, notify: false });
+        progress = true;
+      } catch (error) {
+        if (isMissingLinkError(error)) {
+          deferred.push({ record, error });
+        } else {
+          rejectedRecords.push({
+            recordHash: typeof record?.recordHash === 'string' ? record.recordHash : null,
+            reason: error instanceof Error ? error.message : String(error)
+          });
+        }
+      }
+    }
+    if (!deferred.length) return;
+    if (!progress) {
+      rejectedRecords.push(...deferred.map(({ record, error }) => ({
+        recordHash: typeof record?.recordHash === 'string' ? record.recordHash : null,
+        reason: error instanceof Error ? error.message : String(error)
+      })));
+      return;
+    }
+    pending = deferred.map(({ record }) => record);
+  }
+};
+
 export async function hydrateResearchRecords(roomId = DEFAULT_PEER_ROOM_ID, { sdk = createPoolSdk() } = {}) {
   loadResearchRecords(roomId);
   setResearchSyncState(roomId, {
@@ -159,31 +197,13 @@ export async function hydrateResearchRecords(roomId = DEFAULT_PEER_ROOM_ID, { sd
     checkedAt: null
   });
   const rejectedRecords = [];
-  for (const record of readPersistedRecords(roomId)) {
-    try {
-      await appendResearchRecord(record, { roomId, notify: false });
-    } catch (error) {
-      rejectedRecords.push({
-        recordHash: typeof record?.recordHash === 'string' ? record.recordHash : null,
-        reason: error instanceof Error ? error.message : String(error)
-      });
-    }
-  }
+  await appendHydrationBatch(readPersistedRecords(roomId), roomId, rejectedRecords);
   // Rewrite the cache after local verification so corrupt or now-unadmitted
   // records are not retried as if they were trusted evidence on each reload.
   persist();
   try {
     const payload = await sdk.listResearchRecords(roomId, { limit: POOLDAY_RESEARCH_RECORD_LIMIT });
-    for (const record of payload.records || []) {
-      try {
-        await appendResearchRecord(record, { roomId, notify: false });
-      } catch (error) {
-        rejectedRecords.push({
-          recordHash: typeof record?.recordHash === 'string' ? record.recordHash : null,
-          reason: error instanceof Error ? error.message : String(error)
-        });
-      }
-    }
+    await appendHydrationBatch(payload.records || [], roomId, rejectedRecords);
     persist();
     setResearchSyncState(roomId, {
       phase: 'synchronized',

@@ -32,6 +32,7 @@ const statusLabel = (status) => ({
   ready: 'Ready for a question',
   investigating: 'Investigation in progress',
   awaiting_review: 'Awaiting review',
+  corrected: 'Result corrected',
   remembered: 'Accepted evidence remembered'
 }[status] || 'Room activity');
 
@@ -114,7 +115,7 @@ const renderResult = (room) => {
   if (!result) {
     return `
       <section class="pool-room-result-card is-empty" data-room-result-card>
-        <div><p class="pool-dashboard-kicker">Latest result</p><h2 class="type-h2">No receipt-backed result yet</h2><p>Execution evidence will appear here after a contributor or permitted local browser completes the request.</p></div>
+        <div><p class="pool-dashboard-kicker">Latest result</p><h2 class="type-h2">No receipt-backed result yet</h2><p>Execution evidence will appear here after a contributor or permitted local browser completes the request.</p><p class="pool-room-boundary"><strong>Agreement:</strong> Evidence unavailable</p></div>
         <a class="btn btn-primary" data-pool-route-link="${escapeHtml(roomHref('/ask', room.roomId))}" href="${escapeHtml(roomHref('/ask', room.roomId))}">Run the question</a>
       </section>
     `;
@@ -154,6 +155,11 @@ const renderResult = (room) => {
   `;
 };
 
+const unresolvedHref = (entry, roomId) => {
+  if (entry.kind === 'evidence') return roomHref('/ask', roomId);
+  return roomHref('/records', roomId, entry.kind === 'next_action' ? 'discovery' : 'review');
+};
+
 const renderUnresolved = (room) => `
   <section class="pool-room-section" aria-labelledby="pool-room-unresolved-title">
     <div class="pool-room-section-heading"><div><p class="pool-dashboard-kicker">Open questions</p><h2 class="type-h2" id="pool-room-unresolved-title">Unresolved</h2></div><span class="pool-room-count">${room.unresolved.length}</span></div>
@@ -161,7 +167,7 @@ const renderUnresolved = (room) => `
       ${room.unresolved.length ? room.unresolved.map((entry) => `
         <article class="pool-room-list-item" data-kind="${escapeHtml(entry.kind)}">
           <div><strong>${escapeHtml(entry.title)}</strong><p>${escapeHtml(entry.detail)}</p></div>
-          <a class="btn btn-ghost" data-pool-route-link="${escapeHtml(roomHref('/records', room.roomId, entry.kind === 'next_action' ? 'discovery' : 'review'))}" href="${escapeHtml(roomHref('/records', room.roomId, entry.kind === 'next_action' ? 'discovery' : 'review'))}">${escapeHtml(entry.action || 'Inspect')}</a>
+          <a class="btn btn-ghost" data-pool-route-link="${escapeHtml(unresolvedHref(entry, room.roomId))}" href="${escapeHtml(unresolvedHref(entry, room.roomId))}">${escapeHtml(entry.action || 'Inspect')}</a>
         </article>
       `).join('') : '<p class="pool-room-muted">Nothing is unresolved in the current projection.</p>'}
     </div>
@@ -212,19 +218,35 @@ const renderProposals = (room) => `
   </section>
 `;
 
-const renderTimeline = (room) => `
-  <section class="pool-room-section" aria-labelledby="pool-room-timeline-title">
-    <div class="pool-room-section-heading"><div><p class="pool-dashboard-kicker">Causal sequence</p><h2 class="type-h2" id="pool-room-timeline-title">Room timeline</h2></div><span class="pool-room-count">${room.timeline.length}</span></div>
-    <ol class="pool-room-timeline">
-      ${room.timeline.length ? room.timeline.slice(-16).map((entry) => `
-        <li data-source-authority="${escapeHtml(entry.sourceAuthority)}">
-          <div class="pool-room-timeline-marker" aria-hidden="true"></div>
-          <div class="pool-room-timeline-body"><div><strong>${escapeHtml(entry.title)}</strong><span class="pool-room-event-status">${escapeHtml(entry.status)}</span></div><p>${escapeHtml(entry.summary)}</p><small>${escapeHtml(entry.sourceAuthority)} · ${escapeHtml(compactHash(entry.sourceHash || entry.id))}</small></div>
-        </li>
-      `).join('') : '<li><div class="pool-room-timeline-body"><strong>Room created</strong><p>Submit a public sequence and question to begin.</p></div></li>'}
-    </ol>
-  </section>
+const renderTimelineEntry = (entry) => `
+  <li data-source-authority="${escapeHtml(entry.sourceAuthority)}">
+    <div class="pool-room-timeline-marker" aria-hidden="true"></div>
+    <div class="pool-room-timeline-body"><div><strong>${escapeHtml(entry.title)}</strong><span class="pool-room-event-status">${escapeHtml(entry.status)}</span></div><p>${escapeHtml(entry.summary)}</p><small>${escapeHtml(entry.sourceAuthority)} · ${escapeHtml(compactHash(entry.sourceHash || entry.id))}</small></div>
+  </li>
 `;
+
+const renderTimeline = (room) => {
+  const timeline = room.timeline || [];
+  const recent = timeline.slice(-13);
+  const anchorIds = new Set(
+    timeline
+      .filter((entry) => ['research_submission', 'research_result', 'agreement', 'receipt'].includes(entry.kind))
+      .map((entry) => entry.id)
+  );
+  recent.forEach((entry) => anchorIds.add(entry.id));
+  const visible = timeline.filter((entry) => anchorIds.has(entry.id));
+  const intervening = timeline.filter((entry) => !anchorIds.has(entry.id));
+  const body = timeline.length
+    ? `${visible.map(renderTimelineEntry).join('')}
+        ${intervening.length ? `<li class="pool-room-timeline-disclosure"><details><summary>Show ${intervening.length} intervening room event${intervening.length === 1 ? '' : 's'}</summary><ol>${intervening.map(renderTimelineEntry).join('')}</ol></details></li>` : ''}`
+    : '<li><div class="pool-room-timeline-body"><strong>Room created</strong><p>Submit a public sequence and question to begin.</p></div></li>';
+  return `
+    <section class="pool-room-section" aria-labelledby="pool-room-timeline-title">
+      <div class="pool-room-section-heading"><div><p class="pool-dashboard-kicker">Causal sequence</p><h2 class="type-h2" id="pool-room-timeline-title">Room timeline</h2></div><span class="pool-room-count">${timeline.length}</span></div>
+      <ol class="pool-room-timeline">${body}</ol>
+    </section>
+  `;
+};
 
 const renderRoles = (room) => `
   <section class="pool-room-section" aria-labelledby="pool-room-roles-title">

@@ -85,8 +85,11 @@ export const getPeerRoomId = () => {
 };
 
 export const getPoolRoomPanel = () => {
-  const panel = new URLSearchParams(window.location.search || '').get('panel');
-  return ['review', 'discovery'].includes(panel) ? panel : 'overview';
+  const params = new URLSearchParams(window.location.search || '');
+  const panel = params.get('panel');
+  if (['review', 'discovery'].includes(panel)) return panel;
+  const path = normalizeProductPath(window.location.pathname || '');
+  return path === '/network' ? 'discovery' : 'overview';
 };
 
 const recordPersistence = createPoolRecordPersistence({
@@ -312,6 +315,11 @@ const normalizeReceiptSpeed = (value) => {
   return Number.isFinite(parsed) ? `${parsed.toFixed(2)} t/s` : String(candidate);
 };
 
+const refreshRoomAfterLedgerMutation = () => {
+  if (typeof window === 'undefined' || typeof document === 'undefined') return;
+  refreshResearchRoomState(getRouteId());
+};
+
 export const addReceiptLedgerRow = (record = {}, receiptHash = '') => {
   ensureReceiptLedgerLoaded();
   const jobId = firstPresent(
@@ -347,6 +355,7 @@ export const addReceiptLedgerRow = (record = {}, receiptHash = '') => {
     ledgerStore.receipts.pop();
   }
   persistReceiptLedgerRows();
+  refreshRoomAfterLedgerMutation();
 };
 
 export const findReceiptLedgerRecord = (receiptHash = '') => {
@@ -376,7 +385,7 @@ export const renderReceiptLedger = (rows = ledgerStore.receipts) => {
           ${rows.map((row) => `
             <tr>
               <td title="${escapeHtml(row.jobId)}">${escapeHtml(compactHex(row.jobId))}</td>
-              <td title="${escapeHtml(row.provider)}">${escapeHtml(row.provider)}</td>
+              <td title="${escapeHtml(compactHash(row.provider))}">${escapeHtml(compactHash(row.provider))}</td>
               <td>${escapeHtml(row.fidelity)}</td>
               <td>${escapeHtml(row.speed)}</td>
             </tr>
@@ -403,7 +412,10 @@ const recordPeerLedgerEvents = (events = []) => {
     ledgerStore.peerEvents.push(event);
     changed = true;
   }
-  if (changed) persistPeerLedgerEvents();
+  if (changed) {
+    persistPeerLedgerEvents();
+    refreshRoomAfterLedgerMutation();
+  }
 };
 
 export const renderPeerLedgerState = () => {
@@ -430,7 +442,7 @@ export const renderPeerLedgerState = () => {
             const reputation = reduced.reputation?.[peerId] || {};
             return `
               <tr>
-                <td title="${escapeHtml(peerId)}">${escapeHtml(compactHash(peerId))}</td>
+                <td title="${escapeHtml(compactHash(peerId))}">${escapeHtml(compactHash(peerId))}</td>
                 <td>${escapeHtml(points)}</td>
                 <td>${escapeHtml(reputation.acceptedReceipts ?? 0)}</td>
                 <td>${escapeHtml(reputation.rejectedReceipts ?? 0)}</td>
@@ -439,7 +451,7 @@ export const renderPeerLedgerState = () => {
           }).join('')}
           ${reputationRows.filter((row) => !Object.prototype.hasOwnProperty.call(reduced.points || {}, row.providerId)).map((row) => `
             <tr>
-              <td title="${escapeHtml(row.providerId)}">${escapeHtml(compactHash(row.providerId))}</td>
+              <td title="${escapeHtml(compactHash(row.providerId))}">${escapeHtml(compactHash(row.providerId))}</td>
               <td>${escapeHtml(row.points ?? 0)}</td>
               <td>${escapeHtml(row.acceptedReceipts ?? 0)}</td>
               <td>${escapeHtml(row.rejectedReceipts ?? 0)}</td>
@@ -667,6 +679,7 @@ export const refreshRoomActivityState = (summary = null) => {
   if (activity) setPoolHtml(activity, renderRoomActivity(summary));
   refreshRecordTimelineState();
   applyPoolNetworkVisualState(summary);
+  refreshRoomAfterLedgerMutation();
 };
 
 export const refreshRecordLedgerState = (options = {}) => {
@@ -1003,7 +1016,7 @@ const renderRunContributionLayer = (value = {}) => {
             <tbody>
               ${assignmentRows.map((row) => `
                 <tr>
-                  <td title="${escapeHtml(row.providerId)}">${escapeHtml(compactHash(row.providerId))}</td>
+                  <td title="${escapeHtml(compactHash(row.providerId))}">${escapeHtml(compactHash(row.providerId))}</td>
                   <td title="${escapeHtml(row.reason || row.status)}">${escapeHtml(row.status)}</td>
                   <td>${escapeHtml(row.tokens || '—')}</td>
                   <td title="${escapeHtml(row.outputHash || row.hash || '—')}">${escapeHtml(compactHash(row.outputHash || row.hash || '—'))}</td>
@@ -1189,6 +1202,17 @@ const sequenceOutputFor = (value = {}) => (
   || null
 );
 
+/**
+ * Raw embedding values are publication material, not ordinary result detail.
+ * Keep this decision explicit so a local execution cannot accidentally turn a
+ * private vector into a copyable disclosure.
+ */
+export const isEmbeddingPublicationPermitted = (value = {}) => (
+  value.embeddingPublicationConsent === true
+  || value.researchSubmission?.consent?.publishEmbedding === true
+  || value.researchResult?.consent?.publishEmbedding === true
+);
+
 const renderProteinEmbeddingOutput = (id, value = {}) => {
   const details = document.getElementById(`${id}-embedding-details`);
   const output = document.getElementById(`${id}-embedding`);
@@ -1210,13 +1234,23 @@ const renderProteinEmbeddingOutput = (id, value = {}) => {
     return;
   }
   const resultIdentity = compactHash(value.sequenceResultHash || value.vectorHash || '');
-  details.hidden = false;
-  meta.textContent = `${pooledEmbedding.length} dimensions · ${resultIdentity}`;
+  const publicationPermitted = isEmbeddingPublicationPermitted(value);
+  details.hidden = !publicationPermitted;
+  meta.textContent = publicationPermitted
+    ? `${pooledEmbedding.length} dimensions · ${resultIdentity}`
+    : `${pooledEmbedding.length} dimensions · ${resultIdentity} · Raw vector withheld`;
   if (outcome) outcome.hidden = false;
-  if (outcomeMeta) outcomeMeta.textContent = `${pooledEmbedding.length} dimensions · Result ${resultIdentity}`;
-  if (copyButton) copyButton.disabled = false;
-  if (copyStatus) copyStatus.textContent = '';
-  output.textContent = safeJsonStringify(pooledEmbedding) || '[]';
+  if (outcomeMeta) outcomeMeta.textContent = publicationPermitted
+    ? `${pooledEmbedding.length} dimensions · Result ${resultIdentity}`
+    : `${pooledEmbedding.length} dimensions · Result ${resultIdentity} · Raw vector withheld because embedding publication consent was not granted.`;
+  if (copyButton) {
+    copyButton.disabled = !publicationPermitted;
+    copyButton.dataset.poolEmbeddingPublicationPermitted = String(publicationPermitted);
+  }
+  if (copyStatus) copyStatus.textContent = publicationPermitted
+    ? ''
+    : 'The raw embedding is withheld because publication consent was not granted.';
+  output.textContent = publicationPermitted ? (safeJsonStringify(pooledEmbedding) || '[]') : '';
 };
 
 const formatErrorResultText = (value = {}) => {
@@ -1253,7 +1287,7 @@ const formatErrorResultText = (value = {}) => {
     return fields.join(', ');
   };
   const providerFailureText = providerFailures.map((failure) => {
-    const providerId = String(failure?.providerId || 'unknown contributor');
+    const providerId = compactHash(failure?.providerId || 'unknown contributor');
     const code = failure?.code ? ` (${failure.code})` : '';
     const message = failure?.message ? `: ${failure.message}` : '';
     const transport = summarizeTransportDiagnostics(failure?.diagnostics);
@@ -1269,7 +1303,7 @@ const formatErrorResultText = (value = {}) => {
     value.roomId || payload.roomId ? `Room: ${value.roomId || payload.roomId}` : null,
     value.relay ? `Relay: ${value.relay}` : null,
     model?.modelId || model?.id ? `Model: ${model.modelId || model.id}` : null,
-    failedProviderIds.length > 0 ? `Contributors: ${failedProviderIds.join(', ')}` : null,
+    failedProviderIds.length > 0 ? `Contributors: ${failedProviderIds.map((providerId) => compactHash(providerId)).join(', ')}` : null,
     providerFailureText ? `Contributor failures: ${providerFailureText}` : null,
     transportText ? `Transport: ${transportText}` : null,
     artifact?.status ? `Artifact: ${artifact.status}` : null,
@@ -1519,20 +1553,20 @@ export const renderNav = (activeRoute, {
     x: 'X'
   };
   const tooltips = {
-    home: 'Return to the public network landing page',
-    ask: 'Submit a prompt to browser model contributors',
-    compute: 'Share this tab as browser compute',
-    records: 'Review receipts, room activity, and contributor scores',
+    home: 'Return to the active Research Room',
+    ask: 'State a question and request model execution in this room',
+    compute: 'Share this browser as compute for the active room',
+    records: 'Review evidence and discover the next action in this room',
     zero: 'Experimental: open the local tabula rasa runtime',
     x: 'Experimental: open the mature self-improving workspace runtime',
     toggleClosed: 'Open the navigation details from the left',
     toggleOpen: 'Close the navigation details and keep the activity rail'
   };
   const descriptions = {
-    home: 'Live network and one-step runs',
-    ask: 'Prompt peers and inspect the proof',
-    compute: 'Offer browser compute; stop any time',
-    records: 'Answers, work, rooms, and receipts'
+    home: 'Question, evidence, and next action',
+    ask: 'State intent and run the question',
+    compute: 'Contribute browser capacity; stop any time',
+    records: 'Review claims and discover bounded work'
   };
   const toggleTooltip = open ? tooltips.toggleOpen : tooltips.toggleClosed;
   const renderItem = ({ id, path, label }) => {
@@ -2140,8 +2174,11 @@ export const renderRouteDetail = (routeId) => {
     `, { routeId: normalizedRouteId });
   }
   if (normalizedRouteId === 'records') {
-    const recordFacet = getPoolRecordFacet();
+    const isHistoryAlias = routeId === 'history'
+      || normalizeProductPath(window.location.pathname || '') === '/history';
+    const recordFacet = isHistoryAlias ? 'room' : getPoolRecordFacet();
     const roomPanel = getPoolRoomPanel();
+    const secondaryWorkspaceOpen = roomPanel === 'review' || roomPanel === 'discovery';
     const contextualPanel = roomPanel === 'review'
       ? {
           title: 'Review evidence',
@@ -2158,7 +2195,7 @@ export const renderRouteDetail = (routeId) => {
     return renderRouteShell(copy, `
         <div class="pool-form pool-route-grid pool-record-layout" data-pool-receipts data-pool-reputation>
           ${contextualPanel ? `<section class="pool-room-contextual-panel" data-pool-room-contextual-panel="${escapeHtml(roomPanel)}"><p class="pool-dashboard-kicker">Room panel</p><h2 class="type-h2">${escapeHtml(contextualPanel.title)}</h2><p>${escapeHtml(contextualPanel.body)}</p><a class="btn btn-ghost" href="#${escapeHtml(contextualPanel.target)}">Open panel controls</a></section>` : ''}
-          <details class="pool-advanced pool-room-secondary-workspace" data-pool-room-panel="research" open>
+          <details class="pool-advanced pool-room-secondary-workspace" data-pool-room-panel="research"${secondaryWorkspaceOpen ? ' open' : ''}>
             <summary>Review and discovery workspace</summary>
             <div id="pool-research-workspace-host">${renderResearchWorkspace(getPeerRoomId())}</div>
           </details>
