@@ -147,6 +147,19 @@ describe('Poolday prospective protein question lifecycle', () => {
       confidence: 0.71,
       frozenAt: at(5)
     }));
+    for (const [prediction, label] of [[predictionOne, 'predictor-a'], [predictionTwo, 'predictor-b']]) {
+      await append(await createSignedHumanClaim({
+        identity: reviewer,
+        roomId: question.roomId,
+        targetHash: prediction.recordHash,
+        claimKind: 'review_decision',
+        relation: 'reviews',
+        text: `${label} is frozen, attributable, and suitable for the prospective cohort.`,
+        confidence: 0.9,
+        decision: 'accepted',
+        createdAt: at(6)
+      }));
+    }
     const order = await append(await createSignedResearchWorkOrder({
       identity: researcher,
       roomId: question.roomId,
@@ -197,6 +210,17 @@ describe('Poolday prospective protein question lifecycle', () => {
       workOrderHashes: [order.recordHash],
       metrics: [{ id: 'balanced_accuracy', label: 'Prospective balanced accuracy', direction: 'higher_is_better', unit: 'fraction' }],
       frozenAt: at(10)
+    }));
+    await append(await createSignedHumanClaim({
+      identity: reviewer,
+      roomId: question.roomId,
+      targetHash: cohort.recordHash,
+      claimKind: 'review_decision',
+      relation: 'reviews',
+      text: 'The cohort binds only independently accepted predictions and work orders.',
+      confidence: 0.95,
+      decision: 'accepted',
+      createdAt: at(10)
     }));
     const outcomeOne = await append(await createSignedExperimentalOutcome({
       identity: laboratoryOne,

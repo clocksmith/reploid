@@ -1,6 +1,6 @@
 {
   "schema": "reploid.pool.config/v1",
-  "configVersion": "2026-08-01.sequence-model-contracts.v1",
+  "configVersion": "2026-08-01.sequence-model-contracts.v1.doppler-0.5.1",
   "claim": "receipt-backed, audit-backed, reputation-backed, policy-controlled browser inference",
   "forbiddenClaims": [
     "trustless",

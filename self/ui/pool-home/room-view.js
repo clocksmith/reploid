@@ -106,7 +106,9 @@ const renderQuestion = (room) => {
         <div><dt>Sequence</dt><dd>${escapeHtml(compactHash(room.question.sequenceHash))} · ${escapeHtml(room.question.sequenceLength)} residues</dd></div>
         <div><dt>Model</dt><dd>${escapeHtml(room.question.modelContract?.id || 'Not selected')}</dd></div>
         <div><dt>Policy</dt><dd>${escapeHtml(room.question.policyId || 'Not selected')}</dd></div>
+        <div><dt>Question clarity</dt><dd>${escapeHtml((room.question.clarity?.status || 'unassessed').replace(/_/g, ' '))}</dd></div>
       </dl>
+      ${room.question.clarity?.gaps?.length ? `<details class="pool-room-disclosure"><summary>${escapeHtml(room.question.clarity.gaps.length)} question gap${room.question.clarity.gaps.length === 1 ? '' : 's'}</summary><ul>${room.question.clarity.gaps.map((gap) => `<li><strong>${escapeHtml(gap.field.replace(/_/g, ' '))}:</strong> ${escapeHtml(gap.reason)}</li>`).join('')}</ul></details>` : ''}
     </div>
   `;
 };
@@ -180,10 +182,11 @@ const renderUnresolved = (room) => `
 
 const renderNextAction = (room) => {
   const action = room.nextActions[0];
+  const nextQuestion = room.nextQuestion || {};
   const destination = roomHref('/records', room.roomId, action ? 'discovery' : 'review');
   return `
     <section class="pool-room-action-card" aria-labelledby="pool-room-next-action-title">
-      <div><p class="pool-dashboard-kicker">Next useful action</p><h2 class="type-h2" id="pool-room-next-action-title">${escapeHtml(action ? action.kind.replace(/_/g, ' ') : 'Keep investigating')}</h2><p>${escapeHtml(action?.reason || 'Submit a question or invite a reviewer to create the next evidence record.')}</p></div>
+      <div><p class="pool-dashboard-kicker">Next research question</p><h2 class="type-h2" id="pool-room-next-action-title">${escapeHtml(action ? action.kind.replace(/_/g, ' ') : 'Human review required')}</h2><p>${escapeHtml(nextQuestion.prompt || action?.reason || 'Submit a question or invite a reviewer to create the next evidence record.')}</p>${action ? `<p class="type-caption">Action rationale: ${escapeHtml(action.reason)}</p>` : ''}<p class="pool-room-boundary">Basis: ${escapeHtml(action?.basis === 'accepted_memory' ? `${action.basisHashes.length} accepted memory record${action.basisHashes.length === 1 ? '' : 's'}` : 'question or governance boundary')}. Human approval is required; this projection cannot allocate or execute work.</p></div>
       <div class="pool-room-action-controls">
         ${action && action.status !== 'approved' ? `<button class="btn btn-primary" type="button" data-pool-room-approve-task="${escapeHtml(action.id)}" data-pool-room-task-target="${escapeHtml(action.targetHash)}" data-pool-room-id="${escapeHtml(room.roomId)}">Approve next action</button>` : ''}
         <a class="btn btn-ghost" data-pool-route-link="${escapeHtml(destination)}" href="${escapeHtml(destination)}">${action?.status === 'approved' ? 'Inspect approved action' : 'Inspect details'}</a>
@@ -196,7 +199,7 @@ const renderMemory = (room) => `
   <section class="pool-room-section pool-room-memory" aria-labelledby="pool-room-memory-title">
     <div class="pool-room-section-heading"><div><p class="pool-dashboard-kicker">Room memory</p><h2 class="type-h2" id="pool-room-memory-title">Remembered evidence</h2></div><span class="pool-room-count">${room.memory.length}</span></div>
     ${room.memory.length
-      ? `<div class="pool-room-list">${room.memory.map((entry) => `<article class="pool-room-list-item"><div><strong>${escapeHtml(entry.title)}</strong><p>Accepted under the current room policy.</p></div><small>${escapeHtml(entry.kind.replace(/_/g, ' '))} · ${escapeHtml(compactHash(entry.sourceHash))}</small></article>`).join('')}</div>`
+      ? `<div class="pool-room-list">${room.memory.map((entry) => `<article class="pool-room-list-item"><div><strong>${escapeHtml(entry.title)}</strong><p>Accepted under the current room policy by ${escapeHtml(entry.reviewDecisionHashes.length)} independent signed decision${entry.reviewDecisionHashes.length === 1 ? '' : 's'}.</p></div><small>${escapeHtml(entry.kind.replace(/_/g, ' '))} · ${escapeHtml(compactHash(entry.sourceHash))}</small></article>`).join('')}</div>`
       : '<p class="pool-room-muted">No evidence has been accepted into room memory yet. Provisional results and proposals remain visible above without being remembered.</p>'}
   </section>
 `;
@@ -294,7 +297,7 @@ export function renderResearchRoom({
       ${renderMemory(room)}
       ${renderRoles(room)}
       <details class="pool-room-disclosure pool-room-technical-disclosure"><summary>Room provenance and recovery</summary>
-        <dl class="pool-room-facts"><div><dt>Room identity</dt><dd>${escapeHtml(room.roomId)}</dd></div><div><dt>Active records</dt><dd>${escapeHtml(room.counts.active)}</dd></div><div><dt>Remembered records</dt><dd>${escapeHtml(room.counts.memory)}</dd></div><div><dt>Timeline entries</dt><dd>${escapeHtml(room.counts.timeline)}</dd></div><div><dt>Recovery state</dt><dd>${escapeHtml(room.recovery?.labels?.join(' · ') || 'Local-only recovery')}</dd></div><div><dt>Rejected records</dt><dd>${escapeHtml(room.recovery?.rejectedRecords?.length || 0)}</dd></div><div><dt>Invalidated records</dt><dd>${escapeHtml(room.recovery?.invalidatedCount || 0)}</dd></div></dl>
+        <dl class="pool-room-facts"><div><dt>Room identity</dt><dd>${escapeHtml(room.roomId)}</dd></div><div><dt>Cycle policy</dt><dd>${escapeHtml(room.cycle?.policyId || 'unknown')}</dd></div><div><dt>Active records</dt><dd>${escapeHtml(room.counts.active)}</dd></div><div><dt>Remembered records</dt><dd>${escapeHtml(room.counts.memory)}</dd></div><div><dt>Excluded from memory</dt><dd>${escapeHtml(room.memoryExclusions?.length || 0)}</dd></div><div><dt>Timeline entries</dt><dd>${escapeHtml(room.counts.timeline)}</dd></div><div><dt>Recovery state</dt><dd>${escapeHtml(room.recovery?.labels?.join(' · ') || 'Local-only recovery')}</dd></div><div><dt>Rejected records</dt><dd>${escapeHtml(room.recovery?.rejectedRecords?.length || 0)}</dd></div><div><dt>Invalidated records</dt><dd>${escapeHtml(room.recovery?.invalidatedCount || 0)}</dd></div></dl>
         <p class="type-caption">Local drafts are recovery state. Only verified, active, accepted signed records enter room memory.</p>
       </details>
     </section>

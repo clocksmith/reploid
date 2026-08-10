@@ -23,8 +23,10 @@ const DEFAULT_PROFILE = Object.freeze({
 });
 
 const ACTION_PROFILES = Object.freeze({
+  clarify_question: { uncertaintyReduction: 5, decisionRelevance: 5, duplicateWorkAvoidance: 5, scientificCost: { compute: 0, money: 0, labor: 1, instrument: 0, sample: 0, elapsedTime: 1 } },
   compute: { uncertaintyReduction: 4, decisionRelevance: 4, duplicateWorkAvoidance: 4, scientificCost: { compute: 3, money: 0, labor: 0.5, instrument: 0, sample: 0, elapsedTime: 1 } },
   independent_review: { uncertaintyReduction: 5, decisionRelevance: 4, duplicateWorkAvoidance: 5, scientificCost: { compute: 0, money: 0, labor: 2, instrument: 0, sample: 0, elapsedTime: 1 } },
+  revise_evidence: { uncertaintyReduction: 4, decisionRelevance: 4, duplicateWorkAvoidance: 5, scientificCost: { compute: 0, money: 0, labor: 2, instrument: 0, sample: 0, elapsedTime: 1 } },
   reproduce: { uncertaintyReduction: 5, decisionRelevance: 5, duplicateWorkAvoidance: 4, scientificCost: { compute: 3, money: 0, labor: 0.5, instrument: 0, sample: 0, elapsedTime: 2 } },
   retrieve_prior_evidence: { uncertaintyReduction: 4, decisionRelevance: 4, duplicateWorkAvoidance: 5, scientificCost: { compute: 1, money: 0, labor: 1, instrument: 0, sample: 0, elapsedTime: 1 } },
   add_competing_hypothesis: { uncertaintyReduction: 5, decisionRelevance: 5, duplicateWorkAvoidance: 4, scientificCost: { compute: 0, money: 0, labor: 1, instrument: 0, sample: 0, elapsedTime: 1 } },
@@ -48,6 +50,7 @@ export const ADMITTED_DISCOVERY_ACTION_KINDS = Object.freeze(Object.keys(ACTION_
 
 const SHA256_PATTERN = /^sha256:[a-f0-9]{64}$/;
 const RANKABLE_ACTION_STATUSES = new Set(['proposed', 'approved']);
+const ACTION_BASIS_KINDS = new Set(['question_anchor', 'governance', 'accepted_memory']);
 const stableUnique = (values) => [...new Set(values.filter((value) => typeof value === 'string' && SHA256_PATTERN.test(value)))].sort();
 const compactText = (value, max = 8000) => typeof value === 'string' ? value.trim().slice(0, max) : '';
 
@@ -68,6 +71,10 @@ const validateAction = (task, inputRecordHashes, seenActionIds) => {
   const status = compactText(task?.status, 64) || 'proposed';
   const reason = compactText(task?.reason);
   const actionId = compactText(task?.taskId, 320) || `task:${actionKind}:${targetHash}`;
+  const basis = compactText(task?.basis, 64) || 'governance';
+  const basisHashes = stableUnique(Array.isArray(task?.basisHashes) && task.basisHashes.length
+    ? task.basisHashes
+    : [targetHash]);
   const reasons = [];
   if (!ADMITTED_DISCOVERY_ACTION_KINDS.includes(actionKind)) reasons.push('action_kind_is_not_admitted');
   if (!SHA256_PATTERN.test(targetHash)) reasons.push('target_hash_is_not_a_sha256_identity');
@@ -76,7 +83,9 @@ const validateAction = (task, inputRecordHashes, seenActionIds) => {
   if (!reason) reasons.push('action_reason_is_required');
   if (!actionId) reasons.push('action_id_is_required');
   if (seenActionIds.has(actionId)) reasons.push('action_id_is_not_unique');
-  return { actionId, actionKind, targetHash, status, reason, reasons };
+  if (!ACTION_BASIS_KINDS.has(basis)) reasons.push('action_basis_is_not_admitted');
+  if (basisHashes.some((hash) => !inputRecordHashes.includes(hash))) reasons.push('action_basis_is_not_in_the_input_evidence_set');
+  return { actionId, actionKind, targetHash, status, reason, basis, basisHashes, reasons };
 };
 
 /**
@@ -140,6 +149,8 @@ export function rankDiscoveryActions(records = [], tasks = []) {
       targetHash: task.targetHash,
       status: task.status,
       reason: task.reason,
+      basis: task.basis,
+      basisHashes: task.basisHashes,
       humanApprovalRequired: profile.humanApprovalRequired !== false,
       expectedInformationGain: {
         estimate: profile.uncertaintyReduction,

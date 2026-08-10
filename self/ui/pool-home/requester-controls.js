@@ -48,13 +48,24 @@ export function renderRequesterIntentFields({
     .map(([value, label]) => `<option value="${value}">${label}</option>`)
     .join('');
   const textControl = textTag === 'textarea'
-    ? `<textarea id="${safePrefix}-intent-text" rows="3" maxlength="8000"${requestAttributes}></textarea>`
-    : `<input id="${safePrefix}-intent-text" maxlength="8000" placeholder="What should reviewers examine?"${requestAttributes}>`;
+    ? `<textarea id="${safePrefix}-intent-text" rows="3" maxlength="8000" placeholder="What exact question should reviewers answer?"${requestAttributes}></textarea>`
+    : `<input id="${safePrefix}-intent-text" maxlength="8000" placeholder="What exact question should reviewers answer?"${requestAttributes}>`;
   return `
     <div class="pool-research-intent-fields">
       <label><span>Intent</span><select id="${safePrefix}-intent-kind"${requestAttributes}>${intentOptionsMarkup}</select></label>
       <label><span>Short label</span><input id="${safePrefix}-intent-label" maxlength="240" placeholder="Signal peptide candidate"${requestAttributes}></label>
-      <label><span>Question, hypothesis, or context <small>(optional)</small></span>${textControl}</label>
+      <label><span>Question, hypothesis, or context <small>(required for public research)</small></span>${textControl}</label>
+      <details class="pool-advanced pool-question-contract">
+        <summary>Bound the research question</summary>
+        <div class="pool-research-intent-fields">
+          <label><span>Conditions</span><textarea id="${safePrefix}-intent-conditions" rows="2" maxlength="2000" placeholder="Organism, system, environment, or assay conditions"${requestAttributes}></textarea></label>
+          <label><span>Observation that would resolve it</span><textarea id="${safePrefix}-intent-observation" rows="2" maxlength="2000" placeholder="What observable result would distinguish the possibilities?"${requestAttributes}></textarea></label>
+          <label><span>Decision context</span><input id="${safePrefix}-intent-decision" maxlength="2000" placeholder="Which human decision may this evidence inform?"${requestAttributes}></label>
+          <label><span>Scope</span><input id="${safePrefix}-intent-scope" maxlength="2000" placeholder="What is included?"${requestAttributes}></label>
+          <label><span>Exclusions</span><input id="${safePrefix}-intent-exclusions" maxlength="2000" placeholder="What does this question not claim?"${requestAttributes}></label>
+          <label><span>Known unknowns</span><textarea id="${safePrefix}-intent-unknowns" rows="2" maxlength="2000" placeholder="Known uncertainty, missing evidence, or confounders"${requestAttributes}></textarea></label>
+        </div>
+      </details>
     </div>
   `;
 }

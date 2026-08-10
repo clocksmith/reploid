@@ -22,7 +22,7 @@ The current Cloud Run and Firestore path is transitional. The target Reploid con
 - [x] `npm run verify:pool -- --allow-placeholders` passes locally.
 - [x] Unit suite passes: 1,511 passed and 25 skipped.
 - [x] Integration suite passes: 359 passed and 9 skipped.
-- [ ] Re-run `npm run verify:pool:release -- --url https://replo.id --channel=chrome` after deployment. The current release reports `2026-07-28.doppler-0.5.1.v2` while the governed local contract is `2026-08-01.sequence-model-contracts.v1`; release verification now fails before any browser workload on this mismatch.
+- [ ] Re-run `npm run verify:pool:release -- --url https://replo.id --channel=chrome` after deployment. The current release reports `2026-07-28.doppler-0.5.1.v2` while the governed local contract is `2026-08-01.sequence-model-contracts.v1.doppler-0.5.1`; release verification now fails before any browser workload on this mismatch.
 - [x] `npm audit` and the production-image `npm ci --omit=dev --include=optional` audit report zero vulnerabilities.
 - [x] No literal `TODO`, `FIXME`, `TBD`, or `XXX` markers existed in pool files before this document.
 
@@ -145,6 +145,24 @@ The current Cloud Run and Firestore path is transitional. The target Reploid con
 These gates extend the current public protein evidence path. They do not expand
 the supported public claim until the matching implementation, test, surface
 claim, and deployment evidence exist.
+
+### Governed Research Room Cycle
+
+- [x] Project the seven-stage question, execution, provenance, disagreement,
+  review, accepted-memory, and next-question loop from signed room records.
+- [x] Keep replication requests and conflicting reviewer decisions outside
+  accepted room memory.
+- [x] Restrict scientific next-action basis hashes to accepted memory while
+  allowing governance actions to expose provisional evidence gaps.
+- [x] Permit agent-authored hypotheses, prior evidence, predictions, and work
+  orders without granting agents review, approval, memory, or execution
+  authority.
+- [x] Require accepted compute agreement to bind at least two distinct receipt
+  identities.
+- [x] Require cohort predictions, work orders, outcomes, and the cohort itself
+  to pass independent acceptance before evaluation consumes them.
+- [x] Cover the governed projection, contextual review, reload recovery,
+  question contract, agent authority, and browser evidence journey.
 
 ### Discovery Contract Projection
 

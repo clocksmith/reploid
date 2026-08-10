@@ -47,6 +47,7 @@ const result = ({ roomId = 'room-projection', submissionHash = hash('a'), agreem
   modelContract: model,
   compute: {
     receiptHash: hash('d'),
+    receiptHashes: agreement?.receiptHashes || [hash('d')],
     agreement,
     providerId: 'provider-one',
     runtimeProfileHash: hash('e')
@@ -83,7 +84,7 @@ describe('Research Room projection', () => {
 
   it('projects accepted evidence into memory without exposing raw vectors', () => {
     const question = submission();
-    const answer = result({ agreement: { status: 'accepted', receiptHashes: [hash('d')] } });
+    const answer = result({ agreement: { status: 'accepted', receiptHashes: [hash('d'), hash('g')], providerIds: ['provider-one', 'provider-two'] } });
     const room = projectResearchRoom({
       roomId: question.roomId,
       routeId: 'home',
@@ -191,7 +192,7 @@ describe('Research Room projection', () => {
 
     expect(room.latestResult).toMatchObject({
       sourceHash: answer.recordHash,
-      status: 'unresolved',
+      status: 'disputed',
       agreement: { state: 'disagreement_assessed', label: 'Disagreement assessed' }
     });
     expect(room.unresolved).toContainEqual(expect.objectContaining({
@@ -206,7 +207,7 @@ describe('Research Room projection', () => {
 
   it('supersedes accepted memory when an independently accepted correction arrives', () => {
     const question = submission();
-    const answer = result({ agreement: { status: 'accepted', receiptHashes: [hash('d')] } });
+    const answer = result({ agreement: { status: 'accepted', receiptHashes: [hash('d'), hash('g')], providerIds: ['provider-one', 'provider-two'] } });
     const correction = {
       kind: 'human_claim',
       recordHash: hash('n'),
@@ -354,7 +355,7 @@ describe('Research Room projection', () => {
 
   it('renders a room-first surface with consent-scoped technical disclosure', () => {
     const question = submission();
-    const answer = result({ agreement: { status: 'accepted' } });
+    const answer = result({ agreement: { status: 'accepted', receiptHashes: [hash('d'), hash('g')], providerIds: ['provider-one', 'provider-two'] } });
     const html = renderResearchRoom({
       roomId: question.roomId,
       routeId: 'home',
@@ -369,7 +370,7 @@ describe('Research Room projection', () => {
     expect(html).toContain('Uncertainty and evidence limits');
     expect(html).toContain('Fewer than two exact model contracts');
     expect(html).toContain('Remembered evidence');
-    expect(html).toContain('Accepted under the current room policy.');
+    expect(html).toContain('Accepted under the current room policy by 1 independent signed decision.');
     expect(html).toContain('Possible explanations and proposed work');
     expect(html).toContain('No signed hypotheses, predictions, or proposed work are present in this room yet.');
     expect(html).toContain('data-pool-room-approve-task="task:');
@@ -377,7 +378,7 @@ describe('Research Room projection', () => {
     expect(html).toContain('Raw vectors and residue-level values remain hidden');
     expect(html).toContain('href="/ask?room=room-projection"');
     expect(html).toContain('href="/records?room=room-projection&amp;panel=review#pool-room-review"');
-    expect(html).toContain(`href="/records?room=room-projection&amp;panel=review&amp;target=${answer.recordHash}#pool-room-review"`);
+    expect(html).toContain(`href="/records?room=room-projection&amp;panel=review&amp;target=${encodeURIComponent(answer.recordHash)}#pool-room-review"`);
     expect(html).toContain('>Review this result</a>');
     expect(html).not.toContain('1,0,0');
   });

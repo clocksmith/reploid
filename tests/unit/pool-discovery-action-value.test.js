@@ -29,6 +29,8 @@ describe('Poolday heuristic discovery action ranking', () => {
     });
     expect(ranking.selectedAction).toMatchObject({
       actionKind: 'independent_review',
+      basis: 'governance',
+      basisHashes: [fakeHash('a')],
       expectedInformationGain: {
         units: 'ordinal heuristic uncertainty-reduction units',
         calibrationEvidence: []

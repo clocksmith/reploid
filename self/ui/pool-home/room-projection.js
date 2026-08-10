@@ -10,10 +10,9 @@ import {
   activeResearchRecords,
   buildQuestionLifecycles,
   invalidatedResearchHashes,
-  projectResearchReviewStates,
-  proposeDiscoveryTasks,
-  rankProposedDiscoveryActions
+  projectResearchReviewStates
 } from '../../pool/evidence-network.js';
+import { projectGovernedResearchCycle } from '../../pool/research-cycle.js';
 
 const RESEARCH_KINDS = Object.freeze({
   submission: 'research_submission',
@@ -140,7 +139,14 @@ const evidenceAgreement = (result, records) => {
   if (!result) return { state: 'evidence_unavailable', label: 'Evidence unavailable', sourceHash: null };
   const agreement = result.compute?.agreement || null;
   const explicitStatus = asText(agreement?.status).toLowerCase();
-  if (explicitStatus === 'accepted' || explicitStatus === 'agreed') {
+  const independentReceiptCount = unique(result.compute?.receiptHashes || [result.compute?.receiptHash]).length;
+  const independentProviderCount = unique([
+    result.compute?.providerId,
+    ...(agreement?.providerIds || agreement?.acceptedProviderIds || [])
+  ]).length;
+  if ((explicitStatus === 'accepted' || explicitStatus === 'agreed')
+    && independentReceiptCount >= 2
+    && independentProviderCount >= 2) {
     return { state: 'agreement_assessed', label: 'Agreement assessed', sourceHash: result.recordHash };
   }
   if (
@@ -243,18 +249,6 @@ const projectParticipants = (records, peerEvents, latestResult, submission) => {
   };
 };
 
-const projectMemory = (active, reviewStates, acceptedCorrections) => active
-  .filter((record) => reviewStates.get(record.recordHash)?.state === 'accepted')
-  .filter((record) => !acceptedCorrections.has(record.recordHash))
-  .map((record) => ({
-    id: record.recordHash,
-    kind: record.kind,
-    occurredAt: record.createdAt || null,
-    title: recordTitle(record),
-    status: 'accepted',
-    sourceHash: record.recordHash
-  }));
-
 const projectProposals = (active, reviewStates, acceptedCorrections) => active
   .filter((record) => (
     [RESEARCH_KINDS.hypothesis, RESEARCH_KINDS.prediction, RESEARCH_KINDS.workOrder].includes(record.kind)
@@ -264,7 +258,7 @@ const projectProposals = (active, reviewStates, acceptedCorrections) => active
     const rawReviewState = reviewStates.get(record.recordHash)?.state || null;
     const reviewState = acceptedCorrections.has(record.recordHash)
       ? 'corrected'
-      : ['accepted', 'rejected', 'invalidated'].includes(rawReviewState)
+      : ['accepted', 'rejected', 'needs_revision', 'replication_requested', 'disputed', 'invalidated'].includes(rawReviewState)
       ? rawReviewState
       : 'provisional';
     if (record.kind === RESEARCH_KINDS.hypothesis) {
@@ -377,6 +371,16 @@ const projectUnresolved = ({ active, reviewStates, latestResult, agreement, task
         title: 'Result needs revision',
         detail: 'A reviewer requested changes before this result can be remembered. Inspect the decision and provide the missing context or evidence.',
         action: 'Review evidence'
+      },
+      replication_requested: {
+        title: 'Result needs replication',
+        detail: 'An independent reviewer requested another exact execution before this result can enter room memory.',
+        action: 'Inspect replication request'
+      },
+      disputed: {
+        title: 'Result review is disputed',
+        detail: 'Independent reviewers reached conflicting decisions. The result remains outside memory until the disagreement is resolved.',
+        action: 'Review disagreement'
       },
       unresolved: {
         title: 'Result awaits review',
@@ -614,11 +618,12 @@ export function projectResearchRoom({
   const submission = latest(active, RESEARCH_KINDS.submission);
   const result = resultForQuestion(active, submission);
   const agreement = evidenceAgreement(result, scopedRecords);
-  const tasks = proposeDiscoveryTasks(scopedRecords);
-  const ranked = rankProposedDiscoveryActions(scopedRecords).rankedCandidates || [];
+  const cycle = projectGovernedResearchCycle(scopedRecords, { questionHash: submission?.recordHash || null });
+  const tasks = cycle.actions;
+  const ranked = cycle.ranking.rankedCandidates || [];
   const rankedById = new Map(ranked.map((task) => [task.actionId, task]));
   const nextActions = tasks
-    .map((task) => rankedById.get(task.actionId) || task)
+    .map((task) => ({ ...task, ...(rankedById.get(task.taskId) || {}) }))
     .sort((left, right) => Number(right.heuristicPriority || 0) - Number(left.heuristicPriority || 0));
   const participants = projectParticipants(active, scopedPeerEvents, result, submission);
   const question = submission
@@ -633,10 +638,23 @@ export function projectResearchRoom({
           residue: submission.consent?.publishResidueEvidence === true
         },
         modelContract: submission.modelContract || null,
-        policyId: submission.policyId || null
+        policyId: submission.policyId || null,
+        clarity: cycle.clarity
       }
     : null;
-  const memory = projectMemory(active, reviewStates, acceptedCorrections);
+  const activeByHash = new Map(active.map((record) => [record.recordHash, record]));
+  const memory = cycle.memory.records.map((entry) => {
+    const record = activeByHash.get(entry.recordHash);
+    return {
+      id: entry.recordHash,
+      kind: entry.kind,
+      occurredAt: record?.createdAt || null,
+      title: recordTitle(record),
+      status: 'accepted',
+      sourceHash: entry.recordHash,
+      reviewDecisionHashes: entry.reviewDecisionHashes
+    };
+  });
   const proposals = projectProposals(active, reviewStates, acceptedCorrections);
   const unresolved = projectUnresolved({
     active,
@@ -688,11 +706,16 @@ export function projectResearchRoom({
       targetHash: task.targetHash,
       reason: task.reason,
       status: task.status || 'proposed',
-      priority: task.heuristicPriority || null
+      priority: task.heuristicPriority || null,
+      basis: task.basis || 'governance',
+      basisHashes: task.basisHashes || []
     })),
     memory,
+    memoryExclusions: cycle.memory.excluded,
     proposals,
     timeline,
+    cycle,
+    nextQuestion: cycle.nextQuestion,
     modelEvidence: modelEvidence ? {
       agreement: modelEvidence.agreement?.status || 'not_assessed',
       disagreement: modelEvidence.disagreement?.status || 'not_assessed',

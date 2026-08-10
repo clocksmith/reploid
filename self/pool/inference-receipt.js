@@ -103,7 +103,7 @@ export async function importPublicKey(publicKeyBase64) {
     'spki',
     bytes,
     { name: 'ECDSA', namedCurve: 'P-256' },
-    false,
+    true,
     ['verify']
   );
 }

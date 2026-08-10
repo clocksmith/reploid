@@ -18,7 +18,10 @@ import {
 } from './sequence-workload.js';
 import { exactModelContractKey, validateEnabledPoolModelContract } from './model-contract.js';
 import { buildExactModelEvidenceView } from './model-evidence-view.js';
-import { rankDiscoveryActions } from './discovery-action-value.js';
+import {
+  DISCOVERY_ACTION_VALUE_POLICY,
+  rankDiscoveryActions
+} from './discovery-action-value.js';
 import {
   hashSequenceFloat32Values,
   validateSequenceOutputIntegrity
@@ -91,7 +94,12 @@ export const RESEARCH_FAILURE_CATEGORIES = Object.freeze([
   'analysis_failure',
   'inconclusive'
 ]);
-export const RESEARCH_REVIEW_DECISIONS = Object.freeze(['accepted', 'rejected', 'needs_revision']);
+export const RESEARCH_REVIEW_DECISIONS = Object.freeze([
+  'accepted',
+  'rejected',
+  'needs_revision',
+  'replication_requested'
+]);
 
 const SHA256_PATTERN = /^sha256:[a-f0-9]{64}$/;
 const MAX_TEXT_LENGTH = 8000;
@@ -143,11 +151,79 @@ const normalizeIntent = (intent = {}) => {
   const text = compactText(intent.text);
   const label = compactText(intent.label, 240);
   const context = compactText(intent.context);
+  const decisionContext = compactText(intent.decisionContext, 2000);
+  const conditions = compactText(intent.conditions, 2000);
+  const scope = compactText(intent.scope, 2000);
+  const exclusions = compactText(intent.exclusions, 2000);
+  const desiredObservation = compactText(intent.desiredObservation, 2000);
+  const knownUnknowns = compactText(intent.knownUnknowns, 2000);
   // A sequence and its signed provenance are sufficient to enter the evidence
   // network. Intent is optional context for reviewers, never an admission
   // requirement for a public protein proposal.
-  return { kind, text, label, context };
+  return {
+    kind,
+    text,
+    label,
+    context,
+    decisionContext,
+    conditions,
+    scope,
+    exclusions,
+    desiredObservation,
+    knownUnknowns
+  };
 };
+
+/**
+ * Projects how well a signed submission bounds the question it asks. Missing
+ * structure does not invalidate older evidence records; it remains visible as
+ * an explicit clarification gap before the room proposes scientific work.
+ */
+export function projectResearchQuestionClarity(submission = null) {
+  if (!submission || submission.kind !== RESEARCH_RECORD_KINDS.submission) {
+    return {
+      status: 'question_missing',
+      minimumReady: false,
+      score: 0,
+      presentFields: [],
+      gaps: [{ field: 'question', reason: 'No signed question and sequence anchor exists.' }]
+    };
+  }
+  const intent = submission.requesterIntent || {};
+  const fields = {
+    sequence: Boolean(submission.sequence?.hash && submission.sequence?.length > 0),
+    question: Boolean(compactText(intent.text)),
+    conditions: Boolean(compactText(intent.conditions || intent.context)),
+    desired_observation: Boolean(compactText(intent.desiredObservation)),
+    decision_context: Boolean(compactText(intent.decisionContext)),
+    scope: Boolean(compactText(intent.scope)),
+    exclusions: Boolean(compactText(intent.exclusions)),
+    known_unknowns: Boolean(compactText(intent.knownUnknowns))
+  };
+  const gapReasons = {
+    sequence: 'A public sequence identity is required.',
+    question: 'State the exact question reviewers should answer.',
+    conditions: 'State the biological or experimental conditions that bound the question.',
+    desired_observation: 'State what observation would change or resolve the question.',
+    decision_context: 'State which human decision this evidence may inform.',
+    scope: 'State what the investigation includes.',
+    exclusions: 'State what the investigation does not claim.',
+    known_unknowns: 'State the uncertainty or evidence gaps already known.'
+  };
+  const presentFields = Object.entries(fields).filter(([, present]) => present).map(([field]) => field);
+  const gaps = Object.entries(fields)
+    .filter(([, present]) => !present)
+    .map(([field]) => ({ field, reason: gapReasons[field] }));
+  const minimumReady = fields.sequence && fields.question;
+  const bounded = minimumReady && fields.conditions && fields.desired_observation;
+  return {
+    status: bounded ? 'bounded' : minimumReady ? 'needs_clarification' : 'incomplete',
+    minimumReady,
+    score: Number((presentFields.length / Object.keys(fields).length).toFixed(3)),
+    presentFields,
+    gaps
+  };
+}
 
 const normalizeConsent = (consent = {}, alphabet = SEQUENCE_ALPHABETS.aminoAcid) => {
   if (consent.publicSequence !== true) throw new TypeError('public sequence consent is required');
@@ -207,6 +283,40 @@ const normalizeHashList = (values, label, { min = 0, max = 128 } = {}) => {
 const normalizeTextList = (values, { min = 0, max = 64, itemMax = 1000, label = 'values' } = {}) => {
   const normalized = unique((Array.isArray(values) ? values : []).map((value) => compactText(value, itemMax))).slice(0, max);
   if (normalized.length < min) throw new TypeError(`${label} requires at least ${min} ${min === 1 ? 'entry' : 'entries'}`);
+  return normalized;
+};
+
+export const projectDiscoveryTaskContract = (task = {}) => {
+  const kind = compactText(task.kind || task.actionKind, 120);
+  const targetHash = requireHash(task.targetHash, 'discovery task target');
+  const reason = compactText(task.reason);
+  const basis = compactText(task.basis, 64) || 'governance';
+  const basisHashes = normalizeHashList(task.basisHashes?.length ? task.basisHashes : [targetHash], 'discovery task basis', { min: 1, max: 128 });
+  if (!kind || !reason) throw new TypeError('discovery task kind and reason are required');
+  if (!['question_anchor', 'governance', 'accepted_memory'].includes(basis)) {
+    throw new TypeError('discovery task basis is invalid');
+  }
+  return {
+    schema: 'poolday.discovery_task_contract/v1',
+    taskId: stableTaskId(kind, targetHash),
+    kind,
+    targetHash,
+    reason,
+    basis,
+    basisHashes: [...basisHashes].sort(),
+    rankingPolicyId: DISCOVERY_ACTION_VALUE_POLICY.policyId
+  };
+};
+
+const normalizeTaskApprovalContract = (taskContract, taskId, targetHash) => {
+  const normalized = projectDiscoveryTaskContract(taskContract);
+  if (normalized.taskId !== taskId || normalized.targetHash !== targetHash) {
+    throw new TypeError('task approval contract does not match its task or target identity');
+  }
+  if (taskContract?.schema !== normalized.schema
+    || taskContract?.rankingPolicyId !== normalized.rankingPolicyId) {
+    throw new TypeError('task approval contract schema or ranking policy is invalid');
+  }
   return normalized;
 };
 
@@ -546,6 +656,27 @@ export async function createSignedResearchResult({
     sequenceResult,
     sequenceOutput
   });
+  if (agreement?.receiptHashes != null && !Array.isArray(agreement.receiptHashes)) {
+    throw new TypeError('compute agreement receiptHashes must be an array');
+  }
+  const agreementReceiptHashes = unique([receiptHash, ...(agreement?.receiptHashes || [])])
+    .map((hash) => requireHash(hash, 'compute agreement receipt'));
+  const agreementStatus = compactText(agreement?.status, 64).toLowerCase();
+  if (['accepted', 'agreed'].includes(agreementStatus) && agreementReceiptHashes.length < 2) {
+    throw new TypeError('accepted compute agreement requires at least two distinct receipt identities');
+  }
+  const declaredProviderIds = agreement?.providerIds ?? agreement?.acceptedProviderIds ?? null;
+  if (declaredProviderIds != null && !Array.isArray(declaredProviderIds)) {
+    throw new TypeError('compute agreement provider identities must be an array');
+  }
+  const agreementProviderIds = unique([
+    receipt.providerId || receiptRecord?.providerId || null,
+    ...(declaredProviderIds || [])
+  ]);
+  if (['accepted', 'agreed'].includes(agreementStatus)
+    && (!declaredProviderIds || agreementProviderIds.length < 2)) {
+    throw new TypeError('accepted compute agreement requires at least two distinct provider identities');
+  }
   const payload = {
     version: RESEARCH_RECORD_VERSION,
     kind: RESEARCH_RECORD_KINDS.result,
@@ -564,7 +695,7 @@ export async function createSignedResearchResult({
       receiptModelContractKey: exactModelContractKey(receiptModelContract),
       // The primary receipt is the immutable execution anchor for this result.
       // Agreement receipts may add reproductions but cannot replace it.
-      receiptHashes: unique([receiptHash, ...(agreement?.receiptHashes || [])]),
+      receiptHashes: agreementReceiptHashes,
       requesterAcceptanceHash: accepted?.acceptanceHash || accepted?.receiptHash || null,
       agreementHash: agreement ? await hashJson(agreement) : null,
       agreement: clone(agreement),
@@ -598,6 +729,7 @@ export async function createSignedHumanClaim({
   evidenceLinks = [],
   decision = null,
   taskId = null,
+  taskContract = null,
   createdAt = new Date().toISOString()
 } = {}) {
   const { author, privateKey } = await createAuthor(identity, ['reviewer', 'verifier', 'researcher']);
@@ -618,12 +750,16 @@ export async function createSignedHumanClaim({
     return { url: url.href, label: compactText(link.label, 240) };
   }).slice(0, 24);
   const normalizedDecision = decision ? compactText(decision, 32).toLowerCase() : null;
-  if (kind === 'review_decision' && !['accepted', 'rejected', 'needs_revision'].includes(normalizedDecision)) {
-    throw new TypeError('review decision must be accepted, rejected, or needs_revision');
+  if (kind === 'review_decision' && !RESEARCH_REVIEW_DECISIONS.includes(normalizedDecision)) {
+    throw new TypeError(`review decision must be one of: ${RESEARCH_REVIEW_DECISIONS.join(', ')}`);
   }
   if (kind === 'task_approval' && normalizedDecision !== 'approved') {
     throw new TypeError('task approval decision must be approved');
   }
+  const normalizedTaskId = compactText(taskId, 240) || null;
+  const normalizedTaskContract = kind === 'task_approval'
+    ? normalizeTaskApprovalContract(taskContract, normalizedTaskId, targetHash)
+    : null;
   const payload = {
     version: RESEARCH_RECORD_VERSION,
     kind: RESEARCH_RECORD_KINDS.claim,
@@ -639,7 +775,8 @@ export async function createSignedHumanClaim({
       confidence: normalizedConfidence,
       evidenceLinks: links,
       decision: normalizedDecision,
-      taskId: compactText(taskId, 240) || null
+      taskId: normalizedTaskId,
+      taskContract: normalizedTaskContract
     }
   };
   return signRecord(payload, privateKey, SIGNATURE_DOMAINS.humanClaim);
@@ -657,7 +794,7 @@ export async function createSignedResearchHypothesis({
   alternativeToHashes = [],
   createdAt = new Date().toISOString()
 } = {}) {
-  const { author, privateKey } = await createAuthor(identity, ['requester', 'researcher', 'reviewer']);
+  const { author, privateKey } = await createAuthor(identity, ['requester', 'researcher', 'reviewer', 'agent']);
   const normalizedStatement = compactText(statement);
   if (!normalizedStatement) throw new TypeError('hypothesis statement is required');
   const normalizedConditions = normalizeConditions(conditions);
@@ -700,7 +837,7 @@ export async function createSignedPriorEvidence({
   provenance = {},
   createdAt = new Date().toISOString()
 } = {}) {
-  const { author, privateKey } = await createAuthor(identity, ['researcher', 'reviewer', 'verifier']);
+  const { author, privateKey } = await createAuthor(identity, ['researcher', 'reviewer', 'verifier', 'agent']);
   const category = compactText(evidenceKind, 40).toLowerCase();
   if (!PRIOR_EVIDENCE_KINDS.includes(category)) throw new TypeError('prior evidence kind is not supported');
   const normalizedSummary = compactText(summary);
@@ -752,7 +889,7 @@ export async function createSignedResearchPrediction({
   frozenAt = new Date().toISOString(),
   createdAt = frozenAt
 } = {}) {
-  const { author, privateKey } = await createAuthor(identity, ['researcher', 'requester', 'verifier']);
+  const { author, privateKey } = await createAuthor(identity, ['researcher', 'requester', 'verifier', 'agent']);
   const normalizedObservation = compactText(expectedObservation);
   const label = compactText(normalizedLabel, 240).toLowerCase();
   if (!normalizedObservation || !label) throw new TypeError('predicted observation and normalized label are required');
@@ -803,7 +940,7 @@ export async function createSignedResearchWorkOrder({
   feasibility = {},
   createdAt = new Date().toISOString()
 } = {}) {
-  const { author, privateKey } = await createAuthor(identity, ['researcher', 'reviewer', 'requester']);
+  const { author, privateKey } = await createAuthor(identity, ['researcher', 'reviewer', 'requester', 'agent']);
   const kind = compactText(workKind, 40).toLowerCase();
   if (!RESEARCH_WORK_KINDS.includes(kind)) throw new TypeError('research work kind is not supported');
   const normalizedTitle = compactText(title, 500);
@@ -1422,6 +1559,20 @@ export async function verifyResearchRecord(record = {}) {
       reasons.push('result receiptHashes are invalid');
     } else if (!record.compute.receiptHashes.includes(record.compute.receiptHash)) {
       reasons.push('result receiptHashes must include the primary receiptHash');
+    } else if (['accepted', 'agreed'].includes(compactText(record.compute?.agreement?.status, 64).toLowerCase())
+      && unique(record.compute.receiptHashes).length < 2) {
+      reasons.push('accepted compute agreement requires at least two distinct receipt identities');
+    }
+    const declaredAgreementProviders = record.compute?.agreement?.providerIds
+      ?? record.compute?.agreement?.acceptedProviderIds
+      ?? null;
+    if (declaredAgreementProviders != null && !Array.isArray(declaredAgreementProviders)) {
+      reasons.push('accepted compute agreement provider identities must be an array');
+    }
+    if (['accepted', 'agreed'].includes(compactText(record.compute?.agreement?.status, 64).toLowerCase())
+      && (!Array.isArray(declaredAgreementProviders)
+        || unique([record.compute?.providerId, ...declaredAgreementProviders]).length < 2)) {
+      reasons.push('accepted compute agreement requires at least two distinct provider identities');
     }
     try {
       normalizeModelContract(record.modelContract);
@@ -1464,16 +1615,29 @@ export async function verifyResearchRecord(record = {}) {
       }
     }
     if (record.claim?.kind === 'review_decision'
-      && (!['accepted', 'rejected', 'needs_revision'].includes(record.claim?.decision) || record.claim?.relation !== 'reviews')) {
+      && (!RESEARCH_REVIEW_DECISIONS.includes(record.claim?.decision) || record.claim?.relation !== 'reviews')) {
       reasons.push('human review decision is invalid');
     }
     if (record.claim?.kind === 'task_approval'
       && (record.claim?.decision !== 'approved' || record.claim?.relation !== 'approves' || !record.claim?.taskId)) {
       reasons.push('human task approval is invalid');
+    } else if (record.claim?.kind === 'task_approval') {
+      try {
+        const normalizedTaskContract = normalizeTaskApprovalContract(
+          record.claim?.taskContract,
+          record.claim?.taskId,
+          record.targetHash
+        );
+        if (JSON.stringify(normalizedTaskContract) !== JSON.stringify(record.claim.taskContract)) {
+          reasons.push('human task approval contract is not canonical');
+        }
+      } catch (error) {
+        reasons.push(error.message);
+      }
     }
   }
   if (record.kind === RESEARCH_RECORD_KINDS.hypothesis) {
-    if (!['requester', 'researcher', 'reviewer'].includes(record.author?.role)) reasons.push('hypothesis author role is invalid');
+    if (!['requester', 'researcher', 'reviewer', 'agent'].includes(record.author?.role)) reasons.push('hypothesis author role is invalid');
     if (!SHA256_PATTERN.test(String(record.questionHash || ''))) reasons.push('hypothesis questionHash is invalid');
     if (!record.hypothesis?.statement) reasons.push('hypothesis statement is required');
     if (!conditionsHaveContent(record.hypothesis?.conditions)) reasons.push('hypothesis conditions are required');
@@ -1485,7 +1649,7 @@ export async function verifyResearchRecord(record = {}) {
     }
   }
   if (record.kind === RESEARCH_RECORD_KINDS.priorEvidence) {
-    if (!['researcher', 'reviewer', 'verifier'].includes(record.author?.role)) reasons.push('prior evidence author role is invalid');
+    if (!['researcher', 'reviewer', 'verifier', 'agent'].includes(record.author?.role)) reasons.push('prior evidence author role is invalid');
     if (!SHA256_PATTERN.test(String(record.questionHash || ''))) reasons.push('prior evidence questionHash is invalid');
     if (!PRIOR_EVIDENCE_KINDS.includes(record.evidence?.kind)) reasons.push('prior evidence kind is invalid');
     if (!record.evidence?.summary) reasons.push('prior evidence summary is required');
@@ -1500,7 +1664,7 @@ export async function verifyResearchRecord(record = {}) {
     }
   }
   if (record.kind === RESEARCH_RECORD_KINDS.prediction) {
-    if (!['researcher', 'requester', 'verifier'].includes(record.author?.role)) reasons.push('prediction author role is invalid');
+    if (!['researcher', 'requester', 'verifier', 'agent'].includes(record.author?.role)) reasons.push('prediction author role is invalid');
     if (!SHA256_PATTERN.test(String(record.questionHash || '')) || !SHA256_PATTERN.test(String(record.hypothesisHash || ''))) {
       reasons.push('prediction question or hypothesis identity is invalid');
     }
@@ -1517,7 +1681,7 @@ export async function verifyResearchRecord(record = {}) {
     }
   }
   if (record.kind === RESEARCH_RECORD_KINDS.workOrder) {
-    if (!['researcher', 'reviewer', 'requester'].includes(record.author?.role)) reasons.push('work order author role is invalid');
+    if (!['researcher', 'reviewer', 'requester', 'agent'].includes(record.author?.role)) reasons.push('work order author role is invalid');
     if (!SHA256_PATTERN.test(String(record.questionHash || ''))) reasons.push('work order questionHash is invalid');
     if (!Array.isArray(record.hypothesisHashes) || record.hypothesisHashes.length === 0
       || record.hypothesisHashes.some((hash) => !SHA256_PATTERN.test(hash))) reasons.push('work order hypothesis hashes are invalid');
@@ -1701,28 +1865,77 @@ const independentReviewDecisions = (records, target) => {
     && !invalidated.has(record.recordHash));
 };
 
+const latestDecisionPerReviewer = (decisions) => {
+  const latest = new Map();
+  for (const decision of decisions) {
+    const reviewerId = decision.author?.identityRootId || decision.author?.roleId || decision.recordHash;
+    const previous = latest.get(reviewerId);
+    if (!previous
+      || String(previous.createdAt || '').localeCompare(String(decision.createdAt || '')) < 0
+      || (previous.createdAt === decision.createdAt && previous.recordHash.localeCompare(decision.recordHash) < 0)) {
+      latest.set(reviewerId, decision);
+    }
+  }
+  return [...latest.values()].sort((left, right) => String(left.createdAt).localeCompare(String(right.createdAt))
+    || left.recordHash.localeCompare(right.recordHash));
+};
+
 export function projectResearchReviewStates(records = []) {
   const active = activeResearchRecords(records);
   return active.map((record) => {
-    const decisions = independentReviewDecisions(records, record)
-      .sort((left, right) => String(left.createdAt).localeCompare(String(right.createdAt)));
-    const accepted = decisions.some((decision) => decision.claim?.decision === 'accepted');
-    const rejected = decisions.some((decision) => decision.claim?.decision === 'rejected');
-    const needsRevision = decisions.some((decision) => decision.claim?.decision === 'needs_revision');
-    const state = accepted && !rejected
-      ? 'accepted'
-      : rejected && !accepted
-        ? 'rejected'
-        : needsRevision && !accepted && !rejected
-          ? 'needs_revision'
-          : 'unresolved';
+    const decisions = latestDecisionPerReviewer(independentReviewDecisions(records, record));
+    const decisionStates = unique(decisions.map((decision) => decision.claim?.decision).filter(Boolean));
+    const state = decisionStates.length === 1 ? decisionStates[0] : decisionStates.length > 1 ? 'disputed' : 'unresolved';
     return {
       recordHash: record.recordHash,
       state,
-      disagreement: accepted && rejected,
+      disagreement: decisionStates.length > 1,
+      replicationRequested: decisionStates.includes('replication_requested'),
+      decisionStates,
       decisions
     };
   });
+}
+
+/**
+ * Returns the only record set eligible for reuse as room memory. Review
+ * decisions are independent, revocations propagate, and an accepted
+ * correction supersedes its target without erasing immutable history.
+ */
+export function projectAcceptedResearchMemory(records = []) {
+  const invalidated = invalidatedResearchHashes(records);
+  const active = activeResearchRecords(records);
+  const reviewStates = new Map(projectResearchReviewStates(records).map((entry) => [entry.recordHash, entry]));
+  const acceptedCorrections = new Map(active
+    .filter((record) => record.kind === RESEARCH_RECORD_KINDS.claim)
+    .filter((record) => record.claim?.kind === 'correction' || record.claim?.relation === 'corrects')
+    .filter((record) => reviewStates.get(record.recordHash)?.state === 'accepted')
+    .map((record) => [record.targetHash, record.recordHash]));
+  const acceptedRecords = active.filter((record) => (
+    reviewStates.get(record.recordHash)?.state === 'accepted'
+    && !acceptedCorrections.has(record.recordHash)
+  ));
+  const acceptedHashes = acceptedRecords.map((record) => record.recordHash).sort();
+  const excluded = records
+    .filter((record) => record.kind !== RESEARCH_RECORD_KINDS.revocation)
+    .filter((record) => !acceptedHashes.includes(record.recordHash))
+    .map((record) => ({
+      recordHash: record.recordHash,
+      reason: invalidated.has(record.recordHash)
+        ? 'invalidated'
+        : acceptedCorrections.has(record.recordHash)
+          ? 'superseded_by_accepted_correction'
+          : reviewStates.get(record.recordHash)?.state || 'unreviewed',
+      supersededByHash: acceptedCorrections.get(record.recordHash) || null
+    }))
+    .sort((left, right) => left.recordHash.localeCompare(right.recordHash));
+  return {
+    schema: 'poolday.accepted_research_memory/v1',
+    policy: 'independent_review_fail_closed',
+    acceptedHashes,
+    records: acceptedRecords,
+    excluded
+  };
 }
 
 const independentlyAccepted = (records, target) => projectResearchReviewStates(records)
@@ -1857,17 +2070,22 @@ export function validateResearchRecordLinks(record = {}, records = []) {
       else {
         if (!record.cohort.questionHashes.includes(prediction.questionHash)) reasons.push(`cohort prediction belongs to an excluded question: ${hash}`);
         if (Date.parse(prediction.prediction?.frozenAt || prediction.createdAt) > frozenAt) reasons.push(`cohort prediction was not frozen before cohort activation: ${hash}`);
+        if (!independentlyAccepted(records, prediction)) reasons.push(`cohort prediction lacks independent acceptance: ${hash}`);
       }
     }
     for (const hash of record.cohort?.workOrderHashes || []) {
       const order = target(hash);
       if (order?.kind !== RESEARCH_RECORD_KINDS.workOrder) reasons.push(`cohort work order kind mismatch: ${hash}`);
-      else if (!record.cohort.questionHashes.includes(order.questionHash)) reasons.push(`cohort work order belongs to an excluded question: ${hash}`);
+      else {
+        if (!record.cohort.questionHashes.includes(order.questionHash)) reasons.push(`cohort work order belongs to an excluded question: ${hash}`);
+        if (!independentlyAccepted(records, order)) reasons.push(`cohort work order lacks independent acceptance: ${hash}`);
+      }
     }
   }
   if (record.kind === RESEARCH_RECORD_KINDS.evaluation) {
     const cohort = target(record.cohortHash);
     if (cohort?.kind !== RESEARCH_RECORD_KINDS.cohort) reasons.push('evaluation must target a frozen cohort');
+    else if (!independentlyAccepted(records, cohort)) reasons.push('evaluation cohort requires independent acceptance');
     for (const hash of record.evaluation?.outcomeHashes || []) {
       const outcome = target(hash);
       if (outcome?.kind !== RESEARCH_RECORD_KINDS.outcome) reasons.push(`evaluation outcome kind mismatch: ${hash}`);
@@ -2232,79 +2450,155 @@ export function proposeDiscoveryTasks(records = []) {
   const active = activeResearchRecords(records);
   const results = active.filter((record) => record.kind === RESEARCH_RECORD_KINDS.result);
   const claims = active.filter((record) => record.kind === RESEARCH_RECORD_KINDS.claim);
-  const approvals = new Set(claims.filter((record) => record.claim.kind === 'task_approval').map((record) => record.claim.taskId));
+  const approvals = claims.filter((record) => record.claim.kind === 'task_approval');
   const reviewStates = new Map(projectResearchReviewStates(records).map((entry) => [entry.recordHash, entry]));
-  for (const submission of active.filter((record) => record.kind === RESEARCH_RECORD_KINDS.submission)) {
-    const linkedResults = results.filter((record) => record.submissionHash === submission.recordHash);
-    if (linkedResults.length === 0) tasks.push({ kind: 'compute', targetHash: submission.recordHash, reason: 'No receipt-backed result exists.' });
-    for (const result of linkedResults) {
-      const resultClaims = claimsForTarget(records, result.recordHash);
-      const independentReviews = resultClaims.filter((claim) => claim.claim.kind === 'review_decision'
-        && claim.author.identityRootId !== result.author.identityRootId);
-      if (independentReviews.length === 0) tasks.push({ kind: 'independent_review', targetHash: result.recordHash, reason: 'No independent reviewer decision exists.' });
-      if ((result.compute?.receiptHashes || []).length < 2) tasks.push({ kind: 'reproduce', targetHash: result.recordHash, reason: 'Only one compute receipt backs this result.' });
+  const acceptedMemory = projectAcceptedResearchMemory(records);
+  const acceptedHashes = new Set(acceptedMemory.acceptedHashes);
+  const addTask = (kind, targetHash, reason, {
+    basis = 'governance',
+    basisHashes = [targetHash]
+  } = {}) => tasks.push({ kind, targetHash, reason, basis, basisHashes: unique(basisHashes).sort() });
+  const requireReview = (record, label) => {
+    const review = reviewStates.get(record.recordHash) || { state: 'unresolved' };
+    if (review.state === 'unresolved') {
+      addTask('independent_review', record.recordHash, `${label} has no independent reviewer decision.`);
+    } else if (review.state === 'needs_revision') {
+      addTask('revise_evidence', record.recordHash, `${label} needs the correction or context requested by its reviewer.`);
+    } else if (review.state === 'replication_requested') {
+      addTask('reproduce', record.recordHash, `${label} has an explicit independent replication request.`);
+    } else if (review.state === 'disputed') {
+      addTask('adjudicate_contradiction', record.recordHash, `${label} has conflicting independent reviewer decisions.`);
+      if (review.replicationRequested) {
+        addTask('reproduce', record.recordHash, `${label} has a replication request within its disputed review set.`);
+      }
+    } else if (review.state === 'rejected') {
+      addTask('reproduce', record.recordHash, `${label} was rejected; new corrected or independently reproduced evidence is required.`);
     }
-    const priorEvidence = active.filter((record) => record.kind === RESEARCH_RECORD_KINDS.priorEvidence && record.questionHash === submission.recordHash);
-    const hypotheses = active.filter((record) => record.kind === RESEARCH_RECORD_KINDS.hypothesis && record.questionHash === submission.recordHash);
-    const predictions = active.filter((record) => record.kind === RESEARCH_RECORD_KINDS.prediction && record.questionHash === submission.recordHash);
-    const workOrders = active.filter((record) => record.kind === RESEARCH_RECORD_KINDS.workOrder && record.questionHash === submission.recordHash);
+  };
+  for (const submission of active.filter((record) => record.kind === RESEARCH_RECORD_KINDS.submission)) {
+    const clarity = projectResearchQuestionClarity(submission);
+    if (clarity.status !== 'bounded') {
+      addTask(
+        'clarify_question',
+        submission.recordHash,
+        clarity.minimumReady
+          ? `Bound the question before deriving scientific work: ${clarity.gaps.slice(0, 3).map((gap) => gap.reason).join(' ')}`
+          : clarity.gaps.map((gap) => gap.reason).join(' '),
+        { basis: 'question_anchor' }
+      );
+    }
+    const linkedResults = results.filter((record) => record.submissionHash === submission.recordHash);
+    if (linkedResults.length === 0 && clarity.minimumReady) {
+      addTask('compute', submission.recordHash, 'No receipt-backed result exists for this signed question.', { basis: 'question_anchor' });
+    }
+    for (const result of linkedResults) {
+      requireReview(result, 'The receipt-backed result');
+      const resultProviderIds = unique([
+        result.compute?.providerId,
+        ...(result.compute?.agreement?.providerIds || result.compute?.agreement?.acceptedProviderIds || [])
+      ]);
+      if (unique(result.compute?.receiptHashes || [result.compute?.receiptHash]).length < 2
+        || resultProviderIds.length < 2) {
+        addTask('reproduce', result.recordHash, 'The result lacks two distinct receipt and provider identities.');
+      }
+    }
+    const priorEvidenceAll = active.filter((record) => record.kind === RESEARCH_RECORD_KINDS.priorEvidence && record.questionHash === submission.recordHash);
+    const hypothesesAll = active.filter((record) => record.kind === RESEARCH_RECORD_KINDS.hypothesis && record.questionHash === submission.recordHash);
+    const predictionsAll = active.filter((record) => record.kind === RESEARCH_RECORD_KINDS.prediction && record.questionHash === submission.recordHash);
+    const workOrdersAll = active.filter((record) => record.kind === RESEARCH_RECORD_KINDS.workOrder && record.questionHash === submission.recordHash);
+    const outcomesAll = active.filter((record) => record.kind === RESEARCH_RECORD_KINDS.outcome && record.questionHash === submission.recordHash);
+    const cohortsAll = active.filter((record) => record.kind === RESEARCH_RECORD_KINDS.cohort && record.cohort.questionHashes.includes(submission.recordHash));
+    for (const record of [...priorEvidenceAll, ...hypothesesAll, ...predictionsAll, ...workOrdersAll, ...outcomesAll, ...cohortsAll]) {
+      if (!acceptedHashes.has(record.recordHash)) requireReview(record, 'This proposed evidence');
+    }
+    const acceptedResults = linkedResults.filter((record) => acceptedHashes.has(record.recordHash));
+    const priorEvidence = priorEvidenceAll.filter((record) => acceptedHashes.has(record.recordHash));
+    const hypotheses = hypothesesAll.filter((record) => acceptedHashes.has(record.recordHash));
+    const predictions = predictionsAll.filter((record) => acceptedHashes.has(record.recordHash));
+    const workOrders = workOrdersAll.filter((record) => acceptedHashes.has(record.recordHash));
+    const outcomes = outcomesAll.filter((record) => acceptedHashes.has(record.recordHash));
+    const cohorts = cohortsAll.filter((record) => acceptedHashes.has(record.recordHash));
     const workOrderHashes = new Set(workOrders.map((record) => record.recordHash));
     const workClaims = active.filter((record) => record.kind === RESEARCH_RECORD_KINDS.workClaim && workOrderHashes.has(record.workOrderHash));
-    const outcomes = active.filter((record) => record.kind === RESEARCH_RECORD_KINDS.outcome && record.questionHash === submission.recordHash);
-    const cohorts = active.filter((record) => record.kind === RESEARCH_RECORD_KINDS.cohort && record.cohort.questionHashes.includes(submission.recordHash));
     const cohortHashes = new Set(cohorts.map((record) => record.recordHash));
-    const evaluations = active.filter((record) => record.kind === RESEARCH_RECORD_KINDS.evaluation && cohortHashes.has(record.cohortHash));
-    if (priorEvidence.length === 0) tasks.push({ kind: 'retrieve_prior_evidence', targetHash: submission.recordHash, reason: 'No versioned sequence, structure, domain, annotation, experiment, or publication evidence is linked.' });
-    if (hypotheses.length < 2) tasks.push({ kind: 'add_competing_hypothesis', targetHash: submission.recordHash, reason: 'At least two condition-specific hypotheses are required to map disagreement.' });
+    const evaluationsAll = active.filter((record) => record.kind === RESEARCH_RECORD_KINDS.evaluation && cohortHashes.has(record.cohortHash));
+    for (const evaluation of evaluationsAll) if (!acceptedHashes.has(evaluation.recordHash)) requireReview(evaluation, 'This cohort evaluation');
+    const evaluations = evaluationsAll.filter((record) => acceptedHashes.has(record.recordHash));
+    const acceptedEvidenceBasis = [...acceptedResults, ...priorEvidence].map((record) => record.recordHash);
+    if (acceptedResults.length > 0 && priorEvidence.length === 0) {
+      addTask('retrieve_prior_evidence', submission.recordHash, 'Accepted model evidence has no independently accepted versioned prior evidence.', {
+        basis: 'accepted_memory', basisHashes: acceptedEvidenceBasis
+      });
+    }
+    if (acceptedEvidenceBasis.length > 0 && hypotheses.length < 2) {
+      addTask('add_competing_hypothesis', submission.recordHash, 'Accepted memory does not yet contain two condition-specific hypotheses that expose competing explanations.', {
+        basis: 'accepted_memory', basisHashes: acceptedEvidenceBasis
+      });
+    }
     for (const hypothesis of hypotheses) {
       const methods = new Set(predictions.filter((prediction) => prediction.hypothesisHash === hypothesis.recordHash)
         .map((prediction) => prediction.prediction.method.analysisHash));
-      if (methods.size < 2) tasks.push({ kind: 'run_diverse_predictor', targetHash: hypothesis.recordHash, reason: 'This hypothesis needs frozen predictions from another exact method identity.' });
+      if (methods.size < 2) addTask('run_diverse_predictor', hypothesis.recordHash, 'This accepted hypothesis needs accepted frozen predictions from another exact method identity.', {
+        basis: 'accepted_memory', basisHashes: [hypothesis.recordHash, ...predictions.filter((prediction) => prediction.hypothesisHash === hypothesis.recordHash).map((record) => record.recordHash)]
+      });
     }
-    if (hypotheses.length >= 2 && workOrders.length === 0) tasks.push({ kind: 'design_discriminating_assay', targetHash: submission.recordHash, reason: 'Competing hypotheses have no machine-verifiable work order.' });
+    if (hypotheses.length >= 2 && workOrders.length === 0) addTask('design_discriminating_assay', submission.recordHash, 'Accepted competing hypotheses have no accepted machine-verifiable work order.', {
+      basis: 'accepted_memory', basisHashes: hypotheses.map((record) => record.recordHash)
+    });
     for (const order of workOrders) {
-      const orderState = reviewStates.get(order.recordHash)?.state || 'unresolved';
-      if (orderState === 'unresolved' || orderState === 'needs_revision') tasks.push({ kind: 'expert_refine_assay', targetHash: order.recordHash, reason: 'The assay protocol needs an independent expert decision.' });
-      if (orderState === 'accepted' && !workClaims.some((claim) => claim.workOrderHash === order.recordHash)) {
-        tasks.push({ kind: 'claim_experimental_work', targetHash: order.recordHash, reason: 'The accepted work order has not been claimed by a laboratory.' });
+      if (!workClaims.some((claim) => claim.workOrderHash === order.recordHash)) {
+        addTask('claim_experimental_work', order.recordHash, 'The accepted work order has not been claimed by a laboratory.', {
+          basis: 'accepted_memory', basisHashes: [order.recordHash]
+        });
       }
       const orderOutcomes = outcomes.filter((outcome) => outcome.workOrderHash === order.recordHash);
       if (workClaims.some((claim) => claim.workOrderHash === order.recordHash) && orderOutcomes.length < order.work.replicaTarget) {
-        tasks.push({ kind: orderOutcomes.length ? 'replicate_assay' : 'perform_assay', targetHash: order.recordHash, reason: `${orderOutcomes.length} of ${order.work.replicaTarget} planned outcome records exist.` });
-      }
-    }
-    for (const outcome of outcomes) {
-      if ((reviewStates.get(outcome.recordHash)?.state || 'unresolved') !== 'accepted') {
-        tasks.push({ kind: 'review_outcome', targetHash: outcome.recordHash, reason: 'Positive, negative, and ambiguous outcomes require the same independent review gate.' });
+        addTask(orderOutcomes.length ? 'replicate_assay' : 'perform_assay', order.recordHash, `${orderOutcomes.length} of ${order.work.replicaTarget} accepted planned outcome records exist.`, {
+          basis: 'accepted_memory', basisHashes: [order.recordHash, ...orderOutcomes.map((record) => record.recordHash)]
+        });
       }
     }
     if (predictions.length > 0 && workOrders.length > 0 && cohorts.length === 0) {
-      tasks.push({ kind: 'freeze_prospective_cohort', targetHash: submission.recordHash, reason: 'Predictions and work orders are not yet frozen into a blinded prospective cohort.' });
+      addTask('freeze_prospective_cohort', submission.recordHash, 'Accepted predictions and work orders are not yet frozen into a blinded prospective cohort.', {
+        basis: 'accepted_memory', basisHashes: [...predictions, ...workOrders].map((record) => record.recordHash)
+      });
     }
     for (const cohort of cohorts) {
       const eligible = outcomes.filter((outcome) => cohort.cohort.workOrderHashes.includes(outcome.workOrderHash)
         && reviewStates.get(outcome.recordHash)?.state === 'accepted');
       if (eligible.length > 0 && !evaluations.some((evaluation) => evaluation.cohortHash === cohort.recordHash)) {
-        tasks.push({ kind: 'evaluate_frozen_cohort', targetHash: cohort.recordHash, reason: 'The frozen cohort has accepted blinded outcomes but no measured evaluation.' });
+        addTask('evaluate_frozen_cohort', cohort.recordHash, 'The accepted frozen cohort has accepted blinded outcomes but no accepted measured evaluation.', {
+          basis: 'accepted_memory', basisHashes: [cohort.recordHash, ...eligible.map((record) => record.recordHash)]
+        });
       }
     }
     for (const evaluation of evaluations) {
       if (!evaluation.evaluation.metricResults.some((metric) => metric.improved)) {
-        tasks.push({ kind: 'analyze_cohort_failure', targetHash: evaluation.recordHash, reason: 'The measured cohort did not improve its frozen metric.' });
+        addTask('analyze_cohort_failure', evaluation.recordHash, 'The accepted measured cohort did not improve its frozen metric.', {
+          basis: 'accepted_memory', basisHashes: [evaluation.recordHash]
+        });
       }
       if (evaluation.evaluation.nextCohortQuestionHashes.length === 0) {
-        tasks.push({ kind: 'define_next_cohort', targetHash: evaluation.recordHash, reason: 'The evaluation does not yet bind its effect to a next-cohort question set.' });
+        addTask('define_next_cohort', evaluation.recordHash, 'The accepted evaluation does not yet bind its effect to a next-cohort question set.', {
+          basis: 'accepted_memory', basisHashes: [evaluation.recordHash]
+        });
       }
     }
   }
   for (const claim of claims) {
-    if (claim.claim.kind === 'follow_up') tasks.push({ kind: 'follow_up', targetHash: claim.recordHash, reason: claim.claim.text });
-    if (claim.claim.confidence < 0.5 && claim.claim.kind !== 'task_approval') tasks.push({ kind: 'resolve_uncertainty', targetHash: claim.recordHash, reason: 'The contributor marked this claim low confidence.' });
-    if (claim.claim.relation === 'contradicts') tasks.push({ kind: 'adjudicate_contradiction', targetHash: claim.recordHash, reason: 'A signed claim contradicts prior evidence.' });
+    if (claim.claim.kind === 'follow_up') addTask('follow_up', claim.recordHash, claim.claim.text);
+    if (claim.claim.confidence < 0.5 && claim.claim.kind !== 'task_approval') addTask('resolve_uncertainty', claim.recordHash, 'The contributor marked this claim low confidence.');
+    if (claim.claim.relation === 'contradicts') addTask('adjudicate_contradiction', claim.recordHash, 'A signed claim contradicts prior evidence.');
   }
-  return tasks.map((task) => {
+  const uniqueTasks = [...new Map(tasks.map((task) => [`${task.kind}:${task.targetHash}`, task])).values()];
+  return uniqueTasks.map((task) => {
     const taskId = stableTaskId(task.kind, task.targetHash);
-    return { ...task, taskId, status: approvals.has(taskId) ? 'approved' : 'proposed' };
+    const taskContract = projectDiscoveryTaskContract({ ...task, taskId });
+    const approved = approvals.some((approval) => (
+      approval.claim.taskId === taskId
+      && JSON.stringify(approval.claim.taskContract) === JSON.stringify(taskContract)
+    ));
+    return { ...task, taskId, taskContract, status: approved ? 'approved' : 'proposed' };
   });
 }
 
@@ -2408,7 +2702,10 @@ export default {
   buildPredictionDisagreementMap,
   buildModelEvidenceView,
   buildQuestionLifecycles,
+  projectResearchQuestionClarity,
   projectResearchReviewStates,
+  projectAcceptedResearchMemory,
+  projectDiscoveryTaskContract,
   searchEvidence,
   findSimilarSequences,
   clusterCompatibleResults,

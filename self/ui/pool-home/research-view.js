@@ -49,6 +49,10 @@ const escapeHtml = (value) => String(value ?? '')
   .replace(/>/g, '&gt;')
   .replace(/"/g, '&quot;')
   .replace(/'/g, '&#039;');
+const reviewTargetFromUrl = () => {
+  const target = new URLSearchParams(globalThis.location?.search || '').get('target') || '';
+  return /^sha256:[a-f0-9]{64}$/.test(target) ? target : '';
+};
 const lifecycleRecordSummary = (record = {}) => {
   if (record.kind === 'research_hypothesis') return `<p>${escapeHtml(record.hypothesis.statement)}</p><small>Conditions: ${escapeHtml(JSON.stringify(record.hypothesis.conditions))} · discriminators: ${escapeHtml(record.hypothesis.discriminatingObservations.join(' · '))}</small>`;
   if (record.kind === 'research_prior_evidence') return `<p>${escapeHtml(record.evidence.kind)} · ${escapeHtml(record.evidence.summary)}</p><small>${escapeHtml(record.evidence.reference.accession || record.evidence.reference.uri)} @ ${escapeHtml(record.evidence.reference.version || compactHash(record.evidence.reference.contentHash))} · retrieved ${escapeHtml(record.evidence.provenance.retrievedAt)}</small>`;
@@ -96,7 +100,7 @@ const renderRecord = (record, {
 export function renderResearchWorkspace(roomId, records = loadResearchRecords(roomId), {
   query = '',
   similarityTarget = '',
-  reviewTarget = ''
+  reviewTarget = reviewTargetFromUrl()
 } = {}) {
   const graph = buildEvidenceGraph(records);
   const active = activeResearchRecords(records);
@@ -184,8 +188,9 @@ const replaceWorkspace = (workspace, options = {}) => {
   const roomId = workspace.dataset.roomId;
   const parent = workspace.parentElement;
   if (!parent) return;
+  const selectedReviewTarget = workspace.querySelector('[data-research-review-form] select[name="targetHash"]')?.value || '';
   parent.innerHTML = renderResearchWorkspace(roomId, loadResearchRecords(roomId), {
-    reviewTarget: workspace.querySelector('[data-research-review-form] select[name="targetHash"]')?.value || '',
+    reviewTarget: reviewTargetFromUrl() || selectedReviewTarget,
     ...options
   });
   bindResearchWorkspace(parent.querySelector('[data-pool-research-workspace]'));
@@ -211,9 +216,9 @@ const reviewActionClaims = Object.freeze({
     pending: 'Signing correction...'
   },
   replicate: {
-    claimKind: 'follow_up',
-    relation: 'proposes',
-    decision: null,
+    claimKind: 'review_decision',
+    relation: 'reviews',
+    decision: 'replication_requested',
     pending: 'Signing replication request...'
   }
 });
@@ -436,7 +441,10 @@ const createLifecycleRecordFromForm = async (action, values, roomId, records) =>
   throw new Error(`Unsupported research lifecycle action: ${action}`);
 };
 
-export function bindResearchWorkspace(workspace = document.querySelector('[data-pool-research-workspace]')) {
+export function bindResearchWorkspace(
+  workspace = document.querySelector('[data-pool-research-workspace]'),
+  { publishRecord = publishResearchRecord } = {}
+) {
   if (!workspace || workspace.dataset.researchBound === 'true') return;
   workspace.dataset.researchBound = 'true';
   const roomId = workspace.dataset.roomId;
@@ -483,7 +491,7 @@ export function bindResearchWorkspace(workspace = document.querySelector('[data-
         confidence: values.get('confidence'),
         evidenceUrl: values.get('evidenceUrl')
       });
-      const publication = await publishResearchRecord(record, { roomId });
+      const publication = await publishRecord(record, { roomId });
       replaceWorkspace(workspace, { reviewTarget: values.get('targetHash') });
       const nextStatus = document.querySelector('[data-research-review-status]');
       if (nextStatus) nextStatus.textContent = publication.remote ? 'Signed review record published.' : 'Signed review record saved locally; coordinator sync is pending.';
@@ -496,6 +504,10 @@ export function bindResearchWorkspace(workspace = document.querySelector('[data-
     button.addEventListener('click', async () => {
       button.disabled = true;
       try {
+        const task = proposeDiscoveryTasks(loadResearchRecords(roomId))
+          .find((candidate) => candidate.taskId === button.dataset.researchApproveTask
+            && candidate.targetHash === button.dataset.researchTaskTarget);
+        if (!task) throw new Error('The projected discovery task is no longer active');
         const record = await createSignedHumanClaim({
           identity: createPoolIdentity('reviewer'),
           roomId,
@@ -505,7 +517,8 @@ export function bindResearchWorkspace(workspace = document.querySelector('[data-
           text: `Approved bounded discovery task: ${button.dataset.researchApproveTask}`,
           confidence: 1,
           decision: 'approved',
-          taskId: button.dataset.researchApproveTask
+          taskId: button.dataset.researchApproveTask,
+          taskContract: task.taskContract
         });
         await publishResearchRecord(record, { roomId });
         replaceWorkspace(workspace);
@@ -556,6 +569,9 @@ export function bindResearchRoomActions(root = document) {
     button.disabled = true;
     button.textContent = 'Signing approval...';
     try {
+      const task = proposeDiscoveryTasks(loadResearchRecords(roomId))
+        .find((candidate) => candidate.taskId === taskId && candidate.targetHash === targetHash);
+      if (!task) throw new Error('The projected discovery task is no longer active');
       const record = await createSignedHumanClaim({
         identity: createPoolIdentity('reviewer'),
         roomId,
@@ -565,7 +581,8 @@ export function bindResearchRoomActions(root = document) {
         text: `Approved bounded discovery task: ${taskId}`,
         confidence: 1,
         decision: 'approved',
-        taskId
+        taskId,
+        taskContract: task.taskContract
       });
       const publication = await publishResearchRecord(record, { roomId });
       button.textContent = publication.remote ? 'Approved next action' : 'Approval saved locally';

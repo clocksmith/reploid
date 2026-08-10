@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { createPoolIdentity } from '../../self/pool/identity.js';
+import { exportPublicKey } from '../../self/pool/inference-receipt.js';
 
 const storage = () => {
   const values = new Map();
@@ -17,6 +18,17 @@ afterEach(() => {
 });
 
 describe('pool identity', () => {
+  it('rehydrates an exportable public role key for signed evidence attribution', async () => {
+    vi.stubGlobal('localStorage', storage());
+    const first = createPoolIdentity('reviewer');
+    const firstKey = await first.getSigningKeyPair();
+    const firstPublicKey = await exportPublicKey(firstKey.publicKey);
+
+    const rehydrated = createPoolIdentity('reviewer');
+    const rehydratedKey = await rehydrated.getSigningKeyPair();
+    expect(await exportPublicKey(rehydratedKey.publicKey)).toBe(firstPublicKey);
+  });
+
   it('supports local-only peer identities without Firebase auth resolution', async () => {
     const localStorage = storage();
     vi.stubGlobal('localStorage', localStorage);

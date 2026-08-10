@@ -387,6 +387,9 @@ describe('Poolday home ask controls', () => {
     document.getElementById('pool-home-intent-kind').value = 'hypothesis';
     document.getElementById('pool-home-intent-label').value = 'Public candidate';
     document.getElementById('pool-home-intent-text').value = 'Review this sequence against related accepted evidence.';
+    document.getElementById('pool-home-intent-conditions').value = 'Declared public assay conditions.';
+    document.getElementById('pool-home-intent-observation').value = 'A receipt-backed independent observation.';
+    document.getElementById('pool-home-intent-unknowns').value = 'No experimental outcome exists yet.';
     document.getElementById('pool-home-ask-form').requestSubmit();
 
     await vi.waitFor(() => expect(peerRoomMocks.runPeerJob).toHaveBeenCalledTimes(1));
@@ -398,10 +401,35 @@ describe('Poolday home ask controls', () => {
       kind: 'research_submission',
       roomId: 'evidence-room',
       consent: { publicSequence: true, publicEvidenceNetwork: true, publishEmbedding: true },
-      requesterIntent: { kind: 'hypothesis', label: 'Public candidate' }
+      requesterIntent: {
+        kind: 'hypothesis',
+        label: 'Public candidate',
+        conditions: 'Declared public assay conditions.',
+        desiredObservation: 'A receipt-backed independent observation.',
+        knownUnknowns: 'No experimental outcome exists yet.'
+      }
     });
     expect(records[0].recordHash).toMatch(/^sha256:[a-f0-9]{64}$/);
     expect(records[0].signature).toBeTruthy();
+  });
+
+  it('does not publish a research submission without a stated question', async () => {
+    window.history.replaceState({}, '', '/?room=question-required-room&relay=local');
+    document.body.innerHTML = `${renderRoutePanel('home')}<select id="pool-home-request-model"><option value="${LAUNCH_MODEL.modelId}" selected>${LAUNCH_MODEL.label}</option></select>`;
+    bindHomeAskControls();
+
+    document.getElementById('pool-home-ask-prompt').value = 'MKTAYIAKQRQISFVKSHFSRQ';
+    document.getElementById('pool-home-sequence-public').checked = true;
+    document.getElementById('pool-home-research-public').checked = true;
+    document.getElementById('pool-home-intent-text').value = '';
+    document.getElementById('pool-home-ask-form').requestSubmit();
+
+    await vi.waitFor(() => expect(document.getElementById('pool-home-run-result-raw').textContent)
+      .toContain('State the question, hypothesis, or context'));
+    expect(peerRoomMocks.runPeerJob).not.toHaveBeenCalled();
+    const key = Array.from({ length: window.localStorage.length }, (_, index) => window.localStorage.key(index))
+      .find((candidate) => candidate?.startsWith('reploid.pool.research-evidence.v1::'));
+    expect(key ? JSON.parse(window.localStorage.getItem(key) || '[]') : []).toEqual([]);
   });
 
   it('restores an interrupted public request after reload without resubmitting it', async () => {

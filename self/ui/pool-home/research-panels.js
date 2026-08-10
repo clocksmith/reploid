@@ -163,7 +163,7 @@ export const renderReviewPanel = ({
         ${reviewActionButton('correct', 'Attach correction', 'btn btn-ghost', !selectedTarget)}
         ${reviewActionButton('replicate', 'Request replication', 'btn btn-ghost', !selectedTarget)}
       </div>
-      <p class="type-caption">Each action creates a separate attributable signed record. A replication request remains proposed until it receives explicit approval.</p>
+      <p class="type-caption">Each action creates a separate attributable signed record. A replication request keeps the target out of room memory until independent evidence resolves it.</p>
       <p class="type-caption" data-research-review-status aria-live="polite"></p>
     </form>
   </section>
@@ -188,7 +188,7 @@ export const renderNextWorkPanel = ({ rankedTasks = [], actionRanking = { policy
     <p class="pool-dashboard-kicker">Next work</p>
     <h3 class="type-h3">Approval-gated discovery queue</h3>
     <div class="pool-research-tasks">
-      ${rankedTasks.length ? rankedTasks.map((task) => `<article><div><b>${escapeHtml(task.actionKind.replace(/_/g, ' '))}</b><span>${escapeHtml(task.reason)}</span><small>Heuristic priority ${escapeHtml(task.heuristicPriority)} · ordinal uncertainty reduction ${escapeHtml(task.expectedInformationGain.estimate)} · planning cost ${escapeHtml(task.valueComponents.totalCost)}.</small></div>${task.status === 'approved' ? '<strong>Approved</strong>' : `<button class="btn btn-ghost" type="button" data-research-approve-task="${escapeHtml(task.actionId)}" data-research-task-target="${escapeHtml(task.targetHash)}">Approve</button>`}</article>`).join('') : '<p class="type-caption">No bounded follow-up is currently proposed.</p>'}
+      ${rankedTasks.length ? rankedTasks.map((task) => `<article><div><b>${escapeHtml(task.actionKind.replace(/_/g, ' '))}</b><span>${escapeHtml(task.reason)}</span><small>Basis: ${escapeHtml(task.basis === 'accepted_memory' ? `${task.basisHashes?.length || 0} accepted memory record${task.basisHashes?.length === 1 ? '' : 's'}` : 'question or governance boundary')} · heuristic priority ${escapeHtml(task.heuristicPriority)} · ordinal uncertainty reduction ${escapeHtml(task.expectedInformationGain.estimate)} · planning cost ${escapeHtml(task.valueComponents.totalCost)}.</small></div>${task.status === 'approved' ? '<strong>Approved</strong>' : `<button class="btn btn-ghost" type="button" data-research-approve-task="${escapeHtml(task.actionId)}" data-research-task-target="${escapeHtml(task.targetHash)}">Approve</button>`}</article>`).join('') : '<p class="type-caption">No bounded follow-up is currently proposed.</p>'}
     </div>
     <p class="type-caption">Ranking policy ${escapeHtml(actionRanking.policy.policyId)} is an inspectable, non-calibrated heuristic. It does not estimate biological truth, mutation fitness, or a decision-change probability, and it cannot allocate work.</p>
   </section>

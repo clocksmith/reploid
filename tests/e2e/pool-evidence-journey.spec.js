@@ -68,7 +68,11 @@ test('shows and exercises the governed protein evidence journey', async ({ page 
           vectorHash: await sequenceResults.hashSequenceFloat32Values(vector)
         }
       },
-      agreement: { status: 'accepted', receiptHashes: [fakeHash(receiptCharacter), fakeHash('d')] },
+      agreement: {
+        status: 'accepted',
+        receiptHashes: [fakeHash(receiptCharacter), fakeHash('d')],
+        providerIds: [`provider_${receiptCharacter}`, `provider_${receiptCharacter}_independent`]
+      },
       embedding: vector
     });
     const firstResult = await createResult(firstSubmission, embedding(1), 'a');
@@ -157,6 +161,26 @@ test('shows and exercises the governed protein evidence journey', async ({ page 
       conditions: protocol.conditions,
       confidence: 0.7
     });
+    const predictionReviewOne = await evidence.createSignedHumanClaim({
+      identity: independent,
+      roomId: 'reploid-default',
+      targetHash: predictionOne.recordHash,
+      claimKind: 'review_decision',
+      relation: 'reviews',
+      text: 'The first frozen prediction is attributable and cohort-eligible.',
+      confidence: 0.9,
+      decision: 'accepted'
+    });
+    const predictionReviewTwo = await evidence.createSignedHumanClaim({
+      identity: independent,
+      roomId: 'reploid-default',
+      targetHash: predictionTwo.recordHash,
+      claimKind: 'review_decision',
+      relation: 'reviews',
+      text: 'The second frozen prediction is attributable and cohort-eligible.',
+      confidence: 0.9,
+      decision: 'accepted'
+    });
     const order = await evidence.createSignedResearchWorkOrder({
       identity: curator,
       roomId: 'reploid-default',
@@ -201,6 +225,16 @@ test('shows and exercises the governed protein evidence journey', async ({ page 
       predictionHashes: [predictionOne.recordHash, predictionTwo.recordHash],
       workOrderHashes: [order.recordHash],
       metrics: [{ id: 'balanced_accuracy', label: 'Balanced accuracy', direction: 'higher_is_better', unit: 'fraction' }]
+    });
+    const cohortReview = await evidence.createSignedHumanClaim({
+      identity: independent,
+      roomId: 'reploid-default',
+      targetHash: cohort.recordHash,
+      claimKind: 'review_decision',
+      relation: 'reviews',
+      text: 'The frozen cohort contains only independently accepted predictions and work orders.',
+      confidence: 0.95,
+      decision: 'accepted'
     });
     const outcomeOne = await evidence.createSignedExperimentalOutcome({
       identity: laboratoryOne,
@@ -249,8 +283,8 @@ test('shows and exercises the governed protein evidence journey', async ({ page 
     });
     for (const record of [
       firstSubmission, secondSubmission, firstResult, secondResult, annotation, review,
-      prior, hypothesisOne, hypothesisTwo, predictionOne, predictionTwo, order, orderReview,
-      claimOne, claimTwo, cohort, outcomeOne, outcomeTwo, outcomeReviewOne, outcomeReviewTwo, evaluation
+      prior, hypothesisOne, hypothesisTwo, predictionOne, predictionTwo, predictionReviewOne, predictionReviewTwo, order, orderReview,
+      claimOne, claimTwo, cohort, cohortReview, outcomeOne, outcomeTwo, outcomeReviewOne, outcomeReviewTwo, evaluation
     ]) {
       await store.appendResearchRecord(record);
     }
@@ -317,6 +351,32 @@ test('shows and exercises the governed protein evidence journey', async ({ page 
   await expect(page.getByText('Result corrected', { exact: true }).first()).toBeVisible();
   await expect(page.locator('.pool-room-timeline')).toContainText('Correction attached');
   await expect(page.locator('.pool-room-memory')).toContainText('Correction attached');
+
+  const resultReviewLink = page.locator('[data-room-result-card]').getByRole('link', { name: 'Review this result', exact: true });
+  const reviewHref = await resultReviewLink.getAttribute('href');
+  const reviewedTarget = new URL(reviewHref, 'http://localhost').searchParams.get('target');
+  await resultReviewLink.click();
+  await expect(page).toHaveURL(new RegExp(`/records\\?room=reploid-default&panel=review&target=${encodeURIComponent(reviewedTarget)}`));
+  await expect(page.locator('.pool-room-secondary-workspace')).toHaveAttribute('open', '');
+  const contextualReview = page.locator('[data-research-review-form]');
+  await expect(contextualReview.locator('select[name="targetHash"]')).toHaveValue(reviewedTarget);
+  await expect(contextualReview.getByRole('button', { name: 'Accept evidence', exact: true })).toBeVisible();
+  await expect(contextualReview.getByRole('button', { name: 'Reject evidence', exact: true })).toBeVisible();
+  await expect(contextualReview.getByRole('button', { name: 'Attach correction', exact: true })).toBeVisible();
+  await expect(contextualReview.getByRole('button', { name: 'Request replication', exact: true })).toBeVisible();
+  await contextualReview.locator('textarea[name="text"]').fill('The receipt, model identity, and visible limits support this acceptance.');
+  await contextualReview.getByRole('button', { name: 'Accept evidence', exact: true }).click();
+  await expect(page.locator('[data-research-review-status]')).toContainText(/Signed review record (published|saved locally)/);
+  const persistedReview = await page.evaluate((targetHash) => {
+    const key = 'reploid.pool.research-evidence.v1::reploid-default';
+    return JSON.parse(localStorage.getItem(key) || '[]').find((record) => (
+      record.kind === 'human_claim'
+      && record.targetHash === targetHash
+      && record.claim?.kind === 'review_decision'
+      && record.claim?.decision === 'accepted'
+    ));
+  }, reviewedTarget);
+  expect(persistedReview?.signature).toBeTruthy();
 
   await page.goto('/records');
   await expect(page.locator('.pool-room-secondary-workspace')).toBeVisible();
@@ -404,4 +464,49 @@ test('restores empty unsent room fields instead of replacing them with defaults'
 
   await expect(page.locator('#pool-run-prompt')).toHaveValue('');
   await expect(page.locator('#pool-run-intent-text')).toHaveValue('Add the sequence after review context is ready.');
+});
+
+test('passes governed Research Room browser modules through the Verification Worker', async ({ page }) => {
+  await page.goto('/');
+  const paths = [
+    '/pool/discovery-action-value.js',
+    '/pool/evidence-network.js',
+    '/pool/research-cycle.js',
+    '/ui/pool-home/requester-controls.js',
+    '/ui/pool-home/research-panels.js',
+    '/ui/pool-home/research-view.js',
+    '/ui/pool-home/room-projection.js',
+    '/ui/pool-home/room-view.js'
+  ];
+  const verification = await page.evaluate(async (modulePaths) => {
+    const snapshot = Object.fromEntries(await Promise.all(modulePaths.map(async (path) => {
+      const response = await fetch(path);
+      if (!response.ok) throw new Error(`Could not load ${path}: ${response.status}`);
+      return [path, await response.text()];
+    })));
+    return new Promise((resolve, reject) => {
+      const worker = new Worker('/core/verification-worker.js');
+      const timeout = setTimeout(() => {
+        worker.terminate();
+        reject(new Error('Verification Worker did not respond'));
+      }, 10000);
+      worker.onmessage = (event) => {
+        clearTimeout(timeout);
+        worker.terminate();
+        resolve(event.data);
+      };
+      worker.onerror = (event) => {
+        clearTimeout(timeout);
+        worker.terminate();
+        reject(new Error(event.message));
+      };
+      worker.postMessage({ type: 'VERIFY', snapshot, options: { quickMode: true } });
+    });
+  }, paths);
+
+  expect(verification).toMatchObject({
+    passed: true,
+    errors: [],
+    details: { filesAnalyzed: paths.length }
+  });
 });

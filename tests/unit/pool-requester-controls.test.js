@@ -34,11 +34,14 @@ describe('Research Room requester controls', () => {
 
     expect(home).toContain('id="pool-home-intent-kind"');
     expect(home).toContain('id="pool-home-intent-text"');
-    expect(home).toContain('placeholder="What should reviewers examine?"');
+    expect(home).toContain('placeholder="What exact question should reviewers answer?"');
     expect(home).toContain('<input id="pool-home-intent-text"');
+    expect(home).toContain('id="pool-home-intent-conditions"');
+    expect(home).toContain('id="pool-home-intent-observation"');
+    expect(home).toContain('id="pool-home-intent-unknowns"');
     expect(ask).toContain('id="pool-run-intent-kind"');
     expect(ask).toContain('id="pool-run-intent-text"');
     expect(ask).toContain('<textarea id="pool-run-intent-text"');
-    expect(ask).not.toContain('placeholder="What should reviewers examine?"');
+    expect(ask).toContain('id="pool-run-intent-decision"');
   });
 });
