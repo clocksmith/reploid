@@ -23,31 +23,31 @@ export const POOLDAY_ROUTE_DEFINITIONS = Object.freeze([
     label: 'Research Room',
     eyebrow: POOLDAY_PROTOCOL,
     title: 'Research Room',
-    body: 'Submit → compute → review → connect → discover across a public protein evidence network.'
+    body: 'Run a public protein sequence and keep the evidence.'
   }),
   createPooldayRoute({
     id: 'ask',
     path: '/ask',
     label: 'Request',
-    eyebrow: 'Research Room · Request',
-    title: 'Request',
-    body: 'State public sequence intent, run a receipt-backed model execution, then invite review.'
+    eyebrow: 'Research Room',
+    title: 'Ask a protein question',
+    body: 'Add a public sequence and run it.'
   }),
   createPooldayRoute({
     id: 'compute',
     path: '/compute',
     label: 'Share compute',
-    eyebrow: 'Research Room · Share compute',
+    eyebrow: 'Research Room',
     title: 'Share compute',
-    body: 'Let this tab contribute compatible protein execution to the active room. Stop at any time.'
+    body: 'Let this tab run work for the room.'
   }),
   createPooldayRoute({
     id: 'records',
     path: '/records',
     label: 'Review evidence',
-    eyebrow: 'Research Room · Review evidence',
+    eyebrow: 'Research Room',
     title: 'Review evidence',
-    body: 'Review signed evidence, inspect disagreement, and approve bounded next work in the active room.'
+    body: 'Accept, correct, reject, or repeat a result.'
   })
 ]);
 

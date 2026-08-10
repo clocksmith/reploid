@@ -93,7 +93,7 @@ describe('Research Room projection', () => {
     const unresolvedEvidence = html.match(/<article class="pool-room-list-item" data-kind="evidence">[\s\S]*?<\/article>/)?.[0] || '';
 
     expect(html).toContain('href="/ask?room=empty-room"');
-    expect(html).toContain('Agreement:</strong> Evidence unavailable');
+    expect(html).toContain('>No result yet</h2>');
     expect(unresolvedEvidence).toContain('>Run<');
     expect(unresolvedEvidence).not.toContain('href="/records?room=empty-room&amp;panel=review#pool-room-review"');
   });
@@ -400,8 +400,7 @@ describe('Research Room projection', () => {
       approvalRecordHashes: [approval.recordHash],
       executionAuthority: 'none'
     });
-    expect(html).toContain('Signed approval: 1 exact task contract.');
-    expect(html).toContain('Approval does not allocate or execute work.');
+    expect(html).toContain('<small>1 signed approval</small>');
     expect(html).not.toContain('data-pool-room-approve-task=');
   });
 
@@ -446,10 +445,9 @@ describe('Research Room projection', () => {
     });
 
     expect(html).toContain('data-pool-research-room');
-    expect(html).toContain('Reploid Research Room');
-    expect(html).toContain('Inspectable model evidence');
+    expect(html).toContain('Research room');
+    expect(html).toContain('Model evidence');
     expect(html).toContain('Agreement assessed');
-    expect(html).toContain('<span class="rgr-status-label">Uncertainty</span>');
     expect(html).toContain('Uncertainty and evidence limits');
     expect(html).toContain('Fewer than two exact model contracts');
     expect(html).toContain('Remembered evidence');
@@ -462,7 +460,7 @@ describe('Research Room projection', () => {
     expect(html).toContain('href="/ask?room=room-projection"');
     expect(html).toContain('href="/records?room=room-projection&amp;panel=review#pool-room-review"');
     expect(html).toContain(`href="/records?room=room-projection&amp;panel=review&amp;target=${encodeURIComponent(answer.recordHash)}#pool-room-review"`);
-    expect(html).toContain('>Review this result</a>');
+    expect(html).toContain('>Review</a>');
     expect(html).not.toContain('1,0,0');
   });
 });

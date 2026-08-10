@@ -32,24 +32,43 @@ export function renderRequesterConsentRows({
     </${safeRowElement}>
   `;
   return `
-    ${row('sequence-public', 'I confirm this protein sequence is public.', sequenceConsentAttributes)}
-    ${includeSavedNotice ? '<strong data-pool-sequence-consent-saved hidden>Public-sequence acknowledgement saved.</strong>' : ''}
-    ${row('research-public', 'Publish this sequence, intent, accepted embedding, and provenance to the public evidence network.')}
+    ${row('sequence-public', 'This sequence is public', sequenceConsentAttributes)}
+    ${includeSavedNotice ? '<strong data-pool-sequence-consent-saved hidden>Saved</strong>' : ''}
+    ${row('research-public', 'Save the question and result to this room')}
   `;
 }
 
 export function renderRequesterIntentFields({
   prefix,
   textTag = 'input',
-  requestAttributes = ''
+  requestAttributes = '',
+  compact = false
 } = {}) {
   const safePrefix = escapeHtml(prefix);
   const intentOptionsMarkup = intentOptions
     .map(([value, label]) => `<option value="${value}">${label}</option>`)
     .join('');
   const textControl = textTag === 'textarea'
-    ? `<textarea id="${safePrefix}-intent-text" rows="3" maxlength="8000" placeholder="What exact question should reviewers answer?"${requestAttributes}></textarea>`
-    : `<input id="${safePrefix}-intent-text" maxlength="8000" placeholder="What exact question should reviewers answer?"${requestAttributes}>`;
+    ? `<textarea id="${safePrefix}-intent-text" rows="3" maxlength="8000" placeholder="What do you want to learn?"${requestAttributes}></textarea>`
+    : `<input id="${safePrefix}-intent-text" maxlength="8000" placeholder="What do you want to learn?"${requestAttributes}>`;
+  if (compact) {
+    return `
+      <div class="pool-research-intent-fields pool-research-intent-fields--compact">
+        <label><span>Question</span>${textControl}</label>
+        <details class="pool-advanced pool-question-contract">
+          <summary>Add details</summary>
+          <div class="pool-research-intent-fields">
+            <label><span>Conditions</span><textarea id="${safePrefix}-intent-conditions" rows="2" maxlength="2000" placeholder="System, environment, or assay"${requestAttributes}></textarea></label>
+            <label><span>Useful result</span><textarea id="${safePrefix}-intent-observation" rows="2" maxlength="2000" placeholder="What result would answer the question?"${requestAttributes}></textarea></label>
+            <label><span>Decision</span><input id="${safePrefix}-intent-decision" maxlength="2000" placeholder="What will this evidence inform?"${requestAttributes}></label>
+            <label><span>Scope</span><input id="${safePrefix}-intent-scope" maxlength="2000" placeholder="What is included?"${requestAttributes}></label>
+            <label><span>Exclusions</span><input id="${safePrefix}-intent-exclusions" maxlength="2000" placeholder="What is not claimed?"${requestAttributes}></label>
+            <label><span>Unknowns</span><textarea id="${safePrefix}-intent-unknowns" rows="2" maxlength="2000" placeholder="Missing evidence or confounders"${requestAttributes}></textarea></label>
+          </div>
+        </details>
+      </div>
+    `;
+  }
   return `
     <div class="pool-research-intent-fields">
       <label><span>Intent</span><select id="${safePrefix}-intent-kind"${requestAttributes}>${intentOptionsMarkup}</select></label>

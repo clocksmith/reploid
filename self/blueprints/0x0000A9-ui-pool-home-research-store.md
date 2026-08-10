@@ -30,6 +30,10 @@ Coordinator failure leaves a verified local record and reports synchronization a
 Verified local evidence renders as soon as local hydration completes; the
 workspace does not wait for coordinator synchronization before exposing its
 recoverable local history.
+The Records route presents question, result, and next action first. Room
+history, participants, proposals, memory, and provenance remain inspectable
+under one collapsed disclosure. Home links to the room instead of rendering its
+governance surface ahead of the primary protein task.
 
 ### 4. Verification Checklist
 - [x] Records remain room-isolated
@@ -41,5 +45,6 @@ recoverable local history.
 - [x] Accepted single-provider compute remains visible but outside room memory
 - [x] Rejected hydration records remain recoverable in a separate quarantine cache
 - [x] Local verified history renders before remote synchronization completes
+- [x] Primary Room state stays concise while full history remains inspectable
 
 *Last updated: August 2026*

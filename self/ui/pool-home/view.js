@@ -23,8 +23,6 @@ import {
 } from '../../pool/peer-rendezvous.js';
 import {
   PRODUCT_ROUTES,
-  POOLDAY_FLOW_LABELS,
-  POOLDAY_GRAPH_LABEL_STAGES,
   POOLDAY_NAME,
   POOLDAY_NAV_ROUTES,
   POOLDAY_NETWORK_VISUAL_EVENT,
@@ -1500,10 +1498,6 @@ const renderRailOutlink = (id) => {
   return `<a class="pool-nav-link pool-nav-substrate-link pool-${id}-link link-secondary" href="${link.path}" data-pool-substrate-route="${link.path}" aria-label="${escapeHtml(link.label)}" title="${tooltip}" data-pool-nav-tooltip="${tooltip}"><span class="pool-nav-glyph" aria-hidden="true">${escapeHtml(link.glyph)}</span><span class="pool-nav-description">${escapeHtml(link.description)}</span></a>`;
 };
 
-const REQUEST_TASK_COPY = Object.freeze({
-  sequence: 'Generate a pooled embedding for a public protein sequence.'
-});
-
 const renderHomeRequestDrawer = (open) => `
   <nav class="pool-nav-rail pool-control-drawer${open ? ' is-open' : ''}" aria-label="Reploid controls">
     <div class="pool-nav-top">
@@ -1656,7 +1650,7 @@ export const refreshResearchRoomState = (routeId = getRouteId()) => {
 
 const renderRouteShell = (copy, content, { routeId = 'records' } = {}) => `
   <section class="panel pool-panel pool-route-shell">
-    ${renderActiveResearchRoom(routeId)}
+    ${routeId === 'records' ? renderActiveResearchRoom(routeId) : ''}
     <div class="pool-page-heading">
       <h1 class="type-h1">${escapeHtml(copy.title)}</h1>
       <p class="type-caption pool-hero-body">${escapeHtml(copy.body)}</p>
@@ -1898,24 +1892,6 @@ const renderParticipationControl = ({
   `;
 };
 
-const renderFlowLabels = () => POOLDAY_GRAPH_LABEL_STAGES.map((stage) => ({
-  stage,
-  item: POOLDAY_FLOW_LABELS.find((candidate) => candidate.id === stage.ids[0])
-})).filter(({ item }) => Boolean(item)).map(({ stage, item }) => `
-  <span
-    class="pool-flow-label pool-flow-label-${escapeHtml(item.id)}"
-    data-pool-flow-label="${escapeHtml(item.id)}"
-    data-pool-flow-stage="${escapeHtml(stage.id)}"
-    data-tooltip-title="${escapeHtml(item.label)}"
-    data-tooltip-body="${escapeHtml(item.body)}"
-    style="--pool-label-x: ${escapeHtml(String(item.x).replace('%', 'vw'))}; --pool-label-y: ${escapeHtml(String(item.y).replace('%', 'vh'))};"
-    tabindex="0"
-    aria-label="${escapeHtml(`${item.label}: ${item.body}`)}"
-  >
-    <b>${escapeHtml(item.label)}</b>
-  </span>
-`).join('');
-
 const renderDashboardCapability = () => `
   <section class="pool-capability-card" data-pool-capability-profile data-capability-state="checking" aria-live="polite">
     <div class="pool-capability-heading">
@@ -1984,99 +1960,72 @@ const renderHomeSimulation = ({ dashboardView = 'home' } = {}) => {
   const activeView = normalizePoolDashboardView(dashboardView);
   const suggestedPrompt = choosePooldayAskPlaceholderForLane('sequence');
   return `
-    ${renderActiveResearchRoom('home')}
-    <section class="pool-home-stage" aria-label="Reploid network" data-pool-run-surface="home" data-run-state="idle" data-run-phase="" data-pool-lane="sequence" data-pool-dashboard-view="${activeView}">
-      <div class="pool-home-toolbar" aria-label="Reploid home controls">
+    <section class="pool-home-stage pool-home-stage--focused" aria-label="Run a protein sequence" data-pool-run-surface="home" data-run-state="idle" data-run-phase="" data-pool-lane="sequence" data-pool-dashboard-view="${activeView}">
+      <div class="pool-home-toolbar" aria-label="Reploid">
         <div class="pool-home-toolbar-leading pool-home-overlay" aria-label="Reploid overview">
           <div class="pool-home-title-lockup">
             <h1 class="type-h1 pool-home-brand-word">REPLOID</h1>
-        <p class="type-caption pool-hero-body pool-home-brand-promise">${escapeHtml(ROUTE_COPY.home.body)}</p>
+            <p class="type-caption pool-hero-body pool-home-brand-promise">${escapeHtml(ROUTE_COPY.home.body)}</p>
           </div>
         </div>
+        <a class="btn btn-ghost pool-home-room-link" data-pool-route-link="${escapeHtml(roomHref('/records', getPeerRoomId()))}" href="${escapeHtml(roomHref('/records', getPeerRoomId()))}">View room</a>
       </div>
-      <p class="pool-home-run-status" data-pool-run-status aria-live="polite">Ready</p>
-      <details class="pool-advanced pool-room-network-disclosure" data-pool-network-disclosure>
-        <summary>How peers produced this result</summary>
-        <div class="pool-simulation-shell" data-pool-network-state data-network-mode="simulation" aria-label="Reploid network graph">
-          <canvas class="pool-simulation-canvas" data-pool-simulation width="1200" height="680"></canvas>
-          <div class="pool-simulation-labels">
-            ${renderFlowLabels()}
+      <div class="pool-home-task">
+        <form class="pool-home-ask-dock pool-home-cta-row pool-home-ask-form" id="pool-home-ask-form" aria-label="Run a protein sequence">
+          <header class="pool-home-task-heading">
+            <p class="pool-dashboard-kicker">Protein evidence</p>
+            <h2 class="type-h2">Ask a protein question</h2>
+          </header>
+          ${renderRequesterIntentFields({ prefix: 'pool-home', textTag: 'textarea', compact: true, requestAttributes: ' data-pool-request-control' })}
+          <label class="pool-home-sequence-field" for="pool-home-ask-prompt">
+            <span>Public protein sequence</span>
+            <textarea
+              id="pool-home-ask-prompt"
+              class="pool-home-ask-input"
+              name="sequence"
+              rows="5"
+              aria-label="Public protein sequence"
+              autocomplete="off"
+              autocapitalize="characters"
+              spellcheck="false"
+              placeholder="${escapeHtml(suggestedPrompt)}"
+              data-pool-suggested-prompt="${escapeHtml(suggestedPrompt)}"
+              data-pool-request-control
+            ></textarea>
+          </label>
+          <div class="pool-sequence-options" data-pool-sequence-options>
+            ${renderRequesterConsentRows({
+              prefix: 'pool-home',
+              includeSavedNotice: true,
+              sequenceConsentAttributes: ' data-pool-sequence-consent-row',
+              requestAttributes: ' data-pool-request-control'
+            })}
           </div>
-          <div class="pool-simulation-tooltip" data-pool-tooltip data-placement="above" role="tooltip" aria-hidden="true">
-            <b data-pool-tooltip-title></b>
-            <span data-pool-tooltip-body></span>
+          <label class="pool-home-adapter-picker" data-pool-home-adapter-picker hidden>
+            <span>Adapter pack</span>
+            <select id="pool-home-adapter" data-pool-run-adapter data-pool-request-control disabled>
+              <option value="">Loading published packs…</option>
+            </select>
+            <small data-pool-adapter-status hidden></small>
+          </label>
+          <div class="pool-home-submit-row">
+            <button class="btn btn-primary pool-home-run-button" id="pool-home-run-submit" type="submit" data-pool-request-control aria-label="Run protein sequence">Run sequence</button>
+            <p class="pool-home-run-status" data-pool-run-status aria-live="polite">Ready</p>
           </div>
-        </div>
-      </details>
-      <section class="pool-home-purpose" data-pool-home-purpose aria-label="How the protein evidence journey works">
-        <p class="pool-home-purpose-kicker">What this does</p>
-        <h2 class="type-h2">Grow inspectable protein evidence, from public input to reviewed discovery.</h2>
-        <ol class="pool-home-purpose-steps">
-          <li><b>1</b><span><strong>Submit</strong> public sequence, intent, consent, and exact model contract.</span></li>
-          <li><b>2</b><span><strong>Compute</strong> through participating browsers with signed, comparable receipts.</span></li>
-          <li><b>3</b><span><strong>Review</strong> with attributable human evidence, confidence, and corrections.</span></li>
-          <li><b>4</b><span><strong>Connect</strong> sequences, results, sources, reviewers, and contradictions.</span></li>
-          <li><b>5</b><span><strong>Discover</strong> compatible neighbors and approve bounded next work.</span></li>
-        </ol>
-        <p class="pool-home-purpose-boundary">The result is a model representation, not a biological interpretation or diagnosis.</p>
-      </section>
-      <section class="pool-home-result-panel" data-pool-run-output hidden aria-label="Run result">
-        ${renderResultBox('pool-home-run-result', {
-          stream: true,
-          streamLabel: 'Result',
-          evidence: true,
-          evidenceLabel: 'Proof',
-          proteinEmbedding: true,
-          rawLabel: 'Raw result',
-          rawFull: true
-        })}
-      </section>
-      <form class="pool-home-ask-dock pool-home-cta-row pool-home-ask-form" id="pool-home-ask-form" aria-label="Ask the network">
-        <div class="pool-home-composer-bar">
-          <span class="pool-home-composer-label">Run</span>
-          <div class="pool-home-lane-chips" role="group" aria-label="Input type">
-            <span class="pool-lane-chip is-active" data-pool-lane="sequence" aria-current="true">Protein</span>
-          </div>
-          <span class="pool-home-composer-hint" data-pool-task-description>${escapeHtml(REQUEST_TASK_COPY.sequence)}</span>
-        </div>
-        <label class="pool-home-adapter-picker" data-pool-home-adapter-picker hidden>
-          <span>Adapter pack</span>
-          <select id="pool-home-adapter" data-pool-run-adapter data-pool-request-control disabled>
-            <option value="">Loading published packs…</option>
-          </select>
-          <small data-pool-adapter-status hidden></small>
-        </label>
-        <div class="pool-sequence-options" data-pool-sequence-options>
-          ${renderRequesterConsentRows({
-            prefix: 'pool-home',
-            includeSavedNotice: true,
-            sequenceConsentAttributes: ' data-pool-sequence-consent-row',
-            requestAttributes: ' data-pool-request-control'
+          <p class="pool-home-purpose-boundary">Produces model evidence, not a biological diagnosis.</p>
+        </form>
+        <section class="pool-home-result-panel" data-pool-run-output hidden aria-label="Run result">
+          ${renderResultBox('pool-home-run-result', {
+            stream: true,
+            streamLabel: 'Result',
+            evidence: true,
+            evidenceLabel: 'Proof',
+            proteinEmbedding: true,
+            rawLabel: 'Raw result',
+            rawFull: true
           })}
-          ${renderRequesterIntentFields({ prefix: 'pool-home' })}
-          <span>The peer job still sends the sequence only to selected contributors. Publication is a separate signed action under this consent.</span>
-        </div>
-        <div class="pool-home-ask-pill">
-          <input
-             id="pool-home-ask-prompt"
-             class="pool-home-ask-input"
-             name="sequence"
-             type="text"
-             aria-label="Public protein sequence"
-             autocomplete="off"
-             placeholder="${escapeHtml(suggestedPrompt)}"
-             data-pool-suggested-prompt="${escapeHtml(suggestedPrompt)}"
-             data-pool-request-control
-          >
-          <button class="pool-shape-action pool-shape-action--circle pool-shape-action--ask pool-home-ask-submit"
-                  id="pool-home-run-submit"
-                  type="submit"
-                  data-pool-request-control
-                  aria-label="Run protein sequence">
-            <span class="pool-shape-action-glyph" aria-hidden="true">↑</span>
-          </button>
-        </div>
-      </form>
+        </section>
+      </div>
     </section>
   `;
 };

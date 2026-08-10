@@ -386,8 +386,6 @@ describe('Poolday home ask controls', () => {
     document.getElementById('pool-home-ask-prompt').value = 'MKTAYIAKQRQISFVKSHFSRQ';
     document.getElementById('pool-home-sequence-public').checked = true;
     document.getElementById('pool-home-research-public').checked = true;
-    document.getElementById('pool-home-intent-kind').value = 'hypothesis';
-    document.getElementById('pool-home-intent-label').value = 'Public candidate';
     document.getElementById('pool-home-intent-text').value = 'Review this sequence against related accepted evidence.';
     document.getElementById('pool-home-intent-conditions').value = 'Declared public assay conditions.';
     document.getElementById('pool-home-intent-observation').value = 'A receipt-backed independent observation.';
@@ -407,8 +405,7 @@ describe('Poolday home ask controls', () => {
       roomId: 'evidence-room',
       consent: { publicSequence: true, publicEvidenceNetwork: true, publishEmbedding: true },
       requesterIntent: {
-        kind: 'hypothesis',
-        label: 'Public candidate',
+        kind: 'question',
         conditions: 'Declared public assay conditions.',
         desiredObservation: 'A receipt-backed independent observation.',
         knownUnknowns: 'No experimental outcome exists yet.'
