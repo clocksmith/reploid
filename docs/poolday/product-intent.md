@@ -71,6 +71,34 @@ participating laboratories can contribute candidate epistemic updates. Each
 update remains an attributable claim. Poolday admits it into the governed state
 only under the declared provenance, independence, review, and evaluation policy.
 
+### Governed Research Room cycle
+
+The implemented Research Room slice projects one deterministic feedback cycle
+over verified, room-scoped signed records:
+
+1. A human signs a public sequence and question. The question can bind
+   conditions, desired observation, decision context, scope, exclusions, and
+   known unknowns. Missing structure remains an explicit clarification gap.
+2. Peers execute the exact model contract. An accepted execution-agreement
+   claim requires at least two distinct receipt identities.
+3. Results preserve exact model, receipt, provider, runtime, output, consent,
+   and provenance identities.
+4. The room exposes agreement, disagreement, question gaps, missing receipts,
+   and provisional evidence without treating similarity as agreement.
+5. Independent reviewers can accept, reject, request revision, request
+   replication, or attach a separately reviewed correction. Conflicting latest
+   reviewer decisions project as disputed.
+6. Only independently accepted active evidence enters reusable room memory.
+   Revoked records, disputed records, replication requests, and records
+   superseded by accepted corrections remain visible but excluded.
+7. Governance actions can respond to provisional records, but scientific next
+   actions must identify accepted-memory basis hashes. Every proposed action
+   requires human approval and carries no allocation or execution authority.
+
+The source projection is [`research-cycle.js`](../../self/pool/research-cycle.js).
+This slice does not implement calibrated biological action value, laboratory
+qualification, scientific closure, or autonomous policy promotion.
+
 The immediate supported value remains:
 
 ```text
@@ -167,7 +195,7 @@ inspectable.
 | --- | --- |
 | Requester | Submit a bounded question, constraints, consent, and decision context. Inspect and accept or reject admitted work. |
 | Contributor | Opt in an eligible browser and execute assignments under declared capacity and policy limits. |
-| Agent | Propose hypotheses and actions, request admitted work, verify evidence, and manage an approved budget through the same contracts. |
+| Agent | Propose hypotheses, versioned prior evidence, predictions, and work orders through signed contracts. Agents cannot issue human review decisions, approve work, admit memory, or close a question. |
 | Reviewer or curator | Attach separately signed critiques, sources, corrections, confidence, experimental context, and bounded follow-up proposals. |
 | Laboratory or instrument operator | Claim approved physical work, execute a signed protocol, and report positive, negative, failed, or ambiguous outcomes with conditions and controls. |
 | Independent evaluator | Measure prospective decision-policy performance against a frozen baseline and held-out outcomes. |
@@ -297,14 +325,15 @@ The target loop is:
 2. Run bounded receipt-backed representations under one exact model contract.
 3. Construct competing condition-specific hypotheses.
 4. Make model, evidence-source, and reviewer disagreement explicit.
-5. Rank candidate computations, reviews, assays, and replications by expected
+5. Admit only independently accepted active evidence into reusable room memory.
+6. Rank candidate computations, reviews, assays, and replications by expected
    information gain and declared scientific cost.
-6. Route an approved action to a qualified, consenting peer or laboratory.
-7. Record positive, negative, failed, and ambiguous outcomes with protocol and
+7. Route an approved action to a qualified, consenting peer or laboratory.
+8. Record positive, negative, failed, and ambiguous outcomes with protocol and
    condition context.
-8. Update the uncertainty projection without converting evidence into automatic
+9. Update the uncertainty projection without converting evidence into automatic
    truth.
-9. Freeze completed campaigns as held-out, family-disjoint evaluations for
+10. Freeze completed campaigns as held-out, family-disjoint evaluations for
    future model and scientific-policy promotion.
 
 ## North-star metric

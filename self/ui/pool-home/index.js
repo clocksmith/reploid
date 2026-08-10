@@ -61,6 +61,12 @@ const roomDraftFields = (root) => ({
   intentKind: root.querySelector('#pool-home-intent-kind, #pool-run-intent-kind')?.value || 'question',
   intentLabel: root.querySelector('#pool-home-intent-label, #pool-run-intent-label')?.value || '',
   intentText: root.querySelector('#pool-home-intent-text, #pool-run-intent-text')?.value || '',
+  intentConditions: root.querySelector('#pool-home-intent-conditions, #pool-run-intent-conditions')?.value || '',
+  intentObservation: root.querySelector('#pool-home-intent-observation, #pool-run-intent-observation')?.value || '',
+  intentDecision: root.querySelector('#pool-home-intent-decision, #pool-run-intent-decision')?.value || '',
+  intentScope: root.querySelector('#pool-home-intent-scope, #pool-run-intent-scope')?.value || '',
+  intentExclusions: root.querySelector('#pool-home-intent-exclusions, #pool-run-intent-exclusions')?.value || '',
+  intentUnknowns: root.querySelector('#pool-home-intent-unknowns, #pool-run-intent-unknowns')?.value || '',
   sequencePublic: Boolean(root.querySelector('#pool-home-sequence-public, #pool-run-sequence-public')?.checked),
   researchPublic: Boolean(root.querySelector('#pool-home-research-public, #pool-run-research-public')?.checked)
 });
@@ -82,12 +88,18 @@ const restoreRoomDraft = (root) => {
   setValue('#pool-home-intent-kind, #pool-run-intent-kind', draft.intentKind);
   setValue('#pool-home-intent-label, #pool-run-intent-label', draft.intentLabel);
   setValue('#pool-home-intent-text, #pool-run-intent-text', draft.intentText);
+  setValue('#pool-home-intent-conditions, #pool-run-intent-conditions', draft.intentConditions);
+  setValue('#pool-home-intent-observation, #pool-run-intent-observation', draft.intentObservation);
+  setValue('#pool-home-intent-decision, #pool-run-intent-decision', draft.intentDecision);
+  setValue('#pool-home-intent-scope, #pool-run-intent-scope', draft.intentScope);
+  setValue('#pool-home-intent-exclusions, #pool-run-intent-exclusions', draft.intentExclusions);
+  setValue('#pool-home-intent-unknowns, #pool-run-intent-unknowns', draft.intentUnknowns);
   setChecked('#pool-home-sequence-public, #pool-run-sequence-public', draft.sequencePublic);
   setChecked('#pool-home-research-public, #pool-run-research-public', draft.researchPublic);
 };
 
 const bindRoomDraft = (root) => {
-  const controls = root.querySelectorAll('#pool-home-ask-prompt, #pool-run-prompt, #pool-home-intent-kind, #pool-run-intent-kind, #pool-home-intent-label, #pool-run-intent-label, #pool-home-intent-text, #pool-run-intent-text, #pool-home-sequence-public, #pool-run-sequence-public, #pool-home-research-public, #pool-run-research-public');
+  const controls = root.querySelectorAll('#pool-home-ask-prompt, #pool-run-prompt, #pool-home-intent-kind, #pool-run-intent-kind, #pool-home-intent-label, #pool-run-intent-label, #pool-home-intent-text, #pool-run-intent-text, #pool-home-intent-conditions, #pool-run-intent-conditions, #pool-home-intent-observation, #pool-run-intent-observation, #pool-home-intent-decision, #pool-run-intent-decision, #pool-home-intent-scope, #pool-run-intent-scope, #pool-home-intent-exclusions, #pool-run-intent-exclusions, #pool-home-intent-unknowns, #pool-run-intent-unknowns, #pool-home-sequence-public, #pool-run-sequence-public, #pool-home-research-public, #pool-run-research-public');
   if (!controls.length) return;
   const persist = () => persistPoolRoomDraft(roomDraftFields(root));
   controls.forEach((control) => {

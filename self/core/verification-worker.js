@@ -147,6 +147,49 @@ const canWriteTo = (sourcePath, targetPath) => {
   return caps.allowed.some(p => targetPath.startsWith(p));
 };
 
+// Function parses classic scripts and rejects valid static ESM declarations.
+// The worker does not execute candidate code, so normalize only module
+// declarations for its syntax pass. All security, capability, and complexity
+// scans below continue to inspect the original source text.
+const syntaxCheckableSource = (source) => {
+  const lines = String(source || '').split('\n');
+  const normalized = [];
+  let skippingDeclaration = false;
+  let defaultExportIndex = 0;
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (skippingDeclaration) {
+      normalized.push('');
+      if (trimmed.includes(';')) skippingDeclaration = false;
+      continue;
+    }
+    if (/^import\s+(?!\()/.test(trimmed)) {
+      normalized.push('');
+      if (!trimmed.includes(';')) skippingDeclaration = true;
+      continue;
+    }
+    if (/^export\s+(?:\*|\{)/.test(trimmed)) {
+      normalized.push('');
+      if (!trimmed.includes(';')) skippingDeclaration = true;
+      continue;
+    }
+    if (/^export\s+default\s+(?:async\s+)?(?:function|class)\b/.test(trimmed)) {
+      normalized.push(line.replace(/^(\s*)export\s+default\s+/, '$1'));
+      continue;
+    }
+    if (/^export\s+default\s+/.test(trimmed)) {
+      defaultExportIndex += 1;
+      normalized.push(line.replace(
+        /^(\s*)export\s+default\s+/,
+        `$1const __verification_default_${defaultExportIndex} = `
+      ));
+      continue;
+    }
+    normalized.push(line.replace(/^(\s*)export\s+/, '$1'));
+  }
+  return normalized.join('\n');
+};
+
 // ============================================================================
 // DANGEROUS PATTERNS (25+ categorized)
 // ============================================================================
@@ -809,7 +852,7 @@ self.onmessage = async (e) => {
         // ----------------------------------------------------------------
         try {
           // Use Function constructor just for syntax check - never called
-          new Function(code);
+          new Function(syntaxCheckableSource(code));
         } catch (err) {
           errors.push(`Syntax Error in ${path}: ${err.message}`);
           events.push(createEvent('verification:syntax_error', { path, error: err.message }));

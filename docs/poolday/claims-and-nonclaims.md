@@ -21,9 +21,14 @@ Poolday provides:
 - requester countersignatures
 - policy-controlled admission
 - immutable signed public protein submissions with requester intent and consent
-- separately signed and attributable human claims, reviews, and corrections
+- deterministic question-clarity gaps for signed public research submissions
+- separately signed and attributable human claims, reviews, replication
+  requests, and corrections
 - public room-scoped evidence links and exact-contract embedding comparison
-- deterministic flat similarity, evidence-aware reranking, clustering, and approval-gated task proposals
+- fail-closed accepted room memory that excludes provisional, disputed,
+  replication-requested, corrected, and revoked evidence
+- deterministic flat similarity, evidence-aware reranking, clustering, and
+  approval-gated task proposals with explicit accepted-memory basis
 
 The approved product claim is:
 
@@ -57,6 +62,8 @@ Poolday does not provide:
 - conversion of submitted human claims into model facts
 - private-sequence protection in the public evidence collection
 - proof that an action is maximally informative
+- proof that a projected next question is scientifically correct
+- autonomous authority to approve, allocate, execute, or promote a next action
 - proof that a scientific conclusion is true or independently replicated
 
 A receipt proves that a provider key signed an assignment-bound artifact.

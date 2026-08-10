@@ -75,6 +75,16 @@ describe('runtime config synchronization', () => {
     );
   });
 
+  it('adds the pinned runtime identity when a product contract version has no Doppler segment', () => {
+    const fixture = createFixture();
+    fixture.poolConfig.configVersion = '2026-08-01.sequence-model-contracts.v1';
+
+    const synchronized = synchronizeRuntimeConfig(fixture);
+
+    expect(synchronized.poolConfig.configVersion)
+      .toBe('2026-08-01.sequence-model-contracts.v1.doppler-0.5.1');
+  });
+
   it('rejects package metadata that is not an exact integrity-bound pin', () => {
     const fixture = createFixture();
     fixture.packageManifest.dependencies['doppler-gpu'] = '^0.4.15';

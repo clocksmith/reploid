@@ -88,13 +88,11 @@ export function synchronizeRuntimeConfig({
   }
 
   const synchronizedPoolConfig = synchronizeCompatibility(clone(poolConfig), browserRuntimeVersion);
-  synchronizedPoolConfig.configVersion = String(synchronizedPoolConfig.configVersion || '').replace(
-    /doppler-\d+\.\d+\.\d+/,
-    `doppler-${browserRuntimeVersion}`
-  );
-  if (!synchronizedPoolConfig.configVersion.includes(`doppler-${browserRuntimeVersion}`)) {
-    throw new Error('Pool configVersion must contain a doppler-x.y.z segment');
-  }
+  const configVersion = String(synchronizedPoolConfig.configVersion || '').trim();
+  if (!configVersion) throw new Error('Pool configVersion is required');
+  synchronizedPoolConfig.configVersion = /doppler-\d+\.\d+\.\d+/.test(configVersion)
+    ? configVersion.replace(/doppler-\d+\.\d+\.\d+/, `doppler-${browserRuntimeVersion}`)
+    : `${configVersion}.doppler-${browserRuntimeVersion}`;
   synchronizedPoolConfig.browserRuntime = {
     ...synchronizedPoolConfig.browserRuntime,
     dopplerModuleUrl: moduleUrl,

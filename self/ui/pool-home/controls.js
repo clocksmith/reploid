@@ -1058,6 +1058,12 @@ const bindPeerRunSurface = ({
   intentKindControl = null,
   intentLabelControl = null,
   intentTextControl = null,
+  intentConditionsControl = null,
+  intentObservationControl = null,
+  intentDecisionControl = null,
+  intentScopeControl = null,
+  intentExclusionsControl = null,
+  intentUnknownsControl = null,
   resultId
 } = {}) => {
   if (!button || !prompt || !resultId || button.dataset.poolRunBound === 'true') return;
@@ -1203,6 +1209,12 @@ const bindPeerRunSurface = ({
     if (intentKindControl && restoredRequest.researchSubmission) intentKindControl.value = restoredRequest.researchSubmission.requesterIntent?.kind || 'question';
     if (intentLabelControl && restoredRequest.researchSubmission) intentLabelControl.value = restoredRequest.researchSubmission.requesterIntent?.label || '';
     if (intentTextControl && restoredRequest.researchSubmission) intentTextControl.value = restoredRequest.researchSubmission.requesterIntent?.text || '';
+    if (intentConditionsControl && restoredRequest.researchSubmission) intentConditionsControl.value = restoredRequest.researchSubmission.requesterIntent?.conditions || '';
+    if (intentObservationControl && restoredRequest.researchSubmission) intentObservationControl.value = restoredRequest.researchSubmission.requesterIntent?.desiredObservation || '';
+    if (intentDecisionControl && restoredRequest.researchSubmission) intentDecisionControl.value = restoredRequest.researchSubmission.requesterIntent?.decisionContext || '';
+    if (intentScopeControl && restoredRequest.researchSubmission) intentScopeControl.value = restoredRequest.researchSubmission.requesterIntent?.scope || '';
+    if (intentExclusionsControl && restoredRequest.researchSubmission) intentExclusionsControl.value = restoredRequest.researchSubmission.requesterIntent?.exclusions || '';
+    if (intentUnknownsControl && restoredRequest.researchSubmission) intentUnknownsControl.value = restoredRequest.researchSubmission.requesterIntent?.knownUnknowns || '';
     const interrupted = {
       status: 'error',
       statusLabel: 'Interrupted',
@@ -1287,6 +1299,19 @@ const bindPeerRunSurface = ({
         includeLogits: false
       }
       : null;
+    let selectedPolicyId = policySelect?.value || FASTEST_RECEIPT_POLICY_ID;
+    if (lane === 'sequence' && researchPublicControl?.checked === true
+      && !['redundant_agreement', 'ring_quorum_receipt'].includes(selectedPolicyId)) {
+      const redundantOption = policySelect?.querySelector('option[value="redundant_agreement"]');
+      if (!redundantOption) {
+        const error = new Error('Public Research Room evidence requires an independent-execution policy');
+        error.code = 'research_independence_policy_required';
+        error.action = 'Select redundant agreement or ring quorum, then run again.';
+        throw error;
+      }
+      selectedPolicyId = 'redundant_agreement';
+      policySelect.value = selectedPolicyId;
+    }
     const request = {
       lane,
       promptText: lane === 'sequence' ? null : requestInput,
@@ -1295,9 +1320,15 @@ const bindPeerRunSurface = ({
       selectedModel,
       modelRequirements: adapter ? { ...selectedModel, adapter } : selectedModel,
       adapterPackHash: adapter?.packHash || null,
-      policyId: policySelect?.value || FASTEST_RECEIPT_POLICY_ID
+      policyId: selectedPolicyId
     };
     if (lane === 'sequence' && researchPublicControl?.checked === true) {
+      if (!intentTextControl?.value?.trim()) {
+        const error = new Error('State the question, hypothesis, or context before publishing research evidence');
+        error.code = 'research_question_required';
+        error.action = 'Add the exact question reviewers should answer, then run again.';
+        throw error;
+      }
       const researchSubmission = await createSignedResearchSubmission({
         identity: researchIdentity,
         roomId: getPeerRoomId(),
@@ -1306,7 +1337,13 @@ const bindPeerRunSurface = ({
           kind: intentKindControl?.value || 'question',
           text: intentTextControl?.value || '',
           label: intentLabelControl?.value || '',
-          context: ''
+          context: '',
+          conditions: intentConditionsControl?.value || '',
+          desiredObservation: intentObservationControl?.value || '',
+          decisionContext: intentDecisionControl?.value || '',
+          scope: intentScopeControl?.value || '',
+          exclusions: intentExclusionsControl?.value || '',
+          knownUnknowns: intentUnknownsControl?.value || ''
         },
         consent: {
           publicSequence: true,
@@ -1574,6 +1611,12 @@ export const bindRunControls = () => {
     intentKindControl: document.getElementById('pool-run-intent-kind'),
     intentLabelControl: document.getElementById('pool-run-intent-label'),
     intentTextControl: document.getElementById('pool-run-intent-text'),
+    intentConditionsControl: document.getElementById('pool-run-intent-conditions'),
+    intentObservationControl: document.getElementById('pool-run-intent-observation'),
+    intentDecisionControl: document.getElementById('pool-run-intent-decision'),
+    intentScopeControl: document.getElementById('pool-run-intent-scope'),
+    intentExclusionsControl: document.getElementById('pool-run-intent-exclusions'),
+    intentUnknownsControl: document.getElementById('pool-run-intent-unknowns'),
     resultId: 'pool-run-result'
   });
   if (modelSelect && modelSelect.dataset.poolWorkloadBound !== 'true') {
@@ -1760,6 +1803,12 @@ export const bindHomeAskControls = () => {
     intentKindControl: document.getElementById('pool-home-intent-kind'),
     intentLabelControl: document.getElementById('pool-home-intent-label'),
     intentTextControl: document.getElementById('pool-home-intent-text'),
+    intentConditionsControl: document.getElementById('pool-home-intent-conditions'),
+    intentObservationControl: document.getElementById('pool-home-intent-observation'),
+    intentDecisionControl: document.getElementById('pool-home-intent-decision'),
+    intentScopeControl: document.getElementById('pool-home-intent-scope'),
+    intentExclusionsControl: document.getElementById('pool-home-intent-exclusions'),
+    intentUnknownsControl: document.getElementById('pool-home-intent-unknowns'),
     resultId: 'pool-home-run-result'
   });
 };

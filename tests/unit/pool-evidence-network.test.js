@@ -5,10 +5,14 @@ import {
   buildModelEvidenceView,
   clusterCompatibleResults,
   createSignedHumanClaim,
+  createSignedResearchHypothesis,
   createSignedResearchResult,
   createSignedResearchSubmission,
   createSignedSequenceEvidenceLink,
   findSimilarSequences,
+  projectAcceptedResearchMemory,
+  projectResearchQuestionClarity,
+  projectResearchReviewStates,
   projectResearchRewards,
   proposeDiscoveryTasks,
   validateResearchRecordLinks,
@@ -105,7 +109,11 @@ const result = async (author, source, vector, providerId = 'provider_one', model
       vectorHash: await hashSequenceFloat32Values(vector)
     }
   },
-  agreement: { receiptHashes: [fakeHash('a'), fakeHash('d')], status: 'accepted' },
+  agreement: {
+    receiptHashes: [fakeHash('a'), fakeHash('d')],
+    providerIds: [providerId, `${providerId}_independent`],
+    status: 'accepted'
+  },
   embedding: vector
 });
 
@@ -130,8 +138,186 @@ describe('Poolday evidence network', () => {
       modelContract: model,
       policyId: 'redundant_agreement'
     });
-    expect(record.requesterIntent).toEqual({ kind: 'question', text: '', label: '', context: '' });
+    expect(record.requesterIntent).toEqual({
+      kind: 'question',
+      text: '',
+      label: '',
+      context: '',
+      decisionContext: '',
+      conditions: '',
+      scope: '',
+      exclusions: '',
+      desiredObservation: '',
+      knownUnknowns: ''
+    });
     expect(await verifyResearchRecord(record)).toMatchObject({ ok: true });
+    expect(projectResearchQuestionClarity(record)).toMatchObject({
+      status: 'incomplete',
+      minimumReady: false,
+      score: 0.125
+    });
+  });
+
+  it('signs a bounded question contract while preserving explicit unknowns', async () => {
+    const record = await createSignedResearchSubmission({
+      identity: await identity('requester', 'bounded-question'),
+      roomId: 'protein-room',
+      sequence: 'MAPLALLLLGLVAGA',
+      intent: {
+        kind: 'question',
+        text: 'Does this sequence encode a cleavable signal peptide under the declared assay?',
+        conditions: 'Cell-free reporter at 30 C.',
+        desiredObservation: 'A blinded extracellular reporter ratio.',
+        decisionContext: 'Choose a discriminating follow-up assay.',
+        scope: 'Signal peptide cleavage under the declared assay.',
+        exclusions: 'Does not establish native trafficking.',
+        knownUnknowns: 'The model has no cellular context.'
+      },
+      consent: { publicSequence: true, publicEvidenceNetwork: true, publishEmbedding: true },
+      modelContract: model,
+      policyId: 'redundant_agreement'
+    });
+
+    expect(projectResearchQuestionClarity(record)).toMatchObject({
+      status: 'bounded',
+      minimumReady: true,
+      score: 1,
+      gaps: []
+    });
+    expect(record.requesterIntent.knownUnknowns).toBe('The model has no cellular context.');
+  });
+
+  it('rejects an accepted agreement backed by only one distinct receipt', async () => {
+    const requester = await identity('requester', 'false-agreement');
+    const source = await submission(requester);
+    await expect(createSignedResearchResult({
+      identity: requester,
+      submission: source,
+      receiptRecord: {
+        receiptHash: fakeHash('a'),
+        verifierDecision: { accepted: true },
+        receipt: { model, providerId: 'provider-one', assignmentId: 'one', jobId: 'one' }
+      },
+      agreement: { status: 'accepted', receiptHashes: [fakeHash('a')] }
+    })).rejects.toThrow('accepted compute agreement requires at least two distinct receipt identities');
+  });
+
+  it('rejects an accepted agreement without two distinct provider identities', async () => {
+    const requester = await identity('requester', 'false-provider-agreement');
+    const source = await submission(requester);
+    await expect(createSignedResearchResult({
+      identity: requester,
+      submission: source,
+      receiptRecord: {
+        receiptHash: fakeHash('a'),
+        verifierDecision: { accepted: true },
+        receipt: { model, providerId: 'provider-one', assignmentId: 'one', jobId: 'one' }
+      },
+      agreement: { status: 'accepted', receiptHashes: [fakeHash('a'), fakeHash('b')] }
+    })).rejects.toThrow('accepted compute agreement requires at least two distinct provider identities');
+  });
+
+  it('allows agent proposals but reserves review decisions for human roles', async () => {
+    const requester = await identity('requester', 'agent-question');
+    const agent = await identity('agent', 'proposal-agent');
+    const source = await submission(requester);
+    const hypothesis = await createSignedResearchHypothesis({
+      identity: agent,
+      roomId: source.roomId,
+      questionHash: source.recordHash,
+      statement: 'The N-terminus may be a cleavable signal peptide.',
+      conditions: { biologicalSystem: 'declared public cell-free reporter' },
+      discriminatingObservations: ['A cleavage-specific reporter signal']
+    });
+
+    expect(hypothesis.author.role).toBe('agent');
+    expect(await verifyResearchRecord(hypothesis)).toMatchObject({ ok: true });
+    await expect(createSignedHumanClaim({
+      identity: agent,
+      roomId: source.roomId,
+      targetHash: hypothesis.recordHash,
+      claimKind: 'review_decision',
+      relation: 'reviews',
+      text: 'Agent accepts its own proposal.',
+      confidence: 1,
+      decision: 'accepted'
+    })).rejects.toThrow('identity role must be one of');
+  });
+
+  it('keeps a replication-requested result outside accepted memory', async () => {
+    const requester = await identity('requester', 'replication-question', 'replication-requester');
+    const reviewer = await identity('reviewer', 'replication-reviewer', 'replication-reviewer');
+    const source = await submission(requester);
+    const computed = await result(requester, source, [1, 0, 0]);
+    const request = await createSignedHumanClaim({
+      identity: reviewer,
+      roomId: source.roomId,
+      targetHash: computed.recordHash,
+      claimKind: 'review_decision',
+      relation: 'reviews',
+      text: 'Run the exact model on another independent provider before reuse.',
+      confidence: 0.9,
+      decision: 'replication_requested'
+    });
+    const records = [source, computed, request];
+
+    expect(projectResearchReviewStates(records)).toContainEqual(expect.objectContaining({
+      recordHash: computed.recordHash,
+      state: 'replication_requested',
+      replicationRequested: true
+    }));
+    expect(projectAcceptedResearchMemory(records).acceptedHashes).toEqual([]);
+  });
+
+  it('requires task approval to replay the exact projected task contract', async () => {
+    const requester = await identity('requester', 'task-contract-requester', 'task-contract-requester');
+    const reviewer = await identity('reviewer', 'task-contract-reviewer', 'task-contract-reviewer');
+    const source = await createSignedResearchSubmission({
+      identity: requester,
+      roomId: 'task-contract-room',
+      sequence: 'MAPLALLLLGLVAGA',
+      intent: {
+        kind: 'question',
+        text: 'What exact model evidence is available?',
+        conditions: 'Public sequence under the exact model contract.',
+        desiredObservation: 'A receipt-backed exact model output.'
+      },
+      consent: { publicSequence: true, publicEvidenceNetwork: true, publishEmbedding: true },
+      modelContract: model,
+      policyId: 'redundant_agreement'
+    });
+    const computeTask = proposeDiscoveryTasks([source]).find((task) => task.kind === 'compute');
+    const staleApproval = await createSignedHumanClaim({
+      identity: reviewer,
+      roomId: source.roomId,
+      targetHash: source.recordHash,
+      claimKind: 'task_approval',
+      relation: 'approves',
+      text: 'Approve a stale task description.',
+      confidence: 1,
+      decision: 'approved',
+      taskId: computeTask.taskId,
+      taskContract: { ...computeTask.taskContract, reason: 'A different task rationale.' }
+    });
+
+    expect(await verifyResearchRecord(staleApproval)).toMatchObject({ ok: true });
+    expect(proposeDiscoveryTasks([source, staleApproval]).find((task) => task.kind === 'compute').status)
+      .toBe('proposed');
+
+    const exactApproval = await createSignedHumanClaim({
+      identity: reviewer,
+      roomId: source.roomId,
+      targetHash: source.recordHash,
+      claimKind: 'task_approval',
+      relation: 'approves',
+      text: 'Approve the exact current task contract.',
+      confidence: 1,
+      decision: 'approved',
+      taskId: computeTask.taskId,
+      taskContract: computeTask.taskContract
+    });
+    expect(proposeDiscoveryTasks([source, staleApproval, exactApproval]).find((task) => task.kind === 'compute').status)
+      .toBe('approved');
   });
 
   it('keeps human claims separate, attributable, and linked in the evidence graph', async () => {
@@ -210,7 +396,11 @@ describe('Poolday evidence network', () => {
           vectorHash: await hashSequenceFloat32Values([0.1, 0.2, 0.3, 0.4])
         }
       },
-      agreement: { receiptHashes: [fakeHash('e')], status: 'accepted' },
+      agreement: {
+        receiptHashes: [fakeHash('e'), fakeHash('d')],
+        providerIds: ['provider_two', 'provider_three'],
+        status: 'accepted'
+      },
       embedding: [0.1, 0.2, 0.3, 0.4]
     });
 

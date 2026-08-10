@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-08-09T23:36:38.374Z",
+  "generatedAt": "2026-08-10T00:31:56.287Z",
   "files": [
     "audit.html",
     "blueprint-index.json",
@@ -367,6 +367,7 @@
     "pool/provider-client.js",
     "pool/reputation.js",
     "pool/requester-client.js",
+    "pool/research-cycle.js",
     "pool/retry-policy.js",
     "pool/rtc-config.js",
     "pool/runtime-profile.js",

@@ -13,6 +13,28 @@ assignment-bound execution evidence. Independent agreement proves
 reproducibility within a declared contract. None proves biological truth or
 honest hardware execution.
 
+## Implemented Research Room subset
+
+The current `poolday.governed_research_cycle/v1` projection implements a
+strict subset of this target contract:
+
+- signed sequence and question anchors with deterministic clarity gaps;
+- exact receipt-backed result provenance and distinct-receipt reproduction
+  checks;
+- independent review states for acceptance, rejection, revision, replication,
+  and disputed reviewer decisions;
+- fail-closed accepted room memory with correction and revocation exclusion;
+- governance actions over provisional records;
+- scientific actions whose `basisHashes` are restricted to accepted memory;
+- a deterministic next-question brief with explicit uncertainty, human
+  approval, and no execution authority.
+
+The projection is defined by
+[`research-cycle.js`](../../self/pool/research-cycle.js), with record and link
+invariants in [`evidence-network.js`](../../self/pool/evidence-network.js).
+Signed contract checkpoints, calibrated information gain, complete laboratory
+independence, closure, and policy promotion remain target work.
+
 ## Design laws
 
 1. Preserve source records. Build contract state as a deterministic projection

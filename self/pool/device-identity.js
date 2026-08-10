@@ -115,11 +115,19 @@ const writeDeviceKey = async (keyId, record) => {
   }
 };
 
-const createNonExportableKeyPair = () => globalThis.crypto.subtle.generateKey(
-  { name: 'ECDSA', namedCurve: 'P-256' },
-  false,
-  ['sign', 'verify']
-);
+const createNonExportableKeyPair = async () => {
+  const algorithm = { name: 'ECDSA', namedCurve: 'P-256' };
+  const generated = await globalThis.crypto.subtle.generateKey(algorithm, true, ['sign', 'verify']);
+  const [privateBytes, publicBytes] = await Promise.all([
+    globalThis.crypto.subtle.exportKey('pkcs8', generated.privateKey),
+    globalThis.crypto.subtle.exportKey('spki', generated.publicKey)
+  ]);
+  const [privateKey, publicKey] = await Promise.all([
+    globalThis.crypto.subtle.importKey('pkcs8', privateBytes, algorithm, false, ['sign']),
+    globalThis.crypto.subtle.importKey('spki', publicBytes, algorithm, true, ['verify'])
+  ]);
+  return { privateKey, publicKey };
+};
 
 const loadFallbackKeyPair = async () => {
   const serialized = localStorageRef()?.getItem(FALLBACK_KEY);
@@ -178,6 +186,16 @@ export async function getDeviceRootIdentity() {
       const record = await readDeviceKey(ROOT_KEY_ID);
       if (record?.privateKey && record?.publicKey) {
         keyPair = { privateKey: record.privateKey, publicKey: record.publicKey };
+        try {
+          await exportPublicKey(keyPair.publicKey);
+        } catch {
+          keyPair = await createNonExportableKeyPair();
+          await writeDeviceKey(ROOT_KEY_ID, {
+            privateKey: keyPair.privateKey,
+            publicKey: keyPair.publicKey,
+            createdAt: new Date().toISOString()
+          });
+        }
       } else if (globalThis.indexedDB) {
         keyPair = await createNonExportableKeyPair();
         await writeDeviceKey(ROOT_KEY_ID, {
