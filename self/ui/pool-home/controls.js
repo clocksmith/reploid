@@ -1428,6 +1428,7 @@ const bindPeerRunSurface = ({
           roomId: getPeerRoomId(),
           submission: request.researchSubmission,
           receiptRecord: result.receiptRecord || result,
+          receiptEvidence: result.receiptEvidence || null,
           agreement: result.agreement || null,
           routeDecision: result.plan?.routeDecision || result.routeDecision || null,
           embedding: result.sequenceOutput?.pooledEmbedding || result.receiptRecord?.sequenceOutput?.pooledEmbedding || null,

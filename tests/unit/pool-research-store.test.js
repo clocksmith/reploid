@@ -8,6 +8,7 @@ import {
   appendResearchRecord,
   getResearchSyncState,
   hydrateResearchRecords,
+  loadQuarantinedResearchRecords,
   loadResearchRecords,
   publishResearchRecord,
   resetResearchStore
@@ -215,6 +216,13 @@ describe('Poolday research store', () => {
       rejectedRecords: [{ recordHash: record.recordHash }]
     });
     expect(localStorage.getItem('reploid.pool.research-evidence.v1::store-room')).toBe('[]');
+    expect(loadQuarantinedResearchRecords('store-room')).toEqual([
+      expect.objectContaining({
+        record: tampered,
+        reason: expect.stringContaining('record hash mismatch'),
+        quarantinedAt: expect.any(String)
+      })
+    ]);
   });
 
   it('rejects a candidate result even when its question uses the enabled ESM-2 contract', async () => {

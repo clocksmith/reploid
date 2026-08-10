@@ -480,6 +480,15 @@
       "imports": []
     },
     {
+      "path": "core/vendor/acorn.js",
+      "owner": "core",
+      "sha256": "sha256:fdb08546776ec6228b03e8d02b40d4ab3255bae5f401adba7ff5dad927ac5c9c",
+      "imports": [
+        "...",
+        "…"
+      ]
+    },
+    {
       "path": "core/verification-manager.js",
       "owner": "core",
       "sha256": "sha256:c524e6267866436ebf739747ec754d829e4885ac2fb3959be22dcbef988757bc",
@@ -490,7 +499,7 @@
     {
       "path": "core/verification-worker.js",
       "owner": "core",
-      "sha256": "sha256:f99cdc919726f5a7820d684945ae176b859c21c4547b982e38ed824e271865f7",
+      "sha256": "sha256:34f79db81480a1ad12e12f7fda0f1e1a3f3f68f5ff792ca2ccffed7c5afc53be",
       "imports": []
     },
     {
@@ -885,7 +894,7 @@
     {
       "path": "pool/evidence-network.js",
       "owner": "pool",
-      "sha256": "sha256:22b078877c60355dbc59bdc5313a21e09dc0953dd81ab5d2f1ef3270d67ad511",
+      "sha256": "sha256:0f639e470dbe6d21694073cfaee4eadcbafdeed782d07fd669701984392f2ebc",
       "imports": [
         "./discovery-action-value.js",
         "./inference-receipt.js",
@@ -1113,7 +1122,7 @@
     {
       "path": "pool/peer-room.js",
       "owner": "pool",
-      "sha256": "sha256:0baf5f506651c54f916ad9c2064aee0da6a2798031625d12aa27b79c884e153b",
+      "sha256": "sha256:f00bce77ec93f421a34e5aaf21145135e01d87c9cbed9f5aefb0a1e13e98e312",
       "imports": [
         "./config.js",
         "./model-contract.js",
@@ -2011,7 +2020,7 @@
     {
       "path": "ui/pool-home/controls.js",
       "owner": "ui",
-      "sha256": "sha256:53362c180a5cd1fb519ee36f2f13b8fd870d46d6954c2336b98affa53fb79fa2",
+      "sha256": "sha256:8af150a68a150215d2d7dd7650f6cdd21e2424eb5784008f55713447ed26fd6d",
       "imports": [
         "../../pool/adapter-publication.js",
         "../../pool/adapter-registry.js",
@@ -2096,7 +2105,7 @@
     {
       "path": "ui/pool-home/research-store.js",
       "owner": "ui",
-      "sha256": "sha256:c7decf8dbcca42f20f59ce33e243381340725c3fd16df68f04d6de3f51a544a8",
+      "sha256": "sha256:07478e6f7c5566cdd0437ccf887fbec3f783d415b9848a99417a493c5cd5eeba",
       "imports": [
         "../../pool/evidence-network.js",
         "../../pool/peer-room.js",

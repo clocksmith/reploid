@@ -6,6 +6,7 @@ import {
   SIGNATURE_DOMAINS,
   exportPublicKey,
   hashJson,
+  receiptSigningPayload,
   sha256Hex,
   signCanonical,
   verifyCanonicalSignature
@@ -27,7 +28,8 @@ import {
   validateSequenceOutputIntegrity
 } from './sequence-result.js';
 
-export const RESEARCH_RECORD_VERSION = 'poolday.research_evidence/v1';
+export const RESEARCH_RECORD_VERSION = 'poolday.research_evidence/v2';
+export const LEGACY_RESEARCH_RECORD_VERSION = 'poolday.research_evidence/v1';
 export const RESEARCH_RECORD_KINDS = Object.freeze({
   submission: 'research_submission',
   result: 'research_result',
@@ -134,6 +136,12 @@ const providerIdentities = (values) => unique((Array.isArray(values) ? values : 
   .map((value) => compactText(value, 240))
   .filter(Boolean))
   .sort();
+const sameStringSet = (left = [], right = []) => {
+  const normalizedLeft = unique(left.map(String)).sort();
+  const normalizedRight = unique(right.map(String)).sort();
+  return normalizedLeft.length === normalizedRight.length
+    && normalizedLeft.every((value, index) => value === normalizedRight[index]);
+};
 const stableTaskId = (kind, targetHash) => `task:${kind}:${targetHash}`;
 const withoutSignature = (record = {}) => {
   const { signature, ...payload } = record;
@@ -238,33 +246,138 @@ export function projectResearchQuestionClarity(submission = null) {
  */
 export function projectResearchExecutionIndependence(record = {}) {
   const agreement = record.compute?.agreement || null;
-  const receiptHashes = unique([
-    record.compute?.receiptHash,
-    ...(Array.isArray(record.compute?.receiptHashes) ? record.compute.receiptHashes : []),
-    ...(Array.isArray(agreement?.receiptHashes) ? agreement.receiptHashes : [])
-  ]).map(String).sort();
-  const providerIds = providerIdentities([
-    record.compute?.providerId,
-    ...(Array.isArray(agreement?.providerIds) ? agreement.providerIds : []),
-    ...(Array.isArray(agreement?.acceptedProviderIds) ? agreement.acceptedProviderIds : [])
-  ]);
+  const declaredReceiptHashes = Array.isArray(agreement?.receiptHashes) ? agreement.receiptHashes : [];
+  const declaredProviderIds = agreement?.providerIds ?? agreement?.acceptedProviderIds ?? [];
+  const receiptEvidence = Array.isArray(record.compute?.receiptEvidence)
+    ? record.compute.receiptEvidence
+    : [];
+  const structurallyBoundEvidence = receiptEvidence.filter((entry) => (
+    SHA256_PATTERN.test(String(entry?.receiptHash || ''))
+    && compactText(entry?.providerId, 240)
+    && compactText(entry?.providerPublicKey, 12000)
+    && entry?.receipt?.providerId === entry.providerId
+    && entry?.receipt?.providerSignature
+  ));
+  const receiptHashes = unique(structurallyBoundEvidence.map((entry) => entry.receiptHash)).map(String).sort();
+  const providerIds = providerIdentities(structurallyBoundEvidence.map((entry) => entry.providerId));
+  const providerPublicKeys = unique(structurallyBoundEvidence.map((entry) => compactText(entry.providerPublicKey, 12000))).sort();
   const independentReceiptCount = receiptHashes.length;
   const independentProviderCount = providerIds.length;
-  const independentlyExecuted = independentReceiptCount >= 2 && independentProviderCount >= 2;
+  const independentProviderKeyCount = providerPublicKeys.length;
+  const agreementAccepted = ['accepted', 'agreed'].includes(compactText(agreement?.status, 64).toLowerCase());
+  const primaryReceiptBound = receiptHashes.includes(record.compute?.receiptHash);
+  const agreementEvidenceBound = agreementAccepted
+    && sameStringSet(receiptHashes, declaredReceiptHashes)
+    && Array.isArray(declaredProviderIds)
+    && sameStringSet(providerIds, declaredProviderIds);
+  const independentlyExecuted = agreementEvidenceBound
+    && primaryReceiptBound
+    && structurallyBoundEvidence.length === receiptEvidence.length
+    && independentReceiptCount >= 2
+    && independentProviderCount >= 2
+    && independentProviderKeyCount >= 2;
   return {
     schema: 'poolday.research_execution_independence/v1',
     receiptHashes,
     providerIds,
+    providerPublicKeys,
     independentReceiptCount,
     independentProviderCount,
+    independentProviderKeyCount,
+    primaryReceiptBound,
+    agreementEvidenceBound,
     independentlyExecuted,
     status: independentlyExecuted
       ? 'independently_reproduced'
-      : independentReceiptCount < 2
-        ? 'single_receipt'
-        : 'provider_independence_missing'
+      : structurallyBoundEvidence.length !== receiptEvidence.length
+        ? 'receipt_evidence_invalid'
+        : independentReceiptCount < 2
+          ? 'single_verified_receipt'
+          : !agreementEvidenceBound || !primaryReceiptBound
+            ? 'agreement_evidence_mismatch'
+            : 'provider_independence_missing'
   };
 }
+
+const normalizeVerifiedReceiptEvidence = async ({
+  receiptEvidence = null,
+  receiptRecord,
+  receiptHash,
+  agreement,
+  modelContract,
+  sequenceHash
+}) => {
+  const agreementStatus = compactText(agreement?.status, 64).toLowerCase();
+  const agreementAccepted = ['accepted', 'agreed'].includes(agreementStatus);
+  const supplied = Array.isArray(receiptEvidence) ? receiptEvidence : [];
+  const primaryCandidate = receiptRecord?.receipt && receiptRecord?.providerPublicKey
+    ? [{
+      receiptHash,
+      providerId: receiptRecord.providerId || receiptRecord.receipt.providerId,
+      providerPublicKey: receiptRecord.providerPublicKey,
+      receipt: receiptRecord.receipt
+    }]
+    : [];
+  const candidates = supplied.length > 0 ? supplied : primaryCandidate;
+  if (agreementAccepted && candidates.length < 2) {
+    throw new TypeError('accepted compute agreement requires two verified receipt evidence records');
+  }
+  const normalized = [];
+  for (const candidate of candidates) {
+    const receipt = clone(candidate?.receipt || null);
+    if (!receipt) throw new TypeError('compute receipt evidence requires the signed receipt');
+    const computedReceiptHash = await hashJson(receipt);
+    const evidenceReceiptHash = requireHash(candidate?.receiptHash, 'compute receipt evidence');
+    if (computedReceiptHash !== evidenceReceiptHash) throw new TypeError('compute receipt evidence hash mismatch');
+    const providerId = compactText(candidate?.providerId, 240);
+    const providerPublicKey = compactText(candidate?.providerPublicKey, 12000);
+    if (!providerId || receipt.providerId !== providerId) throw new TypeError('compute receipt evidence provider identity mismatch');
+    if (!providerPublicKey || !receipt.providerSignature) throw new TypeError('compute receipt evidence signature material is required');
+    if (receipt.signatureDomain !== SIGNATURE_DOMAINS.providerReceipt) {
+      throw new TypeError('compute receipt evidence signature domain mismatch');
+    }
+    const signatureOk = await verifyCanonicalSignature(
+      receiptSigningPayload(receipt),
+      providerPublicKey,
+      receipt.providerSignature,
+      { domain: SIGNATURE_DOMAINS.providerReceipt }
+    );
+    if (!signatureOk) throw new TypeError('compute receipt evidence provider signature is invalid');
+    if (exactModelContractKey(normalizeModelContract(receipt.model)) !== exactModelContractKey(modelContract)) {
+      throw new TypeError('compute receipt evidence model contract mismatch');
+    }
+    if (receipt.inputHash !== sequenceHash) throw new TypeError('compute receipt evidence input identity mismatch');
+    if (agreement?.jobId && receipt.jobId !== agreement.jobId) {
+      throw new TypeError('compute receipt evidence job identity mismatch');
+    }
+    if (agreementAccepted) {
+      const agreementField = compactText(agreement?.agreementField, 120);
+      if (!agreementField || agreement?.agreementValue == null || receipt[agreementField] !== agreement.agreementValue) {
+        throw new TypeError('compute receipt evidence does not match the accepted agreement value');
+      }
+    }
+    normalized.push({ receiptHash: evidenceReceiptHash, providerId, providerPublicKey, receipt });
+  }
+  const evidenceReceiptHashes = normalized.map((entry) => entry.receiptHash);
+  const evidenceProviderIds = normalized.map((entry) => entry.providerId);
+  const evidenceProviderKeys = normalized.map((entry) => entry.providerPublicKey);
+  if (agreementAccepted) {
+    const declaredProviderIds = agreement?.providerIds ?? agreement?.acceptedProviderIds;
+    if (!sameStringSet(evidenceReceiptHashes, agreement?.receiptHashes || [])) {
+      throw new TypeError('compute agreement receipt identities do not match verified receipt evidence');
+    }
+    if (!Array.isArray(declaredProviderIds) || !sameStringSet(evidenceProviderIds, declaredProviderIds)) {
+      throw new TypeError('compute agreement provider identities do not match verified receipt evidence');
+    }
+    if (unique(evidenceProviderIds).length < 2 || unique(evidenceProviderKeys).length < 2) {
+      throw new TypeError('accepted compute agreement requires distinct verified provider identities and keys');
+    }
+  }
+  if (normalized.length > 0 && !evidenceReceiptHashes.includes(receiptHash)) {
+    throw new TypeError('verified receipt evidence does not include the primary receipt');
+  }
+  return normalized.sort((left, right) => left.receiptHash.localeCompare(right.receiptHash));
+};
 
 const normalizeConsent = (consent = {}, alphabet = SEQUENCE_ALPHABETS.aminoAcid) => {
   if (consent.publicSequence !== true) throw new TypeError('public sequence consent is required');
@@ -652,6 +765,7 @@ export async function createSignedResearchResult({
   roomId,
   submission,
   receiptRecord,
+  receiptEvidence = null,
   modelContract: declaredModelContract = null,
   agreement = null,
   routeDecision = null,
@@ -668,8 +782,8 @@ export async function createSignedResearchResult({
   const receiptHash = receiptRecord?.receiptHash || await hashJson(receipt);
   if (!SHA256_PATTERN.test(String(receiptHash || ''))) throw new TypeError('accepted receipt hash is required');
   const accepted = receiptRecord?.requesterAcceptance || receipt.requesterAcceptance || null;
-  const verified = receiptRecord?.verifierDecision?.accepted === true;
-  if (!verified) throw new TypeError('an explicitly accepted verifier decision is required for a research result');
+  const verifierDecision = receiptRecord?.verifierDecision || receipt.verifierDecision || null;
+  const peerDecision = receiptRecord?.peerDecision || null;
   const vector = Array.isArray(embedding) ? embedding.map(Number) : null;
   if (vector && (!submission.consent.publishEmbedding || vector.length === 0 || vector.length > MAX_EMBEDDING_DIMENSIONS || vector.some((value) => !Number.isFinite(value)))) {
     throw new TypeError('embedding publication is not consented or is invalid');
@@ -730,6 +844,21 @@ export async function createSignedResearchResult({
     && (!declaredProviderIds || agreementProviderIds.length < 2)) {
     throw new TypeError('accepted compute agreement requires at least two distinct provider identities');
   }
+  const verifiedReceiptEvidence = await normalizeVerifiedReceiptEvidence({
+    receiptEvidence,
+    receiptRecord,
+    receiptHash,
+    agreement,
+    modelContract,
+    sequenceHash: submission.sequence.hash
+  });
+  const acceptedByVerifier = verifierDecision?.accepted === true;
+  const acceptedByPeerAgreement = peerDecision?.accepted === true
+    && ['accepted', 'agreed'].includes(agreementStatus)
+    && verifiedReceiptEvidence.length >= 2;
+  if (!acceptedByVerifier && !acceptedByPeerAgreement) {
+    throw new TypeError('an accepted verifier decision or verified peer agreement is required for a research result');
+  }
   const payload = {
     version: RESEARCH_RECORD_VERSION,
     kind: RESEARCH_RECORD_KINDS.result,
@@ -743,12 +872,21 @@ export async function createSignedResearchResult({
     modelContract,
     compute: {
       receiptHash,
-      verifierDecision: { accepted: true },
+      receiptAdmission: {
+        accepted: true,
+        source: acceptedByVerifier ? 'server_verifier' : 'verified_peer_agreement'
+      },
+      verifierDecision: acceptedByVerifier ? clone(verifierDecision) : null,
+      peerDecision: acceptedByPeerAgreement ? clone(peerDecision) : null,
       submissionModelContractKey: exactModelContractKey(submission.modelContract),
       receiptModelContractKey: exactModelContractKey(receiptModelContract),
       // The primary receipt is the immutable execution anchor for this result.
       // Agreement receipts may add reproductions but cannot replace it.
       receiptHashes: agreementReceiptHashes,
+      // Every receipt counted toward independent execution carries its signed
+      // provider evidence. Projection never infers independence from hashes or
+      // caller-supplied provider labels alone.
+      receiptEvidence: verifiedReceiptEvidence,
       requesterAcceptanceHash: accepted?.acceptanceHash || accepted?.receiptHash || null,
       agreementHash: agreement ? await hashJson(agreement) : null,
       agreement: clone(agreement),
@@ -1559,8 +1697,11 @@ const verifyPublishedSequenceEvidence = async (evidence, record, reasons) => {
 
 export async function verifyResearchRecord(record = {}) {
   const reasons = [];
+  const legacyRecord = record.version === LEGACY_RESEARCH_RECORD_VERSION;
   const domain = DOMAIN_BY_KIND[record.kind];
-  if (record.version !== RESEARCH_RECORD_VERSION) reasons.push('research record version mismatch');
+  if (![RESEARCH_RECORD_VERSION, LEGACY_RESEARCH_RECORD_VERSION].includes(record.version)) {
+    reasons.push('research record version mismatch');
+  }
   if (!domain) reasons.push('research record kind is not supported');
   if (domain && record.signatureDomain !== domain) reasons.push('research signature domain mismatch');
   if (!record.author?.roleId || !record.author?.publicKey) reasons.push('attributable author is required');
@@ -1608,28 +1749,48 @@ export async function verifyResearchRecord(record = {}) {
     if (!Number.isInteger(record.sequenceLength) || record.sequenceLength <= 0) reasons.push('result sequenceLength is invalid');
     if (!SHA256_PATTERN.test(String(record.compute?.receiptHash || ''))) reasons.push('result receiptHash is invalid');
     if (!compactText(record.compute?.providerId, 240)) reasons.push('result providerId is required');
-    if (record.compute?.verifierDecision?.accepted !== true) reasons.push('result requires an explicitly accepted verifier decision');
+    if (legacyRecord) {
+      if (record.compute?.verifierDecision?.accepted !== true) reasons.push('legacy result requires an explicitly accepted verifier decision');
+    } else if (record.compute?.receiptAdmission?.accepted !== true) {
+      reasons.push('result requires an accepted receipt admission decision');
+    }
     if (!Array.isArray(record.compute?.receiptHashes) || record.compute.receiptHashes.some((hash) => !SHA256_PATTERN.test(String(hash || '')))) {
       reasons.push('result receiptHashes are invalid');
     } else if (!record.compute.receiptHashes.includes(record.compute.receiptHash)) {
       reasons.push('result receiptHashes must include the primary receiptHash');
-    } else if (['accepted', 'agreed'].includes(compactText(record.compute?.agreement?.status, 64).toLowerCase())
+    } else if (!legacyRecord
+      && ['accepted', 'agreed'].includes(compactText(record.compute?.agreement?.status, 64).toLowerCase())
       && projectResearchExecutionIndependence(record).independentReceiptCount < 2) {
       reasons.push('accepted compute agreement requires at least two distinct receipt identities');
     }
     const declaredAgreementProviders = record.compute?.agreement?.providerIds
       ?? record.compute?.agreement?.acceptedProviderIds
       ?? null;
-    if (declaredAgreementProviders != null && !Array.isArray(declaredAgreementProviders)) {
+    if (!legacyRecord && declaredAgreementProviders != null && !Array.isArray(declaredAgreementProviders)) {
       reasons.push('accepted compute agreement provider identities must be an array');
     } else if (Array.isArray(declaredAgreementProviders)
       && declaredAgreementProviders.some((providerId) => typeof providerId !== 'string' || !providerId.trim())) {
       reasons.push('accepted compute agreement provider identities must be non-empty strings');
     }
-    if (['accepted', 'agreed'].includes(compactText(record.compute?.agreement?.status, 64).toLowerCase())
+    if (!legacyRecord
+      && ['accepted', 'agreed'].includes(compactText(record.compute?.agreement?.status, 64).toLowerCase())
       && (!Array.isArray(declaredAgreementProviders)
         || projectResearchExecutionIndependence(record).independentProviderCount < 2)) {
       reasons.push('accepted compute agreement requires at least two distinct provider identities');
+    }
+    if (!legacyRecord) {
+      try {
+        await normalizeVerifiedReceiptEvidence({
+          receiptEvidence: record.compute?.receiptEvidence,
+          receiptRecord: null,
+          receiptHash: record.compute?.receiptHash,
+          agreement: record.compute?.agreement,
+          modelContract: record.modelContract,
+          sequenceHash: record.sequenceHash
+        });
+      } catch (error) {
+        reasons.push(error.message);
+      }
     }
     try {
       normalizeModelContract(record.modelContract);
@@ -1678,7 +1839,7 @@ export async function verifyResearchRecord(record = {}) {
     if (record.claim?.kind === 'task_approval'
       && (record.claim?.decision !== 'approved' || record.claim?.relation !== 'approves' || !record.claim?.taskId)) {
       reasons.push('human task approval is invalid');
-    } else if (record.claim?.kind === 'task_approval') {
+    } else if (record.claim?.kind === 'task_approval' && (!legacyRecord || record.claim?.taskContract)) {
       try {
         const normalizedTaskContract = normalizeTaskApprovalContract(
           record.claim?.taskContract,
@@ -2692,7 +2853,10 @@ export function projectResearchRewards(records = []) {
   };
   for (const result of active.filter((record) => record.kind === RESEARCH_RECORD_KINDS.result)) {
     const contributor = ensure({ roleId: result.compute?.providerId });
-    const receiptCount = unique(result.compute?.receiptHashes || [result.compute?.receiptHash]).length;
+    const independence = projectResearchExecutionIndependence(result);
+    const admittedPrimary = result.compute?.receiptAdmission?.accepted === true
+      || result.compute?.verifierDecision?.accepted === true;
+    const receiptCount = Math.max(admittedPrimary ? 1 : 0, independence.independentReceiptCount);
     contributor.verifiedCompute += receiptCount;
     contributor.points += receiptCount * 2;
   }

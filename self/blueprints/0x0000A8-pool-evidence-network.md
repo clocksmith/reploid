@@ -4,11 +4,11 @@
 
 **Implementation Status:** Implemented
 
-**Verified Artifacts:** `/self/pool/discovery-action-value.js`, `/self/pool/evidence-network.js`, `/self/pool/inference-receipt.js`, `/self/pool/model-evidence-view.js`, `/self/pool/research-cycle.js`, `/self/pool/sdk.js`, `/server/pool/firebase-store.js`, `/server/pool/routes.js`, `/server/pool/store.js`
+**Verified Artifacts:** `/self/pool/discovery-action-value.js`, `/self/pool/evidence-network.js`, `/self/pool/inference-receipt.js`, `/self/pool/model-evidence-view.js`, `/self/pool/peer-room.js`, `/self/pool/research-cycle.js`, `/self/pool/sdk.js`, `/server/pool/firebase-store.js`, `/server/pool/routes.js`, `/server/pool/store.js`
 
 **Planned Artifacts:** None
 
-**Owned Source Files:** `pool/discovery-action-value.js`, `pool/evidence-network.js`, `pool/model-evidence-view.js`, `pool/research-cycle.js`, `pool/sdk.js`
+**Owned Source Files:** `pool/discovery-action-value.js`, `pool/evidence-network.js`, `pool/model-evidence-view.js`, `pool/peer-room.js`, `pool/research-cycle.js`, `pool/sdk.js`
 
 **Former Blueprint Paths:** `self/blueprints/0x0000A8-pool-evidence-network.md`
 **Objective:** Preserve public protein research inputs, compute provenance, experimental outcomes, and human interpretation as separately signed immutable evidence, then derive governed Discovery Contract views without converting evidence into automatic truth.
@@ -81,6 +81,9 @@ existing.
 - [x] Signed task approval binds the exact projected task contract
 - [x] Evidence rewards require independent acceptance and durability
 - [x] Reusable compute memory requires distinct receipt and provider identities
+- [x] Independent execution is derived only from embedded provider-signed receipts with distinct provider identities and keys
+- [x] Authentic peer agreements can publish v2 research results without inventing a server-verifier decision
+- [x] Signed v1 history remains inspectable but cannot inherit v2 execution or approval claims
 - [x] Coordinator publication is authenticated and public discovery is read-only
 - [x] Advisory next-action ranking binds its heuristic policy, version, input records, and separate scientific-cost components without allocating work or claiming calibration
 - [ ] Calibrated action-value estimates bind replayable methods, inputs, cost assumptions, and frozen evaluation evidence

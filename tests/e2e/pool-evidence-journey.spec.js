@@ -53,28 +53,46 @@ test('shows and exercises the governed protein evidence journey', async ({ page 
     });
     const firstSubmission = await createSubmission('MAPLALLLLGLVAGA', 'First public candidate');
     const secondSubmission = await createSubmission('MKVLVVLLCLVPAYG', 'Second public candidate');
-    const createResult = async (submission, vector, receiptCharacter) => evidence.createSignedResearchResult({
-      identity: requester,
-      submission,
-      receiptRecord: {
-        receiptHash: fakeHash(receiptCharacter),
-        verifierDecision: { accepted: true },
-        receipt: {
+    const createResult = async (submission, vector, receiptCharacter) => {
+      const vectorHash = await sequenceResults.hashSequenceFloat32Values(vector);
+      const jobId = `job_${receiptCharacter}`;
+      const providerIds = [`provider_${receiptCharacter}`, `provider_${receiptCharacter}_independent`];
+      const receiptEvidence = [];
+      for (const [index, providerId] of providerIds.entries()) {
+        const keyPair = await receipts.createSigningKeyPair();
+        const receipt = await receipts.signProviderReceipt({
           model,
-          providerId: `provider_${receiptCharacter}`,
-          assignmentId: `assignment_${receiptCharacter}`,
-          jobId: `job_${receiptCharacter}`,
+          providerId,
+          assignmentId: `${jobId}_assignment_${index + 1}`,
+          jobId,
+          inputHash: submission.sequence.hash,
           outputKind: 'sequence.embedding.v1',
-          vectorHash: await sequenceResults.hashSequenceFloat32Values(vector)
-        }
-      },
-      agreement: {
+          vectorHash
+        }, keyPair.privateKey);
+        receiptEvidence.push({
+          receiptHash: await receipts.hashJson(receipt),
+          providerId,
+          providerPublicKey: await receipts.exportPublicKey(keyPair.publicKey),
+          receipt
+        });
+      }
+      const agreement = {
         status: 'accepted',
-        receiptHashes: [fakeHash(receiptCharacter), fakeHash('d')],
-        providerIds: [`provider_${receiptCharacter}`, `provider_${receiptCharacter}_independent`]
-      },
-      embedding: vector
-    });
+        jobId,
+        agreementField: 'vectorHash',
+        agreementValue: vectorHash,
+        receiptHashes: receiptEvidence.map((entry) => entry.receiptHash),
+        providerIds
+      };
+      return evidence.createSignedResearchResult({
+        identity: requester,
+        submission,
+        receiptRecord: { ...receiptEvidence[0], verifierDecision: { accepted: true } },
+        receiptEvidence,
+        agreement,
+        embedding: vector
+      });
+    };
     const firstResult = await createResult(firstSubmission, embedding(1), 'a');
     const secondResult = await createResult(secondSubmission, embedding(0.99, 0.01), 'b');
     const annotation = await evidence.createSignedHumanClaim({
@@ -355,8 +373,22 @@ test('shows and exercises the governed protein evidence journey', async ({ page 
   const resultReviewLink = page.locator('[data-room-result-card]').getByRole('link', { name: 'Review this result', exact: true });
   const reviewHref = await resultReviewLink.getAttribute('href');
   const reviewedTarget = new URL(reviewHref, 'http://localhost').searchParams.get('target');
+  const persistedBeforeReviewNavigation = await page.evaluate(() => JSON.parse(
+    localStorage.getItem('reploid.pool.research-evidence.v1::reploid-default') || '[]'
+  ).length);
+  expect(persistedBeforeReviewNavigation).toBeGreaterThan(0);
   await resultReviewLink.click();
   await expect(page).toHaveURL(new RegExp(`/records\\?room=reploid-default&panel=review&target=${encodeURIComponent(reviewedTarget)}`));
+  const reviewDiagnostics = await page.evaluate(async () => {
+    const store = await import('/ui/pool-home/research-store.js');
+    const storageKey = 'reploid.pool.research-evidence.v1::reploid-default';
+    return {
+      memoryCount: store.loadResearchRecords('reploid-default').length,
+      persistedCount: JSON.parse(localStorage.getItem(storageKey) || '[]').length,
+      rejectedRecords: store.getResearchSyncState('reploid-default').rejectedRecords
+    };
+  });
+  expect(reviewDiagnostics.memoryCount, JSON.stringify(reviewDiagnostics)).toBeGreaterThan(0);
   await expect(page.locator('.pool-room-secondary-workspace')).toHaveAttribute('open', '');
   const contextualReview = page.locator('[data-research-review-form]');
   await expect(contextualReview.locator('select[name="targetHash"]')).toHaveValue(reviewedTarget);
@@ -509,4 +541,41 @@ test('passes governed Research Room browser modules through the Verification Wor
     errors: [],
     details: { filesAnalyzed: paths.length }
   });
+});
+
+test('Verification Worker rejects malformed ES modules without rewriting or executing them', async ({ page }) => {
+  await page.goto('/');
+  const verification = await page.evaluate(() => new Promise((resolve, reject) => {
+    const worker = new Worker('/core/verification-worker.js');
+    const timeout = setTimeout(() => {
+      worker.terminate();
+      reject(new Error('Verification Worker did not respond'));
+    }, 10000);
+    worker.onmessage = (event) => {
+      clearTimeout(timeout);
+      worker.terminate();
+      resolve(event.data);
+    };
+    worker.onerror = (event) => {
+      clearTimeout(timeout);
+      worker.terminate();
+      reject(new Error(event.message));
+    };
+    worker.postMessage({
+      type: 'VERIFY',
+      snapshot: {
+        '/core/valid-esm.js': "import { value } from './dependency.js'\nexport const doubled = value * 2\n",
+        '/core/malformed-import.js': "import { value from './dependency.js';\nexport const doubled = value * 2;\n",
+        '/core/semicolonless-truncation.js': "import {\n  value\n} from './dependency.js'\nconst incomplete =\n"
+      },
+      options: { quickMode: true }
+    });
+  }));
+
+  expect(verification.passed).toBe(false);
+  expect(verification.errors).toEqual(expect.arrayContaining([
+    expect.stringContaining('/core/malformed-import.js'),
+    expect.stringContaining('/core/semicolonless-truncation.js')
+  ]));
+  expect(verification.errors.some((error) => error.includes('/core/valid-esm.js'))).toBe(false);
 });

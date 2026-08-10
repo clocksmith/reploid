@@ -11,6 +11,7 @@ import {
 import { DEFAULT_PEER_ROOM_ID } from '../../pool/peer-room.js';
 
 export const POOLDAY_RESEARCH_STORAGE_KEY = 'reploid.pool.research-evidence.v1';
+export const POOLDAY_RESEARCH_QUARANTINE_KEY = 'reploid.pool.research-evidence-quarantine.v1';
 export const POOLDAY_RESEARCH_RECORD_LIMIT = 1000;
 
 const state = {
@@ -24,6 +25,7 @@ const state = {
 const syncStates = new Map();
 
 const storageKey = (roomId) => `${POOLDAY_RESEARCH_STORAGE_KEY}::${encodeURIComponent(roomId || DEFAULT_PEER_ROOM_ID)}`;
+const quarantineStorageKey = (roomId) => `${POOLDAY_RESEARCH_QUARANTINE_KEY}::${encodeURIComponent(roomId || DEFAULT_PEER_ROOM_ID)}`;
 const storage = () => {
   try {
     return globalThis.localStorage || null;
@@ -80,6 +82,36 @@ const readPersistedRecords = (roomId) => {
     return [];
   }
 };
+
+const readPersistedQuarantine = (roomId) => {
+  try {
+    const parsed = JSON.parse(storage()?.getItem(quarantineStorageKey(roomId)) || '[]');
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+};
+
+const persistQuarantine = (roomId, entries = []) => {
+  const byIdentity = new Map();
+  for (const entry of entries) {
+    const key = entry?.record?.recordHash || `${entry?.reason || 'unknown'}:${JSON.stringify(entry?.record || null)}`;
+    byIdentity.set(key, entry);
+  }
+  try {
+    storage()?.setItem(
+      quarantineStorageKey(roomId),
+      JSON.stringify([...byIdentity.values()].slice(-POOLDAY_RESEARCH_RECORD_LIMIT))
+    );
+  } catch {
+    // Quarantine remains diagnostic state for this hydration even when local
+    // storage is unavailable; active evidence admission still fails closed.
+  }
+};
+
+export function loadQuarantinedResearchRecords(roomId = DEFAULT_PEER_ROOM_ID) {
+  return readPersistedQuarantine(roomId).map(clone);
+}
 
 const persist = () => {
   try {
@@ -155,7 +187,7 @@ const isMissingLinkError = (error) => (
   && error.message.includes('does not exist:')
 );
 
-const appendHydrationBatch = async (records, roomId, rejectedRecords) => {
+const appendHydrationBatch = async (records, roomId, rejectedRecords, quarantinedRecords) => {
   let pending = records.slice();
   while (pending.length) {
     const deferred = [];
@@ -168,19 +200,33 @@ const appendHydrationBatch = async (records, roomId, rejectedRecords) => {
         if (isMissingLinkError(error)) {
           deferred.push({ record, error });
         } else {
-          rejectedRecords.push({
+          const rejection = {
             recordHash: typeof record?.recordHash === 'string' ? record.recordHash : null,
             reason: error instanceof Error ? error.message : String(error)
+          };
+          rejectedRecords.push(rejection);
+          quarantinedRecords.push({
+            record: clone(record),
+            reason: rejection.reason,
+            quarantinedAt: new Date().toISOString()
           });
         }
       }
     }
     if (!deferred.length) return;
     if (!progress) {
-      rejectedRecords.push(...deferred.map(({ record, error }) => ({
-        recordHash: typeof record?.recordHash === 'string' ? record.recordHash : null,
-        reason: error instanceof Error ? error.message : String(error)
-      })));
+      for (const { record, error } of deferred) {
+        const rejection = {
+          recordHash: typeof record?.recordHash === 'string' ? record.recordHash : null,
+          reason: error instanceof Error ? error.message : String(error)
+        };
+        rejectedRecords.push(rejection);
+        quarantinedRecords.push({
+          record: clone(record),
+          reason: rejection.reason,
+          quarantinedAt: new Date().toISOString()
+        });
+      }
       return;
     }
     pending = deferred.map(({ record }) => record);
@@ -197,14 +243,18 @@ export async function hydrateResearchRecords(roomId = DEFAULT_PEER_ROOM_ID, { sd
     checkedAt: null
   });
   const rejectedRecords = [];
-  await appendHydrationBatch(readPersistedRecords(roomId), roomId, rejectedRecords);
+  const quarantinedRecords = readPersistedQuarantine(roomId);
+  await appendHydrationBatch(readPersistedRecords(roomId), roomId, rejectedRecords, quarantinedRecords);
   // Rewrite the cache after local verification so corrupt or now-unadmitted
-  // records are not retried as if they were trusted evidence on each reload.
+  // records are not retried as trusted evidence. Rejected signed history is
+  // preserved in a separate quarantine cache rather than silently deleted.
   persist();
+  persistQuarantine(roomId, quarantinedRecords);
   try {
     const payload = await sdk.listResearchRecords(roomId, { limit: POOLDAY_RESEARCH_RECORD_LIMIT });
-    await appendHydrationBatch(payload.records || [], roomId, rejectedRecords);
+    await appendHydrationBatch(payload.records || [], roomId, rejectedRecords, quarantinedRecords);
     persist();
+    persistQuarantine(roomId, quarantinedRecords);
     setResearchSyncState(roomId, {
       phase: 'synchronized',
       remote: 'synchronized',
@@ -233,6 +283,7 @@ export function resetResearchStore() {
 
 export default {
   loadResearchRecords,
+  loadQuarantinedResearchRecords,
   appendResearchRecord,
   publishResearchRecord,
   hydrateResearchRecords,

@@ -26,7 +26,7 @@ Preserve a signed submission before compute begins, merge coordinator evidence b
 The adapter owns room-scoped localStorage, signature verification, idempotent append, collision rejection, local-first publication, and remote hydration. The view owns rendering and signed human interactions.
 
 ### 3. Failure Behavior
-Coordinator failure leaves a verified local record and reports synchronization as pending. Reload recovery carries the immutable submission with the preserved public sequence request. Invalid remote records never enter local state.
+Coordinator failure leaves a verified local record and reports synchronization as pending. Reload recovery carries the immutable submission with the preserved public sequence request. Invalid remote records never enter active local state. Rejected local or remote records are preserved in a room-scoped quarantine cache with their rejection reason instead of being silently deleted during hydration.
 
 ### 4. Verification Checklist
 - [x] Records remain room-isolated
@@ -36,5 +36,6 @@ Coordinator failure leaves a verified local record and reports synchronization a
 - [x] Human task execution requires an explicit signed approval bound to the
   exact current task contract
 - [x] Accepted single-provider compute remains visible but outside room memory
+- [x] Rejected hydration records remain recoverable in a separate quarantine cache
 
 *Last updated: August 2026*

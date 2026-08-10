@@ -80,9 +80,11 @@ over verified, room-scoped signed records:
    conditions, desired observation, decision context, scope, exclusions, and
    known unknowns. Missing structure remains an explicit clarification gap.
 2. Peers execute the exact model contract. An accepted execution-agreement
-   claim requires at least two distinct receipt identities and two distinct
-   provider identities. Public Research requests select a policy that guarantees
-   at least two providers.
+   claim requires at least two embedded provider-signed receipts, distinct
+   receipt identities, distinct provider identities, and distinct provider
+   keys. Public Research requests select a policy that guarantees at least two
+   providers. The requester re-verifies the signed receipt evidence before
+   publishing the research result.
 3. Results preserve exact model, receipt, provider, runtime, output, consent,
    and provenance identities.
 4. The room exposes agreement, disagreement, question gaps, missing receipts,
@@ -99,6 +101,11 @@ over verified, room-scoped signed records:
    the exact projected task contract, including rationale, basis hashes, and
    ranking policy. Every proposed action carries no allocation or execution
    authority.
+
+New records use `poolday.research_evidence/v2`. Signed v1 history remains
+inspectable after reload but cannot inherit v2 independent-execution or exact
+task-approval status. Records that fail verification or admission are moved to
+the room's quarantine cache rather than silently deleted from local history.
 
 The source projection is [`research-cycle.js`](../../self/pool/research-cycle.js).
 This slice does not implement calibrated biological action value, laboratory

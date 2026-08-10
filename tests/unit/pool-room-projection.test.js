@@ -38,7 +38,10 @@ const submission = ({ roomId = 'room-projection', identityRootId = 'requester-ro
   policyId: 'redundant_agreement'
 });
 
-const result = ({ roomId = 'room-projection', submissionHash = hash('a'), agreement = null } = {}) => ({
+const result = ({ roomId = 'room-projection', submissionHash = hash('a'), agreement = null } = {}) => {
+  const receiptHashes = agreement?.receiptHashes || [hash('d')];
+  const providerIds = agreement?.providerIds || ['provider-one'];
+  return ({
   kind: 'research_result',
   recordHash: hash('c'),
   roomId,
@@ -50,7 +53,16 @@ const result = ({ roomId = 'room-projection', submissionHash = hash('a'), agreem
   modelContract: model,
   compute: {
     receiptHash: hash('d'),
-    receiptHashes: agreement?.receiptHashes || [hash('d')],
+    receiptHashes,
+    receiptEvidence: receiptHashes.map((receiptHash, index) => ({
+      receiptHash,
+      providerId: providerIds[index] || `provider-${index + 1}`,
+      providerPublicKey: `provider-${index + 1}-public-key`,
+      receipt: {
+        providerId: providerIds[index] || `provider-${index + 1}`,
+        providerSignature: `provider-${index + 1}-signature`
+      }
+    })),
     agreement,
     providerId: 'provider-one',
     runtimeProfileHash: hash('e')
@@ -60,7 +72,8 @@ const result = ({ roomId = 'room-projection', submissionHash = hash('a'), agreem
     sequenceResultHash: hash('f'),
     residueEmbeddings: [{ sequenceIndex: 2, values: [1, 0, 0] }]
   }
-});
+  });
+};
 
 const reviewDecision = (targetHash, decision, identityRootId = 'reviewer-root', recordHash = null) => ({
   kind: 'human_claim',

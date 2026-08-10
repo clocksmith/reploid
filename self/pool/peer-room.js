@@ -807,6 +807,12 @@ export async function runPeerJob({
       receiptPayload,
       receiptPayloads,
       receiptRecord: receiptPayload?.body || null,
+      receiptEvidence: agreement.acceptedRecords.map((record) => ({
+        receiptHash: record.receiptHash,
+        providerId: record.providerId,
+        providerPublicKey: record.providerPublicKey,
+        receipt: record.receipt
+      })),
       receiptHash: agreement.receiptHash || receiptPayload?.body?.receiptHash || null,
       receiptHashes: agreement.receiptHashes,
       outputText: receiptPayload?.body?.outputText || '',
