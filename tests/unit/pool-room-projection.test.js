@@ -377,6 +377,8 @@ describe('Research Room projection', () => {
     expect(html).toContain('Raw vectors and residue-level values remain hidden');
     expect(html).toContain('href="/ask?room=room-projection"');
     expect(html).toContain('href="/records?room=room-projection&amp;panel=review#pool-room-review"');
+    expect(html).toContain(`href="/records?room=room-projection&amp;panel=review&amp;target=${answer.recordHash}#pool-room-review"`);
+    expect(html).toContain('>Review this result</a>');
     expect(html).not.toContain('1,0,0');
   });
 });

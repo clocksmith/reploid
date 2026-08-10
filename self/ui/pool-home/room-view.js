@@ -16,10 +16,11 @@ const compactHash = (value) => {
   return text.length > 24 ? `${text.slice(0, 16)}...${text.slice(-8)}` : text;
 };
 
-const roomHref = (path, roomId, panel = '') => {
+const roomHref = (path, roomId, panel = '', targetHash = '') => {
   const url = new URL(path, 'https://reploid.invalid');
   if (roomId) url.searchParams.set('room', roomId);
   if (panel) url.searchParams.set('panel', panel);
+  if (targetHash) url.searchParams.set('target', targetHash);
   const panelAnchors = {
     review: 'pool-room-review',
     discovery: 'pool-room-discovery'
@@ -135,6 +136,9 @@ const renderResult = (room) => {
         <div><span class="rgr-status-label">Uncertainty</span><strong>${escapeHtml(result.uncertainty.length ? `${result.uncertainty.length} recorded limits` : 'Not reported')}</strong></div>
       </div>
       <p class="pool-room-boundary">Agreement is never inferred from similarity, visual proximity, or retrieval ranking.</p>
+      <div class="pool-room-action-controls">
+        <a class="btn btn-primary" data-pool-route-link="${escapeHtml(roomHref('/records', room.roomId, 'review', result.sourceHash))}" href="${escapeHtml(roomHref('/records', room.roomId, 'review', result.sourceHash))}">Review this result</a>
+      </div>
       <details class="pool-room-disclosure"><summary>Technical evidence</summary>
         <dl class="pool-room-facts">
           <div><dt>Source</dt><dd>${escapeHtml(compactHash(result.sourceHash))}</dd></div>

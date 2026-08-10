@@ -93,7 +93,11 @@ const renderRecord = (record, {
 };
 
 
-export function renderResearchWorkspace(roomId, records = loadResearchRecords(roomId), { query = '', similarityTarget = '' } = {}) {
+export function renderResearchWorkspace(roomId, records = loadResearchRecords(roomId), {
+  query = '',
+  similarityTarget = '',
+  reviewTarget = ''
+} = {}) {
   const graph = buildEvidenceGraph(records);
   const active = activeResearchRecords(records);
   const invalidated = invalidatedResearchHashes(records);
@@ -155,7 +159,7 @@ export function renderResearchWorkspace(roomId, records = loadResearchRecords(ro
           </div>
         </section>
         ${renderResultEvidencePanel({ lifecycles, submissionsByHash })}
-        ${renderReviewPanel({ reviewTargets, submissionsByHash, reviewStates })}
+        ${renderReviewPanel({ reviewTargets, reviewTarget, submissionsByHash, reviewStates })}
         ${renderLifecycleForms({
           questions: submissions,
           priorEvidence,
@@ -180,8 +184,69 @@ const replaceWorkspace = (workspace, options = {}) => {
   const roomId = workspace.dataset.roomId;
   const parent = workspace.parentElement;
   if (!parent) return;
-  parent.innerHTML = renderResearchWorkspace(roomId, loadResearchRecords(roomId), options);
+  parent.innerHTML = renderResearchWorkspace(roomId, loadResearchRecords(roomId), {
+    reviewTarget: workspace.querySelector('[data-research-review-form] select[name="targetHash"]')?.value || '',
+    ...options
+  });
   bindResearchWorkspace(parent.querySelector('[data-pool-research-workspace]'));
+};
+
+const reviewActionClaims = Object.freeze({
+  accept: {
+    claimKind: 'review_decision',
+    relation: 'reviews',
+    decision: 'accepted',
+    pending: 'Signing acceptance...'
+  },
+  reject: {
+    claimKind: 'review_decision',
+    relation: 'reviews',
+    decision: 'rejected',
+    pending: 'Signing rejection...'
+  },
+  correct: {
+    claimKind: 'correction',
+    relation: 'corrects',
+    decision: null,
+    pending: 'Signing correction...'
+  },
+  replicate: {
+    claimKind: 'follow_up',
+    relation: 'proposes',
+    decision: null,
+    pending: 'Signing replication request...'
+  }
+});
+
+export const createContextualReviewRecord = ({
+  action,
+  identity,
+  roomId,
+  targetHash,
+  text,
+  confidence,
+  evidenceUrl = ''
+} = {}) => {
+  const claim = reviewActionClaims[action];
+  if (!claim) throw new TypeError('review action must be accept, reject, correct, or replicate');
+  return createSignedHumanClaim({
+    identity,
+    roomId,
+    targetHash,
+    claimKind: claim.claimKind,
+    relation: claim.relation,
+    text,
+    confidence,
+    evidenceLinks: evidenceUrl ? [evidenceUrl] : [],
+    decision: claim.decision
+  });
+};
+
+const retainReviewTargetInUrl = (targetHash) => {
+  if (!targetHash || !globalThis.location || !globalThis.history?.replaceState) return;
+  const url = new URL(globalThis.location.href);
+  url.searchParams.set('target', targetHash);
+  globalThis.history.replaceState(globalThis.history.state, '', `${url.pathname}${url.search}${url.hash}`);
 };
 
 const commaList = (value) => String(value || '').split(',').map((entry) => entry.trim()).filter(Boolean);
@@ -394,32 +459,37 @@ export function bindResearchWorkspace(workspace = document.querySelector('[data-
     workspace.querySelectorAll('[data-research-review-context-shell]').forEach((context) => {
       context.hidden = context.dataset.researchReviewContextShell !== event.target.value;
     });
+    retainReviewTargetInUrl(event.target.value);
   });
   workspace.querySelector('[data-research-review-form]')?.addEventListener('submit', async (event) => {
     event.preventDefault();
     const form = event.currentTarget;
     const status = form.querySelector('[data-research-review-status]');
     const values = new FormData(form);
-    if (status) status.textContent = 'Signing claim…';
+    const action = reviewActionClaims[event.submitter?.value];
+    if (!action) {
+      if (status) status.textContent = 'Choose accept, reject, correct, or replicate.';
+      return;
+    }
+    form.querySelectorAll('[data-research-review-action]').forEach((button) => { button.disabled = true; });
+    if (status) status.textContent = action.pending;
     try {
-      const claimKind = values.get('claimKind');
-      const record = await createSignedHumanClaim({
+      const record = await createContextualReviewRecord({
+        action: event.submitter.value,
         identity: createPoolIdentity('reviewer'),
         roomId,
         targetHash: values.get('targetHash'),
-        claimKind,
-        relation: claimKind === 'review_decision' ? 'reviews' : values.get('relation'),
         text: values.get('text'),
         confidence: values.get('confidence'),
-        evidenceLinks: values.get('evidenceUrl') ? [values.get('evidenceUrl')] : [],
-        decision: claimKind === 'review_decision' ? values.get('decision') : null
+        evidenceUrl: values.get('evidenceUrl')
       });
       const publication = await publishResearchRecord(record, { roomId });
-      replaceWorkspace(workspace);
+      replaceWorkspace(workspace, { reviewTarget: values.get('targetHash') });
       const nextStatus = document.querySelector('[data-research-review-status]');
-      if (nextStatus) nextStatus.textContent = publication.remote ? 'Signed claim published.' : 'Signed claim saved locally; coordinator sync is pending.';
+      if (nextStatus) nextStatus.textContent = publication.remote ? 'Signed review record published.' : 'Signed review record saved locally; coordinator sync is pending.';
     } catch (error) {
       if (status) status.textContent = error.message;
+      form.querySelectorAll('[data-research-review-action]').forEach((button) => { button.disabled = false; });
     }
   });
   workspace.querySelectorAll('[data-research-approve-task]').forEach((button) => {

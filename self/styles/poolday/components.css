@@ -3590,6 +3590,12 @@ body[data-pool-route-id='home'] #app {
   gap: var(--pool-space-sm);
 }
 
+.pool-research-review-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--pool-space-sm);
+}
+
 @media (max-width: 760px) {
   .pool-research-intent-fields,
   .pool-research-form-row,

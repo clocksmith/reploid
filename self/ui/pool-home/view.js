@@ -92,6 +92,11 @@ export const getPoolRoomPanel = () => {
   return path === '/network' ? 'discovery' : 'overview';
 };
 
+export const getPoolReviewTarget = () => {
+  const target = new URLSearchParams(window.location.search || '').get('target') || '';
+  return /^sha256:[a-f0-9]{64}$/.test(target) ? target : '';
+};
+
 const recordPersistence = createPoolRecordPersistence({
   ledgerStore,
   getRoomId: () => getPeerRoomId()
@@ -2197,7 +2202,7 @@ export const renderRouteDetail = (routeId) => {
           ${contextualPanel ? `<section class="pool-room-contextual-panel" data-pool-room-contextual-panel="${escapeHtml(roomPanel)}"><p class="pool-dashboard-kicker">Room panel</p><h2 class="type-h2">${escapeHtml(contextualPanel.title)}</h2><p>${escapeHtml(contextualPanel.body)}</p><a class="btn btn-ghost" href="#${escapeHtml(contextualPanel.target)}">Open panel controls</a></section>` : ''}
           <details class="pool-advanced pool-room-secondary-workspace" data-pool-room-panel="research"${secondaryWorkspaceOpen ? ' open' : ''}>
             <summary>Review and discovery workspace</summary>
-            <div id="pool-research-workspace-host">${renderResearchWorkspace(getPeerRoomId())}</div>
+            <div id="pool-research-workspace-host">${renderResearchWorkspace(getPeerRoomId(), loadResearchRecords(getPeerRoomId()), { reviewTarget: getPoolReviewTarget() })}</div>
           </details>
           <div id="pool-record-ledger" aria-live="polite" data-record-facet="${escapeHtml(recordFacet)}">${renderRecordLedger(recordFacet)}</div>
           <details class="pool-advanced pool-record-tools" data-pool-record-disclosure="technical-tools"${readRecordViewState().open['technical-tools'] ? ' open' : ''}>

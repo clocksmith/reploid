@@ -130,30 +130,45 @@ export const renderResultEvidencePanel = ({ lifecycles = [], submissionsByHash =
   </section>
 `;
 
-export const renderReviewPanel = ({ reviewTargets = [], submissionsByHash = new Map(), reviewStates = new Map() } = {}) => `
+const reviewActionButton = (action, label, className = 'btn btn-ghost', disabled = false) => (
+  `<button class="${className}" type="submit" name="reviewAction" value="${action}" data-research-review-action="${action}"${disabled ? ' disabled' : ''}>${label}</button>`
+);
+
+export const renderReviewPanel = ({
+  reviewTargets = [],
+  reviewTarget = '',
+  submissionsByHash = new Map(),
+  reviewStates = new Map()
+} = {}) => {
+  const selectedTarget = reviewTargets.some((record) => record.recordHash === reviewTarget)
+    ? reviewTarget
+    : reviewTargets[0]?.recordHash || '';
+  return `
   <section class="pool-research-panel" id="pool-room-review" data-pool-room-panel-target="review">
     <p class="pool-dashboard-kicker">Review</p>
-    <h3 class="type-h3">Add a signed human claim</h3>
+    <h3 class="type-h3">Review this evidence</h3>
     <form data-research-review-form>
-      <label class="pool-field"><span>Evidence to review</span><select name="targetHash" required>${reviewTargets.map((record) => `<option value="${escapeHtml(record.recordHash)}">${escapeHtml(recordLabel(record))}</option>`).join('')}</select></label>
+      <label class="pool-field"><span>Evidence to review</span><select name="targetHash" required>${reviewTargets.map((record) => `<option value="${escapeHtml(record.recordHash)}"${record.recordHash === selectedTarget ? ' selected' : ''}>${escapeHtml(recordLabel(record))}</option>`).join('')}</select></label>
       <div class="pool-research-review-contexts" data-research-review-contexts aria-live="polite">
-        ${reviewTargets.length ? reviewTargets.map((record, index) => `<div data-research-review-context-shell="${escapeHtml(record.recordHash)}"${index === 0 ? '' : ' hidden'}>${renderReviewTargetContext(record, { submissionsByHash, reviewStates })}</div>`).join('') : '<p class="type-caption">No active evidence is available to review.</p>'}
+        ${reviewTargets.length ? reviewTargets.map((record) => `<div data-research-review-context-shell="${escapeHtml(record.recordHash)}"${record.recordHash === selectedTarget ? '' : ' hidden'}>${renderReviewTargetContext(record, { submissionsByHash, reviewStates })}</div>`).join('') : '<p class="type-caption">No active evidence is available to review.</p>'}
       </div>
-      <div class="pool-research-form-row">
-        <label class="pool-field"><span>Claim type</span><select name="claimKind"><option value="annotation">Annotation</option><option value="evidence_link">Evidence link</option><option value="correction">Correction</option><option value="experiment_context">Experiment context</option><option value="follow_up">Follow-up task</option><option value="review_decision">Review decision</option></select></label>
-        <label class="pool-field"><span>Relationship</span><select name="relation"><option value="supports">Supports</option><option value="contradicts">Contradicts</option><option value="corrects">Corrects</option><option value="reviews">Reviews</option><option value="proposes">Proposes</option></select></label>
-      </div>
-      <label class="pool-field"><span>Claim</span><textarea name="text" rows="4" required placeholder="State the observation, evidence, correction, context, or bounded follow-up."></textarea></label>
+      <label class="pool-field"><span>Reason or correction</span><textarea name="text" rows="4" required placeholder="Explain the decision, state the correction, or define what an independent replication should check."></textarea></label>
       <div class="pool-research-form-row">
         <label class="pool-field"><span>Confidence</span><input name="confidence" type="number" min="0" max="1" step="0.05" value="0.75" required></label>
         <label class="pool-field"><span>Evidence URL</span><input name="evidenceUrl" type="url" placeholder="https://"></label>
-        <label class="pool-field"><span>Decision, if reviewing</span><select name="decision"><option value="">Not a decision</option><option value="accepted">Accepted</option><option value="rejected">Rejected</option><option value="needs_revision">Needs revision</option></select></label>
       </div>
-      <button class="btn btn-primary" type="submit"${reviewTargets.length ? '' : ' disabled'}>Sign and attach claim</button>
+      <div class="pool-research-review-actions" aria-label="Signed review actions">
+        ${reviewActionButton('accept', 'Accept evidence', 'btn btn-primary', !selectedTarget)}
+        ${reviewActionButton('reject', 'Reject evidence', 'btn btn-ghost', !selectedTarget)}
+        ${reviewActionButton('correct', 'Attach correction', 'btn btn-ghost', !selectedTarget)}
+        ${reviewActionButton('replicate', 'Request replication', 'btn btn-ghost', !selectedTarget)}
+      </div>
+      <p class="type-caption">Each action creates a separate attributable signed record. A replication request remains proposed until it receives explicit approval.</p>
       <p class="type-caption" data-research-review-status aria-live="polite"></p>
     </form>
   </section>
-`;
+  `;
+};
 
 export const renderDiscoveryPanel = ({ results = [], target = '', similar = [], clusters = [] } = {}) => `
   <section class="pool-research-panel" id="pool-room-discovery" data-pool-room-panel-target="discovery">
