@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-08-01T19:40:02.316Z",
+  "generatedAt": "2026-08-10T15:35:58.511Z",
   "modules": {
     "AgentLoop": {
       "id": "AgentLoop",
@@ -291,7 +291,7 @@
           "optional": true
         }
       ],
-      "blueprint": "blueprints/0x00009b-capabilities-communication-consensus.md"
+      "blueprint": null
     },
     "ContextManager": {
       "id": "ContextManager",
@@ -383,7 +383,7 @@
           "optional": false
         }
       ],
-      "blueprint": "blueprints/0x0000e4-capabilities-system-doppler-toolbox.md"
+      "blueprint": null
     },
     "EmbeddingStore": {
       "id": "EmbeddingStore",
@@ -429,7 +429,7 @@
           "optional": false
         }
       ],
-      "blueprint": "blueprints/0x000097-capabilities-cognition-episodic-memory.md"
+      "blueprint": "blueprints/0x000097-pool-identity-claims.md"
     },
     "ErrorStore": {
       "id": "ErrorStore",
@@ -490,7 +490,7 @@
           "optional": true
         }
       ],
-      "blueprint": "blueprints/0x0000ec-experimental-intelligence-federated-learning.md"
+      "blueprint": null
     },
     "FunctionGemmaOrchestrator": {
       "id": "FunctionGemmaOrchestrator",
@@ -533,7 +533,7 @@
           "optional": false
         }
       ],
-      "blueprint": "blueprints/0x00007D-core-functiongemma-orchestrator.md"
+      "blueprint": null
     },
     "GEPAOptimizer": {
       "id": "GEPAOptimizer",
@@ -649,7 +649,7 @@
           "optional": false
         }
       ],
-      "blueprint": "blueprints/0x000098-capabilities-cognition-hybrid-retrieval.md"
+      "blueprint": "blueprints/0x000098-pool-artifact-router.md"
     },
     "IntentBundleGate": {
       "id": "IntentBundleGate",
@@ -680,7 +680,7 @@
           "optional": true
         }
       ],
-      "blueprint": "blueprints/0x0000f2-infrastructure-intent-bundle-gate.md"
+      "blueprint": null
     },
     "IntentBundleLoRA": {
       "id": "IntentBundleLoRA",
@@ -703,7 +703,7 @@
           "optional": true
         }
       ],
-      "blueprint": "blueprints/0x0000e3-capabilities-intelligence-intent-bundle-lora.md"
+      "blueprint": null
     },
     "KnowledgeGraph": {
       "id": "KnowledgeGraph",
@@ -838,7 +838,7 @@
           "optional": false
         }
       ],
-      "blueprint": "blueprints/0x0000ed-experimental-intelligence-multi-model-coordinator.md"
+      "blueprint": null
     },
     "MultiModelEvaluator": {
       "id": "MultiModelEvaluator",
@@ -869,7 +869,7 @@
           "optional": true
         }
       ],
-      "blueprint": "blueprints/0x0000e9-core-multi-model-evaluator.md"
+      "blueprint": null
     },
     "NeuralCompiler": {
       "id": "NeuralCompiler",
@@ -1020,7 +1020,7 @@
           "optional": false
         }
       ],
-      "blueprint": "blueprints/0x0000a5-infrastructure-policy-engine.md"
+      "blueprint": null
     },
     "PromptMemory": {
       "id": "PromptMemory",
@@ -1055,7 +1055,7 @@
           "optional": false
         }
       ],
-      "blueprint": "blueprints/0x000001-capabilities-cognition-prompt-memory.md"
+      "blueprint": null
     },
     "PromptScoreMap": {
       "id": "PromptScoreMap",
@@ -1074,7 +1074,7 @@
           "optional": false
         }
       ],
-      "blueprint": "blueprints/0x000001-capabilities-reflection-prompt-score-map.md"
+      "blueprint": null
     },
     "ProviderRegistry": {
       "id": "ProviderRegistry",
@@ -1093,7 +1093,7 @@
           "optional": true
         }
       ],
-      "blueprint": "blueprints/0x0000ea-core-provider-registry.md"
+      "blueprint": null
     },
     "RateLimiter": {
       "id": "RateLimiter",
@@ -1269,7 +1269,7 @@
           "optional": false
         }
       ],
-      "blueprint": "blueprints/0x0000a3-core-schema-validator.md"
+      "blueprint": null
     },
     "SemanticMemory": {
       "id": "SemanticMemory",
@@ -1410,7 +1410,7 @@
           "optional": false
         }
       ],
-      "blueprint": "blueprints/0x00009c-capabilities-communication-swarm-sync.md"
+      "blueprint": null
     },
     "SwarmTransport": {
       "id": "SwarmTransport",
@@ -1429,7 +1429,7 @@
           "optional": false
         }
       ],
-      "blueprint": "blueprints/0x00009d-capabilities-communication-swarm-transport.md"
+      "blueprint": "blueprints/0x00007E-sponsor-peer-protocol.md"
     },
     "SymbolGrounder": {
       "id": "SymbolGrounder",
@@ -1667,7 +1667,7 @@
           "optional": true
         }
       ],
-      "blueprint": "blueprints/0x0000a6-infrastructure-trace-store.md"
+      "blueprint": null
     },
     "TransformersClient": {
       "id": "TransformersClient",

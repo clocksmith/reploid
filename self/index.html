@@ -10,7 +10,7 @@
     <link rel="icon" type="image/svg+xml" href="favicon.svg" />
     <title>Reploid</title>
     <script>
-    window.REPLOID_BUILD_VERSION = '2026080901';
+    window.REPLOID_BUILD_VERSION = '2026081002';
       window.REPLOID_SW_VERSION = window.REPLOID_BUILD_VERSION;
       window.REPLOID_VFS_VERSION = window.REPLOID_BUILD_VERSION;
     </script>
@@ -47,6 +47,74 @@
         }
       };
       const ROOT_SW_RELEASE_RELOAD_KEY = 'REPLOID_ROOT_SW_RELEASE_RELOAD';
+      const PRODUCT_BOOT_RECOVERY_KEY = `REPLOID_PRODUCT_BOOT_RECOVERY:${window.REPLOID_BUILD_VERSION}`;
+      const PRODUCT_BOOT_TIMEOUT_MS = 10000;
+      const readProductBootRecovery = () => {
+        try {
+          return sessionStorage.getItem(PRODUCT_BOOT_RECOVERY_KEY) === 'true';
+        } catch {
+          return false;
+        }
+      };
+      const writeProductBootRecovery = (active) => {
+        try {
+          if (active) sessionStorage.setItem(PRODUCT_BOOT_RECOVERY_KEY, 'true');
+          else sessionStorage.removeItem(PRODUCT_BOOT_RECOVERY_KEY);
+        } catch {
+          // Storage is optional. The visible terminal error still prevents a blank page.
+        }
+      };
+      const showProductBootFailure = (appRoot) => {
+        appRoot.replaceChildren();
+        const failure = document.createElement('main');
+        failure.className = 'pool-boot-failure';
+        failure.setAttribute('role', 'alert');
+        failure.textContent = 'Reploid could not load. Reload the page to try again.';
+        appRoot.appendChild(failure);
+      };
+      const replaceForProductBootRecovery = () => {
+        const retryUrl = new URL(window.location.href);
+        retryUrl.searchParams.set('reploidBootRetry', window.REPLOID_BUILD_VERSION);
+        window.location.replace(retryUrl.toString());
+      };
+      const clearProductBootRecoveryUrl = () => {
+        const currentUrl = new URL(window.location.href);
+        if (!currentUrl.searchParams.has('reploidBootRetry')) return;
+        currentUrl.searchParams.delete('reploidBootRetry');
+        window.history.replaceState(window.history.state, '', `${currentUrl.pathname}${currentUrl.search}${currentUrl.hash}`);
+      };
+      const loadProductRouteModule = async () => {
+        let timeoutId;
+        try {
+          return await Promise.race([
+            import('/ui/pool-home/index.js'),
+            new Promise((_, reject) => {
+              timeoutId = window.setTimeout(() => {
+                reject(new Error('Reploid product route module load timed out'));
+              }, PRODUCT_BOOT_TIMEOUT_MS);
+            })
+          ]);
+        } finally {
+          window.clearTimeout(timeoutId);
+        }
+      };
+      const bootProductRoute = async (appRoot) => {
+        try {
+          const { initPoolHome } = await loadProductRouteModule();
+          initPoolHome(appRoot);
+          writeProductBootRecovery(false);
+          clearProductBootRecoveryUrl();
+        } catch (error) {
+          if (!readProductBootRecovery()) {
+            writeProductBootRecovery(true);
+            replaceForProductBootRecovery();
+            return;
+          }
+          writeProductBootRecovery(false);
+          showProductBootFailure(appRoot);
+          throw error;
+        }
+      };
       const releaseGlobalReploidServiceWorker = async () => {
         if (!('serviceWorker' in navigator)) return false;
         try {
@@ -88,11 +156,7 @@
         if (!appRoot) {
           throw new Error('Missing app root');
         }
-        import('/ui/pool-home/index.js').then(({ initPoolHome }) => {
-          initPoolHome(appRoot);
-        }).catch((error) => {
-          throw error;
-        });
+        await bootProductRoute(appRoot);
       } else {
         const bootPath = `/kernel/boot.js?v=${window.REPLOID_BUILD_VERSION}`;
         await import(bootPath);

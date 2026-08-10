@@ -1270,6 +1270,9 @@ const formatErrorResultText = (value = {}) => {
     : Array.isArray(payload.failedProviderIds)
       ? payload.failedProviderIds
       : [];
+  const routeCandidates = Array.isArray(payload.routeCandidates)
+    ? payload.routeCandidates
+    : [];
   const summarizeTransportDiagnostics = (diagnostics = {}) => {
     if (!diagnostics || typeof diagnostics !== 'object') return '';
     const fields = [
@@ -1298,6 +1301,13 @@ const formatErrorResultText = (value = {}) => {
   }).join('; ');
   const transportDiagnostics = value.transportDiagnostics || payload.transportDiagnostics || value.diagnostics || payload.diagnostics;
   const transportText = summarizeTransportDiagnostics(transportDiagnostics);
+  const routeCandidateText = routeCandidates.map((candidate) => {
+    const providerId = compactHash(candidate?.providerId || 'unknown contributor');
+    const reasons = Array.isArray(candidate?.rejectionReasons) && candidate.rejectionReasons.length > 0
+      ? candidate.rejectionReasons.join(', ')
+      : 'eligible';
+    return `${providerId}: ${reasons}`;
+  }).join('; ');
   const lines = [
     value.error ? `Error: ${value.error}` : null,
     value.reason ? `Reason: ${value.reason}` : null,
@@ -1306,6 +1316,9 @@ const formatErrorResultText = (value = {}) => {
     value.roomId || payload.roomId ? `Room: ${value.roomId || payload.roomId}` : null,
     value.relay ? `Relay: ${value.relay}` : null,
     model?.modelId || model?.id ? `Model: ${model.modelId || model.id}` : null,
+    Number.isFinite(Number(payload.requiredProviders)) ? `Required contributors: ${Number(payload.requiredProviders)}` : null,
+    Number.isFinite(Number(payload.eligibleProviders)) ? `Eligible contributors: ${Number(payload.eligibleProviders)}` : null,
+    routeCandidateText ? `Eligibility: ${routeCandidateText}` : null,
     failedProviderIds.length > 0 ? `Contributors: ${failedProviderIds.map((providerId) => compactHash(providerId)).join(', ')}` : null,
     providerFailureText ? `Contributor failures: ${providerFailureText}` : null,
     transportText ? `Transport: ${transportText}` : null,

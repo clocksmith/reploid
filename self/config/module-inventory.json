@@ -950,7 +950,7 @@
     {
       "path": "pool/model-artifacts.js",
       "owner": "pool",
-      "sha256": "sha256:f0bd692c716bd21416da9955edbeb12c011fb5a7560bbe75578257842c0b00db",
+      "sha256": "sha256:9cbb915150ffd8fa0ca2b05966c89b3c524ef6d0e4f19a3fd91a0b7d7c0fdbce",
       "imports": [
         "./config.js",
         "./inference-receipt.js"
@@ -1446,7 +1446,7 @@
     {
       "path": "self/kernel/boot.js",
       "owner": "self",
-      "sha256": "sha256:2e756bc956aa0e5b88e9721ae9e3b9d4db164b3bf4c56b605d265111fae97607",
+      "sha256": "sha256:501b43b6b4a3f2dd8f7982af87e672d46a317d2224bcb751ac88337575b29d67",
       "imports": [
         "../boot-spec.js",
         "../config/doppler-local-models.js",
@@ -2223,7 +2223,7 @@
     {
       "path": "ui/pool-home/view.js",
       "owner": "ui",
-      "sha256": "sha256:bb321fab9166e315e6c8abe304d842a3f707c1d1baaeab804a936d78cf55f096",
+      "sha256": "sha256:67a6bf8dc59dec33c6cc4def9836f66fe1ca68bec435a58ddd3aaeeb0cb0a548",
       "imports": [
         "../../pool/model-contract.js",
         "../../pool/participation-profile.js",

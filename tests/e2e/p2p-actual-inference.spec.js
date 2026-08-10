@@ -26,6 +26,7 @@ const SEQUENCE_MODEL = getEnabledPoolModelContract('esm2-t12-35m-ur50d-f32-af32'
 const PUBLIC_PROTEIN_SEQUENCE = 'MKTAYIAKQRQISFVKSHFSRQ';
 const SECOND_PUBLIC_PROTEIN_SEQUENCE = 'ACDEFGHIKLMNPQRSTVWY';
 const browserQualificationHash = (value) => `sha256:${createHash('sha256').update(JSON.stringify(value)).digest('hex')}`;
+const isSha256 = (value) => /^sha256:[a-f0-9]{64}$/.test(String(value || ''));
 
 const roomIdFor = (testInfo) => (
   `actual-inference-${testInfo.workerIndex}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`
@@ -108,7 +109,7 @@ const openPoolPage = async (context, baseURL, route, roomId, label) => {
   const page = await context.newPage();
   wireDiagnostics(page, label);
   await page.goto(routeUrl(baseURL, route, roomId), { waitUntil: 'domcontentloaded' });
-  await page.waitForSelector('.pool-home');
+  await page.waitForSelector('.pool-home', { timeout: 45000 });
   await expect(page.locator('[data-pool-room-id]')).toHaveText(roomId);
   await expect(page.locator('[data-pool-relay-mode]')).toHaveText(RELAY_LABEL);
   await expect.poll(() => page.evaluate(() => (
@@ -251,8 +252,23 @@ const attachIncompleteBrowserQualificationObservation = async (testInfo, {
     shardSetHash: model.artifactIdentity?.shardSetHash || null,
     artifactRequests
   });
+  // A release smoke run is still useful when promotion-grade release hashes
+  // were not supplied, but it must remain an incomplete observation. Passing
+  // checks are only legal when every evidence binding can identify the exact
+  // deployed release, model, policy, output, and receipt.
+  const hasHashAddressedBindings = Boolean(observation.release?.sourceRevision)
+    && isSha256(observation.release?.sourceTreeHash)
+    && isSha256(observation.release?.browserBundleHash)
+    && isSha256(observation.identity?.modelHash)
+    && isSha256(observation.artifacts?.manifestHash)
+    && isSha256(observation.artifacts?.tokenizerHash)
+    && isSha256(observation.artifacts?.shardSetHash)
+    && isSha256(observation.browser?.userAgentHash)
+    && isSha256(observation.policyHash)
+    && isSha256(observation.outputHash)
+    && isSha256(observation.receiptHash);
   const recordCheck = (check, passed, facts) => {
-    if (!passed) return;
+    if (!passed || !hasHashAddressedBindings) return;
     observation = recordBrowserQualificationCheck(observation, {
       check,
       status: 'passed',
@@ -361,18 +377,21 @@ const waitForRestoredProviderListening = async (page) => {
   }).toBe('ready');
 };
 
-const runActualSequence = async (page, sequence, policyId = 'fastest_receipt') => {
+const runActualSequence = async (page, sequence, policyId = 'fastest_receipt', {
+  publishResearch = policyId === 'ring_quorum_receipt'
+} = {}) => {
   await expect(page.locator('#pool-run-submit')).toBeVisible();
-  if (policyId !== 'fastest_receipt') {
-    const advanced = page.locator('details.pool-advanced').first();
-    if (!(await advanced.evaluate((element) => element.open))) await advanced.locator('summary').click();
-    await expect(page.locator('#pool-run-policy')).toBeVisible();
-    await page.locator('#pool-run-policy').selectOption(policyId);
-  }
+  const policy = page.locator('#pool-run-policy');
+  const advanced = policy.locator('xpath=ancestor::details[1]');
+  if (!(await advanced.evaluate((element) => element.open))) await advanced.locator('summary').click();
+  await expect(policy).toBeVisible();
+  await policy.selectOption(policyId);
+  await expect(policy).toHaveValue(policyId);
   const publicSequence = page.locator('#pool-run-sequence-public');
   if (!(await publicSequence.isChecked())) await publicSequence.check();
   const publicEvidence = page.locator('#pool-run-research-public');
-  if (!(await publicEvidence.isChecked())) await publicEvidence.check();
+  if (publishResearch && !(await publicEvidence.isChecked())) await publicEvidence.check();
+  if (!publishResearch && await publicEvidence.isChecked()) await publicEvidence.uncheck();
   await page.locator('#pool-run-intent-kind').selectOption('question');
   await page.locator('#pool-run-intent-label').fill('Public ESM-2 qualification sequence');
   await page.locator('#pool-run-intent-text').fill('Produce receipt-backed embedding evidence for the declared public protein sequence.');
@@ -433,13 +452,14 @@ test.describe('Run and Contribute actual browser inference', () => {
       expect(result.receiptPayloads).toHaveLength(1);
       expect(result.agreement.accepted).toBe(true);
       expect(result.requesterAcceptance?.accepted).toBe(true);
-      expect(result.researchSubmissionHash).toMatch(/^sha256:/);
-      expect(result.researchResultHash).toMatch(/^sha256:/);
+      expect(result.researchSubmissionHash).toBeUndefined();
+      expect(result.researchResultHash).toBeUndefined();
+      expect(result.embeddingPublicationConsent).not.toBe(true);
       expect(result.requesterAcceptance?.requesterSignature).toBeTruthy();
       expect(result.requesterAcceptance?.requesterId).not.toBe(result.assignment?.providerId);
       await expect(runPage.locator('#pool-run-result-embedding-outcome')).toBeVisible();
       await expect(runPage.locator('#pool-run-result-embedding-outcome')).toContainText('480 dimensions');
-      await expect(runPage.locator('[data-pool-copy-embedding]')).toBeEnabled();
+      await expect(runPage.locator('[data-pool-copy-embedding]')).toBeDisabled();
       const contributorEvidence = runPage.locator('details.pool-contributor-details');
       await expect(contributorEvidence).toBeVisible();
       await contributorEvidence.locator(':scope > summary').click();
@@ -493,7 +513,6 @@ test.describe('Run and Contribute actual browser inference', () => {
       await expect(requesterPage.locator('#pool-home-request-model')).toHaveValue(SEQUENCE_MODEL.modelId);
       await requesterPage.locator('#pool-home-ask-prompt').fill(PUBLIC_PROTEIN_SEQUENCE);
       await requesterPage.locator('#pool-home-sequence-public').check();
-      await requesterPage.locator('#pool-home-research-public').check();
       await requesterPage.locator('#pool-home-run-submit').click();
 
       try {
@@ -528,8 +547,8 @@ test.describe('Run and Contribute actual browser inference', () => {
       expect(result.requesterAcceptance?.requesterId).not.toBe(result.assignment?.providerId);
       expect(result.requesterAcceptance?.accepted).toBe(true);
       expect(result.requesterAcceptance?.requesterSignature).toBeTruthy();
-      expect(result.researchSubmissionHash).toMatch(/^sha256:/);
-      expect(result.researchResultHash).toMatch(/^sha256:/);
+      expect(result.researchSubmissionHash).toBeUndefined();
+      expect(result.researchResultHash).toBeUndefined();
       await attachRelayReceipt(testInfo, 'protein', roomId, result);
     } finally {
       await nodes.close();
@@ -561,8 +580,8 @@ test.describe('Run and Contribute actual browser inference', () => {
         expect(result.receiptRecord?.receipt?.model?.id || result.receiptRecord?.receipt?.model?.modelId).toBe(LAUNCH_MODEL.modelId);
         expect(result.receiptPayloads).toHaveLength(1);
         expect(result.agreement.accepted).toBe(true);
-        expect(result.researchSubmissionHash).toMatch(/^sha256:/);
-        expect(result.researchResultHash).toMatch(/^sha256:/);
+        expect(result.researchSubmissionHash).toBeUndefined();
+        expect(result.researchResultHash).toBeUndefined();
       }
       expect(first.assignment.providerId).toBe(second.assignment.providerId);
       expect(first.receiptHash).not.toBe(second.receiptHash);
@@ -612,6 +631,9 @@ test.describe('Run and Contribute actual browser inference', () => {
         result.agreement?.requiredAgreement || 2
       );
       expect(result.requesterAcceptance?.accepted).toBe(true);
+      expect(result.researchSubmissionHash).toMatch(/^sha256:/);
+      expect(result.researchResultHash).toMatch(/^sha256:/);
+      expect(result.embeddingPublicationConsent).toBe(true);
       await attachRelayReceipt(testInfo, 'protein-ring-2', roomId, result);
     } finally {
       await nodes.close();
