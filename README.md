@@ -1,116 +1,123 @@
-# REPLOID
+# Reploid
 
 [![Test Suite](https://img.shields.io/github/actions/workflow/status/clocksmith/reploid/test.yml?branch=main&label=tests)](https://github.com/clocksmith/reploid/actions/workflows/test.yml)
-[![License metadata: MIT](https://img.shields.io/badge/license%20metadata-MIT-blue.svg)](package.json)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-Reploid is a browser runtime family working toward a proof-carrying,
-self-improving active-science network. Its goal is to select the computation,
-review, replication, or experiment expected to reduce scientific uncertainty
-most efficiently, then carry the evidence needed to inspect and reproduce that
-decision.
+Reploid is a browser runtime for receipt-backed inference and governed
+self-modification experiments. Its main product route is Poolday. Zero and X
+are separate experimental surfaces with separate state, tools, and evidence.
 
-The current main product surface provides receipt-backed browser inference.
-Model execution and agent state stay in the browser. Current Poolday
-compatibility services may handle authentication, rendezvous, policy
-enforcement, receipt anchors, and ledger projections, but they do not perform
-the claimed browser-local model execution. The active-science goal does not
-expand the current supported claim.
+## Mission, goal, and value
 
-It ships as **three distinct surfaces**: Poolday, Zero, and X. Each has its own
-route, boot profile, tool set, and evidence authority. Poolday is the main
-product surface. Zero and X are experimental RSI harnesses. A capability
-supported on one surface is **not** implied on another.
-Every support claim is machine-checked in the
-[surface claim index](docs/status/surface-claim-index.json); read each row by its
-declared boundary and status.
+Reploid’s mission is to connect browser computation, review, replication, and
+scientific next actions without treating an execution receipt as proof of
+truth.
 
-## Surfaces
+The current goal is a usable Poolday Research Room. A requester submits a
+bounded question and sequence, runs an approved browser inference path,
+inspects the result and receipt, invites review, and approves the next bounded
+action. Contributors can provide browser compute. Reviewers can accept, reject,
+correct, or replicate evidence.
 
-| Surface | Route | What it is | Boundary |
-| --- | --- | --- | --- |
-| **Poolday** | `/` | Main product UI: receipt-backed browser inference under the internal Poolday pool contract. ("Poolday" is the internal/docs name; the public UI remains Reploid.) | Browser inference backed by signed records, audits, reputation, policy, and deterministic comparison. It does not claim hardware attestation or unconditionally honest browser/GPU execution. |
-| **Zero** | `/zero` | Experimental minimal RSI harness that begins from `CreateTool`, with no pool dependency. | Standalone experimental evidence; requires no inference pool. |
-| **X** | `/x` | Experimental governed RSI harness with workers, memory, peer slots, verification, and self-modification (Seed → Shadow → Promote). | Self-modification, swarm, validation, and promotion evidence stay separate from Poolday inference records. |
+The repository serves:
 
-The [Zero and X intent contract](self/config/surface-intents.js) defines their routes,
-boot profiles, modules, and tool surfaces. The root Poolday path is owned separately by
-the [product boot modes](self/config/boot-modes.js),
-[pool config](self/pool/pool-config.json), and
-[Poolday product intent](docs/poolday/product-intent.md). Proven Zero or X
-capabilities may enter Poolday only through a governed promotion boundary and a
-new Poolday-owned policy, user contract, and operational proof.
+- Poolday requesters, contributors, reviewers, and discovery users.
+- Runtime and product contributors working on browser execution and room state.
+- Security and claim reviewers checking records, relay boundaries, and evidence.
+- Researchers designing the future active-science workflow.
 
-## Product direction
+## How to use Reploid
 
-The target atomic product object is a signed, evolving
-[Discovery Contract](docs/poolday/discovery-contract.md). It binds a bounded
-question, competing hypotheses, uncertainty, candidate actions, predicted
-observations, scientific costs, outcomes, and predeclared replication or closure
-criteria.
-
-```text
-Bring Reploid an uncertain problem. Leave with the most informative next action,
-and leave the network better at solving the next problem
-```
-
-The canonical [Poolday product intent](docs/poolday/product-intent.md) defines
-this objective, the initial protein-discovery wedge, the north-star metric, and
-the separate authority of Poolday, Zero, and X. It also separates target
-capabilities from the current browser-inference boundary.
-
-### X self-modification states
-
-The agent modes that expose `Promote` (the X surface) move through Seed, Shadow, and
-Promote. Seed creates the recoverable self, Shadow stages candidate changes, and
-Promote writes an allowlisted candidate into the live self only after its evidence passes.
-
-| State | File mutation | Evidence | Activation boundary |
-| --- | --- | --- | --- |
-| Seed | Writes the recoverable identity, prompt, tools, VFS, objective, and Blueprint `0x00007F`. | Boot manifest. | Establishes the self that can be restored. |
-| Shadow | Writes candidates under `/shadow`; the active `/self` stays unchanged. | RGR traces, scores, receipts, and rollback paths under `/artifacts/rgr`. | Candidate code remains provisional. |
-| Promote | Copies an allowlisted candidate from `/shadow` into `/self`. | Anchored gate result, replay result, and candidate hash. | Changes `/self`; validator mutations enter quarantine instead. |
-
-## Quick start
+Install and start the local browser surface:
 
 ```bash
 npm install
 npm start
 ```
 
-Open `http://localhost:8000`. For the managed Gemini path, set `GEMINI_API_KEY` in `.env` before starting.
+Open `http://localhost:8000`. The managed Gemini path requires `GEMINI_API_KEY`
+in `.env` before starting.
 
-## Self contract
+The available surfaces are:
 
-Awaken clears prior live VFS state, writes the generated self manifests, exposes canonical source through a copy-on-write `/self` overlay, mounts Capsule, and starts the runtime.
+| Surface | Route | Use |
+| --- | --- | --- |
+| [Poolday](docs/poolday/product-intent.md) | `/` | Create or resume a Research Room for receipt-backed browser inference. |
+| [Zero](self/config/surface-intents.js) | `/zero` | Run the minimal `CreateTool` RSI harness without the Poolday pool. |
+| [X](self/config/surface-intents.js) | `/x` | Run the governed Seed → Shadow → Promote self-modification harness. |
 
-The generated [VFS manifest](self/config/vfs-manifest.json) enumerates seeded files. The executable [tool-surface contract](self/config/tool-surfaces.js) enumerates tool membership. The [RGR runtime contract](self/blueprints/rgr-runtime-contract.md) defines candidate evidence, anchors, quarantine, rollback, and promotion.
+Poolday is the public product name used in the documentation model; the public
+application remains branded Reploid. Zero and X capabilities do not enter
+Poolday unless a Poolday-owned policy, user contract, and promotion proof allow
+it.
 
-## Remote execution
+## Evidence and current surfaces
 
-The [surface claim index](docs/status/surface-claim-index.json) owns these status lines and their evidence paths:
+The [surface claim index](docs/status/surface-claim-index.json) owns the current
+support claims and their evidence paths.
 
-| Index row | Current boundary |
+| Claim row | Current boundary |
 | --- | --- |
 | `local-execution` | A configured local executor runs slots in the current browser. |
-| `peer-slot-placement` | Opted-in slots may run on joined peers; enabling slots does not expose local inference unless this browser has an executor. |
-| `browser-provider-roles` | Browser requester and provider clients exchange assignments, outputs, and receipts through peer rooms. |
+| `peer-slot-placement` | Opted-in slots may run on joined peers; joining does not expose local inference without a local executor. |
+| `browser-provider-roles` | Requesters and providers exchange assignments, outputs, and receipts through peer rooms. |
 | `signaling` | Same-browser rooms can use `BroadcastChannel`; cross-host WebRTC uses signaling for rendezvous. |
-| `sealed-credentials` | `npm start` can build sealed access windows; client artifacts omit the plaintext key and the operator codebook stays ignored under `.reploid-cloud/`. |
-| `public-mesh` | Blocked as a signaling-free claim while cross-host rendezvous still requires signaling. |
+| `sealed-credentials` | `npm start` can build sealed access windows; client artifacts omit the plaintext key. |
+| `public-mesh` | Blocked as a signaling-free claim while cross-host rendezvous requires signaling. |
 
-Users can bypass the managed access-window path and supply their own browser inference.
+The current main product provides receipt-backed browser inference. Model
+execution and agent state stay in the browser. Compatibility services may handle
+authentication, rendezvous, policy enforcement, receipt anchors, and ledger
+projections; they do not perform the claimed browser-local model execution.
+Users can also provide their own browser inference.
 
-## Start here
+The X surface records three self-modification states:
 
-| Reader | Entry points |
-| --- | --- |
-| Operators | [Quick start](docs/QUICK-START.md), [configuration](docs/CONFIGURATION.md), and [local models](docs/local-models.md) |
-| Agent and runtime contributors | [System architecture](docs/system-architecture.md), [RGR runtime contract](self/blueprints/rgr-runtime-contract.md), and [tool surfaces](self/config/tool-surfaces.js) |
-| Security and claim reviewers | [Security model](docs/SECURITY.md), [surface claim index](docs/status/surface-claim-index.json), [Poolday claims](docs/poolday/claims-and-nonclaims.md), and [threat model](docs/poolday/threat-model.md) |
-| Product and inference integrators | [Poolday product intent](docs/poolday/product-intent.md), [Discovery Contract](docs/poolday/discovery-contract.md), [browser inference pool](docs/browser-inference-pool.md), [receipt schema](docs/poolday/receipt-schema.md), and [Doppler](https://github.com/clocksmith/doppler) |
+| State | Mutation | Evidence | Activation |
+| --- | --- | --- | --- |
+| Seed | Writes recoverable identity, prompt, tools, VFS, objective, and Blueprint `0x00007F`. | Boot manifest | Establishes the restorable self. |
+| Shadow | Writes candidates under `/shadow`; `/self` remains unchanged. | RGR traces, scores, receipts, and rollback paths | Candidate remains provisional. |
+| Promote | Copies an allowlisted candidate from `/shadow` into `/self`. | Anchored gate, replay result, and candidate hash | Changes the active self; validator mutations remain quarantined. |
 
-The [documentation index](docs/INDEX.md) owns the complete architecture, blueprint, API, and operator inventory.
+## Long-term vision
+
+The long-term research target is a signed, evolving Discovery Contract. It binds
+a bounded question, competing hypotheses, uncertainty, candidate actions,
+predicted observations, scientific costs, outcomes, and predeclared replication
+or closure criteria.
+
+The intended result is a network that can carry a research problem from an
+uncertain question to an inspectable next action while retaining the records
+needed to review and reproduce the decision. That target does not expand the
+current browser-inference claim.
+
+## Limits and status
+
+Reploid does not claim hardware attestation, trustless browser/GPU execution, or
+guaranteed honest providers. Relay acknowledgement proves receipt of a relay
+record, not execution truth. Poolday, Zero, and X remain separate evidence
+authorities. Read the claim index row before repeating a capability statement.
+
+## Repository map
+
+- [`self/`](self/) — boot profiles, VFS, tools, runtime, and self-modification
+- [`docs/`](docs/) — product intent, claims, security, architecture, and operator guides
+- [`deploy/`](deploy/) — deployment and access-window tooling
+- [`doppler/`](doppler/) — vendored or paired Doppler integration surface
+- [`showcase/`](showcase/) — demonstrations and recorded runs
+- [`package.json`](package.json) — package metadata and local commands
+
+## Read next
+
+- [Documentation index](docs/INDEX.md)
+- [Poolday product intent](docs/poolday/product-intent.md)
+- [Discovery Contract](docs/poolday/discovery-contract.md)
+- [Poolday claims and non-claims](docs/poolday/claims-and-nonclaims.md)
+- [Security model](docs/SECURITY.md)
+- [RGR runtime contract](self/blueprints/rgr-runtime-contract.md)
+- [Tool-surface contract](self/config/tool-surfaces.js)
+- [Doppler](https://github.com/clocksmith/doppler)
 
 ## License
 
-License metadata is in `package.json` (license: MIT). This repository does not currently include a standalone `LICENSE` file.
+[MIT License](LICENSE). The package metadata also declares `MIT`.
