@@ -22,11 +22,21 @@ describe('self-first boot shell', () => {
   it('boots the kernel shell directly and routes the public shell at runtime', () => {
     const selfKernelHtml = readRepoFile('self/kernel/index.html');
     const sourceIndexHtml = readRepoFile('self/index.html');
+    const poolEntryHtml = readRepoFile('self/pool-entry.html');
 
     expect(selfKernelHtml).toContain('href="/"');
     expect(selfKernelHtml).toMatch(/src="\/kernel\/boot\.js\?v=\d+"/);
     expect(sourceIndexHtml).toContain('href="/"');
     expect(sourceIndexHtml).toContain("import('/ui/pool-home/index.js')");
+    expect(sourceIndexHtml).toContain('REPLOID_PRODUCT_BOOT_RECOVERY');
+    expect(sourceIndexHtml).toContain('PRODUCT_BOOT_TIMEOUT_MS = 10000');
+    expect(sourceIndexHtml).toContain('Promise.race([');
+    expect(sourceIndexHtml).toContain("retryUrl.searchParams.set('reploidBootRetry'");
+    expect(sourceIndexHtml).toContain('window.location.replace(retryUrl.toString())');
+    expect(sourceIndexHtml).toContain("failure.setAttribute('role', 'alert')");
+    expect(poolEntryHtml).toContain('REPLOID_PRODUCT_BOOT_RECOVERY');
+    expect(poolEntryHtml).toContain("import('/ui/pool-home/index.js')");
+    expect(poolEntryHtml).toContain('window.location.replace(retryUrl.toString())');
     expect(sourceIndexHtml).toContain('const bootPath = `/kernel/boot.js?v=${window.REPLOID_BUILD_VERSION}`;');
     expect(sourceIndexHtml).toContain('await import(bootPath);');
   });

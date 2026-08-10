@@ -92,6 +92,29 @@ test.describe('Boot Screen', () => {
 });
 
 test.describe('Route Entry Points', () => {
+  test('recovers once from a transient public-route module failure', async ({ page }) => {
+    let failedRequests = 0;
+    await page.route('**/ui/pool-home/view.js', async (route) => {
+      if (failedRequests === 0) {
+        failedRequests += 1;
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/javascript',
+          body: 'export const truncatedModule ='
+        });
+        return;
+      }
+      await route.continue();
+    });
+
+    await page.goto(PRODUCT_HOME_PATH);
+    await page.waitForSelector('.pool-home', { timeout: 30000 });
+
+    expect(failedRequests).toBe(1);
+    expect(new URL(page.url()).searchParams.has('reploidBootRetry')).toBe(false);
+    await expect(page.locator('.pool-boot-failure')).toHaveCount(0);
+  });
+
   test('home centers one focused protein task beside persistent controls', async ({ page }) => {
     await page.goto(PRODUCT_HOME_PATH);
     await page.evaluate(() => localStorage.removeItem('reploid.pool.drawerSections.v1'));

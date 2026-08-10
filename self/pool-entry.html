@@ -9,7 +9,7 @@
     <link rel="icon" type="image/svg+xml" href="favicon.svg" />
     <title>Reploid</title>
     <script>
-      window.REPLOID_BUILD_VERSION = '2026071201';
+      window.REPLOID_BUILD_VERSION = '2026081002';
     </script>
     <link rel="stylesheet" href="/styles/rd.css" />
     <link rel="stylesheet" href="/styles/boot.css" />
@@ -20,13 +20,70 @@
   <body>
     <div id="app"></div>
     <script type="module">
-      import { initPoolHome } from '/ui/pool-home/index.js';
-
+      const PRODUCT_BOOT_RECOVERY_KEY = `REPLOID_PRODUCT_BOOT_RECOVERY:${window.REPLOID_BUILD_VERSION}`;
+      const PRODUCT_BOOT_TIMEOUT_MS = 10000;
       const appRoot = document.getElementById('app');
-      if (appRoot) {
-        initPoolHome(appRoot);
-      } else {
+      if (!appRoot) {
         throw new Error('Missing pool mount root');
+      }
+      const readProductBootRecovery = () => {
+        try {
+          return sessionStorage.getItem(PRODUCT_BOOT_RECOVERY_KEY) === 'true';
+        } catch {
+          return false;
+        }
+      };
+      const writeProductBootRecovery = (active) => {
+        try {
+          if (active) sessionStorage.setItem(PRODUCT_BOOT_RECOVERY_KEY, 'true');
+          else sessionStorage.removeItem(PRODUCT_BOOT_RECOVERY_KEY);
+        } catch {
+          // Storage is optional. The visible terminal error still prevents a blank page.
+        }
+      };
+      const showProductBootFailure = () => {
+        appRoot.replaceChildren();
+        const failure = document.createElement('main');
+        failure.className = 'pool-boot-failure';
+        failure.setAttribute('role', 'alert');
+        failure.textContent = 'Reploid could not load. Reload the page to try again.';
+        appRoot.appendChild(failure);
+      };
+      const replaceForProductBootRecovery = () => {
+        const retryUrl = new URL(window.location.href);
+        retryUrl.searchParams.set('reploidBootRetry', window.REPLOID_BUILD_VERSION);
+        window.location.replace(retryUrl.toString());
+      };
+      const clearProductBootRecoveryUrl = () => {
+        const currentUrl = new URL(window.location.href);
+        if (!currentUrl.searchParams.has('reploidBootRetry')) return;
+        currentUrl.searchParams.delete('reploidBootRetry');
+        window.history.replaceState(window.history.state, '', `${currentUrl.pathname}${currentUrl.search}${currentUrl.hash}`);
+      };
+      let timeoutId;
+      try {
+        const { initPoolHome } = await Promise.race([
+          import('/ui/pool-home/index.js'),
+          new Promise((_, reject) => {
+            timeoutId = window.setTimeout(() => {
+              reject(new Error('Reploid product route module load timed out'));
+            }, PRODUCT_BOOT_TIMEOUT_MS);
+          })
+        ]);
+        window.clearTimeout(timeoutId);
+        initPoolHome(appRoot);
+        writeProductBootRecovery(false);
+        clearProductBootRecoveryUrl();
+      } catch (error) {
+        window.clearTimeout(timeoutId);
+        if (!readProductBootRecovery()) {
+          writeProductBootRecovery(true);
+          replaceForProductBootRecovery();
+        } else {
+          writeProductBootRecovery(false);
+          showProductBootFailure();
+          throw error;
+        }
       }
     </script>
   </body>

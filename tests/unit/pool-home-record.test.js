@@ -401,6 +401,36 @@ describe('Poolday record ledgers', () => {
     expect(raw).toContain('turn=not-configured');
   });
 
+  it('retains compact assignment rejection evidence in the raw error details', () => {
+    document.body.innerHTML = `
+      <div id="pool-run-result-summary"></div>
+      <pre id="pool-run-result-raw"></pre>
+      <pre id="pool-run-result-stream"></pre>
+      <span id="pool-run-result-stream-cursor"></span>
+    `;
+
+    setResult('pool-run-result', {
+      status: 'error',
+      error: 'Request could not complete',
+      reason: 'not_enough_peer_providers',
+      code: 'not_enough_peer_providers',
+      payload: {
+        requiredProviders: 1,
+        eligibleProviders: 0,
+        routeCandidates: [{
+          providerId: 'provider_with_long_stable_identity',
+          rejectionReasons: ['participation_identity_invalid', 'provider_capacity_exhausted']
+        }]
+      }
+    }, { stream: true, animate: false });
+
+    const raw = document.getElementById('pool-run-result-raw').textContent;
+    expect(raw).toContain('Required contributors: 1');
+    expect(raw).toContain('Eligible contributors: 0');
+    expect(raw).toContain('Eligibility: provider_with_lo...identity: participation_identity_invalid, provider_capacity_exhausted');
+    expect(raw).not.toContain('provider_with_long_stable_identity');
+  });
+
   it('renders clean answer contributors while preserving the full result', () => {
     document.body.innerHTML = `
       <div id="pool-run-result-summary"></div>
