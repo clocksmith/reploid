@@ -30,6 +30,7 @@ describe('Research Room reusable panels', () => {
     };
     const review = renderReviewPanel({
       reviewTargets: [target],
+      reviewTarget: target.recordHash,
       submissionsByHash: new Map([[question.recordHash, question]]),
       reviewStates: new Map([[target.recordHash, { state: 'unresolved' }]])
     });
@@ -43,6 +44,12 @@ describe('Research Room reusable panels', () => {
     expect(review).toContain('Agreement</dt><dd>Not assessed');
     expect(review).toContain('Sequence value withheld');
     expect(review).toContain('Similarity and retrieval ranking do not establish agreement.');
+    expect(review).toContain('data-research-review-action="accept"');
+    expect(review).toContain('data-research-review-action="reject"');
+    expect(review).toContain('data-research-review-action="correct"');
+    expect(review).toContain('data-research-review-action="replicate"');
+    expect(review).not.toContain('Claim type');
+    expect(review).not.toContain('Relationship');
     expect(discovery).toContain('id="pool-room-discovery"');
     expect(discovery).toContain('data-research-similarity-target');
     expect(discovery).toContain('room-model');
