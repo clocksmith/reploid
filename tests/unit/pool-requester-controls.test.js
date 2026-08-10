@@ -24,8 +24,8 @@ describe('Research Room requester controls', () => {
     expect(ask).toContain('<span class="pool-consent-row">');
     expect(ask).not.toContain('<label class="pool-consent-row">');
     expect(ask).not.toContain('data-pool-sequence-consent-saved');
-    expect(home.match(/Publish this sequence/g)).toHaveLength(1);
-    expect(ask.match(/Publish this sequence/g)).toHaveLength(1);
+    expect(home.match(/Save the question and result to this room/g)).toHaveLength(1);
+    expect(ask.match(/Save the question and result to this room/g)).toHaveLength(1);
   });
 
   it('keeps intent IDs stable while adapting the question control to each route', () => {
@@ -34,7 +34,7 @@ describe('Research Room requester controls', () => {
 
     expect(home).toContain('id="pool-home-intent-kind"');
     expect(home).toContain('id="pool-home-intent-text"');
-    expect(home).toContain('placeholder="What exact question should reviewers answer?"');
+    expect(home).toContain('placeholder="What do you want to learn?"');
     expect(home).toContain('<input id="pool-home-intent-text"');
     expect(home).toContain('id="pool-home-intent-conditions"');
     expect(home).toContain('id="pool-home-intent-observation"');

@@ -83,9 +83,9 @@ describe('poolday home navigation', () => {
     expect(PRODUCT_ROUTES['/record']).toBeUndefined();
     expect(PRODUCT_ROUTES['/agents']).toBeUndefined();
     expect(ROUTE_COPY.compute).toEqual({
-      eyebrow: 'Research Room · Share compute',
+      eyebrow: 'Research Room',
       title: 'Share compute',
-      body: 'Let this tab contribute compatible protein execution to the active room. Stop at any time.'
+      body: 'Let this tab run work for the room.'
     });
   });
 
@@ -160,23 +160,16 @@ describe('poolday home navigation', () => {
 
   it('renders the main home calls to action', () => {
     const html = renderRoutePanel('home');
-    expect(html).toContain('class="pool-home-stage"');
+    expect(html).toContain('class="pool-home-stage pool-home-stage--focused"');
     expect(html).toContain('class="pool-home-toolbar"');
     expect(html).toContain('class="pool-home-toolbar-leading pool-home-overlay"');
     expect(html).toContain('class="pool-home-ask-dock pool-home-cta-row pool-home-ask-form"');
     expect(html).not.toContain('class="pool-home-toolbar-right"');
-    expect(html).toContain('class="pool-simulation-shell"');
-    expect(html).toContain('data-pool-network-disclosure');
-    expect(html).toContain('<summary>How peers produced this result</summary>');
-    expect(html).toContain('data-pool-simulation');
-    expect(html).toContain('data-pool-home-purpose');
-    expect(html).toContain('Grow inspectable protein evidence, from public input to reviewed discovery.');
-    expect(html).toContain('Submit</strong> public sequence, intent, consent, and exact model contract.');
-    expect(html).toContain('Compute</strong> through participating browsers with signed, comparable receipts.');
-    expect(html).toContain('Review</strong> with attributable human evidence, confidence, and corrections.');
-    expect(html).toContain('Connect</strong> sequences, results, sources, reviewers, and contradictions.');
-    expect(html).toContain('Discover</strong> compatible neighbors and approve bounded next work.');
-    expect(html).toContain('not a biological interpretation or diagnosis');
+    expect(html).not.toContain('class="pool-simulation-shell"');
+    expect(html).not.toContain('data-pool-network-disclosure');
+    expect(html).not.toContain('data-pool-simulation');
+    expect(html).not.toContain('data-pool-home-purpose');
+    expect(html).toContain('Produces model evidence, not a biological diagnosis.');
     expect(html).toContain('This is a 480-number representation for software, not a result to read manually.');
     expect(html).toContain('Use it with embeddings made by the same ESM-2 model and contract when comparing sequences.');
     expect(html).toContain('Reploid can now compare this result with exact-contract compatible public embeddings');
@@ -185,20 +178,20 @@ describe('poolday home navigation', () => {
     expect(html).not.toContain('data-pool-hot-path');
     expect(html).toContain('class="pool-home-title-lockup"');
     expect(html).toContain('<h1 class="type-h1 pool-home-brand-word">REPLOID</h1>');
-    expect(html).toContain('Submit → compute → review → connect → discover across a public protein evidence network.');
+    expect(html).toContain('Run a public protein sequence and keep the evidence.');
+    expect(html).toContain('>View room</a>');
     expect(html).toContain('id="pool-home-research-public"');
     expect(html).toContain('id="pool-home-intent-text"');
+    expect(html).toContain('>Ask a protein question</h2>');
+    expect(html).toContain('placeholder="What do you want to learn?"');
     expect(html).toContain('pool-home-cta-row pool-home-ask-form');
     expect(html).toContain('id="pool-home-ask-form"');
-    expect(html).toContain('class="pool-home-composer-bar"');
-    expect(html).toContain('aria-label="Input type"');
-    expect(html).toContain('<span class="pool-lane-chip is-active" data-pool-lane="sequence" aria-current="true">Protein</span>');
-    expect(html).not.toContain('data-pool-lane="text"');
-    expect(html).not.toContain('data-pool-composer-adapter-lane');
-    expect(html).toContain('class="pool-home-ask-pill"');
+    expect(html).not.toContain('class="pool-home-composer-bar"');
+    expect(html).not.toContain('aria-label="Input type"');
     expect(html).toContain('id="pool-home-ask-prompt"');
     expect(html).toContain('id="pool-home-sequence-public"');
-    expect(html).toContain('I confirm this protein sequence is public.');
+    expect(html).toContain('This sequence is public');
+    expect(html).toContain('Save the question and result to this room');
     expect(html).toContain('data-pool-sequence-consent-saved hidden');
     expect(html).toContain('id="pool-home-adapter"');
     expect(html).not.toContain('pool-home-ask-label');
@@ -207,15 +200,12 @@ describe('poolday home navigation', () => {
     expect(placeholder).not.toBe('Ask the network...');
     expect(html).toContain(`data-pool-suggested-prompt="${placeholder}"`);
     expect(html).not.toContain('placeholder="Ask the network..."');
-    expect(html).toContain('pool-shape-action--circle pool-shape-action--ask pool-home-ask-submit');
+    expect(html).toContain('class="btn btn-primary pool-home-run-button"');
     expect(html).toContain('type="submit"');
-    expect(html).toContain('<span class="pool-shape-action-glyph" aria-hidden="true">↑</span>');
-    expect(html).not.toContain('<span class="pool-shape-action-label">Run</span>');
-    expect(html).toMatch(/class="pool-home-ask-pill"[\s\S]*id="pool-home-ask-prompt"[\s\S]*pool-home-ask-submit/);
+    expect(html).toContain('>Run sequence</button>');
     expect(html).not.toContain('href="/network"');
     expect(html).not.toContain('pool-home-network-cta');
     expect(html).not.toContain('Live Network</span>');
-    expect(html).toContain('data-pool-network-state');
     expect(html).toContain('data-pool-run-surface="home"');
     expect(html).toContain('id="pool-home-run-result-stream"');
     expect(html).toContain('data-pool-run-output hidden');
@@ -223,8 +213,7 @@ describe('poolday home navigation', () => {
     expect(html).not.toContain('Open records');
     expect(html).not.toContain('class="pool-home-status"');
     expect(html).not.toContain('aria-label="Current room and model"');
-    expect(html.indexOf('class="pool-home-toolbar"')).toBeLessThan(html.indexOf('class="pool-simulation-shell"'));
-    expect(html).toMatch(/class="pool-home-toolbar"[\s\S]*pool-home-toolbar-leading[\s\S]*class="pool-simulation-shell"[\s\S]*class="pool-home-ask-dock/);
+    expect(html).toMatch(/class="pool-home-toolbar"[\s\S]*pool-home-toolbar-leading[\s\S]*class="pool-home-ask-dock/);
     expect(html).not.toContain('data-pool-dashboard-inspector');
     expect(html).not.toContain('pool-dashboard-inspector');
     expect(html).not.toContain('Ask browser models.<br>Share compute. Or both.');
@@ -351,7 +340,7 @@ describe('poolday home navigation', () => {
     const html = renderRouteDetail('ask');
 
     expect(html).toContain('<span data-pool-run-prompt-label>Protein sequence</span>');
-    expect(html).toContain('I confirm this protein sequence is public.');
+    expect(html).toContain('This sequence is public');
     expect(html).toContain('<summary>Settings</summary>');
     expect(html).toContain('data-pool-run-output hidden');
     expect(html).toContain('Protein representation');

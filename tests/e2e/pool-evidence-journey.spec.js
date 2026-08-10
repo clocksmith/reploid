@@ -5,8 +5,10 @@ test('shows and exercises the governed protein evidence journey', async ({ page 
   page.on('pageerror', (error) => pageErrors.push(error.message));
   await page.goto('/');
 
-  await expect(page.getByText('Submit → compute → review → connect → discover', { exact: false }).first()).toBeVisible();
-  await expect(page.locator('.pool-home-purpose-steps li')).toHaveCount(5);
+  await expect(page.getByRole('heading', { name: 'Ask a protein question', exact: true })).toBeVisible();
+  await expect(page.getByLabel('Public protein sequence')).toBeVisible();
+  await expect(page.locator('[data-pool-research-room]')).toHaveCount(0);
+  await expect(page.locator('.pool-simulation-shell')).toHaveCount(0);
   await expect(page.locator('#pool-home-research-public')).toBeAttached();
   await expect(page.locator('#pool-home-intent-text')).toBeAttached();
 
@@ -308,15 +310,14 @@ test('shows and exercises the governed protein evidence journey', async ({ page 
     }
   });
 
+  await page.getByRole('link', { name: 'View room', exact: true }).click();
   await expect(page.locator('[data-pool-research-room]')).toBeVisible();
-  await expect(page.locator('[data-pool-room-recovery]')).toBeVisible();
-  await expect(page.locator('[data-recovery-state="awaiting_review"]')).toBeVisible();
   await expect(page.locator('.pool-room-timeline')).toContainText('Agreement assessed');
   await expect(page.getByText('Remembered evidence', { exact: true })).toBeAttached();
   const roomApproval = page.locator('[data-pool-room-approve-task]').first();
   await expect(roomApproval).toBeVisible();
   await roomApproval.click();
-  await expect(page.getByText('Inspect approved action', { exact: true }).first()).toBeVisible();
+  await expect(page.locator('[data-pool-room-approve-task]')).toHaveCount(0);
 
   await page.evaluate(async () => {
     const evidence = await import('/pool/evidence-network.js');
@@ -370,7 +371,7 @@ test('shows and exercises the governed protein evidence journey', async ({ page 
   await expect(page.locator('.pool-room-timeline')).toContainText('Correction attached');
   await expect(page.locator('.pool-room-memory')).toContainText('Correction attached');
 
-  const resultReviewLink = page.locator('[data-room-result-card]').getByRole('link', { name: 'Review this result', exact: true });
+  const resultReviewLink = page.locator('[data-room-result-card]').getByRole('link', { name: 'Review', exact: true });
   const reviewHref = await resultReviewLink.getAttribute('href');
   const reviewedTarget = new URL(reviewHref, 'http://localhost').searchParams.get('target');
   const persistedBeforeReviewNavigation = await page.evaluate(() => JSON.parse(
@@ -446,7 +447,7 @@ test('shows and exercises the governed protein evidence journey', async ({ page 
   const approve = page.locator('[data-research-approve-task]').first();
   await expect(approve).toBeVisible();
   await approve.click();
-  await expect(page.getByText('Approved', { exact: true }).first()).toBeVisible();
+  await expect(page.locator('.pool-research-tasks strong').filter({ hasText: 'Approved' }).first()).toBeVisible();
 
   await page.evaluate(async () => {
     const store = await import('/ui/pool-home/research-store.js');
@@ -456,15 +457,17 @@ test('shows and exercises the governed protein evidence journey', async ({ page 
   });
   await page.reload();
   await expect(page.locator('[data-pool-research-room]')).toHaveAttribute('data-room-id', 'reploid-default');
-  await expect(page.locator('[data-room-result-card]')).toContainText('Inspectable model evidence');
+  await expect(page.locator('[data-room-result-card]')).toContainText('Model evidence');
   await page.goto('/?room=reploid-default');
-  await expect(page.locator('[data-pool-research-room]')).toHaveAttribute('data-room-id', 'reploid-default');
-  await expect(page.locator('[data-room-result-card]')).toContainText('Inspectable model evidence');
+  await expect(page.locator('[data-pool-research-room]')).toHaveCount(0);
+  await expect(page.getByRole('link', { name: 'View room', exact: true })).toHaveAttribute('href', '/records?room=reploid-default');
+  await page.getByRole('link', { name: 'View room', exact: true }).click();
+  await expect(page.locator('[data-room-result-card]')).toContainText('Model evidence');
   await expect(page.locator('[data-room-result-card]')).toContainText('corrected');
   await expect(page.locator('.pool-room-timeline')).toContainText('Correction attached');
 
   await page.goto('/ask?room=journey-room');
-  await expect(page.locator('[data-pool-research-room]')).toHaveAttribute('data-room-id', 'journey-room');
+  await expect(page.locator('[data-pool-research-room]')).toHaveCount(0);
   await page.locator('.pool-nav-link[data-pool-route-link="/records?room=journey-room"]').click();
   await expect(page).toHaveURL(/\/records\?room=journey-room$/);
   await expect(page.locator('[data-pool-research-room]')).toHaveAttribute('data-room-id', 'journey-room');

@@ -92,27 +92,25 @@ test.describe('Boot Screen', () => {
 });
 
 test.describe('Route Entry Points', () => {
-  test('home drawers use persistent vertical disclosure sections', async ({ page }) => {
+  test('home centers one focused protein task beside persistent controls', async ({ page }) => {
     await page.goto(PRODUCT_HOME_PATH);
     await page.evaluate(() => localStorage.removeItem('reploid.pool.drawerSections.v1'));
     await page.reload();
     await page.waitForSelector('.pool-home', { timeout: 20000 });
 
-    const anchoredLayout = await page.evaluate(() => {
-      const home = document.querySelector('.pool-home').getBoundingClientRect();
-      const wordmark = document.querySelector('.pool-home-brand-word').getBoundingClientRect();
-      const ask = document.querySelector('#pool-home-ask-form').getBoundingClientRect();
+    const layout = await page.evaluate(() => {
+      const task = document.querySelector('.pool-home-task').getBoundingClientRect();
+      const form = document.querySelector('#pool-home-ask-form').getBoundingClientRect();
       return {
-        wordmarkCenterDelta: Math.abs((wordmark.left + wordmark.width / 2) - (home.left + home.width / 2)),
-        askCenterDelta: Math.abs((ask.left + ask.width / 2) - (home.left + home.width / 2)),
-        askBottomGap: home.bottom - ask.bottom
+        taskCenterDelta: Math.abs((task.left + task.width / 2) - (window.innerWidth / 2)),
+        formCenterDelta: Math.abs((form.left + form.width / 2) - (window.innerWidth / 2)),
+        formInsideViewport: form.top >= 0 && form.bottom <= window.innerHeight
       };
     });
-    expect(anchoredLayout.wordmarkCenterDelta).toBeLessThanOrEqual(1);
-    expect(anchoredLayout.askCenterDelta).toBeLessThanOrEqual(1);
-    expect(anchoredLayout.askBottomGap).toBeGreaterThan(0);
-    expect(anchoredLayout.askBottomGap).toBeLessThanOrEqual(48);
-    await expect(page.locator('#pool-home-run-submit')).toHaveText('↑');
+    expect(layout.taskCenterDelta).toBeLessThanOrEqual(1);
+    expect(layout.formCenterDelta).toBeLessThanOrEqual(1);
+    expect(layout.formInsideViewport).toBe(true);
+    await expect(page.locator('#pool-home-run-submit')).toHaveText('Run sequence');
 
     const controlDrawer = page.getByRole('navigation', { name: 'Reploid controls' });
     await expect(controlDrawer.locator('[data-pool-drawer-section]')).toHaveCount(5);
@@ -128,7 +126,7 @@ test.describe('Route Entry Points', () => {
     await expect(page.locator('[data-pool-participation-surface="network-connection"]')).toHaveCount(1);
   });
 
-  test('product root renders the Reploid serving surface', async ({ page }) => {
+  test('product root renders the focused Reploid protein workflow', async ({ page }) => {
     await page.goto(PRODUCT_HOME_PATH);
     await page.waitForSelector('.pool-home', { timeout: 20000 });
 
@@ -153,16 +151,17 @@ test.describe('Route Entry Points', () => {
     expect(askPlaceholder.trim().split(/\s+/).length).toBeGreaterThanOrEqual(1);
     expect(askPlaceholder.trim().split(/\s+/).length).toBeLessThanOrEqual(4);
     await expect(page.locator('#pool-home-ask-prompt')).toHaveAttribute('data-pool-suggested-prompt', askPlaceholder);
-    await expect(page.locator('label[for="pool-home-ask-prompt"]')).toHaveCount(0);
+    await expect(page.locator('label[for="pool-home-ask-prompt"]')).toHaveCount(1);
     await expect(page.locator('#pool-home-ask-form').getByRole('button', { name: 'Run protein sequence', exact: true })).toBeVisible();
-    await expect(page.getByRole('group', { name: 'Input type' })).toBeVisible();
-    const sequenceLane = page.locator('.pool-lane-chip[data-pool-lane="sequence"]');
-    const textLane = page.locator('.pool-lane-chip[data-pool-lane="text"]');
-    const adapterLane = page.locator('.pool-lane-chip[data-pool-lane="adapters"]');
-    await expect(textLane).toBeVisible();
-    await expect(sequenceLane).toBeVisible();
-    await expect(adapterLane).toBeHidden();
-    await sequenceLane.click();
+    await expect(page.getByRole('heading', { name: 'Ask a protein question', exact: true })).toBeVisible();
+    await expect(page.getByRole('textbox', { name: 'Question', exact: true })).toBeVisible();
+    await expect(page.getByLabel('Public protein sequence')).toBeVisible();
+    await expect(page.getByLabel('This sequence is public')).toBeVisible();
+    await expect(page.getByLabel('Save the question and result to this room')).toBeVisible();
+    await expect(page.getByRole('link', { name: 'View room', exact: true })).toBeVisible();
+    await expect(page.locator('[data-pool-research-room]')).toHaveCount(0);
+    await expect(page.locator('.pool-simulation-shell')).toHaveCount(0);
+    await expect(page.locator('.pool-home-purpose')).toHaveCount(0);
     await expect(page.locator('.pool-home-stage')).toHaveAttribute('data-pool-lane', 'sequence');
     await expect(page.locator('[data-pool-sequence-options]')).toBeVisible();
     await expect(page.locator('#pool-home-sequence-public')).not.toBeChecked();
@@ -170,10 +169,7 @@ test.describe('Route Entry Points', () => {
     await expect(page.locator('#pool-home-ask-prompt')).toHaveAttribute('name', 'sequence');
     await expect(page.locator('#pool-home-ask-prompt')).toHaveAttribute('aria-label', 'Public protein sequence');
     await expect(page.locator('#pool-home-run-submit')).toHaveAttribute('aria-label', 'Run protein sequence');
-    await textLane.click();
-    await expect(page.locator('.pool-home-stage')).toHaveAttribute('data-pool-lane', 'text');
     await expect(page.locator('[data-pool-home-adapter-picker]')).toBeHidden();
-    await expect(page.locator('[data-pool-sequence-options]')).toBeHidden();
     const collapsedToggle = await controlDrawer.locator('.pool-nav-toggle').evaluate((toggle) => {
       const top = toggle.querySelector('.pool-nav-mark-seven-top');
       const bottom = toggle.querySelector('.pool-nav-mark-seven-bottom');
@@ -192,37 +188,8 @@ test.describe('Route Entry Points', () => {
     await expect(controlDrawer.locator('[data-pool-drawer-section="request-checks"]')).toBeVisible();
     await expect(page.getByRole('link', { name: /^Live Network/ })).toHaveCount(0);
     await expect(page.locator('.pool-home-toolbar')).toBeVisible();
-    await expect(page.locator('.pool-simulation-shell')).toBeVisible();
     await expect(page.locator('[data-pool-hot-path]')).toHaveCount(0);
     await expect(page.locator('.pool-home-network-panel')).toHaveCount(0);
-    const stack = await page.evaluate(() => {
-      const home = document.querySelector('.pool-home').getBoundingClientRect();
-      const toolbar = document.querySelector('.pool-home-toolbar').getBoundingClientRect();
-      const wordmark = document.querySelector('.pool-home-brand-word').getBoundingClientRect();
-      const shell = document.querySelector('.pool-simulation-shell').getBoundingClientRect();
-      const ask = document.querySelector('#pool-home-ask-form').getBoundingClientRect();
-      return {
-        homeHeight: home.height,
-        homeWidth: home.width,
-        shellHeight: shell.height,
-        shellWidth: shell.width,
-        shellTop: shell.top,
-        toolbarBottom: toolbar.bottom,
-        wordmarkCenterDelta: Math.abs((wordmark.left + wordmark.width / 2) - (home.left + home.width / 2)),
-        askCenterDelta: Math.abs((ask.left + ask.width / 2) - (home.left + home.width / 2)),
-        askBottomGap: home.bottom - ask.bottom,
-        askInsideCanvas: ask.top >= shell.top && ask.bottom <= shell.bottom
-      };
-    });
-    expect(Math.abs(stack.shellTop)).toBeLessThanOrEqual(1);
-    expect(Math.abs(stack.shellWidth - stack.homeWidth)).toBeLessThan(2);
-    expect(Math.abs(stack.shellHeight - stack.homeHeight)).toBeLessThan(2);
-    expect(stack.wordmarkCenterDelta).toBeLessThanOrEqual(1);
-    expect(stack.askCenterDelta).toBeGreaterThanOrEqual(0);
-    expect(stack.askCenterDelta).toBeLessThanOrEqual(stack.homeWidth / 2);
-    expect(stack.askBottomGap).toBeGreaterThan(0);
-    expect(stack.askBottomGap).toBeLessThanOrEqual(48);
-    expect(stack.askInsideCanvas).toBe(true);
     await expect(controlDrawer.locator('.pool-nav-toggle')).toHaveAttribute('aria-expanded', 'true');
     await expect.poll(() => controlDrawer.locator('.pool-nav-toggle').evaluate((toggle) => toggle.getBoundingClientRect().width))
       .toBeGreaterThan(collapsedToggle.width + 80);
@@ -255,45 +222,7 @@ test.describe('Route Entry Points', () => {
     await expect(controlDrawer.getByRole('link', { name: 'Zero', exact: true })).toHaveAttribute('href', '/zero');
     await expect(controlDrawer.getByRole('link', { name: 'X', exact: true })).toHaveAttribute('href', '/x');
     await expect(page.getByLabel('Reploid overview')).toContainText('REPLOID');
-    await expect(page.getByLabel('Reploid overview')).toContainText('Run browser models together.');
-    await expect(page.locator('[data-pool-flow-label]')).toHaveCount(6);
-    await expect(page.locator('[data-pool-flow-label]:visible')).toHaveCount(0);
-    await expect.poll(async () => page.locator('[data-pool-flow-label]').evaluateAll((labels) => {
-      const counts = labels.reduce((acc, label) => {
-        const text = label.textContent.trim();
-        acc[text] = (acc[text] || 0) + 1;
-        return acc;
-      }, {});
-      return {
-        prompt: counts.Prompt || 0,
-        policy: counts.Policy || 0,
-        match: counts.Match || 0,
-        infer: counts.Infer || 0,
-        verify: counts.Verify || 0,
-        answer: counts.Answer || 0,
-        request: counts.Request || 0,
-        history: counts.History || 0,
-        consumer: counts.Consumer || 0,
-        producer: counts.Producer || 0,
-        provider: counts.Provider || 0,
-        settlement: counts.Settlement || 0,
-        ledger: counts.Ledger || 0
-      };
-    })).toEqual({
-      prompt: 1,
-      policy: 1,
-      match: 1,
-      infer: 1,
-      verify: 1,
-      answer: 1,
-      request: 0,
-      history: 0,
-      consumer: 0,
-      producer: 0,
-      provider: 0,
-      settlement: 0,
-      ledger: 0
-    });
+    await expect(page.getByLabel('Reploid overview')).toContainText('Run a public protein sequence and keep the evidence.');
     await expect(page.locator('body')).not.toContainText('Poolday');
   });
 
@@ -382,8 +311,8 @@ test.describe('Route Entry Points', () => {
     expect(Math.abs(mobile.height - mobile.viewportHeight)).toBeLessThanOrEqual(1);
     expect(mobile.width).toBeLessThanOrEqual(68);
     expect(mobile.overflowX).toBe(false);
-    expect(mobile.overflowY).toBe(true);
-    expect(mobile.scrollHeight).toBeGreaterThan(mobile.viewportHeight);
+    expect(mobile.overflowY).toBe(false);
+    expect(mobile.scrollHeight).toBeLessThanOrEqual(mobile.viewportHeight + 1);
     const mobileNav = page.getByRole('navigation', { name: 'Navigation' });
     await mobileNav.locator('.pool-nav-toggle').click();
     await expect(mobileNav.getByRole('link', { name: 'Research Room', exact: true })).toBeVisible();
@@ -409,22 +338,17 @@ test.describe('Route Entry Points', () => {
       const toolbar = document.querySelector('.pool-home-toolbar')?.getBoundingClientRect();
       const stage = document.querySelector('.pool-home-stage')?.getBoundingClientRect();
       const dock = document.querySelector('.pool-home-ask-dock')?.getBoundingClientRect();
-      const purpose = document.querySelector('[data-pool-home-purpose]')?.getBoundingClientRect();
       const visibleCenter = nav ? nav.right + ((window.innerWidth - nav.right) / 2) : null;
       const centerOf = (rect) => rect ? rect.left + (rect.width / 2) : null;
       const atDockCenter = dock ? document.elementFromPoint(centerOf(dock), dock.top + (dock.height / 2)) : null;
-      const atPurposeCenter = purpose ? document.elementFromPoint(centerOf(purpose), purpose.top + (purpose.height / 2)) : null;
       return {
         navRight: nav?.right ?? null,
         stageLeft: stage?.left ?? null,
         toolbarLeft: toolbar?.left ?? null,
         dockLeft: dock?.left ?? null,
         dockCenter: centerOf(dock),
-        purposeLeft: purpose?.left ?? null,
-        purposeCenter: centerOf(purpose),
         visibleCenter,
-        dockBlockedByNav: !!atDockCenter?.closest?.('.pool-nav-rail'),
-        purposeBlockedByNav: !!atPurposeCenter?.closest?.('.pool-nav-rail')
+        dockBlockedByNav: !!atDockCenter?.closest?.('.pool-nav-rail')
       };
     });
 
@@ -433,9 +357,6 @@ test.describe('Route Entry Points', () => {
     expect(layout.dockLeft).toBeGreaterThanOrEqual((layout.navRight || 0) - 1);
     expect(Math.abs((layout.dockCenter || 0) - (layout.visibleCenter || 0))).toBeLessThanOrEqual(2);
     expect(layout.dockBlockedByNav).toBe(false);
-    expect(layout.purposeLeft).toBeGreaterThanOrEqual((layout.navRight || 0) - 1);
-    expect(Math.abs((layout.purposeCenter || 0) - (layout.visibleCenter || 0))).toBeLessThanOrEqual(2);
-    expect(layout.purposeBlockedByNav).toBe(false);
   });
 
   test('contribution status labels and values are vertically centered in their metric chips', async ({ page }) => {
@@ -503,7 +424,7 @@ test.describe('Route Entry Points', () => {
         const nav = document.querySelector('nav.pool-nav-rail .pool-nav-toggle')?.getBoundingClientRect();
         const rail = document.querySelector('nav.pool-nav-rail')?.getBoundingClientRect();
         const routeHeading = document.querySelector('.pool-page-heading')?.getBoundingClientRect() || null;
-        const ask = document.querySelector('.pool-home-ask-submit')?.getBoundingClientRect() || null;
+        const ask = document.querySelector('.pool-home-run-button')?.getBoundingClientRect() || null;
         return {
           ask: ask ? { height: ask.height, width: ask.width } : null,
           nav: nav ? { height: nav.height, left: nav.left, width: nav.width } : null,
@@ -547,7 +468,7 @@ test.describe('Route Entry Points', () => {
   test('ask and compute are presented as local peer-room flows', async ({ page }) => {
     await page.goto('/ask');
     await page.waitForSelector('.pool-home', { timeout: 20000 });
-    await expect(page.getByRole('heading', { name: 'Request', exact: true })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Ask a protein question', exact: true }).first()).toBeVisible();
     await expect(page.locator('.pool-page-heading .pool-eyebrow')).toHaveCount(0);
     await expect(page.getByLabel('Run controls')).toContainText('Run');
     await expect(page.locator('[data-pool-run-output]')).toBeHidden();

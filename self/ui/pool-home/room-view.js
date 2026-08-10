@@ -42,7 +42,12 @@ const renderRecovery = (room) => {
   const recovery = room.recovery || {};
   const states = Array.isArray(recovery.states) ? recovery.states : [];
   const labels = Array.isArray(recovery.labels) ? recovery.labels : states;
-  if (!states.length) return '';
+  const hasProblem = Boolean(
+    recovery.remoteError
+    || recovery.rejectedRecords?.length
+    || recovery.invalidatedCount > 0
+  );
+  if (!hasProblem) return '';
   const details = [
     recovery.remoteError ? `Coordinator sync unavailable: ${recovery.remoteError}` : null,
     recovery.rejectedRecords?.length
@@ -51,12 +56,6 @@ const renderRecovery = (room) => {
     recovery.invalidatedCount > 0
       ? `${recovery.invalidatedCount} record${recovery.invalidatedCount === 1 ? '' : 's'} remain in history but are excluded from active projections.`
       : null,
-    states.includes('awaiting_review')
-      ? 'The latest result remains provisional until an applicable review accepts it.'
-      : null,
-    states.includes('awaiting_replication')
-      ? 'Human review accepted the latest result, but reusable memory still requires independent receipt and provider evidence.'
-      : null
   ].filter(Boolean);
   return `
     <section class="pool-room-recovery" data-pool-room-recovery data-recovery-phase="${escapeHtml(recovery.phase || 'local_only')}" aria-label="Room recovery state">
@@ -93,10 +92,9 @@ const renderQuestion = (room) => {
   if (!room.question) {
     return `
       <div class="pool-room-empty-state">
-        <p class="pool-dashboard-kicker">Start with intent</p>
-        <h2 class="type-h2">Ask a question of a public sequence.</h2>
-        <p>Submit a sequence, question, consent, and exact model contract. The room keeps the path from request to reviewed evidence visible.</p>
-        <a class="btn btn-primary" data-pool-route-link="${escapeHtml(roomHref('/ask', room.roomId))}" href="${escapeHtml(roomHref('/ask', room.roomId))}">Open requester controls</a>
+        <p class="pool-dashboard-kicker">Question</p>
+        <h2 class="type-h2">No question yet</h2>
+        <a class="btn btn-primary" data-pool-route-link="${escapeHtml(roomHref('/ask', room.roomId))}" href="${escapeHtml(roomHref('/ask', room.roomId))}">Ask a question</a>
       </div>
     `;
   }
@@ -109,10 +107,8 @@ const renderQuestion = (room) => {
       <dl class="pool-room-facts">
         <div><dt>Sequence</dt><dd>${escapeHtml(compactHash(room.question.sequenceHash))} · ${escapeHtml(room.question.sequenceLength)} residues</dd></div>
         <div><dt>Model</dt><dd>${escapeHtml(room.question.modelContract?.id || 'Not selected')}</dd></div>
-        <div><dt>Policy</dt><dd>${escapeHtml(room.question.policyId || 'Not selected')}</dd></div>
-        <div><dt>Question clarity</dt><dd>${escapeHtml((room.question.clarity?.status || 'unassessed').replace(/_/g, ' '))}</dd></div>
       </dl>
-      ${room.question.clarity?.gaps?.length ? `<details class="pool-room-disclosure"><summary>${escapeHtml(room.question.clarity.gaps.length)} question gap${room.question.clarity.gaps.length === 1 ? '' : 's'}</summary><ul>${room.question.clarity.gaps.map((gap) => `<li><strong>${escapeHtml(gap.field.replace(/_/g, ' '))}:</strong> ${escapeHtml(gap.reason)}</li>`).join('')}</ul></details>` : ''}
+      ${room.question.clarity?.gaps?.length ? `<details class="pool-room-disclosure"><summary>${escapeHtml(room.question.clarity.gaps.length)} missing detail${room.question.clarity.gaps.length === 1 ? '' : 's'}</summary><ul>${room.question.clarity.gaps.map((gap) => `<li><strong>${escapeHtml(gap.field.replace(/_/g, ' '))}:</strong> ${escapeHtml(gap.reason)}</li>`).join('')}</ul></details>` : ''}
     </div>
   `;
 };
@@ -122,8 +118,8 @@ const renderResult = (room) => {
   if (!result) {
     return `
       <section class="pool-room-result-card is-empty" data-room-result-card>
-        <div><p class="pool-dashboard-kicker">Latest result</p><h2 class="type-h2">No receipt-backed result yet</h2><p>Execution evidence will appear here after a contributor or permitted local browser completes the request.</p><p class="pool-room-boundary"><strong>Agreement:</strong> Evidence unavailable</p></div>
-        <a class="btn btn-primary" data-pool-route-link="${escapeHtml(roomHref('/ask', room.roomId))}" href="${escapeHtml(roomHref('/ask', room.roomId))}">Run the question</a>
+        <div><p class="pool-dashboard-kicker">Result</p><h2 class="type-h2">No result yet</h2></div>
+        <a class="btn btn-primary" data-pool-route-link="${escapeHtml(roomHref('/ask', room.roomId))}" href="${escapeHtml(roomHref('/ask', room.roomId))}">Run</a>
       </section>
     `;
   }
@@ -131,19 +127,16 @@ const renderResult = (room) => {
   return `
     <section class="pool-room-result-card" data-room-result-card>
       <div class="pool-room-result-heading">
-        <div><p class="pool-dashboard-kicker">Latest result</p><h2 class="type-h2">Inspectable model evidence</h2></div>
+        <div><p class="pool-dashboard-kicker">Result</p><h2 class="type-h2">Model evidence</h2></div>
         <span class="pool-room-status" data-status="${escapeHtml(result.status)}">${escapeHtml(result.status.replace(/_/g, ' '))}</span>
       </div>
       <div class="pool-room-result-grid">
         <div><span class="rgr-status-label">Agreement</span><strong>${escapeHtml(agreementLabel)}</strong></div>
         <div><span class="rgr-status-label">Review</span><strong>${escapeHtml(result.reviewState.replace(/_/g, ' '))}</strong></div>
-        <div><span class="rgr-status-label">Dimensions</span><strong>${escapeHtml(result.embeddingDimensions || 'not published')}</strong></div>
         <div><span class="rgr-status-label">Receipt</span><strong title="${escapeHtml(result.receiptHash || '')}">${escapeHtml(compactHash(result.receiptHash))}</strong></div>
-        <div><span class="rgr-status-label">Uncertainty</span><strong>${escapeHtml(result.uncertainty.length ? `${result.uncertainty.length} recorded limits` : 'Not reported')}</strong></div>
       </div>
-      <p class="pool-room-boundary">Agreement is never inferred from similarity, visual proximity, or retrieval ranking.</p>
       <div class="pool-room-action-controls">
-        <a class="btn btn-primary" data-pool-route-link="${escapeHtml(roomHref('/records', room.roomId, 'review', result.sourceHash))}" href="${escapeHtml(roomHref('/records', room.roomId, 'review', result.sourceHash))}">Review this result</a>
+        <a class="btn btn-primary" data-pool-route-link="${escapeHtml(roomHref('/records', room.roomId, 'review', result.sourceHash))}" href="${escapeHtml(roomHref('/records', room.roomId, 'review', result.sourceHash))}">Review</a>
       </div>
       <details class="pool-room-disclosure"><summary>Technical evidence</summary>
         <dl class="pool-room-facts">
@@ -187,16 +180,19 @@ const renderUnresolved = (room) => `
 const renderNextAction = (room) => {
   const action = room.nextActions[0];
   const nextQuestion = room.nextQuestion || {};
-  const destination = roomHref('/records', room.roomId, action ? 'discovery' : 'review');
+  const needsQuestion = !room.question;
+  const destination = needsQuestion
+    ? roomHref('/ask', room.roomId)
+    : roomHref('/records', room.roomId, action ? 'discovery' : 'review');
   const approvalBoundary = nextQuestion.humanApprovalStatus === 'approved'
-    ? `Signed approval: ${nextQuestion.approvalRecordHashes?.length || 0} exact task contract. Approval does not allocate or execute work.`
-    : 'Human approval is required; this projection cannot allocate or execute work.';
+    ? `${nextQuestion.approvalRecordHashes?.length || 0} signed approval${nextQuestion.approvalRecordHashes?.length === 1 ? '' : 's'}`
+    : 'Approval required';
   return `
     <section class="pool-room-action-card" aria-labelledby="pool-room-next-action-title">
-      <div><p class="pool-dashboard-kicker">Next research question</p><h2 class="type-h2" id="pool-room-next-action-title">${escapeHtml(action ? action.kind.replace(/_/g, ' ') : 'Human review required')}</h2><p>${escapeHtml(nextQuestion.prompt || action?.reason || 'Submit a question or invite a reviewer to create the next evidence record.')}</p>${action ? `<p class="type-caption">Action rationale: ${escapeHtml(action.reason)}</p>` : ''}<p class="pool-room-boundary">Basis: ${escapeHtml(action?.basis === 'accepted_memory' ? `${action.basisHashes.length} accepted memory record${action.basisHashes.length === 1 ? '' : 's'}` : 'question or governance boundary')}. ${escapeHtml(approvalBoundary)}</p></div>
+      <div><p class="pool-dashboard-kicker">Next</p><h2 class="type-h2" id="pool-room-next-action-title">${escapeHtml(needsQuestion ? 'Ask a question' : action ? action.kind.replace(/_/g, ' ') : 'Review the evidence')}</h2><p>${escapeHtml(needsQuestion ? 'Start with a public protein sequence.' : nextQuestion.prompt || action?.reason || 'Review a result.')}</p>${needsQuestion ? '' : `<small>${escapeHtml(approvalBoundary)}</small>`}${action ? `<details class="pool-room-disclosure"><summary>Why this action?</summary><p>${escapeHtml(action.reason)}</p><p>Based on ${escapeHtml(action.basis === 'accepted_memory' ? `${action.basisHashes.length} accepted record${action.basisHashes.length === 1 ? '' : 's'}` : 'the current question')}.</p></details>` : ''}</div>
       <div class="pool-room-action-controls">
         ${action && action.status !== 'approved' ? `<button class="btn btn-primary" type="button" data-pool-room-approve-task="${escapeHtml(action.id)}" data-pool-room-task-target="${escapeHtml(action.targetHash)}" data-pool-room-id="${escapeHtml(room.roomId)}">Approve next action</button>` : ''}
-        <a class="btn btn-ghost" data-pool-route-link="${escapeHtml(destination)}" href="${escapeHtml(destination)}">${action?.status === 'approved' ? 'Inspect approved action' : 'Inspect details'}</a>
+        <a class="btn btn-ghost" data-pool-route-link="${escapeHtml(destination)}" href="${escapeHtml(destination)}">Open</a>
       </div>
     </section>
   `;
@@ -287,25 +283,24 @@ export function renderResearchRoom({
   return `
     <section class="pool-research-room" data-pool-research-room data-room-id="${escapeHtml(room.roomId)}" data-room-route="${escapeHtml(room.routeId)}" data-room-panel="${escapeHtml(panel)}">
       <header class="pool-room-header">
-        <div><p class="pool-dashboard-kicker">Reploid Research Room</p><h1 class="type-h1">Question, evidence, and the next useful action</h1><p>One room for human intent, browser execution, signed evidence, review, and remembered knowledge.</p></div>
-        <div class="pool-room-header-meta"><span class="pool-room-status" data-status="${escapeHtml(room.status)}">${escapeHtml(statusLabel(room.status))}</span><code>Room ${escapeHtml(room.roomId)}</code></div>
+        <div><p class="pool-dashboard-kicker">Reploid</p><h1 class="type-h1">Research room</h1></div>
+        <div class="pool-room-header-meta"><span class="pool-room-status" data-status="${escapeHtml(room.status)}">${escapeHtml(statusLabel(room.status))}</span></div>
       </header>
       ${renderRecovery(room)}
-      <div class="pool-room-participants" aria-label="Room participants">${renderParticipants(room.participants)}</div>
       <div class="pool-room-main-grid">
         <section class="pool-room-question-card">${renderQuestion(room)}</section>
         ${renderResult(room)}
       </div>
-      <div class="pool-room-columns">
-        <div>${renderUnresolved(room)}${renderNextAction(room)}</div>
-        <div>${renderTimeline(room)}</div>
-      </div>
-      ${renderProposals(room)}
-      ${renderMemory(room)}
-      ${renderRoles(room)}
-      <details class="pool-room-disclosure pool-room-technical-disclosure"><summary>Room provenance and recovery</summary>
+      ${renderNextAction(room)}
+      <details class="pool-room-disclosure pool-room-technical-disclosure"><summary>History and details</summary>
+        <div class="pool-room-participants" aria-label="Room participants">${renderParticipants(room.participants)}</div>
+        <div class="pool-room-columns">
+          <div>${renderUnresolved(room)}${renderMemory(room)}</div>
+          <div>${renderTimeline(room)}</div>
+        </div>
+        ${renderProposals(room)}
+        ${renderRoles(room)}
         <dl class="pool-room-facts"><div><dt>Room identity</dt><dd>${escapeHtml(room.roomId)}</dd></div><div><dt>Cycle policy</dt><dd>${escapeHtml(room.cycle?.policyId || 'unknown')}</dd></div><div><dt>Active records</dt><dd>${escapeHtml(room.counts.active)}</dd></div><div><dt>Remembered records</dt><dd>${escapeHtml(room.counts.memory)}</dd></div><div><dt>Excluded from memory</dt><dd>${escapeHtml(room.memoryExclusions?.length || 0)}</dd></div><div><dt>Timeline entries</dt><dd>${escapeHtml(room.counts.timeline)}</dd></div><div><dt>Recovery state</dt><dd>${escapeHtml(room.recovery?.labels?.join(' · ') || 'Local-only recovery')}</dd></div><div><dt>Rejected records</dt><dd>${escapeHtml(room.recovery?.rejectedRecords?.length || 0)}</dd></div><div><dt>Invalidated records</dt><dd>${escapeHtml(room.recovery?.invalidatedCount || 0)}</dd></div></dl>
-        <p class="type-caption">Local drafts are recovery state. Only verified, active, accepted signed records enter room memory.</p>
       </details>
     </section>
   `;
