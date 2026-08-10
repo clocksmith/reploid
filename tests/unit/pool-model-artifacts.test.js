@@ -13,14 +13,19 @@ import { hashJson, sha256Hex } from '../../self/pool/inference-receipt.js';
 describe('pool model artifact helpers', () => {
   it('requires the approved browser origins, range methods, and exposed artifact headers', () => {
     const policy = [{
-      origin: ['https://replo.id', 'http://localhost:8000'],
+      origin: [
+        'https://replo.id',
+        'https://reploid.web.app',
+        'https://reploid.firebaseapp.com',
+        'http://localhost:8000'
+      ],
       method: ['GET', 'HEAD'],
       responseHeader: ['Accept-Ranges', 'Content-Length', 'Content-Range', 'Content-Type', 'ETag']
     }];
     expect(validateModelArtifactCorsPolicy(policy)).toEqual({ ok: true, reasons: [] });
-    expect(validateModelArtifactCorsPolicy([{ ...policy[0], origin: ['https://replo.id'] }])).toMatchObject({
+    expect(validateModelArtifactCorsPolicy([{ ...policy[0], origin: policy[0].origin.filter((origin) => origin !== 'https://reploid.web.app') }])).toMatchObject({
       ok: false,
-      reasons: ['artifact CORS policy does not allow required origin: http://localhost:8000']
+      reasons: ['artifact CORS policy does not allow required origin: https://reploid.web.app']
     });
   });
 
