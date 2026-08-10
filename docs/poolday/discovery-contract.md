@@ -19,13 +19,16 @@ The current `poolday.governed_research_cycle/v1` projection implements a
 strict subset of this target contract:
 
 - signed sequence and question anchors with deterministic clarity gaps;
-- exact receipt-backed result provenance and distinct-receipt reproduction
-  checks;
+- exact receipt-backed result provenance and distinct-receipt plus
+  distinct-provider reproduction checks;
 - independent review states for acceptance, rejection, revision, replication,
   and disputed reviewer decisions;
-- fail-closed accepted room memory with correction and revocation exclusion;
+- fail-closed accepted room memory with correction, revocation, dispute, and
+  single-provider result exclusion;
 - governance actions over provisional records;
 - scientific actions whose `basisHashes` are restricted to accepted memory;
+- exact signed task approvals that become stale when the projected rationale,
+  basis, target, or ranking policy changes;
 - a deterministic next-question brief with explicit uncertainty, human
   approval, and no execution authority.
 

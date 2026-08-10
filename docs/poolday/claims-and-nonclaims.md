@@ -26,9 +26,11 @@ Poolday provides:
   requests, and corrections
 - public room-scoped evidence links and exact-contract embedding comparison
 - fail-closed accepted room memory that excludes provisional, disputed,
-  replication-requested, corrected, and revoked evidence
+  replication-requested, corrected, revoked, and compute evidence without
+  independent receipt and provider identities
 - deterministic flat similarity, evidence-aware reranking, clustering, and
-  approval-gated task proposals with explicit accepted-memory basis
+  exact-contract approval-gated task proposals with explicit accepted-memory
+  basis
 
 The approved product claim is:
 

@@ -129,6 +129,11 @@ const deepFreeze = (value) => {
 };
 const compactText = (value, max = MAX_TEXT_LENGTH) => String(value || '').trim().slice(0, max);
 const unique = (values) => [...new Set(values.filter(Boolean))];
+const providerIdentities = (values) => unique((Array.isArray(values) ? values : [])
+  .filter((value) => typeof value === 'string')
+  .map((value) => compactText(value, 240))
+  .filter(Boolean))
+  .sort();
 const stableTaskId = (kind, targetHash) => `task:${kind}:${targetHash}`;
 const withoutSignature = (record = {}) => {
   const { signature, ...payload } = record;
@@ -225,6 +230,42 @@ export function projectResearchQuestionClarity(submission = null) {
   };
 }
 
+/**
+ * Projects the minimum independent-execution evidence required before a
+ * receipt-backed result can enter reusable room memory. Receipt and provider
+ * identities are separate constraints: two hashes from one provider do not
+ * establish independent execution.
+ */
+export function projectResearchExecutionIndependence(record = {}) {
+  const agreement = record.compute?.agreement || null;
+  const receiptHashes = unique([
+    record.compute?.receiptHash,
+    ...(Array.isArray(record.compute?.receiptHashes) ? record.compute.receiptHashes : []),
+    ...(Array.isArray(agreement?.receiptHashes) ? agreement.receiptHashes : [])
+  ]).map(String).sort();
+  const providerIds = providerIdentities([
+    record.compute?.providerId,
+    ...(Array.isArray(agreement?.providerIds) ? agreement.providerIds : []),
+    ...(Array.isArray(agreement?.acceptedProviderIds) ? agreement.acceptedProviderIds : [])
+  ]);
+  const independentReceiptCount = receiptHashes.length;
+  const independentProviderCount = providerIds.length;
+  const independentlyExecuted = independentReceiptCount >= 2 && independentProviderCount >= 2;
+  return {
+    schema: 'poolday.research_execution_independence/v1',
+    receiptHashes,
+    providerIds,
+    independentReceiptCount,
+    independentProviderCount,
+    independentlyExecuted,
+    status: independentlyExecuted
+      ? 'independently_reproduced'
+      : independentReceiptCount < 2
+        ? 'single_receipt'
+        : 'provider_independence_missing'
+  };
+}
+
 const normalizeConsent = (consent = {}, alphabet = SEQUENCE_ALPHABETS.aminoAcid) => {
   if (consent.publicSequence !== true) throw new TypeError('public sequence consent is required');
   if (consent.publicEvidenceNetwork !== true) throw new TypeError('public evidence-network consent is required');
@@ -304,7 +345,10 @@ export const projectDiscoveryTaskContract = (task = {}) => {
     reason,
     basis,
     basisHashes: [...basisHashes].sort(),
-    rankingPolicyId: DISCOVERY_ACTION_VALUE_POLICY.policyId
+    rankingPolicyId: DISCOVERY_ACTION_VALUE_POLICY.policyId,
+    rankingPolicyVersion: DISCOVERY_ACTION_VALUE_POLICY.version,
+    rankingMethod: DISCOVERY_ACTION_VALUE_POLICY.method,
+    rankingStatus: DISCOVERY_ACTION_VALUE_POLICY.status
   };
 };
 
@@ -314,7 +358,10 @@ const normalizeTaskApprovalContract = (taskContract, taskId, targetHash) => {
     throw new TypeError('task approval contract does not match its task or target identity');
   }
   if (taskContract?.schema !== normalized.schema
-    || taskContract?.rankingPolicyId !== normalized.rankingPolicyId) {
+    || taskContract?.rankingPolicyId !== normalized.rankingPolicyId
+    || taskContract?.rankingPolicyVersion !== normalized.rankingPolicyVersion
+    || taskContract?.rankingMethod !== normalized.rankingMethod
+    || taskContract?.rankingStatus !== normalized.rankingStatus) {
     throw new TypeError('task approval contract schema or ranking policy is invalid');
   }
   return normalized;
@@ -669,8 +716,14 @@ export async function createSignedResearchResult({
   if (declaredProviderIds != null && !Array.isArray(declaredProviderIds)) {
     throw new TypeError('compute agreement provider identities must be an array');
   }
-  const agreementProviderIds = unique([
-    receipt.providerId || receiptRecord?.providerId || null,
+  if (Array.isArray(declaredProviderIds)
+    && declaredProviderIds.some((providerId) => typeof providerId !== 'string' || !providerId.trim())) {
+    throw new TypeError('compute agreement provider identities must be non-empty strings');
+  }
+  const primaryProviderId = compactText(receipt.providerId || receiptRecord?.providerId, 240);
+  if (!primaryProviderId) throw new TypeError('compute receipt provider identity is required');
+  const agreementProviderIds = providerIdentities([
+    primaryProviderId,
     ...(declaredProviderIds || [])
   ]);
   if (['accepted', 'agreed'].includes(agreementStatus)
@@ -702,7 +755,7 @@ export async function createSignedResearchResult({
       routeDecisionHash: receipt.routeDecisionHash || (routeDecision ? await hashJson(routeDecision) : null),
       assignmentId: receipt.assignmentId || receiptRecord?.assignmentId || null,
       jobId: receipt.jobId || receiptRecord?.jobId || null,
-      providerId: receipt.providerId || receiptRecord?.providerId || null,
+      providerId: primaryProviderId,
       runtimeProfileHash: receipt.verification?.runtimeProfileHash || receipt.runtime?.runtimeProfileHash || null,
       outputKind: receipt.outputKind || null,
       sequenceResultHash: receipt.sequenceResultHash || receiptRecord?.sequenceResultHash || null,
@@ -1554,13 +1607,14 @@ export async function verifyResearchRecord(record = {}) {
     if (!SHA256_PATTERN.test(String(record.sequenceHash || ''))) reasons.push('result sequenceHash is invalid');
     if (!Number.isInteger(record.sequenceLength) || record.sequenceLength <= 0) reasons.push('result sequenceLength is invalid');
     if (!SHA256_PATTERN.test(String(record.compute?.receiptHash || ''))) reasons.push('result receiptHash is invalid');
+    if (!compactText(record.compute?.providerId, 240)) reasons.push('result providerId is required');
     if (record.compute?.verifierDecision?.accepted !== true) reasons.push('result requires an explicitly accepted verifier decision');
     if (!Array.isArray(record.compute?.receiptHashes) || record.compute.receiptHashes.some((hash) => !SHA256_PATTERN.test(String(hash || '')))) {
       reasons.push('result receiptHashes are invalid');
     } else if (!record.compute.receiptHashes.includes(record.compute.receiptHash)) {
       reasons.push('result receiptHashes must include the primary receiptHash');
     } else if (['accepted', 'agreed'].includes(compactText(record.compute?.agreement?.status, 64).toLowerCase())
-      && unique(record.compute.receiptHashes).length < 2) {
+      && projectResearchExecutionIndependence(record).independentReceiptCount < 2) {
       reasons.push('accepted compute agreement requires at least two distinct receipt identities');
     }
     const declaredAgreementProviders = record.compute?.agreement?.providerIds
@@ -1568,10 +1622,13 @@ export async function verifyResearchRecord(record = {}) {
       ?? null;
     if (declaredAgreementProviders != null && !Array.isArray(declaredAgreementProviders)) {
       reasons.push('accepted compute agreement provider identities must be an array');
+    } else if (Array.isArray(declaredAgreementProviders)
+      && declaredAgreementProviders.some((providerId) => typeof providerId !== 'string' || !providerId.trim())) {
+      reasons.push('accepted compute agreement provider identities must be non-empty strings');
     }
     if (['accepted', 'agreed'].includes(compactText(record.compute?.agreement?.status, 64).toLowerCase())
       && (!Array.isArray(declaredAgreementProviders)
-        || unique([record.compute?.providerId, ...declaredAgreementProviders]).length < 2)) {
+        || projectResearchExecutionIndependence(record).independentProviderCount < 2)) {
       reasons.push('accepted compute agreement requires at least two distinct provider identities');
     }
     try {
@@ -1911,21 +1968,25 @@ export function projectAcceptedResearchMemory(records = []) {
     .filter((record) => record.claim?.kind === 'correction' || record.claim?.relation === 'corrects')
     .filter((record) => reviewStates.get(record.recordHash)?.state === 'accepted')
     .map((record) => [record.targetHash, record.recordHash]));
-  const acceptedRecords = active.filter((record) => (
-    reviewStates.get(record.recordHash)?.state === 'accepted'
-    && !acceptedCorrections.has(record.recordHash)
-  ));
+  const memoryBlockReason = (record) => {
+    if (invalidated.has(record.recordHash)) return 'invalidated';
+    if (acceptedCorrections.has(record.recordHash)) return 'superseded_by_accepted_correction';
+    const reviewState = reviewStates.get(record.recordHash)?.state || 'unreviewed';
+    if (reviewState !== 'accepted') return reviewState;
+    if (record.kind === RESEARCH_RECORD_KINDS.result
+      && !projectResearchExecutionIndependence(record).independentlyExecuted) {
+      return 'independent_execution_missing';
+    }
+    return null;
+  };
+  const acceptedRecords = active.filter((record) => memoryBlockReason(record) === null);
   const acceptedHashes = acceptedRecords.map((record) => record.recordHash).sort();
   const excluded = records
     .filter((record) => record.kind !== RESEARCH_RECORD_KINDS.revocation)
     .filter((record) => !acceptedHashes.includes(record.recordHash))
     .map((record) => ({
       recordHash: record.recordHash,
-      reason: invalidated.has(record.recordHash)
-        ? 'invalidated'
-        : acceptedCorrections.has(record.recordHash)
-          ? 'superseded_by_accepted_correction'
-          : reviewStates.get(record.recordHash)?.state || 'unreviewed',
+      reason: memoryBlockReason(record),
       supersededByHash: acceptedCorrections.get(record.recordHash) || null
     }))
     .sort((left, right) => left.recordHash.localeCompare(right.recordHash));
@@ -2493,12 +2554,7 @@ export function proposeDiscoveryTasks(records = []) {
     }
     for (const result of linkedResults) {
       requireReview(result, 'The receipt-backed result');
-      const resultProviderIds = unique([
-        result.compute?.providerId,
-        ...(result.compute?.agreement?.providerIds || result.compute?.agreement?.acceptedProviderIds || [])
-      ]);
-      if (unique(result.compute?.receiptHashes || [result.compute?.receiptHash]).length < 2
-        || resultProviderIds.length < 2) {
+      if (!projectResearchExecutionIndependence(result).independentlyExecuted) {
         addTask('reproduce', result.recordHash, 'The result lacks two distinct receipt and provider identities.');
       }
     }
@@ -2594,11 +2650,17 @@ export function proposeDiscoveryTasks(records = []) {
   return uniqueTasks.map((task) => {
     const taskId = stableTaskId(task.kind, task.targetHash);
     const taskContract = projectDiscoveryTaskContract({ ...task, taskId });
-    const approved = approvals.some((approval) => (
+    const matchingApprovals = approvals.filter((approval) => (
       approval.claim.taskId === taskId
       && JSON.stringify(approval.claim.taskContract) === JSON.stringify(taskContract)
     ));
-    return { ...task, taskId, taskContract, status: approved ? 'approved' : 'proposed' };
+    return {
+      ...task,
+      taskId,
+      taskContract,
+      status: matchingApprovals.length ? 'approved' : 'proposed',
+      approvalRecordHashes: matchingApprovals.map((approval) => approval.recordHash).sort()
+    };
   });
 }
 
@@ -2703,6 +2765,7 @@ export default {
   buildModelEvidenceView,
   buildQuestionLifecycles,
   projectResearchQuestionClarity,
+  projectResearchExecutionIndependence,
   projectResearchReviewStates,
   projectAcceptedResearchMemory,
   projectDiscoveryTaskContract,

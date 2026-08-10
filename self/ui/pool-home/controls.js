@@ -83,6 +83,10 @@ export const POOL_CONTRIBUTION_RESUME_STORAGE_KEY = 'reploid.pool.contribution-r
 export const POOL_PENDING_REQUEST_STORAGE_KEY = 'reploid.pool.pending-request.v1';
 const POOL_PENDING_REQUEST_VERSION = 1;
 const POOL_PENDING_REQUEST_TTL_MS = 15 * 60 * 1000;
+const policyGuaranteesIndependentExecution = (policy = {}) => (
+  Number(policy.redundancy || 0) >= 2
+  || Number(policy.minRingSize || 0) >= 2
+);
 
 const readContributionResumeIntent = () => {
   try {
@@ -1284,9 +1288,6 @@ const bindPeerRunSurface = ({
     if (lane === 'sequence' && !sequenceWorkload) {
       throw new Error('The selected request model does not support biological sequence work');
     }
-    const adapter = await resolveSelectedAdapter(adapterSelect, selectedModel, {
-      required: Boolean(adapterRequired())
-    });
     const sequence = lane === 'sequence'
       ? requestInput.replace(/^Sequence:\s*/i, '')
       : null;
@@ -1299,18 +1300,30 @@ const bindPeerRunSurface = ({
         includeLogits: false
       }
       : null;
+    const publishesResearch = lane === 'sequence' && researchPublicControl?.checked === true;
+    if (publishesResearch && !intentTextControl?.value?.trim()) {
+      const error = new Error('State the question, hypothesis, or context before publishing research evidence');
+      error.code = 'research_question_required';
+      error.action = 'Add the exact question reviewers should answer, then run again.';
+      throw error;
+    }
+    const adapter = await resolveSelectedAdapter(adapterSelect, selectedModel, {
+      required: Boolean(adapterRequired())
+    });
     let selectedPolicyId = policySelect?.value || FASTEST_RECEIPT_POLICY_ID;
-    if (lane === 'sequence' && researchPublicControl?.checked === true
-      && !['redundant_agreement', 'ring_quorum_receipt'].includes(selectedPolicyId)) {
-      const redundantOption = policySelect?.querySelector('option[value="redundant_agreement"]');
-      if (!redundantOption) {
+    const selectedPolicy = listPolicies().find((policy) => policy.policyId === selectedPolicyId);
+    if (publishesResearch && !policyGuaranteesIndependentExecution(selectedPolicy)) {
+      const redundantPolicy = listPolicies().find((policy) => policy.policyId === 'redundant_agreement');
+      if (!policyGuaranteesIndependentExecution(redundantPolicy)) {
         const error = new Error('Public Research Room evidence requires an independent-execution policy');
         error.code = 'research_independence_policy_required';
-        error.action = 'Select redundant agreement or ring quorum, then run again.';
+        error.action = 'Restore the redundant-agreement policy contract, then run again.';
         throw error;
       }
-      selectedPolicyId = 'redundant_agreement';
-      policySelect.value = selectedPolicyId;
+      selectedPolicyId = redundantPolicy.policyId;
+      if (policySelect?.querySelector(`option[value="${selectedPolicyId}"]`)) {
+        policySelect.value = selectedPolicyId;
+      }
     }
     const request = {
       lane,
@@ -1322,13 +1335,7 @@ const bindPeerRunSurface = ({
       adapterPackHash: adapter?.packHash || null,
       policyId: selectedPolicyId
     };
-    if (lane === 'sequence' && researchPublicControl?.checked === true) {
-      if (!intentTextControl?.value?.trim()) {
-        const error = new Error('State the question, hypothesis, or context before publishing research evidence');
-        error.code = 'research_question_required';
-        error.action = 'Add the exact question reviewers should answer, then run again.';
-        throw error;
-      }
+    if (publishesResearch) {
       const researchSubmission = await createSignedResearchSubmission({
         identity: researchIdentity,
         roomId: getPeerRoomId(),

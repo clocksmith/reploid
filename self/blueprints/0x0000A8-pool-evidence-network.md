@@ -4,11 +4,11 @@
 
 **Implementation Status:** Implemented
 
-**Verified Artifacts:** `/self/pool/discovery-action-value.js`, `/self/pool/evidence-network.js`, `/self/pool/inference-receipt.js`, `/self/pool/model-evidence-view.js`, `/self/pool/sdk.js`, `/server/pool/firebase-store.js`, `/server/pool/routes.js`, `/server/pool/store.js`
+**Verified Artifacts:** `/self/pool/discovery-action-value.js`, `/self/pool/evidence-network.js`, `/self/pool/inference-receipt.js`, `/self/pool/model-evidence-view.js`, `/self/pool/research-cycle.js`, `/self/pool/sdk.js`, `/server/pool/firebase-store.js`, `/server/pool/routes.js`, `/server/pool/store.js`
 
 **Planned Artifacts:** None
 
-**Owned Source Files:** `pool/discovery-action-value.js`, `pool/evidence-network.js`, `pool/model-evidence-view.js`, `pool/sdk.js`
+**Owned Source Files:** `pool/discovery-action-value.js`, `pool/evidence-network.js`, `pool/model-evidence-view.js`, `pool/research-cycle.js`, `pool/sdk.js`
 
 **Former Blueprint Paths:** `self/blueprints/0x0000A8-pool-evidence-network.md`
 **Objective:** Preserve public protein research inputs, compute provenance, experimental outcomes, and human interpretation as separately signed immutable evidence, then derive governed Discovery Contract views without converting evidence into automatic truth.
@@ -37,8 +37,9 @@ authenticated and role-bound.
 The browser derives an evidence graph, text search, exact-model compatible cosine
 similarity, accepted-evidence reranking, deterministic clustering, bounded task
 proposals, approval state, question lifecycles, disagreement views, review state,
-and quality or durability rewards. These are rebuildable projections over signed
-records.
+accepted memory, and quality or durability rewards. The governed cycle projects
+the question, independent execution, provenance, disagreement, review, memory,
+and next-question stages. These are rebuildable projections over signed records.
 
 The Records workspace also projects per-question exact-model evidence. A result
 binds its own exact model contract to its receipt while the signed submission
@@ -77,7 +78,9 @@ existing.
 - [x] Similarity excludes incompatible embeddings
 - [x] Cross-model Records projection preserves exact-contract isolation and reports unassessed agreement explicitly
 - [x] Discovery work remains proposed until separately approved
+- [x] Signed task approval binds the exact projected task contract
 - [x] Evidence rewards require independent acceptance and durability
+- [x] Reusable compute memory requires distinct receipt and provider identities
 - [x] Coordinator publication is authenticated and public discovery is read-only
 - [x] Advisory next-action ranking binds its heuristic policy, version, input records, and separate scientific-cost components without allocating work or claiming calibration
 - [ ] Calibrated action-value estimates bind replayable methods, inputs, cost assumptions, and frozen evaluation evidence

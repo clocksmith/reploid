@@ -33,6 +33,7 @@ const statusLabel = (status) => ({
   ready: 'Ready for a question',
   investigating: 'Investigation in progress',
   awaiting_review: 'Awaiting review',
+  awaiting_replication: 'Awaiting independent execution',
   corrected: 'Result corrected',
   remembered: 'Accepted evidence remembered'
 }[status] || 'Room activity');
@@ -52,6 +53,9 @@ const renderRecovery = (room) => {
       : null,
     states.includes('awaiting_review')
       ? 'The latest result remains provisional until an applicable review accepts it.'
+      : null,
+    states.includes('awaiting_replication')
+      ? 'Human review accepted the latest result, but reusable memory still requires independent receipt and provider evidence.'
       : null
   ].filter(Boolean);
   return `
@@ -184,9 +188,12 @@ const renderNextAction = (room) => {
   const action = room.nextActions[0];
   const nextQuestion = room.nextQuestion || {};
   const destination = roomHref('/records', room.roomId, action ? 'discovery' : 'review');
+  const approvalBoundary = nextQuestion.humanApprovalStatus === 'approved'
+    ? `Signed approval: ${nextQuestion.approvalRecordHashes?.length || 0} exact task contract. Approval does not allocate or execute work.`
+    : 'Human approval is required; this projection cannot allocate or execute work.';
   return `
     <section class="pool-room-action-card" aria-labelledby="pool-room-next-action-title">
-      <div><p class="pool-dashboard-kicker">Next research question</p><h2 class="type-h2" id="pool-room-next-action-title">${escapeHtml(action ? action.kind.replace(/_/g, ' ') : 'Human review required')}</h2><p>${escapeHtml(nextQuestion.prompt || action?.reason || 'Submit a question or invite a reviewer to create the next evidence record.')}</p>${action ? `<p class="type-caption">Action rationale: ${escapeHtml(action.reason)}</p>` : ''}<p class="pool-room-boundary">Basis: ${escapeHtml(action?.basis === 'accepted_memory' ? `${action.basisHashes.length} accepted memory record${action.basisHashes.length === 1 ? '' : 's'}` : 'question or governance boundary')}. Human approval is required; this projection cannot allocate or execute work.</p></div>
+      <div><p class="pool-dashboard-kicker">Next research question</p><h2 class="type-h2" id="pool-room-next-action-title">${escapeHtml(action ? action.kind.replace(/_/g, ' ') : 'Human review required')}</h2><p>${escapeHtml(nextQuestion.prompt || action?.reason || 'Submit a question or invite a reviewer to create the next evidence record.')}</p>${action ? `<p class="type-caption">Action rationale: ${escapeHtml(action.reason)}</p>` : ''}<p class="pool-room-boundary">Basis: ${escapeHtml(action?.basis === 'accepted_memory' ? `${action.basisHashes.length} accepted memory record${action.basisHashes.length === 1 ? '' : 's'}` : 'question or governance boundary')}. ${escapeHtml(approvalBoundary)}</p></div>
       <div class="pool-room-action-controls">
         ${action && action.status !== 'approved' ? `<button class="btn btn-primary" type="button" data-pool-room-approve-task="${escapeHtml(action.id)}" data-pool-room-task-target="${escapeHtml(action.targetHash)}" data-pool-room-id="${escapeHtml(room.roomId)}">Approve next action</button>` : ''}
         <a class="btn btn-ghost" data-pool-route-link="${escapeHtml(destination)}" href="${escapeHtml(destination)}">${action?.status === 'approved' ? 'Inspect approved action' : 'Inspect details'}</a>

@@ -215,6 +215,21 @@ describe('Poolday evidence network', () => {
       },
       agreement: { status: 'accepted', receiptHashes: [fakeHash('a'), fakeHash('b')] }
     })).rejects.toThrow('accepted compute agreement requires at least two distinct provider identities');
+
+    await expect(createSignedResearchResult({
+      identity: requester,
+      submission: source,
+      receiptRecord: {
+        receiptHash: fakeHash('a'),
+        verifierDecision: { accepted: true },
+        receipt: { model, providerId: 'provider-one', assignmentId: 'one', jobId: 'one' }
+      },
+      agreement: {
+        status: 'accepted',
+        receiptHashes: [fakeHash('a'), fakeHash('b')],
+        providerIds: ['provider-one', ' ']
+      }
+    })).rejects.toThrow('compute agreement provider identities must be non-empty strings');
   });
 
   it('allows agent proposals but reserves review decisions for human roles', async () => {
@@ -269,6 +284,49 @@ describe('Poolday evidence network', () => {
     expect(projectAcceptedResearchMemory(records).acceptedHashes).toEqual([]);
   });
 
+  it('keeps human-accepted single-provider compute outside reusable memory', async () => {
+    const requester = await identity('requester', 'single-provider-question', 'single-provider-requester');
+    const reviewer = await identity('reviewer', 'single-provider-reviewer', 'single-provider-reviewer');
+    const source = await submission(requester);
+    const computed = await createSignedResearchResult({
+      identity: requester,
+      roomId: source.roomId,
+      submission: source,
+      receiptRecord: {
+        receiptHash: fakeHash('a'),
+        verifierDecision: { accepted: true },
+        receipt: {
+          model,
+          providerId: 'provider-one',
+          assignmentId: 'single-assignment',
+          jobId: 'single-job'
+        }
+      }
+    });
+    const acceptance = await createSignedHumanClaim({
+      identity: reviewer,
+      roomId: source.roomId,
+      targetHash: computed.recordHash,
+      claimKind: 'review_decision',
+      relation: 'reviews',
+      text: 'The visible result is acceptable, subject to independent reproduction.',
+      confidence: 0.8,
+      decision: 'accepted'
+    });
+    const records = [source, computed, acceptance];
+    const memory = projectAcceptedResearchMemory(records);
+
+    expect(memory.acceptedHashes).toEqual([]);
+    expect(memory.excluded).toContainEqual(expect.objectContaining({
+      recordHash: computed.recordHash,
+      reason: 'independent_execution_missing'
+    }));
+    expect(proposeDiscoveryTasks(records)).toContainEqual(expect.objectContaining({
+      kind: 'reproduce',
+      targetHash: computed.recordHash
+    }));
+  });
+
   it('requires task approval to replay the exact projected task contract', async () => {
     const requester = await identity('requester', 'task-contract-requester', 'task-contract-requester');
     const reviewer = await identity('reviewer', 'task-contract-reviewer', 'task-contract-reviewer');
@@ -316,8 +374,11 @@ describe('Poolday evidence network', () => {
       taskId: computeTask.taskId,
       taskContract: computeTask.taskContract
     });
-    expect(proposeDiscoveryTasks([source, staleApproval, exactApproval]).find((task) => task.kind === 'compute').status)
-      .toBe('approved');
+    expect(proposeDiscoveryTasks([source, staleApproval, exactApproval]).find((task) => task.kind === 'compute'))
+      .toMatchObject({
+        status: 'approved',
+        approvalRecordHashes: [exactApproval.recordHash]
+      });
   });
 
   it('keeps human claims separate, attributable, and linked in the evidence graph', async () => {
