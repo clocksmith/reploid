@@ -65,10 +65,10 @@ describe('poolday home navigation', () => {
       'records'
     ]);
     expect(POOLDAY_NAV_ROUTES).toEqual([
-      { id: 'home', path: '/', label: 'Home' },
-      { id: 'ask', path: '/ask', label: 'Run' },
-      { id: 'compute', path: '/compute', label: 'Contribute' },
-      { id: 'records', path: '/records', label: 'Records' }
+      { id: 'home', path: '/', label: 'Research Room' },
+      { id: 'ask', path: '/ask', label: 'Request' },
+      { id: 'compute', path: '/compute', label: 'Share compute' },
+      { id: 'records', path: '/records', label: 'Review evidence' }
     ]);
     expect(PRODUCT_ROUTES).toEqual({
       '/': 'home',
@@ -83,9 +83,9 @@ describe('poolday home navigation', () => {
     expect(PRODUCT_ROUTES['/record']).toBeUndefined();
     expect(PRODUCT_ROUTES['/agents']).toBeUndefined();
     expect(ROUTE_COPY.compute).toEqual({
-      eyebrow: 'Contribute',
-      title: 'Contribute',
-      body: 'Let this tab embed compatible protein sequences. Stop at any time.'
+      eyebrow: 'Research Room · Share compute',
+      title: 'Share compute',
+      body: 'Let this tab contribute compatible protein execution to the active room. Stop at any time.'
     });
   });
 
@@ -105,8 +105,8 @@ describe('poolday home navigation', () => {
     expect(html).not.toContain('<span class="pool-nav-label">More</span>');
     expect(html).not.toContain('☰');
     expect(html).toContain('data-pool-nav-tooltip="Open the navigation details from the left"');
-    expect(html).toContain('data-pool-nav-tooltip="Submit a prompt to browser model contributors"');
-    expect(html).toContain('data-pool-nav-tooltip="Share this tab as browser compute"');
+    expect(html).toContain('data-pool-nav-tooltip="State a question and request model execution in this room"');
+    expect(html).toContain('data-pool-nav-tooltip="Share this browser as compute for the active room"');
     expect(html).toContain('href="/?room=reploid-default" data-pool-route-link="/?room=reploid-default"');
     expect(html).toContain('href="/ask?room=reploid-default" data-pool-route-link="/ask?room=reploid-default"');
     expect(html).toMatch(/href="\/compute\?room=reploid-default"[\s\S]*data-pool-route-link="\/compute\?room=reploid-default"[\s\S]*aria-current="page"/);
@@ -136,9 +136,9 @@ describe('poolday home navigation', () => {
     expect(html).toContain('aria-expanded="true"');
     expect(html).not.toContain('pool-nav-view-context');
     expect(html).not.toContain('Current view');
-    expect(html).toMatch(/aria-label="Records"[\s\S]*aria-current="page"/);
-    expect(html).toContain('<span class="pool-nav-description">Answers, work, rooms, and receipts</span>');
-    expect(html).toContain('<span class="pool-nav-description">Prompt peers and inspect the proof</span>');
+    expect(html).toMatch(/aria-label="Review evidence"[\s\S]*aria-current="page"/);
+    expect(html).toContain('<span class="pool-nav-description">Review claims and discover bounded work</span>');
+    expect(html).toContain('<span class="pool-nav-description">State intent and run the question</span>');
     expect(html).toContain('<span class="pool-nav-description">Blank local substrate</span>');
     expect(html).not.toContain('<span class="pool-nav-description">Self-modifying workspace</span>');
     expect(html).toContain('<div class="pool-room-context-heading">');
@@ -305,7 +305,7 @@ describe('poolday home navigation', () => {
     expect(live.participants).toHaveLength(6);
   });
 
-  it('keeps one primary action on Run and Contribute', () => {
+  it('keeps one primary action on Request and Share compute', () => {
     const runHtml = renderRouteDetail('ask');
     const contributeHtml = renderRouteDetail('compute');
 
@@ -335,7 +335,7 @@ describe('poolday home navigation', () => {
     expect(syntheticSmoke).toContain('maxComputeInvocationsPerWorkgroup: 256');
   });
 
-  it('renders ESM-2 as the only visible model on Run and Contribute', () => {
+  it('renders ESM-2 as the only visible model on Request and Share compute', () => {
     const askHtml = renderRouteDetail('ask');
     const computeHtml = renderRouteDetail('compute');
 
@@ -347,7 +347,7 @@ describe('poolday home navigation', () => {
     expect(computeHtml).not.toMatch(/<option[^>]+disabled/);
   });
 
-  it('renders Run as answer-first with proof and raw-result layers', () => {
+  it('renders Request as answer-first with proof and raw-result layers', () => {
     const html = renderRouteDetail('ask');
 
     expect(html).toContain('<span data-pool-run-prompt-label>Protein sequence</span>');
@@ -363,7 +363,7 @@ describe('poolday home navigation', () => {
     expect(html).toContain('pool-raw-details-full');
   });
 
-  it('renders Contribute as a live contributor tab dashboard', () => {
+  it('renders Share compute as a live contributor tab dashboard', () => {
     const html = renderRouteDetail('compute');
 
     expect(html).toContain('data-pool-provider');

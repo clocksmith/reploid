@@ -1429,7 +1429,7 @@
     {
       "path": "self/kernel/boot.js",
       "owner": "self",
-      "sha256": "sha256:5e1d3a7488e50815a2b742f1d97e1efcd4a964230c5f2ddbc967dbbd4e7d037c",
+      "sha256": "sha256:2e756bc956aa0e5b88e9721ae9e3b9d4db164b3bf4c56b605d265111fae97607",
       "imports": [
         "../boot-spec.js",
         "../config/doppler-local-models.js",
@@ -1991,7 +1991,7 @@
     {
       "path": "ui/pool-home/constants.js",
       "owner": "ui",
-      "sha256": "sha256:ca521ae431c02e743313ea0a134fc938a0a93418bec9220e63e34414f291ae29",
+      "sha256": "sha256:75ce146dcb2f4b188916fa3e4476a787b881450c291222cc98b62229aa0d237a",
       "imports": []
     },
     {
@@ -2003,7 +2003,7 @@
     {
       "path": "ui/pool-home/controls.js",
       "owner": "ui",
-      "sha256": "sha256:067dc64b1f39592ed93b8f4c5fce3fd79f865ee785a2964d653794d7605e4850",
+      "sha256": "sha256:9c1bef464bf49e17ba0ae1566c129d627b3f065c675b21e8e0ff135b1c728cc0",
       "imports": [
         "../../pool/adapter-publication.js",
         "../../pool/adapter-registry.js",
@@ -2029,7 +2029,7 @@
     {
       "path": "ui/pool-home/index.js",
       "owner": "ui",
-      "sha256": "sha256:74b5093f0cd50df06104860e16c6b9a44770b8a064d5fa85ea381bbfb6449cb3",
+      "sha256": "sha256:8d75cbf7f9331f125d3bcb4d7d15d7424793a6d9d4cf5da1e797d962fbb84c75",
       "imports": [
         "../../pool/doppler-runtime.js",
         "./constants.js",
@@ -2072,15 +2072,23 @@
       "imports": []
     },
     {
+      "path": "ui/pool-home/research-lifecycle-panel.js",
+      "owner": "ui",
+      "sha256": "sha256:9fe75242124f762a808c71254f5e005db8660162221c6b51bd0067aae4a54ea5",
+      "imports": [
+        "./research-panels.js"
+      ]
+    },
+    {
       "path": "ui/pool-home/research-panels.js",
       "owner": "ui",
-      "sha256": "sha256:266bf9f921d2c485ff33b933730ad87a1aaf1cddb6e0dcff8a7b6b71a5664539",
+      "sha256": "sha256:c83808568d6e9042855ad09e03de11e0b27c9b95ea7f79552648bc6e2244b547",
       "imports": []
     },
     {
       "path": "ui/pool-home/research-store.js",
       "owner": "ui",
-      "sha256": "sha256:a7abf7cc25113d039d499d88fa5a887dd3c55e550c991edb3a91a1ed683348ea",
+      "sha256": "sha256:c7decf8dbcca42f20f59ce33e243381340725c3fd16df68f04d6de3f51a544a8",
       "imports": [
         "../../pool/evidence-network.js",
         "../../pool/peer-room.js",
@@ -2088,20 +2096,30 @@
       ]
     },
     {
+      "path": "ui/pool-home/research-technical-panel.js",
+      "owner": "ui",
+      "sha256": "sha256:b6195c1c223d260558018eaa5c0e2c5dbefe814f574bd9fe4305d80f4a22f77e",
+      "imports": [
+        "./research-panels.js"
+      ]
+    },
+    {
       "path": "ui/pool-home/research-view.js",
       "owner": "ui",
-      "sha256": "sha256:efeb8e98c5dafed964915b226ba0cbbe1e34f9a2951916a2b7b9855ce8ec2fa2",
+      "sha256": "sha256:aded2b9e74f39c8efe2836d7fd2d1a2dabd4dd00aba6e21822e7b4299f2df511",
       "imports": [
         "../../pool/evidence-network.js",
         "../../pool/identity.js",
+        "./research-lifecycle-panel.js",
         "./research-panels.js",
-        "./research-store.js"
+        "./research-store.js",
+        "./research-technical-panel.js"
       ]
     },
     {
       "path": "ui/pool-home/room-projection.js",
       "owner": "ui",
-      "sha256": "sha256:851dea6f56ab2d1052cc82a95eb40699a200b571e9c70a499b61fe666bfaaa47",
+      "sha256": "sha256:cfe02c4dd9d8cd339829375c834f4a745d900db96a2137fa1b09016adb430641",
       "imports": [
         "../../pool/evidence-network.js"
       ]
@@ -2118,7 +2136,7 @@
     {
       "path": "ui/pool-home/room-view.js",
       "owner": "ui",
-      "sha256": "sha256:19b3120fe42b797eef3c58b45f313bf00aac28af048882a0ea6687987716133d",
+      "sha256": "sha256:586e67b727f8d4de97b433e6b792ca67b540830df1e183a0da355752f3e38e17",
       "imports": [
         "./room-projection.js"
       ]
@@ -2187,7 +2205,7 @@
     {
       "path": "ui/pool-home/view.js",
       "owner": "ui",
-      "sha256": "sha256:90fa8b9b35946964c2e2817cdadf9c639e1b302aaf29bdf2dcd238b6afb501f1",
+      "sha256": "sha256:1a49b8eff329588733898785f1a34fda414e510b12dc37dcd50082fbaae9ec87",
       "imports": [
         "../../pool/model-contract.js",
         "../../pool/participation-profile.js",

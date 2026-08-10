@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-08-09T22:32:21.026Z",
+  "generatedAt": "2026-08-09T23:36:38.374Z",
   "files": [
     "audit.html",
     "blueprint-index.json",
@@ -500,8 +500,10 @@
     "ui/pool-home/network-projection.js",
     "ui/pool-home/record-persistence.js",
     "ui/pool-home/requester-controls.js",
+    "ui/pool-home/research-lifecycle-panel.js",
     "ui/pool-home/research-panels.js",
     "ui/pool-home/research-store.js",
+    "ui/pool-home/research-technical-panel.js",
     "ui/pool-home/research-view.js",
     "ui/pool-home/room-projection.js",
     "ui/pool-home/room-record-projection.js",

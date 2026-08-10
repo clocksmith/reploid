@@ -58,17 +58,29 @@ const result = ({ roomId = 'room-projection', submissionHash = hash('a'), agreem
   }
 });
 
-const acceptedReview = (targetHash) => ({
+const reviewDecision = (targetHash, decision, identityRootId = 'reviewer-root', recordHash = null) => ({
   kind: 'human_claim',
-  recordHash: hash('g'),
+  recordHash: recordHash || hash(`${decision[0]}${identityRootId[0]}`),
   roomId: 'room-projection',
   createdAt: '2026-08-09T10:06:00.000Z',
   targetHash,
-  author: { identityRootId: 'reviewer-root', userId: 'reviewer-user', roleId: 'reviewer' },
-  claim: { kind: 'review_decision', relation: 'reviews', decision: 'accepted', text: 'Evidence is ready for room memory.' }
+  author: { identityRootId, userId: `${identityRootId}-user`, roleId: 'reviewer' },
+  claim: { kind: 'review_decision', relation: 'reviews', decision, text: `Evidence is ${decision}.` }
 });
 
+const acceptedReview = (targetHash) => reviewDecision(targetHash, 'accepted');
+
 describe('Research Room projection', () => {
+  it('routes an evidence-unavailable room to requester controls', () => {
+    const html = renderResearchRoom({ roomId: 'empty-room', researchRecords: [] });
+    const unresolvedEvidence = html.match(/<article class="pool-room-list-item" data-kind="evidence">[\s\S]*?<\/article>/)?.[0] || '';
+
+    expect(html).toContain('href="/ask?room=empty-room"');
+    expect(html).toContain('Agreement:</strong> Evidence unavailable');
+    expect(unresolvedEvidence).toContain('>Run<');
+    expect(unresolvedEvidence).not.toContain('href="/records?room=empty-room&amp;panel=review#pool-room-review"');
+  });
+
   it('projects accepted evidence into memory without exposing raw vectors', () => {
     const question = submission();
     const answer = result({ agreement: { status: 'accepted', receiptHashes: [hash('d')] } });
@@ -106,6 +118,9 @@ describe('Research Room projection', () => {
       expect.objectContaining({ id: 'provider-one', role: 'contributor' })
     ]);
     expect(room.timeline.some((entry) => entry.sourceAuthority === 'peer_ledger')).toBe(true);
+    expect(room.timeline).toEqual(expect.arrayContaining([
+      expect.objectContaining({ kind: 'agreement', title: 'Agreement assessed', sourceHash: answer.recordHash })
+    ]));
   });
 
   it('keeps agreement explicitly unassessed when no signed agreement exists', () => {
@@ -128,6 +143,99 @@ describe('Research Room projection', () => {
       expect.objectContaining({ kind: 'review', title: 'Result awaits review' })
     ]));
     expect(room.memory).toHaveLength(0);
+  });
+
+  it('keeps rejected and needs-revision results out of memory while exposing the decision', () => {
+    const question = submission();
+    const rejected = result({ submissionHash: question.recordHash });
+    rejected.recordHash = hash('r');
+    const revised = result({ submissionHash: question.recordHash });
+    revised.recordHash = hash('s');
+    revised.createdAt = '2026-08-09T10:07:00.000Z';
+    const room = projectResearchRoom({
+      roomId: question.roomId,
+      researchRecords: [
+        question,
+        rejected,
+        revised,
+        reviewDecision(rejected.recordHash, 'rejected', 'reviewer-reject'),
+        reviewDecision(revised.recordHash, 'needs_revision', 'reviewer-revise')
+      ]
+    });
+
+    expect(room.latestResult).toMatchObject({
+      sourceHash: revised.recordHash,
+      status: 'needs_revision',
+      reviewState: 'needs_revision'
+    });
+    expect(room.unresolved).toContainEqual(expect.objectContaining({
+      kind: 'review',
+      title: 'Result needs revision'
+    }));
+    expect(room.memory).toHaveLength(0);
+  });
+
+  it('does not remember a result when independent reviewers disagree', () => {
+    const question = submission();
+    const answer = result({ submissionHash: question.recordHash });
+    answer.recordHash = hash('t');
+    const room = projectResearchRoom({
+      roomId: question.roomId,
+      researchRecords: [
+        question,
+        answer,
+        reviewDecision(answer.recordHash, 'accepted', 'reviewer-accept'),
+        reviewDecision(answer.recordHash, 'rejected', 'reviewer-reject')
+      ]
+    });
+
+    expect(room.latestResult).toMatchObject({
+      sourceHash: answer.recordHash,
+      status: 'unresolved',
+      agreement: { state: 'disagreement_assessed', label: 'Disagreement assessed' }
+    });
+    expect(room.unresolved).toContainEqual(expect.objectContaining({
+      kind: 'agreement',
+      title: 'Disagreement assessed'
+    }));
+    expect(room.timeline).toEqual(expect.arrayContaining([
+      expect.objectContaining({ kind: 'agreement', title: 'Disagreement assessed', sourceHash: answer.recordHash })
+    ]));
+    expect(room.memory).toHaveLength(0);
+  });
+
+  it('supersedes accepted memory when an independently accepted correction arrives', () => {
+    const question = submission();
+    const answer = result({ agreement: { status: 'accepted', receiptHashes: [hash('d')] } });
+    const correction = {
+      kind: 'human_claim',
+      recordHash: hash('n'),
+      roomId: question.roomId,
+      createdAt: '2026-08-09T10:07:00.000Z',
+      targetHash: answer.recordHash,
+      author: { identityRootId: 'requester-root', userId: 'requester-user', roleId: 'requester' },
+      claim: {
+        kind: 'correction',
+        relation: 'corrects',
+        decision: null,
+        text: 'The result must not be reused: the receipt was linked to the wrong sequence.'
+      }
+    };
+    const correctionReview = reviewDecision(correction.recordHash, 'accepted', 'reviewer-root-2', hash('o'));
+    const records = [question, answer, acceptedReview(answer.recordHash), correction, correctionReview];
+    const room = projectResearchRoom({ roomId: question.roomId, researchRecords: records });
+
+    expect(room.status).toBe('corrected');
+    expect(room.latestResult.status).toBe('corrected');
+    expect(room.memory.map((entry) => entry.sourceHash)).toEqual([correction.recordHash]);
+    expect(room.timeline).toEqual(expect.arrayContaining([
+      expect.objectContaining({ sourceHash: answer.recordHash, status: 'corrected' }),
+      expect.objectContaining({ sourceHash: correction.recordHash, title: 'Correction attached', status: 'accepted' })
+    ]));
+    expect(room.unresolved).toEqual(expect.arrayContaining([
+      expect.objectContaining({ kind: 'correction', title: 'Result corrected' })
+    ]));
+    expect(renderResearchRoom({ roomId: question.roomId, researchRecords: records })).toContain('Result corrected');
   });
 
   it('projects recovery boundaries without treating them as evidence', () => {

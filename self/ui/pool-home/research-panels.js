@@ -21,6 +21,11 @@ export const compactHash = (value) => {
 export const recordLabel = (record = {}) => {
   if (record.kind === 'research_submission') return record.requesterIntent?.label || record.requesterIntent?.text || record.sequence?.hash;
   if (record.kind === 'research_result') return `${record.modelContract?.id || 'model result'} · ${compactHash(record.compute?.receiptHash)}`;
+  if (record.kind === 'research_work_claim') {
+    return record.workClaim?.consent?.publicLaboratoryIdentity === true
+      ? record.workClaim?.laboratory?.name
+      : compactHash(record.author?.identityRootId || record.author?.userId || record.recordHash);
+  }
   return record.claim?.text
     || record.hypothesis?.statement
     || record.evidence?.summary
@@ -37,6 +42,47 @@ export const recordLabel = (record = {}) => {
 export const optionList = (records, { empty = 'No eligible records' } = {}) => records.length
   ? records.map((record) => `<option value="${escapeHtml(record.recordHash)}">${escapeHtml(recordLabel(record))}</option>`).join('')
   : `<option value="" disabled>${escapeHtml(empty)}</option>`;
+
+const reviewAgreementLabel = (record = {}) => {
+  const explicitStatus = String(record.compute?.agreement?.status || '').trim().toLowerCase();
+  if (['accepted', 'agreed'].includes(explicitStatus)) return 'Agreement assessed';
+  if (['rejected', 'disagreement', 'redundant_disagreement'].includes(explicitStatus)
+    || record.compute?.status === 'redundant_disagreement') {
+    return 'Disagreement assessed';
+  }
+  return 'Not assessed';
+};
+
+const reviewQuestionContext = (record, submissionsByHash) => {
+  const submission = record.kind === 'research_submission'
+    ? record
+    : submissionsByHash.get(record.submissionHash);
+  if (!submission) return null;
+  const intent = submission.requesterIntent || {};
+  return {
+    question: intent.label || intent.text || 'Question not labelled',
+    questionDetail: intent.text && intent.text !== intent.label ? intent.text : '',
+    sequence: `${compactHash(submission.sequence?.hash)} · ${submission.sequence?.length || 'unknown'} residues`,
+    publication: submission.consent?.publicSequence === true ? 'Sequence publication permitted' : 'Sequence value withheld'
+  };
+};
+
+const renderReviewTargetContext = (record, { submissionsByHash = new Map(), reviewStates = new Map() } = {}) => {
+  const question = reviewQuestionContext(record, submissionsByHash);
+  const reviewState = reviewStates.get(record.recordHash)?.state || 'unresolved';
+  const resultEvidence = record.kind === 'research_result'
+    ? `<div><dt>Result evidence</dt><dd>${escapeHtml(record.modelContract?.id || 'Model result')} · ${escapeHtml(record.embedding?.dimensions || record.modelContract?.dimensions || 'unknown')} dimensions · receipt ${escapeHtml(compactHash(record.compute?.receiptHash))}</dd></div><div><dt>Agreement</dt><dd>${escapeHtml(reviewAgreementLabel(record))}</dd></div>`
+    : '';
+  return `<article class="pool-research-review-context" data-research-review-context="${escapeHtml(record.recordHash)}">
+    <div><strong>${escapeHtml(recordLabel(record))}</strong><span>${escapeHtml(record.kind.replace(/_/g, ' '))} · ${escapeHtml(compactHash(record.recordHash))}</span></div>
+    <dl class="pool-room-facts">
+      ${question ? `<div><dt>Question</dt><dd>${escapeHtml(question.question)}${question.questionDetail ? ` · ${escapeHtml(question.questionDetail)}` : ''}</dd></div><div><dt>Sequence</dt><dd>${escapeHtml(question.sequence)} · ${escapeHtml(question.publication)}</dd></div>` : ''}
+      ${resultEvidence}
+      <div><dt>Current review</dt><dd>${escapeHtml(reviewState.replace(/_/g, ' '))}</dd></div>
+    </dl>
+    <p class="type-caption">Choose a signed decision below. Similarity and retrieval ranking do not establish agreement.</p>
+  </article>`;
+};
 
 const renderModelEvidenceView = (view, submissionsByHash) => {
   const question = submissionsByHash.get(view.submissionHash);
@@ -84,12 +130,15 @@ export const renderResultEvidencePanel = ({ lifecycles = [], submissionsByHash =
   </section>
 `;
 
-export const renderReviewPanel = ({ reviewTargets = [] } = {}) => `
+export const renderReviewPanel = ({ reviewTargets = [], submissionsByHash = new Map(), reviewStates = new Map() } = {}) => `
   <section class="pool-research-panel" id="pool-room-review" data-pool-room-panel-target="review">
     <p class="pool-dashboard-kicker">Review</p>
     <h3 class="type-h3">Add a signed human claim</h3>
     <form data-research-review-form>
       <label class="pool-field"><span>Evidence to review</span><select name="targetHash" required>${reviewTargets.map((record) => `<option value="${escapeHtml(record.recordHash)}">${escapeHtml(recordLabel(record))}</option>`).join('')}</select></label>
+      <div class="pool-research-review-contexts" data-research-review-contexts aria-live="polite">
+        ${reviewTargets.length ? reviewTargets.map((record, index) => `<div data-research-review-context-shell="${escapeHtml(record.recordHash)}"${index === 0 ? '' : ' hidden'}>${renderReviewTargetContext(record, { submissionsByHash, reviewStates })}</div>`).join('') : '<p class="type-caption">No active evidence is available to review.</p>'}
+      </div>
       <div class="pool-research-form-row">
         <label class="pool-field"><span>Claim type</span><select name="claimKind"><option value="annotation">Annotation</option><option value="evidence_link">Evidence link</option><option value="correction">Correction</option><option value="experiment_context">Experiment context</option><option value="follow_up">Follow-up task</option><option value="review_decision">Review decision</option></select></label>
         <label class="pool-field"><span>Relationship</span><select name="relation"><option value="supports">Supports</option><option value="contradicts">Contradicts</option><option value="corrects">Corrects</option><option value="reviews">Reviews</option><option value="proposes">Proposes</option></select></label>
@@ -135,7 +184,7 @@ export const renderParticipationQualityPanel = ({ rewards = [] } = {}) => `
     <p class="pool-dashboard-kicker">Participation quality</p>
     <h3 class="type-h3">Verified and durable contributions</h3>
     <div class="pool-research-rewards">
-      ${rewards.length ? rewards.map((reward) => `<article><b>${escapeHtml(reward.authorId)}</b><span>${reward.points} points · ${reward.verifiedCompute} verified compute · ${reward.acceptedEvidence} accepted evidence · ${reward.acceptedReviews} accepted reviews · ${Math.round(reward.quality * 100)}% durable</span></article>`).join('') : '<p class="type-caption">Credit appears after verified compute or independently accepted evidence.</p>'}
+      ${rewards.length ? rewards.map((reward) => `<article><b>${escapeHtml(compactHash(reward.authorId))}</b><span>${reward.points} points · ${reward.verifiedCompute} verified compute · ${reward.acceptedEvidence} accepted evidence · ${reward.acceptedReviews} accepted reviews · ${Math.round(reward.quality * 100)}% durable</span></article>`).join('') : '<p class="type-caption">Credit appears after verified compute or independently accepted evidence.</p>'}
     </div>
     <p class="type-caption">Activity alone earns no evidence credit. Later corrections and contradictions reduce durability.</p>
   </section>

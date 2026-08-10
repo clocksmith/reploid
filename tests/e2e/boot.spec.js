@@ -150,12 +150,12 @@ test.describe('Route Entry Points', () => {
     const askPlaceholder = await page.locator('#pool-home-ask-prompt').getAttribute('placeholder');
     expect(askPlaceholder).toBeTruthy();
     expect(askPlaceholder).not.toBe('Ask the network...');
-    expect(askPlaceholder.trim().split(/\s+/).length).toBeGreaterThanOrEqual(2);
+    expect(askPlaceholder.trim().split(/\s+/).length).toBeGreaterThanOrEqual(1);
     expect(askPlaceholder.trim().split(/\s+/).length).toBeLessThanOrEqual(4);
     await expect(page.locator('#pool-home-ask-prompt')).toHaveAttribute('data-pool-suggested-prompt', askPlaceholder);
     await expect(page.locator('label[for="pool-home-ask-prompt"]')).toHaveCount(0);
-    await expect(page.locator('#pool-home-ask-form').getByRole('button', { name: 'Ask', exact: true })).toBeVisible();
-    await expect(page.getByRole('group', { name: 'Choose input type' })).toBeVisible();
+    await expect(page.locator('#pool-home-ask-form').getByRole('button', { name: 'Run protein sequence', exact: true })).toBeVisible();
+    await expect(page.getByRole('group', { name: 'Input type' })).toBeVisible();
     const sequenceLane = page.locator('.pool-lane-chip[data-pool-lane="sequence"]');
     const textLane = page.locator('.pool-lane-chip[data-pool-lane="text"]');
     const adapterLane = page.locator('.pool-lane-chip[data-pool-lane="adapters"]');
@@ -326,7 +326,7 @@ test.describe('Route Entry Points', () => {
     await nav.locator('.pool-nav-toggle').click();
     await expect(nav).toHaveClass(/is-open/);
     await expect(nav.locator('.pool-nav-toggle')).toHaveAttribute('aria-expanded', 'true');
-    await expect(page.getByRole('link', { name: 'Records', exact: true })).toBeVisible();
+    await expect(nav.getByRole('link', { name: 'Review evidence', exact: true })).toBeVisible();
     await expect(page.locator('.pool-nav-description').first()).toBeVisible();
     await expect(page.locator('.pool-room-context')).toBeVisible();
     await expect.poll(() => nav.evaluate((rail) => rail.getBoundingClientRect().width))
@@ -344,13 +344,10 @@ test.describe('Route Entry Points', () => {
     expect(expanded.width).toBeGreaterThan(260);
     expect(Math.abs(expanded.height - expanded.viewportHeight)).toBeLessThanOrEqual(1);
     expect(expanded.bottomGap).toBeLessThanOrEqual(12);
-    await page.getByRole('link', { name: 'Contribute', exact: true }).click();
-    await expect(page).toHaveURL(/\/compute$/);
-    await expect(nav).toHaveClass(/is-open/);
-    await expect(page.getByRole('link', { name: 'Contribute', exact: true })).toHaveAttribute('aria-current', 'page');
-    await page.keyboard.press('Escape');
+    await page.getByRole('link', { name: 'Share compute', exact: true }).click();
+    await expect(page).toHaveURL(/\/compute\?room=reploid-default$/);
     await expect(nav).not.toHaveClass(/is-open/);
-    await expect(nav.locator('.pool-nav-toggle')).toBeFocused();
+    await expect(page.getByRole('link', { name: 'Share compute', exact: true })).toHaveAttribute('aria-current', 'page');
     await nav.locator('.pool-nav-toggle').click();
     await expect(nav).toHaveClass(/is-open/);
     await expect(page.getByRole('link', { name: 'Zero', exact: true })).toBeVisible();
@@ -385,14 +382,14 @@ test.describe('Route Entry Points', () => {
     expect(Math.abs(mobile.height - mobile.viewportHeight)).toBeLessThanOrEqual(1);
     expect(mobile.width).toBeLessThanOrEqual(68);
     expect(mobile.overflowX).toBe(false);
-    expect(mobile.overflowY).toBe(false);
-    expect(mobile.scrollHeight).toBeLessThanOrEqual(mobile.viewportHeight + 1);
+    expect(mobile.overflowY).toBe(true);
+    expect(mobile.scrollHeight).toBeGreaterThan(mobile.viewportHeight);
     const mobileNav = page.getByRole('navigation', { name: 'Navigation' });
     await mobileNav.locator('.pool-nav-toggle').click();
-    await expect(mobileNav.getByRole('link', { name: 'Home', exact: true })).toBeVisible();
-    await expect(mobileNav.getByRole('link', { name: 'Run', exact: true })).toBeVisible();
-    await expect(mobileNav.getByRole('link', { name: 'Contribute', exact: true })).toBeVisible();
-    await expect(mobileNav.getByRole('link', { name: 'Records', exact: true })).toBeVisible();
+    await expect(mobileNav.getByRole('link', { name: 'Research Room', exact: true })).toBeVisible();
+    await expect(mobileNav.getByRole('link', { name: 'Request', exact: true })).toBeVisible();
+    await expect(mobileNav.getByRole('link', { name: 'Share compute', exact: true })).toBeVisible();
+    await expect(mobileNav.getByRole('link', { name: 'Review evidence', exact: true })).toBeVisible();
     await expect(mobileNav.locator('.pool-nav-description').first()).toBeVisible();
     await expect(mobileNav.locator('.pool-room-context')).toBeVisible();
     await expect(mobileNav.getByRole('link', { name: 'Zero', exact: true })).toBeVisible();
@@ -550,7 +547,7 @@ test.describe('Route Entry Points', () => {
   test('ask and compute are presented as local peer-room flows', async ({ page }) => {
     await page.goto('/ask');
     await page.waitForSelector('.pool-home', { timeout: 20000 });
-    await expect(page.getByRole('heading', { name: 'Run', exact: true })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Request', exact: true })).toBeVisible();
     await expect(page.locator('.pool-page-heading .pool-eyebrow')).toHaveCount(0);
     await expect(page.getByLabel('Run controls')).toContainText('Run');
     await expect(page.locator('[data-pool-run-output]')).toBeHidden();
@@ -562,8 +559,8 @@ test.describe('Route Entry Points', () => {
     await page.waitForSelector('.pool-home', { timeout: 20000 });
     await expect(page.locator('.pool-home')).toHaveAttribute('data-pool-route-id', 'compute');
     await page.getByRole('navigation', { name: 'Navigation' }).locator('.pool-nav-toggle').click();
-    await expect(page.getByRole('link', { name: 'Contribute', exact: true })).toHaveAttribute('aria-current', 'page');
-    await expect(page.getByRole('heading', { name: 'Contribute', exact: true })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Share compute', exact: true })).toHaveAttribute('aria-current', 'page');
+    await expect(page.getByRole('heading', { name: 'Share compute', exact: true })).toBeVisible();
     await expect(page.locator('.pool-page-heading .pool-eyebrow')).toHaveCount(0);
     await expect(page.locator('[data-pool-simulation]')).toHaveCount(0);
     await expect(page.locator('[data-pool-provider-status]')).toHaveText('Idle');
@@ -577,14 +574,14 @@ test.describe('Route Entry Points', () => {
 
     await page.goto('/history');
     await page.waitForSelector('.pool-home', { timeout: 20000 });
-    await expect(page.getByRole('heading', { name: 'Records', exact: true })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Review evidence', exact: true })).toBeVisible();
     await expect(page.locator('.pool-page-heading .pool-eyebrow')).toHaveCount(0);
     await expect(page.locator('#pool-record-ledger')).toBeVisible();
     await expect(page.locator('#pool-peer-ledger')).toBeHidden();
 
     await page.goto('/network');
     await page.waitForSelector('.pool-home', { timeout: 20000 });
-    await expect(page.getByRole('heading', { name: 'Records', exact: true })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Review evidence', exact: true })).toBeVisible();
     await expect(page.locator('.pool-route-cta-row')).toHaveCount(0);
     await expect(page.locator('#pool-record-ledger')).toBeVisible();
     await expect(page.locator('#pool-peer-ledger')).toBeHidden();

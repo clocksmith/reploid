@@ -18,6 +18,7 @@ import {
   setPoolRecordDisclosureOpen,
   setPoolRecordFacet,
   setResult,
+  isEmbeddingPublicationPermitted,
   updateProviderStatus
 } from '../../self/ui/pool-home/view.js';
 
@@ -32,11 +33,11 @@ const createMemoryStorage = () => {
   };
 };
 
-const setRoom = (roomId, panel = '') => {
+const setRoom = (roomId, panel = '', pathname = '/records') => {
   const params = new URLSearchParams({ room: roomId });
   if (panel) params.set('panel', panel);
   vi.stubGlobal('window', {
-    location: { search: `?${params.toString()}` },
+    location: { pathname, search: `?${params.toString()}` },
     addEventListener: vi.fn(),
     removeEventListener: vi.fn(),
     dispatchEvent: vi.fn()
@@ -103,6 +104,17 @@ describe('Poolday record ledgers', () => {
     expect(loadPoolRoomDraft()).not.toEqual(expect.objectContaining({ kind: 'research_submission' }));
   });
 
+  it('keeps an intentionally empty sequence in room recovery state', () => {
+    const room = `empty-draft-room-${crypto.randomUUID()}`;
+    setRoom(room);
+    persistPoolRoomDraft({ sequence: '', intentText: 'Add the sequence later' });
+
+    expect(loadPoolRoomDraft()).toMatchObject({
+      sequence: '',
+      intentText: 'Add the sequence later'
+    });
+  });
+
   it('projects contextual review and discovery panels from the room query', () => {
     const room = `contextual-room-${crypto.randomUUID()}`;
 
@@ -112,6 +124,7 @@ describe('Poolday record ledgers', () => {
     expect(reviewHtml).toContain('data-pool-room-contextual-panel="review"');
     expect(reviewHtml).toContain('id="pool-room-review"');
     expect(reviewHtml).toContain('data-room-panel="review"');
+    expect(reviewHtml).toMatch(/pool-room-secondary-workspace"[^>]* open>/);
 
     setRoom(room, 'discovery');
     const discoveryHtml = renderRouteDetail('records');
@@ -119,6 +132,27 @@ describe('Poolday record ledgers', () => {
     expect(discoveryHtml).toContain('data-pool-room-contextual-panel="discovery"');
     expect(discoveryHtml).toContain('id="pool-room-discovery"');
     expect(discoveryHtml).toContain('data-room-panel="discovery"');
+    expect(discoveryHtml).toMatch(/pool-room-secondary-workspace"[^>]* open>/);
+
+    setRoom(room);
+    const overviewHtml = renderRouteDetail('records');
+    expect(overviewHtml).toContain('data-pool-room-panel="research"');
+    expect(overviewHtml).not.toMatch(/pool-room-secondary-workspace"[^>]* open>/);
+  });
+
+  it('composes compatibility routes into room-specific initial views', () => {
+    const room = `compatibility-room-${crypto.randomUUID()}`;
+
+    setRoom(room, '', '/network');
+    const networkHtml = renderRouteDetail('network');
+    expect(getPoolRoomPanel()).toBe('discovery');
+    expect(networkHtml).toContain('data-pool-room-contextual-panel="discovery"');
+    expect(networkHtml).toMatch(/pool-room-secondary-workspace"[^>]* open>/);
+
+    setRoom(room, '', '/history');
+    const historyHtml = renderRouteDetail('history');
+    expect(historyHtml).toContain('data-record-facet="room"');
+    expect(historyHtml).toContain('data-pool-research-room');
   });
 
   it('renders peer ledger zero counts instead of blank cells', () => {
@@ -153,6 +187,39 @@ describe('Poolday record ledgers', () => {
     expect(html).toContain('provider_page_a');
     expect(html).toContain('<td>1</td>');
     expect(html).toContain('<td>0</td>');
+  });
+
+  it('shortens contributor identities in compatibility ledgers', () => {
+    const room = `identity-ledger-${crypto.randomUUID()}`;
+    setRoom(room);
+    const providerId = 'provider-identity-root-with-publicly-long-stable-id';
+    addReceiptLedgerRow({
+      jobId: 'peer_job_identity',
+      receiptHash: 'sha256:receipt-identity',
+      receipt: { jobId: 'peer_job_identity', providerId }
+    }, 'sha256:receipt-identity');
+
+    const html = renderReceiptLedger();
+    expect(html).not.toContain(providerId);
+    expect(html).toContain('provider-identit...table-id');
+  });
+
+  it('refreshes the active Research Room timeline after a receipt ledger update', () => {
+    const room = `receipt-room-refresh-${crypto.randomUUID()}`;
+    setRoom(room);
+    document.body.innerHTML = '<section data-pool-research-room></section>';
+
+    addReceiptLedgerRow({
+      jobId: 'peer_job_room_refresh',
+      receiptHash: 'sha256:receipt-room-refresh',
+      receipt: { jobId: 'peer_job_room_refresh', providerId: 'provider-room-refresh' },
+      agreement: { status: 'accepted' }
+    }, 'sha256:receipt-room-refresh');
+
+    expect(document.querySelector('[data-pool-research-room]')).toBeTruthy();
+    const timeline = document.querySelector('.pool-room-timeline')?.textContent || '';
+    expect(timeline).toContain('Signed receipt received');
+    expect(timeline).toContain('provider-room-refresh');
   });
 
   it('keeps a contributor visibly active while its relay is recovering', () => {
@@ -259,9 +326,38 @@ describe('Poolday record ledgers', () => {
     expect(document.getElementById('pool-run-result-raw').textContent).toContain('Rendered in Protein embedding');
     expect(document.getElementById('pool-run-result-embedding-outcome').hidden).toBe(false);
     expect(document.getElementById('pool-run-result-embedding-outcome-meta').textContent).toContain('3 dimensions');
-    expect(document.querySelector('[data-pool-copy-embedding]').disabled).toBe(false);
-    expect(document.getElementById('pool-run-result-embedding-details').hidden).toBe(false);
+    expect(document.getElementById('pool-run-result-embedding-outcome-meta').textContent).toContain('Raw vector withheld');
+    expect(document.querySelector('[data-pool-copy-embedding]').disabled).toBe(true);
+    expect(document.getElementById('pool-run-result-embedding-details').hidden).toBe(true);
     expect(document.getElementById('pool-run-result-embedding-meta').textContent).toContain('3 dimensions');
+    expect(document.getElementById('pool-run-result-embedding').textContent).toBe('');
+    expect(isEmbeddingPublicationPermitted({ sequenceOutput: { pooledEmbedding: [1] } })).toBe(false);
+  });
+
+  it('renders a pooled embedding only with explicit publication consent', () => {
+    document.body.innerHTML = `
+      <div id="pool-run-result-summary"></div>
+      <pre id="pool-run-result-raw"></pre>
+      <pre id="pool-run-result-stream"></pre>
+      <span id="pool-run-result-stream-cursor"></span>
+      <section id="pool-run-result-embedding-outcome" hidden>
+        <p id="pool-run-result-embedding-outcome-meta"></p>
+        <button data-pool-copy-embedding disabled></button>
+        <p data-pool-embedding-copy-status></p>
+      </section>
+      <details id="pool-run-result-embedding-details" hidden><p id="pool-run-result-embedding-meta"></p><pre id="pool-run-result-embedding"></pre></details>
+    `;
+
+    setResult('pool-run-result', {
+      sequenceResultHash: 'sha256:embedding-result',
+      embeddingPublicationConsent: true,
+      sequenceOutput: { pooledEmbedding: [0.25, -0.5, 0.75] }
+    }, { stream: true, animate: false });
+
+    expect(isEmbeddingPublicationPermitted({ embeddingPublicationConsent: true })).toBe(true);
+    expect(document.querySelector('[data-pool-copy-embedding]').disabled).toBe(false);
+    expect(document.querySelector('[data-pool-copy-embedding]').dataset.poolEmbeddingPublicationPermitted).toBe('true');
+    expect(document.getElementById('pool-run-result-embedding-details').hidden).toBe(false);
     expect(document.getElementById('pool-run-result-embedding').textContent).toContain('0.25');
   });
 
@@ -279,9 +375,9 @@ describe('Poolday record ledgers', () => {
       reason: 'Peer receipt agreement failed: 0/1 matching receipts',
       code: 'peer_provider_unresponsive',
       payload: {
-        failedProviderIds: ['provider_reloaded'],
+        failedProviderIds: ['provider_reloaded_with_long_stable_identity'],
         providerFailures: [{
-          providerId: 'provider_reloaded',
+          providerId: 'provider_reloaded_with_long_stable_identity',
           code: 'peer_receipt_timeout',
           message: 'No peer receipt returned before the delivery deadline',
           diagnostics: {
@@ -297,8 +393,9 @@ describe('Poolday record ledgers', () => {
 
     const raw = document.getElementById('pool-run-result-raw').textContent;
     expect(raw).toContain('Code: peer_provider_unresponsive');
-    expect(raw).toContain('Contributors: provider_reloaded');
-    expect(raw).toContain('Contributor failures: provider_reloaded (peer_receipt_timeout)');
+    expect(raw).toContain('Contributors: provider_reloade...identity');
+    expect(raw).toContain('Contributor failures: provider_reloade...identity (peer_receipt_timeout)');
+    expect(raw).not.toContain('provider_reloaded_with_long_stable_identity');
     expect(raw).toContain('expired-ice=2');
     expect(raw).toContain('dropped-ice=1');
     expect(raw).toContain('turn=not-configured');

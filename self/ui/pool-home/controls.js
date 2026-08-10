@@ -1394,6 +1394,7 @@ const bindPeerRunSurface = ({
         result.researchSubmissionHash = request.researchSubmission.recordHash;
         result.researchResultHash = researchResult.recordHash;
         result.researchPublication = publication.remote ? 'coordinator_synced' : 'local_sync_pending';
+        result.embeddingPublicationConsent = request.researchSubmission.consent?.publishEmbedding === true;
       }
       addReceiptLedgerRow({
         ...(result.receiptRecord || result),
@@ -1592,6 +1593,10 @@ export const bindEmbeddingResultControls = () => {
       const resultId = String(button.dataset.poolEmbeddingResultId || '').trim();
       const vector = resultId ? document.getElementById(`${resultId}-embedding`)?.textContent?.trim() : '';
       const status = button.closest('.pool-embedding-outcome')?.querySelector('[data-pool-embedding-copy-status]');
+      if (button.dataset.poolEmbeddingPublicationPermitted !== 'true') {
+        if (status) status.textContent = 'The raw embedding is withheld because publication consent was not granted.';
+        return;
+      }
       if (!vector) {
         if (status) status.textContent = 'The embedding is not available to copy.';
         return;

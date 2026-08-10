@@ -91,7 +91,10 @@ const recordTitle = (record = {}) => {
     return asText(record.requesterIntent?.label || record.requesterIntent?.text, 'Question submitted');
   }
   if (record.kind === RESEARCH_KINDS.result) return `${asText(record.modelContract?.id, 'Model')} result`;
-  if (record.kind === RESEARCH_KINDS.claim) return asText(record.claim?.text, 'Human review recorded');
+  if (record.kind === RESEARCH_KINDS.claim) {
+    if (record.claim?.kind === 'correction' || record.claim?.relation === 'corrects') return 'Correction attached';
+    return asText(record.claim?.text, 'Human review recorded');
+  }
   if (record.kind === RESEARCH_KINDS.hypothesis) return 'Hypothesis proposed';
   if (record.kind === RESEARCH_KINDS.prediction) return 'Prediction proposed';
   if (record.kind === RESEARCH_KINDS.priorEvidence) return 'Prior evidence linked';
@@ -119,8 +122,17 @@ const recordSummary = (record = {}) => {
   return recordTitle(record);
 };
 
-const statusForRecord = (record, reviewStates, invalidated) => {
+const acceptedCorrectionsByTarget = (active, reviewStates) => new Map(
+  active
+    .filter((record) => record.kind === RESEARCH_KINDS.claim)
+    .filter((record) => record.claim?.kind === 'correction' || record.claim?.relation === 'corrects')
+    .filter((record) => reviewStates.get(record.recordHash)?.state === 'accepted')
+    .map((record) => [record.targetHash, record])
+);
+
+const statusForRecord = (record, reviewStates, invalidated, acceptedCorrections) => {
   if (invalidated.has(record.recordHash)) return 'invalidated';
+  if (acceptedCorrections.has(record.recordHash)) return 'corrected';
   return reviewStates.get(record.recordHash)?.state || 'unreviewed';
 };
 
@@ -231,8 +243,9 @@ const projectParticipants = (records, peerEvents, latestResult, submission) => {
   };
 };
 
-const projectMemory = (active, reviewStates) => active
+const projectMemory = (active, reviewStates, acceptedCorrections) => active
   .filter((record) => reviewStates.get(record.recordHash)?.state === 'accepted')
+  .filter((record) => !acceptedCorrections.has(record.recordHash))
   .map((record) => ({
     id: record.recordHash,
     kind: record.kind,
@@ -242,14 +255,16 @@ const projectMemory = (active, reviewStates) => active
     sourceHash: record.recordHash
   }));
 
-const projectProposals = (active, reviewStates) => active
+const projectProposals = (active, reviewStates, acceptedCorrections) => active
   .filter((record) => (
     [RESEARCH_KINDS.hypothesis, RESEARCH_KINDS.prediction, RESEARCH_KINDS.workOrder].includes(record.kind)
     || (record.kind === RESEARCH_KINDS.claim && record.claim?.relation === 'proposes')
   ))
   .map((record) => {
     const rawReviewState = reviewStates.get(record.recordHash)?.state || null;
-    const reviewState = ['accepted', 'rejected', 'invalidated'].includes(rawReviewState)
+    const reviewState = acceptedCorrections.has(record.recordHash)
+      ? 'corrected'
+      : ['accepted', 'rejected', 'invalidated'].includes(rawReviewState)
       ? rawReviewState
       : 'provisional';
     if (record.kind === RESEARCH_KINDS.hypothesis) {
@@ -308,7 +323,7 @@ const projectProposals = (active, reviewStates) => active
     };
   });
 
-const projectUnresolved = ({ active, reviewStates, latestResult, agreement, tasks }) => {
+const projectUnresolved = ({ active, reviewStates, latestResult, agreement, tasks, acceptedCorrections }) => {
   const unresolved = [];
   if (!latestResult) {
     unresolved.push({
@@ -338,14 +353,48 @@ const projectUnresolved = ({ active, reviewStates, latestResult, agreement, task
       action: 'Review evidence'
     });
   }
-  if (latestResult && reviewStates.get(latestResult.recordHash)?.state !== 'accepted') {
+  const latestReviewState = latestResult
+    ? reviewStates.get(latestResult.recordHash)?.state || 'unresolved'
+    : null;
+  if (latestResult && acceptedCorrections.has(latestResult.recordHash)) {
+    const correction = acceptedCorrections.get(latestResult.recordHash);
+    unresolved.push({
+      id: 'result-corrected',
+      kind: 'correction',
+      title: 'Result corrected',
+      detail: `An accepted correction supersedes this result: ${asText(correction.claim?.text, 'inspect the linked correction')}`,
+      sourceHash: correction.recordHash,
+      action: 'Review evidence'
+    });
+  } else if (latestResult && latestReviewState !== 'accepted') {
+    const reviewBoundary = {
+      rejected: {
+        title: 'Result rejected',
+        detail: 'A reviewer rejected this result for durable memory. Inspect the decision, attach a correction, or request new evidence.',
+        action: 'Review evidence'
+      },
+      needs_revision: {
+        title: 'Result needs revision',
+        detail: 'A reviewer requested changes before this result can be remembered. Inspect the decision and provide the missing context or evidence.',
+        action: 'Review evidence'
+      },
+      unresolved: {
+        title: 'Result awaits review',
+        detail: 'The result remains visible but is not remembered until an independent review accepts it.',
+        action: 'Review evidence'
+      }
+    }[latestReviewState] || {
+      title: 'Result awaits review',
+      detail: 'The result remains visible but is not remembered until an independent review accepts it.',
+      action: 'Review evidence'
+    };
     unresolved.push({
       id: 'result-review',
       kind: 'review',
-      title: 'Result awaits review',
-      detail: 'The result remains visible but is not remembered until an independent review accepts it.',
+      title: reviewBoundary.title,
+      detail: reviewBoundary.detail,
       sourceHash: latestResult.recordHash,
-      action: 'Review evidence'
+      action: reviewBoundary.action
     });
   }
   for (const task of tasks.slice(0, 3)) {
@@ -373,18 +422,63 @@ const projectUnresolved = ({ active, reviewStates, latestResult, agreement, task
   return unresolved;
 };
 
-const buildTimeline = ({ records, peerEvents, receipts, reviewStates, invalidated }) => {
-  const entries = records.map((record) => makeTimelineEntry({
-    id: record.recordHash,
-    kind: record.kind,
+const explicitAgreementTimelineEntry = (record) => {
+  if (record.kind !== RESEARCH_KINDS.result) return null;
+  const status = asText(record.compute?.agreement?.status || record.compute?.status).toLowerCase();
+  const isAgreement = status === 'accepted' || status === 'agreed';
+  const isDisagreement = status === 'rejected'
+    || status === 'disagreement'
+    || status === 'redundant_disagreement';
+  if (!isAgreement && !isDisagreement) return null;
+  const title = isAgreement ? 'Agreement assessed' : 'Disagreement assessed';
+  return makeTimelineEntry({
+    id: `agreement:${record.recordHash}`,
+    kind: 'agreement',
     occurredAt: record.createdAt,
-    title: recordTitle(record),
-    status: statusForRecord(record, reviewStates, invalidated),
-    sourceAuthority: record.kind === RESEARCH_KINDS.result ? 'execution' : 'research_evidence',
+    title,
+    status,
+    sourceAuthority: 'execution',
     sourceHash: record.recordHash,
-    summary: recordSummary(record),
-    action: record.kind === RESEARCH_KINDS.claim ? 'Review evidence' : null
-  }));
+    summary: isAgreement
+      ? 'The signed execution record carries an explicit agreement assessment.'
+      : 'The signed execution record carries an explicit disagreement assessment.',
+    action: 'Inspect evidence'
+  });
+};
+
+const buildTimeline = ({ records, peerEvents, receipts, reviewStates, invalidated, acceptedCorrections, agreement }) => {
+  const entries = records.flatMap((record) => [
+    makeTimelineEntry({
+      id: record.recordHash,
+      kind: record.kind,
+      occurredAt: record.createdAt,
+      title: recordTitle(record),
+      status: statusForRecord(record, reviewStates, invalidated, acceptedCorrections),
+      sourceAuthority: record.kind === RESEARCH_KINDS.result ? 'execution' : 'research_evidence',
+      sourceHash: record.recordHash,
+      summary: recordSummary(record),
+      action: record.kind === RESEARCH_KINDS.claim ? 'Review evidence' : null
+    }),
+    explicitAgreementTimelineEntry(record)
+  ].filter(Boolean));
+  if (agreement?.sourceHash
+    && ['agreement_assessed', 'disagreement_assessed'].includes(agreement.state)
+    && !entries.some((entry) => entry.kind === 'agreement' && entry.sourceHash === agreement.sourceHash)) {
+    const result = records.find((record) => record.recordHash === agreement.sourceHash);
+    entries.push(makeTimelineEntry({
+      id: `agreement:${agreement.sourceHash}`,
+      kind: 'agreement',
+      occurredAt: result?.createdAt,
+      title: agreement.label,
+      status: agreement.state,
+      sourceAuthority: 'research_evidence',
+      sourceHash: agreement.sourceHash,
+      summary: agreement.state === 'agreement_assessed'
+        ? 'Signed review evidence assessed agreement for this result.'
+        : 'Signed review evidence assessed disagreement for this result.',
+      action: 'Review evidence'
+    }));
+  }
   for (const receipt of receipts) {
     const sourceHash = receipt.receiptHash || receipt.record?.receiptHash || null;
     entries.push(makeTimelineEntry({
@@ -416,12 +510,14 @@ const buildTimeline = ({ records, peerEvents, receipts, reviewStates, invalidate
   return entries.sort(sortByTime);
 };
 
-const projectResult = (result, submission, reviewStates, agreement, modelEvidence) => {
+const projectResult = (result, submission, reviewStates, agreement, modelEvidence, acceptedCorrections) => {
   if (!result) return null;
   const consent = publicationConsent(submission);
   return {
     sourceHash: result.recordHash,
-    status: reviewStates.get(result.recordHash)?.state || 'unreviewed',
+    status: acceptedCorrections.has(result.recordHash)
+      ? 'corrected'
+      : reviewStates.get(result.recordHash)?.state || 'unreviewed',
     embeddingDimensions: result.embedding?.dimensions || result.modelContract?.dimensions || null,
     model: {
       id: result.modelContract?.id || null,
@@ -514,6 +610,7 @@ export function projectResearchRoom({
   const active = activeResearchRecords(scopedRecords);
   const invalidated = invalidatedResearchHashes(scopedRecords);
   const reviewStates = new Map(projectResearchReviewStates(scopedRecords).map((entry) => [entry.recordHash, entry]));
+  const acceptedCorrections = acceptedCorrectionsByTarget(active, reviewStates);
   const submission = latest(active, RESEARCH_KINDS.submission);
   const result = resultForQuestion(active, submission);
   const agreement = evidenceAgreement(result, scopedRecords);
@@ -539,29 +636,34 @@ export function projectResearchRoom({
         policyId: submission.policyId || null
       }
     : null;
-  const memory = projectMemory(active, reviewStates);
-  const proposals = projectProposals(active, reviewStates);
+  const memory = projectMemory(active, reviewStates, acceptedCorrections);
+  const proposals = projectProposals(active, reviewStates, acceptedCorrections);
   const unresolved = projectUnresolved({
     active,
     reviewStates,
     latestResult: result,
     agreement,
-    tasks: nextActions
+    tasks: nextActions,
+    acceptedCorrections
   });
   const timeline = buildTimeline({
     records: scopedRecords,
     peerEvents: scopedPeerEvents,
     receipts: scopedReceipts,
     reviewStates,
-    invalidated
+    invalidated,
+    acceptedCorrections,
+    agreement
   });
   const status = !submission
     ? 'ready'
     : !result
       ? 'investigating'
-      : reviewStates.get(result.recordHash)?.state === 'accepted'
-        ? 'remembered'
-        : 'awaiting_review';
+      : acceptedCorrections.has(result.recordHash)
+        ? 'corrected'
+        : reviewStates.get(result.recordHash)?.state === 'accepted'
+          ? 'remembered'
+          : 'awaiting_review';
   const recovery = projectRecovery({
     syncState,
     invalidatedCount: invalidated.size,
@@ -578,7 +680,7 @@ export function projectResearchRoom({
     recovery,
     question,
     participants,
-    latestResult: projectResult(result, submission, reviewStates, agreement, modelEvidence),
+    latestResult: projectResult(result, submission, reviewStates, agreement, modelEvidence, acceptedCorrections),
     unresolved,
     nextActions: nextActions.slice(0, 5).map((task) => ({
       id: task.actionId || task.taskId,

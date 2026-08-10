@@ -68,14 +68,14 @@
 .pool-home[data-pool-route-id='home'] {
   min-height: 100vh;
   min-height: 100dvh;
-  height: 100vh;
-  height: 100dvh;
+  height: auto;
   position: relative;
   display: flex;
   flex-direction: column;
   padding: 0;
   gap: 0;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 .pool-home:not([data-pool-route-id='home']) {
@@ -86,17 +86,18 @@ html[data-pool-route-id='home'],
 body[data-pool-route-id='home'] {
   height: 100vh;
   height: 100dvh;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 body[data-pool-route-id='home'] #app {
   width: 100vw;
-  height: 100vh;
-  height: 100dvh;
-  overflow: hidden;
+  min-height: 100vh;
+  min-height: 100dvh;
 }
 
 .pool-home .panel {
+  box-sizing: border-box;
   padding: var(--pool-space-lg);
   border: 0;
   background: transparent;
@@ -2919,14 +2920,19 @@ body[data-pool-route-id='home'] #app {
   display: flex;
   align-items: end;
   gap: var(--pool-px-10);
+  min-width: 0;
 }
 
 .pool-run-model-field {
   flex: 1 1 auto;
+  min-width: 0;
 }
 
 .pool-workload-badge {
   align-self: end;
+  min-width: 0;
+  max-width: 100%;
+  flex: 0 1 auto;
   margin-bottom: var(--pool-px-6);
   padding: var(--pool-px-3) var(--pool-px-9);
   border: var(--pool-px-1) solid var(--pool-tint-teal-34);
@@ -2935,6 +2941,8 @@ body[data-pool-route-id='home'] #app {
   color: var(--pool-tint-pine-72);
   font-size: var(--pool-px-10);
   letter-spacing: var(--pool-px-e0-04);
+  overflow: hidden;
+  text-overflow: ellipsis;
   text-transform: uppercase;
   white-space: nowrap;
 }
@@ -3429,9 +3437,17 @@ body[data-pool-route-id='home'] #app {
 }
 
 .pool-research-workspace {
+  box-sizing: border-box;
   display: grid;
   gap: var(--pool-space-lg);
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.pool-research-workspace > * {
+  max-width: 100%;
+  min-width: 0;
 }
 
 .pool-research-header {
@@ -3494,9 +3510,11 @@ body[data-pool-route-id='home'] #app {
 }
 
 .pool-research-panel {
+  box-sizing: border-box;
   display: grid;
   align-content: start;
   gap: var(--pool-space-sm);
+  max-width: 100%;
   min-width: 0;
   padding: var(--pool-space-lg);
 }
@@ -3516,12 +3534,30 @@ body[data-pool-route-id='home'] #app {
 .pool-research-record,
 .pool-research-tasks article,
 .pool-research-similar article,
-.pool-research-rewards article {
+.pool-research-rewards article,
+.pool-research-review-context {
   display: grid;
   gap: var(--pool-px-4);
   padding: var(--pool-space-sm);
   border: var(--pool-border-hairline) solid var(--pool-tint-black-14);
   border-radius: var(--pool-px-8);
+}
+
+.pool-research-review-contexts {
+  display: grid;
+  gap: var(--pool-space-sm);
+}
+
+.pool-research-review-context > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--pool-space-sm);
+}
+
+.pool-research-review-context span {
+  color: color-mix(in srgb, var(--pool-surface-ink), transparent 36%);
+  font-size: var(--pool-text-xs);
 }
 
 .pool-research-record > div,
@@ -3573,20 +3609,33 @@ body[data-pool-route-id='home'] #app {
 
   .pool-research-header,
   .pool-research-record > div,
+  .pool-research-review-context > div,
   .pool-research-tasks article,
   .pool-research-rewards article {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .pool-research-panel > * {
+    max-width: calc(100% - var(--pool-space-sm));
+    min-width: 0;
+    overflow-wrap: anywhere;
   }
 }
 
 /* === RESEARCH ROOM === */
 
 .pool-research-room {
+  box-sizing: border-box;
   display: grid;
   gap: var(--pool-space-lg);
   margin: var(--pool-space-lg) auto;
   width: min(var(--pool-px-1180), calc(100% - var(--pool-space-lg)));
+  min-width: 0;
+}
+
+.pool-research-room > * {
+  min-width: 0;
 }
 
 .pool-room-header,
@@ -3978,6 +4027,13 @@ body[data-pool-route-id='home'] #app {
 }
 
 @media (max-width: 760px) {
+  .pool-home:not([data-pool-route-id='home']) .pool-research-room {
+    width: calc(100vw - var(--pool-metric-nav-rail) - var(--pool-space-md) - var(--pool-space-sm) - var(--pool-space-lg) - var(--pool-space-lg));
+    max-width: calc(100vw - var(--pool-metric-nav-rail) - var(--pool-space-md) - var(--pool-space-sm) - var(--pool-space-lg) - var(--pool-space-lg));
+    margin-right: var(--pool-space-lg);
+    margin-left: 0;
+  }
+
   .pool-room-header,
   .pool-room-list-item,
   .pool-room-action-card {

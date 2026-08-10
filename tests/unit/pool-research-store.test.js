@@ -61,6 +61,34 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
+const makeResult = async (submission) => {
+  const model = buildLaunchProviderModel();
+  const vector = Array.from({ length: model.embeddingDimensions }, (_, index) => (index === 0 ? 1 : 0));
+  return createSignedResearchResult({
+    identity: await (async () => {
+      const keyPair = await createSigningKeyPair();
+      return {
+        resolve: async () => ({ kind: 'researcher', roleId: 'researcher_store_result', userId: 'user_store_result', deviceId: 'device_store_result', identityRootId: 'root_store_result' }),
+        getSigningKeyPair: async () => keyPair
+      };
+    })(),
+    submission,
+    receiptRecord: {
+      receiptHash: `sha256:${'c'.repeat(64)}`,
+      verifierDecision: { accepted: true },
+      receipt: {
+        model,
+        providerId: 'provider_store_result',
+        assignmentId: 'assignment_store_result',
+        jobId: 'job_store_result',
+        outputKind: 'sequence.embedding.v1',
+        vectorHash: await hashSequenceFloat32Values(vector)
+      }
+    },
+    embedding: vector
+  });
+};
+
 describe('Poolday research store', () => {
   it('persists immutable records by room and treats duplicate publication as idempotent', async () => {
     const localStorage = storage();
@@ -113,6 +141,21 @@ describe('Poolday research store', () => {
     expect(hydrated.remote).toBe(true);
     expect(hydrated.records.map((record) => record.recordHash)).toEqual([local.recordHash, remote.recordHash]);
     expect(getResearchSyncState('store-room')).toMatchObject({ phase: 'synchronized', remote: 'synchronized' });
+  });
+
+  it('hydrates linked evidence regardless of remote record order', async () => {
+    vi.stubGlobal('localStorage', storage());
+    const submission = await makeRecord('store-room');
+    const result = await makeResult(submission);
+    const hydrated = await hydrateResearchRecords('store-room', {
+      sdk: { listResearchRecords: vi.fn().mockResolvedValue({ records: [result, submission] }) }
+    });
+
+    expect(hydrated.records.map((record) => record.recordHash)).toEqual([
+      submission.recordHash,
+      result.recordHash
+    ]);
+    expect(hydrated.rejectedRecords).toEqual([]);
   });
 
   it('rejects a structurally valid but disabled candidate model before local persistence', async () => {
