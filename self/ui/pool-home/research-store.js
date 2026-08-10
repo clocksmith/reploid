@@ -233,7 +233,10 @@ const appendHydrationBatch = async (records, roomId, rejectedRecords, quarantine
   }
 };
 
-export async function hydrateResearchRecords(roomId = DEFAULT_PEER_ROOM_ID, { sdk = createPoolSdk() } = {}) {
+export async function hydrateResearchRecords(roomId = DEFAULT_PEER_ROOM_ID, {
+  sdk = createPoolSdk(),
+  onLocalHydrated = null
+} = {}) {
   loadResearchRecords(roomId);
   setResearchSyncState(roomId, {
     phase: 'synchronizing',
@@ -250,6 +253,13 @@ export async function hydrateResearchRecords(roomId = DEFAULT_PEER_ROOM_ID, { sd
   // preserved in a separate quarantine cache rather than silently deleted.
   persist();
   persistQuarantine(roomId, quarantinedRecords);
+  if (typeof onLocalHydrated === 'function') {
+    await onLocalHydrated({
+      records: loadResearchRecords(roomId),
+      rejectedRecords: rejectedRecords.map(clone),
+      quarantinedRecords: quarantinedRecords.map(clone)
+    });
+  }
   try {
     const payload = await sdk.listResearchRecords(roomId, { limit: POOLDAY_RESEARCH_RECORD_LIMIT });
     await appendHydrationBatch(payload.records || [], roomId, rejectedRecords, quarantinedRecords);

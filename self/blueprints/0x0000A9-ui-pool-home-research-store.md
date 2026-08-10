@@ -27,6 +27,9 @@ The adapter owns room-scoped localStorage, signature verification, idempotent ap
 
 ### 3. Failure Behavior
 Coordinator failure leaves a verified local record and reports synchronization as pending. Reload recovery carries the immutable submission with the preserved public sequence request. Invalid remote records never enter active local state. Rejected local or remote records are preserved in a room-scoped quarantine cache with their rejection reason instead of being silently deleted during hydration.
+Verified local evidence renders as soon as local hydration completes; the
+workspace does not wait for coordinator synchronization before exposing its
+recoverable local history.
 
 ### 4. Verification Checklist
 - [x] Records remain room-isolated
@@ -37,5 +40,6 @@ Coordinator failure leaves a verified local record and reports synchronization a
   exact current task contract
 - [x] Accepted single-provider compute remains visible but outside room memory
 - [x] Rejected hydration records remain recoverable in a separate quarantine cache
+- [x] Local verified history renders before remote synchronization completes
 
 *Last updated: August 2026*
