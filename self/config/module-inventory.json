@@ -2105,7 +2105,7 @@
     {
       "path": "ui/pool-home/research-store.js",
       "owner": "ui",
-      "sha256": "sha256:07478e6f7c5566cdd0437ccf887fbec3f783d415b9848a99417a493c5cd5eeba",
+      "sha256": "sha256:f75112a503f91e4082e179f68cd5b6433fa6f88318176a724ad9e8ed1c2ed510",
       "imports": [
         "../../pool/evidence-network.js",
         "../../pool/peer-room.js",
@@ -2123,7 +2123,7 @@
     {
       "path": "ui/pool-home/research-view.js",
       "owner": "ui",
-      "sha256": "sha256:7680b6822e715f1d6b495a9bd1dfd66d0c8f4b73c170002782b1a12392a4e492",
+      "sha256": "sha256:3179e055622848f1ffcf2e5a4d978dcc14f72ef0e72534844a19b0b87bf92f53",
       "imports": [
         "../../pool/evidence-network.js",
         "../../pool/identity.js",

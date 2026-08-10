@@ -601,8 +601,16 @@ export async function hydrateAndBindResearchWorkspace(
 ) {
   if (!roomId) return null;
   const sync = workspace?.querySelector('[data-pool-research-sync]');
-  const hydrated = await hydrate(roomId);
-  if (workspace && document.body.contains(workspace)) replaceWorkspace(workspace);
+  let localRenderCompleted = false;
+  const renderLocalEvidence = () => {
+    if (!workspace || !document.body.contains(workspace)) return;
+    replaceWorkspace(workspace);
+    localRenderCompleted = true;
+  };
+  const hydrated = workspace
+    ? await hydrate(roomId, { onLocalHydrated: renderLocalEvidence })
+    : await hydrate(roomId);
+  if (!localRenderCompleted) renderLocalEvidence();
   const current = document.querySelector('[data-pool-research-sync]');
   if (current) {
     const rejectedCount = hydrated.rejectedRecords?.length || 0;

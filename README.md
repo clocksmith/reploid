@@ -93,8 +93,8 @@ current browser-inference claim.
 
 ## Limits and status
 
-Reploid does not claim hardware attestation, trustless browser/GPU execution, or
-guaranteed honest providers. Relay acknowledgement proves receipt of a relay
+Reploid does not claim hardware attestation, independently trustworthy
+browser/GPU execution, or guaranteed honest providers. Relay acknowledgement proves receipt of a relay
 record, not execution truth. Poolday, Zero, and X remain separate evidence
 authorities. Read the claim index row before repeating a capability statement.
 

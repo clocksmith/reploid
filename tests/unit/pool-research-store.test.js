@@ -144,6 +144,29 @@ describe('Poolday research store', () => {
     expect(getResearchSyncState('store-room')).toMatchObject({ phase: 'synchronized', remote: 'synchronized' });
   });
 
+  it('exposes verified local history before coordinator hydration completes', async () => {
+    const localStorage = storage();
+    vi.stubGlobal('localStorage', localStorage);
+    const local = await makeRecord('store-room');
+    localStorage.seed('reploid.pool.research-evidence.v1::store-room', JSON.stringify([local]));
+    let resolveRemote;
+    const remote = new Promise((resolve) => { resolveRemote = resolve; });
+    const onLocalHydrated = vi.fn();
+    const hydration = hydrateResearchRecords('store-room', {
+      sdk: { listResearchRecords: vi.fn(() => remote) },
+      onLocalHydrated
+    });
+
+    await vi.waitFor(() => expect(onLocalHydrated).toHaveBeenCalledWith(expect.objectContaining({
+      records: [local],
+      rejectedRecords: []
+    })));
+    expect(loadResearchRecords('store-room')).toEqual([local]);
+
+    resolveRemote({ records: [] });
+    await expect(hydration).resolves.toMatchObject({ remote: true, records: [local] });
+  });
+
   it('hydrates linked evidence regardless of remote record order', async () => {
     vi.stubGlobal('localStorage', storage());
     const submission = await makeRecord('store-room');
