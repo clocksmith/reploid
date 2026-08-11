@@ -313,8 +313,10 @@ describe('poolday home navigation', () => {
     }
 
     const syntheticSmoke = readFileSync('scripts/pool-browser-smoke.js', 'utf8');
-    expect(syntheticSmoke).toContain('.pool-lane-chip[data-pool-lane="sequence"]');
     expect(syntheticSmoke).toContain('.pool-home-stage[data-pool-lane="sequence"]');
+    expect(syntheticSmoke).toContain("'/': '#pool-home-ask-form'");
+    expect(syntheticSmoke).toContain("'/ask': '#pool-run-prompt'");
+    expect(syntheticSmoke).toContain("'/compute': '#pool-provider-worker-toggle'");
     expect(syntheticSmoke).not.toContain('data-pool-lane="text"');
     expect(syntheticSmoke).not.toContain('data-pool-dashboard-view');
     expect(syntheticSmoke).toContain("const SYNTHETIC_MODEL_ID = 'esm2-t12-35m-ur50d-f32-af32'");

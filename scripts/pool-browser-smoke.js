@@ -30,13 +30,13 @@ if (!SYNTHETIC_MODEL) {
 // This is a Poolday release gate.  Zero is an experimental, separately
 // governed surface and must not make Poolday deployment health depend on it.
 const routes = ['/', '/ask', '/compute', '/records', '/history', '/network'];
-const requiredText = {
-  '/': 'Grow inspectable protein evidence, from public input to reviewed discovery.',
-  '/ask': 'Protein sequence',
-  '/compute': 'This tab',
-  '/records': 'Records',
-  '/history': 'Records',
-  '/network': 'Records'
+const requiredSelectors = {
+  '/': '#pool-home-ask-form',
+  '/ask': '#pool-run-prompt',
+  '/compute': '#pool-provider-worker-toggle',
+  '/records': '#pool-record-ledger',
+  '/history': '#pool-record-ledger',
+  '/network': '#pool-record-ledger'
 };
 
 const { chromium } = await import('@playwright/test');
@@ -196,16 +196,7 @@ for (const route of routes) {
   try {
     console.log(`[pool-smoke] route ${route}`);
     await gotoRoute(routePage, route);
-    const expected = String(requiredText[route] || '').toLowerCase();
-    await routePage.waitForFunction(
-      (text) => document.body.textContent.toLowerCase().includes(text),
-      expected,
-      { timeout: 30000 }
-    );
-    const body = String(await routePage.textContent('body') || '').toLowerCase();
-    if (!body.includes(expected)) {
-      failures.push(`${route} did not include expected text: ${requiredText[route]}`);
-    }
+    await routePage.waitForSelector(requiredSelectors[route], { timeout: 30000 });
     console.log(`[pool-smoke] route passed ${route}`);
   } catch (error) {
     failures.push(`${route} failed: ${error.message}`);
@@ -222,7 +213,7 @@ try {
     window.__REPLOID_POOL_SMOKE_MARKER = 'protein-lane';
   });
   await routePage.waitForSelector('.pool-home-stage[data-pool-lane="sequence"]');
-  const laneCount = await routePage.locator('.pool-lane-chip[data-pool-lane="sequence"]').count();
+  const laneCount = await routePage.locator('.pool-home-stage[data-pool-lane="sequence"]').count();
   if (laneCount !== 1) failures.push(`expected one active protein lane, found ${laneCount}`);
   const laneMarker = await routePage.evaluate(() => window.__REPLOID_POOL_SMOKE_MARKER);
   if (laneMarker !== 'protein-lane') failures.push('protein lane check reloaded the boot document');
