@@ -30,6 +30,7 @@ Outputs:
 - Provisional archive material and policy-admissible decision memory remain distinct.
 - Agreement, review, and acceptance never imply biological truth.
 - Exact sequence or declared-context matches never establish contextual relevance; cross-room memory requires an explicit signed current-room determination.
+- Duplicate declared source identities count once in decision memory; only accepted corrections or authorized revocations establish supersession.
 
 ## Acceptance
 - Exact model, evidence, and research-cycle contracts pass focused verification.

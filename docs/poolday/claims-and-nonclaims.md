@@ -42,6 +42,10 @@ Poolday provides:
 - signed origin-versus-current decision-context comparisons for cross-room
   attachments, with explicit public-reuse consent and an independent
   current-room relevance determination required before decision-memory admission
+- deterministic deduplication of the same declared versioned source across
+  rooms, with every signed origin retained in the archive and at most one
+  accepted contribution to current decision memory; supersession remains
+  explicit through accepted corrections or authorized revocations
 - signed frozen annotation-adjudication experiment contracts that require a
   named catalog and curator role, exact baseline and candidate revisions, a
   family-disjoint paired cohort, fully defined quality and effort metrics, and
@@ -93,6 +97,8 @@ Poolday does not provide:
   term in another namespace, or biologically valid for the bound residues
 - proof that matching declared context text makes evidence scientifically
   relevant; contextual relevance remains an attributable reviewer judgment
+- proof that a larger version string, newer timestamp, or duplicate import
+  supersedes or independently corroborates an earlier source
 - proof that Reploid has passed the first-market experiment merely because the
   experiment schema and projection exist
 - generalization from one passing catalog workflow or cohort to other catalogs,

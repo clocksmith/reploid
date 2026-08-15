@@ -44,6 +44,7 @@ export const RESEARCH_RECORD_KINDS = Object.freeze({
   evaluation: 'research_evaluation',
   adjudicationExperiment: 'research_adjudication_experiment',
   adjudicationEvaluation: 'research_adjudication_evaluation',
+  discoveryCheckpoint: 'research_discovery_checkpoint',
   sequenceLink: 'research_sequence_link',
   revocation: 'research_revocation'
 });
@@ -86,10 +87,14 @@ export const PROTEIN_ANNOTATION_COORDINATE_SYSTEMS = Object.freeze([
   'protein_residue_zero_based_half_open'
 ]);
 export const CANONICAL_PROTEIN_ANNOTATION_COORDINATE_SYSTEM = 'protein_residue_one_based_closed';
+export const CROSS_ROOM_SOURCE_IDENTITY_VERSION = 'poolday.cross_room_source_identity/v1';
 export const CROSS_ROOM_REUSE_CONTEXT_VERSION = 'poolday.cross_room_reuse_context/v1';
 export const CONTEXTUAL_REUSE_REVIEW_VERSION = 'poolday.contextual_reuse_review/v1';
 export const ADJUDICATION_EXPERIMENT_VERSION = 'poolday.annotation_adjudication_experiment/v1';
 export const ADJUDICATION_EVALUATION_VERSION = 'poolday.annotation_adjudication_evaluation/v1';
+export const DISCOVERY_CHECKPOINT_VERSION = 'poolday.discovery_contract_checkpoint/v1';
+export const DISCOVERY_CONTRACT_STATE_VERSION = 'poolday.discovery_contract_state/v1';
+export const DISCOVERY_CONTRACT_PROJECTION_ID = 'poolday.discovery_contract_projection/v1';
 export const RESEARCH_WORK_KINDS = Object.freeze([
   'human_review',
   'experimental_assay',
@@ -133,6 +138,7 @@ const DOMAIN_BY_KIND = Object.freeze({
   [RESEARCH_RECORD_KINDS.evaluation]: SIGNATURE_DOMAINS.researchEvaluation,
   [RESEARCH_RECORD_KINDS.adjudicationExperiment]: SIGNATURE_DOMAINS.researchAdjudicationExperiment,
   [RESEARCH_RECORD_KINDS.adjudicationEvaluation]: SIGNATURE_DOMAINS.researchAdjudicationEvaluation,
+  [RESEARCH_RECORD_KINDS.discoveryCheckpoint]: SIGNATURE_DOMAINS.researchDiscoveryCheckpoint,
   [RESEARCH_RECORD_KINDS.sequenceLink]: SIGNATURE_DOMAINS.researchSequenceLink,
   [RESEARCH_RECORD_KINDS.revocation]: SIGNATURE_DOMAINS.researchRevocation
 });
@@ -542,8 +548,51 @@ const normalizeDecisionContextSnapshot = async (snapshot = {}, label) => {
   return normalized;
 };
 
+const crossRoomSourceIdentityFields = (source = {}) => {
+  const reference = source.reference || source.evidence?.reference || {};
+  const annotation = source.annotation || source.evidence?.annotation || {};
+  return {
+    schema: CROSS_ROOM_SOURCE_IDENTITY_VERSION,
+    evidenceKind: compactText(source.evidenceKind || source.evidence?.kind, 40).toLowerCase(),
+    reference: {
+      uri: compactText(reference.uri, 2000),
+      accession: compactText(reference.accession, 240),
+      version: compactText(reference.version, 240),
+      contentHash: compactText(reference.contentHash, 160).toLowerCase()
+    },
+    annotationIdentityHash: compactText(source.annotationIdentityHash || annotation.identityHash, 160).toLowerCase() || null
+  };
+};
+
+const crossRoomSourceIdentityKey = (source = {}) => JSON.stringify(crossRoomSourceIdentityFields(source));
+
+const normalizeCrossRoomSourceIdentity = async (source = {}) => {
+  const normalized = crossRoomSourceIdentityFields(source);
+  if (!PRIOR_EVIDENCE_KINDS.includes(normalized.evidenceKind)) {
+    throw new TypeError('cross-room source evidence kind is not supported');
+  }
+  if (!normalized.reference.uri && !normalized.reference.accession) {
+    throw new TypeError('cross-room source identity requires a URI or accession');
+  }
+  if (!normalized.reference.version && !normalized.reference.contentHash) {
+    throw new TypeError('cross-room source identity requires a version or content hash');
+  }
+  if (normalized.reference.contentHash && !SHA256_PATTERN.test(normalized.reference.contentHash)) {
+    throw new TypeError('cross-room source content hash must be a SHA-256 identity');
+  }
+  if (normalized.annotationIdentityHash && !SHA256_PATTERN.test(normalized.annotationIdentityHash)) {
+    throw new TypeError('cross-room annotation identity hash must be a SHA-256 identity');
+  }
+  if (['annotation', 'domain'].includes(normalized.evidenceKind) && !normalized.annotationIdentityHash) {
+    throw new TypeError('cross-room annotation source requires a normalized annotation identity');
+  }
+  normalized.identityHash = await hashJson(normalized);
+  return normalized;
+};
+
 const normalizeCrossRoomReuseContext = async (reuseContext = {}) => {
   const originRecordHash = requireHash(reuseContext.originRecordHash, 'cross-room origin record hash');
+  const originSource = await normalizeCrossRoomSourceIdentity(reuseContext.originSource);
   const origin = await normalizeDecisionContextSnapshot(reuseContext.origin, 'cross-room origin context');
   const current = await normalizeDecisionContextSnapshot(reuseContext.current, 'cross-room current context');
   if (origin.roomId === current.roomId) throw new TypeError('cross-room reuse context requires distinct rooms');
@@ -556,6 +605,7 @@ const normalizeCrossRoomReuseContext = async (reuseContext = {}) => {
   const normalized = {
     schema: CROSS_ROOM_REUSE_CONTEXT_VERSION,
     originRecordHash,
+    originSource,
     origin,
     current,
     comparison,
@@ -595,6 +645,7 @@ export async function createCrossRoomReuseContext({
   }
   return normalizeCrossRoomReuseContext({
     originRecordHash: originRecord.recordHash,
+    originSource: crossRoomSourceIdentityFields(originRecord),
     origin: decisionContextSnapshot(originQuestion),
     current: decisionContextSnapshot(currentQuestion)
   });
@@ -993,6 +1044,72 @@ const assessAdjudicationExperiment = (experiment, metricResults) => {
     qualityPathPassed,
     effortPathPassed
   };
+};
+
+const normalizeDiscoveryCheckpoint = async (checkpoint = {}, roomId) => {
+  const questionHash = requireHash(checkpoint.questionHash, 'discovery checkpoint questionHash');
+  const policyId = compactText(checkpoint.policyId, 240);
+  if (!policyId) throw new TypeError('discovery checkpoint policyId is required');
+  const projection = {
+    id: compactText(checkpoint.projection?.id, 240),
+    artifactHash: requireHash(checkpoint.projection?.artifactHash, 'discovery checkpoint projection artifactHash')
+  };
+  if (projection.id !== DISCOVERY_CONTRACT_PROJECTION_ID) {
+    throw new TypeError('discovery checkpoint projection id is unsupported');
+  }
+  const inputRecordHashes = normalizeHashList(checkpoint.inputRecordHashes, 'discovery checkpoint inputs', {
+    min: 1,
+    max: 1000
+  });
+  const activeInputRecordHashes = normalizeHashList(
+    checkpoint.activeInputRecordHashes,
+    'discovery checkpoint active inputs',
+    { min: 1, max: 1000 }
+  );
+  if (!activeInputRecordHashes.every((hash) => inputRecordHashes.includes(hash))) {
+    throw new TypeError('discovery checkpoint active inputs must be part of the complete input set');
+  }
+  if (!activeInputRecordHashes.includes(questionHash)) {
+    throw new TypeError('discovery checkpoint question must remain an active input');
+  }
+  const parentCheckpointHashes = normalizeHashList(
+    checkpoint.parentCheckpointHashes,
+    'discovery checkpoint parents',
+    { max: 32 }
+  );
+  const contractIdentity = {
+    schema: 'poolday.discovery_contract_identity/v1',
+    roomId: normalizeRoomId(roomId),
+    questionHash,
+    policyId
+  };
+  const contractId = await hashJson(contractIdentity);
+  if (checkpoint.contractId && checkpoint.contractId !== contractId) {
+    throw new TypeError('discovery checkpoint contractId does not match its question, room, and policy');
+  }
+  const state = clone(checkpoint.state);
+  if (!state || state.schema !== DISCOVERY_CONTRACT_STATE_VERSION
+    || !['open', 'reopened'].includes(state.status)
+    || state.contractId !== contractId
+    || state.questionHash !== questionHash
+    || state.policyId !== policyId) {
+    throw new TypeError('discovery checkpoint state identity or status is invalid');
+  }
+  const normalized = {
+    schema: DISCOVERY_CHECKPOINT_VERSION,
+    contractId,
+    questionHash,
+    policyId,
+    parentCheckpointHashes,
+    projection,
+    inputRecordHashes,
+    inputSetHash: await hashJson(inputRecordHashes),
+    activeInputRecordHashes,
+    activeInputSetHash: await hashJson(activeInputRecordHashes),
+    state,
+    stateHash: await hashJson(state)
+  };
+  return normalized;
 };
 
 const normalizeTransformations = (values = []) => (Array.isArray(values) ? values : []).slice(0, 32).map((value, index) => {
@@ -1999,6 +2116,27 @@ export async function createSignedAdjudicationEvaluation({
   return signRecord(payload, privateKey, SIGNATURE_DOMAINS.researchAdjudicationEvaluation);
 }
 
+export async function createSignedDiscoveryCheckpoint({
+  identity,
+  roomId,
+  checkpoint,
+  createdAt = new Date().toISOString()
+} = {}) {
+  const { author, privateKey } = await createAuthor(identity, ['researcher', 'reviewer', 'verifier']);
+  const normalizedRoomId = normalizeRoomId(roomId);
+  const normalizedCheckpoint = await normalizeDiscoveryCheckpoint(checkpoint, normalizedRoomId);
+  const payload = {
+    version: RESEARCH_RECORD_VERSION,
+    kind: RESEARCH_RECORD_KINDS.discoveryCheckpoint,
+    signatureDomain: SIGNATURE_DOMAINS.researchDiscoveryCheckpoint,
+    roomId: normalizedRoomId,
+    createdAt,
+    author,
+    checkpoint: normalizedCheckpoint
+  };
+  return signRecord(payload, privateKey, SIGNATURE_DOMAINS.researchDiscoveryCheckpoint);
+}
+
 export async function createSignedSequenceEvidenceLink({
   identity,
   roomId,
@@ -2293,8 +2431,9 @@ export async function verifyResearchRecord(record = {}) {
   }
   if (legacyRecord && [
     RESEARCH_RECORD_KINDS.adjudicationExperiment,
-    RESEARCH_RECORD_KINDS.adjudicationEvaluation
-  ].includes(record.kind)) reasons.push('adjudication proof records require research evidence v2');
+    RESEARCH_RECORD_KINDS.adjudicationEvaluation,
+    RESEARCH_RECORD_KINDS.discoveryCheckpoint
+  ].includes(record.kind)) reasons.push('governed proof records require research evidence v2');
   if (!domain) reasons.push('research record kind is not supported');
   if (domain && record.signatureDomain !== domain) reasons.push('research signature domain mismatch');
   if (!record.author?.roleId || !record.author?.publicKey) reasons.push('attributable author is required');
@@ -2654,6 +2793,19 @@ export async function verifyResearchRecord(record = {}) {
       reasons.push('adjudication evaluation evidence policy is incomplete');
     }
   }
+  if (record.kind === RESEARCH_RECORD_KINDS.discoveryCheckpoint) {
+    if (!['researcher', 'reviewer', 'verifier'].includes(record.author?.role)) {
+      reasons.push('discovery checkpoint author role is invalid');
+    }
+    try {
+      const normalizedCheckpoint = await normalizeDiscoveryCheckpoint(record.checkpoint, record.roomId);
+      if (JSON.stringify(normalizedCheckpoint) !== JSON.stringify(record.checkpoint)) {
+        reasons.push('discovery checkpoint is not canonical');
+      }
+    } catch (error) {
+      reasons.push(error.message);
+    }
+  }
   if (record.kind === RESEARCH_RECORD_KINDS.sequenceLink) {
     if (!['researcher', 'reviewer', 'verifier'].includes(record.author?.role)) reasons.push('sequence link author role is invalid');
     const { linkHash, ...identity } = record.link || {};
@@ -2811,7 +2963,7 @@ export function projectAcceptedResearchMemory(records = []) {
     .filter((record) => record.claim?.kind === 'correction' || record.claim?.relation === 'corrects')
     .filter((record) => reviewStates.get(record.recordHash)?.state === 'accepted')
     .map((record) => [record.targetHash, record.recordHash]));
-  const memoryBlockReason = (record) => {
+  const baseMemoryBlockReason = (record) => {
     if (invalidated.has(record.recordHash)) return 'invalidated';
     if (acceptedCorrections.has(record.recordHash)) return 'superseded_by_accepted_correction';
     const reviewState = reviewStates.get(record.recordHash)?.state || 'unreviewed';
@@ -2834,6 +2986,30 @@ export function projectAcceptedResearchMemory(records = []) {
     }
     return null;
   };
+  const duplicateSources = new Map();
+  const duplicateOf = new Map();
+  for (const record of active.filter((entry) => baseMemoryBlockReason(entry) === null)) {
+    const sourceHash = record.kind === RESEARCH_RECORD_KINDS.priorEvidence
+      ? record.evidence?.reuseContext?.originSource?.identityHash
+      : null;
+    if (!sourceHash) continue;
+    const group = duplicateSources.get(sourceHash) || [];
+    group.push(record);
+    duplicateSources.set(sourceHash, group);
+  }
+  for (const group of duplicateSources.values()) {
+    if (group.length < 2) continue;
+    const ordered = group.slice().sort((left, right) => (
+      String(left.createdAt || '').localeCompare(String(right.createdAt || ''))
+      || String(left.recordHash || '').localeCompare(String(right.recordHash || ''))
+    ));
+    for (const duplicate of ordered.slice(1)) duplicateOf.set(duplicate.recordHash, ordered[0].recordHash);
+  }
+  const memoryBlockReason = (record) => (
+    duplicateOf.has(record.recordHash)
+      ? 'duplicate_cross_room_source'
+      : baseMemoryBlockReason(record)
+  );
   const acceptedRecords = active.filter((record) => memoryBlockReason(record) === null);
   const acceptedHashes = acceptedRecords.map((record) => record.recordHash).sort();
   const excluded = records
@@ -2842,7 +3018,8 @@ export function projectAcceptedResearchMemory(records = []) {
     .map((record) => ({
       recordHash: record.recordHash,
       reason: memoryBlockReason(record),
-      supersededByHash: acceptedCorrections.get(record.recordHash) || null
+      supersededByHash: acceptedCorrections.get(record.recordHash) || null,
+      ...(duplicateOf.has(record.recordHash) ? { duplicateOfHash: duplicateOf.get(record.recordHash) } : {})
     }))
     .sort((left, right) => left.recordHash.localeCompare(right.recordHash));
   return {
@@ -2856,6 +3033,39 @@ export function projectAcceptedResearchMemory(records = []) {
 
 const independentlyAccepted = (records, target) => projectResearchReviewStates(records)
   .some((entry) => entry.recordHash === target?.recordHash && entry.state === 'accepted');
+
+export function validateCrossRoomReuseOrigin(record = {}, originRecord = null, originQuestion = null) {
+  const reasons = [];
+  const reuseContext = record.kind === RESEARCH_RECORD_KINDS.priorEvidence
+    ? record.evidence?.reuseContext
+    : null;
+  if (!reuseContext) return { ok: true, reasons };
+  if (originRecord?.kind !== RESEARCH_RECORD_KINDS.priorEvidence
+    || originRecord.recordHash !== reuseContext.originRecordHash) {
+    reasons.push('cross-room origin record is missing or has the wrong kind');
+  } else {
+    if (originRecord.roomId !== reuseContext.origin.roomId
+      || originRecord.questionHash !== reuseContext.origin.questionHash) {
+      reasons.push('cross-room origin record does not match its declared room and question');
+    }
+    if (crossRoomSourceIdentityKey(originRecord) !== crossRoomSourceIdentityKey(reuseContext.originSource)) {
+      reasons.push('cross-room declared source identity does not match the origin record');
+    }
+  }
+  if (originQuestion?.kind !== RESEARCH_RECORD_KINDS.submission
+    || originQuestion.recordHash !== reuseContext.origin.questionHash) {
+    reasons.push('cross-room origin question is missing or has the wrong kind');
+  } else {
+    const expected = decisionContextSnapshot(originQuestion);
+    if (expected.roomId !== reuseContext.origin.roomId
+      || expected.sequenceHash !== reuseContext.origin.sequenceHash
+      || JSON.stringify(expected.consent) !== JSON.stringify(reuseContext.origin.consent)
+      || JSON.stringify(expected.intent) !== JSON.stringify(reuseContext.origin.intent)) {
+      reasons.push('cross-room origin context does not match the signed origin question');
+    }
+  }
+  return { ok: reasons.length === 0, reasons };
+}
 
 export function validateResearchRecordLinks(record = {}, records = []) {
   const reasons = [];
@@ -3557,7 +3767,7 @@ export function projectCrossRoomSequenceEvidence(records = [], sequenceHash, {
       ? []
       : room.acceptedMemoryHashes.map((recordHash) => [recordHash, room])
   )));
-  const candidates = [...roomByAcceptedHash.entries()].map(([recordHash, room]) => {
+  const rawCandidates = [...roomByAcceptedHash.entries()].map(([recordHash, room]) => {
     const record = includedRecords.get(recordHash);
     return {
       recordHash,
@@ -3567,6 +3777,35 @@ export function projectCrossRoomSequenceEvidence(records = [], sequenceHash, {
       originalRoomAccepted: true,
       qualification: crossRoomQualification(record || {}),
       admission: 'requires_current_room_review'
+    };
+  }).sort((left, right) => left.recordHash.localeCompare(right.recordHash));
+  const candidateGroups = new Map();
+  for (const candidate of rawCandidates) {
+    const record = includedRecords.get(candidate.recordHash);
+    const groupKey = record?.kind === RESEARCH_RECORD_KINDS.priorEvidence
+      && candidate.qualification.status === 'source_metadata_complete'
+      ? `source:${crossRoomSourceIdentityKey(record)}`
+      : `record:${candidate.recordHash}`;
+    const group = candidateGroups.get(groupKey) || [];
+    group.push(candidate);
+    candidateGroups.set(groupKey, group);
+  }
+  const candidates = [...candidateGroups.values()].map((group) => {
+    const ordered = group.slice().sort((left, right) => compareResearchRecords(
+      includedRecords.get(left.recordHash),
+      includedRecords.get(right.recordHash)
+    ));
+    const representative = ordered[0];
+    return {
+      ...representative,
+      deduplication: ordered.length > 1 ? 'same_declared_versioned_source' : 'unique_source_record',
+      duplicateRecordHashes: ordered.map((candidate) => candidate.recordHash),
+      duplicateOriginRoomIds: unique(ordered.map((candidate) => candidate.originRoomId)).sort(),
+      duplicateOrigins: ordered.map((candidate) => ({
+        recordHash: candidate.recordHash,
+        roomId: candidate.originRoomId,
+        questionHashes: candidate.originQuestionHashes
+      }))
     };
   }).sort((left, right) => left.recordHash.localeCompare(right.recordHash));
   const anchor = submissions[0] || null;
@@ -3585,6 +3824,8 @@ export function projectCrossRoomSequenceEvidence(records = [], sequenceHash, {
     uniqueRecordCount: byHash.size,
     scannedRecordCount: snapshot.length,
     deduplicatedRecordCount: includedRecords.size,
+    candidateRecordCount: rawCandidates.length,
+    candidateSourceCount: candidates.length,
     rooms,
     candidates,
     records: [...includedRecords.values()].sort(compareResearchRecords)
@@ -3908,6 +4149,7 @@ export default {
   verifyResearchRecord,
   validateResearchRecordModelAdmission,
   validateResearchRecordLinks,
+  validateCrossRoomReuseOrigin,
   researchRecordTargetHashes,
   activeResearchRecords,
   invalidatedResearchHashes,

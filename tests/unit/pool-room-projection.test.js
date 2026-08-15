@@ -604,6 +604,7 @@ describe('Research Room projection', () => {
 
   it('shows qualified prior-room candidates without admitting them into current decision memory', () => {
     const question = submission({ roomId: 'current-room' });
+    const duplicateRecordHash = hash('y');
     const priorQuestion = {
       ...submission({ roomId: 'prior-room', identityRootId: 'prior-requester' }),
       recordHash: hash('z'),
@@ -648,6 +649,14 @@ describe('Research Room projection', () => {
             version: '7',
             license: 'CC BY 4.0'
           }]
+        }, {
+          roomId: 'second-prior-room',
+          sourceVersions: [{
+            recordHash: duplicateRecordHash,
+            accession: 'PUBLIC:123',
+            version: '7',
+            license: 'CC BY 4.0'
+          }]
         }],
         candidates: [{
           recordHash: priorRecord.recordHash,
@@ -656,6 +665,9 @@ describe('Research Room projection', () => {
           kind: priorRecord.kind,
           originalRoomAccepted: true,
           qualification: { status: 'source_metadata_complete', reasons: [] },
+          deduplication: 'same_declared_versioned_source',
+          duplicateRecordHashes: [priorRecord.recordHash, duplicateRecordHash],
+          duplicateOriginRoomIds: ['prior-room', 'second-prior-room'],
           admission: 'requires_current_room_review'
         }],
         records: [priorQuestion, priorRecord]
@@ -675,7 +687,7 @@ describe('Research Room projection', () => {
     expect(room.priorRoomEvidence).toMatchObject({
       schema: 'poolday.prior_room_evidence_projection/v1',
       sequenceMatches: true,
-      roomCount: 1,
+      roomCount: 2,
       candidates: [expect.objectContaining({
         recordHash: priorRecord.recordHash,
         originRoomId: 'prior-room',
@@ -692,7 +704,33 @@ describe('Research Room projection', () => {
     expect(html).toContain('Origin-room acceptance is provenance, not admission here.');
     expect(html).toContain('PUBLIC:123 @ 7 · declared license CC BY 4.0');
     expect(html).toContain('Declared decision context: declared context differences');
+    expect(html).toContain('Same declared versioned source in 2 signed origin records across 2 rooms.');
     expect(html).toContain(`data-pool-room-attach-prior="${priorRecord.recordHash}"`);
+
+    const duplicateAttachment = {
+      kind: 'research_prior_evidence',
+      recordHash: hash('x'),
+      roomId: question.roomId,
+      questionHash: question.recordHash,
+      createdAt: '2026-08-09T10:00:00.000Z',
+      evidence: { reference: { contentHash: duplicateRecordHash } }
+    };
+    const attachedRoom = projectResearchRoom({
+      roomId: question.roomId,
+      researchRecords: [question, duplicateAttachment],
+      crossRoomEvidence
+    });
+    expect(attachedRoom.priorRoomEvidence.candidates[0]).toMatchObject({
+      attachable: false,
+      attachedRecordHash: duplicateAttachment.recordHash
+    });
+    expect(attachedRoom.archive.entries.find((entry) => entry.recordHash === duplicateAttachment.recordHash))
+      .toMatchObject({ decisionMemoryAdmitted: false, decisionMemoryExclusionReason: 'unresolved' });
+    expect(renderResearchRoom({
+      roomId: question.roomId,
+      researchRecords: [question, duplicateAttachment],
+      crossRoomEvidence
+    })).toContain('Decision-memory exclusion: unresolved.');
   });
 
   it('renders a room-first surface with consent-scoped technical disclosure', () => {

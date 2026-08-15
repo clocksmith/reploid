@@ -1,17 +1,18 @@
 # Reploid Pool TODO
 
-Reploid is a proof-carrying protein-model network. Browser providers, peer
-transit, receipts, verification, reputation, and requester acceptance are
-implementation mechanisms for reproducible protein evidence, not the product
-goal in themselves. Public-facing product copy should use Reploid.
+Reploid is testing whether a proof-carrying Research Room improves adjudication
+of disputed family or domain annotations in one named public protein catalog.
+The broader protein-evidence network remains a target hypothesis until that
+frozen comparison passes. Browser providers, peer transit, receipts,
+verification, and reputation are supporting mechanisms rather than product
+outcomes. Public-facing product copy should use Reploid.
 
-The product goal is to reduce the verified cost of resolving bounded public
-protein questions: less duplicated computation, earlier disagreement, more
-useful model-specific residue evidence, and stronger independent reproduction.
-Receipt-backed browser inference is an evidence substrate. It does not establish
-biological function, mutation fitness, experimental truth, or honest hardware.
+The first product proof must improve adjudication quality at comparable curator
+effort or reduce curator effort without reducing quality. Receipt-backed browser
+inference does not establish biological function, mutation fitness,
+experimental truth, honest hardware, or product value by itself.
 
-Canonical claim and deployment truth stay in [`pool-config.json`](./pool-config.json). Architecture and production contracts stay in [`../../docs/browser-inference-pool.md`](../../docs/browser-inference-pool.md). The [product intent](../../docs/poolday/product-intent.md) owns the protein-network goal, and the [Discovery Contract](../../docs/poolday/discovery-contract.md) owns its target atomic object and gates.
+Canonical claim and deployment truth stay in [`pool-config.json`](./pool-config.json). Architecture and production contracts stay in [`../../docs/browser-inference-pool.md`](../../docs/browser-inference-pool.md). Repository mission lives in [`../../GOALS.md`](../../GOALS.md), [product intent](../../docs/poolday/product-intent.md) applies it to Poolday, and the [Discovery Contract](../../docs/poolday/discovery-contract.md) owns its target atomic object and gates.
 
 The current Cloud Run and Firestore path is transitional. The target Reploid control plane is WebRTC peer-to-peer: signed job intents, provider capability adverts, assignment selection, quorum agreement, receipts, acceptance, points, and reputation should move without a required Reploid server.
 
@@ -20,7 +21,7 @@ The current Cloud Run and Firestore path is transitional. The target Reploid con
 ## Current Local Checks
 
 - [x] `npm run verify:pool -- --allow-placeholders` passes locally.
-- [x] Unit suite passes: 1,712 passed and 25 skipped.
+- [x] Unit suite passes: 1,739 passed and 25 skipped.
 - [x] Integration suite passes: 363 passed and 9 skipped.
 - [ ] Re-run `npm run verify:pool:release -- --url https://replo.id --channel=chrome` after deployment. The current release reports `2026-07-28.doppler-0.5.1.v2` while the governed local contract is `2026-08-01.sequence-model-contracts.v1.doppler-0.5.1`; release verification now fails before any browser workload on this mismatch.
 - [x] `npm audit` and the production-image `npm ci --omit=dev --include=optional` audit report zero vulnerabilities.
@@ -129,14 +130,18 @@ The current Cloud Run and Firestore path is transitional. The target Reploid con
 
 ---
 
-## Strategic Wedge
+## First Product Proof
 
-- [x] Keep the public front-door sentence: `Run browser models together.`
-- [x] Treat external artifact storage as interchangeable byte delivery. Reploid owns product execution, receipts, verification, reputation, requester acceptance, and the browser substrate.
-- [x] Position Doppler as the browser inference engine. Reploid is the decentralized serving product and governed browser substrate.
-- [x] Treat WebRTC as both the target control plane and the default prompt/output/receipt transit.
-- [x] Avoid forbidden claims: `trustless`, `hardware-attested`, `guaranteed honest GPU execution`, and `decentralized AI compute marketplace at launch`.
-- [x] Optimize for one public proof that a browser can do useful model work, produce an inspectable receipt, earn reputation, and serve an agent or requester.
+- [x] Make the Research Room the primary researcher workflow and keep Zero and X out of ordinary navigation.
+- [x] Separate the complete immutable archive from named-policy decision memory.
+- [x] Retrieve exact public-sequence evidence across rooms without inheriting origin acceptance.
+- [x] Bind reusable family/domain annotations to source version, declared license, ontology release, exact sequence, and normalized coordinates.
+- [x] Require a signed origin/current context comparison and independent current-room relevance determination.
+- [x] Collapse duplicate declared source identities into one candidate and one possible memory contribution while retaining every origin record.
+- [x] Preserve supersession authority in explicit accepted corrections and authorized revocations rather than version strings or timestamps.
+- [x] Define frozen annotation-adjudication experiment and independently authored evaluation records with paired quality-or-effort gates.
+- [ ] Name the exact public catalog, curator role, recurring disputed decision, current workflow, adopter, and frozen family-disjoint cohort.
+- [ ] Run the prospective comparison and publish accepted evidence showing that one predeclared success path passed.
 
 ---
 

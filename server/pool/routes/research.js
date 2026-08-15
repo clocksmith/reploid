@@ -6,8 +6,10 @@
  */
 
 import {
+  projectAcceptedResearchMemory,
   projectCrossRoomSequenceEvidence,
   researchRecordTargetHashes,
+  validateCrossRoomReuseOrigin,
   validateResearchRecordModelAdmission,
   validateResearchRecordLinks,
   verifyResearchRecord
@@ -52,6 +54,26 @@ export function registerResearchRoutes(router, {
     const links = validateResearchRecordLinks(record, roomRecords);
     if (!links.ok) {
       return res.status(409).json({ error: 'invalid research record links', reasons: links.reasons });
+    }
+    const reuseContext = record.kind === 'research_prior_evidence'
+      ? record.evidence?.reuseContext
+      : null;
+    if (reuseContext) {
+      const originRecord = await store.getResearchRecord?.(reuseContext.originRecordHash);
+      const originQuestion = await store.getResearchRecord?.(reuseContext.origin?.questionHash);
+      const originLinks = validateCrossRoomReuseOrigin(record, originRecord, originQuestion);
+      if (!originLinks.ok) {
+        return res.status(409).json({ error: 'invalid cross-room reuse origin', reasons: originLinks.reasons });
+      }
+      const originRoomRecords = typeof store.listResearchRecords === 'function'
+        ? await store.listResearchRecords({ roomId: reuseContext.origin.roomId, limit: 1000 })
+        : [];
+      if (!projectAcceptedResearchMemory(originRoomRecords).acceptedHashes.includes(reuseContext.originRecordHash)) {
+        return res.status(409).json({
+          error: 'invalid cross-room reuse origin',
+          reasons: ['cross-room origin record is not active accepted decision memory']
+        });
+      }
     }
     const existing = await store.getResearchRecord?.(record.recordHash);
     return res.status(existing ? 200 : 201).json({

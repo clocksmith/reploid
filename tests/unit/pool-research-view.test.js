@@ -260,6 +260,12 @@ describe('Poolday research Records model evidence view', () => {
         reuseContext: {
           schema: 'poolday.cross_room_reuse_context/v1',
           originRecordHash: source.recordHash,
+          originSource: {
+            schema: 'poolday.cross_room_source_identity/v1',
+            evidenceKind: 'annotation',
+            reference: { accession: 'PUBLIC:123', version: '7' },
+            identityHash: expect.stringMatching(/^sha256:[a-f0-9]{64}$/)
+          },
           origin: { questionHash: priorQuestion.recordHash, roomId: priorQuestion.roomId },
           current: { questionHash: question.recordHash, roomId: question.roomId },
           comparison: { status: 'declared_context_differences' },
@@ -334,6 +340,8 @@ describe('Poolday research Records model evidence view', () => {
     expect(validateResearchRecordLinks(contextualAcceptance, [question, attached])).toMatchObject({ ok: true });
     expect(projectAcceptedResearchMemory([question, attached, contextualAcceptance]).acceptedHashes)
       .toContain(attached.recordHash);
+    expect(renderResearchWorkspace(question.roomId, [question, attached]))
+      .toContain('Declared source identity');
   });
 
   it('renders exact-model evidence and explicit non-comparison boundaries', async () => {
