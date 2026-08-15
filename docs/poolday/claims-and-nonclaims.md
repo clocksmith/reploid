@@ -60,6 +60,19 @@ Poolday provides:
 - explicit checkpoint lineage and deterministic reopening evidence for
   contradictions, corrections, revocations, failed replications, policy-active
   input invalidation, and removal from named-policy decision memory
+- signed computation, retrieval, review, assay, and replication candidate
+  actions that bind affected hypotheses, predicted observations, falsifiers,
+  exact workload or protocol hashes, feasibility, independence, safety, public
+  consent, and separate compute, money, labor, instrument, sample, and elapsed
+  time costs
+- explicit measurement, model, cross-source, missing-alternative, protocol,
+  and decision-change uncertainty sources, with ordinal or set-valued forms and
+  a fail-closed requirement that numeric probabilities name a calibration
+  method and independently accepted frozen cohort
+- deterministic candidate ranking that binds exact input and candidate hashes,
+  policy, method, version, parameters, cost assumptions, calibration evidence,
+  and heuristic status, while preserving rejected actions and exposing raw
+  components, selection, and independent approval in the Research Room
 - deterministic flat similarity, evidence-aware reranking, clustering, and
   exact-contract approval-gated task proposals with explicit accepted-memory
   basis
@@ -96,6 +109,8 @@ Poolday does not provide:
 - conversion of submitted human claims into model facts
 - private-sequence protection in the public evidence collection
 - proof that an action is maximally informative
+- proof that the candidate-action heuristic is calibrated information gain or
+  a calibrated probability that the decision will change
 - proof that a projected next question is scientifically correct
 - autonomous authority to approve, allocate, execute, or promote a next action
 - proof that a scientific conclusion is true or independently replicated

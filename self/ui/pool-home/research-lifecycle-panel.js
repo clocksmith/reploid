@@ -9,6 +9,120 @@
 import { optionList } from './research-panels.js';
 import { renderAdjudicationExperimentForms } from './research-adjudication-panel.js';
 
+const candidateCostFields = [
+  ['compute', 'Compute', 'gpu-second'],
+  ['money', 'Money', 'USD'],
+  ['labor', 'Researcher labor', 'person-hour'],
+  ['instrument', 'Instrument use', 'instrument-hour'],
+  ['sample', 'Samples', 'sample'],
+  ['elapsedTime', 'Elapsed time', 'hour']
+].map(([name, label, unit]) => `
+  <fieldset class="pool-research-cost-component">
+    <legend>${label}</legend>
+    <div class="pool-research-form-row">
+      <label class="pool-field"><span>Amount</span><input name="${name}Amount" type="number" min="0" step="any" value="0" required></label>
+      <label class="pool-field"><span>Unit</span><input name="${name}Unit" value="${unit}" required></label>
+      <label class="pool-field"><span>Burden (0–5)</span><input name="${name}Burden" type="number" min="0" max="5" step="1" value="0" required></label>
+    </div>
+  </fieldset>
+`).join('');
+
+const renderCandidateActionForm = ({ questions, hypotheses, calibrationCohorts, calibrationEvaluations }) => `
+  <section class="pool-research-panel" id="pool-room-candidate-actions">
+    <p class="pool-dashboard-kicker">Propose</p>
+    <h3 class="type-h3">Governed candidate action</h3>
+    <details><summary>Propose a computation, retrieval, review, assay, or replication</summary>
+      <form data-research-lifecycle-form data-research-action="candidate-action">
+        <p class="type-caption">This creates a signed proposal only. Ranking cannot allocate or execute work, and a different identity must approve the exact contract.</p>
+        <div class="pool-research-form-row">
+          <label class="pool-field"><span>Question</span><select name="questionHash" required>${optionList(questions)}</select></label>
+          <label class="pool-field"><span>Action kind</span><select name="candidateKind"><option value="computation">Computation</option><option value="retrieval">Retrieval</option><option value="review">Review</option><option value="assay">Assay</option><option value="replication">Replication</option></select></label>
+        </div>
+        <label class="pool-field"><span>Affected hypotheses</span><select name="affectedHypothesisHashes" multiple size="4" required>${optionList(hypotheses)}</select></label>
+        <label class="pool-field"><span>Title</span><input name="candidateTitle" required></label>
+        <label class="pool-field"><span>Why this could change the decision</span><textarea name="candidateRationale" rows="3" required></textarea></label>
+        <label class="pool-field"><span>Predicted observation</span><textarea name="predictedObservation" rows="2" required></textarea></label>
+        <label class="pool-field"><span>Falsifying observation</span><textarea name="falsifyingObservation" rows="2" required></textarea></label>
+        <fieldset>
+          <legend>Exact protocol or workload</legend>
+          <div class="pool-research-form-row">
+            <label class="pool-field"><span>Contract kind</span><select name="contractKind"><option value="workload">Workload</option><option value="protocol">Protocol</option></select></label>
+            <label class="pool-field"><span>Contract id</span><input name="contractId" required></label>
+            <label class="pool-field"><span>Version</span><input name="contractVersion" required></label>
+          </div>
+          <div class="pool-research-form-row">
+            <label class="pool-field"><span>Artifact hash</span><input name="contractArtifactHash" required placeholder="sha256:..."></label>
+            <label class="pool-field"><span>Parameters hash</span><input name="contractParametersHash" required placeholder="sha256:..."></label>
+          </div>
+        </fieldset>
+        <fieldset>
+          <legend>Uncertainty source and representation</legend>
+          <label class="pool-field"><span>Sources (select every applicable category)</span><select name="uncertaintySources" multiple size="6" required><option value="measurement_variance">Measurement variance</option><option value="model_uncertainty">Model uncertainty</option><option value="cross_source_disagreement">Cross-source disagreement</option><option value="missing_alternatives">Missing alternatives</option><option value="protocol_risk">Protocol risk</option><option value="decision_change_uncertainty">Decision-change uncertainty</option></select></label>
+          <div class="pool-research-form-row">
+            <label class="pool-field"><span>Representation</span><select name="uncertaintyRepresentation"><option value="ordinal">Ordinal</option><option value="set_valued">Set-valued</option><option value="probability">Calibrated probability</option></select></label>
+            <label class="pool-field"><span>Rationale</span><input name="uncertaintyRationale" required></label>
+          </div>
+          <div class="pool-research-form-row">
+            <label class="pool-field"><span>Ordinal level</span><input name="ordinalLevel" value="unknown"></label>
+            <label class="pool-field"><span>Ordinal scale id</span><input name="ordinalScaleId" value="poolday.uncertainty.v1"></label>
+            <label class="pool-field"><span>Scale version</span><input name="ordinalScaleVersion" value="1.0.0"></label>
+          </div>
+          <label class="pool-field"><span>Set-valued alternatives, comma separated</span><input name="possibleValues" placeholder="family A, family B, none of the above"></label>
+          <div class="pool-research-form-row">
+            <label class="pool-field"><span>Probability (0–1)</span><input name="uncertaintyProbability" type="number" min="0" max="1" step="any"></label>
+            <label class="pool-field"><span>Calibration method</span><input name="calibrationMethodId"></label>
+            <label class="pool-field"><span>Method version</span><input name="calibrationMethodVersion"></label>
+            <label class="pool-field"><span>Metric id</span><input name="calibrationMetricId"></label>
+          </div>
+          <label class="pool-field"><span>Independently accepted frozen calibration cohort</span><select name="calibrationCohortHash"><option value="">Required only for a numeric probability</option>${optionList(calibrationCohorts)}</select></label>
+        </fieldset>
+        <fieldset>
+          <legend>Feasibility, independence, safety, and consent</legend>
+          <div class="pool-research-form-row">
+            <label class="pool-field"><span>Feasibility status</span><input name="feasibilityStatus" value="feasible" required></label>
+            <label class="pool-field"><span>Required capabilities</span><input name="requiredCapabilities" required placeholder="comma separated"></label>
+            <label class="pool-field"><span>Availability</span><input name="availability" required></label>
+          </div>
+          <label class="pool-field"><span>Materials, comma separated</span><input name="materials"></label>
+          <label class="pool-field"><span>Failure risks, comma separated</span><input name="failureRisks" required></label>
+          <div class="pool-research-form-row">
+            <label class="pool-field"><span>Independence dimensions</span><input name="independenceDimensions" required placeholder="provider, source, laboratory"></label>
+            <label class="pool-field"><span>Independence exclusions</span><input name="independenceExclusions"></label>
+            <label class="pool-field"><span>Minimum independent executions</span><input name="minimumIndependentExecutions" type="number" min="1" max="100" step="1" value="1" required></label>
+          </div>
+          <div class="pool-research-form-row">
+            <label class="pool-field"><span>Safety classification</span><input name="safetyClassification" value="public-data-only" required></label>
+            <label class="pool-field"><span>Safety requirements</span><input name="safetyRequirements" required></label>
+          </div>
+          <label class="pool-consent-row"><input name="candidatePublicConsent" type="checkbox" required>Confirm that the sequence and resulting evidence are explicitly public.</label>
+          <label class="pool-consent-row"><input name="candidateSafetyReview" type="checkbox" required>Require human safety review before any execution.</label>
+        </fieldset>
+        <fieldset>
+          <legend>Scientific cost vector</legend>
+          ${candidateCostFields}
+          <label class="pool-field"><span>Cost assumptions, comma separated</span><input name="costAssumptions" required></label>
+        </fieldset>
+        <fieldset>
+          <legend>Declared expected value</legend>
+          <div class="pool-research-form-row">
+            <label class="pool-field"><span>Method id</span><input name="valueMethodId" value="curator-declared-ordinal-value" required></label>
+            <label class="pool-field"><span>Version</span><input name="valueMethodVersion" value="1.0.0" required></label>
+            <label class="pool-field"><span>Status</span><select name="valueStatus"><option value="heuristic_not_calibrated">Heuristic, not calibrated</option><option value="calibrated">Calibrated</option></select></label>
+          </div>
+          <div class="pool-research-form-row">
+            <label class="pool-field"><span>Uncertainty reduction (0–5)</span><input name="uncertaintyReduction" type="number" min="0" max="5" step="1" value="0" required></label>
+            <label class="pool-field"><span>Decision relevance (0–5)</span><input name="decisionRelevance" type="number" min="0" max="5" step="1" value="0" required></label>
+            <label class="pool-field"><span>Duplicate-work avoidance (0–5)</span><input name="duplicateWorkAvoidance" type="number" min="0" max="5" step="1" value="0" required></label>
+          </div>
+          <label class="pool-field"><span>Accepted calibration evaluations</span><select name="valueCalibrationEvidenceHashes" multiple size="3">${optionList(calibrationEvaluations)}</select></label>
+        </fieldset>
+        <button class="btn btn-primary" type="submit"${questions.length && hypotheses.length ? '' : ' disabled'}>Sign candidate action</button>
+        <p class="type-caption" data-research-lifecycle-status aria-live="polite"></p>
+      </form>
+    </details>
+  </section>
+`;
+
 export const renderLifecycleForms = ({
   questions = [],
   priorEvidence = [],
@@ -19,6 +133,8 @@ export const renderLifecycleForms = ({
   workClaims = [],
   outcomes = [],
   cohorts = [],
+  calibrationCohorts = [],
+  calibrationEvaluations = [],
   adjudicationExperiments = [],
   active = []
 } = {}) => `
@@ -94,6 +210,7 @@ export const renderLifecycleForms = ({
       </form>
     </details>
   </section>
+  ${renderCandidateActionForm({ questions, hypotheses, calibrationCohorts, calibrationEvaluations })}
   ${renderAdjudicationExperimentForms({ experiments: adjudicationExperiments })}
   <section class="pool-research-panel">
     <p class="pool-dashboard-kicker">Order</p>

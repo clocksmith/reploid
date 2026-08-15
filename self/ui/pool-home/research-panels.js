@@ -29,6 +29,7 @@ export const recordLabel = (record = {}) => {
   if (record.kind === 'research_discovery_checkpoint') {
     return `${record.checkpoint?.state?.status || 'open'} Discovery Contract checkpoint`;
   }
+  if (record.kind === 'research_candidate_action') return record.action?.title || record.action?.contractHash;
   return record.claim?.text
     || record.hypothesis?.statement
     || record.evidence?.summary
@@ -196,14 +197,80 @@ export const renderDiscoveryPanel = ({ results = [], target = '', similar = [], 
   </section>
 `;
 
-export const renderNextWorkPanel = ({ rankedTasks = [], actionRanking = { policy: { policyId: 'unknown' } } } = {}) => `
+const renderCandidateScientificCosts = (scientificCost = {}) => (
+  ['compute', 'money', 'labor', 'instrument', 'sample', 'elapsedTime']
+    .map((component) => {
+      const entry = scientificCost[component] || {};
+      return `<div><dt>${escapeHtml(component === 'elapsedTime' ? 'elapsed time' : component)}</dt><dd>${escapeHtml(entry.amount)} ${escapeHtml(entry.unit)} · burden ${escapeHtml(entry.burden)}/5</dd></div>`;
+    }).join('')
+);
+
+const renderCandidateAction = (candidate, selectedAction) => `
+  <article data-research-candidate-action="${escapeHtml(candidate.recordHash)}">
+    <div>
+      <b>${escapeHtml(candidate.actionKind.replace(/_/g, ' '))}: ${escapeHtml(candidate.title)}</b>
+      <span>${escapeHtml(candidate.rationale)}</span>
+      <small>${candidate.recordHash === selectedAction?.recordHash ? 'Highest-ranked admitted candidate · ' : ''}${escapeHtml(candidate.rankingStatus.replace(/_/g, ' '))} · score ${escapeHtml(candidate.rankingScore)} · ${escapeHtml(candidate.humanApprovalState.replace(/_/g, ' '))}</small>
+    </div>
+    ${candidate.humanApprovalState === 'approved'
+      ? '<strong>Independently approved</strong>'
+      : `<button class="btn btn-ghost" type="button" data-research-approve-candidate="${escapeHtml(candidate.recordHash)}" data-research-candidate-contract="${escapeHtml(candidate.actionId)}">Approve exact contract</button>`}
+    <details>
+      <summary>Raw value, cost, uncertainty, and contract evidence</summary>
+      <dl class="pool-room-facts">
+        <div><dt>Uncertainty reduction</dt><dd>${escapeHtml(candidate.rawValueComponents.uncertaintyReduction)}/5</dd></div>
+        <div><dt>Decision relevance</dt><dd>${escapeHtml(candidate.rawValueComponents.decisionRelevance)}/5</dd></div>
+        <div><dt>Duplicate-work avoidance</dt><dd>${escapeHtml(candidate.rawValueComponents.duplicateWorkAvoidance)}/5</dd></div>
+        <div><dt>Aggregate declared burden</dt><dd>${escapeHtml(candidate.rawValueComponents.costBurden)}</dd></div>
+        ${renderCandidateScientificCosts(candidate.scientificCost)}
+        <div><dt>Exact ${escapeHtml(candidate.execution.contractKind)}</dt><dd>${escapeHtml(candidate.execution.contractId)} @ ${escapeHtml(candidate.execution.version)} · artifact ${escapeHtml(compactHash(candidate.execution.artifactHash))} · parameters ${escapeHtml(compactHash(candidate.execution.parametersHash))}</dd></div>
+        <div><dt>Uncertainty sources</dt><dd>${candidate.uncertainty.map((entry) => `${escapeHtml(entry.source.replace(/_/g, ' '))}: ${escapeHtml(entry.representation.replace(/_/g, ' '))}${entry.calibration ? ` via ${escapeHtml(entry.calibration.methodId)} @ ${escapeHtml(entry.calibration.version)} on ${escapeHtml(compactHash(entry.calibration.cohortHash))}` : ''}`).join(' · ')}</dd></div>
+        <div><dt>Affected hypotheses</dt><dd>${candidate.affectedHypothesisHashes.map((hash) => escapeHtml(compactHash(hash))).join(' · ')}</dd></div>
+        <div><dt>Independence</dt><dd>${escapeHtml(candidate.independence.dimensions.join(' · '))} · minimum ${escapeHtml(candidate.independence.minimumIndependentExecutions)}</dd></div>
+        <div><dt>Safety</dt><dd>${escapeHtml(candidate.safety.classification)} · human review required</dd></div>
+        <div><dt>Approval authority</dt><dd>Proposal and ranking have no allocation or execution authority.</dd></div>
+      </dl>
+      <p><strong>Predicted:</strong> ${candidate.predictedObservations.map((entry) => escapeHtml(entry.observation)).join(' · ')}</p>
+      <p><strong>Falsified by:</strong> ${candidate.falsifiers.map((entry) => escapeHtml(entry.observation)).join(' · ')}</p>
+      <p class="type-caption">Cost assumptions: ${candidate.scientificCost.assumptions.map(escapeHtml).join(' · ')}</p>
+    </details>
+  </article>
+`;
+
+export const renderNextWorkPanel = ({
+  rankedTasks = [],
+  actionRanking = { policy: { policyId: 'unknown' } },
+  candidateRanking = {
+    policy: { policyId: 'unknown', version: 'unknown', status: 'unknown', method: 'unknown', parameters: {}, costAssumptions: {}, calibrationEvidenceHashes: [] },
+    admittedCandidates: [],
+    rejectedActions: [],
+    selectedAction: null
+  }
+} = {}) => `
   <section class="pool-research-panel">
     <p class="pool-dashboard-kicker">Next work</p>
-    <h3 class="type-h3">Approval-gated discovery queue</h3>
+    <h3 class="type-h3">Governed candidate-action queue</h3>
+    <div class="pool-research-tasks" data-research-candidate-actions>
+      ${candidateRanking.admittedCandidates.length
+        ? candidateRanking.admittedCandidates.map((candidate) => renderCandidateAction(candidate, candidateRanking.selectedAction)).join('')
+        : '<p class="type-caption">No signed candidate action is currently admitted.</p>'}
+    </div>
+    ${candidateRanking.rejectedActions.length ? `<details><summary>${candidateRanking.rejectedActions.length} rejected or invalidated candidate action${candidateRanking.rejectedActions.length === 1 ? '' : 's'}</summary><div class="pool-research-tasks" data-research-rejected-candidate-actions>${candidateRanking.rejectedActions.map((candidate) => `<article><div><b>${escapeHtml(candidate.title)}</b><span>${candidate.reasons.map((reason) => escapeHtml(reason.replace(/_/g, ' '))).join(' · ')}</span><small>${escapeHtml(compactHash(candidate.recordHash))}</small></div><strong>Rejected</strong></article>`).join('')}</div></details>` : ''}
+    <details class="pool-advanced"><summary>Projection policy and raw assumptions</summary>
+      <dl class="pool-room-facts">
+        <div><dt>Policy</dt><dd>${escapeHtml(candidateRanking.policy.policyId)} @ ${escapeHtml(candidateRanking.policy.version)}</dd></div>
+        <div><dt>Method</dt><dd>${escapeHtml(candidateRanking.policy.method)} · ${escapeHtml(candidateRanking.policy.status.replace(/_/g, ' '))}</dd></div>
+        <div><dt>Parameters</dt><dd>${escapeHtml(JSON.stringify(candidateRanking.policy.parameters))}</dd></div>
+        <div><dt>Cost assumptions</dt><dd>${escapeHtml(JSON.stringify(candidateRanking.policy.costAssumptions))}</dd></div>
+        <div><dt>Calibration evidence</dt><dd>${candidateRanking.policy.calibrationEvidenceHashes.length ? candidateRanking.policy.calibrationEvidenceHashes.map((hash) => escapeHtml(compactHash(hash))).join(' · ') : 'None; ranking is explicitly not calibrated.'}</dd></div>
+      </dl>
+      <p class="type-caption">Selection is a deterministic projection over exact input record and candidate contract hashes. It cannot allocate or execute work.</p>
+    </details>
+    <h4>System-projected governance suggestions</h4>
     <div class="pool-research-tasks">
       ${rankedTasks.length ? rankedTasks.map((task) => `<article><div><b>${escapeHtml(task.actionKind.replace(/_/g, ' '))}</b><span>${escapeHtml(task.reason)}</span><small>Basis: ${escapeHtml(task.basis === 'accepted_memory' ? `${task.basisHashes?.length || 0} accepted memory record${task.basisHashes?.length === 1 ? '' : 's'}` : 'question or governance boundary')} · heuristic priority ${escapeHtml(task.heuristicPriority)} · ordinal uncertainty reduction ${escapeHtml(task.expectedInformationGain.estimate)} · planning cost ${escapeHtml(task.valueComponents.totalCost)}.</small></div>${task.status === 'approved' ? '<strong>Approved</strong>' : `<button class="btn btn-ghost" type="button" data-research-approve-task="${escapeHtml(task.actionId)}" data-research-task-target="${escapeHtml(task.targetHash)}">Approve</button>`}</article>`).join('') : '<p class="type-caption">No bounded follow-up is currently proposed.</p>'}
     </div>
-    <p class="type-caption">Ranking policy ${escapeHtml(actionRanking.policy.policyId)} is an inspectable, non-calibrated heuristic. It does not estimate biological truth, mutation fitness, or a decision-change probability, and it cannot allocate work.</p>
+    <p class="type-caption">Legacy projected-task policy ${escapeHtml(actionRanking.policy.policyId)} is also an inspectable, non-calibrated heuristic. The ranking does not estimate biological truth, mutation fitness, or a decision-change probability, and neither queue can allocate work.</p>
   </section>
 `;
 

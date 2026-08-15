@@ -862,9 +862,17 @@
       "imports": []
     },
     {
+      "path": "pool/discovery-candidate-action.js",
+      "owner": "pool",
+      "sha256": "sha256:f64d0494f9d1367f2a4a3f5b4e35c93376e1fa31547ec49f289ccdb484e52e2b",
+      "imports": [
+        "./inference-receipt.js"
+      ]
+    },
+    {
       "path": "pool/discovery-contract.js",
       "owner": "pool",
-      "sha256": "sha256:d5c2d2b1412bce476ce936fb9bdcf0505a30c174406a3c92a5652871e239eeec",
+      "sha256": "sha256:02aecaaae343bd5d40ccb5210006a1905804c22c66ff671c0ce3d27e6e063ec8",
       "imports": [
         "./evidence-network.js",
         "./inference-receipt.js",
@@ -904,9 +912,10 @@
     {
       "path": "pool/evidence-network.js",
       "owner": "pool",
-      "sha256": "sha256:f5e9100bdcf22cfc7cbb2a90c5e4ef15deec64e221277e297b13a5530cd35d14",
+      "sha256": "sha256:9767533313d9ee6a23a483069001e50e9be9fd443dae92d12f9575b5f09e4181",
       "imports": [
         "./discovery-action-value.js",
+        "./discovery-candidate-action.js",
         "./inference-receipt.js",
         "./model-contract.js",
         "./model-evidence-view.js",
@@ -943,7 +952,7 @@
     {
       "path": "pool/inference-receipt.js",
       "owner": "pool",
-      "sha256": "sha256:dd405d0b3ec2bdca72f4e903f22fa9ca489d5cc3656e7c3333dc0656696f1ded",
+      "sha256": "sha256:922f6a96a2b4112735b8ebcdf9f8b90bc7483be49a93545c3c78cd5b6073ae65",
       "imports": [
         "./canonical-json.js",
         "./config.js",
@@ -2109,7 +2118,7 @@
     {
       "path": "ui/pool-home/research-lifecycle-panel.js",
       "owner": "ui",
-      "sha256": "sha256:2a562ff14e1a231b2a254ccf6218d00459f5526eee5bfd387a8fde6e95fab3c7",
+      "sha256": "sha256:adc1f6fcb402d991f908c68552295812566c933960d86eaa679eeeee6d9cdae9",
       "imports": [
         "./research-adjudication-panel.js",
         "./research-panels.js"
@@ -2118,7 +2127,7 @@
     {
       "path": "ui/pool-home/research-panels.js",
       "owner": "ui",
-      "sha256": "sha256:01759cf076dac3fba9299e31545fe94f427952435a9d441b74916bb558e0aac2",
+      "sha256": "sha256:0c74e47e9eaac8968756dfd35586c661c64bf07498658f3e90a8ebd204a00044",
       "imports": []
     },
     {
@@ -2143,7 +2152,7 @@
     {
       "path": "ui/pool-home/research-view.js",
       "owner": "ui",
-      "sha256": "sha256:89606ba9d559bb01ca4216088c39032a45d56796c0de2322df3ce5c36db16369",
+      "sha256": "sha256:3f3edb317ecd535245e8815a62da4db93f6bab9c792d2742d3087588d3254e5d",
       "imports": [
         "../../pool/discovery-contract.js",
         "../../pool/evidence-network.js",
@@ -2157,7 +2166,7 @@
     {
       "path": "ui/pool-home/room-projection.js",
       "owner": "ui",
-      "sha256": "sha256:781876a604fcf2948a787a66ef4c2293be009c421bbc9cdd3de28b80909c4a41",
+      "sha256": "sha256:31f867c21a35e1eda9a72f3914d9627de718b66aaf1d269177b2e87fc8fa71d8",
       "imports": [
         "../../pool/discovery-contract.js",
         "../../pool/evidence-network.js",
@@ -2176,7 +2185,7 @@
     {
       "path": "ui/pool-home/room-view.js",
       "owner": "ui",
-      "sha256": "sha256:42d6ec01ed3ffe748894f87e171d2993a5583c249dc6b63e61f798ffb9183639",
+      "sha256": "sha256:ae56d1b510a028deee7b9966cd318da9a7606cae46af7b2f7a455bde63452f89",
       "imports": [
         "./room-projection.js"
       ]

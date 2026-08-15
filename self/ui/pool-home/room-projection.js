@@ -13,6 +13,7 @@ import {
   invalidatedResearchHashes,
   projectResearchExecutionIndependence,
   projectResearchReviewStates,
+  rankProposedCandidateActions,
   revokedResearchHashes
 } from '../../pool/evidence-network.js';
 import { projectGovernedResearchCycle } from '../../pool/research-cycle.js';
@@ -33,6 +34,7 @@ const RESEARCH_KINDS = Object.freeze({
   adjudicationExperiment: 'research_adjudication_experiment',
   adjudicationEvaluation: 'research_adjudication_evaluation',
   discoveryCheckpoint: 'research_discovery_checkpoint',
+  candidateAction: 'research_candidate_action',
   revocation: 'research_revocation'
 });
 
@@ -112,6 +114,7 @@ const recordTitle = (record = {}) => {
   if (record.kind === RESEARCH_KINDS.adjudicationExperiment) return 'Adjudication experiment frozen';
   if (record.kind === RESEARCH_KINDS.adjudicationEvaluation) return 'Adjudication experiment evaluated';
   if (record.kind === RESEARCH_KINDS.discoveryCheckpoint) return 'Discovery Contract checkpoint frozen';
+  if (record.kind === RESEARCH_KINDS.candidateAction) return asText(record.action?.title, 'Candidate action proposed');
   if (record.kind === RESEARCH_KINDS.revocation) return 'Evidence revoked';
   return 'Research evidence';
 };
@@ -134,6 +137,9 @@ const recordSummary = (record = {}) => {
   }
   if (record.kind === RESEARCH_KINDS.discoveryCheckpoint) {
     return `${record.checkpoint?.inputRecordHashes?.length || 0} complete inputs · ${record.checkpoint?.activeInputRecordHashes?.length || 0} active inputs · ${asText(record.checkpoint?.state?.status, 'open')}`;
+  }
+  if (record.kind === RESEARCH_KINDS.candidateAction) {
+    return `${asText(record.action?.kind, 'action')} · ${record.action?.uncertainty?.map((entry) => `${entry.source}:${entry.representation}`).join(' · ') || 'uncertainty not declared'}`;
   }
   if (record.kind === RESEARCH_KINDS.adjudicationEvaluation) {
     return `Frozen rule: ${asText(record.evaluation?.assessment?.conclusion, 'unavailable')}`;
@@ -455,7 +461,7 @@ const projectParticipants = (records, peerEvents, latestResult, submission) => {
 
 const projectProposals = (active, reviewStates, acceptedCorrections) => active
   .filter((record) => (
-    [RESEARCH_KINDS.hypothesis, RESEARCH_KINDS.prediction, RESEARCH_KINDS.workOrder].includes(record.kind)
+    [RESEARCH_KINDS.hypothesis, RESEARCH_KINDS.prediction, RESEARCH_KINDS.workOrder, RESEARCH_KINDS.candidateAction].includes(record.kind)
     || (record.kind === RESEARCH_KINDS.claim && record.claim?.relation === 'proposes')
   ))
   .map((record) => {
@@ -504,6 +510,19 @@ const projectProposals = (active, reviewStates, acceptedCorrections) => active
           ? 'Awaiting attributable execution or replication evidence.'
           : 'Independent approval is required before execution.',
         distinguishes: [asText(record.work?.protocol?.protocolId, 'Bounded protocol')],
+        status: reviewState,
+        sourceHash: record.recordHash
+      };
+    }
+    if (record.kind === RESEARCH_KINDS.candidateAction) {
+      return {
+        id: record.recordHash,
+        kind: record.kind,
+        title: record.action?.title || 'Governed candidate action',
+        summary: record.action?.rationale || 'Bounded signed action proposal',
+        supportingEvidence: record.action?.affectedHypothesisHashes || [],
+        missingEvidence: 'Independent human approval is required; proposal and ranking have no allocation authority.',
+        distinguishes: record.action?.predictedObservations?.map((entry) => entry.observation) || [],
         status: reviewState,
         sourceHash: record.recordHash
       };
@@ -1008,9 +1027,32 @@ export function projectResearchRoom({
   const tasks = cycle.actions;
   const ranked = cycle.ranking.rankedCandidates || [];
   const rankedById = new Map(ranked.map((task) => [task.actionId, task]));
-  const nextActions = tasks
+  const projectedTasks = tasks
     .map((task) => ({ ...task, ...(rankedById.get(task.taskId) || {}) }))
     .sort((left, right) => Number(right.heuristicPriority || 0) - Number(left.heuristicPriority || 0));
+  const candidateRanking = rankProposedCandidateActions(scopedRecords);
+  const signedCandidateActions = candidateRanking.admittedCandidates.map((candidate) => ({
+    actionType: 'signed_candidate_action',
+    actionId: candidate.actionId,
+    actionKind: candidate.actionKind,
+    title: candidate.title,
+    targetHash: candidate.recordHash,
+    reason: candidate.rationale,
+    status: candidate.humanApprovalState === 'approved' ? 'approved' : 'proposed',
+    heuristicPriority: candidate.rankingScore,
+    basis: 'signed_candidate_contract',
+    basisHashes: candidate.affectedHypothesisHashes,
+    approvalRecordHashes: candidate.approvalRecordHashes,
+    contractHash: candidate.actionId,
+    rawValueComponents: candidate.rawValueComponents,
+    scientificCost: candidate.scientificCost,
+    uncertainty: candidate.uncertainty,
+    execution: candidate.execution,
+    rankingStatus: candidate.rankingStatus,
+    allocationAuthority: candidate.allocationAuthority,
+    executionAuthority: candidate.executionAuthority
+  }));
+  const nextActions = [...signedCandidateActions, ...projectedTasks];
   const participants = projectParticipants(active, scopedPeerEvents, result, submission);
   const question = submission
     ? {
@@ -1155,7 +1197,17 @@ export function projectResearchRoom({
       priority: task.heuristicPriority || null,
       basis: task.basis || 'governance',
       basisHashes: task.basisHashes || [],
-      approvalRecordHashes: task.approvalRecordHashes || []
+      approvalRecordHashes: task.approvalRecordHashes || [],
+      actionType: task.actionType || 'projected_governance_task',
+      title: task.title || null,
+      contractHash: task.contractHash || null,
+      rawValueComponents: task.rawValueComponents || null,
+      scientificCost: task.scientificCost || null,
+      uncertainty: task.uncertainty || [],
+      execution: task.execution || null,
+      rankingStatus: task.rankingStatus || null,
+      allocationAuthority: task.allocationAuthority || 'none',
+      executionAuthority: task.executionAuthority || 'none'
     })),
     archive,
     priorRoomEvidence,
@@ -1167,6 +1219,7 @@ export function projectResearchRoom({
     proposals,
     timeline,
     cycle,
+    candidateActions: candidateRanking,
     nextQuestion: cycle.nextQuestion,
     modelEvidence: modelEvidence ? {
       agreement: modelEvidence.agreement?.status || 'not_assessed',

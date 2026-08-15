@@ -151,8 +151,10 @@ evaluation cohort whenever it exposes a numeric probability.
 
 ### Candidate next actions
 
-An action can request a computation, retrieval, critique, independent review,
-perturbation analysis, assay, structural experiment, or replication. It binds:
+The implemented `poolday.discovery_candidate_action/v1` contract admits a
+computation, retrieval, review, assay, or replication. More specialized
+critique, perturbation, and structural work must use one of those admitted
+classes with an exact workload or protocol contract. Each proposal binds:
 
 | Field | Meaning |
 | --- | --- |
@@ -175,6 +177,27 @@ perturbation analysis, assay, structural experiment, or replication. It binds:
 No single ratio is universally valid across heterogeneous costs. A Poolday policy
 may rank a Pareto set, apply requester budgets, or use a declared utility
 conversion. The UI must expose the components and the chosen policy.
+
+The current public-protein slice signs these contracts as governance proposals,
+not executable allocations. It separates measurement variance, model
+uncertainty, cross-source disagreement, missing alternatives, protocol risk,
+and decision-change uncertainty. A numeric probability is rejected unless it
+binds a versioned calibration method, metric, and independently accepted frozen
+cohort; ordinal and set-valued representations remain available without that
+claim. The current ranking policy is
+`poolday.signed_candidate_action_heuristic/v1`: it deterministically retains
+its version, parameters, input hashes, cost assumptions, calibration-evidence
+set, raw value components, and all six raw cost components. It preserves
+rejected actions and shows the selected candidate and approval state in the
+primary Research Room and signed Discovery Contract checkpoint. The heuristic
+is not calibrated information gain and neither selection nor approval executes
+or allocates the action.
+
+Candidate-action state is frozen by
+`poolday.discovery_contract_projection/v2`. Historical v1 checkpoints retain
+their original state shape and artifact identity and remain replayable; the
+projection upgrade requires a new linked checkpoint instead of silently
+changing v1 semantics.
 
 ### Outcome and candidate epistemic update
 

@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 import {
   createSignedHumanClaim,
   createSignedPriorEvidence,
+  createSignedResearchHypothesis,
   createSignedResearchResult,
   createSignedResearchSubmission,
   projectAcceptedResearchMemory,
@@ -16,6 +17,7 @@ import {
   bindResearchWorkspace,
   createContextualReviewRecord,
   createCurrentRoomPriorEvidence,
+  createLifecycleRecordFromForm,
   hydrateAndBindResearchWorkspace,
   renderResearchWorkspace
 } from '../../self/ui/pool-home/research-view.js';
@@ -54,6 +56,91 @@ const identity = async (kind = 'requester') => {
 };
 
 describe('Poolday research Records model evidence view', () => {
+  it('creates the canonical signed candidate-action record from the Research Room form contract', async () => {
+    localStorage.clear();
+    const requester = await identity('requester');
+    const researcher = await identity('researcher');
+    const question = await createSignedResearchSubmission({
+      identity: requester,
+      roomId: 'candidate-form-room',
+      sequence: 'MPEPTIDESEQ',
+      intent: { kind: 'question', text: 'Which public family annotation is best supported?' },
+      consent: { publicSequence: true, publicEvidenceNetwork: true, publishEmbedding: true },
+      modelContract: model,
+      policyId: 'redundant_agreement'
+    });
+    const hypothesis = await createSignedResearchHypothesis({
+      identity: researcher,
+      roomId: question.roomId,
+      questionHash: question.recordHash,
+      statement: 'The protein belongs to public family A.',
+      conditions: { biologicalSystem: 'public catalog release' },
+      discriminatingObservations: ['An independent source assigns family A.']
+    });
+    const values = new FormData();
+    const set = (name, value) => values.set(name, String(value));
+    set('questionHash', question.recordHash);
+    set('candidateKind', 'retrieval');
+    values.append('affectedHypothesisHashes', hypothesis.recordHash);
+    set('candidateTitle', 'Retrieve a pinned independent annotation');
+    set('candidateRationale', 'Resolve a public cross-source disagreement.');
+    set('predictedObservation', 'The independent source assigns family A.');
+    set('falsifyingObservation', 'The independent source assigns an incompatible family.');
+    set('contractKind', 'workload');
+    set('contractId', 'catalog-retrieval');
+    set('contractVersion', '1.0.0');
+    set('contractArtifactHash', fakeHash('3'));
+    set('contractParametersHash', fakeHash('4'));
+    values.append('uncertaintySources', 'cross_source_disagreement');
+    set('uncertaintyRepresentation', 'ordinal');
+    set('uncertaintyRationale', 'The sources disagree.');
+    set('ordinalLevel', 'high');
+    set('ordinalScaleId', 'poolday.uncertainty.v1');
+    set('ordinalScaleVersion', '1.0.0');
+    set('feasibilityStatus', 'feasible');
+    set('requiredCapabilities', 'version-pinned HTTP retrieval');
+    set('availability', 'The public release is available.');
+    set('failureRisks', 'Historical release may be unavailable');
+    set('independenceDimensions', 'source organization, curation process');
+    set('minimumIndependentExecutions', 1);
+    set('safetyClassification', 'public-data-only');
+    set('safetyRequirements', 'Use only the public sequence');
+    set('candidatePublicConsent', 'on');
+    set('candidateSafetyReview', 'on');
+    for (const component of ['compute', 'money', 'labor', 'instrument', 'sample', 'elapsedTime']) {
+      set(`${component}Amount`, component === 'money' ? 25 : 1);
+      set(`${component}Unit`, `${component}-unit`);
+      set(`${component}Burden`, 1);
+    }
+    set('costAssumptions', 'Public source access remains available');
+    set('valueStatus', 'heuristic_not_calibrated');
+    set('valueMethodId', 'curator-declared-ordinal-value');
+    set('valueMethodVersion', '1.0.0');
+    set('uncertaintyReduction', 4);
+    set('decisionRelevance', 5);
+    set('duplicateWorkAvoidance', 3);
+
+    const candidate = await createLifecycleRecordFromForm(
+      'candidate-action',
+      values,
+      question.roomId,
+      [question, hypothesis]
+    );
+    expect(await verifyResearchRecord(candidate)).toMatchObject({ ok: true });
+    expect(validateResearchRecordLinks(candidate, [question, hypothesis])).toMatchObject({ ok: true });
+    expect(candidate).toMatchObject({
+      kind: 'research_candidate_action',
+      questionHash: question.recordHash,
+      action: {
+        kind: 'retrieval',
+        allocationAuthority: 'none',
+        executionAuthority: 'none',
+        scientificCost: { money: { amount: 25, unit: 'money-unit', burden: 1 } },
+        uncertainty: [{ source: 'cross_source_disagreement', representation: 'ordinal' }]
+      }
+    });
+  });
+
   it('maps each contextual review action to a signed evidence record', async () => {
     const reviewer = await identity('reviewer');
     const targetHash = fakeHash('f');

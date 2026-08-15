@@ -76,6 +76,57 @@ describe('Research Room reusable panels', () => {
     expect(html).toContain('test-policy');
   });
 
+  it('renders admitted, selected, rejected, and raw candidate-action evidence without implying execution', () => {
+    const costs = Object.fromEntries(['compute', 'money', 'labor', 'instrument', 'sample', 'elapsedTime']
+      .map((component) => [component, { amount: 1, unit: `${component}-unit`, burden: 1 }]));
+    costs.assumptions = ['Declared planning estimate.'];
+    const candidate = {
+      recordHash: hash('a'),
+      actionId: hash('b'),
+      actionKind: 'retrieval',
+      title: 'Retrieve a pinned independent annotation',
+      rationale: 'Resolve cross-source disagreement.',
+      rankingStatus: 'heuristic_not_calibrated',
+      rankingScore: 42,
+      humanApprovalState: 'approval_required',
+      rawValueComponents: { uncertaintyReduction: 4, decisionRelevance: 5, duplicateWorkAvoidance: 3, costBurden: 6 },
+      scientificCost: costs,
+      execution: { contractKind: 'workload', contractId: 'catalog-retrieval', version: '1.0.0', artifactHash: hash('c'), parametersHash: hash('d') },
+      uncertainty: [{ source: 'cross_source_disagreement', representation: 'ordinal', calibration: null }],
+      affectedHypothesisHashes: [hash('e')],
+      independence: { dimensions: ['source'], minimumIndependentExecutions: 1 },
+      safety: { classification: 'public-data-only' },
+      predictedObservations: [{ observation: 'The pinned source assigns family A.' }],
+      falsifiers: [{ observation: 'The pinned source assigns an incompatible family.' }]
+    };
+    const html = renderNextWorkPanel({
+      candidateRanking: {
+        policy: {
+          policyId: 'candidate-policy',
+          version: '1.0.0',
+          status: 'heuristic_not_calibrated',
+          method: 'declared-value-minus-cost',
+          parameters: { valueWeight: 1 },
+          costAssumptions: { aggregation: 'sum' },
+          calibrationEvidenceHashes: []
+        },
+        admittedCandidates: [candidate],
+        rejectedActions: [{ recordHash: hash('f'), title: 'Rejected assay', reasons: ['candidate_was_rejected_by_independent_review'] }],
+        selectedAction: candidate
+      }
+    });
+
+    expect(html).toContain('Highest-ranked admitted candidate');
+    expect(html).toContain(`data-research-approve-candidate="${candidate.recordHash}"`);
+    expect(html).toContain(`data-research-candidate-contract="${candidate.actionId}"`);
+    expect(html).toContain('Uncertainty reduction</dt><dd>4/5');
+    expect(html).toContain('money-unit · burden 1/5');
+    expect(html).toContain('cross source disagreement: ordinal');
+    expect(html).toContain('Rejected assay');
+    expect(html).toContain('None; ranking is explicitly not calibrated.');
+    expect(html).toContain('cannot allocate or execute work');
+  });
+
   it('requires a visible contextual-relevance determination for cross-room review targets', () => {
     const reused = {
       kind: 'research_prior_evidence',
@@ -115,8 +166,13 @@ describe('Research Room reusable panels', () => {
       active: [question]
     });
 
-    expect((html.match(/data-research-lifecycle-form/g) || []).length).toBe(11);
+    expect((html.match(/data-research-lifecycle-form/g) || []).length).toBe(12);
     expect(html).toContain('data-research-action="prior-evidence"');
+    expect(html).toContain('data-research-action="candidate-action"');
+    expect(html).toContain('Governed candidate action');
+    expect(html).toContain('name="uncertaintySources"');
+    expect(html).toContain('Scientific cost vector');
+    expect(html).toContain('cannot allocate or execute work');
     expect(html).toContain('data-protein-annotation-fields');
     expect(html).toContain('name="sourceLicense" required');
     expect(html).toContain('protein_residue_zero_based_half_open');
