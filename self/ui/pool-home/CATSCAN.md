@@ -23,15 +23,17 @@ Inputs:
 Outputs:
 - The primary room view through [room-view.js](room-view.js).
 - Progressive technical disclosure through [research-technical-panel.js](research-technical-panel.js).
+- Explicit first-market proof status through the room projection and lifecycle controls.
 
 ## Invariants
 - Research outcome and unresolved questions lead the interface.
 - Complete archive status and decision-memory admissibility remain distinguishable.
+- Prior-room context differences and the reviewer authority needed for reuse remain visible.
 - Contributor, receipt, transport, and reputation details do not compete as separate products.
 
 ## Acceptance
 - A user can inspect evidence and disagreement, record review, request replication, and choose the next bounded action without losing provenance.
-- Evidence: [Research Room journey](../../../tests/e2e/pool-evidence-journey.spec.js) and [room projection tests](../../../tests/unit/pool-room-projection.test.js).
+- Evidence: [Research Room journey](../../../tests/e2e/pool-evidence-journey.spec.js), [room projection tests](../../../tests/unit/pool-room-projection.test.js), and [adjudication experiment tests](../../../tests/unit/pool-adjudication-experiment.test.js).
 
 ## Non-goals
 - Exposing Zero, X, network simulation, or generic peer inference as the primary workflow.

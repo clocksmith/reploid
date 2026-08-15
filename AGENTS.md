@@ -6,6 +6,8 @@
 
 ## Component Intent
 
+Follow the canonical [workspace CATSCAN protocol](https://github.com/clocksmith/ouroboros/blob/main/deco/docs/catscan.md).
+
 Before modifying a file, read `GOALS.md` and every `CATSCAN.md` from the project root to the target directory, in order.
 
 Treat Target, Authority, Invariants, Acceptance, and Non-goals as implementation constraints. A child CATSCAN may narrow its parent but may not contradict it.

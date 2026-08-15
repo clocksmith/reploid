@@ -23,15 +23,17 @@ Inputs:
 Outputs:
 - Signed execution records through [inference-receipt.js](inference-receipt.js).
 - Governed research state through [research-cycle.js](research-cycle.js).
+- Frozen annotation-adjudication comparisons through [evidence-network.js](evidence-network.js).
 
 ## Invariants
 - A receipt proves only its declared signed record and identities.
 - Provisional archive material and policy-admissible decision memory remain distinct.
 - Agreement, review, and acceptance never imply biological truth.
+- Exact sequence or declared-context matches never establish contextual relevance; cross-room memory requires an explicit signed current-room determination.
 
 ## Acceptance
 - Exact model, evidence, and research-cycle contracts pass focused verification.
-- Evidence: [Pool contract tests](../../tests/unit/pool-contract.test.js) and [research-cycle tests](../../tests/unit/pool-research-cycle.test.js).
+- Evidence: [Pool contract tests](../../tests/unit/pool-contract.test.js), [research-cycle tests](../../tests/unit/pool-research-cycle.test.js), and [adjudication experiment tests](../../tests/unit/pool-adjudication-experiment.test.js).
 
 ## Non-goals
 - Maximizing inference volume, peer count, or generic decentralized compute.

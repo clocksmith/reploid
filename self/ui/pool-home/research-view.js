@@ -8,6 +8,9 @@ import {
   buildEvidenceGraph,
   buildQuestionLifecycles,
   clusterCompatibleResults,
+  createCrossRoomReuseContext,
+  createSignedAdjudicationEvaluation,
+  createSignedAdjudicationExperiment,
   createSignedCohortEvaluation,
   createSignedEvaluationCohort,
   createSignedExperimentalOutcome,
@@ -27,6 +30,8 @@ import {
   searchEvidence
 } from '../../pool/evidence-network.js';
 import {
+  getCrossRoomSequenceEvidence,
+  hydrateCrossRoomSequenceEvidence,
   hydrateResearchRecords,
   loadResearchRecords,
   publishResearchRecord
@@ -67,6 +72,8 @@ const lifecycleRecordSummary = (record = {}) => {
   if (record.kind === 'research_outcome') return `<p>${escapeHtml(record.outcome.classification)} · ${escapeHtml(record.outcome.attempt.status)}${record.outcome.attempt.failureCategory !== 'none' ? ` · ${escapeHtml(record.outcome.attempt.failureCategory)}` : ''}</p><small>${record.replicationOfHash ? `Independent replication of ${escapeHtml(compactHash(record.replicationOfHash))} · ` : ''}${escapeHtml(record.outcome.blind.state)} · analysis ${escapeHtml(compactHash(record.outcome.analysis.analysisHash))}</small>`;
   if (record.kind === 'research_cohort') return `<p>${record.cohort.predictionHashes.length} frozen predictions · ${record.cohort.workOrderHashes.length} work orders</p><small>${escapeHtml(record.cohort.frozenAt)} · ${record.cohort.blindingRequired ? 'blinding required' : 'blinding not required'}</small>`;
   if (record.kind === 'research_evaluation') return `<p>${record.evaluation.metricResults.map((metric) => `${escapeHtml(metric.metricId)} ${metric.improved ? 'improved' : 'did not improve'} (${escapeHtml(metric.baselineValue)} to ${escapeHtml(metric.currentValue)})`).join(' · ')}</p><small>${record.evaluation.outcomeHashes.length} independently accepted outcomes · next cohort ${record.evaluation.nextCohortQuestionHashes.length ? 'bound' : 'not bound'}</small>`;
+  if (record.kind === 'research_adjudication_experiment') return `<p>${escapeHtml(record.experiment.target.catalogId)} @ ${escapeHtml(record.experiment.target.catalogVersion)} · ${escapeHtml(record.experiment.target.curatorRole)}</p><small>Baseline ${escapeHtml(record.experiment.baseline.workflowId)} versus ${escapeHtml(record.experiment.candidate.policyId)} · ${record.experiment.cohort.caseCount} family-disjoint paired cases</small>`;
+  if (record.kind === 'research_adjudication_evaluation') return `<p>Frozen adjudication rule ${escapeHtml(record.evaluation.assessment.conclusion)}</p><small>${record.evaluation.metricResults.map((metric) => `${escapeHtml(metric.metricId)} ${escapeHtml(metric.baselineValue)} to ${escapeHtml(metric.candidateValue)}`).join(' · ')}</small>`;
   if (record.kind === 'research_revocation') return `<p>Future reuse revoked: ${escapeHtml(record.revocation.reason)}</p><small>Target ${escapeHtml(compactHash(record.targetHash))} remains in immutable history.</small>`;
   return '';
 };
@@ -119,6 +126,9 @@ export function renderResearchWorkspace(roomId, records = loadResearchRecords(ro
   const outcomes = active.filter((record) => record.kind === 'research_outcome');
   const cohorts = active.filter((record) => record.kind === 'research_cohort');
   const evaluations = active.filter((record) => record.kind === 'research_evaluation');
+  const adjudicationExperiments = active.filter((record) => record.kind === 'research_adjudication_experiment');
+  const acceptedAdjudicationExperiments = adjudicationExperiments.filter((record) => reviewStates.get(record.recordHash)?.state === 'accepted');
+  const adjudicationEvaluations = active.filter((record) => record.kind === 'research_adjudication_evaluation');
   const lifecycles = buildQuestionLifecycles(records);
   const submissionsByHash = new Map(submissions.map((record) => [record.recordHash, record]));
   const visible = searchEvidence(records, query);
@@ -147,7 +157,9 @@ export function renderResearchWorkspace(roomId, records = loadResearchRecords(ro
         <div><dt>Work orders</dt><dd>${workOrders.length}</dd></div>
         <div><dt>Outcomes</dt><dd>${outcomes.length}</dd></div>
         <div><dt>Frozen cohorts</dt><dd>${cohorts.length}</dd></div>
-        <div><dt>Evaluations</dt><dd>${evaluations.length}</dd></div>
+        <div><dt>Cohort evaluations</dt><dd>${evaluations.length}</dd></div>
+        <div><dt>Adjudication experiments</dt><dd>${adjudicationExperiments.length}</dd></div>
+        <div><dt>Adjudication evaluations</dt><dd>${adjudicationEvaluations.length}</dd></div>
         <div><dt>Results</dt><dd>${results.length}</dd></div>
         <div><dt>Human claims</dt><dd>${claims.length}</dd></div>
         <div><dt>Evidence nodes</dt><dd>${graph.nodes.length}</dd></div>
@@ -174,6 +186,7 @@ export function renderResearchWorkspace(roomId, records = loadResearchRecords(ro
           workClaims,
           outcomes,
           cohorts,
+          adjudicationExperiments: acceptedAdjudicationExperiments,
           active
         })}
         ${renderDiscoveryPanel({ results, target, similar, clusters })}
@@ -230,10 +243,27 @@ export const createContextualReviewRecord = ({
   targetHash,
   text,
   confidence,
-  evidenceUrl = ''
+  evidenceUrl = '',
+  targetRecord = null,
+  contextDetermination = ''
 } = {}) => {
   const claim = reviewActionClaims[action];
   if (!claim) throw new TypeError('review action must be accept, reject, correct, or replicate');
+  const reuseContext = targetRecord?.evidence?.reuseContext || null;
+  const determination = String(contextDetermination || '').trim();
+  if (reuseContext && action === 'accept' && determination !== 'relevant') {
+    throw new TypeError('Accepting cross-room evidence requires an explicit relevant context determination');
+  }
+  const contextAssessment = reuseContext && claim.claimKind === 'review_decision' && determination
+    ? {
+        determination,
+        originRecordHash: reuseContext.originRecordHash,
+        originQuestionHash: reuseContext.origin.questionHash,
+        currentQuestionHash: reuseContext.current.questionHash,
+        comparisonHash: reuseContext.comparisonHash,
+        rationale: text
+      }
+    : null;
   return createSignedHumanClaim({
     identity,
     roomId,
@@ -243,7 +273,8 @@ export const createContextualReviewRecord = ({
     text,
     confidence,
     evidenceLinks: evidenceUrl ? [evidenceUrl] : [],
-    decision: claim.decision
+    decision: claim.decision,
+    contextAssessment
   });
 };
 
@@ -271,19 +302,43 @@ const protocolFromForm = (values) => ({
 });
 
 const createLifecycleRecordFromForm = async (action, values, roomId, records) => {
-  const researcher = createPoolIdentity(action === 'evaluation' ? 'verifier' : 'researcher');
+  const researcher = createPoolIdentity(['evaluation', 'adjudication-evaluation'].includes(action) ? 'verifier' : 'researcher');
   const byHash = new Map(records.map((record) => [record.recordHash, record]));
   if (action === 'prior-evidence') {
+    const question = byHash.get(values.get('questionHash'));
+    if (question?.kind !== 'research_submission') throw new Error('Selected research question is unavailable');
+    const evidenceKind = values.get('evidenceKind');
+    const requiresAnnotationIdentity = ['annotation', 'domain'].includes(evidenceKind);
     return createSignedPriorEvidence({
       identity: researcher,
       roomId,
-      questionHash: values.get('questionHash'),
-      evidenceKind: values.get('evidenceKind'),
+      questionHash: question.recordHash,
+      evidenceKind,
       summary: values.get('summary'),
       reference: { uri: values.get('uri'), accession: values.get('accession'), version: values.get('version') },
+      annotation: requiresAnnotationIdentity ? {
+        scope: evidenceKind === 'domain' ? 'domain' : values.get('annotationScope'),
+        ontology: {
+          namespace: values.get('ontologyNamespace'),
+          termId: values.get('ontologyTermId'),
+          version: values.get('ontologyVersion'),
+          label: values.get('ontologyLabel')
+        },
+        sequence: { hash: question.sequence?.hash, length: question.sequence?.length },
+        coordinates: {
+          sourceSystem: values.get('coordinateSystem'),
+          sourceStart: values.get('coordinateStart'),
+          sourceEnd: values.get('coordinateEnd')
+        }
+      } : null,
       conditions: { notes: values.get('conditions') },
       uncertainty: { method: 'contributor assessment', description: values.get('uncertainty') },
-      provenance: { retrievalMethod: values.get('retrievalMethod'), retrievedAt: new Date().toISOString() }
+      provenance: {
+        retrievalMethod: values.get('retrievalMethod'),
+        retrievedAt: new Date().toISOString(),
+        sourceIdentity: values.get('accession') || values.get('uri'),
+        license: values.get('sourceLicense')
+      }
     });
   }
   if (action === 'hypothesis') {
@@ -403,6 +458,109 @@ const createLifecycleRecordFromForm = async (action, values, roomId, records) =>
       metrics: [{ id: values.get('metricId'), label: values.get('metricLabel'), direction: values.get('direction'), unit: values.get('unit') }]
     });
   }
+  if (action === 'adjudication-experiment') {
+    return createSignedAdjudicationExperiment({
+      identity: researcher,
+      roomId,
+      target: {
+        catalogId: values.get('catalogId'),
+        catalogVersion: values.get('catalogVersion'),
+        curatorRole: values.get('curatorRole'),
+        decision: values.get('adjudicationDecision'),
+        disputedEvidencePattern: values.get('disputedEvidencePattern'),
+        actionableOutput: values.get('actionableOutput'),
+        adopterOrPayer: values.get('adopterOrPayer')
+      },
+      baseline: {
+        workflowId: values.get('baselineWorkflowId'),
+        version: values.get('baselineVersion'),
+        revisionHash: values.get('baselineRevisionHash'),
+        description: values.get('baselineDescription'),
+        toolsAndHandoffs: commaList(values.get('baselineTools'))
+      },
+      candidate: {
+        policyId: values.get('candidatePolicyId'),
+        version: values.get('candidateVersion'),
+        revisionHash: values.get('candidateRevisionHash')
+      },
+      cohort: {
+        manifest: {
+          accession: values.get('cohortAccession'),
+          version: values.get('cohortVersion'),
+          contentHash: values.get('cohortContentHash')
+        },
+        caseCount: values.get('cohortCaseCount'),
+        familySplitHash: values.get('familySplitHash'),
+        allocationHash: values.get('allocationHash'),
+        familyDisjoint: values.get('familyDisjoint') === 'on'
+      },
+      evaluator: {
+        authority: values.get('evaluatorAuthority'),
+        identityRootId: values.get('evaluatorIdentityRootId'),
+        methodId: values.get('evaluatorMethodId'),
+        version: values.get('evaluatorVersion'),
+        artifactHash: values.get('evaluatorArtifactHash'),
+        blinded: values.get('evaluatorBlinded') === 'on'
+      },
+      metrics: ['quality', 'effort'].map((prefix) => ({
+        id: values.get(`${prefix}MetricId`),
+        label: values.get(`${prefix}MetricLabel`),
+        unit: values.get(`${prefix}MetricUnit`),
+        direction: values.get(`${prefix}Direction`),
+        measurementSource: values.get(`${prefix}MeasurementSource`),
+        aggregationRule: values.get(`${prefix}AggregationRule`),
+        validityConditions: commaList(values.get(`${prefix}ValidityConditions`)),
+        noiseModel: values.get(`${prefix}NoiseModel`),
+        minimumSampleSize: values.get(`${prefix}MinimumSample`),
+        confidenceLevel: values.get(`${prefix}ConfidenceLevel`)
+      })),
+      successPolicy: {
+        qualityMetricId: values.get('qualityMetricId'),
+        effortMetricId: values.get('effortMetricId'),
+        qualityImprovementThreshold: values.get('qualityImprovementThreshold'),
+        qualityNonInferiorityMargin: values.get('qualityNonInferiorityMargin'),
+        effortImprovementThreshold: values.get('effortImprovementThreshold'),
+        effortComparabilityMargin: values.get('effortComparabilityMargin')
+      },
+      resolution: {
+        acceptanceRule: values.get('experimentAcceptanceRule'),
+        rejectionRule: values.get('experimentRejectionRule'),
+        reopeningRule: values.get('experimentReopeningRule')
+      }
+    });
+  }
+  if (action === 'adjudication-evaluation') {
+    const experiment = byHash.get(values.get('adjudicationExperimentHash'));
+    if (experiment?.kind !== 'research_adjudication_experiment') throw new Error('Selected adjudication experiment is unavailable');
+    const policy = experiment.experiment.successPolicy;
+    return createSignedAdjudicationEvaluation({
+      identity: researcher,
+      roomId,
+      experiment,
+      resultManifest: {
+        accession: values.get('resultManifestAccession'),
+        version: values.get('resultManifestVersion'),
+        contentHash: values.get('resultManifestHash')
+      },
+      metricResults: [{
+        metricId: policy.qualityMetricId,
+        baselineValue: values.get('qualityBaselineValue'),
+        candidateValue: values.get('qualityCandidateValue'),
+        effectInterval: { lower: values.get('qualityEffectLower'), upper: values.get('qualityEffectUpper') },
+        pairedSampleCount: values.get('pairedSampleCount')
+      }, {
+        metricId: policy.effortMetricId,
+        baselineValue: values.get('effortBaselineValue'),
+        candidateValue: values.get('effortCandidateValue'),
+        effectInterval: { lower: values.get('effortEffectLower'), upper: values.get('effortEffectUpper') },
+        pairedSampleCount: values.get('pairedSampleCount')
+      }],
+      regressionCount: values.get('adjudicationRegressionCount'),
+      missingCaseCount: values.get('adjudicationMissingCaseCount'),
+      disagreementSummary: values.get('adjudicationDisagreementSummary'),
+      failureAnalysis: values.get('adjudicationFailureAnalysis')
+    });
+  }
   if (action === 'evaluation') {
     const cohort = byHash.get(values.get('cohortHash'));
     if (!cohort) throw new Error('Selected cohort is unavailable');
@@ -467,6 +625,17 @@ export function bindResearchWorkspace(
     workspace.querySelectorAll('[data-research-review-context-shell]').forEach((context) => {
       context.hidden = context.dataset.researchReviewContextShell !== event.target.value;
     });
+    const contextFields = workspace.querySelector('[data-research-context-assessment-fields]');
+    const contextSelect = contextFields?.querySelector('[name="contextDetermination"]');
+    const selectedRecord = activeResearchRecords(loadResearchRecords(roomId))
+      .find((record) => record.recordHash === event.target.value);
+    const required = Boolean(selectedRecord?.evidence?.reuseContext);
+    if (contextFields) contextFields.hidden = !required;
+    if (contextSelect) {
+      contextSelect.disabled = !required;
+      contextSelect.required = required;
+      contextSelect.value = '';
+    }
     retainReviewTargetInUrl(event.target.value);
   });
   workspace.querySelector('[data-research-review-form]')?.addEventListener('submit', async (event) => {
@@ -489,7 +658,10 @@ export function bindResearchWorkspace(
         targetHash: values.get('targetHash'),
         text: values.get('text'),
         confidence: values.get('confidence'),
-        evidenceUrl: values.get('evidenceUrl')
+        evidenceUrl: values.get('evidenceUrl'),
+        targetRecord: activeResearchRecords(loadResearchRecords(roomId))
+          .find((candidate) => candidate.recordHash === values.get('targetHash')) || null,
+        contextDetermination: values.get('contextDetermination')
       });
       const publication = await publishRecord(record, { roomId });
       replaceWorkspace(workspace, { reviewTarget: values.get('targetHash') });
@@ -529,6 +701,26 @@ export function bindResearchWorkspace(
     });
   });
   workspace.querySelectorAll('[data-research-lifecycle-form]').forEach((form) => {
+    const kindSelect = form.querySelector('[data-prior-evidence-kind]');
+    const annotationFields = form.querySelector('[data-protein-annotation-fields]');
+    if (kindSelect && annotationFields) {
+      const syncAnnotationFields = () => {
+        const enabled = ['annotation', 'domain'].includes(kindSelect.value);
+        annotationFields.hidden = !enabled;
+        for (const control of annotationFields.querySelectorAll('input, select')) {
+          control.disabled = !enabled;
+          control.required = enabled && control.name !== 'ontologyLabel';
+        }
+        const scope = annotationFields.querySelector('[name="annotationScope"]');
+        if (scope && kindSelect.value === 'domain') {
+          scope.value = 'domain';
+          scope.disabled = true;
+          scope.required = false;
+        }
+      };
+      kindSelect.addEventListener('change', syncAnnotationFields);
+      syncAnnotationFields();
+    }
     form.addEventListener('submit', async (event) => {
       event.preventDefault();
       const status = form.querySelector('[data-research-lifecycle-status]');
@@ -554,10 +746,124 @@ export function bindResearchWorkspace(
   });
 }
 
-export function bindResearchRoomActions(root = document) {
+export async function createCurrentRoomPriorEvidence({
+  identity,
+  roomId,
+  question,
+  originQuestion,
+  candidate,
+  sourceRecord,
+  createdAt = new Date().toISOString()
+} = {}) {
+  if (question?.kind !== 'research_submission' || question.roomId !== roomId) {
+    throw new Error('The active current-room question is unavailable');
+  }
+  if (candidate?.originRoomId === roomId || candidate?.recordHash !== sourceRecord?.recordHash) {
+    throw new Error('The prior-room candidate identity is inconsistent');
+  }
+  if (originQuestion?.kind !== 'research_submission'
+    || originQuestion.recordHash !== sourceRecord?.questionHash
+    || originQuestion.roomId !== candidate.originRoomId) {
+    throw new Error('The signed origin-room question is unavailable or inconsistent');
+  }
+  if (candidate?.qualification?.status !== 'source_metadata_complete') {
+    throw new Error('The prior-room source requires qualification before attachment');
+  }
+  if (sourceRecord?.kind !== 'research_prior_evidence') {
+    throw new Error('Only a versioned prior-evidence record can be attached automatically');
+  }
+  const license = String(sourceRecord.evidence?.provenance?.license || '').trim();
+  if (!license) throw new Error('The prior-room source has no declared reuse license');
+  const annotation = sourceRecord.evidence?.annotation || null;
+  if (['annotation', 'domain'].includes(sourceRecord.evidence?.kind)) {
+    if (!annotation) throw new Error('The prior-room annotation has no normalized identity');
+    if (annotation.sequence?.hash !== question.sequence?.hash
+      || annotation.sequence?.length !== question.sequence?.length) {
+      throw new Error('The prior-room annotation is not bound to the active exact sequence');
+    }
+  }
+  const reuseContext = await createCrossRoomReuseContext({
+    originRecord: sourceRecord,
+    originQuestion,
+    currentQuestion: question
+  });
+  return createSignedPriorEvidence({
+    identity,
+    roomId,
+    questionHash: question.recordHash,
+    evidenceKind: sourceRecord.evidence?.kind,
+    summary: `Prior-room evidence from ${candidate.originRoomId}: ${sourceRecord.evidence?.summary || candidate.recordHash}`,
+    reference: {
+      accession: `reploid:${candidate.originRoomId}:${sourceRecord.evidence?.reference?.accession || 'evidence'}`,
+      contentHash: candidate.recordHash
+    },
+    annotation,
+    reuseContext,
+    conditions: sourceRecord.evidence?.conditions || {},
+    transformations: [{
+      id: 'reploid.cross-room-evidence-reference',
+      version: '1',
+      description: 'References the exact signed origin-room record without inheriting its decision status.'
+    }],
+    uncertainty: sourceRecord.evidence?.uncertainty || {},
+    provenance: {
+      retrievalMethod: 'Reploid exact-sequence prior-room lookup',
+      retrievedAt: createdAt,
+      sourceIdentity: `${candidate.originRoomId}:${candidate.recordHash}`,
+      license
+    },
+    createdAt
+  });
+}
+
+export function bindResearchRoomActions(root = document, {
+  publishRecord = publishResearchRecord
+} = {}) {
   if (!root || root.dataset?.researchRoomActionsBound === 'true') return;
   if (root.dataset) root.dataset.researchRoomActionsBound = 'true';
   root.addEventListener('click', async (event) => {
+    const priorButton = event.target.closest?.('[data-pool-room-attach-prior]');
+    if (priorButton && root.contains(priorButton)) {
+      event.preventDefault();
+      const roomId = priorButton.dataset.poolRoomId;
+      const recordHash = priorButton.dataset.poolRoomAttachPrior;
+      const originRoomId = priorButton.dataset.poolRoomPriorOrigin;
+      const state = getCrossRoomSequenceEvidence(roomId);
+      const candidate = state.projection?.candidates?.find((entry) => (
+        entry.recordHash === recordHash && entry.originRoomId === originRoomId
+      ));
+      const sourceRecord = state.projection?.records?.find((entry) => entry.recordHash === recordHash);
+      const originQuestion = state.projection?.records?.find((entry) => (
+        entry.recordHash === sourceRecord?.questionHash
+        && entry.kind === 'research_submission'
+        && entry.roomId === originRoomId
+      ));
+      const question = activeResearchRecords(loadResearchRecords(roomId))
+        .filter((record) => record.kind === 'research_submission')
+        .at(-1) || null;
+      const label = priorButton.textContent;
+      priorButton.disabled = true;
+      priorButton.textContent = 'Signing provisional evidence...';
+      try {
+        if (!candidate || !sourceRecord) throw new Error('The prior-room candidate is no longer available');
+        if (state.sequenceHash !== question?.sequence?.hash) throw new Error('The prior-room sequence identity is stale');
+        const record = await createCurrentRoomPriorEvidence({
+          identity: createPoolIdentity('researcher'),
+          roomId,
+          question,
+          originQuestion,
+          candidate,
+          sourceRecord
+        });
+        const publication = await publishRecord(record, { roomId });
+        priorButton.textContent = publication.remote ? 'Attached for review' : 'Attached locally; sync pending';
+      } catch (error) {
+        priorButton.disabled = false;
+        priorButton.textContent = label;
+        priorButton.title = error instanceof Error ? error.message : String(error);
+      }
+      return;
+    }
     const button = event.target.closest?.('[data-pool-room-approve-task]');
     if (!button || !root.contains(button)) return;
     event.preventDefault();
@@ -597,7 +903,10 @@ export function bindResearchRoomActions(root = document) {
 export async function hydrateAndBindResearchWorkspace(
   workspace = document.querySelector('[data-pool-research-workspace]'),
   roomId = workspace?.dataset.roomId,
-  { hydrate = hydrateResearchRecords } = {}
+  {
+    hydrate = hydrateResearchRecords,
+    hydrateCrossRoom = hydrateCrossRoomSequenceEvidence
+  } = {}
 ) {
   if (!roomId) return null;
   const sync = workspace?.querySelector('[data-pool-research-sync]');
@@ -611,6 +920,16 @@ export async function hydrateAndBindResearchWorkspace(
     ? await hydrate(roomId, { onLocalHydrated: renderLocalEvidence })
     : await hydrate(roomId);
   if (!localRenderCompleted) renderLocalEvidence();
+  const latestSubmission = activeResearchRecords(hydrated.records || [])
+    .filter((record) => record.kind === 'research_submission')
+    .at(-1) || null;
+  const crossRoomEvidence = latestSubmission
+    ? await hydrateCrossRoom(roomId, latestSubmission.sequence?.hash)
+    : null;
+  const currentWorkspace = document.querySelector('[data-pool-research-workspace]');
+  if (workspace && currentWorkspace?.dataset.roomId === roomId) {
+    replaceWorkspace(currentWorkspace);
+  }
   const current = document.querySelector('[data-pool-research-sync]');
   if (current) {
     const rejectedCount = hydrated.rejectedRecords?.length || 0;
@@ -622,8 +941,9 @@ export async function hydrateAndBindResearchWorkspace(
         ? `Local evidence verified; ${rejectedCount} unadmitted or invalid record${rejectedCount === 1 ? '' : 's'} rejected by policy; coordinator sync unavailable`
         : 'Local evidence verified; coordinator sync unavailable');
   }
-  if (sync && !document.body.contains(sync)) return hydrated;
-  return hydrated;
+  const result = { ...hydrated, crossRoomEvidence };
+  if (sync && !document.body.contains(sync)) return result;
+  return result;
 }
 
 export default { renderResearchWorkspace, bindResearchWorkspace, bindResearchRoomActions, hydrateAndBindResearchWorkspace };

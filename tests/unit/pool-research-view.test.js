@@ -1,8 +1,13 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import {
+  createSignedHumanClaim,
+  createSignedPriorEvidence,
   createSignedResearchResult,
-  createSignedResearchSubmission
+  createSignedResearchSubmission,
+  projectAcceptedResearchMemory,
+  validateResearchRecordLinks,
+  verifyResearchRecord
 } from '../../self/pool/evidence-network.js';
 import { createSigningKeyPair } from '../../self/pool/inference-receipt.js';
 import { buildLaunchProviderModel } from '../../self/pool/model-contract.js';
@@ -10,6 +15,7 @@ import { hashSequenceFloat32Values } from '../../self/pool/sequence-result.js';
 import {
   bindResearchWorkspace,
   createContextualReviewRecord,
+  createCurrentRoomPriorEvidence,
   hydrateAndBindResearchWorkspace,
   renderResearchWorkspace
 } from '../../self/ui/pool-home/research-view.js';
@@ -159,6 +165,175 @@ describe('Poolday research Records model evidence view', () => {
 
     expect(hydrate).toHaveBeenCalledWith('home-room');
     expect(result).toMatchObject({ roomId: 'home-room', remote: true });
+  });
+
+  it('reprojects remotely hydrated evidence into a cold review workspace', async () => {
+    localStorage.clear();
+    resetResearchStore();
+    const roomId = 'cold-review-room';
+    const submission = await createSignedResearchSubmission({
+      identity: await identity('requester'),
+      roomId,
+      sequence: 'MAPLALLLLGLVAGA',
+      intent: { kind: 'question', text: 'Can a second curator review synchronized evidence?' },
+      consent: { publicSequence: true, publicEvidenceNetwork: true, publishEmbedding: true },
+      modelContract: buildLaunchProviderModel(),
+      policyId: 'redundant_agreement'
+    });
+    document.body.innerHTML = `<div>${renderResearchWorkspace(roomId, [])}</div>`;
+    const workspace = document.querySelector('[data-pool-research-workspace]');
+    const hydrate = vi.fn(async () => {
+      await appendResearchRecord(submission);
+      return { roomId, remote: true, records: [submission], rejectedRecords: [] };
+    });
+
+    await hydrateAndBindResearchWorkspace(workspace, roomId, {
+      hydrate,
+      hydrateCrossRoom: vi.fn().mockResolvedValue(null)
+    });
+
+    expect(document.querySelector('[data-research-review-form] select[name="targetHash"]')?.value)
+      .toBe(submission.recordHash);
+    expect(document.querySelector('[data-pool-research-sync]')?.textContent)
+      .toBe('Coordinator evidence synchronized');
+    resetResearchStore();
+    localStorage.clear();
+  });
+
+  it('attaches qualified origin evidence as a new provisional current-room record', async () => {
+    const admittedModel = buildLaunchProviderModel();
+    const question = await createSignedResearchSubmission({
+      identity: await identity('requester'),
+      roomId: 'current-reuse-room',
+      sequence: 'MAPLALLLLGLVAGA',
+      intent: { kind: 'question', text: 'Can this prior annotation evidence be reused here?' },
+      consent: { publicSequence: true, publicEvidenceNetwork: true, publishEmbedding: true },
+      modelContract: admittedModel,
+      policyId: 'redundant_agreement'
+    });
+    const priorQuestion = await createSignedResearchSubmission({
+      identity: await identity('requester'),
+      roomId: 'origin-reuse-room',
+      sequence: 'MAPLALLLLGLVAGA',
+      intent: { kind: 'question', text: 'What does the versioned catalog say?' },
+      consent: { publicSequence: true, publicEvidenceNetwork: true, publishEmbedding: true },
+      modelContract: admittedModel,
+      policyId: 'redundant_agreement'
+    });
+    const source = await createSignedPriorEvidence({
+      identity: await identity('researcher'),
+      roomId: priorQuestion.roomId,
+      questionHash: priorQuestion.recordHash,
+      evidenceKind: 'annotation',
+      summary: 'The versioned public catalog assigns a bounded domain.',
+      reference: { accession: 'PUBLIC:123', version: '7' },
+      annotation: {
+        scope: 'domain',
+        ontology: { namespace: 'PUBLIC', termId: 'DOMAIN:123', version: '7', label: 'Bounded domain' },
+        sequence: { hash: priorQuestion.sequence.hash, length: priorQuestion.sequence.length },
+        coordinates: { sourceSystem: 'protein_residue_one_based_closed', sourceStart: 2, sourceEnd: 12 }
+      },
+      provenance: { retrievalMethod: 'catalog API', license: 'CC BY 4.0' }
+    });
+    const candidate = {
+      recordHash: source.recordHash,
+      originRoomId: priorQuestion.roomId,
+      qualification: { status: 'source_metadata_complete', reasons: [] }
+    };
+
+    const attached = await createCurrentRoomPriorEvidence({
+      identity: await identity('researcher'),
+      roomId: question.roomId,
+      question,
+      originQuestion: priorQuestion,
+      candidate,
+      sourceRecord: source,
+      createdAt: '2026-08-15T12:00:00.000Z'
+    });
+
+    expect(attached).toMatchObject({
+      kind: 'research_prior_evidence',
+      roomId: question.roomId,
+      questionHash: question.recordHash,
+      evidence: {
+        kind: 'annotation',
+        reuseContext: {
+          schema: 'poolday.cross_room_reuse_context/v1',
+          originRecordHash: source.recordHash,
+          origin: { questionHash: priorQuestion.recordHash, roomId: priorQuestion.roomId },
+          current: { questionHash: question.recordHash, roomId: question.roomId },
+          comparison: { status: 'declared_context_differences' },
+          admission: 'requires_explicit_current_room_context_review'
+        },
+        annotation: {
+          schema: 'poolday.protein_annotation_identity/v1',
+          scope: 'domain',
+          ontology: { namespace: 'PUBLIC', termId: 'DOMAIN:123', version: '7', label: 'Bounded domain' },
+          coordinates: { canonicalSystem: 'protein_residue_one_based_closed', start: 2, end: 12 }
+        },
+        reference: {
+          accession: 'reploid:origin-reuse-room:PUBLIC:123',
+          contentHash: source.recordHash
+        },
+        provenance: {
+          retrievalMethod: 'Reploid exact-sequence prior-room lookup',
+          sourceIdentity: `origin-reuse-room:${source.recordHash}`,
+          license: 'CC BY 4.0'
+        }
+      }
+    });
+    expect(await verifyResearchRecord(attached)).toMatchObject({ ok: true });
+    expect(validateResearchRecordLinks(attached, [question])).toMatchObject({ ok: true });
+    const unsafeAcceptance = await createSignedHumanClaim({
+      identity: await identity('reviewer'),
+      roomId: question.roomId,
+      targetHash: attached.recordHash,
+      claimKind: 'review_decision',
+      relation: 'reviews',
+      text: 'Generic acceptance must not silently establish contextual relevance.',
+      confidence: 0.8,
+      decision: 'accepted'
+    });
+    expect(validateResearchRecordLinks(unsafeAcceptance, [question, attached])).toMatchObject({
+      ok: false,
+      reasons: expect.arrayContaining(['accepted cross-room evidence requires an explicit relevant context determination'])
+    });
+    expect(projectAcceptedResearchMemory([question, attached, unsafeAcceptance]).excluded).toContainEqual({
+      recordHash: attached.recordHash,
+      reason: 'contextual_relevance_review_missing',
+      supersededByHash: null
+    });
+    const missingContextReviewer = await identity('reviewer');
+    expect(() => createContextualReviewRecord({
+      action: 'accept',
+      identity: missingContextReviewer,
+      roomId: question.roomId,
+      targetHash: attached.recordHash,
+      targetRecord: attached,
+      text: 'The source may inform this different current decision context.',
+      confidence: 0.8
+    })).toThrow('explicit relevant context determination');
+    const contextualAcceptance = await createContextualReviewRecord({
+      action: 'accept',
+      identity: await identity('reviewer'),
+      roomId: question.roomId,
+      targetHash: attached.recordHash,
+      targetRecord: attached,
+      contextDetermination: 'relevant',
+      text: 'The bounded domain evidence remains relevant despite the declared question difference.',
+      confidence: 0.8
+    });
+    expect(contextualAcceptance.claim.contextAssessment).toMatchObject({
+      schema: 'poolday.contextual_reuse_review/v1',
+      determination: 'relevant',
+      originRecordHash: source.recordHash,
+      originQuestionHash: priorQuestion.recordHash,
+      currentQuestionHash: question.recordHash,
+      comparisonHash: attached.evidence.reuseContext.comparisonHash
+    });
+    expect(validateResearchRecordLinks(contextualAcceptance, [question, attached])).toMatchObject({ ok: true });
+    expect(projectAcceptedResearchMemory([question, attached, contextualAcceptance]).acceptedHashes)
+      .toContain(attached.recordHash);
   });
 
   it('renders exact-model evidence and explicit non-comparison boundaries', async () => {

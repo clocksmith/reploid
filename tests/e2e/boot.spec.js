@@ -164,8 +164,8 @@ test.describe('Route Entry Points', () => {
     await expect(controlDrawer.locator('.pool-nav-mark-seven-bottom')).toHaveText('7');
     await expect(controlDrawer.locator('.pool-nav-menu')).toBeVisible();
     await expect(controlDrawer.locator('[data-pool-drawer-section]')).toHaveCount(5);
-    await expect(controlDrawer.getByRole('link', { name: 'Zero', exact: true })).toHaveCount(1);
-    await expect(controlDrawer.getByRole('link', { name: 'X', exact: true })).toHaveCount(1);
+    await expect(controlDrawer.getByRole('link', { name: 'Zero', exact: true })).toHaveCount(0);
+    await expect(controlDrawer.getByRole('link', { name: 'X', exact: true })).toHaveCount(0);
     await expect(page.locator('#pool-home-ask-form')).toBeVisible();
     await expect(page.locator('#pool-home-ask-prompt')).toHaveValue('');
     const askPlaceholder = await page.locator('#pool-home-ask-prompt').getAttribute('placeholder');
@@ -242,8 +242,8 @@ test.describe('Route Entry Points', () => {
     await expect(controlDrawer.locator('[data-pool-drawer-section="network-connection"]')).toBeVisible();
     await expect(controlDrawer.locator('[data-pool-drawer-section="network-device"]')).toBeVisible();
     await expect(controlDrawer.locator('[data-pool-drawer-section="network-activity"]')).toBeVisible();
-    await expect(controlDrawer.getByRole('link', { name: 'Zero', exact: true })).toHaveAttribute('href', '/zero');
-    await expect(controlDrawer.getByRole('link', { name: 'X', exact: true })).toHaveAttribute('href', '/x');
+    await expect(controlDrawer.getByRole('link', { name: 'Zero', exact: true })).toHaveCount(0);
+    await expect(controlDrawer.getByRole('link', { name: 'X', exact: true })).toHaveCount(0);
     await expect(page.getByLabel('Reploid overview')).toContainText('REPLOID');
     await expect(page.getByLabel('Reploid overview')).toContainText('Run a public protein sequence and keep the evidence.');
     await expect(page.locator('body')).not.toContainText('Poolday');
@@ -302,7 +302,7 @@ test.describe('Route Entry Points', () => {
     await expect(page.getByRole('link', { name: 'Share compute', exact: true })).toHaveAttribute('aria-current', 'page');
     await nav.locator('.pool-nav-toggle').click();
     await expect(nav).toHaveClass(/is-open/);
-    await expect(page.getByRole('link', { name: 'Zero', exact: true })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Zero', exact: true })).toHaveCount(0);
 
     await page.setViewportSize({ width: 390, height: 844 });
     await page.reload();
@@ -344,7 +344,7 @@ test.describe('Route Entry Points', () => {
     await expect(mobileNav.getByRole('link', { name: 'Review evidence', exact: true })).toBeVisible();
     await expect(mobileNav.locator('.pool-nav-description').first()).toBeVisible();
     await expect(mobileNav.locator('.pool-room-context')).toBeVisible();
-    await expect(mobileNav.getByRole('link', { name: 'Zero', exact: true })).toBeVisible();
+    await expect(mobileNav.getByRole('link', { name: 'Zero', exact: true })).toHaveCount(0);
   });
 
   test('expanded desktop navigation reserves the Poolday home surface and keeps it centered', async ({ page }) => {

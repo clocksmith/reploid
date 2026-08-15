@@ -76,6 +76,34 @@ describe('Research Room reusable panels', () => {
     expect(html).toContain('test-policy');
   });
 
+  it('requires a visible contextual-relevance determination for cross-room review targets', () => {
+    const reused = {
+      kind: 'research_prior_evidence',
+      recordHash: hash('r'),
+      questionHash: hash('q'),
+      evidence: {
+        summary: 'Prior-room annotation attached for current-room review.',
+        reuseContext: {
+          origin: { roomId: 'origin-room', questionHash: hash('o') },
+          current: { roomId: 'current-room', questionHash: hash('q') },
+          comparison: {
+            status: 'declared_context_differences',
+            differences: ['question', 'decisionContext'],
+            missing: ['conditions']
+          }
+        }
+      }
+    };
+    const html = renderReviewPanel({ reviewTargets: [reused], reviewTarget: reused.recordHash });
+
+    expect(html).toContain('Declared-context comparison');
+    expect(html).toContain('differs: question, decisionContext');
+    expect(html).toContain('missing: conditions');
+    expect(html).toContain('data-research-context-assessment-fields');
+    expect(html).toContain('name="contextDetermination" required');
+    expect(html).toContain('Relevant to this decision context');
+  });
+
   it('keeps the full lifecycle form vocabulary reusable without owning signing', () => {
     const question = { kind: 'research_submission', recordHash: hash('q') };
     const hypothesis = { kind: 'research_hypothesis', recordHash: hash('h') };
@@ -87,8 +115,11 @@ describe('Research Room reusable panels', () => {
       active: [question]
     });
 
-    expect((html.match(/data-research-lifecycle-form/g) || []).length).toBe(9);
+    expect((html.match(/data-research-lifecycle-form/g) || []).length).toBe(11);
     expect(html).toContain('data-research-action="prior-evidence"');
+    expect(html).toContain('data-protein-annotation-fields');
+    expect(html).toContain('name="sourceLicense" required');
+    expect(html).toContain('protein_residue_zero_based_half_open');
     expect(html).toContain('data-research-action="hypothesis"');
     expect(html).toContain('data-research-action="prediction"');
     expect(html).toContain('data-research-action="work-order"');
@@ -96,6 +127,9 @@ describe('Research Room reusable panels', () => {
     expect(html).toContain('data-research-action="outcome"');
     expect(html).toContain('data-research-action="cohort"');
     expect(html).toContain('data-research-action="evaluation"');
+    expect(html).toContain('data-research-action="adjudication-experiment"');
+    expect(html).toContain('data-research-action="adjudication-evaluation"');
+    expect(html).toContain('This contract must name the real catalog and curator workflow.');
     expect(html).toContain('data-research-action="revocation"');
     expect(html).toContain('data-research-lifecycle-status');
   });

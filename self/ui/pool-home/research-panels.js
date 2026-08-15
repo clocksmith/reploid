@@ -34,6 +34,7 @@ export const recordLabel = (record = {}) => {
     || record.workClaim?.laboratory?.name
     || record.outcome?.summary
     || record.cohort?.label
+    || (record.experiment?.target?.catalogId ? `${record.experiment.target.catalogId} adjudication experiment` : '')
     || record.evaluation?.metricResults?.map((metric) => metric.metricId).join(', ')
     || record.revocation?.reason
     || record.recordHash;
@@ -56,7 +57,7 @@ const reviewAgreementLabel = (record = {}) => {
 const reviewQuestionContext = (record, submissionsByHash) => {
   const submission = record.kind === 'research_submission'
     ? record
-    : submissionsByHash.get(record.submissionHash);
+    : submissionsByHash.get(record.submissionHash || record.questionHash);
   if (!submission) return null;
   const intent = submission.requesterIntent || {};
   return {
@@ -73,14 +74,19 @@ const renderReviewTargetContext = (record, { submissionsByHash = new Map(), revi
   const resultEvidence = record.kind === 'research_result'
     ? `<div><dt>Result evidence</dt><dd>${escapeHtml(record.modelContract?.id || 'Model result')} · ${escapeHtml(record.embedding?.dimensions || record.modelContract?.dimensions || 'unknown')} dimensions · receipt ${escapeHtml(compactHash(record.compute?.receiptHash))}</dd></div><div><dt>Agreement</dt><dd>${escapeHtml(reviewAgreementLabel(record))}</dd></div>`
     : '';
+  const reuseContext = record.evidence?.reuseContext || null;
+  const contextEvidence = reuseContext
+    ? `<div><dt>Origin context</dt><dd>${escapeHtml(reuseContext.origin.roomId)} · ${escapeHtml(compactHash(reuseContext.origin.questionHash))}</dd></div><div><dt>Declared-context comparison</dt><dd>${escapeHtml(reuseContext.comparison.status.replace(/_/g, ' '))}${reuseContext.comparison.differences.length ? ` · differs: ${escapeHtml(reuseContext.comparison.differences.join(', '))}` : ''}${reuseContext.comparison.missing.length ? ` · missing: ${escapeHtml(reuseContext.comparison.missing.join(', '))}` : ''}</dd></div>`
+    : '';
   return `<article class="pool-research-review-context" data-research-review-context="${escapeHtml(record.recordHash)}">
     <div><strong>${escapeHtml(recordLabel(record))}</strong><span>${escapeHtml(record.kind.replace(/_/g, ' '))} · ${escapeHtml(compactHash(record.recordHash))}</span></div>
     <dl class="pool-room-facts">
       ${question ? `<div><dt>Question</dt><dd>${escapeHtml(question.question)}${question.questionDetail ? ` · ${escapeHtml(question.questionDetail)}` : ''}</dd></div><div><dt>Sequence</dt><dd>${escapeHtml(question.sequence)} · ${escapeHtml(question.publication)}</dd></div>` : ''}
       ${resultEvidence}
+      ${contextEvidence}
       <div><dt>Current review</dt><dd>${escapeHtml(reviewState.replace(/_/g, ' '))}</dd></div>
     </dl>
-    <p class="type-caption">Choose a signed decision below. Similarity and retrieval ranking do not establish agreement.</p>
+    <p class="type-caption">Choose a signed decision below. Similarity and retrieval ranking do not establish agreement.${reuseContext ? ' Cross-room acceptance also requires an explicit determination that the origin evidence is relevant to this current decision context.' : ''}</p>
   </article>`;
 };
 
@@ -143,6 +149,8 @@ export const renderReviewPanel = ({
   const selectedTarget = reviewTargets.some((record) => record.recordHash === reviewTarget)
     ? reviewTarget
     : reviewTargets[0]?.recordHash || '';
+  const selectedRecord = reviewTargets.find((record) => record.recordHash === selectedTarget) || null;
+  const selectedRequiresContext = Boolean(selectedRecord?.evidence?.reuseContext);
   return `
   <section class="pool-research-panel" id="pool-room-review" data-pool-room-panel-target="review">
     <p class="pool-dashboard-kicker">Review</p>
@@ -152,6 +160,7 @@ export const renderReviewPanel = ({
       <div class="pool-research-review-contexts" data-research-review-contexts aria-live="polite">
         ${reviewTargets.length ? reviewTargets.map((record) => `<div data-research-review-context-shell="${escapeHtml(record.recordHash)}"${record.recordHash === selectedTarget ? '' : ' hidden'}>${renderReviewTargetContext(record, { submissionsByHash, reviewStates })}</div>`).join('') : '<p class="type-caption">No active evidence is available to review.</p>'}
       </div>
+      <label class="pool-field" data-research-context-assessment-fields${selectedRequiresContext ? '' : ' hidden'}><span>Cross-room contextual relevance</span><select name="contextDetermination"${selectedRequiresContext ? ' required' : ' disabled'}><option value="" selected disabled>Choose a determination</option><option value="relevant">Relevant to this decision context</option><option value="not_relevant">Not relevant to this decision context</option><option value="uncertain">Contextual relevance remains uncertain</option></select></label>
       <label class="pool-field"><span>Reason or correction</span><textarea name="text" rows="4" required placeholder="Explain the decision, state the correction, or define what an independent replication should check."></textarea></label>
       <div class="pool-research-form-row">
         <label class="pool-field"><span>Confidence</span><input name="confidence" type="number" min="0" max="1" step="0.05" value="0.75" required></label>

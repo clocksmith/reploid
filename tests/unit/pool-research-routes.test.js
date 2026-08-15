@@ -46,10 +46,13 @@ const dispatchJson = async (router, path, { method = 'GET', body = null, ip = '1
   });
 };
 
-const makeSubmission = async () => createSignedResearchSubmission({
+const makeSubmission = async ({
+  roomId = 'route-room',
+  sequence = 'MAPLALLLLGLVAGA'
+} = {}) => createSignedResearchSubmission({
   identity: await requesterIdentity(),
-  roomId: 'route-room',
-  sequence: 'MAPLALLLLGLVAGA',
+  roomId,
+  sequence,
   intent: { kind: 'question', text: 'Which related public records have reviewed evidence?' },
   consent: { publicSequence: true, publicEvidenceNetwork: true, publishEmbedding: true },
   modelContract: buildLaunchProviderModel(),
@@ -86,6 +89,41 @@ describe('Poolday research evidence coordinator routes', () => {
     const fetched = await dispatchJson(publicReader, `/research/records/${encodeURIComponent(record.recordHash)}`);
     expect(fetched.status).toBe(200);
     expect(fetched.body.record.recordHash).toBe(record.recordHash);
+  });
+
+  it('projects exact public sequence evidence across rooms without admitting current-room records as reuse candidates', async () => {
+    const store = createPoolStore();
+    const first = await makeSubmission({ roomId: 'prior-room-a' });
+    const duplicateSequence = await makeSubmission({ roomId: 'prior-room-b' });
+    const unrelated = await makeSubmission({ roomId: 'unrelated-room', sequence: 'MKTIIALSYIFCLVFA' });
+    for (const record of [first, duplicateSequence, unrelated]) store.saveResearchRecord(record);
+    const publicReader = createPoolRouter({ store, requireAuth: true });
+
+    const response = await dispatchJson(publicReader,
+      `/research/sequences/${encodeURIComponent(first.sequence.hash)}/evidence?currentRoomId=prior-room-a&limit=50`);
+
+    expect(response.status).toBe(200);
+    expect(response.body).toMatchObject({
+      schema: 'poolday.cross_room_sequence_evidence/v1',
+      currentRoomId: 'prior-room-a',
+      complete: true
+    });
+    expect(response.body.rooms.map((room) => room.roomId)).toEqual(['prior-room-a', 'prior-room-b']);
+    expect(response.body.rooms.find((room) => room.roomId === 'prior-room-a').currentRoom).toBe(true);
+    expect(response.body.records.map((record) => record.recordHash).sort()).toEqual([
+      first.recordHash,
+      duplicateSequence.recordHash
+    ].sort());
+    expect(response.body.candidates).toEqual([]);
+
+    const invalid = await dispatchJson(publicReader, '/research/sequences/not-a-hash/evidence');
+    expect(invalid).toMatchObject({
+      status: 400,
+      body: {
+        error: 'invalid sequence evidence query',
+        reasons: ['sequenceHash must be a SHA-256 identity']
+      }
+    });
   });
 
   it('rejects unsigned or tampered public evidence', async () => {

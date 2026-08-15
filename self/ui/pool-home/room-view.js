@@ -16,6 +16,15 @@ const compactHash = (value) => {
   return text.length > 24 ? `${text.slice(0, 16)}...${text.slice(-8)}` : text;
 };
 
+const annotationIdentityLabel = (annotation = null) => {
+  if (!annotation) return null;
+  const ontology = annotation.ontology || {};
+  const coordinates = annotation.coordinates || {};
+  const term = [ontology.namespace, ontology.termId].filter(Boolean).join(':');
+  if (!term || !ontology.version || !Number.isInteger(coordinates.start) || !Number.isInteger(coordinates.end)) return null;
+  return `${annotation.scope || 'annotation'} · ${term} @ ${ontology.version} · canonical residues ${coordinates.start}-${coordinates.end} (one-based closed)`;
+};
+
 const roomHref = (path, roomId, panel = '', targetHash = '') => {
   const url = new URL(path, 'https://reploid.invalid');
   if (roomId) url.searchParams.set('room', roomId);
@@ -200,12 +209,69 @@ const renderNextAction = (room) => {
 
 const renderMemory = (room) => `
   <section class="pool-room-section pool-room-memory" aria-labelledby="pool-room-memory-title">
-    <div class="pool-room-section-heading"><div><p class="pool-dashboard-kicker">Room memory</p><h2 class="type-h2" id="pool-room-memory-title">Remembered evidence</h2></div><span class="pool-room-count">${room.memory.length}</span></div>
+    <div class="pool-room-section-heading"><div><p class="pool-dashboard-kicker">Decision memory</p><h2 class="type-h2" id="pool-room-memory-title">Remembered evidence</h2></div><span class="pool-room-count">${room.memory.length}</span></div>
+    <p class="pool-room-boundary">Admitted only for this decision under ${escapeHtml(room.decisionMemory?.policyId || 'an unknown policy')}. Remembered does not mean biologically true.</p>
     ${room.memory.length
       ? `<div class="pool-room-list">${room.memory.map((entry) => `<article class="pool-room-list-item"><div><strong>${escapeHtml(entry.title)}</strong><p>Accepted under the current room policy by ${escapeHtml(entry.reviewDecisionHashes.length)} independent signed decision${entry.reviewDecisionHashes.length === 1 ? '' : 's'}.</p></div><small>${escapeHtml(entry.kind.replace(/_/g, ' '))} · ${escapeHtml(compactHash(entry.sourceHash))}</small></article>`).join('')}</div>`
       : '<p class="pool-room-muted">No evidence has been accepted into room memory yet. Provisional results and proposals remain visible above without being remembered.</p>'}
   </section>
 `;
+
+const archiveStateLabel = (state) => String(state || 'provisional').replace(/_/g, ' ');
+
+const renderArchive = (room) => {
+  const archive = room.archive || { entries: [], rejected: [] };
+  const entries = [...(archive.entries || []), ...(archive.rejected || [])];
+  return `
+    <section class="pool-room-section pool-room-archive" aria-labelledby="pool-room-archive-title">
+      <div class="pool-room-section-heading"><div><p class="pool-dashboard-kicker">Immutable history</p><h2 class="type-h2" id="pool-room-archive-title">Complete evidence archive</h2></div><span class="pool-room-count">${entries.length}</span></div>
+      <p class="pool-room-boundary">Every loaded room record remains represented here, including material excluded from decision memory. Boundary: ${escapeHtml(archive.boundary || 'verified_local_snapshot')}.</p>
+      ${entries.length
+        ? `<div class="pool-room-list">${entries.map((entry) => `<article class="pool-room-list-item" data-archive-state="${escapeHtml(entry.state)}"><div><strong>${escapeHtml(entry.title || entry.claimedKind || 'Rejected record')}</strong><p>${escapeHtml(entry.summary || entry.reason || 'No trusted summary is available.')}</p></div><small>${escapeHtml(archiveStateLabel(entry.state))} · ${escapeHtml(compactHash(entry.recordHash || entry.id))}</small></article>`).join('')}</div>`
+        : '<p class="pool-room-muted">No immutable research records have been loaded for this room.</p>'}
+    </section>
+  `;
+};
+
+const renderPriorRoomEvidence = (room) => {
+  const prior = room.priorRoomEvidence || { phase: 'idle', candidates: [], roomCount: 0 };
+  const boundary = prior.registryBoundary?.boundary || 'not queried';
+  const boundaryLabel = prior.registryBoundary
+    ? `${boundary}; ${prior.registryBoundary.complete ? 'complete within the declared registry boundary' : 'the registry snapshot may be incomplete'}`
+    : boundary;
+  return `
+    <section class="pool-room-section pool-room-prior-evidence" aria-labelledby="pool-room-prior-evidence-title">
+      <div class="pool-room-section-heading"><div><p class="pool-dashboard-kicker">Exact-sequence reuse</p><h2 class="type-h2" id="pool-room-prior-evidence-title">Prior-room evidence</h2></div><span class="pool-room-count">${prior.candidates.length}</span></div>
+      <p class="pool-room-boundary">Origin-room acceptance is provenance, not admission here. A candidate must be qualified, attached to this question, and independently reviewed before it can enter this room's decision memory. Boundary: ${escapeHtml(boundaryLabel)}.</p>
+      ${prior.phase === 'synchronizing' ? '<p class="pool-room-muted">Searching the public evidence registry by exact sequence identity.</p>' : ''}
+      ${prior.error ? `<p class="pool-room-muted">Prior-room retrieval unavailable: ${escapeHtml(prior.error)}</p>` : ''}
+      ${prior.candidates.length
+        ? `<div class="pool-room-list">${prior.candidates.map((candidate) => {
+          const source = candidate.sourceVersions.find((entry) => entry.recordHash === candidate.recordHash)
+            || candidate.sourceVersions[0]
+            || null;
+          const qualification = candidate.qualification?.status || 'needs_source_qualification';
+          const reasons = candidate.qualification?.reasons || [];
+          const annotationLabel = annotationIdentityLabel(candidate.annotation);
+          const contextComparison = candidate.contextComparison || { status: 'context_unavailable', differences: [], missing: [] };
+          const contextDetail = [
+            contextComparison.status.replace(/_/g, ' '),
+            contextComparison.differences?.length ? `differs: ${contextComparison.differences.join(', ')}` : '',
+            contextComparison.missing?.length ? `missing: ${contextComparison.missing.join(', ')}` : ''
+          ].filter(Boolean).join(' · ');
+          const action = candidate.attachedRecordHash
+            ? `<span class="pool-room-event-status">Attached for current-room review · ${escapeHtml(compactHash(candidate.attachedRecordHash))}</span>`
+            : candidate.attachable
+              ? `<button class="btn btn-ghost" type="button" data-pool-room-attach-prior="${escapeHtml(candidate.recordHash)}" data-pool-room-prior-origin="${escapeHtml(candidate.originRoomId)}" data-pool-room-id="${escapeHtml(room.roomId)}">Attach as provisional evidence</button>`
+              : '<span class="pool-room-event-status">Manual qualification required</span>';
+          return `<article class="pool-room-list-item" data-prior-room-qualification="${escapeHtml(qualification)}"><div><strong>${escapeHtml(candidate.title)}</strong><p>${escapeHtml(candidate.summary)}</p><p class="type-caption">Origin room ${escapeHtml(candidate.originRoomId)} · accepted there · ${escapeHtml(qualification.replace(/_/g, ' '))}${reasons.length ? ` · ${escapeHtml(reasons.join(' · ').replace(/_/g, ' '))}` : ''}</p>${source ? `<p class="type-caption">Source ${escapeHtml(source.accession || source.uri || compactHash(source.recordHash))} @ ${escapeHtml(source.version || compactHash(source.contentHash))} · declared license ${escapeHtml(source.license || 'undeclared')}</p>` : ''}${annotationLabel ? `<p class="type-caption">${escapeHtml(annotationLabel)}</p>` : ''}<p class="type-caption">Declared decision context: ${escapeHtml(contextDetail)}. Even an exact declared match still requires explicit current-room relevance review.</p>${action}</div><small>${escapeHtml(candidate.kind.replace(/_/g, ' '))} · ${escapeHtml(compactHash(candidate.recordHash))}</small></article>`;
+        }).join('')}</div>`
+        : prior.phase === 'synchronized'
+          ? `<p class="pool-room-muted">No independently accepted evidence from ${escapeHtml(prior.roomCount)} other matching room${prior.roomCount === 1 ? '' : 's'} is eligible even as a candidate.</p>`
+          : '<p class="pool-room-muted">Prior-room evidence has not been loaded for this sequence.</p>'}
+    </section>
+  `;
+};
 
 const renderProposals = (room) => `
   <section class="pool-room-section pool-room-proposals" aria-labelledby="pool-room-proposals-title">
@@ -227,6 +293,31 @@ const renderProposals = (room) => `
       : '<p class="pool-room-muted">No signed hypotheses, predictions, or proposed work are present in this room yet.</p>'}
   </section>
 `;
+
+const renderAdjudicationProof = (room) => {
+  const proof = room.adjudicationProof || { status: 'not_frozen', gaps: [] };
+  const experiment = proof.experiment;
+  const evaluation = proof.evaluation;
+  return `
+    <section class="pool-room-section pool-room-adjudication-proof" aria-labelledby="pool-room-adjudication-proof-title">
+      <div class="pool-room-section-heading"><div><p class="pool-dashboard-kicker">Falsifiable product proof</p><h2 class="type-h2" id="pool-room-adjudication-proof-title">Annotation adjudication experiment</h2></div></div>
+      <p class="pool-room-boundary">Status: ${escapeHtml(proof.status.replace(/_/g, ' '))}. A frozen contract or evaluation is evidence about one declared workflow, not proof of biological truth or broader product value.</p>
+      ${experiment ? `
+        <dl class="pool-room-facts">
+          <div><dt>Catalog</dt><dd>${escapeHtml(experiment.target.catalogId)} @ ${escapeHtml(experiment.target.catalogVersion)}</dd></div>
+          <div><dt>Curator role</dt><dd>${escapeHtml(experiment.target.curatorRole)}</dd></div>
+          <div><dt>Decision</dt><dd>${escapeHtml(experiment.target.decision)}</dd></div>
+          <div><dt>Baseline</dt><dd>${escapeHtml(experiment.baseline.workflowId)} @ ${escapeHtml(experiment.baseline.version)}</dd></div>
+          <div><dt>Candidate</dt><dd>${escapeHtml(experiment.candidate.policyId)} @ ${escapeHtml(experiment.candidate.version)}</dd></div>
+          <div><dt>Paired cohort</dt><dd>${escapeHtml(experiment.cohort.caseCount)} family-disjoint cases</dd></div>
+        </dl>
+        <p class="type-caption">Success requires quality improvement at comparable effort or effort improvement without quality loss, using the frozen lower-bound thresholds.</p>
+        ${evaluation ? `<div class="pool-room-list">${evaluation.metricResults.map((metric) => `<article class="pool-room-list-item"><div><strong>${escapeHtml(metric.metricId)}</strong><p>${escapeHtml(metric.baselineValue)} baseline to ${escapeHtml(metric.candidateValue)} candidate · oriented effect ${escapeHtml(metric.orientedEffect)} · interval ${escapeHtml(metric.effectInterval.lower)} to ${escapeHtml(metric.effectInterval.upper)}</p></div><small>${escapeHtml(metric.pairedSampleCount)} paired cases</small></article>`).join('')}</div>` : '<p class="pool-room-muted">No prospective paired evaluation is attached to the accepted frozen experiment.</p>'}
+      ` : '<p class="pool-room-muted">No catalog, curator role, baseline workflow, paired cohort, success rule, and independent evaluator have been frozen together. Reploid has not demonstrated its first product win.</p>'}
+      ${proof.gaps?.length ? `<p class="type-caption">Open proof gaps: ${escapeHtml(proof.gaps.join(' · ').replace(/_/g, ' '))}</p>` : ''}
+    </section>
+  `;
+};
 
 const renderTimelineEntry = (entry) => `
   <li data-source-authority="${escapeHtml(entry.sourceAuthority)}">
@@ -275,11 +366,22 @@ export function renderResearchRoom({
   routeId = 'home',
   panel = 'overview',
   researchRecords = [],
+  quarantinedRecords = [],
+  crossRoomEvidence = {},
   receipts = [],
   peerEvents = [],
   syncState = {}
 } = {}) {
-  const room = projectResearchRoom({ roomId, routeId, researchRecords, receipts, peerEvents, syncState });
+  const room = projectResearchRoom({
+    roomId,
+    routeId,
+    researchRecords,
+    quarantinedRecords,
+    crossRoomEvidence,
+    receipts,
+    peerEvents,
+    syncState
+  });
   return `
     <section class="pool-research-room" data-pool-research-room data-room-id="${escapeHtml(room.roomId)}" data-room-route="${escapeHtml(room.routeId)}" data-room-panel="${escapeHtml(panel)}">
       <header class="pool-room-header">
@@ -295,12 +397,12 @@ export function renderResearchRoom({
       <details class="pool-room-disclosure pool-room-technical-disclosure"><summary>History and details</summary>
         <div class="pool-room-participants" aria-label="Room participants">${renderParticipants(room.participants)}</div>
         <div class="pool-room-columns">
-          <div>${renderUnresolved(room)}${renderMemory(room)}</div>
-          <div>${renderTimeline(room)}</div>
+          <div>${renderAdjudicationProof(room)}${renderUnresolved(room)}${renderMemory(room)}${renderPriorRoomEvidence(room)}</div>
+          <div>${renderArchive(room)}${renderTimeline(room)}</div>
         </div>
         ${renderProposals(room)}
         ${renderRoles(room)}
-        <dl class="pool-room-facts"><div><dt>Room identity</dt><dd>${escapeHtml(room.roomId)}</dd></div><div><dt>Cycle policy</dt><dd>${escapeHtml(room.cycle?.policyId || 'unknown')}</dd></div><div><dt>Active records</dt><dd>${escapeHtml(room.counts.active)}</dd></div><div><dt>Remembered records</dt><dd>${escapeHtml(room.counts.memory)}</dd></div><div><dt>Excluded from memory</dt><dd>${escapeHtml(room.memoryExclusions?.length || 0)}</dd></div><div><dt>Timeline entries</dt><dd>${escapeHtml(room.counts.timeline)}</dd></div><div><dt>Recovery state</dt><dd>${escapeHtml(room.recovery?.labels?.join(' · ') || 'Local-only recovery')}</dd></div><div><dt>Rejected records</dt><dd>${escapeHtml(room.recovery?.rejectedRecords?.length || 0)}</dd></div><div><dt>Invalidated records</dt><dd>${escapeHtml(room.recovery?.invalidatedCount || 0)}</dd></div></dl>
+        <dl class="pool-room-facts"><div><dt>Room identity</dt><dd>${escapeHtml(room.roomId)}</dd></div><div><dt>Decision-memory policy</dt><dd>${escapeHtml(room.decisionMemory?.policyId || 'unknown')}</dd></div><div><dt>Archived records</dt><dd>${escapeHtml(room.counts.archive)}</dd></div><div><dt>Active records</dt><dd>${escapeHtml(room.counts.active)}</dd></div><div><dt>Remembered records</dt><dd>${escapeHtml(room.counts.memory)}</dd></div><div><dt>Prior-room candidates</dt><dd>${escapeHtml(room.counts.priorRoomCandidates)}</dd></div><div><dt>Excluded from memory</dt><dd>${escapeHtml(room.memoryExclusions?.length || 0)}</dd></div><div><dt>Timeline entries</dt><dd>${escapeHtml(room.counts.timeline)}</dd></div><div><dt>Recovery state</dt><dd>${escapeHtml(room.recovery?.labels?.join(' · ') || 'Local-only recovery')}</dd></div><div><dt>Rejected records</dt><dd>${escapeHtml(room.recovery?.rejectedRecords?.length || 0)}</dd></div><div><dt>Invalidated records</dt><dd>${escapeHtml(room.recovery?.invalidatedCount || 0)}</dd></div></dl>
       </details>
     </section>
   `;

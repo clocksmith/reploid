@@ -1,12 +1,18 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { createSignedResearchResult, createSignedResearchSubmission } from '../../self/pool/evidence-network.js';
+import {
+  createSignedResearchResult,
+  createSignedResearchSubmission,
+  projectCrossRoomSequenceEvidence
+} from '../../self/pool/evidence-network.js';
 import { createSigningKeyPair } from '../../self/pool/inference-receipt.js';
 import { buildLaunchProviderModel, getPoolModelContract } from '../../self/pool/model-contract.js';
 import { hashSequenceFloat32Values } from '../../self/pool/sequence-result.js';
 import {
   appendResearchRecord,
+  getCrossRoomSequenceEvidence,
   getResearchSyncState,
+  hydrateCrossRoomSequenceEvidence,
   hydrateResearchRecords,
   loadQuarantinedResearchRecords,
   loadResearchRecords,
@@ -180,6 +186,50 @@ describe('Poolday research store', () => {
       result.recordHash
     ]);
     expect(hydrated.rejectedRecords).toEqual([]);
+  });
+
+  it('verifies cross-room sequence evidence without adding it to current-room state', async () => {
+    vi.stubGlobal('localStorage', storage());
+    const current = await makeRecord('current-room');
+    const prior = await makeRecord('prior-room');
+    const payload = projectCrossRoomSequenceEvidence([current, prior], current.sequence.hash, {
+      currentRoomId: current.roomId
+    });
+
+    const hydrated = await hydrateCrossRoomSequenceEvidence(current.roomId, current.sequence.hash, {
+      sdk: { listSequenceResearchEvidence: vi.fn().mockResolvedValue(payload) }
+    });
+
+    expect(hydrated).toMatchObject({
+      phase: 'synchronized',
+      sequenceHash: current.sequence.hash,
+      projection: { schema: 'poolday.cross_room_sequence_evidence/v1' }
+    });
+    expect(hydrated.projection.rooms.map((room) => room.roomId)).toEqual(['current-room', 'prior-room']);
+    expect(loadResearchRecords(current.roomId)).toEqual([]);
+    expect(getCrossRoomSequenceEvidence(current.roomId)).toEqual(hydrated);
+  });
+
+  it('fails closed when a cross-room record does not verify', async () => {
+    const current = await makeRecord('current-room');
+    const prior = await makeRecord('prior-room');
+    const payload = projectCrossRoomSequenceEvidence([current, prior], current.sequence.hash, {
+      currentRoomId: current.roomId
+    });
+    payload.records[1] = {
+      ...payload.records[1],
+      requesterIntent: { ...payload.records[1].requesterIntent, text: 'tampered after signing' }
+    };
+
+    const hydrated = await hydrateCrossRoomSequenceEvidence(current.roomId, current.sequence.hash, {
+      sdk: { listSequenceResearchEvidence: vi.fn().mockResolvedValue(payload) }
+    });
+
+    expect(hydrated).toMatchObject({
+      phase: 'unavailable',
+      projection: null,
+      error: expect.stringContaining('record hash mismatch')
+    });
   });
 
   it('rejects a structurally valid but disabled candidate model before local persistence', async () => {

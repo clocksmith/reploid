@@ -4,6 +4,7 @@
 
 import { createPoolSdk } from '../../pool/sdk.js';
 import {
+  projectCrossRoomSequenceEvidence,
   validateResearchRecordModelAdmission,
   validateResearchRecordLinks,
   verifyResearchRecord
@@ -23,6 +24,7 @@ const state = {
 // local cache remain the only evidence state; this map only tells the room
 // which recovery boundary the current page has observed.
 const syncStates = new Map();
+const crossRoomEvidenceStates = new Map();
 
 const storageKey = (roomId) => `${POOLDAY_RESEARCH_STORAGE_KEY}::${encodeURIComponent(roomId || DEFAULT_PEER_ROOM_ID)}`;
 const quarantineStorageKey = (roomId) => `${POOLDAY_RESEARCH_QUARANTINE_KEY}::${encodeURIComponent(roomId || DEFAULT_PEER_ROOM_ID)}`;
@@ -73,6 +75,30 @@ export const getResearchSyncState = (roomId = DEFAULT_PEER_ROOM_ID) => ({
   ...(syncStates.get(roomId) || defaultSyncState()),
   rejectedRecords: [...(syncStates.get(roomId)?.rejectedRecords || [])]
 });
+
+const defaultCrossRoomEvidenceState = () => ({
+  phase: 'idle',
+  sequenceHash: null,
+  projection: null,
+  registryBoundary: null,
+  error: null,
+  checkedAt: null
+});
+
+const setCrossRoomEvidenceState = (roomId, patch = {}, { notify = true } = {}) => {
+  const next = {
+    ...defaultCrossRoomEvidenceState(),
+    ...(crossRoomEvidenceStates.get(roomId) || {}),
+    ...patch
+  };
+  crossRoomEvidenceStates.set(roomId, next);
+  if (notify) notifyResearchUpdate(roomId);
+  return next;
+};
+
+export const getCrossRoomSequenceEvidence = (roomId = DEFAULT_PEER_ROOM_ID) => clone(
+  crossRoomEvidenceStates.get(roomId) || defaultCrossRoomEvidenceState()
+);
 
 const readPersistedRecords = (roomId) => {
   try {
@@ -285,10 +311,108 @@ export async function hydrateResearchRecords(roomId = DEFAULT_PEER_ROOM_ID, {
   }
 }
 
+const validateCrossRoomLinks = (records = []) => {
+  const rooms = new Map();
+  for (const record of records) rooms.set(record.roomId, [...(rooms.get(record.roomId) || []), record]);
+  for (const [roomId, roomRecords] of rooms) {
+    const accepted = [];
+    let pending = roomRecords.slice();
+    while (pending.length) {
+      const deferred = [];
+      let progress = false;
+      for (const record of pending) {
+        const links = validateResearchRecordLinks(record, accepted);
+        if (links.ok) {
+          accepted.push(record);
+          progress = true;
+          continue;
+        }
+        if (links.reasons.every((reason) => reason.startsWith('linked research record does not exist:'))) {
+          deferred.push({ record, links });
+          continue;
+        }
+        throw new Error(`Invalid prior-room links in ${roomId}: ${links.reasons.join('; ')}`);
+      }
+      if (!deferred.length) break;
+      if (!progress) {
+        throw new Error(`Incomplete prior-room evidence in ${roomId}: ${deferred[0].links.reasons.join('; ')}`);
+      }
+      pending = deferred.map((entry) => entry.record);
+    }
+  }
+};
+
+export async function hydrateCrossRoomSequenceEvidence(roomId, sequenceHash, {
+  sdk = createPoolSdk()
+} = {}) {
+  const normalizedSequenceHash = String(sequenceHash || '').trim().toLowerCase();
+  setCrossRoomEvidenceState(roomId, {
+    phase: 'synchronizing',
+    sequenceHash: normalizedSequenceHash,
+    projection: null,
+    registryBoundary: null,
+    error: null,
+    checkedAt: null
+  });
+  try {
+    const payload = await sdk.listSequenceResearchEvidence(normalizedSequenceHash, {
+      currentRoomId: roomId,
+      limit: POOLDAY_RESEARCH_RECORD_LIMIT
+    });
+    if (payload?.schema !== 'poolday.cross_room_sequence_evidence/v1') {
+      throw new Error('Cross-room evidence schema is unsupported');
+    }
+    if (payload.sequence?.hash !== normalizedSequenceHash) {
+      throw new Error('Cross-room evidence sequence identity does not match the request');
+    }
+    const records = Array.isArray(payload.records) ? payload.records : [];
+    for (const record of records) {
+      const verification = await verifyResearchRecord(record);
+      if (!verification.ok) {
+        throw new Error(`Invalid prior-room research record: ${verification.reasons.join('; ')}`);
+      }
+      const admission = validateResearchRecordModelAdmission(record);
+      if (!admission.ok) {
+        throw new Error(`Unadmitted prior-room model contract: ${admission.reasons.join('; ')}`);
+      }
+    }
+    validateCrossRoomLinks(records);
+    const projection = projectCrossRoomSequenceEvidence(records, normalizedSequenceHash, {
+      currentRoomId: roomId,
+      limit: POOLDAY_RESEARCH_RECORD_LIMIT
+    });
+    const registryBoundary = {
+      boundary: payload.boundary || 'unknown_registry_snapshot',
+      complete: payload.complete === true,
+      inputRecordCount: Number(payload.inputRecordCount || 0),
+      uniqueRecordCount: Number(payload.uniqueRecordCount || 0),
+      scannedRecordCount: Number(payload.scannedRecordCount || 0)
+    };
+    return clone(setCrossRoomEvidenceState(roomId, {
+      phase: 'synchronized',
+      sequenceHash: normalizedSequenceHash,
+      projection,
+      registryBoundary,
+      error: null,
+      checkedAt: new Date().toISOString()
+    }));
+  } catch (error) {
+    return clone(setCrossRoomEvidenceState(roomId, {
+      phase: 'unavailable',
+      sequenceHash: normalizedSequenceHash,
+      projection: null,
+      registryBoundary: null,
+      error: error instanceof Error ? error.message : String(error),
+      checkedAt: new Date().toISOString()
+    }));
+  }
+}
+
 export function resetResearchStore() {
   state.roomId = null;
   state.records = [];
   syncStates.clear();
+  crossRoomEvidenceStates.clear();
 }
 
 export default {
@@ -297,6 +421,8 @@ export default {
   appendResearchRecord,
   publishResearchRecord,
   hydrateResearchRecords,
+  hydrateCrossRoomSequenceEvidence,
   getResearchSyncState,
+  getCrossRoomSequenceEvidence,
   resetResearchStore
 };
