@@ -586,9 +586,17 @@ test('restores empty unsent room fields instead of replacing them with defaults'
 
 test('retrieves and attaches licensed exact-sequence evidence without inheriting origin-room acceptance', async ({ page, browser }) => {
   const pageErrors = [];
+  const runId = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+  const originRoomId = `reuse-origin-${runId}`;
+  const currentRoomId = `reuse-current-${runId}`;
+  const sourceAccession = `E2E-REUSE-${runId}`;
+  const aminoAcids = 'ACDEFGHIKLMNPQRSTVWY';
+  const sequence = `MPEPTIDERKLMNPQ${[...runId]
+    .map((character) => aminoAcids[character.charCodeAt(0) % aminoAcids.length])
+    .join('')}`;
   page.on('pageerror', (error) => pageErrors.push(error.message));
   await page.goto('/');
-  const seeded = await page.evaluate(async () => {
+  const seeded = await page.evaluate(async ({ runId, originRoomId, currentRoomId, sourceAccession, sequence }) => {
     const evidence = await import('/pool/evidence-network.js');
     const receipts = await import('/pool/inference-receipt.js');
     const models = await import('/pool/model-contract.js');
@@ -607,11 +615,10 @@ test('retrieves and attaches licensed exact-sequence evidence without inheriting
         getSigningKeyPair: async () => keyPair
       };
     };
-    const sequence = 'MPEPTIDERKLMNPQ';
     const modelContract = models.buildLaunchProviderModel();
     const originQuestion = await evidence.createSignedResearchSubmission({
-      identity: await identity('requester', 'reuse-origin-requester'),
-      roomId: 'reuse-origin-room',
+      identity: await identity('requester', `reuse-origin-requester-${runId}`),
+      roomId: originRoomId,
       sequence,
       intent: { kind: 'question', text: 'What does the versioned public catalog say?' },
       consent: { publicSequence: true, publicEvidenceNetwork: true, publishEmbedding: true },
@@ -619,12 +626,12 @@ test('retrieves and attaches licensed exact-sequence evidence without inheriting
       policyId: 'redundant_agreement'
     });
     const prior = await evidence.createSignedPriorEvidence({
-      identity: await identity('researcher', 'reuse-origin-researcher'),
+      identity: await identity('researcher', `reuse-origin-researcher-${runId}`),
       roomId: originQuestion.roomId,
       questionHash: originQuestion.recordHash,
       evidenceKind: 'annotation',
       summary: 'Version seven assigns a bounded public domain annotation.',
-      reference: { accession: 'E2E-REUSE-123', version: '7' },
+      reference: { accession: sourceAccession, version: '7' },
       annotation: {
         scope: 'domain',
         ontology: { namespace: 'E2E', termId: 'DOMAIN:123', version: '7', label: 'Bounded public domain' },
@@ -634,7 +641,7 @@ test('retrieves and attaches licensed exact-sequence evidence without inheriting
       provenance: { retrievalMethod: 'version-pinned catalog API', license: 'CC BY 4.0' }
     });
     const acceptance = await evidence.createSignedHumanClaim({
-      identity: await identity('reviewer', 'reuse-origin-reviewer'),
+      identity: await identity('reviewer', `reuse-origin-reviewer-${runId}`),
       roomId: originQuestion.roomId,
       targetHash: prior.recordHash,
       claimKind: 'review_decision',
@@ -647,8 +654,8 @@ test('retrieves and attaches licensed exact-sequence evidence without inheriting
       await sdk.publishResearchRecord(record);
     }
     const currentQuestion = await evidence.createSignedResearchSubmission({
-      identity: await identity('requester', 'reuse-current-requester'),
-      roomId: 'reuse-current-room',
+      identity: await identity('requester', `reuse-current-requester-${runId}`),
+      roomId: currentRoomId,
       sequence,
       intent: { kind: 'question', text: 'Should this disputed domain annotation be retained here?' },
       consent: { publicSequence: true, publicEvidenceNetwork: true, publishEmbedding: true },
@@ -660,9 +667,9 @@ test('retrieves and attaches licensed exact-sequence evidence without inheriting
       sourceHash: prior.recordHash,
       currentQuestionHash: currentQuestion.recordHash
     };
-  });
+  }, { runId, originRoomId, currentRoomId, sourceAccession, sequence });
 
-  await page.goto('/records?room=reuse-current-room');
+  await page.goto(`/records?room=${encodeURIComponent(currentRoomId)}`);
   await page.locator('.pool-room-technical-disclosure > summary').click();
   const priorSection = page.locator('.pool-room-prior-evidence');
   await expect(priorSection).toContainText('Version seven assigns a bounded public domain annotation.');
@@ -678,14 +685,14 @@ test('retrieves and attaches licensed exact-sequence evidence without inheriting
   await expect(priorSection).toContainText('Attached for current-room review');
   await expect(priorSection.locator('[data-pool-room-attach-prior]')).toHaveCount(0);
   await expect(page.locator('.pool-room-memory .pool-room-count')).toHaveText('0');
-  const attached = await page.evaluate(async ({ sourceHash, currentQuestionHash }) => {
+  const attached = await page.evaluate(async ({ sourceHash, currentQuestionHash, currentRoomId }) => {
     const store = await import('/ui/pool-home/research-store.js');
-    return store.loadResearchRecords('reuse-current-room').find((record) => (
+    return store.loadResearchRecords(currentRoomId).find((record) => (
       record.kind === 'research_prior_evidence'
       && record.questionHash === currentQuestionHash
       && record.evidence?.reference?.contentHash === sourceHash
     ));
-  }, seeded);
+  }, { ...seeded, currentRoomId });
   expect(attached).toMatchObject({
     evidence: {
       reuseContext: {
@@ -695,7 +702,7 @@ test('retrieves and attaches licensed exact-sequence evidence without inheriting
         originSource: {
           schema: 'poolday.cross_room_source_identity/v1',
           evidenceKind: 'annotation',
-          reference: { accession: 'E2E-REUSE-123', version: '7' }
+          reference: { accession: sourceAccession, version: '7' }
         }
       },
       annotation: {
@@ -714,7 +721,7 @@ test('retrieves and attaches licensed exact-sequence evidence without inheriting
   const reviewerContext = await browser.newContext();
   const reviewerPage = await reviewerContext.newPage();
   reviewerPage.on('pageerror', (error) => pageErrors.push(error.message));
-  await reviewerPage.goto(new URL('/records?room=reuse-current-room', page.url()).toString());
+  await reviewerPage.goto(new URL(`/records?room=${encodeURIComponent(currentRoomId)}`, page.url()).toString());
   await reviewerPage.locator('.pool-room-secondary-workspace > summary').click();
   const reviewForm = reviewerPage.locator('[data-research-review-form]');
   await reviewForm.locator('select[name="targetHash"]').selectOption(attached.recordHash);

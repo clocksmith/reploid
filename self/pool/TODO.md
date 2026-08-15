@@ -21,7 +21,7 @@ The current Cloud Run and Firestore path is transitional. The target Reploid con
 ## Current Local Checks
 
 - [x] `npm run verify:pool -- --allow-placeholders` passes locally.
-- [x] Unit suite passes: 1,745 passed and 25 skipped.
+- [x] Unit suite passes: 1,755 passed and 25 skipped.
 - [x] Integration suite passes: 363 passed and 9 skipped.
 - [ ] Re-run `npm run verify:pool:release -- --url https://replo.id --channel=chrome` after deployment. The current release reports `2026-07-28.doppler-0.5.1.v2` while the governed local contract is `2026-08-01.sequence-model-contracts.v1.doppler-0.5.1`; release verification now fails before any browser workload on this mismatch.
 - [x] `npm audit` and the production-image `npm ci --omit=dev --include=optional` audit report zero vulnerabilities.
@@ -190,22 +190,22 @@ claim, and deployment evidence exist.
 
 ### Uncertainty And Candidate Actions
 
-- [ ] Represent uncertainty source separately for measurement variance, model
+- [x] Represent uncertainty source separately for measurement variance, model
   uncertainty, cross-source disagreement, missing alternatives, protocol risk,
   and decision-change uncertainty.
-- [ ] Require numeric probabilities to bind a calibration method and frozen
+- [x] Require numeric probabilities to bind a calibration method and frozen
   evaluation cohort. Preserve ordinal or set-valued uncertainty otherwise.
-- [ ] Define signed candidate-action records for computation, retrieval, review,
+- [x] Define signed candidate-action records for computation, retrieval, review,
   assay, and replication without granting the proposer allocation authority.
-- [ ] Bind each action to affected hypotheses, predicted observations,
+- [x] Bind each action to affected hypotheses, predicted observations,
   falsifiers, exact protocol or workload, feasibility, independence, safety,
   and consent requirements.
-- [ ] Record scientific cost as separate compute, money, labor, instrument,
+- [x] Record scientific cost as separate compute, money, labor, instrument,
   sample, and elapsed-time components.
-- [ ] Bind every action ranking to its policy, method, version, parameters, input
+- [x] Bind every action ranking to its policy, method, version, parameters, input
   hashes, cost assumptions, calibration evidence, and heuristic or calibrated
   status.
-- [ ] Expose the admitted candidate set, rejected actions, raw value components,
+- [x] Expose the admitted candidate set, rejected actions, raw value components,
   selected action, and human approval state in the Poolday UI.
 
 ### Protein Uncertainty Campaign
