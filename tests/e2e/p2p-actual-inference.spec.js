@@ -110,7 +110,7 @@ const openPoolPage = async (context, baseURL, route, roomId, label) => {
   wireDiagnostics(page, label);
   await page.goto(routeUrl(baseURL, route, roomId), { waitUntil: 'domcontentloaded' });
   await page.waitForSelector('.pool-home', { timeout: 45000 });
-  await expect(page.locator('[data-pool-room-id]')).toHaveText(roomId);
+  await expect(page.locator('code[data-pool-room-id]')).toHaveText(roomId);
   await expect(page.locator('[data-pool-relay-mode]')).toHaveText(RELAY_LABEL);
   await expect.poll(() => page.evaluate(() => (
     new URL(window.location.href).searchParams.get('relay')

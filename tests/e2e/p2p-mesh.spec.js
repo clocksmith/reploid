@@ -228,7 +228,7 @@ const openPoolPage = async (context, baseURL, route, roomId) => {
   const page = await context.newPage();
   await page.goto(routeUrl(baseURL, route, roomId), { waitUntil: 'domcontentloaded' });
   await page.waitForSelector('.pool-home');
-  await expect(page.locator('[data-pool-room-id]')).toHaveText(roomId);
+  await expect(page.locator('code[data-pool-room-id]')).toHaveText(roomId);
   await expect(page.locator('[data-pool-relay-mode]')).toHaveText(RELAY_LABEL);
   await expect.poll(() => page.evaluate(() => window.REPLOID_POOL_RELAY_MODE || new URL(window.location.href).searchParams.get('relay'))).toBe(RELAY_MODE);
   return page;
@@ -272,25 +272,36 @@ const stopProviderPage = async (page) => {
   await expect(toggle).toHaveAttribute('data-contribution-action', 'start');
 };
 
-const confirmPublicResearchPublication = async (page, {
+const configurePublicSequenceRequest = async (page, {
   sequenceSelector,
-  researchSelector
+  researchSelector,
+  questionSelector,
+  question,
+  publishResearch = true
 }) => {
   const publicSequence = page.locator(sequenceSelector);
   if (!(await publicSequence.isChecked())) await publicSequence.check();
   const publicResearch = page.locator(researchSelector);
-  if (!(await publicResearch.isChecked())) await publicResearch.check();
+  if (publishResearch) {
+    await page.locator(questionSelector).fill(question);
+    if (!(await publicResearch.isChecked())) await publicResearch.check();
+  } else if (await publicResearch.isChecked()) {
+    await publicResearch.uncheck();
+  }
 };
 
 const runPeerPrompt = async (page, prompt, policyId = 'ring_quorum_receipt') => {
   const sequence = sequenceFor(prompt);
   await expect(page.locator('#pool-run-submit')).toBeVisible();
-  await page.locator('details.pool-advanced summary').first().click();
+  await ensureDetailsOpen(page.locator('details.pool-advanced').filter({ has: page.locator('#pool-run-policy') }));
   await expect(page.locator('#pool-run-policy')).toBeVisible();
   await page.locator('#pool-run-policy').selectOption(policyId);
-  await confirmPublicResearchPublication(page, {
+  await configurePublicSequenceRequest(page, {
     sequenceSelector: '#pool-run-sequence-public',
-    researchSelector: '#pool-run-research-public'
+    researchSelector: '#pool-run-research-public',
+    questionSelector: '#pool-run-intent-text',
+    question: prompt,
+    publishResearch: false
   });
   await page.locator('#pool-run-prompt').fill(sequence);
   await page.locator('#pool-run-submit').click();
@@ -321,7 +332,8 @@ test.describe('Run, Contribute, Records peer room', () => {
       const context = await createPoolContext(browser, 'home_run');
       contexts.push(context);
       const providerPage = await openPoolPage(context, baseURL, '/compute', roomId);
-      await startProviderPage(providerPage);
+      const secondProviderPage = await openPoolPage(context, baseURL, '/compute', roomId);
+      await Promise.all([startProviderPage(providerPage), startProviderPage(secondProviderPage)]);
       const homePage = await openPoolPage(context, baseURL, '/', roomId);
       await homePage.evaluate(() => {
         window.REPLOID_E2E_RUN_VISUAL_STATES = [];
@@ -335,9 +347,11 @@ test.describe('Run, Contribute, Records peer room', () => {
 
       const prompt = 'home graph follows execution';
       const sequence = sequenceFor(prompt);
-      await confirmPublicResearchPublication(homePage, {
+      await configurePublicSequenceRequest(homePage, {
         sequenceSelector: '#pool-home-sequence-public',
-        researchSelector: '#pool-home-research-public'
+        researchSelector: '#pool-home-research-public',
+        questionSelector: '#pool-home-intent-text',
+        question: prompt
       });
       await homePage.locator('#pool-home-ask-prompt').fill(sequence);
       await homePage.locator('#pool-home-run-submit').click();
@@ -417,14 +431,14 @@ test.describe('Run, Contribute, Records peer room', () => {
       await expect(runPage.locator('#pool-run-result-embedding-outcome')).toContainText(
         `${model.embeddingDimensions} dimensions`
       );
-      await expect(runPage.locator('[data-pool-copy-embedding]')).toBeEnabled();
+      await expect(runPage.locator('[data-pool-copy-embedding]')).toBeDisabled();
 
       await openPoolNav(runPage);
-      await runPage.getByRole('link', { name: 'Contribute', exact: true }).click();
-      await expect(runPage.locator('[data-pool-room-id]')).toHaveText(roomId);
+      await runPage.getByRole('link', { name: 'Share compute', exact: true }).click();
+      await expect(runPage.locator('code[data-pool-room-id]')).toHaveText(roomId);
       await openPoolNav(runPage);
-      await runPage.getByRole('link', { name: 'Records', exact: true }).click();
-      await expect(runPage.locator('[data-pool-room-id]')).toHaveText(roomId);
+      await runPage.getByRole('link', { name: 'Review evidence', exact: true }).click();
+      await expect(runPage.locator('code[data-pool-room-id]')).toHaveText(roomId);
     } finally {
       await closeContexts(contexts);
     }
@@ -442,7 +456,7 @@ test.describe('Run, Contribute, Records peer room', () => {
       await runPeerPrompt(runPage, 'persist record view', 'fastest_receipt');
 
       await openPoolNav(runPage);
-      await runPage.getByRole('link', { name: 'Records', exact: true }).click();
+      await runPage.getByRole('link', { name: 'Review evidence', exact: true }).click();
       await runPage.getByRole('button', { name: /^Answers \(/ }).click();
 
       const recordDetails = runPage.locator('details.pool-record-event').first();
@@ -467,7 +481,7 @@ test.describe('Run, Contribute, Records peer room', () => {
       await expect(runPage.locator('details.pool-record-lookup')).toHaveJSProperty('open', true);
 
       await openPoolNav(runPage);
-      await runPage.getByRole('link', { name: 'Run', exact: true }).click();
+      await runPage.getByRole('link', { name: 'Request', exact: true }).click();
       await expect(runPage.locator('[data-pool-run-status]')).toHaveText('Showing last saved answer');
       await expect(runPage.locator('[data-pool-run-output]')).toBeVisible();
       await expect(runPage.locator('#pool-run-result-stream')).toContainText(`e2e:${sequenceFor('persist record view')}`);
@@ -517,7 +531,7 @@ test.describe('Run, Contribute, Records peer room', () => {
 
       await providerPage.reload({ waitUntil: 'domcontentloaded' });
       await providerPage.waitForSelector('.pool-home');
-      await expect(providerPage.locator('[data-pool-room-id]')).toHaveText(roomId);
+      await expect(providerPage.locator('code[data-pool-room-id]')).toHaveText(roomId);
       await expect(providerPage.locator('[data-pool-relay-mode]')).toHaveText(RELAY_LABEL);
       await expect(providerPage.locator('[data-pool-provider-status]')).toHaveText('Available');
       await expect(providerPage.locator('#pool-provider-worker-toggle')).toHaveText('Stop');
@@ -552,9 +566,12 @@ test.describe('Run, Contribute, Records peer room', () => {
       await startProviderPage(providerPage);
 
       const sequence = sequenceFor('requester reload during active work');
-      await confirmPublicResearchPublication(requesterPage, {
+      await configurePublicSequenceRequest(requesterPage, {
         sequenceSelector: '#pool-run-sequence-public',
-        researchSelector: '#pool-run-research-public'
+        researchSelector: '#pool-run-research-public',
+        questionSelector: '#pool-run-intent-text',
+        question: 'What evidence survives a requester reload during active work?',
+        publishResearch: false
       });
       await requesterPage.locator('#pool-run-prompt').fill(sequence);
       await requesterPage.locator('#pool-run-submit').click();
@@ -593,9 +610,12 @@ test.describe('Run, Contribute, Records peer room', () => {
       });
 
       const sequence = sequenceFor('provider reload during active work');
-      await confirmPublicResearchPublication(requesterPage, {
+      await configurePublicSequenceRequest(requesterPage, {
         sequenceSelector: '#pool-run-sequence-public',
-        researchSelector: '#pool-run-research-public'
+        researchSelector: '#pool-run-research-public',
+        questionSelector: '#pool-run-intent-text',
+        question: 'How should interrupted contributor work be classified?',
+        publishResearch: false
       });
       await requesterPage.locator('#pool-run-prompt').fill(sequence);
       await requesterPage.locator('#pool-run-submit').click();
@@ -847,8 +867,8 @@ test.describe('Run, Contribute, Records peer room', () => {
       await expect(reputationPage.locator('#pool-peer-ledger')).toContainText('Matched');
 
       await openPoolNav(runPage);
-      await runPage.getByRole('link', { name: 'Records', exact: true }).click();
-      await expect(runPage.locator('[data-pool-room-id]')).toHaveText(roomId);
+      await runPage.getByRole('link', { name: 'Review evidence', exact: true }).click();
+      await expect(runPage.locator('code[data-pool-room-id]')).toHaveText(roomId);
       await runPage.keyboard.press('Escape');
       await ensureDetailsOpen(runPage.locator('details.pool-record-tools'));
       await expect(runPage.locator('#pool-receipt-ledger')).toContainText('accepted');

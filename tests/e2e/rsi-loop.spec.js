@@ -24,7 +24,7 @@ import { MockLLMProvider, injectMockProvider } from './rsi-mock-provider.js';
 
 const TEST_CONFIG = {
   model: process.env.TEST_MODEL || 'gemma3-1b-q4',
-  timeout: 120000, // 2 minutes for mock tests
+  timeout: 120000,
   iterationTimeout: 30000,
   minIterations: 3,
   passRateThreshold: 80,
@@ -36,7 +36,7 @@ test.describe('RSI Loop E2E', () => {
   test.setTimeout(TEST_CONFIG.timeout);
 
   test.beforeEach(async ({ page }) => {
-    await page.goto('/index.html');
+    await page.goto('/x');
     await page.waitForSelector('#goal-input', { timeout: 10000 });
   });
 
@@ -72,7 +72,6 @@ test.describe('RSI Loop E2E', () => {
     await page.click('[data-action="choose-browser"]');
     await page.click(`[data-model="${DEFAULT_DOPPLER_MODEL_ID}"]`);
     await page.locator('#goal-input').fill('Test goal');
-    await page.click('[data-action="advanced-settings"]');
 
     // Check core UI elements exist
     const bootStatus = await page.evaluate(() => {
@@ -81,6 +80,7 @@ test.describe('RSI Loop E2E', () => {
         hasGoalInput: !!document.getElementById('goal-input'),
         hasAwakenBtn: !!document.getElementById('awaken-btn'),
         hasModelCards: !!document.querySelector('.model-options'),
+        hasProviderChoices: !!document.querySelector('[data-action="choose-browser"]'),
         hasAdvancedOptions: !!document.querySelector('.advanced-panel'),
       };
     });
@@ -91,7 +91,8 @@ test.describe('RSI Loop E2E', () => {
     expect(bootStatus.hasGoalInput).toBe(true);
     expect(bootStatus.hasAwakenBtn).toBe(true);
     expect(bootStatus.hasModelCards).toBe(true);
-    expect(bootStatus.hasAdvancedOptions).toBe(true);
+    expect(bootStatus.hasProviderChoices).toBe(true);
+    expect(bootStatus.hasAdvancedOptions).toBe(false);
   });
 
   test('Mock LLM provider generates valid proposals', async ({ page }) => {
@@ -363,7 +364,7 @@ test.describe('RSI Loop E2E', () => {
 // Conditional test for real Doppler
 test.describe('RSI with Real Doppler', () => {
   test.skip(!TEST_CONFIG.useDoppler, 'Set DOPPLER=true to run real inference tests');
-  test.setTimeout(300000); // 5 minutes for model loading + inference
+  test.setTimeout(300000);
 
   test('loads model and generates tokens', async ({ page }) => {
     await page.goto(`http://localhost:8080/doppler/tests/test-inference.html?model=${TEST_CONFIG.model}`);
