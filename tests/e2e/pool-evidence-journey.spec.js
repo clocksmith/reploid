@@ -617,7 +617,12 @@ test('retrieves and attaches licensed exact-sequence evidence without inheriting
       reuseContext: {
         schema: 'poolday.cross_room_reuse_context/v1',
         admission: 'requires_explicit_current_room_context_review',
-        comparison: { status: 'declared_context_differences' }
+        comparison: { status: 'declared_context_differences' },
+        originSource: {
+          schema: 'poolday.cross_room_source_identity/v1',
+          evidenceKind: 'annotation',
+          reference: { accession: 'E2E-REUSE-123', version: '7' }
+        }
       },
       annotation: {
         schema: 'poolday.protein_annotation_identity/v1',

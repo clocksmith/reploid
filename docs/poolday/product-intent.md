@@ -116,6 +116,12 @@ over verified, room-scoped signed records:
    context, conditions, scope, exclusions, and desired observation. Textual
    agreement is not relevance. A separate independent current-room review must
    explicitly determine the source relevant before decision-memory admission.
+   Repeated origin records with the same declared evidence kind, source
+   reference, version or content hash, and normalized annotation identity are
+   one candidate source, not independent evidence. Every signed origin remains
+   in the archive, while decision memory counts an accepted declared source at
+   most once. A version label or later timestamp never supersedes evidence by
+   itself; only linked accepted correction or authorized revocation records do.
 9. Governance actions can respond to provisional records, but scientific next
    actions must identify accepted-memory basis hashes. A signed approval binds
    the exact projected task contract, including rationale, basis hashes, and

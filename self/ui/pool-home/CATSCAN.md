@@ -29,6 +29,7 @@ Outputs:
 - Research outcome and unresolved questions lead the interface.
 - Complete archive status and decision-memory admissibility remain distinguishable.
 - Prior-room context differences and the reviewer authority needed for reuse remain visible.
+- Duplicate origin records remain inspectable while the room presents one declared source candidate and one possible memory contribution.
 - Contributor, receipt, transport, and reputation details do not compete as separate products.
 
 ## Acceptance

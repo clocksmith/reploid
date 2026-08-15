@@ -6,6 +6,7 @@ import {
   buildModelEvidenceView,
   clusterCompatibleResults,
   compareResearchDecisionContexts,
+  createCrossRoomReuseContext,
   createSignedHumanClaim,
   createSignedPriorEvidence,
   createSignedResearchHypothesis,
@@ -657,6 +658,128 @@ describe('Poolday evidence network', () => {
         status: 'needs_source_qualification',
         reasons: ['annotation_identity_missing']
       }
+    }));
+  });
+
+  it('deduplicates one declared source across origin rooms and decision memory', async () => {
+    const sequence = 'MAPLALLLLGLVAGA';
+    const question = async (roomId, id, text) => createSignedResearchSubmission({
+      identity: await identity('requester', id),
+      roomId,
+      sequence,
+      intent: { kind: 'question', text },
+      consent: { publicSequence: true, publicEvidenceNetwork: true, publishEmbedding: true },
+      modelContract: model,
+      policyId: 'redundant_agreement'
+    });
+    const current = await question('dedupe-current-room', 'dedupe-current', 'Should this domain annotation be retained?');
+    const originOne = await question('dedupe-origin-one', 'dedupe-origin-one', 'What does catalog release seven report?');
+    const originTwo = await question('dedupe-origin-two', 'dedupe-origin-two', 'Does release seven support this domain boundary?');
+    const createOriginSource = async (origin, id) => createSignedPriorEvidence({
+      identity: await identity('researcher', id),
+      roomId: origin.roomId,
+      questionHash: origin.recordHash,
+      evidenceKind: 'annotation',
+      summary: 'The same versioned catalog record was independently imported.',
+      reference: { accession: 'PUBLIC:DEDUPE', version: '7', contentHash: fakeHash('d') },
+      annotation: {
+        scope: 'domain',
+        ontology: { namespace: 'PUBLIC', termId: 'DOMAIN:DEDUPE', version: '7' },
+        sequence: { hash: origin.sequence.hash, length: origin.sequence.length },
+        coordinates: { sourceSystem: 'protein_residue_one_based_closed', sourceStart: 2, sourceEnd: 12 }
+      },
+      provenance: { retrievalMethod: 'version-pinned catalog API', license: 'CC BY 4.0' }
+    });
+    const sourceOne = await createOriginSource(originOne, 'dedupe-source-one');
+    const sourceTwo = await createOriginSource(originTwo, 'dedupe-source-two');
+    const acceptOrigin = async (source, id) => createSignedHumanClaim({
+      identity: await identity('reviewer', id),
+      roomId: source.roomId,
+      targetHash: source.recordHash,
+      claimKind: 'review_decision',
+      relation: 'reviews',
+      text: 'Accept this source only in its origin decision context.',
+      confidence: 0.9,
+      decision: 'accepted'
+    });
+    const originAcceptanceOne = await acceptOrigin(sourceOne, 'dedupe-origin-review-one');
+    const originAcceptanceTwo = await acceptOrigin(sourceTwo, 'dedupe-origin-review-two');
+    const projection = projectCrossRoomSequenceEvidence([
+      current,
+      originOne,
+      sourceOne,
+      originAcceptanceOne,
+      originTwo,
+      sourceTwo,
+      originAcceptanceTwo
+    ], current.sequence.hash, { currentRoomId: current.roomId });
+
+    expect(projection.candidateRecordCount).toBe(2);
+    expect(projection.candidateSourceCount).toBe(1);
+    expect(projection.candidates).toHaveLength(1);
+    expect(projection.candidates[0]).toMatchObject({
+      deduplication: 'same_declared_versioned_source',
+      duplicateRecordHashes: expect.arrayContaining([sourceOne.recordHash, sourceTwo.recordHash]),
+      duplicateOriginRoomIds: ['dedupe-origin-one', 'dedupe-origin-two']
+    });
+
+    const attach = async (source, origin, id, createdAt) => {
+      const reuseContext = await createCrossRoomReuseContext({
+        originRecord: source,
+        originQuestion: origin,
+        currentQuestion: current
+      });
+      return createSignedPriorEvidence({
+        identity: await identity('researcher', id),
+        roomId: current.roomId,
+        questionHash: current.recordHash,
+        evidenceKind: source.evidence.kind,
+        summary: `Current-room reference to ${source.recordHash}.`,
+        reference: { accession: `reploid:${source.roomId}:PUBLIC:DEDUPE`, contentHash: source.recordHash },
+        annotation: source.evidence.annotation,
+        reuseContext,
+        provenance: { retrievalMethod: 'Reploid exact-sequence prior-room lookup', license: 'CC BY 4.0' },
+        createdAt
+      });
+    };
+    const attachedOne = await attach(sourceOne, originOne, 'dedupe-attach-one', '2026-08-15T10:00:00.000Z');
+    const attachedTwo = await attach(sourceTwo, originTwo, 'dedupe-attach-two', '2026-08-15T10:01:00.000Z');
+    expect(attachedOne.evidence.reuseContext.originSource.identityHash)
+      .toBe(attachedTwo.evidence.reuseContext.originSource.identityHash);
+    const acceptAttached = async (attached, id) => createSignedHumanClaim({
+      identity: await identity('reviewer', id),
+      roomId: current.roomId,
+      targetHash: attached.recordHash,
+      claimKind: 'review_decision',
+      relation: 'reviews',
+      text: 'This declared source remains relevant to the current decision.',
+      confidence: 0.9,
+      decision: 'accepted',
+      contextAssessment: {
+        determination: 'relevant',
+        originRecordHash: attached.evidence.reuseContext.originRecordHash,
+        originQuestionHash: attached.evidence.reuseContext.origin.questionHash,
+        currentQuestionHash: attached.evidence.reuseContext.current.questionHash,
+        comparisonHash: attached.evidence.reuseContext.comparisonHash,
+        rationale: 'This declared source remains relevant to the current decision.'
+      }
+    });
+    const currentAcceptanceOne = await acceptAttached(attachedOne, 'dedupe-current-review-one');
+    const currentAcceptanceTwo = await acceptAttached(attachedTwo, 'dedupe-current-review-two');
+    const memory = projectAcceptedResearchMemory([
+      current,
+      attachedOne,
+      currentAcceptanceOne,
+      attachedTwo,
+      currentAcceptanceTwo
+    ]);
+
+    expect(memory.acceptedHashes).toContain(attachedOne.recordHash);
+    expect(memory.acceptedHashes).not.toContain(attachedTwo.recordHash);
+    expect(memory.excluded).toContainEqual(expect.objectContaining({
+      recordHash: attachedTwo.recordHash,
+      reason: 'duplicate_cross_room_source',
+      duplicateOfHash: attachedOne.recordHash
     }));
   });
 

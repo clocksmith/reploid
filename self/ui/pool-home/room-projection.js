@@ -848,9 +848,12 @@ const projectPriorRoomEvidence = ({ roomId, submission, currentRecords = [], cro
         const record = recordsByHash.get(candidate.recordHash) || null;
         const originQuestion = recordsByHash.get(record?.questionHash) || null;
         const originRoom = roomsById.get(candidate.originRoomId) || null;
+        const duplicateRecordHashes = asArray(candidate.duplicateRecordHashes).length
+          ? asArray(candidate.duplicateRecordHashes)
+          : [candidate.recordHash];
         const attachedRecord = currentRecords.find((entry) => (
           entry.kind === RESEARCH_KINDS.priorEvidence
-          && entry.evidence?.reference?.contentHash === candidate.recordHash
+          && duplicateRecordHashes.includes(entry.evidence?.reference?.contentHash)
         )) || null;
         const qualification = candidate.qualification || { status: 'needs_source_qualification', reasons: ['qualification_missing'] };
         const contextComparison = compareResearchDecisionContexts(originQuestion, submission);
@@ -865,6 +868,10 @@ const projectPriorRoomEvidence = ({ roomId, submission, currentRecords = [], cro
           createdAt: record?.createdAt || null,
           originalRoomAccepted: candidate.originalRoomAccepted === true,
           qualification,
+          deduplication: asText(candidate.deduplication, 'unique_source_record'),
+          duplicateRecordHashes,
+          duplicateOriginRoomIds: asArray(candidate.duplicateOriginRoomIds),
+          duplicateOrigins: asArray(candidate.duplicateOrigins),
           admission: 'requires_current_room_review',
           attachable: record?.kind === RESEARCH_KINDS.priorEvidence
             && qualification.status === 'source_metadata_complete'
