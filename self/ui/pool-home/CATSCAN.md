@@ -4,15 +4,15 @@ Parent: [Browser Interfaces](../CATSCAN.md)
 
 ## Target
 
-Give curators one room in which to adjudicate a bounded public-protein annotation dispute and choose a justified next action.
+Let curators resolve a public-protein dispute and choose the next action in-room.
 
 ## Authority
-- Owns the Research Room projection, evidence inspection, disagreement, review, correction, replication, and bounded next-action controls.
+- Owns room projection, inspection, review, correction, replication, and next-action controls.
 - Does not own evidence production, admission policy, network transport, or biological interpretation.
 
 ## Scope
 
-- Includes this directory and unchartered descendants.
+- This directory and unchartered descendants.
 
 ## Contracts
 
@@ -22,20 +22,22 @@ Inputs:
 
 Outputs:
 - The primary room view through [room-view.js](room-view.js).
-- Progressive technical disclosure through [research-technical-panel.js](research-technical-panel.js).
-- Explicit first-market proof status through the room projection and lifecycle controls.
+- Technical disclosure through [research-technical-panel.js](research-technical-panel.js).
+- First-market proof status through room projection and lifecycle controls.
 
 ## Invariants
 - Research outcome and unresolved questions lead the interface.
-- Complete archive status and decision-memory admissibility remain distinguishable.
-- Prior-room context differences and the reviewer authority needed for reuse remain visible.
-- Duplicate origin records remain inspectable while the room presents one declared source candidate and one possible memory contribution.
-- A checkpoint freezes replayable evidence state without implying closure or biological truth.
-- Contributor, receipt, transport, and reputation details do not compete as separate products.
+- Archive status and decision-memory admissibility remain distinct.
+- Prior-room context differences and required reviewer authority remain visible.
+- Duplicate origins remain inspectable while one declared source contributes at most once to memory.
+- Checkpoints freeze evidence state without implying closure or truth.
+- Primary next action exposes admitted and rejected candidates, raw value and cost, calibration, exact contract, deterministic selection, and approval.
+- Candidate controls imply no allocation or execution authority.
+- Contributor, receipt, transport, and reputation details remain supporting disclosures.
 
 ## Acceptance
-- A user can inspect, review, replicate, and checkpoint evidence.
-- Evidence: [Research Room journey](../../../tests/e2e/pool-evidence-journey.spec.js), [room projection tests](../../../tests/unit/pool-room-projection.test.js), [Discovery Contract tests](../../../tests/unit/pool-discovery-contract.test.js), and [adjudication experiment tests](../../../tests/unit/pool-adjudication-experiment.test.js).
+- Users can inspect, review, replicate, checkpoint, propose, and independently approve exact contracts.
+- Evidence: [browser journey](../../../tests/e2e/pool-evidence-journey.spec.js), [room tests](../../../tests/unit/pool-room-projection.test.js), [candidate tests](../../../tests/unit/pool-discovery-candidate-action.test.js), [replay tests](../../../tests/unit/pool-discovery-contract.test.js), and [adjudication tests](../../../tests/unit/pool-adjudication-experiment.test.js).
 
 ## Non-goals
 - Exposing Zero, X, network simulation, or generic peer inference as the primary workflow.

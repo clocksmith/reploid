@@ -21,7 +21,11 @@ import {
   buildAssignmentCommitmentPayload,
   buildAssignmentRevealPayload
 } from '../../self/pool/p2p-payload.js';
-import { createSignedResearchSubmission } from '../../self/pool/evidence-network.js';
+import {
+  createSignedCandidateAction,
+  createSignedResearchHypothesis,
+  createSignedResearchSubmission
+} from '../../self/pool/evidence-network.js';
 import {
   makePublicProteinJobFields,
   makeSequenceExecution
@@ -72,6 +76,7 @@ const dispatchJson = async (router, path, {
 };
 
 const launchModel = () => ({ ...LAUNCH_MODEL });
+const exactHash = (character) => `sha256:${character.repeat(64)}`;
 
 const researchIdentity = async (id = 'route_researcher') => {
   const keyPair = await createSigningKeyPair();
@@ -275,6 +280,69 @@ describe('pool coordinator routes', () => {
 
     const fetched = await dispatchJson(router, `/research/records/${record.recordHash}`);
     expect(fetched).toMatchObject({ status: 200, body: { record: { recordHash: record.recordHash } } });
+  });
+
+  it('publishes a linked signed candidate action through the research route', async () => {
+    const actor = await researchIdentity('candidate_route');
+    const question = await createSignedResearchSubmission({
+      identity: actor,
+      roomId: 'route-candidate-room',
+      sequence: 'MKTAYIAKQRQISFVKSHFSRQ',
+      intent: { kind: 'question', text: 'Which public family annotation should be checked next?' },
+      consent: { publicSequence: true, publicEvidenceNetwork: true, publishEmbedding: false },
+      modelContract: LAUNCH_MODEL,
+      policyId: 'fastest_receipt'
+    });
+    const hypothesis = await createSignedResearchHypothesis({
+      identity: actor,
+      roomId: question.roomId,
+      questionHash: question.recordHash,
+      statement: 'The public sequence belongs to family A.',
+      conditions: { biologicalSystem: 'public catalog release' },
+      discriminatingObservations: ['An independent catalog assigns family A.']
+    });
+    const candidate = await createSignedCandidateAction({
+      identity: actor,
+      roomId: question.roomId,
+      questionHash: question.recordHash,
+      action: {
+        kind: 'retrieval',
+        title: 'Retrieve an independent pinned annotation',
+        rationale: 'A second public source can test the family assignment.',
+        affectedHypothesisHashes: [hypothesis.recordHash],
+        predictedObservations: [{ observation: 'The independent source assigns family A.', affectedHypothesisHashes: [hypothesis.recordHash] }],
+        falsifiers: [{ hypothesisHash: hypothesis.recordHash, observation: 'The independent source assigns another family.' }],
+        execution: { contractKind: 'workload', contractId: 'catalog-retrieval', version: '1.0.0', artifactHash: exactHash('a'), parametersHash: exactHash('b') },
+        uncertainty: [{ source: 'cross_source_disagreement', representation: 'ordinal', rationale: 'Sources may disagree.', ordinal: { level: 'unknown', scaleId: 'poolday.uncertainty.v1', scaleVersion: '1.0.0' } }],
+        feasibility: { status: 'feasible', requiredCapabilities: ['public retrieval'], availability: 'Public release available.', materials: [], failureRisks: ['Historical endpoint unavailable.'] },
+        independence: { dimensions: ['source organization'], exclusions: [], minimumIndependentExecutions: 1 },
+        safety: { classification: 'public-data-only', requirements: ['Use public records only.'], reviewRequired: true },
+        consent: { publicSequenceRequired: true, publicEvidencePublicationRequired: true, additionalRequirements: [] },
+        scientificCost: {
+          compute: { amount: 1, unit: 'cpu-second', burden: 0 }, money: { amount: 0, unit: 'USD', burden: 0 },
+          labor: { amount: 0.25, unit: 'person-hour', burden: 1 }, instrument: { amount: 0, unit: 'instrument-hour', burden: 0 },
+          sample: { amount: 0, unit: 'sample', burden: 0 }, elapsedTime: { amount: 0.25, unit: 'hour', burden: 1 },
+          assumptions: ['The public endpoint remains available.']
+        },
+        expectedValue: {
+          status: 'heuristic_not_calibrated', method: { id: 'curator-ordinal-value', version: '1.0.0' },
+          uncertaintyReduction: 4, decisionRelevance: 5, duplicateWorkAvoidance: 3, calibrationEvidenceHashes: []
+        }
+      }
+    });
+
+    for (const record of [question, hypothesis, candidate]) {
+      const published = await dispatchJson(router, '/research/records', { method: 'POST', body: { record } });
+      expect(published).toMatchObject({ status: 201, body: { record: { recordHash: record.recordHash } } });
+    }
+    const listed = await dispatchJson(router, '/research/rooms/route-candidate-room/records?kind=research_candidate_action');
+    expect(listed).toMatchObject({
+      status: 200,
+      body: { records: [expect.objectContaining({
+        recordHash: candidate.recordHash,
+        action: expect.objectContaining({ contractHash: candidate.action.contractHash })
+      })] }
+    });
   });
 
   it('keeps safe discovery routes public when persistent storage requires auth', async () => {

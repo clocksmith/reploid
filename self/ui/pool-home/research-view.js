@@ -12,6 +12,7 @@ import {
   createCrossRoomReuseContext,
   createSignedAdjudicationEvaluation,
   createSignedAdjudicationExperiment,
+  createSignedCandidateAction,
   createSignedCohortEvaluation,
   createSignedEvaluationCohort,
   createSignedExperimentalOutcome,
@@ -28,6 +29,7 @@ import {
   projectResearchRewards,
   proposeDiscoveryTasks,
   rankProposedDiscoveryActions,
+  rankProposedCandidateActions,
   searchEvidence
 } from '../../pool/evidence-network.js';
 import {
@@ -75,6 +77,7 @@ const lifecycleRecordSummary = (record = {}) => {
   if (record.kind === 'research_evaluation') return `<p>${record.evaluation.metricResults.map((metric) => `${escapeHtml(metric.metricId)} ${metric.improved ? 'improved' : 'did not improve'} (${escapeHtml(metric.baselineValue)} to ${escapeHtml(metric.currentValue)})`).join(' · ')}</p><small>${record.evaluation.outcomeHashes.length} independently accepted outcomes · next cohort ${record.evaluation.nextCohortQuestionHashes.length ? 'bound' : 'not bound'}</small>`;
   if (record.kind === 'research_adjudication_experiment') return `<p>${escapeHtml(record.experiment.target.catalogId)} @ ${escapeHtml(record.experiment.target.catalogVersion)} · ${escapeHtml(record.experiment.target.curatorRole)}</p><small>Baseline ${escapeHtml(record.experiment.baseline.workflowId)} versus ${escapeHtml(record.experiment.candidate.policyId)} · ${record.experiment.cohort.caseCount} family-disjoint paired cases</small>`;
   if (record.kind === 'research_adjudication_evaluation') return `<p>Frozen adjudication rule ${escapeHtml(record.evaluation.assessment.conclusion)}</p><small>${record.evaluation.metricResults.map((metric) => `${escapeHtml(metric.metricId)} ${escapeHtml(metric.baselineValue)} to ${escapeHtml(metric.candidateValue)}`).join(' · ')}</small>`;
+  if (record.kind === 'research_candidate_action') return `<p>${escapeHtml(record.action.kind)} · ${escapeHtml(record.action.title)}</p><small>${record.action.uncertainty.map((entry) => `${entry.source}: ${entry.representation}`).join(' · ')} · exact ${escapeHtml(record.action.execution.contractKind)} ${escapeHtml(record.action.execution.contractId)} @ ${escapeHtml(record.action.execution.version)} · proposal only</small>`;
   if (record.kind === 'research_discovery_checkpoint') return `<p>${escapeHtml(record.checkpoint.state.status)} Discovery Contract state · ${record.checkpoint.inputRecordHashes.length} complete inputs · ${record.checkpoint.activeInputRecordHashes.length} active inputs</p><small>Projection ${escapeHtml(record.checkpoint.projection.id)} · state ${escapeHtml(compactHash(record.checkpoint.stateHash))}</small>`;
   if (record.kind === 'research_revocation') return `<p>Future reuse revoked: ${escapeHtml(record.revocation.reason)}</p><small>Target ${escapeHtml(compactHash(record.targetHash))} remains in immutable history.</small>`;
   return '';
@@ -128,6 +131,7 @@ export function renderResearchWorkspace(roomId, records = loadResearchRecords(ro
   const outcomes = active.filter((record) => record.kind === 'research_outcome');
   const cohorts = active.filter((record) => record.kind === 'research_cohort');
   const evaluations = active.filter((record) => record.kind === 'research_evaluation');
+  const candidateActions = active.filter((record) => record.kind === 'research_candidate_action');
   const adjudicationExperiments = active.filter((record) => record.kind === 'research_adjudication_experiment');
   const acceptedAdjudicationExperiments = adjudicationExperiments.filter((record) => reviewStates.get(record.recordHash)?.state === 'accepted');
   const adjudicationEvaluations = active.filter((record) => record.kind === 'research_adjudication_evaluation');
@@ -137,11 +141,13 @@ export function renderResearchWorkspace(roomId, records = loadResearchRecords(ro
   const tasks = proposeDiscoveryTasks(records);
   const actionRanking = rankProposedDiscoveryActions(records);
   const rankedTasks = actionRanking.rankedCandidates;
+  const candidateRanking = rankProposedCandidateActions(records);
   const clusters = clusterCompatibleResults(records);
   const target = similarityTarget || results.at(-1)?.recordHash || '';
   const similar = target ? findSimilarSequences(records, target) : [];
   const rewards = projectResearchRewards(records);
-  const reviewTargets = active.filter((record) => record.kind !== 'human_claim' || record.claim?.kind !== 'task_approval');
+  const reviewTargets = active.filter((record) => record.kind !== 'human_claim'
+    || !['task_approval', 'candidate_action_approval'].includes(record.claim?.kind));
   return `
     <section class="pool-research-workspace" data-pool-research-workspace data-room-id="${escapeHtml(roomId)}">
       <header class="pool-research-header">
@@ -162,6 +168,7 @@ export function renderResearchWorkspace(roomId, records = loadResearchRecords(ro
         <div><dt>Cohort evaluations</dt><dd>${evaluations.length}</dd></div>
         <div><dt>Adjudication experiments</dt><dd>${adjudicationExperiments.length}</dd></div>
         <div><dt>Adjudication evaluations</dt><dd>${adjudicationEvaluations.length}</dd></div>
+        <div><dt>Candidate actions</dt><dd>${candidateActions.length}</dd></div>
         <div><dt>Results</dt><dd>${results.length}</dd></div>
         <div><dt>Human claims</dt><dd>${claims.length}</dd></div>
         <div><dt>Evidence nodes</dt><dd>${graph.nodes.length}</dd></div>
@@ -188,11 +195,14 @@ export function renderResearchWorkspace(roomId, records = loadResearchRecords(ro
           workClaims,
           outcomes,
           cohorts,
+          calibrationCohorts: cohorts.filter((record) => reviewStates.get(record.recordHash)?.state === 'accepted'),
+          calibrationEvaluations: [...evaluations, ...adjudicationEvaluations]
+            .filter((record) => reviewStates.get(record.recordHash)?.state === 'accepted'),
           adjudicationExperiments: acceptedAdjudicationExperiments,
           active
         })}
         ${renderDiscoveryPanel({ results, target, similar, clusters })}
-        ${renderNextWorkPanel({ rankedTasks, actionRanking })}
+        ${renderNextWorkPanel({ rankedTasks, actionRanking, candidateRanking })}
         ${renderParticipationQualityPanel({ rewards })}
       </div>
     </section>
@@ -289,6 +299,45 @@ const retainReviewTargetInUrl = (targetHash) => {
 
 const commaList = (value) => String(value || '').split(',').map((entry) => entry.trim()).filter(Boolean);
 
+const candidateScientificCostFromForm = (values) => Object.fromEntries([
+  ...['compute', 'money', 'labor', 'instrument', 'sample', 'elapsedTime'].map((component) => [component, {
+    amount: values.get(`${component}Amount`),
+    unit: values.get(`${component}Unit`),
+    burden: values.get(`${component}Burden`)
+  }]),
+  ['assumptions', commaList(values.get('costAssumptions'))]
+]);
+
+const candidateUncertaintyFromForm = (values) => {
+  const representation = values.get('uncertaintyRepresentation');
+  const shared = {
+    representation,
+    rationale: values.get('uncertaintyRationale')
+  };
+  const represented = representation === 'probability'
+    ? {
+        ...shared,
+        probability: values.get('uncertaintyProbability'),
+        calibration: {
+          methodId: values.get('calibrationMethodId'),
+          version: values.get('calibrationMethodVersion'),
+          cohortHash: values.get('calibrationCohortHash'),
+          metricId: values.get('calibrationMetricId')
+        }
+      }
+    : representation === 'set_valued'
+      ? { ...shared, possibleValues: commaList(values.get('possibleValues')) }
+      : {
+          ...shared,
+          ordinal: {
+            level: values.get('ordinalLevel'),
+            scaleId: values.get('ordinalScaleId'),
+            scaleVersion: values.get('ordinalScaleVersion')
+          }
+        };
+  return values.getAll('uncertaintySources').map((source) => ({ source, ...represented }));
+};
+
 const protocolFromForm = (values) => ({
   protocolId: values.get('protocolId'),
   version: values.get('protocolVersion'),
@@ -303,7 +352,7 @@ const protocolFromForm = (values) => ({
   acceptanceCriteria: values.get('acceptanceCriteria')
 });
 
-const createLifecycleRecordFromForm = async (action, values, roomId, records) => {
+export const createLifecycleRecordFromForm = async (action, values, roomId, records) => {
   const researcher = createPoolIdentity(['evaluation', 'adjudication-evaluation'].includes(action) ? 'verifier' : 'researcher');
   const byHash = new Map(records.map((record) => [record.recordHash, record]));
   if (action === 'prior-evidence') {
@@ -369,6 +418,75 @@ const createLifecycleRecordFromForm = async (action, values, roomId, records) =>
       conditions: { notes: values.get('conditions') },
       confidence: values.get('confidence'),
       outcomeAccess: 'blinded'
+    });
+  }
+  if (action === 'candidate-action') {
+    const question = byHash.get(values.get('questionHash'));
+    const affectedHypothesisHashes = values.getAll('affectedHypothesisHashes');
+    const hypotheses = affectedHypothesisHashes.map((hash) => byHash.get(hash)).filter(Boolean);
+    if (question?.kind !== 'research_submission') throw new Error('Selected research question is unavailable');
+    if (!affectedHypothesisHashes.length
+      || hypotheses.length !== affectedHypothesisHashes.length
+      || hypotheses.some((record) => record.kind !== 'research_hypothesis' || record.questionHash !== question.recordHash)) {
+      throw new Error('Select affected hypotheses from the chosen question');
+    }
+    return createSignedCandidateAction({
+      identity: researcher,
+      roomId,
+      questionHash: question.recordHash,
+      action: {
+        kind: values.get('candidateKind'),
+        title: values.get('candidateTitle'),
+        rationale: values.get('candidateRationale'),
+        affectedHypothesisHashes,
+        predictedObservations: [{
+          observation: values.get('predictedObservation'),
+          affectedHypothesisHashes
+        }],
+        falsifiers: affectedHypothesisHashes.map((hypothesisHash) => ({
+          hypothesisHash,
+          observation: values.get('falsifyingObservation')
+        })),
+        execution: {
+          contractKind: values.get('contractKind'),
+          contractId: values.get('contractId'),
+          version: values.get('contractVersion'),
+          artifactHash: values.get('contractArtifactHash'),
+          parametersHash: values.get('contractParametersHash')
+        },
+        uncertainty: candidateUncertaintyFromForm(values),
+        feasibility: {
+          status: values.get('feasibilityStatus'),
+          requiredCapabilities: commaList(values.get('requiredCapabilities')),
+          availability: values.get('availability'),
+          materials: commaList(values.get('materials')),
+          failureRisks: commaList(values.get('failureRisks'))
+        },
+        independence: {
+          dimensions: commaList(values.get('independenceDimensions')),
+          exclusions: commaList(values.get('independenceExclusions')),
+          minimumIndependentExecutions: values.get('minimumIndependentExecutions')
+        },
+        safety: {
+          classification: values.get('safetyClassification'),
+          requirements: commaList(values.get('safetyRequirements')),
+          reviewRequired: values.get('candidateSafetyReview') === 'on'
+        },
+        consent: {
+          publicSequenceRequired: values.get('candidatePublicConsent') === 'on',
+          publicEvidencePublicationRequired: values.get('candidatePublicConsent') === 'on',
+          additionalRequirements: []
+        },
+        scientificCost: candidateScientificCostFromForm(values),
+        expectedValue: {
+          status: values.get('valueStatus'),
+          method: { id: values.get('valueMethodId'), version: values.get('valueMethodVersion') },
+          uncertaintyReduction: values.get('uncertaintyReduction'),
+          decisionRelevance: values.get('decisionRelevance'),
+          duplicateWorkAvoidance: values.get('duplicateWorkAvoidance'),
+          calibrationEvidenceHashes: values.getAll('valueCalibrationEvidenceHashes').filter(Boolean)
+        }
+      }
     });
   }
   if (action === 'work-order') {
@@ -702,6 +820,37 @@ export function bindResearchWorkspace(
       }
     });
   });
+  workspace.querySelectorAll('[data-research-approve-candidate]').forEach((button) => {
+    button.addEventListener('click', async () => {
+      button.disabled = true;
+      try {
+        const records = loadResearchRecords(roomId);
+        const candidate = activeResearchRecords(records)
+          .find((record) => record.kind === 'research_candidate_action'
+            && record.recordHash === button.dataset.researchApproveCandidate
+            && record.action?.contractHash === button.dataset.researchCandidateContract);
+        const ranked = rankProposedCandidateActions(records).admittedCandidates
+          .find((entry) => entry.recordHash === candidate?.recordHash);
+        if (!candidate || !ranked) throw new Error('The signed candidate action is no longer admitted');
+        const record = await createSignedHumanClaim({
+          identity: createPoolIdentity('reviewer'),
+          roomId,
+          targetHash: candidate.recordHash,
+          claimKind: 'candidate_action_approval',
+          relation: 'approves',
+          text: `Approved exact candidate action contract: ${candidate.action.contractHash}`,
+          confidence: 1,
+          decision: 'approved',
+          actionContractHash: candidate.action.contractHash
+        });
+        await publishRecord(record, { roomId });
+        replaceWorkspace(workspace);
+      } catch (error) {
+        button.disabled = false;
+        button.title = error.message;
+      }
+    });
+  });
   workspace.querySelectorAll('[data-research-lifecycle-form]').forEach((form) => {
     const kindSelect = form.querySelector('[data-prior-evidence-kind]');
     const annotationFields = form.querySelector('[data-protein-annotation-fields]');
@@ -900,6 +1049,45 @@ export function bindResearchRoomActions(root = document, {
         priorButton.disabled = false;
         priorButton.textContent = label;
         priorButton.title = error instanceof Error ? error.message : String(error);
+      }
+      return;
+    }
+    const candidateButton = event.target.closest?.('[data-pool-room-approve-candidate]');
+    if (candidateButton && root.contains(candidateButton)) {
+      event.preventDefault();
+      const roomId = candidateButton.dataset.poolRoomId;
+      const recordHash = candidateButton.dataset.poolRoomApproveCandidate;
+      const contractHash = candidateButton.dataset.poolRoomCandidateContract;
+      const records = loadResearchRecords(roomId);
+      const candidate = activeResearchRecords(records).find((record) => (
+        record.kind === 'research_candidate_action'
+        && record.recordHash === recordHash
+        && record.action?.contractHash === contractHash
+      ));
+      const admitted = rankProposedCandidateActions(records).admittedCandidates
+        .some((entry) => entry.recordHash === recordHash && entry.actionId === contractHash);
+      const label = candidateButton.textContent;
+      candidateButton.disabled = true;
+      candidateButton.textContent = 'Signing exact approval...';
+      try {
+        if (!candidate || !admitted) throw new Error('The signed candidate action is no longer admitted');
+        const approval = await createSignedHumanClaim({
+          identity: createPoolIdentity('reviewer'),
+          roomId,
+          targetHash: candidate.recordHash,
+          claimKind: 'candidate_action_approval',
+          relation: 'approves',
+          text: `Approved exact candidate action contract: ${contractHash}`,
+          confidence: 1,
+          decision: 'approved',
+          actionContractHash: contractHash
+        });
+        const publication = await publishRecord(approval, { roomId });
+        candidateButton.textContent = publication.remote ? 'Exact contract approved' : 'Approval saved locally';
+      } catch (error) {
+        candidateButton.disabled = false;
+        candidateButton.textContent = label;
+        candidateButton.title = error instanceof Error ? error.message : String(error);
       }
       return;
     }

@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-08-15T17:42:41.764Z",
+  "generatedAt": "2026-08-15T19:07:10.065Z",
   "files": [
     "CATSCAN.md",
     "audit.html",
@@ -343,6 +343,7 @@
     "pool/config.js",
     "pool/device-identity.js",
     "pool/discovery-action-value.js",
+    "pool/discovery-candidate-action.js",
     "pool/discovery-contract.js",
     "pool/dna-lane-admission.js",
     "pool/doppler-browser-observation.js",

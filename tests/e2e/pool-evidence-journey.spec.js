@@ -301,10 +301,50 @@ test('shows and exercises the governed protein evidence journey', async ({ page 
       failureAnalysis: 'The ambiguous replica remains in the cohort and explains control variance.',
       nextCohortQuestionHashes: [firstSubmission.recordHash]
     });
+    const candidateAction = await evidence.createSignedCandidateAction({
+      identity: researcher,
+      roomId: 'reploid-default',
+      questionHash: firstSubmission.recordHash,
+      action: {
+        kind: 'retrieval',
+        title: 'Retrieve an independent pinned family annotation',
+        rationale: 'A second versioned public source could resolve the current annotation disagreement.',
+        affectedHypothesisHashes: [hypothesisOne.recordHash, hypothesisTwo.recordHash],
+        predictedObservations: [{
+          observation: 'The independent source assigns one of the declared families under its pinned release.',
+          affectedHypothesisHashes: [hypothesisOne.recordHash, hypothesisTwo.recordHash]
+        }],
+        falsifiers: [{ hypothesisHash: hypothesisOne.recordHash, observation: 'The source assigns an incompatible family.' }, { hypothesisHash: hypothesisTwo.recordHash, observation: 'The source reports no compatible membrane-associated family.' }],
+        execution: { contractKind: 'workload', contractId: 'e2e.catalog-retrieval', version: '1.0.0', artifactHash: fakeHash('c'), parametersHash: fakeHash('d') },
+        uncertainty: [{ source: 'cross_source_disagreement', representation: 'ordinal', rationale: 'The current public evidence sources disagree.', ordinal: { level: 'high', scaleId: 'poolday.uncertainty.v1', scaleVersion: '1.0.0' } }],
+        feasibility: { status: 'feasible', requiredCapabilities: ['version-pinned public retrieval'], availability: 'The public catalog release is available.', materials: [], failureRisks: ['The historical public endpoint may be unavailable.'] },
+        independence: { dimensions: ['source organization', 'curation process'], exclusions: ['Do not use a mirror of the first source.'], minimumIndependentExecutions: 1 },
+        safety: { classification: 'public-data-only', requirements: ['Use only the public protein record.'], reviewRequired: true },
+        consent: { publicSequenceRequired: true, publicEvidencePublicationRequired: true, additionalRequirements: [] },
+        scientificCost: {
+          compute: { amount: 1, unit: 'cpu-second', burden: 0 },
+          money: { amount: 0, unit: 'USD', burden: 0 },
+          labor: { amount: 0.25, unit: 'person-hour', burden: 1 },
+          instrument: { amount: 0, unit: 'instrument-hour', burden: 0 },
+          sample: { amount: 0, unit: 'sample', burden: 0 },
+          elapsedTime: { amount: 0.25, unit: 'hour', burden: 1 },
+          assumptions: ['The public endpoint remains available.']
+        },
+        expectedValue: {
+          status: 'heuristic_not_calibrated',
+          method: { id: 'curator-declared-ordinal-value', version: '1.0.0' },
+          uncertaintyReduction: 4,
+          decisionRelevance: 5,
+          duplicateWorkAvoidance: 3,
+          calibrationEvidenceHashes: []
+        }
+      }
+    });
     for (const record of [
       firstSubmission, secondSubmission, firstResult, secondResult, annotation, review,
       prior, hypothesisOne, hypothesisTwo, predictionOne, predictionTwo, predictionReviewOne, predictionReviewTwo, order, orderReview,
-      claimOne, claimTwo, cohort, cohortReview, outcomeOne, outcomeTwo, outcomeReviewOne, outcomeReviewTwo, evaluation
+      claimOne, claimTwo, cohort, cohortReview, outcomeOne, outcomeTwo, outcomeReviewOne, outcomeReviewTwo, evaluation,
+      candidateAction
     ]) {
       await store.appendResearchRecord(record);
     }
@@ -328,10 +368,14 @@ test('shows and exercises the governed protein evidence journey', async ({ page 
       .filter((record) => record.kind === 'research_discovery_checkpoint').length;
   })).toBe(1);
   await expect(contract).toContainText('Current checkpoint');
-  const roomApproval = page.locator('[data-pool-room-approve-task]').first();
+  const roomApproval = page.locator('[data-pool-room-approve-candidate]').first();
+  await expect(page.locator('.pool-room-action-card')).toContainText('Retrieve an independent pinned family annotation');
+  await page.locator('.pool-room-action-card').getByText('Raw candidate-action evidence', { exact: true }).click();
+  await expect(page.locator('.pool-room-action-card')).toContainText('0 USD · burden 0/5');
+  await expect(page.locator('.pool-room-action-card')).toContainText('Ranking projection only; no allocation or execution authority.');
   await expect(roomApproval).toBeVisible();
   await roomApproval.click();
-  await expect(page.locator('[data-pool-room-approve-task]')).toHaveCount(0);
+  await expect(page.locator('[data-pool-room-approve-candidate]')).toHaveCount(0);
 
   await page.evaluate(async () => {
     const evidence = await import('/pool/evidence-network.js');
@@ -445,6 +489,7 @@ test('shows and exercises the governed protein evidence journey', async ({ page 
   await expect(page.locator('.pool-research-stats div').filter({ hasText: 'Outcomes' }).locator('dd')).toHaveText('2');
   await expect(page.locator('.pool-research-stats div').filter({ hasText: 'Frozen cohorts' }).locator('dd')).toHaveText('1');
   await expect(page.locator('.pool-research-stats div').filter({ hasText: 'Cohort evaluations' }).locator('dd')).toHaveText('1');
+  await expect(page.locator('.pool-research-stats div').filter({ hasText: 'Candidate actions' }).locator('dd')).toHaveText('1');
   await expect(page.getByText('accepted annotations', { exact: false })).toBeVisible();
   await expect(page.getByText('deterministic similarity clusters', { exact: false })).toBeVisible();
   await expect(page.locator('.pool-research-record b').filter({ hasText: 'The independent replica retained a high-variance failure.' })).toBeVisible();
@@ -462,6 +507,7 @@ test('shows and exercises the governed protein evidence journey', async ({ page 
   await expect(page.locator('[data-research-action="outcome"]')).toBeAttached();
   await expect(page.locator('[data-research-action="cohort"]')).toBeAttached();
   await expect(page.locator('[data-research-action="evaluation"]')).toBeAttached();
+  await expect(page.locator('[data-research-action="candidate-action"]')).toBeAttached();
   await expect(page.locator('[data-research-action="revocation"]')).toBeAttached();
   const reviewContext = page.locator('[data-research-review-context]').first();
   await expect(reviewContext).toContainText('Question');
@@ -472,6 +518,15 @@ test('shows and exercises the governed protein evidence journey', async ({ page 
   await expect(selectedReviewContext).toContainText('Result evidence');
   await expect(selectedReviewContext).toContainText('Agreement');
   await expect(selectedReviewContext).toContainText('receipt');
+
+  const governedCandidate = page.locator('[data-research-candidate-action]').filter({ hasText: 'Retrieve an independent pinned family annotation' });
+  await expect(governedCandidate).toContainText('Highest-ranked admitted candidate');
+  await governedCandidate.locator('summary').click();
+  await expect(governedCandidate).toContainText('cross source disagreement: ordinal');
+  await expect(governedCandidate).toContainText('0 USD · burden 0/5');
+  await expect(governedCandidate).toContainText('Proposal and ranking have no allocation or execution authority.');
+  await expect(governedCandidate).toContainText('Independently approved');
+  await expect(governedCandidate.locator('[data-research-approve-candidate]')).toHaveCount(0);
 
   await page.locator('[data-research-search]').fill('hydrophobic');
   await expect(page.locator('.pool-research-record b').filter({ hasText: 'Reviewed hydrophobic N-terminus evidence.' })).toBeVisible();
@@ -685,6 +740,7 @@ test('passes governed Research Room browser modules through the Verification Wor
   await page.goto('/');
   const paths = [
     '/pool/discovery-action-value.js',
+    '/pool/discovery-candidate-action.js',
     '/pool/discovery-contract.js',
     '/pool/evidence-network.js',
     '/pool/research-cycle.js',

@@ -32,7 +32,8 @@ const roomHref = (path, roomId, panel = '', targetHash = '') => {
   if (targetHash) url.searchParams.set('target', targetHash);
   const panelAnchors = {
     review: 'pool-room-review',
-    discovery: 'pool-room-discovery'
+    discovery: 'pool-room-discovery',
+    'candidate-actions': 'pool-room-candidate-actions'
   };
   if (panelAnchors[panel]) url.hash = panelAnchors[panel];
   return `${url.pathname}${url.search}${url.hash}`;
@@ -188,19 +189,35 @@ const renderUnresolved = (room) => `
 
 const renderNextAction = (room) => {
   const action = room.nextActions[0];
+  const signedCandidate = action?.actionType === 'signed_candidate_action';
   const nextQuestion = room.nextQuestion || {};
   const needsQuestion = !room.question;
   const destination = needsQuestion
     ? roomHref('/ask', room.roomId)
-    : roomHref('/records', room.roomId, action ? 'discovery' : 'review');
-  const approvalBoundary = nextQuestion.humanApprovalStatus === 'approved'
-    ? `${nextQuestion.approvalRecordHashes?.length || 0} signed approval${nextQuestion.approvalRecordHashes?.length === 1 ? '' : 's'}`
-    : 'Approval required';
+    : roomHref('/records', room.roomId, signedCandidate ? 'candidate-actions' : action ? 'discovery' : 'review');
+  const approvalRecordHashes = signedCandidate ? action.approvalRecordHashes : nextQuestion.approvalRecordHashes;
+  const approvalBoundary = (signedCandidate ? action.status : nextQuestion.humanApprovalStatus) === 'approved'
+    ? `${approvalRecordHashes?.length || 0} signed approval${approvalRecordHashes?.length === 1 ? '' : 's'}`
+    : 'Independent approval required';
+  const candidateEvidence = signedCandidate ? `<details class="pool-room-disclosure"><summary>Raw candidate-action evidence</summary>
+    <dl class="pool-room-facts">
+      <div><dt>Ranking status</dt><dd>${escapeHtml(action.rankingStatus?.replace(/_/g, ' ') || 'unknown')}</dd></div>
+      <div><dt>Uncertainty reduction</dt><dd>${escapeHtml(action.rawValueComponents?.uncertaintyReduction)}/5</dd></div>
+      <div><dt>Decision relevance</dt><dd>${escapeHtml(action.rawValueComponents?.decisionRelevance)}/5</dd></div>
+      <div><dt>Duplicate-work avoidance</dt><dd>${escapeHtml(action.rawValueComponents?.duplicateWorkAvoidance)}/5</dd></div>
+      <div><dt>Declared burden</dt><dd>${escapeHtml(action.rawValueComponents?.costBurden)}</dd></div>
+      ${Object.entries(action.scientificCost || {}).filter(([, value]) => value && !Array.isArray(value)).map(([component, value]) => `<div><dt>${escapeHtml(component.replace(/([A-Z])/g, ' $1').toLowerCase())}</dt><dd>${escapeHtml(value.amount)} ${escapeHtml(value.unit)} · burden ${escapeHtml(value.burden)}/5</dd></div>`).join('')}
+      <div><dt>Uncertainty</dt><dd>${action.uncertainty.map((entry) => `${escapeHtml(entry.source.replace(/_/g, ' '))}: ${escapeHtml(entry.representation.replace(/_/g, ' '))}`).join(' · ')}</dd></div>
+      <div><dt>Exact ${escapeHtml(action.execution?.contractKind || 'contract')}</dt><dd>${escapeHtml(action.execution?.contractId)} @ ${escapeHtml(action.execution?.version)} · ${escapeHtml(compactHash(action.contractHash))}</dd></div>
+      <div><dt>Authority</dt><dd>Ranking projection only; no allocation or execution authority.</dd></div>
+    </dl>
+  </details>` : '';
   return `
     <section class="pool-room-action-card" aria-labelledby="pool-room-next-action-title">
-      <div><p class="pool-dashboard-kicker">Next</p><h2 class="type-h2" id="pool-room-next-action-title">${escapeHtml(needsQuestion ? 'Ask a question' : action ? action.kind.replace(/_/g, ' ') : 'Review the evidence')}</h2><p>${escapeHtml(needsQuestion ? 'Start with a public protein sequence.' : nextQuestion.prompt || action?.reason || 'Review a result.')}</p>${needsQuestion ? '' : `<small>${escapeHtml(approvalBoundary)}</small>`}${action ? `<details class="pool-room-disclosure"><summary>Why this action?</summary><p>${escapeHtml(action.reason)}</p><p>Based on ${escapeHtml(action.basis === 'accepted_memory' ? `${action.basisHashes.length} accepted record${action.basisHashes.length === 1 ? '' : 's'}` : 'the current question')}.</p></details>` : ''}</div>
+      <div><p class="pool-dashboard-kicker">Next</p><h2 class="type-h2" id="pool-room-next-action-title">${escapeHtml(needsQuestion ? 'Ask a question' : action ? action.title || action.kind.replace(/_/g, ' ') : 'Review the evidence')}</h2><p>${escapeHtml(needsQuestion ? 'Start with a public protein sequence.' : signedCandidate ? action.reason : nextQuestion.prompt || action?.reason || 'Review a result.')}</p>${needsQuestion ? '' : `<small>${escapeHtml(approvalBoundary)}</small>`}${action ? `<details class="pool-room-disclosure"><summary>Why this action?</summary><p>${escapeHtml(action.reason)}</p><p>Based on ${escapeHtml(action.basis === 'accepted_memory' ? `${action.basisHashes.length} accepted record${action.basisHashes.length === 1 ? '' : 's'}` : signedCandidate ? `${action.basisHashes.length} affected hypothesis contract${action.basisHashes.length === 1 ? '' : 's'}` : 'the current question')}.</p></details>` : ''}${candidateEvidence}</div>
       <div class="pool-room-action-controls">
-        ${action && action.status !== 'approved' ? `<button class="btn btn-primary" type="button" data-pool-room-approve-task="${escapeHtml(action.id)}" data-pool-room-task-target="${escapeHtml(action.targetHash)}" data-pool-room-id="${escapeHtml(room.roomId)}">Approve next action</button>` : ''}
+        ${action && action.status !== 'approved' && signedCandidate ? `<button class="btn btn-primary" type="button" data-pool-room-approve-candidate="${escapeHtml(action.targetHash)}" data-pool-room-candidate-contract="${escapeHtml(action.contractHash)}" data-pool-room-id="${escapeHtml(room.roomId)}">Approve exact contract</button>` : ''}
+        ${action && action.status !== 'approved' && !signedCandidate ? `<button class="btn btn-primary" type="button" data-pool-room-approve-task="${escapeHtml(action.id)}" data-pool-room-task-target="${escapeHtml(action.targetHash)}" data-pool-room-id="${escapeHtml(room.roomId)}">Approve next action</button>` : ''}
         <a class="btn btn-ghost" data-pool-route-link="${escapeHtml(destination)}" href="${escapeHtml(destination)}">Open</a>
       </div>
     </section>

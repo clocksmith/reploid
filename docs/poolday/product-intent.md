@@ -127,6 +127,17 @@ over verified, room-scoped signed records:
    the exact projected task contract, including rationale, basis hashes, and
    ranking policy. Every proposed action carries no allocation or execution
    authority.
+10. A signed candidate-action contract can propose a computation, retrieval,
+    review, assay, or replication. It binds affected hypotheses, predicted and
+    falsifying observations, exact workload or protocol hashes, feasibility,
+    independence, safety, public consent, six separate scientific-cost
+    components, and declared expected-value inputs. Candidate uncertainty names
+    measurement variance, model uncertainty, cross-source disagreement,
+    missing alternatives, protocol risk, or decision-change uncertainty.
+    Numeric probabilities additionally require a versioned calibration method
+    and independently accepted frozen cohort; otherwise the representation is
+    ordinal or set-valued. The current deterministic ranking remains explicitly
+    heuristic and carries no allocation or execution authority.
 
 New records use `poolday.research_evidence/v2`. Signed v1 history remains
 inspectable after reload but cannot inherit v2 independent-execution or exact
@@ -136,8 +147,8 @@ the room's quarantine cache rather than silently deleted from local history.
 The source projections are [`research-cycle.js`](../../self/pool/research-cycle.js),
 [`evidence-network.js`](../../self/pool/evidence-network.js), and
 [`room-projection.js`](../../self/ui/pool-home/room-projection.js).
-This slice does not implement calibrated biological action value, laboratory
-qualification, scientific closure, or autonomous policy promotion.
+This slice does not implement calibrated biological information gain,
+laboratory qualification, scientific closure, or autonomous policy promotion.
 
 The immediate supported value remains:
 

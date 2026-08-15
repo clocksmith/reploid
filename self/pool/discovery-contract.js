@@ -8,10 +8,13 @@
 import {
   DISCOVERY_CONTRACT_PROJECTION_ID,
   DISCOVERY_CONTRACT_STATE_VERSION,
+  LEGACY_DISCOVERY_CONTRACT_PROJECTION_ID,
+  LEGACY_DISCOVERY_CONTRACT_STATE_VERSION,
   RESEARCH_RECORD_KINDS,
   activeResearchRecords,
   createSignedDiscoveryCheckpoint,
   invalidatedResearchHashes,
+  rankProposedCandidateActions,
   researchRecordTargetHashes,
   validateResearchRecordLinks,
   validateResearchRecordModelAdmission,
@@ -20,9 +23,9 @@ import {
 import { hashJson } from './inference-receipt.js';
 import { RESEARCH_CYCLE_POLICY, projectGovernedResearchCycle } from './research-cycle.js';
 
-export const DISCOVERY_CONTRACT_PROJECTION_MANIFEST = Object.freeze({
+export const LEGACY_DISCOVERY_CONTRACT_PROJECTION_MANIFEST = Object.freeze({
   schema: 'poolday.discovery_contract_projection_manifest/v1',
-  id: DISCOVERY_CONTRACT_PROJECTION_ID,
+  id: LEGACY_DISCOVERY_CONTRACT_PROJECTION_ID,
   governedCycleSchema: RESEARCH_CYCLE_POLICY.schema,
   governedCyclePolicyId: RESEARCH_CYCLE_POLICY.policyId,
   inputOrder: 'createdAt_then_recordHash',
@@ -31,6 +34,19 @@ export const DISCOVERY_CONTRACT_PROJECTION_MANIFEST = Object.freeze({
   memoryPolicy: 'named_policy_projection_only',
   reopenPolicy: 'contradiction_correction_revocation_failed_replication_or_policy_invalidation'
 });
+export const DISCOVERY_CONTRACT_PROJECTION_MANIFEST = Object.freeze({
+  ...LEGACY_DISCOVERY_CONTRACT_PROJECTION_MANIFEST,
+  schema: 'poolday.discovery_contract_projection_manifest/v2',
+  id: DISCOVERY_CONTRACT_PROJECTION_ID,
+  candidateActionSchema: 'poolday.discovery_candidate_action/v1',
+  candidateActionRankingSchema: 'poolday.discovery_candidate_action_ranking/v1'
+});
+
+const projectionManifest = (projectionId) => {
+  if (projectionId === DISCOVERY_CONTRACT_PROJECTION_ID) return DISCOVERY_CONTRACT_PROJECTION_MANIFEST;
+  if (projectionId === LEGACY_DISCOVERY_CONTRACT_PROJECTION_ID) return LEGACY_DISCOVERY_CONTRACT_PROJECTION_MANIFEST;
+  throw new TypeError(`Unsupported Discovery Contract projection: ${projectionId}`);
+};
 
 const text = (value) => String(value ?? '').trim();
 const unique = (values) => [...new Set((values || []).filter(Boolean).map(String))];
@@ -173,11 +189,14 @@ const reopenTriggers = ({ sourceRecords, activeInputRecordHashes, cycle, parents
   };
 };
 
-const stateFromCycle = ({ contractId, questionHash, policyId, sourceRecords, activeRecords, cycle, parents }) => {
+const stateFromCycle = ({ contractId, questionHash, policyId, sourceRecords, activeRecords, cycle, parents, projectionId }) => {
   const activeInputRecordHashes = activeRecords.map((record) => record.recordHash);
   const reopening = reopenTriggers({ sourceRecords, activeInputRecordHashes, cycle, parents });
-  return {
-    schema: DISCOVERY_CONTRACT_STATE_VERSION,
+  const candidateActions = rankProposedCandidateActions(sourceRecords);
+  const state = {
+    schema: projectionId === LEGACY_DISCOVERY_CONTRACT_PROJECTION_ID
+      ? LEGACY_DISCOVERY_CONTRACT_STATE_VERSION
+      : DISCOVERY_CONTRACT_STATE_VERSION,
     contractId,
     questionHash,
     policyId,
@@ -219,13 +238,19 @@ const stateFromCycle = ({ contractId, questionHash, policyId, sourceRecords, act
     },
     reopen: reopening
   };
+  if (projectionId !== LEGACY_DISCOVERY_CONTRACT_PROJECTION_ID) {
+    state.candidateActions = clone(candidateActions);
+  }
+  return state;
 };
 
 export async function projectDiscoveryContractState(records = [], {
   questionHash,
   parentCheckpointHashes = [],
-  verifyInputs = true
+  verifyInputs = true,
+  projectionId = DISCOVERY_CONTRACT_PROJECTION_ID
 } = {}) {
+  const manifest = projectionManifest(projectionId);
   const all = Array.isArray(records) ? records : [];
   const sourceRecords = discoveryContractSourceRecords(all, questionHash);
   const question = sourceRecords.find((record) => record.recordHash === questionHash);
@@ -254,8 +279,8 @@ export async function projectDiscoveryContractState(records = [], {
   const inputRecordHashes = sourceRecords.map((record) => record.recordHash);
   const activeInputRecordHashes = activeRecords.map((record) => record.recordHash);
   const projection = {
-    id: DISCOVERY_CONTRACT_PROJECTION_ID,
-    artifactHash: await hashJson(DISCOVERY_CONTRACT_PROJECTION_MANIFEST)
+    id: projectionId,
+    artifactHash: await hashJson(manifest)
   };
   const state = stateFromCycle({
     contractId,
@@ -264,7 +289,8 @@ export async function projectDiscoveryContractState(records = [], {
     sourceRecords,
     activeRecords,
     cycle,
-    parents
+    parents,
+    projectionId
   });
   return {
     contractId,
@@ -332,7 +358,8 @@ export async function validateDiscoveryContractCheckpoint(checkpoint, records = 
       {
         questionHash: checkpoint.checkpoint.questionHash,
         parentCheckpointHashes: checkpoint.checkpoint.parentCheckpointHashes,
-        verifyInputs: true
+        verifyInputs: true,
+        projectionId: checkpoint.checkpoint.projection.id
       }
     );
     for (const field of [
@@ -383,7 +410,8 @@ export async function projectDiscoveryCheckpointStatus(records = [], { questionH
       parentCheckpointHashes: [latest.recordHash],
       verifyInputs: true
     });
-    const current = JSON.stringify(prospective.inputRecordHashes) === JSON.stringify(latest.checkpoint.inputRecordHashes);
+    const current = prospective.projection.id === latest.checkpoint.projection?.id
+      && JSON.stringify(prospective.inputRecordHashes) === JSON.stringify(latest.checkpoint.inputRecordHashes);
     return {
       status: current ? 'current' : prospective.state.status === 'reopened' ? 'reopen_required' : 'stale',
       latestCheckpoint: latest,
@@ -402,6 +430,7 @@ export async function projectDiscoveryCheckpointStatus(records = [], { questionH
 
 export default {
   DISCOVERY_CONTRACT_PROJECTION_MANIFEST,
+  LEGACY_DISCOVERY_CONTRACT_PROJECTION_MANIFEST,
   discoveryContractSourceRecords,
   projectDiscoveryContractState,
   createDiscoveryContractCheckpoint,

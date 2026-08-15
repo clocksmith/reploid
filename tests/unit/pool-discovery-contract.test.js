@@ -8,8 +8,10 @@ import {
 } from '../../self/pool/discovery-contract.js';
 import {
   createSignedDiscoveryCheckpoint,
+  createSignedCandidateAction,
   createSignedHumanClaim,
   createSignedPriorEvidence,
+  createSignedResearchHypothesis,
   createSignedResearchRevocation,
   createSignedResearchSubmission,
   validateResearchRecordLinks,
@@ -19,6 +21,7 @@ import { createSigningKeyPair } from '../../self/pool/inference-receipt.js';
 import { buildLaunchProviderModel } from '../../self/pool/model-contract.js';
 
 const at = (minute) => `2026-08-15T12:${String(minute).padStart(2, '0')}:00.000Z`;
+const fakeHash = (character) => `sha256:${character.repeat(64)}`;
 
 const identity = async (kind, id) => {
   const keyPair = await createSigningKeyPair();
@@ -126,7 +129,7 @@ describe('Poolday Discovery Contract checkpoints', () => {
         parentCheckpointHashes: [],
         inputRecordHashes: data.records.map((record) => record.recordHash),
         state: {
-          schema: 'poolday.discovery_contract_state/v1',
+          schema: 'poolday.discovery_contract_state/v2',
           status: 'open',
           decisionMemory: { acceptedHashes: [data.prior.recordHash] },
           reopen: { required: false }
@@ -141,6 +144,96 @@ describe('Poolday Discovery Contract checkpoints', () => {
     expect((await projectDiscoveryCheckpointStatus([...data.records, checkpoint], {
       questionHash: data.question.recordHash
     })).status).toBe('current');
+  });
+
+  it('checkpoints the exact signed candidate-action ranking and approval boundary', async () => {
+    const data = await fixture();
+    const hypothesis = await createSignedResearchHypothesis({
+      identity: data.researcher,
+      roomId: data.question.roomId,
+      questionHash: data.question.recordHash,
+      statement: 'The bounded domain annotation should be retained.',
+      conditions: { biologicalSystem: 'public catalog release seven' },
+      discriminatingObservations: ['An independent version-pinned catalog reports the same bounded domain.'],
+      createdAt: at(3)
+    });
+    const candidate = await createSignedCandidateAction({
+      identity: data.researcher,
+      roomId: data.question.roomId,
+      questionHash: data.question.recordHash,
+      action: {
+        kind: 'retrieval',
+        title: 'Retrieve an independent pinned annotation',
+        rationale: 'A separate catalog could resolve the disputed domain assignment.',
+        affectedHypothesisHashes: [hypothesis.recordHash],
+        predictedObservations: [{ observation: 'The source reports the same bounded domain.', affectedHypothesisHashes: [hypothesis.recordHash] }],
+        falsifiers: [{ hypothesisHash: hypothesis.recordHash, observation: 'The source reports an incompatible bounded domain.' }],
+        execution: { contractKind: 'workload', contractId: 'catalog-retrieval', version: '1.0.0', artifactHash: fakeHash('a'), parametersHash: fakeHash('b') },
+        uncertainty: [{ source: 'cross_source_disagreement', representation: 'ordinal', rationale: 'Public sources disagree.', ordinal: { level: 'high', scaleId: 'poolday.uncertainty.v1', scaleVersion: '1.0.0' } }],
+        feasibility: { status: 'feasible', requiredCapabilities: ['version-pinned retrieval'], availability: 'Public release available.', materials: [], failureRisks: ['Historical endpoint unavailable.'] },
+        independence: { dimensions: ['source organization'], exclusions: [], minimumIndependentExecutions: 1 },
+        safety: { classification: 'public-data-only', requirements: ['Use only public records.'], reviewRequired: true },
+        consent: { publicSequenceRequired: true, publicEvidencePublicationRequired: true, additionalRequirements: [] },
+        scientificCost: {
+          compute: { amount: 1, unit: 'cpu-second', burden: 0 },
+          money: { amount: 0, unit: 'USD', burden: 0 },
+          labor: { amount: 0.25, unit: 'person-hour', burden: 1 },
+          instrument: { amount: 0, unit: 'instrument-hour', burden: 0 },
+          sample: { amount: 0, unit: 'sample', burden: 0 },
+          elapsedTime: { amount: 0.25, unit: 'hour', burden: 1 },
+          assumptions: ['The public endpoint remains available.']
+        },
+        expectedValue: {
+          status: 'heuristic_not_calibrated',
+          method: { id: 'curator-declared-ordinal-value', version: '1.0.0' },
+          uncertaintyReduction: 4,
+          decisionRelevance: 5,
+          duplicateWorkAvoidance: 3,
+          calibrationEvidenceHashes: []
+        }
+      },
+      createdAt: at(4)
+    });
+    const approval = await createSignedHumanClaim({
+      identity: data.reviewerTwo,
+      roomId: data.question.roomId,
+      targetHash: candidate.recordHash,
+      claimKind: 'candidate_action_approval',
+      relation: 'approves',
+      decision: 'approved',
+      actionContractHash: candidate.action.contractHash,
+      text: 'Approve the exact bounded retrieval contract.',
+      confidence: 0.95,
+      createdAt: at(5)
+    });
+    const records = [...data.records, hypothesis, candidate, approval];
+    const projected = await projectDiscoveryContractState(records, { questionHash: data.question.recordHash });
+
+    expect(projected.state.candidateActions).toMatchObject({
+      schema: 'poolday.discovery_candidate_action_ranking/v1',
+      policy: { policyId: 'poolday.signed_candidate_action_heuristic/v1', status: 'heuristic_not_calibrated' },
+      selectedAction: {
+        recordHash: candidate.recordHash,
+        actionId: candidate.action.contractHash,
+        humanApprovalState: 'approved',
+        allocationAuthority: 'none',
+        executionAuthority: 'none'
+      },
+      allocationAuthority: 'none',
+      executionAuthority: 'none'
+    });
+    expect(projected.state.decisionMemory.excluded).toEqual(expect.arrayContaining([
+      expect.objectContaining({ recordHash: candidate.recordHash, reason: 'candidate_action_is_a_governance_proposal' })
+    ]));
+    const checkpoint = await createDiscoveryContractCheckpoint({
+      identity: data.checkpointSigner,
+      roomId: data.question.roomId,
+      questionHash: data.question.recordHash,
+      records,
+      createdAt: at(6)
+    });
+    expect(await validateDiscoveryContractCheckpoint(checkpoint, records, { requireCurrentCompleteness: true }))
+      .toEqual({ ok: true, reasons: [] });
   });
 
   it('fails closed for missing, cross-room, or wrong-projection inputs', async () => {
@@ -188,6 +281,47 @@ describe('Poolday Discovery Contract checkpoints', () => {
         projection: { ...projected.projection, id: 'poolday.unsupported_projection/v1' }
       }
     })).rejects.toThrow('projection id is unsupported');
+  });
+
+  it('replays legacy v1 checkpoints and requires a v2 checkpoint for the candidate-action projection', async () => {
+    const data = await fixture();
+    const legacyProjection = await projectDiscoveryContractState(data.records, {
+      questionHash: data.question.recordHash,
+      projectionId: 'poolday.discovery_contract_projection/v1'
+    });
+    expect(legacyProjection).toMatchObject({
+      projection: { id: 'poolday.discovery_contract_projection/v1' },
+      state: { schema: 'poolday.discovery_contract_state/v1' }
+    });
+    expect(legacyProjection.state).not.toHaveProperty('candidateActions');
+    const legacyCheckpoint = await createSignedDiscoveryCheckpoint({
+      identity: data.checkpointSigner,
+      roomId: data.question.roomId,
+      checkpoint: legacyProjection,
+      createdAt: at(3)
+    });
+    expect(await validateDiscoveryContractCheckpoint(legacyCheckpoint, data.records, {
+      requireCurrentCompleteness: true
+    })).toEqual({ ok: true, reasons: [] });
+    expect(await projectDiscoveryCheckpointStatus([...data.records, legacyCheckpoint], {
+      questionHash: data.question.recordHash
+    })).toMatchObject({ status: 'stale' });
+
+    const upgraded = await createDiscoveryContractCheckpoint({
+      identity: data.checkpointSigner,
+      roomId: data.question.roomId,
+      questionHash: data.question.recordHash,
+      records: [...data.records, legacyCheckpoint],
+      parentCheckpointHashes: [legacyCheckpoint.recordHash],
+      createdAt: at(4)
+    });
+    expect(upgraded.checkpoint).toMatchObject({
+      projection: { id: 'poolday.discovery_contract_projection/v2' },
+      state: { schema: 'poolday.discovery_contract_state/v2', candidateActions: { admittedCandidates: [] } }
+    });
+    expect(await validateDiscoveryContractCheckpoint(upgraded, [...data.records, legacyCheckpoint], {
+      requireCurrentCompleteness: true
+    })).toEqual({ ok: true, reasons: [] });
   });
 
   it('supersedes a parent and deterministically reopens on correction and revocation', async () => {

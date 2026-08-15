@@ -24,6 +24,11 @@ import {
   rankDiscoveryActions
 } from './discovery-action-value.js';
 import {
+  DISCOVERY_CANDIDATE_ACTION_VERSION,
+  normalizeDiscoveryCandidateAction,
+  rankSignedCandidateActions
+} from './discovery-candidate-action.js';
+import {
   hashSequenceFloat32Values,
   validateSequenceOutputIntegrity
 } from './sequence-result.js';
@@ -45,6 +50,7 @@ export const RESEARCH_RECORD_KINDS = Object.freeze({
   adjudicationExperiment: 'research_adjudication_experiment',
   adjudicationEvaluation: 'research_adjudication_evaluation',
   discoveryCheckpoint: 'research_discovery_checkpoint',
+  candidateAction: 'research_candidate_action',
   sequenceLink: 'research_sequence_link',
   revocation: 'research_revocation'
 });
@@ -61,7 +67,8 @@ export const HUMAN_CLAIM_KINDS = Object.freeze([
   'experiment_context',
   'follow_up',
   'review_decision',
-  'task_approval'
+  'task_approval',
+  'candidate_action_approval'
 ]);
 export const EVIDENCE_RELATIONS = Object.freeze([
   'supports',
@@ -93,8 +100,10 @@ export const CONTEXTUAL_REUSE_REVIEW_VERSION = 'poolday.contextual_reuse_review/
 export const ADJUDICATION_EXPERIMENT_VERSION = 'poolday.annotation_adjudication_experiment/v1';
 export const ADJUDICATION_EVALUATION_VERSION = 'poolday.annotation_adjudication_evaluation/v1';
 export const DISCOVERY_CHECKPOINT_VERSION = 'poolday.discovery_contract_checkpoint/v1';
-export const DISCOVERY_CONTRACT_STATE_VERSION = 'poolday.discovery_contract_state/v1';
-export const DISCOVERY_CONTRACT_PROJECTION_ID = 'poolday.discovery_contract_projection/v1';
+export const LEGACY_DISCOVERY_CONTRACT_STATE_VERSION = 'poolday.discovery_contract_state/v1';
+export const LEGACY_DISCOVERY_CONTRACT_PROJECTION_ID = 'poolday.discovery_contract_projection/v1';
+export const DISCOVERY_CONTRACT_STATE_VERSION = 'poolday.discovery_contract_state/v2';
+export const DISCOVERY_CONTRACT_PROJECTION_ID = 'poolday.discovery_contract_projection/v2';
 export const RESEARCH_WORK_KINDS = Object.freeze([
   'human_review',
   'experimental_assay',
@@ -139,6 +148,7 @@ const DOMAIN_BY_KIND = Object.freeze({
   [RESEARCH_RECORD_KINDS.adjudicationExperiment]: SIGNATURE_DOMAINS.researchAdjudicationExperiment,
   [RESEARCH_RECORD_KINDS.adjudicationEvaluation]: SIGNATURE_DOMAINS.researchAdjudicationEvaluation,
   [RESEARCH_RECORD_KINDS.discoveryCheckpoint]: SIGNATURE_DOMAINS.researchDiscoveryCheckpoint,
+  [RESEARCH_RECORD_KINDS.candidateAction]: SIGNATURE_DOMAINS.researchCandidateAction,
   [RESEARCH_RECORD_KINDS.sequenceLink]: SIGNATURE_DOMAINS.researchSequenceLink,
   [RESEARCH_RECORD_KINDS.revocation]: SIGNATURE_DOMAINS.researchRevocation
 });
@@ -1054,7 +1064,11 @@ const normalizeDiscoveryCheckpoint = async (checkpoint = {}, roomId) => {
     id: compactText(checkpoint.projection?.id, 240),
     artifactHash: requireHash(checkpoint.projection?.artifactHash, 'discovery checkpoint projection artifactHash')
   };
-  if (projection.id !== DISCOVERY_CONTRACT_PROJECTION_ID) {
+  const stateSchemaByProjection = {
+    [LEGACY_DISCOVERY_CONTRACT_PROJECTION_ID]: LEGACY_DISCOVERY_CONTRACT_STATE_VERSION,
+    [DISCOVERY_CONTRACT_PROJECTION_ID]: DISCOVERY_CONTRACT_STATE_VERSION
+  };
+  if (!stateSchemaByProjection[projection.id]) {
     throw new TypeError('discovery checkpoint projection id is unsupported');
   }
   const inputRecordHashes = normalizeHashList(checkpoint.inputRecordHashes, 'discovery checkpoint inputs', {
@@ -1088,7 +1102,7 @@ const normalizeDiscoveryCheckpoint = async (checkpoint = {}, roomId) => {
     throw new TypeError('discovery checkpoint contractId does not match its question, room, and policy');
   }
   const state = clone(checkpoint.state);
-  if (!state || state.schema !== DISCOVERY_CONTRACT_STATE_VERSION
+  if (!state || state.schema !== stateSchemaByProjection[projection.id]
     || !['open', 'reopened'].includes(state.status)
     || state.contractId !== contractId
     || state.questionHash !== questionHash
@@ -1500,6 +1514,7 @@ export async function createSignedHumanClaim({
   contextAssessment = null,
   taskId = null,
   taskContract = null,
+  actionContractHash = null,
   createdAt = new Date().toISOString()
 } = {}) {
   const { author, privateKey } = await createAuthor(identity, ['reviewer', 'verifier', 'researcher']);
@@ -1526,6 +1541,10 @@ export async function createSignedHumanClaim({
   if (kind === 'task_approval' && normalizedDecision !== 'approved') {
     throw new TypeError('task approval decision must be approved');
   }
+  if (kind === 'candidate_action_approval'
+    && (normalizedDecision !== 'approved' || edge !== 'approves')) {
+    throw new TypeError('candidate action approval must approve the proposed action');
+  }
   if (contextAssessment && kind !== 'review_decision') {
     throw new TypeError('contextual reuse assessment is valid only for review decisions');
   }
@@ -1535,6 +1554,9 @@ export async function createSignedHumanClaim({
   const normalizedTaskId = compactText(taskId, 240) || null;
   const normalizedTaskContract = kind === 'task_approval'
     ? normalizeTaskApprovalContract(taskContract, normalizedTaskId, targetHash)
+    : null;
+  const normalizedActionContractHash = kind === 'candidate_action_approval'
+    ? requireHash(actionContractHash, 'candidate action contract hash')
     : null;
   const payload = {
     version: RESEARCH_RECORD_VERSION,
@@ -1553,7 +1575,8 @@ export async function createSignedHumanClaim({
       decision: normalizedDecision,
       ...(normalizedContextAssessment ? { contextAssessment: normalizedContextAssessment } : {}),
       taskId: normalizedTaskId,
-      taskContract: normalizedTaskContract
+      taskContract: normalizedTaskContract,
+      actionContractHash: normalizedActionContractHash
     }
   };
   return signRecord(payload, privateKey, SIGNATURE_DOMAINS.humanClaim);
@@ -2116,6 +2139,31 @@ export async function createSignedAdjudicationEvaluation({
   return signRecord(payload, privateKey, SIGNATURE_DOMAINS.researchAdjudicationEvaluation);
 }
 
+export async function createSignedCandidateAction({
+  identity,
+  roomId,
+  questionHash,
+  action,
+  createdAt = new Date().toISOString()
+} = {}) {
+  const { author, privateKey } = await createAuthor(identity, ['requester', 'researcher', 'reviewer', 'agent']);
+  const normalizedAction = await normalizeDiscoveryCandidateAction({
+    ...(action || {}),
+    questionHash
+  });
+  const payload = {
+    version: RESEARCH_RECORD_VERSION,
+    kind: RESEARCH_RECORD_KINDS.candidateAction,
+    signatureDomain: SIGNATURE_DOMAINS.researchCandidateAction,
+    roomId: normalizeRoomId(roomId),
+    createdAt,
+    author,
+    questionHash: normalizedAction.questionHash,
+    action: normalizedAction
+  };
+  return signRecord(payload, privateKey, SIGNATURE_DOMAINS.researchCandidateAction);
+}
+
 export async function createSignedDiscoveryCheckpoint({
   identity,
   roomId,
@@ -2585,6 +2633,12 @@ export async function verifyResearchRecord(record = {}) {
         reasons.push(error.message);
       }
     }
+    if (record.claim?.kind === 'candidate_action_approval'
+      && (record.claim?.decision !== 'approved'
+        || record.claim?.relation !== 'approves'
+        || !SHA256_PATTERN.test(String(record.claim?.actionContractHash || '')))) {
+      reasons.push('human candidate action approval is invalid');
+    }
     if (record.claim?.contextAssessment) {
       if (record.claim?.kind !== 'review_decision') reasons.push('contextual reuse assessment requires a review decision');
       try {
@@ -2595,6 +2649,19 @@ export async function verifyResearchRecord(record = {}) {
       } catch (error) {
         reasons.push(error.message);
       }
+    }
+  }
+  if (record.kind === RESEARCH_RECORD_KINDS.candidateAction) {
+    if (!['requester', 'researcher', 'reviewer', 'agent'].includes(record.author?.role)) {
+      reasons.push('candidate action author role is invalid');
+    }
+    if (!SHA256_PATTERN.test(String(record.questionHash || ''))) reasons.push('candidate action questionHash is invalid');
+    try {
+      const normalized = await normalizeDiscoveryCandidateAction(record.action);
+      if (normalized.questionHash !== record.questionHash) reasons.push('candidate action question identity does not match its record');
+      if (JSON.stringify(normalized) !== JSON.stringify(record.action)) reasons.push('candidate action contract is not canonical');
+    } catch (error) {
+      reasons.push(error.message);
     }
   }
   if (record.kind === RESEARCH_RECORD_KINDS.hypothesis) {
@@ -2856,7 +2923,7 @@ export function researchRecordTargetHashes(record = {}) {
   const targets = [];
   if (record.kind === RESEARCH_RECORD_KINDS.result) targets.push(record.submissionHash);
   if ([RESEARCH_RECORD_KINDS.claim, RESEARCH_RECORD_KINDS.revocation].includes(record.kind)) targets.push(record.targetHash);
-  if ([RESEARCH_RECORD_KINDS.hypothesis, RESEARCH_RECORD_KINDS.priorEvidence, RESEARCH_RECORD_KINDS.prediction, RESEARCH_RECORD_KINDS.workOrder, RESEARCH_RECORD_KINDS.outcome].includes(record.kind)) {
+  if ([RESEARCH_RECORD_KINDS.hypothesis, RESEARCH_RECORD_KINDS.priorEvidence, RESEARCH_RECORD_KINDS.prediction, RESEARCH_RECORD_KINDS.workOrder, RESEARCH_RECORD_KINDS.outcome, RESEARCH_RECORD_KINDS.candidateAction].includes(record.kind)) {
     targets.push(record.questionHash);
   }
   if (record.kind === RESEARCH_RECORD_KINDS.hypothesis) {
@@ -2875,6 +2942,15 @@ export function researchRecordTargetHashes(record = {}) {
     targets.push(record.cohortHash, ...(record.evaluation?.outcomeHashes || []), ...(record.evaluation?.nextCohortQuestionHashes || []));
   }
   if (record.kind === RESEARCH_RECORD_KINDS.adjudicationEvaluation) targets.push(record.experimentHash);
+  if (record.kind === RESEARCH_RECORD_KINDS.candidateAction) {
+    targets.push(
+      ...(record.action?.affectedHypothesisHashes || []),
+      ...(record.action?.uncertainty || [])
+        .map((entry) => entry.calibration?.cohortHash)
+        .filter(Boolean),
+      ...(record.action?.expectedValue?.calibrationEvidenceHashes || [])
+    );
+  }
   if (record.kind === RESEARCH_RECORD_KINDS.discoveryCheckpoint) {
     targets.push(record.checkpoint?.questionHash, ...(record.checkpoint?.activeInputRecordHashes || []));
   }
@@ -2970,6 +3046,10 @@ export function projectAcceptedResearchMemory(records = []) {
     if (invalidated.has(record.recordHash)) return 'invalidated';
     if (acceptedCorrections.has(record.recordHash)) return 'superseded_by_accepted_correction';
     if (record.kind === RESEARCH_RECORD_KINDS.discoveryCheckpoint) return 'projection_checkpoint_not_scientific_evidence';
+    if (record.kind === RESEARCH_RECORD_KINDS.candidateAction) return 'candidate_action_is_a_governance_proposal';
+    if (record.kind === RESEARCH_RECORD_KINDS.claim && record.claim?.kind === 'candidate_action_approval') {
+      return 'candidate_action_approval_is_governance_not_scientific_evidence';
+    }
     const reviewState = reviewStates.get(record.recordHash)?.state || 'unreviewed';
     if (reviewState !== 'accepted') return reviewState;
     if (record.kind === RESEARCH_RECORD_KINDS.result
@@ -3149,6 +3229,49 @@ export function validateResearchRecordLinks(record = {}, records = []) {
       && record.claim?.decision === 'accepted'
       && assessment?.determination !== 'relevant') {
       reasons.push('accepted cross-room evidence requires an explicit relevant context determination');
+    }
+    if (record.claim?.kind === 'candidate_action_approval') {
+      if (reviewed?.kind !== RESEARCH_RECORD_KINDS.candidateAction) {
+        reasons.push('candidate action approval must target a candidate action');
+      } else {
+        if (reviewed.author?.identityRootId === record.author?.identityRootId) {
+          reasons.push('candidate actions cannot be self-approved');
+        }
+        if (record.claim?.actionContractHash !== reviewed.action?.contractHash) {
+          reasons.push('candidate action approval contract hash does not match its target');
+        }
+      }
+    }
+  }
+  if (record.kind === RESEARCH_RECORD_KINDS.candidateAction) {
+    const question = target(record.questionHash);
+    if (question?.kind !== RESEARCH_RECORD_KINDS.submission) {
+      reasons.push('candidate action must target a research question submission');
+    } else if (question.consent?.publicSequence !== true || question.consent?.publicEvidenceNetwork !== true) {
+      reasons.push('candidate action requires public sequence and evidence-network consent');
+    }
+    for (const hash of record.action?.affectedHypothesisHashes || []) {
+      const hypothesis = target(hash);
+      if (hypothesis?.kind !== RESEARCH_RECORD_KINDS.hypothesis || hypothesis.questionHash !== record.questionHash) {
+        reasons.push(`candidate action hypothesis does not belong to its question: ${hash}`);
+      }
+    }
+    for (const uncertainty of record.action?.uncertainty || []) {
+      if (uncertainty.representation !== 'probability') continue;
+      const cohort = target(uncertainty.calibration?.cohortHash);
+      if (cohort?.kind !== RESEARCH_RECORD_KINDS.cohort || cohort.cohort?.state !== 'frozen') {
+        reasons.push(`probability calibration does not target a frozen evaluation cohort: ${uncertainty.calibration?.cohortHash}`);
+      } else if (!independentlyAccepted(records, cohort)) {
+        reasons.push(`probability calibration cohort lacks independent acceptance: ${cohort.recordHash}`);
+      }
+    }
+    for (const hash of record.action?.expectedValue?.calibrationEvidenceHashes || []) {
+      const calibration = target(hash);
+      if (![RESEARCH_RECORD_KINDS.evaluation, RESEARCH_RECORD_KINDS.adjudicationEvaluation].includes(calibration?.kind)) {
+        reasons.push(`candidate value calibration evidence kind mismatch: ${hash}`);
+      } else if (!independentlyAccepted(records, calibration)) {
+        reasons.push(`candidate value calibration evidence lacks independent acceptance: ${hash}`);
+      }
     }
   }
   if (record.kind === RESEARCH_RECORD_KINDS.hypothesis) {
@@ -3383,7 +3506,8 @@ export function validateResearchRecordLinks(record = {}, records = []) {
         for (const hash of missingParentInputs) {
           reasons.push(`discovery checkpoint must retain parent archive input: ${hash}`);
         }
-        if (JSON.stringify(parent.checkpoint?.inputRecordHashes || []) === JSON.stringify(checkpoint.inputRecordHashes || [])) {
+        if (parent.checkpoint?.projection?.id === checkpoint.projection?.id
+          && JSON.stringify(parent.checkpoint?.inputRecordHashes || []) === JSON.stringify(checkpoint.inputRecordHashes || [])) {
           reasons.push(`discovery checkpoint child input set is unchanged from parent: ${parentHash}`);
         }
       }
@@ -3497,6 +3621,7 @@ const researchRecordLabel = (record = {}) => ({
   [RESEARCH_RECORD_KINDS.adjudicationExperiment]: `${record.experiment?.target?.catalogId || 'Catalog'} adjudication experiment`,
   [RESEARCH_RECORD_KINDS.adjudicationEvaluation]: `${record.evaluation?.assessment?.conclusion || 'Pending'} adjudication evaluation`,
   [RESEARCH_RECORD_KINDS.discoveryCheckpoint]: `${record.checkpoint?.state?.status || 'Open'} Discovery Contract checkpoint`,
+  [RESEARCH_RECORD_KINDS.candidateAction]: record.action?.title,
   [RESEARCH_RECORD_KINDS.sequenceLink]: 'DNA-to-protein linkage',
   [RESEARCH_RECORD_KINDS.revocation]: record.revocation?.reason
 }[record.kind] || record.recordHash);
@@ -3592,6 +3717,7 @@ export function buildEvidenceGraph(records = []) {
       [RESEARCH_RECORD_KINDS.evaluation]: 'evaluates',
       [RESEARCH_RECORD_KINDS.adjudicationEvaluation]: 'evaluates',
       [RESEARCH_RECORD_KINDS.discoveryCheckpoint]: 'freezes_contract_input',
+      [RESEARCH_RECORD_KINDS.candidateAction]: 'proposes_action_for',
       [RESEARCH_RECORD_KINDS.sequenceLink]: 'links_translation',
       [RESEARCH_RECORD_KINDS.revocation]: 'revokes'
     }[record.kind];
@@ -3682,6 +3808,7 @@ export function searchEvidence(records = [], query = '') {
     outcome: record.outcome,
     cohort: record.cohort,
     evaluation: record.evaluation,
+    action: record.action,
     revocation: record.revocation,
     author: record.author?.roleId
   }).toLowerCase().includes(needle));
@@ -4125,6 +4252,39 @@ export function rankProposedDiscoveryActions(records = []) {
   return rankDiscoveryActions(records, proposeDiscoveryTasks(records));
 }
 
+export function rankProposedCandidateActions(records = []) {
+  const source = Array.isArray(records) ? records : [];
+  const active = activeResearchRecords(source);
+  const activeHashes = new Set(active.map((record) => record.recordHash));
+  const reviewStates = new Map(projectResearchReviewStates(source).map((entry) => [entry.recordHash, entry]));
+  const approvals = active.filter((record) => (
+    record.kind === RESEARCH_RECORD_KINDS.claim
+    && record.claim?.kind === 'candidate_action_approval'
+  ));
+  const candidates = source
+    .filter((record) => record.kind === RESEARCH_RECORD_KINDS.candidateAction)
+    .map((record) => {
+      const matchingApprovals = approvals.filter((approval) => (
+        approval.targetHash === record.recordHash
+        && approval.claim?.actionContractHash === record.action?.contractHash
+      ));
+      const reviewState = reviewStates.get(record.recordHash)?.state || 'unresolved';
+      const rejectionReasons = [];
+      if (!activeHashes.has(record.recordHash)) rejectionReasons.push('candidate_is_revoked_or_downstream_invalidated');
+      if (reviewState === 'rejected') rejectionReasons.push('candidate_was_rejected_by_independent_review');
+      if (reviewState === 'disputed') rejectionReasons.push('candidate_has_disputed_independent_review');
+      return {
+        record,
+        rejectionReasons,
+        humanApprovalState: matchingApprovals.length
+          ? 'approved'
+          : ['rejected', 'disputed'].includes(reviewState) ? reviewState : 'approval_required',
+        approvalRecordHashes: matchingApprovals.map((approval) => approval.recordHash)
+      };
+    });
+  return rankSignedCandidateActions({ inputRecords: source, candidates });
+}
+
 export function projectResearchRewards(records = []) {
   const active = activeResearchRecords(records);
   const claims = active.filter((record) => record.kind === RESEARCH_RECORD_KINDS.claim);
@@ -4217,6 +4377,7 @@ export default {
   createSignedCohortEvaluation,
   createSignedAdjudicationExperiment,
   createSignedAdjudicationEvaluation,
+  createSignedCandidateAction,
   createSignedDiscoveryCheckpoint,
   createSignedResearchRevocation,
   verifyResearchRecord,
@@ -4241,5 +4402,6 @@ export default {
   clusterCompatibleResults,
   proposeDiscoveryTasks,
   rankProposedDiscoveryActions,
+  rankProposedCandidateActions,
   projectResearchRewards
 };

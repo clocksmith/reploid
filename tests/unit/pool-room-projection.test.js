@@ -766,6 +766,88 @@ describe('Research Room projection', () => {
     expect(html).not.toContain('1,0,0');
   });
 
+  it('makes the highest-ranked signed candidate action the primary approval-gated next step', () => {
+    const question = submission();
+    const candidate = {
+      kind: 'research_candidate_action',
+      recordHash: hash('u'),
+      roomId: question.roomId,
+      createdAt: '2026-08-09T10:02:00.000Z',
+      author: { identityRootId: 'candidate-author', roleId: 'researcher' },
+      questionHash: question.recordHash,
+      action: {
+        schema: 'poolday.discovery_candidate_action/v1',
+        contractHash: hash('v'),
+        questionHash: question.recordHash,
+        kind: 'retrieval',
+        title: 'Retrieve an independent pinned annotation',
+        rationale: 'Resolve the current cross-source disagreement.',
+        status: 'proposed',
+        affectedHypothesisHashes: [hash('h')],
+        predictedObservations: [{ observation: 'The independent source assigns family A.', affectedHypothesisHashes: [hash('h')] }],
+        falsifiers: [{ hypothesisHash: hash('h'), observation: 'The independent source assigns another family.' }],
+        execution: { contractKind: 'workload', contractId: 'catalog-retrieval', version: '1.0.0', artifactHash: hash('i'), parametersHash: hash('j') },
+        uncertainty: [{ source: 'cross_source_disagreement', representation: 'ordinal', rationale: 'Sources disagree.', ordinal: { level: 'high' }, calibration: null }],
+        feasibility: { status: 'feasible' },
+        independence: { dimensions: ['source'], minimumIndependentExecutions: 1 },
+        safety: { classification: 'public-data-only' },
+        consent: { publicSequenceRequired: true, publicEvidencePublicationRequired: true },
+        scientificCost: {
+          compute: { amount: 1, unit: 'cpu-second', burden: 0 },
+          money: { amount: 0, unit: 'USD', burden: 0 },
+          labor: { amount: 0.25, unit: 'person-hour', burden: 1 },
+          instrument: { amount: 0, unit: 'instrument-hour', burden: 0 },
+          sample: { amount: 0, unit: 'sample', burden: 0 },
+          elapsedTime: { amount: 0.25, unit: 'hour', burden: 1 },
+          assumptions: ['Public endpoint available.']
+        },
+        expectedValue: { uncertaintyReduction: 4, decisionRelevance: 5, duplicateWorkAvoidance: 3 },
+        allocationAuthority: 'none',
+        executionAuthority: 'none'
+      }
+    };
+    const unapproved = projectResearchRoom({ roomId: question.roomId, researchRecords: [question, candidate] });
+    const html = renderResearchRoom({ roomId: question.roomId, researchRecords: [question, candidate] });
+
+    expect(unapproved.nextActions[0]).toMatchObject({
+      actionType: 'signed_candidate_action',
+      id: candidate.action.contractHash,
+      targetHash: candidate.recordHash,
+      title: candidate.action.title,
+      status: 'proposed',
+      allocationAuthority: 'none',
+      executionAuthority: 'none'
+    });
+    expect(html).toContain(candidate.action.title);
+    expect(html).toContain(`data-pool-room-approve-candidate="${candidate.recordHash}"`);
+    expect(html).toContain(`data-pool-room-candidate-contract="${candidate.action.contractHash}"`);
+    expect(html).toContain('cross source disagreement: ordinal');
+    expect(html).toContain('0 USD · burden 0/5');
+    expect(html).toContain('Ranking projection only; no allocation or execution authority.');
+    expect(html).toContain('panel=candidate-actions#pool-room-candidate-actions');
+
+    const approval = {
+      kind: 'human_claim',
+      recordHash: hash('w'),
+      roomId: question.roomId,
+      createdAt: '2026-08-09T10:03:00.000Z',
+      author: { identityRootId: 'independent-reviewer', roleId: 'reviewer' },
+      targetHash: candidate.recordHash,
+      claim: {
+        kind: 'candidate_action_approval',
+        relation: 'approves',
+        decision: 'approved',
+        actionContractHash: candidate.action.contractHash,
+        text: 'Approve the exact candidate action.'
+      }
+    };
+    const approved = projectResearchRoom({ roomId: question.roomId, researchRecords: [question, candidate, approval] });
+    const approvedHtml = renderResearchRoom({ roomId: question.roomId, researchRecords: [question, candidate, approval] });
+    expect(approved.nextActions[0]).toMatchObject({ status: 'approved', approvalRecordHashes: [approval.recordHash] });
+    expect(approvedHtml).toContain('1 signed approval');
+    expect(approvedHtml).not.toContain('data-pool-room-approve-candidate');
+  });
+
   it('keeps Discovery Contract checkpoint and reopening state inside room history', () => {
     const question = submission();
     const checkpoint = {

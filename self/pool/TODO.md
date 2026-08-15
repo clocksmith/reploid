@@ -21,7 +21,7 @@ The current Cloud Run and Firestore path is transitional. The target Reploid con
 ## Current Local Checks
 
 - [x] `npm run verify:pool -- --allow-placeholders` passes locally.
-- [x] Unit suite passes: 1,739 passed and 25 skipped.
+- [x] Unit suite passes: 1,745 passed and 25 skipped.
 - [x] Integration suite passes: 363 passed and 9 skipped.
 - [ ] Re-run `npm run verify:pool:release -- --url https://replo.id --channel=chrome` after deployment. The current release reports `2026-07-28.doppler-0.5.1.v2` while the governed local contract is `2026-08-01.sequence-model-contracts.v1.doppler-0.5.1`; release verification now fails before any browser workload on this mismatch.
 - [x] `npm audit` and the production-image `npm ci --omit=dev --include=optional` audit report zero vulnerabilities.
