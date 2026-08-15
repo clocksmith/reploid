@@ -2875,6 +2875,9 @@ export function researchRecordTargetHashes(record = {}) {
     targets.push(record.cohortHash, ...(record.evaluation?.outcomeHashes || []), ...(record.evaluation?.nextCohortQuestionHashes || []));
   }
   if (record.kind === RESEARCH_RECORD_KINDS.adjudicationEvaluation) targets.push(record.experimentHash);
+  if (record.kind === RESEARCH_RECORD_KINDS.discoveryCheckpoint) {
+    targets.push(record.checkpoint?.questionHash, ...(record.checkpoint?.activeInputRecordHashes || []));
+  }
   if (record.kind === RESEARCH_RECORD_KINDS.sequenceLink) {
     targets.push(record.link?.nucleotideSubmissionHash, record.link?.proteinSubmissionHash);
   }
@@ -2966,6 +2969,7 @@ export function projectAcceptedResearchMemory(records = []) {
   const baseMemoryBlockReason = (record) => {
     if (invalidated.has(record.recordHash)) return 'invalidated';
     if (acceptedCorrections.has(record.recordHash)) return 'superseded_by_accepted_correction';
+    if (record.kind === RESEARCH_RECORD_KINDS.discoveryCheckpoint) return 'projection_checkpoint_not_scientific_evidence';
     const reviewState = reviewStates.get(record.recordHash)?.state || 'unreviewed';
     if (reviewState !== 'accepted') return reviewState;
     if (record.kind === RESEARCH_RECORD_KINDS.result
@@ -3330,10 +3334,68 @@ export function validateResearchRecordLinks(record = {}, records = []) {
       }
     }
   }
+  if (record.kind === RESEARCH_RECORD_KINDS.discoveryCheckpoint) {
+    const checkpoint = record.checkpoint || {};
+    const question = target(checkpoint.questionHash);
+    if (question?.kind !== RESEARCH_RECORD_KINDS.submission) {
+      reasons.push('discovery checkpoint must target a research question submission');
+    }
+    const orderedInputs = (checkpoint.inputRecordHashes || []).map((hash) => target(hash)).filter(Boolean);
+    const expectedOrder = orderedInputs.slice().sort((left, right) => (
+      String(left?.createdAt || '').localeCompare(String(right?.createdAt || ''))
+      || String(left?.recordHash || '').localeCompare(String(right?.recordHash || ''))
+    ));
+    if (orderedInputs.length === checkpoint.inputRecordHashes?.length
+      && expectedOrder.some((entry, index) => entry.recordHash !== orderedInputs[index]?.recordHash)) {
+      reasons.push('discovery checkpoint input records are not in deterministic order');
+    }
+    const activeInputs = new Set(checkpoint.activeInputRecordHashes || []);
+    for (const hash of checkpoint.inputRecordHashes || []) {
+      const input = target(hash);
+      if (!input) {
+        reasons.push(`discovery checkpoint input does not exist: ${hash}`);
+        continue;
+      }
+      if (input.roomId !== record.roomId) reasons.push(`discovery checkpoint input belongs to a different room: ${hash}`);
+      if (input.kind === RESEARCH_RECORD_KINDS.discoveryCheckpoint) {
+        reasons.push(`discovery checkpoint input cannot be another checkpoint: ${hash}`);
+      }
+      if (Date.parse(input.createdAt || '') > Date.parse(record.createdAt || '')) {
+        reasons.push(`discovery checkpoint predates its input: ${hash}`);
+      }
+      const shouldBeActive = input.kind !== RESEARCH_RECORD_KINDS.revocation && !invalidated.has(hash);
+      if (activeInputs.has(hash) !== shouldBeActive) {
+        reasons.push(`discovery checkpoint active input classification mismatch: ${hash}`);
+      }
+    }
+    for (const parentHash of checkpoint.parentCheckpointHashes || []) {
+      const parent = target(parentHash);
+      if (!parent) reasons.push(`discovery checkpoint parent does not exist: ${parentHash}`);
+      else if (parent.roomId !== record.roomId) reasons.push(`discovery checkpoint parent belongs to a different room: ${parentHash}`);
+      else if (parent.kind !== RESEARCH_RECORD_KINDS.discoveryCheckpoint) reasons.push(`discovery checkpoint parent kind mismatch: ${parentHash}`);
+      else if (parent.checkpoint?.contractId !== checkpoint.contractId) reasons.push(`discovery checkpoint parent contract mismatch: ${parentHash}`);
+      else {
+        if (Date.parse(parent.createdAt || '') >= Date.parse(record.createdAt || '')) {
+          reasons.push(`discovery checkpoint must follow its parent: ${parentHash}`);
+        }
+        const missingParentInputs = (parent.checkpoint?.inputRecordHashes || [])
+          .filter((hash) => !checkpoint.inputRecordHashes?.includes(hash));
+        for (const hash of missingParentInputs) {
+          reasons.push(`discovery checkpoint must retain parent archive input: ${hash}`);
+        }
+        if (JSON.stringify(parent.checkpoint?.inputRecordHashes || []) === JSON.stringify(checkpoint.inputRecordHashes || [])) {
+          reasons.push(`discovery checkpoint child input set is unchanged from parent: ${parentHash}`);
+        }
+      }
+    }
+  }
   if (record.kind === RESEARCH_RECORD_KINDS.revocation) {
     const revokedTarget = target(record.targetHash);
     if (revokedTarget?.author?.identityRootId !== record.author?.identityRootId) reasons.push('only the original identity root may revoke its evidence');
     if (revokedTarget?.kind === RESEARCH_RECORD_KINDS.revocation) reasons.push('revocation records cannot be revoked');
+    if (revokedTarget?.kind === RESEARCH_RECORD_KINDS.discoveryCheckpoint) {
+      reasons.push('Discovery Contract checkpoints cannot be revoked; append a child checkpoint');
+    }
     if (revoked.has(record.targetHash)) reasons.push('research record is already revoked');
   }
   return { ok: reasons.length === 0, reasons, targetHashes: targets };
@@ -3434,6 +3496,7 @@ const researchRecordLabel = (record = {}) => ({
   [RESEARCH_RECORD_KINDS.evaluation]: record.evaluation?.metricResults?.map((metric) => metric.metricId).join(', '),
   [RESEARCH_RECORD_KINDS.adjudicationExperiment]: `${record.experiment?.target?.catalogId || 'Catalog'} adjudication experiment`,
   [RESEARCH_RECORD_KINDS.adjudicationEvaluation]: `${record.evaluation?.assessment?.conclusion || 'Pending'} adjudication evaluation`,
+  [RESEARCH_RECORD_KINDS.discoveryCheckpoint]: `${record.checkpoint?.state?.status || 'Open'} Discovery Contract checkpoint`,
   [RESEARCH_RECORD_KINDS.sequenceLink]: 'DNA-to-protein linkage',
   [RESEARCH_RECORD_KINDS.revocation]: record.revocation?.reason
 }[record.kind] || record.recordHash);
@@ -3528,12 +3591,21 @@ export function buildEvidenceGraph(records = []) {
       [RESEARCH_RECORD_KINDS.cohort]: 'freezes',
       [RESEARCH_RECORD_KINDS.evaluation]: 'evaluates',
       [RESEARCH_RECORD_KINDS.adjudicationEvaluation]: 'evaluates',
+      [RESEARCH_RECORD_KINDS.discoveryCheckpoint]: 'freezes_contract_input',
       [RESEARCH_RECORD_KINDS.sequenceLink]: 'links_translation',
       [RESEARCH_RECORD_KINDS.revocation]: 'revokes'
     }[record.kind];
     if (lifecycleRelation) {
       for (const targetHash of researchRecordTargetHashes(record)) {
         if (nodeIds.has(targetHash)) edges.push({ from: record.recordHash, to: targetHash, relation: lifecycleRelation });
+      }
+    }
+    if (record.kind === RESEARCH_RECORD_KINDS.discoveryCheckpoint) {
+      for (const inputHash of record.checkpoint?.inputRecordHashes || []) {
+        if (nodeIds.has(inputHash)) edges.push({ from: record.recordHash, to: inputHash, relation: 'freezes_contract_archive' });
+      }
+      for (const parentHash of record.checkpoint?.parentCheckpointHashes || []) {
+        if (nodeIds.has(parentHash)) edges.push({ from: record.recordHash, to: parentHash, relation: 'supersedes_checkpoint' });
       }
     }
     if (record.kind === RESEARCH_RECORD_KINDS.priorEvidence && record.evidence?.reference) {
@@ -4145,6 +4217,7 @@ export default {
   createSignedCohortEvaluation,
   createSignedAdjudicationExperiment,
   createSignedAdjudicationEvaluation,
+  createSignedDiscoveryCheckpoint,
   createSignedResearchRevocation,
   verifyResearchRecord,
   validateResearchRecordModelAdmission,

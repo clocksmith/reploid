@@ -318,6 +318,16 @@ test('shows and exercises the governed protein evidence journey', async ({ page 
   await expect(page.locator('.pool-room-memory')).toContainText('Remembered does not mean biologically true.');
   await expect(page.locator('.pool-room-archive')).toContainText('Complete evidence archive');
   await expect(page.locator('.pool-room-archive [data-archive-state="failed"]')).toBeAttached();
+  await page.locator('.pool-room-technical-disclosure > summary').click();
+  const contract = page.locator('.pool-room-contract');
+  await expect(contract).toContainText('Checkpoint missing');
+  await contract.getByRole('button', { name: 'Sign first checkpoint', exact: true }).click();
+  await expect.poll(async () => page.evaluate(async () => {
+    const store = await import('/ui/pool-home/research-store.js');
+    return store.loadResearchRecords('reploid-default')
+      .filter((record) => record.kind === 'research_discovery_checkpoint').length;
+  })).toBe(1);
+  await expect(contract).toContainText('Current checkpoint');
   const roomApproval = page.locator('[data-pool-room-approve-task]').first();
   await expect(roomApproval).toBeVisible();
   await roomApproval.click();
@@ -376,6 +386,15 @@ test('shows and exercises the governed protein evidence journey', async ({ page 
   await expect(page.locator('.pool-room-memory')).toContainText('Correction attached');
   await expect(page.locator('.pool-room-archive [data-archive-state="superseded"]')).toBeAttached();
   await expect(page.locator('.pool-room-archive [data-archive-state="corrected"]')).toBeAttached();
+  await expect(contract).toContainText('Reopening must be checkpointed');
+  await page.locator('.pool-room-technical-disclosure').evaluate((details) => { details.open = true; });
+  await contract.getByRole('button', { name: 'Sign reopened checkpoint', exact: true }).click();
+  await expect.poll(async () => page.evaluate(async () => {
+    const store = await import('/ui/pool-home/research-store.js');
+    return store.loadResearchRecords('reploid-default')
+      .filter((record) => record.kind === 'research_discovery_checkpoint').length;
+  })).toBe(2);
+  await expect(contract).toContainText('Reopened state checkpointed');
 
   const resultReviewLink = page.locator('[data-room-result-card]').getByRole('link', { name: 'Review', exact: true });
   const reviewHref = await resultReviewLink.getAttribute('href');
@@ -666,6 +685,7 @@ test('passes governed Research Room browser modules through the Verification Wor
   await page.goto('/');
   const paths = [
     '/pool/discovery-action-value.js',
+    '/pool/discovery-contract.js',
     '/pool/evidence-network.js',
     '/pool/research-cycle.js',
     '/ui/pool-home/requester-controls.js',

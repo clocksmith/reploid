@@ -5,18 +5,9 @@
  *
  * Console logs are streamed to stdout in real-time.
  *
- * Requires GEMINI_API_KEY environment variable to be set.
+ * Uses a deterministic browser mock provider and requires no external key.
  */
 import { test, expect } from '@playwright/test';
-import * as dotenv from 'dotenv';
-import * as path from 'path';
-import { fileURLToPath } from 'url';
-
-// Load .env from project root
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-dotenv.config({ path: path.resolve(__dirname, '../../.env') });
-
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 const ACTIVE_OR_SETTLED_AGENT_STATES = ['THINKING', 'ACTING', 'OBSERVING', 'WAITING', 'IDLE', 'DONE'];
 
 // 10 minutes per test timeout
@@ -24,10 +15,6 @@ test.setTimeout(600000);
 
 // Helper to boot and run agent with a goal (streams console logs)
 async function runAgentWithGoal(page, goal, waitTime = 360000) {
-  if (!GEMINI_API_KEY) {
-    throw new Error('GEMINI_API_KEY environment variable is required. Set it in .env file.');
-  }
-
   // Stream browser console logs to stdout
   page.on('console', msg => {
     const type = msg.type();

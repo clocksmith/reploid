@@ -4,11 +4,13 @@
 
 import { createPoolSdk } from '../../pool/sdk.js';
 import {
+  RESEARCH_RECORD_KINDS,
   projectCrossRoomSequenceEvidence,
   validateResearchRecordModelAdmission,
   validateResearchRecordLinks,
   verifyResearchRecord
 } from '../../pool/evidence-network.js';
+import { validateDiscoveryContractCheckpoint } from '../../pool/discovery-contract.js';
 import { DEFAULT_PEER_ROOM_ID } from '../../pool/peer-room.js';
 
 export const POOLDAY_RESEARCH_STORAGE_KEY = 'reploid.pool.research-evidence.v1';
@@ -176,6 +178,10 @@ export async function appendResearchRecord(record, {
   }
   const links = validateResearchRecordLinks(record, state.records);
   if (!links.ok) throw new Error(`Invalid research record links: ${links.reasons.join('; ')}`);
+  if (record.kind === RESEARCH_RECORD_KINDS.discoveryCheckpoint) {
+    const replay = await validateDiscoveryContractCheckpoint(record, state.records);
+    if (!replay.ok) throw new Error(`Invalid Discovery Contract checkpoint: ${replay.reasons.join('; ')}`);
+  }
   state.records.push(clone(record));
   persist();
   if (notify) notifyResearchUpdate(roomId, record);
@@ -186,6 +192,13 @@ export async function publishResearchRecord(record, {
   roomId = record?.roomId || DEFAULT_PEER_ROOM_ID,
   sdk = createPoolSdk()
 } = {}) {
+  loadResearchRecords(roomId);
+  if (record?.kind === RESEARCH_RECORD_KINDS.discoveryCheckpoint) {
+    const replay = await validateDiscoveryContractCheckpoint(record, state.records, {
+      requireCurrentCompleteness: true
+    });
+    if (!replay.ok) throw new Error(`Stale Discovery Contract checkpoint: ${replay.reasons.join('; ')}`);
+  }
   const saved = await appendResearchRecord(record, { roomId });
   try {
     await sdk.publishResearchRecord(saved);

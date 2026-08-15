@@ -53,6 +53,13 @@ Poolday provides:
 - independently authored adjudication evaluations whose paired sample,
   missing-case, regression, raw-manifest, interval, and conclusion fields are
   checked against the frozen quality-or-effort success rule
+- signed Discovery Contract checkpoints that bind a question, named policy,
+  parent checkpoints, versioned projection contract, complete ordered archive
+  inputs, active inputs, and deterministic state, with fail-closed coordinator
+  validation and browser reload replay
+- explicit checkpoint lineage and deterministic reopening evidence for
+  contradictions, corrections, revocations, failed replications, policy-active
+  input invalidation, and removal from named-policy decision memory
 - deterministic flat similarity, evidence-aware reranking, clustering, and
   exact-contract approval-gated task proposals with explicit accepted-memory
   basis
@@ -92,6 +99,8 @@ Poolday does not provide:
 - proof that a projected next question is scientifically correct
 - autonomous authority to approve, allocate, execute, or promote a next action
 - proof that a scientific conclusion is true or independently replicated
+- proof that a signed Discovery Contract checkpoint closes a question,
+  validates an annotation, or makes its projected state biologically true
 - proof that a declared external license is accurate or permits a particular use
 - proof that a declared ontology term is correct, semantically equivalent to a
   term in another namespace, or biologically valid for the bound residues

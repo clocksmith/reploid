@@ -31,15 +31,32 @@ strict subset of this target contract:
 - exact signed task approvals that become stale when the projected rationale,
   basis, target, or ranking policy changes;
 - a deterministic next-question brief with explicit uncertainty, human
-  approval, and no execution authority.
+  approval, and no execution authority;
 - v1 history preservation and fail-closed quarantine for records that cannot
-  satisfy the current admission contract.
+  satisfy the current admission contract;
+- domain-separated `poolday.discovery_contract_checkpoint/v1` records that
+  bind the question, stable contract identity, named admission policy, parent
+  checkpoint hashes, exact projection contract artifact, complete ordered
+  archive inputs, active inputs, deterministic state, and checkpoint signer;
+- exact checkpoint replay with missing, signature-invalid, cross-room,
+  non-canonical, stale, revoked-active-input, and projection-identity rejection;
+- deterministic child checkpoints that preserve prior revisions and record
+  reopening caused by contradiction, correction, revocation, failed
+  replication, active-input invalidation, or removal from decision memory;
+- immutable checkpoint lineage that requires a child checkpoint instead of
+  direct checkpoint revocation;
+- monotonic child lineage that retains every parent archive input and rejects
+  an unchanged child input set;
+- browser-local persistence, coordinator validation, reload recovery, and one
+  checkpoint control inside the Research Room history disclosure.
 
 The projection is defined by
+[`discovery-contract.js`](../../self/pool/discovery-contract.js) and
 [`research-cycle.js`](../../self/pool/research-cycle.js), with record and link
 invariants in [`evidence-network.js`](../../self/pool/evidence-network.js).
-Signed contract checkpoints, calibrated information gain, complete laboratory
-independence, closure, and policy promotion remain target work.
+Calibrated information gain, complete laboratory independence, closure, and
+policy promotion remain target work. A signed checkpoint freezes a replayable
+evidence state. It does not close the scientific question or certify truth.
 
 ## Design laws
 
@@ -71,12 +88,13 @@ Every contract version contains or derives these envelope fields:
 | --- | --- |
 | `contractId` | Stable content-derived identity for the bounded question and admission context. |
 | `revisionHash` | Hash of this projected version or signed checkpoint. |
-| `parentRevisionHashes` | Prior revisions merged or superseded by this version. |
+| `parentRevisionHashes` | Prior revisions merged or superseded by this version. The implemented checkpoint field is `parentCheckpointHashes`. |
 | `roomId` | Poolday evidence room that owns publication and hydration scope. |
 | `questionHash` | Signed question record that anchors the contract. |
 | `policyId` | Poolday admission and evidence policy used for this revision. |
-| `projectionId` | Exact projection implementation and version. |
+| `projectionId` | Exact versioned projection contract. The implemented checkpoint also binds the canonical projection-manifest artifact hash. |
 | `inputRecordHashes` | Complete ordered input set for deterministic replay. |
+| `activeInputRecordHashes` | Inputs eligible for the current projection after revocation and downstream invalidation. |
 | `createdAt` | Signed checkpoint time. It does not replace source timestamps. |
 | `author` | Checkpoint signer or policy authority. Source records retain their own authors. |
 | `signature` | Domain-separated signature over the checkpoint payload. |

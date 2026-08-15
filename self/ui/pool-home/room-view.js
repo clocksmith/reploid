@@ -233,6 +233,29 @@ const renderArchive = (room) => {
   `;
 };
 
+const renderDiscoveryContract = (room) => {
+  const contract = room.discoveryContract || { status: 'question_missing', latest: null };
+  const labels = {
+    question_missing: 'Question required',
+    checkpoint_missing: 'Checkpoint missing',
+    checkpoint_required: 'New inputs require a checkpoint',
+    reopen_required: 'Reopening must be checkpointed',
+    current: 'Current checkpoint',
+    reopened: 'Reopened state checkpointed'
+  };
+  const latest = contract.latest;
+  return `
+    <section class="pool-room-section pool-room-contract" aria-labelledby="pool-room-contract-title" data-contract-status="${escapeHtml(contract.status)}">
+      <div class="pool-room-section-heading"><div><p class="pool-dashboard-kicker">Replay boundary</p><h2 class="type-h2" id="pool-room-contract-title">Discovery Contract checkpoint</h2></div><span class="pool-room-event-status">${escapeHtml(labels[contract.status] || contract.status)}</span></div>
+      <p class="pool-room-boundary">A checkpoint signs the exact question, named policy, projection artifact, complete archive inputs, active inputs, and deterministic state. It freezes evidence state; it does not establish biological truth or scientific closure.</p>
+      ${latest ? `<dl class="pool-room-facts"><div><dt>Checkpoint</dt><dd>${escapeHtml(compactHash(latest.recordHash))}</dd></div><div><dt>State</dt><dd>${escapeHtml(latest.stateStatus)}</dd></div><div><dt>Complete inputs</dt><dd>${escapeHtml(latest.inputRecordCount)}</dd></div><div><dt>Active inputs</dt><dd>${escapeHtml(latest.activeInputRecordCount)}</dd></div><div><dt>Decision memory</dt><dd>${escapeHtml(latest.decisionMemoryCount)}</dd></div><div><dt>Projection</dt><dd>${escapeHtml(latest.projectionId || 'unknown')}</dd></div></dl>` : '<p class="pool-room-muted">No signed replay checkpoint exists for the active question.</p>'}
+      ${contract.unfrozenRecordHashes?.length ? `<p class="type-caption">${escapeHtml(contract.unfrozenRecordHashes.length)} signed input${contract.unfrozenRecordHashes.length === 1 ? '' : 's'} remain outside the latest checkpoint.</p>` : ''}
+      ${contract.triggerKinds?.length ? `<p class="type-caption">Reopening evidence: ${escapeHtml(contract.triggerKinds.join(' · ').replace(/_/g, ' '))}.</p>` : ''}
+      <button class="btn btn-ghost" type="button" data-pool-room-freeze-contract data-pool-room-id="${escapeHtml(room.roomId)}"${contract.canCheckpoint ? '' : ' disabled'}>${contract.status === 'reopen_required' ? 'Sign reopened checkpoint' : contract.status === 'checkpoint_missing' ? 'Sign first checkpoint' : 'Checkpoint is current'}</button>
+    </section>
+  `;
+};
+
 const renderPriorRoomEvidence = (room) => {
   const prior = room.priorRoomEvidence || { phase: 'idle', candidates: [], roomCount: 0 };
   const boundary = prior.registryBoundary?.boundary || 'not queried';
@@ -401,7 +424,7 @@ export function renderResearchRoom({
       <details class="pool-room-disclosure pool-room-technical-disclosure"><summary>History and details</summary>
         <div class="pool-room-participants" aria-label="Room participants">${renderParticipants(room.participants)}</div>
         <div class="pool-room-columns">
-          <div>${renderAdjudicationProof(room)}${renderUnresolved(room)}${renderMemory(room)}${renderPriorRoomEvidence(room)}</div>
+          <div>${renderDiscoveryContract(room)}${renderAdjudicationProof(room)}${renderUnresolved(room)}${renderMemory(room)}${renderPriorRoomEvidence(room)}</div>
           <div>${renderArchive(room)}${renderTimeline(room)}</div>
         </div>
         ${renderProposals(room)}

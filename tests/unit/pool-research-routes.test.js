@@ -8,6 +8,7 @@ import {
   createSignedPriorEvidence,
   createSignedResearchSubmission
 } from '../../self/pool/evidence-network.js';
+import { createDiscoveryContractCheckpoint } from '../../self/pool/discovery-contract.js';
 import { createSigningKeyPair } from '../../self/pool/inference-receipt.js';
 import { buildLaunchProviderModel, getPoolModelContract } from '../../self/pool/model-contract.js';
 
@@ -96,6 +97,55 @@ describe('Poolday research evidence coordinator routes', () => {
     const fetched = await dispatchJson(publicReader, `/research/records/${encodeURIComponent(record.recordHash)}`);
     expect(fetched.status).toBe(200);
     expect(fetched.body.record.recordHash).toBe(record.recordHash);
+  });
+
+  it('publishes only a complete current Discovery Contract checkpoint', async () => {
+    const store = createPoolStore();
+    const writer = createPoolRouter({ store, allowUnauthenticatedLocal: true });
+    const question = await makeSubmission({ roomId: 'checkpoint-route-room' });
+    expect((await dispatchJson(writer, '/research/records', {
+      method: 'POST', body: { record: question }
+    })).status).toBe(201);
+    const staleCheckpoint = await createDiscoveryContractCheckpoint({
+      identity: await recordIdentity('reviewer', 'checkpoint-stale'),
+      roomId: question.roomId,
+      questionHash: question.recordHash,
+      records: [question]
+    });
+    const source = await createSignedPriorEvidence({
+      identity: await recordIdentity('researcher', 'checkpoint-source'),
+      roomId: question.roomId,
+      questionHash: question.recordHash,
+      evidenceKind: 'annotation',
+      summary: 'A version-pinned public source that must enter the checkpoint.',
+      reference: { accession: 'PUBLIC:CHECKPOINT:ROUTE', version: '1' },
+      provenance: { retrievalMethod: 'version-pinned public API', license: 'CC BY 4.0' }
+    });
+    expect((await dispatchJson(writer, '/research/records', {
+      method: 'POST', body: { record: source }
+    })).status).toBe(201);
+
+    const stale = await dispatchJson(writer, '/research/records', {
+      method: 'POST', body: { record: staleCheckpoint }
+    });
+    expect(stale).toMatchObject({
+      status: 409,
+      body: {
+        error: 'invalid Discovery Contract checkpoint',
+        reasons: expect.arrayContaining(['Discovery Contract replay mismatch: inputRecordHashes'])
+      }
+    });
+
+    const currentCheckpoint = await createDiscoveryContractCheckpoint({
+      identity: await recordIdentity('reviewer', 'checkpoint-current'),
+      roomId: question.roomId,
+      questionHash: question.recordHash,
+      records: [question, source]
+    });
+    const created = await dispatchJson(writer, '/research/records', {
+      method: 'POST', body: { record: currentCheckpoint }
+    });
+    expect(created).toMatchObject({ status: 201, body: { record: currentCheckpoint } });
   });
 
   it('projects exact public sequence evidence across rooms without admitting current-room records as reuse candidates', async () => {

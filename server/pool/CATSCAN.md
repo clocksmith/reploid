@@ -27,6 +27,8 @@ Outputs:
 - Delivery is bounded at-least-once and duplicate handling remains explicit.
 - Projections are rebuildable from accepted immutable records.
 - Server receipt cannot substitute for provider execution evidence.
+- Discovery Contract publication fails closed unless the checkpoint exactly
+  replays the coordinator's current room snapshot.
 
 ## Acceptance
 - Research routes and hosted authentication enforce identity, immutability, and policy boundaries.

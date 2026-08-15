@@ -300,10 +300,11 @@ validity, or final contract acceptance.
 - Poolday supports signed human review of public protein evidence. It is not a
   biological interpretation or diagnosis tool, and submitted human claims do
   not become model facts.
-- The full Discovery Contract, calibrated action-value ranking, scientific-cost
-  accounting, prospective policy comparison, laboratory qualification, and
-  contract closure workflow remain target capabilities unless separately listed
-  as supported in the surface claim index.
+- Signed replayable Discovery Contract checkpoints are supported for the
+  current governed Research Room subset. Calibrated action-value ranking,
+  scientific-cost accounting, prospective policy comparison, laboratory
+  qualification, and contract closure remain target capabilities unless
+  separately listed as supported in the surface claim index.
 
 See the [claim boundary](./claims-and-nonclaims.md),
 [biological sequence lane](./biological-sequence-lane.md), and

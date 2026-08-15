@@ -5,6 +5,7 @@ import {
   createSignedResearchSubmission,
   projectCrossRoomSequenceEvidence
 } from '../../self/pool/evidence-network.js';
+import { createDiscoveryContractCheckpoint } from '../../self/pool/discovery-contract.js';
 import { createSigningKeyPair } from '../../self/pool/inference-receipt.js';
 import { buildLaunchProviderModel, getPoolModelContract } from '../../self/pool/model-contract.js';
 import { hashSequenceFloat32Values } from '../../self/pool/sequence-result.js';
@@ -186,6 +187,61 @@ describe('Poolday research store', () => {
       result.recordHash
     ]);
     expect(hydrated.rejectedRecords).toEqual([]);
+  });
+
+  it('rejects stale checkpoint publication and replays a current checkpoint after reload', async () => {
+    vi.stubGlobal('localStorage', storage());
+    const question = await makeRecord('checkpoint-store-room');
+    await appendResearchRecord(question);
+    const staleCheckpoint = await createDiscoveryContractCheckpoint({
+      identity: await (async () => {
+        const keyPair = await createSigningKeyPair();
+        return {
+          resolve: async () => ({ kind: 'reviewer', roleId: 'reviewer_checkpoint_stale', userId: 'user_checkpoint_stale', deviceId: 'device_checkpoint_stale', identityRootId: 'root_checkpoint_stale' }),
+          getSigningKeyPair: async () => keyPair
+        };
+      })(),
+      roomId: question.roomId,
+      questionHash: question.recordHash,
+      records: [question]
+    });
+    const result = await makeResult(question);
+    await appendResearchRecord(result);
+    await expect(publishResearchRecord(staleCheckpoint, {
+      sdk: { publishResearchRecord: vi.fn() }
+    })).rejects.toThrow('Stale Discovery Contract checkpoint');
+    expect(loadResearchRecords(question.roomId)).toEqual([question, result]);
+
+    const currentCheckpoint = await createDiscoveryContractCheckpoint({
+      identity: await (async () => {
+        const keyPair = await createSigningKeyPair();
+        return {
+          resolve: async () => ({ kind: 'reviewer', roleId: 'reviewer_checkpoint_current', userId: 'user_checkpoint_current', deviceId: 'device_checkpoint_current', identityRootId: 'root_checkpoint_current' }),
+          getSigningKeyPair: async () => keyPair
+        };
+      })(),
+      roomId: question.roomId,
+      questionHash: question.recordHash,
+      records: [question, result]
+    });
+    await expect(publishResearchRecord(currentCheckpoint, {
+      sdk: { publishResearchRecord: vi.fn().mockResolvedValue({ record: currentCheckpoint }) }
+    })).resolves.toMatchObject({ remote: true, record: currentCheckpoint });
+
+    resetResearchStore();
+    const hydrated = await hydrateResearchRecords(question.roomId, {
+      sdk: {
+        listResearchRecords: vi.fn().mockResolvedValue({
+          records: [currentCheckpoint, result, question]
+        })
+      }
+    });
+    expect(hydrated.rejectedRecords).toEqual([]);
+    expect(hydrated.records.map((record) => record.recordHash)).toEqual([
+      question.recordHash,
+      result.recordHash,
+      currentCheckpoint.recordHash
+    ]);
   });
 
   it('verifies cross-room sequence evidence without adding it to current-room state', async () => {

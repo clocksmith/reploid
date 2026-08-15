@@ -218,7 +218,9 @@ const projectNextQuestion = ({ question, clarity, memory, tasks, rankedCandidate
  * Projects one complete question-to-next-question cycle from signed records.
  */
 export function projectGovernedResearchCycle(records = [], { questionHash = null } = {}) {
-  const active = activeResearchRecords(Array.isArray(records) ? records : []);
+  const sourceRecords = (Array.isArray(records) ? records : [])
+    .filter((record) => record.kind !== RESEARCH_RECORD_KINDS.discoveryCheckpoint);
+  const active = activeResearchRecords(sourceRecords);
   const question = latestQuestion(active, questionHash);
   const cycleRecords = recordsForQuestion(active, question);
   const reviewStates = new Map(projectResearchReviewStates(cycleRecords).map((entry) => [entry.recordHash, entry]));

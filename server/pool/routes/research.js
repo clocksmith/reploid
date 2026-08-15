@@ -6,6 +6,7 @@
  */
 
 import {
+  RESEARCH_RECORD_KINDS,
   projectAcceptedResearchMemory,
   projectCrossRoomSequenceEvidence,
   researchRecordTargetHashes,
@@ -14,6 +15,7 @@ import {
   validateResearchRecordLinks,
   verifyResearchRecord
 } from '../../../self/pool/evidence-network.js';
+import { validateDiscoveryContractCheckpoint } from '../../../self/pool/discovery-contract.js';
 
 const MAX_RESEARCH_RECORD_BYTES = 1_000_000;
 
@@ -54,6 +56,14 @@ export function registerResearchRoutes(router, {
     const links = validateResearchRecordLinks(record, roomRecords);
     if (!links.ok) {
       return res.status(409).json({ error: 'invalid research record links', reasons: links.reasons });
+    }
+    if (record.kind === RESEARCH_RECORD_KINDS.discoveryCheckpoint) {
+      const replay = await validateDiscoveryContractCheckpoint(record, roomRecords, {
+        requireCurrentCompleteness: true
+      });
+      if (!replay.ok) {
+        return res.status(409).json({ error: 'invalid Discovery Contract checkpoint', reasons: replay.reasons });
+      }
     }
     const reuseContext = record.kind === 'research_prior_evidence'
       ? record.evidence?.reuseContext

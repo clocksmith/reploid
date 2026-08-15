@@ -76,7 +76,7 @@ export function renderConnectionProviderOptions(
   const header = standalone
     ? `
       <div class="goal-header">
-        <h2 class="type-h1">${title}</h2>
+        <h1 class="type-h1">${title}</h1>
         <p class="type-caption">${caption}</p>
       </div>
     `

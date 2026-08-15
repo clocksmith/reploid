@@ -26,6 +26,9 @@ export const recordLabel = (record = {}) => {
       ? record.workClaim?.laboratory?.name
       : compactHash(record.author?.identityRootId || record.author?.userId || record.recordHash);
   }
+  if (record.kind === 'research_discovery_checkpoint') {
+    return `${record.checkpoint?.state?.status || 'open'} Discovery Contract checkpoint`;
+  }
   return record.claim?.text
     || record.hypothesis?.statement
     || record.evidence?.summary

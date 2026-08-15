@@ -173,17 +173,19 @@ claim, and deployment evidence exist.
 
 ### Discovery Contract Projection
 
-- [ ] Define a domain-separated signed contract-checkpoint record that binds the
-  question, parent revisions, Poolday policy, projection implementation, ordered
-  input records, and checkpoint signer.
-- [ ] Derive one deterministic contract state from signed question, hypothesis,
+- [x] Define a domain-separated signed contract-checkpoint record that binds the
+  question, parent revisions, Poolday policy, versioned projection contract and
+  manifest artifact, ordered input records, and checkpoint signer.
+- [x] Derive one deterministic contract state from signed question, hypothesis,
   prior-evidence, prediction, result, claim, work-order, work-claim, outcome,
   cohort, evaluation, correction, and revocation records.
-- [ ] Reject checkpoints whose inputs are missing, revoked, cross-room,
-  signature-invalid, or inconsistent with the declared projection version.
-- [ ] Add deterministic reopen behavior when a contradiction, correction,
+- [x] Reject checkpoints whose inputs are missing, whose active inputs are
+  revoked or invalidated, or whose records are cross-room, signature-invalid,
+  stale, or inconsistent with the declared projection version. Revoked records
+  remain in the complete archive input set.
+- [x] Add deterministic reopen behavior when a contradiction, correction,
   revocation, failed replication, or policy-invalidating record arrives.
-- [ ] Add unit and browser coverage proving reload recovery, projection replay,
+- [x] Add unit and browser coverage proving reload recovery, projection replay,
   invalid-input rejection, supersession, revocation, and reopening.
 
 ### Uncertainty And Candidate Actions
