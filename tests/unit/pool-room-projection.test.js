@@ -765,4 +765,73 @@ describe('Research Room projection', () => {
     expect(html).toContain('>Review</a>');
     expect(html).not.toContain('1,0,0');
   });
+
+  it('keeps Discovery Contract checkpoint and reopening state inside room history', () => {
+    const question = submission();
+    const checkpoint = {
+      kind: 'research_discovery_checkpoint',
+      recordHash: hash('q'),
+      roomId: question.roomId,
+      createdAt: '2026-08-09T10:01:00.000Z',
+      author: { identityRootId: 'checkpoint-reviewer', roleId: 'reviewer' },
+      checkpoint: {
+        questionHash: question.recordHash,
+        inputRecordHashes: [question.recordHash],
+        activeInputRecordHashes: [question.recordHash],
+        parentCheckpointHashes: [],
+        projection: { id: 'poolday.discovery_contract_projection/v1', artifactHash: hash('r') },
+        stateHash: hash('s'),
+        state: {
+          status: 'open',
+          decisionMemory: { acceptedHashes: [] },
+          reopen: { triggerKinds: [] }
+        }
+      }
+    };
+    const current = projectResearchRoom({
+      roomId: question.roomId,
+      researchRecords: [question, checkpoint]
+    });
+    expect(current.discoveryContract).toMatchObject({
+      status: 'current',
+      currentInputSet: true,
+      canCheckpoint: false,
+      latest: { recordHash: checkpoint.recordHash, inputRecordCount: 1 }
+    });
+
+    const correction = {
+      kind: 'human_claim',
+      recordHash: hash('t'),
+      roomId: question.roomId,
+      createdAt: '2026-08-09T10:02:00.000Z',
+      targetHash: question.recordHash,
+      author: { identityRootId: 'corrector', roleId: 'researcher' },
+      claim: {
+        kind: 'correction',
+        relation: 'corrects',
+        text: 'The bounded question needs corrected exclusions.'
+      }
+    };
+    const reopened = projectResearchRoom({
+      roomId: question.roomId,
+      researchRecords: [question, checkpoint, correction]
+    });
+    const html = renderResearchRoom({
+      roomId: question.roomId,
+      researchRecords: [question, checkpoint, correction]
+    });
+    expect(reopened.discoveryContract).toMatchObject({
+      status: 'reopen_required',
+      currentInputSet: false,
+      canCheckpoint: true,
+      unfrozenRecordHashes: [correction.recordHash],
+      triggerKinds: ['correction']
+    });
+    expect(html).toContain('Discovery Contract checkpoint');
+    expect(html).toContain('Reopening must be checkpointed');
+    expect(html).toContain('Reopening evidence: correction.');
+    expect(html).toContain('data-pool-room-freeze-contract');
+    expect(html).toContain('Sign reopened checkpoint');
+    expect(html).toContain('it does not establish biological truth or scientific closure');
+  });
 });

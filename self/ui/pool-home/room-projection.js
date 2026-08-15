@@ -16,6 +16,7 @@ import {
   revokedResearchHashes
 } from '../../pool/evidence-network.js';
 import { projectGovernedResearchCycle } from '../../pool/research-cycle.js';
+import { discoveryContractSourceRecords } from '../../pool/discovery-contract.js';
 
 const RESEARCH_KINDS = Object.freeze({
   submission: 'research_submission',
@@ -31,6 +32,7 @@ const RESEARCH_KINDS = Object.freeze({
   evaluation: 'research_evaluation',
   adjudicationExperiment: 'research_adjudication_experiment',
   adjudicationEvaluation: 'research_adjudication_evaluation',
+  discoveryCheckpoint: 'research_discovery_checkpoint',
   revocation: 'research_revocation'
 });
 
@@ -109,6 +111,7 @@ const recordTitle = (record = {}) => {
   if (record.kind === RESEARCH_KINDS.evaluation) return 'Evidence evaluated';
   if (record.kind === RESEARCH_KINDS.adjudicationExperiment) return 'Adjudication experiment frozen';
   if (record.kind === RESEARCH_KINDS.adjudicationEvaluation) return 'Adjudication experiment evaluated';
+  if (record.kind === RESEARCH_KINDS.discoveryCheckpoint) return 'Discovery Contract checkpoint frozen';
   if (record.kind === RESEARCH_KINDS.revocation) return 'Evidence revoked';
   return 'Research evidence';
 };
@@ -128,6 +131,9 @@ const recordSummary = (record = {}) => {
   if (record.kind === RESEARCH_KINDS.outcome) return asText(record.outcome?.summary, 'Experimental outcome');
   if (record.kind === RESEARCH_KINDS.adjudicationExperiment) {
     return `${asText(record.experiment?.target?.catalogId, 'Unnamed catalog')} · ${asText(record.experiment?.target?.decision, 'Decision not declared')}`;
+  }
+  if (record.kind === RESEARCH_KINDS.discoveryCheckpoint) {
+    return `${record.checkpoint?.inputRecordHashes?.length || 0} complete inputs · ${record.checkpoint?.activeInputRecordHashes?.length || 0} active inputs · ${asText(record.checkpoint?.state?.status, 'open')}`;
   }
   if (record.kind === RESEARCH_KINDS.adjudicationEvaluation) {
     return `Frozen rule: ${asText(record.evaluation?.assessment?.conclusion, 'unavailable')}`;
@@ -243,6 +249,7 @@ const archiveStateForRecord = ({
   if (invalidated.has(record.recordHash)) return 'invalidated';
   if (acceptedCorrections.has(record.recordHash)) return 'superseded';
   if (record.kind === RESEARCH_KINDS.revocation) return 'revocation_recorded';
+  if (record.kind === RESEARCH_KINDS.discoveryCheckpoint) return 'checkpointed';
   if (record.kind === RESEARCH_KINDS.outcome && record.outcome?.attempt?.status === 'failed') return 'failed';
   const reviewState = reviewStates.get(record.recordHash)?.state || 'unresolved';
   if (isCorrection(record) && reviewState === 'accepted') return 'corrected';
@@ -899,6 +906,83 @@ const projectPriorRoomEvidence = ({ roomId, submission, currentRecords = [], cro
   };
 };
 
+const projectDiscoveryContractCheckpoint = ({ records, submission, cycle } = {}) => {
+  if (!submission) return {
+    schema: 'poolday.discovery_contract_checkpoint_projection/v1',
+    status: 'question_missing',
+    currentInputSet: false,
+    canCheckpoint: false,
+    latest: null,
+    unfrozenRecordHashes: [],
+    triggerKinds: []
+  };
+  const checkpoints = sorted(records.filter((record) => (
+    record.kind === RESEARCH_KINDS.discoveryCheckpoint
+    && record.checkpoint?.questionHash === submission.recordHash
+  )));
+  const latestCheckpoint = checkpoints.at(-1) || null;
+  const sourceRecords = discoveryContractSourceRecords(records, submission.recordHash);
+  const sourceHashes = sourceRecords.map((record) => record.recordHash);
+  if (!latestCheckpoint) return {
+    schema: 'poolday.discovery_contract_checkpoint_projection/v1',
+    status: 'checkpoint_missing',
+    currentInputSet: false,
+    canCheckpoint: true,
+    latest: null,
+    unfrozenRecordHashes: sourceHashes,
+    triggerKinds: []
+  };
+  const frozenInputs = new Set(latestCheckpoint.checkpoint.inputRecordHashes || []);
+  const currentInputSet = JSON.stringify(sourceHashes) === JSON.stringify(latestCheckpoint.checkpoint.inputRecordHashes || []);
+  const activeSourceHashes = new Set(activeResearchRecords(sourceRecords).map((record) => record.recordHash));
+  const invalidatedParentInputHashes = (latestCheckpoint.checkpoint.activeInputRecordHashes || [])
+    .filter((hash) => !activeSourceHashes.has(hash));
+  const remembered = new Set(cycle?.memory?.acceptedHashes || []);
+  const removedDecisionMemoryHashes = (latestCheckpoint.checkpoint.state?.decisionMemory?.acceptedHashes || [])
+    .filter((hash) => !remembered.has(hash));
+  const unfrozenRecords = sourceRecords.filter((record) => !frozenInputs.has(record.recordHash));
+  const triggerKinds = [];
+  for (const record of unfrozenRecords) {
+    if (record.kind === RESEARCH_KINDS.claim && record.claim?.relation === 'contradicts') triggerKinds.push('contradiction');
+    if (record.kind === RESEARCH_KINDS.claim
+      && (record.claim?.kind === 'correction' || record.claim?.relation === 'corrects')) triggerKinds.push('correction');
+    if (record.kind === RESEARCH_KINDS.revocation) triggerKinds.push('revocation');
+    if (record.kind === RESEARCH_KINDS.outcome
+      && record.replicationOfHash
+      && record.outcome?.attempt?.status === 'failed') triggerKinds.push('failed_replication');
+  }
+  if (invalidatedParentInputHashes.length) triggerKinds.push('policy_active_input_invalidated');
+  if (removedDecisionMemoryHashes.length) triggerKinds.push('decision_memory_reopened');
+  const prospectiveTriggers = unique(triggerKinds).sort();
+  const status = currentInputSet
+    ? latestCheckpoint.checkpoint.state?.status === 'reopened' ? 'reopened' : 'current'
+    : prospectiveTriggers.length ? 'reopen_required' : 'checkpoint_required';
+  return {
+    schema: 'poolday.discovery_contract_checkpoint_projection/v1',
+    status,
+    currentInputSet,
+    canCheckpoint: !currentInputSet,
+    latest: {
+      recordHash: latestCheckpoint.recordHash,
+      createdAt: latestCheckpoint.createdAt,
+      stateHash: latestCheckpoint.checkpoint.stateHash,
+      projectionId: latestCheckpoint.checkpoint.projection?.id || null,
+      projectionArtifactHash: latestCheckpoint.checkpoint.projection?.artifactHash || null,
+      parentCheckpointHashes: [...(latestCheckpoint.checkpoint.parentCheckpointHashes || [])],
+      inputRecordCount: latestCheckpoint.checkpoint.inputRecordHashes?.length || 0,
+      activeInputRecordCount: latestCheckpoint.checkpoint.activeInputRecordHashes?.length || 0,
+      decisionMemoryCount: latestCheckpoint.checkpoint.state?.decisionMemory?.acceptedHashes?.length || 0,
+      stateStatus: latestCheckpoint.checkpoint.state?.status || 'open'
+    },
+    unfrozenRecordHashes: unfrozenRecords.map((record) => record.recordHash),
+    triggerKinds: prospectiveTriggers.length
+      ? prospectiveTriggers
+      : [...(latestCheckpoint.checkpoint.state?.reopen?.triggerKinds || [])],
+    invalidatedParentInputHashes,
+    removedDecisionMemoryHashes
+  };
+};
+
 export function projectResearchRoom({
   roomId,
   routeId = 'home',
@@ -975,6 +1059,11 @@ export function projectResearchRoom({
     crossRoomEvidence
   });
   const adjudicationProof = projectAdjudicationProof(active, reviewStates);
+  const discoveryContract = projectDiscoveryContractCheckpoint({
+    records: scopedRecords,
+    submission,
+    cycle
+  });
   const cycleExclusions = new Map(cycle.memory.excluded.map((entry) => [entry.recordHash, entry]));
   const decisionMemory = {
     schema: 'poolday.decision_memory_projection/v1',
@@ -1071,6 +1160,7 @@ export function projectResearchRoom({
     archive,
     priorRoomEvidence,
     adjudicationProof,
+    discoveryContract,
     decisionMemory,
     memory: decisionMemory.entries,
     memoryExclusions: decisionMemory.excluded,

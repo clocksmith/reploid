@@ -30,11 +30,12 @@ Outputs:
 - Complete archive status and decision-memory admissibility remain distinguishable.
 - Prior-room context differences and the reviewer authority needed for reuse remain visible.
 - Duplicate origin records remain inspectable while the room presents one declared source candidate and one possible memory contribution.
+- A checkpoint freezes replayable evidence state without implying closure or biological truth.
 - Contributor, receipt, transport, and reputation details do not compete as separate products.
 
 ## Acceptance
-- A user can inspect evidence and disagreement, record review, request replication, and choose the next bounded action without losing provenance.
-- Evidence: [Research Room journey](../../../tests/e2e/pool-evidence-journey.spec.js), [room projection tests](../../../tests/unit/pool-room-projection.test.js), and [adjudication experiment tests](../../../tests/unit/pool-adjudication-experiment.test.js).
+- A user can inspect, review, replicate, and checkpoint evidence.
+- Evidence: [Research Room journey](../../../tests/e2e/pool-evidence-journey.spec.js), [room projection tests](../../../tests/unit/pool-room-projection.test.js), [Discovery Contract tests](../../../tests/unit/pool-discovery-contract.test.js), and [adjudication experiment tests](../../../tests/unit/pool-adjudication-experiment.test.js).
 
 ## Non-goals
 - Exposing Zero, X, network simulation, or generic peer inference as the primary workflow.

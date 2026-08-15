@@ -23,6 +23,7 @@ Inputs:
 Outputs:
 - Signed execution records through [inference-receipt.js](inference-receipt.js).
 - Governed research state through [research-cycle.js](research-cycle.js).
+- Signed replay checkpoints through [discovery-contract.js](discovery-contract.js).
 - Frozen annotation-adjudication comparisons through [evidence-network.js](evidence-network.js).
 
 ## Invariants
@@ -34,7 +35,7 @@ Outputs:
 
 ## Acceptance
 - Exact model, evidence, and research-cycle contracts pass focused verification.
-- Evidence: [Pool contract tests](../../tests/unit/pool-contract.test.js), [research-cycle tests](../../tests/unit/pool-research-cycle.test.js), and [adjudication experiment tests](../../tests/unit/pool-adjudication-experiment.test.js).
+- Evidence: [Pool contract tests](../../tests/unit/pool-contract.test.js), [research-cycle tests](../../tests/unit/pool-research-cycle.test.js), [Discovery Contract tests](../../tests/unit/pool-discovery-contract.test.js), and [adjudication experiment tests](../../tests/unit/pool-adjudication-experiment.test.js).
 
 ## Non-goals
 - Maximizing inference volume, peer count, or generic decentralized compute.

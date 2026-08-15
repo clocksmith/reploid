@@ -4,17 +4,17 @@
  */
 import { test, expect } from '@playwright/test';
 
-const BOOT_PATH = '/index.html';
+const BOOT_PATH = '/x';
 const DASHBOARD_PATH = '/x';
 
 test.describe('Accessibility - Boot Screen', () => {
-  test('should have REPLOID heading', async ({ page }) => {
+  test('should have a route-owned provider heading', async ({ page }) => {
     await page.goto(BOOT_PATH);
     await page.waitForSelector('#goal-input', { timeout: 10000 });
 
-    const heading = page.locator('h1');
+    const heading = page.getByRole('heading', { level: 1 });
     await expect(heading).toBeVisible();
-    await expect(heading).toHaveText('REPLOID');
+    await expect(heading).toHaveText('Choose inference provider');
   });
 
   test('should have proper semantic HTML structure', async ({ page }) => {
@@ -25,7 +25,7 @@ test.describe('Accessibility - Boot Screen', () => {
     await expect(page.locator('h1')).toBeVisible();
 
     // Check for button elements
-    const awakenBtn = page.locator('.boot-mode-btn').first();
+    const awakenBtn = page.locator('.connection-option').first();
     const tagName = await awakenBtn.evaluate((el) => el.tagName);
     expect(tagName).toBe('BUTTON');
 
@@ -44,27 +44,27 @@ test.describe('Accessibility - Boot Screen', () => {
     expect(placeholder).toBeTruthy();
   });
 
-  test('should have clickable boot mode buttons', async ({ page }) => {
+  test('should have clickable inference provider buttons', async ({ page }) => {
     await page.goto(BOOT_PATH);
     await page.waitForSelector('#goal-input', { timeout: 10000 });
 
-    const bootModeButtons = page.locator('.boot-mode-btn[data-mode]');
-    const firstButton = bootModeButtons.first();
+    const providerButtons = page.locator('.connection-option[data-action]');
+    const firstButton = providerButtons.first();
     await expect(firstButton).toBeVisible();
 
     // Should be clickable
     await firstButton.click();
-    await expect(firstButton).toHaveClass(/selected/);
+    await expect(firstButton).toHaveAttribute('aria-pressed', 'true');
   });
 
   test('should have proper focus indicators', async ({ page }) => {
     await page.goto(BOOT_PATH);
     await page.waitForSelector('#goal-input', { timeout: 10000 });
 
-    // Focus on a boot mode button (always enabled)
-    const bootModeBtn = page.locator('.boot-mode-btn[data-mode]').first();
-    await bootModeBtn.focus();
-    await expect(bootModeBtn).toBeFocused();
+    // Focus on an inference provider button.
+    const providerButton = page.locator('.connection-option[data-action]').first();
+    await providerButton.focus();
+    await expect(providerButton).toBeFocused();
   });
 });
 

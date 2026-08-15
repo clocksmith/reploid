@@ -3,6 +3,7 @@
  */
 
 import { createPoolIdentity } from '../../pool/identity.js';
+import { createDiscoveryContractCheckpoint } from '../../pool/discovery-contract.js';
 import {
   activeResearchRecords,
   buildEvidenceGraph,
@@ -74,6 +75,7 @@ const lifecycleRecordSummary = (record = {}) => {
   if (record.kind === 'research_evaluation') return `<p>${record.evaluation.metricResults.map((metric) => `${escapeHtml(metric.metricId)} ${metric.improved ? 'improved' : 'did not improve'} (${escapeHtml(metric.baselineValue)} to ${escapeHtml(metric.currentValue)})`).join(' · ')}</p><small>${record.evaluation.outcomeHashes.length} independently accepted outcomes · next cohort ${record.evaluation.nextCohortQuestionHashes.length ? 'bound' : 'not bound'}</small>`;
   if (record.kind === 'research_adjudication_experiment') return `<p>${escapeHtml(record.experiment.target.catalogId)} @ ${escapeHtml(record.experiment.target.catalogVersion)} · ${escapeHtml(record.experiment.target.curatorRole)}</p><small>Baseline ${escapeHtml(record.experiment.baseline.workflowId)} versus ${escapeHtml(record.experiment.candidate.policyId)} · ${record.experiment.cohort.caseCount} family-disjoint paired cases</small>`;
   if (record.kind === 'research_adjudication_evaluation') return `<p>Frozen adjudication rule ${escapeHtml(record.evaluation.assessment.conclusion)}</p><small>${record.evaluation.metricResults.map((metric) => `${escapeHtml(metric.metricId)} ${escapeHtml(metric.baselineValue)} to ${escapeHtml(metric.candidateValue)}`).join(' · ')}</small>`;
+  if (record.kind === 'research_discovery_checkpoint') return `<p>${escapeHtml(record.checkpoint.state.status)} Discovery Contract state · ${record.checkpoint.inputRecordHashes.length} complete inputs · ${record.checkpoint.activeInputRecordHashes.length} active inputs</p><small>Projection ${escapeHtml(record.checkpoint.projection.id)} · state ${escapeHtml(compactHash(record.checkpoint.stateHash))}</small>`;
   if (record.kind === 'research_revocation') return `<p>Future reuse revoked: ${escapeHtml(record.revocation.reason)}</p><small>Target ${escapeHtml(compactHash(record.targetHash))} remains in immutable history.</small>`;
   return '';
 };
@@ -822,6 +824,43 @@ export function bindResearchRoomActions(root = document, {
   if (!root || root.dataset?.researchRoomActionsBound === 'true') return;
   if (root.dataset) root.dataset.researchRoomActionsBound = 'true';
   root.addEventListener('click', async (event) => {
+    const checkpointButton = event.target.closest?.('[data-pool-room-freeze-contract]');
+    if (checkpointButton && root.contains(checkpointButton)) {
+      event.preventDefault();
+      const roomId = checkpointButton.dataset.poolRoomId;
+      const records = loadResearchRecords(roomId);
+      const question = activeResearchRecords(records)
+        .filter((record) => record.kind === 'research_submission')
+        .at(-1) || null;
+      const parent = records
+        .filter((record) => (
+          record.kind === 'research_discovery_checkpoint'
+          && record.checkpoint?.questionHash === question?.recordHash
+        ))
+        .sort((left, right) => String(left.createdAt).localeCompare(String(right.createdAt))
+          || left.recordHash.localeCompare(right.recordHash))
+        .at(-1) || null;
+      const label = checkpointButton.textContent;
+      checkpointButton.disabled = true;
+      checkpointButton.textContent = 'Signing replay checkpoint...';
+      try {
+        if (!question) throw new Error('The active Research Room question is unavailable');
+        const record = await createDiscoveryContractCheckpoint({
+          identity: createPoolIdentity('reviewer'),
+          roomId,
+          questionHash: question.recordHash,
+          records,
+          parentCheckpointHashes: parent ? [parent.recordHash] : []
+        });
+        const publication = await publishRecord(record, { roomId });
+        checkpointButton.textContent = publication.remote ? 'Checkpoint synchronized' : 'Checkpoint saved locally';
+      } catch (error) {
+        checkpointButton.disabled = false;
+        checkpointButton.textContent = label;
+        checkpointButton.title = error instanceof Error ? error.message : String(error);
+      }
+      return;
+    }
     const priorButton = event.target.closest?.('[data-pool-room-attach-prior]');
     if (priorButton && root.contains(priorButton)) {
       event.preventDefault();
