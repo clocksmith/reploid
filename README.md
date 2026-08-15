@@ -3,9 +3,11 @@
 [![Test Suite](https://img.shields.io/github/actions/workflow/status/clocksmith/reploid/test.yml?branch=main&label=tests)](https://github.com/clocksmith/reploid/actions/workflows/test.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-Reploid is a browser runtime for receipt-backed inference and governed
-self-modification experiments. Its main product route is Poolday. Zero and X
-are separate experimental surfaces with separate state, tools, and evidence.
+Reploid is a proof-carrying Research Room for curators adjudicating disputed
+annotations on explicitly public protein sequences. It combines exact model
+contracts, signed execution records, attributable review, preserved
+disagreement, and reusable prior evidence without treating admission as
+biological truth.
 
 ## Who uses it
 
@@ -15,7 +17,8 @@ Poolday's user workflow and evidence boundary live in its
 
 The repository serves:
 
-- Poolday requesters, contributors, reviewers, and discovery users.
+- Public protein catalog curators testing a disputed family or domain annotation.
+- Research Room requesters, compute contributors, and accountable reviewers.
 - Runtime and product contributors working on browser execution and room state.
 - Security and claim reviewers checking records, relay boundaries, and evidence.
 - Researchers designing the future active-science workflow.
@@ -32,18 +35,14 @@ npm start
 Open `http://localhost:8000`. The managed Gemini path requires `GEMINI_API_KEY`
 in `.env` before starting.
 
-The available surfaces are:
+The product surface is:
 
 | Surface | Route | Use |
 | --- | --- | --- |
-| [Poolday](docs/poolday/product-intent.md) | `/` | Create or resume a Research Room for receipt-backed browser inference. |
-| [Zero](self/config/surface-intents.js) | `/zero` | Run the minimal `CreateTool` RSI harness without the Poolday pool. |
-| [X](self/config/surface-intents.js) | `/x` | Run the governed Seed → Shadow → Promote self-modification harness. |
+| [Research Room](docs/poolday/product-intent.md) | `/` | Create or resume a bounded public-protein adjudication workflow. |
 
-Poolday is the public product name used in the documentation model; the public
-application remains branded Reploid. Zero and X capabilities do not enter
-Poolday unless a Poolday-owned policy, user contract, and promotion proof allow
-it.
+Poolday remains the internal implementation name. The public application and
+product are Reploid.
 
 ## Evidence and current surfaces
 
@@ -65,29 +64,22 @@ authentication, rendezvous, policy enforcement, receipt anchors, and ledger
 projections; they do not perform the claimed browser-local model execution.
 Users can also provide their own browser inference.
 
-The X surface records three self-modification states:
-
-| State | Mutation | Evidence | Activation |
-| --- | --- | --- | --- |
-| Seed | Writes recoverable identity, prompt, tools, VFS, objective, and Blueprint `0x00007F`. | Boot manifest | Establishes the restorable self. |
-| Shadow | Writes candidates under `/shadow`; `/self` remains unchanged. | RGR traces, scores, receipts, and rollback paths | Candidate remains provisional. |
-| Promote | Copies an allowlisted candidate from `/shadow` into `/self`. | Anchored gate, replay result, and candidate hash | Changes the active self; validator mutations remain quarantined. |
-
 ## Limits and status
 
 Reploid does not claim hardware attestation, independently trustworthy
 browser/GPU execution, or guaranteed honest providers. Relay acknowledgement proves receipt of a relay
-record, not execution truth. Poolday, Zero, and X remain separate evidence
-authorities. Read the claim index row before repeating a capability statement.
+record, not execution truth. Experimental runtime capabilities remain outside
+the Research Room product authority until prospective evidence and Poolday-owned
+admission allow them. Read the claim index row before repeating a capability statement.
 
 ## Repository map
 
-- [`self/`](self/) — boot profiles, VFS, tools, runtime, and self-modification
-- [`docs/`](docs/) — product intent, claims, security, architecture, and operator guides
-- [`deploy/`](deploy/) — deployment and access-window tooling
-- [`doppler/`](doppler/) — vendored or paired Doppler integration surface
-- [`showcase/`](showcase/) — demonstrations and recorded runs
-- [`package.json`](package.json) — package metadata and local commands
+- [`self/`](self/): browser boot profiles, VFS, tools, and runtime
+- [`docs/`](docs/): product intent, claims, security, architecture, and operator guides
+- [`deploy/`](deploy/): deployment and access-window tooling
+- [`doppler/`](doppler/): vendored or paired Doppler integration surface
+- [`showcase/`](showcase/): demonstrations and recorded runs
+- [`package.json`](package.json): package metadata and local commands
 
 ## Intent and component authority
 
@@ -95,6 +87,7 @@ authorities. Read the claim index row before repeating a capability statement.
 - [CATSCAN.md](CATSCAN.md) is the root component charter. Child charters narrow its authority for independently meaningful components.
 - The generated [component index](docs/component-index.md) lists every charter, parent, and target.
 - [AGENTS.md](AGENTS.md) defines how code agents discover and obey the charter chain.
+- The [workspace CATSCAN protocol](https://github.com/clocksmith/ouroboros/blob/main/deco/docs/catscan.md) defines the shared shape and precedence rules.
 
 Run `npm run catscan:chain -- <path>` to print the charter chain for a target file. Run `npm run verify:catscan` to validate fields, parents, links, evidence paths, identifiers, size, and the generated index.
 
@@ -108,8 +101,6 @@ Run `npm run catscan:chain -- <path>` to print the charter chain for a target fi
 - [Discovery Contract](docs/poolday/discovery-contract.md)
 - [Poolday claims and non-claims](docs/poolday/claims-and-nonclaims.md)
 - [Security model](docs/SECURITY.md)
-- [RGR runtime contract](self/blueprints/rgr-runtime-contract.md)
-- [Tool-surface contract](self/config/tool-surfaces.js)
 - [Doppler](https://github.com/clocksmith/doppler)
 
 ## License

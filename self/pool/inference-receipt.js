@@ -31,6 +31,8 @@ export const SIGNATURE_DOMAINS = Object.freeze({
   researchOutcome: 'poolday.research_outcome.v1',
   researchCohort: 'poolday.research_cohort.v1',
   researchEvaluation: 'poolday.research_evaluation.v1',
+  researchAdjudicationExperiment: 'poolday.research_adjudication_experiment.v1',
+  researchAdjudicationEvaluation: 'poolday.research_adjudication_evaluation.v1',
   researchSequenceLink: 'poolday.research_sequence_link.v1',
   researchRevocation: 'poolday.research_revocation.v1',
   adapterPublication: 'poolday.adapter_publication.v1',

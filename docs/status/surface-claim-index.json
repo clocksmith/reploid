@@ -1,6 +1,6 @@
 {
   "schema": "reploid/surface-claim-index/v1",
-  "updated": "2026-08-09",
+  "updated": "2026-08-15",
   "entries": [
     {
       "surface": "/",
@@ -8,8 +8,14 @@
       "evidencePaths": [
         "self/pool/pool-config.json",
         "self/pool/research-cycle.js",
+        "self/pool/evidence-network.js",
+        "self/ui/pool-home/room-projection.js",
+        "server/pool/routes/research.js",
         "tests/unit/pool-contract.test.js",
         "tests/unit/pool-research-cycle.test.js",
+        "tests/unit/pool-adjudication-experiment.test.js",
+        "tests/unit/pool-room-projection.test.js",
+        "tests/unit/pool-research-routes.test.js",
         "tests/e2e/pool-evidence-journey.spec.js",
         "tests/unit/pool-routes.test.js",
         "docs/poolday/claims-and-nonclaims.md"
@@ -26,7 +32,8 @@
         "tests/e2e/boot.spec.js"
       ],
       "blockers": [],
-      "claimPermission": true
+      "claimPermission": false,
+      "claimBoundary": "Internal experimental route; excluded from ordinary product navigation and external product strategy."
     },
     {
       "surface": "/x",
@@ -37,7 +44,8 @@
         "tests/e2e/boot.spec.js"
       ],
       "blockers": [],
-      "claimPermission": true
+      "claimPermission": false,
+      "claimBoundary": "Internal experimental route; excluded from ordinary product navigation and external product strategy."
     },
     {
       "surface": "local-execution",

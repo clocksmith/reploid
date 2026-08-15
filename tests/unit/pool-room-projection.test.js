@@ -96,6 +96,73 @@ describe('Research Room projection', () => {
     expect(html).toContain('>No result yet</h2>');
     expect(unresolvedEvidence).toContain('>Run<');
     expect(unresolvedEvidence).not.toContain('href="/records?room=empty-room&amp;panel=review#pool-room-review"');
+    expect(html).toContain('Reploid has not demonstrated its first product win.');
+  });
+
+  it('projects only an independently accepted frozen adjudication result as a passing product experiment', () => {
+    const roomId = 'room-projection';
+    const experiment = {
+      kind: 'research_adjudication_experiment',
+      recordHash: hash('h'),
+      roomId,
+      createdAt: '2026-08-09T11:00:00.000Z',
+      author: { identityRootId: 'experiment-author', roleId: 'researcher' },
+      experiment: {
+        contractHash: hash('k'),
+        target: {
+          catalogId: 'DECLARED-CATALOG',
+          catalogVersion: '2026.08',
+          curatorRole: 'family annotation curator',
+          decision: 'retain or revise the disputed annotation'
+        },
+        baseline: { workflowId: 'catalog-baseline', version: '1' },
+        candidate: { policyId: 'reploid-room-policy', version: '1' },
+        cohort: { caseCount: 24 },
+        metrics: [{ id: 'quality' }, { id: 'effort' }],
+        successPolicy: { mode: 'quality_or_effort' },
+        resolution: {},
+        frozenAt: '2026-08-09T11:00:00.000Z'
+      }
+    };
+    const evaluation = {
+      kind: 'research_adjudication_evaluation',
+      recordHash: hash('i'),
+      roomId,
+      createdAt: '2026-08-09T12:00:00.000Z',
+      author: { identityRootId: 'experiment-evaluator', roleId: 'verifier' },
+      experimentHash: experiment.recordHash,
+      evaluation: {
+        assessment: { conclusion: 'passes', qualityPathPassed: true, effortPathPassed: false },
+        metricResults: [{
+          metricId: 'quality', baselineValue: 0.7, candidateValue: 0.8,
+          orientedEffect: 0.1, effectInterval: { lower: 0.03, upper: 0.17 }, pairedSampleCount: 24
+        }, {
+          metricId: 'effort', baselineValue: 30, candidateValue: 30,
+          orientedEffect: 0, effectInterval: { lower: -1, upper: 1 }, pairedSampleCount: 24
+        }],
+        resultManifest: { accession: 'RESULTS:1', version: '1', contentHash: hash('l') },
+        regressionCount: 0,
+        missingCaseCount: 0
+      }
+    };
+    const records = [
+      experiment,
+      reviewDecision(experiment.recordHash, 'accepted', 'experiment-reviewer', hash('m')),
+      evaluation,
+      reviewDecision(evaluation.recordHash, 'accepted', 'evaluation-reviewer', hash('n'))
+    ];
+    const room = projectResearchRoom({ roomId, researchRecords: records });
+    const html = renderResearchRoom({ roomId, researchRecords: records });
+
+    expect(room.adjudicationProof).toMatchObject({
+      status: 'experiment_passes',
+      gaps: [],
+      experiment: { target: { catalogId: 'DECLARED-CATALOG', curatorRole: 'family annotation curator' } },
+      evaluation: { conclusion: 'passes', reviewState: 'accepted' }
+    });
+    expect(html).toContain('DECLARED-CATALOG @ 2026.08');
+    expect(html).toContain('<strong>quality</strong>');
+    expect(html).toContain('0.7 baseline to 0.8 candidate');
   });
 
   it('projects accepted evidence into memory without exposing raw vectors', () => {
@@ -130,6 +197,22 @@ describe('Research Room projection', () => {
     expect(room.latestResult.embedding).toBeUndefined();
     expect(room.latestResult.hasRawEmbedding).toBe(true);
     expect(room.memory.map((entry) => entry.sourceHash)).toEqual([answer.recordHash]);
+    expect(room.archive).toMatchObject({
+      schema: 'poolday.complete_room_evidence_archive/v1',
+      boundary: 'verified_local_snapshot'
+    });
+    expect(room.archive.entries).toEqual(expect.arrayContaining([
+      expect.objectContaining({ recordHash: question.recordHash, state: 'provisional', decisionMemoryAdmitted: false }),
+      expect.objectContaining({ recordHash: answer.recordHash, state: 'accepted', decisionMemoryAdmitted: true })
+    ]));
+    expect(room.decisionMemory).toMatchObject({
+      schema: 'poolday.decision_memory_projection/v1',
+      policyId: 'poolday.accepted-memory-feedback/v1',
+      admissionPolicy: 'independent_review_fail_closed',
+      decisionContextHash: question.recordHash,
+      sourceArchiveSchema: room.archive.schema,
+      acceptedHashes: [answer.recordHash]
+    });
     expect(room.proposals).toEqual([]);
     expect(room.participants.contributors).toEqual([
       expect.objectContaining({ id: 'provider-one', role: 'contributor' })
@@ -207,8 +290,8 @@ describe('Research Room projection', () => {
         question,
         rejected,
         revised,
-        reviewDecision(rejected.recordHash, 'rejected', 'reviewer-reject'),
-        reviewDecision(revised.recordHash, 'needs_revision', 'reviewer-revise')
+        reviewDecision(rejected.recordHash, 'rejected', 'reviewer-reject', hash('v')),
+        reviewDecision(revised.recordHash, 'needs_revision', 'reviewer-revise', hash('x'))
       ]
     });
 
@@ -222,6 +305,14 @@ describe('Research Room projection', () => {
       title: 'Result needs revision'
     }));
     expect(room.memory).toHaveLength(0);
+    expect(room.archive.entries).toContainEqual(expect.objectContaining({
+      recordHash: revised.recordHash,
+      state: 'needs_revision'
+    }));
+    expect(room.archive.entries).toContainEqual(expect.objectContaining({
+      recordHash: rejected.recordHash,
+      state: 'rejected'
+    }));
   });
 
   it('does not remember a result when independent reviewers disagree', () => {
@@ -251,6 +342,10 @@ describe('Research Room projection', () => {
       expect.objectContaining({ kind: 'agreement', title: 'Disagreement assessed', sourceHash: answer.recordHash })
     ]));
     expect(room.memory).toHaveLength(0);
+    expect(room.archive.entries).toContainEqual(expect.objectContaining({
+      recordHash: answer.recordHash,
+      state: 'disputed'
+    }));
   });
 
   it('supersedes accepted memory when an independently accepted correction arrives', () => {
@@ -277,6 +372,17 @@ describe('Research Room projection', () => {
     expect(room.status).toBe('corrected');
     expect(room.latestResult.status).toBe('corrected');
     expect(room.memory.map((entry) => entry.sourceHash)).toEqual([correction.recordHash]);
+    expect(room.archive.entries).toContainEqual(expect.objectContaining({
+      recordHash: answer.recordHash,
+      state: 'superseded',
+      supersededByHash: correction.recordHash,
+      decisionMemoryAdmitted: false
+    }));
+    expect(room.archive.entries).toContainEqual(expect.objectContaining({
+      recordHash: correction.recordHash,
+      state: 'corrected',
+      decisionMemoryAdmitted: true
+    }));
     expect(room.timeline).toEqual(expect.arrayContaining([
       expect.objectContaining({ sourceHash: answer.recordHash, status: 'corrected' }),
       expect.objectContaining({ sourceHash: correction.recordHash, title: 'Correction attached', status: 'accepted' })
@@ -294,6 +400,11 @@ describe('Research Room projection', () => {
     const room = projectResearchRoom({
       roomId: 'recovery-room',
       researchRecords: [question, answer],
+      quarantinedRecords: [{
+        record: { recordHash: hash('k'), kind: 'research_result', createdAt: answer.createdAt },
+        reason: 'invalid signature',
+        quarantinedAt: '2026-08-09T10:08:00.000Z'
+      }],
       syncState: {
         phase: 'stale',
         remote: 'unavailable',
@@ -316,6 +427,21 @@ describe('Research Room projection', () => {
     ]);
     expect(room.recovery.remoteError).toBe('offline');
     expect(room.memory).toHaveLength(0);
+    expect(room.archive.rejected).toEqual([
+      expect.objectContaining({
+        recordHash: hash('k'),
+        claimedKind: 'research_result',
+        state: 'rejected',
+        provenance: 'verification_quarantine',
+        reason: 'invalid signature'
+      })
+    ]);
+    expect(room.decisionMemory.excluded).toContainEqual(expect.objectContaining({
+      recordHash: hash('k'),
+      state: 'rejected',
+      reason: 'invalid signature'
+    }));
+    expect(room.counts.archive).toBe(3);
     expect(renderResearchRoom({
       roomId: 'recovery-room',
       researchRecords: [question, answer],
@@ -341,6 +467,47 @@ describe('Research Room projection', () => {
     expect(room.recovery.states).toContain('invalidated');
     expect(room.counts.invalidated).toBe(1);
     expect(room.timeline.some((entry) => entry.status === 'invalidated')).toBe(true);
+    expect(room.archive.entries).toContainEqual(expect.objectContaining({
+      recordHash: question.recordHash,
+      state: 'revoked'
+    }));
+    expect(room.archive.entries).toContainEqual(expect.objectContaining({
+      recordHash: revocation.recordHash,
+      state: 'revocation_recorded'
+    }));
+  });
+
+  it('retains failed outcome evidence in the archive while excluding it from decision memory', () => {
+    const question = submission({ roomId: 'failed-outcome-room' });
+    const failedOutcome = {
+      kind: 'research_outcome',
+      recordHash: hash('u'),
+      roomId: question.roomId,
+      createdAt: '2026-08-09T10:09:00.000Z',
+      questionHash: question.recordHash,
+      author: { identityRootId: 'researcher-root', roleId: 'researcher' },
+      outcome: {
+        classification: 'ambiguous',
+        summary: 'The assay failed before its declared readout.',
+        attempt: { status: 'failed', failureCategory: 'instrument_failure' }
+      }
+    };
+    const room = projectResearchRoom({
+      roomId: question.roomId,
+      researchRecords: [question, failedOutcome]
+    });
+
+    expect(room.archive.entries).toContainEqual(expect.objectContaining({
+      recordHash: failedOutcome.recordHash,
+      state: 'failed',
+      summary: failedOutcome.outcome.summary,
+      decisionMemoryAdmitted: false
+    }));
+    expect(room.decisionMemory.acceptedHashes).toEqual([]);
+    expect(room.decisionMemory.excluded).toContainEqual(expect.objectContaining({
+      recordHash: failedOutcome.recordHash,
+      state: 'failed'
+    }));
   });
 
   it('projects signed hypotheses as provisional inspiration with evidence gaps', () => {
@@ -435,6 +602,99 @@ describe('Research Room projection', () => {
     expect(room.participants.peers.map((entry) => entry.id)).toEqual(['provider-a']);
   });
 
+  it('shows qualified prior-room candidates without admitting them into current decision memory', () => {
+    const question = submission({ roomId: 'current-room' });
+    const priorQuestion = {
+      ...submission({ roomId: 'prior-room', identityRootId: 'prior-requester' }),
+      recordHash: hash('z'),
+      requesterIntent: {
+        kind: 'question',
+        text: 'Should the origin catalog family assignment be retained?',
+        decisionContext: 'Origin catalog release review',
+        conditions: 'Public sequence annotation',
+        scope: 'Family assignment',
+        exclusions: 'No function claim',
+        desiredObservation: 'Versioned supporting annotation'
+      }
+    };
+    const priorRecord = {
+      kind: 'research_prior_evidence',
+      recordHash: hash('p'),
+      roomId: 'prior-room',
+      questionHash: priorQuestion.recordHash,
+      createdAt: '2026-08-09T09:00:00.000Z',
+      evidence: {
+        kind: 'annotation',
+        summary: 'A version-pinned catalog annotation accepted in the origin room.'
+      }
+    };
+    const crossRoomEvidence = {
+      phase: 'synchronized',
+      registryBoundary: {
+        boundary: 'input_snapshot',
+        complete: true,
+        inputRecordCount: 8,
+        uniqueRecordCount: 8,
+        scannedRecordCount: 8
+      },
+      projection: {
+        schema: 'poolday.cross_room_sequence_evidence/v1',
+        sequence: { hash: question.sequence.hash },
+        rooms: [{
+          roomId: 'prior-room',
+          sourceVersions: [{
+            recordHash: priorRecord.recordHash,
+            accession: 'PUBLIC:123',
+            version: '7',
+            license: 'CC BY 4.0'
+          }]
+        }],
+        candidates: [{
+          recordHash: priorRecord.recordHash,
+          originRoomId: 'prior-room',
+          originQuestionHashes: [hash('z')],
+          kind: priorRecord.kind,
+          originalRoomAccepted: true,
+          qualification: { status: 'source_metadata_complete', reasons: [] },
+          admission: 'requires_current_room_review'
+        }],
+        records: [priorQuestion, priorRecord]
+      }
+    };
+    const room = projectResearchRoom({
+      roomId: question.roomId,
+      researchRecords: [question],
+      crossRoomEvidence
+    });
+    const html = renderResearchRoom({
+      roomId: question.roomId,
+      researchRecords: [question],
+      crossRoomEvidence
+    });
+
+    expect(room.priorRoomEvidence).toMatchObject({
+      schema: 'poolday.prior_room_evidence_projection/v1',
+      sequenceMatches: true,
+      roomCount: 1,
+      candidates: [expect.objectContaining({
+        recordHash: priorRecord.recordHash,
+        originRoomId: 'prior-room',
+        admission: 'requires_current_room_review',
+        attachable: true,
+        attachedRecordHash: null,
+        contextComparison: expect.objectContaining({ status: 'declared_context_differences' })
+      })]
+    });
+    expect(room.decisionMemory.acceptedHashes).toEqual([]);
+    expect(room.memory).toEqual([]);
+    expect(room.counts.priorRoomCandidates).toBe(1);
+    expect(html).toContain('Prior-room evidence');
+    expect(html).toContain('Origin-room acceptance is provenance, not admission here.');
+    expect(html).toContain('PUBLIC:123 @ 7 · declared license CC BY 4.0');
+    expect(html).toContain('Declared decision context: declared context differences');
+    expect(html).toContain(`data-pool-room-attach-prior="${priorRecord.recordHash}"`);
+  });
+
   it('renders a room-first surface with consent-scoped technical disclosure', () => {
     const question = submission();
     const answer = result({ agreement: { status: 'accepted', receiptHashes: [hash('d'), hash('g')], providerIds: ['provider-one', 'provider-two'] } });
@@ -451,6 +711,10 @@ describe('Research Room projection', () => {
     expect(html).toContain('Uncertainty and evidence limits');
     expect(html).toContain('Fewer than two exact model contracts');
     expect(html).toContain('Remembered evidence');
+    expect(html).toContain('Decision memory');
+    expect(html).toContain('Complete evidence archive');
+    expect(html).toContain('Remembered does not mean biologically true.');
+    expect(html).toContain('poolday.accepted-memory-feedback/v1');
     expect(html).toContain('Accepted under the current room policy by 1 independent signed decision.');
     expect(html).toContain('Possible explanations and proposed work');
     expect(html).toContain('No signed hypotheses, predictions, or proposed work are present in this room yet.');

@@ -6,6 +6,7 @@
  */
 
 import {
+  projectCrossRoomSequenceEvidence,
   researchRecordTargetHashes,
   validateResearchRecordModelAdmission,
   validateResearchRecordLinks,
@@ -71,6 +72,27 @@ export function registerResearchRoutes(router, {
         limit
       })
     });
+  }));
+
+  router.get('/research/sequences/:sequenceHash/evidence', asyncRoute(async (req, res) => {
+    if (typeof store?.listResearchRecords !== 'function') {
+      return res.status(501).json({ error: 'research evidence registry is not supported by this store' });
+    }
+    const requestedLimit = Number(req.query.limit || 1000);
+    if (!Number.isFinite(requestedLimit)) {
+      return res.status(400).json({ error: 'invalid sequence evidence query', reasons: ['limit must be a finite number'] });
+    }
+    const limit = Math.max(1, Math.min(1000, Math.floor(requestedLimit)));
+    const records = await store.listResearchRecords({ limit: 1000 });
+    try {
+      return res.json(projectCrossRoomSequenceEvidence(records, req.params.sequenceHash, {
+        currentRoomId: req.query.currentRoomId || null,
+        limit
+      }));
+    } catch (error) {
+      if (!(error instanceof TypeError)) throw error;
+      return res.status(400).json({ error: 'invalid sequence evidence query', reasons: [error.message] });
+    }
   }));
 
   router.get('/research/records/:recordHash', asyncRoute(async (req, res) => {

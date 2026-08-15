@@ -3590,6 +3590,26 @@ body[data-pool-route-id='home'] #app {
   gap: var(--pool-space-sm);
 }
 
+.pool-research-annotation-fields {
+  display: grid;
+  min-width: 0;
+  margin: 0;
+  padding: var(--pool-space-sm);
+  border: var(--pool-px-e0-06) solid color-mix(in srgb, var(--pool-surface-ink), transparent 76%);
+  border-radius: var(--pool-px-8);
+  gap: var(--pool-space-sm);
+}
+
+.pool-research-annotation-fields[hidden] {
+  display: none;
+}
+
+.pool-research-annotation-fields legend {
+  padding-inline: var(--pool-space-xs);
+  font-size: var(--pool-text-sm);
+  font-weight: var(--pool-type-weight-bold);
+}
+
 .pool-research-review-actions {
   display: flex;
   flex-wrap: wrap;
@@ -3980,6 +4000,10 @@ body[data-pool-route-id='home'] #app {
   border-radius: var(--pool-px-12);
 }
 
+.pool-room-section {
+  grid-template-columns: minmax(0, 1fr);
+}
+
 .pool-room-question-card {
   align-content: start;
 }
@@ -4071,6 +4095,12 @@ body[data-pool-route-id='home'] #app {
   gap: var(--pool-space-sm);
 }
 
+.pool-room-columns > *,
+.pool-room-list,
+.pool-room-list-item > div {
+  min-width: 0;
+}
+
 .pool-room-list-item {
   align-items: center;
   padding: var(--pool-space-sm);
@@ -4081,6 +4111,12 @@ body[data-pool-route-id='home'] #app {
 .pool-room-list-item > div {
   display: grid;
   gap: var(--pool-px-4);
+}
+
+.pool-room-list-item strong,
+.pool-room-list-item p,
+.pool-room-list-item small {
+  overflow-wrap: anywhere;
 }
 
 .pool-room-proposal-list {
@@ -4244,6 +4280,6 @@ body[data-pool-route-id='home'] #app {
   .pool-room-result-grid,
   .pool-room-facts,
   .pool-room-role-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 }

@@ -73,6 +73,28 @@ describe('Pool SDK client identity', () => {
     ]);
   });
 
+  it('requests cross-room evidence by exact sequence identity and current room', async () => {
+    const fetchMock = vi.fn(async () => ({
+      ok: true,
+      json: async () => ({ schema: 'poolday.cross_room_sequence_evidence/v1' })
+    }));
+    vi.stubGlobal('fetch', fetchMock);
+    const sdk = createPoolSdk({
+      baseUrl: 'https://pool.test',
+      authTokenProvider: null,
+      clientId: 'sequence-client'
+    });
+
+    await sdk.listSequenceResearchEvidence('sha256:sequence/id', {
+      currentRoomId: 'room with space',
+      limit: 125
+    });
+
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'https://pool.test/research/sequences/sha256%3Asequence%2Fid/evidence?currentRoomId=room+with+space&limit=125'
+    );
+  });
+
   it('preserves a trusted relay retry deadline on rate-limit errors', async () => {
     const fetchMock = vi.fn(async () => ({
       ok: false,

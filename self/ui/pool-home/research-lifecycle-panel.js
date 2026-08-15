@@ -7,6 +7,7 @@
  */
 
 import { optionList } from './research-panels.js';
+import { renderAdjudicationExperimentForms } from './research-adjudication-panel.js';
 
 export const renderLifecycleForms = ({
   questions = [],
@@ -18,6 +19,7 @@ export const renderLifecycleForms = ({
   workClaims = [],
   outcomes = [],
   cohorts = [],
+  adjudicationExperiments = [],
   active = []
 } = {}) => `
   <section class="pool-research-panel pool-research-lifecycle-actions">
@@ -27,11 +29,28 @@ export const renderLifecycleForms = ({
       <form data-research-lifecycle-form data-research-action="prior-evidence">
         <label class="pool-field"><span>Question</span><select name="questionHash" required>${optionList(questions)}</select></label>
         <div class="pool-research-form-row">
-          <label class="pool-field"><span>Evidence kind</span><select name="evidenceKind"><option value="sequence">Sequence</option><option value="structure">Structure</option><option value="domain">Domain</option><option value="annotation">Annotation</option><option value="experiment">Experiment</option><option value="publication">Publication</option></select></label>
+          <label class="pool-field"><span>Evidence kind</span><select name="evidenceKind" data-prior-evidence-kind><option value="sequence">Sequence</option><option value="structure">Structure</option><option value="domain">Domain</option><option value="annotation">Annotation</option><option value="experiment">Experiment</option><option value="publication">Publication</option></select></label>
           <label class="pool-field"><span>Accession</span><input name="accession" required placeholder="UniProt or public record identity"></label>
           <label class="pool-field"><span>Version</span><input name="version" required placeholder="record version"></label>
         </div>
         <label class="pool-field"><span>Public source URI</span><input name="uri" type="url" placeholder="https://"></label>
+        <label class="pool-field"><span>Declared source license</span><input name="sourceLicense" required placeholder="SPDX identifier or exact source declaration"></label>
+        <fieldset class="pool-research-annotation-fields" data-protein-annotation-fields hidden>
+          <legend>Normalized family or domain identity</legend>
+          <p class="type-caption">Required for automatic cross-room reuse. Enter the source coordinates as published; Reploid also binds a canonical one-based closed interval.</p>
+          <div class="pool-research-form-row">
+            <label class="pool-field"><span>Annotation scope</span><select name="annotationScope" disabled><option value="family">Family</option><option value="domain">Domain</option></select></label>
+            <label class="pool-field"><span>Ontology namespace</span><input name="ontologyNamespace" disabled placeholder="declared catalog or ontology"></label>
+            <label class="pool-field"><span>Term id</span><input name="ontologyTermId" disabled placeholder="versioned term accession"></label>
+            <label class="pool-field"><span>Ontology release</span><input name="ontologyVersion" disabled placeholder="release or version"></label>
+          </div>
+          <label class="pool-field"><span>Term label</span><input name="ontologyLabel" disabled placeholder="human-readable label (optional)"></label>
+          <div class="pool-research-form-row">
+            <label class="pool-field"><span>Source coordinate system</span><select name="coordinateSystem" disabled><option value="protein_residue_one_based_closed">Protein residues, one-based closed</option><option value="protein_residue_zero_based_half_open">Protein residues, zero-based half-open</option></select></label>
+            <label class="pool-field"><span>Source start</span><input name="coordinateStart" type="number" step="1" disabled></label>
+            <label class="pool-field"><span>Source end</span><input name="coordinateEnd" type="number" step="1" disabled></label>
+          </div>
+        </fieldset>
         <label class="pool-field"><span>Evidence summary</span><textarea name="summary" rows="3" required></textarea></label>
         <label class="pool-field"><span>Condition-specific context</span><input name="conditions" placeholder="organism, partners, ligands, modification, environment, or time"></label>
         <div class="pool-research-form-row">
@@ -75,6 +94,7 @@ export const renderLifecycleForms = ({
       </form>
     </details>
   </section>
+  ${renderAdjudicationExperimentForms({ experiments: adjudicationExperiments })}
   <section class="pool-research-panel">
     <p class="pool-dashboard-kicker">Order</p>
     <h3 class="type-h3">Machine-verifiable assay work</h3>

@@ -36,4 +36,13 @@ describe('surface claim index', () => {
     expect(errors).toContain('entries[0] is blocked and cannot grant claimPermission');
     expect(errors).toContain('entries[0] is blocked and must name a blocker');
   });
+
+  it('keeps experimental Zero and X routes out of public product claims', async () => {
+    const { index } = await verifySurfaceClaimIndex();
+    const bySurface = new Map(index.entries.map((entry) => [entry.surface, entry]));
+
+    expect(bySurface.get('/')).toMatchObject({ status: 'supported', claimPermission: true });
+    expect(bySurface.get('/zero')).toMatchObject({ status: 'supported', claimPermission: false });
+    expect(bySurface.get('/x')).toMatchObject({ status: 'supported', claimPermission: false });
+  });
 });

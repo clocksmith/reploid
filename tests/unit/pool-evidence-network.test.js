@@ -5,13 +5,17 @@ import {
   buildEvidenceGraph,
   buildModelEvidenceView,
   clusterCompatibleResults,
+  compareResearchDecisionContexts,
   createSignedHumanClaim,
+  createSignedPriorEvidence,
   createSignedResearchHypothesis,
+  createSignedResearchRevocation,
   createSignedResearchResult,
   createSignedResearchSubmission,
   createSignedSequenceEvidenceLink,
   findSimilarSequences,
   projectAcceptedResearchMemory,
+  projectCrossRoomSequenceEvidence,
   projectResearchExecutionIndependence,
   projectResearchQuestionClarity,
   projectResearchReviewStates,
@@ -120,6 +124,47 @@ const result = async (author, source, vector, providerId = 'provider_one', model
 };
 
 describe('Poolday evidence network', () => {
+  it('compares declared decision context without equating textual matches with relevance', () => {
+    const origin = {
+      kind: 'research_submission',
+      recordHash: fakeHash('1'),
+      roomId: 'origin-context-room',
+      sequence: { hash: fakeHash('2') },
+      requesterIntent: {
+        text: 'Retain this family annotation?',
+        decisionContext: 'Catalog release review',
+        conditions: 'Public sequence evidence',
+        scope: 'Family assignment',
+        exclusions: 'No function claim',
+        desiredObservation: 'Independent curator agreement'
+      }
+    };
+    const matching = {
+      ...origin,
+      recordHash: fakeHash('3'),
+      roomId: 'current-context-room',
+      requesterIntent: {
+        ...origin.requesterIntent,
+        text: '  retain THIS family annotation?  '
+      }
+    };
+    expect(compareResearchDecisionContexts(origin, matching)).toMatchObject({
+      status: 'exact_declared_context_match',
+      differences: [],
+      missing: []
+    });
+
+    const different = {
+      ...matching,
+      requesterIntent: { ...matching.requesterIntent, decisionContext: 'Experimental assay planning', scope: '' }
+    };
+    expect(compareResearchDecisionContexts(origin, different)).toMatchObject({
+      status: 'declared_context_differences',
+      differences: ['decisionContext'],
+      missing: ['scope']
+    });
+  });
+
   it('signs immutable submissions and detects tampering', async () => {
     const record = await submission(await identity('requester', 'one'));
     expect(await verifyResearchRecord(record)).toMatchObject({ ok: true, recordHash: record.recordHash });
@@ -350,6 +395,268 @@ describe('Poolday evidence network', () => {
     expect(proposeDiscoveryTasks(records)).toContainEqual(expect.objectContaining({
       kind: 'reproduce',
       targetHash: computed.recordHash
+    }));
+  });
+
+  it('projects qualified prior-room evidence without importing it into the current room', async () => {
+    const sharedSequence = 'MAPLALLLLGLVAGA';
+    const currentQuestion = await createSignedResearchSubmission({
+      identity: await identity('requester', 'cross-room-current'),
+      roomId: 'current-room',
+      sequence: sharedSequence,
+      intent: { kind: 'question', text: 'Should this disputed annotation be retained?' },
+      consent: { publicSequence: true, publicEvidenceNetwork: true, publishEmbedding: true },
+      modelContract: model,
+      policyId: 'redundant_agreement',
+      createdAt: '2026-08-15T00:00:00.000Z'
+    });
+    const priorAuthor = await identity('researcher', 'cross-room-prior-author');
+    const priorQuestion = await createSignedResearchSubmission({
+      identity: await identity('requester', 'cross-room-prior-requester'),
+      roomId: 'prior-room',
+      sequence: sharedSequence,
+      intent: { kind: 'question', text: 'Which versioned annotation evidence supports this family?' },
+      consent: { publicSequence: true, publicEvidenceNetwork: true, publishEmbedding: true },
+      modelContract: model,
+      policyId: 'redundant_agreement',
+      createdAt: '2026-08-15T00:01:00.000Z'
+    });
+    const versioned = await createSignedPriorEvidence({
+      identity: priorAuthor,
+      roomId: priorQuestion.roomId,
+      questionHash: priorQuestion.recordHash,
+      evidenceKind: 'annotation',
+      summary: 'Versioned catalog evidence for the disputed family.',
+      reference: { accession: 'PUBLIC:123', version: '7' },
+      annotation: {
+        scope: 'domain',
+        ontology: { namespace: 'PUBLIC', termId: 'DOMAIN:123', version: '7', label: 'Bounded domain' },
+        sequence: { hash: priorQuestion.sequence.hash, length: priorQuestion.sequence.length },
+        coordinates: { sourceSystem: 'protein_residue_one_based_closed', sourceStart: 2, sourceEnd: 12 }
+      },
+      provenance: {
+        retrievalMethod: 'catalog API export',
+        retrievedAt: '2026-08-15T00:02:00.000Z',
+        license: 'CC BY 4.0'
+      },
+      createdAt: '2026-08-15T00:02:00.000Z'
+    });
+    const versionedAcceptance = await createSignedHumanClaim({
+      identity: await identity('reviewer', 'cross-room-versioned-reviewer'),
+      roomId: priorQuestion.roomId,
+      targetHash: versioned.recordHash,
+      claimKind: 'review_decision',
+      relation: 'reviews',
+      text: 'Accept this source identity for the prior room only.',
+      confidence: 0.9,
+      decision: 'accepted',
+      createdAt: '2026-08-15T00:03:00.000Z'
+    });
+    const correction = await createSignedHumanClaim({
+      identity: priorAuthor,
+      roomId: priorQuestion.roomId,
+      targetHash: versioned.recordHash,
+      claimKind: 'correction',
+      relation: 'corrects',
+      text: 'The catalog entry supports the domain boundary, not the complete family assignment.',
+      confidence: 0.95,
+      createdAt: '2026-08-15T00:04:00.000Z'
+    });
+    const correctionAcceptance = await createSignedHumanClaim({
+      identity: await identity('reviewer', 'cross-room-correction-reviewer'),
+      roomId: priorQuestion.roomId,
+      targetHash: correction.recordHash,
+      claimKind: 'review_decision',
+      relation: 'reviews',
+      text: 'Accept the bounded correction in the prior room.',
+      confidence: 0.95,
+      decision: 'accepted',
+      createdAt: '2026-08-15T00:05:00.000Z'
+    });
+    const revokedSource = await createSignedPriorEvidence({
+      identity: priorAuthor,
+      roomId: priorQuestion.roomId,
+      questionHash: priorQuestion.recordHash,
+      evidenceKind: 'publication',
+      summary: 'A source later withdrawn from future reuse.',
+      reference: { uri: 'https://example.test/withdrawn', contentHash: fakeHash('a') },
+      provenance: { retrievalMethod: 'manual import', license: 'CC0' },
+      createdAt: '2026-08-15T00:06:00.000Z'
+    });
+    const revocation = await createSignedResearchRevocation({
+      identity: priorAuthor,
+      roomId: priorQuestion.roomId,
+      targetHash: revokedSource.recordHash,
+      reason: 'The external source was withdrawn.',
+      createdAt: '2026-08-15T00:07:00.000Z'
+    });
+    const unlicensedQuestion = await createSignedResearchSubmission({
+      identity: await identity('requester', 'cross-room-unlicensed-requester'),
+      roomId: 'unlicensed-room',
+      sequence: sharedSequence,
+      intent: { kind: 'question', text: 'Does a second catalog agree?' },
+      consent: { publicSequence: true, publicEvidenceNetwork: true, publishEmbedding: true },
+      modelContract: model,
+      policyId: 'redundant_agreement',
+      createdAt: '2026-08-15T00:08:00.000Z'
+    });
+    const unlicensed = await createSignedPriorEvidence({
+      identity: await identity('researcher', 'cross-room-unlicensed-author'),
+      roomId: unlicensedQuestion.roomId,
+      questionHash: unlicensedQuestion.recordHash,
+      evidenceKind: 'annotation',
+      summary: 'A versioned source with no declared reuse license.',
+      reference: { accession: 'PUBLIC:456', version: '3' },
+      annotation: {
+        scope: 'family',
+        ontology: { namespace: 'PUBLIC', termId: 'FAMILY:456', version: '3' },
+        sequence: { hash: unlicensedQuestion.sequence.hash, length: unlicensedQuestion.sequence.length },
+        coordinates: { sourceSystem: 'protein_residue_zero_based_half_open', sourceStart: 0, sourceEnd: 15 }
+      },
+      provenance: { retrievalMethod: 'catalog API export' },
+      createdAt: '2026-08-15T00:09:00.000Z'
+    });
+    const unlicensedAcceptance = await createSignedHumanClaim({
+      identity: await identity('reviewer', 'cross-room-unlicensed-reviewer'),
+      roomId: unlicensedQuestion.roomId,
+      targetHash: unlicensed.recordHash,
+      claimKind: 'review_decision',
+      relation: 'reviews',
+      text: 'Accepted in the origin room; license remains undeclared.',
+      confidence: 0.7,
+      decision: 'accepted',
+      createdAt: '2026-08-15T00:10:00.000Z'
+    });
+    const unrelated = await createSignedResearchSubmission({
+      identity: await identity('requester', 'cross-room-unrelated'),
+      roomId: 'unrelated-room',
+      sequence: 'MKTIIALSYIFCLVFA',
+      intent: { kind: 'question', text: 'Unrelated sequence.' },
+      consent: { publicSequence: true, publicEvidenceNetwork: true, publishEmbedding: true },
+      modelContract: model,
+      policyId: 'redundant_agreement',
+      createdAt: '2026-08-15T00:11:00.000Z'
+    });
+    const records = [
+      currentQuestion,
+      priorQuestion,
+      versioned,
+      versionedAcceptance,
+      correction,
+      correctionAcceptance,
+      revokedSource,
+      revocation,
+      unlicensedQuestion,
+      unlicensed,
+      unlicensedAcceptance,
+      unrelated,
+      unlicensed
+    ];
+
+    const projection = projectCrossRoomSequenceEvidence(records, currentQuestion.sequence.hash, {
+      currentRoomId: currentQuestion.roomId
+    });
+
+    expect(projection).toMatchObject({
+      schema: 'poolday.cross_room_sequence_evidence/v1',
+      complete: true,
+      inputRecordCount: 13,
+      uniqueRecordCount: 12
+    });
+    expect(projection.rooms.map((room) => room.roomId)).toEqual(['current-room', 'prior-room', 'unlicensed-room']);
+    expect(projection.rooms.find((room) => room.roomId === 'prior-room')).toMatchObject({
+      acceptedMemoryHashes: [correction.recordHash],
+      invalidatedRecordHashes: expect.arrayContaining([revokedSource.recordHash])
+    });
+    expect(projection.rooms.find((room) => room.roomId === 'prior-room').memoryExclusions).toContainEqual({
+      recordHash: versioned.recordHash,
+      reason: 'superseded_by_accepted_correction',
+      supersededByHash: correction.recordHash
+    });
+    expect(projection.rooms.find((room) => room.roomId === 'prior-room').sourceVersions).toContainEqual(expect.objectContaining({
+      recordHash: versioned.recordHash,
+      accession: 'PUBLIC:123',
+      version: '7',
+      license: 'CC BY 4.0'
+    }));
+    expect(projection.candidates).toContainEqual(expect.objectContaining({
+      recordHash: correction.recordHash,
+      originRoomId: 'prior-room',
+      originalRoomAccepted: true,
+      admission: 'requires_current_room_review',
+      qualification: {
+        status: 'needs_source_qualification',
+        reasons: ['contextual_source_qualification_required']
+      }
+    }));
+    expect(projection.candidates).toContainEqual(expect.objectContaining({
+      recordHash: unlicensed.recordHash,
+      qualification: {
+        status: 'needs_source_qualification',
+        reasons: ['source_license_missing']
+      }
+    }));
+    expect(projection.candidates.every((candidate) => candidate.originRoomId !== 'current-room')).toBe(true);
+    expect(projection.records.some((record) => record.recordHash === unrelated.recordHash)).toBe(false);
+    expect(projectAcceptedResearchMemory([currentQuestion]).acceptedHashes).toEqual([]);
+  });
+
+  it('keeps accepted free-text annotations visible but blocks automatic cross-room reuse', async () => {
+    const sequence = 'MAPLALLLLGLVAGA';
+    const currentQuestion = await createSignedResearchSubmission({
+      identity: await identity('requester', 'normalization-current'),
+      roomId: 'normalization-current-room',
+      sequence,
+      intent: { kind: 'question', text: 'Should this family annotation be retained?' },
+      consent: { publicSequence: true, publicEvidenceNetwork: true, publishEmbedding: true },
+      modelContract: model,
+      policyId: 'redundant_agreement'
+    });
+    const originQuestion = await createSignedResearchSubmission({
+      identity: await identity('requester', 'normalization-origin'),
+      roomId: 'normalization-origin-room',
+      sequence,
+      intent: { kind: 'question', text: 'What did the public catalog report?' },
+      consent: { publicSequence: true, publicEvidenceNetwork: true, publishEmbedding: true },
+      modelContract: model,
+      policyId: 'redundant_agreement'
+    });
+    const unnormalized = await createSignedPriorEvidence({
+      identity: await identity('researcher', 'normalization-author'),
+      roomId: originQuestion.roomId,
+      questionHash: originQuestion.recordHash,
+      evidenceKind: 'annotation',
+      summary: 'A historical annotation without a normalized term or residue interval.',
+      reference: { accession: 'LEGACY:123', version: '1' },
+      provenance: { retrievalMethod: 'legacy catalog export', license: 'CC0' }
+    });
+    const acceptance = await createSignedHumanClaim({
+      identity: await identity('reviewer', 'normalization-reviewer'),
+      roomId: originQuestion.roomId,
+      targetHash: unnormalized.recordHash,
+      claimKind: 'review_decision',
+      relation: 'reviews',
+      text: 'Accepted in its historical room context.',
+      confidence: 0.8,
+      decision: 'accepted'
+    });
+
+    const projection = projectCrossRoomSequenceEvidence([
+      currentQuestion,
+      originQuestion,
+      unnormalized,
+      acceptance
+    ], currentQuestion.sequence.hash, { currentRoomId: currentQuestion.roomId });
+
+    expect(projection.rooms.find((room) => room.roomId === originQuestion.roomId)?.archiveRecordHashes)
+      .toContain(unnormalized.recordHash);
+    expect(projection.candidates).toContainEqual(expect.objectContaining({
+      recordHash: unnormalized.recordHash,
+      originalRoomAccepted: true,
+      qualification: {
+        status: 'needs_source_qualification',
+        reasons: ['annotation_identity_missing']
+      }
     }));
   });
 

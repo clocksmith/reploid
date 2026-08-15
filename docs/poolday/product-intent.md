@@ -3,20 +3,21 @@
 Poolday is the internal documentation name for the main Reploid product
 surface. The public UI uses the Reploid name.
 
-This document owns Reploid's product goal, Poolday's purpose, and the authority
-boundary between Poolday, Zero, and X. Exact enabled models, policies, trust
+This document applies the repository mission in [`GOALS.md`](../../GOALS.md) to
+Poolday's purpose and the authority boundary between Poolday, Zero, and X.
+Exact enabled models, policies, trust
 tiers, routes, and transport requirements remain owned by
 [`pool-config.json`](../../self/pool/pool-config.json) and the
 [browser inference contract](../browser-inference-pool.md).
 
 ## Product goal
 
-Reploid's goal is to become a proof-carrying, continuously improving
-protein-model network. It helps researchers resolve bounded public-protein
-questions with less duplicated computation, more useful disagreement, and
-stronger independent reproduction. It is not a generic science platform, a
-distributed model demonstration, or a system that mistakes authenticated
-execution for biological truth.
+Reploid's first product goal is to test whether a proof-carrying Research Room
+improves adjudication of disputed family or domain annotations in a named
+public protein catalog. The broader continuously improving protein-evidence
+network remains a target hypothesis until that comparison succeeds. Reploid is
+not a generic science platform, a distributed model demonstration, or a system
+that mistakes authenticated execution for biological truth.
 
 A researcher begins with an explicitly public protein sequence and a bounded
 question. The target discovery object preserves:
@@ -96,7 +97,26 @@ over verified, room-scoped signed records:
    Receipt-backed results also require independent execution. Revoked records,
    disputed records, replication requests, single-provider results, and records
    superseded by accepted corrections remain visible but excluded.
-7. Governance actions can respond to provisional records, but scientific next
+7. The complete room archive and decision memory are separate projections over
+   the same immutable records. Archive state preserves provisional, disputed,
+   rejected, failed, corrected, revoked, superseded, and quarantined material.
+   Decision memory admits only evidence allowed by the named room policy.
+8. Exact public sequence identity can retrieve evidence from other public
+   rooms. The browser re-verifies every signed record and its room-local links.
+   Origin acceptance remains provenance only. A versioned source with declared
+   license metadata can be attached as a new provisional current-room record,
+   but it still requires current-room review before admission. Family and
+   domain records qualify for automatic attachment only when their signed
+   annotation identity binds a declared namespace term and ontology release to
+   the exact sequence, retains the source coordinate system, and projects a
+   canonical one-based closed residue interval. Historical free-text
+   annotations remain in the archive but require manual qualification. An
+   attachment also signs the origin and current question identities, public
+   reuse consent, and a field-by-field comparison of question, decision
+   context, conditions, scope, exclusions, and desired observation. Textual
+   agreement is not relevance. A separate independent current-room review must
+   explicitly determine the source relevant before decision-memory admission.
+9. Governance actions can respond to provisional records, but scientific next
    actions must identify accepted-memory basis hashes. A signed approval binds
    the exact projected task contract, including rationale, basis hashes, and
    ranking policy. Every proposed action carries no allocation or execution
@@ -107,7 +127,9 @@ inspectable after reload but cannot inherit v2 independent-execution or exact
 task-approval status. Records that fail verification or admission are moved to
 the room's quarantine cache rather than silently deleted from local history.
 
-The source projection is [`research-cycle.js`](../../self/pool/research-cycle.js).
+The source projections are [`research-cycle.js`](../../self/pool/research-cycle.js),
+[`evidence-network.js`](../../self/pool/evidence-network.js), and
+[`room-projection.js`](../../self/ui/pool-home/room-projection.js).
 This slice does not implement calibrated biological action value, laboratory
 qualification, scientific closure, or autonomous policy promotion.
 
@@ -322,31 +344,36 @@ Before promotion, the behavior remains experimental. After promotion, Poolday
 must support the capability through its own configuration, admission rules,
 receipts, tests, user-visible evidence, revocation path, and rollback path.
 
-## First product wedge
+## First product proof
 
-The first product wedge is a protein uncertainty network for poorly
-characterized public proteins. It prioritizes cases where exact-contract model
-similarity, public annotation, reviewer judgment, and experimental evidence
-diverge. It does not claim to determine protein structure, biological function,
-mutation fitness, or experimental truth.
+The first product proof is one named public-protein catalog and curator role
+adjudicating one recurring disputed family or domain annotation decision. The
+exact catalog and role remain user-owned choices; repository code and product
+copy must not silently select them.
 
-The target loop is:
+`poolday.annotation_adjudication_experiment/v1` freezes those choices together
+with the current workflow and handoffs, exact baseline and candidate revisions,
+a content-hashed family-disjoint paired cohort, metric definitions and noise
+models, an exact blinded evaluator identity and artifact, and acceptance,
+rejection, and reopening rules. The only passing paths are:
 
-1. Retrieve compatible sequences, representations, annotations, assays, negative
-   results, and contradictions with source and version identity.
-2. Run bounded receipt-backed representations under one exact model contract.
-3. Construct competing condition-specific hypotheses.
-4. Make model, evidence-source, and reviewer disagreement explicit.
-5. Admit only independently accepted active evidence into reusable room memory.
-6. Rank candidate computations, reviews, assays, and replications by expected
-   information gain and declared scientific cost.
-7. Route an approved action to a qualified, consenting peer or laboratory.
-8. Record positive, negative, failed, and ambiguous outcomes with protocol and
-   condition context.
-9. Update the uncertainty projection without converting evidence into automatic
-   truth.
-10. Freeze completed campaigns as held-out, family-disjoint evaluations for
-   future model and scientific-policy promotion.
+1. adjudication quality improves while curator effort remains within its frozen
+   comparability margin; or
+2. curator effort improves while adjudication quality remains within its frozen
+   non-inferiority margin.
+
+`poolday.annotation_adjudication_evaluation/v1` binds every frozen metric to the
+same paired sample count, an oriented effect interval, complete missing-case and
+regression accounting, a content-hashed raw result manifest, and the exact
+predeclared evaluator. The conclusion is derived from lower interval bounds and
+the frozen thresholds. An undersized sample is inconclusive. The experiment
+author cannot evaluate the experiment, and an evaluation cannot use an
+unreviewed experiment contract.
+
+Until an independently accepted evaluation passes one frozen path, the broader
+protein uncertainty network remains a target hypothesis. Even a passing record
+supports only the named workflow and cohort; it does not establish biological
+truth, global catalog value, or a general product moat.
 
 ## North-star metric
 
@@ -368,7 +395,8 @@ biological function or mutation fitness.
 
 | Question | Canonical source |
 | --- | --- |
-| Reploid's product goal and how Poolday relates to Zero and X | This document |
+| Reploid's repository mission and durable strategic goals | [`GOALS.md`](../../GOALS.md) |
+| How Poolday applies the mission and relates to Zero and X | This document |
 | Discovery Contract fields, lifecycle, scoring boundary, and closure rules | [Discovery Contract](./discovery-contract.md) |
 | Exact enabled model, policy, trust, and transport configuration | [`pool-config.json`](../../self/pool/pool-config.json) |
 | Current runtime, peer, coordinator, and deployment behavior | [Browser inference contract](../browser-inference-pool.md) |

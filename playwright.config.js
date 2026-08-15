@@ -72,6 +72,7 @@ export default defineConfig({
       env: {
         ...process.env,
         PORT: localServerPort,
+        POOL_ALLOW_UNAUTHENTICATED_LOCAL: process.env.POOL_ALLOW_UNAUTHENTICATED_LOCAL || 'true',
         REPLOID_SKIP_CLOUD_ACCESS_BUILD: 'true'
       },
       reuseExistingServer: !process.env.CI,

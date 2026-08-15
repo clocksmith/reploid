@@ -9,9 +9,11 @@
 import {
   activeResearchRecords,
   buildQuestionLifecycles,
+  compareResearchDecisionContexts,
   invalidatedResearchHashes,
   projectResearchExecutionIndependence,
-  projectResearchReviewStates
+  projectResearchReviewStates,
+  revokedResearchHashes
 } from '../../pool/evidence-network.js';
 import { projectGovernedResearchCycle } from '../../pool/research-cycle.js';
 
@@ -27,6 +29,8 @@ const RESEARCH_KINDS = Object.freeze({
   outcome: 'research_outcome',
   cohort: 'research_cohort',
   evaluation: 'research_evaluation',
+  adjudicationExperiment: 'research_adjudication_experiment',
+  adjudicationEvaluation: 'research_adjudication_evaluation',
   revocation: 'research_revocation'
 });
 
@@ -103,6 +107,8 @@ const recordTitle = (record = {}) => {
   if (record.kind === RESEARCH_KINDS.outcome) return 'Outcome recorded';
   if (record.kind === RESEARCH_KINDS.cohort) return 'Cohort frozen';
   if (record.kind === RESEARCH_KINDS.evaluation) return 'Evidence evaluated';
+  if (record.kind === RESEARCH_KINDS.adjudicationExperiment) return 'Adjudication experiment frozen';
+  if (record.kind === RESEARCH_KINDS.adjudicationEvaluation) return 'Adjudication experiment evaluated';
   if (record.kind === RESEARCH_KINDS.revocation) return 'Evidence revoked';
   return 'Research evidence';
 };
@@ -115,11 +121,98 @@ const recordSummary = (record = {}) => {
     return `${Number(record.embedding?.dimensions || record.modelContract?.dimensions || 0) || 'Unknown'} dimensions · receipt ${shortHash(record.compute?.receiptHash)}`;
   }
   if (record.kind === RESEARCH_KINDS.claim) return asText(record.claim?.decision || record.claim?.relation, 'Review or annotation');
+  if (record.kind === RESEARCH_KINDS.priorEvidence) return asText(record.evidence?.summary, 'Prior evidence');
   if (record.kind === RESEARCH_KINDS.hypothesis) return asText(record.hypothesis?.statement, 'Competing explanation');
   if (record.kind === RESEARCH_KINDS.prediction) return asText(record.prediction?.expectedObservation, 'Expected observation');
   if (record.kind === RESEARCH_KINDS.workOrder) return asText(record.work?.title, 'Bounded next work');
   if (record.kind === RESEARCH_KINDS.outcome) return asText(record.outcome?.summary, 'Experimental outcome');
+  if (record.kind === RESEARCH_KINDS.adjudicationExperiment) {
+    return `${asText(record.experiment?.target?.catalogId, 'Unnamed catalog')} · ${asText(record.experiment?.target?.decision, 'Decision not declared')}`;
+  }
+  if (record.kind === RESEARCH_KINDS.adjudicationEvaluation) {
+    return `Frozen rule: ${asText(record.evaluation?.assessment?.conclusion, 'unavailable')}`;
+  }
   return recordTitle(record);
+};
+
+const projectAdjudicationProof = (active, reviewStates) => {
+  const experiments = sorted(active.filter((record) => record.kind === RESEARCH_KINDS.adjudicationExperiment));
+  const experiment = experiments.at(-1) || null;
+  if (!experiment) {
+    return {
+      schema: 'poolday.annotation_adjudication_proof_projection/v1',
+      status: 'not_frozen',
+      experiment: null,
+      evaluation: null,
+      gaps: [
+        'exact_catalog_missing',
+        'curator_role_missing',
+        'recurring_decision_missing',
+        'frozen_baseline_missing',
+        'paired_cohort_missing',
+        'success_metrics_missing',
+        'independent_evaluator_missing'
+      ]
+    };
+  }
+  const evaluations = sorted(active.filter((record) => (
+    record.kind === RESEARCH_KINDS.adjudicationEvaluation
+    && record.experimentHash === experiment.recordHash
+  )));
+  const evaluation = evaluations.at(-1) || null;
+  const experimentReviewState = reviewStates.get(experiment.recordHash)?.state || 'unresolved';
+  const evaluationReviewState = evaluation ? reviewStates.get(evaluation.recordHash)?.state || 'unresolved' : null;
+  let status = 'frozen_awaiting_review';
+  let gaps = ['independent_experiment_review_missing'];
+  if (['rejected', 'disputed', 'needs_revision', 'replication_requested'].includes(experimentReviewState)) {
+    status = `experiment_contract_${experimentReviewState}`;
+    gaps = [`experiment_contract_${experimentReviewState}`];
+  } else if (experimentReviewState === 'accepted' && !evaluation) {
+    status = 'frozen_awaiting_evaluation';
+    gaps = ['prospective_paired_evaluation_missing'];
+  } else if (experimentReviewState === 'accepted' && evaluation
+    && ['rejected', 'disputed', 'needs_revision', 'replication_requested'].includes(evaluationReviewState)) {
+    status = `evaluation_${evaluationReviewState}`;
+    gaps = [`evaluation_${evaluationReviewState}`];
+  } else if (experimentReviewState === 'accepted' && evaluation && evaluationReviewState !== 'accepted') {
+    status = 'evaluated_awaiting_review';
+    gaps = ['independent_evaluation_review_missing'];
+  } else if (experimentReviewState === 'accepted' && evaluationReviewState === 'accepted') {
+    status = `experiment_${evaluation.evaluation.assessment.conclusion}`;
+    gaps = evaluation.evaluation.assessment.conclusion === 'passes'
+      ? []
+      : [evaluation.evaluation.assessment.conclusion === 'inconclusive'
+          ? 'paired_sample_or_precision_insufficient'
+          : 'frozen_success_rule_not_met'];
+  }
+  return {
+    schema: 'poolday.annotation_adjudication_proof_projection/v1',
+    status,
+    experiment: {
+      recordHash: experiment.recordHash,
+      reviewState: experimentReviewState,
+      contractHash: experiment.experiment.contractHash,
+      target: experiment.experiment.target,
+      baseline: experiment.experiment.baseline,
+      candidate: experiment.experiment.candidate,
+      cohort: experiment.experiment.cohort,
+      metrics: experiment.experiment.metrics,
+      successPolicy: experiment.experiment.successPolicy,
+      resolution: experiment.experiment.resolution,
+      frozenAt: experiment.experiment.frozenAt
+    },
+    evaluation: evaluation ? {
+      recordHash: evaluation.recordHash,
+      reviewState: evaluationReviewState,
+      conclusion: evaluation.evaluation.assessment.conclusion,
+      assessment: evaluation.evaluation.assessment,
+      metricResults: evaluation.evaluation.metricResults,
+      resultManifest: evaluation.evaluation.resultManifest,
+      regressionCount: evaluation.evaluation.regressionCount,
+      missingCaseCount: evaluation.evaluation.missingCaseCount
+    } : null,
+    gaps
+  };
 };
 
 const acceptedCorrectionsByTarget = (active, reviewStates) => new Map(
@@ -135,6 +228,114 @@ const statusForRecord = (record, reviewStates, invalidated, acceptedCorrections)
   if (acceptedCorrections.has(record.recordHash)) return 'corrected';
   return reviewStates.get(record.recordHash)?.state || 'unreviewed';
 };
+
+const isCorrection = (record = {}) => record.kind === RESEARCH_KINDS.claim
+  && (record.claim?.kind === 'correction' || record.claim?.relation === 'corrects');
+
+const archiveStateForRecord = ({
+  record,
+  reviewStates,
+  invalidated,
+  revoked,
+  acceptedCorrections
+}) => {
+  if (revoked.has(record.recordHash)) return 'revoked';
+  if (invalidated.has(record.recordHash)) return 'invalidated';
+  if (acceptedCorrections.has(record.recordHash)) return 'superseded';
+  if (record.kind === RESEARCH_KINDS.revocation) return 'revocation_recorded';
+  if (record.kind === RESEARCH_KINDS.outcome && record.outcome?.attempt?.status === 'failed') return 'failed';
+  const reviewState = reviewStates.get(record.recordHash)?.state || 'unresolved';
+  if (isCorrection(record) && reviewState === 'accepted') return 'corrected';
+  if (['accepted', 'rejected', 'needs_revision', 'replication_requested', 'disputed'].includes(reviewState)) {
+    return reviewState;
+  }
+  return 'provisional';
+};
+
+const dedupeQuarantine = (quarantinedRecords = [], rejectedRecords = []) => {
+  const entries = new Map();
+  for (const candidate of [...rejectedRecords, ...quarantinedRecords]) {
+    const record = candidate?.record && typeof candidate.record === 'object' ? candidate.record : null;
+    const recordHash = asText(candidate?.recordHash || record?.recordHash, null);
+    const reason = asText(candidate?.reason, 'Rejected by verification or admission policy');
+    const key = `${recordHash || 'unknown'}:${reason}`;
+    entries.set(key, {
+      id: `quarantine:${key}`,
+      recordHash,
+      claimedKind: asText(record?.kind, null),
+      claimedCreatedAt: asText(record?.createdAt, null),
+      reason,
+      quarantinedAt: asText(candidate?.quarantinedAt, null),
+      state: 'rejected',
+      provenance: 'verification_quarantine'
+    });
+  }
+  return [...entries.values()].sort((left, right) => (
+    asText(left.claimedCreatedAt).localeCompare(asText(right.claimedCreatedAt))
+    || asText(left.recordHash).localeCompare(asText(right.recordHash))
+  ));
+};
+
+const countArchiveStates = (entries = []) => entries.reduce((counts, entry) => ({
+  ...counts,
+  [entry.state]: (counts[entry.state] || 0) + 1
+}), {});
+
+export function projectCompleteEvidenceArchive({
+  roomId,
+  records = [],
+  reviewStates = new Map(),
+  invalidated = new Set(),
+  acceptedCorrections = new Map(),
+  rememberedHashes = new Set(),
+  memoryExclusions = [],
+  quarantinedRecords = [],
+  syncState = {}
+} = {}) {
+  const revoked = revokedResearchHashes(records);
+  const exclusionsByHash = new Map(memoryExclusions.map((entry) => [entry.recordHash, entry]));
+  const entries = sorted(records).map((record) => {
+    const exclusion = exclusionsByHash.get(record.recordHash) || null;
+    const correction = acceptedCorrections.get(record.recordHash) || null;
+    return {
+      id: record.recordHash,
+      recordHash: record.recordHash,
+      kind: record.kind,
+      state: archiveStateForRecord({ record, reviewStates, invalidated, revoked, acceptedCorrections }),
+      title: recordTitle(record),
+      summary: recordSummary(record),
+      createdAt: record.createdAt || null,
+      provenance: {
+        authority: 'signed_research_record',
+        authorRole: record.author?.role || record.author?.roleId || null,
+        authorIdentityRootId: record.author?.identityRootId || null,
+        signatureDomain: record.signatureDomain || null
+      },
+      decisionMemoryAdmitted: rememberedHashes.has(record.recordHash),
+      decisionMemoryExclusionReason: exclusion?.reason || null,
+      supersededByHash: correction?.recordHash || exclusion?.supersededByHash || null
+    };
+  });
+  const rejected = dedupeQuarantine(quarantinedRecords, syncState.rejectedRecords || []);
+  const phase = ['local_only', 'synchronizing', 'synchronized', 'stale'].includes(syncState.phase)
+    ? syncState.phase
+    : 'local_only';
+  return {
+    schema: 'poolday.complete_room_evidence_archive/v1',
+    roomId: asText(roomId, 'reploid-default'),
+    boundary: phase === 'synchronized'
+      ? 'verified_local_and_coordinator_snapshot'
+      : phase === 'synchronizing'
+        ? 'verified_local_snapshot_coordinator_pending'
+        : phase === 'stale'
+          ? 'verified_local_snapshot_coordinator_stale'
+          : 'verified_local_snapshot',
+    immutableRecordHashes: entries.map((entry) => entry.recordHash),
+    entries,
+    rejected,
+    stateCounts: countArchiveStates([...entries, ...rejected])
+  };
+}
 
 const evidenceAgreement = (result, records) => {
   if (!result) return { state: 'evidence_unavailable', label: 'Evidence unavailable', sourceHash: null };
@@ -632,10 +833,71 @@ const scopeRoomSources = (sources, roomId) => sources.filter((source) => {
   return !sourceId || !roomId || sourceId === roomId;
 });
 
+const projectPriorRoomEvidence = ({ roomId, submission, currentRecords = [], crossRoomEvidence = {} } = {}) => {
+  const projection = crossRoomEvidence?.projection || null;
+  const sequenceMatches = Boolean(
+    submission?.sequence?.hash
+    && projection?.sequence?.hash === submission.sequence.hash
+  );
+  const recordsByHash = new Map(asArray(projection?.records).map((record) => [record.recordHash, record]));
+  const roomsById = new Map(asArray(projection?.rooms).map((room) => [room.roomId, room]));
+  const candidates = sequenceMatches
+    ? asArray(projection?.candidates)
+      .filter((candidate) => candidate.originRoomId !== roomId)
+      .map((candidate) => {
+        const record = recordsByHash.get(candidate.recordHash) || null;
+        const originQuestion = recordsByHash.get(record?.questionHash) || null;
+        const originRoom = roomsById.get(candidate.originRoomId) || null;
+        const attachedRecord = currentRecords.find((entry) => (
+          entry.kind === RESEARCH_KINDS.priorEvidence
+          && entry.evidence?.reference?.contentHash === candidate.recordHash
+        )) || null;
+        const qualification = candidate.qualification || { status: 'needs_source_qualification', reasons: ['qualification_missing'] };
+        const contextComparison = compareResearchDecisionContexts(originQuestion, submission);
+        return {
+          id: candidate.recordHash,
+          recordHash: candidate.recordHash,
+          originRoomId: candidate.originRoomId,
+          originQuestionHashes: asArray(candidate.originQuestionHashes),
+          kind: candidate.kind || record?.kind || 'research_evidence',
+          title: recordTitle(record),
+          summary: recordSummary(record),
+          createdAt: record?.createdAt || null,
+          originalRoomAccepted: candidate.originalRoomAccepted === true,
+          qualification,
+          admission: 'requires_current_room_review',
+          attachable: record?.kind === RESEARCH_KINDS.priorEvidence
+            && qualification.status === 'source_metadata_complete'
+            && contextComparison.status !== 'context_unavailable'
+            && !attachedRecord,
+          attachedRecordHash: attachedRecord?.recordHash || null,
+          annotation: record?.evidence?.annotation || null,
+          contextComparison,
+          sourceVersions: asArray(originRoom?.sourceVersions),
+          sourceRecord: record
+        };
+      })
+    : [];
+  return {
+    schema: 'poolday.prior_room_evidence_projection/v1',
+    phase: asText(crossRoomEvidence?.phase, 'idle'),
+    sequenceHash: submission?.sequence?.hash || null,
+    sequenceMatches,
+    registryBoundary: crossRoomEvidence?.registryBoundary || null,
+    roomCount: sequenceMatches
+      ? asArray(projection?.rooms).filter((room) => room.roomId !== roomId).length
+      : 0,
+    candidates,
+    error: crossRoomEvidence?.error ? asText(crossRoomEvidence.error) : null
+  };
+};
+
 export function projectResearchRoom({
   roomId,
   routeId = 'home',
   researchRecords = [],
+  quarantinedRecords = [],
+  crossRoomEvidence = {},
   receipts = [],
   peerEvents = [],
   syncState = {}
@@ -688,6 +950,51 @@ export function projectResearchRoom({
       reviewDecisionHashes: entry.reviewDecisionHashes
     };
   });
+  const archive = projectCompleteEvidenceArchive({
+    roomId,
+    records: scopedRecords,
+    reviewStates,
+    invalidated,
+    acceptedCorrections,
+    rememberedHashes,
+    memoryExclusions: cycle.memory.excluded,
+    quarantinedRecords,
+    syncState
+  });
+  const priorRoomEvidence = projectPriorRoomEvidence({
+    roomId,
+    submission,
+    currentRecords: scopedRecords,
+    crossRoomEvidence
+  });
+  const adjudicationProof = projectAdjudicationProof(active, reviewStates);
+  const cycleExclusions = new Map(cycle.memory.excluded.map((entry) => [entry.recordHash, entry]));
+  const decisionMemory = {
+    schema: 'poolday.decision_memory_projection/v1',
+    policyId: cycle.policyId,
+    admissionPolicy: cycle.memory.policy,
+    decisionContextHash: submission?.recordHash || null,
+    sourceArchiveSchema: archive.schema,
+    acceptedHashes: [...cycle.memory.acceptedHashes],
+    entries: memory,
+    excluded: [
+      ...archive.entries
+        .filter((entry) => !rememberedHashes.has(entry.recordHash))
+        .map((entry) => ({
+          recordHash: entry.recordHash,
+          state: entry.state,
+          reason: cycleExclusions.get(entry.recordHash)?.reason || entry.state,
+          supersededByHash: entry.supersededByHash
+        })),
+      ...archive.rejected.map((entry) => ({
+        recordHash: entry.recordHash,
+        archiveEntryId: entry.id,
+        state: 'rejected',
+        reason: entry.reason,
+        supersededByHash: null
+      }))
+    ]
+  };
   const proposals = projectProposals(active, reviewStates, acceptedCorrections);
   const unresolved = projectUnresolved({
     active,
@@ -754,8 +1061,12 @@ export function projectResearchRoom({
       basisHashes: task.basisHashes || [],
       approvalRecordHashes: task.approvalRecordHashes || []
     })),
-    memory,
-    memoryExclusions: cycle.memory.excluded,
+    archive,
+    priorRoomEvidence,
+    adjudicationProof,
+    decisionMemory,
+    memory: decisionMemory.entries,
+    memoryExclusions: decisionMemory.excluded,
     proposals,
     timeline,
     cycle,
@@ -771,7 +1082,9 @@ export function projectResearchRoom({
       active: active.length,
       invalidated: invalidated.size,
       rejected: recovery.rejectedRecords.length,
+      archive: archive.entries.length + archive.rejected.length,
       memory: memory.length,
+      priorRoomCandidates: priorRoomEvidence.candidates.length,
       unresolved: unresolved.length,
       timeline: timeline.length
     }

@@ -45,7 +45,12 @@ import {
 } from './record-persistence.js';
 import { resolvePoolNetworkVisualState } from './network-projection.js';
 import { renderResearchWorkspace } from './research-view.js';
-import { getResearchSyncState, loadResearchRecords } from './research-store.js';
+import {
+  getCrossRoomSequenceEvidence,
+  getResearchSyncState,
+  loadQuarantinedResearchRecords,
+  loadResearchRecords
+} from './research-store.js';
 import { renderResearchRoom, roomHref } from './room-view.js';
 import { renderRequesterConsentRows, renderRequesterIntentFields } from './requester-controls.js';
 import {
@@ -1487,30 +1492,6 @@ const renderDrawerSection = (id, title, glyph, content, {
   </details>
 `;
 
-const SUBSTRATE_OUTLINKS = Object.freeze({
-  zero: Object.freeze({
-    path: '/zero',
-    label: 'Zero',
-    glyph: '0',
-    description: 'Blank local substrate',
-    tooltip: 'Open local tabula rasa blank substrate'
-  }),
-  x: Object.freeze({
-    path: '/x',
-    label: 'X',
-    glyph: 'X',
-    description: 'Self-modifying workspace',
-    tooltip: 'Open mature self-modifying workspace'
-  })
-});
-
-// The only out-of-app links. Both stay in the single navigation authority.
-const renderRailOutlink = (id) => {
-  const link = SUBSTRATE_OUTLINKS[id];
-  const tooltip = escapeHtml(link.tooltip);
-  return `<a class="pool-nav-link pool-nav-substrate-link pool-${id}-link link-secondary" href="${link.path}" data-pool-substrate-route="${link.path}" aria-label="${escapeHtml(link.label)}" title="${tooltip}" data-pool-nav-tooltip="${tooltip}"><span class="pool-nav-glyph" aria-hidden="true">${escapeHtml(link.glyph)}</span><span class="pool-nav-description">${escapeHtml(link.description)}</span></a>`;
-};
-
 const renderHomeRequestDrawer = (open) => `
   <nav class="pool-nav-rail pool-control-drawer${open ? ' is-open' : ''}" aria-label="Reploid controls">
     <div class="pool-nav-top">
@@ -1543,10 +1524,6 @@ const renderHomeRequestDrawer = (open) => `
         ${renderDashboardNetworkSections()}
       </div>
     </div>
-    <div class="pool-nav-bottom">
-      ${renderRailOutlink('zero')}
-      ${renderRailOutlink('x')}
-    </div>
   </nav>
 `;
 
@@ -1560,17 +1537,13 @@ export const renderNav = (activeRoute, {
     home: '⌂',
     ask: '?',
     compute: '☇',
-    records: '☷',
-    zero: '0',
-    x: 'X'
+    records: '☷'
   };
   const tooltips = {
     home: 'Return to the active Research Room',
     ask: 'State a question and request model execution in this room',
     compute: 'Share this browser as compute for the active room',
     records: 'Review evidence and discover the next action in this room',
-    zero: 'Experimental: open the local tabula rasa runtime',
-    x: 'Experimental: open the mature self-improving workspace runtime',
     toggleClosed: 'Open the navigation details from the left',
     toggleOpen: 'Close the navigation details and keep the activity rail'
   };
@@ -1621,7 +1594,6 @@ export const renderNav = (activeRoute, {
             ${renderRoomContext()}
           </section>
         `, { open: true })}
-        ${renderRailOutlink('zero')}
       </div>
     </nav>
   `;
@@ -1649,6 +1621,8 @@ export const renderActiveResearchRoom = (routeId = getRouteId()) => {
     routeId,
     panel: getPoolRoomPanel(),
     researchRecords: loadResearchRecords(roomId),
+    quarantinedRecords: loadQuarantinedResearchRecords(roomId),
+    crossRoomEvidence: getCrossRoomSequenceEvidence(roomId),
     receipts: ledgerStore.receipts,
     peerEvents: ledgerStore.peerEvents,
     syncState: getResearchSyncState(roomId)

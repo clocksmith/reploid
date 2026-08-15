@@ -31,6 +31,24 @@ Poolday provides:
   identities, and provider keys
 - versioned v1 evidence retention and a separate quarantine cache for records
   that fail current verification or admission
+- separate complete-archive and named-policy decision-memory projections
+- bounded exact-sequence retrieval across public rooms with browser-side
+  signature and room-link revalidation, source version and declared-license
+  metadata, and provisional current-room attachment without inherited acceptance
+- signed family/domain annotation identities that bind a declared namespace
+  term and ontology release to an exact sequence, retain source coordinates,
+  and normalize them to one-based closed protein-residue intervals before
+  automatic cross-room reuse
+- signed origin-versus-current decision-context comparisons for cross-room
+  attachments, with explicit public-reuse consent and an independent
+  current-room relevance determination required before decision-memory admission
+- signed frozen annotation-adjudication experiment contracts that require a
+  named catalog and curator role, exact baseline and candidate revisions, a
+  family-disjoint paired cohort, fully defined quality and effort metrics, and
+  an exact blinded evaluator identity and artifact
+- independently authored adjudication evaluations whose paired sample,
+  missing-case, regression, raw-manifest, interval, and conclusion fields are
+  checked against the frozen quality-or-effort success rule
 - deterministic flat similarity, evidence-aware reranking, clustering, and
   exact-contract approval-gated task proposals with explicit accepted-memory
   basis
@@ -70,6 +88,16 @@ Poolday does not provide:
 - proof that a projected next question is scientifically correct
 - autonomous authority to approve, allocate, execute, or promote a next action
 - proof that a scientific conclusion is true or independently replicated
+- proof that a declared external license is accurate or permits a particular use
+- proof that a declared ontology term is correct, semantically equivalent to a
+  term in another namespace, or biologically valid for the bound residues
+- proof that matching declared context text makes evidence scientifically
+  relevant; contextual relevance remains an attributable reviewer judgment
+- proof that Reploid has passed the first-market experiment merely because the
+  experiment schema and projection exist
+- generalization from one passing catalog workflow or cohort to other catalogs,
+  curator roles, protein families, or commercial adoption
+- completeness beyond the explicitly reported bounded registry snapshot
 
 A receipt proves that a provider key signed an assignment-bound artifact.
 It does not prove untampered browser execution or hardware-attested GPU computation.

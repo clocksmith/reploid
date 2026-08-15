@@ -95,11 +95,28 @@ describe('Poolday prospective protein question lifecycle', () => {
       evidenceKind: 'annotation',
       summary: 'A versioned public annotation reports an N-terminal hydrophobic region.',
       reference: { uri: 'https://example.org/records/PROT-001', accession: 'PROT-001', version: '4' },
+      annotation: {
+        scope: 'domain',
+        ontology: { namespace: 'TEST', termId: 'HYDROPHOBIC-N', version: '4', label: 'N-terminal hydrophobic region' },
+        sequence: { hash: question.sequence.hash, length: question.sequence.length },
+        coordinates: { sourceSystem: 'protein_residue_zero_based_half_open', sourceStart: 0, sourceEnd: 8 }
+      },
       conditions: { biologicalSystem: 'public annotation record' },
       uncertainty: { method: 'curator confidence', value: 0.6, unit: 'probability', description: 'No direct assay is linked.' },
       provenance: { retrievedAt: at(1), retrievalMethod: 'version-pinned HTTP retrieval', sourceIdentity: 'public-example' },
       createdAt: at(1)
     }));
+    expect(prior.evidence.annotation).toMatchObject({
+      schema: 'poolday.protein_annotation_identity/v1',
+      coordinates: {
+        sourceSystem: 'protein_residue_zero_based_half_open',
+        sourceStart: 0,
+        sourceEnd: 8,
+        canonicalSystem: 'protein_residue_one_based_closed',
+        start: 1,
+        end: 8
+      }
+    });
     const secretion = await append(await createSignedResearchHypothesis({
       identity: researcher,
       roomId: question.roomId,
