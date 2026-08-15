@@ -30,6 +30,7 @@
     "debug": "npx tsx bin/reploid-cli.ts debug",
     "cli": "node bin/reploid-cli.js",
     "build:cloud-access": "node scripts/build-reploid-cloud-access.js",
+    "build:component-index": "node scripts/verify-catscan.js --write",
     "build:genesis": "node scripts/build-genesis-manifest.js",
     "build:blueprints": "node scripts/build-module-inventory.js && node scripts/build-blueprint-registry.js",
     "build:module-inventory": "node scripts/build-module-inventory.js",
@@ -46,10 +47,12 @@
     "verify:adapter-canary": "node scripts/run-adapter-runtime-canary.js",
     "publish:adapter-canary": "node scripts/publish-adapter-runtime-canary.js",
     "verify:surface-claims": "node scripts/verify-surface-claim-index.js",
+    "verify:catscan": "node scripts/verify-catscan.js",
     "verify:layers": "node scripts/verify-layers.js",
     "verify:module-system": "node scripts/verify-module-system.js",
     "verify:runtime-config": "node scripts/sync-runtime-config.js",
-    "verify:pool:css": "node scripts/verify-poolday-css-layers.js"
+    "verify:pool:css": "node scripts/verify-poolday-css-layers.js",
+    "catscan:chain": "node scripts/verify-catscan.js --chain"
   },
   "keywords": [
     "reploid",

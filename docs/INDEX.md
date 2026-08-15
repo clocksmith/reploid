@@ -28,9 +28,12 @@ Guide to all documentation in the REPLOID project.
 - [0x00007F - RGR](../self/blueprints/0x00007F-recursive-gepa-ring.md) - Recursive GEPA Ring with validator quarantine, audit anchors, Pareto archive, and gated self-improvement
 
 ### Vision and Contracts
+- **[GOALS.md](../GOALS.md)** - Repository mission, value, and durable strategic goals
+- **[CATSCAN.md](../CATSCAN.md)** - Root component purpose, authority, boundaries, and acceptance contract
+- **[docs/component-index.md](./component-index.md)** - Generated recursive index of component charters
 - **[docs/substrate.md](./substrate.md)** - Substrate + Ouroboros contract
 - **[Ouroboros documentation authority](../../ouroboros/docs/authority/README.md)** - Cross-project record routing; Reploid remains canonical for product and runtime behavior
-- **[docs/poolday/product-intent.md](./poolday/product-intent.md)** - Canonical proof-carrying protein-model-network goal, bounded protein journey, evidence boundary, and promotion path
+- **[docs/poolday/product-intent.md](./poolday/product-intent.md)** - Poolday workflow, bounded protein journey, evidence boundary, and promotion path
 - **[docs/poolday/discovery-contract.md](./poolday/discovery-contract.md)** - Target atomic active-science object, action-value boundary, epistemic updates, replication, and closure
 
 ### Reference
@@ -110,12 +113,14 @@ reploid/
 
 Read and maintain documentation by authority rather than by file count:
 
-1. Product intent defines the purpose and win condition.
-2. The claim index records what may currently be claimed and its evidence.
-3. Runtime contracts define implemented behavior.
-4. Protocol documents define exact schemas and wire rules.
-5. Subsystem blueprints capture architectural decisions, invariants, and failure modes.
-6. Generated module inventory records paths, ownership, dependencies, and hashes.
+1. `GOALS.md` defines repository mission, value, and durable strategy.
+2. The recursive `CATSCAN.md` chain defines component outcomes, authority, invariants, acceptance, and non-goals.
+3. Product intent defines the user workflow and win condition for a product surface.
+4. The claim index records what may currently be claimed and its evidence.
+5. Runtime contracts define implemented behavior.
+6. Protocol documents define exact schemas and wire rules.
+7. Subsystem blueprints capture architectural decisions, invariants, and failure modes.
+8. Generated module inventory records paths, ownership, dependencies, and hashes.
 
 Existing generated blueprint stubs remain compatibility records during migration;
 they are not evidence of an architectural decision. New module inventory should

@@ -7,17 +7,11 @@ Reploid is a browser runtime for receipt-backed inference and governed
 self-modification experiments. Its main product route is Poolday. Zero and X
 are separate experimental surfaces with separate state, tools, and evidence.
 
-## Mission, goal, and value
+## Who uses it
 
-Reploid’s mission is to connect browser computation, review, replication, and
-scientific next actions without treating an execution receipt as proof of
-truth.
-
-The current goal is a usable Poolday Research Room. A requester submits a
-bounded question and sequence, runs an approved browser inference path,
-inspects the result and receipt, invites review, and approves the next bounded
-action. Contributors can provide browser compute. Reviewers can accept, reject,
-correct, or replicate evidence.
+Repository mission, value, and durable strategy live in [GOALS.md](GOALS.md).
+Poolday's user workflow and evidence boundary live in its
+[product intent](docs/poolday/product-intent.md).
 
 The repository serves:
 
@@ -79,18 +73,6 @@ The X surface records three self-modification states:
 | Shadow | Writes candidates under `/shadow`; `/self` remains unchanged. | RGR traces, scores, receipts, and rollback paths | Candidate remains provisional. |
 | Promote | Copies an allowlisted candidate from `/shadow` into `/self`. | Anchored gate, replay result, and candidate hash | Changes the active self; validator mutations remain quarantined. |
 
-## Long-term vision
-
-The long-term research target is a signed, evolving Discovery Contract. It binds
-a bounded question, competing hypotheses, uncertainty, candidate actions,
-predicted observations, scientific costs, outcomes, and predeclared replication
-or closure criteria.
-
-The intended result is a network that can carry a research problem from an
-uncertain question to an inspectable next action while retaining the records
-needed to review and reproduce the decision. That target does not expand the
-current browser-inference claim.
-
 ## Limits and status
 
 Reploid does not claim hardware attestation, independently trustworthy
@@ -107,8 +89,20 @@ authorities. Read the claim index row before repeating a capability statement.
 - [`showcase/`](showcase/) — demonstrations and recorded runs
 - [`package.json`](package.json) — package metadata and local commands
 
+## Intent and component authority
+
+- [GOALS.md](GOALS.md) owns the repository mission, value, and durable strategic goals.
+- [CATSCAN.md](CATSCAN.md) is the root component charter. Child charters narrow its authority for independently meaningful components.
+- The generated [component index](docs/component-index.md) lists every charter, parent, and target.
+- [AGENTS.md](AGENTS.md) defines how code agents discover and obey the charter chain.
+
+Run `npm run catscan:chain -- <path>` to print the charter chain for a target file. Run `npm run verify:catscan` to validate fields, parents, links, evidence paths, identifiers, size, and the generated index.
+
 ## Read next
 
+- [Repository goals](GOALS.md)
+- [Root component charter](CATSCAN.md)
+- [Component index](docs/component-index.md)
 - [Documentation index](docs/INDEX.md)
 - [Poolday product intent](docs/poolday/product-intent.md)
 - [Discovery Contract](docs/poolday/discovery-contract.md)

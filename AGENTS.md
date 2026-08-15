@@ -1,8 +1,25 @@
 ## Reploid Code Agent
 
-**Prime Directive:** Write JavaScript for the self-modifying RSI substrate running in the browser.
+**Prime Directive:** Follow `GOALS.md` and the applicable `CATSCAN.md` chain; keep implementation authority inside those charters.
 
 **See also:** [DOPPLER](https://github.com/clocksmith/doppler) for WebGPU inference engine (separate repo).
+
+## Component Intent
+
+Before modifying a file, read `GOALS.md` and every `CATSCAN.md` from the project root to the target directory, in order.
+
+Treat Target, Authority, Invariants, Acceptance, and Non-goals as implementation constraints. A child CATSCAN may narrow its parent but may not contradict it.
+
+If requested work changes a component boundary, identify the conflict and update the affected CATSCAN with the implementation. Do not silently work around it.
+
+Novel implementations are welcome. CATSCAN constrains outcomes and authority, not internal algorithms. AGENTS.md enforces discovery and precedence; it must not duplicate component goals.
+
+Material-change handoffs must state:
+
+- Component: `<name>`
+- Intent: `preserved | deliberately changed`
+- Acceptance evidence: `<commands/artifacts>`
+- Boundary effects: `<none or named components>`
 
 ### Directory Structure
 ```
