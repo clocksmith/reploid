@@ -33,7 +33,7 @@ Guide to all documentation in the REPLOID project.
 - **[docs/component-index.md](./component-index.md)** - Generated recursive index of component charters
 - **[docs/substrate.md](./substrate.md)** - Substrate + Ouroboros contract
 - **[docs/rsi-improvement-episodes.md](./rsi-improvement-episodes.md)** - Signed causal episode ledger, metric semantics, evaluator authority, generations, and X workbench
-- **[Ouroboros documentation authority](../../ouroboros/docs/authority/README.md)** - Cross-project record routing; Reploid remains canonical for product and runtime behavior
+- **[Ouroboros documentation authority](https://github.com/clocksmith/ouroboros/blob/main/docs/authority/README.md)** - Cross-project record routing; Reploid remains canonical for product and runtime behavior
 - **[docs/poolday/product-intent.md](./poolday/product-intent.md)** - Poolday workflow, bounded protein journey, evidence boundary, and promotion path
 - **[docs/poolday/discovery-contract.md](./poolday/discovery-contract.md)** - Target atomic active-science object, action-value boundary, epistemic updates, replication, and closure
 
