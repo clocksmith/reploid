@@ -273,6 +273,23 @@ const renderDiscoveryContract = (room) => {
   `;
 };
 
+const renderResolutionCriteria = (room) => {
+  const resolution = room.resolutionCriteria || { status: 'policy_missing', policy: null };
+  const labels = {
+    policy_missing: 'Criteria missing',
+    awaiting_independent_review: 'Awaiting independent review',
+    criteria_frozen: 'Criteria frozen'
+  };
+  const policy = resolution.policy;
+  return `
+    <section class="pool-room-section pool-room-resolution" aria-labelledby="pool-room-resolution-title" data-resolution-status="${escapeHtml(resolution.status)}">
+      <div class="pool-room-section-heading"><div><p class="pool-dashboard-kicker">Decision boundary</p><h2 class="type-h2" id="pool-room-resolution-title">Predeclared resolution criteria</h2></div><span class="pool-room-event-status">${escapeHtml(labels[resolution.status] || resolution.status)}</span></div>
+      <p class="pool-room-boundary">${escapeHtml(resolution.boundary || 'Criteria define future eligibility only and grant no scientific closure authority.')}</p>
+      ${policy ? `<dl class="pool-room-facts"><div><dt>Conclusion label</dt><dd>${escapeHtml(policy.conclusionLabel)}</dd></div><div><dt>Decision scope</dt><dd>${escapeHtml(policy.decisionScope)}</dd></div><div><dt>Provisional acceptance</dt><dd>${escapeHtml(policy.provisionalAcceptance.minimumAcceptedCompletedOutcomes)} accepted outcomes · ${escapeHtml(policy.provisionalAcceptance.minimumIndependentReplications)} independent replications</dd></div><div><dt>Rejection</dt><dd>${escapeHtml(policy.rejection.minimumAcceptedCompletedOutcomes)} accepted ${escapeHtml(policy.rejection.outcomeClassifications.join(' / '))} outcome(s)</dd></div><div><dt>Continued uncertainty</dt><dd>Continue investigation when ${escapeHtml(policy.continuedUncertainty.triggers.join(' · ').replace(/_/g, ' '))}</dd></div><div><dt>Reopening</dt><dd>${escapeHtml(policy.reopening.triggers.join(' · ').replace(/_/g, ' '))}</dd></div><div><dt>Closure eligibility</dt><dd>${escapeHtml(policy.closure.minimumAcceptedCompletedOutcomes)} outcomes · ${escapeHtml(policy.closure.minimumIndependentReplications)} replications · ${escapeHtml(policy.closure.requiredDistinctReviewerIdentities)} reviewers</dd></div><div><dt>Closure authority</dt><dd>None in the current product</dd></div></dl>` : '<p class="pool-room-muted">Freeze and independently review criteria before any governed laboratory claim.</p>'}
+    </section>
+  `;
+};
+
 const renderPriorRoomEvidence = (room) => {
   const prior = room.priorRoomEvidence || { phase: 'idle', candidates: [], roomCount: 0 };
   const boundary = prior.registryBoundary?.boundary || 'not queried';
@@ -293,6 +310,10 @@ const renderPriorRoomEvidence = (room) => {
           const qualification = candidate.qualification?.status || 'needs_source_qualification';
           const reasons = candidate.qualification?.reasons || [];
           const annotationLabel = annotationIdentityLabel(candidate.annotation);
+          const finding = candidate.sourceRecord?.evidence?.finding || source?.finding || null;
+          const findingDetail = finding
+            ? `${finding.classification.replace(/_/g, ' ')} · attempt ${finding.attempt?.status?.replace(/_/g, ' ') || 'unknown'}${finding.attempt?.failureCategory && finding.attempt.failureCategory !== 'none' ? ` · ${finding.attempt.failureCategory.replace(/_/g, ' ')}` : ''}`
+            : '';
           const contextComparison = candidate.contextComparison || { status: 'context_unavailable', differences: [], missing: [] };
           const contextDetail = [
             contextComparison.status.replace(/_/g, ' '),
@@ -308,7 +329,7 @@ const renderPriorRoomEvidence = (room) => {
             : candidate.attachable
               ? `<button class="btn btn-ghost" type="button" data-pool-room-attach-prior="${escapeHtml(candidate.recordHash)}" data-pool-room-prior-origin="${escapeHtml(candidate.originRoomId)}" data-pool-room-id="${escapeHtml(room.roomId)}">Attach as provisional evidence</button>`
               : '<span class="pool-room-event-status">Manual qualification required</span>';
-          return `<article class="pool-room-list-item" data-prior-room-qualification="${escapeHtml(qualification)}"><div><strong>${escapeHtml(candidate.title)}</strong><p>${escapeHtml(candidate.summary)}</p><p class="type-caption">Origin room ${escapeHtml(candidate.originRoomId)} · accepted there · ${escapeHtml(qualification.replace(/_/g, ' '))}${reasons.length ? ` · ${escapeHtml(reasons.join(' · ').replace(/_/g, ' '))}` : ''}</p>${source ? `<p class="type-caption">Source ${escapeHtml(source.accession || source.uri || compactHash(source.recordHash))} @ ${escapeHtml(source.version || compactHash(source.contentHash))} · declared license ${escapeHtml(source.license || 'undeclared')}</p>` : ''}${annotationLabel ? `<p class="type-caption">${escapeHtml(annotationLabel)}</p>` : ''}${duplicateDetail}<p class="type-caption">Declared decision context: ${escapeHtml(contextDetail)}. Even an exact declared match still requires explicit current-room relevance review.</p>${action}</div><small>${escapeHtml(candidate.kind.replace(/_/g, ' '))} · ${escapeHtml(compactHash(candidate.recordHash))}</small></article>`;
+          return `<article class="pool-room-list-item" data-prior-room-qualification="${escapeHtml(qualification)}"><div><strong>${escapeHtml(candidate.title)}</strong><p>${escapeHtml(candidate.summary)}</p><p class="type-caption">Origin room ${escapeHtml(candidate.originRoomId)} · accepted there · ${escapeHtml(qualification.replace(/_/g, ' '))}${reasons.length ? ` · ${escapeHtml(reasons.join(' · ').replace(/_/g, ' '))}` : ''}</p>${source ? `<p class="type-caption">Source ${escapeHtml(source.accession || source.uri || compactHash(source.recordHash))} @ ${escapeHtml(source.version || compactHash(source.contentHash))} · declared license ${escapeHtml(source.license || 'undeclared')}</p>` : ''}${findingDetail ? `<p class="type-caption">Imported finding: ${escapeHtml(findingDetail)}. Negative, ambiguous, and failed evidence remains non-supporting evidence, not a successful replica.</p>` : ''}${annotationLabel ? `<p class="type-caption">${escapeHtml(annotationLabel)}</p>` : ''}${duplicateDetail}<p class="type-caption">Declared decision context: ${escapeHtml(contextDetail)}. Even an exact declared match still requires explicit current-room relevance review.</p>${action}</div><small>${escapeHtml(candidate.kind.replace(/_/g, ' '))} · ${escapeHtml(compactHash(candidate.recordHash))}</small></article>`;
         }).join('')}</div>`
         : prior.phase === 'synchronized'
           ? `<p class="pool-room-muted">No independently accepted evidence from ${escapeHtml(prior.roomCount)} other matching room${prior.roomCount === 1 ? '' : 's'} is eligible even as a candidate.</p>`
@@ -352,10 +373,16 @@ const renderAdjudicationProof = (room) => {
           <div><dt>Curator role</dt><dd>${escapeHtml(experiment.target.curatorRole)}</dd></div>
           <div><dt>Decision</dt><dd>${escapeHtml(experiment.target.decision)}</dd></div>
           <div><dt>Baseline</dt><dd>${escapeHtml(experiment.baseline.workflowId)} @ ${escapeHtml(experiment.baseline.version)}</dd></div>
+          <div><dt>Baseline action policy</dt><dd>${escapeHtml(experiment.baseline.actionSelection ? `${experiment.baseline.actionSelection.policyId} @ ${experiment.baseline.actionSelection.version} · ${experiment.baseline.actionSelection.rankingStatus.replace(/_/g, ' ')}` : 'not frozen')}</dd></div>
           <div><dt>Candidate</dt><dd>${escapeHtml(experiment.candidate.policyId)} @ ${escapeHtml(experiment.candidate.version)}</dd></div>
           <div><dt>Paired cohort</dt><dd>${escapeHtml(experiment.cohort.caseCount)} family-disjoint cases</dd></div>
+          <div><dt>Outcome access at freeze</dt><dd>${escapeHtml(experiment.outcomeBoundary ? `${experiment.outcomeBoundary.mode.replace(/_/g, ' ')} · ${experiment.outcomeBoundary.accessAtFreeze.replace(/_/g, ' ')} · cutoff ${experiment.outcomeBoundary.evidenceCutoffAt}` : 'not frozen')}</dd></div>
+          <div><dt>Comparison controls</dt><dd>${escapeHtml(experiment.comparison?.pairedTasks && experiment.comparison?.sameInputOrder && experiment.comparison?.sameEvidenceCutoff ? 'paired tasks · same input order · same evidence cutoff' : 'not frozen')}</dd></div>
+          <div><dt>Campaign measures</dt><dd>${escapeHtml(experiment.measurementPlan ? 'information gain · contradiction cost · duplicate work · calibration error · held-out family performance' : 'not frozen')}</dd></div>
+          <div><dt>North-star policy</dt><dd>${escapeHtml(experiment.northStarPolicy ? `${experiment.northStarPolicy.aggregation.cohortStatistic} ${experiment.northStarPolicy.costRepresentation.normalizedUnit} cost · ${experiment.northStarPolicy.conclusionCriteria.minimumIndependentReplications} independent replication minimum` : 'not frozen')}</dd></div>
+          <div><dt>North-star evidence</dt><dd>${escapeHtml(evaluation?.northStarEvidence?.reportingStatus || 'not reported')}</dd></div>
         </dl>
-        <p class="type-caption">Success requires quality improvement at comparable effort or effort improvement without quality loss, using the frozen lower-bound thresholds.</p>
+        <p class="type-caption">Success requires the quality-or-effort gate and lower median normalized cost to the predeclared independently replicated conclusion. Peers, jobs, receipts, records, claims, and total compute remain operational. A signed freeze records the declared access boundary; it cannot prove that no person accessed hidden outcomes.</p>
         ${evaluation ? `<div class="pool-room-list">${evaluation.metricResults.map((metric) => `<article class="pool-room-list-item"><div><strong>${escapeHtml(metric.metricId)}</strong><p>${escapeHtml(metric.baselineValue)} baseline to ${escapeHtml(metric.candidateValue)} candidate · oriented effect ${escapeHtml(metric.orientedEffect)} · interval ${escapeHtml(metric.effectInterval.lower)} to ${escapeHtml(metric.effectInterval.upper)}</p></div><small>${escapeHtml(metric.pairedSampleCount)} paired cases</small></article>`).join('')}</div>` : '<p class="pool-room-muted">No prospective paired evaluation is attached to the accepted frozen experiment.</p>'}
       ` : '<p class="pool-room-muted">No catalog, curator role, baseline workflow, paired cohort, success rule, and independent evaluator have been frozen together. Reploid has not demonstrated its first product win.</p>'}
       ${proof.gaps?.length ? `<p class="type-caption">Open proof gaps: ${escapeHtml(proof.gaps.join(' · ').replace(/_/g, ' '))}</p>` : ''}
@@ -393,6 +420,42 @@ const renderTimeline = (room) => {
   `;
 };
 
+const campaignDimensionLabels = Object.freeze({
+  exactContractEmbedding: 'Exact-contract embeddings',
+  publicAnnotation: 'Public annotations',
+  independentReviewer: 'Independent reviewers',
+  experimentalEvidence: 'Experimental evidence'
+});
+
+const renderProteinCampaign = (room) => {
+  const campaign = room.proteinCampaign || {};
+  const current = campaign.current || null;
+  const eligible = (campaign.entries || []).filter((entry) => entry.priority?.eligible);
+  const status = campaign.phase === 'unavailable'
+    ? `<p class="pool-room-muted">Campaign evidence is unavailable: ${escapeHtml(campaign.error || 'coordinator projection unavailable')}</p>`
+    : campaign.phase !== 'synchronized'
+      ? '<p class="pool-room-muted">The public-protein disagreement queue has not synchronized.</p>'
+      : !current
+        ? '<p class="pool-room-muted">This room has no public sequence in the current campaign snapshot.</p>'
+        : `<p>${current.priority.eligible
+          ? `This exact sequence is rank ${escapeHtml(current.rank)} with disagreement in ${escapeHtml(current.priority.disagreementCount)} of 4 declared dimensions.`
+          : 'This exact sequence is not prioritized because no declared disagreement is currently admitted.'}</p>
+          <div class="pool-room-list">${Object.entries(current.dimensions || {}).map(([key, value]) => `
+            <article class="pool-room-list-item"><div><strong>${escapeHtml(campaignDimensionLabels[key] || key)}</strong><p>${escapeHtml(value.detail || '')}</p></div><small>${escapeHtml(String(value.status || 'unknown').replace(/_/g, ' '))} · ${escapeHtml(value.evidenceRecordHashes?.length || 0)} records</small></article>
+          `).join('')}</div>`;
+  return `
+    <section class="pool-room-section" data-pool-protein-campaign aria-labelledby="pool-room-campaign-title">
+      <div class="pool-room-section-heading"><div><p class="pool-dashboard-kicker">Campaign context</p><h2 class="type-h2" id="pool-room-campaign-title">Public protein disagreements</h2></div><span class="pool-room-count">${escapeHtml(campaign.eligibleCount || 0)}</span></div>
+      ${status}
+      ${eligible.length ? `<div class="pool-room-list">${eligible.map((entry) => `
+        <article class="pool-room-list-item"><div><strong>${escapeHtml(entry.label)}</strong><p>${escapeHtml(entry.priority.disagreementCount)} of 4 declared disagreement dimensions · exact sequence ${escapeHtml(compactHash(entry.sequence.hash))}</p></div><a href="${escapeHtml(roomHref('/records', entry.roomIds?.[0] || ''))}" data-pool-route-link="${escapeHtml(roomHref('/records', entry.roomIds?.[0] || ''))}">Open room</a></article>
+      `).join('')}</div>` : ''}
+      <p class="type-caption">Registry boundary: ${escapeHtml(campaign.boundary || 'not synchronized')} · ${campaign.complete ? 'reported complete for this bounded query' : 'incomplete or unavailable'} · showing at most five eligible sequences.</p>
+      <p class="type-caption">This is a deterministic, uncalibrated disagreement heuristic over verified replay inputs. It does not rank biological importance, truth, or execution priority.</p>
+    </section>
+  `;
+};
+
 const renderRoles = (room) => `
   <section class="pool-room-section" aria-labelledby="pool-room-roles-title">
     <div class="pool-room-section-heading"><div><p class="pool-dashboard-kicker">Participate</p><h2 class="type-h2" id="pool-room-roles-title">Room roles</h2></div></div>
@@ -412,6 +475,7 @@ export function renderResearchRoom({
   researchRecords = [],
   quarantinedRecords = [],
   crossRoomEvidence = {},
+  campaignQueue = {},
   receipts = [],
   peerEvents = [],
   syncState = {}
@@ -422,6 +486,7 @@ export function renderResearchRoom({
     researchRecords,
     quarantinedRecords,
     crossRoomEvidence,
+    campaignQueue,
     receipts,
     peerEvents,
     syncState
@@ -441,7 +506,7 @@ export function renderResearchRoom({
       <details class="pool-room-disclosure pool-room-technical-disclosure"><summary>History and details</summary>
         <div class="pool-room-participants" aria-label="Room participants">${renderParticipants(room.participants)}</div>
         <div class="pool-room-columns">
-          <div>${renderDiscoveryContract(room)}${renderAdjudicationProof(room)}${renderUnresolved(room)}${renderMemory(room)}${renderPriorRoomEvidence(room)}</div>
+          <div>${renderDiscoveryContract(room)}${renderResolutionCriteria(room)}${renderAdjudicationProof(room)}${renderProteinCampaign(room)}${renderUnresolved(room)}${renderMemory(room)}${renderPriorRoomEvidence(room)}</div>
           <div>${renderArchive(room)}${renderTimeline(room)}</div>
         </div>
         ${renderProposals(room)}

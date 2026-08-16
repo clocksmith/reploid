@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  buildAssignmentClaimPatch,
+  buildAssignmentExpirationPatch,
   buildExpiredAssignmentJobPatch,
   canClaimJobForAssignment
 } from '../../server/pool/coordinator-transitions.js';
@@ -10,6 +12,31 @@ describe('Pool coordinator transitions', () => {
     expect(canClaimJobForAssignment({ status: 'queued' })).toBe(true);
     expect(canClaimJobForAssignment({ status: 'failed', retryable: true })).toBe(true);
     expect(canClaimJobForAssignment({ status: 'receipt_verified', retryable: true })).toBe(false);
+    expect(buildAssignmentClaimPatch({ status: 'failed', retryable: true, assignmentAttempts: 4 })).toEqual({
+      status: 'assignment_processing',
+      assignmentAttempts: 4
+    });
+  });
+
+  it('records the exact assignment phase that expired', () => {
+    const expected = {
+      assigned: 'assignment_claim_expired',
+      running: 'assignment_execution_expired',
+      commit_submitted: 'ring_commit_barrier_expired',
+      reveal_open: 'ring_reveal_missed',
+      reveal_submitted: 'ring_receipt_missed'
+    };
+    for (const [status, failureReason] of Object.entries(expected)) {
+      expect(buildAssignmentExpirationPatch(
+        { assignmentId: `assignment_${status}`, status },
+        '2026-08-01T00:00:00.000Z'
+      )).toEqual({
+        status: 'expired',
+        expiredFromStatus: status,
+        failureReason,
+        expiredAt: '2026-08-01T00:00:00.000Z'
+      });
+    }
   });
 
   it('rejects an impossible redundant agreement after an expired assignment', () => {
@@ -36,6 +63,12 @@ describe('Pool coordinator transitions', () => {
       retryable: true,
       failedAssignmentIds: ['assignment_expired'],
       timedOutProviderIds: ['provider_expired'],
+      lastAssignmentFailure: {
+        schema: 'poolday.assignment_failure/v1',
+        kind: 'expiration',
+        assignmentId: 'assignment_expired',
+        reason: 'assignment_expired'
+      },
       agreement: { status: 'rejected', acceptedReceipts: 1 },
       verifierDecision: { accepted: false, verifiedAt: '2026-08-01T00:00:00.000Z' }
     });

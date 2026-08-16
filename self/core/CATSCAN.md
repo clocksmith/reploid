@@ -26,12 +26,15 @@ Outputs:
 
 ## Invariants
 - Execution success is not output quality or causal improvement.
+- Every claimed improvement is projected from a signed `rsi.improvement-episode/v1`
+  chain that binds a frozen baseline, declared metrics, raw paired observations,
+  evaluator authority, generation ancestry, decision, and reflection.
 - Mutations cannot bypass verification and promotion gates.
 - Failed, timed-out, or rejected work remains explicit.
 
 ## Acceptance
 - Agent policy, tool execution, and VFS boundaries pass their tests.
-- Evidence: [agent-loop policy tests](../../tests/unit/agent-loop-policies.test.js), [tool-runner integration tests](../../tests/integration/tool-runner.test.js), and [VFS tests](../../tests/integration/vfs.test.js).
+- Evidence: [improvement episode tests](../../tests/unit/improvement-episode.test.js), [agent-loop policy tests](../../tests/unit/agent-loop-policies.test.js), [tool-runner integration tests](../../tests/integration/tool-runner.test.js), and [VFS tests](../../tests/integration/vfs.test.js).
 
 ## Non-goals
 - Claiming recursive improvement from mutation, logging, or a single aggregate score.

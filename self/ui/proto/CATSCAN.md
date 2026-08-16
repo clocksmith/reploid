@@ -4,7 +4,9 @@ Parent: [Browser Interfaces](../CATSCAN.md)
 
 ## Target
 
-Let operators inspect, compare, quarantine, replay, and promote evaluated substrate candidates without crossing into product admission.
+Let operators inspect the full causal improvement episode, compare generations,
+quarantine, replay, promote, and roll back substrate candidates without crossing
+into product admission.
 
 ## Authority
 - Owns X-facing candidate, telemetry, replay, worker, and VFS inspection controls.
@@ -26,6 +28,9 @@ Outputs:
 ## Invariants
 - Candidates cannot approve themselves or edit away evaluator evidence.
 - Baseline, candidate, rejection, quarantine, and rollback states remain distinguishable.
+- One workbench exposes objective and criteria, baseline comparison, semantic
+  patch impact, raw evaluator evidence, and promotion, rollback, and reflection
+  history.
 
 ## Acceptance
 - Optimization views preserve candidate evidence and gated operator actions.

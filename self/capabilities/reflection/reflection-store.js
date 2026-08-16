@@ -3,6 +3,8 @@
  * Persists insights, errors, and success patterns to VFS.
  */
 
+import { validateHypothesisReflection } from '../../core/improvement-episode.js';
+
 const ReflectionStore = {
   metadata: {
     id: 'ReflectionStore',
@@ -90,6 +92,22 @@ const ReflectionStore = {
       EventBus.emit('reflection:added', reflection);
       logger.info(`[Reflection] Added: ${entry.type}`);
       return reflection.id;
+    };
+
+    const addHypothesis = async (entry) => {
+      const hypothesis = validateHypothesisReflection(entry);
+      return add({
+        type: 'hypothesis',
+        content: hypothesis.observation,
+        description: `${hypothesis.suspectedCause} Falsifier: ${hypothesis.falsifyingResult}`,
+        tags: ['hypothesis-driven', 'improvement-episode'],
+        context: {
+          episodeId: entry.episodeId || null,
+          candidateId: entry.candidateId || null,
+          outcome: entry.outcome || null,
+          hypothesis
+        }
+      });
     };
 
     const query = (filterFn) => {
@@ -430,6 +448,7 @@ const ReflectionStore = {
     return {
       init,
       add,
+      addHypothesis,
       query,
       getReflections,
       // Genome storage

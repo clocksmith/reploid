@@ -12,6 +12,7 @@ import {
   DOPPLER_PACKAGE_VERSION,
   DOPPLER_KERNEL_BASE_URL,
   DOPPLER_MODULE_URL,
+  DOPPLER_STORAGE_TOOLING_URL,
   DOPPLER_TOOLING_URL,
   LOCAL_DOPPLER_MODELS,
   buildDefaultLocalDopplerModelConfig,
@@ -32,6 +33,7 @@ describe('local Doppler model contract', () => {
     expect(DOPPLER_MODULE_URL).toBe('https://cdn.jsdelivr.net/npm/doppler-gpu@0.5.1/src/index.js');
     expect(DOPPLER_KERNEL_BASE_URL).toBe('https://cdn.jsdelivr.net/npm/doppler-gpu@0.5.1/src/gpu/kernels');
     expect(DOPPLER_TOOLING_URL).toBe('https://cdn.jsdelivr.net/npm/doppler-gpu@0.5.1/src/tooling-exports.browser.js');
+    expect(DOPPLER_STORAGE_TOOLING_URL).toBe('https://cdn.jsdelivr.net/npm/doppler-gpu@0.5.1/src/tooling-exports/storage.js');
     expect(DEFAULT_DOPPLER_MODEL_ID).toBe('qwen-3-5-2b-q4k-ehaf16');
     expect(LOCAL_DOPPLER_MODELS.map((model) => model.id)).toEqual([
       DEFAULT_DOPPLER_MODEL_ID

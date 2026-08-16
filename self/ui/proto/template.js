@@ -29,7 +29,7 @@ export const renderProtoTemplate = (escapeHtml, goalFromBoot) => `
       <span class="sidebar-icon">∿</span>
       <span class="tab-indicator" aria-hidden="true"><span></span><span></span><span></span></span>
     </button>
-    <button id="optimization-tab-btn" class="sidebar-btn" data-tab="optimization" title="Optimization (7)">
+    <button id="optimization-tab-btn" class="sidebar-btn" data-tab="optimization" title="RSI Workbench (7)">
       <span class="sidebar-icon">☫</span>
       <span class="tab-indicator" aria-hidden="true"><span></span><span></span><span></span></span>
     </button>
@@ -206,7 +206,7 @@ export const renderProtoTemplate = (escapeHtml, goalFromBoot) => `
         <div class="optimization-panel">
           <div class="optimization-header">
             <div class="optimization-toolbar">
-              <strong>Runtime Optimization</strong>
+              <strong>Improvement Episodes</strong>
               <span id="optimization-status" class="muted">IDLE</span>
               <span class="muted">|</span>
               <span id="optimization-active-profile" class="muted">Active: base</span>
@@ -254,12 +254,30 @@ export const renderProtoTemplate = (escapeHtml, goalFromBoot) => `
             </div>
           </div>
 
-          <div class="optimization-detail">
-            <div class="optimization-section-label">
-              <span>Receipt</span>
-              <button id="optimization-promote" class="btn btn-small" disabled>Promote</button>
-            </div>
-            <pre id="optimization-candidate-detail">Select a completed candidate.</pre>
+          <div class="optimization-workbench" aria-label="RSI improvement episode workbench">
+            <section class="optimization-episode-view">
+              <div class="optimization-section-label"><span>1. Objective and Success Criteria</span></div>
+              <pre id="optimization-objective">Select a completed candidate.</pre>
+            </section>
+            <section class="optimization-episode-view">
+              <div class="optimization-section-label"><span>2. Baseline versus Candidate</span></div>
+              <pre id="optimization-comparison">Select a completed candidate.</pre>
+            </section>
+            <section class="optimization-episode-view">
+              <div class="optimization-section-label"><span>3. Patch and Algorithm Impact</span></div>
+              <pre id="optimization-impact">Select a completed candidate.</pre>
+            </section>
+            <section class="optimization-episode-view">
+              <div class="optimization-section-label"><span>4. Raw Evidence and Evaluator</span></div>
+              <pre id="optimization-evidence">Select a completed candidate.</pre>
+            </section>
+            <section class="optimization-episode-view optimization-episode-history">
+              <div class="optimization-section-label">
+                <span>5. Promotion, Rollback, and Reflection</span>
+                <button id="optimization-promote" class="btn btn-small" disabled>Promote</button>
+              </div>
+              <pre id="optimization-history">Select a completed candidate.</pre>
+            </section>
           </div>
         </div>
       </div>

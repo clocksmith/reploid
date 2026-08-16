@@ -32,6 +32,7 @@ Guide to all documentation in the REPLOID project.
 - **[CATSCAN.md](../CATSCAN.md)** - Root component purpose, authority, boundaries, and acceptance contract
 - **[docs/component-index.md](./component-index.md)** - Generated recursive index of component charters
 - **[docs/substrate.md](./substrate.md)** - Substrate + Ouroboros contract
+- **[docs/rsi-improvement-episodes.md](./rsi-improvement-episodes.md)** - Signed causal episode ledger, metric semantics, evaluator authority, generations, and X workbench
 - **[Ouroboros documentation authority](../../ouroboros/docs/authority/README.md)** - Cross-project record routing; Reploid remains canonical for product and runtime behavior
 - **[docs/poolday/product-intent.md](./poolday/product-intent.md)** - Poolday workflow, bounded protein journey, evidence boundary, and promotion path
 - **[docs/poolday/discovery-contract.md](./poolday/discovery-contract.md)** - Target atomic active-science object, action-value boundary, epistemic updates, replication, and closure
@@ -139,9 +140,10 @@ not create Markdown blueprints unless the module introduces such a decision.
 
 ### For RSI Research
 1. [README.md](../README.md) - Core RSI thesis
-2. [blueprints/0x000015-dynamic-tool-creation.md](../self/blueprints/0x000015-dynamic-tool-creation.md) - Tool creation
-3. [blueprints/0x00005B-recursive-goal-decomposition.md](../self/blueprints/0x00005B-recursive-goal-decomposition.md) - Recursive goal decomposition
-4. [blueprints/0x00007F-recursive-gepa-ring.md](../self/blueprints/0x00007F-recursive-gepa-ring.md) - Recursive GEPA Ring whole-system recursive improvement blueprint
+2. [rsi-improvement-episodes.md](./rsi-improvement-episodes.md) - Canonical causal improvement record and current proof boundary
+3. [blueprints/0x000015-dynamic-tool-creation.md](../self/blueprints/0x000015-dynamic-tool-creation.md) - Tool creation
+4. [blueprints/0x00005B-recursive-goal-decomposition.md](../self/blueprints/0x00005B-recursive-goal-decomposition.md) - Recursive goal decomposition
+5. [blueprints/0x00007F-recursive-gepa-ring.md](../self/blueprints/0x00007F-recursive-gepa-ring.md) - Recursive GEPA Ring whole-system recursive improvement blueprint
 
 ### For Security Researchers
 1. [SECURITY.md](./SECURITY.md) - Security model and containment

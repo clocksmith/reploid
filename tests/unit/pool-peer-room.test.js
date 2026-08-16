@@ -758,6 +758,183 @@ describe('pool peer room', () => {
     }
   });
 
+  it('keeps a provider execution slot occupied after requester transport loss until runtime settlement', async () => {
+    installFakeBroadcastChannel();
+    const roomId = 'transport-close-retains-execution-slot';
+    const requesterClient = await createRoomRequesterClient('requester_transport_close_during_execution');
+    const blocking = createBlockingRuntime();
+    const providerClient = await createRoomProviderClient({
+      providerId: 'provider_transport_close_during_execution',
+      runtime: blocking.runtime
+    });
+    const transports = createFakeTransportFactories();
+    const requesterTransportFactory = (options) => {
+      const transport = transports.requesterTransportFactory(options);
+      const close = transport.close.bind(transport);
+      transport.close = async (reason) => {
+        await options.signaling.sendClose?.(reason);
+        return close(reason);
+      };
+      return transport;
+    };
+    const providerTransportFactory = (options) => {
+      const transport = transports.providerTransportFactory(options);
+      const unsubscribe = options.signaling.subscribe((message) => {
+        if (message.type === 'close') options.onStateChange?.('closed');
+      });
+      const close = transport.close.bind(transport);
+      transport.close = async (reason) => {
+        unsubscribe();
+        return close(reason);
+      };
+      return transport;
+    };
+    const activity = [];
+    const providerNode = createPeerProviderNode({
+      roomId,
+      providerClient,
+      providerTransportFactory,
+      advertIntervalMs: 100000,
+      maxActiveSessions: 1,
+      onActivity: (event) => activity.push(event)
+    });
+    await providerNode.start({
+      models: [runtimeModel()],
+      availability: { acceptedPolicies: ['fastest_receipt'], maxConcurrentJobs: 1 }
+    });
+
+    try {
+      const interrupted = runPeerJob({
+        roomId,
+        requesterClient,
+        requesterTransportFactory,
+        prompt: 'interrupted execution',
+        modelRequirements: runtimeModel(),
+        discoveryWindowMs: 1000,
+        receiptWindowMs: 25
+      });
+      const interruptedSettled = interrupted.then(
+        (result) => ({ result }),
+        (error) => ({ error })
+      );
+      await expect.poll(() => blocking.prompts.length).toBe(1);
+      const interruptedOutcome = await interruptedSettled;
+      expect(interruptedOutcome.error).toMatchObject({ code: 'peer_provider_unresponsive' });
+
+      const retry = runPeerJob({
+        roomId,
+        requesterClient,
+        requesterTransportFactory,
+        prompt: 'explicit retry',
+        modelRequirements: runtimeModel(),
+        discoveryWindowMs: 1000,
+        sessionAcceptWindowMs: 500,
+        receiptWindowMs: 100,
+        queueWindowMs: 1000
+      });
+      let retryState = 'pending';
+      const retrySettled = retry.then(
+        (result) => {
+          retryState = 'fulfilled';
+          return { result };
+        },
+        (error) => {
+          retryState = 'rejected';
+          return { error };
+        }
+      );
+      await expect.poll(() => activity.some((event) => event.status === 'peer_session_queued')).toBe(true);
+      expect(blocking.prompts).toEqual([testSequenceFor('interrupted execution')]);
+      await new Promise((resolve) => globalThis.setTimeout(resolve, 150));
+      expect(retryState).toBe('pending');
+
+      blocking.releaseNext();
+      await expect.poll(() => blocking.prompts.length).toBe(2);
+      expect(activity).toContainEqual(expect.objectContaining({
+        status: 'peer_execution_abandoned',
+        outcome: 'completed',
+        assignment: expect.objectContaining({ assignmentId: expect.any(String) }),
+        activeExecutionCount: 0,
+        queueDepth: 1
+      }));
+      expect(blocking.prompts).toEqual([
+        testSequenceFor('interrupted execution'),
+        testSequenceFor('explicit retry')
+      ]);
+      blocking.releaseNext();
+
+      const retryOutcome = await retrySettled;
+      if (retryOutcome.error) throw retryOutcome.error;
+      const result = retryOutcome.result;
+      expect(result.outputText).toBe(`queued:${testSequenceFor('explicit retry')}`);
+      expect(result.deliveryPolicy).toEqual({
+        queueWindowMs: 1000,
+        receiptWindowMs: 100,
+        queueDeadlineStartsOn: 'provider_queued_status',
+        receiptDeadlineStartsOn: 'input_dispatch_or_provider_execution_started'
+      });
+      expect(result.executionStatusEvidence.map((status) => status.type)).toEqual([
+        'queued',
+        'execution_started'
+      ]);
+      expect(result.executionStatusEvidence.every((status) => (
+        status.assignmentId === result.assignment.assignmentId
+        && status.claimBoundary.includes('not a signed receipt')
+      ))).toBe(true);
+      expect(activity.map((event) => event.status)).toContain('peer_session_dequeued');
+      expect(activity.filter((event) => event.status === 'peer_receipt_sent')).toHaveLength(1);
+
+      const blocker = runPeerJob({
+        roomId,
+        requesterClient,
+        requesterTransportFactory,
+        prompt: 'queue deadline blocker',
+        modelRequirements: runtimeModel(),
+        discoveryWindowMs: 1000,
+        receiptWindowMs: 1000,
+        queueWindowMs: 1000
+      });
+      const blockerSettled = blocker.then(
+        (blockerResult) => ({ result: blockerResult }),
+        (error) => ({ error })
+      );
+      await expect.poll(() => blocking.prompts.length).toBe(3);
+
+      const queueTimeout = runPeerJob({
+        roomId,
+        requesterClient,
+        requesterTransportFactory,
+        prompt: 'queue deadline expires',
+        modelRequirements: runtimeModel(),
+        discoveryWindowMs: 1000,
+        sessionAcceptWindowMs: 500,
+        receiptWindowMs: 1000,
+        queueWindowMs: 25
+      }).then(
+        (queueResult) => ({ result: queueResult }),
+        (error) => ({ error })
+      );
+      const queueTimeoutOutcome = await queueTimeout;
+      expect(queueTimeoutOutcome.error).toMatchObject({
+        code: 'peer_provider_unresponsive',
+        payload: {
+          providerFailures: [expect.objectContaining({
+            code: 'peer_queue_timeout',
+            message: 'Peer execution did not start before the queue deadline'
+          })]
+        }
+      });
+
+      blocking.releaseNext();
+      const blockerOutcome = await blockerSettled;
+      if (blockerOutcome.error) throw blockerOutcome.error;
+      expect(blockerOutcome.result.receiptHash).toMatch(/^sha256:/);
+    } finally {
+      blocking.releaseNext();
+      await providerNode.stop();
+    }
+  });
+
   it('reports observed contributors when none match the requested model', async () => {
     installFakeBroadcastChannel();
     const requesterKeys = await createSigningKeyPair();
@@ -1087,7 +1264,7 @@ describe('pool peer room', () => {
           expect.objectContaining({
             providerId: 'provider_leaves_mid_job',
             code: 'peer_receipt_timeout',
-            message: 'No peer receipt returned before the delivery deadline'
+            message: 'No peer receipt returned before the post-start receipt deadline'
           })
         ]
       }
@@ -1297,12 +1474,14 @@ describe('pool peer room', () => {
       accepted: true
     });
     expect(activity.map((event) => event.status)).toContain('peer_receipt_sent');
+    expect(activity.map((event) => event.status)).toContain('peer_execution_started');
     expect(activity.map((event) => event.status)).toContain('peer_acceptance_received');
     expect(runActivity.map(({ status, phase }) => `${status}:${phase}`)).toEqual([
       'peer_run_intent_created:prompt',
       'peer_provider_discovery_started:match',
       'peer_assignment_planned:match',
       'peer_inference_started:infer',
+      'peer_provider_execution_started:infer',
       'peer_receipts_received:verify',
       'peer_agreement_verified:verify',
       'peer_run_completed:answer'

@@ -5,6 +5,8 @@
 import { createPoolIdentity } from '../../pool/identity.js';
 import { createDiscoveryContractCheckpoint } from '../../pool/discovery-contract.js';
 import {
+  ADJUDICATION_EXPERIMENT_VERSION,
+  PUBLIC_PROTEIN_EVIDENCE_VERSION,
   activeResearchRecords,
   buildEvidenceGraph,
   buildQuestionLifecycles,
@@ -18,8 +20,11 @@ import {
   createSignedExperimentalOutcome,
   createSignedHumanClaim,
   createSignedPriorEvidence,
+  createSignedPublicProteinEvidence,
   createSignedResearchHypothesis,
   createSignedResearchPrediction,
+  createSignedResearchResolutionPolicy,
+  createSignedRealizedActionValue,
   createSignedResearchRevocation,
   createSignedResearchWorkClaim,
   createSignedResearchWorkOrder,
@@ -35,6 +40,7 @@ import {
 import {
   getCrossRoomSequenceEvidence,
   hydrateCrossRoomSequenceEvidence,
+  hydrateProteinUncertaintyCampaignQueue,
   hydrateResearchRecords,
   loadResearchRecords,
   publishResearchRecord
@@ -63,20 +69,39 @@ const reviewTargetFromUrl = () => {
 };
 const lifecycleRecordSummary = (record = {}) => {
   if (record.kind === 'research_hypothesis') return `<p>${escapeHtml(record.hypothesis.statement)}</p><small>Conditions: ${escapeHtml(JSON.stringify(record.hypothesis.conditions))} · discriminators: ${escapeHtml(record.hypothesis.discriminatingObservations.join(' · '))}</small>`;
-  if (record.kind === 'research_prior_evidence') return `<p>${escapeHtml(record.evidence.kind)} · ${escapeHtml(record.evidence.summary)}</p><small>${escapeHtml(record.evidence.reference.accession || record.evidence.reference.uri)} @ ${escapeHtml(record.evidence.reference.version || compactHash(record.evidence.reference.contentHash))} · retrieved ${escapeHtml(record.evidence.provenance.retrievedAt)}</small>`;
+  if (record.kind === 'research_prior_evidence') {
+    const finding = record.evidence?.finding;
+    const findingLabel = finding
+      ? ` · ${finding.classification.replace(/_/g, ' ')} · attempt ${finding.attempt.status.replace(/_/g, ' ')}${finding.attempt.failureCategory !== 'none' ? ` (${finding.attempt.failureCategory.replace(/_/g, ' ')})` : ''}`
+      : '';
+    return `<p>${escapeHtml(record.evidence.kind.replace(/_/g, ' '))}${escapeHtml(findingLabel)} · ${escapeHtml(record.evidence.summary)}</p><small>${escapeHtml(record.evidence.reference.accession || record.evidence.reference.uri)} @ ${escapeHtml(record.evidence.reference.version || compactHash(record.evidence.reference.contentHash))} · retrieved ${escapeHtml(record.evidence.provenance.retrievedAt)}${record.evidence.schema ? ` · ${escapeHtml(record.evidence.schema)}` : ''}</small>`;
+  }
   if (record.kind === 'research_prediction') return `<p>${escapeHtml(record.prediction.normalizedLabel)} · confidence ${Math.round(record.prediction.confidence * 100)}%</p><small>${escapeHtml(record.prediction.method.methodId)} @ ${escapeHtml(record.prediction.method.version)} · frozen ${escapeHtml(record.prediction.frozenAt)} · ${escapeHtml(record.prediction.outcomeAccess)}</small>`;
-  if (record.kind === 'research_work_order') return `<p>${escapeHtml(record.work.kind)} · ${record.work.replicaTarget} planned replica${record.work.replicaTarget === 1 ? '' : 's'}</p><small>Protocol ${escapeHtml(record.work.protocol.protocolId)} @ ${escapeHtml(record.work.protocol.version)} · ${escapeHtml(compactHash(record.work.protocol.protocolHash))} · proposed until independently reviewed</small>`;
+  if (record.kind === 'research_resolution_policy') return `<p>${escapeHtml(record.policy.conclusionLabel)} · resolution criteria frozen</p><small>Provisional acceptance: ${record.policy.provisionalAcceptance.minimumAcceptedCompletedOutcomes} accepted outcome(s), ${record.policy.provisionalAcceptance.minimumIndependentReplications} replica(s) · closure criteria only; no closure authority</small>`;
+  if (record.kind === 'research_work_order') return `<p>${escapeHtml(record.work.kind)} · ${record.work.replicaTarget} planned replica${record.work.replicaTarget === 1 ? '' : 's'}</p><small>Protocol ${escapeHtml(record.work.protocol.protocolId)} @ ${escapeHtml(record.work.protocol.version)} · ${escapeHtml(compactHash(record.work.protocol.protocolHash))}${record.work.schema ? ` · analysis ${escapeHtml(record.work.plannedAnalysis.methodId)} @ ${escapeHtml(record.work.plannedAnalysis.version)} · custody ${escapeHtml(record.work.custody.planId)} @ ${escapeHtml(record.work.custody.version)} · replication dimensions ${escapeHtml(record.work.replication.requiredIndependentDimensions.join(', '))} · public non-clinical scope · no laboratory or interpretation authority · public failures required` : ' · legacy work order'} · proposed and unallocated until independently reviewed</small>`;
   if (record.kind === 'research_work_claim') {
     const laboratoryLabel = record.workClaim?.consent?.publicLaboratoryIdentity === true
       ? record.workClaim?.laboratory?.name
       : `Participant ${compactHash(record.author?.identityRootId || record.author?.userId || record.recordHash)}`;
-    return `<p>${escapeHtml(laboratoryLabel)} claimed ${escapeHtml(compactHash(record.workOrderHash))}</p><small>${escapeHtml(record.workClaim.capabilities.join(' · '))} · public outcome consent recorded</small>`;
+    const capabilityLabels = (record.workClaim?.capabilityClaims || [])
+      .map((claim) => `${claim.id} @ ${claim.version}`);
+    const details = record.workClaim?.schema
+      ? [
+        record.workClaim.laboratory?.institution,
+        ...capabilityLabels,
+        `${record.workClaim.protocolCustody?.role || 'unknown'} custody`,
+        record.workClaim.safety?.classification,
+        `${record.workClaim.availability?.status || 'unknown availability'} through ${record.workClaim.availability?.validUntil || 'undeclared date'}`
+      ]
+      : [...(record.workClaim?.capabilities || []), 'legacy qualification claim'];
+    return `<p>${escapeHtml(laboratoryLabel)} claimed ${escapeHtml(compactHash(record.workOrderHash))}</p><small>${escapeHtml(details.filter(Boolean).join(' · '))} · signed declarations, not proof of authorization, safety, or capability</small>`;
   }
-  if (record.kind === 'research_outcome') return `<p>${escapeHtml(record.outcome.classification)} · ${escapeHtml(record.outcome.attempt.status)}${record.outcome.attempt.failureCategory !== 'none' ? ` · ${escapeHtml(record.outcome.attempt.failureCategory)}` : ''}</p><small>${record.replicationOfHash ? `Independent replication of ${escapeHtml(compactHash(record.replicationOfHash))} · ` : ''}${escapeHtml(record.outcome.blind.state)} · analysis ${escapeHtml(compactHash(record.outcome.analysis.analysisHash))}</small>`;
+  if (record.kind === 'research_outcome') return `<p>${escapeHtml(record.outcome.classification)} · ${escapeHtml(record.outcome.attempt.status)}${record.outcome.attempt.failureCategory !== 'none' ? ` · ${escapeHtml(record.outcome.attempt.failureCategory)}` : ''}</p><small>${record.replicationOfHash ? `Replication claim of ${escapeHtml(compactHash(record.replicationOfHash))} · admitted only after declared-dimension checks · ` : ''}${escapeHtml(record.outcome.blind.state)} · analysis ${escapeHtml(compactHash(record.outcome.analysis.analysisHash))}</small>`;
   if (record.kind === 'research_cohort') return `<p>${record.cohort.predictionHashes.length} frozen predictions · ${record.cohort.workOrderHashes.length} work orders</p><small>${escapeHtml(record.cohort.frozenAt)} · ${record.cohort.blindingRequired ? 'blinding required' : 'blinding not required'}</small>`;
   if (record.kind === 'research_evaluation') return `<p>${record.evaluation.metricResults.map((metric) => `${escapeHtml(metric.metricId)} ${metric.improved ? 'improved' : 'did not improve'} (${escapeHtml(metric.baselineValue)} to ${escapeHtml(metric.currentValue)})`).join(' · ')}</p><small>${record.evaluation.outcomeHashes.length} independently accepted outcomes · next cohort ${record.evaluation.nextCohortQuestionHashes.length ? 'bound' : 'not bound'}</small>`;
-  if (record.kind === 'research_adjudication_experiment') return `<p>${escapeHtml(record.experiment.target.catalogId)} @ ${escapeHtml(record.experiment.target.catalogVersion)} · ${escapeHtml(record.experiment.target.curatorRole)}</p><small>Baseline ${escapeHtml(record.experiment.baseline.workflowId)} versus ${escapeHtml(record.experiment.candidate.policyId)} · ${record.experiment.cohort.caseCount} family-disjoint paired cases</small>`;
-  if (record.kind === 'research_adjudication_evaluation') return `<p>Frozen adjudication rule ${escapeHtml(record.evaluation.assessment.conclusion)}</p><small>${record.evaluation.metricResults.map((metric) => `${escapeHtml(metric.metricId)} ${escapeHtml(metric.baselineValue)} to ${escapeHtml(metric.candidateValue)}`).join(' · ')}</small>`;
+  if (record.kind === 'research_realized_action_value') return `<p>${escapeHtml(record.realizedValue.assessment.status.replace(/_/g, ' '))} · ${escapeHtml(record.realizedValue.assessment.decisionEffect.replace(/_/g, ' '))}</p><small>${record.realizedValue.metricResults.length} measured metric(s) · ${record.realizedValue.contributions.length} causal contribution(s) · reward requires independent acceptance</small>`;
+  if (record.kind === 'research_adjudication_experiment') return `<p>${escapeHtml(record.experiment.target.catalogId)} @ ${escapeHtml(record.experiment.target.catalogVersion)} · ${escapeHtml(record.experiment.target.curatorRole)}</p><small>Baseline ${escapeHtml(record.experiment.baseline.workflowId)}${record.experiment.baseline.actionSelection ? ` / ${escapeHtml(record.experiment.baseline.actionSelection.policyId)}` : ''} versus ${escapeHtml(record.experiment.candidate.policyId)} · ${record.experiment.cohort.caseCount} family-disjoint paired cases · north star ${escapeHtml(record.experiment.northStarPolicy?.aggregation?.cohortStatistic || 'legacy not frozen')} · outcome access ${escapeHtml(record.experiment.outcomeBoundary?.accessAtFreeze || 'legacy boundary not frozen')}</small>`;
+  if (record.kind === 'research_adjudication_evaluation') return `<p>Frozen adjudication rule ${escapeHtml(record.evaluation.assessment.conclusion)}</p><small>North star ${escapeHtml(record.evaluation.northStarEvidence?.reportingStatus || 'legacy not reported')} · ${record.evaluation.metricResults.map((metric) => `${escapeHtml(metric.metricId)} ${escapeHtml(metric.baselineValue)} to ${escapeHtml(metric.candidateValue)}`).join(' · ')}</small>`;
   if (record.kind === 'research_candidate_action') return `<p>${escapeHtml(record.action.kind)} · ${escapeHtml(record.action.title)}</p><small>${record.action.uncertainty.map((entry) => `${entry.source}: ${entry.representation}`).join(' · ')} · exact ${escapeHtml(record.action.execution.contractKind)} ${escapeHtml(record.action.execution.contractId)} @ ${escapeHtml(record.action.execution.version)} · proposal only</small>`;
   if (record.kind === 'research_discovery_checkpoint') return `<p>${escapeHtml(record.checkpoint.state.status)} Discovery Contract state · ${record.checkpoint.inputRecordHashes.length} complete inputs · ${record.checkpoint.activeInputRecordHashes.length} active inputs</p><small>Projection ${escapeHtml(record.checkpoint.projection.id)} · state ${escapeHtml(compactHash(record.checkpoint.stateHash))}</small>`;
   if (record.kind === 'research_revocation') return `<p>Future reuse revoked: ${escapeHtml(record.revocation.reason)}</p><small>Target ${escapeHtml(compactHash(record.targetHash))} remains in immutable history.</small>`;
@@ -125,15 +150,34 @@ export function renderResearchWorkspace(roomId, records = loadResearchRecords(ro
   const priorEvidence = active.filter((record) => record.kind === 'research_prior_evidence');
   const hypotheses = active.filter((record) => record.kind === 'research_hypothesis');
   const predictions = active.filter((record) => record.kind === 'research_prediction');
+  const resolutionPolicies = active.filter((record) => record.kind === 'research_resolution_policy');
   const workOrders = active.filter((record) => record.kind === 'research_work_order');
-  const acceptedWorkOrders = workOrders.filter((record) => reviewStates.get(record.recordHash)?.state === 'accepted');
+  const acceptedResolutionPolicies = resolutionPolicies.filter((record) => reviewStates.get(record.recordHash)?.state === 'accepted');
+  const acceptedWorkOrders = workOrders.filter((record) => (
+    reviewStates.get(record.recordHash)?.state === 'accepted'
+    && acceptedResolutionPolicies.some((policy) => (
+      policy.questionHash === record.questionHash
+      && Date.parse(policy.createdAt || '') <= Date.parse(record.createdAt || '')
+    ))
+  ));
   const workClaims = active.filter((record) => record.kind === 'research_work_claim');
   const outcomes = active.filter((record) => record.kind === 'research_outcome');
   const cohorts = active.filter((record) => record.kind === 'research_cohort');
   const evaluations = active.filter((record) => record.kind === 'research_evaluation');
+  const realizedActionValues = active.filter((record) => record.kind === 'research_realized_action_value');
   const candidateActions = active.filter((record) => record.kind === 'research_candidate_action');
+  const approvedCandidateActions = candidateActions.filter((candidate) => claims.some((claim) => (
+    claim.claim?.kind === 'candidate_action_approval'
+    && claim.claim?.decision === 'approved'
+    && claim.claim?.actionContractHash === candidate.action?.contractHash
+    && claim.targetHash === candidate.recordHash
+    && claim.author?.identityRootId !== candidate.author?.identityRootId
+  )));
   const adjudicationExperiments = active.filter((record) => record.kind === 'research_adjudication_experiment');
-  const acceptedAdjudicationExperiments = adjudicationExperiments.filter((record) => reviewStates.get(record.recordHash)?.state === 'accepted');
+  const acceptedAdjudicationExperiments = adjudicationExperiments.filter((record) => (
+    record.experiment?.schema === ADJUDICATION_EXPERIMENT_VERSION
+    && reviewStates.get(record.recordHash)?.state === 'accepted'
+  ));
   const adjudicationEvaluations = active.filter((record) => record.kind === 'research_adjudication_evaluation');
   const lifecycles = buildQuestionLifecycles(records);
   const submissionsByHash = new Map(submissions.map((record) => [record.recordHash, record]));
@@ -162,10 +206,12 @@ export function renderResearchWorkspace(roomId, records = loadResearchRecords(ro
         <div><dt>Submissions</dt><dd>${submissions.length}</dd></div>
         <div><dt>Hypotheses</dt><dd>${hypotheses.length}</dd></div>
         <div><dt>Predictions</dt><dd>${predictions.length}</dd></div>
+        <div><dt>Resolution policies</dt><dd>${resolutionPolicies.length}</dd></div>
         <div><dt>Work orders</dt><dd>${workOrders.length}</dd></div>
         <div><dt>Outcomes</dt><dd>${outcomes.length}</dd></div>
         <div><dt>Frozen cohorts</dt><dd>${cohorts.length}</dd></div>
         <div><dt>Cohort evaluations</dt><dd>${evaluations.length}</dd></div>
+        <div><dt>Realized action values</dt><dd>${realizedActionValues.length}</dd></div>
         <div><dt>Adjudication experiments</dt><dd>${adjudicationExperiments.length}</dd></div>
         <div><dt>Adjudication evaluations</dt><dd>${adjudicationEvaluations.length}</dd></div>
         <div><dt>Candidate actions</dt><dd>${candidateActions.length}</dd></div>
@@ -190,6 +236,7 @@ export function renderResearchWorkspace(roomId, records = loadResearchRecords(ro
           priorEvidence,
           hypotheses,
           predictions,
+          resolutionPolicies,
           workOrders,
           acceptedWorkOrders,
           workClaims,
@@ -198,6 +245,8 @@ export function renderResearchWorkspace(roomId, records = loadResearchRecords(ro
           calibrationCohorts: cohorts.filter((record) => reviewStates.get(record.recordHash)?.state === 'accepted'),
           calibrationEvaluations: [...evaluations, ...adjudicationEvaluations]
             .filter((record) => reviewStates.get(record.recordHash)?.state === 'accepted'),
+          candidateActions: approvedCandidateActions,
+          evaluations: evaluations.filter((record) => reviewStates.get(record.recordHash)?.state === 'accepted'),
           adjudicationExperiments: acceptedAdjudicationExperiments,
           active
         })}
@@ -360,13 +409,25 @@ export const createLifecycleRecordFromForm = async (action, values, roomId, reco
     if (question?.kind !== 'research_submission') throw new Error('Selected research question is unavailable');
     const evidenceKind = values.get('evidenceKind');
     const requiresAnnotationIdentity = ['annotation', 'domain'].includes(evidenceKind);
-    return createSignedPriorEvidence({
+    const finding = evidenceKind === 'assay'
+      ? { classification: values.get('findingClassification'), attempt: { status: 'completed', failureCategory: 'none' } }
+      : evidenceKind === 'negative_result'
+        ? { classification: 'negative', attempt: { status: 'completed', failureCategory: 'none' } }
+        : evidenceKind === 'failed_attempt'
+          ? { classification: 'not_observed', attempt: { status: 'failed', failureCategory: values.get('failureCategory') } }
+          : {};
+    return createSignedPublicProteinEvidence({
       identity: researcher,
       roomId,
       questionHash: question.recordHash,
       evidenceKind,
       summary: values.get('summary'),
-      reference: { uri: values.get('uri'), accession: values.get('accession'), version: values.get('version') },
+      reference: {
+        uri: values.get('uri'),
+        accession: values.get('accession'),
+        version: values.get('version'),
+        contentHash: values.get('sourceContentHash')
+      },
       annotation: requiresAnnotationIdentity ? {
         scope: evidenceKind === 'domain' ? 'domain' : values.get('annotationScope'),
         ontology: {
@@ -383,7 +444,14 @@ export const createLifecycleRecordFromForm = async (action, values, roomId, reco
         }
       } : null,
       conditions: { notes: values.get('conditions') },
+      transformations: [{
+        id: values.get('transformationId'),
+        version: values.get('transformationVersion'),
+        parametersHash: values.get('transformationParametersHash'),
+        description: values.get('transformationDescription')
+      }],
       uncertainty: { method: 'contributor assessment', description: values.get('uncertainty') },
+      finding,
       provenance: {
         retrievalMethod: values.get('retrievalMethod'),
         retrievedAt: new Date().toISOString(),
@@ -418,6 +486,47 @@ export const createLifecycleRecordFromForm = async (action, values, roomId, reco
       conditions: { notes: values.get('conditions') },
       confidence: values.get('confidence'),
       outcomeAccess: 'blinded'
+    });
+  }
+  if (action === 'resolution-policy') {
+    const hypothesis = byHash.get(values.get('resolutionTargetHypothesisHash'));
+    if (hypothesis?.kind !== 'research_hypothesis') throw new Error('Selected resolution target hypothesis is unavailable');
+    const rule = (prefix) => ({
+      outcomeClassifications: [values.get(`${prefix}Classification`)],
+      minimumAcceptedCompletedOutcomes: values.get(`${prefix}MinimumOutcomes`),
+      minimumIndependentReplications: values.get(`${prefix}MinimumReplications`),
+      maximumAmbiguousOutcomes: values.get(`${prefix}MaximumAmbiguous`),
+      requiredDistinctReviewerIdentities: values.get(`${prefix}MinimumReviewers`),
+      uncertainty: {
+        methodId: values.get(`${prefix}UncertaintyMethodId`),
+        version: values.get(`${prefix}UncertaintyVersion`),
+        metricId: values.get(`${prefix}UncertaintyMetricId`),
+        maximumValue: values.get(`${prefix}MaximumUncertainty`),
+        unit: values.get(`${prefix}UncertaintyUnit`)
+      }
+    });
+    const frozenAt = new Date().toISOString();
+    return createSignedResearchResolutionPolicy({
+      identity: researcher,
+      roomId,
+      questionHash: hypothesis.questionHash,
+      targetHypothesisHash: hypothesis.recordHash,
+      conclusionLabel: values.get('resolutionConclusionLabel'),
+      decisionScope: values.get('resolutionDecisionScope'),
+      provisionalAcceptance: rule('acceptance'),
+      continuedUncertainty: { triggers: commaList(values.get('uncertaintyTriggers')) },
+      rejection: rule('rejection'),
+      reopening: { triggers: commaList(values.get('reopeningTriggers')) },
+      closure: {
+        minimumAcceptedCompletedOutcomes: values.get('closureMinimumOutcomes'),
+        minimumIndependentReplications: values.get('closureMinimumReplications'),
+        maximumAmbiguousOutcomes: values.get('closureMaximumAmbiguous'),
+        requiredDistinctReviewerIdentities: values.get('closureMinimumReviewers'),
+        requireAllControlsPassed: values.get('closureControlsPassed') === 'on',
+        requireNoDisputedReviews: values.get('closureNoDisputedReviews') === 'on',
+        requireNoActiveContradictions: values.get('closureNoContradictions') === 'on'
+      },
+      frozenAt
     });
   }
   if (action === 'candidate-action') {
@@ -504,10 +613,54 @@ export const createLifecycleRecordFromForm = async (action, values, roomId, reco
       title: values.get('title'),
       protocol: protocolFromForm(values),
       replicaTarget: values.get('replicaTarget'),
-      blindness: { required: true, allocationHash: values.get('allocationHash') }
+      blindness: { required: true, allocationHash: values.get('allocationHash') },
+      feasibility: {
+        resources: values.get('workResources'),
+        biosafety: values.get('workBiosafety'),
+        limitations: values.get('workLimitations')
+      },
+      analysis: {
+        methodId: values.get('workAnalysisMethodId'),
+        version: values.get('workAnalysisVersion'),
+        artifactHash: values.get('workAnalysisArtifactHash'),
+        parametersHash: values.get('workAnalysisParametersHash')
+      },
+      failureCategories: commaList(values.get('allowedFailureCategories')),
+      custody: {
+        planId: values.get('custodyPlanId'),
+        version: values.get('custodyPlanVersion'),
+        artifactHash: values.get('custodyArtifactHash'),
+        requiredRoles: commaList(values.get('custodyRequiredRoles')),
+        materialsPolicy: values.get('materialsPolicy'),
+        samplesPolicy: values.get('samplesPolicy'),
+        instrumentsPolicy: values.get('instrumentsPolicy')
+      },
+      publication: {
+        scope: 'public_complete_record',
+        license: values.get('workPublicationLicense'),
+        publishLaboratoryIdentity: values.get('publishLaboratoryIdentity') === 'on',
+        publishQualification: values.get('publishQualification') === 'on',
+        publishProtocol: values.get('publishProtocol') === 'on',
+        publishRawObservations: values.get('publishRawObservations') === 'on',
+        publishFailures: values.get('publishFailures') === 'on'
+      },
+      replication: {
+        requiredIndependentDimensions: commaList(values.get('replicationIndependentDimensions'))
+      },
+      scopeBoundary: {
+        biologicalInterpretation: 'evidence_only_no_interpretation_authority',
+        medicalUse: 'prohibited',
+        protocolSafetyClassification: 'public_non_pathogenic_non_clinical',
+        sampleScope: 'explicitly_public_synthetic_or_public_reference_only',
+        privateSamples: 'prohibited',
+        laboratoryAuthority: 'none',
+        safetyReview: 'independent_human_required_before_execution'
+      }
     });
   }
   if (action === 'work-claim') {
+    const workOrder = byHash.get(values.get('workOrderHash'));
+    if (workOrder?.kind !== 'research_work_order') throw new Error('Selected work order is unavailable');
     return createSignedResearchWorkClaim({
       identity: researcher,
       roomId,
@@ -515,13 +668,39 @@ export const createLifecycleRecordFromForm = async (action, values, roomId, reco
       laboratory: {
         id: values.get('laboratoryId'),
         name: values.get('laboratoryName'),
-        institution: values.get('institution')
+        institution: values.get('institution'),
+        institutionIdentityHash: values.get('institutionIdentityHash'),
+        ror: values.get('ror')
       },
-      capabilities: [values.get('capability')],
+      capabilityClaims: [{
+        id: values.get('capabilityId'),
+        version: values.get('capabilityVersion'),
+        evidenceHash: values.get('capabilityEvidenceHash'),
+        description: values.get('capabilityDescription')
+      }],
+      protocolCustody: {
+        protocolHash: workOrder.work.protocol.protocolHash,
+        role: values.get('protocolCustodyRole'),
+        evidenceHash: values.get('protocolCustodyEvidenceHash')
+      },
+      safety: {
+        classification: values.get('laboratorySafetyClassification'),
+        oversightAuthority: values.get('oversightAuthority'),
+        approvalHash: values.get('safetyApprovalHash'),
+        limitations: commaList(values.get('safetyLimitations'))
+      },
+      availability: {
+        status: values.get('laboratoryAvailabilityStatus'),
+        capacity: values.get('laboratoryCapacity'),
+        validFrom: values.get('laboratoryAvailableFrom'),
+        validUntil: values.get('laboratoryAvailableUntil')
+      },
       consent: {
         publicLaboratoryIdentity: values.get('publicConsent') === 'on',
+        publishQualification: values.get('publicConsent') === 'on',
         publishOutcome: values.get('publicConsent') === 'on'
-      }
+      },
+      conflictDisclosure: values.get('laboratoryConflictDisclosure')
     });
   }
   if (action === 'outcome') {
@@ -552,11 +731,21 @@ export const createLifecycleRecordFromForm = async (action, values, roomId, reco
         uncertainty: { method: 'reported uncertainty', value: values.get('uncertaintyValue'), unit: values.get('unit') }
       }],
       protocol: workOrder.work.protocol,
-      analysis: {
-        methodId: values.get('analysisId'),
-        version: values.get('analysisVersion'),
-        artifactHash: values.get('analysisArtifactHash'),
-        lineageHashes: replicationOfHash ? [replicationOfHash] : []
+      analysis: workOrder.work.plannedAnalysis
+        ? { ...workOrder.work.plannedAnalysis, lineageHashes: replicationOfHash ? [replicationOfHash] : [] }
+        : {
+          methodId: values.get('analysisId'),
+          version: values.get('analysisVersion'),
+          artifactHash: values.get('analysisArtifactHash'),
+          parametersHash: values.get('analysisParametersHash'),
+          lineageHashes: replicationOfHash ? [replicationOfHash] : []
+        },
+      executionContext: {
+        institutionIdentityHash: workClaim.workClaim.laboratory.institutionIdentityHash,
+        instrumentIdentityHash: values.get('instrumentIdentityHash'),
+        sampleBatchHash: values.get('sampleBatchHash'),
+        preparationBatchHash: values.get('preparationBatchHash'),
+        analysisExecutionHash: values.get('analysisExecutionHash')
       },
       uncertainty: { method: 'reported uncertainty', value: values.get('uncertaintyValue'), unit: values.get('unit') },
       blind: { state: 'sealed', codeHash: values.get('codeHash'), allocationHash: workOrder.work.blindness.allocationHash },
@@ -579,6 +768,16 @@ export const createLifecycleRecordFromForm = async (action, values, roomId, reco
     });
   }
   if (action === 'adjudication-experiment') {
+    const metricPrefixes = [
+      'quality',
+      'effort',
+      'informationGain',
+      'contradictionCost',
+      'duplicateWork',
+      'uncertaintyCalibration',
+      'heldOutFamily',
+      'northStar'
+    ];
     return createSignedAdjudicationExperiment({
       identity: researcher,
       roomId,
@@ -596,7 +795,19 @@ export const createLifecycleRecordFromForm = async (action, values, roomId, reco
         version: values.get('baselineVersion'),
         revisionHash: values.get('baselineRevisionHash'),
         description: values.get('baselineDescription'),
-        toolsAndHandoffs: commaList(values.get('baselineTools'))
+        toolsAndHandoffs: commaList(values.get('baselineTools')),
+        actionSelection: {
+          policyId: values.get('baselinePolicyId'),
+          version: values.get('baselinePolicyVersion'),
+          artifactHash: values.get('baselinePolicyArtifactHash'),
+          inputContractHash: values.get('baselineInputContractHash'),
+          budgetContractHash: values.get('baselineBudgetContractHash'),
+          rankingMethod: values.get('baselineRankingMethod'),
+          rankingStatus: values.get('baselineRankingStatus'),
+          eligibleActionKinds: commaList(values.get('baselineEligibleActionKinds')),
+          tieBreak: commaList(values.get('baselineTieBreak')),
+          stopRule: values.get('baselineStopRule')
+        }
       },
       candidate: {
         policyId: values.get('candidatePolicyId'),
@@ -614,6 +825,24 @@ export const createLifecycleRecordFromForm = async (action, values, roomId, reco
         allocationHash: values.get('allocationHash'),
         familyDisjoint: values.get('familyDisjoint') === 'on'
       },
+      outcomeBoundary: {
+        mode: values.get('outcomeBoundaryMode'),
+        accessAtFreeze: values.get('outcomeBoundaryMode') === 'historical_hidden' ? 'blinded' : 'not_available',
+        evidenceCutoffAt: values.get('outcomeEvidenceCutoffAt'),
+        outcomeManifestCommitmentHash: values.get('outcomeManifestCommitmentHash'),
+        revealRule: values.get('outcomeRevealRule'),
+        contaminationAuditMethod: values.get('contaminationAuditMethod'),
+        contaminationAuditArtifactHash: values.get('contaminationAuditArtifactHash')
+      },
+      comparison: {
+        pairedTasks: values.get('pairedTasks') === 'on',
+        sameInputOrder: values.get('sameInputOrder') === 'on',
+        sameEvidenceCutoff: values.get('sameEvidenceCutoff') === 'on',
+        resourceBudgetHash: values.get('comparisonResourceBudgetHash'),
+        failurePolicyHash: values.get('comparisonFailurePolicyHash'),
+        timeoutPolicyHash: values.get('comparisonTimeoutPolicyHash'),
+        seedManifestHash: values.get('comparisonSeedManifestHash')
+      },
       evaluator: {
         authority: values.get('evaluatorAuthority'),
         identityRootId: values.get('evaluatorIdentityRootId'),
@@ -622,7 +851,7 @@ export const createLifecycleRecordFromForm = async (action, values, roomId, reco
         artifactHash: values.get('evaluatorArtifactHash'),
         blinded: values.get('evaluatorBlinded') === 'on'
       },
-      metrics: ['quality', 'effort'].map((prefix) => ({
+      metrics: metricPrefixes.map((prefix) => ({
         id: values.get(`${prefix}MetricId`),
         label: values.get(`${prefix}MetricLabel`),
         unit: values.get(`${prefix}MetricUnit`),
@@ -634,6 +863,53 @@ export const createLifecycleRecordFromForm = async (action, values, roomId, reco
         minimumSampleSize: values.get(`${prefix}MinimumSample`),
         confidenceLevel: values.get(`${prefix}ConfidenceLevel`)
       })),
+      measurementPlan: {
+        informationGainPerActionMetricId: values.get('informationGainMetricId'),
+        contradictionResolutionCostMetricId: values.get('contradictionCostMetricId'),
+        duplicateWorkAvoidedMetricId: values.get('duplicateWorkMetricId'),
+        uncertaintyCalibrationErrorMetricId: values.get('uncertaintyCalibrationMetricId'),
+        heldOutFamilyPerformanceMetricId: values.get('heldOutFamilyMetricId')
+      },
+      northStarPolicy: {
+        costToReplicatedConclusionMetricId: values.get('northStarMetricId'),
+        costRepresentation: {
+          componentIds: ['compute', 'money', 'labor', 'instrument', 'sample', 'elapsedTime'],
+          rawAmountsRemainInOriginalUnits: values.get('rawCostUnitsPreserved') === 'on',
+          normalizedUnit: values.get('northStarMetricUnit'),
+          conversionPolicy: {
+            policyId: values.get('costConversionPolicyId'),
+            version: values.get('costConversionPolicyVersion'),
+            artifactHash: values.get('costConversionArtifactHash')
+          },
+          includeFailedAttempts: values.get('failedAttemptsIncluded') === 'on',
+          includeUnresolvedCases: values.get('unresolvedCasesIncluded') === 'on',
+          stopRule: values.get('northStarCostStopRule')
+        },
+        conclusionCriteria: {
+          policyId: values.get('conclusionPolicyId'),
+          version: values.get('conclusionPolicyVersion'),
+          artifactHash: values.get('conclusionPolicyArtifactHash'),
+          decisionStates: ['retain', 'revise', 'reject', 'unresolved'],
+          frozenBeforeActions: values.get('conclusionFrozenBeforeActions') === 'on',
+          independentAcceptanceRequired: values.get('conclusionIndependentAcceptance') === 'on',
+          independentReplicationRequired: values.get('conclusionIndependentReplication') === 'on',
+          minimumIndependentReplications: values.get('minimumIndependentReplications')
+        },
+        independenceCriteria: {
+          policyId: values.get('independencePolicyId'),
+          version: values.get('independencePolicyVersion'),
+          artifactHash: values.get('independencePolicyArtifactHash'),
+          requiredDimensions: commaList(values.get('northStarIndependenceDimensions')),
+          evaluatorExcludedFromCaseEvidence: values.get('evaluatorExcludedFromCaseEvidence') === 'on'
+        },
+        aggregation: {
+          intervalMethod: values.get('northStarIntervalMethod'),
+          minimumPairedCases: values.get('northStarMinimumPairedCases'),
+          confidenceLevel: values.get('northStarAggregationConfidence'),
+          minimumImprovementThreshold: values.get('northStarMinimumImprovement')
+        },
+        operationalMetrics: ['peers', 'jobs', 'receipts', 'records', 'claims', 'total_compute']
+      },
       successPolicy: {
         qualityMetricId: values.get('qualityMetricId'),
         effortMetricId: values.get('effortMetricId'),
@@ -653,6 +929,26 @@ export const createLifecycleRecordFromForm = async (action, values, roomId, reco
     const experiment = byHash.get(values.get('adjudicationExperimentHash'));
     if (experiment?.kind !== 'research_adjudication_experiment') throw new Error('Selected adjudication experiment is unavailable');
     const policy = experiment.experiment.successPolicy;
+    const measurementPlan = experiment.experiment.measurementPlan;
+    const metricResults = [
+      [policy.qualityMetricId, 'quality'],
+      [policy.effortMetricId, 'effort'],
+      [measurementPlan.informationGainPerActionMetricId, 'informationGain'],
+      [measurementPlan.contradictionResolutionCostMetricId, 'contradictionCost'],
+      [measurementPlan.duplicateWorkAvoidedMetricId, 'duplicateWork'],
+      [measurementPlan.uncertaintyCalibrationErrorMetricId, 'uncertaintyCalibration'],
+      [measurementPlan.heldOutFamilyPerformanceMetricId, 'heldOutFamily'],
+      [experiment.experiment.northStarPolicy.costToReplicatedConclusionMetricId, 'northStar']
+    ].map(([metricId, prefix]) => ({
+      metricId,
+      baselineValue: values.get(`${prefix}BaselineValue`),
+      candidateValue: values.get(`${prefix}CandidateValue`),
+      effectInterval: {
+        lower: values.get(`${prefix}EffectLower`),
+        upper: values.get(`${prefix}EffectUpper`)
+      },
+      pairedSampleCount: values.get('pairedSampleCount')
+    }));
     return createSignedAdjudicationEvaluation({
       identity: researcher,
       roomId,
@@ -662,19 +958,26 @@ export const createLifecycleRecordFromForm = async (action, values, roomId, reco
         version: values.get('resultManifestVersion'),
         contentHash: values.get('resultManifestHash')
       },
-      metricResults: [{
-        metricId: policy.qualityMetricId,
-        baselineValue: values.get('qualityBaselineValue'),
-        candidateValue: values.get('qualityCandidateValue'),
-        effectInterval: { lower: values.get('qualityEffectLower'), upper: values.get('qualityEffectUpper') },
-        pairedSampleCount: values.get('pairedSampleCount')
-      }, {
-        metricId: policy.effortMetricId,
-        baselineValue: values.get('effortBaselineValue'),
-        candidateValue: values.get('effortCandidateValue'),
-        effectInterval: { lower: values.get('effortEffectLower'), upper: values.get('effortEffectUpper') },
-        pairedSampleCount: values.get('pairedSampleCount')
-      }],
+      metricResults,
+      northStarEvidence: {
+        caseEvidenceManifestHash: values.get('northStarCaseEvidenceManifestHash'),
+        rawCostObservationManifestHash: values.get('northStarRawCostManifestHash'),
+        conclusionAuditManifestHash: values.get('northStarConclusionAuditHash'),
+        independenceAuditManifestHash: values.get('northStarIndependenceAuditHash'),
+        conversionAuditArtifactHash: values.get('northStarConversionAuditHash'),
+        baseline: {
+          observedCaseCount: values.get('northStarBaselineObservedCases'),
+          independentlyReplicatedConclusionCount: values.get('northStarBaselineReplicatedCases')
+        },
+        candidate: {
+          observedCaseCount: values.get('northStarCandidateObservedCases'),
+          independentlyReplicatedConclusionCount: values.get('northStarCandidateReplicatedCases')
+        },
+        allFrozenCasesIncluded: values.get('northStarAllCasesIncluded') === 'on',
+        realWorldObserved: values.get('northStarRealWorldObserved') === 'on',
+        criteriaAppliedBeforeOutcomeAccess: values.get('northStarCriteriaPredatedOutcomes') === 'on',
+        operationalMetricsExcludedFromSuccess: values.get('northStarOperationalMetricsExcluded') === 'on'
+      },
       regressionCount: values.get('adjudicationRegressionCount'),
       missingCaseCount: values.get('adjudicationMissingCaseCount'),
       disagreementSummary: values.get('adjudicationDisagreementSummary'),
@@ -706,6 +1009,68 @@ export const createLifecycleRecordFromForm = async (action, values, roomId, reco
       disagreementSummary: values.get('disagreementSummary'),
       failureAnalysis: values.get('failureAnalysis'),
       nextCohortQuestionHashes: values.get('bindNextCohort') === 'on' ? cohort.cohort.questionHashes : []
+    });
+  }
+  if (action === 'realized-action-value') {
+    const candidate = byHash.get(values.get('candidateActionHash'));
+    const evaluation = byHash.get(values.get('evaluationHash'));
+    if (!candidate || !evaluation) throw new Error('Selected candidate action or evaluation is unavailable');
+    const cohort = byHash.get(evaluation.cohortHash);
+    if (!cohort?.cohort?.questionHashes?.includes(candidate.questionHash)) {
+      throw new Error('Selected evaluation does not measure the candidate action question');
+    }
+    const candidateActionApprovalHashes = records.filter((record) => (
+      record.kind === 'human_claim'
+      && record.claim?.kind === 'candidate_action_approval'
+      && record.claim?.decision === 'approved'
+      && record.claim?.actionContractHash === candidate.action.contractHash
+      && record.targetHash === candidate.recordHash
+      && record.author?.identityRootId !== candidate.author?.identityRootId
+    )).map((record) => record.recordHash);
+    if (!candidateActionApprovalHashes.length) throw new Error('The candidate action requires independent exact-contract approval');
+    const reviewStates = new Map(projectResearchReviewStates(records).map((entry) => [entry.recordHash, entry]));
+    const acceptedReviewHashes = (targetHash) => (reviewStates.get(targetHash)?.decisions || [])
+      .filter((decision) => decision.claim?.decision === 'accepted')
+      .map((decision) => decision.recordHash);
+    const evaluationReviewDecisionHashes = acceptedReviewHashes(evaluation.recordHash);
+    if (!evaluationReviewDecisionHashes.length) throw new Error('The measured evaluation requires independent acceptance');
+    const reviewedOutcomes = evaluation.evaluation.outcomeHashes.map((outcomeHash) => {
+      const reviewDecisionHashes = acceptedReviewHashes(outcomeHash);
+      if (!reviewDecisionHashes.length) throw new Error(`Outcome ${compactHash(outcomeHash)} requires independent acceptance`);
+      return { outcomeHash, reviewDecisionHashes };
+    });
+    const contributionByHash = new Map();
+    const addContribution = (recordHash, role, causalRationale) => {
+      if (recordHash) contributionByHash.set(recordHash, { recordHash, role, causalRationale });
+    };
+    addContribution(candidate.recordHash, 'action_proposal', 'Proposed the exact candidate action whose downstream value was measured.');
+    for (const approvalHash of candidateActionApprovalHashes) {
+      addContribution(approvalHash, 'independent_review', 'Independently approved the exact candidate action contract.');
+    }
+    addContribution(evaluation.recordHash, 'evaluation', 'Measured the candidate against the frozen cohort metric vector.');
+    for (const reviewHash of evaluationReviewDecisionHashes) {
+      addContribution(reviewHash, 'independent_review', 'Independently accepted the measured evaluation.');
+    }
+    for (const reviewed of reviewedOutcomes) {
+      addContribution(reviewed.outcomeHash, 'outcome_execution', 'Produced a reviewed outcome used by the frozen evaluation.');
+      for (const reviewHash of reviewed.reviewDecisionHashes) {
+        addContribution(reviewHash, 'independent_review', 'Independently accepted a measured downstream outcome.');
+      }
+    }
+    return createSignedRealizedActionValue({
+      identity: researcher,
+      roomId,
+      questionHash: candidate.questionHash,
+      candidateActionHash: candidate.recordHash,
+      actionContractHash: candidate.action.contractHash,
+      candidateActionApprovalHashes,
+      evaluationHash: evaluation.recordHash,
+      evaluationReviewDecisionHashes,
+      reviewedOutcomes,
+      contributions: [...contributionByHash.values()],
+      metricResults: evaluation.evaluation.metricResults,
+      decisionEffect: values.get('decisionEffect'),
+      summary: values.get('realizedValueSummary')
     });
   }
   if (action === 'revocation') {
@@ -872,6 +1237,29 @@ export function bindResearchWorkspace(
       kindSelect.addEventListener('change', syncAnnotationFields);
       syncAnnotationFields();
     }
+    const findingFields = form.querySelector('[data-public-evidence-finding]');
+    const failureFields = form.querySelector('[data-public-evidence-failure]');
+    if (kindSelect && findingFields && failureFields) {
+      const syncPublicEvidenceFinding = () => {
+        const assay = kindSelect.value === 'assay';
+        const negative = kindSelect.value === 'negative_result';
+        const failed = kindSelect.value === 'failed_attempt';
+        findingFields.hidden = !assay && !negative;
+        const classification = findingFields.querySelector('[name="findingClassification"]');
+        if (classification) {
+          classification.disabled = !assay;
+          classification.required = assay;
+          if (negative) classification.value = 'negative';
+        }
+        failureFields.hidden = !failed;
+        for (const control of failureFields.querySelectorAll('input, select')) {
+          control.disabled = !failed;
+          control.required = failed;
+        }
+      };
+      kindSelect.addEventListener('change', syncPublicEvidenceFinding);
+      syncPublicEvidenceFinding();
+    }
     form.addEventListener('submit', async (event) => {
       event.preventDefault();
       const status = form.querySelector('[data-research-lifecycle-status]');
@@ -938,7 +1326,10 @@ export async function createCurrentRoomPriorEvidence({
     originQuestion,
     currentQuestion: question
   });
-  return createSignedPriorEvidence({
+  const createAttachedEvidence = sourceRecord.evidence?.schema === PUBLIC_PROTEIN_EVIDENCE_VERSION
+    ? createSignedPublicProteinEvidence
+    : createSignedPriorEvidence;
+  return createAttachedEvidence({
     identity,
     roomId,
     questionHash: question.recordHash,
@@ -951,12 +1342,16 @@ export async function createCurrentRoomPriorEvidence({
     annotation,
     reuseContext,
     conditions: sourceRecord.evidence?.conditions || {},
-    transformations: [{
-      id: 'reploid.cross-room-evidence-reference',
-      version: '1',
-      description: 'References the exact signed origin-room record without inheriting its decision status.'
-    }],
+    transformations: [
+      ...(sourceRecord.evidence?.transformations || []),
+      {
+        id: 'reploid.cross-room-evidence-reference',
+        version: '1',
+        description: 'References the exact signed origin-room record without inheriting its decision status.'
+      }
+    ],
     uncertainty: sourceRecord.evidence?.uncertainty || {},
+    finding: sourceRecord.evidence?.finding || {},
     provenance: {
       retrievalMethod: 'Reploid exact-sequence prior-room lookup',
       retrievedAt: createdAt,
@@ -1132,7 +1527,8 @@ export async function hydrateAndBindResearchWorkspace(
   roomId = workspace?.dataset.roomId,
   {
     hydrate = hydrateResearchRecords,
-    hydrateCrossRoom = hydrateCrossRoomSequenceEvidence
+    hydrateCrossRoom = hydrateCrossRoomSequenceEvidence,
+    hydrateCampaign = hydrateProteinUncertaintyCampaignQueue
   } = {}
 ) {
   if (!roomId) return null;
@@ -1153,6 +1549,7 @@ export async function hydrateAndBindResearchWorkspace(
   const crossRoomEvidence = latestSubmission
     ? await hydrateCrossRoom(roomId, latestSubmission.sequence?.hash)
     : null;
+  const campaignQueue = await hydrateCampaign(roomId);
   const currentWorkspace = document.querySelector('[data-pool-research-workspace]');
   if (workspace && currentWorkspace?.dataset.roomId === roomId) {
     replaceWorkspace(currentWorkspace);
@@ -1168,7 +1565,7 @@ export async function hydrateAndBindResearchWorkspace(
         ? `Local evidence verified; ${rejectedCount} unadmitted or invalid record${rejectedCount === 1 ? '' : 's'} rejected by policy; coordinator sync unavailable`
         : 'Local evidence verified; coordinator sync unavailable');
   }
-  const result = { ...hydrated, crossRoomEvidence };
+  const result = { ...hydrated, crossRoomEvidence, campaignQueue };
   if (sync && !document.body.contains(sync)) return result;
   return result;
 }

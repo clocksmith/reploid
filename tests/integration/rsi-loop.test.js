@@ -1,7 +1,7 @@
 /**
- * @fileoverview RSI Loop Integration Tests
- * Tests the complete Recursive Self-Improvement cycle:
- * propose → arena eval → apply/rollback
+ * @fileoverview Operational scaffolding used by bounded RSI experiments.
+ * Arena and observability results are inputs to an improvement episode, not
+ * causal proof of improvement.
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
@@ -9,7 +9,7 @@ import ToolRunnerModule from '../../core/tool-runner.js';
 import ObservabilityModule from '../../infrastructure/observability.js';
 import PromptScoreMapModule from '../../capabilities/reflection/prompt-score-map.js';
 
-describe('RSI Loop - Integration Tests', () => {
+describe('RSI Operational Scaffolding - Integration Tests', () => {
   let toolRunner;
   let observability;
   let promptScoreMap;
@@ -135,7 +135,7 @@ describe('RSI Loop - Integration Tests', () => {
     vi.clearAllMocks();
   });
 
-  describe('Complete RSI Cycle', () => {
+  describe('Operational arena measurements', () => {
     it('records 80% passRate threshold correctly', async () => {
       // Emit arena:complete with 85% passRate (above threshold)
       mockEventBus.emit('arena:complete', {
@@ -258,9 +258,9 @@ describe('RSI Loop - Integration Tests', () => {
     });
   });
 
-  describe('RSI Iteration Tracking', () => {
-    it('tracks 5+ iterations with net positive score delta', async () => {
-      // Simulate 5 RSI iterations with improving scores
+  describe('Iteration tracking', () => {
+    it('tracks score observations without treating the trend as causal improvement', async () => {
+      // These observations still require a frozen baseline and improvement episode.
       const iterations = [
         { task: 'Iter 1: Initial attempt', passRate: 70 },
         { task: 'Iter 2: First improvement', passRate: 75 },
@@ -288,7 +288,7 @@ describe('RSI Loop - Integration Tests', () => {
       expect(successRate.passed).toBe(3); // Only 80, 85, 90 are >= 80
       expect(successRate.rate).toBe(60); // 3/5 passed
 
-      // Aggregate stats should show improvement trend
+      // Aggregate stats expose a trend but do not establish causal improvement.
       const stats = promptScoreMap.getAggregateStats();
       expect(stats.count).toBe(5); // 5 unique tasks
       expect(stats.avgScore).toBe(80); // Average of 70,75,80,85,90

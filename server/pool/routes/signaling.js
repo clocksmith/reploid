@@ -50,6 +50,12 @@ export function registerSignalingRoutes(router, {
     if (assignment.expiresAt && toEpochMs(assignment.expiresAt) < Date.now()) {
       return res.status(410).json({ error: 'assignment expired' });
     }
+    if (!['assigned', 'running', 'commit_submitted', 'reveal_open', 'reveal_submitted'].includes(assignment.status)) {
+      return res.status(409).json({
+        error: 'assignment is not active for signaling',
+        assignmentStatus: assignment.status
+      });
+    }
     const job = await store.getJob(assignment.jobId);
     const participantIds = Array.from(new Set([
       assignment.requesterId,
@@ -61,11 +67,10 @@ export function registerSignalingRoutes(router, {
     }
     const phaseProtocol = phaseProtocolForAssignment(assignment);
     if (assignment.ring
-      && phaseProtocol?.p2pPayloadsAllowedAfterPhase === 'reveal_open'
-      && job?.ringPhase !== 'reveal_open'
-      && job?.ringPhase !== 'reveal_submitted') {
+      && phaseProtocol?.signalingAllowedFromPhase === 'private_compute'
+      && !['private_compute', 'commit_submitted', 'reveal_open', 'reveal_submitted'].includes(job?.ringPhase)) {
       return res.status(409).json({
-        error: 'ring p2p payload transport is locked until reveal_open',
+        error: 'ring signaling is not open for assignment input',
         ringPhase: job?.ringPhase || null
       });
     }
@@ -78,7 +83,10 @@ export function registerSignalingRoutes(router, {
       participantIds,
       mode: assignment.ring ? 'ring_webrtc_datachannel' : 'requester_provider_webrtc_datachannel',
       transport: 'webrtc_datachannel',
-      p2pClaim: 'prompt/output/full receipt payloads should travel over WebRTC; cloud stores only signaling metadata and later receipt anchors',
+      p2pClaim: 'assignment input may travel over WebRTC from private_compute; result evidence affects quorum only after commit-reveal; cloud stores only signaling metadata and later receipt anchors',
+      signalingAllowedFromPhase: phaseProtocol?.signalingAllowedFromPhase || null,
+      inputPayloadsAllowedFromPhase: phaseProtocol?.inputPayloadsAllowedFromPhase || null,
+      resultEvidenceAdmissibleFromPhase: phaseProtocol?.resultEvidenceAdmissibleFromPhase || null,
       expiresAt: boundedSignalSessionExpiry({ assignment, requestedExpiresAt: body.expiresAt || null }),
       createdBy: req.body?.createdBy || assignment.requesterId,
       jobStatusAtCreate: job?.status || null

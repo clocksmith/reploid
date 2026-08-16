@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 
 import { BROWSER_RUNTIME_CONFIG as SERVER_BROWSER_RUNTIME_CONFIG } from '../../server/pool/config.js';
+import { hashJson as hashServerJson } from '../../server/pool/hash.js';
 import { getPolicy, validateJobRequest } from '../../server/pool/policy-router.js';
 import {
   LAUNCH_MODEL as SERVER_LAUNCH_MODEL,
@@ -30,7 +31,8 @@ import {
 import { verifyReceipt as verifyBrowserReceipt } from '../../self/pool/sdk.js';
 import {
   DOPPLER_KERNEL_BASE_URL,
-  DOPPLER_MODULE_URL
+  DOPPLER_MODULE_URL,
+  DOPPLER_STORAGE_TOOLING_URL
 } from '../../self/config/doppler-local-models.js';
 
 const PROTEIN_MODEL_ID = 'esm2-t12-35m-ur50d-f32-af32';
@@ -175,7 +177,7 @@ describe('Poolday protein-first sequence model contract', () => {
     });
   });
 
-  it('keeps sequence work out of the coordinator prompt route', () => {
+  it('keeps raw sequence work out of the coordinator prompt route', () => {
     const result = validateJobRequest({
       requesterId: 'requester_test',
       requesterPublicKey: 'public-key',
@@ -185,7 +187,42 @@ describe('Poolday protein-first sequence model contract', () => {
       generationConfig: { ...BROWSER_GENERATION_CONFIG }
     });
     expect(result.ok).toBe(false);
-    expect(result.reasons).toContain('biological sequence jobs require the peer-room WebRTC input lane');
+    expect(result.reasons).toContain('sequence jobs must not place raw input in prompt');
+  });
+
+  it('admits a public sequence assignment shell without storing its raw sequence', () => {
+    const modelRequirements = proteinRequirements();
+    const sequenceRequest = modelRequirements.sequenceRequest;
+    const result = validateJobRequest({
+      requesterId: 'requester_sequence_shell',
+      requesterPublicKey: 'public-key',
+      prompt: null,
+      inputKind: 'sequence',
+      inputHash: sequenceRequest.sequenceHash,
+      inputTransport: 'webrtc_datachannel',
+      inputDisclosure: 'selected_providers_only',
+      sequenceRequest,
+      sequenceRequestHash: hashServerJson(sequenceRequest),
+      policyId: 'fastest_receipt',
+      modelRequirements,
+      generationConfig: { ...BROWSER_GENERATION_CONFIG }
+    });
+    expect(result).toMatchObject({ ok: true, reasons: [] });
+
+    expect(validateJobRequest({
+      requesterId: 'requester_sequence_leak',
+      requesterPublicKey: 'public-key',
+      sequence: 'MKTIIALSYIFCLVFADYKDDD',
+      inputKind: 'sequence',
+      inputHash: sequenceRequest.sequenceHash,
+      inputTransport: 'webrtc_datachannel',
+      inputDisclosure: 'selected_providers_only',
+      sequenceRequest,
+      sequenceRequestHash: hashServerJson(sequenceRequest),
+      policyId: 'fastest_receipt',
+      modelRequirements,
+      generationConfig: { ...BROWSER_GENERATION_CONFIG }
+    }).reasons).toContain('raw sequence must not be sent to the coordinator job route');
   });
 
   it('limits every policy to ESM-2', () => {
@@ -207,12 +244,15 @@ describe('Poolday protein-first sequence model contract', () => {
   it('keeps browser runtime deployment config aligned across server and browser', () => {
     expect(BROWSER_BROWSER_RUNTIME_CONFIG).toEqual(SERVER_BROWSER_RUNTIME_CONFIG);
     expect(BROWSER_BROWSER_RUNTIME_CONFIG.dopplerModuleUrl).toBe(DOPPLER_MODULE_URL);
+    expect(BROWSER_BROWSER_RUNTIME_CONFIG.dopplerStorageModuleUrl).toBe(DOPPLER_STORAGE_TOOLING_URL);
     expect(BROWSER_BROWSER_RUNTIME_CONFIG.dopplerKernelBaseUrl).toBe(DOPPLER_KERNEL_BASE_URL);
     for (const env of [deploymentEnv.runtimeEnv, deploymentEnv.browserEnv]) {
       expect(env.REPLOID_DOPPLER_MODULE_URL).toBe(BROWSER_BROWSER_RUNTIME_CONFIG.dopplerModuleUrl);
+      expect(env.REPLOID_DOPPLER_STORAGE_MODULE_URL).toBe(BROWSER_BROWSER_RUNTIME_CONFIG.dopplerStorageModuleUrl);
       expect(env.REPLOID_DOPPLER_KERNEL_BASE_URL).toBe(BROWSER_BROWSER_RUNTIME_CONFIG.dopplerKernelBaseUrl);
     }
     expect(cloudRunService).toContain(`value: "${BROWSER_BROWSER_RUNTIME_CONFIG.dopplerModuleUrl}"`);
+    expect(cloudRunService).toContain(`value: "${BROWSER_BROWSER_RUNTIME_CONFIG.dopplerStorageModuleUrl}"`);
     expect(cloudRunService).toContain(`value: "${BROWSER_BROWSER_RUNTIME_CONFIG.dopplerKernelBaseUrl}"`);
   });
 

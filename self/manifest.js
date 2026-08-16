@@ -40,6 +40,7 @@ export const SELF_SOURCE_MIRRORS = Object.freeze([
   { webPath: '/lab/runtime-ui.js', vfsPath: '/self/lab/runtime-ui.js' },
   { webPath: '/lab/surface.js', vfsPath: '/self/lab/surface.js' },
   { webPath: '/core/cycle-artifacts.js', vfsPath: '/self/core/cycle-artifacts.js' },
+  { webPath: '/core/improvement-episode.js', vfsPath: '/self/core/improvement-episode.js' },
   { webPath: '/core/import-rewrite.js', vfsPath: '/self/core/import-rewrite.js' },
   { webPath: '/core/promotion-policy.js', vfsPath: '/self/core/promotion-policy.js' },
   { webPath: '/capabilities/system/doppler-optimizer.js', vfsPath: '/self/capabilities/system/doppler-optimizer.js' },

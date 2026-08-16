@@ -23,6 +23,7 @@ export function registerReceiptRoutes(router, {
   statusForPendingAgreement,
   statusForRejectedAgreement,
   assignQueuedJobs,
+  recoverHostedAssignments,
   buildAcceptanceSummary,
   ensureAgreementCommitRevealReady,
   verifyRequesterAcceptance,
@@ -53,6 +54,7 @@ export function registerReceiptRoutes(router, {
     statusForPendingAgreement,
     statusForRejectedAgreement,
     assignQueuedJobs,
+    recoverHostedAssignments,
     buildAcceptanceSummary,
     ensureAgreementCommitRevealReady,
     verifyRequesterAcceptance,
@@ -73,6 +75,11 @@ export function registerReceiptRoutes(router, {
   const POOL_CONFIG_HASH = poolConfigHash;
 
   router.post('/assignments/:assignmentId/receipt', asyncRoute(async (req, res) => {
+    const pendingAssignment = await store.getAssignment(req.params.assignmentId);
+    const entryRecovery = await recoverHostedAssignments({
+      store,
+      targetJobId: pendingAssignment?.jobId || null
+    });
     const assignment = await store.getAssignment(req.params.assignmentId);
     if (!assignment) return res.status(404).json({ error: 'assignment not found' });
     if (!requireBoundRole(req, res, 'provider', assignment.providerId)) return null;
@@ -82,7 +89,8 @@ export function registerReceiptRoutes(router, {
       return res.status(409).json({
         error: 'assignment is not active',
         assignmentStatus: assignment.status,
-        assignmentId: assignment.assignmentId
+        assignmentId: assignment.assignmentId,
+        assignmentRecovery: entryRecovery.summary
       });
     }
     const assignmentJob = await store.getJob(assignment.jobId);
@@ -100,7 +108,8 @@ export function registerReceiptRoutes(router, {
         assignmentAttemptId: assignment.assignmentAttemptId || null,
         currentAssignmentAttemptId: assignmentJob.assignmentAttemptId || null,
         ringAttemptId: assignment.ringAttemptId || null,
-        currentRingAttemptId: assignmentJob.ringAttemptId || null
+        currentRingAttemptId: assignmentJob.ringAttemptId || null,
+        assignmentRecovery: entryRecovery.summary
       });
     }
     if (finalizedJobStatuses.has(assignmentJob.status)) {
@@ -279,6 +288,11 @@ export function registerReceiptRoutes(router, {
   }));
 
   router.post('/assignments/:assignmentId/failure', asyncRoute(async (req, res) => {
+    const pendingAssignment = await store.getAssignment(req.params.assignmentId);
+    const entryRecovery = await recoverHostedAssignments({
+      store,
+      targetJobId: pendingAssignment?.jobId || null
+    });
     const assignment = await store.getAssignment(req.params.assignmentId);
     if (!assignment) return res.status(404).json({ error: 'assignment not found' });
     if (!requireBoundRole(req, res, 'provider', assignment.providerId)) return null;
@@ -286,7 +300,8 @@ export function registerReceiptRoutes(router, {
       return res.status(409).json({
         error: 'assignment is not active',
         assignmentStatus: assignment.status,
-        assignmentId: assignment.assignmentId
+        assignmentId: assignment.assignmentId,
+        assignmentRecovery: entryRecovery.summary
       });
     }
     const currentJob = await store.getJob(assignment.jobId);
@@ -304,7 +319,8 @@ export function registerReceiptRoutes(router, {
         assignmentAttemptId: assignment.assignmentAttemptId || null,
         currentAssignmentAttemptId: currentJob.assignmentAttemptId || null,
         ringAttemptId: assignment.ringAttemptId || null,
-        currentRingAttemptId: currentJob.ringAttemptId || null
+        currentRingAttemptId: currentJob.ringAttemptId || null,
+        assignmentRecovery: entryRecovery.summary
       });
     }
     const reason = String(req.body?.reason || 'provider_execution_failed').slice(0, 300);
@@ -561,4 +577,3 @@ export function registerReceiptRoutes(router, {
 }
 
 export default registerReceiptRoutes;
-

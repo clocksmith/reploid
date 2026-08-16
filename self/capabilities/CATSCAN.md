@@ -26,10 +26,13 @@ Outputs:
 ## Invariants
 - Loading a capability cannot broaden its caller's authority.
 - Fitness, reflection, and optimization records remain evidence inputs rather than self-validating proof.
+- Improvement reflections separate observations, hypotheses, alternatives,
+  diagnostics, interventions, expected results, and falsifiers, and bind back to
+  the core episode when used in a promotion flow.
 
 ## Acceptance
 - Optimization engines preserve their declared contracts and gates.
-- Evidence: [GEPA engine tests](../../tests/unit/gepa-engines.test.js) and [optimizer tests](../../tests/unit/doppler-optimizer.test.js).
+- Evidence: [reflection integration tests](../../tests/integration/reflection-system.test.js), [GEPA engine tests](../../tests/unit/gepa-engines.test.js), and [optimizer tests](../../tests/unit/doppler-optimizer.test.js).
 
 ## Non-goals
 - Making every capability part of the Research Room or claiming autonomous self-improvement.

@@ -6,6 +6,7 @@ import {
 import {
   DOPPLER_KERNEL_BASE_URL,
   DOPPLER_MODULE_URL,
+  DOPPLER_STORAGE_TOOLING_URL,
   DOPPLER_PACKAGE_INTEGRITY,
   DOPPLER_PACKAGE_TARBALL_URL,
   DOPPLER_PACKAGE_SPEC
@@ -23,6 +24,7 @@ const createFixture = () => ({
     browserRuntime: {
       modelBaseUrl: 'https://models.example.test',
       dopplerModuleUrl: 'https://old.example.test/index.js',
+      dopplerStorageModuleUrl: 'https://old.example.test/storage.js',
       dopplerKernelBaseUrl: 'https://old.example.test/kernels'
     }
   },
@@ -36,6 +38,8 @@ const createFixture = () => ({
     '    value: "old-models"',
     '  - name: REPLOID_DOPPLER_MODULE_URL',
     '    value: "old-module"',
+    '  - name: REPLOID_DOPPLER_STORAGE_MODULE_URL',
+    '    value: "old-storage"',
     '  - name: REPLOID_DOPPLER_KERNEL_BASE_URL',
     '    value: "old-kernels"',
     ''
@@ -67,11 +71,15 @@ describe('runtime config synchronization', () => {
     expect(synchronized.deploymentConfig.runtimeEnv).toMatchObject({
       REPLOID_POOL_MODEL_BASE_URL: 'https://models.example.test',
       REPLOID_DOPPLER_MODULE_URL: DOPPLER_MODULE_URL,
+      REPLOID_DOPPLER_STORAGE_MODULE_URL: DOPPLER_STORAGE_TOOLING_URL,
       REPLOID_DOPPLER_KERNEL_BASE_URL: DOPPLER_KERNEL_BASE_URL
     });
     expect(synchronized.deploymentConfig.browserEnv).toEqual(synchronized.deploymentConfig.runtimeEnv);
     expect(synchronized.cloudRunYaml).toContain(
       `value: "${DOPPLER_MODULE_URL}"`
+    );
+    expect(synchronized.cloudRunYaml).toContain(
+      `value: "${DOPPLER_STORAGE_TOOLING_URL}"`
     );
   });
 

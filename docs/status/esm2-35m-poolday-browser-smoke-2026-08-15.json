@@ -1,0 +1,79 @@
+{
+  "schema": "poolday.browser_qualification_smoke_summary/v1",
+  "status": "incomplete",
+  "observedAt": "2026-08-15T22:38:29.247Z",
+  "claimBoundary": "This records an actual dirty-worktree Chromium smoke run. It is not a clean-release browser qualification receipt, hardware attestation, independent reproduction, scientific-fitness evidence, or biological truth.",
+  "producer": {
+    "test": "tests/e2e/p2p-actual-inference.spec.js",
+    "journey": "loads ESM-2, embeds a public protein sequence, and returns a signed peer receipt",
+    "strictArtifactPreflight": true,
+    "browserRunId": "chromium:0:0e44a1b87cd633514eb3-9d52ee0445254d0aa269"
+  },
+  "release": {
+    "sourceDirty": true,
+    "sourceRevision": null,
+    "sourceTreeHash": null,
+    "browserBundleHash": null,
+    "qualificationEligible": false
+  },
+  "model": {
+    "modelId": "esm2-t12-35m-ur50d-f32-af32",
+    "modelHash": "sha256:1092c098741472429a4c6b4cd6050d5967e0a606d01f713c0b4866fd98921ac8",
+    "manifestHash": "sha256:5612aa20ee2d5310da323d5c39986d0ab724ff727ce92e40762da6ea7b189730",
+    "tokenizerHash": "sha256:f874eed68372c76988edf4556383c10404dd27b5fee33e7dd96440aba31d9a37",
+    "shardSetHash": "sha256:02d771a5ddf516cd4d01338a229309d87822b46b2317fd8432b756fd45ce924e",
+    "exactModelContractKeyHash": "sha256:08a5d10a7e5d12df793835807b7e764159e295ee53f4033957d8439312ab6a3e",
+    "runtime": "doppler",
+    "backend": "browser-webgpu",
+    "hostedShardBytes": 133077120
+  },
+  "browser": {
+    "family": "Chromium",
+    "version": "unrecorded",
+    "userAgentHash": "sha256:b2874211efb51fb64ade324e9e7ad0780c294e58725a1b103720ad16c0d562ea",
+    "adapterIdentity": {
+      "vendor": "google",
+      "architecture": "swiftshader",
+      "device": null,
+      "description": null
+    },
+    "origin": "http://localhost:8000"
+  },
+  "result": {
+    "policyHash": "sha256:be432bd632414d2d1783503959d39d556d8be6158458e426e8941d17d54f029d",
+    "outputHash": "sha256:5006e1a06de1dd93cc0b085f7c1f24e6789111610101692d78fd678b6d3df4bb",
+    "receiptHash": "sha256:e2e5f3d368563dd4af45903693929ba9c3478dc08a54a8cc67f5fdc7e71bd6e4",
+    "embeddingDimensions": 480,
+    "agreementAccepted": true,
+    "requesterAccepted": true
+  },
+  "checks": {
+    "immutableArtifactDelivery": "observed",
+    "completeHashVerification": "observed",
+    "webGpuExecution": "observed",
+    "opfsPersistence": "observed",
+    "opfsRestoration": "observed",
+    "receiptIntegrity": "observed",
+    "cancellation": "not_run",
+    "staleResultRejection": "not_run",
+    "corruptionRejection": "not_run",
+    "interruptionRecovery": "not_run",
+    "independentReproduction": "not_run"
+  },
+  "checkEvidenceHashes": {
+    "artifactResponseSet": "sha256:0195ae7472ca5196e1511c7a85aa4146b6288fe6e345eceef81eae0f10f10d9f",
+    "immutableArtifactDelivery": "sha256:b3bab4531c6026a11977940c05c55d55cf215b5e5d5611555ecc301b6ae1ce05",
+    "completeHashVerification": "sha256:d7c9afee297351c99efcf10b71af68a35a1f432d2a953935fd8ca60d0f0f9052",
+    "webGpuExecution": "sha256:586d2fd929b84764034a7bb63d6e46ce63a953cb7efd607eca1ce1e4fb232959",
+    "opfsPersistence": "sha256:d7c9afee297351c99efcf10b71af68a35a1f432d2a953935fd8ca60d0f0f9052",
+    "opfsRestoration": "sha256:004d60ec727c22eb7fd383417611e9d2bb2c77b56a1c4a447a46565e45b11f30",
+    "receiptIntegrity": "sha256:31c1e28d7e339b038ea7c08ca3f21f4494543a7b54c9d2badf97db74195a0669"
+  },
+  "blockers": [
+    "exact clean source revision, source-tree hash, and browser-bundle hash are absent",
+    "browser version and physical GPU identity are not recorded",
+    "cancellation, stale-result rejection, and corruption rejection were not executed in this Poolday run",
+    "requester interruption recovery was executed separately and is not bound to this output and receipt",
+    "two independently operated browser reproductions are absent"
+  ]
+}

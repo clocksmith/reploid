@@ -54,10 +54,15 @@ export const ALLOWED_TARGET_EXTENSIONS = Object.freeze([
 ]);
 
 export const VALIDATOR_QUARANTINE_TARGETS = Object.freeze([
+  '/self/core/improvement-episode.js',
+  '/self/core/promotion-policy.js',
   '/self/core/verification-manager.js',
   '/self/testing/arena/arena-harness.js',
   '/self/capabilities/communication/consensus.js',
+  '/self/capabilities/reflection/reflection-store.js',
+  '/self/capabilities/system/doppler-optimizer.js',
   '/self/infrastructure/audit-logger.js',
+  '/self/infrastructure/genesis-snapshot.js',
   '/self/config/genesis-levels.json',
   '/self/config/clockwork-gamma-receipts.js',
   '/self/core/tool-runner.js',

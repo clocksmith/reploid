@@ -8,12 +8,15 @@ import {
 import { createDiscoveryContractCheckpoint } from '../../self/pool/discovery-contract.js';
 import { createSigningKeyPair } from '../../self/pool/inference-receipt.js';
 import { buildLaunchProviderModel, getPoolModelContract } from '../../self/pool/model-contract.js';
+import { projectProteinUncertaintyCampaignQueue } from '../../self/pool/protein-uncertainty-campaign.js';
 import { hashSequenceFloat32Values } from '../../self/pool/sequence-result.js';
 import {
   appendResearchRecord,
   getCrossRoomSequenceEvidence,
+  getProteinUncertaintyCampaignQueue,
   getResearchSyncState,
   hydrateCrossRoomSequenceEvidence,
+  hydrateProteinUncertaintyCampaignQueue,
   hydrateResearchRecords,
   loadQuarantinedResearchRecords,
   loadResearchRecords,
@@ -285,6 +288,39 @@ describe('Poolday research store', () => {
       phase: 'unavailable',
       projection: null,
       error: expect.stringContaining('record hash mismatch')
+    });
+  });
+
+  it('verifies and locally replays the protein uncertainty campaign queue', async () => {
+    const current = await makeRecord('campaign-current-room');
+    const prior = await makeRecord('campaign-prior-room');
+    const records = [prior, current];
+    const payload = {
+      ...projectProteinUncertaintyCampaignQueue(records),
+      records
+    };
+
+    const hydrated = await hydrateProteinUncertaintyCampaignQueue(current.roomId, {
+      sdk: { listProteinUncertaintyCampaignQueue: vi.fn().mockResolvedValue(payload) }
+    });
+
+    expect(hydrated).toMatchObject({
+      phase: 'synchronized',
+      projection: {
+        schema: 'poolday.protein_uncertainty_campaign_queue/v1',
+        entries: [{ roomIds: ['campaign-current-room', 'campaign-prior-room'] }]
+      }
+    });
+    expect(getProteinUncertaintyCampaignQueue(current.roomId)).toEqual(hydrated);
+
+    const altered = structuredClone(payload);
+    altered.entries[0].priority.disagreementCount = 4;
+    expect(await hydrateProteinUncertaintyCampaignQueue(current.roomId, {
+      sdk: { listProteinUncertaintyCampaignQueue: vi.fn().mockResolvedValue(altered) }
+    })).toMatchObject({
+      phase: 'unavailable',
+      projection: null,
+      error: expect.stringContaining('replay does not match')
     });
   });
 

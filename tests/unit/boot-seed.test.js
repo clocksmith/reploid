@@ -172,12 +172,14 @@ describe('boot seed manifest', () => {
     expect(zeroBootFiles).not.toContain('tools/LoadModule.js');
     expect(zeroBootFiles).not.toContain('tools/ProposeSelfPatch.js');
     expect(zeroBootFiles).not.toContain('tools/Promote.js');
+    expect(zeroBootFiles).not.toContain('core/improvement-episode.js');
     expect(zeroBootFiles).not.toContain('blueprints/promotion-contract.md');
     expect(zeroBootFiles).not.toContain('blueprints/rgr-runtime-contract.md');
     expect(zeroBootFiles).not.toContain('capabilities/system/README.md');
     expect(zeroBootFiles).not.toContain('core/README.md');
     expect(zeroBootFiles).not.toContain('infrastructure/README.md');
     expect(zeroBootFiles.every((file) => xBootSet.has(file))).toBe(true);
+    expect(xBootFiles).toContain('core/improvement-episode.js');
     expect(xBootFiles).toContain('blueprints/promotion-contract.md');
     expect(xBootFiles).toContain('blueprints/rgr-runtime-contract.md');
     expect(xBootFiles).toContain('tools/Promote.js');

@@ -5,6 +5,7 @@ import {
   validateModelArtifactCorsPolicy,
   validateDopplerExecutionManifestShape,
   validateModelArtifactManifestShape,
+  verifyModelArtifactCorsDelivery,
   verifyModelArtifactManifest,
   verifyModelArtifactRangeDelivery
 } from '../../self/pool/model-artifacts.js';
@@ -247,6 +248,32 @@ describe('pool model artifact helpers', () => {
     })).rejects.toThrow('model manifest modelId mismatch');
   });
 
+  it('rejects mutated manifest bytes even when the manifest self-declares the configured hash', async () => {
+    const expectedManifestHash = await hashJson({
+      modelId: 'model-self-declared',
+      modelHash: 'sha256:model-self-declared'
+    });
+    const mutatedManifest = {
+      modelId: 'model-self-declared',
+      modelHash: 'sha256:model-self-declared',
+      manifestHash: expectedManifestHash,
+      uncommittedMutation: true
+    };
+
+    await expect(verifyModelArtifactManifest({
+      model: {
+        modelId: 'model-self-declared',
+        modelHash: 'sha256:model-self-declared',
+        manifestHash: expectedManifestHash
+      },
+      baseUrl: 'https://models.example',
+      fetchImpl: async () => ({
+        ok: true,
+        text: async () => JSON.stringify(mutatedManifest)
+      })
+    })).rejects.toThrow('model manifest hash does not match configured manifestHash');
+  });
+
   it('attaches manifest URL and status to fetch failures', async () => {
     await expect(verifyModelArtifactManifest({
       model: {
@@ -386,5 +413,89 @@ describe('pool model artifact helpers', () => {
             }
       )
     })).rejects.toThrow('model shard range request must return 206');
+  });
+
+  it('verifies deployed HEAD and byte-range CORS behavior for every governed origin', async () => {
+    const origins = ['https://replo.id', 'http://localhost:8000'];
+    const exposed = 'Accept-Ranges, Content-Length, Content-Range, Content-Type, ETag';
+    const manifest = {
+      modelId: 'model-cors',
+      modelHash: 'sha256:model-cors',
+      tokenizer: { file: 'tokenizer.json', hash: 'sha256:tokenizer' },
+      shards: [{ filename: 'shard_00000.bin', hash: 'sha256:shard' }]
+    };
+    const requests = [];
+    const responseHeaders = (origin, extra = {}) => ({
+      get: (name) => ({
+        'access-control-allow-origin': origin,
+        'access-control-expose-headers': exposed,
+        'cache-control': 'public,max-age=31536000,immutable',
+        etag: '"artifact-etag"',
+        vary: 'Origin',
+        ...extra
+      })[name.toLowerCase()] || null
+    });
+    const result = await verifyModelArtifactCorsDelivery({
+      model: { modelId: manifest.modelId, modelHash: manifest.modelHash },
+      origins,
+      manifestResult: {
+        manifest,
+        urls: {
+          manifest: 'https://models.example/model-cors/manifest.json',
+          shards: 'https://models.example/model-cors/'
+        }
+      },
+      fetchImpl: async (url, options = {}) => {
+        requests.push({ url, options });
+        const origin = options.headers.Origin;
+        if (options.method === 'HEAD') {
+          return { ok: true, status: 200, headers: responseHeaders(origin) };
+        }
+        return {
+          ok: true,
+          status: 206,
+          headers: responseHeaders(origin, { 'content-range': 'bytes 0-0/1024' }),
+          arrayBuffer: async () => new Uint8Array([1]).buffer
+        };
+      }
+    });
+
+    expect(result).toMatchObject({
+      ok: true,
+      observations: origins.map((origin) => ({
+        origin,
+        head: { allowOrigin: origin },
+        range: { allowOrigin: origin, contentRange: 'bytes 0-0/1024', bytes: 1 }
+      }))
+    });
+    expect(requests.map((request) => [request.options.method, request.options.headers.Origin])).toEqual([
+      ['HEAD', origins[0]], ['GET', origins[0]],
+      ['HEAD', origins[1]], ['GET', origins[1]]
+    ]);
+  });
+
+  it('fails closed when deployed CORS does not echo the governed origin', async () => {
+    const manifest = {
+      modelId: 'model-cors-denied',
+      modelHash: 'sha256:model-cors-denied',
+      tokenizer: { file: 'tokenizer.json', hash: 'sha256:tokenizer' },
+      shards: [{ filename: 'shard_00000.bin', hash: 'sha256:shard' }]
+    };
+    await expect(verifyModelArtifactCorsDelivery({
+      model: { modelId: manifest.modelId, modelHash: manifest.modelHash },
+      origins: ['https://replo.id'],
+      manifestResult: {
+        manifest,
+        urls: {
+          manifest: 'https://models.example/model-cors-denied/manifest.json',
+          shards: 'https://models.example/model-cors-denied/'
+        }
+      },
+      fetchImpl: async () => ({
+        ok: true,
+        status: 200,
+        headers: { get: () => null }
+      })
+    })).rejects.toThrow('must return matching Access-Control-Allow-Origin');
   });
 });

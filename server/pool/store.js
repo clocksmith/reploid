@@ -7,6 +7,7 @@ import { assertPoolStoreContract } from './store-contract.js';
 import {
   buildAcceptanceClaimPatch,
   buildAssignmentClaimPatch,
+  buildAssignmentExpirationPatch,
   buildAssignmentStartPatch,
   buildExpiredAssignmentJobPatch as buildSharedExpiredAssignmentJobPatch,
   EXPIRABLE_ASSIGNMENT_STATUSES,
@@ -235,8 +236,10 @@ export function createPoolStore() {
       for (const assignment of assignments.values()) {
         if (!EXPIRABLE_ASSIGNMENT_STATUSES.includes(assignment.status)) continue;
         if (!assignment.expiresAt || Date.parse(assignment.expiresAt) >= now) continue;
-        assignment.status = 'expired';
-        assignment.updatedAt = nowIso();
+        const observedAt = nowIso();
+        const expirationPatch = buildAssignmentExpirationPatch(assignment, observedAt);
+        if (!expirationPatch) continue;
+        Object.assign(assignment, expirationPatch, { updatedAt: observedAt });
         expired.push(assignment);
         const job = jobs.get(assignment.jobId);
         if (job) {
@@ -255,7 +258,7 @@ export function createPoolStore() {
             providerId: assignment.providerId,
             assignmentId: assignment.assignmentId,
             jobId: assignment.jobId,
-            reasons: ['assignment expired before completion']
+            reasons: [assignment.failureReason]
           });
           this.appendLedger({
             eventType: 'points_penalized',
@@ -264,7 +267,11 @@ export function createPoolStore() {
             providerId: assignment.providerId,
             requesterId: assignment.requesterId,
             userId: assignment.providerId,
-            points: -1
+            points: -1,
+            evidence: {
+              failureReason: assignment.failureReason,
+              expiredFromStatus: assignment.expiredFromStatus
+            }
           });
         }
       }

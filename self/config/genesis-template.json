@@ -98,7 +98,7 @@
     },
     "full": {
       "name": "FULL",
-      "description": "Substrate + advanced multi-agent systems - 13 additional modules",
+      "description": "Substrate + governed evaluation, signed improvement episodes, and advanced multi-agent systems - 18 additional modules",
       "extends": "substrate",
       "modules": [
         "ArenaCompetitor",

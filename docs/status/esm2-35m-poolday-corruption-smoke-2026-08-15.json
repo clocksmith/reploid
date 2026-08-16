@@ -1,0 +1,43 @@
+{
+  "schema": "poolday.actual_browser_corruption_rejection_smoke_summary/v1",
+  "status": "observed",
+  "observedAt": "2026-08-15T22:58:26.706Z",
+  "qualificationEligible": false,
+  "claimBoundary": "Actual Chromium strict preflight rejected mutated ESM-2 manifest bytes before model load, shard fetch, or provider advertisement. This dirty local observation is not a clean-release qualification check and does not establish shard-corruption recovery.",
+  "producer": {
+    "test": "tests/e2e/p2p-actual-inference.spec.js",
+    "journey": "rejects a corrupted ESM-2 manifest before advertising the provider",
+    "browserProject": "chromium",
+    "roomId": "actual-inference-0-msuz8zn2-u19i0rh0aq",
+    "attachmentSha256": "sha256:eb8b108bd6f1539bb9bb7c14d39011f1a4ffc8e985adbf296b1e8bd5affaf6d8"
+  },
+  "release": {
+    "sourceDirty": true,
+    "sourceRevision": null,
+    "sourceTreeHash": null,
+    "browserBundleHash": null
+  },
+  "model": {
+    "modelId": "esm2-t12-35m-ur50d-f32-af32",
+    "modelHash": "sha256:1092c098741472429a4c6b4cd6050d5967e0a606d01f713c0b4866fd98921ac8",
+    "manifestHash": "sha256:5612aa20ee2d5310da323d5c39986d0ab724ff727ce92e40762da6ea7b189730",
+    "runtime": "doppler",
+    "backend": "browser-webgpu"
+  },
+  "probe": {
+    "manifestUrl": "https://storage.googleapis.com/reploid-model-artifacts/models/esm2-t12-35m-ur50d-f32-af32/manifest.json",
+    "originalTextHash": "sha256:5612aa20ee2d5310da323d5c39986d0ab724ff727ce92e40762da6ea7b189730",
+    "corruptedTextHash": "sha256:f794bd36957b39cba9cd27b70310e035ccc7ab3bda4c94f42e570ed453618b78",
+    "forgedSelfDeclaredManifestHash": "sha256:5612aa20ee2d5310da323d5c39986d0ab724ff727ce92e40762da6ea7b189730",
+    "rejectionCode": "model_artifact_unavailable",
+    "rejectionReason": "model manifest hash does not match configured manifestHash",
+    "providerAdvertised": false,
+    "shardRequested": false
+  },
+  "remainingQualificationBoundary": [
+    "the corruption observation is not bound to a clean source revision or browser bundle",
+    "this record covers manifest-byte mutation; cached-shard recovery is a separate observation",
+    "the probe is separate from the successful output and signed receipt observation",
+    "the observation is not bound to the cached-shard recovery or stale-result records"
+  ]
+}

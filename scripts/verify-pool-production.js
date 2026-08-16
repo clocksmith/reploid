@@ -1,9 +1,11 @@
 #!/usr/bin/env node
 
 import fs from 'fs';
+import { execFileSync } from 'child_process';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { POOL_CONFIG, POOL_CONFIG_HASH, POOL_CONFIG_VERSION, validatePoolConfig } from '../server/pool/config.js';
+import { buildCoordinatorRuntimeBundle } from '../server/pool/release-identity.js';
 import { hashJson } from '../server/pool/hash.js';
 import { LAUNCH_MODEL, MODEL_CATALOG } from '../self/pool/model-contract.js';
 import { validateModelPromotionEvidence } from '../self/pool/model-promotion.js';
@@ -11,6 +13,7 @@ import {
   validateDopplerExecutionManifestShape,
   validateModelArtifactCorsPolicy,
   validateModelArtifactManifestShape,
+  verifyModelArtifactCorsDelivery,
   verifyModelArtifactManifest,
   verifyModelArtifactRangeDelivery
 } from '../self/pool/model-artifacts.js';
@@ -143,6 +146,7 @@ const requiredRuntimeEnv = [
   'REPLOID_ADAPTER_SIGNED_URL_TTL_MS',
   'REPLOID_POOL_MODEL_BASE_URL',
   'REPLOID_DOPPLER_MODULE_URL',
+  'REPLOID_DOPPLER_STORAGE_MODULE_URL',
   'REPLOID_DOPPLER_KERNEL_BASE_URL',
   'REPLOID_TURN_HOST',
   'REPLOID_TURN_CREDENTIAL_TTL_SECONDS'
@@ -233,6 +237,9 @@ const checkLocalFiles = () => {
   if (envConfig.browserEnv?.REPLOID_DOPPLER_MODULE_URL !== POOL_CONFIG.browserRuntime?.dopplerModuleUrl) {
     reasons.push('browserEnv REPLOID_DOPPLER_MODULE_URL must match pool config browserRuntime.dopplerModuleUrl');
   }
+  if (envConfig.browserEnv?.REPLOID_DOPPLER_STORAGE_MODULE_URL !== POOL_CONFIG.browserRuntime?.dopplerStorageModuleUrl) {
+    reasons.push('browserEnv REPLOID_DOPPLER_STORAGE_MODULE_URL must match pool config browserRuntime.dopplerStorageModuleUrl');
+  }
   if (envConfig.browserEnv?.REPLOID_DOPPLER_KERNEL_BASE_URL !== POOL_CONFIG.browserRuntime?.dopplerKernelBaseUrl) {
     reasons.push('browserEnv REPLOID_DOPPLER_KERNEL_BASE_URL must match pool config browserRuntime.dopplerKernelBaseUrl');
   }
@@ -241,6 +248,9 @@ const checkLocalFiles = () => {
   }
   if (envConfig.runtimeEnv?.REPLOID_DOPPLER_MODULE_URL !== POOL_CONFIG.browserRuntime?.dopplerModuleUrl) {
     reasons.push('runtime env REPLOID_DOPPLER_MODULE_URL must match pool config browserRuntime.dopplerModuleUrl');
+  }
+  if (envConfig.runtimeEnv?.REPLOID_DOPPLER_STORAGE_MODULE_URL !== POOL_CONFIG.browserRuntime?.dopplerStorageModuleUrl) {
+    reasons.push('runtime env REPLOID_DOPPLER_STORAGE_MODULE_URL must match pool config browserRuntime.dopplerStorageModuleUrl');
   }
   if (envConfig.runtimeEnv?.REPLOID_DOPPLER_KERNEL_BASE_URL !== POOL_CONFIG.browserRuntime?.dopplerKernelBaseUrl) {
     reasons.push('runtime env REPLOID_DOPPLER_KERNEL_BASE_URL must match pool config browserRuntime.dopplerKernelBaseUrl');
@@ -304,6 +314,18 @@ const checkLocalFiles = () => {
   if (!cloudBuildYaml.includes('--set-secrets REPLOID_TURN_SHARED_SECRET=reploid-turn-shared-secret:latest')) {
     reasons.push('Cloud Build does not bind the TURN shared secret from Secret Manager');
   }
+  if (!cloudBuildYaml.includes('REPLOID_RELEASE_SOURCE_REVISION=$COMMIT_SHA')) {
+    reasons.push('Cloud Build does not expose the exact commit revision to Cloud Run');
+  }
+  if (!cloudBuildYaml.includes('${_IMAGE}:$COMMIT_SHA')) {
+    reasons.push('Cloud Build does not build and deploy a commit-tagged image');
+  }
+  if (/gcloud run deploy[\s\S]*--image[^\n]+:latest/.test(cloudBuildYaml)) {
+    reasons.push('Cloud Build deploys a mutable latest image');
+  }
+  if (cloudRunYaml.includes('reploid-pool:latest')) {
+    reasons.push('Cloud Run service template uses a mutable latest image');
+  }
 
   return reasons;
 };
@@ -312,6 +334,11 @@ const checkDeploymentUrl = async (baseUrl) => {
   if (!baseUrl) return [];
   const reasons = [];
   const normalized = String(baseUrl).replace(/\/+$/, '');
+  const localSourceRevision = execFileSync('git', ['rev-parse', 'HEAD'], {
+    cwd: repoRoot,
+    encoding: 'utf8'
+  }).trim();
+  const localRuntimeBundle = await buildCoordinatorRuntimeBundle();
   const getJson = async (pathName) => {
     const response = await fetch(`${normalized}${pathName}`);
     const payload = await response.json().catch(() => null);
@@ -323,6 +350,11 @@ const checkDeploymentUrl = async (baseUrl) => {
     if (deployment.ok !== true) reasons.push('/pool/deployment/check did not return ok=true');
     if (deployment.configVersion !== POOL_CONFIG_VERSION) reasons.push('deployed configVersion differs from local config');
     if (deployment.configHash !== POOL_CONFIG_HASH) reasons.push('deployed configHash differs from local config');
+    if (deployment.release?.sourceRevision !== localSourceRevision) reasons.push('deployed backend source revision differs from local HEAD');
+    if (deployment.release?.sourceRevisionValid !== true) reasons.push('deployed backend source revision is invalid');
+    if (deployment.release?.imageBoundToSourceRevision !== true) reasons.push('deployed backend image is not bound to its source revision');
+    if (deployment.release?.runtimeBundleHash !== localRuntimeBundle.runtimeBundleHash) reasons.push('deployed backend runtime bytes differ from local runtime bytes');
+    if (!deployment.release?.platformRevision) reasons.push('deployed backend platform revision is missing');
     if (deployment.store?.mode !== 'firestore') reasons.push('deployed store mode is not firestore');
     if (deployment.identity?.serverAuth?.required !== true) reasons.push('deployed server auth is not required');
     if (deployment.store?.commitReveal?.supported !== true) reasons.push('deployed commit-reveal store support is not true');
@@ -407,6 +439,15 @@ const checkEnabledModelArtifacts = async () => {
         }
       }
       await verifyModelArtifactRangeDelivery({
+        model,
+        baseUrl: model.artifactPolicy?.baseUrl || POOL_CONFIG.browserRuntime?.modelBaseUrl,
+        manifestResult,
+        fetchImpl: (url, options = {}) => fetch(url, {
+          ...options,
+          signal: AbortSignal.timeout(30000)
+        })
+      });
+      await verifyModelArtifactCorsDelivery({
         model,
         baseUrl: model.artifactPolicy?.baseUrl || POOL_CONFIG.browserRuntime?.modelBaseUrl,
         manifestResult,

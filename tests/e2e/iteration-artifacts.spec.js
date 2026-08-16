@@ -62,7 +62,10 @@ test('/x claimed iteration produces input, trace, toolcall, score, mutation, dec
     expect.objectContaining({ tool: 'WriteFile' })
   ]));
   expect(score.score).toMatchObject({
+    semantics: 'execution-bookkeeping',
     passed: true,
+    causalImprovement: false,
+    improvementEpisodeId: null,
     toolCallCount: 1,
     errorCount: 0
   });

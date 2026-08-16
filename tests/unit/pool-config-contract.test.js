@@ -25,9 +25,31 @@ describe('Poolday configuration contract', () => {
     expect(validatePoolConfigValue(poolConfig)).toEqual({ ok: true, reasons: [] });
     const invalid = structuredClone(poolConfig);
     delete invalid.browserRuntime.dopplerModuleUrl;
+    delete invalid.browserRuntime.dopplerStorageModuleUrl;
     expect(validatePoolConfigValue(invalid)).toMatchObject({
       ok: false,
-      reasons: expect.arrayContaining(['browserRuntime.dopplerModuleUrl is required'])
+      reasons: expect.arrayContaining([
+        'browserRuntime.dopplerModuleUrl is required',
+        'browserRuntime.dopplerStorageModuleUrl is required'
+      ])
+    });
+  });
+
+  it('separates pre-compute input transport from post-commit result admission', () => {
+    const protocol = poolConfig.ringPhaseProtocols.protocols.commit_reveal_v1;
+    expect(protocol).toMatchObject({
+      signalingAllowedFromPhase: 'private_compute',
+      inputPayloadsAllowedFromPhase: 'private_compute',
+      resultEvidenceAdmissibleFromPhase: 'reveal_open',
+      requireRevealBeforeReceipt: true
+    });
+    const invalid = structuredClone(poolConfig);
+    invalid.ringPhaseProtocols.protocols.commit_reveal_v1.resultEvidenceAdmissibleFromPhase = 'private_compute';
+    expect(validatePoolConfigValue(invalid)).toMatchObject({
+      ok: false,
+      reasons: expect.arrayContaining([
+        'active ring phase protocol must admit result evidence only from reveal_open'
+      ])
     });
   });
 

@@ -140,9 +140,23 @@ const createFixture = async () => {
 
 describe('Poolday adapter coordinator routes', () => {
   it('reports generation-pinned private delivery in deployment readiness', async () => {
+    const sourceRevision = 'a'.repeat(40);
+    const releaseImage = `us-central1-docker.pkg.dev/reploid/reploid/reploid-pool:${sourceRevision}`;
+    const runtimeBundleIdentity = {
+      runtimeBundleHash: fakeHash('f'),
+      files: [{ path: 'server/proxy.js' }]
+    };
     const router = createPoolRouter({
       store: createPoolStore(),
-      createAdapterDownloadUrl: async () => ({})
+      createAdapterDownloadUrl: async () => ({}),
+      releaseEnv: {
+        REPLOID_RELEASE_SOURCE_REVISION: sourceRevision,
+        REPLOID_RELEASE_IMAGE: releaseImage,
+        K_REVISION: 'reploid-pool-00042-abc',
+        K_CONFIGURATION: 'reploid-pool',
+        K_SERVICE: 'reploid-pool'
+      },
+      runtimeBundleIdentity
     });
     const readiness = await dispatchJson(router, '/deployment/check');
 
@@ -150,6 +164,17 @@ describe('Poolday adapter coordinator routes', () => {
     expect(readiness.body.store.adapterDelivery).toEqual({
       configured: true,
       provider: 'gcs-v4-generation-pinned'
+    });
+    expect(readiness.body.release).toEqual({
+      sourceRevision,
+      sourceRevisionValid: true,
+      image: releaseImage,
+      imageBoundToSourceRevision: true,
+      runtimeBundleHash: fakeHash('f'),
+      runtimeFileCount: 1,
+      platformRevision: 'reploid-pool-00042-abc',
+      platformConfiguration: 'reploid-pool',
+      platformService: 'reploid-pool'
     });
   });
 
@@ -244,7 +269,7 @@ describe('Poolday adapter coordinator routes', () => {
       status: 400,
       body: {
         error: 'invalid job request',
-        reasons: expect.arrayContaining(['biological sequence jobs require the peer-room WebRTC input lane'])
+        reasons: expect.arrayContaining(['sequence jobs must not place raw input in prompt'])
       }
     });
   });

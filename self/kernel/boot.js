@@ -12,7 +12,8 @@ import {
 } from '../instance.js';
 import {
   DOPPLER_KERNEL_BASE_URL,
-  DOPPLER_MODULE_URL
+  DOPPLER_MODULE_URL,
+  DOPPLER_STORAGE_TOOLING_URL
 } from '../config/doppler-local-models.js';
 
 const BUILD_VERSION = '2026081002';
@@ -69,14 +70,19 @@ const installDopplerImportMap = () => {
   const base = (fromQuery || stored || '').replace(/\/$/, '');
   const moduleUrl = base ? `${base}/src/index.js` : DOPPLER_MODULE_URL;
   const kernelBaseUrl = base ? `${base}/src/gpu/kernels` : DOPPLER_KERNEL_BASE_URL;
+  const storageModuleUrl = base
+    ? `${base}/src/tooling-exports/storage.js`
+    : DOPPLER_STORAGE_TOOLING_URL;
   window.DOPPLER_BASE_URL = base;
   window.REPLOID_DOPPLER_MODULE_URL = moduleUrl;
   window.REPLOID_DOPPLER_KERNEL_BASE_URL = kernelBaseUrl;
+  window.REPLOID_DOPPLER_STORAGE_MODULE_URL = storageModuleUrl;
   window.__DOPPLER_KERNEL_BASE_PATH__ = kernelBaseUrl;
 
   const imports = {
     '@simulatte/doppler': moduleUrl,
-    '@simulatte/doppler/provider': '/providers/doppler-reploid.js'
+    '@simulatte/doppler/provider': '/providers/doppler-reploid.js',
+    '@simulatte/doppler/tooling/storage': storageModuleUrl
   };
   if (base) {
     imports['@simulatte/doppler/bridge/'] = `${base}/src/bridge/`;

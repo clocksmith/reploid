@@ -24,11 +24,13 @@ export const BROWSER_QUALIFICATION_CHECKS = Object.freeze([
 ]);
 
 export const BROWSER_QUALIFICATION_CHECK_STATUSES = Object.freeze([
-  'not_run', 'passed', 'failed'
+  'not_run', 'observed', 'passed', 'failed'
 ]);
 
 const SHA256_PATTERN = /^sha256:[a-f0-9]{64}$/;
 const nonEmptyText = (value) => typeof value === 'string' && value.trim().length > 0;
+const recordedText = (value) => nonEmptyText(value)
+  && !/^(?:unrecorded|unknown|null|n\/a)$/i.test(value.trim());
 const isSha256 = (value) => SHA256_PATTERN.test(String(value || ''));
 const isIsoDate = (value) => Number.isFinite(Date.parse(value));
 
@@ -43,6 +45,7 @@ const qualificationBindings = (record = {}) => ({
   exactModelContractKey: record.identity?.exactModelContractKey || null,
   sourceTreeHash: record.release?.sourceTreeHash || null,
   browserBundleHash: record.release?.browserBundleHash || null,
+  sourceDirty: record.release?.sourceDirty,
   userAgentHash: record.browser?.userAgentHash || null,
   gpuAdapterIdentity: record.gpu?.adapterIdentity || null,
   policyHash: record.policyHash || null,
@@ -69,8 +72,33 @@ const validateCheckEvidence = (check, evidence = {}) => {
     && nonEmptyText(bindings.exactModelContractKey)
     && isSha256(bindings.sourceTreeHash)
     && isSha256(bindings.browserBundleHash)
+    && bindings.sourceDirty === false
     && isSha256(bindings.userAgentHash)
     && nonEmptyText(bindings.gpuAdapterIdentity)
+    && isSha256(bindings.policyHash)
+    && isSha256(bindings.outputHash)
+    && isSha256(bindings.receiptHash);
+};
+
+const validateObservedCheckEvidence = (check, evidence = {}) => {
+  if (!evidence || typeof evidence !== 'object' || Array.isArray(evidence)) return false;
+  const bindings = evidence.bindings || {};
+  return evidence.schema === 'poolday.browser_qualification_check/v1'
+    && evidence.check === check
+    && nonEmptyText(evidence.browserRunId)
+    && isIsoDate(evidence.observedAt)
+    && isSha256(evidence.resultHash)
+    && isSha256(evidence.artifactHash)
+    && nonEmptyText(bindings.modelId)
+    && isSha256(bindings.modelHash)
+    && isSha256(bindings.manifestHash)
+    && isSha256(bindings.tokenizerHash)
+    && isSha256(bindings.shardSetHash)
+    && nonEmptyText(bindings.runtime)
+    && nonEmptyText(bindings.backend)
+    && nonEmptyText(bindings.exactModelContractKey)
+    && isSha256(bindings.userAgentHash)
+    && recordedText(bindings.gpuAdapterIdentity)
     && isSha256(bindings.policyHash)
     && isSha256(bindings.outputHash)
     && isSha256(bindings.receiptHash);
@@ -94,9 +122,9 @@ const validateIndependentReproduction = (reproduction = {}, record = {}) => {
     && bindings.exactModelContractKey === record.identity?.exactModelContractKey
     && bindings.sourceTreeHash === record.release?.sourceTreeHash
     && bindings.browserBundleHash === record.release?.browserBundleHash
+    && bindings.sourceDirty === record.release?.sourceDirty
     && bindings.policyHash === record.policyHash
-    && reproduction.outputHash === record.outputHash
-    && reproduction.receiptHash === record.receiptHash;
+    && reproduction.outputHash === record.outputHash;
 };
 
 export function browserQualificationIdentity(model = {}, exactModelContractKey = '') {
@@ -201,10 +229,13 @@ export function recordBrowserQualificationCheck(observation = {}, {
   if (status === 'passed' && !validateCheckEvidence(check, evidence)) {
     throw new TypeError(`Passed ${check} check requires hash-addressed browser evidence`);
   }
+  if (status === 'observed' && !validateObservedCheckEvidence(check, evidence)) {
+    throw new TypeError(`Observed ${check} check requires hash-addressed browser evidence`);
+  }
   return {
     ...observation,
     checks: { ...(observation.checks || {}), [check]: status },
-    checkEvidence: status === 'passed'
+    checkEvidence: status === 'passed' || status === 'observed'
       ? { ...(observation.checkEvidence || {}), [check]: { ...evidence } }
       : { ...(observation.checkEvidence || {}), [check]: evidence }
   };
@@ -236,16 +267,17 @@ export function validateBrowserQualificationRecord(record = {}, {
     if (!nonEmptyText(value)) reasons.push(`expected browser qualification ${field} is missing`);
     if (record.identity?.[field] !== value) reasons.push(`browser qualification ${field} does not match the exact model contract`);
   }
-  if (!nonEmptyText(record.release?.sourceRevision)
+  if (!recordedText(record.release?.sourceRevision)
     || !isSha256(record.release?.sourceTreeHash)
-    || !isSha256(record.release?.browserBundleHash)) {
+    || !isSha256(record.release?.browserBundleHash)
+    || record.release?.sourceDirty !== false) {
     reasons.push('browser qualification exact release identity is required');
   }
-  if (!nonEmptyText(record.browser?.family) || !nonEmptyText(record.browser?.version)) {
+  if (!recordedText(record.browser?.family) || !recordedText(record.browser?.version)) {
     reasons.push('browser qualification browser identity is required');
   }
   if (!isSha256(record.browser?.userAgentHash)) reasons.push('browser qualification browser user-agent hash is invalid');
-  if (!nonEmptyText(record.gpu?.adapterIdentity)) reasons.push('browser qualification GPU identity is required');
+  if (!recordedText(record.gpu?.adapterIdentity)) reasons.push('browser qualification GPU identity is required');
   if (!isSha256(record.policyHash)) reasons.push('browser qualification policy hash is invalid');
   if (!isSha256(record.outputHash)) reasons.push('browser qualification output hash is invalid');
   if (!isSha256(record.receiptHash)) reasons.push('browser qualification receipt hash is invalid');
@@ -269,10 +301,11 @@ export function validateBrowserQualificationRecord(record = {}, {
     reasons.push('browser qualification required checks do not match the governed plan');
   }
   for (const check of BROWSER_QUALIFICATION_CHECKS) {
-    if (record.checks?.[check] !== 'passed') reasons.push(`browser qualification check did not pass: ${check}`);
-    if (!validateCheckEvidence(check, record.checkEvidence?.[check])) {
+    const checkPassed = record.checks?.[check] === 'passed';
+    if (!checkPassed) reasons.push(`browser qualification check did not pass: ${check}`);
+    if (checkPassed && !validateCheckEvidence(check, record.checkEvidence?.[check])) {
       reasons.push(`browser qualification check evidence is invalid: ${check}`);
-    } else {
+    } else if (checkPassed) {
       for (const [field, value] of Object.entries(qualificationBindings(record))) {
         if (record.checkEvidence[check].bindings?.[field] !== value) {
           reasons.push(`browser qualification check evidence is not bound to ${field}: ${check}`);
@@ -285,6 +318,7 @@ export function validateBrowserQualificationRecord(record = {}, {
   const participantIds = new Set();
   const browserRunIds = new Set();
   const browserIdentities = new Set();
+  const receiptHashes = new Set();
   for (const reproduction of reproductions) {
     if (!validateIndependentReproduction(reproduction, record)) {
       reasons.push('browser qualification independent reproduction is invalid');
@@ -294,10 +328,14 @@ export function validateBrowserQualificationRecord(record = {}, {
     participantIds.add(reproduction.participantId);
     browserRunIds.add(reproduction.browserRunId);
     browserIdentities.add(reproduction.browserIdentity);
+    receiptHashes.add(reproduction.receiptHash);
   }
   if (reproductionIds.size < 2 || participantIds.size < 2 || browserRunIds.size < 2
-    || browserIdentities.size < 2) {
+    || browserIdentities.size < 2 || receiptHashes.size < 2) {
     reasons.push('browser qualification requires two independent reproductions');
+  }
+  if (!reproductions.some((reproduction) => reproduction.receiptHash === record.receiptHash)) {
+    reasons.push('browser qualification parent receipt is not anchored to an independent reproduction');
   }
   return { ok: reasons.length === 0, reasons };
 }

@@ -2,20 +2,66 @@
  * @fileoverview Governed Doppler runtime-profile search for the X surface.
  */
 
+import {
+  DOPPLER_PACKAGE_INTEGRITY,
+  DOPPLER_PACKAGE_VERSION
+} from '../../config/doppler-local-models.js';
+import {
+  ALGORITHM_MANIFEST_SCHEMA,
+  hashImprovementValue
+} from '../../core/improvement-episode.js';
+
 const RUN_INDEX_PATH = '/artifacts/doppler/runs/index.json';
 const ACTIVE_PROFILE_PATH = '/self/config/doppler/active-profile.json';
+const PRIMARY_METRIC_ID = 'paired-performance-improvement-percent';
+const PROTECTED_EVALUATION_PATHS = Object.freeze([
+  '/self/core/improvement-episode.js',
+  '/self/core/promotion-policy.js',
+  '/self/tools/Promote.js',
+  '/self/capabilities/system/doppler-optimizer.js',
+  '/self/infrastructure/audit-logger.js',
+  '/self/infrastructure/genesis-snapshot.js'
+]);
+
+const metricUnit = (metricPath) => {
+  if (String(metricPath).includes('TokensPerSec')) return 'tokens_per_second';
+  if (String(metricPath).endsWith('Ms')) return 'milliseconds';
+  return 'declared_runtime_unit';
+};
+
+const summarizeCandidatePatch = (candidate) => {
+  const patch = Array.isArray(candidate?.patch) ? candidate.patch : [];
+  return patch.map((entry) => `${entry.path}=${JSON.stringify(entry.value)}`).join(', ')
+    || 'registered candidate reference';
+};
 
 const DopplerOptimizer = {
   metadata: {
     id: 'DopplerOptimizer',
     version: '1.0.0',
     genesis: { introduced: 'full' },
-    dependencies: ['Utils', 'VFS', 'EventBus', 'DopplerToolbox', 'AuditLogger?'],
+    dependencies: [
+      'Utils',
+      'VFS',
+      'EventBus',
+      'DopplerToolbox',
+      'ImprovementEpisodeLedger',
+      'AuditLogger?',
+      'ReflectionStore?'
+    ],
     type: 'service'
   },
 
   factory: (deps) => {
-    const { Utils, VFS, EventBus, DopplerToolbox, AuditLogger } = deps;
+    const {
+      Utils,
+      VFS,
+      EventBus,
+      DopplerToolbox,
+      ImprovementEpisodeLedger,
+      AuditLogger,
+      ReflectionStore
+    } = deps;
     const { Errors, generateId, logger } = Utils;
     let activeRun = null;
 
@@ -44,6 +90,168 @@ const DopplerOptimizer = {
       return `sha256:${Array.from(new Uint8Array(digest))
         .map((byte) => byte.toString(16).padStart(2, '0'))
         .join('')}`;
+    };
+
+    const episodeIdFor = (runId, candidateId) => (
+      `doppler:${safeRunId(runId)}:${safeRunId(candidateId)}`
+    );
+
+    const buildAlgorithmManifest = (contract) => ({
+      schema: ALGORITHM_MANIFEST_SCHEMA,
+      algorithmId: 'doppler.runtime-profile-search',
+      version: DOPPLER_PACKAGE_VERSION,
+      sourceModules: [
+        '/self/capabilities/system/doppler-optimizer.js',
+        `doppler-gpu@${DOPPLER_PACKAGE_VERSION}/src/tooling/runtime-optimization.js`
+      ],
+      inputs: [
+        'Frozen runtime optimization contract',
+        'Enumerated candidate patch',
+        'Paired browser command observations'
+      ],
+      outputs: [
+        'Candidate receipt with output-parity verification',
+        'Paired performance distribution and promotion decision'
+      ],
+      invariants: [
+        'Baseline and candidate use the same frozen workload and model identity',
+        'Candidate output must pass every canonical verification comparison',
+        'Candidate cannot edit evaluator, promotion, audit, or rollback authority'
+      ],
+      complexity: 'Linear in candidate count, paired samples, and neighboring workload guards.',
+      resourceAssumptions: [
+        'Browser WebGPU and the pinned Doppler package are available',
+        'Baseline and candidate commands run under the same declared resource policy'
+      ],
+      knownFailureModes: [
+        'Thermal or scheduling drift can bias browser measurements',
+        'A frozen workload can fail to generalize to neighboring workloads',
+        'Missing model artifact identity weakens cross-runtime reproduction'
+      ],
+      evaluationSuites: [contract.schema],
+      dependencies: [`doppler-gpu@${DOPPLER_PACKAGE_VERSION}`],
+      status: 'shadow',
+      historicalRevisions: [],
+      candidateAlternatives: []
+    });
+
+    const buildEpisodeStart = async ({ runId, contract, contractHash, candidateCount }) => {
+      const configHash = await hashImprovementValue(contract.baseline);
+      const modelHash = await hashImprovementValue(contract.model);
+      const promptHash = await hashImprovementValue(contract.workload);
+      const artifactHash = await hashImprovementValue({
+        model: contract.model,
+        dopplerPackageIntegrity: DOPPLER_PACKAGE_INTEGRITY
+      });
+      const codeHash = await hashImprovementValue({
+        package: `doppler-gpu@${DOPPLER_PACKAGE_VERSION}`,
+        integrity: DOPPLER_PACKAGE_INTEGRITY
+      });
+      const testSuiteDigest = await hashImprovementValue({
+        workload: contract.workload,
+        verification: contract.verification,
+        measurement: contract.measurement,
+        neighboringWorkloads: contract.neighboringWorkloads || []
+      });
+      const evaluatorHash = await hashImprovementValue({
+        evaluator: 'doppler.runtime-optimization',
+        version: DOPPLER_PACKAGE_VERSION,
+        integrity: DOPPLER_PACKAGE_INTEGRITY,
+        testSuiteDigest
+      });
+      const baselineGenerationId = `generation:${contractHash.slice('sha256:'.length, 'sha256:'.length + 24)}`;
+      return {
+        groupId: `doppler:${runId}`,
+        surface: 'x',
+        objective: {
+          objectiveId: `doppler-runtime:${contract.contractId}`,
+          statement: `Improve ${contract.measurement.metricPath} under the frozen ${contract.contractId} contract without violating output parity or neighboring guards.`,
+          successMetricId: PRIMARY_METRIC_ID
+        },
+        baseline: {
+          generationId: baselineGenerationId,
+          hashes: {
+            code: codeHash,
+            config: configHash,
+            model: modelHash,
+            prompt: promptHash,
+            artifacts: artifactHash,
+            contract: contractHash
+          },
+          hashSemantics: {
+            code: 'Hash of the pinned Doppler package version and registry integrity.',
+            config: 'Hash of the exact baseline runtime inputs.',
+            model: 'Hash of the declared model identity and expected execution contract.',
+            prompt: 'Hash of the frozen workload and request.',
+            artifacts: 'Hash of model identity plus pinned Doppler package integrity.',
+            contract: 'Doppler canonical runtime optimization contract hash.'
+          },
+          snapshotPath: `/artifacts/doppler/runs/${runId}/contract.json`
+        },
+        proposer: { authorityId: 'reploid:x:doppler-optimizer' },
+        evaluator: {
+          evaluatorId: 'doppler.runtime-optimization',
+          authorityId: `doppler:tooling:${DOPPLER_PACKAGE_VERSION}`,
+          version: DOPPLER_PACKAGE_VERSION,
+          evaluatorHash,
+          testSuiteDigest,
+          protectedPaths: PROTECTED_EVALUATION_PATHS,
+          heldOut: false,
+          frozenBeforeCandidate: true
+        },
+        metrics: [{
+          metricId: PRIMARY_METRIC_ID,
+          unit: 'percent',
+          sourceUnit: metricUnit(contract.measurement.metricPath),
+          direction: 'maximize',
+          measurementSource: contract.measurement.metricPath,
+          aggregationRule: 'Median of paired baseline-candidate percentage improvements.',
+          validityConditions: [
+            'Every declared canonical verification comparison passes.',
+            `At least ${contract.measurement.minValidPairs} of ${contract.measurement.pairCount} pairs are valid.`,
+            contract.measurement.requirePositiveConfidence
+              ? 'The declared confidence interval excludes the rejection region.'
+              : 'Confidence exclusion is not required by this frozen contract.'
+          ],
+          noiseModel: 'Repeated paired browser observations with the evaluator-declared confidence interval.',
+          minimumSampleSize: contract.measurement.minValidPairs,
+          promotionThreshold: {
+            operator: '>=',
+            value: contract.measurement.minImprovementPercent
+          },
+          operational: false
+        }],
+        algorithm: buildAlgorithmManifest(contract),
+        environment: {
+          runtime: 'browser',
+          browser: globalThis.navigator?.userAgent || 'unknown',
+          hardware: globalThis.navigator?.gpu ? 'webgpu-present' : 'webgpu-unreported',
+          modelId: contract.model.modelId,
+          expectedExecutionContractHash: contract.model.expectedExecutionContractHash,
+          dopplerPackageVersion: DOPPLER_PACKAGE_VERSION,
+          dopplerPackageIntegrity: DOPPLER_PACKAGE_INTEGRITY
+        },
+        corpus: {
+          inputCorpusHash: promptHash,
+          trainingSplitHash: null,
+          evaluationSplitHash: testSuiteDigest,
+          heldOut: false,
+          note: 'The workload is predeclared and immutable after candidate enumeration, but it is not a hidden generalization set.'
+        },
+        resourceBudget: {
+          candidates: candidateCount,
+          pairedCallsPerCandidate: contract.measurement.pairCount * 2,
+          verificationCallsPerCandidate: 2,
+          neighboringWorkloads: contract.neighboringWorkloads?.length || 0,
+          tokens: contract.workload.request?.inferenceInput?.maxTokens ?? null,
+          elapsedMs: null,
+          memoryBytes: null,
+          compute: 'browser-webgpu',
+          cost: null
+        },
+        evaluatorHash,
+        baselineGenerationId
+      };
     };
 
     const safeRunId = (value) => {
@@ -91,6 +299,172 @@ const DopplerOptimizer = {
       }
     };
 
+    const beginCandidateEpisode = async ({
+      episodeStart,
+      runId,
+      candidate,
+      candidatePath
+    }) => {
+      const episodeId = episodeIdFor(runId, candidate.candidateId);
+      const candidateHash = await hashImprovementValue(candidate);
+      const patchHash = await hashImprovementValue(candidate.patch || candidate.registeredReference || candidate);
+      const candidateGenerationId = `generation:${candidateHash.slice('sha256:'.length, 'sha256:'.length + 24)}`;
+      const semanticScope = (candidate.patch || []).map((entry) => entry.path);
+      if (semanticScope.length === 0) {
+        semanticScope.push(`registry:${candidate.registeredReference?.registryId || candidate.candidateId}`);
+      }
+      await ImprovementEpisodeLedger.begin({
+        ...episodeStart,
+        episodeId,
+        parentEpisodeId: null
+      });
+      await ImprovementEpisodeLedger.recordDiagnosis(episodeId, {
+        diagnosis: `The frozen baseline may leave ${episodeStart.objective.successMetricId} on the table for the declared workload.`,
+        hypothesis: {
+          observation: `The baseline is the fixed comparator for candidate ${candidate.candidateId}.`,
+          suspectedCause: `The runtime behavior controlled by ${summarizeCandidatePatch(candidate)} may be suboptimal.`,
+          alternativeExplanations: [
+            'Browser scheduling or thermal drift',
+            'Workload-specific noise',
+            'A change that improves speed while violating output parity'
+          ],
+          proposedDiagnostic: 'Run the frozen verification and paired evaluation without changing the evaluator or metric.',
+          candidateIntervention: summarizeCandidatePatch(candidate),
+          expectedResult: `The primary metric passes its ${episodeStart.metrics[0].promotionThreshold.operator} ${episodeStart.metrics[0].promotionThreshold.value} threshold with output parity.`,
+          falsifyingResult: 'Parity fails, paired observations are insufficient, or the primary threshold is not met.',
+          followUpHypothesis: null
+        },
+        authorityId: 'reploid:zero:doppler-hypothesis'
+      });
+      await ImprovementEpisodeLedger.proposeCandidate(episodeId, {
+        candidateId: candidate.candidateId,
+        candidateHash,
+        patchHash,
+        generationId: candidateGenerationId,
+        parentGenerationId: episodeStart.baselineGenerationId,
+        changedFiles: [candidatePath],
+        semanticScope,
+        expectedBehavior: 'Improve the declared runtime metric without changing canonical model output.',
+        affectedInvariants: [
+          ...episodeStart.algorithm.invariants,
+          'The evaluator and promotion policy remain outside candidate authority.'
+        ],
+        falsifier: 'Any verification failure, invalid pair, regression guard, or missed promotion threshold.'
+      });
+      return { episodeId, candidateHash, patchHash, candidateGenerationId };
+    };
+
+    const recordCandidateEvaluation = async ({
+      episodeId,
+      contract,
+      contractHash,
+      evaluatorHash,
+      receipt,
+      receiptPath
+    }) => {
+      const pairs = Array.isArray(receipt?.measurement?.pairs)
+        ? receipt.measurement.pairs
+        : [];
+      const validPairs = pairs.filter((pair) => pair?.valid === true);
+      const completedPairs = Number.isInteger(receipt?.measurement?.completedPairs)
+        ? receipt.measurement.completedPairs
+        : validPairs.length;
+      const improvement = receipt?.measurement?.improvementPercent || {};
+      const accepted = receipt?.decision?.accepted === true;
+      await ImprovementEpisodeLedger.recordExecution(episodeId, {
+        isolated: true,
+        isolationKind: 'frozen-runtime-inputs',
+        sandboxId: `doppler:${episodeId}`,
+        runtimeIdentity: `${contract.model.modelId} / doppler-gpu@${DOPPLER_PACKAGE_VERSION}`,
+        runtimeInputs: receipt?.runtimeInputs || null,
+        resourceUse: {
+          completedPairs,
+          attemptedPairs: pairs.length,
+          neighboringWorkloads: receipt?.measurement?.neighboringWorkloads || []
+        }
+      });
+      await ImprovementEpisodeLedger.recordVerification(episodeId, {
+        passed: receipt?.verification?.passed === true,
+        verifierId: `doppler:verification:${DOPPLER_PACKAGE_VERSION}`,
+        evidencePaths: [receiptPath],
+        checks: contract.verification.comparisons,
+        observation: receipt?.verification || null
+      });
+      await ImprovementEpisodeLedger.recordEvaluation(episodeId, {
+        baselineContractHash: contractHash,
+        candidateContractHash: receipt?.contractHash || contractHash,
+        evaluatorHash,
+        sampleCount: validPairs.length || completedPairs,
+        rawObservations: pairs.length > 0
+          ? pairs
+          : [{
+            valid: false,
+            error: receipt?.error || receipt?.decision?.reasons || ['paired observations missing']
+          }],
+        metrics: [{
+          metricId: PRIMARY_METRIC_ID,
+          value: Number.isFinite(improvement.median) ? improvement.median : null,
+          valid: accepted && validPairs.length >= contract.measurement.minValidPairs,
+          confidenceInterval: improvement.confidence95 || improvement.decisionConfidence || null,
+          baseline: receipt?.measurement?.baseline || null,
+          candidate: receipt?.measurement?.candidate || null
+        }],
+        providerCandidateHash: receipt?.candidateHash || null,
+        providerReceiptHash: receipt?.receiptHash || null,
+        failure: receipt?.error || null
+      });
+      await ImprovementEpisodeLedger.recordComparison(episodeId, {
+        primaryMetricId: PRIMARY_METRIC_ID,
+        tradeoffs: [{
+          metricId: PRIMARY_METRIC_ID,
+          baseline: receipt?.measurement?.baseline || null,
+          candidate: receipt?.measurement?.candidate || null,
+          improvementPercent: improvement,
+          resourceUse: {
+            completedPairs,
+            attemptedPairs: pairs.length
+          }
+        }],
+        regressions: receipt?.measurement?.neighboringWorkloads
+          || receipt?.measurement?.neighboringGuards
+          || [],
+        conclusion: accepted ? 'improved' : 'not_improved',
+        authorityId: `doppler:tooling:${DOPPLER_PACKAGE_VERSION}`
+      });
+    };
+
+    const buildOutcomeReflection = (candidate, receipt, state) => ({
+      observation: `Candidate ${candidate.candidateId} ended ${state}; evaluator reasons: ${(receipt?.decision?.reasons || []).join(', ') || 'none'}.`,
+      suspectedCause: state === 'promoted'
+        ? 'The bounded runtime intervention passed the frozen paired evaluation and canary.'
+        : 'The candidate did not satisfy every frozen verification, measurement, selection, and canary condition.',
+      alternativeExplanations: [
+        'Browser measurement noise',
+        'A workload-local effect that will not generalize',
+        'An interaction with runtime or hardware identity'
+      ],
+      proposedDiagnostic: 'Replay the same frozen contract and compare raw paired observations before changing the hypothesis.',
+      candidateIntervention: summarizeCandidatePatch(candidate),
+      expectedResult: 'A genuine improvement repeats under the same contract and prospective canary.',
+      falsifyingResult: 'The repeated interval crosses the threshold, parity fails, or a neighboring workload regresses.',
+      followUpHypothesis: state === 'promoted'
+        ? 'Test the promoted generation prospectively on an independently frozen workload.'
+        : 'Change one semantic dimension and rerun under the same evaluator.'
+    });
+
+    const recordOutcomeReflection = async (episodeId, candidate, receipt, state) => {
+      const reflection = buildOutcomeReflection(candidate, receipt, state);
+      await ImprovementEpisodeLedger.recordReflection(episodeId, reflection);
+      if (ReflectionStore?.addHypothesis) {
+        await ReflectionStore.addHypothesis({
+          ...reflection,
+          episodeId,
+          candidateId: candidate.candidateId,
+          outcome: state
+        });
+      }
+    };
+
     const rankReceipts = (left, right) => {
       const leftMedian = left?.measurement?.improvementPercent?.median;
       const rightMedian = right?.measurement?.improvementPercent?.median;
@@ -114,6 +488,12 @@ const DopplerOptimizer = {
       const candidates = await DopplerToolbox.tooling.optimization.enumerateCandidates(contract);
       const runId = safeRunId(options.runId || generateId('doppler_opt'));
       const paths = pathsForRun(runId);
+      const episodeStart = await buildEpisodeStart({
+        runId,
+        contract,
+        contractHash,
+        candidateCount: candidates.length
+      });
       const abortController = new AbortController();
       activeRun = { runId, abortController, candidateIndex: -1, candidateCount: candidates.length };
 
@@ -146,6 +526,12 @@ const DopplerOptimizer = {
           const candidatePath = `${paths.candidates}/${candidate.candidateId}.json`;
           const receiptPath = `${paths.receipts}/${candidate.candidateId}.json`;
           await writeJson(candidatePath, candidate);
+          const episodeDescriptor = await beginCandidateEpisode({
+            episodeStart,
+            runId,
+            candidate,
+            candidatePath
+          });
           emit('candidate-started', { runId, index, candidateCount: candidates.length, candidate });
           let receipt;
           try {
@@ -179,7 +565,21 @@ const DopplerOptimizer = {
             };
           }
           await writeJson(receiptPath, receipt);
-          receipts.push({ ...receipt, receiptPath, candidatePath });
+          await recordCandidateEvaluation({
+            episodeId: episodeDescriptor.episodeId,
+            contract,
+            contractHash,
+            evaluatorHash: episodeStart.evaluatorHash,
+            receipt,
+            receiptPath
+          });
+          receipts.push({
+            ...receipt,
+            receiptPath,
+            candidatePath,
+            candidate,
+            episodeId: episodeDescriptor.episodeId
+          });
           const acceptedCandidates = receipts.filter((entry) => entry.decision?.accepted === true).length;
           await writeJson(paths.status, {
             schema: 'reploid.doppler-optimization-status/v1',
@@ -198,6 +598,28 @@ const DopplerOptimizer = {
 
         const accepted = receipts.filter((receipt) => receipt.decision?.accepted === true).sort(rankReceipts);
         const selected = accepted[0] || null;
+        for (const receipt of receipts) {
+          if (receipt.episodeId === selected?.episodeId) continue;
+          const evaluatorReasons = Array.isArray(receipt.decision?.reasons)
+            && receipt.decision.reasons.length > 0
+            ? receipt.decision.reasons
+            : ['Candidate did not pass the frozen evaluation.'];
+          const reasons = receipt.decision?.accepted === true
+            ? ['Candidate passed its own threshold but was not the selected Pareto-ranked candidate.']
+            : evaluatorReasons;
+          await ImprovementEpisodeLedger.recordDecision(receipt.episodeId, {
+            state: 'rejected',
+            reasons,
+            authorityId: 'reploid:x:promotion-policy',
+            selectedEpisodeId: selected?.episodeId || null
+          });
+          await recordOutcomeReflection(
+            receipt.episodeId,
+            receipt.candidate,
+            receipt,
+            'rejected'
+          );
+        }
         const completedAt = new Date().toISOString();
         const decision = {
           schema: 'reploid.doppler-optimization-decision/v1',
@@ -209,11 +631,13 @@ const DopplerOptimizer = {
           selectedCandidateHash: selected?.candidateHash ?? null,
           selectedReceiptHash: selected?.receiptHash ?? null,
           selectedReceiptPath: selected?.receiptPath ?? null,
+          selectedEpisodeId: selected?.episodeId ?? null,
           ranking: accepted.map((receipt) => ({
             candidateId: receipt.candidateId,
             candidateHash: receipt.candidateHash,
             receiptHash: receipt.receiptHash,
             receiptPath: receipt.receiptPath,
+            episodeId: receipt.episodeId,
             improvementPercent: receipt.measurement?.improvementPercent?.median ?? null,
             relativeStdDevPercent: receipt.measurement?.candidate?.relativeStdDevPercent ?? null
           })),
@@ -298,7 +722,21 @@ const DopplerOptimizer = {
           ? `${paths.candidates}/${receipt.candidateId}.json`
           : null;
         const candidate = candidatePath ? await readJson(candidatePath, null) : null;
-        receipts.push({ ...receipt, receiptPath, candidatePath, candidate });
+        const episodeId = receipt.candidateId
+          ? episodeIdFor(runId, receipt.candidateId)
+          : null;
+        const episode = episodeId
+          ? await ImprovementEpisodeLedger.getEpisode(episodeId)
+          : null;
+        receipts.push({
+          ...receipt,
+          receiptPath,
+          candidatePath,
+          candidate,
+          episodeId,
+          episode,
+          promotionReadiness: ImprovementEpisodeLedger.assessPromotionReadiness(episode)
+        });
       }
       return {
         runId: safeRunId(runId),
@@ -374,6 +812,17 @@ const DopplerOptimizer = {
       const targetProfilePath = `/self/config/doppler/profiles/${profileKey}.json`;
       const evidencePath = `/artifacts/doppler/promotions/${profileKey}/evidence.json`;
       await VFS.write(shadowProfilePath, profileContent);
+      const episodeId = episodeIdFor(runId, candidateId);
+      await ImprovementEpisodeLedger.requestPromotion(episodeId, {
+        authorityId: 'reploid:x:promotion-policy',
+        candidatePath: shadowProfilePath,
+        targetPath: targetProfilePath,
+        evidencePath,
+        selectionReceiptPath: receiptPath,
+        replayReceiptPath,
+        replayReceiptHash: replayReceipt.receiptHash
+      });
+      const improvementEpisode = await ImprovementEpisodeLedger.getEpisode(episodeId);
       await writeJson(evidencePath, {
         schema: 'reploid.doppler-profile-promotion-evidence/v1',
         candidatePath: shadowProfilePath,
@@ -393,11 +842,21 @@ const DopplerOptimizer = {
           decisionPath: runRecord.paths.decision,
           profileHash,
           runtimeConfigHash
+        },
+        improvementEpisode: {
+          schema: improvementEpisode.schema,
+          episodeId,
+          projectionPath: ImprovementEpisodeLedger.pathsForEpisode(episodeId).projection,
+          eventHeadHash: improvementEpisode.integrity.headHash,
+          eventCount: improvementEpisode.integrity.eventCount,
+          signaturesValid: improvementEpisode.integrity.valid,
+          promotionReadiness: ImprovementEpisodeLedger.assessPromotionReadiness(improvementEpisode)
         }
       });
       return {
         runId,
         candidateId,
+        episodeId,
         profile,
         profileHash,
         candidatePath: shadowProfilePath,
@@ -506,6 +965,7 @@ const DopplerOptimizer = {
       const canaryRoot = `/artifacts/doppler/promotions/${prepared.profileHash.slice('sha256:'.length)}`;
       const canaryReceiptPath = `${canaryRoot}/canary.json`;
       const rollbackPath = `${canaryRoot}/rollback.json`;
+      let episodeCandidate = null;
       try {
         const runRecord = await getRun(prepared.runId);
         if (!runRecord) throw new Errors.StateError(`Optimization run not found: ${prepared.runId}`);
@@ -513,6 +973,7 @@ const DopplerOptimizer = {
           `${runRecord.paths.candidates}/${prepared.candidateId}.json`,
           null
         );
+        episodeCandidate = candidate;
         if (!candidate) throw new Errors.ArtifactError('Promoted optimization candidate is missing');
         const runtimeInputs = await DopplerToolbox.tooling.optimization.materializeCandidate(
           runRecord.contract,
@@ -544,10 +1005,33 @@ const DopplerOptimizer = {
           state: 'active',
           canaryReceiptPath,
           canaryReceiptHash: canaryReceipt.receiptHash,
+          improvementEpisodeId: prepared.episodeId,
           activatedAt: new Date().toISOString()
         };
         await writeJson(ACTIVE_PROFILE_PATH, activePointer);
         await applyProfileToRuntime(promotedProfile, prepared.profileHash);
+        await ImprovementEpisodeLedger.recordReview(prepared.episodeId, {
+          reviewerId: 'reploid:promote-tool',
+          decision: 'promotion-evidence-accepted',
+          promotionId: promotionResult.promotionId || null,
+          rollbackPath: promotionResult.rollbackPath || null,
+          note: 'This is a signed operational gate record, not a claim of independent human review.'
+        });
+        await ImprovementEpisodeLedger.recordDecision(prepared.episodeId, {
+          state: 'promoted',
+          reasons: [],
+          authorityId: 'reploid:x:promotion-policy',
+          promotionId: promotionResult.promotionId || null,
+          canaryReceiptPath,
+          canaryReceiptHash: canaryReceipt.receiptHash,
+          rollbackPointer: promotionResult.rollbackPath || rollbackPath
+        });
+        await recordOutcomeReflection(
+          prepared.episodeId,
+          candidate,
+          canaryReceipt,
+          'promoted'
+        );
         emit('profile-activated', { pointer: activePointer });
         await recordAudit('DOPPLER_PROFILE_ACTIVATED', activePointer);
         return { ok: true, activated: true, pointer: activePointer, canaryReceipt };
@@ -570,6 +1054,23 @@ const DopplerOptimizer = {
           rolledBackAt: new Date().toISOString()
         };
         await writeJson(rollbackPath, rollback);
+        if (prepared.episodeId) {
+          const episode = await ImprovementEpisodeLedger.getEpisode(prepared.episodeId);
+          await ImprovementEpisodeLedger.recordRollback(prepared.episodeId, {
+            rollbackPointer: rollbackPath,
+            restoredGenerationId: episode?.generation?.baseline,
+            reason: rollback.reason,
+            authorityId: 'reploid:x:rollback'
+          });
+          if (episodeCandidate) {
+            await recordOutcomeReflection(
+              prepared.episodeId,
+              episodeCandidate,
+              { decision: { reasons: [rollback.reason] } },
+              'rolled_back'
+            );
+          }
+        }
         emit('profile-rolled-back', rollback);
         await recordAudit('DOPPLER_PROFILE_ROLLED_BACK', rollback, 'WARN');
         return { ok: false, activated: false, rollback, rollbackPath };

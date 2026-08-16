@@ -19,14 +19,20 @@ Graduated operation with automated gates:
 | **L0** | Basic Functions (CreateTool, Web APIs, new tools) | AUTONOMOUS | Verification Worker sandbox |
 | **L1** | Meta Tooling (modify tool-writer, improve CreateTool) | AUTONOMOUS | Arena consensus |
 | **L2** | Self-Modification (Substrate) (edit core modules, runtime patches) | AUTONOMOUS | Arena + GenesisSnapshot rollback |
-| **L3** | Weak RSI (Iterative) (bounded feedback loops, self-improvement) | AUTONOMOUS | Arena + GenesisSnapshot rollback + iteration caps |
+| **L3** | Weak RSI (Iterative) (bounded feedback loops, self-improvement) | GOVERNED | Signed improvement episode + protected evaluator + paired evaluation + generation rollback + explicit promotion |
 | **L4** | Weak AGI (broad autonomous planning, system-building, self-directed experimentation) | N/A | N/A |
 
 Gating is enforced via automated verification and rollback:
 - Arena consensus for L1 changes
 - Arena + GenesisSnapshot rollback for L2 changes
-- Arena + GenesisSnapshot rollback + iteration caps for L3 changes
+- Signed `rsi.improvement-episode/v1` evidence, protected evaluator authority,
+  paired raw observations, explicit promotion, and generation rollback for L3
+  claims
 - Circuit breakers prevent runaway failures
+
+Arena success, mutation logs, telemetry, saved reflection, or a rising fitness
+number does not establish L3 improvement. See
+[RSI improvement episodes](./rsi-improvement-episodes.md).
 
 ---
 
@@ -36,7 +42,7 @@ REPLOID studies RSI (recursive self-improvement) without giving agents access to
 
 ---
 
-## 8-Layer Containment Stack
+## 9-Layer Containment Stack
 
 | Layer | Blueprint | Description |
 |-------|-----------|-------------|
@@ -48,6 +54,7 @@ REPLOID studies RSI (recursive self-improvement) without giving agents access to
 | 6 | VFSSandbox | Test changes in a disposable clone before commit |
 | 7 | [Circuit Breakers (0x00005C)](../self/blueprints/0x00005C-circuit-breaker-pattern.md) | Prevent runaway failures |
 | 8 | [HITL Controller (0x000049)](../self/blueprints/0x000049-hitl-controller.md) | Optional approval gates |
+| 9 | [Improvement Episode Ledger](./rsi-improvement-episodes.md) | Signed causal record, evaluator separation, metric threshold, generation ancestry, and promotion replay |
 
 ---
 

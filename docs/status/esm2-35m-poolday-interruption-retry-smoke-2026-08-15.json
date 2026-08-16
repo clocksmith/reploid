@@ -1,0 +1,60 @@
+{
+  "schema": "poolday.actual_browser_interruption_retry_smoke_summary/v1",
+  "status": "observed",
+  "observedAt": "2026-08-16T00:08:00.214Z",
+  "qualificationEligible": false,
+  "claimBoundary": "After actual ESM-2 execution began on a 1,024-residue public sequence and requester reload required a decision, explicit retry created a distinct assignment. Assignment-bound transport status moved the retry from a bounded queue deadline to a fresh post-start receipt deadline; the single-job provider then returned a newly accepted receipt. This dirty local observation is not automatic resume, exactly-once execution, or clean-release browser qualification, and its queue/start statuses are not provider-signed receipts.",
+  "producer": {
+    "test": "tests/e2e/p2p-actual-inference.spec.js",
+    "journey": "creates a new actual ESM-2 request after explicit interruption retry",
+    "browserProject": "chromium",
+    "signalingMode": "local",
+    "forceRelay": false,
+    "roomId": "actual-inference-0-msv1qfxo-d5109u0mn69",
+    "attachmentSha256": "sha256:11f8f0d2a2bc6ce75df232962b0eb0011749df8b5c7ce9a016e71b05ce1dead9"
+  },
+  "release": {
+    "sourceDirty": true,
+    "sourceRevision": null,
+    "sourceTreeHash": null,
+    "browserBundleHash": null
+  },
+  "model": {
+    "modelId": "esm2-t12-35m-ur50d-f32-af32",
+    "modelHash": "sha256:1092c098741472429a4c6b4cd6050d5967e0a606d01f713c0b4866fd98921ac8",
+    "manifestHash": "sha256:5612aa20ee2d5310da323d5c39986d0ab724ff727ce92e40762da6ea7b189730",
+    "runtime": "doppler-gpu@0.5.1",
+    "backend": "browser-webgpu"
+  },
+  "probe": {
+    "mode": "explicit_retry_after_provider_execution_start",
+    "sequenceLength": 1024,
+    "executionStartObserved": true,
+    "recoveryCode": "peer_request_interrupted",
+    "automaticRetry": false,
+    "userDecision": "retry",
+    "interruptedAssignmentId": "peer_assignment_5007d06645c3cabb",
+    "retriedAssignmentId": "peer_assignment_1af459688e286053",
+    "distinctAssignment": true,
+    "retryQueuedBehindInterruptedExecution": true,
+    "queueStatusObserved": true,
+    "executionStartedStatusObserved": true,
+    "deliveryPolicy": {
+      "queueWindowMs": 600000,
+      "receiptWindowMs": 600000,
+      "queueDeadlineStartsOn": "provider_queued_status",
+      "receiptDeadlineStartsOn": "input_dispatch_or_provider_execution_started"
+    },
+    "retriedReceiptHash": "sha256:f9b7d73f173e6d7302bc7c3ebef146741a71458742a4fd20508fd94d894eece3",
+    "retriedAgreementAccepted": true,
+    "retriedRequesterAccepted": true
+  },
+  "remainingQualificationBoundary": [
+    "the retry observation is not bound to a clean source revision or browser bundle",
+    "the provider and requester used one local Chromium browser context rather than independently operated browsers",
+    "retry creates a new assignment and does not resume or deduplicate the interrupted assignment",
+    "the observation does not establish exactly-once execution or absence of side effects from abandoned work",
+    "the transport queue and start statuses are assignment-bound operational evidence, not provider-signed receipts",
+    "the probe used enlarged explicit queue and receipt windows and does not qualify the ordinary production deadline on this browser backend"
+  ]
+}

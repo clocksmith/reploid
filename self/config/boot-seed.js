@@ -192,6 +192,7 @@ export const X_HOME_BOOT_SEED_PREFIXES = Object.freeze([
   ...LOCKED_HOME_BOOT_SEED_PREFIXES,
   'blueprints/rgr-runtime-contract.md',
   'blueprints/promotion-contract.md',
+  'core/improvement-episode.js',
   'tools/Promote.js',
   'tools/DopplerOptimize.js',
   'capabilities/system/doppler-optimizer.js',

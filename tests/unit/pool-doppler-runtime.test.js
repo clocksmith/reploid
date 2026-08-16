@@ -162,10 +162,11 @@ describe('Doppler browser runtime adapter', () => {
     expect(result.embeddingDimensions).toBe(3);
   });
 
-  it('invalidates cancelled sequence work and rejects its late result before it can be published', async () => {
+  it('distinguishes a resolved stale sequence result from backend cancellation before publication', async () => {
     const sequenceFields = await makePublicProteinJobFields();
     let resolveDelayedSequence = null;
     let abortCalls = 0;
+    let observedSignal = null;
     let markStarted = null;
     const delayedResult = new Promise((resolve) => {
       resolveDelayedSequence = resolve;
@@ -180,8 +181,9 @@ describe('Doppler browser runtime adapter', () => {
         abort() {
           abortCalls += 1;
         },
-        encodeSequence(sequence) {
+        encodeSequence(sequence, options = {}) {
           if (sequence === TEST_PUBLIC_PROTEIN_SEQUENCE) {
+            observedSignal = options.signal;
             markStarted();
             return delayedResult;
           }
@@ -199,11 +201,20 @@ describe('Doppler browser runtime adapter', () => {
     await expect(runtime.cancelActiveWork({ reason: 'qualification_cancellation_probe' })).resolves.toMatchObject({
       ok: true,
       status: 'cancelled',
-      cancellation: { requested: true, method: 'abort' }
+      cancellation: {
+        requested: true,
+        method: 'abort',
+        signal: { requested: true, method: 'abort_signal', alreadyAborted: false },
+        session: { requested: true, method: 'abort' }
+      }
     });
+    expect(observedSignal).toBeInstanceOf(AbortSignal);
+    expect(observedSignal.aborted).toBe(true);
+    expect(observedSignal.reason).toBe('qualification_cancellation_probe');
     resolveDelayedSequence(testSequenceEncoding(TEST_PUBLIC_PROTEIN_SEQUENCE));
     await expect(cancelled).rejects.toMatchObject({
-      code: 'pool_runtime_work_cancelled',
+      name: 'StaleResultError',
+      code: 'pool_runtime_stale_result',
       reason: 'qualification_cancellation_probe'
     });
     expect(abortCalls).toBe(1);
@@ -215,6 +226,69 @@ describe('Doppler browser runtime adapter', () => {
     })).resolves.toMatchObject({
       status: 'completed',
       embeddingDimensions: 3
+    });
+    await expect(runtime.close()).resolves.toMatchObject({
+      ok: true,
+      status: 'closed',
+      cancellation: {
+        status: 'cancelled',
+        reason: 'runtime_closed',
+        cancellation: {
+          requested: true,
+          method: 'abort',
+          signal: { requested: false, method: null },
+          session: { requested: true, method: 'abort' }
+        }
+      },
+      workSettlement: {
+        status: 'completed',
+        errorName: null,
+        errorCode: null
+      }
+    });
+    expect(abortCalls).toBe(2);
+  });
+
+  it('records stale settlement when a completed sequence result is superseded at the release boundary', async () => {
+    const sequenceFields = await makePublicProteinJobFields();
+    let releaseBarrier = null;
+    let markBarrierEntered = null;
+    const barrierEntered = new Promise((resolve) => {
+      markBarrierEntered = resolve;
+    });
+    const runtime = createDopplerRuntime({
+      model: LAUNCH_MODEL,
+      modelSession: launchHandle(),
+      resultReleaseBarrier: async () => {
+        markBarrierEntered();
+        await new Promise((resolve) => {
+          releaseBarrier = resolve;
+        });
+      }
+    });
+    const execution = runtime.encodeSequence({
+      sequence: TEST_PUBLIC_PROTEIN_SEQUENCE,
+      request: sequenceFields.sequenceRequest,
+      assignment: { assignmentId: 'assignment_release_barrier', sequenceRequest: sequenceFields.sequenceRequest }
+    });
+    await barrierEntered;
+    const cancellation = await runtime.cancelActiveWork({ reason: 'qualification_stale_result_probe' });
+    releaseBarrier();
+    await expect(execution).rejects.toMatchObject({
+      name: 'StaleResultError',
+      code: 'pool_runtime_stale_result',
+      reason: 'qualification_stale_result_probe'
+    });
+    await expect(runtime.close({ cancellation })).resolves.toMatchObject({
+      ok: true,
+      status: 'closed',
+      workSettlement: {
+        status: 'stale_result_rejected',
+        epoch: 0,
+        errorName: 'StaleResultError',
+        errorCode: 'pool_runtime_stale_result',
+        reason: 'qualification_stale_result_probe'
+      }
     });
   });
 

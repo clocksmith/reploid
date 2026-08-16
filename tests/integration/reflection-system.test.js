@@ -177,6 +177,35 @@ describe('Reflection System - Integration Tests', () => {
       expect(reflections[0].type).toBe('insight');
     });
 
+    it('stores hypothesis-driven reflection with explicit alternatives and falsifier', async () => {
+      await reflectionStore.addHypothesis({
+        episodeId: 'episode:test',
+        candidateId: 'candidate:test',
+        outcome: 'rejected',
+        observation: 'The candidate missed the frozen threshold.',
+        suspectedCause: 'The intervention did not affect the bottleneck.',
+        alternativeExplanations: ['Measurement noise', 'Runtime interference'],
+        proposedDiagnostic: 'Replay the same paired evaluation.',
+        candidateIntervention: 'Change one runtime parameter.',
+        expectedResult: 'The paired median crosses the threshold.',
+        falsifyingResult: 'The repeated result remains below threshold.',
+        followUpHypothesis: 'Inspect a different bottleneck.'
+      });
+
+      const [reflection] = await reflectionStore.getReflections();
+      expect(reflection).toMatchObject({
+        type: 'hypothesis',
+        context: {
+          episodeId: 'episode:test',
+          outcome: 'rejected',
+          hypothesis: {
+            alternativeExplanations: ['Measurement noise', 'Runtime interference'],
+            falsifyingResult: 'The repeated result remains below threshold.'
+          }
+        }
+      });
+    });
+
     it('should include context', async () => {
       await reflectionStore.add({
         type: 'error',

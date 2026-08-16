@@ -23,6 +23,7 @@ export function registerCommitRevealRoutes(router, {
   evaluateAgreement,
   statusForPendingAgreement,
   statusForRejectedAgreement,
+  recoverHostedAssignments,
   poolConfigVersion,
   poolConfigHash
 } = {}) {
@@ -43,7 +44,8 @@ export function registerCommitRevealRoutes(router, {
     getPolicy,
     evaluateAgreement,
     statusForPendingAgreement,
-    statusForRejectedAgreement
+    statusForRejectedAgreement,
+    recoverHostedAssignments
   })) {
     if (typeof value !== 'function') throw new Error(`commit-reveal routes require ${name}`);
   }
@@ -51,6 +53,11 @@ export function registerCommitRevealRoutes(router, {
   const POOL_CONFIG_HASH = poolConfigHash;
 
   router.post('/assignments/:assignmentId/commit', asyncRoute(async (req, res) => {
+    const pendingAssignment = await store.getAssignment(req.params.assignmentId);
+    const entryRecovery = await recoverHostedAssignments({
+      store,
+      targetJobId: pendingAssignment?.jobId || null
+    });
     const assignment = await store.getAssignment(req.params.assignmentId);
     if (!assignment) return res.status(404).json({ error: 'assignment not found' });
     if (!requireBoundRole(req, res, 'provider', assignment.providerId)) return null;
@@ -58,7 +65,8 @@ export function registerCommitRevealRoutes(router, {
     if (!['assigned', 'running'].includes(assignment.status)) {
       return res.status(409).json({
         error: 'assignment is not in private compute phase',
-        assignmentStatus: assignment.status
+        assignmentStatus: assignment.status,
+        assignmentRecovery: entryRecovery.summary
       });
     }
     const job = await store.getJob(assignment.jobId);
@@ -131,6 +139,11 @@ export function registerCommitRevealRoutes(router, {
   }));
 
   router.post('/assignments/:assignmentId/reveal', asyncRoute(async (req, res) => {
+    const pendingAssignment = await store.getAssignment(req.params.assignmentId);
+    const entryRecovery = await recoverHostedAssignments({
+      store,
+      targetJobId: pendingAssignment?.jobId || null
+    });
     const assignment = await store.getAssignment(req.params.assignmentId);
     if (!assignment) return res.status(404).json({ error: 'assignment not found' });
     if (!requireBoundRole(req, res, 'provider', assignment.providerId)) return null;
@@ -138,13 +151,17 @@ export function registerCommitRevealRoutes(router, {
     const job = await store.getJob(assignment.jobId);
     if (!job) return res.status(404).json({ error: 'job not found', jobId: assignment.jobId });
     if (!assignmentMatchesCurrentJobAttempt(assignment, job)) {
-      return res.status(409).json({ error: 'assignment does not match current job attempt' });
+      return res.status(409).json({
+        error: 'assignment does not match current job attempt',
+        assignmentRecovery: entryRecovery.summary
+      });
     }
     if (job.ringPhase !== 'reveal_open' && assignment.status !== 'reveal_open') {
       return res.status(409).json({
         error: 'ring reveal phase is not open',
         ringPhase: job.ringPhase || null,
-        assignmentStatus: assignment.status
+        assignmentStatus: assignment.status,
+        assignmentRecovery: entryRecovery.summary
       });
     }
     const commitment = await store.getAssignmentCommitment?.(assignment.assignmentId);
@@ -168,7 +185,9 @@ export function registerCommitRevealRoutes(router, {
     const match = revealMatchesCommitment({ commitment, reveal: revealInput });
     if (!match.ok) reasons.push('reveal does not match prior commitment');
     if (reasons.length > 0) {
+      let recovery = null;
       if (!match.ok) {
+        const rejectedAt = new Date().toISOString();
         const rejectedProviderIds = Array.from(new Set([
           ...(Array.isArray(job?.rejectedProviderIds) ? job.rejectedProviderIds : []),
           assignment.providerId
@@ -177,10 +196,21 @@ export function registerCommitRevealRoutes(router, {
           ...(Array.isArray(job?.failedAssignmentIds) ? job.failedAssignmentIds : []),
           assignment.assignmentId
         ].filter(Boolean)));
+        const assignmentFailure = {
+          schema: 'poolday.assignment_failure/v1',
+          kind: 'reveal_rejection',
+          assignmentId: assignment.assignmentId,
+          assignmentAttemptId: assignment.assignmentAttemptId || job.assignmentAttemptId || null,
+          ringAttemptId: assignment.ringAttemptId || null,
+          providerId: assignment.providerId,
+          expiredFromStatus: null,
+          reason: 'ring_commit_reveal_mismatch',
+          observedAt: rejectedAt
+        };
         await store.updateAssignment(assignment.assignmentId, {
           status: 'reveal_rejected',
           failureReason: 'ring_commit_reveal_mismatch',
-          revealRejectedAt: new Date().toISOString()
+          revealRejectedAt: rejectedAt
         });
         await store.setProviderStatus(assignment.providerId, 'available');
         await recordRejectedReceipt({
@@ -201,7 +231,14 @@ export function registerCommitRevealRoutes(router, {
         });
         await store.updateJob(job.jobId, {
           rejectedProviderIds,
-          failedAssignmentIds
+          failedAssignmentIds,
+          lastAssignmentFailure: assignmentFailure,
+          assignmentFailures: [
+            ...(Array.isArray(job.assignmentFailures)
+              ? job.assignmentFailures.filter((entry) => entry?.assignmentId !== assignment.assignmentId)
+              : []),
+            assignmentFailure
+          ]
         });
         const policy = getPolicy(assignment.policyId);
         if (policy) {
@@ -219,12 +256,25 @@ export function registerCommitRevealRoutes(router, {
               ? { accepted: false, reasons: [agreement.reason], verifiedAt: new Date().toISOString(), agreement }
               : undefined
           });
+          if (agreement.status === 'rejected') {
+            recovery = await recoverHostedAssignments({
+              store,
+              expire: false,
+              targetJobId: job.jobId
+            });
+          }
         }
       }
       return res.status(400).json({
         error: 'invalid reveal',
         reasons,
-        commitmentCheck: match
+        commitmentCheck: match,
+        assignmentRecovery: recovery?.summary || {
+          expired: 0,
+          attempted: 0,
+          assigned: 0,
+          blocked: 0
+        }
       });
     }
     const reveal = await store.saveAssignmentReveal(assignment.assignmentId, {
@@ -263,4 +313,3 @@ export function registerCommitRevealRoutes(router, {
 }
 
 export default registerCommitRevealRoutes;
-

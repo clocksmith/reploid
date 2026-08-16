@@ -17,6 +17,7 @@ import {
   textBytes,
   validateClockworkPromotionEvidence
 } from '../core/promotion-policy.js';
+import { validateImprovementEpisodePromotionEvidence } from '../core/improvement-episode.js';
 
 const pickArg = (args, keys) => {
   for (const key of keys) {
@@ -136,6 +137,8 @@ export async function promoteShadowCandidate(args = {}, deps = {}) {
     trustedReceipts: deps.trustedClockworkReceipts
   });
   reasons.push(...clockworkValidation.reasons);
+  const improvementValidation = await validateImprovementEpisodePromotionEvidence(evidence, { VFS });
+  reasons.push(...improvementValidation.reasons);
 
   const expectedCandidateHash = getEvidenceHash(evidence, 'candidateHash') || getEvidenceHash(evidence, 'candidateSha256');
   const expectedTargetHash = getEvidenceHash(evidence, 'targetHash') || getEvidenceHash(evidence, 'targetSha256');
@@ -271,6 +274,8 @@ export async function promoteShadowCandidate(args = {}, deps = {}) {
     targetPath,
     evidencePath,
     clockworkReceiptDigest: clockworkValidation.receiptDigest || null,
+    improvementEpisodeId: improvementValidation.episodeId || null,
+    improvementEventHeadHash: improvementValidation.eventHeadHash || null,
     bytesWritten: textBytes(candidateContent),
     targetExisted,
     previousHash,
@@ -295,7 +300,7 @@ async function call(args = {}, deps = {}) {
 
 export const tool = {
   name: 'Promote',
-  description: 'Promote a /shadow candidate into an allowlisted /self target when replay evidence passes. Clockwork-tagged candidates additionally require a trusted accepted Gamma receipt.',
+  description: 'Promote a /shadow candidate into an allowlisted /self target when replay evidence passes. Doppler improvement claims also require a valid signed improvement episode; Clockwork-tagged candidates require a trusted accepted Gamma receipt.',
   inputSchema: {
     type: 'object',
     required: ['candidatePath', 'targetPath', 'evidencePath'],

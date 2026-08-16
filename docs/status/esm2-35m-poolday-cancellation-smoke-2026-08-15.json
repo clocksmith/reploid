@@ -1,0 +1,48 @@
+{
+  "schema": "poolday.actual_browser_cancellation_smoke_summary/v1",
+  "status": "observed",
+  "observedAt": "2026-08-15T22:54:10.037Z",
+  "qualificationEligible": false,
+  "claimBoundary": "Actual Poolday cancellation requested the per-execution abort signal, invalidated late output, closed the peer session, and published no receipt. This does not prove that the current Doppler sequence backend stopped GPU work before queue settlement, and this dirty local observation is not a clean-release qualification check.",
+  "producer": {
+    "test": "tests/e2e/p2p-actual-inference.spec.js",
+    "journey": "cancels actual ESM-2 work after execution starts without publishing a receipt",
+    "browserProject": "chromium",
+    "signalingMode": "server",
+    "forceRelay": false,
+    "roomId": "actual-inference-0-msuz3hl6-dlqgieqofl6",
+    "attachmentSha256": "sha256:e1423f1ac79732dd1ae07b7955920b871d2a7213a638c1e0f4233f1d650e65de"
+  },
+  "release": {
+    "sourceDirty": true,
+    "sourceRevision": null,
+    "sourceTreeHash": null,
+    "browserBundleHash": null
+  },
+  "model": {
+    "modelId": "esm2-t12-35m-ur50d-f32-af32",
+    "modelHash": "sha256:1092c098741472429a4c6b4cd6050d5967e0a606d01f713c0b4866fd98921ac8",
+    "manifestHash": "sha256:5612aa20ee2d5310da323d5c39986d0ab724ff727ce92e40762da6ea7b189730",
+    "runtime": "doppler",
+    "backend": "browser-webgpu"
+  },
+  "probe": {
+    "mode": "after_start",
+    "sequenceLength": 1000,
+    "executionStartObserved": true,
+    "workEpochInvalidated": 0,
+    "cancellationReason": "provider_stopped",
+    "abortSignalRequested": true,
+    "abortSignalAlreadyAborted": false,
+    "sessionAbortMethodAvailable": false,
+    "receiptPublished": false,
+    "requesterFailureCode": "peer_provider_unresponsive",
+    "backendAbortConfirmed": false
+  },
+  "remainingQualificationBoundary": [
+    "the cancellation observation is not bound to a clean source revision or browser bundle",
+    "the current Doppler public sequence handle has no session-level abort or cancel method",
+    "the observation does not establish when already-submitted GPU work stopped",
+    "stale-result, manifest-corruption, and cached-shard recovery are separate actual Poolday observations"
+  ]
+}

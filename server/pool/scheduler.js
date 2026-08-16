@@ -144,7 +144,7 @@ const quorumForRingSize = (ringSize, policy = {}) => {
   return configuredQuorumForRingSize(ringSize, policy);
 };
 
-const assignmentAttemptIdForJob = (job = {}) => Math.max(1, Number(job.assignmentAttempts || 0) || 1);
+const assignmentAttemptIdForJob = (job = {}) => Math.max(1, Number(job.assignmentAttempts || 0) + 1);
 
 const ringAttemptIdForJob = (job = {}, assignmentAttemptId) => (
   `ring_attempt_${job.jobId}_${assignmentAttemptId}`
@@ -217,7 +217,40 @@ const buildRingPlan = ({ job, policy, candidates, inputHash, generationConfigHas
   };
 };
 
-const buildAssignmentInput = ({ job, provider, model, policy, inputHash, sequenceRequestHash = null, generationConfigHash, groupSize, requiredAgreement = groupSize, assignmentAttemptId, ring = null, admission = null }) => ({
+const recoveryForAssignmentAttempt = (job = {}, assignmentAttemptId) => {
+  const previousAssignmentAttemptId = Number(job.assignmentAttemptId || 0);
+  if (previousAssignmentAttemptId < 1 || assignmentAttemptId <= previousAssignmentAttemptId) return null;
+  const previousAssignmentIds = Array.isArray(job.assignmentIds) ? job.assignmentIds.filter(Boolean) : [];
+  const assignmentFailures = (Array.isArray(job.assignmentFailures) ? job.assignmentFailures : [])
+    .filter((failure) => previousAssignmentIds.includes(failure?.assignmentId));
+  return {
+    schema: 'poolday.assignment_recovery/v1',
+    previousAssignmentAttemptId,
+    previousRingAttemptId: job.ringAttemptId || null,
+    previousAssignmentIds,
+    failureReasons: Array.from(new Set(assignmentFailures.map((failure) => failure?.reason).filter(Boolean))),
+    failedAssignmentIds: Array.from(new Set([
+      ...(Array.isArray(job.failedAssignmentIds) ? job.failedAssignmentIds : []),
+      ...assignmentFailures.map((failure) => failure?.assignmentId)
+    ].filter((assignmentId) => previousAssignmentIds.includes(assignmentId))))
+  };
+};
+
+const buildAssignmentInput = ({
+  job,
+  provider,
+  model,
+  policy,
+  inputHash,
+  sequenceRequestHash = null,
+  generationConfigHash,
+  groupSize,
+  requiredAgreement = groupSize,
+  assignmentAttemptId,
+  recovery = null,
+  ring = null,
+  admission = null
+}) => ({
   jobId: job.jobId,
   requesterId: job.requesterId,
   providerId: provider.providerId,
@@ -231,6 +264,7 @@ const buildAssignmentInput = ({ job, provider, model, policy, inputHash, sequenc
   trustTier: ring?.effectiveTrustTier || policy.trustTier,
   policyTrustTier: policy.policyTrustTier || policy.trustTier,
   assignmentAttemptId,
+  recovery,
   ringAttemptId: ring?.ringAttemptId || null,
   runtimeProfileHash: provider.runtimeProfileHash || null,
   providerParticipationProfileHash: provider.participationProfile?.profileHash || null,
@@ -326,6 +360,7 @@ export async function assignJob({ store, job, policy }) {
     : null;
   const generationConfigHash = hashJson(job.generationConfig || {});
   const assignmentAttemptId = assignmentAttemptIdForJob(job);
+  const recovery = recoveryForAssignmentAttempt(job, assignmentAttemptId);
   const candidatePool = adaptiveRing
     ? selectDiverseProviderGroup({
       candidates: findHomogeneousProviderGroup({ candidates: providers, policy }),
@@ -383,6 +418,7 @@ export async function assignJob({ store, job, policy }) {
       groupSize: providerCount,
       requiredAgreement,
       assignmentAttemptId,
+      recovery,
       ring,
       admission: candidate.admission || null
     })));
@@ -390,8 +426,19 @@ export async function assignJob({ store, job, policy }) {
 
   const assignmentIds = assignments.map((assignment) => assignment.assignmentId);
   const providerIds = assignments.map((assignment) => assignment.providerId);
+  const recoveryRecord = recovery ? {
+    ...recovery,
+    assignmentAttemptId,
+    ringAttemptId: ringPlan?.ringAttemptId || null,
+    assignmentIds,
+    providerIds,
+    recoveredAt: new Date().toISOString()
+  } : null;
   await store.updateJob(job.jobId, {
     status: 'assigned',
+    reason: null,
+    retryable: false,
+    assignmentBlockedReason: null,
     assignmentId: assignmentIds[0],
     assignmentIds,
     providerId: providerIds[0],
@@ -402,6 +449,16 @@ export async function assignJob({ store, job, policy }) {
     assignmentAttempts: assignmentAttemptId,
     assignmentAttemptId,
     ringAttemptId: ringPlan?.ringAttemptId || null,
+    ringPhase: ringPlan ? 'private_compute' : null,
+    commitmentHashes: [],
+    revealHashes: [],
+    receiptHash: null,
+    receiptHashes: [],
+    rejectedReceiptHashes: [],
+    verifierDecision: null,
+    recoveryHistory: recoveryRecord
+      ? [...(Array.isArray(job.recoveryHistory) ? job.recoveryHistory : []), recoveryRecord]
+      : (Array.isArray(job.recoveryHistory) ? job.recoveryHistory : []),
     redundancyRequired: requiredAgreement,
     providerCount,
     trustTier: ringPlan?.effectiveTrustTier || policy.trustTier,

@@ -8,6 +8,7 @@ import { assertPoolStoreContract } from './store-contract.js';
 import {
   buildAcceptanceClaimPatch,
   buildAssignmentClaimPatch,
+  buildAssignmentExpirationPatch,
   buildAssignmentStartPatch,
   buildExpiredAssignmentJobPatch as buildSharedExpiredAssignmentJobPatch,
   EXPIRABLE_ASSIGNMENT_STATUSES
@@ -362,36 +363,82 @@ export function createFirestorePoolStore({ firestore, collectionPrefix = '' } = 
       for (const entry of snapshots.flatMap((snapshot) => snapshot.docs)) {
         const assignment = entry.data();
         if (!assignment.expiresAt || Date.parse(assignment.expiresAt) >= now) continue;
-        const nextAssignment = { ...assignment, status: 'expired', updatedAt: nowIso() };
-        expired.push(nextAssignment);
-        await writeDoc(COLLECTIONS.assignments, assignment.assignmentId, nextAssignment, { merge: true });
-        const job = assignment.jobId ? await api.getJob(assignment.jobId) : null;
-        if (job) {
-          const patch = buildSharedExpiredAssignmentJobPatch({
-            job,
-            assignment,
-            receiptRecords: await api.listReceiptsForJob(job.jobId)
-          });
-          if (patch) await api.updateJob(assignment.jobId, patch);
+        const assignmentRef = doc(COLLECTIONS.assignments, assignment.assignmentId);
+        const observedAt = nowIso();
+        const claimExpiration = async (snapshot, writer = null) => {
+          const current = snapshot.exists ? snapshot.data() : null;
+          if (!current?.expiresAt || Date.parse(current.expiresAt) >= now) return null;
+          const expirationPatch = buildAssignmentExpirationPatch(current, observedAt);
+          if (!expirationPatch) return null;
+          const next = { ...current, ...expirationPatch, updatedAt: observedAt };
+          if (writer) writer.set(assignmentRef, stripUndefined(next), { merge: true });
+          return next;
+        };
+        const nextAssignment = typeof firestore.runTransaction === 'function'
+          ? await firestore.runTransaction(async (transaction) => {
+            const current = await transaction.get(assignmentRef);
+            return claimExpiration(current, transaction);
+          })
+          : await claimExpiration(await assignmentRef.get());
+        if (!nextAssignment) continue;
+        if (typeof firestore.runTransaction !== 'function') {
+          await writeDoc(
+            COLLECTIONS.assignments,
+            nextAssignment.assignmentId,
+            nextAssignment,
+            { merge: true }
+          );
         }
-        if (assignment.providerId) {
-          await api.setProviderStatus(assignment.providerId, 'available');
+        expired.push(nextAssignment);
+        if (nextAssignment.jobId) {
+          const jobRef = doc(COLLECTIONS.jobs, nextAssignment.jobId);
+          const receiptRecords = await api.listReceiptsForJob(nextAssignment.jobId);
+          const applyJobExpiration = async (snapshot, writer = null) => {
+            const currentJob = snapshot.exists ? snapshot.data() : null;
+            const patch = buildSharedExpiredAssignmentJobPatch({
+              job: currentJob,
+              assignment: nextAssignment,
+              receiptRecords
+            });
+            if (!patch) return null;
+            const nextJob = { ...currentJob, ...patch, updatedAt: nowIso() };
+            if (writer) writer.set(jobRef, stripUndefined(nextJob), { merge: true });
+            return nextJob;
+          };
+          if (typeof firestore.runTransaction === 'function') {
+            await firestore.runTransaction(async (transaction) => {
+              const currentJob = await transaction.get(jobRef);
+              return applyJobExpiration(currentJob, transaction);
+            });
+          } else {
+            const nextJob = await applyJobExpiration(await jobRef.get());
+            if (nextJob) {
+              await writeDoc(COLLECTIONS.jobs, nextAssignment.jobId, nextJob, { merge: true });
+            }
+          }
+        }
+        if (nextAssignment.providerId) {
+          await api.setProviderStatus(nextAssignment.providerId, 'available');
           await api.appendReputationEvent({
             type: 'timeout',
             category: 'reputation',
-            providerId: assignment.providerId,
-            assignmentId: assignment.assignmentId,
-            jobId: assignment.jobId,
-            reasons: ['assignment expired before completion']
+            providerId: nextAssignment.providerId,
+            assignmentId: nextAssignment.assignmentId,
+            jobId: nextAssignment.jobId,
+            reasons: [nextAssignment.failureReason]
           });
           await api.appendLedger({
             eventType: 'points_penalized',
             reason: 'assignment_timeout',
-            assignmentId: assignment.assignmentId,
-            providerId: assignment.providerId,
-            requesterId: assignment.requesterId,
-            userId: assignment.providerId,
-            points: -1
+            assignmentId: nextAssignment.assignmentId,
+            providerId: nextAssignment.providerId,
+            requesterId: nextAssignment.requesterId,
+            userId: nextAssignment.providerId,
+            points: -1,
+            evidence: {
+              failureReason: nextAssignment.failureReason,
+              expiredFromStatus: nextAssignment.expiredFromStatus
+            }
           });
         }
       }

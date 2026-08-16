@@ -26,7 +26,33 @@ export const buildAssignmentClaimPatch = (job = {}) => {
   if (!canClaimJobForAssignment(job)) return null;
   return {
     status: 'assignment_processing',
-    assignmentAttempts: Number(job.assignmentAttempts || 0) + 1
+    assignmentAttempts: Number(job.assignmentAttempts || 0)
+  };
+};
+
+const EXPIRATION_REASON_BY_STATUS = Object.freeze({
+  assigned: 'assignment_claim_expired',
+  running: 'assignment_execution_expired',
+  commit_submitted: 'ring_commit_barrier_expired',
+  reveal_open: 'ring_reveal_missed',
+  reveal_submitted: 'ring_receipt_missed'
+});
+
+export const assignmentExpirationReason = (assignment = {}) => (
+  EXPIRATION_REASON_BY_STATUS[assignment.expiredFromStatus || assignment.status]
+  || 'assignment_expired'
+);
+
+export const buildAssignmentExpirationPatch = (
+  assignment = {},
+  now = new Date().toISOString()
+) => {
+  if (!EXPIRABLE_ASSIGNMENT_STATUSES.includes(assignment.status)) return null;
+  return {
+    status: 'expired',
+    expiredFromStatus: assignment.status,
+    failureReason: assignmentExpirationReason(assignment),
+    expiredAt: now
   };
 };
 
@@ -102,9 +128,33 @@ export const buildExpiredAssignmentJobPatch = ({
   const timedOutProviderIds = Array.from(new Set([
     ...(Array.isArray(job.timedOutProviderIds) ? job.timedOutProviderIds : []), assignment.providerId
   ].filter(Boolean)));
+  const failureReason = assignment.failureReason || assignmentExpirationReason(assignment);
+  const assignmentFailure = {
+    schema: 'poolday.assignment_failure/v1',
+    kind: 'expiration',
+    assignmentId: assignment.assignmentId,
+    assignmentAttemptId: assignment.assignmentAttemptId || job.assignmentAttemptId || null,
+    ringAttemptId: assignment.ringAttemptId || null,
+    providerId: assignment.providerId || null,
+    expiredFromStatus: assignment.expiredFromStatus || assignment.status || null,
+    reason: failureReason,
+    observedAt: assignment.expiredAt || now
+  };
+  const assignmentFailures = [
+    ...(Array.isArray(job.assignmentFailures)
+      ? job.assignmentFailures.filter((entry) => entry?.assignmentId !== assignment.assignmentId)
+      : []),
+    assignmentFailure
+  ];
+  const failurePatch = {
+    failedAssignmentIds,
+    timedOutProviderIds,
+    lastAssignmentFailure: assignmentFailure,
+    assignmentFailures
+  };
   const required = Number(job?.agreement?.requiredAgreement || job?.agreement?.requiredProviders || 1);
   if (required <= 1) {
-    return { status: 'failed', reason: 'assignment_expired', retryable: true, failedAssignmentIds, timedOutProviderIds };
+    return { status: 'failed', reason: failureReason, retryable: true, ...failurePatch };
   }
 
   const currentReceipts = receiptsForCurrentAttempt(receiptRecords, job);
@@ -138,7 +188,7 @@ export const buildExpiredAssignmentJobPatch = ({
     const agreementValue = matchingGroup[0].receipt?.[agreementField] || matchingGroup[0].receipt?.tokenIdsHash || null;
     return {
       status: 'receipt_verified', reason: null, retryable: false, receiptHash: receiptHashes[0], receiptHashes,
-      failedAssignmentIds, timedOutProviderIds,
+      ...failurePatch,
       agreement: {
         ...agreementBase, status: 'accepted', acceptedReceipts: matchingGroup.length, receiptHash: receiptHashes[0],
         receiptHashes, outputHash: matchingGroup[0].receipt?.outputHash,
@@ -149,8 +199,8 @@ export const buildExpiredAssignmentJobPatch = ({
   }
   if (largestGroupSize + remainingProviders >= required) {
     return {
-      status: pendingStatusFor(job), reason: 'assignment_expired', retryable: false,
-      failedAssignmentIds, timedOutProviderIds,
+      status: pendingStatusFor(job), reason: failureReason, retryable: false,
+      ...failurePatch,
       agreement: {
         ...agreementBase, status: 'pending',
         reason: agreementModeForJob(job) === 'ring_quorum'
@@ -163,7 +213,7 @@ export const buildExpiredAssignmentJobPatch = ({
     ? 'ring quorum receipts cannot reach quorum after assignment expiration'
     : 'redundant receipts cannot reach agreement after assignment expiration';
   return {
-    status: rejectedStatusFor(job), reason, retryable: true, failedAssignmentIds, timedOutProviderIds,
+    status: rejectedStatusFor(job), reason, retryable: true, ...failurePatch,
     agreement: { ...agreementBase, status: 'rejected', reason },
     verifierDecision: {
       accepted: false, reasons: [reason], verifiedAt: now,

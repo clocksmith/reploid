@@ -23,6 +23,7 @@ const X_ADDITIONAL_REQUIRED_MODULES = Object.freeze([
   'DopplerToolbox',
   'DopplerOptimizer',
   'ErrorStore',
+  'ImprovementEpisodeLedger',
   'KnowledgeGraph',
   'MemoryManager',
   'SemanticMemory',

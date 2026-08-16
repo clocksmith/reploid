@@ -22,13 +22,13 @@ Recursive authority charters discovered from the repository root.
 | Runtime Infrastructure | [`self/infrastructure/CATSCAN.md`](../self/infrastructure/CATSCAN.md) | Browser Runtime | Supply auditable lifecycle, dependency, policy, recovery, telemetry, and human-approval services to browser components. |
 | Genesis Kernel | [`self/kernel/CATSCAN.md`](../self/kernel/CATSCAN.md) | Browser Runtime | Provide the smallest immutable browser boot and recovery path from which the mutable runtime can be restored safely. |
 | Lab Surface Composition | [`self/lab/CATSCAN.md`](../self/lab/CATSCAN.md) | Browser Runtime | Compose Zero and X operator surfaces from explicit profiles while preserving their separate proposal and evaluation authority. |
-| Poolday Evidence Runtime | [`self/pool/CATSCAN.md`](../self/pool/CATSCAN.md) | Browser Runtime | Govern inspectable evidence for bounded public-protein adjudication. |
+| Poolday Evidence Runtime | [`self/pool/CATSCAN.md`](../self/pool/CATSCAN.md) | Browser Runtime | Govern public-protein adjudication evidence. |
 | Model Providers | [`self/providers/CATSCAN.md`](../self/providers/CATSCAN.md) | Browser Runtime | Adapt named model providers into explicit runtime contracts with bounded identity, configuration, and failure semantics. |
 | Agent Tools | [`self/tools/CATSCAN.md`](../self/tools/CATSCAN.md) | Browser Runtime | Expose bounded, schema-defined operations that agents can invoke without bypassing verification, staging, or promotion controls. |
 | Browser Interfaces | [`self/ui/CATSCAN.md`](../self/ui/CATSCAN.md) | Browser Runtime | Render each declared surface's authoritative state and actions without inventing new authority or widening claims. |
 | Hosted Poolday Services | [`server/pool/CATSCAN.md`](../server/pool/CATSCAN.md) | Hosted Services | Authenticate and relay immutable Poolday records while maintaining rebuildable hosted projections and bounded coordination. |
-| Research Room Interface | [`self/ui/pool-home/CATSCAN.md`](../self/ui/pool-home/CATSCAN.md) | Browser Interfaces | Let curators resolve a public-protein dispute and choose the next action in-room. |
-| X Operator Workbench | [`self/ui/proto/CATSCAN.md`](../self/ui/proto/CATSCAN.md) | Browser Interfaces | Let operators inspect, compare, quarantine, replay, and promote evaluated substrate candidates without crossing into product admission. |
+| Research Room Interface | [`self/ui/pool-home/CATSCAN.md`](../self/ui/pool-home/CATSCAN.md) | Browser Interfaces | Let curators adjudicate a public-protein dispute and choose in-room actions. |
+| X Operator Workbench | [`self/ui/proto/CATSCAN.md`](../self/ui/proto/CATSCAN.md) | Browser Interfaces | Let operators inspect the full causal improvement episode, compare generations, quarantine, replay, promote, and roll back substrate candidates without crossing into product admission. |
 | Zero Proposal Interface | [`self/ui/zero/CATSCAN.md`](../self/ui/zero/CATSCAN.md) | Browser Interfaces | Give Zero operators a focused interface for objectives, tool-growing experiments, and candidate proposals. |
 
 *Generated from CATSCAN.md files.*

@@ -23,6 +23,10 @@ These levels are not guarantees about what the system can safely do in every ses
 - `L0` and `L1` are usually concrete product or tooling work.
 - `L2` starts touching the agent's own runtime and needs much stronger controls.
 - `L3` is where measured self-improvement experiments become real.
+- `L3` requires a complete signed improvement episode with a frozen baseline,
+  declared metric, protected evaluator, paired raw observations, generation
+  ancestry, terminal decision, rollback pointer, and structured reflection.
+  Mutation, logging, or a rising aggregate score remains `L2` evidence at most.
 - `L4` is the frontier autonomy edge. It is useful as a framing device for hard, broad tasks, but it should not be confused with a claim that full AGI has been achieved.
 
 ---

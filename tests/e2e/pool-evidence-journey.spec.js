@@ -159,6 +159,56 @@ test('shows and exercises the governed protein evidence journey', async ({ page 
       priorEvidenceHashes: [prior.recordHash],
       alternativeToHashes: [hypothesisOne.recordHash]
     });
+    const resolutionFrozenAt = new Date().toISOString();
+    const resolutionPolicy = await evidence.createSignedResearchResolutionPolicy({
+      identity: curator,
+      roomId: 'reploid-default',
+      questionHash: firstSubmission.recordHash,
+      targetHypothesisHash: hypothesisOne.recordHash,
+      conclusionLabel: 'Secreted under the frozen E2E public assay conditions',
+      decisionScope: 'Only the public sequence and exact E2E reporter protocol.',
+      provisionalAcceptance: {
+        outcomeClassifications: ['positive'],
+        minimumAcceptedCompletedOutcomes: 2,
+        minimumIndependentReplications: 1,
+        maximumAmbiguousOutcomes: 0,
+        requiredDistinctReviewerIdentities: 1,
+        uncertainty: { methodId: 'standard-error', version: '1.0.0', metricId: 'reporter-ratio-se', maximumValue: 0.1, unit: 'ratio' }
+      },
+      continuedUncertainty: {
+        triggers: ['insufficient_accepted_outcomes', 'insufficient_independent_replications', 'ambiguous_outcome', 'failed_attempt', 'disputed_review', 'active_contradiction', 'uncertainty_above_threshold', 'control_failure']
+      },
+      rejection: {
+        outcomeClassifications: ['negative'],
+        minimumAcceptedCompletedOutcomes: 2,
+        minimumIndependentReplications: 1,
+        maximumAmbiguousOutcomes: 0,
+        requiredDistinctReviewerIdentities: 1,
+        uncertainty: { methodId: 'standard-error', version: '1.0.0', metricId: 'reporter-ratio-se', maximumValue: 0.1, unit: 'ratio' }
+      },
+      reopening: { triggers: ['contradiction', 'correction', 'revocation', 'failed_replication', 'policy_invalidation'] },
+      closure: {
+        minimumAcceptedCompletedOutcomes: 3,
+        minimumIndependentReplications: 2,
+        maximumAmbiguousOutcomes: 0,
+        requiredDistinctReviewerIdentities: 2,
+        requireAllControlsPassed: true,
+        requireNoDisputedReviews: true,
+        requireNoActiveContradictions: true
+      },
+      frozenAt: resolutionFrozenAt
+    });
+    const resolutionPolicyReview = await evidence.createSignedHumanClaim({
+      identity: independent,
+      roomId: 'reploid-default',
+      targetHash: resolutionPolicy.recordHash,
+      claimKind: 'review_decision',
+      relation: 'reviews',
+      text: 'The bounded criteria were frozen before work and retain reopening triggers.',
+      confidence: 0.95,
+      decision: 'accepted',
+      createdAt: new Date(Date.parse(resolutionFrozenAt) + 1).toISOString()
+    });
     const predictionOne = await evidence.createSignedResearchPrediction({
       identity: researcher,
       roomId: 'reploid-default',
@@ -209,7 +259,52 @@ test('shows and exercises the governed protein evidence journey', async ({ page 
       title: 'E2E blinded secretory assay',
       protocol,
       replicaTarget: 2,
-      blindness: { required: true, allocationHash: fakeHash('6') }
+      blindness: { required: true, allocationHash: fakeHash('6') },
+      feasibility: {
+        resources: 'Public cell-free reporter kit.',
+        biosafety: 'Public, non-pathogenic, non-clinical protocol only.',
+        limitations: 'The reporter does not establish native biological function.'
+      },
+      analysis: { methodId: 'e2e-analysis', version: '1.0.0', artifactHash: fakeHash('7'), parametersHash: fakeHash('8') },
+      failureCategories: ['expression_failure', 'protocol_failure', 'analysis_failure', 'inconclusive'],
+      custody: {
+        planId: 'e2e-public-custody',
+        version: '1.0.0',
+        artifactHash: fakeHash('5'),
+        requiredRoles: ['operator'],
+        materialsPolicy: 'Record public material lots.',
+        samplesPolicy: 'Public synthetic samples under blinded codes.',
+        instrumentsPolicy: 'Record instrument identity and calibration.'
+      },
+      publication: {
+        scope: 'public_complete_record',
+        license: 'CC-BY-4.0',
+        publishLaboratoryIdentity: true,
+        publishQualification: true,
+        publishProtocol: true,
+        publishRawObservations: true,
+        publishFailures: true
+      },
+      replication: {
+        requiredIndependentDimensions: [
+          'operator_identity',
+          'institution',
+          'instrument',
+          'sample_batch',
+          'preparation_batch',
+          'analysis_execution'
+        ]
+      },
+      scopeBoundary: {
+        biologicalInterpretation: 'evidence_only_no_interpretation_authority',
+        medicalUse: 'prohibited',
+        protocolSafetyClassification: 'public_non_pathogenic_non_clinical',
+        sampleScope: 'explicitly_public_synthetic_or_public_reference_only',
+        privateSamples: 'prohibited',
+        laboratoryAuthority: 'none',
+        safetyReview: 'independent_human_required_before_execution'
+      },
+      createdAt: new Date(Date.parse(resolutionFrozenAt) + 2).toISOString()
     });
     const orderReview = await evidence.createSignedHumanClaim({
       identity: independent,
@@ -225,17 +320,65 @@ test('shows and exercises the governed protein evidence journey', async ({ page 
       identity: laboratoryOne,
       roomId: 'reploid-default',
       workOrderHash: order.recordHash,
-      laboratory: { id: 'e2e-lab-one', name: 'E2E Laboratory One' },
-      capabilities: ['secretory reporter assay'],
-      consent: { publicLaboratoryIdentity: true, publishOutcome: true }
+      laboratory: {
+        id: 'e2e-lab-one',
+        name: 'E2E Laboratory One',
+        institution: 'E2E Public Institute One',
+        institutionIdentityHash: fakeHash('a')
+      },
+      capabilityClaims: [{
+        id: 'secretory-reporter-assay',
+        version: '1.0.0',
+        evidenceHash: fakeHash('b'),
+        description: 'Operate the declared blinded secretory reporter assay.'
+      }],
+      protocolCustody: { protocolHash: order.work.protocol.protocolHash, role: 'operator', evidenceHash: fakeHash('c') },
+      safety: {
+        classification: 'public_non_pathogenic_non_clinical',
+        oversightAuthority: 'Declared institutional biosafety oversight',
+        approvalHash: fakeHash('d'),
+        limitations: ['No clinical, pathogenic, or private-sequence work.']
+      },
+      availability: {
+        status: 'available',
+        capacity: 'One blinded paired run.',
+        validFrom: '2026-08-01T00:00:00.000Z',
+        validUntil: '2027-08-01T00:00:00.000Z'
+      },
+      consent: { publicLaboratoryIdentity: true, publishQualification: true, publishOutcome: true },
+      conflictDisclosure: 'none declared'
     });
     const claimTwo = await evidence.createSignedResearchWorkClaim({
       identity: laboratoryTwo,
       roomId: 'reploid-default',
       workOrderHash: order.recordHash,
-      laboratory: { id: 'e2e-lab-two', name: 'E2E Laboratory Two' },
-      capabilities: ['independent secretory reporter replication'],
-      consent: { publicLaboratoryIdentity: true, publishOutcome: true }
+      laboratory: {
+        id: 'e2e-lab-two',
+        name: 'E2E Laboratory Two',
+        institution: 'E2E Public Institute Two',
+        institutionIdentityHash: fakeHash('e')
+      },
+      capabilityClaims: [{
+        id: 'secretory-reporter-replication',
+        version: '1.0.0',
+        evidenceHash: fakeHash('f'),
+        description: 'Independently replicate the declared secretory reporter assay.'
+      }],
+      protocolCustody: { protocolHash: order.work.protocol.protocolHash, role: 'operator', evidenceHash: fakeHash('0') },
+      safety: {
+        classification: 'public_non_pathogenic_non_clinical',
+        oversightAuthority: 'Declared institutional biosafety oversight',
+        approvalHash: fakeHash('4'),
+        limitations: ['No clinical, pathogenic, or private-sequence work.']
+      },
+      availability: {
+        status: 'available',
+        capacity: 'One independent blinded run.',
+        validFrom: '2026-08-01T00:00:00.000Z',
+        validUntil: '2027-08-01T00:00:00.000Z'
+      },
+      consent: { publicLaboratoryIdentity: true, publishQualification: true, publishOutcome: true },
+      conflictDisclosure: 'none declared'
     });
     const cohort = await evidence.createSignedEvaluationCohort({
       identity: evaluator,
@@ -268,7 +411,14 @@ test('shows and exercises the governed protein evidence journey', async ({ page 
       attempt: { status: 'completed', failureCategory: 'none' },
       observations: [{ readout: 'reporter ratio', value: 0.82, normalizedValue: 0.82, unit: 'ratio', uncertainty: { method: 'standard error', value: 0.04, unit: 'ratio' } }],
       protocol,
-      analysis: { methodId: 'e2e-analysis', version: '1.0.0', artifactHash: fakeHash('7') },
+      analysis: { methodId: 'e2e-analysis', version: '1.0.0', artifactHash: fakeHash('7'), parametersHash: fakeHash('8') },
+      executionContext: {
+        institutionIdentityHash: fakeHash('a'),
+        instrumentIdentityHash: fakeHash('1'),
+        sampleBatchHash: fakeHash('2'),
+        preparationBatchHash: fakeHash('3'),
+        analysisExecutionHash: fakeHash('4')
+      },
       uncertainty: { method: 'standard error', value: 0.04, unit: 'ratio' },
       blind: { state: 'sealed', codeHash: fakeHash('8'), allocationHash: fakeHash('6') }
     });
@@ -284,7 +434,14 @@ test('shows and exercises the governed protein evidence journey', async ({ page 
       attempt: { status: 'failed', failureCategory: 'inconclusive', failureDetail: 'Control variance exceeded the criterion.' },
       observations: [{ readout: 'reporter ratio', value: 0.72, normalizedValue: 0.72, unit: 'ratio', uncertainty: { method: 'standard error', value: 0.2, unit: 'ratio' } }],
       protocol,
-      analysis: { methodId: 'e2e-analysis', version: '1.0.0', artifactHash: fakeHash('7'), lineageHashes: [outcomeOne.recordHash] },
+      analysis: { methodId: 'e2e-analysis', version: '1.0.0', artifactHash: fakeHash('7'), parametersHash: fakeHash('8'), lineageHashes: [outcomeOne.recordHash] },
+      executionContext: {
+        institutionIdentityHash: fakeHash('e'),
+        instrumentIdentityHash: fakeHash('5'),
+        sampleBatchHash: fakeHash('6'),
+        preparationBatchHash: fakeHash('7'),
+        analysisExecutionHash: fakeHash('8')
+      },
       uncertainty: { method: 'standard error', value: 0.2, unit: 'ratio' },
       blind: { state: 'sealed', codeHash: fakeHash('9'), allocationHash: fakeHash('6') },
       replicationOfHash: outcomeOne.recordHash
@@ -342,7 +499,8 @@ test('shows and exercises the governed protein evidence journey', async ({ page 
     });
     for (const record of [
       firstSubmission, secondSubmission, firstResult, secondResult, annotation, review,
-      prior, hypothesisOne, hypothesisTwo, predictionOne, predictionTwo, predictionReviewOne, predictionReviewTwo, order, orderReview,
+      prior, hypothesisOne, hypothesisTwo, resolutionPolicy, resolutionPolicyReview,
+      predictionOne, predictionTwo, predictionReviewOne, predictionReviewTwo, order, orderReview,
       claimOne, claimTwo, cohort, cohortReview, outcomeOne, outcomeTwo, outcomeReviewOne, outcomeReviewTwo, evaluation,
       candidateAction
     ]) {
@@ -359,6 +517,11 @@ test('shows and exercises the governed protein evidence journey', async ({ page 
   await expect(page.locator('.pool-room-archive')).toContainText('Complete evidence archive');
   await expect(page.locator('.pool-room-archive [data-archive-state="failed"]')).toBeAttached();
   await page.locator('.pool-room-technical-disclosure > summary').click();
+  await expect(page.locator('[data-pool-protein-campaign]')).toContainText('Public protein disagreements');
+  await expect(page.locator('[data-pool-protein-campaign]')).toContainText('does not rank biological importance, truth, or execution priority');
+  await expect(page.locator('.pool-room-resolution')).toContainText('Criteria missing');
+  await expect(page.locator('.pool-room-resolution')).toContainText('cannot accept, reject, or close');
+  await expect(page.locator('.pool-room-archive')).toContainText('Resolution criteria frozen');
   const contract = page.locator('.pool-room-contract');
   await expect(contract).toContainText('Checkpoint missing');
   await contract.getByRole('button', { name: 'Sign first checkpoint', exact: true }).click();
@@ -500,11 +663,45 @@ test('shows and exercises the governed protein evidence journey', async ({ page 
   await priorEvidenceForm.locator('[data-prior-evidence-kind]').selectOption('annotation');
   await expect(priorEvidenceForm.locator('[data-protein-annotation-fields]')).toBeVisible();
   await expect(priorEvidenceForm.locator('[name="ontologyNamespace"]')).toHaveAttribute('required', '');
+  await priorEvidenceForm.locator('[data-prior-evidence-kind]').selectOption('assay');
+  await expect(priorEvidenceForm.locator('[data-protein-annotation-fields]')).toBeHidden();
+  await expect(priorEvidenceForm.locator('[data-public-evidence-finding]')).toBeVisible();
+  await expect(priorEvidenceForm.locator('[name="findingClassification"]')).toHaveAttribute('required', '');
+  await priorEvidenceForm.locator('[data-prior-evidence-kind]').selectOption('negative_result');
+  await expect(priorEvidenceForm.locator('[name="findingClassification"]')).toHaveValue('negative');
+  await expect(priorEvidenceForm.locator('[name="findingClassification"]')).toBeDisabled();
+  await priorEvidenceForm.locator('[data-prior-evidence-kind]').selectOption('failed_attempt');
+  await expect(priorEvidenceForm.locator('[data-public-evidence-failure]')).toBeVisible();
+  await expect(priorEvidenceForm.locator('[name="failureCategory"]')).toHaveAttribute('required', '');
   await expect(page.locator('[data-research-action="adjudication-experiment"]')).toBeAttached();
+  await expect(page.locator('[data-research-action="adjudication-experiment"] [name="baselinePolicyArtifactHash"]')).toBeAttached();
+  await expect(page.locator('[data-research-action="adjudication-experiment"] [name="outcomeBoundaryMode"]')).toHaveValue('prospective_future');
+  await expect(page.locator('[data-research-action="adjudication-experiment"] [name="sameEvidenceCutoff"]')).toBeAttached();
+  await expect(page.locator('[data-research-action="adjudication-experiment"] [name="informationGainMetricId"]')).toBeAttached();
+  await expect(page.locator('[data-research-action="adjudication-evaluation"] [name="heldOutFamilyBaselineValue"]')).toBeAttached();
   await expect(page.locator('[data-research-action="adjudication-evaluation"]')).toBeAttached();
   await expect(page.locator('.pool-room-adjudication-proof')).toContainText('Reploid has not demonstrated its first product win.');
   await expect(page.locator('[data-research-action="work-order"]')).toBeAttached();
+  await expect(page.locator('[data-research-action="resolution-policy"]')).toBeAttached();
+  await expect(page.locator('[data-research-action="resolution-policy"] [name="closureMinimumReviewers"]')).toBeAttached();
+  await expect(page.locator('[data-research-action="work-order"] [name="workAnalysisArtifactHash"]')).toBeAttached();
+  await expect(page.locator('[data-research-action="work-order"] [name="allowedFailureCategories"]')).toBeAttached();
+  await expect(page.locator('[data-research-action="work-order"] [name="custodyArtifactHash"]')).toBeAttached();
+  await expect(page.locator('[data-research-action="work-order"] [name="replicationIndependentDimensions"]')).toBeAttached();
+  await expect(page.locator('[data-research-action="work-order"] [name="workBiosafety"]')).toBeAttached();
+  await expect(page.locator('[data-research-action="work-order"] [name="scopePublicNonClinical"]')).toBeAttached();
+  await expect(page.locator('[data-research-action="work-order"] [name="scopeNoAuthority"]')).toBeAttached();
+  await expect(page.locator('[data-research-action="work-order"] [name="workPublicationLicense"]')).toBeAttached();
+  await expect(page.locator('[data-research-action="work-order"] [name="publishFailures"]')).toBeAttached();
+  await expect(page.locator('[data-research-action="work-claim"] [name="institutionIdentityHash"]')).toBeAttached();
+  await expect(page.locator('[data-research-action="work-claim"] [name="capabilityEvidenceHash"]')).toBeAttached();
+  await expect(page.locator('[data-research-action="work-claim"] [name="protocolCustodyEvidenceHash"]')).toBeAttached();
+  await expect(page.locator('[data-research-action="work-claim"] [name="safetyApprovalHash"]')).toBeAttached();
+  await expect(page.locator('[data-research-action="work-claim"] [name="laboratorySafetyClassification"]')).toHaveValue('public_non_pathogenic_non_clinical');
+  await expect(page.locator('[data-research-action="work-claim"] [name="laboratoryAvailableUntil"]')).toBeAttached();
   await expect(page.locator('[data-research-action="outcome"]')).toBeAttached();
+  await expect(page.locator('[data-research-action="outcome"] [name="instrumentIdentityHash"]')).toBeAttached();
+  await expect(page.locator('[data-research-action="outcome"] [name="analysisExecutionHash"]')).toBeAttached();
   await expect(page.locator('[data-research-action="cohort"]')).toBeAttached();
   await expect(page.locator('[data-research-action="evaluation"]')).toBeAttached();
   await expect(page.locator('[data-research-action="candidate-action"]')).toBeAttached();
@@ -750,6 +947,7 @@ test('passes governed Research Room browser modules through the Verification Wor
     '/pool/discovery-candidate-action.js',
     '/pool/discovery-contract.js',
     '/pool/evidence-network.js',
+    '/pool/protein-uncertainty-campaign.js',
     '/pool/research-cycle.js',
     '/ui/pool-home/requester-controls.js',
     '/ui/pool-home/research-panels.js',

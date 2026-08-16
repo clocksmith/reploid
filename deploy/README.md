@@ -49,11 +49,23 @@ the runtime service account object-create or object-delete permissions.
 
 ```bash
 npm run verify:pool -- --allow-placeholders
-gcloud builds submit --config deploy/cloudbuild.yaml
+release_revision="$(git rev-parse HEAD)"
+test -z "$(git status --porcelain=v1 --untracked-files=all)"
+gcloud builds submit --config deploy/cloudbuild.yaml \
+  --substitutions=COMMIT_SHA="${release_revision}"
 firebase deploy --only functions,firestore:indexes,firestore:rules,hosting:reploid
 ```
 
 Replace required placeholder values in `deploy/env.production.json` before Cloud Build. `scripts/print-pool-env.js` fails when a runtime env value still starts with `<required-`, so placeholder model artifact, Doppler module, or Doppler kernel base URLs cannot deploy silently.
+
+Cloud Build tags and deploys the coordinator image with the full commit SHA,
+then exposes that SHA and image identity through `/pool/deployment/check`.
+Triggered builds receive `COMMIT_SHA` from Cloud Build; manual submissions must
+provide it as shown above. The backend computes a deterministic SHA-256 identity
+over `server/`, `self/`, `Dockerfile`, `package.json`, and `package-lock.json`.
+Firebase Hosting must be deployed from the same clean checkout. A mutable
+`latest` image, missing commit, mismatched coordinator bytes, or mismatched
+static browser bytes fails release verification.
 
 Then check:
 
@@ -61,7 +73,7 @@ Then check:
 npm run verify:pool:release -- --url https://<hosting-domain> --channel=chrome
 ```
 
-`/pool/deployment/check` must return `ok: true` before public traffic. The release verifier checks local config validity, Firebase rewrites, Firestore indexes, Cloud Run env, required deployment values, config hash agreement, commit-reveal store support, Firebase auth readiness, the pinned launch manifests and Doppler execution fields, synthetic browser peer wiring, actual text and protein inference, and a two-provider ring quorum through signed requester acceptance.
+`/pool/deployment/check` must return `ok: true` before public traffic. The release verifier checks local config validity, Firebase rewrites, Firestore indexes, Cloud Run env, exact backend commit/image/runtime bytes, complete Firebase browser bytes, required deployment values, config hash agreement, commit-reveal store support, Firebase auth readiness, pinned launch manifests, deployed origin-specific CORS and byte-range responses, Doppler execution fields, synthetic browser peer wiring, strict-preflight actual protein inference, requester interruption recovery, after-start cancellation without receipt publication, instrumented stale-result rejection, manifest-corruption rejection, cached-shard detection and source-backed recovery, and a two-provider ring quorum through signed requester acceptance. These checks do not by themselves create a clean-release browser-qualification receipt.
 
 ## Runtime authority
 

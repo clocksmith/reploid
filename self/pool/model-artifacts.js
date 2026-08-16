@@ -263,9 +263,7 @@ export async function verifyModelArtifactManifest({
   const jsonHash = await hashJson(manifest);
   const expectedManifestHash = String(model?.manifestHash || '').trim();
   const hashMatches = hashesMatch(expectedManifestHash, textHash)
-    || hashesMatch(expectedManifestHash, jsonHash)
-    || hashesMatch(expectedManifestHash, manifest.manifestHash)
-    || hashesMatch(expectedManifestHash, manifest.hash);
+    || hashesMatch(expectedManifestHash, jsonHash);
   if (expectedManifestHash && !hashMatches) {
     throw new Error('model manifest hash does not match configured manifestHash');
   }
@@ -459,6 +457,100 @@ export async function verifyModelArtifactRangeDelivery({
   };
 }
 
+/**
+ * Verify the deployed CORS behavior that browser providers rely on.
+ *
+ * The source-controlled bucket policy is intent. This probe verifies the
+ * observable HEAD and byte-range GET responses for every governed browser
+ * origin without treating a Node fetch as authentic-browser qualification.
+ */
+export async function verifyModelArtifactCorsDelivery({
+  model,
+  baseUrl,
+  origins = REQUIRED_ARTIFACT_CORS_ORIGINS,
+  requiredResponseHeaders = REQUIRED_ARTIFACT_CORS_RESPONSE_HEADERS,
+  fetchImpl = globalThis.fetch,
+  manifestResult = null
+} = {}) {
+  if (typeof fetchImpl !== 'function') throw new Error('fetch is required for model artifact CORS verification');
+  const verifiedManifest = manifestResult || await verifyModelArtifactManifest({ model, baseUrl, fetchImpl });
+  const shape = validateModelArtifactManifestShape(verifiedManifest.manifest, model);
+  if (!shape.ok) {
+    const error = new Error(shape.reasons.join('; '));
+    error.reasons = shape.reasons;
+    throw error;
+  }
+  const shard = normalizeShardEntry(verifiedManifest.manifest.shards[0], 0);
+  const shardUrl = resolveArtifactChildUrl(verifiedManifest.urls.shards, shard.path);
+  const requiredExposed = requiredResponseHeaders.map((header) => header.toLowerCase());
+  const observations = [];
+
+  const inspectCors = (response, origin, label) => {
+    const allowOrigin = headerValue(response, 'access-control-allow-origin');
+    if (allowOrigin !== origin) {
+      throw new Error(`${label} CORS response for ${origin} must return matching Access-Control-Allow-Origin`);
+    }
+    const exposedHeaders = String(headerValue(response, 'access-control-expose-headers') || '')
+      .split(',')
+      .map((header) => header.trim().toLowerCase())
+      .filter(Boolean);
+    const missing = requiredExposed.filter((header) => !exposedHeaders.includes(header));
+    if (missing.length > 0) {
+      throw new Error(`${label} CORS response for ${origin} does not expose: ${missing.join(', ')}`);
+    }
+    return {
+      allowOrigin,
+      exposedHeaders,
+      vary: headerValue(response, 'vary') || null,
+      cacheControl: headerValue(response, 'cache-control') || null,
+      etag: headerValue(response, 'etag') || null
+    };
+  };
+
+  for (const origin of origins) {
+    const headResponse = await fetchImpl(verifiedManifest.urls.manifest, {
+      method: 'HEAD',
+      mode: 'cors',
+      cache: 'no-store',
+      headers: { Origin: origin }
+    });
+    if (!headResponse?.ok) {
+      throw new Error(`model manifest HEAD CORS probe for ${origin} returned ${headResponse?.status || 'unknown'}`);
+    }
+    const head = inspectCors(headResponse, origin, 'model manifest HEAD');
+
+    const rangeResponse = await fetchImpl(shardUrl, {
+      method: 'GET',
+      mode: 'cors',
+      cache: 'no-store',
+      headers: {
+        Origin: origin,
+        Range: 'bytes=0-0'
+      }
+    });
+    if (rangeResponse?.status !== 206) {
+      throw new Error(`model shard range CORS probe for ${origin} must return 206, received ${rangeResponse?.status || 'unknown'}`);
+    }
+    const range = inspectCors(rangeResponse, origin, 'model shard range GET');
+    const contentRange = headerValue(rangeResponse, 'content-range');
+    if (!String(contentRange || '').toLowerCase().startsWith('bytes 0-0/')) {
+      throw new Error(`model shard range CORS probe for ${origin} is missing bytes 0-0 Content-Range`);
+    }
+    const bytes = await readResponseBytes(rangeResponse);
+    if (bytes.byteLength !== 1) {
+      throw new Error(`model shard range CORS probe for ${origin} returned ${bytes.byteLength} bytes instead of 1`);
+    }
+    observations.push({ origin, head, range: { ...range, contentRange, bytes: bytes.byteLength } });
+  }
+
+  return {
+    ok: true,
+    manifestUrl: verifiedManifest.urls.manifest,
+    shardUrl,
+    observations
+  };
+}
+
 export default {
   REQUIRED_ARTIFACT_CORS_ORIGINS,
   REQUIRED_ARTIFACT_CORS_METHODS,
@@ -470,5 +562,6 @@ export default {
   validateModelArtifactManifestShape,
   validateDopplerExecutionManifestShape,
   verifyModelArtifactPackage,
-  verifyModelArtifactRangeDelivery
+  verifyModelArtifactRangeDelivery,
+  verifyModelArtifactCorsDelivery
 };

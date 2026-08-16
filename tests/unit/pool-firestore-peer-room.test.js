@@ -199,18 +199,22 @@ describe('Firestore-backed peer-room relay', () => {
         retryable: job?.retryable,
         failedAssignmentIds: job?.failedAssignmentIds,
         timedOutProviderIds: job?.timedOutProviderIds,
-        agreement: job?.agreement?.status
+        agreement: job?.agreement?.status,
+        failureReason: job?.lastAssignmentFailure?.reason,
+        expiredFromStatus: (await store.getAssignment('assignment_expired'))?.expiredFromStatus
       };
     };
 
     await expect(Promise.all(stores.map(exerciseExpiry))).resolves.toEqual([
       {
         status: 'redundant_disagreement', retryable: true,
-        failedAssignmentIds: ['assignment_expired'], timedOutProviderIds: ['provider_expired'], agreement: 'rejected'
+        failedAssignmentIds: ['assignment_expired'], timedOutProviderIds: ['provider_expired'], agreement: 'rejected',
+        failureReason: 'assignment_claim_expired', expiredFromStatus: 'assigned'
       },
       {
         status: 'redundant_disagreement', retryable: true,
-        failedAssignmentIds: ['assignment_expired'], timedOutProviderIds: ['provider_expired'], agreement: 'rejected'
+        failedAssignmentIds: ['assignment_expired'], timedOutProviderIds: ['provider_expired'], agreement: 'rejected',
+        failureReason: 'assignment_claim_expired', expiredFromStatus: 'assigned'
       }
     ]);
   });
@@ -240,18 +244,57 @@ describe('Firestore-backed peer-room relay', () => {
     await expect(Promise.all(stores.map(exerciseClaims))).resolves.toEqual([
       {
         assignmentStatus: 'assignment_processing',
-        assignmentAttempts: 1,
+        assignmentAttempts: 0,
         repeatedAssignmentClaim: null,
         acceptanceStatus: 'acceptance_processing',
         repeatedAcceptanceClaim: null
       },
       {
         assignmentStatus: 'assignment_processing',
-        assignmentAttempts: 1,
+        assignmentAttempts: 0,
         repeatedAssignmentClaim: null,
         acceptanceStatus: 'acceptance_processing',
         repeatedAcceptanceClaim: null
       }
+    ]);
+  });
+
+  it('applies each expired-assignment penalty once in both adapters', async () => {
+    const fake = createQueryableFirestore();
+    const stores = [createPoolStore(), createFirestorePoolStore({ firestore: fake.firestore })];
+    const exercise = async (store) => {
+      await store.registerProvider({ providerId: 'provider_once', sessionId: 'session_once' });
+      await store.createJob({
+        jobId: 'job_once',
+        assignmentIds: ['assignment_once'],
+        assignmentAttemptId: 1
+      });
+      await store.createAssignment({
+        assignmentId: 'assignment_once',
+        jobId: 'job_once',
+        requesterId: 'requester_once',
+        providerId: 'provider_once',
+        assignmentAttemptId: 1,
+        status: 'reveal_open',
+        expiresAt: new Date(Date.now() - 1_000).toISOString()
+      });
+      await store.updateAssignment('assignment_once', { status: 'reveal_open' });
+      const first = await store.expireStaleAssignments();
+      const second = await store.expireStaleAssignments();
+      const ledger = await store.listLedger('provider_once');
+      const reputation = await store.getReputation('provider_once');
+      return {
+        first: first.length,
+        second: second.length,
+        penalties: ledger.filter((entry) => entry.reason === 'assignment_timeout').length,
+        timeouts: reputation.timeouts,
+        reason: (await store.getAssignment('assignment_once')).failureReason
+      };
+    };
+
+    await expect(Promise.all(stores.map(exercise))).resolves.toEqual([
+      { first: 1, second: 0, penalties: 1, timeouts: 1, reason: 'ring_reveal_missed' },
+      { first: 1, second: 0, penalties: 1, timeouts: 1, reason: 'ring_reveal_missed' }
     ]);
   });
 

@@ -85,15 +85,69 @@ The ESM-2 launch artifact is an immutable, publicly readable mirror in
 `gs://reploid-model-artifacts`, sourced from the exact checkpoint revision
 declared by `pool-config.json`. [`deploy/model-artifact-cors.json`](../deploy/model-artifact-cors.json)
 defines the required `replo.id`, Firebase Hosting, and default local browser
-origins, byte-range methods, and observable artifact headers. The source policy is machine-checked,
-but it is not proof that the deployed bucket has applied it. Authentic browser
-qualification must independently verify the delivered CORS behavior.
-and immutable cache metadata, so browser cold starts do not depend on model-hub
+origins, byte-range methods, and observable artifact headers. Production
+verification now probes deployed HEAD and byte-range GET responses for every
+governed origin and fails unless each response echoes the origin and exposes the
+required headers. This delivery probe is not authentic-browser qualification;
+the browser journey must still bind its own fetch evidence to an exact release.
+The hosted objects also return immutable cache metadata, so browser cold starts
+do not depend on model-hub
 redirects or shared CDN throttling. Production verification fetches each
 manifest, verifies its configured content hash and model identity, probes shard
 range delivery, and rejects manifests missing runtime-significant Doppler
 execution fields. Changing artifact bytes still requires changing the declared
 hashes and config version together.
+
+The [2026-08-15 ESM-2 browser smoke](status/esm2-35m-poolday-browser-smoke-2026-08-15.json)
+preserves the current boundary: immutable GCS delivery, strict hash preflight,
+WebGPU execution, OPFS persistence/restoration, and signed receipt acceptance
+were observed on a dirty local source state. Release verification now refuses a
+dirty Git tree, hashes the raw tracked-tree listing, builds a deterministic
+SHA-256 manifest for every Firebase-served `self/` file byte except the
+self-referential descriptor, and fetches every declared deployed path before
+passing that source and bundle identity into the browser lanes. It also requires
+the live coordinator's commit-tagged image, Cloud Run revision, and 705-file
+runtime hash to match the same checkout. It preserves
+each lane's raw Playwright report and attachments in one hash-bound release
+index before the shared reporter output is overwritten. Each required JSON
+attachment must repeat the same release identity or aggregation fails. That
+index is audit
+evidence, not a qualification receipt, and same-operator provider tabs are not
+independent reproductions. A complete local HTTP byte match validates the
+mechanism, not a deployed clean release. A separate
+[after-start requester-interruption smoke](status/esm2-35m-poolday-interruption-recovery-smoke-2026-08-15.json)
+reloaded the requester after the provider visibly entered `Computing`. The new
+page did not retry or publish a late result and required the user to choose
+retry or discard; this observation exercised discard, not automatic resume. A
+separate [explicit-retry smoke](status/esm2-35m-poolday-interruption-retry-smoke-2026-08-15.json)
+created a distinct assignment after reload for the full 1,024-residue public
+input limit. The single-job provider held that retry behind the abandoned
+execution under a bounded queue deadline, emitted assignment-bound start
+status, then applied a fresh post-start receipt deadline and returned a newly
+accepted receipt. Queue/start status is transport evidence rather than a signed
+receipt. This is a new request, not exactly-once execution or resumption of the
+abandoned assignment. A separate
+[after-start cancellation smoke](status/esm2-35m-poolday-cancellation-smoke-2026-08-15.json)
+requested a per-execution abort signal, invalidated late output, closed the peer
+session, and published no receipt. It did not establish that Doppler stopped
+already-submitted GPU work, and it is not bound to the primary output or a clean
+release. A separate
+[manifest-corruption smoke](status/esm2-35m-poolday-corruption-smoke-2026-08-15.json)
+proved that strict preflight rejects mutated manifest bytes even when the
+mutated document self-declares the configured hash; no shard was fetched and no
+provider was advertised. A separate
+[cached-shard recovery smoke](status/esm2-35m-poolday-cached-shard-recovery-smoke-2026-08-15.json)
+mutated one same-size manifest-declared OPFS shard through Doppler's public
+storage tooling. Poolday detected the BLAKE3 mismatch, invalidated the
+exact-model cache, fetched both immutable shards again, and restored the
+baseline output under a distinct accepted receipt. Release-bound interruption,
+cancellation, stale-result rejection, manifest corruption, and cached-shard recovery on one clean
+deployed release, and independently operated browser reproductions still block qualification. A fifth
+[stale-result smoke](status/esm2-35m-poolday-stale-result-smoke-2026-08-15.json)
+let actual ESM-2 finish behind a qualification-only release barrier, invalidated
+the work epoch, and observed `StaleResultError` before receipt construction. It
+is an instrumented dirty-browser observation, not an uninstrumented production
+run or release-bound qualification check.
 
 ## Governed adapter lifecycle
 
@@ -217,8 +271,27 @@ Ring agreement checks:
 - per-provider invalid receipt or execution failure accounting while the remaining current assignments can still reach quorum;
 - requester acceptance before points and reputation mutation.
 - accepted quorum retires non-quorum sibling assignments so leftover providers are released and later timeouts cannot downgrade the verified job.
-- assignment expiration is evaluated as a failed member of the current agreement attempt. The job fails only when the remaining current assignments cannot still satisfy quorum.
-- impossible quorum advances the assignment attempt and ring attempt when eligible providers remain. Late receipts from the previous attempt are stale and cannot count.
+- assignment expiration is evaluated as a failed member of the current agreement attempt. The assignment preserves whether the coordinator observed an unclaimed assignment, execution expiry, commit-barrier expiry, reveal miss, or post-reveal receipt miss. The job fails only when the remaining current assignments cannot still satisfy quorum.
+- impossible quorum advances the assignment attempt and ring attempt when eligible providers remain. Every replacement assignment binds the prior attempt, assignment IDs, failed assignment IDs, and recorded failure reasons. Late receipts from the previous attempt are stale and cannot count.
+- requester polling, provider registration and polling, commit, reveal, receipt, and provider-failure entrypoints all run the same expiration-and-drain service. Its `assignmentRecovery` summary distinguishes expired assignments, attempted drains, successful replacements, and eligibility-blocked jobs.
+- a retry that cannot find an eligible provider set remains explicitly queued with `assignmentBlockedReason`; it does not consume an assignment-attempt number because no replacement assignment exists.
+- expiration is claimed before timeout reputation and ledger events are emitted, so repeated cleanup calls do not apply the same assignment penalty twice.
+
+The optional hosted diagnostic lane uses the same public-sequence boundary as
+the primary room without storing raw sequence bytes in a coordinator job. Its
+job record carries `inputKind=sequence`, the sequence hash, normalized request,
+exact model contract, and `inputTransport=webrtc_datachannel`. The requester
+sends the raw public sequence only in the assignment-bound provider payload.
+The coordinator rejects a raw `sequence` field or sequence text placed in
+`prompt`.
+
+Commit-reveal separates two phases that were previously conflated. Signaling
+and assignment input are allowed from `private_compute`, because a provider
+cannot compute before receiving input. Result evidence remains inadmissible
+until `reveal_open`, receipts still require a matching reveal, and ledger award
+still requires the commitment. Opening the DataChannel is transport evidence;
+it does not establish that a browser kept its output private or executed
+honestly.
 
 Requester acceptance must bind the economic and agreement object:
 
@@ -274,7 +347,7 @@ Commitment hash input:
 }
 ```
 
-The provider submits only `commitmentHash` during the commit phase. After the coordinator opens reveal, the provider submits output/token/transcript hashes plus salt. The server recomputes the commitment and rejects mismatches. A reveal mismatch records a provider penalty, marks the assignment failed for the current attempt, and re-evaluates quorum.
+The provider submits only `commitmentHash` during the commit phase. After the coordinator opens reveal, the provider submits output/token/transcript hashes plus salt. The server recomputes the commitment and rejects mismatches. A reveal mismatch records a provider penalty and structured assignment-failure record, marks the assignment failed for the current attempt, and re-evaluates quorum. When that mismatch makes quorum impossible, the coordinator immediately attempts a replacement and returns its `assignmentRecovery` summary.
 
 Receipts for ring assignments are accepted only after:
 
@@ -495,7 +568,7 @@ Primary peer provider flow:
 6. Accept a matching session, verify requester adapter approval, acquire missing adapter bytes, activate the exact pack through Doppler, receive the prompt over DataChannel, verify prompt hash and model identity, execute locally, return a signed receipt over DataChannel, and record local activity.
 7. Receive requester acceptance over DataChannel.
 
-The provider client still exposes `runWorkerStep()` for the hosted diagnostic loop. Manual controls under `/compute` can register, heartbeat, poll, execute, inspect points, and inspect reputation against the coordinator. Those controls are compatibility and operations tools, not the primary user path.
+The provider client still exposes `runWorkerStep()` for the hosted diagnostic loop. It accepts an assignment-bound WebRTC input payload for sequence work, then performs coordinator commit, reveal, and receipt submission. Manual controls under `/compute` can register, heartbeat, poll, execute, inspect points, and inspect reputation against the coordinator. Those controls are compatibility and operations tools, not the primary user path.
 
 ## Provider device evidence
 
@@ -722,7 +795,7 @@ Hosted production requires:
 - Coordinator service account able to sign short-lived reads for exact adapter
   object generations.
 
-`/pool/deployment/check` must return `ok: true` before public traffic. The readiness check requires Firestore storage, Firebase Auth verification, auth-required pool routes, offloaded model artifact base, Doppler module URL, Doppler WGSL kernel base URL, hybrid P2P signaling, and commit-reveal store support. It also reports the append-only `pool_events` source used by the reputation reducer.
+`/pool/deployment/check` must return `ok: true` before public traffic. The readiness check requires Firestore storage, Firebase Auth verification, auth-required pool routes, offloaded model artifact base, Doppler module URL, Doppler WGSL kernel base URL, hybrid P2P signaling, commit-reveal store support, a 40-character source revision, and a commit-tagged coordinator image. It computes a deterministic runtime bundle hash over `server/`, `self/`, the Dockerfile, and locked package inputs. It also reports the Cloud Run platform revision and the append-only `pool_events` source used by the reputation reducer.
 
 Local production verification:
 
@@ -752,8 +825,10 @@ The standard smoke injects a deterministic runtime and proves route and protocol
 npm run verify:pool:release -- --url https://<hosting-domain> --channel=chrome
 ```
 
-The release gate first requires the deployed `/pool/deployment/check` version and
-hash to match the local governed Pool contract. It then runs production/deployment
+The release gate first requires the deployed `/pool/deployment/check` version,
+config hash, source revision, commit-tagged image, platform revision, and runtime
+bundle hash to match the local clean checkout. It separately verifies every
+Firebase browser-bundle byte. It then runs production/deployment
 verification, the synthetic browser peer flow, and actual Doppler WebGPU
 generation through provider advert, requester intent, signed receipt, agreement,
 and requester acceptance. Any missing phase or identity mismatch fails the

@@ -72,6 +72,9 @@ evidence state. It does not close the scientific question or certify truth.
    the corresponding outcome is available.
 5. Preserve failure. Negative, failed, ambiguous, contradictory, and revoked
    records remain in lineage even when excluded from active projections.
+   Qualified public imports bind source version, conditions, transformations,
+   license, retrieval provenance, and finding state. Failed attempts remain in
+   retrieval and action basis but do not count as completed replicas.
 6. Require independence where claimed. Replication and review policy compares
    identity roots, institutions, protocol custody, model lineage, data sources,
    and shared failure modes as applicable.
@@ -234,6 +237,16 @@ Closure is a governed state, not record deletion. The contract predeclares:
 A closed contract remains challengeable. New evidence creates a linked revision
 and can move it to reopened without erasing the prior decision or its basis.
 
+The implemented `poolday.research_resolution_policy/v1` record freezes the
+bounded conclusion and scope, outcome-class mappings, uncertainty thresholds,
+review and replication counts, continued-uncertainty triggers, all mandatory
+reopening triggers, and closure-eligibility constraints before any work order.
+It requires independent acceptance before a current laboratory claim and stays
+outside scientific decision memory. The current projection exposes the frozen
+criteria but does not evaluate them, decide a conclusion, or provide closure
+authority. Its signed timestamp is not proof that the author lacked prior
+outcome access.
+
 ## Action selection
 
 Poolday selects actions under an admitted, versioned scientific policy. The
@@ -253,6 +266,16 @@ minimum comparison procedure is:
    or closure authority.
 8. Compare predicted value with realized value after outcome review.
 
+The implemented `poolday.realized_action_value/v1` contract makes step 8
+append-only. It requires an independently approved exact candidate action, an
+independently accepted frozen cohort evaluation, every evaluated outcome and
+its current accepting review, the evaluation's accepting review, the complete
+measured metric vector, and explicit causal contribution records. A distinct
+assessor signs the measurement, and another independent acceptance is required
+before the reward projection grants one deduplicated usefulness credit per
+candidate-action and contribution pair. The record preserves metric tradeoffs
+and grants no scientific closure or causal-truth authority.
+
 Early systems without calibrated information-gain estimates must label their
 ranking as a heuristic. They must retain the raw features needed to compare the
 heuristic against future calibrated policies.
@@ -262,6 +285,47 @@ heuristic against future calibrated policies.
 A completed contract can enter a frozen historical or prospective evaluation
 cohort. The cohort binds questions, candidate policies, baseline policy, hidden
 or future outcomes, cost accounting, and metrics before evaluation.
+
+The implemented `poolday.annotation_adjudication_experiment/v3` freeze makes
+that ordering executable for the first product proof. It binds the exact
+baseline action-selection policy artifact and input and budget contracts,
+eligible action kinds, ranking method and status, deterministic tie break, and
+stop rule. It separately declares either blinded historical outcomes with a
+committed manifest or prospective outcomes unavailable at freeze, an evidence
+cutoff no later than the signed freeze, a reveal rule, and a version-pinned
+contamination audit. Baseline and candidate must receive paired tasks, the same
+input order and evidence cutoff, and hash-bound resource, failure, timeout, and
+seed controls. Historical v1 and v2 experiment records remain inspectable but
+cannot satisfy the current north-star freeze gate. The declaration is accountable
+evidence of the intended boundary; it cannot prove that a person did not peek.
+
+The same v3 contract freezes a separate
+`poolday.adjudication_campaign_measurement_plan/v1`. It maps five distinct
+metric definitions to information gained per action, contradiction-resolution
+cost, duplicate work avoided, uncertainty calibration error, and held-out
+protein-family performance. Those metrics must also remain distinct from the
+quality and effort success metrics. Direction is fixed by the measured concept;
+unit, source, aggregation, validity conditions, noise model, sample floor, and
+confidence level remain explicit.
+
+V3 also freezes `poolday.adjudication_north_star_policy/v1`. This binds a
+separate lower-is-better metric for median normalized cost to a predeclared
+independently replicated conclusion. It preserves raw compute, money, labor,
+instrument, sample, and elapsed-time amounts, binds the conversion artifact and
+normalized unit, charges failed and unresolved cases, and fixes the stop rule.
+It separately binds retain, revise, reject, and unresolved conclusion states;
+the acceptance and replication minimum; named independence dimensions; paired
+median aggregation, interval method, confidence level, improvement threshold,
+and missing-case treatment. Peers, jobs, receipts, records, claims, and total
+compute are fixed as operational metrics that cannot satisfy success.
+
+The v3 evaluation reports baseline, candidate, paired sample count, and oriented
+effect interval for every frozen metric. Its signed north-star evidence binds
+case, raw-cost, conclusion-audit, independence-audit, and conversion-audit
+manifests. A passing conclusion requires complete real-world paired cases,
+independently replicated conclusions in both arms, the quality-or-effort gate,
+and the frozen cost-improvement bound. Incomplete evidence is inconclusive. The
+system preserves the vector rather than inventing one fitness number.
 
 Candidate policies are judged on:
 
@@ -289,18 +353,59 @@ Promotion requires frozen evidence, evaluator separation, human approval,
 Poolday-owned configuration and user contracts, prospective operational proof,
 and a tested revocation and rollback path.
 
+The implemented internal contract in
+[`scientific-policy-promotion.js`](../../self/pool/scientific-policy-promotion.js)
+hash-binds the Zero proposal, family-disjoint historical and prospective
+cohort, X evaluator, paired raw observations, full seven-role metric vector,
+safety and rollback exercises, human approval, Poolday admission artifacts,
+and every frozen prospective checkpoint. The proposer, evaluator, human
+approver, and Poolday owner must be distinct. Its terminal result is eligibility
+for Poolday-owned activation, not activation itself. The promotion schema and
+its tests do not demonstrate a passing real candidate, a realized-value record
+from a real room, or improved Research Room outcomes.
+
 ## Initial protein contract profile
 
 The first profile accepts only explicitly public protein questions and public
 evidence. ESM-2 embeddings provide the currently admitted representation layer.
-Other model views, private evidence, laboratory work, calibrated action scoring,
-and closure authority require separate Poolday admission and surface-claim
-evidence.
+Qualified imported evidence uses `poolday.public_protein_evidence/v1` across
+sequence, structure, domain, annotation, publication, assay, negative-result,
+and failed-attempt records. Assay findings distinguish positive, negative, and
+ambiguous completed observations from failed attempts that claim no
+observation. All forms remain provisional until independent review. Signed
+laboratory qualification profiles bind declared institution, versioned
+capability evidence, protocol custody, safety limits, availability, consent,
+and conflicts, but do not establish external authorization or capability.
+Current work orders bind their protocol, controls, conditions, readouts,
+normalization, planned analysis, named failure policy, custody, blinding, and
+public publication scope before a qualified laboratory may claim them. The
+order also freezes multiple required replication-independence dimensions.
+Signed outcomes bind institution, instrument, sample, preparation, and analysis
+execution identities; a replication link is rejected unless every declared
+dimension differs under the same protocol. These signed comparisons do not
+prove physical independence. The order remains unallocated and confers no
+authority.
 
-The profile prioritizes questions where compatible model outputs, public
-annotations, reviewers, or experiments disagree. Cases where every available
-source agrees can still enter the network, but agreement alone does not make the
-case informative or closed.
+The current order schema additionally permits only the declared public,
+non-pathogenic, non-clinical lane, explicitly public synthetic or
+public-reference samples, independent human safety review, and no medical use,
+private samples, biological-interpretation authority, or laboratory authority.
+Laboratory claims must match the exact safety classification. These are
+machine-checked declarations, not proof of biosafety or operator conduct.
+Other model views, private evidence, independently verified laboratory
+qualification, calibrated action scoring, and closure authority require
+separate Poolday admission and surface-claim evidence.
+
+The implemented `poolday.protein_uncertainty_campaign_queue/v1` projection
+orders exact public sequences by the count of four declared disagreement
+dimensions: embeddings repeated under one exact model contract, normalized
+public annotations at one scope and canonical residue interval, independent reviewer decisions, and comparable completed
+experimental findings under the same canonical conditions. The browser
+reverifies the bounded input records and independently replays the projection.
+Cross-contract vectors are never compared, failed attempts never become
+completed findings, and evidence volume cannot increase the score. The score is
+an uncalibrated organizing heuristic, not biological importance, truth, action
+value, or execution authority.
 
 ---
 

@@ -21,9 +21,16 @@ The current Cloud Run and Firestore path is transitional. The target Reploid con
 ## Current Local Checks
 
 - [x] `npm run verify:pool -- --allow-placeholders` passes locally.
-- [x] Unit suite passes: 1,755 passed and 25 skipped.
-- [x] Integration suite passes: 363 passed and 9 skipped.
-- [ ] Re-run `npm run verify:pool:release -- --url https://replo.id --channel=chrome` after deployment. The current release reports `2026-07-28.doppler-0.5.1.v2` while the governed local contract is `2026-08-01.sequence-model-contracts.v1.doppler-0.5.1`; release verification now fails before any browser workload on this mismatch.
+- [x] `npm run verify:browser-bundle:local` binds every Firebase-served `self/`
+  file byte except its self-referential descriptor; the deployed verifier matched
+  all 558 declared paths on the repository HTTP server and the release gate
+  rejected the dirty Git tree.
+- [x] The coordinator independently reproduced a 705-file runtime bundle hash
+  over its executed source and locked inputs; hosted readiness now requires a
+  commit-tagged image and the release verifier compares live and local runtime bytes.
+- [x] Unit suite passes: 1,819 passed and 25 skipped.
+- [x] Integration suite passes: 364 passed and 9 skipped.
+- [ ] Re-run `npm run verify:pool:release -- --url https://replo.id --channel=chrome` after deployment. The August 15 read-only deploy-surface check found stale Poolday component CSS, controls, Research Room view, Pool SDK, and peer-room bytes. Local candidate evidence is not release evidence.
 - [x] `npm audit` and the production-image `npm ci --omit=dev --include=optional` audit report zero vulnerabilities.
 - [x] No literal `TODO`, `FIXME`, `TBD`, or `XXX` markers existed in pool files before this document.
 
@@ -48,10 +55,18 @@ The current Cloud Run and Firestore path is transitional. The target Reploid con
 ## Launch Proof
 
 - [x] Deploy Reploid public hosting plus the Reploid Cloud Run coordinator with `POOL_BACKEND_ONLY=true`, `POOL_STORE=firestore`, Firebase Auth verification, required rewrites, commit-reveal support, and metadata-only signaling.
-- [ ] Re-establish production verification against `https://replo.id` with the current local config version and hash. A historical readiness result for an earlier release is not current browser or promotion evidence.
+- [ ] Re-establish production verification against `https://replo.id` with the current local config version and hash. The August 15 read-only check found deployed config `2026-08-01.sequence-model-contracts.v1.doppler-0.5.1` / `sha256:fc0ba849664ed5494c8225f410b0a5178858ce3c6036cbcdf6b2313df1b10fd9`, no source revision, no commit-tagged image binding, no coordinator runtime identity, and no Cloud Run platform revision. A historical readiness result for an earlier release is not current browser or promotion evidence.
 - [x] Run public smoke against `https://reploid.web.app` and cover `/`, `/ask`, `/compute`, `/records`, `/history`, `/network`, and `/zero` plus the synthetic peer flow.
 - [x] Prove the primary WebRTC loop on the hosted surface: requester intent, provider model load and advert, deterministic assignment, real Doppler generation, signed receipt agreement, verifier decision, requester acceptance, points event, and reputation event.
-- [ ] Prove the separate optional hosted diagnostic loop through provider registration, assignment claim, commit, reveal, and expired-assignment recovery.
+- [x] Prove the separate optional hosted diagnostic loop through provider
+  registration, assignment claim, commit, reveal, and expired-assignment
+  recovery. The canonical local episode admits only a signed public-sequence
+  assignment shell, keeps raw sequence bytes in the requester-to-provider input
+  payload, expires two claimed providers, advances the ring attempt, opens
+  pre-compute signaling, reaches two-receipt quorum, and records requester
+  acceptance, points, and reputation. Evidence:
+  `tests/unit/pool-hosted-diagnostic.test.js`. This is local route-and-client
+  proof, not deployed cross-host WebRTC evidence.
 
 ---
 
@@ -100,12 +115,61 @@ The current Cloud Run and Firestore path is transitional. The target Reploid con
 - [x] Add browser smoke coverage that opens provider and requester pages, injects a deterministic browser runtime, and proves visible peer receipt flow.
 - [ ] Persist clean-release browser qualification for ESM-2: all governed recovery,
   corruption, cancellation, stale-result, and independent-reproduction checks need
-  a persisted exact-contract record. The isolated harness currently fails closed
-  at GCS artifact CORS for its non-production local origin; this is not a browser
-  qualification pass or an OPFS recovery result.
+  one exact release-bound receipt. On 2026-08-15 the strict Chromium lane fetched
+  the pinned GCS artifacts from `http://localhost:8000`, executed ESM-2 on WebGPU,
+  produced a signed peer result, and restored the verified OPFS cache after reload.
+  The production verifier now probes deployed CORS for every governed origin.
+  A two-provider WebGPU quorum also produced matching output with distinct
+  provider identities and provider-bound receipt hashes.
+  A 1,000-residue actual request also survived requester reload as an explicit,
+  non-automatic retry/discard decision with no late result published in the new page.
+  The persisted interruption observation proves that the provider had entered
+  `Computing` before reload and records the discard path. A second actual-browser
+  probe records the explicit retry path: retry creates a distinct assignment,
+  stays queued while the abandoned execution retains the provider's single-job
+  slot, and produces a newly accepted receipt only after the old runtime promise
+  settles. The actual Chromium probe now covers the full 1,024-residue public
+  limit with separate bounded queue and post-start receipt deadlines. Queue and
+  start messages are assignment-bound transport evidence, not signed receipts;
+  the probe does not establish automatic resume, exactly-once execution, or the
+  ordinary production deadline on that browser backend.
+  A separate after-start cancellation requested the execution's abort signal,
+  invalidated late output, closed the provider session, and published no receipt;
+  the current Doppler sequence handle exposes no session-level abort method, so
+  that observation does not prove when already-submitted GPU work stopped.
+  A separate strict-preflight probe rejected mutated manifest bytes carrying a
+  forged self-declared configured hash before shard fetch or provider advertisement;
+  a second actual Chromium probe then mutated a same-size manifest-declared OPFS
+  shard through Doppler's public storage surface. Poolday hashed both shards and
+  the tokenizer before load, invalidated the exact-model cache on the BLAKE3
+  mismatch, fetched both immutable shards again, and reproduced the baseline
+  output under a distinct accepted receipt.
+  A separate actual ESM-2 probe held a completed backend result at a
+  qualification-only release barrier, invalidated its work epoch, and observed
+  `StaleResultError` before receipt construction.
+  Those dirty-worktree smoke runs are not a clean-release qualification receipt;
+  the release runner now derives a clean commit/tree identity, verifies every
+  deployed browser-bundle byte, and injects both identities into each lane, but
+  that mechanism has not yet run against a matching clean deployment. It also
+  requires the Cloud Run commit-tagged image, platform revision, and 705-file
+  coordinator runtime hash to match the same checkout. It then copies and hashes
+  all nine Playwright lane reports before the shared reporter
+  path is overwritten, requires every lane attachment to repeat the same release
+  identity, and writes one non-promotable release-evidence index;
+  the interruption, cancellation, corruption, recovery, and stale-result observations are
+  not bound to the primary output, and two independently operated browser
+  identities remain unproven in the Poolday qualification record.
 - [x] Add provider hardening for duplicate peer sessions, provider busy rejection, stopped nodes, and completed session cleanup.
 - [x] Restore an opted-in peer provider after refresh or tab visibility recovery with the same role identity and warm OPFS model.
-- [ ] Recover hosted diagnostic assignments after expiration or a reveal miss.
+- [x] Recover hosted diagnostic assignments after expiration or a reveal miss.
+  Expiration records the exact failed phase, applies its timeout penalty once,
+  and drains retryable jobs from requester, provider, commit, reveal, receipt,
+  and failure entrypoints. A replacement carries the prior assignment and ring
+  attempt, failed assignment IDs, and failure reasons; an eligibility-blocked
+  drain remains queued without incrementing the assignment attempt. Evidence:
+  `tests/unit/pool-routes.test.js`,
+  `tests/unit/pool-coordinator-transitions.test.js`, and
+  `tests/unit/pool-firestore-peer-room.test.js`.
 
 ---
 
@@ -210,59 +274,59 @@ claim, and deployment evidence exist.
 
 ### Protein Uncertainty Campaign
 
-- [ ] Admit version-pinned public sequence, structure, domain, annotation,
+- [x] Admit version-pinned public sequence, structure, domain, annotation,
   publication, assay, negative-result, and failed-attempt evidence with source,
   transformation, condition, license, and retrieval provenance.
-- [ ] Build a queue that prioritizes proteins where exact-contract embeddings,
+- [x] Build a queue that prioritizes proteins where exact-contract embeddings,
   public annotations, reviewers, and experimental evidence disagree.
-- [ ] Freeze a baseline research policy before using hidden or future outcomes
+- [x] Freeze a baseline research policy before using hidden or future outcomes
   to compare action selection.
-- [ ] Measure information gained per action, contradiction-resolution cost,
+- [x] Measure information gained per action, contradiction-resolution cost,
   duplicate work avoided, uncertainty calibration, and performance on held-out
   protein families.
-- [ ] Preserve negative, failed, and ambiguous outcomes in retrieval and action
+- [x] Preserve negative, failed, and ambiguous outcomes in retrieval and action
   selection even when they do not support a conclusion.
-- [ ] Keep ESM-2 as the only enabled Poolday protein model until another model
+- [x] Enforce ESM-2 as the only enabled Poolday protein model until another model
   view passes its own artifact, workload, runtime, receipt, policy, and surface
   admission gates.
 
 ### Laboratory And Replication Boundary
 
-- [ ] Define capability, institution, protocol-custody, consent, safety, and
+- [x] Define capability, institution, protocol-custody, consent, safety, and
   availability records for participating laboratories and instrument operators.
-- [ ] Require approved work orders to bind controls, conditions, readouts,
+- [x] Require approved work orders to bind controls, conditions, readouts,
   normalization, uncertainty, analysis identity, failure categories, custody,
   and publication scope before allocation.
-- [ ] Plan replication against declared independence dimensions instead of
+- [x] Plan replication against declared independence dimensions instead of
   identity-root difference alone.
-- [ ] Define predeclared provisional acceptance, continued uncertainty,
+- [x] Define predeclared provisional acceptance, continued uncertainty,
   rejection, reopening, and closure criteria.
-- [ ] Keep biological interpretation, medical use, unsafe protocols, private
+- [x] Keep biological interpretation, medical use, unsafe protocols, private
   samples, and laboratory authority outside Poolday until separately admitted.
 
 ### Scientific-Policy Promotion
 
-- [ ] Define the Zero candidate schema for hypothesis decomposition, uncertainty
+- [x] Define the Zero candidate schema for hypothesis decomposition, uncertainty
   estimation, contradiction detection, and action-selection policy proposals.
-- [ ] Freeze historical and prospective Discovery Contract cohorts before X
+- [x] Freeze historical and prospective Discovery Contract cohorts before X
   evaluates a candidate in Shadow.
-- [ ] Enforce candidate, evaluator, approver, and Poolday policy-owner separation
+- [x] Enforce candidate, evaluator, approver, and Poolday policy-owner separation
   at the promotion gate.
-- [ ] Compare each candidate with a fixed baseline on cost to the same declared
+- [x] Compare each candidate with a fixed baseline on cost to the same declared
   conclusion, action count, failure detection, held-out generalization,
   replication, safety, and rollback.
-- [ ] Require human approval, Poolday-owned configuration, operational proof,
+- [x] Require human approval, Poolday-owned configuration, operational proof,
   revocation, and rollback before activation.
-- [ ] Record realized action value after reviewed outcomes so a contribution is
+- [x] Record realized action value after reviewed outcomes so a contribution is
   rewarded for measured downstream usefulness rather than activity alone.
 
 ### North-Star Evidence
 
-- [ ] Freeze the baseline policy, cost representation, conclusion criteria,
+- [x] Freeze the baseline policy, cost representation, conclusion criteria,
   independence criteria, and aggregation method before reporting improvement.
 - [ ] Report median real-world cost to a predeclared independently replicated
   conclusion relative to that baseline.
-- [ ] Keep peers, jobs, receipts, records, claims, and total compute as
+- [x] Keep peers, jobs, receipts, records, claims, and total compute as
   operational metrics, not success metrics.
 
 ---
