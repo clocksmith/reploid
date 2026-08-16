@@ -104,7 +104,10 @@ const renderQuestion = (room) => {
       <div class="pool-room-empty-state">
         <p class="pool-dashboard-kicker">Question</p>
         <h2 class="type-h2">No question yet</h2>
-        <a class="btn btn-primary" data-pool-route-link="${escapeHtml(roomHref('/ask', room.roomId))}" href="${escapeHtml(roomHref('/ask', room.roomId))}">Ask a question</a>
+        <div class="pool-room-empty-actions">
+          <a class="btn btn-primary" data-pool-route-link="${escapeHtml(roomHref('/ask', room.roomId))}" href="${escapeHtml(roomHref('/ask', room.roomId))}">Ask a question</a>
+          <button class="btn btn-ghost" type="button" data-pool-load-sample-dispute data-pool-room-id="${escapeHtml(room.roomId)}">Load canonical dispute</button>
+        </div>
       </div>
     `;
   }
@@ -468,6 +471,73 @@ const renderRoles = (room) => `
   </section>
 `;
 
+const renderAdjudicationCanvas = (room) => {
+  if (!room.question && !room.latestResult && !room.memory.length) return '';
+  const acceptedItems = room.memory || [];
+  const unresolvedItems = room.unresolved || [];
+  const candidateActions = room.nextActions || [];
+  return `
+    <section class="pool-room-section pool-room-adjudication-canvas" aria-labelledby="pool-room-canvas-title">
+      <div class="pool-room-section-heading">
+        <div>
+          <p class="pool-dashboard-kicker">Adjudication Canvas</p>
+          <h2 class="type-h2" id="pool-room-canvas-title">Disputed Evidence & Memory State</h2>
+        </div>
+      </div>
+      <div class="pool-room-canvas-grid">
+        <div class="pool-room-canvas-col is-accepted">
+          <div class="pool-room-canvas-col-header">
+            <strong>Accepted for Decision (${acceptedItems.length})</strong>
+            <span class="pool-room-event-status">Admitted</span>
+          </div>
+          <div class="pool-room-canvas-col-body">
+            ${acceptedItems.length
+              ? acceptedItems.map((item) => `
+                <article class="pool-canvas-item">
+                  <strong>${escapeHtml(item.title)}</strong>
+                  <p>${escapeHtml(item.kind.replace(/_/g, ' '))} · ${escapeHtml(compactHash(item.sourceHash))}</p>
+                </article>
+              `).join('')
+              : '<p class="pool-room-muted">No evidence admitted into decision memory under current room policy.</p>'}
+          </div>
+        </div>
+        <div class="pool-room-canvas-col is-disputed">
+          <div class="pool-room-canvas-col-header">
+            <strong>Disputed / Divergent (${unresolvedItems.length})</strong>
+            <span class="pool-room-event-status">Unresolved</span>
+          </div>
+          <div class="pool-room-canvas-col-body">
+            ${unresolvedItems.length
+              ? unresolvedItems.map((item) => `
+                <article class="pool-canvas-item">
+                  <strong>${escapeHtml(item.title)}</strong>
+                  <p>${escapeHtml(item.detail)}</p>
+                </article>
+              `).join('')
+              : '<p class="pool-room-muted">No active disagreements recorded for this question.</p>'}
+          </div>
+        </div>
+        <div class="pool-room-canvas-col is-missing">
+          <div class="pool-room-canvas-col-header">
+            <strong>Missing Replicas / Evidence</strong>
+            <span class="pool-room-event-status">Pending</span>
+          </div>
+          <div class="pool-room-canvas-col-body">
+            ${candidateActions.length
+              ? candidateActions.map((action) => `
+                <article class="pool-canvas-item">
+                  <strong>${escapeHtml(action.title || action.kind?.replace(/_/g, ' '))}</strong>
+                  <p>${escapeHtml(action.reason || 'Independent execution or review required.')}</p>
+                </article>
+              `).join('')
+              : '<p class="pool-room-muted">All declared evidence dimensions are satisfied.</p>'}
+          </div>
+        </div>
+      </div>
+    </section>
+  `;
+};
+
 export function renderResearchRoom({
   roomId,
   routeId = 'home',
@@ -502,6 +572,7 @@ export function renderResearchRoom({
         <section class="pool-room-question-card">${renderQuestion(room)}</section>
         ${renderResult(room)}
       </div>
+      ${renderAdjudicationCanvas(room)}
       ${renderNextAction(room)}
       <details class="pool-room-disclosure pool-room-technical-disclosure"><summary>History and details</summary>
         <div class="pool-room-participants" aria-label="Room participants">${renderParticipants(room.participants)}</div>

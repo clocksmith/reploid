@@ -2225,11 +2225,12 @@
     {
       "path": "ui/pool-home/research-view.js",
       "owner": "ui",
-      "sha256": "sha256:c397aef6e095bb69ffa13eac80ade151a51fea55d177616278602ed784ea26c6",
+      "sha256": "sha256:f729016438e5fa8b68356cc029ae59307347946b8e6ca97e5c6ad91fd1214a3d",
       "imports": [
         "../../pool/discovery-contract.js",
         "../../pool/evidence-network.js",
         "../../pool/identity.js",
+        "../../pool/model-contract.js",
         "./research-lifecycle-panel.js",
         "./research-panels.js",
         "./research-store.js",
@@ -2258,7 +2259,7 @@
     {
       "path": "ui/pool-home/room-view.js",
       "owner": "ui",
-      "sha256": "sha256:36ef3fef90900f99e2d22b13ce9d4a38c44d3320356f8ad69167e3f9cc176f99",
+      "sha256": "sha256:e2f07354e7dfa947eb6125de7ba423c631881ee6da2412eb5c2e4a09504df4ec",
       "imports": [
         "./room-projection.js"
       ]

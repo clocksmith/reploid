@@ -27,6 +27,7 @@ import {
   createSignedRealizedActionValue,
   createSignedResearchRevocation,
   createSignedResearchWorkClaim,
+  createSignedResearchSubmission,
   createSignedResearchWorkOrder,
   findSimilarSequences,
   invalidatedResearchHashes,
@@ -37,6 +38,7 @@ import {
   rankProposedCandidateActions,
   searchEvidence
 } from '../../pool/evidence-network.js';
+import { getEnabledPoolModelContract } from '../../pool/model-contract.js';
 import {
   getCrossRoomSequenceEvidence,
   hydrateCrossRoomSequenceEvidence,
@@ -1518,6 +1520,57 @@ export function bindResearchRoomActions(root = document, {
       button.disabled = false;
       button.textContent = label;
       button.title = error instanceof Error ? error.message : String(error);
+    }
+    return;
+  });
+
+  root.addEventListener('click', async (event) => {
+    const sampleButton = event.target.closest?.('[data-pool-load-sample-dispute]');
+    if (!sampleButton || !root.contains(sampleButton)) return;
+    event.preventDefault();
+    const roomId = sampleButton.dataset.poolRoomId;
+    const label = sampleButton.textContent;
+    sampleButton.disabled = true;
+    sampleButton.textContent = 'Loading canonical dispute...';
+    try {
+      const canonicalSequence = 'MFVFLVLLPLVSSQCVNLTTRTQLPPAYTNSFTRGVYYPDKVFRSSVLHSTQDLFLPFFSNVTWFHAIHVSGTNGTKRFDNPVLPFNDGVYFASTEKSNIIRGWIFGTTLDSKTQSLLIVNNATNVVIKVCEFQFCNDPFLGVYYHKNNKSWMESEFRVYSSANNCTFEYVSQPFLMDLEGKQGNFKNLREFVFKNIDGYFKIYSKHTPINLVRDLPQGFSALEPLVDLPIGINITRFQTLLALHRSYLTPGDSSSGWTAGAAAYYVGYLQPRTFLLKYNENGTITDAVDCALDPLSETKCTLKSFTVEKGIYQTSNFRVQPTESIVRFPNITNLCPFGEVFNATRFASVYAWNRKRISNCVADYSVLYNSASFSTFKCYGVSPTKLNDLCFTNVYADSFVIRGDEVRQIAPGQTGKIADYNYKLPDDFTGCVIAWNSNNLDSKVGGNYNYLYRLFRKSNLKPFERDISTEIYQAGSTPCNGVEGFNCYFPLQSYGFQPTNGVGYQPYRVVVLSFELLHAPATVCGPKKSTNLVKNKCVNFNFNGLTGTGVLTESNKKFLPFQQFGRDIADTTDAVRDPQTLEILDITPCSFGGVSVITPGTNTSNQVAVLYQDVNCTEVPVAIHADQLTPTWRVYSTGSNVFQTRAGCLIGAEHVNNSYECDIPIGAGICASYQTQTNSPRRARSVASQSIIAYTMSLGAENSVAYSNNSIAIPTNFTISVTTEILPVSMTKTSVDCTMYICGDSTECSNLLLQYGSFCTQLNRALTGIAVEQDKNTQEVFAQVKQIYKTPPIKDFGGFNFSQILPDPSKPSKRSFIEDLLFNKVTLADAGFIKQYGDCLGDIAARDLICAQKFNGLTVLPPLLTDEMIAQYTSALLAGTITSGWTFGAGAALQIPFAMQMAYRFNGIGVTQNVLYENQKLIANQFNSAIGKIQDSLSSTASALGKLQDVVNQNAQALNTLVKQLSSNFGAISSVLNDILSRLDKVEAEVQIDRLITGRLQSLQTYVTQQLIRAAEIRASANLAATKMSECVLGQSKRVDFCGKGYHLMSFPQSAPHGVVFLHVTYVPAQEKNFTTAPAICHDGKAHFPREGVFVSNGTHWFVTQRNFYEPQIITTDNTFVSGNCDVVIGIVNNTVYDPLQPELDSFKEELDKYFKNHTSPDVDLGDISGINASVVNIQKEIDRLNEVAKNLNESLIDLQELGKYEQYIKWPWYIWLGFIAGLIAIVMVTIMLCCMTSCCSCLKGCCSCGSCCKFDEDDSEPVLKGVKLHYT';
+      const modelContract = getEnabledPoolModelContract() || {
+        id: 'esm2-t12-35m-ur50d-f32-af32',
+        hash: 'sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef',
+        manifestHash: 'sha256:fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210',
+        workload: 'sequence.embedding.v1',
+        executionMode: 'full_model_browser_sequence'
+      };
+      const submission = await createSignedResearchSubmission({
+        identity: createPoolIdentity('requester'),
+        roomId,
+        sequence: {
+          alphabet: 'amino_acid',
+          value: canonicalSequence
+        },
+        consent: {
+          publicSequence: true,
+          publicEvidenceNetwork: true,
+          publishEmbedding: true,
+          publishResidueEvidence: true
+        },
+        requesterIntent: {
+          kind: 'question',
+          label: 'Adjudicate Spike RBD domain boundary (UniProt:P0DTC2 vs InterPro:IPR043506)',
+          text: 'Does ESM-2 35M residue-level embedding match the curated 319-541 RBD boundary or extend into the N-terminal linker?'
+        },
+        modelContract,
+        policyId: 'redundant_agreement'
+      });
+      await publishResearchRecord(submission, { roomId });
+      sampleButton.textContent = 'Canonical dispute loaded';
+      if (typeof globalThis.location?.reload === 'function') {
+        globalThis.location.reload();
+      }
+    } catch (error) {
+      sampleButton.disabled = false;
+      sampleButton.textContent = label;
+      sampleButton.title = error instanceof Error ? error.message : String(error);
     }
   });
 }
