@@ -22,15 +22,16 @@ import { PARTICIPATION_CAPABILITIES } from '../../../self/pool/participation-pro
 export function registerJobRoutes(router, {
   store,
   asyncRoute,
-  requireBoundAnyRole
+  requireBoundAnyRole,
+  recoverHostedAssignments
 } = {}) {
   if (!router) throw new Error('job routes require an Express router');
-  for (const [name, value] of Object.entries({ asyncRoute, requireBoundAnyRole })) {
+  for (const [name, value] of Object.entries({ asyncRoute, requireBoundAnyRole, recoverHostedAssignments })) {
     if (typeof value !== 'function') throw new Error(`job routes require ${name}`);
   }
 
   router.post('/jobs', asyncRoute(async (req, res) => {
-    await store.expireStaleAssignments();
+    await recoverHostedAssignments({ store });
     const validation = validateJobRequest(req.body || {});
     if (!validation.ok) return res.status(400).json({ error: 'invalid job request', reasons: validation.reasons });
     if (!requireBoundAnyRole(req, res, ['requester', 'agent'], req.body.requesterId)) return null;
@@ -50,6 +51,8 @@ export function registerJobRoutes(router, {
     if (!requesterIdentity.ok) {
       return res.status(400).json({ error: 'invalid requester participation identity', reasons: requesterIdentity.reasons });
     }
+    const sequenceInput = req.body.inputKind === 'sequence';
+    const inputHash = sequenceInput ? req.body.inputHash : sha256Hex(req.body.prompt);
     const adapterRequirement = req.body.modelRequirements?.adapter || null;
     if (adapterRequirement) {
       const requirementValidation = validatePublishedAdapterRequirement(adapterRequirement);
@@ -71,7 +74,7 @@ export function registerJobRoutes(router, {
       const approval = await verifyAdapterUseApproval(req.body.adapterUseApproval, {
         adapterRequirement,
         requesterId: req.body.requesterId,
-        inputHash: sha256Hex(req.body.prompt),
+        inputHash,
         modelRequirements: req.body.modelRequirements
       });
       if (req.body.adapterUseApproval?.requesterPublicKey !== req.body.requesterPublicKey) {
@@ -82,7 +85,13 @@ export function registerJobRoutes(router, {
     }
     const job = await store.createJob({
       requesterId: req.body.requesterId,
-      prompt: req.body.prompt,
+      prompt: sequenceInput ? null : req.body.prompt,
+      inputKind: sequenceInput ? 'sequence' : 'prompt',
+      inputHash,
+      inputTransport: sequenceInput ? req.body.inputTransport : null,
+      inputDisclosure: sequenceInput ? req.body.inputDisclosure : null,
+      sequenceRequest: sequenceInput ? req.body.sequenceRequest : null,
+      sequenceRequestHash: sequenceInput ? req.body.sequenceRequestHash : null,
       policyId: validation.policyId,
       policyConfigVersion: POOL_CONFIG_VERSION,
       policyConfigHash: POOL_CONFIG_HASH,
@@ -112,11 +121,11 @@ export function registerJobRoutes(router, {
   }));
 
   router.get('/jobs/:jobId', asyncRoute(async (req, res) => {
-    await store.expireStaleAssignments();
+    const recovery = await recoverHostedAssignments({ store, targetJobId: req.params.jobId });
     const job = await store.getJob(req.params.jobId);
     if (!job) return res.status(404).json({ error: 'job not found' });
     if (!requireBoundAnyRole(req, res, ['requester', 'agent'], job.requesterId)) return null;
-    return res.json({ job });
+    return res.json({ job, assignmentRecovery: recovery.summary });
   }));
 }
 

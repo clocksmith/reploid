@@ -11,6 +11,10 @@ import {
   verifyResearchRecord
 } from '../../pool/evidence-network.js';
 import { validateDiscoveryContractCheckpoint } from '../../pool/discovery-contract.js';
+import {
+  PROTEIN_UNCERTAINTY_CAMPAIGN_QUEUE_VERSION,
+  projectProteinUncertaintyCampaignQueue
+} from '../../pool/protein-uncertainty-campaign.js';
 import { DEFAULT_PEER_ROOM_ID } from '../../pool/peer-room.js';
 
 export const POOLDAY_RESEARCH_STORAGE_KEY = 'reploid.pool.research-evidence.v1';
@@ -27,6 +31,7 @@ const state = {
 // which recovery boundary the current page has observed.
 const syncStates = new Map();
 const crossRoomEvidenceStates = new Map();
+const campaignQueueStates = new Map();
 
 const storageKey = (roomId) => `${POOLDAY_RESEARCH_STORAGE_KEY}::${encodeURIComponent(roomId || DEFAULT_PEER_ROOM_ID)}`;
 const quarantineStorageKey = (roomId) => `${POOLDAY_RESEARCH_QUARANTINE_KEY}::${encodeURIComponent(roomId || DEFAULT_PEER_ROOM_ID)}`;
@@ -100,6 +105,28 @@ const setCrossRoomEvidenceState = (roomId, patch = {}, { notify = true } = {}) =
 
 export const getCrossRoomSequenceEvidence = (roomId = DEFAULT_PEER_ROOM_ID) => clone(
   crossRoomEvidenceStates.get(roomId) || defaultCrossRoomEvidenceState()
+);
+
+const defaultCampaignQueueState = () => ({
+  phase: 'idle',
+  projection: null,
+  error: null,
+  checkedAt: null
+});
+
+const setCampaignQueueState = (roomId, patch = {}, { notify = true } = {}) => {
+  const next = {
+    ...defaultCampaignQueueState(),
+    ...(campaignQueueStates.get(roomId) || {}),
+    ...patch
+  };
+  campaignQueueStates.set(roomId, next);
+  if (notify) notifyResearchUpdate(roomId);
+  return next;
+};
+
+export const getProteinUncertaintyCampaignQueue = (roomId = DEFAULT_PEER_ROOM_ID) => clone(
+  campaignQueueStates.get(roomId) || defaultCampaignQueueState()
 );
 
 const readPersistedRecords = (roomId) => {
@@ -421,11 +448,64 @@ export async function hydrateCrossRoomSequenceEvidence(roomId, sequenceHash, {
   }
 }
 
+export async function hydrateProteinUncertaintyCampaignQueue(roomId = DEFAULT_PEER_ROOM_ID, {
+  sdk = createPoolSdk()
+} = {}) {
+  setCampaignQueueState(roomId, {
+    phase: 'synchronizing',
+    projection: null,
+    error: null,
+    checkedAt: null
+  });
+  try {
+    const payload = await sdk.listProteinUncertaintyCampaignQueue({
+      limit: POOLDAY_RESEARCH_RECORD_LIMIT
+    });
+    if (payload?.schema !== PROTEIN_UNCERTAINTY_CAMPAIGN_QUEUE_VERSION) {
+      throw new Error('Protein uncertainty campaign queue schema is unsupported');
+    }
+    const records = Array.isArray(payload.records) ? payload.records : [];
+    for (const record of records) {
+      const verification = await verifyResearchRecord(record);
+      if (!verification.ok) {
+        throw new Error(`Invalid campaign research record: ${verification.reasons.join('; ')}`);
+      }
+      const admission = validateResearchRecordModelAdmission(record);
+      if (!admission.ok) {
+        throw new Error(`Unadmitted campaign model contract: ${admission.reasons.join('; ')}`);
+      }
+    }
+    validateCrossRoomLinks(records);
+    const projected = projectProteinUncertaintyCampaignQueue(records, {
+      limit: POOLDAY_RESEARCH_RECORD_LIMIT
+    });
+    const declaredProjection = { ...payload };
+    delete declaredProjection.records;
+    if (JSON.stringify(projected) !== JSON.stringify(declaredProjection)) {
+      throw new Error('Protein uncertainty campaign queue replay does not match the signed input records');
+    }
+    return clone(setCampaignQueueState(roomId, {
+      phase: 'synchronized',
+      projection: projected,
+      error: null,
+      checkedAt: new Date().toISOString()
+    }));
+  } catch (error) {
+    return clone(setCampaignQueueState(roomId, {
+      phase: 'unavailable',
+      projection: null,
+      error: error instanceof Error ? error.message : String(error),
+      checkedAt: new Date().toISOString()
+    }));
+  }
+}
+
 export function resetResearchStore() {
   state.roomId = null;
   state.records = [];
   syncStates.clear();
   crossRoomEvidenceStates.clear();
+  campaignQueueStates.clear();
 }
 
 export default {
@@ -435,7 +515,9 @@ export default {
   publishResearchRecord,
   hydrateResearchRecords,
   hydrateCrossRoomSequenceEvidence,
+  hydrateProteinUncertaintyCampaignQueue,
   getResearchSyncState,
   getCrossRoomSequenceEvidence,
+  getProteinUncertaintyCampaignQueue,
   resetResearchStore
 };

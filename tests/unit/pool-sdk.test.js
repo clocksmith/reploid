@@ -73,7 +73,7 @@ describe('Pool SDK client identity', () => {
     ]);
   });
 
-  it('requests cross-room evidence by exact sequence identity and current room', async () => {
+  it('requests exact-sequence evidence and the bounded campaign queue', async () => {
     const fetchMock = vi.fn(async () => ({
       ok: true,
       json: async () => ({ schema: 'poolday.cross_room_sequence_evidence/v1' })
@@ -89,10 +89,12 @@ describe('Pool SDK client identity', () => {
       currentRoomId: 'room with space',
       limit: 125
     });
+    await sdk.listProteinUncertaintyCampaignQueue({ limit: 125 });
 
-    expect(fetchMock.mock.calls[0][0]).toBe(
-      'https://pool.test/research/sequences/sha256%3Asequence%2Fid/evidence?currentRoomId=room+with+space&limit=125'
-    );
+    expect(fetchMock.mock.calls.map(([url]) => url)).toEqual([
+      'https://pool.test/research/sequences/sha256%3Asequence%2Fid/evidence?currentRoomId=room+with+space&limit=125',
+      'https://pool.test/research/campaign-queue?limit=125'
+    ]);
   });
 
   it('preserves a trusted relay retry deadline on rate-limit errors', async () => {

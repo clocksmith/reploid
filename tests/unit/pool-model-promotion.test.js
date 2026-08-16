@@ -34,7 +34,8 @@ const browserRecord = () => {
   release: {
     sourceRevision: 'test-release-source',
     sourceTreeHash: fakeHash('d'),
-    browserBundleHash: fakeHash('e')
+    browserBundleHash: fakeHash('e'),
+    sourceDirty: false
   },
   browser: { family: 'Chromium', version: '123.0', userAgentHash: fakeHash('f') },
   gpu: { adapterIdentity: 'test-adapter' },
@@ -58,18 +59,18 @@ const browserRecord = () => {
       bindings: {
         modelHash: candidate.modelHash, manifestHash: candidate.manifestHash, tokenizerHash: candidate.tokenizerHash,
         shardSetHash: candidate.artifactIdentity.shardSetHash, runtime: candidate.runtime, backend: candidate.backend,
-        exactModelContractKey: candidateKey, sourceTreeHash: fakeHash('d'), browserBundleHash: fakeHash('e'), policyHash: fakeHash('1')
+        exactModelContractKey: candidateKey, sourceTreeHash: fakeHash('d'), browserBundleHash: fakeHash('e'), sourceDirty: false, policyHash: fakeHash('1')
       }
     },
     {
       reproductionId: 'run-two', participantId: 'browser-two', browserRunId: 'browser-run-two',
       browserIdentity: 'Firefox/124', observedAt: '2026-08-01T00:00:01.000Z',
       userAgentHash: fakeHash('c'), gpuAdapterIdentity: 'test-adapter-two', resultHash: fakeHash('d'),
-      outputHash: fakeHash('2'), receiptHash: fakeHash('3'),
+      outputHash: fakeHash('2'), receiptHash: fakeHash('4'),
       bindings: {
         modelHash: candidate.modelHash, manifestHash: candidate.manifestHash, tokenizerHash: candidate.tokenizerHash,
         shardSetHash: candidate.artifactIdentity.shardSetHash, runtime: candidate.runtime, backend: candidate.backend,
-        exactModelContractKey: candidateKey, sourceTreeHash: fakeHash('d'), browserBundleHash: fakeHash('e'), policyHash: fakeHash('1')
+        exactModelContractKey: candidateKey, sourceTreeHash: fakeHash('d'), browserBundleHash: fakeHash('e'), sourceDirty: false, policyHash: fakeHash('1')
       }
     }
   ]

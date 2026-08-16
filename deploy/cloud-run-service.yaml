@@ -19,7 +19,7 @@ spec:
       containerConcurrency: 80
       timeoutSeconds: 300
       containers:
-        - image: us-central1-docker.pkg.dev/reploid/reploid/reploid-pool:latest
+        - image: us-central1-docker.pkg.dev/reploid/reploid/reploid-pool:COMMIT_SHA_REQUIRED
           ports:
             - name: http1
               containerPort: 8080
@@ -50,6 +50,8 @@ spec:
               value: "https://storage.googleapis.com/reploid-model-artifacts/models"
             - name: REPLOID_DOPPLER_MODULE_URL
               value: "https://cdn.jsdelivr.net/npm/doppler-gpu@0.5.1/src/index.js"
+            - name: REPLOID_DOPPLER_STORAGE_MODULE_URL
+              value: "https://cdn.jsdelivr.net/npm/doppler-gpu@0.5.1/src/tooling-exports/storage.js"
             - name: REPLOID_DOPPLER_KERNEL_BASE_URL
               value: "https://cdn.jsdelivr.net/npm/doppler-gpu@0.5.1/src/gpu/kernels"
             - name: REPLOID_TURN_HOST
@@ -61,6 +63,10 @@ spec:
                 secretKeyRef:
                   key: latest
                   name: reploid-turn-shared-secret
+            - name: REPLOID_RELEASE_SOURCE_REVISION
+              value: "<required-source-revision>"
+            - name: REPLOID_RELEASE_IMAGE
+              value: "<required-commit-tagged-image>"
           resources:
             limits:
               cpu: "1"

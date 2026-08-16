@@ -7,6 +7,7 @@ import {
   DOPPLER_BROWSER_RUNTIME_VERSION,
   DOPPLER_KERNEL_BASE_URL,
   DOPPLER_MODULE_URL,
+  DOPPLER_STORAGE_TOOLING_URL,
   DOPPLER_PACKAGE_INTEGRITY,
   DOPPLER_PACKAGE_NAME,
   DOPPLER_PACKAGE_SPEC,
@@ -17,6 +18,7 @@ import {
 const RUNTIME_ENV_KEYS = Object.freeze({
   REPLOID_POOL_MODEL_BASE_URL: 'modelBaseUrl',
   REPLOID_DOPPLER_MODULE_URL: 'dopplerModuleUrl',
+  REPLOID_DOPPLER_STORAGE_MODULE_URL: 'dopplerStorageModuleUrl',
   REPLOID_DOPPLER_KERNEL_BASE_URL: 'dopplerKernelBaseUrl'
 });
 
@@ -65,6 +67,7 @@ export function synchronizeRuntimeConfig({
   packageVersion = DOPPLER_PACKAGE_VERSION,
   browserRuntimeVersion = DOPPLER_BROWSER_RUNTIME_VERSION,
   moduleUrl = DOPPLER_MODULE_URL,
+  storageModuleUrl = DOPPLER_STORAGE_TOOLING_URL,
   kernelBaseUrl = DOPPLER_KERNEL_BASE_URL
 }) {
   const manifestSpec = packageManifest.dependencies?.[DOPPLER_PACKAGE_NAME];
@@ -96,6 +99,7 @@ export function synchronizeRuntimeConfig({
   synchronizedPoolConfig.browserRuntime = {
     ...synchronizedPoolConfig.browserRuntime,
     dopplerModuleUrl: moduleUrl,
+    dopplerStorageModuleUrl: storageModuleUrl,
     dopplerKernelBaseUrl: kernelBaseUrl
   };
 

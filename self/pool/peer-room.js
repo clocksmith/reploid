@@ -13,7 +13,8 @@ import {
 import {
   P2P_PAYLOAD_TYPES,
   createP2PPayload,
-  createReceiptPayload
+  createReceiptPayload,
+  validateP2PPayload
 } from './p2p-payload.js';
 import {
   buildPeerAssignmentPlan,
@@ -32,6 +33,7 @@ export const DEFAULT_PEER_ROOM_ID = 'reploid-default';
 // scheduling; callers may choose a longer budget for higher-latency relays.
 const DEFAULT_DISCOVERY_WINDOW_MS = 3500;
 const DEFAULT_RECEIPT_WINDOW_MS = 60000;
+const DEFAULT_QUEUE_WINDOW_MS = 60000;
 const DEFAULT_PROVIDER_ADVERT_INTERVAL_MS = 30000;
 const DEFAULT_PROVIDER_SESSION_SETTLE_MS = 5000;
 const DEFAULT_PROVIDER_ADVERT_SETTLE_MS = 250;
@@ -307,6 +309,7 @@ const createPeerReceiptAgreementError = ({
     && providerFailures.every((failure) => (
       failure.code === 'webrtc_connection_timeout'
       || failure.code === 'peer_receipt_timeout'
+      || failure.code === 'peer_queue_timeout'
     ));
   const error = new Error(
     `Peer receipt agreement failed: ${validReceiptCount}/${requiredAgreement} matching receipts`
@@ -473,6 +476,7 @@ export async function runPeerJob({
   discoveryWindowMs = DEFAULT_DISCOVERY_WINDOW_MS,
   sessionAcceptWindowMs = DEFAULT_PROVIDER_SESSION_SETTLE_MS,
   receiptWindowMs = DEFAULT_RECEIPT_WINDOW_MS,
+  queueWindowMs = DEFAULT_QUEUE_WINDOW_MS,
   transportConnectWindowMs = DEFAULT_PROVIDER_SESSION_SETTLE_MS,
   promptDispatchConcurrency = null,
   knownProviderAdverts = [],
@@ -595,6 +599,8 @@ export async function runPeerJob({
         roomBusFactory
       });
       let receiptTimer = null;
+      let deliveryPhase = 'pending';
+      const executionStatuses = [];
       let transport = null;
       let resolveReceipt = null;
       let rejectReceipt = null;
@@ -602,15 +608,45 @@ export async function runPeerJob({
         if (receiptTimer) globalThis.clearTimeout(receiptTimer);
         receiptTimer = null;
       };
-      const startReceiptTimer = () => {
-        if (receiptTimer) return;
+      const startDeliveryTimer = ({ phase, timeoutMs, errorCode, message }) => {
+        clearReceiptTimer();
+        deliveryPhase = phase;
         receiptTimer = globalThis.setTimeout(() => {
-          const error = new Error('No peer receipt returned before the delivery deadline');
-          error.code = 'peer_receipt_timeout';
+          deliveryPhase = 'settled';
+          const error = new Error(message);
+          error.code = errorCode;
           error.retryable = true;
           error.diagnostics = transport?.getDiagnostics?.() || null;
           rejectReceipt?.(error);
-        }, receiptWindowMs);
+        }, timeoutMs);
+      };
+      const startReceiptTimer = () => startDeliveryTimer({
+        phase: 'awaiting_receipt',
+        timeoutMs: receiptWindowMs,
+        errorCode: 'peer_receipt_timeout',
+        message: 'No peer receipt returned before the post-start receipt deadline'
+      });
+      const startQueueTimer = () => startDeliveryTimer({
+        phase: 'queued',
+        timeoutMs: queueWindowMs,
+        errorCode: 'peer_queue_timeout',
+        message: 'Peer execution did not start before the queue deadline'
+      });
+      const payloadMatchesSession = (payload, type) => (
+        validateP2PPayload(payload).ok
+        && payload.type === type
+        && payload.assignmentId === assignment.assignmentId
+        && payload.jobId === assignment.jobId
+        && payload.fromPeerId === assignment.providerId
+        && payload.toPeerId === assignment.requesterId
+      );
+      const recordExecutionStatus = (payload) => {
+        executionStatuses.push(Object.freeze({
+          type: payload.type,
+          body: payload.body,
+          providerCreatedAt: payload.createdAt,
+          requesterReceivedAt: new Date().toISOString()
+        }));
       };
       const receiptPromise = new Promise((resolve, reject) => {
         resolveReceipt = resolve;
@@ -620,12 +656,39 @@ export async function runPeerJob({
           initiator: true,
           ...(rtcConfig ? { rtcConfig } : {}),
           onMessage(payload) {
+            if (
+              payloadMatchesSession(payload, P2P_PAYLOAD_TYPES.QUEUED)
+              && deliveryPhase === 'awaiting_receipt'
+              && !executionStatuses.some((status) => status.type === P2P_PAYLOAD_TYPES.QUEUED)
+            ) {
+              recordExecutionStatus(payload);
+              startQueueTimer();
+              reportActivity('peer_provider_queued', 'infer', {
+                providerId: assignment.providerId,
+                queueDepth: payload.body?.queueDepth || null
+              });
+              return;
+            }
+            if (
+              payloadMatchesSession(payload, P2P_PAYLOAD_TYPES.EXECUTION_STARTED)
+              && ['awaiting_receipt', 'queued'].includes(deliveryPhase)
+              && !executionStatuses.some((status) => status.type === P2P_PAYLOAD_TYPES.EXECUTION_STARTED)
+            ) {
+              recordExecutionStatus(payload);
+              startReceiptTimer();
+              reportActivity('peer_provider_execution_started', 'infer', {
+                providerId: assignment.providerId
+              });
+              return;
+            }
             if (payload?.type === P2P_PAYLOAD_TYPES.RECEIPT) {
               clearReceiptTimer();
+              deliveryPhase = 'settled';
               resolveReceipt(payload);
             }
             if (payload?.type === P2P_PAYLOAD_TYPES.ERROR) {
               clearReceiptTimer();
+              deliveryPhase = 'settled';
               rejectReceipt(new Error(payload.body?.error || 'peer error'));
             }
           }
@@ -647,7 +710,8 @@ export async function runPeerJob({
         acceptPromise,
         receiptPromise,
         startReceiptTimer,
-        clearReceiptTimer
+        clearReceiptTimer,
+        executionStatuses
       });
       await Promise.resolve(postRoomMessage(channel, resolvedRoomId, 'peer-run-request', {
         sessionId,
@@ -830,6 +894,20 @@ export async function runPeerJob({
       receiptFailures,
       acceptedSessionCount: acceptedSessions.length,
       acceptErrors,
+      deliveryPolicy: {
+        queueWindowMs,
+        receiptWindowMs,
+        queueDeadlineStartsOn: 'provider_queued_status',
+        receiptDeadlineStartsOn: 'input_dispatch_or_provider_execution_started'
+      },
+      executionStatusEvidence: acceptedSessions.flatMap((session) => (
+        session.executionStatuses.map((status) => ({
+          providerId: session.assignment.providerId,
+          assignmentId: session.assignment.assignmentId,
+          ...status,
+          claimBoundary: 'Transport status is assignment-bound operational evidence, not a signed receipt or proof of execution.'
+        }))
+      )),
       relayMetrics: channel?.getStatus?.() || null,
       transportDiagnostics: acceptedSessions.map((session) => ({
         providerId: session.assignment.providerId,
@@ -904,7 +982,10 @@ export function createPeerProviderNode({
       globalThis.clearTimeout(activeEntry.settleTimer);
       activeEntry.settleTimer = null;
     }
-    releaseExecutionSlot(activeEntry.sessionId);
+    // Closing a requester transport removes its delivery path, not the work
+    // already running behind that path. executeInputPayload owns the execution
+    // slot until the runtime promise settles; releasing it here would let a
+    // retry overlap an abandoned GPU execution on a single-job provider.
     await Promise.resolve(transport?.close?.(reason)).catch(() => {});
     signaling?.close?.();
   };
@@ -920,6 +1001,31 @@ export function createPeerProviderNode({
       return false;
     }
     pendingInputExecutions.push(entry);
+    try {
+      entry.transport.send(createP2PPayload({
+        type: P2P_PAYLOAD_TYPES.QUEUED,
+        assignmentId: entry.assignment.assignmentId,
+        jobId: entry.assignment.jobId,
+        fromPeerId: entry.assignment.providerId,
+        toPeerId: entry.assignment.requesterId,
+        body: {
+          schema: 'reploid.pool.peer_execution_status/v1',
+          queueDepth: pendingInputExecutions.length,
+          maxActiveSessions: maxActiveSessionCount()
+        }
+      }));
+    } catch (error) {
+      void removeActiveEntry(entry.activeEntry, entry.transport, entry.signaling, 'queue_status_failed');
+      if (typeof onActivity === 'function') {
+        onActivity({
+          status: 'peer_session_failed',
+          reason: 'queue_status_failed',
+          error: error?.message || String(error),
+          sessionId
+        });
+      }
+      return true;
+    }
     if (typeof onActivity === 'function') {
       onActivity({
         status: 'peer_session_queued',
@@ -951,11 +1057,52 @@ export function createPeerProviderNode({
   };
 
   const executeInputPayload = async ({ assignment, activeEntry, transport, signaling, payload }) => {
+    if (stopped || !activeTransports.has(activeEntry)) return;
+    try {
+      transport.send(createP2PPayload({
+        type: P2P_PAYLOAD_TYPES.EXECUTION_STARTED,
+        assignmentId: assignment.assignmentId,
+        jobId: assignment.jobId,
+        fromPeerId: assignment.providerId,
+        toPeerId: assignment.requesterId,
+        body: {
+          schema: 'reploid.pool.peer_execution_status/v1'
+        }
+      }));
+    } catch (error) {
+      await removeActiveEntry(activeEntry, transport, signaling, 'execution_status_failed');
+      if (typeof onActivity === 'function') {
+        onActivity({
+          status: 'peer_session_failed',
+          reason: 'execution_status_failed',
+          error: error?.message || String(error),
+          sessionId: activeEntry?.sessionId || null
+        });
+      }
+      return;
+    }
     activeExecutionSessions.add(activeEntry.sessionId);
+    if (typeof onActivity === 'function') {
+      onActivity({
+        status: 'peer_execution_started',
+        assignment,
+        sessionId: activeEntry.sessionId
+      });
+    }
     try {
       const result = await providerClient.executePeerAssignment(assignment, { inputPayload: payload });
       if (stopped || !activeTransports.has(activeEntry)) {
         releaseExecutionSlot(activeEntry?.sessionId);
+        if (!stopped && typeof onActivity === 'function') {
+          onActivity({
+            status: 'peer_execution_abandoned',
+            outcome: 'completed',
+            assignment,
+            sessionId: activeEntry?.sessionId || null,
+            activeExecutionCount: activeExecutionSessions.size,
+            queueDepth: pendingInputExecutions.length
+          });
+        }
         return;
       }
       const receiptRecord = {
@@ -1008,7 +1155,20 @@ export function createPeerProviderNode({
       }
     } catch (error) {
       releaseExecutionSlot(activeEntry?.sessionId);
-      if (stopped || !activeTransports.has(activeEntry)) return;
+      if (stopped || !activeTransports.has(activeEntry)) {
+        if (!stopped && typeof onActivity === 'function') {
+          onActivity({
+            status: 'peer_execution_abandoned',
+            outcome: 'failed',
+            assignment,
+            sessionId: activeEntry?.sessionId || null,
+            activeExecutionCount: activeExecutionSessions.size,
+            queueDepth: pendingInputExecutions.length,
+            error: error?.message || String(error)
+          });
+        }
+        return;
+      }
       sendProviderError({ assignment, activeEntry, transport, signaling, error });
     }
   };

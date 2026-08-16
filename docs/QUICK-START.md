@@ -77,11 +77,11 @@ Inspect /tools and summarize the available capabilities
 | Level | Cumulative Modules | Best For |
 |-------|--------------------|----------|
 | `tabula` | 7 | Minimal substrate boot |
-| `spark` | 20 | Core agent loop and tools |
-| `reflection` | 26 | Verification and HITL |
-| `cognition` | 37 | Semantic and symbolic cognition |
+| `spark` | 21 | Core agent loop and tools |
+| `reflection` | 27 | Verification and HITL |
+| `cognition` | 38 | Semantic and symbolic cognition |
 | `substrate` | 50 | Workers and runtime infrastructure |
-| `full` | 66 | Arena, swarm, and full research surface |
+| `full` | 68 | Arena, swarm, signed improvement episodes, and the full research surface |
 
 If you are learning the codebase, start with `spark`, `reflection`, or `full`.
 

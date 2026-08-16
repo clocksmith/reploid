@@ -30,6 +30,40 @@ const receipt = (candidateId, accepted, improvement) => ({
   decision: {
     accepted,
     reasons: accepted ? [] : ['candidate_parity_failed']
+  },
+  episodeId: `doppler:run-a:${candidateId}`,
+  promotionReadiness: {
+    ready: accepted,
+    reasons: accepted ? [] : ['verification did not pass']
+  },
+  episode: {
+    schema: 'rsi.improvement-episode/v1',
+    episodeId: `doppler:run-a:${candidateId}`,
+    status: accepted ? 'compared' : 'rejected',
+    objective: {
+      statement: 'Increase decode throughput without changing canonical output.',
+      successMetricId: 'paired-performance-improvement-percent'
+    },
+    metrics: [{ metricId: 'paired-performance-improvement-percent', unit: 'percent' }],
+    resourceBudget: { pairedCallsPerCandidate: 10 },
+    integrity: { valid: true, headHash: `sha256:head-${candidateId}` },
+    generation: { baseline: 'generation:base', candidate: `generation:${candidateId}` },
+    baseline: { hashes: { contract: 'sha256:contract' } },
+    evaluation: {
+      metrics: [{ metricId: 'paired-performance-improvement-percent', value: improvement }],
+      rawObservations: [{ valid: accepted }]
+    },
+    comparison: { conclusion: accepted ? 'improved' : 'not_improved' },
+    candidate: { semanticScope: ['/decodeLoop/batchSize'] },
+    algorithm: { algorithmId: 'doppler.runtime-profile-search' },
+    diagnosis: 'The baseline may be under-batched.',
+    hypothesis: { falsifyingResult: 'Parity fails.' },
+    evaluator: { authorityId: 'doppler:tooling:0.5.1', frozenBeforeCandidate: true },
+    verification: { passed: accepted },
+    promotionRequest: null,
+    reviews: [],
+    rollback: null,
+    reflections: []
   }
 });
 
@@ -95,6 +129,21 @@ describe('Doppler optimization UI', () => {
     expect(rows[0].textContent).toContain('+5.00%');
     expect(rows[1].textContent).toContain('REJECT');
     expect(root.querySelector('#optimization-promote').disabled).toBe(false);
+    expect(root.querySelector('#optimization-objective').textContent).toContain(
+      'Increase decode throughput'
+    );
+    expect(root.querySelector('#optimization-comparison').textContent).toContain(
+      'generation:base'
+    );
+    expect(root.querySelector('#optimization-impact').textContent).toContain(
+      'doppler.runtime-profile-search'
+    );
+    expect(root.querySelector('#optimization-evidence').textContent).toContain(
+      'sha256:head-a'
+    );
+    expect(root.querySelector('#optimization-history').textContent).toContain(
+      'promotionReadiness'
+    );
 
     root.querySelector('#optimization-promote').click();
     await vi.waitFor(() => expect(DopplerOptimizer.activatePromotedProfile).toHaveBeenCalledOnce());

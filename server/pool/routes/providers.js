@@ -24,10 +24,15 @@ export function registerProviderRoutes(router, {
   asyncRoute,
   requireBoundRole,
   roleIdForUid,
-  assignQueuedJobs
+  recoverHostedAssignments
 } = {}) {
   if (!router) throw new Error('provider routes require an Express router');
-  for (const [name, value] of Object.entries({ asyncRoute, requireBoundRole, roleIdForUid, assignQueuedJobs })) {
+  for (const [name, value] of Object.entries({
+    asyncRoute,
+    requireBoundRole,
+    roleIdForUid,
+    recoverHostedAssignments
+  })) {
     if (typeof value !== 'function') throw new Error(`provider routes require ${name}`);
   }
 
@@ -107,10 +112,10 @@ export function registerProviderRoutes(router, {
       providerInput.ringEligible = admission.ringEligible;
     }
     const provider = await store.registerProvider(providerInput);
-    const queuedAssignments = await assignQueuedJobs({ store });
-    if (queuedAssignments.length > 0 && provider?.providerId) {
+    const recovery = await recoverHostedAssignments({ store });
+    if (recovery.summary.attempted > 0 && provider?.providerId) {
       const refreshedProvider = await store.getProvider(provider.providerId) || provider;
-      return res.json({ ...refreshedProvider, assignmentDrain: { drained: queuedAssignments.length } });
+      return res.json({ ...refreshedProvider, assignmentRecovery: recovery.summary });
     }
     return res.json(provider);
   }));
@@ -123,17 +128,12 @@ export function registerProviderRoutes(router, {
   }));
 
   router.get('/providers/assignments/next', asyncRoute(async (req, res) => {
-    await store.expireStaleAssignments();
     const providerId = String(req.query.providerId || '').trim();
     if (!providerId) return res.status(400).json({ error: 'providerId is required' });
     if (!requireBoundRole(req, res, 'provider', providerId)) return null;
-    let assignment = await store.nextAssignmentForProvider(providerId);
-    let assignmentDrain = [];
-    if (!assignment) {
-      assignmentDrain = await assignQueuedJobs({ store });
-      assignment = await store.nextAssignmentForProvider(providerId);
-    }
-    return res.json({ assignment, assignmentDrain: { drained: assignmentDrain.length } });
+    const recovery = await recoverHostedAssignments({ store });
+    const assignment = await store.nextAssignmentForProvider(providerId);
+    return res.json({ assignment, assignmentRecovery: recovery.summary });
   }));
 }
 

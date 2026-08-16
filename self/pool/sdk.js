@@ -186,6 +186,12 @@ export function createPoolSdk({ baseUrl = DEFAULT_BASE_URL, authTokenProvider = 
       const suffix = query.toString() ? `?${query.toString()}` : '';
       return request(`/research/sequences/${encodeURIComponent(sequenceHash)}/evidence${suffix}`);
     },
+    listProteinUncertaintyCampaignQueue({ limit = null } = {}) {
+      const query = new URLSearchParams();
+      if (limit) query.set('limit', String(limit));
+      const suffix = query.toString() ? `?${query.toString()}` : '';
+      return request(`/research/campaign-queue${suffix}`);
+    },
     getResearchRecord(recordHash) {
       return request(`/research/records/${encodeURIComponent(recordHash)}`);
     },

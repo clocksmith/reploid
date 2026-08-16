@@ -199,14 +199,19 @@
     {
       "path": "capabilities/reflection/reflection-store.js",
       "owner": "capabilities",
-      "sha256": "sha256:24efa9ec63023fe6e42bdb4b6cad05962e5a319d89c33f253aefd77e2b7e6feb",
-      "imports": []
+      "sha256": "sha256:f6eb01d6146d49ae8dc47efbf8b8dc178d0ef4b7f9fb72a093f0f8c46eca35e3",
+      "imports": [
+        "../../core/improvement-episode.js"
+      ]
     },
     {
       "path": "capabilities/system/doppler-optimizer.js",
       "owner": "capabilities",
-      "sha256": "sha256:9d1f7ab2ff587dadfdbdfedb7a6559079655d2e2cc197bc2e5e854c145fe8c02",
-      "imports": []
+      "sha256": "sha256:bdbe209b3af3181fe734fbe976c9f602f867350bde4aa2d3045aafec3963008e",
+      "imports": [
+        "../../config/doppler-local-models.js",
+        "../../core/improvement-episode.js"
+      ]
     },
     {
       "path": "capabilities/system/doppler-toolbox.js",
@@ -234,7 +239,7 @@
     {
       "path": "config/boot-seed.js",
       "owner": "config",
-      "sha256": "sha256:5ae125bcfd8ea3ad79e58d10797524c5763d2f355e3ac2f265b595964d44bb90",
+      "sha256": "sha256:82e996682456b708bf580c9397403cb52e7c3587311207907b19360aa904acba",
       "imports": []
     },
     {
@@ -246,7 +251,7 @@
     {
       "path": "config/doppler-local-models.js",
       "owner": "config",
-      "sha256": "sha256:3f1623010f57b783cac927346f2f5a47ec09d713abb7c6ecb7bd2d6150144866",
+      "sha256": "sha256:db84547c0cd70a5f7def01a2997a2fa623b0757ce7c6b166714791dab0f61a1d",
       "imports": []
     },
     {
@@ -280,7 +285,7 @@
     {
       "path": "config/surface-intents.js",
       "owner": "config",
-      "sha256": "sha256:d9f4c3e4aa0b6dfb9b53d8d77f597d1d3ba9440fbccde94d1931fc91d0b1b72a",
+      "sha256": "sha256:eab91fd827864923a79ad9f826c909336e2492bcc79c9c205febf927fb9b9c1c",
       "imports": [
         "./immutability.js",
         "./tool-surfaces.js"
@@ -342,7 +347,7 @@
     {
       "path": "core/cycle-artifacts.js",
       "owner": "core",
-      "sha256": "sha256:68e814f84d2ec565f5deb14ed4181381f3b88dd5fdc781d6a66c1f7dd6446696",
+      "sha256": "sha256:9670e9ec292df78de19f2cee9fdcbde9e818eb5af1627c4f5fa1e1741d7916f1",
       "imports": []
     },
     {
@@ -364,6 +369,15 @@
       "owner": "core",
       "sha256": "sha256:e5bca0c0129d1461a19f3967bcb767518e2f01452850a08033fec5080ebf667b",
       "imports": []
+    },
+    {
+      "path": "core/improvement-episode.js",
+      "owner": "core",
+      "sha256": "sha256:d26afdddd8eaf72324dfadaa01f76d4643d512706f5e9c4df2cd717e3be85154",
+      "imports": [
+        "../identity.js",
+        "../instance.js"
+      ]
     },
     {
       "path": "core/llm-client.js",
@@ -397,7 +411,7 @@
     {
       "path": "core/promotion-policy.js",
       "owner": "core",
-      "sha256": "sha256:f68ab1737499e26fc5d873afdf76180dfe1bae69ad617b912a97411325b4c6d4",
+      "sha256": "sha256:e5be965a99d3560f67390aaa07c513cf852db6918e58031300382c053878aa38",
       "imports": [
         "../config/clockwork-gamma-receipts.js",
         "../config/vfs-policy.js"
@@ -418,7 +432,7 @@
     {
       "path": "core/schema-registry.js",
       "owner": "core",
-      "sha256": "sha256:5a1799b5066213ea07125ea7eba5da405f1435b256b764958e54c6764f62e720",
+      "sha256": "sha256:9f91f8be88d0fae721b48bacf86530799d1694e35dce03076adf01d1a659fd32",
       "imports": [
         "../config/tool-surfaces.js",
         "../instance.js"
@@ -789,16 +803,27 @@
       ]
     },
     {
+      "path": "pool/adjudication-north-star.js",
+      "owner": "pool",
+      "sha256": "sha256:a214f159287faceae83525be48c9cc8368b2bc8204b8bdbb4c04b1ad2ed184df",
+      "imports": [
+        "./discovery-candidate-action.js",
+        "./inference-receipt.js"
+      ]
+    },
+    {
       "path": "pool/agent-client.js",
       "owner": "pool",
-      "sha256": "sha256:78c6de6c21999fe709d26e75d8ed91f7fd3c5e4ceb70cf07b02902e241eaa3bb",
+      "sha256": "sha256:23977c3d28ac875228439e7317f88b9f109339b62ad3e9322d2ea634fc569095",
       "imports": [
+        "./adapter-publication.js",
         "./identity.js",
         "./inference-receipt.js",
         "./model-contract.js",
         "./peer-control-plane.js",
         "./policy-router.js",
-        "./sdk.js"
+        "./sdk.js",
+        "./sequence-workload.js"
       ]
     },
     {
@@ -821,9 +846,17 @@
     {
       "path": "pool/browser-qualification.js",
       "owner": "pool",
-      "sha256": "sha256:0e1352665d7f6440609b7bf247b73f87fbae10e53e1163f546e52c4a1a2d20d2",
+      "sha256": "sha256:260710e6cbff0021d5385bf85901c8733cdd134ae5577f2c7247089f0c0ede73",
       "imports": [
         "./model-contract.js"
+      ]
+    },
+    {
+      "path": "pool/browser-release-identity.js",
+      "owner": "pool",
+      "sha256": "sha256:b1a4cb81c142dfd2c4c4e68c3ecca1a1f5cd275fe764e5505cea8cb95019c30c",
+      "imports": [
+        "./inference-receipt.js"
       ]
     },
     {
@@ -835,7 +868,7 @@
     {
       "path": "pool/config-contract.js",
       "owner": "pool",
-      "sha256": "sha256:3a37b5c04e6d7dc990c987cb47aff2e7cbb3f23c6c9f1ec615f14a810c888742",
+      "sha256": "sha256:4d26729cc6af7656160dff890d29d0437bc13a7d94ab971e0c169f1ad8619407",
       "imports": []
     },
     {
@@ -897,12 +930,13 @@
     {
       "path": "pool/doppler-runtime.js",
       "owner": "pool",
-      "sha256": "sha256:4069069c75fd064953074aa79933b1529347b25f87ac59535fe9e3aa8d0b8364",
+      "sha256": "sha256:71224f809e89e10c522987a252ddbc1621f245b261c12af9d5c91a9bb50ce164",
       "imports": [
         "../infrastructure/doppler-runtime-service.js",
         "./adapter-pack.js",
         "./config.js",
         "./inference-receipt.js",
+        "./model-cache-integrity.js",
         "./model-contract.js",
         "./runtime-profile.js",
         "./sequence-result.js",
@@ -912,13 +946,15 @@
     {
       "path": "pool/evidence-network.js",
       "owner": "pool",
-      "sha256": "sha256:9767533313d9ee6a23a483069001e50e9be9fd443dae92d12f9575b5f09e4181",
+      "sha256": "sha256:934d5497c1656546554a58875f09b4342b314dde87c8a6562af41d612669abfa",
       "imports": [
+        "./adjudication-north-star.js",
         "./discovery-action-value.js",
         "./discovery-candidate-action.js",
         "./inference-receipt.js",
         "./model-contract.js",
         "./model-evidence-view.js",
+        "./realized-action-value.js",
         "./sequence-result.js",
         "./sequence-workload.js"
       ]
@@ -952,7 +988,7 @@
     {
       "path": "pool/inference-receipt.js",
       "owner": "pool",
-      "sha256": "sha256:922f6a96a2b4112735b8ebcdf9f8b90bc7483be49a93545c3c78cd5b6073ae65",
+      "sha256": "sha256:6fb839d00beb0f1efe4a908836b1f028cad94e68237c4f8128a7458d27ec858c",
       "imports": [
         "./canonical-json.js",
         "./config.js",
@@ -969,9 +1005,17 @@
     {
       "path": "pool/model-artifacts.js",
       "owner": "pool",
-      "sha256": "sha256:9cbb915150ffd8fa0ca2b05966c89b3c524ef6d0e4f19a3fd91a0b7d7c0fdbce",
+      "sha256": "sha256:850a5afd343c01e9167fbd59511a6c213dd29e60397015e77ab3f16cb53cf1f9",
       "imports": [
         "./config.js",
+        "./inference-receipt.js"
+      ]
+    },
+    {
+      "path": "pool/model-cache-integrity.js",
+      "owner": "pool",
+      "sha256": "sha256:15115c2bdba4c8dd73c36cabd30671252ea85407a9a88718e33a390fc38e7ab4",
+      "imports": [
         "./inference-receipt.js"
       ]
     },
@@ -1018,7 +1062,7 @@
     {
       "path": "pool/p2p-payload.js",
       "owner": "pool",
-      "sha256": "sha256:a4d9787afffc3be0abac09e0f94890cec09c32cf7ed61cec0ef5b2fcc0bf6529",
+      "sha256": "sha256:55ca9c2d9ccc44da8de6c2b33b35351f757a7d0e25aafd6f6989beb2ef63b6af",
       "imports": [
         "./inference-receipt.js"
       ]
@@ -1141,7 +1185,7 @@
     {
       "path": "pool/peer-room.js",
       "owner": "pool",
-      "sha256": "sha256:f00bce77ec93f421a34e5aaf21145135e01d87c9cbed9f5aefb0a1e13e98e312",
+      "sha256": "sha256:ca94d26687dae80a0a4f48cdef82b6f5bdb3370d2dd359d670276fe97a70f4a8",
       "imports": [
         "./config.js",
         "./model-contract.js",
@@ -1173,9 +1217,19 @@
       ]
     },
     {
+      "path": "pool/protein-uncertainty-campaign.js",
+      "owner": "pool",
+      "sha256": "sha256:1f7e05fb13f45c89d7448b50636eafb9e96f38599c29d254e088a7e0c50c8e48",
+      "imports": [
+        "./canonical-json.js",
+        "./evidence-network.js",
+        "./model-contract.js"
+      ]
+    },
+    {
       "path": "pool/provider-client.js",
       "owner": "pool",
-      "sha256": "sha256:6af51367ad996f76b7942096639c68488beaa25efa8f15e2a6b49153ba6f374e",
+      "sha256": "sha256:8c095912e22e4dc80d4e23f230e041afbc704077f05cb9fbf2266a01402b3e90",
       "imports": [
         "./adapter-pack.js",
         "./adapter-publication.js",
@@ -1195,6 +1249,14 @@
       ]
     },
     {
+      "path": "pool/realized-action-value.js",
+      "owner": "pool",
+      "sha256": "sha256:3d0225ea65578ef65cc0f30ffe2f77a75e05a8d85c97f0df21b9bc60338041c7",
+      "imports": [
+        "./inference-receipt.js"
+      ]
+    },
+    {
       "path": "pool/reputation.js",
       "owner": "pool",
       "sha256": "sha256:663d53292b40323502b1f70f269d73fab8d43a05ab7b15ba91f5bba5d190abd2",
@@ -1203,7 +1265,7 @@
     {
       "path": "pool/requester-client.js",
       "owner": "pool",
-      "sha256": "sha256:6259ff921d92dba60f38022363a940056f30bcab1c5cbffc43108b7965e133c4",
+      "sha256": "sha256:f24294966cb86284a2a7ba09d7e24b8483f9f97ac1a842a6d56cd99797749c54",
       "imports": [
         "./adapter-pack.js",
         "./adapter-publication.js",
@@ -1213,7 +1275,8 @@
         "./peer-control-plane.js",
         "./peer-protocol.js",
         "./policy-router.js",
-        "./sdk.js"
+        "./sdk.js",
+        "./sequence-workload.js"
       ]
     },
     {
@@ -1266,9 +1329,17 @@
       ]
     },
     {
+      "path": "pool/scientific-policy-promotion.js",
+      "owner": "pool",
+      "sha256": "sha256:dd18f0e1086e7c52e199d5445f00ee0a990231ec243968ba02107fc8d1def0f0",
+      "imports": [
+        "./inference-receipt.js"
+      ]
+    },
+    {
       "path": "pool/sdk.js",
       "owner": "pool",
-      "sha256": "sha256:bdf5627ab77eb7aca4dbc2a7b8dfd42623f710d7bebc6193927a62a6ab967f52",
+      "sha256": "sha256:f5a2b319ce57e9d14bbfb6cdd87ad771ded7509cccd3b7cdc25bb281e860e5b4",
       "imports": [
         "./identity.js",
         "./inference-receipt.js"
@@ -1277,7 +1348,7 @@
     {
       "path": "pool/sequence-result.js",
       "owner": "pool",
-      "sha256": "sha256:296f7717664167fced11331b965d57a8c4dbbcf64bafdf5a371dfbed31a6e9a9",
+      "sha256": "sha256:bc6b4956e877996c9f90f107fdc9ea458690f3bee11f97868ec86a28b3c7bd51",
       "imports": [
         "./inference-receipt.js",
         "./sequence-workload.js"
@@ -1465,7 +1536,7 @@
     {
       "path": "self/kernel/boot.js",
       "owner": "self",
-      "sha256": "sha256:501b43b6b4a3f2dd8f7982af87e672d46a317d2224bcb751ac88337575b29d67",
+      "sha256": "sha256:f3042cc8731748a9126dc52d0378875d51a56d8c1a83a7792801406939db9110",
       "imports": [
         "../boot-spec.js",
         "../config/doppler-local-models.js",
@@ -1481,7 +1552,7 @@
     {
       "path": "self/manifest.js",
       "owner": "self",
-      "sha256": "sha256:78c23911d4ec632fb317ba49f77307f1247c57cb6dfe0f10d6dd0f4b78ee4eca",
+      "sha256": "sha256:98302cf2a329e74c280f546a460c249fb9e512adb36026667045d659a0382038",
       "imports": [
         "./boot-spec.js",
         "./config/vfs-policy.js",
@@ -1720,8 +1791,9 @@
     {
       "path": "tools/Promote.js",
       "owner": "tools",
-      "sha256": "sha256:bac784278a76d1fd2b63bc4c981e04e6a316d4efa1648480a195ecd9eaff5e8b",
+      "sha256": "sha256:5f7c74bcc058e110ce4094995bad8d8b7e87c27c88ead9ca9c7d3617d1be82e2",
       "imports": [
+        "../core/improvement-episode.js",
         "../core/promotion-policy.js"
       ]
     },
@@ -2039,7 +2111,7 @@
     {
       "path": "ui/pool-home/controls.js",
       "owner": "ui",
-      "sha256": "sha256:8af150a68a150215d2d7dd7650f6cdd21e2424eb5784008f55713447ed26fd6d",
+      "sha256": "sha256:76385fc8f9e1bd31bfb28447b6516fda9ebcf3495564a595efbd7dbce64bc80e",
       "imports": [
         "../../pool/adapter-publication.js",
         "../../pool/adapter-registry.js",
@@ -2110,7 +2182,7 @@
     {
       "path": "ui/pool-home/research-adjudication-panel.js",
       "owner": "ui",
-      "sha256": "sha256:ffe619a3479f6ed000e02d20e1f814e2f3dc87488d4aa27998a805da426b0b3f",
+      "sha256": "sha256:a9af29ddc145ccafda32316e3c4deec267958fdbd2ed91d0830b094274e3f0d3",
       "imports": [
         "./research-panels.js"
       ]
@@ -2118,7 +2190,7 @@
     {
       "path": "ui/pool-home/research-lifecycle-panel.js",
       "owner": "ui",
-      "sha256": "sha256:adc1f6fcb402d991f908c68552295812566c933960d86eaa679eeeee6d9cdae9",
+      "sha256": "sha256:ccac53ff50e209ce61a97f71cf2fdefaae97db12de76ed2e40b82d7bd4a41445",
       "imports": [
         "./research-adjudication-panel.js",
         "./research-panels.js"
@@ -2127,17 +2199,18 @@
     {
       "path": "ui/pool-home/research-panels.js",
       "owner": "ui",
-      "sha256": "sha256:0c74e47e9eaac8968756dfd35586c661c64bf07498658f3e90a8ebd204a00044",
+      "sha256": "sha256:19b341e5d5291e45f38ba3e45416987feca74c6cc67ece67a208116459da0adf",
       "imports": []
     },
     {
       "path": "ui/pool-home/research-store.js",
       "owner": "ui",
-      "sha256": "sha256:d63fae38f2aa7a696214a618a64d05458a33a5995a09dcffa7b2cc7da3bcae6c",
+      "sha256": "sha256:b179171bbc80657e99931c608ef7b11613be204e5ee68d755ddb498ea9b8c026",
       "imports": [
         "../../pool/discovery-contract.js",
         "../../pool/evidence-network.js",
         "../../pool/peer-room.js",
+        "../../pool/protein-uncertainty-campaign.js",
         "../../pool/sdk.js"
       ]
     },
@@ -2152,7 +2225,7 @@
     {
       "path": "ui/pool-home/research-view.js",
       "owner": "ui",
-      "sha256": "sha256:3f3edb317ecd535245e8815a62da4db93f6bab9c792d2742d3087588d3254e5d",
+      "sha256": "sha256:c397aef6e095bb69ffa13eac80ade151a51fea55d177616278602ed784ea26c6",
       "imports": [
         "../../pool/discovery-contract.js",
         "../../pool/evidence-network.js",
@@ -2166,7 +2239,7 @@
     {
       "path": "ui/pool-home/room-projection.js",
       "owner": "ui",
-      "sha256": "sha256:31f867c21a35e1eda9a72f3914d9627de718b66aaf1d269177b2e87fc8fa71d8",
+      "sha256": "sha256:7990388a110dfba7f63123ac6ceed10a8c5c5d61d4a31e28207e38c4f0c71abc",
       "imports": [
         "../../pool/discovery-contract.js",
         "../../pool/evidence-network.js",
@@ -2185,7 +2258,7 @@
     {
       "path": "ui/pool-home/room-view.js",
       "owner": "ui",
-      "sha256": "sha256:ae56d1b510a028deee7b9966cd318da9a7606cae46af7b2f7a455bde63452f89",
+      "sha256": "sha256:36ef3fef90900f99e2d22b13ce9d4a38c44d3320356f8ad69167e3f9cc176f99",
       "imports": [
         "./room-projection.js"
       ]
@@ -2254,7 +2327,7 @@
     {
       "path": "ui/pool-home/view.js",
       "owner": "ui",
-      "sha256": "sha256:14a66ee12242392b978f300070061f0c6182c680dee47a573f25b9e4ab48f3bb",
+      "sha256": "sha256:a3dba2ddb4c26bcb1d180e1e4f49a3832aa872145007e8324f299e9b42af3160",
       "imports": [
         "../../pool/model-contract.js",
         "../../pool/participation-profile.js",
@@ -2303,7 +2376,7 @@
     {
       "path": "ui/proto/optimization.js",
       "owner": "ui",
-      "sha256": "sha256:403f6feab6a4bdf5076f044f99bc3ac2d5555ad5a3d5ecb23eac6a20326b751f",
+      "sha256": "sha256:f320ffb7555c6b7a0ee5b607f01082426566eaf6aeef3af5e1c945a387267981",
       "imports": []
     },
     {
@@ -2331,7 +2404,7 @@
     {
       "path": "ui/proto/template.js",
       "owner": "ui",
-      "sha256": "sha256:5eb0a93934622804f4b4972837461480e8781ee1130e01483fe3450f1ff6296f",
+      "sha256": "sha256:d5fa9b1d8368d6694875a9deea851567c6dc5be746c70def41964fad50ccedde",
       "imports": []
     },
     {

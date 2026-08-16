@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import DopplerOptimizerModule from '../../self/capabilities/system/doppler-optimizer.js';
 import UtilsModule from '../../self/core/utils.js';
+import ImprovementEpisodeLedgerModule from '../../self/core/improvement-episode.js';
 import { promoteShadowCandidate } from '../../self/tools/Promote.js';
 
 const createMemoryVfs = (entries = {}) => {
@@ -79,8 +80,14 @@ const acceptedReceipt = (candidateId, improvement = 5) => {
     candidateHash: `sha256:${identityHex.repeat(64)}`,
     verification: { passed: true },
     measurement: {
+      completedPairs: 2,
+      pairs: [
+        { index: 0, valid: true, baseline: { value: 10 }, candidate: { value: 11 } },
+        { index: 1, valid: true, baseline: { value: 12 }, candidate: { value: 13 } }
+      ],
       improvementPercent: { median: improvement, confidence95: { low: 1, high: 8 } },
-      candidate: { relativeStdDevPercent: 1.5 }
+      baseline: { median: 11, relativeStdDevPercent: 1.2 },
+      candidate: { median: 12, relativeStdDevPercent: 1.5 }
     },
     decision: { accepted: true, reasons: [] }
   };
@@ -122,14 +129,28 @@ const createHarness = ({ evaluateCandidate } = {}) => {
   };
   const EventBus = { emit: vi.fn() };
   const AuditLogger = { logEvent: vi.fn(async () => {}) };
+  const ImprovementEpisodeLedger = ImprovementEpisodeLedgerModule.factory({
+    Utils,
+    VFS,
+    EventBus,
+    AuditLogger
+  });
   const optimizer = DopplerOptimizerModule.factory({
     Utils,
     VFS,
     EventBus,
     DopplerToolbox,
+    ImprovementEpisodeLedger,
     AuditLogger
   });
-  return { optimizer, VFS, DopplerToolbox, EventBus, candidates };
+  return {
+    optimizer,
+    VFS,
+    DopplerToolbox,
+    EventBus,
+    candidates,
+    ImprovementEpisodeLedger
+  };
 };
 
 describe('DopplerOptimizer', () => {
@@ -157,6 +178,17 @@ describe('DopplerOptimizer', () => {
       'candidate-a',
       'candidate-b'
     ]);
+    expect(run.receipts.map((receipt) => receipt.episode?.schema)).toEqual([
+      'rsi.improvement-episode/v1',
+      'rsi.improvement-episode/v1'
+    ]);
+    expect(run.receipts.find((receipt) => receipt.candidateId === 'candidate-a')).toMatchObject({
+      promotionReadiness: { ready: true },
+      episode: { status: 'compared', integrity: { valid: true } }
+    });
+    expect(run.receipts.find((receipt) => receipt.candidateId === 'candidate-b')).toMatchObject({
+      episode: { status: 'rejected' }
+    });
     expect(VFS.files.has('/shadow/doppler/runs/run-a/candidates/candidate-a.json')).toBe(true);
     expect(VFS.files.has('/artifacts/doppler/runs/run-a/receipts/candidate-b.json')).toBe(true);
   });
@@ -194,6 +226,10 @@ describe('DopplerOptimizer', () => {
     const active = await optimizer.getActiveProfile();
 
     expect(promotion.promoted).toBe(true);
+    expect(promotion).toMatchObject({
+      improvementEpisodeId: prepared.episodeId,
+      improvementEventHeadHash: expect.stringMatching(/^sha256:/)
+    });
     expect(activation).toMatchObject({ ok: true, activated: true });
     expect(active).toMatchObject({
       state: 'active',
@@ -209,6 +245,11 @@ describe('DopplerOptimizer', () => {
     });
     expect(DopplerToolbox.resetProvider).toHaveBeenCalledOnce();
     expect(VFS.files.has(activation.pointer.canaryReceiptPath)).toBe(true);
+    expect((await optimizer.getRun('run-promote')).receipts[0].episode).toMatchObject({
+      status: 'promoted',
+      generation: { current: expect.stringMatching(/^generation:/) },
+      decision: { canaryReceiptPath: activation.pointer.canaryReceiptPath }
+    });
   });
 
   it('rolls back activation when the canary rejects the promoted profile', async () => {
@@ -235,6 +276,10 @@ describe('DopplerOptimizer', () => {
     expect(await optimizer.getActiveProfile()).toBeNull();
     expect(globalThis.REPLOID_DOPPLER_LOAD_OPTIONS).toBeUndefined();
     expect(VFS.files.has(activation.rollbackPath)).toBe(true);
+    expect((await optimizer.getRun('run-rollback')).receipts[0].episode).toMatchObject({
+      status: 'rolled_back',
+      rollback: { rollbackPointer: activation.rollbackPath }
+    });
   });
 
   it('rolls back an accepted canary receipt for a different candidate identity', async () => {
@@ -308,5 +353,20 @@ describe('DopplerOptimizer', () => {
       }
     });
     expect(await optimizer.getActiveProfile()).toBeNull();
+  });
+
+  it('rejects Doppler promotion when the improvement episode head is forged', async () => {
+    const { optimizer, VFS } = createHarness();
+    await optimizer.run(buildContract(), { runId: 'run-episode-tamper' });
+    const prepared = await optimizer.preparePromotion('run-episode-tamper', 'candidate-a');
+    const evidence = JSON.parse(VFS.files.get(prepared.evidencePath));
+    evidence.improvementEpisode.eventHeadHash = `sha256:${'f'.repeat(64)}`;
+    VFS.files.set(prepared.evidencePath, `${JSON.stringify(evidence, null, 2)}\n`);
+
+    const promotion = await promoteShadowCandidate(prepared.promoteArgs, { VFS });
+
+    expect(promotion).toMatchObject({ ok: false, promoted: false });
+    expect(promotion.reasons).toContain('Improvement episode head hash mismatch');
+    expect(VFS.files.has(prepared.targetPath)).toBe(false);
   });
 });

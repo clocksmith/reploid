@@ -35,6 +35,7 @@ const ACTUAL_MAX_OUTPUT_TOKENS = Math.max(2, Number(
   process.env.REPLOID_POOL_ACTUAL_MAX_OUTPUT_TOKENS || 8
 ));
 const dopplerModuleUrl = String(process.env.REPLOID_DOPPLER_MODULE_URL || '').trim();
+const dopplerStorageModuleUrl = String(process.env.REPLOID_DOPPLER_STORAGE_MODULE_URL || '').trim();
 const dopplerKernelBaseUrl = String(process.env.REPLOID_DOPPLER_KERNEL_BASE_URL || '').trim();
 const dopplerLoadOptionsJson = String(process.env.REPLOID_DOPPLER_LOAD_OPTIONS_JSON || '').trim();
 
@@ -169,12 +170,13 @@ const summarizeProviderAdvert = (advert = {}) => ({
 });
 
 const installActualRuntimeConfig = async (context) => {
-  await context.addInitScript(({ windowMs, discoveryWindowMs, maxOutputTokens, moduleUrl, kernelBaseUrl, loadOptions, strictArtifacts }) => {
+  await context.addInitScript(({ windowMs, discoveryWindowMs, maxOutputTokens, moduleUrl, storageModuleUrl, kernelBaseUrl, loadOptions, strictArtifacts }) => {
     window.REPLOID_POOL_DISCOVERY_WINDOW_MS = discoveryWindowMs;
     window.REPLOID_POOL_RECEIPT_WINDOW_MS = windowMs;
     window.REPLOID_POOL_MAX_OUTPUT_TOKENS = maxOutputTokens;
     window.REPLOID_POOL_STRICT_ARTIFACT_PREFLIGHT = strictArtifacts;
     if (moduleUrl) window.REPLOID_DOPPLER_MODULE_URL = moduleUrl;
+    if (storageModuleUrl) window.REPLOID_DOPPLER_STORAGE_MODULE_URL = storageModuleUrl;
     if (kernelBaseUrl) window.REPLOID_DOPPLER_KERNEL_BASE_URL = kernelBaseUrl;
     if (loadOptions) window.REPLOID_DOPPLER_LOAD_OPTIONS = loadOptions;
   }, {
@@ -182,6 +184,7 @@ const installActualRuntimeConfig = async (context) => {
     discoveryWindowMs: ACTUAL_DISCOVERY_WINDOW_MS,
     maxOutputTokens: ACTUAL_MAX_OUTPUT_TOKENS,
     moduleUrl: dopplerModuleUrl,
+    storageModuleUrl: dopplerStorageModuleUrl,
     kernelBaseUrl: dopplerKernelBaseUrl,
     loadOptions: dopplerLoadOptions,
     strictArtifacts: strictArtifactPreflight,

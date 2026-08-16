@@ -80,13 +80,19 @@ export async function scheduleAuditExecution({ store, provider, model, audit }) 
   };
 }
 
-export async function assignQueuedJobs({ store, limit = 5 } = {}) {
+export async function assignQueuedJobs({ store, limit = 5, prioritizeJobIds = [] } = {}) {
   if (typeof store.listJobs !== 'function') return [];
   const jobs = await store.listJobs();
+  const priority = new Set(prioritizeJobIds.filter(Boolean));
   const canRetry = (job = {}) => job.status === 'queued'
     || (job.retryable === true && ['failed', 'receipt_rejected', 'redundant_disagreement', 'ring_quorum_disagreement'].includes(job.status));
   const queued = jobs
     .filter(canRetry)
+    .sort((left, right) => (
+      Number(priority.has(right.jobId)) - Number(priority.has(left.jobId))
+      || String(left.createdAt || '').localeCompare(String(right.createdAt || ''))
+      || String(left.jobId || '').localeCompare(String(right.jobId || ''))
+    ))
     .slice(0, limit);
   const results = [];
   for (const job of queued) {
@@ -116,4 +122,33 @@ export async function assignQueuedJobs({ store, limit = 5 } = {}) {
     results.push({ jobId: claimedJob.jobId, ...assignmentResult });
   }
   return results;
+}
+
+/**
+ * Expires stale hosted assignments and drains every queued or retryable job.
+ * The returned projection distinguishes successful replacements from jobs that
+ * remain queued because their policy has no eligible provider set.
+ */
+export async function recoverHostedAssignments({
+  store,
+  limit = 5,
+  expire = true,
+  targetJobId = null
+} = {}) {
+  const expired = expire ? await store.expireStaleAssignments() : [];
+  const prioritizeJobIds = Array.from(new Set([
+    targetJobId,
+    ...expired.map((assignment) => assignment?.jobId)
+  ].filter(Boolean)));
+  const assignmentResults = await assignQueuedJobs({ store, limit, prioritizeJobIds });
+  return {
+    expired,
+    assignmentResults,
+    summary: {
+      expired: expired.length,
+      attempted: assignmentResults.length,
+      assigned: assignmentResults.filter((result) => result.ok === true).length,
+      blocked: assignmentResults.filter((result) => result.ok !== true).length
+    }
+  };
 }

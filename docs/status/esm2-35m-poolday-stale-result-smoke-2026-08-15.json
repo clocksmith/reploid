@@ -1,0 +1,47 @@
+{
+  "schema": "poolday.actual_browser_stale_result_rejection_smoke_summary/v1",
+  "status": "observed",
+  "observedAt": "2026-08-15T23:10:09.196Z",
+  "qualificationEligible": false,
+  "claimBoundary": "Actual ESM-2 completed behind a qualification-only result-release barrier; Poolday invalidated its work epoch and rejected the superseded output before receipt construction. This dirty local observation is not a clean-release qualification check and is not an uninstrumented production run.",
+  "producer": {
+    "test": "tests/e2e/p2p-actual-inference.spec.js",
+    "journey": "rejects a superseded actual ESM-2 result before receipt publication",
+    "browserProject": "chromium",
+    "signalingMode": "server",
+    "forceRelay": false,
+    "roomId": "actual-inference-0-msuzo1p2-ybr22gbmzbq",
+    "attachmentSha256": "sha256:a7c97167d42606805705b5ce9d717419048bf0539d9bd0c29320cc0924d65c19"
+  },
+  "release": {
+    "sourceDirty": true,
+    "sourceRevision": null,
+    "sourceTreeHash": null,
+    "browserBundleHash": null
+  },
+  "model": {
+    "modelId": "esm2-t12-35m-ur50d-f32-af32",
+    "modelHash": "sha256:1092c098741472429a4c6b4cd6050d5967e0a606d01f713c0b4866fd98921ac8",
+    "manifestHash": "sha256:5612aa20ee2d5310da323d5c39986d0ab724ff727ce92e40762da6ea7b189730",
+    "runtime": "doppler",
+    "backend": "browser-webgpu"
+  },
+  "probe": {
+    "mode": "after_backend_result_before_release",
+    "sequenceLength": 22,
+    "resultReleaseBarrier": "qualification_probe",
+    "invalidatedEpoch": 0,
+    "settlementStatus": "stale_result_rejected",
+    "errorName": "StaleResultError",
+    "errorCode": "pool_runtime_stale_result",
+    "reason": "provider_stopped",
+    "receiptPublished": false,
+    "requesterFailureCode": "peer_provider_unresponsive"
+  },
+  "remainingQualificationBoundary": [
+    "the stale-result observation is not bound to a clean source revision or browser bundle",
+    "the journey intentionally inserts a result-release barrier after actual model completion",
+    "the observation is separate from the successful output and signed receipt observation",
+    "independently operated browser reproductions remain absent"
+  ]
+}

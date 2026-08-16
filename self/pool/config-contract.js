@@ -161,6 +161,7 @@ export function validatePoolConfigValue(config = {}) {
     }
   });
   requireField(config.browserRuntime?.dopplerModuleUrl, 'browserRuntime.dopplerModuleUrl', reasons);
+  requireField(config.browserRuntime?.dopplerStorageModuleUrl, 'browserRuntime.dopplerStorageModuleUrl', reasons);
   requireField(config.browserRuntime?.dopplerKernelBaseUrl, 'browserRuntime.dopplerKernelBaseUrl', reasons);
   requireField(config.browserRuntime?.modelBaseUrl, 'browserRuntime.modelBaseUrl', reasons);
 
@@ -214,6 +215,15 @@ export function validatePoolConfigValue(config = {}) {
   }
   if (activeRingProtocol && activeRingProtocol.requireCommitmentForLedgerAward !== true) {
     reasons.push('active ring phase protocol must require commitment for ledger award');
+  }
+  if (activeRingProtocol && activeRingProtocol.signalingAllowedFromPhase !== 'private_compute') {
+    reasons.push('active ring phase protocol must allow signaling from private_compute');
+  }
+  if (activeRingProtocol && activeRingProtocol.inputPayloadsAllowedFromPhase !== 'private_compute') {
+    reasons.push('active ring phase protocol must allow assignment input from private_compute');
+  }
+  if (activeRingProtocol && activeRingProtocol.resultEvidenceAdmissibleFromPhase !== 'reveal_open') {
+    reasons.push('active ring phase protocol must admit result evidence only from reveal_open');
   }
 
   const activeAdmissionPolicy = config.providerAdmissionPolicies?.policies?.[

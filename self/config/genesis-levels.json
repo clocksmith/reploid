@@ -93,7 +93,7 @@
     },
     "full": {
       "name": "FULL",
-      "description": "Substrate + advanced multi-agent systems - 13 additional modules",
+      "description": "Substrate + governed evaluation, signed improvement episodes, and advanced multi-agent systems - 18 additional modules",
       "extends": "substrate",
       "modules": [
         "ArenaCompetitor",
@@ -105,6 +105,7 @@
         "FederatedLearning",
         "FunctionGemmaOrchestrator",
         "HybridRetrieval",
+        "ImprovementEpisodeLedger",
         "IntentBundleLoRA",
         "MultiModelCoordinator",
         "MultiModelEvaluator",
@@ -185,6 +186,9 @@
     ],
     "HybridRetrieval": [
       "capabilities/cognition/hybrid-retrieval.js"
+    ],
+    "ImprovementEpisodeLedger": [
+      "core/improvement-episode.js"
     ],
     "IntentBundleGate": [
       "infrastructure/intent-bundle-gate.js"

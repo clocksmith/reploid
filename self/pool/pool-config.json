@@ -1,6 +1,6 @@
 {
   "schema": "reploid.pool.config/v1",
-  "configVersion": "2026-08-01.sequence-model-contracts.v1.doppler-0.5.1",
+  "configVersion": "2026-08-15.hosted-sequence-input.v1.doppler-0.5.1",
   "claim": "receipt-backed, audit-backed, reputation-backed, policy-controlled browser inference",
   "forbiddenClaims": [
     "trustless",
@@ -177,6 +177,7 @@
   },
   "browserRuntime": {
     "dopplerModuleUrl": "https://cdn.jsdelivr.net/npm/doppler-gpu@0.5.1/src/index.js",
+    "dopplerStorageModuleUrl": "https://cdn.jsdelivr.net/npm/doppler-gpu@0.5.1/src/tooling-exports/storage.js",
     "dopplerKernelBaseUrl": "https://cdn.jsdelivr.net/npm/doppler-gpu@0.5.1/src/gpu/kernels",
     "modelBaseUrl": "https://storage.googleapis.com/reploid-model-artifacts/models",
     "loadOptions": {
@@ -533,6 +534,7 @@
     "requiresAuthForNonDiscoveryRoutes": true,
     "requiresOffloadedModelArtifactBase": true,
     "requiresDopplerModuleConfiguration": true,
+    "requiresDopplerStorageModuleConfiguration": true,
     "requiresDopplerKernelBaseConfiguration": true,
     "requiresPrivateAdapterDeliverySigner": true,
     "discoveryRoutes": [
@@ -644,7 +646,7 @@
     "protocols": {
       "commit_reveal_v1": {
         "protocolId": "commit_reveal_v1",
-        "claim": "Providers must anchor private output commitments before any reveal or P2P payload exchange can influence quorum or rewards.",
+        "claim": "Assignment input may travel privately before compute; providers must anchor private outputs before revealed result evidence can influence quorum or rewards.",
         "phases": [
           "assigned",
           "private_compute",
@@ -674,7 +676,9 @@
         "rejectLateCommitmentsAfterRevealOpen": true,
         "requireRevealBeforeReceipt": true,
         "requireCommitmentForLedgerAward": true,
-        "p2pPayloadsAllowedAfterPhase": "reveal_open"
+        "signalingAllowedFromPhase": "private_compute",
+        "inputPayloadsAllowedFromPhase": "private_compute",
+        "resultEvidenceAdmissibleFromPhase": "reveal_open"
       }
     }
   },

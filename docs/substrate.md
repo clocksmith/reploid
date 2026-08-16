@@ -95,6 +95,7 @@ The core provides fundamental capabilities for REPLOID's recursive self-improvem
 | `tool-runner.js` | Tool execution engine - validates and runs tools in sandbox |
 | `tool-writer.js` | Tool creation system - generates, validates, registers new tools |
 | `substrate-loader.js` | Hot-reload system - loads evolved code as living modules from VFS |
+| `improvement-episode.js` | Signed causal ledger for frozen baseline, paired evaluation, promotion, generations, rollback, and reflection |
 
 ### Capability Levels
 
@@ -139,6 +140,9 @@ Event namespaces: `agent:*`, `tool:*`, `worker:*`, `vfs:*`, `reflection:*`, `goa
 ### Reflection
 - `reflection-store.js` - Persistent storage for insights, errors, success patterns
 - `reflection-analyzer.js` - Analyzes history to detect failure patterns
+- Hypothesis reflections separate observation, suspected cause, alternatives,
+  diagnostic, intervention, expected result, and falsifier. Saving text alone
+  is not evidence that behavior improved.
 
 ### Cognition
 - `semantic-memory.js` - Vector-based semantic search

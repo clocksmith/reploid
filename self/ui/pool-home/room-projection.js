@@ -12,6 +12,7 @@ import {
   compareResearchDecisionContexts,
   invalidatedResearchHashes,
   projectResearchExecutionIndependence,
+  projectResearchResolutionCriteria,
   projectResearchReviewStates,
   rankProposedCandidateActions,
   revokedResearchHashes
@@ -26,11 +27,13 @@ const RESEARCH_KINDS = Object.freeze({
   hypothesis: 'research_hypothesis',
   prediction: 'research_prediction',
   priorEvidence: 'research_prior_evidence',
+  resolutionPolicy: 'research_resolution_policy',
   workOrder: 'research_work_order',
   workClaim: 'research_work_claim',
   outcome: 'research_outcome',
   cohort: 'research_cohort',
   evaluation: 'research_evaluation',
+  realizedActionValue: 'research_realized_action_value',
   adjudicationExperiment: 'research_adjudication_experiment',
   adjudicationEvaluation: 'research_adjudication_evaluation',
   discoveryCheckpoint: 'research_discovery_checkpoint',
@@ -106,11 +109,13 @@ const recordTitle = (record = {}) => {
   if (record.kind === RESEARCH_KINDS.hypothesis) return 'Hypothesis proposed';
   if (record.kind === RESEARCH_KINDS.prediction) return 'Prediction proposed';
   if (record.kind === RESEARCH_KINDS.priorEvidence) return 'Prior evidence linked';
+  if (record.kind === RESEARCH_KINDS.resolutionPolicy) return 'Resolution criteria frozen';
   if (record.kind === RESEARCH_KINDS.workOrder) return 'Discovery work proposed';
   if (record.kind === RESEARCH_KINDS.workClaim) return 'Contributor claimed work';
   if (record.kind === RESEARCH_KINDS.outcome) return 'Outcome recorded';
   if (record.kind === RESEARCH_KINDS.cohort) return 'Cohort frozen';
   if (record.kind === RESEARCH_KINDS.evaluation) return 'Evidence evaluated';
+  if (record.kind === RESEARCH_KINDS.realizedActionValue) return 'Realized action value measured';
   if (record.kind === RESEARCH_KINDS.adjudicationExperiment) return 'Adjudication experiment frozen';
   if (record.kind === RESEARCH_KINDS.adjudicationEvaluation) return 'Adjudication experiment evaluated';
   if (record.kind === RESEARCH_KINDS.discoveryCheckpoint) return 'Discovery Contract checkpoint frozen';
@@ -130,8 +135,12 @@ const recordSummary = (record = {}) => {
   if (record.kind === RESEARCH_KINDS.priorEvidence) return asText(record.evidence?.summary, 'Prior evidence');
   if (record.kind === RESEARCH_KINDS.hypothesis) return asText(record.hypothesis?.statement, 'Competing explanation');
   if (record.kind === RESEARCH_KINDS.prediction) return asText(record.prediction?.expectedObservation, 'Expected observation');
+  if (record.kind === RESEARCH_KINDS.resolutionPolicy) return `${asText(record.policy?.conclusionLabel, 'Resolution')} · criteria only, no closure authority`;
   if (record.kind === RESEARCH_KINDS.workOrder) return asText(record.work?.title, 'Bounded next work');
   if (record.kind === RESEARCH_KINDS.outcome) return asText(record.outcome?.summary, 'Experimental outcome');
+  if (record.kind === RESEARCH_KINDS.realizedActionValue) {
+    return `${asText(record.realizedValue?.assessment?.status, 'pending').replace(/_/g, ' ')} · ${record.realizedValue?.contributions?.length || 0} causal contributions`;
+  }
   if (record.kind === RESEARCH_KINDS.adjudicationExperiment) {
     return `${asText(record.experiment?.target?.catalogId, 'Unnamed catalog')} · ${asText(record.experiment?.target?.decision, 'Decision not declared')}`;
   }
@@ -161,6 +170,11 @@ const projectAdjudicationProof = (active, reviewStates) => {
         'curator_role_missing',
         'recurring_decision_missing',
         'frozen_baseline_missing',
+        'baseline_action_selection_policy_missing',
+        'outcome_access_boundary_missing',
+        'paired_comparison_controls_missing',
+        'campaign_measurement_plan_missing',
+        'north_star_policy_missing',
         'paired_cohort_missing',
         'success_metrics_missing',
         'independent_evaluator_missing'
@@ -170,13 +184,32 @@ const projectAdjudicationProof = (active, reviewStates) => {
   const evaluations = sorted(active.filter((record) => (
     record.kind === RESEARCH_KINDS.adjudicationEvaluation
     && record.experimentHash === experiment.recordHash
+    && record.evaluation?.schema === 'poolday.annotation_adjudication_evaluation/v3'
   )));
   const evaluation = evaluations.at(-1) || null;
   const experimentReviewState = reviewStates.get(experiment.recordHash)?.state || 'unresolved';
   const evaluationReviewState = evaluation ? reviewStates.get(evaluation.recordHash)?.state || 'unresolved' : null;
+  const baselinePolicyFrozen = experiment.experiment?.schema === 'poolday.annotation_adjudication_experiment/v3';
+  const campaignMeasurementFrozen = experiment.experiment?.measurementPlan?.schema
+    === 'poolday.adjudication_campaign_measurement_plan/v1';
+  const northStarPolicyFrozen = experiment.experiment?.northStarPolicy?.schema
+    === 'poolday.adjudication_north_star_policy/v1';
   let status = 'frozen_awaiting_review';
   let gaps = ['independent_experiment_review_missing'];
-  if (['rejected', 'disputed', 'needs_revision', 'replication_requested'].includes(experimentReviewState)) {
+  if (!baselinePolicyFrozen) {
+    status = 'baseline_policy_freeze_required';
+    gaps = [
+      'baseline_action_selection_policy_missing',
+      'outcome_access_boundary_missing',
+      'paired_comparison_controls_missing'
+    ];
+  } else if (!campaignMeasurementFrozen) {
+    status = 'campaign_measurement_plan_required';
+    gaps = ['campaign_measurement_plan_missing'];
+  } else if (!northStarPolicyFrozen) {
+    status = 'north_star_policy_required';
+    gaps = ['north_star_policy_missing'];
+  } else if (['rejected', 'disputed', 'needs_revision', 'replication_requested'].includes(experimentReviewState)) {
     status = `experiment_contract_${experimentReviewState}`;
     gaps = [`experiment_contract_${experimentReviewState}`];
   } else if (experimentReviewState === 'accepted' && !evaluation) {
@@ -203,11 +236,16 @@ const projectAdjudicationProof = (active, reviewStates) => {
     experiment: {
       recordHash: experiment.recordHash,
       reviewState: experimentReviewState,
+      schema: experiment.experiment.schema || null,
       contractHash: experiment.experiment.contractHash,
       target: experiment.experiment.target,
       baseline: experiment.experiment.baseline,
       candidate: experiment.experiment.candidate,
       cohort: experiment.experiment.cohort,
+      outcomeBoundary: experiment.experiment.outcomeBoundary || null,
+      comparison: experiment.experiment.comparison || null,
+      measurementPlan: experiment.experiment.measurementPlan || null,
+      northStarPolicy: experiment.experiment.northStarPolicy || null,
       metrics: experiment.experiment.metrics,
       successPolicy: experiment.experiment.successPolicy,
       resolution: experiment.experiment.resolution,
@@ -219,6 +257,7 @@ const projectAdjudicationProof = (active, reviewStates) => {
       conclusion: evaluation.evaluation.assessment.conclusion,
       assessment: evaluation.evaluation.assessment,
       metricResults: evaluation.evaluation.metricResults,
+      northStarEvidence: evaluation.evaluation.northStarEvidence || null,
       resultManifest: evaluation.evaluation.resultManifest,
       regressionCount: evaluation.evaluation.regressionCount,
       missingCaseCount: evaluation.evaluation.missingCaseCount
@@ -925,6 +964,25 @@ const projectPriorRoomEvidence = ({ roomId, submission, currentRecords = [], cro
   };
 };
 
+const projectCampaignQueue = ({ submission, campaignQueue = {} } = {}) => {
+  const projection = campaignQueue?.projection || null;
+  const entries = asArray(projection?.entries);
+  const current = submission?.sequence?.hash
+    ? entries.find((entry) => entry.sequence?.hash === submission.sequence.hash) || null
+    : null;
+  return {
+    schema: 'poolday.room_campaign_queue_projection/v1',
+    phase: asText(campaignQueue?.phase, 'idle'),
+    policy: projection?.policy || null,
+    boundary: projection?.boundary || null,
+    complete: projection?.complete === true,
+    current,
+    eligibleCount: entries.filter((entry) => entry.priority?.eligible).length,
+    entries: entries.slice(0, 5),
+    error: campaignQueue?.error ? asText(campaignQueue.error) : null
+  };
+};
+
 const projectDiscoveryContractCheckpoint = ({ records, submission, cycle } = {}) => {
   if (!submission) return {
     schema: 'poolday.discovery_contract_checkpoint_projection/v1',
@@ -1008,6 +1066,7 @@ export function projectResearchRoom({
   researchRecords = [],
   quarantinedRecords = [],
   crossRoomEvidence = {},
+  campaignQueue = {},
   receipts = [],
   peerEvents = [],
   syncState = {}
@@ -1023,6 +1082,7 @@ export function projectResearchRoom({
   const result = resultForQuestion(active, submission);
   const agreement = evidenceAgreement(result, scopedRecords);
   const cycle = projectGovernedResearchCycle(scopedRecords, { questionHash: submission?.recordHash || null });
+  const resolutionCriteria = projectResearchResolutionCriteria(scopedRecords, submission?.recordHash || null);
   const rememberedHashes = new Set(cycle.memory.acceptedHashes);
   const tasks = cycle.actions;
   const ranked = cycle.ranking.rankedCandidates || [];
@@ -1100,6 +1160,7 @@ export function projectResearchRoom({
     currentRecords: scopedRecords,
     crossRoomEvidence
   });
+  const proteinCampaign = projectCampaignQueue({ submission, campaignQueue });
   const adjudicationProof = projectAdjudicationProof(active, reviewStates);
   const discoveryContract = projectDiscoveryContractCheckpoint({
     records: scopedRecords,
@@ -1211,7 +1272,9 @@ export function projectResearchRoom({
     })),
     archive,
     priorRoomEvidence,
+    proteinCampaign,
     adjudicationProof,
+    resolutionCriteria,
     discoveryContract,
     decisionMemory,
     memory: decisionMemory.entries,
@@ -1235,6 +1298,7 @@ export function projectResearchRoom({
       archive: archive.entries.length + archive.rejected.length,
       memory: memory.length,
       priorRoomCandidates: priorRoomEvidence.candidates.length,
+      campaignEntries: proteinCampaign.entries.length,
       unresolved: unresolved.length,
       timeline: timeline.length
     }

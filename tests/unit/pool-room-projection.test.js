@@ -99,6 +99,41 @@ describe('Research Room projection', () => {
     expect(html).toContain('Reploid has not demonstrated its first product win.');
   });
 
+  it('keeps the verified disagreement queue inside Research Room disclosure', () => {
+    const question = submission();
+    const campaignQueue = {
+      phase: 'synchronized',
+      projection: {
+        schema: 'poolday.protein_uncertainty_campaign_queue/v1',
+        boundary: 'input_snapshot',
+        complete: true,
+        policy: { status: 'heuristic_not_calibrated' },
+        entries: [{
+          rank: 1,
+          sequence: question.sequence,
+          label: 'Disputed domain family',
+          roomIds: [question.roomId],
+          priority: { disagreementCount: 2, eligible: true },
+          dimensions: {
+            exactContractEmbedding: { status: 'disagreement', detail: 'Exact outputs differ.', evidenceRecordHashes: [hash('c'), hash('d')] },
+            publicAnnotation: { status: 'disagreement', detail: 'Normalized annotations differ.', evidenceRecordHashes: [hash('e'), hash('f')] },
+            independentReviewer: { status: 'insufficient_evidence', detail: 'No review pair.', evidenceRecordHashes: [] },
+            experimentalEvidence: { status: 'insufficient_evidence', detail: 'No comparable assay pair.', evidenceRecordHashes: [] }
+          }
+        }]
+      }
+    };
+
+    const room = projectResearchRoom({ roomId: question.roomId, researchRecords: [question], campaignQueue });
+    const html = renderResearchRoom({ roomId: question.roomId, researchRecords: [question], campaignQueue });
+
+    expect(room.proteinCampaign.current).toMatchObject({ rank: 1, priority: { disagreementCount: 2 } });
+    expect(html).toContain('data-pool-protein-campaign');
+    expect(html).toContain('rank 1 with disagreement in 2 of 4 declared dimensions');
+    expect(html).toContain('uncalibrated disagreement heuristic');
+    expect(html).toContain('does not rank biological importance, truth, or execution priority');
+  });
+
   it('projects only an independently accepted frozen adjudication result as a passing product experiment', () => {
     const roomId = 'room-projection';
     const experiment = {
@@ -108,6 +143,7 @@ describe('Research Room projection', () => {
       createdAt: '2026-08-09T11:00:00.000Z',
       author: { identityRootId: 'experiment-author', roleId: 'researcher' },
       experiment: {
+        schema: 'poolday.annotation_adjudication_experiment/v3',
         contractHash: hash('k'),
         target: {
           catalogId: 'DECLARED-CATALOG',
@@ -115,9 +151,29 @@ describe('Research Room projection', () => {
           curatorRole: 'family annotation curator',
           decision: 'retain or revise the disputed annotation'
         },
-        baseline: { workflowId: 'catalog-baseline', version: '1' },
+        baseline: {
+          workflowId: 'catalog-baseline',
+          version: '1',
+          actionSelection: { policyId: 'catalog-action-policy', version: '1', rankingStatus: 'heuristic_not_calibrated' }
+        },
         candidate: { policyId: 'reploid-room-policy', version: '1' },
         cohort: { caseCount: 24 },
+        outcomeBoundary: { mode: 'prospective_future', accessAtFreeze: 'not_available', evidenceCutoffAt: '2026-08-09T10:59:00.000Z' },
+        comparison: { pairedTasks: true, sameInputOrder: true, sameEvidenceCutoff: true },
+        measurementPlan: {
+          schema: 'poolday.adjudication_campaign_measurement_plan/v1',
+          informationGainPerActionMetricId: 'information_gain',
+          contradictionResolutionCostMetricId: 'contradiction_cost',
+          duplicateWorkAvoidedMetricId: 'duplicate_work',
+          uncertaintyCalibrationErrorMetricId: 'calibration_error',
+          heldOutFamilyPerformanceMetricId: 'held_out_performance'
+        },
+        northStarPolicy: {
+          schema: 'poolday.adjudication_north_star_policy/v1',
+          costRepresentation: { normalizedUnit: 'normalized 2026 USD' },
+          conclusionCriteria: { minimumIndependentReplications: 1 },
+          aggregation: { cohortStatistic: 'median' }
+        },
         metrics: [{ id: 'quality' }, { id: 'effort' }],
         successPolicy: { mode: 'quality_or_effort' },
         resolution: {},
@@ -132,7 +188,12 @@ describe('Research Room projection', () => {
       author: { identityRootId: 'experiment-evaluator', roleId: 'verifier' },
       experimentHash: experiment.recordHash,
       evaluation: {
-        assessment: { conclusion: 'passes', qualityPathPassed: true, effortPathPassed: false },
+        schema: 'poolday.annotation_adjudication_evaluation/v3',
+        assessment: {
+          conclusion: 'passes', qualityPathPassed: true, effortPathPassed: false,
+          northStarReportable: true, operationalMetricsAffectSuccess: false
+        },
+        northStarEvidence: { reportingStatus: 'reportable' },
         metricResults: [{
           metricId: 'quality', baselineValue: 0.7, candidateValue: 0.8,
           orientedEffect: 0.1, effectInterval: { lower: 0.03, upper: 0.17 }, pairedSampleCount: 24
@@ -163,6 +224,28 @@ describe('Research Room projection', () => {
     expect(html).toContain('DECLARED-CATALOG @ 2026.08');
     expect(html).toContain('<strong>quality</strong>');
     expect(html).toContain('0.7 baseline to 0.8 candidate');
+
+    const legacyExperiment = structuredClone(experiment);
+    legacyExperiment.recordHash = hash('o');
+    legacyExperiment.experiment.schema = 'poolday.annotation_adjudication_experiment/v1';
+    delete legacyExperiment.experiment.baseline.actionSelection;
+    delete legacyExperiment.experiment.outcomeBoundary;
+    delete legacyExperiment.experiment.comparison;
+    delete legacyExperiment.experiment.measurementPlan;
+    const legacyEvaluation = { ...evaluation, recordHash: hash('p'), experimentHash: legacyExperiment.recordHash };
+    const legacyRoom = projectResearchRoom({
+      roomId,
+      researchRecords: [
+        legacyExperiment,
+        reviewDecision(legacyExperiment.recordHash, 'accepted', 'legacy-experiment-reviewer', hash('q')),
+        legacyEvaluation,
+        reviewDecision(legacyEvaluation.recordHash, 'accepted', 'legacy-evaluation-reviewer', hash('r'))
+      ]
+    });
+    expect(legacyRoom.adjudicationProof).toMatchObject({
+      status: 'baseline_policy_freeze_required',
+      gaps: expect.arrayContaining(['outcome_access_boundary_missing', 'paired_comparison_controls_missing'])
+    });
   });
 
   it('projects accepted evidence into memory without exposing raw vectors', () => {
@@ -764,6 +847,52 @@ describe('Research Room projection', () => {
     expect(html).toContain(`href="/records?room=room-projection&amp;panel=review&amp;target=${encodeURIComponent(answer.recordHash)}#pool-room-review"`);
     expect(html).toContain('>Review</a>');
     expect(html).not.toContain('1,0,0');
+  });
+
+  it('exposes accepted predeclared resolution criteria without projecting scientific closure', () => {
+    const question = submission();
+    const hypothesis = {
+      kind: 'research_hypothesis',
+      recordHash: hash('h'),
+      roomId: question.roomId,
+      questionHash: question.recordHash,
+      createdAt: '2026-08-09T10:01:00.000Z',
+      author: { identityRootId: 'resolution-author', roleId: 'researcher' },
+      hypothesis: { statement: 'The bounded assay supports family A.' }
+    };
+    const policy = {
+      kind: 'research_resolution_policy',
+      recordHash: hash('p'),
+      roomId: question.roomId,
+      questionHash: question.recordHash,
+      createdAt: '2026-08-09T10:02:00.000Z',
+      author: { identityRootId: 'resolution-author', roleId: 'researcher' },
+      policy: {
+        conclusionLabel: 'Family A under the bounded assay',
+        decisionScope: 'Only this public sequence and exact assay.',
+        targetHypothesisHash: hypothesis.recordHash,
+        provisionalAcceptance: { minimumAcceptedCompletedOutcomes: 2, minimumIndependentReplications: 1 },
+        continuedUncertainty: { triggers: ['ambiguous_outcome', 'disputed_review'] },
+        rejection: { minimumAcceptedCompletedOutcomes: 2, outcomeClassifications: ['negative'] },
+        reopening: { triggers: ['contradiction', 'correction', 'revocation', 'failed_replication', 'policy_invalidation'] },
+        closure: { minimumAcceptedCompletedOutcomes: 3, minimumIndependentReplications: 2, requiredDistinctReviewerIdentities: 2 }
+      }
+    };
+    const review = acceptedReview(policy.recordHash);
+    const room = projectResearchRoom({ roomId: question.roomId, researchRecords: [question, hypothesis, policy, review] });
+    const html = renderResearchRoom({ roomId: question.roomId, researchRecords: [question, hypothesis, policy, review] });
+
+    expect(room.resolutionCriteria).toMatchObject({
+      status: 'criteria_frozen',
+      policyHash: policy.recordHash,
+      closureAuthority: 'none',
+      closureState: 'not_evaluated'
+    });
+    expect(html).toContain('Predeclared resolution criteria');
+    expect(html).toContain('Criteria frozen');
+    expect(html).toContain('Continue investigation when ambiguous outcome · disputed review');
+    expect(html).toContain('None in the current product');
+    expect(html).toContain('cannot accept, reject, or close a scientific question');
   });
 
   it('makes the highest-ranked signed candidate action the primary approval-gated next step', () => {

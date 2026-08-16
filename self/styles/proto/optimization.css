@@ -41,11 +41,27 @@
 
 .optimization-contract-wrap,
 .optimization-results,
-.optimization-detail {
+.optimization-workbench,
+.optimization-episode-view {
   display: flex;
   flex-direction: column;
   min-width: 0;
   min-height: 0;
+}
+
+.optimization-workbench {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-sm);
+  overflow: auto;
+}
+
+.optimization-episode-view {
+  min-height: 150px;
+}
+
+.optimization-episode-history {
+  grid-column: 1 / -1;
 }
 
 .optimization-contract-wrap label,
@@ -117,7 +133,7 @@
   outline-offset: -2px;
 }
 
-#optimization-candidate-detail {
+.optimization-episode-view pre {
   flex: 1;
   min-height: 0;
   margin: 0;
@@ -149,5 +165,13 @@
     width: 100%;
     min-width: 0;
     max-width: none;
+  }
+
+  .optimization-workbench {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .optimization-episode-history {
+    grid-column: auto;
   }
 }

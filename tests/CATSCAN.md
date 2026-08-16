@@ -30,7 +30,7 @@ Outputs:
 
 ## Acceptance
 - The CATSCAN validator detects malformed authority graphs and validates the real repository graph.
-- Evidence: [CATSCAN validator tests](unit/catscan.test.js), [candidate-action contract tests](unit/pool-discovery-candidate-action.test.js), [Discovery Contract replay tests](unit/pool-discovery-contract.test.js), and the [Research Room browser journey](e2e/pool-evidence-journey.spec.js).
+- Evidence: [CATSCAN tests](unit/catscan.test.js), [public evidence](unit/pool-public-protein-evidence.test.js), [campaign](unit/pool-protein-uncertainty-campaign.test.js), [north star](unit/pool-adjudication-experiment.test.js), [action](unit/pool-discovery-candidate-action.test.js), [replay](unit/pool-discovery-contract.test.js), [promotion](unit/pool-scientific-policy-promotion.test.js), [realized value](unit/pool-realized-action-value.test.js), and the [room journey](e2e/pool-evidence-journey.spec.js).
 
 ## Non-goals
 - Defining intent from existing behavior or presenting test coverage as complete product validation.

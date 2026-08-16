@@ -90,6 +90,12 @@ export const schema = {
 | TraceStore | `self/infrastructure/trace-store.js` | Structured execution traces |
 | BrowserAPIs | `self/infrastructure/browser-apis.js` | File System Access, notifications, storage, clipboard, wake lock |
 
+## Core Evidence Modules
+
+| Module | Path | Purpose |
+|--------|------|---------|
+| ImprovementEpisodeLedger | `self/core/improvement-episode.js` | Signed append-only improvement episodes, metric contracts, generation ancestry, promotion readiness, rollback, and algorithm manifests |
+
 ---
 
 ## Capability Modules
@@ -100,7 +106,7 @@ export const schema = {
 | SemanticMemory | `self/capabilities/cognition/semantic/semantic-memory-llm.js` | Semantic retrieval |
 | KnowledgeGraph | `self/capabilities/cognition/symbolic/knowledge-graph.js` | Symbolic entity and relationship storage |
 | RuleEngine | `self/capabilities/cognition/symbolic/rule-engine.js` | Deterministic symbolic reasoning |
-| ReflectionStore | `self/capabilities/reflection/reflection-store.js` | Persistent learning and reflection storage |
+| ReflectionStore | `self/capabilities/reflection/reflection-store.js` | Persistent observations plus structured hypothesis reflections; not promotion authority |
 | PerformanceMonitor | `self/capabilities/performance/performance-monitor.js` | Metrics collection and reporting |
 | IntentBundleLoRA | `self/capabilities/intelligence/intent-bundle-lora.js` | Intent-bundle gated LoRA activation |
 

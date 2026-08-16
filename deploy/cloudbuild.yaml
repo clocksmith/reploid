@@ -3,7 +3,6 @@ substitutions:
   _SERVICE: reploid-pool
   _REPOSITORY: reploid
   _IMAGE: reploid-pool
-  _TAG: latest
 
 steps:
   - id: render-env
@@ -18,7 +17,7 @@ steps:
     args:
       - build
       - -t
-      - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_IMAGE}:${_TAG}
+      - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_IMAGE}:$COMMIT_SHA
       - -t
       - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_IMAGE}:latest
       - .
@@ -27,7 +26,7 @@ steps:
     name: gcr.io/cloud-builders/docker
     args:
       - push
-      - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_IMAGE}:${_TAG}
+      - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_IMAGE}:$COMMIT_SHA
 
   - id: push-latest
     name: gcr.io/cloud-builders/docker
@@ -43,7 +42,7 @@ steps:
       - |
         set -euo pipefail
         gcloud run deploy ${_SERVICE} \
-          --image ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_IMAGE}:${_TAG} \
+          --image ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_IMAGE}:$COMMIT_SHA \
           --region ${_REGION} \
           --platform managed \
           --allow-unauthenticated \
@@ -52,12 +51,12 @@ steps:
           --concurrency 80 \
           --timeout 300 \
           --set-secrets REPLOID_TURN_SHARED_SECRET=reploid-turn-shared-secret:latest \
-          --set-env-vars "$(cat /workspace/.pool-env)"
+          --set-env-vars "$(cat /workspace/.pool-env),REPLOID_RELEASE_SOURCE_REVISION=$COMMIT_SHA,REPLOID_RELEASE_IMAGE=${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_IMAGE}:$COMMIT_SHA"
         gcloud run services update-traffic ${_SERVICE} \
           --region ${_REGION} \
           --platform managed \
           --to-latest
 
 images:
-  - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_IMAGE}:${_TAG}
+  - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_IMAGE}:$COMMIT_SHA
   - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/${_IMAGE}:latest

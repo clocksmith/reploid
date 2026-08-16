@@ -230,14 +230,21 @@ const positiveInteger = (value, label) => {
   return normalized;
 };
 
-export async function callDopplerSequence(session, sequence, request, assignment) {
+export async function callDopplerSequence(
+  session,
+  sequence,
+  request,
+  assignment,
+  { signal = null } = {}
+) {
   if (!sequenceMethodName(session)) {
     throw new Error('Doppler public handle does not expose encodeSequence');
   }
   return session.encodeSequence(sequence, {
     assignment,
     includeTokenEmbeddings: request.includeTokenEmbeddings,
-    includeLogits: request.workload === SEQUENCE_WORKLOADS.maskedLogits
+    includeLogits: request.workload === SEQUENCE_WORKLOADS.maskedLogits,
+    signal
   });
 }
 

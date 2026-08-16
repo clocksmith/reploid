@@ -92,7 +92,7 @@ const researchIdentity = async (id = 'route_researcher') => {
   };
 };
 
-const registerRingProviders = async (store, count) => {
+const registerRingProviders = async (store, count, { startIndex = 0 } = {}) => {
   const providers = new Map();
   const runtimeProfile = buildRuntimeProfile({
     modelInfo: launchModel(),
@@ -126,7 +126,8 @@ const registerRingProviders = async (store, count) => {
     }
   });
   const runtimeProfileHash = serverRuntimeProfileHash(runtimeProfile);
-  for (let index = 0; index < count; index += 1) {
+  for (let offset = 0; offset < count; offset += 1) {
+    const index = startIndex + offset;
     const keyPair = await createSigningKeyPair();
     const providerId = `provider_${index}`;
     const provider = store.registerProvider({
@@ -205,7 +206,7 @@ const unlockRingP2pTransport = async (store, assignment) => {
   await store.updateAssignment(assignment.assignmentId, { status: 'reveal_open' });
 };
 
-const openRingReveal = async ({ router, assignments, providers }) => {
+const openRingCommitBarrier = async ({ router, assignments, providers }) => {
   const payloads = new Map();
   const commitments = new Map();
   for (const assignment of assignments) {
@@ -227,6 +228,11 @@ const openRingReveal = async ({ router, assignments, providers }) => {
       body: commitment
     });
   }
+  return { payloads, commitments };
+};
+
+const openRingReveal = async ({ router, assignments, providers }) => {
+  const { payloads, commitments } = await openRingCommitBarrier({ router, assignments, providers });
   for (const assignment of assignments) {
     const payload = payloads.get(assignment.assignmentId);
     const reveal = await buildAssignmentRevealPayload({
@@ -793,6 +799,149 @@ describe('pool ring quorum timeout and acceptance binding', () => {
     expect(refreshedJob.agreement.remainingProviders).toBe(3);
   });
 
+  it('replaces an impossible reveal-miss attempt and binds the new assignments to its evidence', async () => {
+    const { providers, assignments, job } = await createRingJob({ store, providerCount: 4 });
+    await openRingCommitBarrier({ router, assignments, providers });
+    await registerRingProviders(store, 4, { startIndex: 4 });
+    for (const assignment of assignments.slice(0, 2)) {
+      store.updateAssignment(assignment.assignmentId, {
+        expiresAt: new Date(Date.now() - 1_000).toISOString()
+      });
+    }
+
+    const response = await submitReceipt(router, assignments[0], {});
+    expect(response.status).toBe(409);
+    expect(response.body.assignmentRecovery).toEqual({
+      expired: 2,
+      attempted: 1,
+      assigned: 1,
+      blocked: 0
+    });
+
+    const recoveredJob = store.getJob(job.jobId);
+    expect(recoveredJob.assignmentAttemptId).toBe(2);
+    expect(recoveredJob.assignmentIds).not.toEqual(expect.arrayContaining(
+      assignments.map((assignment) => assignment.assignmentId)
+    ));
+    expect(recoveredJob.reason).toBeNull();
+    expect(recoveredJob.retryable).toBe(false);
+    expect(recoveredJob.recoveryHistory.at(-1)).toMatchObject({
+      schema: 'poolday.assignment_recovery/v1',
+      previousAssignmentAttemptId: 1,
+      previousAssignmentIds: assignments.map((assignment) => assignment.assignmentId),
+      failureReasons: ['ring_reveal_missed'],
+      assignmentAttemptId: 2,
+      assignmentIds: recoveredJob.assignmentIds
+    });
+
+    for (const assignment of assignments.slice(0, 2)) {
+      expect(store.getAssignment(assignment.assignmentId)).toMatchObject({
+        status: 'expired',
+        expiredFromStatus: 'reveal_open',
+        failureReason: 'ring_reveal_missed'
+      });
+    }
+    const replacement = store.getAssignment(recoveredJob.assignmentIds[0]);
+    expect(replacement.recovery).toMatchObject({
+      schema: 'poolday.assignment_recovery/v1',
+      previousAssignmentAttemptId: 1,
+      previousAssignmentIds: assignments.map((assignment) => assignment.assignmentId),
+      failureReasons: ['ring_reveal_missed']
+    });
+  });
+
+  it('immediately replaces an attempt after reveal mismatches make quorum impossible', async () => {
+    const { providers, assignments, job } = await createRingJob({ store, providerCount: 4 });
+    const { payloads, commitments } = await openRingCommitBarrier({ router, assignments, providers });
+    const submitMismatchedReveal = async (assignment) => {
+      const payload = payloads.get(assignment.assignmentId);
+      const reveal = await buildAssignmentRevealPayload({
+        assignment,
+        providerId: assignment.providerId,
+        execution: payload,
+        receipt: payload.receipt,
+        salt: `salt_${assignment.assignmentId}`,
+        commitmentHash: commitments.get(assignment.assignmentId).commitmentHash
+      });
+      return dispatchJson(router, `/assignments/${assignment.assignmentId}/reveal`, {
+        method: 'POST',
+        body: { ...reveal, tokenIdsHash: exactHash('f') }
+      });
+    };
+
+    const first = await submitMismatchedReveal(assignments[0]);
+    expect(first.status).toBe(400);
+    expect(first.body.assignmentRecovery.assigned).toBe(0);
+    expect(store.getJob(job.jobId).assignmentAttemptId).toBe(1);
+
+    const second = await submitMismatchedReveal(assignments[1]);
+    expect(second.status).toBe(400);
+    expect(second.body.assignmentRecovery).toMatchObject({ attempted: 1, assigned: 1, blocked: 0 });
+    const recoveredJob = store.getJob(job.jobId);
+    expect(recoveredJob.assignmentAttemptId).toBe(2);
+    expect(recoveredJob.recoveryHistory.at(-1)).toMatchObject({
+      previousAssignmentAttemptId: 1,
+      failureReasons: ['ring_commit_reveal_mismatch']
+    });
+    expect(store.getAssignment(recoveredJob.assignmentIds[0]).recovery.failureReasons)
+      .toEqual(['ring_commit_reveal_mismatch']);
+  });
+
+  it('does not invent assignment attempts while recovery is blocked on provider eligibility', async () => {
+    const job = store.createJob({
+      requesterId: 'requester_blocked_recovery',
+      policyId: 'fastest_receipt',
+      assignmentAttempts: 3,
+      retryable: true
+    });
+    store.updateJob(job.jobId, { status: 'failed', retryable: true });
+
+    const first = await dispatchJson(router, `/jobs/${job.jobId}`);
+    const second = await dispatchJson(router, `/jobs/${job.jobId}`);
+    expect(first.body.assignmentRecovery).toMatchObject({ attempted: 1, assigned: 0, blocked: 1 });
+    expect(second.body.assignmentRecovery).toMatchObject({ attempted: 1, assigned: 0, blocked: 1 });
+    expect(store.getJob(job.jobId)).toMatchObject({
+      status: 'queued',
+      assignmentAttempts: 3,
+      assignmentBlockedReason: 'not_enough_eligible_browser_providers'
+    });
+  });
+
+  it('prioritizes the observed job ahead of unrelated recovery backlog', async () => {
+    for (let index = 0; index < 6; index += 1) {
+      store.createJob({
+        requesterId: `requester_backlog_${index}`,
+        policyId: 'unsupported_backlog_policy'
+      });
+    }
+    store.registerProvider({
+      providerId: 'provider_targeted_recovery',
+      models: [launchModel()],
+      availability: { acceptedPolicies: ['fastest_receipt'] }
+    });
+    const sequenceFields = await makePublicProteinJobFields();
+    const target = store.createJob({
+      requesterId: 'requester_targeted_recovery',
+      policyId: 'fastest_receipt',
+      assignmentAttempts: 1,
+      ...sequenceFields,
+      modelRequirements: {
+        ...launchModel(),
+        sequenceRequest: sequenceFields.sequenceRequest
+      },
+      generationConfig: { ...DETERMINISTIC_GENERATION_CONFIG }
+    });
+    store.updateJob(target.jobId, { status: 'failed', retryable: true });
+
+    const response = await dispatchJson(router, `/jobs/${target.jobId}`);
+    expect(response.body.assignmentRecovery).toMatchObject({ attempted: 5, assigned: 1 });
+    expect(response.body.job).toMatchObject({ status: 'assigned', assignmentAttemptId: 2 });
+    expect(store.getAssignment(response.body.job.assignmentId)).toMatchObject({
+      jobId: target.jobId,
+      providerId: 'provider_targeted_recovery'
+    });
+  });
+
   it('retires non-quorum assignments and does not let expiration downgrade an accepted ring quorum', async () => {
     const { providers, assignments, job } = await createRingJob({ store, providerCount: 4 });
     const payloads = await openRingReveal({ router, assignments, providers });
@@ -875,7 +1024,6 @@ describe('pool hybrid p2p signaling routes', () => {
   it('creates assignment-bound signaling sessions and exchanges metadata messages', async () => {
     const { assignments } = await createRingJob({ store, providerCount: 1 });
     const assignment = assignments[0];
-    await unlockRingP2pTransport(store, assignment);
     const created = await dispatchJson(router, '/signaling/sessions', {
       method: 'POST',
       body: { assignmentId: assignment.assignmentId }
@@ -884,6 +1032,11 @@ describe('pool hybrid p2p signaling routes', () => {
     expect(created.body.session.assignmentId).toBe(assignment.assignmentId);
     expect(created.body.session.participantIds).toContain(assignment.requesterId);
     expect(created.body.session.participantIds).toContain(assignment.providerId);
+    expect(created.body.session).toMatchObject({
+      signalingAllowedFromPhase: 'private_compute',
+      inputPayloadsAllowedFromPhase: 'private_compute',
+      resultEvidenceAdmissibleFromPhase: 'reveal_open'
+    });
 
     const sessionId = created.body.session.sessionId;
     const published = await dispatchJson(router, `/signaling/sessions/${sessionId}/messages`, {

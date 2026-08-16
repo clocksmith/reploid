@@ -4,7 +4,7 @@ Parent: [Browser Interfaces](../CATSCAN.md)
 
 ## Target
 
-Let curators resolve a public-protein dispute and choose the next action in-room.
+Let curators adjudicate a public-protein dispute and choose in-room actions.
 
 ## Authority
 - Owns room projection, inspection, review, correction, replication, and next-action controls.
@@ -12,7 +12,7 @@ Let curators resolve a public-protein dispute and choose the next action in-room
 
 ## Scope
 
-- This directory and unchartered descendants.
+- This tree.
 
 ## Contracts
 
@@ -23,21 +23,21 @@ Inputs:
 Outputs:
 - The primary room view through [room-view.js](room-view.js).
 - Technical disclosure through [research-technical-panel.js](research-technical-panel.js).
-- First-market proof status through room projection and lifecycle controls.
+- First-market proof and campaign context through room projection.
 
 ## Invariants
-- Research outcome and unresolved questions lead the interface.
-- Archive status and decision-memory admissibility remain distinct.
-- Prior-room context differences and required reviewer authority remain visible.
+- Outcomes and gaps lead.
+- Archive and decision memory remain distinct.
+- Prior-room context, campaign status, findings, and reviewer authority stay visible; failures never become independent replicas.
 - Duplicate origins remain inspectable while one declared source contributes at most once to memory.
-- Checkpoints freeze evidence state without implying closure or truth.
-- Primary next action exposes admitted and rejected candidates, raw value and cost, calibration, exact contract, deterministic selection, and approval.
-- Candidate controls imply no allocation or execution authority.
-- Contributor, receipt, transport, and reputation details remain supporting disclosures.
+- Checkpoints, north-star policy freezes, and laboratory profiles expose declared boundaries without implying authorization, closure, truth, or hidden-outcome integrity.
+- Actions and realized-value credit expose candidates, value, cost, calibration, contracts, selection, causal records, and independent approval.
+- Controls grant no allocation or execution authority.
+- Infrastructure stays disclosed.
 
 ## Acceptance
-- Users can inspect, review, replicate, checkpoint, propose, and independently approve exact contracts.
-- Evidence: [browser journey](../../../tests/e2e/pool-evidence-journey.spec.js), [room tests](../../../tests/unit/pool-room-projection.test.js), [candidate tests](../../../tests/unit/pool-discovery-candidate-action.test.js), [replay tests](../../../tests/unit/pool-discovery-contract.test.js), and [adjudication tests](../../../tests/unit/pool-adjudication-experiment.test.js).
+- Users can inspect disagreement, review, replicate, checkpoint, propose, and independently approve exact contracts.
+- Evidence: [browser journey](../../../tests/e2e/pool-evidence-journey.spec.js), [room](../../../tests/unit/pool-room-projection.test.js), [candidate](../../../tests/unit/pool-discovery-candidate-action.test.js), [replay](../../../tests/unit/pool-discovery-contract.test.js), [adjudication](../../../tests/unit/pool-adjudication-experiment.test.js), and [value](../../../tests/unit/pool-realized-action-value.test.js) tests.
 
 ## Non-goals
 - Exposing Zero, X, network simulation, or generic peer inference as the primary workflow.

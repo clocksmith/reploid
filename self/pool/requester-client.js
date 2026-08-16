@@ -3,7 +3,7 @@
  */
 
 import { createPoolSdk } from './sdk.js';
-import { buildAcceptanceSummary, countersignReceipt, createSigningKeyPair, exportPublicKey, sha256Hex } from './inference-receipt.js';
+import { buildAcceptanceSummary, countersignReceipt, createSigningKeyPair, exportPublicKey, hashJson, sha256Hex } from './inference-receipt.js';
 import { buildLaunchModelRequirements } from './model-contract.js';
 import { DETERMINISTIC_GENERATION_CONFIG, FASTEST_RECEIPT_POLICY_ID, getPolicy } from './policy-router.js';
 import { createPoolIdentity } from './identity.js';
@@ -19,6 +19,12 @@ import {
   adapterRequirementFromPack,
   verifyAdapterPack
 } from './adapter-pack.js';
+import {
+  SEQUENCE_DISCLOSURE,
+  isSequenceWorkload,
+  normalizeSequenceInput,
+  normalizeSequenceRequest
+} from './sequence-workload.js';
 
 export function createRequesterClient({ requesterId, sdk = createPoolSdk(), keyPair = null, identity = createPoolIdentity('requester') } = {}) {
   let activeKeyPair = keyPair;
@@ -49,7 +55,10 @@ export function createRequesterClient({ requesterId, sdk = createPoolSdk(), keyP
     async submitAdapterJob({ adapterPack, modelRequirements = {}, ...request } = {}) {
       const verification = await verifyAdapterPack(adapterPack, { requirePromoted: true });
       if (!verification.ok) throw new Error(`Adapter pack rejected: ${verification.reasons.join('; ')}`);
-      return this.submitJob({
+      const submit = request.sequence !== undefined && request.sequence !== null
+        ? this.submitSequenceJob
+        : this.submitJob;
+      return submit.call(this, {
         ...request,
         modelRequirements: {
           ...modelRequirements,
@@ -79,6 +88,9 @@ export function createRequesterClient({ requesterId, sdk = createPoolSdk(), keyP
       const resolvedRequesterId = await ensureRequesterId();
       const policy = getPolicy(policyId);
       const resolvedModelRequirements = buildLaunchModelRequirements(modelRequirements);
+      if (isSequenceWorkload(resolvedModelRequirements.workload)) {
+        throw new Error('Use submitSequenceJob() so raw sequence input remains on the WebRTC data channel');
+      }
       const inputHash = await sha256Hex(prompt);
       const adapterUseApproval = resolvedModelRequirements.adapter
         ? await createAdapterUseApproval({
@@ -95,6 +107,69 @@ export function createRequesterClient({ requesterId, sdk = createPoolSdk(), keyP
         requesterId: resolvedRequesterId,
         requesterPublicKey,
         prompt,
+        policyId,
+        modelRequirements: resolvedModelRequirements,
+        adapterUseApproval,
+        ...identityClaims,
+        generationConfig: {
+          ...DETERMINISTIC_GENERATION_CONFIG,
+          ...generationConfig
+        },
+        maxPointSpend,
+        verificationLevel: policy?.verificationLevel || 'signed_receipt'
+      });
+    },
+    async submitSequenceJob({
+      sequence,
+      sequenceRequest = null,
+      policyId = FASTEST_RECEIPT_POLICY_ID,
+      modelRequirements = {},
+      generationConfig = {},
+      maxPointSpend = null
+    } = {}) {
+      const keys = await ensureKeys();
+      const resolvedRequesterId = await ensureRequesterId();
+      const policy = getPolicy(policyId);
+      let resolvedModelRequirements = buildLaunchModelRequirements(modelRequirements);
+      if (!isSequenceWorkload(resolvedModelRequirements.workload)) {
+        throw new Error('submitSequenceJob() requires a biological sequence model workload');
+      }
+      const normalizedSequence = normalizeSequenceInput(
+        sequence,
+        sequenceRequest?.alphabet || resolvedModelRequirements.sequence?.alphabet
+      );
+      const inputHash = await sha256Hex(normalizedSequence);
+      const resolvedSequenceRequest = normalizeSequenceRequest(sequenceRequest || {}, {
+        workload: resolvedModelRequirements.workload,
+        sequenceHash: inputHash,
+        sequenceLength: normalizedSequence.length,
+        model: resolvedModelRequirements
+      });
+      resolvedModelRequirements = {
+        ...resolvedModelRequirements,
+        sequenceRequest: resolvedSequenceRequest
+      };
+      const adapterUseApproval = resolvedModelRequirements.adapter
+        ? await createAdapterUseApproval({
+          adapterRequirement: resolvedModelRequirements.adapter,
+          requesterId: resolvedRequesterId,
+          requesterPublicKey,
+          privateKey: keys.privateKey,
+          inputHash,
+          modelRequirements: resolvedModelRequirements
+        })
+        : null;
+      const identityClaims = await ensureIdentityClaims();
+      return sdk.submitJob({
+        requesterId: resolvedRequesterId,
+        requesterPublicKey,
+        prompt: null,
+        inputKind: 'sequence',
+        inputHash,
+        inputTransport: 'webrtc_datachannel',
+        inputDisclosure: SEQUENCE_DISCLOSURE,
+        sequenceRequest: resolvedSequenceRequest,
+        sequenceRequestHash: await hashJson(resolvedSequenceRequest),
         policyId,
         modelRequirements: resolvedModelRequirements,
         adapterUseApproval,

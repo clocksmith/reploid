@@ -185,6 +185,16 @@ rollback, and human approval. Poolday may admit a promoted capability only
 through Poolday-owned configuration, policy, tests, user contracts, and
 prospective Research Room evidence.
 
+Internally, a claimed improvement must be represented by one signed,
+append-only `rsi.improvement-episode/v1` projection. The episode binds the
+objective, immutable baseline generation, declared metric semantics, protected
+evaluator and suite identities, hypothesis, candidate patch, isolated
+execution, raw paired observations, comparison, promotion or rollback, and
+structured reflection. Mutation, tool success, arena pass rate, telemetry,
+fitness, or saved reflection alone never establishes improvement. Rejected,
+inconclusive, superseded, and rolled-back candidates remain in the episode
+archive with explicit ancestry.
+
 This authority split is a safety and development rule, not the customer value
 proposition. Zero and X become relevant to the product only when a promoted
 capability demonstrates a prospective reduction in the Research Room's
@@ -231,6 +241,7 @@ object design, current status, and executable policy live in:
 - [`docs/poolday/product-intent.md`](docs/poolday/product-intent.md)
 - [`docs/poolday/claims-and-nonclaims.md`](docs/poolday/claims-and-nonclaims.md)
 - [`docs/poolday/discovery-contract.md`](docs/poolday/discovery-contract.md)
+- [`docs/rsi-improvement-episodes.md`](docs/rsi-improvement-episodes.md)
 - [`docs/status/surface-claim-index.json`](docs/status/surface-claim-index.json)
 - [`self/pool/pool-config.json`](self/pool/pool-config.json)
 - [`self/pool/TODO.md`](self/pool/TODO.md)

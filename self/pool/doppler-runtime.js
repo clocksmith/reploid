@@ -27,6 +27,7 @@ import {
   adapterRequirementFromPack,
   verifyAdapterPack
 } from './adapter-pack.js';
+import { verifyDopplerPersistentModelCache } from './model-cache-integrity.js';
 import { DopplerRuntimeService } from '../infrastructure/doppler-runtime-service.js';
 
 const DOPPLER_IMPORTS = Object.freeze([
@@ -35,6 +36,7 @@ const DOPPLER_IMPORTS = Object.freeze([
 ]);
 
 let dopplerModulePromise = null;
+let dopplerStorageModulePromise = null;
 
 const hasIdentityValue = (value) => value !== undefined && value !== null && String(value).trim() !== '';
 const normalizeHashIdentity = (value) => {
@@ -94,6 +96,13 @@ const configuredDopplerKernelBaseUrl = () => (
   globalThis.REPLOID_DOPPLER_KERNEL_BASE_URL
   || BROWSER_RUNTIME_CONFIG.dopplerKernelBaseUrl
   || ''
+);
+
+const configuredDopplerStorageModule = () => (
+  globalThis.REPLOID_DOPPLER_STORAGE_MODULE
+  || globalThis.REPLOID_DOPPLER_STORAGE_MODULE_URL
+  || BROWSER_RUNTIME_CONFIG.dopplerStorageModuleUrl
+  || null
 );
 
 const ensureDopplerKernelBasePath = () => {
@@ -372,7 +381,8 @@ const normalizeRuntimeInfo = (runtime, handle) => ({
   publicApi: generateMethodName(handle),
   device: runtime?.device || handle?.deviceInfo || handle?.device || null,
   profile: runtime?.profile || handle?.runtimeProfile || handle?.profile || null,
-  persistentCache: runtime?.persistentCache || handle?.persistentCache || null
+  persistentCache: runtime?.persistentCache || handle?.persistentCache || null,
+  cachePreflight: runtime?.cachePreflight || handle?.cachePreflight || null
 });
 
 const semanticVersionParts = (value) => {
@@ -512,8 +522,35 @@ const loadDopplerModule = async () => {
   return dopplerModulePromise;
 };
 
+const loadDopplerStorageModule = async () => {
+  const configured = configuredDopplerStorageModule();
+  if (configured && typeof configured === 'object') return configured;
+  const specifier = String(configured || '').trim();
+  if (!specifier) throw new Error('Doppler public storage module URL is required for OPFS verification');
+  if (!dopplerStorageModulePromise) {
+    dopplerStorageModulePromise = importDopplerCandidate(specifier).catch((error) => {
+      dopplerStorageModulePromise = null;
+      throw error;
+    });
+  }
+  return dopplerStorageModulePromise;
+};
+
+const browserOpfsAvailable = () => (
+  typeof globalThis.navigator?.storage?.getDirectory === 'function'
+);
+
+const preflightPersistentModelCache = async (model, loadOptions) => {
+  if (loadOptions?.cache !== 'opfs' || !browserOpfsAvailable()) return null;
+  return verifyDopplerPersistentModelCache({
+    model,
+    storage: await loadDopplerStorageModule()
+  });
+};
+
 export function resetDopplerModuleCacheForTests() {
   dopplerModulePromise = null;
+  dopplerStorageModulePromise = null;
   DopplerRuntimeService.resetModuleForTests();
 }
 
@@ -792,6 +829,14 @@ const cancelledRuntimeWorkError = (reason = 'cancelled') => {
   return error;
 };
 
+const staleRuntimeResultError = (reason = 'superseded') => {
+  const error = new Error(`Doppler runtime rejected a stale result: ${reason}`);
+  error.name = 'StaleResultError';
+  error.code = 'pool_runtime_stale_result';
+  error.reason = reason;
+  return error;
+};
+
 const requestPublicSessionCancellation = async (session, reason) => {
   if (!session) return { requested: false, method: null };
   for (const method of ['abort', 'cancel']) {
@@ -802,7 +847,15 @@ const requestPublicSessionCancellation = async (session, reason) => {
   return { requested: false, method: null };
 };
 
-export function createDopplerRuntime({ modelSession = null, model = null, runtime = null } = {}) {
+export function createDopplerRuntime({
+  modelSession = null,
+  model = null,
+  runtime = null,
+  resultReleaseBarrier = null
+} = {}) {
+  if (resultReleaseBarrier !== null && typeof resultReleaseBarrier !== 'function') {
+    throw new TypeError('Doppler runtime resultReleaseBarrier must be a function');
+  }
   const serviceScope = 'pool:provider';
   let session = modelSession;
   let sessionOwnedByService = false;
@@ -814,6 +867,7 @@ export function createDopplerRuntime({ modelSession = null, model = null, runtim
   let activeAdapter = null;
   let workEpoch = 0;
   let activeWork = null;
+  let lastWorkSettlement = null;
 
   const assertWorkCurrent = (expectedEpoch) => {
     if (expectedEpoch !== workEpoch) throw cancelledRuntimeWorkError(activeWork?.reason || 'superseded');
@@ -821,13 +875,60 @@ export function createDopplerRuntime({ modelSession = null, model = null, runtim
 
   const enqueueWork = (operation) => {
     const expectedEpoch = workEpoch;
+    const abortController = new AbortController();
     const run = async () => {
       assertWorkCurrent(expectedEpoch);
-      activeWork = { epoch: expectedEpoch, startedAt: new Date().toISOString(), reason: null };
+      const work = {
+        epoch: expectedEpoch,
+        startedAt: new Date().toISOString(),
+        reason: null,
+        abortController
+      };
+      activeWork = work;
       try {
-        const result = await operation(() => assertWorkCurrent(expectedEpoch));
-        assertWorkCurrent(expectedEpoch);
+        const result = await operation(
+          () => assertWorkCurrent(expectedEpoch),
+          abortController.signal,
+          () => {
+            if (expectedEpoch !== workEpoch) {
+              throw staleRuntimeResultError(work.reason || 'superseded');
+            }
+          }
+        );
+        if (expectedEpoch !== workEpoch) {
+          throw staleRuntimeResultError(work.reason || 'superseded');
+        }
+        lastWorkSettlement = {
+          status: 'completed',
+          epoch: expectedEpoch,
+          startedAt: work.startedAt,
+          settledAt: new Date().toISOString(),
+          errorName: null,
+          errorCode: null,
+          reason: null
+        };
         return result;
+      } catch (error) {
+        let settledError = error;
+        if (expectedEpoch !== workEpoch
+          && error?.code !== 'pool_runtime_stale_result'
+          && error?.code !== 'pool_runtime_work_cancelled') {
+          settledError = cancelledRuntimeWorkError(work.reason || 'cancelled');
+        }
+        lastWorkSettlement = {
+          status: settledError?.code === 'pool_runtime_stale_result'
+            ? 'stale_result_rejected'
+            : settledError?.code === 'pool_runtime_work_cancelled'
+              ? 'cancelled'
+              : 'failed',
+          epoch: expectedEpoch,
+          startedAt: work.startedAt,
+          settledAt: new Date().toISOString(),
+          errorName: settledError?.name || 'Error',
+          errorCode: settledError?.code || null,
+          reason: settledError?.reason || settledError?.message || null
+        };
+        throw settledError;
       } finally {
         if (activeWork?.epoch === expectedEpoch) activeWork = null;
       }
@@ -885,6 +986,7 @@ export function createDopplerRuntime({ modelSession = null, model = null, runtim
         await assertModelRuntimeCapabilities(nextModel);
         const module = await loadDopplerModule();
         const loadOptions = getConfiguredLoadOptions(nextModel);
+        const cachePreflight = await preflightPersistentModelCache(nextModel, loadOptions);
         const handle = await DopplerRuntimeService.open({
           scope: serviceScope,
           source: await getDopplerLoadInput(nextModel, module),
@@ -896,7 +998,8 @@ export function createDopplerRuntime({ modelSession = null, model = null, runtim
           version: module?.DOPPLER_VERSION
             || module?.default?.DOPPLER_VERSION
             || runtimeInfo?.version
-            || null
+            || null,
+          cachePreflight
         }, { ownedByService: true });
       } catch (error) {
         loadState = 'failed';
@@ -975,11 +1078,30 @@ export function createDopplerRuntime({ modelSession = null, model = null, runtim
     async cancelActiveWork({ reason = 'cancelled' } = {}) {
       workEpoch += 1;
       if (activeWork) activeWork.reason = reason;
-      const cancellation = await requestPublicSessionCancellation(session, reason).catch((error) => ({
+      const signalCancellation = {
+        requested: false,
+        method: null,
+        alreadyAborted: false
+      };
+      if (activeWork?.abortController) {
+        signalCancellation.alreadyAborted = activeWork.abortController.signal.aborted;
+        if (!signalCancellation.alreadyAborted) {
+          activeWork.abortController.abort(reason);
+          signalCancellation.requested = true;
+          signalCancellation.method = 'abort_signal';
+        }
+      }
+      const sessionCancellation = await requestPublicSessionCancellation(session, reason).catch((error) => ({
         requested: false,
         method: null,
         error: error.message
       }));
+      const cancellation = {
+        requested: signalCancellation.requested || sessionCancellation.requested,
+        method: sessionCancellation.method || signalCancellation.method,
+        signal: signalCancellation,
+        session: sessionCancellation
+      };
       return {
         ok: true,
         status: 'cancelled',
@@ -992,12 +1114,12 @@ export function createDopplerRuntime({ modelSession = null, model = null, runtim
       if (!session || !generateMethodName(session)) {
         throw new Error('Doppler browser model session is not connected');
       }
-      const runGeneration = async (assertCurrent) => {
+      const runGeneration = async (assertCurrent, _signal, assertResultCurrent) => {
         await resetSessionGenerationState(session);
         assertCurrent();
         const startedAt = new Date().toISOString();
         const result = await callGenerate(session, prompt, generationConfig, assignment);
-        assertCurrent();
+        assertResultCurrent();
         const completedAt = new Date().toISOString();
         const outputText = normalizeOutputText(result);
         const tokenIds = normalizeTokenIds(result);
@@ -1038,12 +1160,12 @@ export function createDopplerRuntime({ modelSession = null, model = null, runtim
       if (!session || !embeddingMethodName(session)) {
         throw new Error('Doppler browser embedding session is not connected');
       }
-      const runEmbedding = async (assertCurrent) => {
+      const runEmbedding = async (assertCurrent, _signal, assertResultCurrent) => {
         await resetSessionGenerationState(session);
         assertCurrent();
         const startedAt = new Date().toISOString();
         const result = await callEmbed(session, prompt, assignment);
-        assertCurrent();
+        assertResultCurrent();
         const completedAt = new Date().toISOString();
         const values = normalizeEmbeddingValues(result);
         if (values.length === 0) throw new Error('Doppler embedding result did not include an embedding vector');
@@ -1088,12 +1210,25 @@ export function createDopplerRuntime({ modelSession = null, model = null, runtim
       const validation = validateSequenceRequest(request, { model: modelInfo });
       if (!validation.ok) throw new Error(`Sequence request rejected: ${validation.reasons.join('; ')}`);
       if (await sha256Hex(sequence) !== request.sequenceHash) throw new Error('sequence input hash mismatch');
-      const runSequence = async (assertCurrent) => {
+      const runSequence = async (assertCurrent, signal, assertResultCurrent) => {
         await resetSessionGenerationState(session);
         assertCurrent();
         const startedAt = new Date().toISOString();
-        const result = await callDopplerSequence(session, sequence, request, assignment);
-        assertCurrent();
+        const result = await callDopplerSequence(
+          session,
+          sequence,
+          request,
+          assignment,
+          { signal }
+        );
+        if (resultReleaseBarrier) {
+          await resultReleaseBarrier({
+            workload: request.workload,
+            assignment,
+            signal
+          });
+        }
+        assertResultCurrent();
         const completedAt = new Date().toISOString();
         const reduced = await reduceDopplerSequenceResult(result, request);
         const {
@@ -1142,8 +1277,8 @@ export function createDopplerRuntime({ modelSession = null, model = null, runtim
       };
       return enqueueWork(runSequence);
     },
-    async close() {
-      await api.cancelActiveWork({ reason: 'runtime_closed' });
+    async close({ cancellation: priorCancellation = null } = {}) {
+      const cancellation = priorCancellation || await api.cancelActiveWork({ reason: 'runtime_closed' });
       await generationQueue.catch(() => null);
       const activeSession = session;
       const ownedByService = sessionOwnedByService;
@@ -1160,7 +1295,12 @@ export function createDopplerRuntime({ modelSession = null, model = null, runtim
         await activeSession?.close?.();
         await activeSession?.unload?.();
       }
-      return { ok: true, status: 'closed' };
+      return {
+        ok: true,
+        status: 'closed',
+        cancellation,
+        workSettlement: lastWorkSettlement ? { ...lastWorkSettlement } : null
+      };
     }
   };
   globalThis.REPLOID_POOL_ATTACH_DOPPLER_HANDLE = (handle, nextModel = null, nextRuntime = null) => (

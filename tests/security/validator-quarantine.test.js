@@ -61,4 +61,29 @@ describe('validator quarantine', () => {
     expect(EventBus.emit).toHaveBeenCalledWith('promotion:quarantined', expect.objectContaining({ targetPath }));
     expect(AuditLogger.logEvent).toHaveBeenCalledWith('PROMOTE_QUARANTINED', expect.any(Object), 'WARN');
   });
+
+  it.each([
+    '/self/core/improvement-episode.js',
+    '/self/core/promotion-policy.js',
+    '/self/capabilities/reflection/reflection-store.js',
+    '/self/capabilities/system/doppler-optimizer.js',
+    '/self/infrastructure/audit-logger.js',
+    '/self/infrastructure/genesis-snapshot.js'
+  ])('quarantines protected improvement authority %s', async (targetPath) => {
+    const candidatePath = `/shadow/${targetPath.split('/').at(-1)}`;
+    const evidencePath = `/artifacts/${targetPath.split('/').at(-1)}-evidence.json`;
+    const VFS = createMemoryVfs({
+      [candidatePath]: 'export default {};\n',
+      [evidencePath]: createEvidence(candidatePath, targetPath, evidencePath)
+    });
+
+    const result = await promoteShadowCandidate({ candidatePath, targetPath, evidencePath }, { VFS });
+
+    expect(result).toMatchObject({
+      promoted: false,
+      quarantined: true,
+      targetPath
+    });
+    expect(VFS.files.has(targetPath)).toBe(false);
+  });
 });

@@ -612,7 +612,7 @@ export function createProviderClient({
         throw error;
       }
     },
-    async runWorkerStep() {
+    async runWorkerStep(inputOptions = {}) {
       if (!registration?.providerId) throw new Error('Provider is not registered');
       const heartbeat = await this.heartbeat();
       const next = await this.nextAssignment();
@@ -624,7 +624,7 @@ export function createProviderClient({
           history
         };
       }
-      const receiptResult = await this.executeAssignment(next.assignment);
+      const receiptResult = await this.executeAssignment(next.assignment, inputOptions);
       return {
         status: 'executed_assignment',
         heartbeat,

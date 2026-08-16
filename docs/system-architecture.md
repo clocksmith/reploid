@@ -6,7 +6,12 @@
 
 ## Overview
 
-REPLOID is a browser-native research environment for studying recursive self-improvement (RSI) without giving agents raw operating-system access. Everything runs inside a single browser origin, backed by IndexedDB and organized around a strict "Genesis snapshot" philosophy.
+REPLOID includes an internal browser-native environment for bounded recursive
+self-improvement research without giving agents raw operating-system access.
+Mutation is not an improvement claim. X requires a signed causal improvement
+episode with a frozen baseline, paired evaluation, protected evaluator,
+promotion decision, and generation rollback. See
+[RSI improvement episodes](./rsi-improvement-episodes.md).
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
@@ -65,11 +70,11 @@ Modules are imported from VFS based on `config/genesis-levels.json` for the sele
 | Level | Modules | Description |
 |-------|---------|-------------|
 | **tabula** | 7 cumulative | Bootstrap substrate core |
-| **spark** | 20 cumulative | Minimal agent core |
-| **reflection** | 26 cumulative | Streaming, verification, HITL |
-| **cognition** | 37 cumulative | Semantic and symbolic cognition |
+| **spark** | 21 cumulative | Minimal agent core |
+| **reflection** | 27 cumulative | Streaming, verification, HITL |
+| **cognition** | 38 cumulative | Semantic and symbolic cognition |
 | **substrate** | 50 cumulative | Runtime infrastructure and workers |
-| **full** | 66 cumulative | Arena, swarm, multi-model systems |
+| **full** | 68 cumulative | Arena, swarm, multi-model systems, and signed improvement episodes |
 
 Each level defines:
 - `modules`: Files to hydrate for that cumulative boot tier
@@ -314,6 +319,7 @@ The operator's control room:
 | **Reflections** | Learning entries with success/error coloring |
 | **Status** | Agent state, token usage, model info, error list |
 | **Workers** | Active/completed workers, per-worker logs, progress |
+| **Improvement Episodes** | Objective, baseline comparison, algorithm impact, raw evidence, evaluator decision, promotion, rollback, and reflection |
 | **Debug** | System prompt, conversation context, model config |
 
 ### EventBus Subscriptions
@@ -324,6 +330,7 @@ Proto subscribes to:
 - `worker:spawned`, `worker:progress`, `worker:completed`
 - `vfs:write`, `vfs:artifact`
 - `reflection:added`
+- `rsi:improvement-episode`
 
 ### Command Palette (Ctrl+K)
 

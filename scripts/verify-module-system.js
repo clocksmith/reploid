@@ -7,6 +7,10 @@ import crypto from 'crypto';
 import { promises as fs } from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import {
+  BROWSER_BUNDLE_DESCRIPTOR_PATH,
+  validateBrowserBundleManifest
+} from '../self/pool/browser-release-identity.js';
 import { toBrowserSourcePath, toCanonicalBrowserPath, toPosix } from './browser-tree-paths.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -18,6 +22,7 @@ const GENESIS_PATH = path.join(SELF_DIR, 'config', 'genesis-levels.json');
 const MANIFEST_PATH = path.join(SELF_DIR, 'config', 'vfs-manifest.json');
 const BLUEPRINT_REGISTRY_PATH = path.join(SELF_DIR, 'config', 'blueprint-registry.json');
 const MODULE_INVENTORY_PATH = path.join(SELF_DIR, 'config', 'module-inventory.json');
+const BROWSER_BUNDLE_MANIFEST_PATH = path.join(SELF_DIR, BROWSER_BUNDLE_DESCRIPTOR_PATH);
 const BLUEPRINT_DIR = path.join(SELF_DIR, 'blueprints');
 
 async function walkFiles(dir) {
@@ -69,6 +74,23 @@ async function main() {
   const allFiles = await walkFiles(SELF_DIR);
   const allRelFiles = allFiles.map((file) => toCanonicalBrowserPath(path.relative(SELF_DIR, file)));
   const allRelSet = new Set(allRelFiles);
+
+  const browserBundleManifest = JSON.parse(await fs.readFile(BROWSER_BUNDLE_MANIFEST_PATH, 'utf8'));
+  const browserBundleEntries = await Promise.all(allFiles
+    .filter((file) => toPosix(path.relative(SELF_DIR, file)) !== BROWSER_BUNDLE_DESCRIPTOR_PATH)
+    .filter((file) => !toPosix(path.relative(SELF_DIR, file)).split('/').some((segment) => (
+      segment.startsWith('.') || segment === 'node_modules'
+    )))
+    .map(async (file) => ({
+      path: toPosix(path.relative(SELF_DIR, file)),
+      bytes: new Uint8Array(await fs.readFile(file))
+    })));
+  const browserBundleValidation = await validateBrowserBundleManifest(browserBundleManifest, {
+    entries: browserBundleEntries
+  });
+  for (const reason of browserBundleValidation.reasons) {
+    errors.push(`Browser bundle manifest: ${reason}`);
+  }
 
   const manifest = JSON.parse(await fs.readFile(MANIFEST_PATH, 'utf8'));
   const manifestFiles = Array.isArray(manifest.files) ? manifest.files : [];

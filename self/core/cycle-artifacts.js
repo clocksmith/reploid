@@ -78,7 +78,10 @@ export function createCycleArtifactWriter({ VFS, EventBus, logger } = {}) {
       ? promoteResult
       : { promoted: false, reason: promoteResult ? String(promoteResult) : 'not requested' };
     const score = {
+      semantics: 'execution-bookkeeping',
       passed: errors === 0,
+      causalImprovement: false,
+      improvementEpisodeId: promoteResult?.improvementEpisodeId || null,
       toolCallCount: callsToExecute.length,
       executedCount: toolSummary.length,
       errorCount: errors,
@@ -117,6 +120,11 @@ export function createCycleArtifactWriter({ VFS, EventBus, logger } = {}) {
         modelUsed,
         stateAfter: done ? 'Complete' : 'Shadow',
         promotionDecision,
+        improvementBoundary: {
+          causalImprovementClaimed: false,
+          episodeId: promoteResult?.improvementEpisodeId || null,
+          note: 'Cycle success records tool execution only. Causal improvement requires rsi.improvement-episode/v1.'
+        },
         done,
         reason
       }]

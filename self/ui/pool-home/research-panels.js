@@ -29,6 +29,7 @@ export const recordLabel = (record = {}) => {
   if (record.kind === 'research_discovery_checkpoint') {
     return `${record.checkpoint?.state?.status || 'open'} Discovery Contract checkpoint`;
   }
+  if (record.kind === 'research_resolution_policy') return `${record.policy?.conclusionLabel || 'Resolution'} criteria`;
   if (record.kind === 'research_candidate_action') return record.action?.title || record.action?.contractHash;
   return record.claim?.text
     || record.hypothesis?.statement
@@ -279,9 +280,9 @@ export const renderParticipationQualityPanel = ({ rewards = [] } = {}) => `
     <p class="pool-dashboard-kicker">Participation quality</p>
     <h3 class="type-h3">Verified and durable contributions</h3>
     <div class="pool-research-rewards">
-      ${rewards.length ? rewards.map((reward) => `<article><b>${escapeHtml(compactHash(reward.authorId))}</b><span>${reward.points} points · ${reward.verifiedCompute} verified compute · ${reward.acceptedEvidence} accepted evidence · ${reward.acceptedReviews} accepted reviews · ${Math.round(reward.quality * 100)}% durable</span></article>`).join('') : '<p class="type-caption">Credit appears after verified compute or independently accepted evidence.</p>'}
+      ${rewards.length ? rewards.map((reward) => `<article><b>${escapeHtml(compactHash(reward.authorId))}</b><span>${reward.points} points · ${reward.realizedUsefulnessCredits || 0} realized usefulness credits · ${reward.verifiedCompute} verified compute · ${reward.acceptedEvidence} accepted evidence · ${reward.acceptedReviews} accepted reviews · ${Math.round(reward.quality * 100)}% durable</span></article>`).join('') : '<p class="type-caption">Credit appears after verified compute or independently accepted evidence.</p>'}
     </div>
-    <p class="type-caption">Activity alone earns no evidence credit. Later corrections and contradictions reduce durability.</p>
+    <p class="type-caption">Realized usefulness credit requires a frozen evaluation, reviewed outcomes, exact causal records, and independent acceptance. Activity counters remain operational. Later corrections, contradictions, or revocations invalidate downstream credit.</p>
   </section>
 `;
 

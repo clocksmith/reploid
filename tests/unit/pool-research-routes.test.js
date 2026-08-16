@@ -183,6 +183,39 @@ describe('Poolday research evidence coordinator routes', () => {
     });
   });
 
+  it('serves a deterministic public-protein disagreement queue with replay inputs', async () => {
+    const store = createPoolStore();
+    const first = await makeSubmission({ roomId: 'campaign-route-a' });
+    const second = await makeSubmission({ roomId: 'campaign-route-b' });
+    store.saveResearchRecord(first);
+    store.saveResearchRecord(second);
+    const publicReader = createPoolRouter({ store, requireAuth: true });
+
+    const response = await dispatchJson(publicReader, '/research/campaign-queue?limit=50');
+
+    expect(response.status).toBe(200);
+    expect(response.body).toMatchObject({
+      schema: 'poolday.protein_uncertainty_campaign_queue/v1',
+      policy: { method: 'count_declared_disagreement_dimensions', status: 'heuristic_not_calibrated' },
+      complete: true
+    });
+    expect(response.body.entries).toEqual([
+      expect.objectContaining({
+        rank: 1,
+        sequence: expect.objectContaining({ hash: first.sequence.hash }),
+        roomIds: ['campaign-route-a', 'campaign-route-b'],
+        priority: expect.objectContaining({ disagreementCount: 0, eligible: false })
+      })
+    ]);
+    expect(response.body.records.map((record) => record.recordHash).sort())
+      .toEqual([first.recordHash, second.recordHash].sort());
+
+    expect(await dispatchJson(publicReader, '/research/campaign-queue?limit=unbounded')).toMatchObject({
+      status: 400,
+      body: { error: 'invalid campaign queue query', reasons: ['limit must be a finite number'] }
+    });
+  });
+
   it('rejects unsigned or tampered public evidence', async () => {
     const router = createPoolRouter({ store: createPoolStore(), allowUnauthenticatedLocal: true });
     const record = await makeSubmission();

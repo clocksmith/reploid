@@ -41,7 +41,6 @@ async function main() {
 
   const output = {
     version: 1,
-    generatedAt: new Date().toISOString(),
     files: relFiles
   };
 

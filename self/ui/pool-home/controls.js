@@ -48,6 +48,7 @@ import {
   getPeerDiscoveryWindowMs,
   getPeerGenerationConfig,
   getPeerInviteUrl,
+  getPeerQueueWindowMs,
   getPeerReceiptWindowMs,
   getPeerRelayMode,
   getPeerRoomBusFactory,
@@ -920,6 +921,8 @@ const RUN_ACTIVITY_COPY = Object.freeze({
   'relay-circuit-half-open': 'Checking relay recovery',
   'relay-circuit-closed': 'Relay connection recovered',
   peer_inference_started: 'Contributor tabs are answering',
+  peer_provider_queued: 'Request queued behind existing contributor work',
+  peer_provider_execution_started: 'Contributor started this request',
   peer_transport_retrying: 'Retrying through relay transport',
   peer_receipts_received: 'Checking returned receipts',
   peer_agreement_verified: 'Agreement verified',
@@ -1407,6 +1410,7 @@ const bindPeerRunSurface = ({
         discoveryWindowMs: getPeerDiscoveryWindowMs(),
         sessionAcceptWindowMs: getPeerSessionAcceptWindowMs(),
         receiptWindowMs: getPeerReceiptWindowMs(),
+        queueWindowMs: getPeerQueueWindowMs(),
         transportConnectWindowMs: getPeerTransportConnectWindowMs(),
         roomBusFactory: getPeerRoomBusFactory(),
         relayAckSigner: requesterClient.createRelayAcknowledgement.bind(requesterClient),
@@ -2099,6 +2103,30 @@ const createProviderContributionController = () => {
       updateProviderHealth({ queue: 'running_peer_job' });
       setContributionState({ state: 'working', optedIn: true, lastError: null });
     }
+    if (event?.status === 'peer_execution_started') {
+      setProviderStatus('Computing');
+      updateProviderHealth({ queue: 'executing_peer_job' });
+      setContributionState({ state: 'working', optedIn: true, lastError: null });
+    }
+    if (event?.status === 'peer_execution_abandoned') {
+      const stillComputing = Number(event.activeExecutionCount || 0) > 0;
+      const queued = Number(event.queueDepth || 0) > 0;
+      setProviderStatus(stillComputing ? 'Computing' : queued ? 'Queued' : workerRunning ? 'Available' : 'Idle');
+      updateProviderHealth({
+        queue: stillComputing
+          ? 'executing_peer_job'
+          : queued
+            ? 'queued_peer_job'
+            : workerRunning
+              ? 'listening'
+              : 'inactive'
+      });
+      setContributionState({
+        state: stillComputing || queued ? 'working' : workerRunning ? 'idle' : 'inactive',
+        optedIn: workerRunning,
+        lastError: event.outcome === 'failed' ? errorString(event.error) : null
+      });
+    }
     if (event?.status === 'peer_receipt_sent') {
       setProviderStatus('Available');
       updateProviderHealth({
@@ -2337,23 +2365,37 @@ const createProviderContributionController = () => {
   const stopWorker = async () => {
     lifecycleGeneration += 1;
     controls.workerToggleButton?.setAttribute('disabled', 'true');
-    const stopped = await stopPeerProvider().catch((error) => ({
-      error: error.message,
-      payload: error.payload || null
-    }));
-    const runtimeClosed = await getRuntime().close?.().catch((error) => ({
-      error: error.message
-    }));
+    const runtime = getRuntime();
+    const cancellation = await runtime.cancelActiveWork?.({ reason: 'provider_stopped' }).catch((error) => ({
+      ok: false,
+      status: 'cancellation_failed',
+      reason: error.message
+    })) || null;
     workerStarting = false;
     workerRunning = false;
     providerReadyState = null;
     clearContributionResumeIntent();
+    setProviderStatus('Stopping');
+    updateProviderHealth({ queue: 'cancelling_active_work' });
+    setContributionState({ state: 'inactive', optedIn: false, lastError: null });
+    setResult('pool-provider-result', {
+      runner: 'stopping',
+      peer: { status: 'peer_provider_stopping' },
+      cancellation
+    });
+    const stopped = await stopPeerProvider().catch((error) => ({
+      error: error.message,
+      payload: error.payload || null
+    }));
+    const runtimeClosed = await runtime.close?.({ cancellation }).catch((error) => ({
+      error: error.message
+    }));
     setProviderStatus('Idle');
     updateProviderHealth({ queue: 'stopped' });
-    setContributionState({ state: 'inactive', optedIn: false, lastError: null });
     setResult('pool-provider-result', {
       runner: 'stopped',
       peer: stopped,
+      cancellation,
       runtime: runtimeClosed || null
     });
     syncWorkerControls();

@@ -11,9 +11,11 @@ import { awardAcceptedReceipt, chargeRequester, penalizeProvider } from './point
 import { recordAcceptedReceipt, recordRejectedReceipt } from './reputation.js';
 import { hashJson } from './hash.js';
 import { POOL_CONFIG, POOL_CONFIG_HASH, POOL_CONFIG_VERSION, validatePoolConfig } from './config.js';
+import { buildCoordinatorRuntimeBundle } from './release-identity.js';
 import { buildCommitmentHash, revealMatchesCommitment, validateCommitmentInput, validateRevealInput } from './commit-reveal.js';
 import {
   assignQueuedJobs,
+  recoverHostedAssignments,
   scheduleAuditExecution
 } from './services/job-assignment.js';
 import {
@@ -272,6 +274,11 @@ const configuredEnvValue = (...names) => names
     return normalized && !normalized.startsWith('<required-');
   }) || null;
 
+const configuredReleaseValue = (releaseEnv, name) => {
+  const normalized = String(releaseEnv?.[name] || '').trim();
+  return normalized && !normalized.startsWith('<required-') ? normalized : null;
+};
+
 const signalingSessionExpired = (session = {}) => (
   session?.expiresAt && toEpochMs(session.expiresAt) < Date.now()
 );
@@ -293,9 +300,17 @@ export function createPoolRouter({
   allowUnauthenticatedLocal = false,
   allowCanaryCreation = false,
   createAdapterDownloadUrl = null,
-  turnEnv = process.env
+  turnEnv = process.env,
+  releaseEnv = process.env,
+  runtimeBundleIdentity = null
 } = {}) {
   const router = express.Router();
+  let runtimeBundlePromise = null;
+  const resolveRuntimeBundleIdentity = () => {
+    if (runtimeBundleIdentity) return Promise.resolve(runtimeBundleIdentity);
+    if (!runtimeBundlePromise) runtimeBundlePromise = buildCoordinatorRuntimeBundle();
+    return runtimeBundlePromise;
+  };
   router.use(asyncRoute(createPoolRateLimiter({ store })));
   router.use(asyncRoute(async (req, res, next) => {
     const authOptional = isPublicDiscoveryRoute(req);
@@ -451,14 +466,25 @@ export function createPoolRouter({
   }));
 
   router.get('/deployment/check', asyncRoute(async (req, res) => {
+    const runtimeBundle = await resolveRuntimeBundleIdentity();
     const metrics = await store.getMetrics();
     const storageMode = store.kind || 'unknown';
     const authVerifierConfigured = typeof verifyAuthToken === 'function';
     const authRequired = requireAuth || storageMode === 'firestore';
     const modelArtifactBaseConfigured = Boolean(configuredEnvValue('REPLOID_POOL_MODEL_BASE_URL', 'POOL_MODEL_BASE_URL'));
     const dopplerModuleConfigured = Boolean(configuredEnvValue('REPLOID_DOPPLER_MODULE_URL', 'POOL_DOPPLER_MODULE_URL'));
+    const dopplerStorageModuleConfigured = Boolean(configuredEnvValue(
+      'REPLOID_DOPPLER_STORAGE_MODULE_URL',
+      'POOL_DOPPLER_STORAGE_MODULE_URL'
+    ));
     const dopplerKernelBaseConfigured = Boolean(configuredEnvValue('REPLOID_DOPPLER_KERNEL_BASE_URL', 'POOL_DOPPLER_KERNEL_BASE_URL'));
     const privateAdapterDeliveryConfigured = typeof createAdapterDownloadUrl === 'function';
+    const releaseSourceRevision = configuredReleaseValue(releaseEnv, 'REPLOID_RELEASE_SOURCE_REVISION');
+    const releaseSourceRevisionValid = /^[a-f0-9]{40}$/.test(releaseSourceRevision || '');
+    const releaseImage = configuredReleaseValue(releaseEnv, 'REPLOID_RELEASE_IMAGE');
+    const releaseImageBound = releaseSourceRevisionValid
+      && typeof releaseImage === 'string'
+      && releaseImage.endsWith(`:${releaseSourceRevision}`);
     const turn = getPublicTurnServiceStatus(turnEnv);
     const configValidation = validatePoolConfig();
     const readinessConfig = POOL_CONFIG.deployment || {};
@@ -475,10 +501,13 @@ export function createPoolRouter({
       && (!readinessConfig.requiresAuthForNonDiscoveryRoutes || authRequired)
       && (!readinessConfig.requiresOffloadedModelArtifactBase || modelArtifactBaseConfigured)
       && (!readinessConfig.requiresDopplerModuleConfiguration || dopplerModuleConfigured)
+      && (!readinessConfig.requiresDopplerStorageModuleConfiguration || dopplerStorageModuleConfigured)
       && (!readinessConfig.requiresDopplerKernelBaseConfiguration || dopplerKernelBaseConfigured)
       && (!readinessConfig.requiresPrivateAdapterDeliverySigner || privateAdapterDeliveryConfigured)
       && (!readinessConfig.requiresCommitRevealStore || commitRevealSupported)
       && turn.configured
+      && (storageMode !== 'firestore' || (releaseSourceRevisionValid && releaseImageBound))
+      && (storageMode !== 'firestore' || /^sha256:[a-f0-9]{64}$/.test(runtimeBundle.runtimeBundleHash || ''))
       && (storageMode !== 'firestore' || distributedRateLimitSupported);
     return res.json({
       ok: productionReady,
@@ -490,6 +519,17 @@ export function createPoolRouter({
       policies: listPolicies().map((policy) => policy.policyId),
       deterministicGenerationConfig: DETERMINISTIC_GENERATION_CONFIG,
       launchModel: LAUNCH_MODEL,
+      release: {
+        sourceRevision: releaseSourceRevision,
+        sourceRevisionValid: releaseSourceRevisionValid,
+        image: releaseImage,
+        imageBoundToSourceRevision: releaseImageBound,
+        runtimeBundleHash: runtimeBundle.runtimeBundleHash,
+        runtimeFileCount: runtimeBundle.files?.length || 0,
+        platformRevision: configuredReleaseValue(releaseEnv, 'K_REVISION'),
+        platformConfiguration: configuredReleaseValue(releaseEnv, 'K_CONFIGURATION'),
+        platformService: configuredReleaseValue(releaseEnv, 'K_SERVICE')
+      },
       store: {
         asyncCompatible: true,
         mode: storageMode,
@@ -500,6 +540,8 @@ export function createPoolRouter({
         modelArtifactBaseEnv: modelArtifactBaseConfigured ? 'configured' : 'missing',
         dopplerModuleConfigured,
         dopplerModuleEnv: dopplerModuleConfigured ? 'configured' : 'missing',
+        dopplerStorageModuleConfigured,
+        dopplerStorageModuleEnv: dopplerStorageModuleConfigured ? 'configured' : 'missing',
         dopplerKernelBaseConfigured,
         dopplerKernelBaseEnv: dopplerKernelBaseConfigured ? 'configured' : 'missing',
         adapterDelivery: {
@@ -563,12 +605,13 @@ export function createPoolRouter({
     asyncRoute,
     requireBoundRole,
     roleIdForUid,
-    assignQueuedJobs
+    recoverHostedAssignments
   });
   registerJobRoutes(router, {
     store,
     asyncRoute,
-    requireBoundAnyRole
+    requireBoundAnyRole,
+    recoverHostedAssignments
   });
 
   registerCommitRevealRoutes(router, {
@@ -589,6 +632,7 @@ export function createPoolRouter({
     evaluateAgreement,
     statusForPendingAgreement,
     statusForRejectedAgreement,
+    recoverHostedAssignments,
     poolConfigVersion: POOL_CONFIG_VERSION,
     poolConfigHash: POOL_CONFIG_HASH
   });
@@ -611,6 +655,7 @@ export function createPoolRouter({
     statusForPendingAgreement,
     statusForRejectedAgreement,
     assignQueuedJobs,
+    recoverHostedAssignments,
     buildAcceptanceSummary,
     ensureAgreementCommitRevealReady,
     verifyRequesterAcceptance,

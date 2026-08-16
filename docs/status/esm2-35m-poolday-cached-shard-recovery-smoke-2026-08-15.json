@@ -1,0 +1,57 @@
+{
+  "schema": "poolday.actual_browser_cached_shard_recovery_smoke_summary/v1",
+  "status": "observed",
+  "observedAt": "2026-08-15T23:26:14.473Z",
+  "qualificationEligible": false,
+  "claimBoundary": "Actual Chromium mutated one manifest-declared ESM-2 OPFS shard through Doppler's public storage tooling. Poolday detected the BLAKE3 mismatch, invalidated the exact-model cache, fetched both immutable shards again, restored the same bounded output, and produced a distinct accepted receipt. This dirty local observation is not a clean-release browser qualification check.",
+  "producer": {
+    "test": "tests/e2e/p2p-actual-inference.spec.js",
+    "journey": "recovers a corrupted cached ESM-2 shard before provider advertisement",
+    "browserProject": "chromium",
+    "signalingMode": "local",
+    "forceRelay": false,
+    "roomId": "actual-inference-0-msv089qu-6esf3edybjv",
+    "attachmentSha256": "sha256:43b7c48413f2ead06232c64737f72b5fdde3643d03ed980c36dcf60f712f1f5a"
+  },
+  "release": {
+    "sourceDirty": true,
+    "sourceRevision": null,
+    "sourceTreeHash": null,
+    "browserBundleHash": null
+  },
+  "model": {
+    "modelId": "esm2-t12-35m-ur50d-f32-af32",
+    "modelHash": "sha256:1092c098741472429a4c6b4cd6050d5967e0a606d01f713c0b4866fd98921ac8",
+    "manifestHash": "sha256:5612aa20ee2d5310da323d5c39986d0ab724ff727ce92e40762da6ea7b189730",
+    "tokenizerHash": "sha256:f874eed68372c76988edf4556383c10404dd27b5fee33e7dd96440aba31d9a37",
+    "runtime": "doppler-gpu@0.5.1",
+    "backend": "browser-webgpu"
+  },
+  "probe": {
+    "storageModuleUrl": "https://cdn.jsdelivr.net/npm/doppler-gpu@0.5.1/src/tooling-exports/storage.js",
+    "mutatedPath": "shard_00000.bin",
+    "mutatedBytes": 67108864,
+    "hashAlgorithm": "blake3",
+    "expectedHash": "14b1ea87844c6011f07b0e805b657aee77ec4db1fec998ab17de787d9c7ec8f0",
+    "mutatedHash": "29d18168f70548b7c9df039847431acdc2bc1742a3edc2142c39a8d820500d1b",
+    "cachePreflightStatus": "invalidated",
+    "cacheInvalidated": true,
+    "recoverySource": "immutable-source-http",
+    "recoveryShardRequests": 2,
+    "recoveredCacheState": "imported",
+    "baselineOutputHash": "sha256:5006e1a06de1dd93cc0b085f7c1f24e6789111610101692d78fd678b6d3df4bb",
+    "recoveredOutputHash": "sha256:5006e1a06de1dd93cc0b085f7c1f24e6789111610101692d78fd678b6d3df4bb",
+    "outputRestored": true,
+    "baselineReceiptHash": "sha256:987c191bbe355759a00bf9887dbe3e63a9df38420309565a6f40af4eabbc107d",
+    "recoveredReceiptHash": "sha256:6ede1f8dae4f98d580f909d5ea150dcf91f32c5711b729502f56f2d16bacee7b",
+    "receiptsDistinct": true,
+    "recoveredAgreementAccepted": true,
+    "recoveredRequesterAccepted": true
+  },
+  "remainingQualificationBoundary": [
+    "the recovery observation is not bound to a clean source revision or browser bundle",
+    "the probe used one local Chromium provider and requester context rather than independently operated browsers",
+    "the recovery evidence is not bound to the primary browser smoke qualification record",
+    "the probe establishes one exact ESM-2 shard-recovery path, not recovery for every artifact or storage failure"
+  ]
+}

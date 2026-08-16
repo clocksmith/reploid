@@ -101,6 +101,7 @@ Run `npm run catscan:chain -- <path>` to print the charter chain for a target fi
 - [Discovery Contract](docs/poolday/discovery-contract.md)
 - [Poolday claims and non-claims](docs/poolday/claims-and-nonclaims.md)
 - [Security model](docs/SECURITY.md)
+- [RSI improvement episodes](docs/rsi-improvement-episodes.md)
 - [Doppler](https://github.com/clocksmith/doppler)
 
 ## License

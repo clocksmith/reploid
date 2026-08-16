@@ -30,7 +30,8 @@ const qualifiedRecord = () => ({
   release: {
     sourceRevision: 'test-release-source',
     sourceTreeHash: fakeHash('4'),
-    browserBundleHash: fakeHash('5')
+    browserBundleHash: fakeHash('5'),
+    sourceDirty: false
   },
   browser: { family: 'Chromium', version: '123.0', userAgentHash: fakeHash('6') },
   gpu: { adapterIdentity: 'test-adapter' },
@@ -54,18 +55,18 @@ const qualifiedRecord = () => ({
       bindings: {
         modelHash: candidate.modelHash, manifestHash: candidate.manifestHash, tokenizerHash: candidate.tokenizerHash,
         shardSetHash: candidate.artifactIdentity.shardSetHash, runtime: candidate.runtime, backend: candidate.backend,
-        exactModelContractKey: candidateKey, sourceTreeHash: fakeHash('4'), browserBundleHash: fakeHash('5'), policyHash: fakeHash('1')
+        exactModelContractKey: candidateKey, sourceTreeHash: fakeHash('4'), browserBundleHash: fakeHash('5'), sourceDirty: false, policyHash: fakeHash('1')
       }
     },
     {
       reproductionId: 'run-two', participantId: 'browser-two', browserRunId: 'browser-run-two',
       browserIdentity: 'Firefox/124', observedAt: '2026-08-01T00:00:01.000Z',
       userAgentHash: fakeHash('9'), gpuAdapterIdentity: 'test-adapter-two', resultHash: fakeHash('a'),
-      outputHash: fakeHash('2'), receiptHash: fakeHash('3'),
+      outputHash: fakeHash('2'), receiptHash: fakeHash('b'),
       bindings: {
         modelHash: candidate.modelHash, manifestHash: candidate.manifestHash, tokenizerHash: candidate.tokenizerHash,
         shardSetHash: candidate.artifactIdentity.shardSetHash, runtime: candidate.runtime, backend: candidate.backend,
-        exactModelContractKey: candidateKey, sourceTreeHash: fakeHash('4'), browserBundleHash: fakeHash('5'), policyHash: fakeHash('1')
+        exactModelContractKey: candidateKey, sourceTreeHash: fakeHash('4'), browserBundleHash: fakeHash('5'), sourceDirty: false, policyHash: fakeHash('1')
       }
     }
   ]
@@ -111,6 +112,7 @@ describe('Poolday browser model qualification contract', () => {
     record.independentReproductions[1].participantId = record.independentReproductions[0].participantId;
     record.independentReproductions[1].browserRunId = record.independentReproductions[0].browserRunId;
     record.independentReproductions[1].browserIdentity = record.independentReproductions[0].browserIdentity;
+    record.independentReproductions[1].receiptHash = record.independentReproductions[0].receiptHash;
 
     expect(validateBrowserQualificationRecord(record, {
       model: candidate,
@@ -126,6 +128,45 @@ describe('Poolday browser model qualification contract', () => {
     });
   });
 
+  it('requires matching outputs but distinct provider-bound receipts', () => {
+    const record = qualifiedRecordWithEvidence();
+    expect(record.independentReproductions.map((entry) => entry.receiptHash)).toEqual([
+      record.receiptHash,
+      fakeHash('b')
+    ]);
+    expect(validateBrowserQualificationRecord(record, {
+      model: candidate,
+      exactModelContractKey: candidateKey
+    })).toEqual({ ok: true, reasons: [] });
+
+    record.independentReproductions[1].outputHash = fakeHash('c');
+    expect(validateBrowserQualificationRecord(record, {
+      model: candidate,
+      exactModelContractKey: candidateKey
+    })).toMatchObject({
+      ok: false,
+      reasons: expect.arrayContaining(['browser qualification independent reproduction is invalid'])
+    });
+  });
+
+  it('rejects dirty releases and placeholder browser or GPU identities', () => {
+    const record = qualifiedRecordWithEvidence();
+    record.release.sourceDirty = true;
+    record.browser.version = 'unrecorded';
+    record.gpu.adapterIdentity = 'unknown';
+    expect(validateBrowserQualificationRecord(record, {
+      model: candidate,
+      exactModelContractKey: candidateKey
+    })).toMatchObject({
+      ok: false,
+      reasons: expect.arrayContaining([
+        'browser qualification exact release identity is required',
+        'browser qualification browser identity is required',
+        'browser qualification GPU identity is required'
+      ])
+    });
+  });
+
   it('keeps observations incomplete until every check has browser-run evidence', () => {
     let observation = buildBrowserQualificationObservation({
       model: candidate,
@@ -133,7 +174,8 @@ describe('Poolday browser model qualification contract', () => {
       release: {
         sourceRevision: 'test-release-source',
         sourceTreeHash: fakeHash('4'),
-        browserBundleHash: fakeHash('5')
+        browserBundleHash: fakeHash('5'),
+        sourceDirty: false
       },
       browser: { family: 'Chromium', version: '123.0', userAgentHash: fakeHash('6') },
       gpu: { adapterIdentity: 'test-adapter' },
@@ -164,5 +206,40 @@ describe('Poolday browser model qualification contract', () => {
     });
     expect(finalized.validation).toEqual({ ok: true, reasons: [] });
     expect(finalized.record.status).toBe('qualified');
+  });
+
+  it('retains executed smoke evidence as observed without promoting it', () => {
+    let observation = buildBrowserQualificationObservation({
+      model: candidate,
+      browser: { family: 'Chromium', version: 'unrecorded', userAgentHash: fakeHash('6') },
+      gpu: { adapterIdentity: 'swiftshader' },
+      policyHash: fakeHash('1'),
+      outputHash: fakeHash('2'),
+      receiptHash: fakeHash('3'),
+      artifacts: {
+        manifestHash: candidate.manifestHash,
+        tokenizerHash: candidate.tokenizerHash,
+        shardSetHash: candidate.artifactIdentity.shardSetHash
+      }
+    });
+    observation = recordBrowserQualificationCheck(observation, {
+      check: 'webGpuExecution',
+      status: 'observed',
+      evidence: checkEvidence('webGpuExecution', observation)
+    });
+    expect(observation.checks.webGpuExecution).toBe('observed');
+    const finalized = finalizeBrowserQualificationObservation(observation, {
+      model: candidate,
+      exactModelContractKey: candidateKey
+    });
+    expect(finalized.record.status).toBe('incomplete');
+    expect(finalized.validation).toMatchObject({
+      ok: false,
+      reasons: expect.arrayContaining([
+        'browser qualification exact release identity is required',
+        'browser qualification browser identity is required',
+        'browser qualification check did not pass: webGpuExecution'
+      ])
+    });
   });
 });

@@ -47,6 +47,7 @@ import { resolvePoolNetworkVisualState } from './network-projection.js';
 import { renderResearchWorkspace } from './research-view.js';
 import {
   getCrossRoomSequenceEvidence,
+  getProteinUncertaintyCampaignQueue,
   getResearchSyncState,
   loadQuarantinedResearchRecords,
   loadResearchRecords
@@ -198,6 +199,12 @@ export const getPeerReceiptWindowMs = () => {
   const explicit = Number(window.REPLOID_POOL_RECEIPT_WINDOW_MS || 0);
   if (Number.isFinite(explicit) && explicit > 0) return explicit;
   return 60000;
+};
+
+export const getPeerQueueWindowMs = () => {
+  const explicit = Number(window.REPLOID_POOL_QUEUE_WINDOW_MS || 0);
+  if (Number.isFinite(explicit) && explicit > 0) return explicit;
+  return getPeerReceiptWindowMs();
 };
 
 export const getPeerSessionAcceptWindowMs = () => {
@@ -1120,6 +1127,10 @@ const PRODUCT_STATUS_LABELS = Object.freeze({
   peer_assignment_rejected: 'Assignment rejected',
   peer_session_opening: 'Opening a browser-to-browser session',
   peer_session_open: 'Contributor is answering',
+  peer_provider_queued: 'Contributor queued this request',
+  peer_provider_execution_started: 'Contributor started this request',
+  peer_execution_started: 'Contributor is computing',
+  peer_execution_abandoned: 'Interrupted execution settled without a requester',
   peer_receipt_sent: 'Receipt sent',
   peer_acceptance_received: 'Receipt accepted',
   peer_session_failed: 'Run failed',
@@ -1623,6 +1634,7 @@ export const renderActiveResearchRoom = (routeId = getRouteId()) => {
     researchRecords: loadResearchRecords(roomId),
     quarantinedRecords: loadQuarantinedResearchRecords(roomId),
     crossRoomEvidence: getCrossRoomSequenceEvidence(roomId),
+    campaignQueue: getProteinUncertaintyCampaignQueue(roomId),
     receipts: ledgerStore.receipts,
     peerEvents: ledgerStore.peerEvents,
     syncState: getResearchSyncState(roomId)

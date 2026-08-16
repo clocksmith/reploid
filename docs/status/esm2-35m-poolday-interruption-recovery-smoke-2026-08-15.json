@@ -1,0 +1,49 @@
+{
+  "schema": "poolday.actual_browser_interruption_recovery_smoke_summary/v1",
+  "status": "observed",
+  "observedAt": "2026-08-15T23:33:46.500Z",
+  "qualificationEligible": false,
+  "claimBoundary": "Actual ESM-2 provider execution had started before requester reload. The reloaded page required an explicit retry or discard decision, did not retry automatically, and did not publish a late result before discard. This dirty local observation is not a clean-release browser qualification check.",
+  "producer": {
+    "test": "tests/e2e/p2p-actual-inference.spec.js",
+    "journey": "preserves an actual ESM-2 request for explicit recovery after requester reload",
+    "browserProject": "chromium",
+    "signalingMode": "local",
+    "forceRelay": false,
+    "roomId": "actual-inference-0-msv0ifa7-pv1munj88g",
+    "attachmentSha256": "sha256:fa937b721105f5a2fe22fe9cecbf9516de19bf61ffd273970e339a1c0373600c"
+  },
+  "release": {
+    "sourceDirty": true,
+    "sourceRevision": null,
+    "sourceTreeHash": null,
+    "browserBundleHash": null
+  },
+  "model": {
+    "modelId": "esm2-t12-35m-ur50d-f32-af32",
+    "modelHash": "sha256:1092c098741472429a4c6b4cd6050d5967e0a606d01f713c0b4866fd98921ac8",
+    "manifestHash": "sha256:5612aa20ee2d5310da323d5c39986d0ab724ff727ce92e40762da6ea7b189730",
+    "runtime": "doppler-gpu@0.5.1",
+    "backend": "browser-webgpu"
+  },
+  "probe": {
+    "mode": "after_provider_execution_start",
+    "sequenceLength": 1000,
+    "executionStartObserved": true,
+    "providerStatusBeforeReload": "Computing",
+    "providerStatusAfterReload": "Computing",
+    "requestStatusBeforeReload": "Contributor tabs are answering",
+    "recoveryCode": "peer_request_interrupted",
+    "automaticRetry": false,
+    "userDecisionRequired": true,
+    "userDecision": "discarded",
+    "lateResultPublishedInReloadedPage": false
+  },
+  "remainingQualificationBoundary": [
+    "the interruption observation is not bound to a clean source revision or browser bundle",
+    "the provider and requester used one local Chromium browser context rather than independently operated browsers",
+    "the observation is separate from the successful output and signed receipt observation",
+    "this observation exercises discard; explicit retry is preserved in a separate actual-browser observation",
+    "the journey did not wait for the interrupted provider execution to settle after discard"
+  ]
+}

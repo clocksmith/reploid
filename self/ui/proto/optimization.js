@@ -157,9 +157,15 @@ export function createDopplerOptimizationManager({
 
   const renderReceipts = (run) => {
     const body = byId('optimization-candidates');
-    const detail = byId('optimization-candidate-detail');
     const promote = byId('optimization-promote');
-    if (!body || !detail || !promote) return;
+    const views = {
+      objective: byId('optimization-objective'),
+      comparison: byId('optimization-comparison'),
+      impact: byId('optimization-impact'),
+      evidence: byId('optimization-evidence'),
+      history: byId('optimization-history')
+    };
+    if (!body || !promote || Object.values(views).some((view) => !view)) return;
     body.replaceChildren();
     const receipts = Array.isArray(run?.receipts) ? run.receipts : [];
     if (receipts.length === 0) {
@@ -170,7 +176,9 @@ export function createDopplerOptimizationManager({
       cell.textContent = run ? 'No completed candidates' : 'No run selected';
       row.appendChild(cell);
       body.appendChild(row);
-      detail.textContent = 'Select a completed candidate.';
+      for (const view of Object.values(views)) {
+        view.textContent = 'Select a completed candidate.';
+      }
       promote.disabled = true;
       selectedCandidateId = null;
       return;
@@ -222,14 +230,48 @@ export function createDopplerOptimizationManager({
 
     selectCandidate(selectedCandidateId);
     const selected = receipts.find((receipt) => receipt.candidateId === selectedCandidateId);
-    detail.textContent = JSON.stringify({
-      patch: selected?.candidate?.patch || [],
-      verification: selected?.verification || null,
-      measurement: selected?.measurement || null,
-      decision: selected?.decision || null,
-      receiptPath: selected?.receiptPath || null
+    const episode = selected?.episode || null;
+    views.objective.textContent = JSON.stringify({
+      episodeId: selected?.episodeId || null,
+      status: episode?.status || 'missing_episode',
+      objective: episode?.objective || null,
+      metrics: episode?.metrics || [],
+      resourceBudget: episode?.resourceBudget || null,
+      integrity: episode?.integrity || null
     }, null, 2);
-    promote.disabled = promotionPending || selected?.decision?.accepted !== true;
+    views.comparison.textContent = JSON.stringify({
+      generation: episode?.generation || null,
+      baseline: episode?.baseline || null,
+      evaluation: episode?.evaluation?.metrics || null,
+      comparison: episode?.comparison || null
+    }, null, 2);
+    views.impact.textContent = JSON.stringify({
+      candidate: episode?.candidate || null,
+      patch: selected?.candidate?.patch || [],
+      algorithm: episode?.algorithm || null,
+      diagnosis: episode?.diagnosis || null,
+      hypothesis: episode?.hypothesis || null
+    }, null, 2);
+    views.evidence.textContent = JSON.stringify({
+      evaluator: episode?.evaluator || null,
+      verification: episode?.verification || selected?.verification || null,
+      rawObservations: episode?.evaluation?.rawObservations || [],
+      providerMeasurement: selected?.measurement || null,
+      receiptPath: selected?.receiptPath || null,
+      eventHeadHash: episode?.integrity?.headHash || null
+    }, null, 2);
+    views.history.textContent = JSON.stringify({
+      promotionReadiness: selected?.promotionReadiness || null,
+      promotionRequest: episode?.promotionRequest || null,
+      reviews: episode?.reviews || [],
+      decision: episode?.decision || null,
+      rollback: episode?.rollback || null,
+      reflections: episode?.reflections || []
+    }, null, 2);
+    promote.disabled = promotionPending
+      || selected?.decision?.accepted !== true
+      || selected?.promotionReadiness?.ready !== true
+      || !['compared', 'awaiting_promotion'].includes(episode?.status);
   };
 
   const refresh = async () => {
