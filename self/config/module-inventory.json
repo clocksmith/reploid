@@ -2377,7 +2377,7 @@
     {
       "path": "ui/proto/optimization.js",
       "owner": "ui",
-      "sha256": "sha256:f320ffb7555c6b7a0ee5b607f01082426566eaf6aeef3af5e1c945a387267981",
+      "sha256": "sha256:4063227892feab5b1c3be88fc05347e4ecfc4cab862536158bc1a8f2872033a2",
       "imports": []
     },
     {
@@ -2405,7 +2405,7 @@
     {
       "path": "ui/proto/template.js",
       "owner": "ui",
-      "sha256": "sha256:d5fa9b1d8368d6694875a9deea851567c6dc5be746c70def41964fad50ccedde",
+      "sha256": "sha256:ea588810b8a68eb29adbacd7c5a8702924baefc255974bd23b2991f35e766139",
       "imports": []
     },
     {
@@ -2475,7 +2475,7 @@
     {
       "path": "ui/zero/index.js",
       "owner": "ui",
-      "sha256": "sha256:77ee749b66bc4c7a51eeee5e3fbcc113b1dbbc91687565afc8247641befc8933",
+      "sha256": "sha256:c5a6c85719ce4072b343251b10f5a00f7f99d83be47f83367b3f959886c78701",
       "imports": [
         "../../instance.js"
       ]

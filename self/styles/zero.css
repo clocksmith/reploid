@@ -309,6 +309,47 @@
   min-width: 112px;
 }
 
+.zero-epoch-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  padding: var(--space-xs) var(--space-sm);
+  border: var(--border-sm) solid color-mix(in srgb, var(--fg) 20%, transparent);
+  background: color-mix(in srgb, var(--fg) 3%, transparent);
+}
+
+.zero-epoch-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+}
+
+.zero-epoch-presets,
+.zero-epoch-run {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+.zero-epoch-select {
+  padding: 2px var(--space-xs);
+  font-size: 11px;
+  background: var(--bg);
+  color: var(--fg);
+  border: var(--border-sm) solid var(--fg);
+}
+
+.zero-epoch-status {
+  font-size: 11px;
+  font-weight: 600;
+  opacity: var(--opacity-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
 @media (max-width: 920px) {
   .zero-shell {
     height: auto;

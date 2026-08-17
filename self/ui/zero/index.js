@@ -39,6 +39,17 @@ const ZeroUI = {
       error: 0
     };
     let _models = [];
+    let _epoch = {
+      active: false,
+      startCycle: 0,
+      targetBudget: 10,
+      completedCycles: 0
+    };
+    const SYNTHETIC_GOAL_PRESETS = Object.freeze({
+      'l1-tool': 'Synthesize and verify an AST code transformer tool in self/tools/',
+      'l2-repair': 'Inspect failing tests in tests/unit and patch runtime modules in VFS',
+      'l3-rsi': 'Run a bounded GEPA mutation episode with paired evaluation and hypothesis reflection'
+    });
     const getModeLabel = () => {
       if (mode === 'reploid') return 'Reploid';
       if (mode === 'zero') return 'Zero';
@@ -814,6 +825,14 @@ const ZeroUI = {
       if (toolRateEl) {
         toolRateEl.textContent = formatToolErrorRate();
       }
+      const epochEl = _root.querySelector('#zero-epoch-status');
+      if (epochEl) {
+        if (_epoch.active) {
+          epochEl.textContent = `Epoch: ${_epoch.completedCycles} / ${_epoch.targetBudget} cycles`;
+        } else {
+          epochEl.textContent = 'Epoch: idle';
+        }
+      }
       if (stopBtn) {
         const pendingResume = AgentLoop.hasPendingProviderResume?.() || _status.autoResume;
         stopBtn.textContent = AgentLoop.isRunning()
@@ -889,12 +908,24 @@ const ZeroUI = {
     };
 
     const handleClick = (event) => {
+      const presetKey = event.target.closest('[data-zero-preset]')?.dataset.zeroPreset;
+      if (presetKey && SYNTHETIC_GOAL_PRESETS[presetKey]) {
+        event.preventDefault();
+        const input = _root?.querySelector('#zero-human-input');
+        if (input) {
+          input.value = SYNTHETIC_GOAL_PRESETS[presetKey];
+          input.focus();
+        }
+        return;
+      }
+
       const action = event.target.closest('[data-zero-action]')?.dataset.zeroAction;
       if (!action) return;
       event.preventDefault();
 
       switch (action) {
         case 'stop':
+          _epoch.active = false;
           AgentLoop.stop();
           _status = {
             ..._status,
@@ -911,6 +942,25 @@ const ZeroUI = {
         case 'send-note':
           sendHumanNote();
           break;
+        case 'run-epoch': {
+          const budgetSelect = _root?.querySelector('#zero-epoch-budget');
+          const budget = parseInt(budgetSelect?.value || '10', 10);
+          const currentCycle = _status.cycle || 0;
+          _epoch = {
+            active: true,
+            startCycle: currentCycle,
+            targetBudget: budget,
+            completedCycles: 0
+          };
+          const input = _root?.querySelector('#zero-human-input');
+          const content = input?.value?.trim() || SYNTHETIC_GOAL_PRESETS['l1-tool'];
+          EventBus.emit('human:message', { content, type: 'goal' });
+          if (!AgentLoop.isRunning()) {
+            AgentLoop.run?.(content);
+          }
+          renderSummary();
+          break;
+        }
       }
     };
 
@@ -927,6 +977,17 @@ const ZeroUI = {
           ...status,
           cycle: status.cycle ?? _status.cycle
         };
+        if (_epoch.active && status.cycle !== undefined) {
+          _epoch.completedCycles = Math.max(0, _status.cycle - _epoch.startCycle);
+          if (_epoch.completedCycles >= _epoch.targetBudget) {
+            _epoch.active = false;
+            AgentLoop.stop?.();
+            EventBus.emit('agent:history', {
+              type: 'system',
+              content: `Epoch complete: ${_epoch.targetBudget} cycles executed.`
+            });
+          }
+        }
         renderSummary();
       }));
 
@@ -1049,6 +1110,28 @@ const ZeroUI = {
               <span>Tools</span>
               <strong id="agent-tools">0 ok / 0 err</strong>
               <small id="agent-tool-rate">0% fail</small>
+            </div>
+          </section>
+
+          <section class="zero-epoch-panel" aria-label="Autonomous epoch execution">
+            <div class="zero-epoch-controls">
+              <div class="zero-epoch-presets">
+                <span class="zero-label">Synthetic Goal:</span>
+                <button class="btn btn-ghost" data-zero-preset="l1-tool" type="button">L1 Tool Synth</button>
+                <button class="btn btn-ghost" data-zero-preset="l2-repair" type="button">L2 Substrate Repair</button>
+                <button class="btn btn-ghost" data-zero-preset="l3-rsi" type="button">L3 Weak RSI</button>
+              </div>
+              <div class="zero-epoch-run">
+                <label class="zero-label" for="zero-epoch-budget">Budget:</label>
+                <select id="zero-epoch-budget" class="zero-epoch-select">
+                  <option value="5">5 cycles</option>
+                  <option value="10" selected>10 cycles</option>
+                  <option value="25">25 cycles</option>
+                  <option value="50">50 cycles</option>
+                </select>
+                <button class="btn btn-primary" data-zero-action="run-epoch" type="button">Run Epoch</button>
+                <span id="zero-epoch-status" class="zero-epoch-status">Epoch: idle</span>
+              </div>
             </div>
           </section>
 
