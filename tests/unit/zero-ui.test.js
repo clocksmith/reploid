@@ -435,4 +435,27 @@ describe('ZeroUI', () => {
     });
     expect(root.querySelector('#agent-state').textContent).toBe('Parked');
   });
+
+  it('populates synthetic goal presets on click and supports epoch execution', () => {
+    const l1PresetBtn = root.querySelector('[data-zero-preset="l1-tool"]');
+    expect(l1PresetBtn).toBeTruthy();
+    l1PresetBtn.click();
+
+    const input = root.querySelector('#zero-human-input');
+    expect(input.value).toContain('Synthesize and verify an AST code transformer');
+
+    const runEpochBtn = root.querySelector('[data-zero-action="run-epoch"]');
+    const epochStatus = root.querySelector('#zero-epoch-status');
+    expect(runEpochBtn).toBeTruthy();
+    expect(epochStatus.textContent).toBe('Epoch: idle');
+
+    runEpochBtn.click();
+    expect(epochStatus.textContent).toContain('Epoch: 0 / 10 cycles');
+
+    eventBus.emit('agent:status', { cycle: 3 });
+    expect(epochStatus.textContent).toContain('Epoch: 3 / 10 cycles');
+
+    eventBus.emit('agent:status', { cycle: 10 });
+    expect(epochStatus.textContent).toBe('Epoch: idle');
+  });
 });

@@ -254,31 +254,54 @@ export const renderProtoTemplate = (escapeHtml, goalFromBoot) => `
             </div>
           </div>
 
-          <div class="optimization-workbench" aria-label="RSI improvement episode workbench">
-            <section class="optimization-episode-view">
-              <div class="optimization-section-label"><span>1. Objective and Success Criteria</span></div>
-              <pre id="optimization-objective">Select a completed candidate.</pre>
-            </section>
-            <section class="optimization-episode-view">
-              <div class="optimization-section-label"><span>2. Baseline versus Candidate</span></div>
-              <pre id="optimization-comparison">Select a completed candidate.</pre>
-            </section>
-            <section class="optimization-episode-view">
-              <div class="optimization-section-label"><span>3. Patch and Algorithm Impact</span></div>
-              <pre id="optimization-impact">Select a completed candidate.</pre>
-            </section>
-            <section class="optimization-episode-view">
-              <div class="optimization-section-label"><span>4. Raw Evidence and Evaluator</span></div>
-              <pre id="optimization-evidence">Select a completed candidate.</pre>
-            </section>
-            <section class="optimization-episode-view optimization-episode-history">
-              <div class="optimization-section-label">
-                <span>5. Promotion, Rollback, and Reflection</span>
-                <button id="optimization-promote" class="btn btn-small" disabled>Promote</button>
-              </div>
-              <pre id="optimization-history">Select a completed candidate.</pre>
-            </section>
+          <div class="optimization-causal-card" aria-label="Causal improvement summary">
+            <div class="optimization-causal-col">
+              <div class="optimization-section-label"><span>1. Baseline & Evaluator</span></div>
+              <div id="optimization-summary-baseline" class="optimization-summary-content">No candidate selected</div>
+            </div>
+            <div class="optimization-causal-col">
+              <div class="optimization-section-label"><span>2. Candidate Patch & Scope</span></div>
+              <div id="optimization-summary-candidate" class="optimization-summary-content">No candidate selected</div>
+            </div>
+            <div class="optimization-causal-col">
+              <div class="optimization-section-label"><span>3. Paired Delta & Verdict</span></div>
+              <div id="optimization-summary-delta" class="optimization-summary-content">No candidate selected</div>
+            </div>
           </div>
+
+          <div class="optimization-governance-bar" aria-label="Governance and rollback triggers">
+            <button id="optimization-promote" class="btn btn-primary btn-small" disabled>Promote Candidate</button>
+            <button id="optimization-quarantine" class="btn btn-small" disabled>Quarantine</button>
+            <button id="optimization-rollback" class="btn btn-danger btn-small">Genesis Rollback</button>
+          </div>
+
+          <details class="optimization-details-drawer">
+            <summary class="optimization-section-label"><span>Raw Episode Inspector</span></summary>
+            <div class="optimization-workbench" aria-label="RSI improvement episode workbench">
+              <section class="optimization-episode-view">
+                <div class="optimization-section-label"><span>1. Objective and Success Criteria</span></div>
+                <pre id="optimization-objective">Select a completed candidate.</pre>
+              </section>
+              <section class="optimization-episode-view">
+                <div class="optimization-section-label"><span>2. Baseline versus Candidate</span></div>
+                <pre id="optimization-comparison">Select a completed candidate.</pre>
+              </section>
+              <section class="optimization-episode-view">
+                <div class="optimization-section-label"><span>3. Patch and Algorithm Impact</span></div>
+                <pre id="optimization-impact">Select a completed candidate.</pre>
+              </section>
+              <section class="optimization-episode-view">
+                <div class="optimization-section-label"><span>4. Raw Evidence and Evaluator</span></div>
+                <pre id="optimization-evidence">Select a completed candidate.</pre>
+              </section>
+              <section class="optimization-episode-view optimization-episode-history">
+                <div class="optimization-section-label">
+                  <span>5. Promotion, Rollback, and Reflection</span>
+                </div>
+                <pre id="optimization-history">Select a completed candidate.</pre>
+              </section>
+            </div>
+          </details>
         </div>
       </div>
 

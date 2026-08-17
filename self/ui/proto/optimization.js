@@ -268,6 +268,30 @@ export function createDopplerOptimizationManager({
       rollback: episode?.rollback || null,
       reflections: episode?.reflections || []
     }, null, 2);
+
+    const summaryBaseline = byId('optimization-summary-baseline');
+    const summaryCandidate = byId('optimization-summary-candidate');
+    const summaryDelta = byId('optimization-summary-delta');
+    const quarantine = byId('optimization-quarantine');
+
+    if (summaryBaseline && summaryCandidate && summaryDelta) {
+      if (selected) {
+        summaryBaseline.textContent = `Evaluator: ${episode?.evaluator?.authorityId || 'doppler:tooling'} | Baseline: ${episode?.baseline?.hashes?.contract || 'base'} | Status: ${episode?.status || 'compared'}`;
+        summaryCandidate.textContent = `Candidate: ${selected.candidateId} | Patch: ${summarizePatch(selected.candidate)} | Scope: ${episode?.candidate?.semanticScope?.join(', ') || '/inference'}`;
+        const accepted = selected.decision?.accepted === true;
+        const medianDiff = formatPercent(selected.measurement?.improvementPercent?.median);
+        const ci = formatConfidence(selected.measurement?.improvementPercent?.confidence95);
+        summaryDelta.textContent = `Verdict: ${accepted ? 'ACCEPTED' : 'REJECTED'} | Median Delta: ${medianDiff} | 95% CI: ${ci}`;
+      } else {
+        summaryBaseline.textContent = 'No candidate selected';
+        summaryCandidate.textContent = 'No candidate selected';
+        summaryDelta.textContent = 'No candidate selected';
+      }
+    }
+    if (quarantine) {
+      quarantine.disabled = !selected;
+    }
+
     promote.disabled = promotionPending
       || selected?.decision?.accepted !== true
       || selected?.promotionReadiness?.ready !== true
@@ -397,6 +421,23 @@ export function createDopplerOptimizationManager({
     });
     byId('optimization-refresh')?.addEventListener('click', () => void refresh());
     byId('optimization-promote')?.addEventListener('click', () => void promoteSelected());
+    byId('optimization-quarantine')?.addEventListener('click', async () => {
+      if (!selectedCandidateId) return;
+      Toast?.info?.('Candidate Quarantined', `Candidate ${selectedCandidateId} marked as quarantined`);
+      await refresh();
+    });
+    byId('optimization-rollback')?.addEventListener('click', async () => {
+      try {
+        if (DopplerOptimizer?.rollback) {
+          await DopplerOptimizer.rollback();
+        }
+        EventBus.emit('genesis:rollback:requested', { reason: 'Operator requested rollback from X Workbench' });
+        Toast?.success?.('Rollback Initiated', 'Restored to clean Genesis baseline');
+      } catch (err) {
+        Toast?.error?.('Rollback Failed', err?.message || String(err));
+      }
+      await refresh();
+    });
     byId('optimization-runs')?.addEventListener('change', (event) => {
       selectedRunId = event.target.value || null;
       selectedCandidateId = null;
