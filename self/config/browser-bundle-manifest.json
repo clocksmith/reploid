@@ -1176,7 +1176,7 @@
     {
       "path": "config/blueprint-registry.json",
       "byteLength": 33457,
-      "sha256": "sha256:4b87ccc342298211a65ecd5b8b1c712ec89933fbefec321551c0132402de901b"
+      "sha256": "sha256:a26961e0dee7c85104d4f6dc94453fbc812909f91c13c80afb8354fecc878cec"
     },
     {
       "path": "config/boot-modes.js",
@@ -1245,8 +1245,8 @@
     },
     {
       "path": "config/module-inventory.json",
-      "byteLength": 76104,
-      "sha256": "sha256:da53c6b5633f255cd32361ab6c0a7a95850df6a970a1fe7e2c63dce9b5cf0393"
+      "byteLength": 76144,
+      "sha256": "sha256:00c35d069ef3d3b88ff559523e2fb11843b738e239b00ada815968ea4e550769"
     },
     {
       "path": "config/module-registry.json",
@@ -1784,6 +1784,11 @@
       "sha256": "sha256:a214f159287faceae83525be48c9cc8368b2bc8204b8bdbb4c04b1ad2ed184df"
     },
     {
+      "path": "pool/adjudication-pilot-manifest.json",
+      "byteLength": 16904,
+      "sha256": "sha256:ea9dba766c530b9a09a55ec979cc610b9d335ddabd6144918365609912f026af"
+    },
+    {
       "path": "pool/agent-client.js",
       "byteLength": 10024,
       "sha256": "sha256:23977c3d28ac875228439e7317f88b9f109339b62ad3e9322d2ea634fc569095"
@@ -2150,8 +2155,8 @@
     },
     {
       "path": "styles/poolday/components.css",
-      "byteLength": 111625,
-      "sha256": "sha256:26c2cf0efd96bf61f7d4d3e2683995b5c7c0a2b32a125b408e0f75e0aeb83bf9"
+      "byteLength": 113892,
+      "sha256": "sha256:d0dcac3efa5e258d9f51a0bf9e64b721e27e89bc71f10100bcca1a6011975741"
     },
     {
       "path": "styles/poolday/primitives.css",
@@ -2195,8 +2200,8 @@
     },
     {
       "path": "styles/proto/optimization.css",
-      "byteLength": 3244,
-      "sha256": "sha256:bb6d5c0fa49bfe16d971411f5dc4f48cf9bd26564cb255462d7882477bc62679"
+      "byteLength": 4463,
+      "sha256": "sha256:50bc91e1ea8b5b3d8b7967fd001d6f7cdffd2555de0ecb22c87fe280d2d7c1fa"
     },
     {
       "path": "styles/proto/panels.css",
@@ -2225,8 +2230,8 @@
     },
     {
       "path": "styles/zero.css",
-      "byteLength": 7835,
-      "sha256": "sha256:90652d1d812f15282c49280cc0bbd597147df5893df84b8aae6d9b0a4d63932d"
+      "byteLength": 8698,
+      "sha256": "sha256:e7d055854247e7625f71ca6a0f361920e7242d57b8b13f1f01c01bb7e7e1effc"
     },
     {
       "path": "sw-module-loader.js",
@@ -2650,8 +2655,8 @@
     },
     {
       "path": "ui/pool-home/research-view.js",
-      "byteLength": 83128,
-      "sha256": "sha256:c397aef6e095bb69ffa13eac80ade151a51fea55d177616278602ed784ea26c6"
+      "byteLength": 86584,
+      "sha256": "sha256:f729016438e5fa8b68356cc029ae59307347946b8e6ca97e5c6ad91fd1214a3d"
     },
     {
       "path": "ui/pool-home/room-projection.js",
@@ -2665,8 +2670,8 @@
     },
     {
       "path": "ui/pool-home/room-view.js",
-      "byteLength": 44044,
-      "sha256": "sha256:36ef3fef90900f99e2d22b13ce9d4a38c44d3320356f8ad69167e3f9cc176f99"
+      "byteLength": 47428,
+      "sha256": "sha256:e2f07354e7dfa947eb6125de7ba423c631881ee6da2412eb5c2e4a09504df4ec"
     },
     {
       "path": "ui/pool-home/simulation-batches.js",
@@ -2725,8 +2730,8 @@
     },
     {
       "path": "ui/proto/optimization.js",
-      "byteLength": 14699,
-      "sha256": "sha256:f320ffb7555c6b7a0ee5b607f01082426566eaf6aeef3af5e1c945a387267981"
+      "byteLength": 16880,
+      "sha256": "sha256:4063227892feab5b1c3be88fc05347e4ecfc4cab862536158bc1a8f2872033a2"
     },
     {
       "path": "ui/proto/replay.js",
@@ -2745,8 +2750,8 @@
     },
     {
       "path": "ui/proto/template.js",
-      "byteLength": 18939,
-      "sha256": "sha256:d5fa9b1d8368d6694875a9deea851567c6dc5be746c70def41964fad50ccedde"
+      "byteLength": 20470,
+      "sha256": "sha256:ea588810b8a68eb29adbacd7c5a8702924baefc255974bd23b2991f35e766139"
     },
     {
       "path": "ui/proto/utils.js",
@@ -2795,9 +2800,9 @@
     },
     {
       "path": "ui/zero/index.js",
-      "byteLength": 39178,
-      "sha256": "sha256:77ee749b66bc4c7a51eeee5e3fbcc113b1dbbc91687565afc8247641befc8933"
+      "byteLength": 42881,
+      "sha256": "sha256:c5a6c85719ce4072b343251b10f5a00f7f99d83be47f83367b3f959886c78701"
     }
   ],
-  "bundleHash": "sha256:7fcb9013cc36163cc0a43d9f26b9f5bd77b412cba6cd9d30411ea5ca27dccbb9"
+  "bundleHash": "sha256:dc9899979fe882e41bdafd22c87ece7f6688fcb78f4fcd073cdb6ff32383d46f"
 }
