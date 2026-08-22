@@ -46,6 +46,7 @@ async function collectFiles(rootDirectory, relativePath) {
   const dirents = await fs.readdir(absolutePath, { withFileTypes: true });
   const files = [];
   for (const dirent of dirents) {
+    if (dirent.name.startsWith('.') || dirent.name === 'logs' || dirent.name === 'node_modules') continue;
     const child = `${normalized}/${dirent.name}`;
     if (dirent.isSymbolicLink()) {
       throw new Error(`Coordinator runtime scope cannot contain a symbolic link: ${child}`);
