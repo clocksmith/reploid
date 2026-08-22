@@ -1786,7 +1786,7 @@
     {
       "path": "pool/adjudication-pilot-manifest.json",
       "byteLength": 16904,
-      "sha256": "sha256:ea9dba766c530b9a09a55ec979cc610b9d335ddabd6144918365609912f026af"
+      "sha256": "sha256:54552ca9c950fce5cde854b5314778daa74a08ab7b826844530b02c3d15db19d"
     },
     {
       "path": "pool/agent-client.js",
@@ -2804,5 +2804,5 @@
       "sha256": "sha256:c5a6c85719ce4072b343251b10f5a00f7f99d83be47f83367b3f959886c78701"
     }
   ],
-  "bundleHash": "sha256:55899950dd1db14d498e5588f1b4877a406ee2860ce0d0af795e39025af3fcde"
+  "bundleHash": "sha256:4336edaabcaa8c690f238c2a63052c5a3b20217e1a6010f72a62d8c006e2d7fa"
 }
