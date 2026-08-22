@@ -1176,7 +1176,7 @@
     {
       "path": "config/blueprint-registry.json",
       "byteLength": 33457,
-      "sha256": "sha256:a26961e0dee7c85104d4f6dc94453fbc812909f91c13c80afb8354fecc878cec"
+      "sha256": "sha256:92468f21dfa76bc7dae078ab1d61dfa69bf5ff7b28b602962a731f0316e9b572"
     },
     {
       "path": "config/boot-modes.js",
@@ -2804,5 +2804,5 @@
       "sha256": "sha256:c5a6c85719ce4072b343251b10f5a00f7f99d83be47f83367b3f959886c78701"
     }
   ],
-  "bundleHash": "sha256:dc9899979fe882e41bdafd22c87ece7f6688fcb78f4fcd073cdb6ff32383d46f"
+  "bundleHash": "sha256:55899950dd1db14d498e5588f1b4877a406ee2860ce0d0af795e39025af3fcde"
 }
