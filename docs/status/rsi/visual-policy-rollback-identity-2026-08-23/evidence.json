@@ -1,0 +1,141 @@
+{
+  "schema": "reploid.visual-policy-improvement-evidence/v1",
+  "episodeId": "episode:visual-policy:rollback-identity:2026-08-23",
+  "startedAt": "2026-08-23T18:31:37.310Z",
+  "completedAt": "2026-08-23T18:31:39.049Z",
+  "generator": {
+    "authorityId": "reploid:policy-candidate-generator",
+    "implementation": "scripts/run-visual-policy-improvement-episode.js",
+    "digest": "sha256:a64b2414b111d8d7616ea0db36b7efa671ab5018bf418d30b367db126736e14b"
+  },
+  "baseline": {
+    "path": "docs/change-passport/dogfood/visual-policy-v1.0.0.json",
+    "policyHash": "sha256:30cad159daf345393f5b27f4acb78256f77426e6ed498992b7c552f00f8d2bbb"
+  },
+  "candidate": {
+    "path": "docs/change-passport/dogfood/visual-policy-v1.1.0.json",
+    "policyHash": "sha256:9d8ddc4a7aad1a3c6ff9a03a3f73e9f189da77648d3c21a69d1be50230e876a7"
+  },
+  "evaluator": {
+    "authorityId": "reploid:frozen-policy-evaluator",
+    "digest": "sha256:6368c9d3225c0daf0f4ad23a96cdfd39d1abb119de9de973ed262153301d8f4e",
+    "corpusDigest": "sha256:04cbe41767330903098fda1b4a6ca5d3d10ddb0456c3ac2fea77d7165955625b"
+  },
+  "protectedPaths": [
+    "/self/core/improvement-episode.js",
+    "/self/shared/change-passport/policy.js",
+    "/server/change-control/visual-workflow.js",
+    "/scripts/run-visual-policy-improvement-episode.js",
+    "/scripts/verify-visual-change-passport-dogfood.js",
+    "/tests/integration/visual-change-passport.test.js"
+  ],
+  "budget": {
+    "callsMaximum": 4,
+    "callsConsumed": 4,
+    "costAmount": 0,
+    "costUnit": "local_execution"
+  },
+  "cases": [
+    {
+      "id": "baseline_missing_rollback_identity",
+      "expectedEligible": true,
+      "result": {
+        "eligible": true,
+        "status": "eligible",
+        "reasons": [],
+        "unresolvedObjectionIds": [],
+        "acceptableEvaluationIds": [
+          "evaluation:frozen-visual-policy"
+        ],
+        "approvalReviewIds": [
+          "review:human-policy-owner"
+        ]
+      }
+    },
+    {
+      "id": "candidate_missing_rollback_identity",
+      "expectedEligible": false,
+      "result": {
+        "eligible": false,
+        "status": "blocked",
+        "reasons": [
+          "required evidence missing: rollback_identity"
+        ],
+        "unresolvedObjectionIds": [],
+        "acceptableEvaluationIds": [
+          "evaluation:frozen-visual-policy"
+        ],
+        "approvalReviewIds": [
+          "review:human-policy-owner"
+        ]
+      }
+    },
+    {
+      "id": "candidate_bound_rollback_identity",
+      "expectedEligible": true,
+      "result": {
+        "eligible": true,
+        "status": "eligible",
+        "reasons": [],
+        "unresolvedObjectionIds": [],
+        "acceptableEvaluationIds": [
+          "evaluation:frozen-visual-policy"
+        ],
+        "approvalReviewIds": [
+          "review:human-policy-owner"
+        ]
+      }
+    }
+  ],
+  "negativeEvidence": [
+    {
+      "id": "baseline-admits-missing-rollback-identity",
+      "retained": true,
+      "baselineEligible": true,
+      "candidateEligible": false
+    }
+  ],
+  "promotion": {
+    "scope": "dedicated_visual_dogfood_only",
+    "policyHash": "sha256:9d8ddc4a7aad1a3c6ff9a03a3f73e9f189da77648d3c21a69d1be50230e876a7",
+    "humanAuthority": "human:portfolio-owner",
+    "activePolicyPath": "docs/change-passport/dogfood/active-policy.json",
+    "productQualification": false,
+    "crossRepositoryAuthority": false
+  },
+  "observedOutcome": {
+    "ok": true,
+    "passportId": "passport:visual-dogfood:1",
+    "candidateHash": "sha256:d2aa45af9bf2bc04c94cdcfa7e3c7d8284bb153558c3eb33daa600e390ffbf8d",
+    "patchArtifactHash": "sha256:20867cefb71e68bef2543eb902dc7eb2784c37e2593ee1b8d61491889f9952c7",
+    "policyVersion": "1.1.0",
+    "policyHash": "sha256:9d8ddc4a7aad1a3c6ff9a03a3f73e9f189da77648d3c21a69d1be50230e876a7",
+    "eventCount": 15,
+    "headHash": "sha256:00861f8a1c9e5b14890a104e618ca08e7bf77e940e1e8541a865551bc303a005",
+    "exportHash": "sha256:5e736c3d35ba3bee3ae46bba7c2c0a77a5a6da6ff5b4d840622660df412b094c",
+    "decisionState": "reopened",
+    "effectState": "applied",
+    "sourceRestoredExactly": true,
+    "independentBrowser": "physical Chromium via Playwright",
+    "bridgeRoot": "/Users/xyz/deco/ouroboros/deco/packages/visual-feedback-bridge",
+    "outputPath": "/Users/xyz/deco/reploid/docs/status/rsi/visual-policy-rollback-identity-2026-08-23/change-passport-export.json",
+    "stages": [
+      "visual_complaint",
+      "source_owned_patch",
+      "independent_evaluation",
+      "human_acceptance_recorded",
+      "ci_activation",
+      "rendered_verification",
+      "reverse_patch",
+      "automatic_reopening"
+    ]
+  },
+  "integrity": {
+    "valid": true,
+    "eventCount": 11,
+    "validSignatures": 11,
+    "headHash": "sha256:a5d1a8c9526401b5556542fb13a3ca91fda9077e7460576bbd688f715939d06d",
+    "reasons": []
+  },
+  "claimBoundary": "Internal causal closure only. No customer value, product qualification, portfolio promotion, or cross-repository authority is granted."
+}

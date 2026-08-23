@@ -132,12 +132,14 @@
         "docs/change-passport/pilot-charter.md",
         "docs/change-passport/pilot-manifest.json",
         "docs/status/change-passport-github-installation-2026-08-23.json",
+        "docs/status/change-passport-github-authority-boundary-2026-08-23.json",
         "scripts/verify-change-passport-pilot.js",
         "tests/unit/change-passport-pilot.test.js"
       ],
       "blockers": [
         "named adopter, operator, independent evaluator, approving authority, and repository are not frozen",
         "live blocked and eligible Change Passport check-run evidence is absent",
+        "the existing GitHub App registration still exceeds the least-privilege permission contract",
         "at least 20 retained prospective comparison cases have not been executed",
         "independent signed comparison and a request to govern another real change are absent"
       ],

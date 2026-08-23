@@ -6,13 +6,13 @@ Reploid should govern consequential decisions made by agents and humans from
 proposal through evidence, disagreement, evaluation, approval, activation,
 observed outcome, rollback, and reopening.
 
-The first commercial expression is Reploid Change Passport. It makes an
-agent-generated model, prompt, tool, policy, configuration, or source patch
-change reviewable,
-reversible, and automatically reopenable when a declared part of its evidence
-or policy basis changes. A passport verifies the declared evidence and policy
-basis under which a decision became active. It does not prove that the decision
-was objectively correct or that every contributing system was honest.
+The first commercial expression is Reploid Agent Release Passport. It governs
+eligibility for an exact agent tool, MCP server, permission policy, or
+production-agent configuration release. It preserves the evidence,
+disagreement, human authority, rollback target, and reopening rules that made
+the release eligible. GitHub controls merge, deployment systems control
+activation, and identity systems control access. Reploid controls eligibility
+and preserves its basis.
 
 Reploid Room-1 remains the first scientific proof. It tests whether the same
 contradiction-preserving decision mechanism can help curators of public protein
@@ -38,7 +38,10 @@ GitHub App client and required-check projection, CI action, TypeScript SDK,
 browser review surface, explicit deployment and rollback adapters, standard
 reopening triggers, offline export verification, and a separate adapter from
 `rsi.improvement-episode/v1`. These claims are bounded to repository tests and
-the local browser journey. A complete Visual Change Passport dogfood path also
+the local browser journey. A GitHub App is installed only on
+`clocksmith/reploid`, its webhook is deployed, and a dedicated dogfood branch
+requires the App-bound check. No authentic blocked and eligible check pair has
+been observed. A complete Visual Change Passport dogfood path also
 binds the development Bridge's complaint and reversible patch receipts to an
 independent physical-Chromium evaluation, attributed acceptance, local CI
 activation, post-activation render outcome, exact source reversal, and
@@ -68,8 +71,8 @@ independent model evidence, biological correctness, or scientific replication.
 
 The first commercial proof is narrower than generic decision governance:
 
-> Reploid governs an agent-generated model, prompt, tool, policy,
-> configuration, or source patch change in a real GitHub and CI workflow. It binds the exact
+> Reploid governs an agent tool, MCP server, permission policy, or
+> production-agent configuration release in a real GitHub and CI workflow. It binds the exact
 > candidate, frozen baseline, evaluator, evidence, disagreement, approval,
 > activation, outcome, rollback, and reopening conditions. Reploid succeeds
 > only when the team can approve or reject the change with less reconstruction
@@ -124,8 +127,8 @@ continuously improving decision-policy loop remain target capabilities.
 ## Initial users and market constraints
 
 The initial commercial user is an AI platform, developer infrastructure,
-reliability, or security operator promoting agent models, prompts, tools,
-policies, or production configuration through GitHub and CI. The first workflow
+reliability, or security operator promoting agent tools, MCP servers,
+permission policies, or production-agent configuration through GitHub and CI. The first workflow
 must name the repository, controlled change type, current required checks,
 evaluator, approval authority, activation system, rollback owner, and business
 condition that makes Reploid preferable.

@@ -8,6 +8,7 @@ import {
   createVisualChangePassportWorkflow
 } from '../../server/change-control/visual-workflow.js';
 import { verifyChangePassportExport } from '../../self/shared/change-passport/contract.js';
+import { evaluateChangePassportGate } from '../../self/shared/change-passport/policy.js';
 import {
   buildVisualChangeAcceptanceReceipt,
   buildVisualChangeCandidate,
@@ -142,6 +143,56 @@ const evaluator = {
 };
 
 describe('Visual Change Passport workflow', () => {
+  it('blocks a missing rollback identity without false-blocking a bound rollback contract', async () => {
+    const baseline = await buildVisualChangePassportPolicy({
+      policyId: 'policy:visual-change:rollback-baseline',
+      version: '1.0.0',
+      targetId: 'reploid:passports-ui',
+      reviewerRole: 'visual_reviewer',
+      rollbackAuthorityId: 'authority:visual-rollback',
+      sourceSensorAuthorityId: 'authority:bridge-observer'
+    });
+    const candidatePolicy = await buildVisualChangePassportPolicy({
+      policyId: 'policy:visual-change:rollback-baseline',
+      version: '1.1.0',
+      targetId: 'reploid:passports-ui',
+      reviewerRole: 'visual_reviewer',
+      requiredEvidenceKinds: ['visual_complaint', 'source_owned_patch', 'rollback_identity'],
+      rollbackAuthorityId: 'authority:visual-rollback',
+      sourceSensorAuthorityId: 'authority:bridge-observer'
+    });
+    const projection = (policy, evidenceKinds) => ({
+      integrity: { valid: true },
+      changeClass: 'source_patch',
+      policy,
+      evidence: {
+        state: 'frozen',
+        admitted: evidenceKinds.map((kind) => ({ kind }))
+      },
+      evaluations: [{ evaluationId: 'evaluation:1', conclusion: 'pass' }],
+      reviews: [{
+        reviewId: 'review:1',
+        verdict: 'approve',
+        actor: { role: 'visual_reviewer', authorityId: 'authority:human-reviewer' }
+      }],
+      proposal: { proposerAuthorityId: 'authority:patch-agent' },
+      evaluator: { authorityId: 'authority:visual-evaluator' },
+      objections: [],
+      decision: { state: 'approved' },
+      supersededBy: null
+    });
+    const withoutRollback = ['visual_complaint', 'source_owned_patch'];
+    expect(evaluateChangePassportGate(projection(baseline, withoutRollback)).eligible).toBe(true);
+    expect(evaluateChangePassportGate(projection(candidatePolicy, withoutRollback))).toMatchObject({
+      eligible: false,
+      reasons: ['required evidence missing: rollback_identity']
+    });
+    expect(evaluateChangePassportGate(projection(candidatePolicy, [
+      ...withoutRollback,
+      'rollback_identity'
+    ])).eligible).toBe(true);
+  });
+
   it('governs complaint, patch, independent evaluation, acceptance, CI activation, render, reverse, and reopening', async () => {
     const activation = vi.fn(async ({ projection, request }) => ({
       externalReference: `ci://local/${projection.proposal.candidateRevision}/${request.effectId}`

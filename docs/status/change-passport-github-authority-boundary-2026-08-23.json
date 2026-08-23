@@ -1,0 +1,37 @@
+{
+  "schema": "reploid.change-passport-github-authority-boundary/v1",
+  "observedAt": "2026-08-23T18:15:12Z",
+  "repository": "clocksmith/reploid",
+  "app": {"slug": "reploid-change-passport", "appId": 4693600},
+  "ordinaryMain": {
+    "requiredPassportCheck": false,
+    "preservedProtections": [
+      "one approving review",
+      "dismiss stale reviews",
+      "require approval after latest push",
+      "linear history",
+      "resolved conversations",
+      "force pushes disabled",
+      "deletions disabled"
+    ]
+  },
+  "dogfood": {
+    "branch": "passport-dogfood",
+    "requiredCheck": "Reploid Change Passport",
+    "boundAppId": 4693600,
+    "strict": true,
+    "liveBlockedAndEligibleRunsObserved": false
+  },
+  "permissionBoundary": {
+    "targetRef": "docs/change-passport/github-app-least-privilege.json",
+    "existingRegistrationReduced": false,
+    "blocker": "GitHub App permission removal requires an owner change in the GitHub App Permissions and events settings."
+  },
+  "claimPermission": {
+    "githubInstallation": true,
+    "blockingDogfoodBranchConfigured": true,
+    "liveCheckBehavior": false,
+    "productQualification": false,
+    "commercialValue": false
+  }
+}

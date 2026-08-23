@@ -98,15 +98,21 @@ export async function buildVisualChangePassportPolicy({
   version = '1.0.0',
   targetId,
   reviewerRole = 'visual_reviewer',
+  requiredEvidenceKinds = ['visual_complaint', 'source_owned_patch'],
   rollbackAuthorityId,
   sourceSensorAuthorityId,
   freshnessMilliseconds = 300_000
 } = {}) {
+  const evidenceKinds = [...new Set([
+    'visual_complaint',
+    'source_owned_patch',
+    ...requiredEvidenceKinds
+  ])];
   return buildChangePassportPolicy({
     policyId: requiredText(policyId, 'policyId'),
     version: requiredText(version, 'policy version'),
     changeClasses: ['source_patch'],
-    requiredEvidenceKinds: ['visual_complaint', 'source_owned_patch'],
+    requiredEvidenceKinds: evidenceKinds,
     requiredEvaluationConclusion: 'pass',
     requiredReviewerRoles: [requiredText(reviewerRole, 'reviewerRole')],
     minimumApprovals: 1,
@@ -193,6 +199,13 @@ export function createVisualChangePassportWorkflow({
       throw new Error(`Visual policy must allow ${VISUAL_CHANGE_EFFECT_KIND}`);
     }
     const rule = requireVisualRule(policy, target?.targetId);
+    const rollback = {
+      kind: 'visual_feedback_reverse_patch',
+      targetId: target?.targetId,
+      revision: baseRevision,
+      artifactHash: candidate.patch.artifactHash,
+      authorityId: policy.rollbackAuthorityId
+    };
     const start = normalizeChangePassportStart({
       passportId,
       organizationId,
@@ -217,13 +230,7 @@ export function createVisualChangePassportWorkflow({
       policy,
       evaluator,
       budget,
-      rollback: {
-        kind: 'visual_feedback_reverse_patch',
-        targetId: target?.targetId,
-        revision: baseRevision,
-        artifactHash: candidate.patch.artifactHash,
-        authorityId: policy.rollbackAuthorityId
-      },
+      rollback,
       evidenceCutoff,
       createdAt
     });
@@ -261,6 +268,18 @@ export function createVisualChangePassportWorkflow({
         custody: { mode: 'content_addressed_reference', accessRequired: true, retention: 'bridge_source_owned' }
       }
     ];
+    if (policy.requiredEvidenceKinds.includes('rollback_identity')) {
+      evidence.push({
+        evidenceId: `evidence:${candidate.bridge.changeId}:rollback-identity`,
+        kind: 'rollback_identity',
+        digest: await hashChangePassportValue(rollback),
+        source: `Change Passport rollback contract ${rollback.kind}`,
+        uri: `passport://${passportId}#rollback`,
+        summary: 'The rollback kind, target, baseline revision, reverse artifact, and named authority are bound before eligibility.',
+        observedAt: createdAt,
+        custody: { mode: 'passport_embedded_contract', accessRequired: false, retention: 'passport_lifetime' }
+      });
+    }
     for (const item of evidence) {
       await changeControl.appendEvent({
         passportId,

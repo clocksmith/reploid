@@ -1,0 +1,314 @@
+{
+  "schema": "rsi.improvement-episode/v1",
+  "episodeId": "episode:visual-policy:rollback-identity:2026-08-23",
+  "parentEpisodeId": null,
+  "groupId": "run:visual-policy-rollback-identity",
+  "surface": "other",
+  "status": "promoted",
+  "objective": {
+    "objectiveId": "rollback-identity-eligibility",
+    "statement": "Reject Visual Passport eligibility when rollback identity evidence is absent without blocking a correctly bound candidate.",
+    "successMetricId": "rollback-identity-policy-correct"
+  },
+  "baseline": {
+    "generationId": "visual-policy:1.0.0",
+    "hashes": {
+      "code": "sha256:eb9ae28a46e611156d324ae2157d318f97e6c9d39fda1622ab35d4ae46838471",
+      "config": "sha256:30cad159daf345393f5b27f4acb78256f77426e6ed498992b7c552f00f8d2bbb",
+      "model": "sha256:e3204792befd9843e26b193a47cabcb476f74c3f5394cd849dad3a3e2ffcef78",
+      "prompt": "sha256:c2be1ce2c8abbe698d4e554f510ae4d97ee50a5ab3f7b2e6c9fce7a4a87f1b2a",
+      "artifacts": "sha256:30cad159daf345393f5b27f4acb78256f77426e6ed498992b7c552f00f8d2bbb",
+      "contract": "sha256:f9d2d870331a8364058e30c52fc26e696657c6630796a07f32d2421c5adf6ac6"
+    },
+    "hashSemantics": {
+      "config": "Visual Change Passport policy identity",
+      "contract": "Frozen evaluator and three-case corpus identity"
+    },
+    "snapshotPath": "/docs/change-passport/dogfood/visual-policy-v1.0.0.json"
+  },
+  "proposer": {
+    "authorityId": "reploid:policy-candidate-generator"
+  },
+  "evaluator": {
+    "evaluatorId": "reploid.visual-policy-rollback-identity",
+    "authorityId": "reploid:frozen-policy-evaluator",
+    "version": "1.0.0",
+    "evaluatorHash": "sha256:6368c9d3225c0daf0f4ad23a96cdfd39d1abb119de9de973ed262153301d8f4e",
+    "testSuiteDigest": "sha256:04cbe41767330903098fda1b4a6ca5d3d10ddb0456c3ac2fea77d7165955625b",
+    "protectedPaths": [
+      "/self/core/improvement-episode.js",
+      "/self/shared/change-passport/policy.js",
+      "/server/change-control/visual-workflow.js",
+      "/scripts/run-visual-policy-improvement-episode.js",
+      "/scripts/verify-visual-change-passport-dogfood.js",
+      "/tests/integration/visual-change-passport.test.js"
+    ],
+    "heldOut": true,
+    "frozenBeforeCandidate": true
+  },
+  "metrics": [
+    {
+      "metricId": "rollback-identity-policy-correct",
+      "unit": "boolean-score",
+      "direction": "maximize",
+      "measurementSource": "Three predeclared eligibility cases plus physical Chromium dogfood.",
+      "aggregationRule": "One only when every expected eligibility result and the governed loop pass.",
+      "validityConditions": [
+        "Evaluator and protected paths remain unchanged by the candidate",
+        "Candidate with complete rollback identity remains eligible",
+        "Visual dogfood reaches applied effect, observed render, source reversal, and reopened decision"
+      ],
+      "noiseModel": "Deterministic policy evaluation plus one physical Chromium conformance run.",
+      "minimumSampleSize": 3,
+      "promotionThreshold": {
+        "operator": ">=",
+        "value": 1
+      },
+      "operational": false
+    }
+  ],
+  "algorithm": {
+    "schema": "rsi.algorithm-manifest/v1",
+    "algorithmId": "reploid.visual-policy-candidate-generator",
+    "version": "1.0.0",
+    "sourceModules": [
+      "/docs/change-passport/dogfood/visual-policy-v1.1.0.json"
+    ],
+    "inputs": [
+      "Baseline policy and missing rollback identity failure"
+    ],
+    "outputs": [
+      "One bounded policy candidate"
+    ],
+    "invariants": [
+      "No evaluator, ledger, verifier, promotion adapter, or rollback path changes"
+    ],
+    "complexity": "Constant-sized policy revision evaluated against three frozen cases.",
+    "resourceAssumptions": [
+      "Local Node runtime and physical Chromium are available"
+    ],
+    "knownFailureModes": [
+      "Policy-only checks can miss integration false blocks"
+    ],
+    "evaluationSuites": [
+      "reploid.visual-policy-rollback-identity/v1"
+    ],
+    "dependencies": [],
+    "status": "candidate",
+    "historicalRevisions": [
+      "sha256:30cad159daf345393f5b27f4acb78256f77426e6ed498992b7c552f00f8d2bbb"
+    ],
+    "candidateAlternatives": []
+  },
+  "environment": {
+    "runtime": "v22.20.0",
+    "host": "darwin",
+    "scope": "dedicated_visual_dogfood_only"
+  },
+  "corpus": {
+    "evaluationSplitHash": "sha256:04cbe41767330903098fda1b4a6ca5d3d10ddb0456c3ac2fea77d7165955625b",
+    "heldOut": true,
+    "caseCount": 3
+  },
+  "resourceBudget": {
+    "calls": 4,
+    "elapsedMs": 300000,
+    "costAmount": 0,
+    "costUnit": "local_execution"
+  },
+  "diagnosis": "The baseline policy binds a rollback contract but does not require that identity in the frozen admitted evidence set.",
+  "hypothesis": {
+    "observation": "The baseline gate remains eligible when rollback identity evidence is omitted.",
+    "suspectedCause": "rollback_identity is absent from requiredEvidenceKinds.",
+    "alternativeExplanations": [
+      "The start contract may make the additional evidence redundant"
+    ],
+    "proposedDiagnostic": "Compare baseline and candidate against missing and complete rollback evidence, then run the full visual workflow.",
+    "candidateIntervention": "Require rollback_identity in Visual dogfood policy version 1.1.0.",
+    "expectedResult": "The missing case blocks and the complete case plus full workflow pass.",
+    "falsifyingResult": "The missing case remains eligible or the complete case becomes blocked.",
+    "followUpHypothesis": null
+  },
+  "candidate": {
+    "candidateId": "visual-policy:1.1.0",
+    "candidateHash": "sha256:9d8ddc4a7aad1a3c6ff9a03a3f73e9f189da77648d3c21a69d1be50230e876a7",
+    "patchHash": "sha256:52f0cb3bda1417f010d0dce971e2a6259d356e00bdbc0229ad93af06df47d78c",
+    "generationId": "visual-policy:1.1.0",
+    "parentGenerationId": "visual-policy:1.0.0",
+    "changedFiles": [
+      "/docs/change-passport/dogfood/visual-policy-v1.1.0.json"
+    ],
+    "semanticScope": [
+      "Visual dogfood eligibility evidence requirements"
+    ],
+    "expectedBehavior": "Missing rollback identity evidence blocks while a bound rollback contract remains eligible.",
+    "affectedInvariants": [
+      "Three-axis state remains independent",
+      "Rollback effects retain separate authority"
+    ],
+    "falsifier": "Any frozen case differs from its expectation or the full workflow fails."
+  },
+  "execution": {
+    "isolated": true,
+    "sandboxId": "sandbox:visual-policy-rollback-identity",
+    "runtimeIdentity": "v22.20.0/darwin",
+    "resourceUse": {
+      "calls": 3,
+      "costAmount": 0
+    }
+  },
+  "verification": {
+    "passed": true,
+    "verifierId": "reploid:visual-policy-verifier",
+    "evidencePaths": [
+      "/docs/change-passport/dogfood/visual-policy-v1.0.0.json",
+      "/docs/change-passport/dogfood/visual-policy-v1.1.0.json"
+    ],
+    "checks": [
+      {
+        "id": "baseline_missing_rollback_identity",
+        "passed": true
+      },
+      {
+        "id": "candidate_missing_rollback_identity",
+        "passed": true
+      },
+      {
+        "id": "candidate_bound_rollback_identity",
+        "passed": true
+      }
+    ]
+  },
+  "evaluation": {
+    "baselineContractHash": "sha256:f9d2d870331a8364058e30c52fc26e696657c6630796a07f32d2421c5adf6ac6",
+    "candidateContractHash": "sha256:f9d2d870331a8364058e30c52fc26e696657c6630796a07f32d2421c5adf6ac6",
+    "evaluatorHash": "sha256:6368c9d3225c0daf0f4ad23a96cdfd39d1abb119de9de973ed262153301d8f4e",
+    "sampleCount": 3,
+    "rawObservations": [
+      {
+        "id": "baseline_missing_rollback_identity",
+        "expectedEligible": true,
+        "result": {
+          "eligible": true,
+          "status": "eligible",
+          "reasons": [],
+          "unresolvedObjectionIds": [],
+          "acceptableEvaluationIds": [
+            "evaluation:frozen-visual-policy"
+          ],
+          "approvalReviewIds": [
+            "review:human-policy-owner"
+          ]
+        }
+      },
+      {
+        "id": "candidate_missing_rollback_identity",
+        "expectedEligible": false,
+        "result": {
+          "eligible": false,
+          "status": "blocked",
+          "reasons": [
+            "required evidence missing: rollback_identity"
+          ],
+          "unresolvedObjectionIds": [],
+          "acceptableEvaluationIds": [
+            "evaluation:frozen-visual-policy"
+          ],
+          "approvalReviewIds": [
+            "review:human-policy-owner"
+          ]
+        }
+      },
+      {
+        "id": "candidate_bound_rollback_identity",
+        "expectedEligible": true,
+        "result": {
+          "eligible": true,
+          "status": "eligible",
+          "reasons": [],
+          "unresolvedObjectionIds": [],
+          "acceptableEvaluationIds": [
+            "evaluation:frozen-visual-policy"
+          ],
+          "approvalReviewIds": [
+            "review:human-policy-owner"
+          ]
+        }
+      }
+    ],
+    "metrics": [
+      {
+        "metricId": "rollback-identity-policy-correct",
+        "value": 1,
+        "valid": true
+      }
+    ]
+  },
+  "comparison": {
+    "primaryMetricId": "rollback-identity-policy-correct",
+    "tradeoffs": [
+      {
+        "metricId": "false-block-count",
+        "baseline": 0,
+        "candidate": 0
+      }
+    ],
+    "regressions": [],
+    "conclusion": "improved",
+    "authorityId": "reploid:frozen-policy-evaluator"
+  },
+  "promotionRequest": {
+    "evidencePath": "/docs/status/rsi/visual-policy-rollback-identity-2026-08-23/evidence.json",
+    "authorityId": "reploid:policy-promotion-gate",
+    "requestedAt": "2026-08-23T18:31:37.328Z",
+    "readiness": {
+      "ready": true,
+      "reasons": []
+    }
+  },
+  "reviews": [
+    {
+      "reviewerId": "human:portfolio-owner",
+      "decision": "approve_dogfood_only",
+      "scope": "docs/change-passport/dogfood/active-policy.json"
+    }
+  ],
+  "decision": {
+    "state": "promoted",
+    "reasons": [],
+    "authorityId": "human:portfolio-owner",
+    "promotionId": "promotion:visual-policy:1.1.0",
+    "qualificationGranted": false,
+    "crossRepositoryAuthorityGranted": false
+  },
+  "rollback": null,
+  "reflections": [
+    {
+      "observation": "The bounded candidate passed frozen cases and the visual workflow reopened after the declared source trigger.",
+      "suspectedCause": "Explicit rollback identity evidence closes the baseline gap without changing effect authority.",
+      "alternativeExplanations": [
+        "The internal corpus may not represent external agent-release workflows"
+      ],
+      "proposedDiagnostic": "Run a separate Agent Release Passport pilot on one MCP server or permission-policy change class.",
+      "candidateIntervention": "Retain policy 1.1.0 only for dedicated Visual dogfood.",
+      "expectedResult": "Future dogfood candidates remain blocked when rollback identity evidence is absent.",
+      "falsifyingResult": "A complete candidate false-blocks or a missing rollback identity becomes eligible.",
+      "followUpHypothesis": "The same rule may reduce reconstruction gaps for versioned agent-tool releases.",
+      "authorityId": "human:portfolio-owner"
+    }
+  ],
+  "generation": {
+    "baseline": "visual-policy:1.0.0",
+    "candidate": "visual-policy:1.1.0",
+    "current": "visual-policy:1.1.0"
+  },
+  "createdAt": "2026-08-23T18:31:37.316Z",
+  "updatedAt": "2026-08-23T18:31:39.044Z",
+  "integrity": {
+    "valid": true,
+    "eventCount": 11,
+    "validSignatures": 11,
+    "headHash": "sha256:a5d1a8c9526401b5556542fb13a3ca91fda9077e7460576bbd688f715939d06d",
+    "reasons": []
+  }
+}

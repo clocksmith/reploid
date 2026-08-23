@@ -1,10 +1,12 @@
-# Reploid Change Passport Product Intent
+# Reploid Agent Release Passport Product Intent
 
 ## Product statement
 
-Reploid Change Passport makes an agent-generated change reviewable,
-reversible, and automatically reopenable when a declared part of the evidence
-or policy basis that allowed it changes.
+Reploid Agent Release Passport decides whether an exact versioned agent policy,
+tool, MCP server, permission bundle, or production-agent configuration is
+eligible to proceed. It preserves why eligibility was granted and reopens the
+decision when an authoritative observation invalidates its evidence or policy
+basis.
 
 The verified claim is narrow:
 
@@ -19,11 +21,12 @@ or successful rollback.
 The first user is an AI platform, developer infrastructure, reliability, or
 security operator. The first controlled actions are promotions of:
 
-- a model or model configuration;
-- a system prompt or prompt bundle;
 - an agent tool or MCP server version;
 - an agent permission or operating policy;
 - production configuration that changes agent behavior.
+
+Model, prompt, and ordinary source-code changes may use the contract later.
+They are not the first commercial wedge.
 
 The change is represented in GitHub and evaluated through CI. Ordinary code
 changes may use the same contract later, but generic pull-request review is not

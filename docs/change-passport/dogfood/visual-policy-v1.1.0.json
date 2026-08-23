@@ -1,0 +1,26 @@
+{
+  "schema": "change.passport-policy/v1",
+  "policyId": "policy:reploid-visual-dogfood",
+  "version": "1.1.0",
+  "changeClasses": ["source_patch"],
+  "requiredEvidenceKinds": ["visual_complaint", "source_owned_patch", "rollback_identity"],
+  "requiredEvaluationConclusion": "pass",
+  "requiredReviewerRoles": ["visual_reviewer"],
+  "minimumApprovals": 1,
+  "independence": {"proposerEvaluator": true, "proposerReviewer": true, "evaluatorReviewer": true},
+  "allowedEffects": ["ci_activation"],
+  "rollbackAuthorityId": "authority:visual-rollback",
+  "reopeningRules": [{
+    "ruleId": "rule:visual-source:reploid:dogfood-passports-ui",
+    "sourceKind": "visual_feedback_bridge",
+    "observationKind": "candidate_artifact_changed",
+    "targetId": "reploid:dogfood-passports-ui",
+    "sensorAuthorityId": "authority:bridge-source-observer",
+    "freshnessMilliseconds": 300000,
+    "match": {"field": "changed", "operator": "equals", "value": true},
+    "action": "review"
+  }],
+  "falseBlockTolerance": 0,
+  "unresolvedBlocksActivation": true,
+  "policyHash": "sha256:9d8ddc4a7aad1a3c6ff9a03a3f73e9f189da77648d3c21a69d1be50230e876a7"
+}
