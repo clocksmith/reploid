@@ -1,24 +1,86 @@
 {
-  "schema": "change.passport-pilot/v1",
-  "pilotId": "change-passport-external-operator-1",
+  "schema": "reploid.agent-release-passport-pilot/v1",
+  "pilotId": "agent-release-passport-external-operator-1",
   "status": "awaiting_external_freeze",
   "protocolVersion": "1.0.0",
+  "product": {
+    "name": "Reploid Agent Release Passport",
+    "supportedChangeClasses": [
+      "mcp_server_version",
+      "agent_tool_manifest",
+      "agent_permission_policy",
+      "production_agent_configuration"
+    ],
+    "excludedChangeClasses": [
+      "generic_source_patch",
+      "visual_ui_change",
+      "model_promotion",
+      "prompt_experiment"
+    ]
+  },
   "adopter": null,
-  "operatorRole": null,
+  "operator": null,
   "independentEvaluator": null,
   "approvingAuthority": null,
   "repository": null,
+  "agentProgram": null,
   "changeClass": null,
+  "candidate": {
+    "baselineDigest": null,
+    "candidateDigest": null,
+    "artifactUri": null,
+    "rollbackTarget": null
+  },
+  "evaluation": {
+    "evaluatorDigest": null,
+    "suiteDigest": null,
+    "contractDigest": null,
+    "requiredEvidenceKinds": [
+      "candidate_identity",
+      "agent_capability_evaluation",
+      "rollback_target"
+    ],
+    "excludedEvidenceKinds": [
+      "unbound_demo",
+      "post_cutoff_result",
+      "candidate_authored_evaluator"
+    ]
+  },
+  "reopening": {
+    "rules": []
+  },
+  "githubApp": {
+    "slug": "reploid-change-passport",
+    "externallyInstallable": false,
+    "repositorySelection": "selected",
+    "permissions": {
+      "checks": "write",
+      "metadata": "read",
+      "pullRequests": "read"
+    },
+    "events": [
+      "pull_request",
+      "pull_request_review"
+    ],
+    "prohibitedPermissions": [
+      "contents",
+      "deployments",
+      "administration",
+      "workflows",
+      "secrets"
+    ]
+  },
   "baselineWorkflow": {
-    "description": "GitHub pull request and branch protection plus CI tests and model evaluations, manual approval, deployment records, and rollback records.",
+    "description": "The adopter's existing GitHub, CI, agent evaluation, human approval, monitoring, and rollback workflow.",
     "evidenceCutoff": null,
+    "outcomeWindow": null,
     "resourceBudget": null
   },
   "assignmentPolicy": {
     "kind": "prospective_paired",
     "sameCandidateAndEvidenceCutoff": true,
     "retainEveryAttempt": true,
-    "blinding": "Evaluator receives arm-neutral cost and outcome records where operationally possible."
+    "blinding": "The independent evaluator receives arm-neutral cost and outcome records where operationally possible."
   },
   "measures": {
     "primary": "normalized_reconstruction_cost_to_independently_replicated_conclusion_relative_to_baseline",
@@ -28,11 +90,12 @@
       "unresolved_questions_after_review"
     ],
     "qualityUnits": [
-      "prevented_regression",
+      "missing_evidence_found_before_approval",
       "escaped_regression",
       "false_block",
-      "reopening_correctness",
-      "rollback_record_completeness"
+      "reopening_precision",
+      "invalidation_to_reopening_time",
+      "rollback_target_completeness"
     ]
   },
   "minimumReportableCases": 20,
@@ -48,12 +111,17 @@
   ],
   "requiredScenarios": [
     "blocked_missing_evidence",
+    "candidate_changed_after_freeze",
     "rejected_change",
     "unresolved_objection",
     "approved_not_applied",
-    "activation_failure",
     "verified_reopening",
     "successful_or_explicitly_failed_rollback"
   ],
-  "claimBoundary": "This manifest is a protocol template, not evidence that an adopter, operator, evaluator, repository, or pilot result exists."
+  "freeze": {
+    "frozenAt": null,
+    "manifestHash": null,
+    "approvalReceipts": []
+  },
+  "claimBoundary": "This manifest is an unfrozen Agent Release Passport protocol template. It is not evidence that an adopter, operator, evaluator, repository, candidate, pilot result, commercial continuation, or qualification exists."
 }

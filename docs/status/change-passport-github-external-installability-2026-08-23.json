@@ -1,0 +1,29 @@
+{
+  "schema": "reploid.github-app-external-installability-observation/v1",
+  "observedAt": "2026-08-23T19:47:16Z",
+  "app": {
+    "id": 4693600,
+    "slug": "reploid-change-passport",
+    "owner": "clocksmith",
+    "installationsCount": 1,
+    "currentInstallation": "clocksmith/reploid"
+  },
+  "observations": {
+    "authenticatedAppLookup": "success",
+    "unauthenticatedPublicAppLookup": "404_not_found",
+    "externalInstallationReady": false
+  },
+  "inference": "The current owner-only registration cannot be installed by an external design partner. External installability must be enabled by the App owner before the pilot manifest can freeze.",
+  "permissionBoundary": {
+    "checks": "write",
+    "metadata": "read",
+    "pullRequests": "read",
+    "events": [
+      "pull_request",
+      "pull_request_review"
+    ],
+    "mustNotBroadenForExternalInstallation": true
+  },
+  "qualificationEligible": false,
+  "claimBoundary": "This is an installability observation and inferred blocker. It does not establish an external adopter, pilot start, commercial value, qualification, or adoption."
+}
