@@ -61,13 +61,15 @@ REPLOID_GITHUB_WEBHOOK_SECRET
 REPLOID_CHANGE_CONTROL_PUBLIC_URL
 ```
 
-The App needs repository metadata, checks, deployments, Git data, and pull
-request permissions for the enabled adapters. Branch protection remains the
-merge authority. The deployment adapter first searches for a matching
-passport/idempotency payload. The rollback adapter creates a new commit whose
-tree equals the frozen rollback revision and whose parent is the current base,
-then opens a pull request; it does not claim rollback success until GitHub
-returns the effect and Reploid records the result.
+The default check-only App needs repository metadata read, pull-request read,
+and checks write, with only pull-request and pull-request-review events.
+Branch protection remains the merge authority. Content mutation, deployment,
+and rollback require separately enabled effect adapters with their own named
+authorities and permissions. The deployment adapter first searches for a
+matching passport/idempotency payload. The rollback adapter creates a new
+commit whose tree equals the frozen rollback revision and whose parent is the
+current base, then opens a pull request; it does not claim rollback success
+until GitHub returns the effect and Reploid records the result.
 
 Verified webhook handling blocks a passport when GitHub reports a changed or
 forked pull-request head, dismissal of a bound reviewer, or loss of the bound
