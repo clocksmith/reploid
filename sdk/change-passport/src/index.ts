@@ -5,7 +5,8 @@ export type ChangeClass =
   | 'prompt'
   | 'agent_tool'
   | 'agent_policy'
-  | 'agent_configuration';
+  | 'agent_configuration'
+  | 'source_patch';
 
 export type EvidenceState = 'collecting' | 'frozen' | 'invalidated' | 'superseded';
 export type DecisionState = 'proposed' | 'contested' | 'approved' | 'rejected' | 'unresolved' | 'reopened' | 'revoked';

@@ -12,6 +12,7 @@ import { createChangeControlEffectRegistry } from '../../server/change-control/e
 import { createChangeControlRouter } from '../../server/change-control/routes.js';
 import { createChangeControlService } from '../../server/change-control/service.js';
 import { createMemoryChangeControlStore } from '../../server/change-control/store.js';
+import { hashChangePassportValue } from '../../self/shared/change-passport/contract.js';
 import {
   advanceServiceToApproval,
   auth,
@@ -481,6 +482,10 @@ describe('Change-control hosted service', () => {
     });
     await service.executeEffect(effectInput, activator);
     expect(deployment).toHaveBeenCalledTimes(1);
+    await expect(service.executeEffect(
+      effectInput,
+      auth('authority:proposer', ['proposer'])
+    )).rejects.toMatchObject({ code: 'ROLE_FORBIDDEN', statusCode: 403 });
 
     await service.observeTrigger({
       passportId: 'passport:service:1',
@@ -517,5 +522,172 @@ describe('Change-control hosted service', () => {
     });
     await service.executeRollback(rollbackInput, rollbackAuth);
     expect(rollback).toHaveBeenCalledTimes(1);
+  });
+
+  it('scopes caller-supplied effect identities to each passport', async () => {
+    const deployment = vi.fn(async ({ projection }) => ({
+      externalReference: `provider:${projection.passportId}`
+    }));
+    const effectRegistry = createChangeControlEffectRegistry({ effects: { deployment } });
+    const service = createService(createMemoryChangeControlStore(), { effectRegistry });
+    await createInitialPassport(service);
+    const firstApproval = await advanceServiceToApproval(service);
+    await createInitialPassport(service, {
+      passportId: 'passport:service:2',
+      proposalId: 'proposal:service:2',
+      idempotencyKey: 'create-passport-2'
+    });
+    const secondApproval = await advanceServiceToApproval(service, 'passport:service:2');
+    const activator = auth('authority:activator', ['activator']);
+    const execute = (passportId, decisionEventHash, providerKey) => service.executeEffect({
+      passportId,
+      role: 'activator',
+      idempotencyKey: `execute:${passportId}`,
+      payload: {
+        effectId: 'effect:shared-caller-id',
+        kind: 'deployment',
+        targetId: 'service:agent-runtime',
+        candidateHash: digest('2'),
+        decisionEventHash,
+        idempotencyKey: providerKey
+      }
+    }, activator);
+
+    const first = await execute(
+      'passport:service:1',
+      firstApproval.appendedEvents[0].eventHash,
+      'provider:first'
+    );
+    const second = await execute(
+      'passport:service:2',
+      secondApproval.appendedEvents[0].eventHash,
+      'provider:second'
+    );
+    expect(first.execution.externalReference).toBe('provider:passport:service:1');
+    expect(second.execution.externalReference).toBe('provider:passport:service:2');
+    expect(deployment).toHaveBeenCalledTimes(2);
+  });
+
+  it('repairs interrupted effect and rollback ledgers without repeating external actions', async () => {
+    const deployment = vi.fn();
+    const rollback = vi.fn();
+    const store = createMemoryChangeControlStore();
+    const effectRegistry = createChangeControlEffectRegistry({
+      effects: { deployment },
+      rollbacks: { github_revert: rollback }
+    });
+    const service = createService(store, { effectRegistry });
+    await createInitialPassport(service);
+    const approval = await advanceServiceToApproval(service);
+    const activator = auth('authority:activator', ['activator']);
+    const effectPayload = {
+      effectId: 'effect:interrupted:1',
+      kind: 'deployment',
+      targetId: 'service:agent-runtime',
+      candidateHash: digest('2'),
+      decisionEventHash: approval.appendedEvents[0].eventHash,
+      idempotencyKey: 'provider:interrupted:effect'
+    };
+    const requestedEffect = await service.appendEvent({
+      passportId: 'passport:service:1',
+      type: 'effect.requested',
+      payload: effectPayload,
+      role: 'activator',
+      idempotencyKey: 'interrupted-effect-request'
+    }, activator);
+    const normalizedEffect = requestedEffect.appendedEvents[0].payload;
+    const effectDeliveryId = await hashChangePassportValue({
+      source: 'effect_execution',
+      passportId: 'passport:service:1',
+      requestId: effectPayload.effectId
+    });
+    const effectRequestHash = await hashChangePassportValue({
+      passportId: 'passport:service:1',
+      request: normalizedEffect
+    });
+    await store.saveDelivery({
+      source: 'effect_execution',
+      deliveryId: effectDeliveryId,
+      requestHash: effectRequestHash,
+      result: { ok: true, externalReference: 'provider:effect:already-applied' }
+    });
+
+    const repairedEffect = await service.executeEffect({
+      passportId: 'passport:service:1',
+      payload: effectPayload,
+      role: 'activator',
+      idempotencyKey: 'interrupted-effect-retry'
+    }, activator);
+    expect(repairedEffect.projection.effect.state).toBe('applied');
+    expect(repairedEffect.execution.externalReference).toBe('provider:effect:already-applied');
+    expect(deployment).not.toHaveBeenCalled();
+
+    await service.observeTrigger({
+      passportId: 'passport:service:1',
+      role: 'observer',
+      idempotencyKey: 'interrupted-trigger',
+      payload: {
+        ruleId: 'rule:metric-regression',
+        condition: { regressed: true },
+        observationHash: digest('d'),
+        observedAt: fixtureTimestamp(31),
+        deduplicationKey: 'interrupted-regression:1'
+      }
+    }, auth('authority:monitor', ['observer']));
+    const rollbackAuth = auth('authority:rollback', ['rollback_authority']);
+    const rollbackPayload = {
+      rollbackId: 'rollback:interrupted:1',
+      effectId: effectPayload.effectId,
+      rollbackArtifactHash: digest('7'),
+      targetId: 'service:agent-runtime',
+      idempotencyKey: 'provider:interrupted:rollback',
+      authorityId: 'authority:rollback',
+      reason: 'Resume the controlled rollback after interruption.'
+    };
+    const requestedRollback = await service.appendEvent({
+      passportId: 'passport:service:1',
+      type: 'rollback.requested',
+      payload: rollbackPayload,
+      role: 'rollback_authority',
+      idempotencyKey: 'interrupted-rollback-request'
+    }, rollbackAuth);
+    const normalizedRollback = requestedRollback.appendedEvents[0].payload;
+    await service.appendEvent({
+      passportId: 'passport:service:1',
+      type: 'rollback.recorded',
+      payload: {
+        rollbackId: rollbackPayload.rollbackId,
+        status: 'started',
+        externalReference: 'provider:rollback:started',
+        observedAt: fixtureTimestamp(32)
+      },
+      role: 'rollback_authority',
+      idempotencyKey: 'interrupted-rollback-started'
+    }, rollbackAuth);
+    const rollbackDeliveryId = await hashChangePassportValue({
+      source: 'rollback_execution',
+      passportId: 'passport:service:1',
+      requestId: rollbackPayload.rollbackId
+    });
+    const rollbackRequestHash = await hashChangePassportValue({
+      passportId: 'passport:service:1',
+      request: normalizedRollback
+    });
+    await store.saveDelivery({
+      source: 'rollback_execution',
+      deliveryId: rollbackDeliveryId,
+      requestHash: rollbackRequestHash,
+      result: { ok: true, externalReference: 'provider:rollback:already-applied' }
+    });
+
+    const repairedRollback = await service.executeRollback({
+      passportId: 'passport:service:1',
+      payload: rollbackPayload,
+      role: 'rollback_authority',
+      idempotencyKey: 'interrupted-rollback-retry'
+    }, rollbackAuth);
+    expect(repairedRollback.projection.effect.state).toBe('rolled_back');
+    expect(repairedRollback.execution.externalReference).toBe('provider:rollback:already-applied');
+    expect(rollback).not.toHaveBeenCalled();
   });
 });
