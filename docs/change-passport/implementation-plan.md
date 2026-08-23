@@ -28,7 +28,9 @@ Current state:
 - [x] Existing GitHub App registration reduced to the least-privilege permission contract
   for `clocksmith/reploid` in the
   [status artifact](../status/change-passport-github-least-privilege-2026-08-23.json).
-- [ ] Live blocked and eligible Change Passport check-run evidence recorded.
+- [x] Live blocked, eligible, and reopened Change Passport check-run evidence
+  recorded in the
+  [dogfood observation](../status/change-passport-live-github-dogfood-2026-08-23/observation.json).
 - [x] Clean dual-host Firebase Hosting and Cloud Run release identity recorded
   without qualification in the
   [status artifact](../status/poolday-clean-dual-host-release-2026-08-23.json).

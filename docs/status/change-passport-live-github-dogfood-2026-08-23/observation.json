@@ -1,0 +1,98 @@
+{
+  "schema": "reploid.change-passport-live-github-dogfood-observation/v1",
+  "observedAt": "2026-08-23T19:38:37Z",
+  "service": {
+    "url": "https://reploid-pool-506730551098.us-central1.run.app",
+    "revision": "reploid-pool-00071-gjv",
+    "persistence": "firestore",
+    "authentication": "scoped bearer principals stored in Secret Manager"
+  },
+  "repository": {
+    "fullName": "clocksmith/reploid",
+    "installationId": 155987328,
+    "pullRequestNumber": 3,
+    "pullRequestUrl": "https://github.com/clocksmith/reploid/pull/3",
+    "finalPullRequestState": "closed",
+    "merged": false,
+    "baseBranch": "passport-dogfood",
+    "baseRevision": "5e11ce154369701ecd04468f354fd8d0c531d130",
+    "headBranch": "main",
+    "candidateRevision": "0f19b8fb1b828d8854eaea8d01c2369cf9bf946c"
+  },
+  "passport": {
+    "passportId": "passport:github:reploid:3:0f19b8fb",
+    "eventCount": 9,
+    "headHash": "sha256:edc40297ef1d8ef88bad31e9802c7840fe08ab11ff51aed7880c01a282d60c77",
+    "exportHash": "sha256:51b9cf4e82799ee8fca337b05ede916c2fec5c574538780ad907dfbb8f4e6e47",
+    "offlineVerificationValid": true,
+    "decisionState": "reopened",
+    "effectState": "not_applied"
+  },
+  "githubCheck": {
+    "id": 97249043316,
+    "name": "Reploid Change Passport",
+    "appId": 4693600,
+    "appSlug": "reploid-change-passport",
+    "externalId": "passport:github:reploid:3:0f19b8fb",
+    "transitions": [
+      {
+        "eventCount": 1,
+        "status": "in_progress",
+        "conclusion": null,
+        "title": "Change blocked"
+      },
+      {
+        "eventCount": 7,
+        "status": "completed",
+        "conclusion": "success",
+        "title": "Change eligible"
+      },
+      {
+        "eventCount": 9,
+        "status": "completed",
+        "conclusion": "failure",
+        "title": "Decision reopened"
+      }
+    ]
+  },
+  "reopening": {
+    "ruleId": "rule:github-candidate-invalidated",
+    "sensorAuthorityId": "authority:reploid-dogfood-observer",
+    "matched": true,
+    "requestedAction": "rollback_request",
+    "effectExecuted": false
+  },
+  "independentGitHubChecks": [
+    {
+      "name": "test",
+      "conclusion": "failure"
+    },
+    {
+      "name": "lint",
+      "conclusion": "success"
+    },
+    {
+      "name": "build",
+      "conclusion": "skipped"
+    }
+  ],
+  "retainedArtifacts": [
+    "docs/status/change-passport-live-github-dogfood-2026-08-23/change-passport-export.json",
+    "docs/status/change-passport-live-github-dogfood-2026-08-23/github-check-delivery-event-1.firestore.json",
+    "docs/status/change-passport-live-github-dogfood-2026-08-23/github-check-delivery-event-7.firestore.json",
+    "docs/status/change-passport-live-github-dogfood-2026-08-23/github-check-delivery-event-9.firestore.json",
+    "docs/status/change-passport-live-github-dogfood-2026-08-23/reploid-check-run.json",
+    "docs/status/change-passport-live-github-dogfood-2026-08-23/pull-request.json"
+  ],
+  "authorityBoundary": {
+    "internallyOperated": true,
+    "ordinaryMainControlled": false,
+    "mergeExecuted": false,
+    "deploymentExecuted": false,
+    "rollbackExecuted": false,
+    "externalEvaluator": false,
+    "externalOperator": false
+  },
+  "qualificationEligible": false,
+  "claimBoundary": "This proves one internally operated App-bound GitHub check can retain blocked, eligible, and reopened projections for an exact candidate while GitHub preserves independent CI and merge authority. It does not prove customer value, external adoption, qualification, incident reduction, deployment safety, rollback success, or cross-repository authority."
+}

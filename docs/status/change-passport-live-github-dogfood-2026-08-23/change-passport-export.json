@@ -1,0 +1,936 @@
+{
+  "schema": "change.passport-export/v1",
+  "exportedAt": "2026-08-23T19:39:23.945Z",
+  "passportId": "passport:github:reploid:3:0f19b8fb",
+  "events": [
+    {
+      "schema": "change.passport-event/v1",
+      "passportId": "passport:github:reploid:3:0f19b8fb",
+      "sequence": 1,
+      "type": "passport.created",
+      "timestamp": "2026-08-23T19:37:24.373Z",
+      "previousEventHash": null,
+      "actor": {
+        "authorityId": "authority:reploid-dogfood-proposer",
+        "organizationId": "org:reploid-dogfood",
+        "role": "proposer",
+        "authentication": {
+          "kind": "secret_manager_bearer",
+          "subject": "dogfood:proposer",
+          "contextHash": "sha256:b67f5c8a981c2899fc046fa196da62b0db6f5b45171838dcc3f96c0d690325f5"
+        }
+      },
+      "payload": {
+        "passportId": "passport:github:reploid:3:0f19b8fb",
+        "organizationId": "org:reploid-dogfood",
+        "changeClass": "agent_configuration",
+        "proposal": {
+          "proposalId": "proposal:github:reploid:3",
+          "title": "Admit current Reploid main into the dedicated dogfood branch",
+          "summary": "Exercise the live App-bound eligibility check without changing ordinary main authority.",
+          "repository": {
+            "provider": "github",
+            "owner": "clocksmith",
+            "name": "reploid",
+            "repositoryId": "github:repo:clocksmith/reploid",
+            "installationId": 155987328,
+            "defaultBranch": "main",
+            "visibility": "private"
+          },
+          "pullRequestNumber": 3,
+          "baseRevision": "5e11ce154369701ecd04468f354fd8d0c531d130",
+          "candidateRevision": "0f19b8fb1b828d8854eaea8d01c2369cf9bf946c",
+          "baselineHash": "sha256:1d3cc123e1aec988ee2a733e088a4783a1f7d86a4610b482462c7df525125c25",
+          "candidateHash": "sha256:628f46c829fc1871379d9d20764cc5d1468588635f1f32fdd79b0759df86ea2c",
+          "manifestHash": "sha256:8ef620064f5a771a6a6b3f647f503c690efa3c114c44e6d86042f8ca0979288f",
+          "target": {
+            "kind": "agent_policy",
+            "targetId": "reploid:passport-dogfood",
+            "environment": "dogfood"
+          },
+          "proposerAuthorityId": "authority:reploid-dogfood-proposer"
+        },
+        "policy": {
+          "schema": "change.passport-policy/v1",
+          "policyId": "policy:reploid:github-dogfood:1",
+          "version": "1.0.0",
+          "changeClasses": [
+            "agent_configuration"
+          ],
+          "requiredEvidenceKinds": [
+            "candidate_identity"
+          ],
+          "requiredEvaluationConclusion": "pass",
+          "requiredReviewerRoles": [
+            "security_reviewer"
+          ],
+          "minimumApprovals": 1,
+          "independence": {
+            "proposerEvaluator": true,
+            "proposerReviewer": true,
+            "evaluatorReviewer": true
+          },
+          "allowedEffects": [
+            "deployment"
+          ],
+          "rollbackAuthorityId": "authority:reploid-dogfood-rollback",
+          "reopeningRules": [
+            {
+              "ruleId": "rule:github-candidate-invalidated",
+              "sourceKind": "github_webhook",
+              "observationKind": "candidate_invalidated",
+              "targetId": "reploid:passport-dogfood",
+              "sensorAuthorityId": "authority:reploid-dogfood-observer",
+              "freshnessMilliseconds": 60000,
+              "match": {
+                "field": "invalidated",
+                "operator": "equals",
+                "value": true
+              },
+              "action": "rollback_request"
+            }
+          ],
+          "falseBlockTolerance": 0,
+          "unresolvedBlocksActivation": true,
+          "policyHash": "sha256:765321368033a7a8961a3b0a26b9693cc0c5b31dd87d8db2271d21bad620edff"
+        },
+        "evaluator": {
+          "evaluatorId": "evaluator:reploid-github-dogfood:1",
+          "authorityId": "authority:reploid-dogfood-evaluator",
+          "version": "1.0.0",
+          "evaluatorHash": "sha256:8c3d30ff0429c1db9954eea09d93c02938f02625e1b1320f319243f4d76b2e8c",
+          "suiteHash": "sha256:b92197cde8657164d3a696dc11978ccaec992ef80d075d5482b68803199bb134",
+          "contractHash": "sha256:1681d82f2178937f508b9972d044c9f31779fc6e6259cfd83aa7321bacf4ac2a",
+          "frozenBeforeCandidate": true
+        },
+        "budget": {
+          "calls": 10,
+          "elapsedMilliseconds": 60000,
+          "costAmount": 0,
+          "costUnit": "usd"
+        },
+        "rollback": {
+          "kind": "github_revert",
+          "targetId": "reploid:passport-dogfood",
+          "revision": "5e11ce154369701ecd04468f354fd8d0c531d130",
+          "artifactHash": "sha256:1d3cc123e1aec988ee2a733e088a4783a1f7d86a4610b482462c7df525125c25",
+          "authorityId": "authority:reploid-dogfood-rollback"
+        },
+        "evidenceCutoff": "2026-08-23T19:31:00.000Z",
+        "createdAt": "2026-08-23T19:31:01.000Z",
+        "sourceEpisode": null
+      },
+      "eventHash": "sha256:cfe14c81f83b713ddc70dcfeb89eae57f30223acf0bee9146aa534202c7b1287",
+      "signature": {
+        "signerId": "peer:20039594764d47116558b5f7",
+        "algorithm": "Ed25519",
+        "publicJwk": {
+          "key_ops": [
+            "verify"
+          ],
+          "ext": true,
+          "alg": "Ed25519",
+          "crv": "Ed25519",
+          "x": "wkflPzI8AhtSQ9Hv5Pd7h7DO45xCWs25EEUyn2fF5YE",
+          "kty": "OKP"
+        },
+        "value": "shOxS3Ken6hDbeg_vS3-PS6TceV9rjZzek8WKh_B4VDO93FgzvEv8XLKCRLfO6BKP3MyWU1wRo9RdWbm4lcFCQ"
+      }
+    },
+    {
+      "schema": "change.passport-event/v1",
+      "passportId": "passport:github:reploid:3:0f19b8fb",
+      "sequence": 2,
+      "type": "trigger.declared",
+      "timestamp": "2026-08-23T19:38:32.838Z",
+      "previousEventHash": "sha256:cfe14c81f83b713ddc70dcfeb89eae57f30223acf0bee9146aa534202c7b1287",
+      "actor": {
+        "authorityId": "authority:reploid-dogfood-change",
+        "organizationId": "org:reploid-dogfood",
+        "role": "change_authority",
+        "authentication": {
+          "kind": "secret_manager_bearer",
+          "subject": "dogfood:change",
+          "contextHash": "sha256:060a242688a9719d32f44266a21e15aba039441908fdb6edb7334aab23fc1742"
+        }
+      },
+      "payload": {
+        "ruleId": "rule:github-candidate-invalidated",
+        "sourceKind": "github_webhook",
+        "observationKind": "candidate_invalidated",
+        "targetId": "reploid:passport-dogfood",
+        "action": "rollback_request",
+        "condition": {
+          "field": "invalidated",
+          "operator": "equals",
+          "value": true
+        },
+        "sensorAuthorityId": "authority:reploid-dogfood-observer",
+        "observationHash": null,
+        "observedAt": null,
+        "freshnessMilliseconds": 60000,
+        "deduplicationKey": null
+      },
+      "eventHash": "sha256:7f927575b911a9c27a2c05caf9e2ed5a7eb44bd82eb5c5e2d6c4a9379a43a656",
+      "signature": {
+        "signerId": "peer:20039594764d47116558b5f7",
+        "algorithm": "Ed25519",
+        "publicJwk": {
+          "key_ops": [
+            "verify"
+          ],
+          "ext": true,
+          "alg": "Ed25519",
+          "crv": "Ed25519",
+          "x": "wkflPzI8AhtSQ9Hv5Pd7h7DO45xCWs25EEUyn2fF5YE",
+          "kty": "OKP"
+        },
+        "value": "R_D6hWGuSXT-EPJpDyhP51ETAVP7208-_ZRPt4LeYHkNNJsmCdL1RMyu_sAPd8JE8HJ3KwapKeUotupaj0_gAQ"
+      }
+    },
+    {
+      "schema": "change.passport-event/v1",
+      "passportId": "passport:github:reploid:3:0f19b8fb",
+      "sequence": 3,
+      "type": "evidence.admitted",
+      "timestamp": "2026-08-23T19:38:33.901Z",
+      "previousEventHash": "sha256:7f927575b911a9c27a2c05caf9e2ed5a7eb44bd82eb5c5e2d6c4a9379a43a656",
+      "actor": {
+        "authorityId": "authority:reploid-dogfood-evidence",
+        "organizationId": "org:reploid-dogfood",
+        "role": "evidence_producer",
+        "authentication": {
+          "kind": "secret_manager_bearer",
+          "subject": "dogfood:evidence",
+          "contextHash": "sha256:72031bb17629085888acc99fc28335cb06c662ecdaed08bf74fd068395ec43ca"
+        }
+      },
+      "payload": {
+        "evidenceId": "evidence:github-candidate-identity:pr-3",
+        "kind": "candidate_identity",
+        "digest": "sha256:347e7c7e325f09ea747e3e41f6ec52ce2f11d6df347157ee3238cd4f00e9aa7f",
+        "source": "GitHub repository, pull request, candidate revision, and App installation identities",
+        "uri": "https://github.com/clocksmith/reploid/pull/3",
+        "summary": "Binds the exact dogfood PR, base revision, candidate revision, repository, and App installation. It does not assess code quality.",
+        "observedAt": "2026-08-23T19:38:32.635Z",
+        "custody": {
+          "mode": "reference_only",
+          "accessRequired": true,
+          "retention": "source_owned"
+        },
+        "reason": null
+      },
+      "eventHash": "sha256:a82f4317dfeb4b22bdc26b286b1e07657c584befdc02fd56d1deba1d0aed3812",
+      "signature": {
+        "signerId": "peer:20039594764d47116558b5f7",
+        "algorithm": "Ed25519",
+        "publicJwk": {
+          "key_ops": [
+            "verify"
+          ],
+          "ext": true,
+          "alg": "Ed25519",
+          "crv": "Ed25519",
+          "x": "wkflPzI8AhtSQ9Hv5Pd7h7DO45xCWs25EEUyn2fF5YE",
+          "kty": "OKP"
+        },
+        "value": "TUHYdBJx_t3hys45zujKjldMTB8qSnpVOWUbri7v8HyLgKduMe9ZLi7kfZMHufKsN0k_HxWUrcqN6p_veoOFCQ"
+      }
+    },
+    {
+      "schema": "change.passport-event/v1",
+      "passportId": "passport:github:reploid:3:0f19b8fb",
+      "sequence": 4,
+      "type": "evidence.frozen",
+      "timestamp": "2026-08-23T19:38:34.710Z",
+      "previousEventHash": "sha256:a82f4317dfeb4b22bdc26b286b1e07657c584befdc02fd56d1deba1d0aed3812",
+      "actor": {
+        "authorityId": "authority:reploid-dogfood-change",
+        "organizationId": "org:reploid-dogfood",
+        "role": "change_authority",
+        "authentication": {
+          "kind": "secret_manager_bearer",
+          "subject": "dogfood:change",
+          "contextHash": "sha256:060a242688a9719d32f44266a21e15aba039441908fdb6edb7334aab23fc1742"
+        }
+      },
+      "payload": {
+        "manifestHash": "sha256:e63fc6e6f9792f7820ad8a4642cc10a04aabfe683364cd02ee0cf6905965ec2f",
+        "evidenceIds": [
+          "evidence:github-candidate-identity:pr-3"
+        ],
+        "cutoff": "2026-08-23T19:38:33.635Z"
+      },
+      "eventHash": "sha256:368651dd7d7c958f1b3ccf56492e52bdbaa5068e95e55988835eaa0fb5ad957d",
+      "signature": {
+        "signerId": "peer:20039594764d47116558b5f7",
+        "algorithm": "Ed25519",
+        "publicJwk": {
+          "key_ops": [
+            "verify"
+          ],
+          "ext": true,
+          "alg": "Ed25519",
+          "crv": "Ed25519",
+          "x": "wkflPzI8AhtSQ9Hv5Pd7h7DO45xCWs25EEUyn2fF5YE",
+          "kty": "OKP"
+        },
+        "value": "3MyhRb-becYOjxCloFyrS7qJ4nQ5D6FujLb8keDopc4LtRBoljRC0n_aw2pTlf-l9N2UeFicAXJBfr6IR6KWDw"
+      }
+    },
+    {
+      "schema": "change.passport-event/v1",
+      "passportId": "passport:github:reploid:3:0f19b8fb",
+      "sequence": 5,
+      "type": "evaluation.recorded",
+      "timestamp": "2026-08-23T19:38:35.527Z",
+      "previousEventHash": "sha256:368651dd7d7c958f1b3ccf56492e52bdbaa5068e95e55988835eaa0fb5ad957d",
+      "actor": {
+        "authorityId": "authority:reploid-dogfood-evaluator",
+        "organizationId": "org:reploid-dogfood",
+        "role": "evaluator",
+        "authentication": {
+          "kind": "secret_manager_bearer",
+          "subject": "dogfood:evaluator",
+          "contextHash": "sha256:2efbfc02b0b45f9c1c88627f4b1dc3b4a83fd8f4a7c144060fc8da8db591b80c"
+        }
+      },
+      "payload": {
+        "evaluationId": "evaluation:github-candidate-identity:pr-3",
+        "evaluatorId": "evaluator:reploid-github-dogfood:1",
+        "evaluatorAuthorityId": "authority:reploid-dogfood-evaluator",
+        "evaluatorHash": "sha256:8c3d30ff0429c1db9954eea09d93c02938f02625e1b1320f319243f4d76b2e8c",
+        "suiteHash": "sha256:b92197cde8657164d3a696dc11978ccaec992ef80d075d5482b68803199bb134",
+        "contractHash": "sha256:1681d82f2178937f508b9972d044c9f31779fc6e6259cfd83aa7321bacf4ac2a",
+        "baselineHash": "sha256:1d3cc123e1aec988ee2a733e088a4783a1f7d86a4610b482462c7df525125c25",
+        "candidateHash": "sha256:628f46c829fc1871379d9d20764cc5d1468588635f1f32fdd79b0759df86ea2c",
+        "evidenceManifestHash": "sha256:e63fc6e6f9792f7820ad8a4642cc10a04aabfe683364cd02ee0cf6905965ec2f",
+        "conclusion": "pass",
+        "metrics": [
+          {
+            "metricId": "identity-bindings-matched",
+            "value": 5
+          }
+        ],
+        "limitations": [
+          "Does not assess code quality, product qualification, commercial value, deployment safety, or the independently failing GitHub test job."
+        ],
+        "observedAt": "2026-08-23T19:38:34.635Z"
+      },
+      "eventHash": "sha256:1753de74bbe4ba74999296a1c6882a6c8533d9f1786c56f3043469d1875baee3",
+      "signature": {
+        "signerId": "peer:20039594764d47116558b5f7",
+        "algorithm": "Ed25519",
+        "publicJwk": {
+          "key_ops": [
+            "verify"
+          ],
+          "ext": true,
+          "alg": "Ed25519",
+          "crv": "Ed25519",
+          "x": "wkflPzI8AhtSQ9Hv5Pd7h7DO45xCWs25EEUyn2fF5YE",
+          "kty": "OKP"
+        },
+        "value": "CTvc_ijzFv_TH18Om3fdJU-gTuSaGRstF4Il8lZQbgP6uYPT1tGWLcUDQAzFMKa8A3qt50cjm7RvUAea_R46Bw"
+      }
+    },
+    {
+      "schema": "change.passport-event/v1",
+      "passportId": "passport:github:reploid:3:0f19b8fb",
+      "sequence": 6,
+      "type": "review.recorded",
+      "timestamp": "2026-08-23T19:38:36.363Z",
+      "previousEventHash": "sha256:1753de74bbe4ba74999296a1c6882a6c8533d9f1786c56f3043469d1875baee3",
+      "actor": {
+        "authorityId": "authority:reploid-dogfood-reviewer",
+        "organizationId": "org:reploid-dogfood",
+        "role": "security_reviewer",
+        "authentication": {
+          "kind": "secret_manager_bearer",
+          "subject": "dogfood:reviewer",
+          "contextHash": "sha256:ae2ee8b7df8d862568ef1c57f6e8246b1aefad66a42c59810da11d21b624fae5"
+        }
+      },
+      "payload": {
+        "reviewId": "review:github-dogfood:pr-3",
+        "verdict": "approve",
+        "rationale": "Approve only the exact candidate-identity binding for the dedicated dogfood branch; ordinary CI and merge authority remain independent.",
+        "resolvesObjectionIds": [],
+        "evidenceIds": [
+          "evidence:github-candidate-identity:pr-3"
+        ]
+      },
+      "eventHash": "sha256:9d08f06db8d8e89e4beb7fdd683a816e548f372eb2b4cb5de2b5031e806db4b6",
+      "signature": {
+        "signerId": "peer:20039594764d47116558b5f7",
+        "algorithm": "Ed25519",
+        "publicJwk": {
+          "key_ops": [
+            "verify"
+          ],
+          "ext": true,
+          "alg": "Ed25519",
+          "crv": "Ed25519",
+          "x": "wkflPzI8AhtSQ9Hv5Pd7h7DO45xCWs25EEUyn2fF5YE",
+          "kty": "OKP"
+        },
+        "value": "CqkED5zqdpM-Qq4VQ07C1Xb30LVkPtuV_oP38eJK6KFM48yIANqatD2VLiKOVG_zT6ScSLOcGA5M0LZhFazIDQ"
+      }
+    },
+    {
+      "schema": "change.passport-event/v1",
+      "passportId": "passport:github:reploid:3:0f19b8fb",
+      "sequence": 7,
+      "type": "decision.recorded",
+      "timestamp": "2026-08-23T19:38:37.159Z",
+      "previousEventHash": "sha256:9d08f06db8d8e89e4beb7fdd683a816e548f372eb2b4cb5de2b5031e806db4b6",
+      "actor": {
+        "authorityId": "authority:reploid-dogfood-change",
+        "organizationId": "org:reploid-dogfood",
+        "role": "change_authority",
+        "authentication": {
+          "kind": "secret_manager_bearer",
+          "subject": "dogfood:change",
+          "contextHash": "sha256:060a242688a9719d32f44266a21e15aba039441908fdb6edb7334aab23fc1742"
+        }
+      },
+      "payload": {
+        "decisionId": "decision:github-dogfood:pr-3",
+        "state": "approved",
+        "policyHash": "sha256:765321368033a7a8961a3b0a26b9693cc0c5b31dd87d8db2271d21bad620edff",
+        "evaluationIds": [
+          "evaluation:github-candidate-identity:pr-3"
+        ],
+        "reviewIds": [
+          "review:github-dogfood:pr-3"
+        ],
+        "rationale": "Candidate identity eligibility passed under the frozen dogfood policy; no code-quality or deployment decision is granted."
+      },
+      "eventHash": "sha256:73b2509afa4ef4eab3e3288686f041868d4a421169b7d425dff2332a8ae223bd",
+      "signature": {
+        "signerId": "peer:20039594764d47116558b5f7",
+        "algorithm": "Ed25519",
+        "publicJwk": {
+          "key_ops": [
+            "verify"
+          ],
+          "ext": true,
+          "alg": "Ed25519",
+          "crv": "Ed25519",
+          "x": "wkflPzI8AhtSQ9Hv5Pd7h7DO45xCWs25EEUyn2fF5YE",
+          "kty": "OKP"
+        },
+        "value": "FizoWMdTKr3RnwMPDpoBH9IiL9wLoiNB305J_76HBSwGqejDzQ0rgC8NTI2pXW4u-xVOaaRmsp1zMheeQBTQBg"
+      }
+    },
+    {
+      "schema": "change.passport-event/v1",
+      "passportId": "passport:github:reploid:3:0f19b8fb",
+      "sequence": 8,
+      "type": "trigger.observed",
+      "timestamp": "2026-08-23T19:39:22.890Z",
+      "previousEventHash": "sha256:73b2509afa4ef4eab3e3288686f041868d4a421169b7d425dff2332a8ae223bd",
+      "actor": {
+        "authorityId": "authority:reploid-dogfood-observer",
+        "organizationId": "org:reploid-dogfood",
+        "role": "observer",
+        "authentication": {
+          "kind": "secret_manager_bearer",
+          "subject": "dogfood:observer",
+          "contextHash": "sha256:90296cbb6c094a0028be730cb11e7f5bb5182ad6ebfdc61fc719110aacb32b7e"
+        }
+      },
+      "payload": {
+        "ruleId": "rule:github-candidate-invalidated",
+        "sourceKind": "github_webhook",
+        "observationKind": "candidate_invalidated",
+        "targetId": "reploid:passport-dogfood",
+        "action": "rollback_request",
+        "condition": {
+          "invalidated": true
+        },
+        "sensorAuthorityId": "authority:reploid-dogfood-observer",
+        "observationHash": "sha256:aea3da1f45449b39109bd26c8d3aa8cb988414b3962f96c0a2c5283311120a34",
+        "observedAt": "2026-08-23T19:39:22.713Z",
+        "freshnessMilliseconds": 60000,
+        "deduplicationKey": "github:reploid:pr-3:controlled-reopening"
+      },
+      "eventHash": "sha256:e74f8a4d01327c0ddc9ca608bc53034c003347887a6a00e16b791c48ec28e3f9",
+      "signature": {
+        "signerId": "peer:20039594764d47116558b5f7",
+        "algorithm": "Ed25519",
+        "publicJwk": {
+          "key_ops": [
+            "verify"
+          ],
+          "ext": true,
+          "alg": "Ed25519",
+          "crv": "Ed25519",
+          "x": "wkflPzI8AhtSQ9Hv5Pd7h7DO45xCWs25EEUyn2fF5YE",
+          "kty": "OKP"
+        },
+        "value": "ZjaP2FU6CrZesOxSGuSqKJBsnOZOdO5igrou5uL-etdAdNzN2f7aRZOsPUp-wPy3RUAlzSROdxHlHB6J14ZaDw"
+      }
+    },
+    {
+      "schema": "change.passport-event/v1",
+      "passportId": "passport:github:reploid:3:0f19b8fb",
+      "sequence": 9,
+      "type": "decision.reopened",
+      "timestamp": "2026-08-23T19:39:22.996Z",
+      "previousEventHash": "sha256:e74f8a4d01327c0ddc9ca608bc53034c003347887a6a00e16b791c48ec28e3f9",
+      "actor": {
+        "authorityId": "authority:change-control-service",
+        "organizationId": "org:reploid-dogfood",
+        "role": "change_authority",
+        "authentication": {
+          "kind": "deterministic_projection",
+          "subject": "change-control-trigger-projector",
+          "contextHash": "sha256:fa43d1d6264e62150ebe02ebba7e301851e6768afa03ce3fb509c655a95e6a80"
+        }
+      },
+      "payload": {
+        "reopeningId": "reopening:7a6a00e16b791c48ec28e3f9",
+        "ruleId": "rule:github-candidate-invalidated",
+        "triggerEventHash": "sha256:e74f8a4d01327c0ddc9ca608bc53034c003347887a6a00e16b791c48ec28e3f9",
+        "requestedAction": "rollback_request",
+        "reason": "Declared trigger rule:github-candidate-invalidated matched observation sha256:aea3da1f45449b39109bd26c8d3aa8cb988414b3962f96c0a2c5283311120a34."
+      },
+      "eventHash": "sha256:edc40297ef1d8ef88bad31e9802c7840fe08ab11ff51aed7880c01a282d60c77",
+      "signature": {
+        "signerId": "peer:20039594764d47116558b5f7",
+        "algorithm": "Ed25519",
+        "publicJwk": {
+          "key_ops": [
+            "verify"
+          ],
+          "ext": true,
+          "alg": "Ed25519",
+          "crv": "Ed25519",
+          "x": "wkflPzI8AhtSQ9Hv5Pd7h7DO45xCWs25EEUyn2fF5YE",
+          "kty": "OKP"
+        },
+        "value": "ETIm9mKqfexJ0mFXup_4DVN-D3wX2H_c-JpFcHkaZluYkeL2wS3J81ad1cRFEU-5XM6RgxsP9-DUOcmJRxByBg"
+      }
+    }
+  ],
+  "publicKeys": [
+    {
+      "signerId": "peer:20039594764d47116558b5f7",
+      "algorithm": "Ed25519",
+      "publicJwk": {
+        "key_ops": [
+          "verify"
+        ],
+        "ext": true,
+        "alg": "Ed25519",
+        "crv": "Ed25519",
+        "x": "wkflPzI8AhtSQ9Hv5Pd7h7DO45xCWs25EEUyn2fF5YE",
+        "kty": "OKP"
+      }
+    }
+  ],
+  "policy": {
+    "schema": "change.passport-policy/v1",
+    "policyId": "policy:reploid:github-dogfood:1",
+    "version": "1.0.0",
+    "changeClasses": [
+      "agent_configuration"
+    ],
+    "requiredEvidenceKinds": [
+      "candidate_identity"
+    ],
+    "requiredEvaluationConclusion": "pass",
+    "requiredReviewerRoles": [
+      "security_reviewer"
+    ],
+    "minimumApprovals": 1,
+    "independence": {
+      "proposerEvaluator": true,
+      "proposerReviewer": true,
+      "evaluatorReviewer": true
+    },
+    "allowedEffects": [
+      "deployment"
+    ],
+    "rollbackAuthorityId": "authority:reploid-dogfood-rollback",
+    "reopeningRules": [
+      {
+        "ruleId": "rule:github-candidate-invalidated",
+        "sourceKind": "github_webhook",
+        "observationKind": "candidate_invalidated",
+        "targetId": "reploid:passport-dogfood",
+        "sensorAuthorityId": "authority:reploid-dogfood-observer",
+        "freshnessMilliseconds": 60000,
+        "match": {
+          "field": "invalidated",
+          "operator": "equals",
+          "value": true
+        },
+        "action": "rollback_request"
+      }
+    ],
+    "falseBlockTolerance": 0,
+    "unresolvedBlocksActivation": true,
+    "policyHash": "sha256:765321368033a7a8961a3b0a26b9693cc0c5b31dd87d8db2271d21bad620edff"
+  },
+  "evidenceManifest": [
+    {
+      "evidenceId": "evidence:github-candidate-identity:pr-3",
+      "kind": "candidate_identity",
+      "digest": "sha256:347e7c7e325f09ea747e3e41f6ec52ce2f11d6df347157ee3238cd4f00e9aa7f",
+      "source": "GitHub repository, pull request, candidate revision, and App installation identities",
+      "uri": "https://github.com/clocksmith/reploid/pull/3",
+      "custody": {
+        "mode": "reference_only",
+        "accessRequired": true,
+        "retention": "source_owned"
+      }
+    }
+  ],
+  "projection": {
+    "schema": "change.passport/v1",
+    "passportId": "passport:github:reploid:3:0f19b8fb",
+    "organizationId": "org:reploid-dogfood",
+    "changeClass": "agent_configuration",
+    "proposal": {
+      "proposalId": "proposal:github:reploid:3",
+      "title": "Admit current Reploid main into the dedicated dogfood branch",
+      "summary": "Exercise the live App-bound eligibility check without changing ordinary main authority.",
+      "repository": {
+        "provider": "github",
+        "owner": "clocksmith",
+        "name": "reploid",
+        "repositoryId": "github:repo:clocksmith/reploid",
+        "installationId": 155987328,
+        "defaultBranch": "main",
+        "visibility": "private"
+      },
+      "pullRequestNumber": 3,
+      "baseRevision": "5e11ce154369701ecd04468f354fd8d0c531d130",
+      "candidateRevision": "0f19b8fb1b828d8854eaea8d01c2369cf9bf946c",
+      "baselineHash": "sha256:1d3cc123e1aec988ee2a733e088a4783a1f7d86a4610b482462c7df525125c25",
+      "candidateHash": "sha256:628f46c829fc1871379d9d20764cc5d1468588635f1f32fdd79b0759df86ea2c",
+      "manifestHash": "sha256:8ef620064f5a771a6a6b3f647f503c690efa3c114c44e6d86042f8ca0979288f",
+      "target": {
+        "kind": "agent_policy",
+        "targetId": "reploid:passport-dogfood",
+        "environment": "dogfood"
+      },
+      "proposerAuthorityId": "authority:reploid-dogfood-proposer"
+    },
+    "policy": {
+      "schema": "change.passport-policy/v1",
+      "policyId": "policy:reploid:github-dogfood:1",
+      "version": "1.0.0",
+      "changeClasses": [
+        "agent_configuration"
+      ],
+      "requiredEvidenceKinds": [
+        "candidate_identity"
+      ],
+      "requiredEvaluationConclusion": "pass",
+      "requiredReviewerRoles": [
+        "security_reviewer"
+      ],
+      "minimumApprovals": 1,
+      "independence": {
+        "proposerEvaluator": true,
+        "proposerReviewer": true,
+        "evaluatorReviewer": true
+      },
+      "allowedEffects": [
+        "deployment"
+      ],
+      "rollbackAuthorityId": "authority:reploid-dogfood-rollback",
+      "reopeningRules": [
+        {
+          "ruleId": "rule:github-candidate-invalidated",
+          "sourceKind": "github_webhook",
+          "observationKind": "candidate_invalidated",
+          "targetId": "reploid:passport-dogfood",
+          "sensorAuthorityId": "authority:reploid-dogfood-observer",
+          "freshnessMilliseconds": 60000,
+          "match": {
+            "field": "invalidated",
+            "operator": "equals",
+            "value": true
+          },
+          "action": "rollback_request"
+        }
+      ],
+      "falseBlockTolerance": 0,
+      "unresolvedBlocksActivation": true,
+      "policyHash": "sha256:765321368033a7a8961a3b0a26b9693cc0c5b31dd87d8db2271d21bad620edff"
+    },
+    "evaluator": {
+      "evaluatorId": "evaluator:reploid-github-dogfood:1",
+      "authorityId": "authority:reploid-dogfood-evaluator",
+      "version": "1.0.0",
+      "evaluatorHash": "sha256:8c3d30ff0429c1db9954eea09d93c02938f02625e1b1320f319243f4d76b2e8c",
+      "suiteHash": "sha256:b92197cde8657164d3a696dc11978ccaec992ef80d075d5482b68803199bb134",
+      "contractHash": "sha256:1681d82f2178937f508b9972d044c9f31779fc6e6259cfd83aa7321bacf4ac2a",
+      "frozenBeforeCandidate": true
+    },
+    "budget": {
+      "calls": 10,
+      "elapsedMilliseconds": 60000,
+      "costAmount": 0,
+      "costUnit": "usd"
+    },
+    "rollback": {
+      "kind": "github_revert",
+      "targetId": "reploid:passport-dogfood",
+      "revision": "5e11ce154369701ecd04468f354fd8d0c531d130",
+      "artifactHash": "sha256:1d3cc123e1aec988ee2a733e088a4783a1f7d86a4610b482462c7df525125c25",
+      "authorityId": "authority:reploid-dogfood-rollback"
+    },
+    "evidenceCutoff": "2026-08-23T19:31:00.000Z",
+    "createdAt": "2026-08-23T19:31:01.000Z",
+    "updatedAt": "2026-08-23T19:39:22.996Z",
+    "sourceEpisode": null,
+    "evidence": {
+      "state": "frozen",
+      "manifestHash": "sha256:e63fc6e6f9792f7820ad8a4642cc10a04aabfe683364cd02ee0cf6905965ec2f",
+      "admitted": [
+        {
+          "evidenceId": "evidence:github-candidate-identity:pr-3",
+          "kind": "candidate_identity",
+          "digest": "sha256:347e7c7e325f09ea747e3e41f6ec52ce2f11d6df347157ee3238cd4f00e9aa7f",
+          "source": "GitHub repository, pull request, candidate revision, and App installation identities",
+          "uri": "https://github.com/clocksmith/reploid/pull/3",
+          "summary": "Binds the exact dogfood PR, base revision, candidate revision, repository, and App installation. It does not assess code quality.",
+          "observedAt": "2026-08-23T19:38:32.635Z",
+          "custody": {
+            "mode": "reference_only",
+            "accessRequired": true,
+            "retention": "source_owned"
+          },
+          "reason": null,
+          "eventHash": "sha256:a82f4317dfeb4b22bdc26b286b1e07657c584befdc02fd56d1deba1d0aed3812",
+          "actor": {
+            "authorityId": "authority:reploid-dogfood-evidence",
+            "organizationId": "org:reploid-dogfood",
+            "role": "evidence_producer",
+            "authentication": {
+              "kind": "secret_manager_bearer",
+              "subject": "dogfood:evidence",
+              "contextHash": "sha256:72031bb17629085888acc99fc28335cb06c662ecdaed08bf74fd068395ec43ca"
+            }
+          }
+        }
+      ],
+      "excluded": [],
+      "invalidations": []
+    },
+    "decision": {
+      "state": "reopened",
+      "current": {
+        "decisionId": "decision:github-dogfood:pr-3",
+        "state": "approved",
+        "policyHash": "sha256:765321368033a7a8961a3b0a26b9693cc0c5b31dd87d8db2271d21bad620edff",
+        "evaluationIds": [
+          "evaluation:github-candidate-identity:pr-3"
+        ],
+        "reviewIds": [
+          "review:github-dogfood:pr-3"
+        ],
+        "rationale": "Candidate identity eligibility passed under the frozen dogfood policy; no code-quality or deployment decision is granted.",
+        "eventHash": "sha256:73b2509afa4ef4eab3e3288686f041868d4a421169b7d425dff2332a8ae223bd",
+        "actor": {
+          "authorityId": "authority:reploid-dogfood-change",
+          "organizationId": "org:reploid-dogfood",
+          "role": "change_authority",
+          "authentication": {
+            "kind": "secret_manager_bearer",
+            "subject": "dogfood:change",
+            "contextHash": "sha256:060a242688a9719d32f44266a21e15aba039441908fdb6edb7334aab23fc1742"
+          }
+        }
+      },
+      "history": [
+        {
+          "decisionId": "decision:github-dogfood:pr-3",
+          "state": "approved",
+          "policyHash": "sha256:765321368033a7a8961a3b0a26b9693cc0c5b31dd87d8db2271d21bad620edff",
+          "evaluationIds": [
+            "evaluation:github-candidate-identity:pr-3"
+          ],
+          "reviewIds": [
+            "review:github-dogfood:pr-3"
+          ],
+          "rationale": "Candidate identity eligibility passed under the frozen dogfood policy; no code-quality or deployment decision is granted.",
+          "eventHash": "sha256:73b2509afa4ef4eab3e3288686f041868d4a421169b7d425dff2332a8ae223bd",
+          "actor": {
+            "authorityId": "authority:reploid-dogfood-change",
+            "organizationId": "org:reploid-dogfood",
+            "role": "change_authority",
+            "authentication": {
+              "kind": "secret_manager_bearer",
+              "subject": "dogfood:change",
+              "contextHash": "sha256:060a242688a9719d32f44266a21e15aba039441908fdb6edb7334aab23fc1742"
+            }
+          }
+        }
+      ],
+      "reopenings": [
+        {
+          "reopeningId": "reopening:7a6a00e16b791c48ec28e3f9",
+          "ruleId": "rule:github-candidate-invalidated",
+          "triggerEventHash": "sha256:e74f8a4d01327c0ddc9ca608bc53034c003347887a6a00e16b791c48ec28e3f9",
+          "requestedAction": "rollback_request",
+          "reason": "Declared trigger rule:github-candidate-invalidated matched observation sha256:aea3da1f45449b39109bd26c8d3aa8cb988414b3962f96c0a2c5283311120a34.",
+          "eventHash": "sha256:edc40297ef1d8ef88bad31e9802c7840fe08ab11ff51aed7880c01a282d60c77",
+          "actor": {
+            "authorityId": "authority:change-control-service",
+            "organizationId": "org:reploid-dogfood",
+            "role": "change_authority",
+            "authentication": {
+              "kind": "deterministic_projection",
+              "subject": "change-control-trigger-projector",
+              "contextHash": "sha256:fa43d1d6264e62150ebe02ebba7e301851e6768afa03ce3fb509c655a95e6a80"
+            }
+          }
+        }
+      ],
+      "revocations": []
+    },
+    "effect": {
+      "state": "not_applied",
+      "current": null,
+      "requests": [],
+      "history": [],
+      "rollbackRequests": [],
+      "rollbackHistory": []
+    },
+    "objections": [],
+    "evaluations": [
+      {
+        "evaluationId": "evaluation:github-candidate-identity:pr-3",
+        "evaluatorId": "evaluator:reploid-github-dogfood:1",
+        "evaluatorAuthorityId": "authority:reploid-dogfood-evaluator",
+        "evaluatorHash": "sha256:8c3d30ff0429c1db9954eea09d93c02938f02625e1b1320f319243f4d76b2e8c",
+        "suiteHash": "sha256:b92197cde8657164d3a696dc11978ccaec992ef80d075d5482b68803199bb134",
+        "contractHash": "sha256:1681d82f2178937f508b9972d044c9f31779fc6e6259cfd83aa7321bacf4ac2a",
+        "baselineHash": "sha256:1d3cc123e1aec988ee2a733e088a4783a1f7d86a4610b482462c7df525125c25",
+        "candidateHash": "sha256:628f46c829fc1871379d9d20764cc5d1468588635f1f32fdd79b0759df86ea2c",
+        "evidenceManifestHash": "sha256:e63fc6e6f9792f7820ad8a4642cc10a04aabfe683364cd02ee0cf6905965ec2f",
+        "conclusion": "pass",
+        "metrics": [
+          {
+            "metricId": "identity-bindings-matched",
+            "value": 5
+          }
+        ],
+        "limitations": [
+          "Does not assess code quality, product qualification, commercial value, deployment safety, or the independently failing GitHub test job."
+        ],
+        "observedAt": "2026-08-23T19:38:34.635Z",
+        "eventHash": "sha256:1753de74bbe4ba74999296a1c6882a6c8533d9f1786c56f3043469d1875baee3",
+        "actor": {
+          "authorityId": "authority:reploid-dogfood-evaluator",
+          "organizationId": "org:reploid-dogfood",
+          "role": "evaluator",
+          "authentication": {
+            "kind": "secret_manager_bearer",
+            "subject": "dogfood:evaluator",
+            "contextHash": "sha256:2efbfc02b0b45f9c1c88627f4b1dc3b4a83fd8f4a7c144060fc8da8db591b80c"
+          }
+        }
+      }
+    ],
+    "reviews": [
+      {
+        "reviewId": "review:github-dogfood:pr-3",
+        "verdict": "approve",
+        "rationale": "Approve only the exact candidate-identity binding for the dedicated dogfood branch; ordinary CI and merge authority remain independent.",
+        "resolvesObjectionIds": [],
+        "evidenceIds": [
+          "evidence:github-candidate-identity:pr-3"
+        ],
+        "eventHash": "sha256:9d08f06db8d8e89e4beb7fdd683a816e548f372eb2b4cb5de2b5031e806db4b6",
+        "actor": {
+          "authorityId": "authority:reploid-dogfood-reviewer",
+          "organizationId": "org:reploid-dogfood",
+          "role": "security_reviewer",
+          "authentication": {
+            "kind": "secret_manager_bearer",
+            "subject": "dogfood:reviewer",
+            "contextHash": "sha256:ae2ee8b7df8d862568ef1c57f6e8246b1aefad66a42c59810da11d21b624fae5"
+          }
+        }
+      }
+    ],
+    "outcomes": [],
+    "triggers": {
+      "declared": [
+        {
+          "ruleId": "rule:github-candidate-invalidated",
+          "sourceKind": "github_webhook",
+          "observationKind": "candidate_invalidated",
+          "targetId": "reploid:passport-dogfood",
+          "action": "rollback_request",
+          "condition": {
+            "field": "invalidated",
+            "operator": "equals",
+            "value": true
+          },
+          "sensorAuthorityId": "authority:reploid-dogfood-observer",
+          "observationHash": null,
+          "observedAt": null,
+          "freshnessMilliseconds": 60000,
+          "deduplicationKey": null,
+          "eventHash": "sha256:7f927575b911a9c27a2c05caf9e2ed5a7eb44bd82eb5c5e2d6c4a9379a43a656",
+          "actor": {
+            "authorityId": "authority:reploid-dogfood-change",
+            "organizationId": "org:reploid-dogfood",
+            "role": "change_authority",
+            "authentication": {
+              "kind": "secret_manager_bearer",
+              "subject": "dogfood:change",
+              "contextHash": "sha256:060a242688a9719d32f44266a21e15aba039441908fdb6edb7334aab23fc1742"
+            }
+          }
+        }
+      ],
+      "observed": [
+        {
+          "ruleId": "rule:github-candidate-invalidated",
+          "sourceKind": "github_webhook",
+          "observationKind": "candidate_invalidated",
+          "targetId": "reploid:passport-dogfood",
+          "action": "rollback_request",
+          "condition": {
+            "invalidated": true
+          },
+          "sensorAuthorityId": "authority:reploid-dogfood-observer",
+          "observationHash": "sha256:aea3da1f45449b39109bd26c8d3aa8cb988414b3962f96c0a2c5283311120a34",
+          "observedAt": "2026-08-23T19:39:22.713Z",
+          "freshnessMilliseconds": 60000,
+          "deduplicationKey": "github:reploid:pr-3:controlled-reopening",
+          "eventHash": "sha256:e74f8a4d01327c0ddc9ca608bc53034c003347887a6a00e16b791c48ec28e3f9",
+          "actor": {
+            "authorityId": "authority:reploid-dogfood-observer",
+            "organizationId": "org:reploid-dogfood",
+            "role": "observer",
+            "authentication": {
+              "kind": "secret_manager_bearer",
+              "subject": "dogfood:observer",
+              "contextHash": "sha256:90296cbb6c094a0028be730cb11e7f5bb5182ad6ebfdc61fc719110aacb32b7e"
+            }
+          }
+        }
+      ]
+    },
+    "supersededBy": null,
+    "integrity": {
+      "valid": true,
+      "eventCount": 9,
+      "validSignatures": 9,
+      "headHash": "sha256:edc40297ef1d8ef88bad31e9802c7840fe08ab11ff51aed7880c01a282d60c77",
+      "passportId": "passport:github:reploid:3:0f19b8fb",
+      "reasons": []
+    }
+  },
+  "exportHash": "sha256:51b9cf4e82799ee8fca337b05ede916c2fec5c574538780ad907dfbb8f4e6e47"
+}

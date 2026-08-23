@@ -1,0 +1,337 @@
+{
+  "name": "projects/reploid/databases/(default)/documents/reploid_change_control_deliveries/57a112eb7a093772c53730c3cf437360fe44238d6f544df283a586157a8f8199",
+  "fields": {
+    "requestHash": {
+      "stringValue": "sha256:5ef21d1839bfadc70a61edf004dc8165e6fc4990c607c6e93e8ffd854ccc8074"
+    },
+    "source": {
+      "stringValue": "github_check"
+    },
+    "result": {
+      "mapValue": {
+        "fields": {
+          "attempted": {
+            "booleanValue": true
+          },
+          "response": {
+            "mapValue": {
+              "fields": {
+                "id": {
+                  "integerValue": "97249043316"
+                },
+                "completed_at": {
+                  "stringValue": "2026-08-23T19:38:37Z"
+                },
+                "started_at": {
+                  "stringValue": "2026-08-23T19:37:25Z"
+                },
+                "html_url": {
+                  "stringValue": "https://github.com/clocksmith/reploid/runs/97249043316"
+                },
+                "status": {
+                  "stringValue": "completed"
+                },
+                "check_suite": {
+                  "mapValue": {
+                    "fields": {
+                      "id": {
+                        "integerValue": "88494748728"
+                      }
+                    }
+                  }
+                },
+                "url": {
+                  "stringValue": "https://api.github.com/repos/clocksmith/reploid/check-runs/97249043316"
+                },
+                "details_url": {
+                  "stringValue": "https://reploid.web.app/passports?id=passport%3Agithub%3Areploid%3A3%3A0f19b8fb"
+                },
+                "output": {
+                  "mapValue": {
+                    "fields": {
+                      "text": {
+                        "nullValue": null
+                      },
+                      "title": {
+                        "stringValue": "Change eligible"
+                      },
+                      "annotations_url": {
+                        "stringValue": "https://api.github.com/repos/clocksmith/reploid/check-runs/97249043316/annotations"
+                      },
+                      "annotations_count": {
+                        "integerValue": "0"
+                      },
+                      "summary": {
+                        "stringValue": "Frozen evidence and approval satisfy the Change Passport policy."
+                      }
+                    }
+                  }
+                },
+                "head_sha": {
+                  "stringValue": "0f19b8fb1b828d8854eaea8d01c2369cf9bf946c"
+                },
+                "name": {
+                  "stringValue": "Reploid Change Passport"
+                },
+                "external_id": {
+                  "stringValue": "passport:github:reploid:3:0f19b8fb"
+                },
+                "pull_requests": {
+                  "arrayValue": {
+                    "values": [
+                      {
+                        "mapValue": {
+                          "fields": {
+                            "id": {
+                              "integerValue": "4343481035"
+                            },
+                            "head": {
+                              "mapValue": {
+                                "fields": {
+                                  "repo": {
+                                    "mapValue": {
+                                      "fields": {
+                                        "name": {
+                                          "stringValue": "reploid"
+                                        },
+                                        "id": {
+                                          "integerValue": "966430504"
+                                        },
+                                        "url": {
+                                          "stringValue": "https://api.github.com/repos/clocksmith/reploid"
+                                        }
+                                      }
+                                    }
+                                  },
+                                  "ref": {
+                                    "stringValue": "main"
+                                  },
+                                  "sha": {
+                                    "stringValue": "0f19b8fb1b828d8854eaea8d01c2369cf9bf946c"
+                                  }
+                                }
+                              }
+                            },
+                            "number": {
+                              "integerValue": "3"
+                            },
+                            "url": {
+                              "stringValue": "https://api.github.com/repos/clocksmith/reploid/pulls/3"
+                            },
+                            "base": {
+                              "mapValue": {
+                                "fields": {
+                                  "sha": {
+                                    "stringValue": "5e11ce154369701ecd04468f354fd8d0c531d130"
+                                  },
+                                  "repo": {
+                                    "mapValue": {
+                                      "fields": {
+                                        "url": {
+                                          "stringValue": "https://api.github.com/repos/clocksmith/reploid"
+                                        },
+                                        "name": {
+                                          "stringValue": "reploid"
+                                        },
+                                        "id": {
+                                          "integerValue": "966430504"
+                                        }
+                                      }
+                                    }
+                                  },
+                                  "ref": {
+                                    "stringValue": "passport-dogfood"
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    ]
+                  }
+                },
+                "app": {
+                  "mapValue": {
+                    "fields": {
+                      "html_url": {
+                        "stringValue": "https://github.com/apps/reploid-change-passport"
+                      },
+                      "name": {
+                        "stringValue": "Reploid Change Passport"
+                      },
+                      "created_at": {
+                        "stringValue": "2026-08-23T17:21:49Z"
+                      },
+                      "description": {
+                        "nullValue": null
+                      },
+                      "permissions": {
+                        "mapValue": {
+                          "fields": {
+                            "pull_requests": {
+                              "stringValue": "read"
+                            },
+                            "checks": {
+                              "stringValue": "write"
+                            },
+                            "metadata": {
+                              "stringValue": "read"
+                            }
+                          }
+                        }
+                      },
+                      "external_url": {
+                        "stringValue": "https://reploid.web.app/passports"
+                      },
+                      "id": {
+                        "integerValue": "4693600"
+                      },
+                      "client_id": {
+                        "stringValue": "Iv23lioQGNSB7t3YhhMb"
+                      },
+                      "updated_at": {
+                        "stringValue": "2026-08-23T19:30:21Z"
+                      },
+                      "slug": {
+                        "stringValue": "reploid-change-passport"
+                      },
+                      "node_id": {
+                        "stringValue": "A_kwDOAAkHU84AR55g"
+                      },
+                      "owner": {
+                        "mapValue": {
+                          "fields": {
+                            "type": {
+                              "stringValue": "User"
+                            },
+                            "subscriptions_url": {
+                              "stringValue": "https://api.github.com/users/clocksmith/subscriptions"
+                            },
+                            "following_url": {
+                              "stringValue": "https://api.github.com/users/clocksmith/following{/other_user}"
+                            },
+                            "avatar_url": {
+                              "stringValue": "https://avatars.githubusercontent.com/u/591699?v=4"
+                            },
+                            "starred_url": {
+                              "stringValue": "https://api.github.com/users/clocksmith/starred{/owner}{/repo}"
+                            },
+                            "node_id": {
+                              "stringValue": "MDQ6VXNlcjU5MTY5OQ=="
+                            },
+                            "repos_url": {
+                              "stringValue": "https://api.github.com/users/clocksmith/repos"
+                            },
+                            "gravatar_id": {
+                              "stringValue": ""
+                            },
+                            "received_events_url": {
+                              "stringValue": "https://api.github.com/users/clocksmith/received_events"
+                            },
+                            "gists_url": {
+                              "stringValue": "https://api.github.com/users/clocksmith/gists{/gist_id}"
+                            },
+                            "login": {
+                              "stringValue": "clocksmith"
+                            },
+                            "followers_url": {
+                              "stringValue": "https://api.github.com/users/clocksmith/followers"
+                            },
+                            "site_admin": {
+                              "booleanValue": false
+                            },
+                            "html_url": {
+                              "stringValue": "https://github.com/clocksmith"
+                            },
+                            "id": {
+                              "integerValue": "591699"
+                            },
+                            "events_url": {
+                              "stringValue": "https://api.github.com/users/clocksmith/events{/privacy}"
+                            },
+                            "url": {
+                              "stringValue": "https://api.github.com/users/clocksmith"
+                            },
+                            "organizations_url": {
+                              "stringValue": "https://api.github.com/users/clocksmith/orgs"
+                            },
+                            "user_view_type": {
+                              "stringValue": "public"
+                            }
+                          }
+                        }
+                      },
+                      "events": {
+                        "arrayValue": {
+                          "values": [
+                            {
+                              "stringValue": "pull_request"
+                            },
+                            {
+                              "stringValue": "pull_request_review"
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  }
+                },
+                "node_id": {
+                  "stringValue": "CR_kwDOOZqPKM8AAAAWpH6jdA"
+                },
+                "conclusion": {
+                  "stringValue": "success"
+                }
+              }
+            }
+          },
+          "ok": {
+            "booleanValue": true
+          },
+          "request": {
+            "mapValue": {
+              "fields": {
+                "headSha": {
+                  "stringValue": "0f19b8fb1b828d8854eaea8d01c2369cf9bf946c"
+                },
+                "status": {
+                  "stringValue": "completed"
+                },
+                "conclusion": {
+                  "stringValue": "success"
+                },
+                "title": {
+                  "stringValue": "Change eligible"
+                },
+                "installationId": {
+                  "integerValue": "155987328"
+                },
+                "owner": {
+                  "stringValue": "clocksmith"
+                },
+                "repo": {
+                  "stringValue": "reploid"
+                },
+                "detailsUrl": {
+                  "stringValue": "https://reploid.web.app/passports?id=passport%3Agithub%3Areploid%3A3%3A0f19b8fb"
+                },
+                "passportId": {
+                  "stringValue": "passport:github:reploid:3:0f19b8fb"
+                },
+                "summary": {
+                  "stringValue": "Frozen evidence and approval satisfy the Change Passport policy."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "deliveryId": {
+      "stringValue": "passport:github:reploid:3:0f19b8fb-7"
+    }
+  },
+  "createTime": "2026-08-23T19:38:37.867732Z",
+  "updateTime": "2026-08-23T19:38:37.867732Z"
+}
