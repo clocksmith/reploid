@@ -25,9 +25,9 @@ Current state:
 - [x] Live GitHub App installation and App-bound branch-protection rule recorded
 - [x] Unproved App check removed from ordinary `main` without rewriting the installation observation
 - [x] Dedicated `passport-dogfood` branch created with the App-bound blocking check
-- [ ] Existing GitHub App registration reduced to the least-privilege permission contract
+- [x] Existing GitHub App registration reduced to the least-privilege permission contract
   for `clocksmith/reploid` in the
-  [status artifact](../status/change-passport-github-installation-2026-08-23.json).
+  [status artifact](../status/change-passport-github-least-privilege-2026-08-23.json).
 - [ ] Live blocked and eligible Change Passport check-run evidence recorded.
 - [x] Clean dual-host Firebase Hosting and Cloud Run release identity recorded
   without qualification in the
