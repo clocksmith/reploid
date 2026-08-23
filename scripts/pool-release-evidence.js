@@ -20,6 +20,26 @@ const safeName = (value) => String(value || 'attachment')
   .replace(/^-+|-+$/g, '')
   || 'attachment';
 
+export function buildPoolReleaseEvidenceDirectory({
+  repoRoot,
+  baseUrl,
+  sourceRevision,
+  browserBundleHash,
+  timestamp = Date.now()
+} = {}) {
+  if (!text(repoRoot) || !text(baseUrl) || !text(sourceRevision)
+    || !SHA256_PATTERN.test(browserBundleHash || '') || !Number.isFinite(Number(timestamp))) {
+    throw new TypeError('release evidence directory requires a repository, URL, release identity, and timestamp');
+  }
+  const host = safeName(new URL(baseUrl).hostname);
+  return path.join(
+    repoRoot,
+    'artifacts',
+    'pool-release',
+    `${host}-${sourceRevision.slice(0, 12)}-${browserBundleHash.slice(7, 19)}-${Number(timestamp)}`
+  );
+}
+
 const collectSpecs = (suite, specs = []) => {
   specs.push(...(suite?.specs || []));
   for (const child of suite?.suites || []) collectSpecs(child, specs);

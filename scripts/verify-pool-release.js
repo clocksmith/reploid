@@ -13,6 +13,7 @@ import {
   validateBrowserBundleManifest
 } from '../self/pool/browser-release-identity.js';
 import {
+  buildPoolReleaseEvidenceDirectory,
   capturePoolReleaseLane,
   writePoolReleaseEvidenceIndex
 } from './pool-release-evidence.js';
@@ -278,12 +279,12 @@ try {
     }
   ];
   const evidenceCreatedAt = new Date().toISOString();
-  const evidenceDirectory = path.join(
+  const evidenceDirectory = buildPoolReleaseEvidenceDirectory({
     repoRoot,
-    'test-results',
-    'pool-release',
-    `${sourceReleaseIdentity.sourceRevision.slice(0, 12)}-${browserBundleManifest.bundleHash.slice(7, 19)}-${Date.now()}`
-  );
+    baseUrl,
+    sourceRevision: sourceReleaseIdentity.sourceRevision,
+    browserBundleHash: browserBundleManifest.bundleHash
+  });
   const capturedLanes = [];
   const expectedLaneRelease = {
     sourceRevision: sourceReleaseIdentity.sourceRevision,
