@@ -70,7 +70,11 @@ const renderOracle = async (page, url, screenshotPath) => {
   };
 };
 
-export async function runVisualChangePassportDogfood({ bridgeRoot, outputPath } = {}) {
+export async function runVisualChangePassportDogfood({
+  bridgeRoot,
+  outputPath,
+  policyOptions = {}
+} = {}) {
   const selectedBridgeRoot = path.resolve(
     bridgeRoot || path.join(repositoryRoot, '..', 'ouroboros', 'deco', 'packages', 'visual-feedback-bridge')
   );
@@ -297,7 +301,8 @@ export async function runVisualChangePassportDogfood({ bridgeRoot, outputPath } 
       targetId: 'reploid:dogfood-passports-ui',
       reviewerRole: 'visual_reviewer',
       rollbackAuthorityId: 'authority:visual-rollback',
-      sourceSensorAuthorityId: 'authority:bridge-source-observer'
+      sourceSensorAuthorityId: 'authority:bridge-source-observer',
+      ...policyOptions
     });
     const proposer = actor('authority:codex-patch-agent', ['proposer', 'evidence_producer']);
     const changeAuthority = actor('authority:reploid-change-control', ['change_authority']);
@@ -433,6 +438,8 @@ export async function runVisualChangePassportDogfood({ bridgeRoot, outputPath } 
       passportId: exported.passportId,
       candidateHash: candidate.candidateHash,
       patchArtifactHash: candidate.patch.artifactHash,
+      policyVersion: policy.version,
+      policyHash: policy.policyHash,
       eventCount: verification.integrity.eventCount,
       headHash: verification.integrity.headHash,
       exportHash: verification.exportHash,

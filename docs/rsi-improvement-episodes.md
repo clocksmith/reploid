@@ -128,6 +128,21 @@ protein-adjudication cost. Poolday may
 admit a capability only through its own frozen policy and prospective Research
 Room evidence.
 
+## Federated strategy projection
+
+Ouroboros `strategy.episode/v1` is a reference projection over project-owned
+evidence. It does not replace this ledger. A Reploid adapter may bind an
+immutable episode projection, event head, candidate, evaluator, outcome, and
+negative evidence into an Ouroboros episode. Ouroboros may then propose a
+human-reviewed strategy consequence, but it cannot promote a Reploid artifact,
+rewrite this ledger, change a Reploid claim, or close a Reploid blocker.
+
+The first reference carrier is a Visual Change Passport dogfood policy
+revision. Its candidate may change only the dedicated policy artifact. The
+episode protects the evaluator, ledger, verifier, promotion adapter, rollback
+path, and general product policy from candidate mutation. Passing establishes
+internal causal closure only, never customer value or product qualification.
+
 ## Acceptance evidence
 
 - [`tests/unit/improvement-episode.test.js`](../tests/unit/improvement-episode.test.js)

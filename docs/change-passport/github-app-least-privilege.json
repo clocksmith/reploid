@@ -1,0 +1,22 @@
+{
+  "schema": "reploid.github-app-permission-contract/v1",
+  "appSlug": "reploid-change-passport",
+  "appId": 4693600,
+  "defaultPermissions": {"checks": "write", "metadata": "read", "pullRequests": "read"},
+  "defaultEvents": ["pull_request", "pull_request_review"],
+  "forbiddenDefaultPermissions": [
+    "administration:write",
+    "contents:write",
+    "deployments:write",
+    "environments:write",
+    "secrets",
+    "workflows:write"
+  ],
+  "effectAdapters": {
+    "deployment": "separately_enabled",
+    "permissionRevocation": "separately_enabled",
+    "rollback": "separately_enabled"
+  },
+  "installationScope": ["clocksmith/reploid"],
+  "qualificationGranted": false
+}

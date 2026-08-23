@@ -1,0 +1,11 @@
+{
+  "schema": "reploid.change-passport-policy-activation/v1",
+  "policyId": "policy:reploid-visual-dogfood",
+  "version": "1.1.0",
+  "policyHash": "sha256:9d8ddc4a7aad1a3c6ff9a03a3f73e9f189da77648d3c21a69d1be50230e876a7",
+  "source": "docs/change-passport/dogfood/visual-policy-v1.1.0.json",
+  "scope": "dedicated_visual_dogfood_only",
+  "authorityId": "human:portfolio-owner",
+  "appliedAt": "2026-08-23T18:31:37.337Z",
+  "qualificationGranted": false
+}
