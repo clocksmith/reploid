@@ -1251,7 +1251,7 @@
     {
       "path": "config/module-inventory.json",
       "byteLength": 78584,
-      "sha256": "sha256:6055fc8c4d77647532c310b75a2e421a7a84d18a50b63d718445a32f3bb3840b"
+      "sha256": "sha256:e86ec62401f05c1b6203f8500c719edbaf801ac14cd31a93fd0d8ec61a884dd8"
     },
     {
       "path": "config/module-registry.json",
@@ -2670,8 +2670,8 @@
     },
     {
       "path": "ui/pool-home/controls.js",
-      "byteLength": 110033,
-      "sha256": "sha256:f7f606fe7a342208c84831f80ab127e68f1f3e543aa62deecf0f99fc2966ece1"
+      "byteLength": 110392,
+      "sha256": "sha256:a6c414712359df7c3c685d338df2e178c2481283e034306d80bf37660c90b881"
     },
     {
       "path": "ui/pool-home/index.js",
@@ -2874,5 +2874,5 @@
       "sha256": "sha256:c5a6c85719ce4072b343251b10f5a00f7f99d83be47f83367b3f959886c78701"
     }
   ],
-  "bundleHash": "sha256:14ba03f832da2e49d5a09fcf07bbc7be89a07679bf98bbff157c567a28876ea9"
+  "bundleHash": "sha256:b3e3ea9c8fe01b2bacbbbc45cdfd15c4398656ab78101c42561b6771a7786f7c"
 }
