@@ -68,13 +68,14 @@ observations.
 | `self/core/change-passport*.js` | Browser/VFS compatibility exports for the shared contract |
 | `server/change-control/` | Hosted store, authorization, API, GitHub App, effect adapters, and trigger ingestion |
 | `self/ui/change-passport/` | Operator review, evidence, dissent, approval, effect, and reopening views |
-| `sdk/change-passport/` | TypeScript client and typed evidence, decision, and trigger submissions |
+| `sdk/change-passport/` | Standalone TypeScript client, package-local declarations, and bundled offline verifier |
 | `.github/actions/change-passport/` | Reusable CI action for candidate freeze, evidence upload, and required-check polling |
 | `tests/fixtures/change-passport/` | Canonical valid and adversarial conformance fixtures |
 | `tests/unit/change-passport*.test.js` | Contract, projection, policy, and adapter unit evidence |
 | `tests/integration/change-passport*.test.js` | Hosted API, store, auth, GitHub, and effect integration evidence |
 | `tests/e2e/change-passport.spec.js` | Browser review and complete governed-change journey |
 | `scripts/verify-change-passport.js` | Offline export and signature verifier |
+| `scripts/build-change-passport-sdk.js` | Deterministic standalone SDK bundle, declaration build, and stale-distribution check |
 
 Each new component receives a CATSCAN before implementation. The generic
 change-control service must not be placed under `self/pool/` or `server/pool/`.
@@ -350,6 +351,10 @@ Before a supported release:
 ```bash
 npm run verify:catscan
 npm run verify:surface-claims
+npm run verify:browser-bundle:local
+npm run verify:change-passport:sdk
+npm run verify:change-passport:pilot
+npm exec -- tsc -p tsconfig.change-passport.json --noEmit
 npm run test:unit
 npm run test:integration
 npm run test:e2e

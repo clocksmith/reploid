@@ -32,10 +32,15 @@ jobs:
 
     - name: Verify surface and runtime contracts
       run: |
+        npm run verify:catscan
         npm run verify:surface-claims
         npm run verify:layers
         npm run verify:module-system
         npm run verify:runtime-config
+        npm run verify:browser-bundle:local
+        npm run verify:change-passport:sdk
+        npm run verify:change-passport:pilot
+        npm exec -- tsc -p tsconfig.change-passport.json --noEmit
         npm run verify:pool
 
     - name: Archive test results
