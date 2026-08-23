@@ -1159,6 +1159,11 @@
       "sha256": "sha256:04330e0d217d62a9cfe5d3b7f6c0a48327ac9e0c9af9629dc806f0a1c51a4bd6"
     },
     {
+      "path": "change-passport-entry.html",
+      "byteLength": 693,
+      "sha256": "sha256:a574bec05f7194a8e95410e2f5d7ea7a92fcd3c56ccd262b4ed88f8cc9cb85ec"
+    },
+    {
       "path": "cloud-access-status.js",
       "byteLength": 7022,
       "sha256": "sha256:baae26ecc29e82df5a650a9dcc137b579008361625504184c2698e49184c621c"
@@ -1176,7 +1181,7 @@
     {
       "path": "config/blueprint-registry.json",
       "byteLength": 33457,
-      "sha256": "sha256:92468f21dfa76bc7dae078ab1d61dfa69bf5ff7b28b602962a731f0316e9b572"
+      "sha256": "sha256:29ef3fd31ee8e8614230533d00a10b060ea9958bfd777864015b352c608adfd5"
     },
     {
       "path": "config/boot-modes.js",
@@ -1185,8 +1190,8 @@
     },
     {
       "path": "config/boot-seed.js",
-      "byteLength": 7166,
-      "sha256": "sha256:82e996682456b708bf580c9397403cb52e7c3587311207907b19360aa904acba"
+      "byteLength": 7309,
+      "sha256": "sha256:ebc4e8873c0b8ccab5b8fba7cb16f229a13a02fdbef7c6e46b4ebcae7b59d888"
     },
     {
       "path": "config/CATSCAN.md",
@@ -1245,13 +1250,13 @@
     },
     {
       "path": "config/module-inventory.json",
-      "byteLength": 76144,
-      "sha256": "sha256:00c35d069ef3d3b88ff559523e2fb11843b738e239b00ada815968ea4e550769"
+      "byteLength": 78092,
+      "sha256": "sha256:bc0a415de45e1260433035ecebc25dc5fd2f9ed658d6da20f0499523d7e15bd0"
     },
     {
       "path": "config/module-registry.json",
       "byteLength": 42332,
-      "sha256": "sha256:89edab57eeb145b42dcda4b5f739241e42dc61460c6ce99dc68901016e9dd749"
+      "sha256": "sha256:77687d7d4dff4871387f1cf8adf6f980fce2cea46dccc223302690d78ba64ac4"
     },
     {
       "path": "config/module-resolution.js",
@@ -1275,8 +1280,8 @@
     },
     {
       "path": "config/vfs-manifest.json",
-      "byteLength": 22219,
-      "sha256": "sha256:e04b58959115a927045bfc549ad16265f0242cbcdd9be2b1a096af71c0be5cf6"
+      "byteLength": 22739,
+      "sha256": "sha256:529ef701a859c8fb42affe52e3f62ddbbceccd371f1f0e284d2e916c7033a9b4"
     },
     {
       "path": "config/vfs-policy.js",
@@ -1310,8 +1315,23 @@
     },
     {
       "path": "core/CATSCAN.md",
-      "byteLength": 1782,
-      "sha256": "sha256:b43cfb327d07f28f02a2349596fac397ab5f5bc904ec9e6bb8f9d126a5b20fbb"
+      "byteLength": 2302,
+      "sha256": "sha256:cc389a1ef6b96b2c022583f6bb80b8082b214a0a653185a7539b737835112a06"
+    },
+    {
+      "path": "core/change-passport-improvement-adapter.js",
+      "byteLength": 237,
+      "sha256": "sha256:c8a00f036d9da31ade1e80cc8d42dbda43cd329577e59a433dfcc56b177d166c"
+    },
+    {
+      "path": "core/change-passport-policy.js",
+      "byteLength": 214,
+      "sha256": "sha256:12ef480baa8253283c8b44b26699aee6f2353fc38fe578039447bfea43e9751f"
+    },
+    {
+      "path": "core/change-passport.js",
+      "byteLength": 220,
+      "sha256": "sha256:92b42a99da8aa17d6275d0a55d0663f9f1989c98df698df454b06077132370b0"
     },
     {
       "path": "core/context-manager.js",
@@ -1365,8 +1385,8 @@
     },
     {
       "path": "core/promotion-policy.js",
-      "byteLength": 9074,
-      "sha256": "sha256:e5be965a99d3560f67390aaa07c513cf852db6918e58031300382c053878aa38"
+      "byteLength": 9206,
+      "sha256": "sha256:48dbf3e0cc6a21f33d9f979e858f4c4e05a3df919b2bee336e50b7ae763c6d96"
     },
     {
       "path": "core/provider-registry.js",
@@ -1730,8 +1750,8 @@
     },
     {
       "path": "manifest.js",
-      "byteLength": 13334,
-      "sha256": "sha256:98302cf2a329e74c280f546a460c249fb9e512adb36026667045d659a0382038"
+      "byteLength": 13982,
+      "sha256": "sha256:c0233063a4059fef7f05cbfa64d335cf2034641ddecf77ea1f71c0d5fae72a4e"
     },
     {
       "path": "personas/code-architect.md",
@@ -2134,6 +2154,26 @@
       "sha256": "sha256:bc4bece667fac85cdb7187a39a776f4e733111d6018df4e17aafd5a3e8facf84"
     },
     {
+      "path": "shared/change-passport/CATSCAN.md",
+      "byteLength": 1482,
+      "sha256": "sha256:f06047d7c025261a1720a82ed31cef42ad18b08a508dcfbd34e74ec62e6cd35c"
+    },
+    {
+      "path": "shared/change-passport/contract.js",
+      "byteLength": 43326,
+      "sha256": "sha256:2fd1f21b267566c22bb70bb22a4febafd12e3be4fa0ff2fc599dd0b10d0c0b7b"
+    },
+    {
+      "path": "shared/change-passport/improvement-adapter.js",
+      "byteLength": 9178,
+      "sha256": "sha256:b2ef9ae3faa7ff67d809fc2c1164b314e0b5fa4f56b0be18243ddc64b4e4364c"
+    },
+    {
+      "path": "shared/change-passport/policy.js",
+      "byteLength": 11218,
+      "sha256": "sha256:eb9ae28a46e611156d324ae2157d318f97e6c9d39fda1622ab35d4ae46838471"
+    },
+    {
       "path": "styles/audit.css",
       "byteLength": 8610,
       "sha256": "sha256:cdb9315391e370044371fba25bcba4839185399be66f807dc8d2e84a72aaabff"
@@ -2529,6 +2569,26 @@
       "sha256": "sha256:9be95a8b1337c5a7da908dd943fbba7dcfb413d72650701806838b4fa20c4726"
     },
     {
+      "path": "ui/change-passport/CATSCAN.md",
+      "byteLength": 1812,
+      "sha256": "sha256:975a7ba1275ffea68bcaf68038ae5fa9016453baf7d21ce9b8f2055966d15426"
+    },
+    {
+      "path": "ui/change-passport/client.js",
+      "byteLength": 2923,
+      "sha256": "sha256:3ecdf1730ae5ad69e52eb9b477066e3e4c63b2bbe367e1b98e486301c0c48521"
+    },
+    {
+      "path": "ui/change-passport/index.js",
+      "byteLength": 23693,
+      "sha256": "sha256:9c0d25fad64cdc1d63b94589a28e7488bbdc17fb02fe7587a75df37219a02246"
+    },
+    {
+      "path": "ui/change-passport/styles.css",
+      "byteLength": 5614,
+      "sha256": "sha256:00a45e106a7ffa3ab6e1168f7a3f2655a3bd02680e5e813f71f5038902eb1c81"
+    },
+    {
       "path": "ui/components/arena-results.js",
       "byteLength": 9219,
       "sha256": "sha256:785fdb54eb1737e31a1160ab4f9504485addff752ad3fd3cee6fbf96f9b57f25"
@@ -2750,8 +2810,8 @@
     },
     {
       "path": "ui/proto/template.js",
-      "byteLength": 20470,
-      "sha256": "sha256:ea588810b8a68eb29adbacd7c5a8702924baefc255974bd23b2991f35e766139"
+      "byteLength": 20505,
+      "sha256": "sha256:f93e88db34e44c59b5dc6d8c113fd85450367cca2bd7bbc9cca545aa6a98e3db"
     },
     {
       "path": "ui/proto/utils.js",
@@ -2804,5 +2864,5 @@
       "sha256": "sha256:c5a6c85719ce4072b343251b10f5a00f7f99d83be47f83367b3f959886c78701"
     }
   ],
-  "bundleHash": "sha256:4336edaabcaa8c690f238c2a63052c5a3b20217e1a6010f72a62d8c006e2d7fa"
+  "bundleHash": "sha256:40790b30bfb3be5d92c2cae4383176352d39d9218226686cef14109cf3cdccfe"
 }

@@ -254,7 +254,7 @@ export const renderProtoTemplate = (escapeHtml, goalFromBoot) => `
             </div>
           </div>
 
-          <div class="optimization-causal-card" aria-label="Causal improvement summary">
+          <div id="optimization-candidate-detail" class="optimization-causal-card" aria-label="Causal improvement summary">
             <div class="optimization-causal-col">
               <div class="optimization-section-label"><span>1. Baseline & Evaluator</span></div>
               <div id="optimization-summary-baseline" class="optimization-summary-content">No candidate selected</div>

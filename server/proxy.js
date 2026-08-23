@@ -15,6 +15,14 @@ import fetch from 'node-fetch';
 import createPoolRouter from './pool/routes.js';
 import { createFirebaseStore } from './pool/firebase-store.js';
 import { createGcsAdapterOriginSigner } from './pool/adapter-origin-signer.js';
+import { createChangeControlAuthenticator, parseChangeControlTokenConfig } from './change-control/auth.js';
+import { createFileChangeControlStore } from './change-control/file-store.js';
+import { createFirestoreChangeControlStore } from './change-control/firestore-store.js';
+import { createGitHubChangeControlAdapters } from './change-control/effects.js';
+import { createGitHubAppClient } from './change-control/github.js';
+import createChangeControlRouter from './change-control/routes.js';
+import { createChangeControlService } from './change-control/service.js';
+import { createMemoryChangeControlStore } from './change-control/store.js';
 import {
   createPublicInferenceConfig,
   createPublicInferenceGuard,
@@ -196,9 +204,69 @@ const createConfiguredAdapterOriginSigner = async () => {
   }
 };
 
+const createConfiguredChangeControl = async () => {
+  if (process.env.REPLOID_CHANGE_CONTROL_ENABLED === 'false') return null;
+  const defaultStoreMode = process.env.K_SERVICE ? 'firestore' : 'memory';
+  const storeMode = String(process.env.REPLOID_CHANGE_CONTROL_STORE || defaultStoreMode).trim();
+  let store;
+  if (storeMode === 'firestore') {
+    try {
+      const appModule = await import('firebase-admin/app');
+      const firestoreModule = await import('firebase-admin/firestore');
+      if (appModule.getApps().length === 0) appModule.initializeApp();
+      store = createFirestoreChangeControlStore({
+        firestore: firestoreModule.getFirestore(),
+        collectionPrefix: process.env.REPLOID_CHANGE_CONTROL_FIRESTORE_PREFIX || 'reploid'
+      });
+    } catch (error) {
+      throw new Error(`[Change Control] Firestore store requested but unavailable: ${error.message}`);
+    }
+  } else if (storeMode === 'file') {
+    store = createFileChangeControlStore({
+      rootDir: process.env.REPLOID_CHANGE_CONTROL_STORE_DIR
+        || path.join(__dirname, '..', '.change-control-data')
+    });
+  } else if (storeMode === 'memory') {
+    store = createMemoryChangeControlStore();
+  } else {
+    throw new Error(`[Change Control] Unsupported store mode: ${storeMode}`);
+  }
+  const tokenEntries = parseChangeControlTokenConfig(process.env.REPLOID_CHANGE_CONTROL_TOKENS || null);
+  const authenticate = createChangeControlAuthenticator({
+    tokenEntries,
+    allowUnauthenticatedLoopback: process.env.REPLOID_CHANGE_CONTROL_ALLOW_LOCAL === 'true',
+    localOrganizationId: process.env.REPLOID_CHANGE_CONTROL_LOCAL_ORG || 'org:local'
+  });
+  const githubPrivateKey = String(process.env.REPLOID_GITHUB_APP_PRIVATE_KEY || '').replace(/\\n/g, '\n');
+  const githubClient = process.env.REPLOID_GITHUB_APP_ID && githubPrivateKey
+    ? createGitHubAppClient({
+        appId: process.env.REPLOID_GITHUB_APP_ID,
+        privateKey: githubPrivateKey,
+        apiBase: process.env.REPLOID_GITHUB_API_BASE || undefined
+      })
+    : null;
+  const service = createChangeControlService({
+    store,
+    githubClient,
+    effectRegistry: createGitHubChangeControlAdapters(githubClient),
+    detailsBaseUrl: process.env.REPLOID_CHANGE_CONTROL_PUBLIC_URL || null
+  });
+  return {
+    store,
+    router: createChangeControlRouter({
+      service,
+      store,
+      authenticate,
+      githubWebhookSecret: process.env.REPLOID_GITHUB_WEBHOOK_SECRET || null,
+      githubWebhookHandler: service.handleGitHubWebhook
+    })
+  };
+};
+
 const configuredPoolStore = await createConfiguredPoolStore();
 const configuredPoolAuth = await createConfiguredPoolAuth();
 const configuredAdapterOriginSigner = await createConfiguredAdapterOriginSigner();
+const configuredChangeControl = await createConfiguredChangeControl();
 let publicInferenceGuard = null;
 let publicInferenceConfigError = null;
 try {
@@ -572,7 +640,14 @@ if (!POOL_BACKEND_ONLY) {
 }
 
 // Middleware to parse JSON bodies
-app.use(express.json({ limit: POOL_BACKEND_ONLY ? (process.env.POOL_JSON_LIMIT || '512kb') : '10mb' }));
+app.use(express.json({
+  limit: POOL_BACKEND_ONLY ? (process.env.POOL_JSON_LIMIT || '512kb') : '10mb',
+  verify: (req, res, buffer) => {
+    if (req.originalUrl?.startsWith('/change-control/github/webhooks')) {
+      req.rawBody = Buffer.from(buffer);
+    }
+  }
+}));
 
 if (decoFeedback) {
   app.use(decoFeedback.createFeedbackAssetMiddleware());
@@ -580,7 +655,7 @@ if (decoFeedback) {
 
 // CORS headers for API endpoints
 app.use((req, res, next) => {
-  if (req.path.startsWith('/api/') || req.path.startsWith('/pool/')) {
+  if (req.path.startsWith('/api/') || req.path.startsWith('/pool/') || req.path.startsWith('/change-control/')) {
     const origin = req.headers.origin;
     if (CORS_ORIGINS.includes('*') || CORS_ORIGINS.includes(origin)) {
       res.header('Access-Control-Allow-Origin', origin || '*');
@@ -588,7 +663,7 @@ app.use((req, res, next) => {
       res.header('Access-Control-Allow-Origin', CORS_ORIGINS[0]);
     }
     res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Cache-Control, X-Reploid-Client-Id');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Cache-Control, X-Reploid-Client-Id, Idempotency-Key');
     res.header('Access-Control-Allow-Credentials', 'true');
     if (req.method === 'OPTIONS') {
       return res.sendStatus(200);
@@ -609,6 +684,10 @@ app.use('/pool', createPoolRouter({
   allowCanaryCreation: process.env.POOL_ALLOW_BROWSER_CANARY_CREATE === 'true',
   createAdapterDownloadUrl: configuredAdapterOriginSigner
 }));
+
+if (configuredChangeControl) {
+  app.use('/change-control', configuredChangeControl.router);
+}
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
@@ -1483,6 +1562,7 @@ const setStaticHeaders = (res, filePath) => {
 };
 
 const PRODUCT_ROUTES = ['/', '/ask', '/compute', '/records', '/history', '/network'];
+const CHANGE_PASSPORT_ROUTES = ['/passports'];
 const SUBSTRATE_ROUTES = ['/zero', '/x'];
 const sendUiFile = async (res, filePath) => {
   if (!decoFeedback || !decoFeedbackOptions) {
@@ -1497,6 +1577,11 @@ const sendUiFile = async (res, filePath) => {
 app.get(PRODUCT_ROUTES, async (req, res) => {
   res.setHeader('X-Reploid-Experience', 'browser-inference-pool');
   await sendUiFile(res, path.join(__dirname, '..', 'self', 'pool-entry.html'));
+});
+
+app.get(CHANGE_PASSPORT_ROUTES, async (req, res) => {
+  res.setHeader('X-Reploid-Experience', 'change-passport');
+  await sendUiFile(res, path.join(__dirname, '..', 'self', 'change-passport-entry.html'));
 });
 
 app.get(SUBSTRATE_ROUTES, async (req, res) => {

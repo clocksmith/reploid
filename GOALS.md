@@ -2,23 +2,46 @@
 
 ## Product aim
 
-Reploid should test whether a proof-carrying Research Room can help curators of
-public protein catalogs adjudicate disputed family or domain annotations at
-lower verified cost than the existing workflow.
+Reploid should govern consequential decisions made by agents and humans from
+proposal through evidence, disagreement, evaluation, approval, activation,
+observed outcome, rollback, and reopening.
+
+The first commercial expression is Reploid Change Passport. It makes an
+agent-generated model, prompt, tool, policy, or configuration change reviewable,
+reversible, and automatically reopenable when a declared part of its evidence
+or policy basis changes. A passport verifies the declared evidence and policy
+basis under which a decision became active. It does not prove that the decision
+was objectively correct or that every contributing system was honest.
+
+Reploid Room-1 remains the first scientific proof. It tests whether the same
+contradiction-preserving decision mechanism can help curators of public protein
+catalogs adjudicate disputed family or domain annotations at lower verified
+cost than the existing workflow.
 
 The product is not peer count, inference volume, a decentralized compute
-network, or an exposed RSI laboratory. The intended user outcome is a better
-justified next decision supported by inspectable evidence, accountable
-disagreement, review, correction, and reproduction.
+network, an identity provider, a trace viewer, or an exposed RSI laboratory.
+The intended user outcome is a better justified next decision supported by
+inspectable evidence, accountable disagreement, explicit authority, correction,
+rollback, and reopening.
 
-The Research Room is the primary scientific workflow, not the only operational
-interface. Contributor, policy, security, and system operators still need
-role-specific controls. Zero and X remain experimental surfaces outside the
-ordinary researcher journey.
+Change Passport and the Research Room are separate product surfaces over a
+shared evidence-state model. Poolday, generic change control, Zero, and X retain
+separate activation authority. Zero and X remain experimental surfaces outside
+ordinary customer and researcher journeys.
 
 ## Current supported boundary
 
-The supported product is narrower than the long-term aim:
+The repository now supports a local external-facing Change Passport contract,
+append-only hosted service, durable store, scoped bearer authentication,
+GitHub App client and required-check projection, CI action, TypeScript SDK,
+browser review surface, explicit deployment and rollback adapters, standard
+reopening triggers, offline export verification, and a separate adapter from
+`rsi.improvement-episode/v1`. These claims are bounded to repository tests and
+the local browser journey. A live GitHub installation, deployed release,
+external operator comparison, and commercial value remain unproved and have no
+claim permission.
+
+The currently supported Poolday product is narrower than the long-term aim:
 
 - Public protein sequences only.
 - The enabled ESM-2 35M exact model contract.
@@ -34,9 +57,40 @@ artifact. Multiple matching executions establish declared execution agreement.
 They do not prove honest browser execution, distinct devices or organizations,
 independent model evidence, biological correctness, or scientific replication.
 
-## Falsifiable first goal
+## Falsifiable first proofs
 
-The first product proof should be narrower than a general protein-model
+### Commercial proof: Change Passport
+
+The first commercial proof is narrower than generic decision governance:
+
+> Reploid governs an agent-generated model, prompt, tool, policy, or
+> configuration change in a real GitHub and CI workflow. It binds the exact
+> candidate, frozen baseline, evaluator, evidence, disagreement, approval,
+> activation, outcome, rollback, and reopening conditions. Reploid succeeds
+> only when the team can approve or reject the change with less reconstruction
+> cost or fewer escaped regressions than its frozen existing workflow without
+> an unacceptable increase in false blocks.
+
+This claim is supported only when a real workflow demonstrates all of the
+following:
+
+1. A version-pinned passport controls a required merge or promotion check.
+2. Proposer, evaluator, reviewer, and activation authority remain explicit.
+3. Included and excluded evidence, dissent, failed checks, and unresolved
+   conditions remain inspectable.
+4. The deployed effect is recorded separately from the approval decision.
+5. A predeclared trigger reopens an active decision and requests the authorized
+   next action without implying that rollback already occurred.
+6. An external operator can verify the exported record and asks to use the
+   workflow for another real change.
+
+Until this proof exists, Change Passport is the first commercial product
+hypothesis. The internal improvement episode is implementation evidence, not
+proof that the external workflow works or that a buyer needs it.
+
+### Scientific proof: Room-1
+
+The first scientific proof remains narrower than a general protein-model
 network:
 
 > Reploid helps curators of public protein catalogs adjudicate disputed family
@@ -58,16 +112,24 @@ following:
 4. Browser-peer redundancy adds measured value beyond a local or hosted rerun.
 5. The complete evidence needed to reproduce the decision remains inspectable.
 
-Until this proof exists, the Research Room is the organizing product
+Until this proof exists, the Research Room is the organizing scientific product
 hypothesis. The broader network, laboratory path, evidence graph, and
 continuously improving decision-policy loop remain target capabilities.
 
-## Initial user and market constraint
+## Initial users and market constraints
 
-The initial user is a curator of a public protein catalog confronting a disputed
-family or domain annotation. "Researchers, curators, public-data projects, and
-biotechnology partners" is not one initial market. Those groups have different
-buyers, workflows, privacy requirements, incentives, and success criteria.
+The initial commercial user is an AI platform, developer infrastructure,
+reliability, or security operator promoting agent models, prompts, tools,
+policies, or production configuration through GitHub and CI. The first workflow
+must name the repository, controlled change type, current required checks,
+evaluator, approval authority, activation system, rollback owner, and business
+condition that makes Reploid preferable.
+
+The initial scientific user is a curator of a public protein catalog confronting
+a disputed family or domain annotation. "Researchers, curators, public-data
+projects, biotechnology partners, and AI platform teams" is not one market.
+Those groups have different buyers, workflows, privacy requirements, incentives,
+and success criteria.
 
 The first adjudication experiment must still name:
 
@@ -85,6 +147,12 @@ biotechnology use conflicts with the current public-only sequence policy unless
 the work concerns explicitly public data. Private or consortium rooms require
 a separate privacy, access-control, custody, deployment, and audit contract
 before they become a product claim.
+
+Change Passport must not send private source, prompts, credentials, or
+configuration to Poolday peers. The first hosted workflow stores content hashes,
+policy records, attestations, and explicitly admitted evidence by default.
+Handling private payload contents requires a separately tested custody and
+access-control contract.
 
 ## Research Room UX
 
@@ -150,7 +218,20 @@ work.
 
 ## Measurement
 
-The governing objective remains:
+The commercial governing objective is:
+
+```text
+verified cost of safely approving, activating, and reconstructing
+a consequential agent-generated change
+relative to a frozen existing change-control workflow
+```
+
+It becomes executable only after one workflow freezes the change class,
+baseline checks, evaluator, false-block tolerance, activation authority,
+outcome observation, reopening triggers, rollback policy, cohort, and cost
+units.
+
+The scientific governing objective remains:
 
 ```text
 verified cost of resolving a bounded protein uncertainty
@@ -185,6 +266,13 @@ rollback, and human approval. Poolday may admit a promoted capability only
 through Poolday-owned configuration, policy, tests, user contracts, and
 prospective Research Room evidence.
 
+Change Passport has separate generic change-control authority. An external
+producer or evaluator must be able to use it without Zero or X. A passport may
+deterministically reopen a decision when a verified trigger matches its frozen
+rule. Blocking a merge, activating a deployment, revoking authority, or
+requesting rollback remains a separately authorized effect. Approval state,
+evidence validity, and deployed effect state must never be collapsed.
+
 Internally, a claimed improvement must be represented by one signed,
 append-only `rsi.improvement-episode/v1` projection. The episode binds the
 objective, immutable baseline generation, declared metric semantics, protected
@@ -196,11 +284,10 @@ inconclusive, superseded, and rolled-back candidates remain in the episode
 archive with explicit ancestry.
 
 This authority split is a safety and development rule, not the customer value
-proposition. Zero and X become relevant to the product only when a promoted
-capability demonstrates a prospective reduction in the Research Room's
-verified decision cost. Until a promoted policy prospectively improves the
-annotation-adjudication experiment, Zero and X should not appear in ordinary
-product navigation or external product strategy.
+proposition. Zero and X become relevant to a product only when a promoted
+capability demonstrates a prospective reduction in that product's frozen
+decision cost. Until then, Zero and X should not appear in ordinary product
+navigation or external product strategy.
 
 ## Competitive baseline and durable value
 
@@ -210,10 +297,16 @@ InterPro integrates multiple protein family, domain, and site methods. Existing
 laboratory platforms provide structured records, collaboration, permissions,
 and audit trails.
 
-Exact model contracts and signatures are reproducible features, not a durable
+Code review, CI, observability, model evaluation, and identity systems already
+cover parts of the commercial workflow. Reploid must own the governed
+transition from observed activity to active decision state, not merely produce
+another trace or approval document.
+
+Exact contracts and signatures are reproducible features, not a durable
 advantage by themselves. Durable value requires a uniquely useful, governed
-corpus of contradictions, negative outcomes, corrections, reproductions, and
-decision histories that researchers repeatedly consult and contribute to.
+corpus of objections that predicted failures, evidence that predicted success,
+reversed approvals, reopenings, corrections, reproductions, and rollback
+outcomes that operators and researchers repeatedly consult.
 
 The long-term network becomes credible only after the first annotation
 adjudication workflow passes its frozen comparison. Until then, the Research
@@ -227,6 +320,8 @@ Every proposed subsystem should answer at least one of these questions:
 - Does it make the evidence behind that decision more inspectable or reusable?
 - Does it expose a disagreement, failure, or missing dependency that the
   baseline workflow hides?
+- Does it safely control activation, reopening, revocation, or rollback under
+  explicitly named authority?
 - Does prospective evidence show that it reduces a declared cost component?
 
 If not, it is infrastructure, experimentation, or project history rather than
@@ -241,6 +336,8 @@ object design, current status, and executable policy live in:
 - [`docs/poolday/product-intent.md`](docs/poolday/product-intent.md)
 - [`docs/poolday/claims-and-nonclaims.md`](docs/poolday/claims-and-nonclaims.md)
 - [`docs/poolday/discovery-contract.md`](docs/poolday/discovery-contract.md)
+- [`docs/change-passport/product-intent.md`](docs/change-passport/product-intent.md)
+- [`docs/change-passport/implementation-plan.md`](docs/change-passport/implementation-plan.md)
 - [`docs/rsi-improvement-episodes.md`](docs/rsi-improvement-episodes.md)
 - [`docs/status/surface-claim-index.json`](docs/status/surface-claim-index.json)
 - [`self/pool/pool-config.json`](self/pool/pool-config.json)

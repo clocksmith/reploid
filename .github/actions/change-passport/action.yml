@@ -1,0 +1,32 @@
+name: Reploid Change Passport
+description: Submit frozen agent-change evidence to a Reploid Change Passport service.
+inputs:
+  server-url:
+    description: Base URL ending in /change-control.
+    required: true
+  access-token:
+    description: Scoped Change Passport access token.
+    required: true
+  manifest:
+    description: Path to change.passport-ci/v1 manifest.
+    required: false
+    default: .reploid/change-passport.json
+  fail-on-blocked:
+    description: Fail this action when the resulting passport gate remains blocked.
+    required: false
+    default: "false"
+outputs:
+  passport-id:
+    description: Created or updated Change Passport identity.
+  gate-status:
+    description: eligible or blocked.
+  decision-state:
+    description: Current decision state.
+  effect-state:
+    description: Current effect state.
+runs:
+  using: node20
+  main: index.js
+branding:
+  icon: shield
+  color: gray-dark

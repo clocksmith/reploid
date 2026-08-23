@@ -5,13 +5,14 @@ Recursive authority charters discovered from the repository root.
 
 | Component | Charter | Parent | Target |
 | --- | --- | --- | --- |
-| Reploid | [`CATSCAN.md`](../CATSCAN.md) | None | Help curators adjudicate bounded uncertainty about public protein annotations with inspectable, reusable evidence and accountable decisions. |
+| Reploid | [`CATSCAN.md`](../CATSCAN.md) | None | Govern consequential agent and human decisions with inspectable evidence, accountable disagreement, explicit activation authority, rollback, and reopening. Prove the mechanism commercially through Change Passport and scientifically through bounded public-protein annotation adjudication. |
 | Deployment Configuration | [`deploy/CATSCAN.md`](../deploy/CATSCAN.md) | Reploid | Declare reproducible hosted deployment inputs and service boundaries for Reploid runtime surfaces. |
 | Documentation | [`docs/CATSCAN.md`](CATSCAN.md) | Reploid | Keep product intent, contracts, mechanisms, claims, and current evidence discoverable without conflating their authority. |
 | Hosted Zero Function | [`functions/CATSCAN.md`](../functions/CATSCAN.md) | Reploid | Expose the bounded Gemini-backed Zero function with explicit authentication, App Check, input, quota, and failure contracts. |
 | Browser Runtime | [`self/CATSCAN.md`](../self/CATSCAN.md) | Reploid | Boot the selected Reploid surface in a browser with explicit configuration, recoverable state, and inspectable authority boundaries. |
 | Hosted Services | [`server/CATSCAN.md`](../server/CATSCAN.md) | Reploid | Provide bounded authentication, rendezvous, relay, proxy, and compatibility services without becoming authority for browser-local claims. |
 | Verification Evidence | [`tests/CATSCAN.md`](../tests/CATSCAN.md) | Reploid | Produce reproducible evidence about declared behavior, boundaries, regressions, and failure handling. |
+| Change Passport Documentation | [`docs/change-passport/CATSCAN.md`](change-passport/CATSCAN.md) | Documentation | Define the first commercial Change Passport workflow and the executable plan for placing its evidence and decision state in a real change-control path. |
 | Poolday Product Contracts | [`docs/poolday/CATSCAN.md`](poolday/CATSCAN.md) | Documentation | Define the Research Room's product authority, evidence boundaries, and explicit scientific and infrastructure non-claims. |
 | Evidence Status | [`docs/status/CATSCAN.md`](status/CATSCAN.md) | Documentation | Record current, evidence-linked claim status without turning observations into strategy or stronger assertions. |
 | Blueprint Registry | [`self/blueprints/CATSCAN.md`](../self/blueprints/CATSCAN.md) | Browser Runtime | Preserve discoverable design records for runtime modules without substituting design descriptions for current proof. |
@@ -26,7 +27,10 @@ Recursive authority charters discovered from the repository root.
 | Model Providers | [`self/providers/CATSCAN.md`](../self/providers/CATSCAN.md) | Browser Runtime | Adapt named model providers into explicit runtime contracts with bounded identity, configuration, and failure semantics. |
 | Agent Tools | [`self/tools/CATSCAN.md`](../self/tools/CATSCAN.md) | Browser Runtime | Expose bounded, schema-defined operations that agents can invoke without bypassing verification, staging, or promotion controls. |
 | Browser Interfaces | [`self/ui/CATSCAN.md`](../self/ui/CATSCAN.md) | Browser Runtime | Render each declared surface's authoritative state and actions without inventing new authority or widening claims. |
+| Change Control Service | [`server/change-control/CATSCAN.md`](../server/change-control/CATSCAN.md) | Hosted Services | Persist, verify, project, and expose Change Passports while enforcing tenant, role, idempotency, GitHub, trigger, and external-effect boundaries. |
 | Hosted Poolday Services | [`server/pool/CATSCAN.md`](../server/pool/CATSCAN.md) | Hosted Services | Authenticate and relay immutable Poolday records while maintaining rebuildable hosted projections and bounded coordination. |
+| Shared Change Passport Contract | [`self/shared/change-passport/CATSCAN.md`](../self/shared/change-passport/CATSCAN.md) | Browser Runtime | Provide one browser-safe Change Passport contract, policy, and Zero/X source adapter to browser, server, SDK, action, and verifier consumers. |
+| Change Passport Interface | [`self/ui/change-passport/CATSCAN.md`](../self/ui/change-passport/CATSCAN.md) | Browser Interfaces | Let authorized operators inspect and act on Change Passports without collapsing evidence validity, decision state, deployed effect state, or source authority. |
 | Research Room Interface | [`self/ui/pool-home/CATSCAN.md`](../self/ui/pool-home/CATSCAN.md) | Browser Interfaces | Let curators adjudicate a public-protein dispute and choose in-room actions. |
 | X Operator Workbench | [`self/ui/proto/CATSCAN.md`](../self/ui/proto/CATSCAN.md) | Browser Interfaces | Let operators inspect the full causal improvement episode, compare generations, quarantine, replay, promote, and roll back substrate candidates without crossing into product admission. |
 | Zero Proposal Interface | [`self/ui/zero/CATSCAN.md`](../self/ui/zero/CATSCAN.md) | Browser Interfaces | Give Zero operators a focused interface for objectives, tool-growing experiments, and candidate proposals. |

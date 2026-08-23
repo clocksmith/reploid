@@ -63,6 +63,9 @@ describe('validator quarantine', () => {
   });
 
   it.each([
+    '/self/core/change-passport.js',
+    '/self/core/change-passport-policy.js',
+    '/self/core/change-passport-improvement-adapter.js',
     '/self/core/improvement-episode.js',
     '/self/core/promotion-policy.js',
     '/self/capabilities/reflection/reflection-store.js',

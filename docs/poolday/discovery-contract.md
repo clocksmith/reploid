@@ -287,7 +287,7 @@ cohort. The cohort binds questions, candidate policies, baseline policy, hidden
 or future outcomes, cost accounting, and metrics before evaluation.
 
 The implemented `poolday.annotation_adjudication_experiment/v3` freeze makes
-that ordering executable for the first product proof. It binds the exact
+that ordering executable for the first scientific product proof. It binds the exact
 baseline action-selection policy artifact and input and budget contracts,
 eligible action kinds, ranking method and status, deterministic tie break, and
 stop rule. It separately declares either blinded historical outcomes with a

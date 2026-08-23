@@ -1,0 +1,22 @@
+{
+  "name": "@reploid/change-passport",
+  "version": "0.1.0",
+  "description": "Typed client for the Reploid Change Passport service",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "license": "MIT"
+}

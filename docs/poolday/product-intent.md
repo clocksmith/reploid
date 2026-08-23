@@ -454,12 +454,12 @@ Operational activity counters remain separate. This records accountable
 downstream usefulness; it does not prove biological causality, truth, closure,
 or globally transferable value.
 
-## First product proof
+## First scientific product proof
 
-The first product proof is one named public-protein catalog and curator role
-adjudicating one recurring disputed family or domain annotation decision. The
-exact catalog and role remain user-owned choices; repository code and product
-copy must not silently select them.
+The first scientific product proof is one named public-protein catalog and
+curator role adjudicating one recurring disputed family or domain annotation
+decision. The exact catalog and role remain user-owned choices; repository code
+and product copy must not silently select them.
 
 `poolday.annotation_adjudication_experiment/v3` freezes those choices together
 with the current workflow and handoffs, exact baseline and candidate revisions,

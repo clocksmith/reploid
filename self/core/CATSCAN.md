@@ -23,18 +23,28 @@ Inputs:
 Outputs:
 - Auditable cycle artifacts from [cycle-artifacts.js](cycle-artifacts.js).
 - Verified virtual-file mutations through [vfs.js](vfs.js).
+- Browser/VFS compatibility exports for the
+  [shared Change Passport contract](../shared/change-passport/CATSCAN.md).
 
 ## Invariants
 - Execution success is not output quality or causal improvement.
 - Every claimed improvement is projected from a signed `rsi.improvement-episode/v1`
   chain that binds a frozen baseline, declared metrics, raw paired observations,
   evaluator authority, generation ancestry, decision, and reflection.
+- The [Change Passport adapter](change-passport-improvement-adapter.js) imports
+  attributed Zero/X source evidence into a separate external ledger; it never
+  imports reviewer, activation, outcome, reopening, or rollback authority.
 - Mutations cannot bypass verification and promotion gates.
 - Failed, timed-out, or rejected work remains explicit.
 
 ## Acceptance
 - Agent policy, tool execution, and VFS boundaries pass their tests.
-- Evidence: [improvement episode tests](../../tests/unit/improvement-episode.test.js), [agent-loop policy tests](../../tests/unit/agent-loop-policies.test.js), [tool-runner integration tests](../../tests/integration/tool-runner.test.js), and [VFS tests](../../tests/integration/vfs.test.js).
+- Evidence: [Change Passport tests](../../tests/unit/change-passport.test.js),
+  [improvement adapter tests](../../tests/unit/change-passport-improvement-adapter.test.js),
+  [improvement episode tests](../../tests/unit/improvement-episode.test.js),
+  [agent-loop policy tests](../../tests/unit/agent-loop-policies.test.js),
+  [tool-runner integration tests](../../tests/integration/tool-runner.test.js), and
+  [VFS tests](../../tests/integration/vfs.test.js).
 
 ## Non-goals
 - Claiming recursive improvement from mutation, logging, or a single aggregate score.
