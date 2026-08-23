@@ -927,6 +927,20 @@ describe('Poolday home ask controls', () => {
     await vi.waitFor(() => {
       expect(window.sessionStorage.getItem(POOL_CONTRIBUTION_RESUME_STORAGE_KEY)).toBeNull();
     });
+    await vi.waitFor(() => {
+      expect(JSON.parse(document.getElementById('pool-provider-result-raw').textContent)).toMatchObject({
+        runner: 'stopped',
+        peer: { status: 'peer_provider_stopped' }
+      });
+    });
+    providerActivity?.({
+      status: 'peer_receipt_sent',
+      receiptRecord: { receiptHash: 'sha256:late-stale-provider-event' }
+    });
+    expect(JSON.parse(document.getElementById('pool-provider-result-raw').textContent)).toMatchObject({
+      runner: 'stopped',
+      peer: { status: 'peer_provider_stopped' }
+    });
   }, 15000);
 
   it('does not emit a provider model change when capability rendering keeps the selection', async () => {

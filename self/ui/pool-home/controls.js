@@ -2251,7 +2251,10 @@ const createProviderContributionController = () => {
       rtcConfigProvider: getPeerRelayMode() === 'server' && window.REPLOID_POOL_FORCE_RELAY === true
         ? () => getPoolRtcConfig({ sdk: adapterSdk, forceRelay: true })
         : null,
-      onActivity: handlePeerActivity
+      onActivity: (event) => {
+        if (generation !== undefined && generation !== lifecycleGeneration) return;
+        handlePeerActivity(event);
+      }
     });
     peerProviderNode = node;
     const result = await node.start({
