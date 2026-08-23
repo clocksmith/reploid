@@ -897,6 +897,20 @@ describe('Poolday home ask controls', () => {
       advert: localProviderAdvert,
       status: 'peer_acceptance_received'
     });
+    providerActivity?.({
+      status: 'relay-published',
+      relayId: 'relay-after-acceptance',
+      relaySequence: 42
+    });
+    expect(JSON.parse(document.getElementById('pool-provider-result-raw').textContent)).toMatchObject({
+      runner: 'peer_room_listening',
+      status: 'peer_acceptance_received',
+      latestRelayActivity: {
+        status: 'relay-published',
+        relayId: 'relay-after-acceptance',
+        relaySequence: 42
+      }
+    });
 
     document.getElementById('pool-provider-model').dispatchEvent(new Event('change', { bubbles: true }));
     await Promise.resolve();
