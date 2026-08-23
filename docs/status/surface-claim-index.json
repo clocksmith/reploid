@@ -1,6 +1,6 @@
 {
   "schema": "reploid/surface-claim-index/v1",
-  "updated": "2026-08-22",
+  "updated": "2026-08-23",
   "entries": [
     {
       "surface": "/",
@@ -131,17 +131,18 @@
         "docs/change-passport/implementation-plan.md",
         "docs/change-passport/pilot-charter.md",
         "docs/change-passport/pilot-manifest.json",
+        "docs/status/change-passport-github-installation-2026-08-23.json",
         "scripts/verify-change-passport-pilot.js",
         "tests/unit/change-passport-pilot.test.js"
       ],
       "blockers": [
         "named adopter, operator, independent evaluator, approving authority, and repository are not frozen",
-        "live GitHub App installation and required-check evidence is absent",
+        "live blocked and eligible Change Passport check-run evidence is absent",
         "at least 20 retained prospective comparison cases have not been executed",
         "independent signed comparison and a request to govern another real change are absent"
       ],
       "claimPermission": false,
-      "claimBoundary": "The external pilot protocol is structurally defined but deliberately unfrozen; no commercial value or adoption claim is permitted."
+      "claimBoundary": "The GitHub App is installed on exactly clocksmith/reploid, its webhook verifier is deployed, and main branch protection requires the App-bound Reploid Change Passport check. No blocked or eligible passport check run, frozen external pilot, commercial value, qualification, or adoption claim is permitted."
     },
     {
       "surface": "local-execution",
@@ -186,6 +187,7 @@
         "docs/status/esm2-35m-poolday-cached-shard-recovery-smoke-2026-08-15.json",
         "docs/status/esm2-35m-poolday-stale-result-smoke-2026-08-15.json",
         "docs/status/esm2-35m-browser-protein-observation-2026-08-02.json",
+        "docs/status/poolday-clean-dual-host-release-2026-08-23.json",
         "self/pool/browser-qualification.js",
         "self/pool/browser-release-identity.js",
         "self/config/browser-bundle-manifest.json",
@@ -201,12 +203,11 @@
         "tests/unit/pool-release-evidence.test.js"
       ],
       "blockers": [
-        "matching clean source, deployed browser bundle, and coordinator runtime execution",
         "one clean-release-bound Poolday interruption, cancellation, stale-result, manifest-corruption, and cached-shard recovery evidence set",
         "two independently operated browser reproductions"
       ],
       "claimPermission": false,
-      "claimBoundary": "Deterministic local source, complete browser-bundle, and 705-file coordinator-runtime identities plus a non-promotable nine-lane report index now exist. Six exact-model checks, separate after-start requester discard and a full-public-limit serialized explicit retry with bounded queue/start phases, after-start cancellation, manifest-corruption rejection, cached-shard detection and source-backed recovery, instrumented stale-result rejection, and provider-level quorum are observed only on dirty local runs; ESM-2 browser qualification remains incomplete."
+      "claimBoundary": "Clean revision 13f1894225213e552dc3336026517d9ec595122e, the 573-file browser bundle, and the 632-file coordinator runtime were observed with matching identities through Firebase Hosting and the direct Cloud Run service. The existing interruption, cancellation, stale-result, manifest-corruption, cached-shard recovery, exact-model, and quorum observations remain dirty local evidence rather than clean-release qualification evidence. ESM-2 browser qualification remains blocked pending a clean-release-bound failure set and two independently operated browser reproductions."
     },
     {
       "surface": "signaling",

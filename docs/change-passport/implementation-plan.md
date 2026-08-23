@@ -22,7 +22,13 @@ Current state:
 - [x] Visual Feedback Bridge receipt contract and complete local Visual Change
   Passport dogfood workflow implemented with a physical Chromium oracle,
   conflict-safe reverse patch, and deterministic reopening.
-- [ ] Live GitHub sandbox installation and deployed release evidence recorded.
+- [x] Live GitHub App installation and App-bound branch-protection rule recorded
+  for `clocksmith/reploid` in the
+  [status artifact](../status/change-passport-github-installation-2026-08-23.json).
+- [ ] Live blocked and eligible Change Passport check-run evidence recorded.
+- [x] Clean dual-host Firebase Hosting and Cloud Run release identity recorded
+  without qualification in the
+  [status artifact](../status/poolday-clean-dual-host-release-2026-08-23.json).
 - [ ] Real operator pilot completed.
 
 ## Win condition
