@@ -1,0 +1,49 @@
+{
+  "schema": "poolday.dual_host_release_observation/v1",
+  "status": "observed",
+  "observedAt": "2026-08-23T17:14:09Z",
+  "qualificationEligible": false,
+  "claimBoundary": "A clean source revision and matching release identities were observed through Firebase Hosting and the direct Cloud Run service. This establishes bounded dual-host release coherence and reachability only. It is not browser qualification, an independent reproduction, scientific-fitness evidence, commercial value, or adoption evidence.",
+  "source": {
+    "revision": "13f1894225213e552dc3336026517d9ec595122e",
+    "originMainRevision": "13f1894225213e552dc3336026517d9ec595122e",
+    "worktreeClean": true
+  },
+  "sharedReleaseIdentity": {
+    "configHash": "sha256:500e73cab2e9f7d8d073ca764aada8368324037157d7c5ac99f078e22c19335c",
+    "image": "us-central1-docker.pkg.dev/reploid/reploid/reploid-pool:13f1894225213e552dc3336026517d9ec595122e",
+    "platformRevision": "reploid-pool-00068-rsp",
+    "runtimeBundleHash": "sha256:d2fc766b35606cbbe0a7caa92e8818203ae726ff5fe2e1f3ce7fdceac733c23c",
+    "runtimeFileCount": 632,
+    "browserBundleHash": "sha256:b3e3ea9c8fe01b2bacbbbc45cdfd15c4398656ab78101c42561b6771a7786f7c",
+    "browserFileCount": 573
+  },
+  "hosts": [
+    {
+      "role": "firebase_hosting",
+      "baseUrl": "https://reploid.web.app",
+      "deploymentCheckStatus": 200,
+      "browserManifestStatus": 200,
+      "changeControlStatus": 200,
+      "deploymentCheckOk": true,
+      "browserBundleMatchesLocal": true,
+      "changeControlPersistence": "firestore",
+      "githubWebhookConfigured": false
+    },
+    {
+      "role": "cloud_run_direct",
+      "baseUrl": "https://reploid-pool-kbxuhkisna-uc.a.run.app",
+      "deploymentCheckStatus": 200,
+      "browserManifestStatus": 200,
+      "changeControlStatus": 200,
+      "deploymentCheckOk": true,
+      "browserBundleMatchesLocal": true,
+      "changeControlPersistence": "firestore",
+      "githubWebhookConfigured": false
+    }
+  ],
+  "remainingQualificationRequirements": [
+    "one clean-release-bound Poolday interruption, cancellation, stale-result, manifest-corruption, and cached-shard recovery evidence set",
+    "two independently operated browser reproductions"
+  ]
+}

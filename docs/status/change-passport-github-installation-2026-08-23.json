@@ -1,0 +1,68 @@
+{
+  "schema": "change.passport-github-installation-observation/v1",
+  "status": "observed",
+  "observedAt": "2026-08-23T17:25:44Z",
+  "qualificationEligible": false,
+  "claimBoundary": "The private Reploid Change Passport GitHub App is installed on exactly clocksmith/reploid, its webhook verifier is configured on both deployed hosts, and main branch protection requires the App-bound check. This does not establish a blocked or eligible passport check run, correct change governance, commercial value, adoption, or qualification.",
+  "app": {
+    "id": 4693600,
+    "slug": "reploid-change-passport",
+    "installationId": 155987328,
+    "account": "clocksmith",
+    "repositorySelection": "selected",
+    "repositories": [
+      "clocksmith/reploid"
+    ],
+    "permissions": {
+      "checks": "write",
+      "contents": "write",
+      "deployments": "write",
+      "metadata": "read",
+      "pullRequests": "write"
+    },
+    "events": [
+      "pull_request",
+      "pull_request_review"
+    ]
+  },
+  "deployment": {
+    "platformRevision": "reploid-pool-00069-b89",
+    "firebaseHostingStatus": {
+      "url": "https://reploid.web.app/change-control/status",
+      "status": 200,
+      "githubWebhookConfigured": true,
+      "persistence": "firestore"
+    },
+    "cloudRunStatus": {
+      "url": "https://reploid-pool-kbxuhkisna-uc.a.run.app/change-control/status",
+      "status": 200,
+      "githubWebhookConfigured": true,
+      "persistence": "firestore"
+    }
+  },
+  "branchProtection": {
+    "repository": "clocksmith/reploid",
+    "branch": "main",
+    "strictStatusChecks": true,
+    "requiredChecks": [
+      {
+        "context": "Reploid Change Passport",
+        "appId": 4693600
+      }
+    ],
+    "requiredApprovingReviewCount": 1,
+    "dismissStaleReviews": true,
+    "requireLastPushApproval": true,
+    "requiredLinearHistory": true,
+    "requiredConversationResolution": true,
+    "allowForcePushes": false,
+    "allowDeletions": false,
+    "enforceAdmins": false
+  },
+  "remainingCommercialRequirements": [
+    "one real blocked passport check run and one real eligible passport check run",
+    "named adopter, operator, independent evaluator, approving authority, repository, change class, evidence cutoff, and budget",
+    "at least 20 retained prospective comparison cases",
+    "independent signed comparison and a request to govern another real change"
+  ]
+}
