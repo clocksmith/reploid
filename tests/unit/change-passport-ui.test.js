@@ -68,6 +68,13 @@ describe('Change Passport interface', () => {
     expect(document.querySelector('[data-axis="Evidence"] strong').textContent).toBe('frozen');
     expect(document.querySelector('[data-axis="Decision"] strong').textContent).toBe('reopened');
     expect(document.querySelector('[data-axis="Effect"] strong').textContent).toBe('applied');
+    expect(document.querySelector('.passport-state-grid')).toMatchObject({
+      dataset: expect.objectContaining({
+        decoSourceFile: 'self/ui/change-passport/index.js',
+        decoSourceName: 'ChangePassportStateGrid',
+        decoSourceFramework: 'vanilla'
+      })
+    });
     expect(document.body.textContent).toContain('Excluded evidence');
     expect(document.body.textContent).toContain('Objections and disagreement');
     expect(document.querySelector('[data-form="review"]')).not.toBeNull();

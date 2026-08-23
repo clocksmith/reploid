@@ -68,9 +68,12 @@
         "self/ui/change-passport/index.js",
         "self/ui/change-passport/client.js",
         "self/ui/change-passport/styles.css",
+        "self/shared/change-passport/visual-change.js",
         "server/change-control/service.js",
+        "server/change-control/visual-workflow.js",
         "server/change-control/routes.js",
         "tests/unit/change-passport-ui.test.js",
+        "tests/integration/visual-change-passport.test.js",
         "tests/e2e/change-passport.spec.js"
       ],
       "blockers": [],
@@ -103,6 +106,22 @@
       "blockers": [],
       "claimPermission": false,
       "claimBoundary": "Local contract, policy, service, SDK, action, effect, trigger, and verifier behavior is repository-tested. This does not establish a live GitHub installation or customer outcome."
+    },
+    {
+      "surface": "visual-change-passport-v0",
+      "status": "supported",
+      "evidencePaths": [
+        "self/core/visual-change-passport.js",
+        "self/shared/change-passport/visual-change.js",
+        "server/change-control/visual-workflow.js",
+        "self/ui/change-passport/index.js",
+        "tests/integration/visual-change-passport.test.js",
+        "scripts/verify-visual-change-passport-dogfood.js",
+        "docs/change-passport/runtime-contract.md"
+      ],
+      "blockers": [],
+      "claimPermission": false,
+      "claimBoundary": "The complete workflow is implemented and proven locally with the canonical development Bridge patch implementation, signed Change Passport replay, a local CI activation adapter, and physical Chromium. It does not establish a live GitHub check, deployed effect, external human operation, or commercial value."
     },
     {
       "surface": "change-passport-commercial-proof",

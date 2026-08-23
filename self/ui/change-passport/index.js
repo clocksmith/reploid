@@ -109,7 +109,7 @@ export function renderChangePassportDetail(result, events = [], principal = null
         </div>
       </header>
 
-      <div class="passport-state-grid" aria-label="Passport state">
+      <div class="passport-state-grid" aria-label="Passport state" data-deco-source-file="self/ui/change-passport/index.js" data-deco-source-name="ChangePassportStateGrid" data-deco-source-framework="vanilla">
         ${stateBadge('Evidence', projection.evidence?.state)}
         ${stateBadge('Decision', projection.decision?.state)}
         ${stateBadge('Effect', projection.effect?.state)}

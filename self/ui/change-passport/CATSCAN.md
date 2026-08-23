@@ -35,6 +35,8 @@ Outputs:
 - Access tokens are session-scoped and never rendered or logged.
 - Approval never renders as activation.
 - Reopening never renders as completed rollback.
+- Development-only source markers identify the owning UI source without
+  granting the Visual Feedback Bridge review or effect authority.
 - Failed, excluded, contested, unresolved, and stale evidence remains visible.
 
 ## Acceptance

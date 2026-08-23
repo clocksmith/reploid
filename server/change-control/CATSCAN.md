@@ -4,15 +4,15 @@ Parent: [Hosted Services](../CATSCAN.md)
 
 ## Target
 
-Persist, verify, project, and expose Change Passports while enforcing tenant,
-role, idempotency, GitHub, trigger, and external-effect boundaries.
+Persist Change Passports under tenant, role, idempotency, GitHub,
+trigger, and effect boundaries.
 
 ## Authority
 
-- Owns hosted Change Passport authentication, append control, projection replay,
-  GitHub integration, trigger ingestion, and effect-adapter requests.
-- Does not own Poolday evidence, objective correctness, GitHub merge authority,
-  deployment truth, monitoring truth, or rollback success.
+- Owns authentication, append control, replay, GitHub integration, trigger
+  ingestion, and effect requests.
+- Does not own Poolday evidence, correctness, merge authority, deployment,
+  monitoring, or rollback success.
 
 ## Scope
 
@@ -25,9 +25,7 @@ Inputs:
 - Frozen policy from the [shared policy](../../self/shared/change-passport/policy.js).
 
 Outputs:
-- Authenticated API records.
-- GitHub required-check projections and effect requests.
-- Offline-verifiable export packages.
+- Authenticated records, GitHub check and effect requests, and verifiable exports.
 
 ## Invariants
 
@@ -36,18 +34,20 @@ Outputs:
 - Authenticated subjects cannot claim roles or organizations they do not hold.
 - GitHub, deployment, monitor, and rollback observations remain source-bounded.
 - Projections are caches. Raw event replay is authoritative.
-- Cloud Run selects the Firestore compare-and-append store by default; memory
-  storage remains a local/test mode and file storage remains a bounded
-  single-instance mode.
+- Cloud Run defaults to Firestore compare-and-append; memory is local/test and
+  file storage is bounded to one instance.
 - Automatic reopening never implies that revocation or rollback succeeded.
+- The Visual Feedback Bridge supplies source evidence only. It cannot approve,
+  activate, record an external effect, or reopen a decision directly.
 
 ## Acceptance
 
-- Tests prove tenant and role enforcement, idempotency, append conflicts,
-  durable replay, webhooks, GitHub checks, triggers, and failed effects.
+- Tests prove authorization, idempotency, append conflicts, durable replay,
+  webhooks, checks, triggers, and failed effects.
 - Evidence: [service integration tests](../../tests/integration/change-control-service.test.js)
   [Firestore store tests](../../tests/unit/change-control-firestore-store.test.js),
-  and [GitHub tests](../../tests/unit/change-control-github.test.js).
+  [GitHub tests](../../tests/unit/change-control-github.test.js), and the
+  [Visual Change Passport workflow](../../tests/integration/visual-change-passport.test.js).
 
 ## Non-goals
 

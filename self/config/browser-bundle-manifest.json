@@ -1190,8 +1190,8 @@
     },
     {
       "path": "config/boot-seed.js",
-      "byteLength": 7309,
-      "sha256": "sha256:ebc4e8873c0b8ccab5b8fba7cb16f229a13a02fdbef7c6e46b4ebcae7b59d888"
+      "byteLength": 7345,
+      "sha256": "sha256:b2bff96a063dbc0de3a348ec04e6963bd4295d8b9386dea2f25b51a787d57806"
     },
     {
       "path": "config/CATSCAN.md",
@@ -1250,8 +1250,8 @@
     },
     {
       "path": "config/module-inventory.json",
-      "byteLength": 78092,
-      "sha256": "sha256:bc0a415de45e1260433035ecebc25dc5fd2f9ed658d6da20f0499523d7e15bd0"
+      "byteLength": 78584,
+      "sha256": "sha256:10af24f01e4ac4cbafaf53bfe64ba47d7bfbbb88105225cdb81ca72dd8caf75d"
     },
     {
       "path": "config/module-registry.json",
@@ -1280,8 +1280,8 @@
     },
     {
       "path": "config/vfs-manifest.json",
-      "byteLength": 22739,
-      "sha256": "sha256:529ef701a859c8fb42affe52e3f62ddbbceccd371f1f0e284d2e916c7033a9b4"
+      "byteLength": 22824,
+      "sha256": "sha256:60d89b0fb59724126668611735c47e318c6e8e18bb72a9cb49b04feed8c5b971"
     },
     {
       "path": "config/vfs-policy.js",
@@ -1315,8 +1315,8 @@
     },
     {
       "path": "core/CATSCAN.md",
-      "byteLength": 2302,
-      "sha256": "sha256:cc389a1ef6b96b2c022583f6bb80b8082b214a0a653185a7539b737835112a06"
+      "byteLength": 2303,
+      "sha256": "sha256:02b4e224430a1a02884b1bc39b38fed512d61d783dee646e0e758aaff16364dc"
     },
     {
       "path": "core/change-passport-improvement-adapter.js",
@@ -1385,8 +1385,8 @@
     },
     {
       "path": "core/promotion-policy.js",
-      "byteLength": 9206,
-      "sha256": "sha256:48dbf3e0cc6a21f33d9f979e858f4c4e05a3df919b2bee336e50b7ae763c6d96"
+      "byteLength": 9248,
+      "sha256": "sha256:d8030f5faef58b6e28791dfe3db116d469dd76626c2d80d6b63d30604fc05706"
     },
     {
       "path": "core/provider-registry.js",
@@ -1477,6 +1477,11 @@
       "path": "core/vfs.js",
       "byteLength": 10711,
       "sha256": "sha256:83dec7c1efe61da5cd59e3bd8407641614ac17eb3d59c4710eb5c3cd9245a0ae"
+    },
+    {
+      "path": "core/visual-change-passport.js",
+      "byteLength": 226,
+      "sha256": "sha256:37c23ba9a0a8e5614762b06fa1dfe1279ce624da63660628832e2dace42e49d3"
     },
     {
       "path": "core/worker-agent.js",
@@ -1750,8 +1755,8 @@
     },
     {
       "path": "manifest.js",
-      "byteLength": 13982,
-      "sha256": "sha256:c0233063a4059fef7f05cbfa64d335cf2034641ddecf77ea1f71c0d5fae72a4e"
+      "byteLength": 14198,
+      "sha256": "sha256:e73a80ab153eb94b67236b6c3207f3f7a659d83efcfd847ea18e2a3c43322dd9"
     },
     {
       "path": "personas/code-architect.md",
@@ -2155,13 +2160,13 @@
     },
     {
       "path": "shared/change-passport/CATSCAN.md",
-      "byteLength": 1482,
-      "sha256": "sha256:f06047d7c025261a1720a82ed31cef42ad18b08a508dcfbd34e74ec62e6cd35c"
+      "byteLength": 1780,
+      "sha256": "sha256:fe57c456ba7285249c8bcd5efa4ca04fa8188a53843de635e7707092df31624c"
     },
     {
       "path": "shared/change-passport/contract.js",
-      "byteLength": 43326,
-      "sha256": "sha256:2fd1f21b267566c22bb70bb22a4febafd12e3be4fa0ff2fc599dd0b10d0c0b7b"
+      "byteLength": 43344,
+      "sha256": "sha256:9e05fda60d72cefa8ed2c7d2f4c3a1496b3ce00e249e9bdaea4acc2ec9e6b7bc"
     },
     {
       "path": "shared/change-passport/improvement-adapter.js",
@@ -2172,6 +2177,11 @@
       "path": "shared/change-passport/policy.js",
       "byteLength": 11218,
       "sha256": "sha256:eb9ae28a46e611156d324ae2157d318f97e6c9d39fda1622ab35d4ae46838471"
+    },
+    {
+      "path": "shared/change-passport/visual-change.js",
+      "byteLength": 24932,
+      "sha256": "sha256:ec8cdd3aabf464708f7f0b1a9c00590587a125dda7fb505935d5d4768c30dd86"
     },
     {
       "path": "styles/audit.css",
@@ -2570,8 +2580,8 @@
     },
     {
       "path": "ui/change-passport/CATSCAN.md",
-      "byteLength": 1812,
-      "sha256": "sha256:975a7ba1275ffea68bcaf68038ae5fa9016453baf7d21ce9b8f2055966d15426"
+      "byteLength": 1950,
+      "sha256": "sha256:089a08ec333a354b3aeb991eacc968945c06491c064de266df5753a285e1bd22"
     },
     {
       "path": "ui/change-passport/client.js",
@@ -2580,8 +2590,8 @@
     },
     {
       "path": "ui/change-passport/index.js",
-      "byteLength": 23693,
-      "sha256": "sha256:9c0d25fad64cdc1d63b94589a28e7488bbdc17fb02fe7587a75df37219a02246"
+      "byteLength": 23835,
+      "sha256": "sha256:d9cb744b4c96c03aaa1c8266b87c01d8dd18db700348ac29dec6212c750e980a"
     },
     {
       "path": "ui/change-passport/styles.css",
@@ -2864,5 +2874,5 @@
       "sha256": "sha256:c5a6c85719ce4072b343251b10f5a00f7f99d83be47f83367b3f959886c78701"
     }
   ],
-  "bundleHash": "sha256:40790b30bfb3be5d92c2cae4383176352d39d9218226686cef14109cf3cdccfe"
+  "bundleHash": "sha256:8ac50a06c6468e125cf27c374fcfc45c88310573091059df03f5ea73a6dd5562"
 }

@@ -95,6 +95,45 @@ POST /change-control/github/webhooks
 All writes require an `Idempotency-Key`. Export verification replays the raw
 event chain and must not trust the hosted projection.
 
+## Visual Change Passport boundary
+
+`source_patch` passports may ingest `change.requested`, `agent.completed`,
+`review.accepted`, `page.rendered`, and `change.reverted` receipts from the
+development-only Deco Visual Feedback Bridge. Reploid does not connect to the
+Bridge database or grant it hosted authority. The adapter verifies one
+project/worktree/session/browser/change identity, complete comment
+dispositions, exact changed-file closure, before/after file hashes, the Bridge
+patch artifact identity, and restoration of the frozen baseline.
+
+The required order is:
+
+```text
+Bridge complaint and patch evidence
+-> frozen independent evaluator receipt
+-> authenticated reviewer acceptance
+-> approved decision
+-> ci_activation effect adapter
+-> independent post-activation render outcome
+-> Bridge source reversal
+-> candidate_artifact_changed observation
+-> deterministic decision.reopened
+```
+
+The source reversal and automatic reopening do not assert that an external CI
+or deployed effect rolled back. That effect remains `applied` until its owning
+system supplies a separately authorized rollback result.
+
+Run the complete workspace-local proof from Reploid with:
+
+```bash
+npm run verify:change-passport:visual
+```
+
+The verifier requires the canonical sibling Bridge build and physical Chromium
+through Playwright. It uses disposable source and a local CI effect adapter; it
+does not prove a live GitHub installation, shared deployment, or external human
+operation.
+
 ## Release boundary
 
 Repository tests prove local behavior. They do not prove a live GitHub App,

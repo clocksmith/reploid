@@ -7,7 +7,8 @@ proposal through evidence, disagreement, evaluation, approval, activation,
 observed outcome, rollback, and reopening.
 
 The first commercial expression is Reploid Change Passport. It makes an
-agent-generated model, prompt, tool, policy, or configuration change reviewable,
+agent-generated model, prompt, tool, policy, configuration, or source patch
+change reviewable,
 reversible, and automatically reopenable when a declared part of its evidence
 or policy basis changes. A passport verifies the declared evidence and policy
 basis under which a decision became active. It does not prove that the decision
@@ -37,7 +38,11 @@ GitHub App client and required-check projection, CI action, TypeScript SDK,
 browser review surface, explicit deployment and rollback adapters, standard
 reopening triggers, offline export verification, and a separate adapter from
 `rsi.improvement-episode/v1`. These claims are bounded to repository tests and
-the local browser journey. A live GitHub installation, deployed release,
+the local browser journey. A complete Visual Change Passport dogfood path also
+binds the development Bridge's complaint and reversible patch receipts to an
+independent physical-Chromium evaluation, attributed acceptance, local CI
+activation, post-activation render outcome, exact source reversal, and
+automatic reopening. A live GitHub installation, deployed release,
 external operator comparison, and commercial value remain unproved and have no
 claim permission.
 
@@ -63,8 +68,8 @@ independent model evidence, biological correctness, or scientific replication.
 
 The first commercial proof is narrower than generic decision governance:
 
-> Reploid governs an agent-generated model, prompt, tool, policy, or
-> configuration change in a real GitHub and CI workflow. It binds the exact
+> Reploid governs an agent-generated model, prompt, tool, policy,
+> configuration, or source patch change in a real GitHub and CI workflow. It binds the exact
 > candidate, frozen baseline, evaluator, evidence, disagreement, approval,
 > activation, outcome, rollback, and reopening conditions. Reploid succeeds
 > only when the team can approve or reject the change with less reconstruction

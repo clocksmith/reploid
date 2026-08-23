@@ -1,4 +1,4 @@
-export type ChangeClass = 'model' | 'prompt' | 'agent_tool' | 'agent_policy' | 'agent_configuration';
+export type ChangeClass = 'model' | 'prompt' | 'agent_tool' | 'agent_policy' | 'agent_configuration' | 'source_patch';
 export type EvidenceState = 'collecting' | 'frozen' | 'invalidated' | 'superseded';
 export type DecisionState = 'proposed' | 'contested' | 'approved' | 'rejected' | 'unresolved' | 'reopened' | 'revoked';
 export type EffectState = 'not_applied' | 'applied' | 'degraded' | 'rollback_requested' | 'rolled_back' | 'rollback_failed';
