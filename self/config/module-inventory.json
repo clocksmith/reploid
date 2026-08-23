@@ -1217,7 +1217,7 @@
     {
       "path": "pool/peer-room.js",
       "owner": "pool",
-      "sha256": "sha256:ca94d26687dae80a0a4f48cdef82b6f5bdb3370d2dd359d670276fe97a70f4a8",
+      "sha256": "sha256:4605966eb6c00cb6be022d15ee239eaf432874d15340ef58f79c75e014c35ada",
       "imports": [
         "./config.js",
         "./model-contract.js",
@@ -2191,7 +2191,7 @@
     {
       "path": "ui/pool-home/controls.js",
       "owner": "ui",
-      "sha256": "sha256:e20c8bdc79cb769f4d6fffa7e2098b762b4211d7d695c60a3c00e24299387b98",
+      "sha256": "sha256:7c726bda729f8717531cc7e95ea2b87b4d59c91c2881b6bc035925ac5ac63075",
       "imports": [
         "../../pool/adapter-publication.js",
         "../../pool/adapter-registry.js",

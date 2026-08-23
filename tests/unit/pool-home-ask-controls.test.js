@@ -910,7 +910,12 @@ describe('Poolday home ask controls', () => {
         status: 'relay-published',
         relayId: 'relay-after-acceptance',
         relaySequence: 42
-      }
+      },
+      activityHistory: expect.arrayContaining([
+        expect.objectContaining({ status: 'peer_acceptance_received' }),
+        expect.objectContaining({ status: 'provider_advertised' }),
+        expect.objectContaining({ status: 'relay-published' })
+      ])
     });
 
     document.getElementById('pool-provider-model').dispatchEvent(new Event('change', { bubbles: true }));

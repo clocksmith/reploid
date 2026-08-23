@@ -844,6 +844,10 @@ describe('pool peer room', () => {
         }
       );
       await expect.poll(() => activity.some((event) => event.status === 'peer_session_queued')).toBe(true);
+      expect(activity).toContainEqual(expect.objectContaining({
+        status: 'peer_session_queued',
+        assignment: expect.objectContaining({ assignmentId: expect.any(String) })
+      }));
       expect(blocking.prompts).toEqual([testSequenceFor('interrupted execution')]);
       await new Promise((resolve) => globalThis.setTimeout(resolve, 150));
       expect(retryState).toBe('pending');

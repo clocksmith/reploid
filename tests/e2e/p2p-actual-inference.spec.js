@@ -706,12 +706,17 @@ test.describe('Run and Contribute actual browser inference', () => {
       await expect(requesterPage.locator('#pool-run-prompt')).toHaveValue(MAX_PUBLIC_PROTEIN_SEQUENCE);
       await requesterPage.locator('[data-pool-run-recovery-action="retry_interrupted_request"]').click();
 
-      await expect.poll(async () => (
-        (await readSnapshot(providerPage, 'pool-provider-result')).parsed?.status || null
-      ), {
+      await expect.poll(async () => {
+        const provider = (await readSnapshot(providerPage, 'pool-provider-result')).parsed || {};
+        return provider.activityHistory?.some((event) => (
+          event.status === 'peer_session_queued'
+          && event.assignment?.assignmentId
+          && event.assignment.assignmentId !== interruptedAssignmentId
+        )) || false;
+      }, {
         timeout: 30000,
         intervals: [50, 100, 250]
-      }).toBe('peer_session_queued');
+      }).toBe(true);
 
       const retried = await waitForActualResult({
         page: requesterPage,
