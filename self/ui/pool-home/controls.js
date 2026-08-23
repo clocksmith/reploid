@@ -84,6 +84,7 @@ export const POOL_CONTRIBUTION_RESUME_STORAGE_KEY = 'reploid.pool.contribution-r
 export const POOL_PENDING_REQUEST_STORAGE_KEY = 'reploid.pool.pending-request.v1';
 const POOL_PENDING_REQUEST_VERSION = 1;
 const POOL_PENDING_REQUEST_TTL_MS = 15 * 60 * 1000;
+const POOL_PROVIDER_ACTIVITY_HISTORY_LIMIT = 64;
 const policyGuaranteesIndependentExecution = (policy = {}) => (
   Number(policy.redundancy || 0) >= 2
   || Number(policy.minRingSize || 0) >= 2
@@ -1838,6 +1839,7 @@ const createProviderContributionController = () => {
   let providerReadyState = null;
   let latestProviderActivity = null;
   let latestRelayActivity = null;
+  let providerActivityHistory = [];
   let restoreAttempted = false;
   let visibilityHandler = null;
   let controls = {
@@ -2071,6 +2073,10 @@ const createProviderContributionController = () => {
   };
 
   const handlePeerActivity = (event) => {
+    providerActivityHistory.push(event);
+    if (providerActivityHistory.length > POOL_PROVIDER_ACTIVITY_HISTORY_LIMIT) {
+      providerActivityHistory = providerActivityHistory.slice(-POOL_PROVIDER_ACTIVITY_HISTORY_LIMIT);
+    }
     const isRelayActivity = String(event?.status || '').startsWith('relay-');
     if (isRelayActivity) latestRelayActivity = event;
     else if (event?.status !== 'provider_advertised') latestProviderActivity = event;
@@ -2175,7 +2181,8 @@ const createProviderContributionController = () => {
       relay: getPeerRelayMode(),
       inviteUrl: getPeerInviteUrl(),
       ...(latestProviderActivity || {}),
-      latestRelayActivity
+      latestRelayActivity,
+      activityHistory: providerActivityHistory
     });
     void refreshServerRoomActivity();
   };
@@ -2287,6 +2294,7 @@ const createProviderContributionController = () => {
       providerReadyState = null;
       latestProviderActivity = null;
       latestRelayActivity = null;
+      providerActivityHistory = [];
       workerStarting = true;
       setContributionState({ state: 'starting', optedIn: true, lastError: null });
       syncWorkerControls();
@@ -2384,6 +2392,7 @@ const createProviderContributionController = () => {
     providerReadyState = null;
     latestProviderActivity = null;
     latestRelayActivity = null;
+    providerActivityHistory = [];
     clearContributionResumeIntent();
     setProviderStatus('Stopping');
     updateProviderHealth({ queue: 'cancelling_active_work' });
@@ -2516,6 +2525,7 @@ const createProviderContributionController = () => {
       providerReadyState = null;
       latestProviderActivity = null;
       latestRelayActivity = null;
+      providerActivityHistory = [];
       if (!preserveResumeIntent) clearContributionResumeIntent();
     }
   };

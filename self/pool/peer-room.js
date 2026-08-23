@@ -1030,6 +1030,7 @@ export function createPeerProviderNode({
       onActivity({
         status: 'peer_session_queued',
         sessionId,
+        assignment: entry.assignment,
         queueDepth: pendingInputExecutions.length,
         maxActiveSessions: maxActiveSessionCount()
       });
