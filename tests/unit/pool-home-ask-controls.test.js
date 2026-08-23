@@ -897,6 +897,7 @@ describe('Poolday home ask controls', () => {
       advert: localProviderAdvert,
       status: 'peer_acceptance_received'
     });
+    providerActivity?.({ status: 'provider_advertised', advert: localProviderAdvert });
     providerActivity?.({
       status: 'relay-published',
       relayId: 'relay-after-acceptance',

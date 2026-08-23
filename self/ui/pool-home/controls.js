@@ -2073,7 +2073,7 @@ const createProviderContributionController = () => {
   const handlePeerActivity = (event) => {
     const isRelayActivity = String(event?.status || '').startsWith('relay-');
     if (isRelayActivity) latestRelayActivity = event;
-    else latestProviderActivity = event;
+    else if (event?.status !== 'provider_advertised') latestProviderActivity = event;
     if (event?.status === 'relay-publish-retrying'
       || event?.status === 'relay-poll-failed'
       || event?.status === 'relay-dispatch-retrying') {

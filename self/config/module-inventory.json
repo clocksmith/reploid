@@ -2191,7 +2191,7 @@
     {
       "path": "ui/pool-home/controls.js",
       "owner": "ui",
-      "sha256": "sha256:2faa38ccf3aec60542adb58460ba540b849348fab5cd7315b27600c9daf6d9de",
+      "sha256": "sha256:e20c8bdc79cb769f4d6fffa7e2098b762b4211d7d695c60a3c00e24299387b98",
       "imports": [
         "../../pool/adapter-publication.js",
         "../../pool/adapter-registry.js",
