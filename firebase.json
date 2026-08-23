@@ -52,6 +52,15 @@
           ]
         },
         {
+          "source": "/passports",
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "no-cache, no-store, must-revalidate"
+            }
+          ]
+        },
+        {
           "source": "**/*.js",
           "headers": [
             {
@@ -285,6 +294,13 @@
           }
         },
         {
+          "source": "/change-control/**",
+          "run": {
+            "serviceId": "reploid-pool",
+            "region": "us-central1"
+          }
+        },
+        {
           "source": "/",
           "destination": "/index.html"
         },
@@ -307,6 +323,10 @@
         {
           "source": "/network",
           "destination": "/index.html"
+        },
+        {
+          "source": "/passports",
+          "destination": "/change-passport-entry.html"
         },
         {
           "source": "/zero",

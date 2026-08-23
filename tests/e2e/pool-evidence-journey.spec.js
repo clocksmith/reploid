@@ -44,17 +44,27 @@ test('shows and exercises the governed protein evidence journey', async ({ page 
     const laboratoryOne = await createIdentity('researcher', 'e2e-laboratory-one');
     const laboratoryTwo = await createIdentity('researcher', 'e2e-laboratory-two');
     const evaluator = await createIdentity('verifier', 'e2e-evaluator');
-    const createSubmission = (sequence, label) => evidence.createSignedResearchSubmission({
+    const submissionBaseTime = Date.now() - 10_000;
+    const createSubmission = (sequence, label, createdAt) => evidence.createSignedResearchSubmission({
       identity: requester,
       roomId: 'reploid-default',
       sequence,
       intent: { kind: 'hypothesis', text: `Review ${label} against public evidence.`, label },
       consent: { publicSequence: true, publicEvidenceNetwork: true, publishEmbedding: true },
       modelContract: model,
-      policyId: 'redundant_agreement'
+      policyId: 'redundant_agreement',
+      createdAt
     });
-    const firstSubmission = await createSubmission('MAPLALLLLGLVAGA', 'First public candidate');
-    const secondSubmission = await createSubmission('MKVLVVLLCLVPAYG', 'Second public candidate');
+    const firstSubmission = await createSubmission(
+      'MAPLALLLLGLVAGA',
+      'First public candidate',
+      new Date(submissionBaseTime).toISOString()
+    );
+    const secondSubmission = await createSubmission(
+      'MKVLVVLLCLVPAYG',
+      'Second public candidate',
+      new Date(submissionBaseTime + 1).toISOString()
+    );
     const createResult = async (submission, vector, receiptCharacter) => {
       const vectorHash = await sequenceResults.hashSequenceFloat32Values(vector);
       const jobId = `job_${receiptCharacter}`;
@@ -510,6 +520,7 @@ test('shows and exercises the governed protein evidence journey', async ({ page 
 
   await page.getByRole('link', { name: 'View room', exact: true }).click();
   await expect(page.locator('[data-pool-research-room]')).toBeVisible();
+  await expect(page.locator('[data-pool-research-room]')).toContainText('Second public candidate');
   await expect(page.locator('.pool-room-timeline')).toContainText('Agreement assessed');
   await expect(page.getByText('Remembered evidence', { exact: true })).toBeAttached();
   await expect(page.locator('.pool-room-memory')).toContainText('Decision memory');

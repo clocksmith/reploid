@@ -54,6 +54,9 @@ export const ALLOWED_TARGET_EXTENSIONS = Object.freeze([
 ]);
 
 export const VALIDATOR_QUARANTINE_TARGETS = Object.freeze([
+  '/self/core/change-passport.js',
+  '/self/core/change-passport-policy.js',
+  '/self/core/change-passport-improvement-adapter.js',
   '/self/core/improvement-episode.js',
   '/self/core/promotion-policy.js',
   '/self/core/verification-manager.js',

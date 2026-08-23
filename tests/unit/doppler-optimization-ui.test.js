@@ -161,6 +161,9 @@ describe('Doppler optimization UI', () => {
   it('loads a valid explicit contract and rejects malformed JSON before running', async () => {
     document.body.innerHTML = `<div id="root">${renderProtoTemplate((value) => value, 'test')}</div>`;
     const root = document.getElementById('root');
+    expect(root.querySelector('#optimization-candidate-detail')).not.toBeNull();
+    expect(root.querySelector('#optimization-candidate-detail')?.getAttribute('aria-label'))
+      .toBe('Causal improvement summary');
     const DopplerOptimizer = {
       getState: vi.fn(() => ({ running: false })),
       listRuns: vi.fn(async () => []),

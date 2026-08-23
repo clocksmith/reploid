@@ -1,0 +1,59 @@
+{
+  "schema": "change.passport-pilot/v1",
+  "pilotId": "change-passport-external-operator-1",
+  "status": "awaiting_external_freeze",
+  "protocolVersion": "1.0.0",
+  "adopter": null,
+  "operatorRole": null,
+  "independentEvaluator": null,
+  "approvingAuthority": null,
+  "repository": null,
+  "changeClass": null,
+  "baselineWorkflow": {
+    "description": "GitHub pull request and branch protection plus CI tests and model evaluations, manual approval, deployment records, and rollback records.",
+    "evidenceCutoff": null,
+    "resourceBudget": null
+  },
+  "assignmentPolicy": {
+    "kind": "prospective_paired",
+    "sameCandidateAndEvidenceCutoff": true,
+    "retainEveryAttempt": true,
+    "blinding": "Evaluator receives arm-neutral cost and outcome records where operationally possible."
+  },
+  "measures": {
+    "primary": "normalized_reconstruction_cost_to_independently_replicated_conclusion_relative_to_baseline",
+    "reconstructionCostUnits": [
+      "active_operator_minutes",
+      "source_retrieval_count",
+      "unresolved_questions_after_review"
+    ],
+    "qualityUnits": [
+      "prevented_regression",
+      "escaped_regression",
+      "false_block",
+      "reopening_correctness",
+      "rollback_record_completeness"
+    ]
+  },
+  "minimumReportableCases": 20,
+  "successPaths": [
+    {
+      "id": "quality",
+      "rule": "Fewer escaped regressions at no greater median active review effort, with no increase beyond the frozen false-block tolerance."
+    },
+    {
+      "id": "effort",
+      "rule": "At least 20 percent lower median reconstruction cost with non-inferior escaped-regression and false-block rates."
+    }
+  ],
+  "requiredScenarios": [
+    "blocked_missing_evidence",
+    "rejected_change",
+    "unresolved_objection",
+    "approved_not_applied",
+    "activation_failure",
+    "verified_reopening",
+    "successful_or_explicitly_failed_rollback"
+  ],
+  "claimBoundary": "This manifest is a protocol template, not evidence that an adopter, operator, evaluator, repository, or pilot result exists."
+}

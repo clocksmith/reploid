@@ -4,7 +4,10 @@ Parent: none
 
 ## Target
 
-Help curators adjudicate bounded uncertainty about public protein annotations with inspectable, reusable evidence and accountable decisions.
+Govern consequential agent and human decisions with inspectable evidence,
+accountable disagreement, explicit activation authority, rollback, and
+reopening. Prove the mechanism commercially through Change Passport and
+scientifically through bounded public-protein annotation adjudication.
 
 ## Authority
 - Owns repository-wide product boundaries, component precedence, and proof requirements.
@@ -26,6 +29,7 @@ Outputs:
 
 ## Invariants
 - Poolday, Zero, and X retain separate authority.
+- Generic change control retains authority separate from Poolday.
 - Claims stay bounded by recorded acceptance evidence.
 - Existing code cannot silently overrule a charter.
 

@@ -49,6 +49,9 @@
     "verify:adapter-canary": "node scripts/run-adapter-runtime-canary.js",
     "publish:adapter-canary": "node scripts/publish-adapter-runtime-canary.js",
     "verify:surface-claims": "node scripts/verify-surface-claim-index.js",
+    "verify:change-passport": "node scripts/verify-change-passport.js",
+    "verify:change-passport:pilot": "node scripts/verify-change-passport-pilot.js",
+    "verify:change-passport:pilot:frozen": "node scripts/verify-change-passport-pilot.js --require-frozen",
     "verify:catscan": "node scripts/verify-catscan.js",
     "verify:layers": "node scripts/verify-layers.js",
     "verify:module-system": "node scripts/verify-module-system.js",
@@ -91,9 +94,12 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.57.0",
+    "@types/node": "^22.0.0",
     "concurrently": "^8.0.0",
     "happy-dom": "^20.0.11",
     "nodemon": "^3.0.1",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3",
     "vitest": "^4.1.10"
   },
   "engines": {

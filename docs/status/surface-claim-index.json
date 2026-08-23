@@ -1,6 +1,6 @@
 {
   "schema": "reploid/surface-claim-index/v1",
-  "updated": "2026-08-15",
+  "updated": "2026-08-22",
   "entries": [
     {
       "surface": "/",
@@ -59,6 +59,70 @@
       "blockers": [],
       "claimPermission": false,
       "claimBoundary": "Internal experimental route; excluded from ordinary product navigation and external product strategy."
+    },
+    {
+      "surface": "/passports",
+      "status": "supported",
+      "evidencePaths": [
+        "self/change-passport-entry.html",
+        "self/ui/change-passport/index.js",
+        "self/ui/change-passport/client.js",
+        "self/ui/change-passport/styles.css",
+        "server/change-control/service.js",
+        "server/change-control/routes.js",
+        "tests/unit/change-passport-ui.test.js",
+        "tests/e2e/change-passport.spec.js"
+      ],
+      "blockers": [],
+      "claimPermission": false,
+      "claimBoundary": "The local operator surface and governed browser journey are implemented and tested. No deployed-host, external-operator, or commercial-value claim is granted by this row."
+    },
+    {
+      "surface": "change-passport-contract",
+      "status": "supported",
+      "evidencePaths": [
+        "self/core/change-passport.js",
+        "self/core/change-passport-policy.js",
+        "self/core/change-passport-improvement-adapter.js",
+        "self/shared/change-passport/contract.js",
+        "self/shared/change-passport/policy.js",
+        "self/shared/change-passport/improvement-adapter.js",
+        "server/change-control/store-contract.js",
+        "server/change-control/file-store.js",
+        "server/change-control/firestore-store.js",
+        "server/change-control/effects.js",
+        "server/change-control/triggers.js",
+        "sdk/change-passport/src/index.ts",
+        ".github/actions/change-passport/action.yml",
+        "scripts/verify-change-passport.js",
+        "tests/unit/change-passport.test.js",
+        "tests/integration/change-control-service.test.js",
+        "tests/unit/change-control-firestore-store.test.js",
+        "tests/integration/change-passport-action.test.js"
+      ],
+      "blockers": [],
+      "claimPermission": false,
+      "claimBoundary": "Local contract, policy, service, SDK, action, effect, trigger, and verifier behavior is repository-tested. This does not establish a live GitHub installation or customer outcome."
+    },
+    {
+      "surface": "change-passport-commercial-proof",
+      "status": "blocked",
+      "evidencePaths": [
+        "docs/change-passport/product-intent.md",
+        "docs/change-passport/implementation-plan.md",
+        "docs/change-passport/pilot-charter.md",
+        "docs/change-passport/pilot-manifest.json",
+        "scripts/verify-change-passport-pilot.js",
+        "tests/unit/change-passport-pilot.test.js"
+      ],
+      "blockers": [
+        "named adopter, operator, independent evaluator, approving authority, and repository are not frozen",
+        "live GitHub App installation and required-check evidence is absent",
+        "at least 20 retained prospective comparison cases have not been executed",
+        "independent signed comparison and a request to govern another real change are absent"
+      ],
+      "claimPermission": false,
+      "claimBoundary": "The external pilot protocol is structurally defined but deliberately unfrozen; no commercial value or adoption claim is permitted."
     },
     {
       "surface": "local-execution",

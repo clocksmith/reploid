@@ -239,7 +239,7 @@
     {
       "path": "config/boot-seed.js",
       "owner": "config",
-      "sha256": "sha256:82e996682456b708bf580c9397403cb52e7c3587311207907b19360aa904acba",
+      "sha256": "sha256:ebc4e8873c0b8ccab5b8fba7cb16f229a13a02fdbef7c6e46b4ebcae7b59d888",
       "imports": []
     },
     {
@@ -339,6 +339,30 @@
       "imports": []
     },
     {
+      "path": "core/change-passport-improvement-adapter.js",
+      "owner": "core",
+      "sha256": "sha256:c8a00f036d9da31ade1e80cc8d42dbda43cd329577e59a433dfcc56b177d166c",
+      "imports": [
+        "../shared/change-passport/improvement-adapter.js"
+      ]
+    },
+    {
+      "path": "core/change-passport-policy.js",
+      "owner": "core",
+      "sha256": "sha256:12ef480baa8253283c8b44b26699aee6f2353fc38fe578039447bfea43e9751f",
+      "imports": [
+        "../shared/change-passport/policy.js"
+      ]
+    },
+    {
+      "path": "core/change-passport.js",
+      "owner": "core",
+      "sha256": "sha256:92b42a99da8aa17d6275d0a55d0663f9f1989c98df698df454b06077132370b0",
+      "imports": [
+        "../shared/change-passport/contract.js"
+      ]
+    },
+    {
       "path": "core/context-manager.js",
       "owner": "core",
       "sha256": "sha256:8dd3be5751c97a6783e49756a6bf82ee229ea9cd078fe85e0046546048c8c298",
@@ -411,7 +435,7 @@
     {
       "path": "core/promotion-policy.js",
       "owner": "core",
-      "sha256": "sha256:e5be965a99d3560f67390aaa07c513cf852db6918e58031300382c053878aa38",
+      "sha256": "sha256:48dbf3e0cc6a21f33d9f979e858f4c4e05a3df919b2bee336e50b7ae763c6d96",
       "imports": [
         "../config/clockwork-gamma-receipts.js",
         "../config/vfs-policy.js"
@@ -1552,7 +1576,7 @@
     {
       "path": "self/manifest.js",
       "owner": "self",
-      "sha256": "sha256:98302cf2a329e74c280f546a460c249fb9e512adb36026667045d659a0382038",
+      "sha256": "sha256:c0233063a4059fef7f05cbfa64d335cf2034641ddecf77ea1f71c0d5fae72a4e",
       "imports": [
         "./boot-spec.js",
         "./config/vfs-policy.js",
@@ -1602,6 +1626,31 @@
       "sha256": "sha256:b0738d5e8d5f9942f922a875db3a147ac4119a41d06f825fb3fe97b7fcba4262",
       "imports": [
         "./core/vfs-module-loader.js"
+      ]
+    },
+    {
+      "path": "shared/change-passport/contract.js",
+      "owner": "shared",
+      "sha256": "sha256:2fd1f21b267566c22bb70bb22a4febafd12e3be4fa0ff2fc599dd0b10d0c0b7b",
+      "imports": [
+        "../../identity.js"
+      ]
+    },
+    {
+      "path": "shared/change-passport/improvement-adapter.js",
+      "owner": "shared",
+      "sha256": "sha256:b2ef9ae3faa7ff67d809fc2c1164b314e0b5fa4f56b0be18243ddc64b4e4364c",
+      "imports": [
+        "./contract.js",
+        "./policy.js"
+      ]
+    },
+    {
+      "path": "shared/change-passport/policy.js",
+      "owner": "shared",
+      "sha256": "sha256:eb9ae28a46e611156d324ae2157d318f97e6c9d39fda1622ab35d4ae46838471",
+      "imports": [
+        "./contract.js"
       ]
     },
     {
@@ -2031,6 +2080,21 @@
       ]
     },
     {
+      "path": "ui/change-passport/client.js",
+      "owner": "ui",
+      "sha256": "sha256:3ecdf1730ae5ad69e52eb9b477066e3e4c63b2bbe367e1b98e486301c0c48521",
+      "imports": []
+    },
+    {
+      "path": "ui/change-passport/index.js",
+      "owner": "ui",
+      "sha256": "sha256:9c0d25fad64cdc1d63b94589a28e7488bbdc17fb02fe7587a75df37219a02246",
+      "imports": [
+        "../../core/change-passport.js",
+        "./client.js"
+      ]
+    },
+    {
       "path": "ui/components/arena-results.js",
       "owner": "ui",
       "sha256": "sha256:785fdb54eb1737e31a1160ab4f9504485addff752ad3fd3cee6fbf96f9b57f25",
@@ -2405,7 +2469,7 @@
     {
       "path": "ui/proto/template.js",
       "owner": "ui",
-      "sha256": "sha256:ea588810b8a68eb29adbacd7c5a8702924baefc255974bd23b2991f35e766139",
+      "sha256": "sha256:f93e88db34e44c59b5dc6d8c113fd85450367cca2bd7bbc9cca545aa6a98e3db",
       "imports": []
     },
     {

@@ -14,6 +14,9 @@ describe('surface claim index', () => {
       '/',
       '/zero',
       '/x',
+      '/passports',
+      'change-passport-contract',
+      'change-passport-commercial-proof',
       'peer-slot-placement',
       'browser-provider-roles',
       'signaling',
@@ -44,5 +47,8 @@ describe('surface claim index', () => {
     expect(bySurface.get('/')).toMatchObject({ status: 'supported', claimPermission: true });
     expect(bySurface.get('/zero')).toMatchObject({ status: 'supported', claimPermission: false });
     expect(bySurface.get('/x')).toMatchObject({ status: 'supported', claimPermission: false });
+    expect(bySurface.get('/passports')).toMatchObject({ status: 'supported', claimPermission: false });
+    expect(bySurface.get('change-passport-contract')).toMatchObject({ status: 'supported', claimPermission: false });
+    expect(bySurface.get('change-passport-commercial-proof')).toMatchObject({ status: 'blocked', claimPermission: false });
   });
 });
