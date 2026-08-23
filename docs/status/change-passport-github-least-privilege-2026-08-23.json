@@ -1,0 +1,48 @@
+{
+  "schema": "reploid.github-app-least-privilege-observation/v1",
+  "observedAt": "2026-08-23T19:30:22Z",
+  "app": {
+    "id": 4693600,
+    "slug": "reploid-change-passport",
+    "registrationUpdatedAt": "2026-08-23T19:30:21Z"
+  },
+  "installation": {
+    "id": 155987328,
+    "account": "clocksmith",
+    "repositorySelection": "selected",
+    "repositories": [
+      "clocksmith/reploid"
+    ],
+    "updatedAt": "2026-08-23T19:30:22Z",
+    "suspended": false
+  },
+  "permissions": {
+    "checks": "write",
+    "metadata": "read",
+    "pullRequests": "read"
+  },
+  "events": [
+    "pull_request",
+    "pull_request_review"
+  ],
+  "removedPermissions": [
+    "contents",
+    "deployments"
+  ],
+  "authorityBoundary": {
+    "ordinaryMainRequiredCheck": false,
+    "dogfoodBranch": "passport-dogfood",
+    "dogfoodRequiredCheck": "Reploid Change Passport",
+    "contentMutation": false,
+    "deploymentMutation": false,
+    "mergeAuthority": false,
+    "rollbackAuthority": false
+  },
+  "observationMethod": "Authenticated GitHub App JWT requests to GET /app and GET /app/installations/155987328 using API version 2026-03-10.",
+  "historicalObservationsPreserved": [
+    "docs/status/change-passport-github-installation-2026-08-23.json",
+    "docs/status/change-passport-github-authority-boundary-2026-08-23.json"
+  ],
+  "qualificationEligible": false,
+  "claimBoundary": "This establishes the live least-privilege registration and installation permission boundary only. It does not establish a blocked or eligible check run, external operator use, commercial value, qualification, adoption, deployment authority, rollback authority, or cross-repository authority."
+}
