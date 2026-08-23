@@ -99,7 +99,8 @@ var CHANGE_CLASSES = Object.freeze([
   "prompt",
   "agent_tool",
   "agent_policy",
-  "agent_configuration"
+  "agent_configuration",
+  "source_patch"
 ]);
 var CHANGE_PASSPORT_EVENT_TYPES = Object.freeze([
   "passport.created",

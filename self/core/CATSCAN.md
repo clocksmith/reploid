@@ -4,10 +4,10 @@ Parent: [Browser Runtime](../CATSCAN.md)
 
 ## Target
 
-Execute bounded agent cycles and tool calls against explicit state, policy, verification, and resource contracts.
+Execute bounded agent cycles and tool calls under explicit verification and resource contracts.
 
 ## Authority
-- Owns generic agent-loop, context, VFS, tool-execution, verification, and promotion mechanics.
+- Owns agent-loop, context, VFS, tool, verification, and promotion mechanics.
 - Does not own Poolday evidence admission, Zero objectives, X evaluation policy, or product claims.
 
 ## Scope
@@ -17,12 +17,10 @@ Execute bounded agent cycles and tool calls against explicit state, policy, veri
 ## Contracts
 
 Inputs:
-- Loop constraints from [agent-loop-policies.js](agent-loop-policies.js).
-- Tool contracts through [tool-runner.js](tool-runner.js).
+- Loop constraints and tool contracts.
 
 Outputs:
-- Auditable cycle artifacts from [cycle-artifacts.js](cycle-artifacts.js).
-- Verified virtual-file mutations through [vfs.js](vfs.js).
+- Auditable cycles and verified VFS mutations.
 - Browser/VFS compatibility exports for the
   [shared Change Passport contract](../shared/change-passport/CATSCAN.md).
 
@@ -34,6 +32,8 @@ Outputs:
 - The [Change Passport adapter](change-passport-improvement-adapter.js) imports
   attributed Zero/X source evidence into a separate external ledger; it never
   imports reviewer, activation, outcome, reopening, or rollback authority.
+- The [visual export](visual-change-passport.js) exposes receipt contracts
+  without importing review, acceptance, or effect authority.
 - Mutations cannot bypass verification and promotion gates.
 - Failed, timed-out, or rejected work remains explicit.
 
@@ -41,6 +41,7 @@ Outputs:
 - Agent policy, tool execution, and VFS boundaries pass their tests.
 - Evidence: [Change Passport tests](../../tests/unit/change-passport.test.js),
   [improvement adapter tests](../../tests/unit/change-passport-improvement-adapter.test.js),
+  [visual workflow tests](../../tests/integration/visual-change-passport.test.js),
   [improvement episode tests](../../tests/unit/improvement-episode.test.js),
   [agent-loop policy tests](../../tests/unit/agent-loop-policies.test.js),
   [tool-runner integration tests](../../tests/integration/tool-runner.test.js), and

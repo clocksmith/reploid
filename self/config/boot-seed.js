@@ -195,6 +195,7 @@ export const X_HOME_BOOT_SEED_PREFIXES = Object.freeze([
   'core/change-passport.js',
   'core/change-passport-policy.js',
   'core/change-passport-improvement-adapter.js',
+  'core/visual-change-passport.js',
   'shared/change-passport/',
   'core/improvement-episode.js',
   'tools/Promote.js',

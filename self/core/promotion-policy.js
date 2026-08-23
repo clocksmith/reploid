@@ -57,6 +57,7 @@ export const VALIDATOR_QUARANTINE_TARGETS = Object.freeze([
   '/self/core/change-passport.js',
   '/self/core/change-passport-policy.js',
   '/self/core/change-passport-improvement-adapter.js',
+  '/self/core/visual-change-passport.js',
   '/self/core/improvement-episode.js',
   '/self/core/promotion-policy.js',
   '/self/core/verification-manager.js',

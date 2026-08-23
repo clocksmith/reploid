@@ -59,7 +59,7 @@ const buildCandidate = async () => {
       elementAnchors: [{
         routeKey: '/passports',
         component: {
-          framework: 'react',
+          framework: 'vanilla',
           displayName: 'ChangePassportDetail',
           sourceFile: 'self/ui/change-passport/styles.css',
           sourceLine: 211

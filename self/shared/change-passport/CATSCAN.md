@@ -4,8 +4,9 @@ Parent: [Browser Runtime](../../CATSCAN.md)
 
 ## Target
 
-Provide one browser-safe Change Passport contract, policy, and Zero/X source
-adapter to browser, server, SDK, action, and verifier consumers.
+Provide one browser-safe Change Passport contract, policy, Zero/X source
+adapter, and Visual Feedback Bridge receipt adapter to browser, server, SDK,
+action, and verifier consumers.
 
 ## Authority
 
@@ -35,12 +36,15 @@ Outputs:
 - Frozen evidence cannot change in place.
 - Source signatures never become external endorsements.
 - Automatic reopening never asserts an external effect.
+- Visual source requests, patch ownership, evaluation, acceptance, render, and
+  reversal receipts remain separate content-addressed records.
 
 ## Acceptance
 
 - Canonical, policy, adversarial, export, and improvement-adapter tests pass.
 - Evidence: [contract tests](../../../tests/unit/change-passport.test.js) and
   [adapter tests](../../../tests/unit/change-passport-improvement-adapter.test.js).
+- Visual receipt evidence: [workflow integration tests](../../../tests/integration/visual-change-passport.test.js).
 
 ## Non-goals
 

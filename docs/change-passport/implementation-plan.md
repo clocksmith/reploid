@@ -19,13 +19,17 @@ Current state:
   locally tested.
 - [x] Zero/X source-evidence adapter implemented without importing approval or
   effect authority.
+- [x] Visual Feedback Bridge receipt contract and complete local Visual Change
+  Passport dogfood workflow implemented with a physical Chromium oracle,
+  conflict-safe reverse patch, and deterministic reopening.
 - [ ] Live GitHub sandbox installation and deployed release evidence recorded.
 - [ ] Real operator pilot completed.
 
 ## Win condition
 
 An external AI platform operator can install Reploid on a GitHub repository,
-submit an agent-generated model, prompt, tool, policy, or configuration change,
+submit an agent-generated model, prompt, tool, policy, configuration, or source
+patch change,
 and obtain one independently verifiable passport that:
 
 1. Freezes the candidate, baseline, evaluator, policy, budget, and rollback
@@ -76,6 +80,8 @@ observations.
 | `tests/e2e/change-passport.spec.js` | Browser review and complete governed-change journey |
 | `scripts/verify-change-passport.js` | Offline export and signature verifier |
 | `scripts/build-change-passport-sdk.js` | Deterministic standalone SDK bundle, declaration build, and stale-distribution check |
+| `server/change-control/visual-workflow.js` | Bridge receipt ingestion, independent evaluation, human acceptance, CI activation, render outcome, reversal, and reopening orchestration |
+| `scripts/verify-visual-change-passport-dogfood.js` | Physical-browser local proof using the canonical Bridge patch implementation |
 
 Each new component receives a CATSCAN before implementation. The generic
 change-control service must not be placed under `self/pool/` or `server/pool/`.
@@ -211,6 +217,7 @@ prompt
 agent_tool
 agent_policy
 agent_configuration
+source_patch
 ```
 
 Repository configuration maps paths or manifest fields to one classification
@@ -307,6 +314,46 @@ Acceptance gate:
 - Rejection, reopening, and rollback all leave both ledgers internally
   consistent and cross-referenced.
 
+## Milestone 7.5: Visual Change Passport local dogfood v0
+
+The Visual Feedback Bridge remains the development-only owner of annotation,
+project/worktree/session pairing, render notices, patch capture, and
+conflict-safe source reversal. Reploid consumes versioned content-addressed
+receipts and owns the governed state transitions:
+
+```text
+visual complaint
+-> source-owned reversible patch
+-> frozen independent checks and render oracle
+-> attributed human acceptance
+-> exact-candidate CI activation
+-> post-activation rendered verification
+-> Bridge reverse patch
+-> candidate-artifact trigger
+-> automatic decision reopening
+```
+
+The local v0 is implemented by
+[`visual-change.js`](../../self/shared/change-passport/visual-change.js) and
+[`visual-workflow.js`](../../server/change-control/visual-workflow.js). The
+workflow rejects Bridge identity drift, missing DOM/source context, incomplete
+comment dispositions, changed-file closure drift, proposer/evaluator identity
+collapse, activation before acceptance, render verification before activation,
+and reversal that does not restore the frozen baseline.
+
+Acceptance evidence:
+
+- [`visual-change-passport.test.js`](../../tests/integration/visual-change-passport.test.js)
+  proves the 14-event signed transition chain and adversarial file-closure gate.
+- [`verify-visual-change-passport-dogfood.js`](../../scripts/verify-visual-change-passport-dogfood.js)
+  uses the canonical Bridge workspace-patch build and physical Chromium through
+  Playwright, restores exact source bytes, verifies the export, and confirms
+  that reopening leaves the external effect state applied rather than claiming
+  rollback.
+
+This is local dogfood evidence. It is not a live GitHub check, deployed CI
+activation, external human study, or commercial proof.
+
 ## Milestone 8: External pilot and commercial proof
 
 Before running the pilot, freeze:
@@ -355,6 +402,7 @@ npm run verify:browser-bundle:local
 npm run verify:change-passport:sdk
 npm run verify:change-passport:pilot
 npm exec -- tsc -p tsconfig.change-passport.json --noEmit
+npm run verify:change-passport:visual
 npm run test:unit
 npm run test:integration
 npm run test:e2e
@@ -367,7 +415,7 @@ durable-store migration, verifier bytes, and matching live sandbox evidence.
 
 ## Work deliberately excluded from the first release
 
-- Generic enterprise workflow design outside the five change classifications.
+- Generic enterprise workflow design outside the six change classifications.
 - Agent identity-provider or permission-directory features.
 - MCP or A2A protocol replacement.
 - Trace collection that is not admitted as decision evidence.
