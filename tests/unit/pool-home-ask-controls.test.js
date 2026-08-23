@@ -1116,6 +1116,16 @@ describe('Poolday home ask controls', () => {
       sequence: 'MKTAYIAKQRQISFVKSHFSRQ',
       policyId: 'fastest_receipt'
     });
-    expect(document.getElementById('pool-run-result-stream').textContent).toBe('network answer');
+    await vi.waitFor(() => {
+      expect(document.querySelector('[data-pool-run-surface="run"]').dataset.runState).toBe('complete');
+      expect(document.querySelector('[data-pool-run-output]').hidden).toBe(false);
+      expect(document.getElementById('pool-run-result-stream').textContent).toBe('network answer');
+    });
+    peerRoomMocks.runPeerJob.mock.calls[0][0].onActivity({
+      status: 'peer_acceptance_received',
+      phase: 'receipt'
+    });
+    expect(document.querySelector('[data-pool-run-surface="run"]').dataset.runState).toBe('complete');
+    expect(document.querySelector('[data-pool-run-output]').hidden).toBe(false);
   });
 });

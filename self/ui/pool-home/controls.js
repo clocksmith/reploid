@@ -1091,6 +1091,7 @@ const bindPeerRunSurface = ({
   let pendingErrorResult = null;
   let requestInFlight = false;
   let localFallbackInFlight = false;
+  let runActivityGeneration = 0;
   const updateRunState = (state, phase = '', message = '') => {
     setPoolRunVisualState({ state, phase, message });
   };
@@ -1376,6 +1377,8 @@ const bindPeerRunSurface = ({
 
   const submitRunRequest = async (preparedRequest = null) => {
     if (requestInFlight || localFallbackInFlight) return;
+    const activityGeneration = ++runActivityGeneration;
+    let acceptRunActivity = true;
     requestInFlight = true;
     if (!preparedRequest) {
       pendingRequest = null;
@@ -1423,8 +1426,12 @@ const bindPeerRunSurface = ({
           // relay-only transport; direct ICE remains available by default.
           ? () => getPoolRtcConfig({ sdk: rtcSdk, forceRelay: true })
           : null,
-        onActivity: handleRunActivity
+        onActivity: (activity) => {
+          if (!acceptRunActivity || activityGeneration !== runActivityGeneration) return;
+          handleRunActivity(activity);
+        }
       });
+      acceptRunActivity = false;
       result.inviteUrl = getPeerInviteUrl();
       result.relay = getPeerRelayMode();
       if (request.researchSubmission && request.lane === 'sequence') {
@@ -1471,6 +1478,7 @@ const bindPeerRunSurface = ({
       pendingRequest = null;
       clearPendingRequestRecovery();
     } catch (error) {
+      acceptRunActivity = false;
       const selectedModel = pendingRequest?.selectedModel
         || getEnabledPoolModelContract(modelSelect?.value || LAUNCH_MODEL.modelId)
         || LAUNCH_MODEL;
@@ -1499,6 +1507,7 @@ const bindPeerRunSurface = ({
         ? 'No matching provider is currently available'
         : 'Run needs attention');
     } finally {
+      acceptRunActivity = false;
       requestInFlight = false;
       if (!localFallbackInFlight) setRunButtonBusy(false);
     }
