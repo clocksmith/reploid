@@ -1836,6 +1836,8 @@ const createProviderContributionController = () => {
   let requestedModelId = null;
   let workerStartPromise = null;
   let providerReadyState = null;
+  let latestProviderActivity = null;
+  let latestRelayActivity = null;
   let restoreAttempted = false;
   let visibilityHandler = null;
   let controls = {
@@ -2069,6 +2071,9 @@ const createProviderContributionController = () => {
   };
 
   const handlePeerActivity = (event) => {
+    const isRelayActivity = String(event?.status || '').startsWith('relay-');
+    if (isRelayActivity) latestRelayActivity = event;
+    else latestProviderActivity = event;
     if (event?.status === 'relay-publish-retrying'
       || event?.status === 'relay-poll-failed'
       || event?.status === 'relay-dispatch-retrying') {
@@ -2169,7 +2174,8 @@ const createProviderContributionController = () => {
       roomId: getPeerRoomId(),
       relay: getPeerRelayMode(),
       inviteUrl: getPeerInviteUrl(),
-      ...event
+      ...(latestProviderActivity || {}),
+      latestRelayActivity
     });
     void refreshServerRoomActivity();
   };
@@ -2279,6 +2285,8 @@ const createProviderContributionController = () => {
       }
       const generation = ++lifecycleGeneration;
       providerReadyState = null;
+      latestProviderActivity = null;
+      latestRelayActivity = null;
       workerStarting = true;
       setContributionState({ state: 'starting', optedIn: true, lastError: null });
       syncWorkerControls();
@@ -2374,6 +2382,8 @@ const createProviderContributionController = () => {
     workerStarting = false;
     workerRunning = false;
     providerReadyState = null;
+    latestProviderActivity = null;
+    latestRelayActivity = null;
     clearContributionResumeIntent();
     setProviderStatus('Stopping');
     updateProviderHealth({ queue: 'cancelling_active_work' });
@@ -2504,6 +2514,8 @@ const createProviderContributionController = () => {
       workerRunning = false;
       workerStartPromise = null;
       providerReadyState = null;
+      latestProviderActivity = null;
+      latestRelayActivity = null;
       if (!preserveResumeIntent) clearContributionResumeIntent();
     }
   };
