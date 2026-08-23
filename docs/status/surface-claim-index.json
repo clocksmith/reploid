@@ -134,17 +134,19 @@
         "docs/status/change-passport-github-installation-2026-08-23.json",
         "docs/status/change-passport-github-authority-boundary-2026-08-23.json",
         "docs/status/change-passport-github-least-privilege-2026-08-23.json",
+        "docs/status/change-passport-github-external-installability-2026-08-23.json",
         "docs/status/change-passport-live-github-dogfood-2026-08-23/observation.json",
         "scripts/verify-change-passport-pilot.js",
         "tests/unit/change-passport-pilot.test.js"
       ],
       "blockers": [
         "named adopter, operator, independent evaluator, approving authority, and repository are not frozen",
+        "the current owner-only GitHub App is not externally installable by a design partner",
         "at least 20 retained prospective comparison cases have not been executed",
         "independent signed comparison and a request to govern another real change are absent"
       ],
       "claimPermission": false,
-      "claimBoundary": "The least-privilege GitHub App is installed on exactly clocksmith/reploid, ordinary main does not require its check, and one internally operated passport-dogfood check moved from blocked to eligible and reopened while an independent GitHub test remained failed. No frozen external pilot, commercial value, qualification, adoption, incident reduction, deployment authority, or rollback authority claim is permitted."
+      "claimBoundary": "The least-privilege owner-only GitHub App is installed on exactly clocksmith/reploid, ordinary main does not require its check, and one internally operated passport-dogfood check moved from blocked to eligible and reopened while an independent GitHub test remained failed. No frozen external pilot, commercial value, qualification, adoption, incident reduction, deployment authority, or rollback authority claim is permitted."
     },
     {
       "surface": "local-execution",
