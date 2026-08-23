@@ -405,26 +405,80 @@ export function createChangeControlService({
     return observeTrigger({ passportId, payload, role, idempotencyKey }, auth);
   };
 
+  const executionDeliveryId = (source, passportId, requestId) => hashChangePassportValue({
+    source,
+    passportId,
+    requestId
+  });
+
+  const requireMatchingExecutionRequest = async ({
+    passportId,
+    requestHash,
+    existingEvent,
+    label
+  }) => {
+    if (!existingEvent) return null;
+    const existingHash = await hashChangePassportValue({ passportId, request: existingEvent.payload });
+    if (existingHash !== requestHash) {
+      throw statusError(`${label} identity is already bound to a different request`, 409, 'EXECUTION_ID_CONFLICT');
+    }
+    return existingEvent;
+  };
+
+  const requireMatchingDelivery = (record, requestHash, label) => {
+    if (record && record.requestHash !== requestHash) {
+      throw statusError(`${label} delivery identity is bound to a different request`, 409, 'EXECUTION_ID_CONFLICT');
+    }
+    return record?.result || null;
+  };
+
+  const effectResultPayload = (request, execution) => ({
+    effectId: request.effectId,
+    status: execution.ok ? 'applied' : 'failed',
+    targetId: request.targetId,
+    candidateHash: request.candidateHash,
+    externalReference: execution.externalReference || `reploid:effect:${request.effectId}`,
+    observedAt: now(),
+    ...(execution.ok ? {} : { failureReason: execution.error })
+  });
+
+  const rollbackResultPayload = (request, execution) => ({
+    rollbackId: request.rollbackId,
+    status: execution.ok ? 'succeeded' : 'failed',
+    externalReference: execution.externalReference || `reploid:rollback:${request.rollbackId}`,
+    observedAt: now(),
+    ...(execution.ok ? {} : { failureReason: execution.error })
+  });
+
   const executeEffect = async ({ passportId, payload, role = 'activator', idempotencyKey }, authInput) => {
     const auth = requireAuth(authInput);
     const key = requireIdempotencyKey(idempotencyKey);
-    const completedExecution = await durableStore.getDelivery('effect_execution', payload?.effectId);
-    if (completedExecution) {
-      const current = await getOwnedEvents(passportId, auth);
-      return { ...(await resultForEvents(current.events)), execution: completedExecution };
-    }
-    const requestResult = await appendOne({
-      passportId,
-      type: 'effect.requested',
-      payload,
-      role,
-      idempotencyKey: `${key}:requested`
-    }, auth);
-    const projection = requestResult.projection;
-    const request = requestResult.appendedEvents[0].payload;
+    const owned = await getOwnedEvents(passportId, auth);
+    roleForEvent(auth, 'effect.requested', role, owned.projection);
+    const request = normalizeChangePassportEventPayload('effect.requested', payload);
     const requestHash = await hashChangePassportValue({ passportId, request });
-    const prior = await durableStore.getDelivery('effect_execution', request.effectId);
-    let execution = prior;
+    const deliveryId = await executionDeliveryId('effect_execution', passportId, request.effectId);
+    const existingRequest = owned.events.find((event) => (
+      event.type === 'effect.requested' && event.payload?.effectId === request.effectId
+    ));
+    await requireMatchingExecutionRequest({
+      passportId,
+      requestHash,
+      existingEvent: existingRequest,
+      label: 'Effect'
+    });
+    const requestResult = existingRequest
+      ? { ...(await resultForEvents(owned.events)), appendedEvents: [existingRequest] }
+      : await appendOne({
+          passportId,
+          type: 'effect.requested',
+          payload: request,
+          role,
+          idempotencyKey: `${key}:requested`
+        }, auth);
+    const projection = requestResult.projection;
+    const deliveryRecord = await durableStore.getDeliveryRecord('effect_execution', deliveryId);
+    let execution = requireMatchingDelivery(deliveryRecord, requestHash, 'Effect');
     if (!execution) {
       try {
         const result = await effectRegistry?.executeEffect(request.kind, { projection, request, auth });
@@ -435,25 +489,27 @@ export function createChangeControlService({
       }
       execution = await durableStore.saveDelivery({
         source: 'effect_execution',
-        deliveryId: request.effectId,
+        deliveryId,
         requestHash,
         result: execution
       });
+    }
+    const current = await getOwnedEvents(passportId, auth);
+    const existingResult = current.events.find((event) => (
+      event.type === 'effect.recorded' && event.payload?.effectId === request.effectId
+    ));
+    if (existingResult) {
+      const settled = await resultForEvents(current.events);
+      settled.execution = execution;
+      settled.githubCheck = await syncGitHubCheck(settled.projection, settled.gate);
+      return settled;
     }
     const recorded = await appendOne({
       passportId,
       type: 'effect.recorded',
       role,
-      idempotencyKey: `${key}:recorded`,
-      payload: {
-        effectId: request.effectId,
-        status: execution.ok ? 'applied' : 'failed',
-        targetId: request.targetId,
-        candidateHash: request.candidateHash,
-        externalReference: execution.externalReference || `reploid:effect:${request.effectId}`,
-        observedAt: now(),
-        ...(execution.ok ? {} : { failureReason: execution.error })
-      }
+      idempotencyKey: `effect-recorded:${deliveryId.slice(7)}`,
+      payload: effectResultPayload(request, execution)
     }, auth);
     return { ...recorded, execution };
   };
@@ -461,35 +517,54 @@ export function createChangeControlService({
   const executeRollback = async ({ passportId, payload, role = 'rollback_authority', idempotencyKey }, authInput) => {
     const auth = requireAuth(authInput);
     const key = requireIdempotencyKey(idempotencyKey);
-    const completedExecution = await durableStore.getDelivery('rollback_execution', payload?.rollbackId);
-    if (completedExecution) {
-      const current = await getOwnedEvents(passportId, auth);
-      return { ...(await resultForEvents(current.events)), execution: completedExecution };
+    const owned = await getOwnedEvents(passportId, auth);
+    roleForEvent(auth, 'rollback.requested', role, owned.projection);
+    if (auth.authorityId !== owned.projection.rollback.authorityId) {
+      throw statusError('Authenticated principal is not the frozen rollback authority', 403, 'ROLLBACK_FORBIDDEN');
     }
-    const requestResult = await appendOne({
-      passportId,
-      type: 'rollback.requested',
-      payload,
-      role,
-      idempotencyKey: `${key}:requested`
-    }, auth);
-    const projection = requestResult.projection;
-    const request = requestResult.appendedEvents[0].payload;
-    await appendOne({
-      passportId,
-      type: 'rollback.recorded',
-      role,
-      idempotencyKey: `${key}:started`,
-      payload: {
-        rollbackId: request.rollbackId,
-        status: 'started',
-        externalReference: `reploid:rollback:${request.rollbackId}`,
-        observedAt: now()
-      }
-    }, auth);
+    const request = normalizeChangePassportEventPayload('rollback.requested', payload);
     const requestHash = await hashChangePassportValue({ passportId, request });
-    const prior = await durableStore.getDelivery('rollback_execution', request.rollbackId);
-    let execution = prior;
+    const deliveryId = await executionDeliveryId('rollback_execution', passportId, request.rollbackId);
+    const existingRequest = owned.events.find((event) => (
+      event.type === 'rollback.requested' && event.payload?.rollbackId === request.rollbackId
+    ));
+    await requireMatchingExecutionRequest({
+      passportId,
+      requestHash,
+      existingEvent: existingRequest,
+      label: 'Rollback'
+    });
+    const requestResult = existingRequest
+      ? { ...(await resultForEvents(owned.events)), appendedEvents: [existingRequest] }
+      : await appendOne({
+          passportId,
+          type: 'rollback.requested',
+          payload: request,
+          role,
+          idempotencyKey: `${key}:requested`
+        }, auth);
+    const projection = requestResult.projection;
+    const afterRequest = await getOwnedEvents(passportId, auth);
+    if (!afterRequest.events.some((event) => (
+      event.type === 'rollback.recorded'
+      && event.payload?.rollbackId === request.rollbackId
+      && event.payload?.status === 'started'
+    ))) {
+      await appendOne({
+        passportId,
+        type: 'rollback.recorded',
+        role,
+        idempotencyKey: `rollback-started:${deliveryId.slice(7)}`,
+        payload: {
+          rollbackId: request.rollbackId,
+          status: 'started',
+          externalReference: `reploid:rollback:${request.rollbackId}`,
+          observedAt: now()
+        }
+      }, auth);
+    }
+    const deliveryRecord = await durableStore.getDeliveryRecord('rollback_execution', deliveryId);
+    let execution = requireMatchingDelivery(deliveryRecord, requestHash, 'Rollback');
     if (!execution) {
       try {
         const result = await effectRegistry?.executeRollback(projection.rollback.kind, { projection, request, auth });
@@ -500,23 +575,29 @@ export function createChangeControlService({
       }
       execution = await durableStore.saveDelivery({
         source: 'rollback_execution',
-        deliveryId: request.rollbackId,
+        deliveryId,
         requestHash,
         result: execution
       });
+    }
+    const current = await getOwnedEvents(passportId, auth);
+    const existingResult = current.events.find((event) => (
+      event.type === 'rollback.recorded'
+      && event.payload?.rollbackId === request.rollbackId
+      && ['succeeded', 'failed'].includes(event.payload?.status)
+    ));
+    if (existingResult) {
+      const settled = await resultForEvents(current.events);
+      settled.execution = execution;
+      settled.githubCheck = await syncGitHubCheck(settled.projection, settled.gate);
+      return settled;
     }
     const recorded = await appendOne({
       passportId,
       type: 'rollback.recorded',
       role,
-      idempotencyKey: `${key}:recorded`,
-      payload: {
-        rollbackId: request.rollbackId,
-        status: execution.ok ? 'succeeded' : 'failed',
-        externalReference: execution.externalReference || `reploid:rollback:${request.rollbackId}`,
-        observedAt: now(),
-        ...(execution.ok ? {} : { failureReason: execution.error })
-      }
+      idempotencyKey: `rollback-recorded:${deliveryId.slice(7)}`,
+      payload: rollbackResultPayload(request, execution)
     }, auth);
     return { ...recorded, execution };
   };

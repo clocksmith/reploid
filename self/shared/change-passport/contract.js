@@ -21,7 +21,8 @@ export const CHANGE_CLASSES = Object.freeze([
   'prompt',
   'agent_tool',
   'agent_policy',
-  'agent_configuration'
+  'agent_configuration',
+  'source_patch'
 ]);
 
 export const CHANGE_PASSPORT_EVENT_TYPES = Object.freeze([
