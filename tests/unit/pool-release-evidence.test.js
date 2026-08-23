@@ -4,6 +4,7 @@ import path from 'path';
 import { afterEach, describe, expect, it } from 'vitest';
 
 import {
+  buildPoolReleaseEvidenceDirectory,
   buildPoolReleaseEvidenceIndex,
   capturePoolReleaseLane,
   validatePoolReleaseEvidenceIndex
@@ -49,6 +50,21 @@ const report = (status = 'passed', attachmentRelease = release) => ({
 });
 
 describe('Poolday release evidence aggregation', () => {
+  it('keeps each origin record outside Playwright test-results cleanup', () => {
+    expect(buildPoolReleaseEvidenceDirectory({
+      repoRoot: '/workspace/reploid',
+      baseUrl: 'https://replo.id',
+      sourceRevision: 'abc123def456789',
+      browserBundleHash: fakeHash('b'),
+      timestamp: 42
+    })).toBe(path.join(
+      '/workspace/reploid',
+      'artifacts',
+      'pool-release',
+      'replo.id-abc123def456-bbbbbbbbbbbb-42'
+    ));
+  });
+
   it('copies the raw lane report and hashes every embedded attachment before overwrite', async () => {
     const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'reploid-release-evidence-'));
     temporaryDirectories.push(directory);

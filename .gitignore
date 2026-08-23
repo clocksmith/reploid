@@ -91,3 +91,4 @@ showcase/runs/*.json
 
 # Regenerated deploy verification screenshots
 artifacts/deploy-surface/
+artifacts/pool-release/
