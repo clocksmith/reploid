@@ -33,6 +33,19 @@ export interface ChangePassportResult {
   triggerMatch?: Record<string, unknown>;
 }
 
+export interface ChangePassportVerificationResult {
+  valid: boolean;
+  projection: ChangePassportProjection;
+  integrity: {
+    valid: boolean;
+    eventCount: number;
+    headHash: string | null;
+    reasons: string[];
+  };
+  exportHash: string | null;
+  reasons: string[];
+}
+
 export interface ChangePassportClientOptions {
   baseUrl: string;
   accessToken?: string;
@@ -212,8 +225,8 @@ export class ChangePassportClient {
     return this.request(`/passports/${encodeURIComponent(passportId)}/export`);
   }
 
-  async verifyPassport(exported: Record<string, unknown>): Promise<Awaited<ReturnType<typeof verifyChangePassportExport>>> {
-    return verifyChangePassportExport(exported);
+  async verifyPassport(exported: Record<string, unknown>): Promise<ChangePassportVerificationResult> {
+    return verifyChangePassportExport(exported) as Promise<ChangePassportVerificationResult>;
   }
 }
 

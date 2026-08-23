@@ -1,4 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
+import fs from 'fs/promises';
+import path from 'path';
 
 import {
   ChangePassportClient,
@@ -57,5 +59,22 @@ describe('Change Passport TypeScript SDK runtime', () => {
     expect(error).toBeInstanceOf(ChangePassportHttpError);
     expect(error).toMatchObject({ status: 403, code: 'ROLE_FORBIDDEN', message: 'role denied' });
     expect(JSON.stringify(error)).not.toContain('do-not-leak');
+  });
+
+  it('ships a standalone verifier and package-local type declarations', async () => {
+    const [bundle, packageManifest] = await Promise.all([
+      fs.readFile(path.join(process.cwd(), 'sdk/change-passport/dist/index.js'), 'utf8'),
+      fs.readFile(path.join(process.cwd(), 'sdk/change-passport/package.json'), 'utf8').then(JSON.parse)
+    ]);
+    expect(bundle).not.toMatch(/from\s+['"]\.\.\//);
+    expect(bundle).not.toContain('self/core/change-passport.js');
+    expect(packageManifest.types).toBe('./dist/index.d.ts');
+    expect(packageManifest.files).toEqual(['dist']);
+
+    const client = new ChangePassportClient({
+      baseUrl: 'https://reploid.example/change-control',
+      fetchImpl: vi.fn()
+    });
+    await expect(client.verifyPassport({})).resolves.toMatchObject({ valid: false });
   });
 });
