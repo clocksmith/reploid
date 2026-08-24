@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { zeroGeminiPolicy } from '../../functions/index.js';
+import { zeroGeminiPolicy } from '../../functions/zero-gemini-policy.js';
 
 describe('Zero Gemini admission policy', () => {
   const originalAllowedModels = process.env.ZERO_GEMINI_ALLOWED_MODELS;
