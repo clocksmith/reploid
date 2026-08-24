@@ -52,14 +52,18 @@ evaluator needs its own detached attestation before that stronger claim is made.
 The projection binds:
 
 - episode, parent, group, surface, and generation identities;
+- candidate generator implementation and digest frozen before generation;
 - objective and exact primary success metric;
 - baseline code, configuration, model, prompt, artifact, and contract hashes;
 - candidate hash, patch hash, changed files, semantic scope, invariants, and
   falsifier;
 - evaluator version, suite digest, protected paths, and authority identity;
 - environment, corpus and split identities, and resource budget;
+- frozen corpus and resource-budget digests;
+- repository-owned promotion scope and declared reopening conditions;
 - raw paired observations, derived metrics, uncertainty, and regressions;
-- verification, reviews, promotion, rollback, and reflection.
+- retained negative evidence, verification, reviews, promotion, applied effects,
+  observed outcomes, reopening observations, rollback, and reflection.
 
 The algorithm registry rejects different contents under an existing algorithm
 name and version. A manifest declares source modules, inputs, outputs,

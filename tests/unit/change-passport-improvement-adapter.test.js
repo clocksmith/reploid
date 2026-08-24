@@ -25,6 +25,12 @@ const episode = () => ({
     }
   },
   proposer: { authorityId: 'reploid:zero' },
+  generator: {
+    authorityId: 'reploid:zero',
+    implementation: 'self/capabilities/system/doppler-optimizer.js',
+    implementationHash: digest('0'),
+    frozenBeforeCandidate: true
+  },
   evaluator: {
     evaluatorId: 'reploid-x-held-out',
     authorityId: 'reploid:x:evaluator',
@@ -34,6 +40,21 @@ const episode = () => ({
     frozenBeforeCandidate: true
   },
   resourceBudget: { calls: 12, elapsedMs: 60000 },
+  promotionAuthority: {
+    repositoryId: 'clocksmith/reploid',
+    authorityId: 'reploid:release:authority',
+    scope: 'retrieval_policy',
+    allowedCandidatePaths: ['/self/config/retrieval-policy.json'],
+    allowedEffectKinds: ['deployment'],
+    frozenBeforeCandidate: true
+  },
+  negativeEvidence: [{
+    evidenceId: 'baseline-miss',
+    kind: 'baseline_failure',
+    digest: digest('d'),
+    summary: 'Baseline missed the frozen threshold.',
+    retained: true
+  }],
   candidate: {
     candidateId: 'candidate:retrieval:1',
     candidateHash: digest('9'),
@@ -131,6 +152,12 @@ describe('Change Passport improvement episode adapter', () => {
       'tests',
       'evaluation'
     ]);
+    expect(seed.authorityBindings).toMatchObject({
+      generator: { authorityId: 'reploid:zero' },
+      evaluator: { authorityId: 'reploid:x:evaluator' },
+      promotion: { authorityId: 'reploid:release:authority' }
+    });
+    expect(seed.negativeEvidence).toHaveLength(1);
     expect(seed.requiredSubmissions).not.toEqual(expect.arrayContaining([
       expect.objectContaining({ role: 'release_reviewer' }),
       expect.objectContaining({ role: 'activator' })

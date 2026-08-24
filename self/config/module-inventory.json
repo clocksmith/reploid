@@ -207,7 +207,7 @@
     {
       "path": "capabilities/system/doppler-optimizer.js",
       "owner": "capabilities",
-      "sha256": "sha256:bdbe209b3af3181fe734fbe976c9f602f867350bde4aa2d3045aafec3963008e",
+      "sha256": "sha256:0bceb404c554157dec3ec666bfecf624397f6428582da848fefe40eff235613c",
       "imports": [
         "../../config/doppler-local-models.js",
         "../../core/improvement-episode.js"
@@ -397,7 +397,7 @@
     {
       "path": "core/improvement-episode.js",
       "owner": "core",
-      "sha256": "sha256:d26afdddd8eaf72324dfadaa01f76d4643d512706f5e9c4df2cd717e3be85154",
+      "sha256": "sha256:6bae3e3fea9e7e2e08050b4693b6d36b3f7e4bc356a85fca691bdac9a11409f6",
       "imports": [
         "../identity.js",
         "../instance.js"
@@ -1647,7 +1647,7 @@
     {
       "path": "shared/change-passport/improvement-adapter.js",
       "owner": "shared",
-      "sha256": "sha256:b2ef9ae3faa7ff67d809fc2c1164b314e0b5fa4f56b0be18243ddc64b4e4364c",
+      "sha256": "sha256:e2835f4ff9de25a0385676e9dbfe0aabb20b77de9618e45f3b3908a3ef743d47",
       "imports": [
         "./contract.js",
         "./policy.js"

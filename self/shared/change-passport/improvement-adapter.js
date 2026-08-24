@@ -79,6 +79,12 @@ export async function buildImprovementEpisodePassportSeed({
   for (const field of ['candidate', 'execution', 'verification', 'evaluation', 'comparison']) {
     if (!episode[field]) throw new Error(`Improvement episode ${field} evidence is required`);
   }
+  for (const field of ['generator', 'promotionAuthority']) {
+    if (!episode[field]) throw new Error(`Improvement episode ${field} binding is required`);
+  }
+  if (!Array.isArray(episode.negativeEvidence) || episode.negativeEvidence.length === 0) {
+    throw new Error('Improvement episode retained negative evidence is required');
+  }
   if (episode.proposer?.authorityId === episode.evaluator?.authorityId) {
     throw new Error('Improvement proposer and evaluator authority must remain independent');
   }
@@ -207,6 +213,12 @@ export async function buildImprovementEpisodePassportSeed({
   return Object.freeze({
     schema: CHANGE_PASSPORT_IMPROVEMENT_ADAPTER_SCHEMA,
     sourceEpisode,
+    authorityBindings: Object.freeze({
+      generator: cloneJson(episode.generator),
+      evaluator: cloneJson(episode.evaluator),
+      promotion: cloneJson(episode.promotionAuthority)
+    }),
+    negativeEvidence: cloneJson(episode.negativeEvidence),
     start,
     triggerDeclarations: cloneJson(policy.reopeningRules || []),
     admittedEvidence,

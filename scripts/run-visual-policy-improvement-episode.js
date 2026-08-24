@@ -99,6 +99,9 @@ export async function runVisualPolicyImprovementEpisode({outputDirectory} = {}) 
     minimumSampleSize: 3,
     promotionThreshold: 1
   });
+  const generatorDigest = digest(await fs.readFile(fileURLToPath(import.meta.url)));
+  const resourceBudget = {calls: 4, elapsedMs: 300000, costAmount: 0, costUnit: 'local_execution'};
+  const resourceBudgetDigest = await hashImprovementValue(resourceBudget);
   const VFS = createMemoryVfs();
   const ledger = ImprovementEpisodeLedgerModule.factory({
     Utils: {logger: {warn: () => {}, info: () => {}}},
@@ -139,6 +142,12 @@ export async function runVisualPolicyImprovementEpisode({outputDirectory} = {}) 
       snapshotPath: '/docs/change-passport/dogfood/visual-policy-v1.0.0.json'
     },
     proposer: {authorityId: 'reploid:policy-candidate-generator'},
+    generator: {
+      authorityId: 'reploid:policy-candidate-generator',
+      implementation: 'scripts/run-visual-policy-improvement-episode.js',
+      implementationHash: generatorDigest,
+      frozenBeforeCandidate: true
+    },
     evaluator: {
       evaluatorId: 'reploid.visual-policy-rollback-identity',
       authorityId: 'reploid:frozen-policy-evaluator',
@@ -183,8 +192,29 @@ export async function runVisualPolicyImprovementEpisode({outputDirectory} = {}) 
       candidateAlternatives: []
     },
     environment: {runtime: process.version, host: process.platform, scope: 'dedicated_visual_dogfood_only'},
-    corpus: {evaluationSplitHash: corpusDigest, heldOut: true, caseCount: cases.length},
-    resourceBudget: {calls: 4, elapsedMs: 300000, costAmount: 0, costUnit: 'local_execution'}
+    corpus: {
+      evaluationSplitHash: corpusDigest,
+      heldOut: true,
+      caseCount: cases.length,
+      digest: corpusDigest,
+      frozenBeforeCandidate: true
+    },
+    resourceBudget: {...resourceBudget, digest: resourceBudgetDigest, frozenBeforeCandidate: true},
+    promotionAuthority: {
+      repositoryId: 'clocksmith/reploid',
+      authorityId: 'human:portfolio-owner',
+      scope: 'dedicated_visual_dogfood_only',
+      allowedCandidatePaths: ['/docs/change-passport/dogfood'],
+      allowedEffectKinds: ['visual_policy_activation'],
+      frozenBeforeCandidate: true
+    },
+    reopeningConditions: [{
+      conditionId: 'visual-source-change',
+      observationKind: 'source_changed',
+      targetId: 'reploid:visual-dogfood-passport',
+      sensorAuthorityId: 'reploid:visual-dogfood-verifier',
+      action: 'reopen_decision'
+    }]
   });
   await ledger.recordDiagnosis(episodeId, {
     diagnosis: 'The baseline policy binds a rollback contract but does not require that identity in the frozen admitted evidence set.',
@@ -200,6 +230,20 @@ export async function runVisualPolicyImprovementEpisode({outputDirectory} = {}) 
       followUpHypothesis: null
     }
   });
+  const baselineFailure = {
+    id: 'baseline-admits-missing-rollback-identity',
+    baselineEligible: cases[0].result.eligible,
+    candidateEligible: cases[1].result.eligible
+  };
+  await ledger.recordNegativeEvidence(episodeId, {
+    evidenceId: baselineFailure.id,
+    kind: 'baseline_policy_failure',
+    digest: await hashImprovementValue(baselineFailure),
+    summary: 'The baseline policy admits a candidate whose rollback identity evidence is absent.',
+    retained: true,
+    sourcePath: '/docs/change-passport/dogfood/visual-policy-v1.0.0.json',
+    authorityId: 'reploid:frozen-policy-evaluator'
+  });
   await ledger.proposeCandidate(episodeId, {
     candidateId: 'visual-policy:1.1.0',
     candidateHash: candidate.policyHash,
@@ -210,7 +254,9 @@ export async function runVisualPolicyImprovementEpisode({outputDirectory} = {}) 
     semanticScope: ['Visual dogfood eligibility evidence requirements'],
     expectedBehavior: 'Missing rollback identity evidence blocks while a bound rollback contract remains eligible.',
     affectedInvariants: ['Three-axis state remains independent', 'Rollback effects retain separate authority'],
-    falsifier: 'Any frozen case differs from its expectation or the full workflow fails.'
+    falsifier: 'Any frozen case differs from its expectation or the full workflow fails.',
+    generatorAuthorityId: 'reploid:policy-candidate-generator',
+    generatorHash: generatorDigest
   });
   await ledger.recordExecution(episodeId, {
     isolated: true,
@@ -276,6 +322,32 @@ export async function runVisualPolicyImprovementEpisode({outputDirectory} = {}) 
       policyOptions: {version: candidate.version, requiredEvidenceKinds: candidate.requiredEvidenceKinds}
     });
     assert(visualResult.policyHash === candidate.policyHash, 'dogfood did not execute the promoted policy');
+    const visualOutcomeDigest = await hashImprovementValue(visualResult);
+    await ledger.recordEffect(episodeId, {
+      effectId: 'effect:visual-policy:1.1.0',
+      kind: 'visual_policy_activation',
+      state: 'applied',
+      targetId: 'docs/change-passport/dogfood/active-policy.json',
+      artifactHash: candidate.policyHash,
+      receiptPath: '/docs/status/rsi/visual-policy-rollback-identity-2026-08-23/change-passport-export.json',
+      authorityId: 'human:portfolio-owner'
+    });
+    await ledger.recordOutcome(episodeId, {
+      outcomeId: 'outcome:visual-policy:dogfood',
+      observationKind: 'source_changed',
+      targetId: 'reploid:visual-dogfood-passport',
+      observationDigest: visualOutcomeDigest,
+      sensorAuthorityId: 'reploid:visual-dogfood-verifier',
+      observedAt: new Date().toISOString()
+    });
+    await ledger.recordReopening(episodeId, {
+      conditionId: 'visual-source-change',
+      observationId: 'observation:visual-source-change',
+      targetId: 'reploid:visual-dogfood-passport',
+      resultingDecisionState: visualResult.decisionState,
+      retainedEffectState: visualResult.effectState,
+      authorityId: 'reploid:visual-dogfood-verifier'
+    });
   } catch (error) {
     await fs.writeFile(activePath, `${JSON.stringify({
       schema: activation.schema,
@@ -324,7 +396,7 @@ export async function runVisualPolicyImprovementEpisode({outputDirectory} = {}) 
     generator: {
       authorityId: 'reploid:policy-candidate-generator',
       implementation: 'scripts/run-visual-policy-improvement-episode.js',
-      digest: digest(await fs.readFile(fileURLToPath(import.meta.url)))
+      digest: generatorDigest
     },
     baseline: {path: path.relative(repositoryRoot, baselinePath), policyHash: baseline.policyHash},
     candidate: {path: path.relative(repositoryRoot, candidatePath), policyHash: candidate.policyHash},
@@ -333,10 +405,10 @@ export async function runVisualPolicyImprovementEpisode({outputDirectory} = {}) 
     budget: {callsMaximum: 4, callsConsumed: 4, costAmount: 0, costUnit: 'local_execution'},
     cases,
     negativeEvidence: [{
-      id: 'baseline-admits-missing-rollback-identity',
+      id: baselineFailure.id,
       retained: true,
-      baselineEligible: cases[0].result.eligible,
-      candidateEligible: cases[1].result.eligible
+      baselineEligible: baselineFailure.baselineEligible,
+      candidateEligible: baselineFailure.candidateEligible
     }],
     promotion: {
       scope: activation.scope,

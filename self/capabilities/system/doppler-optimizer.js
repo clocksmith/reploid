@@ -160,6 +160,24 @@ const DopplerOptimizer = {
         testSuiteDigest
       });
       const baselineGenerationId = `generation:${contractHash.slice('sha256:'.length, 'sha256:'.length + 24)}`;
+      const corpus = {
+        inputCorpusHash: promptHash,
+        trainingSplitHash: null,
+        evaluationSplitHash: testSuiteDigest,
+        heldOut: false,
+        note: 'The workload is predeclared and immutable after candidate enumeration, but it is not a hidden generalization set.'
+      };
+      const resourceBudget = {
+        candidates: candidateCount,
+        pairedCallsPerCandidate: contract.measurement.pairCount * 2,
+        verificationCallsPerCandidate: 2,
+        neighboringWorkloads: contract.neighboringWorkloads?.length || 0,
+        tokens: contract.workload.request?.inferenceInput?.maxTokens ?? null,
+        elapsedMs: null,
+        memoryBytes: null,
+        compute: 'browser-webgpu',
+        cost: null
+      };
       return {
         groupId: `doppler:${runId}`,
         surface: 'x',
@@ -189,6 +207,12 @@ const DopplerOptimizer = {
           snapshotPath: `/artifacts/doppler/runs/${runId}/contract.json`
         },
         proposer: { authorityId: 'reploid:x:doppler-optimizer' },
+        generator: {
+          authorityId: 'reploid:x:doppler-optimizer',
+          implementation: 'self/capabilities/system/doppler-optimizer.js',
+          implementationHash: codeHash,
+          frozenBeforeCandidate: true
+        },
         evaluator: {
           evaluatorId: 'doppler.runtime-optimization',
           authorityId: `doppler:tooling:${DOPPLER_PACKAGE_VERSION}`,
@@ -232,23 +256,30 @@ const DopplerOptimizer = {
           dopplerPackageIntegrity: DOPPLER_PACKAGE_INTEGRITY
         },
         corpus: {
-          inputCorpusHash: promptHash,
-          trainingSplitHash: null,
-          evaluationSplitHash: testSuiteDigest,
-          heldOut: false,
-          note: 'The workload is predeclared and immutable after candidate enumeration, but it is not a hidden generalization set.'
+          ...corpus,
+          digest: await hashImprovementValue(corpus),
+          frozenBeforeCandidate: true
         },
         resourceBudget: {
-          candidates: candidateCount,
-          pairedCallsPerCandidate: contract.measurement.pairCount * 2,
-          verificationCallsPerCandidate: 2,
-          neighboringWorkloads: contract.neighboringWorkloads?.length || 0,
-          tokens: contract.workload.request?.inferenceInput?.maxTokens ?? null,
-          elapsedMs: null,
-          memoryBytes: null,
-          compute: 'browser-webgpu',
-          cost: null
+          ...resourceBudget,
+          digest: await hashImprovementValue(resourceBudget),
+          frozenBeforeCandidate: true
         },
+        promotionAuthority: {
+          repositoryId: 'clocksmith/reploid',
+          authorityId: 'reploid:x:promotion-policy',
+          scope: 'doppler_runtime_profile',
+          allowedCandidatePaths: ['/shadow/doppler/runs'],
+          allowedEffectKinds: ['runtime_profile_activation'],
+          frozenBeforeCandidate: true
+        },
+        reopeningConditions: [{
+          conditionId: 'doppler-canary-failure',
+          observationKind: 'canary_failed',
+          targetId: 'reploid:doppler-runtime-profile',
+          sensorAuthorityId: 'reploid:x:doppler-canary',
+          action: 'rollback_request'
+        }],
         evaluatorHash,
         baselineGenerationId
       };
@@ -336,6 +367,19 @@ const DopplerOptimizer = {
         },
         authorityId: 'reploid:zero:doppler-hypothesis'
       });
+      await ImprovementEpisodeLedger.recordNegativeEvidence(episodeId, {
+        evidenceId: `baseline-shortfall:${candidate.candidateId}`,
+        kind: 'baseline_shortfall',
+        digest: await hashImprovementValue({
+          contractHash: episodeStart.baseline.hashes.contract,
+          candidateId: candidate.candidateId,
+          metricId: episodeStart.objective.successMetricId
+        }),
+        summary: 'The frozen baseline remains the retained comparator for this candidate attempt.',
+        retained: true,
+        sourcePath: episodeStart.baseline.snapshotPath,
+        authorityId: episodeStart.evaluator.authorityId
+      });
       await ImprovementEpisodeLedger.proposeCandidate(episodeId, {
         candidateId: candidate.candidateId,
         candidateHash,
@@ -349,7 +393,9 @@ const DopplerOptimizer = {
           ...episodeStart.algorithm.invariants,
           'The evaluator and promotion policy remain outside candidate authority.'
         ],
-        falsifier: 'Any verification failure, invalid pair, regression guard, or missed promotion threshold.'
+        falsifier: 'Any verification failure, invalid pair, regression guard, or missed promotion threshold.',
+        generatorAuthorityId: episodeStart.generator.authorityId,
+        generatorHash: episodeStart.generator.implementationHash
       });
       return { episodeId, candidateHash, patchHash, candidateGenerationId };
     };
@@ -1025,6 +1071,23 @@ const DopplerOptimizer = {
           canaryReceiptPath,
           canaryReceiptHash: canaryReceipt.receiptHash,
           rollbackPointer: promotionResult.rollbackPath || rollbackPath
+        });
+        await ImprovementEpisodeLedger.recordEffect(prepared.episodeId, {
+          effectId: `effect:${prepared.candidateId}:activated`,
+          kind: 'runtime_profile_activation',
+          state: 'applied',
+          targetId: ACTIVE_PROFILE_PATH,
+          artifactHash: prepared.profileHash,
+          receiptPath: canaryReceiptPath,
+          authorityId: 'reploid:x:promotion-policy'
+        });
+        await ImprovementEpisodeLedger.recordOutcome(prepared.episodeId, {
+          outcomeId: `outcome:${prepared.candidateId}:canary`,
+          observationKind: 'canary_passed',
+          targetId: ACTIVE_PROFILE_PATH,
+          observationDigest: canaryReceipt.receiptHash,
+          sensorAuthorityId: 'reploid:x:doppler-canary',
+          observedAt: canaryReceipt.completedAt || new Date().toISOString()
         });
         await recordOutcomeReflection(
           prepared.episodeId,
