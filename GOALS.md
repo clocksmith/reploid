@@ -40,14 +40,17 @@ reopening triggers, offline export verification, and a separate adapter from
 `rsi.improvement-episode/v1`. These claims are bounded to repository tests and
 the local browser journey. A GitHub App is installed only on
 `clocksmith/reploid`, its webhook is deployed, and a dedicated dogfood branch
-requires the App-bound check. No authentic blocked and eligible check pair has
-been observed. A complete Visual Change Passport dogfood path also
+requires the App-bound check. One internally operated passport-dogfood check
+moved from blocked to eligible and reopened while an independent GitHub test
+remained failed. The retained observation proves App-bound check projection
+and evidence preservation for that exact internal candidate only. A complete
+Visual Change Passport dogfood path also
 binds the development Bridge's complaint and reversible patch receipts to an
 independent physical-Chromium evaluation, attributed acceptance, local CI
 activation, post-activation render outcome, exact source reversal, and
-automatic reopening. A live GitHub installation, deployed release,
-external operator comparison, and commercial value remain unproved and have no
-claim permission.
+automatic reopening. External installability, operator comparison, commercial
+value, qualification, adoption, deployment authority, and rollback success
+remain unproved and have no claim permission.
 
 The currently supported Poolday product is narrower than the long-term aim:
 
