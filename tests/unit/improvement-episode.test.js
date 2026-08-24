@@ -69,6 +69,12 @@ const startRecord = () => ({
     snapshotPath: '/artifacts/baselines/generation-12.json'
   },
   proposer: { authorityId: 'reploid:x:optimizer' },
+  generator: {
+    authorityId: 'reploid:x:optimizer',
+    implementation: 'self/capabilities/system/doppler-optimizer.js',
+    implementationHash: digest('0'),
+    frozenBeforeCandidate: true
+  },
   evaluator: {
     evaluatorId: 'doppler.runtime-optimization',
     authorityId: 'doppler:tooling:evaluator',
@@ -97,8 +103,34 @@ const startRecord = () => ({
   }],
   algorithm: algorithm(),
   environment: { runtime: 'browser', provider: 'doppler' },
-  corpus: { evaluationSplitHash: digest('9'), heldOut: true },
-  resourceBudget: { calls: 12, elapsedMs: 60000, memoryBytes: 2147483648 }
+  corpus: {
+    evaluationSplitHash: digest('9'),
+    heldOut: true,
+    digest: digest('9'),
+    frozenBeforeCandidate: true
+  },
+  resourceBudget: {
+    calls: 12,
+    elapsedMs: 60000,
+    memoryBytes: 2147483648,
+    digest: digest('d'),
+    frozenBeforeCandidate: true
+  },
+  promotionAuthority: {
+    repositoryId: 'clocksmith/reploid',
+    authorityId: 'reploid:x:promotion-policy',
+    scope: 'doppler_runtime_profile',
+    allowedCandidatePaths: ['/shadow/doppler'],
+    allowedEffectKinds: ['runtime_profile_activation'],
+    frozenBeforeCandidate: true
+  },
+  reopeningConditions: [{
+    conditionId: 'canary-failure',
+    observationKind: 'canary_failed',
+    targetId: 'reploid:doppler-profile',
+    sensorAuthorityId: 'reploid:x:canary',
+    action: 'rollback_request'
+  }]
 });
 
 const candidate = () => ({
@@ -111,7 +143,9 @@ const candidate = () => ({
   semanticScope: ['decode loop batch size'],
   expectedBehavior: 'Increase throughput while preserving exact output.',
   affectedInvariants: ['Canonical output parity'],
-  falsifier: 'Output parity fails or paired improvement is below one percent.'
+  falsifier: 'Output parity fails or paired improvement is below one percent.',
+  generatorAuthorityId: 'reploid:x:optimizer',
+  generatorHash: digest('0')
 });
 
 const diagnosis = () => ({
@@ -143,6 +177,14 @@ const createLedger = () => {
 
 const recordSuccessfulEvaluation = async (ledger, episodeId = 'episode:test:1') => {
   await ledger.recordDiagnosis(episodeId, diagnosis());
+  await ledger.recordNegativeEvidence(episodeId, {
+    evidenceId: 'baseline-shortfall',
+    kind: 'baseline_shortfall',
+    digest: digest('e'),
+    summary: 'The frozen baseline remains below the declared throughput target.',
+    retained: true,
+    sourcePath: '/artifacts/baselines/generation-12.json'
+  });
   await ledger.proposeCandidate(episodeId, candidate());
   await ledger.recordExecution(episodeId, {
     isolated: true,
@@ -193,7 +235,7 @@ describe('ImprovementEpisodeLedger', () => {
     expect(beforePromotion).toMatchObject({
       schema: IMPROVEMENT_EPISODE_SCHEMA,
       status: 'compared',
-      integrity: { valid: true, validSignatures: 7 },
+      integrity: { valid: true, validSignatures: 8 },
       generation: {
         baseline: 'generation:12',
         candidate: 'generation:13',
@@ -210,6 +252,31 @@ describe('ImprovementEpisodeLedger', () => {
       reasons: [],
       promotionId: 'promotion:13'
     });
+    await ledger.recordEffect('episode:test:1', {
+      effectId: 'effect:profile:13',
+      kind: 'runtime_profile_activation',
+      state: 'applied',
+      targetId: 'reploid:doppler-profile',
+      artifactHash: digest('f'),
+      receiptPath: '/artifacts/doppler/canary.json',
+      authorityId: 'reploid:x:promotion-policy'
+    });
+    await ledger.recordOutcome('episode:test:1', {
+      outcomeId: 'outcome:canary:13',
+      observationKind: 'canary_failed',
+      targetId: 'reploid:doppler-profile',
+      observationDigest: digest('a'),
+      sensorAuthorityId: 'reploid:x:canary',
+      observedAt: '2026-08-23T00:00:00.000Z'
+    });
+    await ledger.recordReopening('episode:test:1', {
+      conditionId: 'canary-failure',
+      observationId: 'observation:canary:13',
+      targetId: 'reploid:doppler-profile',
+      resultingDecisionState: 'reopened',
+      retainedEffectState: 'applied',
+      authorityId: 'reploid:x:canary'
+    });
     expect((await ledger.getEpisode('episode:test:1')).generation.current).toBe('generation:13');
 
     await ledger.recordRollback('episode:test:1', {
@@ -225,6 +292,9 @@ describe('ImprovementEpisodeLedger', () => {
       generation: { current: 'generation:12' },
       rollback: { reason: 'Prospective canary regressed.' }
     });
+    expect(rolledBack.effects).toHaveLength(1);
+    expect(rolledBack.outcomes).toHaveLength(1);
+    expect(rolledBack.reopenings).toHaveLength(1);
     expect(rolledBack.reflections).toHaveLength(1);
     await expect(ledger.verifyEpisode('episode:test:1')).resolves.toMatchObject({ valid: true });
   });

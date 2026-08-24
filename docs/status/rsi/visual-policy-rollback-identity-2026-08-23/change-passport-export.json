@@ -1,6 +1,6 @@
 {
   "schema": "change.passport-export/v1",
-  "exportedAt": "2026-08-23T18:31:39.019Z",
+  "exportedAt": "2026-08-24T01:07:10.072Z",
   "passportId": "passport:visual-dogfood:1",
   "events": [
     {
@@ -8,7 +8,7 @@
       "passportId": "passport:visual-dogfood:1",
       "sequence": 1,
       "type": "passport.created",
-      "timestamp": "2026-08-23T18:31:38.381Z",
+      "timestamp": "2026-08-24T01:07:09.430Z",
       "previousEventHash": null,
       "actor": {
         "authorityId": "authority:codex-patch-agent",
@@ -42,7 +42,7 @@
           "candidateRevision": "bridge-daa600e390ffbf8d",
           "baselineHash": "sha256:bd4fcfe5224028f8d2f0e1989bfa7bad52206661db3f484937dbdfee837d54e3",
           "candidateHash": "sha256:d2aa45af9bf2bc04c94cdcfa7e3c7d8284bb153558c3eb33daa600e390ffbf8d",
-          "manifestHash": "sha256:6d20d0322eea2a9cdb70fb2c470a041b48b612283770cbb9360874287434cb5c",
+          "manifestHash": "sha256:7a72d3b62d3f2f5c0e59f6298eb775473253a072dab9df6557431d0bec9b37e9",
           "target": {
             "kind": "source_patch",
             "targetId": "reploid:dogfood-passports-ui",
@@ -115,16 +115,16 @@
           "kind": "visual_feedback_reverse_patch",
           "targetId": "reploid:dogfood-passports-ui",
           "revision": "dogfood-baseline",
-          "artifactHash": "sha256:20867cefb71e68bef2543eb902dc7eb2784c37e2593ee1b8d61491889f9952c7",
+          "artifactHash": "sha256:638729c19a1242f77ec432ce21bb559c89e263972bcf74332ef5a429f05695c9",
           "authorityId": "authority:visual-rollback"
         },
-        "evidenceCutoff": "2026-08-23T18:31:38.380Z",
-        "createdAt": "2026-08-23T18:31:38.380Z",
+        "evidenceCutoff": "2026-08-24T01:07:09.429Z",
+        "createdAt": "2026-08-24T01:07:09.429Z",
         "sourceEpisode": null
       },
-      "eventHash": "sha256:07c1b8ac7905eaff42ca2f46fa1a6e6b2aacdf4320a4342a0d475fe575fb31b8",
+      "eventHash": "sha256:41296d81265e909aaf80417f2e6a60e842aecb13d258899252b629a9af4dea16",
       "signature": {
-        "signerId": "peer:0ea1ff7dacb37b1d37db564b",
+        "signerId": "peer:f86c1b6a0872256846c0cbde",
         "algorithm": "Ed25519",
         "publicJwk": {
           "key_ops": [
@@ -133,10 +133,10 @@
           "ext": true,
           "alg": "Ed25519",
           "crv": "Ed25519",
-          "x": "6gb3jETz3UnRBvSC_GInG2ibBqBQ6PETCZonayZzKZY",
+          "x": "2vx5Pg1uJ7ClAHDVUwGzbxuIUgaIFbg46TPlSH-z5Ho",
           "kty": "OKP"
         },
-        "value": "cWQwjj2CsPxZOT8k-z-JsgaF5TowYXID1FLR96lu7vd8FdvdmthOo3SytSrXDtGohQfT8-SNlxcaCUAEV_lNDA"
+        "value": "O37ce2BVBnpdy6NhhlKaViLsYtl2qokD88-Rp-_g0eWfRgODGntCZ5L4elJ9ZlyiKno26k2sPMnOAzs7RUfbAg"
       }
     },
     {
@@ -144,8 +144,8 @@
       "passportId": "passport:visual-dogfood:1",
       "sequence": 2,
       "type": "trigger.declared",
-      "timestamp": "2026-08-23T18:31:38.383Z",
-      "previousEventHash": "sha256:07c1b8ac7905eaff42ca2f46fa1a6e6b2aacdf4320a4342a0d475fe575fb31b8",
+      "timestamp": "2026-08-24T01:07:09.432Z",
+      "previousEventHash": "sha256:41296d81265e909aaf80417f2e6a60e842aecb13d258899252b629a9af4dea16",
       "actor": {
         "authorityId": "authority:reploid-change-control",
         "organizationId": "org:reploid-dogfood",
@@ -173,9 +173,9 @@
         "freshnessMilliseconds": 300000,
         "deduplicationKey": null
       },
-      "eventHash": "sha256:47782b899349734e605f16d198955d24a491c3e9c69c57e0776f66468aed2294",
+      "eventHash": "sha256:2fb61734271acb7994b29388349fcf36b973085b57524dd39febbecfa5260233",
       "signature": {
-        "signerId": "peer:0ea1ff7dacb37b1d37db564b",
+        "signerId": "peer:f86c1b6a0872256846c0cbde",
         "algorithm": "Ed25519",
         "publicJwk": {
           "key_ops": [
@@ -184,10 +184,10 @@
           "ext": true,
           "alg": "Ed25519",
           "crv": "Ed25519",
-          "x": "6gb3jETz3UnRBvSC_GInG2ibBqBQ6PETCZonayZzKZY",
+          "x": "2vx5Pg1uJ7ClAHDVUwGzbxuIUgaIFbg46TPlSH-z5Ho",
           "kty": "OKP"
         },
-        "value": "Gtk8G8N3Tl08DeM5YAriij7dkV74gZg-eWj6hKxza1oQ9PrtYIi_pujAmyUW_93Bx1MGbJCpBA65kNtCfhiNBA"
+        "value": "vaywMdMBBNeFYRUuBZfG4Mgr6jvf6oSMWSh_M7Cpz_aORFr6c0x0uP67zWd8-qXxcYYnw0QQEjfxyjCQ5ys0Cg"
       }
     },
     {
@@ -195,8 +195,8 @@
       "passportId": "passport:visual-dogfood:1",
       "sequence": 3,
       "type": "evidence.admitted",
-      "timestamp": "2026-08-23T18:31:38.385Z",
-      "previousEventHash": "sha256:47782b899349734e605f16d198955d24a491c3e9c69c57e0776f66468aed2294",
+      "timestamp": "2026-08-24T01:07:09.435Z",
+      "previousEventHash": "sha256:2fb61734271acb7994b29388349fcf36b973085b57524dd39febbecfa5260233",
       "actor": {
         "authorityId": "authority:codex-patch-agent",
         "organizationId": "org:reploid-dogfood",
@@ -210,11 +210,11 @@
       "payload": {
         "evidenceId": "evidence:change_visual_passport_dogfood:complaint",
         "kind": "visual_complaint",
-        "digest": "sha256:700a56771a3dcc5d59b33b7d7b1b50d3639080555e3ef5df5b06755de71bf06b",
+        "digest": "sha256:c190610d617f5f952f9d4587c56321ca256fbec9ab29f3e3e5d0be57067e5e3e",
         "source": "Visual Feedback Bridge reploid-dogfood/visual-change-passport-v0",
         "uri": "bridge://reploid-dogfood/visual-change-passport-v0/change_visual_passport_dogfood#complaint",
         "summary": "1 source-mapped annotation(s) submitted to paired session codex-local-dogfood.",
-        "observedAt": "2026-08-23T18:31:37.351Z",
+        "observedAt": "2026-08-24T01:07:08.664Z",
         "custody": {
           "mode": "content_addressed_reference",
           "accessRequired": true,
@@ -222,9 +222,9 @@
         },
         "reason": null
       },
-      "eventHash": "sha256:8123346afc947a40bc66d5441defcb0a8619064584756ed66ef8071753c222b0",
+      "eventHash": "sha256:15f1dfae2406a833295582e299110917e57ec5103db9653bb4e0861f43baf241",
       "signature": {
-        "signerId": "peer:0ea1ff7dacb37b1d37db564b",
+        "signerId": "peer:f86c1b6a0872256846c0cbde",
         "algorithm": "Ed25519",
         "publicJwk": {
           "key_ops": [
@@ -233,10 +233,10 @@
           "ext": true,
           "alg": "Ed25519",
           "crv": "Ed25519",
-          "x": "6gb3jETz3UnRBvSC_GInG2ibBqBQ6PETCZonayZzKZY",
+          "x": "2vx5Pg1uJ7ClAHDVUwGzbxuIUgaIFbg46TPlSH-z5Ho",
           "kty": "OKP"
         },
-        "value": "yLvQ2XnmueqhZIy8Cg4vQhGYwvPc7Sz1YNZP-C7OLMZ1UuV8UVlGW4lOiDAF1pZPAyGdCrvWrZ7KX6VZW6T4CQ"
+        "value": "aNRtXFZe48l2CvQMRWUzAjY_wxEPmai9ZaT4rKIc7bLPogZTm8QZGrminw-WdkcDvu1mvmIl_NijBzoOwjL0CA"
       }
     },
     {
@@ -244,8 +244,8 @@
       "passportId": "passport:visual-dogfood:1",
       "sequence": 4,
       "type": "evidence.admitted",
-      "timestamp": "2026-08-23T18:31:38.386Z",
-      "previousEventHash": "sha256:8123346afc947a40bc66d5441defcb0a8619064584756ed66ef8071753c222b0",
+      "timestamp": "2026-08-24T01:07:09.436Z",
+      "previousEventHash": "sha256:15f1dfae2406a833295582e299110917e57ec5103db9653bb4e0861f43baf241",
       "actor": {
         "authorityId": "authority:codex-patch-agent",
         "organizationId": "org:reploid-dogfood",
@@ -259,11 +259,11 @@
       "payload": {
         "evidenceId": "evidence:change_visual_passport_dogfood:patch",
         "kind": "source_owned_patch",
-        "digest": "sha256:049c7e493f10ba81783ade0b8adb04a6ecb3437c1d11ea1a0ccc69b561c06205",
-        "source": "Visual Feedback Bridge reversible patch sha256:20867cefb71e68bef2543eb902dc7eb2784c37e2593ee1b8d61491889f9952c7",
+        "digest": "sha256:97c728d892837c2b5c4f21f492b148646a38b080b4e9071b8ec1e8f16e9b73c1",
+        "source": "Visual Feedback Bridge reversible patch sha256:638729c19a1242f77ec432ce21bb559c89e263972bcf74332ef5a429f05695c9",
         "uri": "bridge://reploid-dogfood/visual-change-passport-v0/change_visual_passport_dogfood#patch",
         "summary": "1 file(s) are bound to before/after hashes and a conflict-safe reverse artifact.",
-        "observedAt": "2026-08-23T18:31:37.363Z",
+        "observedAt": "2026-08-24T01:07:08.675Z",
         "custody": {
           "mode": "content_addressed_reference",
           "accessRequired": true,
@@ -271,9 +271,9 @@
         },
         "reason": null
       },
-      "eventHash": "sha256:595a2e66c956c241e5b66066c5b10fb656bf22750e036c790f9c4425ebd2ed7d",
+      "eventHash": "sha256:45f43fa5326e6afb10894e2d6a15a4912a893ca14ffdd7fc78cf9171d958bf57",
       "signature": {
-        "signerId": "peer:0ea1ff7dacb37b1d37db564b",
+        "signerId": "peer:f86c1b6a0872256846c0cbde",
         "algorithm": "Ed25519",
         "publicJwk": {
           "key_ops": [
@@ -282,10 +282,10 @@
           "ext": true,
           "alg": "Ed25519",
           "crv": "Ed25519",
-          "x": "6gb3jETz3UnRBvSC_GInG2ibBqBQ6PETCZonayZzKZY",
+          "x": "2vx5Pg1uJ7ClAHDVUwGzbxuIUgaIFbg46TPlSH-z5Ho",
           "kty": "OKP"
         },
-        "value": "0iyDDZSmLd0h9tJDSjsh9GCfSGK9GqzCl5rwrUcLsDyxNoCXPz1m9QAbd40-JIAvfpsoJ9Khgg6sM0qgBYV7CA"
+        "value": "09Xd14oXoRk_Bgqc-oAlt0U43DtaSNjqFH3JehYSgFUAFGwAVd0tZh0I_VeDmHX7CNcMYuGi8Pf3LyH8M_oZCQ"
       }
     },
     {
@@ -293,8 +293,8 @@
       "passportId": "passport:visual-dogfood:1",
       "sequence": 5,
       "type": "evidence.admitted",
-      "timestamp": "2026-08-23T18:31:38.395Z",
-      "previousEventHash": "sha256:595a2e66c956c241e5b66066c5b10fb656bf22750e036c790f9c4425ebd2ed7d",
+      "timestamp": "2026-08-24T01:07:09.445Z",
+      "previousEventHash": "sha256:45f43fa5326e6afb10894e2d6a15a4912a893ca14ffdd7fc78cf9171d958bf57",
       "actor": {
         "authorityId": "authority:codex-patch-agent",
         "organizationId": "org:reploid-dogfood",
@@ -308,11 +308,11 @@
       "payload": {
         "evidenceId": "evidence:change_visual_passport_dogfood:rollback-identity",
         "kind": "rollback_identity",
-        "digest": "sha256:b4a9de4b088f5c9010ef261767fc7659037d19d4e7643076348461737274da24",
+        "digest": "sha256:3c17407dac8850b1ce214118b064247a3d9015d14c0524d0a572411965c03bbf",
         "source": "Change Passport rollback contract visual_feedback_reverse_patch",
         "uri": "passport://passport:visual-dogfood:1#rollback",
         "summary": "The rollback kind, target, baseline revision, reverse artifact, and named authority are bound before eligibility.",
-        "observedAt": "2026-08-23T18:31:38.380Z",
+        "observedAt": "2026-08-24T01:07:09.429Z",
         "custody": {
           "mode": "passport_embedded_contract",
           "accessRequired": false,
@@ -320,9 +320,9 @@
         },
         "reason": null
       },
-      "eventHash": "sha256:1e21a360c2fe16eabdd9718a9b1b821e85ef36b82224d97afae3e99a1df17001",
+      "eventHash": "sha256:44ec955af99144c4eb7b39a921b98ef3bb319f4756daa7f67e725726204e7b0b",
       "signature": {
-        "signerId": "peer:0ea1ff7dacb37b1d37db564b",
+        "signerId": "peer:f86c1b6a0872256846c0cbde",
         "algorithm": "Ed25519",
         "publicJwk": {
           "key_ops": [
@@ -331,10 +331,10 @@
           "ext": true,
           "alg": "Ed25519",
           "crv": "Ed25519",
-          "x": "6gb3jETz3UnRBvSC_GInG2ibBqBQ6PETCZonayZzKZY",
+          "x": "2vx5Pg1uJ7ClAHDVUwGzbxuIUgaIFbg46TPlSH-z5Ho",
           "kty": "OKP"
         },
-        "value": "kSVOKoMPg_mheuOlBjzjmyj5rIJt9nP4IkpAZUtB3J7Br9rt_dShA44ha7ROuo-YUreA4xne6Wm1aIkrnVKFDg"
+        "value": "YqHwAxOF-zvCaH9T5VeFjTGnbO1H7ETBwooV1BOrrv2NQqQAN_oFdBxQLs-T9HomTlusvattdEDthYQX2eX_BA"
       }
     },
     {
@@ -342,8 +342,8 @@
       "passportId": "passport:visual-dogfood:1",
       "sequence": 6,
       "type": "evidence.frozen",
-      "timestamp": "2026-08-23T18:31:38.398Z",
-      "previousEventHash": "sha256:1e21a360c2fe16eabdd9718a9b1b821e85ef36b82224d97afae3e99a1df17001",
+      "timestamp": "2026-08-24T01:07:09.448Z",
+      "previousEventHash": "sha256:44ec955af99144c4eb7b39a921b98ef3bb319f4756daa7f67e725726204e7b0b",
       "actor": {
         "authorityId": "authority:reploid-change-control",
         "organizationId": "org:reploid-dogfood",
@@ -355,17 +355,17 @@
         }
       },
       "payload": {
-        "manifestHash": "sha256:3a7c454613620e04921adeb6dbf6ed7d803e97cb45b3280e4b8b4f68ee577246",
+        "manifestHash": "sha256:17bd02836156c21fc4e88e4e393370e35e7132fb639c108206818b7d661694a2",
         "evidenceIds": [
           "evidence:change_visual_passport_dogfood:complaint",
           "evidence:change_visual_passport_dogfood:patch",
           "evidence:change_visual_passport_dogfood:rollback-identity"
         ],
-        "cutoff": "2026-08-23T18:31:38.380Z"
+        "cutoff": "2026-08-24T01:07:09.429Z"
       },
-      "eventHash": "sha256:070694af7ff2116029eb2a479acc0cd31d58beef125bd1ad800b7f589ce8f929",
+      "eventHash": "sha256:462ff41e9655678b0976f268fbd7d6ed6135b387319ecf6dbb19ae6bde90b75b",
       "signature": {
-        "signerId": "peer:0ea1ff7dacb37b1d37db564b",
+        "signerId": "peer:f86c1b6a0872256846c0cbde",
         "algorithm": "Ed25519",
         "publicJwk": {
           "key_ops": [
@@ -374,10 +374,10 @@
           "ext": true,
           "alg": "Ed25519",
           "crv": "Ed25519",
-          "x": "6gb3jETz3UnRBvSC_GInG2ibBqBQ6PETCZonayZzKZY",
+          "x": "2vx5Pg1uJ7ClAHDVUwGzbxuIUgaIFbg46TPlSH-z5Ho",
           "kty": "OKP"
         },
-        "value": "WTM_AFUtbTkFUhUJzFhz0t59zWv_8EbpESzJIiADaKquFoc4PtAHjhPefRLs52zyAy7LTGJLA2UUszT9UNX4DA"
+        "value": "Jz5vIrWUFwRiMkLeabQwbb6fbE1-EycxbzOUR1OcX4T8wL3zjdPVNEMEI9iTQodPdH6lXK9awnxYfDIDlVpzBw"
       }
     },
     {
@@ -385,8 +385,8 @@
       "passportId": "passport:visual-dogfood:1",
       "sequence": 7,
       "type": "evaluation.recorded",
-      "timestamp": "2026-08-23T18:31:38.402Z",
-      "previousEventHash": "sha256:070694af7ff2116029eb2a479acc0cd31d58beef125bd1ad800b7f589ce8f929",
+      "timestamp": "2026-08-24T01:07:09.452Z",
+      "previousEventHash": "sha256:462ff41e9655678b0976f268fbd7d6ed6135b387319ecf6dbb19ae6bde90b75b",
       "actor": {
         "authorityId": "authority:independent-render-oracle",
         "organizationId": "org:reploid-dogfood",
@@ -398,7 +398,7 @@
         }
       },
       "payload": {
-        "evaluationId": "evaluation:ee6391bcae82ded060d77ed8",
+        "evaluationId": "evaluation:fc6982188c69d937406565d0",
         "evaluatorId": "evaluator:chromium-narrow-viewport",
         "evaluatorAuthorityId": "authority:independent-render-oracle",
         "evaluatorHash": "sha256:66837599303b4338cf9a4398a5a97e54752a7a438b60f060ea62d164732502a9",
@@ -406,12 +406,12 @@
         "contractHash": "sha256:6e5421c429a4f8c510f8f9f4a9e95be120f1d60cca4c5ea228fac0a56d4ab072",
         "baselineHash": "sha256:bd4fcfe5224028f8d2f0e1989bfa7bad52206661db3f484937dbdfee837d54e3",
         "candidateHash": "sha256:d2aa45af9bf2bc04c94cdcfa7e3c7d8284bb153558c3eb33daa600e390ffbf8d",
-        "evidenceManifestHash": "sha256:3a7c454613620e04921adeb6dbf6ed7d803e97cb45b3280e4b8b4f68ee577246",
+        "evidenceManifestHash": "sha256:17bd02836156c21fc4e88e4e393370e35e7132fb639c108206818b7d661694a2",
         "conclusion": "pass",
         "metrics": [
           {
             "metricId": "visual_evaluation_receipt",
-            "value": "sha256:a7fd699a3e8c2a6adaa428eceb81dcbf1e665c02ee6391bcae82ded060d77ed8"
+            "value": "sha256:75e482526f89521172506560b4bfd97adcf3595afc6982188c69d937406565d0"
           },
           {
             "metricId": "bridge-owned-file-closure",
@@ -423,11 +423,11 @@
           }
         ],
         "limitations": [],
-        "observedAt": "2026-08-23T18:31:38.378Z"
+        "observedAt": "2026-08-24T01:07:09.427Z"
       },
-      "eventHash": "sha256:fdcf6901dcf5491691082ba8ae2f93987b9a8f9504078f0ce3257de7647b3957",
+      "eventHash": "sha256:b5fd21408fc2154055854355c941a3fca43e23de211f0ccdf9d1c38e7505b766",
       "signature": {
-        "signerId": "peer:0ea1ff7dacb37b1d37db564b",
+        "signerId": "peer:f86c1b6a0872256846c0cbde",
         "algorithm": "Ed25519",
         "publicJwk": {
           "key_ops": [
@@ -436,10 +436,10 @@
           "ext": true,
           "alg": "Ed25519",
           "crv": "Ed25519",
-          "x": "6gb3jETz3UnRBvSC_GInG2ibBqBQ6PETCZonayZzKZY",
+          "x": "2vx5Pg1uJ7ClAHDVUwGzbxuIUgaIFbg46TPlSH-z5Ho",
           "kty": "OKP"
         },
-        "value": "vf7-4sBLdNCFPJZWICtbQOTYIr6XbADaF8POVMUoYoLDkCx521oRMnxvvuf2ShClpbU6hIZ_O8ZBx_x-8TTCCA"
+        "value": "LUSGAY2Yb8k3wSb5ISr0bbPngvTMg81rrgn5qbxZdO_4EnZXZOfaz32Viw0LwwW3Ukj6Wta_HTZI3zV_7RhXBg"
       }
     },
     {
@@ -447,8 +447,8 @@
       "passportId": "passport:visual-dogfood:1",
       "sequence": 8,
       "type": "review.recorded",
-      "timestamp": "2026-08-23T18:31:38.407Z",
-      "previousEventHash": "sha256:fdcf6901dcf5491691082ba8ae2f93987b9a8f9504078f0ce3257de7647b3957",
+      "timestamp": "2026-08-24T01:07:09.457Z",
+      "previousEventHash": "sha256:b5fd21408fc2154055854355c941a3fca43e23de211f0ccdf9d1c38e7505b766",
       "actor": {
         "authorityId": "authority:local-human-reviewer",
         "organizationId": "org:reploid-dogfood",
@@ -460,7 +460,7 @@
         }
       },
       "payload": {
-        "reviewId": "review:1735e153fd76eac2ef5f8c76",
+        "reviewId": "review:343a9ed6da6a8dacb74f1c65",
         "verdict": "approve",
         "rationale": "The exact responsive patch passed the frozen independent browser oracle.",
         "resolvesObjectionIds": [],
@@ -470,9 +470,9 @@
           "evidence:change_visual_passport_dogfood:rollback-identity"
         ]
       },
-      "eventHash": "sha256:4ec8e8a9757fb1cde652d2a1ba7506de5601519f204404356c7367bf4d96dac0",
+      "eventHash": "sha256:6aabdd965cdbcf9846c20435113d726a9af839e8f9e375268eec7f496de9d15b",
       "signature": {
-        "signerId": "peer:0ea1ff7dacb37b1d37db564b",
+        "signerId": "peer:f86c1b6a0872256846c0cbde",
         "algorithm": "Ed25519",
         "publicJwk": {
           "key_ops": [
@@ -481,10 +481,10 @@
           "ext": true,
           "alg": "Ed25519",
           "crv": "Ed25519",
-          "x": "6gb3jETz3UnRBvSC_GInG2ibBqBQ6PETCZonayZzKZY",
+          "x": "2vx5Pg1uJ7ClAHDVUwGzbxuIUgaIFbg46TPlSH-z5Ho",
           "kty": "OKP"
         },
-        "value": "_OnW6DZG7YKbcI828hj39CldCnd0TQ78pJ1bMCo9IlmaAjR1cuf58nufAHbZJJvp0sVFmj3UQLmAjH8ThinsBw"
+        "value": "7E8UbAfQeiwmVGjcx9oxXIVwuvsgs9jb1nTnOOvHpSB3UeLkaAZk0UeAzJV4odnnGsc5VmBqq3pJGDBpwnwZBw"
       }
     },
     {
@@ -492,8 +492,8 @@
       "passportId": "passport:visual-dogfood:1",
       "sequence": 9,
       "type": "decision.recorded",
-      "timestamp": "2026-08-23T18:31:38.411Z",
-      "previousEventHash": "sha256:4ec8e8a9757fb1cde652d2a1ba7506de5601519f204404356c7367bf4d96dac0",
+      "timestamp": "2026-08-24T01:07:09.461Z",
+      "previousEventHash": "sha256:6aabdd965cdbcf9846c20435113d726a9af839e8f9e375268eec7f496de9d15b",
       "actor": {
         "authorityId": "authority:reploid-change-control",
         "organizationId": "org:reploid-dogfood",
@@ -505,20 +505,20 @@
         }
       },
       "payload": {
-        "decisionId": "decision:1735e153fd76eac2ef5f8c76",
+        "decisionId": "decision:343a9ed6da6a8dacb74f1c65",
         "state": "approved",
         "policyHash": "sha256:9d8ddc4a7aad1a3c6ff9a03a3f73e9f189da77648d3c21a69d1be50230e876a7",
         "evaluationIds": [
-          "evaluation:ee6391bcae82ded060d77ed8"
+          "evaluation:fc6982188c69d937406565d0"
         ],
         "reviewIds": [
-          "review:1735e153fd76eac2ef5f8c76"
+          "review:343a9ed6da6a8dacb74f1c65"
         ],
         "rationale": "The exact source-owned patch passed frozen independent evaluation and received explicit human acceptance."
       },
-      "eventHash": "sha256:8897920677a5d06daa4ac26a60fa881f9e8147ac3577fb771803dffed812a758",
+      "eventHash": "sha256:1ff0ad5a73fdd064e40f5263d1d6080fb7b45ad40e0cdb5d5113d6d20cc955f3",
       "signature": {
-        "signerId": "peer:0ea1ff7dacb37b1d37db564b",
+        "signerId": "peer:f86c1b6a0872256846c0cbde",
         "algorithm": "Ed25519",
         "publicJwk": {
           "key_ops": [
@@ -527,10 +527,10 @@
           "ext": true,
           "alg": "Ed25519",
           "crv": "Ed25519",
-          "x": "6gb3jETz3UnRBvSC_GInG2ibBqBQ6PETCZonayZzKZY",
+          "x": "2vx5Pg1uJ7ClAHDVUwGzbxuIUgaIFbg46TPlSH-z5Ho",
           "kty": "OKP"
         },
-        "value": "b_K9K6OHZdnqaZJaN1g2UTGiesd5KfgDwNq2Spl0B3GZOGWJAlk9E3CmuzgoefNNQ7wXpET1okQNlsEBrDPNBQ"
+        "value": "CdPHi6ELHQPTtqYnIzOxIr7wT7_5F-AtBwe8Fs7AlVZk-jmBbM-adhDgvAfwqWiLTPOQCvD7VMllPpEQCr94DQ"
       }
     },
     {
@@ -538,8 +538,8 @@
       "passportId": "passport:visual-dogfood:1",
       "sequence": 10,
       "type": "effect.requested",
-      "timestamp": "2026-08-23T18:31:38.418Z",
-      "previousEventHash": "sha256:8897920677a5d06daa4ac26a60fa881f9e8147ac3577fb771803dffed812a758",
+      "timestamp": "2026-08-24T01:07:09.468Z",
+      "previousEventHash": "sha256:1ff0ad5a73fdd064e40f5263d1d6080fb7b45ad40e0cdb5d5113d6d20cc955f3",
       "actor": {
         "authorityId": "authority:local-ci",
         "organizationId": "org:reploid-dogfood",
@@ -555,12 +555,12 @@
         "kind": "ci_activation",
         "targetId": "reploid:dogfood-passports-ui",
         "candidateHash": "sha256:d2aa45af9bf2bc04c94cdcfa7e3c7d8284bb153558c3eb33daa600e390ffbf8d",
-        "decisionEventHash": "sha256:8897920677a5d06daa4ac26a60fa881f9e8147ac3577fb771803dffed812a758",
-        "idempotencyKey": "visual-ci:48b612283770cbb9360874287434cb5c"
+        "decisionEventHash": "sha256:1ff0ad5a73fdd064e40f5263d1d6080fb7b45ad40e0cdb5d5113d6d20cc955f3",
+        "idempotencyKey": "visual-ci:3253a072dab9df6557431d0bec9b37e9"
       },
-      "eventHash": "sha256:17628f22cad4fc0ae7251ea72b848833859ae71487f8632649f9befe3f6439ce",
+      "eventHash": "sha256:a0d82b74523f091faa19cb2d8935ff12e94bb807cd6b1df6673b94bc7a4c2aad",
       "signature": {
-        "signerId": "peer:0ea1ff7dacb37b1d37db564b",
+        "signerId": "peer:f86c1b6a0872256846c0cbde",
         "algorithm": "Ed25519",
         "publicJwk": {
           "key_ops": [
@@ -569,10 +569,10 @@
           "ext": true,
           "alg": "Ed25519",
           "crv": "Ed25519",
-          "x": "6gb3jETz3UnRBvSC_GInG2ibBqBQ6PETCZonayZzKZY",
+          "x": "2vx5Pg1uJ7ClAHDVUwGzbxuIUgaIFbg46TPlSH-z5Ho",
           "kty": "OKP"
         },
-        "value": "iYKYTvoFd20MEEp3QJRiASXpWMjASya6ubFxmE0nflmH7TtLR28mt-3w9iHHJmL7ZBW6rcqAbWJPOLZa0EeFCw"
+        "value": "9Hm8mvavFgIClFi62KdAb926M32IqDD0c2E1fCgcuAlqI1ciDgz28lZbcy5KIpy8TCJfdJ24XKom96e9mBc_Dg"
       }
     },
     {
@@ -580,8 +580,8 @@
       "passportId": "passport:visual-dogfood:1",
       "sequence": 11,
       "type": "effect.recorded",
-      "timestamp": "2026-08-23T18:31:38.424Z",
-      "previousEventHash": "sha256:17628f22cad4fc0ae7251ea72b848833859ae71487f8632649f9befe3f6439ce",
+      "timestamp": "2026-08-24T01:07:09.474Z",
+      "previousEventHash": "sha256:a0d82b74523f091faa19cb2d8935ff12e94bb807cd6b1df6673b94bc7a4c2aad",
       "actor": {
         "authorityId": "authority:local-ci",
         "organizationId": "org:reploid-dogfood",
@@ -597,13 +597,13 @@
         "status": "applied",
         "targetId": "reploid:dogfood-passports-ui",
         "candidateHash": "sha256:d2aa45af9bf2bc04c94cdcfa7e3c7d8284bb153558c3eb33daa600e390ffbf8d",
-        "externalReference": "file:///var/folders/85/l5dptg296tlfx03cd_k7h0l80000gn/T/reploid-visual-change-passport-vyYugc/ci-activation.json",
-        "observedAt": "2026-08-23T18:31:38.423Z",
+        "externalReference": "file:///var/folders/85/l5dptg296tlfx03cd_k7h0l80000gn/T/reploid-visual-change-passport-0I2xvt/ci-activation.json",
+        "observedAt": "2026-08-24T01:07:09.472Z",
         "failureReason": null
       },
-      "eventHash": "sha256:344129028029e506d00476a41368467934a4b6b469abde4be3f99365e49c53c4",
+      "eventHash": "sha256:22a884046534e15ef68d6d35c2e7a493ed4ffdd81b995591ad665c4304154c33",
       "signature": {
-        "signerId": "peer:0ea1ff7dacb37b1d37db564b",
+        "signerId": "peer:f86c1b6a0872256846c0cbde",
         "algorithm": "Ed25519",
         "publicJwk": {
           "key_ops": [
@@ -612,10 +612,10 @@
           "ext": true,
           "alg": "Ed25519",
           "crv": "Ed25519",
-          "x": "6gb3jETz3UnRBvSC_GInG2ibBqBQ6PETCZonayZzKZY",
+          "x": "2vx5Pg1uJ7ClAHDVUwGzbxuIUgaIFbg46TPlSH-z5Ho",
           "kty": "OKP"
         },
-        "value": "zKsheJFcKg7mn_F0r9kDpuuZNto-gI39S1ymaFZ4OAZqveVxpOCcDhD8jRqjvvu1GRN60lLMf-jIa8bFFSaPCA"
+        "value": "6N_jLaLZXTcIa4NzMz9oCj54HPC_9MI1to5Au61zRUovX_Jc3tHXBY1ZOceMIggxIzBVEoS9z41bTN5TEKb9DA"
       }
     },
     {
@@ -623,8 +623,8 @@
       "passportId": "passport:visual-dogfood:1",
       "sequence": 12,
       "type": "outcome.recorded",
-      "timestamp": "2026-08-23T18:31:38.981Z",
-      "previousEventHash": "sha256:344129028029e506d00476a41368467934a4b6b469abde4be3f99365e49c53c4",
+      "timestamp": "2026-08-24T01:07:10.035Z",
+      "previousEventHash": "sha256:22a884046534e15ef68d6d35c2e7a493ed4ffdd81b995591ad665c4304154c33",
       "actor": {
         "authorityId": "authority:bridge-source-observer",
         "organizationId": "org:reploid-dogfood",
@@ -636,17 +636,17 @@
         }
       },
       "payload": {
-        "outcomeId": "outcome:render:c6bcd65bb43e31b379c1698f",
+        "outcomeId": "outcome:render:eb5c2d634fb07f1a741a071b",
         "effectId": "effect:visual:change_visual_passport_dogfood",
-        "observationHash": "sha256:e98ac32639fc5b9d4e831e699d89022faced64dfc6bcd65bb43e31b379c1698f",
+        "observationHash": "sha256:5a3067b2e73f8bab280ac220fabb1344477ff112eb5c2d634fb07f1a741a071b",
         "source": "Independent chromium-playwright render oracle after CI activation",
         "status": "verified",
         "summary": "Activated candidate rendered at /passports and passed 1 frozen assertion(s).",
-        "observedAt": "2026-08-23T18:31:38.975Z"
+        "observedAt": "2026-08-24T01:07:10.028Z"
       },
-      "eventHash": "sha256:c5c8e8cfbe6b5e3d765650a0f541a70d0100835b8457fe1eda285e5ab87fdcf3",
+      "eventHash": "sha256:cdc14b2bd9b183e0763fd8ebc7c9a3145be75fd9d74c68b09dae35fd9968c7e0",
       "signature": {
-        "signerId": "peer:0ea1ff7dacb37b1d37db564b",
+        "signerId": "peer:f86c1b6a0872256846c0cbde",
         "algorithm": "Ed25519",
         "publicJwk": {
           "key_ops": [
@@ -655,10 +655,10 @@
           "ext": true,
           "alg": "Ed25519",
           "crv": "Ed25519",
-          "x": "6gb3jETz3UnRBvSC_GInG2ibBqBQ6PETCZonayZzKZY",
+          "x": "2vx5Pg1uJ7ClAHDVUwGzbxuIUgaIFbg46TPlSH-z5Ho",
           "kty": "OKP"
         },
-        "value": "b6n8VhwyFpfhKcTapIIGgs4TmNsRfyL5jD1nYPeg-FwBnOAYtwQVKhDFEaYURBagEo1YbDYYZFt1Nfa4nRP-Cg"
+        "value": "NwXyDSFGHwuFEj8FtB9hAuWJhKZiwEnltJB_gCjKxk84lCrAECdfS2SDye-AiJXyFKuRS7kCaLW3YLlGvk-eCw"
       }
     },
     {
@@ -666,8 +666,8 @@
       "passportId": "passport:visual-dogfood:1",
       "sequence": 13,
       "type": "outcome.recorded",
-      "timestamp": "2026-08-23T18:31:39.006Z",
-      "previousEventHash": "sha256:c5c8e8cfbe6b5e3d765650a0f541a70d0100835b8457fe1eda285e5ab87fdcf3",
+      "timestamp": "2026-08-24T01:07:10.059Z",
+      "previousEventHash": "sha256:cdc14b2bd9b183e0763fd8ebc7c9a3145be75fd9d74c68b09dae35fd9968c7e0",
       "actor": {
         "authorityId": "authority:bridge-source-observer",
         "organizationId": "org:reploid-dogfood",
@@ -679,17 +679,17 @@
         }
       },
       "payload": {
-        "outcomeId": "outcome:reverse:b0be91423693106009f9a552",
+        "outcomeId": "outcome:reverse:63a327306f655d496acfdcf1",
         "effectId": "effect:visual:change_visual_passport_dogfood",
-        "observationHash": "sha256:5fffc6fc82301d2500c878708f05a93882abee31b0be91423693106009f9a552",
+        "observationHash": "sha256:9309562262a2a1da6adb0af1b1419c9252193b4563a327306f655d496acfdcf1",
         "source": "Visual Feedback Bridge conflict-safe reverse patch for change_visual_passport_dogfood",
         "status": "source_reverted",
         "summary": "The source-owned patch restored its frozen baseline. This observation does not assert that any external activation rolled back.",
-        "observedAt": "2026-08-23T18:31:39.000Z"
+        "observedAt": "2026-08-24T01:07:10.054Z"
       },
-      "eventHash": "sha256:19a6ca3b6a97aecc2d740c4952166f40bc8f07585345b7cd75714fe8f362e713",
+      "eventHash": "sha256:231275a1e393e902ab9b8d7cb5fe7bae28c0e6f82bb3d87553bdfcd85e7e3d9b",
       "signature": {
-        "signerId": "peer:0ea1ff7dacb37b1d37db564b",
+        "signerId": "peer:f86c1b6a0872256846c0cbde",
         "algorithm": "Ed25519",
         "publicJwk": {
           "key_ops": [
@@ -698,10 +698,10 @@
           "ext": true,
           "alg": "Ed25519",
           "crv": "Ed25519",
-          "x": "6gb3jETz3UnRBvSC_GInG2ibBqBQ6PETCZonayZzKZY",
+          "x": "2vx5Pg1uJ7ClAHDVUwGzbxuIUgaIFbg46TPlSH-z5Ho",
           "kty": "OKP"
         },
-        "value": "RJ4ZYAsHyy8y8TqeAoCv3eLxCtKcLDPQaJNMLBu-fVA4UcSGxWFlAtZFN_rXhoIjPQ9a5ii1xX3IKkVPlUeNBw"
+        "value": "MukYxcdhhG4OB_eqBRPBhkIuGBBMLQcFvGfa-oidE8xgTNwcAh87B-QMrayMx1hiNAx3bIdVOAICPETeAYU1Cw"
       }
     },
     {
@@ -709,8 +709,8 @@
       "passportId": "passport:visual-dogfood:1",
       "sequence": 14,
       "type": "trigger.observed",
-      "timestamp": "2026-08-23T18:31:39.013Z",
-      "previousEventHash": "sha256:19a6ca3b6a97aecc2d740c4952166f40bc8f07585345b7cd75714fe8f362e713",
+      "timestamp": "2026-08-24T01:07:10.067Z",
+      "previousEventHash": "sha256:231275a1e393e902ab9b8d7cb5fe7bae28c0e6f82bb3d87553bdfcd85e7e3d9b",
       "actor": {
         "authorityId": "authority:bridge-source-observer",
         "organizationId": "org:reploid-dogfood",
@@ -733,14 +733,14 @@
           "changed": true
         },
         "sensorAuthorityId": "authority:bridge-source-observer",
-        "observationHash": "sha256:c313fab6269c9a02be6f871dacdc29fea1e4f207bf78761f27f646042c82d00b",
-        "observedAt": "2026-08-23T18:31:39.000Z",
+        "observationHash": "sha256:d665887f75356770f031daf606220cbd468aad41012bddb8653e6f4c8f97127e",
+        "observedAt": "2026-08-24T01:07:10.054Z",
         "freshnessMilliseconds": 300000,
-        "deduplicationKey": "visual-reverse:82abee31b0be91423693106009f9a552"
+        "deduplicationKey": "visual-reverse:52193b4563a327306f655d496acfdcf1"
       },
-      "eventHash": "sha256:c7c26f62351c5a879d869c6deb47f92386507c81d0d58121d79bcc16190c52b9",
+      "eventHash": "sha256:c0228605e4c533c91c6740444cddb784cfb195278ba6cd745d3a6bf96b71ce00",
       "signature": {
-        "signerId": "peer:0ea1ff7dacb37b1d37db564b",
+        "signerId": "peer:f86c1b6a0872256846c0cbde",
         "algorithm": "Ed25519",
         "publicJwk": {
           "key_ops": [
@@ -749,10 +749,10 @@
           "ext": true,
           "alg": "Ed25519",
           "crv": "Ed25519",
-          "x": "6gb3jETz3UnRBvSC_GInG2ibBqBQ6PETCZonayZzKZY",
+          "x": "2vx5Pg1uJ7ClAHDVUwGzbxuIUgaIFbg46TPlSH-z5Ho",
           "kty": "OKP"
         },
-        "value": "FiUbx3ZXO-bX3Z1BX7TnSpMqkcd0jKPCD4qK203AVWcyZ25arN99BePqSHxZr9qKfR7mLd2yl5FrWOTr0OxRCw"
+        "value": "UWraQkq7tABHLGZkWBRRX1632nQGrGcGmfj4FcQi3vcevqseKA5yfF0bHC3YQXKTmwwu6EWit-R5-KSNMO6yBQ"
       }
     },
     {
@@ -760,8 +760,8 @@
       "passportId": "passport:visual-dogfood:1",
       "sequence": 15,
       "type": "decision.reopened",
-      "timestamp": "2026-08-23T18:31:39.014Z",
-      "previousEventHash": "sha256:c7c26f62351c5a879d869c6deb47f92386507c81d0d58121d79bcc16190c52b9",
+      "timestamp": "2026-08-24T01:07:10.067Z",
+      "previousEventHash": "sha256:c0228605e4c533c91c6740444cddb784cfb195278ba6cd745d3a6bf96b71ce00",
       "actor": {
         "authorityId": "authority:change-control-service",
         "organizationId": "org:reploid-dogfood",
@@ -773,15 +773,15 @@
         }
       },
       "payload": {
-        "reopeningId": "reopening:d0d58121d79bcc16190c52b9",
+        "reopeningId": "reopening:8ba6cd745d3a6bf96b71ce00",
         "ruleId": "rule:visual-source:reploid:dogfood-passports-ui",
-        "triggerEventHash": "sha256:c7c26f62351c5a879d869c6deb47f92386507c81d0d58121d79bcc16190c52b9",
+        "triggerEventHash": "sha256:c0228605e4c533c91c6740444cddb784cfb195278ba6cd745d3a6bf96b71ce00",
         "requestedAction": "review",
-        "reason": "Declared trigger rule:visual-source:reploid:dogfood-passports-ui matched observation sha256:c313fab6269c9a02be6f871dacdc29fea1e4f207bf78761f27f646042c82d00b."
+        "reason": "Declared trigger rule:visual-source:reploid:dogfood-passports-ui matched observation sha256:d665887f75356770f031daf606220cbd468aad41012bddb8653e6f4c8f97127e."
       },
-      "eventHash": "sha256:00861f8a1c9e5b14890a104e618ca08e7bf77e940e1e8541a865551bc303a005",
+      "eventHash": "sha256:ef4435b0145ab9086cf80dc11a1defb2cc258beda8ff7dfa478c01a5667ae199",
       "signature": {
-        "signerId": "peer:0ea1ff7dacb37b1d37db564b",
+        "signerId": "peer:f86c1b6a0872256846c0cbde",
         "algorithm": "Ed25519",
         "publicJwk": {
           "key_ops": [
@@ -790,16 +790,16 @@
           "ext": true,
           "alg": "Ed25519",
           "crv": "Ed25519",
-          "x": "6gb3jETz3UnRBvSC_GInG2ibBqBQ6PETCZonayZzKZY",
+          "x": "2vx5Pg1uJ7ClAHDVUwGzbxuIUgaIFbg46TPlSH-z5Ho",
           "kty": "OKP"
         },
-        "value": "x5MzxKLkywrM54SkN76-a59SIiiotXHdgYl5yq8Ok2OYdDPxRZ3kMp5-o7WMQBaUsGI4yBKJnV9XZh9U8XH4CA"
+        "value": "aqJvp-Nl_CxWvQyqIM0uBCukamhTV3pvOrXhrB28hmdaWpp1BPTqfZ4_2ilSnRmJHRG462ojvp8mdxLPaBDsAw"
       }
     }
   ],
   "publicKeys": [
     {
-      "signerId": "peer:0ea1ff7dacb37b1d37db564b",
+      "signerId": "peer:f86c1b6a0872256846c0cbde",
       "algorithm": "Ed25519",
       "publicJwk": {
         "key_ops": [
@@ -808,7 +808,7 @@
         "ext": true,
         "alg": "Ed25519",
         "crv": "Ed25519",
-        "x": "6gb3jETz3UnRBvSC_GInG2ibBqBQ6PETCZonayZzKZY",
+        "x": "2vx5Pg1uJ7ClAHDVUwGzbxuIUgaIFbg46TPlSH-z5Ho",
         "kty": "OKP"
       }
     }
@@ -863,7 +863,7 @@
     {
       "evidenceId": "evidence:change_visual_passport_dogfood:complaint",
       "kind": "visual_complaint",
-      "digest": "sha256:700a56771a3dcc5d59b33b7d7b1b50d3639080555e3ef5df5b06755de71bf06b",
+      "digest": "sha256:c190610d617f5f952f9d4587c56321ca256fbec9ab29f3e3e5d0be57067e5e3e",
       "source": "Visual Feedback Bridge reploid-dogfood/visual-change-passport-v0",
       "uri": "bridge://reploid-dogfood/visual-change-passport-v0/change_visual_passport_dogfood#complaint",
       "custody": {
@@ -875,8 +875,8 @@
     {
       "evidenceId": "evidence:change_visual_passport_dogfood:patch",
       "kind": "source_owned_patch",
-      "digest": "sha256:049c7e493f10ba81783ade0b8adb04a6ecb3437c1d11ea1a0ccc69b561c06205",
-      "source": "Visual Feedback Bridge reversible patch sha256:20867cefb71e68bef2543eb902dc7eb2784c37e2593ee1b8d61491889f9952c7",
+      "digest": "sha256:97c728d892837c2b5c4f21f492b148646a38b080b4e9071b8ec1e8f16e9b73c1",
+      "source": "Visual Feedback Bridge reversible patch sha256:638729c19a1242f77ec432ce21bb559c89e263972bcf74332ef5a429f05695c9",
       "uri": "bridge://reploid-dogfood/visual-change-passport-v0/change_visual_passport_dogfood#patch",
       "custody": {
         "mode": "content_addressed_reference",
@@ -887,7 +887,7 @@
     {
       "evidenceId": "evidence:change_visual_passport_dogfood:rollback-identity",
       "kind": "rollback_identity",
-      "digest": "sha256:b4a9de4b088f5c9010ef261767fc7659037d19d4e7643076348461737274da24",
+      "digest": "sha256:3c17407dac8850b1ce214118b064247a3d9015d14c0524d0a572411965c03bbf",
       "source": "Change Passport rollback contract visual_feedback_reverse_patch",
       "uri": "passport://passport:visual-dogfood:1#rollback",
       "custody": {
@@ -920,7 +920,7 @@
       "candidateRevision": "bridge-daa600e390ffbf8d",
       "baselineHash": "sha256:bd4fcfe5224028f8d2f0e1989bfa7bad52206661db3f484937dbdfee837d54e3",
       "candidateHash": "sha256:d2aa45af9bf2bc04c94cdcfa7e3c7d8284bb153558c3eb33daa600e390ffbf8d",
-      "manifestHash": "sha256:6d20d0322eea2a9cdb70fb2c470a041b48b612283770cbb9360874287434cb5c",
+      "manifestHash": "sha256:7a72d3b62d3f2f5c0e59f6298eb775473253a072dab9df6557431d0bec9b37e9",
       "target": {
         "kind": "source_patch",
         "targetId": "reploid:dogfood-passports-ui",
@@ -993,32 +993,32 @@
       "kind": "visual_feedback_reverse_patch",
       "targetId": "reploid:dogfood-passports-ui",
       "revision": "dogfood-baseline",
-      "artifactHash": "sha256:20867cefb71e68bef2543eb902dc7eb2784c37e2593ee1b8d61491889f9952c7",
+      "artifactHash": "sha256:638729c19a1242f77ec432ce21bb559c89e263972bcf74332ef5a429f05695c9",
       "authorityId": "authority:visual-rollback"
     },
-    "evidenceCutoff": "2026-08-23T18:31:38.380Z",
-    "createdAt": "2026-08-23T18:31:38.380Z",
-    "updatedAt": "2026-08-23T18:31:39.014Z",
+    "evidenceCutoff": "2026-08-24T01:07:09.429Z",
+    "createdAt": "2026-08-24T01:07:09.429Z",
+    "updatedAt": "2026-08-24T01:07:10.067Z",
     "sourceEpisode": null,
     "evidence": {
       "state": "frozen",
-      "manifestHash": "sha256:3a7c454613620e04921adeb6dbf6ed7d803e97cb45b3280e4b8b4f68ee577246",
+      "manifestHash": "sha256:17bd02836156c21fc4e88e4e393370e35e7132fb639c108206818b7d661694a2",
       "admitted": [
         {
           "evidenceId": "evidence:change_visual_passport_dogfood:complaint",
           "kind": "visual_complaint",
-          "digest": "sha256:700a56771a3dcc5d59b33b7d7b1b50d3639080555e3ef5df5b06755de71bf06b",
+          "digest": "sha256:c190610d617f5f952f9d4587c56321ca256fbec9ab29f3e3e5d0be57067e5e3e",
           "source": "Visual Feedback Bridge reploid-dogfood/visual-change-passport-v0",
           "uri": "bridge://reploid-dogfood/visual-change-passport-v0/change_visual_passport_dogfood#complaint",
           "summary": "1 source-mapped annotation(s) submitted to paired session codex-local-dogfood.",
-          "observedAt": "2026-08-23T18:31:37.351Z",
+          "observedAt": "2026-08-24T01:07:08.664Z",
           "custody": {
             "mode": "content_addressed_reference",
             "accessRequired": true,
             "retention": "bridge_source_owned"
           },
           "reason": null,
-          "eventHash": "sha256:8123346afc947a40bc66d5441defcb0a8619064584756ed66ef8071753c222b0",
+          "eventHash": "sha256:15f1dfae2406a833295582e299110917e57ec5103db9653bb4e0861f43baf241",
           "actor": {
             "authorityId": "authority:codex-patch-agent",
             "organizationId": "org:reploid-dogfood",
@@ -1033,18 +1033,18 @@
         {
           "evidenceId": "evidence:change_visual_passport_dogfood:patch",
           "kind": "source_owned_patch",
-          "digest": "sha256:049c7e493f10ba81783ade0b8adb04a6ecb3437c1d11ea1a0ccc69b561c06205",
-          "source": "Visual Feedback Bridge reversible patch sha256:20867cefb71e68bef2543eb902dc7eb2784c37e2593ee1b8d61491889f9952c7",
+          "digest": "sha256:97c728d892837c2b5c4f21f492b148646a38b080b4e9071b8ec1e8f16e9b73c1",
+          "source": "Visual Feedback Bridge reversible patch sha256:638729c19a1242f77ec432ce21bb559c89e263972bcf74332ef5a429f05695c9",
           "uri": "bridge://reploid-dogfood/visual-change-passport-v0/change_visual_passport_dogfood#patch",
           "summary": "1 file(s) are bound to before/after hashes and a conflict-safe reverse artifact.",
-          "observedAt": "2026-08-23T18:31:37.363Z",
+          "observedAt": "2026-08-24T01:07:08.675Z",
           "custody": {
             "mode": "content_addressed_reference",
             "accessRequired": true,
             "retention": "bridge_source_owned"
           },
           "reason": null,
-          "eventHash": "sha256:595a2e66c956c241e5b66066c5b10fb656bf22750e036c790f9c4425ebd2ed7d",
+          "eventHash": "sha256:45f43fa5326e6afb10894e2d6a15a4912a893ca14ffdd7fc78cf9171d958bf57",
           "actor": {
             "authorityId": "authority:codex-patch-agent",
             "organizationId": "org:reploid-dogfood",
@@ -1059,18 +1059,18 @@
         {
           "evidenceId": "evidence:change_visual_passport_dogfood:rollback-identity",
           "kind": "rollback_identity",
-          "digest": "sha256:b4a9de4b088f5c9010ef261767fc7659037d19d4e7643076348461737274da24",
+          "digest": "sha256:3c17407dac8850b1ce214118b064247a3d9015d14c0524d0a572411965c03bbf",
           "source": "Change Passport rollback contract visual_feedback_reverse_patch",
           "uri": "passport://passport:visual-dogfood:1#rollback",
           "summary": "The rollback kind, target, baseline revision, reverse artifact, and named authority are bound before eligibility.",
-          "observedAt": "2026-08-23T18:31:38.380Z",
+          "observedAt": "2026-08-24T01:07:09.429Z",
           "custody": {
             "mode": "passport_embedded_contract",
             "accessRequired": false,
             "retention": "passport_lifetime"
           },
           "reason": null,
-          "eventHash": "sha256:1e21a360c2fe16eabdd9718a9b1b821e85ef36b82224d97afae3e99a1df17001",
+          "eventHash": "sha256:44ec955af99144c4eb7b39a921b98ef3bb319f4756daa7f67e725726204e7b0b",
           "actor": {
             "authorityId": "authority:codex-patch-agent",
             "organizationId": "org:reploid-dogfood",
@@ -1089,17 +1089,17 @@
     "decision": {
       "state": "reopened",
       "current": {
-        "decisionId": "decision:1735e153fd76eac2ef5f8c76",
+        "decisionId": "decision:343a9ed6da6a8dacb74f1c65",
         "state": "approved",
         "policyHash": "sha256:9d8ddc4a7aad1a3c6ff9a03a3f73e9f189da77648d3c21a69d1be50230e876a7",
         "evaluationIds": [
-          "evaluation:ee6391bcae82ded060d77ed8"
+          "evaluation:fc6982188c69d937406565d0"
         ],
         "reviewIds": [
-          "review:1735e153fd76eac2ef5f8c76"
+          "review:343a9ed6da6a8dacb74f1c65"
         ],
         "rationale": "The exact source-owned patch passed frozen independent evaluation and received explicit human acceptance.",
-        "eventHash": "sha256:8897920677a5d06daa4ac26a60fa881f9e8147ac3577fb771803dffed812a758",
+        "eventHash": "sha256:1ff0ad5a73fdd064e40f5263d1d6080fb7b45ad40e0cdb5d5113d6d20cc955f3",
         "actor": {
           "authorityId": "authority:reploid-change-control",
           "organizationId": "org:reploid-dogfood",
@@ -1113,17 +1113,17 @@
       },
       "history": [
         {
-          "decisionId": "decision:1735e153fd76eac2ef5f8c76",
+          "decisionId": "decision:343a9ed6da6a8dacb74f1c65",
           "state": "approved",
           "policyHash": "sha256:9d8ddc4a7aad1a3c6ff9a03a3f73e9f189da77648d3c21a69d1be50230e876a7",
           "evaluationIds": [
-            "evaluation:ee6391bcae82ded060d77ed8"
+            "evaluation:fc6982188c69d937406565d0"
           ],
           "reviewIds": [
-            "review:1735e153fd76eac2ef5f8c76"
+            "review:343a9ed6da6a8dacb74f1c65"
           ],
           "rationale": "The exact source-owned patch passed frozen independent evaluation and received explicit human acceptance.",
-          "eventHash": "sha256:8897920677a5d06daa4ac26a60fa881f9e8147ac3577fb771803dffed812a758",
+          "eventHash": "sha256:1ff0ad5a73fdd064e40f5263d1d6080fb7b45ad40e0cdb5d5113d6d20cc955f3",
           "actor": {
             "authorityId": "authority:reploid-change-control",
             "organizationId": "org:reploid-dogfood",
@@ -1138,12 +1138,12 @@
       ],
       "reopenings": [
         {
-          "reopeningId": "reopening:d0d58121d79bcc16190c52b9",
+          "reopeningId": "reopening:8ba6cd745d3a6bf96b71ce00",
           "ruleId": "rule:visual-source:reploid:dogfood-passports-ui",
-          "triggerEventHash": "sha256:c7c26f62351c5a879d869c6deb47f92386507c81d0d58121d79bcc16190c52b9",
+          "triggerEventHash": "sha256:c0228605e4c533c91c6740444cddb784cfb195278ba6cd745d3a6bf96b71ce00",
           "requestedAction": "review",
-          "reason": "Declared trigger rule:visual-source:reploid:dogfood-passports-ui matched observation sha256:c313fab6269c9a02be6f871dacdc29fea1e4f207bf78761f27f646042c82d00b.",
-          "eventHash": "sha256:00861f8a1c9e5b14890a104e618ca08e7bf77e940e1e8541a865551bc303a005",
+          "reason": "Declared trigger rule:visual-source:reploid:dogfood-passports-ui matched observation sha256:d665887f75356770f031daf606220cbd468aad41012bddb8653e6f4c8f97127e.",
+          "eventHash": "sha256:ef4435b0145ab9086cf80dc11a1defb2cc258beda8ff7dfa478c01a5667ae199",
           "actor": {
             "authorityId": "authority:change-control-service",
             "organizationId": "org:reploid-dogfood",
@@ -1165,10 +1165,10 @@
         "status": "applied",
         "targetId": "reploid:dogfood-passports-ui",
         "candidateHash": "sha256:d2aa45af9bf2bc04c94cdcfa7e3c7d8284bb153558c3eb33daa600e390ffbf8d",
-        "externalReference": "file:///var/folders/85/l5dptg296tlfx03cd_k7h0l80000gn/T/reploid-visual-change-passport-vyYugc/ci-activation.json",
-        "observedAt": "2026-08-23T18:31:38.423Z",
+        "externalReference": "file:///var/folders/85/l5dptg296tlfx03cd_k7h0l80000gn/T/reploid-visual-change-passport-0I2xvt/ci-activation.json",
+        "observedAt": "2026-08-24T01:07:09.472Z",
         "failureReason": null,
-        "eventHash": "sha256:344129028029e506d00476a41368467934a4b6b469abde4be3f99365e49c53c4",
+        "eventHash": "sha256:22a884046534e15ef68d6d35c2e7a493ed4ffdd81b995591ad665c4304154c33",
         "actor": {
           "authorityId": "authority:local-ci",
           "organizationId": "org:reploid-dogfood",
@@ -1186,9 +1186,9 @@
           "kind": "ci_activation",
           "targetId": "reploid:dogfood-passports-ui",
           "candidateHash": "sha256:d2aa45af9bf2bc04c94cdcfa7e3c7d8284bb153558c3eb33daa600e390ffbf8d",
-          "decisionEventHash": "sha256:8897920677a5d06daa4ac26a60fa881f9e8147ac3577fb771803dffed812a758",
-          "idempotencyKey": "visual-ci:48b612283770cbb9360874287434cb5c",
-          "eventHash": "sha256:17628f22cad4fc0ae7251ea72b848833859ae71487f8632649f9befe3f6439ce",
+          "decisionEventHash": "sha256:1ff0ad5a73fdd064e40f5263d1d6080fb7b45ad40e0cdb5d5113d6d20cc955f3",
+          "idempotencyKey": "visual-ci:3253a072dab9df6557431d0bec9b37e9",
+          "eventHash": "sha256:a0d82b74523f091faa19cb2d8935ff12e94bb807cd6b1df6673b94bc7a4c2aad",
           "actor": {
             "authorityId": "authority:local-ci",
             "organizationId": "org:reploid-dogfood",
@@ -1207,10 +1207,10 @@
           "status": "applied",
           "targetId": "reploid:dogfood-passports-ui",
           "candidateHash": "sha256:d2aa45af9bf2bc04c94cdcfa7e3c7d8284bb153558c3eb33daa600e390ffbf8d",
-          "externalReference": "file:///var/folders/85/l5dptg296tlfx03cd_k7h0l80000gn/T/reploid-visual-change-passport-vyYugc/ci-activation.json",
-          "observedAt": "2026-08-23T18:31:38.423Z",
+          "externalReference": "file:///var/folders/85/l5dptg296tlfx03cd_k7h0l80000gn/T/reploid-visual-change-passport-0I2xvt/ci-activation.json",
+          "observedAt": "2026-08-24T01:07:09.472Z",
           "failureReason": null,
-          "eventHash": "sha256:344129028029e506d00476a41368467934a4b6b469abde4be3f99365e49c53c4",
+          "eventHash": "sha256:22a884046534e15ef68d6d35c2e7a493ed4ffdd81b995591ad665c4304154c33",
           "actor": {
             "authorityId": "authority:local-ci",
             "organizationId": "org:reploid-dogfood",
@@ -1229,7 +1229,7 @@
     "objections": [],
     "evaluations": [
       {
-        "evaluationId": "evaluation:ee6391bcae82ded060d77ed8",
+        "evaluationId": "evaluation:fc6982188c69d937406565d0",
         "evaluatorId": "evaluator:chromium-narrow-viewport",
         "evaluatorAuthorityId": "authority:independent-render-oracle",
         "evaluatorHash": "sha256:66837599303b4338cf9a4398a5a97e54752a7a438b60f060ea62d164732502a9",
@@ -1237,12 +1237,12 @@
         "contractHash": "sha256:6e5421c429a4f8c510f8f9f4a9e95be120f1d60cca4c5ea228fac0a56d4ab072",
         "baselineHash": "sha256:bd4fcfe5224028f8d2f0e1989bfa7bad52206661db3f484937dbdfee837d54e3",
         "candidateHash": "sha256:d2aa45af9bf2bc04c94cdcfa7e3c7d8284bb153558c3eb33daa600e390ffbf8d",
-        "evidenceManifestHash": "sha256:3a7c454613620e04921adeb6dbf6ed7d803e97cb45b3280e4b8b4f68ee577246",
+        "evidenceManifestHash": "sha256:17bd02836156c21fc4e88e4e393370e35e7132fb639c108206818b7d661694a2",
         "conclusion": "pass",
         "metrics": [
           {
             "metricId": "visual_evaluation_receipt",
-            "value": "sha256:a7fd699a3e8c2a6adaa428eceb81dcbf1e665c02ee6391bcae82ded060d77ed8"
+            "value": "sha256:75e482526f89521172506560b4bfd97adcf3595afc6982188c69d937406565d0"
           },
           {
             "metricId": "bridge-owned-file-closure",
@@ -1254,8 +1254,8 @@
           }
         ],
         "limitations": [],
-        "observedAt": "2026-08-23T18:31:38.378Z",
-        "eventHash": "sha256:fdcf6901dcf5491691082ba8ae2f93987b9a8f9504078f0ce3257de7647b3957",
+        "observedAt": "2026-08-24T01:07:09.427Z",
+        "eventHash": "sha256:b5fd21408fc2154055854355c941a3fca43e23de211f0ccdf9d1c38e7505b766",
         "actor": {
           "authorityId": "authority:independent-render-oracle",
           "organizationId": "org:reploid-dogfood",
@@ -1270,7 +1270,7 @@
     ],
     "reviews": [
       {
-        "reviewId": "review:1735e153fd76eac2ef5f8c76",
+        "reviewId": "review:343a9ed6da6a8dacb74f1c65",
         "verdict": "approve",
         "rationale": "The exact responsive patch passed the frozen independent browser oracle.",
         "resolvesObjectionIds": [],
@@ -1279,7 +1279,7 @@
           "evidence:change_visual_passport_dogfood:patch",
           "evidence:change_visual_passport_dogfood:rollback-identity"
         ],
-        "eventHash": "sha256:4ec8e8a9757fb1cde652d2a1ba7506de5601519f204404356c7367bf4d96dac0",
+        "eventHash": "sha256:6aabdd965cdbcf9846c20435113d726a9af839e8f9e375268eec7f496de9d15b",
         "actor": {
           "authorityId": "authority:local-human-reviewer",
           "organizationId": "org:reploid-dogfood",
@@ -1294,14 +1294,14 @@
     ],
     "outcomes": [
       {
-        "outcomeId": "outcome:render:c6bcd65bb43e31b379c1698f",
+        "outcomeId": "outcome:render:eb5c2d634fb07f1a741a071b",
         "effectId": "effect:visual:change_visual_passport_dogfood",
-        "observationHash": "sha256:e98ac32639fc5b9d4e831e699d89022faced64dfc6bcd65bb43e31b379c1698f",
+        "observationHash": "sha256:5a3067b2e73f8bab280ac220fabb1344477ff112eb5c2d634fb07f1a741a071b",
         "source": "Independent chromium-playwright render oracle after CI activation",
         "status": "verified",
         "summary": "Activated candidate rendered at /passports and passed 1 frozen assertion(s).",
-        "observedAt": "2026-08-23T18:31:38.975Z",
-        "eventHash": "sha256:c5c8e8cfbe6b5e3d765650a0f541a70d0100835b8457fe1eda285e5ab87fdcf3",
+        "observedAt": "2026-08-24T01:07:10.028Z",
+        "eventHash": "sha256:cdc14b2bd9b183e0763fd8ebc7c9a3145be75fd9d74c68b09dae35fd9968c7e0",
         "actor": {
           "authorityId": "authority:bridge-source-observer",
           "organizationId": "org:reploid-dogfood",
@@ -1314,14 +1314,14 @@
         }
       },
       {
-        "outcomeId": "outcome:reverse:b0be91423693106009f9a552",
+        "outcomeId": "outcome:reverse:63a327306f655d496acfdcf1",
         "effectId": "effect:visual:change_visual_passport_dogfood",
-        "observationHash": "sha256:5fffc6fc82301d2500c878708f05a93882abee31b0be91423693106009f9a552",
+        "observationHash": "sha256:9309562262a2a1da6adb0af1b1419c9252193b4563a327306f655d496acfdcf1",
         "source": "Visual Feedback Bridge conflict-safe reverse patch for change_visual_passport_dogfood",
         "status": "source_reverted",
         "summary": "The source-owned patch restored its frozen baseline. This observation does not assert that any external activation rolled back.",
-        "observedAt": "2026-08-23T18:31:39.000Z",
-        "eventHash": "sha256:19a6ca3b6a97aecc2d740c4952166f40bc8f07585345b7cd75714fe8f362e713",
+        "observedAt": "2026-08-24T01:07:10.054Z",
+        "eventHash": "sha256:231275a1e393e902ab9b8d7cb5fe7bae28c0e6f82bb3d87553bdfcd85e7e3d9b",
         "actor": {
           "authorityId": "authority:bridge-source-observer",
           "organizationId": "org:reploid-dogfood",
@@ -1352,7 +1352,7 @@
           "observedAt": null,
           "freshnessMilliseconds": 300000,
           "deduplicationKey": null,
-          "eventHash": "sha256:47782b899349734e605f16d198955d24a491c3e9c69c57e0776f66468aed2294",
+          "eventHash": "sha256:2fb61734271acb7994b29388349fcf36b973085b57524dd39febbecfa5260233",
           "actor": {
             "authorityId": "authority:reploid-change-control",
             "organizationId": "org:reploid-dogfood",
@@ -1378,11 +1378,11 @@
             "changed": true
           },
           "sensorAuthorityId": "authority:bridge-source-observer",
-          "observationHash": "sha256:c313fab6269c9a02be6f871dacdc29fea1e4f207bf78761f27f646042c82d00b",
-          "observedAt": "2026-08-23T18:31:39.000Z",
+          "observationHash": "sha256:d665887f75356770f031daf606220cbd468aad41012bddb8653e6f4c8f97127e",
+          "observedAt": "2026-08-24T01:07:10.054Z",
           "freshnessMilliseconds": 300000,
-          "deduplicationKey": "visual-reverse:82abee31b0be91423693106009f9a552",
-          "eventHash": "sha256:c7c26f62351c5a879d869c6deb47f92386507c81d0d58121d79bcc16190c52b9",
+          "deduplicationKey": "visual-reverse:52193b4563a327306f655d496acfdcf1",
+          "eventHash": "sha256:c0228605e4c533c91c6740444cddb784cfb195278ba6cd745d3a6bf96b71ce00",
           "actor": {
             "authorityId": "authority:bridge-source-observer",
             "organizationId": "org:reploid-dogfood",
@@ -1401,10 +1401,10 @@
       "valid": true,
       "eventCount": 15,
       "validSignatures": 15,
-      "headHash": "sha256:00861f8a1c9e5b14890a104e618ca08e7bf77e940e1e8541a865551bc303a005",
+      "headHash": "sha256:ef4435b0145ab9086cf80dc11a1defb2cc258beda8ff7dfa478c01a5667ae199",
       "passportId": "passport:visual-dogfood:1",
       "reasons": []
     }
   },
-  "exportHash": "sha256:5e736c3d35ba3bee3ae46bba7c2c0a77a5a6da6ff5b4d840622660df412b094c"
+  "exportHash": "sha256:2db25cfbf0513f8363e88aeebfd6c66c91454b569439f48140f2f2b10a20c6e4"
 }

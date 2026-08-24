@@ -1130,8 +1130,8 @@
     },
     {
       "path": "capabilities/system/doppler-optimizer.js",
-      "byteLength": 45889,
-      "sha256": "sha256:bdbe209b3af3181fe734fbe976c9f602f867350bde4aa2d3045aafec3963008e"
+      "byteLength": 48651,
+      "sha256": "sha256:0bceb404c554157dec3ec666bfecf624397f6428582da848fefe40eff235613c"
     },
     {
       "path": "capabilities/system/doppler-toolbox.js",
@@ -1251,7 +1251,7 @@
     {
       "path": "config/module-inventory.json",
       "byteLength": 78584,
-      "sha256": "sha256:e86ec62401f05c1b6203f8500c719edbaf801ac14cd31a93fd0d8ec61a884dd8"
+      "sha256": "sha256:6942523826a62322003798e82595095c427e0d05f06cf77a69c168f756425eb9"
     },
     {
       "path": "config/module-registry.json",
@@ -1315,8 +1315,8 @@
     },
     {
       "path": "core/CATSCAN.md",
-      "byteLength": 2303,
-      "sha256": "sha256:02b4e224430a1a02884b1bc39b38fed512d61d783dee646e0e758aaff16364dc"
+      "byteLength": 2327,
+      "sha256": "sha256:1a55b2d4f67f621e8414cbe1cdad9a2e418bda1a998f9f1a3a3651c888147918"
     },
     {
       "path": "core/change-passport-improvement-adapter.js",
@@ -1360,8 +1360,8 @@
     },
     {
       "path": "core/improvement-episode.js",
-      "byteLength": 39105,
-      "sha256": "sha256:d26afdddd8eaf72324dfadaa01f76d4643d512706f5e9c4df2cd717e3be85154"
+      "byteLength": 49433,
+      "sha256": "sha256:6bae3e3fea9e7e2e08050b4693b6d36b3f7e4bc356a85fca691bdac9a11409f6"
     },
     {
       "path": "core/llm-client.js",
@@ -2170,8 +2170,8 @@
     },
     {
       "path": "shared/change-passport/improvement-adapter.js",
-      "byteLength": 9178,
-      "sha256": "sha256:b2ef9ae3faa7ff67d809fc2c1164b314e0b5fa4f56b0be18243ddc64b4e4364c"
+      "byteLength": 9770,
+      "sha256": "sha256:e2835f4ff9de25a0385676e9dbfe0aabb20b77de9618e45f3b3908a3ef743d47"
     },
     {
       "path": "shared/change-passport/policy.js",
@@ -2874,5 +2874,5 @@
       "sha256": "sha256:c5a6c85719ce4072b343251b10f5a00f7f99d83be47f83367b3f959886c78701"
     }
   ],
-  "bundleHash": "sha256:b3e3ea9c8fe01b2bacbbbc45cdfd15c4398656ab78101c42561b6771a7786f7c"
+  "bundleHash": "sha256:85f5d626c54171490af9d41f4474bce7841bbb8a2a316587454187053ba1b8ba"
 }

@@ -18,7 +18,7 @@
       "model": "sha256:e3204792befd9843e26b193a47cabcb476f74c3f5394cd849dad3a3e2ffcef78",
       "prompt": "sha256:c2be1ce2c8abbe698d4e554f510ae4d97ee50a5ab3f7b2e6c9fce7a4a87f1b2a",
       "artifacts": "sha256:30cad159daf345393f5b27f4acb78256f77426e6ed498992b7c552f00f8d2bbb",
-      "contract": "sha256:f9d2d870331a8364058e30c52fc26e696657c6630796a07f32d2421c5adf6ac6"
+      "contract": "sha256:0ed8121596da26ea888fa1b8eb421fd64eb057d00c27941b2538c6976fb3cb9f"
     },
     "hashSemantics": {
       "config": "Visual Change Passport policy identity",
@@ -29,11 +29,17 @@
   "proposer": {
     "authorityId": "reploid:policy-candidate-generator"
   },
+  "generator": {
+    "authorityId": "reploid:policy-candidate-generator",
+    "implementation": "scripts/run-visual-policy-improvement-episode.js",
+    "implementationHash": "sha256:92b17f1060c5150dff8e38376d285e241d06a44607c4591042b640cc0d8132df",
+    "frozenBeforeCandidate": true
+  },
   "evaluator": {
     "evaluatorId": "reploid.visual-policy-rollback-identity",
     "authorityId": "reploid:frozen-policy-evaluator",
     "version": "1.0.0",
-    "evaluatorHash": "sha256:6368c9d3225c0daf0f4ad23a96cdfd39d1abb119de9de973ed262153301d8f4e",
+    "evaluatorHash": "sha256:4d2be7930401eee17cca899d2f708dc6174f0d4e763d035b26e3bd27a8e65998",
     "testSuiteDigest": "sha256:04cbe41767330903098fda1b4a6ca5d3d10ddb0456c3ac2fea77d7165955625b",
     "protectedPaths": [
       "/self/core/improvement-episode.js",
@@ -108,14 +114,39 @@
   "corpus": {
     "evaluationSplitHash": "sha256:04cbe41767330903098fda1b4a6ca5d3d10ddb0456c3ac2fea77d7165955625b",
     "heldOut": true,
-    "caseCount": 3
+    "caseCount": 3,
+    "digest": "sha256:04cbe41767330903098fda1b4a6ca5d3d10ddb0456c3ac2fea77d7165955625b",
+    "frozenBeforeCandidate": true
   },
   "resourceBudget": {
     "calls": 4,
     "elapsedMs": 300000,
     "costAmount": 0,
-    "costUnit": "local_execution"
+    "costUnit": "local_execution",
+    "digest": "sha256:a2c324dc64f119d5d47b4c81f9528f17ca83978fe774eaf627a400b11c718beb",
+    "frozenBeforeCandidate": true
   },
+  "promotionAuthority": {
+    "repositoryId": "clocksmith/reploid",
+    "authorityId": "human:portfolio-owner",
+    "scope": "dedicated_visual_dogfood_only",
+    "allowedCandidatePaths": [
+      "/docs/change-passport/dogfood"
+    ],
+    "allowedEffectKinds": [
+      "visual_policy_activation"
+    ],
+    "frozenBeforeCandidate": true
+  },
+  "reopeningConditions": [
+    {
+      "conditionId": "visual-source-change",
+      "observationKind": "source_changed",
+      "targetId": "reploid:visual-dogfood-passport",
+      "sensorAuthorityId": "reploid:visual-dogfood-verifier",
+      "action": "reopen_decision"
+    }
+  ],
   "diagnosis": "The baseline policy binds a rollback contract but does not require that identity in the frozen admitted evidence set.",
   "hypothesis": {
     "observation": "The baseline gate remains eligible when rollback identity evidence is omitted.",
@@ -129,6 +160,17 @@
     "falsifyingResult": "The missing case remains eligible or the complete case becomes blocked.",
     "followUpHypothesis": null
   },
+  "negativeEvidence": [
+    {
+      "evidenceId": "baseline-admits-missing-rollback-identity",
+      "kind": "baseline_policy_failure",
+      "digest": "sha256:68653af54edac30a4fdbf977e9e9ade40394d5d66936b3883762d9225ff74c1c",
+      "summary": "The baseline policy admits a candidate whose rollback identity evidence is absent.",
+      "retained": true,
+      "sourcePath": "/docs/change-passport/dogfood/visual-policy-v1.0.0.json",
+      "authorityId": "reploid:frozen-policy-evaluator"
+    }
+  ],
   "candidate": {
     "candidateId": "visual-policy:1.1.0",
     "candidateHash": "sha256:9d8ddc4a7aad1a3c6ff9a03a3f73e9f189da77648d3c21a69d1be50230e876a7",
@@ -146,7 +188,9 @@
       "Three-axis state remains independent",
       "Rollback effects retain separate authority"
     ],
-    "falsifier": "Any frozen case differs from its expectation or the full workflow fails."
+    "falsifier": "Any frozen case differs from its expectation or the full workflow fails.",
+    "generatorAuthorityId": "reploid:policy-candidate-generator",
+    "generatorHash": "sha256:92b17f1060c5150dff8e38376d285e241d06a44607c4591042b640cc0d8132df"
   },
   "execution": {
     "isolated": true,
@@ -180,9 +224,9 @@
     ]
   },
   "evaluation": {
-    "baselineContractHash": "sha256:f9d2d870331a8364058e30c52fc26e696657c6630796a07f32d2421c5adf6ac6",
-    "candidateContractHash": "sha256:f9d2d870331a8364058e30c52fc26e696657c6630796a07f32d2421c5adf6ac6",
-    "evaluatorHash": "sha256:6368c9d3225c0daf0f4ad23a96cdfd39d1abb119de9de973ed262153301d8f4e",
+    "baselineContractHash": "sha256:0ed8121596da26ea888fa1b8eb421fd64eb057d00c27941b2538c6976fb3cb9f",
+    "candidateContractHash": "sha256:0ed8121596da26ea888fa1b8eb421fd64eb057d00c27941b2538c6976fb3cb9f",
+    "evaluatorHash": "sha256:4d2be7930401eee17cca899d2f708dc6174f0d4e763d035b26e3bd27a8e65998",
     "sampleCount": 3,
     "rawObservations": [
       {
@@ -260,7 +304,7 @@
   "promotionRequest": {
     "evidencePath": "/docs/status/rsi/visual-policy-rollback-identity-2026-08-23/evidence.json",
     "authorityId": "reploid:policy-promotion-gate",
-    "requestedAt": "2026-08-23T18:31:37.328Z",
+    "requestedAt": "2026-08-24T01:07:08.637Z",
     "readiness": {
       "ready": true,
       "reasons": []
@@ -281,6 +325,38 @@
     "qualificationGranted": false,
     "crossRepositoryAuthorityGranted": false
   },
+  "effects": [
+    {
+      "effectId": "effect:visual-policy:1.1.0",
+      "kind": "visual_policy_activation",
+      "state": "applied",
+      "targetId": "docs/change-passport/dogfood/active-policy.json",
+      "artifactHash": "sha256:9d8ddc4a7aad1a3c6ff9a03a3f73e9f189da77648d3c21a69d1be50230e876a7",
+      "receiptPath": "/docs/status/rsi/visual-policy-rollback-identity-2026-08-23/change-passport-export.json",
+      "authorityId": "human:portfolio-owner"
+    }
+  ],
+  "outcomes": [
+    {
+      "outcomeId": "outcome:visual-policy:dogfood",
+      "observationKind": "source_changed",
+      "targetId": "reploid:visual-dogfood-passport",
+      "observationDigest": "sha256:25523a17d286bff5d1144e66ed63739ec4bea55d86bb50d21098a36b0ca299a0",
+      "sensorAuthorityId": "reploid:visual-dogfood-verifier",
+      "observedAt": "2026-08-24T01:07:10.101Z"
+    }
+  ],
+  "reopenings": [
+    {
+      "conditionId": "visual-source-change",
+      "observationId": "observation:visual-source-change",
+      "targetId": "reploid:visual-dogfood-passport",
+      "resultingDecisionState": "reopened",
+      "retainedEffectState": "applied",
+      "authorityId": "reploid:visual-dogfood-verifier",
+      "action": "reopen_decision"
+    }
+  ],
   "rollback": null,
   "reflections": [
     {
@@ -302,13 +378,13 @@
     "candidate": "visual-policy:1.1.0",
     "current": "visual-policy:1.1.0"
   },
-  "createdAt": "2026-08-23T18:31:37.316Z",
-  "updatedAt": "2026-08-23T18:31:39.044Z",
+  "createdAt": "2026-08-24T01:07:08.622Z",
+  "updatedAt": "2026-08-24T01:07:10.113Z",
   "integrity": {
     "valid": true,
-    "eventCount": 11,
-    "validSignatures": 11,
-    "headHash": "sha256:a5d1a8c9526401b5556542fb13a3ca91fda9077e7460576bbd688f715939d06d",
+    "eventCount": 15,
+    "validSignatures": 15,
+    "headHash": "sha256:905ca70722790c4a1da2418b2fab3a4d79977a0569b2c2584ab43ea001f0fcb7",
     "reasons": []
   }
 }

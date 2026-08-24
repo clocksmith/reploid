@@ -33,6 +33,7 @@ const TERMINAL_STATES = new Set([
 const EVENT_TYPES = new Set([
   'episode.started',
   'diagnosis.recorded',
+  'negative-evidence.recorded',
   'candidate.proposed',
   'execution.recorded',
   'verification.recorded',
@@ -41,6 +42,16 @@ const EVENT_TYPES = new Set([
   'promotion.requested',
   'review.recorded',
   'decision.recorded',
+  'effect.recorded',
+  'outcome.recorded',
+  'reopening.recorded',
+  'rollback.recorded',
+  'reflection.recorded'
+]);
+const PROMOTED_FOLLOW_UP_EVENTS = new Set([
+  'effect.recorded',
+  'outcome.recorded',
+  'reopening.recorded',
   'rollback.recorded',
   'reflection.recorded'
 ]);
@@ -111,6 +122,10 @@ const normalizePath = (value) => {
 
 const pathsOverlap = (left, right) => (
   left === right || left.startsWith(`${right}/`) || right.startsWith(`${left}/`)
+);
+
+const pathWithin = (candidatePath, allowedPath) => (
+  candidatePath === allowedPath || candidatePath.startsWith(`${allowedPath}/`)
 );
 
 export function validateMetricDefinition(input) {
@@ -223,6 +238,66 @@ const validateEvaluator = (input) => {
   return evaluator;
 };
 
+const validateGenerator = (input) => {
+  const generator = cloneJson(input || {});
+  generator.authorityId = assertSafeId(generator.authorityId, 'generator.authorityId');
+  generator.implementation = assertText(generator.implementation, 'generator.implementation');
+  generator.implementationHash = assertHash(
+    generator.implementationHash,
+    'generator.implementationHash'
+  );
+  generator.frozenBeforeCandidate = generator.frozenBeforeCandidate === true;
+  return generator;
+};
+
+const validateFrozenRecord = (input, label) => {
+  const record = cloneJson(input || {});
+  record.digest = assertHash(record.digest, `${label}.digest`);
+  record.frozenBeforeCandidate = record.frozenBeforeCandidate === true;
+  return record;
+};
+
+const validatePromotionAuthority = (input) => {
+  const authority = cloneJson(input || {});
+  authority.repositoryId = assertText(authority.repositoryId, 'promotionAuthority.repositoryId');
+  authority.authorityId = assertSafeId(authority.authorityId, 'promotionAuthority.authorityId');
+  authority.scope = assertText(authority.scope, 'promotionAuthority.scope');
+  authority.allowedCandidatePaths = assertStringArray(
+    authority.allowedCandidatePaths,
+    'promotionAuthority.allowedCandidatePaths'
+  ).map(normalizePath);
+  authority.allowedEffectKinds = assertStringArray(
+    authority.allowedEffectKinds,
+    'promotionAuthority.allowedEffectKinds'
+  );
+  authority.frozenBeforeCandidate = authority.frozenBeforeCandidate === true;
+  return authority;
+};
+
+const validateReopeningConditions = (input) => {
+  if (!Array.isArray(input) || input.length === 0) {
+    throw new Error('reopeningConditions must be a non-empty array');
+  }
+  const conditions = input.map((entry, index) => ({
+    ...cloneJson(entry || {}),
+    conditionId: assertSafeId(entry?.conditionId, `reopeningConditions[${index}].conditionId`),
+    observationKind: assertSafeId(
+      entry?.observationKind,
+      `reopeningConditions[${index}].observationKind`
+    ),
+    targetId: assertText(entry?.targetId, `reopeningConditions[${index}].targetId`),
+    sensorAuthorityId: assertSafeId(
+      entry?.sensorAuthorityId,
+      `reopeningConditions[${index}].sensorAuthorityId`
+    ),
+    action: assertSafeId(entry?.action, `reopeningConditions[${index}].action`)
+  }));
+  if (new Set(conditions.map((entry) => entry.conditionId)).size !== conditions.length) {
+    throw new Error('reopeningConditions conditionId values must be unique');
+  }
+  return conditions;
+};
+
 const validateStart = (input) => {
   const start = cloneJson(input || {});
   start.episodeId = assertSafeId(start.episodeId, 'episodeId');
@@ -245,9 +320,13 @@ const validateStart = (input) => {
     ...cloneJson(start.proposer || {}),
     authorityId: assertSafeId(start.proposer?.authorityId, 'proposer.authorityId')
   };
+  start.generator = validateGenerator(start.generator);
   start.evaluator = validateEvaluator(start.evaluator);
   if (start.proposer.authorityId === start.evaluator.authorityId) {
     throw new Error('proposer and evaluator authority must be distinct');
+  }
+  if (start.generator.authorityId !== start.proposer.authorityId) {
+    throw new Error('candidate generator authority must match the declared proposer authority');
   }
   if (!Array.isArray(start.metrics) || start.metrics.length === 0) {
     throw new Error('metrics must be a non-empty array');
@@ -263,8 +342,14 @@ const validateStart = (input) => {
   if (primaryMetric.operational) throw new Error('the success metric cannot be operational-only');
   start.algorithm = validateAlgorithmManifest(start.algorithm);
   start.environment = isObject(start.environment) ? start.environment : {};
-  start.corpus = isObject(start.corpus) ? start.corpus : {};
-  start.resourceBudget = isObject(start.resourceBudget) ? start.resourceBudget : {};
+  start.corpus = validateFrozenRecord(start.corpus, 'corpus');
+  start.resourceBudget = validateFrozenRecord(start.resourceBudget, 'resourceBudget');
+  start.promotionAuthority = validatePromotionAuthority(start.promotionAuthority);
+  start.reopeningConditions = validateReopeningConditions(start.reopeningConditions);
+  if (start.promotionAuthority.authorityId === start.proposer.authorityId
+    || start.promotionAuthority.authorityId === start.evaluator.authorityId) {
+    throw new Error('promotion authority must be independent from proposer and evaluator authority');
+  }
   return start;
 };
 
@@ -365,14 +450,18 @@ const projectEvents = (events, integrity) => {
     objective: started.objective,
     baseline: started.baseline,
     proposer: started.proposer,
+    generator: started.generator,
     evaluator: started.evaluator,
     metrics: started.metrics,
     algorithm: started.algorithm,
     environment: started.environment,
     corpus: started.corpus,
     resourceBudget: started.resourceBudget,
+    promotionAuthority: started.promotionAuthority,
+    reopeningConditions: started.reopeningConditions,
     diagnosis: null,
     hypothesis: null,
+    negativeEvidence: [],
     candidate: null,
     execution: null,
     verification: null,
@@ -381,6 +470,9 @@ const projectEvents = (events, integrity) => {
     promotionRequest: null,
     reviews: [],
     decision: null,
+    effects: [],
+    outcomes: [],
+    reopenings: [],
     rollback: null,
     reflections: [],
     generation: {
@@ -398,6 +490,8 @@ const projectEvents = (events, integrity) => {
       projection.diagnosis = payload.diagnosis;
       projection.hypothesis = payload.hypothesis;
       projection.status = 'diagnosed';
+    } else if (event.type === 'negative-evidence.recorded') {
+      projection.negativeEvidence.push(payload);
     } else if (event.type === 'candidate.proposed') {
       projection.candidate = payload;
       projection.generation.candidate = payload.generationId;
@@ -425,6 +519,12 @@ const projectEvents = (events, integrity) => {
       if (payload.state === 'promoted' && projection.generation.candidate) {
         projection.generation.current = projection.generation.candidate;
       }
+    } else if (event.type === 'effect.recorded') {
+      projection.effects.push(payload);
+    } else if (event.type === 'outcome.recorded') {
+      projection.outcomes.push(payload);
+    } else if (event.type === 'reopening.recorded') {
+      projection.reopenings.push(payload);
     } else if (event.type === 'rollback.recorded') {
       projection.rollback = payload;
       projection.status = 'rolled_back';
@@ -455,10 +555,24 @@ const validateCandidate = (candidate, episode) => {
   next.expectedBehavior = assertText(next.expectedBehavior, 'candidate.expectedBehavior');
   next.affectedInvariants = assertStringArray(next.affectedInvariants, 'candidate.affectedInvariants');
   next.falsifier = assertText(next.falsifier, 'candidate.falsifier');
+  next.generatorAuthorityId = assertSafeId(
+    next.generatorAuthorityId,
+    'candidate.generatorAuthorityId'
+  );
+  next.generatorHash = assertHash(next.generatorHash, 'candidate.generatorHash');
+  if (next.generatorAuthorityId !== episode.generator?.authorityId
+    || next.generatorHash !== episode.generator?.implementationHash) {
+    throw new Error('candidate generator identity does not match the frozen generator');
+  }
   for (const changedPath of next.changedFiles) {
     const protectedPath = episode.evaluator.protectedPaths.find((path) => pathsOverlap(changedPath, path));
     if (protectedPath) {
       throw new Error(`candidate overlaps protected evaluator authority: ${protectedPath}`);
+    }
+    if (!episode.promotionAuthority.allowedCandidatePaths.some((allowedPath) => (
+      pathWithin(changedPath, allowedPath)
+    ))) {
+      throw new Error(`candidate exceeds repository-owned promotion scope: ${changedPath}`);
     }
   }
   return next;
@@ -478,6 +592,30 @@ export function assessPromotionReadiness(episode) {
   }
   if (episode.evaluator?.frozenBeforeCandidate !== true) {
     reasons.push('evaluator and task set were not frozen before the candidate');
+  }
+  if (episode.generator?.frozenBeforeCandidate !== true) {
+    reasons.push('candidate generator was not frozen before the candidate');
+  }
+  if (episode.candidate && (episode.candidate.generatorAuthorityId !== episode.generator?.authorityId
+    || episode.candidate.generatorHash !== episode.generator?.implementationHash)) {
+    reasons.push('candidate does not bind the frozen generator identity');
+  }
+  if (episode.corpus?.frozenBeforeCandidate !== true || !HASH_PATTERN.test(episode.corpus?.digest || '')) {
+    reasons.push('corpus identity was not frozen before the candidate');
+  }
+  if (episode.resourceBudget?.frozenBeforeCandidate !== true
+    || !HASH_PATTERN.test(episode.resourceBudget?.digest || '')) {
+    reasons.push('resource budget was not frozen before the candidate');
+  }
+  if (episode.promotionAuthority?.frozenBeforeCandidate !== true) {
+    reasons.push('repository promotion authority was not frozen before the candidate');
+  }
+  if (!Array.isArray(episode.reopeningConditions) || episode.reopeningConditions.length === 0) {
+    reasons.push('reopening conditions are missing');
+  }
+  if (!Array.isArray(episode.negativeEvidence)
+    || !episode.negativeEvidence.some((entry) => entry.retained === true)) {
+    reasons.push('retained negative evidence is missing');
   }
   const primary = episode.metrics?.find((metric) => (
     metric.metricId === episode.objective?.successMetricId
@@ -689,10 +827,11 @@ const ImprovementEpisodeLedger = {
       const current = events.length > 0
         ? projectEvents(events, await verifyImprovementEvents(events, cryptoApi))
         : null;
-      const mayRollbackPromotion = current?.status === 'promoted' && type === 'rollback.recorded';
+      const mayFollowPromotion = current?.status === 'promoted'
+        && PROMOTED_FOLLOW_UP_EVENTS.has(type);
       if (current && TERMINAL_STATES.has(current.status)
         && type !== 'reflection.recorded'
-        && !mayRollbackPromotion) {
+        && !mayFollowPromotion) {
         throw new Error(`Improvement episode is terminal: ${current.status}`);
       }
       const identity = await getIdentity();
@@ -769,6 +908,21 @@ const ImprovementEpisodeLedger = {
         role: 'proposer'
       });
     };
+
+    const recordNegativeEvidence = (episodeId, evidence) => appendEvent(
+      episodeId,
+      'negative-evidence.recorded',
+      {
+        ...cloneJson(evidence || {}),
+        evidenceId: assertSafeId(evidence?.evidenceId, 'negativeEvidence.evidenceId'),
+        kind: assertSafeId(evidence?.kind, 'negativeEvidence.kind'),
+        digest: assertHash(evidence?.digest, 'negativeEvidence.digest'),
+        summary: assertText(evidence?.summary, 'negativeEvidence.summary'),
+        retained: evidence?.retained === true,
+        sourcePath: evidence?.sourcePath ? normalizePath(evidence.sourcePath) : null
+      },
+      { authorityId: evidence?.authorityId || 'reploid:x:evaluator', role: 'evidence-producer' }
+    );
 
     const proposeCandidate = async (episodeId, candidate) => {
       const episode = await getEpisode(episodeId);
@@ -877,20 +1031,93 @@ const ImprovementEpisodeLedger = {
     const recordDecision = async (episodeId, decision) => {
       const state = assertText(decision?.state, 'decision.state');
       if (!TERMINAL_STATES.has(state)) throw new Error(`Invalid terminal decision state: ${state}`);
+      const episode = await getEpisode(episodeId);
       if (state === 'promoted') {
-        const readiness = assessPromotionReadiness(await getEpisode(episodeId));
+        const readiness = assessPromotionReadiness(episode);
         if (!readiness.ready) {
           throw new Error(`Improvement episode cannot be promoted: ${readiness.reasons.join('; ')}`);
         }
+        const decisionAuthorityId = decision?.authorityId || episode.promotionAuthority?.authorityId;
+        if (decisionAuthorityId !== episode.promotionAuthority?.authorityId) {
+          throw new Error('promotion decision authority does not match repository-owned authority');
+        }
       }
+      const decisionAuthorityId = decision?.authorityId
+        || episode.promotionAuthority?.authorityId
+        || 'reploid:x:promotion-policy';
       return appendEvent(episodeId, 'decision.recorded', {
         ...cloneJson(decision || {}),
+        authorityId: decisionAuthorityId,
         state,
         reasons: assertStringArray(decision?.reasons, 'decision.reasons', { allowEmpty: state === 'promoted' })
       }, {
-        authorityId: decision?.authorityId || 'reploid:x:promotion-policy',
+        authorityId: decisionAuthorityId,
         role: 'promotion-policy'
       });
+    };
+
+    const recordEffect = async (episodeId, effect) => {
+      const episode = await getEpisode(episodeId);
+      const kind = assertSafeId(effect?.kind, 'effect.kind');
+      if (!episode.promotionAuthority?.allowedEffectKinds?.includes(kind)) {
+        throw new Error(`effect kind is outside repository-owned authority: ${kind}`);
+      }
+      return appendEvent(episodeId, 'effect.recorded', {
+        ...cloneJson(effect || {}),
+        effectId: assertSafeId(effect?.effectId, 'effect.effectId'),
+        kind,
+        state: assertSafeId(effect?.state, 'effect.state'),
+        targetId: assertText(effect?.targetId, 'effect.targetId'),
+        artifactHash: assertHash(effect?.artifactHash, 'effect.artifactHash'),
+        receiptPath: normalizePath(effect?.receiptPath)
+      }, {
+        authorityId: effect?.authorityId || episode.promotionAuthority.authorityId,
+        role: 'effect-authority'
+      });
+    };
+
+    const recordOutcome = (episodeId, outcome) => appendEvent(
+      episodeId,
+      'outcome.recorded',
+      {
+        ...cloneJson(outcome || {}),
+        outcomeId: assertSafeId(outcome?.outcomeId, 'outcome.outcomeId'),
+        observationKind: assertSafeId(outcome?.observationKind, 'outcome.observationKind'),
+        targetId: assertText(outcome?.targetId, 'outcome.targetId'),
+        observationDigest: assertHash(outcome?.observationDigest, 'outcome.observationDigest'),
+        sensorAuthorityId: assertSafeId(
+          outcome?.sensorAuthorityId,
+          'outcome.sensorAuthorityId'
+        ),
+        observedAt: assertText(outcome?.observedAt, 'outcome.observedAt')
+      },
+      { authorityId: outcome?.sensorAuthorityId, role: 'outcome-sensor' }
+    );
+
+    const recordReopening = async (episodeId, reopening) => {
+      const episode = await getEpisode(episodeId);
+      const condition = episode.reopeningConditions?.find((entry) => (
+        entry.conditionId === reopening?.conditionId
+      ));
+      if (!condition) throw new Error('reopening does not match a declared condition');
+      if (condition.sensorAuthorityId !== reopening?.authorityId) {
+        throw new Error('reopening authority does not match the declared sensor authority');
+      }
+      return appendEvent(episodeId, 'reopening.recorded', {
+        ...cloneJson(reopening || {}),
+        conditionId: condition.conditionId,
+        observationId: assertSafeId(reopening?.observationId, 'reopening.observationId'),
+        targetId: assertText(reopening?.targetId, 'reopening.targetId'),
+        resultingDecisionState: assertSafeId(
+          reopening?.resultingDecisionState,
+          'reopening.resultingDecisionState'
+        ),
+        retainedEffectState: assertSafeId(
+          reopening?.retainedEffectState,
+          'reopening.retainedEffectState'
+        ),
+        action: condition.action
+      }, { authorityId: reopening.authorityId, role: 'reopening-sensor' });
     };
 
     const recordRollback = (episodeId, rollback) => appendEvent(
@@ -955,8 +1182,12 @@ const ImprovementEpisodeLedger = {
       recordComparison,
       recordDecision,
       recordDiagnosis,
+      recordEffect,
       recordEvaluation,
       recordExecution,
+      recordNegativeEvidence,
+      recordOutcome,
+      recordReopening,
       recordReflection,
       recordReview,
       recordRollback,

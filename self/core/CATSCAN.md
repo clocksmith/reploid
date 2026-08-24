@@ -26,9 +26,10 @@ Outputs:
 
 ## Invariants
 - Execution success is not output quality or causal improvement.
-- Every claimed improvement is projected from a signed `rsi.improvement-episode/v1`
-  chain that binds a frozen baseline, declared metrics, raw paired observations,
-  evaluator authority, generation ancestry, decision, and reflection.
+- Every improvement claim comes from a signed `rsi.improvement-episode/v1`
+  chain binding frozen baseline, metrics, observations, generator, evaluator,
+  promotion scope, negative evidence, effects, outcomes, reopening, ancestry,
+  decision, and reflection.
 - The [Change Passport adapter](change-passport-improvement-adapter.js) imports
   attributed Zero/X source evidence into a separate external ledger; it never
   imports reviewer, activation, outcome, reopening, or rollback authority.
