@@ -14,18 +14,21 @@ the release eligible. GitHub controls merge, deployment systems control
 activation, and identity systems control access. Reploid controls eligibility
 and preserves its basis.
 
-Reploid Room-1 remains the first scientific proof. It tests whether the same
+Poolday is the peer-to-peer Doppler execution network: requesters run signed
+Packs, browser contributors share bounded compute, peers return comparable
+results and signed receipts, and requesters accept or dispute the result.
+Research Room-1 remains a scientific proof built on those receipts. It tests whether the same
 contradiction-preserving decision mechanism can help curators of public protein
 catalogs adjudicate disputed family or domain annotations at lower verified
 cost than the existing workflow.
 
-The product is not peer count, inference volume, a decentralized compute
-network, an identity provider, a trace viewer, or an exposed RSI laboratory.
+The product is not peer count, inference volume, a trustless marketplace, an
+identity provider, a trace viewer, or an exposed RSI laboratory.
 The intended user outcome is a better justified next decision supported by
 inspectable evidence, accountable disagreement, explicit authority, correction,
 rollback, and reopening.
 
-Change Passport and the Research Room are separate product surfaces over a
+Change Passport, Poolday, and the Research Room are separate product surfaces over a
 shared evidence-state model. Poolday, generic change control, Zero, and X retain
 separate activation authority. Zero and X remain experimental surfaces outside
 ordinary customer and researcher journeys.
@@ -52,7 +55,7 @@ automatic reopening. External installability, operator comparison, commercial
 value, qualification, adoption, deployment authority, and rollback success
 remain unproved and have no claim permission.
 
-The currently supported Poolday product is narrower than the long-term aim:
+The currently supported Poolday execution network is narrower than the long-term aim:
 
 - Public protein sequences only.
 - The enabled ESM-2 35M exact model contract.
@@ -67,6 +70,11 @@ A provider receipt proves that a provider key signed an assignment-bound
 artifact. Multiple matching executions establish declared execution agreement.
 They do not prove honest browser execution, distinct devices or organizations,
 independent model evidence, biological correctness, or scientific replication.
+
+Poolday's primary interface is limited to Run a model, Share compute, and
+Recent jobs. Ask is the input step of Run; Records and History are Recent jobs;
+network state is a compact indicator. Research Room governance, reputation,
+scientific policies, and protocol records remain contextual Advanced details.
 
 ## Falsifiable first proofs
 

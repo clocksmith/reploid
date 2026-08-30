@@ -31,37 +31,26 @@ renders escaped state and emits controls that those modules bind.
   receipt-ledger projection.
 - `ledger-store.js` owns one stable room-scoped collection set for receipts,
   peer events, streams, and activity summaries.
-- Home renders one focused protein task. It does not precede the form with the
-  Research Room dashboard or network animation.
-- The Research Room summary renders on Records. Question, result, and next
-  action remain visible; history, participants, proposals, memory, and
-  provenance remain under one disclosure.
-- The navigation remains a full-height activity rail when collapsed. Expansion
-  reveals route explanations, peer-room details, and secondary runtimes in a
-  top-and-bottom sidebar composition.
-- Route changes preserve the current navigation expansion state. Page reloads
-  begin collapsed.
+- Home renders one focused signed-Pack job. Model Pack, input, peer disclosure,
+  and Run model are the only default controls.
+- Share compute leads with Pack selection, provider state, and Start sharing.
+- Recent jobs leads with the job ledger. Research Room, participant, proposal,
+  memory, reputation, and protocol detail remain under Advanced details.
+- Navigation is one compact horizontal shell with exactly three destinations
+  and a subordinate network-availability indicator.
 
 ### 3. Implementation Notes
 
-- Collapsed route labels remain visible. Expanded content must add information,
-  not merely repeat those labels.
-- The 7/77 mark is the rail toggle. Its two glyphs exchange visual weight during
-  expansion, and the control has no decorative left border that reads as an
-  active-route indicator.
-- Escape closes the expanded sidebar. Reduced-motion preferences collapse its
-  transition durations.
-- The rail occupies the viewport height on desktop and mobile. Expanded mobile
-  navigation leaves a visible edge of the current route for spatial context.
 - The focused task remains centered in the visible desktop region and fits a
   320-pixel viewport without horizontal clipping.
+- Compatibility routes do not appear as additional navigation destinations.
+- Network state remains understandable without opening another surface.
 
 ### 4. Verification Checklist
 
-- [x] Collapsed and expanded navigation have browser geometry tests
-- [x] Route descriptions and room context have DOM contract tests
+- [x] Three-destination navigation has DOM and browser geometry tests
 - [x] Narrow mobile routes remain free of horizontal clipping
-- [x] Home exposes one question, one sequence, two consent choices, and one Run action
+- [x] Home exposes one Pack, one input, peer disclosure, and one Run action
 - [x] Research Room secondary history is collapsed by default
 - [x] The VFS and blueprint registries cover both view-state artifacts
 

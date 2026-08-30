@@ -2179,7 +2179,7 @@
     {
       "path": "ui/pool-home/constants.js",
       "owner": "ui",
-      "sha256": "sha256:88f33c84eb6b7fcbf31f1e6d4a55dae03e99204c2e9e7be08cd3365f339cfc71",
+      "sha256": "sha256:2b312a334b267508139a2c2ed7cd44d5294ff1805ca3c6e7b781933512071ae0",
       "imports": []
     },
     {
@@ -2191,7 +2191,7 @@
     {
       "path": "ui/pool-home/controls.js",
       "owner": "ui",
-      "sha256": "sha256:a6c414712359df7c3c685d338df2e178c2481283e034306d80bf37660c90b881",
+      "sha256": "sha256:fbc05ee6a304de0953b46c91685252a51341f42aeddf31da604343228594c256",
       "imports": [
         "../../pool/adapter-publication.js",
         "../../pool/adapter-registry.js",
@@ -2256,7 +2256,7 @@
     {
       "path": "ui/pool-home/requester-controls.js",
       "owner": "ui",
-      "sha256": "sha256:586416822b1b1169560a9aab74d7dd7e43888b77f047d9037bf7d484c1e1a0c7",
+      "sha256": "sha256:2c21bba53e4400687744755e58b9dc9083f0ccf2fae3bf6d2232f84561587557",
       "imports": []
     },
     {
@@ -2408,7 +2408,7 @@
     {
       "path": "ui/pool-home/view.js",
       "owner": "ui",
-      "sha256": "sha256:a3dba2ddb4c26bcb1d180e1e4f49a3832aa872145007e8324f299e9b42af3160",
+      "sha256": "sha256:bb7d9212f93f135203a50cfbc588a0524beb9e3fa85b5f5e3489addd3025556a",
       "imports": [
         "../../pool/model-contract.js",
         "../../pool/participation-profile.js",

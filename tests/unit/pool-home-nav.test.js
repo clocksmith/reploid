@@ -65,10 +65,9 @@ describe('poolday home navigation', () => {
       'records'
     ]);
     expect(POOLDAY_NAV_ROUTES).toEqual([
-      { id: 'home', path: '/', label: 'Research Room' },
-      { id: 'ask', path: '/ask', label: 'Request' },
+      { id: 'home', path: '/', label: 'Run a model' },
       { id: 'compute', path: '/compute', label: 'Share compute' },
-      { id: 'records', path: '/records', label: 'Review evidence' }
+      { id: 'records', path: '/records', label: 'Recent jobs' }
     ]);
     expect(PRODUCT_ROUTES).toEqual({
       '/': 'home',
@@ -83,65 +82,40 @@ describe('poolday home navigation', () => {
     expect(PRODUCT_ROUTES['/record']).toBeUndefined();
     expect(PRODUCT_ROUTES['/agents']).toBeUndefined();
     expect(ROUTE_COPY.compute).toEqual({
-      eyebrow: 'Research Room',
+      eyebrow: 'Verified Browser Inference',
       title: 'Share compute',
-      body: 'Let this tab run work for the room.'
+      body: 'Let this browser execute qualified Pack jobs.'
     });
   });
 
-  it('renders collapsed active route links from the shared nav route list', () => {
+  it('renders exactly three primary destinations and a compact network state', () => {
     const html = renderNav('compute');
 
-    expect(html).toContain('<nav class="pool-nav-rail"');
-    expect(html).toContain('<button class="pool-nav-toggle"');
-    expect(html).toContain('pool-nav-mark');
-    expect(html).toContain('pool-nav-mark-seven-top');
-    expect(html).toContain('class="pool-nav-top"');
-    expect(html).toContain('class="pool-nav-bottom"');
-    expect(html).not.toContain('pool-nav-view-context');
-    expect(html).not.toContain('Current view');
-    expect(html).not.toContain('<details class="pool-nav-more">');
-    expect(html).not.toContain('<summary class="pool-nav-more-summary">');
-    expect(html).not.toContain('<span class="pool-nav-label">More</span>');
-    expect(html).not.toContain('☰');
-    expect(html).toContain('data-pool-nav-tooltip="Open the navigation details from the left"');
-    expect(html).toContain('data-pool-nav-tooltip="State a question and request model execution in this room"');
-    expect(html).toContain('data-pool-nav-tooltip="Share this browser as compute for the active room"');
+    expect(html).toContain('<nav class="pool-nav-rail pool-primary-nav" aria-label="Poolday">');
+    expect(html).toContain('class="pool-primary-brand"');
+    expect(html).toContain('>Poolday</a>');
+    expect(html).toContain('>Run a model</a>');
+    expect(html).toContain('>Share compute</a>');
+    expect(html).toContain('>Recent jobs</a>');
+    expect(html).toContain('data-pool-network-state="simulation"');
+    expect(html).not.toContain('pool-nav-toggle');
+    expect(html).not.toContain('pool-drawer-section');
+    expect(html).not.toContain('Research Room');
     expect(html).toContain('href="/?room=reploid-default" data-pool-route-link="/?room=reploid-default"');
-    expect(html).toContain('href="/ask?room=reploid-default" data-pool-route-link="/ask?room=reploid-default"');
     expect(html).toMatch(/href="\/compute\?room=reploid-default"[\s\S]*data-pool-route-link="\/compute\?room=reploid-default"[\s\S]*aria-current="page"/);
     expect(html).toContain('href="/records?room=reploid-default" data-pool-route-link="/records?room=reploid-default"');
-    expect(html).not.toContain('href="/zero"');
-    expect(html).not.toContain('href="/x" data-pool-substrate-route="/x"');
-    expect(html).not.toContain('aria-label="Zero"');
-    expect(html).not.toContain('aria-label="X"');
-    expect(html).not.toContain('pool-nav-badge">Experimental</span>');
-    expect(html).toContain('class="pool-room-context"');
-    expect(html).toContain('data-pool-room-id');
-    expect((html.match(/data-pool-nav-tooltip=/g) || []).length).toBeGreaterThanOrEqual(5);
-    expect(html).toContain('data-pool-drawer-section="participation"');
-    expect(html).toContain('data-pool-participation-surface="navigation"');
-    expect(html).toContain('data-pool-navigation-participation');
-    expect(html).toContain('data-pool-participation-mode="request"');
-    expect(html).not.toContain('href="/run"');
-    expect(html).not.toContain('href="/mesh"');
-    expect(html).not.toContain('href="/record"');
+    expect((html.match(/class="pool-nav-link/g) || [])).toHaveLength(3);
   });
 
-  it('renders expanded navigation as an informative persistent sidebar', () => {
+  it('does not reintroduce drawer chrome when legacy open options are supplied', () => {
     const html = renderNav('records', { open: true });
 
-    expect(html).toContain('<nav class="pool-nav-rail is-open"');
-    expect(html).toContain('aria-label="Close navigation"');
-    expect(html).toContain('aria-expanded="true"');
-    expect(html).not.toContain('pool-nav-view-context');
-    expect(html).not.toContain('Current view');
-    expect(html).toMatch(/aria-label="Review evidence"[\s\S]*aria-current="page"/);
-    expect(html).toContain('<span class="pool-nav-description">Review claims and discover bounded work</span>');
-    expect(html).toContain('<span class="pool-nav-description">State intent and run the question</span>');
-    expect(html).not.toContain('<span class="pool-nav-description">Blank local substrate</span>');
-    expect(html).not.toContain('<span class="pool-nav-description">Self-modifying workspace</span>');
-    expect(html).toContain('<div class="pool-room-context-heading">');
+    expect(html).toContain('class="pool-nav-link is-active"');
+    expect(html).toContain('>Recent jobs</a>');
+    expect(html).toContain('aria-current="page"');
+    expect(html).not.toContain('is-open');
+    expect(html).not.toContain('aria-expanded');
+    expect(html).not.toContain('pool-nav-description');
   });
 
   it('renders the active room query on every compatibility navigation link', () => {
@@ -150,7 +124,6 @@ describe('poolday home navigation', () => {
     try {
       const html = renderNav('records', { open: true });
       expect(html).toContain('href="/?room=canonical-room" data-pool-route-link="/?room=canonical-room"');
-      expect(html).toContain('href="/ask?room=canonical-room" data-pool-route-link="/ask?room=canonical-room"');
       expect(html).toContain('href="/compute?room=canonical-room" data-pool-route-link="/compute?room=canonical-room"');
       expect(html).toContain('href="/records?room=canonical-room" data-pool-route-link="/records?room=canonical-room"');
     } finally {
@@ -169,7 +142,6 @@ describe('poolday home navigation', () => {
     expect(html).not.toContain('data-pool-network-disclosure');
     expect(html).not.toContain('data-pool-simulation');
     expect(html).not.toContain('data-pool-home-purpose');
-    expect(html).toContain('Produces model evidence, not a biological diagnosis.');
     expect(html).toContain('This is a 480-number representation for software, not a result to read manually.');
     expect(html).toContain('Use it with embeddings made by the same ESM-2 model and contract when comparing sequences.');
     expect(html).toContain('Reploid can now compare this result with exact-contract compatible public embeddings');
@@ -177,12 +149,14 @@ describe('poolday home navigation', () => {
     expect(html).toContain('data-pool-copy-embedding');
     expect(html).not.toContain('data-pool-hot-path');
     expect(html).toContain('class="pool-home-title-lockup"');
-    expect(html).toContain('<h1 class="type-h1 pool-home-brand-word">REPLOID</h1>');
-    expect(html).toContain('Run a public protein sequence and keep the evidence.');
-    expect(html).toContain('>View room</a>');
+    expect(html).toContain('<h1 class="type-h1 pool-home-brand-word">POOLDAY</h1>');
+    expect(html).toContain('Run a signed Doppler Pack on a browser peer.');
+    expect(html).not.toContain('>View room</a>');
+    expect(html).toContain('id="pool-home-request-model"');
+    expect(html).toContain('<span>Model Pack</span>');
     expect(html).toContain('id="pool-home-research-public"');
     expect(html).toContain('id="pool-home-intent-text"');
-    expect(html).toContain('>Ask a protein question</h2>');
+    expect(html).toContain('>Run a model</h2>');
     expect(html).toContain('placeholder="What do you want to learn?"');
     expect(html).toContain('pool-home-cta-row pool-home-ask-form');
     expect(html).toContain('id="pool-home-ask-form"');
@@ -190,8 +164,8 @@ describe('poolday home navigation', () => {
     expect(html).not.toContain('aria-label="Input type"');
     expect(html).toContain('id="pool-home-ask-prompt"');
     expect(html).toContain('id="pool-home-sequence-public"');
-    expect(html).toContain('This sequence is public');
-    expect(html).toContain('Save the question and result to this room');
+    expect(html).toContain('This input may be sent to selected peers');
+    expect(html).toContain('Publish the question and result to the room');
     expect(html).toContain('data-pool-sequence-consent-saved hidden');
     expect(html).toContain('id="pool-home-adapter"');
     expect(html).not.toContain('pool-home-ask-label');
@@ -202,7 +176,9 @@ describe('poolday home navigation', () => {
     expect(html).not.toContain('placeholder="Ask the network..."');
     expect(html).toContain('class="btn btn-primary pool-home-run-button"');
     expect(html).toContain('type="submit"');
-    expect(html).toContain('>Run sequence</button>');
+    expect(html).toContain('>Run model</button>');
+    expect(html).toContain('<summary>Advanced details</summary>');
+    expect((html.match(/<summary>Advanced details<\/summary>/g) || [])).toHaveLength(1);
     expect(html).not.toContain('href="/network"');
     expect(html).not.toContain('pool-home-network-cta');
     expect(html).not.toContain('Live Network</span>');
@@ -219,32 +195,16 @@ describe('poolday home navigation', () => {
     expect(html).not.toContain('Ask browser models.<br>Share compute. Or both.');
   });
 
-  it('clusters the five Home control sections without experimental substrate links', () => {
+  it('keeps the dashboard option on the same minimal primary navigation', () => {
     const html = renderNav('home', { dashboard: true, dashboardView: 'compute' });
 
-    expect(html).toContain('class="pool-nav-rail pool-control-drawer"');
-    expect(html).toContain('aria-label="Reploid controls"');
-    expect(html).toContain('<strong>Reploid</strong><small>Peer inference</small>');
-    expect(html).not.toContain('pool-dashboard-inspector');
-    expect(html).not.toContain('data-pool-drawer-section="request-task"');
-    expect(html).toContain('data-pool-drawer-section="request-model"');
-    expect(html).toContain('data-pool-drawer-section="request-checks"');
-    expect(html).toContain('data-pool-drawer-section="network-connection"');
-    expect(html).toContain('data-pool-drawer-section="network-device" open');
-    expect(html).toContain('data-pool-drawer-section="network-activity"');
-    expect((html.match(/data-pool-drawer-section=/g) || [])).toHaveLength(5);
-    expect(html).toContain('id="pool-home-request-model"');
-    expect(html).toContain('id="pool-home-request-policy"');
-    expect(html).toContain('data-pool-capability-profile');
-    expect(html).not.toContain('data-pool-lane="sequence"');
-    expect(html).not.toContain('data-pool-sequence-options');
-    expect(html).not.toContain('id="pool-home-sequence-public"');
-    expect(html).not.toContain('data-pool-drawer-section="request-participation"');
-    expect(html).not.toContain('data-pool-dashboard-view');
-    expect(html).not.toContain('pool-zero-link');
-    expect(html).not.toContain('pool-x-link');
-    expect(html).not.toContain('data-pool-substrate-route');
-    expect(html).not.toContain('href="/records"');
+    expect(html).toContain('class="pool-nav-rail pool-primary-nav"');
+    expect((html.match(/class="pool-nav-link/g) || [])).toHaveLength(3);
+    expect(html).toContain('>Run a model</a>');
+    expect(html).toContain('>Share compute</a>');
+    expect(html).toContain('>Recent jobs</a>');
+    expect(html).not.toContain('pool-control-drawer');
+    expect(html).not.toContain('data-pool-drawer-section');
     expect(PRODUCT_ROUTES['/ask']).toBe('ask');
     expect(PRODUCT_ROUTES['/compute']).toBe('compute');
     expect(PRODUCT_ROUTES['/records']).toBe('records');
@@ -365,7 +325,7 @@ describe('poolday home navigation', () => {
     expect(html).toContain('Recent receipts');
     expect(html).toContain('id="pool-provider-node-history"');
     expect(html).toContain('data-pool-contribution-history hidden');
-    expect(html).toContain('<summary>Details</summary>');
+    expect(html).toContain('<summary>Advanced details</summary>');
     expect(html).toContain('<summary>Debug event</summary>');
   });
 
@@ -374,7 +334,7 @@ describe('poolday home navigation', () => {
 
     expect(html).toContain('id="pool-record-ledger"');
     expect(html).toContain('No records yet. Completed runs and contributions will appear here.');
-    expect(html).toContain('<summary>Technical tools</summary>');
+    expect(html).toContain('<summary>Advanced details</summary>');
     expect(html).toContain('Room activity');
     expect(html).toContain('Contributor scores');
     expect(html).toContain('Saved answer receipts');

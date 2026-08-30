@@ -5,7 +5,7 @@ test('shows and exercises the governed protein evidence journey', async ({ page 
   page.on('pageerror', (error) => pageErrors.push(error.message));
   await page.goto('/');
 
-  await expect(page.getByRole('heading', { name: 'Ask a protein question', exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Run a model', exact: true })).toBeVisible();
   await expect(page.getByLabel('Public protein sequence')).toBeVisible();
   await expect(page.locator('[data-pool-research-room]')).toHaveCount(0);
   await expect(page.locator('.pool-simulation-shell')).toHaveCount(0);
@@ -518,7 +518,8 @@ test('shows and exercises the governed protein evidence journey', async ({ page 
     }
   });
 
-  await page.getByRole('link', { name: 'View room', exact: true }).click();
+  await page.getByRole('link', { name: 'Recent jobs', exact: true }).click();
+  await page.locator('details.pool-record-tools > summary').click();
   await expect(page.locator('[data-pool-research-room]')).toBeVisible();
   await expect(page.locator('[data-pool-research-room]')).toContainText('Second public candidate');
   await expect(page.locator('.pool-room-timeline')).toContainText('Agreement assessed');
@@ -628,7 +629,7 @@ test('shows and exercises the governed protein evidence journey', async ({ page 
     return store.loadResearchRecords('reploid-default').length;
   }), { timeout: 60000, message: 'verified local research history should rehydrate before review' })
     .toBeGreaterThan(0);
-  await expect(page.locator('.pool-room-secondary-workspace')).toHaveAttribute('open', '');
+  await expect(page.locator('.pool-room-secondary-workspace')).toHaveAttribute('data-pool-room-panel-open', 'true');
   const contextualReview = page.locator('[data-research-review-form]');
   await expect(contextualReview.locator('select[name="targetHash"]')).toHaveValue(reviewedTarget);
   await expect(contextualReview.getByRole('button', { name: 'Accept evidence', exact: true })).toBeVisible();
@@ -650,9 +651,12 @@ test('shows and exercises the governed protein evidence journey', async ({ page 
   expect(persistedReview?.signature).toBeTruthy();
 
   await page.goto('/records');
-  await expect(page.locator('.pool-room-secondary-workspace')).toBeVisible();
+  const advancedJobs = page.locator('details.pool-record-tools');
+  if (await advancedJobs.evaluate((node) => node.open)) {
+    await advancedJobs.locator(':scope > summary').click();
+  }
   await expect(page.locator('[data-pool-research-workspace]')).toBeHidden();
-  await page.locator('.pool-room-secondary-workspace > summary').click();
+  await advancedJobs.locator(':scope > summary').click();
   await expect(page.locator('[data-pool-research-workspace]')).toBeVisible();
   await expect(page.getByText('Exact-model evidence, not vector averaging', { exact: true })).toBeVisible();
   await expect(page.locator('.pool-research-model-evidence p').filter({ hasText: 'No cross-model agreement is asserted because only one or no exact model contract has published evidence.' }).first()).toBeVisible();
@@ -756,8 +760,11 @@ test('shows and exercises the governed protein evidence journey', async ({ page 
   await expect(page.locator('[data-room-result-card]')).toContainText('Model evidence');
   await page.goto('/?room=reploid-default');
   await expect(page.locator('[data-pool-research-room]')).toHaveCount(0);
-  await expect(page.getByRole('link', { name: 'View room', exact: true })).toHaveAttribute('href', '/records?room=reploid-default');
-  await page.getByRole('link', { name: 'View room', exact: true }).click();
+  await expect(page.getByRole('link', { name: 'Recent jobs', exact: true })).toHaveAttribute('href', '/records?room=reploid-default');
+  await page.getByRole('link', { name: 'Recent jobs', exact: true }).click();
+  if (!(await page.locator('details.pool-record-tools').evaluate((node) => node.open))) {
+    await page.locator('details.pool-record-tools > summary').click();
+  }
   await expect(page.locator('[data-room-result-card]')).toContainText('Model evidence');
   await expect(page.locator('[data-room-result-card]')).toContainText('corrected');
   await expect(page.locator('.pool-room-timeline')).toContainText('Correction attached');
@@ -772,8 +779,11 @@ test('shows and exercises the governed protein evidence journey', async ({ page 
   await expect(page.locator('#pool-record-ledger')).toHaveAttribute('data-record-facet', 'room');
   await page.goto('/network?room=journey-room');
   await expect(page.locator('[data-pool-research-room]')).toHaveAttribute('data-room-id', 'journey-room');
+  if (!(await page.locator('details.pool-record-tools').evaluate((node) => node.open))) {
+    await page.locator('details.pool-record-tools > summary').click();
+  }
   await expect(page.locator('[data-pool-room-contextual-panel="discovery"]')).toBeVisible();
-  await expect(page.locator('.pool-room-secondary-workspace')).toHaveAttribute('open', '');
+  await expect(page.locator('.pool-room-secondary-workspace')).toHaveAttribute('data-pool-room-panel-open', 'true');
   await page.reload();
   await expect(page.locator('[data-pool-research-room]')).toHaveAttribute('data-room-id', 'journey-room');
   expect(pageErrors).toEqual([]);
@@ -878,6 +888,9 @@ test('retrieves and attaches licensed exact-sequence evidence without inheriting
   }, { runId, originRoomId, currentRoomId, sourceAccession, sequence });
 
   await page.goto(`/records?room=${encodeURIComponent(currentRoomId)}`);
+  if (!(await page.locator('details.pool-record-tools').evaluate((node) => node.open))) {
+    await page.locator('details.pool-record-tools > summary').click();
+  }
   await page.locator('.pool-room-technical-disclosure > summary').click();
   const priorSection = page.locator('.pool-room-prior-evidence');
   await expect(priorSection).toContainText('Version seven assigns a bounded public domain annotation.');
@@ -930,7 +943,7 @@ test('retrieves and attaches licensed exact-sequence evidence without inheriting
   const reviewerPage = await reviewerContext.newPage();
   reviewerPage.on('pageerror', (error) => pageErrors.push(error.message));
   await reviewerPage.goto(new URL(`/records?room=${encodeURIComponent(currentRoomId)}`, page.url()).toString());
-  await reviewerPage.locator('.pool-room-secondary-workspace > summary').click();
+  await reviewerPage.locator('details.pool-record-tools > summary').click();
   const reviewForm = reviewerPage.locator('[data-research-review-form]');
   await reviewForm.locator('select[name="targetHash"]').selectOption(attached.recordHash);
   const contextDetermination = reviewForm.locator('select[name="contextDetermination"]');
@@ -945,6 +958,9 @@ test('retrieves and attaches licensed exact-sequence evidence without inheriting
   await expect(reviewerPage.locator('[data-research-review-status]')).toContainText(/Signed review record (published|saved locally)/);
 
   await page.reload();
+  if (!(await page.locator('details.pool-record-tools').evaluate((node) => node.open))) {
+    await page.locator('details.pool-record-tools > summary').click();
+  }
   await page.locator('.pool-room-technical-disclosure > summary').click();
   await expect(page.locator('.pool-room-memory .pool-room-count')).toHaveText('1');
   await reviewerContext.close();

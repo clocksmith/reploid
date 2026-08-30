@@ -1,7 +1,7 @@
 # Poolday Product Intent
 
-Poolday is the internal documentation name for the main Reploid product
-surface. The public UI uses the Reploid name.
+Poolday is Reploid's peer-to-peer Doppler execution product. The public UI uses
+the Poolday name; Reploid remains the implementation owner.
 
 This document applies the repository mission in [`GOALS.md`](../../GOALS.md) to
 Poolday's purpose and the authority boundary between Poolday, Zero, and X.
@@ -12,15 +12,37 @@ tiers, routes, and transport requirements remain owned by
 
 ## Product goal
 
-Reploid's first product goal is to test whether a proof-carrying Research Room
-improves adjudication of disputed family or domain annotations in a named
-public protein catalog. The broader continuously improving protein-evidence
-network remains a target hypothesis until that comparison succeeds. Reploid is
-not a generic science platform, a distributed model demonstration, or a system
-that mistakes authenticated execution for biological truth.
+Poolday's product goal is to make one browser-peer execution lifecycle ordinary
+and inspectable:
 
-A researcher begins with an explicitly public protein sequence and a bounded
-question. The target discovery object preserves:
+```text
+request -> peer executes -> result compared -> requester accepts -> receipt retained
+```
+
+A requester selects a signed Doppler Pack, supplies input, reviews disclosure
+and execution requirements, submits a job, watches assignment and progress,
+and receives a comparable result. A contributor chooses eligible Packs and
+resource limits, downloads the exact Pack, executes locally, and returns the
+result with a signed receipt. Recent jobs preserve recovery and verification
+state after refresh, disconnect, peer loss, timeout, or cancellation.
+
+The primary interface contains only Run a model, Share compute, and Recent
+jobs. Network availability is a compact indicator. Research rooms, scientific
+policies, reputation mechanics, commit/reveal records, and protocol internals
+are contextual Advanced details rather than primary product destinations.
+
+The current enabled Pack remains the pinned ESM-2 35M public-sequence contract.
+That narrow implementation boundary does not redefine Poolday as a protein
+product or authorize claims for unqualified models, private inputs, hardware
+attestation, or honest browser execution.
+
+The proof-carrying Research Room remains an optional governed workflow over
+Poolday receipts. It tests whether those receipts improve adjudication of
+disputed family or domain annotations in a named public protein catalog; it is
+not the primary navigation or the definition of Poolday.
+
+When the optional Research Room is used, a researcher begins with an explicitly
+public protein sequence and a bounded question. The target discovery object preserves:
 
 1. Verified, independently reproducible model outputs.
 2. Model-specific similarity and residue evidence.
@@ -51,14 +73,13 @@ Scientific cost can include browser compute, money, researcher time, laboratory
 work, instrument access, samples, and elapsed time. Poolday must preserve the
 components instead of collapsing incomparable costs into an unexplained score.
 
-Network activity is not the objective. Peer count, jobs, receipts, records,
-model count, and total compute remain operational measures. A contribution
-improves the network only when later evidence shows fewer unnecessary
-computations or experiments, earlier disagreement detection, better retrieval,
-more informative residue selection, less repeated failed work, or stronger
-independent reproduction.
+Network activity alone is not the objective. Peer count, jobs, receipts,
+records, model count, and total compute remain operational measures. Product
+success requires successful qualified jobs, recoverable failures, comparable
+results, explicit requester decisions, retained receipts, and repeated use.
+Scientific value remains a separate Research Room claim requiring its own evidence.
 
-## Product outcome
+## Research Room outcome
 
 The target product journey begins when a researcher submits a bounded question
 about an explicitly public protein sequence with explicit intent and consent.

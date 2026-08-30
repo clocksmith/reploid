@@ -4,7 +4,7 @@ Parent: [Documentation](../CATSCAN.md)
 
 ## Target
 
-Define the Research Room's product authority, evidence boundaries, and explicit scientific and infrastructure non-claims.
+Define Poolday's peer-execution product authority, evidence boundaries, and explicit infrastructure and scientific non-claims.
 
 ## Authority
 - Owns canonical Poolday intent, user workflow, evidence semantics, and claim boundaries.
@@ -28,13 +28,15 @@ Outputs:
 - Accepted means admissible under a named policy, never globally true.
 - Receipt, agreement, review, laboratory, and biological claims remain distinct.
 - Public-sequence support cannot imply private-sequence protection.
+- The product loop is request, peer execution, comparison, requester acceptance, and retained receipt.
+- Doppler Pack identity and qualification remain distinct from peer availability and successful execution.
 
 ## Acceptance
-- Product contracts remain compatible with research-cycle behavior and the surface claim index.
-- Evidence: [research-cycle tests](../../tests/unit/pool-research-cycle.test.js) and [surface claim tests](../../tests/unit/surface-claim-index.test.js).
+- Product contracts remain compatible with peer-job, recovery, research-cycle, and surface-claim behavior.
+- Evidence: [peer-room tests](../../tests/unit/pool-peer-room.test.js), [research-cycle tests](../../tests/unit/pool-research-cycle.test.js), and [surface claim tests](../../tests/unit/surface-claim-index.test.js).
 
 ## Non-goals
-- Advertising Zero, X, peer count, or generic decentralized inference as the product.
+- Advertising Zero, X, peer count, a trustless marketplace, hardware attestation, or scientific truth as the product.
 
 ## Freedom
 Any mechanism is permitted if it preserves these boundaries and passes the acceptance evidence.

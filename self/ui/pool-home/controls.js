@@ -1741,7 +1741,7 @@ const bindHomeLaneChips = (input, adapterSelect, modelSelect) => {
       input.dataset.poolSuggestedPromptCleared = 'false';
       input.name = lane === 'sequence' ? 'sequence' : 'prompt';
       input.setAttribute('aria-label', lane === 'sequence' ? 'Public protein sequence' : 'Ask prompt');
-      if (submitButton) submitButton.setAttribute('aria-label', lane === 'sequence' ? 'Run protein sequence' : 'Ask');
+      if (submitButton) submitButton.setAttribute('aria-label', 'Run model');
       if (resultLabel) resultLabel.textContent = lane === 'sequence' ? 'Embedding' : 'Answer';
       if (adapterPicker) adapterPicker.hidden = lane !== 'adapters';
       if (sequenceOptions) sequenceOptions.hidden = lane !== 'sequence';
@@ -1916,7 +1916,6 @@ const createProviderContributionController = () => {
     }
     if (controls.workerToggleButton) {
       const active = workerRunning || workerStarting;
-      const homeControl = controls.workerToggleButton.id === 'pool-home-provider-toggle';
       if (workerStarting) {
         controls.workerToggleButton.disabled = true;
         controls.workerToggleButton.textContent = 'Starting...';
@@ -1928,8 +1927,8 @@ const createProviderContributionController = () => {
       } else {
         controls.workerToggleButton.disabled = false;
         controls.workerToggleButton.textContent = active
-          ? (homeControl ? 'Stop sharing' : 'Stop')
-          : (homeControl ? 'Start sharing' : 'Start contributing');
+          ? 'Stop sharing'
+          : 'Start sharing';
         controls.workerToggleButton.dataset.op = active ? '■' : '▶';
         controls.workerToggleButton.dataset.contributionAction = active ? 'stop' : 'start';
         controls.workerToggleButton.setAttribute('aria-pressed', String(active));

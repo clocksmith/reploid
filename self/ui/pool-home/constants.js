@@ -1,11 +1,11 @@
 /**
- * @fileoverview Constants for the Reploid product home.
+ * @fileoverview Constants for the Poolday product home.
  *
  * The root pool implementation namespace is internal.
- * Public UI copy intentionally keeps the Reploid name.
+ * Reploid owns the implementation; Poolday is the user-facing product.
  */
 
-export const PUBLIC_PRODUCT_NAME = 'Reploid';
+export const PUBLIC_PRODUCT_NAME = 'Poolday';
 export const POOLDAY_NAME = PUBLIC_PRODUCT_NAME;
 export const POOLDAY_PROTOCOL = 'Verified Browser Inference';
 export const POOLDAY_VERSION_TAG = 'vBI-1.6';
@@ -20,34 +20,35 @@ export const POOLDAY_ROUTE_DEFINITIONS = Object.freeze([
   createPooldayRoute({
     id: 'home',
     path: '/',
-    label: 'Research Room',
+    label: 'Run a model',
     eyebrow: POOLDAY_PROTOCOL,
-    title: 'Research Room',
-    body: 'Run a public protein sequence and keep the evidence.'
+    title: 'Run a model',
+    body: 'Run a signed Doppler Pack on a browser peer.'
   }),
   createPooldayRoute({
     id: 'ask',
     path: '/ask',
-    label: 'Request',
-    eyebrow: 'Research Room',
-    title: 'Ask a protein question',
-    body: 'Add a public sequence and run it.'
+    label: 'Run a model',
+    eyebrow: POOLDAY_PROTOCOL,
+    title: 'Run a model',
+    body: 'Run the enabled Pack through the compatibility request surface.',
+    primary: false
   }),
   createPooldayRoute({
     id: 'compute',
     path: '/compute',
     label: 'Share compute',
-    eyebrow: 'Research Room',
+    eyebrow: POOLDAY_PROTOCOL,
     title: 'Share compute',
-    body: 'Let this tab run work for the room.'
+    body: 'Let this browser execute qualified Pack jobs.'
   }),
   createPooldayRoute({
     id: 'records',
     path: '/records',
-    label: 'Review evidence',
-    eyebrow: 'Research Room',
-    title: 'Review evidence',
-    body: 'Accept, correct, reject, or repeat a result.'
+    label: 'Recent jobs',
+    eyebrow: POOLDAY_PROTOCOL,
+    title: 'Recent jobs',
+    body: 'Inspect results, recover work, and retain receipts.'
   })
 ]);
 
@@ -63,11 +64,13 @@ export const PRODUCT_ROUTES = Object.freeze(Object.fromEntries(
   ]
 ));
 
-export const POOLDAY_NAV_ROUTES = Object.freeze(POOLDAY_ROUTE_DEFINITIONS.map((route) => Object.freeze({
-  id: route.id,
-  path: route.path,
-  label: route.label
-})));
+export const POOLDAY_NAV_ROUTES = Object.freeze(POOLDAY_ROUTE_DEFINITIONS
+  .filter((route) => route.primary !== false)
+  .map((route) => Object.freeze({
+    id: route.id,
+    path: route.path,
+    label: route.label
+  })));
 
 export const ROUTE_COPY = Object.freeze(Object.fromEntries(
   POOLDAY_ROUTE_DEFINITIONS.map((route) => [route.id, Object.freeze({
