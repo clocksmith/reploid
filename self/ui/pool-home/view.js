@@ -1,5 +1,5 @@
 /**
- * @fileoverview Rendering and UI state helpers for the Reploid product home.
+ * @fileoverview Rendering and UI state helpers for the Poolday product home.
  */
 
 import {
@@ -13,10 +13,7 @@ import { DETERMINISTIC_GENERATION_CONFIG, FASTEST_RECEIPT_POLICY_ID, getPolicy, 
 import { DEFAULT_PEER_ROOM_ID } from '../../pool/peer-room.js';
 import { createPeerEventReducer } from '../../pool/peer-control-plane.js';
 import { createPoolSdk } from '../../pool/sdk.js';
-import {
-  PARTICIPATION_MODES,
-  readParticipationPreferences
-} from '../../pool/participation-profile.js';
+import { readParticipationPreferences } from '../../pool/participation-profile.js';
 import {
   createPeerRoomBusFactory,
   createPeerRoomInviteUrl
@@ -1474,7 +1471,7 @@ export const restoreLatestCompletedRun = (routeId = getRouteId()) => {
   return restored;
 };
 
-export const POOL_DASHBOARD_VIEWS = Object.freeze(['home', 'ask', 'compute', 'records']);
+export const POOL_DASHBOARD_VIEWS = Object.freeze(['home', 'compute', 'records']);
 
 export const normalizePoolDashboardView = (value) => (
   POOL_DASHBOARD_VIEWS.includes(value) ? value : 'home'
@@ -1488,142 +1485,36 @@ export const getPoolDashboardView = () => {
   }
 };
 
-const renderDrawerSection = (id, title, glyph, content, {
-  open = false,
-  summary = ''
-} = {}) => `
-  <details class="pool-drawer-section" data-pool-drawer-section="${escapeHtml(id)}"${open ? ' open' : ''}>
-    <summary>
-      <span class="pool-nav-glyph" aria-hidden="true">${escapeHtml(glyph)}</span>
-      <span class="pool-nav-label">${escapeHtml(title)}</span>
-      <span class="pool-drawer-summary-value" data-pool-drawer-summary="${escapeHtml(id)}">${escapeHtml(summary)}</span>
-      <span class="pool-drawer-disclosure" aria-hidden="true">▼</span>
-    </summary>
-    <div class="pool-drawer-section-body">${content}</div>
-  </details>
-`;
-
-const renderHomeRequestDrawer = (open) => `
-  <nav class="pool-nav-rail pool-control-drawer${open ? ' is-open' : ''}" aria-label="Reploid controls">
-    <div class="pool-nav-top">
-      <button class="pool-nav-toggle" type="button" aria-label="${open ? 'Close Reploid controls' : 'Open Reploid controls'}" title="${open ? 'Close Reploid controls' : 'Open Reploid controls'}" data-pool-nav-tooltip="${open ? 'Close Reploid controls' : 'Open Reploid controls'}" aria-controls="pool-nav-menu" aria-expanded="${String(open)}">
-        <span class="pool-nav-mark" aria-hidden="true">
-          <span class="pool-nav-mark-seven pool-nav-mark-seven-top">7</span>
-          <span class="pool-nav-mark-seven pool-nav-mark-seven-bottom">7</span>
-        </span>
-        <span class="pool-nav-brand-copy" aria-hidden="true"><strong>Reploid</strong><small>Peer inference</small></span>
-      </button>
-      <div class="pool-nav-menu pool-drawer-stack" id="pool-nav-menu">
-        ${renderDrawerSection('request-model', 'Model', '⛝', `
-          <label class="pool-field">
-            <span>Request model</span>
-            <select id="pool-home-request-model" data-pool-request-control>
-              ${renderModelOptions({ workload: POOLDAY_MODEL_WORKLOADS.sequenceEmbedding })}
-            </select>
-          </label>
-          <p class="type-caption pool-drawer-help" data-pool-request-model-help>Contributors must advertise this exact model and any selected adapter.</p>
-        `, { summary: LAUNCH_MODEL.label || LAUNCH_MODEL.modelId })}
-        ${renderDrawerSection('request-checks', 'Checks', '✓', `
-          <label class="pool-field">
-            <span>Answer check</span>
-            <select id="pool-home-request-policy" data-pool-request-control>
-              ${renderPolicyOptions()}
-            </select>
-          </label>
-          <p class="type-caption pool-drawer-help">Choose speed, sampling, or agreement before the request is signed.</p>
-        `, { summary: renderPolicyProductLabel(getPolicy(FASTEST_RECEIPT_POLICY_ID)) })}
-        ${renderDashboardNetworkSections()}
-      </div>
-    </div>
-  </nav>
-`;
-
-export const renderNav = (activeRoute, {
-  open = false,
-  dashboard = false,
-  dashboardView = 'home'
-} = {}) => {
-  if (dashboard) return renderHomeRequestDrawer(open);
-  const glyphs = {
-    home: '⌂',
-    ask: '?',
-    compute: '☇',
-    records: '☷'
-  };
-  const tooltips = {
-    home: 'Return to the active Research Room',
-    ask: 'State a question and request model execution in this room',
-    compute: 'Share this browser as compute for the active room',
-    records: 'Review evidence and discover the next action in this room',
-    toggleClosed: 'Open the navigation details from the left',
-    toggleOpen: 'Close the navigation details and keep the activity rail'
-  };
-  const descriptions = {
-    home: 'Question, evidence, and next action',
-    ask: 'State intent and run the question',
-    compute: 'Contribute browser capacity; stop any time',
-    records: 'Review claims and discover bounded work'
-  };
-  const toggleTooltip = open ? tooltips.toggleOpen : tooltips.toggleClosed;
+export const renderNav = (activeRoute) => {
   const renderItem = ({ id, path, label }) => {
-    const isActive = dashboard
-      ? normalizePoolDashboardView(dashboardView) === id
-      : activeRoute === id;
+    const isActive = activeRoute === id || (activeRoute === 'ask' && id === 'home');
     const currentAttr = isActive ? ' aria-current="page"' : '';
     const ariaLabel = escapeHtml(label);
-    const tooltip = escapeHtml(tooltips[id] || `Open ${label} in Reploid navigation`);
-    const glyph = glyphs[id] || label.slice(0, 1);
-    const description = escapeHtml(descriptions[id] || tooltips[id]);
     const roomPath = roomHref(path, getPeerRoomId());
-    const dashboardPath = roomHref(id === 'home' ? '/' : `/?view=${id}`, getPeerRoomId());
-    const dashboardAttributes = dashboard
-      ? ` href="${escapeHtml(dashboardPath)}" data-pool-dashboard-view="${id}"`
-      : ` href="${escapeHtml(roomPath)}" data-pool-route-link="${escapeHtml(roomPath)}"`;
-    return `<a class="pool-nav-link${isActive ? ' is-active' : ''}"${dashboardAttributes} aria-label="${ariaLabel}" title="${tooltip}" data-pool-nav-tooltip="${tooltip}"${currentAttr}><span class="pool-nav-glyph" aria-hidden="true">${escapeHtml(glyph)}</span><span class="pool-nav-label">${ariaLabel}</span><span class="pool-nav-description">${description}</span></a>`;
+    return `<a class="pool-nav-link${isActive ? ' is-active' : ''}" href="${escapeHtml(roomPath)}" data-pool-route-link="${escapeHtml(roomPath)}"${currentAttr}>${ariaLabel}</a>`;
   };
   return `
-    <nav class="pool-nav-rail${open ? ' is-open' : ''}" aria-label="Navigation">
-      <div class="pool-nav-top">
-        <button class="pool-nav-toggle" type="button" aria-label="${open ? 'Close navigation' : 'Open navigation'}" title="${escapeHtml(toggleTooltip)}" data-pool-nav-tooltip="${escapeHtml(toggleTooltip)}" aria-controls="pool-nav-menu" aria-expanded="${String(open)}">
-          <span class="pool-nav-mark" aria-hidden="true">
-            <span class="pool-nav-mark-seven pool-nav-mark-seven-top">7</span>
-            <span class="pool-nav-mark-seven pool-nav-mark-seven-bottom">7</span>
-          </span>
-          <span class="pool-nav-brand-copy" aria-hidden="true">
-            <strong>Reploid</strong>
-            <small>Peer inference</small>
-          </span>
-        </button>
-        <div class="pool-nav-menu" id="pool-nav-menu">
-          ${POOLDAY_NAV_ROUTES.map(renderItem).join('')}
+    <nav class="pool-nav-rail pool-primary-nav" aria-label="Poolday">
+      <a class="pool-primary-brand" href="${escapeHtml(roomHref('/', getPeerRoomId()))}" data-pool-route-link="${escapeHtml(roomHref('/', getPeerRoomId()))}">${escapeHtml(POOLDAY_NAME)}</a>
+      <div class="pool-nav-menu" id="pool-nav-menu">
+        ${POOLDAY_NAV_ROUTES.map(renderItem).join('')}
+      </div>
+      <details class="pool-primary-network" data-pool-network-state="simulation">
+        <summary aria-label="Network availability">
+          <span class="pool-primary-network-dot" aria-hidden="true"></span>
+          <span>Network</span>
+          <span data-pool-network-count hidden>0</span>
+        </summary>
+        <div class="pool-primary-network-details">
+          <span><b>Room</b><code data-pool-room-id>${escapeHtml(getPeerRoomId())}</code></span>
+          <span><b>Relay</b><code data-pool-relay-mode>${escapeHtml(getPeerRelayLabel())}</code></span>
+          <span><b>Version</b><code>${escapeHtml(POOLDAY_VERSION_TAG)}</code></span>
+          <a href="${escapeHtml(getPeerInviteUrl())}" data-pool-invite-link>Invite</a>
         </div>
-      </div>
-      <div class="pool-nav-bottom">
-        ${renderDrawerSection('participation', 'Participation', '⚿', `
-          <section data-pool-participation data-pool-participation-surface="navigation" aria-label="Network participation" data-pool-navigation-participation>
-            ${renderParticipationControl({ surface: 'navigation', shareAction: true })}
-            ${renderRoomContext()}
-          </section>
-        `, { open: true })}
-      </div>
+      </details>
     </nav>
   `;
 };
-
-const renderRoomContext = ({ compact = false } = {}) => `
-  <div class="pool-room-context${compact ? ' pool-room-context-compact' : ''}" aria-label="Peer room details">
-    ${compact ? '' : `
-      <div class="pool-room-context-heading">
-        <b>Peer room</b>
-        <small>Connection context</small>
-      </div>
-    `}
-    <span><b>Room</b><code data-pool-room-id>${escapeHtml(getPeerRoomId())}</code></span>
-    <span><b>Relay</b><code data-pool-relay-mode>${escapeHtml(getPeerRelayLabel())}</code></span>
-    <span><b>Version</b><code>${escapeHtml(POOLDAY_VERSION_TAG)}</code></span>
-    <a class="link-secondary" href="${escapeHtml(getPeerInviteUrl())}" data-pool-invite-link>Invite to this room</a>
-  </div>
-`;
 
 export const renderActiveResearchRoom = (routeId = getRouteId()) => {
   const roomId = getPeerRoomId();
@@ -1649,7 +1540,6 @@ export const refreshResearchRoomState = (routeId = getRouteId()) => {
 
 const renderRouteShell = (copy, content, { routeId = 'records' } = {}) => `
   <section class="panel pool-panel pool-route-shell">
-    ${routeId === 'records' ? renderActiveResearchRoom(routeId) : ''}
     <div class="pool-page-heading">
       <h1 class="type-h1">${escapeHtml(copy.title)}</h1>
       <p class="type-caption pool-hero-body">${escapeHtml(copy.body)}</p>
@@ -1891,93 +1781,32 @@ const renderParticipationControl = ({
   `;
 };
 
-const renderDashboardCapability = () => `
-  <section class="pool-capability-card" data-pool-capability-profile data-capability-state="checking" aria-live="polite">
-    <div class="pool-capability-heading">
-      <div>
-        <span class="pool-dashboard-kicker">Capability</span>
-        <h3 data-pool-capability-tier>Checking WebGPU</h3>
-      </div>
-      <strong data-pool-capability-score>--</strong>
-    </div>
-    <p data-pool-capability-summary>Measuring browser limits and a bounded compute kernel. No model is loaded.</p>
-    <div class="pool-capability-meter" aria-hidden="true"><span data-pool-capability-meter></span></div>
-    <dl class="pool-capability-metrics">
-      <div><dt>WebGPU</dt><dd data-pool-capability-webgpu>Checking</dd></div>
-      <div><dt>GPU buffer</dt><dd data-pool-capability-buffer>--</dd></div>
-      <div><dt>Kernel</dt><dd data-pool-capability-kernel>--</dd></div>
-      <div><dt>Stable</dt><dd data-pool-capability-stability>--</dd></div>
-    </dl>
-    <div class="pool-capability-models">
-      <b>Eligible here</b>
-      <div data-pool-capability-models><span>Checking model contracts</span></div>
-    </div>
-    <button class="btn btn-ghost" type="button" data-pool-capability-rerun>Check again</button>
-  </section>
-`;
-
-const renderDashboardNetworkSections = () => {
-  const preferences = readParticipationPreferences();
-  return `
-    ${renderDrawerSection('network-connection', 'Connection', '☍', `
-      <section class="pool-control-stack" aria-label="Network connection">
-        ${renderParticipationControl({ surface: 'network-connection' })}
-        <div class="pool-drawer-value">
-          <span>Live network</span>
-          <b data-pool-connection-activity>${getPeerRelayMode() === 'local' ? 'Local tab · live discovery' : 'Checking live room'}</b>
-        </div>
-        ${renderRoomContext({ compact: true })}
-      </section>
-    `, {
-      summary: `${getPeerRoomId()} · ${preferences.mode === PARTICIPATION_MODES.both ? 'Both' : preferences.mode === PARTICIPATION_MODES.contribute ? 'Contribute' : 'Request'}`
-    })}
-    ${renderDrawerSection('network-device', 'This device', '⚙', `
-      <section class="pool-control-stack" data-pool-provider aria-label="Share this browser">
-          <div class="pool-device-primary">
-            <p class="pool-provider-status" data-pool-provider-status>Idle</p>
-            <button class="btn btn-primary pool-home-share-toggle" id="pool-home-provider-toggle" type="button" aria-pressed="false">Start sharing</button>
-          </div>
-          <label class="pool-field">
-            <span>Local model</span>
-            <select id="pool-provider-model">${renderModelOptions({ includeWorkloadLabel: true })}</select>
-          </label>
-          <p class="pool-provider-capability type-caption">When sharing, this tab accepts <span class="pool-workload-badge" data-pool-provider-workload>text generation</span> jobs after the device and model qualify.</p>
-          ${renderDashboardCapability()}
-          <div id="pool-provider-health" class="pool-ledger-shell" aria-live="polite">${renderProviderHealth()}</div>
-          ${renderSharingLimits(preferences)}
-      </section>
-    `, { open: true, summary: 'Not sharing' })}
-    ${renderDrawerSection('network-activity', 'Activity', '☷', `
-      <section data-pool-dashboard-activity aria-label="Activity">
-        <div id="pool-record-ledger" aria-live="polite" data-record-presentation="compact">${renderDashboardActivity()}</div>
-      </section>
-    `, { summary: 'No recent work' })}
-  `;
-};
-
 const renderHomeSimulation = ({ dashboardView = 'home' } = {}) => {
   const activeView = normalizePoolDashboardView(dashboardView);
   const suggestedPrompt = choosePooldayAskPlaceholderForLane('sequence');
   return `
-    <section class="pool-home-stage pool-home-stage--focused" aria-label="Run a protein sequence" data-pool-run-surface="home" data-run-state="idle" data-run-phase="" data-pool-lane="sequence" data-pool-dashboard-view="${activeView}">
-      <div class="pool-home-toolbar" aria-label="Reploid">
-        <div class="pool-home-toolbar-leading pool-home-overlay" aria-label="Reploid overview">
+    <section class="pool-home-stage pool-home-stage--focused" aria-label="Run a model" data-pool-run-surface="home" data-run-state="idle" data-run-phase="" data-pool-lane="sequence" data-pool-dashboard-view="${activeView}">
+      <div class="pool-home-toolbar" aria-label="Poolday">
+        <div class="pool-home-toolbar-leading pool-home-overlay" aria-label="Poolday overview">
           <div class="pool-home-title-lockup">
-            <h1 class="type-h1 pool-home-brand-word">REPLOID</h1>
+            <h1 class="type-h1 pool-home-brand-word">POOLDAY</h1>
             <p class="type-caption pool-hero-body pool-home-brand-promise">${escapeHtml(ROUTE_COPY.home.body)}</p>
           </div>
         </div>
-        <a class="btn btn-ghost pool-home-room-link" data-pool-route-link="${escapeHtml(roomHref('/records', getPeerRoomId()))}" href="${escapeHtml(roomHref('/records', getPeerRoomId()))}">View room</a>
       </div>
       <div class="pool-home-task">
-        <form class="pool-home-ask-dock pool-home-cta-row pool-home-ask-form" id="pool-home-ask-form" aria-label="Run a protein sequence">
+        <form class="pool-home-ask-dock pool-home-cta-row pool-home-ask-form" id="pool-home-ask-form" aria-label="Run a model">
           <header class="pool-home-task-heading">
-            <p class="pool-dashboard-kicker">Protein evidence</p>
-            <h2 class="type-h2">Ask a protein question</h2>
+            <h2 class="type-h2">Run a model</h2>
           </header>
-          ${renderRequesterIntentFields({ prefix: 'pool-home', textTag: 'textarea', compact: true, requestAttributes: ' data-pool-request-control' })}
+          <label class="pool-field">
+            <span>Model Pack</span>
+            <select id="pool-home-request-model" data-pool-request-control>
+              ${renderModelOptions({ workload: POOLDAY_MODEL_WORKLOADS.sequenceEmbedding })}
+            </select>
+          </label>
           <label class="pool-home-sequence-field" for="pool-home-ask-prompt">
-            <span>Public protein sequence</span>
+            <span>Input</span>
             <textarea
               id="pool-home-ask-prompt"
               class="pool-home-ask-input"
@@ -1993,25 +1822,37 @@ const renderHomeSimulation = ({ dashboardView = 'home' } = {}) => {
             ></textarea>
           </label>
           <div class="pool-sequence-options" data-pool-sequence-options>
-            ${renderRequesterConsentRows({
-              prefix: 'pool-home',
-              includeSavedNotice: true,
-              sequenceConsentAttributes: ' data-pool-sequence-consent-row',
-              requestAttributes: ' data-pool-request-control'
-            })}
+            <label class="pool-consent-row" data-pool-sequence-consent-row>
+              <input id="pool-home-sequence-public" type="checkbox" data-pool-request-control>
+              <span>This input may be sent to selected peers</span>
+            </label>
+            <strong data-pool-sequence-consent-saved hidden>Saved</strong>
           </div>
-          <label class="pool-home-adapter-picker" data-pool-home-adapter-picker hidden>
-            <span>Adapter pack</span>
-            <select id="pool-home-adapter" data-pool-run-adapter data-pool-request-control disabled>
-              <option value="">Loading published packs…</option>
-            </select>
-            <small data-pool-adapter-status hidden></small>
-          </label>
+          <details class="pool-advanced pool-home-request-details">
+            <summary>Advanced details</summary>
+            <div class="pool-advanced-grid">
+              <label class="pool-field">
+                <span>Independent check</span>
+                <select id="pool-home-request-policy" data-pool-request-control>${renderPolicyOptions()}</select>
+              </label>
+              ${renderRequesterIntentFields({ prefix: 'pool-home', textTag: 'textarea', compact: true, requestAttributes: ' data-pool-request-control' })}
+              <label class="pool-consent-row">
+                <input id="pool-home-research-public" type="checkbox" data-pool-request-control>
+                <span>Publish the question and result to the room</span>
+              </label>
+              <label class="pool-home-adapter-picker" data-pool-home-adapter-picker hidden>
+                <span>Adapter Pack</span>
+                <select id="pool-home-adapter" data-pool-run-adapter data-pool-request-control disabled>
+                  <option value="">Loading published Packs…</option>
+                </select>
+                <small data-pool-adapter-status hidden></small>
+              </label>
+            </div>
+          </details>
           <div class="pool-home-submit-row">
-            <button class="btn btn-primary pool-home-run-button" id="pool-home-run-submit" type="submit" data-pool-request-control aria-label="Run protein sequence">Run sequence</button>
+            <button class="btn btn-primary pool-home-run-button" id="pool-home-run-submit" type="submit" data-pool-request-control aria-label="Run model">Run model</button>
             <p class="pool-home-run-status" data-pool-run-status aria-live="polite">Ready</p>
           </div>
-          <p class="pool-home-purpose-boundary">Produces model evidence, not a biological diagnosis.</p>
         </form>
         <section class="pool-home-result-panel" data-pool-run-output hidden aria-label="Run result">
           ${renderResultBox('pool-home-run-result', {
@@ -2090,7 +1931,6 @@ export const renderRouteDetail = (routeId) => {
   }
   if (normalizedRouteId === 'compute') {
     return renderRouteShell(copy, `
-        ${renderParticipationControl({ surface: 'compute', advanced: true })}
         <div class="pool-form pool-route-grid pool-provider-layout" data-pool-provider>
           <div class="pool-provider-main">
             <div class="pool-section-heading pool-provider-heading">
@@ -2098,12 +1938,11 @@ export const renderRouteDetail = (routeId) => {
             </div>
             <div id="pool-provider-node-stats" class="pool-node-status-line" aria-live="polite" hidden></div>
             <label class="pool-field">
-              <span>Model</span>
+              <span>Available Pack</span>
               <select id="pool-provider-model">${renderModelOptions({ includeWorkloadLabel: true })}</select>
             </label>
-            <p class="pool-provider-capability type-caption">This tab accepts <span class="pool-workload-badge" data-pool-provider-workload>protein embedding</span> jobs for the selected model.</p>
             <div class="pool-control-row pool-primary-actions" aria-label="Contribution controls">
-              <button class="btn btn-primary btn-op" data-op="▶" id="pool-provider-worker-toggle" type="button" aria-pressed="false">Start contributing</button>
+              <button class="btn btn-primary btn-op" data-op="▶" id="pool-provider-worker-toggle" type="button" aria-pressed="false">Start sharing</button>
             </div>
           </div>
           <section class="pool-inspector-shell" data-pool-contribution-history hidden>
@@ -2111,8 +1950,9 @@ export const renderRouteDetail = (routeId) => {
             <div id="pool-provider-node-history" class="pool-ledger-shell" aria-live="polite">${renderRecentContributionHistory()}</div>
           </section>
           <details class="pool-advanced pool-provider-details" id="pool-provider-details">
-            <summary>Details</summary>
+            <summary>Advanced details</summary>
             <div class="pool-provider-detail-grid">
+              ${renderParticipationControl({ surface: 'compute', advanced: true })}
               <section aria-label="Contributor readiness">
                 <h2 class="type-h2">Readiness</h2>
                 <div id="pool-provider-health" class="pool-ledger-shell" aria-live="polite">${renderProviderHealth()}</div>
@@ -2147,15 +1987,16 @@ export const renderRouteDetail = (routeId) => {
         : null;
     return renderRouteShell(copy, `
         <div class="pool-form pool-route-grid pool-record-layout" data-pool-receipts data-pool-reputation>
-          ${contextualPanel ? `<section class="pool-room-contextual-panel" data-pool-room-contextual-panel="${escapeHtml(roomPanel)}"><p class="pool-dashboard-kicker">Room panel</p><h2 class="type-h2">${escapeHtml(contextualPanel.title)}</h2><p>${escapeHtml(contextualPanel.body)}</p><a class="btn btn-ghost" href="#${escapeHtml(contextualPanel.target)}">Open panel controls</a></section>` : ''}
-          <details class="pool-advanced pool-room-secondary-workspace" data-pool-room-panel="research"${secondaryWorkspaceOpen ? ' open' : ''}>
-            <summary>Review and discovery workspace</summary>
-            <div id="pool-research-workspace-host">${renderResearchWorkspace(getPeerRoomId(), loadResearchRecords(getPeerRoomId()), { reviewTarget: getPoolReviewTarget() })}</div>
-          </details>
           <div id="pool-record-ledger" aria-live="polite" data-record-facet="${escapeHtml(recordFacet)}">${renderRecordLedger(recordFacet)}</div>
           <details class="pool-advanced pool-record-tools" data-pool-record-disclosure="technical-tools"${readRecordViewState().open['technical-tools'] ? ' open' : ''}>
-            <summary>Technical tools</summary>
+            <summary>Advanced details</summary>
             <div class="pool-record-tool-grid">
+              ${renderActiveResearchRoom(normalizedRouteId)}
+              ${contextualPanel ? `<section class="pool-room-contextual-panel" data-pool-room-contextual-panel="${escapeHtml(roomPanel)}"><h2 class="type-h2">${escapeHtml(contextualPanel.title)}</h2><p>${escapeHtml(contextualPanel.body)}</p><a class="btn btn-ghost" href="#${escapeHtml(contextualPanel.target)}">Open panel controls</a></section>` : ''}
+              <section class="pool-room-secondary-workspace" data-pool-room-panel="research"${secondaryWorkspaceOpen ? ' data-pool-room-panel-open="true"' : ''}>
+                <h2 class="type-h2">Research workspace</h2>
+                <div id="pool-research-workspace-host">${renderResearchWorkspace(getPeerRoomId(), loadResearchRecords(getPeerRoomId()), { reviewTarget: getPoolReviewTarget() })}</div>
+              </section>
               <section data-pool-room-activity>
                 <h2 class="type-h2">Room activity</h2>
                 <div id="pool-room-activity" class="pool-ledger-shell" aria-live="polite">${renderRoomActivity()}</div>

@@ -124,7 +124,7 @@ describe('Poolday record ledgers', () => {
     expect(reviewHtml).toContain('data-pool-room-contextual-panel="review"');
     expect(reviewHtml).toContain('id="pool-room-review"');
     expect(reviewHtml).toContain('data-room-panel="review"');
-    expect(reviewHtml).toMatch(/pool-room-secondary-workspace"[^>]* open>/);
+    expect(reviewHtml).toMatch(/pool-room-secondary-workspace"[^>]* data-pool-room-panel-open="true">/);
 
     setRoom(room, 'discovery');
     const discoveryHtml = renderRouteDetail('records');
@@ -132,12 +132,12 @@ describe('Poolday record ledgers', () => {
     expect(discoveryHtml).toContain('data-pool-room-contextual-panel="discovery"');
     expect(discoveryHtml).toContain('id="pool-room-discovery"');
     expect(discoveryHtml).toContain('data-room-panel="discovery"');
-    expect(discoveryHtml).toMatch(/pool-room-secondary-workspace"[^>]* open>/);
+    expect(discoveryHtml).toMatch(/pool-room-secondary-workspace"[^>]* data-pool-room-panel-open="true">/);
 
     setRoom(room);
     const overviewHtml = renderRouteDetail('records');
     expect(overviewHtml).toContain('data-pool-room-panel="research"');
-    expect(overviewHtml).not.toMatch(/pool-room-secondary-workspace"[^>]* open>/);
+    expect(overviewHtml).not.toContain('data-pool-room-panel-open="true"');
   });
 
   it('composes compatibility routes into room-specific initial views', () => {
@@ -147,7 +147,7 @@ describe('Poolday record ledgers', () => {
     const networkHtml = renderRouteDetail('network');
     expect(getPoolRoomPanel()).toBe('discovery');
     expect(networkHtml).toContain('data-pool-room-contextual-panel="discovery"');
-    expect(networkHtml).toMatch(/pool-room-secondary-workspace"[^>]* open>/);
+    expect(networkHtml).toContain('data-pool-room-panel-open="true"');
 
     setRoom(room, '', '/history');
     const historyHtml = renderRouteDetail('history');
@@ -495,7 +495,7 @@ describe('Poolday record ledgers', () => {
     expect(recordsHtml).toContain('No lookup yet.');
     expect(recordsHtml).toContain('No answers saved yet.');
     expect(recordsHtml).toContain('No records yet. Completed runs and contributions will appear here.');
-    expect(recordsHtml).toContain('Technical tools');
+    expect(recordsHtml).toContain('Advanced details');
     expect(recordsHtml).toContain('Room activity');
     expect(recordsHtml).toContain('Checking room activity...');
     expect(recordsHtml).toContain('Contributor scores');

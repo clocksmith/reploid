@@ -55,7 +55,7 @@ describe('CATSCAN component charters', () => {
     expect(charters.length).toBeGreaterThanOrEqual(20);
     expect(charters.map((charter) => charter.component)).toEqual(expect.arrayContaining([
       'Reploid',
-      'Research Room Interface',
+      'Poolday Interface',
       'Poolday Evidence Runtime',
       'X Operator Workbench',
       'Zero Proposal Interface'

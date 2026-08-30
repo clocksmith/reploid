@@ -1,5 +1,5 @@
 /**
- * @fileoverview Shared requester consent and intent controls for the Research Room surfaces.
+ * @fileoverview Shared requester consent and intent controls for Poolday request surfaces.
  */
 
 const escapeHtml = (value) => String(value ?? '')
@@ -55,17 +55,12 @@ export function renderRequesterIntentFields({
     return `
       <div class="pool-research-intent-fields pool-research-intent-fields--compact">
         <label><span>Question</span>${textControl}</label>
-        <details class="pool-advanced pool-question-contract">
-          <summary>Add details</summary>
-          <div class="pool-research-intent-fields">
-            <label><span>Conditions</span><textarea id="${safePrefix}-intent-conditions" rows="2" maxlength="2000" placeholder="System, environment, or assay"${requestAttributes}></textarea></label>
-            <label><span>Useful result</span><textarea id="${safePrefix}-intent-observation" rows="2" maxlength="2000" placeholder="What result would answer the question?"${requestAttributes}></textarea></label>
-            <label><span>Decision</span><input id="${safePrefix}-intent-decision" maxlength="2000" placeholder="What will this evidence inform?"${requestAttributes}></label>
-            <label><span>Scope</span><input id="${safePrefix}-intent-scope" maxlength="2000" placeholder="What is included?"${requestAttributes}></label>
-            <label><span>Exclusions</span><input id="${safePrefix}-intent-exclusions" maxlength="2000" placeholder="What is not claimed?"${requestAttributes}></label>
-            <label><span>Unknowns</span><textarea id="${safePrefix}-intent-unknowns" rows="2" maxlength="2000" placeholder="Missing evidence or confounders"${requestAttributes}></textarea></label>
-          </div>
-        </details>
+        <label><span>Conditions</span><textarea id="${safePrefix}-intent-conditions" rows="2" maxlength="2000" placeholder="System, environment, or assay"${requestAttributes}></textarea></label>
+        <label><span>Useful result</span><textarea id="${safePrefix}-intent-observation" rows="2" maxlength="2000" placeholder="What result would answer the question?"${requestAttributes}></textarea></label>
+        <label><span>Decision</span><input id="${safePrefix}-intent-decision" maxlength="2000" placeholder="What will this evidence inform?"${requestAttributes}></label>
+        <label><span>Scope</span><input id="${safePrefix}-intent-scope" maxlength="2000" placeholder="What is included?"${requestAttributes}></label>
+        <label><span>Exclusions</span><input id="${safePrefix}-intent-exclusions" maxlength="2000" placeholder="What is not claimed?"${requestAttributes}></label>
+        <label><span>Unknowns</span><textarea id="${safePrefix}-intent-unknowns" rows="2" maxlength="2000" placeholder="Missing evidence or confounders"${requestAttributes}></textarea></label>
       </div>
     `;
   }

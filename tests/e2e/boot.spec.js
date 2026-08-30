@@ -115,10 +115,8 @@ test.describe('Route Entry Points', () => {
     await expect(page.locator('.pool-boot-failure')).toHaveCount(0);
   });
 
-  test('home centers one focused protein task beside persistent controls', async ({ page }) => {
+  test('home centers one focused Pack job beneath minimal navigation', async ({ page }) => {
     await page.goto(PRODUCT_HOME_PATH);
-    await page.evaluate(() => localStorage.removeItem('reploid.pool.drawerSections.v1'));
-    await page.reload();
     await page.waitForSelector('.pool-home', { timeout: 20000 });
 
     const layout = await page.evaluate(() => {
@@ -133,252 +131,93 @@ test.describe('Route Entry Points', () => {
     expect(layout.taskCenterDelta).toBeLessThanOrEqual(1);
     expect(layout.formCenterDelta).toBeLessThanOrEqual(1);
     expect(layout.formInsideViewport).toBe(true);
-    await expect(page.locator('#pool-home-run-submit')).toHaveText('Run sequence');
-
-    const controlDrawer = page.getByRole('navigation', { name: 'Reploid controls' });
-    await expect(controlDrawer.locator('[data-pool-drawer-section]')).toHaveCount(5);
-    await expect(controlDrawer.locator('[data-pool-drawer-section="request-participation"]')).toHaveCount(0);
-    await expect(controlDrawer.locator('[data-pool-drawer-section="network-connection"]')).toHaveCount(1);
-    await expect(controlDrawer.locator('[data-pool-participation-surface="network-connection"]')).toHaveCount(1);
-    await expect(page.getByRole('complementary', { name: 'Network controls' })).toHaveCount(0);
-
-    await page.reload();
-    await page.waitForSelector('.pool-home', { timeout: 20000 });
-    await expect(page.locator('[data-pool-drawer-section="request-participation"]')).toHaveCount(0);
-    await expect(page.locator('[data-pool-drawer-section="network-connection"]')).toHaveCount(1);
-    await expect(page.locator('[data-pool-participation-surface="network-connection"]')).toHaveCount(1);
+    await expect(page.locator('#pool-home-run-submit')).toHaveText('Run model');
+    const nav = page.getByRole('navigation', { name: 'Poolday' });
+    await expect(nav.locator('.pool-nav-link')).toHaveCount(3);
+    await expect(nav.getByRole('link', { name: 'Run a model', exact: true })).toHaveAttribute('aria-current', 'page');
+    await expect(nav.getByRole('link', { name: 'Share compute', exact: true })).toBeVisible();
+    await expect(nav.getByRole('link', { name: 'Recent jobs', exact: true })).toBeVisible();
+    await expect(nav.locator('[data-pool-network-state]')).toBeVisible();
+    await expect(page.locator('[data-pool-drawer-section]')).toHaveCount(0);
   });
 
-  test('product root renders the focused Reploid protein workflow', async ({ page }) => {
+  test('product root renders the minimal Poolday request workflow', async ({ page }) => {
     await page.goto(PRODUCT_HOME_PATH);
     await page.waitForSelector('.pool-home', { timeout: 20000 });
 
-    await expect(page).toHaveTitle(/^Reploid$/i);
-    const controlDrawer = page.getByRole('navigation', { name: 'Reploid controls' });
-    await expect(controlDrawer).toBeVisible();
-    await expect(page.getByRole('complementary', { name: 'Network controls' })).toHaveCount(0);
-    await expect(page.locator('.pool-topbar')).toHaveCount(0);
+    await expect(page).toHaveTitle(/^Poolday$/i);
     await expect(page.locator('.pool-home')).toHaveAttribute('data-pool-route-id', 'home');
-    await expect(controlDrawer.locator('.pool-nav-toggle')).toHaveAttribute('aria-expanded', 'false');
-    await expect(controlDrawer.locator('.pool-nav-mark-seven-top')).toHaveText('7');
-    await expect(controlDrawer.locator('.pool-nav-mark-seven-bottom')).toHaveText('7');
-    await expect(controlDrawer.locator('.pool-nav-menu')).toBeVisible();
-    await expect(controlDrawer.locator('[data-pool-drawer-section]')).toHaveCount(5);
-    await expect(controlDrawer.getByRole('link', { name: 'Zero', exact: true })).toHaveCount(0);
-    await expect(controlDrawer.getByRole('link', { name: 'X', exact: true })).toHaveCount(0);
-    await expect(page.locator('#pool-home-ask-form')).toBeVisible();
-    await expect(page.locator('#pool-home-ask-prompt')).toHaveValue('');
-    const askPlaceholder = await page.locator('#pool-home-ask-prompt').getAttribute('placeholder');
-    expect(askPlaceholder).toBeTruthy();
-    expect(askPlaceholder).not.toBe('Ask the network...');
-    expect(askPlaceholder.trim().split(/\s+/).length).toBeGreaterThanOrEqual(1);
-    expect(askPlaceholder.trim().split(/\s+/).length).toBeLessThanOrEqual(4);
-    await expect(page.locator('#pool-home-ask-prompt')).toHaveAttribute('data-pool-suggested-prompt', askPlaceholder);
-    await expect(page.locator('label[for="pool-home-ask-prompt"]')).toHaveCount(1);
-    await expect(page.locator('#pool-home-ask-form').getByRole('button', { name: 'Run protein sequence', exact: true })).toBeVisible();
-    await expect(page.getByRole('heading', { name: 'Ask a protein question', exact: true })).toBeVisible();
-    await expect(page.getByRole('textbox', { name: 'Question', exact: true })).toBeVisible();
-    await expect(page.getByLabel('Public protein sequence')).toBeVisible();
-    await expect(page.getByLabel('This sequence is public')).toBeVisible();
-    await expect(page.getByLabel('Save the question and result to this room')).toBeVisible();
-    await expect(page.getByRole('link', { name: 'View room', exact: true })).toBeVisible();
-    await expect(page.locator('[data-pool-research-room]')).toHaveCount(0);
-    await expect(page.locator('.pool-simulation-shell')).toHaveCount(0);
-    await expect(page.locator('.pool-home-purpose')).toHaveCount(0);
-    await expect(page.locator('.pool-home-stage')).toHaveAttribute('data-pool-lane', 'sequence');
-    await expect(page.locator('[data-pool-sequence-options]')).toBeVisible();
-    await expect(page.locator('#pool-home-sequence-public')).not.toBeChecked();
+    await expect(page.getByRole('heading', { name: 'POOLDAY', exact: true })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Run a model', exact: true })).toBeVisible();
     await expect(page.locator('#pool-home-request-model')).toHaveValue('esm2-t12-35m-ur50d-f32-af32');
-    await expect(page.locator('#pool-home-ask-prompt')).toHaveAttribute('name', 'sequence');
-    await expect(page.locator('#pool-home-ask-prompt')).toHaveAttribute('aria-label', 'Public protein sequence');
-    await expect(page.locator('#pool-home-run-submit')).toHaveAttribute('aria-label', 'Run protein sequence');
+    await expect(page.getByLabel('Public protein sequence')).toHaveValue('');
+    await expect(page.getByLabel('This input may be sent to selected peers')).not.toBeChecked();
+    await expect(page.getByRole('button', { name: 'Run model', exact: true })).toBeVisible();
+    await expect(page.locator('.pool-home-request-details')).not.toHaveAttribute('open', '');
+    await expect(page.getByText('Question', { exact: true })).toBeHidden();
+    await page.getByText('Advanced details', { exact: true }).click();
+    await expect(page.getByText('Independent check', { exact: true })).toBeVisible();
+    await expect(page.getByLabel('Publish the question and result to the room')).not.toBeChecked();
     await expect(page.locator('[data-pool-home-adapter-picker]')).toBeHidden();
-    const collapsedToggle = await controlDrawer.locator('.pool-nav-toggle').evaluate((toggle) => {
-      const top = toggle.querySelector('.pool-nav-mark-seven-top');
-      const bottom = toggle.querySelector('.pool-nav-mark-seven-bottom');
-      return {
-        width: toggle.getBoundingClientRect().width,
-        topSize: Number.parseFloat(getComputedStyle(top).fontSize),
-        bottomSize: Number.parseFloat(getComputedStyle(bottom).fontSize),
-        topTransform: getComputedStyle(top).transform,
-        bottomTransform: getComputedStyle(bottom).transform
-      };
-    });
-    await controlDrawer.locator('.pool-nav-toggle').click();
-    await expect(controlDrawer).toHaveClass(/is-open/);
-    await expect(controlDrawer.locator('[data-pool-drawer-section="request-task"]')).toHaveCount(0);
-    await expect(controlDrawer.locator('[data-pool-drawer-section="request-model"]')).toBeVisible();
-    await expect(controlDrawer.locator('[data-pool-drawer-section="request-checks"]')).toBeVisible();
-    await expect(page.getByRole('link', { name: /^Live Network/ })).toHaveCount(0);
-    await expect(page.locator('.pool-home-toolbar')).toBeVisible();
-    await expect(page.locator('[data-pool-hot-path]')).toHaveCount(0);
-    await expect(page.locator('.pool-home-network-panel')).toHaveCount(0);
-    await expect(controlDrawer.locator('.pool-nav-toggle')).toHaveAttribute('aria-expanded', 'true');
-    await expect.poll(() => controlDrawer.locator('.pool-nav-toggle').evaluate((toggle) => toggle.getBoundingClientRect().width))
-      .toBeGreaterThan(collapsedToggle.width + 80);
-    await expect.poll(() => controlDrawer.locator('.pool-nav-toggle').evaluate((toggle) => {
-      const top = toggle.querySelector('.pool-nav-mark-seven-top');
-      const bottom = toggle.querySelector('.pool-nav-mark-seven-bottom');
-      return Number.parseFloat(getComputedStyle(top).fontSize)
-        > Number.parseFloat(getComputedStyle(bottom).fontSize);
-    })).toBe(true);
-    const expandedToggle = await controlDrawer.locator('.pool-nav-toggle').evaluate((toggle) => {
-      const top = toggle.querySelector('.pool-nav-mark-seven-top');
-      const bottom = toggle.querySelector('.pool-nav-mark-seven-bottom');
-      return {
-        topSize: Number.parseFloat(getComputedStyle(top).fontSize),
-        bottomSize: Number.parseFloat(getComputedStyle(bottom).fontSize),
-        topTransform: getComputedStyle(top).transform,
-        bottomTransform: getComputedStyle(bottom).transform
-      };
-    });
-    expect(collapsedToggle.topSize).toBeLessThan(collapsedToggle.bottomSize);
-    expect(expandedToggle.topSize).toBeGreaterThan(expandedToggle.bottomSize);
-    expect(expandedToggle.topTransform).not.toBe(collapsedToggle.topTransform);
-    expect(expandedToggle.bottomTransform).not.toBe(collapsedToggle.bottomTransform);
-    await expect(controlDrawer.locator('[data-pool-drawer-section="request-task"]')).toHaveCount(0);
-    await expect(controlDrawer.locator('[data-pool-drawer-section="request-model"]')).toBeVisible();
-    await expect(controlDrawer.locator('[data-pool-drawer-section="request-checks"]')).toBeVisible();
-    await expect(controlDrawer.locator('[data-pool-drawer-section="network-connection"]')).toBeVisible();
-    await expect(controlDrawer.locator('[data-pool-drawer-section="network-device"]')).toBeVisible();
-    await expect(controlDrawer.locator('[data-pool-drawer-section="network-activity"]')).toBeVisible();
-    await expect(controlDrawer.getByRole('link', { name: 'Zero', exact: true })).toHaveCount(0);
-    await expect(controlDrawer.getByRole('link', { name: 'X', exact: true })).toHaveCount(0);
-    await expect(page.getByLabel('Reploid overview')).toContainText('REPLOID');
-    await expect(page.getByLabel('Reploid overview')).toContainText('Run a public protein sequence and keep the evidence.');
-    await expect(page.locator('body')).not.toContainText('Poolday');
+    await expect(page.locator('[data-pool-research-room]')).toHaveCount(0);
+    await expect(page.locator('[data-pool-drawer-section]')).toHaveCount(0);
   });
 
-  test('product navigation spans the viewport and opens into an informative sidebar', async ({ page }) => {
-    await page.setViewportSize({ width: 1440, height: 900 });
-    await page.goto('/ask');
-    await page.waitForSelector('nav.pool-nav-rail', { timeout: 20000 });
+  test('product navigation remains compact and complete on desktop and mobile', async ({ page }) => {
+    for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 }]) {
+      await page.setViewportSize(viewport);
+      await page.goto('/');
+      const nav = page.getByRole('navigation', { name: 'Poolday' });
+      await expect(nav).toBeVisible();
+      await expect(nav.locator('.pool-nav-link')).toHaveCount(3);
+      await expect(nav.getByRole('link', { name: 'Run a model', exact: true })).toBeVisible();
+      await expect(nav.getByRole('link', { name: 'Share compute', exact: true })).toBeVisible();
+      await expect(nav.getByRole('link', { name: 'Recent jobs', exact: true })).toBeVisible();
+      await expect(nav.locator('.pool-nav-toggle')).toHaveCount(0);
 
-    const desktop = await page.evaluate(() => {
-      const rail = document.querySelector('nav.pool-nav-rail').getBoundingClientRect();
-      const open = document.querySelector('nav.pool-nav-rail').classList.contains('is-open');
-      return {
-        height: rail.height,
-        open,
-        viewportHeight: window.innerHeight,
-        width: rail.width,
-        x: rail.x,
-        y: rail.y,
-        overflowX: document.documentElement.scrollWidth > document.documentElement.clientWidth
-      };
-    });
-    expect(desktop.open).toBe(false);
-    expect(Math.abs(desktop.x)).toBeLessThanOrEqual(1);
-    expect(Math.abs(desktop.y)).toBeLessThanOrEqual(1);
-    expect(Math.abs(desktop.height - desktop.viewportHeight)).toBeLessThanOrEqual(1);
-    expect(desktop.width).toBeLessThanOrEqual(68);
-    expect(desktop.overflowX).toBe(false);
+      const geometry = await page.evaluate(() => {
+        const nav = document.querySelector('nav.pool-primary-nav').getBoundingClientRect();
+        return {
+          left: nav.left,
+          right: nav.right,
+          width: nav.width,
+          overflowX: document.documentElement.scrollWidth > document.documentElement.clientWidth
+        };
+      });
+      expect(Math.abs(geometry.left)).toBeLessThanOrEqual(1);
+      expect(Math.abs(geometry.right - viewport.width)).toBeLessThanOrEqual(1);
+      expect(Math.abs(geometry.width - viewport.width)).toBeLessThanOrEqual(1);
+      expect(geometry.overflowX).toBe(false);
+    }
 
-    const nav = page.getByRole('navigation', { name: 'Navigation' });
-    await nav.locator('.pool-nav-toggle').click();
-    await expect(nav).toHaveClass(/is-open/);
-    await expect(nav.locator('.pool-nav-toggle')).toHaveAttribute('aria-expanded', 'true');
-    await expect(nav.getByRole('link', { name: 'Review evidence', exact: true })).toBeVisible();
-    await expect(page.locator('.pool-nav-description').first()).toBeVisible();
-    await expect(page.locator('.pool-room-context')).toBeVisible();
-    await expect.poll(() => nav.evaluate((rail) => rail.getBoundingClientRect().width))
-      .toBeGreaterThan(260);
-    const expanded = await page.evaluate(() => {
-      const rail = document.querySelector('nav.pool-nav-rail').getBoundingClientRect();
-      const bottom = document.querySelector('nav.pool-nav-rail .pool-nav-bottom').getBoundingClientRect();
-      return {
-        bottomGap: window.innerHeight - bottom.bottom,
-        height: rail.height,
-        viewportHeight: window.innerHeight,
-        width: rail.width
-      };
-    });
-    expect(expanded.width).toBeGreaterThan(260);
-    expect(Math.abs(expanded.height - expanded.viewportHeight)).toBeLessThanOrEqual(1);
-    expect(expanded.bottomGap).toBeLessThanOrEqual(12);
     await page.getByRole('link', { name: 'Share compute', exact: true }).click();
     await expect(page).toHaveURL(/\/compute\?room=reploid-default$/);
-    await expect(nav).not.toHaveClass(/is-open/);
     await expect(page.getByRole('link', { name: 'Share compute', exact: true })).toHaveAttribute('aria-current', 'page');
-    await nav.locator('.pool-nav-toggle').click();
-    await expect(nav).toHaveClass(/is-open/);
-    await expect(page.getByRole('link', { name: 'Zero', exact: true })).toHaveCount(0);
-
-    await page.setViewportSize({ width: 390, height: 844 });
-    await page.reload();
-    await page.waitForSelector('nav.pool-nav-rail', { timeout: 20000 });
-
-    const mobile = await page.evaluate(() => {
-      const rail = document.querySelector('nav.pool-nav-rail').getBoundingClientRect();
-      const scrollHeight = Math.max(
-        document.documentElement.scrollHeight,
-        document.body?.scrollHeight || 0
-      );
-      return {
-        height: rail.height,
-        left: rail.left,
-        open: document.querySelector('nav.pool-nav-rail').classList.contains('is-open'),
-        right: window.innerWidth - rail.right,
-        scrollHeight,
-        viewportHeight: window.innerHeight,
-        width: rail.width,
-        y: rail.y,
-        overflowX: document.documentElement.scrollWidth > document.documentElement.clientWidth,
-        overflowY: scrollHeight > window.innerHeight + 1
-      };
-    });
-    expect(mobile.open).toBe(false);
-    expect(Math.abs(mobile.y)).toBeLessThanOrEqual(1);
-    expect(Math.abs(mobile.left)).toBeLessThanOrEqual(1);
-    expect(mobile.right).toBeGreaterThan(300);
-    expect(Math.abs(mobile.height - mobile.viewportHeight)).toBeLessThanOrEqual(1);
-    expect(mobile.width).toBeLessThanOrEqual(68);
-    expect(mobile.overflowX).toBe(false);
-    expect(mobile.overflowY).toBe(false);
-    expect(mobile.scrollHeight).toBeLessThanOrEqual(mobile.viewportHeight + 1);
-    const mobileNav = page.getByRole('navigation', { name: 'Navigation' });
-    await mobileNav.locator('.pool-nav-toggle').click();
-    await expect(mobileNav.getByRole('link', { name: 'Research Room', exact: true })).toBeVisible();
-    await expect(mobileNav.getByRole('link', { name: 'Request', exact: true })).toBeVisible();
-    await expect(mobileNav.getByRole('link', { name: 'Share compute', exact: true })).toBeVisible();
-    await expect(mobileNav.getByRole('link', { name: 'Review evidence', exact: true })).toBeVisible();
-    await expect(mobileNav.locator('.pool-nav-description').first()).toBeVisible();
-    await expect(mobileNav.locator('.pool-room-context')).toBeVisible();
-    await expect(mobileNav.getByRole('link', { name: 'Zero', exact: true })).toHaveCount(0);
+    await page.getByRole('link', { name: 'Recent jobs', exact: true }).click();
+    await expect(page).toHaveURL(/\/records\?room=reploid-default$/);
+    await expect(page.getByRole('link', { name: 'Recent jobs', exact: true })).toHaveAttribute('aria-current', 'page');
   });
 
-  test('expanded desktop navigation reserves the Poolday home surface and keeps it centered', async ({ page }) => {
+  test('desktop navigation does not displace the centered request surface', async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto('/');
     await page.waitForSelector('nav.pool-nav-rail', { timeout: 20000 });
-    const rail = page.locator('nav.pool-nav-rail');
-    await rail.locator('.pool-nav-toggle').click();
-    await expect(rail).toHaveClass(/is-open/);
-    await expect.poll(() => rail.evaluate((node) => node.getBoundingClientRect().width)).toBeGreaterThanOrEqual(299);
-
     const layout = await page.evaluate(() => {
       const nav = document.querySelector('nav.pool-nav-rail')?.getBoundingClientRect();
-      const toolbar = document.querySelector('.pool-home-toolbar')?.getBoundingClientRect();
-      const stage = document.querySelector('.pool-home-stage')?.getBoundingClientRect();
       const dock = document.querySelector('.pool-home-ask-dock')?.getBoundingClientRect();
-      const visibleCenter = nav ? nav.right + ((window.innerWidth - nav.right) / 2) : null;
       const centerOf = (rect) => rect ? rect.left + (rect.width / 2) : null;
       const atDockCenter = dock ? document.elementFromPoint(centerOf(dock), dock.top + (dock.height / 2)) : null;
       return {
-        navRight: nav?.right ?? null,
-        stageLeft: stage?.left ?? null,
-        toolbarLeft: toolbar?.left ?? null,
-        dockLeft: dock?.left ?? null,
+        navBottom: nav?.bottom ?? null,
+        dockTop: dock?.top ?? null,
         dockCenter: centerOf(dock),
-        visibleCenter,
+        viewportCenter: window.innerWidth / 2,
         dockBlockedByNav: !!atDockCenter?.closest?.('.pool-nav-rail')
       };
     });
 
-    expect(layout.stageLeft).toBeGreaterThanOrEqual((layout.navRight || 0) - 1);
-    expect(layout.toolbarLeft).toBeGreaterThanOrEqual((layout.navRight || 0) - 1);
-    expect(layout.dockLeft).toBeGreaterThanOrEqual((layout.navRight || 0) - 1);
-    expect(Math.abs((layout.dockCenter || 0) - (layout.visibleCenter || 0))).toBeLessThanOrEqual(2);
+    expect(layout.dockTop).toBeGreaterThanOrEqual((layout.navBottom || 0) - 1);
+    expect(Math.abs((layout.dockCenter || 0) - layout.viewportCenter)).toBeLessThanOrEqual(2);
     expect(layout.dockBlockedByNav).toBe(false);
   });
 
@@ -444,14 +283,12 @@ test.describe('Route Entry Points', () => {
             width: rect.width
           };
         }).filter((item) => item.width > 1 && (item.left < -1 || item.right > window.innerWidth + 1));
-        const nav = document.querySelector('nav.pool-nav-rail .pool-nav-toggle')?.getBoundingClientRect();
-        const rail = document.querySelector('nav.pool-nav-rail')?.getBoundingClientRect();
+        const nav = document.querySelector('nav.pool-nav-rail')?.getBoundingClientRect();
         const routeHeading = document.querySelector('.pool-page-heading')?.getBoundingClientRect() || null;
-        const ask = document.querySelector('.pool-home-run-button')?.getBoundingClientRect() || null;
+        const ask = document.querySelector('.pool-home-run-button, #pool-run-submit')?.getBoundingClientRect() || null;
         return {
           ask: ask ? { height: ask.height, width: ask.width } : null,
           nav: nav ? { height: nav.height, left: nav.left, width: nav.width } : null,
-          railRight: rail?.right || null,
           routeHeadingLeft: routeHeading?.left || null,
           offenders: offenders.slice(0, 5),
           overflowX: root.scrollWidth > root.clientWidth + 1
@@ -460,13 +297,13 @@ test.describe('Route Entry Points', () => {
 
       expect(layout.overflowX, route).toBe(false);
       expect(layout.offenders, route).toEqual([]);
-      expect(layout.nav?.width, route).toBeGreaterThanOrEqual(48);
+      expect(layout.nav?.width, route).toBeGreaterThanOrEqual(300);
       expect(layout.nav?.height, route).toBeGreaterThanOrEqual(48);
-      if (route === '/') {
+      if (route === '/' || route === '/ask') {
         expect(layout.ask?.width).toBeGreaterThanOrEqual(48);
         expect(layout.ask?.height).toBeGreaterThanOrEqual(48);
       } else {
-        expect(layout.routeHeadingLeft, route).toBeGreaterThan((layout.railRight || 0) + 8);
+        expect(layout.routeHeadingLeft, route).toBeGreaterThanOrEqual(0);
       }
     }
   });
@@ -488,28 +325,23 @@ test.describe('Route Entry Points', () => {
     }
   });
 
-  test('ask and compute are presented as local peer-room flows', async ({ page }) => {
+  test('compatibility routes resolve into the three Poolday product flows', async ({ page }) => {
     await page.goto('/ask');
     await page.waitForSelector('.pool-home', { timeout: 20000 });
-    await expect(page.getByRole('heading', { name: 'Ask a protein question', exact: true }).first()).toBeVisible();
-    await expect(page.locator('.pool-page-heading .pool-eyebrow')).toHaveCount(0);
-    await expect(page.getByLabel('Run controls')).toContainText('Run');
-    await expect(page.locator('[data-pool-run-output]')).toBeHidden();
-    await expect(page.locator('#pool-run-result-raw')).toBeHidden();
-    await expect(page.locator('#pool-run-poll')).toHaveCount(0);
-    await expect(page.locator('#pool-run-max-spend')).toHaveCount(0);
+    await expect(page.locator('.pool-home')).toHaveAttribute('data-pool-route-id', 'ask');
+    await expect(page.getByRole('heading', { name: 'Run a model', exact: true })).toBeVisible();
+    await expect(page.locator('#pool-run-submit')).toHaveText('Run');
 
     await page.goto('/compute');
     await page.waitForSelector('.pool-home', { timeout: 20000 });
     await expect(page.locator('.pool-home')).toHaveAttribute('data-pool-route-id', 'compute');
-    await page.getByRole('navigation', { name: 'Navigation' }).locator('.pool-nav-toggle').click();
     await expect(page.getByRole('link', { name: 'Share compute', exact: true })).toHaveAttribute('aria-current', 'page');
     await expect(page.getByRole('heading', { name: 'Share compute', exact: true })).toBeVisible();
     await expect(page.locator('.pool-page-heading .pool-eyebrow')).toHaveCount(0);
     await expect(page.locator('[data-pool-simulation]')).toHaveCount(0);
     await expect(page.locator('[data-pool-provider-status]')).toHaveText('Idle');
     await expect(page.locator('#pool-provider-worker-toggle')).toBeVisible();
-    await expect(page.locator('#pool-provider-worker-toggle')).toHaveText('Start contributing');
+    await expect(page.locator('#pool-provider-worker-toggle')).toHaveText('Start sharing');
     await expect(page.locator('#pool-provider-worker-toggle')).toHaveAttribute('data-contribution-action', 'start');
     await expect(page.locator('#pool-provider-load')).toHaveCount(0);
     await expect(page.locator('#pool-provider-profile')).toHaveCount(0);
@@ -518,14 +350,14 @@ test.describe('Route Entry Points', () => {
 
     await page.goto('/history');
     await page.waitForSelector('.pool-home', { timeout: 20000 });
-    await expect(page.getByRole('heading', { name: 'Review evidence', exact: true })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Recent jobs', exact: true })).toBeVisible();
     await expect(page.locator('.pool-page-heading .pool-eyebrow')).toHaveCount(0);
     await expect(page.locator('#pool-record-ledger')).toBeVisible();
     await expect(page.locator('#pool-peer-ledger')).toBeHidden();
 
     await page.goto('/network');
     await page.waitForSelector('.pool-home', { timeout: 20000 });
-    await expect(page.getByRole('heading', { name: 'Review evidence', exact: true })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Recent jobs', exact: true })).toBeVisible();
     await expect(page.locator('.pool-route-cta-row')).toHaveCount(0);
     await expect(page.locator('#pool-record-ledger')).toBeVisible();
     await expect(page.locator('#pool-peer-ledger')).toBeHidden();

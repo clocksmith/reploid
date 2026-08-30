@@ -234,14 +234,6 @@ const openPoolPage = async (context, baseURL, route, roomId) => {
   return page;
 };
 
-const openPoolNav = async (page) => {
-  const nav = page.locator('.pool-nav-rail');
-  const isOpen = await nav.evaluate((node) => node.classList.contains('is-open'));
-  if (!isOpen) {
-    await nav.locator('.pool-nav-toggle').click();
-  }
-};
-
 const startProviderPage = async (page) => {
   const toggle = page.locator('#pool-provider-worker-toggle');
   await expect(toggle).toBeVisible();
@@ -255,7 +247,7 @@ const startProviderPage = async (page) => {
     return status;
   }).toBe('Available');
   await expect(page.locator('[data-pool-provider-status]')).toHaveAttribute('data-provider-state', 'online');
-  await expect(toggle).toHaveText('Stop');
+  await expect(toggle).toHaveText('Stop sharing');
   await expect(toggle).toHaveAttribute('data-contribution-action', 'stop');
   await expect(page.locator('#pool-provider-result')).toContainText('This contributor tab is available');
   await expect(page.locator('#pool-provider-result-raw')).toContainText('peer_room_listening');
@@ -268,7 +260,7 @@ const stopProviderPage = async (page) => {
   await expect(page.locator('[data-pool-provider-status]')).toHaveText('Idle');
   await expect(page.locator('#pool-provider-result-raw')).toContainText('peer_provider_stopped');
   await expect(toggle).toBeEnabled();
-  await expect(toggle).toHaveText('Start contributing');
+  await expect(toggle).toHaveText('Start sharing');
   await expect(toggle).toHaveAttribute('data-contribution-action', 'start');
 };
 
@@ -283,7 +275,12 @@ const configurePublicSequenceRequest = async (page, {
   if (!(await publicSequence.isChecked())) await publicSequence.check();
   const publicResearch = page.locator(researchSelector);
   if (publishResearch) {
-    await page.locator(questionSelector).fill(question);
+    const questionControl = page.locator(questionSelector);
+    if (!(await questionControl.isVisible())) {
+      const disclosure = questionControl.locator('xpath=ancestor::details[1]');
+      if (await disclosure.count()) await disclosure.locator(':scope > summary').click();
+    }
+    await questionControl.fill(question);
     if (!(await publicResearch.isChecked())) await publicResearch.check();
   } else if (await publicResearch.isChecked()) {
     await publicResearch.uncheck();
@@ -433,11 +430,9 @@ test.describe('Run, Contribute, Records peer room', () => {
       );
       await expect(runPage.locator('[data-pool-copy-embedding]')).toBeDisabled();
 
-      await openPoolNav(runPage);
       await runPage.getByRole('link', { name: 'Share compute', exact: true }).click();
       await expect(runPage.locator('code[data-pool-room-id]')).toHaveText(roomId);
-      await openPoolNav(runPage);
-      await runPage.getByRole('link', { name: 'Review evidence', exact: true }).click();
+      await runPage.getByRole('link', { name: 'Recent jobs', exact: true }).click();
       await expect(runPage.locator('code[data-pool-room-id]')).toHaveText(roomId);
     } finally {
       await closeContexts(contexts);
@@ -455,8 +450,7 @@ test.describe('Run, Contribute, Records peer room', () => {
       const runPage = await openPoolPage(context, baseURL, '/ask', roomId);
       await runPeerPrompt(runPage, 'persist record view', 'fastest_receipt');
 
-      await openPoolNav(runPage);
-      await runPage.getByRole('link', { name: 'Review evidence', exact: true }).click();
+      await runPage.getByRole('link', { name: 'Recent jobs', exact: true }).click();
       await runPage.getByRole('button', { name: /^Answers \(/ }).click();
 
       const recordDetails = runPage.locator('details.pool-record-event').first();
@@ -480,11 +474,10 @@ test.describe('Run, Contribute, Records peer room', () => {
       await expect(runPage.locator('details.pool-record-tools')).toHaveJSProperty('open', true);
       await expect(runPage.locator('details.pool-record-lookup')).toHaveJSProperty('open', true);
 
-      await openPoolNav(runPage);
-      await runPage.getByRole('link', { name: 'Request', exact: true }).click();
+      await runPage.getByRole('link', { name: 'Run a model', exact: true }).click();
       await expect(runPage.locator('[data-pool-run-status]')).toHaveText('Showing last saved answer');
       await expect(runPage.locator('[data-pool-run-output]')).toBeVisible();
-      await expect(runPage.locator('#pool-run-result-stream')).toContainText(`e2e:${sequenceFor('persist record view')}`);
+      await expect(runPage.locator('#pool-home-run-result-stream')).toContainText(`e2e:${sequenceFor('persist record view')}`);
     } finally {
       await closeContexts(contexts);
     }
@@ -534,7 +527,7 @@ test.describe('Run, Contribute, Records peer room', () => {
       await expect(providerPage.locator('code[data-pool-room-id]')).toHaveText(roomId);
       await expect(providerPage.locator('[data-pool-relay-mode]')).toHaveText(RELAY_LABEL);
       await expect(providerPage.locator('[data-pool-provider-status]')).toHaveText('Available');
-      await expect(providerPage.locator('#pool-provider-worker-toggle')).toHaveText('Stop');
+      await expect(providerPage.locator('#pool-provider-worker-toggle')).toHaveText('Stop sharing');
       await expect(providerPage.locator('#pool-provider-worker-toggle')).toHaveAttribute('data-contribution-action', 'stop');
       const restored = await readProviderResult(providerPage);
       expect(restored.identity?.roleId).toBe(firstRoleId);
@@ -660,7 +653,7 @@ test.describe('Run, Contribute, Records peer room', () => {
       );
       await expect(providerPage.locator('#pool-provider-result-raw')).toContainText('synthetic load failure');
       await expect(toggle).toBeEnabled();
-      await expect(toggle).toHaveText('Start contributing');
+      await expect(toggle).toHaveText('Start sharing');
       await expect(toggle).toHaveAttribute('data-contribution-action', 'start');
     } finally {
       await closeContexts(contexts);
@@ -866,8 +859,7 @@ test.describe('Run, Contribute, Records peer room', () => {
       await expect(reputationPage.locator('#pool-peer-ledger table[aria-label="Local contributor scores"]')).toBeVisible();
       await expect(reputationPage.locator('#pool-peer-ledger')).toContainText('Matched');
 
-      await openPoolNav(runPage);
-      await runPage.getByRole('link', { name: 'Review evidence', exact: true }).click();
+      await runPage.getByRole('link', { name: 'Recent jobs', exact: true }).click();
       await expect(runPage.locator('code[data-pool-room-id]')).toHaveText(roomId);
       await runPage.keyboard.press('Escape');
       await ensureDetailsOpen(runPage.locator('details.pool-record-tools'));
