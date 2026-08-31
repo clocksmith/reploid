@@ -1447,13 +1447,13 @@
     {
       "path": "self/cloud-access-status.js",
       "owner": "self",
-      "sha256": "sha256:baae26ecc29e82df5a650a9dcc137b579008361625504184c2698e49184c621c",
+      "sha256": "sha256:a2b877955614ad0d019b2fa6c8cbb4031cf3224fe9baf2d0c81c99a2b4efcd27",
       "imports": []
     },
     {
       "path": "self/cloud-access-windows.js",
       "owner": "self",
-      "sha256": "sha256:93dc2937ae4f959b0528e0e63baf30ef14807740fe513eebf4fe26d51fcbf441",
+      "sha256": "sha256:770b7fd71e9fcae8c89379ce0904a2bfffd07d1f63843b1c6836fd8174c2867a",
       "imports": []
     },
     {
@@ -2179,7 +2179,7 @@
     {
       "path": "ui/pool-home/constants.js",
       "owner": "ui",
-      "sha256": "sha256:2b312a334b267508139a2c2ed7cd44d5294ff1805ca3c6e7b781933512071ae0",
+      "sha256": "sha256:f9602988f70feccac7348f8f020b30a451ed10d74d3389c4230a3c04382181de",
       "imports": []
     },
     {
@@ -2191,7 +2191,7 @@
     {
       "path": "ui/pool-home/controls.js",
       "owner": "ui",
-      "sha256": "sha256:fbc05ee6a304de0953b46c91685252a51341f42aeddf31da604343228594c256",
+      "sha256": "sha256:2f4071f265ea17d37d3cdf6c68eb7560bf5882b4ff22122f1f59e3d0feef0e59",
       "imports": [
         "../../pool/adapter-publication.js",
         "../../pool/adapter-registry.js",
@@ -2256,7 +2256,7 @@
     {
       "path": "ui/pool-home/requester-controls.js",
       "owner": "ui",
-      "sha256": "sha256:2c21bba53e4400687744755e58b9dc9083f0ccf2fae3bf6d2232f84561587557",
+      "sha256": "sha256:50b76937d5b946c839b2a2f98ddbded8fe5bc4baa8e8b50f6b2c2a546e110fcc",
       "imports": []
     },
     {
@@ -2330,7 +2330,7 @@
     {
       "path": "ui/pool-home/room-record-projection.js",
       "owner": "ui",
-      "sha256": "sha256:06380e1d92e5c909da0b92a4582d4fe8fcb8468d8cbff07680c7ca201c752081",
+      "sha256": "sha256:010d9dcf8a628f9ecdc09133a004abae5f07948dc4d9dbf765331920db040f2b",
       "imports": [
         "../../pool/model-contract.js",
         "./record-persistence.js"
@@ -2339,7 +2339,7 @@
     {
       "path": "ui/pool-home/room-view.js",
       "owner": "ui",
-      "sha256": "sha256:e2f07354e7dfa947eb6125de7ba423c631881ee6da2412eb5c2e4a09504df4ec",
+      "sha256": "sha256:4e8c4231fc045b17d349e1a00515d34b18493d40dfa52e440d41d99150ebf52e",
       "imports": [
         "./room-projection.js"
       ]
@@ -2408,7 +2408,7 @@
     {
       "path": "ui/pool-home/view.js",
       "owner": "ui",
-      "sha256": "sha256:bb7d9212f93f135203a50cfbc588a0524beb9e3fa85b5f5e3489addd3025556a",
+      "sha256": "sha256:1f0f7680ea70b8967bca9b760f9801118a427b0c06a22524b37f7ce0deead644",
       "imports": [
         "../../pool/model-contract.js",
         "../../pool/participation-profile.js",

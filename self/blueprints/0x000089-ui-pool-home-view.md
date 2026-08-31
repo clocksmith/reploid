@@ -34,8 +34,11 @@ renders escaped state and emits controls that those modules bind.
 - Home renders one focused signed-Pack job. Model Pack, input, peer disclosure,
   and Run model are the only default controls.
 - Share compute leads with Pack selection, provider state, and Start sharing.
-- Recent jobs leads with the job ledger. Research Room, participant, proposal,
-  memory, reputation, and protocol detail remain under Advanced details.
+- Share compute exposes current limits and input handling before Start sharing,
+  and projects startup failures in the primary surface.
+- Recent jobs leads with the job ledger. Advanced details contain execution
+  receipts, comparison evidence, peer identities, retries, and recovery only.
+- Research Room-1 is a separate non-primary route for scientific governance.
 - Navigation is one compact horizontal shell with exactly three destinations
   and a subordinate network-availability indicator.
 
@@ -51,7 +54,8 @@ renders escaped state and emits controls that those modules bind.
 - [x] Three-destination navigation has DOM and browser geometry tests
 - [x] Narrow mobile routes remain free of horizontal clipping
 - [x] Home exposes one Pack, one input, peer disclosure, and one Run action
-- [x] Research Room secondary history is collapsed by default
+- [x] Research Room-1 is absent from Recent jobs markup
+- [x] Research Room-1 remains reachable as a separate non-primary route
 - [x] The VFS and blueprint registries cover both view-state artifacts
 
 *Last updated: August 2026*

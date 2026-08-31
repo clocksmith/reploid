@@ -79,17 +79,22 @@ export function projectRoomRecordRows({
     }));
   const peerRows = peerEvents.map((event) => {
     const body = event.body || {};
-    const title = event.type === 'points_event'
+    const requestEvent = event.type === 'request_event';
+    const title = requestEvent
+      ? body.status === 'waiting_for_provider'
+        ? 'Request waiting for provider'
+        : 'Request updated'
+      : event.type === 'points_event'
       ? (Number(body.points || 0) < 0 ? 'Requester points spent' : 'Contributor points credited')
       : event.type === 'reputation_event'
         ? 'Contributor reputation updated'
         : 'Room activity';
     return {
       id: `peer:${getPeerEventHash(event)}`,
-      type: 'room',
+      type: requestEvent ? 'request' : 'room',
       occurredAt: event.createdAt,
       title,
-      meta: [body.providerId || body.userId || event.fromPeerId, body.reason]
+      meta: [body.modelId, body.providerId || body.userId || event.fromPeerId, body.reason]
         .filter(Boolean)
         .map((value) => String(value).length > 24 ? `${String(value).slice(0, 16)}...${String(value).slice(-8)}` : String(value))
         .join(' · '),

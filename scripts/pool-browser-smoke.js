@@ -29,12 +29,13 @@ if (!SYNTHETIC_MODEL) {
 }
 // This is a Poolday release gate.  Zero is an experimental, separately
 // governed surface and must not make Poolday deployment health depend on it.
-const routes = ['/', '/ask', '/compute', '/records', '/history', '/network'];
+const routes = ['/', '/ask', '/compute', '/records', '/room-1', '/history', '/network'];
 const requiredSelectors = {
   '/': '#pool-home-ask-form',
   '/ask': '#pool-run-prompt',
   '/compute': '#pool-provider-worker-toggle',
   '/records': '#pool-record-ledger',
+  '/room-1': '#pool-room-1-request',
   '/history': '#pool-record-ledger',
   '/network': '#pool-record-ledger'
 };

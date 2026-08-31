@@ -19,6 +19,7 @@ import {
   setPoolRecordFacet,
   setResult,
   isEmbeddingPublicationPermitted,
+  updateProviderNotice,
   updateProviderStatus
 } from '../../self/ui/pool-home/view.js';
 
@@ -118,16 +119,16 @@ describe('Poolday record ledgers', () => {
   it('projects contextual review and discovery panels from the room query', () => {
     const room = `contextual-room-${crypto.randomUUID()}`;
 
-    setRoom(room, 'review');
-    const reviewHtml = renderRouteDetail('records');
+    setRoom(room, 'review', '/room-1');
+    const reviewHtml = renderRouteDetail('room-1');
     expect(getPoolRoomPanel()).toBe('review');
     expect(reviewHtml).toContain('data-pool-room-contextual-panel="review"');
     expect(reviewHtml).toContain('id="pool-room-review"');
     expect(reviewHtml).toContain('data-room-panel="review"');
     expect(reviewHtml).toMatch(/pool-room-secondary-workspace"[^>]* data-pool-room-panel-open="true">/);
 
-    setRoom(room, 'discovery');
-    const discoveryHtml = renderRouteDetail('records');
+    setRoom(room, 'discovery', '/room-1');
+    const discoveryHtml = renderRouteDetail('room-1');
     expect(getPoolRoomPanel()).toBe('discovery');
     expect(discoveryHtml).toContain('data-pool-room-contextual-panel="discovery"');
     expect(discoveryHtml).toContain('id="pool-room-discovery"');
@@ -135,24 +136,25 @@ describe('Poolday record ledgers', () => {
     expect(discoveryHtml).toMatch(/pool-room-secondary-workspace"[^>]* data-pool-room-panel-open="true">/);
 
     setRoom(room);
-    const overviewHtml = renderRouteDetail('records');
+    const overviewHtml = renderRouteDetail('room-1');
     expect(overviewHtml).toContain('data-pool-room-panel="research"');
     expect(overviewHtml).not.toContain('data-pool-room-panel-open="true"');
   });
 
-  it('composes compatibility routes into room-specific initial views', () => {
+  it('keeps compatibility routes on execution records and Room-1 separate', () => {
     const room = `compatibility-room-${crypto.randomUUID()}`;
 
     setRoom(room, '', '/network');
     const networkHtml = renderRouteDetail('network');
     expect(getPoolRoomPanel()).toBe('discovery');
-    expect(networkHtml).toContain('data-pool-room-contextual-panel="discovery"');
-    expect(networkHtml).toContain('data-pool-room-panel-open="true"');
+    expect(networkHtml).not.toContain('data-pool-room-contextual-panel="discovery"');
+    expect(networkHtml).not.toContain('data-pool-research-room');
 
     setRoom(room, '', '/history');
     const historyHtml = renderRouteDetail('history');
-    expect(historyHtml).toContain('data-record-facet="room"');
-    expect(historyHtml).toContain('data-pool-research-room');
+    expect(historyHtml).toContain('data-record-facet="all"');
+    expect(historyHtml).not.toContain('data-pool-research-room');
+    expect(historyHtml).not.toContain('Open Research Room-1');
   });
 
   it('renders peer ledger zero counts instead of blank cells', () => {
@@ -244,6 +246,29 @@ describe('Poolday record ledgers', () => {
 
     updateProviderStatus(mount, 'Available');
     expect(mount.querySelector('[data-pool-provider-status]')).toHaveProperty('dataset.providerState', 'online');
+
+    updateProviderStatus(mount, 'Could not start');
+    expect(mount.querySelector('[data-pool-provider-status]')).toHaveProperty('dataset.providerState', 'error');
+  });
+
+  it('projects provider startup failure into the primary sharing surface', () => {
+    const mount = document.createElement('section');
+    mount.innerHTML = '<div data-pool-provider-notice hidden></div>';
+
+    updateProviderNotice(mount, {
+      state: 'error',
+      title: 'Pack failed to load',
+      message: 'Nothing was shared. Check this Pack and browser WebGPU, then retry.'
+    });
+
+    const notice = mount.querySelector('[data-pool-provider-notice]');
+    expect(notice.hidden).toBe(false);
+    expect(notice.dataset.noticeState).toBe('error');
+    expect(notice.textContent).toContain('Pack failed to load');
+    expect(notice.textContent).toContain('Nothing was shared');
+
+    updateProviderNotice(mount, null);
+    expect(notice.hidden).toBe(true);
   });
 
   it('labels points, reputation, and requester spend as distinct room records', () => {
@@ -392,6 +417,10 @@ describe('Poolday record ledgers', () => {
     }, { stream: true, animate: false });
 
     const raw = document.getElementById('pool-run-result-raw').textContent;
+    const summary = document.getElementById('pool-run-result-summary').textContent;
+    expect(summary).toContain('No matching provider is currently available');
+    expect(summary).not.toContain('peer_provider_unresponsive');
+    expect(summary).not.toContain('provider_reloaded_with_long_stable_identity');
     expect(raw).toContain('Code: peer_provider_unresponsive');
     expect(raw).toContain('Contributors: provider_reloade...identity');
     expect(raw).toContain('Contributor failures: provider_reloade...identity (peer_receipt_timeout)');
@@ -485,7 +514,7 @@ describe('Poolday record ledgers', () => {
     expect(JSON.parse(document.getElementById('pool-run-result-raw').textContent).receiptPayloads).toHaveLength(2);
   });
 
-  it('uses one records surface for saved answers, room activity, and contributor scores', () => {
+  it('uses one records surface for execution evidence without research administration', () => {
     setRoom(`record-copy-${crypto.randomUUID()}`);
 
     const recordsHtml = renderRouteDetail('records');
@@ -494,16 +523,17 @@ describe('Poolday record ledgers', () => {
 
     expect(recordsHtml).toContain('No lookup yet.');
     expect(recordsHtml).toContain('No answers saved yet.');
-    expect(recordsHtml).toContain('No records yet. Completed runs and contributions will appear here.');
+    expect(recordsHtml).toContain('No records yet. Requests, completed runs, and contributions will appear here.');
     expect(recordsHtml).toContain('Advanced details');
-    expect(recordsHtml).toContain('Room activity');
+    expect(recordsHtml).toContain('Peer activity and retries');
     expect(recordsHtml).toContain('Checking room activity...');
-    expect(recordsHtml).toContain('Contributor scores');
+    expect(recordsHtml).toContain('Peer identities');
     expect(recordsHtml).toContain('No local scores yet.');
     expect(recordsHtml).toContain('Find by receipt hash');
-    expect(historyAliasHtml).toContain('Contributor scores');
+    expect(historyAliasHtml).toContain('Peer identities');
     expect(networkAliasHtml).toContain('Saved answer receipts');
-    expect(networkAliasHtml).toContain('Room activity');
+    expect(networkAliasHtml).toContain('Peer activity and retries');
+    expect(recordsHtml).not.toContain('data-pool-research-room');
   });
 
   it('restores record facets and open disclosures after a route refresh', () => {

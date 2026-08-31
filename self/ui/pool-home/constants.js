@@ -49,6 +49,15 @@ export const POOLDAY_ROUTE_DEFINITIONS = Object.freeze([
     eyebrow: POOLDAY_PROTOCOL,
     title: 'Recent jobs',
     body: 'Inspect results, recover work, and retain receipts.'
+  }),
+  createPooldayRoute({
+    id: 'room-1',
+    path: '/room-1',
+    label: 'Research Room-1',
+    eyebrow: 'Research evidence',
+    title: 'Research Room-1',
+    body: 'Review hypotheses, cohorts, adjudication, and retained scientific evidence.',
+    primary: false
   })
 ]);
 

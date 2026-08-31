@@ -73,8 +73,10 @@ independent model evidence, biological correctness, or scientific replication.
 
 Poolday's primary interface is limited to Run a model, Share compute, and
 Recent jobs. Ask is the input step of Run; Records and History are Recent jobs;
-network state is a compact indicator. Research Room governance, reputation,
-scientific policies, and protocol records remain contextual Advanced details.
+network state is a compact, meaningful indicator. Research Room-1 is a separate
+non-primary route. Recent jobs may expose execution receipts, comparison
+evidence, peer identities, retries, and recovery, but it must not embed the
+scientific room, hypotheses, cohorts, adjudication, or laboratory claims.
 
 ## Falsifiable first proofs
 

@@ -178,6 +178,7 @@ const requiredRewrites = [
   '/ask',
   '/compute',
   '/records',
+  '/room-1',
   '/history',
   '/network',
   '/zero',

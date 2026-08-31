@@ -59,6 +59,7 @@ import {
   refreshProviderStorageHealth,
   refreshRecordTimelineState,
   refreshRoomActivityState,
+  recordPeerLedgerEvents,
   restorePoolRecordDisclosures,
   renderReceiptLedger,
   setPoolRecordDisclosureOpen,
@@ -67,6 +68,7 @@ import {
   setResearchPublicationStatus,
   setResult,
   updateProviderHealth,
+  updateProviderNotice,
   updateProviderStatus
 } from './view.js';
 import {
@@ -1500,6 +1502,20 @@ const bindPeerRunSurface = ({
         displayError.action = 'The request is preserved. Choose a recovery option below.';
         displayError.recovery = buildMissingProviderRecovery(pendingRequest);
         pendingErrorResult = displayError;
+        recordPeerLedgerEvents([{
+          type: 'request_event',
+          fromPeerId: requesterIdentity.identityRootId || requesterIdentity.userId || 'local-requester',
+          createdAt: new Date().toISOString(),
+          body: {
+            status: 'waiting_for_provider',
+            reason: 'No matching provider',
+            roomId: getPeerRoomId(),
+            modelId: selectedModel.modelId || selectedModel.id || null,
+            policyId: pendingRequest.policyId || null,
+            retryable: true
+          }
+        }]);
+        refreshRecordTimelineState();
       }
       setResult(resultId, displayError, { stream: true });
       clearPendingRequestRecovery();
@@ -1941,6 +1957,7 @@ const createProviderContributionController = () => {
   };
 
   const setProviderStatus = (status) => updateProviderStatus(getMount(), status);
+  const setProviderNotice = (notice = null) => updateProviderNotice(getMount(), notice);
 
   const syncProviderPanel = () => {
     if (!controls.modelInput && !controls.workerToggleButton) {
@@ -1948,6 +1965,7 @@ const createProviderContributionController = () => {
       return;
     }
     setProviderStatus(workerStarting ? 'Starting' : workerRunning ? 'Available' : 'Idle');
+    if (workerStarting || workerRunning) setProviderNotice(null);
     updateProviderHealth({
       webgpu: navigator.gpu ? 'available' : 'unavailable',
       storage: navigator.storage ? 'available' : 'unknown',
@@ -2315,6 +2333,7 @@ const createProviderContributionController = () => {
         model: getProviderModel()
       });
       setProviderStatus('Starting');
+      setProviderNotice(null);
       try {
         const ready = await ensurePeerProviderReady(generation);
         if (generation !== lifecycleGeneration) {
@@ -2329,6 +2348,7 @@ const createProviderContributionController = () => {
         providerReadyState = ready;
         writeContributionResumeIntent({ modelId: currentModel?.modelId || getSelectedModelId() });
         setProviderStatus('Available');
+        setProviderNotice(null);
         updateProviderHealth({ queue: 'listening' });
         setContributionState({ state: 'idle', optedIn: true, lastError: null });
         setResult('pool-provider-result', {
@@ -2355,7 +2375,12 @@ const createProviderContributionController = () => {
         workerRunning = false;
         providerReadyState = null;
         clearContributionResumeIntent();
-        setProviderStatus('Idle');
+        setProviderStatus('Could not start');
+        setProviderNotice({
+          state: 'error',
+          title: error?.code === 'doppler_model_load_failed' ? 'Pack failed to load' : 'Sharing could not start',
+          message: 'Nothing was shared. Check this Pack and browser WebGPU, then choose Start sharing to retry.'
+        });
         updateProviderHealth({ queue: 'stopped', model: 'load_failed' });
         setContributionState({
           state: 'error',
@@ -2372,7 +2397,6 @@ const createProviderContributionController = () => {
             model: getProviderModel()
           }
         }));
-        document.getElementById('pool-provider-details')?.setAttribute('open', '');
         return {
           ok: false,
           status: 'error',
@@ -2406,6 +2430,7 @@ const createProviderContributionController = () => {
     providerActivityHistory = [];
     clearContributionResumeIntent();
     setProviderStatus('Stopping');
+    setProviderNotice(null);
     updateProviderHealth({ queue: 'cancelling_active_work' });
     setContributionState({ state: 'inactive', optedIn: false, lastError: null });
     setResult('pool-provider-result', {
@@ -2421,6 +2446,7 @@ const createProviderContributionController = () => {
       error: error.message
     }));
     setProviderStatus('Idle');
+    setProviderNotice(null);
     updateProviderHealth({ queue: 'stopped' });
     setResult('pool-provider-result', {
       runner: 'stopped',

@@ -1,0 +1,20 @@
+{
+  "01-desktop-run": {
+    "viewportWidth": 1440,
+    "scrollWidth": 1440,
+    "horizontalOverflow": false,
+    "errors": []
+  },
+  "02-mobile-run-320": {
+    "viewportWidth": 320,
+    "scrollWidth": 320,
+    "horizontalOverflow": false,
+    "errors": []
+  },
+  "03-mobile-unmatched-request-record": {
+    "viewportWidth": 390,
+    "scrollWidth": 390,
+    "horizontalOverflow": false,
+    "errors": []
+  }
+}

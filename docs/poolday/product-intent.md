@@ -27,16 +27,18 @@ result with a signed receipt. Recent jobs preserve recovery and verification
 state after refresh, disconnect, peer loss, timeout, or cancellation.
 
 The primary interface contains only Run a model, Share compute, and Recent
-jobs. Network availability is a compact indicator. Research rooms, scientific
-policies, reputation mechanics, commit/reveal records, and protocol internals
-are contextual Advanced details rather than primary product destinations.
+jobs. Network availability is a compact, meaningful indicator. Recent jobs
+Advanced details contain execution receipts, comparison evidence, peer
+identities, retries, and recovery only. Research Room-1 is a separate
+non-primary route for hypotheses, scientific policies, cohorts, adjudication,
+and laboratory evidence; generic Pack execution does not inherit those fields.
 
 The current enabled Pack remains the pinned ESM-2 35M public-sequence contract.
 That narrow implementation boundary does not redefine Poolday as a protein
 product or authorize claims for unqualified models, private inputs, hardware
 attestation, or honest browser execution.
 
-The proof-carrying Research Room remains an optional governed workflow over
+The proof-carrying Research Room-1 remains an optional governed workflow over
 Poolday receipts. It tests whether those receipts improve adjudication of
 disputed family or domain annotations in a named public protein catalog; it is
 not the primary navigation or the definition of Poolday.
