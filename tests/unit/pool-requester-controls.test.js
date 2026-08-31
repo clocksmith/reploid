@@ -28,6 +28,17 @@ describe('Research Room requester controls', () => {
     expect(ask.match(/Save the question and result to this room/g)).toHaveLength(1);
   });
 
+  it('can omit research publication from ordinary Pack execution', () => {
+    const execution = renderRequesterConsentRows({
+      prefix: 'pool-run',
+      includeResearch: false
+    });
+
+    expect(execution).toContain('id="pool-run-sequence-public"');
+    expect(execution).not.toContain('pool-run-research-public');
+    expect(execution).not.toContain('Save the question and result to this room');
+  });
+
   it('keeps intent IDs stable while adapting the question control to each route', () => {
     const home = renderRequesterIntentFields({ prefix: 'pool-home' });
     const ask = renderRequesterIntentFields({ prefix: 'pool-run', textTag: 'textarea' });

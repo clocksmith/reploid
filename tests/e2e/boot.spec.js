@@ -156,8 +156,10 @@ test.describe('Route Entry Points', () => {
     await expect(page.locator('.pool-home-request-details')).not.toHaveAttribute('open', '');
     await expect(page.getByText('Question', { exact: true })).toBeHidden();
     await page.getByText('Advanced details', { exact: true }).click();
-    await expect(page.getByText('Independent check', { exact: true })).toBeVisible();
-    await expect(page.getByLabel('Publish the question and result to the room')).not.toBeChecked();
+    await expect(page.getByText('Verification', { exact: true })).toBeVisible();
+    await expect(page.getByLabel('Publish the question and result to the room')).toHaveCount(0);
+    await expect(page.getByText('Conditions', { exact: true })).toHaveCount(0);
+    await expect(page.getByText('Useful result', { exact: true })).toHaveCount(0);
     await expect(page.locator('[data-pool-home-adapter-picker]')).toBeHidden();
     await expect(page.locator('[data-pool-research-room]')).toHaveCount(0);
     await expect(page.locator('[data-pool-drawer-section]')).toHaveCount(0);
@@ -265,7 +267,7 @@ test.describe('Route Entry Points', () => {
   test('product routes fit a narrow mobile viewport without horizontal clipping', async ({ page }) => {
     await page.setViewportSize({ width: 320, height: 844 });
 
-    for (const route of ['/', '/ask', '/compute', '/records', '/history', '/network']) {
+    for (const route of ['/', '/ask', '/compute', '/records', '/room-1', '/history', '/network']) {
       await page.goto(route);
       await page.waitForSelector('.pool-home', { timeout: 20000 });
 
@@ -299,7 +301,7 @@ test.describe('Route Entry Points', () => {
       expect(layout.offenders, route).toEqual([]);
       expect(layout.nav?.width, route).toBeGreaterThanOrEqual(300);
       expect(layout.nav?.height, route).toBeGreaterThanOrEqual(48);
-      if (route === '/' || route === '/ask') {
+      if (route === '/' || route === '/ask' || route === '/room-1') {
         expect(layout.ask?.width).toBeGreaterThanOrEqual(48);
         expect(layout.ask?.height).toBeGreaterThanOrEqual(48);
       } else {
@@ -309,7 +311,7 @@ test.describe('Route Entry Points', () => {
   });
 
   test('product routes hide raw payloads and hosted controls by default', async ({ page }) => {
-    for (const route of ['/ask', '/compute', '/records', '/history', '/network']) {
+    for (const route of ['/ask', '/compute', '/records', '/room-1', '/history', '/network']) {
       await page.goto(route);
       await page.waitForSelector('.pool-home', { timeout: 20000 });
 
@@ -348,12 +350,19 @@ test.describe('Route Entry Points', () => {
     await expect(page.locator('#pool-agent-submit')).toHaveCount(0);
     await expect(page.locator('[data-pool-node-grid]')).toHaveCount(0);
 
+    await page.goto('/room-1');
+    await page.waitForSelector('.pool-home', { timeout: 20000 });
+    await expect(page.locator('.pool-home')).toHaveAttribute('data-pool-route-id', 'room-1');
+    await expect(page.getByRole('heading', { name: 'Research Room-1', exact: true })).toBeVisible();
+    await expect(page.locator('#pool-room-1-request')).toBeVisible();
+
     await page.goto('/history');
     await page.waitForSelector('.pool-home', { timeout: 20000 });
     await expect(page.getByRole('heading', { name: 'Recent jobs', exact: true })).toBeVisible();
     await expect(page.locator('.pool-page-heading .pool-eyebrow')).toHaveCount(0);
     await expect(page.locator('#pool-record-ledger')).toBeVisible();
     await expect(page.locator('#pool-peer-ledger')).toBeHidden();
+    await expect(page.locator('[data-pool-research-room]')).toHaveCount(0);
 
     await page.goto('/network');
     await page.waitForSelector('.pool-home', { timeout: 20000 });
@@ -361,6 +370,7 @@ test.describe('Route Entry Points', () => {
     await expect(page.locator('.pool-route-cta-row')).toHaveCount(0);
     await expect(page.locator('#pool-record-ledger')).toBeVisible();
     await expect(page.locator('#pool-peer-ledger')).toBeHidden();
+    await expect(page.locator('[data-pool-research-room]')).toHaveCount(0);
   });
 
   test('home route boots without early VFS misses for instance-scoped runtime modules', async ({ page }) => {

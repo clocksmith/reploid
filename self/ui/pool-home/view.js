@@ -138,12 +138,12 @@ const writeRecordViewState = (state, roomId = getPeerRoomId()) => {
 
 export const getPoolRecordFacet = () => {
   const facet = readRecordViewState().facet;
-  return ['all', 'answer', 'contribution', 'room'].includes(facet) ? facet : 'all';
+  return ['all', 'request', 'answer', 'contribution', 'room'].includes(facet) ? facet : 'all';
 };
 
 export const setPoolRecordFacet = (facet = 'all') => {
   const state = readRecordViewState();
-  state.facet = ['all', 'answer', 'contribution', 'room'].includes(facet) ? facet : 'all';
+  state.facet = ['all', 'request', 'answer', 'contribution', 'room'].includes(facet) ? facet : 'all';
   writeRecordViewState(state);
   return state.facet;
 };
@@ -252,6 +252,8 @@ export const updateProviderStatus = (mount, status = 'Idle') => {
     || normalized.includes('checking relay');
   const providerState = recovering
     ? 'degraded'
+    : normalized.includes('could not') || normalized.includes('failed') || normalized.includes('error')
+      ? 'error'
     : normalized.includes('available') || normalized.includes('ready') || normalized.includes('answering') || normalized.includes('online') || normalized.includes('running')
       ? 'online'
       : normalized.includes('starting') || normalized.includes('opening')
@@ -266,6 +268,23 @@ export const updateProviderStatus = (mount, status = 'Idle') => {
     summary.textContent = status === 'Idle' ? 'Not sharing' : status;
     summary.dataset.providerState = providerState;
   }
+};
+
+export const updateProviderNotice = (mount, notice = null) => {
+  const noticeEl = mount?.querySelector('[data-pool-provider-notice]');
+  if (!noticeEl) return;
+  if (!notice) {
+    noticeEl.hidden = true;
+    noticeEl.dataset.noticeState = '';
+    setPoolHtml(noticeEl, '');
+    return;
+  }
+  noticeEl.hidden = false;
+  noticeEl.dataset.noticeState = notice.state || 'info';
+  setPoolHtml(noticeEl, `
+    <strong>${escapeHtml(notice.title || 'Sharing needs attention')}</strong>
+    <span>${escapeHtml(notice.message || '')}</span>
+  `);
 };
 
 const streamOutputText = (elementId, text) => {
@@ -413,7 +432,7 @@ export const refreshReceiptLedgerState = () => {
   if (ledger) setPoolHtml(ledger, renderReceiptLedger());
 };
 
-const recordPeerLedgerEvents = (events = []) => {
+export const recordPeerLedgerEvents = (events = []) => {
   if (!Array.isArray(events) || events.length === 0) return;
   ensurePeerLedgerLoaded();
   let changed = false;
@@ -541,9 +560,10 @@ const unifiedRecordRows = () => {
 
 const RECORD_FACETS = Object.freeze([
   { id: 'all', label: 'All' },
+  { id: 'request', label: 'Requests' },
   { id: 'answer', label: 'Answers' },
   { id: 'contribution', label: 'Contributions' },
-  { id: 'room', label: 'Room' }
+  { id: 'room', label: 'Network' }
 ]);
 
 const renderRecordFacetChips = (rows, facetId) => RECORD_FACETS.map((facet) => {
@@ -556,7 +576,7 @@ const renderRecordFacetChips = (rows, facetId) => RECORD_FACETS.map((facet) => {
 export const renderRecordLedger = (facetId = getPoolRecordFacet()) => {
   const rows = unifiedRecordRows();
   if (!rows.length) {
-    return '<p class="pool-record-empty">No records yet. Completed runs and contributions will appear here.</p>';
+    return '<p class="pool-record-empty">No records yet. Requests, completed runs, and contributions will appear here.</p>';
   }
   const visible = facetId === 'all' ? rows : rows.filter((row) => row.type === facetId);
   const chips = `<div class="pool-record-facets" role="group" aria-label="Record types">${renderRecordFacetChips(rows, facetId)}</div>`;
@@ -645,6 +665,27 @@ export const applyPoolNetworkVisualState = (summary = null) => {
       badge.textContent = String(count);
       badge.hidden = visual.mode === 'simulation';
     }
+    const label = control.querySelector('[data-pool-network-label]');
+    if (label) {
+      label.textContent = !visual.available
+        ? 'Unavailable'
+        : visual.providerCount > 0
+          ? `${visual.providerCount} provider${visual.providerCount === 1 ? '' : 's'}`
+          : visual.peerCount > 0
+            ? `${visual.peerCount} peer${visual.peerCount === 1 ? '' : 's'}`
+            : summary
+              ? '0 peers'
+              : 'Searching';
+    }
+  }
+  for (const state of document.querySelectorAll('[data-pool-pack-provider-state]')) {
+    state.textContent = !visual.available
+      ? 'Unavailable'
+      : visual.providerCount > 0
+        ? `${visual.providerCount} available`
+        : summary
+          ? 'No providers'
+          : 'Searching';
   }
   for (const shell of document.querySelectorAll('.pool-simulation-shell')) {
     shell.dataset.networkMode = visual.mode;
@@ -868,15 +909,7 @@ const isErrorResult = (value = {}) => !!(value && typeof value === 'object' && (
 
 const extractResultSummary = (value = {}) => {
   if (isErrorResult(value)) {
-    const payload = value.payload || {};
-    const model = value.model || payload.model || payload.requiredModel || null;
-    const fields = [
-      ['Status', value.statusLabel || value.error || 'Failed'],
-      ['Code', value.code],
-      ['Room', value.roomId || payload.roomId],
-      ['Model', model?.modelId || model?.id]
-    ].filter(([, fieldValue]) => fieldValue !== undefined && fieldValue !== null && fieldValue !== '');
-    return fields.slice(0, 4);
+    return [['Status', value.statusLabel || value.error || 'Failed']];
   }
   const job = value.job || value;
   const record = value.receipt || value.record || value;
@@ -911,7 +944,7 @@ const extractResultSummary = (value = {}) => {
 const renderSummaryRows = (summary) => summary.map(([label, value]) => `
   <span class="pool-summary-item">
     <span class="rgr-status-label">${escapeHtml(label)}</span>
-    <span class="rgr-status-value">${escapeHtml(compactHash(value))}</span>
+    <span class="rgr-status-value">${escapeHtml(label === 'Status' ? value : compactHash(value))}</span>
   </span>
 `).join('');
 
@@ -933,10 +966,10 @@ const receiptTokenTotal = (record = {}) => {
 };
 
 const formatContributionPolicy = (policyId) => ({
-  fastest_receipt: 'First answer',
-  canary_audited: 'Sample checked',
-  redundant_agreement: 'Two matching answers',
-  ring_quorum_receipt: 'Group match'
+  fastest_receipt: 'One peer',
+  canary_audited: 'One peer with audit',
+  redundant_agreement: 'Two matching peers',
+  ring_quorum_receipt: 'Peer quorum'
 }[policyId] || String(policyId || 'default').replace(/_/g, ' '));
 
 const renderRunContributionLayer = (value = {}) => {
@@ -1490,8 +1523,9 @@ export const renderNav = (activeRoute) => {
     const isActive = activeRoute === id || (activeRoute === 'ask' && id === 'home');
     const currentAttr = isActive ? ' aria-current="page"' : '';
     const ariaLabel = escapeHtml(label);
+    const shortLabel = escapeHtml({ home: 'Run', compute: 'Share', records: 'Jobs' }[id] || label);
     const roomPath = roomHref(path, getPeerRoomId());
-    return `<a class="pool-nav-link${isActive ? ' is-active' : ''}" href="${escapeHtml(roomPath)}" data-pool-route-link="${escapeHtml(roomPath)}"${currentAttr}>${ariaLabel}</a>`;
+    return `<a class="pool-nav-link${isActive ? ' is-active' : ''}" href="${escapeHtml(roomPath)}" aria-label="${ariaLabel}" data-pool-nav-short-label="${shortLabel}" data-pool-route-link="${escapeHtml(roomPath)}"${currentAttr}>${ariaLabel}</a>`;
   };
   return `
     <nav class="pool-nav-rail pool-primary-nav" aria-label="Poolday">
@@ -1502,7 +1536,7 @@ export const renderNav = (activeRoute) => {
       <details class="pool-primary-network" data-pool-network-state="simulation">
         <summary aria-label="Network availability">
           <span class="pool-primary-network-dot" aria-hidden="true"></span>
-          <span>Network</span>
+          <span data-pool-network-label>Searching</span>
           <span data-pool-network-count hidden>0</span>
         </summary>
         <div class="pool-primary-network-details">
@@ -1539,7 +1573,7 @@ export const refreshResearchRoomState = (routeId = getRouteId()) => {
 };
 
 const renderRouteShell = (copy, content, { routeId = 'records' } = {}) => `
-  <section class="panel pool-panel pool-route-shell">
+  <section class="panel pool-panel pool-route-shell" data-pool-route-shell="${escapeHtml(routeId)}">
     <div class="pool-page-heading">
       <h1 class="type-h1">${escapeHtml(copy.title)}</h1>
       <p class="type-caption pool-hero-body">${escapeHtml(copy.body)}</p>
@@ -1547,10 +1581,6 @@ const renderRouteShell = (copy, content, { routeId = 'records' } = {}) => `
     ${content}
   </section>
 `;
-
-const renderPolicyTrustLabel = (policy) => (
-  policy.adaptiveRing ? 'group check' : 'one tab'
-);
 
 const formatContributionLast = (snapshot = {}) => {
   const recent = snapshot.recent?.[0];
@@ -1671,10 +1701,10 @@ export const refreshContributionStatusBar = () => {
 
 const renderPolicyProductLabel = (policy) => {
   const labels = {
-    fastest_receipt: 'First answer',
-    canary_audited: 'Sample checked',
-    redundant_agreement: 'Two matching answers',
-    ring_quorum_receipt: 'Group match'
+    fastest_receipt: 'One peer',
+    canary_audited: 'One peer with audit',
+    redundant_agreement: 'Two matching peers',
+    ring_quorum_receipt: 'Peer quorum'
   };
   return labels[policy.policyId] || policy.policyId.replace(/_/g, ' ');
 };
@@ -1713,7 +1743,7 @@ export const describeSelectedRun = ({
 };
 
 const renderPolicyOptions = () => listPolicies().map((policy) => `
-  <option value="${escapeHtml(policy.policyId)}">${escapeHtml(renderPolicyProductLabel(policy))} - ${escapeHtml(renderPolicyTrustLabel(policy))}</option>
+  <option value="${escapeHtml(policy.policyId)}">${escapeHtml(renderPolicyProductLabel(policy))}</option>
 `).join('');
 
 const renderModelOptions = ({ workload = null, includeWorkloadLabel = false, disableSequence = false } = {}) => listPoolModels({
@@ -1731,6 +1761,24 @@ const renderModelOptions = ({ workload = null, includeWorkloadLabel = false, dis
   return `<option value="${escapeHtml(model.modelId)}" data-workload="${escapeHtml(modelWorkload)}"${selected}${disabled}>${escapeHtml(label)}${escapeHtml(workloadLabel)}</option>`;
 }).join('');
 
+const renderPackSummary = (model = LAUNCH_MODEL) => {
+  const identity = model.artifactIdentity || {};
+  const dimensions = Number(model.embeddingDimensions || model.dimensions || 0);
+  const maxInput = Number(model.sequence?.maxLength || model.contextLength || 0);
+  const work = model.executionMode === 'full_model_browser_sequence'
+    ? 'Full model · one sequence'
+    : `${model.runtime || 'Doppler'} · ${model.backend || 'qualified provider'}`;
+  return `
+    <dl class="pool-pack-summary" data-pool-pack-summary>
+      <div><dt>Signed Pack</dt><dd title="${escapeHtml(identity.weightPackId || model.modelHash || model.modelId)}">${escapeHtml(compactHash(identity.weightPackId || model.modelHash || model.modelId))}</dd></div>
+      <div><dt>Capability</dt><dd>${escapeHtml(dimensions ? `Sequence embedding · ${dimensions} dimensions` : getPoolModelWorkload(model).replace(/[._-]/g, ' '))}</dd></div>
+      <div><dt>Input</dt><dd>${escapeHtml(maxInput ? `Public protein sequence · up to ${maxInput} residues` : 'Public protein sequence')}</dd></div>
+      <div><dt>Work</dt><dd>${escapeHtml(work)}</dd></div>
+      <div><dt>Providers</dt><dd data-pool-pack-provider-state>Searching</dd></div>
+    </dl>
+  `;
+};
+
 const renderSharingLimits = (preferences = readParticipationPreferences()) => `
   <details class="pool-advanced pool-sharing-limits">
     <summary>Sharing limits</summary>
@@ -1745,6 +1793,19 @@ const renderSharingLimits = (preferences = readParticipationPreferences()) => `
     <button class="btn btn-ghost" type="button" data-pool-passkey>Protect identity with passkey</button>
     <p class="type-caption" data-pool-passkey-status></p>
   </details>
+`;
+
+const renderSharingBoundary = (preferences = readParticipationPreferences(), model = LAUNCH_MODEL) => `
+  <section class="pool-sharing-boundary" aria-label="Current sharing limits">
+    <h2 class="type-h2">Before you share</h2>
+    <ul>
+      <li><strong>${escapeHtml(model.label || model.modelId)}</strong> only</li>
+      <li><strong>${escapeHtml(preferences.limits.maxConcurrentJobs)}</strong> run${preferences.limits.maxConcurrentJobs === 1 ? '' : 's'} at a time</li>
+      <li>Public protein sequences; output receipts returned to requesters</li>
+      <li>${escapeHtml(preferences.limits.storageBudgetMiB)} MiB cache · ${escapeHtml(preferences.limits.bandwidthBudgetMbps)} Mbps</li>
+      <li>Runs until you stop sharing or close this tab</li>
+    </ul>
+  </section>
 `;
 
 const renderParticipationControl = ({
@@ -1805,13 +1866,14 @@ const renderHomeSimulation = ({ dashboardView = 'home' } = {}) => {
               ${renderModelOptions({ workload: POOLDAY_MODEL_WORKLOADS.sequenceEmbedding })}
             </select>
           </label>
+          ${renderPackSummary(LAUNCH_MODEL)}
           <label class="pool-home-sequence-field" for="pool-home-ask-prompt">
             <span>Input</span>
             <textarea
               id="pool-home-ask-prompt"
               class="pool-home-ask-input"
               name="sequence"
-              rows="5"
+              rows="4"
               aria-label="Public protein sequence"
               autocomplete="off"
               autocapitalize="characters"
@@ -1832,13 +1894,8 @@ const renderHomeSimulation = ({ dashboardView = 'home' } = {}) => {
             <summary>Advanced details</summary>
             <div class="pool-advanced-grid">
               <label class="pool-field">
-                <span>Independent check</span>
+                <span>Verification</span>
                 <select id="pool-home-request-policy" data-pool-request-control>${renderPolicyOptions()}</select>
-              </label>
-              ${renderRequesterIntentFields({ prefix: 'pool-home', textTag: 'textarea', compact: true, requestAttributes: ' data-pool-request-control' })}
-              <label class="pool-consent-row">
-                <input id="pool-home-research-public" type="checkbox" data-pool-request-control>
-                <span>Publish the question and result to the room</span>
               </label>
               <label class="pool-home-adapter-picker" data-pool-home-adapter-picker hidden>
                 <span>Adapter Pack</span>
@@ -1894,17 +1951,17 @@ export const renderRouteDetail = (routeId) => {
               </label>
               <span class="pool-workload-badge" data-pool-run-workload>protein embedding</span>
             </div>
+            ${renderPackSummary(LAUNCH_MODEL)}
             <label class="pool-field">
               <span>Input disclosure</span>
-              ${renderRequesterConsentRows({ prefix: 'pool-run', rowElement: 'span' })}
-              <small>The peer job sends the sequence only to selected contributors. Publication is a separate signed action.</small>
+              ${renderRequesterConsentRows({ prefix: 'pool-run', rowElement: 'span', includeResearch: false })}
+              <small>The peer job sends the sequence only to selected contributors.</small>
             </label>
-            ${renderRequesterIntentFields({ prefix: 'pool-run', textTag: 'textarea' })}
             <details class="pool-advanced">
               <summary>Settings</summary>
               <div class="pool-advanced-grid">
                 <label class="pool-field">
-                  <span>Check</span>
+                  <span>Verification</span>
                   <select id="pool-run-policy">${renderPolicyOptions()}</select>
                 </label>
               </div>
@@ -1941,6 +1998,10 @@ export const renderRouteDetail = (routeId) => {
               <span>Available Pack</span>
               <select id="pool-provider-model">${renderModelOptions({ includeWorkloadLabel: true })}</select>
             </label>
+            ${renderPackSummary(LAUNCH_MODEL)}
+            ${renderSharingBoundary(readParticipationPreferences(), LAUNCH_MODEL)}
+            ${renderSharingLimits(readParticipationPreferences())}
+            <div class="pool-provider-notice" data-pool-provider-notice aria-live="assertive" hidden></div>
             <div class="pool-control-row pool-primary-actions" aria-label="Contribution controls">
               <button class="btn btn-primary btn-op" data-op="▶" id="pool-provider-worker-toggle" type="button" aria-pressed="false">Start sharing</button>
             </div>
@@ -1952,7 +2013,7 @@ export const renderRouteDetail = (routeId) => {
           <details class="pool-advanced pool-provider-details" id="pool-provider-details">
             <summary>Advanced details</summary>
             <div class="pool-provider-detail-grid">
-              ${renderParticipationControl({ surface: 'compute', advanced: true })}
+              ${renderParticipationControl({ surface: 'compute' })}
               <section aria-label="Contributor readiness">
                 <h2 class="type-h2">Readiness</h2>
                 <div id="pool-provider-health" class="pool-ledger-shell" aria-live="polite">${renderProviderHealth()}</div>
@@ -1967,42 +2028,19 @@ export const renderRouteDetail = (routeId) => {
     `, { routeId: normalizedRouteId });
   }
   if (normalizedRouteId === 'records') {
-    const isHistoryAlias = routeId === 'history'
-      || normalizeProductPath(window.location.pathname || '') === '/history';
-    const recordFacet = isHistoryAlias ? 'room' : getPoolRecordFacet();
-    const roomPanel = getPoolRoomPanel();
-    const secondaryWorkspaceOpen = roomPanel === 'review' || roomPanel === 'discovery';
-    const contextualPanel = roomPanel === 'review'
-      ? {
-          title: 'Review evidence',
-          body: 'Make a signed decision or attach a correction to the evidence shown above.',
-          target: 'pool-room-review'
-        }
-      : roomPanel === 'discovery'
-        ? {
-            title: 'Discover the next action',
-            body: 'Inspect compatible evidence and approve a bounded follow-up without promoting a proposal into memory.',
-            target: 'pool-room-discovery'
-          }
-        : null;
+    const recordFacet = getPoolRecordFacet();
     return renderRouteShell(copy, `
         <div class="pool-form pool-route-grid pool-record-layout" data-pool-receipts data-pool-reputation>
           <div id="pool-record-ledger" aria-live="polite" data-record-facet="${escapeHtml(recordFacet)}">${renderRecordLedger(recordFacet)}</div>
           <details class="pool-advanced pool-record-tools" data-pool-record-disclosure="technical-tools"${readRecordViewState().open['technical-tools'] ? ' open' : ''}>
             <summary>Advanced details</summary>
             <div class="pool-record-tool-grid">
-              ${renderActiveResearchRoom(normalizedRouteId)}
-              ${contextualPanel ? `<section class="pool-room-contextual-panel" data-pool-room-contextual-panel="${escapeHtml(roomPanel)}"><h2 class="type-h2">${escapeHtml(contextualPanel.title)}</h2><p>${escapeHtml(contextualPanel.body)}</p><a class="btn btn-ghost" href="#${escapeHtml(contextualPanel.target)}">Open panel controls</a></section>` : ''}
-              <section class="pool-room-secondary-workspace" data-pool-room-panel="research"${secondaryWorkspaceOpen ? ' data-pool-room-panel-open="true"' : ''}>
-                <h2 class="type-h2">Research workspace</h2>
-                <div id="pool-research-workspace-host">${renderResearchWorkspace(getPeerRoomId(), loadResearchRecords(getPeerRoomId()), { reviewTarget: getPoolReviewTarget() })}</div>
-              </section>
               <section data-pool-room-activity>
-                <h2 class="type-h2">Room activity</h2>
+                <h2 class="type-h2">Peer activity and retries</h2>
                 <div id="pool-room-activity" class="pool-ledger-shell" aria-live="polite">${renderRoomActivity()}</div>
               </section>
               <section>
-                <h2 class="type-h2">Contributor scores</h2>
+                <h2 class="type-h2">Peer identities</h2>
                 <div id="pool-peer-ledger" class="pool-ledger-shell" aria-live="polite">${renderPeerLedgerState()}</div>
               </section>
               <section>
@@ -2020,10 +2058,78 @@ export const renderRouteDetail = (routeId) => {
                 </div>
                 ${renderResultBox('pool-receipt-result', { placeholder: 'No lookup yet.' })}
               </details>
+              <section class="pool-record-recovery">
+                <h2 class="type-h2">Recovery</h2>
+                <p>Submitted, interrupted, and failed jobs stay in the timeline. Open a job to inspect its valid retry, resume, cancel, or receipt actions.</p>
+              </section>
             </div>
             <p class="type-caption pool-protocol-version" aria-label="protocol identifier">Protocol ${POOLDAY_VERSION_TAG}</p>
           </details>
         </div>
+    `, { routeId: normalizedRouteId });
+  }
+  if (normalizedRouteId === 'room-1') {
+    const roomPanel = getPoolRoomPanel();
+    const secondaryWorkspaceOpen = roomPanel === 'review' || roomPanel === 'discovery';
+    const contextualPanel = roomPanel === 'review'
+      ? {
+          title: 'Review evidence',
+          body: 'Make a signed decision or attach a correction to the evidence shown above.',
+          target: 'pool-room-review'
+        }
+      : roomPanel === 'discovery'
+        ? {
+            title: 'Discover the next action',
+            body: 'Inspect compatible evidence and approve a bounded follow-up without promoting a proposal into memory.',
+            target: 'pool-room-discovery'
+          }
+        : null;
+    return renderRouteShell(copy, `
+      <div class="pool-form pool-route-grid pool-room-1-layout" data-pool-receipts data-pool-reputation>
+        <section id="pool-room-1-request" class="pool-room-1-request" data-pool-run data-pool-run-surface="run" data-run-state="idle" data-run-phase="">
+          <h2 class="type-h2">Start a research question</h2>
+          <label class="pool-field">
+            <span>Public protein sequence</span>
+            <textarea id="pool-run-prompt" rows="6">MAPLALLLLGLVAGA</textarea>
+          </label>
+          <label class="pool-field">
+            <span>Model Pack</span>
+            <select id="pool-run-model">${renderModelOptions()}</select>
+          </label>
+          ${renderPackSummary(LAUNCH_MODEL)}
+          <label class="pool-field">
+            <span>Publication</span>
+            ${renderRequesterConsentRows({ prefix: 'pool-run', rowElement: 'span' })}
+            <small>Research publication is explicit and separate from ordinary Pack execution.</small>
+          </label>
+          ${renderRequesterIntentFields({ prefix: 'pool-run', textTag: 'textarea' })}
+          <label class="pool-field">
+            <span>Verification</span>
+            <select id="pool-run-policy">${renderPolicyOptions()}</select>
+          </label>
+          <p class="pool-run-status" data-pool-run-status aria-live="polite">Ready</p>
+          <div class="pool-control-row pool-primary-actions">
+            <button class="btn btn-primary btn-op" data-op="▶" id="pool-run-submit" type="button">Run and publish</button>
+          </div>
+          <section class="pool-run-output" data-pool-run-output hidden>
+            ${renderResultBox('pool-run-result', {
+              stream: true,
+              streamLabel: 'Result',
+              evidence: true,
+              evidenceLabel: 'Proof',
+              proteinEmbedding: true,
+              rawLabel: 'Raw result',
+              rawFull: true
+            })}
+          </section>
+        </section>
+        ${renderActiveResearchRoom(normalizedRouteId)}
+        ${contextualPanel ? `<section class="pool-room-contextual-panel" data-pool-room-contextual-panel="${escapeHtml(roomPanel)}"><h2 class="type-h2">${escapeHtml(contextualPanel.title)}</h2><p>${escapeHtml(contextualPanel.body)}</p><a class="btn btn-ghost" href="#${escapeHtml(contextualPanel.target)}">Open panel controls</a></section>` : ''}
+        <section class="pool-room-secondary-workspace" data-pool-room-panel="research"${secondaryWorkspaceOpen ? ' data-pool-room-panel-open="true"' : ''}>
+          <h2 class="type-h2">Research workspace</h2>
+          <div id="pool-research-workspace-host">${renderResearchWorkspace(getPeerRoomId(), loadResearchRecords(getPeerRoomId()), { reviewTarget: getPoolReviewTarget() })}</div>
+        </section>
+      </div>
     `, { routeId: normalizedRouteId });
   }
   return '';

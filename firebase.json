@@ -317,6 +317,10 @@
           "destination": "/index.html"
         },
         {
+          "source": "/room-1",
+          "destination": "/index.html"
+        },
+        {
           "source": "/history",
           "destination": "/index.html"
         },

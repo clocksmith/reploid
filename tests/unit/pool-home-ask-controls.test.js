@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const peerRoomMocks = vi.hoisted(() => ({
+  DEFAULT_PEER_ROOM_ID: 'reploid-default',
   runPeerJob: vi.fn(async (options = {}) => {
     options.onActivity?.({ status: 'peer_run_intent_created', phase: 'prompt' });
     options.onActivity?.({ status: 'peer_inference_started', phase: 'infer' });
@@ -49,6 +50,7 @@ import {
   findReceiptLedgerRecord,
   getPeerSessionAcceptWindowMs,
   getPeerTransportConnectWindowMs,
+  renderRouteDetail,
   renderRoutePanel
 } from '../../self/ui/pool-home/view.js';
 import { LAUNCH_MODEL, getEnabledPoolModelContract } from '../../self/pool/model-contract.js';
@@ -375,22 +377,20 @@ describe('Poolday home ask controls', () => {
   });
 
   it('preserves the signed public research submission before peer compute can fail', async () => {
-    window.history.replaceState({}, '', '/?room=evidence-room&relay=local');
-    document.body.innerHTML = `${renderRoutePanel('home')}
-      <select id="pool-home-request-model"><option value="${LAUNCH_MODEL.modelId}" selected>${LAUNCH_MODEL.label}</option></select>
-      <select id="pool-home-request-policy"><option value="ring_quorum_receipt" selected>Adaptive ring</option></select>`;
+    window.history.replaceState({}, '', '/room-1?room=evidence-room&relay=local');
+    document.body.innerHTML = renderRouteDetail('room-1');
     const unavailable = Object.assign(new Error('No provider'), { code: 'peer_provider_not_found' });
     peerRoomMocks.runPeerJob.mockRejectedValueOnce(unavailable);
-    bindHomeAskControls();
+    bindRunControls();
 
-    document.getElementById('pool-home-ask-prompt').value = 'MKTAYIAKQRQISFVKSHFSRQ';
-    document.getElementById('pool-home-sequence-public').checked = true;
-    document.getElementById('pool-home-research-public').checked = true;
-    document.getElementById('pool-home-intent-text').value = 'Review this sequence against related accepted evidence.';
-    document.getElementById('pool-home-intent-conditions').value = 'Declared public assay conditions.';
-    document.getElementById('pool-home-intent-observation').value = 'A receipt-backed independent observation.';
-    document.getElementById('pool-home-intent-unknowns').value = 'No experimental outcome exists yet.';
-    document.getElementById('pool-home-ask-form').requestSubmit();
+    document.getElementById('pool-run-prompt').value = 'MKTAYIAKQRQISFVKSHFSRQ';
+    document.getElementById('pool-run-sequence-public').checked = true;
+    document.getElementById('pool-run-research-public').checked = true;
+    document.getElementById('pool-run-intent-text').value = 'Review this sequence against related accepted evidence.';
+    document.getElementById('pool-run-intent-conditions').value = 'Declared public assay conditions.';
+    document.getElementById('pool-run-intent-observation').value = 'A receipt-backed independent observation.';
+    document.getElementById('pool-run-intent-unknowns').value = 'No experimental outcome exists yet.';
+    document.getElementById('pool-run-submit').click();
 
     await vi.waitFor(() => expect(peerRoomMocks.runPeerJob).toHaveBeenCalledTimes(1));
     expect(peerRoomMocks.runPeerJob).toHaveBeenCalledWith(expect.objectContaining({
@@ -416,17 +416,17 @@ describe('Poolday home ask controls', () => {
   });
 
   it('does not publish a research submission without a stated question', async () => {
-    window.history.replaceState({}, '', '/?room=question-required-room&relay=local');
-    document.body.innerHTML = `${renderRoutePanel('home')}<select id="pool-home-request-model"><option value="${LAUNCH_MODEL.modelId}" selected>${LAUNCH_MODEL.label}</option></select>`;
-    bindHomeAskControls();
+    window.history.replaceState({}, '', '/room-1?room=question-required-room&relay=local');
+    document.body.innerHTML = renderRouteDetail('room-1');
+    bindRunControls();
 
-    document.getElementById('pool-home-ask-prompt').value = 'MKTAYIAKQRQISFVKSHFSRQ';
-    document.getElementById('pool-home-sequence-public').checked = true;
-    document.getElementById('pool-home-research-public').checked = true;
-    document.getElementById('pool-home-intent-text').value = '';
-    document.getElementById('pool-home-ask-form').requestSubmit();
+    document.getElementById('pool-run-prompt').value = 'MKTAYIAKQRQISFVKSHFSRQ';
+    document.getElementById('pool-run-sequence-public').checked = true;
+    document.getElementById('pool-run-research-public').checked = true;
+    document.getElementById('pool-run-intent-text').value = '';
+    document.getElementById('pool-run-submit').click();
 
-    await vi.waitFor(() => expect(document.getElementById('pool-home-run-result-raw').textContent)
+    await vi.waitFor(() => expect(document.getElementById('pool-run-result-raw').textContent)
       .toContain('State the question, hypothesis, or context'));
     expect(peerRoomMocks.runPeerJob).not.toHaveBeenCalled();
     const key = Array.from({ length: window.localStorage.length }, (_, index) => window.localStorage.key(index))

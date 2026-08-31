@@ -62,7 +62,8 @@ describe('poolday home navigation', () => {
       'home',
       'ask',
       'compute',
-      'records'
+      'records',
+      'room-1'
     ]);
     expect(POOLDAY_NAV_ROUTES).toEqual([
       { id: 'home', path: '/', label: 'Run a model' },
@@ -74,6 +75,7 @@ describe('poolday home navigation', () => {
       '/ask': 'ask',
       '/compute': 'compute',
       '/records': 'records',
+      '/room-1': 'room-1',
       '/history': 'records',
       '/network': 'records'
     });
@@ -103,7 +105,8 @@ describe('poolday home navigation', () => {
     expect(html).not.toContain('Research Room');
     expect(html).toContain('href="/?room=reploid-default" data-pool-route-link="/?room=reploid-default"');
     expect(html).toMatch(/href="\/compute\?room=reploid-default"[\s\S]*data-pool-route-link="\/compute\?room=reploid-default"[\s\S]*aria-current="page"/);
-    expect(html).toContain('href="/records?room=reploid-default" data-pool-route-link="/records?room=reploid-default"');
+    expect(html).toMatch(/href="\/records\?room=reploid-default"[\s\S]*data-pool-route-link="\/records\?room=reploid-default"/);
+    expect(html).toContain('data-pool-network-label>Searching</span>');
     expect((html.match(/class="pool-nav-link/g) || [])).toHaveLength(3);
   });
 
@@ -124,8 +127,8 @@ describe('poolday home navigation', () => {
     try {
       const html = renderNav('records', { open: true });
       expect(html).toContain('href="/?room=canonical-room" data-pool-route-link="/?room=canonical-room"');
-      expect(html).toContain('href="/compute?room=canonical-room" data-pool-route-link="/compute?room=canonical-room"');
-      expect(html).toContain('href="/records?room=canonical-room" data-pool-route-link="/records?room=canonical-room"');
+      expect(html).toMatch(/href="\/compute\?room=canonical-room"[\s\S]*data-pool-route-link="\/compute\?room=canonical-room"/);
+      expect(html).toMatch(/href="\/records\?room=canonical-room"[\s\S]*data-pool-route-link="\/records\?room=canonical-room"/);
     } finally {
       window.history.replaceState({}, '', original || '/');
     }
@@ -154,10 +157,10 @@ describe('poolday home navigation', () => {
     expect(html).not.toContain('>View room</a>');
     expect(html).toContain('id="pool-home-request-model"');
     expect(html).toContain('<span>Model Pack</span>');
-    expect(html).toContain('id="pool-home-research-public"');
-    expect(html).toContain('id="pool-home-intent-text"');
+    expect(html).not.toContain('id="pool-home-research-public"');
+    expect(html).not.toContain('id="pool-home-intent-text"');
     expect(html).toContain('>Run a model</h2>');
-    expect(html).toContain('placeholder="What do you want to learn?"');
+    expect(html).not.toContain('placeholder="What do you want to learn?"');
     expect(html).toContain('pool-home-cta-row pool-home-ask-form');
     expect(html).toContain('id="pool-home-ask-form"');
     expect(html).not.toContain('class="pool-home-composer-bar"');
@@ -165,7 +168,10 @@ describe('poolday home navigation', () => {
     expect(html).toContain('id="pool-home-ask-prompt"');
     expect(html).toContain('id="pool-home-sequence-public"');
     expect(html).toContain('This input may be sent to selected peers');
-    expect(html).toContain('Publish the question and result to the room');
+    expect(html).not.toContain('Publish the question and result to the room');
+    expect(html).toContain('<span>Verification</span>');
+    expect(html).toContain('Two matching peers');
+    expect(html).toContain('data-pool-pack-summary');
     expect(html).toContain('data-pool-sequence-consent-saved hidden');
     expect(html).toContain('id="pool-home-adapter"');
     expect(html).not.toContain('pool-home-ask-label');
@@ -278,6 +284,7 @@ describe('poolday home navigation', () => {
     expect(syntheticSmoke).toContain("'/': '#pool-home-ask-form'");
     expect(syntheticSmoke).toContain("'/ask': '#pool-run-prompt'");
     expect(syntheticSmoke).toContain("'/compute': '#pool-provider-worker-toggle'");
+    expect(syntheticSmoke).toContain("'/room-1': '#pool-room-1-request'");
     expect(syntheticSmoke).not.toContain('data-pool-lane="text"');
     expect(syntheticSmoke).not.toContain('data-pool-dashboard-view');
     expect(syntheticSmoke).toContain("const SYNTHETIC_MODEL_ID = 'esm2-t12-35m-ur50d-f32-af32'");
@@ -327,18 +334,35 @@ describe('poolday home navigation', () => {
     expect(html).toContain('data-pool-contribution-history hidden');
     expect(html).toContain('<summary>Advanced details</summary>');
     expect(html).toContain('<summary>Debug event</summary>');
+    expect(html).toContain('Before you share');
+    expect(html).toContain('Runs until you stop sharing or close this tab');
+    expect(html).toContain('data-pool-provider-notice');
+    expect(html.indexOf('Before you share')).toBeLessThan(html.indexOf('id="pool-provider-worker-toggle"'));
   });
 
-  it('renders a records route with room activity and contributor scores', () => {
+  it('keeps Recent jobs focused only on Poolday execution evidence', () => {
     const html = renderRouteDetail('records');
 
     expect(html).toContain('id="pool-record-ledger"');
-    expect(html).toContain('No records yet. Completed runs and contributions will appear here.');
+    expect(html).toContain('No records yet. Requests, completed runs, and contributions will appear here.');
     expect(html).toContain('<summary>Advanced details</summary>');
-    expect(html).toContain('Room activity');
-    expect(html).toContain('Contributor scores');
+    expect(html).toContain('Peer activity and retries');
+    expect(html).toContain('Peer identities');
     expect(html).toContain('Saved answer receipts');
+    expect(html).not.toContain('Open Research Room-1');
+    expect(html).not.toContain('data-pool-research-room');
+    expect(html).not.toContain('Research workspace');
     expect(html).not.toContain('class="pool-route-cta-row"');
+  });
+
+  it('renders Research Room-1 on its own non-primary route', () => {
+    const html = renderRouteDetail('room-1');
+
+    expect(html).toContain('data-pool-route-shell="room-1"');
+    expect(html).toContain('data-pool-research-room');
+    expect(html).toContain('Research workspace');
+    expect(html).toContain('id="pool-room-1-request"');
+    expect(html).toContain('id="pool-run-intent-text"');
   });
 
   it('hides global compute status for tabs that are not contributing', () => {

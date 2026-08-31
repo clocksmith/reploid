@@ -92,7 +92,7 @@ describe('Research Room projection', () => {
     const html = renderResearchRoom({ roomId: 'empty-room', researchRecords: [] });
     const unresolvedEvidence = html.match(/<article class="pool-room-list-item" data-kind="evidence">[\s\S]*?<\/article>/)?.[0] || '';
 
-    expect(html).toContain('href="/ask?room=empty-room"');
+    expect(html).toContain('href="/room-1?room=empty-room#pool-room-1-request"');
     expect(html).toContain('>No result yet</h2>');
     expect(unresolvedEvidence).toContain('>Run<');
     expect(unresolvedEvidence).not.toContain('href="/records?room=empty-room&amp;panel=review#pool-room-review"');
@@ -842,9 +842,9 @@ describe('Research Room projection', () => {
     expect(html).toContain('data-pool-room-approve-task="task:');
     expect(html).toContain('Approve next action');
     expect(html).toContain('Raw vectors and residue-level values remain hidden');
-    expect(html).toContain('href="/ask?room=room-projection"');
-    expect(html).toContain('href="/records?room=room-projection&amp;panel=review#pool-room-review"');
-    expect(html).toContain(`href="/records?room=room-projection&amp;panel=review&amp;target=${encodeURIComponent(answer.recordHash)}#pool-room-review"`);
+    expect(html).toContain('href="/room-1?room=room-projection#pool-room-1-request"');
+    expect(html).toContain('href="/room-1?room=room-projection&amp;panel=review#pool-room-review"');
+    expect(html).toContain(`href="/room-1?room=room-projection&amp;panel=review&amp;target=${encodeURIComponent(answer.recordHash)}#pool-room-review"`);
     expect(html).toContain('>Review</a>');
     expect(html).not.toContain('1,0,0');
   });

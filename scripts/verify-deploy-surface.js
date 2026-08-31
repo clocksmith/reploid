@@ -54,7 +54,7 @@ const POOLDAY_MODULE_FILES = [
   'pool/peer-room.js',
   'pool/retry-policy.js'
 ];
-const LAYOUT_ROUTES = ['/ask', '/compute', '/records'];
+const LAYOUT_ROUTES = ['/ask', '/compute', '/records', '/room-1'];
 const SCREENSHOT_ROUTES = ['/', ...LAYOUT_ROUTES];
 const screenshotDir = path.join(repoRoot, 'artifacts', 'deploy-surface');
 

@@ -30,6 +30,7 @@ Outputs:
 - Public-sequence support cannot imply private-sequence protection.
 - The product loop is request, peer execution, comparison, requester acceptance, and retained receipt.
 - Doppler Pack identity and qualification remain distinct from peer availability and successful execution.
+- Recent jobs remains execution-only; scientific Room-1 administration has a separate non-primary route.
 
 ## Acceptance
 - Product contracts remain compatible with peer-job, recovery, research-cycle, and surface-claim behavior.

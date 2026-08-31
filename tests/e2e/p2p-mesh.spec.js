@@ -282,7 +282,7 @@ const configurePublicSequenceRequest = async (page, {
     }
     await questionControl.fill(question);
     if (!(await publicResearch.isChecked())) await publicResearch.check();
-  } else if (await publicResearch.isChecked()) {
+  } else if (await publicResearch.count() && await publicResearch.isChecked()) {
     await publicResearch.uncheck();
   }
 };
@@ -348,7 +348,8 @@ test.describe('Run, Contribute, Records peer room', () => {
         sequenceSelector: '#pool-home-sequence-public',
         researchSelector: '#pool-home-research-public',
         questionSelector: '#pool-home-intent-text',
-        question: prompt
+        question: prompt,
+        publishResearch: false
       });
       await homePage.locator('#pool-home-ask-prompt').fill(sequence);
       await homePage.locator('#pool-home-run-submit').click();
@@ -369,7 +370,11 @@ test.describe('Run, Contribute, Records peer room', () => {
       await expect(homePage.locator('#pool-home-run-result-embedding-outcome')).toContainText(
         'Use it with embeddings made by the same ESM-2 model and contract when comparing sequences.'
       );
-      await expect(homePage.locator('[data-pool-copy-embedding]')).toBeEnabled();
+      await expect(homePage.locator('[data-pool-copy-embedding]')).toBeDisabled();
+      await expect(homePage.locator('[data-pool-copy-embedding]')).toHaveAttribute(
+        'data-pool-embedding-publication-permitted',
+        'false'
+      );
       expect(states).toEqual(expect.arrayContaining([
         expect.objectContaining({ state: 'submitting', phase: 'prompt' }),
         expect.objectContaining({ state: 'running', phase: 'match' }),
@@ -647,7 +652,11 @@ test.describe('Run, Contribute, Records peer room', () => {
 
       const toggle = providerPage.locator('#pool-provider-worker-toggle');
       await toggle.click();
-      await expect(providerPage.locator('[data-pool-provider-status]')).toHaveText('Idle');
+      await expect(providerPage.locator('[data-pool-provider-status]')).toHaveText('Could not start');
+      await expect(providerPage.locator('[data-pool-provider-status]')).toHaveAttribute('data-provider-state', 'error');
+      await expect(providerPage.locator('[data-pool-provider-notice]')).toContainText('Pack failed to load');
+      await expect(providerPage.locator('[data-pool-provider-notice]')).toContainText('Nothing was shared');
+      await expect(providerPage.locator('#pool-provider-details')).not.toHaveAttribute('open', '');
       await expect(providerPage.locator('#pool-provider-result')).toContainText(
         'Doppler model load failed: synthetic load failure'
       );

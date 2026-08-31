@@ -36,13 +36,14 @@ Contribution restarts when the signed profile changes so stale adverts cannot
 continue under old limits.
 
 Home is one focused Pack job. It shows the enabled signed Doppler Pack, input,
-peer-disclosure confirmation, and one Run model action. Independent checking,
-research intent, optional Research Room publication, and adapter selection stay
-under one Advanced details disclosure. Share compute shows the eligible Pack,
-sharing state, and one Start sharing action; limits, readiness, participation,
-and debug events stay under Advanced details. Recent jobs leads with the job
-ledger; Research Room and protocol machinery stay under Advanced details. The
-legacy `/ask`, `/history`, and `/network` paths remain compatibility aliases.
+peer-disclosure confirmation, one Verification choice, and one Run model
+action. Research intent and publication do not appear in generic Pack
+execution. Share compute shows the eligible Pack, current limits, input
+handling, stopping condition, sharing state, and one Start sharing action;
+readiness and debug events stay under Advanced details. Recent jobs leads with
+the job ledger and contains only execution evidence. Research Room-1 owns the
+scientific workflow on `/room-1`. The legacy `/ask`, `/history`, and `/network`
+paths remain compatibility aliases.
 
 The topology shares its WebGPU device evidence with a bounded capability probe.
 The probe combines supported limits with a short arithmetic kernel and assigns
@@ -60,7 +61,7 @@ Runtime adapter support and an empty publication registry remain distinct
 technical states, but an unavailable adapter mode is not rendered as an
 actionable composer lane. The composer reveals its secondary Adapter mode only
 when registry discovery finds a promoted pack for the selected text model.
-The Model Pack control reaches the signed job requirements. Independent check
+The Model Pack control reaches the signed job requirements. Verification
 reaches the selected routing and verification policy.
 Only enforceable controls are exposed: concurrency, output tokens, adapter cache,
 artifact relay, result verification, and advertised network capacity.
@@ -82,13 +83,15 @@ network-availability indicator.
 - [x] WebGPU evidence produces one of four capacity tiers
 - [x] Provider model options enforce declared minimum capability scores
 - [x] Desktop, laptop, and mobile layouts retain all primary actions
-- [x] Home input, Model Pack, and Independent check reach the submitted peer job
+- [x] Home input, Model Pack, and Verification reach the submitted peer job
 - [x] Sequence selects ESM-2 and submits a public protein sequence request
 - [x] Adapter empty state distinguishes runtime support from pack publication
 - [x] First-time visitors can run the enabled Pack without opening Advanced details
 - [x] Home does not render topology or room-governance detail before the primary task
 - [x] Primary navigation exposes exactly three product destinations
-- [x] Research and protocol controls remain contextual Advanced details
+- [x] Generic Pack execution excludes Research Room fields
+- [x] Research Room-1 has a separate non-primary route
+- [x] Sharing limits and failure state are visible before or beside Start sharing
 - [x] Share compute uses one Start/Stop sharing control
 
 *Last updated: August 2026*

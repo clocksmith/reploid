@@ -456,11 +456,15 @@ const submitActualSequence = async (page, sequence, policyId = 'fastest_receipt'
   const publicSequence = page.locator('#pool-run-sequence-public');
   if (!(await publicSequence.isChecked())) await publicSequence.check();
   const publicEvidence = page.locator('#pool-run-research-public');
-  if (publishResearch && !(await publicEvidence.isChecked())) await publicEvidence.check();
-  if (!publishResearch && await publicEvidence.isChecked()) await publicEvidence.uncheck();
-  await page.locator('#pool-run-intent-kind').selectOption('question');
-  await page.locator('#pool-run-intent-label').fill('Public ESM-2 qualification sequence');
-  await page.locator('#pool-run-intent-text').fill('Produce receipt-backed embedding evidence for the declared public protein sequence.');
+  if (await publicEvidence.count()) {
+    if (publishResearch && !(await publicEvidence.isChecked())) await publicEvidence.check();
+    if (!publishResearch && await publicEvidence.isChecked()) await publicEvidence.uncheck();
+    await page.locator('#pool-run-intent-kind').selectOption('question');
+    await page.locator('#pool-run-intent-label').fill('Public ESM-2 qualification sequence');
+    await page.locator('#pool-run-intent-text').fill('Produce receipt-backed embedding evidence for the declared public protein sequence.');
+  } else if (publishResearch) {
+    throw new Error('Research publication requires the Research Room-1 requester route');
+  }
   await page.locator('#pool-run-prompt').fill(sequence);
   await page.locator('#pool-run-submit').click();
 };
@@ -889,7 +893,7 @@ test.describe('Run and Contribute actual browser inference', () => {
       }).toBe(true);
       const toggle = providerPage.locator('#pool-provider-worker-toggle');
       await toggle.click();
-      await expect(providerPage.locator('[data-pool-provider-status]')).toHaveText('Idle', {
+      await expect(providerPage.locator('[data-pool-provider-status]')).toHaveText('Could not start', {
         timeout: 30000
       });
       const settled = (await readSnapshot(providerPage, 'pool-provider-result')).parsed;
@@ -989,7 +993,8 @@ test.describe('Run and Contribute actual browser inference', () => {
         timeout: 30000
       });
       const rejected = await readSnapshot(providerPage, 'pool-provider-result');
-      expect(rejected.providerState).toBe('offline');
+      expect(rejected.providerState).toBe('error');
+      await expect(providerPage.locator('[data-pool-provider-notice]')).toContainText('Nothing was shared');
       expect(rejected.raw).toContain('Error: This tab could not start');
       expect(rejected.raw).toContain('model manifest hash does not match configured manifestHash');
       expect(rejected.raw).toContain('Code: model_artifact_unavailable');
@@ -1270,7 +1275,7 @@ test.describe('Run and Contribute actual browser inference', () => {
       expect(secondProvider.identity?.roleId).toMatch(/^provider_/);
       expect(secondProvider.identity?.roleId).not.toBe(firstProvider.identity?.roleId);
 
-      const runPage = await openPoolPage(nodes.requesterContext, baseURL, '/ask', roomId, 'ring-requester');
+      const runPage = await openPoolPage(nodes.requesterContext, baseURL, '/room-1', roomId, 'ring-requester');
       const result = await runActualSequence(
         runPage,
         PUBLIC_PROTEIN_SEQUENCE,

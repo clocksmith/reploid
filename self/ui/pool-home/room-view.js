@@ -105,7 +105,7 @@ const renderQuestion = (room) => {
         <p class="pool-dashboard-kicker">Question</p>
         <h2 class="type-h2">No question yet</h2>
         <div class="pool-room-empty-actions">
-          <a class="btn btn-primary" data-pool-route-link="${escapeHtml(roomHref('/ask', room.roomId))}" href="${escapeHtml(roomHref('/ask', room.roomId))}">Ask a question</a>
+          <a class="btn btn-primary" data-pool-route-link="${escapeHtml(roomHref('/room-1', room.roomId))}" href="${escapeHtml(roomHref('/room-1', room.roomId))}#pool-room-1-request">Ask a question</a>
           <button class="btn btn-ghost" type="button" data-pool-load-sample-dispute data-pool-room-id="${escapeHtml(room.roomId)}">Load canonical dispute</button>
         </div>
       </div>
@@ -132,7 +132,7 @@ const renderResult = (room) => {
     return `
       <section class="pool-room-result-card is-empty" data-room-result-card>
         <div><p class="pool-dashboard-kicker">Result</p><h2 class="type-h2">No result yet</h2></div>
-        <a class="btn btn-primary" data-pool-route-link="${escapeHtml(roomHref('/ask', room.roomId))}" href="${escapeHtml(roomHref('/ask', room.roomId))}">Run</a>
+        <a class="btn btn-primary" data-pool-route-link="${escapeHtml(roomHref('/room-1', room.roomId))}" href="${escapeHtml(roomHref('/room-1', room.roomId))}#pool-room-1-request">Run</a>
       </section>
     `;
   }
@@ -149,7 +149,7 @@ const renderResult = (room) => {
         <div><span class="rgr-status-label">Receipt</span><strong title="${escapeHtml(result.receiptHash || '')}">${escapeHtml(compactHash(result.receiptHash))}</strong></div>
       </div>
       <div class="pool-room-action-controls">
-        <a class="btn btn-primary" data-pool-route-link="${escapeHtml(roomHref('/records', room.roomId, 'review', result.sourceHash))}" href="${escapeHtml(roomHref('/records', room.roomId, 'review', result.sourceHash))}">Review</a>
+        <a class="btn btn-primary" data-pool-route-link="${escapeHtml(roomHref('/room-1', room.roomId, 'review', result.sourceHash))}" href="${escapeHtml(roomHref('/room-1', room.roomId, 'review', result.sourceHash))}">Review</a>
       </div>
       <details class="pool-room-disclosure"><summary>Technical evidence</summary>
         <dl class="pool-room-facts">
@@ -172,8 +172,8 @@ const renderResult = (room) => {
 };
 
 const unresolvedHref = (entry, roomId) => {
-  if (entry.kind === 'evidence') return roomHref('/ask', roomId);
-  return roomHref('/records', roomId, entry.kind === 'next_action' ? 'discovery' : 'review');
+  if (entry.kind === 'evidence') return roomHref('/room-1', roomId);
+  return roomHref('/room-1', roomId, entry.kind === 'next_action' ? 'discovery' : 'review');
 };
 
 const renderUnresolved = (room) => `
@@ -196,8 +196,8 @@ const renderNextAction = (room) => {
   const nextQuestion = room.nextQuestion || {};
   const needsQuestion = !room.question;
   const destination = needsQuestion
-    ? roomHref('/ask', room.roomId)
-    : roomHref('/records', room.roomId, signedCandidate ? 'candidate-actions' : action ? 'discovery' : 'review');
+    ? roomHref('/room-1', room.roomId)
+    : roomHref('/room-1', room.roomId, signedCandidate ? 'candidate-actions' : action ? 'discovery' : 'review');
   const approvalRecordHashes = signedCandidate ? action.approvalRecordHashes : nextQuestion.approvalRecordHashes;
   const approvalBoundary = (signedCandidate ? action.status : nextQuestion.humanApprovalStatus) === 'approved'
     ? `${approvalRecordHashes?.length || 0} signed approval${approvalRecordHashes?.length === 1 ? '' : 's'}`
@@ -355,7 +355,7 @@ const renderProposals = (room) => `
             <div><dt>Evidence missing</dt><dd>${escapeHtml(proposal.missingEvidence)}</dd></div>
             <div><dt>What would distinguish it</dt><dd>${escapeHtml(proposal.distinguishes.length ? proposal.distinguishes.join(' · ') : 'No discriminator recorded')}</dd></div>
           </dl>
-          <a class="btn btn-ghost" data-pool-route-link="${escapeHtml(roomHref('/records', room.roomId, 'discovery'))}" href="${escapeHtml(roomHref('/records', room.roomId, 'discovery'))}">Inspect proposed action</a>
+          <a class="btn btn-ghost" data-pool-route-link="${escapeHtml(roomHref('/room-1', room.roomId, 'discovery'))}" href="${escapeHtml(roomHref('/room-1', room.roomId, 'discovery'))}">Inspect proposed action</a>
         </article>
       `).join('')}</div>`
       : '<p class="pool-room-muted">No signed hypotheses, predictions, or proposed work are present in this room yet.</p>'}
@@ -451,7 +451,7 @@ const renderProteinCampaign = (room) => {
       <div class="pool-room-section-heading"><div><p class="pool-dashboard-kicker">Campaign context</p><h2 class="type-h2" id="pool-room-campaign-title">Public protein disagreements</h2></div><span class="pool-room-count">${escapeHtml(campaign.eligibleCount || 0)}</span></div>
       ${status}
       ${eligible.length ? `<div class="pool-room-list">${eligible.map((entry) => `
-        <article class="pool-room-list-item"><div><strong>${escapeHtml(entry.label)}</strong><p>${escapeHtml(entry.priority.disagreementCount)} of 4 declared disagreement dimensions · exact sequence ${escapeHtml(compactHash(entry.sequence.hash))}</p></div><a href="${escapeHtml(roomHref('/records', entry.roomIds?.[0] || ''))}" data-pool-route-link="${escapeHtml(roomHref('/records', entry.roomIds?.[0] || ''))}">Open room</a></article>
+        <article class="pool-room-list-item"><div><strong>${escapeHtml(entry.label)}</strong><p>${escapeHtml(entry.priority.disagreementCount)} of 4 declared disagreement dimensions · exact sequence ${escapeHtml(compactHash(entry.sequence.hash))}</p></div><a href="${escapeHtml(roomHref('/room-1', entry.roomIds?.[0] || ''))}" data-pool-route-link="${escapeHtml(roomHref('/room-1', entry.roomIds?.[0] || ''))}">Open room</a></article>
       `).join('')}</div>` : ''}
       <p class="type-caption">Registry boundary: ${escapeHtml(campaign.boundary || 'not synchronized')} · ${campaign.complete ? 'reported complete for this bounded query' : 'incomplete or unavailable'} · showing at most five eligible sequences.</p>
       <p class="type-caption">This is a deterministic, uncalibrated disagreement heuristic over verified replay inputs. It does not rank biological importance, truth, or execution priority.</p>
@@ -463,10 +463,10 @@ const renderRoles = (room) => `
   <section class="pool-room-section" aria-labelledby="pool-room-roles-title">
     <div class="pool-room-section-heading"><div><p class="pool-dashboard-kicker">Participate</p><h2 class="type-h2" id="pool-room-roles-title">Room roles</h2></div></div>
     <div class="pool-room-role-grid">
-      <article><strong>Request</strong><p>State the sequence and question.</p><a data-pool-route-link="${escapeHtml(roomHref('/ask', room.roomId))}" href="${escapeHtml(roomHref('/ask', room.roomId))}">Open requester</a></article>
+      <article><strong>Request</strong><p>State the sequence and question.</p><a data-pool-route-link="${escapeHtml(roomHref('/room-1', room.roomId))}" href="${escapeHtml(roomHref('/room-1', room.roomId))}#pool-room-1-request">Open requester</a></article>
       <article><strong>Share compute</strong><p>Let this browser contribute execution.</p><a data-pool-route-link="${escapeHtml(roomHref('/compute', room.roomId))}" href="${escapeHtml(roomHref('/compute', room.roomId))}">Open contributor</a></article>
-      <article><strong>Review evidence</strong><p>Make an attributable signed decision.</p><a data-pool-route-link="${escapeHtml(roomHref('/records', room.roomId, 'review'))}" href="${escapeHtml(roomHref('/records', room.roomId, 'review'))}">Review evidence</a></article>
-      <article><strong>Discover</strong><p>Inspect compatible evidence and proposed work.</p><a data-pool-route-link="${escapeHtml(roomHref('/records', room.roomId, 'discovery'))}" href="${escapeHtml(roomHref('/records', room.roomId, 'discovery'))}">Explore discovery</a></article>
+      <article><strong>Review evidence</strong><p>Make an attributable signed decision.</p><a data-pool-route-link="${escapeHtml(roomHref('/room-1', room.roomId, 'review'))}" href="${escapeHtml(roomHref('/room-1', room.roomId, 'review'))}">Review evidence</a></article>
+      <article><strong>Discover</strong><p>Inspect compatible evidence and proposed work.</p><a data-pool-route-link="${escapeHtml(roomHref('/room-1', room.roomId, 'discovery'))}" href="${escapeHtml(roomHref('/room-1', room.roomId, 'discovery'))}">Explore discovery</a></article>
     </div>
   </section>
 `;

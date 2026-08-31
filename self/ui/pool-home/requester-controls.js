@@ -19,6 +19,7 @@ const intentOptions = [
 export function renderRequesterConsentRows({
   prefix,
   includeSavedNotice = false,
+  includeResearch = true,
   rowElement = 'label',
   sequenceConsentAttributes = '',
   requestAttributes = ''
@@ -34,7 +35,7 @@ export function renderRequesterConsentRows({
   return `
     ${row('sequence-public', 'This sequence is public', sequenceConsentAttributes)}
     ${includeSavedNotice ? '<strong data-pool-sequence-consent-saved hidden>Saved</strong>' : ''}
-    ${row('research-public', 'Save the question and result to this room')}
+    ${includeResearch ? row('research-public', 'Save the question and result to this room') : ''}
   `;
 }
 
