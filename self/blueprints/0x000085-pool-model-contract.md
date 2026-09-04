@@ -4,11 +4,11 @@
 
 **Implementation Status:** Implemented
 
-**Verified Artifacts:** `/self/pool/model-contract.js`
+**Verified Artifacts:** `/self/pool/model-contract.js`, `/self/pool/executable-pack.js`
 
 **Planned Artifacts:** None
 
-**Owned Source Files:** `pool/model-contract.js`
+**Owned Source Files:** `pool/model-contract.js`, `pool/executable-pack.js`
 
 **Former Blueprint Paths:** `self/blueprints/0x000085-pool-model-contract.md`
 **Objective:** Select only enabled, immutable model artifacts with an explicit workload contract.
@@ -31,6 +31,11 @@ A catalog model may support text generation, embedding,
 one full-model browser execution mode. Sequence requests additionally bind an
 alphabet, input hash and length, disclosure class, sensitivity, and bounded
 output selection.
+
+Signed executable Pack requirements bind schema, immutable root, envelope,
+artifact closure, operation, and accepted TargetPlans. Public Doppler sessions
+and receipts must match all fields. A caller-supplied Pack cannot self-admit an
+unqualified catalog entry. Legacy model contracts remain identifiable as legacy.
 
 ### 3. Implementation Notes
 Biological models stay outside the enabled catalog until their exact Doppler

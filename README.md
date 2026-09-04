@@ -3,11 +3,14 @@
 [![Test Suite](https://img.shields.io/github/actions/workflow/status/clocksmith/reploid/test.yml?branch=main&label=tests)](https://github.com/clocksmith/reploid/actions/workflows/test.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-Reploid is a proof-carrying Research Room for curators adjudicating disputed
-annotations on explicitly public protein sequences. It combines exact model
-contracts, signed execution records, attributable review, preserved
-disagreement, and reusable prior evidence without treating admission as
-biological truth.
+Reploid implements Poolday, its primary peer-execution product. The goal is
+repeat independent use of exact Doppler capabilities and retained evidence that
+measurably improves later assignments or investigations. Current enabled work
+is narrower: public protein inputs and the pinned ESM-2 model contract.
+
+Zero and X are secondary RSI browser agents. Change Passport remains an inactive
+alternative; Research Room-1 is an optional scientific workflow. Each retains
+its own evidence and activation authority.
 
 ## Who uses it
 
@@ -39,10 +42,14 @@ The product surface is:
 
 | Surface | Route | Use |
 | --- | --- | --- |
-| [Research Room](docs/poolday/product-intent.md) | `/` | Create or resume a bounded public-protein adjudication workflow. |
+| [Poolday](docs/poolday/product-intent.md) | `/` | Run a model, Share compute, and Recent jobs. |
+| Zero | `/zero` | Secondary, minimal self-loading RSI browser agent. |
+| X | `/x` | Secondary RSI browser agent with the full substrate. |
 
-Poolday remains the internal implementation name. The public application and
-product are Reploid.
+Poolday is the public product name; Reploid is its implementation repository.
+The signed executable-Pack path requires a qualified catalog entry and matching
+released Doppler API. Existing model-name loading and adapter sharing do not
+prove base-model Pack delivery.
 
 ## Evidence and current surfaces
 
@@ -69,7 +76,7 @@ Users can also provide their own browser inference.
 Reploid does not claim hardware attestation, independently trustworthy
 browser/GPU execution, or guaranteed honest providers. Relay acknowledgement proves receipt of a relay
 record, not execution truth. Experimental runtime capabilities remain outside
-the Research Room product authority until prospective evidence and Poolday-owned
+Poolday product authority until prospective evidence and Poolday-owned
 admission allow them. Read the claim index row before repeating a capability statement.
 
 ## Repository map

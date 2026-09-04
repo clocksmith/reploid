@@ -29,6 +29,8 @@ import {
 } from './adapter-pack.js';
 import { verifyDopplerPersistentModelCache } from './model-cache-integrity.js';
 import { DopplerRuntimeService } from '../infrastructure/doppler-runtime-service.js';
+import { assertPackSession, assertPackReceipt, executablePacksMatch } from './executable-pack.js';
+import { SEQUENCE_WORKLOADS } from './sequence-workload.js';
 
 const DOPPLER_IMPORTS = Object.freeze([
   '@simulatte/doppler',
@@ -334,6 +336,7 @@ const collectGenerationResult = async (value) => {
 const collectEmbeddingResult = async (value) => value;
 
 const normalizeModelInfo = async (model, handle) => {
+  const { packSource, packOpenOptions, ...descriptor } = model || {};
   const manifest = model?.manifest || handle?.manifest || handle?.model?.manifest || null;
   const evidence = await getHandleModelEvidence(handle);
   const manifestHash = model?.manifestHash
@@ -342,7 +345,7 @@ const normalizeModelInfo = async (model, handle) => {
   // Preserve the full governed descriptor in runtime state. Provider routing and
   // receipt construction compare this exact contract, not a checkpoint subset.
   return {
-    ...(model || {}),
+    ...descriptor,
     modelId: model?.modelId || model?.id || evidence.modelId || null,
     modelHash: model?.modelHash || evidence.modelHash || null,
     manifestHash: manifestHash || null,
@@ -945,6 +948,7 @@ export function createDopplerRuntime({
     { ownedByService = false } = {}
   ) => {
     const nextModelInfo = nextModel || modelInfo || {};
+    if (nextModelInfo.executablePack) await assertPackSession(nextModelInfo.executablePack, handle);
     const method = publicMethodNameForWorkload(handle, nextModelInfo);
     if (!method) {
       throw new Error(`Doppler handle is missing a public ${getPoolModelWorkload(nextModelInfo)} method`);
@@ -985,6 +989,20 @@ export function createDopplerRuntime({
         }
         await assertModelRuntimeCapabilities(nextModel);
         const module = await loadDopplerModule();
+        if (nextModel.executablePack) {
+          const handle = await DopplerRuntimeService.openPack({
+            scope: serviceScope,
+            source: nextModel.packSource,
+            options: { ...nextModel.packOpenOptions, acceptedTargetPlanDigests: nextModel.executablePack.acceptedTargetPlanDigests },
+            module
+          });
+          try {
+            return await attachHandle(handle, nextModel, { ...runtimeInfo, version: module.DOPPLER_VERSION }, { ownedByService: true });
+          } catch (error) {
+            await DopplerRuntimeService.close(serviceScope);
+            throw error;
+          }
+        }
         const loadOptions = getConfiguredLoadOptions(nextModel);
         const cachePreflight = await preflightPersistentModelCache(nextModel, loadOptions);
         const handle = await DopplerRuntimeService.open({
@@ -1207,6 +1225,10 @@ export function createDopplerRuntime({
       if (!session || !sequenceMethodName(session)) {
         throw new Error('Doppler browser sequence model session is not connected');
       }
+      const requiredPack = assignment?.model?.requirements?.executablePack || assignment?.model?.executablePack;
+      if (!executablePacksMatch(requiredPack, modelInfo.executablePack)) {
+        throw new Error('Assignment executable Pack does not match the loaded session');
+      }
       const validation = validateSequenceRequest(request, { model: modelInfo });
       if (!validation.ok) throw new Error(`Sequence request rejected: ${validation.reasons.join('; ')}`);
       if (await sha256Hex(sequence) !== request.sequenceHash) throw new Error('sequence input hash mismatch');
@@ -1221,6 +1243,13 @@ export function createDopplerRuntime({
           assignment,
           { signal }
         );
+        if (modelInfo.executablePack) {
+          if (!requiredPack) throw new Error('Signed Pack execution requires an assignment Pack binding');
+          await assertPackReceipt(requiredPack, result.receipt, {
+            assignment, sequence, result,
+            options: { assignment, includeTokenEmbeddings: request.includeTokenEmbeddings, includeLogits: request.workload === SEQUENCE_WORKLOADS.maskedLogits }
+          });
+        }
         if (resultReleaseBarrier) {
           await resultReleaseBarrier({
             workload: request.workload,

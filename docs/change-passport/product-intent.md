@@ -1,5 +1,9 @@
 # Reploid Agent Release Passport Product Intent
 
+Portfolio status: inactive alternative. Poolday is primary; Zero and X are
+secondary RSI browser agents. Preserve this implementation and its independent
+proof criteria without treating it as Reploid's selected commercial priority.
+
 ## Product statement
 
 Reploid Agent Release Passport decides whether an exact versioned agent policy,
@@ -147,7 +151,7 @@ memory.
 
 ## First proof
 
-The first commercial claim requires a real operator to:
+If the alternative is selected, its commercial claim requires a real operator to:
 
 1. Freeze its current change-control workflow and success rules.
 2. Run agent-generated model, prompt, tool, policy, or configuration changes

@@ -149,6 +149,10 @@ export function createReploidDopplerRuntimeService({
   } = {}) => {
     const key = normalizedScope(scope);
     if (source == null) throw new Error('Doppler scoped session source is required');
+    if (inFlight.has(key)) {
+      await inFlight.get(key).catch(() => null);
+      return open({ scope, source, options, module });
+    }
     const sourceKey = typeof source === 'string' ? source : JSON.stringify(source);
     const current = sessions.get(key);
     if (current?.session?.loaded && current.sourceKey === sourceKey) return current.session;
@@ -173,8 +177,37 @@ export function createReploidDopplerRuntimeService({
     return inFlight.get(key);
   };
 
+  const openPack = ({ scope = DEFAULT_SCOPE, source, options = {}, module = null } = {}) => {
+    const key = normalizedScope(scope);
+    const previous = inFlight.get(key);
+    const task = (async () => {
+      if (previous) await previous.catch(() => null);
+      if (source == null) throw new Error('Signed Pack source is required');
+      const loadedModule = await getModule(module);
+      const version = normalizedVersion(loadedModule);
+      if (expectedVersion && version !== expectedVersion) throw new Error(`Reploid requires Doppler ${expectedVersion}; loaded ${version || 'unidentified'}`);
+      const runtime = resolveRuntime(loadedModule) || loadedModule;
+      if (typeof runtime?.openPack !== 'function') throw new Error('Doppler runtime does not expose public openPack; signed Pack loading cannot fall back to dr.open');
+      const current = sessions.get(key);
+      sessions.delete(key);
+      await current?.session?.close?.();
+      const session = await runtime.openPack(source, options);
+      if (session?.schema !== 'doppler.pack-session/v1' || !session.loaded) {
+        await session?.close?.();
+        throw new Error('Doppler openPack returned an invalid Pack session');
+      }
+      sessions.set(key, { session, sourceKey: null });
+      return session;
+    })();
+    inFlight.set(key, task);
+    task.finally(() => { if (inFlight.get(key) === task) inFlight.delete(key); }).catch(() => null);
+    return task;
+  };
+
   return Object.freeze({
     open,
+    // Reverify lifecycle policy on every Pack opening; never reuse stale eligibility.
+    openPack,
     close,
     get(scope = DEFAULT_SCOPE) {
       return sessions.get(normalizedScope(scope))?.session || null;

@@ -37,7 +37,8 @@ The service:
 
 - Imports the one configured immutable Doppler module.
 - Verifies the exact runtime version.
-- Requires the scoped `dr.open` contract.
+- Uses scoped `dr.open` for legacy and RSI consumers; signed Packs require public `openPack`.
+- Revalidates Pack eligibility on every opening and serializes scope replacements.
 - Owns one session per explicit Reploid scope.
 - Reuses a session only when the scope and source identity match.
 - Closes replaced sessions and supports `closeAll`.

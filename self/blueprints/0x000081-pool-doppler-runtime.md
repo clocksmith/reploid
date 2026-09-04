@@ -24,6 +24,11 @@ Keep protocol decisions in Reploid and model numerics in Doppler. The adapter
 may call public `generate`, `embed`, `encodeSequence`, `loadLoRA`, and unload
 surfaces. It must not deep-import Doppler pipeline or kernel internals.
 
+An `executablePack` descriptor requires public `openPack`, then validates session
+identity, selected plan, artifacts, assignment, and operation receipt before
+returning outputs. Transport and signer policy stay outside signed model metadata.
+No legacy loader fallback is permitted for a signed Pack assignment.
+
 ### 2. Architecture
 The selected model contract determines the public method. Text generation is
 serialized and reset between assignments. The signed deterministic generation

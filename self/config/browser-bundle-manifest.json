@@ -665,8 +665,8 @@
     },
     {
       "path": "blueprints/0x000081-pool-doppler-runtime.md",
-      "byteLength": 2417,
-      "sha256": "sha256:2464c3892c12018b696ac15d1457cdd146d338cd395fe9b0b0c55e0ef5c98d26"
+      "byteLength": 2729,
+      "sha256": "sha256:c6d349eb04efac560de06d3e03c1b5347ec7745e12d0103f9523f74ad6de2f36"
     },
     {
       "path": "blueprints/0x000082-pool-firebase-auth.md",
@@ -685,8 +685,8 @@
     },
     {
       "path": "blueprints/0x000085-pool-model-contract.md",
-      "byteLength": 2230,
-      "sha256": "sha256:9c04270dd4bdf12e86c4a965792b0b9987ce1c5273a4413e6baf2d2f74095890"
+      "byteLength": 2606,
+      "sha256": "sha256:b37e8633fde209946295ce7d038d52782d74ef26fb794e4b09799d7be4f0d09c"
     },
     {
       "path": "blueprints/0x000086-pool-peer-control-plane.md",
@@ -850,8 +850,8 @@
     },
     {
       "path": "blueprints/0x0000A6-core-doppler-runtime-service.md",
-      "byteLength": 2945,
-      "sha256": "sha256:8172b26fc217a9f29156dbb38e9f2702237641fd6343ea8301cc35442920efd5"
+      "byteLength": 3080,
+      "sha256": "sha256:efd67db4cb33e6c4baab10db978fc49f66af6758fd72970fbacde67d88207cbe"
     },
     {
       "path": "blueprints/0x0000A7-config-clockwork-gamma-receipts.md",
@@ -1181,7 +1181,7 @@
     {
       "path": "config/blueprint-registry.json",
       "byteLength": 33457,
-      "sha256": "sha256:29ef3fd31ee8e8614230533d00a10b060ea9958bfd777864015b352c608adfd5"
+      "sha256": "sha256:955c579d84633abe84cb351d2af1cc5bc2e01d441c84c582ea50e35a0bf147df"
     },
     {
       "path": "config/boot-modes.js",
@@ -1250,13 +1250,13 @@
     },
     {
       "path": "config/module-inventory.json",
-      "byteLength": 78584,
-      "sha256": "sha256:15e97c63f7e5d1f5abb2da073df6770191680e146dfe80c6f6a10630475925a1"
+      "byteLength": 78900,
+      "sha256": "sha256:194b1268b1ba5daec933baedb2ed9be22bf7c852d9abb01b3597fa7ac36c7e32"
     },
     {
       "path": "config/module-registry.json",
       "byteLength": 42332,
-      "sha256": "sha256:77687d7d4dff4871387f1cf8adf6f980fce2cea46dccc223302690d78ba64ac4"
+      "sha256": "sha256:40334c07cfef4a3597ac4f6fcdb529cb767184282af5e84c66bb325b8f36ea8b"
     },
     {
       "path": "config/module-resolution.js",
@@ -1280,8 +1280,8 @@
     },
     {
       "path": "config/vfs-manifest.json",
-      "byteLength": 22824,
-      "sha256": "sha256:60d89b0fb59724126668611735c47e318c6e8e18bb72a9cb49b04feed8c5b971"
+      "byteLength": 22855,
+      "sha256": "sha256:a0eb562af66419fa0e2684f40eb2ed893c581c01ee23cd2538099f98d6030b4a"
     },
     {
       "path": "config/vfs-policy.js",
@@ -1630,8 +1630,8 @@
     },
     {
       "path": "infrastructure/doppler-runtime-service.js",
-      "byteLength": 6453,
-      "sha256": "sha256:9ef0de59f4576d0c15f5bff7424afe83202925e4bbafc01135b7d1d2a766ddb9"
+      "byteLength": 8143,
+      "sha256": "sha256:41c982607961069bc2f3bd47d42d2addd067ab3cfb0a71aede09998dcb865183"
     },
     {
       "path": "infrastructure/error-store.js",
@@ -1845,8 +1845,8 @@
     },
     {
       "path": "pool/CATSCAN.md",
-      "byteLength": 2681,
-      "sha256": "sha256:8f3f14601de2d208110fa30ed51b0dc809a81ccf7eac64fd7f1a7139a7d6435c"
+      "byteLength": 2704,
+      "sha256": "sha256:1ea83175a789d9dff34cb2fb92453ad20e68a6882f4428b5fa267c3caac5667e"
     },
     {
       "path": "pool/config-contract.js",
@@ -1890,13 +1890,18 @@
     },
     {
       "path": "pool/doppler-runtime.js",
-      "byteLength": 47427,
-      "sha256": "sha256:71224f809e89e10c522987a252ddbc1621f245b261c12af9d5c91a9bb50ce164"
+      "byteLength": 49115,
+      "sha256": "sha256:6462825eeecf83efe44e2d0de350e948577df8c949fe49c17c0ea9848ae41cd2"
     },
     {
       "path": "pool/evidence-network.js",
       "byteLength": 296931,
       "sha256": "sha256:934d5497c1656546554a58875f09b4342b314dde87c8a6562af41d612669abfa"
+    },
+    {
+      "path": "pool/executable-pack.js",
+      "byteLength": 5673,
+      "sha256": "sha256:b68c941ec9d7a66852bcdd57c465c1044ee1e5afc683bc894200841836a946a8"
     },
     {
       "path": "pool/firebase-auth.js",
@@ -1915,8 +1920,8 @@
     },
     {
       "path": "pool/inference-receipt.js",
-      "byteLength": 17623,
-      "sha256": "sha256:6fb839d00beb0f1efe4a908836b1f028cad94e68237c4f8128a7458d27ec858c"
+      "byteLength": 17777,
+      "sha256": "sha256:5e945585057f6180586b09a0e12c33f4d62c6c46029f7eeb6d5d0b32e84952db"
     },
     {
       "path": "pool/layer-scheduler.js",
@@ -1935,8 +1940,8 @@
     },
     {
       "path": "pool/model-contract.js",
-      "byteLength": 13785,
-      "sha256": "sha256:1ecf0cff4a485d44c3283b0a89011cd695c76530a3c662d474219efeb25f5e5d"
+      "byteLength": 14054,
+      "sha256": "sha256:2fce13aa1749147a94998779ba7254f8f30c05d8cc3f7bd3880a3f2b848c0b10"
     },
     {
       "path": "pool/model-evidence-view.js",
@@ -1980,8 +1985,8 @@
     },
     {
       "path": "pool/peer-control-plane.js",
-      "byteLength": 40948,
-      "sha256": "sha256:6987e7a8bd5a894ff59486de040e2fc5d149758fd4d55d6292c69e9ff6a444f9"
+      "byteLength": 41431,
+      "sha256": "sha256:39903ce6e13ffeedd0b52023167e215e09826f1b6e14a7345b7564a5ddff06a6"
     },
     {
       "path": "pool/peer-ledger.js",
@@ -2015,8 +2020,8 @@
     },
     {
       "path": "pool/peer-room.js",
-      "byteLength": 56045,
-      "sha256": "sha256:4605966eb6c00cb6be022d15ee239eaf432874d15340ef58f79c75e014c35ada"
+      "byteLength": 56188,
+      "sha256": "sha256:1f3cdf022a362e4e2d1867642d9a7ca88734ba4f28d3957e8fb65d73cec21345"
     },
     {
       "path": "pool/peer-transport.js",
@@ -2874,5 +2879,5 @@
       "sha256": "sha256:c5a6c85719ce4072b343251b10f5a00f7f99d83be47f83367b3f959886c78701"
     }
   ],
-  "bundleHash": "sha256:792bf38e33233aa965d0c5ee9533e0b11e58dd74e3049c56f2cbe67133fbd639"
+  "bundleHash": "sha256:04ac33baf77e1ba5128ffe7e5f42b380610670727f0abfa2afd9880100985925"
 }

@@ -4,6 +4,7 @@
 
 import { BROWSER_RUNTIME_CONFIG, LAUNCH_MODEL, MODEL_CATALOG } from './config.js';
 import { buildModelArtifactUrls } from './model-artifacts.js';
+import { validateExecutablePack } from './executable-pack.js';
 import {
   modelIdentityMatchesAdapterRequirement,
   modelSupportsAdapterRequirement,
@@ -134,6 +135,7 @@ export function exactModelContractKey(model = {}, {
     manifestHash: model.manifestHash || '',
     tokenizerHash: model.tokenizerHash || identity.tokenizerHash || '',
     artifactIdentity: identity,
+    ...(model.executablePack ? { executablePack: model.executablePack } : {}),
     runtime: model.runtime || '',
     backend: model.backend || '',
     workload: workload || '',
@@ -275,6 +277,7 @@ const validateEnabledModelRequirement = (requirements = {}, {
 } = {}) => {
   const reasons = [];
   const model = getEnabledPoolModelContract(requirements.modelId);
+  if (requirements.executablePack !== undefined) reasons.push(...validateExecutablePack(requirements.executablePack).reasons);
   if (!model || !isLaunchModelRequirement(requirements)) {
     reasons.push('model requirements do not match an enabled model contract');
   }

@@ -4,10 +4,12 @@ Parent: [Browser Runtime](../CATSCAN.md)
 
 ## Target
 
-Govern public-protein adjudication evidence.
+Improve later work through exact Doppler peer execution and retained evidence.
+Public-protein adjudication remains optional.
 
 ## Authority
-- Owns Poolday evidence admission.
+- Owns discovery, authorization, assignment, recovery, and admission.
+- Doppler owns signatures, bytes, cache, and execution.
 - Excludes truth, relays, RSI, private sequences.
 
 ## Scope
@@ -17,8 +19,8 @@ Govern public-protein adjudication evidence.
 ## Contracts
 
 Inputs:
-- Product boundaries from [Poolday product intent](../../docs/poolday/product-intent.md).
-- Runtime policy from [pool-config.json](pool-config.json).
+- [Product intent](../../docs/poolday/product-intent.md).
+- [Runtime policy](pool-config.json).
 
 Outputs:
 - Receipts: [inference-receipt.js](inference-receipt.js). State: [research-cycle.js](research-cycle.js).
@@ -28,21 +30,22 @@ Outputs:
 ## Invariants
 - Receipts prove only their signed record and identities.
 - Archive and decision memory remain distinct.
-- Agreement and context matches never prove truth or relevance; reuse requires local review.
+- Agreement/context never prove truth/relevance; reuse requires review.
 - Declared source duplicates count once; only accepted corrections or authorized revocations supersede.
-- Candidate actions stay outside memory and authorize nothing.
+- Candidate actions authorize nothing; remain outside memory.
 - Numeric uncertainty needs a versioned method and cohort; metrics remain a vector.
 - Imports bind provenance; orders bind execution and public scope; labs bind capability and safety; policies bind resolution. None proves truth.
-- Campaign order counts disagreement, not volume or biological priority.
+- Campaigns order disagreement, not volume or biological priority.
 - Zero proposes, X evaluates frozen cohorts, and Poolday admits; promotion authorities remain distinct.
 - Realized value requires approved actions, reviewed outcomes, evaluation, causal records, and independent acceptance.
 
 ## Acceptance
-- Model, evidence, cycle, action, replay, adjudication, promotion, and value contracts pass.
+- All named contract tests pass.
 - Evidence: [pool](../../tests/unit/pool-contract.test.js), [cycle](../../tests/unit/pool-research-cycle.test.js), [action](../../tests/unit/pool-discovery-candidate-action.test.js), [replay](../../tests/unit/pool-discovery-contract.test.js), [adjudication](../../tests/unit/pool-adjudication-experiment.test.js), [promotion](../../tests/unit/pool-scientific-policy-promotion.test.js), and [value](../../tests/unit/pool-realized-action-value.test.js) tests.
 
 ## Non-goals
-- Maximizing inference, peers, or generic decentralized compute.
+- Volume as improvement.
+- Model splitting, hardware attestation, or private-sequence admission.
 
 ## Freedom
-Any mechanism is permitted if it preserves these boundaries and passes the acceptance evidence.
+Any mechanism preserving these boundaries and acceptance.

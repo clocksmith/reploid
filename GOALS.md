@@ -2,11 +2,17 @@
 
 ## Product aim
 
-Reploid should govern consequential decisions made by agents and humans from
-proposal through evidence, disagreement, evaluation, approval, activation,
-observed outcome, rollback, and reopening.
+Poolday is Reploid's primary product: unrelated operators deliver and execute
+an exact Doppler capability across peers, retain admissible evidence, and use
+that evidence to improve a subsequent assignment or investigation. Repeat
+requester and provider use must survive comparison with ordinary hosting.
 
-The first commercial expression is Reploid Agent Release Passport. It governs
+Zero and X are secondary RSI browser agents, with independent state, evaluation,
+promotion, and activation authority. Agent Release Passport (Change Passport)
+remains an inactive commercial alternative, not the current first priority.
+This selection changes portfolio intent; it does not erase existing work.
+
+The retained alternative is Reploid Agent Release Passport. It governs
 eligibility for an exact agent tool, MCP server, permission policy, or
 production-agent configuration release. It preserves the evidence,
 disagreement, human authority, rollback target, and reopening rules that made
@@ -14,7 +20,7 @@ the release eligible. GitHub controls merge, deployment systems control
 activation, and identity systems control access. Reploid controls eligibility
 and preserves its basis.
 
-Poolday is the peer-to-peer Doppler execution network: requesters run signed
+Poolday is the peer-to-peer Doppler execution network: the target public path runs signed
 Packs, browser contributors share bounded compute, peers return comparable
 results and signed receipts, and requesters accept or dispute the result.
 Research Room-1 remains a scientific proof built on those receipts. It tests whether the same
@@ -55,7 +61,15 @@ automatic reopening. External installability, operator comparison, commercial
 value, qualification, adoption, deployment authority, and rollback success
 remain unproved and have no claim permission.
 
-The currently supported Poolday execution network is narrower than the long-term aim:
+The currently supported Poolday execution network is narrower than the long-term aim.
+The catalog's ESM-2 identity is a model contract, not yet an enabled signed
+executable Pack. The new `executablePack` boundary requires public `openPack`,
+exact envelope and artifact closure, accepted TargetPlans, and execution receipts.
+It does not self-admit a catalog override. Publishing a qualified Pack, pinning
+its released Doppler API, and enabling that exact catalog row remain release
+gates, not claims established by these contract tests.
+
+Current enabled execution:
 
 - Public protein sequences only.
 - The enabled ESM-2 35M exact model contract.
@@ -80,9 +94,26 @@ scientific room, hypotheses, cohorts, adjudication, or laboratory claims.
 
 ## Falsifiable first proofs
 
-### Commercial proof: Change Passport
+### Primary proof: Poolday
 
-The first commercial proof is narrower than generic decision governance:
+Separate operators repeatedly execute an exact signed Doppler Pack under a
+frozen correctness and acceptance policy. The episode must demonstrate authorized
+artifact reconstruction with origin disabled, corrupt contribution rejection,
+peer disappearance and recovery, independent review, and return usage. ESM-2
+proves plumbing; one independently demanded deterministic workload must follow.
+
+A versioned route-decision projection cites exact compatibility, custody,
+availability, prior outcomes, latency, failures, cost, and reputation evidence.
+Replay a frozen job set through a no-history baseline and the candidate policy.
+Promote only if admissible history improves completion, verification cost, or
+failure avoidance without weakening correctness. Keep scientific evidence and
+operational routing evidence separate. Signed receipts and local browser tabs
+alone do not establish external adoption, physical independence, or learning.
+Stop expansion if hosting wins or retained evidence never improves later work.
+
+### Alternative proof: Change Passport
+
+If this alternative is selected later, its commercial proof remains:
 
 > Reploid governs an agent tool, MCP server, permission policy, or
 > production-agent configuration release in a real GitHub and CI workflow. It binds the exact
@@ -105,8 +136,8 @@ following:
 6. An external operator can verify the exported record and asks to use the
    workflow for another real change.
 
-Until this proof exists, Change Passport is the first commercial product
-hypothesis. The internal improvement episode is implementation evidence, not
+Change Passport remains an inactive alternative, whether or not its local
+implementation passes. The internal improvement episode is implementation evidence, not
 proof that the external workflow works or that a buyer needs it.
 
 ### Scientific proof: Room-1
@@ -133,13 +164,18 @@ following:
 4. Browser-peer redundancy adds measured value beyond a local or hosted rerun.
 5. The complete evidence needed to reproduce the decision remains inspectable.
 
-Until this proof exists, the Research Room is the organizing scientific product
-hypothesis. The broader network, laboratory path, evidence graph, and
+Until this proof exists, Research Room-1 remains an optional scientific
+hypothesis, not the primary Poolday win condition. The broader network, laboratory path, evidence graph, and
 continuously improving decision-policy loop remain target capabilities.
 
 ## Initial users and market constraints
 
-The initial commercial user is an AI platform, developer infrastructure,
+The primary user is a requester with repeated, independently demanded exact
+work and a separately operated peer provider. Freeze the ordinary hosted or
+mirror-backed baseline, costs, correctness oracle, and reason to return before
+claiming that a network is preferable.
+
+The alternative Change Passport user is an AI platform, developer infrastructure,
 reliability, or security operator promoting agent tools, MCP servers,
 permission policies, or production-agent configuration through GitHub and CI. The first workflow
 must name the repository, controlled change type, current required checks,
@@ -239,7 +275,13 @@ work.
 
 ## Measurement
 
-The commercial governing objective is:
+The primary governing objective is a measurable improvement in a subsequent
+assignment or investigation caused by retained admissible evidence, alongside
+repeat independent use of exact peer execution. Report accepted jobs, providers,
+peer-served bytes, rejected contributions, reproduced outputs, and route changes
+separately; activity totals do not establish this outcome.
+
+The alternative Change Passport objective is:
 
 ```text
 verified cost of safely approving, activating, and reconstructing
@@ -329,8 +371,9 @@ corpus of objections that predicted failures, evidence that predicted success,
 reversed approvals, reopenings, corrections, reproductions, and rollback
 outcomes that operators and researchers repeatedly consult.
 
-The long-term network becomes credible only after the first annotation
-adjudication workflow passes its frozen comparison. Until then, the Research
+The long-term execution network becomes credible only after Poolday's external
+execution and improved-decision loop passes its frozen hosting comparison.
+Scientific adjudication earns a separate claim through its own comparison. Until then, the Research
 Room is an organizing hypothesis, not the product moat.
 
 ## Decision rule

@@ -1,6 +1,6 @@
 # Poolday Product Intent
 
-Poolday is Reploid's peer-to-peer Doppler execution product. The public UI uses
+Poolday is Reploid's primary peer-to-peer Doppler execution product. The public UI uses
 the Poolday name; Reploid remains the implementation owner.
 
 This document applies the repository mission in [`GOALS.md`](../../GOALS.md) to
@@ -13,7 +13,8 @@ tiers, routes, and transport requirements remain owned by
 ## Product goal
 
 Poolday's product goal is to make one browser-peer execution lifecycle ordinary
-and inspectable:
+and inspectable for unrelated operators, with retained evidence measurably
+improving a subsequent assignment or investigation:
 
 ```text
 request -> peer executes -> result compared -> requester accepts -> receipt retained
@@ -33,7 +34,12 @@ identities, retries, and recovery only. Research Room-1 is a separate
 non-primary route for hypotheses, scientific policies, cohorts, adjudication,
 and laboratory evidence; generic Pack execution does not inherit those fields.
 
-The current enabled Pack remains the pinned ESM-2 35M public-sequence contract.
+The current enabled model remains the pinned ESM-2 35M public-sequence contract.
+It is not yet a signed executable Doppler Pack catalog row. The new signed-Pack
+path requires `executablePack` identity and closure, public `openPack`, accepted
+TargetPlans, and matching execution receipts; it fails closed instead of using
+legacy loading. A qualified artifact and released runtime pin are required
+before enabling that path for ESM-2. AdapterPack sharing is a separate capability.
 That narrow implementation boundary does not redefine Poolday as a protein
 product or authorize claims for unqualified models, private inputs, hardware
 attestation, or honest browser execution.
@@ -65,7 +71,14 @@ hardware-attested execution, or guaranteed scientific correctness.
 
 ## Optimization objective
 
-The governing objective is:
+The primary objective is repeat independent use of exact peer execution plus
+measured improvement in later routing or investigation from retained admissible
+evidence. Compare versioned policies over frozen jobs against no-history routing
+and ordinary hosting. Report completion, verification cost, availability,
+recovery, retained operators, and return requester demand. Stop expansion when
+hosting wins or history does not improve the next decision.
+
+The optional Research Room's separate scientific objective is:
 
 ```text
 reduce the verified cost of resolving protein uncertainty
@@ -83,7 +96,7 @@ Scientific value remains a separate Research Room claim requiring its own eviden
 
 ## Research Room outcome
 
-The target product journey begins when a researcher submits a bounded question
+The optional scientific journey begins when a researcher submits a bounded question
 about an explicitly public protein sequence with explicit intent and consent.
 Poolday creates or extends a signed [Discovery Contract](./discovery-contract.md).
 The contract represents competing hypotheses, exact model evidence, current
@@ -535,9 +548,9 @@ protein uncertainty network remains a target hypothesis. Even a passing record
 supports only the named workflow and cohort; it does not establish biological
 truth, global catalog value, or a general product moat.
 
-## North-star metric
+## Research Room metric
 
-The primary product metric is:
+The optional scientific workflow's metric is:
 
 ```text
 verified cost required to resolve a bounded protein uncertainty relative to a

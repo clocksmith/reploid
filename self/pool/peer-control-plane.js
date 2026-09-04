@@ -19,6 +19,7 @@ import {
   getPolicy
 } from './config.js';
 import { validatePooldayPolicyClasses } from './policy-router.js';
+import { executablePacksMatch, assertPackReceipt } from './executable-pack.js';
 import {
   LAUNCH_MODEL,
   POOLDAY_MODEL_WORKLOADS,
@@ -333,6 +334,7 @@ const advertSupportsIntent = (advert = {}, intent = {}, policy = {}) => {
       && model.manifestHash === intent.body?.modelRequirements?.manifestHash
       && model.runtime === intent.body?.modelRequirements?.runtime
       && model.backend === intent.body?.modelRequirements?.backend
+      && executablePacksMatch(model.executablePack, intent.body?.modelRequirements?.executablePack)
       && modelSupportsPoolWorkload(model, intentWorkload(intent))
       && modelSupportsAdapterRequirement(model, intent.body?.modelRequirements?.adapter || null)
     ))
@@ -736,6 +738,11 @@ export async function buildPeerReceiptAgreement({
     if (!receipt) reasons.push('receipt body is required');
     if (assignment && receipt) {
       reasons.push(...receiptMatchesAssignment(receipt, assignment));
+      const requiredPack = assignment.model?.requirements?.executablePack || assignment.model?.executablePack;
+      if (requiredPack) {
+        try { await assertPackReceipt(requiredPack, receipt.dopplerProviderReceipt, { assignment }); }
+        catch (error) { reasons.push(error.message); }
+      }
 
       const providerPublicKey = assignment.providerPublicKey
         || receiptPayload?.body?.providerPublicKey
