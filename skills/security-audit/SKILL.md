@@ -1,13 +1,18 @@
 ---
 name: security-audit
-description: Cooperative self-audit for public runners that flags likely secret exposure without reading secret values.
+description: Inspect sanitized metadata for likely secret exposure when an operator explicitly requests and consents to a cooperative self-audit.
 ---
 
 # Security Audit Skill
 
-Follow the policy in `{baseDir}/../../SECURITY_AUDIT.md`.
+Follow the policy in `../../SECURITY_AUDIT.md`.
 
-When invoked:
+## Prerequisites
+
+Require explicit operator consent, the local audit scope, the permitted metadata
+sources, and whether a sanitized snapshot may be shared with a named audit room.
+
+## Procedure
 
 1. Run a cooperative local-first self-audit.
 2. Inspect only metadata and explicitly volunteered state.
@@ -17,3 +22,24 @@ When invoked:
 6. If an audit room requested a run, acknowledge the request and publish only the sanitized snapshot back to the room.
 
 Keep the audit content-free. If a real secret may be exposed, instruct the operator to inspect locally and rotate credentials if confirmed.
+
+## Validation
+
+Every result conforms to the sanitized finding or snapshot schema in
+`SECURITY_AUDIT.md` and contains no secret value or unnecessary content.
+
+## Stop Conditions
+
+Stop without explicit consent, when a check would require reading a secret value, or
+when sanitization cannot be proven. Do not publish anything beyond the permitted
+snapshot.
+
+## Outputs
+
+Only sanitized findings or a sanitized snapshot conforming to `SECURITY_AUDIT.md`,
+plus a local-only instruction to inspect and rotate when actual exposure is suspected.
+
+## Side Effects
+
+Reads only approved metadata. It publishes a sanitized snapshot only when explicitly
+authorized; it never reads, returns, stores, or transmits secret values.

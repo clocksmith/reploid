@@ -1,0 +1,4 @@
+interface:
+  display_name: "Reploid Registry Audit"
+  short_description: "Validate deterministic Reploid registries"
+  default_prompt: "Use $reploid-registry-audit to validate or explicitly regenerate Reploid's registry artifacts."
