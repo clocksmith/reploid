@@ -24,6 +24,7 @@ import {
 } from './peer-control-plane.js';
 import { getPolicy } from './config.js';
 import { modelSupportsAdapterRequirement, modelSupportsPoolWorkload } from './model-contract.js';
+import { executablePacksMatch } from './executable-pack.js';
 
 export const PEER_ROOM_VERSION = 'reploid_peer_room/v1';
 export const DEFAULT_PEER_ROOM_ID = 'reploid-default';
@@ -536,6 +537,7 @@ export async function runPeerJob({
       model.modelId === requiredModel.modelId
       && model.modelHash === requiredModel.modelHash
       && model.manifestHash === requiredModel.manifestHash
+      && executablePacksMatch(model.executablePack, requiredModel.executablePack)
       && (model.runtime || 'doppler') === (requiredModel.runtime || 'doppler')
       && (model.backend || 'browser-webgpu') === (requiredModel.backend || 'browser-webgpu')
       && modelSupportsPoolWorkload(model, requiredModel.workload || 'sequence.embedding.v1')

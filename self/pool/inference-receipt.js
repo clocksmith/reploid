@@ -197,6 +197,7 @@ const normalizeReceiptModel = (model = {}) => {
     runtimeContract: model.runtimeContract || model.requirements?.runtimeContract || null,
     license: model.license || model.requirements?.license || null,
     artifactIdentity: model.artifactIdentity || model.requirements?.artifactIdentity || null,
+    ...(model.executablePack || model.requirements?.executablePack ? { executablePack: model.executablePack || model.requirements.executablePack } : {}),
     admission: model.admission || model.requirements?.admission || null,
     requirements: model.requirements || null
   };

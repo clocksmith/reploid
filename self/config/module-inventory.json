@@ -659,7 +659,7 @@
     {
       "path": "infrastructure/doppler-runtime-service.js",
       "owner": "infrastructure",
-      "sha256": "sha256:9ef0de59f4576d0c15f5bff7424afe83202925e4bbafc01135b7d1d2a766ddb9",
+      "sha256": "sha256:41c982607961069bc2f3bd47d42d2addd067ab3cfb0a71aede09998dcb865183",
       "imports": [
         "../config/doppler-local-models.js"
       ]
@@ -962,11 +962,12 @@
     {
       "path": "pool/doppler-runtime.js",
       "owner": "pool",
-      "sha256": "sha256:71224f809e89e10c522987a252ddbc1621f245b261c12af9d5c91a9bb50ce164",
+      "sha256": "sha256:6462825eeecf83efe44e2d0de350e948577df8c949fe49c17c0ea9848ae41cd2",
       "imports": [
         "../infrastructure/doppler-runtime-service.js",
         "./adapter-pack.js",
         "./config.js",
+        "./executable-pack.js",
         "./inference-receipt.js",
         "./model-cache-integrity.js",
         "./model-contract.js",
@@ -990,6 +991,12 @@
         "./sequence-result.js",
         "./sequence-workload.js"
       ]
+    },
+    {
+      "path": "pool/executable-pack.js",
+      "owner": "pool",
+      "sha256": "sha256:b68c941ec9d7a66852bcdd57c465c1044ee1e5afc683bc894200841836a946a8",
+      "imports": []
     },
     {
       "path": "pool/firebase-auth.js",
@@ -1020,7 +1027,7 @@
     {
       "path": "pool/inference-receipt.js",
       "owner": "pool",
-      "sha256": "sha256:6fb839d00beb0f1efe4a908836b1f028cad94e68237c4f8128a7458d27ec858c",
+      "sha256": "sha256:5e945585057f6180586b09a0e12c33f4d62c6c46029f7eeb6d5d0b32e84952db",
       "imports": [
         "./canonical-json.js",
         "./config.js",
@@ -1054,10 +1061,11 @@
     {
       "path": "pool/model-contract.js",
       "owner": "pool",
-      "sha256": "sha256:1ecf0cff4a485d44c3283b0a89011cd695c76530a3c662d474219efeb25f5e5d",
+      "sha256": "sha256:2fce13aa1749147a94998779ba7254f8f30c05d8cc3f7bd3880a3f2b848c0b10",
       "imports": [
         "./adapter-pack.js",
         "./config.js",
+        "./executable-pack.js",
         "./model-artifacts.js",
         "./sequence-workload.js"
       ]
@@ -1137,12 +1145,13 @@
     {
       "path": "pool/peer-control-plane.js",
       "owner": "pool",
-      "sha256": "sha256:6987e7a8bd5a894ff59486de040e2fc5d149758fd4d55d6292c69e9ff6a444f9",
+      "sha256": "sha256:39903ce6e13ffeedd0b52023167e215e09826f1b6e14a7345b7564a5ddff06a6",
       "imports": [
         "./adapter-pack.js",
         "./adapter-publication.js",
         "./artifact-router.js",
         "./config.js",
+        "./executable-pack.js",
         "./identity-claims.js",
         "./inference-receipt.js",
         "./model-contract.js",
@@ -1217,9 +1226,10 @@
     {
       "path": "pool/peer-room.js",
       "owner": "pool",
-      "sha256": "sha256:4605966eb6c00cb6be022d15ee239eaf432874d15340ef58f79c75e014c35ada",
+      "sha256": "sha256:1f3cdf022a362e4e2d1867642d9a7ca88734ba4f28d3957e8fb65d73cec21345",
       "imports": [
         "./config.js",
+        "./executable-pack.js",
         "./model-contract.js",
         "./p2p-payload.js",
         "./p2p-transport.js",

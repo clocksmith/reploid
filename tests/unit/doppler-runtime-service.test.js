@@ -25,6 +25,32 @@ const makeModule = () => {
 };
 
 describe('Reploid DopplerRuntimeService', () => {
+  it('opens signed Packs without legacy fallback or stale session reuse', async () => {
+    const fixture = makeModule();
+    const service = createReploidDopplerRuntimeService({ loadModule: async () => fixture.module });
+    await expect(service.openPack({ source: 'pack' })).rejects.toThrow('cannot fall back');
+    expect(fixture.module.dr.open).not.toHaveBeenCalled();
+    fixture.module.dr.openPack = vi.fn(async () => ({ schema: 'doppler.pack-session/v1', loaded: true, close: vi.fn() }));
+    const policy = { acceptedTargetPlanDigests: ['exact-plan'] };
+    const first = await service.openPack({ scope: 'pool', source: 'pack', options: policy });
+    const second = await service.openPack({ scope: 'pool', source: 'pack', options: policy });
+    expect(first).not.toBe(second);
+    expect(first.close).toHaveBeenCalledTimes(1);
+    expect(fixture.module.dr.openPack).toHaveBeenLastCalledWith('pack', policy);
+    await service.closeAll();
+    expect(second.close).toHaveBeenCalledTimes(1);
+  });
+
+  it('serializes concurrent Pack replacements in one scope', async () => {
+    const fixture = makeModule();
+    fixture.module.dr.openPack = vi.fn(async (source) => ({ schema: 'doppler.pack-session/v1', source, loaded: true, close: vi.fn() }));
+    const service = createReploidDopplerRuntimeService({ loadModule: async () => fixture.module });
+    const [first, second] = await Promise.all([service.openPack({ source: 'first' }), service.openPack({ source: 'second' })]);
+    expect(first.close).toHaveBeenCalledTimes(1);
+    expect(service.get()).toBe(second);
+    await service.closeAll();
+  });
+
   it('owns one scoped session and closes it idempotently', async () => {
     const fixture = makeModule();
     const service = createReploidDopplerRuntimeService({

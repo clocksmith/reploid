@@ -4,10 +4,9 @@ Parent: none
 
 ## Target
 
-Govern consequential agent and human decisions with inspectable evidence,
-accountable disagreement, explicit activation authority, rollback, and
-reopening. Prove the mechanism commercially through Change Passport and
-scientifically through bounded public-protein annotation adjudication.
+Make Poolday's exact peer execution and retained evidence improve later useful
+work for independent operators. Keep Zero and X as secondary RSI browser agents
+and Change Passport as an inactive alternative with separate authority.
 
 ## Authority
 - Owns repository-wide product boundaries, component precedence, and proof requirements.
@@ -28,7 +27,8 @@ Outputs:
 - Recursive component authority in the [component index](docs/component-index.md).
 
 ## Invariants
-- Poolday, Zero, and X retain separate authority.
+- Poolday is primary; Zero and X are secondary and retain separate authority.
+- Change Passport remains an inactive alternative; Room-1 is optional scientific proof.
 - Generic change control retains authority separate from Poolday.
 - Claims stay bounded by recorded acceptance evidence.
 - Existing code cannot silently overrule a charter.

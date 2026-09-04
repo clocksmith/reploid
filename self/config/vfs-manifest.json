@@ -358,6 +358,7 @@
     "pool/doppler-browser-observation.js",
     "pool/doppler-runtime.js",
     "pool/evidence-network.js",
+    "pool/executable-pack.js",
     "pool/firebase-auth.js",
     "pool/identity-claims.js",
     "pool/identity.js",
