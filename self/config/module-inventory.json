@@ -900,8 +900,10 @@
     {
       "path": "pool/config-contract.js",
       "owner": "pool",
-      "sha256": "sha256:4d26729cc6af7656160dff890d29d0437bc13a7d94ab971e0c169f1ad8619407",
-      "imports": []
+      "sha256": "sha256:7046b90238c1cd67bd0c3929b48debdf218ddf14caedc801acfe31ed1d41db08",
+      "imports": [
+        "./executable-pack.js"
+      ]
     },
     {
       "path": "pool/config.js",

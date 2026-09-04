@@ -8,6 +8,17 @@ import {
 import poolConfig from '../../self/pool/pool-config.json' with { type: 'json' };
 
 describe('Poolday configuration contract', () => {
+  it('rejects malformed executable Pack bindings before loading', () => {
+    const invalid = structuredClone(poolConfig);
+    const model = invalid.modelCatalog.find((row) => row.modelId === invalid.launchModelId);
+    model.executablePack = { schema: 'doppler.pack/v3' };
+    delete model.dopplerLoadRef;
+    const validation = validatePoolConfigValue(invalid);
+    expect(validation.ok).toBe(false);
+    expect(validation.reasons.some((reason) => reason.includes('Pack'))).toBe(true);
+    expect(validation.reasons.some((reason) => reason.includes('packSource'))).toBe(true);
+  });
+
   it('builds immutable browser and server views from one pure contract', () => {
     const hashJson = vi.fn(() => 'sha256:config');
     const contract = createPoolConfigContract(poolConfig, { hashJson });
