@@ -4,8 +4,8 @@ Parent: [Documentation](../CATSCAN.md)
 
 ## Target
 
-Define the first commercial Change Passport workflow and the executable plan
-for placing its evidence and decision state in a real change-control path.
+Preserve Change Passport as an inactive commercial alternative with independent
+workflow, evidence, and decision-state contracts.
 
 ## Authority
 
@@ -25,7 +25,7 @@ Inputs:
 - Internal causal evidence mechanics from [RSI improvement episodes](../rsi-improvement-episodes.md).
 
 Outputs:
-- The first commercial workflow in [product intent](product-intent.md).
+- The alternative workflow in [product intent](product-intent.md).
 - Ordered repository deltas and gates in the [implementation plan](implementation-plan.md).
 - The external comparison boundary in the [pilot charter](pilot-charter.md)
   and machine-readable [pilot manifest](pilot-manifest.json).
@@ -37,7 +37,7 @@ Outputs:
 - Evidence validity, decision state, and deployed effect state remain separate.
 - Automatic reopening does not imply automatic revocation or rollback.
 - External actions require policy-owned authority.
-- Poolday remains scientific authority only.
+- Poolday owns peer execution and evidence admission, not generic change control.
 - Documentation status distinguishes planned, implemented, tested, live, and
   externally validated behavior.
 

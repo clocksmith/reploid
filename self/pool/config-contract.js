@@ -2,6 +2,8 @@
  * @fileoverview Environment-neutral Poolday configuration contract.
  */
 
+import { validateExecutablePack } from './executable-pack.js';
+
 export const POLICY_IDS = Object.freeze({
   fastestReceipt: 'fastest_receipt',
   canaryAudited: 'canary_audited',
@@ -61,6 +63,12 @@ const validateDnaLaneAdmission = (model, path, reasons) => {
 
 const validateSequenceModelContract = (model, index, reasons, { isLaunchModel = false } = {}) => {
   const path = `modelCatalog.${index}`;
+  if (model.executablePack !== undefined) {
+    reasons.push(...validateExecutablePack(model.executablePack).reasons.map((reason) => `${path}: ${reason}`));
+    if (typeof model.packSource !== 'string' || !model.packSource.trim()) reasons.push(`${path}.packSource is required for signed Pack loading`);
+  } else {
+    requireField(model.dopplerLoadRef, `${path}.dopplerLoadRef`, reasons);
+  }
   for (const field of [
     'modelId',
     'modelHash',
@@ -70,8 +78,7 @@ const validateSequenceModelContract = (model, index, reasons, { isLaunchModel = 
     'embeddingDimensions',
     'quantization',
     'runtime',
-    'backend',
-    'dopplerLoadRef'
+    'backend'
   ]) {
     requireField(model?.[field], `${path}.${field}`, reasons);
   }
@@ -146,8 +153,14 @@ export function validatePoolConfigValue(config = {}) {
     : config.launchModel;
   requireField(config.schema, 'schema', reasons);
   requireField(config.configVersion, 'configVersion', reasons);
-  for (const field of ['modelId', 'modelHash', 'manifestHash', 'runtime', 'backend', 'dopplerLoadRef']) {
+  for (const field of ['modelId', 'modelHash', 'manifestHash', 'runtime', 'backend']) {
     requireField(launchModel?.[field], `launchModel.${field}`, reasons);
+  }
+  if (launchModel?.executablePack !== undefined) {
+    reasons.push(...validateExecutablePack(launchModel.executablePack).reasons);
+    if (typeof launchModel.packSource !== 'string' || !launchModel.packSource.trim()) reasons.push('launchModel.packSource is required for signed Pack loading');
+  } else {
+    requireField(launchModel?.dopplerLoadRef, 'launchModel.dopplerLoadRef', reasons);
   }
   if (!isProteinPoolModel(launchModel)) reasons.push('launchModel must be a protein sequence model');
   modelCatalog.forEach((model, index) => {

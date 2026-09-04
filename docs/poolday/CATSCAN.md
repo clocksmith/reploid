@@ -28,7 +28,7 @@ Outputs:
 - Accepted means admissible under a named policy, never globally true.
 - Receipt, agreement, review, laboratory, and biological claims remain distinct.
 - Public-sequence support cannot imply private-sequence protection.
-- The product loop is request, peer execution, comparison, requester acceptance, and retained receipt.
+- The product loop adds improved later decisions and repeat independent use to request, execution, comparison, acceptance, and retained receipts.
 - Doppler Pack identity and qualification remain distinct from peer availability and successful execution.
 - Recent jobs remains execution-only; scientific Room-1 administration has a separate non-primary route.
 

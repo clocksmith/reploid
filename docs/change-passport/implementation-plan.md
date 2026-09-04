@@ -2,8 +2,8 @@
 
 ## Status
 
-This is the executable repository plan for the first commercial Change
-Passport workflow. Product intent and authority boundaries are frozen in
+This preserves the implementation plan for Change Passport, an inactive
+commercial alternative to the selected Poolday priority. Product intent and authority boundaries are in
 [product-intent.md](product-intent.md). The implementation milestones below
 are not complete unless their acceptance evidence exists.
 

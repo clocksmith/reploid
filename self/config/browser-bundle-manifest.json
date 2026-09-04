@@ -1181,7 +1181,7 @@
     {
       "path": "config/blueprint-registry.json",
       "byteLength": 33457,
-      "sha256": "sha256:955c579d84633abe84cb351d2af1cc5bc2e01d441c84c582ea50e35a0bf147df"
+      "sha256": "sha256:28e14099430143b64abb9b3bf702194d8991f3edf4217799aaa650742496cdbe"
     },
     {
       "path": "config/boot-modes.js",
@@ -1250,13 +1250,13 @@
     },
     {
       "path": "config/module-inventory.json",
-      "byteLength": 78900,
-      "sha256": "sha256:194b1268b1ba5daec933baedb2ed9be22bf7c852d9abb01b3597fa7ac36c7e32"
+      "byteLength": 78938,
+      "sha256": "sha256:68e87e7cc506aab201702de4ecefe775226419c3ceb9deb54380c075e2c099bf"
     },
     {
       "path": "config/module-registry.json",
       "byteLength": 42332,
-      "sha256": "sha256:40334c07cfef4a3597ac4f6fcdb529cb767184282af5e84c66bb325b8f36ea8b"
+      "sha256": "sha256:ec5b28f292821769cd284b1647abdbd57568b1d39da4893440da0d1be6ef20f1"
     },
     {
       "path": "config/module-resolution.js",
@@ -1850,8 +1850,8 @@
     },
     {
       "path": "pool/config-contract.js",
-      "byteLength": 18481,
-      "sha256": "sha256:4d26729cc6af7656160dff890d29d0437bc13a7d94ab971e0c169f1ad8619407"
+      "byteLength": 19293,
+      "sha256": "sha256:7046b90238c1cd67bd0c3929b48debdf218ddf14caedc801acfe31ed1d41db08"
     },
     {
       "path": "pool/config.js",
@@ -2879,5 +2879,5 @@
       "sha256": "sha256:c5a6c85719ce4072b343251b10f5a00f7f99d83be47f83367b3f959886c78701"
     }
   ],
-  "bundleHash": "sha256:04ac33baf77e1ba5128ffe7e5f42b380610670727f0abfa2afd9880100985925"
+  "bundleHash": "sha256:9b6ac117149db9b9353560d5142b9809cec7438797450f8da570b68e1b7bd221"
 }
