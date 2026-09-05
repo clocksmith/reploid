@@ -74,6 +74,13 @@ value, qualification, adoption, deployment authority, and rollback success
 remain unproved and have no claim permission.
 
 The currently supported Poolday execution network is narrower than the long-term aim.
+The D4DA integration extends the reusable complete-job contracts to an explicitly
+pinned forecasting workload. D4DA owns room consent, source cutoffs and forecast
+review; the existing Poolday message, assignment, receipt and acceptance records
+retain their identities. This adapter is not public catalog admission or evidence
+of external provider adoption. Its execution and comparison claims require its
+own retained checks.
+
 The catalog's ESM-2 identity is a model contract, not yet an enabled signed
 executable Pack. The new `executablePack` boundary requires public `openPack`,
 exact envelope and artifact closure, accepted TargetPlans, and execution receipts.

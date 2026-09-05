@@ -32,7 +32,7 @@ const ADAPTER_SOURCE_PRIORITY = Object.freeze({
   missing: 9
 });
 
-const finite = (value, fallback) => Number.isFinite(Number(value)) ? Number(value) : fallback;
+const finite = (value, fallback) => value !== null && value !== undefined && value !== '' && Number.isFinite(Number(value)) ? Number(value) : fallback;
 const clamp01 = (value, fallback = 0) => Math.max(0, Math.min(1, finite(value, fallback)));
 const requestedTokenCount = (intent = {}) => Math.max(0, finite(
   intent.body?.generationConfig?.maxOutputTokens
@@ -125,6 +125,7 @@ export function evaluateProviderRouteCandidate({
   messageValid = true,
   identityValid = true,
   runtimeProfileValid = true,
+  ignoreAdvertisedEvidence = false,
   tieBreaker = ''
 } = {}) {
   const providerId = advert?.body?.providerId || advert?.fromPeerId || null;
@@ -190,7 +191,7 @@ export function evaluateProviderRouteCandidate({
   const score = Object.freeze({
     adapterSource: ADAPTER_SOURCE_PRIORITY[adapterState] ?? ADAPTER_SOURCE_PRIORITY.missing,
     capacityLoad: activeJobs / maxConcurrentJobs,
-    evidencePenalty: 1 - evidenceScore(advert),
+    evidencePenalty: ignoreAdvertisedEvidence ? 1 : 1 - evidenceScore(advert),
     transferBytes,
     transferMs,
     expectedLatencyMs: Math.max(0, finite(availability.expectedLatencyMs, Number.MAX_SAFE_INTEGER)),
@@ -234,6 +235,7 @@ export async function sealArtifactRouteDecision({
   modelRequirements,
   candidates = [],
   selectedProviderIds = [],
+  history = null,
   createdAt = new Date().toISOString()
 } = {}) {
   const decision = {
@@ -262,6 +264,7 @@ export async function sealArtifactRouteDecision({
       score: candidate.score
     })),
     selectedProviderIds: [...selectedProviderIds],
+    ...(history === null ? {} : { history: structuredClone(history) }),
     createdAt
   };
   const { createdAt: recordedAt, ...identity } = decision;

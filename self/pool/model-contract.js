@@ -5,6 +5,7 @@
 import { BROWSER_RUNTIME_CONFIG, LAUNCH_MODEL, MODEL_CATALOG } from './config.js';
 import { buildModelArtifactUrls } from './model-artifacts.js';
 import { validateExecutablePack } from './executable-pack.js';
+import { isForecastPoolModel, FORECAST_WORKLOAD } from './forecast-workload.js';
 import {
   modelIdentityMatchesAdapterRequirement,
   modelSupportsAdapterRequirement,
@@ -121,7 +122,8 @@ export function getPoolModelWorkloads(model = {}) {
 }
 
 export function modelSupportsPoolWorkload(model = {}, workload) {
-  return isBiologicalSequencePoolModel(model) && getPoolModelWorkloads(model).includes(workload);
+  return (isBiologicalSequencePoolModel(model) && getPoolModelWorkloads(model).includes(workload)) ||
+    (workload === FORECAST_WORKLOAD && isForecastPoolModel(model));
 }
 
 export function exactModelContractKey(model = {}, {
@@ -136,6 +138,7 @@ export function exactModelContractKey(model = {}, {
     tokenizerHash: model.tokenizerHash || identity.tokenizerHash || '',
     artifactIdentity: identity,
     ...(model.executablePack ? { executablePack: model.executablePack } : {}),
+    ...(model.forecast || model.requirements?.forecast ? { forecast: model.forecast || model.requirements.forecast } : {}),
     runtime: model.runtime || '',
     backend: model.backend || '',
     workload: workload || '',

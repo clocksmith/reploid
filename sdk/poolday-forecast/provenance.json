@@ -1,0 +1,116 @@
+{
+  "schema": "reploid.sdk-provenance/v1",
+  "baseCommit": "cf35eaca8b1cb009c8ab80bb895d6ef80fafa626",
+  "command": "node scripts/build-poolday-forecast-sdk.js",
+  "sources": [
+    {
+      "path": "scripts/build-poolday-forecast-sdk.js",
+      "hash": "sha256:e21f13e3ce18db35faea995d762b99e79093614a2afb974fc1cf7822c156eed4",
+      "sizeBytes": 2129
+    },
+    {
+      "path": "sdk/poolday-forecast/index.d.ts",
+      "hash": "sha256:635962500ebce6742e080f459d6c4c862e8b6997c9b743f5709baab822217e4f",
+      "sizeBytes": 7370
+    },
+    {
+      "path": "sdk/poolday-forecast/index.js",
+      "hash": "sha256:fa9832c363d5b4a2f5360cc8e761e7da635cbe61bf02923735da4d3cb2d4349f",
+      "sizeBytes": 582
+    },
+    {
+      "path": "self/pool/adapter-pack.js",
+      "hash": "sha256:d48b0bf5089b1dffb65ec0e12458ee89dfb5af82a86a513428e1f7bdd25f09ca",
+      "sizeBytes": 14202
+    },
+    {
+      "path": "self/pool/artifact-origin.js",
+      "hash": "sha256:579b8e7681654bfb18977c965c14a89cf033afc9f39317d1506bbc35df786976",
+      "sizeBytes": 5276
+    },
+    {
+      "path": "self/pool/artifact-router.js",
+      "hash": "sha256:fdfb35a0fbcbae7206f37b9d7cf635558ea95e4b7575e18f37f6a8fe19a25d5c",
+      "sizeBytes": 11653
+    },
+    {
+      "path": "self/pool/canonical-json.js",
+      "hash": "sha256:8c03ba8fc289d21bb99b3f2595ae8493397dfeb134cbb02e45311f2b43d561f4",
+      "sizeBytes": 482
+    },
+    {
+      "path": "self/pool/complete-forecast.js",
+      "hash": "sha256:d705c97277e0138620c3cb304061eb82664c35a44e054319add3f37bdef09791",
+      "sizeBytes": 23306
+    },
+    {
+      "path": "self/pool/config-contract.js",
+      "hash": "sha256:7046b90238c1cd67bd0c3929b48debdf218ddf14caedc801acfe31ed1d41db08",
+      "sizeBytes": 19293
+    },
+    {
+      "path": "self/pool/config.js",
+      "hash": "sha256:892ff8ff5dcc9f3aa4c9bbeaeabd29880ab4eedb5258d383efb12f0fe6d6ff75",
+      "sizeBytes": 2461
+    },
+    {
+      "path": "self/pool/executable-pack.js",
+      "hash": "sha256:3d15bc81e901afb20d97f581cf3bfacde8b80856726dc156d0d64f664e8da864",
+      "sizeBytes": 5992
+    },
+    {
+      "path": "self/pool/forecast-workload.js",
+      "hash": "sha256:54813f86b01ae55b873de335270865051c35ac268eb83e679b62148fda230698",
+      "sizeBytes": 3995
+    },
+    {
+      "path": "self/pool/inference-receipt.js",
+      "hash": "sha256:f06258934ceb1f0250c1f25949c6093015b2d7bd4b715a1a50535fe987d68845",
+      "sizeBytes": 17901
+    },
+    {
+      "path": "self/pool/model-artifacts.js",
+      "hash": "sha256:850a5afd343c01e9167fbd59511a6c213dd29e60397015e77ab3f16cb53cf1f9",
+      "sizeBytes": 21219
+    },
+    {
+      "path": "self/pool/model-contract.js",
+      "hash": "sha256:36ce057649845d4b3a9ea947adb2fd1b7e618cf44f1bae544cbb7f75bab0ee54",
+      "sizeBytes": 14331
+    },
+    {
+      "path": "self/pool/participation-profile.js",
+      "hash": "sha256:0af14eedd3d3c907da5be4c8db65d46272801e6fb0927e3694f2c5d35f4c77e3",
+      "sizeBytes": 8610
+    },
+    {
+      "path": "self/pool/peer-agreement.js",
+      "hash": "sha256:7f015a5cbf06b650745847bb8db195aeca09161d0c47c2ad51555b64e5ae72c2",
+      "sizeBytes": 5392
+    },
+    {
+      "path": "self/pool/peer-assignment.js",
+      "hash": "sha256:bd7c5564f4e6669cba93c9af1bf96e01caf8052b11b6b38322c1180e0b1f85bb",
+      "sizeBytes": 664
+    },
+    {
+      "path": "self/pool/peer-protocol.js",
+      "hash": "sha256:7ac6ddbcba78ec18b78e4cb80d499c759b05af548617a8a0d8c3fd4533a35488",
+      "sizeBytes": 5118
+    },
+    {
+      "path": "self/pool/pool-config.json",
+      "hash": "sha256:c9d57a6ff1107d9976985e0d01aa9571ca6d09d91c59f60910ba06e56d396602",
+      "sizeBytes": 54518
+    },
+    {
+      "path": "self/pool/sequence-workload.js",
+      "hash": "sha256:026bd1944e69ce4bfb931489d216ebfe22add4ed4ecefb9fe7348d4ed2feec3c",
+      "sizeBytes": 11153
+    }
+  ],
+  "output": {
+    "path": "dist/index.js",
+    "hash": "sha256:a89cc573e7c849bdc437f0f04e7bd7b48083f7a7c8b45869885438a17152c3c9"
+  }
+}

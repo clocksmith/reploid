@@ -87,7 +87,7 @@ export function createPeerMessage({
   });
 }
 
-export function validatePeerMessage(message = {}) {
+export function validatePeerMessage(message = {}, { now = Date.now() } = {}) {
   const reasons = [];
   if (message.peerControlVersion !== PEER_CONTROL_VERSION) reasons.push('peerControlVersion mismatch');
   if (message.network !== PEER_CONTROL_NETWORK) reasons.push('peer control network mismatch');
@@ -98,7 +98,8 @@ export function validatePeerMessage(message = {}) {
   if (!message.body || typeof message.body !== 'object' || Array.isArray(message.body)) {
     reasons.push('body must be an object');
   }
-  if (message.expiresAt && Date.parse(message.expiresAt) <= Date.now()) {
+  if (!Number.isFinite(now)) reasons.push('verification time invalid');
+  if (message.expiresAt && Date.parse(message.expiresAt) <= now) {
     reasons.push('peer message expired');
   }
   return {
@@ -127,9 +128,9 @@ export async function createSignedPeerMessage({ privateKey, ...message } = {}) {
   return signPeerMessage(createPeerMessage(message), privateKey);
 }
 
-export async function verifyPeerMessage(message = {}) {
+export async function verifyPeerMessage(message = {}, { now = Date.now() } = {}) {
   const reasons = [];
-  const validation = validatePeerMessage(message);
+  const validation = validatePeerMessage(message, { now });
   reasons.push(...validation.reasons);
   const messageHash = await hashPeerMessage(message);
   if (message.messageHash !== messageHash) reasons.push('messageHash mismatch');

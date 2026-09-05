@@ -1,0 +1,66 @@
+{
+  "schema": "reploid.verification-worker-evidence/v1",
+  "at": "2026-09-05T20:01:14.986Z",
+  "host": "Chrome classic Verification Worker on macOS",
+  "sources": [
+    {
+      "path": "self/pool/executable-pack.js",
+      "hash": "sha256:3d15bc81e901afb20d97f581cf3bfacde8b80856726dc156d0d64f664e8da864"
+    },
+    {
+      "path": "self/pool/complete-forecast.js",
+      "hash": "sha256:d705c97277e0138620c3cb304061eb82664c35a44e054319add3f37bdef09791"
+    },
+    {
+      "path": "self/pool/forecast-workload.js",
+      "hash": "sha256:54813f86b01ae55b873de335270865051c35ac268eb83e679b62148fda230698"
+    },
+    {
+      "path": "self/pool/peer-assignment.js",
+      "hash": "sha256:bd7c5564f4e6669cba93c9af1bf96e01caf8052b11b6b38322c1180e0b1f85bb"
+    }
+  ],
+  "result": {
+    "passed": true,
+    "errors": [],
+    "warnings": [
+      "7 lines exceed 200 characters",
+      "Warning in /pool/forecast-workload.js:4: Suspicious variable name: FORECAST_EXECUTION_MODE - may indicate code execution"
+    ],
+    "events": [
+      {
+        "type": "complexity",
+        "timestamp": 1788638474983,
+        "metric": "line_length",
+        "value": 7,
+        "threshold": 5,
+        "message": "7 lines exceed 200 characters",
+        "path": "/pool/complete-forecast.js"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1788638474984,
+        "path": "/pool/forecast-workload.js",
+        "patternId": "suspicious_variable_name",
+        "category": "structural",
+        "message": "Suspicious variable name: FORECAST_EXECUTION_MODE - may indicate code execution",
+        "line": 4,
+        "severity": "warning"
+      }
+    ],
+    "details": {
+      "patternViolations": [],
+      "complexityWarnings": [
+        {
+          "type": "complexity",
+          "metric": "line_length",
+          "value": 7,
+          "threshold": 5,
+          "message": "7 lines exceed 200 characters",
+          "path": "/pool/complete-forecast.js"
+        }
+      ],
+      "filesAnalyzed": 4
+    }
+  }
+}

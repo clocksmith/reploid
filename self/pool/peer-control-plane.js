@@ -20,6 +20,7 @@ import {
 } from './config.js';
 import { validatePooldayPolicyClasses } from './policy-router.js';
 import { executablePacksMatch, assertPackReceipt } from './executable-pack.js';
+import { sealPeerAssignmentIdentity } from './peer-assignment.js';
 import {
   LAUNCH_MODEL,
   POOLDAY_MODEL_WORKLOADS,
@@ -499,8 +500,7 @@ export async function buildPeerAssignmentPlan({
     const providerAdvertHash = candidate.advert.messageHash;
     const providerParticipationProfileHash = candidate.advert.body?.participationProfile?.profileHash || null;
     const providerLimits = providerAssignmentLimits(candidate.advert);
-    const assignmentHash = await hashJson({
-      schema: 'reploid.peer.assignment/v1',
+    const { assignmentHash, assignmentId } = await sealPeerAssignmentIdentity({
       intentHash: intentVerification.messageHash,
       providerId,
       assignmentAttemptId,
@@ -511,7 +511,7 @@ export async function buildPeerAssignmentPlan({
     });
     assignments.push({
       schema: 'reploid.peer.assignment/v1',
-      assignmentId: `peer_assignment_${assignmentHash.replace(/^sha256:/, '').slice(0, 16)}`,
+      assignmentId,
       assignmentHash,
       routeDecisionHash: routeDecision.decisionHash,
       providerAdvertHash,
@@ -633,8 +633,7 @@ export async function validatePeerAssignmentForIntentAndAdvert({
   if (canonicalize(assignment.providerLimits || null) !== canonicalize(advertLimits)) {
     reasons.push('provider limits mismatch');
   }
-  const expectedAssignmentHash = await hashJson({
-    schema: 'reploid.peer.assignment/v1',
+  const { assignmentHash: expectedAssignmentHash } = await sealPeerAssignmentIdentity({
     intentHash: intentVerification.messageHash,
     providerId: advertProviderId,
     assignmentAttemptId: assignment.assignmentAttemptId,
