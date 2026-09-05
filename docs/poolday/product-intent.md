@@ -72,17 +72,30 @@ hardware-attested execution, or guaranteed scientific correctness.
 ## Optimization objective
 
 The immediate objective is a reproducible open execution network with Doppler.
-ESM-2 35M remains first. Independent machines demonstrate origin-independent
+It has three independently testable loops: model distribution, whole-job remote
+execution, and learned coordination. The execution contract is model identity,
+operation, input, limits, and acceptance rule. Generalize it first for `generate`,
+`embed`, `rerank`, and `encodeSequence`; adding an operation must not require
+networking changes. A local document assistant exercises acquisition, corpus
+embedding, retrieval reranking, and referenced generation. ESM-2 35M remains the
+scientific control and second workload proving the abstraction generalizes.
+Independent machines demonstrate origin-independent
 reconstruction, useful oracle-valid outputs, corruption rejection, and
 participant-loss recovery through one Pack and assignment lineage. Local
 execution remains usable without delegation; redistribution and complete-job
 delegation require separate explicit opt-in. Private inputs remain local by
-default, and the initial delegated lane remains public-sequence-only.
+default. The currently enabled delegated catalog remains public-sequence-only;
+broader operation adapters do not qualify or enable new model releases.
+Three independent suppliers and a clean fourth machine must survive corruption
+and departure with both origin and mirrors unavailable. Acquire from persistent
+local cache, authorized peers, mirrors, then origin. Compare execution with a
+conventional queue on the same machines, counting coordination costs.
 
 Retained admissible evidence must improve held-out assignments against both
-no-history and competent frozen reliability schedulers without relaxing
+random no-history and competent frozen reliability/load schedulers without relaxing
 correctness. Freeze policies before evaluation; history precedes the held-out
-jobs. Keep jobs, capacity, oracle, resource budget, and starting conditions
+jobs. Freeze 1,000 historical jobs before evaluating unseen work. Keep jobs,
+capacity, oracle, resource budget, and starting conditions
 identical. Predeclare meaningful outcomes, report uncertainty, and charge all
 attempts, transfers, verification, replication, retries, relay traffic, and review.
 Revoked, stale, duplicate, and insufficient history have explicit negative tests.

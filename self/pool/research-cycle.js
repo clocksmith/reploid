@@ -8,16 +8,20 @@
 
 import {
   RESEARCH_RECORD_KINDS,
-  activeResearchRecords,
-  buildPredictionDisagreementMap,
-  projectAcceptedResearchMemory,
   projectResearchExecutionIndependence,
-  projectResearchQuestionClarity,
+  projectResearchQuestionClarity
+} from './evidence-record-contract.js';
+import {
+  activeResearchRecords,
+  projectAcceptedResearchMemory,
   projectResearchReviewStates,
-  proposeDiscoveryTasks,
-  rankProposedDiscoveryActions,
   researchRecordTargetHashes
-} from './evidence-network.js';
+} from './evidence-admission.js';
+import {
+  buildPredictionDisagreementMap,
+  proposeDiscoveryTasks,
+  rankProposedDiscoveryActions
+} from './evidence-queries.js';
 
 export const RESEARCH_CYCLE_POLICY = Object.freeze({
   schema: 'poolday.governed_research_cycle/v1',

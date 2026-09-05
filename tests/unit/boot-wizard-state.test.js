@@ -48,11 +48,11 @@ describe('boot wizard state persistence', () => {
     } = await import('../../self/config/zero-inference.js');
 
     expect(module.DEFAULT_CYCLE_INTERVAL_SECONDS).toBe(7.7);
-    expect(ZERO_GEMINI_MODEL).toBe('gemini-3.1-flash-lite');
+    expect(ZERO_GEMINI_MODEL).toBe('gemini-3.8-flash');
     expect(buildZeroGeminiProxyConfig({
       serverType: ZERO_GEMINI_SERVER_TYPE,
       model: 'gemini-3.5-flash'
-    }).model).toBe('gemini-3.1-flash-lite');
+    }).model).toBe('gemini-3.8-flash');
     expect(module.normalizeCycleIntervalSeconds(null)).toBe(7.7);
     expect(module.normalizeCycleIntervalSeconds(undefined)).toBe(7.7);
     expect(module.normalizeCycleIntervalSeconds('')).toBe(7.7);
@@ -81,6 +81,16 @@ describe('boot wizard state persistence', () => {
       cycleIntervalMs: 7700,
       cycleIntervalSeconds: 7.7
     });
+  });
+
+  it('migrates saved managed defaults while preserving custom models and other servers', async () => {
+    const { ZERO_GEMINI_SERVER_TYPE, buildZeroGeminiProxyConfig } = await import('../../self/config/zero-inference.js');
+    expect(buildZeroGeminiProxyConfig().model).toBe('gemini-3.8-flash');
+    for (const model of ['gemini-3.5-flash', 'gemini-3.1-flash-lite']) {
+      expect(buildZeroGeminiProxyConfig({ serverType: ZERO_GEMINI_SERVER_TYPE, model }).model).toBe('gemini-3.8-flash');
+      expect(buildZeroGeminiProxyConfig({ serverType: 'reploid', model }).model).toBe(model);
+    }
+    expect(buildZeroGeminiProxyConfig({ serverType: ZERO_GEMINI_SERVER_TYPE, model: 'custom-model' }).model).toBe('custom-model');
   });
 
   it('persists Zero and X cycle throttling into the selected model config', async () => {

@@ -253,6 +253,15 @@ export function createProviderClient({
   };
 
   const runLocalAssignment = async (assignment, options = {}) => {
+    let runtimeModel = typeof runtime?.getModelInfo === 'function' ? runtime.getModelInfo() : null;
+    const boundWorkload = getPoolModelWorkload(assignment.model || {});
+    const workload = assignment.workload || assignment.model?.requirements?.workload || boundWorkload;
+    if (!Object.values(POOLDAY_MODEL_WORKLOADS).includes(workload)) {
+      throw new Error(`Unsupported assignment workload: ${workload}`);
+    }
+    if (workload !== boundWorkload || !modelSupportsPoolWorkload(runtimeModel || {}, workload)) {
+      throw new Error('Assignment workload does not match its exact model contract and loaded runtime');
+    }
     await ensureKeys();
     await enforceAssignmentParticipation(assignment);
     recordHistory({
@@ -261,7 +270,6 @@ export function createProviderClient({
       jobId: assignment.jobId,
       policyId: assignment.policyId
     });
-    let runtimeModel = typeof runtime?.getModelInfo === 'function' ? runtime.getModelInfo() : null;
     if (!assignmentMatchesRuntime(assignment.model || {}, runtimeModel || {}, {
       requireAdapterActive: false
     })) {
@@ -273,7 +281,6 @@ export function createProviderClient({
       throw new Error('Assignment exact model or adapter contract does not match the active Doppler runtime');
     }
     const input = await resolveAssignmentInput(assignment, options);
-    const workload = assignment.workload || assignment.model?.requirements?.workload || getPoolModelWorkload(runtimeModel || {});
     let runtimeExecution;
     if (workload === POOLDAY_MODEL_WORKLOADS.embedding) {
       runtimeExecution = await runtime.embed({ prompt: input.value, assignment });
@@ -283,12 +290,14 @@ export function createProviderClient({
         request: assignment.sequenceRequest,
         assignment
       });
-    } else {
+    } else if (workload === POOLDAY_MODEL_WORKLOADS.generation) {
       runtimeExecution = await runtime.generate({
         prompt: input.value,
         generationConfig: assignment.generationConfig,
         assignment
       });
+    } else {
+      throw new Error(`Unsupported assignment workload: ${workload}`);
     }
     const execution = {
       ...runtimeExecution,

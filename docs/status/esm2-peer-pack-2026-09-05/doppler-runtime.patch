@@ -1,0 +1,570 @@
+diff --git a/src/client/runtime/index.js b/src/client/runtime/index.js
+index bcff3cb7..5f2dfd60 100644
+--- a/src/client/runtime/index.js
++++ b/src/client/runtime/index.js
+@@ -28,6 +28,7 @@ import { isNodeRuntime } from '../../storage/runtime-env.js';
+ import { resolveManifestGpuResidentEmbeddingLimitError } from '../../loader/embedding-limit-preflight.js';
+ import { createDopplerLoader } from '../../loader/doppler-loader.js';
+ import { getKernelCapabilities, initDevice } from '../../gpu/device.js';
++import { runWithShaderSourceScope } from '../../gpu/kernels/shader-source-scope.js';
+ import { createDopplerRuntime } from './composition-root.js';
+ import { createPackProgramAdapter } from './pack-program-adapter.js';
+ import { createPackArtifactSource } from './pack-artifact-source.js';
+@@ -247,7 +248,7 @@ export function createDopplerRuntimeService({
+         },
+       }
+       : await resolveManifestArtifactSource(resolved, manifestPayload);
+-    await initDevice();
++    await runWithShaderSourceScope(null, () => initDevice());
+     const embeddingLimitError = resolveManifestGpuResidentEmbeddingLimitError(
+       resolvedArtifactSource.manifest,
+       {
+@@ -361,7 +362,7 @@ export function createDopplerRuntimeService({
+     if (!resolvedPack?.pack || !resolvedPack?.artifactStore) {
+       throw new Error('Pack source resolver must return pack and artifactStore.');
+     }
+-    const gpuDevice = await initDevice();
++    const gpuDevice = await runWithShaderSourceScope(null, () => initDevice());
+     const capabilities = getKernelCapabilities();
+     const device = {
+       getDevice() {
+diff --git a/src/client/runtime/pack-artifact-source.js b/src/client/runtime/pack-artifact-source.js
+index ab815bea..230eb846 100644
+--- a/src/client/runtime/pack-artifact-source.js
++++ b/src/client/runtime/pack-artifact-source.js
+@@ -1,4 +1,5 @@
+ import { createArtifactStorageContext } from '../../storage/artifact-storage-context.js';
++import { createShaderSourceScope, bindStorageShaderSourceScope } from '../../gpu/kernels/shader-source-scope.js';
+ 
+ export async function createPackArtifactSource(pack, artifactStore) {
+   const manifestArtifact = pack.artifacts.find((artifact) => artifact.artifactId === pack.program.manifestArtifactId);
+@@ -33,6 +34,17 @@ export async function createPackArtifactSource(pack, artifactStore) {
+     async readText(path) { return new TextDecoder('utf-8', { fatal: true }).decode(await read(path)); },
+     async readBinary(path) { return (await read(path)).buffer; },
+   });
++  const sources = new Map();
++  for (const module of pack.wgslModules ?? []) {
++    const artifact = pack.artifacts.find((entry) => entry.artifactId === module.sourceArtifactId);
++    if (!artifact || artifact.role !== 'wgsl-source') throw new Error('Pack WGSL module has no source artifact.');
++    const source = new TextDecoder('utf-8', { fatal: true }).decode(await artifactStore.readArtifact(artifact));
++    if (sources.has(module.file) && sources.get(module.file) !== source) {
++      throw new Error(`Pack WGSL filename has conflicting sources: ${module.file}.`);
++    }
++    sources.set(module.file, source);
++  }
++  bindStorageShaderSourceScope(storageContext, createShaderSourceScope(sources));
+   return {
+     modelId: pack.modelId,
+     manifest,
+diff --git a/src/config/kernels/registry.json b/src/config/kernels/registry.json
+index 351f8654..57b1bfef 100644
+--- a/src/config/kernels/registry.json
++++ b/src/config/kernels/registry.json
+@@ -1731,8 +1731,8 @@
+       "tier": "tiled_large"
+      },
+      "reachability": {
+-      "status": "model-selectable",
+-      "inlineConfigs": [],
++      "status": "pinned",
++      "inlineConfigs": ["esm/esm2-t12-35m-ur50d-f32-af32"],
+       "ruleChains": ["attention.rules.json#phase"],
+       "wgslOnDisk": true
+      }
+@@ -4815,8 +4815,8 @@
+      "workgroup": [256,1,1],
+      "requires": [],
+      "reachability": {
+-      "status": "selectable",
+-      "inlineConfigs": [],
++      "status": "pinned",
++      "inlineConfigs": ["esm/esm2-t12-35m-ur50d-f32-af32"],
+       "ruleChains": ["rope-qk.rules.json#variant"],
+       "wgslOnDisk": true
+      }
+@@ -4827,7 +4827,7 @@
+      "workgroup": [256,1,1],
+      "requires": ["shader-f16"],
+      "reachability": {
+-      "status": "selectable",
++      "status": "model-selectable",
+       "inlineConfigs": [],
+       "ruleChains": ["rope-qk.rules.json#variant"],
+       "wgslOnDisk": true
+@@ -5050,8 +5050,8 @@
+      "workgroup": [256,1,1],
+      "requires": [],
+      "reachability": {
+-      "status": "selectable",
+-      "inlineConfigs": [],
++      "status": "pinned",
++      "inlineConfigs": ["esm/esm2-t12-35m-ur50d-f32-af32"],
+       "ruleChains": ["scale.rules.json#variant"],
+       "wgslOnDisk": true
+      }
+@@ -5062,7 +5062,7 @@
+      "workgroup": [256,1,1],
+      "requires": ["shader-f16"],
+      "reachability": {
+-      "status": "selectable",
++      "status": "model-selectable",
+       "inlineConfigs": [],
+       "ruleChains": ["scale.rules.json#variant"],
+       "wgslOnDisk": true
+@@ -5074,8 +5074,8 @@
+      "workgroup": [256,1,1],
+      "requires": [],
+      "reachability": {
+-      "status": "selectable",
+-      "inlineConfigs": [],
++      "status": "pinned",
++      "inlineConfigs": ["esm/esm2-t12-35m-ur50d-f32-af32"],
+       "ruleChains": ["scale.rules.json#variant"],
+       "wgslOnDisk": true
+      }
+@@ -5086,7 +5086,7 @@
+      "workgroup": [256,1,1],
+      "requires": ["shader-f16"],
+      "reachability": {
+-      "status": "selectable",
++      "status": "model-selectable",
+       "inlineConfigs": [],
+       "ruleChains": ["scale.rules.json#variant"],
+       "wgslOnDisk": true
+@@ -5848,8 +5848,8 @@
+      "requires": [],
+      "outputDtype": "f32",
+      "reachability": {
+-      "status": "model-selectable",
+-      "inlineConfigs": [],
++      "status": "pinned",
++      "inlineConfigs": ["esm/esm2-t12-35m-ur50d-f32-af32"],
+       "ruleChains": ["gather.rules.json#variant"],
+       "wgslOnDisk": true
+      }
+@@ -6404,8 +6404,8 @@
+      "workgroup": [64,1,1],
+      "requires": [],
+      "reachability": {
+-      "status": "model-selectable",
+-      "inlineConfigs": [],
++      "status": "pinned",
++      "inlineConfigs": ["esm/esm2-t12-35m-ur50d-f32-af32"],
+       "ruleChains": ["residual.rules.json#residualVariant"],
+       "wgslOnDisk": true
+      }
+@@ -8038,8 +8038,8 @@
+      "workgroup": [256,1,1],
+      "requires": [],
+      "reachability": {
+-      "status": "selectable",
+-      "inlineConfigs": [],
++      "status": "pinned",
++      "inlineConfigs": ["esm/esm2-t12-35m-ur50d-f32-af32"],
+       "ruleChains": ["split-qkv.rules.json#variant"],
+       "wgslOnDisk": true
+      }
+@@ -8050,7 +8050,7 @@
+      "workgroup": [256,1,1],
+      "requires": ["shader-f16"],
+      "reachability": {
+-      "status": "selectable",
++      "status": "model-selectable",
+       "inlineConfigs": [],
+       "ruleChains": ["split-qkv.rules.json#variant"],
+       "wgslOnDisk": true
+@@ -13040,8 +13040,8 @@
+      "workgroup": [256,1,1],
+      "requires": [],
+      "reachability": {
+-      "status": "unused",
+-      "inlineConfigs": [],
++      "status": "pinned",
++      "inlineConfigs": ["esm/esm2-t12-35m-ur50d-f32-af32"],
+       "ruleChains": [],
+       "wgslOnDisk": true
+      }
+@@ -13372,8 +13372,8 @@
+      "workgroup": [256,1,1],
+      "requires": [],
+      "reachability": {
+-      "status": "unused",
+-      "inlineConfigs": [],
++      "status": "pinned",
++      "inlineConfigs": ["esm/esm2-t12-35m-ur50d-f32-af32"],
+       "ruleChains": [],
+       "wgslOnDisk": true
+      }
+diff --git a/src/gpu/kernels/check-finiteness.js b/src/gpu/kernels/check-finiteness.js
+index 99ebf3ff..d1068a41 100644
+--- a/src/gpu/kernels/check-finiteness.js
++++ b/src/gpu/kernels/check-finiteness.js
+@@ -1,4 +1,5 @@
+-import { getDevice, getDeviceEpoch } from '../device.js';
++import { getDevice } from '../device.js';
++import { getShaderScopeCacheKey } from './shader-source-scope.js';
+ import { dispatchKernel } from './dispatch.js';
+ import { createUniformBufferWithView } from './uniform-utils.js';
+ import {
+@@ -39,7 +40,7 @@ function getCheckFinitenessBindGroupLayout(device) {
+ }
+ 
+ async function getCheckFinitenessPipeline() {
+-    const epoch = getDeviceEpoch();
++    const epoch = getShaderScopeCacheKey();
+     if (checkFinitenessPipeline && checkFinitenessPipelineEpoch === epoch) return checkFinitenessPipeline;
+     const device = getDevice();
+     const shaderModule = await getShaderModule(device, 'check_finiteness.wgsl', 'check_finiteness');
+diff --git a/src/gpu/kernels/check-hot-vocab-stop.js b/src/gpu/kernels/check-hot-vocab-stop.js
+index 63c2f446..8cc9bcc3 100644
+--- a/src/gpu/kernels/check-hot-vocab-stop.js
++++ b/src/gpu/kernels/check-hot-vocab-stop.js
+@@ -1,4 +1,5 @@
+-import { getDevice, getDeviceEpoch } from '../device.js';
++import { getDevice } from '../device.js';
++import { getShaderScopeCacheKey } from './shader-source-scope.js';
+ import { acquireBuffer } from '../../memory/buffer-pool.js';
+ import { recordDispatch } from './dispatch.js';
+ import { createUniformBufferFromData } from './uniform-utils.js';
+@@ -27,7 +28,7 @@ function getBindGroupLayout(device) {
+ }
+ 
+ async function getPipeline() {
+-  const epoch = getDeviceEpoch();
++  const epoch = getShaderScopeCacheKey();
+   if (pipeline && pipelineEpoch === epoch) {
+     return pipeline;
+   }
+diff --git a/src/gpu/kernels/check-stop.js b/src/gpu/kernels/check-stop.js
+index eb9413e0..19f0edc4 100644
+--- a/src/gpu/kernels/check-stop.js
++++ b/src/gpu/kernels/check-stop.js
+@@ -1,6 +1,7 @@
+ 
+ 
+-import { getDevice, getDeviceEpoch } from '../device.js';
++import { getDevice } from '../device.js';
++import { getShaderScopeCacheKey } from './shader-source-scope.js';
+ import { acquireBuffer, readBufferSlice } from '../../memory/buffer-pool.js';
+ import { recordDispatch } from './dispatch.js';
+ import { createUniformBufferFromData } from './uniform-utils.js';
+@@ -30,7 +31,7 @@ function getCheckStopBindGroupLayout(device) {
+ 
+ 
+ async function getCheckStopPipeline() {
+-  const epoch = getDeviceEpoch();
++  const epoch = getShaderScopeCacheKey();
+   if (checkStopPipeline && checkStopPipelineEpoch === epoch) return checkStopPipeline;
+   const device = getDevice();
+   const shaderModule = await getShaderModule(device, 'check_stop.wgsl', 'check_stop');
+diff --git a/src/gpu/kernels/fused_ffn.js b/src/gpu/kernels/fused_ffn.js
+index 61743056..08c47d89 100644
+--- a/src/gpu/kernels/fused_ffn.js
++++ b/src/gpu/kernels/fused_ffn.js
+@@ -1,6 +1,7 @@
+ 
+ 
+-import { getDevice, getDeviceEpoch, getKernelCapabilities } from '../device.js';
++import { getDevice, getKernelCapabilities } from '../device.js';
++import { getShaderScopeCacheKey } from './shader-source-scope.js';
+ import { acquireBuffer, releaseBuffer } from '../../memory/buffer-pool.js';
+ import { createTensor } from '../tensor.js';
+ import { KernelBase } from './kernel-base.js';
+@@ -159,7 +160,7 @@ function pipelineConstantsKey(constants) {
+ }
+ 
+ async function getFusedNormedFFNPipeline(device, constants = null) {
+-  const epoch = getDeviceEpoch();
++  const epoch = getShaderScopeCacheKey();
+   if (fusedNormedFFNEpoch !== epoch) {
+     fusedNormedFFNEpoch = epoch;
+     fusedNormedFFNPipelines = new Map();
+diff --git a/src/gpu/kernels/gated-short-conv.js b/src/gpu/kernels/gated-short-conv.js
+index c9b1fac5..4958d65c 100644
+--- a/src/gpu/kernels/gated-short-conv.js
++++ b/src/gpu/kernels/gated-short-conv.js
+@@ -1,4 +1,5 @@
+-import { getDevice, getDeviceEpoch } from '../device.js';
++import { getDevice } from '../device.js';
++import { getShaderScopeCacheKey } from './shader-source-scope.js';
+ import { WORKGROUP_SIZES } from './constants.js';
+ import { acquireBuffer, releaseBuffer } from '../../memory/buffer-pool.js';
+ import { createTensor } from '../tensor.js';
+@@ -72,7 +73,7 @@ async function createPipeline(device) {
+ }
+ 
+ async function ensurePipeline(device) {
+-  const epoch = getDeviceEpoch();
++  const epoch = getShaderScopeCacheKey();
+   if (epoch !== cachedEpoch || !pipeline) {
+     await createPipeline(device);
+     cachedEpoch = epoch;
+diff --git a/src/gpu/kernels/linear-attention-core.js b/src/gpu/kernels/linear-attention-core.js
+index 5e2b6ad1..e24720fa 100644
+--- a/src/gpu/kernels/linear-attention-core.js
++++ b/src/gpu/kernels/linear-attention-core.js
+@@ -1,4 +1,5 @@
+-import { getDevice, getDeviceEpoch } from '../device.js';
++import { getDevice } from '../device.js';
++import { getShaderScopeCacheKey } from './shader-source-scope.js';
+ import { WORKGROUP_SIZES } from './constants.js';
+ import { acquireBuffer, releaseBuffer } from '../../memory/buffer-pool.js';
+ import { createTensor } from '../tensor.js';
+@@ -126,7 +127,7 @@ function normalizeInputDtype(dtype) {
+ }
+ 
+ async function ensurePipelines(device, inputDtype) {
+-  const epoch = getDeviceEpoch();
++  const epoch = getShaderScopeCacheKey();
+   if (epoch !== cachedEpoch) {
+       pipelineCache.clear();
+       convBindGroupLayout = null;
+diff --git a/src/gpu/kernels/pipeline-cache.js b/src/gpu/kernels/pipeline-cache.js
+index 5a86b660..435d11dc 100644
+--- a/src/gpu/kernels/pipeline-cache.js
++++ b/src/gpu/kernels/pipeline-cache.js
+@@ -3,6 +3,7 @@
+ import { getDevice, getDeviceEpoch, getKernelCapabilities } from '../device.js';
+ import { getKernelConfig } from './kernel-configs.js';
+ import { getShaderModule } from './shader-cache.js';
++import { getScopedShaderSource } from './shader-source-scope.js';
+ import { hasRequiredFeatures } from './feature-check.js';
+ import { trace } from '../../debug/index.js';
+ 
+@@ -134,7 +135,8 @@ function buildPipelineCacheKey(operation, variant, constants, bindGroupLayout, d
+     : '';
+   const layoutKey = bindGroupLayout ? `:${bindGroupLayout.label || 'layout'}` : '';
+   const deviceKey = `dev:${getDeviceId(device)}`;
+-  return `${deviceKey}:${operation}:${variant}${constants ? ':' + constantsKey : ''}${layoutKey}`;
++  const source = getScopedShaderSource(getKernelConfig(operation, variant).shaderFile);
++  return `${deviceKey}:${source?.digest ?? 'runtime'}:${operation}:${variant}${constants ? ':' + constantsKey : ''}${layoutKey}`;
+ }
+ 
+ function resolveConstants(operation, variant, constants) {
+diff --git a/src/gpu/kernels/rmsnorm-stats.js b/src/gpu/kernels/rmsnorm-stats.js
+index d65d33e7..7440474b 100644
+--- a/src/gpu/kernels/rmsnorm-stats.js
++++ b/src/gpu/kernels/rmsnorm-stats.js
+@@ -1,4 +1,5 @@
+-import { getDevice, getDeviceEpoch, getKernelCapabilities } from '../device.js';
++import { getDevice, getKernelCapabilities } from '../device.js';
++import { getShaderScopeCacheKey } from './shader-source-scope.js';
+ import { acquireBuffer, releaseBuffer } from '../../memory/buffer-pool.js';
+ import { createTensor } from '../tensor.js';
+ import { createUniformBufferWithView } from './uniform-utils.js';
+@@ -13,7 +14,7 @@ let cachedEpoch = -1;
+ const pipelineCache = new Map();
+ 
+ async function getPipeline(device, useSubgroups) {
+-  const epoch = getDeviceEpoch();
++  const epoch = getShaderScopeCacheKey();
+   if (cachedEpoch !== epoch) {
+     pipelineCache.clear();
+     cachedEpoch = epoch;
+diff --git a/src/gpu/kernels/shader-cache.js b/src/gpu/kernels/shader-cache.js
+index dc3648c5..a2c51045 100644
+--- a/src/gpu/kernels/shader-cache.js
++++ b/src/gpu/kernels/shader-cache.js
+@@ -2,6 +2,7 @@
+ 
+ import { log } from '../../debug/index.js';
+ import { getSharedDeviceEpoch } from '../device-state.js';
++import { getScopedShaderSource } from './shader-source-scope.js';
+ 
+ // ============================================================================
+ // Caches
+@@ -113,6 +114,8 @@ export function hasPreseededShaderSource(filename) {
+ }
+ 
+ export async function loadShaderSource(filename) {
++  const scoped = getScopedShaderSource(filename);
++  if (scoped) return scoped.source;
+   if (shaderSourceCache.has(filename)) {
+     const cached = shaderSourceCache.get(filename);
+     touchCacheEntry(shaderSourceCache, filename, cached);
+@@ -198,7 +201,8 @@ export async function getShaderModule(
+   label
+ ) {
+   ensureModuleCacheEpoch();
+-  const cacheKey = `${getDeviceId(device)}:${shaderFile}`;
++  const scoped = getScopedShaderSource(shaderFile);
++  const cacheKey = `${getDeviceId(device)}:${shaderFile}:${scoped?.digest ?? 'runtime'}`;
+   const cached = shaderModuleCache.get(cacheKey);
+   if (cached) {
+     touchCacheEntry(shaderModuleCache, cacheKey, cached);
+diff --git a/src/inference/moe-router.js b/src/inference/moe-router.js
+index 80f26d22..4f49b25f 100644
+--- a/src/inference/moe-router.js
++++ b/src/inference/moe-router.js
+@@ -6,6 +6,7 @@ import { runMatmul } from '../gpu/kernel-selector.js';
+ import { createTensor } from '../gpu/tensor.js';
+ import { selectRuleValue } from '../rules/rule-registry.js';
+ import { getShaderModule } from '../gpu/kernels/shader-cache.js';
++import { getShaderScopeCacheKey } from '../gpu/kernels/shader-source-scope.js';
+ 
+ function isGpuBufferInstance(value) {
+   return typeof GPUBuffer !== 'undefined' && value instanceof GPUBuffer;
+@@ -287,7 +288,7 @@ export class MoERouter {
+   }
+ 
+   async _getBiasAddPipeline(logitsDtype, biasDtype, device) {
+-    const key = `${logitsDtype}_${biasDtype}`;
++    const key = `${getShaderScopeCacheKey()}:${logitsDtype}_${biasDtype}`;
+     const cached = this._biasAddPipelines.get(key);
+     if (cached) return cached;
+ 
+diff --git a/src/inference/pipelines/factory.js b/src/inference/pipelines/factory.js
+index 5aa4865f..21876a94 100644
+--- a/src/inference/pipelines/factory.js
++++ b/src/inference/pipelines/factory.js
+@@ -1,6 +1,17 @@
++import { getStorageShaderSourceScope, runWithShaderSourceScope } from '../../gpu/kernels/shader-source-scope.js';
++import { scopePipelineShaders } from './shader-scoped-pipeline.js';
++
+ export async function createInitializedPipeline(PipelineClass, manifest, contexts = {}) {
+   const pipeline = new PipelineClass();
+-  await pipeline.initialize(contexts);
+-  await pipeline.loadModel(manifest);
+-  return pipeline;
++  const scope = getStorageShaderSourceScope(contexts.storage ?? contexts.storageContext);
++  await runWithShaderSourceScope(scope, async () => {
++    try {
++      await pipeline.initialize(contexts);
++      await pipeline.loadModel(manifest);
++    } catch (error) {
++      try { await pipeline.unload?.(); } catch { /* Preserve the construction failure. */ }
++      throw error;
++    }
++  });
++  return scopePipelineShaders(pipeline, scope);
+ }
+diff --git a/src/inference/pipelines/text/init-rope.js b/src/inference/pipelines/text/init-rope.js
+index 723961f8..f71b8263 100644
+--- a/src/inference/pipelines/text/init-rope.js
++++ b/src/inference/pipelines/text/init-rope.js
+@@ -3,6 +3,7 @@ import { isBufferActive } from '../../../memory/buffer-pool.js';
+ import { isGpuBufferInstance } from '../../../gpu/weight-buffer.js';
+ import { log } from '../../../debug/index.js';
+ import { runRoPEPrecompute } from '../../../gpu/kernels/rope-precompute.js';
++import { getShaderScopeCacheKey } from '../../../gpu/kernels/shader-source-scope.js';
+ 
+ // ============================================================================
+ // RoPE Initialization
+@@ -133,7 +134,7 @@ function resolveFrequencyBaseDim(rotaryDim, frequencyBaseDim, label) {
+ 
+ 
+ export async function initRoPEFrequencies(config, useGPU) {
+-  const cacheKey = buildRoPECacheKey(config);
++  const cacheKey = `${getShaderScopeCacheKey()}:${buildRoPECacheKey(config)}`;
+   const {
+     headDim,
+     localHeadDim,
+diff --git a/src/gpu/kernels/shader-source-scope.js b/src/gpu/kernels/shader-source-scope.js
+new file mode 100644
+index 00000000..f51c7c34
+--- /dev/null
++++ b/src/gpu/kernels/shader-source-scope.js
+@@ -0,0 +1,68 @@
++import { hashBytesSha256 } from '../../formats/canonical-hash.js';
++import { getSharedDeviceEpoch } from '../device-state.js';
++
++const scopes = new WeakMap();
++const scopeIds = new WeakMap();
++let nextScopeId = 1;
++const storageScopes = new WeakMap();
++let activeScope = null;
++let pending = Promise.resolve();
++
++export function createShaderSourceScope(sources) {
++  if (!(sources instanceof Map)) throw new Error('Shader source scope requires a source Map.');
++  const copied = new Map();
++  for (const [filename, source] of sources) {
++    if (typeof filename !== 'string' || !/^[\w.-]+\.wgsl$/.test(filename) || typeof source !== 'string') {
++      throw new Error('Shader source scope requires exact WGSL filenames and source text.');
++    }
++    copied.set(filename, Object.freeze({ source, digest: hashBytesSha256(new TextEncoder().encode(source)) }));
++  }
++  const scope = Object.freeze({});
++  scopes.set(scope, copied);
++  scopeIds.set(scope, nextScopeId++);
++  return scope;
++}
++
++export function bindStorageShaderSourceScope(storage, scope) {
++  if (!scopes.has(scope)) throw new Error('Unknown shader source scope.');
++  if (storageScopes.has(storage)) throw new Error('Storage shader source scope is already bound.');
++  storageScopes.set(storage, scope);
++}
++
++export function getStorageShaderSourceScope(storage) {
++  return storageScopes.get(storage) ?? null;
++}
++
++export function getScopedShaderSource(filename) {
++  if (activeScope === null) return null;
++  const entry = scopes.get(activeScope).get(filename);
++  if (!entry) throw new Error(`Shader ${filename} is outside the verified Pack source closure.`);
++  return entry;
++}
++
++export function getShaderScopeCacheKey() {
++  return `${getSharedDeviceEpoch()}:${activeScope === null ? 0 : scopeIds.get(activeScope)}`;
++}
++
++// The legacy kernels use realm-local caches. Public pipeline calls lease this
++// context for their complete invocation, including iterator cleanup. Internal
++// calls run on the original pipeline and never acquire a second lease.
++async function acquire(scope) {
++  if (scope !== null && !scopes.has(scope)) throw new Error('Unknown shader source scope.');
++  const previous = pending;
++  let release;
++  pending = new Promise((resolve) => { release = resolve; });
++  await previous;
++  activeScope = scope;
++  return () => { activeScope = null; release(); };
++}
++
++export async function runWithShaderSourceScope(scope, action) {
++  const release = await acquire(scope);
++  try { return await action(); } finally { release(); }
++}
++
++export async function* streamWithShaderSourceScope(scope, action) {
++  const release = await acquire(scope);
++  try { yield* action(); } finally { release(); }
++}
+diff --git a/src/inference/pipelines/shader-scoped-pipeline.js b/src/inference/pipelines/shader-scoped-pipeline.js
+new file mode 100644
+index 00000000..36ef412e
+--- /dev/null
++++ b/src/inference/pipelines/shader-scoped-pipeline.js
+@@ -0,0 +1,29 @@
++import {
++  runWithShaderSourceScope,
++  streamWithShaderSourceScope,
++} from '../../gpu/kernels/shader-source-scope.js';
++
++export function scopePipelineShaders(pipeline, scope) {
++  const methods = new Map();
++  return new Proxy(pipeline, {
++    get(target, key) {
++      const value = Reflect.get(target, key, target);
++      if (typeof value !== 'function') return value;
++      if (methods.get(key)?.original === value) return methods.get(key).bound;
++      // Text pipelines retain synchronous forwarding methods for their
++      // generation controller. Preserve the controller's async/stream shape.
++      const kind = value.constructor.name === 'Function' && typeof target.generator?.[key] === 'function'
++        ? target.generator[key].constructor.name : value.constructor.name;
++      let bound;
++      if (kind === 'AsyncGeneratorFunction') {
++        bound = (...args) => streamWithShaderSourceScope(scope, () => value.apply(target, args));
++      } else if (kind === 'AsyncFunction') {
++        bound = (...args) => runWithShaderSourceScope(scope, () => value.apply(target, args));
++      } else {
++        bound = value.bind(target);
++      }
++      methods.set(key, { original: value, bound });
++      return bound;
++    },
++  });
++}

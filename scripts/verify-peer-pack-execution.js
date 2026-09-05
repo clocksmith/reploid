@@ -14,6 +14,43 @@ const assert = (condition, message) => { if (!condition) throw new Error(message
 const revision = (root) => ({ head: execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim(),
   dirty: Boolean(execFileSync('git', ['status', '--short'], { cwd: root, encoding: 'utf8' }).trim()) });
 
+// Freeze each installed runtime file on first use, so later requests from other
+// peers cannot silently execute different bytes under the same URL.
+export function createProofSourceSnapshot() {
+  const entries = new Map();
+  return {
+    async read(identity, file) {
+      if (!entries.has(identity)) entries.set(identity, (async () => {
+        const bytes = await readFile(file);
+        return { bytes, receipt: { path: identity, hash: await sha256Hex(bytes), sizeBytes: bytes.length } };
+      })().catch((error) => ({ receipt: { path: identity, error: error.message } })));
+      const entry = await entries.get(identity);
+      if (!entry.bytes) throw new Error(entry.receipt.error);
+      return new Uint8Array(entry.bytes);
+    },
+    async receipts() {
+      return (await Promise.all([...entries.values()])).map(({ receipt }) => ({ ...receipt }))
+        .sort((a, b) => a.path.localeCompare(b.path, 'en'));
+    },
+  };
+}
+
+export async function readRuntimeBootstrapShaders(dopplerRoot, declarations) {
+  assert(Array.isArray(declarations), 'Proof requires explicit runtimeBootstrapShaders');
+  const registry = JSON.parse(await readFile(resolve(dopplerRoot, 'src/config/kernels/registry.json'), 'utf8'));
+  const probes = new Set(Object.values(registry.operations.runtime_probe.variants).map((variant) => variant.wgsl));
+  const sources = {};
+  const receipts = [];
+  for (const declaration of declarations) {
+    assert(probes.has(declaration.file) && !Object.hasOwn(sources, declaration.file), 'Only unique runtime device probes may be bootstrapped');
+    const bytes = await readFile(resolve(dopplerRoot, 'src/gpu/kernels', declaration.file));
+    assert(await sha256Hex(bytes) === declaration.hash, 'Runtime bootstrap shader digest mismatch');
+    sources[declaration.file] = new TextDecoder('utf-8', { fatal: true }).decode(bytes);
+    receipts.push({ ...declaration, sizeBytes: bytes.length, owner: 'doppler-runtime-device-probe' });
+  }
+  return { sources, receipts };
+}
+
 export async function verifyPeerPackExecution(config) {
   for (const key of ['packPath', 'dopplerRoot', 'referencePath', 'outputPath', 'browserExecutablePath']) {
     assert(typeof config?.[key] === 'string' && config[key].trim(), `Proof requires ${key}`);
@@ -21,7 +58,10 @@ export async function verifyPeerPackExecution(config) {
   assert(Array.isArray(config.browserArgs) && Number.isSafeInteger(config.timeoutMs) && config.timeoutMs > 0, 'Proof requires browserArgs and timeoutMs');
   assert(Number.isSafeInteger(config.chunkBytes) && config.chunkBytes > 0 && config.chunkBytes <= config.custodyLimits?.maxChunkBytes, 'Proof requires bounded chunkBytes');
   assert(config.trustedSigners && config.dopplerVersion && config.referenceDigest, 'Proof requires explicit trust, runtime version, and oracle digest');
+  for (const key of ['maxInputBytes', 'maxOutputBytes']) assert(Number.isSafeInteger(config.operationLimits?.[key]) && config.operationLimits[key] > 0, `Proof requires operationLimits.${key}`);
   const dopplerRoot = resolve(config.dopplerRoot);
+  const runtimeBootstrap = await readRuntimeBootstrapShaders(dopplerRoot, config.runtimeBootstrapShaders);
+  const runtimeSources = createProofSourceSnapshot();
   const { getPackIdentity } = await import(pathToFileURL(resolve(dopplerRoot, 'src/pack.js')).href);
   const { hashTargetPlan } = await import(pathToFileURL(resolve(dopplerRoot, 'src/config/target-plan.js')).href);
   const { evaluateSequenceReference } = await import(pathToFileURL(resolve(dopplerRoot, 'tools/lib/sequence-model-qualification.js')).href);
@@ -56,7 +96,7 @@ export async function verifyPeerPackExecution(config) {
       independentMachines: false, independentOperators: false, historyImprovement: false },
     config, sources: { reploid: revision(ROOT), doppler: revision(dopplerRoot) }, binding,
     stage: 'supplier-bootstrap', origin: { disabled: false, bootstrapBytes: 0, rejectedRequests: [], receiverBootstrapRequests: 0 },
-    browserLogs: [] };
+    runtimeBootstrap: { shaders: runtimeBootstrap.receipts, modelArtifacts: 0 }, browserLogs: [] };
   let browser;
   let server;
   let originDisabled = false;
@@ -97,7 +137,7 @@ export async function verifyPeerPackExecution(config) {
         const file = resolve(mount[1], decodeURIComponent(url.pathname.slice(mount[0].length)));
         assert(file.startsWith(mount[1] + sep) && ['.js', '.json', '.wasm'].includes(extname(file)), 'source path denied');
         response.setHeader('Content-Type', file.endsWith('.json') ? 'application/json' : file.endsWith('.wasm') ? 'application/wasm' : 'text/javascript');
-        response.end(await readFile(file));
+        response.end(await runtimeSources.read(url.pathname, file));
       } catch { response.writeHead(404).end(); }
     });
     await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
@@ -146,6 +186,12 @@ export async function verifyPeerPackExecution(config) {
       inventories.push(supplier.inventory);
       report.suppliers.push({ peerId: peer.peerId, ...supplier });
     }
+    // These two registry-owned device probes belong to the installed runtime,
+    // not the model. Model WGSL remains denied over HTTP and must come from Pack custody.
+    await pages.get('requester').evaluate(async (sources) => {
+      const { registerShaderSources } = await import('/doppler/src/gpu/kernels/shader-cache.js');
+      registerShaderSources(sources);
+    }, runtimeBootstrap.sources);
     originDisabled = true;
     report.origin.disabled = true;
     const requester = pages.get('requester');
@@ -168,6 +214,7 @@ export async function verifyPeerPackExecution(config) {
         options: { includeTokenEmbeddings: true, includeLogits: false,
           assignment: { id: authorization.transferId, attempt: 1, pack: binding, input: reference.input, comparisonPolicyDigest: config.referenceDigest } },
         dopplerVersion: config.dopplerVersion,
+        operationLimits: config.operationLimits,
       });
     } finally { clearTimeout(timer); }
     report.peers = [];
@@ -185,8 +232,12 @@ export async function verifyPeerPackExecution(config) {
     report.stage = 'complete';
   } catch (error) { report.error = error.message; }
   finally {
-    await browser?.close();
-    if (server) await new Promise((resolve) => { server.close(resolve); server.closeAllConnections(); });
+    for (const cleanup of [() => browser?.close(), () => server && new Promise((resolve) => { server.close(resolve); server.closeAllConnections(); })]) {
+      try { await cleanup(); } catch (error) { report.passed = false; report.cleanupError = error.message; }
+    }
+    report.runtimeBootstrap.files = await runtimeSources.receipts();
+    if (report.runtimeBootstrap.files.some((file) => file.error)) report.passed = false;
+    report.runtimeBootstrap.sourceSnapshotDigest = await hashDopplerEvidence(report.runtimeBootstrap.files);
     await mkdir(dirname(resolve(config.outputPath)), { recursive: true });
     await writeFile(config.outputPath, `${JSON.stringify(report, null, 2)}\n`);
   }

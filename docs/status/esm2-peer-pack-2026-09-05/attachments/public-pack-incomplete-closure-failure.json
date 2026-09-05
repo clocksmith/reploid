@@ -1,0 +1,73 @@
+{
+  "schema": "doppler.sequencePackQualification.v1",
+  "passed": false,
+  "generatedAt": "2026-09-05T16:17:31.668Z",
+  "config": {
+    "packPath": "/tmp/doppler-esm2-network-TmpY2l/pack/pack.json",
+    "referencePath": "tools/data/esm2-t12-35m-ur50d-sequence-reference.json",
+    "referenceDigest": "sha256:dbca1163755bed5e1eb2365d08a3d0f286fa7d5b6d8408281e7ba28f48948221",
+    "outputPath": "/tmp/doppler-esm2-network-TmpY2l/public-pack-incomplete-closure-failure.json",
+    "expectedPack": {
+      "schema": "doppler.pack/v2",
+      "packId": "esm2-t12-35m-ur50d-f32-af32-pack-v2-91fa523375259068",
+      "semanticRoot": "sha256:91fa5233752590681d685bfea27cd7948ff78785b17c6b6960af5389fd748fd6",
+      "envelopeDigest": "sha256:a45640494a5598817f19dc63ee7b17d7a3fee3c40a3d49bb613ed343096c005e",
+      "artifactClosureDigest": "sha256:837c7a95351fa12c1c4642fd2f93b2507f14e6ed59723d19a59c7af6447dfd03"
+    },
+    "originPolicy": "disabled",
+    "openOptions": {
+      "trustedSigners": {
+        "doppler-pack-v0-development": {
+          "crv": "Ed25519",
+          "x": "FLU5-eSyW8ORkAf8HupzJn8juiJ2TrGSw2rgMNqGPfc",
+          "kty": "OKP"
+        }
+      },
+      "acceptedTargetPlanDigests": [
+        "sha256:7b94b0886a067b479252d1e7d7191cfa513e45c01b99c394b2c96e8ab676b24b"
+      ]
+    },
+    "sequenceOptions": {
+      "includeTokenEmbeddings": true,
+      "includeLogits": false,
+      "assignment": {
+        "id": "esm2-pack-first-public-execution",
+        "attempt": 1
+      }
+    }
+  },
+  "configDigest": "sha256:3c635de3195da2b1faec010e11acc672fe352992b8bacf8367e0179c99f89629",
+  "source": {
+    "revision": "8746325f4b3790052b87f9c684ac32b5d23a0df5",
+    "dirty": true
+  },
+  "boundary": {
+    "publicAPI": "openPack.encodeSequence",
+    "modelImplementation": "doppler",
+    "originPolicy": "disabled",
+    "independentParticipants": false
+  },
+  "stage": "pack-open",
+  "observations": [
+    {
+      "type": "pack-validation-started",
+      "packId": "esm2-t12-35m-ur50d-f32-af32-pack-v2-91fa523375259068"
+    },
+    {
+      "type": "pack-validation-complete",
+      "packId": "esm2-t12-35m-ur50d-f32-af32-pack-v2-91fa523375259068",
+      "semanticRoot": "sha256:91fa5233752590681d685bfea27cd7948ff78785b17c6b6960af5389fd748fd6"
+    },
+    {
+      "type": "target-selected",
+      "packId": "esm2-t12-35m-ur50d-f32-af32-pack-v2-91fa523375259068",
+      "targetId": "webgpu-f32-f32-portable",
+      "targetPlanDigest": "sha256:7b94b0886a067b479252d1e7d7191cfa513e45c01b99c394b2c96e8ab676b24b"
+    }
+  ],
+  "fetchAttempts": [],
+  "error": {
+    "name": "Error",
+    "message": "Pipeline load phase \"rope\" failed: Shader rope_precompute.wgsl is outside the verified Pack source closure."
+  }
+}

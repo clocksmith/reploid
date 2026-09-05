@@ -16,7 +16,7 @@ Guide to all documentation in the REPLOID project.
 
 ### Architecture
 - **[docs/system-architecture.md](./system-architecture.md)** - Complete system design
-- **[./self/blueprints/](../self/blueprints/)** - Decision blueprints and legacy generated module entries (368 files)
+- **[Blueprint inventory](../self/blueprints/canonical-inventory.md)** - Generated sitemap of maintained architectural decisions; file enumeration belongs to the [source inventory](../self/config/module-inventory.json)
 
 **Key Blueprints:**
 - [0x000002 - Application Orchestration](../self/blueprints/0x000002-application-orchestration.md) - Boot and DI
@@ -103,8 +103,8 @@ reploid/
 │   ├── config/                 # Configuration
 │   │   └── genesis-levels.json # Module/worker/role definitions
 │   │
-│   ├── blueprints/             # Decision blueprints plus legacy generated module entries
-│   │   └── (368 documents; migrate generated entries to inventory records)
+│   ├── blueprints/             # Maintained architectural decisions
+│   │   └── canonical-inventory.md # Generated sitemap; counts derive from source
 │   │
 ├── tests/                      # Test suites
 │
@@ -129,9 +129,9 @@ Read and maintain documentation by authority rather than by file count:
 7. Subsystem blueprints capture architectural decisions, invariants, and failure modes.
 8. Generated module inventory records paths, ownership, dependencies, and hashes.
 
-Existing generated blueprint stubs remain compatibility records during migration;
-they are not evidence of an architectural decision. New module inventory should
-not create Markdown blueprints unless the module introduces such a decision.
+Former blueprint paths and consolidation provenance remain in the
+[deduplication map](../self/blueprints/deduplication-map.json). Source enumeration
+does not create Markdown blueprints unless a module introduces an architectural decision.
 
 ### For New Users
 1. [README.md](../README.md) - Understand REPLOID

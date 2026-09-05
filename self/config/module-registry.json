@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-09-04T21:34:07.087Z",
+  "generatedAt": "2026-09-05T18:47:07.741Z",
   "modules": {
     "AgentLoop": {
       "id": "AgentLoop",
@@ -437,7 +437,7 @@
           "optional": false
         }
       ],
-      "blueprint": "blueprints/0x000097-pool-identity-claims.md"
+      "blueprint": null
     },
     "ErrorStore": {
       "id": "ErrorStore",
@@ -541,7 +541,7 @@
           "optional": false
         }
       ],
-      "blueprint": null
+      "blueprint": "blueprints/0x00007D-capabilities-intelligence-functiongemma-orchestrator.md"
     },
     "GEPAOptimizer": {
       "id": "GEPAOptimizer",
@@ -657,7 +657,7 @@
           "optional": false
         }
       ],
-      "blueprint": "blueprints/0x000098-pool-artifact-router.md"
+      "blueprint": null
     },
     "ImprovementEpisodeLedger": {
       "id": "ImprovementEpisodeLedger",
@@ -1464,7 +1464,7 @@
           "optional": false
         }
       ],
-      "blueprint": "blueprints/0x00007E-sponsor-peer-protocol.md"
+      "blueprint": null
     },
     "SymbolGrounder": {
       "id": "SymbolGrounder",

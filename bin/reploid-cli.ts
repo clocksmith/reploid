@@ -13,7 +13,7 @@
  *   signal           Start standalone signaling server
  *
  * Examples:
- *   reploid test                    # Run all tests
+ *   reploid test                    # Run Vitest suites (no browser execution)
  *   reploid test --unit             # Unit tests only
  *   reploid test --e2e --headed     # E2E with visible browser
  *   reploid bench                   # Run benchmarks
@@ -21,7 +21,7 @@
  */
 
 import { spawn, type SpawnOptions } from 'node:child_process';
-import { dirname, join } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -50,7 +50,18 @@ function header(title: string) {
   log(`${line}\n`, colors.cyan);
 }
 
-type Command = 'test' | 'bench' | 'debug' | 'start' | 'signal';
+const commands = {
+  test: 'Run Vitest suites; --full also runs Playwright',
+  bench: 'Run performance benchmarks',
+  debug: 'Open the browser debug console',
+  start: 'Start the development server',
+  signal: 'Start standalone WebRTC signaling',
+};
+export const proofCommands = {
+  'peer-pack': { script: 'scripts/verify-peer-pack-execution.js', usage: '--config <path>', description: 'Physical-browser peer reconstruction and execution; requires an explicit GPU/model configuration' },
+  'retain-peer-pack': { script: 'scripts/retain-peer-pack-execution.js', usage: '--report <path> --out <new-directory> --weight-origin <url> [--attachment <path>]', description: 'Retain a passed source-bound episode without overwriting historical evidence' },
+};
+type Command = keyof typeof commands;
 
 interface CLIOptions {
   command: Command;
@@ -62,9 +73,10 @@ interface CLIOptions {
   watch: boolean;
   coverage: boolean;
   help: boolean;
+  dryRun: boolean;
 }
 
-function parseArgs(argv: string[]): CLIOptions {
+export function parseArgs(argv: string[]): CLIOptions {
   const opts: CLIOptions = {
     command: 'test',
     suite: null,
@@ -75,10 +87,21 @@ function parseArgs(argv: string[]): CLIOptions {
     watch: false,
     coverage: false,
     help: false,
+    dryRun: false,
   };
 
   const tokens = [...argv];
   let positionalIndex = 0;
+  const suite = (value: string) => {
+    if (!['unit', 'integration', 'e2e', 'full'].includes(value)) throw new Error(`Unknown command or suite: ${value}`);
+    if (opts.suite && opts.suite !== value) throw new Error('Choose one test suite');
+    opts.suite = value as CLIOptions['suite'];
+  };
+  const requiredValue = (flag: string) => {
+    const value = tokens.shift();
+    if (!value || value.startsWith('-')) throw new Error(`${flag} requires a value`);
+    return value;
+  };
 
   while (tokens.length) {
     const arg = tokens.shift()!;
@@ -98,24 +121,24 @@ function parseArgs(argv: string[]): CLIOptions {
         opts.headed = false;
         break;
       case '--unit':
-        opts.suite = 'unit';
+        suite('unit');
         break;
       case '--integration':
-        opts.suite = 'integration';
+        suite('integration');
         break;
       case '--e2e':
-        opts.suite = 'e2e';
+        suite('e2e');
         break;
       case '--full':
-        opts.suite = 'full';
+        suite('full');
         break;
       case '--filter':
       case '-f':
-        opts.filter = tokens.shift() || null;
+        opts.filter = requiredValue(arg);
         break;
       case '--goal':
       case '-g':
-        opts.goal = tokens.shift() || null;
+        opts.goal = requiredValue(arg);
         break;
       case '--watch':
       case '-w':
@@ -124,23 +147,29 @@ function parseArgs(argv: string[]): CLIOptions {
       case '--coverage':
         opts.coverage = true;
         break;
+      case '--dry-run':
+        opts.dryRun = true;
+        break;
       default:
         if (!arg.startsWith('-')) {
           if (positionalIndex === 0) {
-            if (['test', 'bench', 'debug', 'start', 'signal'].includes(arg)) {
+            if (Object.hasOwn(commands, arg)) {
               opts.command = arg as Command;
             } else {
-              opts.suite = arg as CLIOptions['suite'];
+              suite(arg);
             }
           } else if (positionalIndex === 1) {
-            opts.suite = arg as CLIOptions['suite'];
-          }
+            suite(arg);
+          } else throw new Error(`Unexpected argument: ${arg}`);
           positionalIndex++;
-        }
+        } else throw new Error(`Unknown option: ${arg}`);
         break;
     }
   }
 
+  if (opts.suite && opts.command !== 'test') throw new Error('Test suites apply only to test');
+  if (opts.watch && ['e2e', 'full'].includes(opts.suite || '')) throw new Error('Watch mode applies only to Vitest suites');
+  if (opts.coverage && opts.suite === 'e2e') throw new Error('Coverage applies only to Vitest suites');
   return opts;
 }
 
@@ -148,14 +177,10 @@ function printHelp(): void {
   console.log(`
 ${colors.bright}REPLOID CLI - Test, Benchmark, Debug${colors.reset}
 
-Three commands, three purposes:
-
-  reploid test   ->  Correctness (does it work?)
-  reploid bench  ->  Performance (how fast?)
-  reploid debug  ->  Debugging (why is it broken?)
+${Object.entries(commands).map(([name, description]) => `  reploid ${name.padEnd(8)} ${description}`).join('\n')}
 
 ${colors.cyan}TEST - Correctness Tests${colors.reset}
-  reploid test                  Run all tests
+  reploid test                  Run Vitest suites (no browser execution)
   reploid test --unit           Unit tests only
   reploid test --integration    Integration tests
   reploid test --e2e            Playwright E2E tests
@@ -181,6 +206,10 @@ ${colors.cyan}SIGNAL - Local WebRTC Signaling${colors.reset}
 ${colors.cyan}Common Options:${colors.reset}
   --verbose, -v    Verbose output
   --help, -h       Show this help
+  --dry-run       Print the selected test or proof commands without executing
+
+${colors.cyan}PROOF - Explicit physical execution and immutable retention${colors.reset}
+${Object.entries(proofCommands).map(([name, command]) => `  reploid proof ${name} ${command.usage}\n    ${command.description}`).join('\n')}
 
 ${colors.cyan}Examples:${colors.reset}
   ${colors.dim}# Run unit tests${colors.reset}
@@ -209,61 +238,41 @@ function runCommand(
       ...options,
     });
 
-    proc.on('close', (code) => resolve(code ?? 0));
+    proc.on('close', (code) => resolve(code ?? 1));
     proc.on('error', reject);
   });
 }
 
+export function buildTestCommands(opts: CLIOptions): string[][] {
+  const vitest = ['vitest', ...(!opts.watch ? ['run'] : [])];
+  if (opts.suite === 'unit' || opts.suite === 'integration') vitest.push(`tests/${opts.suite}`);
+  if (opts.filter) vitest.push('-t', opts.filter);
+  if (opts.coverage) vitest.push('--coverage');
+  if (opts.verbose) vitest.push('--reporter=verbose');
+  const playwright = ['playwright', 'test', 'tests/e2e'];
+  if (opts.headed) playwright.push('--headed');
+  if (opts.filter) playwright.push('--grep', opts.filter);
+  if (opts.verbose) playwright.push('--reporter=list');
+  return opts.suite === 'e2e' ? [playwright] : opts.suite === 'full' ? [vitest, playwright] : [vitest];
+}
+
 async function runTests(opts: CLIOptions): Promise<number> {
+  const selected = buildTestCommands(opts);
+  if (opts.dryRun) { console.log(JSON.stringify(selected)); return 0; }
   header('REPLOID TESTS');
-
-  const args: string[] = [];
-
-  // Handle E2E separately (uses Playwright)
-  if (opts.suite === 'e2e') {
-    log('Running E2E tests with Playwright...', colors.cyan);
-    const playwrightArgs = ['playwright', 'test', 'tests/e2e'];
-    if (opts.headed) {
-      playwrightArgs.push('--headed');
-    }
-    if (opts.verbose) {
-      playwrightArgs.push('--debug');
-    }
-    return runCommand('npx', playwrightArgs);
+  for (const args of selected) {
+    log(`Running: npx ${args.join(' ')}`, colors.dim);
+    const code = await runCommand('npx', args);
+    if (code !== 0) return code;
   }
+  return 0;
+}
 
-  // Vitest for unit/integration tests
-  args.push('vitest');
-
-  if (!opts.watch) {
-    args.push('run');
-  }
-
-  // Add test path based on suite
-  if (opts.suite === 'unit') {
-    args.push('tests/unit');
-  } else if (opts.suite === 'integration') {
-    args.push('tests/integration');
-  } else if (opts.suite === 'full') {
-    // Run all including E2E
-    log('Running full test suite (unit + integration + e2e)...', colors.cyan);
-    const vitestCode = await runCommand('npx', ['vitest', 'run']);
-    if (vitestCode !== 0) return vitestCode;
-    const playwrightArgs = ['playwright', 'test', 'tests/e2e'];
-    if (opts.headed) playwrightArgs.push('--headed');
-    return runCommand('npx', playwrightArgs);
-  }
-
-  if (opts.filter) {
-    args.push('-t', opts.filter);
-  }
-
-  if (opts.coverage) {
-    args.push('--coverage');
-  }
-
-  log(`Running: npx ${args.join(' ')}`, colors.dim);
-  return runCommand('npx', args);
+export function buildProofCommand(argv: string[]): string[] {
+  const [name, ...args] = argv;
+  if (!Object.hasOwn(proofCommands, name)) throw new Error(`Unknown proof: ${name || 'missing'}`);
+  const entry = proofCommands[name as keyof typeof proofCommands];
+  return [entry.script, ...args.filter((arg) => arg !== '--dry-run')];
 }
 
 async function runBench(opts: CLIOptions): Promise<number> {
@@ -335,12 +344,21 @@ async function runSignal(): Promise<number> {
 }
 
 async function main(): Promise<void> {
-  const opts = parseArgs(process.argv.slice(2));
+  const argv = process.argv.slice(2);
+  if (argv[0] === 'proof') {
+    if (argv.includes('--help') || argv.includes('-h')) { printHelp(); return; }
+    const args = buildProofCommand(argv.slice(1));
+    if (argv.includes('--dry-run')) { console.log(JSON.stringify(args)); return; }
+    process.exitCode = await runCommand(process.execPath, args);
+    return;
+  }
+  const opts = parseArgs(argv);
 
   if (opts.help) {
     printHelp();
     process.exit(0);
   }
+  if (opts.dryRun && opts.command !== 'test') throw new Error('--dry-run applies only to test and proof');
 
   let exitCode = 0;
 
@@ -369,4 +387,6 @@ async function main(): Promise<void> {
   process.exit(exitCode);
 }
 
-main();
+if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  main().catch((error) => { console.error(error.message); process.exitCode = 1; });
+}

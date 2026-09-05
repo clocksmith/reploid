@@ -4,8 +4,9 @@
 
 export const ZERO_GEMINI_FUNCTION_PATH = '/zero/gemini';
 export const ZERO_GEMINI_PROVIDER = 'gemini';
-export const ZERO_GEMINI_MODEL = 'gemini-3.1-flash-lite';
+export const ZERO_GEMINI_MODEL = 'gemini-3.8-flash';
 export const LEGACY_ZERO_GEMINI_MODEL = 'gemini-3.5-flash';
+const LEGACY_ZERO_GEMINI_MODELS = Object.freeze([LEGACY_ZERO_GEMINI_MODEL, 'gemini-3.1-flash-lite']);
 export const ZERO_GEMINI_SERVER_TYPE = 'firebase-function';
 export const ZERO_MANAGED_MAX_ITERATIONS = 99;
 export const ZERO_GEMINI_AGENT_THROTTLE = Object.freeze({
@@ -34,7 +35,7 @@ export const getZeroGeminiFunctionUrl = () => {
 export const resolveZeroGeminiModel = (current = {}) => {
   const model = String(current.model || '').trim();
   if (!model) return ZERO_GEMINI_MODEL;
-  if (current.serverType === ZERO_GEMINI_SERVER_TYPE && model === LEGACY_ZERO_GEMINI_MODEL) {
+  if (current.serverType === ZERO_GEMINI_SERVER_TYPE && LEGACY_ZERO_GEMINI_MODELS.includes(model)) {
     return ZERO_GEMINI_MODEL;
   }
   return model;

@@ -8,7 +8,7 @@
 
 **Planned Artifacts:** None
 
-**Owned Source Files:** `pool/discovery-action-value.js`, `pool/evidence-network.js`, `pool/model-evidence-view.js`, `pool/peer-room.js`, `pool/research-cycle.js`, `pool/sdk.js`
+**Owned Source Files:** `pool/discovery-action-value.js`, `pool/evidence-network.js`, `pool/evidence-record-contract.js`, `pool/evidence-normalization.js`, `pool/evidence-records.js`, `pool/evidence-verification.js`, `pool/evidence-admission.js`, `pool/evidence-queries.js`, `pool/model-evidence-view.js`, `pool/peer-room.js`, `pool/research-cycle.js`, `pool/sdk.js`
 
 **Former Blueprint Paths:** `self/blueprints/0x0000A8-pool-evidence-network.md`
 **Objective:** Preserve public protein research inputs, compute provenance, experimental outcomes, and human interpretation as separately signed immutable evidence, then derive governed Discovery Contract views without converting evidence into automatic truth.
@@ -32,6 +32,15 @@ outcomes, prospective cohorts, evaluations, and revocations. Record hashes
 exclude only the signature and every mutation becomes a new linked record.
 Coordinator GET routes expose public room evidence; publication stays
 authenticated and role-bound.
+
+`evidence-network.js` preserves the public named and default imports. Its
+implementations are separated by responsibility: `evidence-record-contract.js`
+owns kinds and shared identities; `evidence-normalization.js` owns field
+normalization; `evidence-records.js` constructs signed records;
+`evidence-verification.js` verifies them; `evidence-admission.js` applies review,
+correction, revocation, and link rules; `evidence-queries.js` builds read-only
+projections. These owners form an acyclic graph and never import the facade.
+The research cycle consumes admission directly. None is a second evidence store.
 
 ### 3. Current Discovery Projection
 The browser derives an evidence graph, text search, exact-model compatible cosine

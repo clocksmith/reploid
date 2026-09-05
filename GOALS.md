@@ -108,6 +108,21 @@ scientific room, hypotheses, cohorts, adjudication, or laboratory claims.
 
 ### Primary proof: Poolday
 
+Build one network product with three independently testable loops: model
+distribution, complete-job remote execution, and learned coordination. Generalize
+the execution contract first: exact model identity, operation, input, limits,
+and acceptance rule. Start with `generate`, `embed`, `rerank`, and
+`encodeSequence`. A fifth operation needs an adapter, not networking changes.
+Operation adapters own input/output validation, streaming, cancellation, and
+comparison; shared networking owns discovery, assignment, transport, retries,
+accounting, and evidence. Unknown operations fail explicitly.
+
+The flagship is a free local document/research assistant: acquire models, embed
+a corpus, rerank retrieval, and generate referenced answers. It works alone;
+joining a room optionally shares authorized model bytes and explicitly
+shareable work. ESM-2 remains the scientific systems control and second workload,
+not the model-admission abstraction. Existing scientific functionality remains.
+
 Separate operators repeatedly execute an exact signed Doppler Pack under a
 frozen correctness and acceptance policy. The episode must demonstrate authorized
 artifact reconstruction with origin disabled, corrupt contribution rejection,
@@ -115,10 +130,18 @@ peer disappearance and recovery on independent machines, independent review,
 and voluntary return usage. ESM-2 must produce useful oracle-valid outputs from
 actual signed Pack bytes and weights through public openPack/encodeSequence.
 The same retained episode binds Pack identity, assignments, and recovery receipts.
+Three independently operated supplier machines must enable a clean fourth
+machine to reconstruct and execute despite one corrupt and one disappearing
+peer, with origin and mirrors disabled. Browser contexts on one computer do not
+satisfy this gate. The acquisition order is persistent local cache, authorized
+peers, mirrors, then origin. Resume, parallel sources, authorized inventory, and
+cross-version chunk reuse retain integrity and full byte accounting.
+Compare remote execution with the same computers behind a conventional queue.
 
 A versioned route-decision projection cites exact compatibility, custody,
 availability, prior outcomes, latency, failures, cost, and reputation evidence.
-Replay a held-out frozen job set through no-history, competent reliability
+Freeze 1,000 historical jobs, then replay unseen jobs through a random no-history
+control, competent reliability/load
 scheduler, and evidence-informed policies with identical jobs, capacity, oracle,
 resource budget, and starting conditions. History precedes held-out jobs and
 tuning ends before evaluation. Require a predeclared meaningful benefit against
@@ -131,6 +154,11 @@ alone do not establish external adoption, physical independence, or learning.
 Hosting comparisons inform economics, not technical completion. If retained
 history does not improve later work, its acceptance gate stays unproved even
 when artifact sharing and execution capacity work.
+Predeclare peer-byte percentage, time-to-runnable, duplicate bytes, recovery,
+memory, completion, retries, latency, and total resource cost where applicable.
+Do not add payments, tokens, global reputation, model partitioning, Doe, social
+features, or autonomous self-improvement to this milestone. Existing unrelated
+capabilities remain separate and usable.
 
 ### Alternative proof: Change Passport
 

@@ -665,8 +665,8 @@
     },
     {
       "path": "blueprints/0x000081-pool-doppler-runtime.md",
-      "byteLength": 2729,
-      "sha256": "sha256:c6d349eb04efac560de06d3e03c1b5347ec7745e12d0103f9523f74ad6de2f36"
+      "byteLength": 4793,
+      "sha256": "sha256:2d8e93d31c688e46feec95cba9392a3473bb85a64142986c38637a97713489ed"
     },
     {
       "path": "blueprints/0x000082-pool-firebase-auth.md",
@@ -860,8 +860,8 @@
     },
     {
       "path": "blueprints/0x0000A8-pool-evidence-network.md",
-      "byteLength": 5805,
-      "sha256": "sha256:23691420762be758d437ba59631eaab972240d4d76386b3206566527d2648c55"
+      "byteLength": 6604,
+      "sha256": "sha256:7854144cce6c2aa0b7f4c8aade0a24e450876b3068417029f6ecde1be56b9951"
     },
     {
       "path": "blueprints/0x0000A9-ui-pool-home-research-store.md",
@@ -905,8 +905,8 @@
     },
     {
       "path": "blueprints/canonical-inventory.md",
-      "byteLength": 18482,
-      "sha256": "sha256:6a806c9391df4e33fe2a40877812be05a40f0aeb5b2011ef5b1d752a45270a2a"
+      "byteLength": 18953,
+      "sha256": "sha256:cae889b4f6afa0d857d2e55a575beccdb0262c7d7d7b236e16608637c508239c"
     },
     {
       "path": "blueprints/CATSCAN.md",
@@ -930,8 +930,8 @@
     },
     {
       "path": "blueprints/README.md",
-      "byteLength": 2447,
-      "sha256": "sha256:82ee114603e7da683f65e6ae92a96237280a51d9eac9a78dd718d9bf2edea2ad"
+      "byteLength": 2952,
+      "sha256": "sha256:26c03bf31bbbe2a39a2206a8edef933e1bc730a93bff15923ab96d289b6aad3f"
     },
     {
       "path": "blueprints/rgr-dream-instance-manifest.md",
@@ -1180,8 +1180,8 @@
     },
     {
       "path": "config/blueprint-registry.json",
-      "byteLength": 33457,
-      "sha256": "sha256:28e14099430143b64abb9b3bf702194d8991f3edf4217799aaa650742496cdbe"
+      "byteLength": 34358,
+      "sha256": "sha256:e180ac7a856e4337c5eba9ba491c482d3bbf364ea78823c3ead69d30473101cd"
     },
     {
       "path": "config/boot-modes.js",
@@ -1250,13 +1250,13 @@
     },
     {
       "path": "config/module-inventory.json",
-      "byteLength": 79395,
-      "sha256": "sha256:e6ed68aa5c917db26727b9a1173ebebd60f366b1290a2bad80dd208689b8b4b6"
+      "byteLength": 82456,
+      "sha256": "sha256:8b867f28265ac426e4c0c3025dab12532edbb9b7d3a650446e7fdd1dc3d85b72"
     },
     {
       "path": "config/module-registry.json",
-      "byteLength": 42332,
-      "sha256": "sha256:ec5b28f292821769cd284b1647abdbd57568b1d39da4893440da0d1be6ef20f1"
+      "byteLength": 42281,
+      "sha256": "sha256:9db377732042470728f6ecf2794141d642f06a5b889c67cc02490b1569dd4d86"
     },
     {
       "path": "config/module-resolution.js",
@@ -1280,8 +1280,8 @@
     },
     {
       "path": "config/vfs-manifest.json",
-      "byteLength": 22926,
-      "sha256": "sha256:721f8d2a447d3f7125a2816cd45d16c53689492d8dc5dd1abfda2fa3310391a7"
+      "byteLength": 23208,
+      "sha256": "sha256:56018a4a2eadd56abacaf5e6bca420f11c5a6d6a6877a0791dfa211a07d3df8a"
     },
     {
       "path": "config/vfs-policy.js",
@@ -1295,8 +1295,8 @@
     },
     {
       "path": "config/zero-inference.js",
-      "byteLength": 5338,
-      "sha256": "sha256:337cbc95f05ea32c29d420413c108a2dfe7281a80bbfc54e86c6c9d1d41e3d8b"
+      "byteLength": 5442,
+      "sha256": "sha256:938f6f1566018c9518cded570f3bfdf4a0fd6f79554a6adc90d3a70436d21bfc"
     },
     {
       "path": "core/agent-loop-policies.js",
@@ -1845,8 +1845,8 @@
     },
     {
       "path": "pool/CATSCAN.md",
-      "byteLength": 2823,
-      "sha256": "sha256:ba41e83d20d9a74ac232fe60c6132ba2b427a1c329bc0f7b15e71d243c379117"
+      "byteLength": 2800,
+      "sha256": "sha256:270c906782977f0b77db5a3a2a404f811b1bf3694e2b3c8f67e4590f94aa0faa"
     },
     {
       "path": "pool/config-contract.js",
@@ -1894,14 +1894,44 @@
       "sha256": "sha256:6462825eeecf83efe44e2d0de350e948577df8c949fe49c17c0ea9848ae41cd2"
     },
     {
+      "path": "pool/evidence-admission.js",
+      "byteLength": 58166,
+      "sha256": "sha256:3ef79853a2fce78f34783677eed677d3d7380696f5a8598cdd7cfa4a300fc586"
+    },
+    {
       "path": "pool/evidence-network.js",
-      "byteLength": 296931,
-      "sha256": "sha256:934d5497c1656546554a58875f09b4342b314dde87c8a6562af41d612669abfa"
+      "byteLength": 8065,
+      "sha256": "sha256:8b3abc47f2e16bac9a49f92bb61cedc31ede5691e4bf01fd52e2e78bf9778691"
+    },
+    {
+      "path": "pool/evidence-normalization.js",
+      "byteLength": 73461,
+      "sha256": "sha256:37ee8a18127e4e37e65989a5e35bc97c1a8bd81a88fc570ae9380005e2125b14"
+    },
+    {
+      "path": "pool/evidence-queries.js",
+      "byteLength": 49678,
+      "sha256": "sha256:118ca164bfbfb34ebf38cee9198c70580d9117cb9a4199c8d61204bc2d48c808"
+    },
+    {
+      "path": "pool/evidence-record-contract.js",
+      "byteLength": 19025,
+      "sha256": "sha256:ca8dbaf5a365049508d30ceeb5934d33f13b4a56357f938ef240288714effb2b"
+    },
+    {
+      "path": "pool/evidence-records.js",
+      "byteLength": 53958,
+      "sha256": "sha256:ac0b8a8a7589c26d6dc7cbc9a732856c579364a085bf82a11fccf37c653413e0"
+    },
+    {
+      "path": "pool/evidence-verification.js",
+      "byteLength": 48753,
+      "sha256": "sha256:df639497ca08cfc62f75e5fa8cefc89c066e725d2f211bfbd1e32d0c8ed3b880"
     },
     {
       "path": "pool/executable-pack.js",
-      "byteLength": 5673,
-      "sha256": "sha256:b68c941ec9d7a66852bcdd57c465c1044ee1e5afc683bc894200841836a946a8"
+      "byteLength": 5992,
+      "sha256": "sha256:3d15bc81e901afb20d97f581cf3bfacde8b80856726dc156d0d64f664e8da864"
     },
     {
       "path": "pool/firebase-auth.js",
@@ -1974,6 +2004,16 @@
       "sha256": "sha256:d54d30bfc34d94a1f44fbf7b6043340db01ee27aefaa057284ef1672733762a9"
     },
     {
+      "path": "pool/pack-operation-adapters.js",
+      "byteLength": 7844,
+      "sha256": "sha256:d84969b49c1128e5731a38aa35d8d4bad5f6cc91c16ff751c376ae42fbb3182f"
+    },
+    {
+      "path": "pool/pack-operation.js",
+      "byteLength": 8120,
+      "sha256": "sha256:ae6d329d1b585e161a0f0306636c678fd972a2ecfefe65bf545db2d2bc48c0c4"
+    },
+    {
       "path": "pool/participation-profile.js",
       "byteLength": 8610,
       "sha256": "sha256:0af14eedd3d3c907da5be4c8db65d46272801e6fb0927e3694f2c5d35f4c77e3"
@@ -1995,8 +2035,8 @@
     },
     {
       "path": "pool/peer-pack-custody.js",
-      "byteLength": 15313,
-      "sha256": "sha256:2af488dd58704df13b4748f7fd36941521066816629857493f410bec777e5e59"
+      "byteLength": 16015,
+      "sha256": "sha256:c181378616b14962f630d72733d0242e0c321c641a69518f261a1efb606fc3c1"
     },
     {
       "path": "pool/peer-pack-data-channel.js",
@@ -2060,8 +2100,8 @@
     },
     {
       "path": "pool/provider-client.js",
-      "byteLength": 26785,
-      "sha256": "sha256:8c095912e22e4dc80d4e23f230e041afbc704077f05cb9fbf2266a01402b3e90"
+      "byteLength": 27323,
+      "sha256": "sha256:ef9a5bfa65c1306398fdff01f86063b535c7ee40bb88d50339019cc7a908d1e5"
     },
     {
       "path": "pool/realized-action-value.js",
@@ -2080,8 +2120,8 @@
     },
     {
       "path": "pool/research-cycle.js",
-      "byteLength": 14394,
-      "sha256": "sha256:84b016270a51f0c1a49bf757c8fc2df44b993f9929e1ca7b51645c8e901a67b8"
+      "byteLength": 14484,
+      "sha256": "sha256:e2c47548d76358b7affb1fc926cfa8ab64df2ecedb7f7878dcd5dfd60d44e15e"
     },
     {
       "path": "pool/retry-policy.js",
@@ -2889,5 +2929,5 @@
       "sha256": "sha256:c5a6c85719ce4072b343251b10f5a00f7f99d83be47f83367b3f959886c78701"
     }
   ],
-  "bundleHash": "sha256:da4698c53182c896b0185b069553c1eb50a9b8bb81edfb1ff196e3e27ee18fb8"
+  "bundleHash": "sha256:753c763e07a9eb70dc1ab47831fb9e132288b3b4fb6702a20c96f75346fd9af3"
 }

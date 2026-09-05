@@ -5,6 +5,7 @@ import { pathToFileURL } from 'node:url';
 import path from 'node:path';
 import { createReploidDopplerRuntimeService } from '../../self/infrastructure/doppler-runtime-service.js';
 import { assertPackSession, assertPackReceipt, hashDopplerEvidence } from '../../self/pool/executable-pack.js';
+import { runPackOperation } from '../../self/pool/pack-operation.js';
 import { createPeerPackArtifactStore } from '../../self/pool/peer-pack-custody.js';
 import { createCustodyFixture } from './peer-pack-custody.js';
 
@@ -32,9 +33,19 @@ const originalFetch = globalThis.fetch;
 globalThis.fetch = async () => { throw new Error('Origin and alternate mirrors disabled for custody handoff'); };
 let checkpoint;
 const runtime = runtimeApi.createDopplerRuntime({
-  device: { getDevice: () => ({ createBuffer() {}, createCommandEncoder() {} }), getProfile: () => ({ surface: 'test-webgpu', hasF16: false, hasSubgroups: false, maxBufferSize: 1024 }) },
+  device: { getDevice: () => ({ limits: { maxBufferSize: 1024 }, createBuffer: () => ({ destroy() {} }), createCommandEncoder() {}, queue: { writeBuffer() {} } }), getProfile: () => ({ surface: 'test-webgpu', hasF16: false, hasSubgroups: false, maxBufferSize: 1024 }) },
   artifactStore, trustedSigners,
-  programFactory: async () => ({ encodeSequence: async () => ({ alphabet: 'amino_acid', pooledEmbedding: new Float32Array([1, 2]), phase: { elapsed: 3 } }), close() {} }),
+  programFactory: async () => ({
+    executionGraphHash: migrated.pack.program.executionGraphHash,
+    tokenize: () => [1], decodeTokens: (ids) => ids.join(','), getTokenContract: () => ({}), reset() {}, releaseStepResult() {},
+    executePhase: async () => ({ logits: new Float32Array([0, 10]) }),
+    embed: async () => ({ embedding: new Float32Array([1, 2]) }),
+    rerank: async () => ({ schema: 'doppler_rerank_evidence/v1', inputHash: identity.envelopeDigest,
+      outputHash: identity.envelopeDigest, backendIdentityHash: identity.envelopeDigest,
+      scores: [{ index: 0, score: 1 }], ranking: [{ index: 0, score: 1, rank: 1 }] }),
+    encodeSequence: async () => ({ alphabet: 'amino_acid', tokens: [1, 2, 3], tokenMask: [1, 1, 1], embeddingDim: 2,
+      tokenEmbeddings: null, logits: null, pooledEmbedding: new Float32Array([1, 2]), phase: { elapsed: 3 } }), close() {}
+  }),
 });
 const module = { DOPPLER_VERSION: runtimeApi.DOPPLER_VERSION, dr: runtime };
 const service = createReploidDopplerRuntimeService({ loadModule: async () => module });
@@ -59,6 +70,24 @@ try {
   await assertPackReceipt(binding, result.receipt, { assignment, sequence: 'MKT', options, result });
   await assert.rejects(assertPackReceipt(binding, result.receipt, { assignment: { ...assignment, assignmentId: 'handoff-b' } }), /assignment/);
   await assert.rejects(assertPackReceipt(binding, result.receipt, { assignment: { ...assignment, attempt: 2 } }), /assignment/);
+  // All four use the same public invocation and receipt consumer. Injected
+  // outputs establish a cross-repository contract, not qualification of four models.
+  const operations = [
+    ['generate', { prompt: 'public question' }, { maxTokens: 2, maxSeqLen: 16, temperature: 0, topP: 1, topK: 1,
+      repetitionPenalty: 1, repetitionPenaltyWindow: 8, useChatTemplate: false }],
+    ['embed', { texts: ['document'] }, {}],
+    ['rerank', { query: 'query', documents: ['document'], application: migrated.release.application }, {}],
+    ['encodeSequence', { sequence: 'MKT' }, { includeTokenEmbeddings: false, includeLogits: false }]
+  ];
+  for (const [name, input, options] of operations) {
+    const operationBinding = { ...binding, requiredOperation: name };
+    const request = { schema: 'doppler.pack-operation-request/v1', operation: { name, version: 1 }, input, options,
+      assignment: { ...assignment, model: { executablePack: operationBinding } },
+      limits: { maxInputBytes: 65536, maxOutputBytes: 65536, deadlineAt: Date.now() + 60000 } };
+    const observed = await runPackOperation({ binding: operationBinding, session, request, runtimeVersion: module.DOPPLER_VERSION });
+    assert.equal(observed.receipt.operation.name, name);
+    assert.equal(observed.receipt.requestHash, await hashDopplerEvidence(request));
+  }
 } finally { await service.closeAll(); artifactStore.close(); globalThis.fetch = originalFetch; }
 assert.equal(session.closed, true);
 

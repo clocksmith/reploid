@@ -36,6 +36,7 @@ jobs:
         npm run verify:surface-claims
         npm run verify:layers
         npm run verify:module-system
+        npm run verify:registry
         npm run verify:runtime-config
         npm run verify:browser-bundle:local
         npm run verify:change-passport:sdk
@@ -50,7 +51,8 @@ jobs:
         name: test-results-node-22
         path: |
           coverage/
-          tests/
+          test-results/
+          playwright-report/
 
   lint:
     runs-on: ubuntu-latest

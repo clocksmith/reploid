@@ -7,13 +7,12 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { toBrowserSourcePath, toCanonicalBrowserPath, toPosix } from './browser-tree-paths.js';
+import { writeGeneratedRegistry } from './generated-registry-output.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const ROOT = path.resolve(__dirname, '..');
 const SELF_DIR = path.join(ROOT, 'self');
-const GENESIS_PATH = path.join(SELF_DIR, 'config', 'genesis-levels.json');
-const BLUEPRINT_REGISTRY_PATH = path.join(SELF_DIR, 'config', 'blueprint-registry.json');
 const OUTPUT_PATH = path.join(SELF_DIR, 'config', 'module-registry.json');
 
 const stripLegacyBrowserPrefix = (value) => String(value || '').replace(/^src\//, '').replace(/^self\//, '');
@@ -71,28 +70,24 @@ function extractDependencies(block) {
   return deps;
 }
 
-async function loadBlueprintMap() {
-  try {
-    const registry = JSON.parse(await fs.readFile(BLUEPRINT_REGISTRY_PATH, 'utf8'));
-    const map = new Map();
-    const features = Array.isArray(registry.features) ? registry.features : [];
-    for (const feature of features) {
-      const blueprintPath = feature?.blueprints?.[0]?.path || null;
-      const files = Array.isArray(feature.files) ? feature.files : [];
-      for (const file of files) {
-        if (!map.has(file)) {
-          map.set(file, blueprintPath);
-        }
+function loadBlueprintMap(registry) {
+  const map = new Map();
+  const features = Array.isArray(registry.features) ? registry.features : [];
+  for (const feature of features) {
+    const blueprintPath = feature?.blueprints?.[0]?.path || null;
+    const files = Array.isArray(feature.files) ? feature.files : [];
+    for (const file of files) {
+      if (!map.has(file)) {
+        map.set(file, blueprintPath);
       }
     }
-    return map;
-  } catch (err) {
-    return new Map();
   }
+  return map;
 }
 
-async function main() {
-  const genesis = JSON.parse(await fs.readFile(GENESIS_PATH, 'utf8'));
+export async function buildModuleRegistry({ selfDir = SELF_DIR, genesis, blueprintRegistry } = {}) {
+  genesis ||= JSON.parse(await fs.readFile(path.join(selfDir, 'config/genesis-levels.json'), 'utf8'));
+  blueprintRegistry ||= JSON.parse(await fs.readFile(path.join(selfDir, 'config/blueprint-registry.json'), 'utf8'));
   const moduleFiles = genesis.moduleFiles || {};
 
   const moduleToLevel = new Map();
@@ -105,52 +100,48 @@ async function main() {
     }
   }
 
-  const blueprintMap = await loadBlueprintMap();
+  const blueprintMap = loadBlueprintMap(blueprintRegistry);
   const modules = {};
 
   for (const [moduleName, files] of Object.entries(moduleFiles)) {
-    if (!files || files.length === 0) continue;
+    if (!files || files.length === 0) throw new Error(`Module has no source files: ${moduleName}`);
     const entryFile = files[0];
     const normalizedEntry = toCanonicalBrowserPath(stripLegacyBrowserPrefix(entryFile));
-    const entryPath = path.join(SELF_DIR, toBrowserSourcePath(normalizedEntry));
+    const entryPath = path.join(selfDir, toBrowserSourcePath(normalizedEntry));
 
-    let metadataId = null;
-    let introduced = null;
-    let dependencies = [];
-
-    try {
-      const content = await fs.readFile(entryPath, 'utf8');
-      const block = extractMetadataBlock(content);
-      metadataId = extractMetadataId(block);
-      introduced = extractGenesisLevel(block);
-      dependencies = extractDependencies(block);
-    } catch (err) {
-      // Skip parse errors, fall back to config data
+    const content = await fs.readFile(entryPath, 'utf8');
+    const block = extractMetadataBlock(content);
+    const metadataId = extractMetadataId(block);
+    const introduced = extractGenesisLevel(block);
+    const dependencies = extractDependencies(block);
+    if (metadataId !== moduleName || introduced !== moduleToLevel.get(moduleName)) {
+      throw new Error(`Source metadata disagrees with genesis: ${moduleName} (${normalizedEntry})`);
     }
 
     const blueprint = blueprintMap.get(normalizedEntry) || null;
 
     modules[moduleName] = {
-      id: metadataId || moduleName,
+      id: metadataId,
       entry: toPosix(normalizedEntry),
       files: files.map((file) => toPosix(toCanonicalBrowserPath(stripLegacyBrowserPrefix(file)))),
-      introduced: introduced || moduleToLevel.get(moduleName) || 'unknown',
+      introduced,
       dependencies,
       blueprint
     };
   }
 
-  const output = {
+  return {
     version: 1,
-    generatedAt: new Date().toISOString(),
     modules
   };
-
-  await fs.writeFile(OUTPUT_PATH, JSON.stringify(output, null, 2) + '\n', 'utf8');
-  console.log(`[module-registry] Wrote ${OUTPUT_PATH}`);
 }
 
-main().catch((err) => {
+async function main() {
+  const changed = await writeGeneratedRegistry(OUTPUT_PATH, await buildModuleRegistry());
+  console.log(`[module-registry] ${changed ? 'Wrote' : 'Unchanged'} ${OUTPUT_PATH}`);
+}
+
+if (process.argv[1] && path.resolve(process.argv[1]) === __filename) main().catch((err) => {
   console.error('[module-registry] Failed to build registry');
   console.error(err);
   process.exit(1);

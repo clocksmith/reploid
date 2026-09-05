@@ -312,7 +312,7 @@
     {
       "path": "config/zero-inference.js",
       "owner": "config",
-      "sha256": "sha256:337cbc95f05ea32c29d420413c108a2dfe7281a80bbfc54e86c6c9d1d41e3d8b",
+      "sha256": "sha256:938f6f1566018c9518cded570f3bfdf4a0fd6f79554a6adc90d3a70436d21bfc",
       "imports": []
     },
     {
@@ -979,16 +979,94 @@
       ]
     },
     {
+      "path": "pool/evidence-admission.js",
+      "owner": "pool",
+      "sha256": "sha256:3ef79853a2fce78f34783677eed677d3d7380696f5a8598cdd7cfa4a300fc586",
+      "imports": [
+        "./evidence-normalization.js",
+        "./evidence-record-contract.js",
+        "./model-contract.js",
+        "./sequence-workload.js"
+      ]
+    },
+    {
       "path": "pool/evidence-network.js",
       "owner": "pool",
-      "sha256": "sha256:934d5497c1656546554a58875f09b4342b314dde87c8a6562af41d612669abfa",
+      "sha256": "sha256:8b3abc47f2e16bac9a49f92bb61cedc31ede5691e4bf01fd52e2e78bf9778691",
+      "imports": [
+        "./evidence-admission.js",
+        "./evidence-normalization.js",
+        "./evidence-queries.js",
+        "./evidence-record-contract.js",
+        "./evidence-records.js",
+        "./evidence-verification.js"
+      ]
+    },
+    {
+      "path": "pool/evidence-normalization.js",
+      "owner": "pool",
+      "sha256": "sha256:37ee8a18127e4e37e65989a5e35bc97c1a8bd81a88fc570ae9380005e2125b14",
       "imports": [
         "./adjudication-north-star.js",
         "./discovery-action-value.js",
         "./discovery-candidate-action.js",
+        "./evidence-record-contract.js",
         "./inference-receipt.js",
         "./model-contract.js",
+        "./sequence-workload.js"
+      ]
+    },
+    {
+      "path": "pool/evidence-queries.js",
+      "owner": "pool",
+      "sha256": "sha256:118ca164bfbfb34ebf38cee9198c70580d9117cb9a4199c8d61204bc2d48c808",
+      "imports": [
+        "./discovery-action-value.js",
+        "./discovery-candidate-action.js",
+        "./evidence-admission.js",
+        "./evidence-normalization.js",
+        "./evidence-record-contract.js",
+        "./model-contract.js",
         "./model-evidence-view.js",
+        "./realized-action-value.js",
+        "./sequence-workload.js"
+      ]
+    },
+    {
+      "path": "pool/evidence-record-contract.js",
+      "owner": "pool",
+      "sha256": "sha256:ca8dbaf5a365049508d30ceeb5934d33f13b4a56357f938ef240288714effb2b",
+      "imports": [
+        "./inference-receipt.js"
+      ]
+    },
+    {
+      "path": "pool/evidence-records.js",
+      "owner": "pool",
+      "sha256": "sha256:ac0b8a8a7589c26d6dc7cbc9a732856c579364a085bf82a11fccf37c653413e0",
+      "imports": [
+        "./adjudication-north-star.js",
+        "./discovery-candidate-action.js",
+        "./evidence-normalization.js",
+        "./evidence-record-contract.js",
+        "./inference-receipt.js",
+        "./model-contract.js",
+        "./realized-action-value.js",
+        "./sequence-result.js",
+        "./sequence-workload.js"
+      ]
+    },
+    {
+      "path": "pool/evidence-verification.js",
+      "owner": "pool",
+      "sha256": "sha256:df639497ca08cfc62f75e5fa8cefc89c066e725d2f211bfbd1e32d0c8ed3b880",
+      "imports": [
+        "./adjudication-north-star.js",
+        "./discovery-candidate-action.js",
+        "./evidence-normalization.js",
+        "./evidence-record-contract.js",
+        "./inference-receipt.js",
+        "./model-contract.js",
         "./realized-action-value.js",
         "./sequence-result.js",
         "./sequence-workload.js"
@@ -997,7 +1075,7 @@
     {
       "path": "pool/executable-pack.js",
       "owner": "pool",
-      "sha256": "sha256:b68c941ec9d7a66852bcdd57c465c1044ee1e5afc683bc894200841836a946a8",
+      "sha256": "sha256:3d15bc81e901afb20d97f581cf3bfacde8b80856726dc156d0d64f664e8da864",
       "imports": []
     },
     {
@@ -1127,6 +1205,21 @@
       ]
     },
     {
+      "path": "pool/pack-operation-adapters.js",
+      "owner": "pool",
+      "sha256": "sha256:d84969b49c1128e5731a38aa35d8d4bad5f6cc91c16ff751c376ae42fbb3182f",
+      "imports": []
+    },
+    {
+      "path": "pool/pack-operation.js",
+      "owner": "pool",
+      "sha256": "sha256:ae6d329d1b585e161a0f0306636c678fd972a2ecfefe65bf545db2d2bc48c0c4",
+      "imports": [
+        "./executable-pack.js",
+        "./pack-operation-adapters.js"
+      ]
+    },
+    {
       "path": "pool/participation-profile.js",
       "owner": "pool",
       "sha256": "sha256:0af14eedd3d3c907da5be4c8db65d46272801e6fb0927e3694f2c5d35f4c77e3",
@@ -1182,7 +1275,7 @@
     {
       "path": "pool/peer-pack-custody.js",
       "owner": "pool",
-      "sha256": "sha256:2af488dd58704df13b4748f7fd36941521066816629857493f410bec777e5e59",
+      "sha256": "sha256:c181378616b14962f630d72733d0242e0c321c641a69518f261a1efb606fc3c1",
       "imports": [
         "./executable-pack.js",
         "./inference-receipt.js"
@@ -1288,7 +1381,7 @@
     {
       "path": "pool/provider-client.js",
       "owner": "pool",
-      "sha256": "sha256:8c095912e22e4dc80d4e23f230e041afbc704077f05cb9fbf2266a01402b3e90",
+      "sha256": "sha256:ef9a5bfa65c1306398fdff01f86063b535c7ee40bb88d50339019cc7a908d1e5",
       "imports": [
         "./adapter-pack.js",
         "./adapter-publication.js",
@@ -1341,9 +1434,11 @@
     {
       "path": "pool/research-cycle.js",
       "owner": "pool",
-      "sha256": "sha256:84b016270a51f0c1a49bf757c8fc2df44b993f9929e1ca7b51645c8e901a67b8",
+      "sha256": "sha256:e2c47548d76358b7affb1fc926cfa8ab64df2ecedb7f7878dcd5dfd60d44e15e",
       "imports": [
-        "./evidence-network.js"
+        "./evidence-admission.js",
+        "./evidence-queries.js",
+        "./evidence-record-contract.js"
       ]
     },
     {
