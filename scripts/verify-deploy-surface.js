@@ -4,7 +4,7 @@
  * Fails when the deployed hosting surface differs from the local tree:
  * - served index.html build version must match local REPLOID_BUILD_VERSION;
  * - served Poolday route modules and styles must hash-match the local files;
- * - product routes must lay out clear of the fixed nav rail.
+ * - product routes must lay out clear of navigation in either layout orientation.
  * Screenshots for each checked route are written to artifacts/deploy-surface.
  */
 import { createHash } from 'node:crypto';
@@ -12,6 +12,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
+import { rectanglesOverlap } from './deploy-surface-layout.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const repoRoot = path.resolve(path.dirname(__filename), '..');
@@ -56,6 +57,10 @@ const POOLDAY_MODULE_FILES = [
 ];
 const LAYOUT_ROUTES = ['/ask', '/compute', '/records', '/room-1'];
 const SCREENSHOT_ROUTES = ['/', ...LAYOUT_ROUTES];
+const VIEWPORTS = [
+  { label: 'desktop', width: 1440, height: 900 },
+  { label: 'mobile', width: 390, height: 844 }
+];
 const screenshotDir = path.join(repoRoot, 'artifacts', 'deploy-surface');
 
 const sha256 = (bytes) => createHash('sha256').update(bytes).digest('hex');
@@ -120,10 +125,11 @@ const checkRouteLayout = async () => {
     ]
   });
   try {
-    for (const route of SCREENSHOT_ROUTES) {
+    for (const { route, viewport } of SCREENSHOT_ROUTES.flatMap((route) =>
+      VIEWPORTS.map((viewport) => ({ route, viewport })))) {
       let routeFailure = null;
       for (let attempt = 1; attempt <= 3; attempt += 1) {
-        const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+        const page = await browser.newPage({ viewport: { width: viewport.width, height: viewport.height } });
         const browserIssues = [];
         page.on('pageerror', (error) => browserIssues.push(error.message));
         page.on('console', (message) => {
@@ -138,7 +144,7 @@ const checkRouteLayout = async () => {
           if (browserIssues.length) {
             throw new Error(`browser issues: ${browserIssues.join(' | ')}`);
           }
-          const name = route === '/' ? 'home' : route.slice(1);
+          const name = `${route === '/' ? 'home' : route.slice(1)}${viewport.label === 'mobile' ? '-mobile' : ''}`;
           await page.screenshot({ path: path.join(screenshotDir, `${name}.png`) });
           if (LAYOUT_ROUTES.includes(route)) {
             const probe = await page.evaluate(() => {
@@ -152,24 +158,23 @@ const checkRouteLayout = async () => {
               const shellRect = shell.getBoundingClientRect();
               return {
                 missing: [],
-                railRight: railRect.right,
-                shellLeft: shellRect.left
+                navigation: { left: railRect.left, right: railRect.right, top: railRect.top, bottom: railRect.bottom },
+                content: { left: shellRect.left, right: shellRect.right, top: shellRect.top, bottom: shellRect.bottom }
               };
             });
             if (probe.missing.length) {
               throw new Error(`missing ${probe.missing.join(', ')}`);
             }
-            if (probe.shellLeft < probe.railRight) {
+            if (rectanglesOverlap(probe.navigation, probe.content)) {
               throw new Error(
-                `route shell (left ${Math.round(probe.shellLeft)}px) overlaps `
-                + `nav rail (right ${Math.round(probe.railRight)}px)`
+                `route shell ${JSON.stringify(probe.content)} overlaps navigation ${JSON.stringify(probe.navigation)}`
               );
             }
           }
           routeFailure = null;
           break;
         } catch (error) {
-          routeFailure = `${route}: attempt ${attempt} failed: ${error.message}`;
+          routeFailure = `${route} (${viewport.label}): attempt ${attempt} failed: ${error.message}`;
         } finally {
           await page.close();
         }
