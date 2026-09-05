@@ -1250,8 +1250,8 @@
     },
     {
       "path": "config/module-inventory.json",
-      "byteLength": 78938,
-      "sha256": "sha256:68e87e7cc506aab201702de4ecefe775226419c3ceb9deb54380c075e2c099bf"
+      "byteLength": 79200,
+      "sha256": "sha256:33d78916102a333799e20be8ae41b843ecfa022f15cd1440c5220a3f2ff5cc30"
     },
     {
       "path": "config/module-registry.json",
@@ -1280,8 +1280,8 @@
     },
     {
       "path": "config/vfs-manifest.json",
-      "byteLength": 22855,
-      "sha256": "sha256:a0eb562af66419fa0e2684f40eb2ed893c581c01ee23cd2538099f98d6030b4a"
+      "byteLength": 22888,
+      "sha256": "sha256:697480688508844a0287fb5b0c76554f4db4aa4944c31e1c7091108e36a86097"
     },
     {
       "path": "config/vfs-policy.js",
@@ -1845,8 +1845,8 @@
     },
     {
       "path": "pool/CATSCAN.md",
-      "byteLength": 2704,
-      "sha256": "sha256:1ea83175a789d9dff34cb2fb92453ad20e68a6882f4428b5fa267c3caac5667e"
+      "byteLength": 2823,
+      "sha256": "sha256:ba41e83d20d9a74ac232fe60c6132ba2b427a1c329bc0f7b15e71d243c379117"
     },
     {
       "path": "pool/config-contract.js",
@@ -1992,6 +1992,11 @@
       "path": "pool/peer-ledger.js",
       "byteLength": 4241,
       "sha256": "sha256:471b434d1227b001fa9c47e3692c51ada2367f734f9bb844c92036e64d809c48"
+    },
+    {
+      "path": "pool/peer-pack-custody.js",
+      "byteLength": 15313,
+      "sha256": "sha256:2af488dd58704df13b4748f7fd36941521066816629857493f410bec777e5e59"
     },
     {
       "path": "pool/peer-payload.js",
@@ -2879,5 +2884,5 @@
       "sha256": "sha256:c5a6c85719ce4072b343251b10f5a00f7f99d83be47f83367b3f959886c78701"
     }
   ],
-  "bundleHash": "sha256:9b6ac117149db9b9353560d5142b9809cec7438797450f8da570b68e1b7bd221"
+  "bundleHash": "sha256:66e9aeb9727e9864918c80bd143177c74d5fc9ec94c6f1f2059defed9fcb9a98"
 }

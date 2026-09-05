@@ -4,12 +4,12 @@ Parent: [Browser Runtime](../CATSCAN.md)
 
 ## Target
 
-Improve later work through exact Doppler peer execution and retained evidence.
-Public-protein adjudication remains optional.
+Improve later work with exact Doppler peer execution and retained evidence;
+optional public-protein adjudication.
 
 ## Authority
-- Owns discovery, authorization, assignment, recovery, and admission.
-- Doppler owns signatures, bytes, cache, and execution.
+- Owns discovery, authorization, assignment, transport, recovery, accounting, admission.
+- Doppler owns Pack signatures, final artifact verification, verified cache, and execution.
 - Excludes truth, relays, RSI, private sequences.
 
 ## Scope
@@ -23,12 +23,13 @@ Inputs:
 - [Runtime policy](pool-config.json).
 
 Outputs:
+- Custody: [source](peer-pack-custody.js).
 - Receipts: [inference-receipt.js](inference-receipt.js). State: [research-cycle.js](research-cycle.js).
 - Checkpoints: [discovery-contract.js](discovery-contract.js). Actions: [discovery-candidate-action.js](discovery-candidate-action.js).
 - Records: [evidence-network.js](evidence-network.js). Campaign: [protein-uncertainty-campaign.js](protein-uncertainty-campaign.js). North star: [adjudication-north-star.js](adjudication-north-star.js). Promotion: [scientific-policy-promotion.js](scientific-policy-promotion.js). Value: [realized-action-value.js](realized-action-value.js).
 
 ## Invariants
-- Receipts prove only their signed record and identities.
+- Receipts prove signed records/identities only.
 - Archive and decision memory remain distinct.
 - Agreement/context never prove truth/relevance; reuse requires review.
 - Declared source duplicates count once; only accepted corrections or authorized revocations supersede.
@@ -40,12 +41,12 @@ Outputs:
 - Realized value requires approved actions, reviewed outcomes, evaluation, causal records, and independent acceptance.
 
 ## Acceptance
-- All named contract tests pass.
-- Evidence: [pool](../../tests/unit/pool-contract.test.js), [cycle](../../tests/unit/pool-research-cycle.test.js), [action](../../tests/unit/pool-discovery-candidate-action.test.js), [replay](../../tests/unit/pool-discovery-contract.test.js), [adjudication](../../tests/unit/pool-adjudication-experiment.test.js), [promotion](../../tests/unit/pool-scientific-policy-promotion.test.js), and [value](../../tests/unit/pool-realized-action-value.test.js) tests.
+- Named tests pass.
+- Evidence: [custody](../../tests/unit/pool-peer-pack-custody.test.js), [pool](../../tests/unit/pool-contract.test.js), [cycle](../../tests/unit/pool-research-cycle.test.js), [action](../../tests/unit/pool-discovery-candidate-action.test.js), [replay](../../tests/unit/pool-discovery-contract.test.js), [adjudication](../../tests/unit/pool-adjudication-experiment.test.js), [promotion](../../tests/unit/pool-scientific-policy-promotion.test.js), and [value](../../tests/unit/pool-realized-action-value.test.js) tests.
 
 ## Non-goals
 - Volume as improvement.
 - Model splitting, hardware attestation, or private-sequence admission.
 
 ## Freedom
-Any mechanism preserving these boundaries and acceptance.
+Any mechanism preserving boundaries and acceptance.

@@ -1180,6 +1180,15 @@
       ]
     },
     {
+      "path": "pool/peer-pack-custody.js",
+      "owner": "pool",
+      "sha256": "sha256:2af488dd58704df13b4748f7fd36941521066816629857493f410bec777e5e59",
+      "imports": [
+        "./executable-pack.js",
+        "./inference-receipt.js"
+      ]
+    },
+    {
       "path": "pool/peer-payload.js",
       "owner": "pool",
       "sha256": "sha256:d38b6615d7ab92ef0bb9c0b7202bd784969609328f29c3907f56663cc14deaa6",

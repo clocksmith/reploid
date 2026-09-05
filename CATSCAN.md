@@ -4,8 +4,9 @@ Parent: none
 
 ## Target
 
-Make Poolday's exact peer execution and retained evidence improve later useful
-work for independent operators. Keep Zero and X as secondary RSI browser agents
+Reproduce an open execution network with Doppler: exact peer execution and
+retained evidence improve later useful work for independent operators.
+Keep Zero and X as secondary RSI browser agents
 and Change Passport as an inactive alternative with separate authority.
 
 ## Authority
@@ -31,6 +32,7 @@ Outputs:
 - Change Passport remains an inactive alternative; Room-1 is optional scientific proof.
 - Generic change control retains authority separate from Poolday.
 - Claims stay bounded by recorded acceptance evidence.
+- Free adoption counts; commercial outcomes do not gate technical completion.
 - Existing code cannot silently overrule a charter.
 
 ## Acceptance

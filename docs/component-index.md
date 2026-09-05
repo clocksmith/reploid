@@ -5,7 +5,7 @@ Recursive authority charters discovered from the repository root.
 
 | Component | Charter | Parent | Target |
 | --- | --- | --- | --- |
-| Reploid | [`CATSCAN.md`](../CATSCAN.md) | None | Make Poolday's exact peer execution and retained evidence improve later useful work for independent operators. Keep Zero and X as secondary RSI browser agents and Change Passport as an inactive alternative with separate authority. |
+| Reploid | [`CATSCAN.md`](../CATSCAN.md) | None | Reproduce an open execution network with Doppler: exact peer execution and retained evidence improve later useful work for independent operators. Keep Zero and X as secondary RSI browser agents and Change Passport as an inactive alternative with separate authority. |
 | Deployment Configuration | [`deploy/CATSCAN.md`](../deploy/CATSCAN.md) | Reploid | Declare reproducible hosted deployment inputs and service boundaries for Reploid runtime surfaces. |
 | Documentation | [`docs/CATSCAN.md`](CATSCAN.md) | Reploid | Keep product intent, contracts, mechanisms, claims, and current evidence discoverable without conflating their authority. |
 | Hosted Zero Function | [`functions/CATSCAN.md`](../functions/CATSCAN.md) | Reploid | Expose the bounded Gemini-backed Zero function with explicit authentication, App Check, input, quota, and failure contracts. |
@@ -23,7 +23,7 @@ Recursive authority charters discovered from the repository root.
 | Runtime Infrastructure | [`self/infrastructure/CATSCAN.md`](../self/infrastructure/CATSCAN.md) | Browser Runtime | Supply auditable lifecycle, dependency, policy, recovery, telemetry, and human-approval services to browser components. |
 | Genesis Kernel | [`self/kernel/CATSCAN.md`](../self/kernel/CATSCAN.md) | Browser Runtime | Provide the smallest immutable browser boot and recovery path from which the mutable runtime can be restored safely. |
 | Lab Surface Composition | [`self/lab/CATSCAN.md`](../self/lab/CATSCAN.md) | Browser Runtime | Compose Zero and X operator surfaces from explicit profiles while preserving their separate proposal and evaluation authority. |
-| Poolday Evidence Runtime | [`self/pool/CATSCAN.md`](../self/pool/CATSCAN.md) | Browser Runtime | Improve later work through exact Doppler peer execution and retained evidence. Public-protein adjudication remains optional. |
+| Poolday Evidence Runtime | [`self/pool/CATSCAN.md`](../self/pool/CATSCAN.md) | Browser Runtime | Improve later work with exact Doppler peer execution and retained evidence; optional public-protein adjudication. |
 | Model Providers | [`self/providers/CATSCAN.md`](../self/providers/CATSCAN.md) | Browser Runtime | Adapt named model providers into explicit runtime contracts with bounded identity, configuration, and failure semantics. |
 | Agent Tools | [`self/tools/CATSCAN.md`](../self/tools/CATSCAN.md) | Browser Runtime | Expose bounded, schema-defined operations that agents can invoke without bypassing verification, staging, or promotion controls. |
 | Browser Interfaces | [`self/ui/CATSCAN.md`](../self/ui/CATSCAN.md) | Browser Runtime | Render each declared surface's authoritative state and actions without inventing new authority or widening claims. |
