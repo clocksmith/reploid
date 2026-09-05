@@ -893,9 +893,10 @@ test.describe('Run and Contribute actual browser inference', () => {
       }).toBe(true);
       const toggle = providerPage.locator('#pool-provider-worker-toggle');
       await toggle.click();
-      await expect(providerPage.locator('[data-pool-provider-status]')).toHaveText('Could not start', {
+      await expect(providerPage.locator('[data-pool-provider-status]')).toHaveText('Idle', {
         timeout: 30000
       });
+      await expect(providerPage.locator('[data-pool-provider-status]')).toHaveAttribute('data-provider-state', 'offline');
       const settled = (await readSnapshot(providerPage, 'pool-provider-result')).parsed;
       expect(settled).toMatchObject({
         runner: 'stopped',
