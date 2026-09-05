@@ -25,6 +25,7 @@ Outputs:
 - Room-1 projection via [room-view.js](room-view.js).
 
 ## Invariants
+- Public branding is Reploid. Poolday protocol and storage names remain internal and retain identity.
 - Primary navigation contains exactly Run a model, Share compute, Recent jobs, and a compact network indicator.
 - Request, execution, comparison, acceptance, and receipt retention remain one visible lifecycle.
 - Interrupted jobs expose only valid recovery actions.

@@ -22,6 +22,18 @@ import {
 } from '../../self/ui/pool-home/view.js';
 
 describe('poolday home navigation', () => {
+  it('uses Reploid publicly and keeps model evidence out of the main form', () => {
+    for (const route of ['home', 'compute', 'records']) {
+      const host = document.createElement('div');
+      host.innerHTML = renderNav(route) + renderRoutePanel(route) + renderRouteDetail(route);
+      expect(host.querySelector('.pool-primary-brand').textContent).toBe('Reploid');
+      expect(host.textContent).not.toMatch(/\bpoolday\b/i);
+      for (const node of host.querySelectorAll('[aria-label]')) expect(node.getAttribute('aria-label')).not.toMatch(/poolday/i);
+      for (const summary of host.querySelectorAll('[data-pool-pack-summary]')) {
+        expect(summary.closest('details').open).toBe(false);
+      }
+    }
+  });
   it('keeps output behind the graph until a run reaches a terminal state', () => {
     document.body.innerHTML = `
       <section data-pool-run-surface data-run-state="idle">
@@ -84,18 +96,18 @@ describe('poolday home navigation', () => {
     expect(PRODUCT_ROUTES['/record']).toBeUndefined();
     expect(PRODUCT_ROUTES['/agents']).toBeUndefined();
     expect(ROUTE_COPY.compute).toEqual({
-      eyebrow: 'Verified Browser Inference',
+      eyebrow: 'Browser AI',
       title: 'Share compute',
-      body: 'Let this browser execute qualified Pack jobs.'
+      body: 'Let this browser help with jobs.'
     });
   });
 
   it('renders exactly three primary destinations and a compact network state', () => {
     const html = renderNav('compute');
 
-    expect(html).toContain('<nav class="pool-nav-rail pool-primary-nav" aria-label="Poolday">');
+    expect(html).toContain('<nav class="pool-nav-rail pool-primary-nav" aria-label="Reploid">');
     expect(html).toContain('class="pool-primary-brand"');
-    expect(html).toContain('>Poolday</a>');
+    expect(html).toContain('>Reploid</a>');
     expect(html).toContain('>Run a model</a>');
     expect(html).toContain('>Share compute</a>');
     expect(html).toContain('>Recent jobs</a>');
@@ -145,18 +157,16 @@ describe('poolday home navigation', () => {
     expect(html).not.toContain('data-pool-network-disclosure');
     expect(html).not.toContain('data-pool-simulation');
     expect(html).not.toContain('data-pool-home-purpose');
-    expect(html).toContain('This is a 480-number representation for software, not a result to read manually.');
-    expect(html).toContain('Use it with embeddings made by the same ESM-2 model and contract when comparing sequences.');
-    expect(html).toContain('Reploid can now compare this result with exact-contract compatible public embeddings');
-    expect(html).toContain('does not generate biological interpretation or diagnosis.');
+    expect(html).toContain('480 values for comparing sequences from this exact ESM-2 model and contract.');
+    expect(html).toContain('Not a biological interpretation or diagnosis.');
     expect(html).toContain('data-pool-copy-embedding');
     expect(html).not.toContain('data-pool-hot-path');
     expect(html).toContain('class="pool-home-title-lockup"');
-    expect(html).toContain('<h1 class="type-h1 pool-home-brand-word">POOLDAY</h1>');
-    expect(html).toContain('Run a signed Doppler Pack on a browser peer.');
+    expect(html).toContain('<h1 class="type-h1 pool-home-brand-word">Reploid</h1>');
+    expect(html).toContain('Run AI with connected browsers.');
     expect(html).not.toContain('>View room</a>');
     expect(html).toContain('id="pool-home-request-model"');
-    expect(html).toContain('<span>Model Pack</span>');
+    expect(html).toContain('<span>Model</span>');
     expect(html).not.toContain('id="pool-home-research-public"');
     expect(html).not.toContain('id="pool-home-intent-text"');
     expect(html).toContain('>Run a model</h2>');
@@ -183,8 +193,8 @@ describe('poolday home navigation', () => {
     expect(html).toContain('class="btn btn-primary pool-home-run-button"');
     expect(html).toContain('type="submit"');
     expect(html).toContain('>Run model</button>');
-    expect(html).toContain('<summary>Advanced details</summary>');
-    expect((html.match(/<summary>Advanced details<\/summary>/g) || [])).toHaveLength(1);
+    expect(html).toContain('<summary>Options</summary>');
+    expect((html.match(/<summary>Options<\/summary>/g) || [])).toHaveLength(1);
     expect(html).not.toContain('href="/network"');
     expect(html).not.toContain('pool-home-network-cta');
     expect(html).not.toContain('Live Network</span>');
@@ -314,7 +324,7 @@ describe('poolday home navigation', () => {
     expect(html).toContain('<summary>Settings</summary>');
     expect(html).toContain('data-pool-run-output hidden');
     expect(html).toContain('Protein representation');
-    expect(html).toContain('Ready for compatible comparison');
+    expect(html).toContain('Embedding ready');
     expect(html).toContain('id="pool-run-result-evidence"');
     expect(html).toContain('<summary>Proof</summary>');
     expect(html).toContain('<summary>View embedding vector</summary>');

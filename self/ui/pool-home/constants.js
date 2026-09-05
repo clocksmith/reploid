@@ -1,13 +1,13 @@
 /**
- * @fileoverview Constants for the Poolday product home.
+ * @fileoverview Constants for the Reploid product home.
  *
  * The root pool implementation namespace is internal.
- * Reploid owns the implementation; Poolday is the user-facing product.
+ * Reploid is the public name. Poolday remains an internal implementation name.
  */
 
-export const PUBLIC_PRODUCT_NAME = 'Poolday';
+export const PUBLIC_PRODUCT_NAME = 'Reploid';
 export const POOLDAY_NAME = PUBLIC_PRODUCT_NAME;
-export const POOLDAY_PROTOCOL = 'Verified Browser Inference';
+export const POOLDAY_PROTOCOL = 'Browser AI';
 export const POOLDAY_VERSION_TAG = 'vBI-1.6';
 export const POOLDAY_NETWORK_VISUAL_EVENT = 'reploid:pool-network-visual-state';
 export const POOLDAY_RUN_VISUAL_EVENT = 'reploid:pool-run-visual-state';
@@ -23,7 +23,7 @@ export const POOLDAY_ROUTE_DEFINITIONS = Object.freeze([
     label: 'Run a model',
     eyebrow: POOLDAY_PROTOCOL,
     title: 'Run a model',
-    body: 'Run a signed Doppler Pack on a browser peer.'
+    body: 'Run AI with connected browsers.'
   }),
   createPooldayRoute({
     id: 'ask',
@@ -31,7 +31,7 @@ export const POOLDAY_ROUTE_DEFINITIONS = Object.freeze([
     label: 'Run a model',
     eyebrow: POOLDAY_PROTOCOL,
     title: 'Run a model',
-    body: 'Run the enabled Pack through the compatibility request surface.',
+    body: 'Choose a model and enter your input.',
     primary: false
   }),
   createPooldayRoute({
@@ -40,7 +40,7 @@ export const POOLDAY_ROUTE_DEFINITIONS = Object.freeze([
     label: 'Share compute',
     eyebrow: POOLDAY_PROTOCOL,
     title: 'Share compute',
-    body: 'Let this browser execute qualified Pack jobs.'
+    body: 'Let this browser help with jobs.'
   }),
   createPooldayRoute({
     id: 'records',
@@ -48,7 +48,7 @@ export const POOLDAY_ROUTE_DEFINITIONS = Object.freeze([
     label: 'Recent jobs',
     eyebrow: POOLDAY_PROTOCOL,
     title: 'Recent jobs',
-    body: 'Inspect results, recover work, and retain receipts.'
+    body: 'Results and unfinished jobs.'
   }),
   createPooldayRoute({
     id: 'room-1',
@@ -56,7 +56,7 @@ export const POOLDAY_ROUTE_DEFINITIONS = Object.freeze([
     label: 'Research Room-1',
     eyebrow: 'Research evidence',
     title: 'Research Room-1',
-    body: 'Review hypotheses, cohorts, adjudication, and retained scientific evidence.',
+    body: 'Review public protein research.',
     primary: false
   })
 ]);
