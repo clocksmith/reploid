@@ -448,8 +448,11 @@ const submitActualSequence = async (page, sequence, policyId = 'fastest_receipt'
 } = {}) => {
   await expect(page.locator('#pool-run-submit')).toBeVisible();
   const policy = page.locator('#pool-run-policy');
+  await expect(policy).toBeAttached();
   const advanced = policy.locator('xpath=ancestor::details[1]');
-  if (!(await advanced.evaluate((element) => element.open))) await advanced.locator('summary').click();
+  if (await advanced.count() && !(await advanced.evaluate((element) => element.open))) {
+    await advanced.locator('summary').click();
+  }
   await expect(policy).toBeVisible();
   await policy.selectOption(policyId);
   await expect(policy).toHaveValue(policyId);
