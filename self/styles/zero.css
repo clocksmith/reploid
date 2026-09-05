@@ -1,8 +1,31 @@
 /* ============================================
    Zero UI
-   Sparse tabula-rasa runtime shell
+   RD extension: tokens, semantic primitives, then shell composition.
+   Keep this entry self-contained: Zero also loads it from the VFS.
    ============================================ */
 
+/* Tokens: Zero-specific values, scoped to this surface. */
+.zero-shell {
+  --zero-color-request: #00ffff;
+  --zero-color-decision: #ffff00;
+  --zero-color-alert: #ff4d4d;
+  --zero-size-label: 10px;
+  --zero-size-caption: 11px;
+  --zero-size-body: 13px;
+}
+
+/* Primitives: semantic roles over Zero and RD tokens. */
+.zero-shell {
+  --zero-text-label-size: var(--zero-size-label);
+  --zero-text-caption-size: var(--zero-size-caption);
+  --zero-text-body-size: var(--zero-size-body);
+  --zero-text-secondary-opacity: var(--opacity-soft);
+  --zero-surface-request: color-mix(in srgb, var(--zero-color-request) 7%, transparent);
+  --zero-surface-decision: color-mix(in srgb, var(--zero-color-decision) 6%, transparent);
+  --zero-text-alert: color-mix(in srgb, var(--fg) 72%, var(--zero-color-alert) 28%);
+}
+
+/* Components and page composition. */
 .zero-shell {
   min-height: 100%;
   display: grid;
@@ -11,8 +34,8 @@
   padding: var(--space-lg);
   overflow: hidden;
   background:
-    radial-gradient(circle at 18% 12%, color-mix(in srgb, #00ffff 8%, transparent), transparent 28%),
-    radial-gradient(circle at 86% 22%, color-mix(in srgb, #ffff00 7%, transparent), transparent 26%),
+    radial-gradient(circle at 18% 12%, color-mix(in srgb, var(--zero-color-request) 8%, transparent), transparent 28%),
+    radial-gradient(circle at 86% 22%, color-mix(in srgb, var(--zero-color-decision) 7%, transparent), transparent 26%),
     var(--bg);
 }
 
@@ -35,10 +58,10 @@
 .zero-label,
 .zero-runtime-item span,
 .zero-more-line {
-  font-size: 10px;
+  font-size: var(--zero-text-label-size);
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  opacity: var(--opacity-secondary);
+  opacity: var(--zero-text-secondary-opacity);
 }
 
 .zero-shell-heading {
@@ -109,14 +132,14 @@
 
 .zero-runtime-item small {
   min-width: 0;
-  font-size: 11px;
+  font-size: var(--zero-text-caption-size);
   line-height: 1.15;
-  opacity: var(--opacity-secondary);
+  opacity: var(--zero-text-secondary-opacity);
   overflow-wrap: anywhere;
 }
 
 .zero-runtime-item strong.zero-runtime-alert {
-  color: color-mix(in srgb, var(--fg) 72%, #ff4d4d 28%);
+  color: var(--zero-text-alert);
 }
 
 .zero-main {
@@ -140,7 +163,7 @@
   justify-content: flex-start;
   border: var(--border-sm) dashed color-mix(in srgb, var(--fg) 42%, transparent);
   padding: var(--space-sm);
-  background: color-mix(in srgb, var(--bg) 98%, #00ffff 2%);
+  background: color-mix(in srgb, var(--bg) 98%, var(--zero-color-request) 2%);
 }
 
 .zero-goal-text {
@@ -174,8 +197,8 @@
 }
 
 .zero-trace-empty {
-  font-size: 13px;
-  opacity: var(--opacity-secondary);
+  font-size: var(--zero-text-body-size);
+  opacity: var(--zero-text-secondary-opacity);
 }
 
 .zero-trace-entry {
@@ -208,12 +231,12 @@
 
 .zero-trace-request {
   border-left-width: var(--border-lg);
-  background: linear-gradient(90deg, color-mix(in srgb, #00ffff 7%, transparent), transparent 62%);
+  background: linear-gradient(90deg, var(--zero-surface-request), transparent 62%);
 }
 
 .zero-trace-decision {
   border-left-width: var(--border-lg);
-  background: linear-gradient(90deg, color-mix(in srgb, #ffff00 6%, transparent), transparent 62%);
+  background: linear-gradient(90deg, var(--zero-surface-decision), transparent 62%);
 }
 
 .zero-trace-action {
@@ -241,8 +264,8 @@
 
 .zero-trace-time,
 .zero-trace-meta {
-  font-size: 11px;
-  opacity: var(--opacity-secondary);
+  font-size: var(--zero-text-caption-size);
+  opacity: var(--zero-text-secondary-opacity);
 }
 
 .zero-trace-time {
@@ -250,7 +273,7 @@
 }
 
 .zero-trace-body {
-  font-size: 13px;
+  font-size: var(--zero-text-body-size);
   line-height: 1.45;
   white-space: pre-wrap;
   word-break: break-word;
@@ -262,7 +285,7 @@
 
 .zero-trace-details summary {
   cursor: pointer;
-  font-size: 13px;
+  font-size: var(--zero-text-body-size);
   line-height: 1.45;
   overflow-wrap: anywhere;
 }
@@ -336,16 +359,16 @@
 
 .zero-epoch-select {
   padding: 2px var(--space-xs);
-  font-size: 11px;
+  font-size: var(--zero-text-caption-size);
   background: var(--bg);
   color: var(--fg);
   border: var(--border-sm) solid var(--fg);
 }
 
 .zero-epoch-status {
-  font-size: 11px;
+  font-size: var(--zero-text-caption-size);
   font-weight: 600;
-  opacity: var(--opacity-secondary);
+  opacity: var(--zero-text-secondary-opacity);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
