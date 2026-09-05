@@ -2325,8 +2325,8 @@
     },
     {
       "path": "styles/rd.css",
-      "byteLength": 36576,
-      "sha256": "sha256:14cf2284326164f0a7bc051b0941e92ba50024ab06d6e75d4cc84f45e36550c7"
+      "byteLength": 36607,
+      "sha256": "sha256:9dcfbcb73fd9a472bc5e6672b18c1ff584db1c289c7e00b20fc8102be67dafff"
     },
     {
       "path": "styles/vfs-explorer.css",
@@ -2335,8 +2335,8 @@
     },
     {
       "path": "styles/zero.css",
-      "byteLength": 8698,
-      "sha256": "sha256:e7d055854247e7625f71ca6a0f361920e7242d57b8b13f1f01c01bb7e7e1effc"
+      "byteLength": 9881,
+      "sha256": "sha256:f538e6cfed9b67faa6436d63982fef4ed312a40e06034375d796c1c935442dea"
     },
     {
       "path": "sw-module-loader.js",
@@ -2929,5 +2929,5 @@
       "sha256": "sha256:c5a6c85719ce4072b343251b10f5a00f7f99d83be47f83367b3f959886c78701"
     }
   ],
-  "bundleHash": "sha256:753c763e07a9eb70dc1ab47831fb9e132288b3b4fb6702a20c96f75346fd9af3"
+  "bundleHash": "sha256:2ffcd632174ecabe9b57d4a5debcb3baa21fb5ba2a86d7d5d614d75bccaef0c9"
 }

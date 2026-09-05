@@ -62,6 +62,7 @@
     "verify:browser-bundle:local": "node scripts/build-browser-bundle-manifest.js --check",
     "verify:runtime-config": "node scripts/sync-runtime-config.js",
     "verify:pool:css": "node scripts/verify-poolday-css-layers.js",
+    "test:design": "vitest run tests/unit/design-system-css.test.js tests/unit/poolday-css-layers.test.js tests/unit/zero-ui.test.js",
     "catscan:chain": "node scripts/verify-catscan.js --chain"
   },
   "keywords": [

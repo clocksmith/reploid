@@ -3,7 +3,7 @@
    Self-contained base bundle: tokens, primitives, components.
 
    Keep product-specific selectors out of this file.
-   Poolday extends this base from styles/poolday.css.
+   Poolday extends this base from styles/poolday/{tokens,primitives,components}.css.
    ============================================ */
 
 /* === RD TOKENS === */
