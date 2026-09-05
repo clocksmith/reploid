@@ -1,0 +1,567 @@
+/**
+ * @fileoverview Model artifact URL and manifest validation helpers.
+ */
+
+import { BROWSER_RUNTIME_CONFIG } from './config.js';
+import { hashJson, sha256Hex } from './inference-receipt.js';
+
+const trimSlashes = (value) => String(value || '').replace(/^\/+|\/+$/g, '');
+const pathJoin = (...parts) => parts
+  .map((part, index) => {
+    const text = String(part || '');
+    if (index === 0) return text.replace(/\/+$/g, '');
+    return text.replace(/^\/+|\/+$/g, '');
+  })
+  .filter(Boolean)
+  .join('/');
+const isAbsoluteUrl = (value) => /^https?:\/\//i.test(String(value || ''));
+const ensureTrailingSlash = (value) => `${String(value || '').replace(/\/+$/g, '')}/`;
+const normalizeSha256Hash = (value) => {
+  const text = String(value || '').trim();
+  if (!text) return '';
+  return text.startsWith('sha256:') ? text : `sha256:${text}`;
+};
+const hashesMatch = (left, right) => (
+  !!left && !!right && normalizeSha256Hash(left) === normalizeSha256Hash(right)
+);
+
+export const REQUIRED_ARTIFACT_CORS_ORIGINS = Object.freeze([
+  'https://replo.id',
+  'https://reploid.web.app',
+  'https://reploid.firebaseapp.com',
+  'http://localhost:8000'
+]);
+
+export const REQUIRED_ARTIFACT_CORS_METHODS = Object.freeze(['GET', 'HEAD']);
+
+export const REQUIRED_ARTIFACT_CORS_RESPONSE_HEADERS = Object.freeze([
+  'Accept-Ranges',
+  'Content-Length',
+  'Content-Range',
+  'Content-Type',
+  'ETag'
+]);
+
+const replaceModelPathTokens = (template, model = {}) => String(template || '')
+  .replace(/<modelId>/g, model.modelId || model.id || '')
+  .replace(/<manifestHash>/g, model.manifestHash || '')
+  .replace(/<modelHash>/g, model.modelHash || model.hash || '');
+
+const resolveArtifactChildUrl = (base, childPath) => {
+  const path = String(childPath || '').trim();
+  if (!path) return ensureTrailingSlash(base);
+  if (isAbsoluteUrl(path)) return path;
+  return pathJoin(base, path);
+};
+
+const getManifestModelHash = (manifest = {}) => (
+  manifest.modelHash
+  || manifest.model?.modelHash
+  || manifest.artifactIdentity?.weightPackHash
+  || manifest.artifactIdentity?.shardSetHash
+  || null
+);
+
+const computeManifestShardSetHash = async (manifest = {}) => {
+  const shards = Array.isArray(manifest?.shards) ? manifest.shards : [];
+  if (shards.length === 0) return null;
+  const shardHashInput = shards
+    .map((shard) => {
+      const filename = typeof shard?.filename === 'string' ? shard.filename : '';
+      const size = Number.isFinite(Number(shard?.size)) ? Number(shard.size) : '';
+      const hash = typeof shard?.hash === 'string'
+        ? shard.hash
+        : (typeof shard?.blake3 === 'string' ? shard.blake3 : '');
+      return `${filename}:${size}:${hash}`;
+    })
+    .join('\n');
+  return sha256Hex(shardHashInput);
+};
+
+const getTokenizerHash = (manifest = {}, model = {}) => (
+  manifest.tokenizerHash
+  || manifest.tokenizer?.hash
+  || manifest.tokenizer?.sha256
+  || model.tokenizerHash
+  || model.tokenizer?.hash
+  || null
+);
+
+const getTokenizerPath = (manifest = {}) => (
+  manifest.tokenizer?.path
+  || manifest.tokenizer?.file
+  || manifest.tokenizer?.name
+  || manifest.tokenizer?.filename
+  || null
+);
+
+const readResponseBytes = async (response) => {
+  if (typeof response.arrayBuffer === 'function') {
+    return new Uint8Array(await response.arrayBuffer());
+  }
+  return new TextEncoder().encode(await response.text());
+};
+
+const headerValue = (response, name) => {
+  if (typeof response?.headers?.get === 'function') return response.headers.get(name);
+  const headers = response?.headers || {};
+  return headers[name] || headers[name.toLowerCase()] || null;
+};
+
+const fetchOk = async (fetchImpl, url, label) => {
+  let response = null;
+  try {
+    response = await fetchImpl(url, {
+      method: 'GET',
+      mode: 'cors',
+      cache: 'no-store'
+    });
+  } catch (cause) {
+    const error = new Error(`${label} fetch failed: ${cause?.message || 'network or CORS error'}`);
+    error.cause = cause;
+    error.url = url;
+    error.retryable = true;
+    throw error;
+  }
+  if (!response?.ok) {
+    const status = response?.status || 'unknown';
+    const statusText = response?.statusText ? ` ${response.statusText}` : '';
+    const error = new Error(`${label} fetch failed: ${status}${statusText}`);
+    error.status = response?.status || null;
+    error.url = url;
+    error.retryable = status === 408 || status === 429 || status >= 500;
+    throw error;
+  }
+  return response;
+};
+
+const normalizeShardEntry = (entry, index) => {
+  if (typeof entry === 'string') {
+    return {
+      path: entry,
+      hash: null,
+      index
+    };
+  }
+  return {
+    path: entry?.path || entry?.file || entry?.name || entry?.filename || null,
+    hash: entry?.hash || entry?.sha256 || entry?.shardHash || null,
+    bytes: entry?.bytes || entry?.size || null,
+    index
+  };
+};
+
+export function resolveModelArtifactBaseUrl(baseUrl = globalThis.REPLOID_POOL_MODEL_BASE_URL || BROWSER_RUNTIME_CONFIG.modelBaseUrl) {
+  const normalized = String(baseUrl || '').trim();
+  if (!normalized) throw new Error('model artifact base URL is not configured');
+  return normalized.replace(/\/+$/g, '');
+}
+
+/**
+ * Validate the source-controlled CORS policy required for browser artifact
+ * delivery. A passing source policy does not prove the deployed bucket has
+ * applied it, so browser qualification still requires an authentic fetch.
+ */
+export function validateModelArtifactCorsPolicy(policy = [], {
+  requiredOrigins = REQUIRED_ARTIFACT_CORS_ORIGINS,
+  requiredMethods = REQUIRED_ARTIFACT_CORS_METHODS,
+  requiredResponseHeaders = REQUIRED_ARTIFACT_CORS_RESPONSE_HEADERS
+} = {}) {
+  const reasons = [];
+  const entries = Array.isArray(policy) ? policy : [];
+  if (entries.length < 1) reasons.push('artifact CORS policy must contain at least one rule');
+  for (const origin of requiredOrigins) {
+    const matchingRules = entries.filter((entry) => Array.isArray(entry?.origin) && entry.origin.includes(origin));
+    if (matchingRules.length < 1) {
+      reasons.push(`artifact CORS policy does not allow required origin: ${origin}`);
+      continue;
+    }
+    const validRule = matchingRules.some((entry) => {
+      const methods = Array.isArray(entry.method) ? entry.method.map((value) => String(value).toUpperCase()) : [];
+      const headers = Array.isArray(entry.responseHeader) ? entry.responseHeader.map((value) => String(value).toLowerCase()) : [];
+      return requiredMethods.every((method) => methods.includes(method))
+        && requiredResponseHeaders.every((header) => headers.includes(header.toLowerCase()));
+    });
+    if (!validRule) {
+      reasons.push(`artifact CORS policy rule for ${origin} lacks required methods or response headers`);
+    }
+  }
+  return { ok: reasons.length === 0, reasons };
+}
+
+export function buildModelArtifactUrls(model = {}, { baseUrl } = {}) {
+  const modelId = String(model.modelId || model.id || '').trim();
+  const manifestHash = String(model.manifestHash || '').trim();
+  if (!modelId) throw new Error('modelId is required for artifact URL construction');
+  if (!manifestHash) throw new Error('manifestHash is required for artifact URL construction');
+  const artifactPolicy = model.artifactPolicy || {};
+  const resolvedBaseUrl = resolveModelArtifactBaseUrl(
+    baseUrl || artifactPolicy.baseUrl || model.modelBaseUrl
+  );
+  const pathTemplate = artifactPolicy.pathTemplate;
+  const root = typeof pathTemplate === 'string'
+    ? (
+        pathTemplate.trim()
+          ? pathJoin(resolvedBaseUrl, replaceModelPathTokens(pathTemplate, model))
+          : resolvedBaseUrl
+      )
+    : `${resolvedBaseUrl}/${encodeURIComponent(trimSlashes(modelId))}/${encodeURIComponent(trimSlashes(manifestHash))}`;
+  const resolveArtifactPath = (pathTemplateValue, fallback) => {
+    const rawPath = pathTemplateValue ?? fallback;
+    const artifactPath = replaceModelPathTokens(rawPath, model);
+    if (isAbsoluteUrl(artifactPath)) return artifactPath;
+    const anchor = String(rawPath || '').includes('<') ? resolvedBaseUrl : root;
+    return pathJoin(anchor, artifactPath);
+  };
+  const paths = artifactPolicy.paths || {};
+  return {
+    root,
+    manifest: resolveArtifactPath(paths.manifest, 'manifest.json'),
+    tokenizer: resolveArtifactPath(paths.tokenizer, 'tokenizer.json'),
+    shards: ensureTrailingSlash(resolveArtifactPath(paths.shards, 'shards'))
+  };
+}
+
+export async function verifyModelArtifactManifest({
+  model,
+  baseUrl,
+  fetchImpl = globalThis.fetch
+} = {}) {
+  if (typeof fetchImpl !== 'function') throw new Error('fetch is required for model artifact manifest verification');
+  const urls = buildModelArtifactUrls(model, { baseUrl });
+  let response = null;
+  try {
+    response = await fetchImpl(urls.manifest, {
+      method: 'GET',
+      mode: 'cors',
+      cache: 'no-store'
+    });
+  } catch (cause) {
+    const error = new Error(`model manifest fetch failed: ${cause?.message || 'network or CORS error'}`);
+    error.cause = cause;
+    error.urls = urls;
+    error.retryable = true;
+    throw error;
+  }
+  if (!response?.ok) {
+    const status = response?.status || 'unknown';
+    const statusText = response?.statusText ? ` ${response.statusText}` : '';
+    const error = new Error(`model manifest fetch failed: ${status}${statusText}`);
+    error.status = response?.status || null;
+    error.urls = urls;
+    error.retryable = status === 408 || status === 429 || status >= 500;
+    throw error;
+  }
+  const text = await response.text();
+  let manifest = null;
+  try {
+    manifest = JSON.parse(text);
+  } catch (error) {
+    throw new Error(`model manifest is not valid JSON: ${error.message}`);
+  }
+  const textHash = await sha256Hex(text);
+  const jsonHash = await hashJson(manifest);
+  const expectedManifestHash = String(model?.manifestHash || '').trim();
+  const hashMatches = hashesMatch(expectedManifestHash, textHash)
+    || hashesMatch(expectedManifestHash, jsonHash);
+  if (expectedManifestHash && !hashMatches) {
+    throw new Error('model manifest hash does not match configured manifestHash');
+  }
+  const modelId = manifest.modelId || manifest.id || model?.modelId || model?.id || null;
+  const manifestModelHash = getManifestModelHash(manifest) || await computeManifestShardSetHash(manifest);
+  if (model?.modelId && modelId && modelId !== model.modelId) throw new Error('model manifest modelId mismatch');
+  if (model?.modelHash && manifestModelHash && !hashesMatch(model.modelHash, manifestModelHash)) {
+    throw new Error('model manifest modelHash mismatch');
+  }
+  return {
+    ok: true,
+    urls,
+    manifest,
+    manifestHash: expectedManifestHash || textHash,
+    observedHashes: {
+      textHash,
+      jsonHash
+    }
+  };
+}
+
+export function validateModelArtifactManifestShape(manifest = {}, model = {}) {
+  const reasons = [];
+  if (!manifest || typeof manifest !== 'object' || Array.isArray(manifest)) reasons.push('manifest must be an object');
+  if (!manifest.modelId && !manifest.id) reasons.push('manifest.modelId is required');
+  if (!getManifestModelHash(manifest) && !model.modelHash) reasons.push('manifest.modelHash is required');
+  if (!getTokenizerHash(manifest, model)) reasons.push('manifest tokenizer hash is required');
+  const shards = Array.isArray(manifest.shards) ? manifest.shards : [];
+  if (shards.length === 0) reasons.push('manifest.shards must contain at least one shard');
+  shards.map(normalizeShardEntry).forEach((shard) => {
+    if (!shard.path) reasons.push(`manifest.shards.${shard.index}.path is required`);
+    if (!shard.hash) reasons.push(`manifest.shards.${shard.index}.hash is required`);
+  });
+  return {
+    ok: reasons.length === 0,
+    reasons,
+    shards
+  };
+}
+
+export function validateDopplerExecutionManifestShape(manifest = {}) {
+  const reasons = [];
+  const inference = manifest?.inference;
+  const hasOwn = (object, field) => (
+    !!object && typeof object === 'object' && Object.prototype.hasOwnProperty.call(object, field)
+  );
+  if (!inference || typeof inference !== 'object' || Array.isArray(inference)) {
+    reasons.push('manifest.inference must be an object');
+    return { ok: false, reasons };
+  }
+  if (inference.schema !== 'doppler.execution/v1') {
+    reasons.push('manifest.inference.schema must be doppler.execution/v1');
+  }
+  const requiredFields = [
+    ['ffn', 'branchMode'],
+    ['output', 'embeddingScale'],
+    ['output', 'logitInputScale'],
+    ['layerPattern', 'residualBranchScale'],
+    ['rope', 'longropeShortFactor'],
+    ['rope', 'longropeLongFactor'],
+    ['rope', 'longropeOriginalMaxPos']
+  ];
+  for (const [section, field] of requiredFields) {
+    if (!hasOwn(inference[section], field)) {
+      reasons.push(`manifest.inference.${section}.${field} must be explicit`);
+    }
+  }
+  return {
+    ok: reasons.length === 0,
+    reasons
+  };
+}
+
+export async function verifyModelArtifactPackage({
+  model,
+  baseUrl,
+  fetchImpl = globalThis.fetch
+} = {}) {
+  const manifestResult = await verifyModelArtifactManifest({ model, baseUrl, fetchImpl });
+  const shape = validateModelArtifactManifestShape(manifestResult.manifest, model);
+  if (!shape.ok) {
+    const error = new Error(shape.reasons.join('; '));
+    error.reasons = shape.reasons;
+    throw error;
+  }
+  const urls = manifestResult.urls;
+  const manifest = manifestResult.manifest;
+  const tokenizerHash = getTokenizerHash(manifest, model);
+  const tokenizerPath = getTokenizerPath(manifest);
+  const tokenizerUrl = tokenizerPath
+    ? resolveArtifactChildUrl(urls.root, tokenizerPath)
+    : urls.tokenizer;
+  const tokenizerBytes = await readResponseBytes(await fetchOk(fetchImpl, tokenizerUrl, 'tokenizer artifact'));
+  const observedTokenizerHash = await sha256Hex(tokenizerBytes);
+  if (!hashesMatch(observedTokenizerHash, tokenizerHash)) {
+    throw new Error('tokenizer artifact hash mismatch');
+  }
+  const shardResults = [];
+  for (const shard of manifest.shards.map(normalizeShardEntry)) {
+    const shardUrl = resolveArtifactChildUrl(urls.shards, shard.path);
+    const shardBytes = await readResponseBytes(await fetchOk(fetchImpl, shardUrl, `model shard ${shard.index}`));
+    const observedHash = await sha256Hex(shardBytes);
+    if (!hashesMatch(observedHash, shard.hash)) {
+      throw new Error(`model shard ${shard.index} hash mismatch`);
+    }
+    shardResults.push({
+      index: shard.index,
+      path: shard.path,
+      hash: observedHash,
+      bytes: shardBytes.byteLength
+    });
+  }
+  const packageIdentity = {
+    modelId: manifest.modelId || manifest.id,
+    modelHash: getManifestModelHash(manifest) || await computeManifestShardSetHash(manifest) || model?.modelHash || null,
+    manifestHash: manifestResult.manifestHash,
+    tokenizerHash: observedTokenizerHash,
+    shardHashes: shardResults.map((shard) => shard.hash)
+  };
+  return {
+    ok: true,
+    urls,
+    manifest,
+    packageIdentity,
+    tokenizer: {
+      path: tokenizerPath,
+      hash: observedTokenizerHash
+    },
+    shards: shardResults
+  };
+}
+
+export async function verifyModelArtifactRangeDelivery({
+  model,
+  baseUrl,
+  fetchImpl = globalThis.fetch,
+  manifestResult = null
+} = {}) {
+  if (typeof fetchImpl !== 'function') throw new Error('fetch is required for model artifact range verification');
+  const verifiedManifest = manifestResult || await verifyModelArtifactManifest({ model, baseUrl, fetchImpl });
+  const shape = validateModelArtifactManifestShape(verifiedManifest.manifest, model);
+  if (!shape.ok) {
+    const error = new Error(shape.reasons.join('; '));
+    error.reasons = shape.reasons;
+    throw error;
+  }
+  const shard = normalizeShardEntry(verifiedManifest.manifest.shards[0], 0);
+  const shardUrl = resolveArtifactChildUrl(verifiedManifest.urls.shards, shard.path);
+  const ranges = [];
+  for (const [start, end] of [[0, 0], [1, 1]]) {
+    const response = await fetchImpl(shardUrl, {
+      method: 'GET',
+      mode: 'cors',
+      cache: 'no-store',
+      headers: {
+        Range: `bytes=${start}-${end}`
+      }
+    });
+    if (response?.status !== 206) {
+      const error = new Error(`model shard range request must return 206, received ${response?.status || 'unknown'}`);
+      error.status = response?.status || null;
+      error.url = shardUrl;
+      throw error;
+    }
+    const contentRange = headerValue(response, 'content-range');
+    const expectedPrefix = `bytes ${start}-${end}/`;
+    if (!String(contentRange || '').toLowerCase().startsWith(expectedPrefix)) {
+      throw new Error(`model shard range response is missing ${expectedPrefix} Content-Range`);
+    }
+    const bytes = await readResponseBytes(response);
+    if (bytes.byteLength !== end - start + 1) {
+      throw new Error(`model shard range response returned ${bytes.byteLength} bytes instead of ${end - start + 1}`);
+    }
+    ranges.push({
+      start,
+      end,
+      contentRange,
+      bytes: bytes.byteLength
+    });
+  }
+  return {
+    ok: true,
+    shard: {
+      index: shard.index,
+      path: shard.path,
+      url: shardUrl,
+      declaredHash: normalizeSha256Hash(shard.hash)
+    },
+    ranges,
+    resumable: true
+  };
+}
+
+/**
+ * Verify the deployed CORS behavior that browser providers rely on.
+ *
+ * The source-controlled bucket policy is intent. This probe verifies the
+ * observable HEAD and byte-range GET responses for every governed browser
+ * origin without treating a Node fetch as authentic-browser qualification.
+ */
+export async function verifyModelArtifactCorsDelivery({
+  model,
+  baseUrl,
+  origins = REQUIRED_ARTIFACT_CORS_ORIGINS,
+  requiredResponseHeaders = REQUIRED_ARTIFACT_CORS_RESPONSE_HEADERS,
+  fetchImpl = globalThis.fetch,
+  manifestResult = null
+} = {}) {
+  if (typeof fetchImpl !== 'function') throw new Error('fetch is required for model artifact CORS verification');
+  const verifiedManifest = manifestResult || await verifyModelArtifactManifest({ model, baseUrl, fetchImpl });
+  const shape = validateModelArtifactManifestShape(verifiedManifest.manifest, model);
+  if (!shape.ok) {
+    const error = new Error(shape.reasons.join('; '));
+    error.reasons = shape.reasons;
+    throw error;
+  }
+  const shard = normalizeShardEntry(verifiedManifest.manifest.shards[0], 0);
+  const shardUrl = resolveArtifactChildUrl(verifiedManifest.urls.shards, shard.path);
+  const requiredExposed = requiredResponseHeaders.map((header) => header.toLowerCase());
+  const observations = [];
+
+  const inspectCors = (response, origin, label) => {
+    const allowOrigin = headerValue(response, 'access-control-allow-origin');
+    if (allowOrigin !== origin) {
+      throw new Error(`${label} CORS response for ${origin} must return matching Access-Control-Allow-Origin`);
+    }
+    const exposedHeaders = String(headerValue(response, 'access-control-expose-headers') || '')
+      .split(',')
+      .map((header) => header.trim().toLowerCase())
+      .filter(Boolean);
+    const missing = requiredExposed.filter((header) => !exposedHeaders.includes(header));
+    if (missing.length > 0) {
+      throw new Error(`${label} CORS response for ${origin} does not expose: ${missing.join(', ')}`);
+    }
+    return {
+      allowOrigin,
+      exposedHeaders,
+      vary: headerValue(response, 'vary') || null,
+      cacheControl: headerValue(response, 'cache-control') || null,
+      etag: headerValue(response, 'etag') || null
+    };
+  };
+
+  for (const origin of origins) {
+    const headResponse = await fetchImpl(verifiedManifest.urls.manifest, {
+      method: 'HEAD',
+      mode: 'cors',
+      cache: 'no-store',
+      headers: { Origin: origin }
+    });
+    if (!headResponse?.ok) {
+      throw new Error(`model manifest HEAD CORS probe for ${origin} returned ${headResponse?.status || 'unknown'}`);
+    }
+    const head = inspectCors(headResponse, origin, 'model manifest HEAD');
+
+    const rangeResponse = await fetchImpl(shardUrl, {
+      method: 'GET',
+      mode: 'cors',
+      cache: 'no-store',
+      headers: {
+        Origin: origin,
+        Range: 'bytes=0-0'
+      }
+    });
+    if (rangeResponse?.status !== 206) {
+      throw new Error(`model shard range CORS probe for ${origin} must return 206, received ${rangeResponse?.status || 'unknown'}`);
+    }
+    const range = inspectCors(rangeResponse, origin, 'model shard range GET');
+    const contentRange = headerValue(rangeResponse, 'content-range');
+    if (!String(contentRange || '').toLowerCase().startsWith('bytes 0-0/')) {
+      throw new Error(`model shard range CORS probe for ${origin} is missing bytes 0-0 Content-Range`);
+    }
+    const bytes = await readResponseBytes(rangeResponse);
+    if (bytes.byteLength !== 1) {
+      throw new Error(`model shard range CORS probe for ${origin} returned ${bytes.byteLength} bytes instead of 1`);
+    }
+    observations.push({ origin, head, range: { ...range, contentRange, bytes: bytes.byteLength } });
+  }
+
+  return {
+    ok: true,
+    manifestUrl: verifiedManifest.urls.manifest,
+    shardUrl,
+    observations
+  };
+}
+
+export default {
+  REQUIRED_ARTIFACT_CORS_ORIGINS,
+  REQUIRED_ARTIFACT_CORS_METHODS,
+  REQUIRED_ARTIFACT_CORS_RESPONSE_HEADERS,
+  resolveModelArtifactBaseUrl,
+  validateModelArtifactCorsPolicy,
+  buildModelArtifactUrls,
+  verifyModelArtifactManifest,
+  validateModelArtifactManifestShape,
+  validateDopplerExecutionManifestShape,
+  verifyModelArtifactPackage,
+  verifyModelArtifactRangeDelivery,
+  verifyModelArtifactCorsDelivery
+};
