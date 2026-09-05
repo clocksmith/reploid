@@ -33,6 +33,7 @@ Guide to all documentation in the REPLOID project.
 - **[docs/component-index.md](./component-index.md)** - Generated recursive index of component charters
 - **[docs/substrate.md](./substrate.md)** - Substrate + Ouroboros contract
 - **[docs/rsi-improvement-episodes.md](./rsi-improvement-episodes.md)** - Signed causal episode ledger, metric semantics, evaluator authority, generations, and X workbench
+- **[docs/poolday/executable-intelligence-network-plan.md](./poolday/executable-intelligence-network-plan.md)** - Independent Poolday/Reploid network proof from base-Pack exchange through causal evidence-to-routing improvement
 - **[docs/change-passport/product-intent.md](./change-passport/product-intent.md)** - Inactive commercial alternative, independent proof, authority, and claim boundary
 - **[docs/change-passport/implementation-plan.md](./change-passport/implementation-plan.md)** - Ordered repository deltas, acceptance gates, integrations, pilot, and launch evidence
 - **[docs/change-passport/pilot-charter.md](./change-passport/pilot-charter.md)** - Frozen comparison protocol and external authority boundary
