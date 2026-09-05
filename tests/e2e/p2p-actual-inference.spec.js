@@ -990,7 +990,7 @@ test.describe('Run and Contribute actual browser inference', () => {
       await expect(toggle).toHaveAttribute('data-contribution-action', 'start');
       await toggle.click();
       await expect(providerPage.locator('[data-pool-provider-status]')).toHaveText('Starting');
-      await expect(providerPage.locator('[data-pool-provider-status]')).toHaveText('Idle', {
+      await expect(providerPage.locator('[data-pool-provider-status]')).toHaveText('Could not start', {
         timeout: 30000
       });
       const rejected = await readSnapshot(providerPage, 'pool-provider-result');
