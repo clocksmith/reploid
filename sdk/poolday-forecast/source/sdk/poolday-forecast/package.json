@@ -1,0 +1,10 @@
+{
+  "name": "@reploid/poolday-forecast",
+  "version": "0.1.0",
+  "description": "Bounded complete-forecast contracts over the original Poolday signed records",
+  "type": "module",
+  "exports": { ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" } },
+  "files": ["dist", "source", "provenance.json", "LICENSE"],
+  "license": "MIT",
+  "engines": { "node": ">=20" }
+}

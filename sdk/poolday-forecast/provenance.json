@@ -1,12 +1,26 @@
 {
   "schema": "reploid.sdk-provenance/v1",
-  "baseCommit": "cf35eaca8b1cb009c8ab80bb895d6ef80fafa626",
+  "sourceHash": "sha256:c35b3e155205fc4c95a85e0f537b6f2155b1e4d4146a1e6badb62adc57ed024d",
+  "toolchain": {
+    "esbuild": "0.28.2",
+    "node": "v22.20.0"
+  },
   "command": "node scripts/build-poolday-forecast-sdk.js",
   "sources": [
     {
+      "path": "LICENSE",
+      "hash": "sha256:ca17835b1c6a84ccfb7172c57f8aa27d2254f9b6dbf33c3b7187866d1d3f5623",
+      "sizeBytes": 1077
+    },
+    {
+      "path": "package-lock.json",
+      "hash": "sha256:034d54a956090bd518b41f271c592da9c7ebcb325023c0e52aaeef56ce2e1373",
+      "sizeBytes": 209032
+    },
+    {
       "path": "scripts/build-poolday-forecast-sdk.js",
-      "hash": "sha256:e21f13e3ce18db35faea995d762b99e79093614a2afb974fc1cf7822c156eed4",
-      "sizeBytes": 2129
+      "hash": "sha256:bd907b1fdc070cac010b4d5600c6ecc5230eb2f21241787e3b08b35bfb1063c4",
+      "sizeBytes": 2198
     },
     {
       "path": "sdk/poolday-forecast/index.d.ts",
@@ -17,6 +31,11 @@
       "path": "sdk/poolday-forecast/index.js",
       "hash": "sha256:fa9832c363d5b4a2f5360cc8e761e7da635cbe61bf02923735da4d3cb2d4349f",
       "sizeBytes": 582
+    },
+    {
+      "path": "sdk/poolday-forecast/package.json",
+      "hash": "sha256:0e71e30f2e8ed79b50d3a0ccb8c8d61d34d123c1c9481f8ef8025a61a8ea59eb",
+      "sizeBytes": 380
     },
     {
       "path": "self/pool/adapter-pack.js",
@@ -40,8 +59,8 @@
     },
     {
       "path": "self/pool/complete-forecast.js",
-      "hash": "sha256:d705c97277e0138620c3cb304061eb82664c35a44e054319add3f37bdef09791",
-      "sizeBytes": 23306
+      "hash": "sha256:483192344e399c005f1a15835801b4cd16abab609c3fad93dc97ec30f5e1d143",
+      "sizeBytes": 23820
     },
     {
       "path": "self/pool/config-contract.js",
@@ -111,6 +130,6 @@
   ],
   "output": {
     "path": "dist/index.js",
-    "hash": "sha256:a89cc573e7c849bdc437f0f04e7bd7b48083f7a7c8b45869885438a17152c3c9"
+    "hash": "sha256:705ef15a2f39cc787de0936a97b867163fbde7252caf5057fd6d2474c0edbc44"
   }
 }

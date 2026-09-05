@@ -34,7 +34,7 @@ export function validateForecastPolicy(policy) {
 
 export async function verifyForecastPeerMessage(message, { type, recipient = null, now = Date.now() } = {}) {
   const candidate = copy(message);
-  if (canonicalize(candidate).length > 64 * 1024 || candidate.type !== type || candidate.toPeerId !== recipient ||
+  if (new TextEncoder().encode(canonicalize(candidate)).length > 64 * 1024 || candidate.type !== type || candidate.toPeerId !== recipient ||
       typeof candidate.publicKey !== 'string' || candidate.publicKey.length > 1024 || !digest(candidate.fromPeerId) ||
       !Number.isFinite(now) || !Number.isFinite(Date.parse(candidate.createdAt)) || Date.parse(candidate.createdAt) > now + 5000 ||
       !Number.isFinite(Date.parse(candidate.expiresAt)) || Date.parse(candidate.expiresAt) > now + 300000 ||
@@ -134,7 +134,11 @@ export async function assignForecastJob({ intent, adverts, expectedModel, assign
 export async function validateForecastAssignment({ assignment, intent, advert, expectedModel, route, now = Date.now() }) {
   assignment = copy(assignment); intent = copy(intent); advert = copy(advert); expectedModel = copy(expectedModel); route = copy(route);
   intent = await validateIntent(intent, expectedModel, now);
-  advert = await verifyForecastPeerMessage(advert, { type: PEER_MESSAGE_TYPES.PROVIDER_ADVERT, now });
+  // An advertisement qualifies selection at assignment time. Its refresh lease
+  // does not shorten a subsequently accepted, bounded execution assignment.
+  const selectedAt = Date.parse(route.createdAt);
+  if (!Number.isFinite(selectedAt) || selectedAt < Date.parse(intent.createdAt) || selectedAt > now + 5000) throw new Error('Invalid assignment selection time');
+  advert = await verifyForecastPeerMessage(advert, { type: PEER_MESSAGE_TYPES.PROVIDER_ADVERT, now: selectedAt });
   assertModel(advert.body.models[0], expectedModel);
   const { createdAt, decisionHash, ...routeIdentity } = route;
   if (advert.body.providerId !== advert.fromPeerId || advert.body.models.length !== 1 || advert.body.availability.acceptingJobs !== true ||
@@ -199,6 +203,7 @@ export async function verifyForecastReceipt({ receipt, assignment, request, expe
   if (reasons.length || receipt.outputKind !== FORECAST_WORKLOAD || receipt.status !== 'completed' ||
       !await verifyCanonicalSignature(receiptSigningPayload(receipt), assignment.providerPublicKey, receipt.providerSignature,
         { domain: SIGNATURE_DOMAINS.providerReceipt }) || canonicalize(receipt.forecast?.domain) !== canonicalize(assignment.domain) ||
+      canonicalize(receipt.dopplerProviderReceipt) !== canonicalize(receipt.forecast?.executionReceipt) ||
       receipt.transcriptHash !== await hashJson(receipt.forecast) || receipt.outputHash !== await hashJson(receipt.forecast.output)) throw new Error('Forecast provider receipt rejected: ' + reasons.join('; '));
   await assertExecution({ assignment, model: expectedModel, request, output: receipt.forecast.output, executionReceipt: receipt.forecast.executionReceipt });
   validateForecastCosts(receipt.forecast.costs);
