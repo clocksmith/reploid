@@ -2,6 +2,10 @@
 
 ## Product aim
 
+Reploid is the public product name. Poolday is an internal implementation name,
+not a separate public brand. Public pages use Reploid and short, direct copy;
+protocol names, routes, signed records, and historical evidence retain identity.
+
 Poolday is Reploid's primary product: unrelated operators deliver and execute
 an exact Doppler capability across peers, retain admissible evidence, and use
 that evidence to improve a subsequent assignment or investigation. The immediate

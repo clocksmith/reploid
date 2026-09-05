@@ -2725,13 +2725,13 @@
     },
     {
       "path": "ui/pool-home/CATSCAN.md",
-      "byteLength": 1964,
-      "sha256": "sha256:564fb10407f93d3bc0b431d61a1c91bc8ed2d10f8b3503c9bda76f08134338e9"
+      "byteLength": 2066,
+      "sha256": "sha256:0d6c6f2ed1541789319dc368c50dd6419173ea78fb2ef0f82c6741bf6509aa57"
     },
     {
       "path": "ui/pool-home/constants.js",
-      "byteLength": 14650,
-      "sha256": "sha256:f9602988f70feccac7348f8f020b30a451ed10d74d3389c4230a3c04382181de"
+      "byteLength": 14522,
+      "sha256": "sha256:7ef644d44b983b7e4f3daef9e9a149c98373b2d57ac0204b9e41c97300485579"
     },
     {
       "path": "ui/pool-home/contribution-state.js",
@@ -2850,8 +2850,8 @@
     },
     {
       "path": "ui/pool-home/view.js",
-      "byteLength": 95340,
-      "sha256": "sha256:1f0f7680ea70b8967bca9b760f9801118a427b0c06a22524b37f7ce0deead644"
+      "byteLength": 95249,
+      "sha256": "sha256:2b899f6dcc84d7ede449b75c6587572bf97cf008f73449cf77ce2eaf5ef21b23"
     },
     {
       "path": "ui/proto.js",
@@ -2944,5 +2944,5 @@
       "sha256": "sha256:c5a6c85719ce4072b343251b10f5a00f7f99d83be47f83367b3f959886c78701"
     }
   ],
-  "bundleHash": "sha256:153668a047580db0686ad0172bd648a62b057827bb10b70f382ae6ebad4147f4"
+  "bundleHash": "sha256:b0e5299af0b7dac79c51908096ba6dd8f85febcc4eb240495fe63dd0970bff0e"
 }

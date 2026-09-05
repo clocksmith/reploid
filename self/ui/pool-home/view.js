@@ -1095,13 +1095,13 @@ const renderProteinEmbeddingDetails = (id) => `
 const renderProteinEmbeddingOutcome = (id) => `
   <section class="pool-embedding-outcome" id="${id}-embedding-outcome" aria-live="polite" hidden>
     <p class="pool-embedding-outcome-kicker">Protein representation</p>
-    <h3 class="type-h3">Ready for compatible comparison</h3>
+    <h3 class="type-h3">Embedding ready</h3>
     <p class="pool-embedding-outcome-meta" id="${id}-embedding-outcome-meta"></p>
-    <p class="pool-embedding-outcome-copy">This is a 480-number representation for software, not a result to read manually. Use it with embeddings made by the same ESM-2 model and contract when comparing sequences.</p>
-    <p class="pool-embedding-outcome-copy">Reploid can now compare this result with exact-contract compatible public embeddings and connect it to separately signed human evidence. It does not generate biological interpretation or diagnosis.</p>
+    <p class="pool-embedding-outcome-copy">480 values for comparing sequences from this exact ESM-2 model and contract.</p>
+    <p class="pool-embedding-outcome-copy">Not a biological interpretation or diagnosis.</p>
     <div class="pool-embedding-outcome-actions">
       <button class="btn btn-ghost" type="button" data-pool-copy-embedding data-pool-embedding-result-id="${id}" disabled>Copy vector</button>
-      <a class="btn btn-ghost" href="${escapeHtml(roomHref('/records', getPeerRoomId()))}">Review and discover</a>
+      <a class="btn btn-ghost" href="${escapeHtml(roomHref('/records', getPeerRoomId()))}">Recent jobs</a>
       <p class="pool-embedding-copy-status" data-pool-embedding-copy-status aria-live="polite"></p>
     </div>
     <p class="pool-embedding-copy-status" id="${id}-research-status" aria-live="polite"></p>
@@ -1528,7 +1528,7 @@ export const renderNav = (activeRoute) => {
     return `<a class="pool-nav-link${isActive ? ' is-active' : ''}" href="${escapeHtml(roomPath)}" aria-label="${ariaLabel}" data-pool-nav-short-label="${shortLabel}" data-pool-route-link="${escapeHtml(roomPath)}"${currentAttr}>${ariaLabel}</a>`;
   };
   return `
-    <nav class="pool-nav-rail pool-primary-nav" aria-label="Poolday">
+    <nav class="pool-nav-rail pool-primary-nav" aria-label="${escapeHtml(POOLDAY_NAME)}">
       <a class="pool-primary-brand" href="${escapeHtml(roomHref('/', getPeerRoomId()))}" data-pool-route-link="${escapeHtml(roomHref('/', getPeerRoomId()))}">${escapeHtml(POOLDAY_NAME)}</a>
       <div class="pool-nav-menu" id="pool-nav-menu">
         ${POOLDAY_NAV_ROUTES.map(renderItem).join('')}
@@ -1769,13 +1769,15 @@ const renderPackSummary = (model = LAUNCH_MODEL) => {
     ? 'Full model · one sequence'
     : `${model.runtime || 'Doppler'} · ${model.backend || 'qualified provider'}`;
   return `
+    <details class="pool-advanced pool-model-details"><summary>Model details</summary>
     <dl class="pool-pack-summary" data-pool-pack-summary>
-      <div><dt>Signed Pack</dt><dd title="${escapeHtml(identity.weightPackId || model.modelHash || model.modelId)}">${escapeHtml(compactHash(identity.weightPackId || model.modelHash || model.modelId))}</dd></div>
+      <div><dt>Model identity</dt><dd title="${escapeHtml(identity.weightPackId || model.modelHash || model.modelId)}">${escapeHtml(compactHash(identity.weightPackId || model.modelHash || model.modelId))}</dd></div>
       <div><dt>Capability</dt><dd>${escapeHtml(dimensions ? `Sequence embedding · ${dimensions} dimensions` : getPoolModelWorkload(model).replace(/[._-]/g, ' '))}</dd></div>
       <div><dt>Input</dt><dd>${escapeHtml(maxInput ? `Public protein sequence · up to ${maxInput} residues` : 'Public protein sequence')}</dd></div>
       <div><dt>Work</dt><dd>${escapeHtml(work)}</dd></div>
       <div><dt>Providers</dt><dd data-pool-pack-provider-state>Searching</dd></div>
     </dl>
+    </details>
   `;
 };
 
@@ -1847,10 +1849,10 @@ const renderHomeSimulation = ({ dashboardView = 'home' } = {}) => {
   const suggestedPrompt = choosePooldayAskPlaceholderForLane('sequence');
   return `
     <section class="pool-home-stage pool-home-stage--focused" aria-label="Run a model" data-pool-run-surface="home" data-run-state="idle" data-run-phase="" data-pool-lane="sequence" data-pool-dashboard-view="${activeView}">
-      <div class="pool-home-toolbar" aria-label="Poolday">
-        <div class="pool-home-toolbar-leading pool-home-overlay" aria-label="Poolday overview">
+      <div class="pool-home-toolbar" aria-label="${escapeHtml(POOLDAY_NAME)}">
+        <div class="pool-home-toolbar-leading pool-home-overlay" aria-label="${escapeHtml(POOLDAY_NAME)} overview">
           <div class="pool-home-title-lockup">
-            <h1 class="type-h1 pool-home-brand-word">POOLDAY</h1>
+            <h1 class="type-h1 pool-home-brand-word">${escapeHtml(POOLDAY_NAME)}</h1>
             <p class="type-caption pool-hero-body pool-home-brand-promise">${escapeHtml(ROUTE_COPY.home.body)}</p>
           </div>
         </div>
@@ -1861,14 +1863,14 @@ const renderHomeSimulation = ({ dashboardView = 'home' } = {}) => {
             <h2 class="type-h2">Run a model</h2>
           </header>
           <label class="pool-field">
-            <span>Model Pack</span>
+            <span>Model</span>
             <select id="pool-home-request-model" data-pool-request-control>
               ${renderModelOptions({ workload: POOLDAY_MODEL_WORKLOADS.sequenceEmbedding })}
             </select>
           </label>
           ${renderPackSummary(LAUNCH_MODEL)}
           <label class="pool-home-sequence-field" for="pool-home-ask-prompt">
-            <span>Input</span>
+            <span>Public protein sequence</span>
             <textarea
               id="pool-home-ask-prompt"
               class="pool-home-ask-input"
@@ -1891,7 +1893,7 @@ const renderHomeSimulation = ({ dashboardView = 'home' } = {}) => {
             <strong data-pool-sequence-consent-saved hidden>Saved</strong>
           </div>
           <details class="pool-advanced pool-home-request-details">
-            <summary>Advanced details</summary>
+            <summary>Options</summary>
             <div class="pool-advanced-grid">
               <label class="pool-field">
                 <span>Verification</span>
@@ -1995,7 +1997,7 @@ export const renderRouteDetail = (routeId) => {
             </div>
             <div id="pool-provider-node-stats" class="pool-node-status-line" aria-live="polite" hidden></div>
             <label class="pool-field">
-              <span>Available Pack</span>
+              <span>Model</span>
               <select id="pool-provider-model">${renderModelOptions({ includeWorkloadLabel: true })}</select>
             </label>
             ${renderPackSummary(LAUNCH_MODEL)}
