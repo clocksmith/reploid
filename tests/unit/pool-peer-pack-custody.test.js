@@ -15,6 +15,26 @@ async function fixture(limits = {}) {
 const read = (store, f) => store.readArtifact(f.authorization.pack.artifacts[0]);
 
 describe('peer-only exact Pack dependency custody', () => {
+  it('acquires separately authorized envelope bytes without inventing a self-referential artifact closure', async () => {
+    const dependencies = await fixture();
+    const envelopeBytes = new TextEncoder().encode('{"schema":"contract-test-envelope"}');
+    const envelopeArtifact = { artifactId: 'pack-envelope', role: 'pack-envelope', path: 'pack.json',
+      hash: await sha256Hex(envelopeBytes), sizeBytes: envelopeBytes.length };
+    const f = await createCustodyFixture(dependencies.authorization.pack,
+      new Map([...dependencies.artifactBytes, [envelopeArtifact.artifactId, envelopeBytes]]), 8, {}, envelopeArtifact);
+    const store = await createPeerPackArtifactStore(f.options);
+    try {
+      expect(await store.readEnvelope()).toEqual(envelopeBytes);
+      expect(store.getReceipt().completed).toEqual([{ artifactId: envelopeArtifact.artifactId, hash: envelopeArtifact.hash, sizeBytes: envelopeBytes.length }]);
+      expect(f.authorization.pack.artifactClosureDigest).toBe(dependencies.authorization.pack.artifactClosureDigest);
+    } finally { store.close(); }
+    const malformed = structuredClone(f.authorization);
+    malformed.envelopeArtifact.artifactId = malformed.pack.artifacts[0].artifactId;
+    await expect(createPeerPackArtifactStore({ ...f.options, authorization: malformed })).rejects.toThrow('envelope');
+    const legacy = await createPeerPackArtifactStore(dependencies.options);
+    try { expect(() => legacy.readEnvelope()).toThrow('no Pack envelope authorized'); } finally { legacy.close(); }
+  });
+
   it('reconstructs complementary peer chunks, rejects corruption and recovers supplier loss without fetch', async () => {
     const f = await fixture();
     const fetchSpy = vi.spyOn(globalThis, 'fetch').mockRejectedValue(new Error('origin disabled'));

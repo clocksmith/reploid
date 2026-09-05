@@ -3,12 +3,12 @@ import { createSigningKeyPair, exportPublicKey, sha256Hex } from '../../self/poo
 import { hashDopplerEvidence } from '../../self/pool/executable-pack.js';
 import { createPeerPackSupplier } from '../../self/pool/peer-pack-custody.js';
 
-export async function createCustodyFixture(pack, artifactBytes, chunkSize = 2, limits = {}) {
+export async function createCustodyFixture(pack, artifactBytes, chunkSize = 2, limits = {}, envelopeArtifact = undefined) {
   const keys = await Promise.all(Array.from({ length: 4 }, () => createSigningKeyPair()));
   const publicKeys = await Promise.all(keys.map((key) => exportPublicKey(key.publicKey)));
   const index = { schema: 'reploid.pool.pack-custody-index/v1', envelopeDigest: pack.envelopeDigest,
     artifactClosureDigest: pack.artifactClosureDigest, artifacts: [] };
-  for (const artifact of pack.artifacts) {
+  for (const artifact of [...pack.artifacts, ...(envelopeArtifact ? [envelopeArtifact] : [])]) {
     const bytes = artifactBytes.get(artifact.artifactId);
     const chunks = [];
     for (let offset = 0; offset < bytes.length; offset += chunkSize) {
@@ -19,6 +19,7 @@ export async function createCustodyFixture(pack, artifactBytes, chunkSize = 2, l
   }
   const now = 1000;
   const authorization = { schema: 'reploid.pool.pack-custody-authorization/v1', pack,
+    ...(envelopeArtifact ? { envelopeArtifact } : {}),
     transferId: 'custody-test', attempt: 1, expiresAt: now + 60000,
     requester: { peerId: 'requester', publicKey: publicKeys[0] },
     suppliers: ['faulty', 'even', 'odd'].map((peerId, index) => ({ peerId, publicKey: publicKeys[index + 1] })),

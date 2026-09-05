@@ -1250,8 +1250,8 @@
     },
     {
       "path": "config/module-inventory.json",
-      "byteLength": 79200,
-      "sha256": "sha256:33d78916102a333799e20be8ae41b843ecfa022f15cd1440c5220a3f2ff5cc30"
+      "byteLength": 79395,
+      "sha256": "sha256:e6ed68aa5c917db26727b9a1173ebebd60f366b1290a2bad80dd208689b8b4b6"
     },
     {
       "path": "config/module-registry.json",
@@ -1280,8 +1280,8 @@
     },
     {
       "path": "config/vfs-manifest.json",
-      "byteLength": 22888,
-      "sha256": "sha256:697480688508844a0287fb5b0c76554f4db4aa4944c31e1c7091108e36a86097"
+      "byteLength": 22926,
+      "sha256": "sha256:721f8d2a447d3f7125a2816cd45d16c53689492d8dc5dd1abfda2fa3310391a7"
     },
     {
       "path": "config/vfs-policy.js",
@@ -1997,6 +1997,11 @@
       "path": "pool/peer-pack-custody.js",
       "byteLength": 15313,
       "sha256": "sha256:2af488dd58704df13b4748f7fd36941521066816629857493f410bec777e5e59"
+    },
+    {
+      "path": "pool/peer-pack-data-channel.js",
+      "byteLength": 10996,
+      "sha256": "sha256:7efc1728b482d3739722c587565d4178427400f02cfee116722730d47e45a1f3"
     },
     {
       "path": "pool/peer-payload.js",
@@ -2884,5 +2889,5 @@
       "sha256": "sha256:c5a6c85719ce4072b343251b10f5a00f7f99d83be47f83367b3f959886c78701"
     }
   ],
-  "bundleHash": "sha256:66e9aeb9727e9864918c80bd143177c74d5fc9ec94c6f1f2059defed9fcb9a98"
+  "bundleHash": "sha256:da4698c53182c896b0185b069553c1eb50a9b8bb81edfb1ff196e3e27ee18fb8"
 }

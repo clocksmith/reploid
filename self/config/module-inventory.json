@@ -1189,6 +1189,12 @@
       ]
     },
     {
+      "path": "pool/peer-pack-data-channel.js",
+      "owner": "pool",
+      "sha256": "sha256:7efc1728b482d3739722c587565d4178427400f02cfee116722730d47e45a1f3",
+      "imports": []
+    },
+    {
       "path": "pool/peer-payload.js",
       "owner": "pool",
       "sha256": "sha256:d38b6615d7ab92ef0bb9c0b7202bd784969609328f29c3907f56663cc14deaa6",
