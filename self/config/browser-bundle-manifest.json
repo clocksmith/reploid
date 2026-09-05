@@ -1850,8 +1850,8 @@
     },
     {
       "path": "pool/complete-forecast.js",
-      "byteLength": 23306,
-      "sha256": "sha256:d705c97277e0138620c3cb304061eb82664c35a44e054319add3f37bdef09791"
+      "byteLength": 23820,
+      "sha256": "sha256:483192344e399c005f1a15835801b4cd16abab609c3fad93dc97ec30f5e1d143"
     },
     {
       "path": "pool/config-contract.js",
@@ -2340,8 +2340,8 @@
     },
     {
       "path": "styles/rd.css",
-      "byteLength": 36576,
-      "sha256": "sha256:14cf2284326164f0a7bc051b0941e92ba50024ab06d6e75d4cc84f45e36550c7"
+      "byteLength": 36607,
+      "sha256": "sha256:9dcfbcb73fd9a472bc5e6672b18c1ff584db1c289c7e00b20fc8102be67dafff"
     },
     {
       "path": "styles/vfs-explorer.css",
@@ -2350,8 +2350,8 @@
     },
     {
       "path": "styles/zero.css",
-      "byteLength": 8698,
-      "sha256": "sha256:e7d055854247e7625f71ca6a0f361920e7242d57b8b13f1f01c01bb7e7e1effc"
+      "byteLength": 9881,
+      "sha256": "sha256:f538e6cfed9b67faa6436d63982fef4ed312a40e06034375d796c1c935442dea"
     },
     {
       "path": "sw-module-loader.js",
@@ -2944,5 +2944,5 @@
       "sha256": "sha256:c5a6c85719ce4072b343251b10f5a00f7f99d83be47f83367b3f959886c78701"
     }
   ],
-  "bundleHash": "sha256:ff827a5c549b877646b3da2641839df25c48ec875ace2d0df427522b81f912a3"
+  "bundleHash": "sha256:153668a047580db0686ad0172bd648a62b057827bb10b70f382ae6ebad4147f4"
 }

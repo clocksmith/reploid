@@ -12,6 +12,19 @@ const readRepoFile = (relativePath) => readFileSync(
 );
 
 describe('RD stylesheet ownership', () => {
+  it('keeps Zero self-contained and binds its styles to defined RD or Zero tokens', () => {
+    const rd = readRepoFile('self/styles/rd.css');
+    const zero = readRepoFile('self/styles/zero.css');
+    const definitions = new Set([...`${rd}\n${zero}`.matchAll(/(--[\w-]+)\s*:/g)].map((match) => match[1]));
+    expect(zero).not.toMatch(/@import\b/);
+    expect(zero).not.toContain('--opacity-secondary');
+    expect(zero).toContain('--zero-text-secondary-opacity: var(--opacity-soft)');
+    const components = zero.split('/* Components and page composition. */')[1];
+    expect(components).not.toMatch(/#[\da-f]{3,8}\b/i);
+    for (const [, name] of zero.matchAll(/var\(\s*(--[\w-]+)/g)) {
+      expect(definitions.has(name), `Zero references undefined token ${name}`).toBe(true);
+    }
+  });
   it('keeps rd.css as the standalone base design system', () => {
     const rd = readRepoFile('self/styles/rd.css');
     const stylesRoot = path.resolve(__dirname, '../../self/styles');
