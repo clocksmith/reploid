@@ -1825,8 +1825,8 @@
     },
     {
       "path": "pool/artifact-router.js",
-      "byteLength": 11439,
-      "sha256": "sha256:28b505084bf2b81fada9517fd7e7703403ef4a8f8252b1bea782f260c0e8f5f5"
+      "byteLength": 11653,
+      "sha256": "sha256:fdfb35a0fbcbae7206f37b9d7cf635558ea95e4b7575e18f37f6a8fe19a25d5c"
     },
     {
       "path": "pool/browser-qualification.js",
@@ -1845,8 +1845,13 @@
     },
     {
       "path": "pool/CATSCAN.md",
-      "byteLength": 2800,
-      "sha256": "sha256:270c906782977f0b77db5a3a2a404f811b1bf3694e2b3c8f67e4590f94aa0faa"
+      "byteLength": 2932,
+      "sha256": "sha256:08817cdfe7e2e3f0c1727963c085668e324e83d1ebbaae1202e439197c78886f"
+    },
+    {
+      "path": "pool/complete-forecast.js",
+      "byteLength": 23306,
+      "sha256": "sha256:d705c97277e0138620c3cb304061eb82664c35a44e054319add3f37bdef09791"
     },
     {
       "path": "pool/config-contract.js",
@@ -1939,6 +1944,11 @@
       "sha256": "sha256:677c2c7e22cb98d1b01d2fdb849795a91b929a48cde983b1e5d79bf6181d976e"
     },
     {
+      "path": "pool/forecast-workload.js",
+      "byteLength": 3995,
+      "sha256": "sha256:54813f86b01ae55b873de335270865051c35ac268eb83e679b62148fda230698"
+    },
+    {
       "path": "pool/identity-claims.js",
       "byteLength": 2913,
       "sha256": "sha256:0686e6f3320b14192c080ee18dbae142aa1163bc415e62bee2f10327c5daec45"
@@ -1950,8 +1960,8 @@
     },
     {
       "path": "pool/inference-receipt.js",
-      "byteLength": 17777,
-      "sha256": "sha256:5e945585057f6180586b09a0e12c33f4d62c6c46029f7eeb6d5d0b32e84952db"
+      "byteLength": 17901,
+      "sha256": "sha256:f06258934ceb1f0250c1f25949c6093015b2d7bd4b715a1a50535fe987d68845"
     },
     {
       "path": "pool/layer-scheduler.js",
@@ -1970,8 +1980,8 @@
     },
     {
       "path": "pool/model-contract.js",
-      "byteLength": 14054,
-      "sha256": "sha256:2fce13aa1749147a94998779ba7254f8f30c05d8cc3f7bd3880a3f2b848c0b10"
+      "byteLength": 14331,
+      "sha256": "sha256:36ce057649845d4b3a9ea947adb2fd1b7e618cf44f1bae544cbb7f75bab0ee54"
     },
     {
       "path": "pool/model-evidence-view.js",
@@ -2024,9 +2034,14 @@
       "sha256": "sha256:7f015a5cbf06b650745847bb8db195aeca09161d0c47c2ad51555b64e5ae72c2"
     },
     {
+      "path": "pool/peer-assignment.js",
+      "byteLength": 664,
+      "sha256": "sha256:bd7c5564f4e6669cba93c9af1bf96e01caf8052b11b6b38322c1180e0b1f85bb"
+    },
+    {
       "path": "pool/peer-control-plane.js",
-      "byteLength": 41431,
-      "sha256": "sha256:39903ce6e13ffeedd0b52023167e215e09826f1b6e14a7345b7564a5ddff06a6"
+      "byteLength": 41412,
+      "sha256": "sha256:fb922bef3b64c20ecdd7852b057c093022c87d0e1d92da7125d60541451cfb83"
     },
     {
       "path": "pool/peer-ledger.js",
@@ -2055,8 +2070,8 @@
     },
     {
       "path": "pool/peer-protocol.js",
-      "byteLength": 4990,
-      "sha256": "sha256:d22080a2c5f1d1b53c4c28e7a277da96bc9297e510e6cbac1af2e8cd4e81a723"
+      "byteLength": 5118,
+      "sha256": "sha256:7ac6ddbcba78ec18b78e4cb80d499c759b05af548617a8a0d8c3fd4533a35488"
     },
     {
       "path": "pool/peer-registry.js",
@@ -2929,5 +2944,5 @@
       "sha256": "sha256:c5a6c85719ce4072b343251b10f5a00f7f99d83be47f83367b3f959886c78701"
     }
   ],
-  "bundleHash": "sha256:2ffcd632174ecabe9b57d4a5debcb3baa21fb5ba2a86d7d5d614d75bccaef0c9"
+  "bundleHash": "sha256:204f4d69490f47fc0cb58019ee4b1cf1d5d58ef56cfc93f0b1d86568f4e4b42c"
 }
