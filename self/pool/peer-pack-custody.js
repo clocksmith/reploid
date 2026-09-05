@@ -43,9 +43,17 @@ async function context(authorization, index) {
   assert(manifest.schema === `${PREFIX}-index/v1`
     && manifest.envelopeDigest === grant.pack.envelopeDigest
     && manifest.artifactClosureDigest === grant.pack.artifactClosureDigest, 'index Pack mismatch');
-  assert(Array.isArray(manifest.artifacts) && manifest.artifacts.length === grant.pack.artifacts.length, 'index does not close Pack');
+  const declaredArtifacts = [...grant.pack.artifacts];
+  if (grant.envelopeArtifact !== undefined) {
+    const envelope = grant.envelopeArtifact;
+    assert(envelope?.role === 'pack-envelope' && typeof envelope.artifactId === 'string' && envelope.artifactId
+      && typeof envelope.path === 'string' && envelope.path && digest(envelope.hash) && positive(envelope.sizeBytes)
+      && !declaredArtifacts.some((artifact) => artifact.artifactId === envelope.artifactId), 'invalid authorized Pack envelope');
+    declaredArtifacts.push(envelope);
+  }
+  assert(Array.isArray(manifest.artifacts) && manifest.artifacts.length === declaredArtifacts.length, 'index does not close Pack');
   const artifacts = new Map();
-  for (const artifact of grant.pack.artifacts) {
+  for (const artifact of declaredArtifacts) {
     const entry = manifest.artifacts.find((item) => item.artifactId === artifact.artifactId);
     assert(entry && entry.hash === artifact.hash && entry.sizeBytes === artifact.sizeBytes, 'index artifact mismatch');
     assert(artifact.sizeBytes <= grant.limits.maxArtifactBytes && Array.isArray(entry.chunks), 'artifact limit or chunks invalid');
@@ -245,6 +253,10 @@ export async function createPeerPackArtifactStore({ authorization, index, invent
     return output;
   }
   return {
+    readEnvelope() {
+      assert(ctx.grant.envelopeArtifact, 'no Pack envelope authorized');
+      return this.readArtifact(ctx.grant.envelopeArtifact);
+    },
     readArtifact(artifact) {
       const snapshot = clone(artifact);
       const task = tail.then(() => acquire(snapshot));

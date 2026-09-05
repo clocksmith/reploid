@@ -378,6 +378,7 @@
     "pool/peer-control-plane.js",
     "pool/peer-ledger.js",
     "pool/peer-pack-custody.js",
+    "pool/peer-pack-data-channel.js",
     "pool/peer-payload.js",
     "pool/peer-planning.js",
     "pool/peer-protocol.js",
