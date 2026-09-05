@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import { createDopplerRuntime } from '../../self/pool/doppler-runtime.js';
 import {
@@ -273,6 +273,24 @@ describe('Poolday biological-sequence workload', () => {
       model: sequenceModel,
       modelSession: wrongShape
     }).encodeSequence({ sequence, request, assignment: {} })).rejects.toThrow('token embeddings do not match');
+  });
+
+  it.each(['unknown.operation/v1', 'generate', '__proto__'])('rejects unsupported assignment workload %s before any execution', async (workload) => {
+    const sequence = 'MKTA';
+    const assignment = { ...await makeAssignment(sequence, await makeRequest(sequence)), workload };
+    const runtime = {
+      getModelInfo: () => sequenceModel,
+      getActiveAdapterPack: vi.fn(() => null),
+      generate: vi.fn(() => { throw new Error('unexpected generation fallback'); }),
+      embed: vi.fn(),
+      encodeSequence: vi.fn()
+    };
+    const provider = createProviderClient({ runtime, identity: null, keyPair: await createSigningKeyPair() });
+    await expect(provider.executePeerAssignment(assignment, { prompt: sequence })).rejects.toThrow('Unsupported assignment workload');
+    expect(runtime.generate).not.toHaveBeenCalled();
+    expect(runtime.embed).not.toHaveBeenCalled();
+    expect(runtime.encodeSequence).not.toHaveBeenCalled();
+    expect(runtime.getActiveAdapterPack).not.toHaveBeenCalled();
   });
 
   it('binds private WebRTC input, Doppler result, and signed receipt without raw sequence leakage', async () => {

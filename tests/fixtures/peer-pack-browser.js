@@ -2,7 +2,8 @@
 import { createSigningKeyPair, exportPublicKey } from '../../self/pool/inference-receipt.js';
 import { createPeerPackSupplier, createPeerPackArtifactStore } from '../../self/pool/peer-pack-custody.js';
 import { createPeerPackDataChannel } from '../../self/pool/peer-pack-data-channel.js';
-import { assertPackSession, assertPackReceipt } from '../../self/pool/executable-pack.js';
+import { assertPackSession } from '../../self/pool/executable-pack.js';
+import { runPackOperation } from '../../self/pool/pack-operation.js';
 import { createReploidDopplerRuntimeService } from '../../self/infrastructure/doppler-runtime-service.js';
 
 let key;
@@ -109,7 +110,15 @@ export async function accept(peerId, description) {
 
 export function ready() { return [...connections.values()].every((entry) => entry.transport !== null); }
 
-export async function execute({ authorization, index, inventories, trustedSigners, sequence, options, dopplerVersion }) {
+export function assertPhysicalAdapter(adapter) {
+  const fallback = adapter?.info?.isFallbackAdapter ?? adapter?.isFallbackAdapter;
+  if (fallback !== false || adapter?.isFallbackAdapter === true) {
+    throw new Error('A confirmed non-fallback WebGPU adapter is required');
+  }
+  return fallback;
+}
+
+export async function execute({ authorization, index, inventories, trustedSigners, sequence, options, dopplerVersion, operationLimits }) {
   const module = await import('/doppler/src/index-browser.js');
   const service = createReploidDopplerRuntimeService({ loadModule: async () => module, expectedVersion: dopplerVersion });
   const report = { passed: false, stage: 'peer-reconstruction', binding: authorization.pack };
@@ -117,19 +126,29 @@ export async function execute({ authorization, index, inventories, trustedSigner
     requestChunk: (peerId, request, limits) => connections.get(peerId).transport.requestChunk(request, limits) });
   try {
     const adapter = await navigator.gpu?.requestAdapter();
-    if (!adapter || adapter.isFallbackAdapter !== false) throw new Error('A confirmed non-fallback WebGPU adapter is required');
-    report.isFallbackAdapter = adapter.isFallbackAdapter;
+    report.isFallbackAdapter = assertPhysicalAdapter(adapter);
     const bytes = await store.readEnvelope();
     const pack = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes));
+    // Retain every declared artifact, including distinct paths with identical
+    // bytes. Runtime content deduplication alone does not reconstruct a full Pack.
+    const materialized = new Map();
+    for (const artifact of pack.artifacts) materialized.set(artifact.artifactId, await store.readArtifact(artifact));
+    const artifactStore = { async readArtifact(artifact) {
+      const bytes = materialized.get(artifact.artifactId);
+      if (!bytes) throw new Error('Artifact is absent from the reconstructed Pack');
+      return bytes.slice();
+    } };
     report.stage = 'public-pack-open';
     const session = await service.openPack({ scope: 'peer-proof', source: pack,
-      options: { artifactStore: store, trustedSigners, acceptedTargetPlanDigests: authorization.pack.acceptedTargetPlanDigests } });
+      options: { artifactStore, trustedSigners, acceptedTargetPlanDigests: authorization.pack.acceptedTargetPlanDigests } });
     await assertPackSession(authorization.pack, session);
     report.stage = 'complete-model-execution';
-    const result = await session.encodeSequence(sequence, options);
-    await assertPackReceipt(authorization.pack, result.receipt, { assignment: options.assignment, sequence, options, result });
-    report.result = { ...result, tokens: Array.from(result.tokens), tokenMask: Array.from(result.tokenMask),
-      tokenEmbeddings: Array.from(result.tokenEmbeddings), pooledEmbedding: Array.from(result.pooledEmbedding) };
+    const { assignment, ...operationOptions } = options;
+    report.operationExecution = await runPackOperation({ binding: authorization.pack, session, runtimeVersion: dopplerVersion,
+      request: { schema: 'doppler.pack-operation-request/v1', operation: { name: 'encodeSequence', version: 1 },
+        input: { sequence }, options: operationOptions, assignment,
+        limits: { ...operationLimits, deadlineAt: authorization.expiresAt } } });
+    report.result = { ...report.operationExecution.output, receipt: report.operationExecution.receipt };
     report.runtime = { device: session.deviceProfile, initialExecutionIdentity: session.observedInitialExecutionIdentity };
     report.manifest = session.manifest;
     report.stage = 'complete';

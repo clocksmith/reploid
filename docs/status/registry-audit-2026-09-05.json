@@ -1,0 +1,509 @@
+{
+  "schema": "reploid.registry-audit-observation/v1",
+  "command": "node scripts/validate-registry.js",
+  "validatorExitCode": 0,
+  "auditPassed": false,
+  "generatorsIdempotent": true,
+  "issueCount": 99,
+  "counts": {
+    "orphan_file": 83,
+    "missing_blueprint": 16
+  },
+  "issues": [
+    {
+      "severity": "low",
+      "type": "orphan_file",
+      "detail": "boot-helpers/vfs-bootstrap.js"
+    },
+    {
+      "severity": "low",
+      "type": "orphan_file",
+      "detail": "capabilities/communication/signaling-config.js"
+    },
+    {
+      "severity": "low",
+      "type": "orphan_file",
+      "detail": "core/async-utils.js"
+    },
+    {
+      "severity": "low",
+      "type": "orphan_file",
+      "detail": "core/change-passport-improvement-adapter.js"
+    },
+    {
+      "severity": "low",
+      "type": "orphan_file",
+      "detail": "core/change-passport-policy.js"
+    },
+    {
+      "severity": "low",
+      "type": "orphan_file",
+      "detail": "core/change-passport.js"
+    },
+    {
+      "severity": "low",
+      "type": "orphan_file",
+      "detail": "core/cycle-artifacts.js"
+    },
+    {
+      "severity": "low",
+      "type": "orphan_file",
+      "detail": "core/import-rewrite.js"
+    },
+    {
+      "severity": "low",
+      "type": "orphan_file",
+      "detail": "core/security-config.js"
+    },
+    {
+      "severity": "low",
+      "type": "orphan_file",
+      "detail": "core/vendor/acorn.js"
+    },
+    {
+      "severity": "low",
+      "type": "orphan_file",
+      "detail": "core/visual-change-passport.js"
+    },
+    {
+      "severity": "low",
+      "type": "orphan_file",
+      "detail": "entry/seed-vfs.js"
+    },
+    {
+      "severity": "low",
+      "type": "orphan_file",
+      "detail": "experimental/openclaw-audit/audit-mesh.js"
+    },
+    {
+      "severity": "low",
+      "type": "orphan_file",
+      "detail": "experimental/openclaw-audit/index.js"
+    },
+    {
+      "severity": "low",
+      "type": "orphan_file",
+      "detail": "experimental/openclaw-audit/self-audit.js"
+    },
+    {
+      "severity": "low",
+      "type": "orphan_file",
+      "detail": "lab/mirrors.js"
+    },
+    {
+      "severity": "low",
+      "type": "orphan_file",
+      "detail": "lab/profiles.js"
+    },
+    {
+      "severity": "low",
+      "type": "orphan_file",
+      "detail": "lab/runtime-ui.js"
+    },
+    {
+      "severity": "low",
+      "type": "orphan_file",
+      "detail": "lab/surface.js"
+    },
+    {
+      "severity": "low",
+      "type": "orphan_file",
+      "detail": "pool/adjudication-north-star.js"
+    },
+    {
+      "severity": "low",
+      "type": "orphan_file",
+      "detail": "pool/agent-client.js"
+    },
+    {
+      "severity": "low",
+      "type": "orphan_file",
+      "detail": "pool/browser-release-identity.js"
+    },
+    {
+      "severity": "low",
+      "type": "orphan_file",
+      "detail": "pool/config.js"
+    },
+    {
+      "severity": "low",
+      "type": "orphan_file",
+      "detail": "pool/discovery-candidate-action.js"
+    },
+    {
+      "severity": "low",
+      "type": "orphan_file",
+      "detail": "pool/discovery-contract.js"
+    },
+    {
+      "severity": "low",
+      "type": "orphan_file",
+      "detail": "pool/doppler-browser-observation.js"
+    },
+    {
+      "severity": "low",
+      "type": "orphan_file",
+      "detail": "pool/executable-pack.js"
+    },
+    {
+      "severity": "low",
+      "type": "orphan_file",
+      "detail": "pool/layer-scheduler.js"
+    },
+    {
+      "severity": "low",
+      "type": "orphan_file",
+      "detail": "pool/model-artifacts.js"
+    },
+    {
+      "severity": "low",
+      "type": "orphan_file",
+      "detail": "pool/model-cache-integrity.js"
+    },
+    {
+      "severity": "low",
+      "type": "orphan_file",
+      "detail": "pool/p2p-payload.js"
+    },
+    {
+      "severity": "low",
+      "type": "orphan_file",
+      "detail": "pool/p2p-signaling.js"
+    },
+    {
+      "severity": "low",
+      "type": "orphan_file",
+      "detail": "pool/p2p-transport.js"
+    },
+    {
+      "severity": "low",
+      "type": "orphan_file",
+      "detail": "pool/peer-pack-custody.js"
+    },
+    {
+      "severity": "low",
+      "type": "orphan_file",
+      "detail": "pool/peer-pack-data-channel.js"
+    },
+    {
+      "severity": "low",
+      "type": "orphan_file",
+      "detail": "pool/peer-registry.js"
+    },
+    {
+      "severity": "low",
+      "type": "orphan_file",
+      "detail": "pool/peer-rendezvous.js"
+    },
+    {
+      "severity": "low",
+      "type": "orphan_file",
+      "detail": "pool/peer-room.js"
+    },
+    {
+      "severity": "low",
+      "type": "orphan_file",
+      "detail": "pool/points-ledger.js"
+    },
+    {
+      "severity": "low",
+      "type": "orphan_file",
+      "detail": "pool/policy-router.js"
+    },
+    {
+      "severity": "low",
+      "type": "orphan_file",
+      "detail": "pool/protein-uncertainty-campaign.js"
+    },
+    {
+      "severity": "low",
+      "type": "orphan_file",
+      "detail": "pool/provider-client.js"
+    },
+    {
+      "severity": "low",
+      "type": "orphan_file",
+      "detail": "pool/realized-action-value.js"
+    },
+    {
+      "severity": "low",
+      "type": "orphan_file",
+      "detail": "pool/reputation.js"
+    },
+    {
+      "severity": "low",
+      "type": "orphan_file",
+      "detail": "pool/requester-client.js"
+    },
+    {
+      "severity": "low",
+      "type": "orphan_file",
+      "detail": "pool/research-cycle.js"
+    },
+    {
+      "severity": "low",
+      "type": "orphan_file",
+      "detail": "pool/runtime-profile.js"
+    },
+    {
+      "severity": "low",
+      "type": "orphan_file",
+      "detail": "pool/scientific-policy-promotion.js"
+    },
+    {
+      "severity": "low",
+      "type": "orphan_file",
+      "detail": "pool/shard-negotiation.js"
+    },
+    {
+      "severity": "low",
+      "type": "orphan_file",
+      "detail": "providers/doppler-reploid.js"
+    },
+    {
+      "severity": "low",
+      "type": "orphan_file",
+      "detail": "self/boot-spec.js"
+    },
+    {
+      "severity": "low",
+      "type": "orphan_file",
+      "detail": "self/bridge.js"
+    },
+    {
+      "severity": "low",
+      "type": "orphan_file",
+      "detail": "self/capsule/index.js"
+    },
+    {
+      "severity": "low",
+      "type": "orphan_file",
+      "detail": "self/cloud-access-status.js"
+    },
+    {
+      "severity": "low",
+      "type": "orphan_file",
+      "detail": "self/cloud-access-windows.js"
+    },
+    {
+      "severity": "low",
+      "type": "orphan_file",
+      "detail": "self/cloud-access.js"
+    },
+    {
+      "severity": "low",
+      "type": "orphan_file",
+      "detail": "self/dream-instance.js"
+    },
+    {
+      "severity": "low",
+      "type": "orphan_file",
+      "detail": "self/environment.js"
+    },
+    {
+      "severity": "low",
+      "type": "orphan_file",
+      "detail": "self/host/seed-vfs.js"
+    },
+    {
+      "severity": "low",
+      "type": "orphan_file",
+      "detail": "self/host/start-app.js"
+    },
+    {
+      "severity": "low",
+      "type": "orphan_file",
+      "detail": "self/host/start-reploid.js"
+    },
+    {
+      "severity": "low",
+      "type": "orphan_file",
+      "detail": "self/host/sw-module-loader.js"
+    },
+    {
+      "severity": "low",
+      "type": "orphan_file",
+      "detail": "self/host/vfs-bootstrap.js"
+    },
+    {
+      "severity": "low",
+      "type": "orphan_file",
+      "detail": "self/identity.js"
+    },
+    {
+      "severity": "low",
+      "type": "orphan_file",
+      "detail": "self/image/export.js"
+    },
+    {
+      "severity": "low",
+      "type": "orphan_file",
+      "detail": "self/image/manifest.js"
+    },
+    {
+      "severity": "low",
+      "type": "orphan_file",
+      "detail": "self/instance.js"
+    },
+    {
+      "severity": "low",
+      "type": "orphan_file",
+      "detail": "self/kernel/boot.js"
+    },
+    {
+      "severity": "low",
+      "type": "orphan_file",
+      "detail": "self/key-unsealer.js"
+    },
+    {
+      "severity": "low",
+      "type": "orphan_file",
+      "detail": "self/manifest.js"
+    },
+    {
+      "severity": "low",
+      "type": "orphan_file",
+      "detail": "self/receipt.js"
+    },
+    {
+      "severity": "low",
+      "type": "orphan_file",
+      "detail": "self/reward-policy.js"
+    },
+    {
+      "severity": "low",
+      "type": "orphan_file",
+      "detail": "self/runtime.js"
+    },
+    {
+      "severity": "low",
+      "type": "orphan_file",
+      "detail": "self/swarm.js"
+    },
+    {
+      "severity": "low",
+      "type": "orphan_file",
+      "detail": "self/tool-runner.js"
+    },
+    {
+      "severity": "low",
+      "type": "orphan_file",
+      "detail": "shared/change-passport/contract.js"
+    },
+    {
+      "severity": "low",
+      "type": "orphan_file",
+      "detail": "shared/change-passport/improvement-adapter.js"
+    },
+    {
+      "severity": "low",
+      "type": "orphan_file",
+      "detail": "shared/change-passport/policy.js"
+    },
+    {
+      "severity": "low",
+      "type": "orphan_file",
+      "detail": "shared/change-passport/visual-change.js"
+    },
+    {
+      "severity": "low",
+      "type": "orphan_file",
+      "detail": "sw-module-loader.js"
+    },
+    {
+      "severity": "low",
+      "type": "orphan_file",
+      "detail": "sw.js"
+    },
+    {
+      "severity": "low",
+      "type": "orphan_file",
+      "detail": "testing/arena/doppler-integration.js"
+    },
+    {
+      "severity": "low",
+      "type": "orphan_file",
+      "detail": "testing/arena/index.js"
+    },
+    {
+      "severity": "low",
+      "type": "missing_blueprint",
+      "detail": "Consensus has no blueprint"
+    },
+    {
+      "severity": "low",
+      "type": "missing_blueprint",
+      "detail": "DopplerToolbox has no blueprint"
+    },
+    {
+      "severity": "low",
+      "type": "missing_blueprint",
+      "detail": "FederatedLearning has no blueprint"
+    },
+    {
+      "severity": "low",
+      "type": "missing_blueprint",
+      "detail": "FunctionGemmaOrchestrator has no blueprint"
+    },
+    {
+      "severity": "low",
+      "type": "missing_blueprint",
+      "detail": "ImprovementEpisodeLedger has no blueprint"
+    },
+    {
+      "severity": "low",
+      "type": "missing_blueprint",
+      "detail": "IntentBundleGate has no blueprint"
+    },
+    {
+      "severity": "low",
+      "type": "missing_blueprint",
+      "detail": "IntentBundleLoRA has no blueprint"
+    },
+    {
+      "severity": "low",
+      "type": "missing_blueprint",
+      "detail": "MultiModelCoordinator has no blueprint"
+    },
+    {
+      "severity": "low",
+      "type": "missing_blueprint",
+      "detail": "MultiModelEvaluator has no blueprint"
+    },
+    {
+      "severity": "low",
+      "type": "missing_blueprint",
+      "detail": "PolicyEngine has no blueprint"
+    },
+    {
+      "severity": "low",
+      "type": "missing_blueprint",
+      "detail": "PromptMemory has no blueprint"
+    },
+    {
+      "severity": "low",
+      "type": "missing_blueprint",
+      "detail": "PromptScoreMap has no blueprint"
+    },
+    {
+      "severity": "low",
+      "type": "missing_blueprint",
+      "detail": "ProviderRegistry has no blueprint"
+    },
+    {
+      "severity": "low",
+      "type": "missing_blueprint",
+      "detail": "SchemaValidator has no blueprint"
+    },
+    {
+      "severity": "low",
+      "type": "missing_blueprint",
+      "detail": "SwarmSync has no blueprint"
+    },
+    {
+      "severity": "low",
+      "type": "missing_blueprint",
+      "detail": "TraceStore has no blueprint"
+    }
+  ]
+}

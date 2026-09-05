@@ -51,12 +51,12 @@ function ownerFor(pathname) {
   return owner;
 }
 
-async function buildInventory() {
-  const files = await walkFiles(SELF_DIR);
+export async function buildInventory({ selfDir = SELF_DIR } = {}) {
+  const files = await walkFiles(selfDir);
   const modules = [];
   for (const filePath of files) {
     const content = await fs.readFile(filePath, 'utf8');
-    const relativePath = toCanonicalBrowserPath(path.relative(SELF_DIR, filePath));
+    const relativePath = toCanonicalBrowserPath(path.relative(selfDir, filePath));
     modules.push({
       path: relativePath,
       owner: ownerFor(relativePath),
@@ -89,7 +89,7 @@ async function main() {
   console.log(`[module-inventory] Wrote ${OUTPUT_PATH} with ${inventory.modules.length} modules`);
 }
 
-main().catch((error) => {
+if (process.argv[1] && path.resolve(process.argv[1]) === __filename) main().catch((error) => {
   console.error('[module-inventory] Failed to build inventory');
   console.error(error);
   process.exit(1);

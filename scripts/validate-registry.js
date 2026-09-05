@@ -1,28 +1,16 @@
 #!/usr/bin/env node
-/**
- * Validates config JSON files for issues.
- * Prints issues to stdout, exits with code 1 if high severity issues found.
- */
+/** Read-only source-bound registry audit. Every unresolved issue fails the command. */
+import { promises as fs } from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { isDeepStrictEqual } from 'node:util';
+import { buildInventory } from './build-module-inventory.js';
+import { buildBlueprintRegistry, renderBlueprintInventory } from './build-blueprint-registry.js';
+import { buildModuleRegistry } from './build-module-registry.js';
 
-import { promises as fs } from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const ROOT = path.resolve(__dirname, '..');
-const CONFIG_DIR = path.join(ROOT, 'self', 'config');
-
+const filename = fileURLToPath(import.meta.url);
+const SELF_DIR = path.resolve(path.dirname(filename), '../self');
 const SEVERITY = { high: 0, medium: 1, low: 2 };
-
-async function loadJSON(filename) {
-  const content = await fs.readFile(path.join(CONFIG_DIR, filename), 'utf8');
-  return JSON.parse(content);
-}
-
-function log(type, severity, message) {
-  console.log(`[validate] ${severity}: ${type} - ${message}`);
-}
 
 /**
  * Detect circular dependencies using DFS
@@ -113,170 +101,113 @@ function findOrphanModules(modules, genesisLevels) {
   return issues;
 }
 
-/**
- * Find files in VFS manifest not referenced by any module or blueprint
- */
-function findOrphanFiles(vfsManifest, modules, blueprintRegistry) {
-  const issues = [];
-  const referencedFiles = new Set();
 
-  // Collect files from modules
-  for (const mod of Object.values(modules)) {
-    for (const file of mod.files || []) {
-      referencedFiles.add(file);
-    }
-  }
-
-  // Collect files from blueprints
-  for (const feature of blueprintRegistry.features || []) {
-    for (const file of feature.files || []) {
-      referencedFiles.add(file);
-    }
-    for (const bp of feature.blueprints || []) {
-      if (bp.path) referencedFiles.add(bp.path);
-    }
-  }
-
-  // Check VFS files
-  for (const file of vfsManifest.files || []) {
-    // Skip config files, tools, ui, boot - they're not modules
-    if (file.startsWith('config/')) continue;
-    if (file.startsWith('tools/')) continue;
-    if (file.startsWith('ui/')) continue;
-    if (file.startsWith('boot/')) continue;
-    if (file.startsWith('blueprints/')) continue;
-    if (file.startsWith('styles/')) continue;
-    if (!file.endsWith('.js')) continue;
-
-    if (!referencedFiles.has(file)) {
-      issues.push({
-        type: 'orphan_file',
-        severity: 'low',
-        file
-      });
-    }
-  }
-
-  return issues;
+export function registryExitCode(report) {
+  return report.issues.length ? 1 : 0;
 }
 
-/**
- * Find modules without blueprint mappings
- */
-function findMissingBlueprints(modules) {
-  const issues = [];
-
-  for (const [moduleId, mod] of Object.entries(modules)) {
-    if (!mod.blueprint) {
-      issues.push({
-        type: 'missing_blueprint',
-        severity: 'low',
-        module: moduleId
-      });
-    }
+export async function auditRegistry({ selfDir = SELF_DIR } = {}) {
+  const load = async (name) => JSON.parse(await fs.readFile(path.join(selfDir, 'config', name + '.json'), 'utf8'));
+  const [genesis, blueprints, registry, vfs, inventory, actual] = await Promise.all([
+    load('genesis-levels'), load('blueprint-registry'), load('module-registry'),
+    load('vfs-manifest'), load('module-inventory'), buildInventory({ selfDir })
+  ]);
+  const modules = registry.modules;
+  const issues = [
+    ...findCircularDeps(modules),
+    ...findMissingDeps(modules),
+    ...findOrphanModules(modules, genesis)
+  ];
+  const add = (type, details, severity = 'medium') => issues.push({ type, severity, ...details });
+  for (const [name, value] of Object.entries({ blueprints, registry, vfs, inventory })) {
+    if (value.version !== 1) add('unsupported_registry_version', { registry: name, version: value.version ?? null });
+  }
+  const actualByPath = new Map(actual.modules.map((entry) => [entry.path, entry]));
+  const seen = new Set();
+  for (const entry of inventory.modules) {
+    if (seen.has(entry.path)) add('duplicate_inventory_file', { file: entry.path });
+    seen.add(entry.path);
+    if (!actualByPath.has(entry.path)) add('missing_source_file', { file: entry.path });
+    else if (!isDeepStrictEqual(entry, actualByPath.get(entry.path))) add('stale_inventory_entry', { file: entry.path });
+  }
+  for (const file of actualByPath.keys()) {
+    if (!seen.has(file)) add('uninventoried_source_file', { file });
+  }
+  const vfsFiles = new Set();
+  for (const file of vfs.files) {
+    if (vfsFiles.has(file)) add('duplicate_vfs_file', { file });
+    vfsFiles.add(file);
+    if (file.endsWith('.js') && !actualByPath.has(file)) add('vfs_missing_source', { file });
+  }
+  for (const file of actualByPath.keys()) {
+    if (!vfsFiles.has(file)) add('source_missing_from_vfs', { file });
   }
 
-  return issues;
-}
-
-/**
- * Find blueprints referencing non-existent files
- */
-async function findStaleBlueprints(blueprintRegistry) {
-  const issues = [];
-  const selfDir = path.join(ROOT, 'self');
-
-  for (const feature of blueprintRegistry.features || []) {
-    for (const file of feature.files || []) {
-      try {
-        await fs.access(path.join(selfDir, file.replace(/^self\//, '')));
-      } catch {
-        issues.push({
-          type: 'stale_blueprint',
-          severity: 'medium',
-          blueprint: feature.id,
-          file
-        });
-      }
-    }
+  let declared;
+  try {
+    declared = await buildBlueprintRegistry({ selfDir, inventory: actual });
+    const { generatedAt, ...recorded } = blueprints;
+    if (!isDeepStrictEqual(recorded, declared.registry)) add('stale_blueprint_registry', {});
+    const sitemap = await fs.readFile(path.join(selfDir, 'blueprints/canonical-inventory.md'), 'utf8');
+    if (sitemap !== renderBlueprintInventory(declared.declarations)) add('stale_blueprint_inventory', {});
+  } catch (error) {
+    add('invalid_blueprint_declaration', { message: error.message });
+  }
+  try {
+    const expected = await buildModuleRegistry({ selfDir, genesis, blueprintRegistry: declared?.registry || blueprints });
+    const { generatedAt, ...recorded } = registry;
+    if (!isDeepStrictEqual(recorded, expected)) add('stale_module_registry', {});
+  } catch (error) {
+    add('invalid_module_source', { message: error.message });
   }
 
-  return issues;
+  const levelOwners = new Map();
+  for (const [levelName, level] of Object.entries(genesis.levels || {})) {
+    for (const id of level.modules || []) {
+      if (!(id in modules)) add('unregistered_genesis_module', { module: id });
+      if (levelOwners.has(id)) add('duplicate_genesis_module', { module: id });
+      levelOwners.set(id, levelName);
+    }
+  }
+  const moduleFiles = new Set(Object.values(modules).flatMap((entry) => entry.files || []));
+  for (const file of moduleFiles) {
+    if (!actualByPath.has(file)) add('module_missing_source', { file });
+  }
+  const blueprintFiles = new Set((declared?.registry.features || []).flatMap((entry) => entry.files));
+  // These are inventory categories, not ignored errors. Every file above must
+  // still exist, match its recorded hash/imports/owner, and be shipped by VFS.
+  const classifications = {
+    inventoriedHelpers: [...actualByPath.keys()].filter((file) => !moduleFiles.has(file) && !blueprintFiles.has(file)).sort(),
+    modulesWithoutArchitecturalBlueprint: Object.entries(modules).filter(([, entry]) => entry.blueprint === null).map(([id]) => id).sort()
+  };
+  issues.sort((a, b) => SEVERITY[a.severity] - SEVERITY[b.severity] || JSON.stringify(a).localeCompare(JSON.stringify(b)));
+  return {
+    schema: 'reploid.registry-audit/v1',
+    counts: {
+      sourceFiles: actual.modules.length, modules: Object.keys(modules).length,
+      blueprintDeclarations: declared?.declarations.length ?? null,
+      executableOwners: declared?.registry.features.length ?? null,
+      unresolved: issues.length
+    },
+    classifications, issues
+  };
 }
 
 async function main() {
-  console.log('[validate] Loading config files...');
-
-  const [genesisLevels, blueprintRegistry, moduleRegistry, vfsManifest] = await Promise.all([
-    loadJSON('genesis-levels.json'),
-    loadJSON('blueprint-registry.json'),
-    loadJSON('module-registry.json'),
-    loadJSON('vfs-manifest.json')
-  ]);
-
-  const modules = moduleRegistry.modules || {};
-  const allIssues = [];
-
-  console.log('[validate] Checking for circular dependencies...');
-  allIssues.push(...findCircularDeps(modules));
-
-  console.log('[validate] Checking for missing dependencies...');
-  allIssues.push(...findMissingDeps(modules));
-
-  console.log('[validate] Checking for orphan modules...');
-  allIssues.push(...findOrphanModules(modules, genesisLevels));
-
-  console.log('[validate] Checking for orphan files...');
-  allIssues.push(...findOrphanFiles(vfsManifest, modules, blueprintRegistry));
-
-  console.log('[validate] Checking for missing blueprints...');
-  allIssues.push(...findMissingBlueprints(modules));
-
-  console.log('[validate] Checking for stale blueprints...');
-  allIssues.push(...await findStaleBlueprints(blueprintRegistry));
-
-  // Sort by severity
-  allIssues.sort((a, b) => SEVERITY[a.severity] - SEVERITY[b.severity]);
-
-  console.log('');
-  if (allIssues.length === 0) {
-    console.log('[validate] No issues found.');
-  } else {
-    console.log(`[validate] Found ${allIssues.length} issues:\n`);
-    for (const issue of allIssues) {
-      switch (issue.type) {
-        case 'circular_dep':
-          log(issue.type, issue.severity, issue.cycle.join(' -> '));
-          break;
-        case 'missing_dep':
-          log(issue.type, issue.severity, `${issue.module} depends on ${issue.missing}`);
-          break;
-        case 'orphan_module':
-          log(issue.type, issue.severity, `${issue.module} not in any genesis level`);
-          break;
-        case 'orphan_file':
-          log(issue.type, issue.severity, issue.file);
-          break;
-        case 'missing_blueprint':
-          log(issue.type, issue.severity, `${issue.module} has no blueprint`);
-          break;
-        case 'stale_blueprint':
-          log(issue.type, issue.severity, `${issue.blueprint} references missing ${issue.file}`);
-          break;
-        default:
-          log(issue.type, issue.severity, JSON.stringify(issue));
-      }
-    }
+  const args = process.argv.slice(2);
+  if (args.some((arg) => arg !== '--json')) throw new Error('Usage: validate-registry.js [--json]');
+  const report = await auditRegistry();
+  if (args.includes('--json')) console.log(JSON.stringify(report, null, 2));
+  else {
+    for (const issue of report.issues) console.log('[validate] ' + issue.severity + ': ' + JSON.stringify(issue));
+    console.log('[validate] ' + JSON.stringify(report.counts));
+    console.log('[validate] Inventoried helpers: ' + report.classifications.inventoriedHelpers.length
+      + '; modules without an architectural blueprint: ' + report.classifications.modulesWithoutArchitecturalBlueprint.length);
   }
-
-  const highCount = allIssues.filter(i => i.severity === 'high').length;
-  if (highCount > 0) {
-    console.log(`\n[validate] ${highCount} high severity issues. Exiting with code 1.`);
-    process.exit(1);
-  }
+  process.exitCode = registryExitCode(report);
 }
 
-main().catch((err) => {
-  console.error('[validate] Failed:', err.message);
-  process.exit(1);
+if (process.argv[1] && path.resolve(process.argv[1]) === filename) main().catch((error) => {
+  console.error('[validate] Failed:', error.message);
+  process.exitCode = 1;
 });

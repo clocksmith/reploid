@@ -8,7 +8,7 @@
 
 1. Numbered canonical specifications are contiguous from `0x000000` through `0x0000AF`.
 2. [`canonical-inventory.md`](canonical-inventory.md) is the human-readable sitemap.
-3. `self/config/blueprint-registry.json` is the generated machine-readable registry.
+3. `self/config/blueprint-registry.json` projects each specification's explicit **Owned Source Files**. Generated output and affected-artifact mentions never establish ownership.
 4. [`deduplication-audit.md`](deduplication-audit.md) records every merged or removed numbered file and its replacement authority.
 5. `self/config/module-inventory.json` owns source-module enumeration. A module does not receive a blueprint unless it introduces a maintained architecture, invariant, protocol, or failure boundary.
 
@@ -28,7 +28,9 @@ Every canonical numbered specification declares exactly one status:
 - `In-Progress`: implementation evidence exists, with declared work or evidence still missing.
 - `Proposed`: the declared implementation boundary is absent.
 
-Status is not inferred from prose such as “implemented” in historical examples. `scripts/verify-blueprint-registry.js` checks the canonical metadata and artifact existence.
+Status is not inferred from prose such as “implemented” in historical examples. `node scripts/build-blueprint-registry.js --check` checks classification, status values, unique ownership, owned-file existence, and both generated projections. It does not qualify model execution or validate scientific claims.
+
+Run `npm run build:blueprints` to regenerate the source inventory, executable ownership registry, and human sitemap. Run `node scripts/validate-registry.js --json` for the read-only, source-bound registry audit; every unresolved finding produces a failing exit status.
 
 ## Numbering and references
 
@@ -40,4 +42,4 @@ Historical references use exact former paths, not bare legacy IDs, because the o
 
 The unnumbered files in this directory are active supporting contracts or indexes. They do not occupy the canonical numeric sequence. `self/blueprint-index.json` controls the compact boot-time subset.
 
-**[Back to Harness README](../README.md)**
+**[Back to Repository README](../../README.md)**

@@ -1,7 +1,21 @@
 {
   "version": 1,
-  "generatedAt": "2026-09-04T21:34:06.988Z",
+  "generatedAt": "2026-09-05T18:56:11.851Z",
   "features": [
+    {
+      "id": "0x000002",
+      "name": "application-orchestration",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x000002",
+          "path": "blueprints/0x000002-application-orchestration.md"
+        }
+      ],
+      "files": [
+        "entry/start-app.js"
+      ]
+    },
     {
       "id": "0x000003",
       "name": "core-utilities-and-error-handling",
@@ -186,6 +200,20 @@
       ]
     },
     {
+      "id": "0x000028",
+      "name": "toast-notification-system",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x000028",
+          "path": "blueprints/0x000028-toast-notification-system.md"
+        }
+      ],
+      "files": [
+        "ui/components/toast-notifications.js"
+      ]
+    },
+    {
       "id": "0x000029",
       "name": "rate-limiting-strategies",
       "status": "active",
@@ -210,6 +238,7 @@
         }
       ],
       "files": [
+        "core/vendor/acorn.js",
         "core/verification-worker.js"
       ]
     },
@@ -381,6 +410,20 @@
       ],
       "files": [
         "core/worker-manager.js"
+      ]
+    },
+    {
+      "id": "0x000048",
+      "name": "diff-viewer-ui",
+      "status": "active",
+      "blueprints": [
+        {
+          "id": "0x000048",
+          "path": "blueprints/0x000048-diff-viewer-ui.md"
+        }
+      ],
+      "files": [
+        "ui/components/diff-viewer-ui.js"
       ]
     },
     {
@@ -775,8 +818,7 @@
         }
       ],
       "files": [
-        "experimental/intelligence/neural-compiler.js",
-        "ui/components/toast-notifications.js"
+        "experimental/intelligence/neural-compiler.js"
       ]
     },
     {
@@ -790,21 +832,7 @@
         }
       ],
       "files": [
-        "ui/components/diff-viewer-ui.js"
-      ]
-    },
-    {
-      "id": "0x00007E",
-      "name": "sponsor-peer-protocol",
-      "status": "active",
-      "blueprints": [
-        {
-          "id": "0x00007E",
-          "path": "blueprints/0x00007E-sponsor-peer-protocol.md"
-        }
-      ],
-      "files": [
-        "capabilities/communication/swarm-transport.js"
+        "core/functiongemma-orchestrator.js"
       ]
     },
     {
@@ -832,7 +860,9 @@
         }
       ],
       "files": [
-        "pool/doppler-runtime.js"
+        "pool/doppler-runtime.js",
+        "pool/pack-operation-adapters.js",
+        "pool/pack-operation.js"
       ]
     },
     {
@@ -888,6 +918,7 @@
         }
       ],
       "files": [
+        "pool/executable-pack.js",
         "pool/model-contract.js"
       ]
     },
@@ -930,7 +961,8 @@
         }
       ],
       "files": [
-        "ui/pool-home/controls.js"
+        "ui/pool-home/controls.js",
+        "ui/pool-home/index.js"
       ]
     },
     {
@@ -1043,7 +1075,6 @@
         }
       ],
       "files": [
-        "entry/start-app.js",
         "pool/adapter-publisher-client.js"
       ]
     },
@@ -1058,7 +1089,6 @@
         }
       ],
       "files": [
-        "boot-helpers/config.js",
         "pool/adapter-registry.js"
       ]
     },
@@ -1073,7 +1103,6 @@
         }
       ],
       "files": [
-        "boot-helpers/error-ui.js",
         "pool/p2p-artifact-transfer.js"
       ]
     },
@@ -1088,7 +1117,6 @@
         }
       ],
       "files": [
-        "boot-helpers/index.js",
         "pool/sequence-workload.js"
       ]
     },
@@ -1103,7 +1131,6 @@
         }
       ],
       "files": [
-        "boot-helpers/modules.js",
         "pool/sequence-result.js"
       ]
     },
@@ -1118,7 +1145,6 @@
         }
       ],
       "files": [
-        "boot-helpers/services.js",
         "pool/participation-profile.js"
       ]
     },
@@ -1133,7 +1159,6 @@
         }
       ],
       "files": [
-        "boot-helpers/vfs-hydrate.js",
         "pool/device-identity.js"
       ]
     },
@@ -1148,7 +1173,6 @@
         }
       ],
       "files": [
-        "capabilities/cognition/episodic-memory.js",
         "pool/identity-claims.js"
       ]
     },
@@ -1163,7 +1187,6 @@
         }
       ],
       "files": [
-        "capabilities/cognition/hybrid-retrieval.js",
         "pool/artifact-router.js"
       ]
     },
@@ -1391,8 +1414,16 @@
       ],
       "files": [
         "pool/discovery-action-value.js",
+        "pool/evidence-admission.js",
         "pool/evidence-network.js",
+        "pool/evidence-normalization.js",
+        "pool/evidence-queries.js",
+        "pool/evidence-record-contract.js",
+        "pool/evidence-records.js",
+        "pool/evidence-verification.js",
         "pool/model-evidence-view.js",
+        "pool/peer-room.js",
+        "pool/research-cycle.js",
         "pool/sdk.js"
       ]
     },
@@ -1407,8 +1438,12 @@
         }
       ],
       "files": [
+        "ui/pool-home/requester-controls.js",
+        "ui/pool-home/research-panels.js",
         "ui/pool-home/research-store.js",
-        "ui/pool-home/research-view.js"
+        "ui/pool-home/research-view.js",
+        "ui/pool-home/room-projection.js",
+        "ui/pool-home/room-view.js"
       ]
     },
     {
@@ -1450,7 +1485,8 @@
         }
       ],
       "files": [
-        "pool/browser-qualification.js"
+        "pool/browser-qualification.js",
+        "pool/browser-release-identity.js"
       ]
     },
     {

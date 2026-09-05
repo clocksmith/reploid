@@ -12,6 +12,7 @@ export default defineConfig({
     ]
   },
   test: {
+    reporters: process.env.CI ? ['default', ['json', { outputFile: 'test-results/vitest-results.json' }]] : ['default'],
     include: ['tests/**/*.test.js'],
     environment: 'happy-dom',
     globals: true,

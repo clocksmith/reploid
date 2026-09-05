@@ -25,7 +25,9 @@ export function validateExecutablePack(binding) {
   if (!['doppler.pack/v2', 'doppler.pack/v3'].includes(binding.schema)) reasons.push('Unsupported executable Pack schema');
   if (typeof binding.packId !== 'string' || !binding.packId) reasons.push('Pack id is required');
   for (const field of IDENTITY_FIELDS.slice(2)) if (!DIGEST.test(binding[field])) reasons.push(`Invalid Pack ${field}`);
-  if (binding.requiredOperation !== 'encodeSequence') reasons.push('Poolday requires the public encodeSequence Pack operation');
+  // Custody binds an operation name; the installed execution adapter admits it.
+  // Serving model bytes must not imply that a peer can execute their operations.
+  if (typeof binding.requiredOperation !== 'string' || !/^[a-zA-Z][a-zA-Z0-9_.-]*$/.test(binding.requiredOperation)) reasons.push('A public Pack operation name is required');
   if (!Array.isArray(binding.acceptedTargetPlanDigests) || !binding.acceptedTargetPlanDigests.length
     || binding.acceptedTargetPlanDigests.some((digest) => !DIGEST.test(digest))
     || new Set(binding.acceptedTargetPlanDigests).size !== binding.acceptedTargetPlanDigests.length) reasons.push('Accepted TargetPlan digests must be explicit and unique');
@@ -57,13 +59,15 @@ export async function assertPackExecutionEvidence(binding, evidence) {
 }
 
 export async function assertPackSession(binding, session) {
-  if (session?.schema !== 'doppler.pack-session/v1' || !session.loaded || typeof session[binding?.requiredOperation] !== 'function') throw new Error('Doppler did not open the required public Pack session');
+  if (session?.schema !== 'doppler.pack-session/v1' || !session.loaded
+    || (typeof session.executeOperation !== 'function' && typeof session[binding?.requiredOperation] !== 'function')) throw new Error('Doppler did not open the required public Pack session');
   await assertPackExecutionEvidence(binding, { pack: session.packIdentity, targetPlanDigest: session.selectedTargetPlanDigest, artifactReceipts: session.verification?.artifactReceipts });
 }
 
 export async function assertPackReceipt(binding, receipt, { assignment = null, sequence, options, result } = {}) {
   await assertPackExecutionEvidence(binding, receipt);
-  if (receipt.schema !== 'doppler.pack-execution-receipt/v1' || receipt.operation !== binding.requiredOperation) throw new Error('Invalid Doppler Pack operation receipt');
+  if (receipt.schema !== 'doppler.pack-execution-receipt/v1' || binding.requiredOperation !== 'encodeSequence'
+    || receipt.operation !== binding.requiredOperation) throw new Error('Invalid Doppler Pack operation receipt');
   const { receiptDigest, ...payload } = receipt;
   if (receiptDigest !== await hashDopplerEvidence(payload)) throw new Error('Doppler Pack receipt digest mismatch');
   if (assignment && receipt.assignmentHash !== await hashDopplerEvidence(assignment)) throw new Error('Doppler Pack receipt assignment mismatch');

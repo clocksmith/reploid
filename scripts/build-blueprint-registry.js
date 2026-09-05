@@ -1,200 +1,119 @@
 #!/usr/bin/env node
-/**
- * Generates self/config/blueprint-registry.json by scanning:
- * 1. Existing blueprint-registry.json (preserves known mappings)
- * 2. Blueprint .md files (parses "Affected Artifacts" references)
- * 3. All .js files in self/
- *
- * No longer depends on MODULE_SYSTEM_AUDIT.md
- */
+/** Project maintained blueprint declarations; generated output is never authority. */
+import { promises as fs } from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { isDeepStrictEqual } from 'node:util';
+import { buildInventory } from './build-module-inventory.js';
+import { writeGeneratedRegistry } from './generated-registry-output.js';
+import { toBrowserSourcePath } from './browser-tree-paths.js';
 
-import { promises as fs } from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
-import { toCanonicalBrowserPath } from './browser-tree-paths.js';
+const filename = fileURLToPath(import.meta.url);
+const SELF_DIR = path.resolve(path.dirname(filename), '../self');
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const ROOT = path.resolve(__dirname, '..');
-const SELF_DIR = path.join(ROOT, 'self');
-const BLUEPRINT_DIR = path.join(SELF_DIR, 'blueprints');
-const REGISTRY_PATH = path.join(SELF_DIR, 'config', 'blueprint-registry.json');
+function field(content, name, file) {
+  const value = content.match(new RegExp('^\\*\\*' + name + ':\\*\\*[^\\S\\n]*([^\\n]*)', 'm'))?.[1]?.trim();
+  if (!value) throw new Error(file + ': missing ' + name);
+  return value;
+}
 
-async function walkFiles(dir) {
-  const entries = await fs.readdir(dir, { withFileTypes: true });
-  const files = [];
-  for (const entry of entries) {
-    const fullPath = path.join(dir, entry.name);
-    if (entry.isDirectory()) {
-      if (entry.name === 'blueprints' || entry.name === 'node_modules') continue;
-      files.push(...await walkFiles(fullPath));
-    } else if (entry.isFile() && entry.name.endsWith('.js')) {
-      files.push(fullPath);
-    }
+function paths(value, label) {
+  if (value === 'None') return [];
+  const values = [...value.matchAll(/`([^`]+)`/g)].map((match) => match[1]);
+  if (!values.length || value.replace(/`[^`]+`/g, '').replace(/[\s,]/g, '')) {
+    throw new Error(label + ': expected backtick-delimited paths or None');
   }
-  return files;
+  return values;
 }
 
-function parseBlueprintId(filename) {
-  const match = filename.match(/^(0x[0-9A-Fa-f]{6})/);
-  return match ? match[1] : null;
-}
-
-/**
- * Load existing registry to preserve known file->blueprint mappings
- */
-async function loadExistingRegistry() {
-  try {
-    const content = await fs.readFile(REGISTRY_PATH, 'utf8');
-    const registry = JSON.parse(content);
-    const fileToBlueprint = new Map();
-    for (const feature of registry.features || []) {
-      for (const file of feature.files || []) {
-        fileToBlueprint.set(file, feature.id);
-      }
-    }
-    return fileToBlueprint;
-  } catch {
-    return new Map();
-  }
-}
-
-/**
- * Parse blueprint .md files for "Affected Artifacts" references
- */
-async function parseBlueprintReferences() {
-  const files = await fs.readdir(BLUEPRINT_DIR);
-  const refs = new Map(); // blueprintId -> [file paths]
-
-  for (const file of files) {
-    if (!file.endsWith('.md')) continue;
-    const id = parseBlueprintId(file);
+export async function buildBlueprintRegistry({ selfDir = SELF_DIR, inventory } = {}) {
+  const source = inventory || await buildInventory({ selfDir });
+  const sourcePaths = new Set(source.modules.map((entry) => entry.path));
+  const blueprintDir = path.join(selfDir, 'blueprints');
+  const declarations = [];
+  const owners = new Map();
+  const ids = new Set();
+  for (const file of (await fs.readdir(blueprintDir)).sort()) {
+    const id = file.match(/^(0x[0-9A-Fa-f]{6})-.*\.md$/)?.[1];
     if (!id) continue;
-
-    const content = await fs.readFile(path.join(BLUEPRINT_DIR, file), 'utf8');
-
-    // Extract file references from "Affected Artifacts" or "Target Upgrade" lines
-    const artifactMatch = content.match(/\*\*Affected Artifacts:\*\*\s*([^\n]+)/i);
-    const targetMatch = content.match(/\*\*Target Upgrade:\*\*\s*([^\n]+)/i);
-
-    const paths = [];
-    for (const match of [artifactMatch, targetMatch]) {
-      if (match) {
-        // Extract paths like /core/agent-loop.js or core/agent-loop.js
-        const pathMatches = match[1].match(/\/?[\w\-\/]+\.js/g);
-        if (pathMatches) {
-          for (const p of pathMatches) {
-            paths.push(p.replace(/^\//, '')); // Remove leading slash
-          }
-        }
+    if (ids.has(id.toLowerCase())) throw new Error('Duplicate blueprint ID: ' + id);
+    ids.add(id.toLowerCase());
+    const content = await fs.readFile(path.join(blueprintDir, file), 'utf8');
+    if (field(content, 'Classification', file) !== 'Canonical Full Specification') {
+      throw new Error(file + ': numbered blueprints must be maintained canonical specifications');
+    }
+    const status = field(content, 'Implementation Status', file);
+    if (!['Implemented', 'In-Progress', 'Proposed'].includes(status)) throw new Error(file + ': unknown implementation status');
+    const files = paths(field(content, 'Owned Source Files', file), file).sort();
+    for (const owned of files) {
+      const relative = toBrowserSourcePath(owned);
+      if (relative.startsWith('/') || relative.split('/').some((part) => !part || part === '.' || part === '..') || relative.includes('\\')) {
+        throw new Error(file + ': invalid owned path: ' + owned);
       }
+      const exists = owned.endsWith('.js') ? sourcePaths.has(owned)
+        : await fs.stat(path.join(selfDir, relative)).then((stat) => stat.isFile(), () => false);
+      if (!exists) throw new Error(file + ': owned source does not exist: ' + owned);
+      if (owners.has(owned)) throw new Error('Duplicate owner for ' + owned + ': ' + owners.get(owned) + ' and ' + id);
+      owners.set(owned, id);
     }
-
-    if (paths.length > 0) {
-      refs.set(id, paths);
-    }
+    declarations.push({
+      id, file, files,
+      title: content.match(/^# Blueprint 0x[0-9A-Fa-f]{6}: (.+)$/m)?.[1] || file,
+      status,
+      verified: paths(field(content, 'Verified Artifacts', file), file).length,
+      planned: paths(field(content, 'Planned Artifacts', file), file).length
+    });
   }
-
-  return refs;
+  const registry = {
+    version: 1,
+    features: declarations.filter((entry) => entry.files.some((file) => file.endsWith('.js'))).map((entry) => ({
+      id: entry.id,
+      name: entry.file.replace(/^0x[0-9A-Fa-f]{6}-/, '').replace(/\.md$/, ''),
+      status: 'active',
+      blueprints: [{ id: entry.id, path: 'blueprints/' + entry.file }],
+      files: entry.files.filter((file) => file.endsWith('.js'))
+    }))
+  };
+  return { registry, declarations };
 }
 
-/**
- * Load blueprint index (id -> filename)
- */
-async function loadBlueprintIndex() {
-  const files = await fs.readdir(BLUEPRINT_DIR);
-  const map = new Map();
-  for (const file of files) {
-    const id = parseBlueprintId(file);
-    if (id) {
-      map.set(id, file);
-    }
-  }
-  return map;
+export function renderBlueprintInventory(declarations) {
+  const counts = new Map();
+  for (const entry of declarations) counts.set(entry.status, (counts.get(entry.status) || 0) + 1);
+  return [
+    '# Canonical blueprint inventory', '', '**Classification:** Index & Meta Contract', '',
+    'Generated by `node scripts/build-blueprint-registry.js` from maintained numbered blueprints. Their metadata owns status, artifact references, and source ownership. `self/config/blueprint-registry.json` projects executable ownership; `self/config/module-inventory.json` inventories all browser JavaScript. Do not edit this projection by hand.', '',
+    '**Count:** ' + declarations.length + '  ',
+    '**Status:** ' + [...counts].map(([status, count]) => count + ' ' + status).join(' · '), '',
+    '| ID | Canonical specification | Status | Owned source files | Verified / planned artifacts |',
+    '| --- | --- | --- | ---: | --- |',
+    ...declarations.map((entry) => '| `' + entry.id + '` | [' + entry.title.replaceAll('|', '\\|') + '](' + entry.file + ') | ' + entry.status + ' | ' + entry.files.length + ' | ' + entry.verified + ' / ' + entry.planned + ' |'),
+    '', 'Former-path provenance remains in [deduplication-map.json](deduplication-map.json).', ''
+  ].join('\n');
 }
 
 async function main() {
-  // Load existing mappings from multiple sources
-  const existingRegistry = await loadExistingRegistry();
-  const blueprintRefs = await parseBlueprintReferences();
-  const existingBlueprints = await loadBlueprintIndex();
-
-  // Build reverse map: file -> blueprintId from blueprint references
-  const refFileToBlueprint = new Map();
-  for (const [blueprintId, files] of blueprintRefs.entries()) {
-    for (const file of files) {
-      if (!refFileToBlueprint.has(file)) {
-        refFileToBlueprint.set(file, blueprintId);
-      }
-    }
+  const args = process.argv.slice(2);
+  if (args.some((arg) => arg !== '--check')) throw new Error('Usage: build-blueprint-registry.js [--check]');
+  const { registry, declarations } = await buildBlueprintRegistry();
+  const registryPath = path.join(SELF_DIR, 'config/blueprint-registry.json');
+  const inventoryPath = path.join(SELF_DIR, 'blueprints/canonical-inventory.md');
+  const inventory = renderBlueprintInventory(declarations);
+  if (args.includes('--check')) {
+    const { generatedAt, ...existing } = JSON.parse(await fs.readFile(registryPath, 'utf8'));
+    if (!isDeepStrictEqual(existing, registry)) throw new Error('Blueprint registry is stale');
+    if (await fs.readFile(inventoryPath, 'utf8') !== inventory) throw new Error('Blueprint inventory is stale');
+    console.log('[blueprint-registry] ' + declarations.length + ' declarations and ' + registry.features.length + ' executable owners are current');
+    return;
   }
-
-  // Walk all JS files
-  const jsFiles = await walkFiles(SELF_DIR);
-  const relFiles = jsFiles.map((file) => toCanonicalBrowserPath(path.relative(SELF_DIR, file))).sort();
-
-  const blueprintToFiles = new Map();
-
-  for (const relFile of relFiles) {
-    let blueprintId = null;
-
-    // Priority 1: Existing registry mapping
-    if (existingRegistry.has(relFile)) {
-      blueprintId = existingRegistry.get(relFile);
-    }
-    // Priority 2: Blueprint file references
-    else if (refFileToBlueprint.has(relFile)) {
-      blueprintId = refFileToBlueprint.get(relFile);
-    }
-    // Unmapped source belongs in module-inventory.json. Only a maintained
-    // architectural decision may add a blueprint mapping.
-    else {
-      continue;
-    }
-
-    if (!blueprintToFiles.has(blueprintId)) {
-      blueprintToFiles.set(blueprintId, []);
-    }
-    blueprintToFiles.get(blueprintId).push(relFile);
-  }
-
-  const features = [];
-
-  for (const [blueprintId, files] of blueprintToFiles.entries()) {
-    let blueprintFile = existingBlueprints.get(blueprintId);
-
-    if (!blueprintFile) continue;
-
-    const name = blueprintFile
-      .replace(/^0x[0-9A-Fa-f]{6}-/, '')
-      .replace(/\.md$/, '');
-
-    features.push({
-      id: blueprintId,
-      name,
-      status: 'active',
-      blueprints: [{
-        id: blueprintId,
-        path: `blueprints/${blueprintFile}`
-      }],
-      files: files.sort()
-    });
-  }
-
-  features.sort((a, b) => a.id.localeCompare(b.id));
-
-  const output = {
-    version: 1,
-    generatedAt: new Date().toISOString(),
-    features
-  };
-
-  await fs.writeFile(REGISTRY_PATH, JSON.stringify(output, null, 2) + '\n', 'utf8');
-  console.log(`[blueprint-registry] Wrote ${REGISTRY_PATH} with ${features.length} features`);
+  const changed = await writeGeneratedRegistry(registryPath, registry);
+  let previous;
+  try { previous = await fs.readFile(inventoryPath, 'utf8'); } catch (error) { if (error.code !== 'ENOENT') throw error; }
+  if (previous !== inventory) await fs.writeFile(inventoryPath, inventory, 'utf8');
+  console.log('[blueprint-registry] ' + (changed ? 'Wrote' : 'Unchanged') + ' registry: ' + registry.features.length + ' executable owners, ' + declarations.length + ' declarations');
 }
 
-main().catch((err) => {
-  console.error('[blueprint-registry] Failed to build registry');
-  console.error(err);
-  process.exit(1);
+if (process.argv[1] && path.resolve(process.argv[1]) === filename) main().catch((error) => {
+  console.error('[blueprint-registry]', error.message);
+  process.exitCode = 1;
 });

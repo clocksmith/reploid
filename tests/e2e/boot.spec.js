@@ -574,7 +574,7 @@ test.describe('Route Entry Points', () => {
     await expect(page.locator('[data-action="choose-direct"]')).toHaveCount(0);
     await expect(page.locator('.wizard-proxy-config .type-h1')).toHaveText('Server proxy');
     await expect(page.locator('#proxy-url')).toHaveValue(/\/zero\/gemini$/);
-    await expect(page.locator('#proxy-model')).toHaveValue('gemini-3.1-flash-lite');
+    await expect(page.locator('#proxy-model')).toHaveValue('gemini-3.8-flash');
     await expect(page.locator('.wizard-proxy-config')).toContainText('gemini through firebase-function');
     await expect(page.locator('#goal-input')).toBeVisible();
     await page.locator('#goal-input').fill('');
@@ -587,6 +587,17 @@ test.describe('Route Entry Points', () => {
     await expect(page.locator('[data-action="advanced-settings"]')).toHaveCount(0);
     await expect.poll(async () => page.evaluate(() => window.getReploidMode())).toBe('zero');
     expect(startupDiscoveryRequests).toEqual([]);
+    const verification = await page.evaluate(async () => {
+      const source = await (await fetch('/config/zero-inference.js')).text();
+      const worker = new Worker('/core/verification-worker.js');
+      return new Promise((resolve, reject) => {
+        const timer = setTimeout(() => { worker.terminate(); reject(new Error('Verification Worker timeout')); }, 10000);
+        worker.onmessage = (event) => { clearTimeout(timer); worker.terminate(); resolve(event.data); };
+        worker.onerror = (event) => { clearTimeout(timer); worker.terminate(); reject(new Error(event.message)); };
+        worker.postMessage({ type: 'VERIFY', snapshot: { '/config/zero-inference.js': source } });
+      });
+    });
+    expect(verification.passed, JSON.stringify(verification.errors)).toBe(true);
   });
 
   test('/zero awakens with the complete DI dependency closure', async ({ page }) => {

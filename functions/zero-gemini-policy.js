@@ -1,4 +1,4 @@
-export const DEFAULT_GEMINI_MODEL = 'gemini-3.1-flash-lite';
+export const DEFAULT_GEMINI_MODEL = 'gemini-3.8-flash';
 export const DEFAULT_REFERER = 'https://replo.id';
 export const DEFAULT_MAX_MESSAGES = 64;
 export const DEFAULT_MAX_INPUT_CHARS = 120000;

@@ -8,12 +8,12 @@ This guide gets you from a clean checkout to a running Reploid session with the 
 
 - Modern browser with ES modules
 - WebGPU-capable browser for Doppler local models
-- Node.js 16+ for the supported dev server path
+- Node.js 22+ (the minimum declared by `package.json`) for the supported dev server path
 - `git` recommended
 
 ---
 
-## 1-Minute Quick Start
+## Start locally
 
 ### 1. Install dependencies
 

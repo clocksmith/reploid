@@ -145,14 +145,21 @@ describe('peer-only exact Pack dependency custody', () => {
 
   it('bounds unresponsive suppliers and uses remaining authorized sources', async () => {
     const f = await fixture({ requestTimeoutMs: 10 });
-    const store = await createPeerPackArtifactStore({ ...f.options, requestChunk: (peer, request) => {
-      if (peer === 'faulty') return new Promise(() => {});
-      return f.suppliers.get(peer).serve(request);
-    } });
+    // Advance only the unresponsive supplier's deadline. Real signature checks
+    // on healthy suppliers must not race an arbitrarily small wall-clock timer.
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+    let store;
     try {
+      store = await createPeerPackArtifactStore({ ...f.options, requestChunk: (peer, request) => {
+        if (peer === 'faulty') {
+          queueMicrotask(() => vi.advanceTimersByTime(10));
+          return new Promise(() => {});
+        }
+        return f.suppliers.get(peer).serve(request);
+      } });
       expect(await read(store, f)).toEqual(f.artifactBytes.get('weights'));
       expect(store.getReceipt().attempts.filter((item) => item.error?.includes('timeout'))).toHaveLength(4);
-    } finally { store.close(); }
+    } finally { store?.close(); vi.useRealTimers(); }
   });
 
   it('charges retries against the transfer budget and fails closed when it is exhausted', async () => {

@@ -72,7 +72,8 @@ User Input -> AgentLoop -> LLMClient -> Tool Selection
 
 ### Testing
 ```bash
-npm test                    # Run all tests
+npm test                    # Run Vitest suites; does not launch browsers
+npm test -- --full          # Vitest followed by Playwright E2E
 npm run test:unit           # Unit tests only
 npm run test:integration    # Integration tests
 npm run test:e2e            # Playwright E2E tests
