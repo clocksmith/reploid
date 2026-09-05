@@ -1,0 +1,348 @@
+{
+  "schema": "reploid.forecast-sdk-verification/v1",
+  "at": "2026-09-05T20:35:36.121Z",
+  "kind": "Actual classic Verification Worker static/AST analysis; no inference or adoption claim",
+  "sources": [
+    {
+      "path": "self/pool/artifact-router.js",
+      "hash": "sha256:fdfb35a0fbcbae7206f37b9d7cf635558ea95e4b7575e18f37f6a8fe19a25d5c"
+    },
+    {
+      "path": "self/pool/executable-pack.js",
+      "hash": "sha256:3d15bc81e901afb20d97f581cf3bfacde8b80856726dc156d0d64f664e8da864"
+    },
+    {
+      "path": "self/pool/inference-receipt.js",
+      "hash": "sha256:f06258934ceb1f0250c1f25949c6093015b2d7bd4b715a1a50535fe987d68845"
+    },
+    {
+      "path": "self/pool/model-contract.js",
+      "hash": "sha256:36ce057649845d4b3a9ea947adb2fd1b7e618cf44f1bae544cbb7f75bab0ee54"
+    },
+    {
+      "path": "self/pool/peer-control-plane.js",
+      "hash": "sha256:fb922bef3b64c20ecdd7852b057c093022c87d0e1d92da7125d60541451cfb83"
+    },
+    {
+      "path": "self/pool/peer-protocol.js",
+      "hash": "sha256:7ac6ddbcba78ec18b78e4cb80d499c759b05af548617a8a0d8c3fd4533a35488"
+    },
+    {
+      "path": "self/pool/complete-forecast.js",
+      "hash": "sha256:483192344e399c005f1a15835801b4cd16abab609c3fad93dc97ec30f5e1d143"
+    },
+    {
+      "path": "self/pool/forecast-workload.js",
+      "hash": "sha256:54813f86b01ae55b873de335270865051c35ac268eb83e679b62148fda230698"
+    },
+    {
+      "path": "self/pool/peer-assignment.js",
+      "hash": "sha256:bd7c5564f4e6669cba93c9af1bf96e01caf8052b11b6b38322c1180e0b1f85bb"
+    },
+    {
+      "path": "sdk/poolday-forecast/index.js",
+      "hash": "sha256:fa9832c363d5b4a2f5360cc8e761e7da635cbe61bf02923735da4d3cb2d4349f"
+    },
+    {
+      "path": "scripts/build-poolday-forecast-sdk.js",
+      "hash": "sha256:bd907b1fdc070cac010b4d5600c6ecc5230eb2f21241787e3b08b35bfb1063c4"
+    },
+    {
+      "path": "scripts/verify-poolday-forecast-sdk.js",
+      "hash": "sha256:a607ebbf262fb2a04063d48ff17208813348af18dc5dfa484e9d2d305bac91c2"
+    },
+    {
+      "path": "tests/unit/pool-complete-forecast.test.js",
+      "hash": "sha256:ebb0d61f51661353db60077401e71fa3049f98839b452cce121492be6211c6a2"
+    }
+  ],
+  "result": {
+    "passed": true,
+    "errors": [],
+    "warnings": [
+      "Warning in /pool/inference-receipt.js:73: Dynamic property write detected: [i] - verify input sanitization",
+      "File has 28 functions (max 20) - consider modularizing",
+      "Warning in /pool/model-contract.js:29: Suspicious variable name: SUPPORTED_MODEL_EXECUTION_MODES - may indicate code execution",
+      "Warning in /pool/model-contract.js:32: Suspicious variable name: SUPPORTED_MODEL_EXECUTION_MODE - may indicate code execution",
+      "Warning in /pool/model-contract.js:290: Suspicious variable name: executionMode - may indicate code execution",
+      "Warning in /pool/model-contract.js:291: Suspicious variable name: expectedExecutionMode - may indicate code execution",
+      "File has 32 functions (max 20) - consider modularizing",
+      "Warning in /pool/peer-control-plane.js:192: Suspicious variable name: sequenceValidation - may indicate code execution",
+      "Warning in /pool/peer-control-plane.js:413: Suspicious variable name: runtimeProfileValid - may indicate code execution",
+      "Warning in /pool/peer-control-plane.js:787: Suspicious variable name: sequenceValidation - may indicate code execution",
+      "File exceeds 500 lines (1065) - consider splitting",
+      "File has 51 functions (max 20) - consider modularizing",
+      "Nesting depth of 6 exceeds 5 - refactor nested code",
+      "7 lines exceed 200 characters",
+      "Warning in /pool/forecast-workload.js:4: Suspicious variable name: FORECAST_EXECUTION_MODE - may indicate code execution",
+      "Warning in /sdk/poolday-forecast/index.js: Path traversal pattern detected (../) - potential security risk",
+      "Warning in /tests/unit/pool-complete-forecast.test.js: Path traversal pattern detected (../) - potential security risk",
+      "Warning in /tests/unit/pool-complete-forecast.test.js:43: Suspicious variable name: executionReceipt - may indicate code execution",
+      "Warning in /tests/unit/pool-complete-forecast.test.js:57: Suspicious variable name: executions - may indicate code execution",
+      "Warning in /tests/unit/pool-complete-forecast.test.js:72: Suspicious variable name: executions - may indicate code execution"
+    ],
+    "events": [
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1788640536104,
+        "path": "/pool/inference-receipt.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [i] - verify input sanitization",
+        "line": 73,
+        "severity": "warning"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1788640536105,
+        "metric": "functions",
+        "value": 28,
+        "threshold": 20,
+        "message": "File has 28 functions (max 20) - consider modularizing",
+        "path": "/pool/inference-receipt.js"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1788640536106,
+        "path": "/pool/model-contract.js",
+        "patternId": "suspicious_variable_name",
+        "category": "structural",
+        "message": "Suspicious variable name: SUPPORTED_MODEL_EXECUTION_MODES - may indicate code execution",
+        "line": 29,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1788640536106,
+        "path": "/pool/model-contract.js",
+        "patternId": "suspicious_variable_name",
+        "category": "structural",
+        "message": "Suspicious variable name: SUPPORTED_MODEL_EXECUTION_MODE - may indicate code execution",
+        "line": 32,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1788640536106,
+        "path": "/pool/model-contract.js",
+        "patternId": "suspicious_variable_name",
+        "category": "structural",
+        "message": "Suspicious variable name: executionMode - may indicate code execution",
+        "line": 290,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1788640536106,
+        "path": "/pool/model-contract.js",
+        "patternId": "suspicious_variable_name",
+        "category": "structural",
+        "message": "Suspicious variable name: expectedExecutionMode - may indicate code execution",
+        "line": 291,
+        "severity": "warning"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1788640536107,
+        "metric": "functions",
+        "value": 32,
+        "threshold": 20,
+        "message": "File has 32 functions (max 20) - consider modularizing",
+        "path": "/pool/model-contract.js"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1788640536111,
+        "path": "/pool/peer-control-plane.js",
+        "patternId": "suspicious_variable_name",
+        "category": "structural",
+        "message": "Suspicious variable name: sequenceValidation - may indicate code execution",
+        "line": 192,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1788640536111,
+        "path": "/pool/peer-control-plane.js",
+        "patternId": "suspicious_variable_name",
+        "category": "structural",
+        "message": "Suspicious variable name: runtimeProfileValid - may indicate code execution",
+        "line": 413,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1788640536111,
+        "path": "/pool/peer-control-plane.js",
+        "patternId": "suspicious_variable_name",
+        "category": "structural",
+        "message": "Suspicious variable name: sequenceValidation - may indicate code execution",
+        "line": 787,
+        "severity": "warning"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1788640536112,
+        "metric": "lines",
+        "value": 1065,
+        "threshold": 500,
+        "message": "File exceeds 500 lines (1065) - consider splitting",
+        "path": "/pool/peer-control-plane.js"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1788640536112,
+        "metric": "functions",
+        "value": 51,
+        "threshold": 20,
+        "message": "File has 51 functions (max 20) - consider modularizing",
+        "path": "/pool/peer-control-plane.js"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1788640536112,
+        "metric": "nesting",
+        "value": 6,
+        "threshold": 5,
+        "message": "Nesting depth of 6 exceeds 5 - refactor nested code",
+        "path": "/pool/peer-control-plane.js"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1788640536116,
+        "metric": "line_length",
+        "value": 7,
+        "threshold": 5,
+        "message": "7 lines exceed 200 characters",
+        "path": "/pool/complete-forecast.js"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1788640536116,
+        "path": "/pool/forecast-workload.js",
+        "patternId": "suspicious_variable_name",
+        "category": "structural",
+        "message": "Suspicious variable name: FORECAST_EXECUTION_MODE - may indicate code execution",
+        "line": 4,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1788640536116,
+        "path": "/sdk/poolday-forecast/index.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1788640536118,
+        "path": "/tests/unit/pool-complete-forecast.test.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1788640536118,
+        "path": "/tests/unit/pool-complete-forecast.test.js",
+        "patternId": "suspicious_variable_name",
+        "category": "structural",
+        "message": "Suspicious variable name: executionReceipt - may indicate code execution",
+        "line": 43,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1788640536118,
+        "path": "/tests/unit/pool-complete-forecast.test.js",
+        "patternId": "suspicious_variable_name",
+        "category": "structural",
+        "message": "Suspicious variable name: executions - may indicate code execution",
+        "line": 57,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1788640536118,
+        "path": "/tests/unit/pool-complete-forecast.test.js",
+        "patternId": "suspicious_variable_name",
+        "category": "structural",
+        "message": "Suspicious variable name: executions - may indicate code execution",
+        "line": 72,
+        "severity": "warning"
+      }
+    ],
+    "details": {
+      "patternViolations": [
+        {
+          "path": "/sdk/poolday-forecast/index.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        },
+        {
+          "path": "/tests/unit/pool-complete-forecast.test.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        }
+      ],
+      "complexityWarnings": [
+        {
+          "type": "complexity",
+          "metric": "functions",
+          "value": 28,
+          "threshold": 20,
+          "message": "File has 28 functions (max 20) - consider modularizing",
+          "path": "/pool/inference-receipt.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "functions",
+          "value": 32,
+          "threshold": 20,
+          "message": "File has 32 functions (max 20) - consider modularizing",
+          "path": "/pool/model-contract.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "lines",
+          "value": 1065,
+          "threshold": 500,
+          "message": "File exceeds 500 lines (1065) - consider splitting",
+          "path": "/pool/peer-control-plane.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "functions",
+          "value": 51,
+          "threshold": 20,
+          "message": "File has 51 functions (max 20) - consider modularizing",
+          "path": "/pool/peer-control-plane.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "nesting",
+          "value": 6,
+          "threshold": 5,
+          "message": "Nesting depth of 6 exceeds 5 - refactor nested code",
+          "path": "/pool/peer-control-plane.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "line_length",
+          "value": 7,
+          "threshold": 5,
+          "message": "7 lines exceed 200 characters",
+          "path": "/pool/complete-forecast.js"
+        }
+      ],
+      "filesAnalyzed": 13
+    }
+  }
+}

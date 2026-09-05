@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createSigningKeyPair, exportPublicKey, sha256Hex, hashJson, canonicalize } from '../../self/pool/inference-receipt.js';
 import { createForecastIntent, createForecastProviderAdvert, assignForecastJob, validateForecastAssignment,
   createForecastReceipt, verifyForecastReceipt, acceptForecastAgreement, verifyForecastEpisode } from '../../self/pool/complete-forecast.js';
@@ -13,7 +13,7 @@ async function identity() {
 }
 
 /** Synthetic protocol evidence only; this fixture never claims GPU execution. */
-async function fixture() {
+async function fixture({ advertMs = 60000 } = {}) {
   const requester = await identity(), providers = await Promise.all([identity(), identity()]);
   const artifacts = [{ artifactId: 'fixture', hash: await sha256Hex(new Uint8Array([1, 2, 3])), sizeBytes: 3, path: 'fixture.bin', role: 'weight-shard' }];
   const pack = { schema: 'doppler.pack/v3', packId: 'synthetic-protocol-fixture', semanticRoot: hash('a'), envelopeDigest: hash('b'),
@@ -29,7 +29,7 @@ async function fixture() {
   const config = { horizon: 1, quantiles: [0.1, 0.5, 0.9], stepMs: 86400000, lastObservation: '2026-09-01T00:00:00.000Z' };
   const intent = await createForecastIntent({ identity: requester, model, domain: { roomId: 'synthetic-room', roomRoot: hash('1'),
     policyHash: hash('2'), runHash: hash('3'), snapshotHash: hash('4') }, config, policy, expiresAt });
-  const adverts = await Promise.all(providers.map(provider => createForecastProviderAdvert({ identity: provider, model, expiresAt,
+  const adverts = await Promise.all(providers.map(provider => createForecastProviderAdvert({ identity: provider, model, expiresAt: new Date(Date.now() + advertMs).toISOString(),
     availability: { acceptingJobs: true, activeJobs: 0, maxConcurrentJobs: 1, maxJobMs: 10000, expectedLatencyMs: null } })));
   const planned = await assignForecastJob({ intent, adverts, expectedModel: model, assignmentAttemptId: 'attempt-1' });
   async function execute(assignment, lastQuantile = 12) {
@@ -48,7 +48,18 @@ async function fixture() {
   return { requester, providers, intent, model, planned, adverts, execute };
 }
 
+afterEach(() => vi.useRealTimers());
 describe('portable complete forecasting protocol', () => {
+  it('preserves assignment validity after the discovery advert refresh lease and verifies archived acceptance after intent expiry', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] }); const start = Date.now();
+    const f = await fixture({ advertMs: 1000 });
+    vi.setSystemTime(start + 2000);
+    const executions = await Promise.all(f.planned.assignments.map(assignment => f.execute(assignment)));
+    const accepted = await acceptForecastAgreement({ identity: f.requester, intent: f.intent, executions, expectedModel: f.model });
+    vi.setSystemTime(start + 90000);
+    expect((await verifyForecastEpisode({ intent: f.intent, executions, expectedModel: f.model, ...accepted })).acceptanceHash).toBe(accepted.acceptanceHash);
+    await expect(acceptForecastAgreement({ identity: f.requester, intent: f.intent, executions, expectedModel: f.model })).rejects.toThrow(/expired/);
+  });
   it('keeps the original assignment identity and does not self-admit a new public model', async () => {
     const input = { intentHash: hash('1'), providerId: 'provider', assignmentAttemptId: 'attempt', routeDecisionHash: hash('2'),
       providerAdvertHash: hash('3'), providerParticipationProfileHash: null, providerLimits: { maxConcurrentJobs: 1 } };
