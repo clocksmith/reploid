@@ -17,7 +17,7 @@ and inspectable for unrelated operators, with retained evidence measurably
 improving a subsequent assignment or investigation:
 
 ```text
-request -> peer executes -> result compared -> requester accepts -> receipt retained
+acquire -> verify -> execute locally or explicitly delegate -> compare -> accept -> retain -> improve later assignment
 ```
 
 A requester selects a signed Doppler Pack, supplies input, reviews disclosure
@@ -71,12 +71,28 @@ hardware-attested execution, or guaranteed scientific correctness.
 
 ## Optimization objective
 
-The primary objective is repeat independent use of exact peer execution plus
-measured improvement in later routing or investigation from retained admissible
-evidence. Compare versioned policies over frozen jobs against no-history routing
-and ordinary hosting. Report completion, verification cost, availability,
-recovery, retained operators, and return requester demand. Stop expansion when
-hosting wins or history does not improve the next decision.
+The immediate objective is a reproducible open execution network with Doppler.
+ESM-2 35M remains first. Independent machines demonstrate origin-independent
+reconstruction, useful oracle-valid outputs, corruption rejection, and
+participant-loss recovery through one Pack and assignment lineage. Local
+execution remains usable without delegation; redistribution and complete-job
+delegation require separate explicit opt-in. Private inputs remain local by
+default, and the initial delegated lane remains public-sequence-only.
+
+Retained admissible evidence must improve held-out assignments against both
+no-history and competent frozen reliability schedulers without relaxing
+correctness. Freeze policies before evaluation; history precedes the held-out
+jobs. Keep jobs, capacity, oracle, resource budget, and starting conditions
+identical. Predeclare meaningful outcomes, report uncertainty, and charge all
+attempts, transfers, verification, replication, retries, relay traffic, and review.
+Revoked, stale, duplicate, and insufficient history have explicit negative tests.
+
+Voluntary independent repeat use counts even when free. Protocols remain
+forkable and evidence exportable. Revenue, acquisition, and hosting economics
+are commercial hypotheses outside technical acceptance. Existing standalone
+work remains usable. Electron, Qwen, Doe improvements, and agent-proposed Pack
+improvements are not simultaneous launch gates; the latter two are separate
+later experiments. If history adds no benefit, that gate remains unproved.
 
 The optional Research Room's separate scientific objective is:
 

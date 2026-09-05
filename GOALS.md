@@ -4,8 +4,20 @@
 
 Poolday is Reploid's primary product: unrelated operators deliver and execute
 an exact Doppler capability across peers, retain admissible evidence, and use
-that evidence to improve a subsequent assignment or investigation. Repeat
-requester and provider use must survive comparison with ordinary hosting.
+that evidence to improve a subsequent assignment or investigation. The immediate
+win condition is a reproducible open execution network. Free adoption counts;
+payment, revenue, and acquisition do not determine technical completion.
+
+Doppler and Poolday deliver one connected capability: acquire, verify, execute
+locally, optionally redistribute authorized artifacts, and explicitly delegate
+complete jobs. Private inputs remain local by default. Downloading a Pack grants
+neither redistribution nor delegation permission. The initial network accepts
+explicitly public protein sequences only; private sharing is not enabled by
+this goal. Protocols remain forkable and evidence exportable.
+
+ESM-2 35M remains first. Existing standalone work stays usable, but Electron,
+Qwen, Doe improvements, and agent-proposed Pack improvements are not additional
+network launch gates. The latter two remain separate later experiments.
 
 Zero and X are secondary RSI browser agents, with independent state, evaluation,
 promotion, and activation authority. Agent Release Passport (Change Passport)
@@ -99,17 +111,26 @@ scientific room, hypotheses, cohorts, adjudication, or laboratory claims.
 Separate operators repeatedly execute an exact signed Doppler Pack under a
 frozen correctness and acceptance policy. The episode must demonstrate authorized
 artifact reconstruction with origin disabled, corrupt contribution rejection,
-peer disappearance and recovery, independent review, and return usage. ESM-2
-proves plumbing; one independently demanded deterministic workload must follow.
+peer disappearance and recovery on independent machines, independent review,
+and voluntary return usage. ESM-2 must produce useful oracle-valid outputs from
+actual signed Pack bytes and weights through public openPack/encodeSequence.
+The same retained episode binds Pack identity, assignments, and recovery receipts.
 
 A versioned route-decision projection cites exact compatibility, custody,
 availability, prior outcomes, latency, failures, cost, and reputation evidence.
-Replay a frozen job set through a no-history baseline and the candidate policy.
-Promote only if admissible history improves completion, verification cost, or
-failure avoidance without weakening correctness. Keep scientific evidence and
+Replay a held-out frozen job set through no-history, competent reliability
+scheduler, and evidence-informed policies with identical jobs, capacity, oracle,
+resource budget, and starting conditions. History precedes held-out jobs and
+tuning ends before evaluation. Require a predeclared meaningful benefit against
+both controls with uncertainty and unchanged correctness; account for all
+attempts, transfers, verification, replication, retries, and review. Revocation,
+staleness, duplicates, and insufficient history have negative tests.
+Keep scientific evidence and
 operational routing evidence separate. Signed receipts and local browser tabs
 alone do not establish external adoption, physical independence, or learning.
-Stop expansion if hosting wins or retained evidence never improves later work.
+Hosting comparisons inform economics, not technical completion. If retained
+history does not improve later work, its acceptance gate stays unproved even
+when artifact sharing and execution capacity work.
 
 ### Alternative proof: Change Passport
 
