@@ -91,11 +91,11 @@ test('local document journey preserves protein UI, privacy, evidence, and experi
 
 test('changed Reploid modules pass the actual Verification Worker', async ({ page }, testInfo) => {
   const paths = ['pool/model-contract.js', 'pool/operation-model.js', 'pool/local-pack-executor.js',
-    'pool/document-search.js', 'ui/pool-home/document-search.js', 'ui/pool-home/index.js', 'ui/pool-home/view.js', 'ui/pool-home/controls.js'];
+    'pool/document-search.js', 'pool/pack-operation-adapters.js', 'ui/pool-home/document-search.js', 'ui/pool-home/index.js', 'ui/pool-home/view.js', 'ui/pool-home/controls.js'];
   const snapshot = Object.fromEntries(await Promise.all(paths.map(async (path) => [
     `/${path}`, await readFile(new URL(`../../self/${path}`, import.meta.url), 'utf8')
   ])));
-  for (const path of ['unit/pool-document-search.test.js', 'unit/pool-home-nav.test.js', 'unit/pool-home-record.test.js', 'e2e/document-search.spec.js', 'fixtures/document-packs.js']) {
+  for (const path of ['unit/pool-document-search.test.js', 'unit/pool-pack-operation.test.js', 'unit/pool-home-nav.test.js', 'unit/pool-home-record.test.js', 'e2e/document-search.spec.js', 'fixtures/document-packs.js', 'fixtures/doppler-pack-handoff.js']) {
     snapshot[`/testing/${path}`] = await readFile(new URL(`../${path}`, import.meta.url), 'utf8');
   }
   await page.goto('/');

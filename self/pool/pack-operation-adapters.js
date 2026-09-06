@@ -37,8 +37,10 @@ const builtins = {
   embed: {
     version: 1,
     validateRequest({ input, options }) {
-      fields(input, ['texts']); fields(options, []);
+      fields(input, ['texts', 'application']); fields(options, []);
       requireValue(Array.isArray(input.texts) && input.texts.length > 0 && input.texts.every(text), 'texts required');
+      requireValue(input.application && typeof input.application === 'object'
+        && !Array.isArray(input.application), 'signed embedding application required');
     },
     validateOutput(output, request, { completed }) {
       requireValue(Array.isArray(output.embeddings) && output.embeddings.length > 0

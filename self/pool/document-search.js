@@ -89,7 +89,8 @@ export function createDocumentSearch({ executor, onChange = () => {}, limits = p
         const validation = validateOperationModel(next[role]);
         requireValue(validation.ok && next[role].executablePack.requiredOperation === operation,
           `Invalid ${role} Pack: ${validation.reasons.join('; ')}`);
-        if (role === 'reranker') requireValue(next[role].application && typeof next[role].application === 'object', 'Reranker application identity required');
+        requireValue(next[role].application && typeof next[role].application === 'object'
+          && !Array.isArray(next[role].application), `${role} application identity required`);
       }
       invalidate(); models = next; index = null; status = 'Models selected'; notify();
     },
@@ -123,7 +124,8 @@ export function createDocumentSearch({ executor, onChange = () => {}, limits = p
         const cached = index?.modelKey === modelKey && index?.corpusHash === corpus.corpusHash;
         const queryInput = models.queryPrefix + query;
         const texts = cached ? [queryInput] : [...corpus.chunks.map((chunk) => chunk.text), queryInput];
-        const embedded = await executor.run({ model: models.embedding, input: { texts }, options: {}, limits: operationLimits() });
+        const embedded = await executor.run({ model: models.embedding,
+          input: { texts, application: models.embedding.application }, options: {}, limits: operationLimits() });
         current(); receipts.push(embedded.receipt);
         const vectors = embedded.output.embeddings.map((item) => item.embedding);
         requireValue(vectors.length === texts.length, 'Embedding batch is incomplete');

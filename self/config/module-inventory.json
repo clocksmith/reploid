@@ -970,7 +970,7 @@
     {
       "path": "pool/document-search.js",
       "owner": "pool",
-      "sha256": "sha256:fdfd0ef892da338a332a6a587b54e0be341432b8f9ddad70fda8b97056765cae",
+      "sha256": "sha256:3b07112f1083728f0ae74c9b9c7bff1b293fb5641f6cb00540c80fa4f79d0b9b",
       "imports": [
         "./document-search-policy.json",
         "./executable-pack.js",
@@ -1263,7 +1263,7 @@
     {
       "path": "pool/pack-operation-adapters.js",
       "owner": "pool",
-      "sha256": "sha256:d84969b49c1128e5731a38aa35d8d4bad5f6cc91c16ff751c376ae42fbb3182f",
+      "sha256": "sha256:9ae27f95aa49690595575dcaa75bb44a34d002c4b83d06ba9268193a3ef2349d",
       "imports": []
     },
     {

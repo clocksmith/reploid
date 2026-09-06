@@ -29,7 +29,7 @@ Each model supplies:
   accepted TargetPlan digests, and `requiredOperation: "embed"` or `"rerank"`.
 - `packSource`: the Pack's HTTP(S) URL.
 - `packOpenOptions`: explicitly trusted signer keys and required lifecycle policy.
-- For reranking, `application`: the exact application identity signed into its release.
+- For embedding and reranking, `application`: the exact application identity signed into that Pack's release.
 
 Use identities exported by the publisher; model names or invented hashes are
 not substitutes. The Pack Runtime verifies signatures and bytes, selects an
