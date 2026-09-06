@@ -97,6 +97,8 @@ export async function planPackPeerProviders({ adverts, requirements, now, regist
 }
 
 async function workRequirements(intent, operation) {
+  requirePackJob(intent.consent?.schema === 'reploid.peer.public_operation_consent/v1' && intent.consent.publicInput === true
+    && Array.isArray(intent.consent.providerIds) && intent.consent.providerIds.length > 0, 'explicit public input and provider consent required');
   const { deadlineAt: _deadline, ...limits } = intent.limits;
   return validateWorkRequirements({ schema: 'reploid.pool.work-requirements/v1', modelIdentity: await hashDopplerEvidence(intent.model),
     operation, inputClass: intent.inputClass, adapterIdentities: intent.adapterSet, expertIdentities: [],
@@ -177,7 +179,7 @@ export async function createPackPeerJob({ identity, advert, adverts, model, inpu
   const operation = { name: data.model.executablePack.requiredOperation, version: registry[data.model.executablePack.requiredOperation].version };
   const requirements = await workRequirements(intent, operation);
   const plan = await planPackPeerProviders({ adverts: data.adverts, requirements, now: intent.selectedAt, registry, policy });
-  requirePackJob(plan.selectedProviderId, 'no eligible provider for declared work');
+  requirePackJob(plan.selectedProviderId, `no eligible provider for declared work: ${[...new Set(plan.candidates.flatMap(row => row.reasons))].join(', ')}`);
   const selectedHash = plan.candidates.find(row => row.providerId === plan.selectedProviderId).advertHash;
   advert = data.adverts.find(row => row.messageHash === selectedHash);
   intent.planning = { adverts: data.adverts, plan };

@@ -6,7 +6,7 @@ import poolConfig from '../../self/pool/pool-config.json' with { type: 'json' };
 import { createPackOperationRegistry, PACK_OPERATION_IMPLEMENTATIONS } from '../../self/pool/pack-operation-adapters.js';
 import { createPackPeerProvider } from '../../self/pool/peer-pack-provider.js';
 import { createPackPeerRequester } from '../../self/pool/peer-pack-requester.js';
-import { createPackPeerJob, verifyPackPeerJob, signPackPeerMessage, verifyPackPeerMessage, PACK_CANCEL_SCHEMA } from '../../self/pool/peer-pack-job.js';
+import { createPackPeerJob, createPackProviderAdvert, verifyPackPeerJob, signPackPeerMessage, verifyPackPeerMessage, PACK_CANCEL_SCHEMA } from '../../self/pool/peer-pack-job.js';
 import { PEER_MESSAGE_TYPES } from '../../self/pool/peer-protocol.js';
 import { verifyPackPeerEpisode } from '../../self/pool/peer-pack-episode.js';
 
@@ -111,6 +111,27 @@ describe('signed remote Pack jobs with synthetic model outputs', () => {
     finally { await f.close(); }
   });
 
+  it('executes the chosen resident provider and verifies the frozen candidate plan', async () => {
+    const f = await setup('rerank');
+    try {
+      const other = await packPeerIdentity(), capabilities = await operationCapabilities(f.model);
+      capabilities.models[0].availability = 'fetchable';
+      const { deadlineAt, ...limits } = f.args.limits;
+      const advert = await createPackProviderAdvert({ identity: other, models: [f.model], capabilities, limits, expiresAt: deadlineAt });
+      const result = await f.requester.run({ ...f.args, adverts: [advert, f.args.advert],
+        consent: { ...f.args.consent, providerIds: [other.keyId, f.providerIdentity.keyId] } });
+      expect(result.job.body.schema).toBe('reploid.peer.pack_job/v3');
+      expect(result.job.body.intent.planning.plan.orderedProviderIds).toEqual([f.providerIdentity.keyId, other.keyId]);
+      expect(f.calls()).toBe(1);
+      await expect(verifyPackPeerEpisode({ ...result, reference: f.output, models: [f.model] })).resolves.toMatchObject({ accepted: true });
+      const body = structuredClone(result.job.body);
+      body.intent.planning.plan.selectedProviderId = other.keyId;
+      const altered = await signPackPeerMessage({ identity: f.requesterIdentity, type: result.job.type,
+        recipient: result.job.toPeerId, body, expiresAt: Date.parse(result.job.expiresAt) });
+      await expect(verifyPackPeerJob(altered, { providerId: f.providerIdentity.keyId, models: [f.model] })).rejects.toThrow('deterministic provider plan');
+    } finally { await f.close(); }
+  });
+
   it('binds numbered attempts and archives the policy used before configuration changes', async () => {
     const f = await setup('embed');
     try {
@@ -146,7 +167,7 @@ describe('signed remote Pack jobs with synthetic model outputs', () => {
     const f = await setup('embed');
     try {
       await expect(f.requester.run({ ...f.args, consent: null })).rejects.toThrow('consent');
-      await expect(f.requester.run({ ...f.args, model: { ...f.model, runtimeVersion: 'different' } })).rejects.toThrow('exact model');
+      await expect(f.requester.run({ ...f.args, model: { ...f.model, runtimeVersion: 'different' } })).rejects.toThrow('model-unavailable');
       const { reference, ...args } = f.args;
       const job = await createPackPeerJob({ ...args, identity: f.requesterIdentity });
       for (const mutate of [

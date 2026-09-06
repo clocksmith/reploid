@@ -30,7 +30,7 @@ export function resolvePeerAssignmentPolicy(input, capabilitySchema) {
   assert(['reject', 'budget-only'].includes(policy.unknownFreeMemory), 'unknown memory policy required');
   assert(policy.duplicateProviders === 'newest-observation-then-message-hash' && policy.invalidAdvertisement === 'reject', 'supported advertisement handling required');
   assert(policy.history?.enabled === false, 'history routing requires separate qualified policy');
-  const metrics = ['modelAvailability', 'adapterAvailability', 'activeJobs', 'queuedJobs', 'freeGpuBytes', 'bandwidthBytesPerSecond', 'providerId'];
+  const metrics = ['modelAvailability', 'adapterAvailability', 'activeJobs', 'queuedJobs', 'gpuBudgetBytes', 'bandwidthBytesPerSecond', 'providerId'];
   assert(Array.isArray(policy.ranking) && policy.ranking.length > 0 && unique(policy.ranking.map(row => row.metric))
     && policy.ranking.every(row => metrics.includes(row.metric) && ['asc', 'desc'].includes(row.order))
     && policy.ranking.at(-1).metric === 'providerId', 'deterministic ranking and identity tie-break required');

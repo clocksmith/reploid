@@ -80,10 +80,17 @@ async function gathered() {
 export async function offer() { await pc.setLocalDescription(await pc.createOffer()); return gathered(); }
 export async function answer(offer) { await pc.setRemoteDescription(offer); await pc.setLocalDescription(await pc.createAnswer()); return gathered(); }
 export async function accept(answer) { await pc.setRemoteDescription(answer); await ready; }
-export async function advert() { await ready; return provider.createAdvert({ limits, expiresAt: Date.now() + 120000 }); }
+export async function advert() {
+  await ready;
+  const capabilities = { schema: 'reploid.peer.capabilities/v1', observedAt: Date.now(), gpuIdentity: fixture.gpuIdentity,
+    models: [{ identity: await hashDopplerEvidence(model), availability: 'resident' }], adapters: [], experts: [],
+    operations: [{ name: model.executablePack.requiredOperation, version: 1 }], inputClasses: ['public_biological_sequence'],
+    resources: fixture.resources.provider };
+  return provider.createAdvert({ limits, capabilities, expiresAt: Date.now() + 120000 });
+}
 export async function run(advert) {
   const started = performance.now();
-  const result = await requester.run({ advert, model, input: { sequence: fixture.sequence },
+  const result = await requester.run({ advert, model, resources: fixture.resources.request, input: { sequence: fixture.sequence },
     options: { includeTokenEmbeddings: true, includeLogits: false }, limits: { ...limits, deadlineAt: Date.now() + 120000 },
     consent: { schema: 'reploid.peer.public_operation_consent/v1', publicInput: true, providerIds: [advert.fromPeerId] },
     reference: fixture.reference, comparisonPolicy: { schema: 'poolday.operation-comparison/v1',

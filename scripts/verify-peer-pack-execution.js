@@ -253,7 +253,7 @@ export async function verifyPeerPackExecution(config) {
         options: { includeTokenEmbeddings: true, includeLogits: false,
           assignment: { id: authorization.transferId, attempt: 1, pack: binding, input: reference.input, comparisonPolicyDigest: config.referenceDigest } },
         dopplerVersion: config.dopplerVersion,
-        operationLimits: config.operationLimits,
+        operationLimits: config.operationLimits, remoteResources: config.remoteOperation?.resources ?? null,
       };
       if (config.restart) {
         const retainedKeys = await requester.evaluate(() => proofPeer.retainIdentityForRestart());
@@ -295,13 +295,13 @@ export async function verifyPeerPackExecution(config) {
           await Promise.race([requester.waitForFunction(() => proofPeer.remoteReady()), executing.then(execution => {
             throw new Error(execution.error || 'Model execution ended before remote provider readiness');
           })]);
-          await remoteRequester.evaluate(async ({ model, reference, sequence }) => {
+          await remoteRequester.evaluate(async ({ model, reference, sequence, resources }) => {
             window.remoteOperation = await import('/tests/fixtures/peer-pack-remote-execution.js');
-            await remoteOperation.startRequester(model, { reference, sequence });
+            await remoteOperation.startRequester(model, { reference, sequence, resources });
           }, { model: { modelId: reference.modelId, modelHash: binding.semanticRoot, manifestHash: binding.envelopeDigest,
             runtime: 'doppler', backend: 'browser-webgpu', runtimeVersion: config.dopplerVersion,
             executionMode: 'complete_pack_browser', workload: 'sequence.embedding.v1', executablePack: binding },
-          reference: remoteReference.output, sequence: reference.input.sequence });
+          reference: remoteReference.output, sequence: reference.input.sequence, resources: config.remoteOperation.resources });
           const offer = await remoteRequester.evaluate(() => remoteOperation.offer());
           const answer = await requester.evaluate(offer => proofPeer.remoteAnswer(offer), offer);
           await remoteRequester.evaluate(answer => remoteOperation.accept(answer), answer);
