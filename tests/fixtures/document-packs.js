@@ -1,15 +1,17 @@
 // Synthetic execution fixture. Exercises application plumbing, never model qualification.
 import { hashDopplerEvidence } from '../../self/pool/executable-pack.js';
 import { PACK_EXECUTION_MODE, PACK_OPERATION_WORKLOADS } from '../../self/pool/operation-model.js';
+import { resolveDopplerExecutionContract } from '../../self/config/doppler-execution-contracts.js';
 
 const digest = (value) => `sha256:${value.repeat(64)}`;
-export async function createDocumentPackFixture({ answerText = 'Apple trees grow fruit. [1]' } = {}) {
+export async function createDocumentPackFixture({ answerText = 'Apple trees grow fruit. [1]', schema = 'doppler.pack/v2', runtimeVersion = '0.5.1' } = {}) {
+  const contract = resolveDopplerExecutionContract(schema);
   const artifacts = [{ artifactId: 'weights', hash: digest('a'), role: 'weights', path: 'weights.bin', sizeBytes: 4 }];
-  const identity = { schema: 'doppler.pack/v2', packId: 'fixture', semanticRoot: digest('b'),
+  const identity = { schema, [contract.identityFields[1]]: 'fixture', semanticRoot: digest('b'),
     envelopeDigest: digest('c'), artifactClosureDigest: await hashDopplerEvidence(artifacts) };
   const targetPlanDigest = digest('d');
   const binding = (operation) => ({ ...identity, artifacts, requiredOperation: operation, acceptedTargetPlanDigests: [targetPlanDigest] });
-  const model = (operation) => ({ modelId: 'fixture', runtime: 'doppler', runtimeVersion: '0.5.1', backend: 'browser-webgpu',
+  const model = (operation) => ({ modelId: 'fixture', runtime: 'doppler', runtimeVersion, backend: 'browser-webgpu',
     executionMode: PACK_EXECUTION_MODE, workload: PACK_OPERATION_WORKLOADS[operation], modelHash: identity.semanticRoot,
     manifestHash: identity.envelopeDigest, executablePack: binding(operation), packSource: 'https://fixtures.invalid/pack.json',
     packOpenOptions: { trustedSigners: { fixture: { kty: 'OKP', crv: 'Ed25519', x: 'fixture' } } },
@@ -17,9 +19,9 @@ export async function createDocumentPackFixture({ answerText = 'Apple trees grow
   const calls = [];
   let closes = 0;
   const service = {
-    prepare: async () => ({ version: '0.5.1' }),
+    prepare: async () => ({ version: runtimeVersion }),
     close: async () => { closes++; },
-    openPack: async () => ({ schema: 'doppler.pack-session/v1', loaded: true, modelId: 'fixture', packIdentity: identity,
+    [contract.openMethod]: async () => ({ schema: contract.sessionSchema, loaded: true, modelId: 'fixture', [contract.sessionIdentity]: identity,
       selectedTargetPlanDigest: targetPlanDigest, verification: { artifactReceipts: artifacts.map(({ artifactId, hash, sizeBytes }) => ({ artifactId, hash, sizeBytes })) },
       async *executeOperation(request) {
         calls.push(request);
@@ -32,12 +34,12 @@ export async function createDocumentPackFixture({ answerText = 'Apple trees grow
             ranking: request.input.documents.map((_, index) => ({ index, score: index })).reverse().map((row, index) => ({ ...row, rank: index + 1 })) } };
         const requestHash = await hashDopplerEvidence(request);
         const assignmentHash = request.assignment === null ? null : await hashDopplerEvidence(request.assignment);
-        const receiptBody = { schema: 'doppler.pack-operation-receipt/v1', operation: request.operation,
-          pack: identity, targetPlanDigest, artifactReceipts: this.verification.artifactReceipts,
-          runtimeVersion: '0.5.1', requestHash, assignmentHash,
+        const receiptBody = { schema: contract.receiptSchema, operation: request.operation,
+          [contract.receiptIdentity]: identity, targetPlanDigest, artifactReceipts: this.verification.artifactReceipts,
+          runtimeVersion, requestHash, assignmentHash,
           inputHash: await hashDopplerEvidence({ input: request.input, options: request.options }), outputHash: await hashDopplerEvidence(output) };
         const receipt = { ...receiptBody, receiptDigest: await hashDopplerEvidence(receiptBody) };
-        const body = { schema: 'doppler.pack-operation-event/v1', operation: request.operation,
+        const body = { schema: contract.eventSchema, operation: request.operation,
           requestHash, assignmentHash, eventIndex: 0, previousEventDigest: null, status: 'completed', output, receipt };
         yield { ...body, eventDigest: await hashDopplerEvidence(body) };
       }

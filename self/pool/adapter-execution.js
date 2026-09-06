@@ -3,6 +3,7 @@ import { freezeOperationPolicy } from './pack-operation-policy.js';
 import { hashDopplerEvidence } from './executable-pack.js';
 import { adapterRequirementFromPack, modelIdentityMatchesAdapterRequirement } from './adapter-pack.js';
 import { verifyAdapterPublication } from './adapter-publication.js';
+import { resolveDopplerExecutionContract } from '../config/doppler-execution-contracts.js';
 
 const assert = (ok, message) => { if (!ok) throw new Error(`Adapter execution: ${message}`); };
 import { resolveAdapterExecutionPolicy } from './adapter-execution-policy.js';
@@ -55,7 +56,7 @@ export function executionAdapterArtifactSet(entry) {
 
 export function dopplerExecutionAdapterSet(entries, model) {
   const binding = model.executablePack;
-  return freezeOperationPolicy(entries.map(entry => ({ schema: 'doppler.pack-adapter/v1', identity: entry.identity,
+  return freezeOperationPolicy(entries.map(entry => ({ schema: resolveDopplerExecutionContract(model.executablePack.schema).adapterSchema, identity: entry.identity,
     baseModel: { modelId: model.modelId, semanticRoot: binding.semanticRoot, envelopeDigest: binding.envelopeDigest,
       artifactClosureDigest: binding.artifactClosureDigest }, format: entry.publication.pack.adapter.format,
     manifest: entry.publication.pack.runtimeManifest, artifact: executionAdapterArtifact(entry) })));

@@ -1,4 +1,5 @@
 import { dopplerExecutionAdapterSet } from '../../self/pool/adapter-execution.js';
+import { resolveDopplerExecutionContract } from '../../self/config/doppler-execution-contracts.js';
 /** Synthetic operation outputs for protocol tests, never model qualification. */
 import { hashDopplerEvidence } from '../../self/pool/executable-pack.js';
 import { createSigningKeyPair, exportPublicKey, sha256Hex } from '../../self/pool/inference-receipt.js';
@@ -22,10 +23,11 @@ export async function operationCapabilities(model, activeJobs = 0) {
       bandwidthBytesPerSecond: 1048576, concurrency: 1, activeJobs, queuedJobs: 0 } };
 }
 
-export async function operationFixture(name = 'encodeSequence', registry = createPackOperationRegistry()) {
+export async function operationFixture(name = 'encodeSequence', registry = createPackOperationRegistry(), schema = 'doppler.pack/v2') {
+  const contract = resolveDopplerExecutionContract(schema);
   const digest = value => `sha256:${value.repeat(64)}`;
   const artifacts = [{ artifactId: 'weights', hash: digest('a'), role: 'weights', path: 'weights.bin', sizeBytes: 4 }];
-  const pack = { schema: 'doppler.pack/v2', packId: 'synthetic-operation', semanticRoot: digest('b'), envelopeDigest: digest('c'),
+  const pack = { schema, [contract.identityFields[1]]: 'synthetic-operation', semanticRoot: digest('b'), envelopeDigest: digest('c'),
     artifactClosureDigest: await hashDopplerEvidence(artifacts) };
   const binding = { ...pack, artifacts, requiredOperation: name, acceptedTargetPlanDigests: [digest('d')] };
   const model = { modelId: 'synthetic-operation', modelHash: pack.semanticRoot, manifestHash: pack.envelopeDigest,
@@ -44,16 +46,16 @@ export async function operationFixture(name = 'encodeSequence', registry = creat
   const policy = { schema: 'poolday.operation-comparison/v1', operation: { name, version: registry[name].version },
     referenceDigest: await hashDopplerEvidence(output), ...(name === 'generate' ? { rule: 'exact-text' }
       : { rule: 'numerical-tolerance', absoluteTolerance: 0.001, relativeTolerance: 0 }) };
-  const evidence = { pack, targetPlanDigest: digest('d'),
+  const evidence = { [contract.receiptIdentity]: pack, targetPlanDigest: digest('d'),
     artifactReceipts: artifacts.map(({ artifactId, hash, sizeBytes }) => ({ artifactId, hash, sizeBytes })) };
   let calls = 0, active = false, alter = events => events, before = async () => {}, after = async () => {};
-  const session = { schema: 'doppler.pack-session/v1', loaded: true, packIdentity: pack,
+  const session = { schema: contract.sessionSchema, loaded: true, [contract.sessionIdentity]: pack,
     selectedTargetPlanDigest: digest('d'), verification: evidence,
     async *executeOperation(request, control = {}) {
       calls++;
       await before(request);
       const requestHash = await hashDopplerEvidence(request), assignmentHash = await hashDopplerEvidence(request.assignment);
-      const payload = { schema: 'doppler.pack-operation-receipt/v1', ...evidence, operation: request.operation,
+      const payload = { schema: contract.receiptSchema, ...evidence, operation: request.operation,
         runtimeVersion: model.runtimeVersion, requestHash, assignmentHash,
         inputHash: await hashDopplerEvidence({ input: request.input, options: request.options }), outputHash: await hashDopplerEvidence(output) };
       if (request.adapterSet?.length) {
@@ -70,7 +72,7 @@ export async function operationFixture(name = 'encodeSequence', registry = creat
       let previousEventDigest = null;
       const events = [];
       for (const status of ['partial', 'completed']) {
-        const body = { schema: 'doppler.pack-operation-event/v1', operation: request.operation, requestHash, assignmentHash,
+        const body = { schema: contract.eventSchema, operation: request.operation, requestHash, assignmentHash,
           eventIndex: events.length, previousEventDigest, status, output, ...(status === 'completed' ? { receipt } : { delta: {} }) };
         const eventDigest = await hashDopplerEvidence(body);
         events.push({ ...body, eventDigest }); previousEventDigest = eventDigest;
@@ -85,7 +87,7 @@ export async function operationFixture(name = 'encodeSequence', registry = creat
         active = true;
         try {
           return await runPackOperation({ binding: selected.executablePack, session, runtimeVersion: selected.runtimeVersion, registry,
-            request: { schema: 'doppler.pack-operation-request/v1', operation: { name, version: registry[name].version },
+            request: { schema: contract.requestSchema, operation: { name, version: registry[name].version },
               input: request.input, options: request.options, assignment: request.assignment, limits: request.limits,
               ...(request.adapterSet?.length ? { adapterSet: dopplerExecutionAdapterSet(request.adapterSet, selected) } : {}) },
             signal: request.signal, adapterArtifactStore: request.adapterArtifactStore,

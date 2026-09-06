@@ -19,8 +19,9 @@ export interface LocalPackExecutor {
   close(): Promise<void>;
 }
 export function createLocalPackExecutor(options?: {
-  service?: { prepare(): Promise<{ version: string }>; close(scope: string): Promise<void>;
-    openPack(options: { scope: string; source: string; options: object }): Promise<PackOperationSession> };
+  service?: { prepare(module?: object | null, control?: { bindingSchema: string }): Promise<{ version: string }>; close(scope: string): Promise<void>;
+    openPack?(options: { scope: string; source: string; options: object }): Promise<PackOperationSession>;
+    openCapsule?(options: { scope: string; source: string; options: object }): Promise<PackOperationSession> };
   scope?: string; registry?: PackOperationRegistry;
   prepareRelease?: (options: { model: JsonObject }) => Promise<{ options: object; close(): void;
     assertCurrent(session: PackOperationSession): Promise<void>; checkTime?(session: PackOperationSession): void }>;

@@ -2,7 +2,7 @@ import type { DopplerExecutionAdapter, ExecutionAdapterArtifact } from './adapte
 import type { JsonValue, PackOperationRegistry } from './pack-operation-adapters.js';
 export type { PackOperationDefinition } from './pack-operation-adapters.js';
 export interface PackOperationRequest {
-  readonly schema: 'doppler.pack-operation-request/v1';
+  readonly schema: 'doppler.pack-operation-request/v1' | 'doppler.capsule-operation-request/v1';
   readonly operation: { readonly name: string; readonly version: number };
   readonly input: Readonly<Record<string, JsonValue>>;
   readonly options: Readonly<Record<string, JsonValue>>;
@@ -11,7 +11,7 @@ export interface PackOperationRequest {
   readonly limits: { readonly maxInputBytes: number; readonly maxOutputBytes: number; readonly deadlineAt: number };
 }
 export interface PackOperationEventBase {
-  readonly schema: 'doppler.pack-operation-event/v1';
+  readonly schema: 'doppler.pack-operation-event/v1' | 'doppler.capsule-operation-event/v1';
   readonly operation: PackOperationRequest['operation'];
   readonly requestHash: string;
   readonly assignmentHash: string | null;

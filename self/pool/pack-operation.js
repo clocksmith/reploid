@@ -2,6 +2,7 @@
 import { assertPackSession, assertPackExecutionEvidence, hashDopplerEvidence } from './executable-pack.js';
 import { createPackOperationRegistry } from './pack-operation-adapters.js';
 import { assertOperationLimits } from './pack-operation-policy.js';
+import { resolveDopplerExecutionContract } from '../config/doppler-execution-contracts.js';
 
 const requireValue = (value, message) => { if (!value) throw new Error(`Pack operation: ${message}`); };
 const equal = async (left, right) => await hashDopplerEvidence(left) === await hashDopplerEvidence(right);
@@ -25,7 +26,7 @@ function operationAdapter(registry, operation) {
 
 export async function assertPackOperationReceipt(binding, receipt, { request, output, runtimeVersion }) {
   await assertPackExecutionEvidence(binding, receipt);
-  requireValue(receipt.schema === 'doppler.pack-operation-receipt/v1', 'receipt schema mismatch');
+  requireValue(receipt.schema === resolveDopplerExecutionContract(binding.schema).receiptSchema, 'receipt schema mismatch');
   const { receiptDigest, ...payload } = receipt;
   requireValue(receiptDigest === await hashDopplerEvidence(payload), 'receipt digest mismatch');
   requireValue(typeof runtimeVersion === 'string' && runtimeVersion.length > 0 && receipt.runtimeVersion === runtimeVersion, 'runtime version mismatch');
@@ -48,7 +49,7 @@ export async function assertPackOperationReceipt(binding, receipt, { request, ou
 
 export function assertPackOperationRequest(binding, request, registry = createPackOperationRegistry()) {
   const adapter = operationAdapter(registry, request.operation);
-  requireValue(request.schema === 'doppler.pack-operation-request/v1' && binding.requiredOperation === request.operation.name, 'request operation binding mismatch');
+  requireValue(request.schema === resolveDopplerExecutionContract(binding.schema).requestSchema && binding.requiredOperation === request.operation.name, 'request operation binding mismatch');
   requireValue(Object.keys(request).every((key) => ['schema', 'operation', 'input', 'options', 'assignment', 'limits', 'adapterSet'].includes(key)), 'unknown request field');
   requireValue(request.assignment === null || (request.assignment && typeof request.assignment === 'object' && !Array.isArray(request.assignment)), 'explicit assignment or null required');
   for (const key of ['maxInputBytes', 'maxOutputBytes', 'deadlineAt']) requireValue(Number.isSafeInteger(request.limits?.[key]) && request.limits[key] > 0, `${key} required`);
@@ -62,7 +63,7 @@ export async function assertPackOperationEvent({ binding, request, runtimeVersio
   eventIndex, previousEventDigest, registry = createPackOperationRegistry() }) {
   const adapter = operationAdapter(registry, request.operation);
   const { eventDigest, ...payload } = event;
-  requireValue(event.schema === 'doppler.pack-operation-event/v1' && ['partial', 'completed'].includes(event.status), 'event schema or status mismatch');
+  requireValue(event.schema === resolveDopplerExecutionContract(binding.schema).eventSchema && ['partial', 'completed'].includes(event.status), 'event schema or status mismatch');
   requireValue(event.status !== 'partial' || adapter.definition.streaming.partial, 'operation policy forbids partial output');
   requireValue(eventDigest === await hashDopplerEvidence(payload), 'event digest mismatch');
   requireValue(event.eventIndex === eventIndex && event.previousEventDigest === previousEventDigest, 'duplicate, missing, or reordered event');
