@@ -4,12 +4,12 @@ Parent: [Browser Runtime](../CATSCAN.md)
 
 ## Target
 
-Test distribution, whole-job execution, reviewed coordination separately; optional public-protein adjudication.
+Test distribution, whole-job execution, reviewed coordination separately; public-protein adjudication.
 
 ## Authority
 - Owns discovery, authorization, assignment, transport, recovery, accounting, admission.
 - Doppler owns Pack signatures, final integrity, verified cache, execution.
-- Excludes truth, relays, RSI, private sequences.
+- Excludes truth, relays, RSI, private-sequence delegation.
 
 ## Scope
 
@@ -22,7 +22,7 @@ Inputs:
 - [Runtime policy](pool-config.json).
 
 Outputs:
-- [Custody](peer-pack-custody.js).
+- [Custody](peer-pack-custody.js), [local document retrieval](document-search.js).
 - [Receipts](inference-receipt.js), [state](research-cycle.js), [checkpoints](discovery-contract.js), [actions](discovery-candidate-action.js).
 - [Records](evidence-network.js), [campaign](protein-uncertainty-campaign.js), [adjudication](adjudication-north-star.js), [promotion](scientific-policy-promotion.js), [value](realized-action-value.js).
 - Complete forecasts reuse [assignments](peer-assignment.js), signed messages/receipts, requester acceptance.

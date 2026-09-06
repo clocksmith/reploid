@@ -1,0 +1,14 @@
+{
+  "schema": "reploid.document-search-policy/v1",
+  "maxDocuments": 32,
+  "maxDocumentBytes": 2097152,
+  "maxCorpusBytes": 8388608,
+  "maxChunks": 256,
+  "chunkCharacters": 1024,
+  "maxQueryBytes": 4096,
+  "maxResults": 20,
+  "maxInputBytes": 2097152,
+  "maxOutputBytes": 16777216,
+  "maxOperationMs": 600000,
+  "maxHistory": 50
+}

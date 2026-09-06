@@ -355,7 +355,7 @@ export const refreshParticipationControls = async (preferences = readParticipati
     setRequestControlParticipation(control, canRequest);
   });
   document.querySelectorAll('.pool-home-ask-dock').forEach((form) => {
-    form.hidden = false;
+    form.hidden = Boolean(form.closest('.pool-home-task')?.querySelector('[data-pool-workflow="documents"][aria-pressed="true"]'));
   });
   document.querySelectorAll('.pool-home-share-toggle').forEach((button) => {
     button.hidden = !canContribute;

@@ -4,10 +4,10 @@ Parent: [Browser Interfaces](../CATSCAN.md)
 
 ## Target
 
-Run signed Doppler Packs on peers, share compute, and inspect or recover jobs.
+Run signed Doppler Packs locally or on peers; inspect and recover jobs.
 
 ## Authority
-- Owns Run, Share compute, Recent jobs, and non-primary Research Room-1.
+- Owns primary workflows, experiment footer, and Research Room-1.
 - Does not own Pack validation, execution, admission, transport, receipt validation, or scientific interpretation.
 
 ## Scope
@@ -17,22 +17,24 @@ Run signed Doppler Packs on peers, share compute, and inspect or recover jobs.
 ## Contracts
 
 Inputs:
-- Governed records from the [Poolday runtime](../../pool/CATSCAN.md).
+- Records from [Poolday runtime](../../pool/CATSCAN.md).
 - Deterministic room state from [room-projection.js](room-projection.js).
 
 Outputs:
-- Product markup via [view.js](view.js).
-- Room-1 projection via [room-view.js](room-view.js).
+- Markup: [view.js](view.js).
+- Room-1: [room-view.js](room-view.js).
 
 ## Invariants
-- Public branding is Reploid. Poolday protocol and storage names remain internal and retain identity.
+- Public branding: Reploid. Internal Poolday identities remain unchanged.
 - Primary navigation contains exactly Run a model, Share compute, Recent jobs, and a compact network indicator.
+- The homepage footer links Zero and X, labeled Experiments.
 - Request, execution, comparison, acceptance, and receipt retention remain one visible lifecycle.
 - Interrupted jobs expose only valid recovery actions.
 - Pack, runtime, provider, hardware declaration, fallback, timing, output, and agreement remain inspectable when available.
 - Recent jobs Advanced contains only execution evidence, peer identities, retries, and recovery.
 - Research administration renders only on Room-1.
 - Generic Pack execution never inherits Research Room question or laboratory fields.
+- Private documents never enter peer jobs or room drafts.
 - Accepted means admitted under a named policy; receipts are not hardware attestation.
 - Archive and decision memory remain distinct.
 
@@ -44,4 +46,4 @@ Outputs:
 - Exposing Zero, X, scientific administration, reputation, or protocol internals as primary navigation.
 
 ## Freedom
-Mechanisms may vary while preserving these boundaries.
+Implementation varies.

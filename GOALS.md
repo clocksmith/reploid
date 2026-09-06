@@ -52,8 +52,8 @@ rollback, and reopening.
 
 Change Passport, Poolday, and the Research Room are separate product surfaces over a
 shared evidence-state model. Poolday, generic change control, Zero, and X retain
-separate activation authority. Zero and X remain experimental surfaces outside
-ordinary customer and researcher journeys.
+separate activation authority. Zero and X remain secondary experimental surfaces,
+linked from the homepage's Experiments footer rather than primary navigation.
 
 ## Current supported boundary
 
@@ -409,8 +409,9 @@ archive with explicit ancestry.
 This authority split is a safety and development rule, not the customer value
 proposition. Zero and X become relevant to a product only when a promoted
 capability demonstrates a prospective reduction in that product's frozen
-decision cost. Until then, Zero and X should not appear in ordinary product
-navigation or external product strategy.
+decision cost. Zero and X remain discoverable through the homepage's small
+Experiments footer, outside primary navigation. Those links do not promote
+the experiments into the main product or claim validated improvements.
 
 ## Competitive baseline and durable value
 
