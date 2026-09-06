@@ -1,0 +1,35 @@
+{
+  "schema": "reploid.doppler-execution-contracts/v1",
+  "formats": {
+    "doppler.pack/v2": { "api": "pack", "releaseHistory": false },
+    "doppler.pack/v3": { "api": "pack", "releaseHistory": true },
+    "doppler.capsule/v2": { "api": "capsule", "releaseHistory": false },
+    "doppler.capsule/v3": { "api": "capsule", "releaseHistory": true }
+  },
+  "apis": {
+    "pack": {
+      "openMethod": "openPack",
+      "sessionSchema": "doppler.pack-session/v1",
+      "sessionIdentity": "packIdentity",
+      "receiptIdentity": "pack",
+      "identityFields": ["schema", "packId", "semanticRoot", "envelopeDigest", "artifactClosureDigest"],
+      "requestSchema": "doppler.pack-operation-request/v1",
+      "eventSchema": "doppler.pack-operation-event/v1",
+      "receiptSchema": "doppler.pack-operation-receipt/v1",
+      "sequenceReceiptSchema": "doppler.pack-execution-receipt/v1",
+      "adapterSchema": "doppler.pack-adapter/v1"
+    },
+    "capsule": {
+      "openMethod": "openCapsule",
+      "sessionSchema": "doppler.capsule-session/v1",
+      "sessionIdentity": "capsuleIdentity",
+      "receiptIdentity": "capsule",
+      "identityFields": ["schema", "capsuleId", "semanticRoot", "envelopeDigest", "artifactClosureDigest"],
+      "requestSchema": "doppler.capsule-operation-request/v1",
+      "eventSchema": "doppler.capsule-operation-event/v1",
+      "receiptSchema": "doppler.capsule-operation-receipt/v1",
+      "sequenceReceiptSchema": "doppler.capsule-execution-receipt/v1",
+      "adapterSchema": "doppler.capsule-adapter/v1"
+    }
+  }
+}

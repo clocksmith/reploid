@@ -1,4 +1,5 @@
 import { resolveOperationAcceptance } from './operation-acceptance.js';
+import { resolveDopplerExecutionContract } from '../config/doppler-execution-contracts.js';
 /** Application-pinned complete jobs. Public catalog admission remains separate. */
 import { normalizeExecutionAdapterSet, dopplerExecutionAdapterSet } from './adapter-execution.js';
 import { PACK_JOB_POLICY, resolvePackJobPolicy } from './peer-pack-job-policy.js';
@@ -161,7 +162,7 @@ async function jobParts({ requesterId, advert, intent, input, options, registry,
   if (!legacy && policy.version === 3) assignment.acceptancePolicyDigest = await hashDopplerEvidence(intent.acceptance);
   if (!legacy) Object.assign(assignment, { attemptNumber: intent.attemptNumber, inputClass: intent.inputClass,
     operationPolicyDigest: intent.operationPolicyDigest, jobPolicyDigest: intent.jobPolicyDigest, adapterSet: intent.adapterSet });
-  const request = { schema: 'doppler.pack-operation-request/v1', operation, input, options, assignment,
+  const request = { schema: resolveDopplerExecutionContract(model.executablePack.schema).requestSchema, operation, input, options, assignment,
     limits: { maxInputBytes: limits.maxInputBytes, maxOutputBytes: limits.maxOutputBytes, deadlineAt } };
   if (intent.adapterSet?.length) request.adapterSet = dopplerExecutionAdapterSet(intent.adapterSet, model);
   assertPackOperationRequest(model.executablePack, request, registry);

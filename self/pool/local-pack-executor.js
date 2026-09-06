@@ -5,6 +5,7 @@ import { runPackOperation, snapshotPackOperationData } from './pack-operation.js
 import { DopplerRuntimeService } from '../infrastructure/doppler-runtime-service.js';
 import { prepareLocalPackRelease } from './pack-release-policy.js';
 import { createPackOperationRegistry } from './pack-operation-adapters.js';
+import { resolveDopplerExecutionContract } from '../config/doppler-execution-contracts.js';
 
 /** Application-selected sessions do not admit a model to the public peer catalog.
  * Remote callers must validate delegation before supplying an assignment. */
@@ -36,7 +37,8 @@ export function createLocalPackExecutor({ service = DopplerRuntimeService, scope
       const source = new URL(model.packSource);
       if (!['https:', 'http:'].includes(source.protocol) || source.username || source.password) throw new Error('Pack source must be an HTTP(S) URL without credentials');
       if (!model.packOpenOptions?.trustedSigners || !Object.keys(model.packOpenOptions.trustedSigners).length) throw new Error('Application-selected trusted signers required');
-      const request = snapshotPackOperationData({ schema: 'doppler.pack-operation-request/v1',
+      const contract = resolveDopplerExecutionContract(model.executablePack.schema);
+      const request = snapshotPackOperationData({ schema: contract.requestSchema,
         operation: { name: model.executablePack.requiredOperation, version: registry[model.executablePack.requiredOperation].version }, input, options,
         assignment, limits, ...(adapterSet.length ? { adapterSet: dopplerExecutionAdapterSet(snapshotPackOperationData(adapterSet), model) } : {}) });
       const remaining = limits?.deadlineAt - Date.now();
@@ -70,14 +72,15 @@ export function createLocalPackExecutor({ service = DopplerRuntimeService, scope
           assertCurrent();
           if (retained && retained.modelKey !== modelKey) await releaseSession();
           assertCurrent();
-          const prepared = await service.prepare();
+          const prepared = await service.prepare(null, { bindingSchema: model.executablePack.schema });
           assertCurrent();
           if (prepared.version !== model.runtimeVersion) throw new Error('Document Pack requires a different Doppler release');
           releasePolicy = await prepareRelease({ model });
           assertCurrent();
           if (!retained) {
             ownsScope = true;
-            const session = await service.openPack({ scope, source: source.href,
+            if (typeof service[contract.openMethod] !== 'function') throw new Error(`Doppler service requires ${contract.openMethod}`);
+            const session = await service[contract.openMethod]({ scope, source: source.href,
               options: { ...releasePolicy.options, acceptedTargetPlanDigests: model.executablePack.acceptedTargetPlanDigests } });
             retained = { session, modelKey, modelId: model.modelId };
           }

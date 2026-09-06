@@ -1,13 +1,14 @@
 import { openPackReleaseCheckpoints } from '../infrastructure/pack-release-storage.js';
 import { hashDopplerEvidence } from './executable-pack.js';
 import { snapshotPackOperationData } from './pack-operation.js';
+import { resolveDopplerExecutionContract } from '../config/doppler-execution-contracts.js';
 
 const requireValue = (value, message) => { if (!value) throw new Error(`Pack release policy: ${message}`); };
 
 /** The application retains anti-rollback state; Doppler retains verification authority. */
 export async function prepareLocalPackRelease({ model, now = Date.now, openCheckpoints = openPackReleaseCheckpoints }) {
   const options = model.packOpenOptions;
-  if (model.executablePack.schema !== 'doppler.pack/v3') return { options, assertCurrent() {}, close() {} };
+  if (!resolveDopplerExecutionContract(model.executablePack.schema).releaseHistory) return { options, assertCurrent() {}, close() {} };
   const authority = options.releaseEvents?.[0]?.signature?.authority;
   const applicationId = model.application?.applicationId;
   requireValue(typeof authority === 'string' && authority.length > 0 && typeof applicationId === 'string'

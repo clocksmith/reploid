@@ -18,7 +18,7 @@ export type ExecutionAdapter = AdapterJsonObject & {
 };
 export type ExecutionAdapterArtifact = AdapterJsonObject & { readonly artifactId: string; readonly role: 'lora-weights';
   readonly path: string; readonly hash: string; readonly sizeBytes: number };
-export type DopplerExecutionAdapter = AdapterJsonObject & { readonly schema: 'doppler.pack-adapter/v1'; readonly identity: string;
+export type DopplerExecutionAdapter = AdapterJsonObject & { readonly schema: 'doppler.pack-adapter/v1' | 'doppler.capsule-adapter/v1'; readonly identity: string;
   readonly artifact: ExecutionAdapterArtifact; readonly manifest: AdapterJsonObject; readonly baseModel: AdapterJsonObject };
 export function resolveAdapterExecutionPolicy(input: unknown): AdapterExecutionPolicy;
 export function normalizeExecutionAdapterSet(input: unknown, context: { model: AdapterJsonObject; policy: AdapterExecutionPolicy }): Promise<readonly ExecutionAdapter[]>;

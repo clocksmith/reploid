@@ -1,7 +1,7 @@
 /** Poolday's exact execution requirement. Doppler owns signature and byte verification. */
+import { resolveDopplerExecutionContract } from '../config/doppler-execution-contracts.js';
 
 const DIGEST = /^sha256:[0-9a-f]{64}$/;
-const IDENTITY_FIELDS = ['schema', 'packId', 'semanticRoot', 'envelopeDigest', 'artifactClosureDigest'];
 
 // Doppler canonical observation encoding, including typed arrays as value arrays.
 const canonical = (value) => {
@@ -21,9 +21,12 @@ export const hashDopplerEvidence = async (value) => {
 export function validateExecutablePack(binding) {
   const reasons = [];
   if (!binding || typeof binding !== 'object' || Array.isArray(binding)) return { ok: false, reasons: ['Signed executable Pack binding is required'] };
+  let contract;
+  try { contract = resolveDopplerExecutionContract(binding.schema); }
+  catch { return { ok: false, reasons: ['Unsupported executable Pack schema'] }; }
+  const IDENTITY_FIELDS = contract.identityFields;
   if (Object.keys(binding).some((key) => ![...IDENTITY_FIELDS, 'requiredOperation', 'acceptedTargetPlanDigests', 'artifacts'].includes(key))) reasons.push('Unknown executable Pack binding field');
-  if (!['doppler.pack/v2', 'doppler.pack/v3'].includes(binding.schema)) reasons.push('Unsupported executable Pack schema');
-  if (typeof binding.packId !== 'string' || !binding.packId) reasons.push('Pack id is required');
+  if (typeof binding[IDENTITY_FIELDS[1]] !== 'string' || !binding[IDENTITY_FIELDS[1]]) reasons.push('Pack id is required');
   for (const field of IDENTITY_FIELDS.slice(2)) if (!DIGEST.test(binding[field])) reasons.push(`Invalid Pack ${field}`);
   // Custody binds an operation name; the installed execution adapter admits it.
   // Serving model bytes must not imply that a peer can execute their operations.
@@ -52,21 +55,23 @@ export async function assertPackExecutionEvidence(binding, evidence) {
   const validation = validateExecutablePack(binding);
   if (!validation.ok) throw new Error(validation.reasons.join('; '));
   if (await hashDopplerEvidence(binding.artifacts) !== binding.artifactClosureDigest) throw new Error('Pack artifact closure digest mismatch');
-  if (IDENTITY_FIELDS.some((field) => binding[field] !== evidence?.pack?.[field])) throw new Error('Doppler did not execute the required exact Pack');
+  const contract = resolveDopplerExecutionContract(binding.schema);
+  if (contract.identityFields.some((field) => binding[field] !== evidence?.[contract.receiptIdentity]?.[field])) throw new Error('Doppler did not execute the required exact Pack');
   if (!binding.acceptedTargetPlanDigests.includes(evidence.targetPlanDigest)) throw new Error('Doppler selected an unaccepted TargetPlan');
   const expected = binding.artifacts.map(({ artifactId, hash, sizeBytes }) => ({ artifactId, hash, sizeBytes }));
   if (canonical(expected) !== canonical(evidence.artifactReceipts)) throw new Error('Doppler artifact receipts do not close the required Pack');
 }
 
 export async function assertPackSession(binding, session) {
-  if (session?.schema !== 'doppler.pack-session/v1' || !session.loaded
+  const contract = resolveDopplerExecutionContract(binding?.schema);
+  if (session?.schema !== contract.sessionSchema || !session.loaded
     || (typeof session.executeOperation !== 'function' && typeof session[binding?.requiredOperation] !== 'function')) throw new Error('Doppler did not open the required public Pack session');
-  await assertPackExecutionEvidence(binding, { pack: session.packIdentity, targetPlanDigest: session.selectedTargetPlanDigest, artifactReceipts: session.verification?.artifactReceipts });
+  await assertPackExecutionEvidence(binding, { [contract.receiptIdentity]: session[contract.sessionIdentity], targetPlanDigest: session.selectedTargetPlanDigest, artifactReceipts: session.verification?.artifactReceipts });
 }
 
 export async function assertPackReceipt(binding, receipt, { assignment = null, sequence, options, result } = {}) {
   await assertPackExecutionEvidence(binding, receipt);
-  if (receipt.schema !== 'doppler.pack-execution-receipt/v1' || binding.requiredOperation !== 'encodeSequence'
+  if (receipt.schema !== resolveDopplerExecutionContract(binding.schema).sequenceReceiptSchema || binding.requiredOperation !== 'encodeSequence'
     || receipt.operation !== binding.requiredOperation) throw new Error('Invalid Doppler Pack operation receipt');
   const { receiptDigest, ...payload } = receipt;
   if (receiptDigest !== await hashDopplerEvidence(payload)) throw new Error('Doppler Pack receipt digest mismatch');

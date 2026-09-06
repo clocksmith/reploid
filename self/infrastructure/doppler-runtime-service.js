@@ -10,6 +10,7 @@ import {
   DOPPLER_KERNEL_BASE_URL,
   DOPPLER_MODULE_URL
 } from '../config/doppler-local-models.js';
+import { resolveDopplerExecutionContract } from '../config/doppler-execution-contracts.js';
 
 const DEFAULT_SCOPE = 'reploid-default';
 
@@ -177,24 +178,29 @@ export function createReploidDopplerRuntimeService({
     return inFlight.get(key);
   };
 
-  const openPack = ({ scope = DEFAULT_SCOPE, source, options = {}, module = null } = {}) => {
+  const signedRuntime = (module, contract) => {
+    const version = normalizedVersion(module);
+    if (expectedVersion && version !== expectedVersion) throw new Error(`Reploid requires Doppler ${expectedVersion}; loaded ${version || 'unidentified'}`);
+    const runtime = typeof module?.[contract.openMethod] === 'function' ? module : resolveRuntime(module);
+    if (typeof runtime?.[contract.openMethod] !== 'function') throw new Error(`Doppler runtime does not expose public ${contract.openMethod}; signed model loading cannot fall back to dr.open`);
+    return { runtime, version };
+  };
+
+  const openSigned = (contract, { scope = DEFAULT_SCOPE, source, options = {}, module = null } = {}) => {
     const key = normalizedScope(scope);
     const previous = inFlight.get(key);
     const task = (async () => {
       if (previous) await previous.catch(() => null);
       if (source == null) throw new Error('Signed Pack source is required');
       const loadedModule = await getModule(module);
-      const version = normalizedVersion(loadedModule);
-      if (expectedVersion && version !== expectedVersion) throw new Error(`Reploid requires Doppler ${expectedVersion}; loaded ${version || 'unidentified'}`);
-      const runtime = resolveRuntime(loadedModule) || loadedModule;
-      if (typeof runtime?.openPack !== 'function') throw new Error('Doppler runtime does not expose public openPack; signed Pack loading cannot fall back to dr.open');
+      const { runtime } = signedRuntime(loadedModule, contract);
       const current = sessions.get(key);
       sessions.delete(key);
       await current?.session?.close?.();
-      const session = await runtime.openPack(source, options);
-      if (session?.schema !== 'doppler.pack-session/v1' || !session.loaded) {
+      const session = await runtime[contract.openMethod](source, options);
+      if (session?.schema !== contract.sessionSchema || !session.loaded) {
         await session?.close?.();
-        throw new Error('Doppler openPack returned an invalid Pack session');
+        throw new Error(`Doppler ${contract.openMethod} returned an invalid signed model session`);
       }
       sessions.set(key, { session, sourceKey: null });
       return session;
@@ -207,7 +213,8 @@ export function createReploidDopplerRuntimeService({
   return Object.freeze({
     open,
     // Reverify lifecycle policy on every Pack opening; never reuse stale eligibility.
-    openPack,
+    openPack: options => openSigned(resolveDopplerExecutionContract('doppler.pack/v2'), options),
+    openCapsule: options => openSigned(resolveDopplerExecutionContract('doppler.capsule/v2'), options),
     close,
     get(scope = DEFAULT_SCOPE) {
       return sessions.get(normalizedScope(scope))?.session || null;
@@ -220,9 +227,10 @@ export function createReploidDopplerRuntimeService({
       inFlight.clear();
       await Promise.allSettled(active.map((session) => session.close?.()));
     },
-    async prepare(module = null) {
+    async prepare(module = null, { bindingSchema = null } = {}) {
       const loadedModule = await getModule(module);
-      const { version } = assertModule(loadedModule);
+      const { version } = bindingSchema === null ? assertModule(loadedModule)
+        : signedRuntime(loadedModule, resolveDopplerExecutionContract(bindingSchema));
       return { ok: true, version };
     },
     resetModuleForTests() {
