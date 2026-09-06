@@ -1,0 +1,1 @@
+{"passed":true,"stage":"complete","error":null,"outputPath":"/tmp/esm2-remote-operation-05-7q_sl6kr/episode.json"}

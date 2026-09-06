@@ -157,7 +157,7 @@
       "sizeBytes": 362364
     },
     {
-      "path": "attachments/attempt-01.log",
+      "path": "attachments/attempt-01.txt",
       "hash": "sha256:340329b2fe47062bd5cc02f87d671a01e21d54389c196b0573986393c5153db6",
       "sizeBytes": 367
     },
@@ -182,7 +182,7 @@
       "sizeBytes": 105009
     },
     {
-      "path": "attachments/run.log",
+      "path": "attachments/run.txt",
       "hash": "sha256:dbabaa6c4698d431308eab20570297e38ad8eafe9f4f1f45a16267e478da642d",
       "sizeBytes": 115
     },

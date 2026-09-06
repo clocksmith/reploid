@@ -1,6 +1,7 @@
 // @vitest-environment node
 import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
+import { spawnSync } from 'node:child_process';
 import { describe, it, expect } from 'vitest';
 import { sha256Hex } from '../../self/pool/inference-receipt.js';
 import { hashDopplerEvidence, assertPackExecutionEvidence } from '../../self/pool/executable-pack.js';
@@ -13,6 +14,10 @@ describe.each(['esm2-peer-pack-2026-09-05', 'esm2-pack-operation-2026-09-05', 'e
   const json = async (path) => JSON.parse(await readFile(resolve(ROOT, path), 'utf8'));
   it('binds retained bytes, completed custody, real operation evidence, and explicit non-claims', async () => {
     const index = await json('index.json');
+    const ignored = spawnSync('git', ['check-ignore', '--no-index', '--stdin'], {
+      input: index.files.map(file => resolve(ROOT, file.path)).join('\n') + '\n', encoding: 'utf8'
+    });
+    expect(ignored.status, ignored.stdout || ignored.stderr).toBe(1);
     for (const file of index.files) {
       const bytes = await readFile(resolve(ROOT, file.path));
       expect(await sha256Hex(bytes), file.path).toBe(file.hash);
