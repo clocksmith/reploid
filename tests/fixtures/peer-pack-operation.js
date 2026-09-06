@@ -1,3 +1,4 @@
+import { dopplerExecutionAdapterSet } from '../../self/pool/adapter-execution.js';
 /** Synthetic operation outputs for protocol tests, never model qualification. */
 import { hashDopplerEvidence } from '../../self/pool/executable-pack.js';
 import { createSigningKeyPair, exportPublicKey, sha256Hex } from '../../self/pool/inference-receipt.js';
@@ -48,13 +49,23 @@ export async function operationFixture(name = 'encodeSequence', registry = creat
   let calls = 0, active = false, alter = events => events, before = async () => {}, after = async () => {};
   const session = { schema: 'doppler.pack-session/v1', loaded: true, packIdentity: pack,
     selectedTargetPlanDigest: digest('d'), verification: evidence,
-    async *executeOperation(request) {
+    async *executeOperation(request, control = {}) {
       calls++;
       await before(request);
       const requestHash = await hashDopplerEvidence(request), assignmentHash = await hashDopplerEvidence(request.assignment);
       const payload = { schema: 'doppler.pack-operation-receipt/v1', ...evidence, operation: request.operation,
         runtimeVersion: model.runtimeVersion, requestHash, assignmentHash,
         inputHash: await hashDopplerEvidence({ input: request.input, options: request.options }), outputHash: await hashDopplerEvidence(output) };
+      if (request.adapterSet?.length) {
+        payload.adapterReceipts = [];
+        for (const entry of request.adapterSet) {
+          const bytes = await control.adapterArtifactStore.readArtifact(entry.artifact);
+          if (await sha256Hex(bytes) !== entry.artifact.hash) throw new Error('synthetic adapter bytes rejected');
+          payload.adapterReceipts.push({ identity: entry.identity, requestDigest: await hashDopplerEvidence(entry),
+            sourceDigest: entry.artifact.hash, runtimeIdentity: { schema: 'doppler.lora-execution-identity/v1',
+              digest: await hashDopplerEvidence({ fixture: true, adapter: entry.identity }) } });
+        }
+      }
       const receipt = { ...payload, receiptDigest: await hashDopplerEvidence(payload) };
       let previousEventDigest = null;
       const events = [];
@@ -75,8 +86,10 @@ export async function operationFixture(name = 'encodeSequence', registry = creat
         try {
           return await runPackOperation({ binding: selected.executablePack, session, runtimeVersion: selected.runtimeVersion, registry,
             request: { schema: 'doppler.pack-operation-request/v1', operation: { name, version: registry[name].version },
-              input: request.input, options: request.options, assignment: request.assignment, limits: request.limits },
-            signal: request.signal, onPartial: request.onPartial, beforeExecute: request.beforeExecute });
+              input: request.input, options: request.options, assignment: request.assignment, limits: request.limits,
+              ...(request.adapterSet?.length ? { adapterSet: dopplerExecutionAdapterSet(request.adapterSet, selected) } : {}) },
+            signal: request.signal, adapterArtifactStore: request.adapterArtifactStore,
+            assertCurrent: request.assertAdaptersCurrent || (() => {}), onPartial: request.onPartial, beforeExecute: request.beforeExecute });
         } finally { active = false; }
       },
       getState() { return { active }; },

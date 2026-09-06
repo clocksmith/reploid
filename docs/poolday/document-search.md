@@ -112,3 +112,6 @@ producer and Reploid consumer with injected model programs. Source production,
 model qualification, package release, and external adoption remain separate.
 
 *Last updated: September 2026*
+
+Reviewed public tasks and complete remote operations are described in
+[remote operations](remote-operations.md).

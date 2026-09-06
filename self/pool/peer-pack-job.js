@@ -1,4 +1,6 @@
+import { resolveOperationAcceptance } from './operation-acceptance.js';
 /** Application-pinned complete jobs. Public catalog admission remains separate. */
+import { normalizeExecutionAdapterSet, dopplerExecutionAdapterSet } from './adapter-execution.js';
 import { PACK_JOB_POLICY, resolvePackJobPolicy } from './peer-pack-job-policy.js';
 import { assertOperationLimits } from './pack-operation-policy.js';
 import { hashJson, sha256Hex } from './inference-receipt.js';
@@ -23,7 +25,7 @@ const digest = value => typeof value === 'string' && /^sha256:[0-9a-f]{64}$/.tes
 /** Never advertise source URLs, signer custody, or application-local open options. */
 export function packPeerModel(model, registry = createPackOperationRegistry()) {
   const pin = snapshot(Object.fromEntries(['modelId', 'modelHash', 'manifestHash', 'runtime', 'backend',
-    'executionMode', 'workload', 'runtimeVersion', 'executablePack'].map(key => [key, model[key]])));
+    'executionMode', 'workload', 'runtimeVersion', 'executablePack', 'artifactIdentity', 'tokenizerHash'].filter(key => model[key] !== undefined).map(key => [key, model[key]])));
   const checked = validateOperationModel(pin, registry);
   requirePackJob(checked.ok, checked.reasons.join('; '));
   requirePackJob(typeof pin.runtimeVersion === 'string' && pin.runtimeVersion.length > 0, 'exact runtime version required');
@@ -101,13 +103,13 @@ async function workRequirements(intent, operation) {
     && Array.isArray(intent.consent.providerIds) && intent.consent.providerIds.length > 0, 'explicit public input and provider consent required');
   const { deadlineAt: _deadline, ...limits } = intent.limits;
   return validateWorkRequirements({ schema: 'reploid.pool.work-requirements/v1', modelIdentity: await hashDopplerEvidence(intent.model),
-    operation, inputClass: intent.inputClass, adapterIdentities: intent.adapterSet, expertIdentities: [],
+    operation, inputClass: intent.inputClass, adapterIdentities: intent.adapterSet.map(entry => typeof entry === 'string' ? entry : entry.identity), expertIdentities: [],
     providerIds: intent.consent.providerIds, resources: intent.resources, limits });
 }
 
 async function jobParts({ requesterId, advert, intent, input, options, registry, legacy = false, policy = PACK_JOB_POLICY }) {
   const model = packPeerModel(intent.model, registry);
-  const advertSchema = !legacy && policy.version === 2 ? policy.schemas.providerAdvert : 'reploid.peer.pack_provider/v1';
+  const advertSchema = !legacy && policy.version >= 2 ? policy.schemas.providerAdvert : 'reploid.peer.pack_provider/v1';
   requirePackJob(await equal(model, intent.model) && advert.body.schema === advertSchema, 'invalid model pin or advert');
   validatePackPeerLimits(advert.body.limits, policy);
   requirePackJob(Array.isArray(advert.body.models) && (await Promise.all(advert.body.models.map(pin => equal(pin, model)))).some(Boolean), 'provider does not advertise the exact model');
@@ -132,8 +134,9 @@ async function jobParts({ requesterId, advert, intent, input, options, registry,
       && intent.jobPolicyDigest === await hashDopplerEvidence(policy), 'assignment policy differs from resolved configuration');
     requirePackJob(intent.operationPolicyDigest === await hashDopplerEvidence(intent.operationPolicy)
       && intent.jobPolicyDigest === await hashDopplerEvidence(intent.jobPolicy), 'signed policy snapshot mismatch');
-    requirePackJob(await equal(intent.adapterSet, policy.execution.adapterSet), 'adapter set is outside resolved execution policy');
-    if (policy.version === 2) {
+    if (policy.version < 3) requirePackJob(await equal(intent.adapterSet, policy.execution.adapterSet), 'adapter set is outside resolved execution policy');
+    else await normalizeExecutionAdapterSet(intent.adapterSet, { model, policy: policy.execution.adapters });
+    if (policy.version >= 2) {
       const requirements = await workRequirements(intent, operation);
       const plan = await planPackPeerProviders({ adverts: intent.planning.adverts, requirements, now: intent.selectedAt, registry, policy });
       requirePackJob(await equal(plan, intent.planning.plan) && plan.selectedProviderId === advert.fromPeerId
@@ -141,7 +144,10 @@ async function jobParts({ requesterId, advert, intent, input, options, registry,
     }
   }
   requirePackJob(intent.inputHash === await hashDopplerEvidence({ input, options }), 'input differs from signed intent');
-  requirePackJob(intent.comparisonPolicy?.schema === 'poolday.operation-comparison/v1'
+  if (!legacy && policy.version === 3) {
+    const acceptance = await resolveOperationAcceptance({ mode: intent.acceptance?.mode, operation, comparisonPolicy: intent.comparisonPolicy, policy: policy.acceptance });
+    requirePackJob(await equal(acceptance, intent.acceptance), 'acceptance policy mismatch');
+  } else requirePackJob(intent.comparisonPolicy?.schema === 'poolday.operation-comparison/v1'
     && await equal(intent.comparisonPolicy.operation, operation) && digest(intent.comparisonPolicy.referenceDigest), 'frozen comparison policy required');
   const intentHash = await hashJson(intent);
   const routeDecisionHash = await hashJson({ intentHash, providerAdvertHash: advert.messageHash, providerId: advert.fromPeerId });
@@ -152,31 +158,36 @@ async function jobParts({ requesterId, advert, intent, input, options, registry,
     providerAdvertHash: advert.messageHash, providerParticipationProfileHash: null, providerLimits: limits,
     assignmentAttemptId: intent.attemptId, comparisonPolicyDigest: await hashDopplerEvidence(intent.comparisonPolicy),
     inputHash: intent.inputHash, model, expiresAt: new Date(deadlineAt).toISOString() };
+  if (!legacy && policy.version === 3) assignment.acceptancePolicyDigest = await hashDopplerEvidence(intent.acceptance);
   if (!legacy) Object.assign(assignment, { attemptNumber: intent.attemptNumber, inputClass: intent.inputClass,
     operationPolicyDigest: intent.operationPolicyDigest, jobPolicyDigest: intent.jobPolicyDigest, adapterSet: intent.adapterSet });
   const request = { schema: 'doppler.pack-operation-request/v1', operation, input, options, assignment,
     limits: { maxInputBytes: limits.maxInputBytes, maxOutputBytes: limits.maxOutputBytes, deadlineAt } };
+  if (intent.adapterSet?.length) request.adapterSet = dopplerExecutionAdapterSet(intent.adapterSet, model);
   assertPackOperationRequest(model.executablePack, request, registry);
   return { assignment, request };
 }
 
 export async function createPackPeerJob({ identity, advert, adverts, model, input, options = {}, limits, consent, comparisonPolicy, resources,
-  jobId = crypto.randomUUID(), attemptId = crypto.randomUUID(), attemptNumber, adapterSet,
+  acceptanceMode, jobId = crypto.randomUUID(), attemptId = crypto.randomUUID(), attemptNumber, adapterSet,
   registry = createPackOperationRegistry(), policy: policyInput = PACK_JOB_POLICY }) {
   const policy = resolvePackJobPolicy(policyInput);
+  if (acceptanceMode === undefined) acceptanceMode = policy.acceptance.defaultMode;
   if (attemptNumber === undefined) attemptNumber = policy.attempts.initialNumber;
-  if (adapterSet === undefined) adapterSet = policy.execution.adapterSet;
+  if (adapterSet === undefined) adapterSet = policy.execution.adapters.defaultAdapterSet;
   // Snapshot before the first await, including nested policy and model objects.
-  requirePackJob(policy.version === 2, 'new work requires current resource planning policy');
+  requirePackJob(policy.version === 3, 'new work requires current adapter execution policy');
   const data = snapshot({ adverts: adverts === undefined ? [advert] : adverts, model: packPeerModel(model, registry), input, options, limits, consent,
-    comparisonPolicy, resources, jobId, attemptId, attemptNumber, adapterSet });
+    comparisonPolicy, acceptanceMode, resources, jobId, attemptId, attemptNumber, adapterSet });
   const intent = { model: data.model, limits: data.limits, consent: data.consent, comparisonPolicy: data.comparisonPolicy,
     jobId, attemptId, attemptNumber, adapterSet: data.adapterSet, inputClass: registry[data.model.executablePack.requiredOperation].definition.inputClasses.defaultRemote,
     operationPolicy: registry[data.model.executablePack.requiredOperation].policy, jobPolicy: policy,
     operationPolicyDigest: await hashDopplerEvidence(registry[data.model.executablePack.requiredOperation].policy),
     jobPolicyDigest: await hashDopplerEvidence(policy), resources: data.resources,
     selectedAt: Date.now(), inputHash: await hashDopplerEvidence({ input: data.input, options: data.options }) };
+  await normalizeExecutionAdapterSet(data.adapterSet, { model: data.model, policy: policy.execution.adapters });
   const operation = { name: data.model.executablePack.requiredOperation, version: registry[data.model.executablePack.requiredOperation].version };
+  intent.acceptance = await resolveOperationAcceptance({ mode: data.acceptanceMode, operation, comparisonPolicy: data.comparisonPolicy, policy: policy.acceptance });
   const requirements = await workRequirements(intent, operation);
   const plan = await planPackPeerProviders({ adverts: data.adverts, requirements, now: intent.selectedAt, registry, policy });
   requirePackJob(plan.selectedProviderId, `no eligible provider for declared work: ${[...new Set(plan.candidates.flatMap(row => row.reasons))].join(', ')}`);
@@ -200,4 +211,13 @@ export async function verifyPackPeerJob(message, { providerId, models, registry 
   const expected = await jobParts({ requesterId: job.fromPeerId, advert, intent, input: request.input, options: request.options, registry, legacy, policy });
   requirePackJob(await equal(assignment, expected.assignment) && await equal(request, expected.request), 'assignment or request does not match signed authority');
   return job;
+}
+
+/** A signed connection request carries no operation input or output. */
+export async function createPackPeerConnection({ identity, assignment, policy = PACK_JOB_POLICY }) {
+  requirePackJob(assignment.requesterId === identity.keyId, 'connection requester mismatch');
+  return signPackPeerMessage({ identity, policy, type: PEER_MESSAGE_TYPES.HEARTBEAT, recipient: assignment.providerId,
+    expiresAt: Date.parse(assignment.expiresAt), body: { schema: 'reploid.peer.operation-connect/v1',
+      assignmentId: assignment.assignmentId, requesterId: identity.keyId, providerId: assignment.providerId,
+      providerAdvertHash: assignment.providerAdvertHash, model: assignment.model } });
 }

@@ -1,6 +1,6 @@
 {
   "schema": "reploid.pool.config/v1",
-  "configVersion": "2026-09-06.resource-planning.v1.doppler-0.5.1",
+  "configVersion": "2026-09-06.remote-adapters.v1.doppler-0.5.1",
   "claim": "receipt-backed, audit-backed, reputation-backed, policy-controlled browser inference",
   "forbiddenClaims": [
     "trustless",
@@ -1768,9 +1768,9 @@
   },
   "peerJobs": {
     "schema": "reploid.pool.peer-job-policy/v1",
-    "version": 2,
+    "version": 3,
     "schemas": {
-      "job": "reploid.peer.pack_job/v3",
+      "job": "reploid.peer.pack_job/v4",
       "legacyJob": "reploid.peer.pack_job/v1",
       "update": "reploid.peer.pack_update/v1",
       "cancel": "reploid.peer.pack_cancel/v1",
@@ -1846,8 +1846,28 @@
       }
     },
     "execution": {
-      "adapterSet": [],
-      "maxConcurrentJobs": 1
+      "maxConcurrentJobs": 1,
+      "adapters": {
+        "schema": "reploid.pool.adapter-execution-policy/v1",
+        "allowedFormats": [
+          "peft_safetensors"
+        ],
+        "maxAdaptersPerJob": 1,
+        "fetchBeforeExecute": true,
+        "maxAdapterBytes": 67108864,
+        "maxTotalAdapterBytes": 67108864,
+        "combinations": {
+          "allowed": false,
+          "order": "request",
+          "semantics": "single"
+        },
+        "defaultAdapterSet": [],
+        "storage": {
+          "databaseName": "reploid-adapter-transfer-v1",
+          "maxCacheBytes": 268435456,
+          "maxConcurrentChunks": 2
+        }
+      }
     },
     "providerCapabilitySchema": {
       "schema": "reploid.pool.capability-policy/v1",
@@ -1882,7 +1902,7 @@
         "fetchable"
       ],
       "allowModelFetching": true,
-      "allowAdapterFetching": false,
+      "allowAdapterFetching": true,
       "requireAvailableSlot": true,
       "minimumFreeGpuBytes": 0,
       "minimumFreeStorageBytes": 0,
@@ -1917,6 +1937,74 @@
           "order": "asc"
         }
       ]
+    },
+    "acceptance": {
+      "schema": "reploid.pool.operation-acceptance-policy/v1",
+      "defaultMode": "reference",
+      "modes": {
+        "reference": {
+          "operations": null,
+          "referenceRequired": true,
+          "claim": "bounded-reference-comparison"
+        },
+        "execution": {
+          "operations": [
+            "generate"
+          ],
+          "referenceRequired": false,
+          "claim": "execution-identity-only"
+        }
+      }
+    }
+  },
+  "documentDelegation": {
+    "schema": "reploid.document-delegation-policy/v1",
+    "inputClass": "public_text",
+    "maxTaskBytes": 16384,
+    "maxDraftBytes": 65536,
+    "maxPreviewMs": 30000
+  },
+  "operationNetwork": {
+    "schema": "reploid.pool.operation-network-policy/v1",
+    "discoveryMs": 1500,
+    "advertMs": 10000,
+    "advertLifetimeMs": 30000,
+    "connectionMs": 15000,
+    "maxConnections": 1,
+    "maxChannelBytes": 67108864,
+    "channelTimeoutMs": 15000,
+    "maxPendingIce": 64,
+    "pendingIceMs": 30000,
+    "dataChannelLabel": "reploid-operations-v1",
+    "identityNamespace": "document-operations",
+    "requestResources": {
+      "gpuBytes": 0,
+      "storageBytes": 0,
+      "bandwidthBytesPerSecond": 0
+    },
+    "requestLimits": {
+      "maxInputBytes": 1048576,
+      "maxOutputBytes": 1048576,
+      "maxStreamBytes": 16777216,
+      "maxEvents": 4096,
+      "maxJobMs": 300000
+    }
+  },
+  "operationParticipation": {
+    "schema": "reploid.pool.operation-participation-policy/v1",
+    "identityNamespace": "shared-answer-operations",
+    "maxConfigurationBytes": 1048576,
+    "maxModelArtifactBytes": 4294967296,
+    "inputClasses": [
+      "public_text"
+    ],
+    "resources": {
+      "gpuBudgetBytes": 2147483648,
+      "gpuFreeBytes": null,
+      "storageBudgetBytes": 4294967296,
+      "storageFreeBytes": null,
+      "bandwidthBytesPerSecond": 1048576,
+      "concurrency": 1
     }
   }
 }

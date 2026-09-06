@@ -1,6 +1,7 @@
 /**
  * @fileoverview Rendering and UI state helpers for the Poolday product home.
  */
+import { renderOperationSharing } from './operation-sharing.js';
 
 import {
   LAUNCH_MODEL,
@@ -2056,6 +2057,7 @@ export const renderRouteDetail = (routeId) => {
             <div class="pool-control-row pool-primary-actions" aria-label="Contribution controls">
               <button class="btn btn-primary pool-primary-action" id="pool-provider-worker-toggle" type="button" aria-pressed="false">Start sharing</button>
             </div>
+            ${renderOperationSharing()}
           </div>
           <section class="pool-inspector-shell" data-pool-contribution-history hidden>
             <h2 class="type-h2">Recent receipts</h2>

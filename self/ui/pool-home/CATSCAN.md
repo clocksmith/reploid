@@ -4,7 +4,7 @@ Parent: [Browser Interfaces](../CATSCAN.md)
 
 ## Target
 
-Run signed Doppler Packs locally or on peers; inspect and recover jobs.
+Run signed models; inspect and recover jobs.
 
 ## Authority
 - Owns primary workflows, experiment footer, and Research Room-1.
@@ -34,7 +34,7 @@ Outputs:
 - Recent jobs Advanced contains only execution evidence, peer identities, retries, and recovery.
 - Research administration renders only on Room-1.
 - Generic Pack execution never inherits Research Room question or laboratory fields.
-- Private documents never enter peer jobs or room drafts.
+- Private documents stay local; only individually previewed, explicitly approved public tasks enter peer jobs.
 - Accepted means admitted under a named policy; receipts are not hardware attestation.
 - Archive and decision memory remain distinct.
 

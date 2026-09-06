@@ -3,7 +3,7 @@ import policy from '../../pool/document-search-policy.json' with { type: 'json' 
 export const renderDocumentSearch = () => `
   <section class="pool-document-search pool-task-card" id="pool-document-search" data-document-search hidden aria-label="Document search">
     <h2 class="type-h2">Search documents</h2>
-    <p class="type-caption">Files and questions stay in this tab. No peer sharing.</p>
+    <p class="type-caption">Files stay in this tab. Sharing a task requires your approval.</p>
     <p class="type-caption" role="status" aria-live="polite" id="pool-document-status" data-document-status>Choose models to start.</p>
     <details class="pool-advanced" data-document-setup open>
       <summary>Models</summary>
@@ -31,6 +31,20 @@ export const renderDocumentSearch = () => `
         <button class="btn btn-ghost" type="button" data-document-clear>Clear documents</button>
       </div>
     </form>
+    <details class="pool-advanced" data-document-share>
+      <summary>Ask another computer</summary>
+      <p class="type-caption" role="status" aria-live="polite" data-document-share-status>Connect a compatible computer to share a task.</p>
+      <label class="pool-field"><span>Task to share</span>
+        <textarea rows="3" maxlength="16384" data-document-share-task placeholder="Write a task using only public information"></textarea></label>
+      <button type="button" class="btn btn-ghost" data-document-review-share disabled>Review task</button>
+      <section data-document-share-preview hidden aria-label="Review what will be shared">
+        <p class="type-caption" data-document-share-recipient></p>
+        <pre data-document-share-text></pre>
+        <label class="pool-consent-row"><input type="checkbox" data-document-share-consent>
+          <span>This text is public and can be sent to this computer.</span></label>
+        <button type="button" class="btn btn-primary pool-primary-action" data-document-send-share disabled>Send this task</button>
+      </section>
+    </details>
     <div class="pool-document-answer" data-document-answer-output hidden aria-label="Answer"></div>
     <ol class="pool-document-results" data-document-results aria-label="Relevant passages"></ol>
     <details class="pool-advanced" data-document-evidence hidden><summary>Job details</summary><pre></pre></details>
@@ -53,7 +67,8 @@ function renderMatches(root, result) {
   const evidence = root.querySelector('[data-document-evidence]');
   evidence.hidden = !result;
   evidence.querySelector('pre').textContent = result ? JSON.stringify({ execution: result.execution,
-    corpusHash: result.corpusHash, receipts: result.receipts, indexReceipt: result.indexReceipt }, null, 2) : '';
+    corpusHash: result.corpusHash, receipts: result.receipts, indexReceipt: result.indexReceipt,
+    ...(result.remoteExecution ? { sharedTask: result.disclosure, remoteExecution: result.remoteExecution } : {}) }, null, 2) : '';
 }
 
 export function refreshDocumentSearch(root, state) {
@@ -82,6 +97,23 @@ export function refreshDocumentSearch(root, state) {
   const generate = surface.querySelector('[data-document-answer]');
   generate.disabled = state.busy || !state.hasGenerator;
   if (!state.hasGenerator) generate.checked = false;
+  const sharing = state.delegation;
+  const shareStatus = surface.querySelector('[data-document-share-status]');
+  shareStatus.textContent = sharing?.phase === 'remote' ? 'Waiting for the other computer.'
+    : sharing?.phase === 'combining' ? 'Finishing your answer on this device.'
+      : sharing?.available ? 'Only the task below is shared. Your question and files stay here.'
+        : 'Connect a compatible computer to share a task.';
+  surface.querySelector('[data-document-review-share]').disabled = state.busy || !sharing?.available || !state.result;
+  surface.querySelector('[data-document-share-task]').disabled = state.busy;
+  const preview = surface.querySelector('[data-document-share-preview]');
+  preview.hidden = !sharing?.preview;
+  if (sharing?.preview) {
+    preview.dataset.previewId = sharing.preview.id;
+    surface.querySelector('[data-document-share-text]').textContent = sharing.preview.text;
+    surface.querySelector('[data-document-share-recipient]').textContent = `Computer ${sharing.preview.providerId} · ${sharing.preview.modelId}`;
+  }
+  surface.querySelector('[data-document-send-share]').disabled = state.busy || !sharing?.preview
+    || !surface.querySelector('[data-document-share-consent]').checked;
   renderMatches(surface, state.result);
 }
 
@@ -128,9 +160,34 @@ export function bindDocumentSearch(root, workflow) {
         generateAnswer: root.querySelector('[data-document-answer]').checked });
     } catch (cause) { error(cause); }
   });
+  listen('[data-document-review-share]', 'click', async () => {
+    root.querySelector('[data-document-share-consent]').checked = false;
+    try { await workflow.prepareDelegation({ task: root.querySelector('[data-document-share-task]').value }); }
+    catch (cause) { error(cause); }
+  });
+  listen('[data-document-share-task]', 'input', () => {
+    workflow.withdrawDelegation();
+    root.querySelector('[data-document-share-consent]').checked = false;
+    root.querySelector('[data-document-send-share]').disabled = true;
+    root.querySelector('[data-document-share-preview]').hidden = true;
+  });
+  listen('[data-document-share-consent]', 'change', () => refreshDocumentSearch(root, workflow.getState()));
+  listen('[data-document-send-share]', 'click', async () => {
+    try { await workflow.approveDelegation({ previewId: root.querySelector('[data-document-share-preview]').dataset.previewId,
+      text: root.querySelector('[data-document-share-task]').value, publicInput: root.querySelector('[data-document-share-consent]').checked }); }
+    catch (cause) { error(cause); }
+    finally {
+      if (!controller.signal.aborted) {
+        root.querySelector('[data-document-share-consent]').checked = false;
+        refreshDocumentSearch(root, workflow.getState());
+      }
+    }
+  });
   listen('[data-document-cancel]', 'click', () => { generation++; workflow.cancel(); });
   listen('[data-document-clear]', 'click', () => {
     generation++; workflow.clear();
+    root.querySelector('[data-document-share-task]').value = '';
+    root.querySelector('[data-document-share-consent]').checked = false;
     root.querySelector('[data-document-files]').value = '';
     root.querySelector('[data-document-query]').value = '';
   });

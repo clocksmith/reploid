@@ -190,7 +190,7 @@ function postRoomMessage(channel, roomId, type, body = {}) {
   });
 }
 
-function createRoomSignaling({
+export function createRoomSignaling({
   roomId = DEFAULT_PEER_ROOM_ID,
   sessionId,
   localPeerId,

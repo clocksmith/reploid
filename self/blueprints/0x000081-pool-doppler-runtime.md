@@ -8,7 +8,7 @@
 
 **Planned Artifacts:** None
 
-**Owned Source Files:** `pool/doppler-runtime.js`, `pool/pack-operation.js`, `pool/pack-operation-adapters.js`, `pool/pack-operation-policy.js`
+**Owned Source Files:** `pool/doppler-runtime.js`, `pool/pack-operation.js`, `pool/pack-operation-adapters.js`, `pool/pack-operation-policy.js`, `pool/document-delegation.js`, `pool/document-search.js`, `pool/local-pack-executor.js`
 
 **Former Blueprint Paths:** `self/blueprints/0x000081-pool-doppler-runtime.md`
 **Objective:** Execute one exact Poolday model contract through Doppler's public browser handle.
@@ -95,3 +95,10 @@ cancellation, and policy binding. The [paired handoff](../../tests/integration/d
 checks public Doppler interoperability with injected outputs, not model qualification.
 
 *Last updated: September 2026*
+
+The document assistant resolves local retrieval and a separately reviewed public
+task. Discovery receives only the public model identity. Approval binds exact
+text, provider, model, limits and a short-lived preview; edits, expiry, cancellation
+and changed local inputs invalidate it. The returned signed ordinary-generation
+episode is verified before local generation quotes its draft alongside private
+passages. Documents, names and the local question remain outside peer requests.

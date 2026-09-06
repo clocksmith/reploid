@@ -34,12 +34,22 @@ export async function assertPackOperationReceipt(binding, receipt, { request, ou
   requireValue(receipt.assignmentHash === (request.assignment === null ? null : await hashDopplerEvidence(request.assignment)), 'assignment mismatch');
   requireValue(receipt.inputHash === await hashDopplerEvidence({ input: request.input, options: request.options }), 'input mismatch');
   requireValue(receipt.outputHash === await hashDopplerEvidence(output), 'output mismatch');
+  if (request.adapterSet?.length) {
+    requireValue(Array.isArray(receipt.adapterReceipts) && receipt.adapterReceipts.length === request.adapterSet.length, 'adapter execution evidence required');
+    for (const [index, entry] of request.adapterSet.entries()) {
+      const observed = receipt.adapterReceipts[index];
+      requireValue(observed.identity === entry.identity && observed.sourceDigest === entry.artifact.hash
+        && observed.requestDigest === await hashDopplerEvidence(entry)
+        && observed.runtimeIdentity?.schema === 'doppler.lora-execution-identity/v1'
+        && /^sha256:[a-f0-9]{64}$/.test(observed.runtimeIdentity.digest), 'adapter execution identity mismatch');
+    }
+  } else requireValue(!receipt.adapterReceipts?.length, 'unexpected active adapter');
 }
 
 export function assertPackOperationRequest(binding, request, registry = createPackOperationRegistry()) {
   const adapter = operationAdapter(registry, request.operation);
   requireValue(request.schema === 'doppler.pack-operation-request/v1' && binding.requiredOperation === request.operation.name, 'request operation binding mismatch');
-  requireValue(Object.keys(request).every((key) => ['schema', 'operation', 'input', 'options', 'assignment', 'limits'].includes(key)), 'unknown request field');
+  requireValue(Object.keys(request).every((key) => ['schema', 'operation', 'input', 'options', 'assignment', 'limits', 'adapterSet'].includes(key)), 'unknown request field');
   requireValue(request.assignment === null || (request.assignment && typeof request.assignment === 'object' && !Array.isArray(request.assignment)), 'explicit assignment or null required');
   for (const key of ['maxInputBytes', 'maxOutputBytes', 'deadlineAt']) requireValue(Number.isSafeInteger(request.limits?.[key]) && request.limits[key] > 0, `${key} required`);
   assertOperationLimits(request.limits, adapter.definition);
@@ -66,7 +76,7 @@ export async function assertPackOperationEvent({ binding, request, runtimeVersio
 }
 
 export async function runPackOperation({ binding: bindingInput, session, request: requestInput, runtimeVersion,
-  registry = createPackOperationRegistry(), signal = null, onPartial = null, beforeExecute = null, assertCurrent = async () => {} }) {
+  registry = createPackOperationRegistry(), signal = null, adapterArtifactStore = null, onPartial = null, beforeExecute = null, assertCurrent = async () => {} }) {
   const binding = snapshotPackOperationData(bindingInput);
   const request = snapshotPackOperationData(requestInput);
   assertPackOperationRequest(binding, request, registry);
@@ -89,7 +99,7 @@ export async function runPackOperation({ binding: bindingInput, session, request
   let eventCount = 0;
   let streamBytes = 0;
   let completed = null;
-  for await (const received of session.executeOperation(request, { signal })) {
+  for await (const received of session.executeOperation(request, { signal, ...(request.adapterSet?.length ? { adapterArtifactStore } : {}) })) {
     await current();
     requireValue(!completed, 'output after completion');
     const event = snapshotPackOperationData(received);
