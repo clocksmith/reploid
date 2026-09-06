@@ -1,0 +1,19 @@
+
+Running 10 tests using 1 worker
+
+(node:150711) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:150711) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   1 [chromium] › tests/e2e/document-search.spec.js:6:1 › local document journey preserves protein UI, privacy, evidence, and experiment links (1.5s)
+  ✓   2 [chromium] › tests/e2e/document-search.spec.js:97:1 › changed Reploid modules pass the actual Verification Worker (250ms)
+  ✓   3 [chromium] › tests/e2e/document-search.spec.js:119:1 › release checkpoints survive reopening and reject rollback, forks, and stale concurrent writers (103ms)
+  ✓   4 [chromium] › tests/e2e/pool-prismatic-ui.spec.js:25:1 › validates input locally and preserves the navigation nodes and sequence draft (441ms)
+  ✓   5 [chromium] › tests/e2e/pool-prismatic-ui.spec.js:59:1 › keeps the mobile action, navigation labels, and details usable without WebGPU (350ms)
+  ✓   6 [chromium] › tests/e2e/pool-prismatic-ui.spec.js:83:1 › renders the compute effect, rests when idle, and yields during work and reduced motion (2.3s)
+  ✓   7 [chromium] › tests/e2e/pool-prismatic-ui.spec.js:114:1 › returns to the static artwork after device loss and releases its device on navigation (720ms)
+  ✓   8 [chromium] › tests/e2e/pool-prismatic-ui.spec.js:134:1 › cleans up a device that arrives after its route has been removed (528ms)
+  ✓   9 [chromium] › tests/e2e/pool-prismatic-ui.spec.js:155:1 › passes changed browser modules through the Verification Worker sandbox (226ms)
+  ✓  10 [chromium] › tests/e2e/pool-prismatic-ui.spec.js:176:1 › shares clear task controls and accessible model setup across public routes (1.3s)
+
+  10 passed (8.7s)

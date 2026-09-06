@@ -1,0 +1,1088 @@
+[
+  {
+    "label": "desktop",
+    "route": "/",
+    "title": "Reploid",
+    "text": "Reploid\nRun a model\nShare compute\nRecent jobs\n0 peers\nReploid\n\nRun AI with connected browsers.\n\nProtein embeddings\nDocument search\nRun a model\nModel\nESM-2 35M (Protein)\nPublic protein sequence\n0 / 1024\n\nWhitespace is ignored.\n\nThis input may be sent to selected peers\nOptions\nRun model\n\nReady\n\nExperiments\nZero\nX",
+    "overflow": false,
+    "prism": {
+      "backend": "webgpu",
+      "frames": 13,
+      "suspended": false,
+      "frameIntervalMs": 33.333333333333336,
+      "width": 481,
+      "height": 421,
+      "phase": "submit",
+      "lastCompletionMs": 2.8999998569488525
+    },
+    "controls": [
+      {
+        "tag": "A",
+        "text": "Reploid",
+        "aria": null,
+        "title": null,
+        "height": 28.796875,
+        "width": 63.03125,
+        "font": "18px",
+        "color": "rgb(41, 45, 48)"
+      },
+      {
+        "tag": "A",
+        "text": "Run a model",
+        "aria": "Run a model",
+        "title": null,
+        "height": 44,
+        "width": 106.75,
+        "font": "12px",
+        "color": "rgb(41, 45, 48)"
+      },
+      {
+        "tag": "A",
+        "text": "Share compute",
+        "aria": "Share compute",
+        "title": null,
+        "height": 44,
+        "width": 122.328125,
+        "font": "12px",
+        "color": "rgb(100, 108, 108)"
+      },
+      {
+        "tag": "A",
+        "text": "Recent jobs",
+        "aria": "Recent jobs",
+        "title": null,
+        "height": 44,
+        "width": 101.140625,
+        "font": "12px",
+        "color": "rgb(100, 108, 108)"
+      },
+      {
+        "tag": "SUMMARY",
+        "text": "0 peers",
+        "aria": "Network availability",
+        "title": null,
+        "height": 44,
+        "width": 72.609375,
+        "font": "12px",
+        "color": "rgb(100, 108, 108)"
+      },
+      {
+        "tag": "A",
+        "text": "",
+        "aria": null,
+        "title": null,
+        "height": 20.1875,
+        "width": 183.53125,
+        "font": "12px",
+        "color": "rgb(41, 45, 48)"
+      },
+      {
+        "tag": "BUTTON",
+        "text": "Protein embeddings",
+        "aria": null,
+        "title": null,
+        "disabled": false,
+        "height": 46,
+        "width": 189.25,
+        "font": "15px",
+        "color": "rgb(41, 45, 48)"
+      },
+      {
+        "tag": "BUTTON",
+        "text": "Document search",
+        "aria": null,
+        "title": null,
+        "disabled": false,
+        "height": 46,
+        "width": 162,
+        "font": "15px",
+        "color": "rgb(41, 45, 48)"
+      },
+      {
+        "tag": "SELECT",
+        "text": "ESM-2 35M (Protein)",
+        "aria": null,
+        "title": null,
+        "disabled": false,
+        "height": 58,
+        "width": 472.8125,
+        "font": "15px",
+        "color": "rgb(41, 45, 48)"
+      },
+      {
+        "tag": "TEXTAREA",
+        "text": "",
+        "aria": "Public protein sequence",
+        "title": null,
+        "disabled": false,
+        "height": 178,
+        "width": 472.8125,
+        "font": "15px",
+        "color": "rgb(41, 45, 48)"
+      },
+      {
+        "tag": "INPUT",
+        "text": "on",
+        "aria": null,
+        "title": null,
+        "disabled": false,
+        "height": 18,
+        "width": 18,
+        "font": "18px",
+        "color": "rgb(41, 45, 48)"
+      },
+      {
+        "tag": "SUMMARY",
+        "text": "Options",
+        "aria": null,
+        "title": null,
+        "height": 44,
+        "width": 472.8125,
+        "font": "12px",
+        "color": "rgb(100, 108, 108)"
+      },
+      {
+        "tag": "SELECT",
+        "text": "fastest_receipt",
+        "aria": null,
+        "title": null,
+        "disabled": false,
+        "height": 58,
+        "width": 232.40625,
+        "font": "15px",
+        "color": "rgb(41, 45, 48)"
+      },
+      {
+        "tag": "BUTTON",
+        "text": "Run model",
+        "aria": "Run model",
+        "title": null,
+        "disabled": false,
+        "height": 54,
+        "width": 472.8125,
+        "font": "15px",
+        "color": "rgb(255, 255, 255)"
+      },
+      {
+        "tag": "A",
+        "text": "Zero",
+        "aria": null,
+        "title": null,
+        "height": 44,
+        "width": 44,
+        "font": "12px",
+        "color": "color(srgb 0.160784 0.176471 0.188235 / 0.62)"
+      },
+      {
+        "tag": "A",
+        "text": "X",
+        "aria": null,
+        "title": null,
+        "height": 44,
+        "width": 44,
+        "font": "12px",
+        "color": "color(srgb 0.160784 0.176471 0.188235 / 0.62)"
+      }
+    ],
+    "errors": []
+  },
+  {
+    "label": "desktop",
+    "route": "documents",
+    "text": "Reploid\nRun a model\nShare compute\nRecent jobs\n0 peers\nReploid\n\nRun AI with connected browsers.\n\nProtein embeddings\nDocument search\nSearch documents\n\nFiles and questions stay in this tab. No peer sharing.\n\nMODEL PACKS\nDocuments (.txt, .md)\n\nNo documents\n\nQuestion\nRerank passages\nWrite an answer with references\nSearch\nClear documents\n\nAdd documents\n\nExperiments\nZero\nX"
+  },
+  {
+    "label": "desktop",
+    "route": "/compute",
+    "title": "Reploid - Browser AI",
+    "text": "Reploid\nRun a model\nShare compute\nRecent jobs\n0 peers\nShare compute\n\nLet this browser help with jobs.\n\nIDLE\n\nModel\nESM-2 35M (Protein) · sequence.embedding.v1\nMODEL DETAILS\nBefore you share\nESM-2 35M (Protein) only\n1 run at a time\nPublic protein sequences; output receipts returned to requesters\n1024 MiB cache · 25 Mbps\nRuns until you stop sharing or close this tab\nSHARING LIMITS\nStart sharing\nADVANCED DETAILS",
+    "overflow": false,
+    "controls": [
+      {
+        "tag": "A",
+        "text": "Reploid",
+        "aria": null,
+        "title": null,
+        "height": 28.796875,
+        "width": 63.03125,
+        "font": "18px",
+        "color": "rgb(41, 45, 48)"
+      },
+      {
+        "tag": "A",
+        "text": "Run a model",
+        "aria": "Run a model",
+        "title": null,
+        "height": 44,
+        "width": 106.75,
+        "font": "12px",
+        "color": "rgb(100, 108, 108)"
+      },
+      {
+        "tag": "A",
+        "text": "Share compute",
+        "aria": "Share compute",
+        "title": null,
+        "height": 44,
+        "width": 122.328125,
+        "font": "12px",
+        "color": "rgb(41, 45, 48)"
+      },
+      {
+        "tag": "A",
+        "text": "Recent jobs",
+        "aria": "Recent jobs",
+        "title": null,
+        "height": 44,
+        "width": 101.140625,
+        "font": "12px",
+        "color": "rgb(100, 108, 108)"
+      },
+      {
+        "tag": "SUMMARY",
+        "text": "0 peers",
+        "aria": "Network availability",
+        "title": null,
+        "height": 44,
+        "width": 72.609375,
+        "font": "12px",
+        "color": "rgb(100, 108, 108)"
+      },
+      {
+        "tag": "A",
+        "text": "",
+        "aria": null,
+        "title": null,
+        "height": 20.1875,
+        "width": 183.53125,
+        "font": "12px",
+        "color": "rgb(41, 45, 48)"
+      },
+      {
+        "tag": "SELECT",
+        "text": "ESM-2 35M (Protein) · sequence.embedding.v1",
+        "aria": null,
+        "title": null,
+        "disabled": false,
+        "height": 58,
+        "width": 646,
+        "font": "15px",
+        "color": "rgb(41, 45, 48)"
+      },
+      {
+        "tag": "SUMMARY",
+        "text": "MODEL DETAILS",
+        "aria": null,
+        "title": null,
+        "height": 19.1875,
+        "width": 628,
+        "font": "12px",
+        "color": "rgb(41, 45, 48)"
+      },
+      {
+        "tag": "SUMMARY",
+        "text": "SHARING LIMITS",
+        "aria": null,
+        "title": null,
+        "height": 19.1875,
+        "width": 628,
+        "font": "12px",
+        "color": "rgb(41, 45, 48)"
+      },
+      {
+        "tag": "INPUT",
+        "text": "on",
+        "aria": null,
+        "title": null,
+        "disabled": false,
+        "height": 18,
+        "width": 18,
+        "font": "18px",
+        "color": "rgb(41, 45, 48)"
+      },
+      {
+        "tag": "INPUT",
+        "text": "on",
+        "aria": null,
+        "title": null,
+        "disabled": false,
+        "height": 18,
+        "width": 18,
+        "font": "18px",
+        "color": "rgb(41, 45, 48)"
+      },
+      {
+        "tag": "INPUT",
+        "text": "1",
+        "aria": null,
+        "title": null,
+        "disabled": false,
+        "height": 58,
+        "width": 105,
+        "font": "15px",
+        "color": "rgb(41, 45, 48)"
+      },
+      {
+        "tag": "INPUT",
+        "text": "128",
+        "aria": null,
+        "title": null,
+        "disabled": false,
+        "height": 58,
+        "width": 105,
+        "font": "15px",
+        "color": "rgb(41, 45, 48)"
+      },
+      {
+        "tag": "INPUT",
+        "text": "1024",
+        "aria": null,
+        "title": null,
+        "disabled": false,
+        "height": 58,
+        "width": 105,
+        "font": "15px",
+        "color": "rgb(41, 45, 48)"
+      },
+      {
+        "tag": "INPUT",
+        "text": "25",
+        "aria": null,
+        "title": null,
+        "disabled": false,
+        "height": 58,
+        "width": 105,
+        "font": "15px",
+        "color": "rgb(41, 45, 48)"
+      },
+      {
+        "tag": "BUTTON",
+        "text": "",
+        "aria": null,
+        "title": null,
+        "disabled": false,
+        "height": 46,
+        "width": 239.59375,
+        "font": "15px",
+        "color": "rgb(41, 45, 48)"
+      },
+      {
+        "tag": "BUTTON",
+        "text": "Start sharing",
+        "aria": null,
+        "title": null,
+        "disabled": false,
+        "height": 46,
+        "width": 149.765625,
+        "font": "15px",
+        "color": "rgb(41, 45, 48)"
+      },
+      {
+        "tag": "SUMMARY",
+        "text": "ADVANCED DETAILS",
+        "aria": null,
+        "title": null,
+        "height": 19.1875,
+        "width": 628,
+        "font": "12px",
+        "color": "rgb(41, 45, 48)"
+      },
+      {
+        "tag": "SUMMARY",
+        "text": "",
+        "aria": null,
+        "title": null,
+        "height": 19.1875,
+        "width": 576,
+        "font": "12px",
+        "color": "rgb(41, 45, 48)"
+      },
+      {
+        "tag": "SUMMARY",
+        "text": "",
+        "aria": null,
+        "title": null,
+        "height": 19.1875,
+        "width": 610,
+        "font": "12px",
+        "color": "rgb(41, 45, 48)"
+      },
+      {
+        "tag": "SUMMARY",
+        "text": "",
+        "aria": null,
+        "title": null,
+        "height": 39.1875,
+        "width": 608,
+        "font": "12px",
+        "color": "rgb(41, 45, 48)"
+      }
+    ],
+    "errors": []
+  },
+  {
+    "label": "desktop",
+    "route": "/records",
+    "title": "Reploid - Browser AI",
+    "text": "Reploid\nRun a model\nShare compute\nRecent jobs\n0 peers\nRecent jobs\n\nResults and unfinished jobs.\n\nNo records yet. Requests, completed runs, and contributions will appear here.\n\nADVANCED DETAILS",
+    "overflow": false,
+    "controls": [
+      {
+        "tag": "A",
+        "text": "Reploid",
+        "aria": null,
+        "title": null,
+        "height": 28.796875,
+        "width": 63.03125,
+        "font": "18px",
+        "color": "rgb(41, 45, 48)"
+      },
+      {
+        "tag": "A",
+        "text": "Run a model",
+        "aria": "Run a model",
+        "title": null,
+        "height": 44,
+        "width": 106.75,
+        "font": "12px",
+        "color": "rgb(100, 108, 108)"
+      },
+      {
+        "tag": "A",
+        "text": "Share compute",
+        "aria": "Share compute",
+        "title": null,
+        "height": 44,
+        "width": 122.328125,
+        "font": "12px",
+        "color": "rgb(100, 108, 108)"
+      },
+      {
+        "tag": "A",
+        "text": "Recent jobs",
+        "aria": "Recent jobs",
+        "title": null,
+        "height": 44,
+        "width": 101.140625,
+        "font": "12px",
+        "color": "rgb(41, 45, 48)"
+      },
+      {
+        "tag": "SUMMARY",
+        "text": "0 peers",
+        "aria": "Network availability",
+        "title": null,
+        "height": 44,
+        "width": 72.609375,
+        "font": "12px",
+        "color": "rgb(100, 108, 108)"
+      },
+      {
+        "tag": "A",
+        "text": "",
+        "aria": null,
+        "title": null,
+        "height": 20.1875,
+        "width": 183.53125,
+        "font": "12px",
+        "color": "rgb(41, 45, 48)"
+      },
+      {
+        "tag": "SUMMARY",
+        "text": "ADVANCED DETAILS",
+        "aria": null,
+        "title": null,
+        "height": 19.1875,
+        "width": 628,
+        "font": "12px",
+        "color": "rgb(41, 45, 48)"
+      },
+      {
+        "tag": "SUMMARY",
+        "text": "",
+        "aria": null,
+        "title": null,
+        "height": 19.1875,
+        "width": 610,
+        "font": "12px",
+        "color": "rgb(41, 45, 48)"
+      },
+      {
+        "tag": "INPUT",
+        "text": "",
+        "aria": null,
+        "title": null,
+        "disabled": false,
+        "height": 58,
+        "width": 610,
+        "font": "15px",
+        "color": "rgb(41, 45, 48)"
+      },
+      {
+        "tag": "BUTTON",
+        "text": "",
+        "aria": null,
+        "title": null,
+        "disabled": false,
+        "height": 46,
+        "width": 135,
+        "font": "15px",
+        "color": "rgb(41, 45, 48)"
+      },
+      {
+        "tag": "SUMMARY",
+        "text": "",
+        "aria": null,
+        "title": null,
+        "height": 39.1875,
+        "width": 608,
+        "font": "12px",
+        "color": "rgb(41, 45, 48)"
+      }
+    ],
+    "errors": []
+  },
+  {
+    "label": "mobile",
+    "route": "/",
+    "title": "Reploid",
+    "text": "Reploid\nRun a model\nShare compute\nRecent jobs\n0 peers\nReploid\n\nRun AI with connected browsers.\n\nProtein embeddings\nDocument search\nRun a model\nModel\nESM-2 35M (Protein)\nPublic protein sequence\n0 / 1024\n\nWhitespace is ignored.\n\nThis input may be sent to selected peers\nOptions\nRun model\n\nReady\n\nExperiments\nZero\nX",
+    "overflow": false,
+    "prism": {
+      "backend": "webgpu",
+      "frames": 13,
+      "suspended": false,
+      "frameIntervalMs": 33.333333333333336,
+      "width": 176,
+      "height": 154,
+      "phase": "submit",
+      "lastCompletionMs": 3.200000047683716
+    },
+    "controls": [
+      {
+        "tag": "A",
+        "text": "Reploid",
+        "aria": null,
+        "title": null,
+        "height": 24,
+        "width": 52.515625,
+        "font": "15px",
+        "color": "rgb(41, 45, 48)"
+      },
+      {
+        "tag": "A",
+        "text": "Run a model",
+        "aria": "Run a model",
+        "title": null,
+        "height": 44,
+        "width": 104.828125,
+        "font": "12px",
+        "color": "rgb(41, 45, 48)"
+      },
+      {
+        "tag": "A",
+        "text": "Share compute",
+        "aria": "Share compute",
+        "title": null,
+        "height": 44,
+        "width": 106.328125,
+        "font": "12px",
+        "color": "rgb(100, 108, 108)"
+      },
+      {
+        "tag": "A",
+        "text": "Recent jobs",
+        "aria": "Recent jobs",
+        "title": null,
+        "height": 44,
+        "width": 104.84375,
+        "font": "12px",
+        "color": "rgb(100, 108, 108)"
+      },
+      {
+        "tag": "SUMMARY",
+        "text": "0 peers",
+        "aria": "Network availability",
+        "title": null,
+        "height": 44,
+        "width": 72.609375,
+        "font": "12px",
+        "color": "rgb(100, 108, 108)"
+      },
+      {
+        "tag": "A",
+        "text": "",
+        "aria": null,
+        "title": null,
+        "height": 20.1875,
+        "width": 183.53125,
+        "font": "12px",
+        "color": "rgb(41, 45, 48)"
+      },
+      {
+        "tag": "BUTTON",
+        "text": "Protein embeddings",
+        "aria": null,
+        "title": null,
+        "disabled": false,
+        "height": 46,
+        "width": 189.25,
+        "font": "15px",
+        "color": "rgb(41, 45, 48)"
+      },
+      {
+        "tag": "BUTTON",
+        "text": "Document search",
+        "aria": null,
+        "title": null,
+        "disabled": false,
+        "height": 46,
+        "width": 162,
+        "font": "15px",
+        "color": "rgb(41, 45, 48)"
+      },
+      {
+        "tag": "SELECT",
+        "text": "ESM-2 35M (Protein)",
+        "aria": null,
+        "title": null,
+        "disabled": false,
+        "height": 58,
+        "width": 316,
+        "font": "15px",
+        "color": "rgb(41, 45, 48)"
+      },
+      {
+        "tag": "TEXTAREA",
+        "text": "",
+        "aria": "Public protein sequence",
+        "title": null,
+        "disabled": false,
+        "height": 178,
+        "width": 316,
+        "font": "15px",
+        "color": "rgb(41, 45, 48)"
+      },
+      {
+        "tag": "INPUT",
+        "text": "on",
+        "aria": null,
+        "title": null,
+        "disabled": false,
+        "height": 18,
+        "width": 18,
+        "font": "18px",
+        "color": "rgb(41, 45, 48)"
+      },
+      {
+        "tag": "SUMMARY",
+        "text": "Options",
+        "aria": null,
+        "title": null,
+        "height": 44,
+        "width": 316,
+        "font": "12px",
+        "color": "rgb(100, 108, 108)"
+      },
+      {
+        "tag": "SELECT",
+        "text": "fastest_receipt",
+        "aria": null,
+        "title": null,
+        "disabled": false,
+        "height": 58,
+        "width": 316,
+        "font": "15px",
+        "color": "rgb(41, 45, 48)"
+      },
+      {
+        "tag": "BUTTON",
+        "text": "Run model",
+        "aria": "Run model",
+        "title": null,
+        "disabled": false,
+        "height": 54,
+        "width": 316,
+        "font": "15px",
+        "color": "rgb(255, 255, 255)"
+      },
+      {
+        "tag": "A",
+        "text": "Zero",
+        "aria": null,
+        "title": null,
+        "height": 44,
+        "width": 44,
+        "font": "12px",
+        "color": "color(srgb 0.160784 0.176471 0.188235 / 0.62)"
+      },
+      {
+        "tag": "A",
+        "text": "X",
+        "aria": null,
+        "title": null,
+        "height": 44,
+        "width": 44,
+        "font": "12px",
+        "color": "color(srgb 0.160784 0.176471 0.188235 / 0.62)"
+      }
+    ],
+    "errors": []
+  },
+  {
+    "label": "mobile",
+    "route": "documents",
+    "text": "Reploid\nRun a model\nShare compute\nRecent jobs\n0 peers\nReploid\n\nRun AI with connected browsers.\n\nProtein embeddings\nDocument search\nSearch documents\n\nFiles and questions stay in this tab. No peer sharing.\n\nMODEL PACKS\nDocuments (.txt, .md)\n\nNo documents\n\nQuestion\nRerank passages\nWrite an answer with references\nSearch\nClear documents\n\nAdd documents\n\nExperiments\nZero\nX"
+  },
+  {
+    "label": "mobile",
+    "route": "/compute",
+    "title": "Reploid - Browser AI",
+    "text": "Reploid\nRun a model\nShare compute\nRecent jobs\n0 peers\nShare compute\n\nLet this browser help with jobs.\n\nIDLE\n\nModel\nESM-2 35M (Protein) · sequence.embedding.v1\nMODEL DETAILS\nBefore you share\nESM-2 35M (Protein) only\n1 run at a time\nPublic protein sequences; output receipts returned to requesters\n1024 MiB cache · 25 Mbps\nRuns until you stop sharing or close this tab\nSHARING LIMITS\nStart sharing\nADVANCED DETAILS",
+    "overflow": false,
+    "controls": [
+      {
+        "tag": "A",
+        "text": "Reploid",
+        "aria": null,
+        "title": null,
+        "height": 24,
+        "width": 52.515625,
+        "font": "15px",
+        "color": "rgb(41, 45, 48)"
+      },
+      {
+        "tag": "A",
+        "text": "Run a model",
+        "aria": "Run a model",
+        "title": null,
+        "height": 44,
+        "width": 104.828125,
+        "font": "12px",
+        "color": "rgb(100, 108, 108)"
+      },
+      {
+        "tag": "A",
+        "text": "Share compute",
+        "aria": "Share compute",
+        "title": null,
+        "height": 44,
+        "width": 106.328125,
+        "font": "12px",
+        "color": "rgb(41, 45, 48)"
+      },
+      {
+        "tag": "A",
+        "text": "Recent jobs",
+        "aria": "Recent jobs",
+        "title": null,
+        "height": 44,
+        "width": 104.84375,
+        "font": "12px",
+        "color": "rgb(100, 108, 108)"
+      },
+      {
+        "tag": "SUMMARY",
+        "text": "0 peers",
+        "aria": "Network availability",
+        "title": null,
+        "height": 44,
+        "width": 72.609375,
+        "font": "12px",
+        "color": "rgb(100, 108, 108)"
+      },
+      {
+        "tag": "A",
+        "text": "",
+        "aria": null,
+        "title": null,
+        "height": 20.1875,
+        "width": 183.53125,
+        "font": "12px",
+        "color": "rgb(41, 45, 48)"
+      },
+      {
+        "tag": "SELECT",
+        "text": "ESM-2 35M (Protein) · sequence.embedding.v1",
+        "aria": null,
+        "title": null,
+        "disabled": false,
+        "height": 58,
+        "width": 316,
+        "font": "15px",
+        "color": "rgb(41, 45, 48)"
+      },
+      {
+        "tag": "SUMMARY",
+        "text": "MODEL DETAILS",
+        "aria": null,
+        "title": null,
+        "height": 19.1875,
+        "width": 298,
+        "font": "12px",
+        "color": "rgb(41, 45, 48)"
+      },
+      {
+        "tag": "SUMMARY",
+        "text": "SHARING LIMITS",
+        "aria": null,
+        "title": null,
+        "height": 19.1875,
+        "width": 298,
+        "font": "12px",
+        "color": "rgb(41, 45, 48)"
+      },
+      {
+        "tag": "INPUT",
+        "text": "on",
+        "aria": null,
+        "title": null,
+        "disabled": false,
+        "height": 18,
+        "width": 18,
+        "font": "18px",
+        "color": "rgb(41, 45, 48)"
+      },
+      {
+        "tag": "INPUT",
+        "text": "on",
+        "aria": null,
+        "title": null,
+        "disabled": false,
+        "height": 18,
+        "width": 18,
+        "font": "18px",
+        "color": "rgb(41, 45, 48)"
+      },
+      {
+        "tag": "INPUT",
+        "text": "1",
+        "aria": null,
+        "title": null,
+        "disabled": false,
+        "height": 58,
+        "width": 105,
+        "font": "15px",
+        "color": "rgb(41, 45, 48)"
+      },
+      {
+        "tag": "INPUT",
+        "text": "128",
+        "aria": null,
+        "title": null,
+        "disabled": false,
+        "height": 58,
+        "width": 105,
+        "font": "15px",
+        "color": "rgb(41, 45, 48)"
+      },
+      {
+        "tag": "INPUT",
+        "text": "1024",
+        "aria": null,
+        "title": null,
+        "disabled": false,
+        "height": 58,
+        "width": 105,
+        "font": "15px",
+        "color": "rgb(41, 45, 48)"
+      },
+      {
+        "tag": "INPUT",
+        "text": "25",
+        "aria": null,
+        "title": null,
+        "disabled": false,
+        "height": 58,
+        "width": 105,
+        "font": "15px",
+        "color": "rgb(41, 45, 48)"
+      },
+      {
+        "tag": "BUTTON",
+        "text": "",
+        "aria": null,
+        "title": null,
+        "disabled": false,
+        "height": 46,
+        "width": 239.59375,
+        "font": "15px",
+        "color": "rgb(41, 45, 48)"
+      },
+      {
+        "tag": "BUTTON",
+        "text": "Start sharing",
+        "aria": null,
+        "title": null,
+        "disabled": false,
+        "height": 46,
+        "width": 149.765625,
+        "font": "15px",
+        "color": "rgb(41, 45, 48)"
+      },
+      {
+        "tag": "SUMMARY",
+        "text": "ADVANCED DETAILS",
+        "aria": null,
+        "title": null,
+        "height": 19.1875,
+        "width": 298,
+        "font": "12px",
+        "color": "rgb(41, 45, 48)"
+      },
+      {
+        "tag": "SUMMARY",
+        "text": "",
+        "aria": null,
+        "title": null,
+        "height": 19.1875,
+        "width": 246,
+        "font": "12px",
+        "color": "rgb(41, 45, 48)"
+      },
+      {
+        "tag": "SUMMARY",
+        "text": "",
+        "aria": null,
+        "title": null,
+        "height": 19.1875,
+        "width": 280,
+        "font": "12px",
+        "color": "rgb(41, 45, 48)"
+      },
+      {
+        "tag": "SUMMARY",
+        "text": "",
+        "aria": null,
+        "title": null,
+        "height": 39.1875,
+        "width": 278,
+        "font": "12px",
+        "color": "rgb(41, 45, 48)"
+      }
+    ],
+    "errors": []
+  },
+  {
+    "label": "mobile",
+    "route": "/records",
+    "title": "Reploid - Browser AI",
+    "text": "Reploid\nRun a model\nShare compute\nRecent jobs\n0 peers\nRecent jobs\n\nResults and unfinished jobs.\n\nNo records yet. Requests, completed runs, and contributions will appear here.\n\nADVANCED DETAILS",
+    "overflow": false,
+    "controls": [
+      {
+        "tag": "A",
+        "text": "Reploid",
+        "aria": null,
+        "title": null,
+        "height": 24,
+        "width": 52.515625,
+        "font": "15px",
+        "color": "rgb(41, 45, 48)"
+      },
+      {
+        "tag": "A",
+        "text": "Run a model",
+        "aria": "Run a model",
+        "title": null,
+        "height": 44,
+        "width": 104.828125,
+        "font": "12px",
+        "color": "rgb(100, 108, 108)"
+      },
+      {
+        "tag": "A",
+        "text": "Share compute",
+        "aria": "Share compute",
+        "title": null,
+        "height": 44,
+        "width": 106.328125,
+        "font": "12px",
+        "color": "rgb(100, 108, 108)"
+      },
+      {
+        "tag": "A",
+        "text": "Recent jobs",
+        "aria": "Recent jobs",
+        "title": null,
+        "height": 44,
+        "width": 104.84375,
+        "font": "12px",
+        "color": "rgb(41, 45, 48)"
+      },
+      {
+        "tag": "SUMMARY",
+        "text": "0 peers",
+        "aria": "Network availability",
+        "title": null,
+        "height": 44,
+        "width": 72.609375,
+        "font": "12px",
+        "color": "rgb(100, 108, 108)"
+      },
+      {
+        "tag": "A",
+        "text": "",
+        "aria": null,
+        "title": null,
+        "height": 20.1875,
+        "width": 183.53125,
+        "font": "12px",
+        "color": "rgb(41, 45, 48)"
+      },
+      {
+        "tag": "SUMMARY",
+        "text": "ADVANCED DETAILS",
+        "aria": null,
+        "title": null,
+        "height": 19.1875,
+        "width": 298,
+        "font": "12px",
+        "color": "rgb(41, 45, 48)"
+      },
+      {
+        "tag": "SUMMARY",
+        "text": "",
+        "aria": null,
+        "title": null,
+        "height": 19.1875,
+        "width": 280,
+        "font": "12px",
+        "color": "rgb(41, 45, 48)"
+      },
+      {
+        "tag": "INPUT",
+        "text": "",
+        "aria": null,
+        "title": null,
+        "disabled": false,
+        "height": 58,
+        "width": 280,
+        "font": "15px",
+        "color": "rgb(41, 45, 48)"
+      },
+      {
+        "tag": "BUTTON",
+        "text": "",
+        "aria": null,
+        "title": null,
+        "disabled": false,
+        "height": 46,
+        "width": 135,
+        "font": "15px",
+        "color": "rgb(41, 45, 48)"
+      },
+      {
+        "tag": "SUMMARY",
+        "text": "",
+        "aria": null,
+        "title": null,
+        "height": 39.1875,
+        "width": 278,
+        "font": "12px",
+        "color": "rgb(41, 45, 48)"
+      }
+    ],
+    "errors": []
+  }
+]

@@ -814,17 +814,6 @@ export const bindPoolDashboardControls = () => {
 const bindSuggestedPromptEditing = (input) => {
   if (!input || input.dataset.poolSuggestedPromptBound === 'true') return;
   input.dataset.poolSuggestedPromptBound = 'true';
-  const clearSuggestedPrompt = () => {
-    if (input.dataset.poolSuggestedPromptCleared === 'true') return;
-    const suggestedPrompt = String(input.dataset.poolSuggestedPrompt || '');
-    if (suggestedPrompt && input.value === suggestedPrompt) {
-      input.value = '';
-      input.dataset.poolSuggestedPromptCleared = 'true';
-    }
-  };
-  input.addEventListener('focus', clearSuggestedPrompt);
-  input.addEventListener('pointerdown', clearSuggestedPrompt);
-
   const intervalId = setInterval(() => {
     if (!document.body.contains(input)) {
       clearInterval(intervalId);
@@ -1812,6 +1801,16 @@ export const bindHomeAskControls = () => {
     });
   }
   bindSuggestedPromptEditing(input);
+  const example = form.querySelector('[data-pool-use-example]');
+  if (example && example.dataset.poolExampleBound !== 'true') {
+    example.dataset.poolExampleBound = 'true';
+    example.addEventListener('click', () => {
+      if (input.disabled || example.disabled || !input.dataset.poolSuggestedPrompt) return;
+      input.value = input.dataset.poolSuggestedPrompt;
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+      input.focus();
+    });
+  }
   if (input.dataset.poolSequenceFeedbackBound !== 'true') {
     input.dataset.poolSequenceFeedbackBound = 'true';
     const updateFeedback = () => {

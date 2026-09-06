@@ -9,7 +9,8 @@ import { assertPackOperationReceipt } from '../../self/pool/pack-operation.js';
 import { verifyPackPeerEpisode } from '../../self/pool/peer-pack-episode.js';
 
 describe.each(['esm2-peer-pack-2026-09-05', 'esm2-pack-operation-2026-09-05', 'esm2-durable-peer-2026-09-06',
-  'esm2-process-restart-2026-09-06', 'esm2-remote-operation-2026-09-06', 'esm2-durable-job-2026-09-06'])('retained physical peer Pack episode: %s (offline evidence validation)', (directory) => {
+  'esm2-process-restart-2026-09-06', 'esm2-remote-operation-2026-09-06', 'esm2-durable-job-2026-09-06',
+  'esm2-attempt-v2-2026-09-06'])('retained physical peer Pack episode: %s (offline evidence validation)', (directory) => {
   const ROOT = resolve('docs/status', directory);
   const json = async (path) => JSON.parse(await readFile(resolve(ROOT, path), 'utf8'));
   it('binds retained bytes, completed custody, real operation evidence, and explicit non-claims', async () => {
@@ -128,6 +129,30 @@ describe.each(['esm2-peer-pack-2026-09-05', 'esm2-pack-operation-2026-09-05', 'e
             : mode === 'cancel-before-job' ? ['cancelled'] : ['partial', 'completed']);
           expect(after.responses.slice(0, before.responses.length)).toEqual(before.responses);
           expect(repeated.responses).toEqual([...after.responses, ...after.responses]);
+        }
+      }
+      if (directory === 'esm2-attempt-v2-2026-09-06') {
+        expect(remote.job.body.schema).toBe('reploid.peer.pack_job/v2');
+        expect(remote.job.body.intent.attemptNumber).toBe(1);
+        expect(remote.job.body.intent.adapterSet).toEqual([]);
+        expect(await hashDopplerEvidence(remote.job.body.intent.operationPolicy)).toBe(remote.job.body.intent.operationPolicyDigest);
+        expect(await hashDopplerEvidence(remote.job.body.intent.jobPolicy)).toBe(remote.job.body.intent.jobPolicyDigest);
+        expect(report.remoteProvider.providerReplacements).toBe(1);
+        expect(report.remoteProvider.journal).toMatchObject({ attempts: 1, states: { completed: 1 }, storage: 'indexeddb' });
+        const browser = await json('attachments/browser-process-restart.json');
+        expect(browser.processReplacements).toBe(6);
+        expect(browser.executionClass).toBe('synthetic-models-native-indexeddb');
+        expect(browser.observations.map(row => row.mode)).toEqual(['normal', 'send-failure', 'accepted', 'pending', 'cancel-before-job', 'persistence']);
+        for (const { mode, before, restored, after, repeated } of browser.observations) {
+          const expected = mode === 'persistence' && restored.journal.attempts === 0 ? 1 : 0;
+          expect(after.calls).toBe(expected); expect(repeated.calls).toBe(expected);
+          expect(after.errors).toEqual([]);
+          expect(before.calls + after.calls).toBeLessThanOrEqual(1);
+          expect(after.responses.slice(0, before.responses.length)).toEqual(before.responses);
+          expect(repeated.responses).toEqual([...after.responses, ...after.responses]);
+          if (mode === 'accepted') expect(before.journal.states.accepted).toBe(1);
+          if (mode === 'pending') expect(after.responses.map(row => row.body.status)).toEqual(['partial', 'failed']);
+          if (mode === 'cancel-before-job') expect(after.responses.at(-1).body.status).toBe('cancelled');
         }
       }
     }
