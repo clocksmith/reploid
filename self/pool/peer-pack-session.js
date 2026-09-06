@@ -70,10 +70,10 @@ export async function openPeerPack({ authorization, index, inventories, requeste
     runnableAt = now();
     return Object.freeze({
       session,
-      async run(request, { onPartial = null } = {}) {
+      async run(request, { onPartial = null, signal = null } = {}) {
         current();
         return runPackOperation({ binding: grant.pack, session, runtimeVersion, request,
-          signal: controller.signal, onPartial, assertCurrent: current });
+          signal: signal ? AbortSignal.any([controller.signal, signal]) : controller.signal, onPartial, assertCurrent: current });
       },
       getAcquisitionReceipt,
       close

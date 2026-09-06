@@ -3,10 +3,12 @@ import { validateOperationModel } from './operation-model.js';
 import { runPackOperation, snapshotPackOperationData } from './pack-operation.js';
 import { DopplerRuntimeService } from '../infrastructure/doppler-runtime-service.js';
 import { prepareLocalPackRelease } from './pack-release-policy.js';
+import { createPackOperationRegistry } from './pack-operation-adapters.js';
 
-/** Application-selected local sessions do not admit a model to the public peer catalog. */
+/** Application-selected sessions do not admit a model to the public peer catalog.
+ * Remote callers must validate delegation before supplying an assignment. */
 export function createLocalPackExecutor({ service = DopplerRuntimeService, scope = `reploid:documents:${crypto.randomUUID()}`,
-  prepareRelease = prepareLocalPackRelease } = {}) {
+  prepareRelease = prepareLocalPackRelease, registry = createPackOperationRegistry() } = {}) {
   let disposed = false;
   let active = false;
   let epoch = 0;
@@ -24,18 +26,18 @@ export function createLocalPackExecutor({ service = DopplerRuntimeService, scope
     finally { releasing = false; }
   };
   return {
-    async run({ model: modelInput, input, options = {}, limits, signal = null, onPartial = null }) {
+    async run({ model: modelInput, input, options = {}, assignment = null, limits, signal = null, onPartial = null }) {
       if (disposed || active) throw new Error(disposed ? 'Document executor is closed' : 'A document operation is already running');
       const model = snapshotPackOperationData(modelInput);
-      const validation = validateOperationModel(model);
+      const validation = validateOperationModel(model, registry);
       if (!validation.ok) throw new Error(validation.reasons.join('; '));
       if (typeof model.runtimeVersion !== 'string' || !model.runtimeVersion) throw new Error('Exact runtime version required');
       const source = new URL(model.packSource);
       if (!['https:', 'http:'].includes(source.protocol) || source.username || source.password) throw new Error('Pack source must be an HTTP(S) URL without credentials');
       if (!model.packOpenOptions?.trustedSigners || !Object.keys(model.packOpenOptions.trustedSigners).length) throw new Error('Application-selected trusted signers required');
       const request = snapshotPackOperationData({ schema: 'doppler.pack-operation-request/v1',
-        operation: { name: model.executablePack.requiredOperation, version: 1 }, input, options,
-        assignment: null, limits });
+        operation: { name: model.executablePack.requiredOperation, version: registry[model.executablePack.requiredOperation].version }, input, options,
+        assignment, limits });
       const remaining = limits?.deadlineAt - Date.now();
       if (!Number.isSafeInteger(limits?.deadlineAt) || remaining <= 0 || remaining > 2147483647) throw new Error('Document operation requires a future bounded deadline');
       const currentEpoch = ++epoch;
@@ -84,7 +86,7 @@ export function createLocalPackExecutor({ service = DopplerRuntimeService, scope
           if (session.modelId !== model.modelId) throw new Error('Loaded Pack model id mismatch');
           await releasePolicy.assertCurrent(session);
           execution = await runPackOperation({ binding: model.executablePack, session, request,
-            runtimeVersion: model.runtimeVersion, signal: localController.signal, onPartial, assertCurrent });
+            runtimeVersion: model.runtimeVersion, signal: localController.signal, onPartial, assertCurrent, registry });
           assertCurrent();
           await releasePolicy.assertCurrent(session);
           assertCurrent();

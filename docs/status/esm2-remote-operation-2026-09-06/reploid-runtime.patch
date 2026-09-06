@@ -1,0 +1,1003 @@
+diff --git a/scripts/verify-peer-pack-execution.js b/scripts/verify-peer-pack-execution.js
+index 0135ca4..04c8b12 100644
+--- a/scripts/verify-peer-pack-execution.js
++++ b/scripts/verify-peer-pack-execution.js
+@@ -106,6 +106,12 @@ export async function verifyPeerPackExecution(config) {
+   const referenceBytes = await readFile(config.referencePath);
+   assert(await sha256Hex(referenceBytes) === config.referenceDigest, 'Frozen reference digest mismatch');
+   const reference = JSON.parse(referenceBytes.toString('utf8'));
++  let remoteReference = null;
++  if (config.remoteOperation) {
++    const bytes = await readFile(config.remoteOperation.referencePath);
++    assert(await sha256Hex(bytes) === config.remoteOperation.referenceDigest, 'Frozen remote comparison reference digest mismatch');
++    remoteReference = JSON.parse(bytes.toString('utf8'));
++  }
+   const report = { schema: 'reploid.pool.peer-pack-browser-episode/v1', passed: false, generatedAt: new Date().toISOString(),
+     claimBoundary: { actualModel: true, physicalBrowserRequired: true, internalOperatorCount: 1,
+       independentMachines: false, independentOperators: false, historyImprovement: false },
+@@ -273,7 +279,41 @@ export async function verifyPeerPackExecution(config) {
+         }, { limits: config.transportLimits, sources: runtimeBootstrap.sources });
+         await connect();
+       }
+-      report.execution = await requester.evaluate((options) => proofPeer.execute(options), executionOptions);
++      const executing = requester.evaluate((options) => proofPeer.execute(options),
++        { ...executionOptions, serveRemoteOperation: !!config.remoteOperation }).then(execution => {
++        report.execution = execution;
++        return execution;
++      });
++      // A process deadline may reject while the coordinator awaits remote readiness.
++      // Observe it immediately and retain the original failure in the outer report.
++      executing.catch(() => {});
++      if (config.remoteOperation) {
++        // A supplier browser requests a complete job from the reconstructed model.
++        // It receives no locally generated replacement output from the coordinator.
++        const remoteRequester = pages.get(identities[2].peerId);
++        try {
++          await Promise.race([requester.waitForFunction(() => proofPeer.remoteReady()), executing.then(execution => {
++            throw new Error(execution.error || 'Model execution ended before remote provider readiness');
++          })]);
++          await remoteRequester.evaluate(async ({ model, reference, sequence }) => {
++            window.remoteOperation = await import('/tests/fixtures/peer-pack-remote-execution.js');
++            await remoteOperation.startRequester(model, { reference, sequence });
++          }, { model: { modelId: reference.modelId, modelHash: binding.semanticRoot, manifestHash: binding.envelopeDigest,
++            runtime: 'doppler', backend: 'browser-webgpu', runtimeVersion: config.dopplerVersion,
++            executionMode: 'complete_pack_browser', workload: 'sequence.embedding.v1', executablePack: binding },
++          reference: remoteReference.output, sequence: reference.input.sequence });
++          const offer = await remoteRequester.evaluate(() => remoteOperation.offer());
++          const answer = await requester.evaluate(offer => proofPeer.remoteAnswer(offer), offer);
++          await remoteRequester.evaluate(answer => remoteOperation.accept(answer), answer);
++          const advert = await requester.evaluate(() => proofPeer.remoteAdvert());
++          report.remoteOperation = await remoteRequester.evaluate(advert => remoteOperation.run(advert), advert);
++        } finally {
++          report.remoteProvider = await requester.evaluate(() => proofPeer.remoteFinish());
++          report.remoteRequester = await remoteRequester.evaluate(() => window.remoteOperation?.finish());
++          await executing;
++        }
++      }
++      report.execution = await executing;
+       if (config.restart && report.execution.passed) {
+         const accepted = report.restart.interrupted.custody.attempts.filter(row => row.status === 'accepted');
+         const fetched = new Set(report.execution.custody.attempts.map(row => `${row.artifactId}:${row.chunkIndex}`));
+@@ -289,11 +329,20 @@ export async function verifyPeerPackExecution(config) {
+       const transferAttempts = [...(report.restart?.interrupted.custody.attempts ?? []), ...report.execution.custody.attempts];
+       report.acceptance = evaluateSequenceReference({ manifest: report.execution.manifest, reference,
+         result: { ...output, pooledEmbedding: new Float32Array(output.pooledEmbedding), tokenEmbeddings: new Float32Array(output.tokenEmbeddings) } });
++      if (config.remoteOperation) {
++        const remoteOutput = report.remoteOperation.execution.output;
++        report.remoteAcceptance = evaluateSequenceReference({ manifest: report.execution.manifest, reference,
++          result: { ...remoteOutput, pooledEmbedding: new Float32Array(remoteOutput.pooledEmbedding), tokenEmbeddings: new Float32Array(remoteOutput.tokenEmbeddings) } });
++      }
+       report.passed = report.acceptance.passed && report.origin.receiverBootstrapRequests === 0
+         && report.origin.rejectedRequests.length === 0
+         && report.execution.custody.completed.length === pack.artifacts.length + 1
+         && transferAttempts.some((attempt) => attempt.error?.includes('integrity'))
+-        && report.peers.some((peer) => peer.injectedFaults.some((fault) => fault.type === 'supplier-departure'));
++        && report.peers.some((peer) => peer.injectedFaults.some((fault) => fault.type === 'supplier-departure'))
++        && (!config.remoteOperation || (report.remoteAcceptance.passed && report.remoteOperation.assessment.accepted
++          && report.remoteOperation.accounting.deliveries === 2 && report.execution.remoteProvider.calls === 1
++          && report.execution.remoteProvider.droppedCompletions === 1
++          && report.execution.remoteProvider.executionReceiptDigest === report.remoteOperation.execution.receipt.receiptDigest));
+     }
+     report.stage = 'complete';
+   } catch (error) { report.error = error.message; }
+diff --git a/self/pool/local-pack-executor.js b/self/pool/local-pack-executor.js
+index 6260c24..0a0c010 100644
+--- a/self/pool/local-pack-executor.js
++++ b/self/pool/local-pack-executor.js
+@@ -3,10 +3,12 @@ import { validateOperationModel } from './operation-model.js';
+ import { runPackOperation, snapshotPackOperationData } from './pack-operation.js';
+ import { DopplerRuntimeService } from '../infrastructure/doppler-runtime-service.js';
+ import { prepareLocalPackRelease } from './pack-release-policy.js';
++import { createPackOperationRegistry } from './pack-operation-adapters.js';
+ 
+-/** Application-selected local sessions do not admit a model to the public peer catalog. */
++/** Application-selected sessions do not admit a model to the public peer catalog.
++ * Remote callers must validate delegation before supplying an assignment. */
+ export function createLocalPackExecutor({ service = DopplerRuntimeService, scope = `reploid:documents:${crypto.randomUUID()}`,
+-  prepareRelease = prepareLocalPackRelease } = {}) {
++  prepareRelease = prepareLocalPackRelease, registry = createPackOperationRegistry() } = {}) {
+   let disposed = false;
+   let active = false;
+   let epoch = 0;
+@@ -24,18 +26,18 @@ export function createLocalPackExecutor({ service = DopplerRuntimeService, scope
+     finally { releasing = false; }
+   };
+   return {
+-    async run({ model: modelInput, input, options = {}, limits, signal = null, onPartial = null }) {
++    async run({ model: modelInput, input, options = {}, assignment = null, limits, signal = null, onPartial = null }) {
+       if (disposed || active) throw new Error(disposed ? 'Document executor is closed' : 'A document operation is already running');
+       const model = snapshotPackOperationData(modelInput);
+-      const validation = validateOperationModel(model);
++      const validation = validateOperationModel(model, registry);
+       if (!validation.ok) throw new Error(validation.reasons.join('; '));
+       if (typeof model.runtimeVersion !== 'string' || !model.runtimeVersion) throw new Error('Exact runtime version required');
+       const source = new URL(model.packSource);
+       if (!['https:', 'http:'].includes(source.protocol) || source.username || source.password) throw new Error('Pack source must be an HTTP(S) URL without credentials');
+       if (!model.packOpenOptions?.trustedSigners || !Object.keys(model.packOpenOptions.trustedSigners).length) throw new Error('Application-selected trusted signers required');
+       const request = snapshotPackOperationData({ schema: 'doppler.pack-operation-request/v1',
+-        operation: { name: model.executablePack.requiredOperation, version: 1 }, input, options,
+-        assignment: null, limits });
++        operation: { name: model.executablePack.requiredOperation, version: registry[model.executablePack.requiredOperation].version }, input, options,
++        assignment, limits });
+       const remaining = limits?.deadlineAt - Date.now();
+       if (!Number.isSafeInteger(limits?.deadlineAt) || remaining <= 0 || remaining > 2147483647) throw new Error('Document operation requires a future bounded deadline');
+       const currentEpoch = ++epoch;
+@@ -84,7 +86,7 @@ export function createLocalPackExecutor({ service = DopplerRuntimeService, scope
+           if (session.modelId !== model.modelId) throw new Error('Loaded Pack model id mismatch');
+           await releasePolicy.assertCurrent(session);
+           execution = await runPackOperation({ binding: model.executablePack, session, request,
+-            runtimeVersion: model.runtimeVersion, signal: localController.signal, onPartial, assertCurrent });
++            runtimeVersion: model.runtimeVersion, signal: localController.signal, onPartial, assertCurrent, registry });
+           assertCurrent();
+           await releasePolicy.assertCurrent(session);
+           assertCurrent();
+diff --git a/self/pool/operation-model.js b/self/pool/operation-model.js
+index a29b761..c744ef9 100644
+--- a/self/pool/operation-model.js
++++ b/self/pool/operation-model.js
+@@ -13,7 +13,7 @@ export function validateOperationModel(model, registry = createPackOperationRegi
+   if (typeof model?.modelId !== 'string' || !model.modelId) reasons.push('Exact model id required');
+   if (model?.runtime !== 'doppler' || model?.backend !== 'browser-webgpu'
+     || model?.executionMode !== PACK_EXECUTION_MODE) reasons.push('Explicit complete browser Pack execution required');
+-  if (model?.workload !== PACK_OPERATION_WORKLOADS[operation]) reasons.push('Workload does not match Pack operation');
++  if (!registry[operation]?.workload || model?.workload !== registry[operation].workload) reasons.push('Workload does not match Pack operation');
+   if (model?.modelHash !== model?.executablePack?.semanticRoot
+     || model?.manifestHash !== model?.executablePack?.envelopeDigest) reasons.push('Model identity must bind the exact executable Pack');
+   for (const field of ['distributedExecution', 'executionTopology', 'modelSplit', 'modelPartitions',
+diff --git a/self/pool/pack-operation-adapters.js b/self/pool/pack-operation-adapters.js
+index 1d50016..bbd795d 100644
+--- a/self/pool/pack-operation-adapters.js
++++ b/self/pool/pack-operation-adapters.js
+@@ -16,6 +16,7 @@ const tolerance = (policy) => {
+ const builtins = {
+   generate: {
+     version: 1,
++    workload: 'text-generation',
+     validateRequest({ input, options }) {
+       fields(input, ['prompt', 'promptTokens']);
+       requireValue(Object.hasOwn(input, 'prompt') !== Object.hasOwn(input, 'promptTokens'), 'one generation input required');
+@@ -36,6 +37,7 @@ const builtins = {
+   },
+   embed: {
+     version: 1,
++    workload: 'embedding',
+     validateRequest({ input, options }) {
+       fields(input, ['texts', 'application']); fields(options, []);
+       requireValue(Array.isArray(input.texts) && input.texts.length > 0 && input.texts.every(text), 'texts required');
+@@ -57,6 +59,7 @@ const builtins = {
+   },
+   rerank: {
+     version: 1,
++    workload: 'reranking',
+     validateRequest({ input, options }) {
+       fields(input, ['query', 'documents', 'application']); fields(options, []);
+       requireValue(text(input.query) && Array.isArray(input.documents) && input.documents.length > 0
+@@ -81,6 +84,7 @@ const builtins = {
+   },
+   encodeSequence: {
+     version: 1,
++    workload: 'sequence.embedding.v1',
+     validateRequest({ input, options }) {
+       fields(input, ['sequence']); fields(options, ['includeTokenEmbeddings', 'includeLogits']);
+       requireValue(text(input.sequence) && typeof options.includeTokenEmbeddings === 'boolean'
+diff --git a/self/pool/pack-operation.js b/self/pool/pack-operation.js
+index ba9f9f8..9a15259 100644
+--- a/self/pool/pack-operation.js
++++ b/self/pool/pack-operation.js
+@@ -35,18 +35,39 @@ export async function assertPackOperationReceipt(binding, receipt, { request, ou
+   requireValue(receipt.outputHash === await hashDopplerEvidence(output), 'output mismatch');
+ }
+ 
+-export async function runPackOperation({ binding: bindingInput, session, request: requestInput, runtimeVersion,
+-  registry = createPackOperationRegistry(), signal = null, onPartial = null, assertCurrent = async () => {} }) {
+-  const binding = snapshotPackOperationData(bindingInput);
+-  const request = snapshotPackOperationData(requestInput);
++export function assertPackOperationRequest(binding, request, registry = createPackOperationRegistry()) {
+   const adapter = operationAdapter(registry, request.operation);
+   requireValue(request.schema === 'doppler.pack-operation-request/v1' && binding.requiredOperation === request.operation.name, 'request operation binding mismatch');
+   requireValue(Object.keys(request).every((key) => ['schema', 'operation', 'input', 'options', 'assignment', 'limits'].includes(key)), 'unknown request field');
+   requireValue(request.assignment === null || (request.assignment && typeof request.assignment === 'object' && !Array.isArray(request.assignment)), 'explicit assignment or null required');
+   for (const key of ['maxInputBytes', 'maxOutputBytes', 'deadlineAt']) requireValue(Number.isSafeInteger(request.limits?.[key]) && request.limits[key] > 0, `${key} required`);
+   requireValue(new TextEncoder().encode(JSON.stringify({ input: request.input, options: request.options })).length <= request.limits.maxInputBytes, 'input byte limit exceeded');
+-  requireValue(typeof runtimeVersion === 'string' && runtimeVersion.length > 0, 'runtime version required');
+   adapter.validateRequest(request);
++}
++
++/** Shared stream verifier for local execution and signed remote delivery. */
++export async function assertPackOperationEvent({ binding, request, runtimeVersion, event,
++  eventIndex, previousEventDigest, registry = createPackOperationRegistry() }) {
++  const adapter = operationAdapter(registry, request.operation);
++  const { eventDigest, ...payload } = event;
++  requireValue(event.schema === 'doppler.pack-operation-event/v1' && ['partial', 'completed'].includes(event.status), 'event schema or status mismatch');
++  requireValue(eventDigest === await hashDopplerEvidence(payload), 'event digest mismatch');
++  requireValue(event.eventIndex === eventIndex && event.previousEventDigest === previousEventDigest, 'duplicate, missing, or reordered event');
++  requireValue(event.requestHash === await hashDopplerEvidence(request)
++    && event.assignmentHash === (request.assignment === null ? null : await hashDopplerEvidence(request.assignment))
++    && await equal(event.operation, request.operation), 'event belongs to another request');
++  requireValue(new TextEncoder().encode(JSON.stringify(event.output)).length <= request.limits.maxOutputBytes, 'output byte limit exceeded');
++  adapter.validateOutput(event.output, request, { completed: event.status === 'completed' });
++  if (event.status === 'completed') await assertPackOperationReceipt(binding, event.receipt, { request, output: event.output, runtimeVersion });
++  else requireValue(!Object.hasOwn(event, 'receipt'), 'partial output cannot carry completion evidence');
++}
++
++export async function runPackOperation({ binding: bindingInput, session, request: requestInput, runtimeVersion,
++  registry = createPackOperationRegistry(), signal = null, onPartial = null, assertCurrent = async () => {} }) {
++  const binding = snapshotPackOperationData(bindingInput);
++  const request = snapshotPackOperationData(requestInput);
++  assertPackOperationRequest(binding, request, registry);
++  requireValue(typeof runtimeVersion === 'string' && runtimeVersion.length > 0, 'runtime version required');
+   const current = async () => {
+     signal?.throwIfAborted();
+     requireValue(Date.now() < request.limits.deadlineAt, 'deadline exceeded');
+@@ -57,8 +78,6 @@ export async function runPackOperation({ binding: bindingInput, session, request
+   await current();
+   await assertPackSession(binding, session);
+   requireValue(typeof session.executeOperation === 'function', 'public executeOperation is required; no legacy operation fallback');
+-  const requestHash = await hashDopplerEvidence(request);
+-  const assignmentHash = request.assignment === null ? null : await hashDopplerEvidence(request.assignment);
+   let previousEventDigest = null;
+   let eventCount = 0;
+   let completed = null;
+@@ -66,27 +85,20 @@ export async function runPackOperation({ binding: bindingInput, session, request
+     await current();
+     requireValue(!completed, 'output after completion');
+     const event = snapshotPackOperationData(received);
+-    const { eventDigest, ...payload } = event;
+-    requireValue(event.schema === 'doppler.pack-operation-event/v1' && ['partial', 'completed'].includes(event.status), 'event schema or status mismatch');
+-    requireValue(eventDigest === await hashDopplerEvidence(payload), 'event digest mismatch');
+-    requireValue(event.eventIndex === eventCount && event.previousEventDigest === previousEventDigest, 'duplicate, missing, or reordered event');
+-    requireValue(event.requestHash === requestHash && event.assignmentHash === assignmentHash && await equal(event.operation, request.operation), 'event belongs to another request');
+-    requireValue(new TextEncoder().encode(JSON.stringify(event.output)).length <= request.limits.maxOutputBytes, 'output byte limit exceeded');
+-    adapter.validateOutput(event.output, request, { completed: event.status === 'completed' });
++    await assertPackOperationEvent({ binding, request, runtimeVersion, event, eventIndex: eventCount, previousEventDigest, registry });
++    await current();
+     if (event.status === 'completed') {
+-      await assertPackOperationReceipt(binding, event.receipt, { request, output: event.output, runtimeVersion });
+       completed = event;
+     } else {
+-      requireValue(!Object.hasOwn(event, 'receipt'), 'partial output cannot carry completion evidence');
+       await onPartial?.(event);
+     }
+     eventCount++;
+-    previousEventDigest = eventDigest;
++    previousEventDigest = event.eventDigest;
+   }
+   // Do not expose completion until iterator cleanup and the current-attempt check finish.
+   await current();
+   requireValue(completed, 'stream ended without completion');
+-  return Object.freeze({ request, output: completed.output, receipt: completed.receipt, eventCount, finalEventDigest: previousEventDigest });
++  return Object.freeze({ request, output: completed.output, receipt: completed.receipt, eventCount, finalEventDigest: previousEventDigest, completion: completed });
+ }
+ 
+ export async function assessPackOperation({ execution, reference: referenceInput, policy: policyInput, registry = createPackOperationRegistry() }) {
+diff --git a/self/pool/peer-pack-session.js b/self/pool/peer-pack-session.js
+index 0c71249..6b8de5d 100644
+--- a/self/pool/peer-pack-session.js
++++ b/self/pool/peer-pack-session.js
+@@ -70,10 +70,10 @@ export async function openPeerPack({ authorization, index, inventories, requeste
+     runnableAt = now();
+     return Object.freeze({
+       session,
+-      async run(request, { onPartial = null } = {}) {
++      async run(request, { onPartial = null, signal = null } = {}) {
+         current();
+         return runPackOperation({ binding: grant.pack, session, runtimeVersion, request,
+-          signal: controller.signal, onPartial, assertCurrent: current });
++          signal: signal ? AbortSignal.any([controller.signal, signal]) : controller.signal, onPartial, assertCurrent: current });
+       },
+       getAcquisitionReceipt,
+       close
+diff --git a/tests/fixtures/peer-pack-browser.js b/tests/fixtures/peer-pack-browser.js
+index 2894d7f..4f92275 100644
+--- a/tests/fixtures/peer-pack-browser.js
++++ b/tests/fixtures/peer-pack-browser.js
+@@ -11,10 +11,16 @@ let ownId;
+ let transportLimits;
+ let faultMode = false;
+ let firstWeightArtifact = null;
++let remote;
+ const connections = new Map();
+ const injectedFaults = [];
+ const chunks = new Map();
+ 
++export function remoteReady() { return remote?.isReady() === true; }
++export async function remoteAnswer(offer) { return remote.answer(offer); }
++export async function remoteAdvert() { return remote.advert(); }
++export async function remoteFinish() { return remote?.finish(); }
++
+ export async function identity(peerId, restored = null) {
+   ownId = peerId;
+   key = restored ? await importSigningKeyPair(restored) : await createSigningKeyPair();
+@@ -131,7 +137,7 @@ export function assertPhysicalAdapter(adapter) {
+ }
+ 
+ export async function execute({ authorization, index, inventories, trustedSigners, sequence, options, dopplerVersion, operationLimits,
+-  interruptAfterWeightResponses = null }) {
++  interruptAfterWeightResponses = null, serveRemoteOperation = false }) {
+   const api = await import('/doppler/src/client/doppler-api.browser.js');
+   const { DOPPLER_VERSION } = await import('/doppler/src/version.js');
+   const module = { ...api, DOPPLER_VERSION };
+@@ -165,6 +171,14 @@ export async function execute({ authorization, index, inventories, trustedSigner
+     report.result = { ...report.operationExecution.output, receipt: report.operationExecution.receipt };
+     report.runtime = { device: session.deviceProfile, initialExecutionIdentity: session.observedInitialExecutionIdentity };
+     report.manifest = session.manifest;
++    if (serveRemoteOperation) {
++      remote = await import('./peer-pack-remote-execution.js');
++      const model = { modelId: session.modelId, modelHash: authorization.pack.semanticRoot,
++        manifestHash: authorization.pack.envelopeDigest, runtime: 'doppler', backend: 'browser-webgpu',
++        runtimeVersion: dopplerVersion, executionMode: 'complete_pack_browser', workload: 'sequence.embedding.v1',
++        executablePack: authorization.pack };
++      report.remoteProvider = await remote.startProvider(model, { peer, sequence, dropFirstCompletion: true });
++    }
+     report.stage = 'complete';
+     report.passed = true;
+   } catch (error) { report.error = error.message; report.custody = error.acquisitionReceipt ?? null; }
+diff --git a/self/pool/peer-pack-job-channel.js b/self/pool/peer-pack-job-channel.js
+new file mode 100644
+index 0000000..3711f63
+--- /dev/null
++++ b/self/pool/peer-pack-job-channel.js
+@@ -0,0 +1,104 @@
++/** Dedicated reliable WebRTC channel for bounded signed complete-job messages. */
++import { PACK_JOB_MAX_WIRE_BYTES, requirePackJob } from './peer-pack-job.js';
++
++const SCHEMA = 'reploid.peer.pack_job_channel/v1';
++const FRAME_BYTES = 16 * 1024;
++export function createPackJobDataChannel({ channel, maxTransferBytes = 64 * 1024 * 1024, timeoutMs = 10000 }) {
++  requirePackJob(channel?.ordered === true && channel.maxRetransmits == null && channel.maxPacketLifeTime == null,
++    'reliable ordered dedicated operation channel required');
++  requirePackJob(Number.isSafeInteger(maxTransferBytes) && maxTransferBytes > 0 && maxTransferBytes <= 256 * 1024 * 1024
++    && Number.isSafeInteger(timeoutMs) && timeoutMs > 0 && timeoutMs <= 300000, 'invalid channel limits');
++  const listeners = new Set(), disconnects = new Set();
++  const lifecycle = new AbortController();
++  let closed = false, outbound = Promise.resolve(), pendingBytes = 0, pendingMessages = 0, inbound = null;
++  const counters = { sentFrameBytes: 0, receivedFrameBytes: 0, sentMessages: 0, receivedMessages: 0 };
++  channel.binaryType = 'arraybuffer';
++  channel.bufferedAmountLowThreshold = FRAME_BYTES;
++  function close(reason = 'operation channel closed') {
++    if (closed) return;
++    closed = true;
++    lifecycle.abort(new Error(reason));
++    clearTimeout(inbound?.timer); inbound = null;
++    channel.removeEventListener('message', receive);
++    channel.removeEventListener('close', onClose);
++    channel.removeEventListener('error', onClose);
++    channel.close();
++    for (const listener of disconnects) listener(reason);
++    listeners.clear(); disconnects.clear();
++  }
++  async function frame(value) {
++    requirePackJob(!closed && channel.readyState === 'open', 'operation channel unavailable');
++    if (channel.bufferedAmount > 4 * FRAME_BYTES) await new Promise((resolve, reject) => {
++      const finish = error => {
++        clearTimeout(timer); channel.removeEventListener('bufferedamountlow', low);
++        lifecycle.signal.removeEventListener('abort', abort);
++        error ? reject(error) : resolve();
++      };
++      const low = () => finish();
++      const abort = () => finish(lifecycle.signal.reason);
++      const timer = setTimeout(() => finish(new Error('operation channel backpressure timeout')), timeoutMs);
++      channel.addEventListener('bufferedamountlow', low, { once: true });
++      lifecycle.signal.addEventListener('abort', abort, { once: true });
++      if (closed) abort(); else if (channel.bufferedAmount <= FRAME_BYTES) low();
++    });
++    const bytes = typeof value === 'string' ? new TextEncoder().encode(value).length : value.byteLength;
++    requirePackJob(!closed && counters.sentFrameBytes + bytes <= maxTransferBytes, 'channel send budget exhausted');
++    channel.send(value); counters.sentFrameBytes += bytes;
++  }
++  function receive({ data }) {
++    try {
++      const size = typeof data === 'string' ? new TextEncoder().encode(data).length : data.byteLength;
++      requirePackJob(Number.isSafeInteger(size) && size > 0 && size <= FRAME_BYTES, 'operation frame limit');
++      counters.receivedFrameBytes += size;
++      requirePackJob(counters.receivedFrameBytes <= maxTransferBytes, 'channel receive budget exhausted');
++      if (typeof data === 'string') {
++        const header = JSON.parse(data);
++        requirePackJob(!inbound && header.schema === SCHEMA && Number.isSafeInteger(header.byteLength)
++          && header.byteLength > 0 && header.byteLength <= PACK_JOB_MAX_WIRE_BYTES, 'invalid message header');
++        inbound = { bytes: new Uint8Array(header.byteLength), offset: 0,
++          timer: setTimeout(() => close('incomplete operation message'), timeoutMs) };
++        return;
++      }
++      requirePackJob(data instanceof ArrayBuffer && inbound && size > 4, 'fragment before message header');
++      const offset = new DataView(data).getUint32(0);
++      requirePackJob(offset === inbound.offset && size - 4 <= inbound.bytes.length - offset, 'operation fragment gap or overflow');
++      inbound.bytes.set(new Uint8Array(data, 4), offset); inbound.offset += size - 4;
++      if (inbound.offset === inbound.bytes.length) {
++        const complete = inbound; clearTimeout(complete.timer); inbound = null;
++        const message = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(complete.bytes));
++        counters.receivedMessages++;
++        for (const listener of listeners) listener(message);
++      }
++    } catch (error) { close(error.message); }
++  }
++  function onClose() { close('operation transport disconnected'); }
++  channel.addEventListener('message', receive);
++  channel.addEventListener('close', onClose);
++  channel.addEventListener('error', onClose);
++  return {
++    send(message) {
++      if (closed) return Promise.reject(new Error('operation channel closed'));
++      const bytes = new TextEncoder().encode(JSON.stringify(message));
++      if (bytes.length > PACK_JOB_MAX_WIRE_BYTES || pendingBytes + bytes.length > PACK_JOB_MAX_WIRE_BYTES || pendingMessages >= 16) {
++        return Promise.reject(new Error('operation send queue budget exhausted'));
++      }
++      pendingBytes += bytes.length; pendingMessages++;
++      const operation = outbound.then(async () => {
++        await frame(JSON.stringify({ schema: SCHEMA, byteLength: bytes.length }));
++        for (let offset = 0; offset < bytes.length; offset += FRAME_BYTES - 4) {
++          const part = bytes.subarray(offset, offset + FRAME_BYTES - 4);
++          const value = new Uint8Array(4 + part.length);
++          new DataView(value.buffer).setUint32(0, offset); value.set(part, 4);
++          await frame(value.buffer);
++        }
++        counters.sentMessages++;
++      }).finally(() => { pendingBytes -= bytes.length; pendingMessages--; });
++      outbound = operation.catch(error => close(error.message));
++      return operation;
++    },
++    subscribe(listener) { listeners.add(listener); return () => listeners.delete(listener); },
++    onDisconnect(listener) { disconnects.add(listener); return () => disconnects.delete(listener); },
++    getState() { return { closed, pendingBytes, pendingMessages, ...counters, wireBytes: null }; },
++    close
++  };
++}
+diff --git a/self/pool/peer-pack-job.js b/self/pool/peer-pack-job.js
+new file mode 100644
+index 0000000..ab7b44a
+--- /dev/null
++++ b/self/pool/peer-pack-job.js
+@@ -0,0 +1,124 @@
++/** Application-pinned complete jobs. Public catalog admission remains separate. */
++import { hashJson, sha256Hex } from './inference-receipt.js';
++import { createSignedPeerMessage, verifyPeerMessage, PEER_MESSAGE_TYPES } from './peer-protocol.js';
++import { sealPeerAssignmentIdentity } from './peer-assignment.js';
++import { validateOperationModel } from './operation-model.js';
++import { createPackOperationRegistry } from './pack-operation-adapters.js';
++import { assertPackOperationRequest, snapshotPackOperationData as snapshot } from './pack-operation.js';
++import { hashDopplerEvidence } from './executable-pack.js';
++
++export const PACK_JOB_SCHEMA = 'reploid.peer.pack_job/v1';
++export const PACK_UPDATE_SCHEMA = 'reploid.peer.pack_update/v1';
++export const PACK_CANCEL_SCHEMA = 'reploid.peer.pack_cancel/v1';
++export const PACK_JOB_MAX_WIRE_BYTES = 16 * 1024 * 1024;
++export const requirePackJob = (ok, message) => { if (!ok) throw new Error(`Peer Pack job: ${message}`); };
++export const packJobBytes = value => new TextEncoder().encode(JSON.stringify(value)).length;
++const equal = async (a, b) => await hashJson(a) === await hashJson(b);
++const digest = value => typeof value === 'string' && /^sha256:[0-9a-f]{64}$/.test(value);
++
++/** Never advertise source URLs, signer custody, or application-local open options. */
++export function packPeerModel(model, registry = createPackOperationRegistry()) {
++  const pin = snapshot(Object.fromEntries(['modelId', 'modelHash', 'manifestHash', 'runtime', 'backend',
++    'executionMode', 'workload', 'runtimeVersion', 'executablePack'].map(key => [key, model[key]])));
++  const checked = validateOperationModel(pin, registry);
++  requirePackJob(checked.ok, checked.reasons.join('; '));
++  requirePackJob(typeof pin.runtimeVersion === 'string' && pin.runtimeVersion.length > 0, 'exact runtime version required');
++  return pin;
++}
++
++export function validatePackPeerLimits(limits) {
++  for (const key of ['maxInputBytes', 'maxOutputBytes', 'maxStreamBytes', 'maxEvents', 'maxJobMs']) {
++    requirePackJob(Number.isSafeInteger(limits?.[key]) && limits[key] > 0, `${key} required`);
++  }
++  requirePackJob(limits.maxInputBytes <= PACK_JOB_MAX_WIRE_BYTES / 4
++    && limits.maxOutputBytes <= PACK_JOB_MAX_WIRE_BYTES / 4 && limits.maxStreamBytes <= 64 * 1024 * 1024
++    && limits.maxEvents <= 4096 && limits.maxJobMs <= 300000, 'protocol resource ceiling exceeded');
++}
++
++export async function signPackPeerMessage({ identity, type, recipient = null, body, expiresAt }) {
++  const message = await createSignedPeerMessage({ type, fromPeerId: identity.keyId, toPeerId: recipient,
++    publicKey: identity.publicKey, privateKey: identity.privateKey, body, expiresAt: new Date(expiresAt).toISOString() });
++  requirePackJob(packJobBytes(message) <= PACK_JOB_MAX_WIRE_BYTES, 'wire byte limit exceeded');
++  return snapshot(message);
++}
++
++export async function verifyPackPeerMessage(message, { type, recipient = null, sender = null, now = Date.now() }) {
++  requirePackJob(packJobBytes(message) <= PACK_JOB_MAX_WIRE_BYTES, 'wire byte limit exceeded');
++  message = snapshot(message);
++  const created = Date.parse(message.createdAt), expires = Date.parse(message.expiresAt);
++  requirePackJob(message.type === type && message.toPeerId === recipient && (!sender || message.fromPeerId === sender)
++    && digest(message.fromPeerId) && typeof message.publicKey === 'string' && message.publicKey.length <= 1024
++    && Number.isFinite(created) && created <= now + 5000 && Number.isFinite(expires)
++    && expires > created && expires - created <= 300000, 'message scope or validity rejected');
++  requirePackJob(await sha256Hex(Uint8Array.from(atob(message.publicKey), c => c.charCodeAt(0))) === message.fromPeerId,
++    'identity does not bind signing key');
++  const checked = await verifyPeerMessage(message, { now });
++  requirePackJob(checked.ok, checked.reasons.join('; '));
++  return message;
++}
++
++export async function createPackProviderAdvert({ identity, models, limits, expiresAt, registry = createPackOperationRegistry() }) {
++  validatePackPeerLimits(limits);
++  requirePackJob(Array.isArray(models) && models.length > 0 && models.length <= 16, 'bounded model pins required');
++  return signPackPeerMessage({ identity, type: PEER_MESSAGE_TYPES.PROVIDER_ADVERT, expiresAt,
++    body: { schema: 'reploid.peer.pack_provider/v1', models: models.map(model => packPeerModel(model, registry)), limits } });
++}
++
++async function jobParts({ requesterId, advert, intent, input, options, registry }) {
++  const model = packPeerModel(intent.model, registry);
++  requirePackJob(await equal(model, intent.model) && advert.body.schema === 'reploid.peer.pack_provider/v1', 'invalid model pin or advert');
++  validatePackPeerLimits(advert.body.limits);
++  requirePackJob(Array.isArray(advert.body.models) && (await Promise.all(advert.body.models.map(pin => equal(pin, model)))).some(Boolean), 'provider does not advertise the exact model');
++  requirePackJob(typeof intent.jobId === 'string' && intent.jobId.length > 0 && intent.jobId.length <= 128
++    && typeof intent.attemptId === 'string' && intent.attemptId.length > 0 && intent.attemptId.length <= 128, 'job and attempt identities required');
++  requirePackJob(intent.consent?.schema === 'reploid.peer.public_operation_consent/v1' && intent.consent.publicInput === true
++    && Array.isArray(intent.consent.providerIds) && intent.consent.providerIds.length > 0 && intent.consent.providerIds.length <= 8
++    && intent.consent.providerIds.every(digest) && intent.consent.providerIds.includes(advert.fromPeerId), 'explicit public input and selected-provider consent required');
++  const { deadlineAt, ...limits } = intent.limits;
++  validatePackPeerLimits(limits);
++  for (const key of Object.keys(advert.body.limits)) requirePackJob(limits[key] <= advert.body.limits[key], 'assignment exceeds advertised limits');
++  requirePackJob(Number.isSafeInteger(intent.selectedAt) && Number.isSafeInteger(deadlineAt)
++    && deadlineAt > intent.selectedAt && deadlineAt - intent.selectedAt <= limits.maxJobMs, 'bounded assignment deadline required');
++  const operation = { name: model.executablePack.requiredOperation, version: registry[model.executablePack.requiredOperation].version };
++  requirePackJob(intent.inputHash === await hashDopplerEvidence({ input, options }), 'input differs from signed intent');
++  requirePackJob(intent.comparisonPolicy?.schema === 'poolday.operation-comparison/v1'
++    && await equal(intent.comparisonPolicy.operation, operation) && digest(intent.comparisonPolicy.referenceDigest), 'frozen comparison policy required');
++  const intentHash = await hashJson(intent);
++  const routeDecisionHash = await hashJson({ intentHash, providerAdvertHash: advert.messageHash, providerId: advert.fromPeerId });
++  const identity = await sealPeerAssignmentIdentity({ intentHash, providerId: advert.fromPeerId, assignmentAttemptId: intent.attemptId,
++    routeDecisionHash, providerAdvertHash: advert.messageHash, providerLimits: limits });
++  const assignment = { schema: 'reploid.peer.assignment/v1', ...identity, jobId: intent.jobId, requesterId,
++    providerId: advert.fromPeerId, providerPublicKey: advert.publicKey, intentHash, routeDecisionHash,
++    providerAdvertHash: advert.messageHash, providerParticipationProfileHash: null, providerLimits: limits,
++    assignmentAttemptId: intent.attemptId, comparisonPolicyDigest: await hashDopplerEvidence(intent.comparisonPolicy),
++    inputHash: intent.inputHash, model, expiresAt: new Date(deadlineAt).toISOString() };
++  const request = { schema: 'doppler.pack-operation-request/v1', operation, input, options, assignment,
++    limits: { maxInputBytes: limits.maxInputBytes, maxOutputBytes: limits.maxOutputBytes, deadlineAt } };
++  assertPackOperationRequest(model.executablePack, request, registry);
++  return { assignment, request };
++}
++
++export async function createPackPeerJob({ identity, advert, model, input, options = {}, limits, consent, comparisonPolicy,
++  jobId = crypto.randomUUID(), attemptId = crypto.randomUUID(), registry = createPackOperationRegistry() }) {
++  // Snapshot before the first await, including nested policy and model objects.
++  const data = snapshot({ advert, model: packPeerModel(model, registry), input, options, limits, consent, comparisonPolicy, jobId, attemptId });
++  advert = await verifyPackPeerMessage(data.advert, { type: PEER_MESSAGE_TYPES.PROVIDER_ADVERT });
++  const intent = { model: data.model, limits: data.limits, consent: data.consent, comparisonPolicy: data.comparisonPolicy,
++    jobId, attemptId, selectedAt: Date.now(), inputHash: await hashDopplerEvidence({ input: data.input, options: data.options }) };
++  const parts = await jobParts({ requesterId: identity.keyId, advert, intent, input: data.input, options: data.options, registry });
++  return signPackPeerMessage({ identity, type: PEER_MESSAGE_TYPES.ASSIGNMENT_CLAIM, recipient: advert.fromPeerId,
++    expiresAt: data.limits.deadlineAt, body: { schema: PACK_JOB_SCHEMA, advert, intent, ...parts } });
++}
++
++export async function verifyPackPeerJob(message, { providerId, models, registry = createPackOperationRegistry(), now = Date.now() }) {
++  const job = await verifyPackPeerMessage(message, { type: PEER_MESSAGE_TYPES.ASSIGNMENT_CLAIM, recipient: providerId, now });
++  requirePackJob(job.body.schema === PACK_JOB_SCHEMA, 'unknown job schema');
++  const { advert, intent, assignment, request } = job.body;
++  requirePackJob(intent.selectedAt <= now && intent.selectedAt >= Date.parse(job.createdAt) - 5000
++    && job.expiresAt === new Date(intent.limits.deadlineAt).toISOString(), 'selection time or expiry mismatch');
++  await verifyPackPeerMessage(advert, { type: PEER_MESSAGE_TYPES.PROVIDER_ADVERT, sender: providerId, now: intent.selectedAt });
++  requirePackJob((await Promise.all(models.map(model => equal(packPeerModel(model, registry), intent.model)))).some(Boolean), 'model is outside application pins');
++  const expected = await jobParts({ requesterId: job.fromPeerId, advert, intent, input: request.input, options: request.options, registry });
++  requirePackJob(await equal(assignment, expected.assignment) && await equal(request, expected.request), 'assignment or request does not match signed authority');
++  return job;
++}
+diff --git a/self/pool/peer-pack-provider.js b/self/pool/peer-pack-provider.js
+new file mode 100644
+index 0000000..2f59c82
+--- /dev/null
++++ b/self/pool/peer-pack-provider.js
+@@ -0,0 +1,176 @@
++import { PEER_MESSAGE_TYPES } from './peer-protocol.js';
++import { createLocalPackExecutor } from './local-pack-executor.js';
++import { createPackOperationRegistry } from './pack-operation-adapters.js';
++import { snapshotPackOperationData as snapshot, assertPackOperationEvent } from './pack-operation.js';
++import { hashDopplerEvidence } from './executable-pack.js';
++import { PACK_JOB_SCHEMA, PACK_UPDATE_SCHEMA, PACK_CANCEL_SCHEMA, PACK_JOB_MAX_WIRE_BYTES, packJobBytes,
++  requirePackJob, verifyPackPeerJob, verifyPackPeerMessage, signPackPeerMessage, packPeerModel, createPackProviderAdvert } from './peer-pack-job.js';
++
++/** One physical executor, bounded replay records, and cooperative cancellation. */
++export function createPackPeerProvider({ identity, bus, models, authorize,
++  registry = createPackOperationRegistry(), executor = createLocalPackExecutor({ registry }),
++  maxAttempts = 128, maxRetainedBytes = 64 * 1024 * 1024, onError = () => {} }) {
++  requirePackJob(typeof authorize === 'function', 'provider admission callback required');
++  requirePackJob(Number.isSafeInteger(maxAttempts) && maxAttempts > 0 && maxAttempts <= 256
++    && Number.isSafeInteger(maxRetainedBytes) && maxRetainedBytes > 0 && maxRetainedBytes <= 64 * 1024 * 1024, 'invalid provider retention limits');
++  models = snapshot(models);
++  const records = new Map();
++  const lifecycle = new AbortController();
++  let retainedBytes = 0, queued = 0, queuedBytes = 0, closed = false, active = null, incoming = Promise.resolve();
++  const keyFor = (sender, hash) => `${sender}/${hash}`;
++  const prune = () => {
++    for (const [key, record] of records) if (record !== active && record.expiresAt <= Date.now()) {
++      retainedBytes -= record.bytes; records.delete(key);
++    }
++  };
++  const current = record => {
++    record.controller.signal.throwIfAborted();
++    requirePackJob(!closed && active === record && Date.now() < record.expiresAt, 'attempt is no longer current');
++  };
++  const admitted = async (job, signal = lifecycle.signal) => {
++    signal.throwIfAborted();
++    let timer, abort;
++    const stopped = new Promise((_resolve, reject) => {
++      abort = () => reject(signal.reason);
++      signal.addEventListener('abort', abort, { once: true });
++      timer = setTimeout(() => reject(new Error('admission deadline exceeded')), Math.max(0, Date.parse(job.expiresAt) - Date.now()));
++    });
++    try { requirePackJob(await Promise.race([Promise.resolve().then(() => authorize(job)), stopped]) === true, 'application did not authorize public delegation'); }
++    finally { clearTimeout(timer); signal.removeEventListener('abort', abort); }
++  };
++
++  async function update(record, status, event = null) {
++    if (status === 'partial' || status === 'completed') current(record);
++    const message = await signPackPeerMessage({ identity, type: PEER_MESSAGE_TYPES.EXECUTION_RESULT,
++      recipient: record.job.fromPeerId, expiresAt: record.expiresAt,
++      body: { schema: PACK_UPDATE_SCHEMA, jobHash: record.job.messageHash, requestHash: record.requestHash,
++        updateIndex: record.updates.length, previousUpdateHash: record.updates.at(-1)?.messageHash ?? null, status, event } });
++    if (status === 'partial' || status === 'completed') current(record);
++    const bytes = packJobBytes(message);
++    requirePackJob(record.updates.length < record.job.body.intent.limits.maxEvents
++      && record.bytes + bytes <= record.job.body.intent.limits.maxStreamBytes
++      && retainedBytes + bytes <= maxRetainedBytes, 'response stream budget exhausted');
++    record.updates.push(message); record.bytes += bytes; retainedBytes += bytes;
++    await bus.send(message);
++  }
++
++  async function execute(record) {
++    active = record;
++    const timer = setTimeout(() => record.controller.abort(new Error('deadline exceeded')), Math.max(0, record.expiresAt - Date.now()));
++    try {
++      current(record);
++      const { request, intent } = record.job.body;
++      const targetHash = await hashDopplerEvidence(intent.model);
++      let model;
++      for (const candidate of models) if (await hashDopplerEvidence(packPeerModel(candidate, registry)) === targetHash) model = candidate;
++      current(record);
++      const result = await executor.run({ model, input: request.input, options: request.options,
++        assignment: request.assignment, limits: request.limits, signal: record.controller.signal,
++        onPartial: async event => {
++          current(record);
++          await admitted(record.job, record.controller.signal);
++          current(record);
++          await assertPackOperationEvent({ binding: model.executablePack, request, runtimeVersion: model.runtimeVersion,
++            event, eventIndex: record.eventIndex, previousEventDigest: record.previousEventDigest, registry });
++          await update(record, 'partial', event);
++          record.eventIndex++; record.previousEventDigest = event.eventDigest;
++        } });
++      current(record);
++      await admitted(record.job, record.controller.signal);
++      current(record);
++      await assertPackOperationEvent({ binding: model.executablePack, request, runtimeVersion: model.runtimeVersion,
++        event: result.completion, eventIndex: record.eventIndex, previousEventDigest: record.previousEventDigest, registry });
++      current(record);
++      await update(record, 'completed', result.completion);
++      record.status = 'completed';
++    } catch (error) {
++      record.status = record.controller.signal.aborted ? 'cancelled' : 'failed';
++      onError(error);
++      // An expired lease cannot authorize a new result message. Local timeout is final.
++      if (!closed && Date.now() < record.expiresAt) await update(record, record.status).catch(onError);
++    } finally {
++      clearTimeout(timer);
++      // Local executors can return cancellation before their GPU work settles.
++      // The executor keeps its own busy/draining gate until that settlement.
++      if (active === record) active = null;
++    }
++  }
++
++  async function receive(message) {
++    if (closed || message?.toPeerId !== identity.keyId) return;
++    const schema = message.body?.schema;
++    if (![PACK_JOB_SCHEMA, PACK_CANCEL_SCHEMA].includes(schema)) return;
++    prune();
++    if (schema === PACK_CANCEL_SCHEMA) {
++      const cancel = await verifyPackPeerMessage(message, { type: PEER_MESSAGE_TYPES.HEARTBEAT, recipient: identity.keyId });
++      requirePackJob(/^sha256:[0-9a-f]{64}$/.test(cancel.body.jobHash), 'invalid cancellation target');
++      for (const field of ['jobId', 'attemptId']) requirePackJob(typeof cancel.body[field] === 'string'
++        && cancel.body[field].length > 0 && cancel.body[field].length <= 128, 'cancellation attempt identity required');
++      const key = keyFor(cancel.fromPeerId, cancel.body.jobHash);
++      const record = records.get(key);
++      if (record) {
++        requirePackJob(record.jobId === cancel.body.jobId && record.attemptId === cancel.body.attemptId, 'cancellation attempt mismatch');
++        if (record.status === 'running') { record.status = 'cancelled'; record.controller.abort(new Error('requester cancelled')); }
++      } else {
++        requirePackJob(records.size < maxAttempts, 'attempt retention exhausted');
++        // A short cancellation lease cannot allow a still-live delayed job to restart.
++        records.set(key, { requesterId: cancel.fromPeerId, jobId: cancel.body.jobId, attemptId: cancel.body.attemptId,
++          status: 'cancelled', bytes: 0, updates: [], expiresAt: Date.now() + 300000 });
++      }
++      return;
++    }
++    const job = await verifyPackPeerJob(message, { providerId: identity.keyId, models, registry });
++    const key = keyFor(job.fromPeerId, job.messageHash);
++    const prior = records.get(key);
++    if (prior) {
++      // Byte-identical delivery repeats evidence; it never starts execution again.
++      for (const response of [...prior.updates]) await bus.send(response);
++      return;
++    }
++    requirePackJob(![...records.values()].some(record => record.requesterId === job.fromPeerId
++      && record.jobId === job.body.intent.jobId && record.attemptId === job.body.intent.attemptId),
++    'attempt was already observed with a different signed envelope');
++    requirePackJob(records.size < maxAttempts, 'attempt retention exhausted');
++    await admitted(job);
++    requirePackJob(!closed && Date.now() < Date.parse(job.expiresAt), 'attempt expired during admission');
++    const record = { job, requesterId: job.fromPeerId, jobId: job.body.intent.jobId, attemptId: job.body.intent.attemptId,
++      status: 'running', controller: new AbortController(), expiresAt: Date.parse(job.expiresAt),
++      requestHash: await hashDopplerEvidence(job.body.request), bytes: 0, updates: [], eventIndex: 0, previousEventDigest: null };
++    records.set(key, record);
++    if (active || executor.getState?.().active) {
++      record.status = 'busy';
++      await update(record, 'busy');
++      return;
++    }
++    record.settlement = execute(record);
++  }
++
++  const unsubscribe = bus.subscribe(message => {
++    if (closed || message?.toPeerId !== identity.keyId) return;
++    const bytes = packJobBytes(message);
++    if (queued >= 16 || queuedBytes + bytes > PACK_JOB_MAX_WIRE_BYTES) { onError(new Error('Peer Pack provider inbox limit')); return; }
++    let copy;
++    try { copy = snapshot(message); } catch (error) { onError(error); return; }
++    queued++; queuedBytes += bytes;
++    incoming = incoming.then(() => receive(copy)).catch(onError).finally(() => { queued--; queuedBytes -= bytes; });
++  });
++  const disconnected = bus.onDisconnect?.(() => {
++    active?.controller.abort(new Error('provider transport disconnected'));
++  });
++  return {
++    createAdvert({ limits, expiresAt }) {
++      requirePackJob(!closed, 'provider is closed');
++      return createPackProviderAdvert({ identity, models, limits, expiresAt, registry });
++    },
++    getState() { prune(); return { closed, active: !!active || executor.getState?.().active === true,
++      draining: active?.controller.signal.aborted === true || executor.getState?.().draining === true,
++      attempts: records.size, retainedBytes, queued, queuedBytes }; },
++    async close() {
++      closed = true; lifecycle.abort(new Error('provider closed')); unsubscribe(); disconnected?.(); active?.controller.abort(new Error('provider closed'));
++      await incoming;
++      await Promise.all([...records.values()].map(record => record.settlement));
++      await executor.close();
++      records.clear(); retainedBytes = 0;
++    }
++  };
++}
+diff --git a/self/pool/peer-pack-requester.js b/self/pool/peer-pack-requester.js
+new file mode 100644
+index 0000000..b092ea9
+--- /dev/null
++++ b/self/pool/peer-pack-requester.js
+@@ -0,0 +1,146 @@
++import { PEER_MESSAGE_TYPES } from './peer-protocol.js';
++import { createPackOperationRegistry } from './pack-operation-adapters.js';
++import { snapshotPackOperationData as snapshot, assertPackOperationEvent, assessPackOperation } from './pack-operation.js';
++import { hashDopplerEvidence } from './executable-pack.js';
++import { PACK_UPDATE_SCHEMA, PACK_CANCEL_SCHEMA, PACK_JOB_MAX_WIRE_BYTES, requirePackJob, packJobBytes,
++  createPackPeerJob, verifyPackPeerJob, verifyPackPeerMessage, signPackPeerMessage } from './peer-pack-job.js';
++
++/** Explicit public delegation. Local document search never calls this automatically. */
++export function createPackPeerRequester({ identity, bus, models, registry = createPackOperationRegistry(),
++  maxDeliveries = 3, retryMs = 2000, onError = () => {} }) {
++  requirePackJob(Number.isSafeInteger(maxDeliveries) && maxDeliveries >= 1 && maxDeliveries <= 8
++    && Number.isSafeInteger(retryMs) && retryMs >= 100 && retryMs <= 10000, 'bounded retry policy required');
++  models = snapshot(models);
++  let active = null, closed = false;
++  function current(record) {
++    record.controller.signal.throwIfAborted();
++    requirePackJob(!closed && active === record && Date.now() < record.deadlineAt, 'attempt is no longer current');
++  }
++  function finish(record, error, result) {
++    if (active !== record) return;
++    active = null;
++    clearTimeout(record.timer); clearTimeout(record.retryTimer);
++    record.signal?.removeEventListener('abort', record.abort);
++    error ? record.reject(error) : record.resolve(result);
++  }
++  async function sendCancellation(record) {
++    if (!record.job || Date.now() >= record.deadlineAt) return;
++    const cancellation = await signPackPeerMessage({ identity, type: PEER_MESSAGE_TYPES.HEARTBEAT,
++      recipient: record.job.toPeerId, expiresAt: record.deadlineAt,
++      body: { schema: PACK_CANCEL_SCHEMA, jobHash: record.job.messageHash,
++        jobId: record.job.body.intent.jobId, attemptId: record.job.body.intent.attemptId } });
++    await bus.send(cancellation);
++  }
++  function cancel(record, error) {
++    if (active !== record) return;
++    record.controller.abort(error);
++    finish(record, error);
++    sendCancellation(record).catch(onError);
++  }
++  async function deliver(record) {
++    current(record);
++    record.deliveries++;
++    record.sentBytes += packJobBytes(record.job);
++    await bus.send(record.job);
++    current(record);
++    if (record.deliveries < maxDeliveries) record.retryTimer = setTimeout(() => {
++      deliver(record).catch(error => { if (active === record) cancel(record, error); });
++    }, retryMs);
++  }
++  async function receive(record, message) {
++    current(record);
++    const update = await verifyPackPeerMessage(message, { type: PEER_MESSAGE_TYPES.EXECUTION_RESULT,
++      recipient: identity.keyId, sender: record.job.toPeerId });
++    current(record);
++    const body = update.body;
++    requirePackJob(body.schema === PACK_UPDATE_SCHEMA && body.jobHash === record.job.messageHash
++      && body.requestHash === record.requestHash && update.expiresAt === record.job.expiresAt, 'response binding mismatch');
++    const bytes = packJobBytes(update);
++    record.receivedBytes += bytes;
++    requirePackJob(record.receivedBytes <= record.job.body.intent.limits.maxStreamBytes, 'received stream budget exhausted');
++    if (body.updateIndex < record.updates.length) {
++      requirePackJob(record.updates[body.updateIndex]?.messageHash === update.messageHash, 'conflicting duplicate response');
++      return;
++    }
++    requirePackJob(body.updateIndex === record.updates.length
++      && body.previousUpdateHash === (record.updates.at(-1)?.messageHash ?? null), 'response stream gap or reordering');
++    requirePackJob(record.updates.length < record.job.body.intent.limits.maxEvents, 'response event limit exceeded');
++    record.updates.push(update);
++    requirePackJob(['partial', 'completed'].includes(body.status), `provider ${body.status}`);
++    requirePackJob(body.event?.status === body.status, 'event status mismatch');
++    await assertPackOperationEvent({ binding: record.model.executablePack, request: record.job.body.request,
++      runtimeVersion: record.model.runtimeVersion, event: body.event, eventIndex: record.eventIndex,
++      previousEventDigest: record.previousEventDigest, registry });
++    current(record);
++    record.eventIndex++; record.previousEventDigest = body.event.eventDigest;
++    if (body.status === 'partial') {
++      await record.onPartial?.(body.event);
++      current(record);
++      return;
++    }
++    const execution = snapshot({ request: record.job.body.request, output: body.event.output, receipt: body.event.receipt,
++      completion: body.event, eventCount: record.eventIndex, finalEventDigest: body.event.eventDigest });
++    const assessment = await assessPackOperation({ execution, reference: record.reference,
++      policy: record.job.body.intent.comparisonPolicy, registry });
++    current(record);
++    requirePackJob(assessment.accepted, 'output failed frozen comparison');
++    const acceptance = await signPackPeerMessage({ identity, type: PEER_MESSAGE_TYPES.ACCEPTANCE,
++      recipient: record.job.toPeerId, expiresAt: record.deadlineAt,
++      body: { schema: 'reploid.peer.pack_acceptance/v1', jobHash: record.job.messageHash,
++        finalUpdateHash: update.messageHash, assessment } });
++    current(record);
++    finish(record, null, snapshot({ job: record.job, execution, assessment, acceptance, updates: record.updates,
++      accounting: { deliveries: record.deliveries, sentBytes: record.sentBytes, receivedBytes: record.receivedBytes } }));
++  }
++  const unsubscribe = bus.subscribe(message => {
++    const record = active;
++    if (!record?.job || message?.toPeerId !== identity.keyId || message?.fromPeerId !== record.job.toPeerId
++      || message?.body?.schema !== PACK_UPDATE_SCHEMA || message.body.jobHash !== record.job.messageHash) return;
++    try {
++      const bytes = packJobBytes(message);
++      requirePackJob(record.queued < 16 && record.queuedBytes + bytes <= PACK_JOB_MAX_WIRE_BYTES, 'requester inbox limit');
++      const copy = snapshot(message);
++      record.queued++; record.queuedBytes += bytes;
++      record.incoming = record.incoming.then(() => receive(record, copy))
++        .catch(error => { if (active === record) cancel(record, error); }).finally(() => { record.queued--; record.queuedBytes -= bytes; });
++    } catch (error) { cancel(record, error); }
++  });
++  const disconnected = bus.onDisconnect?.(() => { if (active) cancel(active, new Error('requester transport disconnected')); });
++  return {
++    run(input) {
++      if (closed || active) return Promise.reject(new Error('Peer Pack requester is closed or busy'));
++      const { signal = null, onPartial = null, reference, ...options } = input;
++      let data;
++      try { data = snapshot({ reference, options }); } catch (error) { return Promise.reject(error); }
++      const deadlineAt = data.options.limits?.deadlineAt;
++      if (!Number.isSafeInteger(deadlineAt) || deadlineAt <= Date.now() || deadlineAt - Date.now() > 300000) return Promise.reject(new Error('Bounded future deadline required'));
++      return new Promise((resolve, reject) => {
++        const record = { resolve, reject, controller: new AbortController(), signal, onPartial, deadlineAt,
++          reference: data.reference, model: data.options.model, job: null, deliveries: 0, sentBytes: 0, receivedBytes: 0,
++          updates: [], eventIndex: 0, previousEventDigest: null, queued: 0, queuedBytes: 0, incoming: Promise.resolve() };
++        active = record;
++        record.abort = () => cancel(record, signal.reason || new Error('requester cancelled'));
++        signal?.addEventListener('abort', record.abort, { once: true });
++        record.timer = setTimeout(() => cancel(record, new Error('remote job deadline exceeded')), deadlineAt - Date.now());
++        if (signal?.aborted) { record.abort(); return; }
++        (async () => {
++          const job = await createPackPeerJob({ ...data.options, identity, registry });
++          current(record);
++          await verifyPackPeerJob(job, { providerId: job.toPeerId, models, registry });
++          current(record);
++          const adapter = registry[job.body.request.operation.name];
++          requirePackJob(await hashDopplerEvidence(data.reference) === job.body.intent.comparisonPolicy.referenceDigest, 'reference digest mismatch');
++          adapter.validateOutput(data.reference, job.body.request, { completed: true });
++          requirePackJob(adapter.compare(data.reference, data.reference, job.body.intent.comparisonPolicy) === true, 'invalid comparison policy');
++          record.requestHash = await hashDopplerEvidence(job.body.request);
++          current(record);
++          record.job = job;
++          await deliver(record);
++        })().catch(error => { if (active === record) cancel(record, error); });
++      });
++    },
++    cancel() { if (active) cancel(active, new Error('requester cancelled')); },
++    getState() { return { closed, active: !!active, deliveries: active?.deliveries ?? 0 }; },
++    close() { closed = true; if (active) cancel(active, new Error('requester closed')); unsubscribe(); disconnected?.(); }
++  };
++}
+diff --git a/tests/fixtures/peer-pack-remote-execution.js b/tests/fixtures/peer-pack-remote-execution.js
+new file mode 100644
+index 0000000..74f2289
+--- /dev/null
++++ b/tests/fixtures/peer-pack-remote-execution.js
+@@ -0,0 +1,89 @@
++/** Internal physical-model episode plumbing; no substituted model outputs. */
++import { createSigningKeyPair, exportPublicKey, sha256Hex } from '../../self/pool/inference-receipt.js';
++import { hashDopplerEvidence } from '../../self/pool/executable-pack.js';
++import { createPackPeerProvider } from '../../self/pool/peer-pack-provider.js';
++import { createPackPeerRequester } from '../../self/pool/peer-pack-requester.js';
++import { createPackJobDataChannel } from '../../self/pool/peer-pack-job-channel.js';
++
++let pc, bus, provider, requester, identity, model, fixture, ready, release, completed;
++let calls = 0, dropped = 0;
++const errors = [];
++const limits = { maxInputBytes: 65536, maxOutputBytes: 4194304, maxStreamBytes: 16 * 1024 * 1024, maxEvents: 256, maxJobMs: 120000 };
++
++async function start(role, pin, options = {}) {
++  model = pin; fixture = options;
++  const keys = await createSigningKeyPair();
++  const publicKey = await exportPublicKey(keys.publicKey);
++  identity = { publicKey, privateKey: keys.privateKey,
++    keyId: await sha256Hex(Uint8Array.from(atob(publicKey), value => value.charCodeAt(0))) };
++  pc = new RTCPeerConnection({ iceServers: [] });
++  let resolve;
++  ready = new Promise(done => { resolve = done; });
++  const install = channel => {
++    let installed = false;
++    const opened = () => {
++      if (installed) return;
++      installed = true;
++      bus = createPackJobDataChannel({ channel });
++      if (role === 'provider') {
++        const providerBus = { ...bus, async send(message) {
++          if (fixture.dropFirstCompletion && message.body?.status === 'completed' && dropped === 0) { dropped++; return; }
++          return bus.send(message);
++        } };
++        provider = createPackPeerProvider({ identity, bus: providerBus, models: [model],
++          authorize: job => job.body.request.input.sequence === fixture.sequence
++            && job.body.request.options.includeTokenEmbeddings === true && job.body.request.options.includeLogits === false,
++          executor: { async run(request) {
++            calls++;
++            const result = await fixture.peer.run({ schema: 'doppler.pack-operation-request/v1',
++              operation: { name: 'encodeSequence', version: 1 }, input: request.input, options: request.options,
++              assignment: request.assignment, limits: request.limits }, { signal: request.signal, onPartial: request.onPartial });
++            completed = result;
++            return result;
++          }, async close() {} }, onError: error => errors.push(error.message) });
++      } else requester = createPackPeerRequester({ identity, bus, models: [model], onError: error => errors.push(error.message) });
++      resolve();
++    };
++    if (channel.readyState === 'open') opened();
++    else channel.addEventListener('open', opened, { once: true });
++  };
++  pc.addEventListener('datachannel', event => install(event.channel));
++  if (role === 'requester') install(pc.createDataChannel('actual-pack-job', { ordered: true }));
++}
++export async function startProvider(pin, options) {
++  await start('provider', pin, options);
++  return new Promise(resolve => { release = resolve; });
++}
++export async function startRequester(pin, options) { await start('requester', pin, options); }
++export function isReady() { return !!pc; }
++async function gathered() {
++  if (pc.iceGatheringState !== 'complete') await new Promise((resolve, reject) => {
++    const timer = setTimeout(() => reject(new Error('remote operation ICE timeout')), 10000);
++    const change = () => { if (pc.iceGatheringState === 'complete') {
++      clearTimeout(timer); pc.removeEventListener('icegatheringstatechange', change); resolve();
++    } };
++    pc.addEventListener('icegatheringstatechange', change); change();
++  });
++  return pc.localDescription.toJSON();
++}
++export async function offer() { await pc.setLocalDescription(await pc.createOffer()); return gathered(); }
++export async function answer(offer) { await pc.setRemoteDescription(offer); await pc.setLocalDescription(await pc.createAnswer()); return gathered(); }
++export async function accept(answer) { await pc.setRemoteDescription(answer); await ready; }
++export async function advert() { await ready; return provider.createAdvert({ limits, expiresAt: Date.now() + 120000 }); }
++export async function run(advert) {
++  const started = performance.now();
++  const result = await requester.run({ advert, model, input: { sequence: fixture.sequence },
++    options: { includeTokenEmbeddings: true, includeLogits: false }, limits: { ...limits, deadlineAt: Date.now() + 120000 },
++    consent: { schema: 'reploid.peer.public_operation_consent/v1', publicInput: true, providerIds: [advert.fromPeerId] },
++    reference: fixture.reference, comparisonPolicy: { schema: 'poolday.operation-comparison/v1',
++      operation: { name: 'encodeSequence', version: 1 }, referenceDigest: await hashDopplerEvidence(fixture.reference),
++      rule: 'numerical-tolerance', absoluteTolerance: 0.001, relativeTolerance: 0 } });
++  return { ...result, elapsedMs: performance.now() - started, transport: bus.getState(), errors };
++}
++export async function finish() {
++  requester?.close(); await provider?.close();
++  const state = { calls, droppedCompletions: dropped, transport: bus?.getState(), errors,
++    executionReceiptDigest: completed?.receipt.receiptDigest ?? null };
++  bus?.close(); pc?.close(); release?.(state);
++  return state;
++}

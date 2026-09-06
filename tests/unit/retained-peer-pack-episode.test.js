@@ -5,9 +5,10 @@ import { describe, it, expect } from 'vitest';
 import { sha256Hex } from '../../self/pool/inference-receipt.js';
 import { hashDopplerEvidence, assertPackExecutionEvidence } from '../../self/pool/executable-pack.js';
 import { assertPackOperationReceipt } from '../../self/pool/pack-operation.js';
+import { verifyPackPeerEpisode } from '../../self/pool/peer-pack-episode.js';
 
 describe.each(['esm2-peer-pack-2026-09-05', 'esm2-pack-operation-2026-09-05', 'esm2-durable-peer-2026-09-06',
-  'esm2-process-restart-2026-09-06'])('retained physical peer Pack episode: %s (offline evidence validation)', (directory) => {
+  'esm2-process-restart-2026-09-06', 'esm2-remote-operation-2026-09-06'])('retained physical peer Pack episode: %s (offline evidence validation)', (directory) => {
   const ROOT = resolve('docs/status', directory);
   const json = async (path) => JSON.parse(await readFile(resolve(ROOT, path), 'utf8'));
   it('binds retained bytes, completed custody, real operation evidence, and explicit non-claims', async () => {
@@ -35,7 +36,7 @@ describe.each(['esm2-peer-pack-2026-09-05', 'esm2-pack-operation-2026-09-05', 'e
       const operation = report.execution.operationExecution;
       expect(operation.request.operation).toEqual({ name: 'encodeSequence', version: 1 });
       expect(operation.eventCount).toBe(1);
-      if (directory === 'esm2-durable-peer-2026-09-06' || report.restart) {
+      if (directory === 'esm2-durable-peer-2026-09-06' || report.restart || report.remoteOperation) {
         await assertPackExecutionEvidence(report.binding, operation.output.receipt);
         expect({ ...operation.output, receipt: operation.receipt }).toEqual(report.execution.result);
       } else {
@@ -80,6 +81,30 @@ describe.each(['esm2-peer-pack-2026-09-05', 'esm2-pack-operation-2026-09-05', 'e
       expect(first.restart.resumed).toBe(true);
       expect(first.restart.interrupted.custody.attempts.some(row => row.error?.includes('integrity'))).toBe(true);
       expect(first.execution.custody.attempts.some(row => row.error?.includes('integrity'))).toBe(false);
+    }
+    if (report.remoteOperation) {
+      const remote = report.remoteOperation;
+      const reference = await json('attachments/remote-reference.json');
+      expect(await sha256Hex(await readFile(resolve(ROOT, 'attachments/remote-reference.json')))).toBe(report.config.remoteOperation.referenceDigest);
+      const verified = await verifyPackPeerEpisode({ ...remote, reference: reference.output, models: [remote.job.body.intent.model] });
+      expect(verified.accepted).toBe(true);
+      expect(report.remoteAcceptance.checks).toHaveLength(8);
+      expect(report.remoteAcceptance.checks.every(check => check.passed)).toBe(true);
+      expect(remote.accounting.deliveries).toBe(2);
+      expect(report.remoteProvider).toMatchObject({ calls: 1, droppedCompletions: 1, errors: [],
+        executionReceiptDigest: remote.execution.receipt.receiptDigest });
+      expect(remote.transport.sentFrameBytes).toBe(report.remoteProvider.transport.receivedFrameBytes);
+      expect(remote.transport.receivedFrameBytes).toBe(report.remoteProvider.transport.sentFrameBytes);
+      expect(remote.job.fromPeerId).not.toBe(remote.job.toPeerId);
+      const software = await json('attachments/runtime-package-equivalence.json');
+      expect(software.passed).toBe(true);
+      expect(software.package).toEqual(report.installedPackage);
+      expect(software.files).toEqual(report.runtimeBootstrap.files.filter(row => row.path.startsWith('/doppler/src/')));
+      expect((await json('attachments/attempt-02.json')).passed).toBe(false);
+      const failed = await json('attachments/attempt-03.json');
+      expect(failed.passed).toBe(false);
+      expect(failed.remoteProvider.calls).toBe(2);
+      expect(failed.remoteProvider.errors.some(error => error.includes('already active'))).toBe(true);
     }
     for (const artifact of pack.artifacts) {
       const entry = artifact.role === 'weight-shard'

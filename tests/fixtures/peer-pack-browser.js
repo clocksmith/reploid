@@ -11,9 +11,15 @@ let ownId;
 let transportLimits;
 let faultMode = false;
 let firstWeightArtifact = null;
+let remote;
 const connections = new Map();
 const injectedFaults = [];
 const chunks = new Map();
+
+export function remoteReady() { return remote?.isReady() === true; }
+export async function remoteAnswer(offer) { return remote.answer(offer); }
+export async function remoteAdvert() { return remote.advert(); }
+export async function remoteFinish() { return remote?.finish(); }
 
 export async function identity(peerId, restored = null) {
   ownId = peerId;
@@ -131,7 +137,7 @@ export function assertPhysicalAdapter(adapter) {
 }
 
 export async function execute({ authorization, index, inventories, trustedSigners, sequence, options, dopplerVersion, operationLimits,
-  interruptAfterWeightResponses = null }) {
+  interruptAfterWeightResponses = null, serveRemoteOperation = false }) {
   const api = await import('/doppler/src/client/doppler-api.browser.js');
   const { DOPPLER_VERSION } = await import('/doppler/src/version.js');
   const module = { ...api, DOPPLER_VERSION };
@@ -165,6 +171,14 @@ export async function execute({ authorization, index, inventories, trustedSigner
     report.result = { ...report.operationExecution.output, receipt: report.operationExecution.receipt };
     report.runtime = { device: session.deviceProfile, initialExecutionIdentity: session.observedInitialExecutionIdentity };
     report.manifest = session.manifest;
+    if (serveRemoteOperation) {
+      remote = await import('./peer-pack-remote-execution.js');
+      const model = { modelId: session.modelId, modelHash: authorization.pack.semanticRoot,
+        manifestHash: authorization.pack.envelopeDigest, runtime: 'doppler', backend: 'browser-webgpu',
+        runtimeVersion: dopplerVersion, executionMode: 'complete_pack_browser', workload: 'sequence.embedding.v1',
+        executablePack: authorization.pack };
+      report.remoteProvider = await remote.startProvider(model, { peer, sequence, dropFirstCompletion: true });
+    }
     report.stage = 'complete';
     report.passed = true;
   } catch (error) { report.error = error.message; report.custody = error.acquisitionReceipt ?? null; }

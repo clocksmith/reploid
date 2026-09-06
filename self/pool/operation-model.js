@@ -13,7 +13,7 @@ export function validateOperationModel(model, registry = createPackOperationRegi
   if (typeof model?.modelId !== 'string' || !model.modelId) reasons.push('Exact model id required');
   if (model?.runtime !== 'doppler' || model?.backend !== 'browser-webgpu'
     || model?.executionMode !== PACK_EXECUTION_MODE) reasons.push('Explicit complete browser Pack execution required');
-  if (model?.workload !== PACK_OPERATION_WORKLOADS[operation]) reasons.push('Workload does not match Pack operation');
+  if (!registry[operation]?.workload || model?.workload !== registry[operation].workload) reasons.push('Workload does not match Pack operation');
   if (model?.modelHash !== model?.executablePack?.semanticRoot
     || model?.manifestHash !== model?.executablePack?.envelopeDigest) reasons.push('Model identity must bind the exact executable Pack');
   for (const field of ['distributedExecution', 'executionTopology', 'modelSplit', 'modelPartitions',
