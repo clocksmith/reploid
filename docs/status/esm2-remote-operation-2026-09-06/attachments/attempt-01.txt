@@ -1,0 +1,9 @@
+node:internal/process/promises:394
+    triggerUncaughtException(err, true /* fromPromise */);
+    ^
+
+page.evaluate: Target page, context or browser has been closed
+    at verifyPeerPackExecution (/home/x/deco/reploid/scripts/verify-peer-pack-execution.js:282:35)
+    at async main (/home/x/deco/reploid/scripts/verify-peer-pack-execution.js:357:20)
+
+Node.js v22.22.1

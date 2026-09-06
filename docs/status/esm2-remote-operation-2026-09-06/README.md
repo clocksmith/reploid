@@ -60,7 +60,7 @@ The executed candidate tarball is SHA-256
 in the [document assistant archive](../document-assistant-2026-09-06/README.md).
 It is not a published npm version.
 
-The [first failed run log](attachments/attempt-01.log) records a harness deadline
+The [first failed run log](attachments/attempt-01.txt) records a harness deadline
 and an unobserved promise rejection; no complete episode was written. The
 [second](attachments/attempt-02.json) and [third](attachments/attempt-03.json)
 reports remain failed. The third captured duplicate provider construction in the

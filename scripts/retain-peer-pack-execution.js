@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /** Retain a local execution episode; never upgrades its independence claims. */
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
-import { dirname, resolve, sep, basename } from 'node:path';
+import { dirname, resolve, sep, basename, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execFileSync, spawnSync } from 'node:child_process';
 import { sha256Hex } from '../self/pool/inference-receipt.js';
@@ -47,6 +47,10 @@ export async function retainPeerPackExecution({ reportPath, outputDirectory, wei
   const receipts = [];
   const retain = async (path, bytes) => {
     const file = inside(output, path);
+    if (file.startsWith(ROOT + sep)) {
+      const ignored = spawnSync('git', ['check-ignore', '--no-index', '-q', '--', relative(ROOT, file)], { cwd: ROOT });
+      assert(ignored.status === 1, `Evidence would be excluded from a clean checkout: ${path}`);
+    }
     await mkdir(dirname(file), { recursive: true });
     await writeFile(file, bytes, { flag: 'wx' });
     receipts.push({ path, hash: await sha256Hex(bytes), sizeBytes: Buffer.byteLength(bytes) });
@@ -64,7 +68,11 @@ export async function retainPeerPackExecution({ reportPath, outputDirectory, wei
     } else await retain(`pack/${artifact.path}`, bytes);
   }
   for (const [owner, patch] of Object.entries(patches)) await retain(`${owner}-runtime.patch`, patch);
-  for (const file of attachments) await retain(`attachments/${basename(file)}`, await readFile(file));
+  for (const file of attachments) {
+    // The repository ignores diagnostic *.log files. Retained text logs are artifacts.
+    const name = basename(file).replace(/\.log$/, '.txt');
+    await retain(`attachments/${name}`, await readFile(file));
+  }
   const index = { schema: 'reploid.pool.retained-peer-pack-episode/v1', claimBoundary: report.claimBoundary,
     sourceBases: report.sources, sourcePatchScope: 'served browser files and proof entrypoints; not all development changes',
     runtimeSourceSnapshotDigest: report.runtimeBootstrap.sourceSnapshotDigest, files: receipts, externalArtifacts };
