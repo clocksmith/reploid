@@ -1,7 +1,9 @@
 // @vitest-environment node
 import { describe, it, expect } from 'vitest';
 import { operationFixture, packPeerIdentity } from '../fixtures/peer-pack-operation.js';
-import { createPackOperationRegistry } from '../../self/pool/pack-operation-adapters.js';
+import fifthDefinition from '../fixtures/pack-operation-fifth.json' with { type: 'json' };
+import poolConfig from '../../self/pool/pool-config.json' with { type: 'json' };
+import { createPackOperationRegistry, PACK_OPERATION_IMPLEMENTATIONS } from '../../self/pool/pack-operation-adapters.js';
 import { createPackPeerProvider } from '../../self/pool/peer-pack-provider.js';
 import { createPackPeerRequester } from '../../self/pool/peer-pack-requester.js';
 import { createPackPeerJob, verifyPackPeerJob, signPackPeerMessage, verifyPackPeerMessage, PACK_CANCEL_SCHEMA } from '../../self/pool/peer-pack-job.js';
@@ -95,10 +97,10 @@ describe('signed remote Pack jobs with synthetic model outputs', () => {
   });
 
   it('adds a fifth operation with one adapter and unchanged networking', async () => {
-    const registry = createPackOperationRegistry({ 'audio.test': { version: 1, workload: 'audio-test',
+    const registry = createPackOperationRegistry({ definitions: { ...poolConfig.operations, ...fifthDefinition }, implementations: { ...PACK_OPERATION_IMPLEMENTATIONS, 'audio.test.v1': { contractVersion: 1,
       validateRequest(request) { if (request.input.arbitrary !== true) throw new Error('input'); },
       validateOutput(output) { if (output.value !== 'fifth') throw new Error('output'); },
-      compare: (output, reference) => output.value === reference.value } });
+      compare: (output, reference) => output.value === reference.value } } });
     const f = await setup('audio.test', registry);
     try { expect((await f.requester.run(f.args)).assessment.accepted).toBe(true); }
     finally { await f.close(); }

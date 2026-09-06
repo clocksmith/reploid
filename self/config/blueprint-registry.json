@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-09-06T14:38:07.721Z",
+  "generatedAt": "2026-09-06T17:25:34.850Z",
   "features": [
     {
       "id": "0x000002",
@@ -862,6 +862,7 @@
       "files": [
         "pool/doppler-runtime.js",
         "pool/pack-operation-adapters.js",
+        "pool/pack-operation-policy.js",
         "pool/pack-operation.js"
       ]
     },

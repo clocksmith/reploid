@@ -1,45 +1,30 @@
-/** Operation semantics at the network boundary; no peer or transport policy. */
+/** Implementation functions bound to checked operation policy; no networking imports. */
+import poolConfig from './pool-config.json' with { type: 'json' };
+import { resolvePackOperationDefinitions, assertOperationFields } from './pack-operation-policy.js';
 const requireValue = (value, message) => { if (!value) throw new Error(`Pack operation: ${message}`); };
 const text = (value) => typeof value === 'string' && value.trim().length > 0;
 const vector = (value) => Array.isArray(value) && value.length > 0 && value.every(Number.isFinite);
 const tokenIds = (value) => Array.isArray(value) && value.every((id) => Number.isSafeInteger(id) && id >= 0);
-const fields = (value, allowed) => requireValue(value && typeof value === 'object' && !Array.isArray(value)
-  && Object.keys(value).every((key) => allowed.includes(key)), 'unexpected input or option fields');
 const closeVector = (left, right, policy) => vector(left) && vector(right) && left.length === right.length
   && left.every((value, index) => Math.abs(value - right[index]) <= policy.absoluteTolerance + policy.relativeTolerance * Math.abs(right[index]));
-const tolerance = (policy) => {
-  requireValue(policy.rule === 'numerical-tolerance'
-    && Number.isFinite(policy.absoluteTolerance) && policy.absoluteTolerance >= 0
-    && Number.isFinite(policy.relativeTolerance) && policy.relativeTolerance >= 0, 'explicit numerical comparison policy required');
-};
 
-const builtins = {
-  generate: {
-    version: 1,
-    workload: 'text-generation',
+export const PACK_OPERATION_IMPLEMENTATIONS = Object.freeze({
+  'generate.v1': {
+    contractVersion: 1,
     validateRequest({ input, options }) {
-      fields(input, ['prompt', 'promptTokens']);
       requireValue(Object.hasOwn(input, 'prompt') !== Object.hasOwn(input, 'promptTokens'), 'one generation input required');
       requireValue(Object.hasOwn(input, 'prompt') ? text(input.prompt) : tokenIds(input.promptTokens) && input.promptTokens.length > 0, 'invalid generation input');
-      fields(options, ['maxTokens', 'maxSeqLen', 'temperature', 'topP', 'topK', 'repetitionPenalty', 'repetitionPenaltyWindow', 'useChatTemplate', 'seed', 'suppressTokenIds', 'stopSequences']);
-      requireValue(Number.isSafeInteger(options.maxTokens) && options.maxTokens > 0, 'maxTokens required');
-      requireValue(Number.isSafeInteger(options.maxSeqLen) && options.maxSeqLen > 0, 'maxSeqLen required');
-      for (const key of ['temperature', 'topP', 'topK', 'repetitionPenalty', 'repetitionPenaltyWindow']) requireValue(Number.isFinite(options[key]), `${key} required`);
-      requireValue(typeof options.useChatTemplate === 'boolean', 'useChatTemplate required');
     },
     validateOutput(output, request) {
       requireValue(typeof output.text === 'string' && tokenIds(output.tokenIds) && output.tokenIds.length <= request.options.maxTokens, 'invalid generation output');
     },
     compare(output, reference, policy) {
-      requireValue(policy.rule === 'exact-text', 'generation requires a declared exact-text reference rule');
       return output.text === reference.text;
     }
   },
-  embed: {
-    version: 1,
-    workload: 'embedding',
+  'embed.v1': {
+    contractVersion: 1,
     validateRequest({ input, options }) {
-      fields(input, ['texts', 'application']); fields(options, []);
       requireValue(Array.isArray(input.texts) && input.texts.length > 0 && input.texts.every(text), 'texts required');
       requireValue(input.application && typeof input.application === 'object'
         && !Array.isArray(input.application), 'signed embedding application required');
@@ -52,16 +37,13 @@ const builtins = {
           && item.embedding.length === output.embeddings[0].embedding.length), 'invalid embedding batch');
     },
     compare(output, reference, policy) {
-      tolerance(policy);
       return output.embeddings.length === reference.embeddings.length
         && output.embeddings.every((item, index) => closeVector(item.embedding, reference.embeddings[index].embedding, policy));
     }
   },
-  rerank: {
-    version: 1,
-    workload: 'reranking',
+  'rerank.v1': {
+    contractVersion: 1,
     validateRequest({ input, options }) {
-      fields(input, ['query', 'documents', 'application']); fields(options, []);
       requireValue(text(input.query) && Array.isArray(input.documents) && input.documents.length > 0
         && input.documents.every(text) && input.application && typeof input.application === 'object', 'rerank input and signed application required');
     },
@@ -77,16 +59,13 @@ const builtins = {
           && item.rank === index + 1 && item.score === evidence.scores[item.index].score), 'invalid rerank output');
     },
     compare(output, reference, policy) {
-      tolerance(policy);
       return JSON.stringify(output.evidence.ranking.map((item) => item.index)) === JSON.stringify(reference.evidence.ranking.map((item) => item.index))
         && closeVector(output.evidence.scores.map((item) => item.score), reference.evidence.scores.map((item) => item.score), policy);
     }
   },
-  encodeSequence: {
-    version: 1,
-    workload: 'sequence.embedding.v1',
+  'encodeSequence.v1': {
+    contractVersion: 1,
     validateRequest({ input, options }) {
-      fields(input, ['sequence']); fields(options, ['includeTokenEmbeddings', 'includeLogits']);
       requireValue(text(input.sequence) && typeof options.includeTokenEmbeddings === 'boolean'
         && typeof options.includeLogits === 'boolean', 'sequence and explicit output flags required');
     },
@@ -104,20 +83,42 @@ const builtins = {
         : output.logits === null, 'sequence logits disagree with requested outputs');
     },
     compare(output, reference, policy) {
-      tolerance(policy);
       return JSON.stringify(output.tokens) === JSON.stringify(reference.tokens)
         && JSON.stringify(output.tokenMask) === JSON.stringify(reference.tokenMask)
         && ['pooledEmbedding', 'tokenEmbeddings', 'logits'].every((key) => output[key] === null || reference[key] === null
           ? output[key] === reference[key] : closeVector(output[key], reference[key], policy));
     }
   }
-};
+});
 
-export function createPackOperationRegistry(additional = {}) {
-  const entries = Object.entries({ ...builtins, ...additional });
-  for (const [name, adapter] of entries) {
-    requireValue(/^[a-zA-Z][a-zA-Z0-9_.-]*$/.test(name) && Number.isSafeInteger(adapter.version) && adapter.version > 0
-      && ['validateRequest', 'validateOutput', 'compare'].every((method) => typeof adapter[method] === 'function'), 'invalid operation adapter');
-  }
-  return Object.freeze(Object.fromEntries(entries.map(([name, adapter]) => [name, Object.freeze({ ...adapter })])));
+export function createPackOperationRegistry({ definitions = poolConfig.operations,
+  comparisons = poolConfig.operationComparisonPolicies, implementations = PACK_OPERATION_IMPLEMENTATIONS } = {}) {
+  const resolved = resolvePackOperationDefinitions(definitions, comparisons);
+  const entries = Object.entries(resolved.definitions).map(([id, definition]) => {
+    const implementation = implementations[definition.adapterId] && Object.freeze({ ...implementations[definition.adapterId] });
+    requireValue(implementation && ['validateRequest', 'validateOutput', 'compare'].every(method => typeof implementation[method] === 'function'),
+      `unknown configured adapter ${definition.adapterId}`);
+    requireValue(['inputContract', 'optionsContract', 'outputContract'].every(name => definition[name].version === implementation.contractVersion),
+      `unsupported contract version for ${definition.adapterId}`);
+    const adapter = Object.freeze({ definition, version: definition.version, workload: definition.workload,
+      validateRequest(request) {
+        assertOperationFields(request.input, definition.inputContract, 'input');
+        assertOperationFields(request.options, definition.optionsContract, 'options');
+        return implementation.validateRequest(request, definition);
+      },
+      validateOutput(output, request, context) { return implementation.validateOutput(output, request, context, definition); },
+      compare(output, reference, policy) {
+        requireValue(definition.comparisonPolicyIds.includes(policy.rule), 'comparison rule is outside configured operation policy');
+        const rule = resolved.comparisons[policy.rule];
+        for (const field of rule.requiredFields) requireValue(Object.hasOwn(policy, field), `${field} required`);
+        for (const field of rule.nonnegativeFields) requireValue(Number.isFinite(policy[field]) && policy[field] >= 0, `${field} must be finite and nonnegative`);
+        return implementation.compare(output, reference, policy, definition);
+      }
+    });
+    return [id, adapter];
+  });
+  return Object.freeze(Object.fromEntries(entries));
 }
+
+// Missing implementations and malformed checked-in definitions fail at module startup.
+createPackOperationRegistry();

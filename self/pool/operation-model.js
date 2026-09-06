@@ -2,9 +2,8 @@ import { validateExecutablePack } from './executable-pack.js';
 import { createPackOperationRegistry } from './pack-operation-adapters.js';
 
 export const PACK_EXECUTION_MODE = 'complete_pack_browser';
-export const PACK_OPERATION_WORKLOADS = Object.freeze({
-  generate: 'text-generation', embed: 'embedding', rerank: 'reranking', encodeSequence: 'sequence.embedding.v1'
-});
+export const PACK_OPERATION_WORKLOADS = Object.freeze(Object.fromEntries(
+  Object.entries(createPackOperationRegistry()).map(([id, adapter]) => [id, adapter.workload])));
 
 export function validateOperationModel(model, registry = createPackOperationRegistry()) {
   const reasons = [...validateExecutablePack(model?.executablePack).reasons];

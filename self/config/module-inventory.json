@@ -935,9 +935,10 @@
     {
       "path": "pool/config-contract.js",
       "owner": "pool",
-      "sha256": "sha256:7046b90238c1cd67bd0c3929b48debdf218ddf14caedc801acfe31ed1d41db08",
+      "sha256": "sha256:8b213711c93a60294edda72d632800237d6875f8a16e642e1948232a3161836f",
       "imports": [
-        "./executable-pack.js"
+        "./executable-pack.js",
+        "./pack-operation-policy.js"
       ]
     },
     {
@@ -1242,7 +1243,7 @@
     {
       "path": "pool/operation-model.js",
       "owner": "pool",
-      "sha256": "sha256:695318c524df15267ad096272acc15b345ef2475b389d8ef1a743546f2536cdd",
+      "sha256": "sha256:75969d9d9dd47e5433e6d6e89541a6ad0e043f1db56bc3bcf1f9d28a60c93f37",
       "imports": [
         "./executable-pack.js",
         "./pack-operation-adapters.js"
@@ -1286,16 +1287,26 @@
     {
       "path": "pool/pack-operation-adapters.js",
       "owner": "pool",
-      "sha256": "sha256:a2fd6722f05080cddf8665f902d39022f0cc6bf604e68a727b0817a036f72eb7",
+      "sha256": "sha256:242729e1eec7111813e7d5f9ec7edb5be7e058a86063800672c569616d77a24d",
+      "imports": [
+        "./pack-operation-policy.js",
+        "./pool-config.json"
+      ]
+    },
+    {
+      "path": "pool/pack-operation-policy.js",
+      "owner": "pool",
+      "sha256": "sha256:77da4820a07a00116e6534697f1157b1932298d6f74b7dc085a3c0f5e9d5fe23",
       "imports": []
     },
     {
       "path": "pool/pack-operation.js",
       "owner": "pool",
-      "sha256": "sha256:cc7c02d22a00c526a3dcd0ad9f9af0090352b5428b7ffdcf4168405a3adb8782",
+      "sha256": "sha256:bc3142b7d9fc92cfe17901a95a1a4bd27bf53b31f5beb01d7ebb6da4e9e72aea",
       "imports": [
         "./executable-pack.js",
-        "./pack-operation-adapters.js"
+        "./pack-operation-adapters.js",
+        "./pack-operation-policy.js"
       ]
     },
     {

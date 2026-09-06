@@ -1,6 +1,7 @@
 /** Local execution/evidence bridge. This module neither sends inputs nor authorizes delegation. */
 import { assertPackSession, assertPackExecutionEvidence, hashDopplerEvidence } from './executable-pack.js';
 import { createPackOperationRegistry } from './pack-operation-adapters.js';
+import { assertOperationLimits } from './pack-operation-policy.js';
 
 const requireValue = (value, message) => { if (!value) throw new Error(`Pack operation: ${message}`); };
 const equal = async (left, right) => await hashDopplerEvidence(left) === await hashDopplerEvidence(right);
@@ -41,6 +42,7 @@ export function assertPackOperationRequest(binding, request, registry = createPa
   requireValue(Object.keys(request).every((key) => ['schema', 'operation', 'input', 'options', 'assignment', 'limits'].includes(key)), 'unknown request field');
   requireValue(request.assignment === null || (request.assignment && typeof request.assignment === 'object' && !Array.isArray(request.assignment)), 'explicit assignment or null required');
   for (const key of ['maxInputBytes', 'maxOutputBytes', 'deadlineAt']) requireValue(Number.isSafeInteger(request.limits?.[key]) && request.limits[key] > 0, `${key} required`);
+  assertOperationLimits(request.limits, adapter.definition);
   requireValue(new TextEncoder().encode(JSON.stringify({ input: request.input, options: request.options })).length <= request.limits.maxInputBytes, 'input byte limit exceeded');
   adapter.validateRequest(request);
 }
@@ -51,6 +53,7 @@ export async function assertPackOperationEvent({ binding, request, runtimeVersio
   const adapter = operationAdapter(registry, request.operation);
   const { eventDigest, ...payload } = event;
   requireValue(event.schema === 'doppler.pack-operation-event/v1' && ['partial', 'completed'].includes(event.status), 'event schema or status mismatch');
+  requireValue(event.status !== 'partial' || adapter.definition.streaming.partial, 'operation policy forbids partial output');
   requireValue(eventDigest === await hashDopplerEvidence(payload), 'event digest mismatch');
   requireValue(event.eventIndex === eventIndex && event.previousEventDigest === previousEventDigest, 'duplicate, missing, or reordered event');
   requireValue(event.requestHash === await hashDopplerEvidence(request)
@@ -67,6 +70,8 @@ export async function runPackOperation({ binding: bindingInput, session, request
   const binding = snapshotPackOperationData(bindingInput);
   const request = snapshotPackOperationData(requestInput);
   assertPackOperationRequest(binding, request, registry);
+  const definition = operationAdapter(registry, request.operation).definition;
+  requireValue(request.limits.deadlineAt - Date.now() <= definition.maximumLimits.maxJobMs, 'deadline exceeds configured operation limit');
   requireValue(typeof runtimeVersion === 'string' && runtimeVersion.length > 0, 'runtime version required');
   const current = async () => {
     signal?.throwIfAborted();
@@ -80,11 +85,15 @@ export async function runPackOperation({ binding: bindingInput, session, request
   requireValue(typeof session.executeOperation === 'function', 'public executeOperation is required; no legacy operation fallback');
   let previousEventDigest = null;
   let eventCount = 0;
+  let streamBytes = 0;
   let completed = null;
   for await (const received of session.executeOperation(request, { signal })) {
     await current();
     requireValue(!completed, 'output after completion');
     const event = snapshotPackOperationData(received);
+    streamBytes += new TextEncoder().encode(JSON.stringify(event)).length;
+    requireValue(eventCount < definition.maximumLimits.maxEvents && streamBytes <= definition.maximumLimits.maxStreamBytes,
+      'configured operation stream limit exceeded');
     await assertPackOperationEvent({ binding, request, runtimeVersion, event, eventIndex: eventCount, previousEventDigest, registry });
     await current();
     if (event.status === 'completed') {

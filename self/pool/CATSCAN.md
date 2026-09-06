@@ -4,7 +4,7 @@ Parent: [Browser Runtime](../CATSCAN.md)
 
 ## Target
 
-Test distribution, whole-job execution, reviewed coordination; public-protein adjudication.
+Distribute, execute, coordinate; adjudicate public-protein evidence.
 
 ## Authority
 - Owns discovery, authorization, assignment, transport, recovery, accounting, admission.
@@ -13,7 +13,7 @@ Test distribution, whole-job execution, reviewed coordination; public-protein ad
 
 ## Scope
 
-- This tree.
+- Subtree.
 
 ## Contracts
 
@@ -26,12 +26,13 @@ Outputs:
 - [Receipts](inference-receipt.js), [state](research-cycle.js), [checkpoints](discovery-contract.js), [actions](discovery-candidate-action.js).
 - [Records](evidence-network.js), [campaign](protein-uncertainty-campaign.js), [adjudication](adjudication-north-star.js), [promotion](scientific-policy-promotion.js), [value](realized-action-value.js).
 - Forecasts reuse [assignments](peer-assignment.js), signed messages/receipts, requester acceptance.
-  Applications own pins, semantics, review; no catalog admission.
+  Applications own pins/semantics/review; no catalog admission.
 - [Jobs](peer-pack-job.js), [acceptance](peer-pack-episode.js): pins, public consent, bounds.
 
 ## Invariants
 - Receipts prove signed records/identities only.
 - Adapters own input/output/comparison; networking is operation-independent.
+- JSON owns policy; Doppler owns mathematics.
 - Private inputs default local; custody never authorizes execution.
 - Archive/decision memory remain distinct.
 - Agreement/context never prove truth/relevance; reuse requires review.
@@ -41,7 +42,7 @@ Outputs:
 - Imports bind provenance; orders: public execution; labs: capability/safety; policies: resolution. None proves truth.
 - Campaigns order disagreement, not volume or biological priority.
 - Zero proposes; X evaluates frozen cohorts; Poolday admits. Separate promotion authorities.
-- Realized value requires approved actions, reviewed outcomes, evaluation, causal records, and independent acceptance.
+- Realized value requires approved actions, reviewed outcomes, evaluation, causality, independent acceptance.
 
 ## Acceptance
 - [Operations](../../tests/unit/pool-pack-operation.test.js), [jobs](../../tests/unit/pool-peer-pack-job.test.js), [WebRTC](../../tests/e2e/peer-pack-jobs.spec.js) pass.
@@ -49,7 +50,7 @@ Outputs:
 
 ## Non-goals
 - Volume as improvement.
-- Model splitting, hardware attestation, or private-sequence admission.
+- Arbitrary layer splitting, hardware attestation, private-sequence admission.
 
 ## Freedom
 Preserve boundaries/acceptance.
