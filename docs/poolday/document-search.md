@@ -72,6 +72,16 @@ Each reused session checks current eligibility and the saved checkpoint again
 before returning output. Clearing private documents preserves this anti-rollback
 state; the checkpoint contains no document text, question, or vector.
 
+The execution-contract registry supports exact Pack v2/v3 and Capsule v2/v3
+bindings. Capsule configurations use `capsuleId` inside `executablePack` and call
+public `openCapsule`; their requests, sessions, adapter descriptors, and receipts
+keep the Capsule schemas. The existing application fields `executablePack`,
+`packSource`, and `packOpenOptions` remain stable. Unknown or mixed formats fail.
+Release checkpoints use the same application/authority namespace across formats,
+so choosing a Capsule cannot erase a prior release checkpoint. Historical signed
+Packs are never relabeled: a new Capsule requires a newly issued signed identity
+and its own qualification. This compatibility does not change the public runtime pin.
+
 ## Current release boundary
 
 The [retained physical document experiment](../status/document-search-2026-09-06/README.md)
@@ -110,6 +120,9 @@ Model outputs in these fixtures are synthetic, not physical GPU evidence.
 tests/integration/doppler-pack-handoff.test.js` exercises the real Doppler Pack
 producer and Reploid consumer with injected model programs. Source production,
 model qualification, package release, and external adoption remain separate.
+Set `DOPPLER_TEST_FORMAT=capsule` with a Capsule runtime checkout to exercise the
+new signed producer, peer-only artifact recovery, all four operations, and exact
+receipt validation. These tests inject programs; they do not qualify model math.
 
 *Last updated: September 2026*
 

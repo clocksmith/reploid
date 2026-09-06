@@ -36,6 +36,9 @@ Signed executable Pack requirements bind schema, immutable root, envelope,
 artifact closure, operation, and accepted TargetPlans. Public Doppler sessions
 and receipts must match all fields. A caller-supplied Pack cannot self-admit an
 unqualified catalog entry. Legacy model contracts remain identifiable as legacy.
+The execution-contract registry also admits exact Capsule v2/v3 bindings through
+their declared public API. Formats never alias identity fields or signed bytes.
+The existing `executablePack` application field and peer protocol remain stable.
 
 ### 3. Implementation Notes
 Biological models stay outside the enabled catalog until their exact Doppler

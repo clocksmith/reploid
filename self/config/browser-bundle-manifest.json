@@ -685,8 +685,8 @@
     },
     {
       "path": "blueprints/0x000085-pool-model-contract.md",
-      "byteLength": 2606,
-      "sha256": "sha256:b37e8633fde209946295ce7d038d52782d74ef26fb794e4b09799d7be4f0d09c"
+      "byteLength": 2848,
+      "sha256": "sha256:7ffba55c5d553b8d743a00bed6a6cccce043029f9a22cd4b0035d822c6d181a6"
     },
     {
       "path": "blueprints/0x000086-pool-peer-control-plane.md",
@@ -850,8 +850,8 @@
     },
     {
       "path": "blueprints/0x0000A6-core-doppler-runtime-service.md",
-      "byteLength": 3080,
-      "sha256": "sha256:efd67db4cb33e6c4baab10db978fc49f66af6758fd72970fbacde67d88207cbe"
+      "byteLength": 3577,
+      "sha256": "sha256:459ba4fe064213d2f4cd7f40d57f6db0b50316ff9305e3e692f61e36b4b2d3e8"
     },
     {
       "path": "blueprints/0x0000A7-config-clockwork-gamma-receipts.md",
@@ -906,7 +906,7 @@
     {
       "path": "blueprints/canonical-inventory.md",
       "byteLength": 18954,
-      "sha256": "sha256:e7c7481332d8a79a5ca91dc42980ff7998feb746540da027925083628dc1c942"
+      "sha256": "sha256:b22de40d62cb542f6a4442cf2f2c2fde7b186208814dee4efde229d586bcc7b6"
     },
     {
       "path": "blueprints/CATSCAN.md",
@@ -1180,8 +1180,8 @@
     },
     {
       "path": "config/blueprint-registry.json",
-      "byteLength": 35116,
-      "sha256": "sha256:dcc4e7083595c1f0216e308bed8d7037bb8f5fa80b33daefc02afb6767e0e1ab"
+      "byteLength": 35165,
+      "sha256": "sha256:2a90327663417f6928be8949c7345ce4458e66740d6d01647dc5540bf02b353d"
     },
     {
       "path": "config/boot-modes.js",
@@ -1202,6 +1202,21 @@
       "path": "config/clockwork-gamma-receipts.js",
       "byteLength": 895,
       "sha256": "sha256:d28d8b76a3e170071cea8987e49e57144be2c1b93521bd0569b58b6e3f4c9555"
+    },
+    {
+      "path": "config/doppler-execution-contracts.d.ts",
+      "byteLength": 946,
+      "sha256": "sha256:ee6a32da34f924169614a323cb7b146a5c34e44eb3cec66f7b047ff8f70447f5"
+    },
+    {
+      "path": "config/doppler-execution-contracts.js",
+      "byteLength": 1431,
+      "sha256": "sha256:3c5a5ad7e4451e3a6e5c17e9871f6a0923b808556e1983a822e4ad8f418cc825"
+    },
+    {
+      "path": "config/doppler-execution-contracts.json",
+      "byteLength": 1553,
+      "sha256": "sha256:14d61b7da1640044f38835d8c17085575abce25a0532bc1995d97c9605f936b0"
     },
     {
       "path": "config/doppler-local-models.js",
@@ -1250,8 +1265,8 @@
     },
     {
       "path": "config/module-inventory.json",
-      "byteLength": 93489,
-      "sha256": "sha256:fb566852a88a1df38fc9d5cbc983ee2d53bf7c8464bf08046ba7ee6be003a7b8"
+      "byteLength": 94219,
+      "sha256": "sha256:e7f8b0ce56ec997e67ff1b658af0ab9085878cf4d2808cefcdab5cdfe6573523"
     },
     {
       "path": "config/module-registry.json",
@@ -1280,8 +1295,8 @@
     },
     {
       "path": "config/vfs-manifest.json",
-      "byteLength": 25099,
-      "sha256": "sha256:c40624b1ff7c723b09b7a579d49364876772946c52df36a60a6d851467a8c995"
+      "byteLength": 25357,
+      "sha256": "sha256:676eca0fe38b0812844d289eea294a1c07a2324893b54e3e672f946423817f34"
     },
     {
       "path": "config/vfs-policy.js",
@@ -1629,9 +1644,14 @@
       "sha256": "sha256:7eaaf7000082bb03b4b1dcd7aaabf57ad05ca665377f0feed630215091c937e4"
     },
     {
+      "path": "infrastructure/doppler-runtime-service.d.ts",
+      "byteLength": 1216,
+      "sha256": "sha256:8b5cd587ebec82d3c366418f261fc06c27a6d2e498a20a9ece2fb587d929b774"
+    },
+    {
       "path": "infrastructure/doppler-runtime-service.js",
-      "byteLength": 8143,
-      "sha256": "sha256:41c982607961069bc2f3bd47d42d2addd067ab3cfb0a71aede09998dcb865183"
+      "byteLength": 8815,
+      "sha256": "sha256:c34be9f385c19df18cd19cf6c6ea9a1ab70f7921bfc56b6dbc3cc7beb7a858a3"
     },
     {
       "path": "infrastructure/error-store.js",
@@ -1810,13 +1830,13 @@
     },
     {
       "path": "pool/adapter-execution.d.ts",
-      "byteLength": 1925,
-      "sha256": "sha256:76e5a55f254aef76c3933cf93c115983526cfe05c024d2208be88bc894335ac8"
+      "byteLength": 1956,
+      "sha256": "sha256:3ffd168736c324a7ce26a2195b49c252b55f8bdb2e41e5d0ac33e7aeff491921"
     },
     {
       "path": "pool/adapter-execution.js",
-      "byteLength": 3921,
-      "sha256": "sha256:98d123330179332cde7401fb796aaa1849d6d39a7153d62b9a88509b12dd85d0"
+      "byteLength": 4062,
+      "sha256": "sha256:4e2b01761e8118f8a9a8cf007e1572339d670830262b7560ba673adced8bf7a0"
     },
     {
       "path": "pool/adapter-pack-publisher.js",
@@ -1960,8 +1980,8 @@
     },
     {
       "path": "pool/doppler-runtime.js",
-      "byteLength": 49115,
-      "sha256": "sha256:6462825eeecf83efe44e2d0de350e948577df8c949fe49c17c0ea9848ae41cd2"
+      "byteLength": 49312,
+      "sha256": "sha256:a95a059ef8b1ecc7bfc76c0e0797d896b6117e145b6862a37438c15176a1bd4b"
     },
     {
       "path": "pool/evidence-admission.js",
@@ -1999,9 +2019,14 @@
       "sha256": "sha256:df639497ca08cfc62f75e5fa8cefc89c066e725d2f211bfbd1e32d0c8ed3b880"
     },
     {
+      "path": "pool/executable-pack.d.ts",
+      "byteLength": 1561,
+      "sha256": "sha256:fdd9053c6bb72bc5274ce248d34f85ec17a27b11ed4ff7534ec0058644396c33"
+    },
+    {
       "path": "pool/executable-pack.js",
-      "byteLength": 5992,
-      "sha256": "sha256:3d15bc81e901afb20d97f581cf3bfacde8b80856726dc156d0d64f664e8da864"
+      "byteLength": 6334,
+      "sha256": "sha256:9d163fd2be3029455cde493ea509e9b7927634fe09207c0b3d9b5c38fea2ba44"
     },
     {
       "path": "pool/firebase-auth.js",
@@ -2035,13 +2060,13 @@
     },
     {
       "path": "pool/local-pack-executor.d.ts",
-      "byteLength": 1703,
-      "sha256": "sha256:30e49415c7d42f8f30a651f1665b765d47f95140a2ae2e49b0f76d4090b3e373"
+      "byteLength": 1873,
+      "sha256": "sha256:04e3fb4f1e2bd1945f32564072148d09c64809868a498e0ea182b3273e266b37"
     },
     {
       "path": "pool/local-pack-executor.js",
-      "byteLength": 7537,
-      "sha256": "sha256:160b39a9ca3c3b0e7a3e4cb3ddd74d14b1dd3017f9e0f3dd8782fc64b1f3474b"
+      "byteLength": 7901,
+      "sha256": "sha256:e7c60bb918aa2520e058b68e19e6f374b590e5ca88b33b33432f6035eec968cd"
     },
     {
       "path": "pool/model-artifacts.js",
@@ -2145,18 +2170,18 @@
     },
     {
       "path": "pool/pack-operation.d.ts",
-      "byteLength": 3722,
-      "sha256": "sha256:27f1003acafca52618f7c3c887db3c046e14641a2912d6c93677787dbf0449d0"
+      "byteLength": 3802,
+      "sha256": "sha256:e8a2dbcb648eda4d7b1c6f68acf4df0f79604eb515214d27460111f8b68d5a05"
     },
     {
       "path": "pool/pack-operation.js",
-      "byteLength": 10450,
-      "sha256": "sha256:3aed2d69c89f804cc237104eb6ccb725ea0204321f57618c9915f82178bfe386"
+      "byteLength": 10620,
+      "sha256": "sha256:f30d37bc8bfe8b3900e1ee91d3e166d2f74e8d1d01de9106c05f95a737bde1c7"
     },
     {
       "path": "pool/pack-release-policy.js",
-      "byteLength": 2670,
-      "sha256": "sha256:55f8a1442b542799bbe9e721d142418637170455b5e790ca2b05dbeeffe28dc2"
+      "byteLength": 2789,
+      "sha256": "sha256:1562ef8b9572fa07aa35fcf4bc3a7188e4b1ccaefceb824998334dcd6e24e536"
     },
     {
       "path": "pool/participation-profile.js",
@@ -2245,8 +2270,8 @@
     },
     {
       "path": "pool/peer-pack-job.js",
-      "byteLength": 19862,
-      "sha256": "sha256:c2fc119806e274d42ed91e35d3ca979197557c6de23379cc7e2057312fc127bc"
+      "byteLength": 19993,
+      "sha256": "sha256:f5e92283d1ceca9c645b60a609fa7c2d700716f7c76d2a49a42f5d2092037a51"
     },
     {
       "path": "pool/peer-pack-provider.d.ts",
@@ -2269,9 +2294,14 @@
       "sha256": "sha256:eebb90cc8778611df19aceacadbcb04f734d8d147bc456ff89e847098c520761"
     },
     {
+      "path": "pool/peer-pack-session.d.ts",
+      "byteLength": 1286,
+      "sha256": "sha256:44f4d14e1374ee1e84eecba38334a05fff1de5a53e0b6ad94b5215295e1b073e"
+    },
+    {
       "path": "pool/peer-pack-session.js",
-      "byteLength": 4663,
-      "sha256": "sha256:d53507942cebcb5187ac8ee990186cfa715e76b6ac4fe70256887948381caab2"
+      "byteLength": 5006,
+      "sha256": "sha256:4ba4b9dc8a12624a71e2d0532a32860fadd3a1c9794cb392a0c386334209cbc2"
     },
     {
       "path": "pool/peer-payload.js",
@@ -3189,5 +3219,5 @@
       "sha256": "sha256:f0839f1a37e68e05baa3bd3823460bc9d742420485f12ae03979781adbb865ca"
     }
   ],
-  "bundleHash": "sha256:217b449624812de759b31351e07789b0642109024c102ef176ec12c477a063cd"
+  "bundleHash": "sha256:48943458767ba926067cb10834ecbea508a7679b8c1c05c2565fc5a39b76d7b5"
 }
