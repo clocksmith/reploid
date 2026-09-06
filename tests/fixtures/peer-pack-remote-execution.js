@@ -47,7 +47,7 @@ async function start(role, pin, options = {}) {
             calls++;
             const result = await fixture.peer.run({ schema: 'doppler.pack-operation-request/v1',
               operation: { name: 'encodeSequence', version: 1 }, input: request.input, options: request.options,
-              assignment: request.assignment, limits: request.limits }, { signal: request.signal, onPartial: request.onPartial });
+              assignment: request.assignment, limits: request.limits }, { signal: request.signal, onPartial: request.onPartial, beforeExecute: request.beforeExecute });
             completed = result;
             return result;
           }, async close() {} }, onError: error => errors.push(error.message) }); };

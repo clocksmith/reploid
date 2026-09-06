@@ -1,4 +1,4 @@
-/** Native durable attempt claims and signed responses. No execution/admission authority. */
+/** Native atomic attempt storage. Poolday supplies resolved policy and verifies signed evidence. */
 const assert = (ok, message) => { if (!ok) throw new Error(`Pack job journal: ${message}`); };
 const digest = value => typeof value === 'string' && /^sha256:[0-9a-f]{64}$/.test(value);
 const size = value => new TextEncoder().encode(JSON.stringify(value)).length;
@@ -7,46 +7,86 @@ const request = operation => new Promise((resolve, reject) => {
   operation.onerror = () => reject(operation.error);
 });
 const keyFor = value => JSON.stringify([value.requesterId, value.jobId, value.attemptId]);
-const descriptor = value => {
-  assert(digest(value?.requesterId) && digest(value.jobHash), 'exact requester and signed job hashes required');
-  for (const field of ['jobId', 'attemptId']) assert(typeof value[field] === 'string' && value[field].length > 0
-    && value[field].length <= 128, 'bounded attempt identity required');
-  assert(Number.isSafeInteger(value.expiresAt) && value.expiresAt > Date.now()
-    && value.expiresAt <= Date.now() + 300000, 'bounded future expiry required');
-};
 
-export async function openPackJobJournal({ providerId, name = 'reploid-pack-jobs-v1', maxAttempts = 128,
-  maxBytes = 64 * 1024 * 1024, indexedDB = globalThis.indexedDB } = {}) {
-  assert(digest(providerId) && indexedDB, 'provider identity and IndexedDB required');
-  assert(Number.isSafeInteger(maxAttempts) && maxAttempts > 0 && maxAttempts <= 256
-    && Number.isSafeInteger(maxBytes) && maxBytes > 0 && maxBytes <= 64 * 1024 * 1024, 'invalid storage bounds');
-  const opening = indexedDB.open(`${name}:${providerId}`, 1);
-  opening.onupgradeneeded = () => opening.result.createObjectStore('attempts', { keyPath: 'key' });
-  const db = await request(opening);
+export async function openPackJobJournal({ providerId, policy: policyInput, name, maxAttempts, maxBytes,
+  indexedDB = globalThis.indexedDB } = {}) {
+  const policy = structuredClone(policyInput);
+  assert(digest(providerId) && indexedDB && policy, 'provider identity, resolved policy and IndexedDB required');
+  for (const field of ['databaseVersion', 'maxRecords', 'recordCeiling', 'maxSavedBytes', 'byteCeiling',
+    'retentionMs', 'maxFutureMs', 'maxIdentityCharacters', 'storageTimeoutMs']) {
+    assert(Number.isSafeInteger(policy[field]) && policy[field] > 0, `policy.${field} required`);
+  }
+  assert(policy.storageFailureBehavior === 'reject' && policy.durability === 'strict'
+    && policy.cleanup === 'expire-then-delete-after-retention', 'unsupported storage policy');
+  name = name === undefined ? policy.databaseName : name;
+  maxAttempts = maxAttempts === undefined ? policy.maxRecords : maxAttempts;
+  maxBytes = maxBytes === undefined ? policy.maxSavedBytes : maxBytes;
+  assert(typeof name === 'string' && name.length > 0 && typeof policy.storeName === 'string'
+    && Number.isSafeInteger(maxAttempts) && maxAttempts > 0 && maxAttempts <= policy.recordCeiling
+    && Number.isSafeInteger(maxBytes) && maxBytes > 0 && maxBytes <= policy.byteCeiling, 'invalid storage bounds');
+  const descriptor = input => {
+    const value = structuredClone(input);
+    assert(digest(value?.requesterId) && digest(value.jobHash), 'exact requester and signed job hashes required');
+    for (const field of ['jobId', 'attemptId']) assert(typeof value[field] === 'string' && value[field].length > 0
+      && value[field].length <= policy.maxIdentityCharacters, 'bounded attempt identity required');
+    assert(Number.isSafeInteger(value.expiresAt) && value.expiresAt > Date.now()
+      && value.expiresAt <= Date.now() + policy.maxFutureMs, 'bounded future expiry required');
+    assert(value.binding === null || (value.binding && digest(value.binding.requestHash)
+      && typeof value.binding.assignmentId === 'string' && Number.isSafeInteger(value.binding.attemptNumber)
+      && value.binding.attemptNumber > 0 && value.binding.operation && value.binding.model && Array.isArray(value.binding.adapterSet)), 'explicit immutable attempt binding required');
+    return { requesterId: value.requesterId, jobId: value.jobId, attemptId: value.attemptId,
+      jobHash: value.jobHash, expiresAt: value.expiresAt, binding: value.binding };
+  };
+  const opening = indexedDB.open(`${name}:${providerId}`, policy.databaseVersion);
+  const db = await new Promise((resolve, reject) => {
+    let settled = false;
+    const fail = error => { if (!settled) { settled = true; clearTimeout(timer); reject(error); } };
+    const timer = setTimeout(() => fail(new Error('Pack job journal open deadline exceeded')), policy.storageTimeoutMs);
+    opening.onupgradeneeded = () => {
+      if (settled) { opening.transaction.abort(); return; }
+      if (!opening.result.objectStoreNames.contains(policy.storeName)) opening.result.createObjectStore(policy.storeName, { keyPath: 'key' });
+    };
+    opening.onblocked = () => fail(new Error('Pack job journal upgrade blocked'));
+    opening.onerror = () => fail(opening.error);
+    opening.onsuccess = () => {
+      if (settled) { opening.result.close(); return; }
+      settled = true; clearTimeout(timer); resolve(opening.result);
+    };
+  });
   let closed = false;
   db.onversionchange = () => { closed = true; db.close(); };
   const transact = async action => {
     assert(!closed, 'closed');
-    const tx = db.transaction('attempts', 'readwrite', { durability: 'strict' });
+    const tx = db.transaction(policy.storeName, 'readwrite', { durability: policy.durability });
+    const timer = setTimeout(() => { try { tx.abort(); } catch { /* Already settled. */ } }, policy.storageTimeoutMs);
     const finished = new Promise((resolve, reject) => {
-      tx.oncomplete = resolve;
-      tx.onabort = () => reject(tx.error || new Error('Pack job journal transaction aborted'));
+      tx.oncomplete = () => { clearTimeout(timer); resolve(); };
+      tx.onabort = () => { clearTimeout(timer); reject(tx.error || new Error('Pack job journal transaction aborted')); };
       tx.onerror = () => {};
     });
     finished.catch(() => {});
     try {
-      const store = tx.objectStore('attempts');
-      // The persisted ledger is bounded independently from in-memory provider state.
-      const records = await request(store.getAll(null, 257));
-      assert(records.length <= 256, 'record count exceeds protocol ceiling');
+      const store = tx.objectStore(policy.storeName);
+      const records = await request(store.getAll(null, policy.recordCeiling + 1));
+      assert(records.length <= policy.recordCeiling, 'record count exceeds protocol ceiling');
       const live = [];
-      for (const record of records) {
-        assert(record.schema === 'reploid.pack-job-journal/v1' && record.key === keyFor(record)
-          && digest(record.requesterId) && digest(record.jobHash) && Number.isSafeInteger(record.expiresAt)
-          && Array.isArray(record.updates) && ['running', 'completed', 'failed', 'busy', 'cancelled', 'interrupted'].includes(record.status),
-        'corrupt persisted attempt; explicit recovery required');
-        if (record.expiresAt <= Date.now()) await request(store.delete(record.key));
-        else live.push(record);
+      for (let record of records) {
+        assert(record.key === keyFor(record) && digest(record.requesterId) && digest(record.jobHash)
+          && Number.isSafeInteger(record.expiresAt) && Array.isArray(record.updates), 'corrupt persisted attempt; explicit recovery required');
+        if (record.schema === policy.legacyRecordSchema) {
+          assert(Object.hasOwn(policy.legacyStates, record.status), 'unknown legacy attempt state');
+          record = { ...record, schema: policy.recordSchema, status: policy.legacyStates[record.status],
+            outcome: record.updates.at(-1)?.body?.status ?? 'legacy-interrupted', binding: null,
+            retainUntil: record.expiresAt + policy.retentionMs };
+          await request(store.put(record));
+        }
+        assert(record.schema === policy.recordSchema && policy.states.includes(record.status)
+          && Number.isSafeInteger(record.retainUntil) && record.retainUntil >= record.expiresAt, 'corrupt persisted state');
+        if (record.retainUntil <= Date.now()) { await request(store.delete(record.key)); continue; }
+        if (record.expiresAt <= Date.now() && record.status !== 'expired') {
+          record = { ...record, status: 'expired' }; await request(store.put(record));
+        }
+        live.push(record);
       }
       assert(live.length <= maxAttempts && live.reduce((sum, record) => sum + size(record), 0) <= maxBytes, 'persisted budget exceeded');
       const save = async record => {
@@ -65,57 +105,69 @@ export async function openPackJobJournal({ providerId, name = 'reploid-pack-jobs
       throw error;
     }
   };
+  const find = (records, value, owner) => {
+    const prior = records.find(record => record.key === keyFor(value));
+    assert(prior && prior.jobHash === value.jobHash && prior.owner === owner, 'attempt writer was superseded');
+    assert(JSON.stringify(prior.binding) === JSON.stringify(value.binding), 'immutable attempt binding changed');
+    return prior;
+  };
   return {
-    async claim(value, owner) {
-      descriptor(value); assert(typeof owner === 'string' && owner.length > 0, 'writer identity required');
+    async claim(input, owner) {
+      const value = descriptor(input);
+      assert(value.binding !== null && typeof owner === 'string' && owner.length > 0, 'attempt binding and writer required');
       return transact(async (records, save) => {
-        const key = keyFor(value), prior = records.find(record => record.key === key);
+        const key = keyFor(value);
+        let prior = records.find(record => record.key === key);
         if (prior) {
           assert(prior.jobHash === value.jobHash, 'attempt was already observed with a different signed envelope');
-          // A replacement provider invalidates an unfinished writer. It never
-          // assumes another process stopped calculating and never reruns this attempt.
-          if (prior.status === 'running' && prior.owner !== owner) {
-            return { created: false, record: await save({ ...prior, owner, status: 'interrupted' }) };
+          assert(prior.status !== 'expired', 'attempt expired');
+          assert(prior.binding === null || JSON.stringify(prior.binding) === JSON.stringify(value.binding), 'immutable attempt binding changed');
+          prior = { ...prior, binding: value.binding, expiresAt: value.expiresAt };
+          if (['accepted', 'running'].includes(prior.status) && prior.owner !== owner) {
+            prior = { ...prior, owner, status: 'interrupted', outcome: 'provider-replaced' };
           }
-          if (['interrupted', 'cancelled'].includes(prior.status)) {
-            return { created: false, record: await save({ ...prior, owner }) };
-          }
-          return { created: false, record: structuredClone(prior) };
+          if (['interrupted', 'cancelled'].includes(prior.status)) prior.owner = owner;
+          return { created: false, record: await save(prior) };
         }
-        return { created: true, record: await save({ schema: 'reploid.pack-job-journal/v1', key,
-          ...value, owner, status: 'running', updates: [] }) };
+        return { created: true, record: await save({ schema: policy.recordSchema, key, ...value, owner,
+          status: 'accepted', outcome: null, retainUntil: value.expiresAt + policy.retentionMs, updates: [] }) };
       });
     },
-    async append(value, owner, message) {
-      descriptor(value);
-      const copy = structuredClone(message);
+    async markRunning(input, owner) {
+      const value = descriptor(input);
       return transact(async (records, save) => {
-        const prior = records.find(record => record.key === keyFor(value));
-        assert(prior && prior.jobHash === value.jobHash && prior.owner === owner, 'attempt writer was superseded');
-        const body = copy.body;
-        assert(body.jobHash === prior.jobHash && body.updateIndex === prior.updates.length
-          && body.previousUpdateHash === (prior.updates.at(-1)?.messageHash ?? null), 'response does not extend durable stream');
-        assert(!['completed', 'failed', 'busy'].includes(prior.status)
-          && !['completed', 'failed', 'busy', 'cancelled'].includes(prior.updates.at(-1)?.body?.status), 'response after terminal record');
-        assert(prior.status === 'running' || ['failed', 'cancelled'].includes(body.status), 'interrupted attempt cannot publish completion');
-        assert(['partial', 'completed', 'failed', 'busy', 'cancelled'].includes(body.status), 'invalid response status');
-        const next = { ...prior, status: body.status === 'partial' ? 'running' : body.status, updates: [...prior.updates, copy] };
-        return save(next);
+        const prior = find(records, value, owner);
+        assert(prior.status === 'accepted' && prior.updates.length === 0, 'only accepted attempt can start');
+        return save({ ...prior, status: 'running' });
       });
     },
-    async cancel(value, owner) {
-      descriptor(value);
+    async append(input, owner, message) {
+      const value = descriptor(input), copy = structuredClone(message);
+      return transact(async (records, save) => {
+        const prior = find(records, value, owner), body = copy.body;
+        assert(body.jobHash === prior.jobHash && body.requestHash === prior.binding.requestHash
+          && body.updateIndex === prior.updates.length
+          && body.previousUpdateHash === (prior.updates.at(-1)?.messageHash ?? null), 'response does not extend durable stream');
+        assert(prior.status !== 'expired' && !['completed', 'failed', 'busy', 'cancelled'].includes(prior.updates.at(-1)?.body?.status), 'response after terminal record');
+        assert(prior.status === 'running' || ['failed', 'busy', 'cancelled'].includes(body.status), 'unstarted or interrupted attempt cannot publish completion');
+        assert(Object.hasOwn(policy.outcomeStates, body.status), 'invalid response status');
+        return save({ ...prior, status: policy.outcomeStates[body.status], outcome: body.status, updates: [...prior.updates, copy] });
+      });
+    },
+    async cancel(input, owner) {
+      const value = descriptor(input);
       return transact(async (records, save) => {
         const key = keyFor(value), prior = records.find(record => record.key === key);
         assert(!prior || prior.jobHash === value.jobHash, 'cancellation differs from retained attempt');
-        if (['completed', 'failed', 'busy', 'cancelled'].includes(prior?.updates.at(-1)?.body?.status)) return structuredClone(prior);
-        return save({ ...(prior || { schema: 'reploid.pack-job-journal/v1', key, ...value, updates: [] }),
-          owner, status: 'cancelled', expiresAt: Math.max(prior?.expiresAt ?? 0, value.expiresAt) });
+        if (prior?.status === 'expired' || ['completed', 'failed', 'busy', 'cancelled'].includes(prior?.updates.at(-1)?.body?.status)) return structuredClone(prior);
+        return save({ schema: policy.recordSchema, key, ...value, updates: [], ...prior, owner, status: 'cancelled',
+          outcome: 'requester-cancelled', retainUntil: Math.max(prior?.retainUntil ?? 0, value.expiresAt + policy.retentionMs) });
       });
     },
     async getStats() {
       return transact(records => ({ attempts: records.length, storedBytes: records.reduce((sum, record) => sum + size(record), 0),
-        maxAttempts, maxBytes, storage: 'indexeddb', persistence: 'browser-managed' }));
+        states: Object.fromEntries(policy.states.map(state => [state, records.filter(record => record.status === state).length])),
+        maxAttempts, maxBytes, retentionMs: policy.retentionMs, storage: 'indexeddb', persistence: 'browser-managed' }));
     },
     close() { closed = true; db.close(); }
   };

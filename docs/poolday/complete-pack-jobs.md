@@ -24,7 +24,7 @@ models in the public catalog or send local document inputs automatically.
    model identity and operation limits. Source URLs and local open options stay
    local. Deliver that signed advert through the application's discovery path.
 4. Call `requester.run({ advert, model, input, options, limits, consent,
-   comparisonPolicy, reference, signal, onPartial })`. Consent must name the
+   comparisonPolicy, reference, signal, onPartial, attemptNumber })`. Consent must name the
    selected provider key and declare public input. Private input is unsupported.
 5. Retain the returned signed job, updates, acceptance, exact reference and model
    pin. `verifyPackPeerEpisode` checks that archive at its original acceptance
@@ -44,8 +44,13 @@ Frame accounting excludes SCTP/IP overhead and relay charges.
 
 ## Acceptance and recovery
 
-Assignment identity binds the signed intent, selected provider advert, route,
-attempt and limits. Doppler records bind the complete operation request, exact
+The v2 assignment binds the signed intent, selected provider advert, route,
+numbered attempt, exact adapter set, input class and limits. The signed intent
+retains resolved operation and job policy snapshots and their digests. Live
+admission rejects configuration drift. Offline verification restores the signed
+policy using its compatible installed adapter, so subsequent configuration
+changes do not reinterpret archived acceptance. Legacy v1 archives remain
+verifiable; new execution requires v2. Doppler records bind the complete operation request, exact
 Pack closure, target plan, runtime, input and output. The provider signs each
 ordered update; the requester checks both that chain and Doppler's event chain.
 Completion is released only after the execution iterator closes and the attempt
@@ -61,7 +66,9 @@ Lost delivery can resend the identical signed job with a bounded retry count.
 The provider retains bounded responses and replays them without recalculating
 that attempt during their lifetime. Conflicting duplicates, missing or reordered
 events, incomplete results, expired jobs and failed comparisons reject. A new
-attempt gets a new identity; its requester ignores previous-attempt results.
+attempt gets a new identity and an explicitly incremented attempt number; its
+requester ignores previous-attempt results. The initial number comes from JSON
+configuration. Delivery retry resends the same numbered attempt, never a new run.
 Resource accounting includes repeated request and response delivery.
 
 Cancellation and transport disconnect immediately invalidate the requester's
@@ -69,8 +76,13 @@ attempt. A signed cancellation requests cooperation; it does not prove immediate
 GPU termination. The execution slot stays busy during runtime cleanup. A
 cancellation that arrives before its delayed job leaves a bounded tombstone.
 The provider now persists attempt claims, cancellation tombstones and signed
-responses in native IndexedDB. A strict transaction commits the claim before
-execution and each response before transmission. A lost send cannot overwrite
+responses in native IndexedDB. The v2 journal records `accepted`, `running`,
+`completed`, `cancelled`, `interrupted` and `expired`. Its immutable binding names
+requester, job, request hash, assignment, operation, exact model, adapter set and
+attempt number. A strict transaction commits `accepted` before preparing the
+executor and `running` immediately before calling Doppler's public operation
+method. It commits each response before transmission and cancellation before
+acknowledgement. A lost send cannot overwrite
 a saved completion with failure. After restart, the same provider key and
 browser profile can replay the original signed response stream. The provider
 rechecks signatures, request bindings and both event chains before replay.
@@ -80,10 +92,14 @@ previous writer. It replays verified partial results followed by a signed
 failure, without executing that attempt again. This does not establish that the
 old GPU stopped. Only a currently active requester can accept output.
 
-The default journal retains at most 128 attempts and 64 MiB of serialized
-records, pruning expired entries during access. Application limits can tighten
-these bounds. `provider.getJournalStats()` exposes entry and byte accounting.
-Storage failure, corruption or exhaustion denies execution. Browser-managed
+The checked-in `pool-config.json.peerJobs` policy declares retry count, retry
+delay, message bounds, record count, saved bytes, retention and storage deadlines.
+Its persistence policy permits 128 attempts and 64 MiB of serialized records.
+Access marks expired records, retaining them for 300,000 ms after their deadline
+before deletion. Application limits can tighten these bounds.
+`provider.getJournalStats()` exposes byte and per-state accounting. Legacy
+unfinished journal entries migrate to `interrupted` and cannot become runnable.
+Storage failure, timeout, corruption or exhaustion denies execution. Browser-managed
 storage can be evicted or deleted; changing origin, profile, journal name or
 provider identity also loses this continuity. Signed responses expire with the
 job, and this short recovery journal is separate from the application's evidence
@@ -98,9 +114,12 @@ arbitrary restarts or storage loss is not claimed.
 - `tests/e2e/peer-pack-jobs.spec.js`: two browser contexts exchange all four
   operations over real WebRTC, including large embedding inputs and outputs;
   model outputs are synthetic. The actual Verification Worker accepts the code.
-  Native IndexedDB tests replace the entire Chromium process for completed,
-  interrupted, cancelled and failed-send cases, race two journal writers,
-  exhaust storage bounds, and reject corrupted persisted responses.
+  Native IndexedDB tests replace the entire Chromium process after acceptance,
+  during generation, after completion before delivery, after cancellation and
+  during an in-flight acceptance write. They count operation calls, fence two
+  journal writers, verify numbered retry and expiry/cleanup, migrate unfinished
+  legacy records, abort stalled transactions, exhaust storage bounds and reject
+  corrupted persisted responses.
 - [Physical ESM-2 remote episode](../status/esm2-remote-operation-2026-09-06/README.md):
   actual peer-reconstructed model execution, eight frozen reference checks, and
   a dropped result recovered by retry without a second remote calculation.

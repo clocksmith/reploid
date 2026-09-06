@@ -16,6 +16,8 @@
   --pool-surface-raised: var(--pool-color-raised);
   --pool-surface-inset: var(--pool-color-inset);
   --pool-surface-line: var(--pool-color-line);
+  --pool-surface-control-line: var(--pool-color-control-line);
+  --pool-surface-pattern: var(--pool-gradient-hex-grid);
   --pool-surface-muted: var(--pool-color-muted);
   --pool-surface-focus: var(--pool-color-focus);
   --pool-surface-shadow-raised: var(--pool-dim-shadow-raised);
@@ -26,10 +28,12 @@
   --pool-metric-hero-gap: var(--pool-dim-hero-gap);
   --pool-metric-hero-width: var(--pool-dim-hero-width);
   --pool-metric-nav-width: var(--pool-dim-nav-width);
+  --pool-metric-prism-width: var(--pool-dim-prism-width);
+  --pool-text-label: var(--pool-dim-14);
 
   /* === SURFACES === */
-  --pool-surface-page: var(--bg);
-  --pool-surface-ink: var(--fg);
+  --pool-surface-page: var(--pool-color-page);
+  --pool-surface-ink: var(--pool-color-ink);
   --pool-surface-shape: var(--pool-gradient-shape-surface);
 
   /* === FRAMES === */

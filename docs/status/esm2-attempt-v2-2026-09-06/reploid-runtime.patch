@@ -1,0 +1,932 @@
+diff --git a/self/infrastructure/pack-job-storage.js b/self/infrastructure/pack-job-storage.js
+index 76af34d..1420dea 100644
+--- a/self/infrastructure/pack-job-storage.js
++++ b/self/infrastructure/pack-job-storage.js
+@@ -1,4 +1,4 @@
+-/** Native durable attempt claims and signed responses. No execution/admission authority. */
++/** Native atomic attempt storage. Poolday supplies resolved policy and verifies signed evidence. */
+ const assert = (ok, message) => { if (!ok) throw new Error(`Pack job journal: ${message}`); };
+ const digest = value => typeof value === 'string' && /^sha256:[0-9a-f]{64}$/.test(value);
+ const size = value => new TextEncoder().encode(JSON.stringify(value)).length;
+@@ -7,46 +7,86 @@ const request = operation => new Promise((resolve, reject) => {
+   operation.onerror = () => reject(operation.error);
+ });
+ const keyFor = value => JSON.stringify([value.requesterId, value.jobId, value.attemptId]);
+-const descriptor = value => {
+-  assert(digest(value?.requesterId) && digest(value.jobHash), 'exact requester and signed job hashes required');
+-  for (const field of ['jobId', 'attemptId']) assert(typeof value[field] === 'string' && value[field].length > 0
+-    && value[field].length <= 128, 'bounded attempt identity required');
+-  assert(Number.isSafeInteger(value.expiresAt) && value.expiresAt > Date.now()
+-    && value.expiresAt <= Date.now() + 300000, 'bounded future expiry required');
+-};
+ 
+-export async function openPackJobJournal({ providerId, name = 'reploid-pack-jobs-v1', maxAttempts = 128,
+-  maxBytes = 64 * 1024 * 1024, indexedDB = globalThis.indexedDB } = {}) {
+-  assert(digest(providerId) && indexedDB, 'provider identity and IndexedDB required');
+-  assert(Number.isSafeInteger(maxAttempts) && maxAttempts > 0 && maxAttempts <= 256
+-    && Number.isSafeInteger(maxBytes) && maxBytes > 0 && maxBytes <= 64 * 1024 * 1024, 'invalid storage bounds');
+-  const opening = indexedDB.open(`${name}:${providerId}`, 1);
+-  opening.onupgradeneeded = () => opening.result.createObjectStore('attempts', { keyPath: 'key' });
+-  const db = await request(opening);
++export async function openPackJobJournal({ providerId, policy: policyInput, name, maxAttempts, maxBytes,
++  indexedDB = globalThis.indexedDB } = {}) {
++  const policy = structuredClone(policyInput);
++  assert(digest(providerId) && indexedDB && policy, 'provider identity, resolved policy and IndexedDB required');
++  for (const field of ['databaseVersion', 'maxRecords', 'recordCeiling', 'maxSavedBytes', 'byteCeiling',
++    'retentionMs', 'maxFutureMs', 'maxIdentityCharacters', 'storageTimeoutMs']) {
++    assert(Number.isSafeInteger(policy[field]) && policy[field] > 0, `policy.${field} required`);
++  }
++  assert(policy.storageFailureBehavior === 'reject' && policy.durability === 'strict'
++    && policy.cleanup === 'expire-then-delete-after-retention', 'unsupported storage policy');
++  name = name === undefined ? policy.databaseName : name;
++  maxAttempts = maxAttempts === undefined ? policy.maxRecords : maxAttempts;
++  maxBytes = maxBytes === undefined ? policy.maxSavedBytes : maxBytes;
++  assert(typeof name === 'string' && name.length > 0 && typeof policy.storeName === 'string'
++    && Number.isSafeInteger(maxAttempts) && maxAttempts > 0 && maxAttempts <= policy.recordCeiling
++    && Number.isSafeInteger(maxBytes) && maxBytes > 0 && maxBytes <= policy.byteCeiling, 'invalid storage bounds');
++  const descriptor = input => {
++    const value = structuredClone(input);
++    assert(digest(value?.requesterId) && digest(value.jobHash), 'exact requester and signed job hashes required');
++    for (const field of ['jobId', 'attemptId']) assert(typeof value[field] === 'string' && value[field].length > 0
++      && value[field].length <= policy.maxIdentityCharacters, 'bounded attempt identity required');
++    assert(Number.isSafeInteger(value.expiresAt) && value.expiresAt > Date.now()
++      && value.expiresAt <= Date.now() + policy.maxFutureMs, 'bounded future expiry required');
++    assert(value.binding === null || (value.binding && digest(value.binding.requestHash)
++      && typeof value.binding.assignmentId === 'string' && Number.isSafeInteger(value.binding.attemptNumber)
++      && value.binding.attemptNumber > 0 && value.binding.operation && value.binding.model && Array.isArray(value.binding.adapterSet)), 'explicit immutable attempt binding required');
++    return { requesterId: value.requesterId, jobId: value.jobId, attemptId: value.attemptId,
++      jobHash: value.jobHash, expiresAt: value.expiresAt, binding: value.binding };
++  };
++  const opening = indexedDB.open(`${name}:${providerId}`, policy.databaseVersion);
++  const db = await new Promise((resolve, reject) => {
++    let settled = false;
++    const fail = error => { if (!settled) { settled = true; clearTimeout(timer); reject(error); } };
++    const timer = setTimeout(() => fail(new Error('Pack job journal open deadline exceeded')), policy.storageTimeoutMs);
++    opening.onupgradeneeded = () => {
++      if (settled) { opening.transaction.abort(); return; }
++      if (!opening.result.objectStoreNames.contains(policy.storeName)) opening.result.createObjectStore(policy.storeName, { keyPath: 'key' });
++    };
++    opening.onblocked = () => fail(new Error('Pack job journal upgrade blocked'));
++    opening.onerror = () => fail(opening.error);
++    opening.onsuccess = () => {
++      if (settled) { opening.result.close(); return; }
++      settled = true; clearTimeout(timer); resolve(opening.result);
++    };
++  });
+   let closed = false;
+   db.onversionchange = () => { closed = true; db.close(); };
+   const transact = async action => {
+     assert(!closed, 'closed');
+-    const tx = db.transaction('attempts', 'readwrite', { durability: 'strict' });
++    const tx = db.transaction(policy.storeName, 'readwrite', { durability: policy.durability });
++    const timer = setTimeout(() => { try { tx.abort(); } catch { /* Already settled. */ } }, policy.storageTimeoutMs);
+     const finished = new Promise((resolve, reject) => {
+-      tx.oncomplete = resolve;
+-      tx.onabort = () => reject(tx.error || new Error('Pack job journal transaction aborted'));
++      tx.oncomplete = () => { clearTimeout(timer); resolve(); };
++      tx.onabort = () => { clearTimeout(timer); reject(tx.error || new Error('Pack job journal transaction aborted')); };
+       tx.onerror = () => {};
+     });
+     finished.catch(() => {});
+     try {
+-      const store = tx.objectStore('attempts');
+-      // The persisted ledger is bounded independently from in-memory provider state.
+-      const records = await request(store.getAll(null, 257));
+-      assert(records.length <= 256, 'record count exceeds protocol ceiling');
++      const store = tx.objectStore(policy.storeName);
++      const records = await request(store.getAll(null, policy.recordCeiling + 1));
++      assert(records.length <= policy.recordCeiling, 'record count exceeds protocol ceiling');
+       const live = [];
+-      for (const record of records) {
+-        assert(record.schema === 'reploid.pack-job-journal/v1' && record.key === keyFor(record)
+-          && digest(record.requesterId) && digest(record.jobHash) && Number.isSafeInteger(record.expiresAt)
+-          && Array.isArray(record.updates) && ['running', 'completed', 'failed', 'busy', 'cancelled', 'interrupted'].includes(record.status),
+-        'corrupt persisted attempt; explicit recovery required');
+-        if (record.expiresAt <= Date.now()) await request(store.delete(record.key));
+-        else live.push(record);
++      for (let record of records) {
++        assert(record.key === keyFor(record) && digest(record.requesterId) && digest(record.jobHash)
++          && Number.isSafeInteger(record.expiresAt) && Array.isArray(record.updates), 'corrupt persisted attempt; explicit recovery required');
++        if (record.schema === policy.legacyRecordSchema) {
++          assert(Object.hasOwn(policy.legacyStates, record.status), 'unknown legacy attempt state');
++          record = { ...record, schema: policy.recordSchema, status: policy.legacyStates[record.status],
++            outcome: record.updates.at(-1)?.body?.status ?? 'legacy-interrupted', binding: null,
++            retainUntil: record.expiresAt + policy.retentionMs };
++          await request(store.put(record));
++        }
++        assert(record.schema === policy.recordSchema && policy.states.includes(record.status)
++          && Number.isSafeInteger(record.retainUntil) && record.retainUntil >= record.expiresAt, 'corrupt persisted state');
++        if (record.retainUntil <= Date.now()) { await request(store.delete(record.key)); continue; }
++        if (record.expiresAt <= Date.now() && record.status !== 'expired') {
++          record = { ...record, status: 'expired' }; await request(store.put(record));
++        }
++        live.push(record);
+       }
+       assert(live.length <= maxAttempts && live.reduce((sum, record) => sum + size(record), 0) <= maxBytes, 'persisted budget exceeded');
+       const save = async record => {
+@@ -65,57 +105,69 @@ export async function openPackJobJournal({ providerId, name = 'reploid-pack-jobs
+       throw error;
+     }
+   };
++  const find = (records, value, owner) => {
++    const prior = records.find(record => record.key === keyFor(value));
++    assert(prior && prior.jobHash === value.jobHash && prior.owner === owner, 'attempt writer was superseded');
++    assert(JSON.stringify(prior.binding) === JSON.stringify(value.binding), 'immutable attempt binding changed');
++    return prior;
++  };
+   return {
+-    async claim(value, owner) {
+-      descriptor(value); assert(typeof owner === 'string' && owner.length > 0, 'writer identity required');
++    async claim(input, owner) {
++      const value = descriptor(input);
++      assert(value.binding !== null && typeof owner === 'string' && owner.length > 0, 'attempt binding and writer required');
+       return transact(async (records, save) => {
+-        const key = keyFor(value), prior = records.find(record => record.key === key);
++        const key = keyFor(value);
++        let prior = records.find(record => record.key === key);
+         if (prior) {
+           assert(prior.jobHash === value.jobHash, 'attempt was already observed with a different signed envelope');
+-          // A replacement provider invalidates an unfinished writer. It never
+-          // assumes another process stopped calculating and never reruns this attempt.
+-          if (prior.status === 'running' && prior.owner !== owner) {
+-            return { created: false, record: await save({ ...prior, owner, status: 'interrupted' }) };
++          assert(prior.status !== 'expired', 'attempt expired');
++          assert(prior.binding === null || JSON.stringify(prior.binding) === JSON.stringify(value.binding), 'immutable attempt binding changed');
++          prior = { ...prior, binding: value.binding, expiresAt: value.expiresAt };
++          if (['accepted', 'running'].includes(prior.status) && prior.owner !== owner) {
++            prior = { ...prior, owner, status: 'interrupted', outcome: 'provider-replaced' };
+           }
+-          if (['interrupted', 'cancelled'].includes(prior.status)) {
+-            return { created: false, record: await save({ ...prior, owner }) };
+-          }
+-          return { created: false, record: structuredClone(prior) };
++          if (['interrupted', 'cancelled'].includes(prior.status)) prior.owner = owner;
++          return { created: false, record: await save(prior) };
+         }
+-        return { created: true, record: await save({ schema: 'reploid.pack-job-journal/v1', key,
+-          ...value, owner, status: 'running', updates: [] }) };
++        return { created: true, record: await save({ schema: policy.recordSchema, key, ...value, owner,
++          status: 'accepted', outcome: null, retainUntil: value.expiresAt + policy.retentionMs, updates: [] }) };
++      });
++    },
++    async markRunning(input, owner) {
++      const value = descriptor(input);
++      return transact(async (records, save) => {
++        const prior = find(records, value, owner);
++        assert(prior.status === 'accepted' && prior.updates.length === 0, 'only accepted attempt can start');
++        return save({ ...prior, status: 'running' });
+       });
+     },
+-    async append(value, owner, message) {
+-      descriptor(value);
+-      const copy = structuredClone(message);
++    async append(input, owner, message) {
++      const value = descriptor(input), copy = structuredClone(message);
+       return transact(async (records, save) => {
+-        const prior = records.find(record => record.key === keyFor(value));
+-        assert(prior && prior.jobHash === value.jobHash && prior.owner === owner, 'attempt writer was superseded');
+-        const body = copy.body;
+-        assert(body.jobHash === prior.jobHash && body.updateIndex === prior.updates.length
++        const prior = find(records, value, owner), body = copy.body;
++        assert(body.jobHash === prior.jobHash && body.requestHash === prior.binding.requestHash
++          && body.updateIndex === prior.updates.length
+           && body.previousUpdateHash === (prior.updates.at(-1)?.messageHash ?? null), 'response does not extend durable stream');
+-        assert(!['completed', 'failed', 'busy'].includes(prior.status)
+-          && !['completed', 'failed', 'busy', 'cancelled'].includes(prior.updates.at(-1)?.body?.status), 'response after terminal record');
+-        assert(prior.status === 'running' || ['failed', 'cancelled'].includes(body.status), 'interrupted attempt cannot publish completion');
+-        assert(['partial', 'completed', 'failed', 'busy', 'cancelled'].includes(body.status), 'invalid response status');
+-        const next = { ...prior, status: body.status === 'partial' ? 'running' : body.status, updates: [...prior.updates, copy] };
+-        return save(next);
++        assert(prior.status !== 'expired' && !['completed', 'failed', 'busy', 'cancelled'].includes(prior.updates.at(-1)?.body?.status), 'response after terminal record');
++        assert(prior.status === 'running' || ['failed', 'busy', 'cancelled'].includes(body.status), 'unstarted or interrupted attempt cannot publish completion');
++        assert(Object.hasOwn(policy.outcomeStates, body.status), 'invalid response status');
++        return save({ ...prior, status: policy.outcomeStates[body.status], outcome: body.status, updates: [...prior.updates, copy] });
+       });
+     },
+-    async cancel(value, owner) {
+-      descriptor(value);
++    async cancel(input, owner) {
++      const value = descriptor(input);
+       return transact(async (records, save) => {
+         const key = keyFor(value), prior = records.find(record => record.key === key);
+         assert(!prior || prior.jobHash === value.jobHash, 'cancellation differs from retained attempt');
+-        if (['completed', 'failed', 'busy', 'cancelled'].includes(prior?.updates.at(-1)?.body?.status)) return structuredClone(prior);
+-        return save({ ...(prior || { schema: 'reploid.pack-job-journal/v1', key, ...value, updates: [] }),
+-          owner, status: 'cancelled', expiresAt: Math.max(prior?.expiresAt ?? 0, value.expiresAt) });
++        if (prior?.status === 'expired' || ['completed', 'failed', 'busy', 'cancelled'].includes(prior?.updates.at(-1)?.body?.status)) return structuredClone(prior);
++        return save({ schema: policy.recordSchema, key, ...value, updates: [], ...prior, owner, status: 'cancelled',
++          outcome: 'requester-cancelled', retainUntil: Math.max(prior?.retainUntil ?? 0, value.expiresAt + policy.retentionMs) });
+       });
+     },
+     async getStats() {
+       return transact(records => ({ attempts: records.length, storedBytes: records.reduce((sum, record) => sum + size(record), 0),
+-        maxAttempts, maxBytes, storage: 'indexeddb', persistence: 'browser-managed' }));
++        states: Object.fromEntries(policy.states.map(state => [state, records.filter(record => record.status === state).length])),
++        maxAttempts, maxBytes, retentionMs: policy.retentionMs, storage: 'indexeddb', persistence: 'browser-managed' }));
+     },
+     close() { closed = true; db.close(); }
+   };
+diff --git a/self/pool/config-contract.js b/self/pool/config-contract.js
+index 91dab05..3159c63 100644
+--- a/self/pool/config-contract.js
++++ b/self/pool/config-contract.js
+@@ -4,6 +4,7 @@
+ 
+ import { validateExecutablePack } from './executable-pack.js';
+ import { resolvePackOperationDefinitions } from './pack-operation-policy.js';
++import { resolvePackJobPolicy } from './peer-pack-job-policy.js';
+ 
+ export const POLICY_IDS = Object.freeze({
+   fastestReceipt: 'fastest_receipt',
+@@ -148,6 +149,8 @@ const validateSequenceModelContract = (model, index, reasons, { isLaunchModel =
+ 
+ export function validatePoolConfigValue(config = {}) {
+   const reasons = [];
++  try { resolvePackJobPolicy(config.peerJobs); }
++  catch (error) { reasons.push(error.message); }
+   try { resolvePackOperationDefinitions(config.operations, config.operationComparisonPolicies); }
+   catch (error) { reasons.push(error.message); }
+   const modelCatalog = Array.isArray(config.modelCatalog) ? config.modelCatalog : [];
+diff --git a/self/pool/local-pack-executor.js b/self/pool/local-pack-executor.js
+index 0a0c010..bdfbc79 100644
+--- a/self/pool/local-pack-executor.js
++++ b/self/pool/local-pack-executor.js
+@@ -26,7 +26,7 @@ export function createLocalPackExecutor({ service = DopplerRuntimeService, scope
+     finally { releasing = false; }
+   };
+   return {
+-    async run({ model: modelInput, input, options = {}, assignment = null, limits, signal = null, onPartial = null }) {
++    async run({ model: modelInput, input, options = {}, assignment = null, limits, signal = null, onPartial = null, beforeExecute = null }) {
+       if (disposed || active) throw new Error(disposed ? 'Document executor is closed' : 'A document operation is already running');
+       const model = snapshotPackOperationData(modelInput);
+       const validation = validateOperationModel(model, registry);
+@@ -86,7 +86,7 @@ export function createLocalPackExecutor({ service = DopplerRuntimeService, scope
+           if (session.modelId !== model.modelId) throw new Error('Loaded Pack model id mismatch');
+           await releasePolicy.assertCurrent(session);
+           execution = await runPackOperation({ binding: model.executablePack, session, request,
+-            runtimeVersion: model.runtimeVersion, signal: localController.signal, onPartial, assertCurrent, registry });
++            runtimeVersion: model.runtimeVersion, signal: localController.signal, onPartial, beforeExecute, assertCurrent, registry });
+           assertCurrent();
+           await releasePolicy.assertCurrent(session);
+           assertCurrent();
+diff --git a/self/pool/pack-operation-adapters.js b/self/pool/pack-operation-adapters.js
+index 788cc8a..653e08e 100644
+--- a/self/pool/pack-operation-adapters.js
++++ b/self/pool/pack-operation-adapters.js
+@@ -100,7 +100,9 @@ export function createPackOperationRegistry({ definitions = poolConfig.operation
+       `unknown configured adapter ${definition.adapterId}`);
+     requireValue(['inputContract', 'optionsContract', 'outputContract'].every(name => definition[name].version === implementation.contractVersion),
+       `unsupported contract version for ${definition.adapterId}`);
+-    const adapter = Object.freeze({ definition, version: definition.version, workload: definition.workload,
++    const policy = Object.freeze({ definition, comparisons: Object.freeze(Object.fromEntries(
++      definition.comparisonPolicyIds.map(id => [id, resolved.comparisons[id]]))) });
++    const adapter = Object.freeze({ definition, policy, implementation, version: definition.version, workload: definition.workload,
+       validateRequest(request) {
+         assertOperationFields(request.input, definition.inputContract, 'input');
+         assertOperationFields(request.options, definition.optionsContract, 'options');
+diff --git a/self/pool/pack-operation-policy.js b/self/pool/pack-operation-policy.js
+index a750b39..65dedad 100644
+--- a/self/pool/pack-operation-policy.js
++++ b/self/pool/pack-operation-policy.js
+@@ -44,6 +44,7 @@ export function resolvePackOperationDefinitions(definitions, comparisons) {
+       && definition.comparisonPolicyIds.every(policyId => Object.hasOwn(rules, policyId)), `${id}: unknown comparison policy`);
+     assert(strings(definition.inputClasses?.local) && definition.inputClasses.local.length > 0 && strings(definition.inputClasses.remote)
+       && definition.inputClasses.remote.every(value => definition.inputClasses.local.includes(value)), `${id}: explicit input classes required`);
++    assert(definition.inputClasses.defaultRemote === null || definition.inputClasses.remote.includes(definition.inputClasses.defaultRemote), `${id}: explicit remote input class or null required`);
+   }
+   return Object.freeze({ definitions: resolved, comparisons: rules });
+ }
+diff --git a/self/pool/pack-operation.js b/self/pool/pack-operation.js
+index 35e60bf..3dd9ada 100644
+--- a/self/pool/pack-operation.js
++++ b/self/pool/pack-operation.js
+@@ -66,7 +66,7 @@ export async function assertPackOperationEvent({ binding, request, runtimeVersio
+ }
+ 
+ export async function runPackOperation({ binding: bindingInput, session, request: requestInput, runtimeVersion,
+-  registry = createPackOperationRegistry(), signal = null, onPartial = null, assertCurrent = async () => {} }) {
++  registry = createPackOperationRegistry(), signal = null, onPartial = null, beforeExecute = null, assertCurrent = async () => {} }) {
+   const binding = snapshotPackOperationData(bindingInput);
+   const request = snapshotPackOperationData(requestInput);
+   assertPackOperationRequest(binding, request, registry);
+@@ -83,6 +83,8 @@ export async function runPackOperation({ binding: bindingInput, session, request
+   await current();
+   await assertPackSession(binding, session);
+   requireValue(typeof session.executeOperation === 'function', 'public executeOperation is required; no legacy operation fallback');
++  await beforeExecute?.();
++  await current();
+   let previousEventDigest = null;
+   let eventCount = 0;
+   let streamBytes = 0;
+diff --git a/self/pool/peer-pack-job.js b/self/pool/peer-pack-job.js
+index ab7b44a..d000bb7 100644
+--- a/self/pool/peer-pack-job.js
++++ b/self/pool/peer-pack-job.js
+@@ -1,4 +1,6 @@
+ /** Application-pinned complete jobs. Public catalog admission remains separate. */
++import { PACK_JOB_POLICY, resolvePackJobPolicy } from './peer-pack-job-policy.js';
++import { assertOperationLimits } from './pack-operation-policy.js';
+ import { hashJson, sha256Hex } from './inference-receipt.js';
+ import { createSignedPeerMessage, verifyPeerMessage, PEER_MESSAGE_TYPES } from './peer-protocol.js';
+ import { sealPeerAssignmentIdentity } from './peer-assignment.js';
+@@ -7,10 +9,10 @@ import { createPackOperationRegistry } from './pack-operation-adapters.js';
+ import { assertPackOperationRequest, snapshotPackOperationData as snapshot } from './pack-operation.js';
+ import { hashDopplerEvidence } from './executable-pack.js';
+ 
+-export const PACK_JOB_SCHEMA = 'reploid.peer.pack_job/v1';
+-export const PACK_UPDATE_SCHEMA = 'reploid.peer.pack_update/v1';
+-export const PACK_CANCEL_SCHEMA = 'reploid.peer.pack_cancel/v1';
+-export const PACK_JOB_MAX_WIRE_BYTES = 16 * 1024 * 1024;
++export const PACK_JOB_SCHEMA = PACK_JOB_POLICY.schemas.job;
++export const PACK_UPDATE_SCHEMA = PACK_JOB_POLICY.schemas.update;
++export const PACK_CANCEL_SCHEMA = PACK_JOB_POLICY.schemas.cancel;
++export const PACK_JOB_MAX_WIRE_BYTES = PACK_JOB_POLICY.limits.maxWireBytes;
+ export const requirePackJob = (ok, message) => { if (!ok) throw new Error(`Peer Pack job: ${message}`); };
+ export const packJobBytes = value => new TextEncoder().encode(JSON.stringify(value)).length;
+ const equal = async (a, b) => await hashJson(a) === await hashJson(b);
+@@ -26,30 +28,28 @@ export function packPeerModel(model, registry = createPackOperationRegistry()) {
+   return pin;
+ }
+ 
+-export function validatePackPeerLimits(limits) {
++export function validatePackPeerLimits(limits, policy = PACK_JOB_POLICY) {
+   for (const key of ['maxInputBytes', 'maxOutputBytes', 'maxStreamBytes', 'maxEvents', 'maxJobMs']) {
+     requirePackJob(Number.isSafeInteger(limits?.[key]) && limits[key] > 0, `${key} required`);
+   }
+-  requirePackJob(limits.maxInputBytes <= PACK_JOB_MAX_WIRE_BYTES / 4
+-    && limits.maxOutputBytes <= PACK_JOB_MAX_WIRE_BYTES / 4 && limits.maxStreamBytes <= 64 * 1024 * 1024
+-    && limits.maxEvents <= 4096 && limits.maxJobMs <= 300000, 'protocol resource ceiling exceeded');
++  for (const key of ['maxInputBytes', 'maxOutputBytes', 'maxStreamBytes', 'maxEvents', 'maxJobMs']) requirePackJob(limits[key] <= policy.limits[key], 'protocol resource ceiling exceeded');
+ }
+ 
+-export async function signPackPeerMessage({ identity, type, recipient = null, body, expiresAt }) {
++export async function signPackPeerMessage({ identity, type, recipient = null, body, expiresAt, policy = PACK_JOB_POLICY }) {
+   const message = await createSignedPeerMessage({ type, fromPeerId: identity.keyId, toPeerId: recipient,
+     publicKey: identity.publicKey, privateKey: identity.privateKey, body, expiresAt: new Date(expiresAt).toISOString() });
+-  requirePackJob(packJobBytes(message) <= PACK_JOB_MAX_WIRE_BYTES, 'wire byte limit exceeded');
++  requirePackJob(packJobBytes(message) <= policy.limits.maxWireBytes, 'wire byte limit exceeded');
+   return snapshot(message);
+ }
+ 
+-export async function verifyPackPeerMessage(message, { type, recipient = null, sender = null, now = Date.now() }) {
+-  requirePackJob(packJobBytes(message) <= PACK_JOB_MAX_WIRE_BYTES, 'wire byte limit exceeded');
++export async function verifyPackPeerMessage(message, { type, recipient = null, sender = null, now = Date.now(), policy = PACK_JOB_POLICY }) {
++  requirePackJob(packJobBytes(message) <= policy.limits.maxWireBytes, 'wire byte limit exceeded');
+   message = snapshot(message);
+   const created = Date.parse(message.createdAt), expires = Date.parse(message.expiresAt);
+   requirePackJob(message.type === type && message.toPeerId === recipient && (!sender || message.fromPeerId === sender)
+-    && digest(message.fromPeerId) && typeof message.publicKey === 'string' && message.publicKey.length <= 1024
+-    && Number.isFinite(created) && created <= now + 5000 && Number.isFinite(expires)
+-    && expires > created && expires - created <= 300000, 'message scope or validity rejected');
++    && digest(message.fromPeerId) && typeof message.publicKey === 'string' && message.publicKey.length <= policy.limits.maxPublicKeyCharacters
++    && Number.isFinite(created) && created <= now + policy.limits.maxClockSkewMs && Number.isFinite(expires)
++    && expires > created && expires - created <= policy.limits.maxJobMs, 'message scope or validity rejected');
+   requirePackJob(await sha256Hex(Uint8Array.from(atob(message.publicKey), c => c.charCodeAt(0))) === message.fromPeerId,
+     'identity does not bind signing key');
+   const checked = await verifyPeerMessage(message, { now });
+@@ -57,29 +57,41 @@ export async function verifyPackPeerMessage(message, { type, recipient = null, s
+   return message;
+ }
+ 
+-export async function createPackProviderAdvert({ identity, models, limits, expiresAt, registry = createPackOperationRegistry() }) {
+-  validatePackPeerLimits(limits);
+-  requirePackJob(Array.isArray(models) && models.length > 0 && models.length <= 16, 'bounded model pins required');
+-  return signPackPeerMessage({ identity, type: PEER_MESSAGE_TYPES.PROVIDER_ADVERT, expiresAt,
++export async function createPackProviderAdvert({ identity, models, limits, expiresAt, registry = createPackOperationRegistry(), policy = PACK_JOB_POLICY }) {
++  validatePackPeerLimits(limits, policy);
++  requirePackJob(Array.isArray(models) && models.length > 0 && models.length <= policy.limits.maxModels, 'bounded model pins required');
++  return signPackPeerMessage({ identity, type: PEER_MESSAGE_TYPES.PROVIDER_ADVERT, expiresAt, policy,
+     body: { schema: 'reploid.peer.pack_provider/v1', models: models.map(model => packPeerModel(model, registry)), limits } });
+ }
+ 
+-async function jobParts({ requesterId, advert, intent, input, options, registry }) {
++async function jobParts({ requesterId, advert, intent, input, options, registry, legacy = false, policy = PACK_JOB_POLICY }) {
+   const model = packPeerModel(intent.model, registry);
+   requirePackJob(await equal(model, intent.model) && advert.body.schema === 'reploid.peer.pack_provider/v1', 'invalid model pin or advert');
+-  validatePackPeerLimits(advert.body.limits);
++  validatePackPeerLimits(advert.body.limits, policy);
+   requirePackJob(Array.isArray(advert.body.models) && (await Promise.all(advert.body.models.map(pin => equal(pin, model)))).some(Boolean), 'provider does not advertise the exact model');
+-  requirePackJob(typeof intent.jobId === 'string' && intent.jobId.length > 0 && intent.jobId.length <= 128
+-    && typeof intent.attemptId === 'string' && intent.attemptId.length > 0 && intent.attemptId.length <= 128, 'job and attempt identities required');
++  requirePackJob(typeof intent.jobId === 'string' && intent.jobId.length > 0 && intent.jobId.length <= policy.limits.maxIdentityCharacters
++    && typeof intent.attemptId === 'string' && intent.attemptId.length > 0 && intent.attemptId.length <= policy.limits.maxIdentityCharacters, 'job and attempt identities required');
+   requirePackJob(intent.consent?.schema === 'reploid.peer.public_operation_consent/v1' && intent.consent.publicInput === true
+-    && Array.isArray(intent.consent.providerIds) && intent.consent.providerIds.length > 0 && intent.consent.providerIds.length <= 8
++    && Array.isArray(intent.consent.providerIds) && intent.consent.providerIds.length > 0 && intent.consent.providerIds.length <= policy.limits.maxConsentProviders
+     && intent.consent.providerIds.every(digest) && intent.consent.providerIds.includes(advert.fromPeerId), 'explicit public input and selected-provider consent required');
+   const { deadlineAt, ...limits } = intent.limits;
+-  validatePackPeerLimits(limits);
++  validatePackPeerLimits(limits, policy);
++  assertOperationLimits(limits, registry[model.executablePack.requiredOperation].definition);
+   for (const key of Object.keys(advert.body.limits)) requirePackJob(limits[key] <= advert.body.limits[key], 'assignment exceeds advertised limits');
+   requirePackJob(Number.isSafeInteger(intent.selectedAt) && Number.isSafeInteger(deadlineAt)
+     && deadlineAt > intent.selectedAt && deadlineAt - intent.selectedAt <= limits.maxJobMs, 'bounded assignment deadline required');
+   const operation = { name: model.executablePack.requiredOperation, version: registry[model.executablePack.requiredOperation].version };
++  if (!legacy) {
++    const definition = registry[operation.name].definition;
++    requirePackJob(Number.isSafeInteger(intent.attemptNumber) && intent.attemptNumber > 0
++      && intent.attemptNumber <= policy.attempts.maximumNumber, 'explicit bounded attempt number required');
++    requirePackJob(definition.inputClasses.remote.includes(intent.inputClass), 'operation does not permit this remote input class');
++    requirePackJob(intent.operationPolicyDigest === await hashDopplerEvidence(registry[operation.name].policy)
++      && intent.jobPolicyDigest === await hashDopplerEvidence(policy), 'assignment policy differs from resolved configuration');
++    requirePackJob(intent.operationPolicyDigest === await hashDopplerEvidence(intent.operationPolicy)
++      && intent.jobPolicyDigest === await hashDopplerEvidence(intent.jobPolicy), 'signed policy snapshot mismatch');
++    requirePackJob(await equal(intent.adapterSet, policy.execution.adapterSet), 'adapter set is outside resolved execution policy');
++  }
+   requirePackJob(intent.inputHash === await hashDopplerEvidence({ input, options }), 'input differs from signed intent');
+   requirePackJob(intent.comparisonPolicy?.schema === 'poolday.operation-comparison/v1'
+     && await equal(intent.comparisonPolicy.operation, operation) && digest(intent.comparisonPolicy.referenceDigest), 'frozen comparison policy required');
+@@ -92,6 +104,8 @@ async function jobParts({ requesterId, advert, intent, input, options, registry
+     providerAdvertHash: advert.messageHash, providerParticipationProfileHash: null, providerLimits: limits,
+     assignmentAttemptId: intent.attemptId, comparisonPolicyDigest: await hashDopplerEvidence(intent.comparisonPolicy),
+     inputHash: intent.inputHash, model, expiresAt: new Date(deadlineAt).toISOString() };
++  if (!legacy) Object.assign(assignment, { attemptNumber: intent.attemptNumber, inputClass: intent.inputClass,
++    operationPolicyDigest: intent.operationPolicyDigest, jobPolicyDigest: intent.jobPolicyDigest, adapterSet: intent.adapterSet });
+   const request = { schema: 'doppler.pack-operation-request/v1', operation, input, options, assignment,
+     limits: { maxInputBytes: limits.maxInputBytes, maxOutputBytes: limits.maxOutputBytes, deadlineAt } };
+   assertPackOperationRequest(model.executablePack, request, registry);
+@@ -99,26 +113,34 @@ async function jobParts({ requesterId, advert, intent, input, options, registry
+ }
+ 
+ export async function createPackPeerJob({ identity, advert, model, input, options = {}, limits, consent, comparisonPolicy,
+-  jobId = crypto.randomUUID(), attemptId = crypto.randomUUID(), registry = createPackOperationRegistry() }) {
++  jobId = crypto.randomUUID(), attemptId = crypto.randomUUID(), attemptNumber, adapterSet,
++  registry = createPackOperationRegistry(), policy: policyInput = PACK_JOB_POLICY }) {
++  const policy = resolvePackJobPolicy(policyInput);
++  if (attemptNumber === undefined) attemptNumber = policy.attempts.initialNumber;
++  if (adapterSet === undefined) adapterSet = policy.execution.adapterSet;
+   // Snapshot before the first await, including nested policy and model objects.
+-  const data = snapshot({ advert, model: packPeerModel(model, registry), input, options, limits, consent, comparisonPolicy, jobId, attemptId });
+-  advert = await verifyPackPeerMessage(data.advert, { type: PEER_MESSAGE_TYPES.PROVIDER_ADVERT });
++  const data = snapshot({ advert, model: packPeerModel(model, registry), input, options, limits, consent, comparisonPolicy, jobId, attemptId, attemptNumber, adapterSet });
++  advert = await verifyPackPeerMessage(data.advert, { type: PEER_MESSAGE_TYPES.PROVIDER_ADVERT, policy });
+   const intent = { model: data.model, limits: data.limits, consent: data.consent, comparisonPolicy: data.comparisonPolicy,
+-    jobId, attemptId, selectedAt: Date.now(), inputHash: await hashDopplerEvidence({ input: data.input, options: data.options }) };
+-  const parts = await jobParts({ requesterId: identity.keyId, advert, intent, input: data.input, options: data.options, registry });
++    jobId, attemptId, attemptNumber, adapterSet: data.adapterSet, inputClass: registry[data.model.executablePack.requiredOperation].definition.inputClasses.defaultRemote,
++    operationPolicy: registry[data.model.executablePack.requiredOperation].policy, jobPolicy: policy,
++    operationPolicyDigest: await hashDopplerEvidence(registry[data.model.executablePack.requiredOperation].policy),
++    jobPolicyDigest: await hashDopplerEvidence(policy), selectedAt: Date.now(), inputHash: await hashDopplerEvidence({ input: data.input, options: data.options }) };
++  const parts = await jobParts({ requesterId: identity.keyId, advert, intent, input: data.input, options: data.options, registry, policy });
+   return signPackPeerMessage({ identity, type: PEER_MESSAGE_TYPES.ASSIGNMENT_CLAIM, recipient: advert.fromPeerId,
+-    expiresAt: data.limits.deadlineAt, body: { schema: PACK_JOB_SCHEMA, advert, intent, ...parts } });
++    expiresAt: data.limits.deadlineAt, policy, body: { schema: PACK_JOB_SCHEMA, advert, intent, ...parts } });
+ }
+ 
+-export async function verifyPackPeerJob(message, { providerId, models, registry = createPackOperationRegistry(), now = Date.now() }) {
+-  const job = await verifyPackPeerMessage(message, { type: PEER_MESSAGE_TYPES.ASSIGNMENT_CLAIM, recipient: providerId, now });
+-  requirePackJob(job.body.schema === PACK_JOB_SCHEMA, 'unknown job schema');
++export async function verifyPackPeerJob(message, { providerId, models, registry = createPackOperationRegistry(), now = Date.now(), allowLegacy = false, policy = PACK_JOB_POLICY }) {
++  const job = await verifyPackPeerMessage(message, { type: PEER_MESSAGE_TYPES.ASSIGNMENT_CLAIM, recipient: providerId, now, policy });
++  const legacy = job.body.schema === policy.schemas.legacyJob;
++  requirePackJob(job.body.schema === PACK_JOB_SCHEMA || (allowLegacy && legacy), 'unknown job schema');
+   const { advert, intent, assignment, request } = job.body;
+-  requirePackJob(intent.selectedAt <= now && intent.selectedAt >= Date.parse(job.createdAt) - 5000
++  requirePackJob(intent.selectedAt <= now && intent.selectedAt >= Date.parse(job.createdAt) - policy.limits.maxClockSkewMs
+     && job.expiresAt === new Date(intent.limits.deadlineAt).toISOString(), 'selection time or expiry mismatch');
+-  await verifyPackPeerMessage(advert, { type: PEER_MESSAGE_TYPES.PROVIDER_ADVERT, sender: providerId, now: intent.selectedAt });
++  await verifyPackPeerMessage(advert, { type: PEER_MESSAGE_TYPES.PROVIDER_ADVERT, sender: providerId, now: intent.selectedAt, policy });
+   requirePackJob((await Promise.all(models.map(model => equal(packPeerModel(model, registry), intent.model)))).some(Boolean), 'model is outside application pins');
+-  const expected = await jobParts({ requesterId: job.fromPeerId, advert, intent, input: request.input, options: request.options, registry });
++  const expected = await jobParts({ requesterId: job.fromPeerId, advert, intent, input: request.input, options: request.options, registry, legacy, policy });
+   requirePackJob(await equal(assignment, expected.assignment) && await equal(request, expected.request), 'assignment or request does not match signed authority');
+   return job;
+ }
+diff --git a/self/pool/peer-pack-provider.js b/self/pool/peer-pack-provider.js
+index f61cabe..e46efad 100644
+--- a/self/pool/peer-pack-provider.js
++++ b/self/pool/peer-pack-provider.js
+@@ -4,28 +4,33 @@ import { createPackOperationRegistry } from './pack-operation-adapters.js';
+ import { snapshotPackOperationData as snapshot, assertPackOperationEvent } from './pack-operation.js';
+ import { hashDopplerEvidence } from './executable-pack.js';
+ import { openPackJobJournal } from '../infrastructure/pack-job-storage.js';
+-import { PACK_JOB_SCHEMA, PACK_UPDATE_SCHEMA, PACK_CANCEL_SCHEMA, PACK_JOB_MAX_WIRE_BYTES, packJobBytes,
++import { PACK_JOB_POLICY, resolvePackJobPolicy } from './peer-pack-job-policy.js';
++import { PACK_JOB_SCHEMA, PACK_UPDATE_SCHEMA, PACK_CANCEL_SCHEMA, packJobBytes,
+   requirePackJob, verifyPackPeerJob, verifyPackPeerMessage, signPackPeerMessage, packPeerModel, createPackProviderAdvert } from './peer-pack-job.js';
+ 
+ /** One physical executor, bounded replay records, and cooperative cancellation. */
+ export function createPackPeerProvider({ identity, bus, models, authorize,
+   registry = createPackOperationRegistry(), executor = createLocalPackExecutor({ registry }),
+-  journal: suppliedJournal = null, journalName = 'reploid-pack-jobs-v1',
+-  maxAttempts = 128, maxRetainedBytes = 64 * 1024 * 1024, onError = () => {} }) {
++  policy: policyInput = PACK_JOB_POLICY, journal: suppliedJournal = null, journalName = policyInput.persistence.databaseName,
++  maxAttempts = policyInput.persistence.maxRecords, maxRetainedBytes = policyInput.persistence.maxSavedBytes, onError = () => {} }) {
++  const policy = resolvePackJobPolicy(policyInput);
+   requirePackJob(typeof authorize === 'function', 'provider admission callback required');
+-  requirePackJob(Number.isSafeInteger(maxAttempts) && maxAttempts > 0 && maxAttempts <= 256
+-    && Number.isSafeInteger(maxRetainedBytes) && maxRetainedBytes > 0 && maxRetainedBytes <= 64 * 1024 * 1024, 'invalid provider retention limits');
++  requirePackJob(Number.isSafeInteger(maxAttempts) && maxAttempts > 0 && maxAttempts <= policy.persistence.recordCeiling
++    && Number.isSafeInteger(maxRetainedBytes) && maxRetainedBytes > 0 && maxRetainedBytes <= policy.persistence.byteCeiling, 'invalid provider retention limits');
+   models = snapshot(models);
+   const records = new Map();
+   const writer = crypto.randomUUID();
+   let journal = suppliedJournal, journalOpening = null;
+   const storage = async () => {
+     if (!journal) journal = await (journalOpening ??= openPackJobJournal({ providerId: identity.keyId,
+-      name: journalName, maxAttempts, maxBytes: maxRetainedBytes }));
++      policy: policy.persistence, name: journalName, maxAttempts, maxBytes: maxRetainedBytes }));
+     return journal;
+   };
+   const descriptor = record => ({ requesterId: record.requesterId, jobId: record.jobId,
+-    attemptId: record.attemptId, jobHash: record.job.messageHash, expiresAt: record.expiresAt });
++    attemptId: record.attemptId, jobHash: record.job.messageHash, expiresAt: record.expiresAt,
++    binding: { requestHash: record.requestHash, assignmentId: record.job.body.assignment.assignmentId,
++      operation: record.job.body.request.operation, model: record.job.body.intent.model,
++      adapterSet: record.job.body.intent.adapterSet, attemptNumber: record.job.body.intent.attemptNumber } });
+   const lifecycle = new AbortController();
+   let retainedBytes = 0, queued = 0, queuedBytes = 0, closed = false, active = null, incoming = Promise.resolve();
+   const keyFor = (sender, hash) => `${sender}/${hash}`;
+@@ -52,7 +57,7 @@ export function createPackPeerProvider({ identity, bus, models, authorize,
+ 
+   async function update(record, status, event = null) {
+     if (status === 'partial' || status === 'completed') current(record);
+-    const message = await signPackPeerMessage({ identity, type: PEER_MESSAGE_TYPES.EXECUTION_RESULT,
++    const message = await signPackPeerMessage({ identity, policy, type: PEER_MESSAGE_TYPES.EXECUTION_RESULT,
+       recipient: record.job.fromPeerId, expiresAt: record.expiresAt,
+       body: { schema: PACK_UPDATE_SCHEMA, jobHash: record.job.messageHash, requestHash: record.requestHash,
+         updateIndex: record.updates.length, previousUpdateHash: record.updates.at(-1)?.messageHash ?? null, status, event } });
+@@ -75,7 +80,7 @@ export function createPackPeerProvider({ identity, bus, models, authorize,
+       requirePackJob(!terminal && Date.parse(response.createdAt) >= Date.parse(record.job.createdAt)
+         && Date.parse(response.createdAt) <= Date.now(), 'invalid restored response chronology');
+       const message = await verifyPackPeerMessage(response, { type: PEER_MESSAGE_TYPES.EXECUTION_RESULT,
+-        recipient: record.requesterId, sender: identity.keyId, now: Date.parse(response.createdAt) });
++        recipient: record.requesterId, sender: identity.keyId, now: Date.parse(response.createdAt), policy });
+       const body = message.body;
+       requirePackJob(body.schema === PACK_UPDATE_SCHEMA && body.jobHash === record.job.messageHash
+         && body.requestHash === record.requestHash && message.expiresAt === record.job.expiresAt
+@@ -93,7 +98,8 @@ export function createPackPeerProvider({ identity, bus, models, authorize,
+     }
+     requirePackJob(record.updates.length <= record.job.body.intent.limits.maxEvents
+       && record.bytes <= record.job.body.intent.limits.maxStreamBytes && retainedBytes + record.bytes <= maxRetainedBytes, 'restored stream exceeds limits');
+-    requirePackJob(terminal ? saved.status === terminal : ['running', 'interrupted', 'cancelled'].includes(saved.status), 'restored terminal state mismatch');
++    requirePackJob(terminal ? saved.status === policy.persistence.outcomeStates[terminal]
++      : ['accepted', 'running', 'interrupted', 'cancelled'].includes(saved.status), 'restored terminal state mismatch');
+     retainedBytes += record.bytes;
+     record.status = saved.status;
+     // Restore the complete prefix before extending it with an interruption.
+@@ -113,6 +119,12 @@ export function createPackPeerProvider({ identity, bus, models, authorize,
+       current(record);
+       const result = await executor.run({ model, input: request.input, options: request.options,
+         assignment: request.assignment, limits: request.limits, signal: record.controller.signal,
++        beforeExecute: async () => {
++          current(record);
++          await (await storage()).markRunning(descriptor(record), writer);
++          current(record);
++          record.status = 'running';
++        },
+         onPartial: async event => {
+           current(record);
+           await admitted(record.job, record.controller.signal);
+@@ -150,26 +162,26 @@ export function createPackPeerProvider({ identity, bus, models, authorize,
+     if (![PACK_JOB_SCHEMA, PACK_CANCEL_SCHEMA].includes(schema)) return;
+     prune();
+     if (schema === PACK_CANCEL_SCHEMA) {
+-      const cancel = await verifyPackPeerMessage(message, { type: PEER_MESSAGE_TYPES.HEARTBEAT, recipient: identity.keyId });
++      const cancel = await verifyPackPeerMessage(message, { type: PEER_MESSAGE_TYPES.HEARTBEAT, recipient: identity.keyId, policy });
+       requirePackJob(/^sha256:[0-9a-f]{64}$/.test(cancel.body.jobHash), 'invalid cancellation target');
+       for (const field of ['jobId', 'attemptId']) requirePackJob(typeof cancel.body[field] === 'string'
+-        && cancel.body[field].length > 0 && cancel.body[field].length <= 128, 'cancellation attempt identity required');
++        && cancel.body[field].length > 0 && cancel.body[field].length <= policy.limits.maxIdentityCharacters, 'cancellation attempt identity required');
+       const key = keyFor(cancel.fromPeerId, cancel.body.jobHash);
+       const record = records.get(key);
+       if (record) {
+         requirePackJob(record.jobId === cancel.body.jobId && record.attemptId === cancel.body.attemptId, 'cancellation attempt mismatch');
+-        if (record.status === 'running') { record.status = 'cancelled'; record.controller.abort(new Error('requester cancelled')); }
++        if (['accepted', 'running'].includes(record.status)) { record.status = 'cancelled'; record.controller.abort(new Error('requester cancelled')); }
+       } else {
+         requirePackJob(records.size < maxAttempts, 'attempt retention exhausted');
+         // A short cancellation lease cannot allow a still-live delayed job to restart.
+         records.set(key, { requesterId: cancel.fromPeerId, jobId: cancel.body.jobId, attemptId: cancel.body.attemptId,
+-          status: 'cancelled', bytes: 0, updates: [], expiresAt: Date.now() + 300000 });
++          status: 'cancelled', bytes: 0, updates: [], expiresAt: Date.now() + policy.limits.maxJobMs });
+       }
+       await (await storage()).cancel({ requesterId: cancel.fromPeerId, jobId: cancel.body.jobId,
+-        attemptId: cancel.body.attemptId, jobHash: cancel.body.jobHash, expiresAt: Date.now() + 300000 }, writer);
++        attemptId: cancel.body.attemptId, jobHash: cancel.body.jobHash, expiresAt: Date.now() + policy.limits.maxJobMs, binding: null }, writer);
+       return;
+     }
+-    const job = await verifyPackPeerJob(message, { providerId: identity.keyId, models, registry });
++    const job = await verifyPackPeerJob(message, { providerId: identity.keyId, models, registry, policy });
+     const key = keyFor(job.fromPeerId, job.messageHash);
+     const prior = records.get(key);
+     await admitted(job);
+@@ -185,7 +197,7 @@ export function createPackPeerProvider({ identity, bus, models, authorize,
+     requirePackJob(records.size < maxAttempts, 'attempt retention exhausted');
+     requirePackJob(!closed && Date.now() < Date.parse(job.expiresAt), 'attempt expired during admission');
+     const record = { job, requesterId: job.fromPeerId, jobId: job.body.intent.jobId, attemptId: job.body.intent.attemptId,
+-      status: 'running', controller: new AbortController(), expiresAt: Date.parse(job.expiresAt),
++      status: 'accepted', controller: new AbortController(), expiresAt: Date.parse(job.expiresAt),
+       requestHash: await hashDopplerEvidence(job.body.request), bytes: 0, updates: [], eventIndex: 0, previousEventDigest: null };
+     const claimed = await (await storage()).claim(descriptor(record), writer);
+     requirePackJob(!closed && Date.now() < record.expiresAt, 'attempt expired during durable admission');
+@@ -211,7 +223,7 @@ export function createPackPeerProvider({ identity, bus, models, authorize,
+   const unsubscribe = bus.subscribe(message => {
+     if (closed || message?.toPeerId !== identity.keyId) return;
+     const bytes = packJobBytes(message);
+-    if (queued >= 16 || queuedBytes + bytes > PACK_JOB_MAX_WIRE_BYTES) { onError(new Error('Peer Pack provider inbox limit')); return; }
++    if (queued >= policy.limits.maxInboxMessages || queuedBytes + bytes > policy.limits.maxWireBytes) { onError(new Error('Peer Pack provider inbox limit')); return; }
+     let copy;
+     try { copy = snapshot(message); } catch (error) { onError(error); return; }
+     queued++; queuedBytes += bytes;
+@@ -223,7 +235,7 @@ export function createPackPeerProvider({ identity, bus, models, authorize,
+   return {
+     createAdvert({ limits, expiresAt }) {
+       requirePackJob(!closed, 'provider is closed');
+-      return createPackProviderAdvert({ identity, models, limits, expiresAt, registry });
++      return createPackProviderAdvert({ identity, models, limits, expiresAt, registry, policy });
+     },
+     getState() { prune(); return { closed, active: !!active || executor.getState?.().active === true,
+       draining: active?.controller.signal.aborted === true || executor.getState?.().draining === true,
+diff --git a/self/pool/peer-pack-requester.js b/self/pool/peer-pack-requester.js
+index b092ea9..5da4f66 100644
+--- a/self/pool/peer-pack-requester.js
++++ b/self/pool/peer-pack-requester.js
+@@ -1,15 +1,17 @@
++import { PACK_JOB_POLICY, resolvePackJobPolicy } from './peer-pack-job-policy.js';
+ import { PEER_MESSAGE_TYPES } from './peer-protocol.js';
+ import { createPackOperationRegistry } from './pack-operation-adapters.js';
+ import { snapshotPackOperationData as snapshot, assertPackOperationEvent, assessPackOperation } from './pack-operation.js';
+ import { hashDopplerEvidence } from './executable-pack.js';
+-import { PACK_UPDATE_SCHEMA, PACK_CANCEL_SCHEMA, PACK_JOB_MAX_WIRE_BYTES, requirePackJob, packJobBytes,
++import { PACK_UPDATE_SCHEMA, PACK_CANCEL_SCHEMA, requirePackJob, packJobBytes,
+   createPackPeerJob, verifyPackPeerJob, verifyPackPeerMessage, signPackPeerMessage } from './peer-pack-job.js';
+ 
+ /** Explicit public delegation. Local document search never calls this automatically. */
+ export function createPackPeerRequester({ identity, bus, models, registry = createPackOperationRegistry(),
+-  maxDeliveries = 3, retryMs = 2000, onError = () => {} }) {
+-  requirePackJob(Number.isSafeInteger(maxDeliveries) && maxDeliveries >= 1 && maxDeliveries <= 8
+-    && Number.isSafeInteger(retryMs) && retryMs >= 100 && retryMs <= 10000, 'bounded retry policy required');
++  policy: policyInput = PACK_JOB_POLICY, maxDeliveries = policyInput.retry.maxDeliveries, retryMs = policyInput.retry.delayMs, onError = () => {} }) {
++  const policy = resolvePackJobPolicy(policyInput);
++  requirePackJob(Number.isSafeInteger(maxDeliveries) && maxDeliveries >= 1 && maxDeliveries <= policy.retry.maximumDeliveries
++    && Number.isSafeInteger(retryMs) && retryMs >= policy.retry.minimumDelayMs && retryMs <= policy.retry.maximumDelayMs, 'bounded retry policy required');
+   models = snapshot(models);
+   let active = null, closed = false;
+   function current(record) {
+@@ -25,7 +27,7 @@ export function createPackPeerRequester({ identity, bus, models, registry = crea
+   }
+   async function sendCancellation(record) {
+     if (!record.job || Date.now() >= record.deadlineAt) return;
+-    const cancellation = await signPackPeerMessage({ identity, type: PEER_MESSAGE_TYPES.HEARTBEAT,
++    const cancellation = await signPackPeerMessage({ identity, policy, type: PEER_MESSAGE_TYPES.HEARTBEAT,
+       recipient: record.job.toPeerId, expiresAt: record.deadlineAt,
+       body: { schema: PACK_CANCEL_SCHEMA, jobHash: record.job.messageHash,
+         jobId: record.job.body.intent.jobId, attemptId: record.job.body.intent.attemptId } });
+@@ -50,7 +52,7 @@ export function createPackPeerRequester({ identity, bus, models, registry = crea
+   async function receive(record, message) {
+     current(record);
+     const update = await verifyPackPeerMessage(message, { type: PEER_MESSAGE_TYPES.EXECUTION_RESULT,
+-      recipient: identity.keyId, sender: record.job.toPeerId });
++      recipient: identity.keyId, sender: record.job.toPeerId, policy });
+     current(record);
+     const body = update.body;
+     requirePackJob(body.schema === PACK_UPDATE_SCHEMA && body.jobHash === record.job.messageHash
+@@ -84,7 +86,7 @@ export function createPackPeerRequester({ identity, bus, models, registry = crea
+       policy: record.job.body.intent.comparisonPolicy, registry });
+     current(record);
+     requirePackJob(assessment.accepted, 'output failed frozen comparison');
+-    const acceptance = await signPackPeerMessage({ identity, type: PEER_MESSAGE_TYPES.ACCEPTANCE,
++    const acceptance = await signPackPeerMessage({ identity, policy, type: PEER_MESSAGE_TYPES.ACCEPTANCE,
+       recipient: record.job.toPeerId, expiresAt: record.deadlineAt,
+       body: { schema: 'reploid.peer.pack_acceptance/v1', jobHash: record.job.messageHash,
+         finalUpdateHash: update.messageHash, assessment } });
+@@ -98,7 +100,7 @@ export function createPackPeerRequester({ identity, bus, models, registry = crea
+       || message?.body?.schema !== PACK_UPDATE_SCHEMA || message.body.jobHash !== record.job.messageHash) return;
+     try {
+       const bytes = packJobBytes(message);
+-      requirePackJob(record.queued < 16 && record.queuedBytes + bytes <= PACK_JOB_MAX_WIRE_BYTES, 'requester inbox limit');
++      requirePackJob(record.queued < policy.limits.maxInboxMessages && record.queuedBytes + bytes <= policy.limits.maxWireBytes, 'requester inbox limit');
+       const copy = snapshot(message);
+       record.queued++; record.queuedBytes += bytes;
+       record.incoming = record.incoming.then(() => receive(record, copy))
+@@ -113,7 +115,7 @@ export function createPackPeerRequester({ identity, bus, models, registry = crea
+       let data;
+       try { data = snapshot({ reference, options }); } catch (error) { return Promise.reject(error); }
+       const deadlineAt = data.options.limits?.deadlineAt;
+-      if (!Number.isSafeInteger(deadlineAt) || deadlineAt <= Date.now() || deadlineAt - Date.now() > 300000) return Promise.reject(new Error('Bounded future deadline required'));
++      if (!Number.isSafeInteger(deadlineAt) || deadlineAt <= Date.now() || deadlineAt - Date.now() > policy.limits.maxJobMs) return Promise.reject(new Error('Bounded future deadline required'));
+       return new Promise((resolve, reject) => {
+         const record = { resolve, reject, controller: new AbortController(), signal, onPartial, deadlineAt,
+           reference: data.reference, model: data.options.model, job: null, deliveries: 0, sentBytes: 0, receivedBytes: 0,
+@@ -124,9 +126,9 @@ export function createPackPeerRequester({ identity, bus, models, registry = crea
+         record.timer = setTimeout(() => cancel(record, new Error('remote job deadline exceeded')), deadlineAt - Date.now());
+         if (signal?.aborted) { record.abort(); return; }
+         (async () => {
+-          const job = await createPackPeerJob({ ...data.options, identity, registry });
++          const job = await createPackPeerJob({ ...data.options, identity, registry, policy });
+           current(record);
+-          await verifyPackPeerJob(job, { providerId: job.toPeerId, models, registry });
++          await verifyPackPeerJob(job, { providerId: job.toPeerId, models, registry, policy });
+           current(record);
+           const adapter = registry[job.body.request.operation.name];
+           requirePackJob(await hashDopplerEvidence(data.reference) === job.body.intent.comparisonPolicy.referenceDigest, 'reference digest mismatch');
+diff --git a/self/pool/peer-pack-session.js b/self/pool/peer-pack-session.js
+index 6b8de5d..c8431d3 100644
+--- a/self/pool/peer-pack-session.js
++++ b/self/pool/peer-pack-session.js
+@@ -70,10 +70,10 @@ export async function openPeerPack({ authorization, index, inventories, requeste
+     runnableAt = now();
+     return Object.freeze({
+       session,
+-      async run(request, { onPartial = null, signal = null } = {}) {
++      async run(request, { onPartial = null, signal = null, beforeExecute = null } = {}) {
+         current();
+         return runPackOperation({ binding: grant.pack, session, runtimeVersion, request,
+-          signal: signal ? AbortSignal.any([controller.signal, signal]) : controller.signal, onPartial, assertCurrent: current });
++          signal: signal ? AbortSignal.any([controller.signal, signal]) : controller.signal, onPartial, beforeExecute, assertCurrent: current });
+       },
+       getAcquisitionReceipt,
+       close
+diff --git a/self/pool/pool-config.json b/self/pool/pool-config.json
+index f566060..d16679f 100644
+--- a/self/pool/pool-config.json
++++ b/self/pool/pool-config.json
+@@ -1,6 +1,6 @@
+ {
+   "schema": "reploid.pool.config/v1",
+-  "configVersion": "2026-09-06.operation-policy.v1.doppler-0.5.1",
++  "configVersion": "2026-09-06.durable-attempts.v2.doppler-0.5.1",
+   "claim": "receipt-backed, audit-backed, reputation-backed, policy-controlled browser inference",
+   "forbiddenClaims": [
+     "trustless",
+@@ -1578,7 +1578,8 @@
+         ],
+         "remote": [
+           "public_text"
+-        ]
++        ],
++        "defaultRemote": "public_text"
+       }
+     },
+     "embed": {
+@@ -1631,7 +1632,8 @@
+         ],
+         "remote": [
+           "public_text"
+-        ]
++        ],
++        "defaultRemote": "public_text"
+       }
+     },
+     "rerank": {
+@@ -1686,7 +1688,8 @@
+         ],
+         "remote": [
+           "public_text"
+-        ]
++        ],
++        "defaultRemote": "public_text"
+       }
+     },
+     "encodeSequence": {
+@@ -1742,7 +1745,8 @@
+         ],
+         "remote": [
+           "public_biological_sequence"
+-        ]
++        ],
++        "defaultRemote": "public_biological_sequence"
+       }
+     }
+   },
+@@ -1761,5 +1765,86 @@
+         "relativeTolerance"
+       ]
+     }
++  },
++  "peerJobs": {
++    "schema": "reploid.pool.peer-job-policy/v1",
++    "version": 1,
++    "schemas": {
++      "job": "reploid.peer.pack_job/v2",
++      "legacyJob": "reploid.peer.pack_job/v1",
++      "update": "reploid.peer.pack_update/v1",
++      "cancel": "reploid.peer.pack_cancel/v1",
++      "record": "reploid.pack-job-journal/v2",
++      "legacyRecord": "reploid.pack-job-journal/v1"
++    },
++    "limits": {
++      "maxWireBytes": 16777216,
++      "maxInputBytes": 4194304,
++      "maxOutputBytes": 4194304,
++      "maxStreamBytes": 67108864,
++      "maxEvents": 4096,
++      "maxJobMs": 300000,
++      "maxInboxMessages": 16,
++      "maxModels": 16,
++      "maxConsentProviders": 8,
++      "maxIdentityCharacters": 128,
++      "maxPublicKeyCharacters": 1024,
++      "maxClockSkewMs": 5000
++    },
++    "attempts": {
++      "initialNumber": 1,
++      "maximumNumber": 1000000
++    },
++    "retry": {
++      "maxDeliveries": 3,
++      "delayMs": 2000,
++      "maximumDeliveries": 8,
++      "minimumDelayMs": 100,
++      "maximumDelayMs": 10000
++    },
++    "persistence": {
++      "databaseName": "reploid-pack-jobs-v1",
++      "databaseVersion": 1,
++      "storeName": "attempts",
++      "recordSchema": "reploid.pack-job-journal/v2",
++      "legacyRecordSchema": "reploid.pack-job-journal/v1",
++      "maxRecords": 128,
++      "recordCeiling": 256,
++      "maxSavedBytes": 67108864,
++      "byteCeiling": 67108864,
++      "retentionMs": 300000,
++      "maxFutureMs": 300000,
++      "maxIdentityCharacters": 128,
++      "storageTimeoutMs": 10000,
++      "storageFailureBehavior": "reject",
++      "cleanup": "expire-then-delete-after-retention",
++      "durability": "strict",
++      "states": [
++        "accepted",
++        "running",
++        "completed",
++        "cancelled",
++        "interrupted",
++        "expired"
++      ],
++      "outcomeStates": {
++        "partial": "running",
++        "completed": "completed",
++        "cancelled": "cancelled",
++        "failed": "interrupted",
++        "busy": "interrupted"
++      },
++      "legacyStates": {
++        "running": "interrupted",
++        "completed": "completed",
++        "failed": "interrupted",
++        "busy": "interrupted",
++        "cancelled": "cancelled",
++        "interrupted": "interrupted"
++      }
++    },
++    "execution": {
++      "adapterSet": []
++    }
+   }
+ }
+diff --git a/tests/fixtures/peer-pack-remote-execution.js b/tests/fixtures/peer-pack-remote-execution.js
+index 555aa9e..7b1a9d8 100644
+--- a/tests/fixtures/peer-pack-remote-execution.js
++++ b/tests/fixtures/peer-pack-remote-execution.js
+@@ -47,7 +47,7 @@ async function start(role, pin, options = {}) {
+             calls++;
+             const result = await fixture.peer.run({ schema: 'doppler.pack-operation-request/v1',
+               operation: { name: 'encodeSequence', version: 1 }, input: request.input, options: request.options,
+-              assignment: request.assignment, limits: request.limits }, { signal: request.signal, onPartial: request.onPartial });
++              assignment: request.assignment, limits: request.limits }, { signal: request.signal, onPartial: request.onPartial, beforeExecute: request.beforeExecute });
+             completed = result;
+             return result;
+           }, async close() {} }, onError: error => errors.push(error.message) }); };
+diff --git a/self/pool/peer-pack-job-policy.js b/self/pool/peer-pack-job-policy.js
+new file mode 100644
+index 0000000..3c8f39b
+--- /dev/null
++++ b/self/pool/peer-pack-job-policy.js
+@@ -0,0 +1,34 @@
++import config from './pool-config.json' with { type: 'json' };
++import { freezeOperationPolicy } from './pack-operation-policy.js';
++const assert = (ok, message) => { if (!ok) throw new Error(`Peer Pack policy: ${message}`); };
++const positive = value => Number.isSafeInteger(value) && value > 0;
++
++export function resolvePackJobPolicy(input) {
++  const policy = freezeOperationPolicy(input);
++  assert(policy?.schema === 'reploid.pool.peer-job-policy/v1' && positive(policy.version), 'versioned policy required');
++  for (const name of ['job', 'legacyJob', 'update', 'cancel', 'record', 'legacyRecord']) assert(typeof policy.schemas?.[name] === 'string', `schemas.${name} required`);
++  for (const name of ['maxWireBytes', 'maxInputBytes', 'maxOutputBytes', 'maxStreamBytes', 'maxEvents', 'maxJobMs', 'maxInboxMessages',
++    'maxModels', 'maxConsentProviders', 'maxIdentityCharacters', 'maxPublicKeyCharacters', 'maxClockSkewMs']) assert(positive(policy.limits?.[name]), `limits.${name} required`);
++  const p = policy.persistence, r = policy.retry;
++  for (const name of ['databaseVersion', 'maxRecords', 'recordCeiling', 'maxSavedBytes', 'byteCeiling', 'retentionMs', 'maxFutureMs',
++    'maxIdentityCharacters', 'storageTimeoutMs']) assert(positive(p?.[name]), `persistence.${name} required`);
++  assert(typeof p.databaseName === 'string' && p.databaseName.length > 0 && typeof p.storeName === 'string' && p.storeName.length > 0
++    && p.recordSchema === policy.schemas.record && p.legacyRecordSchema === policy.schemas.legacyRecord, 'storage identity required');
++  assert(p.storageFailureBehavior === 'reject' && p.cleanup === 'expire-then-delete-after-retention' && p.durability === 'strict', 'unsupported persistence behavior');
++  assert(p.maxRecords <= p.recordCeiling && p.maxSavedBytes <= p.byteCeiling && p.maxFutureMs >= policy.limits.maxJobMs, 'inconsistent persistence bounds');
++  const states = ['accepted', 'running', 'completed', 'cancelled', 'interrupted', 'expired'];
++  assert(Array.isArray(p.states) && p.states.length === states.length && states.every(state => p.states.includes(state)), 'attempt state contract required');
++  for (const [status, state] of Object.entries({ partial: 'running', completed: 'completed', cancelled: 'cancelled', failed: 'interrupted', busy: 'interrupted' })) {
++    assert(p.outcomeStates?.[status] === state, `unsupported terminal state mapping for ${status}`);
++  }
++  for (const [prior, next] of Object.entries({ running: 'interrupted', completed: 'completed', failed: 'interrupted', busy: 'interrupted',
++    cancelled: 'cancelled', interrupted: 'interrupted' })) assert(p.legacyStates?.[prior] === next, 'legacy attempt state mapping invalid');
++  for (const name of ['maxDeliveries', 'delayMs', 'maximumDeliveries', 'minimumDelayMs', 'maximumDelayMs']) assert(positive(r?.[name]), `retry.${name} required`);
++  assert(r.maxDeliveries <= r.maximumDeliveries && r.delayMs >= r.minimumDelayMs && r.delayMs <= r.maximumDelayMs, 'retry bounds conflict');
++  assert(positive(policy.attempts?.initialNumber) && positive(policy.attempts.maximumNumber)
++    && policy.attempts.initialNumber <= policy.attempts.maximumNumber, 'explicit attempt numbering required');
++  assert(Array.isArray(policy.execution?.adapterSet) && policy.execution.adapterSet.length === 0, 'explicit unadapted execution set required');
++  return policy;
++}
++
++export const PACK_JOB_POLICY = resolvePackJobPolicy(config.peerJobs);

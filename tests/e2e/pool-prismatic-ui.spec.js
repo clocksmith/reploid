@@ -144,7 +144,7 @@ test('cleans up a device that arrives after its route has been removed', async (
 
 test('passes changed browser modules through the Verification Worker sandbox', async ({ page }) => {
   await page.goto('/');
-  const paths = ['/ui/pool-home/prism.js', '/ui/pool-home/index.js', '/ui/pool-home/view.js', '/ui/pool-home/controls.js', '/ui/zero/index.js'];
+  const paths = ['/ui/pool-home/prism.js', '/ui/pool-home/index.js', '/ui/pool-home/view.js', '/ui/pool-home/controls.js', '/ui/pool-home/document-search.js', '/ui/zero/index.js'];
   const result = await page.evaluate(async (paths) => {
     const snapshot = Object.fromEntries(await Promise.all(paths.map(async (path) => {
       const response = await fetch(path);
@@ -160,4 +160,46 @@ test('passes changed browser modules through the Verification Worker sandbox', a
     });
   }, paths);
   expect(result).toMatchObject({ passed: true, errors: [], details: { filesAnalyzed: paths.length } });
+});
+
+
+test('shares clear task controls and accessible model setup across public routes', async ({ page }, testInfo) => {
+  await page.addInitScript(() => Object.defineProperty(navigator, 'gpu', { value: undefined }));
+  for (const width of [1440, 390, 320]) {
+    await page.setViewportSize({ width, height: 1000 });
+    await page.goto('/');
+    const choices = page.locator('[data-pool-workflow]');
+    await expect(choices).toHaveText(['Protein sequences', 'Document search']);
+    const documents = page.locator('[data-pool-workflow="documents"]');
+    await documents.focus();
+    await page.keyboard.press('Enter');
+    await expect(documents).toBeFocused();
+    await expect(documents).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.locator('[data-document-setup]')).toHaveAttribute('open', '');
+    await expect(page.locator('[data-document-models]')).toBeVisible();
+    await expect(page.locator('[data-document-submit]')).toBeDisabled();
+    await expect(page.locator('[data-document-status]')).toHaveText('Choose models to start.');
+    await expect(page.locator('[data-document-search]')).not.toContainText(/\bPacks?\b|provenance/i);
+    const card = await page.locator('[data-document-search]').evaluate(node => ({
+      background: getComputedStyle(node).backgroundColor,
+      shadow: getComputedStyle(node).boxShadow
+    }));
+    expect(card.shadow).not.toBe('none');
+    await expect(page.locator('[data-document-search]')).toHaveClass(/pool-task-card/);
+    await page.screenshot({ path: testInfo.outputPath(`models-setup-${width}.png`), fullPage: true });
+    await page.getByRole('link', { name: 'Share compute', exact: true }).click();
+    const share = page.getByRole('button', { name: 'Start sharing', exact: true });
+    await expect(share).toHaveClass(/pool-primary-action/);
+    await expect(page.locator('#pool-provider-model option:checked')).toHaveText('ESM-2 35M (Protein)');
+    await page.keyboard.press('Tab');
+    for (const summary of await page.locator('.pool-advanced > summary:visible').all()) {
+      expect((await summary.boundingBox()).height).toBeGreaterThanOrEqual(44);
+      await summary.focus();
+      await expect(summary).toBeFocused();
+      expect(await summary.evaluate(node => getComputedStyle(node).outlineStyle)).toBe('solid');
+    }
+    expect((await share.boundingBox()).height).toBeGreaterThanOrEqual(48);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
+    await page.screenshot({ path: testInfo.outputPath(`sharing-${width}.png`), fullPage: true });
+  }
 });

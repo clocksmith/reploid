@@ -17,7 +17,7 @@ export interface PackOperationDefinition {
   readonly streaming: { readonly partial: boolean };
   readonly maximumLimits: Readonly<Record<'maxInputBytes' | 'maxOutputBytes' | 'maxStreamBytes' | 'maxEvents' | 'maxJobMs', number>>;
   readonly comparisonPolicyIds: readonly string[];
-  readonly inputClasses: { readonly local: readonly string[]; readonly remote: readonly string[] };
+  readonly inputClasses: { readonly local: readonly string[]; readonly remote: readonly string[]; readonly defaultRemote: string | null };
 }
 export interface PackComparisonRule {
   readonly requiredFields: readonly string[];
@@ -32,6 +32,8 @@ export interface PackOperationImplementation {
 }
 export interface PackOperationAdapter {
   readonly definition: PackOperationDefinition;
+  readonly policy: { readonly definition: PackOperationDefinition; readonly comparisons: Readonly<Record<string, PackComparisonRule>> };
+  readonly implementation: PackOperationImplementation;
   readonly version: number;
   readonly workload: string;
   validateRequest(request: Pick<import('./pack-operation.js').PackOperationRequest, 'input' | 'options'>): void;

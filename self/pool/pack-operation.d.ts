@@ -42,7 +42,7 @@ export function assertPackOperationEvent(options: { binding: Readonly<Record<str
   runtimeVersion: string; event: PackOperationEvent; eventIndex: number; previousEventDigest: string | null; registry?: PackOperationRegistry }): Promise<void>;
 export function runPackOperation(options: { binding: Readonly<Record<string, JsonValue>>; session: PackOperationSession; request: PackOperationRequest;
   runtimeVersion: string; registry?: PackOperationRegistry; signal?: AbortSignal | null; onPartial?: ((event: PackOperationEvent) => void | Promise<void>) | null;
-  assertCurrent?: () => void | Promise<void> }): Promise<PackOperationResult>;
+  beforeExecute?: (() => void | Promise<void>) | null; assertCurrent?: () => void | Promise<void> }): Promise<PackOperationResult>;
 export function assessPackOperation(options: { execution: PackOperationResult; reference: JsonValue; policy: Readonly<Record<string, JsonValue>>;
   registry?: PackOperationRegistry }): Promise<Readonly<{ schema: 'poolday.operation-assessment/v1'; accepted: boolean; policyDigest: string;
     receiptDigest: string; claim: 'bounded-reference-comparison' }>>;

@@ -21,9 +21,14 @@ function memoryJournal() {
     async claim(value, owner) {
       const prior = records.get(key(value));
       if (prior && prior.jobHash !== value.jobHash) throw new Error('different signed envelope');
-      const record = prior || { ...value, owner, status: 'running', updates: [] };
+      const record = prior || { ...value, owner, status: 'accepted', updates: [] };
       records.set(key(value), record);
       return { created: !prior, record: structuredClone(record) };
+    },
+    async markRunning(value, owner) {
+      const record = records.get(key(value));
+      if (!record || record.owner !== owner || record.status !== 'accepted') throw new Error('invalid writer');
+      record.status = 'running';
     },
     async append(value, owner, message) {
       const record = records.get(key(value));
@@ -104,6 +109,25 @@ describe('signed remote Pack jobs with synthetic model outputs', () => {
     const f = await setup('audio.test', registry);
     try { expect((await f.requester.run(f.args)).assessment.accepted).toBe(true); }
     finally { await f.close(); }
+  });
+
+  it('binds numbered attempts and archives the policy used before configuration changes', async () => {
+    const f = await setup('embed');
+    try {
+      const result = await f.requester.run({ ...f.args, attemptNumber: 2 });
+      expect(result.job.body.intent.attemptNumber).toBe(2);
+      expect(result.execution.request.assignment.attemptNumber).toBe(2);
+      expect(result.job.body.intent.adapterSet).toEqual([]);
+      const definitions = structuredClone(poolConfig.operations);
+      definitions.embed.maximumLimits.maxJobMs -= 1;
+      const registry = createPackOperationRegistry({ definitions });
+      await expect(verifyPackPeerJob(result.job, { providerId: f.providerIdentity.keyId, models: [f.model], registry }))
+        .rejects.toThrow('policy differs');
+      await expect(verifyPackPeerEpisode({ ...result, reference: f.output, models: [f.model], registry }))
+        .resolves.toMatchObject({ accepted: true });
+      await expect(f.requester.run({ ...f.args, attemptNumber: 0 })).rejects.toThrow('attempt number');
+      expect(f.calls()).toBe(1);
+    } finally { await f.close(); }
   });
 
   it('retries a lost request and replays lost responses without calculating twice', async () => {

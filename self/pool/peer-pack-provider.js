@@ -4,28 +4,33 @@ import { createPackOperationRegistry } from './pack-operation-adapters.js';
 import { snapshotPackOperationData as snapshot, assertPackOperationEvent } from './pack-operation.js';
 import { hashDopplerEvidence } from './executable-pack.js';
 import { openPackJobJournal } from '../infrastructure/pack-job-storage.js';
-import { PACK_JOB_SCHEMA, PACK_UPDATE_SCHEMA, PACK_CANCEL_SCHEMA, PACK_JOB_MAX_WIRE_BYTES, packJobBytes,
+import { PACK_JOB_POLICY, resolvePackJobPolicy } from './peer-pack-job-policy.js';
+import { PACK_JOB_SCHEMA, PACK_UPDATE_SCHEMA, PACK_CANCEL_SCHEMA, packJobBytes,
   requirePackJob, verifyPackPeerJob, verifyPackPeerMessage, signPackPeerMessage, packPeerModel, createPackProviderAdvert } from './peer-pack-job.js';
 
 /** One physical executor, bounded replay records, and cooperative cancellation. */
 export function createPackPeerProvider({ identity, bus, models, authorize,
   registry = createPackOperationRegistry(), executor = createLocalPackExecutor({ registry }),
-  journal: suppliedJournal = null, journalName = 'reploid-pack-jobs-v1',
-  maxAttempts = 128, maxRetainedBytes = 64 * 1024 * 1024, onError = () => {} }) {
+  policy: policyInput = PACK_JOB_POLICY, journal: suppliedJournal = null, journalName = policyInput.persistence.databaseName,
+  maxAttempts = policyInput.persistence.maxRecords, maxRetainedBytes = policyInput.persistence.maxSavedBytes, onError = () => {} }) {
+  const policy = resolvePackJobPolicy(policyInput);
   requirePackJob(typeof authorize === 'function', 'provider admission callback required');
-  requirePackJob(Number.isSafeInteger(maxAttempts) && maxAttempts > 0 && maxAttempts <= 256
-    && Number.isSafeInteger(maxRetainedBytes) && maxRetainedBytes > 0 && maxRetainedBytes <= 64 * 1024 * 1024, 'invalid provider retention limits');
+  requirePackJob(Number.isSafeInteger(maxAttempts) && maxAttempts > 0 && maxAttempts <= policy.persistence.recordCeiling
+    && Number.isSafeInteger(maxRetainedBytes) && maxRetainedBytes > 0 && maxRetainedBytes <= policy.persistence.byteCeiling, 'invalid provider retention limits');
   models = snapshot(models);
   const records = new Map();
   const writer = crypto.randomUUID();
   let journal = suppliedJournal, journalOpening = null;
   const storage = async () => {
     if (!journal) journal = await (journalOpening ??= openPackJobJournal({ providerId: identity.keyId,
-      name: journalName, maxAttempts, maxBytes: maxRetainedBytes }));
+      policy: policy.persistence, name: journalName, maxAttempts, maxBytes: maxRetainedBytes }));
     return journal;
   };
   const descriptor = record => ({ requesterId: record.requesterId, jobId: record.jobId,
-    attemptId: record.attemptId, jobHash: record.job.messageHash, expiresAt: record.expiresAt });
+    attemptId: record.attemptId, jobHash: record.job.messageHash, expiresAt: record.expiresAt,
+    binding: { requestHash: record.requestHash, assignmentId: record.job.body.assignment.assignmentId,
+      operation: record.job.body.request.operation, model: record.job.body.intent.model,
+      adapterSet: record.job.body.intent.adapterSet, attemptNumber: record.job.body.intent.attemptNumber } });
   const lifecycle = new AbortController();
   let retainedBytes = 0, queued = 0, queuedBytes = 0, closed = false, active = null, incoming = Promise.resolve();
   const keyFor = (sender, hash) => `${sender}/${hash}`;
@@ -52,7 +57,7 @@ export function createPackPeerProvider({ identity, bus, models, authorize,
 
   async function update(record, status, event = null) {
     if (status === 'partial' || status === 'completed') current(record);
-    const message = await signPackPeerMessage({ identity, type: PEER_MESSAGE_TYPES.EXECUTION_RESULT,
+    const message = await signPackPeerMessage({ identity, policy, type: PEER_MESSAGE_TYPES.EXECUTION_RESULT,
       recipient: record.job.fromPeerId, expiresAt: record.expiresAt,
       body: { schema: PACK_UPDATE_SCHEMA, jobHash: record.job.messageHash, requestHash: record.requestHash,
         updateIndex: record.updates.length, previousUpdateHash: record.updates.at(-1)?.messageHash ?? null, status, event } });
@@ -75,7 +80,7 @@ export function createPackPeerProvider({ identity, bus, models, authorize,
       requirePackJob(!terminal && Date.parse(response.createdAt) >= Date.parse(record.job.createdAt)
         && Date.parse(response.createdAt) <= Date.now(), 'invalid restored response chronology');
       const message = await verifyPackPeerMessage(response, { type: PEER_MESSAGE_TYPES.EXECUTION_RESULT,
-        recipient: record.requesterId, sender: identity.keyId, now: Date.parse(response.createdAt) });
+        recipient: record.requesterId, sender: identity.keyId, now: Date.parse(response.createdAt), policy });
       const body = message.body;
       requirePackJob(body.schema === PACK_UPDATE_SCHEMA && body.jobHash === record.job.messageHash
         && body.requestHash === record.requestHash && message.expiresAt === record.job.expiresAt
@@ -93,7 +98,8 @@ export function createPackPeerProvider({ identity, bus, models, authorize,
     }
     requirePackJob(record.updates.length <= record.job.body.intent.limits.maxEvents
       && record.bytes <= record.job.body.intent.limits.maxStreamBytes && retainedBytes + record.bytes <= maxRetainedBytes, 'restored stream exceeds limits');
-    requirePackJob(terminal ? saved.status === terminal : ['running', 'interrupted', 'cancelled'].includes(saved.status), 'restored terminal state mismatch');
+    requirePackJob(terminal ? saved.status === policy.persistence.outcomeStates[terminal]
+      : ['accepted', 'running', 'interrupted', 'cancelled'].includes(saved.status), 'restored terminal state mismatch');
     retainedBytes += record.bytes;
     record.status = saved.status;
     // Restore the complete prefix before extending it with an interruption.
@@ -113,6 +119,12 @@ export function createPackPeerProvider({ identity, bus, models, authorize,
       current(record);
       const result = await executor.run({ model, input: request.input, options: request.options,
         assignment: request.assignment, limits: request.limits, signal: record.controller.signal,
+        beforeExecute: async () => {
+          current(record);
+          await (await storage()).markRunning(descriptor(record), writer);
+          current(record);
+          record.status = 'running';
+        },
         onPartial: async event => {
           current(record);
           await admitted(record.job, record.controller.signal);
@@ -150,26 +162,26 @@ export function createPackPeerProvider({ identity, bus, models, authorize,
     if (![PACK_JOB_SCHEMA, PACK_CANCEL_SCHEMA].includes(schema)) return;
     prune();
     if (schema === PACK_CANCEL_SCHEMA) {
-      const cancel = await verifyPackPeerMessage(message, { type: PEER_MESSAGE_TYPES.HEARTBEAT, recipient: identity.keyId });
+      const cancel = await verifyPackPeerMessage(message, { type: PEER_MESSAGE_TYPES.HEARTBEAT, recipient: identity.keyId, policy });
       requirePackJob(/^sha256:[0-9a-f]{64}$/.test(cancel.body.jobHash), 'invalid cancellation target');
       for (const field of ['jobId', 'attemptId']) requirePackJob(typeof cancel.body[field] === 'string'
-        && cancel.body[field].length > 0 && cancel.body[field].length <= 128, 'cancellation attempt identity required');
+        && cancel.body[field].length > 0 && cancel.body[field].length <= policy.limits.maxIdentityCharacters, 'cancellation attempt identity required');
       const key = keyFor(cancel.fromPeerId, cancel.body.jobHash);
       const record = records.get(key);
       if (record) {
         requirePackJob(record.jobId === cancel.body.jobId && record.attemptId === cancel.body.attemptId, 'cancellation attempt mismatch');
-        if (record.status === 'running') { record.status = 'cancelled'; record.controller.abort(new Error('requester cancelled')); }
+        if (['accepted', 'running'].includes(record.status)) { record.status = 'cancelled'; record.controller.abort(new Error('requester cancelled')); }
       } else {
         requirePackJob(records.size < maxAttempts, 'attempt retention exhausted');
         // A short cancellation lease cannot allow a still-live delayed job to restart.
         records.set(key, { requesterId: cancel.fromPeerId, jobId: cancel.body.jobId, attemptId: cancel.body.attemptId,
-          status: 'cancelled', bytes: 0, updates: [], expiresAt: Date.now() + 300000 });
+          status: 'cancelled', bytes: 0, updates: [], expiresAt: Date.now() + policy.limits.maxJobMs });
       }
       await (await storage()).cancel({ requesterId: cancel.fromPeerId, jobId: cancel.body.jobId,
-        attemptId: cancel.body.attemptId, jobHash: cancel.body.jobHash, expiresAt: Date.now() + 300000 }, writer);
+        attemptId: cancel.body.attemptId, jobHash: cancel.body.jobHash, expiresAt: Date.now() + policy.limits.maxJobMs, binding: null }, writer);
       return;
     }
-    const job = await verifyPackPeerJob(message, { providerId: identity.keyId, models, registry });
+    const job = await verifyPackPeerJob(message, { providerId: identity.keyId, models, registry, policy });
     const key = keyFor(job.fromPeerId, job.messageHash);
     const prior = records.get(key);
     await admitted(job);
@@ -185,7 +197,7 @@ export function createPackPeerProvider({ identity, bus, models, authorize,
     requirePackJob(records.size < maxAttempts, 'attempt retention exhausted');
     requirePackJob(!closed && Date.now() < Date.parse(job.expiresAt), 'attempt expired during admission');
     const record = { job, requesterId: job.fromPeerId, jobId: job.body.intent.jobId, attemptId: job.body.intent.attemptId,
-      status: 'running', controller: new AbortController(), expiresAt: Date.parse(job.expiresAt),
+      status: 'accepted', controller: new AbortController(), expiresAt: Date.parse(job.expiresAt),
       requestHash: await hashDopplerEvidence(job.body.request), bytes: 0, updates: [], eventIndex: 0, previousEventDigest: null };
     const claimed = await (await storage()).claim(descriptor(record), writer);
     requirePackJob(!closed && Date.now() < record.expiresAt, 'attempt expired during durable admission');
@@ -211,7 +223,7 @@ export function createPackPeerProvider({ identity, bus, models, authorize,
   const unsubscribe = bus.subscribe(message => {
     if (closed || message?.toPeerId !== identity.keyId) return;
     const bytes = packJobBytes(message);
-    if (queued >= 16 || queuedBytes + bytes > PACK_JOB_MAX_WIRE_BYTES) { onError(new Error('Peer Pack provider inbox limit')); return; }
+    if (queued >= policy.limits.maxInboxMessages || queuedBytes + bytes > policy.limits.maxWireBytes) { onError(new Error('Peer Pack provider inbox limit')); return; }
     let copy;
     try { copy = snapshot(message); } catch (error) { onError(error); return; }
     queued++; queuedBytes += bytes;
@@ -223,7 +235,7 @@ export function createPackPeerProvider({ identity, bus, models, authorize,
   return {
     createAdvert({ limits, expiresAt }) {
       requirePackJob(!closed, 'provider is closed');
-      return createPackProviderAdvert({ identity, models, limits, expiresAt, registry });
+      return createPackProviderAdvert({ identity, models, limits, expiresAt, registry, policy });
     },
     getState() { prune(); return { closed, active: !!active || executor.getState?.().active === true,
       draining: active?.controller.signal.aborted === true || executor.getState?.().draining === true,

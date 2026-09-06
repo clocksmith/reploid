@@ -1,15 +1,17 @@
+import { PACK_JOB_POLICY, resolvePackJobPolicy } from './peer-pack-job-policy.js';
 import { PEER_MESSAGE_TYPES } from './peer-protocol.js';
 import { createPackOperationRegistry } from './pack-operation-adapters.js';
 import { snapshotPackOperationData as snapshot, assertPackOperationEvent, assessPackOperation } from './pack-operation.js';
 import { hashDopplerEvidence } from './executable-pack.js';
-import { PACK_UPDATE_SCHEMA, PACK_CANCEL_SCHEMA, PACK_JOB_MAX_WIRE_BYTES, requirePackJob, packJobBytes,
+import { PACK_UPDATE_SCHEMA, PACK_CANCEL_SCHEMA, requirePackJob, packJobBytes,
   createPackPeerJob, verifyPackPeerJob, verifyPackPeerMessage, signPackPeerMessage } from './peer-pack-job.js';
 
 /** Explicit public delegation. Local document search never calls this automatically. */
 export function createPackPeerRequester({ identity, bus, models, registry = createPackOperationRegistry(),
-  maxDeliveries = 3, retryMs = 2000, onError = () => {} }) {
-  requirePackJob(Number.isSafeInteger(maxDeliveries) && maxDeliveries >= 1 && maxDeliveries <= 8
-    && Number.isSafeInteger(retryMs) && retryMs >= 100 && retryMs <= 10000, 'bounded retry policy required');
+  policy: policyInput = PACK_JOB_POLICY, maxDeliveries = policyInput.retry.maxDeliveries, retryMs = policyInput.retry.delayMs, onError = () => {} }) {
+  const policy = resolvePackJobPolicy(policyInput);
+  requirePackJob(Number.isSafeInteger(maxDeliveries) && maxDeliveries >= 1 && maxDeliveries <= policy.retry.maximumDeliveries
+    && Number.isSafeInteger(retryMs) && retryMs >= policy.retry.minimumDelayMs && retryMs <= policy.retry.maximumDelayMs, 'bounded retry policy required');
   models = snapshot(models);
   let active = null, closed = false;
   function current(record) {
@@ -25,7 +27,7 @@ export function createPackPeerRequester({ identity, bus, models, registry = crea
   }
   async function sendCancellation(record) {
     if (!record.job || Date.now() >= record.deadlineAt) return;
-    const cancellation = await signPackPeerMessage({ identity, type: PEER_MESSAGE_TYPES.HEARTBEAT,
+    const cancellation = await signPackPeerMessage({ identity, policy, type: PEER_MESSAGE_TYPES.HEARTBEAT,
       recipient: record.job.toPeerId, expiresAt: record.deadlineAt,
       body: { schema: PACK_CANCEL_SCHEMA, jobHash: record.job.messageHash,
         jobId: record.job.body.intent.jobId, attemptId: record.job.body.intent.attemptId } });
@@ -50,7 +52,7 @@ export function createPackPeerRequester({ identity, bus, models, registry = crea
   async function receive(record, message) {
     current(record);
     const update = await verifyPackPeerMessage(message, { type: PEER_MESSAGE_TYPES.EXECUTION_RESULT,
-      recipient: identity.keyId, sender: record.job.toPeerId });
+      recipient: identity.keyId, sender: record.job.toPeerId, policy });
     current(record);
     const body = update.body;
     requirePackJob(body.schema === PACK_UPDATE_SCHEMA && body.jobHash === record.job.messageHash
@@ -84,7 +86,7 @@ export function createPackPeerRequester({ identity, bus, models, registry = crea
       policy: record.job.body.intent.comparisonPolicy, registry });
     current(record);
     requirePackJob(assessment.accepted, 'output failed frozen comparison');
-    const acceptance = await signPackPeerMessage({ identity, type: PEER_MESSAGE_TYPES.ACCEPTANCE,
+    const acceptance = await signPackPeerMessage({ identity, policy, type: PEER_MESSAGE_TYPES.ACCEPTANCE,
       recipient: record.job.toPeerId, expiresAt: record.deadlineAt,
       body: { schema: 'reploid.peer.pack_acceptance/v1', jobHash: record.job.messageHash,
         finalUpdateHash: update.messageHash, assessment } });
@@ -98,7 +100,7 @@ export function createPackPeerRequester({ identity, bus, models, registry = crea
       || message?.body?.schema !== PACK_UPDATE_SCHEMA || message.body.jobHash !== record.job.messageHash) return;
     try {
       const bytes = packJobBytes(message);
-      requirePackJob(record.queued < 16 && record.queuedBytes + bytes <= PACK_JOB_MAX_WIRE_BYTES, 'requester inbox limit');
+      requirePackJob(record.queued < policy.limits.maxInboxMessages && record.queuedBytes + bytes <= policy.limits.maxWireBytes, 'requester inbox limit');
       const copy = snapshot(message);
       record.queued++; record.queuedBytes += bytes;
       record.incoming = record.incoming.then(() => receive(record, copy))
@@ -113,7 +115,7 @@ export function createPackPeerRequester({ identity, bus, models, registry = crea
       let data;
       try { data = snapshot({ reference, options }); } catch (error) { return Promise.reject(error); }
       const deadlineAt = data.options.limits?.deadlineAt;
-      if (!Number.isSafeInteger(deadlineAt) || deadlineAt <= Date.now() || deadlineAt - Date.now() > 300000) return Promise.reject(new Error('Bounded future deadline required'));
+      if (!Number.isSafeInteger(deadlineAt) || deadlineAt <= Date.now() || deadlineAt - Date.now() > policy.limits.maxJobMs) return Promise.reject(new Error('Bounded future deadline required'));
       return new Promise((resolve, reject) => {
         const record = { resolve, reject, controller: new AbortController(), signal, onPartial, deadlineAt,
           reference: data.reference, model: data.options.model, job: null, deliveries: 0, sentBytes: 0, receivedBytes: 0,
@@ -124,9 +126,9 @@ export function createPackPeerRequester({ identity, bus, models, registry = crea
         record.timer = setTimeout(() => cancel(record, new Error('remote job deadline exceeded')), deadlineAt - Date.now());
         if (signal?.aborted) { record.abort(); return; }
         (async () => {
-          const job = await createPackPeerJob({ ...data.options, identity, registry });
+          const job = await createPackPeerJob({ ...data.options, identity, registry, policy });
           current(record);
-          await verifyPackPeerJob(job, { providerId: job.toPeerId, models, registry });
+          await verifyPackPeerJob(job, { providerId: job.toPeerId, models, registry, policy });
           current(record);
           const adapter = registry[job.body.request.operation.name];
           requirePackJob(await hashDopplerEvidence(data.reference) === job.body.intent.comparisonPolicy.referenceDigest, 'reference digest mismatch');

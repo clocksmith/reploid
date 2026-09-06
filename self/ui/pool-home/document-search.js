@@ -1,17 +1,19 @@
 import policy from '../../pool/document-search-policy.json' with { type: 'json' };
 
 export const renderDocumentSearch = () => `
-  <section class="pool-document-search" data-document-search hidden aria-label="Document search">
+  <section class="pool-document-search pool-task-card" id="pool-document-search" data-document-search hidden aria-label="Document search">
     <h2 class="type-h2">Search documents</h2>
     <p class="type-caption">Files and questions stay in this tab. No peer sharing.</p>
-    <details class="pool-advanced">
-      <summary>Model Packs</summary>
-      <label class="pool-field"><span>Pack configuration (.json)</span>
+    <p class="type-caption" role="status" aria-live="polite" id="pool-document-status" data-document-status>Choose models to start.</p>
+    <details class="pool-advanced" data-document-setup open>
+      <summary>Models</summary>
+      <label class="pool-field"><span>Model settings (.json)</span>
         <input type="file" accept=".json" data-document-models></label>
       <label class="pool-consent-row"><input type="checkbox" data-document-trust>
-        <span>I trust the publishers in this configuration to supply model files.</span></label>
-      <button type="button" class="btn btn-ghost" data-document-configure>Use these Packs</button>
-      <p class="type-caption" data-document-model-status>No Packs selected</p>
+        <span>I trust these publishers to supply model files.</span></label>
+      <button type="button" class="btn btn-primary pool-primary-action" data-document-configure>Use models</button>
+      <p class="type-caption" data-document-model-status>No models selected</p>
+      <p class="type-caption"><a href="https://github.com/clocksmith/reploid/blob/main/docs/poolday/document-search.md" target="_blank" rel="noopener">Where to get model settings</a></p>
     </details>
     <form data-document-form>
       <label class="pool-field"><span>Documents (.txt, .md)</span>
@@ -20,19 +22,18 @@ export const renderDocumentSearch = () => `
       <label class="pool-field"><span>Question</span>
         <input type="text" required maxlength="4096" autocomplete="off" data-document-query></label>
       <label class="pool-consent-row"><input type="checkbox" data-document-rerank disabled>
-        <span>Rerank passages</span></label>
+        <span>Improve result order</span></label>
       <label class="pool-consent-row"><input type="checkbox" data-document-answer disabled>
         <span>Write an answer with references</span></label>
       <div class="pool-document-actions">
-        <button class="btn btn-primary" type="submit" data-document-submit>Search</button>
+        <button class="btn btn-primary pool-primary-action" type="submit" data-document-submit aria-describedby="pool-document-status">Search</button>
         <button class="btn btn-ghost" type="button" data-document-cancel hidden>Cancel</button>
         <button class="btn btn-ghost" type="button" data-document-clear>Clear documents</button>
       </div>
     </form>
-    <p role="status" aria-live="polite" data-document-status>Add documents</p>
     <div class="pool-document-answer" data-document-answer-output hidden aria-label="Answer"></div>
     <ol class="pool-document-results" data-document-results aria-label="Relevant passages"></ol>
-    <details class="pool-advanced" data-document-evidence hidden><summary>Execution evidence</summary><pre></pre></details>
+    <details class="pool-advanced" data-document-evidence hidden><summary>Job details</summary><pre></pre></details>
   </section>`;
 
 function renderMatches(root, result) {
@@ -58,10 +59,18 @@ function renderMatches(root, result) {
 export function refreshDocumentSearch(root, state) {
   const surface = root.querySelector('[data-document-search]');
   if (!surface) return;
-  surface.querySelector('[data-document-model-status]').textContent = state.configured ? 'Packs selected' : 'Choose model Packs before searching';
+  const setup = surface.querySelector('[data-document-setup]');
+  if (!state.configured) setup.open = true;
+  else if (surface.dataset.configured !== 'true') setup.open = false;
+  surface.dataset.configured = String(state.configured);
+  surface.querySelector('[data-document-model-status]').textContent = state.configured ? 'Models selected' : 'No models selected';
   surface.querySelector('[data-document-corpus]').textContent = state.corpus
     ? state.corpus.documents.map((item) => item.sources.join(', ')).join(' · ') : 'No documents';
-  surface.querySelector('[data-document-status]').textContent = state.status;
+  const statusLabels = { Embedding: 'Preparing search', Reranking: 'Ordering results' };
+  const status = !state.busy && !state.configured ? 'Choose models to start.'
+    : !state.busy && !state.corpus ? 'Add documents to start.'
+      : statusLabels[state.status] || state.status;
+  surface.querySelector('[data-document-status]').textContent = status;
   surface.querySelector('[data-document-submit]').disabled = state.busy || !state.configured || !state.corpus;
   surface.querySelector('[data-document-cancel]').hidden = !state.busy;
   for (const selector of ['[data-document-files]', '[data-document-configure]', '[data-document-query]']) {
@@ -87,8 +96,8 @@ export function bindDocumentSearch(root, workflow) {
     const attempt = ++generation;
     try {
       const file = root.querySelector('[data-document-models]').files[0];
-      if (!file || file.size > 1048576) throw new Error('Choose a Pack configuration smaller than 1 MiB');
-      if (!root.querySelector('[data-document-trust]').checked) throw new Error('Confirm publisher trust first');
+      if (!file || file.size > 1048576) throw new Error('Choose model settings smaller than 1 MiB');
+      if (!root.querySelector('[data-document-trust]').checked) throw new Error('Confirm you trust the model publishers first');
       const configuration = JSON.parse(await file.text());
       if (controller.signal.aborted || attempt !== generation) return;
       if (!root.querySelector('[data-document-trust]').checked) throw new Error('Publisher trust was withdrawn');
@@ -151,7 +160,7 @@ export function renderLocalDocumentHistory(root, state) {
   const section = document.createElement('section');
   section.className = 'pool-document-history'; section.dataset.documentHistory = '';
   const heading = document.createElement('h2'); heading.textContent = 'Local document searches';
-  const notice = document.createElement('p'); notice.textContent = 'This tab only. Not peer results or accepted network evidence.';
+  const notice = document.createElement('p'); notice.textContent = 'Saved in this tab. Documents stay on this device.';
   const list = document.createElement('ol');
   for (const entry of state.history) {
     const item = document.createElement('li');

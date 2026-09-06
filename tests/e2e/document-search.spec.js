@@ -31,14 +31,17 @@ test('local document journey preserves protein UI, privacy, evidence, and experi
   });
   await expect(page.locator('#pool-home-ask-form')).toBeHidden();
   await expect(page.locator('[data-document-submit]')).toBeDisabled();
-  await page.locator('[data-document-search] summary').first().click();
+  await expect(page.locator('[data-document-setup]')).toHaveAttribute('open', '');
+  await expect(page.locator('[data-document-status]')).toHaveText('Choose models to start.');
   await page.locator('[data-document-models]').setInputFiles({ name: 'models.json', mimeType: 'application/json',
     buffer: Buffer.from(JSON.stringify(fixture.configuration)) });
   await page.locator('[data-document-configure]').click();
-  await expect(page.locator('[data-document-status]')).toHaveText('Confirm publisher trust first');
+  await expect(page.locator('[data-document-status]')).toHaveText('Confirm you trust the model publishers first');
   await page.locator('[data-document-trust]').check();
   await page.locator('[data-document-configure]').click();
-  await expect(page.locator('[data-document-model-status]')).toHaveText('Packs selected');
+  await expect(page.locator('[data-document-model-status]')).toHaveText('Models selected');
+  await expect(page.locator('[data-document-models]')).toBeHidden();
+  await expect(page.locator('[data-document-status]')).toHaveText('Add documents to start.');
   await page.locator('[data-document-files]').setInputFiles([
     { name: 'fruit.md', mimeType: 'text/plain', buffer: Buffer.from('PRIVATE_APPLE_CORPUS grows apples. <script>window.documentLeaked=true</script>') },
     { name: 'sea.txt', mimeType: 'text/plain', buffer: Buffer.from('Whales live in the sea.') }

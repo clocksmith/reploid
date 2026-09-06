@@ -121,6 +121,8 @@ struct Vertex { @builtin(position) position: vec4f, @location(0) uv: vec2f }
     color += select(0.0, sparkle * 0.28, hash(cell + 42.0) > 0.987);
     alpha = smoothstep(0.0, 0.016, depth) * 0.99;
   }
+  let luminance = dot(color, vec3f(0.2126, 0.7152, 0.0722));
+  color = mix(vec3f(luminance), color, 0.24);
   return vec4f(clamp(color, vec3f(0.0), vec3f(1.0)) * alpha, alpha);
 }
 fn sort3(p: vec3f) -> vec3f {

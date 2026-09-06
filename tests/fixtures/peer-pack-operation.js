@@ -66,7 +66,7 @@ export async function operationFixture(name = 'encodeSequence', registry = creat
           return await runPackOperation({ binding: selected.executablePack, session, runtimeVersion: selected.runtimeVersion, registry,
             request: { schema: 'doppler.pack-operation-request/v1', operation: { name, version: registry[name].version },
               input: request.input, options: request.options, assignment: request.assignment, limits: request.limits },
-            signal: request.signal, onPartial: request.onPartial });
+            signal: request.signal, onPartial: request.onPartial, beforeExecute: request.beforeExecute });
         } finally { active = false; }
       },
       getState() { return { active }; },

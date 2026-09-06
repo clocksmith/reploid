@@ -44,6 +44,7 @@ export function resolvePackOperationDefinitions(definitions, comparisons) {
       && definition.comparisonPolicyIds.every(policyId => Object.hasOwn(rules, policyId)), `${id}: unknown comparison policy`);
     assert(strings(definition.inputClasses?.local) && definition.inputClasses.local.length > 0 && strings(definition.inputClasses.remote)
       && definition.inputClasses.remote.every(value => definition.inputClasses.local.includes(value)), `${id}: explicit input classes required`);
+    assert(definition.inputClasses.defaultRemote === null || definition.inputClasses.remote.includes(definition.inputClasses.defaultRemote), `${id}: explicit remote input class or null required`);
   }
   return Object.freeze({ definitions: resolved, comparisons: rules });
 }

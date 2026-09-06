@@ -8,7 +8,7 @@
 
 **Planned Artifacts:** None
 
-**Owned Source Files:** `pool/peer-control-plane.js`, `pool/peer-pack-job.js`, `pool/peer-pack-provider.js`, `pool/peer-pack-requester.js`, `pool/peer-pack-job-channel.js`, `pool/peer-pack-episode.js`, `infrastructure/pack-job-storage.js`
+**Owned Source Files:** `pool/peer-control-plane.js`, `pool/peer-pack-job.js`, `pool/peer-pack-job-policy.js`, `pool/peer-pack-provider.js`, `pool/peer-pack-requester.js`, `pool/peer-pack-job-channel.js`, `pool/peer-pack-episode.js`, `infrastructure/pack-job-storage.js`
 
 **Former Blueprint Paths:** `self/blueprints/0x000086-pool-peer-control-plane.md`
 **Objective:** Describe implementation for pool/peer-control-plane.js.
@@ -48,6 +48,23 @@ request and assignment hashes, and both stream digest chains are checked before
 requester acceptance. Partial output is provisional. A frozen reference and
 comparison policy bind the signed acceptance; archived verification uses its
 original instant.
+
+The v2 job intent binds its numbered attempt, exact adapter set, input class,
+resolved operation definition, comparison rules and remote-job policy. The
+signed archive retains those policy snapshots and digests. Live admission uses
+current resolved configuration; offline verification restores the original
+rules with a compatible installed adapter implementation. Legacy v1 jobs remain
+verifiable offline, without authorizing new v1 execution.
+
+`pool-config.json.peerJobs` owns retry, protocol and persistence bounds.
+`peer-pack-job-policy.js` validates and freezes that configuration. Infrastructure
+receives a resolved persistence policy; it does not choose domain policy.
+The journal commits `accepted` before executor preparation and `running` through
+the hook immediately preceding public Doppler `executeOperation()`. Completion
+and cancellation commit before delivery. Failed or abandoned runs become
+`interrupted`; deadlines become `expired`, retained until the configured cleanup
+instant. A new run requires a new numbered attempt. Declaration siblings expose
+the policy, attempt binding and six-state record contracts.
 
 Cancellation invalidates requester acceptance immediately and requests provider
 cooperation. The physical executor remains occupied while work drains. Signed
