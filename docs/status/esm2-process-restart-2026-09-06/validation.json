@@ -1,0 +1,38 @@
+{
+  "schema": "reploid.peer-recovery-validation/v1",
+  "checks": [
+    {
+      "command": "node scripts/verify-peer-pack-execution.js --config /tmp/esm2-process-restart-04-sg424kmd/config.json",
+      "exitCode": 0,
+      "log": "physical-run.txt",
+      "sha256": "d9d2f8d9a4840879d6af1f9e95d65e590bd1d499749718916bfb7bc665ae6eda",
+      "sizeBytes": 114
+    },
+    {
+      "command": "npx vitest run",
+      "exitCode": 0,
+      "log": "full-tests.txt",
+      "sha256": "b4013d43fa1e37c0a7d87c3195ceecbe76b17015480282146fd2b6080280384c",
+      "sizeBytes": 88230
+    },
+    {
+      "command": "npx playwright test tests/e2e/peer-pack-custody.spec.js --project=chromium",
+      "exitCode": 0,
+      "log": "browser-tests.txt",
+      "sha256": "7b52c4733c668b3cb32ffac474248f24a5d2765699d770deaa602527e7347ca6",
+      "sizeBytes": 1026
+    }
+  ],
+  "postRunObservations": [
+    {
+      "path": "runtime-package-equivalence.json",
+      "sha256": "d716e2ad5d47df43121eefa7e52750e156bfe8ce5dd3bdbf30f093c4fd4c2140",
+      "sizeBytes": 105230
+    },
+    {
+      "path": "storage-observation.json",
+      "sha256": "85a00d279fdd971cc31255667bf4ca27644c39ce8cf3b18043ae618e99e79241",
+      "sizeBytes": 562
+    }
+  ]
+}

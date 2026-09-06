@@ -1,0 +1,1495 @@
+
+ RUN  v4.1.10 /home/x/deco/reploid
+
+ ✓ tests/unit/retained-peer-pack-episode.test.js (4 tests) 248ms
+ ✓ tests/unit/retained-document-search.test.js (1 test) 504ms
+     ✓ binds source comparison, exact runtime, failed attempts, and bounded retrieval observations  502ms
+stdout | tests/integration/doppler-inference.test.js > Doppler Performance Metrics > measures token generation speed
+[Doppler Performance] 14 tokens in 143ms = 97.8 tok/s
+
+ ✓ tests/unit/retained-document-assistant.test.js (1 test) 604ms
+   ✓ verifies retained physical assistant outputs and source parity without replaying a GPU  600ms
+ ✓ tests/unit/zero-ui.test.js (10 tests) 82ms
+stdout | tests/integration/doppler-inference.test.js > Doppler Performance Metrics > calculates time-to-first-token (TTFT)
+[Doppler Performance] TTFT: 9ms
+
+stdout | tests/integration/doppler-inference.test.js > GPU Requirements Documentation > documents minimum GPU requirements
+
+=== GPU Requirements for Doppler Models ===
+
+Gemma 3 1B Q4_K_M:
+  - VRAM Required: 1.2 GB
+  - Min Tier: 3, Recommended: 2
+  - Notes: Works on integrated GPUs with 4GB+ shared memory
+
+Gemma 3 4B Q4_K_M:
+  - VRAM Required: 2.8 GB
+  - Min Tier: 2, Recommended: 2
+  - Notes: Requires discrete GPU or Apple Silicon
+
+Gemma 3 12B Q4_K_M:
+  - VRAM Required: 7.5 GB
+  - Min Tier: 1, Recommended: 1
+  - Notes: Requires 8GB+ VRAM or Apple Silicon with 16GB+ unified memory
+
+
+stdout | tests/integration/doppler-inference.test.js > GPU Requirements Documentation > documents WebGPU tier levels
+
+=== WebGPU Tier Levels ===
+
+Tier 1 (Unified Memory):
+  - Apple Silicon or similar unified memory architecture
+  - Max Model Size: 60 GB
+  - Features: memory64, subgroups, f16
+  - Examples: M1/M2/M3 Mac, Snapdragon X Elite
+
+Tier 2 (Memory64):
+  - Discrete GPU with WebGPU memory64 support
+  - Max Model Size: 40 GB (MoE models)
+  - Features: memory64, subgroups
+  - Examples: RTX 3090/4090, RX 7900 XTX
+
+Tier 3 (Basic):
+  - Entry-level WebGPU support
+  - Max Model Size: 8 GB
+  - Features: none
+  - Examples: Integrated Intel/AMD GPUs, GTX 1060
+
+
+ ✓ tests/integration/doppler-inference.test.js (16 tests) 311ms
+ ✓ tests/unit/change-control-github.test.js (6 tests) 128ms
+ ✓ tests/integration/long-session.test.js (16 tests) 133ms
+ ✓ tests/unit/audit-logger.test.js (42 tests) 178ms
+ ✓ tests/unit/change-passport.test.js (7 tests) 122ms
+ ✓ tests/unit/improvement-episode.test.js (7 tests) 227ms
+ ✓ tests/unit/boot-wizard-state.test.js (4 tests) 405ms
+     ✓ defaults Zero cycle throttling to 7.7 seconds when no saved value exists  396ms
+ ✓ tests/integration/change-passport-action.test.js (3 tests) 124ms
+ ✓ tests/unit/pool-peer-pack-custody.test.js (15 tests) 273ms
+ ✓ tests/unit/pool-peer-pack-session.test.js (4 tests) 148ms
+ ✓ tests/integration/visual-change-passport.test.js (3 tests) 274ms
+ ✓ tests/unit/pool-complete-forecast.test.js (5 tests) 187ms
+ ✓ tests/unit/self-collaboration.test.js (4 tests) 165ms
+stdout | tests/integration/websocket-routing.test.js > WebSocket routing > routes signaling and agent bridge upgrades to the correct service
+[AgentBridge] Agent coordination server started on /agent-bridge
+
+ ✓ tests/unit/pool-document-search.test.js (13 tests) 282ms
+stdout | tests/integration/websocket-routing.test.js > WebSocket routing > routes signaling and agent bridge upgrades to the correct service
+[AgentBridge] New connection from: ::ffff:127.0.0.1
+
+stdout | tests/integration/websocket-routing.test.js > WebSocket routing > routes signaling and agent bridge upgrades to the correct service
+[AgentBridge] Agent registered: claude-1788670967938-iavwy0qzx (probe-agent)
+
+stdout | tests/integration/websocket-routing.test.js > WebSocket routing > closes active agent bridge clients during shutdown and clears heartbeat timers
+[AgentBridge] Agent coordination server started on /agent-bridge
+
+stdout | tests/integration/websocket-routing.test.js > WebSocket routing > closes active agent bridge clients during shutdown and clears heartbeat timers
+[AgentBridge] New connection from: ::ffff:127.0.0.1
+
+stdout | tests/integration/websocket-routing.test.js > WebSocket routing > closes active agent bridge clients during shutdown and clears heartbeat timers
+[AgentBridge] Agent registered: claude-1788670967965-ygpzcvjn2 (probe-agent)
+
+ ✓ tests/unit/pool-evidence-network.test.js (28 tests) 224ms
+ ✓ tests/unit/self-runtime.test.js (19 tests) 383ms
+ ✓ tests/integration/websocket-routing.test.js (2 tests) 126ms
+ ✓ tests/unit/cloud-access-build.test.js (2 tests) 128ms
+stdout | tests/unit/rule-engine.test.js > RuleEngine > init > should load rules from VFS if store exists
+[INFO] [RuleEngine] Loaded 1 rules, 0 agent rules, 0 constraints
+
+stdout | tests/unit/rule-engine.test.js > RuleEngine > addRule > should add a new rule
+[DEBUG] [RuleEngine] Added rule: rule_mtpcifwg_463fxrmn
+
+stdout | tests/unit/rule-engine.test.js > RuleEngine > addRule > should update existing rule with same ID
+[DEBUG] [RuleEngine] Added rule: my-rule
+
+stdout | tests/unit/rule-engine.test.js > RuleEngine > addRule > should update existing rule with same ID
+[DEBUG] [RuleEngine] Added rule: my-rule
+
+stdout | tests/unit/rule-engine.test.js > RuleEngine > addRule > should emit event when rule is added
+[DEBUG] [RuleEngine] Added rule: rule_mtpcifwh_mhk8e39y
+
+stdout | tests/unit/rule-engine.test.js > RuleEngine > removeRule > should remove a user rule
+[DEBUG] [RuleEngine] Added rule: rule_mtpcifwj_wrzno9vy
+
+stderr | tests/unit/rule-engine.test.js > RuleEngine > removeRule > should not remove builtin rules
+[WARN] [RuleEngine] Cannot remove builtin rule: builtin-isa-transitive
+
+stdout | tests/unit/rule-engine.test.js > RuleEngine > setRuleEnabled > should enable/disable a rule
+[DEBUG] [RuleEngine] Added rule: rule_mtpcifwk_oxem9k7o
+
+stdout | tests/unit/rule-engine.test.js > RuleEngine > infer > should derive facts using rules
+[INFO] [RuleEngine] Inferred 1 new facts in 1 iterations
+
+stdout | tests/unit/rule-engine.test.js > RuleEngine > Rule Induction > induceRule > should induce a rule from pattern
+[INFO] [RuleEngine] Induced new rule: induced_mtpcifwq_whah3444
+
+stdout | tests/unit/rule-engine.test.js > RuleEngine > Rule Induction > induceRule > should set lower priority for induced rules
+[INFO] [RuleEngine] Induced new rule: induced_mtpcifwr_lwynrmdb
+
+stdout | tests/unit/rule-engine.test.js > RuleEngine > Rule Induction > learnFromExamples > should induce rules from sufficient examples
+[INFO] [RuleEngine] Induced new rule: induced_mtpcifwt_heca6789
+
+stdout | tests/unit/rule-engine.test.js > RuleEngine > Policy Enforcement > addPolicy > should add a policy
+[INFO] [RuleEngine] Added policy: policy_mtpcifwv_trer8ppx
+
+stdout | tests/unit/rule-engine.test.js > RuleEngine > Policy Enforcement > removePolicy > should remove a user policy
+[INFO] [RuleEngine] Added policy: policy_mtpcifwv_mvrad30p
+
+stderr | tests/unit/rule-engine.test.js > RuleEngine > Policy Enforcement > removePolicy > should not remove builtin policies
+[WARN] [RuleEngine] Cannot remove builtin policy: builtin-substrate-approval
+
+stdout | tests/unit/rule-engine.test.js > RuleEngine > Policy Enforcement > checkPolicy > should detect policy violations
+[INFO] [RuleEngine] Added policy: policy_mtpcifx1_7egc3z1h
+
+stdout | tests/unit/rule-engine.test.js > RuleEngine > Policy Enforcement > checkPolicy > should require approval for matching policies
+[INFO] [RuleEngine] Added policy: policy_mtpcifx2_0ct43ft7
+
+stdout | tests/unit/rule-engine.test.js > RuleEngine > Policy Enforcement > checkPolicy > should detect substrate modifications
+[INFO] [RuleEngine] Added policy: policy_mtpcifx2_3uuhr9ez
+
+stdout | tests/unit/rule-engine.test.js > RuleEngine > Policy Enforcement > enforcePolicy > should call onDenied for denied actions
+[INFO] [RuleEngine] Added policy: policy_mtpcifx3_vskxelev
+
+stdout | tests/unit/rule-engine.test.js > RuleEngine > VFS Persistence > saveRulesToVFS > should save rules to VFS file
+[INFO] [RuleEngine] Saved 1 rules to /rules/custom-rules.json
+
+stdout | tests/unit/rule-engine.test.js > RuleEngine > VFS Persistence > savePoliciesToVFS > should save policies to VFS file
+[INFO] [RuleEngine] Saved 1 policies to /rules/policies/custom-policies.json
+
+stdout | tests/unit/rule-engine.test.js > RuleEngine > VFS Persistence > exportRules/importRules > should export and import rules
+[DEBUG] [RuleEngine] Added rule: export-test
+
+stdout | tests/unit/rule-engine.test.js > RuleEngine > VFS Persistence > exportRules/importRules > should export and import rules
+[INFO] [RuleEngine] Cleared all rules
+
+stdout | tests/unit/rule-engine.test.js > RuleEngine > VFS Persistence > exportRules/importRules > should export and import rules
+[INFO] [RuleEngine] Imported 1 rules, 0 agent rules, 0 constraints, 0 policies
+
+stdout | tests/unit/rule-engine.test.js > RuleEngine > VFS Persistence > exportRules/importRules > should merge on import by default
+[DEBUG] [RuleEngine] Added rule: existing
+
+stdout | tests/unit/rule-engine.test.js > RuleEngine > VFS Persistence > exportRules/importRules > should merge on import by default
+[INFO] [RuleEngine] Imported 1 rules, 0 agent rules, 0 constraints, 0 policies
+
+stdout | tests/unit/rule-engine.test.js > RuleEngine > VFS Persistence > exportRules/importRules > should replace on import when merge=false
+[DEBUG] [RuleEngine] Added rule: to-replace
+
+stdout | tests/unit/rule-engine.test.js > RuleEngine > VFS Persistence > exportRules/importRules > should replace on import when merge=false
+[INFO] [RuleEngine] Imported 1 rules, 0 agent rules, 0 constraints, 0 policies
+
+stdout | tests/unit/rule-engine.test.js > RuleEngine > getStats > should return correct statistics
+[DEBUG] [RuleEngine] Added rule: rule_mtpcifx7_8lcir9tl
+
+stdout | tests/unit/rule-engine.test.js > RuleEngine > getStats > should return correct statistics
+[INFO] [RuleEngine] Added policy: policy_mtpcifx7_pzcrfyb2
+
+stdout | tests/unit/rule-engine.test.js > RuleEngine > clear > should clear all rules and keep builtins
+[DEBUG] [RuleEngine] Added rule: user-rule
+
+stdout | tests/unit/rule-engine.test.js > RuleEngine > clear > should clear all rules and keep builtins
+[INFO] [RuleEngine] Cleared all rules
+
+stdout | tests/unit/rule-engine.test.js > RuleEngine > HITL Integration > should request approval for induced rules in HITL mode
+[INFO] [RuleEngine] Induced new rule (approved): induced_mtpcifx9_dcuch4q7
+
+stdout | tests/unit/rule-engine.test.js > RuleEngine > Agent Rules > addAgentRule > should add a new agent rule
+[DEBUG] [RuleEngine] Added agent rule: arule_mtpcifxb_ubvgocw0 (priority: 50)
+
+stdout | tests/unit/rule-engine.test.js > RuleEngine > Agent Rules > addAgentRule > should sort rules by priority (descending)
+[DEBUG] [RuleEngine] Added agent rule: low-priority (priority: 10)
+
+stdout | tests/unit/rule-engine.test.js > RuleEngine > Agent Rules > addAgentRule > should sort rules by priority (descending)
+[DEBUG] [RuleEngine] Added agent rule: high-priority (priority: 100)
+
+stdout | tests/unit/rule-engine.test.js > RuleEngine > Agent Rules > addAgentRule > should update existing rule with same ID
+[DEBUG] [RuleEngine] Added agent rule: my-rule (priority: 10)
+
+stdout | tests/unit/rule-engine.test.js > RuleEngine > Agent Rules > addAgentRule > should update existing rule with same ID
+[DEBUG] [RuleEngine] Added agent rule: my-rule (priority: 20)
+
+stdout | tests/unit/rule-engine.test.js > RuleEngine > Agent Rules > removeAgentRule > should remove a user agent rule
+[DEBUG] [RuleEngine] Added agent rule: arule_mtpcifxd_p7d1ni1t (priority: 50)
+
+stderr | tests/unit/rule-engine.test.js > RuleEngine > Agent Rules > removeAgentRule > should not remove builtin agent rules
+[WARN] [RuleEngine] Cannot remove builtin agent rule: builtin-high-cycle-warning
+
+stdout | tests/unit/rule-engine.test.js > RuleEngine > Agent Rules > getAgentRules > should filter by tags
+[DEBUG] [RuleEngine] Added agent rule: tagged-rule (priority: 50)
+
+stdout | tests/unit/rule-engine.test.js > RuleEngine > Agent Rules > getAgentRules > should filter by tags
+[DEBUG] [RuleEngine] Added agent rule: untagged-rule (priority: 50)
+
+stdout | tests/unit/rule-engine.test.js > RuleEngine > Agent Rules > getAgentRules > should only return enabled rules
+[DEBUG] [RuleEngine] Added agent rule: disabled-rule (priority: 50)
+
+stdout | tests/unit/rule-engine.test.js > RuleEngine > Agent Rules > setAgentRuleEnabled > should enable/disable an agent rule
+[DEBUG] [RuleEngine] Added agent rule: arule_mtpcifxf_xfaqdz7r (priority: 50)
+
+stdout | tests/unit/rule-engine.test.js > RuleEngine > Condition Matching > should match equality conditions
+[DEBUG] [RuleEngine] Added agent rule: arule_mtpcifxf_ftvd7t70 (priority: 50)
+
+stdout | tests/unit/rule-engine.test.js > RuleEngine > Condition Matching > should match comparison operators
+[DEBUG] [RuleEngine] Added agent rule: gt-rule (priority: 50)
+
+stdout | tests/unit/rule-engine.test.js > RuleEngine > Condition Matching > should match comparison operators
+[DEBUG] [RuleEngine] Added agent rule: gte-rule (priority: 50)
+
+stdout | tests/unit/rule-engine.test.js > RuleEngine > Condition Matching > should match nested path values
+[DEBUG] [RuleEngine] Added agent rule: nested-rule (priority: 50)
+
+stdout | tests/unit/rule-engine.test.js > RuleEngine > Condition Matching > should match logical AND conditions
+[DEBUG] [RuleEngine] Added agent rule: and-rule (priority: 50)
+
+stdout | tests/unit/rule-engine.test.js > RuleEngine > Condition Matching > should match logical OR conditions
+[DEBUG] [RuleEngine] Added agent rule: or-rule (priority: 50)
+
+stdout | tests/unit/rule-engine.test.js > RuleEngine > Condition Matching > should match NOT conditions
+[DEBUG] [RuleEngine] Added agent rule: not-rule (priority: 50)
+
+stdout | tests/unit/rule-engine.test.js > RuleEngine > Condition Matching > should match contains operator
+[DEBUG] [RuleEngine] Added agent rule: contains-rule (priority: 50)
+
+stdout | tests/unit/rule-engine.test.js > RuleEngine > Condition Matching > should match regex operator
+[DEBUG] [RuleEngine] Added agent rule: regex-rule (priority: 50)
+
+stdout | tests/unit/rule-engine.test.js > RuleEngine > Condition Matching > should match exists operator
+[DEBUG] [RuleEngine] Added agent rule: exists-rule (priority: 50)
+
+stdout | tests/unit/rule-engine.test.js > RuleEngine > Condition Matching > should match in operator
+[DEBUG] [RuleEngine] Added agent rule: in-rule (priority: 50)
+
+stdout | tests/unit/rule-engine.test.js > RuleEngine > Action Execution > should execute log action
+[DEBUG] [RuleEngine] Added agent rule: log-action-rule (priority: 50)
+
+stdout | tests/unit/rule-engine.test.js > RuleEngine > Action Execution > should execute log action
+[INFO] [RuleEngine:Action] Action executed!
+
+stdout | tests/unit/rule-engine.test.js > RuleEngine > Action Execution > should execute emit action
+[DEBUG] [RuleEngine] Added agent rule: emit-action-rule (priority: 50)
+
+stdout | tests/unit/rule-engine.test.js > RuleEngine > Action Execution > should execute addFact action
+[DEBUG] [RuleEngine] Added agent rule: fact-action-rule (priority: 50)
+
+stdout | tests/unit/rule-engine.test.js > RuleEngine > Action Execution > should support template interpolation in actions
+[DEBUG] [RuleEngine] Added agent rule: template-rule (priority: 50)
+
+stdout | tests/unit/rule-engine.test.js > RuleEngine > Action Execution > should support template interpolation in actions
+[INFO] [RuleEngine:Action] Hello, Agent! Cycle: 5
+
+ ✓ tests/unit/pool-discovery-contract.test.js (5 tests) 311ms
+stdout | tests/unit/rule-engine.test.js > RuleEngine > Action Execution > should execute sequence of actions
+[DEBUG] [RuleEngine] Added agent rule: sequence-rule (priority: 50)
+
+stdout | tests/unit/rule-engine.test.js > RuleEngine > Action Execution > should execute sequence of actions
+[INFO] [RuleEngine:Action] First
+
+stdout | tests/unit/rule-engine.test.js > RuleEngine > Action Execution > should execute sequence of actions
+[INFO] [RuleEngine:Action] Second
+
+stdout | tests/unit/rule-engine.test.js > RuleEngine > Action Execution > should execute sequence of actions
+[INFO] [RuleEngine:Action] Third
+
+stdout | tests/unit/rule-engine.test.js > RuleEngine > evaluateAgentRules > should return evaluation results
+[DEBUG] [RuleEngine] Added agent rule: eval-rule (priority: 50)
+
+stdout | tests/unit/rule-engine.test.js > RuleEngine > evaluateAgentRules > should respect stopOnFirst option
+[DEBUG] [RuleEngine] Added agent rule: first-rule (priority: 100)
+
+stdout | tests/unit/rule-engine.test.js > RuleEngine > evaluateAgentRules > should respect stopOnFirst option
+[DEBUG] [RuleEngine] Added agent rule: second-rule (priority: 50)
+
+stdout | tests/unit/rule-engine.test.js > RuleEngine > evaluateAgentRules > should respect maxRules option
+[DEBUG] [RuleEngine] Added agent rule: rule-0 (priority: 50)
+
+stdout | tests/unit/rule-engine.test.js > RuleEngine > evaluateAgentRules > should respect maxRules option
+[DEBUG] [RuleEngine] Added agent rule: rule-1 (priority: 49)
+
+stdout | tests/unit/rule-engine.test.js > RuleEngine > evaluateAgentRules > should respect maxRules option
+[DEBUG] [RuleEngine] Added agent rule: rule-2 (priority: 48)
+
+stdout | tests/unit/rule-engine.test.js > RuleEngine > evaluateAgentRules > should respect maxRules option
+[DEBUG] [RuleEngine] Added agent rule: rule-3 (priority: 47)
+
+stdout | tests/unit/rule-engine.test.js > RuleEngine > evaluateAgentRules > should respect maxRules option
+[DEBUG] [RuleEngine] Added agent rule: rule-4 (priority: 46)
+
+stdout | tests/unit/rule-engine.test.js > RuleEngine > evaluateAgentRules > should respect once flag
+[DEBUG] [RuleEngine] Added agent rule: once-rule (priority: 50)
+
+stdout | tests/unit/rule-engine.test.js > RuleEngine > evaluateAgentRules > should respect once flag
+[INFO] [RuleEngine:Action] once
+
+stdout | tests/unit/rule-engine.test.js > RuleEngine > evaluateAgentRules > should emit events on rule evaluation
+[DEBUG] [RuleEngine] Added agent rule: event-rule (priority: 50)
+
+stdout | tests/unit/rule-engine.test.js > RuleEngine > evaluateAgentRules > should emit events on rule evaluation
+[INFO] [RuleEngine:Action] event
+
+ ✓ tests/integration/signaling-server.test.js (7 tests) 128ms
+stdout | tests/unit/rule-engine.test.js > RuleEngine > registerActionHandler > should register a custom action handler
+[DEBUG] [RuleEngine] Registered action handler: customAction
+
+stdout | tests/unit/rule-engine.test.js > RuleEngine > registerActionHandler > should register a custom action handler
+[DEBUG] [RuleEngine] Added agent rule: custom-action-rule (priority: 50)
+
+stdout | tests/unit/rule-engine.test.js > RuleEngine > Stats with Agent Rules > should include agent rule stats
+[DEBUG] [RuleEngine] Added agent rule: arule_mtpcifxx_i1044bxu (priority: 50)
+
+stdout | tests/unit/rule-engine.test.js > RuleEngine > Export/Import with Agent Rules > should export and import agent rules
+[DEBUG] [RuleEngine] Added agent rule: export-agent-rule (priority: 50)
+
+stdout | tests/unit/rule-engine.test.js > RuleEngine > Export/Import with Agent Rules > should export and import agent rules
+[INFO] [RuleEngine] Cleared all rules
+
+stdout | tests/unit/rule-engine.test.js > RuleEngine > Export/Import with Agent Rules > should export and import agent rules
+[INFO] [RuleEngine] Imported 0 rules, 1 agent rules, 0 constraints, 0 policies
+
+ ✓ tests/unit/rule-engine.test.js (74 tests) 68ms
+ ✓ tests/unit/pool-peer-control-plane.test.js (11 tests) 188ms
+ ✓ tests/unit/cli-contract.test.js (4 tests) 1508ms
+     ✓ runs the advertised npm CLI and discovers actual proof targets  741ms
+     ✓ fails unknown, incomplete and contradictory input instead of running default tests  763ms
+ ✓ tests/unit/doppler-optimization-ui.test.js (2 tests) 132ms
+ ✓ tests/integration/change-control-service.test.js (10 tests) 765ms
+ ✓ tests/unit/pool-adapter-pack.test.js (9 tests) 130ms
+ ✓ tests/unit/pool-research-lifecycle.test.js (1 test) 125ms
+ ✓ tests/unit/pool-research-store.test.js (13 tests) 264ms
+ ✓ tests/unit/poolday-css-layers.test.js (1 test) 139ms
+ ✓ tests/unit/registry-contract.test.js (8 tests) 110ms
+ ✓ tests/unit/di-container.test.js (21 tests) 73ms
+ ✓ tests/integration/llm-client.test.js (36 tests) 81ms
+ ✓ tests/unit/doppler-optimizer.test.js (8 tests) 1053ms
+ ✓ tests/unit/pool-home-simulation.test.js (30 tests) 1136ms
+     ✓ keeps flow speed and width bounded across repeated frames  696ms
+ ✓ tests/unit/pool-peer-rendezvous.test.js (17 tests) 93ms
+stdout | tests/unit/knowledge-tree.test.js > KnowledgeTree > Initialization > should load existing tree from VFS
+[INFO] [KnowledgeTree] Loaded existing tree { levels: 1, totalNodes: 2 }
+
+stdout | tests/unit/knowledge-tree.test.js > KnowledgeTree > Tree Building > should build tree from documents
+[INFO] [KnowledgeTree] Embedding documents...
+
+stdout | tests/unit/knowledge-tree.test.js > KnowledgeTree > Tree Building > should build tree from documents
+[INFO] [KnowledgeTree] Building level 1... { nodesAtLevel: 4 }
+
+stdout | tests/unit/knowledge-tree.test.js > KnowledgeTree > Tree Building > should build tree from documents
+[INFO] [KnowledgeTree] Building level 2... { nodesAtLevel: 2 }
+
+stdout | tests/unit/knowledge-tree.test.js > KnowledgeTree > Tree Building > should build tree from documents
+[INFO] [KnowledgeTree] Build complete { levels: 3, totalNodes: 7, durationMs: 5 }
+
+stderr | tests/unit/knowledge-tree.test.js > KnowledgeTree > Tree Building > should reject building with insufficient documents
+[WARN] [KnowledgeTree] Not enough documents for tree { count: 1, minimum: 3 }
+
+stdout | tests/unit/knowledge-tree.test.js > KnowledgeTree > Tree Building > should create summaries for higher levels
+[INFO] [KnowledgeTree] Embedding documents...
+
+stdout | tests/unit/knowledge-tree.test.js > KnowledgeTree > Tree Building > should create summaries for higher levels
+[INFO] [KnowledgeTree] Building level 1... { nodesAtLevel: 5 }
+
+stdout | tests/unit/knowledge-tree.test.js > KnowledgeTree > Tree Building > should create summaries for higher levels
+[INFO] [KnowledgeTree] Building level 2... { nodesAtLevel: 2 }
+
+stdout | tests/unit/knowledge-tree.test.js > KnowledgeTree > Tree Building > should create summaries for higher levels
+[INFO] [KnowledgeTree] Build complete { levels: 3, totalNodes: 8, durationMs: 2 }
+
+stdout | tests/unit/knowledge-tree.test.js > KnowledgeTree > Basic Query > should return relevant results for queries
+[INFO] [KnowledgeTree] Embedding documents...
+
+stdout | tests/unit/knowledge-tree.test.js > KnowledgeTree > Basic Query > should return relevant results for queries
+[INFO] [KnowledgeTree] Building level 1... { nodesAtLevel: 4 }
+
+stdout | tests/unit/knowledge-tree.test.js > KnowledgeTree > Basic Query > should return relevant results for queries
+[INFO] [KnowledgeTree] Building level 2... { nodesAtLevel: 2 }
+
+stdout | tests/unit/knowledge-tree.test.js > KnowledgeTree > Basic Query > should return relevant results for queries
+[INFO] [KnowledgeTree] Build complete { levels: 3, totalNodes: 7, durationMs: 1 }
+
+stdout | tests/unit/knowledge-tree.test.js > KnowledgeTree > Basic Query > should search all tree levels by default
+[INFO] [KnowledgeTree] Embedding documents...
+
+stdout | tests/unit/knowledge-tree.test.js > KnowledgeTree > Basic Query > should search all tree levels by default
+[INFO] [KnowledgeTree] Building level 1... { nodesAtLevel: 4 }
+
+stdout | tests/unit/knowledge-tree.test.js > KnowledgeTree > Basic Query > should search all tree levels by default
+[INFO] [KnowledgeTree] Building level 2... { nodesAtLevel: 2 }
+
+stdout | tests/unit/knowledge-tree.test.js > KnowledgeTree > Basic Query > should search all tree levels by default
+[INFO] [KnowledgeTree] Build complete { levels: 3, totalNodes: 7, durationMs: 1 }
+
+stdout | tests/unit/knowledge-tree.test.js > KnowledgeTree > Basic Query > should emit query event
+[INFO] [KnowledgeTree] Embedding documents...
+
+stdout | tests/unit/knowledge-tree.test.js > KnowledgeTree > Basic Query > should emit query event
+[INFO] [KnowledgeTree] Building level 1... { nodesAtLevel: 4 }
+
+stdout | tests/unit/knowledge-tree.test.js > KnowledgeTree > Basic Query > should emit query event
+[INFO] [KnowledgeTree] Building level 2... { nodesAtLevel: 2 }
+
+stdout | tests/unit/knowledge-tree.test.js > KnowledgeTree > Basic Query > should emit query event
+[INFO] [KnowledgeTree] Build complete { levels: 3, totalNodes: 7, durationMs: 1 }
+
+stdout | tests/unit/knowledge-tree.test.js > KnowledgeTree > Incremental Updates (addDocument) > should add document to existing tree
+[INFO] [KnowledgeTree] Embedding documents...
+
+stdout | tests/unit/knowledge-tree.test.js > KnowledgeTree > Incremental Updates (addDocument) > should add document to existing tree
+[INFO] [KnowledgeTree] Building level 1... { nodesAtLevel: 3 }
+
+stdout | tests/unit/knowledge-tree.test.js > KnowledgeTree > Incremental Updates (addDocument) > should add document to existing tree
+[INFO] [KnowledgeTree] Build complete { levels: 2, totalNodes: 4, durationMs: 0 }
+
+stderr | tests/unit/knowledge-tree.test.js > KnowledgeTree > Incremental Updates (addDocument) > should create tree if none exists
+[WARN] [KnowledgeTree] Not enough documents for tree { count: 1, minimum: 3 }
+
+stdout | tests/unit/knowledge-tree.test.js > KnowledgeTree > Incremental Updates (addDocument) > should add document with timestamp to temporal index
+[INFO] [KnowledgeTree] Embedding documents...
+
+stdout | tests/unit/knowledge-tree.test.js > KnowledgeTree > Incremental Updates (addDocument) > should add document with timestamp to temporal index
+[INFO] [KnowledgeTree] Building level 1... { nodesAtLevel: 3 }
+
+stdout | tests/unit/knowledge-tree.test.js > KnowledgeTree > Incremental Updates (addDocument) > should add document with timestamp to temporal index
+[INFO] [KnowledgeTree] Build complete { levels: 2, totalNodes: 4, durationMs: 1 }
+
+stdout | tests/unit/knowledge-tree.test.js > KnowledgeTree > Temporal Indexing > should track node timestamps
+[INFO] [KnowledgeTree] Embedding documents...
+
+stdout | tests/unit/knowledge-tree.test.js > KnowledgeTree > Temporal Indexing > should track node timestamps
+[INFO] [KnowledgeTree] Building level 1... { nodesAtLevel: 3 }
+
+stdout | tests/unit/knowledge-tree.test.js > KnowledgeTree > Temporal Indexing > should track node timestamps
+[INFO] [KnowledgeTree] Build complete { levels: 2, totalNodes: 4, durationMs: 0 }
+
+stdout | tests/unit/knowledge-tree.test.js > KnowledgeTree > Temporal Indexing > should query by time range
+[INFO] [KnowledgeTree] Embedding documents...
+
+stdout | tests/unit/knowledge-tree.test.js > KnowledgeTree > Temporal Indexing > should query by time range
+[INFO] [KnowledgeTree] Building level 1... { nodesAtLevel: 3 }
+
+stdout | tests/unit/knowledge-tree.test.js > KnowledgeTree > Temporal Indexing > should query by time range
+[INFO] [KnowledgeTree] Build complete { levels: 2, totalNodes: 4, durationMs: 0 }
+
+stdout | tests/unit/knowledge-tree.test.js > KnowledgeTree > Hybrid Retrieval > should combine semantic and temporal scoring
+[INFO] [KnowledgeTree] Embedding documents...
+
+stdout | tests/unit/knowledge-tree.test.js > KnowledgeTree > Hybrid Retrieval > should combine semantic and temporal scoring
+[INFO] [KnowledgeTree] Building level 1... { nodesAtLevel: 5 }
+
+stdout | tests/unit/knowledge-tree.test.js > KnowledgeTree > Hybrid Retrieval > should combine semantic and temporal scoring
+[INFO] [KnowledgeTree] Building level 2... { nodesAtLevel: 2 }
+
+stdout | tests/unit/knowledge-tree.test.js > KnowledgeTree > Hybrid Retrieval > should combine semantic and temporal scoring
+[INFO] [KnowledgeTree] Build complete { levels: 3, totalNodes: 8, durationMs: 1 }
+
+stdout | tests/unit/knowledge-tree.test.js > KnowledgeTree > Hybrid Retrieval > should apply time range filter
+[INFO] [KnowledgeTree] Embedding documents...
+
+stdout | tests/unit/knowledge-tree.test.js > KnowledgeTree > Hybrid Retrieval > should apply time range filter
+[INFO] [KnowledgeTree] Building level 1... { nodesAtLevel: 5 }
+
+stdout | tests/unit/knowledge-tree.test.js > KnowledgeTree > Hybrid Retrieval > should apply time range filter
+[INFO] [KnowledgeTree] Building level 2... { nodesAtLevel: 2 }
+
+stdout | tests/unit/knowledge-tree.test.js > KnowledgeTree > Hybrid Retrieval > should apply time range filter
+[INFO] [KnowledgeTree] Build complete { levels: 3, totalNodes: 8, durationMs: 1 }
+
+stdout | tests/unit/knowledge-tree.test.js > KnowledgeTree > Hybrid Retrieval > should emit hybrid query event
+[INFO] [KnowledgeTree] Embedding documents...
+
+stdout | tests/unit/knowledge-tree.test.js > KnowledgeTree > Hybrid Retrieval > should emit hybrid query event
+[INFO] [KnowledgeTree] Building level 1... { nodesAtLevel: 5 }
+
+stdout | tests/unit/knowledge-tree.test.js > KnowledgeTree > Hybrid Retrieval > should emit hybrid query event
+[INFO] [KnowledgeTree] Building level 2... { nodesAtLevel: 2 }
+
+stdout | tests/unit/knowledge-tree.test.js > KnowledgeTree > Hybrid Retrieval > should emit hybrid query event
+[INFO] [KnowledgeTree] Build complete { levels: 3, totalNodes: 8, durationMs: 1 }
+
+stdout | tests/unit/knowledge-tree.test.js > KnowledgeTree > Anticipatory Retrieval > should detect task type from query
+[INFO] [KnowledgeTree] Embedding documents...
+
+stdout | tests/unit/knowledge-tree.test.js > KnowledgeTree > Anticipatory Retrieval > should detect task type from query
+[INFO] [KnowledgeTree] Building level 1... { nodesAtLevel: 5 }
+
+stdout | tests/unit/knowledge-tree.test.js > KnowledgeTree > Anticipatory Retrieval > should detect task type from query
+[INFO] [KnowledgeTree] Building level 2... { nodesAtLevel: 2 }
+
+stdout | tests/unit/knowledge-tree.test.js > KnowledgeTree > Anticipatory Retrieval > should detect task type from query
+[INFO] [KnowledgeTree] Build complete { levels: 3, totalNodes: 8, durationMs: 1 }
+
+stdout | tests/unit/knowledge-tree.test.js > KnowledgeTree > Anticipatory Retrieval > should return general for unrecognized queries
+[INFO] [KnowledgeTree] Embedding documents...
+
+stdout | tests/unit/knowledge-tree.test.js > KnowledgeTree > Anticipatory Retrieval > should return general for unrecognized queries
+[INFO] [KnowledgeTree] Building level 1... { nodesAtLevel: 5 }
+
+stdout | tests/unit/knowledge-tree.test.js > KnowledgeTree > Anticipatory Retrieval > should return general for unrecognized queries
+[INFO] [KnowledgeTree] Building level 2... { nodesAtLevel: 2 }
+
+stdout | tests/unit/knowledge-tree.test.js > KnowledgeTree > Anticipatory Retrieval > should return general for unrecognized queries
+[INFO] [KnowledgeTree] Build complete { levels: 3, totalNodes: 8, durationMs: 1 }
+
+stdout | tests/unit/knowledge-tree.test.js > KnowledgeTree > Anticipatory Retrieval > should boost anticipated context
+[INFO] [KnowledgeTree] Embedding documents...
+
+stdout | tests/unit/knowledge-tree.test.js > KnowledgeTree > Anticipatory Retrieval > should boost anticipated context
+[INFO] [KnowledgeTree] Building level 1... { nodesAtLevel: 5 }
+
+stdout | tests/unit/knowledge-tree.test.js > KnowledgeTree > Anticipatory Retrieval > should boost anticipated context
+[INFO] [KnowledgeTree] Building level 2... { nodesAtLevel: 2 }
+
+stdout | tests/unit/knowledge-tree.test.js > KnowledgeTree > Anticipatory Retrieval > should boost anticipated context
+[INFO] [KnowledgeTree] Build complete { levels: 3, totalNodes: 8, durationMs: 2 }
+
+stdout | tests/unit/knowledge-tree.test.js > KnowledgeTree > Anticipatory Retrieval > should emit anticipatory query event
+[INFO] [KnowledgeTree] Embedding documents...
+
+stdout | tests/unit/knowledge-tree.test.js > KnowledgeTree > Anticipatory Retrieval > should emit anticipatory query event
+[INFO] [KnowledgeTree] Building level 1... { nodesAtLevel: 5 }
+
+stdout | tests/unit/knowledge-tree.test.js > KnowledgeTree > Anticipatory Retrieval > should emit anticipatory query event
+[INFO] [KnowledgeTree] Building level 2... { nodesAtLevel: 2 }
+
+stdout | tests/unit/knowledge-tree.test.js > KnowledgeTree > Anticipatory Retrieval > should emit anticipatory query event
+[INFO] [KnowledgeTree] Build complete { levels: 3, totalNodes: 8, durationMs: 1 }
+
+stdout | tests/unit/knowledge-tree.test.js > KnowledgeTree > Adaptive Forgetting (Ebbinghaus) > should compute retention score
+[INFO] [KnowledgeTree] Embedding documents...
+
+stdout | tests/unit/knowledge-tree.test.js > KnowledgeTree > Adaptive Forgetting (Ebbinghaus) > should compute retention score
+[INFO] [KnowledgeTree] Building level 1... { nodesAtLevel: 3 }
+
+stdout | tests/unit/knowledge-tree.test.js > KnowledgeTree > Adaptive Forgetting (Ebbinghaus) > should compute retention score
+[INFO] [KnowledgeTree] Build complete { levels: 2, totalNodes: 4, durationMs: 1 }
+
+stdout | tests/unit/knowledge-tree.test.js > KnowledgeTree > Adaptive Forgetting (Ebbinghaus) > should prune decayed nodes
+[INFO] [KnowledgeTree] Embedding documents...
+
+stdout | tests/unit/knowledge-tree.test.js > KnowledgeTree > Adaptive Forgetting (Ebbinghaus) > should prune decayed nodes
+[INFO] [KnowledgeTree] Building level 1... { nodesAtLevel: 3 }
+
+stdout | tests/unit/knowledge-tree.test.js > KnowledgeTree > Adaptive Forgetting (Ebbinghaus) > should prune decayed nodes
+[INFO] [KnowledgeTree] Build complete { levels: 2, totalNodes: 4, durationMs: 0 }
+
+stdout | tests/unit/knowledge-tree.test.js > KnowledgeTree > Adaptive Forgetting (Ebbinghaus) > should prune decayed nodes
+[INFO] [KnowledgeTree] Configuration updated
+
+stdout | tests/unit/knowledge-tree.test.js > KnowledgeTree > Adaptive Forgetting (Ebbinghaus) > should prune decayed nodes
+[INFO] [KnowledgeTree] Pruned decayed nodes { pruned: 1, originalCount: 4 }
+
+stdout | tests/unit/knowledge-tree.test.js > KnowledgeTree > Access Tracking > should record access when querying
+[INFO] [KnowledgeTree] Embedding documents...
+
+stdout | tests/unit/knowledge-tree.test.js > KnowledgeTree > Access Tracking > should record access when querying
+[INFO] [KnowledgeTree] Building level 1... { nodesAtLevel: 3 }
+
+stdout | tests/unit/knowledge-tree.test.js > KnowledgeTree > Access Tracking > should record access when querying
+[INFO] [KnowledgeTree] Build complete { levels: 2, totalNodes: 4, durationMs: 1 }
+
+stdout | tests/unit/knowledge-tree.test.js > KnowledgeTree > Configuration > should allow configuration updates
+[INFO] [KnowledgeTree] Configuration updated
+
+stdout | tests/unit/knowledge-tree.test.js > KnowledgeTree > Configuration > should return stats with temporal info
+[INFO] [KnowledgeTree] Embedding documents...
+
+stdout | tests/unit/knowledge-tree.test.js > KnowledgeTree > Configuration > should return stats with temporal info
+[INFO] [KnowledgeTree] Building level 1... { nodesAtLevel: 3 }
+
+stdout | tests/unit/knowledge-tree.test.js > KnowledgeTree > Configuration > should return stats with temporal info
+[INFO] [KnowledgeTree] Build complete { levels: 2, totalNodes: 4, durationMs: 0 }
+
+stdout | tests/unit/knowledge-tree.test.js > KnowledgeTree > Clear and Reset > should clear tree and temporal index
+[INFO] [KnowledgeTree] Embedding documents...
+
+stdout | tests/unit/knowledge-tree.test.js > KnowledgeTree > Clear and Reset > should clear tree and temporal index
+[INFO] [KnowledgeTree] Building level 1... { nodesAtLevel: 3 }
+
+stdout | tests/unit/knowledge-tree.test.js > KnowledgeTree > Clear and Reset > should clear tree and temporal index
+[INFO] [KnowledgeTree] Build complete { levels: 2, totalNodes: 4, durationMs: 1 }
+
+stdout | tests/unit/knowledge-tree.test.js > KnowledgeTree > Clear and Reset > should delete VFS files on clear
+[INFO] [KnowledgeTree] Embedding documents...
+
+stdout | tests/unit/knowledge-tree.test.js > KnowledgeTree > Clear and Reset > should delete VFS files on clear
+[INFO] [KnowledgeTree] Building level 1... { nodesAtLevel: 3 }
+
+stdout | tests/unit/knowledge-tree.test.js > KnowledgeTree > Clear and Reset > should delete VFS files on clear
+[INFO] [KnowledgeTree] Build complete { levels: 2, totalNodes: 4, durationMs: 0 }
+
+stdout | tests/unit/knowledge-tree.test.js > KnowledgeTree > Clear and Reset > should emit clear event
+[INFO] [KnowledgeTree] Embedding documents...
+
+stdout | tests/unit/knowledge-tree.test.js > KnowledgeTree > Clear and Reset > should emit clear event
+[INFO] [KnowledgeTree] Building level 1... { nodesAtLevel: 3 }
+
+stdout | tests/unit/knowledge-tree.test.js > KnowledgeTree > Clear and Reset > should emit clear event
+[INFO] [KnowledgeTree] Build complete { levels: 2, totalNodes: 4, durationMs: 0 }
+
+stdout | tests/unit/knowledge-tree.test.js > KnowledgeTree > K-Means Clustering > should cluster similar documents together
+[INFO] [KnowledgeTree] Embedding documents...
+
+stdout | tests/unit/knowledge-tree.test.js > KnowledgeTree > K-Means Clustering > should cluster similar documents together
+[INFO] [KnowledgeTree] Building level 1... { nodesAtLevel: 6 }
+
+stdout | tests/unit/knowledge-tree.test.js > KnowledgeTree > K-Means Clustering > should cluster similar documents together
+[INFO] [KnowledgeTree] Building level 2... { nodesAtLevel: 2 }
+
+stdout | tests/unit/knowledge-tree.test.js > KnowledgeTree > K-Means Clustering > should cluster similar documents together
+[INFO] [KnowledgeTree] Build complete { levels: 3, totalNodes: 9, durationMs: 3 }
+
+stdout | tests/unit/knowledge-tree.test.js > KnowledgeTree > Persistence > should persist tree to VFS
+[INFO] [KnowledgeTree] Embedding documents...
+
+stdout | tests/unit/knowledge-tree.test.js > KnowledgeTree > Persistence > should persist tree to VFS
+[INFO] [KnowledgeTree] Building level 1... { nodesAtLevel: 3 }
+
+stdout | tests/unit/knowledge-tree.test.js > KnowledgeTree > Persistence > should persist tree to VFS
+[INFO] [KnowledgeTree] Build complete { levels: 2, totalNodes: 4, durationMs: 1 }
+
+stdout | tests/unit/knowledge-tree.test.js > KnowledgeTree > Persistence > should persist temporal index to VFS
+[INFO] [KnowledgeTree] Embedding documents...
+
+stdout | tests/unit/knowledge-tree.test.js > KnowledgeTree > Persistence > should persist temporal index to VFS
+[INFO] [KnowledgeTree] Building level 1... { nodesAtLevel: 3 }
+
+ ✓ tests/unit/webrtc-swarm.test.js (44 tests) 29ms
+stdout | tests/unit/knowledge-tree.test.js > KnowledgeTree > Persistence > should persist temporal index to VFS
+[INFO] [KnowledgeTree] Build complete { levels: 2, totalNodes: 4, durationMs: 1 }
+
+ ✓ tests/unit/knowledge-tree.test.js (32 tests) 78ms
+ ✓ tests/unit/pool-home-record.test.js (21 tests) 125ms
+ ✓ tests/unit/pool-research-routes.test.js (8 tests) 211ms
+ ✓ tests/unit/pool-room-projection.test.js (21 tests) 106ms
+ ✓ tests/unit/verification-manager.test.js (50 tests) 51ms
+ ✓ tests/unit/pool-adjudication-experiment.test.js (3 tests) 92ms
+ ✓ tests/unit/pool-discovery-candidate-action.test.js (4 tests) 65ms
+ ✓ tests/unit/toast.test.js (36 tests | 18 skipped) 99ms
+ ✓ tests/unit/pool-home-nav.test.js (22 tests) 107ms
+ ✓ tests/unit/pool-hosted-diagnostic.test.js (1 test) 123ms
+ ✓ tests/unit/pool-routes.test.js (31 tests) 362ms
+ ✓ tests/unit/pool-research-view.test.js (11 tests) 641ms
+Error: connect ECONNREFUSED 127.0.0.1:3000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1631:16) {
+  errno: -111,
+  code: 'ECONNREFUSED',
+  syscall: 'connect',
+  address: '127.0.0.1',
+  port: 3000
+}
+ ✓ tests/unit/boot-seed.test.js (18 tests) 65ms
+Error: connect ECONNREFUSED 127.0.0.1:3000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1631:16) {
+  errno: -111,
+  code: 'ECONNREFUSED',
+  syscall: 'connect',
+  address: '127.0.0.1',
+  port: 3000
+}
+ ✓ tests/unit/confirmation-modal.test.js (24 tests) 47ms
+ ✓ tests/unit/pool-sequence-workload.test.js (14 tests) 61ms
+stdout | tests/unit/policy-engine.test.js > PolicyEngine > init > should initialize successfully
+[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+stdout | tests/unit/policy-engine.test.js > PolicyEngine > init > should emit policy:loaded event
+[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+stdout | tests/unit/policy-engine.test.js > PolicyEngine > init > should emit policy:loaded event
+[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+stdout | tests/unit/policy-engine.test.js > PolicyEngine > init > should default to block enforcement mode
+[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+stdout | tests/unit/policy-engine.test.js > PolicyEngine > DSL Parsing > parsePolicyDSL > should parse simple deny rule
+[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+stdout | tests/unit/policy-engine.test.js > PolicyEngine > DSL Parsing > parsePolicyDSL > should parse simple allow rule
+[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+stdout | tests/unit/policy-engine.test.js > PolicyEngine > DSL Parsing > parsePolicyDSL > should parse AND conditions
+[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+stdout | tests/unit/policy-engine.test.js > PolicyEngine > DSL Parsing > parsePolicyDSL > should parse OR conditions
+[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+stdout | tests/unit/policy-engine.test.js > PolicyEngine > DSL Parsing > parsePolicyDSL > should parse NOT conditions
+[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+stdout | tests/unit/policy-engine.test.js > PolicyEngine > DSL Parsing > parsePolicyDSL > should parse startsWith method
+[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+stdout | tests/unit/policy-engine.test.js > PolicyEngine > DSL Parsing > parsePolicyDSL > should parse endsWith method
+[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+stdout | tests/unit/policy-engine.test.js > PolicyEngine > DSL Parsing > parsePolicyDSL > should parse contains method
+[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+stdout | tests/unit/policy-engine.test.js > PolicyEngine > DSL Parsing > parsePolicyDSL > should parse matches (regex) method
+[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+stdout | tests/unit/policy-engine.test.js > PolicyEngine > DSL Parsing > parsePolicyDSL > should parse comparison operators
+[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+stdout | tests/unit/policy-engine.test.js > PolicyEngine > DSL Parsing > parsePolicyDSL > should parse nested property paths
+[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+stdout | tests/unit/policy-engine.test.js > PolicyEngine > DSL Parsing > parsePolicyDSL > should parse complex nested conditions
+[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+stdout | tests/unit/policy-engine.test.js > PolicyEngine > DSL Parsing > parsePolicyDSL > should parse boolean literals
+[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+stdout | tests/unit/policy-engine.test.js > PolicyEngine > DSL Parsing > parsePolicyDSL > should parse number literals
+[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+stdout | tests/unit/policy-engine.test.js > PolicyEngine > DSL Parsing > parsePolicyDSL > should parse string literals with escapes
+[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+stdout | tests/unit/policy-engine.test.js > PolicyEngine > DSL Parsing > parsePolicyDSL > should throw on invalid DSL
+[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+stdout | tests/unit/policy-engine.test.js > PolicyEngine > DSL Parsing > validateDSL > should validate correct DSL
+[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+stdout | tests/unit/policy-engine.test.js > PolicyEngine > DSL Parsing > validateDSL > should return error for invalid DSL
+[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+stdout | tests/unit/policy-engine.test.js > PolicyEngine > Policy Management > addPolicyFromDSL > should add a policy from DSL string
+[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+stdout | tests/unit/policy-engine.test.js > PolicyEngine > Policy Management > addPolicyFromDSL > should add a policy from DSL string
+[INFO] [PolicyEngine] Added policy: policy_mtpcigpe_sn18kwc6 (deny)
+
+stdout | tests/unit/policy-engine.test.js > PolicyEngine > Policy Management > addPolicyFromDSL > should emit policy:added event
+[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+stdout | tests/unit/policy-engine.test.js > PolicyEngine > Policy Management > addPolicyFromDSL > should emit policy:added event
+[INFO] [PolicyEngine] Added policy: policy_mtpcigpe_l1murkd1 (deny)
+
+stdout | tests/unit/policy-engine.test.js > PolicyEngine > Policy Management > addPolicy > should add a policy from object
+[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+stdout | tests/unit/policy-engine.test.js > PolicyEngine > Policy Management > addPolicy > should add a policy from object
+[INFO] [PolicyEngine] Added policy: policy_mtpcigpf_95ktfu5n
+
+stdout | tests/unit/policy-engine.test.js > PolicyEngine > Policy Management > addPolicy > should support legacy format with tool/argsPattern
+[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+stdout | tests/unit/policy-engine.test.js > PolicyEngine > Policy Management > addPolicy > should support legacy format with tool/argsPattern
+[INFO] [PolicyEngine] Added policy: policy_mtpcigpg_7jimf9ov
+
+stdout | tests/unit/policy-engine.test.js > PolicyEngine > Policy Management > addPolicy > should update existing policy with same ID
+[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+stdout | tests/unit/policy-engine.test.js > PolicyEngine > Policy Management > addPolicy > should update existing policy with same ID
+[INFO] [PolicyEngine] Added policy: test-policy (deny)
+
+stdout | tests/unit/policy-engine.test.js > PolicyEngine > Policy Management > addPolicy > should update existing policy with same ID
+[INFO] [PolicyEngine] Added policy: test-policy (deny)
+
+stdout | tests/unit/policy-engine.test.js > PolicyEngine > Policy Management > removePolicy > should remove a policy
+[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+stdout | tests/unit/policy-engine.test.js > PolicyEngine > Policy Management > removePolicy > should remove a policy
+[INFO] [PolicyEngine] Added policy: policy_mtpcigph_zuh9o3t9 (deny)
+
+stdout | tests/unit/policy-engine.test.js > PolicyEngine > Policy Management > removePolicy > should return false for non-existent policy
+[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+stdout | tests/unit/policy-engine.test.js > PolicyEngine > Policy Management > removePolicy > should emit policy:removed event
+[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+stdout | tests/unit/policy-engine.test.js > PolicyEngine > Policy Management > removePolicy > should emit policy:removed event
+[INFO] [PolicyEngine] Added policy: policy_mtpcigpi_3it46hg3 (deny)
+
+stdout | tests/unit/policy-engine.test.js > PolicyEngine > Policy Management > setPolicyEnabled > should enable/disable a policy
+[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+stdout | tests/unit/policy-engine.test.js > PolicyEngine > Policy Management > setPolicyEnabled > should enable/disable a policy
+[INFO] [PolicyEngine] Added policy: policy_mtpcigpj_xbop7yd8 (deny)
+
+stdout | tests/unit/policy-engine.test.js > PolicyEngine > Policy Management > setPolicyEnabled > should exclude disabled policies from getPolicies
+[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+stdout | tests/unit/policy-engine.test.js > PolicyEngine > Policy Management > setPolicyEnabled > should exclude disabled policies from getPolicies
+[INFO] [PolicyEngine] Added policy: policy_mtpcigpk_zgsgnq8t (deny)
+
+stdout | tests/unit/policy-engine.test.js > PolicyEngine > Policy Checking > check > should allow tool when no policies match
+[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+stdout | tests/unit/policy-engine.test.js > PolicyEngine > Policy Checking > check > should deny tool when deny policy matches
+[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+stdout | tests/unit/policy-engine.test.js > PolicyEngine > Policy Checking > check > should deny tool when deny policy matches
+[INFO] [PolicyEngine] Added policy: policy_mtpcigpm_8vbbz7y8 (deny)
+
+stdout | tests/unit/episodic-memory.test.js > EpisodicMemory > Initialization > should initialize with empty state
+[INFO] [EpisodicMemory] Initialized { totalEpisodes: 0, sessions: 0 }
+
+stdout | tests/unit/policy-engine.test.js > PolicyEngine > Policy Checking > check > should allow tool when allow policy matches first
+[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+stdout | tests/unit/policy-engine.test.js > PolicyEngine > Policy Checking > check > should allow tool when allow policy matches first
+[INFO] [PolicyEngine] Added policy: policy_mtpcigpn_3zqgto1y (allow)
+
+stdout | tests/unit/policy-engine.test.js > PolicyEngine > Policy Checking > check > should allow tool when allow policy matches first
+[INFO] [PolicyEngine] Added policy: policy_mtpcigpn_qsddo8q6 (deny)
+
+stdout | tests/unit/policy-engine.test.js > PolicyEngine > Policy Checking > check > should check args conditions
+[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+stdout | tests/unit/policy-engine.test.js > PolicyEngine > Policy Checking > check > should check args conditions
+[INFO] [PolicyEngine] Added policy: policy_mtpcigpo_k4rnpxv2 (deny)
+
+stdout | tests/unit/policy-engine.test.js > PolicyEngine > Policy Checking > check > should emit policy:violation event
+[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+stdout | tests/unit/policy-engine.test.js > PolicyEngine > Policy Checking > check > should emit policy:violation event
+[INFO] [PolicyEngine] Added policy: policy_mtpcigpo_m1dcsrrt (deny)
+
+stdout | tests/unit/policy-engine.test.js > PolicyEngine > Policy Checking > check > should emit policy:enforced event when blocking
+[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+stdout | tests/unit/policy-engine.test.js > PolicyEngine > Policy Checking > check > should emit policy:enforced event when blocking
+[INFO] [PolicyEngine] Added policy: policy_mtpcigpp_j8qsu0uf (deny)
+
+stdout | tests/unit/policy-engine.test.js > PolicyEngine > Policy Checking > check > should log violations to AuditLogger
+[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+stdout | tests/unit/policy-engine.test.js > PolicyEngine > Policy Checking > check > should log violations to AuditLogger
+[INFO] [PolicyEngine] Added policy: policy_mtpcigpq_p0effi7g (deny)
+
+stdout | tests/unit/policy-engine.test.js > PolicyEngine > Policy Checking > check > should match contains operator
+[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+stdout | tests/unit/policy-engine.test.js > PolicyEngine > Policy Checking > check > should match contains operator
+[INFO] [PolicyEngine] Added policy: policy_mtpcigps_c6ldmugi (deny)
+
+stdout | tests/unit/episodic-memory.test.js > EpisodicMemory > Initialization > should load existing index from VFS
+[INFO] [EpisodicMemory] Initialized { totalEpisodes: 2, sessions: 1 }
+
+stdout | tests/unit/episodic-memory.test.js > EpisodicMemory > Initialization > should create directory on init
+[INFO] [EpisodicMemory] Initialized { totalEpisodes: 0, sessions: 0 }
+
+stdout | tests/unit/policy-engine.test.js > PolicyEngine > Policy Checking > check > should match regex operator
+[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+stdout | tests/unit/policy-engine.test.js > PolicyEngine > Policy Checking > check > should match regex operator
+[INFO] [PolicyEngine] Added policy: policy_mtpcigps_9hqut1ef (deny)
+
+stdout | tests/unit/policy-engine.test.js > PolicyEngine > Policy Checking > check > should handle undefined paths gracefully
+[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+stdout | tests/unit/policy-engine.test.js > PolicyEngine > Policy Checking > check > should handle undefined paths gracefully
+[INFO] [PolicyEngine] Added policy: policy_mtpcigpt_ln3qkqp4 (deny)
+
+stdout | tests/unit/policy-engine.test.js > PolicyEngine > Policy Checking > Enforcement Modes > should block in block mode
+[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+stdout | tests/unit/policy-engine.test.js > PolicyEngine > Policy Checking > Enforcement Modes > should block in block mode
+[INFO] [PolicyEngine] Enforcement mode set to: block
+
+stdout | tests/unit/policy-engine.test.js > PolicyEngine > Policy Checking > Enforcement Modes > should block in block mode
+[INFO] [PolicyEngine] Added policy: policy_mtpcigpu_msr706gj (deny)
+
+stdout | tests/unit/policy-engine.test.js > PolicyEngine > Policy Checking > Enforcement Modes > should warn but allow in warn mode
+[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+stdout | tests/unit/policy-engine.test.js > PolicyEngine > Policy Checking > Enforcement Modes > should warn but allow in warn mode
+[INFO] [PolicyEngine] Enforcement mode set to: warn
+
+stdout | tests/unit/policy-engine.test.js > PolicyEngine > Policy Checking > Enforcement Modes > should warn but allow in warn mode
+[INFO] [PolicyEngine] Added policy: policy_mtpcigpu_ziaij1vd (deny)
+
+stdout | tests/unit/policy-engine.test.js > PolicyEngine > Policy Checking > Enforcement Modes > should allow and just log in audit mode
+[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+stdout | tests/unit/policy-engine.test.js > PolicyEngine > Policy Checking > Enforcement Modes > should allow and just log in audit mode
+[INFO] [PolicyEngine] Enforcement mode set to: audit
+
+stdout | tests/unit/policy-engine.test.js > PolicyEngine > Policy Checking > Enforcement Modes > should allow and just log in audit mode
+[INFO] [PolicyEngine] Added policy: policy_mtpcigpv_51mfv74k (deny)
+
+stdout | tests/unit/policy-engine.test.js > PolicyEngine > Policy Checking > Enforcement Modes > should emit policy:mode_changed event
+[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+stdout | tests/unit/policy-engine.test.js > PolicyEngine > Policy Checking > Enforcement Modes > should emit policy:mode_changed event
+[INFO] [PolicyEngine] Enforcement mode set to: warn
+
+stdout | tests/unit/policy-engine.test.js > PolicyEngine > Policy Checking > Enforcement Modes > should reject invalid enforcement mode
+[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+stdout | tests/unit/policy-engine.test.js > PolicyEngine > Condition Compilation > compileCondition > should compile literal conditions
+[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+stdout | tests/unit/episodic-memory.test.js > EpisodicMemory > Store Operations > should store a message and return episode ID
+[INFO] [EpisodicMemory] Initialized { totalEpisodes: 0, sessions: 0 }
+
+stdout | tests/unit/episodic-memory.test.js > EpisodicMemory > Store Operations > should reject messages that are too short
+[INFO] [EpisodicMemory] Initialized { totalEpisodes: 0, sessions: 0 }
+
+stdout | tests/unit/episodic-memory.test.js > EpisodicMemory > Store Operations > should generate embedding for stored message
+[INFO] [EpisodicMemory] Initialized { totalEpisodes: 0, sessions: 0 }
+
+stdout | tests/unit/episodic-memory.test.js > EpisodicMemory > Store Operations > should emit store event
+[INFO] [EpisodicMemory] Initialized { totalEpisodes: 0, sessions: 0 }
+
+stdout | tests/unit/policy-engine.test.js > PolicyEngine > Condition Compilation > compileCondition > should compile path conditions
+[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+stdout | tests/unit/policy-engine.test.js > PolicyEngine > Condition Compilation > compileCondition > should compile comparison conditions
+[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+stdout | tests/unit/policy-engine.test.js > PolicyEngine > Condition Compilation > compileCondition > should compile AND conditions
+[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+stdout | tests/unit/policy-engine.test.js > PolicyEngine > Condition Compilation > compileCondition > should compile OR conditions
+[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+stdout | tests/unit/policy-engine.test.js > PolicyEngine > Condition Compilation > compileCondition > should compile NOT conditions
+[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+stdout | tests/unit/policy-engine.test.js > PolicyEngine > VFS Integration > should load policies from VFS on init
+[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+stdout | tests/unit/policy-engine.test.js > PolicyEngine > VFS Integration > should load policies from VFS on init
+[INFO] [PolicyEngine] Loaded 1 policies from VFS
+
+stdout | tests/unit/policy-engine.test.js > PolicyEngine > VFS Integration > should load policies from VFS on init
+[INFO] [PolicyEngine] Initialized with 1 policies (mode: block)
+
+stdout | tests/unit/policy-engine.test.js > PolicyEngine > VFS Integration > should save policies to VFS
+[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+stdout | tests/unit/policy-engine.test.js > PolicyEngine > VFS Integration > should save policies to VFS
+[INFO] [PolicyEngine] Added policy: policy_mtpcigq0_4cphzsg3 (deny)
+
+stdout | tests/unit/policy-engine.test.js > PolicyEngine > VFS Integration > should save policies to VFS
+[INFO] [PolicyEngine] Saved 1 policies to /policies/custom.json
+
+stdout | tests/unit/policy-engine.test.js > PolicyEngine > Export/Import > should export policies
+[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+stdout | tests/unit/policy-engine.test.js > PolicyEngine > Export/Import > should export policies
+[INFO] [PolicyEngine] Added policy: policy_mtpcigq2_4g6tdlga (deny)
+
+stdout | tests/unit/episodic-memory.test.js > EpisodicMemory > Store Operations > should store batch of messages
+[INFO] [EpisodicMemory] Initialized { totalEpisodes: 0, sessions: 0 }
+
+stdout | tests/unit/episodic-memory.test.js > EpisodicMemory > Store Operations > should persist to VFS
+[INFO] [EpisodicMemory] Initialized { totalEpisodes: 0, sessions: 0 }
+
+ ✓ tests/unit/poolday-audit.test.js (10 tests) 59ms
+stdout | tests/unit/policy-engine.test.js > PolicyEngine > Export/Import > should import policies with merge
+[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+stdout | tests/unit/policy-engine.test.js > PolicyEngine > Export/Import > should import policies with merge
+[INFO] [PolicyEngine] Added policy: existing-policy (deny)
+
+stdout | tests/unit/policy-engine.test.js > PolicyEngine > Export/Import > should import policies with merge
+[INFO] [PolicyEngine] Imported 1 policies, skipped 0
+
+stdout | tests/unit/policy-engine.test.js > PolicyEngine > Export/Import > should import policies with replace
+[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+stdout | tests/unit/policy-engine.test.js > PolicyEngine > Export/Import > should import policies with replace
+[INFO] [PolicyEngine] Added policy: to-replace (deny)
+
+stdout | tests/unit/policy-engine.test.js > PolicyEngine > Export/Import > should import policies with replace
+[INFO] [PolicyEngine] Imported 1 policies, skipped 0
+
+stdout | tests/unit/policy-engine.test.js > PolicyEngine > Statistics > should return accurate stats
+[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+stdout | tests/unit/policy-engine.test.js > PolicyEngine > Statistics > should return accurate stats
+[INFO] [PolicyEngine] Added policy: policy_mtpcigq3_19627xgq (deny)
+
+stdout | tests/unit/episodic-memory.test.js > EpisodicMemory > Store Operations > should track session in manifest
+[INFO] [EpisodicMemory] Initialized { totalEpisodes: 0, sessions: 0 }
+
+stdout | tests/unit/policy-engine.test.js > PolicyEngine > Statistics > should return accurate stats
+[INFO] [PolicyEngine] Added policy: policy_mtpcigq4_0syvi72a (deny)
+
+stdout | tests/unit/policy-engine.test.js > PolicyEngine > Statistics > should return accurate stats
+[INFO] [PolicyEngine] Added policy: policy_mtpcigq4_r679o2ie (allow)
+
+stdout | tests/unit/policy-engine.test.js > PolicyEngine > Clear > should clear all policies
+[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+stdout | tests/unit/policy-engine.test.js > PolicyEngine > Clear > should clear all policies
+[INFO] [PolicyEngine] Added policy: policy_mtpcigq4_oicvdrkt (deny)
+
+stdout | tests/unit/policy-engine.test.js > PolicyEngine > Clear > should clear all policies
+[INFO] [PolicyEngine] Cleared all policies
+
+stdout | tests/unit/policy-engine.test.js > PolicyEngine > Clear > should emit policy:cleared event
+[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+stdout | tests/unit/policy-engine.test.js > PolicyEngine > Clear > should emit policy:cleared event
+[INFO] [PolicyEngine] Cleared all policies
+
+stdout | tests/unit/policy-engine.test.js > PolicyEngine > Complex Policy Scenarios > should handle multiple deny policies
+[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+stdout | tests/unit/policy-engine.test.js > PolicyEngine > Complex Policy Scenarios > should handle multiple deny policies
+[INFO] [PolicyEngine] Added policy: policy_mtpcigq6_ebt55108 (deny)
+
+stdout | tests/unit/policy-engine.test.js > PolicyEngine > Complex Policy Scenarios > should handle multiple deny policies
+[INFO] [PolicyEngine] Added policy: policy_mtpcigq6_zdash9tk (deny)
+
+stdout | tests/unit/policy-engine.test.js > PolicyEngine > Complex Policy Scenarios > should support complex URL validation policy
+[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+stdout | tests/unit/policy-engine.test.js > PolicyEngine > Complex Policy Scenarios > should support complex URL validation policy
+[INFO] [PolicyEngine] Added policy: policy_mtpcigq6_8e0oh8gi (deny)
+
+stdout | tests/unit/policy-engine.test.js > PolicyEngine > Complex Policy Scenarios > should support file path protection policy
+[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+stdout | tests/unit/policy-engine.test.js > PolicyEngine > Complex Policy Scenarios > should support file path protection policy
+[INFO] [PolicyEngine] Added policy: policy_mtpcigq7_86dmhbtv (deny)
+
+stdout | tests/unit/policy-engine.test.js > PolicyEngine > Complex Policy Scenarios > should handle priority-based policy ordering
+[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+stdout | tests/unit/policy-engine.test.js > PolicyEngine > Complex Policy Scenarios > should handle priority-based policy ordering
+[INFO] [PolicyEngine] Added policy: policy_mtpcigq7_0nk25ld2 (deny)
+
+stdout | tests/unit/policy-engine.test.js > PolicyEngine > Complex Policy Scenarios > should handle priority-based policy ordering
+[INFO] [PolicyEngine] Added policy: policy_mtpcigq7_eetb1l1q (allow)
+
+stdout | tests/unit/episodic-memory.test.js > EpisodicMemory > Retrieval Operations > should retrieve episode by ID
+[INFO] [EpisodicMemory] Initialized { totalEpisodes: 0, sessions: 0 }
+
+stdout | tests/unit/episodic-memory.test.js > EpisodicMemory > Retrieval Operations > should return null for unknown ID
+[INFO] [EpisodicMemory] Initialized { totalEpisodes: 0, sessions: 0 }
+
+stdout | tests/unit/episodic-memory.test.js > EpisodicMemory > Retrieval Operations > should get recent episodes
+[INFO] [EpisodicMemory] Initialized { totalEpisodes: 0, sessions: 0 }
+
+stdout | tests/unit/policy-engine.test.js > PolicyEngine > Argument Sanitization > should redact sensitive fields in violations
+[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+stdout | tests/unit/policy-engine.test.js > PolicyEngine > Argument Sanitization > should redact sensitive fields in violations
+[INFO] [PolicyEngine] Added policy: policy_mtpcigq8_sif31v3a (deny)
+
+stdout | tests/unit/episodic-memory.test.js > EpisodicMemory > Retrieval Operations > should get episodes by session
+[INFO] [EpisodicMemory] Initialized { totalEpisodes: 0, sessions: 0 }
+
+stdout | tests/unit/episodic-memory.test.js > EpisodicMemory > Semantic Search > should search by semantic similarity
+[INFO] [EpisodicMemory] Initialized { totalEpisodes: 0, sessions: 0 }
+
+stdout | tests/unit/episodic-memory.test.js > EpisodicMemory > Semantic Search > should include similarity scores in results
+[INFO] [EpisodicMemory] Initialized { totalEpisodes: 0, sessions: 0 }
+
+stdout | tests/unit/episodic-memory.test.js > EpisodicMemory > Semantic Search > should filter by minimum similarity
+[INFO] [EpisodicMemory] Initialized { totalEpisodes: 0, sessions: 0 }
+
+stdout | tests/unit/episodic-memory.test.js > EpisodicMemory > Semantic Search > should filter by session
+[INFO] [EpisodicMemory] Initialized { totalEpisodes: 0, sessions: 0 }
+
+stdout | tests/unit/episodic-memory.test.js > EpisodicMemory > Semantic Search > should emit search event
+[INFO] [EpisodicMemory] Initialized { totalEpisodes: 0, sessions: 0 }
+
+ ✓ tests/unit/policy-engine.test.js (65 tests) 53ms
+stdout | tests/unit/episodic-memory.test.js > EpisodicMemory > Temporal Contiguity Search > should boost temporally adjacent results
+[INFO] [EpisodicMemory] Initialized { totalEpisodes: 0, sessions: 0 }
+
+stdout | tests/unit/episodic-memory.test.js > EpisodicMemory > Temporal Contiguity Search > should respect contiguity window
+[INFO] [EpisodicMemory] Initialized { totalEpisodes: 0, sessions: 0 }
+
+stdout | tests/unit/episodic-memory.test.js > EpisodicMemory > Retention & Forgetting (Ebbinghaus) > should compute retention score for recent episodes
+[INFO] [EpisodicMemory] Initialized { totalEpisodes: 0, sessions: 0 }
+
+stdout | tests/unit/episodic-memory.test.js > EpisodicMemory > Retention & Forgetting (Ebbinghaus) > should have lower retention for older episodes
+[INFO] [EpisodicMemory] Initialized { totalEpisodes: 0, sessions: 0 }
+
+stdout | tests/unit/episodic-memory.test.js > EpisodicMemory > Retention & Forgetting (Ebbinghaus) > should boost retention with access count
+[INFO] [EpisodicMemory] Initialized { totalEpisodes: 0, sessions: 0 }
+
+stdout | tests/unit/episodic-memory.test.js > EpisodicMemory > Retention & Forgetting (Ebbinghaus) > should prune low-retention episodes
+[INFO] [EpisodicMemory] Initialized { totalEpisodes: 0, sessions: 0 }
+
+stdout | tests/unit/episodic-memory.test.js > EpisodicMemory > Retention & Forgetting (Ebbinghaus) > should prune low-retention episodes
+[INFO] [EpisodicMemory] Configuration updated
+
+stdout | tests/unit/episodic-memory.test.js > EpisodicMemory > Retention & Forgetting (Ebbinghaus) > should prune low-retention episodes
+[INFO] [EpisodicMemory] Pruned by retention: { pruned: 1 }
+
+stdout | tests/unit/episodic-memory.test.js > EpisodicMemory > Retention & Forgetting (Ebbinghaus) > should emit pruned event
+[INFO] [EpisodicMemory] Initialized { totalEpisodes: 0, sessions: 0 }
+
+stdout | tests/unit/episodic-memory.test.js > EpisodicMemory > Retention & Forgetting (Ebbinghaus) > should emit pruned event
+[INFO] [EpisodicMemory] Configuration updated
+
+stdout | tests/unit/episodic-memory.test.js > EpisodicMemory > Retention & Forgetting (Ebbinghaus) > should emit pruned event
+[INFO] [EpisodicMemory] Pruned by retention: { pruned: 1 }
+
+stdout | tests/unit/episodic-memory.test.js > EpisodicMemory > Context Enrichment > should enrich context with relevant episodes
+[INFO] [EpisodicMemory] Initialized { totalEpisodes: 0, sessions: 0 }
+
+stdout | tests/unit/episodic-memory.test.js > EpisodicMemory > Context Enrichment > should preserve original context
+[INFO] [EpisodicMemory] Initialized { totalEpisodes: 0, sessions: 0 }
+
+stdout | tests/unit/episodic-memory.test.js > EpisodicMemory > Context Enrichment > should return original context on error
+[INFO] [EpisodicMemory] Initialized { totalEpisodes: 0, sessions: 0 }
+
+stderr | tests/unit/episodic-memory.test.js > EpisodicMemory > Context Enrichment > should return original context on error
+[WARN] [EpisodicMemory] Enrichment failed: Embedding failed
+
+stdout | tests/unit/episodic-memory.test.js > EpisodicMemory > Configuration > should allow configuration updates
+[INFO] [EpisodicMemory] Initialized { totalEpisodes: 0, sessions: 0 }
+
+stdout | tests/unit/episodic-memory.test.js > EpisodicMemory > Configuration > should allow configuration updates
+[INFO] [EpisodicMemory] Configuration updated
+
+stdout | tests/unit/episodic-memory.test.js > EpisodicMemory > Configuration > should return stats
+[INFO] [EpisodicMemory] Initialized { totalEpisodes: 0, sessions: 0 }
+
+stdout | tests/unit/episodic-memory.test.js > EpisodicMemory > Clear and Reset > should clear all episodes
+[INFO] [EpisodicMemory] Initialized { totalEpisodes: 0, sessions: 0 }
+
+stdout | tests/unit/episodic-memory.test.js > EpisodicMemory > Clear and Reset > should clear all episodes
+[INFO] [EpisodicMemory] Cleared
+
+stdout | tests/unit/episodic-memory.test.js > EpisodicMemory > Clear and Reset > should emit cleared event
+[INFO] [EpisodicMemory] Initialized { totalEpisodes: 0, sessions: 0 }
+
+stdout | tests/unit/episodic-memory.test.js > EpisodicMemory > Clear and Reset > should emit cleared event
+[INFO] [EpisodicMemory] Cleared
+
+stdout | tests/unit/episodic-memory.test.js > EpisodicMemory > Clear and Reset > should delete VFS files
+[INFO] [EpisodicMemory] Initialized { totalEpisodes: 0, sessions: 0 }
+
+stdout | tests/unit/episodic-memory.test.js > EpisodicMemory > Clear and Reset > should delete VFS files
+[INFO] [EpisodicMemory] Cleared
+
+stdout | tests/unit/episodic-memory.test.js > EpisodicMemory > Access Tracking > should increment access count on get
+[INFO] [EpisodicMemory] Initialized { totalEpisodes: 0, sessions: 0 }
+
+stdout | tests/unit/episodic-memory.test.js > EpisodicMemory > Access Tracking > should increment access count on search
+[INFO] [EpisodicMemory] Initialized { totalEpisodes: 0, sessions: 0 }
+
+ ✓ tests/unit/core-hardening.test.js (62 tests) 59ms
+ ✓ tests/unit/episodic-memory.test.js (36 tests) 70ms
+ ✓ tests/unit/evidence-facade.test.js (2 tests) 105ms
+ ✓ tests/unit/pool-contract.test.js (15 tests) 32ms
+ ✓ tests/unit/pool-pack-operation.test.js (9 tests) 124ms
+ ✓ tests/unit/pool-realized-action-value.test.js (2 tests) 63ms
+ ✓ tests/unit/pool-research-cycle.test.js (6 tests) 28ms
+ ✓ tests/unit/catscan.test.js (3 tests) 80ms
+ ✓ tests/integration/gepa-optimizer.test.js (22 tests) 50ms
+stdout | tests/unit/hybrid-retrieval.test.js > HybridRetrieval > Initialization > should initialize successfully
+[INFO] [HybridRetrieval] Initialized
+
+stdout | tests/unit/hybrid-retrieval.test.js > HybridRetrieval > Initialization > should initialize dependent modules
+[INFO] [HybridRetrieval] Initialized
+
+stdout | tests/unit/hybrid-retrieval.test.js > HybridRetrieval > Hybrid Query > should query all memory sources
+[INFO] [HybridRetrieval] Initialized
+
+stdout | tests/unit/hybrid-retrieval.test.js > HybridRetrieval > Hybrid Query > should return combined results with scores
+[INFO] [HybridRetrieval] Initialized
+
+stdout | tests/unit/hybrid-retrieval.test.js > HybridRetrieval > Hybrid Query > should sort results by combined score
+[INFO] [HybridRetrieval] Initialized
+
+stdout | tests/unit/hybrid-retrieval.test.js > HybridRetrieval > Hybrid Query > should respect topK limit
+[INFO] [HybridRetrieval] Initialized
+
+stdout | tests/unit/hybrid-retrieval.test.js > HybridRetrieval > Hybrid Query > should include metadata in response
+[INFO] [HybridRetrieval] Initialized
+
+stdout | tests/unit/hybrid-retrieval.test.js > HybridRetrieval > Hybrid Query > should emit query event
+[INFO] [HybridRetrieval] Initialized
+
+stdout | tests/unit/hybrid-retrieval.test.js > HybridRetrieval > Score Weighting > should apply semantic weight
+[INFO] [HybridRetrieval] Initialized
+
+stdout | tests/unit/hybrid-retrieval.test.js > HybridRetrieval > Score Weighting > should apply custom weights
+[INFO] [HybridRetrieval] Initialized
+
+stdout | tests/unit/hybrid-retrieval.test.js > HybridRetrieval > Score Weighting > should apply retention weighting
+[INFO] [HybridRetrieval] Initialized
+
+stdout | tests/unit/hybrid-retrieval.test.js > HybridRetrieval > Temporal Contiguity > should boost temporally adjacent results
+[INFO] [HybridRetrieval] Initialized
+
+stdout | tests/unit/hybrid-retrieval.test.js > HybridRetrieval > Temporal Contiguity > should mark results with hasContiguity
+[INFO] [HybridRetrieval] Initialized
+
+stdout | tests/unit/hybrid-retrieval.test.js > HybridRetrieval > Recency Boost > should boost recent results
+[INFO] [HybridRetrieval] Initialized
+
+stdout | tests/unit/hybrid-retrieval.test.js > HybridRetrieval > Anticipatory Retrieval > should detect debug task type
+[INFO] [HybridRetrieval] Initialized
+
+stdout | tests/unit/hybrid-retrieval.test.js > HybridRetrieval > Anticipatory Retrieval > should detect implement task type
+[INFO] [HybridRetrieval] Initialized
+
+stdout | tests/unit/hybrid-retrieval.test.js > HybridRetrieval > Anticipatory Retrieval > should detect refactor task type
+[INFO] [HybridRetrieval] Initialized
+
+stdout | tests/unit/hybrid-retrieval.test.js > HybridRetrieval > Anticipatory Retrieval > should detect test task type
+[INFO] [HybridRetrieval] Initialized
+
+stdout | tests/unit/hybrid-retrieval.test.js > HybridRetrieval > Anticipatory Retrieval > should return general for unrecognized queries
+[INFO] [HybridRetrieval] Initialized
+
+stdout | tests/unit/hybrid-retrieval.test.js > HybridRetrieval > Anticipatory Retrieval > should apply anticipatory boost when enabled
+[INFO] [HybridRetrieval] Initialized
+
+stdout | tests/unit/hybrid-retrieval.test.js > HybridRetrieval > Anticipatory Retrieval > should skip anticipatory for general queries
+[INFO] [HybridRetrieval] Initialized
+
+stdout | tests/unit/hybrid-retrieval.test.js > HybridRetrieval > Context Enrichment > should enrich context with relevant memories
+[INFO] [HybridRetrieval] Initialized
+
+stdout | tests/unit/hybrid-retrieval.test.js > HybridRetrieval > Context Enrichment > should preserve original context
+[INFO] [HybridRetrieval] Initialized
+
+stdout | tests/unit/hybrid-retrieval.test.js > HybridRetrieval > Context Enrichment > should return original context when no results
+[INFO] [HybridRetrieval] Initialized
+
+stdout | tests/unit/hybrid-retrieval.test.js > HybridRetrieval > Context Enrichment > should respect maxTokens limit
+[INFO] [HybridRetrieval] Initialized
+
+stdout | tests/unit/hybrid-retrieval.test.js > HybridRetrieval > Quick Search > should perform semantic-only search
+[INFO] [HybridRetrieval] Initialized
+
+stdout | tests/unit/hybrid-retrieval.test.js > HybridRetrieval > Quick Search > should not query knowledge tree or episodic
+[INFO] [HybridRetrieval] Initialized
+
+stdout | tests/unit/hybrid-retrieval.test.js > HybridRetrieval > Recent Activity > should get recent activity from all sources
+[INFO] [HybridRetrieval] Initialized
+
+stdout | tests/unit/hybrid-retrieval.test.js > HybridRetrieval > Recent Activity > should include source in results
+[INFO] [HybridRetrieval] Initialized
+
+stdout | tests/unit/hybrid-retrieval.test.js > HybridRetrieval > Recent Activity > should sort by timestamp
+[INFO] [HybridRetrieval] Initialized
+
+stdout | tests/unit/hybrid-retrieval.test.js > HybridRetrieval > Error Handling > should handle embedding failure gracefully
+[INFO] [HybridRetrieval] Initialized
+
+stderr | tests/unit/hybrid-retrieval.test.js > HybridRetrieval > Error Handling > should handle embedding failure gracefully
+[WARN] [HybridRetrieval] Embedding failed: Embedding failed
+
+stdout | tests/unit/hybrid-retrieval.test.js > HybridRetrieval > Error Handling > should handle knowledge tree failure gracefully
+[INFO] [HybridRetrieval] Initialized
+
+stderr | tests/unit/hybrid-retrieval.test.js > HybridRetrieval > Error Handling > should handle knowledge tree failure gracefully
+[WARN] [HybridRetrieval] Knowledge tree search failed: Tree search failed
+
+stdout | tests/unit/hybrid-retrieval.test.js > HybridRetrieval > Error Handling > should handle episodic memory failure gracefully
+[INFO] [HybridRetrieval] Initialized
+
+stderr | tests/unit/hybrid-retrieval.test.js > HybridRetrieval > Error Handling > should handle episodic memory failure gracefully
+[WARN] [HybridRetrieval] Episodic search failed: Episodic failed
+
+stdout | tests/unit/hybrid-retrieval.test.js > HybridRetrieval > Configuration > should allow configuration updates
+[INFO] [HybridRetrieval] Initialized
+
+stdout | tests/unit/hybrid-retrieval.test.js > HybridRetrieval > Configuration > should allow configuration updates
+[INFO] [HybridRetrieval] Configuration updated
+
+stdout | tests/unit/hybrid-retrieval.test.js > HybridRetrieval > Configuration > should update weight configuration
+[INFO] [HybridRetrieval] Initialized
+
+stdout | tests/unit/hybrid-retrieval.test.js > HybridRetrieval > Configuration > should update weight configuration
+[INFO] [HybridRetrieval] Configuration updated
+
+stdout | tests/unit/hybrid-retrieval.test.js > HybridRetrieval > Configuration > should return stats
+[INFO] [HybridRetrieval] Initialized
+
+ ✓ tests/unit/pool-public-protein-evidence.test.js (3 tests) 61ms
+stdout | tests/unit/hybrid-retrieval.test.js > HybridRetrieval > Query History > should track query history
+[INFO] [HybridRetrieval] Initialized
+
+stdout | tests/unit/hybrid-retrieval.test.js > HybridRetrieval > Query History > should update last query timestamp
+[INFO] [HybridRetrieval] Initialized
+
+ ✓ tests/unit/hybrid-retrieval.test.js (38 tests) 60ms
+ ✓ tests/unit/tools/create-tool.test.js (11 tests) 44ms
+ ✓ tests/unit/change-control-triggers.test.js (2 tests) 14ms
+ ✓ tests/integration/webrtc-swarm.test.js (15 tests) 58ms
+ ✓ tests/unit/zero-goals.test.js (6 tests) 38ms
+ ✓ tests/unit/pool-model-artifacts.test.js (17 tests) 33ms
+ ✓ tests/integration/public-inference-admission.test.js (2 tests) 43ms
+ ✓ tests/unit/tools/grep.test.js (17 tests) 14ms
+ ✓ tests/integration/genesis-snapshot.test.js (9 tests) 19ms
+ ✓ tests/unit/pool-adapter-routes.test.js (4 tests) 74ms
+ ✓ tests/unit/pool-firebase-auth.test.js (2 tests) 32ms
+ ✓ tests/integration/reflection-system.test.js (31 tests) 44ms
+ ✓ tests/unit/pool-doppler-runtime.test.js (21 tests) 45ms
+ ✓ tests/unit/response-parser.test.js (59 tests) 57ms
+ ✓ tests/unit/design-system-css.test.js (3 tests) 14ms
+ ✓ tests/unit/toast-notifications.test.js (32 tests | 7 skipped) 37ms
+ ✓ tests/unit/pool-home-ask-controls.test.js (21 tests) 1234ms
+ ✓ tests/unit/self-instance.test.js (14 tests) 28ms
+ ✓ tests/unit/browser-apis.test.js (26 tests) 40ms
+ ✓ tests/unit/generated-registry-output.test.js (1 test) 21ms
+ ✓ tests/unit/tools/read-file.test.js (16 tests) 24ms
+ ✓ tests/unit/observability.test.js (24 tests) 29ms
+ ✓ tests/unit/change-control-firestore-store.test.js (2 tests) 9ms
+ ✓ tests/unit/peer-pack-execution-proof.test.js (2 tests) 30ms
+ ✓ tests/unit/utils-core.test.js (59 tests) 32ms
+ ✓ tests/unit/change-passport-ui.test.js (4 tests) 64ms
+stderr | tests/unit/event-bus.test.js > EventBus > emit > should continue emitting to other listeners if one throws
+[ERROR] [EventBus] Error in test:event Error: Listener error
+    at /home/x/deco/reploid/tests/unit/event-bus.test.js:100:15
+    at Mock (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/spy/dist/index.js:332:34)
+    at Object.emit (/home/x/deco/reploid/self/infrastructure/event-bus.js:44:17)
+    at /home/x/deco/reploid/tests/unit/event-bus.test.js:107:16
+    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11
+    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26
+    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20
+    at new Promise (<anonymous>)
+    at runWithCancel (file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)
+    at file:///home/x/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20
+
+stdout | tests/unit/event-bus.test.js > EventBus > Subscription Tracking > should unsubscribe all listeners for a module
+[DEBUG] [EventBus] Unsubscribed module: TestModule
+
+stdout | tests/unit/event-bus.test.js > EventBus > Subscription Tracking > should not affect other modules when unsubscribing
+[DEBUG] [EventBus] Unsubscribed module: Module1
+
+stdout | tests/unit/event-bus.test.js > EventBus > Memory Management > should not leak listeners when properly unsubscribed
+[DEBUG] [EventBus] Unsubscribed module: TestModule
+
+ ✓ tests/integration/replay-engine.test.js (41 tests) 44ms
+ ✓ tests/unit/event-bus.test.js (19 tests) 23ms
+ ✓ tests/unit/pool-executable-pack.test.js (2 tests) 33ms
+ ✓ tests/unit/self-bridge.test.js (10 tests) 36ms
+ ✓ tests/unit/pool-adapter-publication.test.js (4 tests) 40ms
+ ✓ tests/unit/tools/write-file.test.js (15 tests) 19ms
+ ✓ tests/unit/gepa-engines.test.js (37 tests) 33ms
+ ✓ tests/integration/tool-runner.test.js (13 tests | 8 skipped) 17ms
+ ✓ tests/unit/swarm-sync.test.js (33 tests) 21ms
+ ✓ tests/unit/pool-coordinator-release-identity.test.js (2 tests) 34ms
+ ✓ tests/unit/pool-participation-profile.test.js (5 tests) 23ms
+ ✓ tests/unit/tool-runner.test.js (22 tests) 32ms
+ ✓ tests/unit/pool-browser-lane-b.test.js (5 tests) 52ms
+ ✓ tests/unit/pool-peer-room.test.js (23 tests) 2226ms
+     ✓ keeps a provider execution slot occupied after requester transport loss until runtime settlement  431ms
+     ✓ accepts a provider that joins after requester discovery starts  520ms
+     ✓ limits ring prompt dispatch until each active provider returns a receipt  680ms
+ ✓ tests/unit/pool-firestore-peer-room.test.js (12 tests) 37ms
+ ✓ tests/unit/doppler-reploid-provider.test.js (7 tests) 17ms
+ ✓ tests/unit/pool-config-contract.test.js (10 tests) 19ms
+ ✓ tests/unit/pool-pack-release-policy.test.js (2 tests) 30ms
+ ✓ tests/integration/vfs.test.js (36 tests) 28ms
+ ✓ tests/integration/agent-loop.test.js (52 tests) 3128ms
+       ✓ circuit-breaks LoadModule after repeated module load failures  909ms
+       ✓ should handle tool errors gracefully  304ms
+       ✓ should skip tool when circuit is open after repeated failures  910ms
+       ✓ should log reflections on tool error  303ms
+       ✓ should stop running agent  503ms
+ ✓ tests/unit/pool-release-evidence.test.js (3 tests) 58ms
+ ✓ tests/unit/pool-device-identity.test.js (3 tests) 57ms
+stdout | tests/unit/trained-adapter-admission.test.js > trained adapter admission > queues an always-human request even when global security is autonomous
+[INFO] [HITL] Initialized in autonomous mode
+[INFO] [HITL] Approval required: Promote unit adapter (approval_mtpcihu1_irl1181m)
+[INFO] [HITL] Approved: Promote unit adapter
+
+stdout | tests/unit/trained-adapter-admission.test.js > trained adapter admission > blocks activation until the queued human promotion completes
+[INFO] [NeuralCompiler] Initialized
+
+ ✓ tests/unit/trained-adapter-admission.test.js (5 tests) 39ms
+ ✓ tests/unit/tools/list-files.test.js (8 tests) 14ms
+ ✓ tests/unit/surface-intents.test.js (4 tests) 16ms
+ ✓ tests/unit/pool-scientific-policy-promotion.test.js (5 tests) 88ms
+ ✓ tests/unit/pool-model-cache-integrity.test.js (4 tests) 45ms
+ ✓ tests/unit/schema-validator.test.js (62 tests) 35ms
+ ✓ tests/unit/pool-protein-uncertainty-campaign.test.js (2 tests) 36ms
+ ✓ tests/unit/p2p-signaling.test.js (7 tests) 25ms
+ ✓ tests/unit/tools/promote.test.js (4 tests) 20ms
+ ✓ tests/unit/pool-browser-release-identity.test.js (4 tests) 38ms
+ ✓ tests/integration/prompt-memory.test.js (25 tests) 29ms
+ ✓ tests/unit/pool-adapter-canary-publication.test.js (3 tests) 39ms
+ ✓ tests/unit/surface-claim-index.test.js (3 tests) 19ms
+ ✓ tests/unit/worker-manager.test.js (1 test) 14ms
+ ✓ tests/unit/change-passport-sdk.test.js (3 tests) 19ms
+ ✓ tests/unit/utils.test.js (26 tests) 16ms
+ ✓ tests/unit/context-manager.test.js (39 tests) 36ms
+ ✓ tests/unit/pool-artifact-router.test.js (4 tests) 32ms
+ ✓ tests/unit/runtime-config-sync.test.js (4 tests) 21ms
+ ✓ tests/unit/schema-registry.test.js (2 tests) 8ms
+ ✓ tests/unit/rate-limiter.test.js (17 tests) 45ms
+ ✓ tests/unit/change-passport-improvement-adapter.test.js (2 tests) 24ms
+ ✓ tests/unit/pool-discovery-action-value.test.js (4 tests) 21ms
+ ✓ tests/unit/p2p-transport.test.js (9 tests) 17ms
+ ✓ tests/unit/pool-scientific-fitness.test.js (6 tests) 26ms
+ ✓ tests/unit/pool-peer-pack-data-channel.test.js (6 tests) 25ms
+ ✓ tests/unit/self-image-export.test.js (1 test) 15ms
+ ✓ tests/security/validator-quarantine.test.js (10 tests) 44ms
+ ✓ tests/unit/pool-research-panels.test.js (7 tests) 8ms
+ ✓ tests/integration/rsi-loop.test.js (7 tests) 16ms
+ ✓ tests/unit/state-manager.test.js (16 tests) 17ms
+ ✓ tests/unit/tools/find.test.js (19 tests) 19ms
+ ✓ tests/unit/tools/edit-file.test.js (20 tests) 26ms
+ ✓ tests/security/self-approval-block.test.js (1 test) 11ms
+ ✓ tests/unit/pool-artifact-origin.test.js (3 tests) 16ms
+ ✓ tests/unit/doppler-runtime-service.test.js (6 tests) 10ms
+ ✓ tests/unit/goal-step.test.js (4 tests) 20ms
+ ✓ tests/unit/pool-model-promotion.test.js (5 tests) 24ms
+ ✓ tests/unit/clockwork-promotion-policy.test.js (4 tests) 14ms
+stdout | tests/integration/doppler-arena.test.js > Arena passRate with Adapter Switching > tracks improvement with specialized adapters
+[passRate Test] Base vs Code Expert:
+  - Winner: Base
+  - Pass Rate: 100%
+
+stdout | tests/integration/doppler-arena.test.js > Arena passRate with Adapter Switching > measures net improvement over iterations
+[RSI Improvement Test] Iterations:
+  1. base: passRate=100%, score=0.95
+  2. iter-v1: passRate=100%, score=0.61
+  3. iter-v2: passRate=100%, score=1.00
+  4. iter-v3: passRate=100%, score=1.00
+
+ ✓ tests/integration/doppler-arena.test.js (17 tests) 31ms
+ ✓ tests/unit/pool-identity.test.js (2 tests) 28ms
+ ✓ tests/unit/tool-executor.test.js (4 tests) 13ms
+ ✓ tests/unit/network-canary-custody.test.js (1 test) 11ms
+ ✓ tests/integration/arena-harness.test.js (5 tests) 20ms
+ ✓ tests/unit/change-passport-pilot.test.js (4 tests) 10ms
+ ✓ tests/unit/persona-manager.test.js (2 tests) 9ms
+ ✓ tests/unit/genesis-integrity.test.js (4 tests) 22ms
+ ✓ tests/integration/fsm.test.js (18 tests) 11ms
+ ✓ tests/unit/pool-sdk.test.js (5 tests) 13ms
+ ✓ tests/unit/layer-verification.test.js (4 tests) 36ms
+ ✓ tests/unit/pool-room-1-pilot.test.js (5 tests) 17ms
+ ✓ tests/unit/pool-browser-smoke-status.test.js (7 tests) 15ms
+ ✓ tests/unit/boot-services.test.js (3 tests) 16ms
+ ✓ tests/unit/pool-browser-qualification.test.js (7 tests) 19ms
+ ✓ tests/unit/pool-turn-credentials.test.js (3 tests) 9ms
+ ✓ tests/agent-logic-pure.test.js (18 tests) 9ms
+ ✓ tests/unit/vfs-module-loader.test.js (12 tests) 10ms
+ ✓ tests/unit/signaling-config.test.js (6 tests) 7ms
+ ✓ tests/unit/self-boot-shell.test.js (14 tests) 9ms
+ ✓ tests/unit/openclaw-audit.test.js (5 tests) 24ms
+ ✓ tests/unit/agent-loop-policies.test.js (4 tests) 8ms
+ ✓ tests/unit/pool-firestore-rate-limit.test.js (1 test) 6ms
+ ✓ tests/security/promotion-gate-tamper.test.js (1 test) 6ms
+ ✓ tests/unit/tools/load-module.test.js (2 tests) 8ms
+ ✓ tests/unit/telemetry-timeline.test.js (1 test) 6ms
+ ✓ tests/unit/public-inference-guard.test.js (5 tests) 8ms
+ ✓ tests/unit/pool-coordinator-transitions.test.js (4 tests) 10ms
+ ✓ tests/integration/boot-goal-generator.test.js (2 tests) 10ms
+ ✓ tests/unit/pool-contribution-state.test.js (3 tests) 8ms
+ ✓ tests/unit/pool-peer-pack-browser.test.js (2 tests) 5ms
+ ✓ tests/unit/tool-writer.test.js (1 test) 6ms
+ ✓ tests/unit/pool-rtc-config.test.js (2 tests) 9ms
+ ✓ tests/unit/deploy-surface-layout.test.js (6 tests) 4ms
+ ✓ tests/unit/doppler-local-models.test.js (4 tests) 7ms
+ ✓ tests/unit/zero-gemini-function.test.js (4 tests) 4ms
+ ✓ tests/unit/tool-surfaces.test.js (3 tests) 4ms
+ ✓ tests/unit/pool-doppler-browser-observation.test.js (4 tests) 4ms
+ ✓ tests/unit/pool-requester-controls.test.js (3 tests) 4ms
+ ✓ tests/unit/firestore-rules.test.js (1 test) 3ms
+ ↓ tests/integration/neural-compiler-lora.test.js (1 test | 1 skipped)
+ ✓ tests/unit/pool-retry-policy.test.js (2 tests) 2ms
+ ↓ tests/integration/doppler-pack-handoff.test.js (1 test | 1 skipped)
+ ✓ tests/unit/pool-room-record-projection.test.js (1 test) 2ms
+
+ Test Files  196 passed | 2 skipped (198)
+      Tests  2369 passed | 35 skipped (2404)
+   Start at  01:02:46
+   Duration  6.00s (transform 20.81s, setup 0ms, import 46.47s, tests 24.20s, environment 55.48s)
+

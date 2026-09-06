@@ -58,9 +58,24 @@ export async function verifyPeerPackExecution(config) {
   assert(Array.isArray(config.browserArgs) && Number.isSafeInteger(config.timeoutMs) && config.timeoutMs > 0, 'Proof requires browserArgs and timeoutMs');
   assert(Number.isSafeInteger(config.chunkBytes) && config.chunkBytes > 0 && config.chunkBytes <= config.custodyLimits?.maxChunkBytes, 'Proof requires bounded chunkBytes');
   assert(config.trustedSigners && config.dopplerVersion && config.referenceDigest, 'Proof requires explicit trust, runtime version, and oracle digest');
+  if (config.restart) {
+    assert(typeof config.restart.profileDirectory === 'string'
+      && Number.isSafeInteger(config.restart.afterWeightResponses) && config.restart.afterWeightResponses > 0,
+    'Restart proof requires a fresh profile directory and a positive weight-response threshold');
+    await mkdir(config.restart.profileDirectory);
+  }
   for (const key of ['maxInputBytes', 'maxOutputBytes']) assert(Number.isSafeInteger(config.operationLimits?.[key]) && config.operationLimits[key] > 0, `Proof requires operationLimits.${key}`);
   const dopplerRoot = resolve(config.dopplerRoot);
-  const runtimeBootstrap = await readRuntimeBootstrapShaders(dopplerRoot, config.runtimeBootstrapShaders);
+  const runtimeRoot = config.runtimePackageBundlePath
+    ? resolve(config.runtimePackageBundlePath, 'consumer/node_modules/doppler-gpu') : dopplerRoot;
+  let installedPackage = null;
+  if (config.runtimePackageBundlePath) {
+    const installed = JSON.parse(await readFile(resolve(config.runtimePackageBundlePath, 'receipt.json'), 'utf8'));
+    assert(installed.passed && await sha256Hex(await readFile(resolve(config.runtimePackageBundlePath, installed.package.filename)))
+      === `sha256:${installed.package.sha256}`, 'Installed runtime candidate receipt or tarball mismatch');
+    installedPackage = installed.package;
+  }
+  const runtimeBootstrap = await readRuntimeBootstrapShaders(runtimeRoot, config.runtimeBootstrapShaders);
   const runtimeSources = createProofSourceSnapshot();
   const { getPackIdentity } = await import(pathToFileURL(resolve(dopplerRoot, 'src/pack.js')).href);
   const { hashTargetPlan } = await import(pathToFileURL(resolve(dopplerRoot, 'src/config/target-plan.js')).href);
@@ -94,10 +109,12 @@ export async function verifyPeerPackExecution(config) {
   const report = { schema: 'reploid.pool.peer-pack-browser-episode/v1', passed: false, generatedAt: new Date().toISOString(),
     claimBoundary: { actualModel: true, physicalBrowserRequired: true, internalOperatorCount: 1,
       independentMachines: false, independentOperators: false, historyImprovement: false },
-    config, sources: { reploid: revision(ROOT), doppler: revision(dopplerRoot) }, binding,
+    config, installedPackage, sources: { reploid: revision(ROOT), doppler: revision(dopplerRoot) }, binding,
     stage: 'supplier-bootstrap', origin: { disabled: false, bootstrapBytes: 0, rejectedRequests: [], receiverBootstrapRequests: 0 },
     runtimeBootstrap: { shaders: runtimeBootstrap.receipts, modelArtifacts: 0 }, browserLogs: [] };
   let browser;
+  let requesterContext;
+  let requesterPid;
   let server;
   let originDisabled = false;
   const allowedChunks = new Map();
@@ -127,7 +144,7 @@ export async function verifyPeerPackExecution(config) {
           response.end(bytes);
           return;
         }
-        const roots = [['/self/', resolve(ROOT, 'self')], ['/tests/fixtures/', resolve(ROOT, 'tests/fixtures')], ['/doppler/src/', resolve(dopplerRoot, 'src')]];
+        const roots = [['/self/', resolve(ROOT, 'self')], ['/tests/fixtures/', resolve(ROOT, 'tests/fixtures')], ['/doppler/src/', resolve(runtimeRoot, 'src')]];
         const mount = roots.find(([prefix]) => url.pathname.startsWith(prefix));
         if (!mount || url.pathname.endsWith('.wgsl')) {
           report.origin.rejectedRequests.push(url.pathname);
@@ -144,9 +161,20 @@ export async function verifyPeerPackExecution(config) {
     const origin = `http://127.0.0.1:${server.address().port}`;
     browser = await chromium.launch({ executablePath: config.browserExecutablePath, args: config.browserArgs, headless: true });
     report.browserVersion = browser.version();
+    const childPids = () => execFileSync('ps', ['-o', 'pid=,comm=', '--ppid', String(process.pid)], { encoding: 'utf8' })
+      .trim().split('\n').filter(row => /\s+chrome$/.test(row)).map(row => Number(row.trim().split(/\s+/)[0]));
     const identities = [];
-    for (const peerId of ['requester', 'faulty', 'even', 'odd']) {
-      const context = await browser.newContext();
+    const openPage = async (peerId, restored = null) => {
+      let context;
+      if (peerId === 'requester' && config.restart) {
+        const before = new Set(childPids());
+        context = await chromium.launchPersistentContext(config.restart.profileDirectory,
+          { executablePath: config.browserExecutablePath, args: config.browserArgs, headless: true });
+        requesterContext = context;
+        const added = childPids().filter(pid => !before.has(pid));
+        assert(added.length === 1, 'Cannot identify the owned requester browser process');
+        requesterPid = added[0];
+      } else context = await browser.newContext();
       await context.route('**/*', (route) => {
         const url = new URL(route.request().url());
         if (url.origin !== origin) { report.origin.rejectedRequests.push(url.href); return route.abort(); }
@@ -161,12 +189,14 @@ export async function verifyPeerPackExecution(config) {
       page.on('console', (message) => report.browserLogs.push({ peerId, type: message.type(), text: message.text() }));
       page.on('pageerror', (error) => report.browserLogs.push({ peerId, type: 'pageerror', text: error.message }));
       await page.goto(origin + '/proof');
-      identities.push(await page.evaluate(async (id) => {
+      const identity = await page.evaluate(async ({ id, restored }) => {
         globalThis.proofPeer = await import('/tests/fixtures/peer-pack-browser.js');
-        return proofPeer.identity(id);
-      }, peerId));
+        return proofPeer.identity(id, restored);
+      }, { id: peerId, restored });
       pages.set(peerId, page);
-    }
+      return identity;
+    };
+    for (const peerId of ['requester', 'faulty', 'even', 'odd']) identities.push(await openPage(peerId));
     const authorization = { schema: 'reploid.pool.pack-custody-authorization/v1', pack: binding, envelopeArtifact,
       transferId: `esm2-peer-pack-${crypto.randomUUID()}`, attempt: 1, expiresAt: Date.now() + config.timeoutMs,
       requester: identities[0], suppliers: identities.slice(1), indexDigest: await hashDopplerEvidence(index), limits: config.custodyLimits };
@@ -194,45 +224,81 @@ export async function verifyPeerPackExecution(config) {
     }, runtimeBootstrap.sources);
     originDisabled = true;
     report.origin.disabled = true;
-    const requester = pages.get('requester');
+    let requester = pages.get('requester');
     report.receiverCache = await requester.evaluate(async () => ({ databases: await indexedDB.databases(),
       opfsEntries: await (async () => { const entries = []; for await (const [name] of (await navigator.storage.getDirectory()).entries()) entries.push(name); return entries; })() }));
     assert(report.receiverCache.databases.length === 0 && report.receiverCache.opfsEntries.length === 0, 'Receiver is not fresh');
     await requester.evaluate((options) => proofPeer.configure(options), { limits: config.transportLimits });
     report.stage = 'data-channel-connect';
-    for (const peer of authorization.suppliers) {
-      const offer = await requester.evaluate((id) => proofPeer.offer(id), peer.peerId);
-      const answer = await pages.get(peer.peerId).evaluate(({ id, offer }) => proofPeer.answer(id, offer), { id: 'requester', offer });
-      await requester.evaluate(({ id, answer }) => proofPeer.accept(id, answer), { id: peer.peerId, answer });
-    }
-    await requester.waitForFunction(() => proofPeer.ready());
+    const connect = async () => {
+      for (const peer of authorization.suppliers) {
+        const offer = await requester.evaluate((id) => proofPeer.offer(id), peer.peerId);
+        const answer = await pages.get(peer.peerId).evaluate(({ id, offer }) => proofPeer.answer(id, offer), { id: 'requester', offer });
+        await requester.evaluate(({ id, answer }) => proofPeer.accept(id, answer), { id: peer.peerId, answer });
+      }
+      await requester.waitForFunction(() => proofPeer.ready());
+    };
+    await connect();
     report.stage = 'peer-acquire-and-execute';
-    const timer = setTimeout(() => browser.close(), config.timeoutMs);
+    const timer = setTimeout(() => { requesterContext?.close().catch(() => {}); browser.close().catch(() => {}); }, config.timeoutMs);
     try {
-      report.execution = await requester.evaluate((options) => proofPeer.execute(options), {
+      const executionOptions = {
         authorization, index, inventories, trustedSigners: config.trustedSigners, sequence: reference.input.sequence,
         options: { includeTokenEmbeddings: true, includeLogits: false,
           assignment: { id: authorization.transferId, attempt: 1, pack: binding, input: reference.input, comparisonPolicyDigest: config.referenceDigest } },
         dopplerVersion: config.dopplerVersion,
         operationLimits: config.operationLimits,
-      });
+      };
+      if (config.restart) {
+        const retainedKeys = await requester.evaluate(() => proofPeer.retainIdentityForRestart());
+        const beforePid = requesterPid;
+        const interrupted = await requester.evaluate(options => proofPeer.execute(options),
+          { ...executionOptions, interruptAfterWeightResponses: config.restart.afterWeightResponses });
+        report.restart = { interrupted, beforePid };
+        assert(!interrupted.passed && interrupted.injectedDisconnection
+          && interrupted.custody?.storage.storedBytes > 0
+          && interrupted.custody.completed.length < pack.artifacts.length + 1, 'The real model transfer was not interrupted after persistent writes');
+        await requesterContext.close();
+        report.restart.previousProcessExited = !childPids().includes(beforePid);
+        assert(report.restart.previousProcessExited, 'The original requester browser process is still present');
+        const restoredIdentity = await openPage('requester', retainedKeys);
+        assert(JSON.stringify(restoredIdentity) === JSON.stringify(identities[0]), 'Requester identity changed across restart');
+        report.restart.afterPid = requesterPid;
+        assert(requesterPid !== beforePid, 'Requester process was not replaced');
+        requester = pages.get('requester');
+        await requester.evaluate(async ({ limits, sources }) => {
+          await proofPeer.configure({ limits });
+          const { registerShaderSources } = await import('/doppler/src/gpu/kernels/shader-cache.js');
+          registerShaderSources(sources);
+        }, { limits: config.transportLimits, sources: runtimeBootstrap.sources });
+        await connect();
+      }
+      report.execution = await requester.evaluate((options) => proofPeer.execute(options), executionOptions);
+      if (config.restart && report.execution.passed) {
+        const accepted = report.restart.interrupted.custody.attempts.filter(row => row.status === 'accepted');
+        const fetched = new Set(report.execution.custody.attempts.map(row => `${row.artifactId}:${row.chunkIndex}`));
+        report.restart.refetchedVerifiedChunks = accepted.filter(row => fetched.has(`${row.artifactId}:${row.chunkIndex}`)).length;
+        report.restart.resumed = report.restart.refetchedVerifiedChunks === 0 && report.execution.custody.cacheBytes > 0;
+        assert(report.restart.resumed, 'Previously verified pieces were downloaded again after restart');
+      }
     } finally { clearTimeout(timer); }
     report.peers = [];
     for (const page of pages.values()) report.peers.push(await page.evaluate(() => proofPeer.observations()));
     if (report.execution.passed) {
       const output = report.execution.result;
+      const transferAttempts = [...(report.restart?.interrupted.custody.attempts ?? []), ...report.execution.custody.attempts];
       report.acceptance = evaluateSequenceReference({ manifest: report.execution.manifest, reference,
         result: { ...output, pooledEmbedding: new Float32Array(output.pooledEmbedding), tokenEmbeddings: new Float32Array(output.tokenEmbeddings) } });
       report.passed = report.acceptance.passed && report.origin.receiverBootstrapRequests === 0
         && report.origin.rejectedRequests.length === 0
         && report.execution.custody.completed.length === pack.artifacts.length + 1
-        && report.execution.custody.attempts.some((attempt) => attempt.error?.includes('integrity'))
+        && transferAttempts.some((attempt) => attempt.error?.includes('integrity'))
         && report.peers.some((peer) => peer.injectedFaults.some((fault) => fault.type === 'supplier-departure'));
     }
     report.stage = 'complete';
   } catch (error) { report.error = error.message; }
   finally {
-    for (const cleanup of [() => browser?.close(), () => server && new Promise((resolve) => { server.close(resolve); server.closeAllConnections(); })]) {
+    for (const cleanup of [() => requesterContext?.close(), () => browser?.close(), () => server && new Promise((resolve) => { server.close(resolve); server.closeAllConnections(); })]) {
       try { await cleanup(); } catch (error) { report.passed = false; report.cleanupError = error.message; }
     }
     report.runtimeBootstrap.files = await runtimeSources.receipts();

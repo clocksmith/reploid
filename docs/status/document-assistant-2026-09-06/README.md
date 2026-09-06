@@ -110,6 +110,9 @@ history retains its real expiration; do not alter the clock to make it eligible.
 Weight hosting, a public model preset, remote generic jobs, real model recovery
 across a full browser restart, independent operators, and learned scheduling
 benefit remain outside this result.
+The separate [real model restart proof](../esm2-process-restart-2026-09-06/README.md)
+subsequently exercised interrupted transfer and whole-browser recovery on this
+host. It does not establish independent-machine operation.
 
 Component: Poolday document assistant and Doppler generation. Intent: preserved.
 Acceptance evidence: retained archive, offline artifact checks, physical Pack

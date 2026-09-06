@@ -1,0 +1,13 @@
+
+Running 4 tests using 1 worker
+
+(node:100840) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:100840) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 [chromium] › tests/e2e/peer-pack-custody.spec.js:37:1 › browser crypto reconstructs dependencies and the Verification Worker accepts the source (834ms)
+  ✓  2 [chromium] › tests/e2e/peer-pack-custody.spec.js:111:1 › durable checkpoints survive reload, change suppliers, reject corruption, and enforce disk limits (461ms)
+  ✓  3 [chromium] › tests/e2e/peer-pack-custody.spec.js:163:1 › verified pieces resume automatically after a browser process restarts (921ms)
+  ✓  4 [chromium] › tests/e2e/peer-pack-custody.spec.js:193:1 › browser evidence facade preserves signing, reviewed admission, and revocation (370ms)
+
+  4 passed (4.1s)

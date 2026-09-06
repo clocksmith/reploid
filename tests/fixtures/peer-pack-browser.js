@@ -1,5 +1,5 @@
 /** Physical-browser proof plumbing. All identities here have one internal operator. */
-import { createSigningKeyPair, exportPublicKey } from '../../self/pool/inference-receipt.js';
+import { createSigningKeyPair, exportPublicKey, exportPrivateKey, importSigningKeyPair } from '../../self/pool/inference-receipt.js';
 import { createPeerPackSupplier } from '../../self/pool/peer-pack-custody.js';
 import { openPeerPack } from '../../self/pool/peer-pack-session.js';
 import { createPeerPackDataChannel } from '../../self/pool/peer-pack-data-channel.js';
@@ -15,10 +15,16 @@ const connections = new Map();
 const injectedFaults = [];
 const chunks = new Map();
 
-export async function identity(peerId) {
+export async function identity(peerId, restored = null) {
   ownId = peerId;
-  key = await createSigningKeyPair();
+  key = restored ? await importSigningKeyPair(restored) : await createSigningKeyPair();
   return { peerId, publicKey: await exportPublicKey(key.publicKey) };
+}
+
+// Internal fixture keys cross the process boundary in coordinator memory only.
+// They are never written to the episode, a configuration, or an evidence archive.
+export async function retainIdentityForRestart() {
+  return { privateKey: await exportPrivateKey(key.privateKey), publicKey: await exportPublicKey(key.publicKey) };
 }
 
 export async function configure({ authorization, index, inventory, limits, faulty }) {
@@ -70,6 +76,9 @@ function installChannel(peerId, channel, pc) {
 }
 
 function connection(peerId) {
+  const previous = connections.get(peerId);
+  previous?.transport?.close('requester reconnected');
+  previous?.pc.close();
   const pc = new RTCPeerConnection({ iceServers: [] });
   const entry = { pc, transport: null };
   connections.set(peerId, entry);
@@ -121,17 +130,29 @@ export function assertPhysicalAdapter(adapter) {
   return fallback;
 }
 
-export async function execute({ authorization, index, inventories, trustedSigners, sequence, options, dopplerVersion, operationLimits }) {
-  const module = await import('/doppler/src/index-browser.js');
+export async function execute({ authorization, index, inventories, trustedSigners, sequence, options, dopplerVersion, operationLimits,
+  interruptAfterWeightResponses = null }) {
+  const api = await import('/doppler/src/client/doppler-api.browser.js');
+  const { DOPPLER_VERSION } = await import('/doppler/src/version.js');
+  const module = { ...api, DOPPLER_VERSION };
   const service = createReploidDopplerRuntimeService({ loadModule: async () => module, expectedVersion: dopplerVersion });
   const report = { passed: false, stage: 'peer-reconstruction', binding: authorization.pack };
   let peer;
+  let weightResponses = 0;
   try {
     const adapter = await navigator.gpu?.requestAdapter();
     report.isFallbackAdapter = assertPhysicalAdapter(adapter);
     report.stage = 'public-pack-open';
     peer = await openPeerPack({ authorization, index, inventories, requesterPrivateKey: key.privateKey,
-      requestChunk: (peerId, request, limits) => connections.get(peerId).transport.requestChunk(request, limits),
+      requestChunk: async (peerId, request, limits) => {
+        if (interruptAfterWeightResponses !== null && weightResponses >= interruptAfterWeightResponses) {
+          report.injectedDisconnection = { weightResponses };
+          throw new Error('injected requester connection interruption');
+        }
+        const response = await connections.get(peerId).transport.requestChunk(request, limits);
+        if (request.artifactId.startsWith('weight-shard:')) weightResponses++;
+        return response;
+      },
       trustedSigners, runtimeVersion: dopplerVersion, service, scope: 'peer-proof',
       maxCacheBytes: authorization.limits.maxTransferBytes,
       maxConcurrentChunks: authorization.limits.maxConcurrentChunks ?? 1 });
@@ -146,7 +167,7 @@ export async function execute({ authorization, index, inventories, trustedSigner
     report.manifest = session.manifest;
     report.stage = 'complete';
     report.passed = true;
-  } catch (error) { report.error = error.message; }
+  } catch (error) { report.error = error.message; report.custody = error.acquisitionReceipt ?? null; }
   finally {
     try { if (peer) report.custody = await peer.getAcquisitionReceipt(); }
     finally { await peer?.close(); await service.closeAll(); }
