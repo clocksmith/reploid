@@ -1,0 +1,113 @@
+{
+  "schema": "reploid.remote-adapter-diagnostic-archive/v1",
+  "runtimeRevision": "f306bf9b428123f01a97d91b1cce3530e275c851",
+  "equivalentMainRevision": "693d7e62d58fc345c89c67844fde433cea22e9c9",
+  "reploidRevision": "41abc7ded57dab3a9f2860e00bfa812ec51b092d",
+  "boundary": {
+    "operatorCount": 1,
+    "physicalGpu": true,
+    "signedCapsule": false,
+    "executeOperation": false,
+    "remoteExecution": false,
+    "sourceComparison": false,
+    "specialistQualification": false,
+    "npmPublication": false
+  },
+  "checks": {
+    "unchangedAdapterIdentity": true,
+    "unchangedOutputTokens": true,
+    "unchangedOutputText": true,
+    "generatedTokens": 12,
+    "declaredAdapterKernelsPresent": true,
+    "unchangedWeightFiles": [
+      {
+        "file": "shard_00000.bin",
+        "sizeBytes": 67108864,
+        "sha256": "93d8ad2033e7ec42376dafb41c1e89753d0ca40896835c6f012efe47dbdda6d1"
+      },
+      {
+        "file": "shard_00001.bin",
+        "sizeBytes": 67108864,
+        "sha256": "7896aa344a3da4539cdb76bdbfec3a5f665da5e23d15d15ef9a3b0536ebcf3c5"
+      },
+      {
+        "file": "shard_00002.bin",
+        "sizeBytes": 67108864,
+        "sha256": "ff2fc36d9b0008d734f0a82923d47db2383e5a5bae055172630e8ad93ad23ca5"
+      },
+      {
+        "file": "shard_00003.bin",
+        "sizeBytes": 67108864,
+        "sha256": "6170b5f1376dbfe33a58de2603987abde826c0eb7318d6c0a1baa78cdf42f77b"
+      },
+      {
+        "file": "shard_00004.bin",
+        "sizeBytes": 67108864,
+        "sha256": "5c8767e71c920596247b7ea3d0d55b45d6af4255757758dda6aedd907cfa3e2c"
+      },
+      {
+        "file": "shard_00005.bin",
+        "sizeBytes": 67108864,
+        "sha256": "a26b3303591c926848ac163cfba66001b8107ebc5db7f4ef657ff4d03e62849d"
+      },
+      {
+        "file": "shard_00006.bin",
+        "sizeBytes": 67108864,
+        "sha256": "389c6b84fc40d415cbdf3ce40f9bf671b4dc7c4e7ef22d2fcf715c188bcc2105"
+      },
+      {
+        "file": "shard_00007.bin",
+        "sizeBytes": 66434304,
+        "sha256": "d38f344e23bce1119434c50b411c3e253e9f4f7115b1d678aead88edc223b696"
+      }
+    ]
+  },
+  "archive": {
+    "file": "evidence.json.gz",
+    "sha256": "847530412155f9cad91867755782ae3ca54bdc666f2fa69174fb95874ce6462f",
+    "sizeBytes": 118110,
+    "unpackedBytes": 682867
+  },
+  "files": [
+    {
+      "path": "diagnostic.js",
+      "sha256": "855b2e6e22656b75e5138feee95f7770edb9fc42a8142f9b7a1cf9b8c2ebea29",
+      "sizeBytes": 5333
+    },
+    {
+      "path": "declared-diagnostic.js",
+      "sha256": "d794d61f0ce0d5fe31842c5eb70055eac296a031858e90174ddcbe5131749529",
+      "sizeBytes": 5372
+    },
+    {
+      "path": "config.json",
+      "sha256": "854ea9aca24c03cf8dbfcfeaa37d42d9de21798e90bd0892d2a62ee30478bc16",
+      "sizeBytes": 2226
+    },
+    {
+      "path": "declared-config.json",
+      "sha256": "1b5eed2e6c533a34d826d62675946b98ed38b4b79558dcef8c6f80816ac29de1",
+      "sizeBytes": 2238
+    },
+    {
+      "path": "report.json",
+      "sha256": "41ddf1df02c86032fb477e8080b52de94e7662c7b2fd66402c430718b7de1f44",
+      "sizeBytes": 240541
+    },
+    {
+      "path": "declared-report.json",
+      "sha256": "2df78087d0998cca8976d2e2ac78ab14ca8f8e657394dd8c4fc9715f1de788d7",
+      "sizeBytes": 241022
+    },
+    {
+      "path": "candidate-recipe.json",
+      "sha256": "22e4dde6b8901f4becf50ae456d815ee16a97bb028844f48041c716537d473fc",
+      "sizeBytes": 994
+    },
+    {
+      "path": "model-with-declared-adapter-kernels/manifest.json",
+      "sha256": "f1edca3358be19b1740115bfc1eb1f7b7a6b92fe1e559425ca14e1cf2c80bf6e",
+      "sizeBytes": 100822
+    }
+  ]
+}
