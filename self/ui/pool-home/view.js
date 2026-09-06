@@ -1767,7 +1767,7 @@ const renderModelOptions = ({ workload = null, includeWorkloadLabel = false, dis
   return `<option value="${escapeHtml(model.modelId)}" data-workload="${escapeHtml(modelWorkload)}"${selected}${disabled}>${escapeHtml(label)}${escapeHtml(workloadLabel)}</option>`;
 }).join('');
 
-const renderPackSummary = (model = LAUNCH_MODEL) => {
+const renderPackSummary = (model = LAUNCH_MODEL, { disclosure = true } = {}) => {
   const identity = model.artifactIdentity || {};
   const dimensions = Number(model.embeddingDimensions || model.dimensions || 0);
   const maxInput = Number(model.sequence?.maxLength || model.contextLength || 0);
@@ -1775,7 +1775,7 @@ const renderPackSummary = (model = LAUNCH_MODEL) => {
     ? 'Full model · one sequence'
     : `${model.runtime || 'Doppler'} · ${model.backend || 'qualified provider'}`;
   return `
-    <details class="pool-advanced pool-model-details"><summary>Model details</summary>
+    ${disclosure ? '<details class="pool-advanced pool-model-details"><summary>Model details</summary>' : ''}
     <dl class="pool-pack-summary" data-pool-pack-summary>
       <div><dt>Model identity</dt><dd title="${escapeHtml(identity.weightPackId || model.modelHash || model.modelId)}">${escapeHtml(compactHash(identity.weightPackId || model.modelHash || model.modelId))}</dd></div>
       <div><dt>Capability</dt><dd>${escapeHtml(dimensions ? `Sequence embedding · ${dimensions} dimensions` : getPoolModelWorkload(model).replace(/[._-]/g, ' '))}</dd></div>
@@ -1783,7 +1783,7 @@ const renderPackSummary = (model = LAUNCH_MODEL) => {
       <div><dt>Work</dt><dd>${escapeHtml(work)}</dd></div>
       <div><dt>Providers</dt><dd data-pool-pack-provider-state>Searching</dd></div>
     </dl>
-    </details>
+    ${disclosure ? '</details>' : ''}
   `;
 };
 
@@ -1932,7 +1932,7 @@ const renderHomeSimulation = ({ dashboardView = 'home' } = {}) => {
           </div>
           <details class="pool-advanced pool-home-request-details">
             <summary>Options</summary>
-            ${renderPackSummary(LAUNCH_MODEL)}
+            ${renderPackSummary(LAUNCH_MODEL, { disclosure: false })}
             <div class="pool-advanced-grid">
               <label class="pool-field">
                 <span>Verification</span>

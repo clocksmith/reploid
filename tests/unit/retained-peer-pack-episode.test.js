@@ -6,7 +6,7 @@ import { sha256Hex } from '../../self/pool/inference-receipt.js';
 import { hashDopplerEvidence, assertPackExecutionEvidence } from '../../self/pool/executable-pack.js';
 import { assertPackOperationReceipt } from '../../self/pool/pack-operation.js';
 
-describe.each(['esm2-peer-pack-2026-09-05', 'esm2-pack-operation-2026-09-05'])('retained physical peer Pack episode: %s (offline evidence validation)', (directory) => {
+describe.each(['esm2-peer-pack-2026-09-05', 'esm2-pack-operation-2026-09-05', 'esm2-durable-peer-2026-09-06'])('retained physical peer Pack episode: %s (offline evidence validation)', (directory) => {
   const ROOT = resolve('docs/status', directory);
   const json = async (path) => JSON.parse(await readFile(resolve(ROOT, path), 'utf8'));
   it('binds retained bytes, completed custody, real operation evidence, and explicit non-claims', async () => {
@@ -29,13 +29,29 @@ describe.each(['esm2-peer-pack-2026-09-05', 'esm2-pack-operation-2026-09-05'])('
     expect(report.acceptance.checks.every((check) => check.passed)).toBe(true);
     expect(await hashDopplerEvidence(report.runtimeBootstrap.files)).toBe(index.runtimeSourceSnapshotDigest);
     await assertPackExecutionEvidence(report.binding, report.execution.result.receipt);
-    if (directory === 'esm2-pack-operation-2026-09-05') {
+    if (directory !== 'esm2-peer-pack-2026-09-05') {
       const operation = report.execution.operationExecution;
       expect(operation.request.operation).toEqual({ name: 'encodeSequence', version: 1 });
       expect(operation.eventCount).toBe(1);
-      expect(operation.output).toEqual(Object.fromEntries(Object.entries(report.execution.result).filter(([key]) => key !== 'receipt')));
+      if (directory === 'esm2-durable-peer-2026-09-06') {
+        await assertPackExecutionEvidence(report.binding, operation.output.receipt);
+        expect({ ...operation.output, receipt: operation.receipt }).toEqual(report.execution.result);
+      } else {
+        expect(operation.output).toEqual(Object.fromEntries(Object.entries(report.execution.result).filter(([key]) => key !== 'receipt')));
+      }
       await assertPackOperationReceipt(report.binding, operation.receipt, { request: operation.request,
         output: operation.output, runtimeVersion: report.config.dopplerVersion });
+    }
+    if (directory === 'esm2-durable-peer-2026-09-06') {
+      const custody = report.execution.custody;
+      expect(custody.maxConcurrentChunks).toBe(2);
+      expect(custody.peakInFlightBytes).toBeGreaterThan(report.config.chunkBytes);
+      expect(custody.storage).toMatchObject({ storage: 'indexeddb', chunks: 149 });
+      expect(custody.storage.storedBytes).toBe(custody.persistedBytes);
+      expect(custody.storage.storedBytes).toBeLessThanOrEqual(custody.storage.maxBytes);
+      expect(custody.timeToRunnableMs).toBeGreaterThan(0);
+      expect(custody.duplicateBytes).toBe(0);
+      expect((await json('attachments/episode.json')).passed).toBe(false);
     }
     for (const artifact of pack.artifacts) {
       const entry = artifact.role === 'weight-shard'

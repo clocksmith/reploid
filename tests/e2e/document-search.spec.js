@@ -50,8 +50,10 @@ test('local document journey preserves protein UI, privacy, evidence, and experi
   await expect(page.locator('[data-document-results] li').first()).toContainText('fruit.md');
   expect(await page.evaluate(() => window.documentLeaked)).toBeUndefined();
   await page.locator('[data-document-rerank]').check();
+  await page.locator('[data-document-answer]').check();
   await page.locator('[data-document-submit]').click();
   await expect(page.locator('[data-document-results] li').first()).toContainText('sea.txt');
+  await expect(page.locator('[data-document-answer-output]')).toHaveText('Apple trees grow fruit. [1]');
   expect(leaks).toEqual([]);
   await page.getByRole('link', { name: 'Recent jobs', exact: true }).click();
   await expect(page.locator('[data-document-history] li')).toHaveCount(2);
@@ -91,7 +93,8 @@ test('local document journey preserves protein UI, privacy, evidence, and experi
 
 test('changed Reploid modules pass the actual Verification Worker', async ({ page }, testInfo) => {
   const paths = ['pool/model-contract.js', 'pool/operation-model.js', 'pool/local-pack-executor.js',
-    'pool/document-search.js', 'pool/pack-operation-adapters.js', 'ui/pool-home/document-search.js', 'ui/pool-home/index.js', 'ui/pool-home/view.js', 'ui/pool-home/controls.js'];
+    'pool/document-search.js', 'pool/pack-release-policy.js', 'infrastructure/pack-release-storage.js',
+    'pool/pack-operation-adapters.js', 'ui/pool-home/document-search.js', 'ui/pool-home/index.js', 'ui/pool-home/view.js', 'ui/pool-home/controls.js'];
   const snapshot = Object.fromEntries(await Promise.all(paths.map(async (path) => [
     `/${path}`, await readFile(new URL(`../../self/${path}`, import.meta.url), 'utf8')
   ])));
@@ -108,4 +111,40 @@ test('changed Reploid modules pass the actual Verification Worker', async ({ pag
   }), snapshot);
   await testInfo.attach('verification-worker.json', { body: JSON.stringify(report, null, 2), contentType: 'application/json' });
   expect(report.passed, JSON.stringify(report.errors)).toBe(true);
+});
+
+test('release checkpoints survive reopening and reject rollback, forks, and stale concurrent writers', async ({ page }) => {
+  await page.goto('/');
+  const result = await page.evaluate(async () => {
+    const { openPackReleaseCheckpoints } = await import('/infrastructure/pack-release-storage.js');
+    const name = `release-checkpoint-test-${crypto.randomUUID()}`;
+    const key = `sha256:${'a'.repeat(64)}`;
+    const first = { sequence: 1, digest: `sha256:${'b'.repeat(64)}` };
+    const next = { sequence: 2, digest: `sha256:${'c'.repeat(64)}` };
+    const store = await openPackReleaseCheckpoints({ name });
+    const empty = await store.read(key);
+    await store.advance(key, empty, first);
+    store.close();
+    const reopened = await openPackReleaseCheckpoints({ name });
+    const saved = await reopened.read(key);
+    const contender = await openPackReleaseCheckpoints({ name });
+    await reopened.advance(key, saved, next);
+    const failures = [];
+    for (const [prior, proposed] of [[saved, { sequence: 2, digest: `sha256:${'d'.repeat(64)}` }],
+      [next, first], [next, { ...next, digest: `sha256:${'d'.repeat(64)}` }]]) {
+      try { await contender.advance(key, prior, proposed); }
+      catch (error) { failures.push(error.message); }
+    }
+    const idempotent = await contender.advance(key, saved, next);
+    const final = await reopened.read(key);
+    reopened.close(); contender.close();
+    return { empty, saved, final, idempotent, failures };
+  });
+  expect(result.empty).toEqual({ sequence: 0, digest: null });
+  expect(result.saved.sequence).toBe(1);
+  expect(result.final).toEqual(result.idempotent);
+  expect(result.final.sequence).toBe(2);
+  expect(result.failures).toHaveLength(3);
+  expect(result.failures[0]).toContain('changed during verification');
+  expect(result.failures.slice(1).every(message => message.includes('rollback or fork'))).toBe(true);
 });
