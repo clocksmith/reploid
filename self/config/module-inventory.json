@@ -705,6 +705,12 @@
       "imports": []
     },
     {
+      "path": "infrastructure/pack-job-storage.js",
+      "owner": "infrastructure",
+      "sha256": "sha256:9e8b2c255df62686ca8fec790270d2b4cbeb2dfa613bc6a74d70b9acccef1fe8",
+      "imports": []
+    },
+    {
       "path": "infrastructure/pack-release-storage.js",
       "owner": "infrastructure",
       "sha256": "sha256:8710ec25f2d06a03d287d8ee06ca34454b0deb95417eadf329b158688a4db47c",
@@ -1416,8 +1422,9 @@
     {
       "path": "pool/peer-pack-provider.js",
       "owner": "pool",
-      "sha256": "sha256:98eaf49848aca75b03528751f14a71c5c45a246902958604492e923292b62ee2",
+      "sha256": "sha256:6d71336ea5b55af6895f69838faded96a91714d49ca29468990ad7799fe18764",
       "imports": [
+        "../infrastructure/pack-job-storage.js",
         "./executable-pack.js",
         "./local-pack-executor.js",
         "./pack-operation-adapters.js",

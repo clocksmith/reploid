@@ -9,7 +9,7 @@ import { assertPackOperationReceipt } from '../../self/pool/pack-operation.js';
 import { verifyPackPeerEpisode } from '../../self/pool/peer-pack-episode.js';
 
 describe.each(['esm2-peer-pack-2026-09-05', 'esm2-pack-operation-2026-09-05', 'esm2-durable-peer-2026-09-06',
-  'esm2-process-restart-2026-09-06', 'esm2-remote-operation-2026-09-06'])('retained physical peer Pack episode: %s (offline evidence validation)', (directory) => {
+  'esm2-process-restart-2026-09-06', 'esm2-remote-operation-2026-09-06', 'esm2-durable-job-2026-09-06'])('retained physical peer Pack episode: %s (offline evidence validation)', (directory) => {
   const ROOT = resolve('docs/status', directory);
   const json = async (path) => JSON.parse(await readFile(resolve(ROOT, path), 'utf8'));
   it('binds retained bytes, completed custody, real operation evidence, and explicit non-claims', async () => {
@@ -105,11 +105,31 @@ describe.each(['esm2-peer-pack-2026-09-05', 'esm2-pack-operation-2026-09-05', 'e
       expect(software.passed).toBe(true);
       expect(software.package).toEqual(report.installedPackage);
       expect(software.files).toEqual(report.runtimeBootstrap.files.filter(row => row.path.startsWith('/doppler/src/')));
-      expect((await json('attachments/attempt-02.json')).passed).toBe(false);
-      const failed = await json('attachments/attempt-03.json');
-      expect(failed.passed).toBe(false);
-      expect(failed.remoteProvider.calls).toBe(2);
-      expect(failed.remoteProvider.errors.some(error => error.includes('already active'))).toBe(true);
+      if (directory === 'esm2-remote-operation-2026-09-06') {
+        expect((await json('attachments/attempt-02.json')).passed).toBe(false);
+        const failed = await json('attachments/attempt-03.json');
+        expect(failed.passed).toBe(false);
+        expect(failed.remoteProvider.calls).toBe(2);
+        expect(failed.remoteProvider.errors.some(error => error.includes('already active'))).toBe(true);
+      }
+      if (directory === 'esm2-durable-job-2026-09-06') {
+        expect(report.remoteProvider.providerReplacements).toBe(1);
+        expect(report.remoteProvider.journal).toMatchObject({ attempts: 1, storage: 'indexeddb', persistence: 'browser-managed' });
+        expect(report.remoteProvider.journal.storedBytes).toBeGreaterThan(0);
+        expect(report.remoteProvider.journal.storedBytes).toBeLessThanOrEqual(report.remoteProvider.journal.maxBytes);
+        const browser = await json('attachments/browser-process-restart.json');
+        expect(browser.executionClass).toBe('synthetic-models-native-indexeddb');
+        expect(browser.processReplacements).toBe(4);
+        expect(browser.observations.map(row => row.mode)).toEqual(['normal', 'send-failure', 'pending', 'cancel-before-job']);
+        for (const { mode, before, after, repeated } of browser.observations) {
+          expect(after.calls).toBe(0); expect(repeated.calls).toBe(0);
+          expect(after.errors).toEqual([]);
+          expect(after.responses.map(message => message.body.status)).toEqual(mode === 'pending' ? ['partial', 'failed']
+            : mode === 'cancel-before-job' ? ['cancelled'] : ['partial', 'completed']);
+          expect(after.responses.slice(0, before.responses.length)).toEqual(before.responses);
+          expect(repeated.responses).toEqual([...after.responses, ...after.responses]);
+        }
+      }
     }
     for (const artifact of pack.artifacts) {
       const entry = artifact.role === 'weight-shard'

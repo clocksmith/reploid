@@ -6,7 +6,7 @@ import { createPackPeerRequester } from '../../self/pool/peer-pack-requester.js'
 import { createPackJobDataChannel } from '../../self/pool/peer-pack-job-channel.js';
 
 let pc, bus, provider, requester, identity, model, fixture, ready, release, completed;
-let calls = 0, dropped = 0;
+let calls = 0, dropped = 0, providerReplacements = 0, replacing = Promise.resolve();
 const errors = [];
 const limits = { maxInputBytes: 65536, maxOutputBytes: 4194304, maxStreamBytes: 16 * 1024 * 1024, maxEvents: 256, maxJobMs: 120000 };
 
@@ -27,10 +27,20 @@ async function start(role, pin, options = {}) {
       bus = createPackJobDataChannel({ channel });
       if (role === 'provider') {
         const providerBus = { ...bus, async send(message) {
-          if (fixture.dropFirstCompletion && message.body?.status === 'completed' && dropped === 0) { dropped++; return; }
+          if (fixture.dropFirstCompletion && message.body?.status === 'completed' && dropped === 0) {
+            dropped++;
+            // Discard the provider's memory replay map after the committed result.
+            // The model stays open; retry must restore the native durable journal.
+            replacing = Promise.resolve().then(async () => {
+              await provider.close();
+              installProvider(); providerReplacements++;
+            });
+            replacing.catch(error => errors.push(error.message));
+            return;
+          }
           return bus.send(message);
         } };
-        provider = createPackPeerProvider({ identity, bus: providerBus, models: [model],
+        const installProvider = () => { provider = createPackPeerProvider({ identity, bus: providerBus, models: [model],
           authorize: job => job.body.request.input.sequence === fixture.sequence
             && job.body.request.options.includeTokenEmbeddings === true && job.body.request.options.includeLogits === false,
           executor: { async run(request) {
@@ -40,7 +50,8 @@ async function start(role, pin, options = {}) {
               assignment: request.assignment, limits: request.limits }, { signal: request.signal, onPartial: request.onPartial });
             completed = result;
             return result;
-          }, async close() {} }, onError: error => errors.push(error.message) });
+          }, async close() {} }, onError: error => errors.push(error.message) }); };
+        installProvider();
       } else requester = createPackPeerRequester({ identity, bus, models: [model], onError: error => errors.push(error.message) });
       resolve();
     };
@@ -81,8 +92,10 @@ export async function run(advert) {
   return { ...result, elapsedMs: performance.now() - started, transport: bus.getState(), errors };
 }
 export async function finish() {
+  await replacing;
+  const journal = await provider?.getJournalStats();
   requester?.close(); await provider?.close();
-  const state = { calls, droppedCompletions: dropped, transport: bus?.getState(), errors,
+  const state = { calls, droppedCompletions: dropped, providerReplacements, journal, transport: bus?.getState(), errors,
     executionReceiptDigest: completed?.receipt.receiptDigest ?? null };
   bus?.close(); pc?.close(); release?.(state);
   return state;

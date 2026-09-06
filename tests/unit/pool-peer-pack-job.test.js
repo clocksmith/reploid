@@ -51,7 +51,7 @@ async function setup(name, registry, tweaks = {}) {
     async send(message) { responses.push(message); if (tweaks.dropResponse?.(message, responses.length)) return;
       for (const fn of requestListeners) fn(structuredClone(message)); } };
   const provider = createPackPeerProvider({ identity: providerIdentity, bus: providerBus, models: [f.model],
-    executor: f.executor, registry, journal: memoryJournal(), authorize: tweaks.authorize || (() => true), onError: error => errors.push(error.message) });
+    executor: f.executor, registry, journal: tweaks.journal || memoryJournal(), authorize: tweaks.authorize || (() => true), onError: error => errors.push(error.message) });
   const requester = createPackPeerRequester({ identity: requesterIdentity, bus: requesterBus, models: [f.model], registry,
     maxDeliveries: tweaks.maxDeliveries ?? 3, retryMs: 100, onError: error => errors.push(error.message) });
   const limits = { maxInputBytes: 10000, maxOutputBytes: 10000, maxStreamBytes: 200000, maxEvents: 32, maxJobMs: 30000 };
@@ -64,6 +64,18 @@ async function setup(name, registry, tweaks = {}) {
 }
 
 describe('signed remote Pack jobs with synthetic model outputs', () => {
+  it('does not calculate when durable admission fails', async () => {
+    const f = await setup('embed', undefined, { journal: { async claim() { throw new Error('injected storage failure'); }, close() {} } });
+    try {
+      const { reference, ...args } = f.args;
+      await f.requesterBus.send(await createPackPeerJob({ ...args, identity: f.requesterIdentity }));
+      await until(() => f.provider.getState().queued === 0);
+      expect(f.calls()).toBe(0);
+      expect(f.responses).toEqual([]);
+      expect(f.errors).toContain('injected storage failure');
+    } finally { await f.close(); }
+  });
+
   for (const name of ['generate', 'embed', 'rerank', 'encodeSequence']) it(`executes and accepts ${name} over the common peer clients`, async () => {
     const f = await setup(name);
     try {

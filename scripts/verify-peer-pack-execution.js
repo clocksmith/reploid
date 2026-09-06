@@ -342,6 +342,8 @@ export async function verifyPeerPackExecution(config) {
         && (!config.remoteOperation || (report.remoteAcceptance.passed && report.remoteOperation.assessment.accepted
           && report.remoteOperation.accounting.deliveries === 2 && report.execution.remoteProvider.calls === 1
           && report.execution.remoteProvider.droppedCompletions === 1
+          && report.execution.remoteProvider.providerReplacements === 1
+          && report.execution.remoteProvider.journal.attempts === 1
           && report.execution.remoteProvider.executionReceiptDigest === report.remoteOperation.execution.receipt.receiptDigest));
     }
     report.stage = 'complete';

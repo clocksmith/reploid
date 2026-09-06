@@ -68,10 +68,27 @@ Cancellation and transport disconnect immediately invalidate the requester's
 attempt. A signed cancellation requests cooperation; it does not prove immediate
 GPU termination. The execution slot stays busy during runtime cleanup. A
 cancellation that arrives before its delayed job leaves a bounded tombstone.
-Provider state is memory-resident: browser/process restart can lose deduplication
-history and cause a repeated calculation. Only a currently active requester can
-accept output. This API claims bounded at-least-once delivery, not exactly-once
-execution or durable remote-job history.
+The provider now persists attempt claims, cancellation tombstones and signed
+responses in native IndexedDB. A strict transaction commits the claim before
+execution and each response before transmission. A lost send cannot overwrite
+a saved completion with failure. After restart, the same provider key and
+browser profile can replay the original signed response stream. The provider
+rechecks signatures, request bindings and both event chains before replay.
+
+A replacement writer marks an unfinished attempt interrupted and fences its
+previous writer. It replays verified partial results followed by a signed
+failure, without executing that attempt again. This does not establish that the
+old GPU stopped. Only a currently active requester can accept output.
+
+The default journal retains at most 128 attempts and 64 MiB of serialized
+records, pruning expired entries during access. Application limits can tighten
+these bounds. `provider.getJournalStats()` exposes entry and byte accounting.
+Storage failure, corruption or exhaustion denies execution. Browser-managed
+storage can be evicted or deleted; changing origin, profile, journal name or
+provider identity also loses this continuity. Signed responses expire with the
+job, and this short recovery journal is separate from the application's evidence
+archive. Delivery remains bounded at-least-once; exactly-once execution across
+arbitrary restarts or storage loss is not claimed.
 
 ## Validation
 
@@ -81,10 +98,17 @@ execution or durable remote-job history.
 - `tests/e2e/peer-pack-jobs.spec.js`: two browser contexts exchange all four
   operations over real WebRTC, including large embedding inputs and outputs;
   model outputs are synthetic. The actual Verification Worker accepts the code.
+  Native IndexedDB tests replace the entire Chromium process for completed,
+  interrupted, cancelled and failed-send cases, race two journal writers,
+  exhaust storage bounds, and reject corrupted persisted responses.
 - [Physical ESM-2 remote episode](../status/esm2-remote-operation-2026-09-06/README.md):
   actual peer-reconstructed model execution, eight frozen reference checks, and
   a dropped result recovered by retry without a second remote calculation.
   One computer and one internal operator; separate from the synthetic tests.
+- [Durable ESM-2 job episode](../status/esm2-durable-job-2026-09-06/README.md):
+  the actual remote model result survives provider-object replacement through
+  IndexedDB replay. Separate synthetic-model observations replace the entire
+  browser process for completed, interrupted and cancelled attempts.
 
 Independent operators, useful scheduling history, public release installations,
 and model qualification remain separate acceptance gates.

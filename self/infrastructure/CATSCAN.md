@@ -23,13 +23,16 @@ Inputs:
 Outputs:
 - Append-only audit material through [audit-logger.js](audit-logger.js).
 - Recovery checkpoints through [genesis-snapshot.js](genesis-snapshot.js).
+- Bounded atomic attempt claims and signed response storage through [pack-job-storage.js](pack-job-storage.js).
 
 ## Invariants
 - Audit, replay, and rollback records cannot silently rewrite the events they describe.
 - Service failures remain observable and fail closed at governed boundaries.
+- Poolday owns job admission and response verification; storage cannot authorize execution.
 
 ## Acceptance
 - Event, audit, and snapshot lifecycle behavior passes focused tests.
+- [Native job recovery tests](../../tests/e2e/peer-pack-jobs.spec.js) verify restart, writer fencing, cancellation, corruption, and bounds.
 - Evidence: [event-bus tests](../../tests/unit/event-bus.test.js), [audit tests](../../tests/unit/audit-logger.test.js), and [genesis snapshot tests](../../tests/integration/genesis-snapshot.test.js).
 
 ## Non-goals
