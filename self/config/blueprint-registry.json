@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-09-06T17:57:12.115Z",
+  "generatedAt": "2026-09-06T18:33:52.675Z",
   "features": [
     {
       "id": "0x000002",
@@ -1307,6 +1307,7 @@
         }
       ],
       "files": [
+        "pool/peer-capabilities.js",
         "pool/peer-planning.js"
       ]
     },

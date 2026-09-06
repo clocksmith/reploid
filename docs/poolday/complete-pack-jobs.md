@@ -174,6 +174,10 @@ arbitrary restarts or storage loss is not claimed.
   the v2 signed policy and attempt binding execute the actual model and recover
   a dropped completion through persistent replay. A separate attachment records
   six whole-browser replacement cases, including acceptance and a pending write.
+- [Capability planning episode](../status/esm2-capability-plan-2026-09-06/README.md):
+  the v3 candidate plan executes real ESM-2 and recovers a dropped completion.
+  One physical candidate and one machine; competing choices remain synthetic
+  test evidence, and historical selection remains disabled.
 
 Independent operators, useful scheduling history, public release installations,
 and model qualification remain separate acceptance gates.

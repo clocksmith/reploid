@@ -1,0 +1,1 @@
+{"passed":true,"stage":"complete","error":null,"outputPath":"/tmp/esm2-capability-frozen-en0ngyvk/episode.json"}
