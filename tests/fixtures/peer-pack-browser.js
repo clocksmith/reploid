@@ -137,7 +137,7 @@ export function assertPhysicalAdapter(adapter) {
 }
 
 export async function execute({ authorization, index, inventories, trustedSigners, sequence, options, dopplerVersion, operationLimits,
-  interruptAfterWeightResponses = null, serveRemoteOperation = false }) {
+  interruptAfterWeightResponses = null, serveRemoteOperation = false, remoteResources = null }) {
   const api = await import('/doppler/src/client/doppler-api.browser.js');
   const { DOPPLER_VERSION } = await import('/doppler/src/version.js');
   const module = { ...api, DOPPLER_VERSION };
@@ -177,7 +177,8 @@ export async function execute({ authorization, index, inventories, trustedSigner
         manifestHash: authorization.pack.envelopeDigest, runtime: 'doppler', backend: 'browser-webgpu',
         runtimeVersion: dopplerVersion, executionMode: 'complete_pack_browser', workload: 'sequence.embedding.v1',
         executablePack: authorization.pack };
-      report.remoteProvider = await remote.startProvider(model, { peer, sequence, dropFirstCompletion: true });
+      const gpuIdentity = Object.fromEntries(['vendor', 'architecture', 'device', 'description'].map(field => [field, adapter.info[field]]));
+      report.remoteProvider = await remote.startProvider(model, { peer, sequence, gpuIdentity, resources: remoteResources, dropFirstCompletion: true });
     }
     report.stage = 'complete';
     report.passed = true;

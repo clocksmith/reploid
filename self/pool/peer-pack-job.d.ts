@@ -1,6 +1,8 @@
 import type { JsonValue, PackOperationAdapter, PackOperationRegistry } from './pack-operation-adapters.js';
 import type { PackOperationRequest } from './pack-operation.js';
-import type { PackJobPolicy } from './peer-pack-job-policy.js';
+import type { PackJobPolicy, CurrentPackJobPolicy } from './peer-pack-job-policy.js';
+import type { ProviderCapabilities, WorkRequirements } from './peer-capabilities.js';
+import type { OperationAssignmentPlan } from './peer-planning.js';
 type JsonObject = Readonly<Record<string, JsonValue>>;
 export interface PackPeerIdentity {
   readonly keyId: string;
@@ -31,9 +33,10 @@ export type PackPeerModel = JsonObject & {
   readonly executablePack: JsonObject & { readonly requiredOperation: string };
 };
 export interface PackProviderAdvertBody {
-  readonly schema: 'reploid.peer.pack_provider/v1';
+  readonly schema: 'reploid.peer.pack_provider/v2';
   readonly models: readonly PackPeerModel[];
   readonly limits: PackPeerLimits;
+  readonly capabilities: ProviderCapabilities;
 }
 export interface PackPeerConsent {
   readonly schema: 'reploid.peer.public_operation_consent/v1';
@@ -56,9 +59,11 @@ export interface PackPeerJobIntent {
   readonly jobPolicyDigest: string;
   readonly selectedAt: number;
   readonly inputHash: string;
+  readonly resources: WorkRequirements['resources'];
+  readonly planning: { readonly adverts: readonly SignedPackPeerMessage<PackProviderAdvertBody>[]; readonly plan: OperationAssignmentPlan };
 }
 export interface PackPeerJobBody {
-  readonly schema: 'reploid.peer.pack_job/v2';
+  readonly schema: 'reploid.peer.pack_job/v3';
   readonly advert: SignedPackPeerMessage<PackProviderAdvertBody>;
   readonly intent: PackPeerJobIntent;
   readonly assignment: JsonObject;
@@ -77,11 +82,14 @@ export function signPackPeerMessage<Body>(options: { identity: PackPeerIdentity;
 export function verifyPackPeerMessage<Body>(message: SignedPackPeerMessage<Body>, options: { type: string; recipient?: string | null;
   sender?: string | null; now?: number; policy?: PackJobPolicy }): Promise<SignedPackPeerMessage<Body>>;
 export function createPackProviderAdvert(options: { identity: PackPeerIdentity; models: readonly JsonObject[];
-  limits: PackPeerLimits; expiresAt: number; registry?: PackOperationRegistry; policy?: PackJobPolicy }): Promise<SignedPackPeerMessage<PackProviderAdvertBody>>;
-export function createPackPeerJob(options: { identity: PackPeerIdentity; advert: SignedPackPeerMessage<PackProviderAdvertBody>;
+  capabilities: ProviderCapabilities; limits: PackPeerLimits; expiresAt: number; registry?: PackOperationRegistry; policy?: CurrentPackJobPolicy }): Promise<SignedPackPeerMessage<PackProviderAdvertBody>>;
+export function planPackPeerProviders(options: { adverts: readonly SignedPackPeerMessage<PackProviderAdvertBody>[];
+  requirements: WorkRequirements; now: number; registry?: PackOperationRegistry; policy?: CurrentPackJobPolicy }): Promise<OperationAssignmentPlan>;
+export function createPackPeerJob(options: { identity: PackPeerIdentity; advert?: SignedPackPeerMessage<PackProviderAdvertBody>;
+  adverts?: readonly SignedPackPeerMessage<PackProviderAdvertBody>[]; resources: WorkRequirements['resources'];
   model: JsonObject; input: JsonObject; options?: JsonObject; limits: PackPeerJobIntent['limits']; consent: PackPeerConsent;
   comparisonPolicy: JsonObject; jobId?: string; attemptId?: string; attemptNumber?: number; adapterSet?: readonly JsonValue[];
-  registry?: PackOperationRegistry; policy?: PackJobPolicy }): Promise<SignedPackPeerMessage<PackPeerJobBody>>;
+  registry?: PackOperationRegistry; policy?: CurrentPackJobPolicy }): Promise<SignedPackPeerMessage<PackPeerJobBody>>;
 export function verifyPackPeerJob(message: SignedPackPeerMessage<PackPeerJobBody>, options: { providerId: string;
   models: readonly JsonObject[]; registry?: PackOperationRegistry; now?: number; allowLegacy?: false; policy?: PackJobPolicy }): Promise<SignedPackPeerMessage<PackPeerJobBody>>;
 /** Legacy archives require their own schema narrowing and cannot enter live admission. */

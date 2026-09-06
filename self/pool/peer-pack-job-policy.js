@@ -30,6 +30,7 @@ export function resolvePackJobPolicy(input) {
     && policy.attempts.initialNumber <= policy.attempts.maximumNumber, 'explicit attempt numbering required');
   assert(Array.isArray(policy.execution?.adapterSet) && policy.execution.adapterSet.length === 0, 'explicit unadapted execution set required');
   if (policy.version === 2) {
+    assert(policy.execution.maxConcurrentJobs === 1, 'current executor supports one concurrent job');
     assert(policy.schemas.job === 'reploid.peer.pack_job/v3' && policy.schemas.providerAdvert === 'reploid.peer.pack_provider/v2'
       && policy.schemas.legacyProviderAdvert === 'reploid.peer.pack_provider/v1', 'resource advertisement protocol required');
     const capabilitySchema = resolveProviderCapabilitySchema(policy.providerCapabilitySchema);
@@ -39,3 +40,4 @@ export function resolvePackJobPolicy(input) {
 }
 
 export const PACK_JOB_POLICY = resolvePackJobPolicy(config.peerJobs);
+assert(PACK_JOB_POLICY.version === 2, 'current runtime requires resource planning policy');

@@ -1846,7 +1846,8 @@
       }
     },
     "execution": {
-      "adapterSet": []
+      "adapterSet": [],
+      "maxConcurrentJobs": 1
     },
     "providerCapabilitySchema": {
       "schema": "reploid.pool.capability-policy/v1",

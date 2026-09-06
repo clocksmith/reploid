@@ -58,7 +58,7 @@ export async function planOperationProviders({ requirements: workInput, candidat
       || candidate.limits[key] < requirements.limits[key]) reasons.push(`limit:${key}`);
     return { providerId, advertHash, eligible: reasons.length === 0, reasons,
       metrics: { modelAvailability: modelRank, adapterAvailability: adapterRank, activeJobs: resource.activeJobs,
-        queuedJobs: resource.queuedJobs, freeGpuBytes: freeGpu, bandwidthBytesPerSecond: resource.bandwidthBytesPerSecond, providerId },
+        queuedJobs: resource.queuedJobs, gpuBudgetBytes: freeGpu, bandwidthBytesPerSecond: resource.bandwidthBytesPerSecond, providerId },
       unknownMemory: { gpu: resource.gpuFreeBytes === null, storage: resource.storageFreeBytes === null } };
   }).sort((a, b) => lexical(a.providerId, b.providerId));
   const ordered = rows.filter(row => row.eligible).sort((a, b) => {

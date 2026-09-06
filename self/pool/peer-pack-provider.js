@@ -235,6 +235,9 @@ export function createPackPeerProvider({ identity, bus, models, authorize,
   return {
     createAdvert({ limits, capabilities, expiresAt }) {
       requirePackJob(!closed, 'provider is closed');
+      requirePackJob(capabilities?.resources?.concurrency === policy.execution.maxConcurrentJobs
+        && capabilities.resources.activeJobs === (active || executor.getState?.().active ? 1 : 0)
+        && capabilities.resources.queuedJobs === queued, 'advertised load differs from current provider state');
       return createPackProviderAdvert({ identity, models, limits, capabilities, expiresAt, registry, policy });
     },
     getState() { prune(); return { closed, active: !!active || executor.getState?.().active === true,
