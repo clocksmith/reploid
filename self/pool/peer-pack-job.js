@@ -8,6 +8,8 @@ import { validateOperationModel } from './operation-model.js';
 import { createPackOperationRegistry } from './pack-operation-adapters.js';
 import { assertPackOperationRequest, snapshotPackOperationData as snapshot } from './pack-operation.js';
 import { hashDopplerEvidence } from './executable-pack.js';
+import { validateProviderCapabilities, validateWorkRequirements } from './peer-capabilities.js';
+import { planOperationProviders } from './peer-planning.js';
 
 export const PACK_JOB_SCHEMA = PACK_JOB_POLICY.schemas.job;
 export const PACK_UPDATE_SCHEMA = PACK_JOB_POLICY.schemas.update;
@@ -57,16 +59,54 @@ export async function verifyPackPeerMessage(message, { type, recipient = null, s
   return message;
 }
 
-export async function createPackProviderAdvert({ identity, models, limits, expiresAt, registry = createPackOperationRegistry(), policy = PACK_JOB_POLICY }) {
+async function checkAdvertCapabilities(advert, { registry, policy, now }) {
+  requirePackJob(advert.body.schema === policy.schemas.providerAdvert, 'resource capability advertisement required');
+  validatePackPeerLimits(advert.body.limits, policy);
+  requirePackJob(Array.isArray(advert.body.models) && advert.body.models.length > 0
+    && advert.body.models.length <= policy.limits.maxModels, 'bounded model pins required');
+  const models = advert.body.models.map(model => packPeerModel(model, registry));
+  const capabilities = validateProviderCapabilities(advert.body.capabilities, { schema: policy.providerCapabilitySchema, now });
+  const identities = await Promise.all(models.map(hashDopplerEvidence));
+  requirePackJob(identities.length === capabilities.models.length && capabilities.models.every(row => identities.includes(row.identity)), 'capability model identity mismatch');
+  requirePackJob(capabilities.operations.every(operation => registry[operation.name]?.version === operation.version), 'unknown advertised operation');
+  for (const model of models) requirePackJob(capabilities.operations.some(operation => operation.name === model.executablePack.requiredOperation
+    && operation.version === registry[operation.name].version), 'advertised model operation missing');
+  return { providerId: advert.fromPeerId, advertHash: advert.messageHash, capabilities, limits: advert.body.limits };
+}
+
+export async function createPackProviderAdvert({ identity, models, limits, capabilities, expiresAt, registry = createPackOperationRegistry(), policy = PACK_JOB_POLICY }) {
   validatePackPeerLimits(limits, policy);
   requirePackJob(Array.isArray(models) && models.length > 0 && models.length <= policy.limits.maxModels, 'bounded model pins required');
+  const body = snapshot({ schema: policy.schemas.providerAdvert, models: models.map(model => packPeerModel(model, registry)), limits, capabilities });
+  await checkAdvertCapabilities({ body, fromPeerId: identity.keyId, messageHash: null }, { registry, policy, now: Date.now() });
   return signPackPeerMessage({ identity, type: PEER_MESSAGE_TYPES.PROVIDER_ADVERT, expiresAt, policy,
-    body: { schema: 'reploid.peer.pack_provider/v1', models: models.map(model => packPeerModel(model, registry)), limits } });
+    body });
+}
+
+/** Verify signed observations before handing an immutable snapshot to the pure planner. */
+export async function planPackPeerProviders({ adverts, requirements, now, registry = createPackOperationRegistry(), policy = PACK_JOB_POLICY }) {
+  ({ adverts, requirements } = snapshot({ adverts, requirements }));
+  requirePackJob(Array.isArray(adverts) && adverts.length > 0 && adverts.length <= policy.assignmentPolicy.maxCandidates, 'bounded provider advertisements required');
+  const candidates = [];
+  for (const advert of adverts) {
+    await verifyPackPeerMessage(advert, { type: PEER_MESSAGE_TYPES.PROVIDER_ADVERT, now, policy });
+    candidates.push(await checkAdvertCapabilities(advert, { registry, policy, now }));
+  }
+  return planOperationProviders({ requirements, candidates, now, observations: null,
+    policy: policy.assignmentPolicy, capabilitySchema: policy.providerCapabilitySchema });
+}
+
+async function workRequirements(intent, operation) {
+  const { deadlineAt: _deadline, ...limits } = intent.limits;
+  return validateWorkRequirements({ schema: 'reploid.pool.work-requirements/v1', modelIdentity: await hashDopplerEvidence(intent.model),
+    operation, inputClass: intent.inputClass, adapterIdentities: intent.adapterSet, expertIdentities: [],
+    providerIds: intent.consent.providerIds, resources: intent.resources, limits });
 }
 
 async function jobParts({ requesterId, advert, intent, input, options, registry, legacy = false, policy = PACK_JOB_POLICY }) {
   const model = packPeerModel(intent.model, registry);
-  requirePackJob(await equal(model, intent.model) && advert.body.schema === 'reploid.peer.pack_provider/v1', 'invalid model pin or advert');
+  const advertSchema = !legacy && policy.version === 2 ? policy.schemas.providerAdvert : 'reploid.peer.pack_provider/v1';
+  requirePackJob(await equal(model, intent.model) && advert.body.schema === advertSchema, 'invalid model pin or advert');
   validatePackPeerLimits(advert.body.limits, policy);
   requirePackJob(Array.isArray(advert.body.models) && (await Promise.all(advert.body.models.map(pin => equal(pin, model)))).some(Boolean), 'provider does not advertise the exact model');
   requirePackJob(typeof intent.jobId === 'string' && intent.jobId.length > 0 && intent.jobId.length <= policy.limits.maxIdentityCharacters
@@ -91,6 +131,12 @@ async function jobParts({ requesterId, advert, intent, input, options, registry,
     requirePackJob(intent.operationPolicyDigest === await hashDopplerEvidence(intent.operationPolicy)
       && intent.jobPolicyDigest === await hashDopplerEvidence(intent.jobPolicy), 'signed policy snapshot mismatch');
     requirePackJob(await equal(intent.adapterSet, policy.execution.adapterSet), 'adapter set is outside resolved execution policy');
+    if (policy.version === 2) {
+      const requirements = await workRequirements(intent, operation);
+      const plan = await planPackPeerProviders({ adverts: intent.planning.adverts, requirements, now: intent.selectedAt, registry, policy });
+      requirePackJob(await equal(plan, intent.planning.plan) && plan.selectedProviderId === advert.fromPeerId
+        && plan.candidates.some(row => row.providerId === advert.fromPeerId && row.advertHash === advert.messageHash), 'assignment differs from deterministic provider plan');
+    }
   }
   requirePackJob(intent.inputHash === await hashDopplerEvidence({ input, options }), 'input differs from signed intent');
   requirePackJob(intent.comparisonPolicy?.schema === 'poolday.operation-comparison/v1'
@@ -112,20 +158,29 @@ async function jobParts({ requesterId, advert, intent, input, options, registry,
   return { assignment, request };
 }
 
-export async function createPackPeerJob({ identity, advert, model, input, options = {}, limits, consent, comparisonPolicy,
+export async function createPackPeerJob({ identity, advert, adverts, model, input, options = {}, limits, consent, comparisonPolicy, resources,
   jobId = crypto.randomUUID(), attemptId = crypto.randomUUID(), attemptNumber, adapterSet,
   registry = createPackOperationRegistry(), policy: policyInput = PACK_JOB_POLICY }) {
   const policy = resolvePackJobPolicy(policyInput);
   if (attemptNumber === undefined) attemptNumber = policy.attempts.initialNumber;
   if (adapterSet === undefined) adapterSet = policy.execution.adapterSet;
   // Snapshot before the first await, including nested policy and model objects.
-  const data = snapshot({ advert, model: packPeerModel(model, registry), input, options, limits, consent, comparisonPolicy, jobId, attemptId, attemptNumber, adapterSet });
-  advert = await verifyPackPeerMessage(data.advert, { type: PEER_MESSAGE_TYPES.PROVIDER_ADVERT, policy });
+  requirePackJob(policy.version === 2, 'new work requires current resource planning policy');
+  const data = snapshot({ adverts: adverts === undefined ? [advert] : adverts, model: packPeerModel(model, registry), input, options, limits, consent,
+    comparisonPolicy, resources, jobId, attemptId, attemptNumber, adapterSet });
   const intent = { model: data.model, limits: data.limits, consent: data.consent, comparisonPolicy: data.comparisonPolicy,
     jobId, attemptId, attemptNumber, adapterSet: data.adapterSet, inputClass: registry[data.model.executablePack.requiredOperation].definition.inputClasses.defaultRemote,
     operationPolicy: registry[data.model.executablePack.requiredOperation].policy, jobPolicy: policy,
     operationPolicyDigest: await hashDopplerEvidence(registry[data.model.executablePack.requiredOperation].policy),
-    jobPolicyDigest: await hashDopplerEvidence(policy), selectedAt: Date.now(), inputHash: await hashDopplerEvidence({ input: data.input, options: data.options }) };
+    jobPolicyDigest: await hashDopplerEvidence(policy), resources: data.resources,
+    selectedAt: Date.now(), inputHash: await hashDopplerEvidence({ input: data.input, options: data.options }) };
+  const operation = { name: data.model.executablePack.requiredOperation, version: registry[data.model.executablePack.requiredOperation].version };
+  const requirements = await workRequirements(intent, operation);
+  const plan = await planPackPeerProviders({ adverts: data.adverts, requirements, now: intent.selectedAt, registry, policy });
+  requirePackJob(plan.selectedProviderId, 'no eligible provider for declared work');
+  const selectedHash = plan.candidates.find(row => row.providerId === plan.selectedProviderId).advertHash;
+  advert = data.adverts.find(row => row.messageHash === selectedHash);
+  intent.planning = { adverts: data.adverts, plan };
   const parts = await jobParts({ requesterId: identity.keyId, advert, intent, input: data.input, options: data.options, registry, policy });
   return signPackPeerMessage({ identity, type: PEER_MESSAGE_TYPES.ASSIGNMENT_CLAIM, recipient: advert.fromPeerId,
     expiresAt: data.limits.deadlineAt, policy, body: { schema: PACK_JOB_SCHEMA, advert, intent, ...parts } });
@@ -134,7 +189,7 @@ export async function createPackPeerJob({ identity, advert, model, input, option
 export async function verifyPackPeerJob(message, { providerId, models, registry = createPackOperationRegistry(), now = Date.now(), allowLegacy = false, policy = PACK_JOB_POLICY }) {
   const job = await verifyPackPeerMessage(message, { type: PEER_MESSAGE_TYPES.ASSIGNMENT_CLAIM, recipient: providerId, now, policy });
   const legacy = job.body.schema === policy.schemas.legacyJob;
-  requirePackJob(job.body.schema === PACK_JOB_SCHEMA || (allowLegacy && legacy), 'unknown job schema');
+  requirePackJob(job.body.schema === policy.schemas.job || (allowLegacy && legacy), 'unknown job schema');
   const { advert, intent, assignment, request } = job.body;
   requirePackJob(intent.selectedAt <= now && intent.selectedAt >= Date.parse(job.createdAt) - policy.limits.maxClockSkewMs
     && job.expiresAt === new Date(intent.limits.deadlineAt).toISOString(), 'selection time or expiry mismatch');

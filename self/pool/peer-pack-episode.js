@@ -9,7 +9,7 @@ import { PACK_UPDATE_SCHEMA, requirePackJob, verifyPackPeerMessage, verifyPackPe
 export async function verifyPackPeerEpisode({ job, updates, acceptance, reference, models, registry = createPackOperationRegistry() }) {
   ({ job, updates, acceptance, reference, models } = snapshot({ job, updates, acceptance, reference, models }));
   let policy = PACK_JOB_POLICY;
-  if (job.body.schema === PACK_JOB_POLICY.schemas.job) {
+  if (job.body.schema !== PACK_JOB_POLICY.schemas.legacyJob) {
     policy = resolvePackJobPolicy(job.body.intent.jobPolicy);
     const retained = job.body.intent.operationPolicy;
     const implementations = Object.fromEntries(Object.values(registry).map(adapter => [adapter.definition.adapterId, adapter.implementation]));

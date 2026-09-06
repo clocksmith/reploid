@@ -1,5 +1,5 @@
 /** Two-browser-context WebRTC protocol fixture. Model outputs are synthetic. */
-import { operationFixture, packPeerIdentity } from './peer-pack-operation.js';
+import { operationFixture, operationCapabilities, operationResources, packPeerIdentity } from './peer-pack-operation.js';
 import { createPackPeerProvider } from '../../self/pool/peer-pack-provider.js';
 import { createPackPeerRequester } from '../../self/pool/peer-pack-requester.js';
 import { createPackJobDataChannel } from '../../self/pool/peer-pack-job-channel.js';
@@ -48,12 +48,12 @@ async function gathered() {
 export async function offer() { await pc.setLocalDescription(await pc.createOffer()); return gathered(); }
 export async function answer(offer) { await pc.setRemoteDescription(offer); await pc.setLocalDescription(await pc.createAnswer()); return gathered(); }
 export async function accept(answer) { await pc.setRemoteDescription(answer); await ready; }
-export async function advert() { await ready; return provider.createAdvert({ limits, expiresAt: Date.now() + 30000 }); }
+export async function advert() { await ready; return provider.createAdvert({ limits, capabilities: await operationCapabilities(fixture.model), expiresAt: Date.now() + 30000 }); }
 export async function run(advert) {
   const result = await requester.run({ advert, model: fixture.model, input: fixture.input, options: fixture.options,
     limits: { ...limits, deadlineAt: Date.now() + 30000 },
     consent: { schema: 'reploid.peer.public_operation_consent/v1', publicInput: true, providerIds: [advert.fromPeerId] },
-    comparisonPolicy: fixture.policy, reference: fixture.output });
+    resources: operationResources, comparisonPolicy: fixture.policy, reference: fixture.output });
   return { accepted: result.assessment.accepted, receiptDigest: result.execution.receipt.receiptDigest,
     operation: result.execution.request.operation, accounting: result.accounting, transport: bus.getState(), errors };
 }

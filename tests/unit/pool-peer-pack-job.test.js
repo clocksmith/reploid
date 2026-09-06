@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, it, expect } from 'vitest';
-import { operationFixture, packPeerIdentity } from '../fixtures/peer-pack-operation.js';
+import { operationFixture, operationCapabilities, operationResources, packPeerIdentity } from '../fixtures/peer-pack-operation.js';
 import fifthDefinition from '../fixtures/pack-operation-fifth.json' with { type: 'json' };
 import poolConfig from '../../self/pool/pool-config.json' with { type: 'json' };
 import { createPackOperationRegistry, PACK_OPERATION_IMPLEMENTATIONS } from '../../self/pool/pack-operation-adapters.js';
@@ -62,10 +62,10 @@ async function setup(name, registry, tweaks = {}) {
   const requester = createPackPeerRequester({ identity: requesterIdentity, bus: requesterBus, models: [f.model], registry,
     maxDeliveries: tweaks.maxDeliveries ?? 3, retryMs: 100, onError: error => errors.push(error.message) });
   const limits = { maxInputBytes: 10000, maxOutputBytes: 10000, maxStreamBytes: 200000, maxEvents: 32, maxJobMs: 30000 };
-  const advert = await provider.createAdvert({ limits, expiresAt: Date.now() + 30000 });
+  const advert = await provider.createAdvert({ limits, capabilities: await operationCapabilities(f.model), expiresAt: Date.now() + 30000 });
   const args = { advert, model: f.model, input: f.input, options: f.options, limits: { ...limits, deadlineAt: Date.now() + 30000 },
     consent: { schema: 'reploid.peer.public_operation_consent/v1', publicInput: true, providerIds: [providerIdentity.keyId] },
-    comparisonPolicy: f.policy, reference: f.output };
+    comparisonPolicy: f.policy, reference: f.output, resources: operationResources };
   return { ...f, provider, requester, args, sent, responses, errors, providerIdentity, requesterIdentity,
     requesterBus, providerBus, async close() { requester.close(); await provider.close(); } };
 }

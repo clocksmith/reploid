@@ -233,9 +233,9 @@ export function createPackPeerProvider({ identity, bus, models, authorize,
     active?.controller.abort(new Error('provider transport disconnected'));
   });
   return {
-    createAdvert({ limits, expiresAt }) {
+    createAdvert({ limits, capabilities, expiresAt }) {
       requirePackJob(!closed, 'provider is closed');
-      return createPackProviderAdvert({ identity, models, limits, expiresAt, registry, policy });
+      return createPackProviderAdvert({ identity, models, limits, capabilities, expiresAt, registry, policy });
     },
     getState() { prune(); return { closed, active: !!active || executor.getState?.().active === true,
       draining: active?.controller.signal.aborted === true || executor.getState?.().draining === true,

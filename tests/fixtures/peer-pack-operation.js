@@ -11,6 +11,16 @@ export async function packPeerIdentity() {
     keyId: await sha256Hex(Uint8Array.from(atob(publicKey), c => c.charCodeAt(0))) };
 }
 
+export const operationResources = Object.freeze({ gpuBytes: 4096, storageBytes: 4096, bandwidthBytesPerSecond: 0 });
+export async function operationCapabilities(model, activeJobs = 0) {
+  return { schema: 'reploid.peer.capabilities/v1', observedAt: Date.now(), gpuIdentity: null,
+    models: [{ identity: await hashDopplerEvidence(model), availability: 'resident' }], adapters: [], experts: [],
+    operations: [{ name: model.executablePack.requiredOperation, version: 1 }],
+    inputClasses: ['public_text', 'public_biological_sequence'],
+    resources: { gpuBudgetBytes: 1048576, gpuFreeBytes: null, storageBudgetBytes: 1048576, storageFreeBytes: null,
+      bandwidthBytesPerSecond: 1048576, concurrency: 1, activeJobs, queuedJobs: 0 } };
+}
+
 export async function operationFixture(name = 'encodeSequence', registry = createPackOperationRegistry()) {
   const digest = value => `sha256:${value.repeat(64)}`;
   const artifacts = [{ artifactId: 'weights', hash: digest('a'), role: 'weights', path: 'weights.bin', sizeBytes: 4 }];

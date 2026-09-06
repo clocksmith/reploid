@@ -1,5 +1,5 @@
 /** Synthetic computation with real signatures and native IndexedDB. Test keys stay in the harness. */
-import { operationFixture, packPeerIdentity } from './peer-pack-operation.js';
+import { operationFixture, operationCapabilities, operationResources, packPeerIdentity } from './peer-pack-operation.js';
 import { createPackPeerProvider } from '../../self/pool/peer-pack-provider.js';
 import { createPackPeerJob, signPackPeerMessage, PACK_CANCEL_SCHEMA } from '../../self/pool/peer-pack-job.js';
 import { PEER_MESSAGE_TYPES } from '../../self/pool/peer-protocol.js';
@@ -35,9 +35,9 @@ export async function start({ saved = null, mode = 'normal' } = {}) {
     const requester = await packPeerIdentity();
     const limits = { maxInputBytes: 10000, maxOutputBytes: 10000, maxStreamBytes: 200000, maxEvents: 32, maxJobMs: 180000 };
     const expiresAt = Date.now() + 180000;
-    const advert = await provider.createAdvert({ limits, expiresAt });
+    const advert = await provider.createAdvert({ limits, capabilities: await operationCapabilities(fixture.model), expiresAt });
     const job = await createPackPeerJob({ identity: requester, advert, model: fixture.model, input: fixture.input,
-      options: fixture.options, comparisonPolicy: fixture.policy, limits: { ...limits, deadlineAt: expiresAt },
+      options: fixture.options, resources: operationResources, comparisonPolicy: fixture.policy, limits: { ...limits, deadlineAt: expiresAt },
       consent: { schema: 'reploid.peer.public_operation_consent/v1', publicInput: true, providerIds: [identity.keyId] } });
     const cancel = await signPackPeerMessage({ identity: requester, type: PEER_MESSAGE_TYPES.HEARTBEAT, recipient: identity.keyId,
       expiresAt, body: { schema: PACK_CANCEL_SCHEMA, jobHash: job.messageHash,
