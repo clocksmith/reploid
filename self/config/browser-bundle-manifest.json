@@ -1251,7 +1251,7 @@
     {
       "path": "config/module-inventory.json",
       "byteLength": 84850,
-      "sha256": "sha256:2263bd545c06ed29c94fb0bc4ba6aefd0af649482612018aba3259a052d17fff"
+      "sha256": "sha256:103112489f568f7a72920389b5c3db510a5f1edda2b81388e1347a0eab98b5e2"
     },
     {
       "path": "config/module-registry.json",
@@ -1895,8 +1895,8 @@
     },
     {
       "path": "pool/document-search.js",
-      "byteLength": 9874,
-      "sha256": "sha256:fdfd0ef892da338a332a6a587b54e0be341432b8f9ddad70fda8b97056765cae"
+      "byteLength": 9953,
+      "sha256": "sha256:3b07112f1083728f0ae74c9b9c7bff1b293fb5641f6cb00540c80fa4f79d0b9b"
     },
     {
       "path": "pool/doppler-browser-observation.js",
@@ -2035,8 +2035,8 @@
     },
     {
       "path": "pool/pack-operation-adapters.js",
-      "byteLength": 7844,
-      "sha256": "sha256:d84969b49c1128e5731a38aa35d8d4bad5f6cc91c16ff751c376ae42fbb3182f"
+      "byteLength": 8025,
+      "sha256": "sha256:9ae27f95aa49690595575dcaa75bb44a34d002c4b83d06ba9268193a3ef2349d"
     },
     {
       "path": "pool/pack-operation.js",
@@ -2969,5 +2969,5 @@
       "sha256": "sha256:c5a6c85719ce4072b343251b10f5a00f7f99d83be47f83367b3f959886c78701"
     }
   ],
-  "bundleHash": "sha256:a253c01dda2ed213509340ccbd15072f07f58e0913a2f8c777145ec59d5d218c"
+  "bundleHash": "sha256:6bfd1a4cccead63ce7df62aa4c08d56817c36ed1929537bf28b3f36a23dfb881"
 }

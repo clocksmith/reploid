@@ -12,7 +12,8 @@ export async function createDocumentPackFixture() {
   const model = (operation) => ({ modelId: 'fixture', runtime: 'doppler', runtimeVersion: '0.5.1', backend: 'browser-webgpu',
     executionMode: PACK_EXECUTION_MODE, workload: PACK_OPERATION_WORKLOADS[operation], modelHash: identity.semanticRoot,
     manifestHash: identity.envelopeDigest, executablePack: binding(operation), packSource: 'https://fixtures.invalid/pack.json',
-    packOpenOptions: { trustedSigners: { fixture: { kty: 'OKP', crv: 'Ed25519', x: 'fixture' } } }, application: {} });
+    packOpenOptions: { trustedSigners: { fixture: { kty: 'OKP', crv: 'Ed25519', x: 'fixture' } } },
+    application: { applicationId: `synthetic-document-${operation}` } });
   const calls = [];
   let closes = 0;
   const service = {

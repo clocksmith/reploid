@@ -14,7 +14,7 @@ async function fixture(name = 'encodeSequence') {
     rerank: { evidence: { schema: 'doppler_rerank_evidence/v1', scores: [{ index: 0, score: 1 }], ranking: [{ index: 0, rank: 1, score: 1 }] } },
     encodeSequence: { tokens: [1, 2], tokenMask: [1, 1], embeddingDim: 2, pooledEmbedding: [0.5, 1], tokenEmbeddings: null, logits: null }
   }[name] || { value: 'fifth' };
-  const input = { generate: { prompt: 'question' }, embed: { texts: ['document'] }, rerank: { query: 'q', documents: ['d'], application: {} }, encodeSequence: { sequence: 'AC' } }[name] || { arbitrary: true };
+  const input = { generate: { prompt: 'question' }, embed: { texts: ['document'], application: {} }, rerank: { query: 'q', documents: ['d'], application: {} }, encodeSequence: { sequence: 'AC' } }[name] || { arbitrary: true };
   const options = { generate: { maxTokens: 2, maxSeqLen: 16, temperature: 0, topP: 1, topK: 1, repetitionPenalty: 1, repetitionPenaltyWindow: 8, useChatTemplate: false }, encodeSequence: { includeLogits: false, includeTokenEmbeddings: false } }[name] || {};
   const policy = { schema: 'poolday.operation-comparison/v1', operation: { name, version: 1 }, referenceDigest: await hashDopplerEvidence(output),
     ...(name === 'generate' ? { rule: 'exact-text' } : { rule: 'numerical-tolerance', absoluteTolerance: 0.001, relativeTolerance: 0 }) };
@@ -47,6 +47,15 @@ async function fixture(name = 'encodeSequence') {
 }
 
 describe('operation-independent Pack execution bridge (synthetic results)', () => {
+  it('rejects missing or malformed embedding authority before invoking a session', async () => {
+    for (const application of [undefined, null, [], 'invented']) {
+      const f = await fixture('embed');
+      if (application === undefined) delete f.request.input.application;
+      else f.request.input.application = application;
+      await expect(runPackOperation(f)).rejects.toThrow('application');
+      expect(f.closed()).toBe(0);
+    }
+  });
   for (const name of ['generate', 'embed', 'rerank', 'encodeSequence']) {
     it(`validates and assesses ${name} through the same runner`, async () => {
       const f = await fixture(name);

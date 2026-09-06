@@ -46,9 +46,11 @@ describe('local document search (synthetic Pack outputs)', () => {
       expect(first.matches[0].sources).toEqual(['fruit.md']);
       expect(first.receipts[0].assignmentHash).toBeNull();
       expect(f.calls[0].input.texts).toHaveLength(3);
+      expect(f.calls[0].input.application).toEqual(f.configuration.embedding.application);
       expect(first.indexReceipt).toEqual(first.receipts[0]);
       const ranked = await workflow.search({ query: 'apple', topK: 2, rerank: true });
       expect(f.calls[1].input.texts).toEqual(['apple']);
+      expect(f.calls[1].input.application).toEqual(f.configuration.embedding.application);
       expect(f.calls[2].operation.name).toBe('rerank');
       expect(ranked.matches[0].sources).toEqual(['sea.txt']);
       expect(ranked.reranked).toBe(true);
@@ -57,6 +59,20 @@ describe('local document search (synthetic Pack outputs)', () => {
       expect(f.closes()).toBe(3);
       expect(fetch).not.toHaveBeenCalled();
     } finally { fetch.mockRestore(); await workflow.close(); }
+  });
+
+  it('requires the selected embedding application without inventing an identity', async () => {
+    const f = await createDocumentPackFixture();
+    const executor = { cancel: vi.fn() };
+    const workflow = createDocumentSearch({ executor });
+    for (const application of [undefined, null, []]) {
+      const configuration = structuredClone(f.configuration);
+      if (application === undefined) delete configuration.embedding.application;
+      else configuration.embedding.application = application;
+      expect(() => workflow.configure(configuration)).toThrow('embedding application identity');
+    }
+    expect(executor.cancel).not.toHaveBeenCalled();
+    expect(workflow.getState().configured).toBe(false);
   });
 
   it('rejects zero/invalid vectors and resolves score ties deterministically', () => {
