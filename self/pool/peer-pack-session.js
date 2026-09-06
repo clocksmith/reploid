@@ -4,12 +4,14 @@ import { DopplerRuntimeService } from '../infrastructure/doppler-runtime-service
 import { createPeerPackArtifactStore } from './peer-pack-custody.js';
 import { assertPackSession } from './executable-pack.js';
 import { runPackOperation, snapshotPackOperationData } from './pack-operation.js';
+import { resolveDopplerExecutionContract } from '../config/doppler-execution-contracts.js';
 
 export async function openPeerPack({ authorization, index, inventories, requesterPrivateKey, requestChunk,
   trustedSigners, runtimeVersion, maxCacheBytes, maxConcurrentChunks = 1, signal = null,
   scope = `reploid:peer-pack:${crypto.randomUUID()}`, checkpointName = 'reploid-pack-transfer-v1',
   service = DopplerRuntimeService, openCheckpoints = openPeerPackCheckpoints, now = Date.now }) {
   const grant = snapshotPackOperationData(authorization);
+  const contract = resolveDopplerExecutionContract(grant.pack?.schema);
   if (!trustedSigners || !Object.keys(trustedSigners).length) throw new Error('Explicit Pack publisher trust required');
   const trust = snapshotPackOperationData(trustedSigners);
   if (typeof runtimeVersion !== 'string' || !runtimeVersion) throw new Error('Exact Doppler runtime version required');
@@ -53,7 +55,7 @@ export async function openPeerPack({ authorization, index, inventories, requeste
     const envelope = await store.readEnvelope();
     current();
     const pack = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(envelope));
-    const prepared = await service.prepare();
+    const prepared = await service.prepare(null, { bindingSchema: grant.pack.schema });
     current();
     if (prepared.version !== runtimeVersion) throw new Error('Peer Pack requires a different Doppler runtime release');
     // Reconstruct the declared closure, including distinct artifact IDs with
@@ -62,7 +64,8 @@ export async function openPeerPack({ authorization, index, inventories, requeste
       await store.readArtifact(artifact);
       current();
     }
-    session = await service.openPack({ scope, source: pack, options: { artifactStore: store,
+    if (typeof service[contract.openMethod] !== 'function') throw new Error(`Public ${contract.openMethod} is unavailable`);
+    session = await service[contract.openMethod]({ scope, source: pack, options: { artifactStore: store,
       trustedSigners: trust, acceptedTargetPlanDigests: grant.pack.acceptedTargetPlanDigests } });
     current();
     await assertPackSession(grant.pack, session);

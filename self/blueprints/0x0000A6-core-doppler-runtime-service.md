@@ -4,11 +4,11 @@
 
 **Implementation Status:** Implemented
 
-**Verified Artifacts:** `/self/config/doppler-local-models.js`, `/self/core/doppler-runtime-service.js`, `/self/infrastructure/doppler-runtime-service.js`
+**Verified Artifacts:** `/self/config/doppler-local-models.js`, `/self/config/doppler-execution-contracts.js`, `/self/core/doppler-runtime-service.js`, `/self/infrastructure/doppler-runtime-service.js`
 
 **Planned Artifacts:** None
 
-**Owned Source Files:** `config/doppler-local-models.js`, `core/doppler-runtime-service.js`, `infrastructure/doppler-runtime-service.js`
+**Owned Source Files:** `config/doppler-local-models.js`, `config/doppler-execution-contracts.js`, `core/doppler-runtime-service.js`, `infrastructure/doppler-runtime-service.js`
 
 **Former Blueprint Paths:** `self/blueprints/0x0000A6-core-doppler-runtime-service.md`
 **Objective:** Define the single Reploid owner for Doppler imports and scoped
@@ -37,8 +37,11 @@ The service:
 
 - Imports the one configured immutable Doppler module.
 - Verifies the exact runtime version.
-- Uses scoped `dr.open` for legacy and RSI consumers; signed Packs require public `openPack`.
-- Revalidates Pack eligibility on every opening and serializes scope replacements.
+- Uses scoped `dr.open` for legacy and RSI consumers. Checked-in execution-contract
+  JSON maps each signed format to its public `openPack` or `openCapsule` method,
+  session, operation, receipt, and adapter schema. Unknown formats fail explicitly.
+- Prepares signed runtimes without requiring an unrelated legacy `dr.open` method.
+- Revalidates signed model eligibility on every opening and serializes scope replacements.
 - Owns one session per explicit Reploid scope.
 - Reuses a session only when the scope and source identity match.
 - Closes replaced sessions and supports `closeAll`.
@@ -58,6 +61,8 @@ verification, and promotion.
 - Legacy handle adaptation exists only under Vitest and never runs in the
   deployed browser.
 - Unsupported or mixed Doppler versions fail before model loading.
+- Pack and Capsule identities remain distinct. Existing signed files and history
+  retain their original fields; new Capsules require publisher-issued identities.
 
 ### 4. Verification Checklist
 

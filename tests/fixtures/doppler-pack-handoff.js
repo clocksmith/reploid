@@ -8,32 +8,39 @@ import { assertPackSession, assertPackReceipt, hashDopplerEvidence } from '../..
 import { runPackOperation } from '../../self/pool/pack-operation.js';
 import { createPeerPackArtifactStore } from '../../self/pool/peer-pack-custody.js';
 import { createCustodyFixture } from './peer-pack-custody.js';
+import { resolveDopplerExecutionContract } from '../../self/config/doppler-execution-contracts.js';
 
 const checkout = process.env.DOPPLER_TEST_CHECKOUT;
 if (!checkout) throw new Error('DOPPLER_TEST_CHECKOUT is required');
 const fromCheckout = (file) => import(pathToFileURL(path.resolve(checkout, file)).href);
-const api = await fromCheckout('src/pack.js');
-const runtimeApi = await fromCheckout('src/pack-runtime.js');
+const format = process.env.DOPPLER_TEST_FORMAT || 'pack';
+assert(['pack', 'capsule'].includes(format), 'explicit supported test format required');
+const title = format === 'capsule' ? 'Capsule' : 'Pack';
+const contract = resolveDopplerExecutionContract(`doppler.${format}/v3`);
+const api = await fromCheckout(`src/${format}.js`);
+const runtimeApi = await fromCheckout(`src/${format}-runtime.js`);
 // Fixture construction is test-only. Production imports use public Doppler APIs.
-const fixtureApi = await fromCheckout('tests/helpers/pack-v2-fixture.js');
+const fixtureApi = await fromCheckout(`tests/helpers/${format}-v2-fixture.js`);
 const { hashTargetPlan } = await fromCheckout('src/config/target-plan.js');
-const manifest = { modelId: 'pack-test-model', modelType: 'embedding', architecture: { hiddenSize: 2 },
+const manifest = { modelId: `${format}-test-model`, modelType: 'embedding', architecture: { hiddenSize: 2 },
   inference: { output: { embeddingPostprocessor: {
     poolingMode: 'last', includePrompt: true, projections: [], normalize: null,
   } } } };
 
 // Each signed fixture grants exactly one operation, never qualification by API presence.
 async function checkOperation(operation) {
-  const fixture = await fixtureApi.createSignedPackFixture({ operation, ...(operation === 'embed' ? { manifest } : {}) });
+  const fixture = await fixtureApi[`createSigned${title}Fixture`]({ operation, ...(operation === 'embed' ? { manifest } : {}) });
   const keys = generateKeyPairSync('ed25519');
   const signer = { authority: 'handoff-fixture', privateKeyJwk: keys.privateKey.export({ format: 'jwk' }), publicKeyJwk: keys.publicKey.export({ format: 'jwk' }) };
   const trustedSigners = { [signer.authority]: signer.publicKeyJwk };
-  const migrated = await api.migratePackV2(fixture.pack, { trustedSigners: { [fixtureApi.TEST_PACK_AUTHORITY]: fixtureApi.TEST_PACK_PUBLIC_KEY }, signer });
-  const identity = api.getPackIdentity(migrated.pack);
+  const migrated = await api[`migrate${title}V2`](fixture[format], { trustedSigners: {
+    [fixtureApi[`TEST_${format.toUpperCase()}_AUTHORITY`]]: fixtureApi[`TEST_${format.toUpperCase()}_PUBLIC_KEY`] }, signer });
+  const signedModel = migrated[format];
+  const identity = api[`get${title}Identity`](signedModel);
   const { schema, semanticRoot, envelopeDigest } = identity;
-  const event = await api.signPackReleaseEvent({ pack: { schema, semanticRoot, envelopeDigest }, sequence: 1, previousEventDigest: null, issuedAtUtc: '2026-09-01T00:00:00.000Z', expiresAtUtc: '2026-10-01T00:00:00.000Z', action: 'eligible', release: migrated.release, migratedFrom: migrated.migratedFrom, nextSigner: null }, signer);
+  const event = await api[`sign${title}ReleaseEvent`]({ [format]: { schema, semanticRoot, envelopeDigest }, sequence: 1, previousEventDigest: null, issuedAtUtc: '2026-09-01T00:00:00.000Z', expiresAtUtc: '2026-10-01T00:00:00.000Z', action: 'eligible', release: migrated.release, migratedFrom: migrated.migratedFrom, nextSigner: null }, signer);
   const binding = { ...identity, requiredOperation: operation,
-    acceptedTargetPlanDigests: migrated.pack.targetPlans.map(hashTargetPlan), artifacts: migrated.pack.artifacts };
+    acceptedTargetPlanDigests: signedModel.targetPlans.map(hashTargetPlan), artifacts: signedModel.artifacts };
   const custody = await createCustodyFixture(binding, fixture.artifactBytes, 16);
   const artifactStore = await createPeerPackArtifactStore(custody.options);
   const originalFetch = globalThis.fetch;
@@ -43,7 +50,7 @@ async function checkOperation(operation) {
     device: { getDevice: () => ({ limits: { maxBufferSize: 1024 }, createBuffer: () => ({ destroy() {} }), createCommandEncoder() {}, queue: { writeBuffer() {} } }), getProfile: () => ({ surface: 'test-webgpu', hasF16: false, hasSubgroups: false, maxBufferSize: 1024 }) },
     artifactStore, trustedSigners,
     programFactory: async () => ({
-      executionGraphHash: migrated.pack.program.executionGraphHash,
+      executionGraphHash: signedModel.program.executionGraphHash,
       tokenize: () => [1], decodeTokens: (ids) => ids.join(','), getTokenContract: () => ({}), reset() {}, releaseStepResult() {},
       executePhase: async () => ({ logits: new Float32Array([0, 10]) }),
       embed: async (text) => {
@@ -54,7 +61,7 @@ async function checkOperation(operation) {
           inputHash: await hashDopplerEvidence({ text }), outputHash: await hashDopplerEvidence(output),
           backendIdentity, backendIdentityHash: await hashDopplerEvidence(backendIdentity), executionIdentity,
           resolution: { schema: 'doppler.resolution-identity/v1',
-            resolvedArtifactVariantId: migrated.pack.artifacts.find(item => item.artifactId === 'manifest').hash,
+            resolvedArtifactVariantId: signedModel.artifacts.find(item => item.artifactId === 'manifest').hash,
             resolvedExecutionId: await hashDopplerEvidence(executionIdentity) } };
       },
       rerank: async () => ({ schema: 'doppler_rerank_evidence/v1', inputHash: identity.envelopeDigest,
@@ -65,19 +72,20 @@ async function checkOperation(operation) {
     }),
   });
   const module = { DOPPLER_VERSION: runtimeApi.DOPPLER_VERSION, dr: runtime };
-  const service = createReploidDopplerRuntimeService({ loadModule: async () => module });
+  const service = createReploidDopplerRuntimeService({ loadModule: async () => module, expectedVersion: runtimeApi.DOPPLER_VERSION });
   const openOptions = { acceptedTargetPlanDigests: binding.acceptedTargetPlanDigests, releaseEvents: [event], releaseTrustedSigners: trustedSigners, releasePolicy: { now: '2026-09-04T00:00:00.000Z', minimumSequence: 1, checkpoint: { sequence: 0, digest: null } }, persistReleaseCheckpoint: (value) => { checkpoint = value; } };
   let session;
   try {
-    const changedPack = structuredClone(migrated.pack);
+    await service.prepare(null, { bindingSchema: schema });
+    const changedPack = structuredClone(signedModel);
     changedPack.artifacts[0].hash = `sha256:${'0'.repeat(64)}`;
-    await assert.rejects(service.openPack({ source: changedPack, options: openOptions }));
+    await assert.rejects(service[contract.openMethod]({ source: changedPack, options: openOptions }));
     assert.equal(artifactStore.getReceipt().attempts.length, 0, 'changed Pack rejected before peer reads');
-    session = await service.openPack({ source: migrated.pack, options: openOptions });
+    session = await service[contract.openMethod]({ source: signedModel, options: openOptions });
     await assertPackSession(binding, session);
     assert.equal(checkpoint.digest, event.digest);
     const transferReceipt = artifactStore.getReceipt();
-    assert.equal(transferReceipt.completed.length, migrated.pack.artifacts.length);
+    assert.equal(transferReceipt.completed.length, signedModel.artifacts.length);
     assert.deepEqual(new Set(transferReceipt.attempts.filter((item) => item.status === 'accepted').map((item) => item.peerId)), new Set(['even', 'odd']));
     assert(transferReceipt.attempts.some((item) => item.error?.includes('integrity')));
     assert(transferReceipt.attempts.some((item) => item.error?.includes('interruption')));
@@ -102,12 +110,13 @@ async function checkOperation(operation) {
     ];
     for (const [name, input, options] of operations.filter(([name]) => name === operation)) {
       const operationBinding = { ...binding, requiredOperation: name };
-      const request = { schema: 'doppler.pack-operation-request/v1', operation: { name, version: 1 }, input, options,
+      const request = { schema: contract.requestSchema, operation: { name, version: 1 }, input, options,
         assignment: { ...assignment, model: { executablePack: operationBinding } },
         limits: { maxInputBytes: 65536, maxOutputBytes: 65536, deadlineAt: Date.now() + 60000 } };
       const observed = await runPackOperation({ binding: operationBinding, session, request, runtimeVersion: module.DOPPLER_VERSION });
       assert.equal(observed.receipt.operation.name, name);
       assert.equal(observed.receipt.requestHash, await hashDopplerEvidence(request));
+      assert.equal(observed.receipt[contract.receiptIdentity].schema, schema);
       if (name === 'embed') {
         const denied = structuredClone(request);
         denied.input.application.applicationId = 'unsigned-application';
@@ -121,4 +130,4 @@ async function checkOperation(operation) {
 
 for (const operation of ['generate', 'embed', 'rerank', 'encodeSequence']) await checkOperation(operation);
 
-console.log('Doppler public signed-Pack handoff passed');
+console.log(`Doppler public signed-${title} handoff passed`);

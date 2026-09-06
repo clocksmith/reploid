@@ -25,6 +25,43 @@ const makeModule = () => {
 };
 
 describe('Reploid DopplerRuntimeService', () => {
+  it('prepares a Capsule-only public module without requiring a legacy API', async () => {
+    const session = { schema: 'doppler.capsule-session/v1', loaded: true, close: vi.fn() };
+    const module = { DOPPLER_VERSION: '0.6.0', openCapsule: vi.fn(async () => session) };
+    const service = createReploidDopplerRuntimeService({ loadModule: async () => module, expectedVersion: '0.6.0' });
+    await expect(service.prepare(null, { bindingSchema: 'doppler.capsule/v3' })).resolves.toEqual({ ok: true, version: '0.6.0' });
+    await expect(service.openCapsule({ source: 'signed-capsule' })).resolves.toBe(session);
+    await expect(service.openPack({ source: 'old-pack' })).rejects.toThrow('public openPack');
+    await expect(service.prepare(null, { bindingSchema: 'doppler.capsule/v99' })).rejects.toThrow('Unsupported');
+    expect(module.openCapsule).toHaveBeenCalledTimes(1);
+    expect(service.get()).toBe(session);
+    await service.closeAll();
+    expect(session.close).toHaveBeenCalledTimes(1);
+  });
+
+  it('closes a wrongly formatted session instead of reinterpreting its identity', async () => {
+    const session = { schema: 'doppler.pack-session/v1', loaded: true, close: vi.fn() };
+    const service = createReploidDopplerRuntimeService({ expectedVersion: '0.6.0',
+      loadModule: async () => ({ DOPPLER_VERSION: '0.6.0', openCapsule: async () => session }) });
+    await expect(service.openCapsule({ source: 'signed-capsule' })).rejects.toThrow('invalid signed model session');
+    expect(session.close).toHaveBeenCalledTimes(1);
+    expect(service.get()).toBeNull();
+  });
+
+  it('serializes signed session replacement across both formats in the same scope', async () => {
+    const oldSession = { schema: 'doppler.pack-session/v1', loaded: true, close: vi.fn() };
+    const newSession = { schema: 'doppler.capsule-session/v1', loaded: true, close: vi.fn() };
+    const service = createReploidDopplerRuntimeService({ expectedVersion: '0.6.0', loadModule: async () => ({
+      DOPPLER_VERSION: '0.6.0', openPack: async () => oldSession, openCapsule: async () => newSession
+    }) });
+    const sessions = await Promise.all([service.openPack({ source: 'pack' }), service.openCapsule({ source: 'capsule' })]);
+    expect(sessions).toEqual([oldSession, newSession]);
+    expect(oldSession.close).toHaveBeenCalledTimes(1);
+    expect(service.get()).toBe(newSession);
+    await service.closeAll();
+    expect(newSession.close).toHaveBeenCalledTimes(1);
+  });
+
   it('opens signed Packs without legacy fallback or stale session reuse', async () => {
     const fixture = makeModule();
     const service = createReploidDopplerRuntimeService({ loadModule: async () => fixture.module });

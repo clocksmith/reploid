@@ -7,6 +7,7 @@ import {
 import { BROWSER_RUNTIME_CONFIG } from '../../self/pool/config.js';
 import { hashJson, sha256Hex } from '../../self/pool/inference-receipt.js';
 import { LAUNCH_MODEL, getEnabledPoolModelContract } from '../../self/pool/model-contract.js';
+import { operationFixture } from '../fixtures/peer-pack-operation.js';
 import {
   TEST_PUBLIC_PROTEIN_SEQUENCE,
   makePublicProteinJobFields
@@ -39,6 +40,27 @@ describe('Doppler browser runtime adapter', () => {
     delete globalThis.REPLOID_DOPPLER_LOAD_OPTIONS;
     delete globalThis.REPLOID_POOL_ATTACH_DOPPLER_HANDLE;
     resetDopplerModuleCacheForTests();
+  });
+
+  it('loads an exact Capsule through its public method without a legacy loader', async () => {
+    const f = await operationFixture('encodeSequence', undefined, 'doppler.capsule/v2');
+    let opens = 0, closes = 0;
+    Object.assign(f.session, { modelId: f.model.modelId, modelHash: f.model.modelHash, manifestHash: f.model.manifestHash,
+      encodeSequence: testSequenceEncoding, close: async () => { closes++; } });
+    // Synthetic public module at the installed pin; this is API selection, not a release claim.
+    globalThis.REPLOID_DOPPLER_MODULE = { DOPPLER_VERSION: '0.5.1', openCapsule: async (source, options) => {
+      opens++;
+      expect(source).toBe('https://fixtures.invalid/capsule.json');
+      expect(options.acceptedTargetPlanDigests).toEqual(f.binding.acceptedTargetPlanDigests);
+      return f.session;
+    } };
+    const runtime = createDopplerRuntime();
+    try {
+      await expect(runtime.loadModel({ ...f.model, packSource: 'https://fixtures.invalid/capsule.json', packOpenOptions: {} }))
+        .resolves.toMatchObject({ ok: true });
+      expect(opens).toBe(1);
+    } finally { await runtime.close(); }
+    expect(closes).toBe(1);
   });
 
   it('prepares the Doppler module without loading model weights', async () => {

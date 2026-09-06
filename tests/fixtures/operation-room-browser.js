@@ -19,8 +19,9 @@ function roomBusFactory(options) {
   const send = bus.postMessage.bind(bus);
   return { ...bus, postMessage: message => { relay.push(structuredClone(message)); return send(message); } };
 }
-export async function start({ role, roomId }) {
-  fixture = await createDocumentPackFixture({ answerText: role === 'provider' ? 'A public drafting suggestion.' : 'Private apple evidence. [1]' });
+export async function start({ role, roomId, schema }) {
+  fixture = await createDocumentPackFixture({ schema,
+    answerText: role === 'provider' ? 'A public drafting suggestion.' : 'Private apple evidence. [1]' });
   const policy = { ...config.operationNetwork, discoveryMs: 200,
     requestLimits: { ...config.operationNetwork.requestLimits, maxJobMs: 30000 } };
   const executor = createLocalPackExecutor({ service: fixture.service });
