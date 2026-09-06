@@ -1,5 +1,10 @@
 # Remote adapter integration, 2026-09-06
 
+A later [Qwen source comparison and signed-operation experiment](../qwen-adapter-2026-09-06/README.md)
+exposed and repaired PEFT orientation and binary-hash bugs. It includes physical
+execution from an installed package. The Gemma observations below remain bounded
+to the original raw-session activation checks.
+
 Reploid `41abc7d` supports exact adapters and ordinary generation through the
 current Doppler Capsule API. Its [CI run](https://github.com/clocksmith/reploid/actions/runs/34060513244)
 passed. Doppler's adapter implementation is merged at `693d7e62`; its
