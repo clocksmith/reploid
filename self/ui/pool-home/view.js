@@ -14,6 +14,8 @@ import { DEFAULT_PEER_ROOM_ID } from '../../pool/peer-room.js';
 import { createPeerEventReducer } from '../../pool/peer-control-plane.js';
 import { createPoolSdk } from '../../pool/sdk.js';
 import { readParticipationPreferences } from '../../pool/participation-profile.js';
+import { LAB_SURFACE_IDS, SURFACE_INTENTS } from '../../config/surface-intents.js';
+import { renderDocumentSearch } from './document-search.js';
 import {
   createPeerRoomBusFactory,
   createPeerRoomInviteUrl
@@ -719,7 +721,8 @@ export const setPoolRunVisualState = ({ state = 'idle', phase = '', message = ''
     status.textContent = visual.message;
   }
   for (const output of document.querySelectorAll('[data-pool-run-output]')) {
-    output.hidden = !outputVisible;
+    const documentsSelected = output.closest('.pool-home-task')?.querySelector('[data-pool-workflow="documents"][aria-pressed="true"]');
+    output.hidden = !outputVisible || Boolean(documentsSelected);
   }
   window.REPLOID_POOL_RUN_VISUAL_STATE = visual;
   window.dispatchEvent(new CustomEvent(POOLDAY_RUN_VISUAL_EVENT, { detail: visual }));
@@ -891,8 +894,11 @@ const escapeHtml = (value) => String(value ?? '')
   .replace(/"/g, '&quot;');
 
 const normalizeProductPath = (path = window.location.pathname) => {
-  if (!path || path === '/') return '/';
-  return path.replace(/\/+$/, '');
+  try {
+    const url = new URL(path || '/', window.location.origin);
+    if (url.origin !== window.location.origin || url.username || url.password) return null;
+    return url.pathname.replace(/\/+$/, '') || '/';
+  } catch { return null; }
 };
 export const getRouteId = () => PRODUCT_ROUTES[normalizeProductPath()] || 'home';
 export const isProductPath = (path) => Object.prototype.hasOwnProperty.call(PRODUCT_ROUTES, normalizeProductPath(path));
@@ -1858,6 +1864,11 @@ const renderHomeSimulation = ({ dashboardView = 'home' } = {}) => {
         </div>
       </div>
       <div class="pool-home-task">
+        <div class="pool-document-actions" role="group" aria-label="Workload">
+          <button type="button" class="btn btn-ghost" data-pool-workflow="sequence" aria-pressed="true">Protein embeddings</button>
+          <button type="button" class="btn btn-ghost" data-pool-workflow="documents" aria-pressed="false">Document search</button>
+        </div>
+        ${renderDocumentSearch()}
         <form class="pool-home-ask-dock pool-home-cta-row pool-home-ask-form" id="pool-home-ask-form" aria-label="Run a model">
           <header class="pool-home-task-heading">
             <h2 class="type-h2">Run a model</h2>
@@ -1925,6 +1936,15 @@ const renderHomeSimulation = ({ dashboardView = 'home' } = {}) => {
           })}
         </section>
       </div>
+      <footer class="pool-experiments-footer">
+        <nav aria-label="Experiments">
+          <span>Experiments</span>
+          ${LAB_SURFACE_IDS.map((id) => {
+            const { label, route } = SURFACE_INTENTS[id];
+            return `<a href="${escapeHtml(route)}" data-pool-substrate-route="${escapeHtml(id)}">${escapeHtml(label)}</a>`;
+          }).join('')}
+        </nav>
+      </footer>
     </section>
   `;
 };

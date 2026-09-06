@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
+import { LAB_SURFACE_IDS, SURFACE_INTENTS } from '../../self/config/surface-intents.js';
 
 import {
   POOLDAY_NAV_ROUTES,
@@ -15,6 +16,7 @@ import {
 import {
   renderContributionStatusBar,
   renderNav,
+  isProductPath,
   resolvePoolNetworkVisualState,
   renderRouteDetail,
   renderRoutePanel,
@@ -22,6 +24,39 @@ import {
 } from '../../self/ui/pool-home/view.js';
 
 describe('poolday home navigation', () => {
+  it('recognizes room-scoped local routes without intercepting external links', () => {
+    for (const route of ['/records?room=example', '/?room=example&relay=server', '/compute/#limits']) {
+      expect(isProductPath(route)).toBe(true);
+    }
+    expect(isProductPath('https://unrelated.invalid/records?room=example')).toBe(false);
+    expect(isProductPath('/zero?room=example')).toBe(false);
+    expect(isProductPath('javascript:alert(1)')).toBe(false);
+  });
+  it('links Zero and X from a homepage-only experiments footer, outside primary navigation', () => {
+    const host = document.createElement('div');
+    host.innerHTML = renderNav('home') + renderRoutePanel('home');
+    const footer = host.querySelector('footer.pool-experiments-footer');
+    expect(footer).not.toBeNull();
+    expect(footer.querySelector('nav').getAttribute('aria-label')).toBe('Experiments');
+    expect(footer.textContent).toContain('Experiments');
+    const links = [...footer.querySelectorAll('a')];
+    expect(links.map(link => link.textContent)).toEqual(['Zero', 'X']);
+    expect(links.map(link => link.getAttribute('href'))).toEqual(
+      LAB_SURFACE_IDS.map(id => SURFACE_INTENTS[id].route)
+    );
+    for (const link of links) {
+      expect(link.hasAttribute('data-pool-substrate-route')).toBe(true);
+      expect(link.hasAttribute('data-pool-route-link')).toBe(false);
+      expect(link.closest('form, .pool-primary-nav')).toBeNull();
+      expect(link.getAttribute('href')).not.toContain('?');
+    }
+    expect(footer.previousElementSibling.classList.contains('pool-home-task')).toBe(true);
+    expect(host.querySelectorAll('.pool-primary-nav .pool-nav-link')).toHaveLength(3);
+    for (const route of ['ask', 'compute', 'records', 'room-1']) {
+      expect(renderRoutePanel(route) + renderRouteDetail(route)).not.toContain('pool-experiments-footer');
+    }
+  });
+
   it('uses Reploid publicly and keeps model evidence out of the main form', () => {
     for (const route of ['home', 'compute', 'records']) {
       const host = document.createElement('div');
@@ -52,6 +87,22 @@ describe('poolday home navigation', () => {
     setPoolRunVisualState({ state: 'idle' });
     expect(output.hidden).toBe(true);
 
+    document.body.innerHTML = '';
+  });
+
+  it('does not reveal peer output while document search is selected', () => {
+    document.body.innerHTML = `
+      <section class="pool-home-task" data-pool-run-surface>
+        <button data-pool-workflow="documents" aria-pressed="true">Document search</button>
+        <section data-pool-run-output hidden></section>
+      </section>
+    `;
+    const output = document.querySelector('[data-pool-run-output]');
+    setPoolRunVisualState({ state: 'complete' });
+    expect(output.hidden).toBe(true);
+    document.querySelector('[data-pool-workflow]').setAttribute('aria-pressed', 'false');
+    setPoolRunVisualState({ state: 'complete' });
+    expect(output.hidden).toBe(false);
     document.body.innerHTML = '';
   });
 

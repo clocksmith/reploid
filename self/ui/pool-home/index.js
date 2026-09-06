@@ -3,6 +3,9 @@
  */
 
 import { createDopplerRuntime } from '../../pool/doppler-runtime.js';
+import { createLocalPackExecutor } from '../../pool/local-pack-executor.js';
+import { createDocumentSearch } from '../../pool/document-search.js';
+import { bindDocumentSearch, refreshDocumentSearch, renderLocalDocumentHistory } from './document-search.js';
 import { POOLDAY_NAME, ROUTE_COPY } from './constants.js';
 import {
   bindRecordStorageSync,
@@ -155,6 +158,8 @@ const bindPoolRouteControls = (mount, render, {
 
   mount.querySelectorAll('[data-pool-route], [data-pool-route-link]').forEach((control) => {
     control.addEventListener('click', (event) => {
+      if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey
+        || control.hasAttribute('download') || (control.target && control.target !== '_self')) return;
       const path = control.dataset.poolRoute || control.dataset.poolRouteLink || control.getAttribute('href');
       if (!isProductPath(path)) return;
       event.preventDefault();
@@ -192,6 +197,11 @@ export function initPoolHome(mount) {
   bindRecordStorageSync();
   bindResearchStoreSync();
   let navOpen = false;
+  let disposeDocumentView = () => {};
+  const documents = createDocumentSearch({ executor: createLocalPackExecutor(), onChange: (state) => {
+    refreshDocumentSearch(mount, state);
+    if (getRouteId() === 'records') renderLocalDocumentHistory(mount, state);
+  } });
   if (window.REPLOID_POOL_NAV_ESCAPE_HANDLER) {
     window.removeEventListener('keydown', window.REPLOID_POOL_NAV_ESCAPE_HANDLER);
   }
@@ -207,6 +217,8 @@ export function initPoolHome(mount) {
   window.addEventListener('keydown', window.REPLOID_POOL_NAV_ESCAPE_HANDLER);
 
   const render = () => {
+    disposeDocumentView();
+    if (documents.getState().busy) documents.cancel();
     const routeId = getRouteId();
     const dashboardView = routeId === 'home' ? getPoolDashboardView() : 'home';
     document.documentElement.dataset.poolRouteId = routeId;
@@ -238,6 +250,8 @@ export function initPoolHome(mount) {
       }
     });
     bindHomeAskControls(render);
+    disposeDocumentView = bindDocumentSearch(mount, documents);
+    if (routeId === 'records') renderLocalDocumentHistory(mount, documents.getState());
     bindHomeSimulation(mount);
     bindPoolDashboardControls();
     bindCapabilityAssessmentControls();

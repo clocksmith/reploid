@@ -867,7 +867,7 @@
     {
       "path": "pool/artifact-router.js",
       "owner": "pool",
-      "sha256": "sha256:28b505084bf2b81fada9517fd7e7703403ef4a8f8252b1bea782f260c0e8f5f5",
+      "sha256": "sha256:fdfb35a0fbcbae7206f37b9d7cf635558ea95e4b7575e18f37f6a8fe19a25d5c",
       "imports": [
         "./adapter-pack.js",
         "./inference-receipt.js",
@@ -896,6 +896,21 @@
       "owner": "pool",
       "sha256": "sha256:8c03ba8fc289d21bb99b3f2595ae8493397dfeb134cbb02e45311f2b43d561f4",
       "imports": []
+    },
+    {
+      "path": "pool/complete-forecast.js",
+      "owner": "pool",
+      "sha256": "sha256:483192344e399c005f1a15835801b4cd16abab609c3fad93dc97ec30f5e1d143",
+      "imports": [
+        "./artifact-router.js",
+        "./executable-pack.js",
+        "./forecast-workload.js",
+        "./inference-receipt.js",
+        "./model-contract.js",
+        "./peer-agreement.js",
+        "./peer-assignment.js",
+        "./peer-protocol.js"
+      ]
     },
     {
       "path": "pool/config-contract.js",
@@ -951,6 +966,17 @@
       "owner": "pool",
       "sha256": "sha256:656dc45f36a4f13b64680ae252d3d64773bc0a813a6312eda7bc31330212197f",
       "imports": []
+    },
+    {
+      "path": "pool/document-search.js",
+      "owner": "pool",
+      "sha256": "sha256:fdfd0ef892da338a332a6a587b54e0be341432b8f9ddad70fda8b97056765cae",
+      "imports": [
+        "./document-search-policy.json",
+        "./executable-pack.js",
+        "./operation-model.js",
+        "./pack-operation.js"
+      ]
     },
     {
       "path": "pool/doppler-browser-observation.js",
@@ -1085,6 +1111,14 @@
       "imports": []
     },
     {
+      "path": "pool/forecast-workload.js",
+      "owner": "pool",
+      "sha256": "sha256:54813f86b01ae55b873de335270865051c35ac268eb83e679b62148fda230698",
+      "imports": [
+        "./executable-pack.js"
+      ]
+    },
+    {
       "path": "pool/identity-claims.js",
       "owner": "pool",
       "sha256": "sha256:0686e6f3320b14192c080ee18dbae142aa1163bc415e62bee2f10327c5daec45",
@@ -1107,7 +1141,7 @@
     {
       "path": "pool/inference-receipt.js",
       "owner": "pool",
-      "sha256": "sha256:5e945585057f6180586b09a0e12c33f4d62c6c46029f7eeb6d5d0b32e84952db",
+      "sha256": "sha256:f06258934ceb1f0250c1f25949c6093015b2d7bd4b715a1a50535fe987d68845",
       "imports": [
         "./canonical-json.js",
         "./config.js",
@@ -1120,6 +1154,17 @@
       "owner": "pool",
       "sha256": "sha256:8f0b2257f1c264a6ed7c65c41783e754bb386b2a98c6f6b6d25b423e71856179",
       "imports": []
+    },
+    {
+      "path": "pool/local-pack-executor.js",
+      "owner": "pool",
+      "sha256": "sha256:ee6294ce15675d0216e91f1440c2704f9ca7b8c35f3b3757ff09be3df30cf35f",
+      "imports": [
+        "../infrastructure/doppler-runtime-service.js",
+        "./executable-pack.js",
+        "./operation-model.js",
+        "./pack-operation.js"
+      ]
     },
     {
       "path": "pool/model-artifacts.js",
@@ -1141,12 +1186,14 @@
     {
       "path": "pool/model-contract.js",
       "owner": "pool",
-      "sha256": "sha256:2fce13aa1749147a94998779ba7254f8f30c05d8cc3f7bd3880a3f2b848c0b10",
+      "sha256": "sha256:e8c2b460963373541a9f78ec41a99cde4ba36761eb427ce78ff77359ac5072d3",
       "imports": [
         "./adapter-pack.js",
         "./config.js",
         "./executable-pack.js",
+        "./forecast-workload.js",
         "./model-artifacts.js",
+        "./operation-model.js",
         "./sequence-workload.js"
       ]
     },
@@ -1167,6 +1214,15 @@
         "./dna-lane-admission.js",
         "./model-contract.js",
         "./scientific-fitness.js"
+      ]
+    },
+    {
+      "path": "pool/operation-model.js",
+      "owner": "pool",
+      "sha256": "sha256:96e9ff30773064e7ee003ae39bcda9e5a788316e3be4ddc04846f506948e276b",
+      "imports": [
+        "./executable-pack.js",
+        "./pack-operation-adapters.js"
       ]
     },
     {
@@ -1238,9 +1294,17 @@
       ]
     },
     {
+      "path": "pool/peer-assignment.js",
+      "owner": "pool",
+      "sha256": "sha256:bd7c5564f4e6669cba93c9af1bf96e01caf8052b11b6b38322c1180e0b1f85bb",
+      "imports": [
+        "./inference-receipt.js"
+      ]
+    },
+    {
       "path": "pool/peer-control-plane.js",
       "owner": "pool",
-      "sha256": "sha256:39903ce6e13ffeedd0b52023167e215e09826f1b6e14a7345b7564a5ddff06a6",
+      "sha256": "sha256:fb922bef3b64c20ecdd7852b057c093022c87d0e1d92da7125d60541451cfb83",
       "imports": [
         "./adapter-pack.js",
         "./adapter-publication.js",
@@ -1253,6 +1317,7 @@
         "./p2p-payload.js",
         "./participation-profile.js",
         "./peer-agreement.js",
+        "./peer-assignment.js",
         "./peer-ledger.js",
         "./peer-payload.js",
         "./peer-planning.js",
@@ -1313,7 +1378,7 @@
     {
       "path": "pool/peer-protocol.js",
       "owner": "pool",
-      "sha256": "sha256:d22080a2c5f1d1b53c4c28e7a277da96bc9297e510e6cbac1af2e8cd4e81a723",
+      "sha256": "sha256:7ac6ddbcba78ec18b78e4cb80d499c759b05af548617a8a0d8c3fd4533a35488",
       "imports": [
         "./inference-receipt.js"
       ]
@@ -2301,7 +2366,7 @@
     {
       "path": "ui/pool-home/constants.js",
       "owner": "ui",
-      "sha256": "sha256:f9602988f70feccac7348f8f020b30a451ed10d74d3389c4230a3c04382181de",
+      "sha256": "sha256:7ef644d44b983b7e4f3daef9e9a149c98373b2d57ac0204b9e41c97300485579",
       "imports": []
     },
     {
@@ -2313,7 +2378,7 @@
     {
       "path": "ui/pool-home/controls.js",
       "owner": "ui",
-      "sha256": "sha256:2f4071f265ea17d37d3cdf6c68eb7560bf5882b4ff22122f1f59e3d0feef0e59",
+      "sha256": "sha256:c2f6143627e708f800e83a9306ca0696f694dd2ceaf73808e83007ebe5cac7e0",
       "imports": [
         "../../pool/adapter-publication.js",
         "../../pool/adapter-registry.js",
@@ -2337,14 +2402,25 @@
       ]
     },
     {
+      "path": "ui/pool-home/document-search.js",
+      "owner": "ui",
+      "sha256": "sha256:d6dea55e2f3172d51caa929d42bfa468ee7b4c8a55ae4b8ee756b33451e2d9e3",
+      "imports": [
+        "../../pool/document-search-policy.json"
+      ]
+    },
+    {
       "path": "ui/pool-home/index.js",
       "owner": "ui",
-      "sha256": "sha256:9c98ce0345230440593e443583609a5ca679f218a8bda69dbad07147f3da7332",
+      "sha256": "sha256:4e86bca660852e4dae7f765c71dcd6c4def4f814747d62f518aaefd95a2bbfd8",
       "imports": [
+        "../../pool/document-search.js",
         "../../pool/doppler-runtime.js",
+        "../../pool/local-pack-executor.js",
         "./constants.js",
         "./contribution-state.js",
         "./controls.js",
+        "./document-search.js",
         "./ledger-store.js",
         "./research-store.js",
         "./research-view.js",
@@ -2530,8 +2606,9 @@
     {
       "path": "ui/pool-home/view.js",
       "owner": "ui",
-      "sha256": "sha256:1f0f7680ea70b8967bca9b760f9801118a427b0c06a22524b37f7ce0deead644",
+      "sha256": "sha256:b7af566cbfa00c982be1ffda83691d3726d6085bd489512663b8bc24bd8b8d68",
       "imports": [
+        "../../config/surface-intents.js",
         "../../pool/model-contract.js",
         "../../pool/participation-profile.js",
         "../../pool/peer-control-plane.js",
@@ -2541,6 +2618,7 @@
         "../../pool/sdk.js",
         "./constants.js",
         "./contribution-state.js",
+        "./document-search.js",
         "./ledger-store.js",
         "./network-projection.js",
         "./record-persistence.js",

@@ -38,7 +38,7 @@ const setRoom = (roomId, panel = '', pathname = '/records') => {
   const params = new URLSearchParams({ room: roomId });
   if (panel) params.set('panel', panel);
   vi.stubGlobal('window', {
-    location: { pathname, search: `?${params.toString()}` },
+    location: { origin: 'http://localhost:3000', pathname, search: `?${params.toString()}` },
     addEventListener: vi.fn(),
     removeEventListener: vi.fn(),
     dispatchEvent: vi.fn()
