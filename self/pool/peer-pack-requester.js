@@ -108,12 +108,14 @@ export function createPackPeerRequester({ identity, bus, models, registry = crea
     } catch (error) { cancel(record, error); }
   });
   const disconnected = bus.onDisconnect?.(() => { if (active) cancel(active, new Error('requester transport disconnected')); });
-  return {
-    run(input) {
+  function start(input, prepared = false) {
       if (closed || active) return Promise.reject(new Error('Peer Pack requester is closed or busy'));
       const { signal = null, onPartial = null, reference, ...options } = input;
       let data;
-      try { data = snapshot({ reference, options }); } catch (error) { return Promise.reject(error); }
+      try {
+        if (prepared) { options.model = options.job.body.intent.model; options.limits = options.job.body.intent.limits; }
+        data = snapshot({ reference, options });
+      } catch (error) { return Promise.reject(error); }
       const deadlineAt = data.options.limits?.deadlineAt;
       if (!Number.isSafeInteger(deadlineAt) || deadlineAt <= Date.now() || deadlineAt - Date.now() > policy.limits.maxJobMs) return Promise.reject(new Error('Bounded future deadline required'));
       return new Promise((resolve, reject) => {
@@ -126,7 +128,8 @@ export function createPackPeerRequester({ identity, bus, models, registry = crea
         record.timer = setTimeout(() => cancel(record, new Error('remote job deadline exceeded')), deadlineAt - Date.now());
         if (signal?.aborted) { record.abort(); return; }
         (async () => {
-          const job = await createPackPeerJob({ ...data.options, identity, registry, policy });
+          const job = prepared ? data.options.job : await createPackPeerJob({ ...data.options, identity, registry, policy });
+          requirePackJob(job.fromPeerId === identity.keyId, 'prepared job belongs to another requester');
           current(record);
           await verifyPackPeerJob(job, { providerId: job.toPeerId, models, registry, policy });
           current(record);
@@ -140,7 +143,10 @@ export function createPackPeerRequester({ identity, bus, models, registry = crea
           await deliver(record);
         })().catch(error => { if (active === record) cancel(record, error); });
       });
-    },
+  }
+  return {
+    run: input => start(input),
+    runPrepared: input => start(input, true),
     cancel() { if (active) cancel(active, new Error('requester cancelled')); },
     getState() { return { closed, active: !!active, deliveries: active?.deliveries ?? 0 }; },
     close() { closed = true; if (active) cancel(active, new Error('requester closed')); unsubscribe(); disconnected?.(); }

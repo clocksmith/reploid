@@ -20,11 +20,14 @@ models in the public catalog or send local document inputs automatically.
    the configured released runtime and application signer/eligibility policy.
    Missing admission denies execution. Recheck current consent and qualification
    in that callback; returning true grants this public job execution.
-3. Call `provider.createAdvert({ limits, expiresAt })`. It advertises only exact
-   model identity and operation limits. Source URLs and local open options stay
-   local. Deliver that signed advert through the application's discovery path.
+3. Call `provider.createAdvert({ limits, capabilities, expiresAt })` with current
+   observations. It signs exact model identities, operations, input classes,
+   available adapter/expert identities, resource budgets and load. Source URLs
+   and local open options stay local. Deliver this signed advert through the
+   application's discovery path.
 4. Call `requester.run({ advert, model, input, options, limits, consent,
-   comparisonPolicy, reference, signal, onPartial, attemptNumber })`. Consent must name the
+   comparisonPolicy, reference, resources, signal, onPartial, attemptNumber })`. An
+   `adverts` array allows selection among multiple candidates. Consent must name the
    selected provider key and declare public input. Private input is unsupported.
 5. Retain the returned signed job, updates, acceptance, exact reference and model
    pin. `verifyPackPeerEpisode` checks that archive at its original acceptance
@@ -42,15 +45,51 @@ tighten these limits. The transport frames messages at 16 KiB and bounds pending
 messages, buffering, reconstruction, lifetime traffic, and incomplete messages.
 Frame accounting excludes SCTP/IP overhead and relay charges.
 
+## Planning declared work
+
+`pool-config.json.peerJobs.providerCapabilitySchema` declares observation bounds.
+`assignmentPolicy` declares residency/fetching eligibility, required free budgets,
+load rules, observation age and metric order. Missing policy or observations fail
+before assignment. Free physical GPU/storage memory may be explicit null; policy
+either rejects it or uses the provider's declared budget. The plan records which
+memory observations were unknown. A willingness budget is not an attested memory
+measurement or a guaranteed allocation. Providers verify their advertised
+concurrency and current load against their own execution state before signing.
+
+The normalized requirement identifies the exact model, operation, input class,
+adapter/expert identities, permitted providers, job limits and resource request.
+`resources` requires nonnegative `gpuBytes`, `storageBytes` and
+`bandwidthBytesPerSecond`. Every provider supplies a timestamp, exact observed
+artifact identities and states, supported operations, permitted input classes,
+GPU identity or null, and all resource fields defined in `peer-capabilities.d.ts`.
+These declarations inform eligibility; Doppler still owns actual allocation and
+execution failure. Advertising an adapter or expert does not enable its execution.
+
+`peer-planning.js.planOperationProviders()` receives already verified observations
+and an explicit time. It returns deterministic candidate assessments, exclusions,
+ordered provider IDs and policy/requirement digests. It performs no live lookup
+or networking. A provider's latest observation supersedes its older advert under
+the configured tie-break rule. History input is explicitly disabled and rejected.
+
+The v3 intent retains all candidate adverts and the resulting plan. Admission
+recomputes the same plan before execution. `peer-room.js.runPeerOperationJob()`
+prepares this signed work through `requesterClient.createPeerOperationJob()`,
+then asks the existing transport owner to connect the selected provider. The
+connector returns a bus and `close()` handle. `runPrepared()` delivers the exact
+prepared envelope without signing a replacement or choosing another provider.
+Connection and execution share the declared deadline. Cancellation closes a
+late connection before work can be sent. Product input contains no WebRTC state;
+runtime composition supplies the transport connector.
+
 ## Acceptance and recovery
 
-The v2 assignment binds the signed intent, selected provider advert, route,
+The current v3 assignment binds the signed intent, selected provider advert, route,
 numbered attempt, exact adapter set, input class and limits. The signed intent
 retains resolved operation and job policy snapshots and their digests. Live
 admission rejects configuration drift. Offline verification restores the signed
 policy using its compatible installed adapter, so subsequent configuration
-changes do not reinterpret archived acceptance. Legacy v1 archives remain
-verifiable; new execution requires v2. Doppler records bind the complete operation request, exact
+changes do not reinterpret archived acceptance. Legacy v1/v2 archives remain
+verifiable; new execution requires v3. Doppler records bind the complete operation request, exact
 Pack closure, target plan, runtime, input and output. The provider signs each
 ordered update; the requester checks both that chain and Doppler's event chain.
 Completion is released only after the execution iterator closes and the attempt
@@ -111,6 +150,9 @@ arbitrary restarts or storage loss is not claimed.
 - `tests/unit/pool-peer-pack-job.test.js`: real signatures with synthetic outputs,
   four operations, a fifth adapter, lost delivery, cancellation, deadlines,
   bounds, admission, assignment substitution, and archived acceptance.
+- `tests/unit/pool-peer-operation-planning.test.js`: identical planning across
+  operations, configured model/adapter residency, budgets, stale observations,
+  permissions, duplicate ordering, immutable inputs and disabled history.
 - `tests/e2e/peer-pack-jobs.spec.js`: two browser contexts exchange all four
   operations over real WebRTC, including large embedding inputs and outputs;
   model outputs are synthetic. The actual Verification Worker accepts the code.

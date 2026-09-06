@@ -25,6 +25,55 @@ import {
 import { getPolicy } from './config.js';
 import { modelSupportsAdapterRequirement, modelSupportsPoolWorkload } from './model-contract.js';
 import { executablePacksMatch } from './executable-pack.js';
+import { snapshotPackOperationData } from './pack-operation.js';
+import { PACK_JOB_POLICY, resolvePackJobPolicy } from './peer-pack-job-policy.js';
+
+/** Plan one normalized operation, then connect and deliver that exact signed job. */
+export async function runPeerOperationJob({ requesterClient, request, providerAdverts, connectTransport, signal = null,
+  onPartial = null, onError = () => {}, registry, policy }) {
+  if (typeof requesterClient?.createPeerOperationJob !== 'function' || typeof requesterClient?.createPeerPackRequester !== 'function'
+    || typeof connectTransport !== 'function') throw new Error('Operation requester and transport connector required');
+  const data = snapshotPackOperationData({ request, providerAdverts });
+  const resolvedPolicy = resolvePackJobPolicy(policy === undefined ? PACK_JOB_POLICY : policy);
+  const deadlineAt = data.request.limits?.deadlineAt;
+  if (!Number.isSafeInteger(deadlineAt) || deadlineAt <= Date.now() || deadlineAt - Date.now() > resolvedPolicy.limits.maxJobMs) throw new Error('Bounded future operation deadline required');
+  const controller = new AbortController(), abort = () => controller.abort(signal.reason);
+  signal?.addEventListener('abort', abort, { once: true });
+  if (signal?.aborted) abort();
+  const timer = setTimeout(() => controller.abort(new Error('Operation connection or execution deadline exceeded')), deadlineAt - Date.now());
+  let transport, requester, rejectStopped;
+  const stopped = new Promise((_resolve, reject) => { rejectStopped = reject; });
+  const onAbort = () => rejectStopped(controller.signal.reason);
+  controller.signal.addEventListener('abort', onAbort, { once: true });
+  if (controller.signal.aborted) onAbort();
+  stopped.catch(() => {});
+  const current = () => controller.signal.throwIfAborted();
+  try {
+    current();
+    const { reference, ...options } = data.request;
+    const job = await Promise.race([requesterClient.createPeerOperationJob({ ...options, adverts: data.providerAdverts, registry, policy: resolvedPolicy }), stopped]);
+    current();
+    const opening = Promise.resolve().then(() => {
+      current();
+      return connectTransport({ providerId: job.toPeerId, advert: job.body.advert, assignment: job.body.assignment, signal: controller.signal });
+    }).then(async value => {
+      if (controller.signal.aborted) { await value?.close?.(); current(); }
+      return value;
+    });
+    transport = await Promise.race([opening, stopped]);
+    current();
+    if (!transport?.bus || typeof transport.close !== 'function') throw new Error('Closable operation transport required');
+    const creating = Promise.resolve(requesterClient.createPeerPackRequester({ bus: transport.bus, models: [data.request.model], registry, policy: resolvedPolicy, onError }))
+      .then(value => { if (controller.signal.aborted) { value.close(); current(); } return value; });
+    requester = await Promise.race([creating, stopped]);
+    current();
+    return await requester.runPrepared({ job, reference, signal: controller.signal, onPartial });
+  } finally {
+    clearTimeout(timer); signal?.removeEventListener('abort', abort); controller.signal.removeEventListener('abort', onAbort);
+    controller.abort(new Error('Operation room closed')); requester?.close();
+    await transport?.close?.();
+  }
+}
 
 export const PEER_ROOM_VERSION = 'reploid_peer_room/v1';
 export const DEFAULT_PEER_ROOM_ID = 'reploid-default';
@@ -1463,5 +1512,6 @@ export default {
   DEFAULT_PEER_ROOM_ID,
   PEER_ROOM_VERSION,
   createPeerProviderNode,
-  runPeerJob
+  runPeerJob,
+  runPeerOperationJob
 };
