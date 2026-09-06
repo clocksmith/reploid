@@ -21,6 +21,8 @@ export const renderDocumentSearch = () => `
         <input type="text" required maxlength="4096" autocomplete="off" data-document-query></label>
       <label class="pool-consent-row"><input type="checkbox" data-document-rerank disabled>
         <span>Rerank passages</span></label>
+      <label class="pool-consent-row"><input type="checkbox" data-document-answer disabled>
+        <span>Write an answer with references</span></label>
       <div class="pool-document-actions">
         <button class="btn btn-primary" type="submit" data-document-submit>Search</button>
         <button class="btn btn-ghost" type="button" data-document-cancel hidden>Cancel</button>
@@ -28,6 +30,7 @@ export const renderDocumentSearch = () => `
       </div>
     </form>
     <p role="status" aria-live="polite" data-document-status>Add documents</p>
+    <div class="pool-document-answer" data-document-answer-output hidden aria-label="Answer"></div>
     <ol class="pool-document-results" data-document-results aria-label="Relevant passages"></ol>
     <details class="pool-advanced" data-document-evidence hidden><summary>Execution evidence</summary><pre></pre></details>
   </section>`;
@@ -36,6 +39,9 @@ function renderMatches(root, result) {
   const list = root.querySelector('[data-document-results]');
   if (!list) return;
   list.replaceChildren();
+  const answer = root.querySelector('[data-document-answer-output]');
+  answer.hidden = !result?.answer;
+  answer.textContent = result?.answer?.text || '';
   for (const match of result?.matches || []) {
     const item = document.createElement('li');
     const title = document.createElement('strong');
@@ -64,6 +70,9 @@ export function refreshDocumentSearch(root, state) {
   const rerank = surface.querySelector('[data-document-rerank]');
   rerank.disabled = state.busy || !state.hasReranker;
   if (!state.hasReranker) rerank.checked = false;
+  const generate = surface.querySelector('[data-document-answer]');
+  generate.disabled = state.busy || !state.hasGenerator;
+  if (!state.hasGenerator) generate.checked = false;
   renderMatches(surface, state.result);
 }
 
@@ -106,7 +115,8 @@ export function bindDocumentSearch(root, workflow) {
     event.preventDefault();
     try {
       await workflow.search({ query: root.querySelector('[data-document-query]').value,
-        rerank: root.querySelector('[data-document-rerank]').checked });
+        rerank: root.querySelector('[data-document-rerank]').checked,
+        generateAnswer: root.querySelector('[data-document-answer]').checked });
     } catch (cause) { error(cause); }
   });
   listen('[data-document-cancel]', 'click', () => { generation++; workflow.cancel(); });
@@ -130,6 +140,7 @@ export function bindDocumentSearch(root, workflow) {
   if (query && workflow.getState().result) {
     query.value = workflow.getState().result.query;
     root.querySelector('[data-document-rerank]').checked = workflow.getState().result.reranked;
+    root.querySelector('[data-document-answer]').checked = Boolean(workflow.getState().result.answer);
   }
   return () => { generation++; controller.abort(); };
 }

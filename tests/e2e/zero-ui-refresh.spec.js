@@ -31,6 +31,11 @@ test.describe('Zero runtime UI refresh', () => {
     await expect(page.locator('.zero-runtime-strip')).toBeVisible();
     await expect(page.locator('.zero-trace')).toBeVisible();
     await expect(page.locator('.zero-goal-text')).toHaveCount(0);
+    await expect(page.locator('#zero-human-input')).toBeVisible();
+    await expect(page.locator('#zero-human-input')).toBeInViewport();
+    await expect(page.locator('.zero-trace')).toBeInViewport();
+    const traceHeight = await page.locator('.zero-trace').evaluate((node) => node.getBoundingClientRect().height);
+    expect(traceHeight).toBeGreaterThan(120);
     const initialWidths = await page.evaluate(() => {
       const main = document.querySelector('.zero-main').getBoundingClientRect();
       const trace = document.querySelector('.zero-trace').getBoundingClientRect();

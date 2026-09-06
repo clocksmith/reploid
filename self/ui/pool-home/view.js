@@ -1531,7 +1531,7 @@ export const renderNav = (activeRoute) => {
     const ariaLabel = escapeHtml(label);
     const shortLabel = escapeHtml({ home: 'Run', compute: 'Share', records: 'Jobs' }[id] || label);
     const roomPath = roomHref(path, getPeerRoomId());
-    return `<a class="pool-nav-link${isActive ? ' is-active' : ''}" href="${escapeHtml(roomPath)}" aria-label="${ariaLabel}" data-pool-nav-short-label="${shortLabel}" data-pool-route-link="${escapeHtml(roomPath)}"${currentAttr}>${ariaLabel}</a>`;
+    return `<a class="pool-nav-link${isActive ? ' is-active' : ''}" href="${escapeHtml(roomPath)}" aria-label="${ariaLabel}" data-pool-nav-id="${id}" data-pool-nav-short-label="${shortLabel}" data-pool-route-link="${escapeHtml(roomPath)}"${currentAttr}>${ariaLabel}</a>`;
   };
   return `
     <nav class="pool-nav-rail pool-primary-nav" aria-label="${escapeHtml(POOLDAY_NAME)}">
@@ -1861,6 +1861,32 @@ const renderHomeSimulation = ({ dashboardView = 'home' } = {}) => {
             <h1 class="type-h1 pool-home-brand-word">${escapeHtml(POOLDAY_NAME)}</h1>
             <p class="type-caption pool-hero-body pool-home-brand-promise">${escapeHtml(ROUTE_COPY.home.body)}</p>
           </div>
+          <div class="pool-prism" data-pool-prism aria-hidden="true">
+            <svg class="pool-prism-still" viewBox="0 0 480 420" focusable="false">
+              <defs>
+                <linearGradient id="pool-prism-glass" x1="0" y1="0" x2="1" y2="1">
+                  <stop stop-color="#ffffff"/><stop offset=".45" stop-color="#e3e9ee"/>
+                  <stop offset=".7" stop-color="#dedaf1"/><stop offset="1" stop-color="#f6e4d7"/>
+                </linearGradient>
+                <linearGradient id="pool-prism-edge" x1="0" y1="0" x2="1" y2="1">
+                  <stop stop-color="#bfdecd"/><stop offset=".4" stop-color="#ffffff"/>
+                  <stop offset=".65" stop-color="#a6cce4"/><stop offset="1" stop-color="#d5b8ec"/>
+                </linearGradient>
+                <radialGradient id="pool-prism-light">
+                  <stop stop-color="#c5c2df" stop-opacity=".35"/><stop offset="1" stop-color="#e9e8e4" stop-opacity="0"/>
+                </radialGradient>
+              </defs>
+              <ellipse cx="240" cy="344" rx="154" ry="39" fill="url(#pool-prism-light)"/>
+              <g stroke="url(#pool-prism-edge)" stroke-width="1.5" stroke-linejoin="round">
+                <path d="M239 55 373 167 270 304 116 200Z" fill="url(#pool-prism-glass)"/>
+                <path d="M239 55 244 186 116 200Z" fill="#fbfcfc" fill-opacity=".7"/>
+                <path d="M239 55 373 167 244 186Z" fill="#dce7e7" fill-opacity=".45"/>
+                <path d="M244 186 373 167 270 304Z" fill="#c7c9e3" fill-opacity=".45"/>
+                <path d="M116 200 244 186 270 304Z" fill="#f4e6dd" fill-opacity=".5"/>
+              </g>
+            </svg>
+            <canvas class="pool-prism-canvas" data-pool-prism-canvas></canvas>
+          </div>
         </div>
       </div>
       <div class="pool-home-task">
@@ -1879,9 +1905,8 @@ const renderHomeSimulation = ({ dashboardView = 'home' } = {}) => {
               ${renderModelOptions({ workload: POOLDAY_MODEL_WORKLOADS.sequenceEmbedding })}
             </select>
           </label>
-          ${renderPackSummary(LAUNCH_MODEL)}
           <label class="pool-home-sequence-field" for="pool-home-ask-prompt">
-            <span>Public protein sequence</span>
+            <span class="pool-sequence-heading"><span>Public protein sequence</span><output id="pool-sequence-count" for="pool-home-ask-prompt">0 / ${Number(LAUNCH_MODEL.sequence?.maxLength || 1024)}</output></span>
             <textarea
               id="pool-home-ask-prompt"
               class="pool-home-ask-input"
@@ -1891,11 +1916,13 @@ const renderHomeSimulation = ({ dashboardView = 'home' } = {}) => {
               autocomplete="off"
               autocapitalize="characters"
               spellcheck="false"
+              aria-describedby="pool-sequence-feedback pool-sequence-count"
               placeholder="${escapeHtml(suggestedPrompt)}"
               data-pool-suggested-prompt="${escapeHtml(suggestedPrompt)}"
               data-pool-request-control
             ></textarea>
           </label>
+          <p class="pool-sequence-feedback" id="pool-sequence-feedback" aria-live="polite"></p>
           <div class="pool-sequence-options" data-pool-sequence-options>
             <label class="pool-consent-row" data-pool-sequence-consent-row>
               <input id="pool-home-sequence-public" type="checkbox" data-pool-request-control>
@@ -1905,6 +1932,7 @@ const renderHomeSimulation = ({ dashboardView = 'home' } = {}) => {
           </div>
           <details class="pool-advanced pool-home-request-details">
             <summary>Options</summary>
+            ${renderPackSummary(LAUNCH_MODEL)}
             <div class="pool-advanced-grid">
               <label class="pool-field">
                 <span>Verification</span>

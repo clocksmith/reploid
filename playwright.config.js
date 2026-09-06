@@ -57,6 +57,8 @@ export default defineConfig({
           args: [
             '--enable-unsafe-webgpu',
             '--use-angle=swiftshader',
+            // Linux canvas presentation needs Vulkan shared-image support too.
+            ...(process.platform === 'linux' ? ['--enable-features=Vulkan', '--use-vulkan=swiftshader'] : []),
             '--disable-gpu-sandbox',
           ],
         },

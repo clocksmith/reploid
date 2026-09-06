@@ -15,6 +15,71 @@ async function fixture(limits = {}) {
 const read = (store, f) => store.readArtifact(f.authorization.pack.artifacts[0]);
 
 describe('peer-only exact Pack dependency custody', () => {
+  it('resumes verified chunks after interruption and rejects corrupted restored bytes', async () => {
+    const f = await fixture();
+    const data = new Map();
+    const checkpoints = {
+      getChunk: async (chunk) => data.get(chunk.hash)?.slice() ?? null,
+      putChunk: async (chunk, bytes) => { data.set(chunk.hash, bytes.slice()); },
+      deleteChunk: async (chunk) => { data.delete(chunk.hash); }
+    };
+    const first = await createPeerPackArtifactStore({ ...f.options, checkpoints, inventories: [f.options.inventories[1]] });
+    await expect(read(first, f)).rejects.toThrow('no authorized supplier');
+    expect(first.getReceipt().persistedBytes).toBe(2);
+    first.close();
+    const restored = await createPeerPackArtifactStore({ ...f.options, checkpoints });
+    expect(await read(restored, f)).toEqual(f.artifactBytes.get('weights'));
+    expect(restored.getReceipt().cacheBytes).toBe(2);
+    expect(restored.getReceipt().attempts.every((attempt) => attempt.chunkIndex !== 0)).toBe(true);
+    restored.close();
+    const firstChunk = f.index.artifacts[0].chunks[0];
+    data.get(firstChunk.hash)[0] ^= 255;
+    const repaired = await createPeerPackArtifactStore({ ...f.options, checkpoints });
+    expect(await read(repaired, f)).toEqual(f.artifactBytes.get('weights'));
+    expect(repaired.getReceipt()).toMatchObject({ corruptCacheBytes: 2, cacheBytes: 5, persistedBytes: 2 });
+    repaired.close();
+  });
+
+  it('fetches chunks concurrently within authority and coalesces duplicate acquisitions', async () => {
+    const f = await fixture({ maxConcurrentChunks: 2 });
+    const entered = [];
+    let release;
+    let ready;
+    const both = new Promise((resolve) => { ready = resolve; });
+    const barrier = new Promise((resolve) => { release = resolve; });
+    const store = await createPeerPackArtifactStore({ ...f.options, maxConcurrentChunks: 2,
+      inventories: f.options.inventories.slice(1), requestChunk: async (peer, request) => {
+        entered.push(request.chunkIndex);
+        if (entered.length === 2) ready();
+        await barrier;
+        return f.suppliers.get(peer).serve(request);
+      } });
+    const one = read(store, f);
+    const two = read(store, f);
+    await both;
+    expect(entered).toHaveLength(2);
+    release();
+    const [a, b] = await Promise.all([one, two]);
+    expect(a).toEqual(f.artifactBytes.get('weights'));
+    a[0] = 99;
+    expect(b).toEqual(f.artifactBytes.get('weights'));
+    expect(store.getReceipt()).toMatchObject({ reservedBytes: 7, peakInFlightBytes: 4, maxConcurrentChunks: 2 });
+    expect(store.getReceipt().completed).toHaveLength(1);
+    store.close();
+    await expect(createPeerPackArtifactStore({ ...f.options, maxConcurrentChunks: 3 })).rejects.toThrow('concurrency');
+  });
+
+  it('keeps verified output usable when persistence hits quota, without redownloading it', async () => {
+    const f = await fixture();
+    const store = await createPeerPackArtifactStore({ ...f.options, inventories: f.options.inventories.slice(1), checkpoints: {
+      getChunk: async () => null, putChunk: async () => { throw new Error('quota exceeded'); }, deleteChunk: async () => {}
+    } });
+    expect(await read(store, f)).toEqual(f.artifactBytes.get('weights'));
+    expect(store.getReceipt().attempts.every((attempt) => attempt.checkpointError === 'quota exceeded')).toBe(true);
+    expect(store.getReceipt()).toMatchObject({ receivedBytes: 7, persistedBytes: 0 });
+    store.close();
+  });
+
   it('acquires separately authorized envelope bytes without inventing a self-referential artifact closure', async () => {
     const dependencies = await fixture();
     const envelopeBytes = new TextEncoder().encode('{"schema":"contract-test-envelope"}');

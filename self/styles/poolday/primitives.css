@@ -13,6 +13,20 @@
    ============================================ */
 
 .pool-home {
+  --pool-surface-raised: var(--pool-color-raised);
+  --pool-surface-inset: var(--pool-color-inset);
+  --pool-surface-line: var(--pool-color-line);
+  --pool-surface-muted: var(--pool-color-muted);
+  --pool-surface-focus: var(--pool-color-focus);
+  --pool-surface-shadow-raised: var(--pool-dim-shadow-raised);
+  --pool-surface-shadow-inset: var(--pool-dim-shadow-inset);
+  --pool-radius-control: var(--pool-dim-radius-control);
+  --pool-radius-panel: var(--pool-dim-radius-panel);
+  --pool-text-wordmark: var(--pool-dim-wordmark);
+  --pool-metric-hero-gap: var(--pool-dim-hero-gap);
+  --pool-metric-hero-width: var(--pool-dim-hero-width);
+  --pool-metric-nav-width: var(--pool-dim-nav-width);
+
   /* === SURFACES === */
   --pool-surface-page: var(--bg);
   --pool-surface-ink: var(--fg);

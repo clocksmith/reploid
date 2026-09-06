@@ -9,6 +9,7 @@
   --zero-color-request: #00ffff;
   --zero-color-decision: #ffff00;
   --zero-color-alert: #ff4d4d;
+  --zero-color-highlight: #ffffff;
   --zero-size-label: 10px;
   --zero-size-caption: 11px;
   --zero-size-body: 13px;
@@ -27,17 +28,17 @@
 
 /* Components and page composition. */
 .zero-shell {
-  min-height: 100%;
-  display: grid;
-  grid-template-rows: auto auto minmax(0, 1fr);
-  gap: var(--space-md);
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
   padding: var(--space-lg);
   overflow: hidden;
-  background:
-    radial-gradient(circle at 18% 12%, color-mix(in srgb, var(--zero-color-request) 8%, transparent), transparent 28%),
-    radial-gradient(circle at 86% 22%, color-mix(in srgb, var(--zero-color-decision) 7%, transparent), transparent 26%),
-    var(--bg);
+  background: var(--bg);
 }
+
+.zero-shell > :not(.zero-main) { flex-shrink: 0; }
 
 .zero-header {
   display: flex;
@@ -58,15 +59,16 @@
 .zero-label,
 .zero-runtime-item span,
 .zero-more-line {
-  font-size: var(--zero-text-label-size);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
+  font-size: 12px;
+  color: var(--surface-muted);
+  text-transform: none;
+  letter-spacing: 0;
   opacity: var(--zero-text-secondary-opacity);
 }
 
 .zero-shell-heading {
   margin: 0;
-  font-size: clamp(0.9rem, 1.6vw, 1.15rem);
+  font-size: clamp(1.4rem, 2vw, 1.8rem);
   line-height: 1;
   letter-spacing: 0;
   font-weight: 700;
@@ -102,18 +104,21 @@
   flex-direction: column;
   gap: var(--space-sm);
   padding: var(--space-sm);
-  border: var(--border-md) solid var(--fg);
-  background: var(--bg);
-  box-shadow: 8px 8px 0 color-mix(in srgb, var(--fg) 12%, transparent);
+  border: var(--border-md) solid var(--surface-line);
+  border-radius: var(--radius-control);
+  background: var(--surface-raised);
+  box-shadow: var(--shadow-raised);
 }
 
 .zero-runtime-strip {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: var(--space-sm);
-  border-block: var(--border-md) solid var(--fg);
-  padding-block: var(--space-sm);
-  background: linear-gradient(90deg, color-mix(in srgb, var(--fg) 5%, transparent), transparent 70%);
+  border: var(--border-md) solid var(--zero-color-highlight);
+  border-radius: var(--radius-panel);
+  padding: var(--space-lg);
+  background: var(--surface-raised);
+  box-shadow: var(--shadow-raised);
 }
 
 .zero-runtime-item {
@@ -143,6 +148,11 @@
 }
 
 .zero-main {
+  flex: 1;
+  padding: var(--space-md) 0;
+  border: var(--border-md) solid var(--surface-line);
+  border-radius: var(--radius-panel);
+  background: var(--surface-raised);
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   gap: var(--space-md);
@@ -179,8 +189,8 @@
 .zero-trace {
   width: 100%;
   box-sizing: border-box;
-  border-left: var(--border-sm) solid var(--fg);
-  padding-left: var(--space-md);
+  border-left: 0;
+  padding: 0 var(--space-sm);
 }
 
 .zero-trace-list {
@@ -310,8 +320,8 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-xs);
-  border-top: var(--border-sm) solid var(--fg);
-  padding-top: var(--space-sm);
+  border: 0;
+  padding-top: 0;
   min-width: 0;
 }
 
@@ -323,13 +333,14 @@
 }
 
 .zero-human-input {
-  min-height: 44px;
+  min-height: 64px;
+  font-size: var(--font-size-base);
   max-height: 28dvh;
   resize: vertical;
 }
 
 .zero-input .btn {
-  min-width: 112px;
+  min-width: 88px;
 }
 
 .zero-epoch-panel {
@@ -337,8 +348,9 @@
   flex-direction: column;
   gap: var(--space-xs);
   padding: var(--space-xs) var(--space-sm);
-  border: var(--border-sm) solid color-mix(in srgb, var(--fg) 20%, transparent);
-  background: color-mix(in srgb, var(--fg) 3%, transparent);
+  border: 0;
+  border-radius: var(--radius-control);
+  background: transparent;
 }
 
 .zero-epoch-controls {
@@ -375,13 +387,14 @@
 
 @media (max-width: 920px) {
   .zero-shell {
-    height: auto;
-    min-height: 100dvh;
+    height: 100%;
+    min-height: 0;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
   }
 
   .zero-main {
+    flex: 1 0 42dvh;
     grid-template-columns: 1fr;
     overflow: visible;
   }

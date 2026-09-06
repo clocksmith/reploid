@@ -14,7 +14,9 @@
 
 .app-shell {
   display: grid;
-  grid-template-columns: 50px 1fr;
+  grid-template-columns: 64px minmax(0, 1fr);
+  gap: var(--space-md);
+  padding: var(--space-md);
   grid-template-rows: minmax(0, 1fr);
   height: 100dvh;
   min-width: 0;
@@ -29,8 +31,10 @@
   display: flex;
   flex-direction: column;
   min-width: 0;
-  background: var(--bg);
-  border-right: var(--border-sm) solid var(--fg);
+  background: var(--surface-raised);
+  border: var(--border-sm) solid var(--surface-line);
+  border-radius: var(--radius-panel);
+  box-shadow: var(--shadow-raised);
   padding: var(--space-sm) 0;
   overflow-y: auto;
   overflow-x: hidden;
@@ -38,8 +42,10 @@
 
 .sidebar-btn {
   position: relative;
-  width: 100%;
-  height: 40px;
+  width: calc(100% - 12px);
+  margin: 2px 6px;
+  border-radius: var(--radius-control);
+  height: 44px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -53,8 +59,8 @@
 }
 
 .sidebar-btn:hover {
-  background: var(--fg);
-  color: var(--bg);
+  background: var(--surface-inset);
+  color: var(--fg);
 }
 
 .sidebar-btn:hover .tab-indicator span {
@@ -68,7 +74,8 @@
 }
 
 .sidebar-btn.active {
-  background: transparent;
+  background: var(--surface-inset);
+  box-shadow: var(--shadow-inset);
   color: var(--fg);
 }
 
@@ -115,9 +122,12 @@
 }
 
 .workspace-header {
-  padding: var(--space-sm) var(--space-md);
-  border-bottom: var(--border-sm) solid var(--fg);
-  background: var(--bg);
+  min-height: 56px;
+  padding: var(--space-sm) var(--space-lg);
+  border: var(--border-sm) solid var(--surface-line);
+  border-radius: var(--radius-control);
+  margin-bottom: var(--space-md);
+  background: var(--surface-raised);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -151,6 +161,9 @@
 }
 
 .workspace-columns .workspace-content:not(.hidden) {
+  border: var(--border-sm) solid var(--surface-line);
+  border-radius: var(--radius-control);
+  background: var(--surface-raised);
   display: flex;
   flex-direction: column;
   overflow-y: auto;

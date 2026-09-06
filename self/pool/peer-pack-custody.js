@@ -160,10 +160,12 @@ async function boundedTransfer(requestChunk, peerId, request, signal, timeoutMs)
   }
 }
 
-export async function createPeerPackArtifactStore({ authorization, index, inventories, requesterPrivateKey, requestChunk, now = Date.now, signal }) {
+export async function createPeerPackArtifactStore({ authorization, index, inventories, requesterPrivateKey, requestChunk, now = Date.now, signal, checkpoints = null, maxConcurrentChunks = 1 }) {
   const adverts = clone(inventories);
   const ctx = await context(authorization, index);
   assert(typeof requestChunk === 'function', 'peer transport required');
+  assert(positive(maxConcurrentChunks) && maxConcurrentChunks <= (ctx.grant.limits.maxConcurrentChunks ?? 1), 'chunk concurrency exceeds authorization');
+  if (checkpoints) assert(['getChunk', 'putChunk', 'deleteChunk'].every((name) => typeof checkpoints[name] === 'function'), 'checkpoint ports required');
   assert(Array.isArray(adverts), 'inventories required');
   const seen = new Set();
   for (const advert of adverts) {
@@ -187,19 +189,53 @@ export async function createPeerPackArtifactStore({ authorization, index, invent
   let reservedBytes = 0;
   let receivedBytes = 0;
   let verificationBytes = 0;
-  // Serialize acquisitions to bound memory and quota reservations. No persistent cache.
+  const startedAt = now();
+  let cacheBytes = 0;
+  let corruptCacheBytes = 0;
+  let persistedBytes = 0;
+  let evictedBytes = 0;
+  let duplicateBytes = 0;
+  let inFlightBytes = 0;
+  let peakInFlightBytes = 0;
+  let peakArtifactBytes = 0;
+  let firstArtifactAt = null;
+  const receivedHashes = new Set();
+  const pending = new Map();
+  // Only one artifact allocation at a time; its chunks use the authorized fanout.
   let tail = Promise.resolve();
   async function acquire(input) {
     active();
     const entry = ctx.artifacts.get(input?.artifactId);
     assert(entry && executablePacksMatch(entry.artifact, input), 'artifact outside authorized closure');
     const output = new Uint8Array(entry.artifact.sizeBytes);
-    for (const chunk of entry.chunks) {
+    peakArtifactBytes = Math.max(peakArtifactBytes, output.length);
+    const acquisition = new AbortController();
+    const cancelAcquisition = () => acquisition.abort();
+    controller.signal.addEventListener('abort', cancelAcquisition, { once: true });
+    const current = () => { active(); assert(!acquisition.signal.aborted, 'artifact acquisition cancelled'); };
+    async function acquireChunk(chunk) {
+      current();
+      if (checkpoints) {
+        const cached = await checkpoints.getChunk(chunk, { signal: acquisition.signal });
+        current();
+        if (cached !== null) {
+          verificationBytes += cached.byteLength;
+          if (cached instanceof Uint8Array && cached.byteLength === chunk.sizeBytes && await sha256Hex(cached) === chunk.hash) {
+            current();
+            output.set(cached, chunk.offset);
+            cacheBytes += cached.byteLength;
+            return;
+          }
+          corruptCacheBytes += cached.byteLength;
+          await checkpoints.deleteChunk(chunk, { signal: acquisition.signal });
+          current();
+        }
+      }
       const suppliers = adverts.filter((advert) => advert.artifacts.some((item) => item.artifactId === input.artifactId
         && item.chunkIndexes.includes(chunk.index)));
       let received = false;
       for (const advert of suppliers) {
-        active();
+        current();
         if (advert.expiresAt <= now() || (peerBytes.get(advert.peerId) || 0) + chunk.sizeBytes > advert.maxBytes) continue;
         assert(reservedBytes + chunk.sizeBytes <= ctx.grant.limits.maxTransferBytes, 'transfer byte budget exhausted');
         reservedBytes += chunk.sizeBytes;
@@ -216,8 +252,14 @@ export async function createPeerPackArtifactStore({ authorization, index, invent
           observation.request = clone(request);
           active();
           checkInventory(advert, ctx, now());
-          const response = await boundedTransfer(requestChunk, advert.peerId, request, controller.signal,
-            Math.min(ctx.grant.limits.requestTimeoutMs, advert.expiresAt - now(), ctx.grant.expiresAt - now()));
+          current();
+          inFlightBytes += chunk.sizeBytes;
+          peakInFlightBytes = Math.max(peakInFlightBytes, inFlightBytes);
+          let response;
+          try {
+            response = await boundedTransfer(requestChunk, advert.peerId, request, acquisition.signal,
+              Math.min(ctx.grant.limits.requestTimeoutMs, advert.expiresAt - now(), ctx.grant.expiresAt - now()));
+          } finally { inFlightBytes -= chunk.sizeBytes; }
           observation.receivedBytes = response?.bytes instanceof Uint8Array ? response.bytes.byteLength : 0;
           receivedBytes += observation.receivedBytes;
           assert(response?.bytes instanceof Uint8Array && response.bytes.byteLength === chunk.sizeBytes, 'response size mismatch');
@@ -234,6 +276,19 @@ export async function createPeerPackArtifactStore({ authorization, index, invent
           assert(observation.observedBytesHash === chunk.hash, 'chunk integrity mismatch');
           active();
           checkInventory(advert, ctx, now());
+          current();
+          if (receivedHashes.has(chunk.hash)) duplicateBytes += bytes.length;
+          receivedHashes.add(chunk.hash);
+          if (checkpoints) {
+            // Storage failures are visible; verified output remains usable and does
+            // not trigger an unnecessary download from another supplier.
+            try {
+              const saved = await checkpoints.putChunk(chunk, bytes, { signal: acquisition.signal });
+              persistedBytes += bytes.length;
+              evictedBytes += saved?.evictedBytes || 0;
+            } catch (error) { observation.checkpointError = String(error.message || error); }
+            current();
+          }
           output.set(bytes, chunk.offset);
           observation.status = 'accepted';
           received = true;
@@ -241,14 +296,33 @@ export async function createPeerPackArtifactStore({ authorization, index, invent
         } catch (error) {
           observation.status = 'rejected';
           observation.error = String(error.message || error);
-          active();
+          current();
         }
       }
       assert(received, `no authorized supplier completed ${input.artifactId} chunk ${chunk.index}`);
     }
+    let nextChunk = 0;
+    let failure = null;
+    try {
+      await Promise.all(Array.from({ length: Math.min(maxConcurrentChunks, entry.chunks.length) }, async () => {
+        try {
+          while (nextChunk < entry.chunks.length) {
+            current();
+            const chunk = entry.chunks[nextChunk++];
+            await acquireChunk(chunk);
+          }
+        } catch (error) { failure ||= error; acquisition.abort(); }
+      }));
+      if (failure) throw failure;
+      current();
+    } finally {
+      controller.signal.removeEventListener('abort', cancelAcquisition);
+      acquisition.abort();
+    }
     verificationBytes += output.byteLength;
     assert(await sha256Hex(output) === entry.artifact.hash, 'reconstructed artifact integrity mismatch');
     active();
+    firstArtifactAt ??= now();
     completed.push({ artifactId: input.artifactId, hash: entry.artifact.hash, sizeBytes: output.byteLength });
     return output;
   }
@@ -259,9 +333,12 @@ export async function createPeerPackArtifactStore({ authorization, index, invent
     },
     readArtifact(artifact) {
       const snapshot = clone(artifact);
+      const key = JSON.stringify(snapshot);
+      if (pending.has(key)) return pending.get(key).then((bytes) => bytes.slice());
       const task = tail.then(() => acquire(snapshot));
-      tail = task.catch(() => {});
-      return task;
+      pending.set(key, task);
+      tail = task.catch(() => {}).finally(() => pending.delete(key));
+      return task.then((bytes) => bytes.slice());
     },
     close() { cancel(); signal?.removeEventListener('abort', cancel); },
     getReceipt() {
@@ -270,6 +347,12 @@ export async function createPeerPackArtifactStore({ authorization, index, invent
         artifactClosureDigest: ctx.grant.pack.artifactClosureDigest, indexDigest: ctx.grant.indexDigest,
         source: 'peer', reservedBytes, receivedBytes, verificationBytes, attempts, completed,
         inventories: adverts,
+        cacheBytes, corruptCacheBytes, persistedBytes, evictedBytes, duplicateBytes,
+        maxConcurrentChunks, peakInFlightBytes, peakArtifactBytes,
+        firstArtifactMs: firstArtifactAt === null ? null : firstArtifactAt - startedAt,
+        elapsedMs: now() - startedAt,
+        // Retained payload accounting is not a measurement of the browser's heap.
+        browserHeapBytes: null,
         // Transport framing, interrupted partial bytes, and relay traffic require
         // measurements from the transport owner. Never report unknown costs as zero.
         wireBytes: null, relayBytes: null, interruptedBytes: null });

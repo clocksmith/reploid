@@ -3,7 +3,7 @@ import { hashDopplerEvidence } from '../../self/pool/executable-pack.js';
 import { PACK_EXECUTION_MODE, PACK_OPERATION_WORKLOADS } from '../../self/pool/operation-model.js';
 
 const digest = (value) => `sha256:${value.repeat(64)}`;
-export async function createDocumentPackFixture() {
+export async function createDocumentPackFixture({ answerText = 'Apple trees grow fruit. [1]' } = {}) {
   const artifacts = [{ artifactId: 'weights', hash: digest('a'), role: 'weights', path: 'weights.bin', sizeBytes: 4 }];
   const identity = { schema: 'doppler.pack/v2', packId: 'fixture', semanticRoot: digest('b'),
     envelopeDigest: digest('c'), artifactClosureDigest: await hashDopplerEvidence(artifacts) };
@@ -23,7 +23,9 @@ export async function createDocumentPackFixture() {
       selectedTargetPlanDigest: targetPlanDigest, verification: { artifactReceipts: artifacts.map(({ artifactId, hash, sizeBytes }) => ({ artifactId, hash, sizeBytes })) },
       async *executeOperation(request) {
         calls.push(request);
-        const output = request.operation.name === 'embed'
+        const output = request.operation.name === 'generate'
+          ? { text: answerText, tokenIds: [1, 2, 3] }
+          : request.operation.name === 'embed'
           ? { embeddings: request.input.texts.map((text) => ({ embedding: /apple/i.test(text) ? [1, 0] : [0, 1] })) }
           : { evidence: { schema: 'doppler_rerank_evidence/v1',
             scores: request.input.documents.map((_, index) => ({ index, score: index })),
@@ -41,5 +43,7 @@ export async function createDocumentPackFixture() {
     })
   };
   return { service, calls, closes: () => closes, configuration: {
-    schema: 'reploid.document-models/v1', queryPrefix: '', embedding: model('embed'), reranker: model('rerank') } };
+    schema: 'reploid.document-models/v1', queryPrefix: '', embedding: model('embed'), reranker: model('rerank'),
+    generator: model('generate'), generationOptions: { maxTokens: 128, maxSeqLen: 2048, temperature: 0,
+      topP: 1, topK: 1, repetitionPenalty: 1, repetitionPenaltyWindow: 64, useChatTemplate: true, seed: 0 } } };
 }

@@ -1077,13 +1077,6 @@ const ZeroUI = {
                 <div class="zero-more-menu">
                   <button class="btn" data-zero-action="reload-ui">Reload UI</button>
                   <div class="zero-more-line">Activity: <span id="agent-activity">Awaiting goal</span></div>
-                  <form id="zero-human-form" class="zero-input">
-                    <label class="zero-label" for="zero-human-input">Add context or correction</label>
-                    <div class="zero-input-row">
-                      <textarea id="zero-human-input" class="zero-human-input" rows="3" placeholder="Add one concrete note for the next cycle."></textarea>
-                      <button class="btn btn-prism" data-zero-action="send-note" type="submit">Send</button>
-                    </div>
-                  </form>
                 </div>
               </details>
             </div>
@@ -1141,6 +1134,13 @@ const ZeroUI = {
               <div id="history-container" class="zero-trace-list"></div>
             </section>
           </main>
+          <form id="zero-human-form" class="zero-input">
+            <label class="zero-label" for="zero-human-input">Add context or correction</label>
+            <div class="zero-input-row">
+              <textarea id="zero-human-input" class="zero-human-input" rows="3" placeholder="Add one concrete note for the next cycle."></textarea>
+              <button class="btn btn-prism" data-zero-action="send-note" type="submit">Send</button>
+            </div>
+          </form>
         </div>
       `;
 
