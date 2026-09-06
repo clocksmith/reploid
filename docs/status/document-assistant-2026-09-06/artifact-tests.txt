@@ -1,0 +1,13 @@
+
+ RUN  v4.1.10 /home/x/deco/reploid
+
+ ✓ tests/unit/retained-document-search.test.js (1 test) 322ms
+     ✓ binds source comparison, exact runtime, failed attempts, and bounded retrieval observations  321ms
+ ✓ tests/unit/retained-document-assistant.test.js (1 test) 394ms
+   ✓ verifies retained physical assistant outputs and source parity without replaying a GPU  394ms
+
+ Test Files  2 passed (2)
+      Tests  2 passed (2)
+   Start at  00:39:18
+   Duration  564ms (transform 33ms, setup 0ms, import 71ms, tests 716ms, environment 0ms)
+

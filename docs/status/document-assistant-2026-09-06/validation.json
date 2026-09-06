@@ -1,0 +1,48 @@
+{
+  "schema": "reploid.document-validation/v1",
+  "boundary": "Post-retention offline and synthetic browser checks; physical model execution is separately retained in the archive.",
+  "checks": [
+    {
+      "command": "npx playwright test tests/e2e/document-search.spec.js --project=chromium",
+      "exitCode": 0,
+      "log": "browser.txt",
+      "sha256": "be39a45543208cfed64fb913e7f697f478567fba35dee56a444f1e9ffbc6aaf0",
+      "sizeBytes": 847
+    },
+    {
+      "command": "npx vitest run tests/unit/retained-document-assistant.test.js tests/unit/retained-document-search.test.js",
+      "exitCode": 0,
+      "log": "artifact-tests.txt",
+      "sha256": "1c8ea0449a33720c0c12c9adc9cceb0aebcb5d0dc163cf5038305cb77267643f",
+      "sizeBytes": 543
+    },
+    {
+      "command": "node scripts/retain-document-search-evidence.js extract docs/status/document-assistant-2026-09-06 /tmp/reploid-document-assistant-retained-check",
+      "exitCode": 0,
+      "log": "extract.txt",
+      "sha256": "c2a4fbb03062d106eb38e65cd494732379bb400b33d57149067cd47dc41e9df6",
+      "sizeBytes": 75
+    },
+    {
+      "command": "npx vitest run",
+      "exitCode": 0,
+      "log": "full-tests.txt",
+      "sha256": "0f8f035f1c7bcd6b3176ca4f653d1e0fe3c5c7e4fef0aca01f89158877077824",
+      "sizeBytes": 88316
+    },
+    {
+      "command": "npm run verify:catscan",
+      "exitCode": 0,
+      "log": "catscan.txt",
+      "sha256": "fc29fb8220cae49fbcad4b2d1c895a00d79a55634f5a09d2b8d278ff09d3852e",
+      "sizeBytes": 125
+    },
+    {
+      "command": "npm run verify:surface-claims",
+      "exitCode": 0,
+      "log": "surface-claims.txt",
+      "sha256": "00ec86808a40bbac38f28862b1ae989d6f587be83a7a2dc1f3616c28c0521bfb",
+      "sizeBytes": 130
+    }
+  ]
+}

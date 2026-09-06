@@ -1,0 +1,5 @@
+
+> reploid@0.1.0 verify:surface-claims
+> node scripts/verify-surface-claim-index.js
+
+[verify-surface-claims] 14 claim rows passed

@@ -1,0 +1,12 @@
+
+Running 3 tests using 1 worker
+
+(node:4047169) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:4047169) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 [chromium] › tests/e2e/document-search.spec.js:6:1 › local document journey preserves protein UI, privacy, evidence, and experiment links (1.5s)
+  ✓  2 [chromium] › tests/e2e/document-search.spec.js:94:1 › changed Reploid modules pass the actual Verification Worker (222ms)
+  ✓  3 [chromium] › tests/e2e/document-search.spec.js:116:1 › release checkpoints survive reopening and reject rollback, forks, and stale concurrent writers (89ms)
+
+  3 passed (2.6s)

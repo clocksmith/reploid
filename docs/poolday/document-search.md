@@ -82,6 +82,14 @@ The archive preserves numerical failures, repaired application failures, exact
 served runtime bytes, startup and memory measurements, and package receipts.
 It does not qualify generated answers or establish independent-user adoption.
 
+The [0.6.0 assistant follow-up](../status/document-assistant-2026-09-06/README.md)
+adds real signed generation: 24 searches and six referenced answers, with exact
+CPU source token and text parity. A clean candidate build matches the executed
+tarball. Repeated answers still incur model reloads, and the retained answer
+review identifies incomplete support in two cases. Source parity does not
+qualify answer faithfulness. The candidate's GitHub browser and offline checks
+also pass; it has not been published to npm or enabled in the public catalog.
+
 The installed/public Doppler 0.5.1 package lacks the required Pack operation
 surface. The paired Doppler source repair and browser fixtures are tested, but
 this is not a production-ready model offering. No candidate is enabled by this

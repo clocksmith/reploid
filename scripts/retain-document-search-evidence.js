@@ -32,7 +32,7 @@ async function retain(config) {
   }
   const externalArtifacts = [];
   for (const [role, packPath] of Object.entries(config.packs)) {
-    requireValue(['embedding', 'reranker'].includes(role), 'Unknown model role');
+    requireValue(['embedding', 'reranker', 'generator'].includes(role), 'Unknown model role');
     const pack = JSON.parse(await readFile(packPath, 'utf8'));
     await add(`packs/${role}/pack.json`, packPath);
     for (const artifact of pack.artifacts) {
