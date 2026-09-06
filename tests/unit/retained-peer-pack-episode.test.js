@@ -10,7 +10,7 @@ import { verifyPackPeerEpisode } from '../../self/pool/peer-pack-episode.js';
 
 describe.each(['esm2-peer-pack-2026-09-05', 'esm2-pack-operation-2026-09-05', 'esm2-durable-peer-2026-09-06',
   'esm2-process-restart-2026-09-06', 'esm2-remote-operation-2026-09-06', 'esm2-durable-job-2026-09-06',
-  'esm2-attempt-v2-2026-09-06'])('retained physical peer Pack episode: %s (offline evidence validation)', (directory) => {
+  'esm2-attempt-v2-2026-09-06', 'esm2-capability-plan-2026-09-06'])('retained physical peer Pack episode: %s (offline evidence validation)', (directory) => {
   const ROOT = resolve('docs/status', directory);
   const json = async (path) => JSON.parse(await readFile(resolve(ROOT, path), 'utf8'));
   it('binds retained bytes, completed custody, real operation evidence, and explicit non-claims', async () => {
@@ -154,6 +154,19 @@ describe.each(['esm2-peer-pack-2026-09-05', 'esm2-pack-operation-2026-09-05', 'e
           if (mode === 'pending') expect(after.responses.map(row => row.body.status)).toEqual(['partial', 'failed']);
           if (mode === 'cancel-before-job') expect(after.responses.at(-1).body.status).toBe('cancelled');
         }
+      }
+      if (directory === 'esm2-capability-plan-2026-09-06') {
+        const { intent, advert } = remote.job.body;
+        expect(remote.job.body.schema).toBe('reploid.peer.pack_job/v3');
+        expect(advert.body.schema).toBe('reploid.peer.pack_provider/v2');
+        expect(intent.planning.plan.selectedProviderId).toBe(remote.job.toPeerId);
+        expect(intent.planning.plan.candidates).toHaveLength(1);
+        expect(intent.planning.plan.candidates[0]).toMatchObject({ eligible: true, reasons: [], unknownMemory: { gpu: true, storage: true } });
+        expect(intent.jobPolicy.assignmentPolicy.history.enabled).toBe(false);
+        expect(advert.body.capabilities.models[0]).toEqual({ identity: await hashDopplerEvidence(intent.model), availability: 'resident' });
+        expect(advert.body.capabilities.resources.gpuFreeBytes).toBeNull();
+        expect(report.remoteProvider.providerReplacements).toBe(1);
+        expect(report.remoteProvider.journal.states.completed).toBe(1);
       }
     }
     for (const artifact of pack.artifacts) {

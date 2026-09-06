@@ -1,0 +1,198 @@
+{
+  "schema": "reploid.pool.retained-peer-pack-episode/v1",
+  "claimBoundary": {
+    "actualModel": true,
+    "physicalBrowserRequired": true,
+    "internalOperatorCount": 1,
+    "independentMachines": false,
+    "independentOperators": false,
+    "historyImprovement": false
+  },
+  "sourceBases": {
+    "reploid": {
+      "head": "86af4b1576ecf9300762ee651dd6d3b6283927b3",
+      "dirty": true
+    },
+    "doppler": {
+      "head": "09a359a5f1d1e31180a135264fdc8da01192ff3b",
+      "dirty": false
+    }
+  },
+  "sourcePatchScope": "served browser files and proof entrypoints; not all development changes",
+  "runtimeSourceSnapshotDigest": "sha256:9792cfb9659edd185f268129fdf6fdd09c0a5175d162e58cdb281b8358d9f86b",
+  "files": [
+    {
+      "path": "episode.json",
+      "hash": "sha256:fa3c93674126a32540036bcae744e4593e9910b4e0e18d62dfeabae51dae44e2",
+      "sizeBytes": 3359558
+    },
+    {
+      "path": "pack/pack.json",
+      "hash": "sha256:2c05975e2f8b4b901ca8d4779d3425a7285520be310e22868e0fb916f52c3a31",
+      "sizeBytes": 157896
+    },
+    {
+      "path": "pack/artifacts/program/host/sequence-encoding-1ba4eabcb4016243.js",
+      "hash": "sha256:1ba4eabcb4016243d7a449197ab9870c282d3503490afb29055b87468839b17f",
+      "sizeBytes": 776
+    },
+    {
+      "path": "pack/artifacts/model/manifest.json",
+      "hash": "sha256:418770adfcfabb1668616ff31fb0c39a42de18fca7bab26d0b51490ea2f42642",
+      "sizeBytes": 83641
+    },
+    {
+      "path": "pack/artifacts/evidence/browser-qualification.json",
+      "hash": "sha256:79ddd8cc6627577611fd026697cbc02cb507dd51489bd002f48c51edef1cd374",
+      "sizeBytes": 32987
+    },
+    {
+      "path": "pack/artifacts/model/tokenizer.json",
+      "hash": "sha256:f874eed68372c76988edf4556383c10404dd27b5fee33e7dd96440aba31d9a37",
+      "sizeBytes": 1395
+    },
+    {
+      "path": "pack/artifacts/program/wgsl/attention_general-3ad589dc77edb932.wgsl",
+      "hash": "sha256:3ad589dc77edb932d6527beaea72ebe2772ede29baa0de71d6c6639c859c9745",
+      "sizeBytes": 10073
+    },
+    {
+      "path": "pack/artifacts/program/wgsl/attn_small-fb03c1f9adfb7d11.wgsl",
+      "hash": "sha256:fb03c1f9adfb7d118e87620814f2e5f75d53b65bd2856df91ef4e444f906ef3c",
+      "sizeBytes": 9651
+    },
+    {
+      "path": "pack/artifacts/program/wgsl/bias_add-856f13e8049d8300.wgsl",
+      "hash": "sha256:856f13e8049d8300055b6188b56e79bc4d3cbad80614ae4d33159e7ea8088bae",
+      "sizeBytes": 1207
+    },
+    {
+      "path": "pack/artifacts/program/wgsl/embed-85b2d7fff9358bf4.wgsl",
+      "hash": "sha256:85b2d7fff9358bf4087d9b3f0804803ba798111a3d728db9561b53789280032c",
+      "sizeBytes": 2289
+    },
+    {
+      "path": "pack/artifacts/program/wgsl/embedding_pool-085f75855a89fd66.wgsl",
+      "hash": "sha256:085f75855a89fd6612f225529d4e6e82f03888f938c04e8f40aba46bbfd2ea3b",
+      "sizeBytes": 1009
+    },
+    {
+      "path": "pack/artifacts/program/wgsl/gather_vec4-4ba3022d03c0d83b.wgsl",
+      "hash": "sha256:4ba3022d03c0d83b8db0b03724ab8cd80b316175c2ddafd3bf498479365263e5",
+      "sizeBytes": 2717
+    },
+    {
+      "path": "pack/artifacts/program/wgsl/gelu-e6fb22edd25c1e21.wgsl",
+      "hash": "sha256:e6fb22edd25c1e210e7dfc61e0b67d31832c1d9d3caf985e4c56f61dd7b57ac6",
+      "sizeBytes": 1885
+    },
+    {
+      "path": "pack/artifacts/program/wgsl/layernorm-a0a78590a442e26c.wgsl",
+      "hash": "sha256:a0a78590a442e26ccec467d48609863c538a18506aaafd29a336f1f7216f6927",
+      "sizeBytes": 4022
+    },
+    {
+      "path": "pack/artifacts/program/wgsl/residual_vec4-04781252bb73f1a2.wgsl",
+      "hash": "sha256:04781252bb73f1a24ad7f266cb10e41aa172f105ef2a51d1416802d6b1aba9cb",
+      "sizeBytes": 1366
+    },
+    {
+      "path": "pack/artifacts/program/wgsl/residual-e5d606c42ae57cb7.wgsl",
+      "hash": "sha256:e5d606c42ae57cb72cca129d7ad85e95021158a7d9fbce68af3119630bbcb698",
+      "sizeBytes": 1712
+    },
+    {
+      "path": "pack/artifacts/program/wgsl/rope_precompute-0aaf0cbdceb87986.wgsl",
+      "hash": "sha256:0aaf0cbdceb879861872b1bd60e0d8a78818b67511c7bbb8157d7804b929500a",
+      "sizeBytes": 2598
+    },
+    {
+      "path": "pack/artifacts/program/wgsl/rope_qk-fe7f16a865b94ce0.wgsl",
+      "hash": "sha256:fe7f16a865b94ce0c0cf88a220cda96daf174cdc61b0158298f40c09298a840c",
+      "sizeBytes": 3259
+    },
+    {
+      "path": "pack/artifacts/program/wgsl/rope-a4472c7134a08c77.wgsl",
+      "hash": "sha256:a4472c7134a08c77ecefc665918652a7eb4d79acb373a5dc5fdc865b9ccb937d",
+      "sizeBytes": 12251
+    },
+    {
+      "path": "pack/artifacts/program/wgsl/scale_inplace-d4d98632a5d2ce10.wgsl",
+      "hash": "sha256:d4d98632a5d2ce10b8e96b62ce00a14f4388e27f796478efadaffe473bc5f527",
+      "sizeBytes": 1084
+    },
+    {
+      "path": "pack/artifacts/program/wgsl/scale-d4d98632a5d2ce10.wgsl",
+      "hash": "sha256:d4d98632a5d2ce10b8e96b62ce00a14f4388e27f796478efadaffe473bc5f527",
+      "sizeBytes": 1084
+    },
+    {
+      "path": "pack/artifacts/program/wgsl/split_qkv-f65c37cee36ee2b2.wgsl",
+      "hash": "sha256:f65c37cee36ee2b213d5377d2aa5c5a2d2e20c7b6d1f162e112efd388599ec23",
+      "sizeBytes": 2058
+    },
+    {
+      "path": "pack/artifacts/program/wgsl/tiled-035020f650612fd6.wgsl",
+      "hash": "sha256:035020f650612fd6f8ac8322b86ec921c64a85ac802b7f4c0fd2dfd3a4c8a1f2",
+      "sizeBytes": 3395
+    },
+    {
+      "path": "pack/artifacts/program-bundle.json",
+      "hash": "sha256:c2cbf995d96539b435a93264c76cb8446726a2d6645147b148cf00cdd11b3930",
+      "sizeBytes": 90498
+    },
+    {
+      "path": "reploid-runtime.patch",
+      "hash": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "sizeBytes": 0
+    },
+    {
+      "path": "doppler-runtime.patch",
+      "hash": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "sizeBytes": 0
+    },
+    {
+      "path": "attachments/run.txt",
+      "hash": "sha256:bcad160f15cf2ee7e4490147a3d4f7249b1377bcae8946dda1c5478d0831ea8b",
+      "sizeBytes": 113
+    },
+    {
+      "path": "attachments/cpu-reference.json",
+      "hash": "sha256:dbca1163755bed5e1eb2365d08a3d0f286fa7d5b6d8408281e7ba28f48948221",
+      "sizeBytes": 2644
+    },
+    {
+      "path": "attachments/remote-reference.json",
+      "hash": "sha256:2e5fd46035917fe02927856de85ffb34e262b40eb0c5e7d104e186005f9476a7",
+      "sizeBytes": 362364
+    },
+    {
+      "path": "attachments/runtime-package-equivalence.json",
+      "hash": "sha256:9ca2e3457b73df659834169994d9af2e84d6c6aaa1c75c0cee4f98a5fc09dd58",
+      "sizeBytes": 104955
+    },
+    {
+      "path": "attachments/reploid-capability-final-browser.txt",
+      "hash": "sha256:a96d5a03718dc0444284ad7d175d297d4068722f2adc1ca03fb14e97d6a6f61d",
+      "sizeBytes": 2430
+    }
+  ],
+  "externalArtifacts": [
+    {
+      "artifactId": "weight-shard:shard_00000.bin:7d0c833bb71b",
+      "hash": "sha256:7d0c833bb71bc72c43e52dfecaf48e788f399b5460b33a67d1f0ab403ac64f12",
+      "path": "artifacts/model/shard_00000.bin",
+      "role": "weight-shard",
+      "sizeBytes": 67108864,
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/feea324bae6c06c9d129ce39e188a75478ccdbbc/models/esm2-t12-35m-ur50d-f32-af32/shard_00000.bin"
+    },
+    {
+      "artifactId": "weight-shard:shard_00001.bin:42cfb7b67978",
+      "hash": "sha256:42cfb7b67978da82d478c4b351a69d863ae53e6f0f39cc5afa147e9a98470645",
+      "path": "artifacts/model/shard_00001.bin",
+      "role": "weight-shard",
+      "sizeBytes": 65968256,
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/feea324bae6c06c9d129ce39e188a75478ccdbbc/models/esm2-t12-35m-ur50d-f32-af32/shard_00001.bin"
+    }
+  ]
+}

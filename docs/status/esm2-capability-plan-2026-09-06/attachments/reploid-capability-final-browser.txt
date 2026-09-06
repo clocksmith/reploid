@@ -1,0 +1,22 @@
+
+Running 13 tests using 1 worker
+
+(node:638779) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:638779) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   1 [chromium] › tests/e2e/peer-pack-custody.spec.js:37:1 › browser crypto reconstructs dependencies and the Verification Worker accepts the source (289ms)
+  ✓   2 [chromium] › tests/e2e/peer-pack-custody.spec.js:111:1 › durable checkpoints survive reload, change suppliers, reject corruption, and enforce disk limits (160ms)
+  ✓   3 [chromium] › tests/e2e/peer-pack-custody.spec.js:163:1 › verified pieces resume automatically after a browser process restarts (346ms)
+  ✓   4 [chromium] › tests/e2e/peer-pack-custody.spec.js:193:1 › browser evidence facade preserves signing, reviewed admission, and revocation (126ms)
+  ✓   5 [chromium] › tests/e2e/peer-pack-jobs.spec.js:26:1 › common operations cross real WebRTC between browser contexts, with bounded large-message framing (1.6s)
+  ✓   6 [chromium] › tests/e2e/peer-pack-jobs.spec.js:63:1 › Verification Worker accepts complete-job modules and modified execution boundaries (139ms)
+  ✓   7 [chromium] › tests/e2e/peer-pack-jobs.spec.js:84:1 › durable provider responses survive a complete browser-process replacement (3.1s)
+  ✓   8 [chromium] › tests/e2e/peer-pack-jobs.spec.js:161:1 › native attempt claims fence concurrent writers and enforce retention limits (74ms)
+  ✓   9 [chromium] › tests/e2e/peer-pack-jobs.spec.js:199:1 › native attempt states bind numbered requests and retain expiry before cleanup (79ms)
+  ✓  10 [chromium] › tests/e2e/peer-pack-jobs.spec.js:240:1 › legacy unfinished records migrate as interrupted and never become runnable (77ms)
+  ✓  11 [chromium] › tests/e2e/peer-pack-jobs.spec.js:267:1 › a stalled native transaction aborts within configured storage bounds (113ms)
+  ✓  12 [chromium] › tests/e2e/peer-pack-jobs.spec.js:292:1 › a replacement provider prevents the still-running writer from publishing completion (369ms)
+  ✓  13 [chromium] › tests/e2e/peer-pack-jobs.spec.js:320:1 › a corrupted durable response cannot enter provider replay even after another delivery (224ms)
+
+  13 passed (7.7s)

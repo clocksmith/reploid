@@ -24,7 +24,7 @@ export const PEER_ROOM_VERSION: string;
 export const DEFAULT_PEER_ROOM_ID: string;
 export function runPeerJob(options: Record<string, unknown>): Promise<Record<string, unknown>>;
 export function createPeerProviderNode(options: Record<string, unknown>): {
-  start(): Promise<Record<string, unknown>>;
+  start(options?: Record<string, unknown>): Promise<Record<string, unknown>>;
   stop(): Promise<Record<string, unknown>>;
   getAdvert(): Record<string, unknown> | null;
 };
