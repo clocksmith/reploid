@@ -56,6 +56,14 @@ current resolved configuration; offline verification restores the original
 rules with a compatible installed adapter implementation. Legacy v1 jobs remain
 verifiable offline, without authorizing new v1 execution.
 
+The v3 intent adds declared resource requirements and a deterministic provider
+plan. Its signed advertisements carry observed capabilities and budgets. The
+control-plane facade exposes normalized operation signing and provider planning
+alongside the legacy catalog protocol. The requester client can prepare a job
+before the room connects and then send that exact envelope. Live v3 admission
+recomputes the plan from its signed candidates and current resolved policy;
+offline v2 verification retains its original policy semantics.
+
 `pool-config.json.peerJobs` owns retry, protocol and persistence bounds.
 `peer-pack-job-policy.js` validates and freezes that configuration. Infrastructure
 receives a resolved persistence policy; it does not choose domain policy.

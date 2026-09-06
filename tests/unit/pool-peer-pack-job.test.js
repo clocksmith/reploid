@@ -9,6 +9,7 @@ import { createPackPeerRequester } from '../../self/pool/peer-pack-requester.js'
 import { createPackPeerJob, createPackProviderAdvert, verifyPackPeerJob, signPackPeerMessage, verifyPackPeerMessage, PACK_CANCEL_SCHEMA } from '../../self/pool/peer-pack-job.js';
 import { PEER_MESSAGE_TYPES } from '../../self/pool/peer-protocol.js';
 import { verifyPackPeerEpisode } from '../../self/pool/peer-pack-episode.js';
+import { runPeerOperationJob } from '../../self/pool/peer-room.js';
 
 const deferred = () => { let resolve; const promise = new Promise(done => { resolve = done; }); return { promise, resolve }; };
 const until = async check => { for (let i = 0; i < 500; i++) { if (check()) return; await new Promise(resolve => setTimeout(resolve, 2)); } throw new Error('condition did not settle'); };
@@ -130,6 +131,40 @@ describe('signed remote Pack jobs with synthetic model outputs', () => {
         recipient: result.job.toPeerId, body, expiresAt: Date.parse(result.job.expiresAt) });
       await expect(verifyPackPeerJob(altered, { providerId: f.providerIdentity.keyId, models: [f.model] })).rejects.toThrow('deterministic provider plan');
     } finally { await f.close(); }
+  });
+
+  it('plans before connecting and delivers that exact job through the shared room owner', async () => {
+    const f = await setup('generate'); let prepared, connected = null, closes = 0;
+    try {
+      const result = await runPeerOperationJob({
+        requesterClient: {
+          async createPeerOperationJob(options) { prepared = await createPackPeerJob({ ...options, identity: f.requesterIdentity }); return prepared; },
+          createPeerPackRequester: () => f.requester
+        }, request: f.args, providerAdverts: [f.args.advert],
+        async connectTransport({ providerId, assignment }) { connected = { providerId, assignment };
+          return { bus: f.requesterBus, close() { closes++; } }; }
+      });
+      expect(connected.providerId).toBe(f.providerIdentity.keyId);
+      expect(connected.assignment).toEqual(prepared.body.assignment);
+      expect(result.job).toEqual(prepared); expect(f.sent[0]).toEqual(prepared);
+      expect(closes).toBe(1); expect(f.calls()).toBe(1);
+    } finally { await f.close(); }
+  });
+
+  it('closes a late transport after cancellation without sending the prepared job', async () => {
+    const f = await setup('embed'), gate = deferred(), controller = new AbortController();
+    let connecting = false, closes = 0;
+    try {
+      const pending = runPeerOperationJob({
+        requesterClient: { createPeerOperationJob: options => createPackPeerJob({ ...options, identity: f.requesterIdentity }),
+          createPeerPackRequester: () => f.requester }, request: f.args, providerAdverts: [f.args.advert], signal: controller.signal,
+        async connectTransport() { connecting = true; await gate.promise; return { bus: f.requesterBus, close() { closes++; } }; }
+      });
+      const rejected = expect(pending).rejects.toThrow('cancelled connection');
+      await until(() => connecting); controller.abort(new Error('cancelled connection')); await rejected;
+      gate.resolve(); await until(() => closes === 1);
+      expect(f.sent).toEqual([]); expect(f.calls()).toBe(0);
+    } finally { gate.resolve(); await f.close(); }
   });
 
   it('binds numbered attempts and archives the policy used before configuration changes', async () => {

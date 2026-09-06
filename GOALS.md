@@ -128,6 +128,14 @@ Operation adapters own input/output validation, streaming, cancellation, and
 comparison; shared networking owns discovery, assignment, transport, retries,
 accounting, and evidence. Unknown operations fail explicitly.
 
+Declared work is the stable contract: exact model, operation, optional adapter
+set, normalized input, permissions and limits. Product code requests useful
+outcomes; planning resolves immutable work from configuration and resource
+observations before connecting or executing. Transport moves messages and bytes;
+Doppler owns model computation. Evidence records outcomes downstream and may
+inform only a subsequent immutable plan. A new user journey must reuse these
+primitives, without a separate networking stack or workload-specific scheduler.
+
 The flagship is a free local document/research assistant: acquire models, embed
 a corpus, rerank retrieval, and generate referenced answers. It works alone;
 joining a room optionally shares authorized model bytes and explicitly

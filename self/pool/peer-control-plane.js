@@ -1,6 +1,8 @@
 /**
  * @fileoverview Peer-to-peer control-plane primitives for Reploid model serving.
  */
+export { createPackPeerJob as createSignedOperationJob, createPackProviderAdvert as createSignedOperationProviderAdvert,
+  planPackPeerProviders } from './peer-pack-job.js';
 
 import {
   calculateReceiptPoints,
