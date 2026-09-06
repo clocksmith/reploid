@@ -1,5 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Michroma&display=swap');
-
 /* ============================================
    Poolday Design System - Tokens
    Layer 1 of 3: tokens -> primitives -> components
@@ -14,11 +12,25 @@
    ============================================ */
 
 .pool-home {
+  --pool-color-raised: var(--surface-raised);
+  --pool-color-inset: var(--surface-inset);
+  --pool-color-line: var(--surface-line);
+  --pool-color-muted: var(--surface-muted);
+  --pool-color-focus: var(--surface-focus);
+  --pool-dim-shadow-raised: var(--shadow-raised);
+  --pool-dim-shadow-inset: var(--shadow-inset);
+  --pool-dim-radius-control: var(--radius-control);
+  --pool-dim-radius-panel: var(--radius-panel);
+  --pool-dim-wordmark: 76px;
+  --pool-dim-hero-gap: 72px;
+  --pool-dim-hero-width: 1100px;
+  --pool-dim-nav-width: 1280px;
+
   /* === BRAND COLORS === */
-  --pool-color-cyan: #00f0ff;
-  --pool-color-magenta: #ff4fd8;
+  --pool-color-cyan: #507b72;
+  --pool-color-magenta: #9584a6;
   --pool-color-gold: #f2b95f;
-  --pool-color-cyan-a12: rgba(0, 240, 255, 0.12);
+  --pool-color-cyan-a12: rgba(80, 123, 114, 0.12);
   --pool-color-gold-a12: rgba(242, 185, 95, 0.12);
 
   /* === SPECTRUM COLORS === */
@@ -76,14 +88,14 @@
 
   /* === TYPE === */
   --pool-font-sans: Inter, 'Avenir Next', 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-  --pool-font-display: 'Michroma';
+  --pool-font-display: var(--font);
   /* Mirrors the rd mono stack; poolday code/output surfaces use it. */
-  --pool-font-mono: var(--font);
+  --pool-font-mono: var(--font-mono);
   --pool-font-weight-semibold: 600;
 
   /* === BRAND RGB TRIPLETS === */
-  --pool-color-cyan-rgb: 0 240 255;
-  --pool-color-magenta-rgb: 255 79 216;
+  --pool-color-cyan-rgb: 80 123 114;
+  --pool-color-magenta-rgb: 149 132 166;
   --pool-color-gold-rgb: 242 185 95;
 
   /* === SURFACE / TEXT ACCENT COLORS === */

@@ -705,6 +705,14 @@
       "imports": []
     },
     {
+      "path": "infrastructure/pack-transfer-storage.js",
+      "owner": "infrastructure",
+      "sha256": "sha256:8f4a918e2a0226de9561ffdc0369042703b4d342fc5aab9438e3a0eb869a891f",
+      "imports": [
+        "../pool/inference-receipt.js"
+      ]
+    },
+    {
       "path": "infrastructure/policy-engine.js",
       "owner": "infrastructure",
       "sha256": "sha256:e9b4853298522532ef4462996b524e717be33a08449169ae05f5b5458625c298",
@@ -970,11 +978,12 @@
     {
       "path": "pool/document-search.js",
       "owner": "pool",
-      "sha256": "sha256:3b07112f1083728f0ae74c9b9c7bff1b293fb5641f6cb00540c80fa4f79d0b9b",
+      "sha256": "sha256:1c5715ff6f894bdf21ffa0c8a1e67b3a4f260e241712e1af38ecded306430816",
       "imports": [
         "./document-search-policy.json",
         "./executable-pack.js",
         "./operation-model.js",
+        "./pack-operation-adapters.js",
         "./pack-operation.js"
       ]
     },
@@ -1158,7 +1167,7 @@
     {
       "path": "pool/local-pack-executor.js",
       "owner": "pool",
-      "sha256": "sha256:ee6294ce15675d0216e91f1440c2704f9ca7b8c35f3b3757ff09be3df30cf35f",
+      "sha256": "sha256:190ff67217001508dd0289d2aac18cce9a55942fcc1af5df4e60c9fe5ef5d2dc",
       "imports": [
         "../infrastructure/doppler-runtime-service.js",
         "./executable-pack.js",
@@ -1340,7 +1349,7 @@
     {
       "path": "pool/peer-pack-custody.js",
       "owner": "pool",
-      "sha256": "sha256:c181378616b14962f630d72733d0242e0c321c641a69518f261a1efb606fc3c1",
+      "sha256": "sha256:14b11e489e4bfe29d3d22fe16a2d7c05c04bc2672f706a863d7a86fa75dce19a",
       "imports": [
         "./executable-pack.js",
         "./inference-receipt.js"
@@ -2378,7 +2387,7 @@
     {
       "path": "ui/pool-home/controls.js",
       "owner": "ui",
-      "sha256": "sha256:c2f6143627e708f800e83a9306ca0696f694dd2ceaf73808e83007ebe5cac7e0",
+      "sha256": "sha256:d415131a553bed38b91d18daa1d8a2cd43257bdea43486bfddcdcee35d96722e",
       "imports": [
         "../../pool/adapter-publication.js",
         "../../pool/adapter-registry.js",
@@ -2404,7 +2413,7 @@
     {
       "path": "ui/pool-home/document-search.js",
       "owner": "ui",
-      "sha256": "sha256:d6dea55e2f3172d51caa929d42bfa468ee7b4c8a55ae4b8ee756b33451e2d9e3",
+      "sha256": "sha256:78caefbd2a9fe86ecb95a074b40ca72ab640c2ba5e7b406df9cbee558f7813bb",
       "imports": [
         "../../pool/document-search-policy.json"
       ]
@@ -2412,7 +2421,7 @@
     {
       "path": "ui/pool-home/index.js",
       "owner": "ui",
-      "sha256": "sha256:4e86bca660852e4dae7f765c71dcd6c4def4f814747d62f518aaefd95a2bbfd8",
+      "sha256": "sha256:79bfa175ae628c17006d78c2df53a61d23aae974495caeb5d9fa82de8c804a24",
       "imports": [
         "../../pool/document-search.js",
         "../../pool/doppler-runtime.js",
@@ -2422,9 +2431,9 @@
         "./controls.js",
         "./document-search.js",
         "./ledger-store.js",
+        "./prism.js",
         "./research-store.js",
         "./research-view.js",
-        "./simulation-bind.js",
         "./view.js"
       ]
     },
@@ -2440,6 +2449,15 @@
       "sha256": "sha256:1828eb9a3196cc0edf1cc84e211ab985a589aff7f56c11b00f78a17a909066db",
       "imports": [
         "./constants.js"
+      ]
+    },
+    {
+      "path": "ui/pool-home/prism.js",
+      "owner": "ui",
+      "sha256": "sha256:f2aef65dc238f883fd2d8e51975936cd8f20cc794755e7f50871c8c92196cc4d",
+      "imports": [
+        "./constants.js",
+        "./contribution-state.js"
       ]
     },
     {
@@ -2606,7 +2624,7 @@
     {
       "path": "ui/pool-home/view.js",
       "owner": "ui",
-      "sha256": "sha256:b7af566cbfa00c982be1ffda83691d3726d6085bd489512663b8bc24bd8b8d68",
+      "sha256": "sha256:ae5bd0d45d69dba3364a43e7b57a68d9c9430b5b3b3b2da4247ee14b91d6c0e6",
       "imports": [
         "../../config/surface-intents.js",
         "../../pool/model-contract.js",
@@ -2755,7 +2773,7 @@
     {
       "path": "ui/zero/index.js",
       "owner": "ui",
-      "sha256": "sha256:c5a6c85719ce4072b343251b10f5a00f7f99d83be47f83367b3f959886c78701",
+      "sha256": "sha256:f0839f1a37e68e05baa3bd3823460bc9d742420485f12ae03979781adbb865ca",
       "imports": [
         "../../instance.js"
       ]

@@ -34,6 +34,8 @@ import { getPoolRtcConfig } from '../../pool/rtc-config.js';
 import {
   SEQUENCE_ALPHABETS,
   SEQUENCE_PUBLIC_SENSITIVITY,
+  getMaxPublicSequenceLength,
+  normalizeSequenceInput,
   isSequenceWorkload
 } from '../../pool/sequence-workload.js';
 import {
@@ -1787,6 +1789,7 @@ export const bindHomeAskControls = () => {
   const policySelect = document.getElementById('pool-home-request-policy');
   const sequencePublicControl = document.getElementById('pool-home-sequence-public');
   if (!form || !input || !button) return;
+  let dockObserver;
   const stage = form.closest('.pool-home-stage');
   if (stage && form.dataset.poolDockMeasurementBound !== 'true') {
     form.dataset.poolDockMeasurementBound = 'true';
@@ -1796,8 +1799,8 @@ export const bindHomeAskControls = () => {
     };
     syncDockHeight();
     if (typeof ResizeObserver === 'function') {
-      const observer = new ResizeObserver(syncDockHeight);
-      observer.observe(form);
+      dockObserver = new ResizeObserver(syncDockHeight);
+      dockObserver.observe(form);
     }
   }
   if (sequencePublicControl && sequencePublicControl.dataset.poolConsentBound !== 'true') {
@@ -1809,6 +1812,37 @@ export const bindHomeAskControls = () => {
     });
   }
   bindSuggestedPromptEditing(input);
+  if (input.dataset.poolSequenceFeedbackBound !== 'true') {
+    input.dataset.poolSequenceFeedbackBound = 'true';
+    const updateFeedback = () => {
+      const model = getEnabledPoolModelContract(modelSelect?.value) || LAUNCH_MODEL;
+      const alphabet = model.sequence?.alphabet || SEQUENCE_ALPHABETS.aminoAcid;
+      const policyLimit = getMaxPublicSequenceLength(alphabet);
+      const limit = Math.min(policyLimit, Number(model.sequence?.maxLength) || policyLimit);
+      const length = input.value.replace(/\s+/g, '').length;
+      let message = '';
+      if (length) {
+        try {
+          normalizeSequenceInput(input.value, alphabet);
+          if (length > limit) message = `This Pack accepts up to ${limit} residues.`;
+        } catch (error) {
+          message = error.message;
+        }
+      }
+      const counter = form.querySelector('#pool-sequence-count');
+      const feedback = form.querySelector('#pool-sequence-feedback');
+      if (counter) counter.textContent = `${length} / ${limit}`;
+      if (feedback) feedback.textContent = message || 'Whitespace is ignored.';
+      input.setAttribute('aria-invalid', String(Boolean(message)));
+      input.setCustomValidity(message);
+    };
+    input.addEventListener('input', updateFeedback);
+    input.addEventListener('change', updateFeedback);
+    modelSelect?.addEventListener('change', updateFeedback);
+    // Keep programmatically restored/suggested inputs in sync as well.
+    form.addEventListener('submit', () => queueMicrotask(updateFeedback));
+    updateFeedback();
+  }
   bindHomeLaneChips(input, adapterSelect, modelSelect);
   if (modelSelect && modelSelect.dataset.poolRequestModelBound !== 'true') {
     modelSelect.dataset.poolRequestModelBound = 'true';
@@ -1849,6 +1883,7 @@ export const bindHomeAskControls = () => {
     intentUnknownsControl: document.getElementById('pool-home-intent-unknowns'),
     resultId: 'pool-home-run-result'
   });
+  return () => dockObserver?.disconnect();
 };
 
 const createProviderContributionController = () => {

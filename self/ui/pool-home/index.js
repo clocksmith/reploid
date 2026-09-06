@@ -39,11 +39,15 @@ import {
   bindRoomActivityControls,
   bindRunControls
 } from './controls.js';
-import { bindHomeSimulation } from './simulation-bind.js';
+import { bindPoolPrism } from './prism.js';
 import { bindResearchRoomActions, bindResearchWorkspace, hydrateAndBindResearchWorkspace } from './research-view.js';
 import { resetResearchStore } from './research-store.js';
 
 const stopPoolHomeBackground = () => {
+  window.REPLOID_POOL_CONTROLS_STOP?.();
+  window.REPLOID_POOL_CONTROLS_STOP = null;
+  window.REPLOID_POOL_PRISM_STOP?.();
+  window.REPLOID_POOL_PRISM_STOP = null;
   const stopSimulation = window.REPLOID_POOL_SIMULATION_STOP;
   if (typeof stopSimulation === 'function') {
     try {
@@ -157,13 +161,15 @@ const bindPoolRouteControls = (mount, render, {
   }
 
   mount.querySelectorAll('[data-pool-route], [data-pool-route-link]').forEach((control) => {
+    if (control.dataset.poolRouteBound === 'true') return;
+    control.dataset.poolRouteBound = 'true';
     control.addEventListener('click', (event) => {
       if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey
         || control.hasAttribute('download') || (control.target && control.target !== '_self')) return;
       const path = control.dataset.poolRoute || control.dataset.poolRouteLink || control.getAttribute('href');
-      if (!isProductPath(path)) return;
-      event.preventDefault();
       const nextUrl = new URL(path, window.location.origin);
+      if (nextUrl.origin !== window.location.origin || !isProductPath(nextUrl.pathname)) return;
+      event.preventDefault();
       const currentUrl = new URL(window.location.href);
       for (const key of ['room', 'relay']) {
         if (!nextUrl.searchParams.has(key) && currentUrl.searchParams.has(key)) {
@@ -175,7 +181,7 @@ const bindPoolRouteControls = (mount, render, {
         window.history.pushState({ reploidPoolRoute: nextPath }, '', nextPath);
       }
       setNavOpen(false);
-      render();
+      render({ restoreNavigationFocus: true });
     });
   });
 
@@ -188,6 +194,8 @@ const bindPoolRouteControls = (mount, render, {
 
 export function initPoolHome(mount) {
   if (!mount) return;
+  stopPoolHomeBackground();
+  mount.replaceChildren();
   resetPoolLedgerStore();
   resetResearchStore();
   const runtime = window.REPLOID_DOPPLER_RUNTIME || createDopplerRuntime();
@@ -216,20 +224,20 @@ export function initPoolHome(mount) {
   };
   window.addEventListener('keydown', window.REPLOID_POOL_NAV_ESCAPE_HANDLER);
 
-  const render = () => {
+  const render = (options = {}) => {
     disposeDocumentView();
     if (documents.getState().busy) documents.cancel();
     const routeId = getRouteId();
     const dashboardView = routeId === 'home' ? getPoolDashboardView() : 'home';
     document.documentElement.dataset.poolRouteId = routeId;
     document.body.dataset.poolRouteId = routeId;
-    if (routeId !== 'home') stopPoolHomeBackground();
+    stopPoolHomeBackground();
     const secondaryContent = renderRouteDetail(routeId);
     const rootPath = (window.location.pathname || '/').replace(/\/+$/, '') || '/';
     document.title = rootPath === '/'
       ? POOLDAY_NAME
       : `${POOLDAY_NAME} - ${ROUTE_COPY[routeId]?.eyebrow || 'Verified Browser Inference'}`;
-    mount.innerHTML = `
+    if (!mount.querySelector('.pool-route-content')) mount.innerHTML = `
       <main class="pool-home" data-pool-route-id="${routeId}">
         ${renderNav(routeId, {
           open: navOpen,
@@ -237,10 +245,17 @@ export function initPoolHome(mount) {
           dashboardView
         })}
         ${renderContributionStatusBar()}
-        ${renderRoutePanel(routeId, { dashboardView })}
-        ${secondaryContent}
+        <div class="pool-route-content"></div>
       </main>
     `;
+    mount.querySelector('.pool-home').dataset.poolRouteId = routeId;
+    mount.querySelectorAll('[data-pool-nav-id]').forEach((link) => {
+      const active = link.dataset.poolNavId === (routeId === 'ask' ? 'home' : routeId);
+      link.classList.toggle('is-active', active);
+      if (active) link.setAttribute('aria-current', 'page');
+      else link.removeAttribute('aria-current');
+    });
+    mount.querySelector('.pool-route-content').innerHTML = `${renderRoutePanel(routeId, { dashboardView })}${secondaryContent}`;
     restoreRoomDraft(mount);
     bindRoomDraft(mount);
     bindPoolRouteControls(mount, render, {
@@ -249,10 +264,10 @@ export function initPoolHome(mount) {
         navOpen = nextOpen;
       }
     });
-    bindHomeAskControls(render);
+    window.REPLOID_POOL_CONTROLS_STOP = bindHomeAskControls(render);
+    window.REPLOID_POOL_PRISM_STOP = bindPoolPrism(mount);
     disposeDocumentView = bindDocumentSearch(mount, documents);
     if (routeId === 'records') renderLocalDocumentHistory(mount, documents.getState());
-    bindHomeSimulation(mount);
     bindPoolDashboardControls();
     bindCapabilityAssessmentControls();
     bindRunControls();
@@ -269,6 +284,9 @@ export function initPoolHome(mount) {
     refreshRecordLedgerState();
     restoreLatestCompletedRun(routeId);
     if (routeId === 'home') applyPoolDashboardView(dashboardView, { updateHistory: false });
+    if (options.restoreNavigationFocus || options.type === 'popstate') {
+      mount.querySelector('.pool-nav-link[aria-current="page"]')?.focus({ preventScroll: true });
+    }
   };
 
   if (window.REPLOID_POOL_POPSTATE_HANDLER) {

@@ -23,17 +23,26 @@ export function createLocalPackExecutor({ service = DopplerRuntimeService, scope
       const request = snapshotPackOperationData({ schema: 'doppler.pack-operation-request/v1',
         operation: { name: model.executablePack.requiredOperation, version: 1 }, input, options,
         assignment: null, limits });
+      const remaining = limits?.deadlineAt - Date.now();
+      if (!Number.isSafeInteger(limits?.deadlineAt) || remaining <= 0 || remaining > 2147483647) throw new Error('Document operation requires a future bounded deadline');
       const currentEpoch = ++epoch;
       active = true;
       controller = new AbortController();
       const localController = controller;
+      const timer = setTimeout(() => localController.abort(new Error('Document operation deadline exceeded')), remaining);
       const abort = () => localController.abort(signal.reason);
       signal?.addEventListener('abort', abort, { once: true });
       if (signal?.aborted) abort();
       const assertCurrent = () => {
         localController.signal.throwIfAborted();
+        if (Date.now() >= limits.deadlineAt) throw new Error('Document operation deadline exceeded');
         if (disposed || currentEpoch !== epoch) throw new Error('Document operation is no longer current');
       };
+      let rejectCancellation;
+      const cancelled = new Promise((_resolve, reject) => { rejectCancellation = reject; });
+      const onCancel = () => rejectCancellation(localController.signal.reason || new Error('Document operation cancelled'));
+      localController.signal.addEventListener('abort', onCancel, { once: true });
+      if (localController.signal.aborted) onCancel();
       const operation = (async () => {
         let execution;
         try {
@@ -59,8 +68,14 @@ export function createLocalPackExecutor({ service = DopplerRuntimeService, scope
         return execution;
       })();
       settlement = operation.catch(() => null);
-      return operation;
+      // Return cancellation/deadline promptly, while retaining the physical
+      // execution slot until the underlying runtime and its cleanup settle.
+      return Promise.race([operation, cancelled]).finally(() => {
+        clearTimeout(timer);
+        localController.signal.removeEventListener('abort', onCancel);
+      });
     },
+    getState() { return { active, draining: active && (controller?.signal.aborted === true || disposed), disposed }; },
     cancel() { ++epoch; controller?.abort(new Error('Document operation cancelled')); },
     async close() {
       disposed = true;

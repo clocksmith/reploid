@@ -1250,8 +1250,8 @@
     },
     {
       "path": "config/module-inventory.json",
-      "byteLength": 84850,
-      "sha256": "sha256:103112489f568f7a72920389b5c3db510a5f1edda2b81388e1347a0eab98b5e2"
+      "byteLength": 85391,
+      "sha256": "sha256:677866c5dcf3b4f6b4cf83ad932b01076b73a5f5abbe621ea3c4eba15f6151de"
     },
     {
       "path": "config/module-registry.json",
@@ -1280,8 +1280,8 @@
     },
     {
       "path": "config/vfs-manifest.json",
-      "byteLength": 23481,
-      "sha256": "sha256:2370ff6c0464dd6c5f35ee1bf268b8e097d616ff0bf8afc5eeabeb7f96d66cd4"
+      "byteLength": 23557,
+      "sha256": "sha256:d576991eaa3fa1d7c83cb3abe3d43e62f1c5efcc74ab5d267909dd4f65a852b0"
     },
     {
       "path": "config/vfs-policy.js",
@@ -1664,6 +1664,11 @@
       "sha256": "sha256:4cf63d537362058055af54c9b71230fd334234759236fb17d8b48a170a865d2a"
     },
     {
+      "path": "infrastructure/pack-transfer-storage.js",
+      "byteLength": 5252,
+      "sha256": "sha256:8f4a918e2a0226de9561ffdc0369042703b4d342fc5aab9438e3a0eb869a891f"
+    },
+    {
       "path": "infrastructure/policy-engine.js",
       "byteLength": 36464,
       "sha256": "sha256:e9b4853298522532ef4462996b524e717be33a08449169ae05f5b5458625c298"
@@ -1895,8 +1900,8 @@
     },
     {
       "path": "pool/document-search.js",
-      "byteLength": 9953,
-      "sha256": "sha256:3b07112f1083728f0ae74c9b9c7bff1b293fb5641f6cb00540c80fa4f79d0b9b"
+      "byteLength": 12118,
+      "sha256": "sha256:1c5715ff6f894bdf21ffa0c8a1e67b3a4f260e241712e1af38ecded306430816"
     },
     {
       "path": "pool/doppler-browser-observation.js",
@@ -1980,8 +1985,8 @@
     },
     {
       "path": "pool/local-pack-executor.js",
-      "byteLength": 3871,
-      "sha256": "sha256:ee6294ce15675d0216e91f1440c2704f9ca7b8c35f3b3757ff09be3df30cf35f"
+      "byteLength": 5134,
+      "sha256": "sha256:190ff67217001508dd0289d2aac18cce9a55942fcc1af5df4e60c9fe5ef5d2dc"
     },
     {
       "path": "pool/model-artifacts.js",
@@ -2070,8 +2075,8 @@
     },
     {
       "path": "pool/peer-pack-custody.js",
-      "byteLength": 16015,
-      "sha256": "sha256:c181378616b14962f630d72733d0242e0c321c641a69518f261a1efb606fc3c1"
+      "byteLength": 19920,
+      "sha256": "sha256:14b11e489e4bfe29d3d22fe16a2d7c05c04bc2672f706a863d7a86fa75dce19a"
     },
     {
       "path": "pool/peer-pack-data-channel.js",
@@ -2295,18 +2300,18 @@
     },
     {
       "path": "styles/poolday/components.css",
-      "byteLength": 124842,
-      "sha256": "sha256:30491d4a9c09dd0da49df0db7c6ab3ccc8bbb0fd2b44443d11704a8b2f9b9d7a"
+      "byteLength": 131062,
+      "sha256": "sha256:1dcde9f25ca4db193503a25dbcaec03de5543f6622c3f5c1434201b6b5d5f451"
     },
     {
       "path": "styles/poolday/primitives.css",
-      "byteLength": 17458,
-      "sha256": "sha256:28a7ca4f4038da9be7c004d58f21391585ee9121c002cb6526c4641f1fe7c9a4"
+      "byteLength": 18150,
+      "sha256": "sha256:9ea03b9f8eabb5c0f6635d763853955c9a98f332f0c7be24777e32cf640d24dc"
     },
     {
       "path": "styles/poolday/tokens.css",
-      "byteLength": 8897,
-      "sha256": "sha256:706b966228050e543bd39c8a191e6117a3fd22bdc0d88366c7e6c6edbb339fa4"
+      "byteLength": 9368,
+      "sha256": "sha256:d55cdfe5605db8c500fe59cea8edb94b926cb081c637b12fc4c718cde0060327"
     },
     {
       "path": "styles/proto/components.css",
@@ -2335,8 +2340,8 @@
     },
     {
       "path": "styles/proto/layout.css",
-      "byteLength": 5289,
-      "sha256": "sha256:20aa3cbbc2da3b3e9fc292beffa528ab2e406d12550cb0a9ce2352b8ff0b4658"
+      "byteLength": 5809,
+      "sha256": "sha256:a695ad8a4e26326ffef39e1f4e22a55ac333c9a2d6241b971d943bb8dfb87a20"
     },
     {
       "path": "styles/proto/optimization.css",
@@ -2360,8 +2365,8 @@
     },
     {
       "path": "styles/rd.css",
-      "byteLength": 36607,
-      "sha256": "sha256:9dcfbcb73fd9a472bc5e6672b18c1ff584db1c289c7e00b20fc8102be67dafff"
+      "byteLength": 34489,
+      "sha256": "sha256:024e666fbb8cf51056daf057e455beb926742774ce2b81601ceb53ce769638ff"
     },
     {
       "path": "styles/vfs-explorer.css",
@@ -2370,8 +2375,8 @@
     },
     {
       "path": "styles/zero.css",
-      "byteLength": 9881,
-      "sha256": "sha256:f538e6cfed9b67faa6436d63982fef4ed312a40e06034375d796c1c935442dea"
+      "byteLength": 9826,
+      "sha256": "sha256:8c77290f5b175bec8d9a8ebdd661a7c93d6099ecab86f2eb779ded986bf1b03a"
     },
     {
       "path": "sw-module-loader.js",
@@ -2760,18 +2765,18 @@
     },
     {
       "path": "ui/pool-home/controls.js",
-      "byteLength": 111431,
-      "sha256": "sha256:c2f6143627e708f800e83a9306ca0696f694dd2ceaf73808e83007ebe5cac7e0"
+      "byteLength": 113102,
+      "sha256": "sha256:d415131a553bed38b91d18daa1d8a2cd43257bdea43486bfddcdcee35d96722e"
     },
     {
       "path": "ui/pool-home/document-search.js",
-      "byteLength": 9124,
-      "sha256": "sha256:d6dea55e2f3172d51caa929d42bfa468ee7b4c8a55ae4b8ee756b33451e2d9e3"
+      "byteLength": 9892,
+      "sha256": "sha256:78caefbd2a9fe86ecb95a074b40ca72ab640c2ba5e7b406df9cbee558f7813bb"
     },
     {
       "path": "ui/pool-home/index.js",
-      "byteLength": 12837,
-      "sha256": "sha256:4e86bca660852e4dae7f765c71dcd6c4def4f814747d62f518aaefd95a2bbfd8"
+      "byteLength": 13998,
+      "sha256": "sha256:79bfa175ae628c17006d78c2df53a61d23aae974495caeb5d9fa82de8c804a24"
     },
     {
       "path": "ui/pool-home/ledger-store.js",
@@ -2782,6 +2787,11 @@
       "path": "ui/pool-home/network-projection.js",
       "byteLength": 2531,
       "sha256": "sha256:1828eb9a3196cc0edf1cc84e211ab985a589aff7f56c11b00f78a17a909066db"
+    },
+    {
+      "path": "ui/pool-home/prism.js",
+      "byteLength": 15992,
+      "sha256": "sha256:f2aef65dc238f883fd2d8e51975936cd8f20cc794755e7f50871c8c92196cc4d"
     },
     {
       "path": "ui/pool-home/record-persistence.js",
@@ -2875,8 +2885,8 @@
     },
     {
       "path": "ui/pool-home/view.js",
-      "byteLength": 96516,
-      "sha256": "sha256:b7af566cbfa00c982be1ffda83691d3726d6085bd489512663b8bc24bd8b8d68"
+      "byteLength": 98649,
+      "sha256": "sha256:ae5bd0d45d69dba3364a43e7b57a68d9c9430b5b3b3b2da4247ee14b91d6c0e6"
     },
     {
       "path": "ui/proto.js",
@@ -2965,9 +2975,9 @@
     },
     {
       "path": "ui/zero/index.js",
-      "byteLength": 42881,
-      "sha256": "sha256:c5a6c85719ce4072b343251b10f5a00f7f99d83be47f83367b3f959886c78701"
+      "byteLength": 42825,
+      "sha256": "sha256:f0839f1a37e68e05baa3bd3823460bc9d742420485f12ae03979781adbb865ca"
     }
   ],
-  "bundleHash": "sha256:6bfd1a4cccead63ce7df62aa4c08d56817c36ed1929537bf28b3f36a23dfb881"
+  "bundleHash": "sha256:acbf48e355b89844a2b9c1670b569db401ddeb7dc01835f31f41aa3b50edeb02"
 }

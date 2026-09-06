@@ -86,7 +86,7 @@ describe('RD stylesheet ownership', () => {
     expect(poolday).toContain("[data-pool-run-surface][data-run-state='idle']");
     expect(poolday).toContain(".pool-home-stage[data-run-state='running'][data-run-phase='verify']");
     expect(poolday).toMatch(/@media \(max-width: 720px\)\s*\{[\s\S]*?\.pool-ledger table\s*\{[\s\S]*?table-layout: fixed;/);
-    expect(poolday).toContain('family=Michroma');
+    expect(poolday).not.toContain('@import');
     expect(poolday).toContain('.pool-home-brand-word');
     expect(poolday).toContain('--pool-param-wordmark-optical-left');
     expect(poolday).toContain('font-family: var(--pool-type-display-family), var(--pool-type-ui-family)');
