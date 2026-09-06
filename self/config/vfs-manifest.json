@@ -317,6 +317,7 @@
     "infrastructure/hitl-controller.js",
     "infrastructure/intent-bundle-gate.js",
     "infrastructure/observability.js",
+    "infrastructure/pack-job-storage.js",
     "infrastructure/pack-release-storage.js",
     "infrastructure/pack-transfer-storage.js",
     "infrastructure/policy-engine.js",

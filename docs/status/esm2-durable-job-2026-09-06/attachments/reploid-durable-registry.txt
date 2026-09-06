@@ -1,0 +1,10 @@
+[genesis-manifest] Skipping /home/x/deco/reploid/self/experimental/openclaw-audit/index.js: document is not defined
+[genesis-manifest] Wrote /home/x/deco/reploid/self/config/genesis-levels.json
+[module-inventory] Wrote /home/x/deco/reploid/self/config/module-inventory.json with 343 modules
+[blueprint-registry] Wrote registry: 106 executable owners, 176 declarations
+[module-registry] Unchanged /home/x/deco/reploid/self/config/module-registry.json
+[vfs-manifest] Wrote /home/x/deco/reploid/self/config/vfs-manifest.json
+[browser-bundle] Wrote /home/x/deco/reploid/self/config/browser-bundle-manifest.json with 603 served files as sha256:3a593ebf1362103432c058af9e2df6dd72b01dbcdf41add6499f2d2a7faa5060
+[catscan] 29 component charters and generated index passed
+[validate] {"sourceFiles":343,"modules":68,"blueprintDeclarations":176,"executableOwners":106,"unresolved":0}
+[validate] Inventoried helpers: 179; modules without an architectural blueprint: 18

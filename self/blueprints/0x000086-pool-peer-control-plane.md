@@ -8,7 +8,7 @@
 
 **Planned Artifacts:** None
 
-**Owned Source Files:** `pool/peer-control-plane.js`, `pool/peer-pack-job.js`, `pool/peer-pack-provider.js`, `pool/peer-pack-requester.js`, `pool/peer-pack-job-channel.js`, `pool/peer-pack-episode.js`
+**Owned Source Files:** `pool/peer-control-plane.js`, `pool/peer-pack-job.js`, `pool/peer-pack-provider.js`, `pool/peer-pack-requester.js`, `pool/peer-pack-job-channel.js`, `pool/peer-pack-episode.js`, `infrastructure/pack-job-storage.js`
 
 **Former Blueprint Paths:** `self/blueprints/0x000086-pool-peer-control-plane.md`
 **Objective:** Describe implementation for pool/peer-control-plane.js.
@@ -53,8 +53,14 @@ Cancellation invalidates requester acceptance immediately and requests provider
 cooperation. The physical executor remains occupied while work drains. Signed
 delivery retries reuse the same attempt and replay bounded retained responses.
 A cancellation received before its delayed request prevents that request from
-starting. These records are memory-resident and expire; this is bounded
-at-least-once delivery, not exactly-once execution across process restarts.
+starting. Infrastructure persists atomic attempt claims and signed responses in
+native IndexedDB before execution and delivery. A replacement writer fences
+unfinished work and emits a failure after replaying the verified partial stream;
+it cannot rerun that attempt. Completed streams replay after signature and
+operation verification. Storage corruption or exhaustion denies execution.
+Browser storage and key continuity bound recovery; eviction, deletion and
+identity replacement remain outside this guarantee. Delivery remains bounded
+at-least-once, without exactly-once execution or immediate GPU termination claims.
 
 See [complete Pack jobs](../../docs/poolday/complete-pack-jobs.md) for API,
 limits, admission and evidence boundaries.
