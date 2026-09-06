@@ -1,0 +1,10 @@
+{
+  "schema": "reploid.browser-profile-storage/v1",
+  "observedAt": "2026-09-06T05:04:04.579421+00:00",
+  "profile": "/tmp/esm2-process-restart-04-sg424kmd/requester-profile",
+  "verifiedChunkPayloadBytes": 133504889,
+  "profileAllocatedBytes": 144986112,
+  "profileApparentFileBytes": 141890142,
+  "fileCount": 1351,
+  "scope": "Whole requester profile after the harness closed the final browser; includes browser preferences, caches, and database overhead. Excludes supplier profiles, coordinator memory, runtime installation, and unrelated filesystem use."
+}

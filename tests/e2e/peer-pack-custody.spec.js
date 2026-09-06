@@ -64,6 +64,7 @@ test('browser crypto reconstructs dependencies and the Verification Worker accep
       snapshot[`/pool/${file}`] = await (await fetch(`/self/pool/${file}`)).text();
     }
     snapshot['/infrastructure/pack-transfer-storage.js'] = await (await fetch('/self/infrastructure/pack-transfer-storage.js')).text();
+    snapshot['/tests/fixtures/peer-pack-browser.js'] = await (await fetch('/tests/fixtures/peer-pack-browser.js')).text();
     const worker = new Worker('/core/verification-worker.js');
     const verification = await new Promise((resolve, reject) => {
       const timer = setTimeout(() => { worker.terminate(); reject(new Error('Verification Worker timeout')); }, 10000);

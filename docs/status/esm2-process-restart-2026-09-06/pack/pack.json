@@ -1,0 +1,5494 @@
+{
+  "artifacts": [
+    {
+      "artifactId": "host-source:sequence-encoding-1ba4eabcb4016243.js:1ba4eabcb401",
+      "hash": "sha256:1ba4eabcb4016243d7a449197ab9870c282d3503490afb29055b87468839b17f",
+      "path": "artifacts/program/host/sequence-encoding-1ba4eabcb4016243.js",
+      "role": "host-source",
+      "sizeBytes": 776
+    },
+    {
+      "artifactId": "manifest:manifest.json:418770adfcfa",
+      "hash": "sha256:418770adfcfabb1668616ff31fb0c39a42de18fca7bab26d0b51490ea2f42642",
+      "path": "artifacts/model/manifest.json",
+      "role": "manifest",
+      "sizeBytes": 83641
+    },
+    {
+      "artifactId": "reference-report:browser-qualification.json:79ddd8cc6627",
+      "hash": "sha256:79ddd8cc6627577611fd026697cbc02cb507dd51489bd002f48c51edef1cd374",
+      "path": "artifacts/evidence/browser-qualification.json",
+      "role": "reference-report",
+      "sizeBytes": 32987
+    },
+    {
+      "artifactId": "tokenizer:tokenizer.json:f874eed68372",
+      "hash": "sha256:f874eed68372c76988edf4556383c10404dd27b5fee33e7dd96440aba31d9a37",
+      "path": "artifacts/model/tokenizer.json",
+      "role": "tokenizer",
+      "sizeBytes": 1395
+    },
+    {
+      "artifactId": "weight-shard:shard_00000.bin:7d0c833bb71b",
+      "hash": "sha256:7d0c833bb71bc72c43e52dfecaf48e788f399b5460b33a67d1f0ab403ac64f12",
+      "path": "artifacts/model/shard_00000.bin",
+      "role": "weight-shard",
+      "sizeBytes": 67108864
+    },
+    {
+      "artifactId": "weight-shard:shard_00001.bin:42cfb7b67978",
+      "hash": "sha256:42cfb7b67978da82d478c4b351a69d863ae53e6f0f39cc5afa147e9a98470645",
+      "path": "artifacts/model/shard_00001.bin",
+      "role": "weight-shard",
+      "sizeBytes": 65968256
+    },
+    {
+      "artifactId": "wgsl-source:attention_general-3ad589dc77edb932.wgsl:3ad589dc77ed",
+      "hash": "sha256:3ad589dc77edb932d6527beaea72ebe2772ede29baa0de71d6c6639c859c9745",
+      "path": "artifacts/program/wgsl/attention_general-3ad589dc77edb932.wgsl",
+      "role": "wgsl-source",
+      "sizeBytes": 10073
+    },
+    {
+      "artifactId": "wgsl-source:attn_small-fb03c1f9adfb7d11.wgsl:fb03c1f9adfb",
+      "hash": "sha256:fb03c1f9adfb7d118e87620814f2e5f75d53b65bd2856df91ef4e444f906ef3c",
+      "path": "artifacts/program/wgsl/attn_small-fb03c1f9adfb7d11.wgsl",
+      "role": "wgsl-source",
+      "sizeBytes": 9651
+    },
+    {
+      "artifactId": "wgsl-source:bias_add-856f13e8049d8300.wgsl:856f13e8049d",
+      "hash": "sha256:856f13e8049d8300055b6188b56e79bc4d3cbad80614ae4d33159e7ea8088bae",
+      "path": "artifacts/program/wgsl/bias_add-856f13e8049d8300.wgsl",
+      "role": "wgsl-source",
+      "sizeBytes": 1207
+    },
+    {
+      "artifactId": "wgsl-source:embed-85b2d7fff9358bf4.wgsl:85b2d7fff935",
+      "hash": "sha256:85b2d7fff9358bf4087d9b3f0804803ba798111a3d728db9561b53789280032c",
+      "path": "artifacts/program/wgsl/embed-85b2d7fff9358bf4.wgsl",
+      "role": "wgsl-source",
+      "sizeBytes": 2289
+    },
+    {
+      "artifactId": "wgsl-source:embedding_pool-085f75855a89fd66.wgsl:085f75855a89",
+      "hash": "sha256:085f75855a89fd6612f225529d4e6e82f03888f938c04e8f40aba46bbfd2ea3b",
+      "path": "artifacts/program/wgsl/embedding_pool-085f75855a89fd66.wgsl",
+      "role": "wgsl-source",
+      "sizeBytes": 1009
+    },
+    {
+      "artifactId": "wgsl-source:gather_vec4-4ba3022d03c0d83b.wgsl:4ba3022d03c0",
+      "hash": "sha256:4ba3022d03c0d83b8db0b03724ab8cd80b316175c2ddafd3bf498479365263e5",
+      "path": "artifacts/program/wgsl/gather_vec4-4ba3022d03c0d83b.wgsl",
+      "role": "wgsl-source",
+      "sizeBytes": 2717
+    },
+    {
+      "artifactId": "wgsl-source:gelu-e6fb22edd25c1e21.wgsl:e6fb22edd25c",
+      "hash": "sha256:e6fb22edd25c1e210e7dfc61e0b67d31832c1d9d3caf985e4c56f61dd7b57ac6",
+      "path": "artifacts/program/wgsl/gelu-e6fb22edd25c1e21.wgsl",
+      "role": "wgsl-source",
+      "sizeBytes": 1885
+    },
+    {
+      "artifactId": "wgsl-source:layernorm-a0a78590a442e26c.wgsl:a0a78590a442",
+      "hash": "sha256:a0a78590a442e26ccec467d48609863c538a18506aaafd29a336f1f7216f6927",
+      "path": "artifacts/program/wgsl/layernorm-a0a78590a442e26c.wgsl",
+      "role": "wgsl-source",
+      "sizeBytes": 4022
+    },
+    {
+      "artifactId": "wgsl-source:residual_vec4-04781252bb73f1a2.wgsl:04781252bb73",
+      "hash": "sha256:04781252bb73f1a24ad7f266cb10e41aa172f105ef2a51d1416802d6b1aba9cb",
+      "path": "artifacts/program/wgsl/residual_vec4-04781252bb73f1a2.wgsl",
+      "role": "wgsl-source",
+      "sizeBytes": 1366
+    },
+    {
+      "artifactId": "wgsl-source:residual-e5d606c42ae57cb7.wgsl:e5d606c42ae5",
+      "hash": "sha256:e5d606c42ae57cb72cca129d7ad85e95021158a7d9fbce68af3119630bbcb698",
+      "path": "artifacts/program/wgsl/residual-e5d606c42ae57cb7.wgsl",
+      "role": "wgsl-source",
+      "sizeBytes": 1712
+    },
+    {
+      "artifactId": "wgsl-source:rope_precompute-0aaf0cbdceb87986.wgsl:0aaf0cbdceb8",
+      "hash": "sha256:0aaf0cbdceb879861872b1bd60e0d8a78818b67511c7bbb8157d7804b929500a",
+      "path": "artifacts/program/wgsl/rope_precompute-0aaf0cbdceb87986.wgsl",
+      "role": "wgsl-source",
+      "sizeBytes": 2598
+    },
+    {
+      "artifactId": "wgsl-source:rope_qk-fe7f16a865b94ce0.wgsl:fe7f16a865b9",
+      "hash": "sha256:fe7f16a865b94ce0c0cf88a220cda96daf174cdc61b0158298f40c09298a840c",
+      "path": "artifacts/program/wgsl/rope_qk-fe7f16a865b94ce0.wgsl",
+      "role": "wgsl-source",
+      "sizeBytes": 3259
+    },
+    {
+      "artifactId": "wgsl-source:rope-a4472c7134a08c77.wgsl:a4472c7134a0",
+      "hash": "sha256:a4472c7134a08c77ecefc665918652a7eb4d79acb373a5dc5fdc865b9ccb937d",
+      "path": "artifacts/program/wgsl/rope-a4472c7134a08c77.wgsl",
+      "role": "wgsl-source",
+      "sizeBytes": 12251
+    },
+    {
+      "artifactId": "wgsl-source:scale_inplace-d4d98632a5d2ce10.wgsl:d4d98632a5d2",
+      "hash": "sha256:d4d98632a5d2ce10b8e96b62ce00a14f4388e27f796478efadaffe473bc5f527",
+      "path": "artifacts/program/wgsl/scale_inplace-d4d98632a5d2ce10.wgsl",
+      "role": "wgsl-source",
+      "sizeBytes": 1084
+    },
+    {
+      "artifactId": "wgsl-source:scale-d4d98632a5d2ce10.wgsl:d4d98632a5d2",
+      "hash": "sha256:d4d98632a5d2ce10b8e96b62ce00a14f4388e27f796478efadaffe473bc5f527",
+      "path": "artifacts/program/wgsl/scale-d4d98632a5d2ce10.wgsl",
+      "role": "wgsl-source",
+      "sizeBytes": 1084
+    },
+    {
+      "artifactId": "wgsl-source:split_qkv-f65c37cee36ee2b2.wgsl:f65c37cee36e",
+      "hash": "sha256:f65c37cee36ee2b213d5377d2aa5c5a2d2e20c7b6d1f162e112efd388599ec23",
+      "path": "artifacts/program/wgsl/split_qkv-f65c37cee36ee2b2.wgsl",
+      "role": "wgsl-source",
+      "sizeBytes": 2058
+    },
+    {
+      "artifactId": "wgsl-source:tiled-035020f650612fd6.wgsl:035020f65061",
+      "hash": "sha256:035020f650612fd6f8ac8322b86ec921c64a85ac802b7f4c0fd2dfd3a4c8a1f2",
+      "path": "artifacts/program/wgsl/tiled-035020f650612fd6.wgsl",
+      "role": "wgsl-source",
+      "sizeBytes": 3395
+    },
+    {
+      "artifactId": "program-bundle:program-bundle.json:c2cbf995d965",
+      "hash": "sha256:c2cbf995d96539b435a93264c76cb8446726a2d6645147b148cf00cdd11b3930",
+      "path": "artifacts/program-bundle.json",
+      "role": "program-bundle",
+      "sizeBytes": 90498
+    }
+  ],
+  "createdAtUtc": "2026-09-05T16:17:41.181Z",
+  "modelIR": {
+    "architecture": "embedding",
+    "attentionGeometry": {
+      "headDim": 24,
+      "numHeads": 20,
+      "numKvHeads": 20,
+      "qkNorm": false
+    },
+    "ffn": {
+      "intermediateSize": 1920,
+      "type": "gelu"
+    },
+    "hiddenSize": 480,
+    "layers": [
+      {
+        "attention": {
+          "causal": false,
+          "slidingWindow": null
+        },
+        "index": 0,
+        "type": "global-attention"
+      },
+      {
+        "attention": {
+          "causal": false,
+          "slidingWindow": null
+        },
+        "index": 1,
+        "type": "global-attention"
+      },
+      {
+        "attention": {
+          "causal": false,
+          "slidingWindow": null
+        },
+        "index": 2,
+        "type": "global-attention"
+      },
+      {
+        "attention": {
+          "causal": false,
+          "slidingWindow": null
+        },
+        "index": 3,
+        "type": "global-attention"
+      },
+      {
+        "attention": {
+          "causal": false,
+          "slidingWindow": null
+        },
+        "index": 4,
+        "type": "global-attention"
+      },
+      {
+        "attention": {
+          "causal": false,
+          "slidingWindow": null
+        },
+        "index": 5,
+        "type": "global-attention"
+      },
+      {
+        "attention": {
+          "causal": false,
+          "slidingWindow": null
+        },
+        "index": 6,
+        "type": "global-attention"
+      },
+      {
+        "attention": {
+          "causal": false,
+          "slidingWindow": null
+        },
+        "index": 7,
+        "type": "global-attention"
+      },
+      {
+        "attention": {
+          "causal": false,
+          "slidingWindow": null
+        },
+        "index": 8,
+        "type": "global-attention"
+      },
+      {
+        "attention": {
+          "causal": false,
+          "slidingWindow": null
+        },
+        "index": 9,
+        "type": "global-attention"
+      },
+      {
+        "attention": {
+          "causal": false,
+          "slidingWindow": null
+        },
+        "index": 10,
+        "type": "global-attention"
+      },
+      {
+        "attention": {
+          "causal": false,
+          "slidingWindow": null
+        },
+        "index": 11,
+        "type": "global-attention"
+      }
+    ],
+    "modelId": "esm2-t12-35m-ur50d-f32-af32",
+    "normalization": {
+      "eps": 0.00001,
+      "type": "layernorm"
+    },
+    "numLayers": 12,
+    "outputTopology": {
+      "headType": "sequence-encoder",
+      "sequence": {
+        "alphabet": "amino_acid",
+        "logits": false,
+        "pooledEmbedding": {
+          "excludeTokenIds": [
+            0,
+            1,
+            2,
+            3,
+            31,
+            32
+          ],
+          "mode": "mean"
+        },
+        "tokenEmbeddings": true
+      },
+      "tieWeights": false
+    },
+    "phases": [
+      "prefill",
+      "decode"
+    ],
+    "rope": {
+      "baseFreq": 10000,
+      "dimension": 24,
+      "localBaseFreq": null
+    },
+    "schema": "doppler.model-ir/v1",
+    "schemaVersion": 1,
+    "sourceIdentity": {
+      "manifestArtifactId": "manifest:manifest.json:418770adfcfa",
+      "manifestHash": "sha256:418770adfcfabb1668616ff31fb0c39a42de18fca7bab26d0b51490ea2f42642",
+      "sourceCheckpointId": "facebook/esm2_t12_35M_UR50D@6fbf070e65b0b7291e7bbcd451118c216cff79d8"
+    },
+    "tensorRoles": {
+      "model.embed_tokens.weight": {
+        "role": "embedding",
+        "semanticDtype": "F32",
+        "shape": [
+          33,
+          480
+        ]
+      },
+      "model.layers.0.input_layernorm.bias": {
+        "role": "norm",
+        "semanticDtype": "F32",
+        "shape": [
+          480
+        ]
+      },
+      "model.layers.0.input_layernorm.weight": {
+        "role": "norm",
+        "semanticDtype": "F32",
+        "shape": [
+          480
+        ]
+      },
+      "model.layers.0.mlp.down_proj.bias": {
+        "role": "other",
+        "semanticDtype": "F32",
+        "shape": [
+          480
+        ]
+      },
+      "model.layers.0.mlp.down_proj.weight": {
+        "role": "matmul",
+        "semanticDtype": "F32",
+        "shape": [
+          480,
+          1920
+        ]
+      },
+      "model.layers.0.mlp.up_proj.bias": {
+        "role": "other",
+        "semanticDtype": "F32",
+        "shape": [
+          1920
+        ]
+      },
+      "model.layers.0.mlp.up_proj.weight": {
+        "role": "matmul",
+        "semanticDtype": "F32",
+        "shape": [
+          1920,
+          480
+        ]
+      },
+      "model.layers.0.post_attention_layernorm.bias": {
+        "role": "norm",
+        "semanticDtype": "F32",
+        "shape": [
+          480
+        ]
+      },
+      "model.layers.0.post_attention_layernorm.weight": {
+        "role": "norm",
+        "semanticDtype": "F32",
+        "shape": [
+          480
+        ]
+      },
+      "model.layers.0.self_attn.k_proj.bias": {
+        "role": "other",
+        "semanticDtype": "F32",
+        "shape": [
+          480
+        ]
+      },
+      "model.layers.0.self_attn.k_proj.weight": {
+        "role": "matmul",
+        "semanticDtype": "F32",
+        "shape": [
+          480,
+          480
+        ]
+      },
+      "model.layers.0.self_attn.o_proj.bias": {
+        "role": "other",
+        "semanticDtype": "F32",
+        "shape": [
+          480
+        ]
+      },
+      "model.layers.0.self_attn.o_proj.weight": {
+        "role": "matmul",
+        "semanticDtype": "F32",
+        "shape": [
+          480,
+          480
+        ]
+      },
+      "model.layers.0.self_attn.q_proj.bias": {
+        "role": "other",
+        "semanticDtype": "F32",
+        "shape": [
+          480
+        ]
+      },
+      "model.layers.0.self_attn.q_proj.weight": {
+        "role": "matmul",
+        "semanticDtype": "F32",
+        "shape": [
+          480,
+          480
+        ]
+      },
+      "model.layers.0.self_attn.v_proj.bias": {
+        "role": "other",
+        "semanticDtype": "F32",
+        "shape": [
+          480
+        ]
+      },
+      "model.layers.0.self_attn.v_proj.weight": {
+        "role": "matmul",
+        "semanticDtype": "F32",
+        "shape": [
+          480,
+          480
+        ]
+      },
+      "model.layers.1.input_layernorm.bias": {
+        "role": "norm",
+        "semanticDtype": "F32",
+        "shape": [
+          480
+        ]
+      },
+      "model.layers.1.input_layernorm.weight": {
+        "role": "norm",
+        "semanticDtype": "F32",
+        "shape": [
+          480
+        ]
+      },
+      "model.layers.1.mlp.down_proj.bias": {
+        "role": "other",
+        "semanticDtype": "F32",
+        "shape": [
+          480
+        ]
+      },
+      "model.layers.1.mlp.down_proj.weight": {
+        "role": "matmul",
+        "semanticDtype": "F32",
+        "shape": [
+          480,
+          1920
+        ]
+      },
+      "model.layers.1.mlp.up_proj.bias": {
+        "role": "other",
+        "semanticDtype": "F32",
+        "shape": [
+          1920
+        ]
+      },
+      "model.layers.1.mlp.up_proj.weight": {
+        "role": "matmul",
+        "semanticDtype": "F32",
+        "shape": [
+          1920,
+          480
+        ]
+      },
+      "model.layers.1.post_attention_layernorm.bias": {
+        "role": "norm",
+        "semanticDtype": "F32",
+        "shape": [
+          480
+        ]
+      },
+      "model.layers.1.post_attention_layernorm.weight": {
+        "role": "norm",
+        "semanticDtype": "F32",
+        "shape": [
+          480
+        ]
+      },
+      "model.layers.1.self_attn.k_proj.bias": {
+        "role": "other",
+        "semanticDtype": "F32",
+        "shape": [
+          480
+        ]
+      },
+      "model.layers.1.self_attn.k_proj.weight": {
+        "role": "matmul",
+        "semanticDtype": "F32",
+        "shape": [
+          480,
+          480
+        ]
+      },
+      "model.layers.1.self_attn.o_proj.bias": {
+        "role": "other",
+        "semanticDtype": "F32",
+        "shape": [
+          480
+        ]
+      },
+      "model.layers.1.self_attn.o_proj.weight": {
+        "role": "matmul",
+        "semanticDtype": "F32",
+        "shape": [
+          480,
+          480
+        ]
+      },
+      "model.layers.1.self_attn.q_proj.bias": {
+        "role": "other",
+        "semanticDtype": "F32",
+        "shape": [
+          480
+        ]
+      },
+      "model.layers.1.self_attn.q_proj.weight": {
+        "role": "matmul",
+        "semanticDtype": "F32",
+        "shape": [
+          480,
+          480
+        ]
+      },
+      "model.layers.1.self_attn.v_proj.bias": {
+        "role": "other",
+        "semanticDtype": "F32",
+        "shape": [
+          480
+        ]
+      },
+      "model.layers.1.self_attn.v_proj.weight": {
+        "role": "matmul",
+        "semanticDtype": "F32",
+        "shape": [
+          480,
+          480
+        ]
+      },
+      "model.layers.10.input_layernorm.bias": {
+        "role": "norm",
+        "semanticDtype": "F32",
+        "shape": [
+          480
+        ]
+      },
+      "model.layers.10.input_layernorm.weight": {
+        "role": "norm",
+        "semanticDtype": "F32",
+        "shape": [
+          480
+        ]
+      },
+      "model.layers.10.mlp.down_proj.bias": {
+        "role": "other",
+        "semanticDtype": "F32",
+        "shape": [
+          480
+        ]
+      },
+      "model.layers.10.mlp.down_proj.weight": {
+        "role": "matmul",
+        "semanticDtype": "F32",
+        "shape": [
+          480,
+          1920
+        ]
+      },
+      "model.layers.10.mlp.up_proj.bias": {
+        "role": "other",
+        "semanticDtype": "F32",
+        "shape": [
+          1920
+        ]
+      },
+      "model.layers.10.mlp.up_proj.weight": {
+        "role": "matmul",
+        "semanticDtype": "F32",
+        "shape": [
+          1920,
+          480
+        ]
+      },
+      "model.layers.10.post_attention_layernorm.bias": {
+        "role": "norm",
+        "semanticDtype": "F32",
+        "shape": [
+          480
+        ]
+      },
+      "model.layers.10.post_attention_layernorm.weight": {
+        "role": "norm",
+        "semanticDtype": "F32",
+        "shape": [
+          480
+        ]
+      },
+      "model.layers.10.self_attn.k_proj.bias": {
+        "role": "other",
+        "semanticDtype": "F32",
+        "shape": [
+          480
+        ]
+      },
+      "model.layers.10.self_attn.k_proj.weight": {
+        "role": "matmul",
+        "semanticDtype": "F32",
+        "shape": [
+          480,
+          480
+        ]
+      },
+      "model.layers.10.self_attn.o_proj.bias": {
+        "role": "other",
+        "semanticDtype": "F32",
+        "shape": [
+          480
+        ]
+      },
+      "model.layers.10.self_attn.o_proj.weight": {
+        "role": "matmul",
+        "semanticDtype": "F32",
+        "shape": [
+          480,
+          480
+        ]
+      },
+      "model.layers.10.self_attn.q_proj.bias": {
+        "role": "other",
+        "semanticDtype": "F32",
+        "shape": [
+          480
+        ]
+      },
+      "model.layers.10.self_attn.q_proj.weight": {
+        "role": "matmul",
+        "semanticDtype": "F32",
+        "shape": [
+          480,
+          480
+        ]
+      },
+      "model.layers.10.self_attn.v_proj.bias": {
+        "role": "other",
+        "semanticDtype": "F32",
+        "shape": [
+          480
+        ]
+      },
+      "model.layers.10.self_attn.v_proj.weight": {
+        "role": "matmul",
+        "semanticDtype": "F32",
+        "shape": [
+          480,
+          480
+        ]
+      },
+      "model.layers.11.input_layernorm.bias": {
+        "role": "norm",
+        "semanticDtype": "F32",
+        "shape": [
+          480
+        ]
+      },
+      "model.layers.11.input_layernorm.weight": {
+        "role": "norm",
+        "semanticDtype": "F32",
+        "shape": [
+          480
+        ]
+      },
+      "model.layers.11.mlp.down_proj.bias": {
+        "role": "other",
+        "semanticDtype": "F32",
+        "shape": [
+          480
+        ]
+      },
+      "model.layers.11.mlp.down_proj.weight": {
+        "role": "matmul",
+        "semanticDtype": "F32",
+        "shape": [
+          480,
+          1920
+        ]
+      },
+      "model.layers.11.mlp.up_proj.bias": {
+        "role": "other",
+        "semanticDtype": "F32",
+        "shape": [
+          1920
+        ]
+      },
+      "model.layers.11.mlp.up_proj.weight": {
+        "role": "matmul",
+        "semanticDtype": "F32",
+        "shape": [
+          1920,
+          480
+        ]
+      },
+      "model.layers.11.post_attention_layernorm.bias": {
+        "role": "norm",
+        "semanticDtype": "F32",
+        "shape": [
+          480
+        ]
+      },
+      "model.layers.11.post_attention_layernorm.weight": {
+        "role": "norm",
+        "semanticDtype": "F32",
+        "shape": [
+          480
+        ]
+      },
+      "model.layers.11.self_attn.k_proj.bias": {
+        "role": "other",
+        "semanticDtype": "F32",
+        "shape": [
+          480
+        ]
+      },
+      "model.layers.11.self_attn.k_proj.weight": {
+        "role": "matmul",
+        "semanticDtype": "F32",
+        "shape": [
+          480,
+          480
+        ]
+      },
+      "model.layers.11.self_attn.o_proj.bias": {
+        "role": "other",
+        "semanticDtype": "F32",
+        "shape": [
+          480
+        ]
+      },
+      "model.layers.11.self_attn.o_proj.weight": {
+        "role": "matmul",
+        "semanticDtype": "F32",
+        "shape": [
+          480,
+          480
+        ]
+      },
+      "model.layers.11.self_attn.q_proj.bias": {
+        "role": "other",
+        "semanticDtype": "F32",
+        "shape": [
+          480
+        ]
+      },
+      "model.layers.11.self_attn.q_proj.weight": {
+        "role": "matmul",
+        "semanticDtype": "F32",
+        "shape": [
+          480,
+          480
+        ]
+      },
+      "model.layers.11.self_attn.v_proj.bias": {
+        "role": "other",
+        "semanticDtype": "F32",
+        "shape": [
+          480
+        ]
+      },
+      "model.layers.11.self_attn.v_proj.weight": {
+        "role": "matmul",
+        "semanticDtype": "F32",
+        "shape": [
+          480,
+          480
+        ]
+      },
+      "model.layers.2.input_layernorm.bias": {
+        "role": "norm",
+        "semanticDtype": "F32",
+        "shape": [
+          480
+        ]
+      },
+      "model.layers.2.input_layernorm.weight": {
+        "role": "norm",
+        "semanticDtype": "F32",
+        "shape": [
+          480
+        ]
+      },
+      "model.layers.2.mlp.down_proj.bias": {
+        "role": "other",
+        "semanticDtype": "F32",
+        "shape": [
+          480
+        ]
+      },
+      "model.layers.2.mlp.down_proj.weight": {
+        "role": "matmul",
+        "semanticDtype": "F32",
+        "shape": [
+          480,
+          1920
+        ]
+      },
+      "model.layers.2.mlp.up_proj.bias": {
+        "role": "other",
+        "semanticDtype": "F32",
+        "shape": [
+          1920
+        ]
+      },
+      "model.layers.2.mlp.up_proj.weight": {
+        "role": "matmul",
+        "semanticDtype": "F32",
+        "shape": [
+          1920,
+          480
+        ]
+      },
+      "model.layers.2.post_attention_layernorm.bias": {
+        "role": "norm",
+        "semanticDtype": "F32",
+        "shape": [
+          480
+        ]
+      },
+      "model.layers.2.post_attention_layernorm.weight": {
+        "role": "norm",
+        "semanticDtype": "F32",
+        "shape": [
+          480
+        ]
+      },
+      "model.layers.2.self_attn.k_proj.bias": {
+        "role": "other",
+        "semanticDtype": "F32",
+        "shape": [
+          480
+        ]
+      },
+      "model.layers.2.self_attn.k_proj.weight": {
+        "role": "matmul",
+        "semanticDtype": "F32",
+        "shape": [
+          480,
+          480
+        ]
+      },
+      "model.layers.2.self_attn.o_proj.bias": {
+        "role": "other",
+        "semanticDtype": "F32",
+        "shape": [
+          480
+        ]
+      },
+      "model.layers.2.self_attn.o_proj.weight": {
+        "role": "matmul",
+        "semanticDtype": "F32",
+        "shape": [
+          480,
+          480
+        ]
+      },
+      "model.layers.2.self_attn.q_proj.bias": {
+        "role": "other",
+        "semanticDtype": "F32",
+        "shape": [
+          480
+        ]
+      },
+      "model.layers.2.self_attn.q_proj.weight": {
+        "role": "matmul",
+        "semanticDtype": "F32",
+        "shape": [
+          480,
+          480
+        ]
+      },
+      "model.layers.2.self_attn.v_proj.bias": {
+        "role": "other",
+        "semanticDtype": "F32",
+        "shape": [
+          480
+        ]
+      },
+      "model.layers.2.self_attn.v_proj.weight": {
+        "role": "matmul",
+        "semanticDtype": "F32",
+        "shape": [
+          480,
+          480
+        ]
+      },
+      "model.layers.3.input_layernorm.bias": {
+        "role": "norm",
+        "semanticDtype": "F32",
+        "shape": [
+          480
+        ]
+      },
+      "model.layers.3.input_layernorm.weight": {
+        "role": "norm",
+        "semanticDtype": "F32",
+        "shape": [
+          480
+        ]
+      },
+      "model.layers.3.mlp.down_proj.bias": {
+        "role": "other",
+        "semanticDtype": "F32",
+        "shape": [
+          480
+        ]
+      },
+      "model.layers.3.mlp.down_proj.weight": {
+        "role": "matmul",
+        "semanticDtype": "F32",
+        "shape": [
+          480,
+          1920
+        ]
+      },
+      "model.layers.3.mlp.up_proj.bias": {
+        "role": "other",
+        "semanticDtype": "F32",
+        "shape": [
+          1920
+        ]
+      },
+      "model.layers.3.mlp.up_proj.weight": {
+        "role": "matmul",
+        "semanticDtype": "F32",
+        "shape": [
+          1920,
+          480
+        ]
+      },
+      "model.layers.3.post_attention_layernorm.bias": {
+        "role": "norm",
+        "semanticDtype": "F32",
+        "shape": [
+          480
+        ]
+      },
+      "model.layers.3.post_attention_layernorm.weight": {
+        "role": "norm",
+        "semanticDtype": "F32",
+        "shape": [
+          480
+        ]
+      },
+      "model.layers.3.self_attn.k_proj.bias": {
+        "role": "other",
+        "semanticDtype": "F32",
+        "shape": [
+          480
+        ]
+      },
+      "model.layers.3.self_attn.k_proj.weight": {
+        "role": "matmul",
+        "semanticDtype": "F32",
+        "shape": [
+          480,
+          480
+        ]
+      },
+      "model.layers.3.self_attn.o_proj.bias": {
+        "role": "other",
+        "semanticDtype": "F32",
+        "shape": [
+          480
+        ]
+      },
+      "model.layers.3.self_attn.o_proj.weight": {
+        "role": "matmul",
+        "semanticDtype": "F32",
+        "shape": [
+          480,
+          480
+        ]
+      },
+      "model.layers.3.self_attn.q_proj.bias": {
+        "role": "other",
+        "semanticDtype": "F32",
+        "shape": [
+          480
+        ]
+      },
+      "model.layers.3.self_attn.q_proj.weight": {
+        "role": "matmul",
+        "semanticDtype": "F32",
+        "shape": [
+          480,
+          480
+        ]
+      },
+      "model.layers.3.self_attn.v_proj.bias": {
+        "role": "other",
+        "semanticDtype": "F32",
+        "shape": [
+          480
+        ]
+      },
+      "model.layers.3.self_attn.v_proj.weight": {
+        "role": "matmul",
+        "semanticDtype": "F32",
+        "shape": [
+          480,
+          480
+        ]
+      },
+      "model.layers.4.input_layernorm.bias": {
+        "role": "norm",
+        "semanticDtype": "F32",
+        "shape": [
+          480
+        ]
+      },
+      "model.layers.4.input_layernorm.weight": {
+        "role": "norm",
+        "semanticDtype": "F32",
+        "shape": [
+          480
+        ]
+      },
+      "model.layers.4.mlp.down_proj.bias": {
+        "role": "other",
+        "semanticDtype": "F32",
+        "shape": [
+          480
+        ]
+      },
+      "model.layers.4.mlp.down_proj.weight": {
+        "role": "matmul",
+        "semanticDtype": "F32",
+        "shape": [
+          480,
+          1920
+        ]
+      },
+      "model.layers.4.mlp.up_proj.bias": {
+        "role": "other",
+        "semanticDtype": "F32",
+        "shape": [
+          1920
+        ]
+      },
+      "model.layers.4.mlp.up_proj.weight": {
+        "role": "matmul",
+        "semanticDtype": "F32",
+        "shape": [
+          1920,
+          480
+        ]
+      },
+      "model.layers.4.post_attention_layernorm.bias": {
+        "role": "norm",
+        "semanticDtype": "F32",
+        "shape": [
+          480
+        ]
+      },
+      "model.layers.4.post_attention_layernorm.weight": {
+        "role": "norm",
+        "semanticDtype": "F32",
+        "shape": [
+          480
+        ]
+      },
+      "model.layers.4.self_attn.k_proj.bias": {
+        "role": "other",
+        "semanticDtype": "F32",
+        "shape": [
+          480
+        ]
+      },
+      "model.layers.4.self_attn.k_proj.weight": {
+        "role": "matmul",
+        "semanticDtype": "F32",
+        "shape": [
+          480,
+          480
+        ]
+      },
+      "model.layers.4.self_attn.o_proj.bias": {
+        "role": "other",
+        "semanticDtype": "F32",
+        "shape": [
+          480
+        ]
+      },
+      "model.layers.4.self_attn.o_proj.weight": {
+        "role": "matmul",
+        "semanticDtype": "F32",
+        "shape": [
+          480,
+          480
+        ]
+      },
+      "model.layers.4.self_attn.q_proj.bias": {
+        "role": "other",
+        "semanticDtype": "F32",
+        "shape": [
+          480
+        ]
+      },
+      "model.layers.4.self_attn.q_proj.weight": {
+        "role": "matmul",
+        "semanticDtype": "F32",
+        "shape": [
+          480,
+          480
+        ]
+      },
+      "model.layers.4.self_attn.v_proj.bias": {
+        "role": "other",
+        "semanticDtype": "F32",
+        "shape": [
+          480
+        ]
+      },
+      "model.layers.4.self_attn.v_proj.weight": {
+        "role": "matmul",
+        "semanticDtype": "F32",
+        "shape": [
+          480,
+          480
+        ]
+      },
+      "model.layers.5.input_layernorm.bias": {
+        "role": "norm",
+        "semanticDtype": "F32",
+        "shape": [
+          480
+        ]
+      },
+      "model.layers.5.input_layernorm.weight": {
+        "role": "norm",
+        "semanticDtype": "F32",
+        "shape": [
+          480
+        ]
+      },
+      "model.layers.5.mlp.down_proj.bias": {
+        "role": "other",
+        "semanticDtype": "F32",
+        "shape": [
+          480
+        ]
+      },
+      "model.layers.5.mlp.down_proj.weight": {
+        "role": "matmul",
+        "semanticDtype": "F32",
+        "shape": [
+          480,
+          1920
+        ]
+      },
+      "model.layers.5.mlp.up_proj.bias": {
+        "role": "other",
+        "semanticDtype": "F32",
+        "shape": [
+          1920
+        ]
+      },
+      "model.layers.5.mlp.up_proj.weight": {
+        "role": "matmul",
+        "semanticDtype": "F32",
+        "shape": [
+          1920,
+          480
+        ]
+      },
+      "model.layers.5.post_attention_layernorm.bias": {
+        "role": "norm",
+        "semanticDtype": "F32",
+        "shape": [
+          480
+        ]
+      },
+      "model.layers.5.post_attention_layernorm.weight": {
+        "role": "norm",
+        "semanticDtype": "F32",
+        "shape": [
+          480
+        ]
+      },
+      "model.layers.5.self_attn.k_proj.bias": {
+        "role": "other",
+        "semanticDtype": "F32",
+        "shape": [
+          480
+        ]
+      },
+      "model.layers.5.self_attn.k_proj.weight": {
+        "role": "matmul",
+        "semanticDtype": "F32",
+        "shape": [
+          480,
+          480
+        ]
+      },
+      "model.layers.5.self_attn.o_proj.bias": {
+        "role": "other",
+        "semanticDtype": "F32",
+        "shape": [
+          480
+        ]
+      },
+      "model.layers.5.self_attn.o_proj.weight": {
+        "role": "matmul",
+        "semanticDtype": "F32",
+        "shape": [
+          480,
+          480
+        ]
+      },
+      "model.layers.5.self_attn.q_proj.bias": {
+        "role": "other",
+        "semanticDtype": "F32",
+        "shape": [
+          480
+        ]
+      },
+      "model.layers.5.self_attn.q_proj.weight": {
+        "role": "matmul",
+        "semanticDtype": "F32",
+        "shape": [
+          480,
+          480
+        ]
+      },
+      "model.layers.5.self_attn.v_proj.bias": {
+        "role": "other",
+        "semanticDtype": "F32",
+        "shape": [
+          480
+        ]
+      },
+      "model.layers.5.self_attn.v_proj.weight": {
+        "role": "matmul",
+        "semanticDtype": "F32",
+        "shape": [
+          480,
+          480
+        ]
+      },
+      "model.layers.6.input_layernorm.bias": {
+        "role": "norm",
+        "semanticDtype": "F32",
+        "shape": [
+          480
+        ]
+      },
+      "model.layers.6.input_layernorm.weight": {
+        "role": "norm",
+        "semanticDtype": "F32",
+        "shape": [
+          480
+        ]
+      },
+      "model.layers.6.mlp.down_proj.bias": {
+        "role": "other",
+        "semanticDtype": "F32",
+        "shape": [
+          480
+        ]
+      },
+      "model.layers.6.mlp.down_proj.weight": {
+        "role": "matmul",
+        "semanticDtype": "F32",
+        "shape": [
+          480,
+          1920
+        ]
+      },
+      "model.layers.6.mlp.up_proj.bias": {
+        "role": "other",
+        "semanticDtype": "F32",
+        "shape": [
+          1920
+        ]
+      },
+      "model.layers.6.mlp.up_proj.weight": {
+        "role": "matmul",
+        "semanticDtype": "F32",
+        "shape": [
+          1920,
+          480
+        ]
+      },
+      "model.layers.6.post_attention_layernorm.bias": {
+        "role": "norm",
+        "semanticDtype": "F32",
+        "shape": [
+          480
+        ]
+      },
+      "model.layers.6.post_attention_layernorm.weight": {
+        "role": "norm",
+        "semanticDtype": "F32",
+        "shape": [
+          480
+        ]
+      },
+      "model.layers.6.self_attn.k_proj.bias": {
+        "role": "other",
+        "semanticDtype": "F32",
+        "shape": [
+          480
+        ]
+      },
+      "model.layers.6.self_attn.k_proj.weight": {
+        "role": "matmul",
+        "semanticDtype": "F32",
+        "shape": [
+          480,
+          480
+        ]
+      },
+      "model.layers.6.self_attn.o_proj.bias": {
+        "role": "other",
+        "semanticDtype": "F32",
+        "shape": [
+          480
+        ]
+      },
+      "model.layers.6.self_attn.o_proj.weight": {
+        "role": "matmul",
+        "semanticDtype": "F32",
+        "shape": [
+          480,
+          480
+        ]
+      },
+      "model.layers.6.self_attn.q_proj.bias": {
+        "role": "other",
+        "semanticDtype": "F32",
+        "shape": [
+          480
+        ]
+      },
+      "model.layers.6.self_attn.q_proj.weight": {
+        "role": "matmul",
+        "semanticDtype": "F32",
+        "shape": [
+          480,
+          480
+        ]
+      },
+      "model.layers.6.self_attn.v_proj.bias": {
+        "role": "other",
+        "semanticDtype": "F32",
+        "shape": [
+          480
+        ]
+      },
+      "model.layers.6.self_attn.v_proj.weight": {
+        "role": "matmul",
+        "semanticDtype": "F32",
+        "shape": [
+          480,
+          480
+        ]
+      },
+      "model.layers.7.input_layernorm.bias": {
+        "role": "norm",
+        "semanticDtype": "F32",
+        "shape": [
+          480
+        ]
+      },
+      "model.layers.7.input_layernorm.weight": {
+        "role": "norm",
+        "semanticDtype": "F32",
+        "shape": [
+          480
+        ]
+      },
+      "model.layers.7.mlp.down_proj.bias": {
+        "role": "other",
+        "semanticDtype": "F32",
+        "shape": [
+          480
+        ]
+      },
+      "model.layers.7.mlp.down_proj.weight": {
+        "role": "matmul",
+        "semanticDtype": "F32",
+        "shape": [
+          480,
+          1920
+        ]
+      },
+      "model.layers.7.mlp.up_proj.bias": {
+        "role": "other",
+        "semanticDtype": "F32",
+        "shape": [
+          1920
+        ]
+      },
+      "model.layers.7.mlp.up_proj.weight": {
+        "role": "matmul",
+        "semanticDtype": "F32",
+        "shape": [
+          1920,
+          480
+        ]
+      },
+      "model.layers.7.post_attention_layernorm.bias": {
+        "role": "norm",
+        "semanticDtype": "F32",
+        "shape": [
+          480
+        ]
+      },
+      "model.layers.7.post_attention_layernorm.weight": {
+        "role": "norm",
+        "semanticDtype": "F32",
+        "shape": [
+          480
+        ]
+      },
+      "model.layers.7.self_attn.k_proj.bias": {
+        "role": "other",
+        "semanticDtype": "F32",
+        "shape": [
+          480
+        ]
+      },
+      "model.layers.7.self_attn.k_proj.weight": {
+        "role": "matmul",
+        "semanticDtype": "F32",
+        "shape": [
+          480,
+          480
+        ]
+      },
+      "model.layers.7.self_attn.o_proj.bias": {
+        "role": "other",
+        "semanticDtype": "F32",
+        "shape": [
+          480
+        ]
+      },
+      "model.layers.7.self_attn.o_proj.weight": {
+        "role": "matmul",
+        "semanticDtype": "F32",
+        "shape": [
+          480,
+          480
+        ]
+      },
+      "model.layers.7.self_attn.q_proj.bias": {
+        "role": "other",
+        "semanticDtype": "F32",
+        "shape": [
+          480
+        ]
+      },
+      "model.layers.7.self_attn.q_proj.weight": {
+        "role": "matmul",
+        "semanticDtype": "F32",
+        "shape": [
+          480,
+          480
+        ]
+      },
+      "model.layers.7.self_attn.v_proj.bias": {
+        "role": "other",
+        "semanticDtype": "F32",
+        "shape": [
+          480
+        ]
+      },
+      "model.layers.7.self_attn.v_proj.weight": {
+        "role": "matmul",
+        "semanticDtype": "F32",
+        "shape": [
+          480,
+          480
+        ]
+      },
+      "model.layers.8.input_layernorm.bias": {
+        "role": "norm",
+        "semanticDtype": "F32",
+        "shape": [
+          480
+        ]
+      },
+      "model.layers.8.input_layernorm.weight": {
+        "role": "norm",
+        "semanticDtype": "F32",
+        "shape": [
+          480
+        ]
+      },
+      "model.layers.8.mlp.down_proj.bias": {
+        "role": "other",
+        "semanticDtype": "F32",
+        "shape": [
+          480
+        ]
+      },
+      "model.layers.8.mlp.down_proj.weight": {
+        "role": "matmul",
+        "semanticDtype": "F32",
+        "shape": [
+          480,
+          1920
+        ]
+      },
+      "model.layers.8.mlp.up_proj.bias": {
+        "role": "other",
+        "semanticDtype": "F32",
+        "shape": [
+          1920
+        ]
+      },
+      "model.layers.8.mlp.up_proj.weight": {
+        "role": "matmul",
+        "semanticDtype": "F32",
+        "shape": [
+          1920,
+          480
+        ]
+      },
+      "model.layers.8.post_attention_layernorm.bias": {
+        "role": "norm",
+        "semanticDtype": "F32",
+        "shape": [
+          480
+        ]
+      },
+      "model.layers.8.post_attention_layernorm.weight": {
+        "role": "norm",
+        "semanticDtype": "F32",
+        "shape": [
+          480
+        ]
+      },
+      "model.layers.8.self_attn.k_proj.bias": {
+        "role": "other",
+        "semanticDtype": "F32",
+        "shape": [
+          480
+        ]
+      },
+      "model.layers.8.self_attn.k_proj.weight": {
+        "role": "matmul",
+        "semanticDtype": "F32",
+        "shape": [
+          480,
+          480
+        ]
+      },
+      "model.layers.8.self_attn.o_proj.bias": {
+        "role": "other",
+        "semanticDtype": "F32",
+        "shape": [
+          480
+        ]
+      },
+      "model.layers.8.self_attn.o_proj.weight": {
+        "role": "matmul",
+        "semanticDtype": "F32",
+        "shape": [
+          480,
+          480
+        ]
+      },
+      "model.layers.8.self_attn.q_proj.bias": {
+        "role": "other",
+        "semanticDtype": "F32",
+        "shape": [
+          480
+        ]
+      },
+      "model.layers.8.self_attn.q_proj.weight": {
+        "role": "matmul",
+        "semanticDtype": "F32",
+        "shape": [
+          480,
+          480
+        ]
+      },
+      "model.layers.8.self_attn.v_proj.bias": {
+        "role": "other",
+        "semanticDtype": "F32",
+        "shape": [
+          480
+        ]
+      },
+      "model.layers.8.self_attn.v_proj.weight": {
+        "role": "matmul",
+        "semanticDtype": "F32",
+        "shape": [
+          480,
+          480
+        ]
+      },
+      "model.layers.9.input_layernorm.bias": {
+        "role": "norm",
+        "semanticDtype": "F32",
+        "shape": [
+          480
+        ]
+      },
+      "model.layers.9.input_layernorm.weight": {
+        "role": "norm",
+        "semanticDtype": "F32",
+        "shape": [
+          480
+        ]
+      },
+      "model.layers.9.mlp.down_proj.bias": {
+        "role": "other",
+        "semanticDtype": "F32",
+        "shape": [
+          480
+        ]
+      },
+      "model.layers.9.mlp.down_proj.weight": {
+        "role": "matmul",
+        "semanticDtype": "F32",
+        "shape": [
+          480,
+          1920
+        ]
+      },
+      "model.layers.9.mlp.up_proj.bias": {
+        "role": "other",
+        "semanticDtype": "F32",
+        "shape": [
+          1920
+        ]
+      },
+      "model.layers.9.mlp.up_proj.weight": {
+        "role": "matmul",
+        "semanticDtype": "F32",
+        "shape": [
+          1920,
+          480
+        ]
+      },
+      "model.layers.9.post_attention_layernorm.bias": {
+        "role": "norm",
+        "semanticDtype": "F32",
+        "shape": [
+          480
+        ]
+      },
+      "model.layers.9.post_attention_layernorm.weight": {
+        "role": "norm",
+        "semanticDtype": "F32",
+        "shape": [
+          480
+        ]
+      },
+      "model.layers.9.self_attn.k_proj.bias": {
+        "role": "other",
+        "semanticDtype": "F32",
+        "shape": [
+          480
+        ]
+      },
+      "model.layers.9.self_attn.k_proj.weight": {
+        "role": "matmul",
+        "semanticDtype": "F32",
+        "shape": [
+          480,
+          480
+        ]
+      },
+      "model.layers.9.self_attn.o_proj.bias": {
+        "role": "other",
+        "semanticDtype": "F32",
+        "shape": [
+          480
+        ]
+      },
+      "model.layers.9.self_attn.o_proj.weight": {
+        "role": "matmul",
+        "semanticDtype": "F32",
+        "shape": [
+          480,
+          480
+        ]
+      },
+      "model.layers.9.self_attn.q_proj.bias": {
+        "role": "other",
+        "semanticDtype": "F32",
+        "shape": [
+          480
+        ]
+      },
+      "model.layers.9.self_attn.q_proj.weight": {
+        "role": "matmul",
+        "semanticDtype": "F32",
+        "shape": [
+          480,
+          480
+        ]
+      },
+      "model.layers.9.self_attn.v_proj.bias": {
+        "role": "other",
+        "semanticDtype": "F32",
+        "shape": [
+          480
+        ]
+      },
+      "model.layers.9.self_attn.v_proj.weight": {
+        "role": "matmul",
+        "semanticDtype": "F32",
+        "shape": [
+          480,
+          480
+        ]
+      },
+      "model.norm.bias": {
+        "role": "other",
+        "semanticDtype": "F32",
+        "shape": [
+          480
+        ]
+      },
+      "model.norm.weight": {
+        "role": "norm",
+        "semanticDtype": "F32",
+        "shape": [
+          480
+        ]
+      }
+    },
+    "vocabSize": 33
+  },
+  "modelId": "esm2-t12-35m-ur50d-f32-af32",
+  "packId": "esm2-t12-35m-ur50d-f32-af32-pack-v2-cf7a796402cc32c6",
+  "program": {
+    "execution": {
+      "graphHash": "sha256:ed5fe38d0a71579ead0480b68b792b7b62f470e5d9e5c28fa2b5aa7b370846e5",
+      "kernelClosure": {
+        "declaredKernelIds": [
+          "attention_general",
+          "attn_small",
+          "bias_add",
+          "embed",
+          "embedding_pool",
+          "gather_vec4",
+          "gelu",
+          "layernorm",
+          "residual",
+          "residual_vec4",
+          "rope",
+          "rope_precompute",
+          "rope_qk",
+          "scale",
+          "scale_inplace",
+          "split_qkv",
+          "tiled"
+        ],
+        "excludedKernelIds": [],
+        "expandedStepCount": 30,
+        "phases": {
+          "decode": 14,
+          "postLayer": 1,
+          "preLayer": 1,
+          "prefill": 14
+        },
+        "reachableKernelIds": [
+          "attention_general",
+          "attn_small",
+          "bias_add",
+          "embed",
+          "embedding_pool",
+          "gather_vec4",
+          "gelu",
+          "layernorm",
+          "residual",
+          "residual_vec4",
+          "rope",
+          "rope_precompute",
+          "rope_qk",
+          "scale",
+          "scale_inplace",
+          "split_qkv",
+          "tiled"
+        ],
+        "undeclaredKernelRefs": []
+      },
+      "stepMetadataHash": "sha256:098b7c301ce2ac9a60dd2f3bed5a790ad9476d22e199f609d7f58ecf5315e6b8",
+      "steps": [
+        {
+          "constants": null,
+          "dispatch": {
+            "bindings": [
+              {
+                "access": null,
+                "addressSpace": "uniform",
+                "binding": 0,
+                "group": 0,
+                "name": "u"
+              },
+              {
+                "access": "read",
+                "addressSpace": "storage",
+                "binding": 1,
+                "group": 0,
+                "name": "indices"
+              },
+              {
+                "access": "read",
+                "addressSpace": "storage",
+                "binding": 2,
+                "group": 0,
+                "name": "embeddings"
+              },
+              {
+                "access": "read_write",
+                "addressSpace": "storage",
+                "binding": 3,
+                "group": 0,
+                "name": "output"
+              }
+            ],
+            "phase": "both",
+            "workgroups": "symbolic:preLayer:both:embed"
+          },
+          "dst": "state",
+          "entry": "main",
+          "id": "preLayer_both_0_embed",
+          "index": 0,
+          "kernel": "gather.wgsl",
+          "kernelDigest": "sha256:4b12653c53247b32ebde7f6cf6a989d6248977e3816c761540b990b5f9818cb6",
+          "kernelId": "embed",
+          "layers": "all",
+          "op": "embed",
+          "phase": "both",
+          "precision": null,
+          "section": "preLayer",
+          "src": "state",
+          "weights": "embed_tokens"
+        },
+        {
+          "constants": null,
+          "dispatch": {
+            "bindings": [
+              {
+                "access": null,
+                "addressSpace": "uniform",
+                "binding": 0,
+                "group": 0,
+                "name": "u"
+              },
+              {
+                "access": "read",
+                "addressSpace": "storage",
+                "binding": 1,
+                "group": 0,
+                "name": "input"
+              },
+              {
+                "access": "read",
+                "addressSpace": "storage",
+                "binding": 2,
+                "group": 0,
+                "name": "weight"
+              },
+              {
+                "access": "read",
+                "addressSpace": "storage",
+                "binding": 3,
+                "group": 0,
+                "name": "bias"
+              },
+              {
+                "access": "read_write",
+                "addressSpace": "storage",
+                "binding": 4,
+                "group": 0,
+                "name": "output"
+              }
+            ],
+            "phase": "decode",
+            "workgroups": "symbolic:layer:decode:input_norm"
+          },
+          "dst": "state",
+          "entry": "main",
+          "id": "layer_decode_1_input_norm",
+          "index": 1,
+          "kernel": "layernorm.wgsl",
+          "kernelDigest": "sha256:8ff885017bfcfc8fdb8d16e09c358c000830bfd5fbf3d87187694edb0cb44f7c",
+          "kernelId": "layernorm",
+          "layers": "all",
+          "op": "input_norm",
+          "phase": "decode",
+          "precision": null,
+          "section": "layer",
+          "src": "state",
+          "weights": null
+        },
+        {
+          "constants": null,
+          "dispatch": {
+            "bindings": [
+              {
+                "access": null,
+                "addressSpace": "uniform",
+                "binding": 0,
+                "group": 0,
+                "name": "u"
+              },
+              {
+                "access": "read",
+                "addressSpace": "storage",
+                "binding": 1,
+                "group": 0,
+                "name": "A"
+              },
+              {
+                "access": "read",
+                "addressSpace": "storage",
+                "binding": 2,
+                "group": 0,
+                "name": "B"
+              },
+              {
+                "access": "read_write",
+                "addressSpace": "storage",
+                "binding": 3,
+                "group": 0,
+                "name": "C"
+              }
+            ],
+            "phase": "decode",
+            "workgroups": "symbolic:layer:decode:q_proj"
+          },
+          "dst": "state",
+          "entry": "main",
+          "id": "layer_decode_2_q_proj",
+          "index": 2,
+          "kernel": "matmul_f32.wgsl",
+          "kernelDigest": "sha256:b5bb8e3d8014136e33de7935dd2a1f074c988044fe05cf5b559718c6f061eaa8",
+          "kernelId": "tiled",
+          "layers": "all",
+          "op": "q_proj",
+          "phase": "decode",
+          "precision": null,
+          "section": "layer",
+          "src": "state",
+          "weights": "layer.{L}.self_attn.q_proj"
+        },
+        {
+          "constants": null,
+          "dispatch": {
+            "bindings": [
+              {
+                "access": null,
+                "addressSpace": "uniform",
+                "binding": 0,
+                "group": 0,
+                "name": "u"
+              },
+              {
+                "access": "read",
+                "addressSpace": "storage",
+                "binding": 1,
+                "group": 0,
+                "name": "A"
+              },
+              {
+                "access": "read",
+                "addressSpace": "storage",
+                "binding": 2,
+                "group": 0,
+                "name": "B"
+              },
+              {
+                "access": "read_write",
+                "addressSpace": "storage",
+                "binding": 3,
+                "group": 0,
+                "name": "C"
+              }
+            ],
+            "phase": "decode",
+            "workgroups": "symbolic:layer:decode:k_proj"
+          },
+          "dst": "state",
+          "entry": "main",
+          "id": "layer_decode_3_k_proj",
+          "index": 3,
+          "kernel": "matmul_f32.wgsl",
+          "kernelDigest": "sha256:b5bb8e3d8014136e33de7935dd2a1f074c988044fe05cf5b559718c6f061eaa8",
+          "kernelId": "tiled",
+          "layers": "all",
+          "op": "k_proj",
+          "phase": "decode",
+          "precision": null,
+          "section": "layer",
+          "src": "state",
+          "weights": "layer.{L}.self_attn.k_proj"
+        },
+        {
+          "constants": null,
+          "dispatch": {
+            "bindings": [
+              {
+                "access": null,
+                "addressSpace": "uniform",
+                "binding": 0,
+                "group": 0,
+                "name": "u"
+              },
+              {
+                "access": "read",
+                "addressSpace": "storage",
+                "binding": 1,
+                "group": 0,
+                "name": "A"
+              },
+              {
+                "access": "read",
+                "addressSpace": "storage",
+                "binding": 2,
+                "group": 0,
+                "name": "B"
+              },
+              {
+                "access": "read_write",
+                "addressSpace": "storage",
+                "binding": 3,
+                "group": 0,
+                "name": "C"
+              }
+            ],
+            "phase": "decode",
+            "workgroups": "symbolic:layer:decode:v_proj"
+          },
+          "dst": "state",
+          "entry": "main",
+          "id": "layer_decode_4_v_proj",
+          "index": 4,
+          "kernel": "matmul_f32.wgsl",
+          "kernelDigest": "sha256:b5bb8e3d8014136e33de7935dd2a1f074c988044fe05cf5b559718c6f061eaa8",
+          "kernelId": "tiled",
+          "layers": "all",
+          "op": "v_proj",
+          "phase": "decode",
+          "precision": null,
+          "section": "layer",
+          "src": "state",
+          "weights": "layer.{L}.self_attn.v_proj"
+        },
+        {
+          "constants": null,
+          "dispatch": {
+            "bindings": [
+              {
+                "access": null,
+                "addressSpace": "uniform",
+                "binding": 0,
+                "group": 0,
+                "name": "u"
+              },
+              {
+                "access": "read_write",
+                "addressSpace": "storage",
+                "binding": 1,
+                "group": 0,
+                "name": "input"
+              },
+              {
+                "access": "read_write",
+                "addressSpace": "storage",
+                "binding": 2,
+                "group": 0,
+                "name": "freqs_cos"
+              },
+              {
+                "access": "read_write",
+                "addressSpace": "storage",
+                "binding": 3,
+                "group": 0,
+                "name": "freqs_sin"
+              }
+            ],
+            "phase": "decode",
+            "workgroups": "symbolic:layer:decode:rope_q"
+          },
+          "dst": "state",
+          "entry": "main",
+          "id": "layer_decode_5_rope_q",
+          "index": 5,
+          "kernel": "rope.wgsl",
+          "kernelDigest": "sha256:b2da9d396668981dab9794c2973b668279f768994466b083d2105730555e1a5b",
+          "kernelId": "rope",
+          "layers": "all",
+          "op": "rope_q",
+          "phase": "decode",
+          "precision": null,
+          "section": "layer",
+          "src": "state",
+          "weights": null
+        },
+        {
+          "constants": null,
+          "dispatch": {
+            "bindings": [
+              {
+                "access": null,
+                "addressSpace": "uniform",
+                "binding": 0,
+                "group": 0,
+                "name": "u"
+              },
+              {
+                "access": "read_write",
+                "addressSpace": "storage",
+                "binding": 1,
+                "group": 0,
+                "name": "input"
+              },
+              {
+                "access": "read_write",
+                "addressSpace": "storage",
+                "binding": 2,
+                "group": 0,
+                "name": "freqs_cos"
+              },
+              {
+                "access": "read_write",
+                "addressSpace": "storage",
+                "binding": 3,
+                "group": 0,
+                "name": "freqs_sin"
+              }
+            ],
+            "phase": "decode",
+            "workgroups": "symbolic:layer:decode:rope_k"
+          },
+          "dst": "state",
+          "entry": "main",
+          "id": "layer_decode_6_rope_k",
+          "index": 6,
+          "kernel": "rope.wgsl",
+          "kernelDigest": "sha256:b2da9d396668981dab9794c2973b668279f768994466b083d2105730555e1a5b",
+          "kernelId": "rope",
+          "layers": "all",
+          "op": "rope_k",
+          "phase": "decode",
+          "precision": null,
+          "section": "layer",
+          "src": "state",
+          "weights": null
+        },
+        {
+          "constants": null,
+          "dispatch": {
+            "bindings": [
+              {
+                "access": null,
+                "addressSpace": "uniform",
+                "binding": 0,
+                "group": 0,
+                "name": "u"
+              },
+              {
+                "access": "read",
+                "addressSpace": "storage",
+                "binding": 1,
+                "group": 0,
+                "name": "Q"
+              },
+              {
+                "access": "read",
+                "addressSpace": "storage",
+                "binding": 2,
+                "group": 0,
+                "name": "K"
+              },
+              {
+                "access": "read",
+                "addressSpace": "storage",
+                "binding": 3,
+                "group": 0,
+                "name": "V"
+              },
+              {
+                "access": "read_write",
+                "addressSpace": "storage",
+                "binding": 4,
+                "group": 0,
+                "name": "output"
+              },
+              {
+                "access": "read",
+                "addressSpace": "storage",
+                "binding": 5,
+                "group": 0,
+                "name": "kv_len_buffer"
+              },
+              {
+                "access": "read",
+                "addressSpace": "storage",
+                "binding": 6,
+                "group": 0,
+                "name": "page_table"
+              }
+            ],
+            "phase": "decode",
+            "workgroups": "symbolic:layer:decode:attention"
+          },
+          "dst": "state",
+          "entry": "main",
+          "id": "layer_decode_7_attention",
+          "index": 7,
+          "kernel": "attention_small.wgsl",
+          "kernelDigest": "sha256:6752ddd7ab53e6235c9b5b1a9515141c0d111df7fac9f4c0d7a38f9943490ed4",
+          "kernelId": "attn_small",
+          "layers": "all",
+          "op": "attention",
+          "phase": "decode",
+          "precision": {
+            "kvDtype": "f32"
+          },
+          "section": "layer",
+          "src": "state",
+          "weights": null
+        },
+        {
+          "constants": null,
+          "dispatch": {
+            "bindings": [
+              {
+                "access": null,
+                "addressSpace": "uniform",
+                "binding": 0,
+                "group": 0,
+                "name": "u"
+              },
+              {
+                "access": "read",
+                "addressSpace": "storage",
+                "binding": 1,
+                "group": 0,
+                "name": "A"
+              },
+              {
+                "access": "read",
+                "addressSpace": "storage",
+                "binding": 2,
+                "group": 0,
+                "name": "B"
+              },
+              {
+                "access": "read_write",
+                "addressSpace": "storage",
+                "binding": 3,
+                "group": 0,
+                "name": "C"
+              }
+            ],
+            "phase": "decode",
+            "workgroups": "symbolic:layer:decode:o_proj"
+          },
+          "dst": "state",
+          "entry": "main",
+          "id": "layer_decode_8_o_proj",
+          "index": 8,
+          "kernel": "matmul_f32.wgsl",
+          "kernelDigest": "sha256:b5bb8e3d8014136e33de7935dd2a1f074c988044fe05cf5b559718c6f061eaa8",
+          "kernelId": "tiled",
+          "layers": "all",
+          "op": "o_proj",
+          "phase": "decode",
+          "precision": null,
+          "section": "layer",
+          "src": "state",
+          "weights": "layer.{L}.self_attn.o_proj"
+        },
+        {
+          "constants": null,
+          "dispatch": {
+            "bindings": [
+              {
+                "access": null,
+                "addressSpace": "uniform",
+                "binding": 0,
+                "group": 0,
+                "name": "u"
+              },
+              {
+                "access": "read",
+                "addressSpace": "storage",
+                "binding": 1,
+                "group": 0,
+                "name": "a"
+              },
+              {
+                "access": "read",
+                "addressSpace": "storage",
+                "binding": 2,
+                "group": 0,
+                "name": "b"
+              },
+              {
+                "access": "read_write",
+                "addressSpace": "storage",
+                "binding": 3,
+                "group": 0,
+                "name": "output"
+              }
+            ],
+            "phase": "decode",
+            "workgroups": "symbolic:layer:decode:attn_residual"
+          },
+          "dst": "state",
+          "entry": "main",
+          "id": "layer_decode_9_attn_residual",
+          "index": 9,
+          "kernel": "residual.wgsl",
+          "kernelDigest": "sha256:abd19bc08ad668a7cad562e2bc0a4be1aa8827ad4300d8d474b7fc2af4c27117",
+          "kernelId": "residual",
+          "layers": "all",
+          "op": "attn_residual",
+          "phase": "decode",
+          "precision": null,
+          "section": "layer",
+          "src": "state",
+          "weights": null
+        },
+        {
+          "constants": null,
+          "dispatch": {
+            "bindings": [
+              {
+                "access": null,
+                "addressSpace": "uniform",
+                "binding": 0,
+                "group": 0,
+                "name": "u"
+              },
+              {
+                "access": "read",
+                "addressSpace": "storage",
+                "binding": 1,
+                "group": 0,
+                "name": "input"
+              },
+              {
+                "access": "read",
+                "addressSpace": "storage",
+                "binding": 2,
+                "group": 0,
+                "name": "weight"
+              },
+              {
+                "access": "read",
+                "addressSpace": "storage",
+                "binding": 3,
+                "group": 0,
+                "name": "bias"
+              },
+              {
+                "access": "read_write",
+                "addressSpace": "storage",
+                "binding": 4,
+                "group": 0,
+                "name": "output"
+              }
+            ],
+            "phase": "decode",
+            "workgroups": "symbolic:layer:decode:post_attn_norm"
+          },
+          "dst": "state",
+          "entry": "main",
+          "id": "layer_decode_10_post_attn_norm",
+          "index": 10,
+          "kernel": "layernorm.wgsl",
+          "kernelDigest": "sha256:8ff885017bfcfc8fdb8d16e09c358c000830bfd5fbf3d87187694edb0cb44f7c",
+          "kernelId": "layernorm",
+          "layers": "all",
+          "op": "post_attn_norm",
+          "phase": "decode",
+          "precision": null,
+          "section": "layer",
+          "src": "state",
+          "weights": null
+        },
+        {
+          "constants": null,
+          "dispatch": {
+            "bindings": [
+              {
+                "access": null,
+                "addressSpace": "uniform",
+                "binding": 0,
+                "group": 0,
+                "name": "u"
+              },
+              {
+                "access": "read",
+                "addressSpace": "storage",
+                "binding": 1,
+                "group": 0,
+                "name": "A"
+              },
+              {
+                "access": "read",
+                "addressSpace": "storage",
+                "binding": 2,
+                "group": 0,
+                "name": "B"
+              },
+              {
+                "access": "read_write",
+                "addressSpace": "storage",
+                "binding": 3,
+                "group": 0,
+                "name": "C"
+              }
+            ],
+            "phase": "decode",
+            "workgroups": "symbolic:layer:decode:up_proj"
+          },
+          "dst": "state",
+          "entry": "main",
+          "id": "layer_decode_11_up_proj",
+          "index": 11,
+          "kernel": "matmul_f32.wgsl",
+          "kernelDigest": "sha256:b5bb8e3d8014136e33de7935dd2a1f074c988044fe05cf5b559718c6f061eaa8",
+          "kernelId": "tiled",
+          "layers": "all",
+          "op": "up_proj",
+          "phase": "decode",
+          "precision": null,
+          "section": "layer",
+          "src": "state",
+          "weights": "layer.{L}.mlp.up_proj"
+        },
+        {
+          "constants": {
+            "HAS_GATE": false
+          },
+          "dispatch": {
+            "bindings": [
+              {
+                "access": null,
+                "addressSpace": "uniform",
+                "binding": 0,
+                "group": 0,
+                "name": "u"
+              },
+              {
+                "access": "read",
+                "addressSpace": "storage",
+                "binding": 1,
+                "group": 0,
+                "name": "input"
+              },
+              {
+                "access": "read_write",
+                "addressSpace": "storage",
+                "binding": 2,
+                "group": 0,
+                "name": "output"
+              },
+              {
+                "access": "read",
+                "addressSpace": "storage",
+                "binding": 3,
+                "group": 0,
+                "name": "gate"
+              }
+            ],
+            "phase": "decode",
+            "workgroups": "symbolic:layer:decode:activation"
+          },
+          "dst": "state",
+          "entry": "main",
+          "id": "layer_decode_12_activation",
+          "index": 12,
+          "kernel": "gelu.wgsl",
+          "kernelDigest": "sha256:7f8900b69de5107e4cf424cac0d4de1539591ece34e977ff30f6f7364460ab34",
+          "kernelId": "gelu",
+          "layers": "all",
+          "op": "activation",
+          "phase": "decode",
+          "precision": null,
+          "section": "layer",
+          "src": "state",
+          "weights": null
+        },
+        {
+          "constants": null,
+          "dispatch": {
+            "bindings": [
+              {
+                "access": null,
+                "addressSpace": "uniform",
+                "binding": 0,
+                "group": 0,
+                "name": "u"
+              },
+              {
+                "access": "read",
+                "addressSpace": "storage",
+                "binding": 1,
+                "group": 0,
+                "name": "A"
+              },
+              {
+                "access": "read",
+                "addressSpace": "storage",
+                "binding": 2,
+                "group": 0,
+                "name": "B"
+              },
+              {
+                "access": "read_write",
+                "addressSpace": "storage",
+                "binding": 3,
+                "group": 0,
+                "name": "C"
+              }
+            ],
+            "phase": "decode",
+            "workgroups": "symbolic:layer:decode:down_proj"
+          },
+          "dst": "state",
+          "entry": "main",
+          "id": "layer_decode_13_down_proj",
+          "index": 13,
+          "kernel": "matmul_f32.wgsl",
+          "kernelDigest": "sha256:b5bb8e3d8014136e33de7935dd2a1f074c988044fe05cf5b559718c6f061eaa8",
+          "kernelId": "tiled",
+          "layers": "all",
+          "op": "down_proj",
+          "phase": "decode",
+          "precision": null,
+          "section": "layer",
+          "src": "state",
+          "weights": "layer.{L}.mlp.down_proj"
+        },
+        {
+          "constants": null,
+          "dispatch": {
+            "bindings": [
+              {
+                "access": null,
+                "addressSpace": "uniform",
+                "binding": 0,
+                "group": 0,
+                "name": "u"
+              },
+              {
+                "access": "read",
+                "addressSpace": "storage",
+                "binding": 1,
+                "group": 0,
+                "name": "a"
+              },
+              {
+                "access": "read",
+                "addressSpace": "storage",
+                "binding": 2,
+                "group": 0,
+                "name": "b"
+              },
+              {
+                "access": "read_write",
+                "addressSpace": "storage",
+                "binding": 3,
+                "group": 0,
+                "name": "output"
+              }
+            ],
+            "phase": "decode",
+            "workgroups": "symbolic:layer:decode:ffn_residual"
+          },
+          "dst": "state",
+          "entry": "main",
+          "id": "layer_decode_14_ffn_residual",
+          "index": 14,
+          "kernel": "residual.wgsl",
+          "kernelDigest": "sha256:abd19bc08ad668a7cad562e2bc0a4be1aa8827ad4300d8d474b7fc2af4c27117",
+          "kernelId": "residual",
+          "layers": "all",
+          "op": "ffn_residual",
+          "phase": "decode",
+          "precision": null,
+          "section": "layer",
+          "src": "state",
+          "weights": null
+        },
+        {
+          "constants": null,
+          "dispatch": {
+            "bindings": [
+              {
+                "access": null,
+                "addressSpace": "uniform",
+                "binding": 0,
+                "group": 0,
+                "name": "u"
+              },
+              {
+                "access": "read",
+                "addressSpace": "storage",
+                "binding": 1,
+                "group": 0,
+                "name": "input"
+              },
+              {
+                "access": "read",
+                "addressSpace": "storage",
+                "binding": 2,
+                "group": 0,
+                "name": "weight"
+              },
+              {
+                "access": "read",
+                "addressSpace": "storage",
+                "binding": 3,
+                "group": 0,
+                "name": "bias"
+              },
+              {
+                "access": "read_write",
+                "addressSpace": "storage",
+                "binding": 4,
+                "group": 0,
+                "name": "output"
+              }
+            ],
+            "phase": "prefill",
+            "workgroups": "symbolic:layer:prefill:input_norm"
+          },
+          "dst": "state",
+          "entry": "main",
+          "id": "layer_prefill_15_input_norm",
+          "index": 15,
+          "kernel": "layernorm.wgsl",
+          "kernelDigest": "sha256:8ff885017bfcfc8fdb8d16e09c358c000830bfd5fbf3d87187694edb0cb44f7c",
+          "kernelId": "layernorm",
+          "layers": "all",
+          "op": "input_norm",
+          "phase": "prefill",
+          "precision": null,
+          "section": "layer",
+          "src": "state",
+          "weights": null
+        },
+        {
+          "constants": null,
+          "dispatch": {
+            "bindings": [
+              {
+                "access": null,
+                "addressSpace": "uniform",
+                "binding": 0,
+                "group": 0,
+                "name": "u"
+              },
+              {
+                "access": "read",
+                "addressSpace": "storage",
+                "binding": 1,
+                "group": 0,
+                "name": "A"
+              },
+              {
+                "access": "read",
+                "addressSpace": "storage",
+                "binding": 2,
+                "group": 0,
+                "name": "B"
+              },
+              {
+                "access": "read_write",
+                "addressSpace": "storage",
+                "binding": 3,
+                "group": 0,
+                "name": "C"
+              }
+            ],
+            "phase": "prefill",
+            "workgroups": "symbolic:layer:prefill:q_proj"
+          },
+          "dst": "state",
+          "entry": "main",
+          "id": "layer_prefill_16_q_proj",
+          "index": 16,
+          "kernel": "matmul_f32.wgsl",
+          "kernelDigest": "sha256:b5bb8e3d8014136e33de7935dd2a1f074c988044fe05cf5b559718c6f061eaa8",
+          "kernelId": "tiled",
+          "layers": "all",
+          "op": "q_proj",
+          "phase": "prefill",
+          "precision": null,
+          "section": "layer",
+          "src": "state",
+          "weights": "layer.{L}.self_attn.q_proj"
+        },
+        {
+          "constants": null,
+          "dispatch": {
+            "bindings": [
+              {
+                "access": null,
+                "addressSpace": "uniform",
+                "binding": 0,
+                "group": 0,
+                "name": "u"
+              },
+              {
+                "access": "read",
+                "addressSpace": "storage",
+                "binding": 1,
+                "group": 0,
+                "name": "A"
+              },
+              {
+                "access": "read",
+                "addressSpace": "storage",
+                "binding": 2,
+                "group": 0,
+                "name": "B"
+              },
+              {
+                "access": "read_write",
+                "addressSpace": "storage",
+                "binding": 3,
+                "group": 0,
+                "name": "C"
+              }
+            ],
+            "phase": "prefill",
+            "workgroups": "symbolic:layer:prefill:k_proj"
+          },
+          "dst": "state",
+          "entry": "main",
+          "id": "layer_prefill_17_k_proj",
+          "index": 17,
+          "kernel": "matmul_f32.wgsl",
+          "kernelDigest": "sha256:b5bb8e3d8014136e33de7935dd2a1f074c988044fe05cf5b559718c6f061eaa8",
+          "kernelId": "tiled",
+          "layers": "all",
+          "op": "k_proj",
+          "phase": "prefill",
+          "precision": null,
+          "section": "layer",
+          "src": "state",
+          "weights": "layer.{L}.self_attn.k_proj"
+        },
+        {
+          "constants": null,
+          "dispatch": {
+            "bindings": [
+              {
+                "access": null,
+                "addressSpace": "uniform",
+                "binding": 0,
+                "group": 0,
+                "name": "u"
+              },
+              {
+                "access": "read",
+                "addressSpace": "storage",
+                "binding": 1,
+                "group": 0,
+                "name": "A"
+              },
+              {
+                "access": "read",
+                "addressSpace": "storage",
+                "binding": 2,
+                "group": 0,
+                "name": "B"
+              },
+              {
+                "access": "read_write",
+                "addressSpace": "storage",
+                "binding": 3,
+                "group": 0,
+                "name": "C"
+              }
+            ],
+            "phase": "prefill",
+            "workgroups": "symbolic:layer:prefill:v_proj"
+          },
+          "dst": "state",
+          "entry": "main",
+          "id": "layer_prefill_18_v_proj",
+          "index": 18,
+          "kernel": "matmul_f32.wgsl",
+          "kernelDigest": "sha256:b5bb8e3d8014136e33de7935dd2a1f074c988044fe05cf5b559718c6f061eaa8",
+          "kernelId": "tiled",
+          "layers": "all",
+          "op": "v_proj",
+          "phase": "prefill",
+          "precision": null,
+          "section": "layer",
+          "src": "state",
+          "weights": "layer.{L}.self_attn.v_proj"
+        },
+        {
+          "constants": null,
+          "dispatch": {
+            "bindings": [
+              {
+                "access": null,
+                "addressSpace": "uniform",
+                "binding": 0,
+                "group": 0,
+                "name": "u"
+              },
+              {
+                "access": "read_write",
+                "addressSpace": "storage",
+                "binding": 1,
+                "group": 0,
+                "name": "input"
+              },
+              {
+                "access": "read_write",
+                "addressSpace": "storage",
+                "binding": 2,
+                "group": 0,
+                "name": "freqs_cos"
+              },
+              {
+                "access": "read_write",
+                "addressSpace": "storage",
+                "binding": 3,
+                "group": 0,
+                "name": "freqs_sin"
+              }
+            ],
+            "phase": "prefill",
+            "workgroups": "symbolic:layer:prefill:rope_q"
+          },
+          "dst": "state",
+          "entry": "main",
+          "id": "layer_prefill_19_rope_q",
+          "index": 19,
+          "kernel": "rope.wgsl",
+          "kernelDigest": "sha256:b2da9d396668981dab9794c2973b668279f768994466b083d2105730555e1a5b",
+          "kernelId": "rope",
+          "layers": "all",
+          "op": "rope_q",
+          "phase": "prefill",
+          "precision": null,
+          "section": "layer",
+          "src": "state",
+          "weights": null
+        },
+        {
+          "constants": null,
+          "dispatch": {
+            "bindings": [
+              {
+                "access": null,
+                "addressSpace": "uniform",
+                "binding": 0,
+                "group": 0,
+                "name": "u"
+              },
+              {
+                "access": "read_write",
+                "addressSpace": "storage",
+                "binding": 1,
+                "group": 0,
+                "name": "input"
+              },
+              {
+                "access": "read_write",
+                "addressSpace": "storage",
+                "binding": 2,
+                "group": 0,
+                "name": "freqs_cos"
+              },
+              {
+                "access": "read_write",
+                "addressSpace": "storage",
+                "binding": 3,
+                "group": 0,
+                "name": "freqs_sin"
+              }
+            ],
+            "phase": "prefill",
+            "workgroups": "symbolic:layer:prefill:rope_k"
+          },
+          "dst": "state",
+          "entry": "main",
+          "id": "layer_prefill_20_rope_k",
+          "index": 20,
+          "kernel": "rope.wgsl",
+          "kernelDigest": "sha256:b2da9d396668981dab9794c2973b668279f768994466b083d2105730555e1a5b",
+          "kernelId": "rope",
+          "layers": "all",
+          "op": "rope_k",
+          "phase": "prefill",
+          "precision": null,
+          "section": "layer",
+          "src": "state",
+          "weights": null
+        },
+        {
+          "constants": null,
+          "dispatch": {
+            "bindings": [
+              {
+                "access": null,
+                "addressSpace": "uniform",
+                "binding": 0,
+                "group": 0,
+                "name": "u"
+              },
+              {
+                "access": "read",
+                "addressSpace": "storage",
+                "binding": 1,
+                "group": 0,
+                "name": "Q"
+              },
+              {
+                "access": "read",
+                "addressSpace": "storage",
+                "binding": 2,
+                "group": 0,
+                "name": "K"
+              },
+              {
+                "access": "read",
+                "addressSpace": "storage",
+                "binding": 3,
+                "group": 0,
+                "name": "V"
+              },
+              {
+                "access": "read_write",
+                "addressSpace": "storage",
+                "binding": 4,
+                "group": 0,
+                "name": "output"
+              },
+              {
+                "access": "read",
+                "addressSpace": "storage",
+                "binding": 5,
+                "group": 0,
+                "name": "kv_len_buffer"
+              },
+              {
+                "access": "read",
+                "addressSpace": "storage",
+                "binding": 6,
+                "group": 0,
+                "name": "page_table"
+              }
+            ],
+            "phase": "prefill",
+            "workgroups": "symbolic:layer:prefill:attention"
+          },
+          "dst": "state",
+          "entry": "main",
+          "id": "layer_prefill_21_attention",
+          "index": 21,
+          "kernel": "attention_small.wgsl",
+          "kernelDigest": "sha256:6752ddd7ab53e6235c9b5b1a9515141c0d111df7fac9f4c0d7a38f9943490ed4",
+          "kernelId": "attn_small",
+          "layers": "all",
+          "op": "attention",
+          "phase": "prefill",
+          "precision": {
+            "kvDtype": "f32"
+          },
+          "section": "layer",
+          "src": "state",
+          "weights": null
+        },
+        {
+          "constants": null,
+          "dispatch": {
+            "bindings": [
+              {
+                "access": null,
+                "addressSpace": "uniform",
+                "binding": 0,
+                "group": 0,
+                "name": "u"
+              },
+              {
+                "access": "read",
+                "addressSpace": "storage",
+                "binding": 1,
+                "group": 0,
+                "name": "A"
+              },
+              {
+                "access": "read",
+                "addressSpace": "storage",
+                "binding": 2,
+                "group": 0,
+                "name": "B"
+              },
+              {
+                "access": "read_write",
+                "addressSpace": "storage",
+                "binding": 3,
+                "group": 0,
+                "name": "C"
+              }
+            ],
+            "phase": "prefill",
+            "workgroups": "symbolic:layer:prefill:o_proj"
+          },
+          "dst": "state",
+          "entry": "main",
+          "id": "layer_prefill_22_o_proj",
+          "index": 22,
+          "kernel": "matmul_f32.wgsl",
+          "kernelDigest": "sha256:b5bb8e3d8014136e33de7935dd2a1f074c988044fe05cf5b559718c6f061eaa8",
+          "kernelId": "tiled",
+          "layers": "all",
+          "op": "o_proj",
+          "phase": "prefill",
+          "precision": null,
+          "section": "layer",
+          "src": "state",
+          "weights": "layer.{L}.self_attn.o_proj"
+        },
+        {
+          "constants": null,
+          "dispatch": {
+            "bindings": [
+              {
+                "access": null,
+                "addressSpace": "uniform",
+                "binding": 0,
+                "group": 0,
+                "name": "u"
+              },
+              {
+                "access": "read",
+                "addressSpace": "storage",
+                "binding": 1,
+                "group": 0,
+                "name": "a"
+              },
+              {
+                "access": "read",
+                "addressSpace": "storage",
+                "binding": 2,
+                "group": 0,
+                "name": "b"
+              },
+              {
+                "access": "read_write",
+                "addressSpace": "storage",
+                "binding": 3,
+                "group": 0,
+                "name": "output"
+              }
+            ],
+            "phase": "prefill",
+            "workgroups": "symbolic:layer:prefill:attn_residual"
+          },
+          "dst": "state",
+          "entry": "main",
+          "id": "layer_prefill_23_attn_residual",
+          "index": 23,
+          "kernel": "residual.wgsl",
+          "kernelDigest": "sha256:abd19bc08ad668a7cad562e2bc0a4be1aa8827ad4300d8d474b7fc2af4c27117",
+          "kernelId": "residual",
+          "layers": "all",
+          "op": "attn_residual",
+          "phase": "prefill",
+          "precision": null,
+          "section": "layer",
+          "src": "state",
+          "weights": null
+        },
+        {
+          "constants": null,
+          "dispatch": {
+            "bindings": [
+              {
+                "access": null,
+                "addressSpace": "uniform",
+                "binding": 0,
+                "group": 0,
+                "name": "u"
+              },
+              {
+                "access": "read",
+                "addressSpace": "storage",
+                "binding": 1,
+                "group": 0,
+                "name": "input"
+              },
+              {
+                "access": "read",
+                "addressSpace": "storage",
+                "binding": 2,
+                "group": 0,
+                "name": "weight"
+              },
+              {
+                "access": "read",
+                "addressSpace": "storage",
+                "binding": 3,
+                "group": 0,
+                "name": "bias"
+              },
+              {
+                "access": "read_write",
+                "addressSpace": "storage",
+                "binding": 4,
+                "group": 0,
+                "name": "output"
+              }
+            ],
+            "phase": "prefill",
+            "workgroups": "symbolic:layer:prefill:post_attn_norm"
+          },
+          "dst": "state",
+          "entry": "main",
+          "id": "layer_prefill_24_post_attn_norm",
+          "index": 24,
+          "kernel": "layernorm.wgsl",
+          "kernelDigest": "sha256:8ff885017bfcfc8fdb8d16e09c358c000830bfd5fbf3d87187694edb0cb44f7c",
+          "kernelId": "layernorm",
+          "layers": "all",
+          "op": "post_attn_norm",
+          "phase": "prefill",
+          "precision": null,
+          "section": "layer",
+          "src": "state",
+          "weights": null
+        },
+        {
+          "constants": null,
+          "dispatch": {
+            "bindings": [
+              {
+                "access": null,
+                "addressSpace": "uniform",
+                "binding": 0,
+                "group": 0,
+                "name": "u"
+              },
+              {
+                "access": "read",
+                "addressSpace": "storage",
+                "binding": 1,
+                "group": 0,
+                "name": "A"
+              },
+              {
+                "access": "read",
+                "addressSpace": "storage",
+                "binding": 2,
+                "group": 0,
+                "name": "B"
+              },
+              {
+                "access": "read_write",
+                "addressSpace": "storage",
+                "binding": 3,
+                "group": 0,
+                "name": "C"
+              }
+            ],
+            "phase": "prefill",
+            "workgroups": "symbolic:layer:prefill:up_proj"
+          },
+          "dst": "state",
+          "entry": "main",
+          "id": "layer_prefill_25_up_proj",
+          "index": 25,
+          "kernel": "matmul_f32.wgsl",
+          "kernelDigest": "sha256:b5bb8e3d8014136e33de7935dd2a1f074c988044fe05cf5b559718c6f061eaa8",
+          "kernelId": "tiled",
+          "layers": "all",
+          "op": "up_proj",
+          "phase": "prefill",
+          "precision": null,
+          "section": "layer",
+          "src": "state",
+          "weights": "layer.{L}.mlp.up_proj"
+        },
+        {
+          "constants": {
+            "HAS_GATE": false
+          },
+          "dispatch": {
+            "bindings": [
+              {
+                "access": null,
+                "addressSpace": "uniform",
+                "binding": 0,
+                "group": 0,
+                "name": "u"
+              },
+              {
+                "access": "read",
+                "addressSpace": "storage",
+                "binding": 1,
+                "group": 0,
+                "name": "input"
+              },
+              {
+                "access": "read_write",
+                "addressSpace": "storage",
+                "binding": 2,
+                "group": 0,
+                "name": "output"
+              },
+              {
+                "access": "read",
+                "addressSpace": "storage",
+                "binding": 3,
+                "group": 0,
+                "name": "gate"
+              }
+            ],
+            "phase": "prefill",
+            "workgroups": "symbolic:layer:prefill:activation"
+          },
+          "dst": "state",
+          "entry": "main",
+          "id": "layer_prefill_26_activation",
+          "index": 26,
+          "kernel": "gelu.wgsl",
+          "kernelDigest": "sha256:7f8900b69de5107e4cf424cac0d4de1539591ece34e977ff30f6f7364460ab34",
+          "kernelId": "gelu",
+          "layers": "all",
+          "op": "activation",
+          "phase": "prefill",
+          "precision": null,
+          "section": "layer",
+          "src": "state",
+          "weights": null
+        },
+        {
+          "constants": null,
+          "dispatch": {
+            "bindings": [
+              {
+                "access": null,
+                "addressSpace": "uniform",
+                "binding": 0,
+                "group": 0,
+                "name": "u"
+              },
+              {
+                "access": "read",
+                "addressSpace": "storage",
+                "binding": 1,
+                "group": 0,
+                "name": "A"
+              },
+              {
+                "access": "read",
+                "addressSpace": "storage",
+                "binding": 2,
+                "group": 0,
+                "name": "B"
+              },
+              {
+                "access": "read_write",
+                "addressSpace": "storage",
+                "binding": 3,
+                "group": 0,
+                "name": "C"
+              }
+            ],
+            "phase": "prefill",
+            "workgroups": "symbolic:layer:prefill:down_proj"
+          },
+          "dst": "state",
+          "entry": "main",
+          "id": "layer_prefill_27_down_proj",
+          "index": 27,
+          "kernel": "matmul_f32.wgsl",
+          "kernelDigest": "sha256:b5bb8e3d8014136e33de7935dd2a1f074c988044fe05cf5b559718c6f061eaa8",
+          "kernelId": "tiled",
+          "layers": "all",
+          "op": "down_proj",
+          "phase": "prefill",
+          "precision": null,
+          "section": "layer",
+          "src": "state",
+          "weights": "layer.{L}.mlp.down_proj"
+        },
+        {
+          "constants": null,
+          "dispatch": {
+            "bindings": [
+              {
+                "access": null,
+                "addressSpace": "uniform",
+                "binding": 0,
+                "group": 0,
+                "name": "u"
+              },
+              {
+                "access": "read",
+                "addressSpace": "storage",
+                "binding": 1,
+                "group": 0,
+                "name": "a"
+              },
+              {
+                "access": "read",
+                "addressSpace": "storage",
+                "binding": 2,
+                "group": 0,
+                "name": "b"
+              },
+              {
+                "access": "read_write",
+                "addressSpace": "storage",
+                "binding": 3,
+                "group": 0,
+                "name": "output"
+              }
+            ],
+            "phase": "prefill",
+            "workgroups": "symbolic:layer:prefill:ffn_residual"
+          },
+          "dst": "state",
+          "entry": "main",
+          "id": "layer_prefill_28_ffn_residual",
+          "index": 28,
+          "kernel": "residual.wgsl",
+          "kernelDigest": "sha256:abd19bc08ad668a7cad562e2bc0a4be1aa8827ad4300d8d474b7fc2af4c27117",
+          "kernelId": "residual",
+          "layers": "all",
+          "op": "ffn_residual",
+          "phase": "prefill",
+          "precision": null,
+          "section": "layer",
+          "src": "state",
+          "weights": null
+        },
+        {
+          "constants": null,
+          "dispatch": {
+            "bindings": [
+              {
+                "access": null,
+                "addressSpace": "uniform",
+                "binding": 0,
+                "group": 0,
+                "name": "u"
+              },
+              {
+                "access": "read",
+                "addressSpace": "storage",
+                "binding": 1,
+                "group": 0,
+                "name": "input"
+              },
+              {
+                "access": "read",
+                "addressSpace": "storage",
+                "binding": 2,
+                "group": 0,
+                "name": "weight"
+              },
+              {
+                "access": "read",
+                "addressSpace": "storage",
+                "binding": 3,
+                "group": 0,
+                "name": "bias"
+              },
+              {
+                "access": "read_write",
+                "addressSpace": "storage",
+                "binding": 4,
+                "group": 0,
+                "name": "output"
+              }
+            ],
+            "phase": "both",
+            "workgroups": "symbolic:postLayer:both:final_norm"
+          },
+          "dst": "state",
+          "entry": "main",
+          "id": "postLayer_both_29_final_norm",
+          "index": 29,
+          "kernel": "layernorm.wgsl",
+          "kernelDigest": "sha256:8ff885017bfcfc8fdb8d16e09c358c000830bfd5fbf3d87187694edb0cb44f7c",
+          "kernelId": "layernorm",
+          "layers": "all",
+          "op": "final_norm",
+          "phase": "both",
+          "precision": null,
+          "section": "postLayer",
+          "src": "state",
+          "weights": null
+        }
+      ]
+    },
+    "executionGraphHash": "sha256:ed5fe38d0a71579ead0480b68b792b7b62f470e5d9e5c28fa2b5aa7b370846e5",
+    "manifestArtifactId": "manifest:manifest.json:418770adfcfa",
+    "programBundleArtifactId": "program-bundle:program-bundle.json:c2cbf995d965",
+    "programBundleHash": "sha256:c2cbf995d96539b435a93264c76cb8446726a2d6645147b148cf00cdd11b3930",
+    "referenceTranscript": {
+      "checks": [
+        {
+          "actualCheckpointId": "facebook/esm2_t12_35M_UR50D@6fbf070e65b0b7291e7bbcd451118c216cff79d8",
+          "actualModelId": "esm2-t12-35m-ur50d-f32-af32",
+          "expectedCheckpointId": "facebook/esm2_t12_35M_UR50D@6fbf070e65b0b7291e7bbcd451118c216cff79d8",
+          "expectedModelId": "esm2-t12-35m-ur50d-f32-af32",
+          "id": "model.identity",
+          "passed": true
+        },
+        {
+          "actualAlphabet": "amino_acid",
+          "expectedAlphabet": "amino_acid",
+          "id": "sequence.contract",
+          "passed": true
+        },
+        {
+          "actualCount": 26,
+          "expectedCount": 26,
+          "id": "tokenizer.ids",
+          "mismatchCount": 0,
+          "mismatches": [],
+          "passed": true
+        },
+        {
+          "id": "pooledEmbedding.finite",
+          "nonFiniteCount": 0,
+          "passed": true,
+          "valueCount": 480
+        },
+        {
+          "id": "tokenEmbeddings.finite",
+          "nonFiniteCount": 0,
+          "passed": true,
+          "valueCount": 12480
+        },
+        {
+          "actual": null,
+          "id": "logits.not-requested",
+          "passed": true
+        },
+        {
+          "failures": [],
+          "id": "pooledEmbedding.parity",
+          "maxAbsoluteError": 0.000512970571081163,
+          "meanAbsoluteError": 0.00018339532278973249,
+          "passed": true,
+          "sampleCount": 16,
+          "tolerance": 0.001
+        },
+        {
+          "failures": [],
+          "id": "tokenEmbeddings.parity",
+          "maxAbsoluteError": 0.0008977349577942162,
+          "meanAbsoluteError": 0.00029206163859269086,
+          "passed": true,
+          "sampleCount": 40,
+          "tolerance": 0.001
+        }
+      ],
+      "executionGraphHash": "sha256:ed5fe38d0a71579ead0480b68b792b7b62f470e5d9e5c28fa2b5aa7b370846e5",
+      "manifestHash": "sha256:418770adfcfabb1668616ff31fb0c39a42de18fca7bab26d0b51490ea2f42642",
+      "modelId": "esm2-t12-35m-ur50d-f32-af32",
+      "operation": "encodeSequence",
+      "options": {
+        "includeLogits": false,
+        "includeTokenEmbeddings": true
+      },
+      "output": {
+        "digests": {
+          "logits": null,
+          "pooledEmbedding": "sha256:9cbbde06771379ddf9bd6770ec7283938b547c174abde9266a5161bc82889c61",
+          "tokenEmbeddings": "sha256:fbe3e50222840ce8ac64496f3cffafc9307acabee7b3e94a82e64203c87829d4"
+        },
+        "embeddingDim": 480,
+        "tokenCount": 26
+      },
+      "reference": {
+        "digest": "sha256:dbca1163755bed5e1eb2365d08a3d0f286fa7d5b6d8408281e7ba28f48948221",
+        "input": {
+          "alphabet": "amino_acid",
+          "sequence": "MKTIIALSYIFCLVFADYKDDDDK",
+          "tokenIds": [
+            0,
+            20,
+            15,
+            11,
+            12,
+            12,
+            5,
+            4,
+            8,
+            19,
+            12,
+            18,
+            23,
+            4,
+            7,
+            18,
+            5,
+            13,
+            19,
+            15,
+            13,
+            13,
+            13,
+            13,
+            15,
+            2
+          ]
+        },
+        "path": "tools/data/esm2-t12-35m-ur50d-sequence-reference.json",
+        "source": {
+          "checkpointId": "facebook/esm2_t12_35M_UR50D@6fbf070e65b0b7291e7bbcd451118c216cff79d8",
+          "files": {
+            "config.json": "sha256:ae07364efa51e0fa1d81da3fe608f6d948abdbbb69785ba6e1df379a458e58ee",
+            "model.safetensors": "sha256:e35647818e0e064351d4531ed480d225a002567b4b2b93ad3a9246d753150fc0",
+            "special_tokens_map.json": "sha256:3aedcd4211c0d43aec4e607ff60a63255f3174ead795e997350f09a5f8cd9ee1",
+            "tokenizer_config.json": "sha256:7e9161ecdb548ec45a41cbc6b24aa4476fdd418461f491c4207baa99419a29ad",
+            "vocab.txt": "sha256:0b82cc0a7c7cf9e567b1e5892d793285b9fbae822c964ca48696f7db44598e03"
+          },
+          "repository": "facebook/esm2_t12_35M_UR50D",
+          "revision": "6fbf070e65b0b7291e7bbcd451118c216cff79d8",
+          "runtime": {
+            "framework": "pytorch",
+            "torchVersion": "2.9.1",
+            "transformersVersion": "4.57.3",
+            "weightDtype": "f32"
+          }
+        },
+        "tolerances": {
+          "pooledEmbeddingMaxAbs": 0.001,
+          "tokenEmbeddingMaxAbs": 0.001
+        }
+      },
+      "schema": "doppler.sequence-reference-transcript/v1",
+      "source": {
+        "hash": "sha256:79ddd8cc6627577611fd026697cbc02cb507dd51489bd002f48c51edef1cd374",
+        "kind": "sequence-qualification",
+        "path": "../../../../tmp/doppler-esm2-closed-pack-34q5w4/browser-qualification.json"
+      },
+      "surface": "browser-webgpu"
+    },
+    "schema": "doppler.pack-program/v1",
+    "tokenizerArtifactIds": [
+      "tokenizer:tokenizer.json:f874eed68372"
+    ],
+    "weightArtifactIds": [
+      "weight-shard:shard_00000.bin:7d0c833bb71b",
+      "weight-shard:shard_00001.bin:42cfb7b67978"
+    ]
+  },
+  "release": {
+    "application": {
+      "applicationId": "doppler-sequence-pack-qualification",
+      "applicationRevision": "8746325f4b3790052b87f9c684ac32b5d23a0df5-dirty",
+      "applicationRevisionDigest": "sha256:596aaacec47e0d533fad8863089a6cd6f9b2f8775c0e1777550988f05a949258",
+      "oracle": {
+        "digest": "sha256:dbca1163755bed5e1eb2365d08a3d0f286fa7d5b6d8408281e7ba28f48948221",
+        "id": "esm2-sampled-embedding-parity"
+      },
+      "workload": {
+        "digest": "sha256:9d43e1ee8a9e585c88046a484ca0224474bd9d3364d285d922e15e4e13809479",
+        "id": "esm2-embedding-reference"
+      }
+    },
+    "exclusions": {
+      "known": [
+        {
+          "code": "unsupported-device",
+          "evidenceDigest": "sha256:79ddd8cc6627577611fd026697cbc02cb507dd51489bd002f48c51edef1cd374",
+          "reason": "Internally operated browser qualification only; independent machines, general numerical equivalence, and biological correctness are not established.",
+          "scope": "outside-the-observed-chrome145-intel-gen12lp-configuration"
+        }
+      ],
+      "rejectionTypes": [
+        "acceptance-failed",
+        "application-gate-failed",
+        "artifact-invalid",
+        "evidence-expired",
+        "migration-required",
+        "revoked",
+        "unsupported-device"
+      ]
+    },
+    "lifecycle": {
+      "failedUpgrade": {
+        "preservePrevious": true,
+        "previousPackId": null,
+        "previousSemanticRoot": null
+      },
+      "migration": null,
+      "releaseVersion": "0.1.0",
+      "supersedes": null
+    },
+    "revocation": {
+      "authorityId": "doppler-pack-v0-development",
+      "failClosedAfterExpiry": true,
+      "offlineExpirySeconds": 86400,
+      "policyDigest": "sha256:fa4c97df6df478f314a55d7a7d125c063760f3902e53632cf354aa25126137bc"
+    },
+    "schema": "doppler.pack-release/v1",
+    "source": {
+      "license": {
+        "name": "MIT License",
+        "sourceUrl": "https://raw.githubusercontent.com/facebookresearch/esm/2b369911bb5b4b0dda914521b9475cad1656b2ac/LICENSE",
+        "spdxId": "MIT",
+        "textDigest": "sha256:da6d3703ed11cbe42bd212c725957c98da23cbff1998c05fa4b3d976d1a58e93"
+      },
+      "provenanceDigest": "sha256:bfcf4f00e072fd1c011877a9b73c3b071a302ccbf78c4ccb8be6fb87c443aada",
+      "repository": "https://huggingface.co/facebook/esm2_t12_35M_UR50D",
+      "revision": "6fbf070e65b0b7291e7bbcd451118c216cff79d8",
+      "revisionDigest": "sha256:fc7a336d430a42f96baaf004e79ef13bde0898b3848d30e8fa862f5131492b20"
+    },
+    "stateSnapshot": {
+      "format": "canonical-json",
+      "identityDigest": "sha256:41d4c4658f3818204f7d0e9db3c49d0cf89f48186745ac8ab3a2346dc25ee74e",
+      "portableAcrossTargetIds": [
+        "webgpu-f32-f32-portable"
+      ],
+      "schema": "doppler.pack-state-snapshot/v1"
+    }
+  },
+  "schema": "doppler.pack/v2",
+  "schemaVersion": 2,
+  "semanticRoot": "sha256:cf7a796402cc32c603da2dff6c5b57675bdc092d3a57698c259f4ce78a392fe8",
+  "signature": {
+    "algorithm": "Ed25519",
+    "authority": "doppler-pack-v0-development",
+    "publicKeyDigest": "sha256:a3c2c90dba51571f20bc2f0c279ee74b72562e41628b556de0f2ffb6ca674e34",
+    "signatureHex": "7d217da498cf6105bdeeedae702f7f28c808b8f79edf92c6c1f27da0925de5be10c94ff97ad3964d5a5023c60590faba4c2c035057d207aabe25e20fd964590e",
+    "signedDigest": "sha256:cf7a796402cc32c603da2dff6c5b57675bdc092d3a57698c259f4ce78a392fe8"
+  },
+  "targetPlans": [
+    {
+      "capabilityPredicate": {
+        "minBufferSize": 67108864,
+        "requiresF16": false,
+        "requiresSubgroups": false
+      },
+      "dtypes": {
+        "activation": "f32",
+        "kv": "f32",
+        "weight": "f32"
+      },
+      "executionGraphHash": "sha256:ed5fe38d0a71579ead0480b68b792b7b62f470e5d9e5c28fa2b5aa7b370846e5",
+      "fusions": [],
+      "initialExecutionIdentity": {
+        "digest": "sha256:d4ada08ac380e7de1b2ed24c7d1a7bcba37672eb9c12da3b2f3ceb2a061bca05",
+        "dtypeLane": {
+          "accumulation": "f32",
+          "activation": "f32",
+          "kv": "f32",
+          "math": "f32",
+          "output": "f32"
+        },
+        "executionGraphHash": "sha256:ed5fe38d0a71579ead0480b68b792b7b62f470e5d9e5c28fa2b5aa7b370846e5",
+        "executionPlanDigest": "sha256:42741b3d5e65506d6cfe527f17f91cc45fc244978356dca14c57269c2fcb472f",
+        "fusionSet": [],
+        "fusionSetHash": "sha256:4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+        "kernelClosure": [
+          {
+            "digest": "sha256:9e066a9a201a8b10707995a4b64322c68641873afb017e8f96d5249edc6caf55",
+            "entry": "main",
+            "file": "attention.wgsl",
+            "moduleId": "attention_general"
+          },
+          {
+            "digest": "sha256:6752ddd7ab53e6235c9b5b1a9515141c0d111df7fac9f4c0d7a38f9943490ed4",
+            "entry": "main",
+            "file": "attention_small.wgsl",
+            "moduleId": "attn_small"
+          },
+          {
+            "digest": "sha256:e7d3b4a5f9efc8b0569c56bcdeb63e921fa6d1d006901deabc734cab40346715",
+            "entry": "main",
+            "file": "bias_add.wgsl",
+            "moduleId": "bias_add"
+          },
+          {
+            "digest": "sha256:4b12653c53247b32ebde7f6cf6a989d6248977e3816c761540b990b5f9818cb6",
+            "entry": "main",
+            "file": "gather.wgsl",
+            "moduleId": "embed"
+          },
+          {
+            "digest": "sha256:0e5769590d038ee8b9ebea1600114de9b5044d7f26cd323d54ab14f0536e9c10",
+            "entry": "main",
+            "file": "embedding_pool_f32.wgsl",
+            "moduleId": "embedding_pool"
+          },
+          {
+            "digest": "sha256:e8d90b826350a9feb96476fc4a5e568aebfc29948cf07a2d7db0dee4a4216b6a",
+            "entry": "gather_vec4",
+            "file": "gather_vec4.wgsl",
+            "moduleId": "gather_vec4"
+          },
+          {
+            "digest": "sha256:7f8900b69de5107e4cf424cac0d4de1539591ece34e977ff30f6f7364460ab34",
+            "entry": "main",
+            "file": "gelu.wgsl",
+            "moduleId": "gelu"
+          },
+          {
+            "digest": "sha256:8ff885017bfcfc8fdb8d16e09c358c000830bfd5fbf3d87187694edb0cb44f7c",
+            "entry": "main",
+            "file": "layernorm.wgsl",
+            "moduleId": "layernorm"
+          },
+          {
+            "digest": "sha256:abd19bc08ad668a7cad562e2bc0a4be1aa8827ad4300d8d474b7fc2af4c27117",
+            "entry": "main",
+            "file": "residual.wgsl",
+            "moduleId": "residual"
+          },
+          {
+            "digest": "sha256:99e8217beb9ebc661ae8da6dde06196c0746e884421fe803b1a8bcea22e753b1",
+            "entry": "add_vec4",
+            "file": "residual_vec4.wgsl",
+            "moduleId": "residual_vec4"
+          },
+          {
+            "digest": "sha256:b2da9d396668981dab9794c2973b668279f768994466b083d2105730555e1a5b",
+            "entry": "main",
+            "file": "rope.wgsl",
+            "moduleId": "rope"
+          },
+          {
+            "digest": "sha256:0ccd038aa7e69bf064d599e86f93100735cc32fba20a942cb1deed5da5a692e8",
+            "entry": "main",
+            "file": "rope_precompute.wgsl",
+            "moduleId": "rope_precompute"
+          },
+          {
+            "digest": "sha256:379186c35451a1bf08f3d157db52e48f4865c92caee230656fd55b7fa500351c",
+            "entry": "main",
+            "file": "rope_qk.wgsl",
+            "moduleId": "rope_qk"
+          },
+          {
+            "digest": "sha256:8070894b1488c76bdf6685b99243e0fadd79a2511b52b22b91ba1ead9990831c",
+            "entry": "main",
+            "file": "scale.wgsl",
+            "moduleId": "scale"
+          },
+          {
+            "digest": "sha256:c1dcc2a3c04fe3836457724ccc45dbbee9423ad3710febcf91107f3a23c46cb2",
+            "entry": "main_inplace",
+            "file": "scale.wgsl",
+            "moduleId": "scale_inplace"
+          },
+          {
+            "digest": "sha256:57d1e55354e019598c7c39b98b9a48c99269a59506cca3a376fd690b96e15d54",
+            "entry": "main",
+            "file": "split_qkv.wgsl",
+            "moduleId": "split_qkv"
+          },
+          {
+            "digest": "sha256:b5bb8e3d8014136e33de7935dd2a1f074c988044fe05cf5b559718c6f061eaa8",
+            "entry": "main",
+            "file": "matmul_f32.wgsl",
+            "moduleId": "tiled"
+          }
+        ],
+        "kernelClosureHash": "sha256:1dfa2d42d8f924f0a117ab079c08bed9a2e9baafcc224b44723df9b3beceb864",
+        "kvLayout": {
+          "kvDtype": "f32",
+          "layout": "contiguous",
+          "maxSeqLen": 1026,
+          "pageSize": 256,
+          "quantization": {
+            "bitWidth": 4,
+            "mode": "none",
+            "prodMode": false
+          },
+          "tiering": {
+            "coldDtype": "f16",
+            "coldPageSize": 256,
+            "compression": {
+              "bitWidth": 4,
+              "blockSize": 1,
+              "mode": "none",
+              "prodMode": false
+            },
+            "gating": {
+              "minAluBwRatio": 0,
+              "mode": "auto"
+            },
+            "hotWindow": 1024,
+            "mode": "off"
+          }
+        },
+        "kvLayoutHash": "sha256:16dc3788d4a6cb6e09f1e03c5f9a8f4184718eacf27d5a541fd8ae3a5b19aa10",
+        "memoryPolicy": {
+          "kvcache": {
+            "kvDtype": "f32",
+            "layout": "contiguous",
+            "maxSeqLen": 1026,
+            "pageSize": 256,
+            "quantization": {
+              "bitWidth": 4,
+              "mode": "none",
+              "prodMode": false
+            },
+            "tiering": {
+              "coldDtype": "f16",
+              "coldPageSize": 256,
+              "compression": {
+                "bitWidth": 4,
+                "blockSize": 1,
+                "mode": "none",
+                "prodMode": false
+              },
+              "gating": {
+                "minAluBwRatio": 0,
+                "mode": "auto"
+              },
+              "hotWindow": 1024,
+              "mode": "off"
+            }
+          },
+          "largeWeights": null,
+          "perLayerInputs": {
+            "gpuUpload": {
+              "mode": "per_step_slices",
+              "stagingRows": 2
+            },
+            "hotCache": {
+              "maxBytes": 134217728,
+              "maxTokens": 1024,
+              "mode": "prepared_tokens",
+              "outputDtype": "f32"
+            },
+            "materialization": "auto",
+            "prefetch": {
+              "mode": "next_token",
+              "rowsAhead": 1
+            },
+            "rowCache": {
+              "decodedDtype": "f32",
+              "maxBytes": 134217728,
+              "maxRows": 256,
+              "mode": "lru"
+            }
+          }
+        },
+        "memoryPolicyHash": "sha256:d80a12e9bd91cf94a695c33b81cfca313945ceb4e10d0057e4761a32e2aff2f7",
+        "programLoadPolicy": {
+          "runtimeConfig": {
+            "inference": {
+              "compute": {
+                "activationDtype": "f32"
+              },
+              "generation": {
+                "disableMultiTokenDecode": false
+              },
+              "session": {
+                "attentionDecodeOnline": null,
+                "compute": {
+                  "defaults": {
+                    "accumDtype": "f32",
+                    "activationDtype": "f32",
+                    "mathDtype": "f32",
+                    "outputDtype": "f32"
+                  }
+                },
+                "decodeLoop": {
+                  "batchSize": 1,
+                  "disableCommandBatching": false,
+                  "readbackInterval": 1,
+                  "readbackMode": "sequential",
+                  "ringStaging": 1,
+                  "ringStop": 1,
+                  "ringTokens": 1,
+                  "stopCheckMode": "per-token",
+                  "submitLatencyThresholdMs": null
+                },
+                "fusedFfnQ4K": null,
+                "kvcache": {
+                  "kvDtype": "f32",
+                  "layout": "contiguous",
+                  "maxSeqLen": 1026,
+                  "pageSize": 256,
+                  "quantization": {
+                    "bitWidth": 4,
+                    "mode": "none",
+                    "prodMode": false
+                  },
+                  "tiering": {
+                    "coldDtype": "f16",
+                    "coldPageSize": 256,
+                    "compression": {
+                      "bitWidth": 4,
+                      "blockSize": 1,
+                      "mode": "none",
+                      "prodMode": false
+                    },
+                    "gating": {
+                      "minAluBwRatio": 0,
+                      "mode": "auto"
+                    },
+                    "hotWindow": 1024,
+                    "mode": "off"
+                  }
+                },
+                "lmHeadArgmaxQ4K": null,
+                "perLayerInputs": {
+                  "gpuUpload": {
+                    "mode": "per_step_slices",
+                    "stagingRows": 2
+                  },
+                  "hotCache": {
+                    "maxBytes": 134217728,
+                    "maxTokens": 1024,
+                    "mode": "prepared_tokens",
+                    "outputDtype": "f32"
+                  },
+                  "materialization": "auto",
+                  "prefetch": {
+                    "mode": "next_token",
+                    "rowsAhead": 1
+                  },
+                  "rowCache": {
+                    "decodedDtype": "f32",
+                    "maxBytes": 134217728,
+                    "maxRows": 256,
+                    "mode": "lru"
+                  }
+                },
+                "prefillChunkLayers": 4,
+                "prefillChunkSubmitMode": "sync",
+                "prefillTokenChunkSize": null,
+                "retainQ4KMaterialization": false,
+                "skipEmbeddingKVCacheWrites": true,
+                "speculation": {
+                  "mode": "none",
+                  "rollbackOnReject": true,
+                  "threshold": null,
+                  "tokens": 1,
+                  "verify": "greedy"
+                },
+                "useFlashPrefillAttention": false,
+                "useFusedGateUpGelu": false,
+                "useFusedQKVSplitQKNorm": false,
+                "useFusedQKVSplitQKNormRoPE": false,
+                "useFusedRmsnormWideTile": false,
+                "useGreedyLmHeadArgmaxFusion": false,
+                "useLargeBatchF16F32FusedGateUp": false,
+                "useLinearAttentionABProjectionFusion": false,
+                "useLinearAttentionFusedDecodeCore": false,
+                "useLinearAttentionQKVZProjectionFusion": false,
+                "useOrtFlashPrefillAttention": false,
+                "usePostAttnNormFusedGateUp": false,
+                "usePostFfnNextInputRMSNormPairFusion": false,
+                "useSandwichRMSNormPairFusion": false,
+                "useTiledQ4KPrefill": false,
+                "useWideTileQ4KDecode": false,
+                "useWideTileQ4KPrefill": false,
+                "useWideTileResidualFusion": false
+              }
+            }
+          },
+          "schema": "doppler.pack-program-load-policy/v2"
+        },
+        "programLoadPolicyHash": "sha256:039c7bf97dd7ca99879471a949388f18e42eef3e1f397cf65938373f9a8d83b6",
+        "resolvedGraphHash": "sha256:8aa4066d70ed5cbd3e56ad0f307a39da3e2619a7667d9cb5c89f0223feeb7efd",
+        "runtimeEngine": {
+          "capabilityPolicy": {
+            "dtypeEffect": "full-f32",
+            "evidence": [
+              "tests/integration/execution-v1-capability-policy.test.js"
+            ],
+            "kind": "runtime-session-compatibility",
+            "reason": "Runtime KV cache resolved f32."
+          },
+          "kernelPath": {
+            "definition": {
+              "activationDtype": "f32",
+              "decode": {
+                "steps": [
+                  {
+                    "entry": "main",
+                    "kernel": "layernorm.wgsl",
+                    "op": "input_norm"
+                  },
+                  {
+                    "entry": "main",
+                    "kernel": "matmul_f32.wgsl",
+                    "op": "q_proj",
+                    "weights": "layer.{L}.self_attn.q_proj"
+                  },
+                  {
+                    "entry": "main",
+                    "kernel": "matmul_f32.wgsl",
+                    "op": "k_proj",
+                    "weights": "layer.{L}.self_attn.k_proj"
+                  },
+                  {
+                    "entry": "main",
+                    "kernel": "matmul_f32.wgsl",
+                    "op": "v_proj",
+                    "weights": "layer.{L}.self_attn.v_proj"
+                  },
+                  {
+                    "entry": "main",
+                    "kernel": "rope.wgsl",
+                    "op": "rope_q"
+                  },
+                  {
+                    "entry": "main",
+                    "kernel": "rope.wgsl",
+                    "op": "rope_k"
+                  },
+                  {
+                    "entry": "main",
+                    "kernel": "attention_small.wgsl",
+                    "op": "attention",
+                    "precision": {
+                      "kvDtype": "f32"
+                    }
+                  },
+                  {
+                    "entry": "main",
+                    "kernel": "matmul_f32.wgsl",
+                    "op": "o_proj",
+                    "weights": "layer.{L}.self_attn.o_proj"
+                  },
+                  {
+                    "entry": "main",
+                    "kernel": "residual.wgsl",
+                    "op": "attn_residual"
+                  },
+                  {
+                    "entry": "main",
+                    "kernel": "layernorm.wgsl",
+                    "op": "post_attn_norm"
+                  },
+                  {
+                    "entry": "main",
+                    "kernel": "matmul_f32.wgsl",
+                    "op": "up_proj",
+                    "weights": "layer.{L}.mlp.up_proj"
+                  },
+                  {
+                    "constants": {
+                      "HAS_GATE": false
+                    },
+                    "entry": "main",
+                    "kernel": "gelu.wgsl",
+                    "op": "activation"
+                  },
+                  {
+                    "entry": "main",
+                    "kernel": "matmul_f32.wgsl",
+                    "op": "down_proj",
+                    "weights": "layer.{L}.mlp.down_proj"
+                  },
+                  {
+                    "entry": "main",
+                    "kernel": "residual.wgsl",
+                    "op": "ffn_residual"
+                  }
+                ]
+              },
+              "description": "Generated from manifest.inference.execution",
+              "id": "esm2-t12-35m-ur50d-f32-af32-execution-inline",
+              "kvDtype": "f32",
+              "name": "Execution inline kernel path",
+              "postLayer": [
+                {
+                  "entry": "main",
+                  "kernel": "layernorm.wgsl",
+                  "op": "final_norm"
+                }
+              ],
+              "preLayer": [
+                {
+                  "entry": "main",
+                  "kernel": "gather.wgsl",
+                  "op": "embed",
+                  "weights": "embed_tokens"
+                }
+              ],
+              "prefill": {
+                "steps": [
+                  {
+                    "entry": "main",
+                    "kernel": "layernorm.wgsl",
+                    "op": "input_norm"
+                  },
+                  {
+                    "entry": "main",
+                    "kernel": "matmul_f32.wgsl",
+                    "op": "q_proj",
+                    "weights": "layer.{L}.self_attn.q_proj"
+                  },
+                  {
+                    "entry": "main",
+                    "kernel": "matmul_f32.wgsl",
+                    "op": "k_proj",
+                    "weights": "layer.{L}.self_attn.k_proj"
+                  },
+                  {
+                    "entry": "main",
+                    "kernel": "matmul_f32.wgsl",
+                    "op": "v_proj",
+                    "weights": "layer.{L}.self_attn.v_proj"
+                  },
+                  {
+                    "entry": "main",
+                    "kernel": "rope.wgsl",
+                    "op": "rope_q"
+                  },
+                  {
+                    "entry": "main",
+                    "kernel": "rope.wgsl",
+                    "op": "rope_k"
+                  },
+                  {
+                    "entry": "main",
+                    "kernel": "attention_small.wgsl",
+                    "op": "attention",
+                    "precision": {
+                      "kvDtype": "f32"
+                    }
+                  },
+                  {
+                    "entry": "main",
+                    "kernel": "matmul_f32.wgsl",
+                    "op": "o_proj",
+                    "weights": "layer.{L}.self_attn.o_proj"
+                  },
+                  {
+                    "entry": "main",
+                    "kernel": "residual.wgsl",
+                    "op": "attn_residual"
+                  },
+                  {
+                    "entry": "main",
+                    "kernel": "layernorm.wgsl",
+                    "op": "post_attn_norm"
+                  },
+                  {
+                    "entry": "main",
+                    "kernel": "matmul_f32.wgsl",
+                    "op": "up_proj",
+                    "weights": "layer.{L}.mlp.up_proj"
+                  },
+                  {
+                    "constants": {
+                      "HAS_GATE": false
+                    },
+                    "entry": "main",
+                    "kernel": "gelu.wgsl",
+                    "op": "activation"
+                  },
+                  {
+                    "entry": "main",
+                    "kernel": "matmul_f32.wgsl",
+                    "op": "down_proj",
+                    "weights": "layer.{L}.mlp.down_proj"
+                  },
+                  {
+                    "entry": "main",
+                    "kernel": "residual.wgsl",
+                    "op": "ffn_residual"
+                  }
+                ]
+              }
+            },
+            "hash": "sha256:3b79f985077d988875dfd0c6b02bcb250f98ee5a97e0c1cfdc67f3336bd69380",
+            "id": "esm2-t12-35m-ur50d-f32-af32-execution-inline",
+            "source": "execution-v1"
+          },
+          "laneIntegrity": {
+            "declared": {
+              "accumDtype": "f32",
+              "activationDtype": "f32",
+              "kvDtype": "f32",
+              "mathDtype": "f32"
+            },
+            "executed": {
+              "accumDtype": "f32",
+              "activationDtype": "f32",
+              "kvDtype": "f32",
+              "mathDtype": "f32"
+            },
+            "policy": {
+              "dtypeEffect": "full-f32",
+              "evidence": [
+                "tests/integration/execution-v1-capability-policy.test.js"
+              ],
+              "kind": "runtime-session-compatibility",
+              "reason": "Runtime KV cache resolved f32."
+            },
+            "status": "matches",
+            "transforms": []
+          },
+          "resolvedRuntimeSchema": "doppler.resolved-runtime-session/v1",
+          "resolvedRuntimeSessionId": "sha256:e8b1607f4032bd5468108228ba12cea092214579dc5f6a2aa941d724d8c85f0e"
+        },
+        "runtimeEngineDigest": "sha256:b54095d0c4f431d482247dc3bfb9267658f0d153a84c558f02b996c5bdb167df",
+        "schema": "doppler.initial-execution-identity/v2"
+      },
+      "kernelClosure": [
+        {
+          "digest": "sha256:9e066a9a201a8b10707995a4b64322c68641873afb017e8f96d5249edc6caf55",
+          "moduleId": "attention_general",
+          "sourceHash": "sha256:3ad589dc77edb932d6527beaea72ebe2772ede29baa0de71d6c6639c859c9745"
+        },
+        {
+          "digest": "sha256:6752ddd7ab53e6235c9b5b1a9515141c0d111df7fac9f4c0d7a38f9943490ed4",
+          "moduleId": "attn_small",
+          "sourceHash": "sha256:fb03c1f9adfb7d118e87620814f2e5f75d53b65bd2856df91ef4e444f906ef3c"
+        },
+        {
+          "digest": "sha256:e7d3b4a5f9efc8b0569c56bcdeb63e921fa6d1d006901deabc734cab40346715",
+          "moduleId": "bias_add",
+          "sourceHash": "sha256:856f13e8049d8300055b6188b56e79bc4d3cbad80614ae4d33159e7ea8088bae"
+        },
+        {
+          "digest": "sha256:4b12653c53247b32ebde7f6cf6a989d6248977e3816c761540b990b5f9818cb6",
+          "moduleId": "embed",
+          "sourceHash": "sha256:85b2d7fff9358bf4087d9b3f0804803ba798111a3d728db9561b53789280032c"
+        },
+        {
+          "digest": "sha256:0e5769590d038ee8b9ebea1600114de9b5044d7f26cd323d54ab14f0536e9c10",
+          "moduleId": "embedding_pool",
+          "sourceHash": "sha256:085f75855a89fd6612f225529d4e6e82f03888f938c04e8f40aba46bbfd2ea3b"
+        },
+        {
+          "digest": "sha256:e8d90b826350a9feb96476fc4a5e568aebfc29948cf07a2d7db0dee4a4216b6a",
+          "moduleId": "gather_vec4",
+          "sourceHash": "sha256:4ba3022d03c0d83b8db0b03724ab8cd80b316175c2ddafd3bf498479365263e5"
+        },
+        {
+          "digest": "sha256:7f8900b69de5107e4cf424cac0d4de1539591ece34e977ff30f6f7364460ab34",
+          "moduleId": "gelu",
+          "sourceHash": "sha256:e6fb22edd25c1e210e7dfc61e0b67d31832c1d9d3caf985e4c56f61dd7b57ac6"
+        },
+        {
+          "digest": "sha256:8ff885017bfcfc8fdb8d16e09c358c000830bfd5fbf3d87187694edb0cb44f7c",
+          "moduleId": "layernorm",
+          "sourceHash": "sha256:a0a78590a442e26ccec467d48609863c538a18506aaafd29a336f1f7216f6927"
+        },
+        {
+          "digest": "sha256:abd19bc08ad668a7cad562e2bc0a4be1aa8827ad4300d8d474b7fc2af4c27117",
+          "moduleId": "residual",
+          "sourceHash": "sha256:e5d606c42ae57cb72cca129d7ad85e95021158a7d9fbce68af3119630bbcb698"
+        },
+        {
+          "digest": "sha256:99e8217beb9ebc661ae8da6dde06196c0746e884421fe803b1a8bcea22e753b1",
+          "moduleId": "residual_vec4",
+          "sourceHash": "sha256:04781252bb73f1a24ad7f266cb10e41aa172f105ef2a51d1416802d6b1aba9cb"
+        },
+        {
+          "digest": "sha256:b2da9d396668981dab9794c2973b668279f768994466b083d2105730555e1a5b",
+          "moduleId": "rope",
+          "sourceHash": "sha256:a4472c7134a08c77ecefc665918652a7eb4d79acb373a5dc5fdc865b9ccb937d"
+        },
+        {
+          "digest": "sha256:0ccd038aa7e69bf064d599e86f93100735cc32fba20a942cb1deed5da5a692e8",
+          "moduleId": "rope_precompute",
+          "sourceHash": "sha256:0aaf0cbdceb879861872b1bd60e0d8a78818b67511c7bbb8157d7804b929500a"
+        },
+        {
+          "digest": "sha256:379186c35451a1bf08f3d157db52e48f4865c92caee230656fd55b7fa500351c",
+          "moduleId": "rope_qk",
+          "sourceHash": "sha256:fe7f16a865b94ce0c0cf88a220cda96daf174cdc61b0158298f40c09298a840c"
+        },
+        {
+          "digest": "sha256:8070894b1488c76bdf6685b99243e0fadd79a2511b52b22b91ba1ead9990831c",
+          "moduleId": "scale",
+          "sourceHash": "sha256:d4d98632a5d2ce10b8e96b62ce00a14f4388e27f796478efadaffe473bc5f527"
+        },
+        {
+          "digest": "sha256:c1dcc2a3c04fe3836457724ccc45dbbee9423ad3710febcf91107f3a23c46cb2",
+          "moduleId": "scale_inplace",
+          "sourceHash": "sha256:d4d98632a5d2ce10b8e96b62ce00a14f4388e27f796478efadaffe473bc5f527"
+        },
+        {
+          "digest": "sha256:57d1e55354e019598c7c39b98b9a48c99269a59506cca3a376fd690b96e15d54",
+          "moduleId": "split_qkv",
+          "sourceHash": "sha256:f65c37cee36ee2b213d5377d2aa5c5a2d2e20c7b6d1f162e112efd388599ec23"
+        },
+        {
+          "digest": "sha256:b5bb8e3d8014136e33de7935dd2a1f074c988044fe05cf5b559718c6f061eaa8",
+          "moduleId": "tiled",
+          "sourceHash": "sha256:035020f650612fd6f8ac8322b86ec921c64a85ac802b7f4c0fd2dfd3a4c8a1f2"
+        }
+      ],
+      "memoryLayout": {
+        "bufferSlots": [
+          {
+            "owner": "runtime",
+            "role": "token-ids",
+            "scope": "transient",
+            "size": {
+              "alignment": 256,
+              "constantBytes": 0,
+              "minimumBytes": 256,
+              "op": "affine",
+              "terms": {
+                "seqLen": 4
+              }
+            },
+            "slotId": "input_tokens",
+            "usage": [
+              "storage",
+              "copy-dst"
+            ]
+          },
+          {
+            "owner": "program",
+            "role": "activation",
+            "scope": "layer-recycled",
+            "size": {
+              "alignment": 256,
+              "constantBytes": 0,
+              "minimumBytes": 256,
+              "op": "affine",
+              "terms": {
+                "seqLen": 1920
+              }
+            },
+            "slotId": "hidden_state",
+            "usage": [
+              "storage"
+            ]
+          },
+          {
+            "owner": "program",
+            "role": "kv",
+            "scope": "session",
+            "size": {
+              "alignment": 256,
+              "constantBytes": 0,
+              "minimumBytes": 256,
+              "op": "affine",
+              "terms": {
+                "maxSeqLen": 46080
+              }
+            },
+            "slotId": "kv_cache",
+            "usage": [
+              "storage"
+            ]
+          },
+          {
+            "owner": "program",
+            "role": "logits",
+            "scope": "transient",
+            "size": {
+              "bytes": 132,
+              "op": "constant"
+            },
+            "slotId": "logits",
+            "usage": [
+              "storage",
+              "copy-src"
+            ]
+          }
+        ],
+        "kvCacheLayout": "contiguous"
+      },
+      "modelIRHash": "sha256:8a489184e9118de32af4dda4d7144ba2fef4d5cd6f73a9796992714e642850ac",
+      "modelId": "esm2-t12-35m-ur50d-f32-af32",
+      "phases": {
+        "decode": [
+          {
+            "declaredStepIds": [
+              "preLayer_both_0_embed",
+              "layer_decode_1_input_norm",
+              "layer_decode_2_q_proj",
+              "layer_decode_3_k_proj",
+              "layer_decode_4_v_proj",
+              "layer_decode_5_rope_q",
+              "layer_decode_6_rope_k",
+              "layer_decode_7_attention",
+              "layer_decode_8_o_proj",
+              "layer_decode_9_attn_residual",
+              "layer_decode_10_post_attn_norm",
+              "layer_decode_11_up_proj",
+              "layer_decode_12_activation",
+              "layer_decode_13_down_proj",
+              "layer_decode_14_ffn_residual",
+              "postLayer_both_29_final_norm"
+            ],
+            "executionGraphHash": "sha256:ed5fe38d0a71579ead0480b68b792b7b62f470e5d9e5c28fa2b5aa7b370846e5",
+            "kind": "program-phase",
+            "phase": "decode"
+          }
+        ],
+        "prefill": [
+          {
+            "declaredStepIds": [
+              "preLayer_both_0_embed",
+              "layer_prefill_15_input_norm",
+              "layer_prefill_16_q_proj",
+              "layer_prefill_17_k_proj",
+              "layer_prefill_18_v_proj",
+              "layer_prefill_19_rope_q",
+              "layer_prefill_20_rope_k",
+              "layer_prefill_21_attention",
+              "layer_prefill_22_o_proj",
+              "layer_prefill_23_attn_residual",
+              "layer_prefill_24_post_attn_norm",
+              "layer_prefill_25_up_proj",
+              "layer_prefill_26_activation",
+              "layer_prefill_27_down_proj",
+              "layer_prefill_28_ffn_residual",
+              "postLayer_both_29_final_norm"
+            ],
+            "executionGraphHash": "sha256:ed5fe38d0a71579ead0480b68b792b7b62f470e5d9e5c28fa2b5aa7b370846e5",
+            "kind": "program-phase",
+            "phase": "prefill"
+          }
+        ]
+      },
+      "programBundleHash": "sha256:c2cbf995d96539b435a93264c76cb8446726a2d6645147b148cf00cdd11b3930",
+      "qualification": [
+        {
+          "encodedSequences": 1,
+          "evidenceArtifactId": "reference-report:browser-qualification.json:79ddd8cc6627",
+          "evidenceHash": "sha256:79ddd8cc6627577611fd026697cbc02cb507dd51489bd002f48c51edef1cd374",
+          "operation": "encodeSequence",
+          "status": "passed",
+          "surface": "browser-webgpu",
+          "transcriptHash": "sha256:975be753db3e97e8ea2ad9004af665ef9afe091f4e02ff39a4ea399c56f4e283"
+        }
+      ],
+      "schema": "doppler.target-plan/v2",
+      "schemaVersion": 2,
+      "targetId": "webgpu-f32-f32-portable"
+    }
+  ],
+  "wgslModules": [
+    {
+      "digest": "sha256:9e066a9a201a8b10707995a4b64322c68641873afb017e8f96d5249edc6caf55",
+      "entry": "main",
+      "file": "attention.wgsl",
+      "id": "attention_general",
+      "metadata": {
+        "bindings": [
+          {
+            "access": null,
+            "addressSpace": "uniform",
+            "binding": 0,
+            "group": 0,
+            "name": "u"
+          },
+          {
+            "access": "read",
+            "addressSpace": "storage",
+            "binding": 1,
+            "group": 0,
+            "name": "Q"
+          },
+          {
+            "access": "read",
+            "addressSpace": "storage",
+            "binding": 2,
+            "group": 0,
+            "name": "K"
+          },
+          {
+            "access": "read",
+            "addressSpace": "storage",
+            "binding": 3,
+            "group": 0,
+            "name": "V"
+          },
+          {
+            "access": "read_write",
+            "addressSpace": "storage",
+            "binding": 4,
+            "group": 0,
+            "name": "output"
+          },
+          {
+            "access": "read",
+            "addressSpace": "storage",
+            "binding": 5,
+            "group": 0,
+            "name": "kv_len_buffer"
+          },
+          {
+            "access": "read",
+            "addressSpace": "storage",
+            "binding": 6,
+            "group": 0,
+            "name": "page_table"
+          }
+        ],
+        "entry": "main",
+        "overrides": [
+          {
+            "defaultValue": "32u",
+            "name": "BLOCK_SIZE",
+            "type": "u32"
+          },
+          {
+            "defaultValue": "64u",
+            "name": "HEAD_TILE",
+            "type": "u32"
+          },
+          {
+            "defaultValue": "32u",
+            "name": "WORKGROUP_SIZE",
+            "type": "u32"
+          }
+        ],
+        "requiresSubgroups": false,
+        "sourceMetadataHash": "sha256:f493142cbf2af308fb51865b95ee2eb1dc8de261fc91df144cbb51bd5d6afb09",
+        "workgroupSize": [
+          "WORKGROUP_SIZE",
+          "1",
+          "1"
+        ]
+      },
+      "sourceArtifactId": "wgsl-source:attention_general-3ad589dc77edb932.wgsl:3ad589dc77ed",
+      "sourceHash": "sha256:3ad589dc77edb932d6527beaea72ebe2772ede29baa0de71d6c6639c859c9745"
+    },
+    {
+      "digest": "sha256:6752ddd7ab53e6235c9b5b1a9515141c0d111df7fac9f4c0d7a38f9943490ed4",
+      "entry": "main",
+      "file": "attention_small.wgsl",
+      "id": "attn_small",
+      "metadata": {
+        "bindings": [
+          {
+            "access": null,
+            "addressSpace": "uniform",
+            "binding": 0,
+            "group": 0,
+            "name": "u"
+          },
+          {
+            "access": "read",
+            "addressSpace": "storage",
+            "binding": 1,
+            "group": 0,
+            "name": "Q"
+          },
+          {
+            "access": "read",
+            "addressSpace": "storage",
+            "binding": 2,
+            "group": 0,
+            "name": "K"
+          },
+          {
+            "access": "read",
+            "addressSpace": "storage",
+            "binding": 3,
+            "group": 0,
+            "name": "V"
+          },
+          {
+            "access": "read_write",
+            "addressSpace": "storage",
+            "binding": 4,
+            "group": 0,
+            "name": "output"
+          },
+          {
+            "access": "read",
+            "addressSpace": "storage",
+            "binding": 5,
+            "group": 0,
+            "name": "kv_len_buffer"
+          },
+          {
+            "access": "read",
+            "addressSpace": "storage",
+            "binding": 6,
+            "group": 0,
+            "name": "page_table"
+          }
+        ],
+        "entry": "main",
+        "overrides": [],
+        "requiresSubgroups": false,
+        "sourceMetadataHash": "sha256:498e37fdbe9acdeb666769224268cf87c841ebd378eedc19a8cc4be4d524c9bf",
+        "workgroupSize": [
+          "WORKGROUP_SIZE",
+          "1",
+          "1"
+        ]
+      },
+      "sourceArtifactId": "wgsl-source:attn_small-fb03c1f9adfb7d11.wgsl:fb03c1f9adfb",
+      "sourceHash": "sha256:fb03c1f9adfb7d118e87620814f2e5f75d53b65bd2856df91ef4e444f906ef3c"
+    },
+    {
+      "digest": "sha256:e7d3b4a5f9efc8b0569c56bcdeb63e921fa6d1d006901deabc734cab40346715",
+      "entry": "main",
+      "file": "bias_add.wgsl",
+      "id": "bias_add",
+      "metadata": {
+        "bindings": [
+          {
+            "access": null,
+            "addressSpace": "uniform",
+            "binding": 0,
+            "group": 0,
+            "name": "u"
+          },
+          {
+            "access": "read_write",
+            "addressSpace": "storage",
+            "binding": 1,
+            "group": 0,
+            "name": "data"
+          },
+          {
+            "access": "read",
+            "addressSpace": "storage",
+            "binding": 2,
+            "group": 0,
+            "name": "bias"
+          }
+        ],
+        "entry": "main",
+        "overrides": [
+          {
+            "defaultValue": "256u",
+            "name": "WORKGROUP_SIZE",
+            "type": "u32"
+          }
+        ],
+        "requiresSubgroups": false,
+        "sourceMetadataHash": "sha256:0aac960e93d6b6e8bd89fb3be98aeb6421b2ed13dc33f645932f292c305878bd",
+        "workgroupSize": [
+          "WORKGROUP_SIZE",
+          "1",
+          "1"
+        ]
+      },
+      "sourceArtifactId": "wgsl-source:bias_add-856f13e8049d8300.wgsl:856f13e8049d",
+      "sourceHash": "sha256:856f13e8049d8300055b6188b56e79bc4d3cbad80614ae4d33159e7ea8088bae"
+    },
+    {
+      "digest": "sha256:4b12653c53247b32ebde7f6cf6a989d6248977e3816c761540b990b5f9818cb6",
+      "entry": "main",
+      "file": "gather.wgsl",
+      "id": "embed",
+      "metadata": {
+        "bindings": [
+          {
+            "access": null,
+            "addressSpace": "uniform",
+            "binding": 0,
+            "group": 0,
+            "name": "u"
+          },
+          {
+            "access": "read",
+            "addressSpace": "storage",
+            "binding": 1,
+            "group": 0,
+            "name": "indices"
+          },
+          {
+            "access": "read",
+            "addressSpace": "storage",
+            "binding": 2,
+            "group": 0,
+            "name": "embeddings"
+          },
+          {
+            "access": "read_write",
+            "addressSpace": "storage",
+            "binding": 3,
+            "group": 0,
+            "name": "output"
+          }
+        ],
+        "entry": "main",
+        "overrides": [
+          {
+            "defaultValue": "256u",
+            "name": "WORKGROUP_SIZE_MAIN",
+            "type": "u32"
+          }
+        ],
+        "requiresSubgroups": false,
+        "sourceMetadataHash": "sha256:1ba09f607f40bfad8dc2b5872fb41536547ea96a10390b6b21d6964c9672c306",
+        "workgroupSize": [
+          "WORKGROUP_SIZE_MAIN",
+          "1",
+          "1"
+        ]
+      },
+      "sourceArtifactId": "wgsl-source:embed-85b2d7fff9358bf4.wgsl:85b2d7fff935",
+      "sourceHash": "sha256:85b2d7fff9358bf4087d9b3f0804803ba798111a3d728db9561b53789280032c"
+    },
+    {
+      "digest": "sha256:0e5769590d038ee8b9ebea1600114de9b5044d7f26cd323d54ab14f0536e9c10",
+      "entry": "main",
+      "file": "embedding_pool_f32.wgsl",
+      "id": "embedding_pool",
+      "metadata": {
+        "bindings": [
+          {
+            "access": null,
+            "addressSpace": "uniform",
+            "binding": 0,
+            "group": 0,
+            "name": "u"
+          },
+          {
+            "access": "read",
+            "addressSpace": "storage",
+            "binding": 1,
+            "group": 0,
+            "name": "input"
+          },
+          {
+            "access": "read",
+            "addressSpace": "storage",
+            "binding": 2,
+            "group": 0,
+            "name": "mask"
+          },
+          {
+            "access": "read_write",
+            "addressSpace": "storage",
+            "binding": 3,
+            "group": 0,
+            "name": "output"
+          }
+        ],
+        "entry": "main",
+        "overrides": [
+          {
+            "defaultValue": "256u",
+            "name": "WORKGROUP_SIZE",
+            "type": "u32"
+          }
+        ],
+        "requiresSubgroups": false,
+        "sourceMetadataHash": "sha256:07041e94a0cd474cdf30884892880ea2bb225d0221e1cee88dcfe723a91726b9",
+        "workgroupSize": [
+          "WORKGROUP_SIZE",
+          "1",
+          "1"
+        ]
+      },
+      "sourceArtifactId": "wgsl-source:embedding_pool-085f75855a89fd66.wgsl:085f75855a89",
+      "sourceHash": "sha256:085f75855a89fd6612f225529d4e6e82f03888f938c04e8f40aba46bbfd2ea3b"
+    },
+    {
+      "digest": "sha256:e8d90b826350a9feb96476fc4a5e568aebfc29948cf07a2d7db0dee4a4216b6a",
+      "entry": "gather_vec4",
+      "file": "gather_vec4.wgsl",
+      "id": "gather_vec4",
+      "metadata": {
+        "bindings": [
+          {
+            "access": null,
+            "addressSpace": "uniform",
+            "binding": 0,
+            "group": 0,
+            "name": "u"
+          },
+          {
+            "access": "read",
+            "addressSpace": "storage",
+            "binding": 1,
+            "group": 0,
+            "name": "indices"
+          },
+          {
+            "access": "read",
+            "addressSpace": "storage",
+            "binding": 2,
+            "group": 0,
+            "name": "embeddings"
+          },
+          {
+            "access": "read_write",
+            "addressSpace": "storage",
+            "binding": 3,
+            "group": 0,
+            "name": "output"
+          }
+        ],
+        "entry": "gather_vec4",
+        "overrides": [
+          {
+            "defaultValue": "64u",
+            "name": "WORKGROUP_SIZE_VEC4",
+            "type": "u32"
+          }
+        ],
+        "requiresSubgroups": false,
+        "sourceMetadataHash": "sha256:863e8cea58d35f5b8a1e39bf54ea88e06620f11293abb28d3cef55623911c943",
+        "workgroupSize": [
+          "WORKGROUP_SIZE_VEC4",
+          "1",
+          "1"
+        ]
+      },
+      "sourceArtifactId": "wgsl-source:gather_vec4-4ba3022d03c0d83b.wgsl:4ba3022d03c0",
+      "sourceHash": "sha256:4ba3022d03c0d83b8db0b03724ab8cd80b316175c2ddafd3bf498479365263e5"
+    },
+    {
+      "digest": "sha256:7f8900b69de5107e4cf424cac0d4de1539591ece34e977ff30f6f7364460ab34",
+      "entry": "main",
+      "file": "gelu.wgsl",
+      "id": "gelu",
+      "metadata": {
+        "bindings": [
+          {
+            "access": null,
+            "addressSpace": "uniform",
+            "binding": 0,
+            "group": 0,
+            "name": "u"
+          },
+          {
+            "access": "read",
+            "addressSpace": "storage",
+            "binding": 1,
+            "group": 0,
+            "name": "input"
+          },
+          {
+            "access": "read_write",
+            "addressSpace": "storage",
+            "binding": 2,
+            "group": 0,
+            "name": "output"
+          },
+          {
+            "access": "read",
+            "addressSpace": "storage",
+            "binding": 3,
+            "group": 0,
+            "name": "gate"
+          }
+        ],
+        "entry": "main",
+        "overrides": [
+          {
+            "defaultValue": "false",
+            "name": "HAS_GATE",
+            "type": "bool"
+          },
+          {
+            "defaultValue": "false",
+            "name": "USE_ROWSPLIT",
+            "type": "bool"
+          },
+          {
+            "defaultValue": "256u",
+            "name": "WORKGROUP_SIZE",
+            "type": "u32"
+          }
+        ],
+        "requiresSubgroups": false,
+        "sourceMetadataHash": "sha256:dda449dea87fcd256638151ac6dd1eca216eeb85abee3eb82602459fe8c7d0ed",
+        "workgroupSize": [
+          "WORKGROUP_SIZE",
+          "1",
+          "1"
+        ]
+      },
+      "sourceArtifactId": "wgsl-source:gelu-e6fb22edd25c1e21.wgsl:e6fb22edd25c",
+      "sourceHash": "sha256:e6fb22edd25c1e210e7dfc61e0b67d31832c1d9d3caf985e4c56f61dd7b57ac6"
+    },
+    {
+      "digest": "sha256:8ff885017bfcfc8fdb8d16e09c358c000830bfd5fbf3d87187694edb0cb44f7c",
+      "entry": "main",
+      "file": "layernorm.wgsl",
+      "id": "layernorm",
+      "metadata": {
+        "bindings": [
+          {
+            "access": null,
+            "addressSpace": "uniform",
+            "binding": 0,
+            "group": 0,
+            "name": "u"
+          },
+          {
+            "access": "read",
+            "addressSpace": "storage",
+            "binding": 1,
+            "group": 0,
+            "name": "input"
+          },
+          {
+            "access": "read",
+            "addressSpace": "storage",
+            "binding": 2,
+            "group": 0,
+            "name": "weight"
+          },
+          {
+            "access": "read",
+            "addressSpace": "storage",
+            "binding": 3,
+            "group": 0,
+            "name": "bias"
+          },
+          {
+            "access": "read_write",
+            "addressSpace": "storage",
+            "binding": 4,
+            "group": 0,
+            "name": "output"
+          }
+        ],
+        "entry": "main",
+        "overrides": [
+          {
+            "defaultValue": "false",
+            "name": "PARAMS_IS_F16",
+            "type": "bool"
+          },
+          {
+            "defaultValue": "256u",
+            "name": "WORKGROUP_SIZE",
+            "type": "u32"
+          }
+        ],
+        "requiresSubgroups": false,
+        "sourceMetadataHash": "sha256:0cefb265d21892d6a16697e3edc65790386385af37f3dbf8a7ef7d9a07fddf7a",
+        "workgroupSize": [
+          "WORKGROUP_SIZE",
+          "1",
+          "1"
+        ]
+      },
+      "sourceArtifactId": "wgsl-source:layernorm-a0a78590a442e26c.wgsl:a0a78590a442",
+      "sourceHash": "sha256:a0a78590a442e26ccec467d48609863c538a18506aaafd29a336f1f7216f6927"
+    },
+    {
+      "digest": "sha256:abd19bc08ad668a7cad562e2bc0a4be1aa8827ad4300d8d474b7fc2af4c27117",
+      "entry": "main",
+      "file": "residual.wgsl",
+      "id": "residual",
+      "metadata": {
+        "bindings": [
+          {
+            "access": null,
+            "addressSpace": "uniform",
+            "binding": 0,
+            "group": 0,
+            "name": "u"
+          },
+          {
+            "access": "read",
+            "addressSpace": "storage",
+            "binding": 1,
+            "group": 0,
+            "name": "a"
+          },
+          {
+            "access": "read",
+            "addressSpace": "storage",
+            "binding": 2,
+            "group": 0,
+            "name": "b"
+          },
+          {
+            "access": "read_write",
+            "addressSpace": "storage",
+            "binding": 3,
+            "group": 0,
+            "name": "output"
+          }
+        ],
+        "entry": "main",
+        "overrides": [
+          {
+            "defaultValue": "256u",
+            "name": "WORKGROUP_SIZE",
+            "type": "u32"
+          }
+        ],
+        "requiresSubgroups": false,
+        "sourceMetadataHash": "sha256:a5451187b8b2a19c25f13a652eb22bb0bc847a8ab26b06a1d050bca458b2b6f0",
+        "workgroupSize": [
+          "WORKGROUP_SIZE",
+          "1",
+          "1"
+        ]
+      },
+      "sourceArtifactId": "wgsl-source:residual-e5d606c42ae57cb7.wgsl:e5d606c42ae5",
+      "sourceHash": "sha256:e5d606c42ae57cb72cca129d7ad85e95021158a7d9fbce68af3119630bbcb698"
+    },
+    {
+      "digest": "sha256:99e8217beb9ebc661ae8da6dde06196c0746e884421fe803b1a8bcea22e753b1",
+      "entry": "add_vec4",
+      "file": "residual_vec4.wgsl",
+      "id": "residual_vec4",
+      "metadata": {
+        "bindings": [
+          {
+            "access": null,
+            "addressSpace": "uniform",
+            "binding": 0,
+            "group": 0,
+            "name": "u"
+          },
+          {
+            "access": "read",
+            "addressSpace": "storage",
+            "binding": 1,
+            "group": 0,
+            "name": "a"
+          },
+          {
+            "access": "read",
+            "addressSpace": "storage",
+            "binding": 2,
+            "group": 0,
+            "name": "b"
+          },
+          {
+            "access": "read_write",
+            "addressSpace": "storage",
+            "binding": 3,
+            "group": 0,
+            "name": "output"
+          }
+        ],
+        "entry": "add_vec4",
+        "overrides": [
+          {
+            "defaultValue": "64u",
+            "name": "WORKGROUP_SIZE_VEC4",
+            "type": "u32"
+          }
+        ],
+        "requiresSubgroups": false,
+        "sourceMetadataHash": "sha256:8e16c6ab9893f42beeaa66e0e69bb2ede598520bd7d74a1f70a4121be777c652",
+        "workgroupSize": [
+          "WORKGROUP_SIZE_VEC4",
+          "1",
+          "1"
+        ]
+      },
+      "sourceArtifactId": "wgsl-source:residual_vec4-04781252bb73f1a2.wgsl:04781252bb73",
+      "sourceHash": "sha256:04781252bb73f1a24ad7f266cb10e41aa172f105ef2a51d1416802d6b1aba9cb"
+    },
+    {
+      "digest": "sha256:b2da9d396668981dab9794c2973b668279f768994466b083d2105730555e1a5b",
+      "entry": "main",
+      "file": "rope.wgsl",
+      "id": "rope",
+      "metadata": {
+        "bindings": [
+          {
+            "access": null,
+            "addressSpace": "uniform",
+            "binding": 0,
+            "group": 0,
+            "name": "u"
+          },
+          {
+            "access": "read_write",
+            "addressSpace": "storage",
+            "binding": 1,
+            "group": 0,
+            "name": "input"
+          },
+          {
+            "access": "read_write",
+            "addressSpace": "storage",
+            "binding": 2,
+            "group": 0,
+            "name": "freqs_cos"
+          },
+          {
+            "access": "read_write",
+            "addressSpace": "storage",
+            "binding": 3,
+            "group": 0,
+            "name": "freqs_sin"
+          }
+        ],
+        "entry": "main",
+        "overrides": [
+          {
+            "defaultValue": "256u",
+            "name": "WORKGROUP_SIZE",
+            "type": "u32"
+          },
+          {
+            "defaultValue": "1.0",
+            "name": "YARN_ALPHA",
+            "type": "f32"
+          },
+          {
+            "defaultValue": "32.0",
+            "name": "YARN_BETA_FAST",
+            "type": "f32"
+          },
+          {
+            "defaultValue": "1.0",
+            "name": "YARN_BETA_SLOW",
+            "type": "f32"
+          }
+        ],
+        "requiresSubgroups": false,
+        "sourceMetadataHash": "sha256:fce2365e7756bb2568c6d2b6be32b49588d97ef2fbe1e98b79808e0d8017294d",
+        "workgroupSize": [
+          "WORKGROUP_SIZE",
+          "1",
+          "1"
+        ]
+      },
+      "sourceArtifactId": "wgsl-source:rope-a4472c7134a08c77.wgsl:a4472c7134a0",
+      "sourceHash": "sha256:a4472c7134a08c77ecefc665918652a7eb4d79acb373a5dc5fdc865b9ccb937d"
+    },
+    {
+      "digest": "sha256:0ccd038aa7e69bf064d599e86f93100735cc32fba20a942cb1deed5da5a692e8",
+      "entry": "main",
+      "file": "rope_precompute.wgsl",
+      "id": "rope_precompute",
+      "metadata": {
+        "bindings": [
+          {
+            "access": null,
+            "addressSpace": "uniform",
+            "binding": 0,
+            "group": 0,
+            "name": "u"
+          },
+          {
+            "access": "read",
+            "addressSpace": "storage",
+            "binding": 1,
+            "group": 0,
+            "name": "rope_data"
+          },
+          {
+            "access": "read_write",
+            "addressSpace": "storage",
+            "binding": 2,
+            "group": 0,
+            "name": "cos_values"
+          },
+          {
+            "access": "read_write",
+            "addressSpace": "storage",
+            "binding": 3,
+            "group": 0,
+            "name": "sin_values"
+          }
+        ],
+        "entry": "main",
+        "overrides": [
+          {
+            "defaultValue": "256u",
+            "name": "WORKGROUP_SIZE",
+            "type": "u32"
+          }
+        ],
+        "requiresSubgroups": false,
+        "sourceMetadataHash": "sha256:057aeaa5a0da1ce00b5eb8b0472347f47a24d73d26eaa4569705058796597b2d",
+        "workgroupSize": [
+          "WORKGROUP_SIZE",
+          "1",
+          "1"
+        ]
+      },
+      "sourceArtifactId": "wgsl-source:rope_precompute-0aaf0cbdceb87986.wgsl:0aaf0cbdceb8",
+      "sourceHash": "sha256:0aaf0cbdceb879861872b1bd60e0d8a78818b67511c7bbb8157d7804b929500a"
+    },
+    {
+      "digest": "sha256:379186c35451a1bf08f3d157db52e48f4865c92caee230656fd55b7fa500351c",
+      "entry": "main",
+      "file": "rope_qk.wgsl",
+      "id": "rope_qk",
+      "metadata": {
+        "bindings": [
+          {
+            "access": null,
+            "addressSpace": "uniform",
+            "binding": 0,
+            "group": 0,
+            "name": "u"
+          },
+          {
+            "access": "read_write",
+            "addressSpace": "storage",
+            "binding": 1,
+            "group": 0,
+            "name": "q_input"
+          },
+          {
+            "access": "read_write",
+            "addressSpace": "storage",
+            "binding": 2,
+            "group": 0,
+            "name": "k_input"
+          },
+          {
+            "access": "read",
+            "addressSpace": "storage",
+            "binding": 3,
+            "group": 0,
+            "name": "freqs_cos"
+          },
+          {
+            "access": "read",
+            "addressSpace": "storage",
+            "binding": 4,
+            "group": 0,
+            "name": "freqs_sin"
+          }
+        ],
+        "entry": "main",
+        "overrides": [
+          {
+            "defaultValue": "256u",
+            "name": "WORKGROUP_SIZE",
+            "type": "u32"
+          }
+        ],
+        "requiresSubgroups": false,
+        "sourceMetadataHash": "sha256:4fd0cf38483bc02c4a089cfe65089dee8c1aec14ba8b2f195ca89c252eb2e0b6",
+        "workgroupSize": [
+          "WORKGROUP_SIZE",
+          "1",
+          "1"
+        ]
+      },
+      "sourceArtifactId": "wgsl-source:rope_qk-fe7f16a865b94ce0.wgsl:fe7f16a865b9",
+      "sourceHash": "sha256:fe7f16a865b94ce0c0cf88a220cda96daf174cdc61b0158298f40c09298a840c"
+    },
+    {
+      "digest": "sha256:8070894b1488c76bdf6685b99243e0fadd79a2511b52b22b91ba1ead9990831c",
+      "entry": "main",
+      "file": "scale.wgsl",
+      "id": "scale",
+      "metadata": {
+        "bindings": [
+          {
+            "access": null,
+            "addressSpace": "uniform",
+            "binding": 0,
+            "group": 0,
+            "name": "u"
+          },
+          {
+            "access": "read",
+            "addressSpace": "storage",
+            "binding": 1,
+            "group": 0,
+            "name": "input"
+          },
+          {
+            "access": "read_write",
+            "addressSpace": "storage",
+            "binding": 2,
+            "group": 0,
+            "name": "output"
+          }
+        ],
+        "entry": "main",
+        "overrides": [
+          {
+            "defaultValue": "256u",
+            "name": "WORKGROUP_SIZE",
+            "type": "u32"
+          }
+        ],
+        "requiresSubgroups": false,
+        "sourceMetadataHash": "sha256:ca326ce553a551b61353fef920d01244fa30a03fa17ad15a7d4061baf96ed815",
+        "workgroupSize": [
+          "WORKGROUP_SIZE",
+          "1",
+          "1"
+        ]
+      },
+      "sourceArtifactId": "wgsl-source:scale-d4d98632a5d2ce10.wgsl:d4d98632a5d2",
+      "sourceHash": "sha256:d4d98632a5d2ce10b8e96b62ce00a14f4388e27f796478efadaffe473bc5f527"
+    },
+    {
+      "digest": "sha256:c1dcc2a3c04fe3836457724ccc45dbbee9423ad3710febcf91107f3a23c46cb2",
+      "entry": "main_inplace",
+      "file": "scale.wgsl",
+      "id": "scale_inplace",
+      "metadata": {
+        "bindings": [
+          {
+            "access": null,
+            "addressSpace": "uniform",
+            "binding": 0,
+            "group": 0,
+            "name": "u"
+          },
+          {
+            "access": "read",
+            "addressSpace": "storage",
+            "binding": 1,
+            "group": 0,
+            "name": "input"
+          },
+          {
+            "access": "read_write",
+            "addressSpace": "storage",
+            "binding": 2,
+            "group": 0,
+            "name": "output"
+          }
+        ],
+        "entry": "main_inplace",
+        "overrides": [
+          {
+            "defaultValue": "256u",
+            "name": "WORKGROUP_SIZE",
+            "type": "u32"
+          }
+        ],
+        "requiresSubgroups": false,
+        "sourceMetadataHash": "sha256:0f01e1cd028e30f72018b6238a562a463b150bbc71330c28dd3c455a80c5c9ac",
+        "workgroupSize": [
+          "WORKGROUP_SIZE",
+          "1",
+          "1"
+        ]
+      },
+      "sourceArtifactId": "wgsl-source:scale-d4d98632a5d2ce10.wgsl:d4d98632a5d2",
+      "sourceHash": "sha256:d4d98632a5d2ce10b8e96b62ce00a14f4388e27f796478efadaffe473bc5f527"
+    },
+    {
+      "digest": "sha256:57d1e55354e019598c7c39b98b9a48c99269a59506cca3a376fd690b96e15d54",
+      "entry": "main",
+      "file": "split_qkv.wgsl",
+      "id": "split_qkv",
+      "metadata": {
+        "bindings": [
+          {
+            "access": null,
+            "addressSpace": "uniform",
+            "binding": 0,
+            "group": 0,
+            "name": "params"
+          },
+          {
+            "access": "read",
+            "addressSpace": "storage",
+            "binding": 1,
+            "group": 0,
+            "name": "input"
+          },
+          {
+            "access": "read_write",
+            "addressSpace": "storage",
+            "binding": 2,
+            "group": 0,
+            "name": "Q"
+          },
+          {
+            "access": "read_write",
+            "addressSpace": "storage",
+            "binding": 3,
+            "group": 0,
+            "name": "K"
+          },
+          {
+            "access": "read_write",
+            "addressSpace": "storage",
+            "binding": 4,
+            "group": 0,
+            "name": "V"
+          }
+        ],
+        "entry": "main",
+        "overrides": [
+          {
+            "defaultValue": "256u",
+            "name": "WORKGROUP_SIZE",
+            "type": "u32"
+          }
+        ],
+        "requiresSubgroups": false,
+        "sourceMetadataHash": "sha256:f3bc133335503e79fc4b5963461073932616bb8163e1b28b283f40602558ddf5",
+        "workgroupSize": [
+          "WORKGROUP_SIZE",
+          "1",
+          "1"
+        ]
+      },
+      "sourceArtifactId": "wgsl-source:split_qkv-f65c37cee36ee2b2.wgsl:f65c37cee36e",
+      "sourceHash": "sha256:f65c37cee36ee2b213d5377d2aa5c5a2d2e20c7b6d1f162e112efd388599ec23"
+    },
+    {
+      "digest": "sha256:b5bb8e3d8014136e33de7935dd2a1f074c988044fe05cf5b559718c6f061eaa8",
+      "entry": "main",
+      "file": "matmul_f32.wgsl",
+      "id": "tiled",
+      "metadata": {
+        "bindings": [
+          {
+            "access": null,
+            "addressSpace": "uniform",
+            "binding": 0,
+            "group": 0,
+            "name": "u"
+          },
+          {
+            "access": "read",
+            "addressSpace": "storage",
+            "binding": 1,
+            "group": 0,
+            "name": "A"
+          },
+          {
+            "access": "read",
+            "addressSpace": "storage",
+            "binding": 2,
+            "group": 0,
+            "name": "B"
+          },
+          {
+            "access": "read_write",
+            "addressSpace": "storage",
+            "binding": 3,
+            "group": 0,
+            "name": "C"
+          }
+        ],
+        "entry": "main",
+        "overrides": [
+          {
+            "defaultValue": "16u",
+            "name": "TILE_SIZE",
+            "type": "u32"
+          }
+        ],
+        "requiresSubgroups": false,
+        "sourceMetadataHash": "sha256:61283724e18601a992574205826fd13f77af0bd8bf904e5d06af09fe7c0afab7",
+        "workgroupSize": [
+          "TILE_SIZE",
+          "TILE_SIZE",
+          "1"
+        ]
+      },
+      "sourceArtifactId": "wgsl-source:tiled-035020f650612fd6.wgsl:035020f65061",
+      "sourceHash": "sha256:035020f650612fd6f8ac8322b86ec921c64a85ac802b7f4c0fd2dfd3a4c8a1f2"
+    }
+  ]
+}
