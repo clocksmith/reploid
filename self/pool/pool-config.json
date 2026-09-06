@@ -1,6 +1,6 @@
 {
   "schema": "reploid.pool.config/v1",
-  "configVersion": "2026-09-06.durable-attempts.v2.doppler-0.5.1",
+  "configVersion": "2026-09-06.resource-planning.v1.doppler-0.5.1",
   "claim": "receipt-backed, audit-backed, reputation-backed, policy-controlled browser inference",
   "forbiddenClaims": [
     "trustless",
@@ -1768,14 +1768,16 @@
   },
   "peerJobs": {
     "schema": "reploid.pool.peer-job-policy/v1",
-    "version": 1,
+    "version": 2,
     "schemas": {
-      "job": "reploid.peer.pack_job/v2",
+      "job": "reploid.peer.pack_job/v3",
       "legacyJob": "reploid.peer.pack_job/v1",
       "update": "reploid.peer.pack_update/v1",
       "cancel": "reploid.peer.pack_cancel/v1",
       "record": "reploid.pack-job-journal/v2",
-      "legacyRecord": "reploid.pack-job-journal/v1"
+      "legacyRecord": "reploid.pack-job-journal/v1",
+      "providerAdvert": "reploid.peer.pack_provider/v2",
+      "legacyProviderAdvert": "reploid.peer.pack_provider/v1"
     },
     "limits": {
       "maxWireBytes": 16777216,
@@ -1845,6 +1847,75 @@
     },
     "execution": {
       "adapterSet": []
+    },
+    "providerCapabilitySchema": {
+      "schema": "reploid.pool.capability-policy/v1",
+      "version": 1,
+      "observationSchema": "reploid.peer.capabilities/v1",
+      "availabilityStates": [
+        "resident",
+        "cached",
+        "fetchable"
+      ],
+      "maxModels": 16,
+      "maxAdapters": 32,
+      "maxExperts": 128,
+      "maxOperations": 16,
+      "maxInputClasses": 16,
+      "maxIdentityCharacters": 256,
+      "maxObservationAgeMs": 60000,
+      "maxClockSkewMs": 5000
+    },
+    "assignmentPolicy": {
+      "schema": "reploid.pool.assignment-policy/v1",
+      "version": 1,
+      "policyId": "complete-operation-resident-load-v1",
+      "modelAvailabilityOrder": [
+        "resident",
+        "cached",
+        "fetchable"
+      ],
+      "adapterAvailabilityOrder": [
+        "resident",
+        "cached",
+        "fetchable"
+      ],
+      "allowModelFetching": true,
+      "allowAdapterFetching": false,
+      "requireAvailableSlot": true,
+      "minimumFreeGpuBytes": 0,
+      "minimumFreeStorageBytes": 0,
+      "minimumBandwidthBytesPerSecond": 0,
+      "maxObservationAgeMs": 30000,
+      "maxCandidates": 16,
+      "unknownFreeMemory": "budget-only",
+      "duplicateProviders": "newest-observation-then-message-hash",
+      "invalidAdvertisement": "reject",
+      "history": {
+        "enabled": false
+      },
+      "ranking": [
+        {
+          "metric": "modelAvailability",
+          "order": "asc"
+        },
+        {
+          "metric": "adapterAvailability",
+          "order": "asc"
+        },
+        {
+          "metric": "activeJobs",
+          "order": "asc"
+        },
+        {
+          "metric": "queuedJobs",
+          "order": "asc"
+        },
+        {
+          "metric": "providerId",
+          "order": "asc"
+        }
+      ]
     }
   }
 }
