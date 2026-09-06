@@ -31,7 +31,7 @@ Recursive authority charters discovered from the repository root.
 | Hosted Poolday Services | [`server/pool/CATSCAN.md`](../server/pool/CATSCAN.md) | Hosted Services | Authenticate and relay immutable Poolday records while maintaining rebuildable hosted projections and bounded coordination. |
 | Shared Change Passport Contract | [`self/shared/change-passport/CATSCAN.md`](../self/shared/change-passport/CATSCAN.md) | Browser Runtime | Provide one browser-safe Change Passport contract, policy, Zero/X source adapter, and Visual Feedback Bridge receipt adapter to browser, server, SDK, action, and verifier consumers. |
 | Change Passport Interface | [`self/ui/change-passport/CATSCAN.md`](../self/ui/change-passport/CATSCAN.md) | Browser Interfaces | Let authorized operators inspect and act on Change Passports without collapsing evidence validity, decision state, deployed effect state, or source authority. |
-| Poolday Interface | [`self/ui/pool-home/CATSCAN.md`](../self/ui/pool-home/CATSCAN.md) | Browser Interfaces | Run signed Doppler Packs locally or on peers; inspect and recover jobs. |
+| Poolday Interface | [`self/ui/pool-home/CATSCAN.md`](../self/ui/pool-home/CATSCAN.md) | Browser Interfaces | Run signed models; inspect and recover jobs. |
 | X Operator Workbench | [`self/ui/proto/CATSCAN.md`](../self/ui/proto/CATSCAN.md) | Browser Interfaces | Let operators inspect the full causal improvement episode, compare generations, quarantine, replay, promote, and roll back substrate candidates without crossing into product admission. |
 | Zero Proposal Interface | [`self/ui/zero/CATSCAN.md`](../self/ui/zero/CATSCAN.md) | Browser Interfaces | Give Zero operators a focused interface for objectives, tool-growing experiments, and candidate proposals. |
 

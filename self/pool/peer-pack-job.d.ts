@@ -1,3 +1,5 @@
+import type { ResolvedOperationAcceptance } from './operation-acceptance.js';
+import type { ExecutionAdapter } from './adapter-execution.js';
 import type { JsonValue, PackOperationAdapter, PackOperationRegistry } from './pack-operation-adapters.js';
 import type { PackOperationRequest } from './pack-operation.js';
 import type { PackJobPolicy, CurrentPackJobPolicy } from './peer-pack-job-policy.js';
@@ -47,11 +49,12 @@ export interface PackPeerJobIntent {
   readonly model: PackPeerModel;
   readonly limits: PackPeerLimits & { readonly deadlineAt: number };
   readonly consent: PackPeerConsent;
-  readonly comparisonPolicy: JsonObject;
+  readonly comparisonPolicy: JsonObject | null;
+  readonly acceptance: ResolvedOperationAcceptance;
   readonly jobId: string;
   readonly attemptId: string;
   readonly attemptNumber: number;
-  readonly adapterSet: readonly JsonValue[];
+  readonly adapterSet: readonly ExecutionAdapter[];
   readonly inputClass: string;
   readonly operationPolicy: PackOperationAdapter['policy'];
   readonly jobPolicy: PackJobPolicy;
@@ -63,7 +66,7 @@ export interface PackPeerJobIntent {
   readonly planning: { readonly adverts: readonly SignedPackPeerMessage<PackProviderAdvertBody>[]; readonly plan: OperationAssignmentPlan };
 }
 export interface PackPeerJobBody {
-  readonly schema: 'reploid.peer.pack_job/v3';
+  readonly schema: 'reploid.peer.pack_job/v4';
   readonly advert: SignedPackPeerMessage<PackProviderAdvertBody>;
   readonly intent: PackPeerJobIntent;
   readonly assignment: JsonObject;
@@ -88,10 +91,12 @@ export function planPackPeerProviders(options: { adverts: readonly SignedPackPee
 export function createPackPeerJob(options: { identity: PackPeerIdentity; advert?: SignedPackPeerMessage<PackProviderAdvertBody>;
   adverts?: readonly SignedPackPeerMessage<PackProviderAdvertBody>[]; resources: WorkRequirements['resources'];
   model: JsonObject; input: JsonObject; options?: JsonObject; limits: PackPeerJobIntent['limits']; consent: PackPeerConsent;
-  comparisonPolicy: JsonObject; jobId?: string; attemptId?: string; attemptNumber?: number; adapterSet?: readonly JsonValue[];
+  comparisonPolicy: JsonObject | null; acceptanceMode?: 'reference' | 'execution'; jobId?: string; attemptId?: string; attemptNumber?: number; adapterSet?: readonly ExecutionAdapter[];
   registry?: PackOperationRegistry; policy?: CurrentPackJobPolicy }): Promise<SignedPackPeerMessage<PackPeerJobBody>>;
 export function verifyPackPeerJob(message: SignedPackPeerMessage<PackPeerJobBody>, options: { providerId: string;
   models: readonly JsonObject[]; registry?: PackOperationRegistry; now?: number; allowLegacy?: false; policy?: PackJobPolicy }): Promise<SignedPackPeerMessage<PackPeerJobBody>>;
 /** Legacy archives require their own schema narrowing and cannot enter live admission. */
 export function verifyPackPeerJob<Body>(message: SignedPackPeerMessage<Body>, options: { providerId: string;
   models: readonly JsonObject[]; registry?: PackOperationRegistry; now?: number; allowLegacy: true; policy?: PackJobPolicy }): Promise<SignedPackPeerMessage<Body>>;
+
+export function createPackPeerConnection(options: { identity: PackPeerIdentity; assignment: PackPeerJobBody['assignment']; policy?: CurrentPackJobPolicy }): Promise<SignedPackPeerMessage>;

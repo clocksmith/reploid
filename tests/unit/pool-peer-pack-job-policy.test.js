@@ -7,10 +7,19 @@ import { validatePoolConfigValue } from '../../self/pool/config-contract.js';
 describe('explicit remote attempt policy', () => {
   it('requires storage, retry and numbering policy during configuration validation', () => {
     for (const path of [['persistence', 'retentionMs'], ['persistence', 'storageTimeoutMs'], ['retry', 'delayMs'],
-      ['attempts', 'initialNumber'], ['execution', 'adapterSet']]) {
+      ['attempts', 'initialNumber'], ['execution', 'adapters']]) {
       const candidate = structuredClone(config);
       delete candidate.peerJobs[path[0]][path[1]];
-      expect(() => resolvePackJobPolicy(candidate.peerJobs)).toThrow('Peer Pack policy');
+      expect(() => resolvePackJobPolicy(candidate.peerJobs)).toThrow();
+      expect(validatePoolConfigValue(candidate).ok).toBe(false);
+    }
+  });
+
+  it('requires every adapter policy decision explicitly', () => {
+    for (const field of Object.keys(config.peerJobs.execution.adapters)) {
+      const candidate = structuredClone(config);
+      delete candidate.peerJobs.execution.adapters[field];
+      expect(() => resolvePackJobPolicy(candidate.peerJobs)).toThrow();
       expect(validatePoolConfigValue(candidate).ok).toBe(false);
     }
   });

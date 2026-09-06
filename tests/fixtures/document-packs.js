@@ -31,13 +31,14 @@ export async function createDocumentPackFixture({ answerText = 'Apple trees grow
             scores: request.input.documents.map((_, index) => ({ index, score: index })),
             ranking: request.input.documents.map((_, index) => ({ index, score: index })).reverse().map((row, index) => ({ ...row, rank: index + 1 })) } };
         const requestHash = await hashDopplerEvidence(request);
+        const assignmentHash = request.assignment === null ? null : await hashDopplerEvidence(request.assignment);
         const receiptBody = { schema: 'doppler.pack-operation-receipt/v1', operation: request.operation,
           pack: identity, targetPlanDigest, artifactReceipts: this.verification.artifactReceipts,
-          runtimeVersion: '0.5.1', requestHash, assignmentHash: null,
+          runtimeVersion: '0.5.1', requestHash, assignmentHash,
           inputHash: await hashDopplerEvidence({ input: request.input, options: request.options }), outputHash: await hashDopplerEvidence(output) };
         const receipt = { ...receiptBody, receiptDigest: await hashDopplerEvidence(receiptBody) };
         const body = { schema: 'doppler.pack-operation-event/v1', operation: request.operation,
-          requestHash, assignmentHash: null, eventIndex: 0, previousEventDigest: null, status: 'completed', output, receipt };
+          requestHash, assignmentHash, eventIndex: 0, previousEventDigest: null, status: 'completed', output, receipt };
         yield { ...body, eventDigest: await hashDopplerEvidence(body) };
       }
     })

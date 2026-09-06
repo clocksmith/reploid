@@ -9,7 +9,7 @@ import { PACK_JOB_SCHEMA, PACK_UPDATE_SCHEMA, PACK_CANCEL_SCHEMA, packJobBytes,
   requirePackJob, verifyPackPeerJob, verifyPackPeerMessage, signPackPeerMessage, packPeerModel, createPackProviderAdvert } from './peer-pack-job.js';
 
 /** One physical executor, bounded replay records, and cooperative cancellation. */
-export function createPackPeerProvider({ identity, bus, models, authorize,
+export function createPackPeerProvider({ identity, bus, models, authorize, adapterResolver = null,
   registry = createPackOperationRegistry(), executor = createLocalPackExecutor({ registry }),
   policy: policyInput = PACK_JOB_POLICY, journal: suppliedJournal = null, journalName = policyInput.persistence.databaseName,
   maxAttempts = policyInput.persistence.maxRecords, maxRetainedBytes = policyInput.persistence.maxSavedBytes, onError = () => {} }) {
@@ -51,7 +51,13 @@ export function createPackPeerProvider({ identity, bus, models, authorize,
       signal.addEventListener('abort', abort, { once: true });
       timer = setTimeout(() => reject(new Error('admission deadline exceeded')), Math.max(0, Date.parse(job.expiresAt) - Date.now()));
     });
-    try { requirePackJob(await Promise.race([Promise.resolve().then(() => authorize(job)), stopped]) === true, 'application did not authorize public delegation'); }
+    try { requirePackJob(await Promise.race([Promise.resolve().then(async () => {
+      if (job.body.intent.adapterSet.length) {
+        requirePackJob(typeof adapterResolver?.assertCurrent === 'function', 'adapter admission owner required');
+        await adapterResolver.assertCurrent({ adapterSet: job.body.intent.adapterSet, model: job.body.intent.model });
+      }
+      return authorize(job);
+    }), stopped]) === true, 'application did not authorize public delegation'); }
     finally { clearTimeout(timer); signal.removeEventListener('abort', abort); }
   };
 
@@ -109,6 +115,7 @@ export function createPackPeerProvider({ identity, bus, models, authorize,
 
   async function execute(record) {
     active = record;
+    let resolvedAdapters;
     const timer = setTimeout(() => record.controller.abort(new Error('deadline exceeded')), Math.max(0, record.expiresAt - Date.now()));
     try {
       current(record);
@@ -117,7 +124,14 @@ export function createPackPeerProvider({ identity, bus, models, authorize,
       let model;
       for (const candidate of models) if (await hashDopplerEvidence(packPeerModel(candidate, registry)) === targetHash) model = candidate;
       current(record);
-      const result = await executor.run({ model, input: request.input, options: request.options,
+      if (intent.adapterSet.length) {
+        requirePackJob(typeof adapterResolver?.prepare === 'function', 'adapter acquisition owner required');
+        resolvedAdapters = await adapterResolver.prepare({ adapterSet: intent.adapterSet, model: intent.model, signal: record.controller.signal });
+        current(record);
+        await admitted(record.job, record.controller.signal);
+      }
+      const result = await executor.run({ model, adapterSet: intent.adapterSet,
+        adapterArtifactStore: resolvedAdapters?.artifactStore ?? null, assertAdaptersCurrent: resolvedAdapters?.assertCurrent ?? null, input: request.input, options: request.options,
         assignment: request.assignment, limits: request.limits, signal: record.controller.signal,
         beforeExecute: async () => {
           current(record);
@@ -136,6 +150,7 @@ export function createPackPeerProvider({ identity, bus, models, authorize,
         } });
       current(record);
       await admitted(record.job, record.controller.signal);
+      await resolvedAdapters?.assertCurrent();
       current(record);
       await assertPackOperationEvent({ binding: model.executablePack, request, runtimeVersion: model.runtimeVersion,
         event: result.completion, eventIndex: record.eventIndex, previousEventDigest: record.previousEventDigest, registry });
@@ -150,6 +165,7 @@ export function createPackPeerProvider({ identity, bus, models, authorize,
       if (!closed && Date.now() < record.expiresAt) await update(record, record.status).catch(onError);
     } finally {
       clearTimeout(timer);
+      resolvedAdapters?.close();
       // Local executors can return cancellation before their GPU work settles.
       // The executor keeps its own busy/draining gate until that settlement.
       if (active === record) active = null;

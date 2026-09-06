@@ -1,3 +1,7 @@
+import { peerAdapterFixture } from '../fixtures/peer-adapter.js';
+import { createAdapterRegistry } from '../../self/pool/adapter-registry.js';
+import { createAdapterRevocation } from '../../self/pool/adapter-publication.js';
+import { createPeerAdapterResolver } from '../../self/pool/peer-adapter-execution.js';
 // @vitest-environment node
 import { describe, it, expect } from 'vitest';
 import { operationFixture, operationCapabilities, operationResources, packPeerIdentity } from '../fixtures/peer-pack-operation.js';
@@ -49,6 +53,13 @@ function memoryJournal() {
 
 async function setup(name, registry, tweaks = {}) {
   const f = await operationFixture(name, registry);
+  if (tweaks.adapted) {
+    Object.assign(f, await peerAdapterFixture(f.model));
+    const adapterRegistry = createAdapterRegistry();
+    f.adapterRegistry = adapterRegistry;
+    await adapterRegistry.cache({ publication: f.publication, bytes: f.bytes });
+    f.adapterResolver = createPeerAdapterResolver({ registry: adapterRegistry, policy: poolConfig.peerJobs.execution.adapters });
+  }
   const providerIdentity = await packPeerIdentity(), requesterIdentity = await packPeerIdentity();
   const requestListeners = new Set(), providerListeners = new Set();
   const sent = [], responses = [], errors = [];
@@ -59,19 +70,74 @@ async function setup(name, registry, tweaks = {}) {
     async send(message) { responses.push(message); if (tweaks.dropResponse?.(message, responses.length)) return;
       for (const fn of requestListeners) fn(structuredClone(message)); } };
   const provider = createPackPeerProvider({ identity: providerIdentity, bus: providerBus, models: [f.model],
-    executor: f.executor, registry, journal: tweaks.journal || memoryJournal(), authorize: tweaks.authorize || (() => true), onError: error => errors.push(error.message) });
+    executor: f.executor, registry, adapterResolver: f.adapterResolver, journal: tweaks.journal || memoryJournal(), authorize: tweaks.authorize || (() => true), onError: error => errors.push(error.message) });
   const requester = createPackPeerRequester({ identity: requesterIdentity, bus: requesterBus, models: [f.model], registry,
     maxDeliveries: tweaks.maxDeliveries ?? 3, retryMs: 100, onError: error => errors.push(error.message) });
   const limits = { maxInputBytes: 10000, maxOutputBytes: 10000, maxStreamBytes: 200000, maxEvents: 32, maxJobMs: 30000 };
-  const advert = await provider.createAdvert({ limits, capabilities: await operationCapabilities(f.model), expiresAt: Date.now() + 30000 });
+  const capabilities = await operationCapabilities(f.model);
+  if (tweaks.adapted) capabilities.adapters = [{ identity: f.entry.identity, availability: 'cached' }];
+  const advert = await provider.createAdvert({ limits, capabilities, expiresAt: Date.now() + 30000 });
   const args = { advert, model: f.model, input: f.input, options: f.options, limits: { ...limits, deadlineAt: Date.now() + 30000 },
     consent: { schema: 'reploid.peer.public_operation_consent/v1', publicInput: true, providerIds: [providerIdentity.keyId] },
-    comparisonPolicy: f.policy, reference: f.output, resources: operationResources };
+    comparisonPolicy: f.policy, reference: f.output, resources: operationResources, ...(tweaks.adapted ? { adapterSet: [f.entry] } : {}) };
   return { ...f, provider, requester, args, sent, responses, errors, providerIdentity, requesterIdentity,
     requesterBus, providerBus, async close() { requester.close(); await provider.close(); } };
 }
 
 describe('signed remote Pack jobs with synthetic model outputs', () => {
+  it('rejects adapter revocation during execution and before durable replay', async () => {
+    const f = await setup('generate', undefined, { adapted: true });
+    try {
+      const completed = await f.requester.run(f.args);
+      const prior = f.responses.length;
+      await f.adapterRegistry.revoke(f.entry.identity, await createAdapterRevocation({ publication: f.publication,
+        privateKey: f.publisher.privateKey, reason: 'test withdrawal' }));
+      await f.requesterBus.send(completed.job);
+      await until(() => f.errors.some(error => error.includes('revoked')));
+      expect(f.responses).toHaveLength(prior);
+      expect(f.calls()).toBe(1);
+    } finally { await f.close(); }
+    const active = await setup('generate', undefined, { adapted: true });
+    try {
+      active.before(async () => active.adapterRegistry.revoke(active.entry.identity,
+        await createAdapterRevocation({ publication: active.publication, privateKey: active.publisher.privateKey, reason: 'active test withdrawal' })));
+      await expect(active.requester.run(active.args)).rejects.toThrow();
+      expect(active.responses.some(message => message.body.status === 'completed')).toBe(false);
+      expect(active.calls()).toBe(1);
+    } finally { await active.close(); }
+  });
+  it('executes an exact adapter and replays its durable result without reactivation', async () => {
+    let dropped = false;
+    const f = await setup('generate', undefined, { adapted: true, dropResponse(message) {
+      if (!dropped && message.body.status === 'completed') { dropped = true; return true; }
+      return false;
+    } });
+    try {
+      const result = await f.requester.run(f.args);
+      expect(result.execution.receipt.adapterReceipts[0].identity).toBe(f.entry.identity);
+      expect(f.calls()).toBe(1);
+      expect(f.sent.filter(message => message.body.schema === 'reploid.peer.pack_job/v4')).toHaveLength(2);
+      expect((await verifyPackPeerEpisode({ job: result.job, updates: result.updates,
+        acceptance: result.acceptance, reference: f.output, models: [f.model] })).accepted).toBe(true);
+    } finally { await f.close(); }
+  });
+
+  it('accepts ordinary generation without a reference and retains its weaker claim', async () => {
+    const f = await setup('generate');
+    try {
+      const result = await f.requester.run({ ...f.args, acceptanceMode: 'execution', comparisonPolicy: null, reference: null });
+      expect(result.assessment).toMatchObject({ accepted: true, claim: 'execution-identity-only' });
+      expect((await verifyPackPeerEpisode({ job: result.job, updates: result.updates,
+        acceptance: result.acceptance, reference: null, models: [f.model] })).assessment.claim).toBe('execution-identity-only');
+      await expect(f.requester.run({ ...f.args, acceptanceMode: 'execution', comparisonPolicy: null })).rejects.toThrow('reference answer');
+    } finally { await f.close(); }
+    const numeric = await setup('embed');
+    try {
+      await expect(numeric.requester.run({ ...numeric.args, acceptanceMode: 'execution', comparisonPolicy: null, reference: null })).rejects.toThrow('not allowed');
+      expect(numeric.calls()).toBe(0);
+    } finally { await numeric.close(); }
+  });
+
   it('does not calculate when durable admission fails', async () => {
     const f = await setup('embed', undefined, { journal: { async claim() { throw new Error('injected storage failure'); }, close() {} } });
     try {
@@ -121,7 +187,7 @@ describe('signed remote Pack jobs with synthetic model outputs', () => {
       const advert = await createPackProviderAdvert({ identity: other, models: [f.model], capabilities, limits, expiresAt: deadlineAt });
       const result = await f.requester.run({ ...f.args, adverts: [advert, f.args.advert],
         consent: { ...f.args.consent, providerIds: [other.keyId, f.providerIdentity.keyId] } });
-      expect(result.job.body.schema).toBe('reploid.peer.pack_job/v3');
+      expect(result.job.body.schema).toBe('reploid.peer.pack_job/v4');
       expect(result.job.body.intent.planning.plan.orderedProviderIds).toEqual([f.providerIdentity.keyId, other.keyId]);
       expect(f.calls()).toBe(1);
       await expect(verifyPackPeerEpisode({ ...result, reference: f.output, models: [f.model] })).resolves.toMatchObject({ accepted: true });

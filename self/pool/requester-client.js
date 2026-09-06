@@ -10,7 +10,7 @@ import { createPoolIdentity } from './identity.js';
 import { createSignedPeerMessage, PEER_MESSAGE_TYPES } from './peer-protocol.js';
 import { createAdapterUseApproval } from './adapter-publication.js';
 import { createPackPeerRequester } from './peer-pack-requester.js';
-import { createPackPeerJob } from './peer-pack-job.js';
+import { createPackPeerJob, createPackPeerConnection } from './peer-pack-job.js';
 import { snapshotPackOperationData } from './pack-operation.js';
 import { PACK_JOB_POLICY, resolvePackJobPolicy } from './peer-pack-job-policy.js';
 import {
@@ -56,6 +56,11 @@ export function createRequesterClient({ requesterId, sdk = createPoolSdk(), keyP
     };
   };
   return {
+    async createPeerOperationConnection({ assignment, policy = PACK_JOB_POLICY }) {
+      await ensureKeys();
+      const keyId = await sha256Hex(Uint8Array.from(atob(requesterPublicKey), value => value.charCodeAt(0)));
+      return createPackPeerConnection({ assignment, policy, identity: { keyId, publicKey: requesterPublicKey, privateKey: activeKeyPair.privateKey } });
+    },
     async createPeerOperationJob({ registry, policy = PACK_JOB_POLICY, ...options }) {
       const request = snapshotPackOperationData(options), resolvedPolicy = resolvePackJobPolicy(policy);
       await ensureKeys();

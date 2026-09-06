@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-09-06T18:33:52.675Z",
+  "generatedAt": "2026-09-06T20:22:26.000Z",
   "features": [
     {
       "id": "0x000002",
@@ -860,7 +860,10 @@
         }
       ],
       "files": [
+        "pool/document-delegation.js",
+        "pool/document-search.js",
         "pool/doppler-runtime.js",
+        "pool/local-pack-executor.js",
         "pool/pack-operation-adapters.js",
         "pool/pack-operation-policy.js",
         "pool/pack-operation.js"
@@ -935,6 +938,9 @@
       ],
       "files": [
         "infrastructure/pack-job-storage.js",
+        "pool/operation-acceptance.js",
+        "pool/operation-participation.js",
+        "pool/operation-room-network.js",
         "pool/peer-control-plane.js",
         "pool/peer-pack-episode.js",
         "pool/peer-pack-job-channel.js",
@@ -985,6 +991,7 @@
       ],
       "files": [
         "ui/pool-home/ledger-store.js",
+        "ui/pool-home/operation-sharing.js",
         "ui/pool-home/view.js"
       ]
     },
@@ -1097,7 +1104,10 @@
         }
       ],
       "files": [
-        "pool/adapter-registry.js"
+        "pool/adapter-execution-policy.js",
+        "pool/adapter-execution.js",
+        "pool/adapter-registry.js",
+        "pool/peer-adapter-execution.js"
       ]
     },
     {

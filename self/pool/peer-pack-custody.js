@@ -22,10 +22,17 @@ const verify = async (message, key, schema) => {
 async function context(authorization, index) {
   const grant = clone(authorization);
   const manifest = clone(index);
-  assert(grant?.schema === `${PREFIX}-authorization/v1`, 'authorization is required');
-  const validation = validateExecutablePack(grant.pack);
-  assert(validation.ok, validation.reasons.join('; '));
-  assert(await hashDopplerEvidence(grant.pack.artifacts) === grant.pack.artifactClosureDigest, 'closure mismatch');
+  const artifactSet = grant?.schema === `${PREFIX}-authorization/v2`;
+  assert(artifactSet || grant?.schema === `${PREFIX}-authorization/v1`, 'authorization is required');
+  if (artifactSet) {
+    assert(grant.artifactSet?.schema === 'reploid.pool.artifact-set/v1' && digest(grant.artifactSet.identity)
+      && Array.isArray(grant.artifactSet.artifacts) && grant.artifactSet.artifacts.length > 0
+      && grant.pack === undefined && grant.envelopeArtifact === undefined, 'exact artifact set required');
+  } else {
+    const validation = validateExecutablePack(grant.pack);
+    assert(validation.ok, validation.reasons.join('; '));
+    assert(await hashDopplerEvidence(grant.pack.artifacts) === grant.pack.artifactClosureDigest, 'closure mismatch');
+  }
   assert(positive(grant.attempt) && typeof grant.transferId === 'string' && grant.transferId, 'transfer identity required');
   assert(Number.isSafeInteger(grant.expiresAt), 'expiry required');
   assert(grant.requester?.peerId && grant.requester.publicKey, 'requester identity required');
@@ -40,10 +47,12 @@ async function context(authorization, index) {
   }
   assert(grant.limits.requestTimeoutMs <= 2147483647, 'request timeout out of range');
   assert(digest(grant.indexDigest) && await hashDopplerEvidence(manifest) === grant.indexDigest, 'unauthorized chunk index');
-  assert(manifest.schema === `${PREFIX}-index/v1`
+  if (artifactSet) assert(manifest.schema === `${PREFIX}-index/v2`
+    && manifest.artifactSetIdentity === grant.artifactSet.identity, 'index artifact set mismatch');
+  else assert(manifest.schema === `${PREFIX}-index/v1`
     && manifest.envelopeDigest === grant.pack.envelopeDigest
     && manifest.artifactClosureDigest === grant.pack.artifactClosureDigest, 'index Pack mismatch');
-  const declaredArtifacts = [...grant.pack.artifacts];
+  const declaredArtifacts = [...(artifactSet ? grant.artifactSet.artifacts : grant.pack.artifacts)];
   if (grant.envelopeArtifact !== undefined) {
     const envelope = grant.envelopeArtifact;
     assert(envelope?.role === 'pack-envelope' && typeof envelope.artifactId === 'string' && envelope.artifactId
@@ -54,6 +63,9 @@ async function context(authorization, index) {
   assert(Array.isArray(manifest.artifacts) && manifest.artifacts.length === declaredArtifacts.length, 'index does not close Pack');
   const artifacts = new Map();
   for (const artifact of declaredArtifacts) {
+    assert(typeof artifact.artifactId === 'string' && artifact.artifactId.length > 0 && !artifacts.has(artifact.artifactId)
+      && typeof artifact.path === 'string' && artifact.path.length > 0 && typeof artifact.role === 'string'
+      && digest(artifact.hash) && positive(artifact.sizeBytes), 'invalid or duplicate artifact identity');
     const entry = manifest.artifacts.find((item) => item.artifactId === artifact.artifactId);
     assert(entry && entry.hash === artifact.hash && entry.sizeBytes === artifact.sizeBytes, 'index artifact mismatch');
     assert(artifact.sizeBytes <= grant.limits.maxArtifactBytes && Array.isArray(entry.chunks), 'artifact limit or chunks invalid');
@@ -345,8 +357,10 @@ export async function createPeerPackArtifactStore({ authorization, index, invent
     close() { cancel(); signal?.removeEventListener('abort', cancel); },
     getReceipt() {
       return clone({ schema: `${PREFIX}-receipt/v1`, authorizationHash: ctx.authorizationHash,
-        transferId: ctx.grant.transferId, attempt: ctx.grant.attempt, envelopeDigest: ctx.grant.pack.envelopeDigest,
-        artifactClosureDigest: ctx.grant.pack.artifactClosureDigest, indexDigest: ctx.grant.indexDigest,
+        transferId: ctx.grant.transferId, attempt: ctx.grant.attempt,
+        ...(ctx.grant.artifactSet ? { artifactSetIdentity: ctx.grant.artifactSet.identity }
+          : { envelopeDigest: ctx.grant.pack.envelopeDigest, artifactClosureDigest: ctx.grant.pack.artifactClosureDigest }),
+        indexDigest: ctx.grant.indexDigest,
         source: cacheBytes > 0 ? (receivedBytes > 0 ? 'cache-and-peer' : 'cache') : 'peer',
         reservedBytes, receivedBytes, verificationBytes, attempts, completed,
         inventories: adverts,

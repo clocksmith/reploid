@@ -31,3 +31,5 @@ export function createPeerProviderNode(options: Record<string, unknown>): {
 declare const api: { DEFAULT_PEER_ROOM_ID: typeof DEFAULT_PEER_ROOM_ID; PEER_ROOM_VERSION: typeof PEER_ROOM_VERSION;
   createPeerProviderNode: typeof createPeerProviderNode; runPeerJob: typeof runPeerJob; runPeerOperationJob: typeof runPeerOperationJob };
 export default api;
+
+export function createRoomSignaling(options: Record<string, unknown>): { subscribe(listener: (message: unknown) => void): () => void; sendOffer(payload: unknown): Promise<void>; sendAnswer(payload: unknown): Promise<void>; sendIceCandidate(payload: unknown): Promise<void>; sendClose(reason?: string): Promise<void>; close(): void };

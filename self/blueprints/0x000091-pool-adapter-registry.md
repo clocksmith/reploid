@@ -8,7 +8,7 @@
 
 **Planned Artifacts:** None
 
-**Owned Source Files:** `pool/adapter-registry.js`
+**Owned Source Files:** `pool/adapter-registry.js`, `pool/adapter-execution-policy.js`, `pool/adapter-execution.js`, `pool/peer-adapter-execution.js`
 
 **Former Blueprint Paths:** `self/blueprints/0x000091-pool-adapter-registry.md`
 **Objective:** Maintain private publication metadata and a verified local adapter-byte cache.
@@ -45,3 +45,11 @@ durable browser storage. Publication metadata is distinct from adapter bytes.
 - [x] Ephemeral private URLs are not stored as artifact identity
 
 *Last updated: July 2026*
+
+Remote complete jobs resolve one exact publication against the exact public base
+model identity. Configuration owns formats, fetching and byte limits; adapter
+combinations are explicitly disabled. The provider resolver requires a currently
+admitted publication, acquires its independent artifact set through generic
+`peer-pack-custody.js`, and reuses native verified checkpoints after restart.
+Custody grants and permitted suppliers come from application authorization.
+Base weights never enter the adapter artifact set.

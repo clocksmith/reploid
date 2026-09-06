@@ -51,6 +51,7 @@ describe('operation-independent deterministic provider planning', () => {
 
   it('makes adapter fetching and unknown physical memory explicit policy decisions', async () => {
     const args = await fixture(); args.requirements.adapterIdentities = [hash('e')];
+    args.policy.allowAdapterFetching = false;
     for (const candidate of args.candidates) candidate.capabilities.adapters = [{ identity: hash('e'), availability: 'fetchable' }];
     expect((await planOperationProviders(args)).selectedProviderId).toBeNull();
     args.policy.allowAdapterFetching = true;

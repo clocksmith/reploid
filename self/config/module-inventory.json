@@ -807,6 +807,26 @@
       ]
     },
     {
+      "path": "pool/adapter-execution-policy.js",
+      "owner": "pool",
+      "sha256": "sha256:4e6e94fa150344403ae378eb4066ad1ad645262b7a682ee95cf28163cf30b40a",
+      "imports": [
+        "./pack-operation-policy.js"
+      ]
+    },
+    {
+      "path": "pool/adapter-execution.js",
+      "owner": "pool",
+      "sha256": "sha256:98d123330179332cde7401fb796aaa1849d6d39a7153d62b9a88509b12dd85d0",
+      "imports": [
+        "./adapter-execution-policy.js",
+        "./adapter-pack.js",
+        "./adapter-publication.js",
+        "./executable-pack.js",
+        "./pack-operation-policy.js"
+      ]
+    },
+    {
       "path": "pool/adapter-pack-publisher.js",
       "owner": "pool",
       "sha256": "sha256:94a7d20b0098b7d70b25d948487d3550b1684fddb9cc5afc3da14da2b0053570",
@@ -935,7 +955,7 @@
     {
       "path": "pool/config-contract.js",
       "owner": "pool",
-      "sha256": "sha256:7df1604e59b713dc83f1ab4cd98a330667c30b0ef4d20772ddc42c38f04b26bb",
+      "sha256": "sha256:6c41065775dedf09d53a0b0153e694b1b42ed856ea1e7dd84607f4122539afa1",
       "imports": [
         "./executable-pack.js",
         "./pack-operation-policy.js",
@@ -990,9 +1010,25 @@
       "imports": []
     },
     {
+      "path": "pool/document-delegation.js",
+      "owner": "pool",
+      "sha256": "sha256:567123cbb38902087dd52ecabdbe10219159b1291aa6ed781af4f4b011375ed6",
+      "imports": [
+        "./document-search.js",
+        "./executable-pack.js",
+        "./pack-operation-adapters.js",
+        "./pack-operation.js",
+        "./peer-capabilities.js",
+        "./peer-pack-episode.js",
+        "./peer-pack-job-policy.js",
+        "./peer-pack-job.js",
+        "./pool-config.json"
+      ]
+    },
+    {
       "path": "pool/document-search.js",
       "owner": "pool",
-      "sha256": "sha256:da74de478f11323bec5f403b94035545e59a6be703649f589a60266b619bbf7f",
+      "sha256": "sha256:ee3632e4c4344188ae4feb365d2806070475fb6859cb0e4a61c1cc464d351d33",
       "imports": [
         "./document-search-policy.json",
         "./executable-pack.js",
@@ -1181,9 +1217,10 @@
     {
       "path": "pool/local-pack-executor.js",
       "owner": "pool",
-      "sha256": "sha256:9f71ae1c4f42e066b1a9ca728064ab2bc787e00b4a3d90aad3c49fb54d58bda0",
+      "sha256": "sha256:160b39a9ca3c3b0e7a3e4cb3ddd74d14b1dd3017f9e0f3dd8782fc64b1f3474b",
       "imports": [
         "../infrastructure/doppler-runtime-service.js",
+        "./adapter-execution.js",
         "./executable-pack.js",
         "./operation-model.js",
         "./pack-operation-adapters.js",
@@ -1242,12 +1279,55 @@
       ]
     },
     {
+      "path": "pool/operation-acceptance.js",
+      "owner": "pool",
+      "sha256": "sha256:dc5e73161b3b1cf8fc6dbdb48a21fd8769a03b60195192ddc3fbfb1d0289108c",
+      "imports": [
+        "./executable-pack.js",
+        "./pack-operation.js"
+      ]
+    },
+    {
       "path": "pool/operation-model.js",
       "owner": "pool",
       "sha256": "sha256:75969d9d9dd47e5433e6d6e89541a6ad0e043f1db56bc3bcf1f9d28a60c93f37",
       "imports": [
         "./executable-pack.js",
         "./pack-operation-adapters.js"
+      ]
+    },
+    {
+      "path": "pool/operation-participation.js",
+      "owner": "pool",
+      "sha256": "sha256:88a7d1498fea8d6010e282105a811e0459c533cf8c0734d2533d7d1c8518fbf9",
+      "imports": [
+        "./adapter-execution.js",
+        "./executable-pack.js",
+        "./identity.js",
+        "./inference-receipt.js",
+        "./local-pack-executor.js",
+        "./operation-model.js",
+        "./operation-room-network.js",
+        "./pack-operation-adapters.js",
+        "./pack-operation.js",
+        "./peer-pack-job.js",
+        "./pool-config.json"
+      ]
+    },
+    {
+      "path": "pool/operation-room-network.js",
+      "owner": "pool",
+      "sha256": "sha256:3f44d142dd279652711e0f33dfefa584cafc84ef88c2127fd58cb3a26163ee34",
+      "imports": [
+        "./executable-pack.js",
+        "./p2p-transport.js",
+        "./pack-operation.js",
+        "./peer-pack-job-channel.js",
+        "./peer-pack-job.js",
+        "./peer-pack-provider.js",
+        "./peer-protocol.js",
+        "./peer-room.js",
+        "./pool-config.json"
       ]
     },
     {
@@ -1303,7 +1383,7 @@
     {
       "path": "pool/pack-operation.js",
       "owner": "pool",
-      "sha256": "sha256:157388e62480c1a8df2e68627bb391c5c5195c1423a4f1fb2d7f6af6b1085419",
+      "sha256": "sha256:3aed2d69c89f804cc237104eb6ccb725ea0204321f57618c9915f82178bfe386",
       "imports": [
         "./executable-pack.js",
         "./pack-operation-adapters.js",
@@ -1326,6 +1406,17 @@
       "sha256": "sha256:0af14eedd3d3c907da5be4c8db65d46272801e6fb0927e3694f2c5d35f4c77e3",
       "imports": [
         "./inference-receipt.js"
+      ]
+    },
+    {
+      "path": "pool/peer-adapter-execution.js",
+      "owner": "pool",
+      "sha256": "sha256:2a230a1faea5bc9991e1285cc32de56f3a60287873daacfcf2239757ac437a99",
+      "imports": [
+        "../infrastructure/pack-transfer-storage.js",
+        "./adapter-execution.js",
+        "./executable-pack.js",
+        "./peer-pack-custody.js"
       ]
     },
     {
@@ -1394,7 +1485,7 @@
     {
       "path": "pool/peer-pack-custody.js",
       "owner": "pool",
-      "sha256": "sha256:f842b7dd9f7c2582e3eb7aa3e541f62f2dadaca2af42dfaa6266717ecb2e294c",
+      "sha256": "sha256:20835b59c55a4a954bb5e70f0787670327bf3815c10944b2271d18d78afcae65",
       "imports": [
         "./executable-pack.js",
         "./inference-receipt.js"
@@ -1409,9 +1500,10 @@
     {
       "path": "pool/peer-pack-episode.js",
       "owner": "pool",
-      "sha256": "sha256:60bfb5727cbf1877ec02902a9043d6fc02325b957b1bdef300bf8cf9362f233a",
+      "sha256": "sha256:2a14135f970892347198ee0b4037b31c4e1fa589ae28a2dadc84f587b9cc1df7",
       "imports": [
         "./executable-pack.js",
+        "./operation-acceptance.js",
         "./pack-operation-adapters.js",
         "./pack-operation.js",
         "./peer-pack-job-policy.js",
@@ -1430,8 +1522,9 @@
     {
       "path": "pool/peer-pack-job-policy.js",
       "owner": "pool",
-      "sha256": "sha256:06e2e69bf6d923426ecb9cae200966f2dd71bb02f743a87871ddb75bb49506c6",
+      "sha256": "sha256:56cdfbe04c41e007524b3f1abe30562150ce5dbf63e791a50c997658b2dc538f",
       "imports": [
+        "./adapter-execution-policy.js",
         "./pack-operation-policy.js",
         "./peer-capabilities.js",
         "./pool-config.json"
@@ -1440,10 +1533,12 @@
     {
       "path": "pool/peer-pack-job.js",
       "owner": "pool",
-      "sha256": "sha256:48087ea3aecd37f33b91e91222661d2e66aa3d0f0ef452aa89e446cea6c1157f",
+      "sha256": "sha256:c2fc119806e274d42ed91e35d3ca979197557c6de23379cc7e2057312fc127bc",
       "imports": [
+        "./adapter-execution.js",
         "./executable-pack.js",
         "./inference-receipt.js",
+        "./operation-acceptance.js",
         "./operation-model.js",
         "./pack-operation-adapters.js",
         "./pack-operation-policy.js",
@@ -1458,7 +1553,7 @@
     {
       "path": "pool/peer-pack-provider.js",
       "owner": "pool",
-      "sha256": "sha256:64043c9779233aeff55a514ec24d9c471c470c2f2f6130e96c8123fe0cb6f3d0",
+      "sha256": "sha256:a2c97a0207a879443325854b2a292ae982343679cd96abad8ebb770636b56b0c",
       "imports": [
         "../infrastructure/pack-job-storage.js",
         "./executable-pack.js",
@@ -1473,9 +1568,10 @@
     {
       "path": "pool/peer-pack-requester.js",
       "owner": "pool",
-      "sha256": "sha256:48bffb4efb4da03650ba79bab0562fd7f9279c0f996ed01b96696153b271c506",
+      "sha256": "sha256:eebb90cc8778611df19aceacadbcb04f734d8d147bc456ff89e847098c520761",
       "imports": [
         "./executable-pack.js",
+        "./operation-acceptance.js",
         "./pack-operation-adapters.js",
         "./pack-operation.js",
         "./peer-pack-job-policy.js",
@@ -1546,7 +1642,7 @@
     {
       "path": "pool/peer-room.js",
       "owner": "pool",
-      "sha256": "sha256:515cd053832e5f70c90ecfc185e1c0ae09e137066928e31acc14ded76898a5d6",
+      "sha256": "sha256:34dc60f254dfd4260652e39b41cf4f28a16fc063169ed2ee8701144c32540e3d",
       "imports": [
         "./config.js",
         "./executable-pack.js",
@@ -1630,7 +1726,7 @@
     {
       "path": "pool/requester-client.js",
       "owner": "pool",
-      "sha256": "sha256:339ed0f75188024e76357e3a9d9e58de65fcee53b190ca1600d0f48c8041d8f5",
+      "sha256": "sha256:706330a2fa72fc5b2e4d768e1baf92740b69d302487408e4d529e840344d0b07",
       "imports": [
         "./adapter-pack.js",
         "./adapter-publication.js",
@@ -2556,7 +2652,7 @@
     {
       "path": "ui/pool-home/document-search.js",
       "owner": "ui",
-      "sha256": "sha256:006c0221cded351d89aeabab32207c98f605b88137d7cb56a62257ea53150dc3",
+      "sha256": "sha256:ca89cdf548e2b325ef7ef440c974f243f30648151542f837e54a6a23d5a1f4f2",
       "imports": [
         "../../pool/document-search-policy.json"
       ]
@@ -2564,16 +2660,23 @@
     {
       "path": "ui/pool-home/index.js",
       "owner": "ui",
-      "sha256": "sha256:79bfa175ae628c17006d78c2df53a61d23aae974495caeb5d9fa82de8c804a24",
+      "sha256": "sha256:c4b5bef5207e11f5045ce963c71a87499adc748fbffc573c6d11c63945d32ca9",
       "imports": [
-        "../../pool/document-search.js",
+        "../../pool/document-delegation.js",
         "../../pool/doppler-runtime.js",
+        "../../pool/identity.js",
         "../../pool/local-pack-executor.js",
+        "../../pool/operation-participation.js",
+        "../../pool/operation-room-network.js",
+        "../../pool/p2p-transport.js",
+        "../../pool/pool-config.json",
+        "../../pool/requester-client.js",
         "./constants.js",
         "./contribution-state.js",
         "./controls.js",
         "./document-search.js",
         "./ledger-store.js",
+        "./operation-sharing.js",
         "./prism.js",
         "./research-store.js",
         "./research-view.js",
@@ -2592,6 +2695,14 @@
       "sha256": "sha256:1828eb9a3196cc0edf1cc84e211ab985a589aff7f56c11b00f78a17a909066db",
       "imports": [
         "./constants.js"
+      ]
+    },
+    {
+      "path": "ui/pool-home/operation-sharing.js",
+      "owner": "ui",
+      "sha256": "sha256:7d45c7f96c8247c15e9c5fe6d851aa6095359a82d8f8dadf1abd14af99e7b71f",
+      "imports": [
+        "../../pool/pool-config.json"
       ]
     },
     {
@@ -2767,7 +2878,7 @@
     {
       "path": "ui/pool-home/view.js",
       "owner": "ui",
-      "sha256": "sha256:2f3ddcf244f5d3e0b7a01091e7ac1eda580322d9cccc4ed10eb3a86a611bf3c0",
+      "sha256": "sha256:c574f0931034c2c86846d23cf61a9b5a3e1a012f513424c75e8f4eef912949a4",
       "imports": [
         "../../config/surface-intents.js",
         "../../pool/model-contract.js",
@@ -2782,6 +2893,7 @@
         "./document-search.js",
         "./ledger-store.js",
         "./network-projection.js",
+        "./operation-sharing.js",
         "./record-persistence.js",
         "./requester-controls.js",
         "./research-store.js",

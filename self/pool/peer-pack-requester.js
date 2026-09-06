@@ -1,7 +1,8 @@
+import { assessPeerOperation, validateOperationReference } from './operation-acceptance.js';
 import { PACK_JOB_POLICY, resolvePackJobPolicy } from './peer-pack-job-policy.js';
 import { PEER_MESSAGE_TYPES } from './peer-protocol.js';
 import { createPackOperationRegistry } from './pack-operation-adapters.js';
-import { snapshotPackOperationData as snapshot, assertPackOperationEvent, assessPackOperation } from './pack-operation.js';
+import { snapshotPackOperationData as snapshot, assertPackOperationEvent } from './pack-operation.js';
 import { hashDopplerEvidence } from './executable-pack.js';
 import { PACK_UPDATE_SCHEMA, PACK_CANCEL_SCHEMA, requirePackJob, packJobBytes,
   createPackPeerJob, verifyPackPeerJob, verifyPackPeerMessage, signPackPeerMessage } from './peer-pack-job.js';
@@ -82,8 +83,7 @@ export function createPackPeerRequester({ identity, bus, models, registry = crea
     }
     const execution = snapshot({ request: record.job.body.request, output: body.event.output, receipt: body.event.receipt,
       completion: body.event, eventCount: record.eventIndex, finalEventDigest: body.event.eventDigest });
-    const assessment = await assessPackOperation({ execution, reference: record.reference,
-      policy: record.job.body.intent.comparisonPolicy, registry });
+    const assessment = await assessPeerOperation({ job: record.job, execution, reference: record.reference, registry });
     current(record);
     requirePackJob(assessment.accepted, 'output failed frozen comparison');
     const acceptance = await signPackPeerMessage({ identity, policy, type: PEER_MESSAGE_TYPES.ACCEPTANCE,
@@ -133,10 +133,7 @@ export function createPackPeerRequester({ identity, bus, models, registry = crea
           current(record);
           await verifyPackPeerJob(job, { providerId: job.toPeerId, models, registry, policy });
           current(record);
-          const adapter = registry[job.body.request.operation.name];
-          requirePackJob(await hashDopplerEvidence(data.reference) === job.body.intent.comparisonPolicy.referenceDigest, 'reference digest mismatch');
-          adapter.validateOutput(data.reference, job.body.request, { completed: true });
-          requirePackJob(adapter.compare(data.reference, data.reference, job.body.intent.comparisonPolicy) === true, 'invalid comparison policy');
+          await validateOperationReference({ job, reference: data.reference, registry });
           record.requestHash = await hashDopplerEvidence(job.body.request);
           current(record);
           record.job = job;

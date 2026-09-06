@@ -1,16 +1,24 @@
+import { createOperationRoomNetwork } from '../../pool/operation-room-network.js';
+import { createOperationParticipation } from '../../pool/operation-participation.js';
+import { bindOperationSharing, refreshOperationSharing } from './operation-sharing.js';
+import { createRequesterClient } from '../../pool/requester-client.js';
+import { createPoolIdentity } from '../../pool/identity.js';
+import { resolveRtcConfig } from '../../pool/p2p-transport.js';
+import poolConfiguration from '../../pool/pool-config.json' with { type: 'json' };
 /**
  * @fileoverview Public product home for Reploid.
  */
 
 import { createDopplerRuntime } from '../../pool/doppler-runtime.js';
 import { createLocalPackExecutor } from '../../pool/local-pack-executor.js';
-import { createDocumentSearch } from '../../pool/document-search.js';
+import { createDocumentAssistant } from '../../pool/document-delegation.js';
 import { bindDocumentSearch, refreshDocumentSearch, renderLocalDocumentHistory } from './document-search.js';
 import { POOLDAY_NAME, ROUTE_COPY } from './constants.js';
 import {
   bindRecordStorageSync,
   getPoolDashboardView,
   getPeerRoomId,
+  getPeerRoomBusFactory,
   getRouteId,
   isProductPath,
   refreshContributionPanels,
@@ -192,7 +200,7 @@ const bindPoolRouteControls = (mount, render, {
   });
 };
 
-export function initPoolHome(mount) {
+export function initPoolHome(mount, { operationNetwork = null } = {}) {
   if (!mount) return;
   stopPoolHomeBackground();
   mount.replaceChildren();
@@ -206,10 +214,18 @@ export function initPoolHome(mount) {
   bindResearchStoreSync();
   let navOpen = false;
   let disposeDocumentView = () => {};
-  const documents = createDocumentSearch({ executor: createLocalPackExecutor(), onChange: (state) => {
+  let disposeOperationSharing = () => {};
+  const operationSharing = createOperationParticipation({ networkOptions: () => ({ roomId: getPeerRoomId(),
+    roomBusFactory: getPeerRoomBusFactory(), rtcConfig: resolveRtcConfig() }),
+    onChange: state => refreshOperationSharing(mount, state) });
+  operationNetwork ??= createOperationRoomNetwork({ roomId: getPeerRoomId(), roomBusFactory: getPeerRoomBusFactory(),
+    requesterClient: createRequesterClient({ sdk: null, identity: createPoolIdentity('requester', { localOnly: true,
+      namespace: poolConfiguration.operationNetwork.identityNamespace }) }), rtcConfig: resolveRtcConfig() });
+  const documents = createDocumentAssistant({ executor: createLocalPackExecutor(), network: operationNetwork, onChange: (state) => {
     refreshDocumentSearch(mount, state);
     if (getRouteId() === 'records') renderLocalDocumentHistory(mount, state);
   } });
+  window.REPLOID_POOL_CONNECT_OPERATIONS = network => documents.connectNetwork(network);
   if (window.REPLOID_POOL_NAV_ESCAPE_HANDLER) {
     window.removeEventListener('keydown', window.REPLOID_POOL_NAV_ESCAPE_HANDLER);
   }
@@ -226,6 +242,7 @@ export function initPoolHome(mount) {
 
   const render = (options = {}) => {
     disposeDocumentView();
+    disposeOperationSharing();
     if (documents.getState().busy) documents.cancel();
     const routeId = getRouteId();
     const dashboardView = routeId === 'home' ? getPoolDashboardView() : 'home';
@@ -267,6 +284,7 @@ export function initPoolHome(mount) {
     window.REPLOID_POOL_CONTROLS_STOP = bindHomeAskControls(render);
     window.REPLOID_POOL_PRISM_STOP = bindPoolPrism(mount);
     disposeDocumentView = bindDocumentSearch(mount, documents);
+    disposeOperationSharing = bindOperationSharing(mount, operationSharing);
     if (routeId === 'records') renderLocalDocumentHistory(mount, documents.getState());
     bindPoolDashboardControls();
     bindCapabilityAssessmentControls();

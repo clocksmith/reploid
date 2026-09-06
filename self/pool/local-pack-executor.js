@@ -1,3 +1,4 @@
+import { dopplerExecutionAdapterSet } from './adapter-execution.js';
 import { assertPackSession, hashDopplerEvidence } from './executable-pack.js';
 import { validateOperationModel } from './operation-model.js';
 import { runPackOperation, snapshotPackOperationData } from './pack-operation.js';
@@ -26,7 +27,7 @@ export function createLocalPackExecutor({ service = DopplerRuntimeService, scope
     finally { releasing = false; }
   };
   return {
-    async run({ model: modelInput, input, options = {}, assignment = null, limits, signal = null, onPartial = null, beforeExecute = null }) {
+    async run({ model: modelInput, input, options = {}, assignment = null, limits, signal = null, onPartial = null, beforeExecute = null, adapterSet = [], adapterArtifactStore = null, assertAdaptersCurrent = null }) {
       if (disposed || active) throw new Error(disposed ? 'Document executor is closed' : 'A document operation is already running');
       const model = snapshotPackOperationData(modelInput);
       const validation = validateOperationModel(model, registry);
@@ -37,7 +38,7 @@ export function createLocalPackExecutor({ service = DopplerRuntimeService, scope
       if (!model.packOpenOptions?.trustedSigners || !Object.keys(model.packOpenOptions.trustedSigners).length) throw new Error('Application-selected trusted signers required');
       const request = snapshotPackOperationData({ schema: 'doppler.pack-operation-request/v1',
         operation: { name: model.executablePack.requiredOperation, version: registry[model.executablePack.requiredOperation].version }, input, options,
-        assignment, limits });
+        assignment, limits, ...(adapterSet.length ? { adapterSet: dopplerExecutionAdapterSet(snapshotPackOperationData(adapterSet), model) } : {}) });
       const remaining = limits?.deadlineAt - Date.now();
       if (!Number.isSafeInteger(limits?.deadlineAt) || remaining <= 0 || remaining > 2147483647) throw new Error('Document operation requires a future bounded deadline');
       const currentEpoch = ++epoch;
@@ -86,7 +87,8 @@ export function createLocalPackExecutor({ service = DopplerRuntimeService, scope
           if (session.modelId !== model.modelId) throw new Error('Loaded Pack model id mismatch');
           await releasePolicy.assertCurrent(session);
           execution = await runPackOperation({ binding: model.executablePack, session, request,
-            runtimeVersion: model.runtimeVersion, signal: localController.signal, onPartial, beforeExecute, assertCurrent, registry });
+            runtimeVersion: model.runtimeVersion, signal: localController.signal, adapterArtifactStore, onPartial, beforeExecute,
+            assertCurrent: async () => { assertCurrent(); await assertAdaptersCurrent?.(); assertCurrent(); }, registry });
           assertCurrent();
           await releasePolicy.assertCurrent(session);
           assertCurrent();

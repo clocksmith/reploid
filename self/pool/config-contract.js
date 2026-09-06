@@ -150,7 +150,7 @@ const validateSequenceModelContract = (model, index, reasons, { isLaunchModel = 
 export function validatePoolConfigValue(config = {}) {
   const reasons = [];
   try {
-    if (resolvePackJobPolicy(config.peerJobs).version !== 2) reasons.push('current peer job policy version required');
+    if (resolvePackJobPolicy(config.peerJobs).version !== 3) reasons.push('current peer job policy version required');
   }
   catch (error) { reasons.push(error.message); }
   try { resolvePackOperationDefinitions(config.operations, config.operationComparisonPolicies); }

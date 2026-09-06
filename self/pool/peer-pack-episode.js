@@ -1,7 +1,8 @@
+import { assessPeerOperation } from './operation-acceptance.js';
 /** Offline verification at the original signed acceptance instant. */
 import { PEER_MESSAGE_TYPES } from './peer-protocol.js';
 import { hashDopplerEvidence } from './executable-pack.js';
-import { snapshotPackOperationData as snapshot, assertPackOperationEvent, assessPackOperation } from './pack-operation.js';
+import { snapshotPackOperationData as snapshot, assertPackOperationEvent } from './pack-operation.js';
 import { createPackOperationRegistry } from './pack-operation-adapters.js';
 import { PACK_JOB_POLICY, resolvePackJobPolicy } from './peer-pack-job-policy.js';
 import { PACK_UPDATE_SCHEMA, requirePackJob, verifyPackPeerMessage, verifyPackPeerJob, packJobBytes } from './peer-pack-job.js';
@@ -48,7 +49,7 @@ export async function verifyPackPeerEpisode({ job, updates, acceptance, referenc
   }
   requirePackJob(completion, 'archived stream has no completion');
   const execution = { request, output: completion.output, receipt: completion.receipt };
-  const assessment = await assessPackOperation({ execution, reference, policy: job.body.intent.comparisonPolicy, registry });
+  const assessment = await assessPeerOperation({ job, execution, reference, registry });
   requirePackJob(assessment.accepted && acceptance.body.finalUpdateHash === previousUpdateHash
     && await hashDopplerEvidence(acceptance.body.assessment) === await hashDopplerEvidence(assessment), 'archived acceptance does not match execution comparison');
   return snapshot({ accepted: true, acceptedAt: acceptance.createdAt, execution, assessment, acceptanceHash: acceptance.messageHash });

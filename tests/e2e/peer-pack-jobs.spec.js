@@ -23,6 +23,92 @@ test.beforeAll(async () => {
 });
 test.afterAll(async () => { await new Promise(resolve => { server.close(resolve); server.closeAllConnections(); }); });
 
+test('verified adapter bytes survive browser replacement with the supplier unavailable', async ({}, testInfo) => {
+  const profile = await mkdtemp(path.join(tmpdir(), 'reploid-adapter-restart-'));
+  let context;
+  try {
+    const observations = [];
+    for (const saved of [null, 'restart']) {
+      context = await chromium.launchPersistentContext(profile, { headless: true });
+      const page = await context.newPage(); await page.goto(origin);
+      const result = await page.evaluate(async prior => {
+        const fixture = await import('/tests/fixtures/peer-adapter-storage-browser.js');
+        return fixture.transfer(prior);
+      }, saved ? observations[0].saved : null);
+      observations.push(result);
+      await context.close(); context = null;
+    }
+    expect(observations[0].requests).toBe(1);
+    expect(observations[1].requests).toBe(0);
+    expect(observations[1].bytes).toEqual(observations[0].bytes);
+    expect(observations[1].receipts[0]).toMatchObject({ source: 'cache', receivedBytes: 0 });
+    await testInfo.attach('adapter-restart', { body: JSON.stringify({ executionClass: 'synthetic-adapter-native-indexeddb',
+      operatorCount: 1, observations }, null, 2), contentType: 'application/json' });
+  } finally { await context?.close(); await rm(profile, { recursive: true, force: true }); }
+});
+
+test('reviewed public task uses room discovery and WebRTC while private retrieval stays local', async ({ browser }, testInfo) => {
+  const context = await browser.newContext();
+  const requester = await context.newPage(), provider = await context.newPage();
+  const pages = [provider, requester];
+  const pageErrors = [];
+  try {
+    for (const page of pages) page.on('pageerror', error => pageErrors.push(error.message));
+    await Promise.all(pages.map(page => page.goto(origin)));
+    for (const [index, page] of pages.entries()) await page.evaluate(async ({ role, roomId }) => {
+      window.fixture = await import('/tests/fixtures/operation-room-browser.js');
+      await window.fixture.start({ role, roomId });
+    }, { role: index === 0 ? 'provider' : 'requester', roomId: 'document-delegation-proof' });
+    const configuration = await provider.evaluate(() => window.fixture.configuration());
+    await provider.locator('[data-operation-sharing] summary').click();
+    await provider.locator('[data-operation-settings]').setInputFiles({ name: 'models.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(configuration)) });
+    await provider.locator('[data-operation-toggle]').click();
+    await expect(provider.locator('[data-operation-status]')).toHaveText('Confirm publisher trust and sharing first');
+    await provider.locator('[data-operation-approve]').check();
+    await provider.locator('[data-operation-toggle]').click();
+    await expect(provider.locator('[data-operation-status]')).toHaveText('Sharing fixture');
+    const task = 'PUBLIC-TASK-TRIPWIRE: Suggest a concise answer structure.';
+    await requester.locator('[data-document-share] summary').click();
+    await expect(requester.locator('[data-document-share-task]')).toHaveValue('');
+    await requester.locator('[data-document-share-task]').fill(task);
+    await requester.locator('[data-document-review-share]').click();
+    await expect(requester.locator('[data-document-share-preview]')).toBeVisible();
+    await expect(requester.locator('[data-document-share-text]')).toHaveText(task);
+    await expect(requester.locator('[data-document-send-share]')).toBeDisabled();
+    expect((await provider.evaluate(() => window.fixture.state())).calls).toHaveLength(0);
+    await requester.locator('[data-document-share-consent]').check();
+    await requester.locator('[data-document-share-task]').fill(task + ' Edited.');
+    await expect(requester.locator('[data-document-share-preview]')).toBeHidden();
+    await expect(requester.locator('[data-document-send-share]')).toBeDisabled();
+    await requester.locator('[data-document-review-share]').click();
+    await expect(requester.locator('[data-document-share-preview]')).toBeVisible();
+    await requester.locator('[data-document-share-consent]').check();
+    await requester.locator('[data-document-send-share]').click();
+    await expect(requester.locator('[data-document-answer-output]')).toHaveText('Private apple evidence. [1]', { timeout: 20000 });
+    const local = await requester.evaluate(() => window.fixture.state());
+    const remote = await provider.evaluate(() => window.fixture.state());
+    expect(local.workflow.result.execution).toBe('local-and-approved-peer');
+    expect(local.workflow.result.remoteExecution.assessment.claim).toBe('execution-identity-only');
+    expect(local.calls.at(-1).input.prompt).toContain('PRIVATE-SOURCE-TRIPWIRE');
+    expect(local.calls.at(-1).input.prompt).toContain('A public drafting suggestion.');
+    expect(remote.calls).toHaveLength(1);
+    expect(remote.calls[0].input).toEqual({ prompt: task + ' Edited.' });
+    expect(JSON.stringify(remote)).not.toMatch(/PRIVATE-(SOURCE|FILENAME|QUESTION)-TRIPWIRE/);
+    expect(JSON.stringify([...local.relay, ...remote.relay])).not.toContain('PUBLIC-TASK-TRIPWIRE');
+    expect([...local.errors, ...remote.errors, ...pageErrors]).toEqual([]);
+    await requester.evaluate(() => window.fixture.search('A second private question apple'));
+    const history = await requester.evaluate(() => window.fixture.state().workflow.history);
+    expect(history[1].result.remoteExecution.job.messageHash).toBe(local.workflow.result.remoteExecution.job.messageHash);
+    await provider.locator('[data-operation-toggle]').click();
+    await expect(provider.locator('[data-operation-status]')).toHaveText('Not sharing');
+    await testInfo.attach('selective-delegation', { body: JSON.stringify({ executionClass: 'synthetic-models-real-webrtc',
+      operatorCount: 1, result: local.workflow.result, remoteCalls: remote.calls }, null, 2), contentType: 'application/json' });
+  } finally {
+    await Promise.all(pages.map(page => page.evaluate(() => window.fixture?.close()).catch(() => {})));
+    await context.close();
+  }
+});
+
 test('common operations cross real WebRTC between browser contexts, with bounded large-message framing', async ({ browser }, testInfo) => {
   const observations = [];
   for (const operation of ['generate', 'embed', 'rerank', 'encodeSequence']) {
@@ -65,10 +151,12 @@ test('Verification Worker accepts complete-job modules and modified execution bo
   const result = await page.evaluate(async () => {
     const snapshot = {};
     for (const file of ['peer-pack-job.js', 'peer-pack-job-policy.js', 'peer-capabilities.js', 'peer-planning.js', 'peer-room.js', 'peer-control-plane.js', 'peer-pack-provider.js', 'peer-pack-requester.js', 'peer-pack-job-channel.js',
-      'peer-pack-episode.js', 'peer-pack-session.js', 'pack-operation.js', 'pack-operation-adapters.js', 'pack-operation-policy.js', 'config-contract.js', 'operation-model.js', 'local-pack-executor.js', 'provider-client.js', 'requester-client.js']) {
+      'peer-pack-episode.js', 'peer-pack-session.js', 'pack-operation.js', 'pack-operation-adapters.js', 'pack-operation-policy.js', 'config-contract.js', 'operation-model.js', 'local-pack-executor.js', 'provider-client.js', 'requester-client.js',
+      'adapter-execution.js', 'adapter-execution-policy.js', 'peer-adapter-execution.js', 'operation-acceptance.js', 'document-search.js', 'document-delegation.js', 'operation-room-network.js', 'operation-participation.js', 'peer-pack-custody.js']) {
       snapshot[`/pool/${file}`] = await (await fetch(`/self/pool/${file}`)).text();
     }
     snapshot['/infrastructure/pack-job-storage.js'] = await (await fetch('/self/infrastructure/pack-job-storage.js')).text();
+    for (const file of ['document-search.js', 'index.js', 'view.js', 'operation-sharing.js']) snapshot[`/ui/pool-home/${file}`] = await (await fetch(`/self/ui/pool-home/${file}`)).text();
     for (const file of ['peer-pack-operation.js', 'peer-pack-job-browser.js', 'peer-pack-browser.js', 'peer-pack-remote-execution.js', 'peer-pack-journal-browser.js']) snapshot[`/tests/fixtures/${file}`] = await (await fetch(`/tests/fixtures/${file}`)).text();
     const worker = new Worker('/core/verification-worker.js');
     return new Promise((resolve, reject) => {

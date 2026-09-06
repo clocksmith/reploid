@@ -8,7 +8,7 @@
 
 **Planned Artifacts:** None
 
-**Owned Source Files:** `ui/pool-home/ledger-store.js`, `ui/pool-home/view.js`
+**Owned Source Files:** `ui/pool-home/ledger-store.js`, `ui/pool-home/view.js`, `ui/pool-home/operation-sharing.js`
 
 **Former Blueprint Paths:** `self/blueprints/0x000089-ui-pool-home-view.md`
 **Objective:** Render Poolday routes, navigation, records, and room-scoped view state without moving execution authority into presentation code.
