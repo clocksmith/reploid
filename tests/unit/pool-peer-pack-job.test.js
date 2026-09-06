@@ -11,6 +11,34 @@ import { verifyPackPeerEpisode } from '../../self/pool/peer-pack-episode.js';
 const deferred = () => { let resolve; const promise = new Promise(done => { resolve = done; }); return { promise, resolve }; };
 const until = async check => { for (let i = 0; i < 500; i++) { if (check()) return; await new Promise(resolve => setTimeout(resolve, 2)); } throw new Error('condition did not settle'); };
 
+// Protocol-only double. Native persistence and cross-process claims are tested in Playwright.
+function memoryJournal() {
+  const records = new Map();
+  const key = value => JSON.stringify([value.requesterId, value.jobId, value.attemptId]);
+  return {
+    async claim(value, owner) {
+      const prior = records.get(key(value));
+      if (prior && prior.jobHash !== value.jobHash) throw new Error('different signed envelope');
+      const record = prior || { ...value, owner, status: 'running', updates: [] };
+      records.set(key(value), record);
+      return { created: !prior, record: structuredClone(record) };
+    },
+    async append(value, owner, message) {
+      const record = records.get(key(value));
+      if (!record || record.owner !== owner || record.updates.at(-1)?.body.status === 'completed') throw new Error('invalid writer');
+      if (record.status === 'cancelled' && ['partial', 'completed'].includes(message.body.status)) throw new Error('cancelled');
+      record.updates.push(structuredClone(message));
+      record.status = message.body.status === 'partial' ? 'running' : message.body.status;
+    },
+    async cancel(value, owner) {
+      const prior = records.get(key(value));
+      if (prior?.updates.at(-1)?.body.status === 'completed') return;
+      records.set(key(value), { ...value, owner, ...prior, status: 'cancelled', updates: prior?.updates || [] });
+    },
+    close() {}
+  };
+}
+
 async function setup(name, registry, tweaks = {}) {
   const f = await operationFixture(name, registry);
   const providerIdentity = await packPeerIdentity(), requesterIdentity = await packPeerIdentity();
@@ -23,7 +51,7 @@ async function setup(name, registry, tweaks = {}) {
     async send(message) { responses.push(message); if (tweaks.dropResponse?.(message, responses.length)) return;
       for (const fn of requestListeners) fn(structuredClone(message)); } };
   const provider = createPackPeerProvider({ identity: providerIdentity, bus: providerBus, models: [f.model],
-    executor: f.executor, registry, authorize: tweaks.authorize || (() => true), onError: error => errors.push(error.message) });
+    executor: f.executor, registry, journal: memoryJournal(), authorize: tweaks.authorize || (() => true), onError: error => errors.push(error.message) });
   const requester = createPackPeerRequester({ identity: requesterIdentity, bus: requesterBus, models: [f.model], registry,
     maxDeliveries: tweaks.maxDeliveries ?? 3, retryMs: 100, onError: error => errors.push(error.message) });
   const limits = { maxInputBytes: 10000, maxOutputBytes: 10000, maxStreamBytes: 200000, maxEvents: 32, maxJobMs: 30000 };
