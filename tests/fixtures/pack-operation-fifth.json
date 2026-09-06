@@ -47,7 +47,8 @@
       ],
       "remote": [
         "public_text"
-      ]
+      ],
+      "defaultRemote": "public_text"
     }
   }
 }

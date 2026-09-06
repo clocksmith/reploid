@@ -176,7 +176,7 @@ describe('poolday home navigation', () => {
   it('does not reintroduce drawer chrome when legacy open options are supplied', () => {
     const html = renderNav('records', { open: true });
 
-    expect(html).toContain('class="pool-nav-link is-active"');
+    expect(html).toContain('class="pool-nav-link pool-segment is-active"');
     expect(html).toContain('>Recent jobs</a>');
     expect(html).toContain('aria-current="page"');
     expect(html).not.toContain('is-open');
@@ -202,7 +202,7 @@ describe('poolday home navigation', () => {
     expect(html).toContain('class="pool-home-stage pool-home-stage--focused"');
     expect(html).toContain('class="pool-home-toolbar"');
     expect(html).toContain('class="pool-home-toolbar-leading pool-home-overlay"');
-    expect(html).toContain('class="pool-home-ask-dock pool-home-cta-row pool-home-ask-form"');
+    expect(html).toContain('class="pool-home-ask-dock pool-home-cta-row pool-home-ask-form pool-task-card"');
     expect(html).not.toContain('class="pool-home-toolbar-right"');
     expect(html).not.toContain('class="pool-simulation-shell"');
     expect(html).not.toContain('data-pool-network-disclosure');
@@ -241,7 +241,7 @@ describe('poolday home navigation', () => {
     expect(placeholder).not.toBe('Ask the network...');
     expect(html).toContain(`data-pool-suggested-prompt="${placeholder}"`);
     expect(html).not.toContain('placeholder="Ask the network..."');
-    expect(html).toContain('class="btn btn-primary pool-home-run-button"');
+    expect(html).toContain('class="btn btn-primary pool-home-run-button pool-primary-action"');
     expect(html).toContain('type="submit"');
     expect(html).toContain('>Run model</button>');
     expect(html).toContain('<summary>Options</summary>');
@@ -360,7 +360,7 @@ describe('poolday home navigation', () => {
     const computeHtml = renderRouteDetail('compute');
 
     expect(askHtml).toContain('<option value="esm2-t12-35m-ur50d-f32-af32" data-workload="sequence.embedding.v1" selected>ESM-2 35M (Protein)</option>');
-    expect(computeHtml).toContain('<option value="esm2-t12-35m-ur50d-f32-af32" data-workload="sequence.embedding.v1" selected>ESM-2 35M (Protein) · sequence.embedding.v1</option>');
+    expect(computeHtml).toContain('<option value="esm2-t12-35m-ur50d-f32-af32" data-workload="sequence.embedding.v1" selected>ESM-2 35M (Protein)</option>');
     expect(askHtml).toContain('id="pool-run-sequence-public"');
     expect(askHtml).not.toContain('qwen-3-5-0-8b-q4k-ehaf16');
     expect(computeHtml).not.toContain('qwen-3-5-0-8b-q4k-ehaf16');
@@ -396,7 +396,7 @@ describe('poolday home navigation', () => {
     expect(html).toContain('<summary>Advanced details</summary>');
     expect(html).toContain('<summary>Debug event</summary>');
     expect(html).toContain('Before you share');
-    expect(html).toContain('Runs until you stop sharing or close this tab');
+    expect(html).toContain('Share until you stop or close this tab');
     expect(html).toContain('data-pool-provider-notice');
     expect(html.indexOf('Before you share')).toBeLessThan(html.indexOf('id="pool-provider-worker-toggle"'));
   });

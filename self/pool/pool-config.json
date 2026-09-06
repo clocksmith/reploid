@@ -1,6 +1,6 @@
 {
   "schema": "reploid.pool.config/v1",
-  "configVersion": "2026-09-06.operation-policy.v1.doppler-0.5.1",
+  "configVersion": "2026-09-06.durable-attempts.v2.doppler-0.5.1",
   "claim": "receipt-backed, audit-backed, reputation-backed, policy-controlled browser inference",
   "forbiddenClaims": [
     "trustless",
@@ -1578,7 +1578,8 @@
         ],
         "remote": [
           "public_text"
-        ]
+        ],
+        "defaultRemote": "public_text"
       }
     },
     "embed": {
@@ -1631,7 +1632,8 @@
         ],
         "remote": [
           "public_text"
-        ]
+        ],
+        "defaultRemote": "public_text"
       }
     },
     "rerank": {
@@ -1686,7 +1688,8 @@
         ],
         "remote": [
           "public_text"
-        ]
+        ],
+        "defaultRemote": "public_text"
       }
     },
     "encodeSequence": {
@@ -1742,7 +1745,8 @@
         ],
         "remote": [
           "public_biological_sequence"
-        ]
+        ],
+        "defaultRemote": "public_biological_sequence"
       }
     }
   },
@@ -1760,6 +1764,87 @@
         "absoluteTolerance",
         "relativeTolerance"
       ]
+    }
+  },
+  "peerJobs": {
+    "schema": "reploid.pool.peer-job-policy/v1",
+    "version": 1,
+    "schemas": {
+      "job": "reploid.peer.pack_job/v2",
+      "legacyJob": "reploid.peer.pack_job/v1",
+      "update": "reploid.peer.pack_update/v1",
+      "cancel": "reploid.peer.pack_cancel/v1",
+      "record": "reploid.pack-job-journal/v2",
+      "legacyRecord": "reploid.pack-job-journal/v1"
+    },
+    "limits": {
+      "maxWireBytes": 16777216,
+      "maxInputBytes": 4194304,
+      "maxOutputBytes": 4194304,
+      "maxStreamBytes": 67108864,
+      "maxEvents": 4096,
+      "maxJobMs": 300000,
+      "maxInboxMessages": 16,
+      "maxModels": 16,
+      "maxConsentProviders": 8,
+      "maxIdentityCharacters": 128,
+      "maxPublicKeyCharacters": 1024,
+      "maxClockSkewMs": 5000
+    },
+    "attempts": {
+      "initialNumber": 1,
+      "maximumNumber": 1000000
+    },
+    "retry": {
+      "maxDeliveries": 3,
+      "delayMs": 2000,
+      "maximumDeliveries": 8,
+      "minimumDelayMs": 100,
+      "maximumDelayMs": 10000
+    },
+    "persistence": {
+      "databaseName": "reploid-pack-jobs-v1",
+      "databaseVersion": 1,
+      "storeName": "attempts",
+      "recordSchema": "reploid.pack-job-journal/v2",
+      "legacyRecordSchema": "reploid.pack-job-journal/v1",
+      "maxRecords": 128,
+      "recordCeiling": 256,
+      "maxSavedBytes": 67108864,
+      "byteCeiling": 67108864,
+      "retentionMs": 300000,
+      "maxFutureMs": 300000,
+      "maxIdentityCharacters": 128,
+      "storageTimeoutMs": 10000,
+      "storageFailureBehavior": "reject",
+      "cleanup": "expire-then-delete-after-retention",
+      "durability": "strict",
+      "states": [
+        "accepted",
+        "running",
+        "completed",
+        "cancelled",
+        "interrupted",
+        "expired"
+      ],
+      "outcomeStates": {
+        "partial": "running",
+        "completed": "completed",
+        "cancelled": "cancelled",
+        "failed": "interrupted",
+        "busy": "interrupted"
+      },
+      "legacyStates": {
+        "running": "interrupted",
+        "completed": "completed",
+        "failed": "interrupted",
+        "busy": "interrupted",
+        "cancelled": "cancelled",
+        "interrupted": "interrupted"
+      }
+    },
+    "execution": {
+      "adapterSet": []
     }
   }
 }

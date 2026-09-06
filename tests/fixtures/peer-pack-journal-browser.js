@@ -8,10 +8,21 @@ let provider, fixture, listener, seed, release;
 const responses = [], errors = [];
 export async function start({ saved = null, mode = 'normal' } = {}) {
   responses.length = 0; errors.length = 0;
-  fixture = await operationFixture('embed');
+  fixture = await operationFixture(saved?.job.body.request.operation.name || (mode === 'pending' ? 'generate' : 'embed'));
   const identity = saved ? { ...saved.identity, privateKey: await crypto.subtle.importKey('jwk', saved.identity.privateKey,
     { name: 'ECDSA', namedCurve: 'P-256' }, true, ['sign']) } : await packPeerIdentity();
-  if (mode === 'pending') fixture.after(() => new Promise(resolve => { release = resolve; }));
+  if (mode === 'pending') fixture.alter(events => (async function* () {
+    yield events[0];
+    await new Promise(resolve => { release = resolve; });
+    yield events[1];
+  })());
+  if (mode === 'accepted') {
+    const run = fixture.executor.run;
+    fixture.executor.run = args => run({ ...args, beforeExecute: async () => {
+      await new Promise(resolve => { release = resolve; });
+      await args.beforeExecute();
+    } });
+  }
   let fail = mode === 'send-failure';
   provider = createPackPeerProvider({ identity, models: [fixture.model], executor: fixture.executor,
     authorize: () => true, onError: error => errors.push(error.message),
@@ -37,8 +48,8 @@ export async function start({ saved = null, mode = 'normal' } = {}) {
 }
 export function deliver(kind = 'job') { listener(seed[kind]); }
 export function releasePending() { release?.(); }
-export async function state() {
+export async function state(includeJournal = true) {
   return { ...provider.getState(), calls: fixture.calls(), responses: structuredClone(responses), errors: [...errors],
-    journal: await provider.getJournalStats() };
+    journal: includeJournal ? await provider.getJournalStats() : null };
 }
 export async function close() { release?.(); await provider.close(); }

@@ -115,7 +115,8 @@ test.describe('Route Entry Points', () => {
     await expect(page.locator('.pool-boot-failure')).toHaveCount(0);
   });
 
-  test('home centers one focused Pack job beneath minimal navigation', async ({ page }) => {
+  test('home keeps one focused model task below minimal navigation', async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 1100 });
     await page.goto(PRODUCT_HOME_PATH);
     await page.waitForSelector('.pool-home', { timeout: 20000 });
 
@@ -123,16 +124,16 @@ test.describe('Route Entry Points', () => {
       const task = document.querySelector('.pool-home-task').getBoundingClientRect();
       const form = document.querySelector('#pool-home-ask-form').getBoundingClientRect();
       return {
-        taskCenterDelta: Math.abs((task.left + task.width / 2) - (window.innerWidth / 2)),
-        formCenterDelta: Math.abs((form.left + form.width / 2) - (window.innerWidth / 2)),
+        formCenterDelta: Math.abs((form.left + form.width / 2) - (task.left + task.width / 2)),
+        belowNav: form.top >= document.querySelector('.pool-primary-nav').getBoundingClientRect().bottom,
         formInsideViewport: form.top >= 0 && form.bottom <= window.innerHeight
       };
     });
-    expect(layout.taskCenterDelta).toBeLessThanOrEqual(1);
+    expect(layout.belowNav).toBe(true);
     expect(layout.formCenterDelta).toBeLessThanOrEqual(1);
     expect(layout.formInsideViewport).toBe(true);
     await expect(page.locator('#pool-home-run-submit')).toHaveText('Run model');
-    const nav = page.getByRole('navigation', { name: 'Poolday' });
+    const nav = page.getByRole('navigation', { name: 'Reploid', exact: true });
     await expect(nav.locator('.pool-nav-link')).toHaveCount(3);
     await expect(nav.getByRole('link', { name: 'Run a model', exact: true })).toHaveAttribute('aria-current', 'page');
     await expect(nav.getByRole('link', { name: 'Share compute', exact: true })).toBeVisible();
@@ -141,13 +142,13 @@ test.describe('Route Entry Points', () => {
     await expect(page.locator('[data-pool-drawer-section]')).toHaveCount(0);
   });
 
-  test('product root renders the minimal Poolday request workflow', async ({ page }) => {
+  test('product root renders the minimal Reploid request workflow', async ({ page }) => {
     await page.goto(PRODUCT_HOME_PATH);
     await page.waitForSelector('.pool-home', { timeout: 20000 });
 
-    await expect(page).toHaveTitle(/^Poolday$/i);
+    await expect(page).toHaveTitle(/^Reploid$/i);
     await expect(page.locator('.pool-home')).toHaveAttribute('data-pool-route-id', 'home');
-    await expect(page.getByRole('heading', { name: 'POOLDAY', exact: true })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Reploid', exact: true })).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Run a model', exact: true })).toBeVisible();
     await expect(page.locator('#pool-home-request-model')).toHaveValue('esm2-t12-35m-ur50d-f32-af32');
     await expect(page.getByLabel('Public protein sequence')).toHaveValue('');
@@ -155,7 +156,7 @@ test.describe('Route Entry Points', () => {
     await expect(page.getByRole('button', { name: 'Run model', exact: true })).toBeVisible();
     await expect(page.locator('.pool-home-request-details')).not.toHaveAttribute('open', '');
     await expect(page.getByText('Question', { exact: true })).toBeHidden();
-    await page.getByText('Advanced details', { exact: true }).click();
+    await page.locator('.pool-home-request-details > summary').click();
     await expect(page.getByText('Verification', { exact: true })).toBeVisible();
     await expect(page.getByLabel('Publish the question and result to the room')).toHaveCount(0);
     await expect(page.getByText('Conditions', { exact: true })).toHaveCount(0);
@@ -169,7 +170,7 @@ test.describe('Route Entry Points', () => {
     for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 }]) {
       await page.setViewportSize(viewport);
       await page.goto('/');
-      const nav = page.getByRole('navigation', { name: 'Poolday' });
+      const nav = page.getByRole('navigation', { name: 'Reploid', exact: true });
       await expect(nav).toBeVisible();
       await expect(nav.locator('.pool-nav-link')).toHaveCount(3);
       await expect(nav.getByRole('link', { name: 'Run a model', exact: true })).toBeVisible();
@@ -186,9 +187,10 @@ test.describe('Route Entry Points', () => {
           overflowX: document.documentElement.scrollWidth > document.documentElement.clientWidth
         };
       });
-      expect(Math.abs(geometry.left)).toBeLessThanOrEqual(1);
-      expect(Math.abs(geometry.right - viewport.width)).toBeLessThanOrEqual(1);
-      expect(Math.abs(geometry.width - viewport.width)).toBeLessThanOrEqual(1);
+      expect(geometry.left).toBeGreaterThanOrEqual(0);
+      expect(geometry.right).toBeLessThanOrEqual(viewport.width);
+      expect(Math.abs((geometry.left + geometry.right) / 2 - viewport.width / 2)).toBeLessThanOrEqual(1);
+      expect(geometry.width).toBeGreaterThanOrEqual(viewport.width * 0.75);
       expect(geometry.overflowX).toBe(false);
     }
 
@@ -200,7 +202,7 @@ test.describe('Route Entry Points', () => {
     await expect(page.getByRole('link', { name: 'Recent jobs', exact: true })).toHaveAttribute('aria-current', 'page');
   });
 
-  test('desktop navigation does not displace the centered request surface', async ({ page }) => {
+  test('desktop navigation leaves the task column unobstructed', async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto('/');
     await page.waitForSelector('nav.pool-nav-rail', { timeout: 20000 });
@@ -213,13 +215,13 @@ test.describe('Route Entry Points', () => {
         navBottom: nav?.bottom ?? null,
         dockTop: dock?.top ?? null,
         dockCenter: centerOf(dock),
-        viewportCenter: window.innerWidth / 2,
+        taskCenter: centerOf(document.querySelector('.pool-home-task').getBoundingClientRect()),
         dockBlockedByNav: !!atDockCenter?.closest?.('.pool-nav-rail')
       };
     });
 
     expect(layout.dockTop).toBeGreaterThanOrEqual((layout.navBottom || 0) - 1);
-    expect(Math.abs((layout.dockCenter || 0) - layout.viewportCenter)).toBeLessThanOrEqual(2);
+    expect(Math.abs((layout.dockCenter || 0) - layout.taskCenter)).toBeLessThanOrEqual(2);
     expect(layout.dockBlockedByNav).toBe(false);
   });
 
@@ -327,7 +329,7 @@ test.describe('Route Entry Points', () => {
     }
   });
 
-  test('compatibility routes resolve into the three Poolday product flows', async ({ page }) => {
+  test('compatibility routes resolve into the three Reploid product flows', async ({ page }) => {
     await page.goto('/ask');
     await page.waitForSelector('.pool-home', { timeout: 20000 });
     await expect(page.locator('.pool-home')).toHaveAttribute('data-pool-route-id', 'ask');

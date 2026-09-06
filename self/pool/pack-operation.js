@@ -66,7 +66,7 @@ export async function assertPackOperationEvent({ binding, request, runtimeVersio
 }
 
 export async function runPackOperation({ binding: bindingInput, session, request: requestInput, runtimeVersion,
-  registry = createPackOperationRegistry(), signal = null, onPartial = null, assertCurrent = async () => {} }) {
+  registry = createPackOperationRegistry(), signal = null, onPartial = null, beforeExecute = null, assertCurrent = async () => {} }) {
   const binding = snapshotPackOperationData(bindingInput);
   const request = snapshotPackOperationData(requestInput);
   assertPackOperationRequest(binding, request, registry);
@@ -83,6 +83,8 @@ export async function runPackOperation({ binding: bindingInput, session, request
   await current();
   await assertPackSession(binding, session);
   requireValue(typeof session.executeOperation === 'function', 'public executeOperation is required; no legacy operation fallback');
+  await beforeExecute?.();
+  await current();
   let previousEventDigest = null;
   let eventCount = 0;
   let streamBytes = 0;

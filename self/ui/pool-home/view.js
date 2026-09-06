@@ -1531,12 +1531,12 @@ export const renderNav = (activeRoute) => {
     const ariaLabel = escapeHtml(label);
     const shortLabel = escapeHtml({ home: 'Run', compute: 'Share', records: 'Jobs' }[id] || label);
     const roomPath = roomHref(path, getPeerRoomId());
-    return `<a class="pool-nav-link${isActive ? ' is-active' : ''}" href="${escapeHtml(roomPath)}" aria-label="${ariaLabel}" data-pool-nav-id="${id}" data-pool-nav-short-label="${shortLabel}" data-pool-route-link="${escapeHtml(roomPath)}"${currentAttr}>${ariaLabel}</a>`;
+    return `<a class="pool-nav-link pool-segment${isActive ? ' is-active' : ''}" href="${escapeHtml(roomPath)}" aria-label="${ariaLabel}" data-pool-nav-id="${id}" data-pool-nav-short-label="${shortLabel}" data-pool-route-link="${escapeHtml(roomPath)}"${currentAttr}>${ariaLabel}</a>`;
   };
   return `
     <nav class="pool-nav-rail pool-primary-nav" aria-label="${escapeHtml(POOLDAY_NAME)}">
       <a class="pool-primary-brand" href="${escapeHtml(roomHref('/', getPeerRoomId()))}" data-pool-route-link="${escapeHtml(roomHref('/', getPeerRoomId()))}">${escapeHtml(POOLDAY_NAME)}</a>
-      <div class="pool-nav-menu" id="pool-nav-menu">
+      <div class="pool-nav-menu pool-segmented" id="pool-nav-menu">
         ${POOLDAY_NAV_ROUTES.map(renderItem).join('')}
       </div>
       <details class="pool-primary-network" data-pool-network-state="simulation">
@@ -1579,7 +1579,7 @@ export const refreshResearchRoomState = (routeId = getRouteId()) => {
 };
 
 const renderRouteShell = (copy, content, { routeId = 'records' } = {}) => `
-  <section class="panel pool-panel pool-route-shell" data-pool-route-shell="${escapeHtml(routeId)}">
+  <section class="panel pool-panel pool-route-shell pool-task-card" data-pool-route-shell="${escapeHtml(routeId)}">
     <div class="pool-page-heading">
       <h1 class="type-h1">${escapeHtml(copy.title)}</h1>
       <p class="type-caption pool-hero-body">${escapeHtml(copy.body)}</p>
@@ -1752,7 +1752,7 @@ const renderPolicyOptions = () => listPolicies().map((policy) => `
   <option value="${escapeHtml(policy.policyId)}">${escapeHtml(renderPolicyProductLabel(policy))}</option>
 `).join('');
 
-const renderModelOptions = ({ workload = null, includeWorkloadLabel = false, disableSequence = false } = {}) => listPoolModels({
+const renderModelOptions = ({ workload = null, disableSequence = false } = {}) => listPoolModels({
   enabledOnly: true,
   workload
 }).map((model) => {
@@ -1761,9 +1761,7 @@ const renderModelOptions = ({ workload = null, includeWorkloadLabel = false, dis
   const isSequence = true;
   const selected = model.modelId === LAUNCH_MODEL.modelId ? ' selected' : '';
   const disabled = disableSequence && isSequence ? ' disabled' : '';
-  const workloadLabel = (includeWorkloadLabel || disableSequence) && isSequence
-    ? ` · ${modelWorkload}${disabled ? ' (sequence lane pending)' : ''}`
-    : '';
+  const workloadLabel = disabled ? ' (unavailable)' : '';
   return `<option value="${escapeHtml(model.modelId)}" data-workload="${escapeHtml(modelWorkload)}"${selected}${disabled}>${escapeHtml(label)}${escapeHtml(workloadLabel)}</option>`;
 }).join('');
 
@@ -1791,8 +1789,8 @@ const renderSharingLimits = (preferences = readParticipationPreferences()) => `
   <details class="pool-advanced pool-sharing-limits">
     <summary>Sharing limits</summary>
     <div class="pool-sharing-limit-grid">
-      <label><input type="checkbox" data-pool-permission="relayArtifacts"${preferences.permissions.relayArtifacts ? ' checked' : ''}> Relay verified model and adapter files</label>
-      <label><input type="checkbox" data-pool-permission="verifyResults"${preferences.permissions.verifyResults ? ' checked' : ''}> Verify peer results</label>
+      <label><input type="checkbox" data-pool-permission="relayArtifacts"${preferences.permissions.relayArtifacts ? ' checked' : ''}> Share checked model and adapter files</label>
+      <label><input type="checkbox" data-pool-permission="verifyResults"${preferences.permissions.verifyResults ? ' checked' : ''}> Check peer results</label>
       <label><span>Concurrent runs</span><input type="number" min="1" max="4" step="1" value="${preferences.limits.maxConcurrentJobs}" data-pool-limit="maxConcurrentJobs"></label>
       <label><span>Tokens per run</span><input type="number" min="16" max="2048" step="16" value="${preferences.limits.maxTokensPerJob}" data-pool-limit="maxTokensPerJob"></label>
       <label><span>Adapter cache MiB</span><input type="number" min="128" max="65536" step="128" value="${preferences.limits.storageBudgetMiB}" data-pool-limit="storageBudgetMiB"></label>
@@ -1809,9 +1807,9 @@ const renderSharingBoundary = (preferences = readParticipationPreferences(), mod
     <ul>
       <li><strong>${escapeHtml(model.label || model.modelId)}</strong> only</li>
       <li><strong>${escapeHtml(preferences.limits.maxConcurrentJobs)}</strong> run${preferences.limits.maxConcurrentJobs === 1 ? '' : 's'} at a time</li>
-      <li>Public protein sequences; output receipts returned to requesters</li>
+      <li>Public protein sequences only. Results and signed records go to the requester.</li>
       <li>${escapeHtml(preferences.limits.storageBudgetMiB)} MiB cache · ${escapeHtml(preferences.limits.bandwidthBudgetMbps)} Mbps</li>
-      <li>Runs until you stop sharing or close this tab</li>
+      <li>Share until you stop or close this tab</li>
     </ul>
   </section>
 `;
@@ -1890,12 +1888,12 @@ const renderHomeSimulation = ({ dashboardView = 'home' } = {}) => {
         </div>
       </div>
       <div class="pool-home-task">
-        <div class="pool-document-actions" role="group" aria-label="Workload">
-          <button type="button" class="btn btn-ghost" data-pool-workflow="sequence" aria-pressed="true">Protein embeddings</button>
-          <button type="button" class="btn btn-ghost" data-pool-workflow="documents" aria-pressed="false">Document search</button>
+        <div class="pool-workflow-switcher pool-segmented" role="group" aria-label="Choose a task">
+          <button type="button" class="pool-segment" data-pool-workflow="sequence" aria-pressed="true" aria-controls="pool-home-ask-form">Protein sequences</button>
+          <button type="button" class="pool-segment" data-pool-workflow="documents" aria-pressed="false" aria-controls="pool-document-search">Document search</button>
         </div>
         ${renderDocumentSearch()}
-        <form class="pool-home-ask-dock pool-home-cta-row pool-home-ask-form" id="pool-home-ask-form" aria-label="Run a model">
+        <form class="pool-home-ask-dock pool-home-cta-row pool-home-ask-form pool-task-card" id="pool-home-ask-form" aria-label="Run a model">
           <header class="pool-home-task-heading">
             <h2 class="type-h2">Run a model</h2>
           </header>
@@ -1939,16 +1937,16 @@ const renderHomeSimulation = ({ dashboardView = 'home' } = {}) => {
                 <select id="pool-home-request-policy" data-pool-request-control>${renderPolicyOptions()}</select>
               </label>
               <label class="pool-home-adapter-picker" data-pool-home-adapter-picker hidden>
-                <span>Adapter Pack</span>
+                <span>Model adapter</span>
                 <select id="pool-home-adapter" data-pool-run-adapter data-pool-request-control disabled>
-                  <option value="">Loading published Packs…</option>
+                  <option value="">Loading published adapters…</option>
                 </select>
                 <small data-pool-adapter-status hidden></small>
               </label>
             </div>
           </details>
           <div class="pool-home-submit-row">
-            <button class="btn btn-primary pool-home-run-button" id="pool-home-run-submit" type="submit" data-pool-request-control aria-label="Run model">Run model</button>
+            <button class="btn btn-primary pool-home-run-button pool-primary-action" id="pool-home-run-submit" type="submit" data-pool-request-control aria-label="Run model">Run model</button>
             <p class="pool-home-run-status" data-pool-run-status aria-live="polite">Ready</p>
           </div>
         </form>
@@ -2018,7 +2016,7 @@ export const renderRouteDetail = (routeId) => {
             </details>
             <p class="pool-run-status" data-pool-run-status aria-live="polite">Ready</p>
             <div class="pool-control-row pool-primary-actions" aria-label="Run controls">
-              <button class="btn btn-primary btn-op" data-op="▶" id="pool-run-submit" type="button">Run</button>
+              <button class="btn btn-primary pool-primary-action" id="pool-run-submit" type="button">Run</button>
             </div>
           </div>
           <section class="pool-run-output" data-pool-run-output hidden>
@@ -2046,14 +2044,14 @@ export const renderRouteDetail = (routeId) => {
             <div id="pool-provider-node-stats" class="pool-node-status-line" aria-live="polite" hidden></div>
             <label class="pool-field">
               <span>Model</span>
-              <select id="pool-provider-model">${renderModelOptions({ includeWorkloadLabel: true })}</select>
+              <select id="pool-provider-model">${renderModelOptions()}</select>
             </label>
             ${renderPackSummary(LAUNCH_MODEL)}
             ${renderSharingBoundary(readParticipationPreferences(), LAUNCH_MODEL)}
             ${renderSharingLimits(readParticipationPreferences())}
             <div class="pool-provider-notice" data-pool-provider-notice aria-live="assertive" hidden></div>
             <div class="pool-control-row pool-primary-actions" aria-label="Contribution controls">
-              <button class="btn btn-primary btn-op" data-op="▶" id="pool-provider-worker-toggle" type="button" aria-pressed="false">Start sharing</button>
+              <button class="btn btn-primary pool-primary-action" id="pool-provider-worker-toggle" type="button" aria-pressed="false">Start sharing</button>
             </div>
           </div>
           <section class="pool-inspector-shell" data-pool-contribution-history hidden>
@@ -2143,14 +2141,14 @@ export const renderRouteDetail = (routeId) => {
             <textarea id="pool-run-prompt" rows="6">MAPLALLLLGLVAGA</textarea>
           </label>
           <label class="pool-field">
-            <span>Model Pack</span>
+            <span>Model</span>
             <select id="pool-run-model">${renderModelOptions()}</select>
           </label>
           ${renderPackSummary(LAUNCH_MODEL)}
           <label class="pool-field">
             <span>Publication</span>
             ${renderRequesterConsentRows({ prefix: 'pool-run', rowElement: 'span' })}
-            <small>Research publication is explicit and separate from ordinary Pack execution.</small>
+            <small>Research publication is explicit and separate from ordinary model runs.</small>
           </label>
           ${renderRequesterIntentFields({ prefix: 'pool-run', textTag: 'textarea' })}
           <label class="pool-field">
@@ -2159,7 +2157,7 @@ export const renderRouteDetail = (routeId) => {
           </label>
           <p class="pool-run-status" data-pool-run-status aria-live="polite">Ready</p>
           <div class="pool-control-row pool-primary-actions">
-            <button class="btn btn-primary btn-op" data-op="▶" id="pool-run-submit" type="button">Run and publish</button>
+            <button class="btn btn-primary pool-primary-action" id="pool-run-submit" type="button">Run and publish</button>
           </div>
           <section class="pool-run-output" data-pool-run-output hidden>
             ${renderResultBox('pool-run-result', {

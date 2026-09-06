@@ -986,7 +986,7 @@ const refreshAdapterOptions = async (adapterSelect, model, { allowBaseModel = tr
   adapterSelect.dataset.poolAdapterRequestId = requestId;
   adapterSelect.disabled = true;
   adapterSelect.replaceChildren(createSelectOption('Loading published packs…'));
-  updateAdapterPickerStatus(adapterSelect, 'Checking promoted public AdapterPacks.', 'loading');
+  updateAdapterPickerStatus(adapterSelect, 'Checking published model adapters.', 'loading');
   try {
     const publications = await listFetchableAdapterPublications({
       sdk: createPoolSdk(),
@@ -1824,7 +1824,7 @@ export const bindHomeAskControls = () => {
       if (length) {
         try {
           normalizeSequenceInput(input.value, alphabet);
-          if (length > limit) message = `This Pack accepts up to ${limit} residues.`;
+          if (length > limit) message = `This model accepts up to ${limit} residues.`;
         } catch (error) {
           message = error.message;
         }
@@ -2413,8 +2413,8 @@ const createProviderContributionController = () => {
         setProviderStatus('Could not start');
         setProviderNotice({
           state: 'error',
-          title: error?.code === 'doppler_model_load_failed' ? 'Pack failed to load' : 'Sharing could not start',
-          message: 'Nothing was shared. Check this Pack and browser WebGPU, then choose Start sharing to retry.'
+          title: error?.code === 'doppler_model_load_failed' ? 'Model failed to load' : 'Sharing could not start',
+          message: 'Nothing was shared. Check the model and browser GPU support, then choose Start sharing to retry.'
         });
         updateProviderHealth({ queue: 'stopped', model: 'load_failed' });
         setContributionState({

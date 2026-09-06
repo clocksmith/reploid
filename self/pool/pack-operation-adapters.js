@@ -100,7 +100,9 @@ export function createPackOperationRegistry({ definitions = poolConfig.operation
       `unknown configured adapter ${definition.adapterId}`);
     requireValue(['inputContract', 'optionsContract', 'outputContract'].every(name => definition[name].version === implementation.contractVersion),
       `unsupported contract version for ${definition.adapterId}`);
-    const adapter = Object.freeze({ definition, version: definition.version, workload: definition.workload,
+    const policy = Object.freeze({ definition, comparisons: Object.freeze(Object.fromEntries(
+      definition.comparisonPolicyIds.map(id => [id, resolved.comparisons[id]]))) });
+    const adapter = Object.freeze({ definition, policy, implementation, version: definition.version, workload: definition.workload,
       validateRequest(request) {
         assertOperationFields(request.input, definition.inputContract, 'input');
         assertOperationFields(request.options, definition.optionsContract, 'options');

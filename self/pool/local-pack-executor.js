@@ -26,7 +26,7 @@ export function createLocalPackExecutor({ service = DopplerRuntimeService, scope
     finally { releasing = false; }
   };
   return {
-    async run({ model: modelInput, input, options = {}, assignment = null, limits, signal = null, onPartial = null }) {
+    async run({ model: modelInput, input, options = {}, assignment = null, limits, signal = null, onPartial = null, beforeExecute = null }) {
       if (disposed || active) throw new Error(disposed ? 'Document executor is closed' : 'A document operation is already running');
       const model = snapshotPackOperationData(modelInput);
       const validation = validateOperationModel(model, registry);
@@ -86,7 +86,7 @@ export function createLocalPackExecutor({ service = DopplerRuntimeService, scope
           if (session.modelId !== model.modelId) throw new Error('Loaded Pack model id mismatch');
           await releasePolicy.assertCurrent(session);
           execution = await runPackOperation({ binding: model.executablePack, session, request,
-            runtimeVersion: model.runtimeVersion, signal: localController.signal, onPartial, assertCurrent, registry });
+            runtimeVersion: model.runtimeVersion, signal: localController.signal, onPartial, beforeExecute, assertCurrent, registry });
           assertCurrent();
           await releasePolicy.assertCurrent(session);
           assertCurrent();
