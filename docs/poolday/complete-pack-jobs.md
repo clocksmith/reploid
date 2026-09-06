@@ -128,6 +128,10 @@ arbitrary restarts or storage loss is not claimed.
   the actual remote model result survives provider-object replacement through
   IndexedDB replay. Separate synthetic-model observations replace the entire
   browser process for completed, interrupted and cancelled attempts.
+- [Numbered attempt episode](../status/esm2-attempt-v2-2026-09-06/README.md):
+  the v2 signed policy and attempt binding execute the actual model and recover
+  a dropped completion through persistent replay. A separate attachment records
+  six whole-browser replacement cases, including acceptance and a pending write.
 
 Independent operators, useful scheduling history, public release installations,
 and model qualification remain separate acceptance gates.

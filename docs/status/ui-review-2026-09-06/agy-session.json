@@ -1,0 +1,7 @@
+{
+  "conversationId": "59dc89c6-e985-4168-b713-b5a9ad2e16b2",
+  "model": "gemini-3.8-flash-high",
+  "requestedEffort": "high",
+  "mode": "plan",
+  "evidenceScope": "Agy reviewed supplied source and root-agent Chromium observations; did not operate the browser."
+}

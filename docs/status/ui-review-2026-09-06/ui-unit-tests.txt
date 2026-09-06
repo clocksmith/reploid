@@ -1,0 +1,26 @@
+
+ RUN  v4.1.10 /home/x/deco/reploid
+
+·······················································Error: connect ECONNREFUSED 127.0.0.1:3000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1631:16) {
+  errno: -111,
+  code: 'ECONNREFUSED',
+  syscall: 'connect',
+  address: '127.0.0.1',
+  port: 3000
+}
+Error: connect ECONNREFUSED 127.0.0.1:3000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1631:16) {
+  errno: -111,
+  code: 'ECONNREFUSED',
+  syscall: 'connect',
+  address: '127.0.0.1',
+  port: 3000
+}
+·············
+
+ Test Files  5 passed (5)
+      Tests  68 passed (68)
+   Start at  13:57:49
+   Duration  3.05s (transform 2.28s, setup 0ms, import 3.89s, tests 1.68s, environment 1.62s)
+

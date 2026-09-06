@@ -1,0 +1,68 @@
+{
+  "schema": "reploid.ui-review/v1",
+  "sourceBase": "7b85c75fbfa596e4c922518a0c1611f2302a864f",
+  "sourceFiles": {
+    "self/styles/poolday/components.css": "44d17b4e8ded1311350e2b2b009b039296c5585c6e10bf76556abfeb1de89f2c",
+    "self/styles/poolday/primitives.css": "522eba25409c391ccf2ef4d5b3bc3ecd06faa35f6acf8ba2bfeba3191cbd4b19",
+    "self/styles/poolday/tokens.css": "88af1cf71f239e00852ce81302a37484fe2c42601c2bbcc9e94eb4799fa1f259",
+    "self/ui/pool-home/controls.js": "409a0dfad78db58cc4f6ea99fdd3aec45cb7afd2c47a122b69c912e9c5289094",
+    "self/ui/pool-home/document-search.js": "006c0221cded351d89aeabab32207c98f605b88137d7cb56a62257ea53150dc3",
+    "self/ui/pool-home/prism.js": "543dba14e8999fe96ac91161cdbae2daa7c35057dd249e28ee975a315261ffd2",
+    "self/ui/pool-home/view.js": "2f3ddcf244f5d3e0b7a01091e7ac1eda580322d9cccc4ed10eb3a86a611bf3c0",
+    "tests/e2e/boot.spec.js": "966e70ca7fbc21335f8ac8b58af5b9cee2b832272bf5762d581879481948ca42",
+    "tests/e2e/document-search.spec.js": "30246bc2b863b02dea0375be0fe8cf84de3fdca2818d4da172e640b0cc563b5f",
+    "tests/e2e/pool-prismatic-ui.spec.js": "bf3cc1e1b53548df52d63c0166cf39d76573252d56f786a47f28fdff72b3d638",
+    "tests/unit/pool-home-nav.test.js": "5a45c6da63da5825ce5fdb0866dce0d3c24ab09302e75636be50d0e8963f874e",
+    "tests/unit/pool-home-ask-controls.test.js": "b3b22c9296a113b31dcf976a25f47abe64ee1b0650e67b0b5b216f55e46c4c64"
+  },
+  "reviewer": {
+    "conversationId": "59dc89c6-e985-4168-b713-b5a9ad2e16b2",
+    "model": "gemini-3.8-flash-high",
+    "requestedEffort": "high",
+    "mode": "plan",
+    "reviewInput": "Supplied source and actual Chromium DOM/measurements; Agy did not operate a live browser",
+    "initialHeadlessReads": "Command and repository reads denied; review completed from supplied authorized evidence without changing permissions"
+  },
+  "checks": [
+    {
+      "name": "Focused UI Vitest",
+      "passed": 68,
+      "failed": 0,
+      "suites": 5,
+      "artifact": "ui-unit-tests.txt"
+    },
+    {
+      "name": "Chromium UI and document workflow",
+      "passed": 10,
+      "failed": 0,
+      "artifact": "ui-browser-tests.txt",
+      "boundaries": [
+        "Verification Worker",
+        "real WebGPU prism and device loss",
+        "reduced motion",
+        "static fallback",
+        "document privacy with substituted model outputs",
+        "keyboard and 320/390/1440-pixel layout"
+      ]
+    },
+    {
+      "name": "Chromium public route boot",
+      "passed": 9,
+      "failed": 0,
+      "artifact": "ui-boot-tests.txt",
+      "boundaries": [
+        "transient module recovery",
+        "declared routes",
+        "navigation",
+        "320-pixel overflow",
+        "technical disclosure"
+      ]
+    }
+  ],
+  "nonClaims": [
+    "No public deployment",
+    "No real document inference qualification in UI tests",
+    "No external user study",
+    "No claim that Agy directly operated the browser"
+  ]
+}

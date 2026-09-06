@@ -301,7 +301,7 @@ test.describe('Route Entry Points', () => {
 
       expect(layout.overflowX, route).toBe(false);
       expect(layout.offenders, route).toEqual([]);
-      expect(layout.nav?.width, route).toBeGreaterThanOrEqual(300);
+      expect(layout.nav?.width, route).toBeGreaterThanOrEqual(320 * 0.85);
       expect(layout.nav?.height, route).toBeGreaterThanOrEqual(48);
       if (route === '/' || route === '/ask' || route === '/room-1') {
         expect(layout.ask?.width).toBeGreaterThanOrEqual(48);

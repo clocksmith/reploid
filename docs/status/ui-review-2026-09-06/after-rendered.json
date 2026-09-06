@@ -1,0 +1,152 @@
+[
+  {
+    "label": "desktop",
+    "path": "/",
+    "errors": [],
+    "text": "Reploid\nRun a model\nShare compute\nRecent jobs\n0 peers\nReploid\n\nRun AI with connected browsers.\n\nProtein sequences\nDocument search\nRun a model\nModel\nESM-2 35M (Protein)\nPublic protein sequence\n0 / 1024\n\nWhitespace is ignored.\n\nThis input may be sent to selected peers\nOptions\nRun model\n\nReady\n\nExperiments\nZero\nX",
+    "prism": {
+      "backend": "webgpu",
+      "frames": 14,
+      "suspended": false,
+      "frameIntervalMs": 33.333333333333336,
+      "width": 300,
+      "height": 263,
+      "phase": "submit",
+      "lastCompletionMs": 3
+    },
+    "overflow": false,
+    "cards": [
+      {
+        "background": "rgb(247, 247, 247)",
+        "shadow": "rgb(217, 217, 217) 10px 10px 28px 0px, rgb(255, 255, 255) -10px -10px 28px 0px"
+      }
+    ],
+    "summaries": [
+      {
+        "text": "Options",
+        "height": 44
+      }
+    ]
+  },
+  {
+    "label": "desktop",
+    "path": "/compute",
+    "errors": [],
+    "text": "Reploid\nRun a model\nShare compute\nRecent jobs\n0 peers\nShare compute\n\nLet this browser help with jobs.\n\nIDLE\n\nModel\nESM-2 35M (Protein)\nModel details\nBefore you share\nESM-2 35M (Protein) only\n1 run at a time\nPublic protein sequences only. Results and signed records go to the requester.\n1024 MiB cache · 25 Mbps\nShare until you stop or close this tab\nSharing limits\nStart sharing\nAdvanced details",
+    "overflow": false,
+    "cards": [
+      {
+        "background": "rgb(247, 247, 247)",
+        "shadow": "rgb(217, 217, 217) 10px 10px 28px 0px, rgb(255, 255, 255) -10px -10px 28px 0px"
+      }
+    ],
+    "summaries": [
+      {
+        "text": "Model details",
+        "height": 44
+      },
+      {
+        "text": "Sharing limits",
+        "height": 44
+      },
+      {
+        "text": "Advanced details",
+        "height": 44
+      }
+    ]
+  },
+  {
+    "label": "desktop",
+    "path": "/records",
+    "errors": [],
+    "text": "Reploid\nRun a model\nShare compute\nRecent jobs\n0 peers\nRecent jobs\n\nResults and unfinished jobs.\n\nNo records yet. Requests, completed runs, and contributions will appear here.\n\nAdvanced details",
+    "overflow": false,
+    "cards": [
+      {
+        "background": "rgb(247, 247, 247)",
+        "shadow": "rgb(217, 217, 217) 10px 10px 28px 0px, rgb(255, 255, 255) -10px -10px 28px 0px"
+      }
+    ],
+    "summaries": [
+      {
+        "text": "Advanced details",
+        "height": 44
+      }
+    ]
+  },
+  {
+    "label": "mobile",
+    "path": "/",
+    "errors": [],
+    "text": "Reploid\nRun a model\nShare compute\nRecent jobs\n0 peers\nReploid\n\nRun AI with connected browsers.\n\nProtein sequences\nDocument search\nRun a model\nModel\nESM-2 35M (Protein)\nPublic protein sequence\n0 / 1024\n\nWhitespace is ignored.\n\nThis input may be sent to selected peers\nOptions\nRun model\n\nReady\n\nExperiments\nZero\nX",
+    "prism": {
+      "backend": "webgpu",
+      "frames": 12,
+      "suspended": false,
+      "frameIntervalMs": 33.333333333333336,
+      "width": 176,
+      "height": 154,
+      "phase": "submit",
+      "lastCompletionMs": 2.5999999046325684
+    },
+    "overflow": false,
+    "cards": [
+      {
+        "background": "rgb(247, 247, 247)",
+        "shadow": "rgb(217, 217, 217) 10px 10px 28px 0px, rgb(255, 255, 255) -10px -10px 28px 0px"
+      }
+    ],
+    "summaries": [
+      {
+        "text": "Options",
+        "height": 44
+      }
+    ]
+  },
+  {
+    "label": "mobile",
+    "path": "/compute",
+    "errors": [],
+    "text": "Reploid\nRun a model\nShare compute\nRecent jobs\n0 peers\nShare compute\n\nLet this browser help with jobs.\n\nIDLE\n\nModel\nESM-2 35M (Protein)\nModel details\nBefore you share\nESM-2 35M (Protein) only\n1 run at a time\nPublic protein sequences only. Results and signed records go to the requester.\n1024 MiB cache · 25 Mbps\nShare until you stop or close this tab\nSharing limits\nStart sharing\nAdvanced details",
+    "overflow": false,
+    "cards": [
+      {
+        "background": "rgb(247, 247, 247)",
+        "shadow": "rgb(217, 217, 217) 10px 10px 28px 0px, rgb(255, 255, 255) -10px -10px 28px 0px"
+      }
+    ],
+    "summaries": [
+      {
+        "text": "Model details",
+        "height": 44
+      },
+      {
+        "text": "Sharing limits",
+        "height": 44
+      },
+      {
+        "text": "Advanced details",
+        "height": 44
+      }
+    ]
+  },
+  {
+    "label": "mobile",
+    "path": "/records",
+    "errors": [],
+    "text": "Reploid\nRun a model\nShare compute\nRecent jobs\n0 peers\nRecent jobs\n\nResults and unfinished jobs.\n\nNo records yet. Requests, completed runs, and contributions will appear here.\n\nAdvanced details",
+    "overflow": false,
+    "cards": [
+      {
+        "background": "rgb(247, 247, 247)",
+        "shadow": "rgb(217, 217, 217) 10px 10px 28px 0px, rgb(255, 255, 255) -10px -10px 28px 0px"
+      }
+    ],
+    "summaries": [
+      {
+        "text": "Advanced details",
+        "height": 44
+      }
+    ]
+  }
+]

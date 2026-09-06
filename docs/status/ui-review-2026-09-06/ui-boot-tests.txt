@@ -1,0 +1,18 @@
+
+Running 9 tests using 1 worker
+
+(node:147993) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:147993) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 [chromium] › tests/e2e/boot.spec.js:95:3 › Route Entry Points › recovers once from a transient public-route module failure (1.2s)
+  ✓  2 [chromium] › tests/e2e/boot.spec.js:118:3 › Route Entry Points › home keeps one focused model task below minimal navigation (234ms)
+  ✓  3 [chromium] › tests/e2e/boot.spec.js:145:3 › Route Entry Points › product root renders the minimal Reploid request workflow (268ms)
+  ✓  4 [chromium] › tests/e2e/boot.spec.js:169:3 › Route Entry Points › product navigation remains compact and complete on desktop and mobile (467ms)
+  ✓  5 [chromium] › tests/e2e/boot.spec.js:205:3 › Route Entry Points › desktop navigation leaves the task column unobstructed (209ms)
+  ✓  6 [chromium] › tests/e2e/boot.spec.js:228:3 › Route Entry Points › contribution status labels and values are vertically centered in their metric chips (187ms)
+  ✓  7 [chromium] › tests/e2e/boot.spec.js:269:3 › Route Entry Points › product routes fit a narrow mobile viewport without horizontal clipping (902ms)
+  ✓  8 [chromium] › tests/e2e/boot.spec.js:315:3 › Route Entry Points › product routes hide raw payloads and hosted controls by default (834ms)
+  ✓  9 [chromium] › tests/e2e/boot.spec.js:332:3 › Route Entry Points › compatibility routes resolve into the three Reploid product flows (648ms)
+
+  9 passed (7.1s)

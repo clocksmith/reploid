@@ -1061,7 +1061,7 @@ describe('Poolday home ask controls', () => {
     );
   });
 
-  it('clears the seeded prompt when the user starts editing', () => {
+  it('preserves selected examples and restored input when editing', () => {
     document.body.innerHTML = `
       <form id="pool-home-ask-form">
         <input
@@ -1078,7 +1078,7 @@ describe('Poolday home ask controls', () => {
     const input = document.getElementById('pool-home-ask-prompt');
     input.dispatchEvent(new Event('focus'));
 
-    expect(input.value).toBe('');
+    expect(input.value).toBe('Plan weekend trip');
     input.value = 'User typed prompt';
     input.dispatchEvent(new Event('focus'));
     expect(input.value).toBe('User typed prompt');

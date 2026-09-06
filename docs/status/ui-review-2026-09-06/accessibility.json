@@ -1,0 +1,251 @@
+{
+  "before": {
+    "backend": "webgpu",
+    "frames": 1,
+    "suspended": true,
+    "frameIntervalMs": 33.333333333333336,
+    "width": 176,
+    "height": 154,
+    "phase": "submit",
+    "lastCompletionMs": 3.5
+  },
+  "after": {
+    "backend": "webgpu",
+    "frames": 1,
+    "suspended": true,
+    "frameIntervalMs": 33.333333333333336,
+    "width": 176,
+    "height": 154,
+    "phase": "submit",
+    "lastCompletionMs": 3.5
+  },
+  "accessible": "- region \"Document search\":\n  - heading \"Search documents\" [level=2]\n  - paragraph: Files and questions stay in this tab. No peer sharing.\n  - group:\n    - text: Model Packs Pack configuration (.json)\n    - button \"Pack configuration (.json)\"\n    - checkbox \"I trust the publishers in this configuration to supply model files.\"\n    - text: I trust the publishers in this configuration to supply model files.\n    - button \"Use these Packs\"\n    - paragraph: Choose model Packs before searching\n  - text: Documents (.txt, .md)\n  - button \"Documents (.txt, .md)\"\n  - paragraph: No documents\n  - text: Question\n  - textbox \"Question\"\n  - checkbox \"Rerank passages\" [disabled]\n  - text: Rerank passages\n  - checkbox \"Write an answer with references\" [disabled]\n  - text: Write an answer with references\n  - button \"Search\" [disabled]\n  - button \"Clear documents\"\n  - status: Add documents\n  - list \"Relevant passages\"",
+  "measures": {
+    "headings": [
+      {
+        "tag": "H1",
+        "text": "Reploid"
+      },
+      {
+        "tag": "H2",
+        "text": "Search documents"
+      }
+    ],
+    "controls": [
+      {
+        "tag": "A",
+        "text": "Reploid",
+        "aria": null,
+        "height": 24,
+        "width": 52.515625,
+        "color": "rgb(41, 45, 48)",
+        "background": "rgba(0, 0, 0, 0)",
+        "border": "rgb(41, 45, 48)",
+        "outline": "rgb(41, 45, 48) none 0px"
+      },
+      {
+        "tag": "A",
+        "text": "Run a model",
+        "aria": "Run a model",
+        "height": 44,
+        "width": 104.828125,
+        "color": "rgb(41, 45, 48)",
+        "background": "rgb(245, 244, 241)",
+        "border": "rgb(41, 45, 48)",
+        "outline": "rgb(41, 45, 48) none 0px"
+      },
+      {
+        "tag": "A",
+        "text": "Share compute",
+        "aria": "Share compute",
+        "height": 44,
+        "width": 106.328125,
+        "color": "rgb(100, 108, 108)",
+        "background": "rgba(0, 0, 0, 0)",
+        "border": "rgb(100, 108, 108)",
+        "outline": "rgb(100, 108, 108) none 0px"
+      },
+      {
+        "tag": "A",
+        "text": "Recent jobs",
+        "aria": "Recent jobs",
+        "height": 44,
+        "width": 104.84375,
+        "color": "rgb(100, 108, 108)",
+        "background": "rgba(0, 0, 0, 0)",
+        "border": "rgb(100, 108, 108)",
+        "outline": "rgb(100, 108, 108) none 0px"
+      },
+      {
+        "tag": "SUMMARY",
+        "text": "0 peers",
+        "aria": "Network availability",
+        "height": 44,
+        "width": 72.609375,
+        "color": "rgb(100, 108, 108)",
+        "background": "rgba(0, 0, 0, 0)",
+        "border": "rgb(100, 108, 108)",
+        "outline": "rgb(100, 108, 108) none 0px"
+      },
+      {
+        "tag": "BUTTON",
+        "text": "Protein embeddings",
+        "aria": null,
+        "height": 46,
+        "width": 181.140625,
+        "color": "rgb(41, 45, 48)",
+        "background": "rgb(245, 244, 241)",
+        "border": "rgb(213, 214, 209)",
+        "outline": "rgb(41, 45, 48) none 0px"
+      },
+      {
+        "tag": "BUTTON",
+        "text": "Document search",
+        "aria": null,
+        "height": 46,
+        "width": 169.28125,
+        "color": "rgb(41, 45, 48)",
+        "background": "rgb(251, 250, 248)",
+        "border": "rgb(197, 203, 198)",
+        "outline": "rgb(41, 45, 48) none 0px"
+      },
+      {
+        "tag": "SUMMARY",
+        "text": "MODEL PACKS",
+        "aria": null,
+        "height": 19.1875,
+        "width": 348,
+        "color": "rgb(41, 45, 48)",
+        "background": "rgba(0, 0, 0, 0)",
+        "border": "rgb(41, 45, 48)",
+        "outline": "rgb(41, 45, 48) none 0px"
+      },
+      {
+        "tag": "INPUT",
+        "text": "",
+        "aria": null,
+        "height": 58,
+        "width": 348,
+        "color": "rgb(41, 45, 48)",
+        "background": "rgb(233, 232, 228)",
+        "border": "rgb(213, 214, 209)",
+        "outline": "rgb(41, 45, 48) none 0px"
+      },
+      {
+        "tag": "INPUT",
+        "text": "",
+        "aria": null,
+        "height": 18,
+        "width": 18,
+        "color": "rgb(41, 45, 48)",
+        "background": "rgba(0, 0, 0, 0)",
+        "border": "rgb(41, 45, 48)",
+        "outline": "rgb(41, 45, 48) none 0px"
+      },
+      {
+        "tag": "BUTTON",
+        "text": "Use these Packs",
+        "aria": null,
+        "height": 46,
+        "width": 151.09375,
+        "color": "rgb(41, 45, 48)",
+        "background": "rgb(245, 244, 241)",
+        "border": "rgb(213, 214, 209)",
+        "outline": "rgb(41, 45, 48) none 0px"
+      },
+      {
+        "tag": "INPUT",
+        "text": "",
+        "aria": null,
+        "height": 58,
+        "width": 366,
+        "color": "rgb(41, 45, 48)",
+        "background": "rgb(233, 232, 228)",
+        "border": "rgb(213, 214, 209)",
+        "outline": "rgb(41, 45, 48) none 0px"
+      },
+      {
+        "tag": "INPUT",
+        "text": "",
+        "aria": null,
+        "height": 58,
+        "width": 366,
+        "color": "rgb(41, 45, 48)",
+        "background": "rgb(233, 232, 228)",
+        "border": "rgb(213, 214, 209)",
+        "outline": "rgb(41, 45, 48) none 0px"
+      },
+      {
+        "tag": "INPUT",
+        "text": "",
+        "aria": null,
+        "height": 18,
+        "width": 18,
+        "color": "rgb(41, 45, 48)",
+        "background": "rgba(0, 0, 0, 0)",
+        "border": "rgb(41, 45, 48)",
+        "outline": "rgb(41, 45, 48) none 0px"
+      },
+      {
+        "tag": "INPUT",
+        "text": "",
+        "aria": null,
+        "height": 18,
+        "width": 18,
+        "color": "rgb(41, 45, 48)",
+        "background": "rgba(0, 0, 0, 0)",
+        "border": "rgb(41, 45, 48)",
+        "outline": "rgb(41, 45, 48) none 0px"
+      },
+      {
+        "tag": "BUTTON",
+        "text": "Search",
+        "aria": null,
+        "height": 46,
+        "width": 85.484375,
+        "color": "rgb(255, 255, 255)",
+        "background": "rgba(0, 0, 0, 0)",
+        "border": "rgb(52, 62, 59)",
+        "outline": "rgb(255, 255, 255) none 0px"
+      },
+      {
+        "tag": "BUTTON",
+        "text": "Clear documents",
+        "aria": null,
+        "height": 46,
+        "width": 157.453125,
+        "color": "rgb(41, 45, 48)",
+        "background": "rgb(245, 244, 241)",
+        "border": "rgb(213, 214, 209)",
+        "outline": "rgb(41, 45, 48) none 0px"
+      },
+      {
+        "tag": "A",
+        "text": "Zero",
+        "aria": null,
+        "height": 44,
+        "width": 44,
+        "color": "color(srgb 0.160784 0.176471 0.188235 / 0.62)",
+        "background": "rgba(0, 0, 0, 0)",
+        "border": "color(srgb 0.160784 0.176471 0.188235 / 0.62) color(srgb 0.160784 0.176471 0.188235 / 0.62) rgb(41, 45, 48)",
+        "outline": "color(srgb 0.160784 0.176471 0.188235 / 0.62) none 0px"
+      },
+      {
+        "tag": "A",
+        "text": "X",
+        "aria": null,
+        "height": 44,
+        "width": 44,
+        "color": "color(srgb 0.160784 0.176471 0.188235 / 0.62)",
+        "background": "rgba(0, 0, 0, 0)",
+        "border": "color(srgb 0.160784 0.176471 0.188235 / 0.62) color(srgb 0.160784 0.176471 0.188235 / 0.62) rgb(41, 45, 48)",
+        "outline": "color(srgb 0.160784 0.176471 0.188235 / 0.62) none 0px"
+      }
+    ]
+  },
+  "routeFocus": {
+    "path": "/compute",
+    "focused": "A",
+    "focusedText": "Share compute"
+  }
+}

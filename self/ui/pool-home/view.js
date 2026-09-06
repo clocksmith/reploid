@@ -1920,7 +1920,10 @@ const renderHomeSimulation = ({ dashboardView = 'home' } = {}) => {
               data-pool-request-control
             ></textarea>
           </label>
-          <p class="pool-sequence-feedback" id="pool-sequence-feedback" aria-live="polite"></p>
+          <div class="pool-sequence-help">
+            <p class="pool-sequence-feedback" id="pool-sequence-feedback" aria-live="polite"></p>
+            <button class="btn btn-ghost" type="button" data-pool-use-example data-pool-request-control>Use example</button>
+          </div>
           <div class="pool-sequence-options" data-pool-sequence-options>
             <label class="pool-consent-row" data-pool-sequence-consent-row>
               <input id="pool-home-sequence-public" type="checkbox" data-pool-request-control>

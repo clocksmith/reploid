@@ -1,0 +1,36 @@
+[
+  {
+    "label": "desktop",
+    "example": "MGGKWSKSSVIGWPT",
+    "count": "15 / 1024",
+    "consent": false,
+    "state": "idle",
+    "prism": {
+      "backend": "webgpu",
+      "frames": 1,
+      "suspended": true,
+      "frameIntervalMs": 33.333333333333336,
+      "width": 300,
+      "height": 263,
+      "phase": "submit",
+      "lastCompletionMs": 3.5
+    }
+  },
+  {
+    "label": "mobile",
+    "example": "MRLGCSLAWLLLFLLLSVAA",
+    "count": "20 / 1024",
+    "consent": false,
+    "state": "idle",
+    "prism": {
+      "backend": "webgpu",
+      "frames": 1,
+      "suspended": true,
+      "frameIntervalMs": 33.333333333333336,
+      "width": 176,
+      "height": 154,
+      "phase": "submit",
+      "lastCompletionMs": 4
+    }
+  }
+]

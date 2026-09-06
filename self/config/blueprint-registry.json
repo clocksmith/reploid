@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-09-06T17:25:34.850Z",
+  "generatedAt": "2026-09-06T17:57:12.115Z",
   "features": [
     {
       "id": "0x000002",
@@ -938,6 +938,7 @@
         "pool/peer-control-plane.js",
         "pool/peer-pack-episode.js",
         "pool/peer-pack-job-channel.js",
+        "pool/peer-pack-job-policy.js",
         "pool/peer-pack-job.js",
         "pool/peer-pack-provider.js",
         "pool/peer-pack-requester.js"

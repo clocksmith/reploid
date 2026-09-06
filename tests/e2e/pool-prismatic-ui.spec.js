@@ -25,6 +25,16 @@ const capturePrismDevice = async (page) => page.addInitScript(() => {
 test('validates input locally and preserves the navigation nodes and sequence draft', async ({ page }) => {
   await page.goto('/');
   const input = page.getByRole('textbox', { name: 'Public protein sequence' });
+  const sample = await input.getAttribute('data-pool-suggested-prompt');
+  const consent = page.locator('#pool-home-sequence-public');
+  await expect(input).toHaveValue('');
+  await expect(consent).not.toBeChecked();
+  await page.getByRole('button', { name: 'Use example', exact: true }).click();
+  await expect(input).toHaveValue(sample);
+  await expect(input).toBeFocused();
+  await expect(page.locator('#pool-sequence-count')).toHaveText(`${sample.length} / 1024`);
+  await expect(consent).not.toBeChecked();
+  await expect(page.locator('[data-pool-run-surface]')).toHaveAttribute('data-run-state', 'idle');
   await input.fill('MZ*');
   await expect(input).toHaveAttribute('aria-invalid', 'true');
   await expect(page.locator('#pool-sequence-feedback')).toContainText('non-canonical');
