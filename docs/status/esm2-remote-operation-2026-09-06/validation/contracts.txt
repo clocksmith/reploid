@@ -1,0 +1,82 @@
+
+> reploid@0.1.0 verify:catscan
+> node scripts/verify-catscan.js
+
+[catscan] 29 component charters and generated index passed
+
+> reploid@0.1.0 verify:surface-claims
+> node scripts/verify-surface-claim-index.js
+
+[verify-surface-claims] 14 claim rows passed
+
+> reploid@0.1.0 verify:layers
+> node scripts/verify-layers.js
+
+Layer verification passed.
+
+> reploid@0.1.0 verify:module-system
+> node scripts/verify-module-system.js
+
+[verify-module-system] All checks passed
+
+> reploid@0.1.0 verify:registry
+> node scripts/build-blueprint-registry.js --check && node scripts/validate-registry.js
+
+[blueprint-registry] 176 declarations and 106 executable owners are current
+[validate] {"sourceFiles":342,"modules":68,"blueprintDeclarations":176,"executableOwners":106,"unresolved":0}
+[validate] Inventoried helpers: 179; modules without an architectural blueprint: 18
+
+> reploid@0.1.0 verify:runtime-config
+> node scripts/sync-runtime-config.js
+
+Runtime config verified for browser doppler-gpu@0.5.1 with npm tooling 0.5.1.
+
+> reploid@0.1.0 verify:browser-bundle:local
+> node scripts/build-browser-bundle-manifest.js --check
+
+[browser-bundle] 602 served files match sha256:d07fe38a90758d3ae886395e752597d6fbe5aee2c8f6e52c7e4a61d76891e458
+
+> reploid@0.1.0 verify:change-passport:sdk
+> node scripts/build-change-passport-sdk.js --check
+
+[change-passport-sdk] checked-in bundle and declarations match source
+
+> reploid@0.1.0 verify:change-passport:pilot
+> node scripts/verify-change-passport-pilot.js
+
+{
+  "valid": true,
+  "structurallyValid": true,
+  "frozen": false,
+  "manifestHash": "sha256:44a14055b46f505c0cd840c3e3d9e42029a54d7c807b19ac1b2e94a74f4811d6",
+  "unfrozenFields": [
+    "adopter.organizationId",
+    "operator.authorityId",
+    "independentEvaluator.authorityId",
+    "approvingAuthority.authorityId",
+    "repository.fullName",
+    "repository.repositoryId",
+    "repository.installationId",
+    "repository.baseBranch",
+    "agentProgram.programId",
+    "agentProgram.environment",
+    "changeClass",
+    "candidate.baselineDigest",
+    "candidate.candidateDigest",
+    "candidate.artifactUri",
+    "candidate.rollbackTarget.revision",
+    "candidate.rollbackTarget.artifactDigest",
+    "evaluation.evaluatorDigest",
+    "evaluation.suiteDigest",
+    "evaluation.contractDigest",
+    "baselineWorkflow.evidenceCutoff",
+    "baselineWorkflow.outcomeWindow",
+    "baselineWorkflow.resourceBudget"
+  ],
+  "errors": []
+}
+
+> reploid@0.1.0 verify:pool
+> node scripts/verify-pool-production.js
+
+Pool production verification passed for 2026-08-15.hosted-sequence-input.v1.doppler-0.5.1 sha256:500e73cab2e9f7d8d073ca764aada8368324037157d7c5ac99f078e22c19335c

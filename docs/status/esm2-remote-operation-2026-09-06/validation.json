@@ -1,0 +1,29 @@
+{
+  "schema": "reploid.retained-validation/v1",
+  "unitAndIntegration": {
+    "passed": 2385,
+    "skipped": 35
+  },
+  "browser": {
+    "passed": 6,
+    "verificationWorker": true
+  },
+  "contractsPassed": true,
+  "logs": [
+    {
+      "path": "validation/full-tests.txt",
+      "hash": "sha256:b02c735a2f9727a45a10fcc35fd4a4db51363c6e35bf9f5ec3baca208e9ba4db",
+      "sizeBytes": 88735
+    },
+    {
+      "path": "validation/browser-tests.txt",
+      "hash": "sha256:6c203289fb4d9f31280d57f02d94c4fb2258ce10d7556180e8d943d0c62492a8",
+      "sizeBytes": 1355
+    },
+    {
+      "path": "validation/contracts.txt",
+      "hash": "sha256:610999b6438c1f023940fbae01221e9db6bd73086cc92d1659837a1282be9b30",
+      "sizeBytes": 2656
+    }
+  ]
+}

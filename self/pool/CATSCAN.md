@@ -4,7 +4,7 @@ Parent: [Browser Runtime](../CATSCAN.md)
 
 ## Target
 
-Test distribution, whole-job execution, reviewed coordination separately; public-protein adjudication.
+Test distribution, whole-job execution, reviewed coordination; public-protein adjudication.
 
 ## Authority
 - Owns discovery, authorization, assignment, transport, recovery, accounting, admission.
@@ -25,8 +25,9 @@ Outputs:
 - [Custody](peer-pack-custody.js), [local document retrieval](document-search.js).
 - [Receipts](inference-receipt.js), [state](research-cycle.js), [checkpoints](discovery-contract.js), [actions](discovery-candidate-action.js).
 - [Records](evidence-network.js), [campaign](protein-uncertainty-campaign.js), [adjudication](adjudication-north-star.js), [promotion](scientific-policy-promotion.js), [value](realized-action-value.js).
-- Complete forecasts reuse [assignments](peer-assignment.js), signed messages/receipts, requester acceptance.
-  Applications own qualified pins, time-series semantics, outcome review; no public catalog admission.
+- Forecasts reuse [assignments](peer-assignment.js), signed messages/receipts, requester acceptance.
+  Applications own pins, semantics, review; no catalog admission.
+- [Jobs](peer-pack-job.js), [acceptance](peer-pack-episode.js): pins, public consent, bounds.
 
 ## Invariants
 - Receipts prove signed records/identities only.
@@ -43,7 +44,7 @@ Outputs:
 - Realized value requires approved actions, reviewed outcomes, evaluation, causal records, and independent acceptance.
 
 ## Acceptance
-- [Operation/extension tests](../../tests/unit/pool-pack-operation.test.js) pass.
+- [Operations](../../tests/unit/pool-pack-operation.test.js), [jobs](../../tests/unit/pool-peer-pack-job.test.js), [WebRTC](../../tests/e2e/peer-pack-jobs.spec.js) pass.
 - Evidence: [custody](../../tests/unit/pool-peer-pack-custody.test.js), [pool](../../tests/unit/pool-contract.test.js), [cycle](../../tests/unit/pool-research-cycle.test.js), [action](../../tests/unit/pool-discovery-candidate-action.test.js), [replay](../../tests/unit/pool-discovery-contract.test.js), [adjudication](../../tests/unit/pool-adjudication-experiment.test.js), [promotion](../../tests/unit/pool-scientific-policy-promotion.test.js), and [value](../../tests/unit/pool-realized-action-value.test.js) tests.
 
 ## Non-goals
@@ -51,4 +52,4 @@ Outputs:
 - Model splitting, hardware attestation, or private-sequence admission.
 
 ## Freedom
-Any mechanism preserving boundaries/acceptance.
+Preserve boundaries/acceptance.

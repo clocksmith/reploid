@@ -106,6 +106,12 @@ export async function verifyPeerPackExecution(config) {
   const referenceBytes = await readFile(config.referencePath);
   assert(await sha256Hex(referenceBytes) === config.referenceDigest, 'Frozen reference digest mismatch');
   const reference = JSON.parse(referenceBytes.toString('utf8'));
+  let remoteReference = null;
+  if (config.remoteOperation) {
+    const bytes = await readFile(config.remoteOperation.referencePath);
+    assert(await sha256Hex(bytes) === config.remoteOperation.referenceDigest, 'Frozen remote comparison reference digest mismatch');
+    remoteReference = JSON.parse(bytes.toString('utf8'));
+  }
   const report = { schema: 'reploid.pool.peer-pack-browser-episode/v1', passed: false, generatedAt: new Date().toISOString(),
     claimBoundary: { actualModel: true, physicalBrowserRequired: true, internalOperatorCount: 1,
       independentMachines: false, independentOperators: false, historyImprovement: false },
@@ -273,7 +279,41 @@ export async function verifyPeerPackExecution(config) {
         }, { limits: config.transportLimits, sources: runtimeBootstrap.sources });
         await connect();
       }
-      report.execution = await requester.evaluate((options) => proofPeer.execute(options), executionOptions);
+      const executing = requester.evaluate((options) => proofPeer.execute(options),
+        { ...executionOptions, serveRemoteOperation: !!config.remoteOperation }).then(execution => {
+        report.execution = execution;
+        return execution;
+      });
+      // A process deadline may reject while the coordinator awaits remote readiness.
+      // Observe it immediately and retain the original failure in the outer report.
+      executing.catch(() => {});
+      if (config.remoteOperation) {
+        // A supplier browser requests a complete job from the reconstructed model.
+        // It receives no locally generated replacement output from the coordinator.
+        const remoteRequester = pages.get(identities[2].peerId);
+        try {
+          await Promise.race([requester.waitForFunction(() => proofPeer.remoteReady()), executing.then(execution => {
+            throw new Error(execution.error || 'Model execution ended before remote provider readiness');
+          })]);
+          await remoteRequester.evaluate(async ({ model, reference, sequence }) => {
+            window.remoteOperation = await import('/tests/fixtures/peer-pack-remote-execution.js');
+            await remoteOperation.startRequester(model, { reference, sequence });
+          }, { model: { modelId: reference.modelId, modelHash: binding.semanticRoot, manifestHash: binding.envelopeDigest,
+            runtime: 'doppler', backend: 'browser-webgpu', runtimeVersion: config.dopplerVersion,
+            executionMode: 'complete_pack_browser', workload: 'sequence.embedding.v1', executablePack: binding },
+          reference: remoteReference.output, sequence: reference.input.sequence });
+          const offer = await remoteRequester.evaluate(() => remoteOperation.offer());
+          const answer = await requester.evaluate(offer => proofPeer.remoteAnswer(offer), offer);
+          await remoteRequester.evaluate(answer => remoteOperation.accept(answer), answer);
+          const advert = await requester.evaluate(() => proofPeer.remoteAdvert());
+          report.remoteOperation = await remoteRequester.evaluate(advert => remoteOperation.run(advert), advert);
+        } finally {
+          report.remoteProvider = await requester.evaluate(() => proofPeer.remoteFinish());
+          report.remoteRequester = await remoteRequester.evaluate(() => window.remoteOperation?.finish());
+          await executing;
+        }
+      }
+      report.execution = await executing;
       if (config.restart && report.execution.passed) {
         const accepted = report.restart.interrupted.custody.attempts.filter(row => row.status === 'accepted');
         const fetched = new Set(report.execution.custody.attempts.map(row => `${row.artifactId}:${row.chunkIndex}`));
@@ -289,11 +329,20 @@ export async function verifyPeerPackExecution(config) {
       const transferAttempts = [...(report.restart?.interrupted.custody.attempts ?? []), ...report.execution.custody.attempts];
       report.acceptance = evaluateSequenceReference({ manifest: report.execution.manifest, reference,
         result: { ...output, pooledEmbedding: new Float32Array(output.pooledEmbedding), tokenEmbeddings: new Float32Array(output.tokenEmbeddings) } });
+      if (config.remoteOperation) {
+        const remoteOutput = report.remoteOperation.execution.output;
+        report.remoteAcceptance = evaluateSequenceReference({ manifest: report.execution.manifest, reference,
+          result: { ...remoteOutput, pooledEmbedding: new Float32Array(remoteOutput.pooledEmbedding), tokenEmbeddings: new Float32Array(remoteOutput.tokenEmbeddings) } });
+      }
       report.passed = report.acceptance.passed && report.origin.receiverBootstrapRequests === 0
         && report.origin.rejectedRequests.length === 0
         && report.execution.custody.completed.length === pack.artifacts.length + 1
         && transferAttempts.some((attempt) => attempt.error?.includes('integrity'))
-        && report.peers.some((peer) => peer.injectedFaults.some((fault) => fault.type === 'supplier-departure'));
+        && report.peers.some((peer) => peer.injectedFaults.some((fault) => fault.type === 'supplier-departure'))
+        && (!config.remoteOperation || (report.remoteAcceptance.passed && report.remoteOperation.assessment.accepted
+          && report.remoteOperation.accounting.deliveries === 2 && report.execution.remoteProvider.calls === 1
+          && report.execution.remoteProvider.droppedCompletions === 1
+          && report.execution.remoteProvider.executionReceiptDigest === report.remoteOperation.execution.receipt.receiptDigest));
     }
     report.stage = 'complete';
   } catch (error) { report.error = error.message; }

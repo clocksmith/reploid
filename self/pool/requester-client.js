@@ -9,6 +9,7 @@ import { DETERMINISTIC_GENERATION_CONFIG, FASTEST_RECEIPT_POLICY_ID, getPolicy }
 import { createPoolIdentity } from './identity.js';
 import { createSignedPeerMessage, PEER_MESSAGE_TYPES } from './peer-protocol.js';
 import { createAdapterUseApproval } from './adapter-publication.js';
+import { createPackPeerRequester } from './peer-pack-requester.js';
 import {
   createPeerLedgerEvents,
   createPeerPromptPayload,
@@ -52,6 +53,12 @@ export function createRequesterClient({ requesterId, sdk = createPoolSdk(), keyP
     };
   };
   return {
+    async createPeerPackRequester(options) {
+      await ensureKeys();
+      const keyId = await sha256Hex(Uint8Array.from(atob(requesterPublicKey), value => value.charCodeAt(0)));
+      return createPackPeerRequester({ ...options,
+        identity: { keyId, publicKey: requesterPublicKey, privateKey: activeKeyPair.privateKey } });
+    },
     async submitAdapterJob({ adapterPack, modelRequirements = {}, ...request } = {}) {
       const verification = await verifyAdapterPack(adapterPack, { requirePromoted: true });
       if (!verification.ok) throw new Error(`Adapter pack rejected: ${verification.reasons.join('; ')}`);

@@ -16,6 +16,7 @@ const tolerance = (policy) => {
 const builtins = {
   generate: {
     version: 1,
+    workload: 'text-generation',
     validateRequest({ input, options }) {
       fields(input, ['prompt', 'promptTokens']);
       requireValue(Object.hasOwn(input, 'prompt') !== Object.hasOwn(input, 'promptTokens'), 'one generation input required');
@@ -36,6 +37,7 @@ const builtins = {
   },
   embed: {
     version: 1,
+    workload: 'embedding',
     validateRequest({ input, options }) {
       fields(input, ['texts', 'application']); fields(options, []);
       requireValue(Array.isArray(input.texts) && input.texts.length > 0 && input.texts.every(text), 'texts required');
@@ -57,6 +59,7 @@ const builtins = {
   },
   rerank: {
     version: 1,
+    workload: 'reranking',
     validateRequest({ input, options }) {
       fields(input, ['query', 'documents', 'application']); fields(options, []);
       requireValue(text(input.query) && Array.isArray(input.documents) && input.documents.length > 0
@@ -81,6 +84,7 @@ const builtins = {
   },
   encodeSequence: {
     version: 1,
+    workload: 'sequence.embedding.v1',
     validateRequest({ input, options }) {
       fields(input, ['sequence']); fields(options, ['includeTokenEmbeddings', 'includeLogits']);
       requireValue(text(input.sequence) && typeof options.includeTokenEmbeddings === 'boolean'

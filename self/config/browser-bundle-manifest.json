@@ -690,8 +690,8 @@
     },
     {
       "path": "blueprints/0x000086-pool-peer-control-plane.md",
-      "byteLength": 1476,
-      "sha256": "sha256:453481c3f0842f43ded3d01dbea2f6904efff5fa89bded07a17a493b3ac8fb0d"
+      "byteLength": 3024,
+      "sha256": "sha256:d4e63616d0b2f553985d46dead8c9d6ccd80a0bc082e6562d9af27f7e7a1b294"
     },
     {
       "path": "blueprints/0x000087-ui-pool-home-contribution-state.md",
@@ -906,7 +906,7 @@
     {
       "path": "blueprints/canonical-inventory.md",
       "byteLength": 18953,
-      "sha256": "sha256:cae889b4f6afa0d857d2e55a575beccdb0262c7d7d7b236e16608637c508239c"
+      "sha256": "sha256:b2a2ab8558a3b0dce1c1fb99d36c425a28b895bdfa72ab3d3bb27309e27e9601"
     },
     {
       "path": "blueprints/CATSCAN.md",
@@ -1180,8 +1180,8 @@
     },
     {
       "path": "config/blueprint-registry.json",
-      "byteLength": 34358,
-      "sha256": "sha256:e180ac7a856e4337c5eba9ba491c482d3bbf364ea78823c3ead69d30473101cd"
+      "byteLength": 34546,
+      "sha256": "sha256:ed0c710991b449d41f32119661c0b968583eab019f9674360a1bc1339d2cacf0"
     },
     {
       "path": "config/boot-modes.js",
@@ -1250,8 +1250,8 @@
     },
     {
       "path": "config/module-inventory.json",
-      "byteLength": 86357,
-      "sha256": "sha256:71d2fe5aa3ab38c169278ae646a90861e5de56212f24bdbaccc610333d10c4aa"
+      "byteLength": 88237,
+      "sha256": "sha256:231403abbe0f991b57497a2addb168974c28910ed5baeb3ea880c3c0af3970b6"
     },
     {
       "path": "config/module-registry.json",
@@ -1280,8 +1280,8 @@
     },
     {
       "path": "config/vfs-manifest.json",
-      "byteLength": 23671,
-      "sha256": "sha256:5e96de3199158a8aa3110b161b92f6234febe629eee579f8f6e3512aac506fb8"
+      "byteLength": 23839,
+      "sha256": "sha256:eac796efdfbfcb83998a8f8da475d389e641b970dfb981eeb7a546f576357bb6"
     },
     {
       "path": "config/vfs-policy.js",
@@ -1855,8 +1855,8 @@
     },
     {
       "path": "pool/CATSCAN.md",
-      "byteLength": 2981,
-      "sha256": "sha256:668db6c7d330700b5a38d3c8eeec799ada77187d6733d06d57fb85cfcce8cd36"
+      "byteLength": 3090,
+      "sha256": "sha256:cf6e0c1d8c4ba3ffd139e36c1abf7b28ec6f9eda7f3e965d6bf6dbdbc8c7ccde"
     },
     {
       "path": "pool/complete-forecast.js",
@@ -1990,8 +1990,8 @@
     },
     {
       "path": "pool/local-pack-executor.js",
-      "byteLength": 6842,
-      "sha256": "sha256:50b6c7775d2f47eb763b34af9629e3daa5569d5d694d8113b2883745ec01d61f"
+      "byteLength": 7117,
+      "sha256": "sha256:8a77d67444db8eadbee7dde782c7f2c3148d32fa39fe33f0bc0b17bc93f497b9"
     },
     {
       "path": "pool/model-artifacts.js",
@@ -2020,8 +2020,8 @@
     },
     {
       "path": "pool/operation-model.js",
-      "byteLength": 1663,
-      "sha256": "sha256:96e9ff30773064e7ee003ae39bcda9e5a788316e3be4ddc04846f506948e276b"
+      "byteLength": 1690,
+      "sha256": "sha256:695318c524df15267ad096272acc15b345ef2475b389d8ef1a743546f2536cdd"
     },
     {
       "path": "pool/p2p-artifact-transfer.js",
@@ -2045,13 +2045,13 @@
     },
     {
       "path": "pool/pack-operation-adapters.js",
-      "byteLength": 8025,
-      "sha256": "sha256:9ae27f95aa49690595575dcaa75bb44a34d002c4b83d06ba9268193a3ef2349d"
+      "byteLength": 8151,
+      "sha256": "sha256:a2fd6722f05080cddf8665f902d39022f0cc6bf604e68a727b0817a036f72eb7"
     },
     {
       "path": "pool/pack-operation.js",
-      "byteLength": 8120,
-      "sha256": "sha256:ae6d329d1b585e161a0f0306636c678fd972a2ecfefe65bf545db2d2bc48c0c4"
+      "byteLength": 8740,
+      "sha256": "sha256:cc7c02d22a00c526a3dcd0ad9f9af0090352b5428b7ffdcf4168405a3adb8782"
     },
     {
       "path": "pool/pack-release-policy.js",
@@ -2094,9 +2094,34 @@
       "sha256": "sha256:7efc1728b482d3739722c587565d4178427400f02cfee116722730d47e45a1f3"
     },
     {
+      "path": "pool/peer-pack-episode.js",
+      "byteLength": 3734,
+      "sha256": "sha256:126df6a5c663f3db59483e80b51fd723c9e558fabebce6e222b66bb86636797b"
+    },
+    {
+      "path": "pool/peer-pack-job-channel.js",
+      "byteLength": 6119,
+      "sha256": "sha256:8f25d63a21a0054c01d3bc7159e72ee22bdc0bbeb2cac664a76a2509f44cf0ca"
+    },
+    {
+      "path": "pool/peer-pack-job.js",
+      "byteLength": 10195,
+      "sha256": "sha256:5789e3e3efd631d361c91749804802240847163a878d6488ebde35510d035a04"
+    },
+    {
+      "path": "pool/peer-pack-provider.js",
+      "byteLength": 10414,
+      "sha256": "sha256:98eaf49848aca75b03528751f14a71c5c45a246902958604492e923292b62ee2"
+    },
+    {
+      "path": "pool/peer-pack-requester.js",
+      "byteLength": 9147,
+      "sha256": "sha256:bc22bca47d32dba31a17cf173f9ca9608cf347aad8c971a5bd97f006b3e631eb"
+    },
+    {
       "path": "pool/peer-pack-session.js",
-      "byteLength": 4555,
-      "sha256": "sha256:a3e888fca9fd77585d76c1c6f5af0fcfc7c7a9f536e1a9cec616d5b02a1b50ae"
+      "byteLength": 4626,
+      "sha256": "sha256:61c58ce84e4b1fa7d4f223f9381c8b03d083a3bc0160b815a723073edb22b7e8"
     },
     {
       "path": "pool/peer-payload.js",
@@ -2155,8 +2180,8 @@
     },
     {
       "path": "pool/provider-client.js",
-      "byteLength": 27323,
-      "sha256": "sha256:ef9a5bfa65c1306398fdff01f86063b535c7ee40bb88d50339019cc7a908d1e5"
+      "byteLength": 28106,
+      "sha256": "sha256:9e8d2ca877642c5fd985dea3c78115d3989e6e6657bc3f8e4386eaedd64f5129"
     },
     {
       "path": "pool/realized-action-value.js",
@@ -2170,8 +2195,8 @@
     },
     {
       "path": "pool/requester-client.js",
-      "byteLength": 12396,
-      "sha256": "sha256:f24294966cb86284a2a7ba09d7e24b8483f9f97ac1a842a6d56cd99797749c54"
+      "byteLength": 12804,
+      "sha256": "sha256:d62b86dde9155acc80edc7a5d8b5863eb4d9ef02219d8aab9ae5b7cedef59b4c"
     },
     {
       "path": "pool/research-cycle.js",
@@ -2994,5 +3019,5 @@
       "sha256": "sha256:f0839f1a37e68e05baa3bd3823460bc9d742420485f12ae03979781adbb865ca"
     }
   ],
-  "bundleHash": "sha256:fc6f79a8c5699109c01ccc0168ccb67dce0dca6f76bf62ed645f7ebb5b91194d"
+  "bundleHash": "sha256:d07fe38a90758d3ae886395e752597d6fbe5aee2c8f6e52c7e4a61d76891e458"
 }

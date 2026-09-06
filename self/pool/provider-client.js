@@ -35,6 +35,7 @@ import {
   buildAssignmentCommitmentPayload,
   buildAssignmentRevealPayload
 } from './p2p-payload.js';
+import { createPackPeerProvider } from './peer-pack-provider.js';
 
 export function createProviderClient({
   providerId,
@@ -434,6 +435,17 @@ export function createProviderClient({
   };
 
   return {
+    async createPeerPackProvider(options) {
+      await ensureKeys();
+      const authorize = options?.authorize;
+      if (typeof authorize !== 'function') throw new Error('Application admission for complete Pack jobs is required');
+      const keyId = await sha256Hex(Uint8Array.from(atob(publicKey), value => value.charCodeAt(0)));
+      return createPackPeerProvider({ ...options, identity: { keyId, publicKey, privateKey: activeKeyPair.privateKey },
+        authorize: async job => {
+          if (identity?.getParticipationProfile && !participationAllows(await identity.getParticipationProfile(), PARTICIPATION_CAPABILITIES.provideInference)) return false;
+          return authorize(job);
+        } });
+    },
     async register({ models, device = {}, availability = {} }) {
       await ensureKeys();
       const resolvedProviderId = await ensureProviderId();

@@ -35,18 +35,39 @@ export async function assertPackOperationReceipt(binding, receipt, { request, ou
   requireValue(receipt.outputHash === await hashDopplerEvidence(output), 'output mismatch');
 }
 
-export async function runPackOperation({ binding: bindingInput, session, request: requestInput, runtimeVersion,
-  registry = createPackOperationRegistry(), signal = null, onPartial = null, assertCurrent = async () => {} }) {
-  const binding = snapshotPackOperationData(bindingInput);
-  const request = snapshotPackOperationData(requestInput);
+export function assertPackOperationRequest(binding, request, registry = createPackOperationRegistry()) {
   const adapter = operationAdapter(registry, request.operation);
   requireValue(request.schema === 'doppler.pack-operation-request/v1' && binding.requiredOperation === request.operation.name, 'request operation binding mismatch');
   requireValue(Object.keys(request).every((key) => ['schema', 'operation', 'input', 'options', 'assignment', 'limits'].includes(key)), 'unknown request field');
   requireValue(request.assignment === null || (request.assignment && typeof request.assignment === 'object' && !Array.isArray(request.assignment)), 'explicit assignment or null required');
   for (const key of ['maxInputBytes', 'maxOutputBytes', 'deadlineAt']) requireValue(Number.isSafeInteger(request.limits?.[key]) && request.limits[key] > 0, `${key} required`);
   requireValue(new TextEncoder().encode(JSON.stringify({ input: request.input, options: request.options })).length <= request.limits.maxInputBytes, 'input byte limit exceeded');
-  requireValue(typeof runtimeVersion === 'string' && runtimeVersion.length > 0, 'runtime version required');
   adapter.validateRequest(request);
+}
+
+/** Shared stream verifier for local execution and signed remote delivery. */
+export async function assertPackOperationEvent({ binding, request, runtimeVersion, event,
+  eventIndex, previousEventDigest, registry = createPackOperationRegistry() }) {
+  const adapter = operationAdapter(registry, request.operation);
+  const { eventDigest, ...payload } = event;
+  requireValue(event.schema === 'doppler.pack-operation-event/v1' && ['partial', 'completed'].includes(event.status), 'event schema or status mismatch');
+  requireValue(eventDigest === await hashDopplerEvidence(payload), 'event digest mismatch');
+  requireValue(event.eventIndex === eventIndex && event.previousEventDigest === previousEventDigest, 'duplicate, missing, or reordered event');
+  requireValue(event.requestHash === await hashDopplerEvidence(request)
+    && event.assignmentHash === (request.assignment === null ? null : await hashDopplerEvidence(request.assignment))
+    && await equal(event.operation, request.operation), 'event belongs to another request');
+  requireValue(new TextEncoder().encode(JSON.stringify(event.output)).length <= request.limits.maxOutputBytes, 'output byte limit exceeded');
+  adapter.validateOutput(event.output, request, { completed: event.status === 'completed' });
+  if (event.status === 'completed') await assertPackOperationReceipt(binding, event.receipt, { request, output: event.output, runtimeVersion });
+  else requireValue(!Object.hasOwn(event, 'receipt'), 'partial output cannot carry completion evidence');
+}
+
+export async function runPackOperation({ binding: bindingInput, session, request: requestInput, runtimeVersion,
+  registry = createPackOperationRegistry(), signal = null, onPartial = null, assertCurrent = async () => {} }) {
+  const binding = snapshotPackOperationData(bindingInput);
+  const request = snapshotPackOperationData(requestInput);
+  assertPackOperationRequest(binding, request, registry);
+  requireValue(typeof runtimeVersion === 'string' && runtimeVersion.length > 0, 'runtime version required');
   const current = async () => {
     signal?.throwIfAborted();
     requireValue(Date.now() < request.limits.deadlineAt, 'deadline exceeded');
@@ -57,8 +78,6 @@ export async function runPackOperation({ binding: bindingInput, session, request
   await current();
   await assertPackSession(binding, session);
   requireValue(typeof session.executeOperation === 'function', 'public executeOperation is required; no legacy operation fallback');
-  const requestHash = await hashDopplerEvidence(request);
-  const assignmentHash = request.assignment === null ? null : await hashDopplerEvidence(request.assignment);
   let previousEventDigest = null;
   let eventCount = 0;
   let completed = null;
@@ -66,27 +85,20 @@ export async function runPackOperation({ binding: bindingInput, session, request
     await current();
     requireValue(!completed, 'output after completion');
     const event = snapshotPackOperationData(received);
-    const { eventDigest, ...payload } = event;
-    requireValue(event.schema === 'doppler.pack-operation-event/v1' && ['partial', 'completed'].includes(event.status), 'event schema or status mismatch');
-    requireValue(eventDigest === await hashDopplerEvidence(payload), 'event digest mismatch');
-    requireValue(event.eventIndex === eventCount && event.previousEventDigest === previousEventDigest, 'duplicate, missing, or reordered event');
-    requireValue(event.requestHash === requestHash && event.assignmentHash === assignmentHash && await equal(event.operation, request.operation), 'event belongs to another request');
-    requireValue(new TextEncoder().encode(JSON.stringify(event.output)).length <= request.limits.maxOutputBytes, 'output byte limit exceeded');
-    adapter.validateOutput(event.output, request, { completed: event.status === 'completed' });
+    await assertPackOperationEvent({ binding, request, runtimeVersion, event, eventIndex: eventCount, previousEventDigest, registry });
+    await current();
     if (event.status === 'completed') {
-      await assertPackOperationReceipt(binding, event.receipt, { request, output: event.output, runtimeVersion });
       completed = event;
     } else {
-      requireValue(!Object.hasOwn(event, 'receipt'), 'partial output cannot carry completion evidence');
       await onPartial?.(event);
     }
     eventCount++;
-    previousEventDigest = eventDigest;
+    previousEventDigest = event.eventDigest;
   }
   // Do not expose completion until iterator cleanup and the current-attempt check finish.
   await current();
   requireValue(completed, 'stream ended without completion');
-  return Object.freeze({ request, output: completed.output, receipt: completed.receipt, eventCount, finalEventDigest: previousEventDigest });
+  return Object.freeze({ request, output: completed.output, receipt: completed.receipt, eventCount, finalEventDigest: previousEventDigest, completion: completed });
 }
 
 export async function assessPackOperation({ execution, reference: referenceInput, policy: policyInput, registry = createPackOperationRegistry() }) {
