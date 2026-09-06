@@ -26,13 +26,23 @@ export async function verifyDocumentSearch(config) {
   requireValue(corpus.schema === 'reploid.document-relevance-corpus/v1' && corpus.documents.length > 0
     && corpus.queries.length > 0 && corpus.acceptance.mrrAt3 > 0 && corpus.acceptance.recallAt3 > 0, 'Frozen corpus and acceptance required');
   const selected = JSON.parse(await readFile(config.configurationPath, 'utf8'));
+  const generationReferenceBytes = config.generationReferencePath
+    ? await readFile(config.generationReferencePath) : null;
+  const generationReference = generationReferenceBytes ? JSON.parse(generationReferenceBytes) : null;
+  requireValue(!selected.generator || generationReference?.outputs?.length === corpus.queries.length,
+    'Generation requires a frozen source reference for every corpus query');
   const { getPackIdentity } = await import(pathToFileURL(resolve(packageRoot, 'src/config/pack.js')));
   const { hashTargetPlan } = await import(pathToFileURL(resolve(packageRoot, 'src/config/target-plan.js')));
   const { createStaticFileServer } = await import(pathToFileURL(resolve(packageRoot, 'src/tooling/node-browser-command-runner.js')));
   const { DOPPLER_VERSION } = await import(pathToFileURL(resolve(packageRoot, 'src/version.js')));
   const models = { schema: 'reploid.document-models/v1', queryPrefix: selected.queryPrefix };
+  if (selected.generator) models.generationOptions = selected.generationOptions;
+  const modes = ['embedding', 'rerank', 'repeat-rerank'];
+  if (selected.generator) modes.push('answer');
+  const roles = [['embedding', 'embed', 'embedding'], ['reranker', 'rerank', 'reranking']];
+  if (selected.generator) roles.push(['generator', 'generate', 'text-generation']);
   const mounts = [{ urlPrefix: '/self', rootDir: resolve(ROOT, 'self') }];
-  for (const [role, operation, workload] of [['embedding', 'embed', 'embedding'], ['reranker', 'rerank', 'reranking']]) {
+  for (const [role, operation, workload] of roles) {
     const choice = selected[role];
     requireValue(choice?.packPath && choice.openOptions?.trustedSigners && choice.application, `${role} requires explicit Pack trust and application`);
     const pack = JSON.parse(await readFile(choice.packPath, 'utf8'));
@@ -55,6 +65,7 @@ export async function verifyDocumentSearch(config) {
   const browserBytes = await readFile(config.browserExecutablePath);
   const report = { schema: 'reploid.document-search-qualification/v1', passed: false, generatedAt: new Date().toISOString(),
     config, corpusDigest: hash(corpusBytes), corpus, installedPackage: installed.package, models,
+    generationReferenceDigest: generationReferenceBytes ? hash(generationReferenceBytes) : null,
     runnerHash: hash(runner), browserExecutable: { path: config.browserExecutablePath,
       hash: hash(browserBytes), sizeBytes: browserBytes.length },
     boundary: { operatorCount: 1, independentMachines: false, independentUsers: false,
@@ -66,7 +77,7 @@ export async function verifyDocumentSearch(config) {
   const sources = new Map();
   try {
     server = await createStaticFileServer({ rootDir: packageRoot, host: '127.0.0.1', port: 0, staticMounts: mounts });
-    for (const role of ['embedding', 'reranker']) models[role].packSource = server.baseUrl + models[role].packSource;
+    for (const [role] of roles) models[role].packSource = server.baseUrl + models[role].packSource;
     browser = await chromium.launch({ headless: true, executablePath: config.browserExecutablePath, args: config.browserArgs });
     timer = setTimeout(() => browser.close().catch(() => {}), config.timeoutMs);
     report.browserVersion = browser.version();
@@ -119,7 +130,7 @@ export async function verifyDocumentSearch(config) {
     requireValue(report.adapter.vendor === config.requiredVendor && report.adapter.isFallbackAdapter === false
       && !/swiftshader|llvmpipe/i.test(JSON.stringify(report.adapter)), 'Physical required GPU unavailable');
     report.stage = 'search';
-    report.raw = await page.evaluate(async ({ models, corpus }) => {
+    report.raw = await page.evaluate(async ({ models, corpus, modes }) => {
       const { createDocumentSearch } = await import('/self/pool/document-search.js');
       const { createLocalPackExecutor } = await import('/self/pool/local-pack-executor.js');
       const api = await import('/src/client/doppler-api.browser.js');
@@ -143,30 +154,39 @@ export async function verifyDocumentSearch(config) {
         },
         async close() { try { await session?.close(); } finally { session = null; } }
       };
-      const search = createDocumentSearch({ executor: createLocalPackExecutor({ service }) });
+      const executor = createLocalPackExecutor({ service });
+      const generations = [];
+      const search = createDocumentSearch({ executor: { ...executor, async run(request) {
+        const completed = await executor.run(request);
+        if (request.model.executablePack.requiredOperation === 'generate') {
+          generations.push({ input: request.input, options: request.options, ...completed });
+        }
+        return completed;
+      } } });
       const results = [];
       const started = performance.now();
       try {
         search.configure(models);
         await search.setDocuments(corpus.documents.map((text, index) => ({ name: `document-${index}.txt`, text })));
-        for (const mode of ['embedding', 'rerank', 'repeat-rerank']) {
+        for (const mode of modes) {
           for (const [queryIndex, query] of corpus.queries.entries()) {
             const began = performance.now();
-            const result = await search.search({ query: query.text, topK: 3, rerank: mode !== 'embedding' });
+            const result = await search.search({ query: query.text, topK: 3,
+              rerank: mode !== 'embedding', generateAnswer: mode === 'answer' });
             const observation = { mode, queryIndex, elapsedMs: performance.now() - began, result, memory: memory() };
             results.push(observation);
             await window.retainDocumentObservation(observation);
           }
         }
-        return { results, openings, elapsedMs: performance.now() - started,
+        return { results, openings, generations, elapsedMs: performance.now() - started,
           memoryScope: 'Chromium JS heap and Doppler buffer pool; excludes untracked GPU and process overhead' };
       } finally { await search.close(); }
-    }, { models, corpus });
+    }, { models, corpus, modes });
     await Promise.all(recording);
     requireValue(!report.logs.some(row => row.type === 'source-read-error'), 'Runtime source retention failed');
     report.servedFiles = [...sources.values()].sort((a, b) => a.path.localeCompare(b.path));
     report.metrics = {};
-    for (const mode of ['embedding', 'rerank', 'repeat-rerank']) {
+    for (const mode of modes) {
       const rows = report.raw.results.filter(row => row.mode === mode);
       const scores = rows.map(row => {
         const relevant = corpus.queries[row.queryIndex].relevance;
@@ -180,6 +200,19 @@ export async function verifyDocumentSearch(config) {
     }
     report.passed = Object.values(report.metrics).every(metrics => metrics.mrrAt3 >= corpus.acceptance.mrrAt3
       && metrics.recallAt3 >= corpus.acceptance.recallAt3);
+    if (selected.generator) {
+      report.generationComparison = report.raw.generations.map((row, index) => {
+        const expected = generationReference.outputs[index];
+        return { queryIndex: index, promptMatches: row.input.prompt === expected.prompt,
+          tokenIdsMatch: JSON.stringify(row.output.tokenIds) === JSON.stringify(expected.generatedTokenIds),
+          textMatches: row.output.text === expected.text };
+      });
+      report.boundary.referencedGeneration = true;
+      report.boundary.sourceTokenComparison = report.generationComparison.length === corpus.queries.length
+        && report.generationComparison.every(row => row.promptMatches && row.tokenIdsMatch && row.textMatches);
+      report.boundary.answerFaithfulnessQualified = false;
+      report.passed &&= report.boundary.sourceTokenComparison;
+    }
     report.stage = 'complete';
   } catch (error) { report.error = { name: error.name, message: error.message, stack: error.stack }; }
   finally {
