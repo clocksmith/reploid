@@ -62,3 +62,8 @@ WebRTC, reviewed disclosure and durable replay. They do not qualify a specialist
 adapter or establish independently operated machines. Public npm 0.5.1 lacks this
 operation bridge; the changed Doppler runtime and adapter-enabled signed model
 release must be installed together before this becomes a public product claim.
+
+The [physical adapter diagnostic](../status/remote-adapter-2026-09-06/README.md)
+retains direct GPU activation, declared auxiliary shaders, and unchanged model
+bytes. It separates those observations from signed execution, source comparison,
+specialist quality, and independent-machine proof.
