@@ -10,5 +10,6 @@
   "maxInputBytes": 2097152,
   "maxOutputBytes": 16777216,
   "maxOperationMs": 600000,
-  "maxHistory": 50
+  "maxHistory": 50,
+  "maxQueryCache": 16
 }

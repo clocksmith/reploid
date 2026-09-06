@@ -1,7 +1,8 @@
 /** Browser contract test with synthetic bytes and internally operated suppliers. */
-import { test, expect } from '@playwright/test';
+import { test, expect, chromium } from '@playwright/test';
 import { createServer } from 'node:http';
-import { readFile } from 'node:fs/promises';
+import { readFile, mkdtemp, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
 import path from 'node:path';
 
 let server;
@@ -56,7 +57,7 @@ test('browser crypto reconstructs dependencies and the Verification Worker accep
     } finally { store.close(); }
     const snapshot = {};
     for (const file of [
-      'peer-pack-custody.js', 'peer-pack-data-channel.js', 'executable-pack.js', 'pack-operation-adapters.js', 'pack-operation.js',
+      'peer-pack-custody.js', 'peer-pack-session.js', 'peer-pack-data-channel.js', 'executable-pack.js', 'pack-operation-adapters.js', 'pack-operation.js',
       'evidence-network.js', 'evidence-record-contract.js', 'evidence-normalization.js', 'evidence-records.js',
       'evidence-verification.js', 'evidence-admission.js', 'evidence-queries.js', 'research-cycle.js', 'provider-client.js'
     ]) {
@@ -79,9 +80,7 @@ test('browser crypto reconstructs dependencies and the Verification Worker accep
   await testInfo.attach('custody-browser-contract', { body: JSON.stringify(result, null, 2), contentType: 'application/json' });
 });
 
-test('durable checkpoints survive reload, change suppliers, reject corruption, and enforce disk limits', async ({ page }, testInfo) => {
-  await page.goto(origin);
-  const prepare = async (page, phase) => page.evaluate(async (phase) => {
+const prepareCheckpointTransfer = async (page, phase) => page.evaluate(async (phase) => {
     const { openPeerPackCheckpoints } = await import('/self/infrastructure/pack-transfer-storage.js');
     const { createCustodyFixture } = await import('/tests/fixtures/peer-pack-custody.js');
     const { createPeerPackArtifactStore } = await import('/self/pool/peer-pack-custody.js');
@@ -107,11 +106,14 @@ test('durable checkpoints survive reload, change suppliers, reject corruption, a
     checkpoints.close();
     return { output, error, receipt, stats, firstHash: fixture.index.artifacts[0].chunks[0].hash };
   }, phase);
-  const interrupted = await prepare(page, 'interrupt');
+
+test('durable checkpoints survive reload, change suppliers, reject corruption, and enforce disk limits', async ({ page }, testInfo) => {
+  await page.goto(origin);
+  const interrupted = await prepareCheckpointTransfer(page, 'interrupt');
   expect(interrupted.error).toContain('no authorized supplier');
   expect(interrupted.stats).toMatchObject({ storedBytes: 2, chunks: 1 });
   await page.reload();
-  const resumed = await prepare(page, 'resume');
+  const resumed = await prepareCheckpointTransfer(page, 'resume');
   expect(resumed.output).toEqual([1, 2, 3, 4, 5, 6, 7]);
   expect(resumed.receipt).toMatchObject({ cacheBytes: 2, receivedBytes: 5 });
   expect(resumed.receipt.attempts.every((attempt) => attempt.chunkIndex !== 0)).toBe(true);
@@ -131,7 +133,7 @@ test('durable checkpoints survive reload, change suppliers, reject corruption, a
     db.close();
   }, interrupted.firstHash);
   await page.reload();
-  const recovered = await prepare(page, 'recover');
+  const recovered = await prepareCheckpointTransfer(page, 'recover');
   expect(recovered.output).toEqual([1, 2, 3, 4, 5, 6, 7]);
   expect(recovered.receipt).toMatchObject({ corruptCacheBytes: 2, receivedBytes: 2, cacheBytes: 5 });
   const limited = await page.evaluate(async () => {
@@ -155,6 +157,36 @@ test('durable checkpoints survive reload, change suppliers, reject corruption, a
   expect(limited).toMatchObject({ stats: { storedBytes: 2, chunks: 1 }, hits: 1, cancelled: true });
   expect(limited.writes.reduce((total, write) => total + write.evictedBytes, 0)).toBe(2);
   await testInfo.attach('persistent-transfer', { body: JSON.stringify({ interrupted, resumed, recovered, limited }, null, 2), contentType: 'application/json' });
+});
+
+test('verified pieces resume automatically after a browser process restarts', async ({}, testInfo) => {
+  const profile = await mkdtemp(path.join(tmpdir(), 'reploid-transfer-restart-'));
+  let context;
+  try {
+    context = await chromium.launchPersistentContext(profile, { headless: true });
+    let page = await context.newPage();
+    await page.goto(origin);
+    const interrupted = await prepareCheckpointTransfer(page, 'interrupt');
+    expect(interrupted.error).toContain('no authorized supplier');
+    expect(interrupted.stats).toMatchObject({ storedBytes: 2, chunks: 1 });
+    // Closing this persistent context terminates its owned Chromium process.
+    await context.close();
+    context = await chromium.launchPersistentContext(profile, { headless: true });
+    page = await context.newPage();
+    await page.goto(origin);
+    const resumed = await prepareCheckpointTransfer(page, 'resume');
+    expect(resumed.output).toEqual([1, 2, 3, 4, 5, 6, 7]);
+    expect(resumed.receipt).toMatchObject({ source: 'cache-and-peer', cacheBytes: 2, receivedBytes: 5 });
+    expect(resumed.receipt.attempts.every((attempt) => attempt.chunkIndex !== 0)).toBe(true);
+    expect(resumed.receipt.duplicateBytes).toBe(0);
+    await testInfo.attach('browser-process-transfer-restart', {
+      body: JSON.stringify({ executionClass: 'synthetic-byte-browser-process-restart',
+        operatorCount: 1, interrupted, resumed }, null, 2), contentType: 'application/json'
+    });
+  } finally {
+    await context?.close();
+    await rm(profile, { recursive: true, force: true });
+  }
 });
 
 test('browser evidence facade preserves signing, reviewed admission, and revocation', async ({ page }, testInfo) => {

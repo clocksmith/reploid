@@ -97,16 +97,67 @@ describe('local document search (synthetic Pack outputs)', () => {
       expect(f.calls[0].input.application).toEqual(f.configuration.embedding.application);
       expect(first.indexReceipt).toEqual(first.receipts[0]);
       const ranked = await workflow.search({ query: 'apple', topK: 2, rerank: true });
-      expect(f.calls[1].input.texts).toEqual(['apple']);
-      expect(f.calls[1].input.application).toEqual(f.configuration.embedding.application);
-      expect(f.calls[2].operation.name).toBe('rerank');
+      expect(f.calls[1].operation.name).toBe('rerank');
+      expect(ranked.embeddingCache).toEqual({ corpus: true, query: true });
+      expect(ranked.receipts[0]).toEqual(first.receipts[0]);
       expect(ranked.matches[0].sources).toEqual(['sea.txt']);
       expect(ranked.reranked).toBe(true);
       expect(ranked.receipts).toHaveLength(2);
       expect(ranked.indexReceipt).toEqual(first.indexReceipt);
-      expect(f.closes()).toBe(3);
+      expect(f.closes()).toBe(1);
       expect(fetch).not.toHaveBeenCalled();
     } finally { fetch.mockRestore(); await workflow.close(); }
+  });
+
+  it('bounds query reuse, preserves its receipt, and clears private caches and retained sessions', async () => {
+    const f = await createDocumentPackFixture();
+    const open = vi.spyOn(f.service, 'openPack');
+    const executor = createLocalPackExecutor({ service: f.service });
+    const workflow = createDocumentSearch({ executor, limits: { ...policy, maxQueryCache: 1 } });
+    workflow.configure(f.configuration); await workflow.setDocuments(documents);
+    const first = await workflow.search({ query: 'apple' });
+    const repeat = await workflow.search({ query: 'apple' });
+    expect(repeat.receipts[0]).toEqual(first.receipts[0]);
+    expect(f.calls).toHaveLength(1);
+    await workflow.search({ query: 'whale' });
+    const evicted = await workflow.search({ query: 'apple' });
+    expect(evicted.embeddingCache).toEqual({ corpus: true, query: false });
+    expect(f.calls).toHaveLength(3);
+    expect(open).toHaveBeenCalledTimes(1);
+    expect(f.closes()).toBe(0);
+    workflow.clear();
+    await vi.waitFor(() => expect(executor.getState().active).toBe(false));
+    expect(executor.getState().retainedModelId).toBe(null);
+    expect(f.closes()).toBe(1);
+    await workflow.setDocuments(documents);
+    const fresh = await workflow.search({ query: 'apple' });
+    expect(fresh.embeddingCache).toEqual({ corpus: false, query: false });
+    expect(open).toHaveBeenCalledTimes(2);
+    await workflow.close();
+    expect(f.closes()).toBe(2);
+  });
+
+  it('revalidates changed trust before reuse and blocks replacement while idle-session cleanup drains', async () => {
+    const f = await createDocumentPackFixture();
+    const open = vi.spyOn(f.service, 'openPack');
+    const executor = createLocalPackExecutor({ service: f.service });
+    const job = { model: f.configuration.embedding, input: { texts: ['apple'], application: f.configuration.embedding.application },
+      limits: { maxInputBytes: 1048576, maxOutputBytes: 1048576, deadlineAt: Date.now() + 10000 } };
+    await executor.run(job);
+    await executor.run(job);
+    expect(open).toHaveBeenCalledTimes(1);
+    await executor.run({ ...job, model: { ...job.model, packOpenOptions: {
+      ...job.model.packOpenOptions, trustedSigners: { changed: 'synthetic-key' }
+    } } });
+    expect(open).toHaveBeenCalledTimes(2);
+    expect(f.closes()).toBe(1);
+    let release;
+    f.service.close = () => new Promise(resolve => { release = resolve; });
+    executor.cancel();
+    expect(executor.getState()).toMatchObject({ active: true, draining: true });
+    await expect(executor.run(job)).rejects.toThrow('already running');
+    release(); await executor.close();
+    expect(executor.getState()).toMatchObject({ active: false, disposed: true, retainedModelId: null });
   });
 
   it('requires the selected embedding application without inventing an identity', async () => {

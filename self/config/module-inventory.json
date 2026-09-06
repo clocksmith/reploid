@@ -705,6 +705,12 @@
       "imports": []
     },
     {
+      "path": "infrastructure/pack-release-storage.js",
+      "owner": "infrastructure",
+      "sha256": "sha256:8710ec25f2d06a03d287d8ee06ca34454b0deb95417eadf329b158688a4db47c",
+      "imports": []
+    },
+    {
       "path": "infrastructure/pack-transfer-storage.js",
       "owner": "infrastructure",
       "sha256": "sha256:8f4a918e2a0226de9561ffdc0369042703b4d342fc5aab9438e3a0eb869a891f",
@@ -978,7 +984,7 @@
     {
       "path": "pool/document-search.js",
       "owner": "pool",
-      "sha256": "sha256:1c5715ff6f894bdf21ffa0c8a1e67b3a4f260e241712e1af38ecded306430816",
+      "sha256": "sha256:da74de478f11323bec5f403b94035545e59a6be703649f589a60266b619bbf7f",
       "imports": [
         "./document-search-policy.json",
         "./executable-pack.js",
@@ -1167,12 +1173,13 @@
     {
       "path": "pool/local-pack-executor.js",
       "owner": "pool",
-      "sha256": "sha256:190ff67217001508dd0289d2aac18cce9a55942fcc1af5df4e60c9fe5ef5d2dc",
+      "sha256": "sha256:50b6c7775d2f47eb763b34af9629e3daa5569d5d694d8113b2883745ec01d61f",
       "imports": [
         "../infrastructure/doppler-runtime-service.js",
         "./executable-pack.js",
         "./operation-model.js",
-        "./pack-operation.js"
+        "./pack-operation.js",
+        "./pack-release-policy.js"
       ]
     },
     {
@@ -1285,6 +1292,16 @@
       ]
     },
     {
+      "path": "pool/pack-release-policy.js",
+      "owner": "pool",
+      "sha256": "sha256:55f8a1442b542799bbe9e721d142418637170455b5e790ca2b05dbeeffe28dc2",
+      "imports": [
+        "../infrastructure/pack-release-storage.js",
+        "./executable-pack.js",
+        "./pack-operation.js"
+      ]
+    },
+    {
       "path": "pool/participation-profile.js",
       "owner": "pool",
       "sha256": "sha256:0af14eedd3d3c907da5be4c8db65d46272801e6fb0927e3694f2c5d35f4c77e3",
@@ -1349,7 +1366,7 @@
     {
       "path": "pool/peer-pack-custody.js",
       "owner": "pool",
-      "sha256": "sha256:14b11e489e4bfe29d3d22fe16a2d7c05c04bc2672f706a863d7a86fa75dce19a",
+      "sha256": "sha256:f842b7dd9f7c2582e3eb7aa3e541f62f2dadaca2af42dfaa6266717ecb2e294c",
       "imports": [
         "./executable-pack.js",
         "./inference-receipt.js"
@@ -1360,6 +1377,18 @@
       "owner": "pool",
       "sha256": "sha256:7efc1728b482d3739722c587565d4178427400f02cfee116722730d47e45a1f3",
       "imports": []
+    },
+    {
+      "path": "pool/peer-pack-session.js",
+      "owner": "pool",
+      "sha256": "sha256:a3e888fca9fd77585d76c1c6f5af0fcfc7c7a9f536e1a9cec616d5b02a1b50ae",
+      "imports": [
+        "../infrastructure/doppler-runtime-service.js",
+        "../infrastructure/pack-transfer-storage.js",
+        "./executable-pack.js",
+        "./pack-operation.js",
+        "./peer-pack-custody.js"
+      ]
     },
     {
       "path": "pool/peer-payload.js",
@@ -2624,7 +2653,7 @@
     {
       "path": "ui/pool-home/view.js",
       "owner": "ui",
-      "sha256": "sha256:ae5bd0d45d69dba3364a43e7b57a68d9c9430b5b3b3b2da4247ee14b91d6c0e6",
+      "sha256": "sha256:0c1c83ee251bb6d227b64aaf4e192c7ff0cec91ef4c0a32817dccd3020cbee15",
       "imports": [
         "../../config/surface-intents.js",
         "../../pool/model-contract.js",

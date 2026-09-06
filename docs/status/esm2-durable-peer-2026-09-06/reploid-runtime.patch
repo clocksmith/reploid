@@ -1,0 +1,212 @@
+diff --git a/self/pool/peer-pack-custody.js b/self/pool/peer-pack-custody.js
+index d65bda0..ddc6361 100644
+--- a/self/pool/peer-pack-custody.js
++++ b/self/pool/peer-pack-custody.js
+@@ -323,7 +323,9 @@ export async function createPeerPackArtifactStore({ authorization, index, invent
+     assert(await sha256Hex(output) === entry.artifact.hash, 'reconstructed artifact integrity mismatch');
+     active();
+     firstArtifactAt ??= now();
+-    completed.push({ artifactId: input.artifactId, hash: entry.artifact.hash, sizeBytes: output.byteLength });
++    if (!completed.some((item) => item.artifactId === input.artifactId)) {
++      completed.push({ artifactId: input.artifactId, hash: entry.artifact.hash, sizeBytes: output.byteLength });
++    }
+     return output;
+   }
+   return {
+@@ -345,7 +347,8 @@ export async function createPeerPackArtifactStore({ authorization, index, invent
+       return clone({ schema: `${PREFIX}-receipt/v1`, authorizationHash: ctx.authorizationHash,
+         transferId: ctx.grant.transferId, attempt: ctx.grant.attempt, envelopeDigest: ctx.grant.pack.envelopeDigest,
+         artifactClosureDigest: ctx.grant.pack.artifactClosureDigest, indexDigest: ctx.grant.indexDigest,
+-        source: 'peer', reservedBytes, receivedBytes, verificationBytes, attempts, completed,
++        source: cacheBytes > 0 ? (receivedBytes > 0 ? 'cache-and-peer' : 'cache') : 'peer',
++        reservedBytes, receivedBytes, verificationBytes, attempts, completed,
+         inventories: adverts,
+         cacheBytes, corruptCacheBytes, persistedBytes, evictedBytes, duplicateBytes,
+         maxConcurrentChunks, peakInFlightBytes, peakArtifactBytes,
+diff --git a/tests/fixtures/peer-pack-browser.js b/tests/fixtures/peer-pack-browser.js
+index 0d57705..8c78eff 100644
+--- a/tests/fixtures/peer-pack-browser.js
++++ b/tests/fixtures/peer-pack-browser.js
+@@ -1,9 +1,8 @@
+ /** Physical-browser proof plumbing. All identities here have one internal operator. */
+ import { createSigningKeyPair, exportPublicKey } from '../../self/pool/inference-receipt.js';
+-import { createPeerPackSupplier, createPeerPackArtifactStore } from '../../self/pool/peer-pack-custody.js';
++import { createPeerPackSupplier } from '../../self/pool/peer-pack-custody.js';
++import { openPeerPack } from '../../self/pool/peer-pack-session.js';
+ import { createPeerPackDataChannel } from '../../self/pool/peer-pack-data-channel.js';
+-import { assertPackSession } from '../../self/pool/executable-pack.js';
+-import { runPackOperation } from '../../self/pool/pack-operation.js';
+ import { createReploidDopplerRuntimeService } from '../../self/infrastructure/doppler-runtime-service.js';
+ 
+ let key;
+@@ -11,10 +10,10 @@ let supplier;
+ let ownId;
+ let transportLimits;
+ let faultMode = false;
++let firstWeightArtifact = null;
+ const connections = new Map();
+ const injectedFaults = [];
+ const chunks = new Map();
+-let store;
+ 
+ export async function identity(peerId) {
+   ownId = peerId;
+@@ -48,7 +47,11 @@ function installChannel(peerId, channel, pc) {
+   const install = () => {
+     entry.transport = createPeerPackDataChannel({ channel, limits: transportLimits,
+       serve: supplier ? async (request) => {
+-        if (faultMode && request.artifactId.startsWith('weight-shard:') && request.chunkIndex === 1) {
++        if (faultMode && request.artifactId.startsWith('weight-shard:')) firstWeightArtifact ??= request.artifactId;
++        // Finish the first artifact before disconnecting on the next one, so
++        // parallel requests cannot erase the earlier corrupt-contribution test.
++        if (faultMode && request.artifactId.startsWith('weight-shard:')
++          && request.artifactId !== firstWeightArtifact && request.chunkIndex === 1) {
+           injectedFaults.push({ type: 'supplier-departure', artifactId: request.artifactId, chunkIndex: 1 });
+           pc.close();
+           entry.transport.close('injected supplier departure');
+@@ -122,32 +125,22 @@ export async function execute({ authorization, index, inventories, trustedSigner
+   const module = await import('/doppler/src/index-browser.js');
+   const service = createReploidDopplerRuntimeService({ loadModule: async () => module, expectedVersion: dopplerVersion });
+   const report = { passed: false, stage: 'peer-reconstruction', binding: authorization.pack };
+-  store = await createPeerPackArtifactStore({ authorization, index, inventories, requesterPrivateKey: key.privateKey,
+-    requestChunk: (peerId, request, limits) => connections.get(peerId).transport.requestChunk(request, limits) });
++  let peer;
+   try {
+     const adapter = await navigator.gpu?.requestAdapter();
+     report.isFallbackAdapter = assertPhysicalAdapter(adapter);
+-    const bytes = await store.readEnvelope();
+-    const pack = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes));
+-    // Retain every declared artifact, including distinct paths with identical
+-    // bytes. Runtime content deduplication alone does not reconstruct a full Pack.
+-    const materialized = new Map();
+-    for (const artifact of pack.artifacts) materialized.set(artifact.artifactId, await store.readArtifact(artifact));
+-    const artifactStore = { async readArtifact(artifact) {
+-      const bytes = materialized.get(artifact.artifactId);
+-      if (!bytes) throw new Error('Artifact is absent from the reconstructed Pack');
+-      return bytes.slice();
+-    } };
+     report.stage = 'public-pack-open';
+-    const session = await service.openPack({ scope: 'peer-proof', source: pack,
+-      options: { artifactStore, trustedSigners, acceptedTargetPlanDigests: authorization.pack.acceptedTargetPlanDigests } });
+-    await assertPackSession(authorization.pack, session);
++    peer = await openPeerPack({ authorization, index, inventories, requesterPrivateKey: key.privateKey,
++      requestChunk: (peerId, request, limits) => connections.get(peerId).transport.requestChunk(request, limits),
++      trustedSigners, runtimeVersion: dopplerVersion, service, scope: 'peer-proof',
++      maxCacheBytes: authorization.limits.maxTransferBytes,
++      maxConcurrentChunks: authorization.limits.maxConcurrentChunks ?? 1 });
++    const session = peer.session;
+     report.stage = 'complete-model-execution';
+     const { assignment, ...operationOptions } = options;
+-    report.operationExecution = await runPackOperation({ binding: authorization.pack, session, runtimeVersion: dopplerVersion,
+-      request: { schema: 'doppler.pack-operation-request/v1', operation: { name: 'encodeSequence', version: 1 },
++    report.operationExecution = await peer.run({ schema: 'doppler.pack-operation-request/v1', operation: { name: 'encodeSequence', version: 1 },
+         input: { sequence }, options: operationOptions, assignment,
+-        limits: { ...operationLimits, deadlineAt: authorization.expiresAt } } });
++        limits: { ...operationLimits, deadlineAt: authorization.expiresAt } });
+     report.result = { ...report.operationExecution.output, receipt: report.operationExecution.receipt };
+     report.runtime = { device: session.deviceProfile, initialExecutionIdentity: session.observedInitialExecutionIdentity };
+     report.manifest = session.manifest;
+@@ -155,9 +148,8 @@ export async function execute({ authorization, index, inventories, trustedSigner
+     report.passed = true;
+   } catch (error) { report.error = error.message; }
+   finally {
+-    await service.closeAll();
+-    report.custody = store.getReceipt();
+-    store.close();
++    try { if (peer) report.custody = await peer.getAcquisitionReceipt(); }
++    finally { await peer?.close(); await service.closeAll(); }
+   }
+   return report;
+ }
+diff --git a/self/pool/peer-pack-session.js b/self/pool/peer-pack-session.js
+new file mode 100644
+index 0000000..e12f282
+--- /dev/null
++++ b/self/pool/peer-pack-session.js
+@@ -0,0 +1,86 @@
++/** Acquire authorized bytes and open a local runtime. Custody does not authorize delegation. */
++import { openPeerPackCheckpoints } from '../infrastructure/pack-transfer-storage.js';
++import { DopplerRuntimeService } from '../infrastructure/doppler-runtime-service.js';
++import { createPeerPackArtifactStore } from './peer-pack-custody.js';
++import { assertPackSession } from './executable-pack.js';
++import { runPackOperation, snapshotPackOperationData } from './pack-operation.js';
++
++export async function openPeerPack({ authorization, index, inventories, requesterPrivateKey, requestChunk,
++  trustedSigners, runtimeVersion, maxCacheBytes, maxConcurrentChunks = 1, signal = null,
++  scope = `reploid:peer-pack:${crypto.randomUUID()}`, checkpointName = 'reploid-pack-transfer-v1',
++  service = DopplerRuntimeService, openCheckpoints = openPeerPackCheckpoints, now = Date.now }) {
++  const grant = snapshotPackOperationData(authorization);
++  if (!trustedSigners || !Object.keys(trustedSigners).length) throw new Error('Explicit Pack publisher trust required');
++  const trust = snapshotPackOperationData(trustedSigners);
++  if (typeof runtimeVersion !== 'string' || !runtimeVersion) throw new Error('Exact Doppler runtime version required');
++  const startedAt = now();
++  const controller = new AbortController();
++  const abort = () => controller.abort(signal.reason);
++  signal?.addEventListener('abort', abort, { once: true });
++  if (signal?.aborted) abort();
++  let checkpoints;
++  let store;
++  let session;
++  let closed = false;
++  let closing = null;
++  let runnableAt = null;
++  const current = () => {
++    controller.signal.throwIfAborted();
++    if (closed) throw new Error('Peer Pack session closed');
++  };
++  const close = () => {
++    if (closing) return closing;
++    closed = true;
++    controller.abort(new Error('Peer Pack session closed'));
++    store?.close();
++    signal?.removeEventListener('abort', abort);
++    closing = (async () => {
++      try { await service.close(scope); }
++      finally { checkpoints?.close(); }
++    })();
++    return closing;
++  };
++  try {
++    current();
++    checkpoints = await openCheckpoints({ name: checkpointName, maxBytes: maxCacheBytes });
++    current();
++    store = await createPeerPackArtifactStore({ authorization: grant, index, inventories,
++      requesterPrivateKey, requestChunk, checkpoints, maxConcurrentChunks, signal: controller.signal, now });
++    current();
++    const envelope = await store.readEnvelope();
++    current();
++    const pack = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(envelope));
++    const prepared = await service.prepare();
++    current();
++    if (prepared.version !== runtimeVersion) throw new Error('Peer Pack requires a different Doppler runtime release');
++    // Reconstruct the declared closure, including distinct artifact IDs with
++    // identical content. Runtime content deduplication may skip those IDs.
++    for (const artifact of grant.pack.artifacts) {
++      await store.readArtifact(artifact);
++      current();
++    }
++    session = await service.openPack({ scope, source: pack, options: { artifactStore: store,
++      trustedSigners: trust, acceptedTargetPlanDigests: grant.pack.acceptedTargetPlanDigests } });
++    current();
++    await assertPackSession(grant.pack, session);
++    current();
++    runnableAt = now();
++    return Object.freeze({
++      session,
++      async run(request, { onPartial = null } = {}) {
++        current();
++        return runPackOperation({ binding: grant.pack, session, runtimeVersion, request,
++          signal: controller.signal, onPartial, assertCurrent: current });
++      },
++      async getAcquisitionReceipt() {
++        const storage = await checkpoints.getStats();
++        return { ...store.getReceipt(), timeToRunnableMs: runnableAt - startedAt, storage };
++      },
++      close
++    });
++  } catch (error) {
++    try { await close(); }
++    catch (cleanup) { throw new AggregateError([error, cleanup], error.message, { cause: error }); }
++    throw error;
++  }
++}

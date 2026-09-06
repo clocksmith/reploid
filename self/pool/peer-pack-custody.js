@@ -323,7 +323,9 @@ export async function createPeerPackArtifactStore({ authorization, index, invent
     assert(await sha256Hex(output) === entry.artifact.hash, 'reconstructed artifact integrity mismatch');
     active();
     firstArtifactAt ??= now();
-    completed.push({ artifactId: input.artifactId, hash: entry.artifact.hash, sizeBytes: output.byteLength });
+    if (!completed.some((item) => item.artifactId === input.artifactId)) {
+      completed.push({ artifactId: input.artifactId, hash: entry.artifact.hash, sizeBytes: output.byteLength });
+    }
     return output;
   }
   return {
@@ -345,7 +347,8 @@ export async function createPeerPackArtifactStore({ authorization, index, invent
       return clone({ schema: `${PREFIX}-receipt/v1`, authorizationHash: ctx.authorizationHash,
         transferId: ctx.grant.transferId, attempt: ctx.grant.attempt, envelopeDigest: ctx.grant.pack.envelopeDigest,
         artifactClosureDigest: ctx.grant.pack.artifactClosureDigest, indexDigest: ctx.grant.indexDigest,
-        source: 'peer', reservedBytes, receivedBytes, verificationBytes, attempts, completed,
+        source: cacheBytes > 0 ? (receivedBytes > 0 ? 'cache-and-peer' : 'cache') : 'peer',
+        reservedBytes, receivedBytes, verificationBytes, attempts, completed,
         inventories: adverts,
         cacheBytes, corruptCacheBytes, persistedBytes, evictedBytes, duplicateBytes,
         maxConcurrentChunks, peakInFlightBytes, peakArtifactBytes,

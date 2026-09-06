@@ -64,6 +64,7 @@ export function rankDocumentVectors(chunks, embeddings, queryEmbedding, topK) {
 
 /** Owns corpus/retrieval only. The executor owns local Pack calls; no network job or evidence admission. */
 export function createDocumentSearch({ executor, onChange = () => {}, limits = policy }) {
+  requireValue(Number.isSafeInteger(limits.maxQueryCache) && limits.maxQueryCache > 0, 'Explicit bounded query cache required');
   let corpus = null;
   let models = null;
   let index = null;
@@ -130,16 +131,26 @@ export function createDocumentSearch({ executor, onChange = () => {}, limits = p
         current();
         const cached = index?.modelKey === modelKey && index?.corpusHash === corpus.corpusHash;
         const queryInput = models.queryPrefix + query;
-        const texts = cached ? [queryInput] : [...corpus.chunks.map((chunk) => chunk.text), queryInput];
-        const embedded = await executor.run({ model: models.embedding,
-          input: { texts, application: models.embedding.application }, options: {}, limits: operationLimits() });
-        current(); receipts.push(embedded.receipt);
-        const vectors = embedded.output.embeddings.map((item) => item.embedding);
-        requireValue(vectors.length === texts.length, 'Embedding batch is incomplete');
-        const corpusVectors = cached ? index.vectors : vectors.slice(0, -1);
-        let matches = rankDocumentVectors(corpus.chunks, corpusVectors, vectors.at(-1), topK);
-        if (!cached) index = { modelKey, corpusHash: corpus.corpusHash,
-          vectors: snapshotPackOperationData(corpusVectors), receipt: embedded.receipt };
+        const cachedQuery = cached ? index.queries.get(queryInput) : null;
+        let queryEmbedding = cachedQuery;
+        let nextIndex = index;
+        if (!queryEmbedding) {
+          const texts = cached ? [queryInput] : [...corpus.chunks.map((chunk) => chunk.text), queryInput];
+          const embedded = await executor.run({ model: models.embedding,
+            input: { texts, application: models.embedding.application }, options: {}, limits: operationLimits() });
+          current();
+          const vectors = embedded.output.embeddings.map((item) => item.embedding);
+          requireValue(vectors.length === texts.length, 'Embedding batch is incomplete');
+          if (!cached) nextIndex = { modelKey, corpusHash: corpus.corpusHash,
+            vectors: snapshotPackOperationData(vectors.slice(0, -1)), receipt: embedded.receipt, queries: new Map() };
+          queryEmbedding = snapshotPackOperationData({ vector: vectors.at(-1), receipt: embedded.receipt });
+        }
+        receipts.push(queryEmbedding.receipt);
+        let matches = rankDocumentVectors(corpus.chunks, nextIndex.vectors, queryEmbedding.vector, topK);
+        index = nextIndex;
+        index.queries.delete(queryInput);
+        index.queries.set(queryInput, queryEmbedding);
+        while (index.queries.size > limits.maxQueryCache) index.queries.delete(index.queries.keys().next().value);
         if (rerank) {
           status = 'Reranking'; notify();
           const ranked = await executor.run({ model: models.reranker,
@@ -171,7 +182,8 @@ export function createDocumentSearch({ executor, onChange = () => {}, limits = p
           corpusHash: corpus.corpusHash, query, startedAt, completedAt: new Date().toISOString(),
           execution: 'local', reranked: rerank, matches: matches.map((match) => ({ ...match,
             sources: corpus.documents.find((document) => document.id === match.documentId).sources })),
-          answer, receipts, indexReceipt: index.receipt });
+          answer, receipts, indexReceipt: index.receipt,
+          embeddingCache: { corpus: Boolean(cached), query: Boolean(cachedQuery) } });
         history.unshift(snapshotPackOperationData({ status: 'completed', startedAt, result }));
         status = generateAnswer ? 'Answer ready' : `${matches.length} passages found`;
         return result;
