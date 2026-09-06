@@ -665,8 +665,8 @@
     },
     {
       "path": "blueprints/0x000081-pool-doppler-runtime.md",
-      "byteLength": 4793,
-      "sha256": "sha256:2d8e93d31c688e46feec95cba9392a3473bb85a64142986c38637a97713489ed"
+      "byteLength": 5444,
+      "sha256": "sha256:8402f2967d62b91d6aceb01deba7398a9c8da893dc4a10ebd973856f59950b34"
     },
     {
       "path": "blueprints/0x000082-pool-firebase-auth.md",
@@ -906,7 +906,7 @@
     {
       "path": "blueprints/canonical-inventory.md",
       "byteLength": 18953,
-      "sha256": "sha256:90e1846466c97128e688500008b97f61a30a7b9eceb4799cc2734ea067194bc5"
+      "sha256": "sha256:288866d60ae05f49a26fdd835eb10a4335205ed0f85fd5c69edbef7fd727b35a"
     },
     {
       "path": "blueprints/CATSCAN.md",
@@ -1180,8 +1180,8 @@
     },
     {
       "path": "config/blueprint-registry.json",
-      "byteLength": 34592,
-      "sha256": "sha256:8fbfbb2cdd3a25eea02d00cd5321a702ec7043d877b9334276b099a30e77219c"
+      "byteLength": 34633,
+      "sha256": "sha256:80366edbf0cf4666443508a1b3b33aa67458550908b823be2423d0dca1c792b0"
     },
     {
       "path": "config/boot-modes.js",
@@ -1250,8 +1250,8 @@
     },
     {
       "path": "config/module-inventory.json",
-      "byteLength": 88495,
-      "sha256": "sha256:ecc1846d4f63bdd3fd74c208b845c2b0bc2cf92d955a76fecb7738d7cc9e3b61"
+      "byteLength": 88839,
+      "sha256": "sha256:2900c5b0c7049d77848ae24114912763066d6c9249d589758dc829bde1b5fde7"
     },
     {
       "path": "config/module-registry.json",
@@ -1280,8 +1280,8 @@
     },
     {
       "path": "config/vfs-manifest.json",
-      "byteLength": 23881,
-      "sha256": "sha256:74c1994fff5b4bd443f88f457ca108d6d6418d2b52414249875d134b3a17b75d"
+      "byteLength": 24030,
+      "sha256": "sha256:b2b54f1f839359d00ef5ba4e139c9ef7ca1cbf5851c237e5350bcd5ac367ade3"
     },
     {
       "path": "config/vfs-policy.js",
@@ -1860,8 +1860,8 @@
     },
     {
       "path": "pool/CATSCAN.md",
-      "byteLength": 3090,
-      "sha256": "sha256:cf6e0c1d8c4ba3ffd139e36c1abf7b28ec6f9eda7f3e965d6bf6dbdbc8c7ccde"
+      "byteLength": 3107,
+      "sha256": "sha256:a3f1d2acdf612b79d79466ba421f7a65c1f17760b6978a16690a036b0bfc7f48"
     },
     {
       "path": "pool/complete-forecast.js",
@@ -1870,8 +1870,8 @@
     },
     {
       "path": "pool/config-contract.js",
-      "byteLength": 19293,
-      "sha256": "sha256:7046b90238c1cd67bd0c3929b48debdf218ddf14caedc801acfe31ed1d41db08"
+      "byteLength": 19518,
+      "sha256": "sha256:8b213711c93a60294edda72d632800237d6875f8a16e642e1948232a3161836f"
     },
     {
       "path": "pool/config.js",
@@ -2026,7 +2026,7 @@
     {
       "path": "pool/operation-model.js",
       "byteLength": 1690,
-      "sha256": "sha256:695318c524df15267ad096272acc15b345ef2475b389d8ef1a743546f2536cdd"
+      "sha256": "sha256:75969d9d9dd47e5433e6d6e89541a6ad0e043f1db56bc3bcf1f9d28a60c93f37"
     },
     {
       "path": "pool/p2p-artifact-transfer.js",
@@ -2049,14 +2049,34 @@
       "sha256": "sha256:d54d30bfc34d94a1f44fbf7b6043340db01ee27aefaa057284ef1672733762a9"
     },
     {
+      "path": "pool/pack-operation-adapters.d.ts",
+      "byteLength": 2794,
+      "sha256": "sha256:3be6c0b3f053f6251265765257f6d446ab9908cceeae836dfc95ac3a9e7f9532"
+    },
+    {
       "path": "pool/pack-operation-adapters.js",
-      "byteLength": 8151,
-      "sha256": "sha256:a2fd6722f05080cddf8665f902d39022f0cc6bf604e68a727b0817a036f72eb7"
+      "byteLength": 8308,
+      "sha256": "sha256:242729e1eec7111813e7d5f9ec7edb5be7e058a86063800672c569616d77a24d"
+    },
+    {
+      "path": "pool/pack-operation-policy.d.ts",
+      "byteLength": 740,
+      "sha256": "sha256:418dc79c6ea14cdab4ac6a146d02a2049e45e8af628209fe0f92864f47e18fe2"
+    },
+    {
+      "path": "pool/pack-operation-policy.js",
+      "byteLength": 4887,
+      "sha256": "sha256:77da4820a07a00116e6534697f1157b1932298d6f74b7dc085a3c0f5e9d5fe23"
+    },
+    {
+      "path": "pool/pack-operation.d.ts",
+      "byteLength": 3300,
+      "sha256": "sha256:a0ac452c081e47e62aa5751b7d72bc3f9f48a4b869b38140080a15e690621b52"
     },
     {
       "path": "pool/pack-operation.js",
-      "byteLength": 8740,
-      "sha256": "sha256:cc7c02d22a00c526a3dcd0ad9f9af0090352b5428b7ffdcf4168405a3adb8782"
+      "byteLength": 9490,
+      "sha256": "sha256:bc3142b7d9fc92cfe17901a95a1a4bd27bf53b31f5beb01d7ebb6da4e9e72aea"
     },
     {
       "path": "pool/pack-release-policy.js",
@@ -2175,8 +2195,8 @@
     },
     {
       "path": "pool/pool-config.json",
-      "byteLength": 54518,
-      "sha256": "sha256:c9d57a6ff1107d9976985e0d01aa9571ca6d09d91c59f60910ba06e56d396602"
+      "byteLength": 60550,
+      "sha256": "sha256:f5d5cb0860df0363217dcbfec8fd55bf96445efaa74825090240822f414ffd1e"
     },
     {
       "path": "pool/protein-uncertainty-campaign.js",
@@ -3024,5 +3044,5 @@
       "sha256": "sha256:f0839f1a37e68e05baa3bd3823460bc9d742420485f12ae03979781adbb865ca"
     }
   ],
-  "bundleHash": "sha256:3a593ebf1362103432c058af9e2df6dd72b01dbcdf41add6499f2d2a7faa5060"
+  "bundleHash": "sha256:9e018b2edf9f00cae7ff0966c315c5d242109a3c9010fdb19f648b7a16d616d6"
 }

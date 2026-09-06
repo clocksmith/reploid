@@ -65,7 +65,7 @@ test('Verification Worker accepts complete-job modules and modified execution bo
   const result = await page.evaluate(async () => {
     const snapshot = {};
     for (const file of ['peer-pack-job.js', 'peer-pack-provider.js', 'peer-pack-requester.js', 'peer-pack-job-channel.js',
-      'peer-pack-episode.js', 'peer-pack-session.js', 'pack-operation.js', 'pack-operation-adapters.js', 'operation-model.js', 'local-pack-executor.js', 'provider-client.js', 'requester-client.js']) {
+      'peer-pack-episode.js', 'peer-pack-session.js', 'pack-operation.js', 'pack-operation-adapters.js', 'pack-operation-policy.js', 'config-contract.js', 'operation-model.js', 'local-pack-executor.js', 'provider-client.js', 'requester-client.js']) {
       snapshot[`/pool/${file}`] = await (await fetch(`/self/pool/${file}`)).text();
     }
     snapshot['/infrastructure/pack-job-storage.js'] = await (await fetch('/self/infrastructure/pack-job-storage.js')).text();

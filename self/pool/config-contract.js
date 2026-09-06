@@ -3,6 +3,7 @@
  */
 
 import { validateExecutablePack } from './executable-pack.js';
+import { resolvePackOperationDefinitions } from './pack-operation-policy.js';
 
 export const POLICY_IDS = Object.freeze({
   fastestReceipt: 'fastest_receipt',
@@ -147,6 +148,8 @@ const validateSequenceModelContract = (model, index, reasons, { isLaunchModel = 
 
 export function validatePoolConfigValue(config = {}) {
   const reasons = [];
+  try { resolvePackOperationDefinitions(config.operations, config.operationComparisonPolicies); }
+  catch (error) { reasons.push(error.message); }
   const modelCatalog = Array.isArray(config.modelCatalog) ? config.modelCatalog : [];
   const launchModel = typeof config.launchModelId === 'string'
     ? modelCatalog.find((model) => model.modelId === config.launchModelId)

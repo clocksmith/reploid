@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { hashDopplerEvidence } from '../../self/pool/executable-pack.js';
-import { createPackOperationRegistry } from '../../self/pool/pack-operation-adapters.js';
+import fifthDefinition from '../fixtures/pack-operation-fifth.json' with { type: 'json' };
+import poolConfig from '../../self/pool/pool-config.json' with { type: 'json' };
+import { createPackOperationRegistry, PACK_OPERATION_IMPLEMENTATIONS } from '../../self/pool/pack-operation-adapters.js';
 import { runPackOperation, assessPackOperation, assertPackOperationReceipt } from '../../self/pool/pack-operation.js';
 
 const digest = (value) => `sha256:${value.repeat(64)}`;
@@ -73,10 +75,10 @@ describe('operation-independent Pack execution bridge (synthetic results)', () =
   it('adds a fifth operation with an adapter and no runner, receipt, discovery or transport edits', async () => {
     const f = await fixture('audio.test');
     await expect(runPackOperation(f)).rejects.toThrow('unknown operation');
-    const registry = createPackOperationRegistry({ 'audio.test': { version: 1,
+    const registry = createPackOperationRegistry({ definitions: { ...poolConfig.operations, ...fifthDefinition }, implementations: { ...PACK_OPERATION_IMPLEMENTATIONS, 'audio.test.v1': { contractVersion: 1,
       validateRequest(request) { if (request.input.arbitrary !== true) throw new Error('input'); },
       validateOutput(output) { if (output.value !== 'fifth') throw new Error('output'); },
-      compare: (output, reference) => output.value === reference.value } });
+      compare: (output, reference) => output.value === reference.value } } });
     const execution = await runPackOperation({ ...f, registry });
     expect((await assessPackOperation({ execution, reference: f.output, policy: f.policy, registry })).accepted).toBe(true);
   });

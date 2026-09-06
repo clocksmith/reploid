@@ -167,9 +167,22 @@ history does not improve later work, its acceptance gate stays unproved even
 when artifact sharing and execution capacity work.
 Predeclare peer-byte percentage, time-to-runnable, duplicate bytes, recovery,
 memory, completion, retries, latency, and total resource cost where applicable.
-Do not add payments, tokens, global reputation, model partitioning, Doe, social
+Do not add payments, tokens, global reputation, arbitrary layer partitioning, Doe, social
 features, or autonomous self-improvement to this milestone. Existing unrelated
 capabilities remain separate and usable.
+
+The September execution specification adds exact LoRA artifact sets and an
+explicitly configured remote MoE expert boundary to implementation scope.
+JSON owns operation, capability, acquisition, persistence and routing policy;
+Reploid coordinates immutable requests and failures; Doppler owns model math.
+LoRA never duplicates the base model. Adapter combinations require declared
+order and combination semantics. Remote experts remain disabled until an
+explicit policy admits exact model/layer/expert identities, bounded activation
+disclosure, failure handling and qualified Doppler execution. Arbitrary layer
+partitioning follows a demonstrated expert boundary, not an implicit fallback.
+Operational routing evidence remains separate from scientific evidence and
+disabled for selection until a frozen comparison demonstrates useful benefit.
+Ordinary compatible scheduling and complete-job execution work without history.
 
 ### Alternative proof: Change Passport
 

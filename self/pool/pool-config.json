@@ -1,6 +1,6 @@
 {
   "schema": "reploid.pool.config/v1",
-  "configVersion": "2026-08-15.hosted-sequence-input.v1.doppler-0.5.1",
+  "configVersion": "2026-09-06.operation-policy.v1.doppler-0.5.1",
   "claim": "receipt-backed, audit-backed, reputation-backed, policy-controlled browser inference",
   "forbiddenClaims": [
     "trustless",
@@ -1499,5 +1499,267 @@
       "label": "Nucleotide Transformer v2 50M (DNA candidate)",
       "enabled": false
     }
-  ]
+  ],
+  "operations": {
+    "generate": {
+      "schema": "reploid.pool.operation-definition/v1",
+      "version": 1,
+      "adapterId": "generate.v1",
+      "dopplerOperation": {
+        "name": "generate",
+        "version": 1
+      },
+      "workload": "text-generation",
+      "inputContract": {
+        "version": 1,
+        "allowedFields": [
+          "prompt",
+          "promptTokens"
+        ],
+        "requiredFields": [],
+        "fieldTypes": {}
+      },
+      "optionsContract": {
+        "version": 1,
+        "allowedFields": [
+          "maxTokens",
+          "maxSeqLen",
+          "temperature",
+          "topP",
+          "topK",
+          "repetitionPenalty",
+          "repetitionPenaltyWindow",
+          "useChatTemplate",
+          "seed",
+          "suppressTokenIds",
+          "stopSequences"
+        ],
+        "requiredFields": [
+          "maxTokens",
+          "maxSeqLen",
+          "temperature",
+          "topP",
+          "topK",
+          "repetitionPenalty",
+          "repetitionPenaltyWindow",
+          "useChatTemplate"
+        ],
+        "fieldTypes": {
+          "maxTokens": "positive-integer",
+          "maxSeqLen": "positive-integer",
+          "temperature": "finite-number",
+          "topP": "finite-number",
+          "topK": "finite-number",
+          "repetitionPenalty": "finite-number",
+          "repetitionPenaltyWindow": "finite-number",
+          "useChatTemplate": "boolean"
+        }
+      },
+      "outputContract": {
+        "version": 1
+      },
+      "streaming": {
+        "partial": true
+      },
+      "maximumLimits": {
+        "maxInputBytes": 4194304,
+        "maxOutputBytes": 16777216,
+        "maxStreamBytes": 67108864,
+        "maxEvents": 4096,
+        "maxJobMs": 600000
+      },
+      "comparisonPolicyIds": [
+        "exact-text"
+      ],
+      "inputClasses": {
+        "local": [
+          "public_text",
+          "private_text"
+        ],
+        "remote": [
+          "public_text"
+        ]
+      }
+    },
+    "embed": {
+      "schema": "reploid.pool.operation-definition/v1",
+      "version": 1,
+      "adapterId": "embed.v1",
+      "dopplerOperation": {
+        "name": "embed",
+        "version": 1
+      },
+      "workload": "embedding",
+      "inputContract": {
+        "version": 1,
+        "allowedFields": [
+          "texts",
+          "application"
+        ],
+        "requiredFields": [
+          "texts",
+          "application"
+        ],
+        "fieldTypes": {}
+      },
+      "optionsContract": {
+        "version": 1,
+        "allowedFields": [],
+        "requiredFields": [],
+        "fieldTypes": {}
+      },
+      "outputContract": {
+        "version": 1
+      },
+      "streaming": {
+        "partial": true
+      },
+      "maximumLimits": {
+        "maxInputBytes": 4194304,
+        "maxOutputBytes": 16777216,
+        "maxStreamBytes": 67108864,
+        "maxEvents": 4096,
+        "maxJobMs": 600000
+      },
+      "comparisonPolicyIds": [
+        "numerical-tolerance"
+      ],
+      "inputClasses": {
+        "local": [
+          "public_text",
+          "private_text"
+        ],
+        "remote": [
+          "public_text"
+        ]
+      }
+    },
+    "rerank": {
+      "schema": "reploid.pool.operation-definition/v1",
+      "version": 1,
+      "adapterId": "rerank.v1",
+      "dopplerOperation": {
+        "name": "rerank",
+        "version": 1
+      },
+      "workload": "reranking",
+      "inputContract": {
+        "version": 1,
+        "allowedFields": [
+          "query",
+          "documents",
+          "application"
+        ],
+        "requiredFields": [
+          "query",
+          "documents",
+          "application"
+        ],
+        "fieldTypes": {}
+      },
+      "optionsContract": {
+        "version": 1,
+        "allowedFields": [],
+        "requiredFields": [],
+        "fieldTypes": {}
+      },
+      "outputContract": {
+        "version": 1
+      },
+      "streaming": {
+        "partial": true
+      },
+      "maximumLimits": {
+        "maxInputBytes": 4194304,
+        "maxOutputBytes": 16777216,
+        "maxStreamBytes": 67108864,
+        "maxEvents": 4096,
+        "maxJobMs": 600000
+      },
+      "comparisonPolicyIds": [
+        "numerical-tolerance"
+      ],
+      "inputClasses": {
+        "local": [
+          "public_text",
+          "private_text"
+        ],
+        "remote": [
+          "public_text"
+        ]
+      }
+    },
+    "encodeSequence": {
+      "schema": "reploid.pool.operation-definition/v1",
+      "version": 1,
+      "adapterId": "encodeSequence.v1",
+      "dopplerOperation": {
+        "name": "encodeSequence",
+        "version": 1
+      },
+      "workload": "sequence.embedding.v1",
+      "inputContract": {
+        "version": 1,
+        "allowedFields": [
+          "sequence"
+        ],
+        "requiredFields": [
+          "sequence"
+        ],
+        "fieldTypes": {}
+      },
+      "optionsContract": {
+        "version": 1,
+        "allowedFields": [
+          "includeTokenEmbeddings",
+          "includeLogits"
+        ],
+        "requiredFields": [
+          "includeTokenEmbeddings",
+          "includeLogits"
+        ],
+        "fieldTypes": {}
+      },
+      "outputContract": {
+        "version": 1
+      },
+      "streaming": {
+        "partial": true
+      },
+      "maximumLimits": {
+        "maxInputBytes": 4194304,
+        "maxOutputBytes": 16777216,
+        "maxStreamBytes": 67108864,
+        "maxEvents": 4096,
+        "maxJobMs": 600000
+      },
+      "comparisonPolicyIds": [
+        "numerical-tolerance"
+      ],
+      "inputClasses": {
+        "local": [
+          "public_biological_sequence"
+        ],
+        "remote": [
+          "public_biological_sequence"
+        ]
+      }
+    }
+  },
+  "operationComparisonPolicies": {
+    "exact-text": {
+      "requiredFields": [],
+      "nonnegativeFields": []
+    },
+    "numerical-tolerance": {
+      "requiredFields": [
+        "absoluteTolerance",
+        "relativeTolerance"
+      ],
+      "nonnegativeFields": [
+        "absoluteTolerance",
+        "relativeTolerance"
+      ]
+    }
+  }
 }

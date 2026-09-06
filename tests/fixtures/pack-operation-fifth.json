@@ -1,0 +1,53 @@
+{
+  "audio.test": {
+    "schema": "reploid.pool.operation-definition/v1",
+    "version": 1,
+    "adapterId": "audio.test.v1",
+    "dopplerOperation": {
+      "name": "audio.test",
+      "version": 1
+    },
+    "workload": "audio-test",
+    "inputContract": {
+      "version": 1,
+      "allowedFields": [
+        "arbitrary"
+      ],
+      "requiredFields": [
+        "arbitrary"
+      ],
+      "fieldTypes": {}
+    },
+    "optionsContract": {
+      "version": 1,
+      "allowedFields": [],
+      "requiredFields": [],
+      "fieldTypes": {}
+    },
+    "outputContract": {
+      "version": 1
+    },
+    "streaming": {
+      "partial": true
+    },
+    "maximumLimits": {
+      "maxInputBytes": 4194304,
+      "maxOutputBytes": 4194304,
+      "maxStreamBytes": 67108864,
+      "maxEvents": 4096,
+      "maxJobMs": 300000
+    },
+    "comparisonPolicyIds": [
+      "numerical-tolerance"
+    ],
+    "inputClasses": {
+      "local": [
+        "public_text",
+        "private_text"
+      ],
+      "remote": [
+        "public_text"
+      ]
+    }
+  }
+}

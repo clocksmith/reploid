@@ -8,7 +8,7 @@
 
 **Planned Artifacts:** None
 
-**Owned Source Files:** `pool/doppler-runtime.js`, `pool/pack-operation.js`, `pool/pack-operation-adapters.js`
+**Owned Source Files:** `pool/doppler-runtime.js`, `pool/pack-operation.js`, `pool/pack-operation-adapters.js`, `pool/pack-operation-policy.js`
 
 **Former Blueprint Paths:** `self/blueprints/0x000081-pool-doppler-runtime.md`
 **Objective:** Execute one exact Poolday model contract through Doppler's public browser handle.
@@ -35,6 +35,15 @@ adapters validate inputs and output geometry and apply declared comparison
 rules. The initial adapters are `generate`, `embed`, `rerank`, and
 `encodeSequence`; unknown names and versions fail explicitly. Model admission
 and actual qualification remain separate from adapter availability.
+
+`pool-config.json.operations` owns each adapter binding, operation and contract
+version, allowed and required fields, streaming permission, resource ceilings,
+comparison policy IDs and input classes. `operationComparisonPolicies` owns
+comparison parameter requirements. The registry resolves immutable definitions
+and binds implementation functions. Missing policy, unknown adapters and
+unsupported contract versions fail explicitly. A fifth operation adds JSON
+configuration and an implementation without networking changes. Public request,
+event, result, definition and adapter contracts have declaration siblings.
 
 ### 2. Architecture
 The selected model contract determines the public method. Text generation is
