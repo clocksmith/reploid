@@ -27,7 +27,7 @@ export async function openPackJobJournal({ providerId, name = 'reploid-pack-jobs
   db.onversionchange = () => { closed = true; db.close(); };
   const transact = async action => {
     assert(!closed, 'closed');
-    const tx = db.transaction('attempts', 'readwrite');
+    const tx = db.transaction('attempts', 'readwrite', { durability: 'strict' });
     const finished = new Promise((resolve, reject) => {
       tx.oncomplete = resolve;
       tx.onabort = () => reject(tx.error || new Error('Pack job journal transaction aborted'));
@@ -108,7 +108,7 @@ export async function openPackJobJournal({ providerId, name = 'reploid-pack-jobs
       return transact(async (records, save) => {
         const key = keyFor(value), prior = records.find(record => record.key === key);
         assert(!prior || prior.jobHash === value.jobHash, 'cancellation differs from retained attempt');
-        if (prior?.status === 'completed') return structuredClone(prior);
+        if (['completed', 'failed', 'busy', 'cancelled'].includes(prior?.updates.at(-1)?.body?.status)) return structuredClone(prior);
         return save({ ...(prior || { schema: 'reploid.pack-job-journal/v1', key, ...value, updates: [] }),
           owner, status: 'cancelled', expiresAt: Math.max(prior?.expiresAt ?? 0, value.expiresAt) });
       });
