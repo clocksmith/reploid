@@ -396,6 +396,7 @@
     "pool/layer-scheduler.js",
     "pool/local-pack-executor.d.ts",
     "pool/local-pack-executor.js",
+    "pool/local-session-policy.json",
     "pool/model-artifacts.js",
     "pool/model-cache-integrity.js",
     "pool/model-contract.js",
