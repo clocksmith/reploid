@@ -1254,6 +1254,15 @@ test.describe('Run and Contribute actual browser inference', () => {
       expect(result.researchSubmissionHash).toMatch(/^sha256:/);
       expect(result.researchResultHash).toMatch(/^sha256:/);
       expect(result.embeddingPublicationConsent).toBe(true);
+      if (RELAY_MODE === 'server') {
+        expect(result.researchPublication).toBe('coordinator_synced');
+        const published = await runPage.request.get(new URL(
+          `/pool/research/records/${encodeURIComponent(result.researchResultHash)}`,
+          runPage.url()
+        ).toString());
+        expect(published.ok()).toBe(true);
+        expect((await published.json()).record?.recordHash).toBe(result.researchResultHash);
+      }
       await attachRelayReceipt(testInfo, 'protein-ring-2', roomId, result);
     } finally {
       await nodes.close();
