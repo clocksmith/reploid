@@ -1,5 +1,89 @@
 # Reploid Pool TODO
 
+## Product closure sequence: September 7, 2026
+
+The active finish line is a public release where an independent user runs a
+private local assistant, explicitly borrows another operator's GPU, exchanges a
+useful coding LoRA instead of another base model, survives browser/network
+failures, and continues after the original supplier disappears. Close the
+existing journeys and collect physical proof before expanding the architecture.
+The older checklists below retain their historical context; their checked boxes
+do not establish current release qualification.
+
+1. **Publish and integrate the runtime.**
+   - [x] Publish immutable Doppler 0.6.0, verify a clean public registry install
+     and all 1,779 installed files, and repin Reploid's package and browser entry
+     points. Publication uses qualified clean revision `52f5961a`, which includes
+     the reviewed LoRA correction after `575ffeb3`; it is not a republication of
+     the earlier retained candidate. See
+     [release evidence](../../docs/status/doppler-060-release-2026-09-07/README.md).
+   - [ ] Finish current production qualification, including after-start
+     cancellation and coordinator publication/readback. Retain failed attempts.
+   - [ ] Provide physically qualified presets for small Qwen generation,
+     EmbeddingGemma, Qwen reranking, Qwen with an approved adapter, and ESM-2.
+     Ordinary users must not assemble hashes or model configurations.
+2. **Finish useful remote coding specialization through existing contracts.**
+   - [ ] Freeze an objective coding task, held-out cases, base comparison,
+     acceptance thresholds, and resource bounds before training/evaluation.
+   - [ ] Train or select a useful adapter; qualify and promote its exact bytes.
+     Existing PEFT parity evidence alone does not establish usefulness.
+   - [ ] A has base plus adapter; B has the same base only. Transfer only missing
+     adapter bytes through existing custody, verify, activate, execute, persist,
+     kill the browser/process, and replay the same completed attempt without
+     recomputation. Reverse adapter ownership and repeat.
+3. **Finish the borrowed-compute assistant.**
+   - [ ] Expose local-only, derived-remote, and public-remote task classes.
+     Private source stays local; derived work shares only displayed, approved
+     information. Changed payload, recipient, or model invalidates consent.
+   - [ ] Prove local embedding, retrieval and reranking, exact disclosure
+     preview, human approval, WebRTC execution, durable result, and local answer
+     composition with local citations on two computers and two operators.
+   - [ ] Keep useful inference acceptance separate from qualification oracles;
+     remote generation never becomes semantic verification.
+4. **Close answer quality and loading.**
+   - [x] Retain question, retrieved/reranked passages, generation context,
+     output, sentence claims and citations, including failed-answer audits;
+     permit explicit insufficient-evidence answers; freeze eight support cases.
+   - [ ] Execute every frozen answerable, partial, contradictory and unanswerable
+     case on real models. Review every factual sentence against its cited
+     passage. Retain disagreement and failures; citation presence is not support.
+   - [ ] Measure load/unload, residency, reuse and switching. Qualify bounded warm
+     retention or scheduling changes against actual answer latency and memory.
+     Two citation problems among six earlier answers describe that tiny sample,
+     not a production failure-rate estimate. Do not add another model to mask it.
+5. **Close Chromium startup reliability.**
+   - [ ] Record browser/flags, adapter and device timings, page lifecycle and GPU
+     process state across fresh starts without automatic retries. Identify the
+     reported AMD initialization failure boundary. Apple observations remain
+     separate and do not resolve AMD failures.
+6. **Prove independent operation and repeat use.**
+   - [ ] A publishes; B acquires/executes; C joins later and obtains peer bytes.
+     Remove A. Exercise corruption, disappearing suppliers, restart,
+     cancellation, dropped completion and model/adapter reuse.
+   - [ ] Satisfy the GOALS.md acquisition proof as well: three independent
+     suppliers and a clean fourth requester, origin/mirrors disabled, one
+     corrupt and one disappearing supplier. The three-node journey above does
+     not reduce that existing four-machine gate.
+   - [ ] An unrelated person installs the public release and repeats the journey
+     and later returns voluntarily. Retain operator-owned records; local tabs
+     and one agent controlling several machines are not adoption evidence.
+7. **Only then activate learned scheduling.**
+   - [ ] Collect real heterogeneous history, freeze history and metric, and
+     compare random, capability/load, and history-informed scheduling on unseen
+     identical jobs/capacity. Activate only after predeclared improvement with
+     unchanged correctness. Keep history selection inactive until then.
+8. **Only after those gates, begin distributed MoE.**
+   - [ ] Establish exact remote expert identities, intermediate tensor disclosure,
+     selection, transport, latency handling, replication and failure recovery.
+     Keep expert execution inactive before the preceding proofs.
+
+External dependency: available independently operated machines and an unrelated
+operator have not yet been supplied. Credentials remain local.
+
+---
+
+## Historical research and implementation checklist
+
 Reploid is testing whether a proof-carrying Research Room improves adjudication
 of disputed family or domain annotations in one named public protein catalog.
 The broader protein-evidence network remains a target hypothesis until that

@@ -1,37 +1,65 @@
 import { dopplerExecutionAdapterSet } from './adapter-execution.js';
 import { assertPackSession, hashDopplerEvidence } from './executable-pack.js';
 import { validateOperationModel } from './operation-model.js';
-import { runPackOperation, snapshotPackOperationData } from './pack-operation.js';
+import { assertPackOperationRequest, runPackOperation, snapshotPackOperationData } from './pack-operation.js';
 import { DopplerRuntimeService } from '../infrastructure/doppler-runtime-service.js';
 import { prepareLocalPackRelease } from './pack-release-policy.js';
 import { createPackOperationRegistry } from './pack-operation-adapters.js';
 import { resolveDopplerExecutionContract } from '../config/doppler-execution-contracts.js';
+import defaultSessionPolicy from './local-session-policy.json' with { type: 'json' };
 
 /** Application-selected sessions do not admit a model to the public peer catalog.
  * Remote callers must validate delegation before supplying an assignment. */
 export function createLocalPackExecutor({ service = DopplerRuntimeService, scope = `reploid:documents:${crypto.randomUUID()}`,
-  prepareRelease = prepareLocalPackRelease, registry = createPackOperationRegistry() } = {}) {
+  prepareRelease = prepareLocalPackRelease, registry = createPackOperationRegistry(), sessionPolicy = defaultSessionPolicy } = {}) {
+  sessionPolicy = snapshotPackOperationData(sessionPolicy);
+  if (sessionPolicy.schema !== 'reploid.local-session-policy/v1'
+    || ['maxSessions', 'maxReservedBytes', 'artifactBytesMultiplier', 'workingBytesPerSession']
+      .some(key => !Number.isSafeInteger(sessionPolicy[key]) || sessionPolicy[key] < 1)) {
+    throw new Error('Explicit bounded local session policy required');
+  }
   let disposed = false;
   let active = false;
   let epoch = 0;
   let controller = null;
   let settlement = Promise.resolve();
   let retained = null;
-  let ownsScope = false;
+  const sessions = new Map();
+  const ownedScopes = new Set();
+  let reservedBytes = 0;
+  let lastModelKey = null;
   let releasing = false;
   const metrics = { preparations: 0, loadAttempts: 0, modelLoads: 0, modelReuses: 0, modelSwitches: 0,
+    sessionEvictions: 0, peakReservedBytes: 0,
     completedOperations: 0, failedOperations: 0, prepareMs: 0, loadMs: 0, releaseMs: 0, executionMs: 0 };
   const measure = async (field, operation) => {
     const started = performance.now();
     try { return await operation(); } finally { metrics[field] += performance.now() - started; }
   };
-  const releaseSession = async () => {
-    retained = null;
-    if (!ownsScope) return;
+  const releaseScope = async (key) => {
     releasing = true;
-    try { await measure('releaseMs', () => service.close(scope)); ownsScope = false; }
+    try {
+      await measure('releaseMs', () => service.close(key));
+      ownedScopes.delete(key);
+      for (const [modelKey, entry] of sessions) {
+        if (entry.scope !== key) continue;
+        sessions.delete(modelKey);
+        reservedBytes -= entry.reservedBytes;
+        if (retained === entry) retained = null;
+      }
+    }
     catch (error) { disposed = true; throw error; }
     finally { releasing = false; }
+  };
+  const releaseSession = async () => {
+    // Attempt every close even when one session fails; failed ownership is retained.
+    const errors = [];
+    for (const key of ownedScopes) {
+      try { await releaseScope(key); } catch (error) { errors.push(error); }
+    }
+    if (errors.length) throw new AggregateError(errors, 'Document session cleanup failed');
+    retained = null;
+    lastModelKey = null;
   };
   return {
     async run({ model: modelInput, input, options = {}, assignment = null, limits, signal = null, onPartial = null, beforeExecute = null, adapterSet = [], adapterArtifactStore = null, assertAdaptersCurrent = null }) {
@@ -47,6 +75,7 @@ export function createLocalPackExecutor({ service = DopplerRuntimeService, scope
       const request = snapshotPackOperationData({ schema: contract.requestSchema,
         operation: { name: model.executablePack.requiredOperation, version: registry[model.executablePack.requiredOperation].version }, input, options,
         assignment, limits, ...(adapterSet.length ? { adapterSet: dopplerExecutionAdapterSet(snapshotPackOperationData(adapterSet), model) } : {}) });
+      assertPackOperationRequest(model.executablePack, request, registry);
       const remaining = limits?.deadlineAt - Date.now();
       if (!Number.isSafeInteger(limits?.deadlineAt) || remaining <= 0 || remaining > 2147483647) throw new Error('Document operation requires a future bounded deadline');
       const currentEpoch = ++epoch;
@@ -76,7 +105,16 @@ export function createLocalPackExecutor({ service = DopplerRuntimeService, scope
           assertCurrent();
           const modelKey = await hashDopplerEvidence(model);
           assertCurrent();
-          if (retained && retained.modelKey !== modelKey) { metrics.modelSwitches++; await releaseSession(); }
+          if (lastModelKey && lastModelKey !== modelKey) metrics.modelSwitches++;
+          retained = sessions.get(modelKey) ?? null;
+          const artifactBytes = model.executablePack.artifacts.reduce((sum, artifact) => {
+            if (!Number.isSafeInteger(artifact.sizeBytes) || artifact.sizeBytes < 0) throw new Error('Invalid model artifact size');
+            return sum + artifact.sizeBytes;
+          }, 0);
+          const reservation = artifactBytes * sessionPolicy.artifactBytesMultiplier + sessionPolicy.workingBytesPerSession;
+          if (!Number.isSafeInteger(reservation) || reservation > sessionPolicy.maxReservedBytes) {
+            throw new Error('Model exceeds the local session memory reservation budget');
+          }
           assertCurrent();
           metrics.preparations++;
           const prepared = await measure('prepareMs', () => service.prepare(null, { bindingSchema: model.executablePack.schema }));
@@ -85,14 +123,27 @@ export function createLocalPackExecutor({ service = DopplerRuntimeService, scope
           releasePolicy = await prepareRelease({ model });
           assertCurrent();
           if (!retained) {
-            ownsScope = true;
+            while (sessions.size >= sessionPolicy.maxSessions || reservedBytes + reservation > sessionPolicy.maxReservedBytes) {
+              await releaseScope(sessions.values().next().value.scope);
+              metrics.sessionEvictions++;
+              assertCurrent();
+            }
+            const sessionScope = `${scope}:${modelKey}`;
+            ownedScopes.add(sessionScope);
             if (typeof service[contract.openMethod] !== 'function') throw new Error(`Doppler service requires ${contract.openMethod}`);
             metrics.loadAttempts++;
-            const session = await measure('loadMs', () => service[contract.openMethod]({ scope, source: source.href,
+            const session = await measure('loadMs', () => service[contract.openMethod]({ scope: sessionScope, source: source.href,
               options: { ...releasePolicy.options, acceptedTargetPlanDigests: model.executablePack.acceptedTargetPlanDigests } }));
             metrics.modelLoads++;
-            retained = { session, modelKey, modelId: model.modelId };
+            retained = { session, modelKey, modelId: model.modelId, scope: sessionScope, reservedBytes: reservation };
+            sessions.set(modelKey, retained);
+            reservedBytes += reservation;
+            metrics.peakReservedBytes = Math.max(metrics.peakReservedBytes, reservedBytes);
           } else metrics.modelReuses++;
+          // Map order is the last successful selection order, used for idle eviction.
+          sessions.delete(modelKey);
+          sessions.set(modelKey, retained);
+          lastModelKey = modelKey;
           const { session } = retained;
           assertCurrent();
           await assertPackSession(model.executablePack, session);
@@ -128,11 +179,15 @@ export function createLocalPackExecutor({ service = DopplerRuntimeService, scope
       });
     },
     getState() { return { active, draining: active && (controller?.signal.aborted === true || disposed || releasing),
-      disposed, retainedModelId: retained?.modelId ?? null, metrics: { ...metrics } }; },
+      disposed, retainedModelId: retained?.modelId ?? null,
+      sessions: [...sessions.values()].map(entry => ({ modelId: entry.modelId, modelKey: entry.modelKey, reservedBytes: entry.reservedBytes })),
+      memory: { reservedBytes, maxReservedBytes: sessionPolicy.maxReservedBytes,
+        basis: 'artifact bytes times configured multiplier plus per-session working reservation; not measured GPU or process memory' },
+      metrics: { ...metrics } }; },
     cancel() {
       ++epoch;
       if (controller) controller.abort(new Error('Document operation cancelled'));
-      else if (!active && ownsScope) {
+      else if (!active && ownedScopes.size) {
         active = true;
         settlement = releaseSession().finally(() => { active = false; });
         // A failed release poisons this executor. It may never reuse that scope.

@@ -2159,6 +2159,8 @@
   },
   "documentDelegation": {
     "schema": "reploid.document-delegation-policy/v1",
+    "taskClasses": ["local-only", "derived-remote", "public-remote"],
+    "defaultTaskClass": "local-only",
     "inputClass": "public_text",
     "maxTaskBytes": 16384,
     "maxDraftBytes": 65536,
