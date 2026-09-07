@@ -1,0 +1,10 @@
+{
+  "modelId": "esm2-t12-35m-ur50d-f32-af32",
+  "executionMode": "full_model_browser_sequence",
+  "hasExecutablePack": false,
+  "publishedRuntimeVersion": "0.6.0",
+  "legacyOpenType": "undefined",
+  "capsuleOpenType": "function",
+  "legacyPreparationPassed": false,
+  "error": "Doppler runtime does not expose the scoped dr.open API"
+}
