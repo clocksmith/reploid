@@ -12,12 +12,51 @@ const hash = bytes => `sha256:${createHash('sha256').update(bytes).digest('hex')
 const read = async path => JSON.parse(await readFile(path, 'utf8'));
 const assert = (ok, message) => { if (!ok) throw new Error(message); };
 
+export async function readDocumentAnswerCorpus(config = {}) {
+  const custom = config.corpusPath !== undefined;
+  if (custom) {
+    assert(typeof config.corpusPath === 'string' && config.corpusPath.trim(), 'Explicit corpusPath required');
+    assert(/^sha256:[a-f0-9]{64}$/.test(config.corpusDigest ?? ''), 'Custom corpus requires a frozen corpusDigest');
+  }
+  const corpusPath = custom ? resolve(config.corpusPath)
+    : resolve(root, 'tests/fixtures/document-answer-support-corpus.json');
+  const bytes = await readFile(corpusPath);
+  const corpusDigest = hash(bytes);
+  if (config.corpusDigest !== undefined) assert(config.corpusDigest === corpusDigest, 'Frozen corpus digest mismatch');
+  const corpus = JSON.parse(bytes);
+  assert(corpus.schema === 'reploid.document-answer-support-corpus/v1'
+    && typeof corpus.id === 'string' && corpus.id.trim()
+    && Array.isArray(corpus.cases) && corpus.cases.length > 0, 'Frozen support corpus required');
+  const acceptance = corpus.acceptance;
+  assert(acceptance?.reviewEveryFactualSentence === true && acceptance.requireCitedPassageSupport === true
+    && acceptance.allowUnsupportedFactualClaims === false && acceptance.requireAbstentionWhenUnanswerable === true
+    && acceptance.requireCompleteCaseCoverage === true && acceptance.citationSyntaxIsNotSemanticSupport === true,
+  'Corpus must preserve the complete semantic-support acceptance contract');
+  const ids = new Set();
+  const categories = new Set(['answerable', 'partially-answerable', 'contradictory', 'unanswerable']);
+  for (const entry of corpus.cases) {
+    assert(entry && typeof entry.id === 'string' && entry.id.trim() && !ids.has(entry.id)
+      && categories.has(entry.category) && typeof entry.question === 'string' && entry.question.trim()
+      && Array.isArray(entry.passages) && entry.passages.length > 0
+      && entry.review && typeof entry.review === 'object' && !Array.isArray(entry.review), 'Invalid or duplicate corpus case');
+    ids.add(entry.id);
+    const passageIds = new Set();
+    for (const passage of entry.passages) {
+      assert(passage && typeof passage.id === 'string' && passage.id.trim() && !passageIds.has(passage.id)
+        && typeof passage.text === 'string' && passage.text.trim(), 'Invalid or duplicate corpus passage');
+      passageIds.add(passage.id);
+    }
+  }
+  return { corpus, bytes, corpusPath, corpusDigest };
+}
+
 export async function evaluateDocumentAnswers(config) {
   for (const key of ['capsuleDirectory', 'openOptionsPath', 'outputDirectory', 'browserExecutablePath', 'requiredVendor']) {
     assert(typeof config[key] === 'string' && config[key], `Explicit ${key} required`);
   }
   assert(Array.isArray(config.browserArgs) && Number.isSafeInteger(config.timeoutMs) && config.timeoutMs > 0,
     'Explicit browser flags and timeout required');
+  const { corpus, bytes: corpusBytes, corpusPath, corpusDigest } = await readDocumentAnswerCorpus(config);
   const output = resolve(config.outputDirectory);
   await mkdir(output); // No overwriting previous observations.
   const packageRoot = resolve(root, 'node_modules/doppler-gpu');
@@ -30,9 +69,6 @@ export async function evaluateDocumentAnswers(config) {
   const capsuleBytes = await readFile(resolve(config.capsuleDirectory, 'capsule.json'));
   const capsule = JSON.parse(capsuleBytes);
   const identity = getCapsuleIdentity(capsule);
-  const corpusBytes = await readFile(resolve(root, 'tests/fixtures/document-answer-support-corpus.json'));
-  const corpus = JSON.parse(corpusBytes);
-  assert(corpus.schema === 'reploid.document-answer-support-corpus/v1' && corpus.cases.length > 0, 'Frozen support corpus required');
   const model = { runtime: 'doppler', runtimeVersion: packageInfo.version, backend: 'browser-webgpu',
     modelId: capsule.modelId, executionMode: 'complete_pack_browser', workload: 'text-generation',
     modelHash: identity.semanticRoot, manifestHash: identity.envelopeDigest,
@@ -43,7 +79,7 @@ export async function evaluateDocumentAnswers(config) {
     semanticSupportQualified: false, generatedAt: new Date().toISOString(), config,
     sourceRevision: execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim(),
     sourceDirty: !!execFileSync('git', ['status', '--porcelain'], { cwd: root, encoding: 'utf8' }).trim(),
-    corpusDigest: hash(corpusBytes), corpus, capsuleBytesDigest: hash(capsuleBytes), model,
+    corpusPath, corpusDigest, corpus, capsuleBytesDigest: hash(capsuleBytes), model,
     runtime: { version: packageInfo.version, integrity: locked.integrity },
     boundary: { operatorCount: 1, independentOperators: false, privateRetrieval: false,
       scope: 'Real generation against frozen supplied passages using the product prompt and inspector; no retrieval or semantic-support claim' },

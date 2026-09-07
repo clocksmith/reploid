@@ -3,6 +3,7 @@
  */
 import { test, expect } from '@playwright/test';
 import { createHash } from 'node:crypto';
+import { providerStartupError } from '../helpers/pool-provider-startup.js';
 
 import {
   LAUNCH_MODEL,
@@ -416,9 +417,8 @@ const waitForProviderListening = async (page, artifactRequests = null) => {
       }
       snapshot = await readSnapshot(page, 'pool-provider-result');
       const parsed = snapshot.parsed || {};
-      if (parsed.status === 'error' || parsed.error) {
-        throw new Error(parsed.reason || parsed.error || 'provider entered an error state');
-      }
+      const startupError = providerStartupError(snapshot);
+      if (startupError) throw new Error(startupError);
       if (snapshot.providerState === 'online' && parsed.runner === 'peer_room_listening') return;
       await page.waitForTimeout(1000);
       snapshot = await readSnapshot(page, 'pool-provider-result');
@@ -796,6 +796,15 @@ test.describe('Run and Contribute actual browser inference', () => {
       const requesterFailure = await requesterPage.locator('#pool-run-result-raw').textContent();
       expect(requesterFailure).toContain('Code: peer_provider_unresponsive');
       expect(requesterFailure).not.toContain('receiptHash');
+      await expect(providerPage.locator('[data-pool-provider-status]')).toHaveText('Idle', {
+        timeout: ACTUAL_INFERENCE_TIMEOUT_MS
+      });
+      const closed = (await readSnapshot(providerPage, 'pool-provider-result')).parsed;
+      expect(closed).toMatchObject({ runner: 'stopped', runtime: { ok: true, status: 'closed' } });
+      await waitForProviderListening(providerPage, artifactRequests);
+      const recovered = await runActualSequence(requesterPage, PUBLIC_PROTEIN_SEQUENCE);
+      expect(recovered.requesterAcceptance?.accepted).toBe(true);
+      expect(recovered.receiptHash).toMatch(/^sha256:[a-f0-9]{64}$/);
       await testInfo.attach('poolday-actual-cancellation-observation.json', {
         body: Buffer.from(JSON.stringify({
           schema: 'poolday.actual_browser_cancellation_observation/v1',
@@ -809,9 +818,16 @@ test.describe('Run and Contribute actual browser inference', () => {
           sequenceLength: LONG_PUBLIC_PROTEIN_SEQUENCE.length,
           mode: 'after_start',
           runtimeCancellation: stopping.cancellation || null,
+          runtimeCleanup: closed.runtime,
+          subsequentJob: {
+            sequence: PUBLIC_PROTEIN_SEQUENCE,
+            assignmentId: recovered.assignment?.id,
+            receiptHash: recovered.receiptHash,
+            requesterAccepted: recovered.requesterAcceptance.accepted
+          },
           receiptPublished: false,
           requesterFailureCode: 'peer_provider_unresponsive',
-          claimBoundary: 'Actual Poolday cancellation requested the per-execution abort signal, invalidated late output, and closed the peer session. This does not by itself prove that the current Doppler sequence backend stopped GPU work before queue settlement; this dirty local observation is not a clean-release qualification check.'
+          claimBoundary: 'Actual Poolday cancellation requested the per-execution abort signal, invalidated late output, closed the runtime after settlement, and allowed a new accepted job on the same provider. This does not prove physical GPU preemption before queue settlement, independent operators, or clean-release qualification.'
         }, null, 2)),
         contentType: 'application/json'
       });

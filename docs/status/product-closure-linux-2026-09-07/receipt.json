@@ -1,0 +1,65 @@
+{
+  "schema": "reploid.product-closure-evidence/v1",
+  "archive": "evidence.tar.gz",
+  "sha256": "5b3c7cc61c916b81cc32d60b8d448ceda802512ffc55b5870df8fa7f18fc1092",
+  "sourceBaseRevision": "855e429b34567924513a31cf4d295ebbff5bc969",
+  "sourceDirty": true,
+  "browserBundleHash": "sha256:5f744a3790847f69204e536d9373ad495265bf10ad406c76820e4c36a2d07da4",
+  "sourceFiles": {
+    "scripts/evaluate-document-answers.js": "4fa1a44adb1a9dc5b52047439c3ddc55f0ece4a9cc8e5bca760afbc7d4c41099",
+    "self/config/browser-bundle-manifest.json": "e29dac435f7202e5bc52494cca4a177751a80b68b1c519f21e9763cf3a800f53",
+    "self/pool/pool-config.json": "1c61676934ce0bf28e539e3b890ef665c63b970ed5a6c31db00419b22cf59b8a",
+    "tests/e2e/p2p-actual-inference.spec.js": "6eeead341e4edcf786c07492fa5129c9f6f26fb497f98c0395bf6b7f64a7ceb2",
+    "tests/helpers/pool-provider-startup.js": "9c6d9b1426263d0f86358f5d9c4f52e8b8246447bb99d654e1606f6469dc6b93",
+    "tests/unit/document-answer-evaluation.test.js": "91513fd39ad92ed162157e77dfa360a8bfe6a4c8920b26da9996d2dccd1d13b8",
+    "tests/unit/pool-provider-startup.test.js": "806766fa5b5186331477d46498e042f4be37f351ea26fb6e14e80d4c3f8f391d",
+    "package-lock.json": "047997d2cb8b99b505a5bc1ae061b93186ea91593a2a7659e17acc9a26d7a6b9"
+  },
+  "unitTests": { "passed": 2460, "skipped": 35 },
+  "localRequiredContractCommands": { "passed": 11, "failed": 0 },
+  "physicalBrowser": {
+    "version": "145.0.7632.6",
+    "vendor": "intel",
+    "architecture": "gen-12lp",
+    "dopplerVersion": "0.6.0",
+    "modelId": "esm2-t12-35m-ur50d-f32-af32",
+    "capsuleEnvelopeDigest": "sha256:72e67ff74f13c22ac0f95c86408f4c0834c460d36ab628fca892e3676c525509",
+    "passedTestExecutions": 6,
+    "automaticRetries": 0,
+    "completeJobAccepted": true,
+    "opfsRestoredWithoutShardRefetch": true,
+    "afterStartCancellation": true,
+    "runtimeClosedAfterCancellation": true,
+    "subsequentJobAccepted": true,
+    "staleResultRejected": true,
+    "corruptManifestRejected": true,
+    "corruptCachedShardRecovered": true,
+    "recoverySource": "pinned-origin-http",
+    "independentMachines": false,
+    "independentOperators": false,
+    "qualificationEligible": false
+  },
+  "retainedFailures": [
+    "localhost:8137 is outside the declared artifact CORS origins",
+    "Chrome 136 rejects Capsule Ed25519 key import",
+    "Original startup poll waited to deadline despite a terminal text-only error",
+    "Repaired startup poll immediately reports the unsupported-browser failure"
+  ],
+  "productionObservation": {
+    "url": "https://replo.id",
+    "sourceRevision": "956c26a8ab5802373f7df18f09ca06c7e0b6f4da",
+    "platformRevision": "reploid-pool-00082-mvj",
+    "matchesLocalBrowserBundle": false
+  },
+  "unresolved": [
+    "new hosted CI and production qualification",
+    "physical assistant semantic support on an untouched holdout",
+    "qualified generation, embedding, reranking and adapter presets",
+    "useful coding specialization and governed promotion",
+    "independent selective delegation, restart, reversed ownership and repeat use",
+    "origin-disabled four-machine reconstruction and supplier-loss recovery",
+    "affected AMD startup diagnosis",
+    "measured loading and residency benefit",
+    "learned coordination benefit against both frozen controls"
+  ]
+}

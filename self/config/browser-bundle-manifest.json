@@ -2385,8 +2385,8 @@
     },
     {
       "path": "pool/pool-config.json",
-      "byteLength": 77365,
-      "sha256": "sha256:ae612405d1a5e0b349f77a8de723584b7c63735c726b0e0e7fefdc49f6e41111"
+      "byteLength": 77389,
+      "sha256": "sha256:1c61676934ce0bf28e539e3b890ef665c63b970ed5a6c31db00419b22cf59b8a"
     },
     {
       "path": "pool/protein-uncertainty-campaign.js",
@@ -3244,5 +3244,5 @@
       "sha256": "sha256:f0839f1a37e68e05baa3bd3823460bc9d742420485f12ae03979781adbb865ca"
     }
   ],
-  "bundleHash": "sha256:84ac59ecdd990d3ac95a32466bf8fe2a6d77618887067d45cb1e1f3a6f84f1ec"
+  "bundleHash": "sha256:5f744a3790847f69204e536d9373ad495265bf10ad406c76820e4c36a2d07da4"
 }
