@@ -506,6 +506,43 @@ const corruptCachedModelShard = async (page, model) => page.evaluate(async model
 }, model);
 
 test.describe('Run and Contribute actual browser inference', () => {
+  test('an empty room falls back to real local ESM-2 without sharing compute', async ({ page }, testInfo) => {
+    test.skip(process.env.REPLOID_E2E_ACTUAL_INFERENCE !== '1', 'Physical inference is explicitly enabled');
+    await page.addInitScript(() => {
+      localStorage.setItem('reploid.pool.participation.v1', JSON.stringify({ mode: 'request' }));
+      window.REPLOID_POOL_DISCOVERY_WINDOW_MS = 100;
+      window.REPLOID_POOL_RECEIPT_WINDOW_MS = 300000;
+    });
+    wireDiagnostics(page, 'local-fallback');
+    const modelRequests = trackModelArtifactRequests(page);
+    await page.goto(`/?relay=local&room=empty-local-${Date.now()}`);
+    await page.getByRole('textbox', { name: 'Public protein sequence' }).fill(PUBLIC_PROTEIN_SEQUENCE);
+    await page.locator('#pool-home-sequence-public').check();
+    await page.getByRole('button', { name: 'Run model', exact: true }).click();
+    await expect.poll(async () => {
+      const snapshot = await readSnapshot(page, 'pool-home-run-result');
+      const failure = providerStartupError(snapshot);
+      if (failure) throw new Error(failure);
+      return snapshot.parsed?.transport;
+    }, { timeout: ACTUAL_INFERENCE_TIMEOUT_MS }).toBe('local_capsule');
+    const result = (await readSnapshot(page, 'pool-home-run-result')).parsed;
+    expect(result.status).toBe('completed');
+    expect(result.embeddingDimensions).toBe(480);
+    expect(result.receiptHash).toMatch(/^sha256:[a-f0-9]{64}$/);
+    expect(result.networkFailure.code).toBe('peer_provider_not_found');
+    expect(result.relay).toBe('none');
+    expect(result.requesterAcceptance).toBeUndefined();
+    expect(await page.evaluate(() => JSON.parse(localStorage.getItem('reploid.pool.participation.v1')).mode)).toBe('request');
+    expect(await page.evaluate(() => sessionStorage.getItem('reploid.pool.contribution-resume.v1'))).toBeNull();
+    expect(modelRequests.some(url => /shard_\d+\.bin/.test(url))).toBe(true);
+    await testInfo.attach('local-capsule-result.json', { body: JSON.stringify(result, null, 2), contentType: 'application/json' });
+    await page.reload();
+    await expect(page.locator('[data-pool-run-surface]')).toHaveAttribute('data-run-state', 'inspecting');
+    const restored = (await readSnapshot(page, 'pool-home-run-result')).parsed;
+    expect(restored.receiptHash).toBe(result.receiptHash);
+    expect(restored.transport).toBe('local_capsule');
+    expect(await page.evaluate(() => JSON.parse(localStorage.getItem('reploid.pool.participation.v1')).mode)).toBe('request');
+  });
   test.skip(process.env.REPLOID_E2E_ACTUAL_INFERENCE !== '1', 'Set REPLOID_E2E_ACTUAL_INFERENCE=1 to run the real Doppler browser workload.');
 
   test('loads ESM-2, embeds a public protein sequence, and returns a signed peer receipt', async ({ browser, baseURL }, testInfo) => {

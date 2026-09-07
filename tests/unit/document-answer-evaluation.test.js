@@ -52,6 +52,38 @@ describe('physical answer evaluation corpus boundary', () => {
     await expect(readDocumentAnswerCorpus(config)).rejects.toThrow('acceptance contract');
   });
 
+  it.each(['answerable', 'partially-answerable', 'contradictory', 'unanswerable'])(
+    'rejects a frozen %s case with its semantic review removed', async category => {
+      const config = await fixture(corpus => { corpus.cases.find(row => row.category === category).review = {}; });
+      await expect(readDocumentAnswerCorpus(config)).rejects.toThrow(/required/i);
+    });
+
+  it.each([
+    ['answerable', 'supportedFacts', [' ']],
+    ['answerable', 'supportingPassages', ['missing-passage']],
+    ['answerable', 'allowCompleteAbstention', true],
+    ['answerable', 'requireCompleteAbstention', true],
+    ['partially-answerable', 'mustMarkUnknown', []],
+    ['partially-answerable', 'allowCompleteAbstention', 'true'],
+    ['contradictory', 'conflictingPassages', ['guide-a']],
+    ['contradictory', 'conflictingPassages', ['guide-a', 'guide-a']],
+    ['contradictory', 'conflictingPassages', ['guide-a', 'missing-passage']],
+    ['contradictory', 'mustDescribeConflict', false],
+    ['unanswerable', 'requireCompleteAbstention', false],
+    ['unanswerable', 'supportedFacts', ['An invented author.']],
+  ])('rejects inconsistent %s review field %s = %j', async (category, key, value) => {
+    const config = await fixture(corpus => { corpus.cases.find(row => row.category === category).review[key] = value; });
+    await expect(readDocumentAnswerCorpus(config)).rejects.toThrow();
+  });
+
+  it('preserves the frozen permission to abstain on partial or conflicting evidence', async () => {
+    const config = await fixture();
+    const { corpus } = await readDocumentAnswerCorpus(config);
+    const permitted = corpus.cases.filter(row => ['partially-answerable', 'contradictory'].includes(row.category));
+    expect(permitted).toHaveLength(4);
+    expect(permitted.every(row => row.review.allowCompleteAbstention === true)).toBe(true);
+  });
+
   it('rejects duplicate case identities and malformed passage identities', async () => {
     const duplicate = await fixture(corpus => { corpus.cases.push(corpus.cases[0]); });
     await expect(readDocumentAnswerCorpus(duplicate)).rejects.toThrow('duplicate corpus case');

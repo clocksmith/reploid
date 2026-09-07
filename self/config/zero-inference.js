@@ -81,9 +81,26 @@ const getZeroFirebaseConfig = async () => {
   return response.ok ? response.json() : null;
 };
 
-const requireZeroAppCheckSiteKey = () => {
-  const siteKey = String(globalThis.REPLOID_ZERO_APP_CHECK_SITE_KEY || '').trim();
-  if (!siteKey) throw new Error('Zero App Check is not configured. Set REPLOID_ZERO_APP_CHECK_SITE_KEY.');
+export const getZeroAppCheckSiteKey = async (firebaseConfig) => {
+  const override = globalThis.REPLOID_ZERO_APP_CHECK_SITE_KEY;
+  if (typeof override === 'string' && override.trim()) return override.trim();
+  const response = await fetch('/config/zero-access.json', {
+    cache: 'no-store',
+    headers: { 'x-reploid-vfs-bypass': '1' },
+    signal: AbortSignal.timeout(10000)
+  });
+  if (!response.ok) throw new Error(`Zero access configuration unavailable (${response.status}).`);
+  const config = await response.json();
+  if (config?.schema !== 'reploid.zero-access/v1'
+      || !config.projectId || config.projectId !== firebaseConfig?.projectId
+      || !config.appId || config.appId !== firebaseConfig?.appId) {
+    throw new Error('Zero access configuration does not match this Firebase application.');
+  }
+  if (config.appCheck?.provider !== 'recaptcha-v3') {
+    throw new Error('Zero App Check requires the configured recaptcha-v3 provider.');
+  }
+  const siteKey = typeof config.appCheck.siteKey === 'string' ? config.appCheck.siteKey.trim() : '';
+  if (!siteKey) throw new Error('Zero App Check is not configured. Set appCheck.siteKey in /config/zero-access.json.');
   return siteKey;
 };
 
@@ -96,26 +113,34 @@ const getZeroFirebaseModuleUrls = () => ({
 const bootstrapZeroAccess = async () => {
   const config = await getZeroFirebaseConfig();
   if (!config) throw new Error('Zero Firebase configuration is unavailable.');
+  const siteKey = await getZeroAppCheckSiteKey(config);
   const urls = getZeroFirebaseModuleUrls();
   const [appModule, authModule, appCheckModule] = await Promise.all([
     import(urls.app),
     import(urls.auth),
     import(urls.appCheck)
   ]);
-  const app = appModule.getApps().at(0) || appModule.initializeApp(config);
+  const app = appModule.getApps().find((candidate) =>
+    candidate.options?.projectId === config.projectId && candidate.options?.appId === config.appId
+  ) || appModule.initializeApp(config, 'reploid-zero');
   const auth = authModule.getAuth(app);
   if (authModule.setPersistence && authModule.browserLocalPersistence) {
     await authModule.setPersistence(auth, authModule.browserLocalPersistence).catch(() => null);
   }
   const appCheck = appCheckModule.initializeAppCheck(app, {
-    provider: new appCheckModule.ReCaptchaV3Provider(requireZeroAppCheckSiteKey()),
+    provider: new appCheckModule.ReCaptchaV3Provider(siteKey),
     isTokenAutoRefreshEnabled: true
   });
   return { auth, authModule, appCheck, appCheckModule };
 };
 
 export async function getZeroAccessHeaders() {
-  if (!zeroAccessPromise) zeroAccessPromise = bootstrapZeroAccess();
+  if (!zeroAccessPromise) {
+    zeroAccessPromise = bootstrapZeroAccess().catch((error) => {
+      zeroAccessPromise = null;
+      throw error;
+    });
+  }
   const { auth, authModule, appCheck, appCheckModule } = await zeroAccessPromise;
   const user = auth.currentUser || (await authModule.signInAnonymously(auth)).user;
   const [idToken, appCheckToken] = await Promise.all([

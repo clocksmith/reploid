@@ -1,5 +1,32 @@
 import { test, expect } from '@playwright/test';
 
+test('centers desktop work and connects the brand to focus, status, and reduced motion', async ({ page }, testInfo) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.goto('/?relay=local');
+  const task = page.locator('.pool-home-task');
+  const box = await task.boundingBox();
+  expect(Math.abs(box.x + box.width / 2 - 720)).toBeLessThan(1);
+  await expect(page.locator('.pool-primary-brand')).toHaveAccessibleName('Reploid home');
+  await expect(page.locator('.pool-primary-brand')).not.toContainText('Reploid');
+  await expect(page.locator('h1.pool-home-brand-word')).toContainText('Reploid');
+  const prism = page.locator('.pool-prism');
+  await page.getByRole('textbox', { name: 'Public protein sequence' }).focus();
+  await expect.poll(() => prism.evaluate(node => getComputedStyle(node).transform)).not.toBe('none');
+  await page.evaluate(async () => {
+    const { setPoolRunVisualState } = await import('/ui/pool-home/view.js');
+    setPoolRunVisualState({ state: 'running', phase: 'infer', message: 'Executing on this device' });
+  });
+  await expect(page.locator('[data-pool-brand-status]')).toHaveText('Executing on this device');
+  const exponent = page.locator('.pool-home-brand-word .pool-power-tower sup');
+  expect(await exponent.evaluate(node => getComputedStyle(node).animationName)).toBe('pool-power-rise');
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  expect(await exponent.evaluate(node => getComputedStyle(node).animationName)).toBe('none');
+  expect(await prism.evaluate(node => getComputedStyle(node).transform)).toBe('none');
+  await page.screenshot({ path: testInfo.outputPath('centered-desktop-status.png'), fullPage: true });
+  await page.setViewportSize({ width: 320, height: 844 });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(320);
+});
+
 const gpuReady = (page) => expect.poll(async () => page.evaluate(() => ({
   backend: window.REPLOID_POOL_PRISM_STATS?.backend,
   error: window.REPLOID_POOL_PRISM_STATS?.error

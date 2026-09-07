@@ -38,6 +38,7 @@ export const formatContributionModel = (modelId) => {
 
 const receiptRecordKind = (row = {}) => {
   const record = row.record || {};
+  if (record.transport === 'local_capsule') return 'Completed on this device';
   return record.requesterAcceptance || record.agreement
     ? 'Answer completed'
     : 'Contribution made';

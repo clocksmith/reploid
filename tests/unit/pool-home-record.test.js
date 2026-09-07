@@ -561,7 +561,7 @@ describe('Poolday record ledgers', () => {
     expect(html).toMatch(/data-pool-record-disclosure="receipt-lookup" open/);
   });
 
-  it('restores the latest accepted result as saved history without implying a live run', () => {
+  it.each(['peer', 'local'])('restores a saved %s result without implying a live run or extra acceptance', (kind) => {
     const roomId = `record-result-${crypto.randomUUID()}`;
     setRoom(roomId);
     document.body.innerHTML = `
@@ -584,8 +584,10 @@ describe('Poolday record ledgers', () => {
         jobId: 'peer_job_persisted',
         providerId: 'provider_page_persisted'
       },
-      requesterAcceptance: { accepted: true },
-      agreement: { accepted: true }
+      ...(kind === 'local' ? {
+        status: 'completed', transport: 'local_capsule',
+        localExecution: { receipt: { receiptDigest: 'sha256:persisted' } }
+      } : { requesterAcceptance: { accepted: true }, agreement: { accepted: true } })
     }, 'sha256:persisted');
 
     const restored = restoreLatestCompletedRun('ask');
@@ -593,7 +595,11 @@ describe('Poolday record ledgers', () => {
     expect(restored?.savedRecord).toMatchObject({ restored: true, roomId });
     expect(document.getElementById('pool-run-result-stream').textContent).toBe('persisted accepted answer');
     expect(document.querySelector('[data-pool-run-output]').hidden).toBe(false);
-    expect(document.querySelector('[data-pool-run-status]').textContent).toBe('Showing last saved answer');
+    expect(document.querySelector('[data-pool-run-status]').textContent).toBe(kind === 'local' ? 'Showing last saved local result' : 'Showing last saved answer');
+    if (kind === 'local') {
+      expect(restored.requesterAcceptance).toBeUndefined();
+      expect(renderRecordLedger()).toContain('Completed on this device');
+    }
     expect(document.querySelector('[data-pool-run-surface]').dataset.runState).toBe('inspecting');
   });
 

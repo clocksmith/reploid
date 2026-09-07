@@ -3,6 +3,9 @@
  */
 
 import { createDopplerRuntime } from '../../pool/doppler-runtime.js';
+import { createLocalPackExecutor } from '../../pool/local-pack-executor.js';
+import { createPackOperationRegistry } from '../../pool/pack-operation-adapters.js';
+import { hashDopplerEvidence } from '../../pool/executable-pack.js';
 import { createProviderClient } from '../../pool/provider-client.js';
 import { adapterRequirementFromPublication } from '../../pool/adapter-publication.js';
 import {
@@ -1087,7 +1090,8 @@ const bindPeerRunSurface = ({
   let pendingRequest = null;
   let pendingErrorResult = null;
   let requestInFlight = false;
-  let localFallbackInFlight = false;
+  let disposed = false;
+  let localExecutor = null;
   let runActivityGeneration = 0;
   const updateRunState = (state, phase = '', message = '') => {
     setPoolRunVisualState({ state, phase, message });
@@ -1107,20 +1111,23 @@ const bindPeerRunSurface = ({
     'peer_provider_unresponsive'
   ].includes(recoveryCodeOf(error));
   const modelLabelOf = (model = {}) => model.label || model.name || model.modelId || 'the selected model';
+  const supportsLocalRequest = (request) => request?.policyId === FASTEST_RECEIPT_POLICY_ID
+    && !request.researchSubmission && !request.adapterPackHash
+    && request.selectedModel?.executablePack?.requiredOperation === 'encodeSequence';
   const buildMissingProviderRecovery = (request) => ({
     kind: 'provider_missing',
     title: 'No matching browser is ready',
-    message: `No contributor in "${getPeerRoomId()}" is currently advertising ${modelLabelOf(request.selectedModel)}. Reploid tried the network first. You can keep searching or optionally prepare this device.`,
+    message: `No contributor in "${getPeerRoomId()}" is currently advertising ${modelLabelOf(request.selectedModel)}.${supportsLocalRequest(request) ? ' Run here without sharing compute, or keep searching.' : ' The selected checks require a matching contributor; local execution cannot replace them.'}`,
     actions: [
       {
         id: 'retry_network',
         label: 'Keep searching',
         primary: true
       },
-      {
+      ...(supportsLocalRequest(request) ? [{
         id: 'offer_local_provider',
         label: 'Run on this device'
-      },
+      }] : []),
       {
         id: 'invite_contributor',
         label: 'Invite a contributor',
@@ -1134,8 +1141,8 @@ const bindPeerRunSurface = ({
     message: `${modelLabelOf(request.selectedModel)} may need to download before this browser can answer the preserved request.`,
     details: [
       'Uses WebGPU and browser storage after a capability check.',
-      `Changes participation to Both and advertises this tab in "${getPeerRoomId()}".`,
-      'This tab stays available to the room until you stop sharing.'
+      'Runs only your request. Does not advertise this tab or change Share compute.',
+      'Verifies the signed model and local execution receipt; does not claim independent peer agreement.'
     ],
     actions: [
       {
@@ -1174,6 +1181,44 @@ const bindPeerRunSurface = ({
       policyId: record.policyId || FASTEST_RECEIPT_POLICY_ID,
       researchSubmission: record.researchSubmission || null
     };
+  };
+
+  const runOnThisDevice = async (request) => {
+    if (disposed) throw new Error('Run view was closed');
+    if (!supportsLocalRequest(request)) throw new Error('The selected checks cannot be replaced by local execution');
+    updateRunState('running', 'infer', 'Preparing this device: verifying and loading the selected model');
+    const executor = createLocalPackExecutor();
+    localExecutor = executor;
+    const cancel = () => executor.cancel();
+    window.addEventListener('pagehide', cancel, { once: true });
+    try {
+      const definition = createPackOperationRegistry().encodeSequence.definition;
+      const execution = await executor.run({
+        model: request.selectedModel,
+        input: { sequence: normalizeSequenceInput(request.sequence, request.sequenceRequest.alphabet) },
+        options: { includeTokenEmbeddings: false, includeLogits: false },
+        limits: {
+          maxInputBytes: definition.maximumLimits.maxInputBytes,
+          maxOutputBytes: definition.maximumLimits.maxOutputBytes,
+          deadlineAt: Date.now() + Math.min(getPeerReceiptWindowMs(), definition.maximumLimits.maxJobMs)
+        }
+      });
+      const sequenceResultHash = await hashDopplerEvidence(execution.output);
+      return {
+        status: 'completed', statusLabel: 'Completed locally', transport: 'local_capsule',
+        policyId: 'local_capsule_execution', requestedPolicyId: request.policyId,
+        model: request.selectedModel, outputKind: request.selectedModel.workload,
+        sequenceOutput: execution.output, sequenceResultHash,
+        embeddingDimensions: execution.output.embeddingDim,
+        receiptHash: execution.receipt.receiptDigest,
+        localExecution: execution,
+        claimBoundary: 'Verified Capsule execution on this device; no independent contributor comparison.'
+      };
+    } finally {
+      window.removeEventListener('pagehide', cancel);
+      await executor.close();
+      localExecutor = null;
+    }
   };
   const buildInterruptedRequestRecovery = (request) => ({
     kind: 'request_interrupted',
@@ -1373,7 +1418,7 @@ const bindPeerRunSurface = ({
   };
 
   const submitRunRequest = async (preparedRequest = null) => {
-    if (requestInFlight || localFallbackInFlight) return;
+    if (requestInFlight || disposed) return;
     const activityGeneration = ++runActivityGeneration;
     let acceptRunActivity = true;
     requestInFlight = true;
@@ -1390,7 +1435,7 @@ const bindPeerRunSurface = ({
         : 'Preparing signed request');
     try {
       const request = preparedRequest || await prepareRunRequest();
-      if (!request) return;
+      if (!request || disposed) return;
       pendingRequest = request;
       pendingErrorResult = null;
       writePendingRequestRecovery(request);
@@ -1400,7 +1445,7 @@ const bindPeerRunSurface = ({
         modelId: request.selectedModel.modelId,
         adapterPackHash: request.adapterPackHash
       }), { stream: true });
-      const result = await runPeerJob({
+      const result = request.localExecution === true ? await runOnThisDevice(request) : await runPeerJob({
         roomId: getPeerRoomId(),
         requesterClient,
         prompt: request.promptText,
@@ -1427,10 +1472,17 @@ const bindPeerRunSurface = ({
           if (!acceptRunActivity || activityGeneration !== runActivityGeneration) return;
           handleRunActivity(activity);
         }
+      }).catch(async (error) => {
+        if (disposed || !canOfferLocalFallback(error) || !supportsLocalRequest(request) || !navigator.gpu) throw error;
+        acceptRunActivity = false;
+        const result = await runOnThisDevice(request);
+        result.networkFailure = { code: recoveryCodeOf(error), message: errorString(error) };
+        return result;
       });
       acceptRunActivity = false;
+      if (disposed) return;
       result.inviteUrl = getPeerInviteUrl();
-      result.relay = getPeerRelayMode();
+      result.relay = result.transport === 'local_capsule' ? 'none' : getPeerRelayMode();
       if (request.researchSubmission && request.lane === 'sequence') {
         const researchResult = await createSignedResearchResult({
           identity: researchIdentity,
@@ -1470,12 +1522,13 @@ const bindPeerRunSurface = ({
       updateRunState(
         'complete',
         'answer',
-        request.lane === 'sequence' ? 'Protein embedding verified' : 'Answer verified'
+        result.transport === 'local_capsule' ? 'Completed on this device' : request.lane === 'sequence' ? 'Protein embedding verified' : 'Answer verified'
       );
       pendingRequest = null;
       clearPendingRequestRecovery();
     } catch (error) {
       acceptRunActivity = false;
+      if (disposed) return;
       const selectedModel = pendingRequest?.selectedModel
         || getEnabledPoolModelContract(modelSelect?.value || LAUNCH_MODEL.modelId)
         || LAUNCH_MODEL;
@@ -1520,52 +1573,13 @@ const bindPeerRunSurface = ({
     } finally {
       acceptRunActivity = false;
       requestInFlight = false;
-      if (!localFallbackInFlight) setRunButtonBusy(false);
+      if (!disposed) setRunButtonBusy(false);
     }
   };
 
-  const startLocalProviderAndRetry = async () => {
-    if (!pendingRequest || requestInFlight || localFallbackInFlight) return;
-    localFallbackInFlight = true;
-    setControlDrawerOpen(true);
-    document.querySelector('[data-pool-drawer-section="network-device"]')?.setAttribute('open', '');
-    setRunButtonBusy(true, 'Preparing');
-    updateRunState('submitting', 'match', 'Preparing this device as an optional fallback');
-    setResult(resultId, {
-      status: 'local_provider_starting',
-      roomId: getPeerRoomId(),
-      model: pendingRequest.selectedModel,
-      action: 'Checking device capability, loading the selected model, and advertising this tab.'
-    }, { stream: true });
-    try {
-      const provider = await getProviderContributionController().startForModel(
-        pendingRequest.selectedModel.modelId
-      );
-      updateRunState('submitting', 'match', 'Model ready. Starting the preserved request here');
-      localFallbackInFlight = false;
-      setRunButtonBusy(false);
-      await submitRunRequest({
-        ...pendingRequest,
-        knownProviderAdverts: provider?.advert ? [provider.advert] : []
-      });
-    } catch (error) {
-      const displayError = displayPoolError(error, {
-        title: 'This device could not become a contributor',
-        action: error?.payload?.action || error?.action || 'Keep searching the network or invite another contributor.',
-        context: {
-          roomId: getPeerRoomId(),
-          relay: getPeerRelayMode(),
-          model: pendingRequest.selectedModel
-        }
-      });
-      displayError.recovery = buildMissingProviderRecovery(pendingRequest);
-      pendingErrorResult = displayError;
-      setResult(resultId, displayError, { stream: true });
-      updateRunState('error', 'match', 'Local fallback needs attention');
-    } finally {
-      localFallbackInFlight = false;
-      if (!requestInFlight) setRunButtonBusy(false);
-    }
+  const runPreservedRequestLocally = async () => {
+    if (!pendingRequest || requestInFlight) return;
+    await submitRunRequest({ ...pendingRequest, localExecution: true });
   };
 
   recoveryElement?.addEventListener('click', (event) => {
@@ -1589,12 +1603,6 @@ const bindPeerRunSurface = ({
       return;
     }
     if (actionId === 'offer_local_provider' && pendingRequest && pendingErrorResult) {
-      const runtime = window.REPLOID_DOPPLER_RUNTIME;
-      if (typeof runtime?.prepare === 'function') {
-        void runtime.prepare().catch(() => {
-          // The confirmed load reports the actionable runtime error.
-        });
-      }
       setResult(resultId, {
         ...pendingErrorResult,
         recovery: buildLocalConsentRecovery(pendingRequest)
@@ -1606,7 +1614,7 @@ const bindPeerRunSurface = ({
       return;
     }
     if (actionId === 'confirm_local_provider') {
-      void startLocalProviderAndRetry();
+      void runPreservedRequestLocally();
     }
   });
   const submit = (event) => {
@@ -1616,6 +1624,11 @@ const bindPeerRunSurface = ({
   if (form) form.addEventListener('submit', submit);
   else button.addEventListener('click', submit);
   if (!restoreInterruptedRequest()) updateRunState('idle');
+  return () => {
+    disposed = true;
+    ++runActivityGeneration;
+    localExecutor?.cancel();
+  };
 };
 
 const runWorkloadOf = (modelSelect) => (
@@ -1634,7 +1647,7 @@ const syncRunWorkloadAffordance = (modelSelect) => {
 export const bindRunControls = () => {
   const modelSelect = document.getElementById('pool-run-model');
   const sequencePublicControl = document.getElementById('pool-run-sequence-public');
-  bindPeerRunSurface({
+  const stopRun = bindPeerRunSurface({
     button: document.getElementById('pool-run-submit'),
     prompt: document.getElementById('pool-run-prompt'),
     policySelect: document.getElementById('pool-run-policy'),
@@ -1659,6 +1672,7 @@ export const bindRunControls = () => {
     });
     syncRunWorkloadAffordance(modelSelect);
   }
+  return stopRun;
 };
 
 export const bindEmbeddingResultControls = () => {
@@ -1865,7 +1879,7 @@ export const bindHomeAskControls = () => {
     policySelect.addEventListener('change', syncPolicy);
     syncPolicy();
   }
-  bindPeerRunSurface({
+  const stopRun = bindPeerRunSurface({
     button,
     prompt: input,
     form,
@@ -1886,7 +1900,7 @@ export const bindHomeAskControls = () => {
     intentUnknownsControl: document.getElementById('pool-home-intent-unknowns'),
     resultId: 'pool-home-run-result'
   });
-  return () => dockObserver?.disconnect();
+  return () => { stopRun?.(); dockObserver?.disconnect(); };
 };
 
 const createProviderContributionController = () => {

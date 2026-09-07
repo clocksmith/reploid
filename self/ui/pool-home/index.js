@@ -281,14 +281,15 @@ export function initPoolHome(mount, { operationNetwork = null } = {}) {
         navOpen = nextOpen;
       }
     });
-    window.REPLOID_POOL_CONTROLS_STOP = bindHomeAskControls(render);
+    const stopHomeRun = bindHomeAskControls(render);
     window.REPLOID_POOL_PRISM_STOP = bindPoolPrism(mount);
     disposeDocumentView = bindDocumentSearch(mount, documents);
     disposeOperationSharing = bindOperationSharing(mount, operationSharing);
     if (routeId === 'records') renderLocalDocumentHistory(mount, documents.getState());
     bindPoolDashboardControls();
     bindCapabilityAssessmentControls();
-    bindRunControls();
+    const stopRouteRun = bindRunControls();
+    window.REPLOID_POOL_CONTROLS_STOP = () => { stopHomeRun?.(); stopRouteRun?.(); };
     bindEmbeddingResultControls();
     bindProviderControls();
     bindParticipationControls();

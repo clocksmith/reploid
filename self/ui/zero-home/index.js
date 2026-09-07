@@ -25,6 +25,7 @@ import {
 } from '../../config/doppler-local-models.js';
 import {
   getBootSeedProfile,
+  pickBootSeedFiles,
   shouldHydrateFullManifest
 } from '../../config/boot-seed.js';
 import {
@@ -33,6 +34,7 @@ import {
   seedVfsFromManifest
 } from '../../boot-helpers/vfs-bootstrap.js';
 import { getRuntimeSelfMirrorsByBootProfile } from '../../lab/profiles.js';
+import { normalizeVfsPath } from '../../lab/mirrors.js';
 import { getCurrentReploidStorage as getReploidStorage } from '../../instance.js';
 
 const VERIFY_STATE = Object.freeze({
@@ -527,10 +529,16 @@ async function prepareVfsForAwaken() {
       onProgress: setVfsProgress
     });
   }
-  await ensureVfsFileMirrors(getRuntimeSelfMirrorsByBootProfile(bootProfile, manifest?.files || []), {
+  const mirroredFiles = includeDoppler || shouldHydrateRouteFully
+    ? manifest?.files || []
+    : pickBootSeedFiles(manifest?.files || [], bootProfile);
+  const seededPaths = new Set(mirroredFiles.map(normalizeVfsPath));
+  const mirrors = getRuntimeSelfMirrorsByBootProfile(bootProfile, mirroredFiles)
+    .filter((mirror) => seededPaths.has(mirror.sourcePath));
+  await ensureVfsFileMirrors(mirrors, {
     overwrite: false,
     logger: console,
-    progressScope: 'full',
+    progressScope: includeDoppler || shouldHydrateRouteFully ? 'full' : 'boot',
     onProgress: setVfsProgress
   });
 }
