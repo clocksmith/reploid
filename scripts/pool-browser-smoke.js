@@ -18,6 +18,7 @@ const localPeerUrl = (route, room) => {
 };
 
 const { getEnabledPoolModelContract } = await import('../self/pool/model-contract.js');
+const { makeSyntheticSequenceReceipt } = await import('../tests/helpers/pool-sequence-fixture.js');
 // Keep the synthetic lane on the same enabled contract as production.  A
 // mocked text-only model made this gate fail before it could exercise the
 // browser route and peer receipt path.
@@ -48,7 +49,10 @@ const browser = await chromium.launch({
     '--disable-gpu-sandbox'
   ]
 });
-const installSmokeRuntime = (targetContext) => targetContext.addInitScript((launchModel) => {
+const installSmokeRuntime = async (targetContext) => {
+  await targetContext.exposeBinding('__reploidSyntheticSequenceReceipt', (_source, input) =>
+    makeSyntheticSequenceReceipt(input));
+  return targetContext.addInitScript((launchModel) => {
   const model = { ...launchModel };
   const textEncoder = new TextEncoder();
   const bytesToHex = (bytes) => Array.from(bytes)
@@ -124,7 +128,7 @@ const installSmokeRuntime = (targetContext) => targetContext.addInitScript((laun
         maxComputeInvocationsPerWorkgroup: 256
       }
     }),
-    encodeSequence: async ({ sequence, request }) => {
+    encodeSequence: async ({ sequence, request, assignment }) => {
       const tokens = Array.from(sequence, (_, index) => index % 33);
       const pooledEmbedding = Array.from(
         { length: Number(model.embeddingDimensions) },
@@ -152,6 +156,10 @@ const installSmokeRuntime = (targetContext) => targetContext.addInitScript((laun
       };
       const sequenceResultHash = await hashJson(sequenceResult);
       return {
+        // This fixture exercises receipt admission, not physical model execution.
+        dopplerProviderReceipt: await window.__reploidSyntheticSequenceReceipt({
+          assignment, sequence, output: sequenceResult
+        }),
         outputKind: request.workload,
         outputText: '',
         tokenIds: [],
@@ -180,6 +188,7 @@ const installSmokeRuntime = (targetContext) => targetContext.addInitScript((laun
     }
   };
 }, SYNTHETIC_MODEL);
+};
 const context = await browser.newContext();
 await installSmokeRuntime(context);
 const page = await context.newPage();
