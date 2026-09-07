@@ -1,0 +1,48 @@
+{
+  "schema": "reploid.product-closure-evidence/v1",
+  "archive": "evidence.tar.gz",
+  "sha256": "b84a780654016c49a12ec8b930913cd6f7353fd1441a6e8c5e9c6aa7af8b1d2c",
+  "sourceBaseRevision": "c9419608794feb2598b997f6bca53380195308c5",
+  "browserBundleHash": "sha256:35a0eb488e262ca3cdfcaf035cbd7ba2241f88fe55cebe602473898873fd0f5c",
+  "sourceFiles": {
+    "scripts/verify-gpu-startup.js": "0c89cd9db0e362ccae2bebaffbd3a5855a87ce1c30a8a8a6ba694d412eed0812",
+    "self/pool/document-answer.js": "7ff20b0dac7f9001488ddfb883d6bdc2cee4ee9f6c51715d70fffac66c74400c",
+    "self/pool/document-search.js": "e115b3bbc4c6573e57dfcf22c4faf5ae7f424d7e7596050ed0bece75e71d73c4",
+    "self/pool/local-pack-executor.js": "81e1b664ae742cb970d9535972f8985dec579f61fb6727f4c17c7adf9eb24c19",
+    "tests/fixtures/document-answer-support-corpus.json": "5e47defdbc6a20ce3e3cf232328eb4f5901ba6d4102a4e77bd61e8652c9c1764"
+  },
+  "unitTests": {
+    "passed": 2436,
+    "skipped": 35
+  },
+  "browserContractTests": {
+    "passed": 4,
+    "modelOutputs": "fixture"
+  },
+  "startup": {
+    "vendor": "apple",
+    "passed": 20,
+    "attempts": 20,
+    "modelExecution": false,
+    "independentMachines": false
+  },
+  "negativeControl": {
+    "requiredVendor": "amd",
+    "actualVendor": "apple",
+    "passed": false,
+    "attempts": 1,
+    "failureBoundary": "adapter-selected"
+  },
+  "unresolved": [
+    "public npm 0.6.0 publication and clean registry consumer verification",
+    "Reploid runtime repin and corresponding production qualification",
+    "frozen-corpus physical answer-support evaluation",
+    "useful specialist adapter quality and promotion",
+    "AMD startup reproduction and root cause",
+    "independently operated two- and three-machine journeys",
+    "independent adoption",
+    "measured residency optimization",
+    "history-routing evaluation before activation",
+    "distributed MoE after prerequisite gates"
+  ]
+}

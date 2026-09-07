@@ -19,11 +19,17 @@ export function createLocalPackExecutor({ service = DopplerRuntimeService, scope
   let retained = null;
   let ownsScope = false;
   let releasing = false;
+  const metrics = { preparations: 0, loadAttempts: 0, modelLoads: 0, modelReuses: 0, modelSwitches: 0,
+    completedOperations: 0, failedOperations: 0, prepareMs: 0, loadMs: 0, releaseMs: 0, executionMs: 0 };
+  const measure = async (field, operation) => {
+    const started = performance.now();
+    try { return await operation(); } finally { metrics[field] += performance.now() - started; }
+  };
   const releaseSession = async () => {
     retained = null;
     if (!ownsScope) return;
     releasing = true;
-    try { await service.close(scope); ownsScope = false; }
+    try { await measure('releaseMs', () => service.close(scope)); ownsScope = false; }
     catch (error) { disposed = true; throw error; }
     finally { releasing = false; }
   };
@@ -70,9 +76,10 @@ export function createLocalPackExecutor({ service = DopplerRuntimeService, scope
           assertCurrent();
           const modelKey = await hashDopplerEvidence(model);
           assertCurrent();
-          if (retained && retained.modelKey !== modelKey) await releaseSession();
+          if (retained && retained.modelKey !== modelKey) { metrics.modelSwitches++; await releaseSession(); }
           assertCurrent();
-          const prepared = await service.prepare(null, { bindingSchema: model.executablePack.schema });
+          metrics.preparations++;
+          const prepared = await measure('prepareMs', () => service.prepare(null, { bindingSchema: model.executablePack.schema }));
           assertCurrent();
           if (prepared.version !== model.runtimeVersion) throw new Error('Document Pack requires a different Doppler release');
           releasePolicy = await prepareRelease({ model });
@@ -80,23 +87,27 @@ export function createLocalPackExecutor({ service = DopplerRuntimeService, scope
           if (!retained) {
             ownsScope = true;
             if (typeof service[contract.openMethod] !== 'function') throw new Error(`Doppler service requires ${contract.openMethod}`);
-            const session = await service[contract.openMethod]({ scope, source: source.href,
-              options: { ...releasePolicy.options, acceptedTargetPlanDigests: model.executablePack.acceptedTargetPlanDigests } });
+            metrics.loadAttempts++;
+            const session = await measure('loadMs', () => service[contract.openMethod]({ scope, source: source.href,
+              options: { ...releasePolicy.options, acceptedTargetPlanDigests: model.executablePack.acceptedTargetPlanDigests } }));
+            metrics.modelLoads++;
             retained = { session, modelKey, modelId: model.modelId };
-          }
+          } else metrics.modelReuses++;
           const { session } = retained;
           assertCurrent();
           await assertPackSession(model.executablePack, session);
           if (session.modelId !== model.modelId) throw new Error('Loaded Pack model id mismatch');
           await releasePolicy.assertCurrent(session);
-          execution = await runPackOperation({ binding: model.executablePack, session, request,
+          execution = await measure('executionMs', () => runPackOperation({ binding: model.executablePack, session, request,
             runtimeVersion: model.runtimeVersion, signal: localController.signal, adapterArtifactStore, onPartial, beforeExecute,
-            assertCurrent: async () => { assertCurrent(); await assertAdaptersCurrent?.(); assertCurrent(); }, registry });
+            assertCurrent: async () => { assertCurrent(); await assertAdaptersCurrent?.(); assertCurrent(); }, registry }));
           assertCurrent();
           await releasePolicy.assertCurrent(session);
           assertCurrent();
           completed = true;
+          metrics.completedOperations++;
         } finally {
+          if (!completed) metrics.failedOperations++;
           try { if (!completed) await releaseSession(); } finally {
             try { releasePolicy?.close(); } finally {
               signal?.removeEventListener('abort', abort);
@@ -117,7 +128,7 @@ export function createLocalPackExecutor({ service = DopplerRuntimeService, scope
       });
     },
     getState() { return { active, draining: active && (controller?.signal.aborted === true || disposed || releasing),
-      disposed, retainedModelId: retained?.modelId ?? null }; },
+      disposed, retainedModelId: retained?.modelId ?? null, metrics: { ...metrics } }; },
     cancel() {
       ++epoch;
       if (controller) controller.abort(new Error('Document operation cancelled'));

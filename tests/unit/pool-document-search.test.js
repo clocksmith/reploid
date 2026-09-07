@@ -147,6 +147,12 @@ describe('local document search (synthetic Pack outputs)', () => {
     expect(f.calls).toHaveLength(3);
     expect(open).toHaveBeenCalledTimes(1);
     expect(f.closes()).toBe(0);
+    expect(executor.getState().metrics).toMatchObject({ loadAttempts: 1, modelLoads: 1,
+      modelReuses: 2, modelSwitches: 0, completedOperations: 3, failedOperations: 0 });
+    for (const field of ['prepareMs', 'loadMs', 'releaseMs', 'executionMs']) {
+      expect(Number.isFinite(executor.getState().metrics[field])).toBe(true);
+      expect(executor.getState().metrics[field]).toBeGreaterThanOrEqual(0);
+    }
     workflow.clear();
     await vi.waitFor(() => expect(executor.getState().active).toBe(false));
     expect(executor.getState().retainedModelId).toBe(null);

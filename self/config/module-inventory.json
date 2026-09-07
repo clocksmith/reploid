@@ -1020,6 +1020,12 @@
       "imports": []
     },
     {
+      "path": "pool/document-answer.js",
+      "owner": "pool",
+      "sha256": "sha256:7ff20b0dac7f9001488ddfb883d6bdc2cee4ee9f6c51715d70fffac66c74400c",
+      "imports": []
+    },
+    {
       "path": "pool/document-delegation.js",
       "owner": "pool",
       "sha256": "sha256:567123cbb38902087dd52ecabdbe10219159b1291aa6ed781af4f4b011375ed6",
@@ -1038,8 +1044,9 @@
     {
       "path": "pool/document-search.js",
       "owner": "pool",
-      "sha256": "sha256:ee3632e4c4344188ae4feb365d2806070475fb6859cb0e4a61c1cc464d351d33",
+      "sha256": "sha256:e115b3bbc4c6573e57dfcf22c4faf5ae7f424d7e7596050ed0bece75e71d73c4",
       "imports": [
+        "./document-answer.js",
         "./document-search-policy.json",
         "./executable-pack.js",
         "./operation-model.js",
@@ -1230,7 +1237,7 @@
     {
       "path": "pool/local-pack-executor.js",
       "owner": "pool",
-      "sha256": "sha256:e7c60bb918aa2520e058b68e19e6f374b590e5ca88b33b33432f6035eec968cd",
+      "sha256": "sha256:81e1b664ae742cb970d9535972f8985dec579f61fb6727f4c17c7adf9eb24c19",
       "imports": [
         "../config/doppler-execution-contracts.js",
         "../infrastructure/doppler-runtime-service.js",

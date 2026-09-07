@@ -368,6 +368,8 @@
     "pool/discovery-candidate-action.js",
     "pool/discovery-contract.js",
     "pool/dna-lane-admission.js",
+    "pool/document-answer.d.ts",
+    "pool/document-answer.js",
     "pool/document-delegation.d.ts",
     "pool/document-delegation.js",
     "pool/document-search-policy.json",

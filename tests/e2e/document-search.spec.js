@@ -1,16 +1,18 @@
 import { test, expect } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 import { createDocumentPackFixture } from '../fixtures/document-packs.js';
+import documentPolicy from '../../self/pool/document-search-policy.json' with { type: 'json' };
 
 // Real browser/UI and public operation consumer; injected model outputs, not GPU qualification.
-test('local document journey preserves protein UI, privacy, evidence, and experiment links', async ({ page }, testInfo) => {
+for (const answerText of ['Apple trees grow fruit. [1]', documentPolicy.answerAbstention]) {
+test(`local document journey preserves privacy and evidence with ${answerText === documentPolicy.answerAbstention ? 'abstention' : 'citations'}`, async ({ page }, testInfo) => {
   const fixture = await createDocumentPackFixture();
   const fixtureSource = (await readFile(new URL('../fixtures/document-packs.js', import.meta.url), 'utf8'))
     .replaceAll('../../self/', '/');
   await page.route('**/__fixtures__/document-packs.js', (route) => route.fulfill({ contentType: 'text/javascript', body: fixtureSource }));
   await page.route('**/__fixtures__/doppler.js', (route) => route.fulfill({ contentType: 'text/javascript', body: `
     import { createDocumentPackFixture } from '/__fixtures__/document-packs.js';
-    const fixture = await createDocumentPackFixture();
+    const fixture = await createDocumentPackFixture({ answerText: ${JSON.stringify(answerText)} });
     export const DOPPLER_VERSION = '0.5.1';
     export const dr = { open() { throw new Error('Legacy model opening is forbidden in this test'); },
       openPack: fixture.service.openPack };
@@ -56,7 +58,7 @@ test('local document journey preserves protein UI, privacy, evidence, and experi
   await page.locator('[data-document-answer]').check();
   await page.locator('[data-document-submit]').click();
   await expect(page.locator('[data-document-results] li').first()).toContainText('sea.txt');
-  await expect(page.locator('[data-document-answer-output]')).toHaveText('Apple trees grow fruit. [1]');
+  await expect(page.locator('[data-document-answer-output]')).toHaveText(answerText);
   expect(leaks).toEqual([]);
   await page.getByRole('link', { name: 'Recent jobs', exact: true }).click();
   await expect(page.locator('[data-document-history] li')).toHaveCount(2);
@@ -93,10 +95,11 @@ test('local document journey preserves protein UI, privacy, evidence, and experi
   await expect(page.locator('[data-document-query]')).toHaveValue('');
   await expect(page.locator('[data-document-submit]')).toBeDisabled();
 });
+}
 
 test('changed Reploid modules pass the actual Verification Worker', async ({ page }, testInfo) => {
   const paths = ['pool/model-contract.js', 'pool/operation-model.js', 'pool/local-pack-executor.js',
-    'pool/document-search.js', 'pool/pack-release-policy.js', 'infrastructure/pack-release-storage.js',
+    'pool/document-search.js', 'pool/document-answer.js', 'pool/pack-release-policy.js', 'infrastructure/pack-release-storage.js',
     'pool/pack-operation-adapters.js', 'ui/pool-home/document-search.js', 'ui/pool-home/index.js', 'ui/pool-home/view.js', 'ui/pool-home/controls.js'];
   const snapshot = Object.fromEntries(await Promise.all(paths.map(async (path) => [
     `/${path}`, await readFile(new URL(`../../self/${path}`, import.meta.url), 'utf8')

@@ -1,0 +1,71 @@
+{
+  "schema": "reploid.document-answer-support-corpus/v1",
+  "id": "engineering-evidence-2026-09-07",
+  "boundary": "Internally authored, frozen review corpus. No model execution or independent evaluation is claimed.",
+  "acceptance": {
+    "reviewEveryFactualSentence": true,
+    "requireCitedPassageSupport": true,
+    "allowUnsupportedFactualClaims": false,
+    "requireAbstentionWhenUnanswerable": true,
+    "requireCompleteCaseCoverage": true,
+    "citationSyntaxIsNotSemanticSupport": true
+  },
+  "cases": [
+    {
+      "id": "answerable-replay",
+      "category": "answerable",
+      "question": "What does the worker do when a completed attempt is requested again?",
+      "passages": [{ "id": "worker", "text": "A completed attempt stores its result and execution receipt. Requesting that same completed attempt returns the stored result without running the model again." }],
+      "review": { "supportedFacts": ["The stored result is returned.", "The model does not run again for that completed attempt."], "supportingPassages": ["worker"], "forbiddenInferences": ["Every interrupted attempt has a completed result."] }
+    },
+    {
+      "id": "answerable-consent",
+      "category": "answerable",
+      "question": "What must happen if the task text changes after approval?",
+      "passages": [{ "id": "consent", "text": "Approval binds the exact task text, recipient, and model. Changing any of those values invalidates the approval. The changed task needs a new preview and approval before transmission." }],
+      "review": { "supportedFacts": ["The earlier approval becomes invalid.", "A new preview and approval are required before transmission."], "supportingPassages": ["consent"], "forbiddenInferences": ["Changing task text retains approval if the topic is unchanged."] }
+    },
+    {
+      "id": "partial-deadline",
+      "category": "partially-answerable",
+      "question": "What is the request deadline, and how many requests per second can the service handle?",
+      "passages": [{ "id": "limits", "text": "The configured request deadline is 30 seconds. The service cancels work that exceeds that deadline." }],
+      "review": { "supportedFacts": ["The request deadline is 30 seconds."], "supportingPassages": ["limits"], "mustMarkUnknown": ["Requests per second."], "allowCompleteAbstention": true, "forbiddenInferences": ["The deadline determines request throughput."] }
+    },
+    {
+      "id": "partial-storage",
+      "category": "partially-answerable",
+      "question": "Where are cached chunks stored, and how much disk space is guaranteed?",
+      "passages": [{ "id": "cache", "text": "Verified model chunks are stored in the browser's origin-private file system. Cached chunks are checked before reuse." }],
+      "review": { "supportedFacts": ["Verified chunks use the browser's origin-private file system."], "supportingPassages": ["cache"], "mustMarkUnknown": ["A guaranteed disk capacity."], "allowCompleteAbstention": true, "forbiddenInferences": ["An unlimited or fixed disk allocation is guaranteed."] }
+    },
+    {
+      "id": "contradiction-port",
+      "category": "contradictory",
+      "question": "What is the default port?",
+      "passages": [{ "id": "guide-a", "text": "The default server port is 8000." }, { "id": "guide-b", "text": "The default server port is 8080." }],
+      "review": { "mustDescribeConflict": true, "conflictingPassages": ["guide-a", "guide-b"], "allowCompleteAbstention": true, "forbiddenInferences": ["Either guide is newer or authoritative.", "A single uncontested default is established."] }
+    },
+    {
+      "id": "contradiction-retention",
+      "category": "contradictory",
+      "question": "How long are completed results retained?",
+      "passages": [{ "id": "policy-a", "text": "Completed results are retained for seven days." }, { "id": "policy-b", "text": "Completed results are retained for thirty days." }],
+      "review": { "mustDescribeConflict": true, "conflictingPassages": ["policy-a", "policy-b"], "allowCompleteAbstention": true, "forbiddenInferences": ["One retention rule supersedes the other."] }
+    },
+    {
+      "id": "unanswerable-author",
+      "category": "unanswerable",
+      "question": "Who originally wrote this protocol?",
+      "passages": [{ "id": "protocol", "text": "The protocol identifies messages by room, sender, and message identifier. A receiver checks the signature before accepting the message." }],
+      "review": { "requireCompleteAbstention": true, "forbiddenInferences": ["Any author identity or organization."] }
+    },
+    {
+      "id": "unanswerable-quality",
+      "category": "unanswerable",
+      "question": "How much more accurate is the adapter than the base model?",
+      "passages": [{ "id": "adapter", "text": "The adapter contains 2,308,432 bytes. The runtime loaded its matrices and produced output tokens." }],
+      "review": { "requireCompleteAbstention": true, "forbiddenInferences": ["Any measured accuracy gain.", "Loading an adapter establishes task quality."] }
+    }
+  ]
+}
