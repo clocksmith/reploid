@@ -14,7 +14,9 @@ export interface LocalPackRun {
 }
 export interface LocalPackExecutor {
   run(request: LocalPackRun): Promise<PackOperationResult>;
-  getState(): { active: boolean; draining: boolean; disposed: boolean; retainedModelId: string | null };
+  getState(): { active: boolean; draining: boolean; disposed: boolean; retainedModelId: string | null;
+    metrics: { preparations: number; loadAttempts: number; modelLoads: number; modelReuses: number; modelSwitches: number;
+      completedOperations: number; failedOperations: number; prepareMs: number; loadMs: number; releaseMs: number; executionMs: number } };
   cancel(): void;
   close(): Promise<void>;
 }
