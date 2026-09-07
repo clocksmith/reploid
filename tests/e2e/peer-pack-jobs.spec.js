@@ -47,7 +47,7 @@ test('verified adapter bytes survive browser replacement with the supplier unava
   } finally { await context?.close(); await rm(profile, { recursive: true, force: true }); }
 });
 
-test('reviewed public task uses room discovery and WebRTC while private retrieval stays local', async ({ browser }, testInfo) => {
+for (const schema of ['doppler.pack/v2', 'doppler.capsule/v2']) test(`reviewed public task uses room discovery and WebRTC while private retrieval stays local (${schema})`, async ({ browser }, testInfo) => {
   const context = await browser.newContext();
   const requester = await context.newPage(), provider = await context.newPage();
   const pages = [provider, requester];
@@ -55,10 +55,10 @@ test('reviewed public task uses room discovery and WebRTC while private retrieva
   try {
     for (const page of pages) page.on('pageerror', error => pageErrors.push(error.message));
     await Promise.all(pages.map(page => page.goto(origin)));
-    for (const [index, page] of pages.entries()) await page.evaluate(async ({ role, roomId }) => {
+    for (const [index, page] of pages.entries()) await page.evaluate(async ({ role, roomId, schema }) => {
       window.fixture = await import('/tests/fixtures/operation-room-browser.js');
-      await window.fixture.start({ role, roomId });
-    }, { role: index === 0 ? 'provider' : 'requester', roomId: 'document-delegation-proof' });
+      await window.fixture.start({ role, roomId, schema });
+    }, { role: index === 0 ? 'provider' : 'requester', roomId: 'document-delegation-proof', schema });
     const configuration = await provider.evaluate(() => window.fixture.configuration());
     await provider.locator('[data-operation-sharing] summary').click();
     await provider.locator('[data-operation-settings]').setInputFiles({ name: 'models.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(configuration)) });
@@ -92,6 +92,7 @@ test('reviewed public task uses room discovery and WebRTC while private retrieva
     expect(local.calls.at(-1).input.prompt).toContain('PRIVATE-SOURCE-TRIPWIRE');
     expect(local.calls.at(-1).input.prompt).toContain('A public drafting suggestion.');
     expect(remote.calls).toHaveLength(1);
+    expect(local.workflow.result.remoteExecution.execution.receipt[schema === 'doppler.capsule/v2' ? 'capsule' : 'pack'].schema).toBe(schema);
     expect(remote.calls[0].input).toEqual({ prompt: task + ' Edited.' });
     expect(JSON.stringify(remote)).not.toMatch(/PRIVATE-(SOURCE|FILENAME|QUESTION)-TRIPWIRE/);
     expect(JSON.stringify([...local.relay, ...remote.relay])).not.toContain('PUBLIC-TASK-TRIPWIRE');
@@ -152,10 +153,11 @@ test('Verification Worker accepts complete-job modules and modified execution bo
     const snapshot = {};
     for (const file of ['peer-pack-job.js', 'peer-pack-job-policy.js', 'peer-capabilities.js', 'peer-planning.js', 'peer-room.js', 'peer-control-plane.js', 'peer-pack-provider.js', 'peer-pack-requester.js', 'peer-pack-job-channel.js',
       'peer-pack-episode.js', 'peer-pack-session.js', 'pack-operation.js', 'pack-operation-adapters.js', 'pack-operation-policy.js', 'config-contract.js', 'operation-model.js', 'local-pack-executor.js', 'provider-client.js', 'requester-client.js',
-      'adapter-execution.js', 'adapter-execution-policy.js', 'peer-adapter-execution.js', 'operation-acceptance.js', 'document-search.js', 'document-delegation.js', 'operation-room-network.js', 'operation-participation.js', 'peer-pack-custody.js']) {
+      'adapter-execution.js', 'adapter-execution-policy.js', 'peer-adapter-execution.js', 'operation-acceptance.js', 'document-search.js', 'document-delegation.js', 'operation-room-network.js', 'operation-participation.js', 'peer-pack-custody.js', 'executable-pack.js', 'pack-release-policy.js', 'doppler-runtime.js']) {
       snapshot[`/pool/${file}`] = await (await fetch(`/self/pool/${file}`)).text();
     }
     snapshot['/infrastructure/pack-job-storage.js'] = await (await fetch('/self/infrastructure/pack-job-storage.js')).text();
+    for (const file of ['infrastructure/doppler-runtime-service.js', 'config/doppler-execution-contracts.js']) snapshot[`/${file}`] = await (await fetch(`/self/${file}`)).text();
     for (const file of ['document-search.js', 'index.js', 'view.js', 'operation-sharing.js']) snapshot[`/ui/pool-home/${file}`] = await (await fetch(`/self/ui/pool-home/${file}`)).text();
     for (const file of ['peer-pack-operation.js', 'peer-pack-job-browser.js', 'peer-pack-browser.js', 'peer-pack-remote-execution.js', 'peer-pack-journal-browser.js']) snapshot[`/tests/fixtures/${file}`] = await (await fetch(`/tests/fixtures/${file}`)).text();
     const worker = new Worker('/core/verification-worker.js');

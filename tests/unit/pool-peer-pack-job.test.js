@@ -52,7 +52,7 @@ function memoryJournal() {
 }
 
 async function setup(name, registry, tweaks = {}) {
-  const f = await operationFixture(name, registry);
+  const f = await operationFixture(name, registry, tweaks.schema);
   if (tweaks.adapted) {
     Object.assign(f, await peerAdapterFixture(f.model));
     const adapterRegistry = createAdapterRegistry();
@@ -106,19 +106,23 @@ describe('signed remote Pack jobs with synthetic model outputs', () => {
       expect(active.calls()).toBe(1);
     } finally { await active.close(); }
   });
-  it('executes an exact adapter and replays its durable result without reactivation', async () => {
+  it.each(['doppler.pack/v2', 'doppler.capsule/v2'])('executes an exact adapter and replays its durable result without reactivation (%s)', async schema => {
     let dropped = false;
-    const f = await setup('generate', undefined, { adapted: true, dropResponse(message) {
+    const f = await setup('generate', undefined, { schema, adapted: true, dropResponse(message) {
       if (!dropped && message.body.status === 'completed') { dropped = true; return true; }
       return false;
     } });
     try {
-      const result = await f.requester.run(f.args);
+      const result = await f.requester.run({ ...f.args, acceptanceMode: 'execution', comparisonPolicy: null, reference: null });
       expect(result.execution.receipt.adapterReceipts[0].identity).toBe(f.entry.identity);
+      const api = schema === 'doppler.capsule/v2' ? 'capsule' : 'pack';
+      expect(result.execution.receipt.schema).toBe(`doppler.${api}-operation-receipt/v1`);
+      expect(result.execution.request.adapterSet[0].schema).toBe(`doppler.${api}-adapter/v1`);
+      expect(result.execution.request.adapterSet[0].baseModel.semanticRoot).toBe(f.model.executablePack.semanticRoot);
       expect(f.calls()).toBe(1);
       expect(f.sent.filter(message => message.body.schema === 'reploid.peer.pack_job/v4')).toHaveLength(2);
       expect((await verifyPackPeerEpisode({ job: result.job, updates: result.updates,
-        acceptance: result.acceptance, reference: f.output, models: [f.model] })).accepted).toBe(true);
+        acceptance: result.acceptance, reference: null, models: [f.model] })).accepted).toBe(true);
     } finally { await f.close(); }
   });
 
