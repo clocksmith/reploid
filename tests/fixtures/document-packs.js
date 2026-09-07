@@ -10,19 +10,28 @@ export async function createDocumentPackFixture({ answerText = 'Apple trees grow
   const identity = { schema, [contract.identityFields[1]]: 'fixture', semanticRoot: digest('b'),
     envelopeDigest: digest('c'), artifactClosureDigest: await hashDopplerEvidence(artifacts) };
   const targetPlanDigest = digest('d');
+  const releaseEvent = { sequence: 1, issuedAtUtc: '2026-01-01T00:00:00.000Z',
+    expiresAtUtc: '2099-01-01T00:00:00.000Z', signature: { authority: 'fixture' } };
+  const checkpoint = { sequence: 1, digest: digest('e') };
   const binding = (operation) => ({ ...identity, artifacts, requiredOperation: operation, acceptedTargetPlanDigests: [targetPlanDigest] });
   const model = (operation) => ({ modelId: 'fixture', runtime: 'doppler', runtimeVersion, backend: 'browser-webgpu',
     executionMode: PACK_EXECUTION_MODE, workload: PACK_OPERATION_WORKLOADS[operation], modelHash: identity.semanticRoot,
     manifestHash: identity.envelopeDigest, executablePack: binding(operation), packSource: 'https://fixtures.invalid/pack.json',
-    packOpenOptions: { trustedSigners: { fixture: { kty: 'OKP', crv: 'Ed25519', x: 'fixture' } } },
+    packOpenOptions: { trustedSigners: { fixture: { kty: 'OKP', crv: 'Ed25519', x: 'fixture' } },
+      ...(contract.releaseHistory ? { releaseEvents: [releaseEvent], releasePolicy: { minimumSequence: 1 } } : {}) },
     application: { applicationId: `synthetic-document-${operation}` } });
   const calls = [];
   let closes = 0;
   const service = {
     prepare: async () => ({ version: runtimeVersion }),
     close: async () => { closes++; },
-    [contract.openMethod]: async () => ({ schema: contract.sessionSchema, loaded: true, modelId: 'fixture', [contract.sessionIdentity]: identity,
-      selectedTargetPlanDigest: targetPlanDigest, verification: { artifactReceipts: artifacts.map(({ artifactId, hash, sizeBytes }) => ({ artifactId, hash, sizeBytes })) },
+    [contract.openMethod]: async (_source, options) => {
+      // Synthetic Doppler verification; exercise the real application checkpoint persistence.
+      if (contract.releaseHistory) await options.persistReleaseCheckpoint(checkpoint);
+      return { schema: contract.sessionSchema, loaded: true, modelId: 'fixture', [contract.sessionIdentity]: identity,
+      selectedTargetPlanDigest: targetPlanDigest, verification: {
+        artifactReceipts: artifacts.map(({ artifactId, hash, sizeBytes }) => ({ artifactId, hash, sizeBytes })),
+        ...(contract.releaseHistory ? { lifecycle: { event: releaseEvent, checkpoint } } : {}) },
       async *executeOperation(request) {
         calls.push(request);
         const output = request.operation.name === 'generate'
@@ -43,7 +52,7 @@ export async function createDocumentPackFixture({ answerText = 'Apple trees grow
           requestHash, assignmentHash, eventIndex: 0, previousEventDigest: null, status: 'completed', output, receipt };
         yield { ...body, eventDigest: await hashDopplerEvidence(body) };
       }
-    })
+    }; }
   };
   return { service, calls, closes: () => closes, configuration: {
     schema: 'reploid.document-models/v1', queryPrefix: '', embedding: model('embed'), reranker: model('rerank'),

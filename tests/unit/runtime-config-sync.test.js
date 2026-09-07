@@ -51,7 +51,7 @@ const createFixture = () => ({
     packages: {
       '': { dependencies: { 'doppler-gpu': DOPPLER_PACKAGE_SPEC } },
       'node_modules/doppler-gpu': {
-        version: '0.5.1',
+        version: '0.6.0',
         resolved: DOPPLER_PACKAGE_TARBALL_URL,
         integrity: DOPPLER_PACKAGE_INTEGRITY
       }
@@ -63,10 +63,10 @@ describe('runtime config synchronization', () => {
   it('projects the canonical Doppler runtime into Pool and deployment mirrors', () => {
     const synchronized = synchronizeRuntimeConfig(createFixture());
 
-    expect(synchronized.poolConfig.configVersion).toBe('2026-07-24.doppler-0.5.1.v1');
+    expect(synchronized.poolConfig.configVersion).toBe('2026-07-24.doppler-0.6.0.v1');
     expect(synchronized.poolConfig.launchModel.runtimeCompatibility).toMatchObject({
-      capabilityFallbacks: [{ runtime: 'doppler-gpu@0.5.1' }],
-      capabilityAction: 'Use doppler-gpu@0.5.1 or newer.'
+      capabilityFallbacks: [{ runtime: 'doppler-gpu@0.6.0' }],
+      capabilityAction: 'Use doppler-gpu@0.6.0 or newer.'
     });
     expect(synchronized.deploymentConfig.runtimeEnv).toMatchObject({
       REPLOID_POOL_MODEL_BASE_URL: 'https://models.example.test',
@@ -90,7 +90,7 @@ describe('runtime config synchronization', () => {
     const synchronized = synchronizeRuntimeConfig(fixture);
 
     expect(synchronized.poolConfig.configVersion)
-      .toBe('2026-08-01.sequence-model-contracts.v1.doppler-0.5.1');
+      .toBe('2026-08-01.sequence-model-contracts.v1.doppler-0.6.0');
   });
 
   it('rejects package metadata that is not an exact integrity-bound pin', () => {

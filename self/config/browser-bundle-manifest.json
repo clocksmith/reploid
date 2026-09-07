@@ -1221,7 +1221,7 @@
     {
       "path": "config/doppler-local-models.js",
       "byteLength": 2383,
-      "sha256": "sha256:db84547c0cd70a5f7def01a2997a2fa623b0757ce7c6b166714791dab0f61a1d"
+      "sha256": "sha256:b943afe6083f94d187281a27b4fe288bc869ab5a0852baf62c2d59332e7d433b"
     },
     {
       "path": "config/genesis-levels.json",
@@ -1266,7 +1266,7 @@
     {
       "path": "config/module-inventory.json",
       "byteLength": 94439,
-      "sha256": "sha256:d8ca258a2c0d4f62a9dadf8b2962b7cda7e79430a003d2400af42d68807c4639"
+      "sha256": "sha256:ff5c925e4440dd3d3a73eac2a604997ea7e6b71521788230675b127af2b1bebb"
     },
     {
       "path": "config/module-registry.json",
@@ -2371,7 +2371,7 @@
     {
       "path": "pool/pool-config.json",
       "byteLength": 67447,
-      "sha256": "sha256:7ee5855abce6df40da15eb8eb059ceb851cf93f30d6ee86a064594c27c1a6f4c"
+      "sha256": "sha256:9741213d9ad34b832a9ca2a8e910d13d2da6a544d18de6c2ac20195d2a1d71f7"
     },
     {
       "path": "pool/protein-uncertainty-campaign.js",
@@ -3229,5 +3229,5 @@
       "sha256": "sha256:f0839f1a37e68e05baa3bd3823460bc9d742420485f12ae03979781adbb865ca"
     }
   ],
-  "bundleHash": "sha256:35a0eb488e262ca3cdfcaf035cbd7ba2241f88fe55cebe602473898873fd0f5c"
+  "bundleHash": "sha256:f6d5ec38b13e4fbf1aab42116f4ad2d78b5779c4139a3c865549703dd1c9518a"
 }

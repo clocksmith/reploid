@@ -6,16 +6,15 @@ import documentPolicy from '../../self/pool/document-search-policy.json' with { 
 // Real browser/UI and public operation consumer; injected model outputs, not GPU qualification.
 for (const answerText of ['Apple trees grow fruit. [1]', documentPolicy.answerAbstention]) {
 test(`local document journey preserves privacy and evidence with ${answerText === documentPolicy.answerAbstention ? 'abstention' : 'citations'}`, async ({ page }, testInfo) => {
-  const fixture = await createDocumentPackFixture();
+  const fixture = await createDocumentPackFixture({ schema: 'doppler.capsule/v3', runtimeVersion: '0.6.0' });
   const fixtureSource = (await readFile(new URL('../fixtures/document-packs.js', import.meta.url), 'utf8'))
     .replaceAll('../../self/', '/');
   await page.route('**/__fixtures__/document-packs.js', (route) => route.fulfill({ contentType: 'text/javascript', body: fixtureSource }));
   await page.route('**/__fixtures__/doppler.js', (route) => route.fulfill({ contentType: 'text/javascript', body: `
     import { createDocumentPackFixture } from '/__fixtures__/document-packs.js';
-    const fixture = await createDocumentPackFixture({ answerText: ${JSON.stringify(answerText)} });
-    export const DOPPLER_VERSION = '0.5.1';
-    export const dr = { open() { throw new Error('Legacy model opening is forbidden in this test'); },
-      openPack: fixture.service.openPack };
+    const fixture = await createDocumentPackFixture({ answerText: ${JSON.stringify(answerText)}, schema: 'doppler.capsule/v3', runtimeVersion: '0.6.0' });
+    export const DOPPLER_VERSION = '0.6.0';
+    export const openCapsule = fixture.service.openCapsule;
   ` }));
   await page.addInitScript(() => { window.REPLOID_DOPPLER_MODULE_URL = '/__fixtures__/doppler.js'; });
   const leaks = [];
@@ -98,7 +97,7 @@ test(`local document journey preserves privacy and evidence with ${answerText ==
 }
 
 test('changed Reploid modules pass the actual Verification Worker', async ({ page }, testInfo) => {
-  const paths = ['pool/model-contract.js', 'pool/operation-model.js', 'pool/local-pack-executor.js',
+  const paths = ['config/doppler-local-models.js', 'pool/model-contract.js', 'pool/operation-model.js', 'pool/local-pack-executor.js',
     'pool/document-search.js', 'pool/document-answer.js', 'pool/pack-release-policy.js', 'infrastructure/pack-release-storage.js',
     'pool/pack-operation-adapters.js', 'ui/pool-home/document-search.js', 'ui/pool-home/index.js', 'ui/pool-home/view.js', 'ui/pool-home/controls.js'];
   const snapshot = Object.fromEntries(await Promise.all(paths.map(async (path) => [
