@@ -98,6 +98,8 @@ test(`local document journey preserves privacy and evidence with ${answerText ==
 
 test('changed Reploid modules pass the actual Verification Worker', async ({ page }, testInfo) => {
   const paths = ['config/doppler-local-models.js', 'pool/model-contract.js', 'pool/operation-model.js', 'pool/local-pack-executor.js',
+    'pool/doppler-runtime.js', 'pool/evidence-normalization.js', 'pool/model-artifacts.js', 'pool/capsule-artifact-cache.js',
+    'infrastructure/capsule-artifact-storage.js',
     'pool/document-search.js', 'pool/document-answer.js', 'pool/pack-release-policy.js', 'infrastructure/pack-release-storage.js',
     'pool/pack-operation-adapters.js', 'ui/pool-home/document-search.js', 'ui/pool-home/index.js', 'ui/pool-home/view.js', 'ui/pool-home/controls.js'];
   const snapshot = Object.fromEntries(await Promise.all(paths.map(async (path) => [

@@ -181,6 +181,8 @@ export const normalizeModelContract = (model = {}) => {
     runtimeCompatibility: clone(model.runtimeCompatibility || model.requirements?.runtimeCompatibility || null),
     runtimeContract: clone(model.runtimeContract || model.requirements?.runtimeContract || null),
     artifactIdentity: clone(model.artifactIdentity || model.requirements?.artifactIdentity || null),
+    ...(model.executablePack || model.requirements?.executablePack
+      ? { executablePack: clone(model.executablePack || model.requirements.executablePack) } : {}),
     license: clone(model.license || model.requirements?.license || null),
     admission: clone(model.admission || model.requirements?.admission || null)
   };

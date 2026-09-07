@@ -30,6 +30,7 @@ import {
 import { verifyDopplerPersistentModelCache } from './model-cache-integrity.js';
 import { DopplerRuntimeService } from '../infrastructure/doppler-runtime-service.js';
 import { assertPackSession, assertPackReceipt, executablePacksMatch } from './executable-pack.js';
+import { openCapsuleArtifactCache } from './capsule-artifact-cache.js';
 import { resolveDopplerExecutionContract } from '../config/doppler-execution-contracts.js';
 import { SEQUENCE_WORKLOADS } from './sequence-workload.js';
 
@@ -460,6 +461,13 @@ const artifactIdentityMatches = (expected = {}, actual = {}) => (
 
 const assertHandleMatchesDescriptor = async (handle, descriptor = {}) => {
   const evidence = await getHandleModelEvidence(handle);
+  if (descriptor.executablePack) {
+    const contract = resolveDopplerExecutionContract(descriptor.executablePack.schema);
+    const identity = handle[contract.sessionIdentity];
+    evidence.modelHash = identity.semanticRoot;
+    evidence.manifestHash = identity.envelopeDigest;
+    evidence.declaredManifestHash = identity.envelopeDigest;
+  }
   const assertField = (field, expected, actual) => {
     if (!hasIdentityValue(expected)) return;
     if (!hasIdentityValue(actual)) {
@@ -863,6 +871,7 @@ export function createDopplerRuntime({
   const serviceScope = 'pool:provider';
   let session = modelSession;
   let sessionOwnedByService = false;
+  let capsuleCache = null;
   let modelInfo = model;
   let runtimeInfo = normalizeRuntimeInfo(runtime, modelSession);
   let loadState = session ? 'loaded' : 'empty';
@@ -992,16 +1001,25 @@ export function createDopplerRuntime({
         const module = await loadDopplerModule();
         if (nextModel.executablePack) {
           const contract = resolveDopplerExecutionContract(nextModel.executablePack.schema);
-          const handle = await DopplerRuntimeService[contract.openMethod]({
-            scope: serviceScope,
-            source: nextModel.packSource,
-            options: { ...nextModel.packOpenOptions, acceptedTargetPlanDigests: nextModel.executablePack.acceptedTargetPlanDigests },
-            module
-          });
+          capsuleCache?.close();
+          capsuleCache = null;
           try {
-            return await attachHandle(handle, nextModel, { ...runtimeInfo, version: module.DOPPLER_VERSION }, { ownedByService: true });
+            if (nextModel.artifactPolicy?.cache === 'browser_opfs') {
+              capsuleCache = await openCapsuleArtifactCache({ model: nextModel });
+            }
+            const handle = await DopplerRuntimeService[contract.openMethod]({
+              scope: serviceScope,
+              source: capsuleCache?.capsule || nextModel.packSource,
+              options: { ...nextModel.packOpenOptions,
+                ...(capsuleCache ? { artifactStore: capsuleCache.artifactStore } : {}),
+                acceptedTargetPlanDigests: nextModel.executablePack.acceptedTargetPlanDigests },
+              module
+            });
+            return await attachHandle(handle, nextModel, { ...runtimeInfo, version: module.DOPPLER_VERSION,
+              persistentCache: capsuleCache?.getReceipt() || null }, { ownedByService: true });
           } catch (error) {
-            await DopplerRuntimeService.close(serviceScope);
+            try { await DopplerRuntimeService.close(serviceScope); }
+            finally { capsuleCache?.close(); capsuleCache = null; }
             throw error;
           }
         }
@@ -1320,12 +1338,14 @@ export function createDopplerRuntime({
       deviceInfo = null;
       runtimeInfo = normalizeRuntimeInfo(runtime, null);
       loadState = 'empty';
-      if (ownedByService) {
-        await DopplerRuntimeService.close(serviceScope);
-      } else {
-        await activeSession?.close?.();
-        await activeSession?.unload?.();
-      }
+      try {
+        if (ownedByService) {
+          await DopplerRuntimeService.close(serviceScope);
+        } else {
+          await activeSession?.close?.();
+          await activeSession?.unload?.();
+        }
+      } finally { capsuleCache?.close(); capsuleCache = null; }
       return {
         ok: true,
         status: 'closed',

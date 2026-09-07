@@ -1,3 +1,4 @@
+import { makeSyntheticSequenceReceipt } from '../helpers/pool-sequence-fixture.js';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import {
@@ -180,6 +181,7 @@ const fetchableAdapterRequirement = () => ({
 });
 
 const createFakeSequenceExecution = async ({
+  assignment,
   sequence,
   request,
   outputText = '',
@@ -207,6 +209,7 @@ const createFakeSequenceExecution = async ({
   };
   const sequenceResultHash = await hashJson(sequenceResult);
   return {
+    dopplerProviderReceipt: await makeSyntheticSequenceReceipt({ assignment, sequence, output: sequenceResult }),
     outputKind: request.workload,
     outputText,
     tokenIds,
@@ -289,9 +292,10 @@ const fakeRuntime = ({ generate = null } = {}) => {
       probeStatus: 'ok'
     }),
     generate: run,
-    async encodeSequence({ sequence, request }) {
+    async encodeSequence({ sequence, request, assignment }) {
       const legacy = await run({ prompt: sequence });
       return createFakeSequenceExecution({
+        assignment,
         sequence,
         request,
         outputText: legacy.outputText || '',
@@ -344,8 +348,8 @@ const fakeSequenceRuntime = () => {
       hasWebGPU: true,
       probeStatus: 'ok'
     }),
-    async encodeSequence({ sequence, request }) {
-      return createFakeSequenceExecution({ sequence, request });
+    async encodeSequence({ sequence, request, assignment }) {
+      return createFakeSequenceExecution({ sequence, request, assignment });
     }
   };
 };

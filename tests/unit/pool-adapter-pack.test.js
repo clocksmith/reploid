@@ -47,6 +47,7 @@ import { verifyReceipt } from '../../server/pool/verifier.js';
 import {
   TEST_PUBLIC_PROTEIN_SEQUENCE,
   makePublicProteinJobFields,
+  makeSyntheticSequenceReceipt,
   makeSequenceExecution
 } from '../helpers/pool-sequence-fixture.js';
 
@@ -351,13 +352,16 @@ describe('governed Poolday adapter packs', () => {
       model: { ...LAUNCH_MODEL },
       runtime: { version: '0.4.10' },
       modelSession: {
-        encodeSequence: vi.fn().mockResolvedValue({
+        encodeSequence: vi.fn(async (sequence, { assignment }) => {
+          const output = {
           alphabet: 'amino_acid',
           tokens: Uint32Array.from({ length: TEST_PUBLIC_PROTEIN_SEQUENCE.length }, (_, index) => index % 33),
           includedTokenCount: TEST_PUBLIC_PROTEIN_SEQUENCE.length,
           pooledEmbedding: new Float32Array([0.25, -0.5, 0.75]),
           embeddingDim: 3,
           vocabSize: 33
+          };
+          return { ...output, receipt: await makeSyntheticSequenceReceipt({ assignment, sequence, output }) };
         }),
         loadLoRA,
         unloadLoRA: vi.fn().mockResolvedValue({ ok: true })

@@ -4,6 +4,7 @@ import { createPeerPackSupplier } from '../../self/pool/peer-pack-custody.js';
 import { openPeerPack } from '../../self/pool/peer-pack-session.js';
 import { createPeerPackDataChannel } from '../../self/pool/peer-pack-data-channel.js';
 import { createReploidDopplerRuntimeService } from '../../self/infrastructure/doppler-runtime-service.js';
+import { resolveDopplerExecutionContract } from '../../self/config/doppler-execution-contracts.js';
 
 let key;
 let supplier;
@@ -138,9 +139,7 @@ export function assertPhysicalAdapter(adapter) {
 
 export async function execute({ authorization, index, inventories, trustedSigners, sequence, options, dopplerVersion, operationLimits,
   interruptAfterWeightResponses = null, serveRemoteOperation = false, remoteResources = null }) {
-  const api = await import('/doppler/src/client/doppler-api.browser.js');
-  const { DOPPLER_VERSION } = await import('/doppler/src/version.js');
-  const module = { ...api, DOPPLER_VERSION };
+  const module = await import('/doppler/src/index.js');
   const service = createReploidDopplerRuntimeService({ loadModule: async () => module, expectedVersion: dopplerVersion });
   const report = { passed: false, stage: 'peer-reconstruction', binding: authorization.pack };
   let peer;
@@ -165,7 +164,8 @@ export async function execute({ authorization, index, inventories, trustedSigner
     const session = peer.session;
     report.stage = 'complete-model-execution';
     const { assignment, ...operationOptions } = options;
-    report.operationExecution = await peer.run({ schema: 'doppler.pack-operation-request/v1', operation: { name: 'encodeSequence', version: 1 },
+    const contract = resolveDopplerExecutionContract(authorization.pack.schema);
+    report.operationExecution = await peer.run({ schema: contract.requestSchema, operation: { name: 'encodeSequence', version: 1 },
         input: { sequence }, options: operationOptions, assignment,
         limits: { ...operationLimits, deadlineAt: authorization.expiresAt } });
     report.result = { ...report.operationExecution.output, receipt: report.operationExecution.receipt };

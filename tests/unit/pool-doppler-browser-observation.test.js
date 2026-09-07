@@ -9,7 +9,7 @@ const observation = JSON.parse(await readFile(
   resolve('docs/status/esm2-35m-browser-protein-observation-2026-08-02.json'),
   'utf8'
 ));
-const model = getPoolModelContract('esm2-t12-35m-ur50d-f32-af32');
+const model = JSON.parse(await readFile(resolve('tests/fixtures/legacy-esm2-model.json'), 'utf8')).model;
 
 describe('Poolday persisted Doppler protein browser observation', () => {
   it('retains real ESM-2 browser evidence without treating it as promotable', () => {

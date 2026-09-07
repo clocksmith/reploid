@@ -159,7 +159,7 @@ describe('pool peer control plane', () => {
     expect(advert.body.models[0]).toMatchObject({
       modelId: 'esm2-t12-35m-ur50d-f32-af32',
       workload: 'sequence.embedding.v1',
-      executionMode: 'full_model_browser_sequence',
+      executionMode: 'complete_pack_browser',
       sequence: {
         alphabet: 'amino_acid',
         pooledEmbedding: { mode: 'mean' }

@@ -13,6 +13,7 @@ describe('Poolday configuration contract', () => {
     const model = invalid.modelCatalog.find((row) => row.modelId === invalid.launchModelId);
     model.executablePack = { schema: 'doppler.pack/v3' };
     delete model.dopplerLoadRef;
+    delete model.packSource;
     const validation = validatePoolConfigValue(invalid);
     expect(validation.ok).toBe(false);
     expect(validation.reasons.some((reason) => reason.includes('Pack'))).toBe(true);
