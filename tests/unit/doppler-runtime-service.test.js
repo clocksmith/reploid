@@ -64,7 +64,7 @@ describe('Reploid DopplerRuntimeService', () => {
 
   it('opens signed Packs without legacy fallback or stale session reuse', async () => {
     const fixture = makeModule();
-    const service = createReploidDopplerRuntimeService({ loadModule: async () => fixture.module });
+    const service = createReploidDopplerRuntimeService({ expectedVersion: '0.5.1', loadModule: async () => fixture.module });
     await expect(service.openPack({ source: 'pack' })).rejects.toThrow('cannot fall back');
     expect(fixture.module.dr.open).not.toHaveBeenCalled();
     fixture.module.dr.openPack = vi.fn(async () => ({ schema: 'doppler.pack-session/v1', loaded: true, close: vi.fn() }));
@@ -81,7 +81,7 @@ describe('Reploid DopplerRuntimeService', () => {
   it('serializes concurrent Pack replacements in one scope', async () => {
     const fixture = makeModule();
     fixture.module.dr.openPack = vi.fn(async (source) => ({ schema: 'doppler.pack-session/v1', source, loaded: true, close: vi.fn() }));
-    const service = createReploidDopplerRuntimeService({ loadModule: async () => fixture.module });
+    const service = createReploidDopplerRuntimeService({ expectedVersion: '0.5.1', loadModule: async () => fixture.module });
     const [first, second] = await Promise.all([service.openPack({ source: 'first' }), service.openPack({ source: 'second' })]);
     expect(first.close).toHaveBeenCalledTimes(1);
     expect(service.get()).toBe(second);
@@ -91,7 +91,7 @@ describe('Reploid DopplerRuntimeService', () => {
   it('owns one scoped session and closes it idempotently', async () => {
     const fixture = makeModule();
     const service = createReploidDopplerRuntimeService({
-      loadModule: async () => fixture.module
+      expectedVersion: '0.5.1', loadModule: async () => fixture.module
     });
     const first = await service.open({ scope: 'pool:model', source: 'model' });
     const second = await service.open({ scope: 'pool:model', source: 'model' });
@@ -105,7 +105,7 @@ describe('Reploid DopplerRuntimeService', () => {
   it('keeps local, Poolday, and Zero ownership scopes independent', async () => {
     const fixture = makeModule();
     const service = createReploidDopplerRuntimeService({
-      loadModule: async () => fixture.module
+      expectedVersion: '0.5.1', loadModule: async () => fixture.module
     });
     await service.open({ scope: 'local', source: 'text-model' });
     await service.open({ scope: 'pool:protein', source: 'esm-model' });
@@ -120,9 +120,9 @@ describe('Reploid DopplerRuntimeService', () => {
         dr: { open: vi.fn() }
       })
     });
-    await expect(wrong.open({ source: 'model' })).rejects.toThrow('requires Doppler 0.5.1');
+    await expect(wrong.open({ source: 'model' })).rejects.toThrow('requires Doppler 0.6.0');
 
-    const legacy = createReploidDopplerRuntimeService({
+    const legacy = createReploidDopplerRuntimeService({ expectedVersion: '0.5.1',
       loadModule: async () => ({
         DOPPLER_VERSION: '0.5.1',
         dr: { load: vi.fn() }
@@ -143,7 +143,7 @@ describe('Reploid DopplerRuntimeService', () => {
         session.loaded = false;
       })
     };
-    const service = createReploidDopplerRuntimeService({
+    const service = createReploidDopplerRuntimeService({ expectedVersion: '0.5.1',
       loadModule: async () => ({
         DOPPLER_VERSION: '0.5.1',
         dr: {

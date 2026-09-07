@@ -27,13 +27,13 @@ const packageLock = JSON.parse(readFileSync('package-lock.json', 'utf8'));
 describe('local Doppler model contract', () => {
   it('exposes Qwen as the only local Doppler option for now', () => {
     expect(DOPPLER_PACKAGE_NAME).toBe('doppler-gpu');
-    expect(DOPPLER_PACKAGE_VERSION).toBe('0.5.1');
+    expect(DOPPLER_PACKAGE_VERSION).toBe('0.6.0');
     expect(DOPPLER_BROWSER_RUNTIME_VERSION).toBe(DOPPLER_PACKAGE_VERSION);
-    expect(DOPPLER_BROWSER_RELEASE_REF).toBe('doppler-gpu@0.5.1');
-    expect(DOPPLER_MODULE_URL).toBe('https://cdn.jsdelivr.net/npm/doppler-gpu@0.5.1/src/index.js');
-    expect(DOPPLER_KERNEL_BASE_URL).toBe('https://cdn.jsdelivr.net/npm/doppler-gpu@0.5.1/src/gpu/kernels');
-    expect(DOPPLER_TOOLING_URL).toBe('https://cdn.jsdelivr.net/npm/doppler-gpu@0.5.1/src/tooling-exports.browser.js');
-    expect(DOPPLER_STORAGE_TOOLING_URL).toBe('https://cdn.jsdelivr.net/npm/doppler-gpu@0.5.1/src/tooling-exports/storage.js');
+    expect(DOPPLER_BROWSER_RELEASE_REF).toBe('doppler-gpu@0.6.0');
+    expect(DOPPLER_MODULE_URL).toBe('https://cdn.jsdelivr.net/npm/doppler-gpu@0.6.0/src/index.js');
+    expect(DOPPLER_KERNEL_BASE_URL).toBe('https://cdn.jsdelivr.net/npm/doppler-gpu@0.6.0/src/gpu/kernels');
+    expect(DOPPLER_TOOLING_URL).toBe('https://cdn.jsdelivr.net/npm/doppler-gpu@0.6.0/src/tooling-exports.browser.js');
+    expect(DOPPLER_STORAGE_TOOLING_URL).toBe('https://cdn.jsdelivr.net/npm/doppler-gpu@0.6.0/src/tooling-exports/storage.js');
     expect(DEFAULT_DOPPLER_MODEL_ID).toBe('qwen-3-5-2b-q4k-ehaf16');
     expect(LOCAL_DOPPLER_MODELS.map((model) => model.id)).toEqual([
       DEFAULT_DOPPLER_MODEL_ID

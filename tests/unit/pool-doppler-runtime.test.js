@@ -48,7 +48,7 @@ describe('Doppler browser runtime adapter', () => {
     Object.assign(f.session, { modelId: f.model.modelId, modelHash: f.model.modelHash, manifestHash: f.model.manifestHash,
       encodeSequence: testSequenceEncoding, close: async () => { closes++; } });
     // Synthetic public module at the installed pin; this is API selection, not a release claim.
-    globalThis.REPLOID_DOPPLER_MODULE = { DOPPLER_VERSION: '0.5.1', openCapsule: async (source, options) => {
+    globalThis.REPLOID_DOPPLER_MODULE = { DOPPLER_VERSION: '0.6.0', openCapsule: async (source, options) => {
       opens++;
       expect(source).toBe('https://fixtures.invalid/capsule.json');
       expect(options.acceptedTargetPlanDigests).toEqual(f.binding.acceptedTargetPlanDigests);
