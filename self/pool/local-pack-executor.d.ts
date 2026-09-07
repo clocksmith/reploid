@@ -15,7 +15,10 @@ export interface LocalPackRun {
 export interface LocalPackExecutor {
   run(request: LocalPackRun): Promise<PackOperationResult>;
   getState(): { active: boolean; draining: boolean; disposed: boolean; retainedModelId: string | null;
+    sessions: { modelId: string; modelKey: string; reservedBytes: number }[];
+    memory: { reservedBytes: number; maxReservedBytes: number; basis: string };
     metrics: { preparations: number; loadAttempts: number; modelLoads: number; modelReuses: number; modelSwitches: number;
+      sessionEvictions: number; peakReservedBytes: number;
       completedOperations: number; failedOperations: number; prepareMs: number; loadMs: number; releaseMs: number; executionMs: number } };
   cancel(): void;
   close(): Promise<void>;
@@ -25,6 +28,8 @@ export function createLocalPackExecutor(options?: {
     openPack?(options: { scope: string; source: string; options: object }): Promise<PackOperationSession>;
     openCapsule?(options: { scope: string; source: string; options: object }): Promise<PackOperationSession> };
   scope?: string; registry?: PackOperationRegistry;
+  sessionPolicy?: { schema: 'reploid.local-session-policy/v1'; maxSessions: number; maxReservedBytes: number;
+    artifactBytesMultiplier: number; workingBytesPerSession: number };
   prepareRelease?: (options: { model: JsonObject }) => Promise<{ options: object; close(): void;
     assertCurrent(session: PackOperationSession): Promise<void>; checkTime?(session: PackOperationSession): void }>;
 }): LocalPackExecutor;

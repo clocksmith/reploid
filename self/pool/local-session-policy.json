@@ -1,0 +1,7 @@
+{
+  "schema": "reploid.local-session-policy/v1",
+  "maxSessions": 3,
+  "maxReservedBytes": 4294967296,
+  "artifactBytesMultiplier": 2,
+  "workingBytesPerSession": 268435456
+}

@@ -33,6 +33,12 @@ export const renderDocumentSearch = () => `
     </form>
     <details class="pool-advanced" data-document-share>
       <summary>Ask another computer</summary>
+      <label class="pool-field"><span>Where this task runs</span>
+        <select data-document-task-class>
+          <option value="local-only">Local only</option>
+          <option value="derived-remote">Share a derived task</option>
+          <option value="public-remote">Share a public task</option>
+        </select></label>
       <p class="type-caption" role="status" aria-live="polite" data-document-share-status>Connect a compatible computer to share a task.</p>
       <label class="pool-field"><span>Task to share</span>
         <textarea rows="3" maxlength="16384" data-document-share-task placeholder="Write a task using only public information"></textarea></label>
@@ -99,12 +105,17 @@ export function refreshDocumentSearch(root, state) {
   if (!state.hasGenerator) generate.checked = false;
   const sharing = state.delegation;
   const shareStatus = surface.querySelector('[data-document-share-status]');
+  const taskClass = surface.querySelector('[data-document-task-class]');
+  taskClass.value = sharing?.taskClass || 'local-only';
+  taskClass.disabled = state.busy;
   shareStatus.textContent = sharing?.phase === 'remote' ? 'Waiting for the other computer.'
     : sharing?.phase === 'combining' ? 'Finishing your answer on this device.'
+      : sharing?.taskClass === 'local-only' ? 'This task stays on this device.'
+      : sharing?.taskClass === 'derived-remote' && sharing?.available ? 'Write only the information you approve for sharing. Source files stay here.'
       : sharing?.available ? 'Only the task below is shared. Your question and files stay here.'
         : 'Connect a compatible computer to share a task.';
   surface.querySelector('[data-document-review-share]').disabled = state.busy || !sharing?.available || !state.result;
-  surface.querySelector('[data-document-share-task]').disabled = state.busy;
+  surface.querySelector('[data-document-share-task]').disabled = state.busy || taskClass.value === 'local-only';
   const preview = surface.querySelector('[data-document-share-preview]');
   preview.hidden = !sharing?.preview;
   if (sharing?.preview) {
@@ -163,6 +174,11 @@ export function bindDocumentSearch(root, workflow) {
   listen('[data-document-review-share]', 'click', async () => {
     root.querySelector('[data-document-share-consent]').checked = false;
     try { await workflow.prepareDelegation({ task: root.querySelector('[data-document-share-task]').value }); }
+    catch (cause) { error(cause); }
+  });
+  listen('[data-document-task-class]', 'change', event => {
+    root.querySelector('[data-document-share-consent]').checked = false;
+    try { workflow.setTaskClass(event.target.value); }
     catch (cause) { error(cause); }
   });
   listen('[data-document-share-task]', 'input', () => {

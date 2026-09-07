@@ -16,22 +16,30 @@ export function createDocumentAssistant({ executor, network = null, onChange = (
   policy = snapshot(policy);
   jobPolicy = resolvePackJobPolicy(jobPolicy);
   assert(policy?.schema === 'reploid.document-delegation-policy/v1' && policy.inputClass === 'public_text'
+    && policy.defaultTaskClass === 'local-only' && Array.isArray(policy.taskClasses) && policy.taskClasses.length === 3
+    && ['local-only', 'derived-remote', 'public-remote'].every(value => policy.taskClasses.includes(value))
     && Number.isSafeInteger(policy.maxTaskBytes) && policy.maxTaskBytes > 0
     && Number.isSafeInteger(policy.maxDraftBytes) && policy.maxDraftBytes > 0
     && Number.isSafeInteger(policy.maxPreviewMs) && policy.maxPreviewMs > 0, 'Document sharing policy is missing');
   let settings, preview = null, busy = false, closed = false, epoch = 0, controller = null;
   let phase = 'idle', remoteRecord = null, combined = null;
+  let taskClass = policy.defaultTaskClass;
   const combinedHistory = new WeakMap();
   const state = () => ({ ...search.getState(), result: combined || search.getState().result,
     history: search.getState().history.map(row => combinedHistory.has(row.result) ? { ...row, result: combinedHistory.get(row.result) } : row),
     busy: busy || search.getState().busy,
-    delegation: { available: Boolean(network && settings?.generator), preview: preview?.display ?? null, phase } });
+    delegation: { available: Boolean(network && settings?.generator && taskClass !== 'local-only'),
+      taskClass, preview: preview?.display ?? null, phase } });
   const notify = () => { if (!closed) onChange(state()); };
   const search = createDocumentSearch({ executor, onChange: () => notify() });
   const invalidate = () => { epoch++; preview = null; remoteRecord = null; combined = null; controller?.abort(new Error('Sharing cancelled')); phase = 'idle'; };
   const current = token => { assert(!closed && token === epoch, 'Sharing cancelled'); controller?.signal.throwIfAborted(); };
   return {
     getState: state,
+    setTaskClass(value) {
+      assert(!busy && !closed && policy.taskClasses.includes(value), 'Choose a supported task class while sharing is idle');
+      invalidate(); taskClass = value; notify();
+    },
     connectNetwork(value) {
       assert(!busy && value && typeof value.describe === 'function' && typeof value.run === 'function', 'A compatible operation network is required');
       invalidate(); network = value; notify();
@@ -42,6 +50,7 @@ export function createDocumentAssistant({ executor, network = null, onChange = (
     withdrawDelegation() { assert(!busy, 'Cancel the active task before editing'); invalidate(); notify(); },
     async prepareDelegation({ task }) {
       assert(!busy && !search.getState().busy && !closed, 'Another operation is running');
+      assert(taskClass !== 'local-only', 'Local-only tasks cannot be disclosed to another computer');
       assert(network && settings?.generator, 'Connect another computer and choose an answer model first');
       const result = search.getState().result;
       assert(result?.matches?.length, 'Search your documents first');
@@ -74,10 +83,10 @@ export function createDocumentAssistant({ executor, network = null, onChange = (
           acceptanceMode: 'execution', comparisonPolicy: null, reference: null });
         const expiresAt = Math.min(now + policy.maxPreviewMs, Date.parse(advert.expiresAt),
           advert.body.capabilities.observedAt + jobPolicy.assignmentPolicy.maxObservationAgeMs);
-        const id = await hashDopplerEvidence({ request, advert, corpusHash: result.corpusHash, expiresAt });
+        const id = await hashDopplerEvidence({ request, advert, corpusHash: result.corpusHash, expiresAt, taskClass });
         current(token);
         preview = { id, request, advert, result, token, expiresAt,
-          display: snapshot({ id, text: task, providerId: plan.selectedProviderId, modelId: model.modelId,
+          display: snapshot({ id, taskClass, text: task, providerId: plan.selectedProviderId, modelId: model.modelId,
             bytes: new TextEncoder().encode(task).length, expiresAt }) };
         phase = 'review';
         return preview.display;
@@ -119,7 +128,7 @@ export function createDocumentAssistant({ executor, network = null, onChange = (
       } finally { busy = false; controller = null; notify(); }
     },
     cancel() { invalidate(); search.cancel(); notify(); },
-    clear() { invalidate(); search.clear(); notify(); },
+    clear() { invalidate(); taskClass = policy.defaultTaskClass; search.clear(); notify(); },
     async close() { closed = true; invalidate(); await search.close(); settings = null; }
   };
 }

@@ -70,6 +70,7 @@ for (const schema of ['doppler.pack/v2', 'doppler.capsule/v2']) test(`reviewed p
     const task = 'PUBLIC-TASK-TRIPWIRE: Suggest a concise answer structure.';
     await requester.locator('[data-document-share] summary').click();
     await expect(requester.locator('[data-document-share-task]')).toHaveValue('');
+    await requester.locator('[data-document-task-class]').selectOption('derived-remote');
     await requester.locator('[data-document-share-task]').fill(task);
     await requester.locator('[data-document-review-share]').click();
     await expect(requester.locator('[data-document-share-preview]')).toBeVisible();

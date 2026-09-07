@@ -132,14 +132,24 @@ export function createReploidDopplerRuntimeService({
     return { runtime, version };
   };
 
-  const close = async (scope = DEFAULT_SCOPE) => {
+  const releaseEntry = async (key) => {
+    const entry = sessions.get(key);
+    if (!entry) return;
+    entry.quarantined = true;
+    await entry.session.close?.();
+    if (sessions.get(key) === entry) sessions.delete(key);
+  };
+
+  const close = (scope = DEFAULT_SCOPE) => {
     const key = normalizedScope(scope);
     const pending = inFlight.get(key);
-    if (pending) await pending.catch(() => null);
-    const entry = sessions.get(key);
-    sessions.delete(key);
-    inFlight.delete(key);
-    if (entry?.session) await entry.session.close?.();
+    const task = (async () => {
+      if (pending) await pending.catch(() => null);
+      await releaseEntry(key);
+    })();
+    inFlight.set(key, task);
+    task.finally(() => { if (inFlight.get(key) === task) inFlight.delete(key); }).catch(() => null);
+    return task;
   };
 
   const open = async ({
@@ -150,32 +160,26 @@ export function createReploidDopplerRuntimeService({
   } = {}) => {
     const key = normalizedScope(scope);
     if (source == null) throw new Error('Doppler scoped session source is required');
-    if (inFlight.has(key)) {
-      await inFlight.get(key).catch(() => null);
-      return open({ scope, source, options, module });
-    }
-    const sourceKey = typeof source === 'string' ? source : JSON.stringify(source);
-    const current = sessions.get(key);
-    if (current?.session?.loaded && current.sourceKey === sourceKey) return current.session;
-    if (current) await close(key);
-    if (!inFlight.has(key)) {
-      inFlight.set(key, (async () => {
-        const loadedModule = await getModule(module);
-        const { runtime } = assertModule(loadedModule);
-        const session = await runtime.open(source, options);
-        if (!session || session.schema !== 'doppler.scoped-session/v1') {
-          await session?.close?.();
-          throw new Error('Doppler dr.open returned an invalid scoped session');
-        }
-        sessions.set(key, { session, sourceKey });
-        inFlight.delete(key);
-        return session;
-      })().catch((error) => {
-        inFlight.delete(key);
-        throw error;
-      }));
-    }
-    return inFlight.get(key);
+    const previous = inFlight.get(key);
+    const task = (async () => {
+      if (previous) await previous.catch(() => null);
+      const sourceKey = typeof source === 'string' ? source : JSON.stringify(source);
+      const current = sessions.get(key);
+      if (current?.session?.loaded && !current.quarantined && current.sourceKey === sourceKey) return current.session;
+      await releaseEntry(key);
+      const loadedModule = await getModule(module);
+      const { runtime } = assertModule(loadedModule);
+      const session = await runtime.open(source, options);
+      if (!session || session.schema !== 'doppler.scoped-session/v1') {
+        await session?.close?.();
+        throw new Error('Doppler dr.open returned an invalid scoped session');
+      }
+      sessions.set(key, { session, sourceKey });
+      return session;
+    })();
+    inFlight.set(key, task);
+    task.finally(() => { if (inFlight.get(key) === task) inFlight.delete(key); }).catch(() => null);
+    return task;
   };
 
   const signedRuntime = (module, contract) => {
@@ -194,9 +198,7 @@ export function createReploidDopplerRuntimeService({
       if (source == null) throw new Error('Signed Pack source is required');
       const loadedModule = await getModule(module);
       const { runtime } = signedRuntime(loadedModule, contract);
-      const current = sessions.get(key);
-      sessions.delete(key);
-      await current?.session?.close?.();
+      await releaseEntry(key);
       const session = await runtime[contract.openMethod](source, options);
       if (session?.schema !== contract.sessionSchema || !session.loaded) {
         await session?.close?.();
@@ -217,15 +219,15 @@ export function createReploidDopplerRuntimeService({
     openCapsule: options => openSigned(resolveDopplerExecutionContract('doppler.capsule/v2'), options),
     close,
     get(scope = DEFAULT_SCOPE) {
-      return sessions.get(normalizedScope(scope))?.session || null;
+      const entry = sessions.get(normalizedScope(scope));
+      return entry?.quarantined ? null : entry?.session || null;
     },
     async closeAll() {
       const pending = [...inFlight.values()];
       if (pending.length) await Promise.allSettled(pending);
-      const active = [...sessions.values()].map((entry) => entry.session);
-      sessions.clear();
-      inFlight.clear();
-      await Promise.allSettled(active.map((session) => session.close?.()));
+      const results = await Promise.allSettled([...sessions.keys()].map(close));
+      const errors = results.filter(result => result.status === 'rejected').map(result => result.reason);
+      if (errors.length) throw new AggregateError(errors, 'Doppler session cleanup failed');
     },
     async prepare(module = null, { bindingSchema = null } = {}) {
       const loadedModule = await getModule(module);

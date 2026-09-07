@@ -11,18 +11,21 @@ export interface DocumentOperationNetwork {
   run(options: Pick<Parameters<typeof runPeerOperationJob>[0], 'request' | 'providerAdverts' | 'signal'>): Promise<PackPeerJobResult>;
 }
 export interface DocumentDelegationPreview {
+  readonly taskClass: DocumentTaskClass;
   readonly id: string; readonly text: string; readonly providerId: string; readonly modelId: string;
   readonly bytes: number; readonly expiresAt: number;
 }
 export interface DocumentAssistantState extends DocumentSearchState {
-  delegation: { available: boolean; preview: DocumentDelegationPreview | null; phase: string };
+  delegation: { available: boolean; taskClass: DocumentTaskClass; preview: DocumentDelegationPreview | null; phase: string };
 }
+export type DocumentTaskClass = 'local-only' | 'derived-remote' | 'public-remote';
 export interface DelegatedDocumentResult extends DocumentSearchResult {
   execution: 'local-and-approved-peer'; remoteExecution: PackPeerJobResult; disclosure: DocumentDelegationPreview;
 }
 export function createDocumentAssistant(options: { executor: LocalPackExecutor; network?: DocumentOperationNetwork | null;
   onChange?: (state: DocumentAssistantState) => void; policy?: object; jobPolicy?: object; registry?: object }): {
     getState(): DocumentAssistantState;
+    setTaskClass(value: DocumentTaskClass): void;
     configure(settings: DocumentModels): void;
     setDocuments(documents: readonly { name: string; text: string }[]): Promise<DocumentCorpus>;
     search(options: { query: string; topK?: number; rerank?: boolean; generateAnswer?: boolean }): Promise<DocumentSearchResult>;

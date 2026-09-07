@@ -25,6 +25,23 @@ const makeModule = () => {
 };
 
 describe('Reploid DopplerRuntimeService', () => {
+  it('retains failed cleanup ownership and blocks reuse or replacement until release succeeds', async () => {
+    const fixture = makeModule();
+    const service = createReploidDopplerRuntimeService({ expectedVersion: '0.5.1', loadModule: async () => fixture.module });
+    const session = await service.open({ scope: 'documents', source: 'model' });
+    session.close.mockRejectedValue(new Error('release failed'));
+    await expect(service.close('documents')).rejects.toThrow('release failed');
+    expect(service.get('documents')).toBeNull();
+    await expect(service.open({ scope: 'documents', source: 'model' })).rejects.toThrow('release failed');
+    expect(fixture.module.dr.open).toHaveBeenCalledTimes(1);
+    await expect(service.closeAll()).rejects.toThrow('cleanup failed');
+    session.close.mockResolvedValue(undefined);
+    await service.closeAll();
+    await service.open({ scope: 'documents', source: 'new-model' });
+    expect(fixture.module.dr.open).toHaveBeenCalledTimes(2);
+    await service.closeAll();
+  });
+
   it('prepares a Capsule-only public module without requiring a legacy API', async () => {
     const session = { schema: 'doppler.capsule-session/v1', loaded: true, close: vi.fn() };
     const module = { DOPPLER_VERSION: '0.6.0', openCapsule: vi.fn(async () => session) };

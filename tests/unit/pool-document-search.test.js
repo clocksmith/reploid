@@ -6,6 +6,7 @@ import { validateOperationModel } from '../../self/pool/operation-model.js';
 import { validateEnabledPoolModelContract } from '../../self/pool/model-contract.js';
 import { createDocumentPackFixture } from '../fixtures/document-packs.js';
 import policy from '../../self/pool/document-search-policy.json' with { type: 'json' };
+import sessionPolicy from '../../self/pool/local-session-policy.json' with { type: 'json' };
 
 const documents = [{ name: 'fruit.md', text: 'Apple trees grow fruit.' }, { name: 'sea.txt', text: 'Whales live in the sea.' }];
 
@@ -126,7 +127,8 @@ describe('local document search (synthetic Pack outputs)', () => {
       expect(ranked.reranked).toBe(true);
       expect(ranked.receipts).toHaveLength(2);
       expect(ranked.indexReceipt).toEqual(first.indexReceipt);
-      expect(f.closes()).toBe(1);
+      expect(f.closes()).toBe(0);
+      expect(executor.getState().sessions).toHaveLength(2);
       expect(fetch).not.toHaveBeenCalled();
     } finally { fetch.mockRestore(); await workflow.close(); }
   });
@@ -168,7 +170,7 @@ describe('local document search (synthetic Pack outputs)', () => {
   it('revalidates changed trust before reuse and blocks replacement while idle-session cleanup drains', async () => {
     const f = await createDocumentPackFixture();
     const open = vi.spyOn(f.service, 'openPack');
-    const executor = createLocalPackExecutor({ service: f.service });
+    const executor = createLocalPackExecutor({ service: f.service, sessionPolicy: { ...sessionPolicy, maxSessions: 1 } });
     const job = { model: f.configuration.embedding, input: { texts: ['apple'], application: f.configuration.embedding.application },
       limits: { maxInputBytes: 1048576, maxOutputBytes: 1048576, deadlineAt: Date.now() + 10000 } };
     await executor.run(job);
@@ -216,7 +218,7 @@ describe('local document search (synthetic Pack outputs)', () => {
     const originalOpen = f.service.openPack;
     f.service.openPack = () => new Promise((resolve) => { release = async () => resolve(await originalOpen()); });
     const executor = createLocalPackExecutor({ service: f.service });
-    const running = executor.run({ model: f.configuration.embedding, input: { texts: ['apple'] },
+    const running = executor.run({ model: f.configuration.embedding, input: { texts: ['apple'], application: f.configuration.embedding.application },
       limits: { maxInputBytes: 1024, maxOutputBytes: 1024, deadlineAt: Date.now() + 10000 } });
     const assertion = expect(running).rejects.toThrow('cancelled');
     await vi.waitFor(() => expect(release).toBeTypeOf('function'));

@@ -890,6 +890,10 @@ describe('Poolday home ask controls', () => {
       { timeout: 5000 }
     );
     expect(document.querySelector('[data-pool-provider-status]').textContent).toBe('Available');
+    providerActivity?.({ status: 'peer_execution_started', sessionId: 'active-gpu-job' });
+    expect(document.querySelector('[data-pool-provider-status]').textContent).toBe('Computing');
+    providerActivity?.({ status: 'provider_advertised', advert: localProviderAdvert });
+    expect(document.querySelector('[data-pool-provider-status]').textContent).toBe('Computing');
     providerActivity?.({ status: 'peer_acceptance_received', acceptance: { accepted: true } });
     expect(JSON.parse(document.getElementById('pool-provider-result-raw').textContent)).toMatchObject({
       runner: 'peer_room_listening',

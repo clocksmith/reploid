@@ -2163,9 +2163,12 @@ const createProviderContributionController = () => {
       updateProviderHealth({ queue: workerRunning ? 'listening' : 'starting' });
     }
     if (event?.status === 'provider_advertised') {
-      setProviderStatus('Available');
-      updateProviderHealth({ queue: 'listening' });
-      setContributionState({ state: 'idle', optedIn: true, lastError: null });
+      // Periodic discovery publication does not settle an executing job or an error.
+      if (!latestProviderActivity) {
+        setProviderStatus('Available');
+        updateProviderHealth({ queue: 'listening' });
+        setContributionState({ state: 'idle', optedIn: true, lastError: null });
+      }
       return;
     }
     if (event?.status === 'peer_session_opening') {

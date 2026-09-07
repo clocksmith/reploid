@@ -18,6 +18,7 @@ async function setup() {
   workflow.configure(fixture.configuration);
   await workflow.setDocuments([{ name: 'private-file.md', text: 'private-file-contents apple' }]);
   await workflow.search({ query: 'private-question apple' });
+  workflow.setTaskClass('public-remote');
   return { workflow, network, fixture };
 }
 
@@ -38,6 +39,25 @@ it('requires exact, unexpired, single task approval and keeps retrieval out of d
     workflow.cancel();
     await expect(workflow.approveDelegation(approval)).rejects.toThrow('Prepare a task');
     expect(network.run).not.toHaveBeenCalled();
+  } finally { await workflow.close(); }
+});
+
+it('keeps local-only work off the network and invalidates approval when task class changes', async () => {
+  const { workflow, network } = await setup();
+  try {
+    workflow.setTaskClass('local-only');
+    await expect(workflow.prepareDelegation({ task: 'A private task' })).rejects.toThrow('Local-only');
+    expect(network.describe).not.toHaveBeenCalled();
+    expect(network.run).not.toHaveBeenCalled();
+    workflow.setTaskClass('derived-remote');
+    const preview = await workflow.prepareDelegation({ task: 'An explicitly extracted public task' });
+    expect(preview.taskClass).toBe('derived-remote');
+    expect(JSON.stringify(network.describe.mock.calls)).not.toMatch(/private-file|private-question/);
+    workflow.setTaskClass('public-remote');
+    await expect(workflow.approveDelegation({ previewId: preview.id, text: preview.text, publicInput: true })).rejects.toThrow('Prepare');
+    expect(network.run).not.toHaveBeenCalled();
+    workflow.clear();
+    expect(workflow.getState().delegation.taskClass).toBe('local-only');
   } finally { await workflow.close(); }
 });
 
