@@ -1,0 +1,42 @@
+{
+  "schema": "reploid.release-qualification-observation/v1",
+  "observedAtUtc": "2026-09-07T13:12:33.826058+00:00",
+  "sourceRevision": "0aa3a0737da43a35cd728969eb87feb3a31999c2",
+  "dopplerVersion": "0.6.0",
+  "dopplerIntegrity": "sha512-1SKgx0KWKMHJEg4m5BdqLS1oV/kImbHfLaug8tOuwghjca166lrL/Qi7t+AXW/O4MQjONcFaWwPjaKILGINspA==",
+  "browserBundleHash": "sha256:f6d5ec38b13e4fbf1aab42116f4ad2d78b5779c4139a3c865549703dd1c9518a",
+  "archiveSha256": "7117b304acfb942cf5d2a472b201f148edf1d582c4268c2f6a655b49f2852695",
+  "checks": {
+    "fullSuiteBeforeFixtureCorrection": {
+      "passed": 2436,
+      "skipped": 35
+    },
+    "fixtureRegressionsAfterCorrection": {
+      "passed": 18
+    },
+    "chromeDocumentContracts": {
+      "passed": 4,
+      "executionClass": "fixture-model-output",
+      "viewports": [
+        "desktop",
+        "390x844"
+      ],
+      "verificationWorker": true
+    },
+    "publishedCdnBrowserImports": true,
+    "localCiContractChecks": true,
+    "deployedReleaseQualification": {
+      "passed": false,
+      "failedGate": "deployed browser-bundle byte gate",
+      "deployedBrowserBundleHash": "sha256:767ea4810ca61ee85b9c962b53f426a04cfacc8524402adff506489404b11697"
+    }
+  },
+  "boundaries": {
+    "productionDeployedByThisChange": false,
+    "newPhysicalModelQualification": false,
+    "semanticAnswerQualityQualified": false,
+    "independentMachinesQualified": false,
+    "learnedSchedulingActivated": false,
+    "distributedMoeActivated": false
+  }
+}

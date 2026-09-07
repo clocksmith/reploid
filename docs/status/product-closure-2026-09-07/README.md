@@ -17,3 +17,7 @@ The eight-case frozen answer-support corpus covers answerable, partially answera
 Doppler publication remains blocked by npm HTTP 401; Reploid still pins 0.5.1. The modified 644-file bundle is not the deployed 640-file bundle. A clean package candidate is not a public npm install. Independent machines/operators have not been supplied. Useful adapter promotion, physical answer faithfulness, model-residency improvement, independent operation/adoption, and AMD diagnosis remain open. Learned scheduling and distributed MoE have not been activated.
 
 Component: `reploid` (document search, local Pack execution, acceptance tooling). Intent: preserved. Acceptance evidence: archived commands and observations above. Boundary effects: local answer audit and executor observation fields; disclosure, consent, remote admission, runtime dependency, and production deployment are unchanged.
+
+## Publication follow-up
+
+The later [Doppler 0.6.0 release continuation](../doppler-060-release-2026-09-07/README.md) resolves the npm authentication, publication, registry installation, and Reploid repin gates recorded above. The original archive and receipt remain unchanged. Production qualification still fails at the deployed browser-bundle identity gate.
