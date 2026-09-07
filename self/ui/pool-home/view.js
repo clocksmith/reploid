@@ -721,6 +721,10 @@ export const setPoolRunVisualState = ({ state = 'idle', phase = '', message = ''
   for (const status of document.querySelectorAll('[data-pool-run-status]')) {
     status.textContent = visual.message;
   }
+  for (const status of document.querySelectorAll('[data-pool-brand-status]')) {
+    status.textContent = visual.state === 'idle' ? '' : visual.message;
+    status.hidden = visual.state === 'idle';
+  }
   for (const output of document.querySelectorAll('[data-pool-run-output]')) {
     const documentsSelected = output.closest('.pool-home-task')?.querySelector('[data-pool-workflow="documents"][aria-pressed="true"]');
     output.hidden = !outputVisible || Boolean(documentsSelected);
@@ -980,6 +984,12 @@ const formatContributionPolicy = (policyId) => ({
 }[policyId] || String(policyId || 'default').replace(/_/g, ' '));
 
 const renderRunContributionLayer = (value = {}) => {
+  if (value.transport === 'local_capsule') return `
+    <div class="pool-contributor-layer">
+      <div class="pool-contributor-summary"><span><b>Execution</b>This device</span><span><b>Sharing</b>Unchanged</span></div>
+      <p class="type-caption">Signed model and local execution receipt verified. No independent contributor comparison.</p>
+    </div>
+  `;
   const payloads = Array.isArray(value.receiptPayloads) ? value.receiptPayloads : [];
   const assignments = Array.isArray(value.assignments) ? value.assignments : [];
   const agreement = value.agreement || {};
@@ -1491,6 +1501,8 @@ export const restoreLatestCompletedRun = (routeId = getRouteId()) => {
   const row = ledgerStore.receipts.find((candidate) => (
     candidate?.record?.agreement?.accepted === true
     || candidate?.record?.requesterAcceptance?.accepted === true
+    || (candidate?.record?.transport === 'local_capsule' && candidate.record.status === 'completed'
+      && candidate.receiptHash === candidate.record.localExecution?.receipt?.receiptDigest)
   ));
   if (!row) return null;
   const restored = {
@@ -1506,7 +1518,7 @@ export const restoreLatestCompletedRun = (routeId = getRouteId()) => {
   setPoolRunVisualState({
     state: 'inspecting',
     phase: 'saved',
-    message: 'Showing last saved answer'
+    message: restored.transport === 'local_capsule' ? 'Showing last saved local result' : 'Showing last saved answer'
   });
   return restored;
 };
@@ -1525,6 +1537,8 @@ export const getPoolDashboardView = () => {
   }
 };
 
+const renderPowerTower = () => '<span class="pool-power-tower" aria-hidden="true"><span>7</span><sup>7</sup></span>';
+
 export const renderNav = (activeRoute) => {
   const renderItem = ({ id, path, label }) => {
     const isActive = activeRoute === id || (activeRoute === 'ask' && id === 'home');
@@ -1536,7 +1550,7 @@ export const renderNav = (activeRoute) => {
   };
   return `
     <nav class="pool-nav-rail pool-primary-nav" aria-label="${escapeHtml(POOLDAY_NAME)}">
-      <a class="pool-primary-brand" href="${escapeHtml(roomHref('/', getPeerRoomId()))}" data-pool-route-link="${escapeHtml(roomHref('/', getPeerRoomId()))}">${escapeHtml(POOLDAY_NAME)}</a>
+      <a class="pool-primary-brand" aria-label="${escapeHtml(POOLDAY_NAME)} home" href="${escapeHtml(roomHref('/', getPeerRoomId()))}" data-pool-route-link="${escapeHtml(roomHref('/', getPeerRoomId()))}">${renderPowerTower()}</a>
       <div class="pool-nav-menu pool-segmented" id="pool-nav-menu">
         ${POOLDAY_NAV_ROUTES.map(renderItem).join('')}
       </div>
@@ -1857,8 +1871,9 @@ const renderHomeSimulation = ({ dashboardView = 'home' } = {}) => {
       <div class="pool-home-toolbar" aria-label="${escapeHtml(POOLDAY_NAME)}">
         <div class="pool-home-toolbar-leading pool-home-overlay" aria-label="${escapeHtml(POOLDAY_NAME)} overview">
           <div class="pool-home-title-lockup">
-            <h1 class="type-h1 pool-home-brand-word">${escapeHtml(POOLDAY_NAME)}</h1>
+            <h1 class="type-h1 pool-home-brand-word">${escapeHtml(POOLDAY_NAME)}${renderPowerTower()}</h1>
             <p class="type-caption pool-hero-body pool-home-brand-promise">${escapeHtml(ROUTE_COPY.home.body)}</p>
+            <p class="type-caption pool-home-brand-status" data-pool-brand-status hidden></p>
           </div>
           <div class="pool-prism" data-pool-prism aria-hidden="true">
             <svg class="pool-prism-still" viewBox="0 0 480 420" focusable="false">

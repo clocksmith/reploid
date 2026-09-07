@@ -17,7 +17,11 @@ Zero and X keep the broader research configuration surface.
 
 ### Zero Managed Proxy Admission
 
-The hosted `/zero/gemini` function requires both Firebase Auth and Firebase App Check. Enable anonymous Firebase Auth for Zero's browser session and configure a reCAPTCHA v3 App Check provider for the hosted app. Publish that provider's site key as `window.REPLOID_ZERO_APP_CHECK_SITE_KEY` before the Zero boot shell loads.
+The hosted `/zero/gemini` function requires both Firebase Auth and Firebase App Check. Enable anonymous Firebase Auth, enable the Firebase App Check API, and register the hosted web app with its reCAPTCHA v3 provider using the [Firebase setup procedure](https://firebase.google.com/docs/app-check/web/recaptcha-provider).
+
+Publish the provider's public site key in `self/config/zero-access.json` under `appCheck.siteKey`. Its `projectId` and `appId` must match the hosted `/__/firebase/init.json`. The checked-in null key deliberately blocks managed requests until provisioned. Never put a reCAPTCHA secret, service-account key, or Gemini API key in this public file. Deployment must include this file and the matching client module.
+
+Zero reads that configuration before initializing Firebase Auth and App Check. An existing `window.REPLOID_ZERO_APP_CHECK_SITE_KEY` remains an explicit operator override. A failed initialization can retry on the next request after configuration is corrected; missing configuration never disables authentication or App Check. Local Doppler does not require these managed-proxy credentials. A populated public file does not establish that the project API, provider registration, or token exchange works; verify the deployed exchange separately.
 
 The function accepts only `GEMINI_MODEL` by default. Set `ZERO_GEMINI_ALLOWED_MODELS` to an explicit comma-separated allowlist only when additional models are intentionally sponsored. `ZERO_GEMINI_MAX_RATE_BUCKETS` bounds retained authenticated-client rate-limit state.
 

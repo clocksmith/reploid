@@ -3882,6 +3882,39 @@ body[data-pool-route-id='home'] #app {
   text-decoration: none;
 }
 
+.pool-power-tower {
+  display: inline-flex;
+  align-items: flex-start;
+  font-family: var(--pool-type-mono-family);
+  font-size: var(--pool-px-26);
+  font-weight: var(--pool-type-weight-emphasis);
+  line-height: 1;
+}
+
+.pool-power-tower sup {
+  position: static;
+  font-size: 62%;
+  transform: translateY(-35%);
+  transition: transform var(--pool-motion-time-240) ease;
+}
+
+@keyframes pool-power-rise {
+  0%, 100% { transform: translateY(-35%); opacity: 0.55; }
+  50% { transform: translate(15%, -65%); opacity: 1; }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .pool-primary-brand:hover .pool-power-tower sup,
+  .pool-primary-brand:focus-visible .pool-power-tower sup,
+  .pool-home-stage:has(.pool-home-task:focus-within) .pool-power-tower sup {
+    transform: translate(15%, -65%);
+  }
+  .pool-home-stage:is([data-run-state='running'], [data-run-state='submitting']) .pool-power-tower sup {
+    animation: pool-power-rise var(--pool-motion-time-1200) ease-in-out infinite;
+  }
+  .pool-home-stage:has(.pool-home-task:focus-within) .pool-prism { transform: scale(1.06) rotate(-3deg); }
+}
+
 .pool-home .pool-segmented {
   display: flex;
   flex-direction: row;
@@ -3995,14 +4028,14 @@ body[data-pool-route-id='home'] #app {
 
 .pool-home[data-pool-route-id='home'] .pool-home-stage--focused {
   display: grid;
-  grid-template-columns: minmax(0, 0.88fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr);
   align-items: center;
-  gap: var(--pool-metric-hero-gap);
+  gap: var(--pool-space-lg);
   width: calc(100% - var(--pool-px-96));
   max-width: var(--pool-metric-hero-width);
-  min-height: calc(100dvh - var(--pool-px-96));
+  min-height: 0;
   margin: 0 auto;
-  padding: var(--pool-px-64) 0;
+  padding: var(--pool-space-lg) 0 var(--pool-px-48);
 }
 
 .pool-home[data-pool-route-id='home'] .pool-home-stage--focused .pool-home-toolbar {
@@ -4015,7 +4048,10 @@ body[data-pool-route-id='home'] #app {
 }
 
 .pool-home[data-pool-route-id='home'] .pool-home-toolbar-leading {
-  display: block;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--pool-space-lg);
   text-align: left;
   padding: 0;
 }
@@ -4026,6 +4062,9 @@ body[data-pool-route-id='home'] #app {
 }
 
 .pool-home[data-pool-route-id='home'] .pool-home-brand-word {
+  display: flex;
+  align-items: center;
+  gap: var(--pool-space-md);
   margin: 0;
   font-family: var(--pool-type-display-family), var(--pool-type-ui-family);
   font-size: clamp(var(--pool-px-48), 6vw, var(--pool-text-wordmark));
@@ -4034,6 +4073,11 @@ body[data-pool-route-id='home'] #app {
   letter-spacing: var(--pool-px-ne0-035);
   text-transform: none;
 }
+
+.pool-home-brand-word .pool-power-tower { color: var(--pool-surface-muted); }
+.pool-home-brand-status { margin: 0; color: var(--pool-surface-ink); }
+.pool-home-stage[data-run-state='error'] .pool-home-brand-status { color: var(--pool-hue-wine); }
+.pool-home-stage[data-run-state='complete'] .pool-home-brand-status { color: var(--pool-hue-cyan); }
 
 .pool-home[data-pool-route-id='home'] .pool-home-brand-promise {
   display: block;
@@ -4047,12 +4091,18 @@ body[data-pool-route-id='home'] #app {
 
 .pool-prism {
   position: relative;
-  width: min(100%, var(--pool-metric-prism-width));
+  width: clamp(calc(var(--pool-px-64) * 2), 16vw, calc(var(--pool-px-96) * 2));
+  flex-shrink: 0;
+  order: -1;
   aspect-ratio: 8 / 7;
   margin-top: var(--pool-space-sm);
   contain: layout paint;
   isolation: isolate;
+  transition: transform var(--pool-motion-time-240) ease, filter var(--pool-motion-time-240) ease;
 }
+
+.pool-home-stage[data-run-state='complete'] .pool-prism { filter: saturate(1.3); }
+.pool-home-stage[data-run-state='error'] .pool-prism { filter: grayscale(1); }
 
 .pool-prism-canvas,
 .pool-prism-still {
@@ -4071,7 +4121,8 @@ body[data-pool-route-id='home'] #app {
 
 .pool-home[data-pool-route-id='home'] .pool-home-task {
   width: 100%;
-  margin: 0;
+  max-width: var(--pool-px-r42);
+  margin: 0 auto;
   padding: 0;
 }
 
@@ -4086,7 +4137,7 @@ body[data-pool-route-id='home'] #app {
 }
 
 .pool-home[data-pool-route-id='home'] .pool-home-stage--focused .pool-home-ask-dock {
-  gap: var(--pool-space-lg);
+  gap: var(--pool-space-md);
   padding: var(--pool-space-lg);
 }
 
@@ -4121,7 +4172,7 @@ body[data-pool-route-id='home'] #app {
 }
 
 .pool-home .pool-home-stage--focused .pool-home-ask-input {
-  min-height: var(--pool-px-178);
+  min-height: calc(var(--pool-px-64) * 2);
   line-height: 1.7;
   letter-spacing: var(--pool-px-e0-02);
 }
@@ -4482,9 +4533,10 @@ body[data-pool-route-id='home'] #app {
     padding: var(--pool-space-md) var(--pool-space-sm);
   }
   .pool-home[data-pool-route-id='home'] .pool-home-title-lockup { gap: var(--pool-space-sm); }
-  .pool-home[data-pool-route-id='home'] .pool-home-brand-word { font-size: var(--pool-px-48); }
-  .pool-home[data-pool-route-id='home'] .pool-home-brand-promise { max-width: 58%; font-size: var(--pool-text-base); }
-  .pool-prism { position: absolute; right: 0; top: 0; width: 48%; margin: 0; }
+  .pool-home[data-pool-route-id='home'] .pool-home-brand-word { font-size: var(--pool-px-36); gap: var(--pool-space-sm); }
+  .pool-home[data-pool-route-id='home'] .pool-home-brand-promise { max-width: 100%; font-size: var(--pool-text-base); }
+  .pool-home[data-pool-route-id='home'] .pool-home-toolbar-leading { gap: var(--pool-space-sm); }
+  .pool-prism { position: relative; width: var(--pool-px-96); margin: 0; }
   .pool-home[data-pool-route-id='home'] .pool-home-task { width: 100%; }
   .pool-home:not([data-pool-route-id='home']) .pool-route-shell { width: calc(100% - var(--pool-space-lg)); padding: var(--pool-space-lg); }
   .pool-home:not([data-pool-route-id='home']) .pool-route-shell[data-pool-route-shell='room-1'] { width: calc(100% - var(--pool-space-lg)); }
@@ -4493,6 +4545,8 @@ body[data-pool-route-id='home'] #app {
 
 @media (prefers-reduced-motion: reduce) {
   .pool-home .btn, .pool-primary-nav .pool-nav-link { transition: none; }
+  .pool-home .pool-power-tower sup { animation: none; transition: none; transform: translateY(-35%); }
+  .pool-home .pool-prism { transition: none; transform: none; }
 }
 
 @media (forced-colors: active) {

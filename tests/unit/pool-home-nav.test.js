@@ -61,7 +61,8 @@ describe('poolday home navigation', () => {
     for (const route of ['home', 'compute', 'records']) {
       const host = document.createElement('div');
       host.innerHTML = renderNav(route) + renderRoutePanel(route) + renderRouteDetail(route);
-      expect(host.querySelector('.pool-primary-brand').textContent).toBe('Reploid');
+      expect(host.querySelector('.pool-primary-brand').getAttribute('aria-label')).toBe('Reploid home');
+      expect(host.querySelector('.pool-primary-brand .pool-power-tower')).not.toBeNull();
       expect(host.textContent).not.toMatch(/\bpoolday\b/i);
       for (const node of host.querySelectorAll('[aria-label]')) expect(node.getAttribute('aria-label')).not.toMatch(/poolday/i);
       for (const summary of host.querySelectorAll('[data-pool-pack-summary]')) {
@@ -158,7 +159,7 @@ describe('poolday home navigation', () => {
 
     expect(html).toContain('<nav class="pool-nav-rail pool-primary-nav" aria-label="Reploid">');
     expect(html).toContain('class="pool-primary-brand"');
-    expect(html).toContain('>Reploid</a>');
+    expect(html).toContain('aria-label="Reploid home"');
     expect(html).toContain('>Run a model</a>');
     expect(html).toContain('>Share compute</a>');
     expect(html).toContain('>Recent jobs</a>');
@@ -213,7 +214,7 @@ describe('poolday home navigation', () => {
     expect(html).toContain('data-pool-copy-embedding');
     expect(html).not.toContain('data-pool-hot-path');
     expect(html).toContain('class="pool-home-title-lockup"');
-    expect(html).toContain('<h1 class="type-h1 pool-home-brand-word">Reploid</h1>');
+    expect(html).toContain('<h1 class="type-h1 pool-home-brand-word">Reploid<span class="pool-power-tower"');
     expect(html).toContain('Run AI with connected browsers.');
     expect(html).not.toContain('>View room</a>');
     expect(html).toContain('id="pool-home-request-model"');

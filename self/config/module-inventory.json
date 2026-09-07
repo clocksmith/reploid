@@ -320,7 +320,7 @@
     {
       "path": "config/zero-inference.js",
       "owner": "config",
-      "sha256": "sha256:938f6f1566018c9518cded570f3bfdf4a0fd6f79554a6adc90d3a70436d21bfc",
+      "sha256": "sha256:3da2c31633eed0962908e07fd76f971811fdda97549adcbb1685abba701b64f5",
       "imports": []
     },
     {
@@ -2671,15 +2671,18 @@
     {
       "path": "ui/pool-home/controls.js",
       "owner": "ui",
-      "sha256": "sha256:e0f9468166a73f2fb791ce9776679f67b234f074f9de16bfb1c455bc9530d388",
+      "sha256": "sha256:f4e143ecc07f8b19939d6b78f628216142bbf749758c59ab1b925d9f77e9da74",
       "imports": [
         "../../pool/adapter-publication.js",
         "../../pool/adapter-registry.js",
         "../../pool/doppler-runtime.js",
         "../../pool/evidence-network.js",
+        "../../pool/executable-pack.js",
         "../../pool/identity.js",
+        "../../pool/local-pack-executor.js",
         "../../pool/model-artifacts.js",
         "../../pool/model-contract.js",
+        "../../pool/pack-operation-adapters.js",
         "../../pool/participation-profile.js",
         "../../pool/peer-room.js",
         "../../pool/policy-router.js",
@@ -2705,7 +2708,7 @@
     {
       "path": "ui/pool-home/index.js",
       "owner": "ui",
-      "sha256": "sha256:c4b5bef5207e11f5045ce963c71a87499adc748fbffc573c6d11c63945d32ca9",
+      "sha256": "sha256:89c3643bb61b1084b52b4d8a6ec24c07598d3afa939de27a4b3dfab7c8addb25",
       "imports": [
         "../../pool/document-delegation.js",
         "../../pool/doppler-runtime.js",
@@ -2845,7 +2848,7 @@
     {
       "path": "ui/pool-home/room-record-projection.js",
       "owner": "ui",
-      "sha256": "sha256:010d9dcf8a628f9ecdc09133a004abae5f07948dc4d9dbf765331920db040f2b",
+      "sha256": "sha256:8237414fd7388ff2d6e96be1ca2f5a0f54c2491351f621509a64df9d57803b19",
       "imports": [
         "../../pool/model-contract.js",
         "./record-persistence.js"
@@ -2923,7 +2926,7 @@
     {
       "path": "ui/pool-home/view.js",
       "owner": "ui",
-      "sha256": "sha256:c574f0931034c2c86846d23cf61a9b5a3e1a012f513424c75e8f4eef912949a4",
+      "sha256": "sha256:8f7d38d241f731c816954208b2f9b0b4fe791e12b7081a953fc2eb3987e24c4d",
       "imports": [
         "../../config/surface-intents.js",
         "../../pool/model-contract.js",
@@ -3059,7 +3062,7 @@
     {
       "path": "ui/zero-home/index.js",
       "owner": "ui",
-      "sha256": "sha256:5a97269439834cac78ff2a3a7333301e493f0227226f440792d5e214c55699bf",
+      "sha256": "sha256:5b8f01d808d536b9893160fe0a2482cac2c052e3541877ac99980ebcd2c6e2ab",
       "imports": [
         "../../boot-helpers/vfs-bootstrap.js",
         "../../config/boot-seed.js",
@@ -3067,6 +3070,7 @@
         "../../config/zero-goals.js",
         "../../config/zero-inference.js",
         "../../instance.js",
+        "../../lab/mirrors.js",
         "../../lab/profiles.js"
       ]
     },

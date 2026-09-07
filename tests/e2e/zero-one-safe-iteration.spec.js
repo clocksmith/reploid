@@ -4,6 +4,7 @@
 import { test, expect } from '@playwright/test';
 import {
   awakenWithMockGoal,
+  bootRouteWithServiceWorker,
   getCycleArtifactPath,
   readVfsJson,
   readVfsText,
@@ -133,6 +134,33 @@ test('/zero completes one safe artifact-producing iteration', async ({ page }, t
     toolCallCount: 2,
     errorCount: 0
   });
+});
+
+test('/zero Awaken mirrors only the selected seed before runtime handoff', async ({ page }, testInfo) => {
+  const instanceId = sanitizeInstanceId(`zero-seed-mirrors-${testInfo.project.name}-${Date.now()}`);
+  const missingMirrors = [];
+  page.on('console', (message) => {
+    if (message.text().includes('Mirror source missing:')) missingMirrors.push(message.text());
+  });
+  await bootRouteWithServiceWorker(page, '/zero', instanceId);
+  await expect(page.locator('#awaken-btn')).toBeEnabled();
+  // Exercise real hydration and UI. Stop at the handoff, without a provider call.
+  await page.evaluate(() => {
+    window.triggerAwaken = async (goal) => { window.REPLOID_TEST_AWAKEN_GOAL = goal; };
+  });
+  await page.locator('#goal-input').fill('Inspect the selected seed.');
+  await page.locator('#awaken-btn').click();
+  await expect.poll(() => page.evaluate(() => window.REPLOID_TEST_AWAKEN_GOAL?.text || '')).toBe('Inspect the selected seed.');
+  expect(missingMirrors).toEqual([]);
+  const mirrored = await page.evaluate(async () => {
+    const { readVfsFile } = await import('/host/vfs-bootstrap.js');
+    return {
+      source: await readVfsFile('/ui/zero/index.js'),
+      target: await readVfsFile('/self/ui/zero/index.js')
+    };
+  });
+  expect(mirrored.source).toBeTruthy();
+  expect(mirrored.target).toBe(mirrored.source);
 });
 
 test('/zero executes structured CreateTool definitions without trusting claimed evidence', async ({ page }, testInfo) => {

@@ -26,6 +26,8 @@ const adapterRegistryMocks = vi.hoisted(() => ({
 }));
 
 vi.mock('../../self/pool/peer-room.js', () => peerRoomMocks);
+const localExecutorMocks = vi.hoisted(() => ({ run: vi.fn(), close: vi.fn(async () => {}), cancel: vi.fn() }));
+vi.mock('../../self/pool/local-pack-executor.js', () => ({ createLocalPackExecutor: () => localExecutorMocks }));
 vi.mock('../../self/pool/adapter-registry.js', async (importOriginal) => ({
   ...(await importOriginal()),
   ...adapterRegistryMocks
@@ -63,6 +65,17 @@ import {
 const clearStorage = () => {
   window.localStorage?.clear();
   window.sessionStorage?.clear();
+};
+
+const mountLocalFallbackRequest = (policyId = 'fastest_receipt') => {
+  document.body.innerHTML = `<section class="pool-home-stage" data-pool-run-surface data-pool-lane="sequence">
+    <select id="pool-home-request-policy"><option value="${policyId}">${policyId}</option></select>
+    <form id="pool-home-ask-form"><input id="pool-home-ask-prompt" value="MKTAYIAKQRQISFVKSHFSRQ">
+    <input id="pool-home-sequence-public" type="checkbox" checked><button id="pool-home-run-submit">Run</button></form>
+    <p data-pool-run-status></p><section data-pool-run-output hidden>
+    <div id="pool-home-run-result-summary"></div><pre id="pool-home-run-result-stream"></pre>
+    <div id="pool-home-run-result-evidence"></div><div id="pool-home-run-result-recovery" hidden></div>
+    <pre id="pool-home-run-result-raw"></pre></section></section>`;
 };
 
 const createMemoryStorage = (entries = []) => {
@@ -104,6 +117,9 @@ describe('Poolday home ask controls', () => {
     clearStorage();
     peerRoomMocks.runPeerJob.mockClear();
     peerRoomMocks.createPeerProviderNode.mockClear();
+    localExecutorMocks.run.mockReset();
+    localExecutorMocks.close.mockClear();
+    localExecutorMocks.cancel.mockClear();
     adapterRegistryMocks.listFetchableAdapterPublications.mockReset().mockResolvedValue([adapterPublication]);
     adapterRegistryMocks.resolveFetchableAdapterPublication.mockReset().mockResolvedValue(adapterPublication);
     window.history.replaceState({}, '', '/');
@@ -706,14 +722,14 @@ describe('Poolday home ask controls', () => {
     });
     expect(peerRoomMocks.createPeerProviderNode).not.toHaveBeenCalled();
     expect(document.getElementById('pool-home-run-result-recovery').textContent).toContain(
-      'Reploid tried the network first'
+      'Run here without sharing compute'
     );
 
     document.querySelector('[data-pool-run-recovery-action="offer_local_provider"]').click();
     expect(peerRoomMocks.runPeerJob).toHaveBeenCalledTimes(1);
     expect(peerRoomMocks.createPeerProviderNode).not.toHaveBeenCalled();
     expect(document.getElementById('pool-home-run-result-recovery').textContent).toContain(
-      'Changes participation to Both'
+      'Does not advertise this tab'
     );
 
     document.querySelector('[data-pool-run-recovery-action="back_to_network"]').click();
@@ -729,18 +745,9 @@ describe('Poolday home ask controls', () => {
     });
   });
 
-  it('starts an explicitly confirmed local provider and retries the preserved request', async () => {
+  it('starts sharing only from the contribution control and restores that explicit intent', async () => {
     window.history.replaceState({}, '', '/?room=local-fallback-room&relay=local');
     writeParticipationPreferences({ mode: 'request' });
-    const discoveryError = new Error('No peer providers advertised in room "local-fallback-room"');
-    discoveryError.code = 'peer_provider_not_found';
-    discoveryError.retryable = true;
-    discoveryError.payload = {
-      code: discoveryError.code,
-      retryable: true,
-      roomId: 'local-fallback-room'
-    };
-    peerRoomMocks.runPeerJob.mockRejectedValueOnce(discoveryError);
 
     let loadedModel = null;
     window.REPLOID_DOPPLER_RUNTIME = {
@@ -828,37 +835,19 @@ describe('Poolday home ask controls', () => {
 
     bindHomeAskControls();
     bindProviderControls();
-    document.getElementById('pool-home-ask-form').requestSubmit();
-    await vi.waitFor(() => expect(document.getElementById('pool-home-run-result-recovery').hidden).toBe(false));
-
-    document.querySelector('[data-pool-run-recovery-action="offer_local_provider"]').click();
     expect(peerRoomMocks.createPeerProviderNode).not.toHaveBeenCalled();
     expect(readParticipationPreferences().mode).toBe('request');
-    expect(window.REPLOID_DOPPLER_RUNTIME.prepare).toHaveBeenCalledTimes(1);
-
-    document.querySelector('[data-pool-run-recovery-action="confirm_local_provider"]').click();
+    document.getElementById('pool-home-provider-toggle').click();
     await vi.waitFor(
       () => expect(peerRoomMocks.createPeerProviderNode).toHaveBeenCalledTimes(1),
       { timeout: 5000 }
     );
-    await vi.waitFor(
-      () => expect(peerRoomMocks.runPeerJob).toHaveBeenCalledTimes(2),
-      { timeout: 5000 }
-    );
-    await vi.waitFor(() => {
-      expect(document.getElementById('pool-home-run-result-stream').textContent).toBe('network answer');
-    });
+    expect(peerRoomMocks.runPeerJob).not.toHaveBeenCalled();
 
     expect(readParticipationPreferences().mode).toBe('both');
     expect(window.REPLOID_DOPPLER_RUNTIME.loadModel).toHaveBeenCalledWith(
       expect.objectContaining({ modelId: LAUNCH_MODEL.modelId })
     );
-    expect(peerRoomMocks.runPeerJob.mock.calls[1][0]).toMatchObject({
-      roomId: 'local-fallback-room',
-      prompt: null,
-      sequence: 'MKTAYIAKQRQISFVKSHFSRQ',
-      knownProviderAdverts: [localProviderAdvert]
-    });
     expect(document.getElementById('pool-home-ask-prompt').value).toBe('MKTAYIAKQRQISFVKSHFSRQ');
     expect(JSON.parse(window.sessionStorage.getItem(POOL_CONTRIBUTION_RESUME_STORAGE_KEY))).toMatchObject({
       active: true,
@@ -946,6 +935,88 @@ describe('Poolday home ask controls', () => {
       peer: { status: 'peer_provider_stopped' }
     });
   }, 15000);
+
+  it.each(['peer_provider_not_found', 'peer_provider_model_mismatch', 'peer_provider_unresponsive'])(
+    'executes the preserved request locally after %s without enabling contribution', async (code) => {
+      const gpu = Object.getOwnPropertyDescriptor(navigator, 'gpu');
+      Object.defineProperty(navigator, 'gpu', { configurable: true, value: {} });
+      writeParticipationPreferences({ mode: 'request' });
+      peerRoomMocks.runPeerJob.mockRejectedValueOnce(Object.assign(new Error('No matching peer'), { code }));
+      localExecutorMocks.run.mockResolvedValueOnce({ output: { pooledEmbedding: [0.25, -0.5], embeddingDim: 2 },
+        receipt: { receiptDigest: 'sha256:local-execution' } });
+      mountLocalFallbackRequest();
+      try {
+        bindHomeAskControls();
+        document.getElementById('pool-home-ask-form').requestSubmit();
+        await vi.waitFor(() => expect(document.querySelector('[data-pool-run-surface]').dataset.runState).toBe('complete'));
+        expect(localExecutorMocks.run).toHaveBeenLastCalledWith(expect.objectContaining({
+          model: LAUNCH_MODEL, input: { sequence: 'MKTAYIAKQRQISFVKSHFSRQ' },
+          options: { includeTokenEmbeddings: false, includeLogits: false }
+        }));
+        expect(readParticipationPreferences().mode).toBe('request');
+        expect(peerRoomMocks.createPeerProviderNode).not.toHaveBeenCalled();
+        expect(peerRoomMocks.runPeerJob).toHaveBeenCalledTimes(1);
+        expect(window.sessionStorage.getItem(POOL_CONTRIBUTION_RESUME_STORAGE_KEY)).toBeNull();
+        expect(JSON.parse(document.getElementById('pool-home-run-result-raw').textContent)).toMatchObject({
+          transport: 'local_capsule', relay: 'none', status: 'completed', networkFailure: { code }
+        });
+        expect(document.getElementById('pool-home-run-result-evidence').textContent).toContain('No independent contributor comparison');
+        expect(localExecutorMocks.close).toHaveBeenCalled();
+      } finally {
+        if (gpu) Object.defineProperty(navigator, 'gpu', gpu); else delete navigator.gpu;
+      }
+    }
+  );
+
+  it.each([
+    ['canary_audited', 'peer_provider_not_found', 0],
+    ['redundant_agreement', 'peer_provider_not_found', 0],
+    ['ring_quorum_receipt', 'peer_provider_not_found', 0],
+    ['fastest_receipt', 'peer_receipt_agreement_failed', 0],
+    ['fastest_receipt', 'peer_provider_not_found', 1]
+  ])('does not manufacture acceptance for %s / %s / local calls %s', async (policy, code, localCalls) => {
+    const gpu = Object.getOwnPropertyDescriptor(navigator, 'gpu');
+    Object.defineProperty(navigator, 'gpu', { configurable: true, value: {} });
+    peerRoomMocks.runPeerJob.mockRejectedValueOnce(Object.assign(new Error('Peer failure'), { code }));
+    localExecutorMocks.run.mockRejectedValueOnce(new Error('Capsule integrity rejected'));
+    mountLocalFallbackRequest(policy);
+    const previousReceipt = findReceiptLedgerRecord('sha256:local-execution');
+    try {
+      bindHomeAskControls();
+      document.getElementById('pool-home-ask-form').requestSubmit();
+      await vi.waitFor(() => expect(document.querySelector('[data-pool-run-surface]').dataset.runState).toBe('error'));
+      expect(localExecutorMocks.run).toHaveBeenCalledTimes(localCalls);
+      expect(localExecutorMocks.close).toHaveBeenCalledTimes(localCalls);
+      expect(peerRoomMocks.createPeerProviderNode).not.toHaveBeenCalled();
+      const raw = document.getElementById('pool-home-run-result-raw').textContent;
+      expect(raw).toMatch(/^Error:/);
+      expect(findReceiptLedgerRecord('sha256:local-execution')).toBe(previousReceipt);
+      if (localCalls) expect(raw).toContain('Capsule integrity rejected');
+      if (policy !== 'fastest_receipt') expect(document.querySelector('[data-pool-run-recovery-action="offer_local_provider"]')).toBeNull();
+    } finally {
+      if (gpu) Object.defineProperty(navigator, 'gpu', gpu); else delete navigator.gpu;
+    }
+  });
+
+  it('does not start local work when discovery fails after leaving the Run view', async () => {
+    const gpu = Object.getOwnPropertyDescriptor(navigator, 'gpu');
+    Object.defineProperty(navigator, 'gpu', { configurable: true, value: {} });
+    let rejectDiscovery;
+    peerRoomMocks.runPeerJob.mockReturnValueOnce(new Promise((_resolve, reject) => { rejectDiscovery = reject; }));
+    mountLocalFallbackRequest();
+    try {
+      const stop = bindHomeAskControls();
+      document.getElementById('pool-home-ask-form').requestSubmit();
+      await vi.waitFor(() => expect(peerRoomMocks.runPeerJob).toHaveBeenCalledTimes(1));
+      stop();
+      rejectDiscovery(Object.assign(new Error('No matching peer'), { code: 'peer_provider_not_found' }));
+      await new Promise(resolve => setTimeout(resolve, 0));
+      expect(localExecutorMocks.run).not.toHaveBeenCalled();
+      expect(peerRoomMocks.createPeerProviderNode).not.toHaveBeenCalled();
+    } finally {
+      if (gpu) Object.defineProperty(navigator, 'gpu', gpu); else delete navigator.gpu;
+    }
+  });
 
   it('does not emit a provider model change when capability rendering keeps the selection', async () => {
     window.REPLOID_DOPPLER_RUNTIME = {

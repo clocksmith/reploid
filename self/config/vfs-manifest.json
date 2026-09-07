@@ -255,6 +255,7 @@
     "config/tool-surfaces.js",
     "config/vfs-manifest.json",
     "config/vfs-policy.js",
+    "config/zero-access.json",
     "config/zero-goals.js",
     "config/zero-inference.js",
     "core/CATSCAN.md",

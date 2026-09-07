@@ -46,6 +46,40 @@ export async function readDocumentAnswerCorpus(config = {}) {
         && typeof passage.text === 'string' && passage.text.trim(), 'Invalid or duplicate corpus passage');
       passageIds.add(passage.id);
     }
+    const review = entry.review;
+    const strings = value => Array.isArray(value) && value.length > 0
+      && value.every(item => typeof item === 'string' && item.trim())
+      && new Set(value).size === value.length;
+    for (const key of ['supportedFacts', 'mustMarkUnknown', 'forbiddenInferences']) {
+      if (review[key] !== undefined) assert(strings(review[key]), `Invalid review ${key}: ${entry.id}`);
+    }
+    for (const key of ['supportingPassages', 'conflictingPassages']) {
+      if (review[key] !== undefined) assert(strings(review[key]) && review[key].every(id => passageIds.has(id)),
+        `Invalid review ${key}: ${entry.id}`);
+    }
+    for (const key of ['allowCompleteAbstention', 'requireCompleteAbstention', 'mustDescribeConflict']) {
+      if (review[key] !== undefined) assert(typeof review[key] === 'boolean', `Invalid review ${key}: ${entry.id}`);
+    }
+    if (entry.category === 'answerable' || entry.category === 'partially-answerable') {
+      assert(strings(review.supportedFacts) && strings(review.supportingPassages)
+        && review.requireCompleteAbstention !== true, `Supported facts and passages required: ${entry.id}`);
+    }
+    if (entry.category === 'answerable') {
+      assert(review.allowCompleteAbstention !== true, `Answerable case cannot allow complete abstention: ${entry.id}`);
+    }
+    if (entry.category === 'partially-answerable') {
+      assert(strings(review.mustMarkUnknown), `Unknown parts required: ${entry.id}`);
+    }
+    if (entry.category === 'contradictory') {
+      assert(review.mustDescribeConflict === true && strings(review.conflictingPassages)
+        && review.conflictingPassages.length >= 2 && review.requireCompleteAbstention !== true,
+      `Conflict review and distinct passages required: ${entry.id}`);
+    }
+    if (entry.category === 'unanswerable') {
+      assert(review.requireCompleteAbstention === true && review.allowCompleteAbstention !== false
+        && review.supportedFacts === undefined && review.mustDescribeConflict !== true,
+      `Complete abstention required for unanswerable case: ${entry.id}`);
+    }
   }
   return { corpus, bytes, corpusPath, corpusDigest };
 }
