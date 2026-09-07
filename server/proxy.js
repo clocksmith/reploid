@@ -13,6 +13,7 @@ import SignalingServer, { isLoopbackAddress } from './signaling-server.js';
 import AgentBridge from './agent-bridge.js';
 import fetch from 'node-fetch';
 import createPoolRouter from './pool/routes.js';
+import { installJsonBodyMiddleware } from './json-body-middleware.js';
 import { createFirebaseStore } from './pool/firebase-store.js';
 import { createGcsAdapterOriginSigner } from './pool/adapter-origin-signer.js';
 import { createChangeControlAuthenticator, parseChangeControlTokenConfig } from './change-control/auth.js';
@@ -640,14 +641,10 @@ if (!POOL_BACKEND_ONLY) {
 }
 
 // Middleware to parse JSON bodies
-app.use(express.json({
-  limit: POOL_BACKEND_ONLY ? (process.env.POOL_JSON_LIMIT || '512kb') : '10mb',
-  verify: (req, res, buffer) => {
-    if (req.originalUrl?.startsWith('/change-control/github/webhooks')) {
-      req.rawBody = Buffer.from(buffer);
-    }
-  }
-}));
+installJsonBodyMiddleware(app, {
+  poolBackendOnly: POOL_BACKEND_ONLY,
+  poolJsonLimit: process.env.POOL_JSON_LIMIT
+});
 
 if (decoFeedback) {
   app.use(decoFeedback.createFeedbackAssetMiddleware());
