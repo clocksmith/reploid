@@ -130,6 +130,38 @@ requested 64; repetition penalty is 1 in both paths, so repetition processing
 has no numerical effect in this comparison. No equality of all resolved session
 policies is implied.
 
+## Rejected readable-passage source experiment
+
+`qwen35-readable-source.tar.gz` retains a completed source-runtime development
+experiment. It replaces the JSON data block with labeled, JSON-quoted question
+and passage text while preserving the product instructions, source checkpoint,
+generation controls, eight development cases, and acceptance requirements.
+This is an exposed development corpus, not a holdout or independent review.
+
+The first candidate failed before model execution: a trailing newline was
+trimmed by the source chat template but preserved by Doppler. That failed
+preflight is retained in `readable-01-rejected.tar.gz`. Removing the candidate's
+trailing newline gave matching formatted text and input tokens for all eight
+cases. The source reference then completed all eight generations.
+
+No case meets the combined frozen requirements. Review against the actual
+passages and the unchanged sentence-level inspector finds:
+
+| Cases | Observed result | Rejection basis |
+| --- | --- | --- |
+| Ticket | Only the partial-unknown sentence | Omits invalidation and replacement facts |
+| Sensor | Alarm, damper, and manual reset | All facts are supported, but the first sentence is uncited |
+| Museum | Only the partial-unknown sentence | Omits Tuesday closure and is not the permitted complete abstention |
+| Carton | Eighteen cups and unknown mass | No invented mass, but missing citation and non-contract unknown wording |
+| Roof, team | Only the partial-unknown sentence | Neither describes the conflict nor supplies the permitted complete abstention |
+| Builder, orchard injection | Only the partial-unknown sentence | Does not supply the required complete abstention |
+
+The source-only candidate scores 0/8 under the frozen combined requirements,
+versus 1/8 for the original source baseline. This does not mean every answer
+hallucinates: citation, coverage, and exact abstention failures remain distinct
+from unsupported factual claims. The manual-reset statement is explicitly in
+the sensor passage. The candidate is rejected; no product prompt changed.
+
 ## Verify and reproduce
 
 Run `sha256sum -c SHA256SUMS`, then extract each archive into a fresh directory.
