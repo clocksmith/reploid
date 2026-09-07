@@ -1227,6 +1227,17 @@ test.describe('Run and Contribute actual browser inference', () => {
       expect(secondProvider.identity?.roleId).not.toBe(firstProvider.identity?.roleId);
 
       const runPage = await openPoolPage(nodes.requesterContext, baseURL, '/room-1', roomId, 'ring-requester');
+      const publicationResponses = [];
+      runPage.on('response', (response) => {
+        if (new URL(response.url()).pathname !== '/pool/research/records'
+          || response.request().method() !== 'POST') return;
+        publicationResponses.push(response.text().then((text) => {
+          let body;
+          try { body = JSON.parse(text); } catch { body = { error: text.slice(0, 1000) }; }
+          return { status: response.status(), recordHash: body.record?.recordHash || null,
+            error: body.error || null, reasons: body.reasons || null };
+        }));
+      });
       const result = await runActualSequence(
         runPage,
         PUBLIC_PROTEIN_SEQUENCE,
@@ -1255,7 +1266,11 @@ test.describe('Run and Contribute actual browser inference', () => {
       expect(result.researchResultHash).toMatch(/^sha256:/);
       expect(result.embeddingPublicationConsent).toBe(true);
       if (RELAY_MODE === 'server') {
-        expect(result.researchPublication).toBe('coordinator_synced');
+        const publications = await Promise.all(publicationResponses);
+        await testInfo.attach('poolday-research-publication.json', {
+          body: Buffer.from(JSON.stringify(publications, null, 2)), contentType: 'application/json'
+        });
+        expect(result.researchPublication, JSON.stringify(publications)).toBe('coordinator_synced');
         const published = await runPage.request.get(new URL(
           `/pool/research/records/${encodeURIComponent(result.researchResultHash)}`,
           runPage.url()
