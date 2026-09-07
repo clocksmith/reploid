@@ -1,6 +1,7 @@
 /** Internal physical-model episode plumbing; no substituted model outputs. */
 import { createSigningKeyPair, exportPublicKey, sha256Hex } from '../../self/pool/inference-receipt.js';
 import { hashDopplerEvidence } from '../../self/pool/executable-pack.js';
+import { resolveDopplerExecutionContract } from '../../self/config/doppler-execution-contracts.js';
 import { createPackPeerProvider } from '../../self/pool/peer-pack-provider.js';
 import { createPackPeerRequester } from '../../self/pool/peer-pack-requester.js';
 import { createPackJobDataChannel } from '../../self/pool/peer-pack-job-channel.js';
@@ -45,7 +46,7 @@ async function start(role, pin, options = {}) {
             && job.body.request.options.includeTokenEmbeddings === true && job.body.request.options.includeLogits === false,
           executor: { async run(request) {
             calls++;
-            const result = await fixture.peer.run({ schema: 'doppler.pack-operation-request/v1',
+            const result = await fixture.peer.run({ schema: resolveDopplerExecutionContract(model.executablePack.schema).requestSchema,
               operation: { name: 'encodeSequence', version: 1 }, input: request.input, options: request.options,
               assignment: request.assignment, limits: request.limits }, { signal: request.signal, onPartial: request.onPartial, beforeExecute: request.beforeExecute });
             completed = result;

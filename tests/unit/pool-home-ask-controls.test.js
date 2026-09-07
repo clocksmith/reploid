@@ -370,7 +370,7 @@ describe('Poolday home ask controls', () => {
       modelRequirements: {
         modelId: 'esm2-t12-35m-ur50d-f32-af32',
         workload: 'sequence.embedding.v1',
-        executionMode: 'full_model_browser_sequence'
+        executionMode: 'complete_pack_browser'
       },
       rtcConfigProvider: null
     });
@@ -981,7 +981,7 @@ describe('Poolday home ask controls', () => {
     expect(change).not.toHaveBeenCalled();
   });
 
-  it('starts a registry-backed sequence provider without manifest or adapter preflight requests', async () => {
+  it('starts a Capsule provider with runtime-owned artifact verification', async () => {
     window.history.replaceState({}, '', '/?room=sequence-provider-room&relay=local');
     writeParticipationPreferences({
       mode: 'both',

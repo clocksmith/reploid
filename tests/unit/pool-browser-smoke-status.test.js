@@ -34,7 +34,7 @@ const cachedShardRecoveryStatus = JSON.parse(await readFile(
   resolve('docs/status/esm2-35m-poolday-cached-shard-recovery-smoke-2026-08-15.json'),
   'utf8'
 ));
-const model = getPoolModelContract('esm2-t12-35m-ur50d-f32-af32');
+const model = JSON.parse(await readFile(resolve('tests/fixtures/legacy-esm2-model.json'), 'utf8')).model;
 const contractKeyHash = `sha256:${createHash('sha256').update(exactModelContractKey(model)).digest('hex')}`;
 
 describe('Poolday persisted ESM-2 browser smoke status', () => {

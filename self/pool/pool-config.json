@@ -1,6 +1,6 @@
 {
   "schema": "reploid.pool.config/v1",
-  "configVersion": "2026-09-06.remote-adapters.v1.doppler-0.6.0",
+  "configVersion": "2026-09-06.remote-adapters.v1.doppler-0.6.0.esm2-capsule-v2",
   "claim": "receipt-backed, audit-backed, reputation-backed, policy-controlled browser inference",
   "forbiddenClaims": [
     "trustless",
@@ -1024,8 +1024,8 @@
     },
     {
       "modelId": "esm2-t12-35m-ur50d-f32-af32",
-      "modelHash": "sha256:1092c098741472429a4c6b4cd6050d5967e0a606d01f713c0b4866fd98921ac8",
-      "manifestHash": "sha256:5612aa20ee2d5310da323d5c39986d0ab724ff727ce92e40762da6ea7b189730",
+      "modelHash": "sha256:5da46df974c9bd7cbd5712e58cadbd86c48a5efdf80f770dbdc43086e27fb572",
+      "manifestHash": "sha256:72e67ff74f13c22ac0f95c86408f4c0834c460d36ab628fca892e3676c525509",
       "tokenizerHash": "sha256:f874eed68372c76988edf4556383c10404dd27b5fee33e7dd96440aba31d9a37",
       "contextLength": 1024,
       "embeddingDimensions": 480,
@@ -1034,7 +1034,7 @@
       "workloads": [
         "sequence.embedding.v1"
       ],
-      "executionMode": "full_model_browser_sequence",
+      "executionMode": "complete_pack_browser",
       "artifactIdentity": {
         "sourceCheckpointId": "facebook/esm2_t12_35M_UR50D@6fbf070e65b0b7291e7bbcd451118c216cff79d8",
         "sourceRepo": "facebook/esm2_t12_35M_UR50D",
@@ -1043,7 +1043,7 @@
         "weightPackHash": "sha256:1092c098741472429a4c6b4cd6050d5967e0a606d01f713c0b4866fd98921ac8",
         "shardSetHash": "sha256:02d771a5ddf516cd4d01338a229309d87822b46b2317fd8432b756fd45ce924e",
         "manifestVariantId": "esm2-t12-35m-ur50d-f32-af32-mv-exec-v1",
-        "conversionConfigDigest": "sha256:25da72db3b9cbfae0c6fab4ad22f62ef7064f1a83edadc09c1ef694afb1f7203",
+        "conversionConfigDigest": "sha256:6e834f666acb3f9de4cfb76094e5b62cf86cc36740111b6cff41e6747bc14e37",
         "conversionConfigPath": "src/config/conversion/esm/esm2-t12-35m-ur50d-f32-af32.json",
         "materializationProfile": "f32-weights-f32-activations",
         "modalitySet": [
@@ -1085,14 +1085,13 @@
         "minimumScore": 30,
         "basis": "bounded_webgpu_profile_v1"
       },
-      "dopplerLoadRef": "esm2-35m",
       "loadInput": {
-        "url": "https://storage.googleapis.com/reploid-model-artifacts/models/esm2-t12-35m-ur50d-f32-af32"
+        "url": "https://storage.googleapis.com/reploid-model-artifacts/capsules/esm2-35m/65e4c1abd95fd5facd9cdba954dec0193f79574846ac57bed527a5de64bd0b47/artifacts/model"
       },
       "artifactPolicy": {
         "transport": "offloaded_content_addressed",
         "cache": "browser_opfs",
-        "baseUrl": "https://storage.googleapis.com/reploid-model-artifacts/models/esm2-t12-35m-ur50d-f32-af32",
+        "baseUrl": "https://storage.googleapis.com/reploid-model-artifacts/capsules/esm2-35m/65e4c1abd95fd5facd9cdba954dec0193f79574846ac57bed527a5de64bd0b47/artifacts/model",
         "identityFields": [
           "modelId",
           "modelHash",
@@ -1107,6 +1106,15 @@
           "manifest": "manifest.json",
           "tokenizer": "tokenizer.json",
           "shards": ""
+        },
+        "cacheName": "reploid-capsule-artifacts-v1",
+        "maxCacheBytes": 268435456,
+        "envelopeArtifact": {
+          "artifactId": "capsule-envelope",
+          "role": "capsule-envelope",
+          "path": "capsule.json",
+          "hash": "sha256:65e4c1abd95fd5facd9cdba954dec0193f79574846ac57bed527a5de64bd0b47",
+          "sizeBytes": 157904
         }
       },
       "runtimeCompatibility": {
@@ -1114,7 +1122,7 @@
         "fallbackStatus": "manifest_owned_f32_activation_lane"
       },
       "runtimeContract": {
-        "minimumDopplerVersion": "0.5.1",
+        "minimumDopplerVersion": "0.6.0",
         "executionSchema": "doppler.execution/v1",
         "kernelPathId": "esm2-t12-35m-ur50d-f32-af32-execution-inline"
       },
@@ -1135,7 +1143,199 @@
         "claimBoundary": "Embedding execution and reproducibility do not establish biological function."
       },
       "label": "ESM-2 35M (Protein)",
-      "enabled": true
+      "enabled": true,
+      "executablePack": {
+        "schema": "doppler.capsule/v2",
+        "capsuleId": "esm2-t12-35m-ur50d-f32-af32-capsule-v2-5da46df974c9bd7c",
+        "semanticRoot": "sha256:5da46df974c9bd7cbd5712e58cadbd86c48a5efdf80f770dbdc43086e27fb572",
+        "envelopeDigest": "sha256:72e67ff74f13c22ac0f95c86408f4c0834c460d36ab628fca892e3676c525509",
+        "artifactClosureDigest": "sha256:783a2fcab7289fb2fa4e54e5563ebba49a766e4eb112eaa0e6625aecd648f524",
+        "artifacts": [
+          {
+            "artifactId": "host-source:sequence-encoding-d7abaa224ec64128.js:d7abaa224ec6",
+            "hash": "sha256:d7abaa224ec64128fb195e238b5ce3b0fabfc00b46406e5d4a0195ff1a03da15",
+            "path": "artifacts/program/host/sequence-encoding-d7abaa224ec64128.js",
+            "role": "host-source",
+            "sizeBytes": 1096
+          },
+          {
+            "artifactId": "manifest:manifest.json:418770adfcfa",
+            "hash": "sha256:418770adfcfabb1668616ff31fb0c39a42de18fca7bab26d0b51490ea2f42642",
+            "path": "artifacts/model/manifest.json",
+            "role": "manifest",
+            "sizeBytes": 83641
+          },
+          {
+            "artifactId": "reference-report:apple-model-qualification.json:2262f96f3177",
+            "hash": "sha256:2262f96f3177d11d782ba2f620d29bd4f58f6d935dae941f668e5019734bf577",
+            "path": "artifacts/evidence/apple-model-qualification.json",
+            "role": "reference-report",
+            "sizeBytes": 32568
+          },
+          {
+            "artifactId": "tokenizer:tokenizer.json:f874eed68372",
+            "hash": "sha256:f874eed68372c76988edf4556383c10404dd27b5fee33e7dd96440aba31d9a37",
+            "path": "artifacts/model/tokenizer.json",
+            "role": "tokenizer",
+            "sizeBytes": 1395
+          },
+          {
+            "artifactId": "weight-shard:shard_00000.bin:7d0c833bb71b",
+            "hash": "sha256:7d0c833bb71bc72c43e52dfecaf48e788f399b5460b33a67d1f0ab403ac64f12",
+            "path": "artifacts/model/shard_00000.bin",
+            "role": "weight-shard",
+            "sizeBytes": 67108864
+          },
+          {
+            "artifactId": "weight-shard:shard_00001.bin:42cfb7b67978",
+            "hash": "sha256:42cfb7b67978da82d478c4b351a69d863ae53e6f0f39cc5afa147e9a98470645",
+            "path": "artifacts/model/shard_00001.bin",
+            "role": "weight-shard",
+            "sizeBytes": 65968256
+          },
+          {
+            "artifactId": "wgsl-source:attention_general-3ad589dc77edb932.wgsl:3ad589dc77ed",
+            "hash": "sha256:3ad589dc77edb932d6527beaea72ebe2772ede29baa0de71d6c6639c859c9745",
+            "path": "artifacts/program/wgsl/attention_general-3ad589dc77edb932.wgsl",
+            "role": "wgsl-source",
+            "sizeBytes": 10073
+          },
+          {
+            "artifactId": "wgsl-source:attn_small-fb03c1f9adfb7d11.wgsl:fb03c1f9adfb",
+            "hash": "sha256:fb03c1f9adfb7d118e87620814f2e5f75d53b65bd2856df91ef4e444f906ef3c",
+            "path": "artifacts/program/wgsl/attn_small-fb03c1f9adfb7d11.wgsl",
+            "role": "wgsl-source",
+            "sizeBytes": 9651
+          },
+          {
+            "artifactId": "wgsl-source:bias_add-856f13e8049d8300.wgsl:856f13e8049d",
+            "hash": "sha256:856f13e8049d8300055b6188b56e79bc4d3cbad80614ae4d33159e7ea8088bae",
+            "path": "artifacts/program/wgsl/bias_add-856f13e8049d8300.wgsl",
+            "role": "wgsl-source",
+            "sizeBytes": 1207
+          },
+          {
+            "artifactId": "wgsl-source:embed-85b2d7fff9358bf4.wgsl:85b2d7fff935",
+            "hash": "sha256:85b2d7fff9358bf4087d9b3f0804803ba798111a3d728db9561b53789280032c",
+            "path": "artifacts/program/wgsl/embed-85b2d7fff9358bf4.wgsl",
+            "role": "wgsl-source",
+            "sizeBytes": 2289
+          },
+          {
+            "artifactId": "wgsl-source:embedding_pool-085f75855a89fd66.wgsl:085f75855a89",
+            "hash": "sha256:085f75855a89fd6612f225529d4e6e82f03888f938c04e8f40aba46bbfd2ea3b",
+            "path": "artifacts/program/wgsl/embedding_pool-085f75855a89fd66.wgsl",
+            "role": "wgsl-source",
+            "sizeBytes": 1009
+          },
+          {
+            "artifactId": "wgsl-source:gather_vec4-4ba3022d03c0d83b.wgsl:4ba3022d03c0",
+            "hash": "sha256:4ba3022d03c0d83b8db0b03724ab8cd80b316175c2ddafd3bf498479365263e5",
+            "path": "artifacts/program/wgsl/gather_vec4-4ba3022d03c0d83b.wgsl",
+            "role": "wgsl-source",
+            "sizeBytes": 2717
+          },
+          {
+            "artifactId": "wgsl-source:gelu-e6fb22edd25c1e21.wgsl:e6fb22edd25c",
+            "hash": "sha256:e6fb22edd25c1e210e7dfc61e0b67d31832c1d9d3caf985e4c56f61dd7b57ac6",
+            "path": "artifacts/program/wgsl/gelu-e6fb22edd25c1e21.wgsl",
+            "role": "wgsl-source",
+            "sizeBytes": 1885
+          },
+          {
+            "artifactId": "wgsl-source:layernorm-a0a78590a442e26c.wgsl:a0a78590a442",
+            "hash": "sha256:a0a78590a442e26ccec467d48609863c538a18506aaafd29a336f1f7216f6927",
+            "path": "artifacts/program/wgsl/layernorm-a0a78590a442e26c.wgsl",
+            "role": "wgsl-source",
+            "sizeBytes": 4022
+          },
+          {
+            "artifactId": "wgsl-source:residual_vec4-04781252bb73f1a2.wgsl:04781252bb73",
+            "hash": "sha256:04781252bb73f1a24ad7f266cb10e41aa172f105ef2a51d1416802d6b1aba9cb",
+            "path": "artifacts/program/wgsl/residual_vec4-04781252bb73f1a2.wgsl",
+            "role": "wgsl-source",
+            "sizeBytes": 1366
+          },
+          {
+            "artifactId": "wgsl-source:residual-e5d606c42ae57cb7.wgsl:e5d606c42ae5",
+            "hash": "sha256:e5d606c42ae57cb72cca129d7ad85e95021158a7d9fbce68af3119630bbcb698",
+            "path": "artifacts/program/wgsl/residual-e5d606c42ae57cb7.wgsl",
+            "role": "wgsl-source",
+            "sizeBytes": 1712
+          },
+          {
+            "artifactId": "wgsl-source:rope_precompute-0aaf0cbdceb87986.wgsl:0aaf0cbdceb8",
+            "hash": "sha256:0aaf0cbdceb879861872b1bd60e0d8a78818b67511c7bbb8157d7804b929500a",
+            "path": "artifacts/program/wgsl/rope_precompute-0aaf0cbdceb87986.wgsl",
+            "role": "wgsl-source",
+            "sizeBytes": 2598
+          },
+          {
+            "artifactId": "wgsl-source:rope_qk-fe7f16a865b94ce0.wgsl:fe7f16a865b9",
+            "hash": "sha256:fe7f16a865b94ce0c0cf88a220cda96daf174cdc61b0158298f40c09298a840c",
+            "path": "artifacts/program/wgsl/rope_qk-fe7f16a865b94ce0.wgsl",
+            "role": "wgsl-source",
+            "sizeBytes": 3259
+          },
+          {
+            "artifactId": "wgsl-source:rope-a4472c7134a08c77.wgsl:a4472c7134a0",
+            "hash": "sha256:a4472c7134a08c77ecefc665918652a7eb4d79acb373a5dc5fdc865b9ccb937d",
+            "path": "artifacts/program/wgsl/rope-a4472c7134a08c77.wgsl",
+            "role": "wgsl-source",
+            "sizeBytes": 12251
+          },
+          {
+            "artifactId": "wgsl-source:scale_inplace-d4d98632a5d2ce10.wgsl:d4d98632a5d2",
+            "hash": "sha256:d4d98632a5d2ce10b8e96b62ce00a14f4388e27f796478efadaffe473bc5f527",
+            "path": "artifacts/program/wgsl/scale_inplace-d4d98632a5d2ce10.wgsl",
+            "role": "wgsl-source",
+            "sizeBytes": 1084
+          },
+          {
+            "artifactId": "wgsl-source:scale-d4d98632a5d2ce10.wgsl:d4d98632a5d2",
+            "hash": "sha256:d4d98632a5d2ce10b8e96b62ce00a14f4388e27f796478efadaffe473bc5f527",
+            "path": "artifacts/program/wgsl/scale-d4d98632a5d2ce10.wgsl",
+            "role": "wgsl-source",
+            "sizeBytes": 1084
+          },
+          {
+            "artifactId": "wgsl-source:split_qkv-f65c37cee36ee2b2.wgsl:f65c37cee36e",
+            "hash": "sha256:f65c37cee36ee2b213d5377d2aa5c5a2d2e20c7b6d1f162e112efd388599ec23",
+            "path": "artifacts/program/wgsl/split_qkv-f65c37cee36ee2b2.wgsl",
+            "role": "wgsl-source",
+            "sizeBytes": 2058
+          },
+          {
+            "artifactId": "wgsl-source:tiled-035020f650612fd6.wgsl:035020f65061",
+            "hash": "sha256:035020f650612fd6f8ac8322b86ec921c64a85ac802b7f4c0fd2dfd3a4c8a1f2",
+            "path": "artifacts/program/wgsl/tiled-035020f650612fd6.wgsl",
+            "role": "wgsl-source",
+            "sizeBytes": 3395
+          },
+          {
+            "artifactId": "program-bundle:program-bundle.json:acdb3fa6675a",
+            "hash": "sha256:acdb3fa6675a3bc67d8c297e37b2ff2a14cd4f11789ac73060a3bcb88f0b2263",
+            "path": "artifacts/program-bundle.json",
+            "role": "program-bundle",
+            "sizeBytes": 90509
+          }
+        ],
+        "requiredOperation": "encodeSequence",
+        "acceptedTargetPlanDigests": [
+          "sha256:e43896c678483b03b8bc1127829a771cc5086be17c92b6502b9cae805436fbec"
+        ]
+      },
+      "runtimeVersion": "0.6.0",
+      "packSource": "https://storage.googleapis.com/reploid-model-artifacts/capsules/esm2-35m/65e4c1abd95fd5facd9cdba954dec0193f79574846ac57bed527a5de64bd0b47/capsule.json",
+      "packOpenOptions": {
+        "trustedSigners": {
+          "reploid-esm2-20260907": {
+            "crv": "Ed25519",
+            "x": "Emw1Dwv5thVME2djqHIyP7e_IDiDmVVAYRYre35-eeA",
+            "kty": "OKP"
+          }
+        }
+      }
     },
     {
       "modelId": "amplify-120m-f16-af32",

@@ -164,13 +164,13 @@ const trackModelArtifactRequests = (page, model) => {
   });
   page.on('request', (request) => {
     const url = request.url();
-    if (url.includes(model.modelId) && /(?:manifest\.json|tokenizer\.json|shard_\d+\.bin)(?:$|[?#])/i.test(url)) {
+    if (/(?:capsule\.json|manifest\.json|tokenizer\.json|shard_\d+\.bin)(?:$|[?#])/i.test(url)) {
       requests.push(url);
     }
   });
   page.on('requestfailed', (request) => {
     const url = request.url();
-    if (url.includes(model.modelId) && /(?:manifest\.json|tokenizer\.json|shard_\d+\.bin)(?:$|[?#])/i.test(url)) {
+    if (/(?:capsule\.json|manifest\.json|tokenizer\.json|shard_\d+\.bin)(?:$|[?#])/i.test(url)) {
       requests.failures.push({
         url,
         error: request.failure()?.errorText || 'unknown browser request failure'
@@ -179,7 +179,7 @@ const trackModelArtifactRequests = (page, model) => {
   });
   page.on('response', (response) => {
     const url = response.url();
-    if (!url.includes(model.modelId) || !/(?:manifest\.json|tokenizer\.json|shard_\d+\.bin)(?:$|[?#])/i.test(url)) return;
+    if (!/(?:capsule\.json|manifest\.json|tokenizer\.json|shard_\d+\.bin)(?:$|[?#])/i.test(url)) return;
     const observation = response.allHeaders().then((headers) => {
       requests.responses.push({
         url,
@@ -490,36 +490,20 @@ const runActualSequence = async (page, sequence, policyId = 'fastest_receipt', o
   }
 };
 
-const corruptCachedModelShard = async (page, model) => page.evaluate(async ({ modelId, storageModuleUrl }) => {
-  const resolvedStorageModuleUrl = window.REPLOID_DOPPLER_STORAGE_MODULE_URL || storageModuleUrl;
-  const storage = await import(resolvedStorageModuleUrl);
-  await storage.openModelStore(modelId);
-  const manifestText = await storage.loadManifestFromStore();
-  const manifest = JSON.parse(manifestText);
-  const shard = manifest.shards?.[0];
-  if (!shard?.filename || !shard?.hash || !manifest.hashAlgorithm) {
-    throw new Error('Qualification corruption probe requires a manifest-declared shard digest.');
-  }
-  const original = new Uint8Array(await storage.loadFileFromStore(shard.filename));
-  if (original.byteLength < 1) throw new Error('Qualification corruption probe found an empty shard.');
-  const mutated = original.slice();
-  mutated[0] ^= 1;
-  const originalHash = await storage.computeHash(original, manifest.hashAlgorithm);
-  const mutatedHash = await storage.computeHash(mutated, manifest.hashAlgorithm);
-  await storage.saveAuxFile(shard.filename, mutated);
-  return {
-    storageModuleUrl: resolvedStorageModuleUrl,
-    path: shard.filename,
-    bytes: original.byteLength,
-    hashAlgorithm: manifest.hashAlgorithm,
-    expectedHash: shard.hash,
-    originalHash,
-    mutatedHash
-  };
-}, {
-  modelId: model.modelId,
-  storageModuleUrl: BROWSER_RUNTIME_CONFIG.dopplerStorageModuleUrl
-});
+const corruptCachedModelShard = async (page, model) => page.evaluate(async model => {
+  const { sha256Hex } = await import('/pool/inference-receipt.js');
+  const shard = model.executablePack.artifacts.find(artifact => artifact.role === 'weight-shard');
+  if (!shard) throw new Error('Qualification requires a pinned Capsule weight shard');
+  const directory = await (await navigator.storage.getDirectory()).getDirectoryHandle(model.artifactPolicy.cacheName);
+  const file = await directory.getFileHandle(shard.hash.slice(7));
+  const original = new Uint8Array(await (await file.getFile()).arrayBuffer());
+  const mutated = original.slice(); mutated[0] ^= 1;
+  const writable = await file.createWritable();
+  try { await writable.write(mutated); await writable.close(); }
+  catch (error) { await writable.abort().catch(() => {}); throw error; }
+  return { path: shard.path, bytes: original.length, hashAlgorithm: 'sha256', expectedHash: shard.hash,
+    originalHash: (await sha256Hex(original)).slice(7), mutatedHash: (await sha256Hex(mutated)).slice(7) };
+}, model);
 
 test.describe('Run and Contribute actual browser inference', () => {
   test.skip(process.env.REPLOID_E2E_ACTUAL_INFERENCE !== '1', 'Set REPLOID_E2E_ACTUAL_INFERENCE=1 to run the real Doppler browser workload.');
@@ -546,14 +530,9 @@ test.describe('Run and Contribute actual browser inference', () => {
       expect(firstProvider.runtime?.persistentCache).toMatchObject({
         backend: 'opfs'
       });
-      expect(firstProvider.runtime?.cachePreflight).toMatchObject({
-        schema: 'reploid.pool.model_cache_integrity/v1',
-        modelId: LAUNCH_MODEL.modelId,
-        status: 'not_cached',
-        valid: null,
-        invalidated: false
-      });
-      expect(firstProvider.runtime?.persistentCache?.manifestHash).toBe(rawSha256(LAUNCH_MODEL.manifestHash));
+      expect(firstProvider.runtime?.persistentCache?.fetchedBytes).toBeGreaterThan(0);
+      expect(firstProvider.runtime?.persistentCache?.corruptCacheBytes).toBe(0);
+      expect(firstProvider.runtime?.persistentCache?.manifestHash).toBe(LAUNCH_MODEL.manifestHash);
 
       const result = await runActualSequence(runPage, PUBLIC_PROTEIN_SEQUENCE);
 
@@ -595,20 +574,9 @@ test.describe('Run and Contribute actual browser inference', () => {
         backend: 'opfs',
         fromCache: true
       });
-      expect(restoredProvider.runtime?.persistentCache?.manifestHash).toBe(rawSha256(LAUNCH_MODEL.manifestHash));
-      expect(restoredProvider.runtime?.cachePreflight).toMatchObject({
-        schema: 'reploid.pool.model_cache_integrity/v1',
-        modelId: LAUNCH_MODEL.modelId,
-        status: 'verified',
-        valid: true,
-        invalidated: false,
-        files: expect.arrayContaining([
-          expect.objectContaining({ kind: 'shard', path: 'shard_00000.bin', valid: true }),
-          expect.objectContaining({ kind: 'shard', path: 'shard_00001.bin', valid: true }),
-          expect.objectContaining({ kind: 'tokenizer', path: 'tokenizer.json', valid: true })
-        ]),
-        reasons: []
-      });
+      expect(restoredProvider.runtime?.persistentCache?.manifestHash).toBe(LAUNCH_MODEL.manifestHash);
+      expect(restoredProvider.runtime?.persistentCache?.fetchedBytes).toBe(0);
+      expect(restoredProvider.runtime?.persistentCache?.cacheBytes).toBeGreaterThan(0);
       expect(shardRequestsAfterReload).toBe(0);
       await attachIncompleteBrowserQualificationObservation(testInfo, {
         model: LAUNCH_MODEL,
@@ -953,6 +921,7 @@ test.describe('Run and Contribute actual browser inference', () => {
     const roomId = roomIdFor(testInfo);
     const nodes = await createInferenceNodeContexts(browser);
     const manifestUrl = buildModelArtifactUrls(LAUNCH_MODEL).manifest;
+    const manifestArtifactHash = LAUNCH_MODEL.executablePack.artifacts.find(artifact => artifact.role === 'manifest').hash;
     let corruptionEvidence = null;
     try {
       await nodes.providerContext.route(manifestUrl, async (route) => {
@@ -960,13 +929,13 @@ test.describe('Run and Contribute actual browser inference', () => {
         const originalText = await upstream.text();
         const corruptedManifest = {
           ...JSON.parse(originalText),
-          manifestHash: LAUNCH_MODEL.manifestHash,
+          manifestHash: manifestArtifactHash,
           corruptionProbe: 'uncommitted_manifest_mutation'
         };
         const corruptedText = JSON.stringify(corruptedManifest);
         corruptionEvidence = {
           manifestUrl,
-          configuredManifestHash: LAUNCH_MODEL.manifestHash,
+          configuredManifestHash: manifestArtifactHash,
           selfDeclaredManifestHash: corruptedManifest.manifestHash,
           originalTextHash: `sha256:${createHash('sha256').update(originalText).digest('hex')}`,
           corruptedTextHash: `sha256:${createHash('sha256').update(corruptedText).digest('hex')}`
@@ -1005,11 +974,11 @@ test.describe('Run and Contribute actual browser inference', () => {
       expect(rejected.raw).toContain('Artifact: manifest_unavailable');
       await expect(toggle).toHaveAttribute('data-contribution-action', 'start');
       expect(corruptionEvidence).toMatchObject({
-        configuredManifestHash: LAUNCH_MODEL.manifestHash,
-        selfDeclaredManifestHash: LAUNCH_MODEL.manifestHash,
-        originalTextHash: LAUNCH_MODEL.manifestHash
+        configuredManifestHash: manifestArtifactHash,
+        selfDeclaredManifestHash: manifestArtifactHash,
+        originalTextHash: manifestArtifactHash
       });
-      expect(corruptionEvidence.corruptedTextHash).not.toBe(LAUNCH_MODEL.manifestHash);
+      expect(corruptionEvidence.corruptedTextHash).not.toBe(manifestArtifactHash);
       expect(artifactRequests.some((url) => /shard_\d+\.bin(?:$|[?#])/i.test(url))).toBe(false);
       await testInfo.attach('poolday-actual-corruption-rejection-observation.json', {
         body: Buffer.from(JSON.stringify({
@@ -1058,13 +1027,8 @@ test.describe('Run and Contribute actual browser inference', () => {
       );
       await waitForProviderListening(providerPage, artifactRequests);
       const primedProvider = (await readSnapshot(providerPage, 'pool-provider-result')).parsed;
-      expect(primedProvider.runtime?.cachePreflight).toMatchObject({
-        schema: 'reploid.pool.model_cache_integrity/v1',
-        modelId: LAUNCH_MODEL.modelId,
-        status: 'not_cached',
-        valid: null,
-        invalidated: false
-      });
+      expect(primedProvider.runtime?.persistentCache).toMatchObject({ backend: 'opfs', fromCache: false, corruptCacheBytes: 0 });
+      expect(primedProvider.runtime?.persistentCache?.fetchedBytes).toBeGreaterThan(0);
       const baseline = await runActualSequence(requesterPage, PUBLIC_PROTEIN_SEQUENCE);
 
       const toggle = providerPage.locator('#pool-provider-worker-toggle');
@@ -1083,30 +1047,13 @@ test.describe('Run and Contribute actual browser inference', () => {
       });
       await waitForProviderListening(providerPage, artifactRequests);
       const recoveredProvider = (await readSnapshot(providerPage, 'pool-provider-result')).parsed;
-      expect(recoveredProvider.runtime?.cachePreflight).toMatchObject({
-        schema: 'reploid.pool.model_cache_integrity/v1',
-        modelId: LAUNCH_MODEL.modelId,
-        status: 'invalidated',
-        valid: false,
-        invalidated: true,
-        files: expect.arrayContaining([
-          expect.objectContaining({
-            kind: 'shard',
-            path: mutation.path,
-            expectedHash: rawSha256(mutation.expectedHash),
-            observedHash: mutation.mutatedHash,
-            valid: false
-          })
-        ]),
-        reasons: expect.arrayContaining([
-          `${mutation.path}: stored hash does not match the manifest`
-        ])
-      });
+      expect(recoveredProvider.runtime?.persistentCache?.corruptCacheBytes).toBe(mutation.bytes);
+      expect(recoveredProvider.runtime?.persistentCache?.cacheBytes).toBeGreaterThan(0);
       expect(recoveredProvider.runtime?.persistentCache).toMatchObject({
         backend: 'opfs',
         fromCache: false
       });
-      expect(recoveryShardRequests).toBeGreaterThan(0);
+      expect(recoveryShardRequests).toBe(1);
 
       const recovered = await runActualSequence(requesterPage, PUBLIC_PROTEIN_SEQUENCE);
       expect(recovered.sequenceResultHash).toBe(baseline.sequenceResultHash);
@@ -1135,7 +1082,7 @@ test.describe('Run and Contribute actual browser inference', () => {
           receiptsDistinct: recovered.receiptHash !== baseline.receiptHash,
           recoveredAgreementAccepted: recovered.agreement?.accepted === true,
           recoveredRequesterAccepted: recovered.requesterAcceptance?.accepted === true,
-          claimBoundary: 'Actual Chromium mutated one manifest-declared OPFS shard through Doppler public storage tooling. Poolday detected the digest mismatch, invalidated the exact-model cache, re-imported immutable source artifacts, and restored the same bounded output before advertising recovered work. This dirty local observation is not a clean-release browser qualification check.'
+          claimBoundary: 'Actual Chromium mutated one Capsule-pinned OPFS shard. Acquisition rejected the digest mismatch, fetched that exact artifact again, and restored the same bounded output before advertising recovered work. Doppler independently verified the complete Capsule closure. This dirty local observation is not a clean-release browser qualification check.'
         }, null, 2)),
         contentType: 'application/json'
       });

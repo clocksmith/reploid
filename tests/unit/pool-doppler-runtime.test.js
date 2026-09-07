@@ -6,12 +6,15 @@ import {
 } from '../../self/pool/doppler-runtime.js';
 import { BROWSER_RUNTIME_CONFIG } from '../../self/pool/config.js';
 import { hashJson, sha256Hex } from '../../self/pool/inference-receipt.js';
-import { LAUNCH_MODEL, getEnabledPoolModelContract } from '../../self/pool/model-contract.js';
+import { getEnabledPoolModelContract } from '../../self/pool/model-contract.js';
 import { operationFixture } from '../fixtures/peer-pack-operation.js';
 import {
   TEST_PUBLIC_PROTEIN_SEQUENCE,
   makePublicProteinJobFields
 } from '../helpers/pool-sequence-fixture.js';
+
+import legacyEsm2 from '../fixtures/legacy-esm2-model.json';
+const LAUNCH_MODEL = legacyEsm2.model;
 
 const testSequenceEncoding = (sequence) => ({
   alphabet: 'amino_acid',
@@ -45,7 +48,8 @@ describe('Doppler browser runtime adapter', () => {
   it('loads an exact Capsule through its public method without a legacy loader', async () => {
     const f = await operationFixture('encodeSequence', undefined, 'doppler.capsule/v2');
     let opens = 0, closes = 0;
-    Object.assign(f.session, { modelId: f.model.modelId, modelHash: f.model.modelHash, manifestHash: f.model.manifestHash,
+    Object.assign(f.session, { manifest: { modelId: f.model.modelId,
+      modelHash: `sha256:${'e'.repeat(64)}`, manifestHash: `sha256:${'f'.repeat(64)}` },
       encodeSequence: testSequenceEncoding, close: async () => { closes++; } });
     // Synthetic public module at the installed pin; this is API selection, not a release claim.
     globalThis.REPLOID_DOPPLER_MODULE = { DOPPLER_VERSION: '0.6.0', openCapsule: async (source, options) => {
@@ -61,6 +65,20 @@ describe('Doppler browser runtime adapter', () => {
       expect(opens).toBe(1);
     } finally { await runtime.close(); }
     expect(closes).toBe(1);
+  });
+
+  it('rejects a signed session when the descriptor or source identity differs', async () => {
+    const f = await operationFixture('encodeSequence', undefined, 'doppler.capsule/v2');
+    f.session.manifest = { modelId: f.model.modelId, artifactIdentity: { sourceCheckpointId: 'actual' } };
+    f.session.encodeSequence = testSequenceEncoding;
+    const runtime = createDopplerRuntime();
+    await expect(runtime.attachHandle(f.session, { ...f.model, modelHash: `sha256:${'e'.repeat(64)}` }))
+      .rejects.toThrow('modelHash does not match');
+    await expect(runtime.attachHandle(f.session, { ...f.model, artifactIdentity: { sourceCheckpointId: 'different' } }))
+      .rejects.toThrow('artifactIdentity does not match');
+    f.session.manifest.modelId = 'different';
+    await expect(runtime.attachHandle(f.session, f.model)).rejects.toThrow('modelId does not match');
+    await runtime.close();
   });
 
   it('prepares the Doppler module without loading model weights', async () => {
@@ -336,7 +354,7 @@ describe('Doppler browser runtime adapter', () => {
   });
 
   it('uses the explicit hosted ESM-2 load input when the model is not in Doppler quickstart', async () => {
-    const model = getEnabledPoolModelContract('esm2-t12-35m-ur50d-f32-af32');
+    const model = LAUNCH_MODEL;
     let loadInput = null;
     globalThis.REPLOID_DOPPLER_MODULE = {
       load(input) {

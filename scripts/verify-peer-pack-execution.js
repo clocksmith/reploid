@@ -3,16 +3,25 @@
 import { chromium } from '@playwright/test';
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { createServer } from 'node:http';
-import { dirname, resolve, sep, extname } from 'node:path';
+import { basename, dirname, resolve, sep, extname } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { execFileSync } from 'node:child_process';
 import { hashDopplerEvidence } from '../self/pool/executable-pack.js';
 import { sha256Hex } from '../self/pool/inference-receipt.js';
+import { resolveDopplerExecutionContract } from '../self/config/doppler-execution-contracts.js';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const assert = (condition, message) => { if (!condition) throw new Error(message); };
 const revision = (root) => ({ head: execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim(),
   dirty: Boolean(execFileSync('git', ['status', '--short'], { cwd: root, encoding: 'utf8' }).trim()) });
+
+export function ownedBrowserPids(processTable, parentPid, executablePath) {
+  return processTable.split('\n').flatMap(row => {
+    const match = row.trim().match(/^(\d+)\s+(\d+)\s+(.+)$/);
+    return match && Number(match[2]) === parentPid && basename(match[3]) === basename(executablePath)
+      ? [Number(match[1])] : [];
+  });
+}
 
 // Freeze each installed runtime file on first use, so later requests from other
 // peers cannot silently execute different bytes under the same URL.
@@ -77,14 +86,19 @@ export async function verifyPeerPackExecution(config) {
   }
   const runtimeBootstrap = await readRuntimeBootstrapShaders(runtimeRoot, config.runtimeBootstrapShaders);
   const runtimeSources = createProofSourceSnapshot();
-  const { getPackIdentity } = await import(pathToFileURL(resolve(dopplerRoot, 'src/pack.js')).href);
   const { hashTargetPlan } = await import(pathToFileURL(resolve(dopplerRoot, 'src/config/target-plan.js')).href);
   const { evaluateSequenceReference } = await import(pathToFileURL(resolve(dopplerRoot, 'tools/lib/sequence-model-qualification.js')).href);
   const envelopeBytes = new Uint8Array(await readFile(config.packPath));
   const pack = JSON.parse(new TextDecoder().decode(envelopeBytes));
-  const binding = { ...getPackIdentity(pack), artifacts: pack.artifacts, requiredOperation: 'encodeSequence',
+  const contract = resolveDopplerExecutionContract(pack.schema);
+  const identityModule = contract.openMethod === 'openCapsule'
+    ? await import(pathToFileURL(resolve(runtimeRoot, 'src/capsule.js')).href)
+    : await import(pathToFileURL(resolve(runtimeRoot, 'src/pack.js')).href);
+  const identity = contract.openMethod === 'openCapsule'
+    ? identityModule.getCapsuleIdentity(pack) : identityModule.getPackIdentity(pack);
+  const binding = { ...identity, artifacts: pack.artifacts, requiredOperation: 'encodeSequence',
     acceptedTargetPlanDigests: pack.targetPlans.map(hashTargetPlan) };
-  const envelopeArtifact = { artifactId: 'pack-envelope', role: 'pack-envelope', path: 'pack.json',
+  const envelopeArtifact = { artifactId: 'pack-envelope', role: 'pack-envelope', path: config.packPath.split(/[\\/]/).at(-1),
     hash: await sha256Hex(envelopeBytes), sizeBytes: envelopeBytes.length };
   const bytesById = new Map([[envelopeArtifact.artifactId, envelopeBytes]]);
   const index = { schema: 'reploid.pool.pack-custody-index/v1', envelopeDigest: binding.envelopeDigest,
@@ -167,8 +181,8 @@ export async function verifyPeerPackExecution(config) {
     const origin = `http://127.0.0.1:${server.address().port}`;
     browser = await chromium.launch({ executablePath: config.browserExecutablePath, args: config.browserArgs, headless: true });
     report.browserVersion = browser.version();
-    const childPids = () => execFileSync('ps', ['-o', 'pid=,comm=', '--ppid', String(process.pid)], { encoding: 'utf8' })
-      .trim().split('\n').filter(row => /\s+chrome$/.test(row)).map(row => Number(row.trim().split(/\s+/)[0]));
+    const childPids = () => ownedBrowserPids(
+      execFileSync('ps', ['-axo', 'pid=,ppid=,comm='], { encoding: 'utf8' }), process.pid, config.browserExecutablePath);
     const identities = [];
     const openPage = async (peerId, restored = null) => {
       let context;

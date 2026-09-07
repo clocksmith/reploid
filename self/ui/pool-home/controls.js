@@ -870,6 +870,10 @@ export const bindRoomActivityControls = () => {
 };
 
 const probeModelArtifacts = async (model) => {
+  if (model.executablePack && window.REPLOID_POOL_STRICT_ARTIFACT_PREFLIGHT !== true) {
+    return { ok: true, status: 'capsule_verification_pending', runtime: model.runtime,
+      action: 'Doppler verifies the signed Capsule and complete artifact closure during model load.' };
+  }
   if (window.REPLOID_POOL_STRICT_ARTIFACT_PREFLIGHT !== true && usesRegistryBackedDopplerLoad(model)) {
     return {
       ok: true,

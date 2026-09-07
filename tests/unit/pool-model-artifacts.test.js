@@ -12,6 +12,19 @@ import {
 import { hashJson, sha256Hex } from '../../self/pool/inference-receipt.js';
 
 describe('pool model artifact helpers', () => {
+  it('uses the pinned Capsule manifest bytes separately from envelope identity', async () => {
+    const manifest = { modelId: 'capsule-model', modelHash: 'sha256:weights' };
+    const text = JSON.stringify(manifest);
+    const model = { modelId: manifest.modelId, modelHash: 'sha256:semantic-root', manifestHash: 'sha256:envelope',
+      artifactIdentity: { weightPackHash: manifest.modelHash },
+      executablePack: { artifacts: [{ role: 'manifest', hash: await sha256Hex(text) }] } };
+    const input = { model, baseUrl: 'https://fixtures.invalid', fetchImpl: async () => ({ ok: true, text: async () => text }) };
+    expect((await verifyModelArtifactManifest(input)).ok).toBe(true);
+    await expect(verifyModelArtifactManifest({ ...input, fetchImpl: async () => ({ ok: true, text: async () => `${text}\n` }) }))
+      .rejects.toThrow('manifest hash');
+    await expect(verifyModelArtifactManifest({ ...input, model: { ...model, executablePack: { artifacts: [] } } }))
+      .rejects.toThrow('exactly one manifest');
+  });
   it('requires the approved browser origins, range methods, and exposed artifact headers', () => {
     const policy = [{
       origin: [

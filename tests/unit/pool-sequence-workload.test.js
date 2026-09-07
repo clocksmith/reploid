@@ -37,6 +37,7 @@ import {
 
 const sequenceModel = Object.freeze({
   ...buildLaunchProviderModel(),
+  executablePack: undefined,
   modelId: 'amplify-120m-f32-sequence-test',
   modelHash: `sha256:${'1'.repeat(64)}`,
   manifestHash: `sha256:${'2'.repeat(64)}`,

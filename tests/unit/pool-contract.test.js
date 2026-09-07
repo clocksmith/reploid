@@ -66,7 +66,7 @@ describe('Poolday protein-first sequence model contract', () => {
     expect(BROWSER_LAUNCH_MODEL).toEqual(SERVER_LAUNCH_MODEL);
     expect(BROWSER_LAUNCH_MODEL).toMatchObject({
       workload: POOLDAY_MODEL_WORKLOADS.sequenceEmbedding,
-      executionMode: 'full_model_browser_sequence',
+      executionMode: 'complete_pack_browser',
       sequence: { alphabet: 'amino_acid' },
       artifactIdentity: { modalitySet: ['protein_sequence'] }
     });

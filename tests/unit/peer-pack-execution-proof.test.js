@@ -3,10 +3,15 @@ import { describe, it, expect } from 'vitest';
 import { mkdtemp, mkdir, writeFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { createProofSourceSnapshot, readRuntimeBootstrapShaders } from '../../scripts/verify-peer-pack-execution.js';
+import { createProofSourceSnapshot, ownedBrowserPids, readRuntimeBootstrapShaders } from '../../scripts/verify-peer-pack-execution.js';
 import { sha256Hex } from '../../self/pool/inference-receipt.js';
 
 describe('peer Pack proof runtime bootstrap boundary', () => {
+  it('identifies only owned browser processes on Linux and macOS', () => {
+    const table = '100 42 /opt/chrome\n101 43 /opt/chrome\n102 42 ps\n103 42 /Applications/Google Chrome.app/Contents/MacOS/Google Chrome\n104 103 Google Chrome Helper';
+    expect(ownedBrowserPids(table, 42, '/opt/chrome')).toEqual([100]);
+    expect(ownedBrowserPids(table, 42, '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome')).toEqual([103]);
+  });
   it('retains exact runtime bytes and freezes repeat requests across peers', async () => {
     const root = await mkdtemp(join(tmpdir(), 'peer-pack-source-test-'));
     try {

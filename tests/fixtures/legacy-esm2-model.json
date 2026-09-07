@@ -1,0 +1,118 @@
+{
+  "sourceRevision": "8d0c11e8012076a54a8fa503e16fb5bde15f4e12",
+  "model": {
+    "modelId": "esm2-t12-35m-ur50d-f32-af32",
+    "modelHash": "sha256:1092c098741472429a4c6b4cd6050d5967e0a606d01f713c0b4866fd98921ac8",
+    "manifestHash": "sha256:5612aa20ee2d5310da323d5c39986d0ab724ff727ce92e40762da6ea7b189730",
+    "tokenizerHash": "sha256:f874eed68372c76988edf4556383c10404dd27b5fee33e7dd96440aba31d9a37",
+    "contextLength": 1024,
+    "embeddingDimensions": 480,
+    "quantization": "f32",
+    "workload": "sequence.embedding.v1",
+    "workloads": [
+      "sequence.embedding.v1"
+    ],
+    "executionMode": "full_model_browser_sequence",
+    "artifactIdentity": {
+      "sourceCheckpointId": "facebook/esm2_t12_35M_UR50D@6fbf070e65b0b7291e7bbcd451118c216cff79d8",
+      "sourceRepo": "facebook/esm2_t12_35M_UR50D",
+      "sourceRevision": "6fbf070e65b0b7291e7bbcd451118c216cff79d8",
+      "weightPackId": "esm2-t12-35m-ur50d-f32-af32-wp-v1",
+      "weightPackHash": "sha256:1092c098741472429a4c6b4cd6050d5967e0a606d01f713c0b4866fd98921ac8",
+      "shardSetHash": "sha256:02d771a5ddf516cd4d01338a229309d87822b46b2317fd8432b756fd45ce924e",
+      "manifestVariantId": "esm2-t12-35m-ur50d-f32-af32-mv-exec-v1",
+      "conversionConfigDigest": "sha256:25da72db3b9cbfae0c6fab4ad22f62ef7064f1a83edadc09c1ef694afb1f7203",
+      "conversionConfigPath": "src/config/conversion/esm/esm2-t12-35m-ur50d-f32-af32.json",
+      "materializationProfile": "f32-weights-f32-activations",
+      "modalitySet": [
+        "protein_sequence"
+      ],
+      "sourceFormat": "safetensors",
+      "artifactCompleteness": "complete"
+    },
+    "sequence": {
+      "alphabet": "amino_acid",
+      "maxSequenceLength": 1024,
+      "normalization": "remove_ascii_whitespace_and_uppercase",
+      "canonicalSymbols": "ACDEFGHIKLMNPQRSTVWY",
+      "ambiguitySymbols": [],
+      "coordinates": {
+        "mapping": "one_token_per_sequence_symbol",
+        "sequenceIndexBase": 0,
+        "prefixTokens": 1,
+        "suffixTokens": 1
+      },
+      "tokenEmbeddings": true,
+      "pooledEmbedding": {
+        "mode": "mean",
+        "excludeTokenIds": [
+          0,
+          1,
+          2,
+          3,
+          31,
+          32
+        ]
+      },
+      "logits": false
+    },
+    "runtime": "doppler",
+    "backend": "browser-webgpu",
+    "browserCapability": {
+      "minimumTier": "standard",
+      "minimumScore": 30,
+      "basis": "bounded_webgpu_profile_v1"
+    },
+    "dopplerLoadRef": "esm2-35m",
+    "loadInput": {
+      "url": "https://storage.googleapis.com/reploid-model-artifacts/models/esm2-t12-35m-ur50d-f32-af32"
+    },
+    "artifactPolicy": {
+      "transport": "offloaded_content_addressed",
+      "cache": "browser_opfs",
+      "baseUrl": "https://storage.googleapis.com/reploid-model-artifacts/models/esm2-t12-35m-ur50d-f32-af32",
+      "identityFields": [
+        "modelId",
+        "modelHash",
+        "manifestHash",
+        "tokenizerHash",
+        "artifactIdentity",
+        "runtime",
+        "backend"
+      ],
+      "pathTemplate": "",
+      "paths": {
+        "manifest": "manifest.json",
+        "tokenizer": "tokenizer.json",
+        "shards": ""
+      }
+    },
+    "runtimeCompatibility": {
+      "requiredWebGpuFeatures": [],
+      "fallbackStatus": "manifest_owned_f32_activation_lane"
+    },
+    "runtimeContract": {
+      "minimumDopplerVersion": "0.5.1",
+      "executionSchema": "doppler.execution/v1",
+      "kernelPathId": "esm2-t12-35m-ur50d-f32-af32-execution-inline"
+    },
+    "license": {
+      "sourceTerms": [
+        "MIT"
+      ],
+      "sourceRevision": "6fbf070e65b0b7291e7bbcd451118c216cff79d8",
+      "admission": "approved",
+      "productUse": "admitted"
+    },
+    "admission": {
+      "pooldayState": "enabled",
+      "nodeWebGpu": "qualified",
+      "browserWebGpu": "enabled_release_receipt_required",
+      "browserJourney": "tests/e2e/p2p-actual-inference.spec.js",
+      "scientificFitness": "baseline_release_receipt_required",
+      "claimBoundary": "Embedding execution and reproducibility do not establish biological function."
+    },
+    "label": "ESM-2 35M (Protein)",
+    "enabled": true
+  }
+}
