@@ -3,13 +3,15 @@ import { openPeerPack } from '../../self/pool/peer-pack-session.js';
 import { hashDopplerEvidence } from '../../self/pool/executable-pack.js';
 import { sha256Hex } from '../../self/pool/inference-receipt.js';
 import { createCustodyFixture } from '../fixtures/peer-pack-custody.js';
+import { resolveDopplerExecutionContract } from '../../self/config/doppler-execution-contracts.js';
 
 // Real signed chunk custody; synthetic runtime isolates the composition contract.
-async function fixture() {
+async function fixture(schema = 'doppler.pack/v3') {
+  const contract = resolveDopplerExecutionContract(schema);
   const digest = value => `sha256:${value.repeat(64)}`;
   const bytes = Uint8Array.from([1, 2, 3]);
   const artifacts = [{ artifactId: 'weights', role: 'weight-shard', path: 'weights.bin', sizeBytes: 3, hash: await sha256Hex(bytes) }];
-  const binding = { schema: 'doppler.pack/v3', packId: 'session-test', semanticRoot: digest('a'), envelopeDigest: digest('b'),
+  const binding = { schema, [contract.identityFields[1]]: 'session-test', semanticRoot: digest('a'), envelopeDigest: digest('b'),
     artifactClosureDigest: await hashDopplerEvidence(artifacts), artifacts, requiredOperation: 'embed', acceptedTargetPlanDigests: [digest('c')] };
   const pack = { schema: 'synthetic-pack-envelope', artifacts };
   const envelope = new TextEncoder().encode(JSON.stringify(pack));
@@ -20,28 +22,29 @@ async function fixture() {
     putChunk: async (chunk, value) => { persisted.set(chunk.hash, value.slice()); },
     deleteChunk: async chunk => { persisted.delete(chunk.hash); },
     getStats: async () => ({ chunks: persisted.size }), close: vi.fn() };
-  const identity = { pack: binding, targetPlanDigest: digest('c'), artifactReceipts: artifacts.map(({ artifactId, hash, sizeBytes }) => ({ artifactId, hash, sizeBytes })) };
-  const session = { schema: 'doppler.pack-session/v1', loaded: true, packIdentity: binding,
+  const identity = { [contract.receiptIdentity]: binding, targetPlanDigest: digest('c'), artifactReceipts: artifacts.map(({ artifactId, hash, sizeBytes }) => ({ artifactId, hash, sizeBytes })) };
+  const session = { schema: contract.sessionSchema, loaded: true, [contract.sessionIdentity]: binding,
     selectedTargetPlanDigest: digest('c'), verification: identity, executeOperation: vi.fn() };
   const service = { prepare: vi.fn(async () => ({ version: 'fixture-runtime' })),
-    openPack: vi.fn(async ({ source, options }) => {
+    [contract.openMethod]: vi.fn(async ({ source, options }) => {
       expect(source).toEqual(pack);
       expect(await options.artifactStore.readArtifact(artifacts[0])).toEqual(bytes);
       return session;
     }), close: vi.fn(async () => {}) };
-  return { ...f, checkpoints, session, service, persisted,
+  return { ...f, checkpoints, session, service, persisted, contract,
     options: { ...f.options, service, openCheckpoints: async () => checkpoints,
       trustedSigners: { publisher: { public: 'fixture-key' } }, runtimeVersion: 'fixture-runtime', maxCacheBytes: 4096 } };
 }
 
 describe('durable peer acquisition to public local Pack opening', () => {
-  it('reopens from verified checkpoints without fetching model bytes again', async () => {
-    const f = await fixture();
+  it.each(['doppler.pack/v3', 'doppler.capsule/v3'])('reopens from verified checkpoints without fetching model bytes again (%s)', async schema => {
+    const f = await fixture(schema);
     const first = await openPeerPack(f.options);
     const receipt = await first.getAcquisitionReceipt();
     expect(receipt.completed.map(row => row.artifactId)).toEqual(['envelope', 'weights']);
     expect(receipt.storage.chunks).toBeGreaterThan(0);
-    expect(f.service.openPack.mock.calls[0][0].options.trustedSigners).toEqual(f.options.trustedSigners);
+    expect(f.service[f.contract.openMethod].mock.calls[0][0].options.trustedSigners).toEqual(f.options.trustedSigners);
+    expect(f.service.prepare).toHaveBeenCalledWith(null, { bindingSchema: schema });
     await first.close();
     const unavailable = vi.fn(async () => { throw new Error('All suppliers disappeared'); });
     const resumed = await openPeerPack({ ...f.options, requestChunk: unavailable });

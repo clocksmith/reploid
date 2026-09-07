@@ -685,8 +685,8 @@
     },
     {
       "path": "blueprints/0x000085-pool-model-contract.md",
-      "byteLength": 2606,
-      "sha256": "sha256:b37e8633fde209946295ce7d038d52782d74ef26fb794e4b09799d7be4f0d09c"
+      "byteLength": 2848,
+      "sha256": "sha256:7ffba55c5d553b8d743a00bed6a6cccce043029f9a22cd4b0035d822c6d181a6"
     },
     {
       "path": "blueprints/0x000086-pool-peer-control-plane.md",
@@ -850,8 +850,8 @@
     },
     {
       "path": "blueprints/0x0000A6-core-doppler-runtime-service.md",
-      "byteLength": 3080,
-      "sha256": "sha256:efd67db4cb33e6c4baab10db978fc49f66af6758fd72970fbacde67d88207cbe"
+      "byteLength": 3577,
+      "sha256": "sha256:459ba4fe064213d2f4cd7f40d57f6db0b50316ff9305e3e692f61e36b4b2d3e8"
     },
     {
       "path": "blueprints/0x0000A7-config-clockwork-gamma-receipts.md",
@@ -906,7 +906,7 @@
     {
       "path": "blueprints/canonical-inventory.md",
       "byteLength": 18954,
-      "sha256": "sha256:e7c7481332d8a79a5ca91dc42980ff7998feb746540da027925083628dc1c942"
+      "sha256": "sha256:b22de40d62cb542f6a4442cf2f2c2fde7b186208814dee4efde229d586bcc7b6"
     },
     {
       "path": "blueprints/CATSCAN.md",
@@ -1180,8 +1180,8 @@
     },
     {
       "path": "config/blueprint-registry.json",
-      "byteLength": 35116,
-      "sha256": "sha256:dcc4e7083595c1f0216e308bed8d7037bb8f5fa80b33daefc02afb6767e0e1ab"
+      "byteLength": 35165,
+      "sha256": "sha256:2a90327663417f6928be8949c7345ce4458e66740d6d01647dc5540bf02b353d"
     },
     {
       "path": "config/boot-modes.js",
@@ -1210,8 +1210,8 @@
     },
     {
       "path": "config/doppler-execution-contracts.js",
-      "byteLength": 1111,
-      "sha256": "sha256:31be998bbb1f7abcaf0c7fb7f017d7915fb309c579a993d6ba1c6dfbb306eea8"
+      "byteLength": 1431,
+      "sha256": "sha256:3c5a5ad7e4451e3a6e5c17e9871f6a0923b808556e1983a822e4ad8f418cc825"
     },
     {
       "path": "config/doppler-execution-contracts.json",
@@ -1265,8 +1265,8 @@
     },
     {
       "path": "config/module-inventory.json",
-      "byteLength": 93489,
-      "sha256": "sha256:fb566852a88a1df38fc9d5cbc983ee2d53bf7c8464bf08046ba7ee6be003a7b8"
+      "byteLength": 94219,
+      "sha256": "sha256:e7f8b0ce56ec997e67ff1b658af0ab9085878cf4d2808cefcdab5cdfe6573523"
     },
     {
       "path": "config/module-registry.json",
@@ -1295,8 +1295,8 @@
     },
     {
       "path": "config/vfs-manifest.json",
-      "byteLength": 25099,
-      "sha256": "sha256:c40624b1ff7c723b09b7a579d49364876772946c52df36a60a6d851467a8c995"
+      "byteLength": 25357,
+      "sha256": "sha256:676eca0fe38b0812844d289eea294a1c07a2324893b54e3e672f946423817f34"
     },
     {
       "path": "config/vfs-policy.js",
@@ -1980,8 +1980,8 @@
     },
     {
       "path": "pool/doppler-runtime.js",
-      "byteLength": 49115,
-      "sha256": "sha256:6462825eeecf83efe44e2d0de350e948577df8c949fe49c17c0ea9848ae41cd2"
+      "byteLength": 49312,
+      "sha256": "sha256:a95a059ef8b1ecc7bfc76c0e0797d896b6117e145b6862a37438c15176a1bd4b"
     },
     {
       "path": "pool/evidence-admission.js",
@@ -2017,6 +2017,11 @@
       "path": "pool/evidence-verification.js",
       "byteLength": 48753,
       "sha256": "sha256:df639497ca08cfc62f75e5fa8cefc89c066e725d2f211bfbd1e32d0c8ed3b880"
+    },
+    {
+      "path": "pool/executable-pack.d.ts",
+      "byteLength": 1561,
+      "sha256": "sha256:fdd9053c6bb72bc5274ce248d34f85ec17a27b11ed4ff7534ec0058644396c33"
     },
     {
       "path": "pool/executable-pack.js",
@@ -2289,9 +2294,14 @@
       "sha256": "sha256:eebb90cc8778611df19aceacadbcb04f734d8d147bc456ff89e847098c520761"
     },
     {
+      "path": "pool/peer-pack-session.d.ts",
+      "byteLength": 1286,
+      "sha256": "sha256:44f4d14e1374ee1e84eecba38334a05fff1de5a53e0b6ad94b5215295e1b073e"
+    },
+    {
       "path": "pool/peer-pack-session.js",
-      "byteLength": 4663,
-      "sha256": "sha256:d53507942cebcb5187ac8ee990186cfa715e76b6ac4fe70256887948381caab2"
+      "byteLength": 5006,
+      "sha256": "sha256:4ba4b9dc8a12624a71e2d0532a32860fadd3a1c9794cb392a0c386334209cbc2"
     },
     {
       "path": "pool/peer-payload.js",
@@ -3209,5 +3219,5 @@
       "sha256": "sha256:f0839f1a37e68e05baa3bd3823460bc9d742420485f12ae03979781adbb865ca"
     }
   ],
-  "bundleHash": "sha256:767ea4810ca61ee85b9c962b53f426a04cfacc8524402adff506489404b11697"
+  "bundleHash": "sha256:48943458767ba926067cb10834ecbea508a7679b8c1c05c2565fc5a39b76d7b5"
 }

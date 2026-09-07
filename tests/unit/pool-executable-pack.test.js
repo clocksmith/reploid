@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { assertPackReceipt, assertPackSession, hashDopplerEvidence, validateExecutablePack, executablePacksMatch } from '../../self/pool/executable-pack.js';
 import { exactModelContractKey, LAUNCH_MODEL, validateProviderModelContract } from '../../self/pool/model-contract.js';
+import { operationFixture } from '../fixtures/peer-pack-operation.js';
+import { assertPackOperationReceipt, assertPackOperationRequest } from '../../self/pool/pack-operation.js';
 
 const digest = (digit) => `sha256:${digit.repeat(64)}`;
 const fixture = async () => {
@@ -15,6 +17,20 @@ const fixture = async () => {
 };
 
 describe('Poolday signed executable Pack boundary', () => {
+  it('rejects mixed formats even when the roots and program match', async () => {
+    const f = await operationFixture('generate', undefined, 'doppler.capsule/v2');
+    const limits = { maxInputBytes: 65536, maxOutputBytes: 65536, deadlineAt: Date.now() + 60000 };
+    const execution = await f.executor.run({ model: f.model, input: f.input, options: f.options, assignment: {}, limits });
+    expect(validateExecutablePack({ ...f.binding, packId: 'synthetic-operation' }).ok).toBe(false);
+    await expect(assertPackSession(f.binding, { ...f.session, schema: 'doppler.pack-session/v1' })).rejects.toThrow('public Pack session');
+    expect(() => assertPackOperationRequest(f.binding, { ...execution.request, schema: 'doppler.pack-operation-request/v1' })).toThrow();
+    const { capsule, receiptDigest, ...receipt } = execution.receipt;
+    const mixed = { ...receipt, pack: capsule };
+    await expect(assertPackOperationReceipt(f.binding, { ...mixed, receiptDigest: await hashDopplerEvidence(mixed) }, {
+      request: execution.request, output: execution.output, runtimeVersion: f.model.runtimeVersion
+    })).rejects.toThrow('required exact Pack');
+  });
+
   it('binds exact Pack identity, full artifact closure, plan, assignment, inputs and outputs', async () => {
     const f = await fixture();
     expect(validateExecutablePack(f.binding).ok).toBe(true);

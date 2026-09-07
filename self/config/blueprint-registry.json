@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-09-06T20:22:26.000Z",
+  "generatedAt": "2026-09-06T21:09:26.457Z",
   "features": [
     {
       "id": "0x000002",
@@ -1402,6 +1402,7 @@
         }
       ],
       "files": [
+        "config/doppler-execution-contracts.js",
         "config/doppler-local-models.js",
         "core/doppler-runtime-service.js",
         "infrastructure/doppler-runtime-service.js"

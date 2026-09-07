@@ -30,6 +30,7 @@ import {
 import { verifyDopplerPersistentModelCache } from './model-cache-integrity.js';
 import { DopplerRuntimeService } from '../infrastructure/doppler-runtime-service.js';
 import { assertPackSession, assertPackReceipt, executablePacksMatch } from './executable-pack.js';
+import { resolveDopplerExecutionContract } from '../config/doppler-execution-contracts.js';
 import { SEQUENCE_WORKLOADS } from './sequence-workload.js';
 
 const DOPPLER_IMPORTS = Object.freeze([
@@ -990,7 +991,8 @@ export function createDopplerRuntime({
         await assertModelRuntimeCapabilities(nextModel);
         const module = await loadDopplerModule();
         if (nextModel.executablePack) {
-          const handle = await DopplerRuntimeService.openPack({
+          const contract = resolveDopplerExecutionContract(nextModel.executablePack.schema);
+          const handle = await DopplerRuntimeService[contract.openMethod]({
             scope: serviceScope,
             source: nextModel.packSource,
             options: { ...nextModel.packOpenOptions, acceptedTargetPlanDigests: nextModel.executablePack.acceptedTargetPlanDigests },

@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { ingestDocuments, rankDocumentVectors, createDocumentSearch } from '../../self/pool/document-search.js';
 import { createLocalPackExecutor } from '../../self/pool/local-pack-executor.js';
+import { createReploidDopplerRuntimeService } from '../../self/infrastructure/doppler-runtime-service.js';
 import { validateOperationModel } from '../../self/pool/operation-model.js';
 import { validateEnabledPoolModelContract } from '../../self/pool/model-contract.js';
 import { createDocumentPackFixture } from '../fixtures/document-packs.js';
@@ -9,6 +10,27 @@ import policy from '../../self/pool/document-search-policy.json' with { type: 'j
 const documents = [{ name: 'fruit.md', text: 'Apple trees grow fruit.' }, { name: 'sea.txt', text: 'Whales live in the sea.' }];
 
 describe('local document search (synthetic Pack outputs)', () => {
+  it('embeds, reranks, and cites answers through a Capsule-only public runtime', async () => {
+    const f = await createDocumentPackFixture({ schema: 'doppler.capsule/v2', runtimeVersion: '0.6.0' });
+    const openCapsule = vi.fn(async () => ({ ...await f.service.openCapsule(), close: vi.fn() }));
+    const service = createReploidDopplerRuntimeService({ expectedVersion: '0.6.0',
+      loadModule: async () => ({ DOPPLER_VERSION: '0.6.0', openCapsule }) });
+    const workflow = createDocumentSearch({ executor: createLocalPackExecutor({ service }) });
+    workflow.configure(f.configuration); await workflow.setDocuments(documents);
+    try {
+      const result = await workflow.search({ query: 'apple', rerank: true, generateAnswer: true });
+      expect(result.receipts.map(receipt => receipt.operation.name)).toEqual(['embed', 'rerank', 'generate']);
+      expect(result.answer.citations[0]).toMatchObject({ number: 1, chunkId: result.matches[0].id });
+      expect(openCapsule).toHaveBeenCalledTimes(3);
+      for (const receipt of result.receipts) {
+        expect(receipt.schema).toBe('doppler.capsule-operation-receipt/v1');
+        expect(receipt.capsule).toMatchObject({ schema: 'doppler.capsule/v2', capsuleId: 'fixture' });
+        expect(receipt.pack).toBeUndefined();
+      }
+      expect(f.calls.every(request => request.schema === 'doppler.capsule-operation-request/v1')).toBe(true);
+    } finally { await workflow.close(); }
+  });
+
   it('generates a local answer with references to the retrieved passages and exact receipts', async () => {
     const f = await createDocumentPackFixture();
     const workflow = createDocumentSearch({ executor: createLocalPackExecutor({ service: f.service }) });
