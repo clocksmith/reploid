@@ -36,6 +36,8 @@ spec:
               value: "true"
             - name: POOL_JSON_LIMIT
               value: 512kb
+            - name: POOL_RESEARCH_JSON_LIMIT
+              value: 1mb
             - name: POOL_SIGNAL_SESSION_TTL_MS
               value: "600000"
             - name: POOL_MAX_SIGNAL_PAYLOAD_BYTES

@@ -4,6 +4,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { installJsonBodyMiddleware } from '../../server/json-body-middleware.js';
 import createPoolRouter from '../../server/pool/routes.js';
 import { createPoolStore } from '../../server/pool/store.js';
+import production from '../../deploy/env.production.json' with { type: 'json' };
 
 const servers = [];
 async function start(options = {}) {
@@ -28,7 +29,10 @@ afterEach(async () => {
 
 describe('hosted JSON ingress and research record admission', () => {
   it('delivers a quorum-sized request to signature validation while retaining the general Pool limit', async () => {
-    const base = await start();
+    const base = await start({
+      poolJsonLimit: production.runtimeEnv.POOL_JSON_LIMIT,
+      poolResearchJsonLimit: production.runtimeEnv.POOL_RESEARCH_JSON_LIMIT
+    });
     const body = JSON.stringify({ record: { evidence: 'x'.repeat(620_000) } });
     const research = await post(`${base}/pool/research/records`, body);
     expect(research.status).toBe(400);

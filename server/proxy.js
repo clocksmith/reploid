@@ -643,7 +643,8 @@ if (!POOL_BACKEND_ONLY) {
 // Middleware to parse JSON bodies
 installJsonBodyMiddleware(app, {
   poolBackendOnly: POOL_BACKEND_ONLY,
-  poolJsonLimit: process.env.POOL_JSON_LIMIT
+  poolJsonLimit: process.env.POOL_JSON_LIMIT,
+  poolResearchJsonLimit: process.env.POOL_RESEARCH_JSON_LIMIT
 });
 
 if (decoFeedback) {
