@@ -29,6 +29,17 @@
       "passed": false,
       "failedGate": "deployed browser-bundle byte gate",
       "deployedBrowserBundleHash": "sha256:767ea4810ca61ee85b9c962b53f426a04cfacc8524402adff506489404b11697"
+    },
+    "githubCi": {
+      "passed": true,
+      "sourceRevision": "0823357ecd8b27d61b1cd6895c6aefa95fecccb9",
+      "url": "https://github.com/clocksmith/reploid/actions/runs/34126100888"
+    },
+    "enabledLaunchModelApi": {
+      "passed": false,
+      "observation": "enabled-model-api.json",
+      "sha256": "4f6fdb09b056dbafb84672cca0ac7dec7df0f537094340406a92e19e9186daf6",
+      "error": "Doppler runtime does not expose the scoped dr.open API"
     }
   },
   "boundaries": {
