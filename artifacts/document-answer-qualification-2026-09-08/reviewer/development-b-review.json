@@ -1,0 +1,2208 @@
+{
+  "schema": "reploid.independent-agent-answer-review/v1",
+  "evaluatorType": "independent-agent",
+  "evaluatorId": "/root/blind_qualification",
+  "assessmentRole": "development-regression-review",
+  "corpusByteDigest": "sha256:da64e128340020491feba1ca245e7afe485bd210c896aeddd340715643da235d",
+  "rubricByteDigest": "sha256:43cfd3095d374f05e26ec5d3a64bfcfe13702d9a684778c2b48700f5551c71be",
+  "acceptanceDigest": "sha256:473080a5958e677a26b178373e4295e6b7f9bf40b2b6ce5f8188ada488ff6fdc",
+  "blindedPacketByteDigest": "sha256:4b29ef59ee4095a77f38cc66e0a551dfb32ea65fdb9e474c355dbd2f29f6bcc6",
+  "configurationIdentityKnown": false,
+  "scope": "Configuration-blinded review of the supplied original-development-plus-consumed-regression corpus and exact application answers. This is development evidence, not held-out qualification.",
+  "rubricApplication": "All frozen semantic acceptance rules remain unchanged. The user's explicitly supplied 24-case development corpus requires complete coverage of all 24 entries, rather than the original rubric's 16-case held-out corpus size. No semantic requirement or null-answer rule is waived.",
+  "inputCommitmentsVerified": true,
+  "acceptanceUnchanged": true,
+  "replacementHoldoutOpened": false,
+  "candidateImplementationInspected": false,
+  "candidateConfigurationInspected": false,
+  "otherTrialArtifactsInspected": false,
+  "caseDefects": [],
+  "reviews": [
+    {
+      "answerId": "e1e13693-1b28-4377-ba5a-7ceee5189cb4",
+      "conditionId": "95291b0b-bb9f-4825-bbf0-a88711e256bf",
+      "caseId": "answerable-replay",
+      "category": "answerable",
+      "answerByteDigest": "sha256:b9b5b411d5e51f086c29ed7533287a81c21de4bb3b77cf5e0efb17d25378beae",
+      "answerPresent": true,
+      "deliveryStatus": "delivered",
+      "sentenceReviews": [
+        {
+          "start": 0,
+          "end": 101,
+          "text": "Requesting that same completed attempt returns the stored result without running the model again [1].",
+          "kind": "factual",
+          "claims": [
+            {
+              "text": "Requesting that same completed attempt returns the stored result without running the model again.",
+              "citedPassageIds": [
+                "worker"
+              ],
+              "supportingQuotes": [
+                {
+                  "passageId": "worker",
+                  "text": "Requesting that same completed attempt returns the stored result without running the model again."
+                }
+              ],
+              "supportStatus": "supported",
+              "rationale": "The supplied cited text supports every factual clause in the sentence. Entity references, conditions, quantities, and scope have been checked against the question and surrounding answer, not accepted solely because the citation syntax or quotation matches."
+            }
+          ],
+          "passed": true
+        }
+      ],
+      "requestedPartReviews": [
+        {
+          "part": "Return the stored result for the repeated completed attempt.",
+          "requirement": "supported-fact",
+          "passageIds": [
+            "worker"
+          ],
+          "rationale": "The answer explicitly returns the stored result for the same completed attempt.",
+          "status": "satisfied",
+          "answerEvidence": [
+            "Requesting that same completed attempt returns the stored result without running the model again [1]."
+          ]
+        },
+        {
+          "part": "Do not run the model again for that completed attempt.",
+          "requirement": "supported-fact",
+          "passageIds": [
+            "worker"
+          ],
+          "rationale": "The answer expressly states that the model is not run again and preserves the completed-attempt condition.",
+          "status": "satisfied",
+          "answerEvidence": [
+            "Requesting that same completed attempt returns the stored result without running the model again [1]."
+          ]
+        }
+      ],
+      "completeAbstention": false,
+      "completenessDisposition": "complete",
+      "unsupportedClaims": [],
+      "missingRequestedParts": [],
+      "unknownHandlingPassed": null,
+      "conflictHandlingPassed": null,
+      "citationSupportPassed": true,
+      "relevanceDisposition": "relevant",
+      "contractPassed": true,
+      "usefulness": "complete-supported-response",
+      "rationale": "Both requested consequences are explicit, correctly scoped to the same completed attempt, and supported by the attached citation.",
+      "usabilityNotes": []
+    },
+    {
+      "answerId": "364887c7-5b0b-41a3-89ce-3234d095ab9f",
+      "conditionId": "95291b0b-bb9f-4825-bbf0-a88711e256bf",
+      "caseId": "answerable-consent",
+      "category": "answerable",
+      "answerByteDigest": "sha256:e8412fec0cbd33b23a758f6a9aedac66c3e8828d44fec0eb15f2aa821e310178",
+      "answerPresent": true,
+      "deliveryStatus": "delivered",
+      "sentenceReviews": [
+        {
+          "start": 0,
+          "end": 58,
+          "text": "Changing any of those values invalidates the approval [1].",
+          "kind": "factual",
+          "claims": [
+            {
+              "text": "Changing any of those values invalidates the approval.",
+              "citedPassageIds": [
+                "consent"
+              ],
+              "supportingQuotes": [
+                {
+                  "passageId": "consent",
+                  "text": "Changing any of those values invalidates the approval."
+                },
+                {
+                  "passageId": "consent",
+                  "text": "Approval binds the exact task text, recipient, and model."
+                }
+              ],
+              "supportStatus": "supported",
+              "rationale": "The source explicitly includes task text among the bound values, and the question asks about changing task text. That context resolves the retained phrase 'those values'; the answer preserves invalidation rather than an unsupported exception."
+            }
+          ],
+          "passed": true
+        },
+        {
+          "start": 59,
+          "end": 133,
+          "text": "The changed task needs a new preview and approval before transmission [1].",
+          "kind": "factual",
+          "claims": [
+            {
+              "text": "The changed task needs a new preview and approval before transmission.",
+              "citedPassageIds": [
+                "consent"
+              ],
+              "supportingQuotes": [
+                {
+                  "passageId": "consent",
+                  "text": "The changed task needs a new preview and approval before transmission."
+                }
+              ],
+              "supportStatus": "supported",
+              "rationale": "The supplied cited text supports every factual clause in the sentence. Entity references, conditions, quantities, and scope have been checked against the question and surrounding answer, not accepted solely because the citation syntax or quotation matches."
+            }
+          ],
+          "passed": true
+        }
+      ],
+      "requestedPartReviews": [
+        {
+          "part": "The previous approval becomes invalid when the task text changes.",
+          "requirement": "supported-fact",
+          "passageIds": [
+            "consent"
+          ],
+          "rationale": "The question supplies the task-text change; the cited passage identifies task text among the approval-bound values whose change invalidates approval.",
+          "status": "satisfied",
+          "answerEvidence": [
+            "Changing any of those values invalidates the approval [1]."
+          ]
+        },
+        {
+          "part": "Obtain a new preview and approval before transmitting the changed task.",
+          "requirement": "supported-fact",
+          "passageIds": [
+            "consent"
+          ],
+          "rationale": "The answer states both a new preview and approval and preserves the before-transmission requirement.",
+          "status": "satisfied",
+          "answerEvidence": [
+            "The changed task needs a new preview and approval before transmission [1]."
+          ]
+        }
+      ],
+      "completeAbstention": false,
+      "completenessDisposition": "complete",
+      "unsupportedClaims": [],
+      "missingRequestedParts": [],
+      "unknownHandlingPassed": null,
+      "conflictHandlingPassed": null,
+      "citationSupportPassed": true,
+      "relevanceDisposition": "relevant",
+      "contractPassed": true,
+      "usefulness": "complete-supported-response",
+      "rationale": "The approval invalidation and required new preview and approval before transmission are supported and cover the task-text change in the question. The first sentence retains a source-relative pronoun, but the question and cited source resolve its scope without changing the rule.",
+      "usabilityNotes": [
+        "The opening phrase 'those values' omits the source's preceding enumeration; naming task text directly would make the answer more self-contained. This is a clarity observation, not a semantic contract failure for the stated question."
+      ]
+    },
+    {
+      "answerId": "1cc04bde-be6b-4445-8617-a1ac29e3781f",
+      "conditionId": "95291b0b-bb9f-4825-bbf0-a88711e256bf",
+      "caseId": "partial-deadline",
+      "category": "partially-answerable",
+      "answerByteDigest": "sha256:1a662abbe0827a89037a3f9295113fef4ca0fb81edacc41e0fb1ff7ea5f3cdcb",
+      "answerPresent": true,
+      "deliveryStatus": "delivered",
+      "sentenceReviews": [
+        {
+          "start": 0,
+          "end": 50,
+          "text": "The configured request deadline is 30 seconds [1].",
+          "kind": "factual",
+          "claims": [
+            {
+              "text": "The configured request deadline is 30 seconds.",
+              "citedPassageIds": [
+                "limits"
+              ],
+              "supportingQuotes": [
+                {
+                  "passageId": "limits",
+                  "text": "The configured request deadline is 30 seconds."
+                }
+              ],
+              "supportStatus": "supported",
+              "rationale": "The supplied cited text supports every factual clause in the sentence. Entity references, conditions, quantities, and scope have been checked against the question and surrounding answer, not accepted solely because the citation syntax or quotation matches."
+            }
+          ],
+          "passed": true
+        },
+        {
+          "start": 51,
+          "end": 103,
+          "text": "how many requests per second can the service handle?",
+          "kind": "nonfactual",
+          "claims": [
+            {
+              "text": "how many requests per second can the service handle?",
+              "citedPassageIds": [],
+              "supportingQuotes": [],
+              "supportStatus": "not-applicable",
+              "rationale": "This is a question label for the following explicit unknown, not a claimed factual answer."
+            }
+          ],
+          "passed": true
+        },
+        {
+          "start": 104,
+          "end": 148,
+          "text": "The supplied passages do not establish this.",
+          "kind": "source-relative-unknown",
+          "claims": [
+            {
+              "text": "The supplied passages do not establish this.",
+              "citedPassageIds": [],
+              "supportingQuotes": [],
+              "supportStatus": "verified-evidence-gap",
+              "rationale": "All supplied passages were checked and omit the requested information covered by this statement. The immediately preceding subquestion scopes this unknown: how many requests per second can the service handle? The frozen rubric does not require a decorative citation for a verified source-relative unknown."
+            }
+          ],
+          "passed": true
+        }
+      ],
+      "requestedPartReviews": [
+        {
+          "part": "The request deadline.",
+          "requirement": "supported-fact",
+          "passageIds": [
+            "limits"
+          ],
+          "rationale": "The answer gives the configured deadline as 30 seconds with the relevant citation.",
+          "status": "satisfied",
+          "answerEvidence": [
+            "The configured request deadline is 30 seconds [1]."
+          ]
+        },
+        {
+          "part": "How many requests per second the service can handle.",
+          "requirement": "explicit-unknown",
+          "passageIds": [],
+          "rationale": "The throughput subquestion is immediately followed by an explicit source-relative unknown.",
+          "status": "satisfied",
+          "answerEvidence": [
+            "how many requests per second can the service handle?",
+            "The supplied passages do not establish this."
+          ]
+        }
+      ],
+      "completeAbstention": false,
+      "completenessDisposition": "complete",
+      "unsupportedClaims": [],
+      "missingRequestedParts": [],
+      "unknownHandlingPassed": true,
+      "conflictHandlingPassed": null,
+      "citationSupportPassed": true,
+      "relevanceDisposition": "relevant",
+      "contractPassed": true,
+      "usefulness": "complete-supported-response",
+      "rationale": "The deadline is supported and cited; throughput is explicitly unknown rather than inferred from the deadline.",
+      "usabilityNotes": []
+    },
+    {
+      "answerId": "58045dde-5035-4e18-98a5-ae11a915677b",
+      "conditionId": "95291b0b-bb9f-4825-bbf0-a88711e256bf",
+      "caseId": "partial-storage",
+      "category": "partially-answerable",
+      "answerByteDigest": "sha256:5f020d3674f3d85e72a6fd14c48ab0c7be23042250f0e92f96a8679090d0394d",
+      "answerPresent": true,
+      "deliveryStatus": "delivered",
+      "sentenceReviews": [
+        {
+          "start": 0,
+          "end": 81,
+          "text": "Verified model chunks are stored in the browser's origin-private file system [1].",
+          "kind": "factual",
+          "claims": [
+            {
+              "text": "Verified model chunks are stored in the browser's origin-private file system.",
+              "citedPassageIds": [
+                "cache"
+              ],
+              "supportingQuotes": [
+                {
+                  "passageId": "cache",
+                  "text": "Verified model chunks are stored in the browser's origin-private file system."
+                }
+              ],
+              "supportStatus": "supported",
+              "rationale": "The supplied cited text supports every factual clause in the sentence. Entity references, conditions, quantities, and scope have been checked against the question and surrounding answer, not accepted solely because the citation syntax or quotation matches."
+            }
+          ],
+          "passed": true
+        },
+        {
+          "start": 82,
+          "end": 116,
+          "text": "how much disk space is guaranteed?",
+          "kind": "nonfactual",
+          "claims": [
+            {
+              "text": "how much disk space is guaranteed?",
+              "citedPassageIds": [],
+              "supportingQuotes": [],
+              "supportStatus": "not-applicable",
+              "rationale": "This is a question label for the following explicit unknown, not a claimed factual answer."
+            }
+          ],
+          "passed": true
+        },
+        {
+          "start": 117,
+          "end": 161,
+          "text": "The supplied passages do not establish this.",
+          "kind": "source-relative-unknown",
+          "claims": [
+            {
+              "text": "The supplied passages do not establish this.",
+              "citedPassageIds": [],
+              "supportingQuotes": [],
+              "supportStatus": "verified-evidence-gap",
+              "rationale": "All supplied passages were checked and omit the requested information covered by this statement. The immediately preceding subquestion scopes this unknown: how much disk space is guaranteed? The frozen rubric does not require a decorative citation for a verified source-relative unknown."
+            }
+          ],
+          "passed": true
+        }
+      ],
+      "requestedPartReviews": [
+        {
+          "part": "Where verified cached chunks are stored.",
+          "requirement": "supported-fact",
+          "passageIds": [
+            "cache"
+          ],
+          "rationale": "The answer names the browser's origin-private file system and preserves the verified-chunk scope.",
+          "status": "satisfied",
+          "answerEvidence": [
+            "Verified model chunks are stored in the browser's origin-private file system [1]."
+          ]
+        },
+        {
+          "part": "The guaranteed amount of disk space.",
+          "requirement": "explicit-unknown",
+          "passageIds": [],
+          "rationale": "The guaranteed-capacity subquestion receives an explicit source-relative unknown.",
+          "status": "satisfied",
+          "answerEvidence": [
+            "how much disk space is guaranteed?",
+            "The supplied passages do not establish this."
+          ]
+        }
+      ],
+      "completeAbstention": false,
+      "completenessDisposition": "complete",
+      "unsupportedClaims": [],
+      "missingRequestedParts": [],
+      "unknownHandlingPassed": true,
+      "conflictHandlingPassed": null,
+      "citationSupportPassed": true,
+      "relevanceDisposition": "relevant",
+      "contractPassed": true,
+      "usefulness": "complete-supported-response",
+      "rationale": "The supported storage location is complete, and the absent capacity guarantee is explicitly left unknown.",
+      "usabilityNotes": []
+    },
+    {
+      "answerId": "baed6f48-b548-437c-bec1-a8e9464f5735",
+      "conditionId": "95291b0b-bb9f-4825-bbf0-a88711e256bf",
+      "caseId": "contradiction-port",
+      "category": "contradictory",
+      "answerByteDigest": "sha256:508130f09f59a0bcb095905df0655914a08261c876579752b08ecbce3e8f12b1",
+      "answerPresent": true,
+      "deliveryStatus": "delivered",
+      "sentenceReviews": [
+        {
+          "start": 0,
+          "end": 36,
+          "text": "The default server port is 8000 [1].",
+          "kind": "factual",
+          "claims": [
+            {
+              "text": "The default server port is 8000.",
+              "citedPassageIds": [
+                "guide-a"
+              ],
+              "supportingQuotes": [
+                {
+                  "passageId": "guide-a",
+                  "text": "The default server port is 8000."
+                }
+              ],
+              "supportStatus": "supported",
+              "rationale": "The supplied cited text supports every factual clause in the sentence. Entity references, conditions, quantities, and scope have been checked against the question and surrounding answer, not accepted solely because the citation syntax or quotation matches."
+            }
+          ],
+          "passed": true
+        },
+        {
+          "start": 37,
+          "end": 73,
+          "text": "The default server port is 8080 [2].",
+          "kind": "factual",
+          "claims": [
+            {
+              "text": "The default server port is 8080.",
+              "citedPassageIds": [
+                "guide-b"
+              ],
+              "supportingQuotes": [
+                {
+                  "passageId": "guide-b",
+                  "text": "The default server port is 8080."
+                }
+              ],
+              "supportStatus": "supported",
+              "rationale": "The supplied cited text supports every factual clause in the sentence. Entity references, conditions, quantities, and scope have been checked against the question and surrounding answer, not accepted solely because the citation syntax or quotation matches."
+            }
+          ],
+          "passed": true
+        },
+        {
+          "start": 74,
+          "end": 134,
+          "text": "The supplied passages leave this conflict unresolved [1][2].",
+          "kind": "factual",
+          "claims": [
+            {
+              "text": "The supplied passages leave this conflict unresolved [1][2].",
+              "citedPassageIds": [
+                "guide-a",
+                "guide-b"
+              ],
+              "supportingQuotes": [
+                {
+                  "passageId": "guide-a",
+                  "text": "The default server port is 8000."
+                },
+                {
+                  "passageId": "guide-b",
+                  "text": "The default server port is 8080."
+                }
+              ],
+              "supportStatus": "supported",
+              "rationale": "The cited passages state incompatible values for the same requested property. None of this case's supplied material supplies precedence or a resolution. The explicit unresolved-status statement is semantically supported."
+            }
+          ],
+          "passed": true
+        }
+      ],
+      "requestedPartReviews": [
+        {
+          "part": "The first passage's default port, 8000.",
+          "requirement": "conflict",
+          "passageIds": [
+            "guide-a"
+          ],
+          "rationale": "The first conflicting value is stated with its own supporting source.",
+          "status": "satisfied",
+          "answerEvidence": [
+            "The default server port is 8000 [1]."
+          ]
+        },
+        {
+          "part": "The second passage's default port, 8080.",
+          "requirement": "conflict",
+          "passageIds": [
+            "guide-b"
+          ],
+          "rationale": "The second conflicting value is stated with its own supporting source.",
+          "status": "satisfied",
+          "answerEvidence": [
+            "The default server port is 8080 [2]."
+          ]
+        },
+        {
+          "part": "Explicitly state that the supplied material leaves the port conflict unresolved.",
+          "requirement": "conflict",
+          "passageIds": [
+            "guide-a",
+            "guide-b"
+          ],
+          "rationale": "The answer expressly says the supplied passages leave the conflict unresolved and does not select a value.",
+          "status": "satisfied",
+          "answerEvidence": [
+            "The supplied passages leave this conflict unresolved [1][2]."
+          ]
+        }
+      ],
+      "completeAbstention": false,
+      "completenessDisposition": "complete",
+      "unsupportedClaims": [],
+      "missingRequestedParts": [],
+      "unknownHandlingPassed": null,
+      "conflictHandlingPassed": true,
+      "citationSupportPassed": true,
+      "relevanceDisposition": "relevant",
+      "contractPassed": true,
+      "usefulness": "complete-supported-response",
+      "rationale": "Both conflicting values are cited separately and the answer explicitly preserves the unresolved conflict. It neither chooses a winner nor invents source precedence.",
+      "usabilityNotes": []
+    },
+    {
+      "answerId": "49a39146-0327-4f21-ac37-aad0eaeccadd",
+      "conditionId": "95291b0b-bb9f-4825-bbf0-a88711e256bf",
+      "caseId": "contradiction-retention",
+      "category": "contradictory",
+      "answerByteDigest": "sha256:a73fc5bdd053a05307c00baa13bace6449e696134c8a519c8e8886d773381a04",
+      "answerPresent": true,
+      "deliveryStatus": "delivered",
+      "sentenceReviews": [
+        {
+          "start": 0,
+          "end": 50,
+          "text": "Completed results are retained for seven days [1].",
+          "kind": "factual",
+          "claims": [
+            {
+              "text": "Completed results are retained for seven days.",
+              "citedPassageIds": [
+                "policy-a"
+              ],
+              "supportingQuotes": [
+                {
+                  "passageId": "policy-a",
+                  "text": "Completed results are retained for seven days."
+                }
+              ],
+              "supportStatus": "supported",
+              "rationale": "The supplied cited text supports every factual clause in the sentence. Entity references, conditions, quantities, and scope have been checked against the question and surrounding answer, not accepted solely because the citation syntax or quotation matches."
+            }
+          ],
+          "passed": true
+        },
+        {
+          "start": 51,
+          "end": 102,
+          "text": "Completed results are retained for thirty days [2].",
+          "kind": "factual",
+          "claims": [
+            {
+              "text": "Completed results are retained for thirty days.",
+              "citedPassageIds": [
+                "policy-b"
+              ],
+              "supportingQuotes": [
+                {
+                  "passageId": "policy-b",
+                  "text": "Completed results are retained for thirty days."
+                }
+              ],
+              "supportStatus": "supported",
+              "rationale": "The supplied cited text supports every factual clause in the sentence. Entity references, conditions, quantities, and scope have been checked against the question and surrounding answer, not accepted solely because the citation syntax or quotation matches."
+            }
+          ],
+          "passed": true
+        },
+        {
+          "start": 103,
+          "end": 163,
+          "text": "The supplied passages leave this conflict unresolved [1][2].",
+          "kind": "factual",
+          "claims": [
+            {
+              "text": "The supplied passages leave this conflict unresolved [1][2].",
+              "citedPassageIds": [
+                "policy-a",
+                "policy-b"
+              ],
+              "supportingQuotes": [
+                {
+                  "passageId": "policy-a",
+                  "text": "Completed results are retained for seven days."
+                },
+                {
+                  "passageId": "policy-b",
+                  "text": "Completed results are retained for thirty days."
+                }
+              ],
+              "supportStatus": "supported",
+              "rationale": "The cited passages state incompatible values for the same requested property. None of this case's supplied material supplies precedence or a resolution. The explicit unresolved-status statement is semantically supported."
+            }
+          ],
+          "passed": true
+        }
+      ],
+      "requestedPartReviews": [
+        {
+          "part": "The seven-day retention statement.",
+          "requirement": "conflict",
+          "passageIds": [
+            "policy-a"
+          ],
+          "rationale": "The seven-day statement has its supporting citation.",
+          "status": "satisfied",
+          "answerEvidence": [
+            "Completed results are retained for seven days [1]."
+          ]
+        },
+        {
+          "part": "The thirty-day retention statement.",
+          "requirement": "conflict",
+          "passageIds": [
+            "policy-b"
+          ],
+          "rationale": "The thirty-day statement has its supporting citation.",
+          "status": "satisfied",
+          "answerEvidence": [
+            "Completed results are retained for thirty days [2]."
+          ]
+        },
+        {
+          "part": "Explicitly state that the supplied material leaves the retention conflict unresolved.",
+          "requirement": "conflict",
+          "passageIds": [
+            "policy-a",
+            "policy-b"
+          ],
+          "rationale": "The unresolved-status statement is explicit; neither policy is treated as superseding the other.",
+          "status": "satisfied",
+          "answerEvidence": [
+            "The supplied passages leave this conflict unresolved [1][2]."
+          ]
+        }
+      ],
+      "completeAbstention": false,
+      "completenessDisposition": "complete",
+      "unsupportedClaims": [],
+      "missingRequestedParts": [],
+      "unknownHandlingPassed": null,
+      "conflictHandlingPassed": true,
+      "citationSupportPassed": true,
+      "relevanceDisposition": "relevant",
+      "contractPassed": true,
+      "usefulness": "complete-supported-response",
+      "rationale": "The answer cites both retention rules and explicitly leaves the conflict unresolved.",
+      "usabilityNotes": []
+    },
+    {
+      "answerId": "5d38c20b-4b62-48f1-8214-4075b3f753d8",
+      "conditionId": "95291b0b-bb9f-4825-bbf0-a88711e256bf",
+      "caseId": "unanswerable-author",
+      "category": "unanswerable",
+      "answerByteDigest": "sha256:5db53faef0b60516d530ef9681bfee6e2d9982667983c074f6d7a2740394ab98",
+      "answerPresent": true,
+      "deliveryStatus": "delivered",
+      "sentenceReviews": [
+        {
+          "start": 0,
+          "end": 78,
+          "text": "I don't have enough evidence in the supplied passages to answer this question.",
+          "kind": "source-relative-unknown",
+          "claims": [
+            {
+              "text": "I don't have enough evidence in the supplied passages to answer this question.",
+              "citedPassageIds": [],
+              "supportingQuotes": [],
+              "supportStatus": "verified-evidence-gap",
+              "rationale": "All supplied passages were checked and omit the requested information covered by this statement. The abstention expressly covers the whole question. The frozen rubric does not require a decorative citation for a verified source-relative unknown."
+            }
+          ],
+          "passed": true
+        }
+      ],
+      "requestedPartReviews": [
+        {
+          "part": "Who originally wrote the protocol.",
+          "requirement": "explicit-unknown",
+          "passageIds": [],
+          "rationale": "The whole-question abstention covers the missing author identity.",
+          "status": "satisfied",
+          "answerEvidence": [
+            "I don't have enough evidence in the supplied passages to answer this question."
+          ]
+        }
+      ],
+      "completeAbstention": true,
+      "completenessDisposition": "complete",
+      "unsupportedClaims": [],
+      "missingRequestedParts": [],
+      "unknownHandlingPassed": true,
+      "conflictHandlingPassed": null,
+      "citationSupportPassed": true,
+      "relevanceDisposition": "relevant",
+      "contractPassed": true,
+      "usefulness": "appropriate-abstention",
+      "rationale": "The answer explicitly abstains based on insufficient supplied evidence and does not infer an author.",
+      "usabilityNotes": []
+    },
+    {
+      "answerId": "167b229b-f6dd-45ab-b7a8-5cbce2b7dde9",
+      "conditionId": "95291b0b-bb9f-4825-bbf0-a88711e256bf",
+      "caseId": "unanswerable-quality",
+      "category": "unanswerable",
+      "answerByteDigest": "sha256:5db53faef0b60516d530ef9681bfee6e2d9982667983c074f6d7a2740394ab98",
+      "answerPresent": true,
+      "deliveryStatus": "delivered",
+      "sentenceReviews": [
+        {
+          "start": 0,
+          "end": 78,
+          "text": "I don't have enough evidence in the supplied passages to answer this question.",
+          "kind": "source-relative-unknown",
+          "claims": [
+            {
+              "text": "I don't have enough evidence in the supplied passages to answer this question.",
+              "citedPassageIds": [],
+              "supportingQuotes": [],
+              "supportStatus": "verified-evidence-gap",
+              "rationale": "All supplied passages were checked and omit the requested information covered by this statement. The abstention expressly covers the whole question. The frozen rubric does not require a decorative citation for a verified source-relative unknown."
+            }
+          ],
+          "passed": true
+        }
+      ],
+      "requestedPartReviews": [
+        {
+          "part": "The adapter's accuracy advantage over the base model.",
+          "requirement": "explicit-unknown",
+          "passageIds": [],
+          "rationale": "The answer explicitly abstains on the accuracy comparison, which the passages do not measure.",
+          "status": "satisfied",
+          "answerEvidence": [
+            "I don't have enough evidence in the supplied passages to answer this question."
+          ]
+        }
+      ],
+      "completeAbstention": true,
+      "completenessDisposition": "complete",
+      "unsupportedClaims": [],
+      "missingRequestedParts": [],
+      "unknownHandlingPassed": true,
+      "conflictHandlingPassed": null,
+      "citationSupportPassed": true,
+      "relevanceDisposition": "relevant",
+      "contractPassed": true,
+      "usefulness": "appropriate-abstention",
+      "rationale": "The source-relative abstention correctly avoids treating adapter size or successful execution as accuracy evidence.",
+      "usabilityNotes": []
+    },
+    {
+      "answerId": "b37977b0-aa24-4abb-94b5-e45c78538dce",
+      "conditionId": "95291b0b-bb9f-4825-bbf0-a88711e256bf",
+      "caseId": "qual-001",
+      "category": "answerable",
+      "answerByteDigest": "sha256:198f524e08e317605ac671f16132d0c34a57e6c1a3f9d7d57ba9f3c5e57d21ba",
+      "answerPresent": true,
+      "deliveryStatus": "delivered",
+      "sentenceReviews": [
+        {
+          "start": 0,
+          "end": 81,
+          "text": "Every framed loan from the Alder Museum requires an acrylic protective cover [3].",
+          "kind": "factual",
+          "claims": [
+            {
+              "text": "Every framed loan from the Alder Museum requires an acrylic protective cover.",
+              "citedPassageIds": [
+                "p3"
+              ],
+              "supportingQuotes": [
+                {
+                  "passageId": "p3",
+                  "text": "Every framed loan from the Alder Museum requires an acrylic protective cover."
+                }
+              ],
+              "supportStatus": "supported",
+              "rationale": "The supplied cited text supports every factual clause in the sentence. Entity references, conditions, quantities, and scope have been checked against the question and surrounding answer, not accepted solely because the citation syntax or quotation matches."
+            }
+          ],
+          "passed": true
+        },
+        {
+          "start": 82,
+          "end": 165,
+          "text": "Staff must record a framed loan's condition in the loan ledger before dispatch [2].",
+          "kind": "factual",
+          "claims": [
+            {
+              "text": "Staff must record a framed loan's condition in the loan ledger before dispatch.",
+              "citedPassageIds": [
+                "p2"
+              ],
+              "supportingQuotes": [
+                {
+                  "passageId": "p2",
+                  "text": "Staff must record a framed loan's condition in the loan ledger before dispatch."
+                }
+              ],
+              "supportStatus": "supported",
+              "rationale": "The supplied cited text supports every factual clause in the sentence. Entity references, conditions, quantities, and scope have been checked against the question and surrounding answer, not accepted solely because the citation syntax or quotation matches."
+            }
+          ],
+          "passed": true
+        },
+        {
+          "start": 166,
+          "end": 240,
+          "text": "For framed loans from the Alder Museum, the crate must travel upright [1].",
+          "kind": "factual",
+          "claims": [
+            {
+              "text": "For framed loans from the Alder Museum, the crate must travel upright.",
+              "citedPassageIds": [
+                "p1"
+              ],
+              "supportingQuotes": [
+                {
+                  "passageId": "p1",
+                  "text": "For framed loans from the Alder Museum, the crate must travel upright."
+                }
+              ],
+              "supportStatus": "supported",
+              "rationale": "The supplied cited text supports every factual clause in the sentence. Entity references, conditions, quantities, and scope have been checked against the question and surrounding answer, not accepted solely because the citation syntax or quotation matches."
+            }
+          ],
+          "passed": true
+        }
+      ],
+      "requestedPartReviews": [
+        {
+          "part": "The required protective cover.",
+          "requirement": "supported-fact",
+          "passageIds": [
+            "p3"
+          ],
+          "rationale": "The answer specifies an acrylic protective cover for framed loans.",
+          "status": "satisfied",
+          "answerEvidence": [
+            "Every framed loan from the Alder Museum requires an acrylic protective cover [3]."
+          ]
+        },
+        {
+          "part": "The record required before dispatch.",
+          "requirement": "supported-fact",
+          "passageIds": [
+            "p2"
+          ],
+          "rationale": "The answer includes the loan's condition, loan ledger, and before-dispatch timing.",
+          "status": "satisfied",
+          "answerEvidence": [
+            "Staff must record a framed loan's condition in the loan ledger before dispatch [2]."
+          ]
+        },
+        {
+          "part": "The crate's travel orientation.",
+          "requirement": "supported-fact",
+          "passageIds": [
+            "p1"
+          ],
+          "rationale": "Upright travel is stated with its source and framed-loan scope.",
+          "status": "satisfied",
+          "answerEvidence": [
+            "For framed loans from the Alder Museum, the crate must travel upright [1]."
+          ]
+        }
+      ],
+      "completeAbstention": false,
+      "completenessDisposition": "complete",
+      "unsupportedClaims": [],
+      "missingRequestedParts": [],
+      "unknownHandlingPassed": null,
+      "conflictHandlingPassed": null,
+      "citationSupportPassed": true,
+      "relevanceDisposition": "relevant",
+      "contractPassed": true,
+      "usefulness": "complete-supported-response",
+      "rationale": "All three requested requirements are present, precisely scoped, and supported by their attached citations.",
+      "usabilityNotes": []
+    },
+    {
+      "answerId": "6c994e31-4d81-43c1-90d1-9ea0cdcd7851",
+      "conditionId": "95291b0b-bb9f-4825-bbf0-a88711e256bf",
+      "caseId": "qual-002",
+      "category": "partially-answerable",
+      "answerByteDigest": "sha256:e68e64ea7861563249d46ea5c7c27f051eece2ce1530276811c70a7a9018c2ab",
+      "answerPresent": true,
+      "deliveryStatus": "delivered",
+      "sentenceReviews": [
+        {
+          "start": 0,
+          "end": 53,
+          "text": "Each Larch Library bean packet contains 24 seeds [2].",
+          "kind": "factual",
+          "claims": [
+            {
+              "text": "Each Larch Library bean packet contains 24 seeds.",
+              "citedPassageIds": [
+                "p2"
+              ],
+              "supportingQuotes": [
+                {
+                  "passageId": "p2",
+                  "text": "Each Larch Library bean packet contains 24 seeds."
+                }
+              ],
+              "supportStatus": "supported",
+              "rationale": "The supplied cited text supports every factual clause in the sentence. Entity references, conditions, quantities, and scope have been checked against the question and surrounding answer, not accepted solely because the citation syntax or quotation matches."
+            }
+          ],
+          "passed": true
+        },
+        {
+          "start": 54,
+          "end": 107,
+          "text": "Larch Library keeps its bean packets in drawer 4 [1].",
+          "kind": "factual",
+          "claims": [
+            {
+              "text": "Larch Library keeps its bean packets in drawer 4.",
+              "citedPassageIds": [
+                "p1"
+              ],
+              "supportingQuotes": [
+                {
+                  "passageId": "p1",
+                  "text": "Larch Library keeps its bean packets in drawer 4."
+                }
+              ],
+              "supportStatus": "supported",
+              "rationale": "The supplied cited text supports every factual clause in the sentence. Entity references, conditions, quantities, and scope have been checked against the question and surrounding answer, not accepted solely because the citation syntax or quotation matches."
+            }
+          ],
+          "passed": true
+        },
+        {
+          "start": 108,
+          "end": 139,
+          "text": "what percentage will germinate?",
+          "kind": "nonfactual",
+          "claims": [
+            {
+              "text": "what percentage will germinate?",
+              "citedPassageIds": [],
+              "supportingQuotes": [],
+              "supportStatus": "not-applicable",
+              "rationale": "This is a question label for the following explicit unknown, not a claimed factual answer."
+            }
+          ],
+          "passed": true
+        },
+        {
+          "start": 140,
+          "end": 184,
+          "text": "The supplied passages do not establish this.",
+          "kind": "source-relative-unknown",
+          "claims": [
+            {
+              "text": "The supplied passages do not establish this.",
+              "citedPassageIds": [],
+              "supportingQuotes": [],
+              "supportStatus": "verified-evidence-gap",
+              "rationale": "All supplied passages were checked and omit the requested information covered by this statement. The immediately preceding subquestion scopes this unknown: what percentage will germinate? The frozen rubric does not require a decorative citation for a verified source-relative unknown."
+            }
+          ],
+          "passed": true
+        }
+      ],
+      "requestedPartReviews": [
+        {
+          "part": "The number of seeds in each bean packet.",
+          "requirement": "supported-fact",
+          "passageIds": [
+            "p2"
+          ],
+          "rationale": "The answer gives 24 seeds with the packet-count source.",
+          "status": "satisfied",
+          "answerEvidence": [
+            "Each Larch Library bean packet contains 24 seeds [2]."
+          ]
+        },
+        {
+          "part": "The bean packets' storage location.",
+          "requirement": "supported-fact",
+          "passageIds": [
+            "p1"
+          ],
+          "rationale": "Drawer 4 is correctly identified.",
+          "status": "satisfied",
+          "answerEvidence": [
+            "Larch Library keeps its bean packets in drawer 4 [1]."
+          ]
+        },
+        {
+          "part": "The percentage that will germinate.",
+          "requirement": "explicit-unknown",
+          "passageIds": [],
+          "rationale": "The unknown statement is explicitly scoped by the immediately preceding germination subquestion.",
+          "status": "satisfied",
+          "answerEvidence": [
+            "what percentage will germinate?",
+            "The supplied passages do not establish this."
+          ]
+        }
+      ],
+      "completeAbstention": false,
+      "completenessDisposition": "complete",
+      "unsupportedClaims": [],
+      "missingRequestedParts": [],
+      "unknownHandlingPassed": true,
+      "conflictHandlingPassed": null,
+      "citationSupportPassed": true,
+      "relevanceDisposition": "relevant",
+      "contractPassed": true,
+      "usefulness": "complete-supported-response",
+      "rationale": "Both known parts are cited and complete, and germination is explicitly unknown.",
+      "usabilityNotes": []
+    },
+    {
+      "answerId": "2fdcdb4f-5e7d-459d-82a5-096d31a819a5",
+      "conditionId": "95291b0b-bb9f-4825-bbf0-a88711e256bf",
+      "caseId": "qual-003",
+      "category": "contradictory",
+      "answerByteDigest": "sha256:f214044b8df420e12a788aeacb622be41d7e3b5d6d9a82967ec01a8bbeaba153",
+      "answerPresent": true,
+      "deliveryStatus": "delivered",
+      "sentenceReviews": [
+        {
+          "start": 0,
+          "end": 70,
+          "text": "Meadow Garden return instructions: return tools to the north shed [1].",
+          "kind": "factual",
+          "claims": [
+            {
+              "text": "Meadow Garden return instructions: return tools to the north shed.",
+              "citedPassageIds": [
+                "p1"
+              ],
+              "supportingQuotes": [
+                {
+                  "passageId": "p1",
+                  "text": "Meadow Garden return instructions: return tools to the north shed."
+                }
+              ],
+              "supportStatus": "supported",
+              "rationale": "The supplied cited text supports every factual clause in the sentence. Entity references, conditions, quantities, and scope have been checked against the question and surrounding answer, not accepted solely because the citation syntax or quotation matches."
+            }
+          ],
+          "passed": true
+        },
+        {
+          "start": 71,
+          "end": 140,
+          "text": "Meadow Garden return instructions: return tools to the west shed [3].",
+          "kind": "factual",
+          "claims": [
+            {
+              "text": "Meadow Garden return instructions: return tools to the west shed.",
+              "citedPassageIds": [
+                "p3"
+              ],
+              "supportingQuotes": [
+                {
+                  "passageId": "p3",
+                  "text": "Meadow Garden return instructions: return tools to the west shed."
+                }
+              ],
+              "supportStatus": "supported",
+              "rationale": "The supplied cited text supports every factual clause in the sentence. Entity references, conditions, quantities, and scope have been checked against the question and surrounding answer, not accepted solely because the citation syntax or quotation matches."
+            }
+          ],
+          "passed": true
+        },
+        {
+          "start": 141,
+          "end": 201,
+          "text": "The supplied passages leave this conflict unresolved [1][3].",
+          "kind": "factual",
+          "claims": [
+            {
+              "text": "The supplied passages leave this conflict unresolved [1][3].",
+              "citedPassageIds": [
+                "p1",
+                "p3"
+              ],
+              "supportingQuotes": [
+                {
+                  "passageId": "p1",
+                  "text": "Meadow Garden return instructions: return tools to the north shed."
+                },
+                {
+                  "passageId": "p3",
+                  "text": "Meadow Garden return instructions: return tools to the west shed."
+                }
+              ],
+              "supportStatus": "supported",
+              "rationale": "The cited passages state incompatible values for the same requested property. None of this case's supplied material supplies precedence or a resolution. The explicit unresolved-status statement is semantically supported."
+            }
+          ],
+          "passed": true
+        },
+        {
+          "start": 202,
+          "end": 254,
+          "text": "Book a return slot by calling the garden office [1].",
+          "kind": "factual",
+          "claims": [
+            {
+              "text": "Book a return slot by calling the garden office.",
+              "citedPassageIds": [
+                "p1"
+              ],
+              "supportingQuotes": [
+                {
+                  "passageId": "p1",
+                  "text": "Book a return slot by calling the garden office."
+                }
+              ],
+              "supportStatus": "supported",
+              "rationale": "The supplied cited text supports every factual clause in the sentence. Entity references, conditions, quantities, and scope have been checked against the question and surrounding answer, not accepted solely because the citation syntax or quotation matches."
+            }
+          ],
+          "passed": true
+        },
+        {
+          "start": 255,
+          "end": 307,
+          "text": "Book a return slot by calling the garden office [3].",
+          "kind": "factual",
+          "claims": [
+            {
+              "text": "Book a return slot by calling the garden office.",
+              "citedPassageIds": [
+                "p3"
+              ],
+              "supportingQuotes": [
+                {
+                  "passageId": "p3",
+                  "text": "Book a return slot by calling the garden office."
+                }
+              ],
+              "supportStatus": "supported",
+              "rationale": "The supplied cited text supports every factual clause in the sentence. Entity references, conditions, quantities, and scope have been checked against the question and surrounding answer, not accepted solely because the citation syntax or quotation matches."
+            }
+          ],
+          "passed": true
+        }
+      ],
+      "requestedPartReviews": [
+        {
+          "part": "The north-shed return instruction.",
+          "requirement": "conflict",
+          "passageIds": [
+            "p1"
+          ],
+          "rationale": "The answer describes the north-shed instruction and cites its source.",
+          "status": "satisfied",
+          "answerEvidence": [
+            "Meadow Garden return instructions: return tools to the north shed [1]."
+          ]
+        },
+        {
+          "part": "The west-shed return instruction.",
+          "requirement": "conflict",
+          "passageIds": [
+            "p3"
+          ],
+          "rationale": "The west-shed instruction is described with its own source.",
+          "status": "satisfied",
+          "answerEvidence": [
+            "Meadow Garden return instructions: return tools to the west shed [3]."
+          ]
+        },
+        {
+          "part": "Explicitly state that the supplied material does not resolve the return-location conflict.",
+          "requirement": "conflict",
+          "passageIds": [
+            "p1",
+            "p3"
+          ],
+          "rationale": "The answer explicitly says that the supplied passages leave the conflict unresolved.",
+          "status": "satisfied",
+          "answerEvidence": [
+            "The supplied passages leave this conflict unresolved [1][3]."
+          ]
+        },
+        {
+          "part": "How the return slot must be booked.",
+          "requirement": "supported-fact",
+          "passageIds": [
+            "p1",
+            "p3"
+          ],
+          "rationale": "Both booking sentences identify calling the garden office, the uncontested method.",
+          "status": "satisfied",
+          "answerEvidence": [
+            "Book a return slot by calling the garden office [1].",
+            "Book a return slot by calling the garden office [3]."
+          ]
+        }
+      ],
+      "completeAbstention": false,
+      "completenessDisposition": "complete",
+      "unsupportedClaims": [],
+      "missingRequestedParts": [],
+      "unknownHandlingPassed": null,
+      "conflictHandlingPassed": true,
+      "citationSupportPassed": true,
+      "relevanceDisposition": "relevant",
+      "contractPassed": true,
+      "usefulness": "complete-supported-response",
+      "rationale": "Both incompatible locations and explicit unresolved status are present with citations, and the common booking requirement is answered. Repetition of the booking instruction does not alter its meaning.",
+      "usabilityNotes": [
+        "The booking instruction is repeated with the two agreeing sources."
+      ]
+    },
+    {
+      "answerId": "b01014cf-686a-4a74-a72e-126a5a9469df",
+      "conditionId": "95291b0b-bb9f-4825-bbf0-a88711e256bf",
+      "caseId": "qual-004",
+      "category": "unanswerable",
+      "answerByteDigest": "sha256:5db53faef0b60516d530ef9681bfee6e2d9982667983c074f6d7a2740394ab98",
+      "answerPresent": true,
+      "deliveryStatus": "delivered",
+      "sentenceReviews": [
+        {
+          "start": 0,
+          "end": 78,
+          "text": "I don't have enough evidence in the supplied passages to answer this question.",
+          "kind": "source-relative-unknown",
+          "claims": [
+            {
+              "text": "I don't have enough evidence in the supplied passages to answer this question.",
+              "citedPassageIds": [],
+              "supportingQuotes": [],
+              "supportStatus": "verified-evidence-gap",
+              "rationale": "All supplied passages were checked and omit the requested information covered by this statement. The abstention expressly covers the whole question. The frozen rubric does not require a decorative citation for a verified source-relative unknown."
+            }
+          ],
+          "passed": true
+        }
+      ],
+      "requestedPartReviews": [
+        {
+          "part": "Who made the sculpture.",
+          "requirement": "explicit-unknown",
+          "passageIds": [],
+          "rationale": "The whole-question abstention covers the missing maker.",
+          "status": "satisfied",
+          "answerEvidence": [
+            "I don't have enough evidence in the supplied passages to answer this question."
+          ]
+        },
+        {
+          "part": "The year the sculpture was completed.",
+          "requirement": "explicit-unknown",
+          "passageIds": [],
+          "rationale": "The same whole-question abstention covers the missing completion year.",
+          "status": "satisfied",
+          "answerEvidence": [
+            "I don't have enough evidence in the supplied passages to answer this question."
+          ]
+        }
+      ],
+      "completeAbstention": true,
+      "completenessDisposition": "complete",
+      "unsupportedClaims": [],
+      "missingRequestedParts": [],
+      "unknownHandlingPassed": true,
+      "conflictHandlingPassed": null,
+      "citationSupportPassed": true,
+      "relevanceDisposition": "relevant",
+      "contractPassed": true,
+      "usefulness": "appropriate-abstention",
+      "rationale": "The abstention explicitly covers the whole two-part question. Neither the coordinator nor exhibition date is misused as the missing maker or completion year.",
+      "usabilityNotes": []
+    },
+    {
+      "answerId": "54ffedab-1600-4e12-b1b3-de722d4e2e96",
+      "conditionId": "95291b0b-bb9f-4825-bbf0-a88711e256bf",
+      "caseId": "qual-005",
+      "category": "partially-answerable",
+      "answerByteDigest": "sha256:3cfe9ad1072a4f517f205195f54baea03cba9f2f1996dc05f1e79307e0cb0db8",
+      "answerPresent": true,
+      "deliveryStatus": "delivered",
+      "sentenceReviews": [
+        {
+          "start": 0,
+          "end": 48,
+          "text": "Survey core BR-6 was drilled at Birch Ridge [2].",
+          "kind": "factual",
+          "claims": [
+            {
+              "text": "Survey core BR-6 was drilled at Birch Ridge.",
+              "citedPassageIds": [
+                "p2"
+              ],
+              "supportingQuotes": [
+                {
+                  "passageId": "p2",
+                  "text": "Survey core BR-6 was drilled at Birch Ridge."
+                }
+              ],
+              "supportStatus": "supported",
+              "rationale": "The supplied cited text supports every factual clause in the sentence. Entity references, conditions, quantities, and scope have been checked against the question and surrounding answer, not accepted solely because the citation syntax or quotation matches."
+            }
+          ],
+          "passed": true
+        },
+        {
+          "start": 49,
+          "end": 83,
+          "text": "Its final depth was 42 metres [2].",
+          "kind": "factual",
+          "claims": [
+            {
+              "text": "Its final depth was 42 metres.",
+              "citedPassageIds": [
+                "p2"
+              ],
+              "supportingQuotes": [
+                {
+                  "passageId": "p2",
+                  "text": "Its final depth was 42 metres."
+                }
+              ],
+              "supportStatus": "supported",
+              "rationale": "The supplied cited text supports every factual clause in the sentence. Entity references, conditions, quantities, and scope have been checked against the question and surrounding answer, not accepted solely because the citation syntax or quotation matches."
+            }
+          ],
+          "passed": true
+        },
+        {
+          "start": 84,
+          "end": 118,
+          "text": "what was its copper concentration?",
+          "kind": "nonfactual",
+          "claims": [
+            {
+              "text": "what was its copper concentration?",
+              "citedPassageIds": [],
+              "supportingQuotes": [],
+              "supportStatus": "not-applicable",
+              "rationale": "This is a question label for the following explicit unknown, not a claimed factual answer."
+            }
+          ],
+          "passed": true
+        },
+        {
+          "start": 119,
+          "end": 163,
+          "text": "The supplied passages do not establish this.",
+          "kind": "source-relative-unknown",
+          "claims": [
+            {
+              "text": "The supplied passages do not establish this.",
+              "citedPassageIds": [],
+              "supportingQuotes": [],
+              "supportStatus": "verified-evidence-gap",
+              "rationale": "All supplied passages were checked and omit the requested information covered by this statement. The immediately preceding subquestion scopes this unknown: what was its copper concentration? The frozen rubric does not require a decorative citation for a verified source-relative unknown."
+            }
+          ],
+          "passed": true
+        }
+      ],
+      "requestedPartReviews": [
+        {
+          "part": "Where BR-6 was drilled.",
+          "requirement": "supported-fact",
+          "passageIds": [
+            "p2"
+          ],
+          "rationale": "Birch Ridge is correctly associated with BR-6.",
+          "status": "satisfied",
+          "answerEvidence": [
+            "Survey core BR-6 was drilled at Birch Ridge [2]."
+          ]
+        },
+        {
+          "part": "The depth BR-6 reached.",
+          "requirement": "supported-fact",
+          "passageIds": [
+            "p2"
+          ],
+          "rationale": "The answer preserves 42 metres and the pronoun refers to BR-6 in the preceding sentence.",
+          "status": "satisfied",
+          "answerEvidence": [
+            "Its final depth was 42 metres [2]."
+          ]
+        },
+        {
+          "part": "The copper concentration of BR-6.",
+          "requirement": "explicit-unknown",
+          "passageIds": [],
+          "rationale": "The answer explicitly identifies the copper-concentration evidence gap.",
+          "status": "satisfied",
+          "answerEvidence": [
+            "what was its copper concentration?",
+            "The supplied passages do not establish this."
+          ]
+        }
+      ],
+      "completeAbstention": false,
+      "completenessDisposition": "complete",
+      "unsupportedClaims": [],
+      "missingRequestedParts": [],
+      "unknownHandlingPassed": true,
+      "conflictHandlingPassed": null,
+      "citationSupportPassed": true,
+      "relevanceDisposition": "relevant",
+      "contractPassed": true,
+      "usefulness": "complete-supported-response",
+      "rationale": "Both known facts are supported and complete, and the copper concentration is explicitly unknown.",
+      "usabilityNotes": []
+    },
+    {
+      "answerId": "30cbbf12-b6a4-4650-91bb-971fce114841",
+      "conditionId": "95291b0b-bb9f-4825-bbf0-a88711e256bf",
+      "caseId": "qual-006",
+      "category": "answerable",
+      "answerByteDigest": "sha256:12aab3d87fe5c091dd887e0fa5a9c13566c2c9025cf7ba83c4b4f1da5f08b833",
+      "answerPresent": true,
+      "deliveryStatus": "delivered",
+      "sentenceReviews": [
+        {
+          "start": 0,
+          "end": 80,
+          "text": "When the Gull ferry is cancelled, its replacement shuttle leaves from bay 3 [2].",
+          "kind": "factual",
+          "claims": [
+            {
+              "text": "When the Gull ferry is cancelled, its replacement shuttle leaves from bay 3.",
+              "citedPassageIds": [
+                "p2"
+              ],
+              "supportingQuotes": [
+                {
+                  "passageId": "p2",
+                  "text": "When the Gull ferry is cancelled, its replacement shuttle leaves from bay 3."
+                }
+              ],
+              "supportStatus": "supported",
+              "rationale": "The supplied cited text supports every factual clause in the sentence. Entity references, conditions, quantities, and scope have been checked against the question and surrounding answer, not accepted solely because the citation syntax or quotation matches."
+            }
+          ],
+          "passed": true
+        },
+        {
+          "start": 81,
+          "end": 129,
+          "text": "The orange pass is accepted on that shuttle [1].",
+          "kind": "factual",
+          "claims": [
+            {
+              "text": "The orange pass is accepted on that shuttle.",
+              "citedPassageIds": [
+                "p1"
+              ],
+              "supportingQuotes": [
+                {
+                  "passageId": "p1",
+                  "text": "The orange pass is accepted on that shuttle."
+                }
+              ],
+              "supportStatus": "supported",
+              "rationale": "The supplied cited text supports every factual clause in the sentence. Entity references, conditions, quantities, and scope have been checked against the question and surrounding answer, not accepted solely because the citation syntax or quotation matches."
+            }
+          ],
+          "passed": true
+        },
+        {
+          "start": 130,
+          "end": 216,
+          "text": "Passengers collect the Gull replacement shuttle's orange pass at the harbour desk [1].",
+          "kind": "factual",
+          "claims": [
+            {
+              "text": "Passengers collect the Gull replacement shuttle's orange pass at the harbour desk.",
+              "citedPassageIds": [
+                "p1"
+              ],
+              "supportingQuotes": [
+                {
+                  "passageId": "p1",
+                  "text": "Passengers collect the Gull replacement shuttle's orange pass at the harbour desk."
+                }
+              ],
+              "supportStatus": "supported",
+              "rationale": "The supplied cited text supports every factual clause in the sentence. Entity references, conditions, quantities, and scope have been checked against the question and surrounding answer, not accepted solely because the citation syntax or quotation matches."
+            }
+          ],
+          "passed": true
+        }
+      ],
+      "requestedPartReviews": [
+        {
+          "part": "Where the replacement shuttle leaves when the ferry is cancelled.",
+          "requirement": "supported-fact",
+          "passageIds": [
+            "p2"
+          ],
+          "rationale": "Bay 3 is correct and the cancellation condition is preserved.",
+          "status": "satisfied",
+          "answerEvidence": [
+            "When the Gull ferry is cancelled, its replacement shuttle leaves from bay 3 [2]."
+          ]
+        },
+        {
+          "part": "Which pass is accepted.",
+          "requirement": "supported-fact",
+          "passageIds": [
+            "p1"
+          ],
+          "rationale": "The answer states that the orange pass is accepted without adding exclusivity.",
+          "status": "satisfied",
+          "answerEvidence": [
+            "The orange pass is accepted on that shuttle [1]."
+          ]
+        },
+        {
+          "part": "Where that pass is collected.",
+          "requirement": "supported-fact",
+          "passageIds": [
+            "p1"
+          ],
+          "rationale": "The harbour desk is given with its source.",
+          "status": "satisfied",
+          "answerEvidence": [
+            "Passengers collect the Gull replacement shuttle's orange pass at the harbour desk [1]."
+          ]
+        }
+      ],
+      "completeAbstention": false,
+      "completenessDisposition": "complete",
+      "unsupportedClaims": [],
+      "missingRequestedParts": [],
+      "unknownHandlingPassed": null,
+      "conflictHandlingPassed": null,
+      "citationSupportPassed": true,
+      "relevanceDisposition": "relevant",
+      "contractPassed": true,
+      "usefulness": "complete-supported-response",
+      "rationale": "All three requested parts are complete and cited without unsupported ticket, price, or exclusivity claims.",
+      "usabilityNotes": []
+    },
+    {
+      "answerId": "77f00caf-1449-4293-9f5f-74bccf2559e1",
+      "conditionId": "95291b0b-bb9f-4825-bbf0-a88711e256bf",
+      "caseId": "qual-007",
+      "category": "unanswerable",
+      "answerByteDigest": "sha256:5db53faef0b60516d530ef9681bfee6e2d9982667983c074f6d7a2740394ab98",
+      "answerPresent": true,
+      "deliveryStatus": "delivered",
+      "sentenceReviews": [
+        {
+          "start": 0,
+          "end": 78,
+          "text": "I don't have enough evidence in the supplied passages to answer this question.",
+          "kind": "source-relative-unknown",
+          "claims": [
+            {
+              "text": "I don't have enough evidence in the supplied passages to answer this question.",
+              "citedPassageIds": [],
+              "supportingQuotes": [],
+              "supportStatus": "verified-evidence-gap",
+              "rationale": "All supplied passages were checked and omit the requested information covered by this statement. The abstention expressly covers the whole question. The frozen rubric does not require a decorative citation for a verified source-relative unknown."
+            }
+          ],
+          "passed": true
+        }
+      ],
+      "requestedPartReviews": [
+        {
+          "part": "The monetary reduction in electricity costs.",
+          "requirement": "explicit-unknown",
+          "passageIds": [],
+          "rationale": "The whole-question source-relative abstention covers monetary savings.",
+          "status": "satisfied",
+          "answerEvidence": [
+            "I don't have enough evidence in the supplied passages to answer this question."
+          ]
+        },
+        {
+          "part": "The percentage reduction in electricity costs.",
+          "requirement": "explicit-unknown",
+          "passageIds": [],
+          "rationale": "The same abstention covers percentage savings.",
+          "status": "satisfied",
+          "answerEvidence": [
+            "I don't have enough evidence in the supplied passages to answer this question."
+          ]
+        }
+      ],
+      "completeAbstention": true,
+      "completenessDisposition": "complete",
+      "unsupportedClaims": [],
+      "missingRequestedParts": [],
+      "unknownHandlingPassed": true,
+      "conflictHandlingPassed": null,
+      "citationSupportPassed": true,
+      "relevanceDisposition": "relevant",
+      "contractPassed": true,
+      "usefulness": "appropriate-abstention",
+      "rationale": "The answer appropriately abstains across both unmeasured savings quantities.",
+      "usabilityNotes": []
+    },
+    {
+      "answerId": "82d0f943-9662-46e8-aa4a-38abcae03f38",
+      "conditionId": "95291b0b-bb9f-4825-bbf0-a88711e256bf",
+      "caseId": "qual-008",
+      "category": "contradictory",
+      "answerByteDigest": null,
+      "answerPresent": false,
+      "deliveryStatus": "application-non-delivery",
+      "sentenceReviews": [],
+      "requestedPartReviews": [
+        {
+          "part": "The conflicting maximum group sizes and their unresolved status.",
+          "requirement": "conflict",
+          "passageIds": [
+            "p1",
+            "p2"
+          ],
+          "rationale": "The packet contains no delivered application answer; this requested part is missing.",
+          "status": "missing",
+          "answerEvidence": []
+        },
+        {
+          "part": "Whether a slot must be reserved.",
+          "requirement": "supported-fact",
+          "passageIds": [
+            "p1",
+            "p2"
+          ],
+          "rationale": "The packet contains no delivered application answer; this requested part is missing.",
+          "status": "missing",
+          "answerEvidence": []
+        }
+      ],
+      "completeAbstention": false,
+      "completenessDisposition": "incomplete",
+      "unsupportedClaims": [],
+      "missingRequestedParts": [
+        "The conflicting maximum group sizes and their unresolved status.",
+        "Whether a slot must be reserved."
+      ],
+      "unknownHandlingPassed": null,
+      "conflictHandlingPassed": false,
+      "citationSupportPassed": null,
+      "relevanceDisposition": "not-assessable",
+      "contractPassed": false,
+      "usefulness": "failed-contract",
+      "rationale": "The exact packet answer is null. No application text was delivered, so all requested parts and complete case coverage fail. Null is not an abstention, and no content is reconstructed from the corpus, other cases, or earlier outputs.",
+      "usabilityNotes": []
+    },
+    {
+      "answerId": "212bf89c-6f02-4ac5-a02a-d2e38387fe76",
+      "conditionId": "95291b0b-bb9f-4825-bbf0-a88711e256bf",
+      "caseId": "qual-009",
+      "category": "contradictory",
+      "answerByteDigest": null,
+      "answerPresent": false,
+      "deliveryStatus": "application-non-delivery",
+      "sentenceReviews": [],
+      "requestedPartReviews": [
+        {
+          "part": "The conflicting minimum ages and their unresolved status.",
+          "requirement": "conflict",
+          "passageIds": [
+            "p2",
+            "p3"
+          ],
+          "rationale": "The packet contains no delivered application answer; this requested part is missing.",
+          "status": "missing",
+          "answerEvidence": []
+        },
+        {
+          "part": "The required identification.",
+          "requirement": "supported-fact",
+          "passageIds": [
+            "p2",
+            "p3"
+          ],
+          "rationale": "The packet contains no delivered application answer; this requested part is missing.",
+          "status": "missing",
+          "answerEvidence": []
+        }
+      ],
+      "completeAbstention": false,
+      "completenessDisposition": "incomplete",
+      "unsupportedClaims": [],
+      "missingRequestedParts": [
+        "The conflicting minimum ages and their unresolved status.",
+        "The required identification."
+      ],
+      "unknownHandlingPassed": null,
+      "conflictHandlingPassed": false,
+      "citationSupportPassed": null,
+      "relevanceDisposition": "not-assessable",
+      "contractPassed": false,
+      "usefulness": "failed-contract",
+      "rationale": "The exact packet answer is null. No application text was delivered, so all requested parts and complete case coverage fail. Null is not an abstention, and no content is reconstructed from the corpus, other cases, or earlier outputs.",
+      "usabilityNotes": []
+    },
+    {
+      "answerId": "8a78c63d-f7e5-4568-a6f4-829ebfde5a65",
+      "conditionId": "95291b0b-bb9f-4825-bbf0-a88711e256bf",
+      "caseId": "qual-010",
+      "category": "unanswerable",
+      "answerByteDigest": null,
+      "answerPresent": false,
+      "deliveryStatus": "application-non-delivery",
+      "sentenceReviews": [],
+      "requestedPartReviews": [
+        {
+          "part": "The median audience age.",
+          "requirement": "explicit-unknown",
+          "passageIds": [],
+          "rationale": "The packet contains no delivered application answer; this requested part is missing.",
+          "status": "missing",
+          "answerEvidence": []
+        },
+        {
+          "part": "The retired-audience proportion.",
+          "requirement": "explicit-unknown",
+          "passageIds": [],
+          "rationale": "The packet contains no delivered application answer; this requested part is missing.",
+          "status": "missing",
+          "answerEvidence": []
+        }
+      ],
+      "completeAbstention": false,
+      "completenessDisposition": "incomplete",
+      "unsupportedClaims": [],
+      "missingRequestedParts": [
+        "The median audience age.",
+        "The retired-audience proportion."
+      ],
+      "unknownHandlingPassed": false,
+      "conflictHandlingPassed": null,
+      "citationSupportPassed": null,
+      "relevanceDisposition": "not-assessable",
+      "contractPassed": false,
+      "usefulness": "failed-contract",
+      "rationale": "The exact packet answer is null. No application text was delivered, so all requested parts and complete case coverage fail. Null is not an abstention, and no content is reconstructed from the corpus, other cases, or earlier outputs.",
+      "usabilityNotes": []
+    },
+    {
+      "answerId": "07db436e-b434-4e77-bcc1-f820f6c20fcc",
+      "conditionId": "95291b0b-bb9f-4825-bbf0-a88711e256bf",
+      "caseId": "qual-011",
+      "category": "answerable",
+      "answerByteDigest": null,
+      "answerPresent": false,
+      "deliveryStatus": "application-non-delivery",
+      "sentenceReviews": [],
+      "requestedPartReviews": [
+        {
+          "part": "The bottle must be rinsed.",
+          "requirement": "supported-fact",
+          "passageIds": [
+            "p2"
+          ],
+          "rationale": "The packet contains no delivered application answer; this requested part is missing.",
+          "status": "missing",
+          "answerEvidence": []
+        },
+        {
+          "part": "The bottle must be unbroken.",
+          "requirement": "supported-fact",
+          "passageIds": [
+            "p2"
+          ],
+          "rationale": "The packet contains no delivered application answer; this requested part is missing.",
+          "status": "missing",
+          "answerEvidence": []
+        },
+        {
+          "part": "The voucher is issued only after inspection.",
+          "requirement": "supported-fact",
+          "passageIds": [
+            "p1"
+          ],
+          "rationale": "The packet contains no delivered application answer; this requested part is missing.",
+          "status": "missing",
+          "answerEvidence": []
+        }
+      ],
+      "completeAbstention": false,
+      "completenessDisposition": "incomplete",
+      "unsupportedClaims": [],
+      "missingRequestedParts": [
+        "The bottle must be rinsed.",
+        "The bottle must be unbroken.",
+        "The voucher is issued only after inspection."
+      ],
+      "unknownHandlingPassed": null,
+      "conflictHandlingPassed": null,
+      "citationSupportPassed": null,
+      "relevanceDisposition": "not-assessable",
+      "contractPassed": false,
+      "usefulness": "failed-contract",
+      "rationale": "The exact packet answer is null. No application text was delivered, so all requested parts and complete case coverage fail. Null is not an abstention, and no content is reconstructed from the corpus, other cases, or earlier outputs.",
+      "usabilityNotes": []
+    },
+    {
+      "answerId": "85801e13-f759-48ed-a1ae-9f9fa9cde8fe",
+      "conditionId": "95291b0b-bb9f-4825-bbf0-a88711e256bf",
+      "caseId": "qual-012",
+      "category": "partially-answerable",
+      "answerByteDigest": null,
+      "answerPresent": false,
+      "deliveryStatus": "application-non-delivery",
+      "sentenceReviews": [],
+      "requestedPartReviews": [
+        {
+          "part": "The audition venue.",
+          "requirement": "supported-fact",
+          "passageIds": [
+            "p2"
+          ],
+          "rationale": "The packet contains no delivered application answer; this requested part is missing.",
+          "status": "missing",
+          "answerEvidence": []
+        },
+        {
+          "part": "The required number and format of chosen-score copies.",
+          "requirement": "supported-fact",
+          "passageIds": [
+            "p1"
+          ],
+          "rationale": "The packet contains no delivered application answer; this requested part is missing.",
+          "status": "missing",
+          "answerEvidence": []
+        },
+        {
+          "part": "The application fee.",
+          "requirement": "explicit-unknown",
+          "passageIds": [],
+          "rationale": "The packet contains no delivered application answer; this requested part is missing.",
+          "status": "missing",
+          "answerEvidence": []
+        }
+      ],
+      "completeAbstention": false,
+      "completenessDisposition": "incomplete",
+      "unsupportedClaims": [],
+      "missingRequestedParts": [
+        "The audition venue.",
+        "The required number and format of chosen-score copies.",
+        "The application fee."
+      ],
+      "unknownHandlingPassed": false,
+      "conflictHandlingPassed": null,
+      "citationSupportPassed": null,
+      "relevanceDisposition": "not-assessable",
+      "contractPassed": false,
+      "usefulness": "failed-contract",
+      "rationale": "The exact packet answer is null. No application text was delivered, so all requested parts and complete case coverage fail. Null is not an abstention, and no content is reconstructed from the corpus, other cases, or earlier outputs.",
+      "usabilityNotes": []
+    },
+    {
+      "answerId": "005e482f-4921-4670-88d2-8709fce55b1a",
+      "conditionId": "95291b0b-bb9f-4825-bbf0-a88711e256bf",
+      "caseId": "qual-013",
+      "category": "unanswerable",
+      "answerByteDigest": null,
+      "answerPresent": false,
+      "deliveryStatus": "application-non-delivery",
+      "sentenceReviews": [],
+      "requestedPartReviews": [
+        {
+          "part": "The cause of the pale colouring.",
+          "requirement": "explicit-unknown",
+          "passageIds": [],
+          "rationale": "The packet contains no delivered application answer; this requested part is missing.",
+          "status": "missing",
+          "answerEvidence": []
+        },
+        {
+          "part": "Whether the colouring increased survival.",
+          "requirement": "explicit-unknown",
+          "passageIds": [],
+          "rationale": "The packet contains no delivered application answer; this requested part is missing.",
+          "status": "missing",
+          "answerEvidence": []
+        }
+      ],
+      "completeAbstention": false,
+      "completenessDisposition": "incomplete",
+      "unsupportedClaims": [],
+      "missingRequestedParts": [
+        "The cause of the pale colouring.",
+        "Whether the colouring increased survival."
+      ],
+      "unknownHandlingPassed": false,
+      "conflictHandlingPassed": null,
+      "citationSupportPassed": null,
+      "relevanceDisposition": "not-assessable",
+      "contractPassed": false,
+      "usefulness": "failed-contract",
+      "rationale": "The exact packet answer is null. No application text was delivered, so all requested parts and complete case coverage fail. Null is not an abstention, and no content is reconstructed from the corpus, other cases, or earlier outputs.",
+      "usabilityNotes": []
+    },
+    {
+      "answerId": "ebff4f4f-0a42-4b54-a4b2-8a68799e3b4a",
+      "conditionId": "95291b0b-bb9f-4825-bbf0-a88711e256bf",
+      "caseId": "qual-014",
+      "category": "contradictory",
+      "answerByteDigest": null,
+      "answerPresent": false,
+      "deliveryStatus": "application-non-delivery",
+      "sentenceReviews": [],
+      "requestedPartReviews": [
+        {
+          "part": "The conflicting closing times and their unresolved status.",
+          "requirement": "conflict",
+          "passageIds": [
+            "p1",
+            "p3"
+          ],
+          "rationale": "The packet contains no delivered application answer; this requested part is missing.",
+          "status": "missing",
+          "answerEvidence": []
+        },
+        {
+          "part": "The gate visitors should use.",
+          "requirement": "supported-fact",
+          "passageIds": [
+            "p1",
+            "p3"
+          ],
+          "rationale": "The packet contains no delivered application answer; this requested part is missing.",
+          "status": "missing",
+          "answerEvidence": []
+        }
+      ],
+      "completeAbstention": false,
+      "completenessDisposition": "incomplete",
+      "unsupportedClaims": [],
+      "missingRequestedParts": [
+        "The conflicting closing times and their unresolved status.",
+        "The gate visitors should use."
+      ],
+      "unknownHandlingPassed": null,
+      "conflictHandlingPassed": false,
+      "citationSupportPassed": null,
+      "relevanceDisposition": "not-assessable",
+      "contractPassed": false,
+      "usefulness": "failed-contract",
+      "rationale": "The exact packet answer is null. No application text was delivered, so all requested parts and complete case coverage fail. Null is not an abstention, and no content is reconstructed from the corpus, other cases, or earlier outputs.",
+      "usabilityNotes": []
+    },
+    {
+      "answerId": "0d1d333d-5f19-4bc4-8089-d9eb3f6b5ebd",
+      "conditionId": "95291b0b-bb9f-4825-bbf0-a88711e256bf",
+      "caseId": "qual-015",
+      "category": "partially-answerable",
+      "answerByteDigest": null,
+      "answerPresent": false,
+      "deliveryStatus": "application-non-delivery",
+      "sentenceReviews": [],
+      "requestedPartReviews": [
+        {
+          "part": "The compost collection day.",
+          "requirement": "supported-fact",
+          "passageIds": [
+            "p3"
+          ],
+          "rationale": "The packet contains no delivered application answer; this requested part is missing.",
+          "status": "missing",
+          "answerEvidence": []
+        },
+        {
+          "part": "The brown-bin contents rule, including the packaging exclusion.",
+          "requirement": "supported-fact",
+          "passageIds": [
+            "p2"
+          ],
+          "rationale": "The packet contains no delivered application answer; this requested part is missing.",
+          "status": "missing",
+          "answerEvidence": []
+        },
+        {
+          "part": "The scheme's greenhouse-gas emissions reduction.",
+          "requirement": "explicit-unknown",
+          "passageIds": [],
+          "rationale": "The packet contains no delivered application answer; this requested part is missing.",
+          "status": "missing",
+          "answerEvidence": []
+        }
+      ],
+      "completeAbstention": false,
+      "completenessDisposition": "incomplete",
+      "unsupportedClaims": [],
+      "missingRequestedParts": [
+        "The compost collection day.",
+        "The brown-bin contents rule, including the packaging exclusion.",
+        "The scheme's greenhouse-gas emissions reduction."
+      ],
+      "unknownHandlingPassed": false,
+      "conflictHandlingPassed": null,
+      "citationSupportPassed": null,
+      "relevanceDisposition": "not-assessable",
+      "contractPassed": false,
+      "usefulness": "failed-contract",
+      "rationale": "The exact packet answer is null. No application text was delivered, so all requested parts and complete case coverage fail. Null is not an abstention, and no content is reconstructed from the corpus, other cases, or earlier outputs.",
+      "usabilityNotes": []
+    },
+    {
+      "answerId": "ab50af76-383b-4cd8-870d-5334ffc25731",
+      "conditionId": "95291b0b-bb9f-4825-bbf0-a88711e256bf",
+      "caseId": "qual-016",
+      "category": "answerable",
+      "answerByteDigest": null,
+      "answerPresent": false,
+      "deliveryStatus": "application-non-delivery",
+      "sentenceReviews": [],
+      "requestedPartReviews": [
+        {
+          "part": "The pre-session dark reference with the lens cap fitted.",
+          "requirement": "supported-fact",
+          "passageIds": [
+            "p2"
+          ],
+          "rationale": "The packet contains no delivered application answer; this requested part is missing.",
+          "status": "missing",
+          "answerEvidence": []
+        },
+        {
+          "part": "The camera temperature setting must remain unchanged for reference reuse.",
+          "requirement": "supported-fact",
+          "passageIds": [
+            "p1"
+          ],
+          "rationale": "The packet contains no delivered application answer; this requested part is missing.",
+          "status": "missing",
+          "answerEvidence": []
+        },
+        {
+          "part": "The required new-reference capture if that setting changes.",
+          "requirement": "supported-fact",
+          "passageIds": [
+            "p1"
+          ],
+          "rationale": "The packet contains no delivered application answer; this requested part is missing.",
+          "status": "missing",
+          "answerEvidence": []
+        }
+      ],
+      "completeAbstention": false,
+      "completenessDisposition": "incomplete",
+      "unsupportedClaims": [],
+      "missingRequestedParts": [
+        "The pre-session dark reference with the lens cap fitted.",
+        "The camera temperature setting must remain unchanged for reference reuse.",
+        "The required new-reference capture if that setting changes."
+      ],
+      "unknownHandlingPassed": null,
+      "conflictHandlingPassed": null,
+      "citationSupportPassed": null,
+      "relevanceDisposition": "not-assessable",
+      "contractPassed": false,
+      "usefulness": "failed-contract",
+      "rationale": "The exact packet answer is null. No application text was delivered, so all requested parts and complete case coverage fail. Null is not an abstention, and no content is reconstructed from the corpus, other cases, or earlier outputs.",
+      "usabilityNotes": []
+    }
+  ],
+  "summary": {
+    "verdict": "failed-development-acceptance",
+    "totalRequiredCases": 24,
+    "answersPresent": 15,
+    "casesAccepted": 15,
+    "casesFailed": 9,
+    "missingOutputs": 9,
+    "unsupportedClaimCount": 0,
+    "incompleteCaseCount": 9,
+    "permittedCompleteAbstentions": 0,
+    "completeSupportedResponses": 11,
+    "appropriateUnanswerableAbstentions": 4,
+    "corpusAcceptancePassed": false,
+    "conditions": [
+      {
+        "conditionId": "95291b0b-bb9f-4825-bbf0-a88711e256bf",
+        "totalRequiredCases": 24,
+        "answersPresent": 15,
+        "casesAccepted": 15,
+        "casesFailed": 9,
+        "missingOutputs": 9,
+        "unsupportedClaimCount": 0,
+        "incompleteCaseCount": 9,
+        "permittedCompleteAbstentions": 0,
+        "completeSupportedResponses": 11,
+        "appropriateUnanswerableAbstentions": 4,
+        "corpusAcceptancePassed": false,
+        "categories": {
+          "answerable": {
+            "totalRequiredCases": 6,
+            "answersPresent": 4,
+            "casesAccepted": 4,
+            "casesFailed": 2,
+            "missingOutputs": 2,
+            "unsupportedClaimCount": 0,
+            "incompleteCaseCount": 2,
+            "permittedCompleteAbstentions": 0,
+            "completeSupportedResponses": 4,
+            "appropriateUnanswerableAbstentions": 0
+          },
+          "partially-answerable": {
+            "totalRequiredCases": 6,
+            "answersPresent": 4,
+            "casesAccepted": 4,
+            "casesFailed": 2,
+            "missingOutputs": 2,
+            "unsupportedClaimCount": 0,
+            "incompleteCaseCount": 2,
+            "permittedCompleteAbstentions": 0,
+            "completeSupportedResponses": 4,
+            "appropriateUnanswerableAbstentions": 0
+          },
+          "contradictory": {
+            "totalRequiredCases": 6,
+            "answersPresent": 3,
+            "casesAccepted": 3,
+            "casesFailed": 3,
+            "missingOutputs": 3,
+            "unsupportedClaimCount": 0,
+            "incompleteCaseCount": 3,
+            "permittedCompleteAbstentions": 0,
+            "completeSupportedResponses": 3,
+            "appropriateUnanswerableAbstentions": 0
+          },
+          "unanswerable": {
+            "totalRequiredCases": 6,
+            "answersPresent": 4,
+            "casesAccepted": 4,
+            "casesFailed": 2,
+            "missingOutputs": 2,
+            "unsupportedClaimCount": 0,
+            "incompleteCaseCount": 2,
+            "permittedCompleteAbstentions": 0,
+            "completeSupportedResponses": 0,
+            "appropriateUnanswerableAbstentions": 4
+          }
+        },
+        "partialAndContradictoryUsefulness": {
+          "requiredCases": 12,
+          "completeSupportedResponses": 7,
+          "permittedCompleteAbstentions": 0,
+          "failedCases": 5
+        },
+        "failureGroups": {
+          "applicationNonDeliveries": [
+            "qual-008",
+            "qual-009",
+            "qual-010",
+            "qual-011",
+            "qual-012",
+            "qual-013",
+            "qual-014",
+            "qual-015",
+            "qual-016"
+          ],
+          "deliveredSemanticFailures": []
+        }
+      }
+    ],
+    "substantiveInterpretations": [
+      "Every delivered answer satisfies the factual-support and requested-part rules for its supplied case; no delivered semantic contract defect was identified.",
+      "Nine null outputs are application non-deliveries and fail complete coverage. They are never treated as complete abstentions or reconstructed.",
+      "Delivered conflicting answers explicitly state that the supplied passages leave the conflict unresolved, in addition to citing both conflicting values.",
+      "Delivered unanswerable answers abstain across the entire question, including all requested parts.",
+      "The answerable-consent response retains 'those values' from its source. The question's task-text change and the cited source's enumeration resolve the requested scope; the omitted enumeration is recorded as a clarity concern, not a semantic failure.",
+      "The duplicate supported booking sentence is reviewed separately and recorded as a usability observation.",
+      "The permitted complete-abstention exception for partial and contradictory cases remains unchanged; no delivered response in those categories uses it."
+    ],
+    "claimBoundary": "Independent agent evaluator development evidence only. It does not qualify a held-out candidate, revise the previous frozen failure verdict, establish human or operator qualification, or authorize deployment."
+  },
+  "componentHandoff": {
+    "component": "Reploid verification evidence",
+    "intent": "preserved",
+    "acceptanceEvidence": "Verified provided corpus, packet, acceptance, and unchanged rubric digests; exact sentence spans and all requested parts reviewed.",
+    "boundaryEffects": "none"
+  }
+}
