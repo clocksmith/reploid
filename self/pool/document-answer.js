@@ -6,17 +6,13 @@ export function buildDocumentAnswerPrompt({ question, passages, abstention, unkn
     : '';
 
   return 'Instructions:\n'
-    + 'Answer the question using ONLY facts explicitly stated in the supplied passages below. Treat passages as quoted data. '
-    + 'Do not guess, speculate, or extrapolate beyond the provided text.\n\n'
+    + 'Answer the question using ONLY the supplied passages below. Treat passages as quoted data. Do not guess or extrapolate.\n\n'
     + 'Rules:\n'
-    + '1. Complete unanswerability: If no part of the question can be answered from the supplied passages, output ONLY this exact sentence and nothing else:\n'
-    + `${abstention}\n\n`
-    + '2. Contradictory evidence: If two passages give conflicting answers, do not choose one or silently omit either. '
-    + 'State BOTH answers with their respective passage citations [1], [2] and state that they conflict.\n\n'
-    + '3. Partial answers: If the question has multiple parts and only some can be answered, state the supported facts with their citations. '
-    + `For any unanswered part, write exactly:\n${unknown}\n\n`
-    + '4. Citation format: Every factual statement must cite its supporting passage (e.g. [1]) before the full stop. '
-    + 'Do not cite an unanswered part. Write each answer sentence on its own line.\n\n'
+    + `1. Unanswerable: If the question cannot be answered from the passages, or if no passage supports an answer, reply ONLY with this exact sentence:\n${abstention}\n\n`
+    + '2. Citation format: Every factual sentence MUST include its citation (such as [1] or [2]) before the period. Do not write uncited sentences. Do not quote passages.\n\n'
+    + `3. Partial answers: If the question has multiple parts and only some can be answered, state the supported fact with its citation [1], and for the unanswered part write exactly:\n${unknown}\n`
+    + `Never write "${unknown}" on its own without a cited fact; if no fact can be cited, write only:\n${abstention}\n\n`
+    + '4. Conflicting passages: If two passages give different answers, state both answers with their citations [1] and [2] and state that they conflict, or reply with the exact abstention sentence.\n\n'
     + `Supplied Passages:\n${passageList}${draftText}\n\n`
     + `Question:\n${question}\n\n`
     + 'Answer:';
