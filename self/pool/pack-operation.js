@@ -3,6 +3,7 @@ import { assertPackSession, assertPackExecutionEvidence, hashDopplerEvidence } f
 import { createPackOperationRegistry } from './pack-operation-adapters.js';
 import { assertOperationLimits } from './pack-operation-policy.js';
 import { resolveDopplerExecutionContract } from '../config/doppler-execution-contracts.js';
+import { assertDopplerGenerationContract } from '../infrastructure/doppler-runtime-service.js';
 
 const requireValue = (value, message) => { if (!value) throw new Error(`Pack operation: ${message}`); };
 const equal = async (left, right) => await hashDopplerEvidence(left) === await hashDopplerEvidence(right);
@@ -93,6 +94,7 @@ export async function runPackOperation({ binding: bindingInput, session, request
   };
   await current();
   await assertPackSession(binding, session);
+  if (request.operation.name === 'generate') assertDopplerGenerationContract(session);
   requireValue(typeof session.executeOperation === 'function', 'public executeOperation is required; no legacy operation fallback');
   await beforeExecute?.();
   await current();

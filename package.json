@@ -39,6 +39,8 @@
     "build:vfs-manifest": "node scripts/build-vfs-manifest.js",
     "build:browser-bundle": "node scripts/build-browser-bundle-manifest.js",
     "sync:runtime-config": "node scripts/sync-runtime-config.js --write",
+    "sync:doppler-generation": "node scripts/sync-doppler-generation-contract.js",
+    "verify:doppler-generation": "node scripts/sync-doppler-generation-contract.js --check",
     "deploy:pool-env": "node scripts/print-pool-env.js",
     "deploy:simulatte-hosting": "firebase deploy --config firebase.simulatte-hosting.json --project simulatte-world --only hosting:simulatte-world",
     "verify:pool": "node scripts/verify-pool-production.js",

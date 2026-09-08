@@ -1,4 +1,5 @@
 /** Pure configuration validation. No execution, networking, or inferred policy. */
+import { DOPPLER_GENERATION_CONTRACT } from '../infrastructure/doppler-runtime-service.js';
 const assert = (ok, message) => { if (!ok) throw new Error(`Pack operation policy: ${message}`); };
 const identifier = value => typeof value === 'string' && /^[a-zA-Z][a-zA-Z0-9_.-]*$/.test(value);
 const strings = value => Array.isArray(value) && value.every(identifier) && new Set(value).size === value.length;
@@ -31,6 +32,12 @@ export function resolvePackOperationDefinitions(definitions, comparisons) {
       `${id}: operation aliases require an explicit Doppler contract; implicit renaming forbidden`);
     for (const name of ['inputContract', 'optionsContract']) {
       const contract = definition[name];
+      if (contract?.runtimeContract !== undefined) {
+        assert(id === 'generate' && positive(contract.version)
+          && contract.runtimeContract === DOPPLER_GENERATION_CONTRACT.schema
+          && Object.keys(contract).every(key => ['version', 'runtimeContract'].includes(key)), `${id}: invalid runtime-owned ${name}`);
+        continue;
+      }
       assert(positive(contract?.version) && strings(contract.allowedFields) && strings(contract.requiredFields)
         && contract.requiredFields.every(field => contract.allowedFields.includes(field)), `${id}: invalid ${name}`);
       assert(object(contract.fieldTypes) && Object.entries(contract.fieldTypes).every(([field, type]) => contract.allowedFields.includes(field)
@@ -50,6 +57,10 @@ export function resolvePackOperationDefinitions(definitions, comparisons) {
 }
 
 export function assertOperationFields(value, contract, name) {
+  if (contract.runtimeContract === DOPPLER_GENERATION_CONTRACT.schema) {
+    assert(object(value), `${name}: object required`);
+    return; // The operation adapter delegates input/options validation to Doppler.
+  }
   assert(object(value) && Object.keys(value).every(field => contract.allowedFields.includes(field)), `${name}: unexpected input or option fields`);
   for (const field of contract.requiredFields) assert(Object.hasOwn(value, field), `${name}.${field} required`);
   for (const [field, type] of Object.entries(contract.fieldTypes)) {

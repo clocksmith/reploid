@@ -1219,6 +1219,21 @@
       "sha256": "sha256:14d61b7da1640044f38835d8c17085575abce25a0532bc1995d97c9605f936b0"
     },
     {
+      "path": "config/doppler-generation-contract.d.ts",
+      "byteLength": 2429,
+      "sha256": "sha256:ca4101e02943528bc67ccc7c6c9df38c25fa64218238da83fe822fa945e5b299"
+    },
+    {
+      "path": "config/doppler-generation-contract.js",
+      "byteLength": 5214,
+      "sha256": "sha256:e7d65065a661e3e37fc5aa1e36a9913ea2f1d76b009af6032da97b51a8f44b10"
+    },
+    {
+      "path": "config/doppler-generation-contract.provenance.json",
+      "byteLength": 247,
+      "sha256": "sha256:a73a3e5fb1d24f5a05525e5339794dfb8815cac5e11d5d9c838fef557278e3a9"
+    },
+    {
       "path": "config/doppler-local-models.js",
       "byteLength": 2383,
       "sha256": "sha256:b943afe6083f94d187281a27b4fe288bc869ab5a0852baf62c2d59332e7d433b"
@@ -1266,7 +1281,7 @@
     {
       "path": "config/module-inventory.json",
       "byteLength": 95271,
-      "sha256": "sha256:08e8b8b0ba91894ad77e60e5ec183cd8c1333bf00a936b8a5c176c54b650a790"
+      "sha256": "sha256:d257a431492fe27ebb854dcfe0d0fe3dc57dd71f3ec67e899c321298a2c67a15"
     },
     {
       "path": "config/module-registry.json",
@@ -1655,13 +1670,13 @@
     },
     {
       "path": "infrastructure/doppler-runtime-service.d.ts",
-      "byteLength": 1216,
-      "sha256": "sha256:8b5cd587ebec82d3c366418f261fc06c27a6d2e498a20a9ece2fb587d929b774"
+      "byteLength": 1663,
+      "sha256": "sha256:25015fc405999414f6aa04cadd97c5bfceb9f13c8cef30daf0ef348e78de0f09"
     },
     {
       "path": "infrastructure/doppler-runtime-service.js",
-      "byteLength": 9100,
-      "sha256": "sha256:237c10893201bb694b5f1cdaddb430237584ce7d81820f9d434b917a5c09e2d3"
+      "byteLength": 9885,
+      "sha256": "sha256:5343834324b13963481ba03cc5a888776d146e4f2e286be02f628c59dde45f23"
     },
     {
       "path": "infrastructure/error-store.js",
@@ -1970,8 +1985,8 @@
     },
     {
       "path": "pool/document-answer.js",
-      "byteLength": 3577,
-      "sha256": "sha256:5b28811efc808a4d0077df3d52ba1d6becda6c944ebdfea34beceb00684fe849"
+      "byteLength": 3824,
+      "sha256": "sha256:1ce5c25950bee4697d78b998eefb8921a55f634cbcfb214204cb4f0c48083e87"
     },
     {
       "path": "pool/document-delegation.d.ts",
@@ -2185,8 +2200,8 @@
     },
     {
       "path": "pool/pack-operation-adapters.js",
-      "byteLength": 8511,
-      "sha256": "sha256:31a9d1cc01a60159ba69e1fe4f46947c437e591b4b4d8fb73aad3e7847b78148"
+      "byteLength": 8323,
+      "sha256": "sha256:f3566fcbc37c00b3308a90c565b25aa480256925276734204c35bc74dff1a7ac"
     },
     {
       "path": "pool/pack-operation-policy.d.ts",
@@ -2195,8 +2210,8 @@
     },
     {
       "path": "pool/pack-operation-policy.js",
-      "byteLength": 5084,
-      "sha256": "sha256:75bc1251afbdce03bebf878a2f1a0f0282bcb77c9e7399a59aa2aaf610ad32f6"
+      "byteLength": 5747,
+      "sha256": "sha256:18128c677c80cea91eb13cecd065dddc5ba87a46a85d53f8d183f58dedcb34d8"
     },
     {
       "path": "pool/pack-operation.d.ts",
@@ -2205,8 +2220,8 @@
     },
     {
       "path": "pool/pack-operation.js",
-      "byteLength": 10620,
-      "sha256": "sha256:f30d37bc8bfe8b3900e1ee91d3e166d2f74e8d1d01de9106c05f95a737bde1c7"
+      "byteLength": 10803,
+      "sha256": "sha256:7a7a495b362c293f84dde2881f4911c748382818434b6f0b138275182d8cf40c"
     },
     {
       "path": "pool/pack-release-policy.js",
@@ -2390,8 +2405,8 @@
     },
     {
       "path": "pool/pool-config.json",
-      "byteLength": 77464,
-      "sha256": "sha256:37c97c6c101279ee2923f2e4193e8d0d2c665f272446bac8cfc12c6c4a6ae334"
+      "byteLength": 76440,
+      "sha256": "sha256:f71aa54e9fb1c4f6013817de554289bcb7beecb2d84b9669fa65aaa9e237a77b"
     },
     {
       "path": "pool/protein-uncertainty-campaign.js",
@@ -2475,8 +2490,8 @@
     },
     {
       "path": "pool/TODO.md",
-      "byteLength": 29748,
-      "sha256": "sha256:5dcf820ccb93e58eae11944ba1aaf239dcbf059595a6beff0d8900a98c063ba0"
+      "byteLength": 30302,
+      "sha256": "sha256:c4bcd8c0d25086ed45f1fb7230ebffe41ea832a16e23587a740f054e25805c13"
     },
     {
       "path": "prompts/kernel.md",
@@ -3249,5 +3264,5 @@
       "sha256": "sha256:f0839f1a37e68e05baa3bd3823460bc9d742420485f12ae03979781adbb865ca"
     }
   ],
-  "bundleHash": "sha256:851116a5b04f3417984e24614b1df51898c05a787791896bd04b5f7fc53d829e"
+  "bundleHash": "sha256:092de16fe2346ad4160c9a05e7c5a9e2662da26ac55d50397159951c0e88b2f8"
 }
