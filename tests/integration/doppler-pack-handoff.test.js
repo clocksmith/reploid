@@ -3,11 +3,11 @@ import { describe, expect, it } from 'vitest';
 import { execFileSync } from 'node:child_process';
 import path from 'node:path';
 
-describe.runIf(Boolean(process.env.DOPPLER_TEST_CHECKOUT))('Doppler signed-Pack public API handoff', () => {
+describe.runIf(Boolean(process.env.DOPPLER_TEST_CHECKOUT))('Doppler signed-Capsule public API handoff', () => {
   it('binds peer-only reconstruction, migration, opening, execution receipts, and assignment rejection', () => {
     const script = path.resolve('tests/fixtures/doppler-pack-handoff.js');
     const output = execFileSync(process.execPath, [script], { encoding: 'utf8' });
-    expect(output).toContain(process.env.DOPPLER_TEST_FORMAT === 'capsule'
-      ? 'Doppler public signed-Capsule handoff passed' : 'Doppler public signed-Pack handoff passed');
+    expect(output).toContain(process.env.DOPPLER_TEST_FORMAT === 'pack'
+      ? 'Doppler public signed-Pack handoff passed' : 'Doppler public signed-Capsule handoff passed');
   });
 });
