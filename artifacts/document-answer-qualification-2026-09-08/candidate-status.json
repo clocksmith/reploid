@@ -8,7 +8,7 @@
   "reportedTestedPair": {
     "doppler": "b47d1f5d712e8ffdbb2ef2676fb201b5bea43e8f",
     "reploid": "c27298c259dd80e58625d0d55a2685cd8120b05d",
-    "attribution": "User-reported tested pair; raw 7/8 run and configuration not located in this checkout or its local retained runs.",
+    "attribution": "Named reported test target. The user inspected these revisions, not physical evaluations. The reported 7/8 raw run and configuration have not been located or independently verified; no later revision inherits qualification.",
     "certifiesLaterRevisions": false
   },
   "candidateBasePair": {

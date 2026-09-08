@@ -1,7 +1,7 @@
 # Reploid & Doppler Execution Roadmap: September 7, 2026
 
 **Status:** Active Canonical Roadmap  
-**Reported tested pair:** Doppler `b47d1f5d712e8ffdbb2ef2676fb201b5bea43e8f`, Reploid `c27298c259dd80e58625d0d55a2685cd8120b05d`
+**Named reported test target (user inspection only):** Doppler `b47d1f5d712e8ffdbb2ef2676fb201b5bea43e8f`, Reploid `c27298c259dd80e58625d0d55a2685cd8120b05d`
 **Prerequisite Boundary:** History-based scheduling and distributed MoE remain deactivated until Milestones 1–5 are proven with physical evidence.
 
 The September 8 user direction supersedes the earlier instruction to build a
@@ -9,10 +9,16 @@ pre-generation answer-state classifier. Repair the sentence-level generation
 contract, then qualify the existing assistant. Cleanup is limited to defects
 the qualified-answer and connected physical journeys expose.
 
-The reported 7/8 result belongs to the tested pair above. Its raw answers and
-exact run configuration must be retained and reviewed before calling it a
-semantic result. Later commits and working-tree changes require their own
+The user inspected the named revisions, not their physical evaluations. The
+reported 7/8 result remains unverified development progress. Its raw answers and
+exact run configuration must be retained and reviewed before qualification.
+Later commits and working-tree changes require their own
 byte-bound evidence; ancestry does not transfer certification.
+
+The [September 8 shared-contract evidence](../../artifacts/generation-contract-2026-09-08/README.md)
+records the installed-package and physical operator checks separately from
+answer qualification. Its candidate package has not been published or admitted
+as Reploid's checked-in dependency. Milestone 1 remains incomplete.
 
 ---
 

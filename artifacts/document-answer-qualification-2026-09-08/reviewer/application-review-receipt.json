@@ -1,0 +1,133 @@
+{
+  "schema": "reploid.independent-agent-answer-review-receipt/v1",
+  "evaluatorType": "independent-agent",
+  "evaluatorId": "/root/blind_qualification",
+  "configurationIdentityKnown": false,
+  "verdict": "failed-frozen-acceptance",
+  "reviewPath": "artifacts/document-answer-qualification-2026-09-08/reviewer/application-review.json",
+  "reviewByteDigest": "sha256:ccf2f1b3395502ba9bffce660deeb89e3b0208ca9d9f4ccb9e40d2ca1e34c65d",
+  "blindedPacketByteDigest": "sha256:bf6374a30eb57ef3fa9feccb5b63705f59b6da71bc1d0a44473c5913b3471106",
+  "corpusByteDigest": "sha256:103729337ff6c1d0a8b032cbea3e8de9e579c60a3c7cf73627cf3a714ceae20d",
+  "rubricByteDigest": "sha256:43cfd3095d374f05e26ec5d3a64bfcfe13702d9a684778c2b48700f5551c71be",
+  "acceptanceDigest": "sha256:473080a5958e677a26b178373e4295e6b7f9bf40b2b6ce5f8188ada488ff6fdc",
+  "inputCommitmentsVerified": true,
+  "artifactConsistencyVerified": true,
+  "verifiedSentenceReviews": 42,
+  "summary": {
+    "verdict": "failed-frozen-acceptance",
+    "totalRequiredCases": 16,
+    "answersPresent": 11,
+    "casesAccepted": 8,
+    "casesFailed": 8,
+    "missingOutputs": 5,
+    "unsupportedClaimCount": 0,
+    "incompleteCaseCount": 8,
+    "permittedCompleteAbstentions": 0,
+    "completeSupportedResponses": 5,
+    "appropriateUnanswerableAbstentions": 3,
+    "corpusAcceptancePassed": false,
+    "conditions": [
+      {
+        "conditionId": "61bd603f-6c8d-4eb0-91f2-dc155d546dd0",
+        "totalRequiredCases": 16,
+        "answersPresent": 11,
+        "casesAccepted": 8,
+        "casesFailed": 8,
+        "missingOutputs": 5,
+        "unsupportedClaimCount": 0,
+        "incompleteCaseCount": 8,
+        "permittedCompleteAbstentions": 0,
+        "completeSupportedResponses": 5,
+        "appropriateUnanswerableAbstentions": 3,
+        "corpusAcceptancePassed": false,
+        "categories": {
+          "answerable": {
+            "totalRequiredCases": 4,
+            "answersPresent": 2,
+            "casesAccepted": 2,
+            "casesFailed": 2,
+            "missingOutputs": 2,
+            "unsupportedClaimCount": 0,
+            "incompleteCaseCount": 2,
+            "permittedCompleteAbstentions": 0,
+            "completeSupportedResponses": 2,
+            "appropriateUnanswerableAbstentions": 0
+          },
+          "partially-answerable": {
+            "totalRequiredCases": 4,
+            "answersPresent": 3,
+            "casesAccepted": 3,
+            "casesFailed": 1,
+            "missingOutputs": 1,
+            "unsupportedClaimCount": 0,
+            "incompleteCaseCount": 1,
+            "permittedCompleteAbstentions": 0,
+            "completeSupportedResponses": 3,
+            "appropriateUnanswerableAbstentions": 0
+          },
+          "contradictory": {
+            "totalRequiredCases": 4,
+            "answersPresent": 2,
+            "casesAccepted": 0,
+            "casesFailed": 4,
+            "missingOutputs": 2,
+            "unsupportedClaimCount": 0,
+            "incompleteCaseCount": 4,
+            "permittedCompleteAbstentions": 0,
+            "completeSupportedResponses": 0,
+            "appropriateUnanswerableAbstentions": 0
+          },
+          "unanswerable": {
+            "totalRequiredCases": 4,
+            "answersPresent": 4,
+            "casesAccepted": 3,
+            "casesFailed": 1,
+            "missingOutputs": 0,
+            "unsupportedClaimCount": 0,
+            "incompleteCaseCount": 1,
+            "permittedCompleteAbstentions": 0,
+            "completeSupportedResponses": 0,
+            "appropriateUnanswerableAbstentions": 3
+          }
+        },
+        "partialAndContradictoryUsefulness": {
+          "requiredCases": 8,
+          "completeSupportedResponses": 3,
+          "permittedCompleteAbstentions": 0,
+          "failedCases": 5
+        },
+        "failureGroups": {
+          "applicationNonDeliveries": [
+            "qual-001",
+            "qual-008",
+            "qual-009",
+            "qual-015",
+            "qual-016"
+          ],
+          "incompleteUnknownCoverage": [
+            "qual-004"
+          ],
+          "missingExplicitUnresolvedConflictStatement": [
+            "qual-003",
+            "qual-014"
+          ]
+        }
+      }
+    ],
+    "substantiveInterpretations": [
+      "Frozen rubric item 8 separately requires an explicit statement that supplied material leaves a conflict unresolved. Merely stating that supplied passages disagree is credited as supported disagreement detection but does not receive that separate completeness credit.",
+      "For qual-004 the evidence-gap sentence is scoped to the immediately preceding maker subquestion. The later accurately cited exhibition year does not answer or explicitly abstain on completion year.",
+      "No unsupported positive factual assertion is identified in a delivered answer. This does not establish case acceptance because requested-part completeness and delivery also govern acceptance.",
+      "Repeated supported sentences are retained and reviewed individually; repetition is a usability observation and does not independently cause contract failure.",
+      "The existing permitted complete-abstention exception remains available for partial and contradictory cases. No delivered answer in those categories used it."
+    ],
+    "claimBoundary": "Independent agent evaluator evidence only. Not human review, independent-operator qualification, browser qualification, deployment approval, or a claim beyond these synthetic cases."
+  },
+  "freezeStatement": "The review and aggregate verdict are frozen before configuration unblinding. The corpus and rubric bytes remain unchanged. Null answers are retained as application non-deliveries and were not reconstructed.",
+  "componentHandoff": {
+    "component": "Reploid verification evidence",
+    "intent": "preserved",
+    "acceptanceEvidence": "Verified input byte commitments plus sentence-level and requested-part review bound to the exact blinded application packet.",
+    "boundaryEffects": "none"
+  }
+}

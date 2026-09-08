@@ -120,4 +120,6 @@ try {
 assert.equal(closed, 2);
 console.log(JSON.stringify({ schema: 'reploid.installed-generation-contract-test/v1', passed: true,
   runtimeEntry: entry, runtimeVersion: api.DOPPLER_VERSION, checks, phaseCalls: phases.length, released, closed,
+  model: { kind: 'signed test fixture with injected logits', modelId: fixture.capsule.modelId,
+    capsuleHash: await hashDopplerEvidence(fixture.capsule) },
   evidence: 'installed API contract with injected logits; not physical model or semantic qualification' }));

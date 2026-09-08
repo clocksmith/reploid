@@ -1,0 +1,51 @@
+{
+  "schema": "reploid.independent-agent-review-freeze/v1",
+  "evaluatorType": "independent-agent",
+  "evaluatorId": "/root/blind_qualification",
+  "state": "frozen-awaiting-later-candidate-blinded-answer-packet",
+  "corpusRole": "replacement-holdout",
+  "corpusId": "e3e7bd12-8539-471e-aea4-fec030feb73f",
+  "corpusPath": "artifacts/document-answer-qualification-2026-09-08/reviewer/replacement-holdout/heldout-corpus.json",
+  "corpusByteDigest": "sha256:9debe13807fd1f5fe91392703b4166e95b0adefcda361d8b8fe48916bca47d35",
+  "corpusByteLength": 20501,
+  "rubricPath": "artifacts/document-answer-qualification-2026-09-08/reviewer/reviewer-instructions.md",
+  "rubricByteDigest": "sha256:43cfd3095d374f05e26ec5d3a64bfcfe13702d9a684778c2b48700f5551c71be",
+  "acceptanceDigest": "sha256:473080a5958e677a26b178373e4295e6b7f9bf40b2b6ce5f8188ada488ff6fdc",
+  "caseCount": 16,
+  "categoryCounts": {
+    "answerable": 4,
+    "partially-answerable": 4,
+    "contradictory": 4,
+    "unanswerable": 4
+  },
+  "acceptanceUnchanged": true,
+  "strictValidatorPassed": true,
+  "originalEvidenceUnchanged": true,
+  "questionAndPassageTextReused": false,
+  "modelOrSamplingConfigurationInspected": false,
+  "promptConfigurationInspected": false,
+  "candidateImplementationInspected": false,
+  "candidateDiagnosticWorkInspected": false,
+  "answersFromThisCorpusInspected": false,
+  "inferenceRun": false,
+  "externalServicesContacted": false,
+  "priorEvidence": {
+    "corpusPath": "artifacts/document-answer-qualification-2026-09-08/reviewer/heldout-corpus.json",
+    "corpusByteDigest": "sha256:103729337ff6c1d0a8b032cbea3e8de9e579c60a3c7cf73627cf3a714ceae20d",
+    "reviewPath": "artifacts/document-answer-qualification-2026-09-08/reviewer/application-review.json",
+    "reviewByteDigest": "sha256:ccf2f1b3395502ba9bffce660deeb89e3b0208ca9d9f4ccb9e40d2ca1e34c65d",
+    "receiptPath": "artifacts/document-answer-qualification-2026-09-08/reviewer/application-review-receipt.json",
+    "receiptByteDigest": "sha256:ad122b877ab0f8b4cc8bb6e5bb97b5ac0e8af676131aec72c5f3c9d1d27a0749",
+    "frozenVerdict": "failed-frozen-acceptance",
+    "priorReviewWasSeenByEvaluator": true,
+    "retainedUnchanged": true
+  },
+  "freezeStatement": "This newly authored corpus is one replacement holdout for a later frozen candidate. It is not a rerun of the consumed corpus. Its questions and passages have not been supplied to the parent in messages. The existing reviewer instructions are reused byte for byte, including complete coverage, every factual sentence's support, all requested parts, explicit evidence gaps and unresolved conflict status, and the existing permitted complete-abstention exception with usefulness counted separately. Neither old evidence nor acceptance requirements are revised.",
+  "resumeInstructions": "Verify this corpus byte digest and the referenced unchanged rubric before reviewing a later packet. Accept the previously declared reploid.blinded-document-answer-packet/v1 packet schema, now bound to this replacement corpus digest, with all 16 cases under opaque identifiers. Review exact delivered text and preserve null non-deliveries without reconstruction. Do not inspect candidate source, configuration, diagnostic work, or non-blinded artifacts. Save a separate replacement review and receipt in this directory, then freeze their digests before unblinding. Keep every previous corpus, review, receipt, and verdict unchanged.",
+  "componentHandoff": {
+    "component": "Reploid verification evidence",
+    "intent": "preserved",
+    "acceptanceEvidence": "Strict corpus validator; four cases per category; unchanged acceptance and rubric commitments; original evidence commitments verified.",
+    "boundaryEffects": "none"
+  }
+}

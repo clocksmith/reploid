@@ -1,0 +1,543 @@
+{
+  "schema": "reploid.document-answer-support-corpus/v1",
+  "id": "e3e7bd12-8539-471e-aea4-fec030feb73f",
+  "boundary": "A replacement synthetic holdout authored by an independent agent evaluator before seeing any answers from this corpus. All entities and case facts are newly authored for this set. The prior consumed corpus and frozen failure review remain retained unchanged. This corpus uses the identical frozen acceptance object and reviewer rubric. It is independent agent review evidence, not human or independent-operator qualification.",
+  "acceptance": {
+    "reviewEveryFactualSentence": true,
+    "requireCitedPassageSupport": true,
+    "allowUnsupportedFactualClaims": false,
+    "requireAbstentionWhenUnanswerable": true,
+    "requireCompleteCaseCoverage": true,
+    "citationSyntaxIsNotSemanticSupport": true
+  },
+  "cases": [
+    {
+      "id": "slot-01",
+      "category": "contradictory",
+      "question": "How many flashes does the Vesper Canal beacon emit in each cycle, and what colour is its light?",
+      "passages": [
+        {
+          "id": "p1",
+          "text": "Vesper Canal beacon card: each cycle contains four flashes. The beacon light is amber."
+        },
+        {
+          "id": "p2",
+          "text": "The canal footbridge has a blue handrail. The bridge inventory does not describe the beacon."
+        },
+        {
+          "id": "p3",
+          "text": "Vesper Canal beacon card: each cycle contains two flashes. The beacon light is amber."
+        }
+      ],
+      "review": {
+        "supportedFacts": [
+          "The beacon light is amber."
+        ],
+        "supportingPassages": [
+          "p1",
+          "p3"
+        ],
+        "mustDescribeConflict": true,
+        "conflictingPassages": [
+          "p1",
+          "p3"
+        ],
+        "allowCompleteAbstention": true,
+        "forbiddenInferences": [
+          "Either flash count is the single established rule.",
+          "The counts apply to different weather or operating modes.",
+          "Passage order establishes which beacon card has authority.",
+          "The blue handrail establishes the beacon's light colour."
+        ]
+      }
+    },
+    {
+      "id": "slot-02",
+      "category": "answerable",
+      "question": "For a finished repair at Tansy Stitch Studio, where must the numbered tag be attached, how must loose buttons be packed, and where must the finished bundle be placed?",
+      "passages": [
+        {
+          "id": "p1",
+          "text": "A finished repair bundle at Tansy Stitch Studio goes on rack D. Unstarted work remains on rack A."
+        },
+        {
+          "id": "p2",
+          "text": "Tansy Stitch Studio attaches the numbered tag to the repaired garment's inside seam. Loose buttons go in a paper envelope inside the finished bundle."
+        }
+      ],
+      "review": {
+        "supportedFacts": [
+          "The numbered tag must be attached to the repaired garment's inside seam.",
+          "Loose buttons must go in a paper envelope inside the finished bundle.",
+          "The finished bundle must be placed on rack D."
+        ],
+        "supportingPassages": [
+          "p2",
+          "p1"
+        ],
+        "forbiddenInferences": [
+          "The numbered tag goes on the outside seam.",
+          "Loose buttons are sewn onto the garment as part of this packing step.",
+          "Finished bundles belong on rack A.",
+          "Any guarantee about the repair's quality."
+        ]
+      }
+    },
+    {
+      "id": "slot-03",
+      "category": "unanswerable",
+      "question": "What was the median reader solving time for Crosshatch issue 31, and what was the fastest recorded solving time?",
+      "passages": [
+        {
+          "id": "p1",
+          "text": "Crosshatch issue 31 contains eight crossword grids. Its production sheet records the number of clue revisions for each grid."
+        },
+        {
+          "id": "p2",
+          "text": "The issue's editor approved the final page proofs on 12 March. The print order specifies 600 copies."
+        }
+      ],
+      "review": {
+        "requireCompleteAbstention": true,
+        "forbiddenInferences": [
+          "Any median or fastest reader solving time.",
+          "Clue revision counts establish reader solving speed.",
+          "The proof-approval date or print quantity provides reader performance measurements."
+        ]
+      }
+    },
+    {
+      "id": "slot-04",
+      "category": "partially-answerable",
+      "question": "How many panels make up the Bracken Walk mural, how wide is each panel, and how long will the mural's outdoor colours remain unchanged?",
+      "passages": [
+        {
+          "id": "p1",
+          "text": "The Bracken Walk mural consists of nine panels. Each panel is 80 centimetres wide."
+        },
+        {
+          "id": "p2",
+          "text": "Installers number the mural panels before fixing them to the wall. The installation record lists the order of the panel numbers."
+        },
+        {
+          "id": "p3",
+          "text": "The nearby information board is 55 centimetres wide. It is separate from the mural."
+        }
+      ],
+      "review": {
+        "supportedFacts": [
+          "The mural consists of nine panels.",
+          "Each mural panel is 80 centimetres wide."
+        ],
+        "supportingPassages": [
+          "p1"
+        ],
+        "mustMarkUnknown": [
+          "How long the mural's outdoor colours will remain unchanged."
+        ],
+        "allowCompleteAbstention": true,
+        "forbiddenInferences": [
+          "Any colour-retention duration or guarantee.",
+          "Panel dimensions or installation records establish resistance to outdoor fading.",
+          "Mural panels are 55 centimetres wide."
+        ]
+      }
+    },
+    {
+      "id": "slot-05",
+      "category": "answerable",
+      "question": "What filename prefix, file extension, and soundtrack channel format does the Kestrel Animation Showcase require for an entry?",
+      "passages": [
+        {
+          "id": "p1",
+          "text": "Kestrel Animation Showcase entry files must use the .webm extension. The soundtrack must be mono."
+        },
+        {
+          "id": "p2",
+          "text": "Kestrel Animation Showcase entry filenames must begin with entry-. The organiser's separate preview images begin with preview-."
+        }
+      ],
+      "review": {
+        "supportedFacts": [
+          "The entry filename must begin with entry-.",
+          "The entry file must use the .webm extension.",
+          "The soundtrack must be mono."
+        ],
+        "supportingPassages": [
+          "p2",
+          "p1"
+        ],
+        "forbiddenInferences": [
+          "Entry filenames begin with preview-.",
+          "The soundtrack must be stereo.",
+          "These requirements apply to every animation showcase.",
+          "The stated extension establishes an additional codec, resolution, or quality requirement."
+        ]
+      }
+    },
+    {
+      "id": "slot-06",
+      "category": "contradictory",
+      "question": "What is the adult one-way fare on the Citrine cable car, and where must the ticket be bought?",
+      "passages": [
+        {
+          "id": "p1",
+          "text": "Citrine cable-car fare notice: the adult one-way fare is six tokens. Buy the ticket at the lower-station kiosk."
+        },
+        {
+          "id": "p2",
+          "text": "Citrine cable-car fare notice: the adult one-way fare is nine tokens. Buy the ticket at the lower-station kiosk."
+        }
+      ],
+      "review": {
+        "supportedFacts": [
+          "The ticket must be bought at the lower-station kiosk."
+        ],
+        "supportingPassages": [
+          "p1",
+          "p2"
+        ],
+        "mustDescribeConflict": true,
+        "conflictingPassages": [
+          "p1",
+          "p2"
+        ],
+        "allowCompleteAbstention": true,
+        "forbiddenInferences": [
+          "A single uncontested adult one-way fare is established.",
+          "The two fares apply to different ages, directions, or seasons.",
+          "A fare notice is newer or takes precedence.",
+          "An average, range, or sum of the fares is the applicable fare."
+        ]
+      }
+    },
+    {
+      "id": "slot-07",
+      "category": "partially-answerable",
+      "question": "What shape marks the Otter Spur trail, where does the trail end, and is its entire route wheelchair accessible?",
+      "passages": [
+        {
+          "id": "p1",
+          "text": "The Elk Loop is marked with circles and ends at the picnic lawn. It is a different route from Otter Spur."
+        },
+        {
+          "id": "p2",
+          "text": "Otter Spur ends at Fenn Lookout. Its trail markers are triangles."
+        }
+      ],
+      "review": {
+        "supportedFacts": [
+          "Otter Spur is marked with triangles.",
+          "Otter Spur ends at Fenn Lookout."
+        ],
+        "supportingPassages": [
+          "p2"
+        ],
+        "mustMarkUnknown": [
+          "Whether the entire Otter Spur route is wheelchair accessible."
+        ],
+        "allowCompleteAbstention": true,
+        "forbiddenInferences": [
+          "Any affirmative or negative wheelchair-accessibility claim.",
+          "Triangular markers or an endpoint establish path gradient, surface, or accessibility.",
+          "Otter Spur is marked with circles or ends at the picnic lawn."
+        ]
+      }
+    },
+    {
+      "id": "slot-08",
+      "category": "unanswerable",
+      "question": "How loud is the Sable irrigation pump during operation, and what is its measured failure rate?",
+      "passages": [
+        {
+          "id": "p1",
+          "text": "The Sable irrigation pump carries asset number 207. Its casing is grey, and a metal guard covers the outlet fitting."
+        },
+        {
+          "id": "p2",
+          "text": "The equipment clerk checks that the pump's asset label is readable before recording its shelf location."
+        },
+        {
+          "id": "p3",
+          "text": "The storeroom inventory lists a spare outlet guard beside the pump's entry."
+        }
+      ],
+      "review": {
+        "requireCompleteAbstention": true,
+        "forbiddenInferences": [
+          "Any operating sound level or measured failure rate.",
+          "Asset number 207 is a sound measurement.",
+          "The presence of a spare guard establishes frequent failures or reliability.",
+          "A readable label establishes successful operation."
+        ]
+      }
+    },
+    {
+      "id": "slot-09",
+      "category": "partially-answerable",
+      "question": "What is the exported bundle called in the FolioShelf reader, where is it saved, and which encryption algorithm, if any, protects it?",
+      "passages": [
+        {
+          "id": "p1",
+          "text": "FolioShelf names its exported bundle reading.bundle. The application puts that bundle in the Exports directory."
+        },
+        {
+          "id": "p2",
+          "text": "The export menu also contains an option to print the displayed reading list. The print option does not create an exported bundle."
+        }
+      ],
+      "review": {
+        "supportedFacts": [
+          "The exported bundle is named reading.bundle.",
+          "It is saved in the Exports directory."
+        ],
+        "supportingPassages": [
+          "p1"
+        ],
+        "mustMarkUnknown": [
+          "Which encryption algorithm, if any, protects the exported bundle."
+        ],
+        "allowCompleteAbstention": true,
+        "forbiddenInferences": [
+          "Any encryption algorithm or assertion that the bundle is unencrypted.",
+          "The filename or directory establishes encryption.",
+          "The print option creates the exported bundle."
+        ]
+      }
+    },
+    {
+      "id": "slot-10",
+      "category": "unanswerable",
+      "question": "How much did the Acorn Reading app improve pupils' reading scores, and did the app cause that improvement?",
+      "passages": [
+        {
+          "id": "p1",
+          "text": "Acorn Reading's activity screen records completed logins and opened exercises. Teachers can filter that screen by classroom."
+        },
+        {
+          "id": "p2",
+          "text": "The classroom guide explains how to assign an exercise and reset a pupil's sign-in code."
+        }
+      ],
+      "review": {
+        "requireCompleteAbstention": true,
+        "forbiddenInferences": [
+          "Any reading-score improvement or lack of improvement.",
+          "Any causal effect of the app on reading scores.",
+          "Recorded logins or opened exercises establish learning gains.",
+          "Exercise assignment proves the app caused a score change."
+        ]
+      }
+    },
+    {
+      "id": "slot-11",
+      "category": "contradictory",
+      "question": "How many cards does each player draw during setup in the board game Mosaic Crossing, and how should those cards be placed?",
+      "passages": [
+        {
+          "id": "p1",
+          "text": "Mosaic Crossing's score sheet records points after each round. It does not describe setup."
+        },
+        {
+          "id": "p2",
+          "text": "Mosaic Crossing setup card: each player draws three cards. Place the drawn cards face down."
+        },
+        {
+          "id": "p3",
+          "text": "Mosaic Crossing setup card: each player draws five cards. Place the drawn cards face down."
+        }
+      ],
+      "review": {
+        "supportedFacts": [
+          "The drawn cards should be placed face down."
+        ],
+        "supportingPassages": [
+          "p2",
+          "p3"
+        ],
+        "mustDescribeConflict": true,
+        "conflictingPassages": [
+          "p2",
+          "p3"
+        ],
+        "allowCompleteAbstention": true,
+        "forbiddenInferences": [
+          "One card count is established as authoritative.",
+          "The two counts refer to different player counts or difficulty levels.",
+          "Players draw the sum or average of the stated card counts.",
+          "The cards should be face up."
+        ]
+      }
+    },
+    {
+      "id": "slot-12",
+      "category": "answerable",
+      "question": "Before turning the ring on the Plover mechanical puzzle, what must be removed, which mark must the ring align with, and where is the pin reinserted?",
+      "passages": [
+        {
+          "id": "p1",
+          "text": "After the Plover puzzle ring aligns with the triangle mark, reinsert the brass pin in hole B."
+        },
+        {
+          "id": "p2",
+          "text": "For the Plover mechanical puzzle, remove the brass pin before turning the ring. Turn the ring until it aligns with the triangle mark."
+        },
+        {
+          "id": "p3",
+          "text": "The puzzle's wooden case has a square mark on its lid. That mark is decorative."
+        }
+      ],
+      "review": {
+        "supportedFacts": [
+          "The brass pin must be removed before turning the ring.",
+          "The ring must align with the triangle mark.",
+          "The brass pin must be reinserted in hole B after alignment."
+        ],
+        "supportingPassages": [
+          "p2",
+          "p1"
+        ],
+        "forbiddenInferences": [
+          "The brass pin stays inserted while the ring turns.",
+          "The ring must align with the decorative square mark.",
+          "The pin belongs in a different hole.",
+          "Any unprovided turning direction or amount."
+        ]
+      }
+    },
+    {
+      "id": "slot-13",
+      "category": "unanswerable",
+      "question": "At what altitude were the peppers in Ember Pantry batch EP-4 grown, and which pepper cultivar was used?",
+      "passages": [
+        {
+          "id": "p1",
+          "text": "Ember Pantry batch EP-4 is packed in small glass jars. The jar label carries the batch code and the packing line identifier."
+        },
+        {
+          "id": "p2",
+          "text": "The warehouse stores EP-4 on pallet 6. Staff scan the batch code when a carton leaves the warehouse."
+        }
+      ],
+      "review": {
+        "requireCompleteAbstention": true,
+        "forbiddenInferences": [
+          "Any growing altitude or pepper cultivar.",
+          "A packing-line identifier or warehouse pallet establishes farming origin.",
+          "The batch code encodes a cultivar or altitude without a stated mapping."
+        ]
+      }
+    },
+    {
+      "id": "slot-14",
+      "category": "partially-answerable",
+      "question": "Which two sample codes are used at the Linden Cocoa tasting, what must participants do before tasting, and which sample receives the higher average preference score?",
+      "passages": [
+        {
+          "id": "p1",
+          "text": "The Linden Cocoa tasting uses sample codes R7 and R8. Sixteen participants are assigned a pair of cups."
+        },
+        {
+          "id": "p2",
+          "text": "Linden Cocoa participants must smell both samples before tasting either one."
+        },
+        {
+          "id": "p3",
+          "text": "The tasting worksheet has one preference-score box for each sample code. Participants return the worksheets at the exit."
+        }
+      ],
+      "review": {
+        "supportedFacts": [
+          "The two sample codes are R7 and R8.",
+          "Participants must smell both samples before tasting either one."
+        ],
+        "supportingPassages": [
+          "p1",
+          "p2"
+        ],
+        "mustMarkUnknown": [
+          "Which sample receives the higher average preference score."
+        ],
+        "allowCompleteAbstention": true,
+        "forbiddenInferences": [
+          "Either sample has the higher average preference score.",
+          "The samples are tied or participants have no preference.",
+          "The participant count or worksheet design establishes the scores.",
+          "Only one sample needs to be smelled before tasting."
+        ]
+      }
+    },
+    {
+      "id": "slot-15",
+      "category": "answerable",
+      "question": "Under Velvet Salon's brush-care procedure, what is removed first, which part is wiped with a dry cloth, and how is the brush positioned to dry?",
+      "passages": [
+        {
+          "id": "p1",
+          "text": "Velvet Salon's brush-care procedure ends by laying the brush flat to dry. The storage cupboard has separate slots for combs."
+        },
+        {
+          "id": "p2",
+          "text": "Velvet Salon's brush-care procedure starts by removing trapped hair. Next, wipe the brush handle with a dry cloth."
+        }
+      ],
+      "review": {
+        "supportedFacts": [
+          "Trapped hair is removed first.",
+          "The brush handle is wiped with a dry cloth.",
+          "The brush is laid flat to dry."
+        ],
+        "supportingPassages": [
+          "p2",
+          "p1"
+        ],
+        "forbiddenInferences": [
+          "The dry cloth is specified for the bristles instead of the handle.",
+          "The brush must dry upright.",
+          "Any disinfecting, sterilising, or disease-prevention effect.",
+          "The comb-storage slots are the specified brush-drying location."
+        ]
+      }
+    },
+    {
+      "id": "slot-16",
+      "category": "contradictory",
+      "question": "Which shelf holds the Oriel Ceramics sample boxes, and what identifying mark must each box carry?",
+      "passages": [
+        {
+          "id": "p1",
+          "text": "Oriel Ceramics sample-box instruction: keep sample boxes on shelf 5. Each sample box must carry a green square."
+        },
+        {
+          "id": "p2",
+          "text": "Oriel Ceramics sample-box instruction: keep sample boxes on shelf 2. Each sample box must carry a green square."
+        },
+        {
+          "id": "p3",
+          "text": "Finished retail cartons carry a white circle. The retail-carton notice does not specify where sample boxes belong."
+        }
+      ],
+      "review": {
+        "supportedFacts": [
+          "Each sample box must carry a green square."
+        ],
+        "supportingPassages": [
+          "p1",
+          "p2"
+        ],
+        "mustDescribeConflict": true,
+        "conflictingPassages": [
+          "p1",
+          "p2"
+        ],
+        "allowCompleteAbstention": true,
+        "forbiddenInferences": [
+          "Either shelf is established as the correct uncontested location.",
+          "The instructions divide sample boxes into different types.",
+          "One instruction supersedes the other.",
+          "Sample boxes must carry the retail cartons' white circle."
+        ]
+      }
+    }
+  ]
+}

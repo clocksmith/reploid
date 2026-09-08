@@ -257,6 +257,12 @@
       ]
     },
     {
+      "path": "config/doppler-generation-contract.js",
+      "owner": "config",
+      "sha256": "sha256:b136d020e89a5170f247f16966a0ba294edc47b22e6e7e73e3265c727a2fd70b",
+      "imports": []
+    },
+    {
       "path": "config/doppler-local-models.js",
       "owner": "config",
       "sha256": "sha256:b943afe6083f94d187281a27b4fe288bc869ab5a0852baf62c2d59332e7d433b",
@@ -675,9 +681,10 @@
     {
       "path": "infrastructure/doppler-runtime-service.js",
       "owner": "infrastructure",
-      "sha256": "sha256:237c10893201bb694b5f1cdaddb430237584ce7d81820f9d434b917a5c09e2d3",
+      "sha256": "sha256:5343834324b13963481ba03cc5a888776d146e4f2e286be02f628c59dde45f23",
       "imports": [
         "../config/doppler-execution-contracts.js",
+        "../config/doppler-generation-contract.js",
         "../config/doppler-local-models.js"
       ]
     },
@@ -1409,8 +1416,9 @@
     {
       "path": "pool/pack-operation-adapters.js",
       "owner": "pool",
-      "sha256": "sha256:31a9d1cc01a60159ba69e1fe4f46947c437e591b4b4d8fb73aad3e7847b78148",
+      "sha256": "sha256:f3566fcbc37c00b3308a90c565b25aa480256925276734204c35bc74dff1a7ac",
       "imports": [
+        "../infrastructure/doppler-runtime-service.js",
         "./pack-operation-policy.js",
         "./pool-config.json"
       ]
@@ -1418,15 +1426,18 @@
     {
       "path": "pool/pack-operation-policy.js",
       "owner": "pool",
-      "sha256": "sha256:75bc1251afbdce03bebf878a2f1a0f0282bcb77c9e7399a59aa2aaf610ad32f6",
-      "imports": []
+      "sha256": "sha256:18128c677c80cea91eb13cecd065dddc5ba87a46a85d53f8d183f58dedcb34d8",
+      "imports": [
+        "../infrastructure/doppler-runtime-service.js"
+      ]
     },
     {
       "path": "pool/pack-operation.js",
       "owner": "pool",
-      "sha256": "sha256:f30d37bc8bfe8b3900e1ee91d3e166d2f74e8d1d01de9106c05f95a737bde1c7",
+      "sha256": "sha256:7a7a495b362c293f84dde2881f4911c748382818434b6f0b138275182d8cf40c",
       "imports": [
         "../config/doppler-execution-contracts.js",
+        "../infrastructure/doppler-runtime-service.js",
         "./executable-pack.js",
         "./pack-operation-adapters.js",
         "./pack-operation-policy.js"

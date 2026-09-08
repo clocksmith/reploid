@@ -107,9 +107,12 @@ test('changed Reploid modules pass the actual Verification Worker', async ({ pag
   const snapshot = Object.fromEntries(await Promise.all(paths.map(async (path) => [
     `/${path}`, await readFile(new URL(`../../self/${path}`, import.meta.url), 'utf8')
   ])));
-  for (const path of ['unit/pool-document-search.test.js', 'unit/pool-pack-operation.test.js', 'unit/pool-home-nav.test.js', 'unit/pool-home-record.test.js', 'e2e/document-search.spec.js', 'fixtures/document-packs.js', 'fixtures/doppler-pack-handoff.js']) {
+  for (const path of ['unit/pool-document-search.test.js', 'unit/pool-pack-operation.test.js', 'unit/pool-home-nav.test.js', 'unit/pool-home-record.test.js', 'e2e/document-search.spec.js', 'fixtures/document-packs.js', 'fixtures/doppler-pack-handoff.js',
+    'fixtures/doppler-installed-generation.js', 'fixtures/peer-pack-operation.js', 'integration/doppler-installed-generation.test.js']) {
     snapshot[`/testing/${path}`] = await readFile(new URL(`../${path}`, import.meta.url), 'utf8');
   }
+  snapshot['/testing/scripts/sync-doppler-generation-contract.js'] = await readFile(
+    new URL('../../scripts/sync-doppler-generation-contract.js', import.meta.url), 'utf8');
   await page.goto('/');
   const report = await page.evaluate((snapshot) => new Promise((resolve, reject) => {
     const worker = new Worker('/core/verification-worker.js');
