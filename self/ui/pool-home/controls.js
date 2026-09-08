@@ -1471,7 +1471,7 @@ const bindPeerRunSurface = ({
           : null,
         onActivity: (activity) => {
           if (!acceptRunActivity || activityGeneration !== runActivityGeneration) return;
-          if (activity.status === 'peer_execution_started') contributorStarted = true;
+          if (activity.status === 'peer_provider_execution_started') contributorStarted = true;
           handleRunActivity(activity);
         }
       }).catch(async (error) => {
