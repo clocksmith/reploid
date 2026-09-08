@@ -1729,6 +1729,7 @@
           "topK",
           "repetitionPenalty",
           "repetitionPenaltyWindow",
+          "presencePenalty",
           "useChatTemplate",
           "seed",
           "suppressTokenIds",
@@ -1752,6 +1753,7 @@
           "topK": "finite-number",
           "repetitionPenalty": "finite-number",
           "repetitionPenaltyWindow": "finite-number",
+          "presencePenalty": "finite-number",
           "useChatTemplate": "boolean"
         }
       },
