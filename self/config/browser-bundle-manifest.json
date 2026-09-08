@@ -1266,7 +1266,7 @@
     {
       "path": "config/module-inventory.json",
       "byteLength": 95271,
-      "sha256": "sha256:751c916bcc013ab075bb3670f5855408145e03ffdb443eceee9d7a366b35be70"
+      "sha256": "sha256:da93199eb3b0e0f697d248c1b0c99162f81bd7c8a63dea8c856a541e495e6839"
     },
     {
       "path": "config/module-registry.json",
@@ -1970,8 +1970,8 @@
     },
     {
       "path": "pool/document-answer.js",
-      "byteLength": 3673,
-      "sha256": "sha256:65776f318bb9c7f09e157f50048e0eb94ea5610217ee66d03ed8979654411da2"
+      "byteLength": 3577,
+      "sha256": "sha256:5b28811efc808a4d0077df3d52ba1d6becda6c944ebdfea34beceb00684fe849"
     },
     {
       "path": "pool/document-delegation.d.ts",
@@ -3249,5 +3249,5 @@
       "sha256": "sha256:f0839f1a37e68e05baa3bd3823460bc9d742420485f12ae03979781adbb865ca"
     }
   ],
-  "bundleHash": "sha256:4e45385078c1ac3f683b52160ada3b2dbae74dd9529ffd0daf9f1a3cac61c4d0"
+  "bundleHash": "sha256:9623c8ca03f0ca608b3530d8f8e8e31ccc2355cd4d9d3c928e527d7d5cfd4632"
 }
