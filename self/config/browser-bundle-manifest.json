@@ -1225,13 +1225,13 @@
     },
     {
       "path": "config/doppler-generation-contract.js",
-      "byteLength": 5214,
-      "sha256": "sha256:e7d65065a661e3e37fc5aa1e36a9913ea2f1d76b009af6032da97b51a8f44b10"
+      "byteLength": 5318,
+      "sha256": "sha256:b136d020e89a5170f247f16966a0ba294edc47b22e6e7e73e3265c727a2fd70b"
     },
     {
       "path": "config/doppler-generation-contract.provenance.json",
       "byteLength": 247,
-      "sha256": "sha256:a73a3e5fb1d24f5a05525e5339794dfb8815cac5e11d5d9c838fef557278e3a9"
+      "sha256": "sha256:1af552f3778c0b2b3aa91db4b29684df842f67374576c115361c355664b02053"
     },
     {
       "path": "config/doppler-local-models.js",
@@ -1280,8 +1280,8 @@
     },
     {
       "path": "config/module-inventory.json",
-      "byteLength": 95271,
-      "sha256": "sha256:d257a431492fe27ebb854dcfe0d0fe3dc57dd71f3ec67e899c321298a2c67a15"
+      "byteLength": 95701,
+      "sha256": "sha256:827282f0fadf32f1210d297bff6b97ccf6f6523c2c3415826fe272c3751515c9"
     },
     {
       "path": "config/module-registry.json",
@@ -1310,8 +1310,8 @@
     },
     {
       "path": "config/vfs-manifest.json",
-      "byteLength": 25578,
-      "sha256": "sha256:c86be57815d67e588dc83955ac022aacfed0a63748af313176eb2dee32309c8a"
+      "byteLength": 25728,
+      "sha256": "sha256:675202d825afc9a017fc36bbc12d8e007856664d8f7e5a6e7d13d267ade5ada4"
     },
     {
       "path": "config/vfs-policy.js",
@@ -3264,5 +3264,5 @@
       "sha256": "sha256:f0839f1a37e68e05baa3bd3823460bc9d742420485f12ae03979781adbb865ca"
     }
   ],
-  "bundleHash": "sha256:092de16fe2346ad4160c9a05e7c5a9e2662da26ac55d50397159951c0e88b2f8"
+  "bundleHash": "sha256:0a9bc753386ca3be9704bb87c98bf8be17869f30cda1eba23e0f106e3a2444ab"
 }

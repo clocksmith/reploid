@@ -1,0 +1,257 @@
+{
+  "schema": "reploid.generation-contract-evidence/v1",
+  "recordedAt": "2026-09-08T16:04:16.874Z",
+  "status": "contract/operator evidence; answer qualification incomplete",
+  "reportedTestedPair": {
+    "doppler": "b47d1f5d",
+    "reploid": "c27298c2",
+    "basis": "User inspected named revisions, not physical evaluations. Reported 7/8 is unverified development progress."
+  },
+  "repositories": {
+    "doppler": {
+      "head": "13fc9077bf90f45adbaae386ac14cb231dad0e68",
+      "dirty": true,
+      "files": [
+        {
+          "path": "src/config/generation-contract.json",
+          "sha256": "6ae777e7e03acabe419ea70318023b42d991810b550ceb33399fdaaa5f1f1048"
+        },
+        {
+          "path": "src/gpu/kernels/sample.wgsl",
+          "sha256": "be4d6d1e6699b6efbc0d8d1e6369ba839428eb9ef7ed80ca9e6716446b59665a"
+        },
+        {
+          "path": "src/gpu/kernels/sample_f16.wgsl",
+          "sha256": "f75ed506e6e467a2c17c79f679366c564ec44ef847c6f00f3f8a4811a7ec98d2"
+        },
+        {
+          "path": "src/gpu/kernels/rep_penalty.wgsl",
+          "sha256": "8d1732e111965356663c514356655f56ed7ed19d8bea392dabd5a23eaabdb759"
+        },
+        {
+          "path": "src/gpu/kernels/rep_penalty_f16.wgsl",
+          "sha256": "6df5b1a994360da61f2b10be8194245d42d7fed68534780f17625a3b00f80536"
+        },
+        {
+          "path": "tests/kernels/sampling-distribution-physical.test.js",
+          "sha256": "52eaa7cb02dac409f08141df51bd13d688fe93ad7649e9037dc556e22ef41df2"
+        },
+        {
+          "path": "tests/kernels/sampling-penalties-physical.test.js",
+          "sha256": "4b7684a6024acc4ab0319c853e93dcf3bf1f3e884b8dda44af2b3012b5ceb046"
+        }
+      ]
+    },
+    "reploid": {
+      "head": "cd8a6a450b67d0615a9553fe0147adba836c824d",
+      "dirty": true,
+      "files": [
+        {
+          "path": "self/infrastructure/doppler-runtime-service.js",
+          "sha256": "5343834324b13963481ba03cc5a888776d146e4f2e286be02f628c59dde45f23"
+        },
+        {
+          "path": "self/config/doppler-generation-contract.js",
+          "sha256": "b136d020e89a5170f247f16966a0ba294edc47b22e6e7e73e3265c727a2fd70b"
+        },
+        {
+          "path": "self/config/doppler-generation-contract.provenance.json",
+          "sha256": "1af552f3778c0b2b3aa91db4b29684df842f67374576c115361c355664b02053"
+        },
+        {
+          "path": "self/pool/pool-config.json",
+          "sha256": "f71aa54e9fb1c4f6013817de554289bcb7beecb2d84b9669fa65aaa9e237a77b"
+        },
+        {
+          "path": "self/pool/pack-operation.js",
+          "sha256": "7a7a495b362c293f84dde2881f4911c748382818434b6f0b138275182d8cf40c"
+        },
+        {
+          "path": "self/pool/pack-operation-policy.js",
+          "sha256": "18128c677c80cea91eb13cecd065dddc5ba87a46a85d53f8d183f58dedcb34d8"
+        },
+        {
+          "path": "self/pool/pack-operation-adapters.js",
+          "sha256": "f3566fcbc37c00b3308a90c565b25aa480256925276734204c35bc74dff1a7ac"
+        },
+        {
+          "path": "self/pool/document-answer.js",
+          "sha256": "1ce5c25950bee4697d78b998eefb8921a55f634cbcfb214204cb4f0c48083e87"
+        },
+        {
+          "path": "self/config/browser-bundle-manifest.json",
+          "sha256": "a43ced4320d08d5517b323370d7961f5229be787cc51c3c243228639bd338530"
+        },
+        {
+          "path": "self/config/vfs-manifest.json",
+          "sha256": "675202d825afc9a017fc36bbc12d8e007856664d8f7e5a6e7d13d267ade5ada4"
+        },
+        {
+          "path": "tests/fixtures/doppler-installed-generation.js",
+          "sha256": "f373be06a9ebf59df280f9d27feb4b3ee88496baf11d58fced653531ceb78b66"
+        },
+        {
+          "path": "tests/integration/doppler-installed-generation.test.js",
+          "sha256": "e73d102fa7539855c9a69fcfaf20a8732420df52a95cee9085fd0778155ae65e"
+        },
+        {
+          "path": "tests/e2e/document-search.spec.js",
+          "sha256": "b3d5dacc1eed4a29853af8434e2b7cd9585ce09bd5d3ac3c6507476646bba1d4"
+        }
+      ]
+    },
+    "doe": {
+      "head": "8fbc5f64aace808b682ba590c1d8b3941aa5ee5a",
+      "dirty": true,
+      "files": [
+        {
+          "path": "GOALS.md",
+          "sha256": "53b339631d80515611fbb863b024723e7170409226d9bf425ccb005d488b0ba1"
+        },
+        {
+          "path": "CATSCAN.md",
+          "sha256": "ccb057f8ea5e3b1fe88da9eceac55b6a061e61455751dc3b9a1422fd131c1d1a"
+        },
+        {
+          "path": "docs/thesis.md",
+          "sha256": "e21ed23eb8ba5115d2c346a1feaedfe0fc4e0cfbcf6dc8e23136eab30111746c"
+        },
+        {
+          "path": "config/doe-product-strategy.json",
+          "sha256": "023ee69815841932d05df05a5fb75c9bb9dfcfff83f5f8c532c6bc41bba3b5d2"
+        },
+        {
+          "path": "docs/product-strategy-contract.md",
+          "sha256": "0bc7b2fdedb35d1a9c9121de8073fdeebf31fd1cd8d61c31bc805d54c5448ebe"
+        },
+        {
+          "path": "docs/status/reusable-compute-programs.md",
+          "sha256": "394c91970f781fe133bb088fc4d3257e8f036b578f35cd1de5387b2c7e4b8a13"
+        }
+      ]
+    }
+  },
+  "package": {
+    "path": "/tmp/doppler-reploid-contract-6ovwOf/doppler-gpu-0.6.0.tgz",
+    "sha256": "048943cb38a0b959cc9ed83cba9de4feed75a68e701a577e5742dab678e11cb9",
+    "integrity": "sha512-DIzDtAPHhOkyvPBXPbYUvOSqZe/wzstEW+E1FDB6MapwH8ZmZlcLXP7jjEUx7/X+xyrwocMVtO/1GccC2J+pZw==",
+    "entryCount": 1784,
+    "packedBytes": 2110106,
+    "unpackedBytes": 10883449,
+    "installedManifestSha256": "a4bc68d55e8698a39c5bbd2a24e49c080fba7426d2a26c60431ea0ab178529dc",
+    "installedSourceMismatches": 0,
+    "version": "0.6.0",
+    "published": false,
+    "applicationDependencyPromoted": false
+  },
+  "integration": {
+    "schema": "reploid.installed-generation-contract-test/v1",
+    "passed": true,
+    "runtimeEntry": "file:///tmp/doppler-reploid-contract-6ovwOf/consumer/node_modules/doppler-gpu/src/capsule-runtime.js",
+    "runtimeVersion": "0.6.0",
+    "checks": [
+      "application-to-installed-inference sampling and budget propagation",
+      "actual stopping reasons",
+      "independent concurrent session settings",
+      "request snapshot resists caller mutation",
+      "cancellation and stale attempts cannot return completion; session remains usable",
+      "invalid options and incompatible runtime rejected before inference"
+    ],
+    "phaseCalls": 17,
+    "released": 17,
+    "closed": 2,
+    "model": {
+      "kind": "signed test fixture with injected logits",
+      "modelId": "capsule-test-model",
+      "capsuleHash": "sha256:f4174b732eb6c175cc70bd00f93590a24897c1833f790e5a46b47e9a3487e279"
+    },
+    "evidence": "installed API contract with injected logits; not physical model or semantic qualification"
+  },
+  "physicalOperators": [
+    {
+      "test": "sampling-penalties-physical",
+      "cases": 96,
+      "adapter": {
+        "vendor": "amd",
+        "architecture": "rdna-3",
+        "device": "radeon-8060s-graphics-radv-strix-halo-",
+        "description": "radv: Mesa 26.0.3-1ubuntu1"
+      },
+      "evidence": "operator parity only; not application or model qualification"
+    },
+    {
+      "test": "sampling-distribution-physical",
+      "cases": 540,
+      "adapter": {
+        "vendor": "amd",
+        "architecture": "rdna-3",
+        "device": "radeon-8060s-graphics-radv-strix-halo-",
+        "description": "radv: Mesa 26.0.3-1ubuntu1"
+      },
+      "evidence": "operator parity only; not application/model qualification or a performance comparison"
+    }
+  ],
+  "acceptance": [
+    {
+      "name": "Doppler runtime/inference/GPU",
+      "log": "/tmp/doppler-contract-tests-20260908.log",
+      "sha256": "124e102dd4840d5836c139494b4b6578bab29496c5f2df55c8feaddce0e040b0",
+      "result": "222 files"
+    },
+    {
+      "name": "Doppler client/config",
+      "log": "/tmp/doppler-client-config-final.log",
+      "sha256": "1ac53ca5efde8d4fdd741ff7322487a08869f1946631917c81a4921bc5211b8e",
+      "result": "185 files"
+    },
+    {
+      "name": "Doppler installed public package smoke",
+      "log": "/tmp/doppler-package-smoke-final.log",
+      "sha256": "fcf27d44c5b169465764dda2a083df911e5db81bb31ff66d96a41d0eea759767",
+      "result": "29 exports and declarations; synthetic host integration"
+    },
+    {
+      "name": "Reploid focused unit tests",
+      "log": "/tmp/reploid-generation-contract-tests-final.log",
+      "sha256": "547455bf2481dbfb73cd86b5ccc4b45a35683d805773f85a13ff608090ed453d",
+      "result": "89 tests in seven files"
+    },
+    {
+      "name": "Reploid actual Verification Worker",
+      "log": "/tmp/reploid-generation-worker-final.log",
+      "sha256": "288dc6df5cb180e6402dd18368a331de388336971c3f62a820b739e79dd50213",
+      "result": "one browser test"
+    },
+    {
+      "name": "Reploid module inventory",
+      "log": "/tmp/reploid-module-checks-final.log",
+      "sha256": "45694576906465612ab2c6cfff71cea44e21922da1bc484a3b305475919a0454",
+      "result": "passed"
+    },
+    {
+      "name": "Doe configuration/browser strategy tests",
+      "log": "/tmp/doe-journey-policy-tests.log",
+      "sha256": "9c355d71c4e542cd8e24eb3fb4ca2d16a4b57eca3c3399b3f9f4aa374324bdf5",
+      "result": "1161 tests, 83 skipped; no performance qualification"
+    }
+  ],
+  "quality": {
+    "developmentCases": 8,
+    "semanticReviewComplete": false,
+    "frozenModelAdapterPromptSamplingRuntime": false,
+    "untouchedEvaluationRun": false,
+    "rawReportedDevelopmentRunLocated": false
+  },
+  "journeys": {
+    "twoPhysicalMachineRun": false,
+    "borrowedComputePrivacyRun": false,
+    "fourPhysicalMachineAcquisitionRun": false,
+    "doeChanges": "priority contracts and documentation only; no performance outcome promoted"
+  },
+  "limits": [
+    "Injected logits exercise installed public inference control and records, not a real model.",
+    "Physical GPU operator parity does not qualify the complete Reploid model-generation path.",
+    "Reploid existing dependency remains published 0.6.0; candidate contract requires explicit package admission.",
+    "No result replay/resume, privacy, adapter usefulness, startup, or device-family qualification is inferred."
+  ]
+}

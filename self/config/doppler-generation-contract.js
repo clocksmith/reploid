@@ -4,7 +4,7 @@ var generation_contract_default = {
   schema: "doppler.generation-contract/v1",
   input: {
     prompt: { type: "string", nonempty: true },
-    promptTokens: { type: "array", items: "integer", minimum: 0, nonempty: true }
+    promptTokens: { type: "array", items: "integer", minimum: 0, maximum: 4294967294, nonempty: true }
   },
   inputExactlyOne: ["prompt", "promptTokens"],
   options: {
@@ -14,11 +14,11 @@ var generation_contract_default = {
     topP: { type: "number", exclusiveMinimum: 0, maximum: 1, required: true, runtimeSampling: true },
     topK: { type: "integer", minimum: 0, required: true, runtimeSampling: true },
     repetitionPenalty: { type: "number", exclusiveMinimum: 0, required: true, runtimeSampling: true },
-    repetitionPenaltyWindow: { type: "integer", minimum: 0, required: true, runtimeSampling: true },
+    repetitionPenaltyWindow: { type: "integer", minimum: 0, maximum: 4294967295, required: true, runtimeSampling: true },
     presencePenalty: { type: "number", minimum: 0, default: 0, runtimeSampling: true },
     useChatTemplate: { type: "boolean", required: true },
-    seed: { type: "number", requiredWhenPositive: "temperature" },
-    suppressTokenIds: { type: "array", items: "integer", minimum: 0, default: [], runtimeSampling: true },
+    seed: { type: "number", minimum: 0, requiredWhenPositive: "temperature" },
+    suppressTokenIds: { type: "array", items: "integer", minimum: 0, maximum: 4294967294, default: [], runtimeSampling: true },
     stopSequences: { type: "array", items: "string", nonemptyItems: true, default: [] }
   },
   penaltyOrder: ["repetitionPenalty", "presencePenalty"],
@@ -58,6 +58,7 @@ function validateGenerationField(name, value, rule = GENERATION_CONTRACT.options
     for (const item of value) validateGenerationField(name, item, {
       type: rule.items,
       minimum: rule.minimum,
+      maximum: rule.maximum,
       nonempty: rule.nonemptyItems
     });
     return;

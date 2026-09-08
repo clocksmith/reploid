@@ -3,5 +3,5 @@
   "packageName": "doppler-gpu",
   "packageVersion": "0.6.0",
   "publicExport": "./generation-contract",
-  "bundleSha256": "e7d65065a661e3e37fc5aa1e36a9913ea2f1d76b009af6032da97b51a8f44b10"
+  "bundleSha256": "b136d020e89a5170f247f16966a0ba294edc47b22e6e7e73e3265c727a2fd70b"
 }

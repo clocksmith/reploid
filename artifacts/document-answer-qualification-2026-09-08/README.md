@@ -14,12 +14,18 @@ pass. These checks exercise contracts and injected outputs; they do not prove
 the model follows the repaired prompt. Milestone 1 remains incomplete.
 
 The reported tested pair is Doppler `b47d1f5d` and Reploid `c27298c2`.
+The user inspected these revisions, not physical evaluations; this is not
+user-certified passing evidence.
 The working copy starts from later revisions. The raw 7/8 run and its full
 model/adapter, prompt, sampling, and runtime configuration have not been located
 locally. Older archived answer runs cannot supply that missing identity. The
 installed Doppler package is 0.6.0; its version label alone cannot bind it to
 the reported tested source revision. No generation configuration is frozen and
 no untouched evaluation has run.
+
+Subsequent [shared generation-contract work](../generation-contract-2026-09-08/README.md)
+has its own package and source-byte receipt. It does not update this historical
+prompt-only snapshot or certify the reported development answers.
 
 The separate agent reviewer owns `reviewer/`. Its untouched corpus and rubric
 must remain outside implementation review until the candidate is frozen.
