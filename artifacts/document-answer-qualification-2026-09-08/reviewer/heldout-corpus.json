@@ -1,0 +1,263 @@
+{
+  "schema": "reploid.document-answer-support-corpus/v1",
+  "id": "independent-agent-heldout-2026-09-08",
+  "boundary": "An independent agent evaluator authored and froze this untouched fictional document corpus before receiving generated answers and without inspecting inference configuration. This is not human or independent-operator qualification. Synthetic passages establish only the facts for these cases.",
+  "acceptance": {
+    "reviewEveryFactualSentence": true,
+    "requireCitedPassageSupport": true,
+    "allowUnsupportedFactualClaims": false,
+    "requireAbstentionWhenUnanswerable": true,
+    "requireCompleteCaseCoverage": true,
+    "citationSyntaxIsNotSemanticSupport": true
+  },
+  "cases": [
+    {
+      "id": "qual-001",
+      "category": "answerable",
+      "question": "What protective cover is required for a framed loan at the Alder Museum, what must staff record before dispatch, and how must the crate travel?",
+      "passages": [
+        { "id": "p1", "text": "For framed loans from the Alder Museum, the crate must travel upright. The museum's ceramics travel in separate padded trays." },
+        { "id": "p2", "text": "Staff must record a framed loan's condition in the loan ledger before dispatch." },
+        { "id": "p3", "text": "Every framed loan from the Alder Museum requires an acrylic protective cover. Cotton covers are reserved for stored furniture." }
+      ],
+      "review": {
+        "supportedFacts": ["A framed loan requires an acrylic protective cover.", "Staff must record its condition in the loan ledger before dispatch.", "The crate must travel upright."],
+        "supportingPassages": ["p3", "p2", "p1"],
+        "forbiddenInferences": ["Framed loans require cotton covers.", "The ledger entry certifies that no damage exists.", "The crate may travel horizontally."]
+      }
+    },
+    {
+      "id": "qual-002",
+      "category": "partially-answerable",
+      "question": "How many seeds are in each Larch Library bean packet, where are the packets kept, and what percentage will germinate?",
+      "passages": [
+        { "id": "p1", "text": "Larch Library keeps its bean packets in drawer 4. The sunflower packets are on the display shelf." },
+        { "id": "p2", "text": "Each Larch Library bean packet contains 24 seeds. The packet label gives the bean variety and the packing batch." }
+      ],
+      "review": {
+        "supportedFacts": ["Each bean packet contains 24 seeds.", "The bean packets are kept in drawer 4."],
+        "supportingPassages": ["p2", "p1"],
+        "mustMarkUnknown": ["The percentage of bean seeds that will germinate."],
+        "allowCompleteAbstention": true,
+        "forbiddenInferences": ["Any germination percentage or guarantee.", "The number of seeds establishes a germination rate.", "Bean packets are on the sunflower display shelf."]
+      }
+    },
+    {
+      "id": "qual-003",
+      "category": "contradictory",
+      "question": "Which shed receives Meadow Garden tool returns, and how must a return slot be booked?",
+      "passages": [
+        { "id": "p1", "text": "Meadow Garden return instructions: return tools to the north shed. Book a return slot by calling the garden office." },
+        { "id": "p2", "text": "The garden's seed swap meets in the greenhouse. Its notice does not discuss tool returns." },
+        { "id": "p3", "text": "Meadow Garden return instructions: return tools to the west shed. Book a return slot by calling the garden office." }
+      ],
+      "review": {
+        "supportedFacts": ["A return slot must be booked by calling the garden office."],
+        "supportingPassages": ["p1", "p3"],
+        "mustDescribeConflict": true,
+        "conflictingPassages": ["p1", "p3"],
+        "allowCompleteAbstention": true,
+        "forbiddenInferences": ["Either shed is established as the uncontested return location.", "Either instruction supersedes the other or has greater authority.", "Tools should be returned to the greenhouse."]
+      }
+    },
+    {
+      "id": "qual-004",
+      "category": "unanswerable",
+      "question": "Who made the sculpture called Ribbon, and in what year was it completed?",
+      "passages": [
+        { "id": "p1", "text": "The sculpture Ribbon entered the South Court exhibition in 2018. The exhibition coordinator was Mina Vale." },
+        { "id": "p2", "text": "Ribbon stands on a square stone plinth. The visitor map places it beside the eastern doorway." }
+      ],
+      "review": {
+        "requireCompleteAbstention": true,
+        "forbiddenInferences": ["Any maker identity.", "Any completion year.", "The exhibition coordinator made the sculpture.", "The exhibition year establishes the completion year."]
+      }
+    },
+    {
+      "id": "qual-005",
+      "category": "partially-answerable",
+      "question": "Where was survey core BR-6 drilled, what depth did it reach, and what was its copper concentration?",
+      "passages": [
+        { "id": "p1", "text": "Survey core CW-2 came from Cedar Wash and reached a depth of 19 metres." },
+        { "id": "p2", "text": "Survey core BR-6 was drilled at Birch Ridge. Its final depth was 42 metres. The log describes grey rock with narrow green bands." },
+        { "id": "p3", "text": "Core boxes are labelled with the survey identifier before they enter the sample store." }
+      ],
+      "review": {
+        "supportedFacts": ["BR-6 was drilled at Birch Ridge.", "BR-6 reached a depth of 42 metres."],
+        "supportingPassages": ["p2"],
+        "mustMarkUnknown": ["The copper concentration of BR-6."],
+        "allowCompleteAbstention": true,
+        "forbiddenInferences": ["Any copper concentration or absence of copper.", "Green rock bands establish copper content.", "BR-6 came from Cedar Wash or reached 19 metres."]
+      }
+    },
+    {
+      "id": "qual-006",
+      "category": "answerable",
+      "question": "When the Gull ferry is cancelled, where does its replacement shuttle leave, which pass is accepted, and where is that pass collected?",
+      "passages": [
+        { "id": "p1", "text": "Passengers collect the Gull replacement shuttle's orange pass at the harbour desk. The orange pass is accepted on that shuttle." },
+        { "id": "p2", "text": "When the Gull ferry is cancelled, its replacement shuttle leaves from bay 3. The Heron shuttle continues to use bay 1." }
+      ],
+      "review": {
+        "supportedFacts": ["The replacement shuttle leaves from bay 3.", "The orange pass is accepted on the shuttle.", "Passengers collect that pass at the harbour desk."],
+        "supportingPassages": ["p2", "p1"],
+        "forbiddenInferences": ["The Gull replacement leaves from bay 1.", "An ordinary ferry ticket is accepted on the shuttle.", "The orange pass is free or is the only accepted pass."]
+      }
+    },
+    {
+      "id": "qual-007",
+      "category": "unanswerable",
+      "question": "How much did the new Juniper Cafe dishwasher reduce electricity costs, in money and as a percentage?",
+      "passages": [
+        { "id": "p1", "text": "Juniper Cafe's new dishwasher has a dedicated electricity meter. Staff copy the meter reading into the closing log." },
+        { "id": "p2", "text": "The new dishwasher has two wash programmes and holds twelve place settings. Its installation checklist records a successful water connection test." }
+      ],
+      "review": {
+        "requireCompleteAbstention": true,
+        "forbiddenInferences": ["Any monetary electricity saving or percentage reduction.", "The new dishwasher is more efficient than the previous one.", "Meter installation or a successful water test establishes electricity cost savings."]
+      }
+    },
+    {
+      "id": "qual-008",
+      "category": "contradictory",
+      "question": "What is the maximum group size for a Coral Hall aquarium tour, and must a slot be reserved?",
+      "passages": [
+        { "id": "p1", "text": "Coral Hall tour sheet: each aquarium tour accepts at most 18 visitors. Every group must reserve a slot." },
+        { "id": "p2", "text": "Coral Hall tour sheet: each aquarium tour accepts at most 24 visitors. Every group must reserve a slot." }
+      ],
+      "review": {
+        "supportedFacts": ["Every group must reserve a slot."],
+        "supportingPassages": ["p1", "p2"],
+        "mustDescribeConflict": true,
+        "conflictingPassages": ["p1", "p2"],
+        "allowCompleteAbstention": true,
+        "forbiddenInferences": ["A single uncontested maximum group size is established.", "The maximum is a range or an average of the two limits.", "One tour sheet is newer or authoritative.", "Reservations resolve the group-size conflict."]
+      }
+    },
+    {
+      "id": "qual-009",
+      "category": "contradictory",
+      "question": "What minimum age applies to Fern Archive's reading room, and what identification is required?",
+      "passages": [
+        { "id": "p1", "text": "The Fern Archive exhibition gallery accepts visitors of all ages. The gallery notice does not specify reading-room rules." },
+        { "id": "p2", "text": "Fern Archive reading-room notice: readers must be at least 18 and must present a photo identification card." },
+        { "id": "p3", "text": "Fern Archive reading-room notice: readers must be at least 16 and must present a photo identification card." }
+      ],
+      "review": {
+        "supportedFacts": ["Reading-room users must present a photo identification card."],
+        "supportingPassages": ["p2", "p3"],
+        "mustDescribeConflict": true,
+        "conflictingPassages": ["p2", "p3"],
+        "allowCompleteAbstention": true,
+        "forbiddenInferences": ["The reading room accepts all ages.", "One minimum age is established as authoritative.", "The notices distinguish accompanied and unaccompanied readers.", "A particular type of photo identification beyond a photo identification card is required."]
+      }
+    },
+    {
+      "id": "qual-010",
+      "category": "unanswerable",
+      "question": "What is the median age of the Shore Radio audience, and what proportion of that audience is retired?",
+      "passages": [
+        { "id": "p1", "text": "Shore Radio's programme log lists 40 music segments and 12 interviews. The studio keeps the log beside the mixing desk." },
+        { "id": "p2", "text": "The feedback form asks listeners which programme they heard and whether its audio was clear. A listener may submit the form without giving a name." },
+        { "id": "p3", "text": "The presenter roster contains nine volunteers. Roster entries identify the studio slot assigned to each presenter." }
+      ],
+      "review": {
+        "requireCompleteAbstention": true,
+        "forbiddenInferences": ["Any median listener age.", "Any retired-listener proportion.", "Presenter or programme counts establish audience demographics.", "Music programming establishes the audience's age or employment status."]
+      }
+    },
+    {
+      "id": "qual-011",
+      "category": "answerable",
+      "question": "Which two conditions must a Brook Co-op glass bottle meet for return, and when is the return voucher issued?",
+      "passages": [
+        { "id": "p1", "text": "The Brook Co-op cashier issues a return voucher only after inspecting the returned glass bottle." },
+        { "id": "p2", "text": "Brook Co-op accepts a returned glass bottle only if it is rinsed and unbroken. Paper cartons go in the separate collection bin." }
+      ],
+      "review": {
+        "supportedFacts": ["The returned glass bottle must be rinsed.", "The returned glass bottle must be unbroken.", "The cashier issues the return voucher only after inspecting the bottle."],
+        "supportingPassages": ["p2", "p1"],
+        "forbiddenInferences": ["A broken bottle qualifies for a voucher.", "A voucher is issued before inspection.", "Any voucher amount or cash refund.", "The two bottle conditions also apply to paper cartons."]
+      }
+    },
+    {
+      "id": "qual-012",
+      "category": "partially-answerable",
+      "question": "Where are the Vale Orchestra auditions held, what must applicants bring, and what is the application fee?",
+      "passages": [
+        { "id": "p1", "text": "Vale Orchestra applicants must bring two printed copies of their chosen score to the audition." },
+        { "id": "p2", "text": "Vale Orchestra rehearsals use the chapel. Its auditions take place in room 6 of the Arts Centre." }
+      ],
+      "review": {
+        "supportedFacts": ["Auditions take place in room 6 of the Arts Centre.", "Applicants must bring two printed copies of their chosen score."],
+        "supportingPassages": ["p2", "p1"],
+        "mustMarkUnknown": ["The application fee."],
+        "allowCompleteAbstention": true,
+        "forbiddenInferences": ["Any application fee, including an assertion that applications are free.", "Auditions are held in the chapel.", "A digital score or one printed copy meets the stated requirement."]
+      }
+    },
+    {
+      "id": "qual-013",
+      "category": "unanswerable",
+      "question": "What caused the pale colouring of the Pebble Island lizards, and did that colouring increase their survival?",
+      "passages": [
+        { "id": "p1", "text": "The Pebble Island field notebook records pale lizards on the north ridge and dark lizards in the southern grove. Observers photographed each animal where it was first seen." },
+        { "id": "p2", "text": "The notebook stores each photograph with its location and observed colour. The survey map marks both the ridge and the grove." }
+      ],
+      "review": {
+        "requireCompleteAbstention": true,
+        "forbiddenInferences": ["Any cause of pale colouring.", "Any survival advantage, disadvantage, or absence of an effect.", "The location observations establish adaptation, inheritance, predation, diet, or sunlight as a cause.", "A colour-location association establishes a survival effect."]
+      }
+    },
+    {
+      "id": "qual-014",
+      "category": "contradictory",
+      "question": "When does Willow Field close to visitors, and which gate should visitors use?",
+      "passages": [
+        { "id": "p1", "text": "Willow Field visitor instructions: the field closes at 20:00. Visitors enter through the east gate." },
+        { "id": "p2", "text": "Equipment deliveries to Willow Field use the service gate. That delivery notice does not set visitor opening hours." },
+        { "id": "p3", "text": "Willow Field visitor instructions: the field closes at 18:00. Visitors enter through the east gate." }
+      ],
+      "review": {
+        "supportedFacts": ["Visitors should use the east gate."],
+        "supportingPassages": ["p1", "p3"],
+        "mustDescribeConflict": true,
+        "conflictingPassages": ["p1", "p3"],
+        "allowCompleteAbstention": true,
+        "forbiddenInferences": ["One closing time is established as authoritative.", "The different closing times apply on different days or in different seasons.", "Visitors should use the service gate.", "The closing time is any average of the two instructions."]
+      }
+    },
+    {
+      "id": "qual-015",
+      "category": "partially-answerable",
+      "question": "On which day does the Pine Court compost collection occur, what may go in its brown bin, and how much has the scheme reduced greenhouse-gas emissions?",
+      "passages": [
+        { "id": "p1", "text": "Pine Court's recycling collection takes place on Thursday. Paper and clean metal cans belong in its blue bin." },
+        { "id": "p2", "text": "Pine Court's brown compost bin accepts food scraps only. Residents must keep packaging out of that bin." },
+        { "id": "p3", "text": "The Pine Court compost collection takes place on Monday. The caretaker records how many brown bins are emptied." }
+      ],
+      "review": {
+        "supportedFacts": ["The compost collection occurs on Monday.", "The brown bin accepts food scraps only, with packaging excluded."],
+        "supportingPassages": ["p3", "p2"],
+        "mustMarkUnknown": ["The scheme's reduction in greenhouse-gas emissions."],
+        "allowCompleteAbstention": true,
+        "forbiddenInferences": ["Any measured greenhouse-gas reduction, including zero.", "Recording emptied bins establishes an emissions reduction.", "The compost collection occurs on Thursday.", "Packaging, paper, or metal cans are accepted in the brown bin."]
+      }
+    },
+    {
+      "id": "qual-016",
+      "category": "answerable",
+      "question": "What must the Crescent Observatory camera operator capture before a session, what must remain the same when reusing it, and what action is required if that setting changes?",
+      "passages": [
+        { "id": "p1", "text": "A Crescent Observatory dark reference may be reused only while the camera temperature setting remains unchanged. If that setting changes, the operator must capture a new dark reference." },
+        { "id": "p2", "text": "Before a Crescent Observatory camera session, the operator captures a dark reference with the lens cap fitted. The equipment log records the camera's temperature setting." },
+        { "id": "p3", "text": "The finder scope is aligned with a roof marker. Its alignment note does not describe dark-reference capture." }
+      ],
+      "review": {
+        "supportedFacts": ["Before the session the operator captures a dark reference with the lens cap fitted.", "The camera temperature setting must remain unchanged to reuse the dark reference.", "If that setting changes, the operator must capture a new dark reference."],
+        "supportingPassages": ["p2", "p1"],
+        "forbiddenInferences": ["The reference may be reused after the camera temperature setting changes.", "Any specified temperature value, image-accuracy improvement, or cause beyond the stated procedure.", "Finder-scope alignment replaces dark-reference capture."]
+      }
+    }
+  ]
+}

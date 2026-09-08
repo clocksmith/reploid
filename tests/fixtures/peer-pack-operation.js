@@ -1,4 +1,5 @@
 import { dopplerExecutionAdapterSet } from '../../self/pool/adapter-execution.js';
+import { DOPPLER_GENERATION_CONTRACT } from '../../self/infrastructure/doppler-runtime-service.js';
 import { resolveDopplerExecutionContract } from '../../self/config/doppler-execution-contracts.js';
 /** Synthetic operation outputs for protocol tests, never model qualification. */
 import { hashDopplerEvidence } from '../../self/pool/executable-pack.js';
@@ -50,6 +51,7 @@ export async function operationFixture(name = 'encodeSequence', registry = creat
     artifactReceipts: artifacts.map(({ artifactId, hash, sizeBytes }) => ({ artifactId, hash, sizeBytes })) };
   let calls = 0, active = false, alter = events => events, before = async () => {}, after = async () => {};
   const session = { schema: contract.sessionSchema, loaded: true, [contract.sessionIdentity]: pack,
+    generationContract: DOPPLER_GENERATION_CONTRACT,
     selectedTargetPlanDigest: digest('d'), verification: evidence,
     async *executeOperation(request, control = {}) {
       calls++;

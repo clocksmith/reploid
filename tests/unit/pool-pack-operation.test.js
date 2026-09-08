@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { hashDopplerEvidence } from '../../self/pool/executable-pack.js';
+import { DOPPLER_GENERATION_CONTRACT } from '../../self/infrastructure/doppler-runtime-service.js';
 import fifthDefinition from '../fixtures/pack-operation-fifth.json' with { type: 'json' };
 import poolConfig from '../../self/pool/pool-config.json' with { type: 'json' };
 import { createPackOperationRegistry, PACK_OPERATION_IMPLEMENTATIONS } from '../../self/pool/pack-operation-adapters.js';
@@ -27,6 +28,7 @@ async function fixture(name = 'encodeSequence') {
   let alter = (events) => events;
   let closed = 0;
   const session = { schema: 'doppler.pack-session/v1', loaded: true, packIdentity: pack, selectedTargetPlanDigest: digest('d'), verification: identity,
+    generationContract: DOPPLER_GENERATION_CONTRACT,
     async *executeOperation(invocation) {
       const requestHash = await hashDopplerEvidence(invocation);
       const assignmentHash = await hashDopplerEvidence(invocation.assignment);

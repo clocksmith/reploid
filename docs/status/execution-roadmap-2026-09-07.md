@@ -1,15 +1,25 @@
 # Reploid & Doppler Execution Roadmap: September 7, 2026
 
 **Status:** Active Canonical Roadmap  
-**Head Revisions:** Reploid `bdf9d639`, Doppler `24d33a48`  
+**Reported tested pair:** Doppler `b47d1f5d712e8ffdbb2ef2676fb201b5bea43e8f`, Reploid `c27298c259dd80e58625d0d55a2685cd8120b05d`
 **Prerequisite Boundary:** History-based scheduling and distributed MoE remain deactivated until Milestones 1–5 are proven with physical evidence.
+
+The September 8 user direction supersedes the earlier instruction to build a
+pre-generation answer-state classifier. Repair the sentence-level generation
+contract, then qualify the existing assistant. Cleanup is limited to defects
+the qualified-answer and connected physical journeys expose.
+
+The reported 7/8 result belongs to the tested pair above. Its raw answers and
+exact run configuration must be retained and reviewed before calling it a
+semantic result. Later commits and working-tree changes require their own
+byte-bound evidence; ancestry does not transfer certification.
 
 ---
 
 ## The 5-Step Finish-Line Sequence
 
 ```text
-[1. Answer Quality & Contradiction Decoupling]
+[1. Sentence Citations & Independent Answer Qualification]
                       │
                       ▼
 [2. Physical Remote LoRA (2 Independent Machines)]
@@ -21,7 +31,7 @@
 [4. Four-Machine P2P Acquisition Proof (Hostile / Offline)]
                       │
                       ▼
-[5. Coding Adapter Promotion, AMD Startup & Operator Adoption]
+[5. Separate Adapter Usefulness, Startup & Adoption Experiments]
                       │
                       ▼
 [GATED: History-Based Scheduling & Distributed MoE]
@@ -32,53 +42,74 @@
 ### Milestone 1: Fix Assistant Answer Quality Without Changing Acceptance Rules
 *Immediate Blocker / Active Work*
 
-Prompt-only shortening was rejected (2/8 pass rate; format echoing, uncited claims, and contradiction failures remained). We halt prompt-only tuning and isolate each dimension independently while keeping acceptance rules frozen:
+The reported 7/8 development result supports a bounded generation-contract
+repair. The eight exposed cases remain development data.
 
-- [ ] **1.1 Retrieved Context Construction:**
-  - Structure retrieved passages with explicit provenance and temporal metadata.
-  - Tag detected fact collisions (e.g. conflicting dates/numbers in the roof and team cases) during context assembly rather than requiring implicit generation reasoning.
-- [ ] **1.2 Decoding & Sampling Controls:**
-  - Integrate presence penalty and repetition penalty window tuning in Doppler text sampling (`src/inference/pipelines/text/sampling.js`).
-  - Isolate sampling parameters (`topP`, `topK`, `temperature`, greedy thresholds) specifically for citation emission.
-- [ ] **1.3 Decoupled Contradiction & Abstention Classification:**
-  - Introduce an explicit pre-generation support-check stage classifying query state: `[SUPPORTED, PARTIAL, CONFLICT, UNSUPPORTED]`.
-  - For `CONFLICT` and `UNSUPPORTED`, bind the exact frozen contract strings without relying on model hallucination resistance.
-- [ ] **1.4 Verification on Exposed Dev Cases (8 Cases):**
-  - Verify all 8 development cases pass the unmodified structural citation and abstention rules without prompt example copying.
-- [ ] **1.5 Untouched Held-Out Semantic Qualification:**
-  - Run inference on held-out test cases with independent human/semantic review.
+- [ ] **1.1 Sentence-level contract:** One supported claim per cited sentence;
+  allow multiple cited sentences and an explicit missing-information statement.
+  Prevent an uncited opening through general generation instructions. No
+  question-specific branch, output deletion, or unsupported citation insertion.
+- [ ] **1.2 Review every development answer:** Inspect all factual claims against
+  their cited passages and every requested part for completeness. In particular,
+  `partial-deadline` must handle unknown throughput, `partial-storage` must handle
+  unknown capacity, and `contradiction-port` must represent the disagreement.
+  Preserve existing permitted complete abstentions and report their usefulness
+  separately. Citation syntax alone is not semantic acceptance.
+- [ ] **1.3 Preserve output identity:** Retain raw generation, token IDs, prompts,
+  settings, receipts, and passage identities. Identify any application formatting
+  separately from model output; never replace the raw observation.
+- [ ] **1.4 Freeze the candidate:** Bind model and adapter bytes, compatibility,
+  prompt, sampling settings, runtime/package and served-source identities,
+  browser/device, and unchanged acceptance rules before untouched evaluation.
+- [ ] **1.5 Blind independent qualification:** An independent reviewer sees the
+  questions, passages, raw answers, and frozen rubric without configuration
+  identities. Retain the hidden configuration mapping and reveal it only after
+  review is sealed. A failed holdout is retained; further tuning requires a new
+  untouched evaluation. An agent review is not human/operator qualification.
 
 ---
 
 ### Milestone 2: Close Physical Remote LoRA
 *Two-Machine Distributed Generation Contract*
 
-Transition from simulated Capsule handoffs to physical multi-node verification:
+Use the same frozen model and adapter that pass Milestone 1. One episode must
+connect these boundaries on two physical computers:
 
 - [ ] **2.1 Dual-Machine Peer Setup:**
   - Machine A (Base + LoRA), Machine B (Base only).
 - [ ] **2.2 Adapter Custody Transfer:**
-  - Machine B requests adapter from Machine A over WebRTC data channel, validates SHA-256 byte digest, and compiles PEFT layer in WebGPU.
+  - Acquire only missing adapter bytes, verify byte digests and base/adapter
+    compatibility, then execute the exact approved task and persist completion.
+  - Record actual transferred bytes by base, adapter, metadata, retry, and
+    rejected contribution; establish base reuse from zero base-weight transfer.
 - [ ] **2.3 Fault-Tolerant Transfer:**
   - Interrupt data channel mid-transfer; verify resume from OPFS cache without re-downloading verified chunks.
 - [ ] **2.4 Process Restart & Completion Replay:**
-  - Kill browser process on receiver; verify attempt persists and replays without recomputation.
+  - After completion is persisted, lose the connection or restart the receiver,
+    then replay the saved output and receipt with their original identities.
+  - Count actual Doppler execution calls before and after recovery. A repeated
+    response must leave that count unchanged; a matching answer alone is not
+    proof of replay. Preserve failed and incomplete attempts separately.
 - [ ] **2.5 Adapter Ownership Reversal:**
-  - Machine A requests adapted task from Machine B, demonstrating symmetric peering.
+  - Reverse ownership: Machine B supplies the adapter and approved execution to
+    Machine A. Retain the same artifact identities, byte accounting, persistence,
+    and replay checks in the reversed direction.
 
 ---
 
 ### Milestone 3: Finish Borrowed-Compute Assistant
 *Strict 3-Tier Task Privacy Boundary*
 
-Prove that private user data never egresses the local browser while enabling remote execution:
+Extend the same qualified two-machine setup to test the declared privacy boundary:
 
 - [ ] **3.1 Task Class Partitioning:**
   - `local-only`: Ingest, text chunking, local embeddings, vector search, private citations.
   - `derived-remote`: Anonymized derivative payloads with explicit preview modal and consent invalidation upon prompt change.
   - `public-remote`: Public protein/scientific jobs (ESM-2) delegable across the pool.
 - [ ] **3.2 End-to-End Two-Host Validation:**
-  - Verify local private retrieval + remote WebRTC execution + local answer composition across two distinct operators.
+  - Verify local private retrieval + approved remote WebRTC execution + local
+    answer composition across two distinct operators. Capture transmitted
+    payloads and prove exact preview/recipient/model binding and invalidation.
 
 ---
 
@@ -98,7 +129,11 @@ Fulfill the canonical `GOALS.md` acquisition proof:
 
 ---
 
-### Milestone 5: Useful Coding Adapter, AMD RADV Diagnosis & Operator Adoption
+### Milestone 5: Separate Adapter Usefulness, Startup & Operator Adoption Experiments
+
+Keep adapter usefulness and startup reliability as separate experiments with
+their own frozen controls and acceptance; a connected journey does not establish
+either claim by itself.
 
 - [ ] **5.1 Genuinely Useful Coding LoRA:**
   - Train and promote an adapter on an objective benchmark (e.g. WGSL repair) demonstrating measurable gain over base Qwen.
@@ -113,3 +148,5 @@ Fulfill the canonical `GOALS.md` acquisition proof:
 
 * **History-Based Scheduling:** Inactive until heterogeneous execution records prove predictive advantage over random/load-based placement.
 * **Distributed MoE:** Inactive until intermediate tensor disclosure, remote expert routing, and replication are fully specified and tested.
+
+*Last updated: September 2026*

@@ -1,6 +1,7 @@
 /** Implementation functions bound to checked operation policy; no networking imports. */
 import poolConfig from './pool-config.json' with { type: 'json' };
 import { resolvePackOperationDefinitions, assertOperationFields } from './pack-operation-policy.js';
+import { validateDopplerGenerationRequest } from '../infrastructure/doppler-runtime-service.js';
 const requireValue = (value, message) => { if (!value) throw new Error(`Pack operation: ${message}`); };
 const text = (value) => typeof value === 'string' && value.trim().length > 0;
 const vector = (value) => Array.isArray(value) && value.length > 0 && value.every(Number.isFinite);
@@ -11,10 +12,7 @@ const closeVector = (left, right, policy) => vector(left) && vector(right) && le
 export const PACK_OPERATION_IMPLEMENTATIONS = Object.freeze({
   'generate.v1': {
     contractVersion: 1,
-    validateRequest({ input, options }) {
-      requireValue(Object.hasOwn(input, 'prompt') !== Object.hasOwn(input, 'promptTokens'), 'one generation input required');
-      requireValue(Object.hasOwn(input, 'prompt') ? text(input.prompt) : tokenIds(input.promptTokens) && input.promptTokens.length > 0, 'invalid generation input');
-    },
+    validateRequest: validateDopplerGenerationRequest,
     validateOutput(output, request) {
       requireValue(typeof output.text === 'string' && tokenIds(output.tokenIds) && output.tokenIds.length <= request.options.maxTokens, 'invalid generation output');
     },
