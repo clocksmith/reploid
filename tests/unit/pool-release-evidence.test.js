@@ -156,4 +156,24 @@ describe('Poolday release evidence aggregation', () => {
       ])
     });
   });
+
+  it('retains failed runs without presenting missing or mismatched receipts as release-bound proof', async () => {
+    const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'reploid-failed-release-evidence-'));
+    temporaryDirectories.push(directory);
+    for (const missing of [true, false]) {
+      const observation = report('failed', { ...release, sourceRevision: 'wrong-source' });
+      if (missing) observation.suites[0].specs[0].tests[0].results[0].attachments = [];
+      const reportPath = path.join(directory, 'report.json');
+      await fs.writeFile(reportPath, JSON.stringify(observation));
+      const outputDirectory = path.join(directory, String(missing));
+      const captured = await capturePoolReleaseLane({
+        lane: { id: 'primary', label: 'Primary', grep: 'loads ESM-2', requiredAttachments: ['receipt.json'] },
+        reportPath, outputDirectory, expectedRelease: release, requirePassed: false
+      });
+      expect(captured).toMatchObject({ status: 'failed', releaseBound: false });
+      expect(captured.missingAttachments).toEqual(missing ? ['receipt.json'] : []);
+      expect(captured.releaseBindingErrors).toHaveLength(missing ? 0 : 1);
+      expect(JSON.parse(await fs.readFile(path.join(outputDirectory, captured.report.path), 'utf8'))).toEqual(observation);
+    }
+  });
 });
