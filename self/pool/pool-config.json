@@ -1712,50 +1712,11 @@
       "workload": "text-generation",
       "inputContract": {
         "version": 1,
-        "allowedFields": [
-          "prompt",
-          "promptTokens"
-        ],
-        "requiredFields": [],
-        "fieldTypes": {}
+        "runtimeContract": "doppler.generation-contract/v1"
       },
       "optionsContract": {
         "version": 1,
-        "allowedFields": [
-          "maxTokens",
-          "maxSeqLen",
-          "temperature",
-          "topP",
-          "topK",
-          "repetitionPenalty",
-          "repetitionPenaltyWindow",
-          "presencePenalty",
-          "useChatTemplate",
-          "seed",
-          "suppressTokenIds",
-          "stopSequences"
-        ],
-        "requiredFields": [
-          "maxTokens",
-          "maxSeqLen",
-          "temperature",
-          "topP",
-          "topK",
-          "repetitionPenalty",
-          "repetitionPenaltyWindow",
-          "useChatTemplate"
-        ],
-        "fieldTypes": {
-          "maxTokens": "positive-integer",
-          "maxSeqLen": "positive-integer",
-          "temperature": "finite-number",
-          "topP": "finite-number",
-          "topK": "finite-number",
-          "repetitionPenalty": "finite-number",
-          "repetitionPenaltyWindow": "finite-number",
-          "presencePenalty": "finite-number",
-          "useChatTemplate": "boolean"
-        }
+        "runtimeContract": "doppler.generation-contract/v1"
       },
       "outputContract": {
         "version": 1

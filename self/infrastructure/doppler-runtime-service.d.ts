@@ -1,4 +1,8 @@
 import type { DopplerExecutableSchema } from '../config/doppler-execution-contracts.js';
+import type { GENERATION_CONTRACT, GenerationInput, GenerationOptions, ResolvedGenerationOptions } from '../config/doppler-generation-contract.js';
+export const DOPPLER_GENERATION_CONTRACT: typeof GENERATION_CONTRACT;
+export function validateDopplerGenerationRequest(request: { input: GenerationInput; options: GenerationOptions }): ResolvedGenerationOptions;
+export function assertDopplerGenerationContract(session: DopplerManagedSession): void;
 export interface DopplerManagedSession {
   readonly schema: string;
   readonly loaded: boolean;
