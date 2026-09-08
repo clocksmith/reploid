@@ -972,7 +972,7 @@ describe('Poolday home ask controls', () => {
     const gpu = Object.getOwnPropertyDescriptor(navigator, 'gpu');
     Object.defineProperty(navigator, 'gpu', { configurable: true, value: {} });
     peerRoomMocks.runPeerJob.mockImplementationOnce(async ({ onActivity }) => {
-      onActivity({ status: 'peer_execution_started', phase: 'infer' });
+      onActivity({ status: 'peer_provider_execution_started', phase: 'infer' });
       throw Object.assign(new Error('Contributor stopped after starting'), { code: 'peer_provider_unresponsive' });
     });
     mountLocalFallbackRequest();
