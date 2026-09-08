@@ -1,0 +1,44 @@
+[
+  {
+    "site": "world",
+    "path": "index.html",
+    "status": 200,
+    "matches": true
+  },
+  {
+    "site": "world",
+    "path": "version.json",
+    "status": 200,
+    "matches": true
+  },
+  {
+    "site": "world",
+    "path": "simulatte/app/webgpu-sun-shadow.js",
+    "status": 200,
+    "matches": true
+  },
+  {
+    "site": "world",
+    "path": "simulatte/app/webgpu-renderer.js",
+    "status": 200,
+    "matches": true
+  },
+  {
+    "site": "create",
+    "path": "index.html",
+    "status": 200,
+    "matches": true
+  },
+  {
+    "site": "create",
+    "path": "version.json",
+    "status": 200,
+    "matches": true
+  },
+  {
+    "site": "create",
+    "path": "data/create-phase-run-policy.json",
+    "status": 200,
+    "matches": true
+  }
+]
