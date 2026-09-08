@@ -1970,8 +1970,8 @@
     },
     {
       "path": "pool/document-answer.js",
-      "byteLength": 3475,
-      "sha256": "sha256:7e240827d71514097279c5b8e1df6e1af1d7bf82eb4df7da4aa4b2e5d3fa507b"
+      "byteLength": 3704,
+      "sha256": "sha256:adec395f176c90aca0d3f1b3c6c9f640c1212f139b0a3da0a31ef4d86adec4d0"
     },
     {
       "path": "pool/document-delegation.d.ts",
@@ -2390,8 +2390,8 @@
     },
     {
       "path": "pool/pool-config.json",
-      "byteLength": 77389,
-      "sha256": "sha256:1c61676934ce0bf28e539e3b890ef665c63b970ed5a6c31db00419b22cf59b8a"
+      "byteLength": 77464,
+      "sha256": "sha256:37c97c6c101279ee2923f2e4193e8d0d2c665f272446bac8cfc12c6c4a6ae334"
     },
     {
       "path": "pool/protein-uncertainty-campaign.js",
@@ -2475,8 +2475,8 @@
     },
     {
       "path": "pool/TODO.md",
-      "byteLength": 31663,
-      "sha256": "sha256:c06a41b83d78259415513b6005346ce30b3cff905d29d73ea22edf1c9cbbfd78"
+      "byteLength": 29748,
+      "sha256": "sha256:5dcf820ccb93e58eae11944ba1aaf239dcbf059595a6beff0d8900a98c063ba0"
     },
     {
       "path": "prompts/kernel.md",
@@ -3249,5 +3249,5 @@
       "sha256": "sha256:f0839f1a37e68e05baa3bd3823460bc9d742420485f12ae03979781adbb865ca"
     }
   ],
-  "bundleHash": "sha256:f359221d4318db6c129f889d29d6f42b58d437be80aba8433990eb35ee5a83d1"
+  "bundleHash": "sha256:893ce62396dd06dc4b831e68087f5580eca1932e972f05e8e60b2735c37c213a"
 }
