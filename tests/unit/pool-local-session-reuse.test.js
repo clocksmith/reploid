@@ -60,7 +60,7 @@ describe('bounded idle model sessions (synthetic execution)', () => {
     const executor = createLocalPackExecutor({ service: f.service });
     await expect(executor.run({ model: f.configuration.generator, input: { prompt: 'hello' },
       options: { ...f.configuration.generationOptions, undeclaredOption: true },
-      limits: { maxInputBytes: 10000, maxOutputBytes: 10000, deadlineAt: Date.now() + 10000 } })).rejects.toThrow('unexpected');
+      limits: { maxInputBytes: 10000, maxOutputBytes: 10000, deadlineAt: Date.now() + 10000 } })).rejects.toMatchObject({ code: 'DOPPLER_GENERATION_INVALID_REQUEST' });
     expect(prepare).not.toHaveBeenCalled();
     await executor.close();
   });
