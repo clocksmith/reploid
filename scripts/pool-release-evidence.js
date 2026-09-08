@@ -109,23 +109,31 @@ export async function capturePoolReleaseLane({
   }
   const attachmentNames = new Set(attachments.map((attachment) => attachment.name));
   const missingAttachments = (lane.requiredAttachments || []).filter((name) => !attachmentNames.has(name));
-  if (missingAttachments.length > 0) {
+  const enforceProof = requirePassed || result.status === 'passed';
+  if (missingAttachments.length > 0 && enforceProof) {
     throw new Error(`Playwright lane ${lane.id} is missing attachments: ${missingAttachments.join(', ')}`);
   }
+  const releaseBindingErrors = [];
   if (expectedRelease) {
     for (const name of lane.requiredAttachments || []) {
+      if (!attachmentBytesByName.has(name)) continue;
       let body;
       try {
         body = JSON.parse(attachmentBytesByName.get(name).toString('utf8'));
       } catch (error) {
-        throw new Error(`Playwright lane ${lane.id} release-bound attachment is not JSON: ${name} (${error.message})`);
+        const message = `Playwright lane ${lane.id} release-bound attachment is not JSON: ${name} (${error.message})`;
+        if (enforceProof) throw new Error(message);
+        releaseBindingErrors.push(message);
+        continue;
       }
       const observed = body.release || {};
       if (observed.sourceRevision !== expectedRelease.sourceRevision
         || observed.sourceTreeHash !== expectedRelease.sourceTreeHash
         || observed.browserBundleHash !== expectedRelease.browserBundleHash
         || observed.sourceDirty !== false) {
-        throw new Error(`Playwright lane ${lane.id} attachment release identity does not match: ${name}`);
+        const message = `Playwright lane ${lane.id} attachment release identity does not match: ${name}`;
+        if (enforceProof) throw new Error(message);
+        releaseBindingErrors.push(message);
       }
     }
   }
@@ -142,7 +150,9 @@ export async function capturePoolReleaseLane({
     durationMs: Number(result.duration || 0),
     qualificationChecks: [...(lane.qualificationChecks || [])],
     supportingClaim: lane.supportingClaim || null,
-    releaseBound: expectedRelease !== null,
+    releaseBound: expectedRelease !== null && missingAttachments.length === 0 && releaseBindingErrors.length === 0,
+    missingAttachments,
+    releaseBindingErrors,
     report: {
       path: reportFilename,
       byteLength: reportBytes.byteLength,
