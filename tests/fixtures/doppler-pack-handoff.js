@@ -13,7 +13,7 @@ import { resolveDopplerExecutionContract } from '../../self/config/doppler-execu
 const checkout = process.env.DOPPLER_TEST_CHECKOUT;
 if (!checkout) throw new Error('DOPPLER_TEST_CHECKOUT is required');
 const fromCheckout = (file) => import(pathToFileURL(path.resolve(checkout, file)).href);
-const format = process.env.DOPPLER_TEST_FORMAT || 'pack';
+const format = process.env.DOPPLER_TEST_FORMAT || 'capsule';
 assert(['pack', 'capsule'].includes(format), 'explicit supported test format required');
 const title = format === 'capsule' ? 'Capsule' : 'Pack';
 const contract = resolveDopplerExecutionContract(`doppler.${format}/v3`);
