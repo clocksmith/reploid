@@ -42,6 +42,17 @@ describe('document answer reference accounting, without semantic certification',
     expect(result.claims[0].citations).toEqual([1, 2]);
   });
 
+  it('accounts for multiple supported sentences and an explicit unknown without choosing the first passage', () => {
+    const text = `Whales live in the sea [2].\nApple trees grow fruit [1].\n${policy.answerUnknown}`;
+    const result = inspectDocumentAnswer({ text, passages, abstention: policy.answerAbstention,
+      unknown: policy.answerUnknown });
+    expect(result.status).toBe('cited');
+    expect(result.claims.map(claim => claim.citations)).toEqual([[2], [1], []]);
+    expect(result.claims.map(claim => claim.kind)).toEqual(['factual', 'factual', 'unknown']);
+    expect(result.support).toBe('not-evaluated');
+    for (const claim of result.claims) expect(text.slice(claim.start, claim.end)).toBe(claim.text);
+  });
+
   it('allows the actual document workflow to abstain and retains the exact generation context', async () => {
     const fixture = await createDocumentPackFixture({ answerText: policy.answerAbstention });
     const workflow = createDocumentSearch({ executor: createLocalPackExecutor({ service: fixture.service }) });
@@ -73,6 +84,22 @@ describe('document answer reference accounting, without semantic certification',
       expect(failed.answerAudit.generationReceipt).toEqual(failed.receipts.at(-1));
       workflow.clear();
       expect(workflow.getState().history).toEqual([]);
+    } finally { await workflow.close(); }
+  });
+
+  it('retains uncited leading output verbatim instead of deleting it or adding a reference', async () => {
+    const raw = `Apple trees grow fruit.\nApple trees grow fruit [1].\n${policy.answerUnknown}\n`;
+    const fixture = await createDocumentPackFixture({ answerText: raw });
+    const workflow = createDocumentSearch({ executor: createLocalPackExecutor({ service: fixture.service }) });
+    workflow.configure(fixture.configuration);
+    await workflow.setDocuments([{ name: 'fruit.txt', text: passages[0].text }]);
+    try {
+      await expect(workflow.search({ query: 'What grows on the trees, and who planted them?', generateAnswer: true }))
+        .rejects.toThrow('passage references');
+      const audit = workflow.getState().history[0].answerAudit;
+      expect(audit.output).toBe(raw);
+      expect(audit.generationInput).toEqual(fixture.calls.at(-1).input);
+      expect(audit.support).toBe('not-evaluated');
     } finally { await workflow.close(); }
   });
 });
