@@ -1,0 +1,83 @@
+{
+  "adapter": {},
+  "samples": [
+    {
+      "directionToSun": [
+        1,
+        1,
+        0
+      ],
+      "visibility": [
+        0,
+        255,
+        255
+      ],
+      "receipt": {
+        "schema": "simulatte.sunShadowRender.v1",
+        "enabled": true,
+        "resolution": 2048,
+        "casterVertices": 36,
+        "extentM": 120,
+        "directionToSun": [
+          0.7071067811865475,
+          0.7071067811865475,
+          0
+        ],
+        "method": "three-dimensional-geometry-depth-map",
+        "filter": "3x3-comparison",
+        "reservedBytes": 16777296
+      }
+    },
+    {
+      "directionToSun": [
+        -1,
+        1,
+        0
+      ],
+      "visibility": [
+        255,
+        0,
+        255
+      ],
+      "receipt": {
+        "schema": "simulatte.sunShadowRender.v1",
+        "enabled": true,
+        "resolution": 2048,
+        "casterVertices": 36,
+        "extentM": 120,
+        "directionToSun": [
+          -0.7071067811865475,
+          0.7071067811865475,
+          0
+        ],
+        "method": "three-dimensional-geometry-depth-map",
+        "filter": "3x3-comparison",
+        "reservedBytes": 16777296
+      }
+    },
+    {
+      "directionToSun": [
+        1,
+        -1,
+        0
+      ],
+      "visibility": [
+        255,
+        255,
+        255
+      ],
+      "receipt": {
+        "schema": "simulatte.sunShadowRender.v1",
+        "enabled": false,
+        "resolution": 2048,
+        "casterVertices": 0,
+        "extentM": 0,
+        "directionToSun": null,
+        "method": "three-dimensional-geometry-depth-map",
+        "filter": "3x3-comparison",
+        "reservedBytes": 16777296
+      }
+    }
+  ],
+  "errors": []
+}
