@@ -9,29 +9,35 @@ Close these five milestones in exact order with physical evidence before expandi
    - [x] Retain question, retrieved/reranked passages, generation context,
      output, sentence claims and citations, including failed-answer audits;
      permit explicit insufficient-evidence answers; freeze eight support cases.
-   - [ ] Stop prompt-only tuning. Isolate retrieved context construction: annotate
-     fact collisions and provenance during context assembly.
-   - [ ] Implement and tune presence penalty and repetition penalty windows in Doppler
-     text sampling (`src/inference/pipelines/text/sampling.js`).
-   - [ ] Decouple contradiction and abstention resolution: introduce an explicit
-     pre-generation query support-state check (`SUPPORTED`, `PARTIAL`, `CONFLICT`, `UNSUPPORTED`).
-   - [ ] Verify all eight exposed development cases pass unmodified structural rules.
-   - [ ] Qualify on untouched held-out cases with independent semantic review.
+   - [ ] Repair the general prompt to require one supported claim per cited
+     sentence, allowing multiple factual sentences and explicit missing information.
+     Preserve raw output; no question-specific patch, deletion, or citation repair.
+   - [ ] Review all eight exposed answers for passage support and completeness,
+     including unknown throughput, unknown capacity, and both sides of conflicts.
+   - [ ] Freeze model, adapter, prompt, sampling, runtime, and acceptance rules;
+     qualify untouched cases with an independent reviewer blinded to configuration.
+   - The reported tested pair is Doppler `b47d1f5d` / Reploid `c27298c2`.
+     Later revisions require separate evidence. Do not build an answer-state
+     subsystem to repair the remaining formatting defect.
 
 2. **Close physical remote LoRA across two independent machines.**
    - [ ] Machine A (base + adapter), Machine B (base only). Transfer only missing
      adapter bytes through WebRTC data channel custody; verify SHA-256 byte digest,
      activate, compile PEFT layer in WebGPU, execute, and persist.
    - [ ] Interrupt transfer mid-stream; verify resume from OPFS cache without re-download.
-   - [ ] Kill process on receiver; verify attempt persistence and replay without recomputation.
+   - [ ] Use the same qualified model and adapter throughout acquisition,
+     compatibility verification, approved execution, and persisted completion.
+   - [ ] Lose connection or restart after persistence; replay the saved outcome
+     with an unchanged actual Doppler execution-call count.
+   - [ ] Record transferred base/adapter bytes, retries, and rejected bytes to prove base reuse.
    - [ ] Reverse adapter ownership (Machine B serves adapter to Machine A) and repeat.
 
 3. **Finish the borrowed-compute assistant with strict 3-tier task privacy.**
    - [ ] Expose `local-only` (private embeddings/search in-tab), `derived-remote`
      (sanitized payloads with explicit disclosure preview and consent invalidation on change),
      and `public-remote` (public protein/scientific jobs).
-   - [ ] Prove private retrieval stays local while an approved bounded task executes remotely
-     across two distinct physical computers and operators.
+   - [ ] Extend that same two-machine setup to prove private retrieval stays local
+     while an approved bounded task executes remotely; retain exact payload and consent evidence.
    - [ ] Keep useful inference acceptance separate from qualification oracles.
 
 4. **Run the four-machine acquisition proof (hostile / offline swarm).**
@@ -41,6 +47,7 @@ Close these five milestones in exact order with physical evidence before expandi
    - [ ] Complete full model reconstruction in OPFS and dispatch passing inference.
 
 5. **Qualify useful coding adapter, AMD Chromium startup, and operator repeat-use.**
+   - [ ] Run adapter usefulness and startup reliability as separate controlled experiments.
    - [ ] Train and qualify a genuinely useful coding adapter demonstrating measurable gain
      over base Qwen on an objective benchmark (e.g. WGSL repair).
    - [ ] Diagnose and resolve intermittent Chromium WebGPU startup failures on AMD RADV.
