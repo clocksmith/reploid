@@ -1,4 +1,5 @@
 // Synthetic execution fixture. Exercises application plumbing, never model qualification.
+import { DOPPLER_GENERATION_CONTRACT } from '../../self/infrastructure/doppler-runtime-service.js';
 import { hashDopplerEvidence } from '../../self/pool/executable-pack.js';
 import { PACK_EXECUTION_MODE, PACK_OPERATION_WORKLOADS } from '../../self/pool/operation-model.js';
 import { resolveDopplerExecutionContract } from '../../self/config/doppler-execution-contracts.js';
@@ -29,6 +30,7 @@ export async function createDocumentPackFixture({ answerText = 'Apple trees grow
       // Synthetic Doppler verification; exercise the real application checkpoint persistence.
       if (contract.releaseHistory) await options.persistReleaseCheckpoint(checkpoint);
       return { schema: contract.sessionSchema, loaded: true, modelId: 'fixture', [contract.sessionIdentity]: identity,
+      generationContract: DOPPLER_GENERATION_CONTRACT,
       selectedTargetPlanDigest: targetPlanDigest, verification: {
         artifactReceipts: artifacts.map(({ artifactId, hash, sizeBytes }) => ({ artifactId, hash, sizeBytes })),
         ...(contract.releaseHistory ? { lifecycle: { event: releaseEvent, checkpoint } } : {}) },

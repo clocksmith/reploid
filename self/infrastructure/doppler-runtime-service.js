@@ -11,6 +11,20 @@ import {
   DOPPLER_MODULE_URL
 } from '../config/doppler-local-models.js';
 import { resolveDopplerExecutionContract } from '../config/doppler-execution-contracts.js';
+import { GENERATION_CONTRACT, validateGenerationInput, resolveGenerationOptions } from '../config/doppler-generation-contract.js';
+
+// This generated, validation-only bundle comes from Doppler's installed public
+// export. Reploid authors no sampling fields, defaults, or range rules.
+export const DOPPLER_GENERATION_CONTRACT = GENERATION_CONTRACT;
+export function validateDopplerGenerationRequest({ input, options }) {
+  validateGenerationInput(input);
+  return resolveGenerationOptions(options);
+}
+export function assertDopplerGenerationContract(session) {
+  if (JSON.stringify(session.generationContract) !== JSON.stringify(GENERATION_CONTRACT)) {
+    throw new Error('Doppler generation contract mismatch; install the qualified package matching Reploid before generation.');
+  }
+}
 
 const DEFAULT_SCOPE = 'reploid-default';
 
