@@ -1,6 +1,6 @@
 // Installed public runtime + Reploid integration. Injected logits, not model qualification.
 import assert from 'node:assert/strict';
-import { createRequire } from 'node:module';
+import { execFileSync } from 'node:child_process';
 import { pathToFileURL } from 'node:url';
 import { resolve } from 'node:path';
 import { createReploidDopplerRuntimeService, DOPPLER_GENERATION_CONTRACT } from '../../self/infrastructure/doppler-runtime-service.js';
@@ -10,10 +10,12 @@ import { hashDopplerEvidence } from '../../self/pool/executable-pack.js';
 const consumer = process.env.DOPPLER_TEST_CONSUMER;
 const checkout = process.env.DOPPLER_TEST_CHECKOUT;
 assert(consumer && checkout, 'Explicit installed consumer and test-fixture checkout are required.');
-const requireInstalled = createRequire(resolve(consumer, 'package.json'));
-const entry = requireInstalled.resolve('doppler-gpu');
+// Resolve with ESM conditions from the consumer: the public root has no CommonJS export.
+const entry = execFileSync(process.execPath,
+  ['--input-type=module', '-e', "process.stdout.write(import.meta.resolve('doppler-gpu'))"],
+  { cwd: consumer, encoding: 'utf8' }).trim();
 assert(entry.includes('/node_modules/doppler-gpu/'), 'Inference must use installed package bytes.');
-const api = await import(pathToFileURL(entry).href);
+const api = await import(entry);
 assert.deepEqual(api.GENERATION_CONTRACT, DOPPLER_GENERATION_CONTRACT);
 // Only test artifact signing is imported from the checkout; no runtime source imports.
 const { createSignedCapsuleFixture, TEST_CAPSULE_AUTHORITY, TEST_CAPSULE_PUBLIC_KEY } =
