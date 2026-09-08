@@ -1040,7 +1040,7 @@
     {
       "path": "pool/document-answer.js",
       "owner": "pool",
-      "sha256": "sha256:65776f318bb9c7f09e157f50048e0eb94ea5610217ee66d03ed8979654411da2",
+      "sha256": "sha256:5b28811efc808a4d0077df3d52ba1d6becda6c944ebdfea34beceb00684fe849",
       "imports": []
     },
     {
