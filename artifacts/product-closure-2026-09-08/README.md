@@ -35,3 +35,5 @@ Acceptance evidence: hashed archive and adjacent reports.
 Boundary effects: runtime cancellation UI, evidence capture, Sun Walker rendering, package validation, and hosting; independent operation and semantic qualification remain unproven.
 
 Doppler source `a44933e0` passed the full `ci:check`, including all 797 unit-test files. `doppler-ci.log.gz` retains the complete run; `doppler-ci.json` states its scope. Npm publisher identity still returned HTTP 401 afterward.
+
+A concurrent workspace deployment subsequently advanced Mandate to `2b00bc67`, executable 0.20.3. `mandate-live-0203.json` verifies both viewport games, all fourteen links, and private-source exclusions. The earlier observation remains retained.
