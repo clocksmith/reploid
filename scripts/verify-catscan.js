@@ -85,6 +85,10 @@ async function findCatscanFiles(root) {
   const found = [];
   const visit = async (directory) => {
     const entries = await fs.readdir(directory, { withFileTypes: true });
+    // Nested repositories and linked worktrees own separate charter graphs.
+    // Still traverse ordinary hidden directories and validate the requested root.
+    if (directory !== root && entries.some((entry) => entry.name === '.git'
+      && (entry.isFile() || entry.isDirectory()))) return;
     for (const entry of entries) {
       if (entry.isDirectory() && IGNORED_DIRECTORIES.has(entry.name)) continue;
       const resolved = path.join(directory, entry.name);
