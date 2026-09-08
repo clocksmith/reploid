@@ -33,3 +33,5 @@ Component: release verification, answer qualification, and deployed drawing.
 Intent: preserved.
 Acceptance evidence: hashed archive and adjacent reports.
 Boundary effects: runtime cancellation UI, evidence capture, Sun Walker rendering, package validation, and hosting; independent operation and semantic qualification remain unproven.
+
+Doppler source `a44933e0` passed the full `ci:check`, including all 797 unit-test files. `doppler-ci.log.gz` retains the complete run; `doppler-ci.json` states its scope. Npm publisher identity still returned HTTP 401 afterward.

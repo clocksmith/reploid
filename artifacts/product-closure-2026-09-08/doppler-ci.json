@@ -1,0 +1,9 @@
+{
+  "command": "npm run ci:check",
+  "sourceRevision": "a44933e0",
+  "sourceDirty": false,
+  "exitCode": 0,
+  "unitTestFiles": 797,
+  "log": "doppler-ci.log.gz",
+  "scope": "Repository gates; not npm publication or semantic answer qualification."
+}
