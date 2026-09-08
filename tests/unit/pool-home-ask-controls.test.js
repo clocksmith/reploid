@@ -968,6 +968,26 @@ describe('Poolday home ask controls', () => {
     }
   );
 
+  it('requires a recovery decision after a contributor started instead of repeating execution locally', async () => {
+    const gpu = Object.getOwnPropertyDescriptor(navigator, 'gpu');
+    Object.defineProperty(navigator, 'gpu', { configurable: true, value: {} });
+    peerRoomMocks.runPeerJob.mockImplementationOnce(async ({ onActivity }) => {
+      onActivity({ status: 'peer_execution_started', phase: 'infer' });
+      throw Object.assign(new Error('Contributor stopped after starting'), { code: 'peer_provider_unresponsive' });
+    });
+    mountLocalFallbackRequest();
+    try {
+      bindHomeAskControls();
+      document.getElementById('pool-home-ask-form').requestSubmit();
+      await vi.waitFor(() => expect(document.querySelector('[data-pool-run-surface]').dataset.runState).toBe('error'));
+      expect(localExecutorMocks.run).not.toHaveBeenCalled();
+      expect(document.getElementById('pool-home-run-result-raw').textContent).toContain('peer_provider_unresponsive');
+      expect(document.querySelector('[data-pool-run-recovery-action="retry_network"]')).not.toBeNull();
+    } finally {
+      if (gpu) Object.defineProperty(navigator, 'gpu', gpu); else delete navigator.gpu;
+    }
+  });
+
   it.each([
     ['canary_audited', 'peer_provider_not_found', 0],
     ['redundant_agreement', 'peer_provider_not_found', 0],
