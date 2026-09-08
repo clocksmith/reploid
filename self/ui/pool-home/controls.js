@@ -1445,6 +1445,7 @@ const bindPeerRunSurface = ({
         modelId: request.selectedModel.modelId,
         adapterPackHash: request.adapterPackHash
       }), { stream: true });
+      let contributorStarted = false;
       const result = request.localExecution === true ? await runOnThisDevice(request) : await runPeerJob({
         roomId: getPeerRoomId(),
         requesterClient,
@@ -1470,10 +1471,11 @@ const bindPeerRunSurface = ({
           : null,
         onActivity: (activity) => {
           if (!acceptRunActivity || activityGeneration !== runActivityGeneration) return;
+          if (activity.status === 'peer_execution_started') contributorStarted = true;
           handleRunActivity(activity);
         }
       }).catch(async (error) => {
-        if (disposed || !canOfferLocalFallback(error) || !supportsLocalRequest(request) || !navigator.gpu) throw error;
+        if (disposed || contributorStarted || !canOfferLocalFallback(error) || !supportsLocalRequest(request) || !navigator.gpu) throw error;
         acceptRunActivity = false;
         const result = await runOnThisDevice(request);
         result.networkFailure = { code: recoveryCodeOf(error), message: errorString(error) };

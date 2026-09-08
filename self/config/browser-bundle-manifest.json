@@ -3025,8 +3025,8 @@
     },
     {
       "path": "ui/pool-home/controls.js",
-      "byteLength": 114926,
-      "sha256": "sha256:f4e143ecc07f8b19939d6b78f628216142bbf749758c59ab1b925d9f77e9da74"
+      "byteLength": 115073,
+      "sha256": "sha256:108276933c64d82f2a7d8a4d1187e5eb85335a9ce5a89eef29b1672526918a76"
     },
     {
       "path": "ui/pool-home/document-search.js",
@@ -3249,5 +3249,5 @@
       "sha256": "sha256:f0839f1a37e68e05baa3bd3823460bc9d742420485f12ae03979781adbb865ca"
     }
   ],
-  "bundleHash": "sha256:3c82c6192e48820fc5b2a23a6958b5e64182d7814606abbf565b4c2c9b33fb2d"
+  "bundleHash": "sha256:8f6d3de1ca162eff737215a00aa9d62e5921bf01182593ad41f99b3caaaeedb6"
 }
