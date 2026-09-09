@@ -1,0 +1,137 @@
+{
+  "schema": "reploid.independent-agent-answer-review-receipt/v1",
+  "evaluatorType": "independent-agent",
+  "evaluatorId": "/root/blind_qualification",
+  "assessmentRole": "development-regression-review",
+  "configurationIdentityKnown": false,
+  "verdict": "failed-development-acceptance",
+  "reviewPath": "artifacts/document-answer-qualification-2026-09-08/reviewer/development-b-review.json",
+  "reviewByteDigest": "sha256:42abb479905f14ddedd4b3465534dc037bec5d628d383f0b9536dc72a7e4b40c",
+  "blindedPacketByteDigest": "sha256:4b29ef59ee4095a77f38cc66e0a551dfb32ea65fdb9e474c355dbd2f29f6bcc6",
+  "corpusByteDigest": "sha256:da64e128340020491feba1ca245e7afe485bd210c896aeddd340715643da235d",
+  "rubricByteDigest": "sha256:43cfd3095d374f05e26ec5d3a64bfcfe13702d9a684778c2b48700f5551c71be",
+  "acceptanceDigest": "sha256:473080a5958e677a26b178373e4295e6b7f9bf40b2b6ce5f8188ada488ff6fdc",
+  "inputCommitmentsVerified": true,
+  "acceptanceUnchanged": true,
+  "artifactConsistencyVerified": true,
+  "verifiedSentenceReviews": 38,
+  "verifiedFactualSentenceReviews": 26,
+  "replacementHoldoutOpened": false,
+  "summary": {
+    "verdict": "failed-development-acceptance",
+    "totalRequiredCases": 24,
+    "answersPresent": 15,
+    "casesAccepted": 15,
+    "casesFailed": 9,
+    "missingOutputs": 9,
+    "unsupportedClaimCount": 0,
+    "incompleteCaseCount": 9,
+    "permittedCompleteAbstentions": 0,
+    "completeSupportedResponses": 11,
+    "appropriateUnanswerableAbstentions": 4,
+    "corpusAcceptancePassed": false,
+    "conditions": [
+      {
+        "conditionId": "95291b0b-bb9f-4825-bbf0-a88711e256bf",
+        "totalRequiredCases": 24,
+        "answersPresent": 15,
+        "casesAccepted": 15,
+        "casesFailed": 9,
+        "missingOutputs": 9,
+        "unsupportedClaimCount": 0,
+        "incompleteCaseCount": 9,
+        "permittedCompleteAbstentions": 0,
+        "completeSupportedResponses": 11,
+        "appropriateUnanswerableAbstentions": 4,
+        "corpusAcceptancePassed": false,
+        "categories": {
+          "answerable": {
+            "totalRequiredCases": 6,
+            "answersPresent": 4,
+            "casesAccepted": 4,
+            "casesFailed": 2,
+            "missingOutputs": 2,
+            "unsupportedClaimCount": 0,
+            "incompleteCaseCount": 2,
+            "permittedCompleteAbstentions": 0,
+            "completeSupportedResponses": 4,
+            "appropriateUnanswerableAbstentions": 0
+          },
+          "partially-answerable": {
+            "totalRequiredCases": 6,
+            "answersPresent": 4,
+            "casesAccepted": 4,
+            "casesFailed": 2,
+            "missingOutputs": 2,
+            "unsupportedClaimCount": 0,
+            "incompleteCaseCount": 2,
+            "permittedCompleteAbstentions": 0,
+            "completeSupportedResponses": 4,
+            "appropriateUnanswerableAbstentions": 0
+          },
+          "contradictory": {
+            "totalRequiredCases": 6,
+            "answersPresent": 3,
+            "casesAccepted": 3,
+            "casesFailed": 3,
+            "missingOutputs": 3,
+            "unsupportedClaimCount": 0,
+            "incompleteCaseCount": 3,
+            "permittedCompleteAbstentions": 0,
+            "completeSupportedResponses": 3,
+            "appropriateUnanswerableAbstentions": 0
+          },
+          "unanswerable": {
+            "totalRequiredCases": 6,
+            "answersPresent": 4,
+            "casesAccepted": 4,
+            "casesFailed": 2,
+            "missingOutputs": 2,
+            "unsupportedClaimCount": 0,
+            "incompleteCaseCount": 2,
+            "permittedCompleteAbstentions": 0,
+            "completeSupportedResponses": 0,
+            "appropriateUnanswerableAbstentions": 4
+          }
+        },
+        "partialAndContradictoryUsefulness": {
+          "requiredCases": 12,
+          "completeSupportedResponses": 7,
+          "permittedCompleteAbstentions": 0,
+          "failedCases": 5
+        },
+        "failureGroups": {
+          "applicationNonDeliveries": [
+            "qual-008",
+            "qual-009",
+            "qual-010",
+            "qual-011",
+            "qual-012",
+            "qual-013",
+            "qual-014",
+            "qual-015",
+            "qual-016"
+          ],
+          "deliveredSemanticFailures": []
+        }
+      }
+    ],
+    "substantiveInterpretations": [
+      "Every delivered answer satisfies the factual-support and requested-part rules for its supplied case; no delivered semantic contract defect was identified.",
+      "Nine null outputs are application non-deliveries and fail complete coverage. They are never treated as complete abstentions or reconstructed.",
+      "Delivered conflicting answers explicitly state that the supplied passages leave the conflict unresolved, in addition to citing both conflicting values.",
+      "Delivered unanswerable answers abstain across the entire question, including all requested parts.",
+      "The answerable-consent response retains 'those values' from its source. The question's task-text change and the cited source's enumeration resolve the requested scope; the omitted enumeration is recorded as a clarity concern, not a semantic failure.",
+      "The duplicate supported booking sentence is reviewed separately and recorded as a usability observation.",
+      "The permitted complete-abstention exception for partial and contradictory cases remains unchanged; no delivered response in those categories uses it."
+    ],
+    "claimBoundary": "Independent agent evaluator development evidence only. It does not qualify a held-out candidate, revise the previous frozen failure verdict, establish human or operator qualification, or authorize deployment."
+  },
+  "freezeStatement": "This development review and aggregate verdict are frozen before configuration unblinding. The supplied corpus and existing rubric remain unchanged. The 24-case denominator follows the user's explicit development-corpus scope; semantic acceptance requirements are unchanged. Null answers remain application non-deliveries and were not reconstructed. Prior reports and receipts remain unchanged.",
+  "componentHandoff": {
+    "component": "Reploid verification evidence",
+    "intent": "preserved",
+    "acceptanceEvidence": "Verified provided corpus, packet, acceptance, and unchanged rubric digests; exact sentence spans and all requested parts reviewed.",
+    "boundaryEffects": "none"
+  }
+}
