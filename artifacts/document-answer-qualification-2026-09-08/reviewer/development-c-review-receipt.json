@@ -1,0 +1,192 @@
+{
+  "schema": "reploid.independent-agent-answer-review-receipt/v1",
+  "evaluatorType": "independent-agent",
+  "evaluatorId": "/root/blind_qualification",
+  "assessmentRole": "development-regression-review",
+  "configurationIdentityKnown": false,
+  "verdict": "failed-development-acceptance",
+  "reviewPath": "artifacts/document-answer-qualification-2026-09-08/reviewer/development-c-review.json",
+  "reviewByteDigest": "sha256:cbe2ab9c7dd73171868b731b3778f6890fa29569de31f00b8bb0e94acfc68330",
+  "blindedPacketByteDigest": "sha256:d27bdee97d3ce732100438a5149bdce0dbcb9627e6102da1a7a66c7b8bdd2d7e",
+  "corpusByteDigest": "sha256:81e2d8bd9d6ef24395fa186b236b03ada0eb1316e8d8f0c1c996cef2b9e98ace",
+  "rubricByteDigest": "sha256:43cfd3095d374f05e26ec5d3a64bfcfe13702d9a684778c2b48700f5551c71be",
+  "acceptanceDigest": "sha256:473080a5958e677a26b178373e4295e6b7f9bf40b2b6ce5f8188ada488ff6fdc",
+  "inputCommitmentsVerified": true,
+  "acceptanceUnchanged": true,
+  "artifactConsistencyVerified": true,
+  "verifiedSentenceReviews": 49,
+  "verifiedFactualSentenceReviews": 36,
+  "replacementHoldoutOpened": false,
+  "producerConfigurationInspected": false,
+  "bindingFilesInspected": false,
+  "rawExecutionLogsInspected": false,
+  "semanticQuality": {
+    "deliveredAnswersReviewed": 18,
+    "deliveredAnswersPassed": 18,
+    "deliveredAnswersFailed": 0,
+    "undeliveredAnswersNotAssessed": 6,
+    "unsupportedClaimCount": 0,
+    "allDeliveredAnswersPassed": true
+  },
+  "deliveryCoverage": {
+    "requiredAnswers": 24,
+    "deliveredAnswers": 18,
+    "undeliveredAnswers": 6,
+    "complete": false,
+    "undeliveredCaseIds": [
+      "qual-011",
+      "qual-012",
+      "qual-013",
+      "qual-014",
+      "qual-015",
+      "qual-016"
+    ]
+  },
+  "summary": {
+    "verdict": "failed-development-acceptance",
+    "totalRequiredCases": 24,
+    "answersPresent": 18,
+    "casesAccepted": 18,
+    "casesFailed": 6,
+    "missingOutputs": 6,
+    "unsupportedClaimCount": 0,
+    "incompleteCaseCount": 6,
+    "permittedCompleteAbstentions": 0,
+    "completeSupportedResponses": 13,
+    "appropriateUnanswerableAbstentions": 5,
+    "corpusAcceptancePassed": false,
+    "semanticQuality": {
+      "deliveredAnswersReviewed": 18,
+      "deliveredAnswersPassed": 18,
+      "deliveredAnswersFailed": 0,
+      "undeliveredAnswersNotAssessed": 6,
+      "unsupportedClaimCount": 0,
+      "allDeliveredAnswersPassed": true
+    },
+    "deliveryCoverage": {
+      "requiredAnswers": 24,
+      "deliveredAnswers": 18,
+      "undeliveredAnswers": 6,
+      "complete": false,
+      "undeliveredCaseIds": [
+        "qual-011",
+        "qual-012",
+        "qual-013",
+        "qual-014",
+        "qual-015",
+        "qual-016"
+      ]
+    },
+    "conditions": [
+      {
+        "conditionId": "ecd03957-296a-4255-8fdb-e401a361e98e",
+        "totalRequiredCases": 24,
+        "answersPresent": 18,
+        "casesAccepted": 18,
+        "casesFailed": 6,
+        "missingOutputs": 6,
+        "unsupportedClaimCount": 0,
+        "incompleteCaseCount": 6,
+        "permittedCompleteAbstentions": 0,
+        "completeSupportedResponses": 13,
+        "appropriateUnanswerableAbstentions": 5,
+        "corpusAcceptancePassed": false,
+        "semanticQuality": {
+          "deliveredAnswersReviewed": 18,
+          "deliveredAnswersPassed": 18,
+          "deliveredAnswersFailed": 0,
+          "undeliveredAnswersNotAssessed": 6,
+          "unsupportedClaimCount": 0,
+          "allDeliveredAnswersPassed": true
+        },
+        "deliveryCoverage": {
+          "requiredAnswers": 24,
+          "deliveredAnswers": 18,
+          "undeliveredAnswers": 6,
+          "complete": false,
+          "undeliveredCaseIds": [
+            "qual-011",
+            "qual-012",
+            "qual-013",
+            "qual-014",
+            "qual-015",
+            "qual-016"
+          ]
+        },
+        "categories": {
+          "answerable": {
+            "totalRequiredCases": 6,
+            "answersPresent": 4,
+            "casesAccepted": 4,
+            "casesFailed": 2,
+            "missingOutputs": 2,
+            "unsupportedClaimCount": 0,
+            "incompleteCaseCount": 2,
+            "permittedCompleteAbstentions": 0,
+            "completeSupportedResponses": 4,
+            "appropriateUnanswerableAbstentions": 0
+          },
+          "partially-answerable": {
+            "totalRequiredCases": 6,
+            "answersPresent": 4,
+            "casesAccepted": 4,
+            "casesFailed": 2,
+            "missingOutputs": 2,
+            "unsupportedClaimCount": 0,
+            "incompleteCaseCount": 2,
+            "permittedCompleteAbstentions": 0,
+            "completeSupportedResponses": 4,
+            "appropriateUnanswerableAbstentions": 0
+          },
+          "contradictory": {
+            "totalRequiredCases": 6,
+            "answersPresent": 5,
+            "casesAccepted": 5,
+            "casesFailed": 1,
+            "missingOutputs": 1,
+            "unsupportedClaimCount": 0,
+            "incompleteCaseCount": 1,
+            "permittedCompleteAbstentions": 0,
+            "completeSupportedResponses": 5,
+            "appropriateUnanswerableAbstentions": 0
+          },
+          "unanswerable": {
+            "totalRequiredCases": 6,
+            "answersPresent": 5,
+            "casesAccepted": 5,
+            "casesFailed": 1,
+            "missingOutputs": 1,
+            "unsupportedClaimCount": 0,
+            "incompleteCaseCount": 1,
+            "permittedCompleteAbstentions": 0,
+            "completeSupportedResponses": 0,
+            "appropriateUnanswerableAbstentions": 5
+          }
+        },
+        "partialAndContradictoryUsefulness": {
+          "requiredCases": 12,
+          "completeSupportedResponses": 9,
+          "permittedCompleteAbstentions": 0,
+          "failedCases": 3
+        }
+      }
+    ],
+    "substantiveInterpretations": [
+      "All 18 delivered answers satisfy the frozen support and completeness contract for their supplied cases. This does not overcome the six missing application answers.",
+      "Every delivered conflicting answer cites both incompatible values and explicitly states that the supplied passages leave the conflict unresolved.",
+      "The archive answer repeats the complete incompatible notices after stating the unresolved conflict. Both retain source citations, the shared photo-identification requirement is present, and neither age is selected as authoritative. Repetition is recorded as a clarity issue rather than an unsupported claim.",
+      "The germination subquestion lacks a question mark but still explicitly identifies the missing percentage before the source-relative unknown.",
+      "The consent answer's source-relative phrase 'those values' is resolved by the question's task-text change and the cited source's enumeration. Directly naming task text would be clearer, but the required invalidation and renewed approval rule is conveyed.",
+      "No delivered partial or contradictory answer uses the permitted complete-abstention exception. Its permission and separate usefulness accounting remain unchanged.",
+      "Null answers are undelivered failures, not abstentions, and no missing content is reconstructed."
+    ],
+    "claimBoundary": "Independent agent evaluator development evidence only. Not held-out qualification, human review, independent-operator qualification, deployment approval, or a revision of previous frozen reviews."
+  },
+  "freezeStatement": "This review and receipt are frozen before configuration unblinding and bind the supplied exact development corpus and answer packet. All 24 entries are reviewed under the unchanged semantic rubric. Undelivered answers fail complete coverage and are not treated as abstentions or semantically assessed text. No earlier report or receipt is overwritten, and the replacement holdout is not opened. This is development evidence, not held-out qualification.",
+  "componentHandoff": {
+    "component": "Reploid verification evidence",
+    "intent": "preserved",
+    "acceptanceEvidence": "Exact input commitments, every answer span, source citations, required parts, semantic judgments, and delivery coverage.",
+    "boundaryEffects": "none"
+  }
+}
