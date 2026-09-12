@@ -1236,12 +1236,12 @@
     {
       "path": "config/doppler-generation-contract.provenance.json",
       "byteLength": 247,
-      "sha256": "sha256:1af552f3778c0b2b3aa91db4b29684df842f67374576c115361c355664b02053"
+      "sha256": "sha256:5cfea5fd523fb5cc1b1adb2127a74de15e872c685b722dba64c2d9aa3824139c"
     },
     {
       "path": "config/doppler-local-models.js",
       "byteLength": 2383,
-      "sha256": "sha256:b943afe6083f94d187281a27b4fe288bc869ab5a0852baf62c2d59332e7d433b"
+      "sha256": "sha256:1db3deb3cc1967adc58fc19a7e3deaf3848c27230e58af83cd8c47bec2ce06e3"
     },
     {
       "path": "config/genesis-levels.json",
@@ -1286,7 +1286,7 @@
     {
       "path": "config/module-inventory.json",
       "byteLength": 104550,
-      "sha256": "sha256:688e2b340296bf48c36e8318c13083060d3860e4542dc6df6cfb78a9c1f29267"
+      "sha256": "sha256:67d3d68627bab3f062dc103f28c06e3b6a8e3061233abe1b7dda7b85fcda761e"
     },
     {
       "path": "config/module-registry.json",
@@ -2421,7 +2421,7 @@
     {
       "path": "pool/pool-config.json",
       "byteLength": 76545,
-      "sha256": "sha256:ecf4f78d116260bbc28b3b93d6a422dc44a3a9bc039b24863148ce988d3b2dcf"
+      "sha256": "sha256:bb36aa5aaf2afd069bdd88489eb10d9a75d1fe866e003db12ceed499dd0685ab"
     },
     {
       "path": "pool/protein-investigation.js",
@@ -3594,5 +3594,5 @@
       "sha256": "sha256:95a905e7fda60b4ebd1f29df134200be366b06dd9361520f3d112a787679c269"
     }
   ],
-  "bundleHash": "sha256:133c5e082b45e26214c81edc6c71796c0ef6deb98f2bfa5cbe33c9a8c3ebab7a"
+  "bundleHash": "sha256:9550fb0bf4d3a9d7c0ddaf596213798eab9d082cc24bc7014cfafe1ad3b8e7eb"
 }

@@ -1,0 +1,54 @@
+[2m[WebServer] [22m(node:1012744) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+[2m[WebServer] [22m(node:1012864) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+[2m[WebServer] [22m(node:1012935) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+[2m[WebServer] [22m(node:1012965) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+[2m[WebServer] [22m(node:1012965) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+[2m[WebServer] [22m[Proxy] Config loader not available, using environment variables
+[2m[WebServer] [22m☡  WARNING: GEMINI_API_KEY not found in .env file
+[2m[WebServer] [22m   The Gemini proxy endpoint will not work without it.
+[2m[WebServer] [22m(node:1013125) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 1 test using 1 worker
+
+(node:1013884) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:1013884) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+[local-fallback:console:error] Access to fetch at 'https://storage.googleapis.com/reploid-model-artifacts/capsules/esm2-35m/65e4c1abd95fd5facd9cdba954dec0193f79574846ac57bed527a5de64bd0b47/capsule.json' from origin 'http://localhost:8061' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+[local-fallback:console:error] Failed to load resource: net::ERR_FAILED
+  ✘  1 [chromium] › tests/e2e/p2p-actual-inference.spec.js:509:3 › Run and Contribute actual browser inference › an empty room falls back to real local ESM-2 without sharing compute (2.6s)
+
+
+  1) [chromium] › tests/e2e/p2p-actual-inference.spec.js:509:3 › Run and Contribute actual browser inference › an empty room falls back to real local ESM-2 without sharing compute 
+
+    Error: Error: Request could not complete
+    Reason: Failed to fetch
+    Next: Check the technical details, then try again.
+    Room: empty-local-1789241599870
+    Relay: local
+    Model: esm2-t12-35m-ur50d-f32-af32
+
+      523 |       const snapshot = await readSnapshot(page, 'pool-home-run-result');
+      524 |       const failure = providerStartupError(snapshot);
+    > 525 |       if (failure) throw new Error(failure);
+          |                          ^
+      526 |       return snapshot.parsed?.transport;
+      527 |     }, { timeout: ACTUAL_INFERENCE_TIMEOUT_MS }).toBe('local_capsule');
+      528 |     const result = (await readSnapshot(page, 'pool-home-run-result')).parsed;
+        at Object.expect.poll.timeout (/home/x/deco/worktrees/reploid-doppler-061/tests/e2e/p2p-actual-inference.spec.js:525:26)
+        at /home/x/deco/worktrees/reploid-doppler-061/tests/e2e/p2p-actual-inference.spec.js:522:5
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/p2p-actual-inference-Run-a-778db-M-2-without-sharing-compute-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/p2p-actual-inference-Run-a-778db-M-2-without-sharing-compute-chromium/error-context.md
+
+  1 failed
+    [chromium] › tests/e2e/p2p-actual-inference.spec.js:509:3 › Run and Contribute actual browser inference › an empty room falls back to real local ESM-2 without sharing compute 

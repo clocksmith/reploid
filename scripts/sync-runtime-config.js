@@ -90,6 +90,14 @@ export function synchronizeRuntimeConfig({
     throw new Error(`package-lock.json must include the published integrity for ${DOPPLER_PACKAGE_NAME}@${packageVersion}`);
   }
 
+  for (const model of poolConfig.modelCatalog || []) {
+    if (model.enabled !== false && model.executionMode === 'complete_pack_browser'
+      && model.runtimeVersion !== browserRuntimeVersion) {
+      throw new Error(`Enabled model ${model.modelId} pins Doppler ${model.runtimeVersion}; `
+        + `the browser loads ${browserRuntimeVersion}. Explicitly update and qualify the model runtime pin before release.`);
+    }
+  }
+
   const synchronizedPoolConfig = synchronizeCompatibility(clone(poolConfig), browserRuntimeVersion);
   const configVersion = String(synchronizedPoolConfig.configVersion || '').trim();
   if (!configVersion) throw new Error('Pool configVersion is required');
