@@ -137,7 +137,7 @@ describe('Reploid DopplerRuntimeService', () => {
         dr: { open: vi.fn() }
       })
     });
-    await expect(wrong.open({ source: 'model' })).rejects.toThrow('requires Doppler 0.6.0');
+    await expect(wrong.open({ source: 'model' })).rejects.toThrow('requires Doppler 0.6.1');
 
     const legacy = createReploidDopplerRuntimeService({ expectedVersion: '0.5.1',
       loadModule: async () => ({

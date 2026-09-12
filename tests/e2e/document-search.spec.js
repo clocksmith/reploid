@@ -6,14 +6,14 @@ import documentPolicy from '../../self/pool/document-search-policy.json' with { 
 // Real browser/UI and public operation consumer; injected model outputs, not GPU qualification.
 for (const answerText of ['Apple trees grow fruit. [1]', documentPolicy.answerAbstention]) {
 test(`local document journey preserves privacy and evidence with ${answerText === documentPolicy.answerAbstention ? 'abstention' : 'citations'}`, async ({ page }, testInfo) => {
-  const fixture = await createDocumentPackFixture({ schema: 'doppler.capsule/v3', runtimeVersion: '0.6.0' });
+  const fixture = await createDocumentPackFixture({ schema: 'doppler.capsule/v3', runtimeVersion: '0.6.1' });
   const fixtureSource = (await readFile(new URL('../fixtures/document-packs.js', import.meta.url), 'utf8'))
     .replaceAll('../../self/', '/');
   await page.route('**/__fixtures__/document-packs.js', (route) => route.fulfill({ contentType: 'text/javascript', body: fixtureSource }));
   await page.route('**/__fixtures__/doppler.js', (route) => route.fulfill({ contentType: 'text/javascript', body: `
     import { createDocumentPackFixture } from '/__fixtures__/document-packs.js';
-    const fixture = await createDocumentPackFixture({ answerText: ${JSON.stringify(answerText)}, schema: 'doppler.capsule/v3', runtimeVersion: '0.6.0' });
-    export const DOPPLER_VERSION = '0.6.0';
+    const fixture = await createDocumentPackFixture({ answerText: ${JSON.stringify(answerText)}, schema: 'doppler.capsule/v3', runtimeVersion: '0.6.1' });
+    export const DOPPLER_VERSION = '0.6.1';
     export const openCapsule = fixture.service.openCapsule;
   ` }));
   await page.addInitScript(() => { window.REPLOID_DOPPLER_MODULE_URL = '/__fixtures__/doppler.js'; });
