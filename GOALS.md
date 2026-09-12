@@ -2,58 +2,74 @@
 
 ## Product aim
 
-Reploid is the public product name. Poolday is an internal implementation name,
-not a separate public brand. Public pages use Reploid and short, direct copy;
-protocol names, routes, signed records, and historical evidence retain identity.
+Reploid is an evolving problem-solving agent that collaborates with other agents over WebRTC and runs model inference through Doppler.
 
-Poolday is Reploid's primary product: unrelated operators deliver and execute
-an exact Doppler capability across peers, retain admissible evidence, and use
-that evidence to improve a subsequent assignment or investigation. The immediate
-win condition is a reproducible open execution network. Free adoption counts;
-payment, revenue, and acquisition do not determine technical completion.
+Its purpose is:
+**Reploid pursues goals for humans and agents, acquires and uses available intelligence, collaborates with peers, and improves its own problem-solving methods through independently evaluated experience.**
 
-Doppler and Poolday deliver one connected capability: acquire, verify, execute
-locally, optionally redistribute authorized artifacts, and explicitly delegate
-complete jobs. Private inputs remain local by default. Downloading a Pack grants
-neither redistribution nor delegation permission. The initial network accepts
-explicitly public protein sequences only; private sharing is not enabled by
-this goal. Protocols remain forkable and evidence exportable.
+### The agent is the product
 
-ESM-2 35M remains first. Existing standalone work stays usable, but Electron,
-Qwen, Doe improvements, and agent-proposed Pack improvements are not additional
-network launch gates. The latter two remain separate later experiments.
+A person gives Reploid an outcome: investigate a failure, answer a question, improve an application, or examine a scientific hypothesis. Another agent can submit the same kind of request programmatically.
 
-Zero and X are secondary RSI browser agents, with independent state, evaluation,
-promotion, and activation authority. Agent Release Passport (Change Passport)
-remains an inactive commercial alternative, not the current first priority.
-This selection changes portfolio intent; it does not erase existing work.
+Reploid determines what information, models, tools, and assistance it needs. Doppler supplies local generation, embeddings, reranking, adapters, and specialized model execution. Peers optionally contribute missing capabilities, computation, observations, and tested improvements.
 
-The retained alternative is Reploid Agent Release Passport. It governs
-eligibility for an exact agent tool, MCP server, permission policy, or
-production-agent configuration release. It preserves the evidence,
-disagreement, human authority, rollback target, and reopening rules that made
-the release eligible. GitHub controls merge, deployment systems control
-activation, and identity systems control access. Reploid controls eligibility
-and preserves its basis.
+One Reploid is useful alone. Connected Reploids accomplish more or learn something they would otherwise miss. Neither Doppler inference nor Reploid's basic operation depends on joining the network.
 
-Poolday is the peer-to-peer Doppler execution network: the target public path runs signed
-Packs, browser contributors share bounded compute, peers return comparable
-results and signed receipts, and requesters accept or dispute the result.
-Research Room-1 remains a scientific proof built on those receipts. It tests whether the same
-contradiction-preserving decision mechanism can help curators of public protein
-catalogs adjudicate disputed family or domain annotations at lower verified
-cost than the existing workflow.
+Chat is an interface. Coding, document investigation, and scientific research are application domains. Peer computing is infrastructure. The persistent agent connects them.
 
-The product is not peer count, inference volume, a trustless marketplace, an
-identity provider, a trace viewer, or an exposed RSI laboratory.
-The intended user outcome is a better justified next decision supported by
-inspectable evidence, accountable disagreement, explicit authority, correction,
-rollback, and reopening.
+### Two connected loops
 
-Change Passport, Poolday, and the Research Room are separate product surfaces over a
-shared evidence-state model. Poolday, generic change control, Zero, and X retain
-separate activation authority. Zero and X remain secondary experimental surfaces,
-linked from the homepage's Experiments footer rather than primary navigation.
+Reploid operates through two distinct, connected loops:
+
+1. **The problem-solving loop:**
+   ```text
+   receive goal
+   -> establish success criteria and permissions
+   -> gather context and plan
+   -> use models, tools, and authorized peers
+   -> inspect actual outcomes
+   -> revise the approach
+   -> deliver a result and preserve useful experience
+   ```
+   The agent acts through authorized tools, not only returning model-generated text. A repair needs execution and tests; a research investigation needs evidence and explicit uncertainty.
+
+2. **The improvement loop (RSI):**
+   ```text
+   identify recurring weakness
+   -> propose a candidate change to Reploid itself
+   -> test the candidate version in isolation
+   -> compare against the frozen current baseline
+   -> obtain required approval
+   -> adopt or reject
+   -> let the accepted version produce subsequent improvements
+   ```
+   This separation matters operationally. Users receive work from a stable, identified version while candidate versions undergo bounded experiments. Failed experiments cannot corrupt active goals or silently alter their permissions.
+
+### Component responsibilities
+
+- **Reploid's agent core (`self/core/`, `self/infrastructure/`, `self/tools/`):** Owns goals, planning, tool use, VFS, memory, outcome assessment, decisions about seeking help, and improvement proposals for prompts, tools, context selection, and planning procedures.
+- **Poolday network (`self/pool/`):** Serves the agent: discovers peers over WebRTC, exchanges authorized artifacts, assigns bounded work, moves messages, recovers interrupted delivery, and retains outcomes.
+- **Doppler runtime:** The independently useful model execution system (local generation, embeddings, reranking, adapters, specialized WebGPU execution). Reploid consumes Doppler; acceptance into Doppler follows Doppler's own correctness and release requirements.
+- **Evaluation and authorization:** Outside candidate control. A proposed improvement cannot rewrite hidden acceptance tests, escalate its own permissions, erase failures, or declare itself approved.
+- **Policy and budgets:** Reside in checked configuration. JavaScript implements agent behavior and peer coordination; Doppler owns model computation.
+
+### Recursive improvement as the primary milestone
+
+Self-modifying agents have prior art: the Darwin Gödel Machine modifies its own code and evaluates descendants on coding tasks. Reploid's distinctive demonstration combines recursive self-improvement with peer collaboration and independently reusable improvements:
+
+1. **Version A** encounters a recurring problem in its own work (such as repeatedly selecting irrelevant context, unhandled tool errors, or looping plans). It proposes and implements a general improvement. Independent tests establish that **Version B** solves previously unseen tasks better.
+2. **Version B**, using its improved machinery, identifies and implements another improvement that produces **Version C**.
+3. Other Reploids independently test and optionally adopt those changes.
+
+Task success, time, computation, and human intervention are measured against the frozen original agent. The underlying model and resource budgets remain comparable. External assistance is recorded rather than attributed to autonomous improvement.
+
+The recursive claim requires the improved agent to participate in producing its next improvement. Repeated human patches, downloading a stronger model, or accumulating logs do not establish this experiment.
+
+### Separation of RSI and AGI
+
+Recursive self-improvement concerns how the system improves itself. General intelligence concerns the breadth and level of capabilities it demonstrates. Reploid pursues bounded, reproducible recursive self-improvement first, then tests whether improvements transfer across unfamiliar coding, information-analysis, planning, and scientific tasks.
+
+Document assistant citation formatting, coding LoRA acquisition, and distributed MoE are application and infrastructure tracks; they are not blocking prerequisites for this primary milestone.
 
 ## Current supported boundary
 
@@ -117,30 +133,24 @@ scientific room, hypotheses, cohorts, adjudication, or laboratory claims.
 
 ## Falsifiable first proofs
 
-### Primary proof: Poolday
+### Primary proof: Evolving problem-solving agent and recursive improvement
 
-Build one network product with three independently testable loops: model
-distribution, complete-job remote execution, and learned coordination. Generalize
-the execution contract first: exact model identity, operation, input, limits,
-and acceptance rule. Start with `generate`, `embed`, `rerank`, and
-`encodeSequence`. A fifth operation needs an adapter, not networking changes.
-Operation adapters own input/output validation, streaming, cancellation, and
-comparison; shared networking owns discovery, assignment, transport, retries,
-accounting, and evidence. Unknown operations fail explicitly.
+The primary proof demonstrates an agent that solves useful problems, discovers weaknesses in its own approach, produces better descendants, and shares improvements that help other independently operated agents over Poolday:
 
-Declared work is the stable contract: exact model, operation, optional adapter
-set, normalized input, permissions and limits. Product code requests useful
-outcomes; planning resolves immutable work from configuration and resource
-observations before connecting or executing. Transport moves messages and bytes;
-Doppler owns model computation. Evidence records outcomes downstream and may
-inform only a subsequent immutable plan. A new user journey must reuse these
-primitives, without a separate networking stack or workload-specific scheduler.
+1. **Self-improvement chain ($A \to B \to C$):**
+   - **Version A** encounters a recurring problem in its problem-solving loop (such as selecting irrelevant context, unhandled tool failures, or looping plans). It proposes and implements a general improvement. Independent, isolated sandbox tests establish that **Version B** solves previously unseen tasks better.
+   - **Version B**, using its improved problem-solving machinery, identifies and implements another improvement that produces **Version C**.
+   - Independent Reploid peers over WebRTC re-evaluate the candidate in their local sandboxes and optionally adopt the change.
+2. **Experimental controls:**
+   - The underlying Doppler model and resource budgets remain strictly comparable across $A$, $B$, and $C$.
+   - The candidate version cannot modify its own acceptance tests, escalate permissions, erase failure records, or self-approve.
+   - Improvements are measured against the frozen original Version A baseline.
 
-The flagship is a free local document/research assistant: acquire models, embed
-a corpus, rerank retrieval, and generate referenced answers. It works alone;
-joining a room optionally shares authorized model bytes and explicitly
-shareable work. ESM-2 remains the scientific systems control and second workload,
-not the model-admission abstraction. Existing scientific functionality remains.
+### Supporting capability proof: Poolday peer network and Doppler runtime
+
+Poolday and Doppler provide the infrastructure supporting the agent: model distribution, complete-job remote execution, and peer coordination. The execution contract binds exact model identity, operation, input, limits, and acceptance rules (`generate`, `embed`, `rerank`, `encodeSequence`). Operation adapters own input/output validation, streaming, cancellation, and comparison; shared networking owns discovery, assignment, transport, retries, accounting, and evidence.
+
+Document search, protein sequence investigation, and code modification serve as application domains exercising the agent's problem-solving loop; they are not blocking prerequisites for the recursive improvement proof.
 
 Separate operators repeatedly execute an exact signed Doppler Pack under a
 frozen correctness and acceptance policy. The episode must demonstrate authorized
@@ -401,38 +411,19 @@ known failure mode.
 Jobs, tokens, receipts, peers, records, and total compute remain operational
 metrics. They are not product success.
 
-## Zero, X, and product authority
+## Zero, X, and improvement authority
 
-Zero may propose candidate analyses, retrieval methods, contradiction
-detectors, uncertainty estimators, and action-ranking policies. X may evaluate
-them against frozen evidence with evaluator separation, quarantine, replay,
-rollback, and human approval. Poolday may admit a promoted capability only
-through Poolday-owned configuration, policy, tests, user contracts, and
-prospective Research Room evidence.
+Zero and X are the research and evaluation surfaces implementing the Improvement Loop:
 
-Change Passport has separate generic change-control authority. An external
-producer or evaluator must be able to use it without Zero or X. A passport may
-deterministically reopen a decision when a verified trigger matches its frozen
-rule. Blocking a merge, activating a deployment, revoking authority, or
-requesting rollback remains a separately authorized effect. Approval state,
-evidence validity, and deployed effect state must never be collapsed.
+- **Zero** proposes candidate prompt updates, retrieval methods, contradiction detectors, planning procedures, and tool wrappers.
+- **X** evaluates candidates against frozen evidence in isolated sandboxes with evaluator separation, quarantine, replay, Genesis rollback, and required human approval.
+- **Poolday** shares signed improvement episodes and receipts across WebRTC peers, allowing independent agents to verify and adopt promoted capabilities.
 
-Internally, a claimed improvement must be represented by one signed,
-append-only `rsi.improvement-episode/v1` projection. The episode binds the
-objective, immutable baseline generation, declared metric semantics, protected
-evaluator and suite identities, hypothesis, candidate patch, isolated
-execution, raw paired observations, comparison, promotion or rollback, and
-structured reflection. Mutation, tool success, arena pass rate, telemetry,
-fitness, or saved reflection alone never establishes improvement. Rejected,
-inconclusive, superseded, and rolled-back candidates remain in the episode
-archive with explicit ancestry.
+Change Passport retains separate generic change-control authority. An external producer or evaluator can use it independently. A passport may deterministically reopen a decision when a verified trigger matches its frozen rule. Blocking a merge, activating a deployment, revoking authority, or requesting rollback remains a separately authorized effect. Approval state, evidence validity, and deployed effect state must never be collapsed.
 
-This authority split is a safety and development rule, not the customer value
-proposition. Zero and X become relevant to a product only when a promoted
-capability demonstrates a prospective reduction in that product's frozen
-decision cost. Zero and X remain discoverable through the homepage's small
-Experiments footer, outside primary navigation. Those links do not promote
-the experiments into the main product or claim validated improvements.
+Internally, every claimed improvement must be represented by one signed, append-only `rsi.improvement-episode/v1` projection. The episode binds the objective, immutable baseline generation, declared metric semantics, protected evaluator and suite identities, hypothesis, candidate patch, isolated execution, raw paired observations, comparison, promotion or rollback, and structured reflection. Mutation, tool success, arena pass rate, telemetry, fitness, or saved reflection alone never establishes improvement. Rejected, inconclusive, superseded, and rolled-back candidates remain in the episode archive with explicit ancestry.
+
+This authority split is a safety and development rule, ensuring that experimental candidate modifications never compromise the stable agent currently pursuing active goals for users. Zero and X remain discoverable through the homepage's Experiments footer, providing inspectable evidence for recursive self-improvement without confusing the active problem-solving interface.
 
 ## Competitive baseline and durable value
 

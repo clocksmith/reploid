@@ -1047,7 +1047,7 @@
     {
       "path": "pool/document-answer.js",
       "owner": "pool",
-      "sha256": "sha256:1ce5c25950bee4697d78b998eefb8921a55f634cbcfb214204cb4f0c48083e87",
+      "sha256": "sha256:2c3cee8f458f85edb2306a53053cf1b15566ea0f8f18f9651c55efac6ffa6de2",
       "imports": []
     },
     {
@@ -1730,6 +1730,16 @@
       "imports": [
         "./config.js",
         "./model-contract.js"
+      ]
+    },
+    {
+      "path": "pool/protein-investigation.js",
+      "owner": "pool",
+      "sha256": "sha256:2432950825fd6ed89ec04b182cea598dd5b4ea73add394f1dd9061e39ab99d42",
+      "imports": [
+        "./canonical-json.js",
+        "./inference-receipt.js",
+        "./protein-uncertainty-campaign.js"
       ]
     },
     {
@@ -2682,7 +2692,7 @@
     {
       "path": "ui/pool-home/controls.js",
       "owner": "ui",
-      "sha256": "sha256:f4e143ecc07f8b19939d6b78f628216142bbf749758c59ab1b925d9f77e9da74",
+      "sha256": "sha256:b540d42b3c0250f9df4522cff03296859cf3db75f36beaa4f138838f25c66483",
       "imports": [
         "../../pool/adapter-publication.js",
         "../../pool/adapter-registry.js",
