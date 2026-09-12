@@ -1280,8 +1280,8 @@
     },
     {
       "path": "config/module-inventory.json",
-      "byteLength": 95701,
-      "sha256": "sha256:827282f0fadf32f1210d297bff6b97ccf6f6523c2c3415826fe272c3751515c9"
+      "byteLength": 96011,
+      "sha256": "sha256:8f8145ff2bcd122646d15ac48042edfecd4019070e0f4ec1dbedfbae61d9aaf9"
     },
     {
       "path": "config/module-registry.json",
@@ -1985,8 +1985,8 @@
     },
     {
       "path": "pool/document-answer.js",
-      "byteLength": 3824,
-      "sha256": "sha256:1ce5c25950bee4697d78b998eefb8921a55f634cbcfb214204cb4f0c48083e87"
+      "byteLength": 3670,
+      "sha256": "sha256:2c3cee8f458f85edb2306a53053cf1b15566ea0f8f18f9651c55efac6ffa6de2"
     },
     {
       "path": "pool/document-delegation.d.ts",
@@ -2407,6 +2407,11 @@
       "path": "pool/pool-config.json",
       "byteLength": 76440,
       "sha256": "sha256:f71aa54e9fb1c4f6013817de554289bcb7beecb2d84b9669fa65aaa9e237a77b"
+    },
+    {
+      "path": "pool/protein-investigation.js",
+      "byteLength": 14016,
+      "sha256": "sha256:2432950825fd6ed89ec04b182cea598dd5b4ea73add394f1dd9061e39ab99d42"
     },
     {
       "path": "pool/protein-uncertainty-campaign.js",
@@ -3264,5 +3269,5 @@
       "sha256": "sha256:f0839f1a37e68e05baa3bd3823460bc9d742420485f12ae03979781adbb865ca"
     }
   ],
-  "bundleHash": "sha256:0a9bc753386ca3be9704bb87c98bf8be17869f30cda1eba23e0f106e3a2444ab"
+  "bundleHash": "sha256:a87ed3fce213a15710a03a844fbeae1dfbac2ab97e018c45ec666927d870296a"
 }

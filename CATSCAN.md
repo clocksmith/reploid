@@ -4,10 +4,7 @@ Parent: none
 
 ## Target
 
-Reproduce an open execution network with Doppler: exact peer execution and
-retained evidence improve later useful work for independent operators.
-Keep Zero and X as secondary RSI browser agents
-and Change Passport as an inactive alternative with separate authority.
+Deliver an evolving problem-solving agent that pursues goals for humans and agents via Doppler model inference, collaborates with peers over WebRTC via Poolday, and recursively improves its problem-solving methods through independently evaluated experience.
 
 ## Authority
 - Owns repository-wide product boundaries, component precedence, and proof requirements.
@@ -28,9 +25,9 @@ Outputs:
 - Recursive component authority in the [component index](docs/component-index.md).
 
 ## Invariants
-- Poolday is primary; Zero and X are secondary and retain separate authority.
-- Change Passport remains an inactive alternative; Room-1 is optional scientific proof.
-- Generic change control retains authority separate from Poolday.
+- The agent is the product; chat is an interface, domains are application targets, Poolday is peer collaboration infrastructure, and Doppler is independent model execution.
+- Problem-solving and improvement loops operate with strict separation.
+- Candidates cannot modify hidden acceptance tests, escalate permissions, erase failures, or self-approve.
 - Claims stay bounded by recorded acceptance evidence.
 - Free adoption counts; commercial outcomes do not gate technical completion.
 - Existing code cannot silently overrule a charter.
@@ -40,7 +37,7 @@ Outputs:
 - Evidence: [CATSCAN validator tests](tests/unit/catscan.test.js).
 
 ## Non-goals
-- Defining every implementation mechanism or treating peer count, mutation volume, and inference volume as product outcomes.
+- Treating peer count, mutation volume, inference volume, or raw activity as product outcomes.
 
 ## Freedom
 Any mechanism is permitted if it preserves these boundaries and passes the acceptance evidence.
