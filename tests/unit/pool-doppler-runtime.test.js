@@ -52,7 +52,7 @@ describe('Doppler browser runtime adapter', () => {
       modelHash: `sha256:${'e'.repeat(64)}`, manifestHash: `sha256:${'f'.repeat(64)}` },
       encodeSequence: testSequenceEncoding, close: async () => { closes++; } });
     // Synthetic public module at the installed pin; this is API selection, not a release claim.
-    globalThis.REPLOID_DOPPLER_MODULE = { DOPPLER_VERSION: '0.6.0', openCapsule: async (source, options) => {
+    globalThis.REPLOID_DOPPLER_MODULE = { DOPPLER_VERSION: '0.6.1', openCapsule: async (source, options) => {
       opens++;
       expect(source).toBe('https://fixtures.invalid/capsule.json');
       expect(options.acceptedTargetPlanDigests).toEqual(f.binding.acceptedTargetPlanDigests);
