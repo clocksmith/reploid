@@ -406,9 +406,9 @@
     {
       "path": "core/cycle-artifacts.js",
       "owner": "core",
-      "sha256": "sha256:a3bad46e0d8ac89193e79f1473413a38f31d1c352edd0a53e853d22a6ad1669a",
+      "sha256": "sha256:762d9d53b08543eb4c741d1ea7112bc2627de57b1371631dc0117f14081f1abe",
       "imports": [
-        "../vendor/reploid/agent/cycle-artifacts.js"
+        "../vendor/reploid/index.js"
       ]
     },
     {
@@ -1427,10 +1427,10 @@
     {
       "path": "pool/p2p-signaling.js",
       "owner": "pool",
-      "sha256": "sha256:62af3056c1a4014c359d809977dc1155119e146dbe3bcc2f450e201963a98283",
+      "sha256": "sha256:bb6b9b621e29cab902deaad69a8f42d47893dd87c5e44f9ab81269b8e7e4de1b",
       "imports": [
         "../vendor/reploid/config/index.js",
-        "../vendor/reploid/transport/signaling.js"
+        "../vendor/reploid/transport/index.js"
       ]
     },
     {
@@ -1854,9 +1854,9 @@
     {
       "path": "pool/retry-policy.js",
       "owner": "pool",
-      "sha256": "sha256:f8a153937c9bff4361f1fe75e17a7691aff3663f057c65b21bfca9f19ed8b334",
+      "sha256": "sha256:c34f5c8a9438864cfb8b715db563bcac7a1c3989180010f8510f2c5386784661",
       "imports": [
-        "../vendor/reploid/transport/retry-policy.js"
+        "../vendor/reploid/transport/index.js"
       ]
     },
     {
@@ -2069,12 +2069,12 @@
     {
       "path": "self/identity.js",
       "owner": "self",
-      "sha256": "sha256:c95a03ed820486d0e0673b88619bf686e5b45bde38976e05489eb32e27e07f9e",
+      "sha256": "sha256:a85443a623af42a4da1e88e122c74abe09bccf6c428d1e838fa9cf9b79366805",
       "imports": [
         "./instance.js",
         "./reward-policy.js",
         "./swarm.js",
-        "./vendor/reploid/artifacts/identity.js"
+        "./vendor/reploid/adapters/browser.js"
       ]
     },
     {
@@ -2132,17 +2132,17 @@
     {
       "path": "self/receipt.js",
       "owner": "self",
-      "sha256": "sha256:7705b334d73166b34df1143c75097ad7477cab01db92d5707f509a2fd8c351f7",
+      "sha256": "sha256:5cb6a6829d6283eb43d6afd5993e5c81505b85f265e982ab8365d50474ec3492",
       "imports": [
-        "./vendor/reploid/artifacts/receipt.js"
+        "./vendor/reploid/adapters/browser.js"
       ]
     },
     {
       "path": "self/reward-policy.js",
       "owner": "self",
-      "sha256": "sha256:dc365248549840eabaf400c7350af1037285117f6f5722fa767d285a05cce399",
+      "sha256": "sha256:a06d758487511b6ec28ae132cdfb2c64baec73adc7b4eebfbaa9b65a760df8f2",
       "imports": [
-        "./vendor/reploid/mesh/contribution.js"
+        "./vendor/reploid/mesh/index.js"
       ]
     },
     {
@@ -2163,9 +2163,9 @@
     {
       "path": "self/swarm.js",
       "owner": "self",
-      "sha256": "sha256:59eda5e89f2b6ac40d92465c548701329c65aa53be98a21f674999922d708756",
+      "sha256": "sha256:11197259db71def99ce8fade5ad880395cd7bdbd00acf55da512ee4c56d63da0",
       "imports": [
-        "./vendor/reploid/mesh/swarm-coordination.js"
+        "./vendor/reploid/mesh/index.js"
       ]
     },
     {
@@ -3146,9 +3146,10 @@
     {
       "path": "vendor/reploid/adapters/browser.js",
       "owner": "vendor",
-      "sha256": "sha256:ab50ae86a60be7f9d0e88ff5fc6d97fc449157e4385f93887e7175c7bcd46f65",
+      "sha256": "sha256:4b602857d7733a09c4a050d8a4afb032c7ef91ce54f1afd03e2efaf7c75f0304",
       "imports": [
         "../artifacts/identity.js",
+        "../artifacts/receipt.js",
         "../artifacts/store.js",
         "../config/index.js"
       ]
@@ -3262,8 +3263,9 @@
     {
       "path": "vendor/reploid/index.js",
       "owner": "vendor",
-      "sha256": "sha256:254f20820afce2d8e504cfa9817ad783254a710b8037d45d50b010c33930ff30",
+      "sha256": "sha256:cad50a72a3c129eeac012fb0376eb82a22e928eff5c783a29bb1bba579a70d12",
       "imports": [
+        "./agent/cycle-artifacts.js",
         "./agent/legacy-loop.js",
         "./agent/protocol.json",
         "./agent/response-parser.js",
@@ -3284,7 +3286,7 @@
     {
       "path": "vendor/reploid/mesh/index.js",
       "owner": "vendor",
-      "sha256": "sha256:88a64d929af9193c45d9794d6a0dc1e6b59fc495396cf8207cf7b3335cc7f951",
+      "sha256": "sha256:b11a0b6a0d903093ba0220e247ccafd339ccf86b03e2127fc639bbe4468f3da0",
       "imports": [
         "../config/index.js",
         "../rules/routing.rules.json",
@@ -3324,9 +3326,10 @@
     {
       "path": "vendor/reploid/transport/index.js",
       "owner": "vendor",
-      "sha256": "sha256:7ae38584e8bef41a709aa3f9a8a3cf69b44edefa39b5a6b79c1193bad828d868",
+      "sha256": "sha256:95416d718144bb1a9ae271c1a531738efc5c8e1ab29d50bf4e5d33be67fa611e",
       "imports": [
         "./assignment.js",
+        "./retry-policy.js",
         "./room.js",
         "./signaling.js",
         "./swarm.js"

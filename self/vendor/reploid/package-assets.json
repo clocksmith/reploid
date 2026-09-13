@@ -37,13 +37,13 @@
   "files": [
     {
       "path": "adapters/browser.d.ts",
-      "bytes": 381,
-      "sha256": "441e29eb7ab4fc43648cb9cacd57ab29e8b7dc0cffe65f91e28af4ee8eef8220"
+      "bytes": 460,
+      "sha256": "ba9d34f458686251ebce964c300ede8f94e2fc8902218fdd79778845c9b79f09"
     },
     {
       "path": "adapters/browser.js",
-      "bytes": 3810,
-      "sha256": "ab50ae86a60be7f9d0e88ff5fc6d97fc449157e4385f93887e7175c7bcd46f65"
+      "bytes": 3889,
+      "sha256": "4b602857d7733a09c4a050d8a4afb032c7ef91ce54f1afd03e2efaf7c75f0304"
     },
     {
       "path": "adapters/doppler.d.ts",
@@ -217,13 +217,13 @@
     },
     {
       "path": "index.d.ts",
-      "bytes": 3212,
-      "sha256": "8a99a6f0f0ea0ab8a132395c9b575a354e91e82c82108df4e30b2b1fbcd7f34a"
+      "bytes": 3340,
+      "sha256": "baf0502eb0810287101c4ee9396480a16befac652525b313441cb3fc288dd427"
     },
     {
       "path": "index.js",
-      "bytes": 7740,
-      "sha256": "254f20820afce2d8e504cfa9817ad783254a710b8037d45d50b010c33930ff30"
+      "bytes": 7868,
+      "sha256": "cad50a72a3c129eeac012fb0376eb82a22e928eff5c783a29bb1bba579a70d12"
     },
     {
       "path": "mesh/contribution.d.ts",
@@ -237,13 +237,13 @@
     },
     {
       "path": "mesh/index.d.ts",
-      "bytes": 631,
-      "sha256": "289034385196eede9c470bb4288f58d533ed640799a60146daca4c717749352d"
+      "bytes": 750,
+      "sha256": "77b0d1a1c1335b32513ccef490587521f16ceabf67b7caa7c31f2abb9bfabc64"
     },
     {
       "path": "mesh/index.js",
-      "bytes": 2323,
-      "sha256": "88a64d929af9193c45d9794d6a0dc1e6b59fc495396cf8207cf7b3335cc7f951"
+      "bytes": 2442,
+      "sha256": "b11a0b6a0d903093ba0220e247ccafd339ccf86b03e2127fc639bbe4468f3da0"
     },
     {
       "path": "mesh/legacy-generation.d.ts",
@@ -287,13 +287,13 @@
     },
     {
       "path": "transport/index.d.ts",
-      "bytes": 163,
-      "sha256": "a9ff2ed11401bdff350878c1aec586da67c64260c7775ee070d08b3a0d8ee659"
+      "bytes": 258,
+      "sha256": "3b5437abf6b6559d79a9311e7ca7503b8b1ac30c67ba2d8ccfc6bbd5a4b292f2"
     },
     {
       "path": "transport/index.js",
-      "bytes": 286,
-      "sha256": "7ae38584e8bef41a709aa3f9a8a3cf69b44edefa39b5a6b79c1193bad828d868"
+      "bytes": 381,
+      "sha256": "95416d718144bb1a9ae271c1a531738efc5c8e1ab29d50bf4e5d33be67fa611e"
     },
     {
       "path": "transport/retry-policy.d.ts",

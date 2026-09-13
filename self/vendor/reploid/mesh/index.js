@@ -1,6 +1,8 @@
 export { createLegacyGenerationMesh } from './legacy-generation.js';
 export * from './swarm-coordination.js';
-export { rankProviderPeers } from './contribution.js';
+export * from './contribution.js';
+export { default as contributionPolicy } from './contribution.js';
+export { default as swarmCoordination } from './swarm-coordination.js';
 import routing from '../rules/routing.rules.json' with { type: 'json' };
 import { requireResolvedConfig, snapshotJson } from '../config/index.js';
 

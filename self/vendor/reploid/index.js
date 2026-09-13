@@ -160,3 +160,5 @@ export function createReploid({ config, ports }) {
     }
   });
 }
+
+export { CYCLE_ARTIFACT_ROOT, getCycleId, getCycleArtifactPath, createCycleArtifactWriter } from './agent/cycle-artifacts.js';
