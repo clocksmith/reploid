@@ -1,4 +1,4 @@
-import { createPeerIdFromPublicJwk, encodeBytes, fromBase64Url, getIdentityImportAlgorithm, getIdentitySignAlgorithm, importSigningKey, importVerificationKey, toBase64Url } from './vendor/reploid/artifacts/identity.js';
+import { createPeerIdFromPublicJwk, encodeBytes, fromBase64Url, getIdentityImportAlgorithm, getIdentitySignAlgorithm, importSigningKey, importVerificationKey, toBase64Url } from './vendor/reploid/adapters/browser.js';
 export { createPeerIdFromPublicJwk, encodeBytes, fromBase64Url, getIdentityImportAlgorithm, getIdentitySignAlgorithm, importSigningKey, importVerificationKey, toBase64Url };
 /**
  * @fileoverview Identity helpers for the awakened Reploid self.

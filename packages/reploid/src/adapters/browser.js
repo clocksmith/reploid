@@ -1,5 +1,7 @@
 export { createMemoryStore, createVfs } from '../artifacts/store.js';
-export { createSigningIdentity } from '../artifacts/identity.js';
+export * from '../artifacts/identity.js';
+export * from '../artifacts/receipt.js';
+export { default as receipt } from '../artifacts/receipt.js';
 import { snapshotJson } from '../config/index.js';
 
 export function createIndexedDbStore({ databaseName, storeName, version, openTimeoutMs,
