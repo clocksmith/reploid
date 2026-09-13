@@ -7,7 +7,8 @@ Parent: [Browser Runtime](../CATSCAN.md)
 Package optional optimization, reflection, memory, and swarm behaviors behind explicit runtime and verification boundaries.
 
 ## Authority
-- Owns capability-specific implementations and their internal state.
+- Owns capability-specific application integration and state not yet extracted.
+- Reusable swarm transports live in the browser library; communication modules here translate application configuration and forward to that owner.
 - Does not own core safety gates, surface authority, or promotion decisions.
 
 ## Scope

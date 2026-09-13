@@ -1,0 +1,47 @@
+{
+  "schema": "reploid.application-library-profile/v1",
+  "profile": {
+    "schema": "reploid.profile/v1",
+    "id": "legacy-application",
+    "config": {
+      "tools": {
+        "allowed": [
+          "ReadFile",
+          "WriteFile",
+          "Promote",
+          "LoadModule"
+        ],
+        "allowDynamic": true
+      },
+      "mesh": {
+        "executeJobs": true,
+        "routing": "local-first"
+      },
+      "webrtc": {
+        "protocol": "swarm/v1",
+        "rtcConfig": {
+          "iceServers": [
+            {
+              "urls": "stun:stun.l.google.com:19302"
+            },
+            {
+              "urls": "stun:stun1.l.google.com:19302"
+            }
+          ],
+          "iceTransportPolicy": "all"
+        },
+        "maxPendingRemoteIceCandidates": 32,
+        "dataChannelOptions": {
+          "ordered": true,
+          "maxRetransmits": 3
+        }
+      }
+    }
+  },
+  "persistence": {
+    "storeName": "files",
+    "version": 1,
+    "keyPath": "path",
+    "openTimeoutMs": 10000
+  }
+}

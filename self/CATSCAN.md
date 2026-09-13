@@ -7,7 +7,8 @@ Parent: [Reploid](../CATSCAN.md)
 Boot the selected Reploid surface in a browser with explicit configuration, recoverable state, and inspectable authority boundaries.
 
 ## Authority
-- Owns browser boot, runtime composition, local persistence, and user-interface delivery.
+- Owns browser boot, application composition, persistence choices, credentials and user-interface delivery.
+- Reusable runtime, persistence and peer mechanics move to `packages/reploid/`; temporary modules here forward to its generated public entries.
 - Does not own hosted relay truth, scientific truth, or repository strategy.
 
 ## Scope

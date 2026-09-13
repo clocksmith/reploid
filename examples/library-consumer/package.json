@@ -1,0 +1,8 @@
+{
+  "name": "reploid-independent-browser-consumer",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "reploid": "file:../../artifacts/npm/reploid-0.1.0.tgz"
+  }
+}
