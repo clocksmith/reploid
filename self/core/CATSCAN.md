@@ -7,7 +7,8 @@ Parent: [Browser Runtime](../CATSCAN.md)
 Execute bounded agent cycles and tool calls under explicit verification and resource contracts.
 
 ## Authority
-- Owns agent-loop, context, VFS, tool, verification, and promotion mechanics.
+- Owns application adapters for agent, context, VFS, tool, verification and promotion services during extraction.
+- Reusable agent-loop, VFS, tool and signed-episode implementations live in `packages/reploid/`; application prompts and protected activation policy remain here.
 - Does not own Poolday evidence admission, Zero objectives, X evaluation policy, or product claims.
 
 ## Scope

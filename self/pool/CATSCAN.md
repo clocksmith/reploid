@@ -7,7 +7,8 @@ Parent: [Browser Runtime](../CATSCAN.md)
 Distribute, execute, coordinate; adjudicate public-protein evidence.
 
 ## Authority
-- Owns discovery, authorization, assignment, transport, recovery, accounting, admission.
+- Owns Poolday discovery/admission policy, assignment integration, recovery integration and accounting.
+- Reuses package-owned WebRTC/signaling through compatibility adapters. Durable Pack-job and custody extraction remain separate work; legacy swarm behavior does not replace them.
 - Doppler owns Pack signatures, final integrity, verified cache, execution.
 - Excludes truth, relays, RSI, private-sequence delegation.
 

@@ -1,0 +1,109 @@
+{
+  "schema": "reploid.config/v1",
+  "agent": {
+    "maxCycles": 2048,
+    "maxBatchTools": 5,
+    "singleToolNudgeThreshold": 3,
+    "milestoneAutoparkThreshold": 3,
+    "maxContextChars": 2000000,
+    "timeoutMs": 300000,
+    "retryDelayMs": 30000,
+    "maxRetryDelayMs": 300000,
+    "rgrArchiveLimit": 24,
+    "requiredAnchorObservations": 3,
+    "toolStringPreviewChars": 2048,
+    "toolResultPayloadChars": 4096,
+    "toolBatchBodyChars": 12288,
+    "toolSanitizeMaxDepth": 4,
+    "toolSanitizeArrayLimit": 25
+  },
+  "tools": {
+    "allowed": [],
+    "parallelSafe": [
+      "ReadFile"
+    ],
+    "ordered": [
+      "WriteFile",
+      "LoadModule"
+    ],
+    "exclusive": [
+      "Promote"
+    ],
+    "loaderId": null,
+    "allowDynamic": false
+  },
+  "memory": {
+    "storeId": null,
+    "checkpointPrefix": "/checkpoints",
+    "maxCheckpointBytes": 16777216
+  },
+  "models": {
+    "providerId": null,
+    "contract": null
+  },
+  "mesh": {
+    "enabled": false,
+    "executeJobs": false,
+    "supplyArtifacts": false,
+    "shareCandidates": false,
+    "roomId": null,
+    "routing": "local-only",
+    "generationTimeoutMs": 45000,
+    "maxPendingJobs": 8,
+    "maxInboundJobs": 1,
+    "maxRetainedJobs": 32
+  },
+  "webrtc": {
+    "protocol": "assignment/v1",
+    "signalingUrl": null,
+    "rtcConfig": {
+      "iceServers": [],
+      "iceTransportPolicy": "all"
+    },
+    "dataChannelLabel": "reploid-pool",
+    "dataChannelOptions": {
+      "ordered": true,
+      "maxRetransmits": null
+    },
+    "maxPendingRemoteIceCandidates": 64,
+    "pendingRemoteIceTtlMs": 30000,
+    "maxMessageBytes": 65536,
+    "maxBufferedBytes": 1048576,
+    "connectTimeoutMs": 30000,
+    "reconnectBaseMs": 1000,
+    "maxBackoffMs": 30000,
+    "heartbeatIntervalMs": 30000,
+    "peerTimeoutMs": 60000,
+    "announceIntervalMs": 15000,
+    "signalingProbeTimeoutMs": 2000,
+    "transportOrder": [
+      "webrtc"
+    ],
+    "sessionId": null,
+    "signaling": {
+      "pollIntervalMs": 1000,
+      "pollTimeoutMs": 5000,
+      "failureThreshold": 3,
+      "backoffBaseMs": 1000,
+      "backoffMaxMs": 30000
+    },
+    "broadcastRoomId": null
+  },
+  "artifacts": {
+    "root": "/artifacts",
+    "maxBytes": 268435456
+  },
+  "improvement": {
+    "enabled": false,
+    "evaluatorId": null,
+    "approvalId": null,
+    "isolationId": null
+  },
+  "observation": {
+    "enabled": true
+  },
+  "legacyAgent": {
+    "discoveryLimit": 3,
+    "maxToolCalls": 8
+  }
+}

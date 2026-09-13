@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reploid package consumer</title>
+<script type="importmap">
+{"imports":{"reploid":"./node_modules/reploid/src/index.js","reploid/config":"./node_modules/reploid/src/config/index.js","reploid/browser":"./node_modules/reploid/src/adapters/browser.js"}}
+</script>
+<h1>Independent package consumer</h1>
+<p>A deterministic model port exercises local lifecycle and tool calls. This is not an intelligence benchmark.</p>
+<button id="run">Run local goal</button>
+<button id="cancel">Cancel</button>
+<button id="close">Close</button>
+<pre id="state" aria-live="polite">No instance running.</pre>
+<script type="module" src="./main.js"></script>
+</html>

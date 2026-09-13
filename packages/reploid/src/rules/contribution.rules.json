@@ -1,0 +1,8 @@
+{
+  "outputPointsPer1k": 1,
+  "inputPointsPer1k": 0.25,
+  "diversityBonus": 0.15,
+  "repeatedPairCap": 3,
+  "minCountedTokens": 128,
+  "scoreHalfLifeMs": 2592000000
+}
