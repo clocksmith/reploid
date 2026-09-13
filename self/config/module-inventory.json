@@ -3319,7 +3319,7 @@
     {
       "path": "vendor/reploid/transport/assignment.js",
       "owner": "vendor",
-      "sha256": "sha256:50b088044284d3148d95eb28326f23ee415cb13eaa9157b7fc0fdbf0a7c6f01a",
+      "sha256": "sha256:713116e3ad1b712309cf326416d3e217c128b11556e05131901222bc382f18cf",
       "imports": [
         "../config/index.js",
         "./signaling.js"

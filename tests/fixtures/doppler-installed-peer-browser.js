@@ -8,8 +8,11 @@ import { verifyPackPeerEpisode } from '../../self/pool/peer-pack-episode.js';
 import { runPackOperation } from '../../self/pool/pack-operation.js';
 import { createPackOperationRegistry } from '../../self/pool/pack-operation-adapters.js';
 import { operationCapabilities, operationResources, packPeerIdentity } from './peer-pack-operation.js';
+import { createP2PTransport } from '../../self/pool/p2p-transport.js';
+import { SIGNAL_TYPES } from '../../self/pool/p2p-signaling.js';
 
 let pc, channelBus, provider, requester, session, service, model, identity, ready, replacement;
+let transport, signal, descriptionReady;
 let calls = 0, replacements = 0, dropped = false;
 const errors = [];
 const registry = createPackOperationRegistry();
@@ -43,9 +46,8 @@ export async function start(role) {
     runtime: 'doppler', backend: 'browser-webgpu', executionMode: 'complete_pack_browser',
     workload: registry.generate.workload, runtimeVersion: api.DOPPLER_VERSION, executablePack: binding };
   identity = await packPeerIdentity();
-  pc = new RTCPeerConnection({ iceServers: [] });
   let resolve;
-  ready = new Promise(done => { resolve = done; });
+  const channelReady = new Promise(done => { resolve = done; });
   const install = channel => {
     const opened = () => {
       channelBus = createPackJobDataChannel({ channel });
@@ -78,8 +80,26 @@ export async function start(role) {
     };
     if (channel.readyState === 'open') opened(); else channel.addEventListener('open', opened, { once: true });
   };
-  pc.addEventListener('datachannel', event => install(event.channel));
-  if (role === 'requester') install(pc.createDataChannel('installed-stream', { ordered: true }));
+  let descriptionSent;
+  descriptionReady = new Promise(done => { descriptionSent = done; });
+  transport = createP2PTransport({
+    initiator: role === 'requester', rtcConfig: { iceServers: [] },
+    dataChannelLabel: 'installed-stream', dataChannelOptions: { ordered: true },
+    onPeerConnection: connection => { pc = connection; }, onDataChannel: install,
+    signaling: {
+      subscribe: callback => { signal = callback; return () => { signal = null; }; },
+      sendOffer: descriptionSent, sendAnswer: descriptionSent,
+      // This fixture transfers the fully gathered SDP between browser contexts.
+      // Production signaling owns its own publication and trickled ICE policy.
+      sendIceCandidate() {}, sendClose() {},
+    }
+  });
+  const connected = transport.connect();
+  ready = Promise.all([connected, channelReady]);
+  descriptionReady = Promise.race([descriptionReady, connected.then(() => pc.localDescription)]);
+  // Observe setup immediately; public fixture methods still propagate rejection.
+  ready.catch(() => {});
+  descriptionReady.catch(() => {});
 }
 
 async function gathered() {
@@ -92,9 +112,13 @@ async function gathered() {
   });
   return pc.localDescription.toJSON();
 }
-export async function offer() { await pc.setLocalDescription(await pc.createOffer()); return gathered(); }
-export async function answer(offer) { await pc.setRemoteDescription(offer); await pc.setLocalDescription(await pc.createAnswer()); return gathered(); }
-export async function accept(answer) { await pc.setRemoteDescription(answer); await ready; }
+export async function offer() { await descriptionReady; return gathered(); }
+export async function answer(offer) {
+  signal({ type: SIGNAL_TYPES.OFFER, payload: offer });
+  await descriptionReady;
+  return gathered();
+}
+export async function accept(answer) { signal({ type: SIGNAL_TYPES.ANSWER, payload: answer }); await ready; }
 export async function advert() { await ready; return provider.createAdvert({ limits,
   capabilities: await operationCapabilities(model), expiresAt: Date.now() + 30000 }); }
 export async function run(advert) {
@@ -112,6 +136,7 @@ export async function run(advert) {
     transport: channelBus.getState(), errors };
 }
 export async function state() { await replacement; return { calls, replacements, dropped,
-  journal: await provider.getJournalStats(), transport: channelBus.getState(), errors }; }
+  journal: await provider.getJournalStats(), transport: channelBus.getState(),
+  connection: transport.getDiagnostics(), errors }; }
 export async function close() { await replacement; requester?.close(); await provider?.close();
-  channelBus?.close(); pc?.close(); await service?.closeAll(); }
+  channelBus?.close(); await transport?.close(); await service?.closeAll(); }

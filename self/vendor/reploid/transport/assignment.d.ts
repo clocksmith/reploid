@@ -1,6 +1,7 @@
 import type { ResolvedConfig } from '../config/index.js';
 import type { SignalingChannel } from './signaling.js';
 export interface P2PTransport {
+  /** Close and connection deadlines reject pending waiters without waiting for browser setup. Late setup results are ignored. */
   connect(): Promise<void>; ready(): Promise<void>; send(value: unknown): void; close(reason?: string | null): Promise<void>;
   getState(): string; getPeerConnection(): RTCPeerConnection | null; getDataChannel(): RTCDataChannel | null;
   getDiagnostics(): Record<string, unknown>;
