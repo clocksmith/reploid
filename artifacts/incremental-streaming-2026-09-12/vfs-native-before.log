@@ -1,0 +1,65 @@
+
+Running 4 tests using 1 worker
+
+(node:3302412) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:3302412) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 [chromium-swiftshader] › tests/e2e/vfs-storage-contract.spec.js:30:1 › existing inline-key VFS files survive writes and connection replacement (131ms)
+  ✘  2 [chromium-swiftshader] › tests/e2e/vfs-storage-contract.spec.js:58:1 › init opens storage once before any file operation and rejects after close (104ms)
+(node:3302726) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:3302726) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  3 [chromium-swiftshader] › tests/e2e/vfs-storage-contract.spec.js:82:1 › init surfaces a native database version failure before declaring readiness (143ms)
+(node:3302990) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:3302990) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  4 [chromium-swiftshader] › tests/e2e/vfs-storage-contract.spec.js:101:1 › an aborted write emits no committed change and closing one VFS leaves another usable (122ms)
+
+
+  1) [chromium-swiftshader] › tests/e2e/vfs-storage-contract.spec.js:58:1 › init opens storage once before any file operation and rejects after close 
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBe[2m([22m[32mexpected[39m[2m) // Object.is equality[22m
+
+    Expected: [32mtrue[39m
+    Received: [31mfalse[39m
+
+      75 |   });
+      76 |   expect(result.ready).toEqual([true, true, true]);
+    > 77 |   expect(result.exists).toBe(true);
+         |                         ^
+      78 |   expect(result.opens).toBe(1);
+      79 |   expect(result.closedError).toContain('closed');
+      80 | });
+        at /home/x/deco/worktrees/reploid-consumer-streaming/tests/e2e/vfs-storage-contract.spec.js:77:25
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/vfs-storage-contract-init--8382c-ion-and-rejects-after-close-chromium-swiftshader/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2) [chromium-swiftshader] › tests/e2e/vfs-storage-contract.spec.js:82:1 › init surfaces a native database version failure before declaring readiness 
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBe[2m([22m[32mexpected[39m[2m) // Object.is equality[22m
+
+    Expected: [32m"VersionError"[39m
+    Received: [31mnull[39m
+
+       96 |     finally { await vfs.close(); }
+       97 |   });
+    >  98 |   expect(result).toBe('VersionError');
+          |                  ^
+       99 | });
+      100 |
+      101 | test('an aborted write emits no committed change and closing one VFS leaves another usable', async ({ page }) => {
+        at /home/x/deco/worktrees/reploid-consumer-streaming/tests/e2e/vfs-storage-contract.spec.js:98:18
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/vfs-storage-contract-init--361f9--before-declaring-readiness-chromium-swiftshader/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2 failed
+    [chromium-swiftshader] › tests/e2e/vfs-storage-contract.spec.js:58:1 › init opens storage once before any file operation and rejects after close 
+    [chromium-swiftshader] › tests/e2e/vfs-storage-contract.spec.js:82:1 › init surfaces a native database version failure before declaring readiness 
+  2 passed (2.8s)
