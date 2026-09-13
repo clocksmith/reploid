@@ -63,7 +63,7 @@ same GPU device advanced its generation and caused the global pool to destroy
 another session's live buffers. The candidate fixes that owner; it does not
 destroy the shared device or replace the inference implementation.
 
-Reploid's full CI has an independent upstream baseline failure: 60 tests in seven
+Reploid's original full CI has an independent upstream baseline failure: 60 tests in seven
 files fail both in [remote CI](https://github.com/clocksmith/reploid/actions/runs/34735477819)
 and on unchanged upstream `2cbe2fc85d8fc4e5a5ba652f962219566c951fed`.
 [The retained upstream run](upstream-ci-failures.log) covers agent-loop, VFS,
@@ -99,6 +99,19 @@ Its signaling fixture transfers gathered SDP between two contexts; it does not
 test production signaling or separate operators. The Doppler archive remains
 `c21230a20471c8beb9fa414a326b7a2da889a4ef9d07c13f3f23e8db9a1ca962`.
 Physical model receipts above retain their original source and environment scope.
+
+[Remote installed-consumer CI also passes](https://github.com/clocksmith/doppler/actions/runs/34738987245)
+with the repaired transport pinned at `2aac9a2d5595b79ba0e03a16b12f5c1646c549eb`.
+The [downloaded CI archive comparison](peer-transport-ci-record.json) confirms
+byte-for-byte equality with the physical Doppler candidate. The
+[browser receipt](peer-transport-ci-browser.json) records actual connected
+transport diagnostics and the same successful streaming/replay assertions.
+
+The [new full CI failure comparison](peer-transport-ci-failure-comparison.json)
+reports 59 failures across six files, 208 passing files and three skipped files.
+Every remaining failure identity belongs to the original upstream baseline;
+only the repaired peer-transport close test was removed, and none was added.
+Full-suite acceptance remains incomplete.
 
 Component: Reploid Browser Library, Reploid Runtime Infrastructure, Poolday Evidence Runtime and Verification Evidence.
 Intent: preserved.
