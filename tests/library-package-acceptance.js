@@ -10,6 +10,7 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from '@playwright/test';
+import dopplerFixture from './library-doppler-fixture.json' with { type: 'json' };
 
 const execute = promisify(execFile);
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -44,6 +45,19 @@ async function command(name, executable, args, cwd) {
     throw error;
   }
 }
+async function checkDeclarations(directory, names, logName, ambientTypes = []) {
+  await writeFile(path.join(directory, 'consumer.ts'), names.map((name, index) =>
+    'import * as entry' + index + ' from ' + JSON.stringify(name) + ';\nvoid entry' + index + ';'
+  ).join('\n'));
+  await writeFile(path.join(directory, 'tsconfig.json'), JSON.stringify({
+    compilerOptions: { noEmit: true, strict: true, module: 'NodeNext', moduleResolution: 'NodeNext',
+      target: 'ES2022', lib: ['ES2022', 'DOM', 'DOM.Iterable'], types: ambientTypes, skipLibCheck: false },
+    files: ['consumer.ts']
+  }, null, 2));
+  await command(logName, process.execPath, [path.join(root, 'node_modules/typescript/bin/tsc'),
+    '--project', path.join(directory, 'tsconfig.json')], directory);
+  return { entries: names.length, ambientTypes };
+}
 let manifest = null;
 let server = null;
 let browser = null;
@@ -59,6 +73,7 @@ try {
       dependencies: { reploid: 'file:' + archive }
     }, null, 2));
     await command('npm-install', 'npm', ['install', '--ignore-scripts', '--no-audit', '--no-fund', '--legacy-peer-deps'], consumer);
+    await assert.rejects(access(path.join(consumer, 'node_modules/doppler-gpu/package.json')), { code: 'ENOENT' });
     manifest = JSON.parse(await readFile(path.join(consumer, 'node_modules/reploid/package.json'), 'utf8'));
     return { package: manifest.name, version: manifest.version, optionalDopplerPeerInstalled: false };
   });
@@ -132,19 +147,71 @@ try {
       assert(results.every(result => result.ok), 'Public import failures; see node-imports.json');
       return results;
     });
-    await check('installed-declarations', async () => {
-      await writeFile(path.join(consumer, 'consumer.ts'), names.map((name, index) =>
-        'import * as entry' + index + ' from ' + JSON.stringify(name) + ';\nvoid entry' + index + ';'
-      ).join('\n'));
-      await writeFile(path.join(consumer, 'tsconfig.json'), JSON.stringify({
-        compilerOptions: { noEmit: true, strict: true, module: 'NodeNext', moduleResolution: 'NodeNext',
-          target: 'ES2022', lib: ['ES2022', 'DOM', 'DOM.Iterable'], types: [], skipLibCheck: false },
-        files: ['consumer.ts']
-      }, null, 2));
-      await command('typescript', process.execPath, [path.join(root, 'node_modules/typescript/bin/tsc'),
-        '--project', path.join(consumer, 'tsconfig.json')], consumer);
-      return { entries: names.length };
+    await check('installed-core-declarations-without-doppler', () =>
+      checkDeclarations(consumer, names.filter(name => name !== 'reploid/doppler'), 'typescript-core'));
+    await check('installed-configuration-regression', async () => {
+      const code = `
+        import assert from 'node:assert/strict';
+        import { resolveConfig } from 'reploid/config';
+        const config = resolveConfig({
+          chain: [{ agent: { maxCycles: 10 }, webrtc: { signalingUrl: 'wss://example.test/signal' } }],
+          profile: { schema: 'reploid.profile/v1', id: 'acceptance', config: { agent: { maxCycles: 11 } } },
+          overrides: { agent: { maxCycles: 12 } }, request: { agent: { maxCycles: 13 } }
+        });
+        assert.equal(config.value.agent.maxCycles, 13);
+        assert.equal(config.provenance['agent.maxCycles'], 'request-overrides');
+        assert(Object.isFrozen(config.value.agent));
+        assert.equal(config.value.mesh.enabled, false);
+        assert.equal(resolveConfig().value.webrtc.signalingUrl, null);
+        assert.throws(() => resolveConfig({ overrides: { models: { contract: { privateJwk: {} } } } }),
+          /credentials belong in host ports/);
+        assert.throws(() => resolveConfig({ overrides: { webrtc: { signalingUrl: 'wss://user:secret@example.test' } } }),
+          /credential-free/);
+        assert.throws(() => resolveConfig({ request: { mesh: { executeJobs: true } } }), /not allowlisted/);
+        console.log(JSON.stringify({ precedence: true, immutable: true, secretsRejected: true, requestPolicyEnforced: true }));
+      `;
+      return JSON.parse((await command('configuration-regression', process.execPath,
+        ['--input-type=module', '-e', code], consumer)).trim());
     });
+    let dopplerConsumer = null;
+    await check('doppler-fixture-install', async () => {
+      const directory = await mkdtemp(path.join(tmpdir(), 'reploid-doppler-consumer-'));
+      report.dopplerConsumer = directory;
+      const expectedVersion = dopplerFixture.dependencies['doppler-gpu'];
+      assert(/^\d+\.\d+\.\d+$/.test(expectedVersion), 'Doppler fixture must use an exact version');
+      await writeFile(path.join(directory, 'package.json'), JSON.stringify({
+        ...dopplerFixture, dependencies: { ...dopplerFixture.dependencies, reploid: 'file:' + report.archive.path }
+      }, null, 2));
+      await command('npm-install-doppler', 'npm', ['install', '--ignore-scripts', '--no-audit', '--no-fund'], directory);
+      const installedDoppler = JSON.parse(await readFile(path.join(directory, 'node_modules/doppler-gpu/package.json'), 'utf8'));
+      assert.equal(installedDoppler.version, expectedVersion);
+      const typePackages = {};
+      for (const name of dopplerFixture.reploidAcceptance.types) {
+        const expected = dopplerFixture.dependencies[name];
+        assert(/^\d+\.\d+\.\d+$/.test(expected), 'Type fixture must use an exact version');
+        const installed = JSON.parse(await readFile(path.join(directory, 'node_modules', name, 'package.json'), 'utf8'));
+        assert.equal(installed.version, expected);
+        typePackages[name] = installed.version;
+      }
+      await writeFile(path.join(evidence, 'doppler-package-lock.json'), await readFile(path.join(directory, 'package-lock.json')));
+      dopplerConsumer = directory;
+      return { version: installedDoppler.version, typePackages, directory };
+    });
+    if (dopplerConsumer) {
+      await check('installed-declarations-with-doppler', () =>
+        checkDeclarations(dopplerConsumer, names, 'typescript-doppler', dopplerFixture.reploidAcceptance.types));
+      await check('installed-doppler-public-contract', async () => {
+        const code = `
+          import assert from 'node:assert/strict';
+          import { createDopplerProvider, openDopplerProvider } from 'reploid/doppler';
+          import { openCapsule } from 'doppler-gpu';
+          for (const api of [createDopplerProvider, openDopplerProvider, openCapsule]) assert.equal(typeof api, 'function');
+          console.log(JSON.stringify({ publicExports: true, modelExecution: false }));
+        `;
+        return JSON.parse((await command('doppler-public-contract', process.execPath,
+          ['--input-type=module', '-e', code], dopplerConsumer)).trim());
+      });
+    }
     await check('browser-launch', async () => {
       const mime = { '.html': 'text/html', '.js': 'text/javascript', '.json': 'application/json' };
       server = createServer(async (request, response) => {

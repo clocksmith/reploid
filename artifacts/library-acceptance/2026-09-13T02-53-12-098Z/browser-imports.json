@@ -1,0 +1,53 @@
+[
+  {
+    "name": "reploid",
+    "ok": false,
+    "error": "SyntaxError: Invalid or unexpected token"
+  },
+  {
+    "name": "reploid/mesh",
+    "ok": false,
+    "error": "SyntaxError: Invalid or unexpected token"
+  },
+  {
+    "name": "reploid/webrtc",
+    "ok": false,
+    "error": "SyntaxError: Invalid or unexpected token"
+  },
+  {
+    "name": "reploid/browser",
+    "ok": false,
+    "error": "SyntaxError: Invalid or unexpected token"
+  },
+  {
+    "name": "reploid/doppler",
+    "ok": false,
+    "error": "SyntaxError: Invalid or unexpected token"
+  },
+  {
+    "name": "reploid/improve",
+    "ok": true,
+    "exports": [
+      "ALGORITHM_MANIFEST_SCHEMA",
+      "ALGORITHM_REGISTRY_PATH",
+      "IMPROVEMENT_EPISODE_ROOT",
+      "IMPROVEMENT_EPISODE_SCHEMA",
+      "IMPROVEMENT_EVENT_SCHEMA",
+      "ImprovementEpisodeLedger",
+      "assessPromotionReadiness",
+      "canonicalJson",
+      "createImprovementLedger",
+      "hashImprovementValue",
+      "validateAlgorithmManifest",
+      "validateHypothesisReflection",
+      "validateImprovementEpisodePromotionEvidence",
+      "validateMetricDefinition",
+      "verifyImprovementEvents"
+    ]
+  },
+  {
+    "name": "reploid/config",
+    "ok": false,
+    "error": "SyntaxError: Invalid or unexpected token"
+  }
+]
