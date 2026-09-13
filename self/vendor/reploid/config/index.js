@@ -148,48 +148,7 @@ function validate(config) {
       rejectSecrets(item, `${path}.${key}`);
     }
   };
-  rejectSecrets(config, '
-
-export function resolveConfig({ chain = [], profile = null, overrides = {}, request = {} } = {}) {
-  if (!Array.isArray(chain)) throw new ConfigurationError('chain', 'expected array');
-  const value = snapshotJson(defaults);
-  const provenance = {};
-  recordSources(value, provenance);
-  chain.forEach((layer, index) => merge(value, snapshotJson(layer), `chain[${index}]`, provenance));
-  if (profile !== null) {
-    const selected = snapshotJson(profile);
-    if (selected.schema !== 'reploid.profile/v1' || typeof selected.id !== 'string' || !selected.config) {
-      throw new ConfigurationError('profile', 'expected versioned profile');
-    }
-    merge(value, selected.config, `profile:${selected.id}`, provenance);
-  }
-  merge(value, snapshotJson(overrides), 'application-overrides', provenance);
-  const requestLayer = snapshotJson(request);
-  const paths = {};
-  recordSources(requestLayer, paths);
-  for (const field of Object.keys(paths)) {
-    if (!requestPolicy.paths.includes(field)) throw new ConfigurationError(field, 'request override is not allowlisted');
-  }
-  merge(value, requestLayer, 'request-overrides', provenance);
-  validate(value);
-  // Canonical JSON is the full identity, not an unverified short checksum.
-  const identity = `reploid.config/v1:${JSON.stringify(snapshotJson(value))}`;
-  const resolved = freezeJson({ value, provenance, identity });
-  resolvedConfigurations.add(resolved);
-  return resolved;
-}
-
-export function requireResolvedConfig(config) {
-  if (!resolvedConfigurations.has(config)) throw new ConfigurationError('$', 'call resolveConfig() before construction');
-  return config.value;
-}
-
-export async function hashConfiguration(config, cryptoApi = globalThis.crypto) {
-  requireResolvedConfig(config);
-  const bytes = await cryptoApi.subtle.digest('SHA-256', new TextEncoder().encode(config.identity));
-  return `sha256:${Array.from(new Uint8Array(bytes), byte => byte.toString(16).padStart(2, '0')).join('')}`;
-}
-);
+  rejectSecrets(config, '$');
   if (config.webrtc.signalingUrl !== null) {
     let url;
     try { url = new URL(config.webrtc.signalingUrl); } catch { throw new ConfigurationError('webrtc.signalingUrl', 'expected absolute WebSocket URL'); }
