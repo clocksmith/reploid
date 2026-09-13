@@ -75,7 +75,7 @@ export async function openPeerPack({ authorization, index, inventories, requeste
       session,
       async run(request, { onPartial = null, signal = null, beforeExecute = null } = {}) {
         current();
-        return runPackOperation({ binding: grant.pack, session, runtimeVersion, request,
+        return runPackOperation({ binding: grant.pack, session, runtimeVersion, request, runtimeService: service,
           signal: signal ? AbortSignal.any([controller.signal, signal]) : controller.signal, onPartial, beforeExecute, assertCurrent: current });
       },
       getAcquisitionReceipt,

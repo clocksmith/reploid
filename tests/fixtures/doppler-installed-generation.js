@@ -7,6 +7,7 @@ import { createReploidDopplerRuntimeService, DOPPLER_GENERATION_CONTRACT } from 
 import { runPackOperation } from '../../self/pool/pack-operation.js';
 import { hashDopplerEvidence } from '../../self/pool/executable-pack.js';
 import { checkInstalledAdapters } from './doppler-installed-adapters.js';
+import { checkInstalledPeerStreaming } from './doppler-installed-peer-streaming.js';
 
 const consumer = process.env.DOPPLER_TEST_CONSUMER;
 assert(consumer, 'DOPPLER_TEST_CONSUMER must name the retained installed candidate consumer directory.');
@@ -32,7 +33,11 @@ const ports = {
   trustedSigners: fixture.trustedSigners,
   programFactory: async () => ({
     executionGraphHash: fixture.capsule.program.executionGraphHash,
-    tokenize: () => [0, 2], decodeTokens: ids => ids.join(','), getTokenContract: () => stop,
+    tokenize: () => [0, 2], decodeTokens: ids => ids.join(','),
+    createIncrementalDecoder() {
+      let first = true;
+      return { push(id) { const text = `${first ? '' : ','}${id}`; first = false; return text; }, pendingText: () => '', finish: () => '' };
+    }, getTokenContract: () => stop,
     reset() {}, getActiveAdapterIdentity: () => null,
     executePhase: async (phase, request) => {
       phases.push({ phase, sampling: request.context.generationOptions });
@@ -48,12 +53,13 @@ const makeRequest = overrides => ({ schema: 'doppler.capsule-operation-request/v
   input: { promptTokens: [0, 2] }, options: { ...options, ...overrides }, assignment: { id: 'installed-contract', attempt: 1 },
   limits: { maxInputBytes: 10000, maxOutputBytes: 100000, deadlineAt: Date.now() + 60000 } });
 const checks = [];
+let streamingAcceptance;
 try {
   const session = await service.openCapsule({ scope: 'a', source: fixture.capsule, options: ports });
   const second = await service.openCapsule({ scope: 'b', source: fixture.capsule, options: ports });
   const binding = { ...session.capsuleIdentity, artifacts: fixture.capsule.artifacts, requiredOperation: 'generate',
     acceptedTargetPlanDigests: [session.selectedTargetPlanDigest] };
-  const run = (request, extra = {}) => runPackOperation({ binding, session, request, runtimeVersion: api.DOPPLER_VERSION, ...extra });
+  const run = (request, extra = {}) => runPackOperation({ binding, session, request, runtimeVersion: api.DOPPLER_VERSION, runtimeService: service, ...extra });
   for (const [overrides, tokens] of [
     [{ presencePenalty: 2 }, [1]],
     [{ presencePenalty: 2, repetitionPenaltyWindow: 1 }, [0]],
@@ -114,13 +120,29 @@ try {
   await assert.rejects(run(makeRequest({}), { session: { ...session, generationContract: null } }), /contract mismatch/);
   assert.equal(phases.length, phaseCount);
   checks.push('invalid options and incompatible runtime rejected before inference');
+  const incrementalRequest = { ...makeRequest({ maxTokens: 3, presencePenalty: 2, repetitionPenaltyWindow: 1 }), schema: 'doppler.capsule-operation-request/v2' };
+  const incrementalPartials = [];
+  const incremental = await run(incrementalRequest, { onPartial: event => {
+    assert.equal(Object.hasOwn(event, 'output'), false);
+    incrementalPartials.push(event.delta);
+  } });
+  assert.deepEqual(incremental.output.tokenIds, [0, 1, 0]);
+  assert.equal(incrementalPartials.map(delta => delta.text).join(''), incremental.output.text);
+  assert.equal(incremental.receipt.stream.partialCount, incrementalPartials.length);
+  const streamAbort = new AbortController();
+  await assert.rejects(run(incrementalRequest, { signal: streamAbort.signal,
+    onPartial: () => streamAbort.abort(new Error('incremental cancellation')) }), /incremental cancellation/);
+  assert.equal((await run({ ...incrementalRequest, options: { ...incrementalRequest.options, stopSequences: ['0,1'] } })).output.completion.stopReason, 'stop-sequence');
+  streamingAcceptance = await checkInstalledPeerStreaming({ api, service, session, binding, makeRequest });
+  checks.push('v2 delta reconstruction, split stop sequence, cancellation, signed peer delivery and durable replay');
   assert.equal(released, phases.length, 'every emitted step result is released');
 } finally { await service.closeAll(); }
 assert.equal(closed, 2);
 const adapterAcceptance = await checkInstalledAdapters({ consumer, service, api, makeRequest });
-checks.push('request-bound adapters, failure replacement, cancellation and independent session cleanup');
+const incrementalAdapterAcceptance = await checkInstalledAdapters({ consumer, service, api, makeRequest: options => ({ ...makeRequest(options), schema: 'doppler.capsule-operation-request/v2' }) });
+checks.push('request-bound adapters, failure replacement, cancellation and independent session cleanup in both stream formats');
 console.log(JSON.stringify({ schema: 'reploid.installed-generation-contract-test/v1', passed: true,
-  runtimeEntry: entry, runtimeVersion: api.DOPPLER_VERSION, checks, phaseCalls: phases.length, released, closed, adapterAcceptance,
+  runtimeEntry: entry, runtimeVersion: api.DOPPLER_VERSION, checks, phaseCalls: phases.length, released, closed, adapterAcceptance, incrementalAdapterAcceptance, streamingAcceptance,
   model: { kind: 'signed test fixture with injected logits', modelId: fixture.capsule.modelId,
     capsuleHash: await hashDopplerEvidence(fixture.capsule) },
   evidence: 'installed API contract with injected logits; not physical model or semantic qualification' }));

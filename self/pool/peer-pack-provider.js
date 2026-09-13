@@ -1,7 +1,8 @@
+import { DopplerRuntimeService } from '../infrastructure/doppler-runtime-service.js';
 import { PEER_MESSAGE_TYPES } from './peer-protocol.js';
 import { createLocalPackExecutor } from './local-pack-executor.js';
 import { createPackOperationRegistry } from './pack-operation-adapters.js';
-import { snapshotPackOperationData as snapshot, assertPackOperationEvent } from './pack-operation.js';
+import { snapshotPackOperationData as snapshot, assertPackOperationEvent, createPackOperationStream } from './pack-operation.js';
 import { hashDopplerEvidence } from './executable-pack.js';
 import { openPackJobJournal } from '../infrastructure/pack-job-storage.js';
 import { PACK_JOB_POLICY, resolvePackJobPolicy } from './peer-pack-job-policy.js';
@@ -10,7 +11,7 @@ import { PACK_JOB_SCHEMA, PACK_UPDATE_SCHEMA, PACK_CANCEL_SCHEMA, packJobBytes,
 
 /** One physical executor, bounded replay records, and cooperative cancellation. */
 export function createPackPeerProvider({ identity, bus, models, authorize, adapterResolver = null,
-  registry = createPackOperationRegistry(), executor = createLocalPackExecutor({ registry }),
+  registry = createPackOperationRegistry(), runtimeService = DopplerRuntimeService, executor = createLocalPackExecutor({ registry, service: runtimeService }),
   policy: policyInput = PACK_JOB_POLICY, journal: suppliedJournal = null, journalName = policyInput.persistence.databaseName,
   maxAttempts = policyInput.persistence.maxRecords, maxRetainedBytes = policyInput.persistence.maxSavedBytes, onError = () => {} }) {
   const policy = resolvePackJobPolicy(policyInput);
@@ -72,7 +73,7 @@ export function createPackPeerProvider({ identity, bus, models, authorize, adapt
     requirePackJob(record.updates.length < record.job.body.intent.limits.maxEvents
       && record.bytes + bytes <= record.job.body.intent.limits.maxStreamBytes
       && retainedBytes + bytes <= maxRetainedBytes, 'response stream budget exhausted');
-    await (await storage()).append(descriptor(record), writer, message);
+    await (await storage()).append(descriptor(record), writer, message, { snapshot: false });
     record.updates.push(message); record.bytes += bytes; retainedBytes += bytes;
     // A transport failure cannot rewrite an already committed terminal result.
     if (status !== 'partial') record.status = status;
@@ -81,6 +82,8 @@ export function createPackPeerProvider({ identity, bus, models, authorize, adapt
   }
 
   async function restore(record, saved) {
+    record.streamAccumulator = await createPackOperationStream(record.job.body.intent.model.executablePack,
+      record.job.body.request, record.job.body.intent.model.runtimeVersion, runtimeService);
     let terminal = null;
     for (const [index, response] of saved.updates.entries()) {
       requirePackJob(!terminal && Date.parse(response.createdAt) >= Date.parse(record.job.createdAt)
@@ -96,7 +99,7 @@ export function createPackPeerProvider({ identity, bus, models, authorize, adapt
         const model = record.job.body.intent.model;
         await assertPackOperationEvent({ binding: model.executablePack, request: record.job.body.request,
           runtimeVersion: model.runtimeVersion, event: body.event, eventIndex: record.eventIndex,
-          previousEventDigest: record.previousEventDigest, registry });
+          previousEventDigest: record.previousEventDigest, registry, streamAccumulator: record.streamAccumulator });
         record.eventIndex++; record.previousEventDigest = body.event.eventDigest;
       } else requirePackJob(['failed', 'busy', 'cancelled'].includes(body.status) && body.event === null, 'invalid restored terminal response');
       if (body.status !== 'partial') terminal = body.status;
@@ -130,7 +133,8 @@ export function createPackPeerProvider({ identity, bus, models, authorize, adapt
         current(record);
         await admitted(record.job, record.controller.signal);
       }
-      const result = await executor.run({ model, adapterSet: intent.adapterSet,
+      record.streamAccumulator = await createPackOperationStream(model.executablePack, request, model.runtimeVersion, runtimeService);
+      const result = await executor.run({ model, requestSchema: request.schema, adapterSet: intent.adapterSet,
         adapterArtifactStore: resolvedAdapters?.artifactStore ?? null, assertAdaptersCurrent: resolvedAdapters?.assertCurrent ?? null, input: request.input, options: request.options,
         assignment: request.assignment, limits: request.limits, signal: record.controller.signal,
         beforeExecute: async () => {
@@ -144,7 +148,7 @@ export function createPackPeerProvider({ identity, bus, models, authorize, adapt
           await admitted(record.job, record.controller.signal);
           current(record);
           await assertPackOperationEvent({ binding: model.executablePack, request, runtimeVersion: model.runtimeVersion,
-            event, eventIndex: record.eventIndex, previousEventDigest: record.previousEventDigest, registry });
+            event, eventIndex: record.eventIndex, previousEventDigest: record.previousEventDigest, registry, streamAccumulator: record.streamAccumulator });
           await update(record, 'partial', event);
           record.eventIndex++; record.previousEventDigest = event.eventDigest;
         } });
@@ -153,8 +157,9 @@ export function createPackPeerProvider({ identity, bus, models, authorize, adapt
       await resolvedAdapters?.assertCurrent();
       current(record);
       await assertPackOperationEvent({ binding: model.executablePack, request, runtimeVersion: model.runtimeVersion,
-        event: result.completion, eventIndex: record.eventIndex, previousEventDigest: record.previousEventDigest, registry });
+        event: result.completion, eventIndex: record.eventIndex, previousEventDigest: record.previousEventDigest, registry, streamAccumulator: record.streamAccumulator });
       current(record);
+      record.streamAccumulator?.finish();
       await update(record, 'completed', result.completion);
       record.status = 'completed';
     } catch (error) {

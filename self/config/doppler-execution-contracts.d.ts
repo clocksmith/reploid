@@ -7,10 +7,13 @@ export interface DopplerExecutionContract {
   readonly sessionIdentity: 'packIdentity' | 'capsuleIdentity';
   readonly receiptIdentity: 'pack' | 'capsule';
   readonly identityFields: readonly string[];
-  readonly requestSchema: 'doppler.pack-operation-request/v1' | 'doppler.capsule-operation-request/v1';
-  readonly eventSchema: 'doppler.pack-operation-event/v1' | 'doppler.capsule-operation-event/v1';
+  readonly requestSchema: 'doppler.pack-operation-request/v1' | 'doppler.capsule-operation-request/v1' | 'doppler.capsule-operation-request/v2';
+  readonly eventSchema: 'doppler.pack-operation-event/v1' | 'doppler.capsule-operation-event/v1' | 'doppler.capsule-operation-event/v2';
+  readonly incremental?: boolean;
   readonly receiptSchema: string;
   readonly sequenceReceiptSchema: string;
   readonly adapterSchema: 'doppler.pack-adapter/v1' | 'doppler.capsule-adapter/v1';
 }
 export function resolveDopplerExecutionContract(schema: unknown): DopplerExecutionContract;
+
+export function resolveDopplerOperationContract(bindingSchema: unknown, requestSchema: unknown): DopplerExecutionContract;

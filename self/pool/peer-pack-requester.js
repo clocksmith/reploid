@@ -2,14 +2,15 @@ import { assessPeerOperation, validateOperationReference } from './operation-acc
 import { PACK_JOB_POLICY, resolvePackJobPolicy } from './peer-pack-job-policy.js';
 import { PEER_MESSAGE_TYPES } from './peer-protocol.js';
 import { createPackOperationRegistry } from './pack-operation-adapters.js';
-import { snapshotPackOperationData as snapshot, assertPackOperationEvent } from './pack-operation.js';
+import { snapshotPackOperationData as snapshot, assertPackOperationEvent, createPackOperationStream } from './pack-operation.js';
 import { hashDopplerEvidence } from './executable-pack.js';
+import { DopplerRuntimeService } from '../infrastructure/doppler-runtime-service.js';
 import { PACK_UPDATE_SCHEMA, PACK_CANCEL_SCHEMA, requirePackJob, packJobBytes,
   createPackPeerJob, verifyPackPeerJob, verifyPackPeerMessage, signPackPeerMessage } from './peer-pack-job.js';
 
 /** Explicit public delegation. Local document search never calls this automatically. */
 export function createPackPeerRequester({ identity, bus, models, registry = createPackOperationRegistry(),
-  policy: policyInput = PACK_JOB_POLICY, maxDeliveries = policyInput.retry.maxDeliveries, retryMs = policyInput.retry.delayMs, onError = () => {} }) {
+  policy: policyInput = PACK_JOB_POLICY, maxDeliveries = policyInput.retry.maxDeliveries, retryMs = policyInput.retry.delayMs, onError = () => {}, runtimeService = DopplerRuntimeService }) {
   const policy = resolvePackJobPolicy(policyInput);
   requirePackJob(Number.isSafeInteger(maxDeliveries) && maxDeliveries >= 1 && maxDeliveries <= policy.retry.maximumDeliveries
     && Number.isSafeInteger(retryMs) && retryMs >= policy.retry.minimumDelayMs && retryMs <= policy.retry.maximumDelayMs, 'bounded retry policy required');
@@ -73,7 +74,7 @@ export function createPackPeerRequester({ identity, bus, models, registry = crea
     requirePackJob(body.event?.status === body.status, 'event status mismatch');
     await assertPackOperationEvent({ binding: record.model.executablePack, request: record.job.body.request,
       runtimeVersion: record.model.runtimeVersion, event: body.event, eventIndex: record.eventIndex,
-      previousEventDigest: record.previousEventDigest, registry });
+      previousEventDigest: record.previousEventDigest, registry, streamAccumulator: record.streamAccumulator });
     current(record);
     record.eventIndex++; record.previousEventDigest = body.event.eventDigest;
     if (body.status === 'partial') {
@@ -81,6 +82,7 @@ export function createPackPeerRequester({ identity, bus, models, registry = crea
       current(record);
       return;
     }
+    record.streamAccumulator?.finish();
     const execution = snapshot({ request: record.job.body.request, output: body.event.output, receipt: body.event.receipt,
       completion: body.event, eventCount: record.eventIndex, finalEventDigest: body.event.eventDigest });
     const assessment = await assessPeerOperation({ job: record.job, execution, reference: record.reference, registry });
@@ -135,6 +137,8 @@ export function createPackPeerRequester({ identity, bus, models, registry = crea
           current(record);
           await validateOperationReference({ job, reference: data.reference, registry });
           record.requestHash = await hashDopplerEvidence(job.body.request);
+          record.streamAccumulator = await createPackOperationStream(record.model.executablePack,
+            job.body.request, record.model.runtimeVersion, runtimeService);
           current(record);
           record.job = job;
           await deliver(record);

@@ -18,7 +18,11 @@ export async function checkInstalledAdapters({ consumer, service, api, makeReque
       let active = null;
       return { executionGraphHash: fixture.capsule.program.executionGraphHash,
         getInitialExecutionIdentity: () => targetPlan.initialExecutionIdentity,
-        tokenize: () => [0, 2], decodeTokens: ids => ids.join(','), getTokenContract: () => ({}), reset() {},
+        tokenize: () => [0, 2], decodeTokens: ids => ids.join(','),
+    createIncrementalDecoder() {
+      let first = true;
+      return { push(id) { const text = `${first ? '' : ','}${id}`; first = false; return text; }, pendingText: () => '', finish: () => '' };
+    }, getTokenContract: () => ({}), reset() {},
         getActiveAdapterIdentity: () => active,
         async loadAdapter(manifest, control) {
           loads++;
@@ -45,7 +49,7 @@ export async function checkInstalledAdapters({ consumer, service, api, makeReque
   const request = { ...makeRequest({}), adapterSet: [fixture.adapter] };
   const adapterArtifactStore = { readArtifact: async () => Uint8Array.from(fixture.adapterBytes) };
   const run = (input = request, extra = {}) => runPackOperation({ binding, session, request: input,
-    runtimeVersion: api.DOPPLER_VERSION, adapterArtifactStore, ...extra });
+    runtimeVersion: api.DOPPLER_VERSION, runtimeService: service, adapterArtifactStore, ...extra });
   try {
     const [adapted, base] = await Promise.all([run(), run({ ...request, adapterSet: [] }, { session: second })]);
     assert.deepEqual(adapted.output.tokenIds, [1]);

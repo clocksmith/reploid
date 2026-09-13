@@ -20,3 +20,13 @@ export function resolveDopplerExecutionContract(schema) {
   if (!Object.hasOwn(contracts, schema)) throw new Error('Unsupported executable model schema');
   return contracts[schema];
 }
+
+export function resolveDopplerOperationContract(bindingSchema, requestSchema) {
+  const contract = resolveDopplerExecutionContract(bindingSchema);
+  if (requestSchema === contract.requestSchema) return contract;
+  const format = configuration.incrementalFormats?.[requestSchema];
+  if (!format || format.openMethod !== contract.openMethod || format.incremental !== true) {
+    throw new Error('Unsupported operation request format for this executable model');
+  }
+  return Object.freeze({ ...contract, ...format, requestSchema });
+}

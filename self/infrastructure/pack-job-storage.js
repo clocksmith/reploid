@@ -24,6 +24,8 @@ export async function openPackJobJournal({ providerId, policy: policyInput, name
   assert(typeof name === 'string' && name.length > 0 && typeof policy.storeName === 'string'
     && Number.isSafeInteger(maxAttempts) && maxAttempts > 0 && maxAttempts <= policy.recordCeiling
     && Number.isSafeInteger(maxBytes) && maxBytes > 0 && maxBytes <= policy.byteCeiling, 'invalid storage bounds');
+  assert(typeof policy.updatesStoreName === 'string' && policy.updatesStoreName !== policy.storeName
+    && policy.updatesLayoutSchema === 'reploid.pack-job-updates/v1', 'incremental update storage policy required');
   const descriptor = input => {
     const value = structuredClone(input);
     assert(digest(value?.requesterId) && digest(value.jobHash), 'exact requester and signed job hashes required');
@@ -45,6 +47,9 @@ export async function openPackJobJournal({ providerId, policy: policyInput, name
     opening.onupgradeneeded = () => {
       if (settled) { opening.transaction.abort(); return; }
       if (!opening.result.objectStoreNames.contains(policy.storeName)) opening.result.createObjectStore(policy.storeName, { keyPath: 'key' });
+      if (!opening.result.objectStoreNames.contains(policy.updatesStoreName)) {
+        opening.result.createObjectStore(policy.updatesStoreName, { keyPath: 'key' }).createIndex('attempt', 'attemptKey');
+      }
     };
     opening.onblocked = () => fail(new Error('Pack job journal upgrade blocked'));
     opening.onerror = () => fail(opening.error);
@@ -57,7 +62,7 @@ export async function openPackJobJournal({ providerId, policy: policyInput, name
   db.onversionchange = () => { closed = true; db.close(); };
   const transact = async action => {
     assert(!closed, 'closed');
-    const tx = db.transaction(policy.storeName, 'readwrite', { durability: policy.durability });
+    const tx = db.transaction([policy.storeName, policy.updatesStoreName], 'readwrite', { durability: policy.durability });
     const timer = setTimeout(() => { try { tx.abort(); } catch { /* Already settled. */ } }, policy.storageTimeoutMs);
     const finished = new Promise((resolve, reject) => {
       tx.oncomplete = () => { clearTimeout(timer); resolve(); };
@@ -67,6 +72,40 @@ export async function openPackJobJournal({ providerId, policy: policyInput, name
     finished.catch(() => {});
     try {
       const store = tx.objectStore(policy.storeName);
+      const updates = tx.objectStore(policy.updatesStoreName);
+      const updateEntry = (key, index, message) => ({ key: [key, index], attemptKey: key, message });
+      const storageRecord = async record => {
+        if (record._stream !== undefined) {
+          const stream = record._stream;
+          assert(record.updates.length === 0 && stream?.schema === policy.updatesLayoutSchema
+            && Number.isSafeInteger(stream.count) && stream.count >= 0
+            && Number.isSafeInteger(stream.bytes) && stream.bytes >= 0
+            && (stream.count === 0 ? stream.lastHash === null && stream.lastStatus === null
+              : digest(stream.lastHash) && Object.hasOwn(policy.outcomeStates, stream.lastStatus)), 'corrupt update metadata');
+          return record;
+        }
+        // One atomic migration of a legacy cumulative record. Signed messages
+        // retain their bytes and order; normal appends never read this history.
+        let bytes = 0;
+        for (const [index, message] of record.updates.entries()) {
+          const entry = updateEntry(record.key, index, message);
+          bytes += size(entry); await request(updates.add(entry));
+        }
+        return { ...record, updates: [], _stream: { schema: policy.updatesLayoutSchema,
+          count: record.updates.length, bytes, lastHash: record.updates.at(-1)?.messageHash ?? null,
+          lastStatus: record.updates.at(-1)?.body?.status ?? null } };
+      };
+      const storedSize = record => size(record) + record._stream.bytes;
+      const snapshot = async record => {
+        const entries = await request(updates.index('attempt').getAll(record.key));
+        assert(entries.length === record._stream.count
+          && entries.reduce((sum, entry) => sum + size(entry), 0) === record._stream.bytes
+          && entries.every((entry, index) => entry.key[0] === record.key && entry.key[1] === index)
+          && (entries.at(-1)?.message.messageHash ?? null) === record._stream.lastHash
+          && (entries.at(-1)?.message.body.status ?? null) === record._stream.lastStatus, 'corrupt stored update stream');
+        const { _stream, ...value } = record;
+        return { ...value, updates: entries.map(entry => entry.message) };
+      };
       const records = await request(store.getAll(null, policy.recordCeiling + 1));
       assert(records.length <= policy.recordCeiling, 'record count exceeds protocol ceiling');
       const live = [];
@@ -82,20 +121,36 @@ export async function openPackJobJournal({ providerId, policy: policyInput, name
         }
         assert(record.schema === policy.recordSchema && policy.states.includes(record.status)
           && Number.isSafeInteger(record.retainUntil) && record.retainUntil >= record.expiresAt, 'corrupt persisted state');
-        if (record.retainUntil <= Date.now()) { await request(store.delete(record.key)); continue; }
+        if (record.retainUntil <= Date.now()) {
+          const keys = await request(updates.index('attempt').getAllKeys(record.key));
+          for (const key of keys) await request(updates.delete(key));
+          await request(store.delete(record.key)); continue;
+        }
+        const migration = record._stream === undefined;
+        record = await storageRecord(record);
+        if (migration) await request(store.put(record));
         if (record.expiresAt <= Date.now() && record.status !== 'expired') {
           record = { ...record, status: 'expired' }; await request(store.put(record));
         }
         live.push(record);
       }
-      assert(live.length <= maxAttempts && live.reduce((sum, record) => sum + size(record), 0) <= maxBytes, 'persisted budget exceeded');
-      const save = async record => {
+      assert(live.length <= maxAttempts && live.reduce((sum, record) => sum + storedSize(record), 0) <= maxBytes, 'persisted budget exceeded');
+      const save = async (input, observe = true) => {
+        const record = await storageRecord(input);
         const others = live.filter(row => row.key !== record.key);
-        assert(others.length < maxAttempts && others.reduce((sum, row) => sum + size(row), size(record)) <= maxBytes, 'durable attempt budget exhausted');
+        assert(others.length < maxAttempts && others.reduce((sum, row) => sum + storedSize(row), storedSize(record)) <= maxBytes, 'durable attempt budget exhausted');
         await request(store.put(record));
-        return structuredClone(record);
+        return observe ? snapshot(record) : undefined;
       };
-      const result = await action(live, save);
+      const result = await action(live, save, {
+        snapshot, storedSize,
+        async append(prior, message) {
+          const entry = updateEntry(prior.key, prior._stream.count, message);
+          await request(updates.add(entry));
+          return { ...prior._stream, count: prior._stream.count + 1,
+            bytes: prior._stream.bytes + size(entry), lastHash: message.messageHash, lastStatus: message.body.status };
+        },
+      });
       await finished;
       assert(!closed, 'closed');
       return result;
@@ -137,35 +192,36 @@ export async function openPackJobJournal({ providerId, policy: policyInput, name
       const value = descriptor(input);
       return transact(async (records, save) => {
         const prior = find(records, value, owner);
-        assert(prior.status === 'accepted' && prior.updates.length === 0, 'only accepted attempt can start');
+        assert(prior.status === 'accepted' && prior._stream.count === 0, 'only accepted attempt can start');
         return save({ ...prior, status: 'running' });
       });
     },
-    async append(input, owner, message) {
+    async append(input, owner, message, { snapshot = true } = {}) {
       const value = descriptor(input), copy = structuredClone(message);
-      return transact(async (records, save) => {
+      return transact(async (records, save, stream) => {
         const prior = find(records, value, owner), body = copy.body;
         assert(body.jobHash === prior.jobHash && body.requestHash === prior.binding.requestHash
-          && body.updateIndex === prior.updates.length
-          && body.previousUpdateHash === (prior.updates.at(-1)?.messageHash ?? null), 'response does not extend durable stream');
-        assert(prior.status !== 'expired' && !['completed', 'failed', 'busy', 'cancelled'].includes(prior.updates.at(-1)?.body?.status), 'response after terminal record');
+          && body.updateIndex === prior._stream.count
+          && body.previousUpdateHash === prior._stream.lastHash, 'response does not extend durable stream');
+        assert(prior.status !== 'expired' && !['completed', 'failed', 'busy', 'cancelled'].includes(prior._stream.lastStatus), 'response after terminal record');
         assert(prior.status === 'running' || ['failed', 'busy', 'cancelled'].includes(body.status), 'unstarted or interrupted attempt cannot publish completion');
         assert(Object.hasOwn(policy.outcomeStates, body.status), 'invalid response status');
-        return save({ ...prior, status: policy.outcomeStates[body.status], outcome: body.status, updates: [...prior.updates, copy] });
+        const next = await stream.append(prior, copy);
+        return save({ ...prior, status: policy.outcomeStates[body.status], outcome: body.status, _stream: next }, snapshot);
       });
     },
     async cancel(input, owner) {
       const value = descriptor(input);
-      return transact(async (records, save) => {
+      return transact(async (records, save, stream) => {
         const key = keyFor(value), prior = records.find(record => record.key === key);
         assert(!prior || prior.jobHash === value.jobHash, 'cancellation differs from retained attempt');
-        if (prior?.status === 'expired' || ['completed', 'failed', 'busy', 'cancelled'].includes(prior?.updates.at(-1)?.body?.status)) return structuredClone(prior);
+        if (prior?.status === 'expired' || ['completed', 'failed', 'busy', 'cancelled'].includes(prior?._stream.lastStatus)) return stream.snapshot(prior);
         return save({ schema: policy.recordSchema, key, ...value, updates: [], ...prior, owner, status: 'cancelled',
           outcome: 'requester-cancelled', retainUntil: Math.max(prior?.retainUntil ?? 0, value.expiresAt + policy.retentionMs) });
       });
     },
     async getStats() {
-      return transact(records => ({ attempts: records.length, storedBytes: records.reduce((sum, record) => sum + size(record), 0),
+      return transact((records, _save, stream) => ({ attempts: records.length, storedBytes: records.reduce((sum, record) => sum + stream.storedSize(record), 0),
         states: Object.fromEntries(policy.states.map(state => [state, records.filter(record => record.status === state).length])),
         maxAttempts, maxBytes, retentionMs: policy.retentionMs, storage: 'indexeddb', persistence: 'browser-managed' }));
     },

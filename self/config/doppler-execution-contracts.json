@@ -1,5 +1,13 @@
 {
   "schema": "reploid.doppler-execution-contracts/v1",
+  "incrementalFormats": {
+    "doppler.capsule-operation-request/v2": {
+      "openMethod": "openCapsule",
+      "eventSchema": "doppler.capsule-operation-event/v2",
+      "receiptSchema": "doppler.capsule-operation-receipt/v2",
+      "incremental": true
+    }
+  },
   "formats": {
     "doppler.pack/v2": { "api": "pack", "releaseHistory": false },
     "doppler.pack/v3": { "api": "pack", "releaseHistory": true },
