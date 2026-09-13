@@ -25,9 +25,9 @@ import {
   saveIdentityBundle
 } from './identity.js';
 import { getCurrentReploidInstanceId } from './instance.js';
-import { createReceiptDraft, countersignReceipt, signReceiptDraft, verifyReceipt } from './receipt.js';
-import { applyReceiptToContribution } from './reward-policy.js';
-import { createPeerAdvertisement, createSwarmController } from './swarm.js';
+import { verifyReceipt } from './receipt.js';
+import { createLegacyGenerationMesh } from './vendor/reploid/mesh/index.js';
+import { createLegacyNetworkOptions } from './capabilities/communication/library-adapter.js';
 import { createSelfToolRunner } from './tool-runner.js';
 import { promoteShadowCandidate } from './tools/Promote.js';
 
@@ -329,14 +329,6 @@ export function createSelfBridge(options = {}) {
       });
     }
   });
-  const swarmController = createSwarmController();
-  const receiptHistory = [];
-  const pendingRemoteRequests = new Map();
-  let identityBundle = null;
-  let swarmTransport = options.swarmTransport || null;
-  let swarmInitPromise = null;
-  let swarmInitialized = false;
-  let swarmHandlersRegistered = false;
   let toolRunner = null;
 
   const readFile = async (args = {}) => {
@@ -485,300 +477,29 @@ export function createSelfBridge(options = {}) {
     isLoadablePath: (path) => isWithinRoot(path, '/self')
   });
 
-  const getTransportState = () => ({
-    connectionState: swarmTransport?.getConnectionState?.() || 'disconnected',
-    transport: swarmTransport?.getTransportType?.() || null
+  const networkOptions = createLegacyNetworkOptions({ Utils: utils, EventBus: eventBus }, { enabled: swarmEnabled });
+  const mesh = createLegacyGenerationMesh({
+    config: networkOptions.config,
+    ports: {
+      instanceId, modelConfig, utils, eventBus, events: bridgeEvents,
+      forceFreshIdentity: pendingFreshIdentity,
+      transport: options.swarmTransport || null,
+      createTransport: () => SwarmTransportModule.factory(networkOptions),
+      generate: (messages, onUpdate, control) => llmClient.chat(messages, modelConfig, onUpdate, control),
+      authorize: options.authorizePeerJob || (() => swarmEnabled),
+      identity: {
+        ensure: input => ensureIdentityBundle(input),
+        save: bundle => saveIdentityBundle(bundle, undefined, { instanceId }),
+        rotate: input => rotateIdentityBundle(input),
+        async sync(bundle, input) {
+          const document = buildIdentityDocument(bundle, input);
+          await writeVfsFile('/self/identity.json', JSON.stringify(document, null, 2));
+          return document;
+        }
+      }
+    }
   });
-
-  const getSwarmSnapshot = () => ({
-    instanceId,
-    ...swarmController.getState({
-      swarmEnabled,
-      hasInference: !!modelConfig
-    }),
-    ...getTransportState(),
-    peerId: identityBundle?.peerId || null,
-    peers: swarmController.listPeers()
-  });
-
-  const emitSwarmState = () => {
-    const snapshot = getSwarmSnapshot();
-    bridgeEvents.emit('swarm-state', snapshot);
-    if (snapshot.providerCount > 0) {
-      bridgeEvents.emit('provider-ready', snapshot);
-    }
-    return snapshot;
-  };
-
-  const syncIdentityDocument = async () => {
-    const document = buildIdentityDocument(identityBundle, {
-      instanceId,
-      swarmEnabled,
-      hasInference: !!modelConfig
-    });
-    await writeVfsFile('/self/identity.json', JSON.stringify(document, null, 2));
-    return document;
-  };
-
-  const advertiseSelf = () => {
-    if (!swarmEnabled || !swarmTransport || !identityBundle) return null;
-    const advertisement = createPeerAdvertisement({
-      peerId: identityBundle.peerId,
-      swarmEnabled,
-      hasInference: !!modelConfig,
-      capabilities: ['generation'],
-      contribution: identityBundle.contribution,
-      updatedAt: Date.now()
-    });
-    swarmTransport.broadcast('reploid:peer-advertisement', advertisement);
-    return advertisement;
-  };
-
-  const updateProviderContribution = async (receipt) => {
-    if (!identityBundle) return;
-    const priorHistory = [...receiptHistory];
-    receiptHistory.push(receipt);
-    identityBundle.contribution = applyReceiptToContribution(
-      identityBundle.contribution,
-      receipt,
-      priorHistory
-    );
-    saveIdentityBundle(identityBundle, undefined, { instanceId });
-    await syncIdentityDocument();
-    advertiseSelf();
-    emitSwarmState();
-  };
-
-  const updateConsumerReceiptCount = async () => {
-    if (!identityBundle) return;
-    const summary = identityBundle.contribution || {};
-    identityBundle.contribution = {
-      ...summary,
-      receiptsConsumed: Math.max(0, Number(summary.receiptsConsumed || 0)) + 1,
-      updatedAt: Date.now()
-    };
-    saveIdentityBundle(identityBundle, undefined, { instanceId });
-    await syncIdentityDocument();
-  };
-
-  const waitForProvider = (timeoutMs = REMOTE_GENERATION_TIMEOUT_MS) => {
-    if (getSwarmSnapshot().providerCount > 0) {
-      return Promise.resolve(true);
-    }
-
-    return new Promise((resolve) => {
-      const timeoutId = setTimeout(() => {
-        unsubscribe();
-        resolve(false);
-      }, timeoutMs);
-
-      const unsubscribe = bridgeEvents.on('provider-ready', () => {
-        clearTimeout(timeoutId);
-        unsubscribe();
-        resolve(true);
-      });
-    });
-  };
-
-  const chooseProvider = async () => {
-    const snapshot = getSwarmSnapshot();
-    if (snapshot.providerCount > 0) {
-      return swarmController.chooseProvider(Date.now());
-    }
-
-    const available = await waitForProvider();
-    if (!available) return null;
-    return swarmController.chooseProvider(Date.now());
-  };
-
-  const handlePeerAdvertisement = (remotePeerId, payload = {}) => {
-    const next = swarmController.upsertPeer({
-      ...payload,
-      peerId: payload.peerId || remotePeerId
-    });
-    if (next?.role === 'provider') {
-      bridgeEvents.emit('provider-ready', next);
-    }
-    emitSwarmState();
-  };
-
-  const handleGenerationUpdate = (remotePeerId, payload = {}) => {
-    const pending = pendingRemoteRequests.get(String(payload.requestId || ''));
-    if (!pending || pending.providerPeerId !== remotePeerId) return;
-    const chunk = String(payload.chunk || '');
-    if (!chunk) return;
-    pending.chunks.push(chunk);
-    pending.onUpdate?.(chunk);
-  };
-
-  const handleGenerationResult = async (remotePeerId, payload = {}) => {
-    const pending = pendingRemoteRequests.get(String(payload.requestId || ''));
-    if (!pending || pending.providerPeerId !== remotePeerId) return;
-
-    clearTimeout(pending.timeoutId);
-    pendingRemoteRequests.delete(pending.requestId);
-
-    if (payload.receipt && identityBundle && swarmTransport) {
-      const countersigned = await countersignReceipt(payload.receipt, identityBundle);
-      swarmTransport.sendToPeer(remotePeerId, 'reploid:receipt', {
-        receipt: countersigned
-      });
-      await updateConsumerReceiptCount();
-    }
-
-    const response = payload.response && typeof payload.response === 'object'
-      ? payload.response
-      : {
-          content: String(payload.content || ''),
-          raw: String(payload.raw || payload.content || ''),
-          model: payload.model || null,
-          provider: payload.provider || null,
-          timestamp: payload.timestamp || Date.now()
-        };
-
-    pending.resolve(response);
-  };
-
-  const handleGenerationError = (remotePeerId, payload = {}) => {
-    const pending = pendingRemoteRequests.get(String(payload.requestId || ''));
-    if (!pending || pending.providerPeerId !== remotePeerId) return;
-    clearTimeout(pending.timeoutId);
-    pendingRemoteRequests.delete(pending.requestId);
-    pending.reject(new Error(String(payload.error || 'Remote generation failed')));
-  };
-
-  const handleReceipt = async (_remotePeerId, payload = {}) => {
-    if (!payload?.receipt || !identityBundle) return;
-    const verification = await verifyReceipt(payload.receipt);
-    if (!verification.valid) return;
-    if (payload.receipt.provider !== identityBundle.peerId) return;
-    await updateProviderContribution(payload.receipt);
-  };
-
-  const handleGenerationRequest = async (remotePeerId, payload = {}) => {
-    if (!modelConfig || !swarmEnabled || !swarmTransport || !identityBundle) return;
-
-    const requestId = String(payload.requestId || '').trim();
-    const consumer = String(payload.consumer || remotePeerId).trim() || remotePeerId;
-    const targetProvider = payload.provider ? String(payload.provider).trim() : null;
-    const messages = Array.isArray(payload.messages) ? payload.messages : [];
-
-    if (!requestId || !messages.length) return;
-    if (targetProvider && targetProvider !== identityBundle.peerId) return;
-
-    try {
-      const response = await llmClient.chat(messages, modelConfig, (chunk) => {
-        swarmTransport.sendToPeer(consumer, 'reploid:generation-update', {
-          requestId,
-          chunk
-        });
-      });
-
-      const receipt = await signReceiptDraft(
-        await createReceiptDraft({
-          provider: identityBundle.peerId,
-          consumer,
-          jobHash: `request:${requestId}`,
-          model: response.model || modelConfig.id,
-          inputTokens: estimateTokens(messages),
-          outputTokens: estimateTokens(response.raw || response.content || '')
-        }),
-        identityBundle
-      );
-
-      swarmTransport.sendToPeer(consumer, 'reploid:generation-result', {
-        requestId,
-        response,
-        receipt
-      });
-    } catch (error) {
-      swarmTransport.sendToPeer(consumer, 'reploid:generation-error', {
-        requestId,
-        error: error?.message || String(error)
-      });
-    }
-  };
-
-  const initialize = async () => {
-    if (identityBundle && (!swarmEnabled || swarmInitialized)) {
-      return getSwarmSnapshot();
-    }
-    if (swarmInitPromise) return swarmInitPromise;
-
-    swarmInitPromise = (async () => {
-      identityBundle = await ensureIdentityBundle({
-        instanceId,
-        swarmEnabled,
-        hasInference: !!modelConfig,
-        forceNew: pendingFreshIdentity
-      });
-      pendingFreshIdentity = false;
-
-      if (!swarmEnabled) {
-        return getSwarmSnapshot();
-      }
-
-      if (!swarmTransport) {
-        swarmTransport = SwarmTransportModule.factory({
-          Utils: utils,
-          EventBus: eventBus
-        });
-      }
-
-      if (!swarmHandlersRegistered) {
-        swarmTransport.onMessage('reploid:peer-advertisement', handlePeerAdvertisement);
-        swarmTransport.onMessage('reploid:generation-request', handleGenerationRequest);
-        swarmTransport.onMessage('reploid:generation-update', handleGenerationUpdate);
-        swarmTransport.onMessage('reploid:generation-result', handleGenerationResult);
-        swarmTransport.onMessage('reploid:generation-error', handleGenerationError);
-        swarmTransport.onMessage('reploid:receipt', handleReceipt);
-
-        eventBus.on('swarm:peer-connected', () => {
-          advertiseSelf();
-          emitSwarmState();
-        }, 'self-bridge');
-        eventBus.on('swarm:peer-joined', () => {
-          advertiseSelf();
-          emitSwarmState();
-        }, 'self-bridge');
-        eventBus.on('swarm:peer-left', () => {
-          emitSwarmState();
-        }, 'self-bridge');
-        eventBus.on('swarm:state-change', () => {
-          emitSwarmState();
-        }, 'self-bridge');
-        swarmHandlersRegistered = true;
-      }
-
-      swarmInitialized = await swarmTransport.init();
-      if (swarmInitialized) {
-        advertiseSelf();
-      }
-
-      return emitSwarmState();
-    })().finally(() => {
-      swarmInitPromise = null;
-    });
-
-    return swarmInitPromise;
-  };
-
-  const rotateIdentity = async (input = {}) => {
-    if (!identityBundle) {
-      await initialize();
-    }
-
-    identityBundle = await rotateIdentityBundle({
-      ...input,
-      instanceId,
-      retireLegacy: input.retireLegacy !== false
-    });
-    await syncIdentityDocument();
-    if (swarmEnabled && swarmInitialized) {
-      advertiseSelf();
-    }
-    return emitSwarmState();
-  };
+  const { initialize, rotateIdentity, generate, getSwarmSnapshot } = mesh;
 
   const seedSystemFiles = async (input = {}) => {
     const hasInference = !!modelConfig;
@@ -902,56 +623,9 @@ export function createSelfBridge(options = {}) {
 
   const getModelLabel = () => modelConfig?.name || modelConfig?.id || '-';
 
-  const generate = async (messages, onUpdate) => {
-    if (modelConfig) {
-      return llmClient.chat(messages, modelConfig, onUpdate || null);
-    }
-
-    if (!swarmEnabled) {
-      throw new Error('No model selected');
-    }
-
-    await initialize();
-    const provider = await chooseProvider();
-    if (!provider?.peerId || !swarmTransport || !identityBundle) {
-      throw new Error('No remote host slot available');
-    }
-
-    const requestId = utils.generateId('swarmreq');
-    return new Promise((resolve, reject) => {
-      const timeoutId = setTimeout(() => {
-        pendingRemoteRequests.delete(requestId);
-        reject(new Error('Timed out waiting for remote host slot response'));
-      }, REMOTE_GENERATION_TIMEOUT_MS);
-
-      pendingRemoteRequests.set(requestId, {
-        requestId,
-        providerPeerId: provider.peerId,
-        onUpdate,
-        chunks: [],
-        timeoutId,
-        resolve,
-        reject
-      });
-
-      const sent = swarmTransport.sendToPeer(provider.peerId, 'reploid:generation-request', {
-        requestId,
-        consumer: identityBundle.peerId,
-        provider: provider.peerId,
-        model: provider.model || null,
-        messages
-      });
-
-      if (!sent) {
-        clearTimeout(timeoutId);
-        pendingRemoteRequests.delete(requestId);
-        reject(new Error('Failed to send swarm generation request'));
-      }
-    });
-  };
-
   return {
     initialize,
+    async close() { toolRunner.close?.(); await mesh.close(); },
     seedSystemFiles,
     readBootstrapFiles,
     writeRuntimeArtifact,
@@ -963,7 +637,7 @@ export function createSelfBridge(options = {}) {
     getModelLabel,
     listToolNames: toolRunner.listToolNames,
     on: bridgeEvents.on,
-    hasAvailableProvider: () => getSwarmSnapshot().providerCount > 0,
+    hasAvailableProvider: mesh.hasAvailableProvider,
     getSwarmSnapshot
   };
 }

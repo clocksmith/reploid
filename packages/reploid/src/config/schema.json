@@ -1,0 +1,506 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "agent",
+    "tools",
+    "memory",
+    "models",
+    "mesh",
+    "webrtc",
+    "artifacts",
+    "improvement",
+    "observation",
+    "legacyAgent"
+  ],
+  "properties": {
+    "schema": {
+      "const": "reploid.config/v1"
+    },
+    "agent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "maxCycles",
+        "maxBatchTools",
+        "singleToolNudgeThreshold",
+        "milestoneAutoparkThreshold",
+        "maxContextChars",
+        "timeoutMs",
+        "retryDelayMs",
+        "maxRetryDelayMs",
+        "rgrArchiveLimit",
+        "requiredAnchorObservations",
+        "toolStringPreviewChars",
+        "toolResultPayloadChars",
+        "toolBatchBodyChars",
+        "toolSanitizeMaxDepth",
+        "toolSanitizeArrayLimit"
+      ],
+      "properties": {
+        "maxCycles": {
+          "type": "integer",
+          "default": 2048
+        },
+        "maxBatchTools": {
+          "type": "integer",
+          "default": 5
+        },
+        "singleToolNudgeThreshold": {
+          "type": "integer",
+          "default": 3
+        },
+        "milestoneAutoparkThreshold": {
+          "type": "integer",
+          "default": 3
+        },
+        "maxContextChars": {
+          "type": "integer",
+          "default": 2000000
+        },
+        "timeoutMs": {
+          "type": "integer",
+          "default": 300000
+        },
+        "retryDelayMs": {
+          "type": "integer",
+          "default": 30000
+        },
+        "maxRetryDelayMs": {
+          "type": "integer",
+          "default": 300000
+        },
+        "rgrArchiveLimit": {
+          "type": "integer",
+          "default": 24
+        },
+        "requiredAnchorObservations": {
+          "type": "integer",
+          "default": 3
+        },
+        "toolStringPreviewChars": {
+          "type": "integer",
+          "default": 2048
+        },
+        "toolResultPayloadChars": {
+          "type": "integer",
+          "default": 4096
+        },
+        "toolBatchBodyChars": {
+          "type": "integer",
+          "default": 12288
+        },
+        "toolSanitizeMaxDepth": {
+          "type": "integer",
+          "default": 4
+        },
+        "toolSanitizeArrayLimit": {
+          "type": "integer",
+          "default": 25
+        }
+      }
+    },
+    "tools": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "allowed",
+        "parallelSafe",
+        "ordered",
+        "exclusive",
+        "loaderId",
+        "allowDynamic"
+      ],
+      "properties": {
+        "allowed": {
+          "type": "array"
+        },
+        "parallelSafe": {
+          "type": "array"
+        },
+        "ordered": {
+          "type": "array"
+        },
+        "exclusive": {
+          "type": "array"
+        },
+        "loaderId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "allowDynamic": {
+          "type": "boolean",
+          "default": false
+        }
+      }
+    },
+    "memory": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "storeId",
+        "checkpointPrefix",
+        "maxCheckpointBytes"
+      ],
+      "properties": {
+        "storeId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "checkpointPrefix": {
+          "type": "string",
+          "default": "/checkpoints"
+        },
+        "maxCheckpointBytes": {
+          "type": "integer",
+          "default": 16777216
+        }
+      }
+    },
+    "models": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "providerId",
+        "contract"
+      ],
+      "properties": {
+        "providerId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "contract": {
+          "type": [
+            "object",
+            "null"
+          ]
+        }
+      }
+    },
+    "mesh": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "enabled",
+        "executeJobs",
+        "supplyArtifacts",
+        "shareCandidates",
+        "roomId",
+        "routing",
+        "generationTimeoutMs",
+        "maxPendingJobs",
+        "maxInboundJobs",
+        "maxRetainedJobs"
+      ],
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": false
+        },
+        "executeJobs": {
+          "type": "boolean",
+          "default": false
+        },
+        "supplyArtifacts": {
+          "type": "boolean",
+          "default": false
+        },
+        "shareCandidates": {
+          "type": "boolean",
+          "default": false
+        },
+        "roomId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "routing": {
+          "type": "string",
+          "default": "local-only"
+        },
+        "generationTimeoutMs": {
+          "type": "integer",
+          "default": 45000
+        },
+        "maxPendingJobs": {
+          "type": "integer",
+          "default": 8
+        },
+        "maxInboundJobs": {
+          "type": "integer",
+          "default": 1
+        },
+        "maxRetainedJobs": {
+          "type": "integer",
+          "default": 32
+        }
+      }
+    },
+    "webrtc": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "protocol",
+        "signalingUrl",
+        "rtcConfig",
+        "dataChannelLabel",
+        "dataChannelOptions",
+        "maxPendingRemoteIceCandidates",
+        "pendingRemoteIceTtlMs",
+        "maxMessageBytes",
+        "maxBufferedBytes",
+        "connectTimeoutMs",
+        "reconnectBaseMs",
+        "maxBackoffMs",
+        "heartbeatIntervalMs",
+        "peerTimeoutMs",
+        "announceIntervalMs",
+        "signalingProbeTimeoutMs",
+        "transportOrder",
+        "sessionId",
+        "signaling",
+        "broadcastRoomId"
+      ],
+      "properties": {
+        "protocol": {
+          "type": "string",
+          "default": "assignment/v1"
+        },
+        "signalingUrl": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "rtcConfig": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "iceServers",
+            "iceTransportPolicy"
+          ],
+          "properties": {
+            "iceServers": {
+              "type": "array"
+            },
+            "iceTransportPolicy": {
+              "type": "string",
+              "default": "all"
+            }
+          }
+        },
+        "dataChannelLabel": {
+          "type": "string",
+          "default": "reploid-pool"
+        },
+        "dataChannelOptions": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "ordered",
+            "maxRetransmits"
+          ],
+          "properties": {
+            "ordered": {
+              "type": "boolean",
+              "default": true
+            },
+            "maxRetransmits": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 0,
+              "maximum": 65535
+            }
+          }
+        },
+        "maxPendingRemoteIceCandidates": {
+          "type": "integer",
+          "default": 64
+        },
+        "pendingRemoteIceTtlMs": {
+          "type": "integer",
+          "default": 30000
+        },
+        "maxMessageBytes": {
+          "type": "integer",
+          "default": 65536
+        },
+        "maxBufferedBytes": {
+          "type": "integer",
+          "default": 1048576
+        },
+        "connectTimeoutMs": {
+          "type": "integer",
+          "default": 30000
+        },
+        "reconnectBaseMs": {
+          "type": "integer",
+          "default": 1000
+        },
+        "maxBackoffMs": {
+          "type": "integer",
+          "default": 30000
+        },
+        "heartbeatIntervalMs": {
+          "type": "integer",
+          "default": 30000
+        },
+        "peerTimeoutMs": {
+          "type": "integer",
+          "default": 60000
+        },
+        "announceIntervalMs": {
+          "type": "integer",
+          "default": 15000
+        },
+        "signalingProbeTimeoutMs": {
+          "type": "integer",
+          "default": 2000
+        },
+        "transportOrder": {
+          "type": "array"
+        },
+        "sessionId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "signaling": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "pollIntervalMs",
+            "pollTimeoutMs",
+            "failureThreshold",
+            "backoffBaseMs",
+            "backoffMaxMs"
+          ],
+          "properties": {
+            "pollIntervalMs": {
+              "type": "integer",
+              "default": 1000
+            },
+            "pollTimeoutMs": {
+              "type": "integer",
+              "default": 5000
+            },
+            "failureThreshold": {
+              "type": "integer",
+              "default": 3
+            },
+            "backoffBaseMs": {
+              "type": "integer",
+              "default": 1000
+            },
+            "backoffMaxMs": {
+              "type": "integer",
+              "default": 30000
+            }
+          }
+        },
+        "broadcastRoomId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "artifacts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "root",
+        "maxBytes"
+      ],
+      "properties": {
+        "root": {
+          "type": "string",
+          "default": "/artifacts"
+        },
+        "maxBytes": {
+          "type": "integer",
+          "default": 268435456
+        }
+      }
+    },
+    "improvement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "enabled",
+        "evaluatorId",
+        "approvalId",
+        "isolationId"
+      ],
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": false
+        },
+        "evaluatorId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "approvalId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "isolationId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "observation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "enabled"
+      ],
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": true
+        }
+      }
+    },
+    "legacyAgent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "discoveryLimit",
+        "maxToolCalls"
+      ],
+      "properties": {
+        "discoveryLimit": {
+          "type": "integer",
+          "default": 3
+        },
+        "maxToolCalls": {
+          "type": "integer",
+          "default": 8
+        }
+      }
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "reploid.config/v1"
+}

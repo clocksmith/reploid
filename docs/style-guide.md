@@ -80,7 +80,23 @@ Use markdown checkboxes instead of emoji:
 3. **No emoji in blueprints** - Keep technical documents clean
 4. **Consistency** - Use the same symbol for the same concept throughout
 
-## VFS Module Constraints
+## Browser Library Conventions
+
+- `packages/reploid/` is the publishable browser library. The root package is private application tooling.
+- Use ESM `.js` implementations and separate `.d.ts` declarations for package modules.
+- JSON owns schemas, defaults, profiles and selectable policy. JavaScript implements algorithms and orchestration; Doppler owns model execution.
+- Resolve configuration once: schema defaults, explicit chain, selected profile, application overrides, allowlisted request overrides. Retain provenance and a canonical identity.
+- Constructors consume validated immutable configuration. Do not read route URLs, application globals, localStorage or credentials to manufacture runtime defaults.
+- Null disables a nullable field deliberately; undefined in a supplied configuration is an error.
+- Register functions, credentials, stores, model sessions and network handles as host ports. JSON names their identifiers and cannot broaden host authorization.
+- Importing a public entry must not connect peers, fetch models, access storage or register service workers.
+- Keep package exports explicit and publish only allowlisted source, declarations and required assets. Never import outside the package into `self/`, server code or Node services.
+- Keep assignment and swarm protocol adapters distinct until equivalence is demonstrated. Joining a room does not authorize artifact supply, job execution or candidate sharing.
+- Every owned resource has a close path. Borrowed resources remain caller-owned. Cancellation ports must document cooperative cancellation limits.
+- Dynamic module loading requires an explicit asset/loader contract. A worker is not, by itself, an isolation boundary.
+- Generated browser delivery copies have one canonical package source. Edit the package and regenerate, never hand-maintain an application fork.
+
+### Application VFS Loading
 
 Modules loaded via VFS blob imports must be single-file or use absolute URLs. Relative imports are not resolved by the blob loader.
 

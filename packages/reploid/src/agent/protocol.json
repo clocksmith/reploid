@@ -1,0 +1,4 @@
+{
+  "schema": "reploid.agent-protocol/v1",
+  "instruction": "Use REPLOID/0 directives. Use TOOL: <name> followed by key: value arguments for permitted tools. Use PLAN: for a plan. Record progress with MILESTONE:. Use IDLE: <reason> to yield control. A milestone is not verified completion. Never infer permissions or claim unexecuted results."
+}

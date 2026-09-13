@@ -1,5 +1,6 @@
 {
   "name": "reploid",
+  "private": true,
   "version": "0.1.0",
   "description": "Browser-Native AI Agent with Recursive Self-Improvement",
   "main": "server/proxy.js",
@@ -14,6 +15,7 @@
     "reploid-config": "./bin/reploid-config"
   },
   "scripts": {
+    "sync:library": "node scripts/sync-reploid-library.js",
     "start": "npx tsx bin/reploid-cli.ts start",
     "start:signaling": "node server/reploid-signaling.js",
     "test": "npx tsx bin/reploid-cli.ts test",

@@ -1,0 +1,24 @@
+{
+  "schema": "reploid.rules/v1",
+  "rules": [
+    {
+      "id": "local-only",
+      "order": [
+        "local"
+      ]
+    },
+    {
+      "id": "local-first",
+      "order": [
+        "local",
+        "remote"
+      ]
+    },
+    {
+      "id": "remote-only",
+      "order": [
+        "remote"
+      ]
+    }
+  ]
+}

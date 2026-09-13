@@ -7,6 +7,8 @@ Parent: none
 Deliver an evolving problem-solving agent that pursues goals for humans and agents via Doppler model inference, collaborates with peers over WebRTC via Poolday, and recursively improves its problem-solving methods through independently evaluated experience.
 
 ## Authority
+- Owns the library/application/UI boundary: reusable executable behavior belongs in `packages/reploid/`; the application composes public APIs and the UI requests actions.
+- Package extraction does not establish installed-package qualification, independent evaluation, publication or deployment.
 - Owns repository-wide product boundaries, component precedence, and proof requirements.
 - Does not turn infrastructure activity, model output, or accepted evidence into biological truth.
 

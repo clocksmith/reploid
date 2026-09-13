@@ -47,7 +47,16 @@ Reploid operates through two distinct, connected loops:
 
 ### Component responsibilities
 
-- **Reploid's agent core (`self/core/`, `self/infrastructure/`, `self/tools/`):** Owns goals, planning, tool use, VFS, memory, outcome assessment, decisions about seeking help, and improvement proposals for prompts, tools, context selection, and planning procedures.
+The reusable browser library lives in `packages/reploid/`. It owns agent
+execution, configurable peer transports and intelligence coordination,
+persistence, and governed improvement services. The existing `self/`
+application consumes public library APIs and owns composition, credentials,
+catalog selection, product workflows and persistence choices. Its UI requests
+actions and renders outcomes; it does not acquire scheduling or approval authority.
+Server and deployment tooling remain outside the publishable browser package.
+This is an executable extraction, not an iframe wrapper or a Simulatte integration.
+
+- **Reploid's browser library (`packages/reploid/`):** Owns reusable goals, planning, tool execution, persistence, peer mechanics, coordination and improvement services. Legacy application modules forward to extracted owners during migration; application seed content and policies stay in `self/`.
 - **Poolday network (`self/pool/`):** Serves the agent: discovers peers over WebRTC, exchanges authorized artifacts, assigns bounded work, moves messages, recovers interrupted delivery, and retains outcomes.
 - **Doppler runtime:** The independently useful model execution system (local generation, embeddings, reranking, adapters, specialized WebGPU execution). Reploid consumes Doppler; acceptance into Doppler follows Doppler's own correctness and release requirements.
 - **Evaluation and authorization:** Outside candidate control. A proposed improvement cannot rewrite hidden acceptance tests, escalate its own permissions, erase failures, or declare itself approved.
