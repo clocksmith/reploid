@@ -1,0 +1,62 @@
+{
+  "name": "reploid",
+  "version": "0.1.0",
+  "description": "Browser-native agent, peer transport and governed improvement services",
+  "type": "module",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/clocksmith/reploid.git",
+    "directory": "packages/reploid"
+  },
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./src/index.d.ts",
+      "import": "./src/index.js"
+    },
+    "./mesh": {
+      "types": "./src/mesh/index.d.ts",
+      "import": "./src/mesh/index.js"
+    },
+    "./webrtc": {
+      "types": "./src/transport/index.d.ts",
+      "import": "./src/transport/index.js"
+    },
+    "./browser": {
+      "types": "./src/adapters/browser.d.ts",
+      "import": "./src/adapters/browser.js"
+    },
+    "./doppler": {
+      "types": "./src/adapters/doppler.d.ts",
+      "import": "./src/adapters/doppler.js"
+    },
+    "./improve": {
+      "types": "./src/improvement/index.d.ts",
+      "import": "./src/improvement/index.js"
+    },
+    "./config": {
+      "types": "./src/config/index.d.ts",
+      "import": "./src/config/index.js"
+    },
+    "./config/schema.json": "./src/config/schema.json",
+    "./config/profiles/local.json": "./src/config/profiles/local.json"
+  },
+  "files": [
+    "src",
+    "!src/**/CATSCAN.md",
+    "README.md",
+    "LICENSE"
+  ],
+  "peerDependencies": {
+    "doppler-gpu": ">=0.6.0 <0.7.0"
+  },
+  "peerDependenciesMeta": {
+    "doppler-gpu": {
+      "optional": true
+    }
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

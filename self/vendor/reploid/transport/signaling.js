@@ -1,0 +1,571 @@
+import { requireResolvedConfig } from '../config/index.js';
+import defaults from '../config/transport-defaults.json' with { type: 'json' };
+import { boundedRetryDelay, retryAfterMsFromError } from './retry-policy.js';
+
+export const SIGNAL_TYPES = Object.freeze({
+  OFFER: 'offer',
+  ANSWER: 'answer',
+  ICE_CANDIDATE: 'ice-candidate',
+  CLOSE: 'close',
+  PING: 'ping',
+});
+
+export const DEFAULT_SIGNAL_POLL_TIMEOUT_MS = defaults.DEFAULT_SIGNAL_POLL_TIMEOUT_MS;
+export const DEFAULT_SIGNAL_FAILURE_THRESHOLD = defaults.DEFAULT_SIGNAL_FAILURE_THRESHOLD;
+export const DEFAULT_SIGNAL_POLL_BACKOFF_BASE_MS = defaults.DEFAULT_SIGNAL_POLL_BACKOFF_BASE_MS;
+export const DEFAULT_SIGNAL_POLL_BACKOFF_MAX_MS = defaults.DEFAULT_SIGNAL_POLL_BACKOFF_MAX_MS;
+
+export function createSignalId(prefix = 'sig') {
+  if (globalThis.crypto?.randomUUID) {
+    return `${prefix}_${globalThis.crypto.randomUUID()}`;
+  }
+
+  const random = Math.random().toString(36).slice(2);
+  return `${prefix}_${Date.now().toString(36)}_${random}`;
+}
+
+export function createSignalMessage({
+  id = createSignalId(),
+  sessionId,
+  assignmentId = null,
+  type,
+  fromPeerId,
+  toPeerId = null,
+  payload = null,
+  createdAt = Date.now(),
+  expiresAt = null,
+} = {}) {
+  const message = {
+    id,
+    sessionId,
+    assignmentId,
+    type,
+    fromPeerId,
+    toPeerId,
+    payload,
+    createdAt,
+    expiresAt,
+  };
+
+  return normalizeSignalMessage(message);
+}
+
+export function normalizeSignalMessage(value) {
+  const message = unwrapSignalRecord(value);
+
+  if (!isPlainObject(message)) {
+    throw new TypeError('signal message must be an object');
+  }
+
+  const normalized = {
+    id: requireString(message.id, 'signal message id'),
+    sessionId: requireString(message.sessionId, 'signal sessionId'),
+    assignmentId: optionalString(message.assignmentId, 'signal assignmentId'),
+    type: requireSignalType(message.type),
+    fromPeerId: requireString(message.fromPeerId, 'signal fromPeerId'),
+    toPeerId: optionalString(message.toPeerId, 'signal toPeerId'),
+    payload: message.payload ?? null,
+    createdAt: requireFiniteNumber(message.createdAt, 'signal createdAt'),
+    expiresAt: optionalFiniteNumber(message.expiresAt, 'signal expiresAt'),
+  };
+
+  return Object.freeze(normalized);
+}
+
+export function isSignalForPeer(message, {
+  sessionId,
+  localPeerId,
+  remotePeerId = null,
+  includeOwnSignals = false,
+  now = Date.now(),
+} = {}) {
+  const normalized = normalizeSignalMessage(message);
+
+  if (sessionId && normalized.sessionId !== sessionId) {
+    return false;
+  }
+
+  if (normalized.expiresAt !== null && normalized.expiresAt <= now) {
+    return false;
+  }
+
+  if (!includeOwnSignals && normalized.fromPeerId === localPeerId) {
+    return false;
+  }
+
+  if (normalized.toPeerId && normalized.toPeerId !== localPeerId) {
+    return false;
+  }
+
+  if (remotePeerId && normalized.fromPeerId !== remotePeerId) {
+    return false;
+  }
+
+  return true;
+}
+
+export function createCallbackSignalingAdapter({
+  publish,
+  subscribe,
+  close = null,
+} = {}) {
+  if (typeof publish !== 'function') {
+    throw new TypeError('publish must be a function');
+  }
+
+  if (typeof subscribe !== 'function') {
+    throw new TypeError('subscribe must be a function');
+  }
+
+  return Object.freeze({
+    publish(message) {
+      return publish(normalizeSignalMessage(message));
+    },
+
+    subscribe(onMessage) {
+      if (typeof onMessage !== 'function') {
+        throw new TypeError('onMessage must be a function');
+      }
+
+      return normalizeUnsubscribe(subscribe((record) => {
+        for (const candidate of extractSignalRecords(record)) {
+          onMessage(normalizeSignalMessage(candidate));
+        }
+      }));
+    },
+
+    close,
+  });
+}
+
+export function createFirestoreLikeSignalingAdapter({
+  addSignal,
+  listenSignals,
+  close = null,
+} = {}) {
+  if (typeof addSignal !== 'function') {
+    throw new TypeError('addSignal must be a function');
+  }
+
+  if (typeof listenSignals !== 'function') {
+    throw new TypeError('listenSignals must be a function');
+  }
+
+  return createCallbackSignalingAdapter({
+    publish: addSignal,
+    subscribe: listenSignals,
+    close,
+  });
+}
+
+export function createPollingSignalingAdapter({
+  config,
+  publishSignal,
+  listSignals,
+  pollIntervalMs = requireResolvedConfig(config).webrtc.signaling.pollIntervalMs,
+  peerId = null,
+  after = 0,
+  pollTimeoutMs = requireResolvedConfig(config).webrtc.signaling.pollTimeoutMs,
+  failureThreshold = requireResolvedConfig(config).webrtc.signaling.failureThreshold,
+  pollBackoffBaseMs = requireResolvedConfig(config).webrtc.signaling.backoffBaseMs,
+  pollBackoffMaxMs = requireResolvedConfig(config).webrtc.signaling.backoffMaxMs,
+  onStatus = null,
+  close = null,
+} = {}) {
+  if (typeof publishSignal !== 'function') {
+    throw new TypeError('publishSignal must be a function');
+  }
+
+  if (typeof listSignals !== 'function') {
+    throw new TypeError('listSignals must be a function');
+  }
+
+  let cursor = {
+    sequence: null,
+    createdAt: Number(after || 0),
+    messageId: ''
+  };
+  let timer = null;
+  let stopped = false;
+  let circuitState = 'closed';
+  let consecutivePollFailures = 0;
+  let lastPollRetryAfterMs = 0;
+  const normalizedPollIntervalMs = Math.max(1, Number(pollIntervalMs || 1));
+  const emitStatus = (type, detail = {}) => {
+    if (typeof onStatus !== 'function') return;
+    try {
+      onStatus({ type, circuitState, consecutivePollFailures, ...detail });
+    } catch {
+      // Status presentation cannot break signaling recovery.
+    }
+  };
+  const nextPollDelay = (retryAfterMs = 0) => {
+    if (consecutivePollFailures === 0) return Math.max(normalizedPollIntervalMs, Number(retryAfterMs || 0));
+    return boundedRetryDelay({
+      consecutiveFailures: consecutivePollFailures,
+      baseDelayMs: pollBackoffBaseMs,
+      maxDelayMs: pollBackoffMaxMs,
+      retryAfterMs
+    });
+  };
+  const schedulePoll = (poll, delay = nextPollDelay()) => {
+    if (stopped || timer) return;
+    timer = globalThis.setTimeout(() => {
+      timer = null;
+      void poll();
+    }, Math.max(0, Number(delay || 0)));
+  };
+  const withTimeout = (promise) => new Promise((resolve, reject) => {
+    const timeout = globalThis.setTimeout(() => reject(new Error('signaling relay poll timed out')), Math.max(1, Number(pollTimeoutMs || 1)));
+    Promise.resolve(promise).then(
+      (value) => {
+        globalThis.clearTimeout(timeout);
+        resolve(value);
+      },
+      (error) => {
+        globalThis.clearTimeout(timeout);
+        reject(error);
+      }
+    );
+  });
+
+  const adapter = createCallbackSignalingAdapter({
+    publish: publishSignal,
+    subscribe(onMessage) {
+      const poll = async () => {
+        if (stopped) return;
+        let scheduledPollDelay = nextPollDelay();
+        if (circuitState === 'open') {
+          circuitState = 'half_open';
+          emitStatus('signaling-circuit-half-open');
+        }
+        try {
+          const result = await withTimeout(listSignals({
+            after: cursor.createdAt,
+            afterId: cursor.messageId,
+            afterSequence: cursor.sequence,
+            peerId
+          }));
+          const messages = Array.isArray(result?.messages) ? result.messages : Array.isArray(result) ? result : [];
+          for (const message of messages) {
+            const normalized = normalizeSignalMessage(message);
+            onMessage(normalized);
+          }
+          const nextCursor = result?.nextCursor;
+          const hasSequence = Number.isSafeInteger(nextCursor?.sequence) && nextCursor.sequence >= 0;
+          if (nextCursor && (hasSequence || Number.isFinite(Number(nextCursor.createdAt)))) {
+            cursor = {
+              sequence: hasSequence ? nextCursor.sequence : null,
+              createdAt: Number(nextCursor.createdAt),
+              messageId: String(nextCursor.messageId || '')
+            };
+          } else if (messages.length > 0) {
+            const last = normalizeSignalMessage(messages.at(-1));
+            cursor = {
+              sequence: Number.isSafeInteger(last.relaySequence) ? last.relaySequence : null,
+              createdAt: Number(last.createdAt || 0),
+              messageId: String(last.id || '')
+            };
+          }
+          if (consecutivePollFailures > 0) emitStatus('signaling-poll-recovered');
+          if (circuitState !== 'closed') {
+            circuitState = 'closed';
+            emitStatus('signaling-circuit-closed');
+          }
+          consecutivePollFailures = 0;
+          lastPollRetryAfterMs = 0;
+        } catch (error) {
+          consecutivePollFailures += 1;
+          const threshold = Math.max(1, Number(failureThreshold || 1));
+          lastPollRetryAfterMs = retryAfterMsFromError(error, { maxDelayMs: pollBackoffMaxMs });
+          const retryDelayMs = nextPollDelay(lastPollRetryAfterMs);
+          scheduledPollDelay = retryDelayMs;
+          emitStatus('signaling-poll-failed', {
+            error: String(error?.message || error),
+            retryDelayMs,
+            retryAfterMs: lastPollRetryAfterMs || null
+          });
+          if (consecutivePollFailures >= threshold) {
+            circuitState = 'open';
+            emitStatus('signaling-circuit-open', { retryDelayMs });
+          } else {
+            circuitState = 'retrying';
+          }
+        } finally {
+          schedulePoll(poll, scheduledPollDelay);
+        }
+      };
+      void poll();
+      return () => {
+        stopped = true;
+        if (timer) globalThis.clearTimeout(timer);
+        timer = null;
+      };
+    },
+    close() {
+      stopped = true;
+      if (timer) globalThis.clearTimeout(timer);
+      timer = null;
+      if (typeof close === 'function') close();
+    },
+  });
+  return Object.freeze({
+    ...adapter,
+    getStatus() {
+      return Object.freeze({
+        cursor: { ...cursor },
+        circuitState,
+        consecutivePollFailures,
+        lastPollRetryAfterMs
+      });
+    }
+  });
+}
+
+export function createPoolSdkSignalingAdapter({
+  config,
+  sdk,
+  sessionId,
+  peerId,
+  pollIntervalMs = requireResolvedConfig(config).webrtc.signaling.pollIntervalMs,
+  after = 0,
+  pollTimeoutMs = DEFAULT_SIGNAL_POLL_TIMEOUT_MS,
+  failureThreshold = DEFAULT_SIGNAL_FAILURE_THRESHOLD,
+  pollBackoffBaseMs = DEFAULT_SIGNAL_POLL_BACKOFF_BASE_MS,
+  pollBackoffMaxMs = DEFAULT_SIGNAL_POLL_BACKOFF_MAX_MS,
+  onStatus = null,
+} = {}) {
+  if (!sdk || typeof sdk.publishSignal !== 'function' || typeof sdk.listSignals !== 'function') {
+    throw new TypeError('sdk must provide publishSignal() and listSignals()');
+  }
+
+  const boundSessionId = requireString(sessionId, 'sessionId');
+  const boundPeerId = optionalString(peerId, 'peerId');
+  return createPollingSignalingAdapter({
+    config,
+    pollIntervalMs,
+    peerId: boundPeerId,
+    after,
+    pollTimeoutMs,
+    failureThreshold,
+    pollBackoffBaseMs,
+    pollBackoffMaxMs,
+    onStatus,
+    publishSignal(message) {
+      return sdk.publishSignal(boundSessionId, message).then((result) => result?.message || result);
+    },
+    listSignals(options = {}) {
+      return sdk.listSignals(boundSessionId, {
+        after: options.after,
+        afterId: options.afterId,
+        afterSequence: options.afterSequence,
+        peerId: options.peerId ?? boundPeerId
+      });
+    },
+  });
+}
+
+export function createSignalingChannel({
+  sessionId,
+  assignmentId = null,
+  localPeerId,
+  remotePeerId = null,
+  adapter,
+  signalTtlMs = null,
+  now = () => Date.now(),
+} = {}) {
+  if (!adapter || typeof adapter.publish !== 'function' || typeof adapter.subscribe !== 'function') {
+    throw new TypeError('adapter must provide publish() and subscribe()');
+  }
+
+  const channelSessionId = requireString(sessionId, 'sessionId');
+  const channelLocalPeerId = requireString(localPeerId, 'localPeerId');
+  const channelRemotePeerId = optionalString(remotePeerId, 'remotePeerId');
+  const channelAssignmentId = optionalString(assignmentId, 'assignmentId');
+  let unsubscribe = null;
+  let closed = false;
+
+  function assertOpen() {
+    if (closed) {
+      throw new Error('signaling channel is closed');
+    }
+  }
+
+  async function send(type, payload = null, options = {}) {
+    assertOpen();
+
+    const createdAt = now();
+    const ttl = options.signalTtlMs ?? signalTtlMs;
+    const message = createSignalMessage({
+      sessionId: channelSessionId,
+      assignmentId: options.assignmentId ?? channelAssignmentId,
+      type,
+      fromPeerId: channelLocalPeerId,
+      toPeerId: options.toPeerId ?? channelRemotePeerId,
+      payload,
+      createdAt,
+      expiresAt: ttl === null ? null : createdAt + ttl,
+    });
+
+    await adapter.publish(message);
+    return message;
+  }
+
+  function subscribe(onMessage, options = {}) {
+    assertOpen();
+
+    if (unsubscribe) {
+      throw new Error('signaling channel already has a subscriber');
+    }
+
+    if (typeof onMessage !== 'function') {
+      throw new TypeError('onMessage must be a function');
+    }
+
+    unsubscribe = adapter.subscribe((message) => {
+      if (!isSignalForPeer(message, {
+        sessionId: channelSessionId,
+        localPeerId: channelLocalPeerId,
+        remotePeerId: options.remotePeerId ?? channelRemotePeerId,
+        includeOwnSignals: Boolean(options.includeOwnSignals),
+        now: now(),
+      })) {
+        return;
+      }
+
+      onMessage(message);
+    });
+
+    return () => {
+      if (!unsubscribe) {
+        return;
+      }
+
+      unsubscribe();
+      unsubscribe = null;
+    };
+  }
+
+  function close() {
+    if (closed) {
+      return;
+    }
+
+    closed = true;
+
+    if (unsubscribe) {
+      unsubscribe();
+      unsubscribe = null;
+    }
+
+    if (typeof adapter.close === 'function') {
+      adapter.close();
+    }
+  }
+
+  return Object.freeze({
+    sessionId: channelSessionId,
+    assignmentId: channelAssignmentId,
+    localPeerId: channelLocalPeerId,
+    remotePeerId: channelRemotePeerId,
+    send,
+    sendOffer: (description, options) => send(SIGNAL_TYPES.OFFER, description, options),
+    sendAnswer: (description, options) => send(SIGNAL_TYPES.ANSWER, description, options),
+    sendIceCandidate: (candidate, options) => send(SIGNAL_TYPES.ICE_CANDIDATE, candidate, options),
+    sendClose: (reason = null, options) => send(SIGNAL_TYPES.CLOSE, { reason }, options),
+    sendPing: (payload = null, options) => send(SIGNAL_TYPES.PING, payload, options),
+    subscribe,
+    close,
+  });
+}
+
+function extractSignalRecords(record) {
+  if (Array.isArray(record)) {
+    return record;
+  }
+
+  if (Array.isArray(record?.signals)) {
+    return record.signals;
+  }
+
+  if (Array.isArray(record?.docs)) {
+    return record.docs.map((doc) => unwrapSignalRecord(doc));
+  }
+
+  if (Array.isArray(record?.docChanges?.())) {
+    return record.docChanges().map((change) => unwrapSignalRecord(change.doc));
+  }
+
+  return [record];
+}
+
+function unwrapSignalRecord(record) {
+  if (typeof record?.data === 'function') {
+    return record.data();
+  }
+
+  if (record?.message) {
+    return record.message;
+  }
+
+  return record;
+}
+
+function normalizeUnsubscribe(value) {
+  if (typeof value === 'function') {
+    return value;
+  }
+
+  if (value && typeof value.unsubscribe === 'function') {
+    return () => value.unsubscribe();
+  }
+
+  return () => {};
+}
+
+function requireSignalType(value) {
+  const type = requireString(value, 'signal type');
+  const allowed = Object.values(SIGNAL_TYPES);
+
+  if (!allowed.includes(type)) {
+    throw new TypeError(`unsupported signal type: ${type}`);
+  }
+
+  return type;
+}
+
+function requireString(value, label) {
+  if (typeof value !== 'string' || value.length === 0) {
+    throw new TypeError(`${label} must be a non-empty string`);
+  }
+
+  return value;
+}
+
+function optionalString(value, label) {
+  if (value === null || value === undefined) {
+    return null;
+  }
+
+  return requireString(value, label);
+}
+
+function requireFiniteNumber(value, label) {
+  if (!Number.isFinite(value)) {
+    throw new TypeError(`${label} must be a finite number`);
+  }
+
+  return value;
+}
+
+function optionalFiniteNumber(value, label) {
+  if (value === null || value === undefined) {
+    return null;
+  }
+
+  return requireFiniteNumber(value, label);
+}
+
+function isPlainObject(value) {
+  return value !== null && typeof value === 'object' && !Array.isArray(value);
+}
