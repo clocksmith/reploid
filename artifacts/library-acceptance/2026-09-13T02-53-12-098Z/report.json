@@ -1,0 +1,90 @@
+{
+  "schema": "reploid.library-package-acceptance/v1",
+  "node": "v22.20.0",
+  "platform": "darwin",
+  "architecture": "arm64",
+  "evidence": "/Users/xyz/deco/reploid/artifacts/library-acceptance/2026-09-13T02-53-12-098Z",
+  "consumer": "/var/folders/85/l5dptg296tlfx03cd_k7h0l80000gn/T/reploid-installed-consumer-rHUsUv",
+  "checks": [
+    {
+      "name": "pack-and-detached-install",
+      "status": "passed",
+      "durationMs": 552.420959,
+      "result": {
+        "package": "reploid",
+        "version": "0.1.0",
+        "optionalDopplerPeerInstalled": false
+      }
+    },
+    {
+      "name": "published-assets-and-application-copy",
+      "status": "passed",
+      "durationMs": 11.68629199999998,
+      "result": {
+        "matchedAssets": 60,
+        "publicEntries": [
+          "reploid",
+          "reploid/mesh",
+          "reploid/webrtc",
+          "reploid/browser",
+          "reploid/doppler",
+          "reploid/improve",
+          "reploid/config"
+        ]
+      }
+    },
+    {
+      "name": "migrated-adapters-use-public-entries",
+      "status": "passed",
+      "durationMs": 2.9092079999999214,
+      "result": {
+        "adapters": 18,
+        "imports": 25
+      }
+    },
+    {
+      "name": "installed-node-public-imports",
+      "status": "failed",
+      "durationMs": 34.87845800000002,
+      "error": "AssertionError [ERR_ASSERTION]: Public import failures; see node-imports.json\n    at file:///Users/xyz/deco/reploid/tests/library-package-acceptance.js:132:7\n    at async check (file:///Users/xyz/deco/reploid/tests/library-package-acceptance.js:29:20)\n    at async file:///Users/xyz/deco/reploid/tests/library-package-acceptance.js:118:5"
+    },
+    {
+      "name": "installed-declarations",
+      "status": "failed",
+      "durationMs": 483.56225000000006,
+      "error": "Error: Command failed: /Users/xyz/.nvm/versions/node/v22.20.0/bin/node /Users/xyz/deco/reploid/node_modules/typescript/bin/tsc --project /var/folders/85/l5dptg296tlfx03cd_k7h0l80000gn/T/reploid-installed-consumer-rHUsUv/tsconfig.json\n\n    at genericNodeError (node:internal/errors:983:15)\n    at wrappedFn (node:internal/errors:537:14)\n    at ChildProcess.exithandler (node:child_process:417:12)\n    at ChildProcess.emit (node:events:519:28)\n    at maybeClose (node:internal/child_process:1101:16)\n    at ChildProcess._handle.onexit (node:internal/child_process:304:5)"
+    },
+    {
+      "name": "browser-launch",
+      "status": "passed",
+      "durationMs": 393.5455830000001,
+      "result": null
+    },
+    {
+      "name": "installed-browser-public-imports",
+      "status": "failed",
+      "durationMs": 195.01125000000002,
+      "error": "AssertionError [ERR_ASSERTION]: Public import failures; see browser-imports.json\n    at file:///Users/xyz/deco/reploid/tests/library-package-acceptance.js:190:11\n    at async check (file:///Users/xyz/deco/reploid/tests/library-package-acceptance.js:29:20)\n    at async file:///Users/xyz/deco/reploid/tests/library-package-acceptance.js:177:7"
+    },
+    {
+      "name": "deterministic-browser-consumer",
+      "status": "failed",
+      "durationMs": 5117.597,
+      "error": "page.waitForFunction: Timeout 5000ms exceeded.\n    at /Users/xyz/deco/reploid/tests/library-package-acceptance.js:201:22\n    at async check (/Users/xyz/deco/reploid/tests/library-package-acceptance.js:29:20)\n    at async file:///Users/xyz/deco/reploid/tests/library-package-acceptance.js:194:7"
+    }
+  ],
+  "scope": "Installed ESM imports, public boundaries, declaration resolution, asset identity and deterministic browser consumer.",
+  "exclusions": [
+    "Actual model inference",
+    "Independent peers",
+    "Full application acceptance",
+    "Publication",
+    "Deployment"
+  ],
+  "archive": {
+    "path": "/Users/xyz/deco/reploid/artifacts/library-acceptance/2026-09-13T02-53-12-098Z/reploid-0.1.0.tgz",
+    "sha256": "3a4a4b8e0067e383d6b4b07e1eb67fe4fd6da718ee7dd7cc25f414ffa95f3040"
+  },
+  "browser": "145.0.7632.6",
+  "passed": false
+}

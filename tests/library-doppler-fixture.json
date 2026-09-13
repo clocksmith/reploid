@@ -1,0 +1,14 @@
+{
+  "name": "reploid-doppler-acceptance-consumer",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "doppler-gpu": "0.6.0",
+    "@webgpu/types": "0.1.72"
+  },
+  "reploidAcceptance": {
+    "types": [
+      "@webgpu/types"
+    ]
+  }
+}
