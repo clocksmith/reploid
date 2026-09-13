@@ -1,15 +1,15 @@
 // Installed public runtime + Reploid integration. Injected logits, not model qualification.
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { pathToFileURL } from 'node:url';
+import fs from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { createReploidDopplerRuntimeService, DOPPLER_GENERATION_CONTRACT } from '../../self/infrastructure/doppler-runtime-service.js';
 import { runPackOperation } from '../../self/pool/pack-operation.js';
 import { hashDopplerEvidence } from '../../self/pool/executable-pack.js';
+import { checkInstalledAdapters } from './doppler-installed-adapters.js';
 
 const consumer = process.env.DOPPLER_TEST_CONSUMER;
-const checkout = process.env.DOPPLER_TEST_CHECKOUT;
-assert(consumer && checkout, 'Explicit installed consumer and test-fixture checkout are required.');
+assert(consumer, 'DOPPLER_TEST_CONSUMER must name the retained installed candidate consumer directory.');
 // Resolve with ESM conditions from the consumer: the public root has no CommonJS export.
 const entry = execFileSync(process.execPath,
   ['--input-type=module', '-e', "process.stdout.write(import.meta.resolve('doppler-gpu'))"],
@@ -17,10 +17,9 @@ const entry = execFileSync(process.execPath,
 assert(entry.includes('/node_modules/doppler-gpu/'), 'Inference must use installed package bytes.');
 const api = await import(entry);
 assert.deepEqual(api.GENERATION_CONTRACT, DOPPLER_GENERATION_CONTRACT);
-// Only test artifact signing is imported from the checkout; no runtime source imports.
-const { createSignedCapsuleFixture, TEST_CAPSULE_AUTHORITY, TEST_CAPSULE_PUBLIC_KEY } =
-  await import(pathToFileURL(resolve(checkout, 'tests/helpers/capsule-v2-fixture.js')).href);
-const fixture = await createSignedCapsuleFixture();
+// The producer signs this data before installation. The consumer needs no Doppler checkout.
+const fixture = JSON.parse(await fs.readFile(resolve(consumer, 'generation-fixture.json'), 'utf8'));
+const artifacts = new Map(fixture.artifacts.map(([id, bytes]) => [id, Uint8Array.from(bytes)]));
 const phases = [];
 let stop = {};
 let released = 0;
@@ -29,8 +28,8 @@ const ports = {
   device: { getDevice: () => ({ limits: { maxBufferSize: 1024 }, createBuffer: () => ({ destroy() {} }),
     createCommandEncoder() {}, queue: { writeBuffer() {} } }),
   getProfile: () => ({ surface: 'test-webgpu', hasF16: false, hasSubgroups: false, maxBufferSize: 1024 }) },
-  artifactStore: fixture.artifactStore,
-  trustedSigners: { [TEST_CAPSULE_AUTHORITY]: TEST_CAPSULE_PUBLIC_KEY },
+  artifactStore: { readArtifact: async artifact => artifacts.get(artifact.artifactId) },
+  trustedSigners: fixture.trustedSigners,
   programFactory: async () => ({
     executionGraphHash: fixture.capsule.program.executionGraphHash,
     tokenize: () => [0, 2], decodeTokens: ids => ids.join(','), getTokenContract: () => stop,
@@ -118,8 +117,10 @@ try {
   assert.equal(released, phases.length, 'every emitted step result is released');
 } finally { await service.closeAll(); }
 assert.equal(closed, 2);
+const adapterAcceptance = await checkInstalledAdapters({ consumer, service, api, makeRequest });
+checks.push('request-bound adapters, failure replacement, cancellation and independent session cleanup');
 console.log(JSON.stringify({ schema: 'reploid.installed-generation-contract-test/v1', passed: true,
-  runtimeEntry: entry, runtimeVersion: api.DOPPLER_VERSION, checks, phaseCalls: phases.length, released, closed,
+  runtimeEntry: entry, runtimeVersion: api.DOPPLER_VERSION, checks, phaseCalls: phases.length, released, closed, adapterAcceptance,
   model: { kind: 'signed test fixture with injected logits', modelId: fixture.capsule.modelId,
     capsuleHash: await hashDopplerEvidence(fixture.capsule) },
   evidence: 'installed API contract with injected logits; not physical model or semantic qualification' }));

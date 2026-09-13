@@ -19,6 +19,7 @@
     "test": "npx tsx bin/reploid-cli.ts test",
     "test:unit": "npx tsx bin/reploid-cli.ts test --unit",
     "test:integration": "npx tsx bin/reploid-cli.ts test --integration",
+    "test:doppler-consumer": "node tests/fixtures/doppler-installed-generation.js",
     "test:e2e": "npx tsx bin/reploid-cli.ts test --e2e",
     "test:e2e:p2p": "npx playwright test tests/e2e/p2p-mesh.spec.js",
     "test:e2e:p2p:actual": "REPLOID_E2E_ACTUAL_INFERENCE=1 npx playwright test tests/e2e/p2p-actual-inference.spec.js",
