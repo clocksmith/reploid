@@ -11,66 +11,41 @@ describe('VFS - Integration Tests', () => {
   let mockUtils;
   let mockDB;
   let mockObjectStore;
-  let mockTransaction;
   let fileStorage;
 
   const createMocks = () => {
     fileStorage = new Map();
 
     mockObjectStore = {
-      put: vi.fn().mockImplementation((entry) => {
-        fileStorage.set(entry.path, entry);
-        return { onsuccess: null, set onsuccess(fn) { fn?.(); } };
-      }),
-      get: vi.fn().mockImplementation((path) => {
-        const result = fileStorage.get(path) || null;
-        return {
-          result,
-          onsuccess: null,
-          onerror: null,
-          set onsuccess(fn) { fn?.(); }
-        };
-      }),
-      delete: vi.fn().mockImplementation((path) => {
-        fileStorage.delete(path);
-        return {
-          onsuccess: null,
-          onerror: null,
-          set onsuccess(fn) { fn?.(); }
-        };
-      }),
-      getAllKeys: vi.fn().mockImplementation(() => {
-        return {
-          result: Array.from(fileStorage.keys()),
-          onsuccess: null,
-          set onsuccess(fn) { fn?.(); }
-        };
-      }),
-      count: vi.fn().mockImplementation(() => {
-        return {
-          result: fileStorage.size,
-          onsuccess: null,
-          set onsuccess(fn) { fn?.(); }
-        };
-      }),
-      clear: vi.fn().mockImplementation(() => {
-        fileStorage.clear();
-        return {
-          onsuccess: null,
-          set onsuccess(fn) { fn?.(); }
-        };
-      })
-    };
-
-    mockTransaction = {
-      objectStore: vi.fn().mockReturnValue(mockObjectStore),
-      onerror: null
+      put: vi.fn(entry => { fileStorage.set(entry.path, entry); return { result: entry.path }; }),
+      get: vi.fn(path => ({ result: fileStorage.get(path) ?? null })),
+      delete: vi.fn(path => { fileStorage.delete(path); return { result: undefined }; }),
+      getAllKeys: vi.fn(() => ({ result: [...fileStorage.keys()] }))
     };
 
     mockDB = {
-      transaction: vi.fn().mockReturnValue(mockTransaction),
+      transaction: vi.fn(() => {
+        let aborted = false;
+        const tx = {
+          abort: vi.fn(() => { aborted = true; queueMicrotask(() => tx.onabort?.()); }),
+          objectStore: vi.fn(() => Object.fromEntries(Object.entries(mockObjectStore).map(([name, operation]) => [
+            name, (...args) => {
+              const request = operation(...args);
+              // Request success precedes commit. Each operation gets its own transaction.
+              queueMicrotask(() => {
+                if (aborted) return;
+                request.onsuccess?.();
+                queueMicrotask(() => { if (!aborted) tx.oncomplete?.(); });
+              });
+              return request;
+            }
+          ])))
+        };
+        return tx;
+      }),
       objectStoreNames: { contains: vi.fn().mockReturnValue(true) },
-      createObjectStore: vi.fn()
+      createObjectStore: vi.fn(),
+      close: vi.fn()
     };
 
     // Mock indexedDB - use queueMicrotask for better async handling
@@ -120,7 +95,8 @@ describe('VFS - Integration Tests', () => {
     vfs = VFSModule.factory({ Utils: mockUtils });
   });
 
-  afterEach(() => {
+  afterEach(async () => {
+    await vfs.close();
     vi.clearAllMocks();
     delete global.indexedDB;
   });
@@ -368,7 +344,8 @@ describe('VFS - Integration Tests', () => {
       const result = await vfs.clear();
 
       expect(result).toBe(true);
-      expect(mockObjectStore.clear).toHaveBeenCalled();
+      expect(fileStorage.size).toBe(0);
+      expect(await vfs.list()).toEqual([]);
     });
   });
 

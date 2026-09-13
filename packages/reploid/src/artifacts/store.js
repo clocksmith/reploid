@@ -5,6 +5,7 @@ export function createMemoryStore() {
   let closed = false;
   const check = () => { if (closed) throw new Error('Store is closed'); };
   return Object.freeze({
+    async init() { check(); return true; },
     async get(key) { check(); return entries.has(key) ? snapshotJson(entries.get(key)) : null; },
     async set(key, value) { check(); entries.set(String(key), snapshotJson(value)); },
     async delete(key) { check(); return entries.delete(String(key)); },
@@ -16,7 +17,7 @@ export function createMemoryStore() {
 export function createVfs({ store, now = Date.now, emit = () => {} }) {
   if (!store?.get || !store?.set || !store?.keys) throw new TypeError('VFS requires a store port');
   const normalize = path => {
-    if (typeof path !== 'string' || !path.trim()) throw new TypeError('VFS path is required');
+    if (typeof path !== 'string' || !path.trim()) throw new TypeError('Invalid path: VFS requires a nonempty string');
     const value = '/' + path.trim().replace(/\\/g, '/').replace(/^\/+/, '');
     if (value.split('/').some(part => part === '..' || part === '.')) throw new TypeError('VFS path traversal is not allowed');
     return value;
@@ -49,7 +50,7 @@ export function createVfs({ store, now = Date.now, emit = () => {} }) {
     return store.keys(prefix);
   };
   return Object.freeze({
-    init: async () => true, read, write, list, stat,
+    init: async () => { await store.init?.(); return true; }, read, write, list, stat,
     exists: async path => !!await stat(path),
     async delete(path) {
       const key = normalize(path), previous = await stat(key);

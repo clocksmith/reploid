@@ -577,7 +577,7 @@
     {
       "path": "core/verification-worker.js",
       "owner": "core",
-      "sha256": "sha256:34f79db81480a1ad12e12f7fda0f1e1a3f3f68f5ff792ca2ccffed7c5afc53be",
+      "sha256": "sha256:d9ca566f2b9069198a07840689f4ac0c9d5829bbf0757e1dd092bfbbed4e0f2f",
       "imports": []
     },
     {
@@ -592,7 +592,7 @@
     {
       "path": "core/vfs.js",
       "owner": "core",
-      "sha256": "sha256:55417de3816e2ab03c8753ac6247bafb1b030a75708ef25679e84d7cc911002f",
+      "sha256": "sha256:e11c439ade35b139bc61570b3ab264aa6d766af3dfb6cb878f29929320cffec3",
       "imports": [
         "../config/reploid-library.json",
         "../instance.js",
@@ -3148,7 +3148,7 @@
     {
       "path": "vendor/reploid/adapters/browser.js",
       "owner": "vendor",
-      "sha256": "sha256:4b602857d7733a09c4a050d8a4afb032c7ef91ce54f1afd03e2efaf7c75f0304",
+      "sha256": "sha256:76bc9b00598a459510061024cd03180196b1bf7f3ec0ed352d803fdd1a1a0f8e",
       "imports": [
         "../artifacts/identity.js",
         "../artifacts/receipt.js",
@@ -3231,7 +3231,7 @@
     {
       "path": "vendor/reploid/artifacts/store.js",
       "owner": "vendor",
-      "sha256": "sha256:fb5e55ab1b4f4b824765edc8c5921bb77c0a159f117cb6c6429749a83cdffeb0",
+      "sha256": "sha256:3aacddc3ead348682880a5fbb0b308728518895c824caf59b77e3e281003168c",
       "imports": [
         "../config/index.js"
       ]
