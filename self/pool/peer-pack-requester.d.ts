@@ -1,3 +1,4 @@
+import type { ReploidDopplerRuntimeService } from '../infrastructure/doppler-runtime-service.js';
 import type { JsonValue, PackOperationRegistry } from './pack-operation-adapters.js';
 import type { PackOperationEvent, PackOperationResult } from './pack-operation.js';
 import type { PackPeerIdentity, PackPeerJobBody, SignedPackPeerMessage, createPackPeerJob } from './peer-pack-job.js';
@@ -29,6 +30,7 @@ export interface PackPeerRequester {
   close(): void;
 }
 export interface PackPeerRequesterOptions {
+  runtimeService?: ReploidDopplerRuntimeService;
   readonly identity: PackPeerIdentity;
   readonly bus: PackPeerBus;
   readonly models: readonly Readonly<Record<string, JsonValue>>[];

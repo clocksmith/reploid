@@ -5,6 +5,8 @@ export interface ProviderPersistencePolicy {
   readonly databaseName: string;
   readonly databaseVersion: number;
   readonly storeName: string;
+  readonly updatesStoreName: string;
+  readonly updatesLayoutSchema: 'reploid.pack-job-updates/v1';
   readonly recordSchema: string;
   readonly legacyRecordSchema: string;
   readonly maxRecords: number;
@@ -72,6 +74,7 @@ export interface PackJobJournal {
   claim(value: ProviderAttemptDescriptor & { readonly binding: ProviderAttemptBinding }, owner: string): Promise<{ created: boolean; record: ProviderAttemptRecord }>;
   markRunning(value: ProviderAttemptDescriptor, owner: string): Promise<ProviderAttemptRecord>;
   append(value: ProviderAttemptDescriptor, owner: string, message: ProviderStoredUpdate): Promise<ProviderAttemptRecord>;
+  append(value: ProviderAttemptDescriptor, owner: string, message: ProviderStoredUpdate, control: { snapshot: false }): Promise<void>;
   cancel(value: ProviderAttemptDescriptor, owner: string): Promise<ProviderAttemptRecord>;
   getStats(): Promise<PackJobJournalStats>;
   close(): void;

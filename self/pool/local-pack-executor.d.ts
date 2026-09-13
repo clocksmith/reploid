@@ -4,6 +4,7 @@ import type { ExecutionAdapter } from './adapter-execution.js';
 import type { PreparedPeerAdapters } from './peer-adapter-execution.js';
 type JsonObject = Readonly<Record<string, JsonValue>>;
 export interface LocalPackRun {
+  requestSchema?: PackOperationRequest['schema'] | null;
   model: JsonObject; input: JsonObject; options?: JsonObject;
   assignment?: JsonObject | null; limits: PackOperationRequest['limits']; signal?: AbortSignal | null;
   adapterSet?: readonly ExecutionAdapter[];
@@ -24,7 +25,7 @@ export interface LocalPackExecutor {
   close(): Promise<void>;
 }
 export function createLocalPackExecutor(options?: {
-  service?: { prepare(module?: object | null, control?: { bindingSchema: string }): Promise<{ version: string }>; close(scope: string): Promise<void>;
+  service?: { createStreamAccumulator?: import('../infrastructure/doppler-runtime-service.js').ReploidDopplerRuntimeService['createStreamAccumulator']; prepare(module?: object | null, control?: { bindingSchema: string }): Promise<{ version: string }>; close(scope: string): Promise<void>;
     openPack?(options: { scope: string; source: string; options: object }): Promise<PackOperationSession>;
     openCapsule?(options: { scope: string; source: string; options: object }): Promise<PackOperationSession> };
   scope?: string; registry?: PackOperationRegistry;

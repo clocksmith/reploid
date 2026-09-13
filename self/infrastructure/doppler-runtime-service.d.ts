@@ -15,7 +15,13 @@ export interface DopplerOpenRequest {
   options?: Readonly<Record<string, unknown>>;
   module?: object | null;
 }
+export interface DopplerStreamAccumulator {
+  accept(event: unknown): void;
+  snapshot(): unknown;
+  finish(): unknown;
+}
 export interface ReploidDopplerRuntimeService {
+  createStreamAccumulator(request: unknown, control: { bindingSchema: string; runtimeVersion: string }): Promise<DopplerStreamAccumulator>;
   open(request: DopplerOpenRequest): Promise<DopplerManagedSession>;
   openPack(request: DopplerOpenRequest): Promise<DopplerManagedSession>;
   openCapsule(request: DopplerOpenRequest): Promise<DopplerManagedSession>;

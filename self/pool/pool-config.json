@@ -1969,8 +1969,10 @@
     },
     "persistence": {
       "databaseName": "reploid-pack-jobs-v1",
-      "databaseVersion": 1,
+      "databaseVersion": 2,
       "storeName": "attempts",
+      "updatesStoreName": "attempt-updates",
+      "updatesLayoutSchema": "reploid.pack-job-updates/v1",
       "recordSchema": "reploid.pack-job-journal/v2",
       "legacyRecordSchema": "reploid.pack-job-journal/v1",
       "maxRecords": 128,

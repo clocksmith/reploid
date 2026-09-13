@@ -1,0 +1,15 @@
+
+Running 3 tests using 1 worker
+
+[1A[2K(node:1940232) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K(node:1940232) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K[1/3] [chromium] › tests/e2e/peer-pack-jobs.spec.js:50:65 › reviewed public task uses room discovery and WebRTC while private retrieval stays local (doppler.pack/v2)
+[1A[2K[2/3] [chromium] › tests/e2e/peer-pack-jobs.spec.js:50:65 › reviewed public task uses room discovery and WebRTC while private retrieval stays local (doppler.capsule/v2)
+[1A[2K[3/3] [chromium] › tests/e2e/peer-pack-jobs.spec.js:114:1 › common operations cross real WebRTC between browser contexts, with bounded large-message framing
+[1A[2K  3 passed (28.4s)

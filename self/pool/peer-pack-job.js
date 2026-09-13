@@ -162,7 +162,7 @@ async function jobParts({ requesterId, advert, intent, input, options, registry,
   if (!legacy && policy.version === 3) assignment.acceptancePolicyDigest = await hashDopplerEvidence(intent.acceptance);
   if (!legacy) Object.assign(assignment, { attemptNumber: intent.attemptNumber, inputClass: intent.inputClass,
     operationPolicyDigest: intent.operationPolicyDigest, jobPolicyDigest: intent.jobPolicyDigest, adapterSet: intent.adapterSet });
-  const request = { schema: resolveDopplerExecutionContract(model.executablePack.schema).requestSchema, operation, input, options, assignment,
+  const request = { schema: intent.requestSchema ?? resolveDopplerExecutionContract(model.executablePack.schema).requestSchema, operation, input, options, assignment,
     limits: { maxInputBytes: limits.maxInputBytes, maxOutputBytes: limits.maxOutputBytes, deadlineAt } };
   if (intent.adapterSet?.length) request.adapterSet = dopplerExecutionAdapterSet(intent.adapterSet, model);
   assertPackOperationRequest(model.executablePack, request, registry);
@@ -170,7 +170,7 @@ async function jobParts({ requesterId, advert, intent, input, options, registry,
 }
 
 export async function createPackPeerJob({ identity, advert, adverts, model, input, options = {}, limits, consent, comparisonPolicy, resources,
-  acceptanceMode, jobId = crypto.randomUUID(), attemptId = crypto.randomUUID(), attemptNumber, adapterSet,
+  acceptanceMode, requestSchema = null, jobId = crypto.randomUUID(), attemptId = crypto.randomUUID(), attemptNumber, adapterSet,
   registry = createPackOperationRegistry(), policy: policyInput = PACK_JOB_POLICY }) {
   const policy = resolvePackJobPolicy(policyInput);
   if (acceptanceMode === undefined) acceptanceMode = policy.acceptance.defaultMode;
@@ -179,8 +179,8 @@ export async function createPackPeerJob({ identity, advert, adverts, model, inpu
   // Snapshot before the first await, including nested policy and model objects.
   requirePackJob(policy.version === 3, 'new work requires current adapter execution policy');
   const data = snapshot({ adverts: adverts === undefined ? [advert] : adverts, model: packPeerModel(model, registry), input, options, limits, consent,
-    comparisonPolicy, acceptanceMode, resources, jobId, attemptId, attemptNumber, adapterSet });
-  const intent = { model: data.model, limits: data.limits, consent: data.consent, comparisonPolicy: data.comparisonPolicy,
+    comparisonPolicy, acceptanceMode, requestSchema, resources, jobId, attemptId, attemptNumber, adapterSet });
+  const intent = { ...(data.requestSchema === null ? {} : { requestSchema: data.requestSchema }), model: data.model, limits: data.limits, consent: data.consent, comparisonPolicy: data.comparisonPolicy,
     jobId, attemptId, attemptNumber, adapterSet: data.adapterSet, inputClass: registry[data.model.executablePack.requiredOperation].definition.inputClasses.defaultRemote,
     operationPolicy: registry[data.model.executablePack.requiredOperation].policy, jobPolicy: policy,
     operationPolicyDigest: await hashDopplerEvidence(registry[data.model.executablePack.requiredOperation].policy),

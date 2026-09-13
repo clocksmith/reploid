@@ -1,3 +1,4 @@
+import type { ReploidDopplerRuntimeService } from '../infrastructure/doppler-runtime-service.js';
 import type { PackPeerIdentity, PackPeerJobBody, SignedPackPeerMessage, PackPeerModel, PackPeerLimits, PackProviderAdvertBody } from './peer-pack-job.js';
 import type { PackPeerBus } from './peer-pack-requester.js';
 import type { PackOperationRegistry } from './pack-operation-adapters.js';
@@ -11,6 +12,7 @@ export interface PackPeerProviderState {
   retainedBytes: number; queued: number; queuedBytes: number;
 }
 export interface PackPeerProviderOptions {
+  runtimeService?: ReploidDopplerRuntimeService;
   identity: PackPeerIdentity; bus: PackPeerBus; models: readonly PackPeerModel[];
   authorize(job: SignedPackPeerMessage<PackPeerJobBody>): boolean | Promise<boolean>;
   adapterResolver?: PeerAdapterResolver | null; registry?: PackOperationRegistry; executor?: LocalPackExecutor;

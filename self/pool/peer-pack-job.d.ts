@@ -46,6 +46,7 @@ export interface PackPeerConsent {
   readonly providerIds: readonly string[];
 }
 export interface PackPeerJobIntent {
+  readonly requestSchema?: PackOperationRequest['schema'];
   readonly model: PackPeerModel;
   readonly limits: PackPeerLimits & { readonly deadlineAt: number };
   readonly consent: PackPeerConsent;
@@ -88,7 +89,7 @@ export function createPackProviderAdvert(options: { identity: PackPeerIdentity; 
   capabilities: ProviderCapabilities; limits: PackPeerLimits; expiresAt: number; registry?: PackOperationRegistry; policy?: CurrentPackJobPolicy }): Promise<SignedPackPeerMessage<PackProviderAdvertBody>>;
 export function planPackPeerProviders(options: { adverts: readonly SignedPackPeerMessage<PackProviderAdvertBody>[];
   requirements: WorkRequirements; now: number; registry?: PackOperationRegistry; policy?: CurrentPackJobPolicy }): Promise<OperationAssignmentPlan>;
-export function createPackPeerJob(options: { identity: PackPeerIdentity; advert?: SignedPackPeerMessage<PackProviderAdvertBody>;
+export function createPackPeerJob(options: { requestSchema?: PackOperationRequest['schema'] | null; identity: PackPeerIdentity; advert?: SignedPackPeerMessage<PackProviderAdvertBody>;
   adverts?: readonly SignedPackPeerMessage<PackProviderAdvertBody>[]; resources: WorkRequirements['resources'];
   model: JsonObject; input: JsonObject; options?: JsonObject; limits: PackPeerJobIntent['limits']; consent: PackPeerConsent;
   comparisonPolicy: JsonObject | null; acceptanceMode?: 'reference' | 'execution'; jobId?: string; attemptId?: string; attemptNumber?: number; adapterSet?: readonly ExecutionAdapter[];
