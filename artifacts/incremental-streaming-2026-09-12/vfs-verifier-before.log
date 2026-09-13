@@ -1,0 +1,40 @@
+
+Running 1 test using 1 worker
+
+(node:3346206) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:3346206) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  1 [chromium-swiftshader] › tests/e2e/vfs-storage-contract.spec.js:134:1 › Verification Worker permits only the extracted storage owner and preserves other rejections (138ms)
+
+
+  1) [chromium-swiftshader] › tests/e2e/vfs-storage-contract.spec.js:134:1 › Verification Worker permits only the extracted storage owner and preserves other rejections 
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoEqual[2m([22m[32mexpected[39m[2m) // deep equality[22m
+
+    [32m- Expected  - 0[39m
+    [31m+ Received  + 1[39m
+
+    [2m  Array [[22m
+    [2m    "/apps/storage.js",[22m
+    [2m    "/tools/Storage.js",[22m
+    [31m+   "/vendor/reploid/adapters/browser.js",[39m
+    [2m    "/vendor/reploid/adapters/browser.js/child.js",[22m
+    [2m    "/vendor/reploid/adapters/neighbor.js",[22m
+    [2m  ][22m
+
+      158 |   const rejectedStoragePaths = results.storage.details.patternViolations
+      159 |     .filter(violation => violation.patternId === 'indexeddb').map(violation => violation.path).sort();
+    > 160 |   expect(rejectedStoragePaths).toEqual([
+          |                                ^
+      161 |     '/apps/storage.js', '/tools/Storage.js',
+      162 |     '/vendor/reploid/adapters/browser.js/child.js', '/vendor/reploid/adapters/neighbor.js'
+      163 |   ]);
+        at /home/x/deco/worktrees/reploid-consumer-streaming/tests/e2e/vfs-storage-contract.spec.js:160:32
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/vfs-storage-contract-Verif-83eb4--preserves-other-rejections-chromium-swiftshader/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  1 failed
+    [chromium-swiftshader] › tests/e2e/vfs-storage-contract.spec.js:134:1 › Verification Worker permits only the extracted storage owner and preserves other rejections 

@@ -1,0 +1,10 @@
+
+ RUN  v4.1.10 /home/x/deco/worktrees/reploid-consumer-streaming
+
+ ✓ tests/integration/vfs.test.js (36 tests) 22ms
+
+ Test Files  1 passed (1)
+      Tests  36 passed (36)
+   Start at  01:11:31
+   Duration  387ms (transform 41ms, setup 0ms, import 59ms, tests 22ms, environment 144ms)
+

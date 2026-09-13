@@ -113,6 +113,69 @@ Every remaining failure identity belongs to the original upstream baseline;
 only the repaired peer-transport close test was removed, and none was added.
 Full-suite acceptance remains incomplete.
 
+
+## September 13 VFS readiness follow-up
+
+Reploid `173f1e8ec16426dbda0658077bc34bdc0a82edb5` restores storage readiness:
+`VFS.init()` now awaits the IndexedDB open and rejects failures before reporting
+success. Concurrent initialization shares one open without enumerating files;
+closed stores reject reinitialization. The application retains its existing
+surface/instance database name, inline `path` key and logging. Native Chromium
+ruled out a key-path migration defect: existing files already survived writes
+and connection replacement before this repair.
+
+The [initial native run](vfs-native-before.log) proves two readiness failures.
+The [regression run](vfs-regressions.log) passes all 36 VFS integration tests.
+Mocks now deliver request success before transaction completion with distinct
+transactions. The clear test verifies empty storage instead of a particular
+IndexedDB method. Runtime writes still settle only after commit.
+
+[Six native browser and Verification Worker checks](vfs-native-after.log) pass:
+existing database persistence, eager readiness and connection reuse, native
+version errors, aborted writes without committed-change events, independent
+connection shutdown, and verification of changed modules. The verifier's
+[previous rejection of the extracted storage owner](vfs-verifier-before.log)
+is retained. Its correction allows only IndexedDB for the exact generated
+`/vendor/reploid/adapters/browser.js`; neighboring files, tools, applications,
+other storage access and malformed source remain rejected. This validator
+candidate stays isolated in the draft branch; testing is not runtime approval
+or activation.
+
+[Local and remote full-suite comparison](vfs-full-suite-comparison.json) records
+2,505 passing tests, 36 skipped tests and 25 remaining failures across five files.
+All 34 former VFS failures are removed; no failure identity was introduced.
+The remaining failures concern agent-loop timing, boot seed size, self-runtime
+mocks, the swarm feature flag and existing CATSCAN inventory errors. The
+[full CI log](vfs-remote-reploid.log) and [charter check](vfs-catscan.log) preserve
+the failures. Full Reploid CI remains unaccepted.
+
+The [installed runtime check](vfs-installed-reploid.json) and
+[installed public transport/browser check](vfs-installed-browser.json) pass with
+the unchanged Doppler archive `c21230a20471c8beb9fa414a326b7a2da889a4ef9d07c13f3f23e8db9a1ca962`.
+[Required cross-repository CI](https://github.com/clocksmith/doppler/actions/runs/34739953850)
+also passes with Reploid pinned at `173f1e8`. The
+[downloaded archive comparison](vfs-ci-record.json) binds the exact remote
+fixture revision and confirms identical candidate bytes. These installed model
+programs are injected; physical model receipts retain their original scope.
+The [source and evidence hashes](vfs-readiness-acceptance.json) bind this repair.
+
+Reproduce from Reploid with a writable `TMPDIR`:
+
+```sh
+node node_modules/vitest/vitest.mjs run tests/integration/vfs.test.js
+REPLOID_E2E_SKIP_LOCAL_SERVER=1 node node_modules/@playwright/test/cli.js test tests/e2e/vfs-storage-contract.spec.js tests/e2e/peer-pack-jobs.spec.js --project=chromium-swiftshader --grep 'VFS|init |aborted write|Verification Worker' --reporter=list
+DOPPLER_TEST_CONSUMER=/path/to/retained/consumer node tests/fixtures/doppler-installed-generation.js
+DOPPLER_TEST_CONSUMER=/path/to/retained/consumer node tests/fixtures/doppler-installed-peer-browser-check.js
+```
+
+Component: Reploid Browser Library, Agent Core and Verification Evidence.
+Intent: preserved.
+Acceptance evidence: the VFS source/hash record, regression logs, native browser
+checks and installed-consumer CI above.
+Boundary effects: Verification Worker recognizes the extracted IndexedDB owner's
+existing storage responsibility through an exact file/pattern rule. No package
+publication, deployment or candidate activation.
+
 Component: Reploid Browser Library, Reploid Runtime Infrastructure, Poolday Evidence Runtime and Verification Evidence.
 Intent: preserved.
 Acceptance evidence: linked installed, native browser, physical, unit and negative records.
