@@ -160,6 +160,9 @@ test('Verification Worker accepts complete-job modules and modified execution bo
     snapshot['/infrastructure/pack-job-storage.js'] = await (await fetch('/self/infrastructure/pack-job-storage.js')).text();
     snapshot['/pool/p2p-transport.js'] = await (await fetch('/self/pool/p2p-transport.js')).text();
     snapshot['/vendor/reploid/transport/assignment.js'] = await (await fetch('/self/vendor/reploid/transport/assignment.js')).text();
+    for (const file of ['core/vfs.js', 'core/verification-worker.js', 'vendor/reploid/artifacts/store.js', 'vendor/reploid/adapters/browser.js']) {
+      snapshot[`/${file}`] = await (await fetch(`/self/${file}`)).text();
+    }
     for (const file of ['infrastructure/doppler-runtime-service.js', 'config/doppler-execution-contracts.js']) snapshot[`/${file}`] = await (await fetch(`/self/${file}`)).text();
     for (const file of ['document-search.js', 'index.js', 'view.js', 'operation-sharing.js']) snapshot[`/ui/pool-home/${file}`] = await (await fetch(`/self/ui/pool-home/${file}`)).text();
     for (const file of ['peer-pack-operation.js', 'peer-pack-job-browser.js', 'peer-pack-browser.js', 'peer-pack-remote-execution.js', 'peer-pack-journal-browser.js', 'doppler-installed-peer-browser.js']) snapshot[`/tests/fixtures/${file}`] = await (await fetch(`/tests/fixtures/${file}`)).text();

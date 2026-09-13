@@ -64,6 +64,23 @@ Checkpoints preserve agent state, not hidden model weights, application VFS,
 tool implementations or an automatically approved generation. Acquire declared
 dependencies separately. Hashes do not reconstruct absent bytes.
 
+## Storage readiness
+
+`createVfs().init()` awaits its store's optional `init()` hook. IndexedDB stores
+open the configured database before reporting readiness; blocked, failed or
+timed-out opens reject, and closed stores cannot be reinitialized. Concurrent
+initialization shares one open request without enumerating stored files.
+Custom stores without an initialization hook must be ready at construction.
+VFS borrows its store; the host closes it. The application VFS adapter owns and
+closes its IndexedDB store while preserving its surface/instance database name
+and inline `path` key. Mutation results and change events follow transaction
+commit, so an aborted write cannot announce a committed file change.
+The application's Verification Worker recognizes direct IndexedDB access only
+for the exact generated storage owner `/vendor/reploid/adapters/browser.js`.
+This does not grant that file other storage permissions or privilege to adjacent
+vendor files, tools or applications. Source verification is separate from
+approval or activation of a runtime candidate.
+
 ## Network boundary
 
 Network configuration defaults off, with no ICE servers or public room.

@@ -58,6 +58,7 @@ export function createIndexedDbStore({ databaseName, storeName, version, openTim
     });
   };
   return Object.freeze({
+    async init() { await open(); return true; },
     async get(key) { return (await transaction('readonly', store => store.get(String(key)))) ?? null; },
     async set(key, value) {
       const data = snapshotJson(value);

@@ -1,5 +1,7 @@
 import type { Json } from '../config/index.js';
 export interface Store {
+  /** Optional readiness hook; omitted by stores that are ready at construction. */
+  init?(): Promise<boolean>;
   get(key: string): Promise<Json>; set(key: string, value: Json): Promise<void>;
   delete(key: string): Promise<boolean>; keys(prefix?: string): Promise<string[]>; close(): Promise<void>;
 }

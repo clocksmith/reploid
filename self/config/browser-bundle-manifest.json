@@ -1286,7 +1286,7 @@
     {
       "path": "config/module-inventory.json",
       "byteLength": 104550,
-      "sha256": "sha256:3c752b4a100dceab9098193b2ff3b654bf5ae3bfb6e0dfc5ae522f10c1853561"
+      "sha256": "sha256:cbf20b4edd86b1ecc89aef2d77ada58d6ef80b1492457da69208e02e61814e4e"
     },
     {
       "path": "config/module-registry.json",
@@ -1515,8 +1515,8 @@
     },
     {
       "path": "core/verification-worker.js",
-      "byteLength": 30024,
-      "sha256": "sha256:34f79db81480a1ad12e12f7fda0f1e1a3f3f68f5ff792ca2ccffed7c5afc53be"
+      "byteLength": 30293,
+      "sha256": "sha256:d9ca566f2b9069198a07840689f4ac0c9d5829bbf0757e1dd092bfbbed4e0f2f"
     },
     {
       "path": "core/vfs-module-loader.js",
@@ -1525,8 +1525,8 @@
     },
     {
       "path": "core/vfs.js",
-      "byteLength": 665,
-      "sha256": "sha256:55417de3816e2ab03c8753ac6247bafb1b030a75708ef25679e84d7cc911002f"
+      "byteLength": 1193,
+      "sha256": "sha256:e11c439ade35b139bc61570b3ab264aa6d766af3dfb6cb878f29929320cffec3"
     },
     {
       "path": "core/visual-change-passport.js",
@@ -3290,13 +3290,13 @@
     },
     {
       "path": "vendor/reploid/adapters/browser.d.ts",
-      "byteLength": 460,
-      "sha256": "sha256:ba9d34f458686251ebce964c300ede8f94e2fc8902218fdd79778845c9b79f09"
+      "byteLength": 491,
+      "sha256": "sha256:f4de9a519a0565b57935d9bcd25002700c86eb04d5d6d941637a1250b72facda"
     },
     {
       "path": "vendor/reploid/adapters/browser.js",
-      "byteLength": 3889,
-      "sha256": "sha256:4b602857d7733a09c4a050d8a4afb032c7ef91ce54f1afd03e2efaf7c75f0304"
+      "byteLength": 3938,
+      "sha256": "sha256:76bc9b00598a459510061024cd03180196b1bf7f3ec0ed352d803fdd1a1a0f8e"
     },
     {
       "path": "vendor/reploid/adapters/doppler.d.ts",
@@ -3405,13 +3405,13 @@
     },
     {
       "path": "vendor/reploid/artifacts/store.d.ts",
-      "byteLength": 992,
-      "sha256": "sha256:27db304989e0e4b330ac403bd45c7e91a321721940373f55382b492f0c0a528d"
+      "byteLength": 1105,
+      "sha256": "sha256:b2f1d8f8cd6ffc829beaa88ae2c192f2031b3e786cf99332a01a98dcd6965adc"
     },
     {
       "path": "vendor/reploid/artifacts/store.js",
-      "byteLength": 4010,
-      "sha256": "sha256:fb5e55ab1b4f4b824765edc8c5921bb77c0a159f117cb6c6429749a83cdffeb0"
+      "byteLength": 4112,
+      "sha256": "sha256:3aacddc3ead348682880a5fbb0b308728518895c824caf59b77e3e281003168c"
     },
     {
       "path": "vendor/reploid/config/defaults.json",
@@ -3520,8 +3520,8 @@
     },
     {
       "path": "vendor/reploid/package-assets.json",
-      "byteLength": 10393,
-      "sha256": "sha256:36565fe059372faf4fcb4f91c1ac185128e8c528b26634e895dccfcc3ed0b27d"
+      "byteLength": 10394,
+      "sha256": "sha256:ae7ab2377eb1c55956ae91d6481ef13b04cb26a892806f88b480d1749941b95d"
     },
     {
       "path": "vendor/reploid/rules/contribution.rules.json",
@@ -3594,5 +3594,5 @@
       "sha256": "sha256:95a905e7fda60b4ebd1f29df134200be366b06dd9361520f3d112a787679c269"
     }
   ],
-  "bundleHash": "sha256:00f12f1e831d3bba1d1f505ff744fdd81b5e594c8d4e09a50e7bdc8488900774"
+  "bundleHash": "sha256:bb7ce8e0d792d807fc7f5c4473b73c4461e09c11457fb09173f40645d1bad21a"
 }
