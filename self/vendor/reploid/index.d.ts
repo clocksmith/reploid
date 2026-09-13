@@ -50,3 +50,5 @@ export interface ReploidInstance extends Closable {
   close(): Promise<void>;
 }
 export function createReploid(options: { config: ResolvedConfig; ports: ReploidPorts }): ReploidInstance;
+
+export { CYCLE_ARTIFACT_ROOT, getCycleId, getCycleArtifactPath, createCycleArtifactWriter } from './agent/cycle-artifacts.js';
