@@ -1,2 +1,1 @@
-export * from './vendor/reploid/artifacts/receipt.js';
-export { default } from './vendor/reploid/artifacts/receipt.js';
+export { canonicalizeReceiptPayload, countersignReceipt, createReceiptDraft, getReceiptPayload, signReceiptDraft, verifyReceipt, receipt as default } from './vendor/reploid/adapters/browser.js';
