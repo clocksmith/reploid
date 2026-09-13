@@ -277,13 +277,13 @@
     },
     {
       "path": "transport/assignment.d.ts",
-      "bytes": 1818,
-      "sha256": "88d397df7ef136232f1ee9d70c938504233d31b1312703f6743b762746e089ae"
+      "bytes": 1948,
+      "sha256": "cf80be0f84ea114e16d641f4ecbfab187fbdb0926d2582518714419432bc05d1"
     },
     {
       "path": "transport/assignment.js",
-      "bytes": 15717,
-      "sha256": "50b088044284d3148d95eb28326f23ee415cb13eaa9157b7fc0fdbf0a7c6f01a"
+      "bytes": 17222,
+      "sha256": "713116e3ad1b712309cf326416d3e217c128b11556e05131901222bc382f18cf"
     },
     {
       "path": "transport/index.d.ts",

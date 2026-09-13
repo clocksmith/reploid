@@ -74,7 +74,33 @@ or its upstream charter-inventory gate is green.
 Earlier WebRTC failures from upstream configuration syntax also remain retained;
 they passed after upstream `2cbe2fc` supplied its repair.
 
-Component: Reploid Runtime Infrastructure, Poolday Evidence Runtime and Verification Evidence.
+## September 13 transport recovery follow-up
+
+The upstream peer-transport close failure was reproduced and repaired in the
+existing public browser-library transport. Closing while offer or description
+setup is pending now rejects both public waiters immediately with the declared
+error code and diagnostics. Connection deadlines also settle pending setup.
+Ownership is cleared before cleanup callbacks, and late events or setup results
+cannot reopen a closed connection or publish another offer or answer.
+
+[The original close failure](peer-transport-close-before.log),
+[four failing lifecycle probes](peer-transport-lifecycle-before.log) and
+[the reentrant observer failure](peer-transport-observer-before.log) are retained.
+All [57 focused transport, signaling and peer-job tests](peer-transport-regressions.log)
+and [Verification Worker checks](peer-transport-verification-worker.log) pass.
+This repairs one of the original 60 upstream failures; the other failing files
+retain their earlier negative evidence and are not claimed green.
+
+The [installed browser rerun](peer-transport-installed-browser.json) now uses
+Reploid's public assignment transport for actual WebRTC setup, alongside signed
+v2 streaming and native IndexedDB replay. It passes with three deltas, two
+deliveries, one model execution, a replaced provider and no cleanup errors.
+Its signaling fixture transfers gathered SDP between two contexts; it does not
+test production signaling or separate operators. The Doppler archive remains
+`c21230a20471c8beb9fa414a326b7a2da889a4ef9d07c13f3f23e8db9a1ca962`.
+Physical model receipts above retain their original source and environment scope.
+
+Component: Reploid Browser Library, Reploid Runtime Infrastructure, Poolday Evidence Runtime and Verification Evidence.
 Intent: preserved.
 Acceptance evidence: linked installed, native browser, physical, unit and negative records.
 Boundary effects: explicit Doppler v2 adoption, published 0.6.1 default pins and

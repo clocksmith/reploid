@@ -71,6 +71,13 @@ Joining is distinct from executing jobs, supplying artifacts or sharing candidat
 The low-level WebRTC APIs implement connections; a host supplies signaling
 publication/subscription and private room/TURN credentials through ports.
 
+Closing an assignment transport or reaching its connection deadline settles
+pending `connect()` and `ready()` waiters even while browser offer/answer setup
+is unresolved. Rejections preserve the `webrtc_connection_failed` code and
+connection diagnostics. Cleanup releases each owned connection once; late
+browser events and setup results cannot reopen it or publish new signaling.
+Already-started browser and signaling operations are not forcibly interrupted.
+
 The swarm-generation adapter retains its legacy messages. Its duplicate cache
 is bounded and process-local; it is not the durable Pack-job journal.
 Exact model contract matching applies when a contract is configured. A null

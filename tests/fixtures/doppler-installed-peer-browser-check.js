@@ -74,6 +74,7 @@ try {
   assert.equal(report.requester.accounting.deliveries, 2);
   assert.equal(report.provider.calls, 1);
   assert.equal(report.provider.replacements, 1);
+  assert.equal(report.provider.connection.state, 'connected');
   assert.equal(report.provider.journal.attempts, 1);
   assert.equal(report.provider.transport.sentFrameBytes, report.requester.transport.receivedFrameBytes);
   assert.deepEqual([...report.requester.errors, ...report.provider.errors,

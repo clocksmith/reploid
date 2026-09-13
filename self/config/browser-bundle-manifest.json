@@ -1286,7 +1286,7 @@
     {
       "path": "config/module-inventory.json",
       "byteLength": 104550,
-      "sha256": "sha256:67d3d68627bab3f062dc103f28c06e3b6a8e3061233abe1b7dda7b85fcda761e"
+      "sha256": "sha256:3c752b4a100dceab9098193b2ff3b654bf5ae3bfb6e0dfc5ae522f10c1853561"
     },
     {
       "path": "config/module-registry.json",
@@ -3521,7 +3521,7 @@
     {
       "path": "vendor/reploid/package-assets.json",
       "byteLength": 10393,
-      "sha256": "sha256:f9e0c284fdff89285e0165deddb4711fa78772ed07a7d19b8cea1bc2d1db15a2"
+      "sha256": "sha256:36565fe059372faf4fcb4f91c1ac185128e8c528b26634e895dccfcc3ed0b27d"
     },
     {
       "path": "vendor/reploid/rules/contribution.rules.json",
@@ -3535,13 +3535,13 @@
     },
     {
       "path": "vendor/reploid/transport/assignment.d.ts",
-      "byteLength": 1818,
-      "sha256": "sha256:88d397df7ef136232f1ee9d70c938504233d31b1312703f6743b762746e089ae"
+      "byteLength": 1948,
+      "sha256": "sha256:cf80be0f84ea114e16d641f4ecbfab187fbdb0926d2582518714419432bc05d1"
     },
     {
       "path": "vendor/reploid/transport/assignment.js",
-      "byteLength": 15717,
-      "sha256": "sha256:50b088044284d3148d95eb28326f23ee415cb13eaa9157b7fc0fdbf0a7c6f01a"
+      "byteLength": 17222,
+      "sha256": "sha256:713116e3ad1b712309cf326416d3e217c128b11556e05131901222bc382f18cf"
     },
     {
       "path": "vendor/reploid/transport/index.d.ts",
@@ -3594,5 +3594,5 @@
       "sha256": "sha256:95a905e7fda60b4ebd1f29df134200be366b06dd9361520f3d112a787679c269"
     }
   ],
-  "bundleHash": "sha256:9550fb0bf4d3a9d7c0ddaf596213798eab9d082cc24bc7014cfafe1ad3b8e7eb"
+  "bundleHash": "sha256:00f12f1e831d3bba1d1f505ff744fdd81b5e594c8d4e09a50e7bdc8488900774"
 }
