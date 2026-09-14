@@ -3,43 +3,43 @@
 Parent: [Reploid](../../CATSCAN.md)
 
 ## Target
-Provide reusable browser-native agent execution, configured peer networking,
-intelligence coordination, persistence, and governed improvement services.
-The existing application is a consumer, not an implicit dependency.
+Provide reusable browser agent, networking, coordination, persistence and
+governed improvement services. Applications consume public APIs.
 
 ## Authority
-- Owns reusable algorithms, lifecycle, transport protocols, data contracts and enforcement.
-- Host ports own credentials, permissions, model sessions, isolation and activation authority.
-- Doppler owns model execution. Application policy owns catalog admission and domain claims.
+- Owns algorithms, lifecycle, protocols, contracts and enforcement.
+- Hosts own credentials, permissions, model sessions, isolation and activation.
+- Doppler owns execution; applications own catalog admission and domain claims.
 
 ## Scope
-- This package and its source, declarations, schemas and package-relative assets.
+- Package source, declarations, schemas and assets.
 
 ## Contracts
-- Explicit ESM exports in package.json.
-- createReploid({ config, ports }) and resolveConfig().
-- Separate assignment and legacy swarm wire protocols.
-- Signed rsi.improvement-episode/v1 evidence remains distinct from activation.
+Inputs:
+- Validated JSON configuration and injected host ports.
+Outputs:
+- Explicit ESM exports, createReploid({ config, ports }), resolveConfig().
+- Distinct assignment/swarm protocols and signed rsi.improvement-episode/v1 evidence.
 
 ## Invariants
-- Importing performs no network connection, model fetch, storage access or service-worker registration.
-- No dependencies on self/, server/, deployment tooling, page globals or application credentials.
-- JSON owns policy, JavaScript owns orchestration, Doppler owns computation.
-- Instance state, resources, config and events are isolated.
+- Importing never connects, fetches models, accesses storage or registers service workers.
+- No self/, server/, deployment, page-global or application-credential dependencies.
+- JSON owns policy; JavaScript orchestrates; Doppler computes.
+- Instance state, resources, configuration and events remain isolated.
 - Configuration cannot broaden host authorization.
-- Artifact supply, job execution and candidate sharing are separate permissions.
-- Candidates cannot control protected evaluators, approve themselves or erase failures.
-- Ancestry, reproduction, adoption, heuristic scores and model agreement are not intelligence proofs.
-- Borrowed resources are not closed. Owned resources have explicit shutdown.
-- Protocol compatibility must be evidenced before claiming migration complete.
+- Artifact supply, execution and candidate sharing require separate permissions.
+- Candidates cannot control evaluators, self-approve or erase failures.
+- Ancestry, reproduction, adoption, heuristics and agreement are not intelligence proofs.
+- Close owned resources, never borrowed ones.
+- Migration requires protocol compatibility evidence; extraction proves neither acceptance nor publication.
 
 ## Acceptance
-- The application and a separate installed-package browser consumer use the same public implementations.
-- The acceptance matrix in README.md passes with retained artifacts.
-- No acceptance run or publication is implied by source extraction.
+- Application and separate installed browser consumer use matching public implementations.
+- Evidence: [package acceptance](../../tests/library-package-acceptance.js) and retained reports
+  against the [acceptance matrix](README.md).
 
 ## Non-goals
-- Hosting services, application routes, public catalog policy, domain workflows or Simulatte integration.
+- Hosting, routes, catalog policy, domain workflows or Simulatte integration.
 
 ## Freedom
-Preserve these boundaries and the recorded wire contracts.
+Preserve boundaries and recorded wire contracts.

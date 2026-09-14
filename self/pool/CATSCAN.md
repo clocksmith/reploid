@@ -7,10 +7,10 @@ Parent: [Browser Runtime](../CATSCAN.md)
 Distribute, execute, coordinate; adjudicate public-protein evidence.
 
 ## Authority
-- Owns Poolday discovery/admission policy, assignment integration, recovery integration and accounting.
-- Reuses package-owned WebRTC/signaling through compatibility adapters. Durable Pack-job and custody extraction remain separate work; legacy swarm behavior does not replace them.
-- Doppler owns Pack signatures, final integrity, verified cache, execution.
-- Excludes truth, relays, RSI, private-sequence delegation.
+- Owns discovery/admission, assignment, recovery and accounting integration.
+- Adapts package WebRTC/signaling; Pack-job/custody extraction remains incomplete. Swarm cannot substitute.
+- Doppler owns Pack signatures/integrity, verified caching/execution.
+- Excludes truth, relays, RSI, private delegation.
 
 ## Scope
 
@@ -26,8 +26,8 @@ Outputs:
 - [Custody](peer-pack-custody.js), [local document retrieval](document-search.js).
 - [Receipts](inference-receipt.js), [state](research-cycle.js), [checkpoints](discovery-contract.js), [actions](discovery-candidate-action.js).
 - [Records](evidence-network.js), [campaign](protein-uncertainty-campaign.js), [adjudication](adjudication-north-star.js), [promotion](scientific-policy-promotion.js), [value](realized-action-value.js).
-- Forecasts reuse [assignments](peer-assignment.js), signed messages/receipts, requester acceptance.
-  Applications own pins/semantics/review; no catalog admission.
+- Forecasts reuse [assignments](peer-assignment.js), signatures and requester acceptance.
+  Applications own pins/semantics/review, not catalog admission.
 - [Jobs](peer-pack-job.js), [acceptance](peer-pack-episode.js): pins, public consent, bounds.
 
 ## Invariants
@@ -39,11 +39,11 @@ Outputs:
 - Agreement/context never prove truth/relevance; reuse requires review.
 - Declared-source duplicates count once; only accepted corrections/authorized revocations supersede.
 - Candidate actions authorize nothing; remain outside memory.
-- Numeric uncertainty requires versioned methods/cohorts; metrics remain vectors.
-- Imports bind provenance; orders: public execution; labs: capability/safety; policies: resolution. None proves truth.
+- Numeric uncertainty requires versioned methods/cohorts; vector metrics.
+- Provenance-bound imports: orders/public execution, labs/capability/safety, policies/resolution; never truth.
 - Campaigns order disagreement, not volume or biological priority.
 - Zero proposes; X evaluates frozen cohorts; Poolday admits. Separate promotion authorities.
-- Realized value requires approved actions, reviewed outcomes, evaluation, causality, independent acceptance.
+- Value requires approved actions, reviewed outcomes, evaluation, causality, independent acceptance.
 
 ## Acceptance
 - [Operations](../../tests/unit/pool-pack-operation.test.js), [jobs](../../tests/unit/pool-peer-pack-job.test.js), [WebRTC](../../tests/e2e/peer-pack-jobs.spec.js) pass.
