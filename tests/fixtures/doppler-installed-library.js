@@ -3,7 +3,7 @@
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { readFile, mkdir } from 'node:fs/promises';
+import { readFile, mkdir, copyFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { hashDopplerEvidence } from '../../self/pool/executable-pack.js';
@@ -29,8 +29,19 @@ export async function checkInstalledLibraryProvider({ consumer, api, session, ma
   const root = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
   const evidence = resolve(consumer, '../reploid-library');
   await mkdir(evidence, { recursive: true });
-  const packed = JSON.parse(execFileSync('npm', ['pack', './packages/reploid', '--ignore-scripts', '--json',
-    '--pack-destination', evidence], { cwd: root, encoding: 'utf8' }))[0];
+  const suppliedArchive = process.env.DOPPLER_TEST_REPLOID_ARCHIVE;
+  let packed;
+  if (suppliedArchive) {
+    const metadata = JSON.parse(execFileSync('tar', ['-xOf', suppliedArchive, 'package/package.json'], { encoding: 'utf8' }));
+    assert.equal(metadata.name, 'reploid', 'Supplied consumer archive must contain the public Reploid package');
+    const bytes = await readFile(suppliedArchive);
+    packed = { filename: `reploid-${metadata.version}.tgz`, integrity: `sha512-${createHash('sha512').update(bytes).digest('base64')}` };
+    const target = resolve(evidence, packed.filename);
+    if (resolve(suppliedArchive) !== target) await copyFile(suppliedArchive, target);
+  } else {
+    packed = JSON.parse(execFileSync('npm', ['pack', './packages/reploid', '--ignore-scripts', '--json',
+      '--pack-destination', evidence], { cwd: root, encoding: 'utf8' }))[0];
+  }
   const archive = resolve(evidence, packed.filename);
   execFileSync('npm', ['install', '--ignore-scripts', '--no-audit', '--no-fund', '--legacy-peer-deps',
     '--no-save', '--package-lock=false', archive], { cwd: consumer, stdio: 'pipe' });
