@@ -4,7 +4,7 @@ import { resolve } from 'node:path';
 import { runPackOperation } from '../../self/pool/pack-operation.js';
 import { hashDopplerEvidence } from '../../self/pool/executable-pack.js';
 
-export async function checkInstalledAdapters({ consumer, service, api, makeRequest }) {
+export async function checkInstalledAdapters({ consumer, service, api, makeRequest, runOperation = runPackOperation }) {
   const fixture = JSON.parse(await fs.readFile(resolve(consumer, 'adapter-fixture.json'), 'utf8'));
   const artifacts = new Map(fixture.artifacts.map(([id, bytes]) => [id, Uint8Array.from(bytes)]));
   let failLoad = false, failExecute = false, loads = 0, unloads = 0, closes = 0;
@@ -48,7 +48,7 @@ export async function checkInstalledAdapters({ consumer, service, api, makeReque
     requiredOperation: 'generate', acceptedTargetPlanDigests: [session.selectedTargetPlanDigest] };
   const request = { ...makeRequest({}), adapterSet: [fixture.adapter] };
   const adapterArtifactStore = { readArtifact: async () => Uint8Array.from(fixture.adapterBytes) };
-  const run = (input = request, extra = {}) => runPackOperation({ binding, session, request: input,
+  const run = (input = request, extra = {}) => runOperation({ binding, session, request: input,
     runtimeVersion: api.DOPPLER_VERSION, runtimeService: service, adapterArtifactStore, ...extra });
   try {
     const [adapted, base] = await Promise.all([run(), run({ ...request, adapterSet: [] }, { session: second })]);

@@ -8,6 +8,7 @@ import { runPackOperation } from '../../self/pool/pack-operation.js';
 import { hashDopplerEvidence } from '../../self/pool/executable-pack.js';
 import { checkInstalledAdapters } from './doppler-installed-adapters.js';
 import { checkInstalledPeerStreaming } from './doppler-installed-peer-streaming.js';
+import { checkInstalledLibraryProvider, createInstalledLibraryOperationRunner } from './doppler-installed-library.js';
 
 const consumer = process.env.DOPPLER_TEST_CONSUMER;
 assert(consumer, 'DOPPLER_TEST_CONSUMER must name the retained installed candidate consumer directory.');
@@ -54,6 +55,7 @@ const makeRequest = overrides => ({ schema: 'doppler.capsule-operation-request/v
   limits: { maxInputBytes: 10000, maxOutputBytes: 100000, deadlineAt: Date.now() + 60000 } });
 const checks = [];
 let streamingAcceptance;
+let libraryAcceptance;
 try {
   const session = await service.openCapsule({ scope: 'a', source: fixture.capsule, options: ports });
   const second = await service.openCapsule({ scope: 'b', source: fixture.capsule, options: ports });
@@ -120,6 +122,7 @@ try {
   await assert.rejects(run(makeRequest({}), { session: { ...session, generationContract: null } }), /contract mismatch/);
   assert.equal(phases.length, phaseCount);
   checks.push('invalid options and incompatible runtime rejected before inference');
+  libraryAcceptance = await checkInstalledLibraryProvider({ consumer, api, session, makeRequest, formats: ['v1', 'v2'] });
   const incrementalRequest = { ...makeRequest({ maxTokens: 3, presencePenalty: 2, repetitionPenaltyWindow: 1 }), schema: 'doppler.capsule-operation-request/v2' };
   const incrementalPartials = [];
   const incremental = await run(incrementalRequest, { onPartial: event => {
@@ -140,9 +143,14 @@ try {
 assert.equal(closed, 2);
 const adapterAcceptance = await checkInstalledAdapters({ consumer, service, api, makeRequest });
 const incrementalAdapterAcceptance = await checkInstalledAdapters({ consumer, service, api, makeRequest: options => ({ ...makeRequest(options), schema: 'doppler.capsule-operation-request/v2' }) });
+const runLibraryOperation = await createInstalledLibraryOperationRunner(consumer, api);
+const libraryAdapterAcceptance = await checkInstalledAdapters({ consumer, service, api, makeRequest, runOperation: runLibraryOperation });
+const libraryIncrementalAdapterAcceptance = await checkInstalledAdapters({ consumer, service, api,
+  makeRequest: options => ({ ...makeRequest(options), schema: 'doppler.capsule-operation-request/v2' }), runOperation: runLibraryOperation });
 checks.push('request-bound adapters, failure replacement, cancellation and independent session cleanup in both stream formats');
 console.log(JSON.stringify({ schema: 'reploid.installed-generation-contract-test/v1', passed: true,
-  runtimeEntry: entry, runtimeVersion: api.DOPPLER_VERSION, checks, phaseCalls: phases.length, released, closed, adapterAcceptance, incrementalAdapterAcceptance, streamingAcceptance,
+  runtimeEntry: entry, runtimeVersion: api.DOPPLER_VERSION, checks, phaseCalls: phases.length, released, closed, adapterAcceptance, incrementalAdapterAcceptance, streamingAcceptance, libraryAcceptance,
+  libraryAdapterAcceptance, libraryIncrementalAdapterAcceptance,
   model: { kind: 'signed test fixture with injected logits', modelId: fixture.capsule.modelId,
     capsuleHash: await hashDopplerEvidence(fixture.capsule) },
   evidence: 'installed API contract with injected logits; not physical model or semantic qualification' }));

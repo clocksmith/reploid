@@ -64,6 +64,48 @@ Checkpoints preserve agent state, not hidden model weights, application VFS,
 tool implementations or an automatically approved generation. Acquire declared
 dependencies separately. Hashes do not reconstruct absent bytes.
 
+## Doppler generation and streaming
+
+`createDopplerProvider` borrows or owns an already verified public Capsule
+session. `openDopplerProvider` opens that same engine through `openCapsule()`;
+the host still supplies its descriptor, trusted signers and runtime ports.
+The immutable `models.contract` pins `modelId`, `capsuleId`, `semanticRoot`
+and `selectedTargetPlanDigest`; `runtimeVersion` can additionally pin the
+adopted runtime. Importing the adapter does not import or initialize Doppler.
+
+For operation streaming, supply `toOperationRequest(messages, contract)`.
+Return the complete public Doppler request: explicit stream `schema`,
+`operation: { name: 'generate', version: 1 }`, input, generation options,
+assignment (or null) and input/output/deadline limits. Generation settings and
+tokenizer rules stay owned by Doppler. No sampling defaults are added here.
+`generate(messages, onUpdate, { signal, adapterArtifactStore })` forwards the
+request's `adapterSet` and its host artifact store through `executeOperation()`.
+
+| Request format | Display callback | Completion |
+| --- | --- | --- |
+| v1, including published Doppler 0.6.1 | Verified final text once; cumulative partial decoding can revise Unicode | Event chain, request, output and receipt verified |
+| Explicitly adopted v2 runtime | Stable additions as they arrive, using Doppler's public accumulator | Reconstructed output and complete final receipt verified |
+
+Append additions to a text node (`textNode.appendData(addition)`). A callback
+may return a promise: the provider awaits it before requesting another event.
+It does not refresh the page, rebuild the output after every token or request
+cumulative snapshots. Empty text updates may accompany raw tokens internally.
+Text displayed before completion is provisional. Only a resolved generation
+result is accepted; `result.evidence` retains the complete operation completion,
+including token IDs, resolved settings, stopping reason and execution identity.
+Omit the callback to collect the result through the identical operation path.
+
+Cancellation closes the iterator and suppresses late results. A stalled host
+formatter or display callback cannot prevent cancellation. Already submitted
+GPU work still follows Doppler's cooperative cleanup. Closing a provider aborts
+its requests and closes its session only when ownership is `owned`.
+
+The original `toGenerationRequest` formatter remains a completion-only
+compatibility path with its original `generateText()` evidence shape. Adopt
+`toOperationRequest` explicitly to obtain verified operation receipts; supplying
+both formatters fails. An older installed runtime rejects v2 before execution.
+The optional peer dependency range alone does not establish stream support.
+
 ## Storage readiness
 
 `createVfs().init()` awaits its store's optional `init()` hook. IndexedDB stores
