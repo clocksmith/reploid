@@ -60,6 +60,7 @@ async function checkDeclarations(directory, names, logName, ambientTypes = []) {
 }
 let manifest = null;
 let server = null;
+let assetServer = null;
 let browser = null;
 try {
   await check('pack-and-detached-install', async () => {
@@ -214,17 +215,21 @@ try {
     }
     await check('browser-launch', async () => {
       const mime = { '.html': 'text/html', '.js': 'text/javascript', '.json': 'application/json' };
-      server = createServer(async (request, response) => {
+      const serveInstalled = async (request, response) => {
         try {
           const url = new URL(request.url, 'http://localhost');
-          const file = path.resolve(consumer, '.' + decodeURIComponent(url.pathname === '/' ? '/index.html' : url.pathname));
+          const pathname = url.pathname.replace(/^\/nested\/app\//, '/');
+          const file = path.resolve(consumer, '.' + decodeURIComponent(pathname === '/' ? '/index.html' : pathname));
           if (!file.startsWith(consumer + path.sep)) { response.writeHead(403).end(); return; }
           const bytes = await readFile(file);
-          response.writeHead(200, { 'content-type': mime[path.extname(file)] || 'application/octet-stream' });
+          response.writeHead(200, { 'content-type': mime[path.extname(file)] || 'application/octet-stream', 'access-control-allow-origin': '*' });
           response.end(bytes);
         } catch { response.writeHead(404).end(); }
-      });
+      };
+      server = createServer(serveInstalled);
       await new Promise((resolve, reject) => { server.once('error', reject); server.listen(0, '127.0.0.1', resolve); });
+      assetServer = createServer(serveInstalled);
+      await new Promise((resolve, reject) => { assetServer.once('error', reject); assetServer.listen(0, '127.0.0.1', resolve); });
       const imports = Object.fromEntries(entries.map(([key, target], index) => [
         names[index], '/node_modules/reploid/' + target.import.slice(2)
       ]));
@@ -232,6 +237,15 @@ try {
         JSON.stringify({ imports }) + '</script>');
       for (const file of ['index.html', 'main.js']) {
         await writeFile(path.join(consumer, file), await readFile(path.join(root, 'examples/library-consumer', file)));
+      }
+      const crossOriginImports = Object.fromEntries(Object.entries(imports).map(([name, url]) =>
+        [name, `http://127.0.0.1:${assetServer.address().port}/nested/app${url}`]));
+      await writeFile(path.join(consumer, 'cross-origin.html'),
+        (await readFile(path.join(consumer, 'index.html'), 'utf8')).replace(/<script type="importmap">[\s\S]*?<\/script>/,
+          '<script type="importmap">' + JSON.stringify({ imports: crossOriginImports }) + '</script>'));
+      for (const file of ['verification-worker.js', 'vendor/acorn.js']) {
+        await mkdir(path.dirname(path.join(consumer, 'core', file)), { recursive: true });
+        await writeFile(path.join(consumer, 'core', file), await readFile(path.join(root, 'self/core', file)));
       }
       browser = await chromium.launch({
         headless: true, timeout: 20000,
@@ -247,43 +261,67 @@ try {
           await page.goto(base + '/imports.html');
           const results = await page.evaluate(async names => {
             const results = [];
+            const sideEffects = [];
+            const guarded = [[globalThis, 'fetch'], [indexedDB, 'open']];
+            if (navigator.serviceWorker) guarded.push([navigator.serviceWorker, 'register']);
+            for (const [owner, key] of guarded) owner[key] = () => { sideEffects.push(key); throw new Error('Import side effect: ' + key); };
             for (const name of names) {
               try { const api = await import(name); results.push({ name, ok: true, exports: Object.keys(api) }); }
               catch (error) { results.push({ name, ok: false, error: String(error.stack || error) }); }
             }
-            return results;
+            return { entries: results, sideEffects };
           }, names);
           await writeFile(path.join(evidence, 'browser-imports.json'), JSON.stringify(results, null, 2));
-          assert(results.every(result => result.ok), 'Public import failures; see browser-imports.json');
+          assert(results.entries.every(result => result.ok), 'Public import failures; see browser-imports.json');
+          assert.deepEqual(results.sideEffects, [], 'Imports must not fetch models, open storage or register a service worker');
           return results;
         } finally { await page.close(); }
       });
-      await check('deterministic-browser-consumer', async () => {
+      for (const route of ['/', '/nested/app/', '/nested/app/cross-origin.html']) await check('deterministic-browser-consumer:' + route, async () => {
         const page = await browser.newPage();
         const errors = [];
         page.on('pageerror', error => errors.push(String(error.stack || error)));
         try {
-          await page.goto(base + '/');
+          await page.goto(base + route);
           await page.locator('#run').click();
           await page.waitForFunction(() => {
             const text = document.querySelector('#state')?.textContent || '';
             return text.includes('PARKED') && text.includes('one unpowered machine');
           }, null, { timeout: 5000 });
           assert.deepEqual(errors, []);
-          await page.screenshot({ path: path.join(evidence, 'consumer.png'), fullPage: true });
+          await page.screenshot({ path: path.join(evidence, 'consumer-' + encodeURIComponent(route) + '.png'), fullPage: true });
           await page.locator('#close').click();
           await page.waitForFunction(() => document.querySelector('#state')?.textContent === 'Closed', null, { timeout: 5000 });
-          return { model: 'deterministic-fixture', networkJobs: 0 };
+          return { model: 'deterministic-fixture', networkJobs: 0, route };
         } finally {
           await writeFile(path.join(evidence, 'consumer-page-errors.json'), JSON.stringify(errors, null, 2));
           await page.close();
         }
+      });
+      await check('provider-verification-worker', async () => {
+        const snapshot = Object.fromEntries(await Promise.all([
+          'adapters/doppler.js', 'adapters/doppler-stream.js', 'agent/cancellation.js'
+        ].map(async file => ['/vendor/reploid/' + file, await readFile(path.join(installedRoot, 'src', file), 'utf8')])));
+        const page = await browser.newPage();
+        try {
+          await page.goto(base + '/imports.html');
+          const result = await page.evaluate(snapshot => new Promise((resolve, reject) => {
+            const worker = new Worker('/core/verification-worker.js');
+            const timer = setTimeout(() => { worker.terminate(); reject(new Error('Verification Worker timeout')); }, 10000);
+            worker.onmessage = event => { clearTimeout(timer); worker.terminate(); resolve(event.data); };
+            worker.onerror = event => { clearTimeout(timer); worker.terminate(); reject(new Error(event.message)); };
+            worker.postMessage({ type: 'VERIFY', snapshot });
+          }), snapshot);
+          assert(result.passed, JSON.stringify(result));
+          return result;
+        } finally { await page.close(); }
       });
     }
   }
 } finally {
   await browser?.close();
   if (server) await new Promise(resolve => server.close(resolve));
+  if (assetServer) await new Promise(resolve => assetServer.close(resolve));
   report.passed = report.checks.every(check => check.status === 'passed');
   await writeFile(path.join(evidence, 'report.json'), JSON.stringify(report, null, 2) + '\n');
   process.stdout.write('Evidence: ' + path.join(evidence, 'report.json') + '\n');
