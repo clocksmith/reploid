@@ -1,22 +1,4 @@
-// self/reward-policy.js
-var DEFAULT_REWARD_POLICY = Object.freeze({
-  outputPointsPer1k: 1,
-  inputPointsPer1k: 0.25,
-  diversityBonus: 0.15,
-  repeatedPairCap: 3,
-  minCountedTokens: 128,
-  scoreHalfLifeMs: 1e3 * 60 * 60 * 24 * 30
-});
-
-// self/swarm.js
-var SWARM_ROLES = Object.freeze({
-  SOLO: "solo",
-  PROVIDER: "provider",
-  CONSUMER: "consumer",
-  DEAD: "dead"
-});
-
-// self/identity.js
+// self/vendor/reploid/artifacts/identity.js
 var encoder = new TextEncoder();
 var stableJson = (value) => {
   if (Array.isArray(value)) {
@@ -89,6 +71,27 @@ async function importVerificationKey(bundleOrJwk, cryptoApi = globalThis.crypto)
 function encodeBytes(value) {
   return encoder.encode(String(value || ""));
 }
+
+// self/vendor/reploid/rules/contribution.rules.json
+var contribution_rules_default = {
+  outputPointsPer1k: 1,
+  inputPointsPer1k: 0.25,
+  diversityBonus: 0.15,
+  repeatedPairCap: 3,
+  minCountedTokens: 128,
+  scoreHalfLifeMs: 2592e6
+};
+
+// self/vendor/reploid/mesh/contribution.js
+var DEFAULT_REWARD_POLICY = Object.freeze(contribution_rules_default);
+
+// self/vendor/reploid/mesh/swarm-coordination.js
+var SWARM_ROLES = Object.freeze({
+  SOLO: "solo",
+  PROVIDER: "provider",
+  CONSUMER: "consumer",
+  DEAD: "dead"
+});
 
 // self/shared/change-passport/contract.js
 var CHANGE_PASSPORT_SCHEMA = "change.passport/v1";
