@@ -5,7 +5,7 @@ Recursive authority charters discovered from the repository root.
 
 | Component | Charter | Parent | Target |
 | --- | --- | --- | --- |
-| Reploid | [`CATSCAN.md`](../CATSCAN.md) | None | Deliver an evolving problem-solving agent that pursues goals for humans and agents via Doppler model inference, collaborates with peers over WebRTC via Poolday, and recursively improves its problem-solving methods through independently evaluated experience. |
+| Reploid | [`CATSCAN.md`](../CATSCAN.md) | None | Deliver a goal-directed agent using Doppler inference, Poolday WebRTC collaboration, and independently evaluated recursive improvement. |
 | Deployment Configuration | [`deploy/CATSCAN.md`](../deploy/CATSCAN.md) | Reploid | Declare reproducible hosted deployment inputs and service boundaries for Reploid runtime surfaces. |
 | Documentation | [`docs/CATSCAN.md`](CATSCAN.md) | Reploid | Keep product intent, contracts, mechanisms, claims, and current evidence discoverable without conflating their authority. |
 | Hosted Zero Function | [`functions/CATSCAN.md`](../functions/CATSCAN.md) | Reploid | Expose the bounded Gemini-backed Zero function with explicit authentication, App Check, input, quota, and failure contracts. |
@@ -15,6 +15,7 @@ Recursive authority charters discovered from the repository root.
 | Change Passport Documentation | [`docs/change-passport/CATSCAN.md`](change-passport/CATSCAN.md) | Documentation | Preserve Change Passport as an inactive commercial alternative with independent workflow, evidence, and decision-state contracts. |
 | Poolday Product Contracts | [`docs/poolday/CATSCAN.md`](poolday/CATSCAN.md) | Documentation | Define Poolday's peer-execution product authority, evidence boundaries, and explicit infrastructure and scientific non-claims. |
 | Evidence Status | [`docs/status/CATSCAN.md`](status/CATSCAN.md) | Documentation | Record current, evidence-linked claim status without turning observations into strategy or stronger assertions. |
+| Reploid Browser Library | [`packages/reploid/CATSCAN.md`](../packages/reploid/CATSCAN.md) | Reploid | Provide reusable browser agent, networking, coordination, persistence and governed improvement services. Applications consume public APIs. |
 | Blueprint Registry | [`self/blueprints/CATSCAN.md`](../self/blueprints/CATSCAN.md) | Browser Runtime | Preserve discoverable design records for runtime modules without substituting design descriptions for current proof. |
 | Optional Capabilities | [`self/capabilities/CATSCAN.md`](../self/capabilities/CATSCAN.md) | Browser Runtime | Package optional optimization, reflection, memory, and swarm behaviors behind explicit runtime and verification boundaries. |
 | Runtime Configuration | [`self/config/CATSCAN.md`](../self/config/CATSCAN.md) | Browser Runtime | Declare reproducible boot, route, module, environment, and capability configuration for each Reploid surface. |
@@ -27,6 +28,7 @@ Recursive authority charters discovered from the repository root.
 | Model Providers | [`self/providers/CATSCAN.md`](../self/providers/CATSCAN.md) | Browser Runtime | Adapt named model providers into explicit runtime contracts with bounded identity, configuration, and failure semantics. |
 | Agent Tools | [`self/tools/CATSCAN.md`](../self/tools/CATSCAN.md) | Browser Runtime | Expose bounded, schema-defined operations that agents can invoke without bypassing verification, staging, or promotion controls. |
 | Browser Interfaces | [`self/ui/CATSCAN.md`](../self/ui/CATSCAN.md) | Browser Runtime | Render each declared surface's authoritative state and actions without inventing new authority or widening claims. |
+| Generated Browser Library Assets | [`self/vendor/CATSCAN.md`](../self/vendor/CATSCAN.md) | Browser Runtime | Deliver the reusable browser package to the existing static application. |
 | Change Control Service | [`server/change-control/CATSCAN.md`](../server/change-control/CATSCAN.md) | Hosted Services | Persist Change Passports under tenant, role, idempotency, GitHub, trigger, and effect boundaries. |
 | Hosted Poolday Services | [`server/pool/CATSCAN.md`](../server/pool/CATSCAN.md) | Hosted Services | Authenticate and relay immutable Poolday records while maintaining rebuildable hosted projections and bounded coordination. |
 | Shared Change Passport Contract | [`self/shared/change-passport/CATSCAN.md`](../self/shared/change-passport/CATSCAN.md) | Browser Runtime | Provide one browser-safe Change Passport contract, policy, Zero/X source adapter, and Visual Feedback Bridge receipt adapter to browser, server, SDK, action, and verifier consumers. |

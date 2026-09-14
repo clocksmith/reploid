@@ -4543,6 +4543,19 @@ body[data-pool-route-id='home'] #app {
   .pool-primary-network-details { max-width: calc(100vw - var(--pool-space-xl)); }
 }
 
+@media (max-width: 520px) {
+  .pool-home[data-pool-route-id='home'] .pool-home-toolbar-leading {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .pool-home[data-pool-route-id='home'] .pool-home-title-lockup {
+    min-width: 0;
+    max-width: 100%;
+    text-align: center;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .pool-home .btn, .pool-primary-nav .pool-nav-link { transition: none; }
   .pool-home .pool-power-tower sup { animation: none; transition: none; transform: translateY(-35%); }
