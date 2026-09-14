@@ -1,7 +1,8 @@
 # Reploid browser library
 
-Browser-native ESM extraction from the Reploid application. Implementation is
-under migration; installed-package and browser acceptance are not yet recorded.
+Browser-native ESM extracted from the Reploid application. Installed imports,
+types, inert browser loading and a separate deterministic consumer pass at root,
+nested and cross-origin locations. Full application acceptance remains open.
 
 ## Public entries
 
@@ -181,5 +182,7 @@ adapters retain instance-storage translation, seed prompts and existing profiles
 | Application | Existing routes, tool flows, protocols and recovery preserved |
 | Improvement | Baselines, independent evaluation, approval and rollback remain separate |
 
-These are acceptance requirements, not passing results. Do not publish or deploy
-from the presence of this package alone.
+These are the complete acceptance requirements. Retained reports identify the
+tested subset, exact archives and remaining failures in
+[the integration record](https://github.com/clocksmith/reploid/blob/codex/consumer-streaming-closure/artifacts/reusable-products-2026-09-14/README.md).
+Package existence does not establish publication or deployment readiness.
