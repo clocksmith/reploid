@@ -1,7 +1,8 @@
 # Reploid browser library
 
-Browser-native ESM extraction from the Reploid application. Implementation is
-under migration; installed-package and browser acceptance are not yet recorded.
+Browser-native ESM extracted from the Reploid application. Installed imports,
+types, inert browser loading and a separate deterministic consumer pass at root,
+nested and cross-origin locations. Full application acceptance remains open.
 
 ## Public entries
 
@@ -64,12 +65,78 @@ Checkpoints preserve agent state, not hidden model weights, application VFS,
 tool implementations or an automatically approved generation. Acquire declared
 dependencies separately. Hashes do not reconstruct absent bytes.
 
+## Doppler generation and streaming
+
+`createDopplerProvider` borrows or owns an already verified public Capsule
+session. `openDopplerProvider` opens that same engine through `openCapsule()`;
+the host still supplies its descriptor, trusted signers and runtime ports.
+The immutable `models.contract` pins `modelId`, `capsuleId`, `semanticRoot`
+and `selectedTargetPlanDigest`; `runtimeVersion` can additionally pin the
+adopted runtime. Importing the adapter does not import or initialize Doppler.
+
+For operation streaming, supply `toOperationRequest(messages, contract)`.
+Return the complete public Doppler request: explicit stream `schema`,
+`operation: { name: 'generate', version: 1 }`, input, generation options,
+assignment (or null) and input/output/deadline limits. Generation settings and
+tokenizer rules stay owned by Doppler. No sampling defaults are added here.
+`generate(messages, onUpdate, { signal, adapterArtifactStore })` forwards the
+request's `adapterSet` and its host artifact store through `executeOperation()`.
+
+| Request format | Display callback | Completion |
+| --- | --- | --- |
+| v1, including published Doppler 0.6.1 | Verified final text once; cumulative partial decoding can revise Unicode | Event chain, request, output and receipt verified |
+| Explicitly adopted v2 runtime | Stable additions as they arrive, using Doppler's public accumulator | Reconstructed output and complete final receipt verified |
+
+Append additions to a text node (`textNode.appendData(addition)`). A callback
+may return a promise: the provider awaits it before requesting another event.
+It does not refresh the page, rebuild the output after every token or request
+cumulative snapshots. Empty text updates may accompany raw tokens internally.
+Text displayed before completion is provisional. Only a resolved generation
+result is accepted; `result.evidence` retains the complete operation completion,
+including token IDs, resolved settings, stopping reason and execution identity.
+Omit the callback to collect the result through the identical operation path.
+
+Cancellation closes the iterator and suppresses late results. A stalled host
+formatter or display callback cannot prevent cancellation. Already submitted
+GPU work still follows Doppler's cooperative cleanup. Closing a provider aborts
+its requests and closes its session only when ownership is `owned`.
+
+The original `toGenerationRequest` formatter remains a completion-only
+compatibility path with its original `generateText()` evidence shape. Adopt
+`toOperationRequest` explicitly to obtain verified operation receipts; supplying
+both formatters fails. An older installed runtime rejects v2 before execution.
+The optional peer dependency range alone does not establish stream support.
+
+## Storage readiness
+
+`createVfs().init()` awaits its store's optional `init()` hook. IndexedDB stores
+open the configured database before reporting readiness; blocked, failed or
+timed-out opens reject, and closed stores cannot be reinitialized. Concurrent
+initialization shares one open request without enumerating stored files.
+Custom stores without an initialization hook must be ready at construction.
+VFS borrows its store; the host closes it. The application VFS adapter owns and
+closes its IndexedDB store while preserving its surface/instance database name
+and inline `path` key. Mutation results and change events follow transaction
+commit, so an aborted write cannot announce a committed file change.
+The application's Verification Worker recognizes direct IndexedDB access only
+for the exact generated storage owner `/vendor/reploid/adapters/browser.js`.
+This does not grant that file other storage permissions or privilege to adjacent
+vendor files, tools or applications. Source verification is separate from
+approval or activation of a runtime candidate.
+
 ## Network boundary
 
 Network configuration defaults off, with no ICE servers or public room.
 Joining is distinct from executing jobs, supplying artifacts or sharing candidates.
 The low-level WebRTC APIs implement connections; a host supplies signaling
 publication/subscription and private room/TURN credentials through ports.
+
+Closing an assignment transport or reaching its connection deadline settles
+pending `connect()` and `ready()` waiters even while browser offer/answer setup
+is unresolved. Rejections preserve the `webrtc_connection_failed` code and
+connection diagnostics. Cleanup releases each owned connection once; late
+browser events and setup results cannot reopen it or publish new signaling.
+Already-started browser and signaling operations are not forcibly interrupted.
 
 The swarm-generation adapter retains its legacy messages. Its duplicate cache
 is bounded and process-local; it is not the durable Pack-job journal.
@@ -115,5 +182,7 @@ adapters retain instance-storage translation, seed prompts and existing profiles
 | Application | Existing routes, tool flows, protocols and recovery preserved |
 | Improvement | Baselines, independent evaluation, approval and rollback remain separate |
 
-These are acceptance requirements, not passing results. Do not publish or deploy
-from the presence of this package alone.
+These are the complete acceptance requirements. Retained reports identify the
+tested subset, exact archives and remaining failures in
+[the integration record](https://github.com/clocksmith/reploid/blob/codex/consumer-streaming-closure/artifacts/reusable-products-2026-09-14/README.md).
+Package existence does not establish publication or deployment readiness.

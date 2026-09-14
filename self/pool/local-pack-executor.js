@@ -62,7 +62,7 @@ export function createLocalPackExecutor({ service = DopplerRuntimeService, scope
     lastModelKey = null;
   };
   return {
-    async run({ model: modelInput, input, options = {}, assignment = null, limits, signal = null, onPartial = null, beforeExecute = null, adapterSet = [], adapterArtifactStore = null, assertAdaptersCurrent = null }) {
+    async run({ model: modelInput, input, options = {}, requestSchema = null, assignment = null, limits, signal = null, onPartial = null, beforeExecute = null, adapterSet = [], adapterArtifactStore = null, assertAdaptersCurrent = null }) {
       if (disposed || active) throw new Error(disposed ? 'Document executor is closed' : 'A document operation is already running');
       const model = snapshotPackOperationData(modelInput);
       const validation = validateOperationModel(model, registry);
@@ -72,7 +72,7 @@ export function createLocalPackExecutor({ service = DopplerRuntimeService, scope
       if (!['https:', 'http:'].includes(source.protocol) || source.username || source.password) throw new Error('Pack source must be an HTTP(S) URL without credentials');
       if (!model.packOpenOptions?.trustedSigners || !Object.keys(model.packOpenOptions.trustedSigners).length) throw new Error('Application-selected trusted signers required');
       const contract = resolveDopplerExecutionContract(model.executablePack.schema);
-      const request = snapshotPackOperationData({ schema: contract.requestSchema,
+      const request = snapshotPackOperationData({ schema: requestSchema ?? contract.requestSchema,
         operation: { name: model.executablePack.requiredOperation, version: registry[model.executablePack.requiredOperation].version }, input, options,
         assignment, limits, ...(adapterSet.length ? { adapterSet: dopplerExecutionAdapterSet(snapshotPackOperationData(adapterSet), model) } : {}) });
       assertPackOperationRequest(model.executablePack, request, registry);
@@ -150,7 +150,7 @@ export function createLocalPackExecutor({ service = DopplerRuntimeService, scope
           if (session.modelId !== model.modelId) throw new Error('Loaded Pack model id mismatch');
           await releasePolicy.assertCurrent(session);
           execution = await measure('executionMs', () => runPackOperation({ binding: model.executablePack, session, request,
-            runtimeVersion: model.runtimeVersion, signal: localController.signal, adapterArtifactStore, onPartial, beforeExecute,
+            runtimeVersion: model.runtimeVersion, runtimeService: service, signal: localController.signal, adapterArtifactStore, onPartial, beforeExecute,
             assertCurrent: async () => { assertCurrent(); await assertAdaptersCurrent?.(); assertCurrent(); }, registry }));
           assertCurrent();
           await releasePolicy.assertCurrent(session);

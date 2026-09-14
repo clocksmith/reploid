@@ -262,7 +262,7 @@
     {
       "path": "config/doppler-execution-contracts.js",
       "owner": "config",
-      "sha256": "sha256:3c5a5ad7e4451e3a6e5c17e9871f6a0923b808556e1983a822e4ad8f418cc825",
+      "sha256": "sha256:da74be2a290250d41b256b7a648ee8d78cecfe2a5105ac738bfc1d6b1a390730",
       "imports": [
         "./doppler-execution-contracts.json"
       ]
@@ -276,7 +276,7 @@
     {
       "path": "config/doppler-local-models.js",
       "owner": "config",
-      "sha256": "sha256:b943afe6083f94d187281a27b4fe288bc869ab5a0852baf62c2d59332e7d433b",
+      "sha256": "sha256:1db3deb3cc1967adc58fc19a7e3deaf3848c27230e58af83cd8c47bec2ce06e3",
       "imports": []
     },
     {
@@ -577,7 +577,7 @@
     {
       "path": "core/verification-worker.js",
       "owner": "core",
-      "sha256": "sha256:34f79db81480a1ad12e12f7fda0f1e1a3f3f68f5ff792ca2ccffed7c5afc53be",
+      "sha256": "sha256:d9ca566f2b9069198a07840689f4ac0c9d5829bbf0757e1dd092bfbbed4e0f2f",
       "imports": []
     },
     {
@@ -592,7 +592,7 @@
     {
       "path": "core/vfs.js",
       "owner": "core",
-      "sha256": "sha256:55417de3816e2ab03c8753ac6247bafb1b030a75708ef25679e84d7cc911002f",
+      "sha256": "sha256:e11c439ade35b139bc61570b3ab264aa6d766af3dfb6cb878f29929320cffec3",
       "imports": [
         "../config/reploid-library.json",
         "../instance.js",
@@ -709,7 +709,7 @@
     {
       "path": "infrastructure/doppler-runtime-service.js",
       "owner": "infrastructure",
-      "sha256": "sha256:5343834324b13963481ba03cc5a888776d146e4f2e286be02f628c59dde45f23",
+      "sha256": "sha256:a4af3944dc573c6155661662ad9206f7d2dc35b053418bedcab64a961624a9c1",
       "imports": [
         "../config/doppler-execution-contracts.js",
         "../config/doppler-generation-contract.js",
@@ -759,7 +759,7 @@
     {
       "path": "infrastructure/pack-job-storage.js",
       "owner": "infrastructure",
-      "sha256": "sha256:cb2af0d3070527983e4326ce9854c2406bba3447d9f24eaed17a7414c2435c73",
+      "sha256": "sha256:121334a74ec71788f56ab4fb03418a7d34454ac473e408b03a43cb65a3049c83",
       "imports": []
     },
     {
@@ -1291,7 +1291,7 @@
     {
       "path": "pool/local-pack-executor.js",
       "owner": "pool",
-      "sha256": "sha256:5e12f69ce51dcb920a6e8fd5784ab76715677e8d7b76a61e2f72b76222e8ddb1",
+      "sha256": "sha256:afcacc937fcac0f15bd7c80a1cfc256f3d4470b4073fa213e819aaa164259691",
       "imports": [
         "../config/doppler-execution-contracts.js",
         "../infrastructure/doppler-runtime-service.js",
@@ -1465,7 +1465,7 @@
     {
       "path": "pool/pack-operation.js",
       "owner": "pool",
-      "sha256": "sha256:7a7a495b362c293f84dde2881f4911c748382818434b6f0b138275182d8cf40c",
+      "sha256": "sha256:7438de28ca7cff830852976dac943e03d5aac565dad09aa3d086ad49e4228adf",
       "imports": [
         "../config/doppler-execution-contracts.js",
         "../infrastructure/doppler-runtime-service.js",
@@ -1585,7 +1585,7 @@
     {
       "path": "pool/peer-pack-episode.js",
       "owner": "pool",
-      "sha256": "sha256:2a14135f970892347198ee0b4037b31c4e1fa589ae28a2dadc84f587b9cc1df7",
+      "sha256": "sha256:a6afa82077ff4478529d4b686114b181cf10fb35967434fa5fe9f76203f4b1e1",
       "imports": [
         "./executable-pack.js",
         "./operation-acceptance.js",
@@ -1618,7 +1618,7 @@
     {
       "path": "pool/peer-pack-job.js",
       "owner": "pool",
-      "sha256": "sha256:f5e92283d1ceca9c645b60a609fa7c2d700716f7c76d2a49a42f5d2092037a51",
+      "sha256": "sha256:00f012a0a8112d55369dbf2afc9d8232c554a5824ccd3e9984a671ac8cbde788",
       "imports": [
         "../config/doppler-execution-contracts.js",
         "./adapter-execution.js",
@@ -1639,8 +1639,9 @@
     {
       "path": "pool/peer-pack-provider.js",
       "owner": "pool",
-      "sha256": "sha256:a2c97a0207a879443325854b2a292ae982343679cd96abad8ebb770636b56b0c",
+      "sha256": "sha256:fee0eb7fec4011dbc7d1d01cb2c49034aff66d82ed77dfa44b69f4e7c4971e68",
       "imports": [
+        "../infrastructure/doppler-runtime-service.js",
         "../infrastructure/pack-job-storage.js",
         "./executable-pack.js",
         "./local-pack-executor.js",
@@ -1654,8 +1655,9 @@
     {
       "path": "pool/peer-pack-requester.js",
       "owner": "pool",
-      "sha256": "sha256:eebb90cc8778611df19aceacadbcb04f734d8d147bc456ff89e847098c520761",
+      "sha256": "sha256:d9f4cfb7fce7599ea1c39e9e064cb8086619764741b76ec229fdbe2e28e498e5",
       "imports": [
+        "../infrastructure/doppler-runtime-service.js",
         "./executable-pack.js",
         "./operation-acceptance.js",
         "./pack-operation-adapters.js",
@@ -1668,7 +1670,7 @@
     {
       "path": "pool/peer-pack-session.js",
       "owner": "pool",
-      "sha256": "sha256:4ba4b9dc8a12624a71e2d0532a32860fadd3a1c9794cb392a0c386334209cbc2",
+      "sha256": "sha256:240d5eb99cfd54ea7e3b9089e978d3ec4f90c4b913c0cd7f7dd556177c84f70a",
       "imports": [
         "../config/doppler-execution-contracts.js",
         "../infrastructure/doppler-runtime-service.js",
@@ -3146,7 +3148,7 @@
     {
       "path": "vendor/reploid/adapters/browser.js",
       "owner": "vendor",
-      "sha256": "sha256:4b602857d7733a09c4a050d8a4afb032c7ef91ce54f1afd03e2efaf7c75f0304",
+      "sha256": "sha256:76bc9b00598a459510061024cd03180196b1bf7f3ec0ed352d803fdd1a1a0f8e",
       "imports": [
         "../artifacts/identity.js",
         "../artifacts/receipt.js",
@@ -3155,17 +3157,27 @@
       ]
     },
     {
-      "path": "vendor/reploid/adapters/doppler.js",
+      "path": "vendor/reploid/adapters/doppler-stream.js",
       "owner": "vendor",
-      "sha256": "sha256:3db4bb016a8a9fa230993437fbc5292d5f44017c7be47e8d1faf9e291d945121",
+      "sha256": "sha256:62f2a7427caba418c519b8bea9bf5a1dac466c1f626c9bb3128bdc832a7ddf85",
       "imports": [
         "../config/index.js"
       ]
     },
     {
+      "path": "vendor/reploid/adapters/doppler.js",
+      "owner": "vendor",
+      "sha256": "sha256:131d6ee8ba16a376f77edff77530b8eeb2fa5411b1612c79b0d750931c23bdf8",
+      "imports": [
+        "../agent/cancellation.js",
+        "../config/index.js",
+        "./doppler-stream.js"
+      ]
+    },
+    {
       "path": "vendor/reploid/agent/cancellation.js",
       "owner": "vendor",
-      "sha256": "sha256:a7f29705c00ec15643515e8417b25cf5c8a4469659095dcdfa81386fe4b54ca2",
+      "sha256": "sha256:d836ede95a010512f0116f5b666828df73541dcd72cf4213fd745916c439d121",
       "imports": []
     },
     {
@@ -3229,7 +3241,7 @@
     {
       "path": "vendor/reploid/artifacts/store.js",
       "owner": "vendor",
-      "sha256": "sha256:fb5e55ab1b4f4b824765edc8c5921bb77c0a159f117cb6c6429749a83cdffeb0",
+      "sha256": "sha256:3aacddc3ead348682880a5fbb0b308728518895c824caf59b77e3e281003168c",
       "imports": [
         "../config/index.js"
       ]
@@ -3317,7 +3329,7 @@
     {
       "path": "vendor/reploid/transport/assignment.js",
       "owner": "vendor",
-      "sha256": "sha256:26e28ab0c06dcdfa177937a358e6ed695c59422096c810a628b597f0a5965b5d",
+      "sha256": "sha256:713116e3ad1b712309cf326416d3e217c128b11556e05131901222bc382f18cf",
       "imports": [
         "../config/index.js",
         "./signaling.js"

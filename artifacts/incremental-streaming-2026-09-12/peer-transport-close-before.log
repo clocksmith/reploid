@@ -1,0 +1,46 @@
+
+ RUN  v4.1.10 /home/x/deco/worktrees/reploid-consumer-streaming
+
+ ❯ tests/unit/p2p-transport.test.js (9 tests | 1 failed) 21ms
+     ✓ resolves validated runtime STUN and TURN configuration 3ms
+     ✓ serializes JSON values while preserving binary and plain string payloads 1ms
+     ✓ converts browser session descriptions and ICE candidates to transport payloads 0ms
+     ✓ requires a browser RTCPeerConnection implementation before creating a transport 1ms
+     ✓ queues remote ICE candidates until the remote description is installed 2ms
+     ✓ counts early ICE candidates that expire before the remote description arrives 1ms
+     × settles a connecting transport when explicitly closed 10ms
+     ✓ cleans up the peer connection and signal subscription when offer setup fails 1ms
+     ✓ creates an assignment payload channel with cloud metadata signaling and DataChannel payload sends 2ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/unit/p2p-transport.test.js > pool p2p transport helpers > settles a connecting transport when explicitly closed
+AssertionError: expected Error: requester_connection_retry to match object { …(2) }
+
+- Expected
++ Received
+
+- {
+-   "code": "webrtc_connection_failed",
+-   "diagnostics": ObjectContaining {
+-     "state": "closing",
+-   },
++ Error {
++   "message": "requester_connection_retry",
+  }
+
+ ❯ tests/unit/p2p-transport.test.js:343:29
+    341|     await transport.close('requester_connection_retry');
+    342|
+    343|     await expect(connecting).rejects.toMatchObject({
+       |                             ^
+    344|       code: 'webrtc_connection_failed',
+    345|       diagnostics: expect.objectContaining({ state: 'closing' })
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 8 passed (9)
+   Start at  00:41:07
+   Duration  553ms (transform 126ms, setup 0ms, import 182ms, tests 21ms, environment 171ms)

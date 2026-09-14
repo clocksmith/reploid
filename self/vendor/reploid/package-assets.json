@@ -37,23 +37,28 @@
   "files": [
     {
       "path": "adapters/browser.d.ts",
-      "bytes": 460,
-      "sha256": "ba9d34f458686251ebce964c300ede8f94e2fc8902218fdd79778845c9b79f09"
+      "bytes": 491,
+      "sha256": "f4de9a519a0565b57935d9bcd25002700c86eb04d5d6d941637a1250b72facda"
     },
     {
       "path": "adapters/browser.js",
-      "bytes": 3889,
-      "sha256": "4b602857d7733a09c4a050d8a4afb032c7ef91ce54f1afd03e2efaf7c75f0304"
+      "bytes": 3938,
+      "sha256": "76bc9b00598a459510061024cd03180196b1bf7f3ec0ed352d803fdd1a1a0f8e"
+    },
+    {
+      "path": "adapters/doppler-stream.js",
+      "bytes": 4049,
+      "sha256": "62f2a7427caba418c519b8bea9bf5a1dac466c1f626c9bb3128bdc832a7ddf85"
     },
     {
       "path": "adapters/doppler.d.ts",
-      "bytes": 1124,
-      "sha256": "6ac9e3540994b2989895dddacd3666a83fa4e6d94fdde757ac73f49728107baa"
+      "bytes": 2303,
+      "sha256": "4411b09d2f8db16b4c521ce628b992d4c4fe79debb03e85a2d8875652f1bb740"
     },
     {
       "path": "adapters/doppler.js",
-      "bytes": 2142,
-      "sha256": "3db4bb016a8a9fa230993437fbc5292d5f44017c7be47e8d1faf9e291d945121"
+      "bytes": 6285,
+      "sha256": "131d6ee8ba16a376f77edff77530b8eeb2fa5411b1612c79b0d750931c23bdf8"
     },
     {
       "path": "agent/cancellation.d.ts",
@@ -62,8 +67,8 @@
     },
     {
       "path": "agent/cancellation.js",
-      "bytes": 447,
-      "sha256": "a7f29705c00ec15643515e8417b25cf5c8a4469659095dcdfa81386fe4b54ca2"
+      "bytes": 512,
+      "sha256": "d836ede95a010512f0116f5b666828df73541dcd72cf4213fd745916c439d121"
     },
     {
       "path": "agent/cycle-artifacts.d.ts",
@@ -152,13 +157,13 @@
     },
     {
       "path": "artifacts/store.d.ts",
-      "bytes": 992,
-      "sha256": "27db304989e0e4b330ac403bd45c7e91a321721940373f55382b492f0c0a528d"
+      "bytes": 1105,
+      "sha256": "b2f1d8f8cd6ffc829beaa88ae2c192f2031b3e786cf99332a01a98dcd6965adc"
     },
     {
       "path": "artifacts/store.js",
-      "bytes": 4010,
-      "sha256": "fb5e55ab1b4f4b824765edc8c5921bb77c0a159f117cb6c6429749a83cdffeb0"
+      "bytes": 4112,
+      "sha256": "3aacddc3ead348682880a5fbb0b308728518895c824caf59b77e3e281003168c"
     },
     {
       "path": "config/defaults.json",
@@ -277,13 +282,13 @@
     },
     {
       "path": "transport/assignment.d.ts",
-      "bytes": 1818,
-      "sha256": "88d397df7ef136232f1ee9d70c938504233d31b1312703f6743b762746e089ae"
+      "bytes": 1948,
+      "sha256": "cf80be0f84ea114e16d641f4ecbfab187fbdb0926d2582518714419432bc05d1"
     },
     {
       "path": "transport/assignment.js",
-      "bytes": 15660,
-      "sha256": "26e28ab0c06dcdfa177937a358e6ed695c59422096c810a628b597f0a5965b5d"
+      "bytes": 17222,
+      "sha256": "713116e3ad1b712309cf326416d3e217c128b11556e05131901222bc382f18cf"
     },
     {
       "path": "transport/index.d.ts",

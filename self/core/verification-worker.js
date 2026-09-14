@@ -844,6 +844,10 @@ self.onmessage = async (e) => {
           // Skip certain patterns for privileged modules
           if (isPrivileged && !pattern.requiresCap) continue;
 
+          // VFS storage moved from /core/vfs.js into this generated library owner.
+          // Retain only its IndexedDB access, not privilege for the vendor tree.
+          if (path === '/vendor/reploid/adapters/browser.js' && pattern.id === 'indexeddb') continue;
+
           const violation = {
             path,
             patternId: pattern.id,

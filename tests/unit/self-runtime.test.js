@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 const mockHost = {
   close: vi.fn(),
   initialize: vi.fn(),
+  close: vi.fn(),
   seedSystemFiles: vi.fn(),
   readBootstrapFiles: vi.fn(),
   writeRuntimeArtifact: vi.fn(),
@@ -29,6 +30,7 @@ describe('Self Runtime', () => {
     bridgeEventHandlers.clear();
     mockHost.close.mockReset();
     mockHost.initialize.mockReset();
+    mockHost.close.mockReset();
     mockHost.seedSystemFiles.mockReset();
     mockHost.readBootstrapFiles.mockReset();
     mockHost.writeRuntimeArtifact.mockReset();
@@ -127,6 +129,15 @@ describe('Self Runtime', () => {
 
     expect(mockHost.on).toHaveBeenCalledWith('file-changed', handler);
     expect(typeof unsubscribe).toBe('function');
+  });
+
+  it('closes its owned bridge once and removes host subscriptions', async () => {
+    const runtime = createSelfRuntime({ goal: 'Test goal', environment: 'Test environment' });
+    runtime.on('file-changed', vi.fn());
+    expect(bridgeEventHandlers.has('file-changed')).toBe(true);
+    await Promise.all([runtime.close(), runtime.close()]);
+    expect(mockHost.close).toHaveBeenCalledTimes(1);
+    expect(bridgeEventHandlers.has('file-changed')).toBe(false);
   });
 
   it('seeds kernel prompt and tabula-rasa blueprints into bootstrap context', async () => {

@@ -1,10 +1,12 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest';
 import path from 'node:path';
-import { URL, fileURLToPath } from 'node:url';
+import { fileURLToPath } from 'node:url';
 import { createModuleMetadataResolver } from '../../scripts/module-metadata.js';
 
-const root = fileURLToPath(new URL('../../self/', import.meta.url));
+// Keep a filesystem URL explicit: Vite treats new URL(relative, import.meta.url)
+// as a browser asset reference under the default happy-dom environment.
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../self');
 const metadata = "{ metadata: { id: 'Agent', genesis: { introduced: 'capsule' } } }";
 
 function fixture(sources, options = {}) {

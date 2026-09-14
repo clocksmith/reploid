@@ -5,6 +5,7 @@ import {
   resetDopplerModuleCacheForTests
 } from '../../self/pool/doppler-runtime.js';
 import { BROWSER_RUNTIME_CONFIG } from '../../self/pool/config.js';
+import { DOPPLER_BROWSER_RUNTIME_VERSION } from '../../self/config/doppler-local-models.js';
 import { hashJson, sha256Hex } from '../../self/pool/inference-receipt.js';
 import { getEnabledPoolModelContract } from '../../self/pool/model-contract.js';
 import { operationFixture } from '../fixtures/peer-pack-operation.js';
@@ -52,7 +53,7 @@ describe('Doppler browser runtime adapter', () => {
       modelHash: `sha256:${'e'.repeat(64)}`, manifestHash: `sha256:${'f'.repeat(64)}` },
       encodeSequence: testSequenceEncoding, close: async () => { closes++; } });
     // Synthetic public module at the installed pin; this is API selection, not a release claim.
-    globalThis.REPLOID_DOPPLER_MODULE = { DOPPLER_VERSION: '0.6.0', openCapsule: async (source, options) => {
+    globalThis.REPLOID_DOPPLER_MODULE = { DOPPLER_VERSION: DOPPLER_BROWSER_RUNTIME_VERSION, openCapsule: async (source, options) => {
       opens++;
       expect(source).toBe('https://fixtures.invalid/capsule.json');
       expect(options.acceptedTargetPlanDigests).toEqual(f.binding.acceptedTargetPlanDigests);

@@ -2,12 +2,12 @@ import { assessPeerOperation } from './operation-acceptance.js';
 /** Offline verification at the original signed acceptance instant. */
 import { PEER_MESSAGE_TYPES } from './peer-protocol.js';
 import { hashDopplerEvidence } from './executable-pack.js';
-import { snapshotPackOperationData as snapshot, assertPackOperationEvent } from './pack-operation.js';
+import { snapshotPackOperationData as snapshot, assertPackOperationEvent, createPackOperationStream } from './pack-operation.js';
 import { createPackOperationRegistry } from './pack-operation-adapters.js';
 import { PACK_JOB_POLICY, resolvePackJobPolicy } from './peer-pack-job-policy.js';
 import { PACK_UPDATE_SCHEMA, requirePackJob, verifyPackPeerMessage, verifyPackPeerJob, packJobBytes } from './peer-pack-job.js';
 
-export async function verifyPackPeerEpisode({ job, updates, acceptance, reference, models, registry = createPackOperationRegistry() }) {
+export async function verifyPackPeerEpisode({ job, updates, acceptance, reference, models, registry = createPackOperationRegistry(), runtimeService }) {
   ({ job, updates, acceptance, reference, models } = snapshot({ job, updates, acceptance, reference, models }));
   let policy = PACK_JOB_POLICY;
   if (job.body.schema !== PACK_JOB_POLICY.schemas.legacyJob) {
@@ -28,6 +28,8 @@ export async function verifyPackPeerEpisode({ job, updates, acceptance, referenc
   requirePackJob(Array.isArray(updates) && updates.length > 0 && updates.length <= job.body.intent.limits.maxEvents,
     'archived stream length invalid');
   const request = job.body.request, model = job.body.intent.model;
+  const requestHash = await hashDopplerEvidence(request);
+  const streamAccumulator = await createPackOperationStream(model.executablePack, request, model.runtimeVersion, runtimeService);
   let previousUpdateHash = null, previousEventDigest = null, bytes = 0, completion = null;
   for (const [index, update] of updates.entries()) {
     requirePackJob(!completion, 'archived output after completion');
@@ -39,15 +41,16 @@ export async function verifyPackPeerEpisode({ job, updates, acceptance, referenc
     requirePackJob(bytes <= job.body.intent.limits.maxStreamBytes, 'archived stream byte limit');
     const body = update.body;
     requirePackJob(body.schema === PACK_UPDATE_SCHEMA && body.jobHash === job.messageHash
-      && body.requestHash === await hashDopplerEvidence(request) && update.expiresAt === job.expiresAt
+      && body.requestHash === requestHash && update.expiresAt === job.expiresAt
       && body.updateIndex === index && body.previousUpdateHash === previousUpdateHash
       && body.status === body.event?.status, 'archived stream binding mismatch');
     await assertPackOperationEvent({ binding: model.executablePack, request, runtimeVersion: model.runtimeVersion,
-      event: body.event, eventIndex: index, previousEventDigest, registry });
+      event: body.event, eventIndex: index, previousEventDigest, registry, streamAccumulator });
     if (body.status === 'completed') completion = body.event;
     previousEventDigest = body.event.eventDigest; previousUpdateHash = update.messageHash;
   }
   requirePackJob(completion, 'archived stream has no completion');
+  streamAccumulator?.finish();
   const execution = { request, output: completion.output, receipt: completion.receipt };
   const assessment = await assessPeerOperation({ job, execution, reference, registry });
   requirePackJob(assessment.accepted && acceptance.body.finalUpdateHash === previousUpdateHash

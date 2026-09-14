@@ -1,0 +1,16 @@
+
+ RUN  v4.1.10 /home/x/deco/worktrees/reploid-consumer-streaming
+
+ ✓ tests/unit/pool-peer-pack-data-channel.test.js (6 tests) 13ms
+ ✓ tests/unit/p2p-transport-lifecycle.test.js (6 tests) 13ms
+ ✓ tests/unit/p2p-signaling.test.js (7 tests) 10ms
+ ✓ tests/unit/p2p-transport.test.js (9 tests) 10ms
+ ✓ tests/unit/pool-peer-pack-job-channel.test.js (3 tests) 186ms
+ ✓ tests/unit/pool-peer-pack-session.test.js (5 tests) 58ms
+ ✓ tests/unit/pool-peer-pack-job.test.js (21 tests) 1564ms
+     ✓ enforces deadline, event, byte and admission limits without accepting a partial answer  676ms
+
+ Test Files  7 passed (7)
+      Tests  57 passed (57)
+   Start at  00:48:00
+   Duration  2.10s (transform 687ms, setup 0ms, import 1.08s, tests 1.85s, environment 915ms)
