@@ -282,8 +282,8 @@
     },
     {
       "path": "transport/assignment.js",
-      "bytes": 15717,
-      "sha256": "50b088044284d3148d95eb28326f23ee415cb13eaa9157b7fc0fdbf0a7c6f01a"
+      "bytes": 15660,
+      "sha256": "26e28ab0c06dcdfa177937a358e6ed695c59422096c810a628b597f0a5965b5d"
     },
     {
       "path": "transport/index.d.ts",

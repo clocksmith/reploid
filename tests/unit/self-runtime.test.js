@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mockHost = {
+  close: vi.fn(),
   initialize: vi.fn(),
   seedSystemFiles: vi.fn(),
   readBootstrapFiles: vi.fn(),
@@ -26,6 +27,7 @@ describe('Self Runtime', () => {
 
   beforeEach(() => {
     bridgeEventHandlers.clear();
+    mockHost.close.mockReset();
     mockHost.initialize.mockReset();
     mockHost.seedSystemFiles.mockReset();
     mockHost.readBootstrapFiles.mockReset();
@@ -217,7 +219,7 @@ describe('Self Runtime', () => {
     await new Promise((resolve) => setTimeout(resolve, 0));
 
     expect(mockHost.generate).toHaveBeenCalledTimes(1);
-    expect(mockHost.executeTool).toHaveBeenCalledWith('ReadFile', { path: '/self/self.json' });
+    expect(mockHost.executeTool).toHaveBeenCalledWith('ReadFile', { path: '/self/self.json' }, expect.objectContaining({ signal: expect.any(AbortSignal) }));
     expect(
       latestSnapshot.context.some(
         (message) =>
@@ -251,7 +253,7 @@ describe('Self Runtime', () => {
     await runtime.start();
 
     expect(mockHost.generate).toHaveBeenCalledTimes(2);
-    expect(mockHost.executeTool).toHaveBeenCalledWith('ReadFile', { path: '/self/self.json' });
+    expect(mockHost.executeTool).toHaveBeenCalledWith('ReadFile', { path: '/self/self.json' }, expect.objectContaining({ signal: expect.any(AbortSignal) }));
     expect(latestSnapshot.cycle).toBe(2);
     expect(latestSnapshot.status).toBe('IDLE');
     expect(latestSnapshot.activity).toBe('Stopped by user');
@@ -288,7 +290,7 @@ describe('Self Runtime', () => {
     await runtime.start();
 
     expect(mockHost.generate).toHaveBeenCalledTimes(2);
-    expect(mockHost.executeTool).toHaveBeenCalledWith('ReadFile', { path: '/self/self.json' });
+    expect(mockHost.executeTool).toHaveBeenCalledWith('ReadFile', { path: '/self/self.json' }, expect.objectContaining({ signal: expect.any(AbortSignal) }));
     expect(
       latestSnapshot.context.some(
         (message) =>
@@ -353,7 +355,7 @@ describe('Self Runtime', () => {
     await runtime.start();
 
     expect(mockHost.generate).toHaveBeenCalledTimes(2);
-    expect(mockHost.executeTool).toHaveBeenCalledWith('ReadFile', { path: '/self/runtime.js' });
+    expect(mockHost.executeTool).toHaveBeenCalledWith('ReadFile', { path: '/self/runtime.js' }, expect.objectContaining({ signal: expect.any(AbortSignal) }));
     expect(latestSnapshot.cycle).toBe(2);
     expect(latestSnapshot.status).toBe('IDLE');
     expect(latestSnapshot.activity).toBe('Stopped by user');
@@ -450,8 +452,8 @@ describe('Self Runtime', () => {
 
     expect(mockHost.generate).toHaveBeenCalledTimes(1);
     expect(mockHost.executeTool).toHaveBeenCalledTimes(5);
-    expect(mockHost.executeTool).toHaveBeenNthCalledWith(1, 'ReadFile', { path: '/self/self.json' });
-    expect(mockHost.executeTool).toHaveBeenNthCalledWith(5, 'ReadFile', { path: '/self/capsule/index.js' });
+    expect(mockHost.executeTool).toHaveBeenNthCalledWith(1, 'ReadFile', { path: '/self/self.json' }, expect.objectContaining({ signal: expect.any(AbortSignal) }));
+    expect(mockHost.executeTool).toHaveBeenNthCalledWith(5, 'ReadFile', { path: '/self/capsule/index.js' }, expect.objectContaining({ signal: expect.any(AbortSignal) }));
     expect(mockHost.writeRuntimeArtifact).toHaveBeenCalledWith(
       expect.stringMatching(/^\/artifacts\/rgr\/rgr-shadow-1-[a-f0-9]+\.json$/),
       expect.stringContaining('"state": "shadow"')
@@ -638,8 +640,8 @@ describe('Self Runtime', () => {
     await startPromise;
 
     expect(sawBothReadCallsBeforeRelease).toBe(true);
-    expect(mockHost.executeTool).toHaveBeenNthCalledWith(1, 'ReadFile', { path: '/self/a.js' });
-    expect(mockHost.executeTool).toHaveBeenNthCalledWith(2, 'ReadFile', { path: '/self/b.js' });
+    expect(mockHost.executeTool).toHaveBeenNthCalledWith(1, 'ReadFile', { path: '/self/a.js' }, expect.objectContaining({ signal: expect.any(AbortSignal) }));
+    expect(mockHost.executeTool).toHaveBeenNthCalledWith(2, 'ReadFile', { path: '/self/b.js' }, expect.objectContaining({ signal: expect.any(AbortSignal) }));
     expect(
       latestSnapshot.context.some(
         (message) =>
@@ -691,12 +693,12 @@ describe('Self Runtime', () => {
     await runtime.start();
 
     expect(mockHost.executeTool).toHaveBeenCalledTimes(3);
-    expect(mockHost.executeTool).toHaveBeenNthCalledWith(1, 'ReadFile', { path: '/self/a.js' });
+    expect(mockHost.executeTool).toHaveBeenNthCalledWith(1, 'ReadFile', { path: '/self/a.js' }, expect.objectContaining({ signal: expect.any(AbortSignal) }));
     expect(mockHost.executeTool).toHaveBeenNthCalledWith(2, 'WriteFile', {
       path: '/self/b.js',
       content: 'updated'
-    });
-    expect(mockHost.executeTool).toHaveBeenNthCalledWith(3, 'ReadFile', { path: '/self/c.js' });
+    }, expect.objectContaining({ signal: expect.any(AbortSignal) }));
+    expect(mockHost.executeTool).toHaveBeenNthCalledWith(3, 'ReadFile', { path: '/self/c.js' }, expect.objectContaining({ signal: expect.any(AbortSignal) }));
     const toolMessages = latestSnapshot.context.filter((message) => message.origin === 'tool');
     expect(toolMessages).toHaveLength(1);
     const receipt = toolMessages[0].content;
@@ -866,7 +868,7 @@ describe('Self Runtime', () => {
     await runtime.start();
 
     expect(mockHost.generate).toHaveBeenCalledTimes(1);
-    expect(mockHost.executeTool).toHaveBeenCalledWith('ReadFile', { path: '/self/self.json' });
+    expect(mockHost.executeTool).toHaveBeenCalledWith('ReadFile', { path: '/self/self.json' }, expect.objectContaining({ signal: expect.any(AbortSignal) }));
     expect(
       latestSnapshot.context.some(
         (message) =>
