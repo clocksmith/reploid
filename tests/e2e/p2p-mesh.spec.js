@@ -696,7 +696,8 @@ test.describe('Run, Contribute, Records peer room', () => {
       });
 
       await providerPage.locator('#pool-provider-worker-toggle').click();
-      await expect(providerPage.locator('[data-pool-provider-status]')).toHaveText('Idle');
+      await expect(providerPage.locator('[data-pool-provider-status]')).toHaveText('Could not start');
+      await expect(providerPage.locator('[data-pool-provider-status]')).toHaveAttribute('data-provider-state', 'error');
       await expect(providerPage.locator('#pool-provider-result-raw')).toContainText('relay unavailable');
       await expect(providerPage.locator('#pool-provider-worker-toggle')).toHaveAttribute('data-contribution-action', 'start');
 
