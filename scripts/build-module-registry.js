@@ -8,6 +8,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { toBrowserSourcePath, toCanonicalBrowserPath, toPosix } from './browser-tree-paths.js';
 import { writeGeneratedRegistry } from './generated-registry-output.js';
+import { createModuleMetadataResolver } from './module-metadata.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -101,6 +102,7 @@ export async function buildModuleRegistry({ selfDir = SELF_DIR, genesis, bluepri
   }
 
   const blueprintMap = loadBlueprintMap(blueprintRegistry);
+  const resolveMetadata = createModuleMetadataResolver({ rootDir: selfDir, includeDependencies: true });
   const modules = {};
 
   for (const [moduleName, files] of Object.entries(moduleFiles)) {
@@ -111,9 +113,21 @@ export async function buildModuleRegistry({ selfDir = SELF_DIR, genesis, bluepri
 
     const content = await fs.readFile(entryPath, 'utf8');
     const block = extractMetadataBlock(content);
-    const metadataId = extractMetadataId(block);
-    const introduced = extractGenesisLevel(block);
-    const dependencies = extractDependencies(block);
+    let metadataId = extractMetadataId(block);
+    let introduced = extractGenesisLevel(block);
+    let dependencies = extractDependencies(block);
+    if (!metadataId || !introduced) {
+      const metadata = await resolveMetadata(entryPath, content);
+      metadataId = metadata.id;
+      introduced = metadata.introduced;
+      if (!Array.isArray(metadata.dependencies)) {
+        throw new Error(`Dependencies are not statically resolvable: ${moduleName} (${normalizedEntry})`);
+      }
+      dependencies = metadata.dependencies.map((raw) => ({
+        id: raw.endsWith('?') ? raw.slice(0, -1) : raw,
+        optional: raw.endsWith('?')
+      }));
+    }
     if (metadataId !== moduleName || introduced !== moduleToLevel.get(moduleName)) {
       throw new Error(`Source metadata disagrees with genesis: ${moduleName} (${normalizedEntry})`);
     }

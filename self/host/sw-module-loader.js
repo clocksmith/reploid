@@ -450,6 +450,15 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
+  // VFS mirrors keep application imports relative to /self/. The installed
+  // library is a separate hosted dependency, never an implicit VFS override.
+  if (url.origin === self.location.origin && url.pathname.startsWith('/self/vendor/reploid/')) {
+    const target = new URL(url.href);
+    target.pathname = url.pathname.slice('/self'.length);
+    event.respondWith(Promise.resolve(Response.redirect(target.href, 307)));
+    return;
+  }
+
   if (!shouldHandleLabRuntimeFetch(event.request, url)) {
     return;
   }
@@ -564,6 +573,16 @@ async function handleModuleRequest(request, url, event) {
 
     if (shouldFallbackToNetwork(vfsPath)) {
       return fetch(request);
+    }
+
+    // Missing application mirrors may use only the same canonical dependencies
+    // already allowed on the public browser tree. Redirect so relative imports
+    // resolve from that source URL; preserve version and instance parameters.
+    const sourcePath = getSelfMirrorSourcePath(vfsPath);
+    if (sourcePath && shouldFallbackToNetwork(sourcePath)) {
+      const sourceUrl = new URL(url.href);
+      sourceUrl.pathname = sourcePath;
+      return Response.redirect(sourceUrl.href, 307);
     }
 
     // First-load behavior: the SW can control the page before the VFS is hydrated.

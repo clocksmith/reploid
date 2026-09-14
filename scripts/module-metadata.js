@@ -9,7 +9,7 @@ import { parse } from 'acorn';
 
 const UNKNOWN = Symbol('unknown metadata');
 
-export function createModuleMetadataResolver({ rootDir, readSource = (file) => readFile(file, 'utf8') }) {
+export function createModuleMetadataResolver({ rootDir, includeDependencies = false, readSource = (file) => readFile(file, 'utf8') }) {
   const root = path.resolve(rootDir);
   const modules = new Map();
 
@@ -109,6 +109,15 @@ export function createModuleMetadataResolver({ rootDir, readSource = (file) => r
         return bindingValue(module, module.bindings.get(node.name), fields, next);
       }
       if (node.type === 'Literal') return fields.length ? UNKNOWN : node.value;
+      if (node.type === 'ArrayExpression' && !fields.length) {
+        const values = [];
+        for (const element of node.elements) {
+          const value = await expressionValue(module, element, [], next);
+          if (value === UNKNOWN || value === undefined) return UNKNOWN;
+          values.push(value);
+        }
+        return values;
+      }
       if (node.type === 'MemberExpression') {
         const property = node.computed
           ? (node.property.type === 'Literal' ? node.property.value : UNKNOWN)
@@ -142,9 +151,16 @@ export function createModuleMetadataResolver({ rootDir, readSource = (file) => r
     const module = await moduleFor(file, source);
     const id = await exportValue(module, 'default', ['metadata', 'id'], new Set());
     const introduced = await exportValue(module, 'default', ['metadata', 'genesis', 'introduced'], new Set());
-    return {
+    const metadata = {
       id: typeof id === 'string' ? id : null,
       introduced: typeof introduced === 'string' ? introduced : null
     };
+    if (includeDependencies) {
+      const dependencies = await exportValue(module, 'default', ['metadata', 'dependencies'], new Set());
+      metadata.dependencies = dependencies === undefined ? []
+        : Array.isArray(dependencies) && dependencies.every((value) => typeof value === 'string')
+          ? dependencies : null;
+    }
+    return metadata;
   };
 }

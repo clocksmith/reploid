@@ -374,7 +374,10 @@ test.describe('Run, Contribute, Records peer room', () => {
       });
       await expect(homePage.locator('#pool-home-run-result-embedding-outcome')).toBeVisible();
       await expect(homePage.locator('#pool-home-run-result-embedding-outcome')).toContainText(
-        'Use it with embeddings made by the same ESM-2 model and contract when comparing sequences.'
+        `${model.embeddingDimensions} values for comparing sequences from this exact ESM-2 model and contract.`
+      );
+      await expect(homePage.locator('#pool-home-run-result-embedding-outcome')).toContainText(
+        'Not a biological interpretation or diagnosis.'
       );
       await expect(homePage.locator('[data-pool-copy-embedding]')).toBeDisabled();
       await expect(homePage.locator('[data-pool-copy-embedding]')).toHaveAttribute(
@@ -443,7 +446,7 @@ test.describe('Run, Contribute, Records peer room', () => {
 
       await runPage.getByRole('link', { name: 'Share compute', exact: true }).click();
       await expect(runPage.locator('code[data-pool-room-id]')).toHaveText(roomId);
-      await runPage.getByRole('link', { name: 'Recent jobs', exact: true }).click();
+      await runPage.locator('[data-pool-nav-id="records"]').click();
       await expect(runPage.locator('code[data-pool-room-id]')).toHaveText(roomId);
     } finally {
       await closeContexts(contexts);
@@ -461,7 +464,7 @@ test.describe('Run, Contribute, Records peer room', () => {
       const runPage = await openPoolPage(context, baseURL, '/ask', roomId);
       await runPeerPrompt(runPage, 'persist record view', 'fastest_receipt');
 
-      await runPage.getByRole('link', { name: 'Recent jobs', exact: true }).click();
+      await runPage.locator('[data-pool-nav-id="records"]').click();
       await runPage.getByRole('button', { name: /^Answers \(/ }).click();
 
       const recordDetails = runPage.locator('details.pool-record-event').first();
@@ -660,7 +663,7 @@ test.describe('Run, Contribute, Records peer room', () => {
       await toggle.click();
       await expect(providerPage.locator('[data-pool-provider-status]')).toHaveText('Could not start');
       await expect(providerPage.locator('[data-pool-provider-status]')).toHaveAttribute('data-provider-state', 'error');
-      await expect(providerPage.locator('[data-pool-provider-notice]')).toContainText('Pack failed to load');
+      await expect(providerPage.locator('[data-pool-provider-notice]')).toContainText('Model failed to load');
       await expect(providerPage.locator('[data-pool-provider-notice]')).toContainText('Nothing was shared');
       await expect(providerPage.locator('#pool-provider-details')).not.toHaveAttribute('open', '');
       await expect(providerPage.locator('#pool-provider-result')).toContainText(
@@ -693,7 +696,8 @@ test.describe('Run, Contribute, Records peer room', () => {
       });
 
       await providerPage.locator('#pool-provider-worker-toggle').click();
-      await expect(providerPage.locator('[data-pool-provider-status]')).toHaveText('Idle');
+      await expect(providerPage.locator('[data-pool-provider-status]')).toHaveText('Could not start');
+      await expect(providerPage.locator('[data-pool-provider-status]')).toHaveAttribute('data-provider-state', 'error');
       await expect(providerPage.locator('#pool-provider-result-raw')).toContainText('relay unavailable');
       await expect(providerPage.locator('#pool-provider-worker-toggle')).toHaveAttribute('data-contribution-action', 'start');
 
@@ -874,7 +878,7 @@ test.describe('Run, Contribute, Records peer room', () => {
       await expect(reputationPage.locator('#pool-peer-ledger table[aria-label="Local contributor scores"]')).toBeVisible();
       await expect(reputationPage.locator('#pool-peer-ledger')).toContainText('Matched');
 
-      await runPage.getByRole('link', { name: 'Recent jobs', exact: true }).click();
+      await runPage.locator('[data-pool-nav-id="records"]').click();
       await expect(runPage.locator('code[data-pool-room-id]')).toHaveText(roomId);
       await runPage.keyboard.press('Escape');
       await ensureDetailsOpen(runPage.locator('details.pool-record-tools'));

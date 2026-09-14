@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { describe, expect, it } from 'vitest';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -8,9 +9,10 @@ import { createModuleMetadataResolver } from '../../scripts/module-metadata.js';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../self');
 const metadata = "{ metadata: { id: 'Agent', genesis: { introduced: 'capsule' } } }";
 
-function fixture(sources) {
+function fixture(sources, options = {}) {
   const reads = new Map();
   const resolve = createModuleMetadataResolver({
+    ...options,
     rootDir: root,
     readSource: async (file) => {
       const relative = path.relative(root, file).split(path.sep).join('/');
@@ -56,6 +58,21 @@ describe('static forwarded module metadata', () => {
       'entry.js': `const base = ${metadata}; export default { ...base, ...(() => { throw new Error('never execute'); })() };`
     });
     expect(await read('entry.js')).toEqual({ id: null, introduced: null });
+  });
+
+  it('resolves forwarded dependency arrays for registry generation', async () => {
+    const { read } = fixture({
+      'entry.js': "export { default } from './owner.js';",
+      'owner.js': "export default { metadata: { id: 'Agent', genesis: { introduced: 'capsule' }, dependencies: ['Utils', 'VFS?'] } };"
+    }, { includeDependencies: true });
+    expect(await read('entry.js')).toEqual({ id: 'Agent', introduced: 'capsule', dependencies: ['Utils', 'VFS?'] });
+  });
+
+  it('does not execute dynamic dependency declarations', async () => {
+    const { read } = fixture({
+      'entry.js': "export default { metadata: { id: 'Agent', genesis: { introduced: 'capsule' }, dependencies: getDependencies() } };"
+    }, { includeDependencies: true });
+    expect(await read('entry.js')).toEqual({ id: 'Agent', introduced: 'capsule', dependencies: null });
   });
 
   it('fails closed on cyclic exports and untrusted package imports', async () => {
