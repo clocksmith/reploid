@@ -250,7 +250,7 @@
     {
       "path": "config/boot-seed.js",
       "owner": "config",
-      "sha256": "sha256:450e78a604ed5790c7a236dad9d677cd89a50ddaed633d156897f3ac3eeb5a7e",
+      "sha256": "sha256:aa9d547c3ff8fe14604981059548b458f511bf2d5d53ef6108af70ae3a73b3b7",
       "imports": []
     },
     {
@@ -2056,7 +2056,7 @@
     {
       "path": "self/host/sw-module-loader.js",
       "owner": "self",
-      "sha256": "sha256:dc555401478c9bb54d5556aac0bfdce81cf0432a72c6c397a9149324346c07d0",
+      "sha256": "sha256:9a844989f0f2da99a35b3d4246ab921f2272c74362aee265293a65fd856cc0f0",
       "imports": []
     },
     {
@@ -3157,17 +3157,27 @@
       ]
     },
     {
-      "path": "vendor/reploid/adapters/doppler.js",
+      "path": "vendor/reploid/adapters/doppler-stream.js",
       "owner": "vendor",
-      "sha256": "sha256:3db4bb016a8a9fa230993437fbc5292d5f44017c7be47e8d1faf9e291d945121",
+      "sha256": "sha256:62f2a7427caba418c519b8bea9bf5a1dac466c1f626c9bb3128bdc832a7ddf85",
       "imports": [
         "../config/index.js"
       ]
     },
     {
+      "path": "vendor/reploid/adapters/doppler.js",
+      "owner": "vendor",
+      "sha256": "sha256:131d6ee8ba16a376f77edff77530b8eeb2fa5411b1612c79b0d750931c23bdf8",
+      "imports": [
+        "../agent/cancellation.js",
+        "../config/index.js",
+        "./doppler-stream.js"
+      ]
+    },
+    {
       "path": "vendor/reploid/agent/cancellation.js",
       "owner": "vendor",
-      "sha256": "sha256:a7f29705c00ec15643515e8417b25cf5c8a4469659095dcdfa81386fe4b54ca2",
+      "sha256": "sha256:d836ede95a010512f0116f5b666828df73541dcd72cf4213fd745916c439d121",
       "imports": []
     },
     {

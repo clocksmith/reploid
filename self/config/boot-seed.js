@@ -2,11 +2,11 @@
  * @fileoverview Route-aware boot seed selection for VFS bootstrap.
  */
 
+// Installed library modules load through their hosted package URLs. The host
+// loader resolves mirrored URLs and allowlisted dependency misses on demand;
+// declarations and unrelated library capabilities are not eager VFS seeds.
+
 const SHARED_BOOT_UI_PREFIXES = Object.freeze([
-  'vendor/reploid/',
-  'config/reploid-library.json',
-  'capabilities/communication/library-adapter.js',
-  'core/agent-context.js',
   'entry/',
   'boot-helpers/vfs-bootstrap.js',
   'self/cloud-access.js',
@@ -45,10 +45,6 @@ const SHARED_BOOT_UI_PREFIXES = Object.freeze([
 ]);
 
 const REPLOID_MINIMAL_HOME_BOOT_SEED_PREFIXES = Object.freeze([
-  'vendor/reploid/',
-  'config/reploid-library.json',
-  'capabilities/communication/library-adapter.js',
-  'core/agent-context.js',
   'blueprint-index.json',
   'blueprints/blueprint-index-contract.md',
   'blueprints/promotion-contract.md',
@@ -125,10 +121,6 @@ const ZERO_SEED_TOOL_FILES = Object.freeze([
 ]);
 
 export const ZERO_HOME_BOOT_SEED_PREFIXES = Object.freeze([
-  'vendor/reploid/',
-  'config/reploid-library.json',
-  'capabilities/communication/library-adapter.js',
-  'core/agent-context.js',
   'entry/',
   'blueprint-index.json',
   'blueprints/blueprint-index-contract.md',

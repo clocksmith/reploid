@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mockHost = {
+  close: vi.fn(),
   initialize: vi.fn(),
   close: vi.fn(),
   seedSystemFiles: vi.fn(),
@@ -27,6 +28,7 @@ describe('Self Runtime', () => {
 
   beforeEach(() => {
     bridgeEventHandlers.clear();
+    mockHost.close.mockReset();
     mockHost.initialize.mockReset();
     mockHost.close.mockReset();
     mockHost.seedSystemFiles.mockReset();

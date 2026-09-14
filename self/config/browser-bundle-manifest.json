@@ -1195,8 +1195,8 @@
     },
     {
       "path": "config/boot-seed.js",
-      "byteLength": 7741,
-      "sha256": "sha256:450e78a604ed5790c7a236dad9d677cd89a50ddaed633d156897f3ac3eeb5a7e"
+      "byteLength": 7578,
+      "sha256": "sha256:aa9d547c3ff8fe14604981059548b458f511bf2d5d53ef6108af70ae3a73b3b7"
     },
     {
       "path": "config/CATSCAN.md",
@@ -1285,8 +1285,8 @@
     },
     {
       "path": "config/module-inventory.json",
-      "byteLength": 104550,
-      "sha256": "sha256:cbf20b4edd86b1ecc89aef2d77ada58d6ef80b1492457da69208e02e61814e4e"
+      "byteLength": 104861,
+      "sha256": "sha256:d57b341ccf56dbd47a694b6cb8eef25b933665ab54cd498a1ef7e6b8e0b7f1bd"
     },
     {
       "path": "config/module-registry.json",
@@ -1625,8 +1625,8 @@
     },
     {
       "path": "host/sw-module-loader.js",
-      "byteLength": 19540,
-      "sha256": "sha256:dc555401478c9bb54d5556aac0bfdce81cf0432a72c6c397a9149324346c07d0"
+      "byteLength": 20480,
+      "sha256": "sha256:9a844989f0f2da99a35b3d4246ab921f2272c74362aee265293a65fd856cc0f0"
     },
     {
       "path": "host/vfs-bootstrap.js",
@@ -3599,5 +3599,5 @@
       "sha256": "sha256:95a905e7fda60b4ebd1f29df134200be366b06dd9361520f3d112a787679c269"
     }
   ],
-  "bundleHash": "sha256:b49002a0feaed69d6e5b4f3473f9e7698955c1d85763c45d8051cdef76c15a65"
+  "bundleHash": "sha256:556d1ebd0d8cb35d94b556ec6eb4de2f36b97c7504ab68a166c80641e99bd1b2"
 }
