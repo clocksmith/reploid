@@ -660,6 +660,7 @@
     "vendor/CATSCAN.md",
     "vendor/reploid/adapters/browser.d.ts",
     "vendor/reploid/adapters/browser.js",
+    "vendor/reploid/adapters/doppler-stream.js",
     "vendor/reploid/adapters/doppler.d.ts",
     "vendor/reploid/adapters/doppler.js",
     "vendor/reploid/agent/cancellation.d.ts",
