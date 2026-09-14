@@ -5,6 +5,7 @@
 import { test, expect } from '@playwright/test';
 
 import { buildLaunchProviderModel } from '../../self/pool/model-contract.js';
+import { makeSyntheticSequenceReceipt } from '../helpers/pool-sequence-fixture.js';
 
 const BASE_URL = 'http://localhost:8000';
 const RELAY_MODE = process.env.REPLOID_E2E_RELAY_MODE === 'server' ? 'server' : 'local';
@@ -50,6 +51,8 @@ const installDeterministicRuntime = async (context, {
   startReady = true,
   loadModelResult = null
 }) => {
+  // Synthetic evidence exercises admission, not actual model qualification.
+  await context.exposeFunction('__reploidSyntheticSequenceReceipt', makeSyntheticSequenceReceipt);
   await context.addInitScript(({ launchModel, label, delayMs, initialReady, loadResult, relayMode }) => {
     const textEncoder = new TextEncoder();
     const bytesToHex = (bytes) => Array.from(bytes)
@@ -145,7 +148,7 @@ const installDeterministicRuntime = async (context, {
           maxComputeInvocationsPerWorkgroup: 256
         }
       }),
-      encodeSequence: async ({ sequence, request }) => {
+      encodeSequence: async ({ sequence, request, assignment }) => {
         window.REPLOID_E2E_ENCODE_STARTED = [
           ...(window.REPLOID_E2E_ENCODE_STARTED || []),
           { sequence, startedAt: Date.now() }
@@ -180,6 +183,9 @@ const installDeterministicRuntime = async (context, {
         return {
           outputKind: request.workload,
           outputText: `e2e:${sequence}`,
+          dopplerProviderReceipt: await window.__reploidSyntheticSequenceReceipt({
+            assignment, sequence, output: sequenceResult
+          }),
           tokenIds: [],
           vectorHash: pooledEmbeddingHash,
           sequenceResultHash,

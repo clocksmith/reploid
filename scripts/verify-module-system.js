@@ -12,6 +12,7 @@ import {
   validateBrowserBundleManifest
 } from '../self/pool/browser-release-identity.js';
 import { toBrowserSourcePath, toCanonicalBrowserPath, toPosix } from './browser-tree-paths.js';
+import { createModuleMetadataResolver } from './module-metadata.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -184,6 +185,7 @@ async function main() {
   const levels = genesis.levels || {};
   const moduleFiles = genesis.moduleFiles || {};
 
+  const resolveMetadata = createModuleMetadataResolver({ rootDir: SELF_DIR });
   const moduleToLevel = new Map();
   for (const [levelName, level] of Object.entries(levels)) {
     const modules = Array.isArray(level.modules) ? level.modules : [];
@@ -208,13 +210,18 @@ async function main() {
       continue;
     }
     const content = await fs.readFile(path.join(SELF_DIR, toBrowserSourcePath(entryFile)), 'utf8');
-    const metadataId = extractMetadataId(content);
+    let metadataId = extractMetadataId(content);
+    let genesisLevel = extractGenesisLevel(content);
+    if (!metadataId || !genesisLevel) {
+      const metadata = await resolveMetadata(path.join(SELF_DIR, toBrowserSourcePath(entryFile)), content);
+      metadataId = metadata.id;
+      genesisLevel = metadata.introduced;
+    }
     if (!metadataId) {
       errors.push(`Module entry missing metadata.id: ${entryFile}`);
     } else if (metadataId !== moduleName) {
       errors.push(`Module id mismatch for ${entryFile}: expected ${moduleName}, got ${metadataId}`);
     }
-    const genesisLevel = extractGenesisLevel(content);
     if (!genesisLevel) {
       errors.push(`Module entry missing metadata.genesis.introduced: ${entryFile}`);
     } else if (genesisLevel !== levelName) {
