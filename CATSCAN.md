@@ -4,17 +4,17 @@ Parent: none
 
 ## Target
 
-Deliver an evolving problem-solving agent that pursues goals for humans and agents via Doppler model inference, collaborates with peers over WebRTC via Poolday, and recursively improves its problem-solving methods through independently evaluated experience.
+Deliver a goal-directed agent using Doppler inference, Poolday WebRTC collaboration, and independently evaluated recursive improvement.
 
 ## Authority
-- Owns the library/application/UI boundary: reusable executable behavior belongs in `packages/reploid/`; the application composes public APIs and the UI requests actions.
-- Package extraction does not establish installed-package qualification, independent evaluation, publication or deployment.
+- Owns library/application/UI boundaries: `packages/reploid/` implements reusable behavior; applications compose public APIs; UI requests actions.
+- Extraction proves neither qualification, independent evaluation, publication nor deployment.
 - Owns repository-wide product boundaries, component precedence, and proof requirements.
 - Does not turn infrastructure activity, model output, or accepted evidence into biological truth.
 
 ## Scope
 
-- Includes repository-wide work and paths not narrowed by a child CATSCAN.
+- Repository work not narrowed by child charters.
 
 ## Contracts
 
