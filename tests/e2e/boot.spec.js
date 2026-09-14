@@ -461,7 +461,9 @@ test.describe('Route Entry Points', () => {
     await page.locator('[data-action="select-self-path"][data-path="/self/runtime.js"]').click();
     await expect(page.locator('.seed-viewer-panel')).toContainText('/self/runtime.js');
     await expect(page.locator('.seed-viewer-panel')).toContainText('source preview');
-    await expect(page.locator('.seed-file-viewer')).toContainText('Dedicated Reploid self runtime');
+    const source = await page.request.get(new URL('/runtime.js', page.url()).href);
+    expect(source.ok()).toBe(true);
+    await expect(page.locator('.seed-file-viewer')).toHaveText(await source.text());
   });
 
   test('home route recovers from awaken failure', async ({ page }) => {

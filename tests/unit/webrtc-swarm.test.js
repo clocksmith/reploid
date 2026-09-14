@@ -54,6 +54,7 @@ describe('WebRTCSwarm', () => {
   });
 
   afterEach(() => {
+    swarm.disconnect();
     vi.unstubAllGlobals();
     vi.clearAllMocks();
   });
@@ -252,8 +253,11 @@ describe('WebRTCSwarm', () => {
   });
 
   describe('Feature Flag', () => {
-    it('should check REPLOID_SWARM_ENABLED feature flag', async () => {
+    it('captures REPLOID_SWARM_ENABLED when constructing the instance', async () => {
       mockLocalStorage['REPLOID_SWARM_ENABLED'] = 'false';
+      swarm.disconnect();
+      swarm = WebRTCSwarmModule.factory({ Utils: utils, EventBus: eventBus });
+      mockLocalStorage['REPLOID_SWARM_ENABLED'] = 'true';
 
       const result = await swarm.init();
 
@@ -274,6 +278,8 @@ describe('WebRTCSwarm', () => {
         close() {}
       }
       vi.stubGlobal('WebSocket', ClosingWebSocket);
+      swarm.disconnect();
+      swarm = WebRTCSwarmModule.factory({ Utils: utils, EventBus: eventBus });
 
       await expect(swarm.init()).resolves.toBe(false);
       expect(swarm.getConnectionState()).toBe('retrying');

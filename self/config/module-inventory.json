@@ -250,7 +250,7 @@
     {
       "path": "config/boot-seed.js",
       "owner": "config",
-      "sha256": "sha256:450e78a604ed5790c7a236dad9d677cd89a50ddaed633d156897f3ac3eeb5a7e",
+      "sha256": "sha256:aa9d547c3ff8fe14604981059548b458f511bf2d5d53ef6108af70ae3a73b3b7",
       "imports": []
     },
     {
@@ -2054,7 +2054,7 @@
     {
       "path": "self/host/sw-module-loader.js",
       "owner": "self",
-      "sha256": "sha256:dc555401478c9bb54d5556aac0bfdce81cf0432a72c6c397a9149324346c07d0",
+      "sha256": "sha256:9a844989f0f2da99a35b3d4246ab921f2272c74362aee265293a65fd856cc0f0",
       "imports": []
     },
     {
@@ -3317,7 +3317,7 @@
     {
       "path": "vendor/reploid/transport/assignment.js",
       "owner": "vendor",
-      "sha256": "sha256:50b088044284d3148d95eb28326f23ee415cb13eaa9157b7fc0fdbf0a7c6f01a",
+      "sha256": "sha256:26e28ab0c06dcdfa177937a358e6ed695c59422096c810a628b597f0a5965b5d",
       "imports": [
         "../config/index.js",
         "./signaling.js"

@@ -168,7 +168,9 @@ export function createP2PTransport({
     }
 
     setState(P2P_TRANSPORT_STATES.CLOSING);
-    closeLocal(new Error(reason || 'Transport closed'));
+    closeLocal(createConnectionError(
+      reason ? `peer transport closed while connecting: ${String(reason)}` : 'peer transport closed while connecting'
+    ));
 
     try {
       if (typeof signaling.sendClose === 'function') {
@@ -178,9 +180,6 @@ export function createP2PTransport({
       // Closing is best-effort.
     }
 
-    closeLocal(createConnectionError(
-      reason ? `peer transport closed while connecting: ${String(reason)}` : 'peer transport closed while connecting'
-    ));
   }
 
   function rejectPendingOpen(error) {

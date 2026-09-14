@@ -159,6 +159,10 @@ describe('boot seed manifest', () => {
     const xBootSet = new Set(xBootFiles);
 
     expect(zeroBootFiles.length).toBeLessThanOrEqual(69);
+    for (const profile of Object.keys(BOOT_SEED_PROFILES)) {
+      expect(pickBootSeedFiles(manifest.files, profile).some((file) => file.startsWith('vendor/reploid/')), profile)
+        .toBe(false);
+    }
     expect(zeroBootFiles).not.toContain('tools/DeleteFile.js');
     expect(zeroBootFiles).not.toContain('tools/CopyFile.js');
     expect(zeroBootFiles).not.toContain('tools/git.js');
