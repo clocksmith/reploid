@@ -231,6 +231,11 @@ export function validatePoolConfigValue(config = {}) {
 
   const activeRingProtocol = config.ringPhaseProtocols?.protocols?.[config.ringPhaseProtocols?.activeProtocolId];
   if (!activeRingProtocol) reasons.push('ringPhaseProtocols.activeProtocolId must reference ringPhaseProtocols.protocols');
+  for (const field of ['pollIntervalMs', 'maxWaitMs']) {
+    if (!Number.isSafeInteger(activeRingProtocol?.revealWait?.[field]) || activeRingProtocol.revealWait[field] <= 0) {
+      reasons.push(`active ring phase protocol revealWait.${field} must be a positive integer`);
+    }
+  }
   if (activeRingProtocol && activeRingProtocol.requireRevealBeforeReceipt !== true) {
     reasons.push('active ring phase protocol must require reveal before receipt');
   }

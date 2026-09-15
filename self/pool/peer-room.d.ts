@@ -1,4 +1,4 @@
-import type { PackOperationRegistry } from './pack-operation-adapters.js';
+import type { JsonValue, PackOperationRegistry } from './pack-operation-adapters.js';
 import type { CurrentPackJobPolicy } from './peer-pack-job-policy.js';
 import type { PackPeerJobBody, PackProviderAdvertBody, SignedPackPeerMessage, createPackPeerJob } from './peer-pack-job.js';
 import type { PackPeerBus, PackPeerJobResult, PackPeerRequester, PackPeerRequesterOptions, PackPeerRunCallbacks, PackPeerRunInput } from './peer-pack-requester.js';
@@ -14,11 +14,19 @@ export function runPeerOperationJob(options: PackPeerRunCallbacks & {
   readonly requesterClient: PeerOperationRequesterClient;
   readonly request: Omit<PackPeerRunInput, 'signal' | 'onPartial' | 'advert' | 'adverts'>;
   readonly providerAdverts: readonly SignedPackPeerMessage<PackProviderAdvertBody>[];
+  /** Persist before connecting. A failed save prevents delivery. */
+  readonly onPrepared?: ((job: SignedPackPeerMessage<PackPeerJobBody>) => void | Promise<void>) | null;
   readonly connectTransport: (selected: { readonly providerId: string; readonly advert: SignedPackPeerMessage<PackProviderAdvertBody>;
     readonly assignment: PackPeerJobBody['assignment']; readonly signal: AbortSignal }) => PeerOperationTransport | Promise<PeerOperationTransport>;
   readonly registry?: PackOperationRegistry;
   readonly policy?: CurrentPackJobPolicy;
   readonly onError?: (error: Error) => void;
+}): Promise<PackPeerJobResult>;
+export function resumePeerOperationJob(options: Omit<Parameters<typeof runPeerOperationJob>[0], 'request' | 'providerAdverts' | 'onPrepared' | 'requesterClient'> & {
+  readonly requesterClient: Pick<PeerOperationRequesterClient, 'createPeerPackRequester'>;
+  readonly job: SignedPackPeerMessage<PackPeerJobBody>;
+  readonly model: Readonly<Record<string, JsonValue>>;
+  readonly reference: JsonValue;
 }): Promise<PackPeerJobResult>;
 export const PEER_ROOM_VERSION: string;
 export const DEFAULT_PEER_ROOM_ID: string;
@@ -29,7 +37,8 @@ export function createPeerProviderNode(options: Record<string, unknown>): {
   getAdvert(): Record<string, unknown> | null;
 };
 declare const api: { DEFAULT_PEER_ROOM_ID: typeof DEFAULT_PEER_ROOM_ID; PEER_ROOM_VERSION: typeof PEER_ROOM_VERSION;
-  createPeerProviderNode: typeof createPeerProviderNode; runPeerJob: typeof runPeerJob; runPeerOperationJob: typeof runPeerOperationJob };
+  createPeerProviderNode: typeof createPeerProviderNode; runPeerJob: typeof runPeerJob; runPeerOperationJob: typeof runPeerOperationJob;
+  resumePeerOperationJob: typeof resumePeerOperationJob };
 export default api;
 
 export function createRoomSignaling(options: Record<string, unknown>): { subscribe(listener: (message: unknown) => void): () => void; sendOffer(payload: unknown): Promise<void>; sendAnswer(payload: unknown): Promise<void>; sendIceCandidate(payload: unknown): Promise<void>; sendClose(reason?: string): Promise<void>; close(): void };

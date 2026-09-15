@@ -1,0 +1,132 @@
+{
+  "schema": "reploid.agent-peer-code-acceptance/v1",
+  "sourceBase": "19bc359ef1b7606fde3132ab2f37920f4891e6e5",
+  "journeyReport": "2026-09-15T01-15-22-113Z/report.json",
+  "packages": {
+    "reploid": {
+      "version": "0.1.0",
+      "integrity": "sha512-IgfY15xKEIuJLgERXRGHpAWjeWGznKHh786OZQ5yilzdiG9ejS+7knIf65KzP1Vh40rWVHI7YPEEkRs5Oqvk/w==",
+      "resolved": "file:../../../../home/x/deco/releases/doppler-0.6.2-candidate/reploid-0.1.0.tgz",
+      "archiveSha256": "6f12af6f5d7ea31b23917d35eccc2aceacb29416a07af6441b58048d591f7a46"
+    },
+    "doppler-gpu": {
+      "version": "0.6.2",
+      "integrity": "sha512-Tvedjt9mJWka08GBAsvxtdR2H6YEOxG8yePJdOEBnXI/ez+ygyOiShA7L4eipSlqo/X7Gi6MEiofHeA7XRyANw==",
+      "resolved": "file:../../../../home/x/deco/releases/doppler-0.6.2-candidate/doppler-gpu-0.6.2.tgz",
+      "archiveSha256": "4f9689b173ab80f2d664e7006f99dea98e37eb16e6e9d5b831e2902aee6b91b7"
+    }
+  },
+  "fixtureGenerationSource": {
+    "commit": "7965d41d99df93242acc03361100919724571605",
+    "status": "",
+    "runnerSha256": "ea0350d806aafa055138f816eddc56b32ca7c2d21e0a56112ad7cc71e8d47771"
+  },
+  "fixtureSha256": "9a20090fc55fc398da80b8228d7b38f70d707bcfea351817eb7c7e45bd95ebaf",
+  "units": {
+    "passed": 2554,
+    "skipped": 36,
+    "failed": 0
+  },
+  "nativeBrowserCases": {
+    "passed": 15,
+    "failed": 0
+  },
+  "contractCommands": [
+    {
+      "command": "npm run verify:catscan",
+      "exitCode": 0
+    },
+    {
+      "command": "npm run verify:surface-claims",
+      "exitCode": 0
+    },
+    {
+      "command": "npm run verify:layers",
+      "exitCode": 0
+    },
+    {
+      "command": "npm run verify:module-system",
+      "exitCode": 0
+    },
+    {
+      "command": "npm run verify:registry",
+      "exitCode": 0
+    },
+    {
+      "command": "npm run verify:runtime-config",
+      "exitCode": 0
+    },
+    {
+      "command": "npm run verify:browser-bundle:local",
+      "exitCode": 0
+    },
+    {
+      "command": "npm run verify:change-passport:sdk",
+      "exitCode": 0
+    },
+    {
+      "command": "npm run verify:change-passport:pilot",
+      "exitCode": 0
+    },
+    {
+      "command": "npm run verify:pool",
+      "exitCode": 0
+    },
+    {
+      "command": "npm exec -- tsc -p tsconfig.change-passport.json --noEmit",
+      "exitCode": 0
+    },
+    {
+      "command": "node scripts/sync-reploid-library.js --check",
+      "exitCode": 0
+    }
+  ],
+  "revealRegression": {
+    "before": "checks/reveal-before.json",
+    "oldFailures": [
+      "ring reveal phase is not open",
+      "Coordinator did not open reveal phase for required commit-reveal assignment"
+    ],
+    "assertedPassingOrder": [
+      "commit",
+      "commit_submitted",
+      "commit_submitted",
+      "commit_submitted",
+      "commit_submitted",
+      "commit_submitted",
+      "commit_submitted",
+      "reveal_open",
+      "reveal",
+      "receipt"
+    ],
+    "modes": [
+      "auto",
+      "required"
+    ],
+    "additionalPassingCases": [
+      "stalled-poll deadline",
+      "caller cancellation",
+      "late response suppression",
+      "invalid wait policy"
+    ]
+  },
+  "component": [
+    "Poolday Evidence Runtime",
+    "Runtime Infrastructure",
+    "Verification Evidence"
+  ],
+  "intent": "preserved",
+  "boundaryEffects": [
+    "application durable job connection and recovery",
+    "hosted provider reveal waiting"
+  ],
+  "exclusions": [
+    "Physical model execution",
+    "Independent peer hardware",
+    "Publication",
+    "Deployment",
+    "Agent quality"
+  ],
+  "publication": "deferred by user",
+  "deployment": "deferred by user"
+}

@@ -81,6 +81,23 @@ Connection and execution share the declared deadline. Cancellation closes a
 late connection before work can be sent. Product input contains no WebRTC state;
 runtime composition supplies the transport connector.
 
+`onPrepared(job)` runs after validation and before connecting. Await host approval
+for that exact recipient and payload, then save the signed job in host-supplied
+storage. A failed save prevents delivery. Reconnect with
+`resumePeerOperationJob({ requesterClient, job, model, reference, connectTransport,
+signal, onPartial })`. It verifies the saved signature and current model/policy
+pins before connecting and never creates a replacement attempt. A host must
+recheck current permissions before resuming. The original deadline still applies.
+
+An installed `createReploid()` agent calls this application owner through an
+authorized `ports.tools` function. Its model remains the accepted public Doppler
+provider. The host supplies storage, signaling, admission and artifact access;
+the package needs no application imports or second scheduler. Keep a stable task
+key so repeated tool calls load the saved signed attempt. Do not recreate a job
+when transport or verification fails. Treat partial display as provisional, dedupe
+replayed additions by event index and digest, and pass only verified final output
+back into the agent's tool result.
+
 ## Acceptance and recovery
 
 The current v3 assignment binds the signed intent, selected provider advert, route,
@@ -95,9 +112,10 @@ ordered update; the requester checks both that chain and Doppler's event chain.
 Completion is released only after the execution iterator closes and the attempt
 remains current. The requester then applies the predeclared comparison policy.
 
-Numerical operations use declared tolerances; generation currently requires an
-exact-text reference. This is suitable for frozen qualification or reproduction
-jobs. It does not yet define acceptance for arbitrary open-ended remote answers.
+Numerical comparisons use declared tolerances; generation qualification uses an
+exact-text reference. Explicit `acceptanceMode: 'execution'` permits generation
+without a reference under the `execution-identity-only` claim. This verifies the
+declared execution and completion, not the answer's quality.
 Signed records are evidence of key-bound claims, not hardware attestation or
 proof of honest GPU execution. Matching browser outputs do not establish truth.
 
@@ -110,8 +128,11 @@ requester ignores previous-attempt results. The initial number comes from JSON
 configuration. Delivery retry resends the same numbered attempt, never a new run.
 Resource accounting includes repeated request and response delivery.
 
-Cancellation and transport disconnect immediately invalidate the requester's
-attempt. A signed cancellation requests cooperation; it does not prove immediate
+Cancellation and transport disconnect immediately stop the requester's current
+delivery. Disconnect rejects with `code: 'PACK_TRANSPORT_DISCONNECTED'` without
+withdrawing remote execution authorization. A host can reconnect and resume the
+saved attempt. Explicit cancellation sends a signed withdrawal requesting
+cooperation; it does not prove immediate
 GPU termination. The execution slot stays busy during runtime cleanup. A
 cancellation that arrives before its delayed job leaves a bounded tombstone.
 The provider now persists attempt claims, cancellation tombstones and signed
@@ -125,6 +146,8 @@ acknowledgement. A lost send cannot overwrite
 a saved completion with failure. After restart, the same provider key and
 browser profile can replay the original signed response stream. The provider
 rechecks signatures, request bindings and both event chains before replay.
+Journal binding comparison uses canonical JSON, so storage reordering object keys
+does not alter identity. Changed values or array order still reject.
 
 A replacement writer marks an unfinished attempt interrupted and fences its
 previous writer. It replays verified partial results followed by a signed
@@ -146,6 +169,18 @@ archive. Delivery remains bounded at-least-once; exactly-once execution across
 arbitrary restarts or storage loss is not claimed.
 
 ## Validation
+
+`DOPPLER_TEST_CONSUMER=/path/to/installed-consumer npm run test:agent-peer`
+requires a clean installation containing Doppler, Reploid, a lockfile identifying
+both archives, and the producer's `generation-fixture.json`. It runs two local
+Chromium processes, using the installed agent and accepted Doppler provider with
+injected model programs. The host approves a bounded task; text streams over
+WebRTC; completion is dropped after durable commit; the entire provider browser
+restarts; the same signed attempt replays without inference; the agent uses the
+verified result. The report records package identities, source hashes, event
+ordering, native storage recovery and Verification Worker results in
+`artifacts/agent-peer-local/`. This establishes local contract integration, not
+physical model quality or independent-computer evidence.
 
 - `tests/unit/pool-peer-pack-job.test.js`: real signatures with synthetic outputs,
   four operations, a fifth adapter, lost delivery, cancellation, deadlines,
