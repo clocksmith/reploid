@@ -1,5 +1,8 @@
 /** Native atomic attempt storage. Poolday supplies resolved policy and verifies signed evidence. */
+import { snapshotJson } from '../vendor/reploid/config/index.js';
+
 const assert = (ok, message) => { if (!ok) throw new Error(`Pack job journal: ${message}`); };
+const bindingIdentity = value => JSON.stringify(snapshotJson(value));
 const digest = value => typeof value === 'string' && /^sha256:[0-9a-f]{64}$/.test(value);
 const size = value => new TextEncoder().encode(JSON.stringify(value)).length;
 const request = operation => new Promise((resolve, reject) => {
@@ -163,7 +166,7 @@ export async function openPackJobJournal({ providerId, policy: policyInput, name
   const find = (records, value, owner) => {
     const prior = records.find(record => record.key === keyFor(value));
     assert(prior && prior.jobHash === value.jobHash && prior.owner === owner, 'attempt writer was superseded');
-    assert(JSON.stringify(prior.binding) === JSON.stringify(value.binding), 'immutable attempt binding changed');
+    assert(bindingIdentity(prior.binding) === bindingIdentity(value.binding), 'immutable attempt binding changed');
     return prior;
   };
   return {
@@ -176,7 +179,7 @@ export async function openPackJobJournal({ providerId, policy: policyInput, name
         if (prior) {
           assert(prior.jobHash === value.jobHash, 'attempt was already observed with a different signed envelope');
           assert(prior.status !== 'expired', 'attempt expired');
-          assert(prior.binding === null || JSON.stringify(prior.binding) === JSON.stringify(value.binding), 'immutable attempt binding changed');
+          assert(prior.binding === null || bindingIdentity(prior.binding) === bindingIdentity(value.binding), 'immutable attempt binding changed');
           prior = { ...prior, binding: value.binding, expiresAt: value.expiresAt };
           if (['accepted', 'running'].includes(prior.status) && prior.owner !== owner) {
             prior = { ...prior, owner, status: 'interrupted', outcome: 'provider-replaced' };

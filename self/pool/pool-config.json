@@ -673,6 +673,10 @@
           "salt"
         ],
         "minCommitments": "requiredAgreement",
+        "revealWait": {
+          "pollIntervalMs": 250,
+          "maxWaitMs": 60000
+        },
         "rejectLateCommitmentsAfterRevealOpen": true,
         "requireRevealBeforeReceipt": true,
         "requireCommitmentForLedgerAward": true,

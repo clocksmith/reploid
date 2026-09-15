@@ -397,6 +397,34 @@ test('cumulative v2 journal migration preserves updates and rejects corrupt stre
   expect(result.privateFieldsExposed).toBe(false); expect(result.error).toContain('corrupt update metadata');
 });
 
+test('journal bindings ignore object key order but reject changed values and array order', async ({ page }) => {
+  await page.goto(origin);
+  const result = await page.evaluate(async () => {
+    const { openPackJobJournal } = await import('/self/infrastructure/pack-job-storage.js');
+    const { PACK_JOB_POLICY } = await import('/self/pool/peer-pack-job-policy.js');
+    const hash = `sha256:${'a'.repeat(64)}`;
+    const value = { requesterId: hash, jobId: 'canonical-binding', attemptId: 'one', jobHash: hash, expiresAt: Date.now() + 60000,
+      binding: { requestHash: hash, assignmentId: 'assignment', operation: { name: 'generate', version: 1 },
+        model: { identity: 'frozen', artifacts: ['first', 'second'] }, adapterSet: [], attemptNumber: 1 } };
+    const reorder = value => Array.isArray(value) ? value.map(reorder) : value && typeof value === 'object'
+      ? Object.fromEntries(Object.entries(value).reverse().map(([key, item]) => [key, reorder(item)])) : value;
+    const journal = await openPackJobJournal({ providerId: hash, policy: PACK_JOB_POLICY.persistence, name: crypto.randomUUID() });
+    try {
+      await journal.claim(value, 'writer');
+      const replay = await journal.claim(reorder(value), 'writer');
+      await journal.markRunning(reorder(value), 'writer');
+      const errors = [];
+      for (const model of [{ ...value.binding.model, identity: 'changed' }, { ...value.binding.model, artifacts: ['second', 'first'] }]) {
+        try { await journal.claim({ ...value, binding: { ...value.binding, model } }, 'writer'); }
+        catch (error) { errors.push(error.message); }
+      }
+      return { created: replay.created, errors };
+    } finally { journal.close(); }
+  });
+  expect(result.created).toBe(false);
+  expect(result.errors).toEqual(['Pack job journal: immutable attempt binding changed', 'Pack job journal: immutable attempt binding changed']);
+});
+
 test('a stalled native transaction aborts within configured storage bounds', async ({ page }) => {
   await page.goto(origin);
   const result = await page.evaluate(async () => {

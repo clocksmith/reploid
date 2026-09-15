@@ -1285,8 +1285,8 @@
     },
     {
       "path": "config/module-inventory.json",
-      "byteLength": 104861,
-      "sha256": "sha256:d57b341ccf56dbd47a694b6cb8eef25b933665ab54cd498a1ef7e6b8e0b7f1bd"
+      "byteLength": 104965,
+      "sha256": "sha256:6b4f9ebcabd6301512632b2aa5ddaf89fbf15acf7c1d18a84b05a99200408c13"
     },
     {
       "path": "config/module-registry.json",
@@ -1730,8 +1730,8 @@
     },
     {
       "path": "infrastructure/pack-job-storage.js",
-      "byteLength": 15003,
-      "sha256": "sha256:121334a74ec71788f56ab4fb03418a7d34454ac473e408b03a43cb65a3049c83"
+      "byteLength": 15144,
+      "sha256": "sha256:f83b0b2bfbb6c6788d2c0628258ab931d7e0f093cd4c5671eb70164c6d1d8f96"
     },
     {
       "path": "infrastructure/pack-release-storage.js",
@@ -1960,8 +1960,8 @@
     },
     {
       "path": "pool/config-contract.js",
-      "byteLength": 19764,
-      "sha256": "sha256:6c41065775dedf09d53a0b0153e694b1b42ed856ea1e7dd84607f4122539afa1"
+      "byteLength": 20047,
+      "sha256": "sha256:b29381ad665ddf6f9044cbedb3cb15580ffa1765444f0aab3b54f4db8c5924f2"
     },
     {
       "path": "pool/config.js",
@@ -2350,8 +2350,8 @@
     },
     {
       "path": "pool/peer-pack-requester.js",
-      "byteLength": 9963,
-      "sha256": "sha256:d9f4cfb7fce7599ea1c39e9e064cb8086619764741b76ec229fdbe2e28e498e5"
+      "byteLength": 10301,
+      "sha256": "sha256:ccaf5f98e609cc76bc348354c7b168f2619a66d68d3006510c48362d52e2302d"
     },
     {
       "path": "pool/peer-pack-session.d.ts",
@@ -2395,13 +2395,13 @@
     },
     {
       "path": "pool/peer-room.d.ts",
-      "byteLength": 2654,
-      "sha256": "sha256:748624518f70e200f88da77026a18bd62d84081c830fd4b18e900d063e5c9284"
+      "byteLength": 3328,
+      "sha256": "sha256:85d8d6fef1d0c3ee55254c1f068889c9618b49a23707248f8d829274353840e0"
     },
     {
       "path": "pool/peer-room.js",
-      "byteLength": 59526,
-      "sha256": "sha256:34dc60f254dfd4260652e39b41cf4f28a16fc063169ed2ee8701144c32540e3d"
+      "byteLength": 60984,
+      "sha256": "sha256:a95168d5526d2b95d1e71dd7f0ca1640c6ac2ef440c9d674c6225c2f80a66257"
     },
     {
       "path": "pool/peer-transport.js",
@@ -2420,8 +2420,8 @@
     },
     {
       "path": "pool/pool-config.json",
-      "byteLength": 76545,
-      "sha256": "sha256:bb36aa5aaf2afd069bdd88489eb10d9a75d1fe866e003db12ceed499dd0685ab"
+      "byteLength": 76642,
+      "sha256": "sha256:46e78d5658bdb9c4b92c6ef9921929e0974c0e98ebc6ff1704435a0df9ac71f3"
     },
     {
       "path": "pool/protein-investigation.js",
@@ -2435,8 +2435,8 @@
     },
     {
       "path": "pool/provider-client.js",
-      "byteLength": 28106,
-      "sha256": "sha256:9e8d2ca877642c5fd985dea3c78115d3989e6e6657bc3f8e4386eaedd64f5129"
+      "byteLength": 30077,
+      "sha256": "sha256:8c2d1fba7a4ed46f4dbfbdcc531897460b2fd288cbc0e811829dc8d82377eddc"
     },
     {
       "path": "pool/realized-action-value.js",
@@ -3599,5 +3599,5 @@
       "sha256": "sha256:95a905e7fda60b4ebd1f29df134200be366b06dd9361520f3d112a787679c269"
     }
   ],
-  "bundleHash": "sha256:17ae5366d9dd8bbf4b4aae2ecd71df6fea62e682bc6cfe01f389c9b71c7edda0"
+  "bundleHash": "sha256:93344e38618c04b01ef32de52b8231834bd4ff37ee37c14d511c144deff35397"
 }

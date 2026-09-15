@@ -13,7 +13,7 @@ import { createPackPeerRequester } from '../../self/pool/peer-pack-requester.js'
 import { createPackPeerJob, createPackProviderAdvert, verifyPackPeerJob, signPackPeerMessage, verifyPackPeerMessage, PACK_CANCEL_SCHEMA } from '../../self/pool/peer-pack-job.js';
 import { PEER_MESSAGE_TYPES } from '../../self/pool/peer-protocol.js';
 import { verifyPackPeerEpisode } from '../../self/pool/peer-pack-episode.js';
-import { runPeerOperationJob } from '../../self/pool/peer-room.js';
+import { runPeerOperationJob, resumePeerOperationJob } from '../../self/pool/peer-room.js';
 
 const deferred = () => { let resolve; const promise = new Promise(done => { resolve = done; }); return { promise, resolve }; };
 const until = async check => { for (let i = 0; i < 500; i++) { if (check()) return; await new Promise(resolve => setTimeout(resolve, 2)); } throw new Error('condition did not settle'); };
@@ -61,9 +61,10 @@ async function setup(name, registry, tweaks = {}) {
     f.adapterResolver = createPeerAdapterResolver({ registry: adapterRegistry, policy: poolConfig.peerJobs.execution.adapters });
   }
   const providerIdentity = await packPeerIdentity(), requesterIdentity = await packPeerIdentity();
-  const requestListeners = new Set(), providerListeners = new Set();
+  const requestListeners = new Set(), providerListeners = new Set(), disconnectListeners = new Set();
   const sent = [], responses = [], errors = [];
   const requesterBus = { subscribe(fn) { requestListeners.add(fn); return () => requestListeners.delete(fn); },
+    onDisconnect(fn) { disconnectListeners.add(fn); return () => disconnectListeners.delete(fn); },
     async send(message) { sent.push(message); if (tweaks.dropRequest?.(message, sent.length)) return;
       for (const fn of providerListeners) fn(structuredClone(message)); } };
   const providerBus = { subscribe(fn) { providerListeners.add(fn); return () => providerListeners.delete(fn); },
@@ -81,7 +82,8 @@ async function setup(name, registry, tweaks = {}) {
     consent: { schema: 'reploid.peer.public_operation_consent/v1', publicInput: true, providerIds: [providerIdentity.keyId] },
     comparisonPolicy: f.policy, reference: f.output, resources: operationResources, ...(tweaks.adapted ? { adapterSet: [f.entry] } : {}) };
   return { ...f, provider, requester, args, sent, responses, errors, providerIdentity, requesterIdentity,
-    requesterBus, providerBus, async close() { requester.close(); await provider.close(); } };
+    requesterBus, providerBus, disconnectRequester() { for (const fn of disconnectListeners) fn(); },
+    async close() { requester.close(); await provider.close(); } };
 }
 
 describe('signed remote Pack jobs with synthetic model outputs', () => {
@@ -235,6 +237,49 @@ describe('signed remote Pack jobs with synthetic model outputs', () => {
       gate.resolve(); await until(() => closes === 1);
       expect(f.sent).toEqual([]); expect(f.calls()).toBe(0);
     } finally { gate.resolve(); await f.close(); }
+  });
+
+  it('persists before connecting and resumes a lost completion using the same signed attempt', async () => {
+    let disconnect, lost = false, saved, signed = 0, connections = 0;
+    const f = await setup('generate', undefined, { dropResponse(message) {
+      if (!lost && message.body.status === 'completed') { lost = true; disconnect(); return true; }
+      return false;
+    } });
+    disconnect = f.disconnectRequester;
+    const requesterClient = {
+      createPeerOperationJob(options) { signed++; return createPackPeerJob({ ...options, identity: f.requesterIdentity }); },
+      createPeerPackRequester: options => createPackPeerRequester({ ...options, identity: f.requesterIdentity })
+    };
+    const connectTransport = async () => {
+      expect(saved).toBeTruthy(); connections++;
+      return { bus: f.requesterBus, close() {} };
+    };
+    try {
+      await expect(runPeerOperationJob({ requesterClient, connectTransport, request: f.args, providerAdverts: [f.args.advert],
+        onPrepared: job => { saved = structuredClone(job); } })).rejects.toMatchObject({ code: 'PACK_TRANSPORT_DISCONNECTED' });
+      const result = await resumePeerOperationJob({ requesterClient, connectTransport, job: saved, model: f.model, reference: f.output });
+      expect(result.job).toEqual(saved);
+      expect(f.sent).toHaveLength(2); // Disconnect must not emit a cancellation.
+      expect(f.sent[0]).toEqual(f.sent[1]);
+      expect(signed).toBe(1); expect(connections).toBe(2); expect(f.calls()).toBe(1);
+      await expect(verifyPackPeerEpisode({ ...result, reference: f.output, models: [f.model] })).resolves.toMatchObject({ accepted: true });
+    } finally { await f.close(); }
+  });
+
+  it('never connects after a failed save or a corrupted saved attempt', async () => {
+    const f = await setup('generate'); let saved, connections = 0;
+    const requesterClient = {
+      createPeerOperationJob: options => createPackPeerJob({ ...options, identity: f.requesterIdentity }),
+      createPeerPackRequester: () => f.requester
+    };
+    const connectTransport = () => { connections++; throw new Error('must not connect'); };
+    try {
+      await expect(runPeerOperationJob({ requesterClient, connectTransport, request: f.args, providerAdverts: [f.args.advert],
+        onPrepared(job) { saved = structuredClone(job); throw new Error('storage unavailable'); } })).rejects.toThrow('storage unavailable');
+      saved.body.request.input.prompt = 'substituted task';
+      await expect(resumePeerOperationJob({ requesterClient, connectTransport, job: saved, model: f.model, reference: f.output })).rejects.toThrow();
+      expect(connections).toBe(0); expect(f.calls()).toBe(0);
+    } finally { await f.close(); }
   });
 
   it('binds numbered attempts and archives the policy used before configuration changes', async () => {

@@ -759,8 +759,10 @@
     {
       "path": "infrastructure/pack-job-storage.js",
       "owner": "infrastructure",
-      "sha256": "sha256:121334a74ec71788f56ab4fb03418a7d34454ac473e408b03a43cb65a3049c83",
-      "imports": []
+      "sha256": "sha256:f83b0b2bfbb6c6788d2c0628258ab931d7e0f093cd4c5671eb70164c6d1d8f96",
+      "imports": [
+        "../vendor/reploid/config/index.js"
+      ]
     },
     {
       "path": "infrastructure/pack-release-storage.js",
@@ -1018,7 +1020,7 @@
     {
       "path": "pool/config-contract.js",
       "owner": "pool",
-      "sha256": "sha256:6c41065775dedf09d53a0b0153e694b1b42ed856ea1e7dd84607f4122539afa1",
+      "sha256": "sha256:b29381ad665ddf6f9044cbedb3cb15580ffa1765444f0aab3b54f4db8c5924f2",
       "imports": [
         "./executable-pack.js",
         "./pack-operation-policy.js",
@@ -1655,7 +1657,7 @@
     {
       "path": "pool/peer-pack-requester.js",
       "owner": "pool",
-      "sha256": "sha256:d9f4cfb7fce7599ea1c39e9e064cb8086619764741b76ec229fdbe2e28e498e5",
+      "sha256": "sha256:ccaf5f98e609cc76bc348354c7b168f2619a66d68d3006510c48362d52e2302d",
       "imports": [
         "../infrastructure/doppler-runtime-service.js",
         "./executable-pack.js",
@@ -1731,7 +1733,7 @@
     {
       "path": "pool/peer-room.js",
       "owner": "pool",
-      "sha256": "sha256:34dc60f254dfd4260652e39b41cf4f28a16fc063169ed2ee8701144c32540e3d",
+      "sha256": "sha256:a95168d5526d2b95d1e71dd7f0ca1640c6ac2ef440c9d674c6225c2f80a66257",
       "imports": [
         "./config.js",
         "./executable-pack.js",
@@ -1741,6 +1743,7 @@
         "./pack-operation.js",
         "./peer-control-plane.js",
         "./peer-pack-job-policy.js",
+        "./peer-pack-job.js",
         "./peer-rendezvous.js"
       ]
     },
@@ -1788,11 +1791,12 @@
     {
       "path": "pool/provider-client.js",
       "owner": "pool",
-      "sha256": "sha256:9e8d2ca877642c5fd985dea3c78115d3989e6e6657bc3f8e4386eaedd64f5129",
+      "sha256": "sha256:8c2d1fba7a4ed46f4dbfbdcc531897460b2fd288cbc0e811829dc8d82377eddc",
       "imports": [
         "./adapter-pack.js",
         "./adapter-publication.js",
         "./adapter-registry.js",
+        "./config.js",
         "./doppler-runtime.js",
         "./identity.js",
         "./inference-receipt.js",

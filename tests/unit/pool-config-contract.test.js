@@ -8,6 +8,13 @@ import {
 import poolConfig from '../../self/pool/pool-config.json' with { type: 'json' };
 
 describe('Poolday configuration contract', () => {
+  it.each(['pollIntervalMs', 'maxWaitMs'])('requires a bounded reveal wait %s', (field) => {
+    const invalid = structuredClone(poolConfig);
+    invalid.ringPhaseProtocols.protocols.commit_reveal_v1.revealWait[field] = 0;
+    expect(validatePoolConfigValue(invalid)).toMatchObject({ ok: false,
+      reasons: expect.arrayContaining([`active ring phase protocol revealWait.${field} must be a positive integer`]) });
+  });
+
   it('rejects malformed executable Pack bindings before loading', () => {
     const invalid = structuredClone(poolConfig);
     const model = invalid.modelCatalog.find((row) => row.modelId === invalid.launchModelId);
