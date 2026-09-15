@@ -2,6 +2,7 @@
  * @fileoverview Rendering and UI state helpers for the Poolday product home.
  */
 import { renderOperationSharing } from './operation-sharing.js';
+import { renderWorkSurface, renderImproveSurface } from './work.js';
 
 import {
   LAUNCH_MODEL,
@@ -1544,7 +1545,7 @@ export const renderNav = (activeRoute) => {
     const isActive = activeRoute === id || (activeRoute === 'ask' && id === 'home');
     const currentAttr = isActive ? ' aria-current="page"' : '';
     const ariaLabel = escapeHtml(label);
-    const shortLabel = escapeHtml({ home: 'Run', compute: 'Share', records: 'Jobs' }[id] || label);
+    const shortLabel = escapeHtml({ home: 'Work', compute: 'Network', improve: 'Improve', records: 'Jobs' }[id] || label);
     const roomPath = roomHref(path, getPeerRoomId());
     return `<a class="pool-nav-link pool-segment${isActive ? ' is-active' : ''}" href="${escapeHtml(roomPath)}" aria-label="${ariaLabel}" data-pool-nav-id="${id}" data-pool-nav-short-label="${shortLabel}" data-pool-route-link="${escapeHtml(roomPath)}"${currentAttr}>${ariaLabel}</a>`;
   };
@@ -1872,7 +1873,7 @@ const renderHomeSimulation = ({ dashboardView = 'home' } = {}) => {
         <div class="pool-home-toolbar-leading pool-home-overlay" aria-label="${escapeHtml(POOLDAY_NAME)} overview">
           <div class="pool-home-title-lockup">
             <h1 class="type-h1 pool-home-brand-word">${escapeHtml(POOLDAY_NAME)}${renderPowerTower()}</h1>
-            <p class="type-caption pool-hero-body pool-home-brand-promise">${escapeHtml(ROUTE_COPY.home.body)}</p>
+            <p class="type-caption pool-hero-body pool-home-brand-promise">${escapeHtml(ROUTE_COPY.examples.body)}</p>
             <p class="type-caption pool-home-brand-status" data-pool-brand-status hidden></p>
           </div>
           <div class="pool-prism" data-pool-prism aria-hidden="true">
@@ -1904,7 +1905,9 @@ const renderHomeSimulation = ({ dashboardView = 'home' } = {}) => {
         </div>
       </div>
       <div class="pool-home-task">
-        <div class="pool-workflow-switcher pool-segmented" role="group" aria-label="Choose a task">
+        <h2 class="type-h2">Explore examples</h2>
+        <p class="type-caption">These are application examples, not the limits of Reploid. <a href="/" data-pool-route-link="/">Start with a goal instead</a>.</p>
+        <div class="pool-workflow-switcher pool-segmented" role="group" aria-label="Choose an example">
           <button type="button" class="pool-segment" data-pool-workflow="sequence" aria-pressed="true" aria-controls="pool-home-ask-form">Protein sequences</button>
           <button type="button" class="pool-segment" data-pool-workflow="documents" aria-pressed="false" aria-controls="pool-document-search">Document search</button>
         </div>
@@ -1995,11 +1998,14 @@ const renderHomeSimulation = ({ dashboardView = 'home' } = {}) => {
 };
 
 export const renderRoutePanel = (routeId, options = {}) => {
-  if (routeId === 'home') return renderHomeSimulation(options);
+  if (routeId === 'home') return renderWorkSurface();
+  if (routeId === 'improve') return renderImproveSurface();
+  if (routeId === 'examples') return renderHomeSimulation(options);
   return '';
 };
 
 export const renderRouteDetail = (routeId) => {
+  if (['home', 'improve', 'examples'].includes(routeId)) return '';
   const normalizedRouteId = routeId === 'history' || routeId === 'network' ? 'records' : routeId;
   const copy = ROUTE_COPY[normalizedRouteId] || ROUTE_COPY.home;
   if (normalizedRouteId === 'ask') {

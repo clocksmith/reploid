@@ -20,10 +20,10 @@ export const POOLDAY_ROUTE_DEFINITIONS = Object.freeze([
   createPooldayRoute({
     id: 'home',
     path: '/',
-    label: 'Run a model',
+    label: 'Work',
     eyebrow: POOLDAY_PROTOCOL,
-    title: 'Run a model',
-    body: 'Run AI with connected browsers.'
+    title: 'Work',
+    body: 'Pursue goals with local intelligence and explicitly shared compute.'
   }),
   createPooldayRoute({
     id: 'ask',
@@ -36,11 +36,28 @@ export const POOLDAY_ROUTE_DEFINITIONS = Object.freeze([
   }),
   createPooldayRoute({
     id: 'compute',
-    path: '/compute',
-    label: 'Share compute',
+    path: '/network',
+    label: 'Network',
     eyebrow: POOLDAY_PROTOCOL,
-    title: 'Share compute',
-    body: 'Let this browser help with jobs.'
+    title: 'Network',
+    body: 'Choose what this device provides. Inspect compatible models, sharing limits, and peer jobs.'
+  }),
+  createPooldayRoute({
+    id: 'improve',
+    path: '/improve',
+    label: 'Improve',
+    eyebrow: POOLDAY_PROTOCOL,
+    title: 'Improve',
+    body: 'Retain attempts, evaluate changes independently, and keep adoption explicit.'
+  }),
+  createPooldayRoute({
+    id: 'examples',
+    path: '/examples',
+    label: 'Examples',
+    eyebrow: POOLDAY_PROTOCOL,
+    title: 'Examples',
+    body: 'Protein analysis and document search exercise specific model operations.',
+    primary: false
   }),
   createPooldayRoute({
     id: 'records',
@@ -48,7 +65,8 @@ export const POOLDAY_ROUTE_DEFINITIONS = Object.freeze([
     label: 'Recent jobs',
     eyebrow: POOLDAY_PROTOCOL,
     title: 'Recent jobs',
-    body: 'Results and unfinished jobs.'
+    body: 'Results and unfinished jobs.',
+    primary: false
   }),
   createPooldayRoute({
     id: 'room-1',
@@ -63,7 +81,8 @@ export const POOLDAY_ROUTE_DEFINITIONS = Object.freeze([
 
 export const POOLDAY_ROUTE_ALIASES = Object.freeze({
   '/history': 'records',
-  '/network': 'records'
+  '/compute': 'compute',
+  '/work': 'home'
 });
 
 export const PRODUCT_ROUTES = Object.freeze(Object.fromEntries(

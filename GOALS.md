@@ -133,12 +133,16 @@ artifact. Multiple matching executions establish declared execution agreement.
 They do not prove honest browser execution, distinct devices or organizations,
 independent model evidence, biological correctness, or scientific replication.
 
-Poolday's primary interface is limited to Run a model, Share compute, and
-Recent jobs. Ask is the input step of Run; Records and History are Recent jobs;
-network state is a compact, meaningful indicator. Research Room-1 is a separate
-non-primary route. Recent jobs may expose execution receipts, comparison
-evidence, peer identities, retries, and recovery, but it must not embed the
-scientific room, hypotheses, cohorts, adjudication, or laboratory claims.
+Reploid's primary interface is Work, Network, and Improve. Work begins with a
+bounded user goal and an explicitly selected execution capability. Network owns
+participation controls, available models, limits, and peer jobs. Improve keeps
+attempts, independent evaluation, adoption, and rollback distinct. Poolday is an
+internal implementation name, not another product. Protein analysis and document
+search are examples. Ask, Records, History, and Research Room-1 remain accessible
+secondary routes. Recent jobs expose execution receipts, comparison evidence,
+peer identities, retries, and recovery without inheriting scientific authority.
+An available route, configured model, retained checkpoint, or user-accepted
+outcome does not establish physical inference, peer execution, or improvement.
 
 ## Falsifiable first proofs
 

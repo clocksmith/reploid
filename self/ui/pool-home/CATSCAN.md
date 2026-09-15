@@ -1,49 +1,46 @@
-# CATSCAN: Poolday Interface
+# CATSCAN: Reploid Product Interface
 
 Parent: [Browser Interfaces](../CATSCAN.md)
 
 ## Target
-
-Run signed models; inspect and recover jobs.
+Pursue bounded goals, share compute, inspect improvement evidence.
 
 ## Authority
-- Owns primary workflows, experiment footer, and Research Room-1.
-- Does not own Pack validation, execution, admission, transport, receipt validation, or scientific interpretation.
+- Owns Work, Network, Improve, examples, and Room-1 presentation.
+- Host composes reusable agent; owns execution and review.
+- Excludes Pack validation, admission, transport, receipt validation, scientific interpretation.
 
 ## Scope
-
-- This tree.
+This tree.
 
 ## Contracts
-
-Inputs:
-- Records from [Poolday runtime](../../pool/CATSCAN.md).
-- Deterministic room state from [room-projection.js](room-projection.js).
-
-Outputs:
-- Markup: [view.js](view.js).
-- Room-1: [room-view.js](room-view.js).
+Inputs: [runtime](../../pool/CATSCAN.md), deterministic [room state](room-projection.js).
+Outputs: [markup](view.js), [Room-1](room-view.js).
 
 ## Invariants
-- Public branding: Reploid. Internal Poolday identities remain unchanged.
-- Primary navigation contains exactly Run a model, Share compute, Recent jobs, and a compact network indicator.
-- The homepage footer links Zero and X, labeled Experiments.
-- Request, execution, comparison, acceptance, and receipt retention remain one visible lifecycle.
-- Interrupted jobs expose only valid recovery actions.
-- Pack, runtime, provider, hardware declaration, fallback, timing, output, and agreement remain inspectable when available.
-- Recent jobs Advanced contains only execution evidence, peer identities, retries, and recovery.
-- Research administration renders only on Room-1.
-- Generic Pack execution never inherits Research Room question or laboratory fields.
-- Private documents stay local; only individually previewed, explicitly approved public tasks enter peer jobs.
-- Accepted means admitted under a named policy; receipts are not hardware attestation.
+- Brand Reploid; preserve internal Poolday identities.
+- Primary navigation: Work, Network, Improve, compact network indicator.
+- Protein/document examples preserve execution.
+- Connected rooms never authorize private-goal sharing.
+- User review is neither independent evaluation nor promotion.
+- Missing admission/evaluators remain visible.
+- Preserve request, execution, comparison, acceptance, receipt lifecycle.
+- Interrupted jobs expose valid recovery only.
+- Inspect available Pack, runtime, provider, declared hardware, fallback, timing, output, agreement.
+- Records Advanced contains only execution evidence, peer identities, retries, recovery.
+- Research administration stays in Room-1; generic Packs inherit no research fields.
+- Documents stay local; preview and explicitly approve each public subtask.
+- Acceptance names policy; receipts are not hardware attestation.
 - Archive and decision memory remain distinct.
+- Zero/X remain reachable without inheriting mutation authority.
 
 ## Acceptance
-- Users can run Packs, share compute, inspect jobs, recover work, and open evidence.
-- Evidence: [navigation](../../../tests/unit/pool-home-nav.test.js), [request](../../../tests/unit/pool-home-ask-controls.test.js), [records](../../../tests/unit/pool-home-record.test.js), and [peer journey](../../../tests/e2e/p2p-mesh.spec.js).
+- Goals, retained outcomes/failures, examples, sharing, jobs, evidence remain usable.
+- Local/peer real-inference acceptance stays separate; injected providers prove neither.
+- Evidence: [navigation](../../../tests/unit/pool-home-nav.test.js), [requests](../../../tests/unit/pool-home-ask-controls.test.js), [records](../../../tests/unit/pool-home-record.test.js), [peers](../../../tests/e2e/p2p-mesh.spec.js).
 
 ## Non-goals
-- Exposing Zero, X, scientific administration, reputation, or protocol internals as primary navigation.
+Primary scientific administration, reputation, protocol internals.
 
 ## Freedom
-Implementation varies.
+Preserve these contracts.

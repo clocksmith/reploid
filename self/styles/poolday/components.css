@@ -20,6 +20,88 @@
    These names are load-bearing; do not rename without updating the JS.
    ============================================ */
 
+.pool-work-shell {
+  width: min(100%, var(--pool-px-1180));
+  margin: 0 auto;
+  padding: var(--pool-space-xl) var(--pool-space-lg);
+  display: grid;
+  gap: var(--pool-space-xl);
+}
+.pool-home[data-pool-route-id='home'] .pool-work-shell {
+  padding-top: calc(var(--pool-px-64) + var(--pool-space-xl));
+}
+.pool-work-heading { max-width: var(--pool-px-r48); }
+.pool-work-heading h1 {
+  margin: var(--pool-space-sm) 0 var(--pool-space-md);
+  font-family: var(--pool-type-display-family);
+  font-size: clamp(var(--pool-px-30), 4vw, var(--pool-px-48));
+  font-weight: var(--pool-type-weight-emphasis);
+  line-height: var(--pool-type-leading-tight);
+}
+.pool-work-heading > p:last-child { color: var(--pool-surface-muted); }
+.pool-work-eyebrow {
+  font-family: var(--pool-type-mono-family);
+  font-size: var(--pool-px-12);
+  letter-spacing: var(--pool-type-tracking-label);
+  text-transform: uppercase;
+}
+.pool-work-grid { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: var(--pool-space-xl); }
+.pool-work-primary { min-width: 0; display: grid; gap: var(--pool-space-lg); align-content: start; }
+.pool-work-composer,
+.pool-work-output,
+.pool-work-proof-grid > section {
+  padding: var(--pool-space-lg);
+  border: var(--pool-border-hairline) solid var(--pool-surface-line);
+  border-radius: var(--pool-radius-panel);
+  background: var(--pool-surface-raised);
+}
+.pool-work-composer { display: grid; gap: var(--pool-space-md); }
+.pool-work-composer > label { font-weight: var(--pool-type-weight-emphasis); }
+.pool-work-composer textarea {
+  width: 100%;
+  min-height: var(--pool-px-180);
+  padding: var(--pool-space-md);
+  resize: vertical;
+  font-size: var(--pool-px-16);
+  line-height: var(--pool-type-leading-snug);
+}
+.pool-work-settings { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--pool-space-md); }
+.pool-work-settings label { display: grid; gap: var(--pool-space-xs); }
+.pool-work-settings select { width: 100%; min-width: 0; min-height: var(--pool-px-44); padding: var(--pool-space-sm); }
+.pool-work-starters,
+.pool-work-actions,
+.pool-work-links { display: flex; flex-wrap: wrap; align-items: center; gap: var(--pool-space-sm); }
+.pool-work-starters button { text-align: left; white-space: normal; }
+.pool-work-actions [data-work-start] { min-height: var(--pool-px-44); }
+.pool-work-status { margin: 0; color: var(--pool-surface-muted); }
+.pool-work-error { color: var(--pool-hue-red); overflow-wrap: anywhere; }
+.pool-work-context {
+  padding: var(--pool-space-lg);
+  border-left: var(--pool-border-hairline) solid var(--pool-surface-line);
+  align-self: start;
+}
+.pool-work-context h2 { margin-top: 0; }
+.pool-work-context p { line-height: var(--pool-type-leading-snug); }
+.pool-work-context hr { margin: var(--pool-space-xl) 0; border: 0; border-top: var(--pool-border-hairline) solid var(--pool-surface-line); }
+.pool-work-output [data-work-answer] { white-space: pre-wrap; overflow-wrap: anywhere; line-height: var(--pool-type-leading-snug); margin-bottom: var(--pool-space-lg); }
+.pool-work-progress pre { white-space: pre-wrap; overflow-wrap: anywhere; max-height: var(--pool-px-360); overflow: auto; }
+.pool-work-attempt { padding: var(--pool-space-md) 0; border-top: var(--pool-border-hairline) solid var(--pool-surface-line); }
+.pool-work-attempt-title {
+  display: block; width: 100%; padding: var(--pool-space-xs) 0; border: 0;
+  background: none; color: var(--pool-surface-ink); text-align: left;
+  font-size: var(--pool-px-16); font-weight: var(--pool-type-weight-emphasis); cursor: pointer;
+}
+.pool-work-attempt-title[aria-pressed='true'] { text-decoration: underline; text-underline-offset: var(--pool-px-4); }
+.pool-work-proof-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--pool-space-md); }
+.pool-work-links { border-top: var(--pool-border-hairline) solid var(--pool-surface-line); padding-top: var(--pool-space-md); gap: var(--pool-space-lg); }
+.pool-work-shell [hidden] { display: none !important; }
+@media (max-width: 760px) {
+  .pool-work-grid, .pool-work-proof-grid { grid-template-columns: minmax(0, 1fr); }
+  .pool-work-context { border-left: 0; border-top: var(--pool-border-hairline) solid var(--pool-surface-line); padding: var(--pool-space-lg) 0; }
+  .pool-work-shell { padding-right: var(--pool-space-md); padding-left: var(--pool-space-md); }
+  .pool-work-settings { grid-template-columns: minmax(0, 1fr); }
+}
+
 .pool-home {
   --pool-param-ask-dock-height: var(--pool-metric-action);
   min-height: min(100vh, 100dvh);
