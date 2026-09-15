@@ -1,4 +1,7 @@
 import { createOperationRoomNetwork } from '../../pool/operation-room-network.js';
+import { createWorkSession } from '../../host/work-session.js';
+import { getCurrentReploidStorage } from '../../instance.js';
+import { bindWorkSurface } from './work.js';
 import { createOperationParticipation } from '../../pool/operation-participation.js';
 import { bindOperationSharing, refreshOperationSharing } from './operation-sharing.js';
 import { createRequesterClient } from '../../pool/requester-client.js';
@@ -215,6 +218,17 @@ export function initPoolHome(mount, { operationNetwork = null } = {}) {
   let navOpen = false;
   let disposeDocumentView = () => {};
   let disposeOperationSharing = () => {};
+  let disposeWorkView = () => {};
+  const work = createWorkSession({ storage: getCurrentReploidStorage() });
+  const onPageHide = event => {
+    work.cancel();
+    if (!event.persisted) {
+      disposeWorkView();
+      window.removeEventListener('pagehide', onPageHide);
+      void work.close().catch(error => console.error('[Reploid Work] Shutdown failed', error));
+    }
+  };
+  window.addEventListener('pagehide', onPageHide);
   const operationSharing = createOperationParticipation({ networkOptions: () => ({ roomId: getPeerRoomId(),
     roomBusFactory: getPeerRoomBusFactory(), rtcConfig: resolveRtcConfig() }),
     onChange: state => refreshOperationSharing(mount, state) });
@@ -241,11 +255,12 @@ export function initPoolHome(mount, { operationNetwork = null } = {}) {
   window.addEventListener('keydown', window.REPLOID_POOL_NAV_ESCAPE_HANDLER);
 
   const render = (options = {}) => {
+    disposeWorkView();
     disposeDocumentView();
     disposeOperationSharing();
     if (documents.getState().busy) documents.cancel();
     const routeId = getRouteId();
-    const dashboardView = routeId === 'home' ? getPoolDashboardView() : 'home';
+    const dashboardView = routeId === 'examples' ? getPoolDashboardView() : 'home';
     document.documentElement.dataset.poolRouteId = routeId;
     document.body.dataset.poolRouteId = routeId;
     stopPoolHomeBackground();
@@ -285,6 +300,7 @@ export function initPoolHome(mount, { operationNetwork = null } = {}) {
     window.REPLOID_POOL_PRISM_STOP = bindPoolPrism(mount);
     disposeDocumentView = bindDocumentSearch(mount, documents);
     disposeOperationSharing = bindOperationSharing(mount, operationSharing);
+    disposeWorkView = bindWorkSurface(mount, work);
     if (routeId === 'records') renderLocalDocumentHistory(mount, documents.getState());
     bindPoolDashboardControls();
     bindCapabilityAssessmentControls();
@@ -302,7 +318,7 @@ export function initPoolHome(mount, { operationNetwork = null } = {}) {
     });
     refreshRecordLedgerState();
     restoreLatestCompletedRun(routeId);
-    if (routeId === 'home') applyPoolDashboardView(dashboardView, { updateHistory: false });
+    if (routeId === 'examples') applyPoolDashboardView(dashboardView, { updateHistory: false });
     if (options.restoreNavigationFocus || options.type === 'popstate') {
       mount.querySelector('.pool-nav-link[aria-current="page"]')?.focus({ preventScroll: true });
     }

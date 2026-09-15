@@ -305,6 +305,18 @@
           "destination": "/index.html"
         },
         {
+          "source": "/work",
+          "destination": "/index.html"
+        },
+        {
+          "source": "/improve",
+          "destination": "/index.html"
+        },
+        {
+          "source": "/examples",
+          "destination": "/index.html"
+        },
+        {
           "source": "/ask",
           "destination": "/index.html"
         },

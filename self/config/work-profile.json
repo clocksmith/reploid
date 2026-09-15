@@ -1,0 +1,65 @@
+{
+  "schema": "reploid.work-profile/v1",
+  "storageKey": "reploid.work-history.v1",
+  "storageSchema": "reploid.work-history/v1",
+  "maxSavedAttempts": 32,
+  "maxHistoryBytes": 4194304,
+  "maxGoalCharacters": 4000,
+  "maxOutcomeCharacters": 16000,
+  "examples": [
+    {
+      "label": "Make a practical plan",
+      "goal": "Plan a small community repair workshop. We have six volunteers, one room, and a modest budget. Identify prerequisites, assign responsibilities, and explain what to do if a volunteer cancels."
+    },
+    {
+      "label": "Compare alternatives",
+      "goal": "Compare a shared document, an issue tracker, and a spreadsheet for coordinating a five-person volunteer project. State your assumptions, identify tradeoffs, and recommend an approach."
+    },
+    {
+      "label": "Find weak assumptions",
+      "goal": "Critique this plan: launch a new application by adding every requested feature before talking to users. Identify unsupported assumptions and propose three inexpensive experiments."
+    }
+  ],
+  "generation": {
+    "maxTokens": 1024,
+    "temperature": 0,
+    "topK": 1,
+    "topP": 1,
+    "stopSequences": [],
+    "useChatTemplate": true
+  },
+  "instruction": "Work on the user's bounded goal. State assumptions and do not invent observations, measurements, web research, or completed actions. You have only the RecordOutcome tool. Use the Reploid directive protocol, not Markdown fences. First make a concise PLAN if useful. Deliver the complete useful answer through TOOL: RecordOutcome with a text argument, then use IDLE: Ready for user review. Do not claim access to peers, files, external tools, or an independent evaluator. An outcome is a proposal until the user reviews it.",
+  "profile": {
+    "schema": "reploid.profile/v1",
+    "id": "goal-first-local-work",
+    "config": {
+      "agent": {
+        "maxCycles": 6,
+        "maxBatchTools": 1,
+        "maxContextChars": 48000,
+        "timeoutMs": 300000
+      },
+      "tools": {
+        "allowed": ["RecordOutcome"],
+        "parallelSafe": [],
+        "ordered": ["RecordOutcome"],
+        "exclusive": [],
+        "allowDynamic": false
+      },
+      "models": {
+        "providerId": "doppler",
+        "contract": null
+      },
+      "mesh": {
+        "enabled": false,
+        "executeJobs": false,
+        "supplyArtifacts": false,
+        "shareCandidates": false,
+        "routing": "local-only"
+      },
+      "improvement": {
+        "enabled": false
+      }
+    }
+  }
+}
