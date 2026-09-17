@@ -35,12 +35,21 @@ export const POOLDAY_ROUTE_DEFINITIONS = Object.freeze([
     primary: false
   }),
   createPooldayRoute({
-    id: 'compute',
+    id: 'network',
     path: '/network',
     label: 'Network',
     eyebrow: POOLDAY_PROTOCOL,
     title: 'Network',
     body: 'Choose what this device provides. Inspect compatible models, sharing limits, and peer jobs.'
+  }),
+  createPooldayRoute({
+    id: 'compute',
+    path: '/compute',
+    label: 'Sequence provider',
+    eyebrow: POOLDAY_PROTOCOL,
+    title: 'Sequence provider',
+    body: 'Legacy sequence execution and artifact participation.',
+    primary: false
   }),
   createPooldayRoute({
     id: 'improve',
@@ -81,7 +90,6 @@ export const POOLDAY_ROUTE_DEFINITIONS = Object.freeze([
 
 export const POOLDAY_ROUTE_ALIASES = Object.freeze({
   '/history': 'records',
-  '/compute': 'compute',
   '/work': 'home'
 });
 

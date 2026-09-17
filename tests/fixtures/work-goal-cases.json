@@ -1,0 +1,115 @@
+{
+  "schema": "reploid.work-goal-cases/v1",
+  "scope": "Frozen host-owned checks for Work lifecycle wiring. A deterministic policy is not an intelligence benchmark.",
+  "goal": "Repair the legacy timeout configuration. Produce repaired.json with a single timeoutMs field only when its source unit is established. Otherwise identify the missing or contradictory evidence. Retain the method used.",
+  "criteria": "The timeoutMs value must preserve the observed duration. Do not guess the source unit. Inspect the JSON result. Keep private notes local.",
+  "peerInput": {
+    "question": "What unit does the legacy timeout field use in the reported environment?"
+  },
+  "privateMarker": "PRIVATE_WORK_NOTE_NOT_FOR_PEERS",
+  "fixtureTimeoutMs": 20000,
+  "cases": [
+    {
+      "id": "local-missing-unit",
+      "via": "api",
+      "input": {
+        "timeout": 4
+      },
+      "allowPeers": false,
+      "peerUnit": "seconds",
+      "expected": {
+        "timeoutMs": null,
+        "gap": "source unit",
+        "remoteJobs": 0
+      }
+    },
+    {
+      "id": "local-completion",
+      "via": "api",
+      "input": {
+        "timeout": 4,
+        "unit": "seconds"
+      },
+      "allowPeers": false,
+      "peerUnit": "seconds",
+      "expected": {
+        "timeoutMs": 4000,
+        "remoteJobs": 0
+      }
+    },
+    {
+      "id": "approved-assistance",
+      "via": "ui",
+      "input": {
+        "timeout": 4
+      },
+      "allowPeers": true,
+      "approval": "approve",
+      "peerUnit": "seconds",
+      "expected": {
+        "timeoutMs": 4000,
+        "remoteJobs": 1
+      }
+    },
+    {
+      "id": "counterfactual-assistance",
+      "via": "api",
+      "input": {
+        "timeout": 4
+      },
+      "allowPeers": true,
+      "approval": "approve",
+      "peerUnit": "milliseconds",
+      "expected": {
+        "timeoutMs": 4,
+        "remoteJobs": 1
+      }
+    },
+    {
+      "id": "denied-assistance",
+      "via": "ui",
+      "input": {
+        "timeout": 4
+      },
+      "allowPeers": true,
+      "approval": "decline",
+      "peerUnit": "seconds",
+      "expected": {
+        "timeoutMs": null,
+        "gap": "source unit",
+        "remoteJobs": 0
+      }
+    },
+    {
+      "id": "unsupported-peer-observation",
+      "via": "api",
+      "input": {
+        "timeout": 4
+      },
+      "allowPeers": true,
+      "approval": "approve",
+      "peerUnit": "ticks",
+      "expected": {
+        "timeoutMs": null,
+        "gap": "unsupported",
+        "remoteJobs": 1
+      }
+    },
+    {
+      "id": "restored-accepted-work",
+      "via": "api",
+      "input": {
+        "timeout": 7,
+        "unit": "seconds"
+      },
+      "allowPeers": false,
+      "recallAccepted": true,
+      "peerUnit": "seconds",
+      "expected": {
+        "timeoutMs": 7000,
+        "remoteJobs": 0,
+        "recall": true
+      }
+    }
+  ]
+}

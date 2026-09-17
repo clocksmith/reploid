@@ -2,7 +2,7 @@
  * @fileoverview Rendering and UI state helpers for the Poolday product home.
  */
 import { renderOperationSharing } from './operation-sharing.js';
-import { renderWorkSurface, renderImproveSurface } from './work.js';
+import { renderWorkSurface, renderNetworkSurface, renderImproveSurface } from './work.js';
 
 import {
   LAUNCH_MODEL,
@@ -1545,7 +1545,7 @@ export const renderNav = (activeRoute) => {
     const isActive = activeRoute === id || (activeRoute === 'ask' && id === 'home');
     const currentAttr = isActive ? ' aria-current="page"' : '';
     const ariaLabel = escapeHtml(label);
-    const shortLabel = escapeHtml({ home: 'Work', compute: 'Network', improve: 'Improve', records: 'Jobs' }[id] || label);
+    const shortLabel = escapeHtml({ home: 'Work', network: 'Network', improve: 'Improve', records: 'Jobs' }[id] || label);
     const roomPath = roomHref(path, getPeerRoomId());
     return `<a class="pool-nav-link pool-segment${isActive ? ' is-active' : ''}" href="${escapeHtml(roomPath)}" aria-label="${ariaLabel}" data-pool-nav-id="${id}" data-pool-nav-short-label="${shortLabel}" data-pool-route-link="${escapeHtml(roomPath)}"${currentAttr}>${ariaLabel}</a>`;
   };
@@ -1999,13 +1999,14 @@ const renderHomeSimulation = ({ dashboardView = 'home' } = {}) => {
 
 export const renderRoutePanel = (routeId, options = {}) => {
   if (routeId === 'home') return renderWorkSurface();
+  if (routeId === 'network') return renderNetworkSurface();
   if (routeId === 'improve') return renderImproveSurface();
   if (routeId === 'examples') return renderHomeSimulation(options);
   return '';
 };
 
 export const renderRouteDetail = (routeId) => {
-  if (['home', 'improve', 'examples'].includes(routeId)) return '';
+  if (['home', 'network', 'improve', 'examples'].includes(routeId)) return '';
   const normalizedRouteId = routeId === 'history' || routeId === 'network' ? 'records' : routeId;
   const copy = ROUTE_COPY[normalizedRouteId] || ROUTE_COPY.home;
   if (normalizedRouteId === 'ask') {

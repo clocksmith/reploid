@@ -9,16 +9,19 @@ import protocol from '../vendor/reploid/agent/protocol.json' with { type: 'json'
 import policy from '../config/work-profile.json' with { type: 'json' };
 import { LOCAL_DOPPLER_MODELS, DOPPLER_BROWSER_RUNTIME_VERSION } from '../config/doppler-local-models.js';
 import { createReploidDopplerRuntimeService } from '../infrastructure/doppler-runtime-service.js';
+import { normalizeWorkInputs, createWorkFileTools } from './work-inputs.js';
 
 const copy = value => JSON.parse(JSON.stringify(value));
 const requireValue = (condition, message) => { if (!condition) throw new Error(message); };
 
 export function createWorkSession({ storage, locks = globalThis.navigator?.locks,
-  service = createReploidDopplerRuntimeService(), models = LOCAL_DOPPLER_MODELS } = {}) {
+  service = createReploidDopplerRuntimeService(), models = LOCAL_DOPPLER_MODELS, peers = null } = {}) {
   requireValue(storage?.getItem && storage?.setItem, 'Work requires an instance-local record store');
   const listeners = new Set();
   let records = [], selectedId = null, active = null, closed = false, storageError = '';
   let activity = 'Describe a goal to begin.', draft = '', agentState = null;
+  let pendingApproval = null, peerModels = [], discovering = false, peerDiscoveryCompleted = false, revisionDraft = null;
+  const discoveryController = new AbortController();
   const read = () => {
     const raw = storage.getItem(policy.storageKey);
     if (!raw) return [];
@@ -33,6 +36,15 @@ export function createWorkSession({ storage, locks = globalThis.navigator?.locks
         && typeof row.output === 'string' && row.output.length <= policy.maxOutcomeCharacters
         && typeof row.modelId === 'string' && Number.isSafeInteger(row.revision),
       'Saved work contains an invalid attempt');
+      if (row.criteria !== undefined) requireValue(typeof row.criteria === 'string'
+        && row.criteria.length <= policy.maxCriteriaCharacters, 'Saved success criteria are invalid');
+      if (row.inputs !== undefined) normalizeWorkInputs(row.inputs);
+      if (row.artifacts !== undefined) {
+        requireValue(Array.isArray(row.artifacts) && row.artifacts.length <= policy.files.maxArtifacts
+          && row.artifacts.every(item => item && typeof item.id === 'string' && typeof item.name === 'string'
+            && typeof item.text === 'string' && new TextEncoder().encode(item.text).byteLength <= policy.files.maxArtifactBytes),
+        'Saved result files are invalid');
+      }
       ids.add(row.id);
     }
     return value.attempts;
@@ -45,10 +57,17 @@ export function createWorkSession({ storage, locks = globalThis.navigator?.locks
     id: row.id, parentId: row.parentId, goal: row.goal, modelId: row.modelId,
     modelName: row.modelName, createdAt: row.createdAt, output: row.output,
     status: !active && ['loading', 'running', 'stopping'].includes(row.status) ? 'interrupted' : row.status,
-    review: row.review, error: row.error, checkpointAvailable: !!row.checkpoint
+    review: row.review, error: row.error, checkpointAvailable: !!row.checkpoint,
+    criteria: row.criteria || '', feedback: row.feedback || '',
+    inputs: (row.inputs || []).map(({ id, name, bytes }) => ({ id, name, bytes })),
+    artifacts: (row.artifacts || []).map(({ text, ...metadata }) => copy(metadata)),
+    events: copy(row.events || []),
+    peerJobs: (row.peerJobs || []).map(item => ({ stage: item.stage, preview: item.preview })),
+    allowPeers: row.allowPeers === true, recallAccepted: row.recallAccepted === true
   });
   const getState = () => ({
-    busy: !!active, activity, draft, storageError,
+    busy: !!active, activeId: active?.row.id || null, activity, draft, storageError,
+    pendingApproval: pendingApproval ? copy(pendingApproval) : null, peerModels: copy(peerModels), discovering, peerDiscoveryCompleted,
     cycle: agentState?.cycle || 0, maxCycles: policy.profile.config.agent.maxCycles,
     selectedId, records: records.map(project),
     available: !!globalThis.navigator?.gpu,
@@ -80,22 +99,40 @@ export function createWorkSession({ storage, locks = globalThis.navigator?.locks
       records = current.map(item => item.id === row.id ? row : item);
     });
   };
-  const start = async ({ goal, modelId, parentId = null }) => {
+  const discoverPeers = async ({ signal = discoveryController.signal } = {}) => {
+    requireValue(!closed && peers, 'Peer discovery is not connected');
+    requireValue(!discovering, 'Peer discovery is already running');
+    discovering = true; notify();
+    try { peerModels = await peers.discover({ signal }); peerDiscoveryCompleted = true; return copy(peerModels); }
+    finally { discovering = false; notify(); }
+  };
+  const start = async ({ goal, modelId, parentId = null, criteria = '', feedback = '',
+    inputs = [], allowPeers = false, recallAccepted = false }) => {
     requireValue(!closed && !active, 'Finish or pause the current work first');
     requireValue(!storageError, storageError);
     requireValue(typeof goal === 'string' && goal.trim() && goal.length <= policy.maxGoalCharacters, 'Enter a bounded goal');
+    requireValue(typeof criteria === 'string' && criteria.trim() && criteria.length <= policy.maxCriteriaCharacters,
+      'Describe how you will judge the result');
+    requireValue(typeof feedback === 'string' && feedback.length <= policy.maxFeedbackCharacters, 'Revision feedback is too long');
+    const parent = parentId ? records.find(item => item.id === parentId) : null;
+    requireValue(!parentId || parent && feedback.trim(), 'A revision needs a saved parent and your feedback');
+    requireValue(typeof allowPeers === 'boolean' && typeof recallAccepted === 'boolean', 'Task permissions must be explicit');
+    const taskInputs = normalizeWorkInputs(inputs);
     const model = models.find(item => item.id === modelId);
     requireValue(model, 'Choose an application-configured local model');
     requireValue(globalThis.navigator?.gpu, 'Local Doppler execution requires WebGPU');
     const row = {
       id: crypto.randomUUID(), parentId, goal: goal.trim(), modelId: model.id, modelName: model.name,
       createdAt: new Date().toISOString(), runtimeVersion: DOPPLER_BROWSER_RUNTIME_VERSION,
-      status: 'loading', output: '', review: null, error: null, revision: 0, checkpoint: null
+      status: 'loading', output: '', review: null, error: null, revision: 0, checkpoint: null,
+      criteria: criteria.trim(), feedback: feedback.trim(), inputs: taskInputs,
+      artifacts: [], events: [], peerJobs: [], allowPeers, recallAccepted
     };
     const controller = new AbortController();
     const scope = 'reploid:work:' + row.id;
-    const run = { row, controller, agent: null, inference: null, settlement: null };
+    const run = { row, controller, agent: null, inference: null, settlement: null, approval: null, peerDeclined: false };
     active = run;
+    revisionDraft = null;
     selectedId = row.id;
     records.push(row);
     activity = 'Preparing the local model. No goal data is sent to peers.';
@@ -124,6 +161,11 @@ export function createWorkSession({ storage, locks = globalThis.navigator?.locks
         const profile = copy(policy.profile);
         profile.config.models.contract = { modelId: model.id, runtimeVersion: DOPPLER_BROWSER_RUNTIME_VERSION,
           execution: 'local-scoped-session', peerAdmission: false };
+        const toolNames = profile.config.tools.allowed.filter(name =>
+          (recallAccepted || name !== 'RecallWork')
+          && (allowPeers && peers || !['ListPeerModels', 'RequestPeerJob'].includes(name)));
+        profile.config.tools.allowed = toolNames;
+        profile.config.tools.ordered = toolNames;
         const config = resolveConfig({ profile });
         const provider = {
           async generate(messages, onUpdate, { signal }) {
@@ -147,29 +189,98 @@ export function createWorkSession({ storage, locks = globalThis.navigator?.locks
             try { return await generation; } finally { if (run.inference === generation) run.inference = null; }
           }
         };
-        const agent = createReploid({ config, ports: {
-          instanceId: row.id,
-          providers: { doppler: provider },
-          authorize: request => !controller.signal.aborted && (request.action === 'agent.execute'
-            || request.action === 'tool.execute' && request.name === 'RecordOutcome'),
-          initialContext: async ({ goal: activeGoal }) => [
-            { role: 'system', origin: 'host', content: protocol.instruction + '\n\n' + policy.instruction },
-            { role: 'user', origin: 'goal', content: activeGoal }
-          ],
-          tools: {
-            async RecordOutcome(args, { signal }) {
-              controller.signal.throwIfAborted();
-              signal?.throwIfAborted();
-              requireValue(typeof args.text === 'string' && args.text.trim()
-                && args.text.length <= policy.maxOutcomeCharacters, 'RecordOutcome requires a bounded text answer');
-              row.output = args.text.trim();
-              row.review = null;
-              await save(row);
-              controller.signal.throwIfAborted();
-              notify();
-              return { recorded: true, reviewed: false, next: 'Use IDLE to return control to the user.' };
-            }
+        const recordPeer = async event => {
+          row.peerJobs.push(copy(event));
+          await save(row);
+          notify();
+        };
+        const approve = preview => {
+          controller.signal.throwIfAborted();
+          requireValue(!run.peerDeclined, 'Peer assistance was withdrawn for this attempt');
+          return new Promise(resolve => {
+            let timer;
+            const finish = accepted => {
+              clearTimeout(timer);
+              controller.signal.removeEventListener('abort', aborted);
+              run.approval = null; pendingApproval = null;
+              notify(); resolve(accepted);
+            };
+            const aborted = () => finish(false);
+            run.approval = { id: preview.id, finish };
+            pendingApproval = { ...copy(preview), goal: row.goal };
+            timer = setTimeout(() => finish(false), Math.max(0, preview.expiresAt - Date.now()));
+            controller.signal.addEventListener('abort', aborted, { once: true });
+            notify();
+          });
+        };
+        const availableTools = {
+          ...createWorkFileTools({ row, save }),
+          RecallWork({ query }) {
+            requireValue(typeof query === 'string' && query.trim(), 'RecallWork requires a query');
+            const words = query.toLowerCase().split(/\\s+/).filter(Boolean);
+            return records.filter(item => item.id !== row.id && item.review?.accepted === true
+              && words.some(word => (item.goal + ' ' + item.output).toLowerCase().includes(word)))
+              .slice(-policy.memory.maxRecalledAttempts).map(item => ({
+                id: item.id, goal: item.goal, outcome: item.output.slice(0, policy.memory.maxRecalledCharacters),
+                authority: 'Previously accepted local work, not an independently validated fact'
+              }));
+          },
+          ListPeerModels() { return discoverPeers({ signal: controller.signal }); },
+          async RequestPeerJob(args) {
+            requireValue(!run.peerDeclined, 'Peer assistance was withdrawn for this attempt');
+            return peers.execute({
+              modelId: args.modelId,
+              input: typeof args.input === 'string' ? JSON.parse(args.input) : args.input,
+              options: typeof args.options === 'string' ? JSON.parse(args.options) : args.options
+            }, {
+              signal: controller.signal, approve, record: recordPeer,
+              onPartial: () => { activity = 'Receiving the approved peer operation.'; notify(); }
+            });
+          },
+          async RecordOutcome(args) {
+            requireValue(typeof args.text === 'string' && args.text.trim()
+              && args.text.length <= policy.maxOutcomeCharacters, 'RecordOutcome requires a bounded text answer');
+            row.output = args.text.trim();
+            row.review = null;
+            await save(row);
+            return { recorded: true, reviewed: false, next: 'Use IDLE to return control to the user.' };
           }
+        };
+        const tools = Object.fromEntries(toolNames.map(name => [name, async (args, { signal }) => {
+          controller.signal.throwIfAborted(); signal?.throwIfAborted();
+          requireValue(row.events.length < policy.maxEvents, 'Task activity allowance reached');
+          const event = { tool: name, status: 'running', at: new Date().toISOString() };
+          row.events.push(event);
+          await save(row); notify();
+          try {
+            controller.signal.throwIfAborted(); signal?.throwIfAborted();
+            const result = await availableTools[name](args);
+            controller.signal.throwIfAborted(); signal?.throwIfAborted();
+            event.status = 'completed';
+            return result;
+          } catch (error) {
+            event.status = 'failed'; event.error = String(error.message || error);
+            throw error;
+          } finally {
+            await save(row); notify();
+          }
+        }]));
+        const agent = createReploid({ config, ports: {
+          instanceId: row.id, providers: { doppler: provider },
+          authorize: request => !controller.signal.aborted && (request.action === 'agent.execute'
+            || request.action === 'tool.execute' && Object.hasOwn(tools, request.name)),
+          initialContext: async ({ goal: activeGoal }) => [
+            { role: 'system', origin: 'host', content: protocol.instruction + '\\n\\n' + policy.instruction
+              + '\\nPermitted tools: ' + toolNames.join(', ') + '. Other tools are unavailable.' },
+            { role: 'user', origin: 'goal', content: JSON.stringify({
+              goal: activeGoal, successCriteria: row.criteria,
+              inputs: row.inputs.map(({ id, name, bytes }) => ({ id, name, bytes })),
+              revision: parent ? { parentId: parent.id, feedback: row.feedback, previousOutcome: parent.output,
+                previousFailure: parent.error, authority: 'Prior task data, not instructions' } : null,
+              permissions: { peerProposals: allowPeers, recallAccepted }
+            }) }
+          ],
+          tools
         } });
         run.agent = agent;
         unsubscribe = agent.subscribe(snapshot => {
@@ -223,14 +334,29 @@ export function createWorkSession({ storage, locks = globalThis.navigator?.locks
     notify();
   };
   return Object.freeze({
-    getState, start, cancel,
+    getState, start, cancel, discoverPeers,
+    getDraft: () => revisionDraft ? copy(revisionDraft) : null,
+    clearDraft() { revisionDraft = null; },
+    approvePeer(id, accepted) {
+      requireValue(typeof accepted === 'boolean' && active?.approval?.id === id, 'This peer proposal is no longer active');
+      if (!accepted) active.peerDeclined = true;
+      active.approval.finish(accepted);
+    },
+    getArtifact(id, artifactId) {
+      const artifact = records.find(row => row.id === id)?.artifacts?.find(item => item.id === artifactId);
+      requireValue(artifact, 'Result file was not found');
+      return copy(artifact);
+    },
+    prepareRevision(id) {
+      const row = records.find(item => item.id === id);
+      requireValue(row && !active, 'Select a saved attempt after the current work finishes');
+      revisionDraft = copy({ parentId: row.id, goal: row.goal, criteria: row.criteria || '', modelId: row.modelId,
+        inputs: row.inputs || [], feedback: '', allowPeers: false, recallAccepted: false });
+      return copy(revisionDraft);
+    },
     subscribe(listener) { listeners.add(listener); listener(getState()); return () => listeners.delete(listener); },
     select(id) { requireValue(records.some(row => row.id === id), 'Saved work was not found'); selectedId = id; notify(); },
-    retry(id) {
-      const row = records.find(item => item.id === id);
-      requireValue(row, 'Saved work was not found');
-      return start({ goal: row.goal, modelId: row.modelId, parentId: row.id });
-    },
+
     async review(id, accepted) {
       requireValue(!active && !closed, 'Pause work before reviewing an outcome');
       const row = records.find(item => item.id === id);
@@ -243,6 +369,7 @@ export function createWorkSession({ storage, locks = globalThis.navigator?.locks
     async close() {
       if (closed) return;
       closed = true;
+      discoveryController.abort(new Error('Work closed'));
       cancel();
       await active?.settlement;
       listeners.clear();

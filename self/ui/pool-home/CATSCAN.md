@@ -29,13 +29,13 @@ Outputs: [markup](view.js), [Room-1](room-view.js).
 - Inspect available Pack, runtime, provider, declared hardware, fallback, timing, output, agreement.
 - Records Advanced contains only execution evidence, peer identities, retries, recovery.
 - Research administration stays in Room-1; generic Packs inherit no research fields.
-- Documents stay local; preview and explicitly approve each public subtask.
+- Task data stays local; preview and explicitly approve each exact public payload.
 - Acceptance names policy; receipts are not hardware attestation.
 - Archive and decision memory remain distinct.
 - Zero/X remain reachable without inheriting mutation authority.
 
 ## Acceptance
-- Goals, retained outcomes/failures, examples, sharing, jobs, evidence remain usable.
+- Goals, criteria, input files, result downloads, revisions, sharing, jobs, evidence remain usable.
 - Local/peer real-inference acceptance stays separate; injected providers prove neither.
 - Evidence: [navigation](../../../tests/unit/pool-home-nav.test.js), [requests](../../../tests/unit/pool-home-ask-controls.test.js), [records](../../../tests/unit/pool-home-record.test.js), [peers](../../../tests/e2e/p2p-mesh.spec.js).
 

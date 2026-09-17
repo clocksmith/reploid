@@ -1,4 +1,4 @@
-/** Explicit product participation for an application-selected answer model. */
+/** Explicit product participation for an application-selected operation. */
 import config from './pool-config.json' with { type: 'json' };
 import { createPoolIdentity } from './identity.js';
 import { exportPublicKey, sha256Hex } from './inference-receipt.js';
@@ -23,7 +23,7 @@ export function createOperationParticipation({ networkOptions, onChange = () => 
     && Number.isSafeInteger(policy.maxModelArtifactBytes) && policy.maxModelArtifactBytes > 0
     && Array.isArray(policy.inputClasses) && policy.inputClasses.length > 0, 'Sharing policy is missing');
   let provider = null, executor = null, state = { phase: 'idle', modelId: null, error: null }, epoch = 0;
-  const notify = patch => { state = { ...state, ...patch }; onChange({ ...state }); };
+  const notify = patch => { state = { ...state, ...patch }; onChange({ ...state, provider: provider?.getState() ?? null }); };
   const stop = async () => {
     epoch++; const active = provider; provider = null;
     if (state.phase !== 'idle') notify({ phase: 'stopping' });
@@ -31,15 +31,23 @@ export function createOperationParticipation({ networkOptions, onChange = () => 
     finally { executor = null; notify({ phase: 'idle', modelId: null }); }
   };
   return {
-    getState: () => ({ ...state }),
-    async start({ configuration, approved }) {
+    getState: () => ({ ...state, provider: provider?.getState() ?? null }),
+    async start({ configuration, model: suppliedModel, executionAdapters, approved }) {
       assert(state.phase === 'idle', 'Stop sharing before changing models');
       assert(approved === true, 'Confirm the model publisher and sharing first');
-      const selected = snapshot(configuration), model = selected.generator;
-      assert(selected.schema === 'reploid.document-models/v1' && model, 'Choose document model settings with an answer model');
+      assert((configuration !== undefined) !== (suppliedModel !== undefined), 'Choose one explicit model configuration');
+      const selected = configuration !== undefined ? snapshot(configuration)
+        : { model: snapshot(suppliedModel), executionAdapters };
+      const legacy = configuration !== undefined;
+      const model = legacy ? selected.generator : selected.model;
+      assert(!legacy || selected.schema === 'reploid.document-models/v1' && model,
+        'Choose document model settings with an answer model');
       const validation = validateOperationModel(model, registry);
       assert(validation.ok, validation.reasons.join('; '));
-      assert(registry[model.executablePack.requiredOperation].definition.dopplerOperation.name === 'generate', 'Choose an answer model');
+      const definition = registry[model.executablePack.requiredOperation].definition;
+      assert(!legacy || definition.dopplerOperation.name === 'generate', 'Choose an answer model');
+      const inputClasses = definition.inputClasses.remote.filter(value => policy.inputClasses.includes(value));
+      assert(inputClasses.length > 0, 'The configured sharing policy does not permit this operation input class');
       assert(model.packOpenOptions?.trustedSigners && Object.keys(model.packOpenOptions.trustedSigners).length > 0,
         'Model settings must identify their publisher');
       assert(model.executablePack.artifacts.reduce((sum, artifact) => sum + artifact.sizeBytes, 0) <= policy.maxModelArtifactBytes,
@@ -66,7 +74,7 @@ export function createOperationParticipation({ networkOptions, onChange = () => 
             models: [{ identity: modelIdentity, availability: executor.getState().retainedModelId === model.modelId ? 'resident' : 'fetchable' }],
             adapters: (await observeAdapters()).filter(row => approvedAdapters.some(entry => entry.identity === row.identity)),
             experts: [], operations: [registry[model.executablePack.requiredOperation].definition.dopplerOperation],
-            inputClasses: policy.inputClasses, resources: { ...policy.resources, activeJobs: execution.active ? 1 : 0, queuedJobs: execution.queued } }),
+            inputClasses, resources: { ...policy.resources, activeJobs: execution.active ? 1 : 0, queuedJobs: execution.queued } }),
           onError: error => { if (token === epoch) notify({ error: error.message }); } });
         await provider.start(); current(); notify({ phase: 'sharing' });
       } catch (error) {

@@ -4,10 +4,10 @@ Parent: [Documentation](../CATSCAN.md)
 
 ## Target
 
-Define Poolday's peer-execution product authority, evidence boundaries, and explicit infrastructure and scientific non-claims.
+Apply Reploid's goal-first mission to optional peer execution, evidence boundaries, and scientific non-claims.
 
 ## Authority
-- Owns canonical Poolday intent, user workflow, evidence semantics, and claim boundaries.
+- Owns the network's application of Reploid intent, user workflow, evidence semantics, and claim boundaries.
 - Does not own implementation status, deployment status, or repository-wide strategy outside Poolday.
 
 ## Scope
@@ -30,6 +30,7 @@ Outputs:
 - Public-sequence support cannot imply private-sequence protection.
 - The product loop adds improved later decisions and repeat independent use to request, execution, comparison, acceptance, and retained receipts.
 - Doppler Pack identity and qualification remain distinct from peer availability and successful execution.
+- Work, Network, and Improve are product navigation; Poolday is an internal network name.
 - Recent jobs remains execution-only; scientific Room-1 administration has a separate non-primary route.
 
 ## Acceptance

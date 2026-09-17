@@ -1559,7 +1559,7 @@ const setStaticHeaders = (res, filePath) => {
   }
 };
 
-const PRODUCT_ROUTES = ['/', '/ask', '/compute', '/records', '/room-1', '/history', '/network'];
+const PRODUCT_ROUTES = ['/', '/work', '/network', '/improve', '/examples', '/ask', '/compute', '/records', '/room-1', '/history'];
 const CHANGE_PASSPORT_ROUTES = ['/passports'];
 const SUBSTRATE_ROUTES = ['/zero', '/x'];
 const sendUiFile = async (res, filePath) => {

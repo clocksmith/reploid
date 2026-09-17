@@ -2165,7 +2165,8 @@
     "maxConfigurationBytes": 1048576,
     "maxModelArtifactBytes": 4294967296,
     "inputClasses": [
-      "public_text"
+      "public_text",
+      "public_biological_sequence"
     ],
     "resources": {
       "gpuBudgetBytes": 2147483648,
