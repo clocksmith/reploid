@@ -7,7 +7,8 @@ Parent: [Browser Runtime](../CATSCAN.md)
 Materialize the configured browser runtime from trusted seed assets and hand control to the selected application surface.
 
 ## Authority
-- Owns VFS seeding, service-worker module loading, and application startup handoff.
+- Owns VFS seeding, service-worker module loading, application startup, and application-selected task tools.
+- Composes the reusable agent with local work retention and exact-payload peer approval.
 - Does not own product policy, module semantics, or recovery-root immutability.
 
 ## Scope
@@ -27,6 +28,8 @@ Outputs:
 ## Invariants
 - Seed identity and destination remain explicit.
 - Host loading cannot silently substitute missing or unverified modules.
+- Task files cannot grant permissions; file inspection does not establish execution correctness.
+- Peer operations require fresh host approval, exact execution identities, and retained acceptance evidence.
 
 ## Acceptance
 - Seeded modules are complete and the VFS round trip is valid.

@@ -11,6 +11,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from '@playwright/test';
 import dopplerFixture from './library-doppler-fixture.json' with { type: 'json' };
+import workCases from './fixtures/work-goal-cases.json' with { type: 'json' };
 
 const execute = promisify(execFile);
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -217,8 +218,17 @@ try {
       server = createServer(async (request, response) => {
         try {
           const url = new URL(request.url, 'http://localhost');
-          const file = path.resolve(consumer, '.' + decodeURIComponent(url.pathname === '/' ? '/index.html' : url.pathname));
-          if (!file.startsWith(consumer + path.sep)) { response.writeHead(403).end(); return; }
+          const applicationPrefix = '/application/', libraryPrefix = '/application/vendor/reploid/';
+          if (url.pathname.startsWith(libraryPrefix)) {
+            response.writeHead(400).end('Application library imports must use the installed import map');
+            return;
+          }
+          const application = url.pathname.startsWith(applicationPrefix);
+          const directory = application ? path.join(root, 'self') : consumer;
+          const relative = application ? '/' + url.pathname.slice(applicationPrefix.length)
+            : url.pathname === '/' ? '/index.html' : url.pathname;
+          const file = path.resolve(directory, '.' + decodeURIComponent(relative));
+          if (!file.startsWith(directory + path.sep)) { response.writeHead(403).end(); return; }
           const bytes = await readFile(file);
           response.writeHead(200, { 'content-type': mime[path.extname(file)] || 'application/octet-stream' });
           response.end(bytes);
@@ -228,13 +238,18 @@ try {
       const imports = Object.fromEntries(entries.map(([key, target], index) => [
         names[index], '/node_modules/reploid/' + target.import.slice(2)
       ]));
+      // Resolve before fetching: redirects create a second module identity and
+      // therefore a different resolved-configuration WeakSet.
+      imports['/application/vendor/reploid/'] = '/node_modules/reploid/src/';
       await writeFile(path.join(consumer, 'imports.html'), '<!doctype html><script type="importmap">' +
         JSON.stringify({ imports }) + '</script>');
       for (const file of ['index.html', 'main.js']) {
         await writeFile(path.join(consumer, file), await readFile(path.join(root, 'examples/library-consumer', file)));
       }
+      await writeFile(path.join(consumer, 'work-goal-journey.js'),
+        await readFile(path.join(root, 'tests/fixtures/work-goal-journey.js')));
       browser = await chromium.launch({
-        headless: true, timeout: 20000,
+        headless: true, timeout: 20000, args: ['--enable-unsafe-webgpu'],
         ...(process.env.REPLOID_E2E_CHROMIUM_CHANNEL ? { channel: process.env.REPLOID_E2E_CHROMIUM_CHANNEL } : {})
       });
       report.browser = browser.version();
@@ -279,6 +294,146 @@ try {
           await page.close();
         }
       });
+
+      await check('installed-work-goal-lifecycle', async () => {
+        const context = await browser.newContext({ acceptDownloads: true });
+        const results = [];
+        const namespace = 'installed-work-' + Date.now();
+        const sourceFiles = ['self/host/work-session.js', 'self/host/work-inputs.js',
+          'self/ui/pool-home/work.js', 'self/config/work-profile.json',
+          'tests/fixtures/work-goal-journey.js', 'tests/fixtures/work-goal-cases.json'];
+        const sourceHashes = {};
+        for (const file of sourceFiles) sourceHashes[file] = createHash('sha256').update(await readFile(path.join(root, file))).digest('hex');
+        try {
+          for (const scenario of workCases.cases) {
+            const page = await context.newPage();
+            const entry = { id: scenario.id, provider: 'deterministic-fixture', status: 'running' };
+            const started = performance.now(), errors = [];
+            page.on('pageerror', error => errors.push(String(error.stack || error)));
+            try {
+              await page.goto(base + '/imports.html');
+              await page.evaluate(async options => {
+                const { mountWorkGoalJourney } = await import('/work-goal-journey.js');
+                window.__reploidWorkFixture = mountWorkGoalJourney(options);
+              }, { namespace, peerUnit: scenario.peerUnit });
+              const request = {
+                goal: workCases.goal, criteria: workCases.criteria,
+                inputs: [{ name: 'settings.json', text: JSON.stringify({ ...scenario.input, privateNote: workCases.privateMarker }) }],
+                allowPeers: scenario.allowPeers, recallAccepted: scenario.recallAccepted === true
+              };
+              if (scenario.via === 'ui') {
+                await page.locator('[data-work-goal]').fill(request.goal);
+                await page.locator('[data-work-criteria]').fill(request.criteria);
+                await page.locator('[data-work-files]').setInputFiles({
+                  name: 'settings.json', mimeType: 'application/json', buffer: Buffer.from(request.inputs[0].text)
+                });
+                await page.waitForFunction(() => !document.querySelector('[data-work-start]').disabled
+                  && document.querySelector('[data-work-input-list]').textContent.includes('settings.json'));
+                await page.locator('.pool-work-settings').evaluate(node => { node.open = true; });
+                await page.locator('[data-work-peers]').setChecked(request.allowPeers);
+                await page.locator('[data-work-recall]').setChecked(request.recallAccepted);
+                await page.locator('[data-work-start]').click();
+              } else await page.evaluate(request => window.__reploidWorkFixture.start(request), request);
+              const waitForBoundary = () => page.waitForFunction(() => {
+                const fixture = window.__reploidWorkFixture, state = fixture.application.getState();
+                return state.pendingApproval || fixture.transcript.startError
+                  || (!state.busy && state.records.length > fixture.before.attempts.length)
+                  || document.querySelector('[data-work-error]')?.textContent;
+              }, null, { timeout: workCases.fixtureTimeoutMs });
+              await waitForBoundary();
+              let snapshot = await page.evaluate(() => window.__reploidWorkFixture.snapshot());
+              if (snapshot.state.pendingApproval) {
+                assert.equal(scenario.allowPeers, true, 'Local-only execution proposed disclosure');
+                assert.equal(snapshot.transcript.executions.length, 0, 'Peer executed before user approval');
+                assert.deepEqual(snapshot.state.pendingApproval.input, workCases.peerInput);
+                assert(!JSON.stringify(snapshot.state.pendingApproval).includes(workCases.privateMarker));
+                if (scenario.via === 'ui') {
+                  if (scenario.approval === 'approve') {
+                    assert.equal(await page.locator('[data-work-send]').isDisabled(), true);
+                    await page.locator('[data-work-public]').check();
+                    await page.locator('[data-work-send]').click();
+                  } else await page.locator('[data-work-decline]').click();
+                } else {
+                  await page.evaluate(approved => {
+                    const app = window.__reploidWorkFixture.application;
+                    app.approvePeer(app.getState().pendingApproval.id, approved);
+                  }, scenario.approval === 'approve');
+                }
+                await waitForBoundary();
+                snapshot = await page.evaluate(() => window.__reploidWorkFixture.snapshot());
+              }
+              assert.equal(snapshot.state.busy, false, 'The goal did not return control');
+              assert.equal(snapshot.state.pendingApproval, null, 'Another payload requires separate approval');
+              assert.equal(snapshot.transcript.startError, undefined);
+              assert.deepEqual(errors, []);
+              const row = snapshot.records.attempts.at(-1);
+              assert(row && !snapshot.before.attempts.some(item => item.id === row.id), 'No new attempt was retained');
+              assert.equal(row.goal, workCases.goal);
+              assert.equal(row.criteria, workCases.criteria);
+              assert.equal(row.status, 'review', row.error || 'No reviewable outcome');
+              assert(row.events.some(event => event.tool === 'ReadInput' && event.status === 'completed'));
+              assert.equal(snapshot.transcript.executions.length, scenario.expected.remoteJobs);
+              for (const execution of snapshot.transcript.executions) {
+                assert.deepEqual(execution.input, workCases.peerInput);
+                assert(!JSON.stringify(execution).includes(workCases.privateMarker));
+              }
+              const artifact = row.artifacts.filter(item => item.name === 'repaired.json').at(-1);
+              if (scenario.expected.timeoutMs === null) {
+                assert.equal(artifact, undefined, 'A repair was guessed without valid evidence');
+                assert(row.output.toLowerCase().includes(scenario.expected.gap), 'The missing capability was not explained');
+              } else {
+                assert(artifact, 'No result file was produced');
+                // The frozen expected values never enter the browser or the agent's tools.
+                assert.deepEqual(JSON.parse(artifact.text), { timeoutMs: scenario.expected.timeoutMs });
+                assert(artifact.inspection?.checks.some(item => item.name === 'json-syntax' && item.passed));
+                assert.equal(artifact.inspection.sha256, createHash('sha256').update(artifact.text).digest('hex'));
+                if (scenario.via === 'ui') {
+                  const downloadPromise = page.waitForEvent('download');
+                  await page.locator('[data-work-artifact="' + artifact.id + '"]').click();
+                  const download = await downloadPromise, file = path.join(evidence, scenario.id + '-repaired.json');
+                  assert.equal(download.suggestedFilename(), 'repaired.json');
+                  await download.saveAs(file);
+                  assert.equal(await readFile(file, 'utf8'), artifact.text);
+                  await page.locator('[data-work-accept]').click();
+                  await page.waitForFunction(() => window.__reploidWorkFixture.application.getState().records.at(-1).review?.accepted === true);
+                } else await page.evaluate(id => window.__reploidWorkFixture.application.review(id, true), row.id);
+              }
+              if (scenario.expected.recall) {
+                assert(snapshot.before.attempts.some(item => item.review?.accepted === true), 'Accepted work did not survive a new host instance');
+                assert(row.events.some(event => event.tool === 'RecallWork' && event.status === 'completed'));
+                assert(snapshot.transcript.generations.some(step => step.messages.some(message =>
+                  message.content?.includes('[TOOL RecallWork RESULT]') && message.content.includes('Reusable lesson'))),
+                'Accepted findings did not reach the next model invocation');
+              }
+              assert.equal(snapshot.openScopes, 0, 'The completed task leaked its model scope');
+              entry.observation = await page.evaluate(() => window.__reploidWorkFixture.snapshot());
+              entry.status = 'passed';
+              await page.evaluate(() => window.__reploidWorkFixture.close());
+            } catch (error) {
+              entry.status = 'failed'; entry.error = String(error.stack || error);
+              entry.observation = await page.evaluate(() => window.__reploidWorkFixture?.snapshot()).catch(() => null);
+            } finally {
+              entry.pageErrors = errors; entry.durationMs = performance.now() - started;
+              await writeFile(path.join(evidence, 'work-' + scenario.id + '.json'), JSON.stringify(entry, null, 2));
+              results.push({ id: entry.id, status: entry.status, durationMs: entry.durationMs,
+                evidence: 'work-' + scenario.id + '.json' });
+              await page.close();
+            }
+          }
+        } finally { await context.close(); }
+        const summary = {
+          schema: 'reploid.work-lifecycle-acceptance/v1', sourceHashes, cases: results,
+          claim: 'Installed agent and actual Work host/UI obey the exercised fixture lifecycle',
+          qualifications: { actualModelInference: false, actualPeerTransport: false,
+            independentOperators: false, learnedProblemSolving: false, recursiveImprovement: false },
+          causalControl: 'The same configuration produces 4000 ms or 4 ms when the reported unit changes.',
+          retainedHistoryControl: 'Recall is delivered to the next invocation; no performance improvement is inferred.'
+        };
+        await writeFile(path.join(evidence, 'work-lifecycle-report.json'), JSON.stringify(summary, null, 2));
+        assert(results.every(item => item.status === 'passed'), 'Work lifecycle cases failed; inspect work-lifecycle-report.json');
+        return summary;
+      });
+
     }
   }
 } finally {

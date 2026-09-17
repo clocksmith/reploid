@@ -1,10 +1,11 @@
-# Poolday Product Intent
+# Reploid Product Intent and Network Boundary
 
-Poolday is Reploid's primary peer-to-peer Doppler execution product. The public UI uses
-the Poolday name; Reploid remains the implementation owner.
+Reploid is an evolving problem-solving agent that can collaborate with peers.
+Doppler owns model execution. Poolday is the internal name for Reploid's optional
+peer participation mechanisms, not a separate public product.
 
 This document applies the repository mission in [`GOALS.md`](../../GOALS.md) to
-Poolday's purpose and the authority boundary between Poolday, Zero, and X.
+goal pursuit, optional networking, and the authority boundary with Zero and X.
 Exact enabled models, policies, trust
 tiers, routes, and transport requirements remain owned by
 [`pool-config.json`](../../self/pool/pool-config.json) and the
@@ -12,12 +13,40 @@ tiers, routes, and transport requirements remain owned by
 
 ## Product goal
 
-Poolday's product goal is to make one browser-peer execution lifecycle ordinary
-and inspectable for unrelated operators, with retained evidence measurably
-improving a subsequent assignment or investigation:
+The product goal is to pursue a useful outcome through authorized actions,
+observations, revision, and independently evaluated experience:
 
 ```text
-acquire -> verify -> execute locally or explicitly delegate -> compare -> accept -> retain -> improve later assignment
+goal -> plan -> authorized action -> observed result -> revised approach
+     -> delivered outcome -> independently tested improvement
+```
+
+These are intended outcomes, not a declaration that the complete system is
+qualified. The primary product structure is Work, Network, and Improve.
+
+### Work: pursue the outcome
+
+A human or another agent supplies a bounded goal, success criteria, working
+material, and permissions. The installed agent identifies missing information,
+uses authorized tools or assistance, evaluates what it observes, and takes a
+subsequent action that depends on the result. It delivers an outcome that can
+be checked against acceptance tests outside candidate control.
+
+The same goal must run locally, either finishing or naming the specific missing
+capability. Network membership expands available actions; it is not a
+prerequisite for usefulness. Human and programmatic interfaces invoke the same
+goal lifecycle. Screens display it rather than implementing another agent loop.
+
+Retained findings must eventually help on unfamiliar subsequent tasks under
+controlled comparisons. Saving logs or retrieving a prior answer does not
+establish improved problem solving. See the [Work acceptance contract](../work-acceptance.md).
+
+### Network: authorize and inspect assistance
+
+The detailed model-acquisition and peer-job sequence belongs beneath Network:
+
+```text
+acquire -> verify -> execute locally or explicitly delegate -> compare -> accept -> retain
 ```
 
 A requester selects a signed Doppler Pack, supplies input, reviews disclosure
@@ -27,22 +56,40 @@ resource limits, downloads the exact Pack, executes locally, and returns the
 result with a signed receipt. Recent jobs preserve recovery and verification
 state after refresh, disconnect, peer loss, timeout, or cancellation.
 
-The primary interface contains only Run a model, Share compute, and Recent
-jobs. Network availability is a compact, meaningful indicator. Recent jobs
+Run a model, Share compute, and Recent jobs remain actions or secondary views,
+not competing product definitions. Network availability is a compact, meaningful indicator. Recent jobs
 Advanced details contain execution receipts, comparison evidence, peer
 identities, retries, and recovery only. Research Room-1 is a separate
 non-primary route for hypotheses, scientific policies, cohorts, adjudication,
 and laboratory evidence; generic Pack execution does not inherit those fields.
 
-The current enabled model remains the pinned ESM-2 35M public-sequence contract.
-It is not yet a signed executable Doppler Pack catalog row. The new signed-Pack
-path requires `executablePack` identity and closure, public `openPack`, accepted
-TargetPlans, and matching execution receipts; it fails closed instead of using
-legacy loading. A qualified artifact and released runtime pin are required
-before enabling that path for ESM-2. AdapterPack sharing is a separate capability.
-That narrow implementation boundary does not redefine Poolday as a protein
-product or authorize claims for unqualified models, private inputs, hardware
-attestation, or honest browser execution.
+Exact enabled models, signed executable artifacts, runtime pins, and their
+qualification evidence belong to the catalog and retained acceptance records,
+not a timeless product-intent paragraph. A model's local availability does not
+admit it for peer execution. AdapterPack sharing is a separate capability.
+Narrow example coverage does not redefine Reploid as a protein product or
+authorize unqualified models, private disclosure, hardware attestation, or
+claims of honest browser execution.
+
+### Improve: evaluate and explicitly adopt changes
+
+Keep three experiments separate: better execution of the same work; better
+problem solving on unseen tasks; and recursive improvement of the improvement
+process itself. Placement, caching, and recovery gains prove only the first.
+For A -> B -> C, compare B's changed improvement machinery enabled and disabled
+under comparable models, tools, budgets, evaluator access, and attempt counts.
+Ancestry, additional attempts, outside assistance, or adoption alone cannot
+establish that B's change contributed to C.
+
+Reploid may propose changes to planning, context selection, tool procedures,
+prompts, and permitted implementation. Protected evaluation, permission
+ceilings, explicit activation, and recoverable prior versions stay outside
+candidate authority. Stable work continues on an identified version while
+candidates run separately. Peers may evaluate and optionally adopt changes;
+signatures or majority agreement cannot replace task correctness tests.
+Doppler changes remain governed by Doppler's independent acceptance process.
+
+### Optional Research Room
 
 The proof-carrying Research Room-1 remains an optional governed workflow over
 Poolday receipts. It tests whether those receipts improve adjudication of
@@ -71,8 +118,8 @@ hardware-attested execution, or guaranteed scientific correctness.
 
 ## Optimization objective
 
-The immediate objective is a reproducible open execution network with Doppler.
-It has three independently testable loops: model distribution, whole-job remote
+Within Network, the objective is reproducible execution that supports Reploid
+goals. It has three independently testable loops: model distribution, whole-job remote
 execution, and learned coordination. The execution contract is model identity,
 operation, input, limits, and acceptance rule. Generalize it first for `generate`,
 `embed`, `rerank`, and `encodeSequence`; adding an operation must not require
@@ -91,7 +138,7 @@ and departure with both origin and mirrors unavailable. Acquire from persistent
 local cache, authorized peers, mirrors, then origin. Compare execution with a
 conventional queue on the same machines, counting coordination costs.
 
-Retained admissible evidence must improve held-out assignments against both
+Enabling learned routing requires retained admissible evidence to improve held-out assignments against both
 random no-history and competent frozen reliability/load schedulers without relaxing
 correctness. Freeze policies before evaluation; history precedes the held-out
 jobs. Freeze 1,000 historical jobs before evaluating unseen work. Keep jobs,
@@ -99,6 +146,10 @@ capacity, oracle, resource budget, and starting conditions
 identical. Predeclare meaningful outcomes, report uncertainty, and charge all
 attempts, transfers, verification, replication, retries, relay traffic, and review.
 Revoked, stale, duplicate, and insufficient history have explicit negative tests.
+
+This is a learned-routing activation gate, not a universal prerequisite for
+agent evolution. Independently evaluated planning, context, or tool-procedure
+improvements need not wait for learned routing to outperform its baselines.
 
 Voluntary independent repeat use counts even when free. Protocols remain
 forkable and evidence exportable. Revenue, acquisition, and hosting economics
@@ -301,14 +352,14 @@ cancellation, stale-result rejection, corruption handling, interruption
 recovery, and independent reproduction to the release source, model bytes,
 runtime, browser, GPU, policy, and output.
 
-Technical qualification alone is insufficient. Each model also needs frozen,
-adjudicated, family-disjoint scientific evaluation. AMPLIFY must demonstrate
+For scientific Research Room use, technical qualification alone is insufficient.
+Each scientific model also needs frozen, adjudicated, family-disjoint scientific evaluation. AMPLIFY must demonstrate
 useful residue-plausibility evidence without fitness claims. ESMC must show
 incremental decision value or useful disagreement beyond ESM-2. Nucleotide
 Transformer must pass its own DNA evaluation and cannot inherit protein-model
 authority.
 
-The promotion order is:
+For the optional biological model lane, the promotion order is:
 
 1. Re-establish ESM-2 as the frozen baseline with persisted clean-release
    browser evidence.
@@ -319,7 +370,8 @@ The promotion order is:
 
 ## The Discovery Contract
 
-The Discovery Contract is the target atomic product object. It binds:
+The Discovery Contract is the target atomic object for the optional Research
+Room, not the definition of every Reploid task. It binds:
 
 1. A bounded question and its declared decision context.
 2. Competing hypotheses, including a none-of-the-above alternative when
@@ -339,7 +391,7 @@ projections. No participant edits prior evidence in place. Corrections,
 revocations, superseding versions, and changed conclusions remain linked and
 inspectable.
 
-## User roles
+## Research Room roles
 
 | Role | Product job |
 | --- | --- |
@@ -394,7 +446,8 @@ validity, or final contract acceptance.
 
 ## Current product boundary
 
-- Poolday is the main Reploid product surface.
+- Reploid owns goal pursuit through Work, Network, and Improve. Poolday supplies
+  optional peer participation within that product.
 - The configured launch model is the enabled ESM-2 35M protein-sequence model.
   The exact model, manifest, tokenizer, artifact, workload, and runtime identity
   come from `pool-config.json`.
@@ -454,16 +507,18 @@ promotion gates.
 
 ## Reploid surface hierarchy
 
-Reploid contains three browser surfaces with separate authority:
+Work, Network, and Improve are the primary navigation within the Reploid
+application. Zero and X remain separately governed execution surfaces:
 
 | Surface | Current authority | Active-science role |
 | --- | --- | --- |
-| Poolday `/` | Assignments, routes, receipts, agreement, requester acceptance, points, reputation, and admitted public evidence. | Own durable Discovery Contracts, uncertainty projections, action routing, replication state, and promoted scientific policy. |
+| Reploid `/` | Goal lifecycle, authorized tools, local outcomes, optional peer assignments, execution evidence, and user review. | Optional Research Room owns Discovery Contracts, uncertainty projections, replication state, and promoted scientific policy. |
 | Zero `/zero` | Zero-local tools, state, verification, and recovery evidence. | Propose hypothesis decompositions, analyses, uncertainty estimators, experiment-ranking methods, and contradiction detectors. |
 | X `/x` | Candidate, validation, promotion, quarantine, replay, and rollback evidence. | Evaluate candidate scientific decision policies in Shadow against frozen historical and prospective contracts. |
 
-Zero or X evidence never substantiates a Poolday claim by itself. Zero proposes.
-X evaluates. Poolday admits and governs.
+Zero or X evidence never substantiates a Reploid product claim by itself.
+Candidate proposal, independent evaluation, and application-owned activation
+remain distinct.
 
 ## Scientific-policy promotion boundary
 
@@ -610,4 +665,4 @@ override these project-owned sources.
 
 ---
 
-*Last updated: August 2026*
+*Last updated: September 2026*

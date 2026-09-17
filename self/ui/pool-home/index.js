@@ -1,5 +1,6 @@
 import { createOperationRoomNetwork } from '../../pool/operation-room-network.js';
 import { createWorkSession } from '../../host/work-session.js';
+import { createWorkPeerJobs } from '../../host/work-peer-jobs.js';
 import { getCurrentReploidStorage } from '../../instance.js';
 import { bindWorkSurface } from './work.js';
 import { createOperationParticipation } from '../../pool/operation-participation.js';
@@ -219,9 +220,11 @@ export function initPoolHome(mount, { operationNetwork = null } = {}) {
   let disposeDocumentView = () => {};
   let disposeOperationSharing = () => {};
   let disposeWorkView = () => {};
-  const work = createWorkSession({ storage: getCurrentReploidStorage() });
+  const work = createWorkSession({ storage: getCurrentReploidStorage(),
+    peers: createWorkPeerJobs({ getNetwork: () => operationNetwork }) });
   const onPageHide = event => {
     work.cancel();
+    void operationSharing.stop().catch(error => console.error('[Reploid Network] Shutdown failed', error));
     if (!event.persisted) {
       disposeWorkView();
       window.removeEventListener('pagehide', onPageHide);
@@ -239,7 +242,10 @@ export function initPoolHome(mount, { operationNetwork = null } = {}) {
     refreshDocumentSearch(mount, state);
     if (getRouteId() === 'records') renderLocalDocumentHistory(mount, state);
   } });
-  window.REPLOID_POOL_CONNECT_OPERATIONS = network => documents.connectNetwork(network);
+  window.REPLOID_POOL_CONNECT_OPERATIONS = network => {
+    operationNetwork = network;
+    documents.connectNetwork(network);
+  };
   if (window.REPLOID_POOL_NAV_ESCAPE_HANDLER) {
     window.removeEventListener('keydown', window.REPLOID_POOL_NAV_ESCAPE_HANDLER);
   }

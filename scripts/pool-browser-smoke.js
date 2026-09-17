@@ -30,15 +30,18 @@ if (!SYNTHETIC_MODEL) {
 }
 // This is a Poolday release gate.  Zero is an experimental, separately
 // governed surface and must not make Poolday deployment health depend on it.
-const routes = ['/', '/ask', '/compute', '/records', '/room-1', '/history', '/network'];
+const routes = ['/', '/work', '/network', '/improve', '/examples', '/ask', '/compute', '/records', '/room-1', '/history'];
 const requiredSelectors = {
-  '/': '#pool-home-ask-form',
+  '/': '[data-work-form]',
+  '/work': '[data-work-form]',
+  '/network': '[data-operation-sharing]',
+  '/improve': '[data-work-history]',
+  '/examples': '#pool-home-ask-form',
   '/ask': '#pool-run-prompt',
   '/compute': '#pool-provider-worker-toggle',
   '/records': '#pool-record-ledger',
   '/room-1': '#pool-room-1-request',
-  '/history': '#pool-record-ledger',
-  '/network': '#pool-record-ledger'
+  '/history': '#pool-record-ledger'
 };
 
 const { chromium } = await import('@playwright/test');
@@ -207,6 +210,30 @@ for (const route of routes) {
     console.log(`[pool-smoke] route ${route}`);
     await gotoRoute(routePage, route);
     await routePage.waitForSelector(requiredSelectors[route], { timeout: 30000 });
+    for (const width of [1440, 390]) {
+      await routePage.setViewportSize({ width, height: 1000 });
+      const frame = await routePage.evaluate(async () => {
+        await document.fonts.ready;
+        await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+        const header = document.querySelector('.pool-primary-nav').getBoundingClientRect();
+        const content = document.querySelector('.pool-route-content');
+        const page = content.firstElementChild.getBoundingClientRect();
+        const bounds = content.getBoundingClientRect();
+        return { header: { x: header.x, width: header.width }, content: { x: bounds.x, width: bounds.width },
+          page: { x: page.x, width: page.width } };
+      });
+      for (const target of ['content', 'page']) {
+        if (Math.abs(frame.header.x - frame[target].x) > 1 || Math.abs(frame.header.width - frame[target].width) > 1) {
+          failures.push(route + ' at ' + width + 'px: ' + target + ' does not match the header: ' + JSON.stringify(frame));
+        }
+      }
+    }
+    if (route === '/' || route === '/work') {
+      for (const selector of ['[data-work-criteria]', '[data-work-files]', '[data-work-start]', '[data-work-output]']) {
+        await routePage.waitForSelector(selector, { timeout: 30000 });
+      }
+      if (await routePage.locator('[data-work-example]').count()) failures.push(route + ' still exposes prompt-only task buttons');
+    }
     console.log(`[pool-smoke] route passed ${route}`);
   } catch (error) {
     failures.push(`${route} failed: ${error.message}`);
@@ -218,7 +245,7 @@ for (const route of routes) {
 try {
   console.log('[pool-smoke] protein input lane');
   const routePage = await context.newPage();
-  await gotoRoute(routePage, '/');
+  await gotoRoute(routePage, '/examples');
   await routePage.evaluate(() => {
     window.__REPLOID_POOL_SMOKE_MARKER = 'protein-lane';
   });
@@ -262,7 +289,7 @@ try {
   await requester.waitForFunction(() => (
     document.querySelector('[data-pool-run-status]')?.textContent.includes('Protein embedding verified')
   ));
-  await requester.goto(localPeerUrl('/network', room), { waitUntil: 'domcontentloaded' });
+  await requester.goto(localPeerUrl('/records', room), { waitUntil: 'domcontentloaded' });
   await requester.waitForSelector('.pool-home', { timeout: 30000 });
   await requester.waitForSelector('#pool-peer-ledger', { timeout: 30000, state: 'attached' });
   const peerLedger = await requester.evaluate(() => {
@@ -274,7 +301,7 @@ try {
     };
   });
   if (!peerLedger.exists || (!peerLedger.hasScoreTable && !peerLedger.text.toLowerCase().includes('local scores'))) {
-    failures.push('network route did not expose local peer scores');
+    failures.push('peer job records did not expose local peer scores');
   }
   await provider.close();
   await requester.close();

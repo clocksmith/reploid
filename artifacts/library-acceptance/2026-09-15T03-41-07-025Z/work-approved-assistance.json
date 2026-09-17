@@ -1,0 +1,289 @@
+{
+  "id": "approved-assistance",
+  "provider": "deterministic-fixture",
+  "status": "failed",
+  "error": "AssertionError [ERR_ASSERTION]: Reploid configuration $: call resolveConfig() before construction\n\n'failed' !== 'review'\n\n    at file:///Users/xyz/deco/reploid/tests/library-package-acceptance.js:370:22\n    at async check (file:///Users/xyz/deco/reploid/tests/library-package-acceptance.js:31:20)\n    at async file:///Users/xyz/deco/reploid/tests/library-package-acceptance.js:295:7",
+  "observation": {
+    "state": {
+      "busy": false,
+      "activeId": null,
+      "activity": "Reploid configuration $: call resolveConfig() before construction",
+      "draft": "",
+      "storageError": "",
+      "pendingApproval": null,
+      "peerModels": [],
+      "discovering": false,
+      "peerDiscoveryCompleted": false,
+      "cycle": 0,
+      "maxCycles": 12,
+      "selectedId": "c94aa704-9dbc-4dfd-a061-50c3a8225f37",
+      "records": [
+        {
+          "id": "cb8a481a-bbaf-49c2-9364-b4522d3bab12",
+          "parentId": null,
+          "goal": "Repair the legacy timeout configuration. Produce repaired.json with a single timeoutMs field only when its source unit is established. Otherwise identify the missing or contradictory evidence. Retain the method used.",
+          "modelId": "qwen-3-5-2b-q4k-ehaf16",
+          "modelName": "Qwen 3.5 2B",
+          "createdAt": "2026-09-15T03:41:11.938Z",
+          "output": "",
+          "status": "failed",
+          "review": null,
+          "error": "Reploid configuration $: call resolveConfig() before construction",
+          "checkpointAvailable": false,
+          "criteria": "The timeoutMs value must preserve the observed duration. Do not guess the source unit. Inspect the JSON result. Keep private notes local.",
+          "feedback": "",
+          "inputs": [
+            {
+              "id": "input-1",
+              "name": "settings.json",
+              "bytes": 61
+            }
+          ],
+          "artifacts": [],
+          "events": [],
+          "peerJobs": [],
+          "allowPeers": false,
+          "recallAccepted": false
+        },
+        {
+          "id": "cec2af6e-9f38-4259-b071-70882c733b58",
+          "parentId": null,
+          "goal": "Repair the legacy timeout configuration. Produce repaired.json with a single timeoutMs field only when its source unit is established. Otherwise identify the missing or contradictory evidence. Retain the method used.",
+          "modelId": "qwen-3-5-2b-q4k-ehaf16",
+          "modelName": "Qwen 3.5 2B",
+          "createdAt": "2026-09-15T03:41:12.127Z",
+          "output": "",
+          "status": "failed",
+          "review": null,
+          "error": "Reploid configuration $: call resolveConfig() before construction",
+          "checkpointAvailable": false,
+          "criteria": "The timeoutMs value must preserve the observed duration. Do not guess the source unit. Inspect the JSON result. Keep private notes local.",
+          "feedback": "",
+          "inputs": [
+            {
+              "id": "input-1",
+              "name": "settings.json",
+              "bytes": 78
+            }
+          ],
+          "artifacts": [],
+          "events": [],
+          "peerJobs": [],
+          "allowPeers": false,
+          "recallAccepted": false
+        },
+        {
+          "id": "c94aa704-9dbc-4dfd-a061-50c3a8225f37",
+          "parentId": null,
+          "goal": "Repair the legacy timeout configuration. Produce repaired.json with a single timeoutMs field only when its source unit is established. Otherwise identify the missing or contradictory evidence. Retain the method used.",
+          "modelId": "qwen-3-5-2b-q4k-ehaf16",
+          "modelName": "Qwen 3.5 2B",
+          "createdAt": "2026-09-15T03:41:12.379Z",
+          "output": "",
+          "status": "failed",
+          "review": null,
+          "error": "Reploid configuration $: call resolveConfig() before construction",
+          "checkpointAvailable": false,
+          "criteria": "The timeoutMs value must preserve the observed duration. Do not guess the source unit. Inspect the JSON result. Keep private notes local.",
+          "feedback": "",
+          "inputs": [
+            {
+              "id": "input-1",
+              "name": "settings.json",
+              "bytes": 61
+            }
+          ],
+          "artifacts": [],
+          "events": [],
+          "peerJobs": [],
+          "allowPeers": true,
+          "recallAccepted": false
+        }
+      ],
+      "available": true,
+      "models": [
+        {
+          "id": "qwen-3-5-2b-q4k-ehaf16",
+          "name": "Qwen 3.5 2B"
+        }
+      ],
+      "runtimeVersion": "0.6.0"
+    },
+    "records": {
+      "schema": "reploid.work-history/v1",
+      "attempts": [
+        {
+          "id": "cb8a481a-bbaf-49c2-9364-b4522d3bab12",
+          "parentId": null,
+          "goal": "Repair the legacy timeout configuration. Produce repaired.json with a single timeoutMs field only when its source unit is established. Otherwise identify the missing or contradictory evidence. Retain the method used.",
+          "modelId": "qwen-3-5-2b-q4k-ehaf16",
+          "modelName": "Qwen 3.5 2B",
+          "createdAt": "2026-09-15T03:41:11.938Z",
+          "runtimeVersion": "0.6.0",
+          "status": "failed",
+          "output": "",
+          "review": null,
+          "error": "Reploid configuration $: call resolveConfig() before construction",
+          "revision": 2,
+          "checkpoint": null,
+          "criteria": "The timeoutMs value must preserve the observed duration. Do not guess the source unit. Inspect the JSON result. Keep private notes local.",
+          "feedback": "",
+          "inputs": [
+            {
+              "id": "input-1",
+              "name": "settings.json",
+              "text": "{\"timeout\":4,\"privateNote\":\"PRIVATE_WORK_NOTE_NOT_FOR_PEERS\"}",
+              "bytes": 61
+            }
+          ],
+          "artifacts": [],
+          "events": [],
+          "peerJobs": [],
+          "allowPeers": false,
+          "recallAccepted": false
+        },
+        {
+          "id": "cec2af6e-9f38-4259-b071-70882c733b58",
+          "parentId": null,
+          "goal": "Repair the legacy timeout configuration. Produce repaired.json with a single timeoutMs field only when its source unit is established. Otherwise identify the missing or contradictory evidence. Retain the method used.",
+          "modelId": "qwen-3-5-2b-q4k-ehaf16",
+          "modelName": "Qwen 3.5 2B",
+          "createdAt": "2026-09-15T03:41:12.127Z",
+          "runtimeVersion": "0.6.0",
+          "status": "failed",
+          "output": "",
+          "review": null,
+          "error": "Reploid configuration $: call resolveConfig() before construction",
+          "revision": 2,
+          "checkpoint": null,
+          "criteria": "The timeoutMs value must preserve the observed duration. Do not guess the source unit. Inspect the JSON result. Keep private notes local.",
+          "feedback": "",
+          "inputs": [
+            {
+              "id": "input-1",
+              "name": "settings.json",
+              "text": "{\"timeout\":4,\"unit\":\"seconds\",\"privateNote\":\"PRIVATE_WORK_NOTE_NOT_FOR_PEERS\"}",
+              "bytes": 78
+            }
+          ],
+          "artifacts": [],
+          "events": [],
+          "peerJobs": [],
+          "allowPeers": false,
+          "recallAccepted": false
+        },
+        {
+          "id": "c94aa704-9dbc-4dfd-a061-50c3a8225f37",
+          "parentId": null,
+          "goal": "Repair the legacy timeout configuration. Produce repaired.json with a single timeoutMs field only when its source unit is established. Otherwise identify the missing or contradictory evidence. Retain the method used.",
+          "modelId": "qwen-3-5-2b-q4k-ehaf16",
+          "modelName": "Qwen 3.5 2B",
+          "createdAt": "2026-09-15T03:41:12.379Z",
+          "runtimeVersion": "0.6.0",
+          "status": "failed",
+          "output": "",
+          "review": null,
+          "error": "Reploid configuration $: call resolveConfig() before construction",
+          "revision": 2,
+          "checkpoint": null,
+          "criteria": "The timeoutMs value must preserve the observed duration. Do not guess the source unit. Inspect the JSON result. Keep private notes local.",
+          "feedback": "",
+          "inputs": [
+            {
+              "id": "input-1",
+              "name": "settings.json",
+              "text": "{\"timeout\":4,\"privateNote\":\"PRIVATE_WORK_NOTE_NOT_FOR_PEERS\"}",
+              "bytes": 61
+            }
+          ],
+          "artifacts": [],
+          "events": [],
+          "peerJobs": [],
+          "allowPeers": true,
+          "recallAccepted": false
+        }
+      ],
+      "storageError": ""
+    },
+    "before": {
+      "schema": "reploid.work-history/v1",
+      "attempts": [
+        {
+          "id": "cb8a481a-bbaf-49c2-9364-b4522d3bab12",
+          "parentId": null,
+          "goal": "Repair the legacy timeout configuration. Produce repaired.json with a single timeoutMs field only when its source unit is established. Otherwise identify the missing or contradictory evidence. Retain the method used.",
+          "modelId": "qwen-3-5-2b-q4k-ehaf16",
+          "modelName": "Qwen 3.5 2B",
+          "createdAt": "2026-09-15T03:41:11.938Z",
+          "runtimeVersion": "0.6.0",
+          "status": "failed",
+          "output": "",
+          "review": null,
+          "error": "Reploid configuration $: call resolveConfig() before construction",
+          "revision": 2,
+          "checkpoint": null,
+          "criteria": "The timeoutMs value must preserve the observed duration. Do not guess the source unit. Inspect the JSON result. Keep private notes local.",
+          "feedback": "",
+          "inputs": [
+            {
+              "id": "input-1",
+              "name": "settings.json",
+              "text": "{\"timeout\":4,\"privateNote\":\"PRIVATE_WORK_NOTE_NOT_FOR_PEERS\"}",
+              "bytes": 61
+            }
+          ],
+          "artifacts": [],
+          "events": [],
+          "peerJobs": [],
+          "allowPeers": false,
+          "recallAccepted": false
+        },
+        {
+          "id": "cec2af6e-9f38-4259-b071-70882c733b58",
+          "parentId": null,
+          "goal": "Repair the legacy timeout configuration. Produce repaired.json with a single timeoutMs field only when its source unit is established. Otherwise identify the missing or contradictory evidence. Retain the method used.",
+          "modelId": "qwen-3-5-2b-q4k-ehaf16",
+          "modelName": "Qwen 3.5 2B",
+          "createdAt": "2026-09-15T03:41:12.127Z",
+          "runtimeVersion": "0.6.0",
+          "status": "failed",
+          "output": "",
+          "review": null,
+          "error": "Reploid configuration $: call resolveConfig() before construction",
+          "revision": 2,
+          "checkpoint": null,
+          "criteria": "The timeoutMs value must preserve the observed duration. Do not guess the source unit. Inspect the JSON result. Keep private notes local.",
+          "feedback": "",
+          "inputs": [
+            {
+              "id": "input-1",
+              "name": "settings.json",
+              "text": "{\"timeout\":4,\"unit\":\"seconds\",\"privateNote\":\"PRIVATE_WORK_NOTE_NOT_FOR_PEERS\"}",
+              "bytes": 78
+            }
+          ],
+          "artifacts": [],
+          "events": [],
+          "peerJobs": [],
+          "allowPeers": false,
+          "recallAccepted": false
+        }
+      ],
+      "storageError": ""
+    },
+    "transcript": {
+      "scope": "work-host-test",
+      "actualModelInference": false,
+      "peerImplementation": "deterministic-port-fixture",
+      "generations": [],
+      "proposals": [],
+      "executions": [],
+      "observedScopes": [
+        "reploid:work:c94aa704-9dbc-4dfd-a061-50c3a8225f37"
+      ]
+    },
+    "openScopes": 0
+  },
+  "pageErrors": [],
+  "durationMs": 178.35516600000028
+}
