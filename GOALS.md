@@ -83,7 +83,7 @@ Document assistant citation formatting, coding LoRA acquisition, and distributed
 ## Current supported boundary
 
 The repository now supports a local external-facing Change Passport contract,
-append-only hosted service, durable store, scoped bearer authentication,
+append-only hosted service, persistent store, scoped bearer authentication,
 GitHub App client and required-check projection, CI action, TypeScript SDK,
 browser review surface, explicit deployment and rollback adapters, standard
 reopening triggers, offline export verification, and a separate adapter from
@@ -438,7 +438,7 @@ Internally, every claimed improvement must be represented by one signed, append-
 
 This authority split is a safety and development rule, ensuring that experimental candidate modifications never compromise the stable agent currently pursuing active goals for users. Zero and X remain discoverable through the homepage's Experiments footer, providing inspectable evidence for recursive self-improvement without confusing the active problem-solving interface.
 
-## Competitive baseline and durable value
+## Competitive baseline and compounding value
 
 Reploid does not enter an empty evidence market. UniProt already combines
 curated and computational protein information with evidence attribution.
@@ -451,8 +451,8 @@ cover parts of the commercial workflow. Reploid must own the governed
 transition from observed activity to active decision state, not merely produce
 another trace or approval document.
 
-Exact contracts and signatures are reproducible features, not a durable
-advantage by themselves. Durable value requires a uniquely useful, governed
+Exact contracts and signatures are reproducible features, not an enduring
+advantage by themselves. Compounding value requires a uniquely useful, governed
 corpus of objections that predicted failures, evidence that predicted success,
 reversed approvals, reopenings, corrections, reproductions, and rollback
 outcomes that operators and researchers repeatedly consult.
@@ -479,7 +479,7 @@ the product.
 
 ## Authority and supporting references
 
-This document is the repository-level authority for mission, value, and durable
+This document is the repository-level authority for mission, value, and
 strategic goals. Narrower product contracts, scientific non-claims, target
 object design, current status, and executable policy live in:
 
