@@ -4,7 +4,7 @@ Parent: none
 
 ## Target
 
-Deliver a goal-directed agent using Doppler inference, Poolday WebRTC collaboration, and independently evaluated recursive improvement.
+Deliver a goal-directed agent using Doppler inference, Poolday collaboration, and evaluated recursive improvement.
 
 ## Authority
 - Owns library, application, and UI boundaries: `packages/reploid/` implements reusable behavior; applications compose APIs; UI requests actions.
@@ -36,7 +36,7 @@ Outputs:
 - Existing code cannot silently overrule a charter.
 
 ## Acceptance
-- The charter graph validates, its index is current, and targeted work can resolve its full authority chain.
+- The charter graph validates, its index is current, and targeted work resolves its authority chain.
 - Acceptance evidence verifies that [INTENT.md](INTENT.md) and [GOALS.md](GOALS.md) remain supported.
 - Evidence: [CATSCAN validator tests](tests/unit/catscan.test.js).
 
@@ -44,4 +44,4 @@ Outputs:
 - Treating peer count, mutation volume, inference volume, or raw activity as product outcomes.
 
 ## Freedom
-Any mechanism is permitted if it preserves these boundaries and passes the acceptance evidence.
+Any mechanism is permitted if it preserves these boundaries and passes acceptance evidence.
