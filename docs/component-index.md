@@ -5,7 +5,7 @@ Recursive authority charters discovered from the repository root.
 
 | Component | Charter | Parent | Target |
 | --- | --- | --- | --- |
-| Reploid | [`CATSCAN.md`](../CATSCAN.md) | None | Deliver a goal-directed agent using Doppler inference, Poolday WebRTC collaboration, and independently evaluated recursive improvement. |
+| Reploid | [`CATSCAN.md`](../CATSCAN.md) | None | Deliver a goal-directed agent using Doppler inference, Poolday collaboration, and evaluated recursive improvement. |
 | Deployment Configuration | [`deploy/CATSCAN.md`](../deploy/CATSCAN.md) | Reploid | Declare reproducible hosted deployment inputs and service boundaries for Reploid runtime surfaces. |
 | Documentation | [`docs/CATSCAN.md`](CATSCAN.md) | Reploid | Keep product intent, contracts, mechanisms, claims, and current evidence discoverable without conflating their authority. |
 | Hosted Zero Function | [`functions/CATSCAN.md`](../functions/CATSCAN.md) | Reploid | Expose the bounded Gemini-backed Zero function with explicit authentication, App Check, input, quota, and failure contracts. |
