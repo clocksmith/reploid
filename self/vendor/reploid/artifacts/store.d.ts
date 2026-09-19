@@ -1,9 +1,13 @@
 import type { Json } from '../config/index.js';
 export interface Store {
+  /** Optional readiness hook; omitted by stores that are ready at construction. */
+  init?(): Promise<boolean>;
   get(key: string): Promise<Json>; set(key: string, value: Json): Promise<void>;
   delete(key: string): Promise<boolean>; keys(prefix?: string): Promise<string[]>; close(): Promise<void>;
 }
 export interface Vfs {
+  /** Closes this view and only an explicitly owned store. */
+  close(): Promise<void>;
   init(): Promise<boolean>; read(path: string): Promise<string>; write(path: string, content: string): Promise<boolean>;
   delete(path: string): Promise<boolean>; list(path?: string): Promise<string[]>;
   stat(path: string): Promise<{ path: string; size: number; updated: number; type: string } | null>;
@@ -11,4 +15,4 @@ export interface Vfs {
   clear(): Promise<boolean>; exportAll(): Promise<object>; importAll(data: object, clearFirst?: boolean): Promise<number>;
 }
 export function createMemoryStore(): Store;
-export function createVfs(ports: { store: Store; now?: () => number; emit?: (name: string, event: object) => void }): Vfs;
+export function createVfs(ports: { store: Store; ownsStore?: boolean; now?: () => number; emit?: (name: string, event: object) => void }): Vfs;

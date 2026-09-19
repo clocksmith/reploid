@@ -124,6 +124,14 @@ export const validateMessages = (messages) => {
   }
 };
 
+export function resolveFallbackModel(requestedModel, candidates = [], allowed = getAllowedModels()) {
+  if (!Array.isArray(candidates) || candidates.length > allowed.size
+    || candidates.some(id => typeof id !== 'string' || !allowed.has(id))) {
+    throw new Error('Fallback models must be an explicit subset of the server model allowlist');
+  }
+  return candidates.find(id => id !== requestedModel) || null;
+}
+
 export const zeroGeminiPolicy = Object.freeze({
   getAllowedModels,
   isAllowedOrigin,

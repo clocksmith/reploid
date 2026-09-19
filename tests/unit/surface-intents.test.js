@@ -78,3 +78,18 @@ describe('surface intents', () => {
     expect(getSurfaceIntent('__proto__')).toBeNull();
   });
 });
+
+describe('resolved extension authority', () => {
+  it('derives resources from Zero and preserves ceilings independently of feature availability', async () => {
+    const { SURFACE_INTENTS, authorizeSurfaceOperation } = await import('../../self/config/surface-intents.js');
+    const { LAB_ROUTE_PROFILES } = await import('../../self/lab/profiles.js');
+    const { BOOT_SEED_PROFILES } = await import('../../self/config/boot-seed.js');
+    const zero = SURFACE_INTENTS.zero, x = SURFACE_INTENTS.x;
+    expect(zero.seedPrefixes.every(path => x.seedPrefixes.includes(path))).toBe(true);
+    expect(LAB_ROUTE_PROFILES.x.requiredModules).toEqual(x.requiredModules);
+    expect(BOOT_SEED_PROFILES.x_home).toBe(x.seedPrefixes);
+    expect(x.authorityCeiling).toEqual(zero.authorityCeiling);
+    expect(await authorizeSurfaceOperation(x, { action: 'candidate.selfApprove' }, () => true)).toBe(false);
+    expect(await authorizeSurfaceOperation(x, { action: 'tool.execute' }, () => false)).toBe(false);
+  });
+});

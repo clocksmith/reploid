@@ -1,0 +1,17 @@
+{
+  "deploy/cloud-run-service.yaml": "12b74a02e836a57048073f2b3e23fb61bc97c7399ed37228da3785ee313ef7b3",
+  "deploy/env.production.json": "0f2ba3fe95acbc80758660cc845158837fa118c0812a562fea0f2f33aa2c6829",
+  "package-lock.json": "14e3eda5ea6a2b079be8b9cc07b140282226c3e7b60a468500ebc0748f07f8c7",
+  "package.json": "5782f97964d1a22bf0dfd537cc69314acdfc5b78a52eca4a8e9e50dfe788c283",
+  "scripts/sync-runtime-config.js": "fd9a11c7227195cd48455a702a48550afb107f6ac853ce7abeac0005692f67d8",
+  "self/config/browser-bundle-manifest.json": "01be49aacbd09c7de0584b334db78ab18cec9ac215d0dde05fee919597a167df",
+  "self/config/doppler-generation-contract.provenance.json": "5cfea5fd523fb5cc1b1adb2127a74de15e872c685b722dba64c2d9aa3824139c",
+  "self/config/doppler-local-models.js": "1db3deb3cc1967adc58fc19a7e3deaf3848c27230e58af83cd8c47bec2ce06e3",
+  "self/config/module-inventory.json": "7d6e7fddaf57ac5516bf8b8cbc5493c2fef96873c4a467b045da0e3aef12bc3c",
+  "self/pool/pool-config.json": "ee6105ff7ced9b44536e087af90a1c59314a14745b6fd98e77014b9d00dd90c5",
+  "tests/e2e/document-search.spec.js": "b2b44eaa1cac117d37b8069a186b1f0d3ae44ceb3bada191dd48c738204072ba",
+  "tests/unit/doppler-local-models.test.js": "51e02f196f941c0300cba855238e30470dc2ad8e210ac4cbac71c35747c563d7",
+  "tests/unit/doppler-runtime-service.test.js": "efa7bfc0ffc5c2b02aaaae81b040bcfa74b7bc20ac224166550af820738ae245",
+  "tests/unit/pool-doppler-runtime.test.js": "50555c6a60d8459374cfade83e50bacdd4aea99f07c341c97cadc04fabc4cfbd",
+  "tests/unit/runtime-config-sync.test.js": "10d4e1ad3c45e59e91133f1e8b3ed986a686a51e659f60975efd30a908492ea4"
+}

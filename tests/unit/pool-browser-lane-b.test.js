@@ -282,6 +282,25 @@ describe('pool browser Lane B contract', () => {
     })).rejects.toThrow('Assignment exact model contract does not match the loaded Doppler runtime');
   });
 
+  it.each([true, false])('waits for the actual reveal gate and never bypasses a closed gate (opens: %s)', async opens => {
+    let polls = 0, reveals = 0;
+    const sdk = {
+      registerProvider: payload => ({ ...payload, sessionId: 'gate' }),
+      submitAssignmentCommitment: () => ({ phase: 'commit_submitted' }),
+      pollJob: () => ({ job: { ringPhase: ++polls >= 7 && opens ? 'reveal_open' : 'commit_submitted' } }),
+      submitAssignmentReveal: () => { reveals++; return { ok: true }; },
+      submitReceipt: () => ({ receipt: { receiptHash: 'sha256:fixture' } })
+    };
+    const provider = createProviderClient({ providerId: 'provider_lane_b', sdk, runtime: fakeRuntime(),
+      keyPair: await createSigningKeyPair(), identity: null, revealPolling: { maxPolls: 8, intervalMs: 1 } });
+    await provider.register({});
+    const execution = provider.executeAssignment(await assignment(), {
+      commitReveal: 'auto', sequence: TEST_PUBLIC_PROTEIN_SEQUENCE
+    });
+    if (opens) { await execution; expect(polls).toBe(7); expect(reveals).toBe(1); }
+    else { await expect(execution).rejects.toThrow('did not open reveal phase'); expect(polls).toBe(8); expect(reveals).toBe(0); }
+  });
+
   it('builds reveal payloads that bind back to the original commitment', async () => {
     const currentAssignment = await assignment();
     const execution = await makeSequenceExecution({ assignment: currentAssignment });

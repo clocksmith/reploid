@@ -5,12 +5,13 @@
  */
 import policy from '../../config/work-profile.json' with { type: 'json' };
 import { DEFAULT_WORK_MODELS } from '../../host/work-session.js';
+import { selectWorkModel } from '../../providers/work-provider.js';
 
 const escapeHtml = value => String(value ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;')
   .replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 
-export function renderGoalComposer({ models = DEFAULT_WORK_MODELS } = {}) {
-  const defaultModel = models[0] || { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash', provider: 'gemini' };
+export function renderGoalComposer({ models = DEFAULT_WORK_MODELS, defaultModelId = policy.defaultModelId } = {}) {
+  const defaultModel = selectWorkModel({ models, defaultModelId });
 
   return [
     '<div class="pool-work-composer-shell">',
@@ -37,8 +38,8 @@ export function renderGoalComposer({ models = DEFAULT_WORK_MODELS } = {}) {
     '    <div class="pool-model-bar" role="group" aria-label="Model Selection">',
     '      <span class="pool-model-bar-label">Inference Model:</span>',
     '      <div class="pool-model-pills" data-work-model-pills>',
-    ...models.map((model, idx) =>
-      '        <button type="button" class="pool-model-pill' + (idx === 0 ? ' is-active' : '') + '" data-work-model-select="' + escapeHtml(model.id) + '">' +
+    ...models.map(model =>
+      '        <button type="button" class="pool-model-pill' + (model.id === defaultModel.id ? ' is-active' : '') + '" data-work-model-select="' + escapeHtml(model.id) + '">' +
       '<span class="pool-model-pill-icon">' + (model.provider === 'gemini' ? '&#9889;' : '&#9096;') + '</span> ' +
       '<span class="pool-model-pill-name">' + escapeHtml(model.name) + '</span> ' +
       '<span class="pool-model-pill-badge">' + (model.provider === 'gemini' ? 'Cloud' : 'Local') + '</span>' +
@@ -80,7 +81,7 @@ export function renderGoalComposer({ models = DEFAULT_WORK_MODELS } = {}) {
     '      <div class="pool-work-drawer-body">',
     '        <label for="work-model" class="pool-work-model-select-label">Model select fallback',
     '          <select id="work-model" data-work-model>',
-    ...models.map(model => '            <option value="' + escapeHtml(model.id) + '">' + escapeHtml(model.name) + ' (' + (model.provider === 'gemini' ? 'Gemini Cloud' : 'Doppler Local') + ')</option>'),
+    ...models.map(model => '            <option value="' + escapeHtml(model.id) + '"' + (model.id === defaultModel.id ? ' selected' : '') + '>' + escapeHtml(model.name) + ' (' + (model.provider === 'gemini' ? 'Gemini Cloud' : 'Doppler Local') + ')</option>'),
     '          </select>',
     '        </label>',
     '        <label class="pool-consent-row"><input type="checkbox" data-work-peers><span>Let the agent propose peer assistance. Ask before sending.</span></label>',

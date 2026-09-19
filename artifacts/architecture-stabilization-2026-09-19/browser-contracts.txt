@@ -1,0 +1,91 @@
+[WebServer] (node:347720) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:347771) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:347782) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:347782) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] [Proxy] Config loader not available, using environment variables
+[WebServer] ☡  WARNING: GEMINI_API_KEY not found in .env file
+[WebServer]    The Gemini proxy endpoint will not work without it.
+[WebServer] (node:347809) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 64 tests using 2 workers
+
+(node:347873) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:347874) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:347873) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:347874) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   1 [chromium] › tests/e2e/boot.spec.js:37:3 › Boot Screen › loads with product modes and no duplicate mode heading (2.0s)
+  ✓   2 [chromium] › tests/e2e/peer-pack-jobs.spec.js:26:1 › verified adapter bytes survive browser replacement with the supplier unavailable (3.0s)
+  ✓   3 [chromium] › tests/e2e/boot.spec.js:49:3 › Boot Screen › has Reploid selected by default (2.3s)
+  ✓   4 [chromium] › tests/e2e/peer-pack-jobs.spec.js:50:65 › reviewed public task uses room discovery and WebRTC while private retrieval stays local (doppler.pack/v2) (4.9s)
+  ✓   6 [chromium] › tests/e2e/peer-pack-jobs.spec.js:50:65 › reviewed public task uses room discovery and WebRTC while private retrieval stays local (doppler.capsule/v2) (4.1s)
+  ✓   7 [chromium] › tests/e2e/peer-pack-jobs.spec.js:114:1 › common operations cross real WebRTC between browser contexts, with bounded large-message framing (8.8s)
+  ✓   8 [chromium] › tests/e2e/peer-pack-jobs.spec.js:151:1 › Verification Worker accepts complete-job modules and modified execution boundaries (1.5s)
+  ✓   5 [chromium] › tests/e2e/boot.spec.js:56:3 › Boot Screen › ignores stale saved mode and genesis on first load (21.6s)
+  ✓  10 [chromium] › tests/e2e/boot.spec.js:73:3 › Boot Screen › shows all three product modes (1.6s)
+  ✓  11 [chromium] › tests/e2e/boot.spec.js:81:3 › Boot Screen › allows switching modes with single selection (1.7s)
+  ✓  12 [chromium] › tests/e2e/boot.spec.js:95:3 › Route Entry Points › recovers once from a transient public-route module failure (2.5s)
+  ✓  13 [chromium] › tests/e2e/boot.spec.js:118:3 › Route Entry Points › home keeps the Work composer below minimal navigation (1.8s)
+  ✓  14 [chromium] › tests/e2e/boot.spec.js:147:3 › Route Entry Points › product root renders Work with explicit task and permission inputs (1.4s)
+  ✓  15 [chromium] › tests/e2e/boot.spec.js:161:3 › Route Entry Points › product navigation remains compact and complete on desktop and mobile (2.9s)
+  ✓  16 [chromium] › tests/e2e/boot.spec.js:197:3 › Route Entry Points › desktop navigation leaves the task column unobstructed (1.5s)
+  ✓   9 [chromium] › tests/e2e/peer-pack-jobs.spec.js:190:1 › durable provider responses survive a complete browser-process replacement (16.5s)
+  ✓  18 [chromium] › tests/e2e/peer-pack-jobs.spec.js:267:1 › native attempt claims fence concurrent writers and enforce retention limits (497ms)
+  ✓  19 [chromium] › tests/e2e/peer-pack-jobs.spec.js:305:1 › native attempt states bind numbered requests and retain expiry before cleanup (390ms)
+  ✓  20 [chromium] › tests/e2e/peer-pack-jobs.spec.js:346:1 › legacy unfinished records migrate as interrupted and never become runnable (348ms)
+  ✓  17 [chromium] › tests/e2e/boot.spec.js:220:3 › Route Entry Points › contribution status labels and values are vertically centered in their metric chips (1.4s)
+  ✓  21 [chromium] › tests/e2e/peer-pack-jobs.spec.js:373:1 › cumulative v2 journal migration preserves updates and rejects corrupt stream metadata (360ms)
+  ✓  23 [chromium] › tests/e2e/peer-pack-jobs.spec.js:410:1 › a stalled native transaction aborts within configured storage bounds (278ms)
+  ✓  24 [chromium] › tests/e2e/peer-pack-jobs.spec.js:435:1 › a replacement provider prevents the still-running writer from publishing completion (790ms)
+  ✓  25 [chromium] › tests/e2e/peer-pack-jobs.spec.js:463:1 › a corrupted durable response cannot enter provider replay even after another delivery (609ms)
+{"journalCopyVolume":[{"count":64,"writes":99991,"reads":56532},{"count":128,"writes":200172,"reads":113200},{"count":256,"writes":400858,"reads":226717}]}
+  ✓  26 [chromium] › tests/e2e/peer-pack-jobs.spec.js:507:1 › journal delta appends transfer approximately linear bytes (727ms)
+  ✓  27 [chromium] › tests/e2e/vfs-storage-contract.spec.js:30:1 › existing inline-key VFS files survive writes and connection replacement (107ms)
+  ✓  22 [chromium] › tests/e2e/boot.spec.js:261:3 › Route Entry Points › product routes fit a narrow mobile viewport without horizontal clipping (3.0s)
+  ✓  28 [chromium] › tests/e2e/vfs-storage-contract.spec.js:58:1 › init opens storage once before any file operation and rejects after close (100ms)
+  ✓  30 [chromium] › tests/e2e/vfs-storage-contract.spec.js:82:1 › init surfaces a native database version failure before declaring readiness (168ms)
+  ✓  31 [chromium] › tests/e2e/vfs-storage-contract.spec.js:101:1 › an aborted write emits no committed change and closing one VFS leaves another usable (151ms)
+  ✓  32 [chromium] › tests/e2e/vfs-storage-contract.spec.js:134:1 › Verification Worker permits only the extracted storage owner and preserves other rejections (209ms)
+  ✓  33 [chromium] › tests/e2e/vfs-storage-contract.spec.js:170:1 › memory and native stores share readiness, committed notifications and close ownership (130ms)
+  ✓  34 [chromium] › tests/e2e/vfs-storage-contract.spec.js:192:1 › blocked native upgrade rejects initialization and close cancels an unfinished open (148ms)
+  ✓  29 [chromium] › tests/e2e/boot.spec.js:307:3 › Route Entry Points › product routes hide raw payloads and hosted controls by default (1.9s)
+  ✓  35 [chromium] › tests/e2e/boot.spec.js:324:3 › Route Entry Points › compatibility routes resolve into the three Reploid product flows (1.4s)
+  ✓  36 [chromium] › tests/e2e/boot.spec.js:368:3 › Route Entry Points › home route boots without early VFS misses for instance-scoped runtime modules (603ms)
+  ✓  37 [chromium] › tests/e2e/boot.spec.js:387:3 › Route Entry Points › home route boots Reploid with minimal ring controls (410ms)
+  ✓  38 [chromium] › tests/e2e/boot.spec.js:426:3 › Route Entry Points › home route clears direct inference keys when disabled (533ms)
+  ✓  39 [chromium] › tests/e2e/boot.spec.js:444:3 › Route Entry Points › home route self browser previews selected files (502ms)
+  ✓  40 [chromium] › tests/e2e/boot.spec.js:459:3 › Route Entry Points › home route recovers from awaken failure (460ms)
+  ✓  41 [chromium] › tests/e2e/boot.spec.js:475:3 › Route Entry Points › home route can draft a seeded goal before inference is configured (439ms)
+  ✓  42 [chromium] › tests/e2e/boot.spec.js:486:3 › Route Entry Points › home route preserves the goal input node while typing (444ms)
+  ✓  43 [chromium] › tests/e2e/boot.spec.js:503:3 › Route Entry Points › home route can awaken with remote slots and no local inference (416ms)
+  ✓  44 [chromium] › tests/e2e/boot.spec.js:521:3 › Route Entry Points › /zero locks the boot mode to Zero (618ms)
+  ✓  45 [chromium] › tests/e2e/boot.spec.js:597:3 › Route Entry Points › /zero awakens with the complete DI dependency closure (539ms)
+  ✓  46 [chromium] › tests/e2e/boot.spec.js:734:3 › Route Entry Points › /x locks the boot mode to X without boot failures (2.3s)
+  ✓  47 [chromium] › tests/e2e/boot.spec.js:769:3 › Same-Origin Multi-Peer › opens a new peer in the same browser context with isolated instance, identity, and self state (1.0s)
+  ✓  48 [chromium] › tests/e2e/boot.spec.js:869:3 › Same-Origin Multi-Peer › rotates the active peer identity after awaken instead of keeping the legacy peer (617ms)
+  ✓  49 [chromium] › tests/e2e/boot.spec.js:898:3 › Same-Origin Multi-Peer › same-origin provider and consumer discover each other over swarm transport (923ms)
+  ✓  50 [chromium] › tests/e2e/boot.spec.js:978:3 › Connection Selection › shows Doppler, direct, and proxy brain options (404ms)
+  ✓  51 [chromium] › tests/e2e/boot.spec.js:987:3 › Connection Selection › does not show a separate Doppler local-model path in direct mode (520ms)
+  ✓  52 [chromium] › tests/e2e/boot.spec.js:996:3 › Connection Selection › selects Gemini 3.5 Flash by default for direct Gemini inference (605ms)
+  ✓  53 [chromium] › tests/e2e/boot.spec.js:1007:3 › Advanced Mapping › defaults Reploid to the capsule genesis level (1.9s)
+  ✓  54 [chromium] › tests/e2e/boot.spec.js:1014:3 › Advanced Mapping › maps X to the full genesis level (1.3s)
+  ✓  55 [chromium] › tests/e2e/boot.spec.js:1027:3 › Goal Input › shows ordered placeholders and unlocks the goal input after inference config (727ms)
+  ✓  56 [chromium] › tests/e2e/boot.spec.js:1046:3 › Goal Input › shows the self tree browser in Reploid (1.8s)
+  ✓  57 [chromium] › tests/e2e/boot.spec.js:1061:3 › Goal Input › shows Reploid environment editor without bootstrapper toggle (1.9s)
+  ✓  58 [chromium] › tests/e2e/boot.spec.js:1069:3 › Goal Input › shows runtime preset rail and a single dropdown for the active level (1.9s)
+  ✓  59 [chromium] › tests/e2e/boot.spec.js:1079:3 › Goal Input › shows generated-goal action (1.9s)
+  ✓  60 [chromium] › tests/e2e/boot.spec.js:1087:3 › Goal Input › shuffle presets updates the goal input (1.8s)
+  ✓  61 [chromium] › tests/e2e/boot.spec.js:1096:3 › Goal Input › switches the preset dropdown when choosing a different runtime level (2.1s)
+  ✓  62 [chromium] › tests/e2e/boot.spec.js:1105:3 › Goal Input › awaken button exists (1.5s)
+  ✓  63 [chromium] › tests/e2e/boot.spec.js:1111:3 › Goal Input › enforces goal maxlength (500 chars) (1.9s)
+  ✓  64 [chromium] › tests/e2e/boot.spec.js:1120:3 › Reploid Runtime › awakens into capsule instead of the zero shell (578ms)
+
+  64 passed (1.4m)

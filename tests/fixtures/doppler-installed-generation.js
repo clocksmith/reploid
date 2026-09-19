@@ -1,15 +1,17 @@
 // Installed public runtime + Reploid integration. Injected logits, not model qualification.
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { pathToFileURL } from 'node:url';
+import fs from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { createReploidDopplerRuntimeService, DOPPLER_GENERATION_CONTRACT } from '../../self/infrastructure/doppler-runtime-service.js';
 import { runPackOperation } from '../../self/pool/pack-operation.js';
 import { hashDopplerEvidence } from '../../self/pool/executable-pack.js';
+import { checkInstalledAdapters } from './doppler-installed-adapters.js';
+import { checkInstalledPeerStreaming } from './doppler-installed-peer-streaming.js';
+import { checkInstalledLibraryProvider, createInstalledLibraryOperationRunner } from './doppler-installed-library.js';
 
 const consumer = process.env.DOPPLER_TEST_CONSUMER;
-const checkout = process.env.DOPPLER_TEST_CHECKOUT;
-assert(consumer && checkout, 'Explicit installed consumer and test-fixture checkout are required.');
+assert(consumer, 'DOPPLER_TEST_CONSUMER must name the retained installed candidate consumer directory.');
 // Resolve with ESM conditions from the consumer: the public root has no CommonJS export.
 const entry = execFileSync(process.execPath,
   ['--input-type=module', '-e', "process.stdout.write(import.meta.resolve('doppler-gpu'))"],
@@ -17,10 +19,9 @@ const entry = execFileSync(process.execPath,
 assert(entry.includes('/node_modules/doppler-gpu/'), 'Inference must use installed package bytes.');
 const api = await import(entry);
 assert.deepEqual(api.GENERATION_CONTRACT, DOPPLER_GENERATION_CONTRACT);
-// Only test artifact signing is imported from the checkout; no runtime source imports.
-const { createSignedCapsuleFixture, TEST_CAPSULE_AUTHORITY, TEST_CAPSULE_PUBLIC_KEY } =
-  await import(pathToFileURL(resolve(checkout, 'tests/helpers/capsule-v2-fixture.js')).href);
-const fixture = await createSignedCapsuleFixture();
+// The producer signs this data before installation. The consumer needs no Doppler checkout.
+const fixture = JSON.parse(await fs.readFile(resolve(consumer, 'generation-fixture.json'), 'utf8'));
+const artifacts = new Map(fixture.artifacts.map(([id, bytes]) => [id, Uint8Array.from(bytes)]));
 const phases = [];
 let stop = {};
 let released = 0;
@@ -29,11 +30,15 @@ const ports = {
   device: { getDevice: () => ({ limits: { maxBufferSize: 1024 }, createBuffer: () => ({ destroy() {} }),
     createCommandEncoder() {}, queue: { writeBuffer() {} } }),
   getProfile: () => ({ surface: 'test-webgpu', hasF16: false, hasSubgroups: false, maxBufferSize: 1024 }) },
-  artifactStore: fixture.artifactStore,
-  trustedSigners: { [TEST_CAPSULE_AUTHORITY]: TEST_CAPSULE_PUBLIC_KEY },
+  artifactStore: { readArtifact: async artifact => artifacts.get(artifact.artifactId) },
+  trustedSigners: fixture.trustedSigners,
   programFactory: async () => ({
     executionGraphHash: fixture.capsule.program.executionGraphHash,
-    tokenize: () => [0, 2], decodeTokens: ids => ids.join(','), getTokenContract: () => stop,
+    tokenize: () => [0, 2], decodeTokens: ids => ids.join(','),
+    createIncrementalDecoder() {
+      let first = true;
+      return { push(id) { const text = `${first ? '' : ','}${id}`; first = false; return text; }, pendingText: () => '', finish: () => '' };
+    }, getTokenContract: () => stop,
     reset() {}, getActiveAdapterIdentity: () => null,
     executePhase: async (phase, request) => {
       phases.push({ phase, sampling: request.context.generationOptions });
@@ -49,12 +54,14 @@ const makeRequest = overrides => ({ schema: 'doppler.capsule-operation-request/v
   input: { promptTokens: [0, 2] }, options: { ...options, ...overrides }, assignment: { id: 'installed-contract', attempt: 1 },
   limits: { maxInputBytes: 10000, maxOutputBytes: 100000, deadlineAt: Date.now() + 60000 } });
 const checks = [];
+let streamingAcceptance;
+let libraryAcceptance;
 try {
   const session = await service.openCapsule({ scope: 'a', source: fixture.capsule, options: ports });
   const second = await service.openCapsule({ scope: 'b', source: fixture.capsule, options: ports });
   const binding = { ...session.capsuleIdentity, artifacts: fixture.capsule.artifacts, requiredOperation: 'generate',
     acceptedTargetPlanDigests: [session.selectedTargetPlanDigest] };
-  const run = (request, extra = {}) => runPackOperation({ binding, session, request, runtimeVersion: api.DOPPLER_VERSION, ...extra });
+  const run = (request, extra = {}) => runPackOperation({ binding, session, request, runtimeVersion: api.DOPPLER_VERSION, runtimeService: service, ...extra });
   for (const [overrides, tokens] of [
     [{ presencePenalty: 2 }, [1]],
     [{ presencePenalty: 2, repetitionPenaltyWindow: 1 }, [0]],
@@ -115,11 +122,35 @@ try {
   await assert.rejects(run(makeRequest({}), { session: { ...session, generationContract: null } }), /contract mismatch/);
   assert.equal(phases.length, phaseCount);
   checks.push('invalid options and incompatible runtime rejected before inference');
+  libraryAcceptance = await checkInstalledLibraryProvider({ consumer, api, session, makeRequest, formats: ['v1', 'v2'] });
+  const incrementalRequest = { ...makeRequest({ maxTokens: 3, presencePenalty: 2, repetitionPenaltyWindow: 1 }), schema: 'doppler.capsule-operation-request/v2' };
+  const incrementalPartials = [];
+  const incremental = await run(incrementalRequest, { onPartial: event => {
+    assert.equal(Object.hasOwn(event, 'output'), false);
+    incrementalPartials.push(event.delta);
+  } });
+  assert.deepEqual(incremental.output.tokenIds, [0, 1, 0]);
+  assert.equal(incrementalPartials.map(delta => delta.text).join(''), incremental.output.text);
+  assert.equal(incremental.receipt.stream.partialCount, incrementalPartials.length);
+  const streamAbort = new AbortController();
+  await assert.rejects(run(incrementalRequest, { signal: streamAbort.signal,
+    onPartial: () => streamAbort.abort(new Error('incremental cancellation')) }), /incremental cancellation/);
+  assert.equal((await run({ ...incrementalRequest, options: { ...incrementalRequest.options, stopSequences: ['0,1'] } })).output.completion.stopReason, 'stop-sequence');
+  streamingAcceptance = await checkInstalledPeerStreaming({ api, service, session, binding, makeRequest });
+  checks.push('v2 delta reconstruction, split stop sequence, cancellation, signed peer delivery and durable replay');
   assert.equal(released, phases.length, 'every emitted step result is released');
 } finally { await service.closeAll(); }
 assert.equal(closed, 2);
+const adapterAcceptance = await checkInstalledAdapters({ consumer, service, api, makeRequest });
+const incrementalAdapterAcceptance = await checkInstalledAdapters({ consumer, service, api, makeRequest: options => ({ ...makeRequest(options), schema: 'doppler.capsule-operation-request/v2' }) });
+const runLibraryOperation = await createInstalledLibraryOperationRunner(consumer, api);
+const libraryAdapterAcceptance = await checkInstalledAdapters({ consumer, service, api, makeRequest, runOperation: runLibraryOperation });
+const libraryIncrementalAdapterAcceptance = await checkInstalledAdapters({ consumer, service, api,
+  makeRequest: options => ({ ...makeRequest(options), schema: 'doppler.capsule-operation-request/v2' }), runOperation: runLibraryOperation });
+checks.push('request-bound adapters, failure replacement, cancellation and independent session cleanup in both stream formats');
 console.log(JSON.stringify({ schema: 'reploid.installed-generation-contract-test/v1', passed: true,
-  runtimeEntry: entry, runtimeVersion: api.DOPPLER_VERSION, checks, phaseCalls: phases.length, released, closed,
+  runtimeEntry: entry, runtimeVersion: api.DOPPLER_VERSION, checks, phaseCalls: phases.length, released, closed, adapterAcceptance, incrementalAdapterAcceptance, streamingAcceptance, libraryAcceptance,
+  libraryAdapterAcceptance, libraryIncrementalAdapterAcceptance,
   model: { kind: 'signed test fixture with injected logits', modelId: fixture.capsule.modelId,
     capsuleHash: await hashDopplerEvidence(fixture.capsule) },
   evidence: 'installed API contract with injected logits; not physical model or semantic qualification' }));

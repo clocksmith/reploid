@@ -1,3 +1,4 @@
+import { getZeroAccessHeaders } from '../../config/zero-inference.js';
 import { createOperationRoomNetwork } from '../../pool/operation-room-network.js';
 import { createWorkSession } from '../../host/work-session.js';
 import { createWorkPeerJobs } from '../../host/work-peer-jobs.js';
@@ -220,7 +221,7 @@ export function initPoolHome(mount, { operationNetwork = null } = {}) {
   let disposeDocumentView = () => {};
   let disposeOperationSharing = () => {};
   let disposeWorkView = () => {};
-  const work = createWorkSession({ storage: getCurrentReploidStorage(),
+  const work = createWorkSession({ credentials: getZeroAccessHeaders, storage: getCurrentReploidStorage(),
     peers: createWorkPeerJobs({ getNetwork: () => operationNetwork }) });
   const onPageHide = event => {
     work.cancel();

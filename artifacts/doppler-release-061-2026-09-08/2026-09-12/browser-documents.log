@@ -1,0 +1,28 @@
+[2m[WebServer] [22m(node:1067834) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+[2m[WebServer] [22m(node:1067956) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+[2m[WebServer] [22m(node:1068016) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+[2m[WebServer] [22m(node:1068059) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+[2m[WebServer] [22m(node:1068059) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+[2m[WebServer] [22m[Proxy] Config loader not available, using environment variables
+[2m[WebServer] [22m☡  WARNING: GEMINI_API_KEY not found in .env file
+[2m[WebServer] [22m   The Gemini proxy endpoint will not work without it.
+[2m[WebServer] [22m(node:1068117) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 4 tests using 1 worker
+
+(node:1068544) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:1068544) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 [chromium] › tests/e2e/document-search.spec.js:8:1 › local document journey preserves privacy and evidence with citations (1.6s)
+  ✓  2 [chromium] › tests/e2e/document-search.spec.js:8:1 › local document journey preserves privacy and evidence with abstention (1.5s)
+  ✓  3 [chromium] › tests/e2e/document-search.spec.js:99:1 › changed Reploid modules pass the actual Verification Worker (242ms)
+  ✓  4 [chromium] › tests/e2e/document-search.spec.js:128:1 › release checkpoints survive reopening and reject rollback, forks, and stale concurrent writers (156ms)
+
+  4 passed (6.4s)

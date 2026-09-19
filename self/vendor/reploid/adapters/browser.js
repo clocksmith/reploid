@@ -11,7 +11,7 @@ export function createIndexedDbStore({ databaseName, storeName, version, openTim
     throw new TypeError('Explicit database name, store name, version and open timeout are required');
   }
   if (!indexedDB?.open) throw new Error('IndexedDB is unavailable');
-  let db = null, opening = null, closed = false;
+  let db = null, opening = null, closed = false, cancelOpen = null;
   const transactions = new Set();
   const open = () => {
     if (closed) return Promise.reject(new Error('Store is closed'));
@@ -23,14 +23,17 @@ export function createIndexedDbStore({ databaseName, storeName, version, openTim
       const finish = (error, result) => {
         if (settled) { result?.close(); return; }
         settled = true;
+        cancelOpen = null;
         clearTimeout(timer);
         if (error || closed) { result?.close(); reject(error || new Error('Store is closed')); }
         else { db = result; db.onversionchange = () => { result.close(); if (db === result) db = null; }; resolve(db); }
       };
+      cancelOpen = () => finish(new Error('Store is closed'));
       let request;
       try { request = indexedDB.open(databaseName, version); }
       catch (error) { finish(error); return; }
       request.onupgradeneeded = () => {
+        if (settled || closed) { request.transaction.abort(); return; }
         if (!request.result.objectStoreNames.contains(storeName)) {
           request.result.createObjectStore(storeName, keyPath === null ? undefined : { keyPath });
         }
@@ -58,6 +61,7 @@ export function createIndexedDbStore({ databaseName, storeName, version, openTim
     });
   };
   return Object.freeze({
+    async init() { await open(); return true; },
     async get(key) { return (await transaction('readonly', store => store.get(String(key)))) ?? null; },
     async set(key, value) {
       const data = snapshotJson(value);
@@ -66,6 +70,6 @@ export function createIndexedDbStore({ databaseName, storeName, version, openTim
     },
     async delete(key) { await transaction('readwrite', store => store.delete(String(key))); return true; },
     async keys(prefix = '') { return (await transaction('readonly', store => store.getAllKeys())).map(String).filter(key => key.startsWith(prefix)).sort(); },
-    async close() { closed = true; for (const tx of transactions) { try { tx.abort(); } catch {} } transactions.clear(); if (opening) await opening.catch(() => {}); db?.close(); db = null; }
+    async close() { closed = true; cancelOpen?.(); for (const tx of transactions) { try { tx.abort(); } catch {} } transactions.clear(); if (opening) await opening.catch(() => {}); db?.close(); db = null; }
   });
 }

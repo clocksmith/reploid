@@ -21,6 +21,7 @@
     "test": "npx tsx bin/reploid-cli.ts test",
     "test:unit": "npx tsx bin/reploid-cli.ts test --unit",
     "test:integration": "npx tsx bin/reploid-cli.ts test --integration",
+    "test:doppler-consumer": "node tests/fixtures/doppler-installed-generation.js",
     "test:e2e": "npx tsx bin/reploid-cli.ts test --e2e",
     "test:e2e:p2p": "npx playwright test tests/e2e/p2p-mesh.spec.js",
     "test:e2e:p2p:actual": "REPLOID_E2E_ACTUAL_INFERENCE=1 npx playwright test tests/e2e/p2p-actual-inference.spec.js",
@@ -67,7 +68,10 @@
     "verify:runtime-config": "node scripts/sync-runtime-config.js",
     "verify:pool:css": "node scripts/verify-poolday-css-layers.js",
     "test:design": "vitest run tests/unit/design-system-css.test.js tests/unit/poolday-css-layers.test.js tests/unit/zero-ui.test.js",
-    "catscan:chain": "node scripts/verify-catscan.js --chain"
+    "catscan:chain": "node scripts/verify-catscan.js --chain",
+    "lint": "eslint .",
+    "verify:library-types": "tsc -p tsconfig.library.json",
+    "verify:library-delivery": "node scripts/verify-layers.js"
   },
   "keywords": [
     "reploid",
@@ -81,7 +85,7 @@
   "license": "MIT",
   "dependencies": {
     "acorn": "^8.15.0",
-    "doppler-gpu": "0.6.0",
+    "doppler-gpu": "0.6.1",
     "dotenv": "^16.3.1",
     "express": "^4.22.2",
     "node-fetch": "^3.3.2",
@@ -108,6 +112,8 @@
     "@vitest/coverage-v8": "4.1.10",
     "concurrently": "^8.0.0",
     "esbuild": "^0.28.1",
+    "eslint": "^9.39.5",
+    "globals": "^16.5.0",
     "happy-dom": "^20.0.11",
     "nodemon": "^3.0.1",
     "tsx": "^4.21.0",

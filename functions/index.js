@@ -17,6 +17,7 @@ import {
   isAllowedOrigin,
   numberEnv,
   validateMessages,
+  resolveFallbackModel,
   zeroGeminiPolicy
 } from './zero-gemini-policy.js';
 
@@ -221,6 +222,9 @@ export const zeroGemini = onRequest({
     res.status(400).json({ error: 'Requested model is not enabled for Zero.' });
     return;
   }
+  let fallbackModel;
+  try { fallbackModel = resolveFallbackModel(model, req.body?.allowedFallbackModels); }
+  catch (error) { res.status(400).json({ error: error.message }); return; }
   const maxOutputTokens = Number(req.body?.max_tokens || req.body?.maxOutputTokens || 8192);
   const maxAllowedOutputTokens = numberEnv('ZERO_GEMINI_MAX_OUTPUT_TOKENS', DEFAULT_MAX_OUTPUT_TOKENS);
   const payload = toGeminiPayload(req.body?.messages || [], {
@@ -242,8 +246,8 @@ export const zeroGemini = onRequest({
     let geminiResponse = response;
     let effectiveModel = model;
 
-    if (!geminiResponse.ok && geminiResponse.status === 404 && model !== 'gemini-2.5-flash' && model !== 'gemini-2.0-flash') {
-      const fallbackModel = 'gemini-2.5-flash';
+
+    if (!geminiResponse.ok && geminiResponse.status === 404 && fallbackModel) {
       const fallbackEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(fallbackModel)}:generateContent?key=${key}`;
       try {
         const fallbackResponse = await fetch(fallbackEndpoint, {
@@ -281,6 +285,7 @@ export const zeroGemini = onRequest({
       content,
       raw: content,
       provider: PROVIDER,
+      requestedModel: model,
       model: effectiveModel,
       timestamp: Date.now(),
       usage: data.usageMetadata || null

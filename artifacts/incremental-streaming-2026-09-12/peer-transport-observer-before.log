@@ -1,0 +1,39 @@
+
+ RUN  v4.1.10 /home/x/deco/worktrees/reploid-consumer-streaming
+
+ ❯ tests/unit/p2p-transport-lifecycle.test.js (6 tests | 1 failed) 21ms
+     × honors cancellation from the connecting-state observer before allocating a peer 12ms
+     ✓ enforces the connection deadline while the browser offer is unresolved 3ms
+     ✓ settles connect while offer setup is pending 1ms
+     ✓ settles connect while description setup is pending 1ms
+     ✓ ignores a pending answer after remote close 1ms
+     ✓ does not reopen or dispatch queued events after close 1ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/unit/p2p-transport-lifecycle.test.js > assignment transport cancellation > honors cancellation from the connecting-state observer before allocating a peer
+AssertionError: expected null to match object { code: 'webrtc_connection_failed' }
+
+- Expected:
+{
+  "code": "webrtc_connection_failed",
+}
+
++ Received:
+null
+
+ ❯ tests/unit/p2p-transport-lifecycle.test.js:71:23
+     69|       f.transport.connect().catch((error) => { outcome = error; });
+     70|       await Promise.resolve();
+     71|       expect(outcome).toMatchObject({ code: 'webrtc_connection_failed'…
+       |                       ^
+     72|       expect(f.pc).toBeUndefined();
+     73|       expect(vi.getTimerCount()).toBe(0);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 5 passed (6)
+   Start at  00:47:34
+   Duration  433ms (transform 60ms, setup 0ms, import 83ms, tests 21ms, environment 162ms)

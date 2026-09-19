@@ -1,0 +1,15 @@
+
+Running 6 tests using 1 worker
+
+(node:3353525) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:3353525) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 [chromium-swiftshader] › tests/e2e/peer-pack-jobs.spec.js:151:1 › Verification Worker accepts complete-job modules and modified execution boundaries (258ms)
+  ✓  2 [chromium-swiftshader] › tests/e2e/vfs-storage-contract.spec.js:30:1 › existing inline-key VFS files survive writes and connection replacement (71ms)
+  ✓  3 [chromium-swiftshader] › tests/e2e/vfs-storage-contract.spec.js:58:1 › init opens storage once before any file operation and rejects after close (76ms)
+  ✓  4 [chromium-swiftshader] › tests/e2e/vfs-storage-contract.spec.js:82:1 › init surfaces a native database version failure before declaring readiness (79ms)
+  ✓  5 [chromium-swiftshader] › tests/e2e/vfs-storage-contract.spec.js:101:1 › an aborted write emits no committed change and closing one VFS leaves another usable (79ms)
+  ✓  6 [chromium-swiftshader] › tests/e2e/vfs-storage-contract.spec.js:134:1 › Verification Worker permits only the extracted storage owner and preserves other rejections (113ms)
+
+  6 passed (1.6s)

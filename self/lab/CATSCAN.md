@@ -24,7 +24,9 @@ Outputs:
 - Composed lab surfaces through [surface.js](surface.js).
 
 ## Invariants
-- Zero proposes and X evaluates under separately declared profiles.
+- X extends Zero with explicit executable features and resources from one resolved surface.
+- A route grants no evaluation authority: evaluator ports, protected suites and host authorization establish separation.
+- Feature exclusions and immutable authority ceilings are separate; extensions cannot relax the ceiling.
 - Lab availability is not evidence of prospective product improvement.
 
 ## Acceptance

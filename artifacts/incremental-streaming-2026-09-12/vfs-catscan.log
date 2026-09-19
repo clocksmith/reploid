@@ -1,0 +1,15 @@
+
+> reploid@0.1.0 verify:catscan
+> node scripts/verify-catscan.js
+
+[catscan] Errors:
+- CATSCAN.md: 279 words exceeds the 250-word charter limit
+- packages/reploid/CATSCAN.md: 287 words exceeds the 250-word charter limit
+- packages/reploid/CATSCAN.md: Acceptance must include an Evidence: link
+- packages/reploid/CATSCAN.md: Contracts must name Inputs and Outputs
+- self/core/CATSCAN.md: 270 words exceeds the 250-word charter limit
+- self/pool/CATSCAN.md: 274 words exceeds the 250-word charter limit
+- self/vendor/CATSCAN.md: missing Freedom field
+- self/vendor/CATSCAN.md: Acceptance must include an Evidence: link
+- self/vendor/CATSCAN.md: Contracts must name Inputs and Outputs
+- docs/component-index.md: generated component index is stale; run npm run build:component-index

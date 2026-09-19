@@ -28,4 +28,8 @@ for (const [name, content] of [['doppler-generation-contract.js', output], ['dop
     if (await readFile(path, 'utf8') !== content) throw new Error(`${name} differs from the installed public generation API.`);
   } else await writeFile(path, content);
 }
+const libraryDeclarations = resolve(root, 'packages/reploid/src/contracts/config/doppler-generation-contract.d.ts');
+if (process.argv.includes('--check')) {
+  if (await readFile(libraryDeclarations, 'utf8') !== declarations) throw new Error('Library generation declarations differ from installed API.');
+} else await writeFile(libraryDeclarations, declarations);
 console.log('Doppler generation validation bundle matches the installed public API.');

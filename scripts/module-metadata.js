@@ -38,6 +38,7 @@ export function createModuleMetadataResolver({ rootDir, includeDependencies = fa
         const ast = parse(source ?? await readSource(file), { ecmaVersion: 'latest', sourceType: 'module' });
         const bindings = new Map();
         const exports = new Map();
+        const stars = [];
         const bind = (declaration) => {
           if (declaration?.type !== 'VariableDeclaration') return;
           for (const entry of declaration.declarations) {
@@ -55,6 +56,8 @@ export function createModuleMetadataResolver({ rootDir, includeDependencies = fa
                 imported: entry.type === 'ImportDefaultSpecifier' ? 'default' : name(entry.imported)
               });
             }
+          } else if (statement.type === 'ExportAllDeclaration' && !statement.exported) {
+            stars.push(statement.source.value);
           } else if (statement.type === 'ExportDefaultDeclaration') {
             exports.set('default', { node: statement.declaration });
           } else if (statement.type === 'ExportNamedDeclaration') {
@@ -69,7 +72,7 @@ export function createModuleMetadataResolver({ rootDir, includeDependencies = fa
             }
           }
         }
-        return { file, bindings, exports };
+        return { file, bindings, exports, stars };
       })());
     }
     return modules.get(file);
@@ -99,7 +102,18 @@ export function createModuleMetadataResolver({ rootDir, includeDependencies = fa
 
   async function exportValue(module, exported, fields, active) {
     return guard(`${module.file}:export:${exported}:${fields.join('.')}`, active,
-      (next) => bindingValue(module, module.exports.get(exported), fields, next));
+      async (next) => {
+        if (module.exports.has(exported)) return bindingValue(module, module.exports.get(exported), fields, next);
+        if (exported === 'default') return UNKNOWN;
+        const matches = [];
+        for (const source of module.stars) {
+          const file = dependency(module.file, source);
+          if (!file) continue;
+          const value = await exportValue(await moduleFor(file), exported, fields, next);
+          if (value !== UNKNOWN) matches.push(value);
+        }
+        return matches.length === 1 ? matches[0] : UNKNOWN;
+      });
   }
 
   async function expressionValue(module, node, fields, active) {

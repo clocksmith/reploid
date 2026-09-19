@@ -5,9 +5,26 @@ import profile from '../config/reploid-library.json' with { type: 'json' };
 export default {
   metadata: { id: 'VFS', version: '1.0.0', genesis: { introduced: 'tabula' },
     dependencies: ['Utils', 'EventBus?'], async: true, type: 'service' },
-  factory({ EventBus }) {
+  factory({ Utils, EventBus }) {
     const store = createIndexedDbStore({ ...profile.persistence, databaseName: getScopedReploidVfsDbName() });
-    return { ...createVfs({ store, emit: (name, event) => EventBus?.emit(name, event) }),
-      close: () => store.close() };
+    const vfs = createVfs({ store, ownsStore: true, emit: (name, event) => {
+      if (name === 'vfs:file_changed' && event.operation === 'delete') Utils?.logger.info(`[VFS] Deleted ${event.path}`);
+      EventBus?.emit(name, event);
+    } });
+    let initialized = false;
+    return {
+      ...vfs,
+      async init() {
+        await vfs.init();
+        if (!initialized) { initialized = true; Utils?.logger.info('[VFS] Database connected'); }
+        return true;
+      },
+      async mkdir(path) {
+        await vfs.mkdir(path);
+        Utils?.logger.debug(`[VFS] mkdir ${path} (virtual)`);
+        return true;
+      },
+      close: () => vfs.close()
+    };
   }
 };

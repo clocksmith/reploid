@@ -152,7 +152,6 @@ export function buildSelfManifest(options = {}) {
     bootPath: '/self/boot.json',
     identityPath: '/self/identity.json',
     productModel: 'Reploid',
-    operatingState: 'tabula-rasa',
     coreInvariant: 'Start small, read blueprints on demand, stage candidates under /shadow.',
     orchestratorBoundary: 'Browser-hosted runtime. See kernel prompt and blueprint index for operating rules.',
     boot: {

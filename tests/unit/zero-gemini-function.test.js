@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { DEFAULT_GEMINI_MODEL, zeroGeminiPolicy } from '../../functions/zero-gemini-policy.js';
+import { DEFAULT_GEMINI_MODEL, zeroGeminiPolicy, resolveFallbackModel } from '../../functions/zero-gemini-policy.js';
 import { ZERO_GEMINI_MODEL } from '../../self/config/zero-inference.js';
 
 describe('Zero Gemini admission policy', () => {
@@ -57,5 +57,17 @@ describe('Zero Gemini admission policy', () => {
 
     expect(zeroGeminiPolicy.rateBuckets.has('expired')).toBe(false);
     expect(zeroGeminiPolicy.rateBuckets.size).toBeLessThanOrEqual(2);
+  });
+});
+
+
+describe('explicit provider fallback policy', () => {
+  const allowed = new Set(['requested', 'alternate']);
+  it('uses no replacement unless both client policy and server admission allow it', () => {
+    expect(resolveFallbackModel('requested', undefined, allowed)).toBeNull();
+    expect(resolveFallbackModel('requested', ['requested'], allowed)).toBeNull();
+    expect(resolveFallbackModel('requested', ['alternate'], allowed)).toBe('alternate');
+    expect(() => resolveFallbackModel('requested', ['unknown'], allowed)).toThrow('allowlist');
+    expect(() => resolveFallbackModel('requested', 'alternate', allowed)).toThrow('allowlist');
   });
 });

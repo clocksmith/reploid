@@ -1,3 +1,5 @@
+import { requireSurfaceIntent } from './surface-intents.js';
+import { SHARED_BOOT_UI_PREFIXES } from './surface-resources.js';
 /**
  * @fileoverview Route-aware boot seed selection for VFS bootstrap.
  */
@@ -5,44 +7,6 @@
 // Installed library modules load through their hosted package URLs. The host
 // loader resolves mirrored URLs and allowlisted dependency misses on demand;
 // declarations and unrelated library capabilities are not eager VFS seeds.
-
-const SHARED_BOOT_UI_PREFIXES = Object.freeze([
-  'entry/',
-  'boot-helpers/vfs-bootstrap.js',
-  'self/cloud-access.js',
-  'self/cloud-access-status.js',
-  'self/manifest.js',
-  'self/environment.js',
-  'self/identity.js',
-  'self/key-unsealer.js',
-  'self/receipt.js',
-  'self/reward-policy.js',
-  'self/swarm.js',
-  'config/doppler-local-models.js',
-  'config/immutability.js',
-  'config/reploid-environments.js',
-  'config/surface-intents.js',
-  'config/tool-surfaces.js',
-  'config/zero-inference.js',
-  'config/boot-modes.js',
-  'config/boot-seed.js',
-  'config/module-resolution.js',
-  'core/utils.js',
-  'core/security-config.js',
-  'ui/boot-home/',
-  'ui/boot-wizard/detection.js',
-  'ui/boot-wizard/goals.js',
-  'ui/boot-wizard/reploid-inference.js',
-  'ui/boot-wizard/state.js',
-  'ui/boot-wizard/steps/browser.js',
-  'ui/boot-wizard/steps/choose.js',
-  'ui/boot-wizard/steps/direct.js',
-  'ui/boot-wizard/steps/goal.js',
-  'ui/boot-wizard/steps/proxy.js',
-  'ui/shared/',
-  'styles/boot.css',
-  'styles/rd.css'
-]);
 
 const REPLOID_MINIMAL_HOME_BOOT_SEED_PREFIXES = Object.freeze([
   'blueprint-index.json',
@@ -116,98 +80,8 @@ export const LOCKED_HOME_BOOT_SEED_PREFIXES = Object.freeze([
   'styles/zero.css'
 ]);
 
-const ZERO_SEED_TOOL_FILES = Object.freeze([
-  'tools/CreateTool.js'
-]);
-
-export const ZERO_HOME_BOOT_SEED_PREFIXES = Object.freeze([
-  'entry/',
-  'blueprint-index.json',
-  'blueprints/blueprint-index-contract.md',
-  'blueprints/tabula-rasa-runtime.md',
-  'blueprints/tool-contract.md',
-  'boot-helpers/config.js',
-  'boot-helpers/error-ui.js',
-  'boot-helpers/index.js',
-  'boot-helpers/modules.js',
-  'boot-helpers/services.js',
-  'boot-helpers/vfs-bootstrap.js',
-  'boot-helpers/vfs-hydrate.js',
-  'config/boot-modes.js',
-  'config/boot-seed.js',
-  'config/doppler-local-models.js',
-  'config/genesis-levels.json',
-  'config/immutability.js',
-  'config/lab-route-profiles.js',
-  'config/module-registry.json',
-  'config/module-resolution.js',
-  'config/reploid-environments.js',
-  'config/surface-intents.js',
-  'config/tool-surfaces.js',
-  'config/zero-goals.js',
-  'config/zero-inference.js',
-  'config/vfs-manifest.json',
-  'core/agent-loop.js',
-  'core/context-manager.js',
-  'core/cycle-artifacts.js',
-  'core/import-rewrite.js',
-  'core/llm-client.js',
-  'core/persona-manager.js',
-  'core/promotion-policy.js',
-  'core/provider-registry.js',
-  'core/response-parser.js',
-  'core/schema-registry.js',
-  'core/security-config.js',
-  'core/state-helpers-pure.js',
-  'core/state-manager.js',
-  'core/tool-runner.js',
-  'core/tool-writer.js',
-  'core/utils.js',
-  'core/vfs.js',
-  'core/vfs-module-loader.js',
-  'providers/doppler-reploid.js',
-  'infrastructure/circuit-breaker.js',
-  'infrastructure/di-container.js',
-  'infrastructure/event-bus.js',
-  'infrastructure/tool-executor.js',
-  'lab/mirrors.js',
-  'lab/profiles.js',
-  'lab/runtime-ui.js',
-  'lab/surface.js',
-  'personas/config.json',
-  'prompts/kernel.md',
-  'self/boot-spec.js',
-  'self/host/seed-vfs.js',
-  'self/host/start-app.js',
-  'self/host/sw-module-loader.js',
-  'self/host/vfs-bootstrap.js',
-  'self/instance.js',
-  'styles/boot.css',
-  'styles/rd.css',
-  'styles/zero.css',
-  'ui/zero-home/index.js',
-  'ui/toast.js',
-  'ui/zero/index.js',
-  ...ZERO_SEED_TOOL_FILES
-]);
-
-export const X_HOME_BOOT_SEED_PREFIXES = Object.freeze([
-  ...ZERO_HOME_BOOT_SEED_PREFIXES,
-  ...LOCKED_HOME_BOOT_SEED_PREFIXES,
-  'blueprints/rgr-runtime-contract.md',
-  'blueprints/promotion-contract.md',
-  'core/change-passport.js',
-  'core/change-passport-policy.js',
-  'core/change-passport-improvement-adapter.js',
-  'core/visual-change-passport.js',
-  'shared/change-passport/',
-  'core/improvement-episode.js',
-  'tools/Promote.js',
-  'tools/DopplerOptimize.js',
-  'capabilities/system/doppler-optimizer.js',
-  'styles/proto/',
-  'ui/proto/'
-]);
+export const ZERO_HOME_BOOT_SEED_PREFIXES = requireSurfaceIntent('zero').seedPrefixes;
+export const X_HOME_BOOT_SEED_PREFIXES = requireSurfaceIntent('x').seedPrefixes;
 
 export const REPLOID_HOME_BOOT_SEED_PREFIXES = Object.freeze([
   ...REPLOID_MINIMAL_HOME_BOOT_SEED_PREFIXES

@@ -9,6 +9,7 @@ Materialize the configured browser runtime from trusted seed assets and hand con
 ## Authority
 - Owns VFS seeding, service-worker module loading, application startup, and application-selected task tools.
 - Composes the reusable agent with local work retention and exact-payload peer approval.
+- Work task contracts own validation, the repository owns committed revisions, providers own execution adaptation, and views expose detached immutable state.
 - Does not own product policy, module semantics, or recovery-root immutability.
 
 ## Scope

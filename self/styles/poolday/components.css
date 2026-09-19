@@ -352,7 +352,7 @@
   background: var(--pool-surface-page);
   color: var(--pool-surface-muted);
 }
-.pool-work-actions [data-work-start] { min-height: var(--pool-px-44); }
+.pool-work-actions [data-work-start] { min-height: var(--pool-px-48); }
 .pool-work-status { margin: 0; color: var(--pool-surface-muted); }
 .pool-work-error { color: var(--pool-hue-red); overflow-wrap: anywhere; }
 .pool-work-task-header {

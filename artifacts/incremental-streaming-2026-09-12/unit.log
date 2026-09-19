@@ -1,0 +1,13 @@
+
+ RUN  v4.1.10 /home/x/deco/worktrees/reploid-consumer-streaming
+
+ ✓ tests/unit/doppler-runtime-service.test.js (10 tests) 8ms
+ ✓ tests/unit/pool-pack-operation.test.js (9 tests) 36ms
+ ✓ tests/unit/pool-peer-pack-job.test.js (21 tests) 1519ms
+     ✓ enforces deadline, event, byte and admission limits without accepting a partial answer  672ms
+
+ Test Files  3 passed (3)
+      Tests  40 passed (40)
+   Start at  23:15:38
+   Duration  1.95s (transform 256ms, setup 0ms, import 406ms, tests 1.56s, environment 263ms)
+

@@ -1,10 +1,13 @@
+import { providerRetryDelay } from './provider-recovery.js';
+import { dispatchTool } from './tool-dispatch.js';
+import { executeTurns, createAttemptLifecycle, TURN_NEXT, TURN_STOP, TURN_RETURN } from './lifecycle.js';
 /**
  * @fileoverview Agent Loop
  * The main cognitive cycle: Think -> Act -> Observe.
  */
 
 import { createCycleArtifactWriter } from './cycle-artifacts.js';
-import { requireResolvedConfig } from '../config/index.js';
+import { requireResolvedConfig, freezeJson } from '../config/index.js';
 
 const AgentLoop = {
   metadata: {
@@ -22,7 +25,9 @@ const AgentLoop = {
   },
 
   factory: (deps) => {
-    const policy = requireResolvedConfig(deps.config);
+    let policy = requireResolvedConfig(deps.config);
+    const lifecycle = createAttemptLifecycle();
+    let closed = false, activeAttempt = null, runtimeMode = null;
     if (!deps.Storage || typeof deps.getRuntimeMode !== 'function' || typeof deps.buildInitialContext !== 'function' || !deps.Policies) {
       throw new TypeError('Legacy agent requires explicit storage, mode, prompt and policy ports');
     }
@@ -61,36 +66,11 @@ const AgentLoop = {
     const BUILD_READ_ONLY_DISCOVERY_LIMIT = policy.legacyAgent.discoveryLimit;
     const DEFAULT_MAX_TOOL_CALLS = policy.legacyAgent.maxToolCalls;
 
-    // Configurable limits - can be overridden via StateManager config
-    const getMaxToolCalls = () => {
-      try {
-        const config = StateManager?.getState()?.config || {};
-        return config.maxToolCallsPerIteration || DEFAULT_MAX_TOOL_CALLS;
-      } catch {
-        return DEFAULT_MAX_TOOL_CALLS;
-      }
-    };
-
-    const getStateConfig = () => {
-      try {
-        return StateManager?.getState?.()?.config || {};
-      } catch {
-        return {};
-      }
-    };
-
-    const getProviderThrottleConfig = (model = _modelConfig) => {
-      const stateConfig = getStateConfig();
-      const localConfig = readLocalStorageJson('REPLOID_PROVIDER_THROTTLE');
-      return resolveProviderThrottleConfig([
-        model?.agentThrottle,
-        model?.providerThrottle,
-        model?.throttle?.provider,
-        stateConfig.agentThrottle,
-        stateConfig.providerThrottle,
-        localConfig
-      ]);
-    };
+    const getMaxToolCalls = () => policy.legacyAgent.maxToolCalls;
+    const getProviderThrottleConfig = (model = _modelConfig) => resolveProviderThrottleConfig([
+      model?.agentThrottle, model?.providerThrottle, model?.throttle?.provider,
+      policy.legacyAgent.settings?.providerThrottle
+    ]);
 
     const sleepWithAbort = (delayMs, signal) => new Promise((resolve, reject) => {
       const delay = Math.max(0, Math.floor(Number(delayMs) || 0));
@@ -172,47 +152,7 @@ const AgentLoop = {
       return FALLBACK_READ_ONLY.includes(name);
     };
 
-    const readLocalStorageJson = (key) => {
-      const storage = getReploidStorage();
-      try {
-        const raw = storage.getItem(key);
-        if (!raw) return null;
-        const parsed = JSON.parse(raw);
-        if (parsed && typeof parsed === 'object') {
-          return parsed;
-        }
-        return null;
-      } catch (e) {
-        logger.warn(`[Agent] Failed to parse ${key}: ${e.message}`);
-        return null;
-      }
-    };
-
-    const readLocalStorageNumber = (key) => {
-      const storage = getReploidStorage();
-      try {
-        const raw = storage.getItem(key);
-        if (raw === null || raw === undefined || raw === '') return null;
-        const parsed = Number(raw);
-        return Number.isFinite(parsed) ? parsed : null;
-      } catch (e) {
-        logger.warn(`[Agent] Failed to parse ${key}: ${e.message}`);
-        return null;
-      }
-    };
-
-    const getAgentCycleIntervalMs = (model = _modelConfig) => {
-      const stateConfig = getStateConfig();
-      const localConfig = readLocalStorageJson('REPLOID_AGENT_CYCLE_THROTTLE');
-      const localSeconds = readLocalStorageNumber('REPLOID_CYCLE_INTERVAL_SECONDS');
-      return resolveAgentCycleIntervalMs([
-        stateConfig.agentCycleThrottle,
-        stateConfig.cycleThrottle,
-        model?.agentCycleThrottle,
-        model?.cycleThrottle,
-        localConfig
-      ], localSeconds);
-    };
+    const getAgentCycleIntervalMs = () => policy.legacyAgent.settings?.cycleIntervalMs ?? 0;
 
     const waitForCycleInterval = async (nextIteration) => {
       if (nextIteration <= 1) return;
@@ -243,22 +183,12 @@ const AgentLoop = {
       await sleepWithAbort(delayMs, _abortController?.signal);
     };
 
-    const getFunctionGemmaConfigFromState = () => {
-      try {
-        const state = StateManager?.getState?.();
-        return state?.functionGemma || state?.config?.functionGemma || null;
-      } catch {
-        return null;
-      }
-    };
-
     const resolveFunctionGemmaConfig = () => {
       if (!FunctionGemmaOrchestrator) return null;
       const candidates = [
         _modelConfig?.functionGemma,
         _modelConfig?.functionGemmaConfig,
-        getFunctionGemmaConfigFromState(),
-        readLocalStorageJson('REPLOID_FUNCTIONGEMMA_CONFIG')
+        policy.legacyAgent.settings?.functionGemma
       ].filter(Boolean);
 
       if (candidates.length === 0) return null;
@@ -706,16 +636,8 @@ const AgentLoop = {
 
     const computeProviderBackoffMs = (attempt, error, model = _modelConfig) => {
       const config = getProviderThrottleConfig(model);
-      const retryAfterMs = getProviderRetryAfterMs(error);
-      if (retryAfterMs !== null) return clampProviderBackoffMs(retryAfterMs, model);
-
-      const exponent = Math.max(0, Math.floor(Number(attempt) || 0));
-      const baseDelay = Math.min(
-        config.providerBackoffMaxMs,
-        config.providerBackoffBaseMs * (2 ** exponent)
-      );
-      const jitter = Math.floor(baseDelay * config.providerBackoffJitterRatio * Math.random());
-      return clampProviderBackoffMs(baseDelay + jitter, model);
+      return providerRetryDelay(error, { attempt, baseMs: config.providerBackoffBaseMs,
+        maxMs: config.providerBackoffMaxMs, jitterRatio: config.providerBackoffJitterRatio });
     };
 
     const applyProviderRequestThrottle = async (model, iteration) => {
@@ -761,7 +683,10 @@ const AgentLoop = {
 
     const chatWithProviderThrottle = async (context, model, streamCallback, options, iteration) => {
       await applyProviderRequestThrottle(model, iteration);
-      return LLMClient.chat(context, model, streamCallback, options);
+      const signal = _abortController.signal;
+      return lifecycle.invoke(() => LLMClient.chat(context, model, chunk => {
+        if (!signal.aborted && !closed) streamCallback?.(chunk);
+      }, { ...options, signal }), signal);
     };
 
     const getProviderRecoveryCandidates = (primaryModel) => {
@@ -882,12 +807,21 @@ const AgentLoop = {
       if (!ToolExecutor) {
         throw new Errors.ConfigError('ToolExecutor not available');
       }
-      const { result, rawResult, error, duration } = await ToolExecutor.executeWithRetry(call, {
+      try {
+      const { result, rawResult, error, duration } = await lifecycle.invoke(() => dispatchTool({
+        call, policy, listToolNames: () => ToolRunner.list?.() || [],
+        authorize: deps.authorizeTool, signal: _abortController.signal,
+        execute: (name, args, control) => ToolExecutor.executeWithRetry({ ...call, name, args }, {
+        ...control,
         timeoutMs: TOOL_EXECUTION_TIMEOUT_MS,
         iteration,
         trace: _traceSessionId ? { sessionId: _traceSessionId, source: 'agent' } : null
-      });
+      }) }), _abortController.signal);
       return { result, rawResult, error, duration };
+      } catch (error) {
+        if (_abortController?.signal.aborted) throw error;
+        return { result: null, rawResult: null, error, duration: 0 };
+      }
     };
 
     const parsePossibleJsonResult = (result) => {
@@ -1245,7 +1179,7 @@ const AgentLoop = {
       }, delayMs);
     };
 
-    const startRun = async (goal, resumeState = null) => {
+    const runAttempt = async (goal, resumeState, signal) => {
       if (_isRunning) throw new Errors.StateError('Agent already running');
       if (!_modelConfig) throw new Errors.ConfigError('No model configured');
 
@@ -1255,7 +1189,7 @@ const AgentLoop = {
       }
 
       _isRunning = true;
-      _abortController = new AbortController();
+      _abortController = { signal, abort: reason => lifecycle.cancel(reason) };
       if (!isResume) {
         _resetLoopHealth();
         _toolCircuitBreaker.reset();
@@ -1327,11 +1261,11 @@ const AgentLoop = {
       _currentContext = [...context];
 
       try {
-        while (_isRunning && iteration < maxIterations) {
-          if (_abortController.signal.aborted) break;
+        if (await executeTurns({ signal: _abortController.signal, canContinue: () => _isRunning && iteration < maxIterations, turn: async () => {
+          if (_abortController.signal.aborted) return TURN_STOP;
 
           await waitForCycleInterval(iteration + 1);
-          if (_abortController.signal.aborted) break;
+          if (_abortController.signal.aborted) return TURN_STOP;
 
           iteration++;
           await StateManager.incrementCycle();
@@ -1887,7 +1821,7 @@ const AgentLoop = {
           const healthCheck = _checkLoopHealth(iteration, executableToolCallCount, responseContent.length);
           if (healthCheck.stuck) {
             const shouldBreak = await _handleStuckLoop(healthCheck, context, iteration);
-            if (shouldBreak) break;
+            if (shouldBreak) return TURN_STOP;
           }
 
           if (toolCalls.length > 0) {
@@ -2129,7 +2063,7 @@ const AgentLoop = {
                   resumeContent: 'Resuming after tool cooldown',
                   resumeActivity: 'Retrying after tool cooldown'
                 }, retryDelayMs);
-                break;
+                return TURN_STOP;
               }
             }
 
@@ -2174,7 +2108,7 @@ const AgentLoop = {
                 resumeContent: `Resuming after ${waitDirective.directive.toLowerCase()} wait`,
                 resumeActivity: 'Retrying after wait directive'
               }, waitDirective.delayMs);
-              break;
+              return TURN_STOP;
             }
             if (ResponseParser.isDone(response.content)) {
               await _writeCycleOutcomeArtifacts({
@@ -2189,7 +2123,7 @@ const AgentLoop = {
                 done: true
               });
               logger.info('[Agent] Goal achieved.');
-              break;
+              return TURN_STOP;
             }
             await _writeCycleOutcomeArtifacts({
               iteration,
@@ -2209,9 +2143,10 @@ const AgentLoop = {
             }
             context.push({ role: 'user', content: continuationMsg });
           }
-        }
+
+    } }) === TURN_RETURN) return;
       } catch (err) {
-        if (err instanceof Errors.AbortError) {
+        if (err instanceof Errors.AbortError || _abortController?.signal.aborted) {
           logger.info('[Agent] Cycle aborted.');
         } else if (isTransientProviderError(err)) {
           const status = getProviderErrorStatus(err);
@@ -2365,7 +2300,7 @@ const AgentLoop = {
          }
     };
 
-    const getRuntimeMode = () => deps.getRuntimeMode();
+    const getRuntimeMode = () => runtimeMode ?? deps.getRuntimeMode();
 
     const getMutationProgressToolList = () => (
       getRuntimeMode() === 'zero'
@@ -2390,31 +2325,53 @@ const AgentLoop = {
       }
       return String(goal ?? '').trim();
     };
-    const run = (goal) => startRun(normalizeGoalInput(goal), null);
+    const startRun = (goal, resumeState = null) => {
+      if (closed) return Promise.reject(new Errors.StateError('Agent is closed'));
+      if (activeAttempt) return Promise.reject(new Errors.StateError('Agent already running'));
+      if (!resumeState) {
+        policy = requireResolvedConfig(deps.resolveAttemptConfig?.(_modelConfig) || deps.config);
+        runtimeMode = deps.getRuntimeMode();
+      }
+      activeAttempt = lifecycle.start(signal => runAttempt(goal, resumeState, signal))
+        .finally(() => { activeAttempt = null; _isRunning = false; });
+      return activeAttempt;
+    };
+    const run = goal => startRun(normalizeGoalInput(goal), null);
+    const setModel = c => {
+      if (activeAttempt || _providerResumeState) throw new Errors.StateError('Pause before changing the model');
+      _modelConfig = c ? freezeJson(structuredClone(c)) : null;
+      resetFunctionGemmaState();
+    };
 
     return {
       run,
-      close: () => {
+      close: async () => {
+        closed = true;
         clearProviderResumeTimer();
         _abortController?.abort();
         _isRunning = false;
         for (const unsubscribe of subscriptions.splice(0)) unsubscribe?.();
+        await lifecycle.close();
       },
       stop: () => {
         clearProviderResumeTimer();
         if (_abortController) _abortController.abort();
         _isRunning = false;
       },
-      setModel: (c) => { _modelConfig = c; resetFunctionGemmaState(); },
+      setModel,
       setModels: (models) => {
-        _modelConfigs = models || [];
+        if (activeAttempt || _providerResumeState) throw new Errors.StateError('Pause before changing models');
+        _modelConfigs = freezeJson(structuredClone(models || []));
         // Set primary model as first one for fallback
         if (models && models.length > 0) {
-          _modelConfig = models[0];
+          _modelConfig = _modelConfigs[0];
         }
         resetFunctionGemmaState();
       },
-      setConsensusStrategy: (strategy) => { _consensusStrategy = strategy || 'arena'; },
+      setConsensusStrategy: (strategy) => {
+        if (activeAttempt || _providerResumeState) throw new Errors.StateError('Pause before changing strategy');
+        _consensusStrategy = strategy || 'arena';
+      },
       isRunning: () => _isRunning,
       hasPendingProviderResume: () => !!_providerResumeState,
       getRecentActivities,

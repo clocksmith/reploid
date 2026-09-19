@@ -56,6 +56,7 @@ describe('AgentLoop - Integration Tests', () => {
     };
 
     mockToolRunner = {
+      list: () => ['tool1', 'tool2', 'tool3', 'tool4', 'tool5', 'tool6', 'tool7', 'failing_tool', 'test', 'ReadFile', 'WriteFile', 'ListFiles', 'CreateTool', 'LoadModule', 'Promote', 'DeleteFile', 'KatamariEngine', 'AwaitWorkers'],
       execute: vi.fn()
     };
 
@@ -164,6 +165,18 @@ describe('AgentLoop - Integration Tests', () => {
   });
 
   describe('initialization', () => {
+    it('keeps model and strategy selection fixed during an active attempt', async () => {
+      agentLoop.setModel({ id: 'fixture', provider: 'test' });
+      mockLLMClient.chat.mockResolvedValue({ content: 'DONE' });
+      mockResponseParser.isDone.mockReturnValue(true);
+      const pending = agentLoop.run('Inspect the bounded goal');
+      expect(() => agentLoop.setModel({ id: 'other' })).toThrow('Pause');
+      expect(() => agentLoop.setConsensusStrategy('swarm')).toThrow('Pause');
+      await pending;
+      expect(() => agentLoop.setConsensusStrategy('arena')).not.toThrow();
+      await agentLoop.close();
+    });
+
     it('should not be running initially', () => {
       expect(agentLoop.isRunning()).toBe(false);
     });
@@ -1230,7 +1243,7 @@ describe('AgentLoop - Integration Tests', () => {
       });
 
       const runPromise = agentLoop.run('Throttle provider');
-      await flushPromises();
+      await vi.advanceTimersByTimeAsync(0);
 
       expect(mockLLMClient.chat).toHaveBeenCalledTimes(1);
       await vi.advanceTimersByTimeAsync(999);
@@ -1266,7 +1279,7 @@ describe('AgentLoop - Integration Tests', () => {
       });
 
       const runPromise = agentLoop.run('Throttle all provider calls');
-      await flushPromises();
+      await vi.advanceTimersByTimeAsync(0);
 
       expect(mockLLMClient.chat).toHaveBeenCalledTimes(1);
       for (let expectedCalls = 2; expectedCalls <= 6; expectedCalls++) {
@@ -1302,7 +1315,7 @@ describe('AgentLoop - Integration Tests', () => {
       });
 
       const runPromise = agentLoop.run('Throttle cycles');
-      await flushPromises();
+      await vi.advanceTimersByTimeAsync(0);
 
       expect(mockLLMClient.chat).toHaveBeenCalledTimes(1);
       await vi.advanceTimersByTimeAsync(1499);

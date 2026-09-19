@@ -87,5 +87,7 @@
     "maxPayloadBytes": 16384,
     "maxPreviewMs": 30000,
     "maxToolResultCharacters": 8192
-  }
+  },
+  "defaultModelId": "qwen-3-5-2b-q4k-ehaf16",
+  "allowedFallbackModels": []
 }

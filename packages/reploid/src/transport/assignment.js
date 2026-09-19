@@ -64,10 +64,14 @@ export function createP2PTransport({
   let remoteIceCandidateCount = 0;
   let expiredRemoteIceCandidateCount = 0;
   let overflowRemoteIceCandidateCount = 0;
+  if (!Number.isSafeInteger(maxPendingRemoteIceCandidates) || maxPendingRemoteIceCandidates < 1
+    || !Number.isSafeInteger(pendingRemoteIceTtlMs) || pendingRemoteIceTtlMs < 1) {
+    throw new TypeError('Explicit positive ICE candidate limits are required');
+  }
   const localIceCandidateTypes = new Set();
   const remoteIceCandidateTypes = new Set();
-  const maxPendingIceCandidates = Math.max(1, Number(maxPendingRemoteIceCandidates || DEFAULT_MAX_PENDING_REMOTE_ICE_CANDIDATES));
-  const pendingIceTtlMs = Math.max(1, Number(pendingRemoteIceTtlMs || DEFAULT_PENDING_REMOTE_ICE_TTL_MS));
+  const maxPendingIceCandidates = Math.max(1, Number(maxPendingRemoteIceCandidates));
+  const pendingIceTtlMs = Math.max(1, Number(pendingRemoteIceTtlMs));
 
   const prunePendingRemoteIceCandidates = () => {
     const cutoff = now() - pendingIceTtlMs;
@@ -98,44 +102,69 @@ export function createP2PTransport({
     }
   }
 
-  async function connect() {
+  function isActivePeer(pc) {
+    return peerConnection === pc && (
+      state === P2P_TRANSPORT_STATES.CONNECTING || state === P2P_TRANSPORT_STATES.CONNECTED
+    );
+  }
+
+  function connect() {
     if (state !== P2P_TRANSPORT_STATES.IDLE) {
       return ready();
     }
 
-    setState(P2P_TRANSPORT_STATES.CONNECTING);
     openPromise = new Promise((resolve, reject) => {
       resolveOpen = resolve;
       rejectOpen = reject;
     });
+    setState(P2P_TRANSPORT_STATES.CONNECTING);
+    if (state !== P2P_TRANSPORT_STATES.CONNECTING) return openPromise;
 
     connectTimer = setTimeout(() => fail(createConnectionError('Connection deadline exceeded')), policy.connectTimeoutMs);
     try {
-      peerConnection = new RTCPeerConnectionImpl(rtcConfig);
-    wirePeerConnection(peerConnection);
+      const pc = new RTCPeerConnectionImpl(rtcConfig);
+      peerConnection = pc;
+      wirePeerConnection(pc);
 
-    if (typeof onPeerConnection === 'function') {
-      onPeerConnection(peerConnection);
-    }
+      if (typeof onPeerConnection === 'function') {
+        onPeerConnection(pc);
+      }
+      if (!isActivePeer(pc)) return openPromise;
 
-    unsubscribeSignals = signaling.subscribe((message) => {
-      void handleSignal(message).catch((error) => {
-        fail(error);
+      const unsubscribe = signaling.subscribe((message) => {
+        void handleSignal(message).catch((error) => {
+          if (isActivePeer(pc)) fail(error);
+        });
       });
-    });
+      if (!isActivePeer(pc)) {
+        unsubscribe();
+        return openPromise;
+      }
+      unsubscribeSignals = unsubscribe;
 
       if (transportInitiator) {
-        attachDataChannel(peerConnection.createDataChannel(dataChannelLabel, dataChannelOptions));
-        const offer = await peerConnection.createOffer();
-        await peerConnection.setLocalDescription(offer);
-        await signaling.sendOffer(descriptionToPayload(peerConnection.localDescription));
+        attachDataChannel(pc.createDataChannel(dataChannelLabel, dataChannelOptions));
+        if (isActivePeer(pc)) {
+          void sendInitialOffer(pc).catch((error) => {
+            if (isActivePeer(pc)) fail(error);
+          });
+        }
       }
     } catch (error) {
       fail(error);
-      return ready();
     }
 
-    return ready();
+    // Return the lifecycle promise before awaiting browser setup, so close and
+    // the deadline can settle every waiter even if an offer never resolves.
+    return openPromise;
+  }
+
+  async function sendInitialOffer(pc) {
+    const offer = await pc.createOffer();
+    if (!isActivePeer(pc)) return;
+    await pc.setLocalDescription(offer);
+    if (!isActivePeer(pc)) return;
+    await signaling.sendOffer(descriptionToPayload(pc.localDescription));
   }
 
   function ready() {
@@ -179,7 +208,6 @@ export function createP2PTransport({
     } catch {
       // Closing is best-effort.
     }
-
   }
 
   function rejectPendingOpen(error) {
@@ -202,25 +230,27 @@ export function createP2PTransport({
         : createConnectionError('peer transport closed before data channel opened'));
     }
 
-    if (unsubscribeSignals) {
-      unsubscribeSignals();
-      unsubscribeSignals = null;
-    }
-
-    if (dataChannel && dataChannel.readyState !== 'closed') {
-      dataChannel.close();
-    }
-
-    if (peerConnection) {
-      peerConnection.close();
-    }
-
+    // Drop ownership before invoking callbacks: browser close events and host
+    // unsubscribe hooks can reenter this path.
+    const unsubscribe = unsubscribeSignals;
+    const channel = dataChannel;
+    const pc = peerConnection;
+    unsubscribeSignals = null;
     dataChannel = null;
     peerConnection = null;
     pendingRemoteIceCandidates = [];
 
     if (state !== P2P_TRANSPORT_STATES.FAILED) {
       setState(P2P_TRANSPORT_STATES.CLOSED);
+    }
+    try {
+      unsubscribe?.();
+    } finally {
+      try {
+        if (channel && channel.readyState !== 'closed') channel.close();
+      } finally {
+        pc?.close();
+      }
     }
   }
 
@@ -241,7 +271,7 @@ export function createP2PTransport({
 
   function wirePeerConnection(pc) {
     pc.onicecandidate = (event) => {
-      if (!event.candidate) {
+      if (!isActivePeer(pc) || !event.candidate) {
         return;
       }
 
@@ -253,6 +283,10 @@ export function createP2PTransport({
     };
 
     pc.ondatachannel = (event) => {
+      if (!isActivePeer(pc)) {
+        event.channel.close();
+        return;
+      }
       if (transportInitiator) {
         return;
       }
@@ -261,6 +295,7 @@ export function createP2PTransport({
     };
 
     pc.onconnectionstatechange = () => {
+      if (!isActivePeer(pc)) return;
       lastConnectionState = pc.connectionState || null;
       if (pc.connectionState === 'failed') {
         fail(createConnectionError('peer connection failed'));
@@ -272,6 +307,7 @@ export function createP2PTransport({
     };
 
     pc.oniceconnectionstatechange = () => {
+      if (!isActivePeer(pc)) return;
       lastIceConnectionState = pc.iceConnectionState || null;
       if (pc.iceConnectionState === 'failed') {
         fail(createConnectionError('ICE connection failed'));
@@ -279,18 +315,22 @@ export function createP2PTransport({
     };
 
     pc.onicegatheringstatechange = () => {
+      if (!isActivePeer(pc)) return;
       lastIceGatheringState = pc.iceGatheringState || null;
     };
   }
 
   function attachDataChannel(channel) {
     dataChannel = channel;
+    const pc = peerConnection;
+    const isActiveChannel = () => dataChannel === channel && isActivePeer(pc);
 
     if (typeof onDataChannel === 'function') {
       onDataChannel(channel);
     }
 
     channel.onopen = () => {
+      if (!isActiveChannel()) return;
       clearTimeout(connectTimer);
       connectTimer = null;
       setState(P2P_TRANSPORT_STATES.CONNECTED);
@@ -298,10 +338,12 @@ export function createP2PTransport({
       if (resolveOpen) {
         resolveOpen();
         resolveOpen = null;
+        rejectOpen = null;
       }
     };
 
     channel.onmessage = (event) => {
+      if (!isActiveChannel()) return;
       if (typeof onMessage === 'function') {
         try {
           const bytes = typeof event.data === 'string' ? new TextEncoder().encode(event.data).byteLength : event.data?.byteLength ?? event.data?.size;
@@ -312,18 +354,20 @@ export function createP2PTransport({
     };
 
     channel.onerror = () => {
+      if (!isActiveChannel()) return;
       fail(new Error('data channel failed'));
     };
 
     channel.onclose = () => {
-      if (state !== P2P_TRANSPORT_STATES.CLOSED && state !== P2P_TRANSPORT_STATES.FAILED) {
+      if (isActiveChannel()) {
         closeLocal(createConnectionError('data channel closed before completion'));
       }
     };
   }
 
   async function handleSignal(message) {
-    if (!peerConnection) {
+    const pc = peerConnection;
+    if (!isActivePeer(pc)) {
       return;
     }
 
@@ -332,11 +376,15 @@ export function createP2PTransport({
         return;
       }
 
-      await peerConnection.setRemoteDescription(makeSessionDescription(message.payload));
-      await flushRemoteIceCandidates();
-      const answer = await peerConnection.createAnswer();
-      await peerConnection.setLocalDescription(answer);
-      await signaling.sendAnswer(descriptionToPayload(peerConnection.localDescription));
+      await pc.setRemoteDescription(makeSessionDescription(message.payload));
+      if (!isActivePeer(pc)) return;
+      await flushRemoteIceCandidates(pc);
+      if (!isActivePeer(pc)) return;
+      const answer = await pc.createAnswer();
+      if (!isActivePeer(pc)) return;
+      await pc.setLocalDescription(answer);
+      if (!isActivePeer(pc)) return;
+      await signaling.sendAnswer(descriptionToPayload(pc.localDescription));
       return;
     }
 
@@ -345,15 +393,16 @@ export function createP2PTransport({
         return;
       }
 
-      await peerConnection.setRemoteDescription(makeSessionDescription(message.payload));
-      await flushRemoteIceCandidates();
+      await pc.setRemoteDescription(makeSessionDescription(message.payload));
+      if (!isActivePeer(pc)) return;
+      await flushRemoteIceCandidates(pc);
       return;
     }
 
     if (message.type === SIGNAL_TYPES.ICE_CANDIDATE) {
       remoteIceCandidateCount += 1;
       recordCandidateType(remoteIceCandidateTypes, message.payload);
-      if (!hasRemoteDescription(peerConnection)) {
+      if (!hasRemoteDescription(pc)) {
         prunePendingRemoteIceCandidates();
         pendingRemoteIceCandidates.push({ payload: message.payload, receivedAt: now() });
         if (pendingRemoteIceCandidates.length > maxPendingIceCandidates) {
@@ -363,7 +412,7 @@ export function createP2PTransport({
         }
         return;
       }
-      await peerConnection.addIceCandidate(makeIceCandidate(message.payload));
+      await pc.addIceCandidate(makeIceCandidate(message.payload));
       return;
     }
 
@@ -372,8 +421,8 @@ export function createP2PTransport({
     }
   }
 
-  async function flushRemoteIceCandidates() {
-    if (!peerConnection || !hasRemoteDescription(peerConnection) || pendingRemoteIceCandidates.length === 0) {
+  async function flushRemoteIceCandidates(pc) {
+    if (!isActivePeer(pc) || !hasRemoteDescription(pc) || pendingRemoteIceCandidates.length === 0) {
       return;
     }
 
@@ -381,7 +430,8 @@ export function createP2PTransport({
     const candidates = pendingRemoteIceCandidates;
     pendingRemoteIceCandidates = [];
     for (const candidate of candidates) {
-      await peerConnection.addIceCandidate(makeIceCandidate(candidate.payload));
+      if (!isActivePeer(pc)) return;
+      await pc.addIceCandidate(makeIceCandidate(candidate.payload));
     }
   }
 

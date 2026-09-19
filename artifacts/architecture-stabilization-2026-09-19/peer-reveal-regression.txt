@@ -1,0 +1,14 @@
+
+ RUN  v4.1.10 /home/clocksmith/deco/reploid
+
+ ✓ tests/unit/layer-verification.test.js (10 tests) 14ms
+ ✓ tests/unit/pool-config-contract.test.js (10 tests) 29ms
+ ✓ tests/unit/pool-browser-lane-b.test.js (7 tests) 63ms
+ ✓ tests/unit/pool-hosted-diagnostic.test.js (1 test) 339ms
+     ✓ recovers an expired attempt, transports input outside the coordinator, and reaches accepted quorum  338ms
+
+ Test Files  4 passed (4)
+      Tests  28 passed (28)
+   Start at  15:34:07
+   Duration  1.49s (transform 658ms, setup 0ms, import 1.14s, tests 446ms, environment 1.21s)
+

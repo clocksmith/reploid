@@ -2,6 +2,7 @@
  * @fileoverview Browser provider client for fastest-receipt pool jobs.
  */
 
+import poolConfig from './pool-config.json' with { type: 'json' };
 import { createPoolSdk } from './sdk.js';
 import { buildPoolReceipt, createSigningKeyPair, exportPublicKey, hashJson, sha256Hex, signProviderReceipt } from './inference-receipt.js';
 import { createDopplerRuntime } from './doppler-runtime.js';
@@ -45,8 +46,13 @@ export function createProviderClient({
   identity = createPoolIdentity('provider'),
   adapterRegistry = createAdapterRegistry(),
   fetchAdapterFromPeer = null,
-  fetchAdapterFromOrigin = null
+  fetchAdapterFromOrigin = null,
+  revealPolling = poolConfig.ringPhaseProtocols.polling
 } = {}) {
+  const { maxPolls, intervalMs } = revealPolling;
+  if (!Number.isSafeInteger(maxPolls) || maxPolls < 1 || !Number.isSafeInteger(intervalMs) || intervalMs < 1) {
+    throw new Error('Reveal polling requires positive bounded poll count and interval');
+  }
   let activeKeyPair = keyPair;
   let publicKey = null;
   let registration = null;
@@ -336,7 +342,7 @@ export function createProviderClient({
     };
   };
 
-  const waitForRevealGate = async ({ assignment, commitmentResult, maxPolls = 5 }) => {
+  const waitForRevealGate = async ({ assignment, commitmentResult }) => {
     if (commitmentResult?.revealOpen === true
       || commitmentResult?.phase === 'reveal_open'
       || commitmentResult?.ringPhase === 'reveal_open') {
@@ -346,7 +352,11 @@ export function createProviderClient({
         commitmentResult
       };
     }
+    const expiresAt = Date.parse(assignment.expiresAt);
     for (let poll = 0; poll < maxPolls; poll += 1) {
+      if (Number.isFinite(expiresAt) && Date.now() >= expiresAt) break;
+      if (poll > 0) await new Promise(resolve => setTimeout(resolve, intervalMs));
+      if (Number.isFinite(expiresAt) && Date.now() >= expiresAt) break;
       const jobResponse = await sdk.pollJob(assignment.jobId);
       const job = jobResponse?.job || jobResponse;
       if (job?.ringPhase === 'reveal_open' || job?.ringPhase === 'reveal_submitted') {
@@ -411,8 +421,8 @@ export function createProviderClient({
       throw error;
     }
     const revealGate = await waitForRevealGate({ assignment, commitmentResult });
-    if (!revealGate.revealOpen && commitReveal.required) {
-      throw new Error('Coordinator did not open reveal phase for required commit-reveal assignment');
+    if (!revealGate.revealOpen) {
+      throw new Error('Coordinator did not open reveal phase within the configured assignment bounds');
     }
     const reveal = await buildAssignmentRevealPayload({
       assignment,

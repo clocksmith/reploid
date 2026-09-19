@@ -231,6 +231,15 @@ export function createReploidDopplerRuntimeService({
     // Reverify lifecycle policy on every Pack opening; never reuse stale eligibility.
     openPack: options => openSigned(resolveDopplerExecutionContract('doppler.pack/v2'), options),
     openCapsule: options => openSigned(resolveDopplerExecutionContract('doppler.capsule/v2'), options),
+    async createStreamAccumulator(request, { bindingSchema, runtimeVersion }) {
+      const module = await getModule();
+      const { runtime, version } = signedRuntime(module, resolveDopplerExecutionContract(bindingSchema));
+      if (version !== runtimeVersion) throw new Error('Stream consumer runtime version mismatch');
+      if (typeof runtime.createCapsuleStreamAccumulator !== 'function') {
+        throw new Error('This installed Doppler runtime does not support operation request v2');
+      }
+      return runtime.createCapsuleStreamAccumulator(request);
+    },
     close,
     get(scope = DEFAULT_SCOPE) {
       const entry = sessions.get(normalizedScope(scope));
