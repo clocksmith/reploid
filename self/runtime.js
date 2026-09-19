@@ -2,7 +2,7 @@
  * Application composition for the public Reploid browser library.
  * Seed content, selected credentials, route storage and UI remain application-owned.
  */
-import { createReploid } from './vendor/reploid/index.js';
+import { createReploid } from './vendor/reploid/agent/index.js';
 import { resolveConfig } from './vendor/reploid/config/index.js';
 import profile from './config/reploid-library.json' with { type: 'json' };
 import Utils from './core/utils.js';

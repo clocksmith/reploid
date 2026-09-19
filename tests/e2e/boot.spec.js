@@ -115,55 +115,47 @@ test.describe('Route Entry Points', () => {
     await expect(page.locator('.pool-boot-failure')).toHaveCount(0);
   });
 
-  test('home keeps one focused model task below minimal navigation', async ({ page }) => {
+  test('home keeps the Work composer below minimal navigation', async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 1100 });
     await page.goto(PRODUCT_HOME_PATH);
     await page.waitForSelector('.pool-home', { timeout: 20000 });
 
     const layout = await page.evaluate(() => {
-      const task = document.querySelector('.pool-home-task').getBoundingClientRect();
-      const form = document.querySelector('#pool-home-ask-form').getBoundingClientRect();
+      const task = document.querySelector('.pool-work-composer-shell').getBoundingClientRect();
+      const form = document.querySelector('[data-work-form]').getBoundingClientRect();
       return {
         formCenterDelta: Math.abs((form.left + form.width / 2) - (task.left + task.width / 2)),
         belowNav: form.top >= document.querySelector('.pool-primary-nav').getBoundingClientRect().bottom,
-        formInsideViewport: form.top >= 0 && form.bottom <= window.innerHeight
+        formInsideViewport: form.top >= 0 && form.top < window.innerHeight
       };
     });
     expect(layout.belowNav).toBe(true);
     expect(layout.formCenterDelta).toBeLessThanOrEqual(1);
     expect(layout.formInsideViewport).toBe(true);
-    await expect(page.locator('#pool-home-run-submit')).toHaveText('Run model');
+    await page.locator('[data-work-start]').scrollIntoViewIfNeeded();
+    await expect(page.locator('[data-work-start]')).toBeInViewport();
+    await expect(page.locator('[data-work-start]')).toHaveText('Start work');
     const nav = page.getByRole('navigation', { name: 'Reploid', exact: true });
     await expect(nav.locator('.pool-nav-link')).toHaveCount(3);
-    await expect(nav.getByRole('link', { name: 'Run a model', exact: true })).toHaveAttribute('aria-current', 'page');
-    await expect(nav.getByRole('link', { name: 'Share compute', exact: true })).toBeVisible();
-    await expect(nav.getByRole('link', { name: 'Recent jobs', exact: true })).toBeVisible();
+    await expect(nav.getByRole('link', { name: 'Work', exact: true })).toHaveAttribute('aria-current', 'page');
+    await expect(nav.getByRole('link', { name: 'Network', exact: true })).toBeVisible();
+    await expect(nav.getByRole('link', { name: 'Improve', exact: true })).toBeVisible();
     await expect(nav.locator('[data-pool-network-state]')).toBeVisible();
     await expect(page.locator('[data-pool-drawer-section]')).toHaveCount(0);
   });
 
-  test('product root renders the minimal Reploid request workflow', async ({ page }) => {
+  test('product root renders Work with explicit task and permission inputs', async ({ page }) => {
     await page.goto(PRODUCT_HOME_PATH);
-    await page.waitForSelector('.pool-home', { timeout: 20000 });
-
     await expect(page).toHaveTitle(/^Reploid$/i);
     await expect(page.locator('.pool-home')).toHaveAttribute('data-pool-route-id', 'home');
-    await expect(page.getByRole('heading', { name: 'Reploid', exact: true })).toBeVisible();
-    await expect(page.getByRole('heading', { name: 'Run a model', exact: true })).toBeVisible();
-    await expect(page.locator('#pool-home-request-model')).toHaveValue('esm2-t12-35m-ur50d-f32-af32');
-    await expect(page.getByLabel('Public protein sequence')).toHaveValue('');
-    await expect(page.getByLabel('This input may be sent to selected peers')).not.toBeChecked();
-    await expect(page.getByRole('button', { name: 'Run model', exact: true })).toBeVisible();
-    await expect(page.locator('.pool-home-request-details')).not.toHaveAttribute('open', '');
-    await expect(page.getByText('Question', { exact: true })).toBeHidden();
-    await page.locator('.pool-home-request-details > summary').click();
-    await expect(page.getByText('Verification', { exact: true })).toBeVisible();
-    await expect(page.getByLabel('Publish the question and result to the room')).toHaveCount(0);
-    await expect(page.getByText('Conditions', { exact: true })).toHaveCount(0);
-    await expect(page.getByText('Useful result', { exact: true })).toHaveCount(0);
-    await expect(page.locator('[data-pool-home-adapter-picker]')).toBeHidden();
+    await expect(page.locator('[data-work-form]')).toBeVisible();
+    await expect(page.locator('[data-work-goal]')).toHaveValue('');
+    await expect(page.locator('[data-work-model]')).toHaveValue('qwen-3-5-2b-q4k-ehaf16');
+    await expect(page.locator('[data-work-peers]')).not.toBeChecked();
+    await expect(page.locator('[data-work-recall]')).not.toBeChecked();
+    await expect(page.locator('[data-work-start]')).toHaveText('Start work');
+    await expect(page.locator('[data-work-details]')).not.toHaveAttribute('open', '');
     await expect(page.locator('[data-pool-research-room]')).toHaveCount(0);
-    await expect(page.locator('[data-pool-drawer-section]')).toHaveCount(0);
   });
 
   test('product navigation remains compact and complete on desktop and mobile', async ({ page }) => {
@@ -173,9 +165,9 @@ test.describe('Route Entry Points', () => {
       const nav = page.getByRole('navigation', { name: 'Reploid', exact: true });
       await expect(nav).toBeVisible();
       await expect(nav.locator('.pool-nav-link')).toHaveCount(3);
-      await expect(nav.getByRole('link', { name: 'Run a model', exact: true })).toBeVisible();
-      await expect(nav.getByRole('link', { name: 'Share compute', exact: true })).toBeVisible();
-      await expect(nav.getByRole('link', { name: 'Recent jobs', exact: true })).toBeVisible();
+      await expect(nav.getByRole('link', { name: 'Work', exact: true })).toBeVisible();
+      await expect(nav.getByRole('link', { name: 'Network', exact: true })).toBeVisible();
+      await expect(nav.getByRole('link', { name: 'Improve', exact: true })).toBeVisible();
       await expect(nav.locator('.pool-nav-toggle')).toHaveCount(0);
 
       const geometry = await page.evaluate(() => {
@@ -194,12 +186,12 @@ test.describe('Route Entry Points', () => {
       expect(geometry.overflowX).toBe(false);
     }
 
-    await page.getByRole('link', { name: 'Share compute', exact: true }).click();
-    await expect(page).toHaveURL(/\/compute\?room=reploid-default$/);
-    await expect(page.getByRole('link', { name: 'Share compute', exact: true })).toHaveAttribute('aria-current', 'page');
-    await page.getByRole('link', { name: 'Recent jobs', exact: true }).click();
-    await expect(page).toHaveURL(/\/records\?room=reploid-default$/);
-    await expect(page.getByRole('link', { name: 'Recent jobs', exact: true })).toHaveAttribute('aria-current', 'page');
+    await page.getByRole('link', { name: 'Network', exact: true }).click();
+    await expect(page).toHaveURL(/\/network\?room=reploid-default$/);
+    await expect(page.getByRole('link', { name: 'Network', exact: true })).toHaveAttribute('aria-current', 'page');
+    await page.getByRole('link', { name: 'Improve', exact: true }).click();
+    await expect(page).toHaveURL(/\/improve\?room=reploid-default$/);
+    await expect(page.getByRole('link', { name: 'Improve', exact: true })).toHaveAttribute('aria-current', 'page');
   });
 
   test('desktop navigation leaves the task column unobstructed', async ({ page }) => {
@@ -208,14 +200,14 @@ test.describe('Route Entry Points', () => {
     await page.waitForSelector('nav.pool-nav-rail', { timeout: 20000 });
     const layout = await page.evaluate(() => {
       const nav = document.querySelector('nav.pool-nav-rail')?.getBoundingClientRect();
-      const dock = document.querySelector('.pool-home-ask-dock')?.getBoundingClientRect();
+      const dock = document.querySelector('[data-work-form]')?.getBoundingClientRect();
       const centerOf = (rect) => rect ? rect.left + (rect.width / 2) : null;
       const atDockCenter = dock ? document.elementFromPoint(centerOf(dock), dock.top + (dock.height / 2)) : null;
       return {
         navBottom: nav?.bottom ?? null,
         dockTop: dock?.top ?? null,
         dockCenter: centerOf(dock),
-        taskCenter: centerOf(document.querySelector('.pool-home-task').getBoundingClientRect()),
+        taskCenter: centerOf(document.querySelector('.pool-work-composer-shell').getBoundingClientRect()),
         dockBlockedByNav: !!atDockCenter?.closest?.('.pool-nav-rail')
       };
     });
@@ -288,8 +280,8 @@ test.describe('Route Entry Points', () => {
           };
         }).filter((item) => item.width > 1 && (item.left < -1 || item.right > window.innerWidth + 1));
         const nav = document.querySelector('nav.pool-nav-rail')?.getBoundingClientRect();
-        const routeHeading = document.querySelector('.pool-page-heading')?.getBoundingClientRect() || null;
-        const ask = document.querySelector('.pool-home-run-button, #pool-run-submit')?.getBoundingClientRect() || null;
+        const routeHeading = document.querySelector('.pool-page-heading, [aria-label="Network"] h2')?.getBoundingClientRect() || null;
+        const ask = document.querySelector('[data-work-start], .pool-home-run-button, #pool-run-submit')?.getBoundingClientRect() || null;
         return {
           ask: ask ? { height: ask.height, width: ask.width } : null,
           nav: nav ? { height: nav.height, left: nav.left, width: nav.width } : null,
@@ -339,8 +331,8 @@ test.describe('Route Entry Points', () => {
     await page.goto('/compute');
     await page.waitForSelector('.pool-home', { timeout: 20000 });
     await expect(page.locator('.pool-home')).toHaveAttribute('data-pool-route-id', 'compute');
-    await expect(page.getByRole('link', { name: 'Share compute', exact: true })).toHaveAttribute('aria-current', 'page');
-    await expect(page.getByRole('heading', { name: 'Share compute', exact: true })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Network', exact: true })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Sequence provider', exact: true })).toBeVisible();
     await expect(page.locator('.pool-page-heading .pool-eyebrow')).toHaveCount(0);
     await expect(page.locator('[data-pool-simulation]')).toHaveCount(0);
     await expect(page.locator('[data-pool-provider-status]')).toHaveText('Idle');
@@ -368,11 +360,9 @@ test.describe('Route Entry Points', () => {
 
     await page.goto('/network');
     await page.waitForSelector('.pool-home', { timeout: 20000 });
-    await expect(page.getByRole('heading', { name: 'Recent jobs', exact: true })).toBeVisible();
-    await expect(page.locator('.pool-route-cta-row')).toHaveCount(0);
-    await expect(page.locator('#pool-record-ledger')).toBeVisible();
-    await expect(page.locator('#pool-peer-ledger')).toBeHidden();
-    await expect(page.locator('[data-pool-research-room]')).toHaveCount(0);
+    await expect(page.getByRole('region', { name: 'Network', exact: true })).toBeVisible();
+    await expect(page.locator('[data-operation-sharing]')).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Network', exact: true })).toHaveAttribute('aria-current', 'page');
   });
 
   test('home route boots without early VFS misses for instance-scoped runtime modules', async ({ page }) => {

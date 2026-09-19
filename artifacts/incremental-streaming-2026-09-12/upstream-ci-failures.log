@@ -1,0 +1,1065 @@
+
+ RUN  v4.1.10 /home/x/deco/worktrees/reploid-upstream-streaming-check
+
+ ❯ tests/unit/catscan.test.js (5 tests | 1 failed) 55ms
+     × validates the repository charter graph and generated index 34ms
+     ✓ resolves the complete root-to-file charter chain in order 12ms
+     ✓ rejects duplicate identifiers, incomplete fields, bad parents, and missing links 3ms
+     ✓ keeps a nested Git file boundary separate from ordinary hidden components 3ms
+     ✓ keeps a nested Git directory boundary separate from ordinary hidden components 2ms
+ ❯ tests/unit/webrtc-swarm.test.js (44 tests | 1 failed) 46ms
+       ✓ should accept valid envelope structure 5ms
+       ✓ should detect protocol version mismatch 1ms
+       ✓ should detect unknown message type 1ms
+       ✓ should detect oversized payload 0ms
+       ✓ should detect missing peerId 1ms
+       ✓ should detect missing timestamp 1ms
+       ✓ should include protocol version in envelope 0ms
+       ✓ should throw on oversized payload 0ms
+       ✓ should track payload size correctly 1ms
+       ✓ should expose getClock function 1ms
+       ✓ should start at 0 0ms
+       ✓ should calculate exponential backoff correctly 0ms
+       ✓ should cap backoff at 30 seconds 1ms
+       ✓ should start in stopped state 0ms
+       ✓ should expose getConnectionState function 0ms
+       ✓ should return empty array when no peers connected 1ms
+       ✓ should expose getConnectedPeers function 0ms
+       ✓ should return stats object 1ms
+       ✓ should start with zero message counts 0ms
+       ✓ should allow registering handlers for valid types 1ms
+       ✓ should warn when registering handler for unknown type 1ms
+       × should check REPLOID_SWARM_ENABLED feature flag 16ms
+       ✓ settles an initial signaling failure and enters retrying state 3ms
+       ✓ should return 0 when no peers connected 1ms
+       ✓ should return false when peer not found 0ms
+       ✓ should not throw when called before init 0ms
+       ✓ should set connection state to stopped 0ms
+       ✓ should expose _getPeerId for SwarmSync 0ms
+       ✓ should expose _getSessionId for SwarmSync 0ms
+       ✓ should generate valid UUID v4 format 1ms
+       ✓ should recognize sync-request as valid message type 0ms
+       ✓ should recognize sync-response as valid message type 0ms
+       ✓ should recognize goal-update as valid message type 0ms
+       ✓ should recognize reflection-share as valid message type 0ms
+       ✓ should recognize artifact-announce as valid message type 0ms
+       ✓ should recognize artifact-request as valid message type 0ms
+       ✓ should recognize artifact-chunk as valid message type 0ms
+       ✓ should recognize artifact-ack as valid message type 0ms
+       ✓ should recognize ping as valid message type 0ms
+       ✓ should recognize pong as valid message type 0ms
+       ✓ should reject invalid message types 0ms
+       ✓ should include Google STUN servers 1ms
+       ✓ should generate correct WebSocket URL 0ms
+       ✓ should use wss for https 0ms
+ ❯ tests/unit/boot-seed.test.js (18 tests | 1 failed) 38ms
+     ✓ includes the shared instance helper in the checked-in VFS manifest 2ms
+     ✓ hydrates self/instance.js and tabula-rasa contracts in the reploid home boot seed 2ms
+     ✓ skips full manifest hydration for locked and minimal home profiles 0ms
+     ✓ awaits full VFS hydration before start only for the mature workspace 0ms
+     ✓ hydrates the Zero runtime UI files in the locked boot seed 2ms
+     ✓ keeps surface intent import dependencies in every boot seed profile 7ms
+     ✓ hydrates the Poolday route extension only in Poolday home boot seeds 3ms
+     ✓ hydrates the shared local Doppler contract for Poolday, Zero, and X 5ms
+     ✓ hydrates the Doppler provider adapter for Zero and X 5ms
+     × keeps Zero lightweight while X absorbs the Zero boot surface 7ms
+     ✓ routes /zero to the Zero tabula-rasa profile 1ms
+     ✓ normalizes substrate route trailing slashes 0ms
+     ✓ rewrites the deployed API proxy to Cloud Run 1ms
+     ✓ rewrites the Zero model proxy to a Firebase function 0ms
+     ✓ routes stale split rd.css requests back to the self-contained bundle 0ms
+     ✓ caps the managed Zero server proxy model loop 0ms
+     ✓ expands capsule genesis into a complete awaken runtime 1ms
+     ✓ prunes optional service modules from the Zero route before module imports 0ms
+ ❯ tests/unit/self-runtime.test.js (19 tests | 19 failed) 21ms
+     × parks immediately in remote-slot mode when no local executor exists 9ms
+     × exposes bridge events to the host shell 1ms
+     × seeds kernel prompt and tabula-rasa blueprints into bootstrap context 1ms
+     × parks retryable provider quota errors instead of failing the run 1ms
+     × auto-resumes a parked remote slot when a peer host appears 1ms
+     × records done as a milestone and continues running 1ms
+     × accepts DONE as a milestone alias and records it 1ms
+     × parks on an explicit idle directive 0ms
+     × ignores plain text and continues running 1ms
+     × caps large tool observations before feeding them back into context 1ms
+     × executes batched tool calls and caps the batch at five 1ms
+     × counts only bridge-verified anchor observations toward qAnchor 0ms
+     × replay-scores archived candidates when anchor observations arrive later 0ms
+     × starts adjacent read-only tools through one scheduler group 0ms
+     × keeps mutation tools as barriers between read groups 0ms
+     × honors PLAN after dependencies before running dependent tools 1ms
+     × parks repeated milestone-only cycles with no new tool work 1ms
+     × records a milestone when tools and done are sent in the same response 1ms
+     × does not record a milestone for a plain tool batch with no done directive 0ms
+ ❯ tests/unit/p2p-transport.test.js (9 tests | 1 failed) 16ms
+     ✓ resolves validated runtime STUN and TURN configuration 2ms
+     ✓ serializes JSON values while preserving binary and plain string payloads 1ms
+     ✓ converts browser session descriptions and ICE candidates to transport payloads 0ms
+     ✓ requires a browser RTCPeerConnection implementation before creating a transport 0ms
+     ✓ queues remote ICE candidates until the remote description is installed 1ms
+     ✓ counts early ICE candidates that expire before the remote description arrives 1ms
+     × settles a connecting transport when explicitly closed 7ms
+     ✓ cleans up the peer connection and signal subscription when offer setup fails 1ms
+     ✓ creates an assignment payload channel with cloud metadata signaling and DataChannel payload sends 1ms
+ ❯ tests/integration/agent-loop.test.js (52 tests | 3 failed) 3036ms
+       ✓ should not be running initially 9ms
+       ✓ should throw if run without model configured 4ms
+       ✓ should set goal via StateManager 5ms
+       ✓ should emit STARTING status 3ms
+       ✓ should emit IDLE status when done 2ms
+       ✓ should build initial context with persona 3ms
+       ✓ builds Zero context with discovery-first VFS rules 2ms
+       ✓ builds X context with continuous improvement as the stopping policy 1ms
+       ✓ normalizes structured awaken goal packets before starting a cycle 2ms
+       ✓ should throw if already running 2ms
+       ✓ should increment cycle on each iteration 2ms
+       ✓ should stop at the configured model iteration limit 3ms
+       ✓ should cap managed server proxy loops at 99 iterations 13ms
+       ✓ should manage context before LLM call 1ms
+       ✓ emits visible history when context compacts 1ms
+       ✓ should fit managed Zero provider requests inside the function envelope 3ms
+       ✓ should emit history events 1ms
+       ✓ should emit the initial system prompt as a history event 3ms
+       ✓ should emit stream updates via callback 1ms
+       ✓ should execute tool calls from response 1ms
+       ✓ executes the full 8-call read-only native batch when available 2ms
+       ✓ requires a mutating tool after repeated read-only batches on build goals 2ms
+       ✓ treats ok:false mutating results as failures and skips dependent mutations 2ms
+       ✓ treats worker-returned ok:false tool results as logical failures 2ms
+       ✓ clears stale LoadModule circuit state after successful promotion 1ms
+       ✓ circuit-breaks LoadModule after repeated module load failures  908ms
+       ✓ does not circuit-break LoadModule for recoverable precondition failures 2ms
+       ✓ parks for tool cooldown resume after successful mutations with a skipped promoted write 3ms
+       ✓ should add tool result to context 1ms
+       ✓ surfaces tool parse errors to the next model cycle as corrective observations 1ms
+       ✓ should emit tool events 1ms
+       ✓ should handle tool errors gracefully  303ms
+       ✓ should retry ReadFile when the tool returns a safe near-miss path hint 2ms
+       ✓ should limit tool calls per iteration 1ms
+       ✓ should skip tool when circuit is open after repeated failures  905ms
+       ✓ should not trip circuit for recoverable tool input errors 3ms
+       ✓ should detect when no tools called for too long 1ms
+       ✓ should treat parse-error tool calls as no executable progress 1ms
+       ✓ should force stop on repeated short responses 1ms
+       ✓ should try an alternate configured model after a transient provider error 1ms
+       × should throttle provider requests from model config 9ms
+       × should throttle every LLM call inside a cycle 2ms
+       × should wait the configured interval between successful cycles 2ms
+       ✓ should park instead of throwing when every provider candidate is unavailable 2ms
+       ✓ should park managed Zero request rejections instead of crashing Boot 1ms
+       ✓ should auto-resume parked provider requests with exponential backoff 5ms
+       ✓ should log reflections on tool success 1ms
+       ✓ should log reflections on tool error  304ms
+       ✓ should inject failure patterns from ReflectionAnalyzer 1ms
+       ✓ should stop running agent  502ms
+       ✓ should track recent activities 1ms
+       ✓ should have correct metadata 1ms
+ ❯ tests/integration/vfs.test.js (36 tests | 34 failed) 135187ms
+       ✓ should have correct module metadata 4ms
+       × should open database connection 5ms
+       × should log successful connection 1ms
+       × should reuse existing connection 1ms
+       × should write file to storage 5002ms
+       × should normalize path 5004ms
+       × should record file size 5007ms
+       × should record update timestamp 5006ms
+       × should set type as file 5007ms
+       × should handle backslashes in path 5008ms
+       × should read file content 5007ms
+       × should throw for non-existent file 5005ms
+       × should normalize path before reading 5007ms
+       × should remove file from storage 5007ms
+       × should log deletion 5006ms
+       × should list files in directory 5006ms
+       × should default to root directory 5006ms
+       × should handle directory with trailing slash 5006ms
+       × should return empty array for empty directory 5007ms
+       × should return file metadata 5007ms
+       × should return null for non-existent file 5007ms
+       × should return true for existing file 5006ms
+       × should return false for non-existent file 5007ms
+       × should return true when no files exist 5007ms
+       × should return false when files exist 5007ms
+       ✓ should succeed (virtual directory) 1ms
+       × should log debug message 1ms
+       × should remove all files 5005ms
+       × should throw for null path 3ms
+       × should throw for undefined path 1ms
+       × should throw for non-string path 1ms
+       × should trim whitespace from path 5001ms
+       × should support full file lifecycle 5007ms
+       × should handle nested directory structure 5007ms
+       × should handle multiple simultaneous writes 5005ms
+       × should handle read while writing 5008ms
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 60 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/integration/agent-loop.test.js > AgentLoop - Integration Tests > provider recovery > should throttle provider requests from model config
+AssertionError: expected "vi.fn()" to be called 1 times, but got 0 times
+ ❯ tests/integration/agent-loop.test.js:1235:34
+    1233|       await flushPromises();
+    1234|
+    1235|       expect(mockLLMClient.chat).toHaveBeenCalledTimes(1);
+       |                                  ^
+    1236|       await vi.advanceTimersByTimeAsync(999);
+    1237|       expect(mockLLMClient.chat).toHaveBeenCalledTimes(1);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/60]⎯
+
+ FAIL  tests/integration/agent-loop.test.js > AgentLoop - Integration Tests > provider recovery > should throttle every LLM call inside a cycle
+AssertionError: expected "vi.fn()" to be called 1 times, but got 0 times
+ ❯ tests/integration/agent-loop.test.js:1271:34
+    1269|       await flushPromises();
+    1270|
+    1271|       expect(mockLLMClient.chat).toHaveBeenCalledTimes(1);
+       |                                  ^
+    1272|       for (let expectedCalls = 2; expectedCalls <= 6; expectedCalls++)…
+    1273|         await vi.advanceTimersByTimeAsync(999);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/60]⎯
+
+ FAIL  tests/integration/agent-loop.test.js > AgentLoop - Integration Tests > provider recovery > should wait the configured interval between successful cycles
+AssertionError: expected "vi.fn()" to be called 1 times, but got 0 times
+ ❯ tests/integration/agent-loop.test.js:1307:34
+    1305|       await flushPromises();
+    1306|
+    1307|       expect(mockLLMClient.chat).toHaveBeenCalledTimes(1);
+       |                                  ^
+    1308|       await vi.advanceTimersByTimeAsync(1499);
+    1309|       expect(mockLLMClient.chat).toHaveBeenCalledTimes(1);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/60]⎯
+
+ FAIL  tests/integration/vfs.test.js > VFS - Integration Tests > init > should open database connection
+AssertionError: expected "vi.fn()" to be called with arguments: [ 'reploid-vfs-v0--poolday', 1 ]
+
+Number of calls: 0
+
+ ❯ tests/integration/vfs.test.js:142:37
+    140|
+    141|       expect(result).toBe(true);
+    142|       expect(global.indexedDB.open).toHaveBeenCalledWith('reploid-vfs-…
+       |                                     ^
+    143|     });
+    144|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/60]⎯
+
+ FAIL  tests/integration/vfs.test.js > VFS - Integration Tests > init > should log successful connection
+AssertionError: expected "vi.fn()" to be called with arguments: [ '[VFS] Database connected' ]
+
+Number of calls: 0
+
+ ❯ tests/integration/vfs.test.js:148:37
+    146|       await vfs.init();
+    147|
+    148|       expect(mockUtils.logger.info).toHaveBeenCalledWith('[VFS] Databa…
+       |                                     ^
+    149|     });
+    150|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/60]⎯
+
+ FAIL  tests/integration/vfs.test.js > VFS - Integration Tests > init > should reuse existing connection
+AssertionError: expected "vi.fn()" to be called 1 times, but got 0 times
+ ❯ tests/integration/vfs.test.js:156:37
+    154|       await vfs.init();
+    155|
+    156|       expect(global.indexedDB.open).toHaveBeenCalledTimes(1);
+       |                                     ^
+    157|     });
+    158|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/60]⎯
+
+ FAIL  tests/integration/vfs.test.js > VFS - Integration Tests > write > should write file to storage
+Error: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ tests/integration/vfs.test.js:161:7
+    159|
+    160|   describe('write', () => {
+    161|     it('should write file to storage', async () => {
+       |       ^
+    162|       await vfs.write('/test.txt', 'Hello World');
+    163|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/60]⎯
+
+ FAIL  tests/integration/vfs.test.js > VFS - Integration Tests > write > should normalize path
+Error: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ tests/integration/vfs.test.js:170:7
+    168|     });
+    169|
+    170|     it('should normalize path', async () => {
+       |       ^
+    171|       await vfs.write('test.txt', 'Content');
+    172|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/60]⎯
+
+ FAIL  tests/integration/vfs.test.js > VFS - Integration Tests > write > should record file size
+Error: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ tests/integration/vfs.test.js:178:7
+    176|     });
+    177|
+    178|     it('should record file size', async () => {
+       |       ^
+    179|       await vfs.write('/data.txt', '12345');
+    180|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/60]⎯
+
+ FAIL  tests/integration/vfs.test.js > VFS - Integration Tests > write > should record update timestamp
+Error: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ tests/integration/vfs.test.js:186:7
+    184|     });
+    185|
+    186|     it('should record update timestamp', async () => {
+       |       ^
+    187|       const before = Date.now();
+    188|       await vfs.write('/timed.txt', 'data');
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/60]⎯
+
+ FAIL  tests/integration/vfs.test.js > VFS - Integration Tests > write > should set type as file
+Error: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ tests/integration/vfs.test.js:196:7
+    194|     });
+    195|
+    196|     it('should set type as file', async () => {
+       |       ^
+    197|       await vfs.write('/file.txt', 'content');
+    198|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/60]⎯
+
+ FAIL  tests/integration/vfs.test.js > VFS - Integration Tests > write > should handle backslashes in path
+Error: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ tests/integration/vfs.test.js:204:7
+    202|     });
+    203|
+    204|     it('should handle backslashes in path', async () => {
+       |       ^
+    205|       await vfs.write('path\\to\\file.txt', 'content');
+    206|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[12/60]⎯
+
+ FAIL  tests/integration/vfs.test.js > VFS - Integration Tests > read > should read file content
+Error: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ tests/integration/vfs.test.js:214:7
+    212|
+    213|   describe('read', () => {
+    214|     it('should read file content', async () => {
+       |       ^
+    215|       fileStorage.set('/test.txt', { path: '/test.txt', content: 'File…
+    216|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[13/60]⎯
+
+ FAIL  tests/integration/vfs.test.js > VFS - Integration Tests > read > should throw for non-existent file
+Error: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ tests/integration/vfs.test.js:222:7
+    220|     });
+    221|
+    222|     it('should throw for non-existent file', async () => {
+       |       ^
+    223|       await expect(vfs.read('/missing.txt'))
+    224|         .rejects.toThrow('File not found');
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[14/60]⎯
+
+ FAIL  tests/integration/vfs.test.js > VFS - Integration Tests > read > should normalize path before reading
+Error: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ tests/integration/vfs.test.js:227:7
+    225|     });
+    226|
+    227|     it('should normalize path before reading', async () => {
+       |       ^
+    228|       fileStorage.set('/normalized.txt', { content: 'data' });
+    229|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[15/60]⎯
+
+ FAIL  tests/integration/vfs.test.js > VFS - Integration Tests > delete > should remove file from storage
+Error: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ tests/integration/vfs.test.js:237:7
+    235|
+    236|   describe('delete', () => {
+    237|     it('should remove file from storage', async () => {
+       |       ^
+    238|       fileStorage.set('/to-delete.txt', { content: 'delete me' });
+    239|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[16/60]⎯
+
+ FAIL  tests/integration/vfs.test.js > VFS - Integration Tests > delete > should log deletion
+Error: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ tests/integration/vfs.test.js:245:7
+    243|     });
+    244|
+    245|     it('should log deletion', async () => {
+       |       ^
+    246|       await vfs.delete('/deleted.txt');
+    247|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[17/60]⎯
+
+ FAIL  tests/integration/vfs.test.js > VFS - Integration Tests > list > should list files in directory
+Error: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ tests/integration/vfs.test.js:253:7
+    251|
+    252|   describe('list', () => {
+    253|     it('should list files in directory', async () => {
+       |       ^
+    254|       fileStorage.set('/dir/file1.txt', { content: 'a' });
+    255|       fileStorage.set('/dir/file2.txt', { content: 'b' });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[18/60]⎯
+
+ FAIL  tests/integration/vfs.test.js > VFS - Integration Tests > list > should default to root directory
+Error: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ tests/integration/vfs.test.js:265:7
+    263|     });
+    264|
+    265|     it('should default to root directory', async () => {
+       |       ^
+    266|       fileStorage.set('/root-file.txt', { content: 'data' });
+    267|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[19/60]⎯
+
+ FAIL  tests/integration/vfs.test.js > VFS - Integration Tests > list > should handle directory with trailing slash
+Error: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ tests/integration/vfs.test.js:273:7
+    271|     });
+    272|
+    273|     it('should handle directory with trailing slash', async () => {
+       |       ^
+    274|       fileStorage.set('/test/nested.txt', { content: 'x' });
+    275|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[20/60]⎯
+
+ FAIL  tests/integration/vfs.test.js > VFS - Integration Tests > list > should return empty array for empty directory
+Error: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ tests/integration/vfs.test.js:281:7
+    279|     });
+    280|
+    281|     it('should return empty array for empty directory', async () => {
+       |       ^
+    282|       const files = await vfs.list('/empty');
+    283|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[21/60]⎯
+
+ FAIL  tests/integration/vfs.test.js > VFS - Integration Tests > stat > should return file metadata
+Error: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ tests/integration/vfs.test.js:289:7
+    287|
+    288|   describe('stat', () => {
+    289|     it('should return file metadata', async () => {
+       |       ^
+    290|       fileStorage.set('/meta.txt', {
+    291|         path: '/meta.txt',
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[22/60]⎯
+
+ FAIL  tests/integration/vfs.test.js > VFS - Integration Tests > stat > should return null for non-existent file
+Error: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ tests/integration/vfs.test.js:308:7
+    306|     });
+    307|
+    308|     it('should return null for non-existent file', async () => {
+       |       ^
+    309|       const stat = await vfs.stat('/nonexistent.txt');
+    310|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[23/60]⎯
+
+ FAIL  tests/integration/vfs.test.js > VFS - Integration Tests > exists > should return true for existing file
+Error: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ tests/integration/vfs.test.js:316:7
+    314|
+    315|   describe('exists', () => {
+    316|     it('should return true for existing file', async () => {
+       |       ^
+    317|       fileStorage.set('/exists.txt', { content: 'yes' });
+    318|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[24/60]⎯
+
+ FAIL  tests/integration/vfs.test.js > VFS - Integration Tests > exists > should return false for non-existent file
+Error: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ tests/integration/vfs.test.js:324:7
+    322|     });
+    323|
+    324|     it('should return false for non-existent file', async () => {
+       |       ^
+    325|       const result = await vfs.exists('/missing.txt');
+    326|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[25/60]⎯
+
+ FAIL  tests/integration/vfs.test.js > VFS - Integration Tests > isEmpty > should return true when no files exist
+Error: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ tests/integration/vfs.test.js:332:7
+    330|
+    331|   describe('isEmpty', () => {
+    332|     it('should return true when no files exist', async () => {
+       |       ^
+    333|       fileStorage.clear();
+    334|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[26/60]⎯
+
+ FAIL  tests/integration/vfs.test.js > VFS - Integration Tests > isEmpty > should return false when files exist
+Error: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ tests/integration/vfs.test.js:340:7
+    338|     });
+    339|
+    340|     it('should return false when files exist', async () => {
+       |       ^
+    341|       fileStorage.set('/file.txt', { content: 'data' });
+    342|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[27/60]⎯
+
+ FAIL  tests/integration/vfs.test.js > VFS - Integration Tests > mkdir > should log debug message
+AssertionError: expected "vi.fn()" to be called with arguments: [ '[VFS] mkdir /my-dir (virtual)' ]
+
+Number of calls: 0
+
+ ❯ tests/integration/vfs.test.js:359:38
+    357|       await vfs.mkdir('/my-dir');
+    358|
+    359|       expect(mockUtils.logger.debug).toHaveBeenCalledWith('[VFS] mkdir…
+       |                                      ^
+    360|     });
+    361|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[28/60]⎯
+
+ FAIL  tests/integration/vfs.test.js > VFS - Integration Tests > clear > should remove all files
+Error: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ tests/integration/vfs.test.js:364:7
+    362|
+    363|   describe('clear', () => {
+    364|     it('should remove all files', async () => {
+       |       ^
+    365|       fileStorage.set('/a.txt', { content: 'a' });
+    366|       fileStorage.set('/b.txt', { content: 'b' });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[29/60]⎯
+
+ FAIL  tests/integration/vfs.test.js > VFS - Integration Tests > path normalization > should throw for null path
+AssertionError: expected [Function] to throw error including 'Invalid path' but got 'VFS path is required'
+
+Expected: "Invalid path"
+Received: "VFS path is required"
+
+ ❯ tests/integration/vfs.test.js:378:9
+    376|     it('should throw for null path', async () => {
+    377|       await expect(vfs.write(null, 'content'))
+    378|         .rejects.toThrow('Invalid path');
+       |         ^
+    379|     });
+    380|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[30/60]⎯
+
+ FAIL  tests/integration/vfs.test.js > VFS - Integration Tests > path normalization > should throw for undefined path
+AssertionError: expected [Function] to throw error including 'Invalid path' but got 'VFS path is required'
+
+Expected: "Invalid path"
+Received: "VFS path is required"
+
+ ❯ tests/integration/vfs.test.js:383:9
+    381|     it('should throw for undefined path', async () => {
+    382|       await expect(vfs.read(undefined))
+    383|         .rejects.toThrow('Invalid path');
+       |         ^
+    384|     });
+    385|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[31/60]⎯
+
+ FAIL  tests/integration/vfs.test.js > VFS - Integration Tests > path normalization > should throw for non-string path
+AssertionError: expected [Function] to throw error including 'Invalid path' but got 'VFS path is required'
+
+Expected: "Invalid path"
+Received: "VFS path is required"
+
+ ❯ tests/integration/vfs.test.js:388:9
+    386|     it('should throw for non-string path', async () => {
+    387|       await expect(vfs.stat(123))
+    388|         .rejects.toThrow('Invalid path');
+       |         ^
+    389|     });
+    390|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[32/60]⎯
+
+ FAIL  tests/integration/vfs.test.js > VFS - Integration Tests > path normalization > should trim whitespace from path
+Error: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ tests/integration/vfs.test.js:391:7
+    389|     });
+    390|
+    391|     it('should trim whitespace from path', async () => {
+       |       ^
+    392|       await vfs.write('  /spaced.txt  ', 'content');
+    393|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[33/60]⎯
+
+ FAIL  tests/integration/vfs.test.js > VFS - Integration Tests > CRUD operations flow > should support full file lifecycle
+Error: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ tests/integration/vfs.test.js:401:7
+    399|
+    400|   describe('CRUD operations flow', () => {
+    401|     it('should support full file lifecycle', async () => {
+       |       ^
+    402|       // Create
+    403|       await vfs.write('/lifecycle.txt', 'initial content');
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[34/60]⎯
+
+ FAIL  tests/integration/vfs.test.js > VFS - Integration Tests > CRUD operations flow > should handle nested directory structure
+Error: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ tests/integration/vfs.test.js:420:7
+    418|     });
+    419|
+    420|     it('should handle nested directory structure', async () => {
+       |       ^
+    421|       await vfs.write('/a/b/c/deep.txt', 'deep file');
+    422|       await vfs.write('/a/b/sibling.txt', 'sibling');
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[35/60]⎯
+
+ FAIL  tests/integration/vfs.test.js > VFS - Integration Tests > concurrent operations > should handle multiple simultaneous writes
+Error: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ tests/integration/vfs.test.js:435:7
+    433|
+    434|   describe('concurrent operations', () => {
+    435|     it('should handle multiple simultaneous writes', async () => {
+       |       ^
+    436|       await Promise.all([
+    437|         vfs.write('/concurrent1.txt', 'content1'),
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[36/60]⎯
+
+ FAIL  tests/integration/vfs.test.js > VFS - Integration Tests > concurrent operations > should handle read while writing
+Error: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ tests/integration/vfs.test.js:445:7
+    443|     });
+    444|
+    445|     it('should handle read while writing', async () => {
+       |       ^
+    446|       fileStorage.set('/existing.txt', { content: 'original' });
+    447|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[37/60]⎯
+
+ FAIL  tests/unit/boot-seed.test.js > boot seed manifest > keeps Zero lightweight while X absorbs the Zero boot surface
+AssertionError: expected 133 to be less than or equal to 69
+ ❯ tests/unit/boot-seed.test.js:161:34
+    159|     const xBootSet = new Set(xBootFiles);
+    160|
+    161|     expect(zeroBootFiles.length).toBeLessThanOrEqual(69);
+       |                                  ^
+    162|     expect(zeroBootFiles).not.toContain('tools/DeleteFile.js');
+    163|     expect(zeroBootFiles).not.toContain('tools/CopyFile.js');
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[38/60]⎯
+
+ FAIL  tests/unit/catscan.test.js > CATSCAN component charters > validates the repository charter graph and generated index
+AssertionError: expected [ …(10) ] to deeply equal []
+
+- Expected
++ Received
+
+- []
++ [
++   "CATSCAN.md: 279 words exceeds the 250-word charter limit",
++   "packages/reploid/CATSCAN.md: 287 words exceeds the 250-word charter limit",
++   "packages/reploid/CATSCAN.md: Acceptance must include an Evidence: link",
++   "packages/reploid/CATSCAN.md: Contracts must name Inputs and Outputs",
++   "self/core/CATSCAN.md: 270 words exceeds the 250-word charter limit",
++   "self/pool/CATSCAN.md: 274 words exceeds the 250-word charter limit",
++   "self/vendor/CATSCAN.md: missing Freedom field",
++   "self/vendor/CATSCAN.md: Acceptance must include an Evidence: link",
++   "self/vendor/CATSCAN.md: Contracts must name Inputs and Outputs",
++   "docs/component-index.md: generated component index is stale; run npm run build:component-index",
++ ]
+
+ ❯ tests/unit/catscan.test.js:54:20
+     52|     const { charters, errors } = await validateCatscanRepository();
+     53|
+     54|     expect(errors).toEqual([]);
+       |                    ^
+     55|     expect(charters.length).toBeGreaterThanOrEqual(20);
+     56|     expect(charters.map((charter) => charter.component)).toEqual(expec…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[39/60]⎯
+
+ FAIL  tests/unit/p2p-transport.test.js > pool p2p transport helpers > settles a connecting transport when explicitly closed
+AssertionError: expected Error: requester_connection_retry to match object { …(2) }
+
+- Expected
++ Received
+
+- {
+-   "code": "webrtc_connection_failed",
+-   "diagnostics": ObjectContaining {
+-     "state": "closing",
+-   },
++ Error {
++   "message": "requester_connection_retry",
+  }
+
+ ❯ tests/unit/p2p-transport.test.js:343:29
+    341|     await transport.close('requester_connection_retry');
+    342|
+    343|     await expect(connecting).rejects.toMatchObject({
+       |                             ^
+    344|       code: 'webrtc_connection_failed',
+    345|       diagnostics: expect.objectContaining({ state: 'closing' })
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[40/60]⎯
+
+ FAIL  tests/unit/self-runtime.test.js > Self Runtime > parks immediately in remote-slot mode when no local executor exists
+TypeError: Owned resources must implement close()
+ ❯ createReploid self/vendor/reploid/index.js:22:54
+     20|   const owned = new Set(ports.owned || []);
+     21|   for (const resource of owned) {
+     22|     if (typeof resource?.close !== 'function') throw new TypeError('Ow…
+       |                                                      ^
+     23|   }
+     24|   const quiet = () => {};
+ ❯ Module.createSelfRuntime self/runtime.js:24:33
+ ❯ tests/unit/self-runtime.test.js:77:21
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[41/60]⎯
+
+ FAIL  tests/unit/self-runtime.test.js > Self Runtime > exposes bridge events to the host shell
+TypeError: Owned resources must implement close()
+ ❯ createReploid self/vendor/reploid/index.js:22:54
+     20|   const owned = new Set(ports.owned || []);
+     21|   for (const resource of owned) {
+     22|     if (typeof resource?.close !== 'function') throw new TypeError('Ow…
+       |                                                      ^
+     23|   }
+     24|   const quiet = () => {};
+ ❯ Module.createSelfRuntime self/runtime.js:24:33
+ ❯ tests/unit/self-runtime.test.js:118:21
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[42/60]⎯
+
+ FAIL  tests/unit/self-runtime.test.js > Self Runtime > seeds kernel prompt and tabula-rasa blueprints into bootstrap context
+TypeError: Owned resources must implement close()
+ ❯ createReploid self/vendor/reploid/index.js:22:54
+     20|   const owned = new Set(ports.owned || []);
+     21|   for (const resource of owned) {
+     22|     if (typeof resource?.close !== 'function') throw new TypeError('Ow…
+       |                                                      ^
+     23|   }
+     24|   const quiet = () => {};
+ ❯ Module.createSelfRuntime self/runtime.js:24:33
+ ❯ tests/unit/self-runtime.test.js:133:21
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[43/60]⎯
+
+ FAIL  tests/unit/self-runtime.test.js > Self Runtime > parks retryable provider quota errors instead of failing the run
+TypeError: Owned resources must implement close()
+ ❯ createReploid self/vendor/reploid/index.js:22:54
+     20|   const owned = new Set(ports.owned || []);
+     21|   for (const resource of owned) {
+     22|     if (typeof resource?.close !== 'function') throw new TypeError('Ow…
+       |                                                      ^
+     23|   }
+     24|   const quiet = () => {};
+ ❯ Module.createSelfRuntime self/runtime.js:24:33
+ ❯ tests/unit/self-runtime.test.js:167:21
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[44/60]⎯
+
+ FAIL  tests/unit/self-runtime.test.js > Self Runtime > auto-resumes a parked remote slot when a peer host appears
+TypeError: Owned resources must implement close()
+ ❯ createReploid self/vendor/reploid/index.js:22:54
+     20|   const owned = new Set(ports.owned || []);
+     21|   for (const resource of owned) {
+     22|     if (typeof resource?.close !== 'function') throw new TypeError('Ow…
+       |                                                      ^
+     23|   }
+     24|   const quiet = () => {};
+ ❯ Module.createSelfRuntime self/runtime.js:24:33
+ ❯ tests/unit/self-runtime.test.js:196:21
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[45/60]⎯
+
+ FAIL  tests/unit/self-runtime.test.js > Self Runtime > records done as a milestone and continues running
+TypeError: Owned resources must implement close()
+ ❯ createReploid self/vendor/reploid/index.js:22:54
+     20|   const owned = new Set(ports.owned || []);
+     21|   for (const resource of owned) {
+     22|     if (typeof resource?.close !== 'function') throw new TypeError('Ow…
+       |                                                      ^
+     23|   }
+     24|   const quiet = () => {};
+ ❯ Module.createSelfRuntime self/runtime.js:24:33
+ ❯ tests/unit/self-runtime.test.js:235:21
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[46/60]⎯
+
+ FAIL  tests/unit/self-runtime.test.js > Self Runtime > accepts DONE as a milestone alias and records it
+TypeError: Owned resources must implement close()
+ ❯ createReploid self/vendor/reploid/index.js:22:54
+     20|   const owned = new Set(ports.owned || []);
+     21|   for (const resource of owned) {
+     22|     if (typeof resource?.close !== 'function') throw new TypeError('Ow…
+       |                                                      ^
+     23|   }
+     24|   const quiet = () => {};
+ ❯ Module.createSelfRuntime self/runtime.js:24:33
+ ❯ tests/unit/self-runtime.test.js:272:21
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[47/60]⎯
+
+ FAIL  tests/unit/self-runtime.test.js > Self Runtime > parks on an explicit idle directive
+TypeError: Owned resources must implement close()
+ ❯ createReploid self/vendor/reploid/index.js:22:54
+     20|   const owned = new Set(ports.owned || []);
+     21|   for (const resource of owned) {
+     22|     if (typeof resource?.close !== 'function') throw new TypeError('Ow…
+       |                                                      ^
+     23|   }
+     24|   const quiet = () => {};
+ ❯ Module.createSelfRuntime self/runtime.js:24:33
+ ❯ tests/unit/self-runtime.test.js:304:21
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[48/60]⎯
+
+ FAIL  tests/unit/self-runtime.test.js > Self Runtime > ignores plain text and continues running
+TypeError: Owned resources must implement close()
+ ❯ createReploid self/vendor/reploid/index.js:22:54
+     20|   const owned = new Set(ports.owned || []);
+     21|   for (const resource of owned) {
+     22|     if (typeof resource?.close !== 'function') throw new TypeError('Ow…
+       |                                                      ^
+     23|   }
+     24|   const quiet = () => {};
+ ❯ Module.createSelfRuntime self/runtime.js:24:33
+ ❯ tests/unit/self-runtime.test.js:337:21
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[49/60]⎯
+
+ FAIL  tests/unit/self-runtime.test.js > Self Runtime > caps large tool observations before feeding them back into context
+TypeError: Owned resources must implement close()
+ ❯ createReploid self/vendor/reploid/index.js:22:54
+     20|   const owned = new Set(ports.owned || []);
+     21|   for (const resource of owned) {
+     22|     if (typeof resource?.close !== 'function') throw new TypeError('Ow…
+       |                                                      ^
+     23|   }
+     24|   const quiet = () => {};
+ ❯ Module.createSelfRuntime self/runtime.js:24:33
+ ❯ tests/unit/self-runtime.test.js:382:21
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[50/60]⎯
+
+ FAIL  tests/unit/self-runtime.test.js > Self Runtime > executes batched tool calls and caps the batch at five
+TypeError: Owned resources must implement close()
+ ❯ createReploid self/vendor/reploid/index.js:22:54
+     20|   const owned = new Set(ports.owned || []);
+     21|   for (const resource of owned) {
+     22|     if (typeof resource?.close !== 'function') throw new TypeError('Ow…
+       |                                                      ^
+     23|   }
+     24|   const quiet = () => {};
+ ❯ Module.createSelfRuntime self/runtime.js:24:33
+ ❯ tests/unit/self-runtime.test.js:433:21
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[51/60]⎯
+
+ FAIL  tests/unit/self-runtime.test.js > Self Runtime > counts only bridge-verified anchor observations toward qAnchor
+TypeError: Owned resources must implement close()
+ ❯ createReploid self/vendor/reploid/index.js:22:54
+     20|   const owned = new Set(ports.owned || []);
+     21|   for (const resource of owned) {
+     22|     if (typeof resource?.close !== 'function') throw new TypeError('Ow…
+       |                                                      ^
+     23|   }
+     24|   const quiet = () => {};
+ ❯ Module.createSelfRuntime self/runtime.js:24:33
+ ❯ tests/unit/self-runtime.test.js:519:21
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[52/60]⎯
+
+ FAIL  tests/unit/self-runtime.test.js > Self Runtime > replay-scores archived candidates when anchor observations arrive later
+TypeError: Owned resources must implement close()
+ ❯ createReploid self/vendor/reploid/index.js:22:54
+     20|   const owned = new Set(ports.owned || []);
+     21|   for (const resource of owned) {
+     22|     if (typeof resource?.close !== 'function') throw new TypeError('Ow…
+       |                                                      ^
+     23|   }
+     24|   const quiet = () => {};
+ ❯ Module.createSelfRuntime self/runtime.js:24:33
+ ❯ tests/unit/self-runtime.test.js:569:21
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[53/60]⎯
+
+ FAIL  tests/unit/self-runtime.test.js > Self Runtime > starts adjacent read-only tools through one scheduler group
+TypeError: Owned resources must implement close()
+ ❯ createReploid self/vendor/reploid/index.js:22:54
+     20|   const owned = new Set(ports.owned || []);
+     21|   for (const resource of owned) {
+     22|     if (typeof resource?.close !== 'function') throw new TypeError('Ow…
+       |                                                      ^
+     23|   }
+     24|   const quiet = () => {};
+ ❯ Module.createSelfRuntime self/runtime.js:24:33
+ ❯ tests/unit/self-runtime.test.js:617:21
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[54/60]⎯
+
+ FAIL  tests/unit/self-runtime.test.js > Self Runtime > keeps mutation tools as barriers between read groups
+TypeError: Owned resources must implement close()
+ ❯ createReploid self/vendor/reploid/index.js:22:54
+     20|   const owned = new Set(ports.owned || []);
+     21|   for (const resource of owned) {
+     22|     if (typeof resource?.close !== 'function') throw new TypeError('Ow…
+       |                                                      ^
+     23|   }
+     24|   const quiet = () => {};
+ ❯ Module.createSelfRuntime self/runtime.js:24:33
+ ❯ tests/unit/self-runtime.test.js:675:21
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[55/60]⎯
+
+ FAIL  tests/unit/self-runtime.test.js > Self Runtime > honors PLAN after dependencies before running dependent tools
+TypeError: Owned resources must implement close()
+ ❯ createReploid self/vendor/reploid/index.js:22:54
+     20|   const owned = new Set(ports.owned || []);
+     21|   for (const resource of owned) {
+     22|     if (typeof resource?.close !== 'function') throw new TypeError('Ow…
+       |                                                      ^
+     23|   }
+     24|   const quiet = () => {};
+ ❯ Module.createSelfRuntime self/runtime.js:24:33
+ ❯ tests/unit/self-runtime.test.js:758:21
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[56/60]⎯
+
+ FAIL  tests/unit/self-runtime.test.js > Self Runtime > parks repeated milestone-only cycles with no new tool work
+TypeError: Owned resources must implement close()
+ ❯ createReploid self/vendor/reploid/index.js:22:54
+     20|   const owned = new Set(ports.owned || []);
+     21|   for (const resource of owned) {
+     22|     if (typeof resource?.close !== 'function') throw new TypeError('Ow…
+       |                                                      ^
+     23|   }
+     24|   const quiet = () => {};
+ ❯ Module.createSelfRuntime self/runtime.js:24:33
+ ❯ tests/unit/self-runtime.test.js:806:21
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[57/60]⎯
+
+ FAIL  tests/unit/self-runtime.test.js > Self Runtime > records a milestone when tools and done are sent in the same response
+TypeError: Owned resources must implement close()
+ ❯ createReploid self/vendor/reploid/index.js:22:54
+     20|   const owned = new Set(ports.owned || []);
+     21|   for (const resource of owned) {
+     22|     if (typeof resource?.close !== 'function') throw new TypeError('Ow…
+       |                                                      ^
+     23|   }
+     24|   const quiet = () => {};
+ ❯ Module.createSelfRuntime self/runtime.js:24:33
+ ❯ tests/unit/self-runtime.test.js:848:21
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[58/60]⎯
+
+ FAIL  tests/unit/self-runtime.test.js > Self Runtime > does not record a milestone for a plain tool batch with no done directive
+TypeError: Owned resources must implement close()
+ ❯ createReploid self/vendor/reploid/index.js:22:54
+     20|   const owned = new Set(ports.owned || []);
+     21|   for (const resource of owned) {
+     22|     if (typeof resource?.close !== 'function') throw new TypeError('Ow…
+       |                                                      ^
+     23|   }
+     24|   const quiet = () => {};
+ ❯ Module.createSelfRuntime self/runtime.js:24:33
+ ❯ tests/unit/self-runtime.test.js:892:21
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[59/60]⎯
+
+ FAIL  tests/unit/webrtc-swarm.test.js > WebRTCSwarm > Feature Flag > should check REPLOID_SWARM_ENABLED feature flag
+AssertionError: expected "vi.fn()" to be called with arguments: [ StringContaining "Disabled" ]
+
+Received:
+
+  1st vi.fn() call:
+
+  [
+-   StringContaining "Disabled",
++   "[WebRTCSwarm] Initializing - peerId: peer_mtz9eig2_6vtm6rgi, room: reploid-swarm-public",
+  ]
+
+  2nd vi.fn() call:
+
+  [
+-   StringContaining "Disabled",
++   "[WebRTCSwarm] Connecting to ws://localhost:3000/signaling",
+  ]
+
+  3rd vi.fn() call:
+
+  [
+-   StringContaining "Disabled",
++   "[WebRTCSwarm] Reconnecting in 1000ms (attempt 1)",
+  ]
+
+
+Number of calls: 3
+
+ ❯ tests/unit/webrtc-swarm.test.js:261:33
+    259|
+    260|       expect(result).toBe(false);
+    261|       expect(utils.logger.info).toHaveBeenCalledWith(
+       |                                 ^
+    262|         expect.stringContaining('Disabled')
+    263|       );
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[60/60]⎯
+
+
+ Test Files  7 failed (7)
+      Tests  60 failed | 123 passed (183)
+   Start at  23:33:27
+   Duration  135.67s (transform 885ms, setup 0ms, import 1.31s, tests 138.40s, environment 1.19s)

@@ -104,6 +104,7 @@
   },
   "legacyAgent": {
     "discoveryLimit": 3,
-    "maxToolCalls": 8
+    "maxToolCalls": 8,
+    "settings": null
   }
 }

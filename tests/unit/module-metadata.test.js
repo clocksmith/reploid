@@ -1,10 +1,12 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest';
 import path from 'node:path';
-import { URL, fileURLToPath } from 'node:url';
+import { fileURLToPath } from 'node:url';
 import { createModuleMetadataResolver } from '../../scripts/module-metadata.js';
 
-const root = fileURLToPath(new URL('../../self/', import.meta.url));
+// Keep a filesystem URL explicit: Vite treats new URL(relative, import.meta.url)
+// as a browser asset reference under the default happy-dom environment.
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../self');
 const metadata = "{ metadata: { id: 'Agent', genesis: { introduced: 'capsule' } } }";
 
 function fixture(sources, options = {}) {
@@ -42,6 +44,19 @@ describe('static forwarded module metadata', () => {
     });
     expect(await read('entry.js')).toEqual({ id: 'Agent', introduced: 'capsule' });
     expect([...reads.values()]).toEqual([1, 1, 1]);
+  });
+
+  it('follows export-star forwarding and rejects ambiguous owners', async () => {
+    const { read } = fixture({
+      'entry.js': "export { Agent as default } from './public.js';",
+      'public.js': "export * from './owner.js';",
+      'owner.js': `export const Agent = ${metadata};`,
+      'ambiguous.js': "export { Agent as default } from './both.js';",
+      'both.js': "export * from './owner.js'; export * from './other.js';",
+      'other.js': `export const Agent = ${metadata};`
+    });
+    expect(await read('entry.js')).toEqual({ id: 'Agent', introduced: 'capsule' });
+    expect(await read('ambiguous.js')).toEqual({ id: null, introduced: null });
   });
 
   it('uses the exported object and respects later metadata overrides', async () => {

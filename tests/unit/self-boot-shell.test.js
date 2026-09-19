@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 
 import { SELF_BOOT_SPEC, toSourceWebPath } from '../../self/boot-spec.js';
+import { PROTO_RUNTIME_SELF_MIRROR_RULES, buildRuntimeSelfMirrors } from '../../self/lab/mirrors.js';
 import { SELF_SOURCE_MIRRORS } from '../../self/manifest.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -76,11 +77,11 @@ describe('self-first boot shell', () => {
   });
 
   it('mirrors proto shared UI dependencies into /self', () => {
-    const mirrors = readRepoFile('self/lab/mirrors.js');
-
-    expect(mirrors).toContain("sourcePath: '/ui/toast.js', targetPath: '/self/ui/toast.js'");
-    expect(mirrors).toContain("sourcePrefix: '/ui/components/'");
-    expect(mirrors).toContain("sourcePrefix: '/ui/panels/'");
+    const files = ['/ui/toast.js', '/ui/components/button.js', '/ui/panels/trace.js'];
+    const mirrors = buildRuntimeSelfMirrors(PROTO_RUNTIME_SELF_MIRROR_RULES, files);
+    for (const sourcePath of files) {
+      expect(mirrors).toContainEqual({ sourcePath, targetPath: `/self${sourcePath}` });
+    }
   });
 
   it('checks the network shell version before trusting warm VFS boot', () => {

@@ -229,6 +229,10 @@ export function validatePoolConfigValue(config = {}) {
     reasons.push('active determinism profile requiring runtimeProfile must also require runtimeProfileHash');
   }
 
+  for (const field of ['maxPolls', 'intervalMs']) {
+    const value = config.ringPhaseProtocols?.polling?.[field];
+    if (!Number.isSafeInteger(value) || value < 1) reasons.push(`ringPhaseProtocols.polling.${field} must be a positive integer`);
+  }
   const activeRingProtocol = config.ringPhaseProtocols?.protocols?.[config.ringPhaseProtocols?.activeProtocolId];
   if (!activeRingProtocol) reasons.push('ringPhaseProtocols.activeProtocolId must reference ringPhaseProtocols.protocols');
   if (activeRingProtocol && activeRingProtocol.requireRevealBeforeReceipt !== true) {

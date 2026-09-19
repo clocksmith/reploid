@@ -1,0 +1,18 @@
+[
+  {
+    "url": "https://storage.googleapis.com/reploid-model-artifacts/capsules/esm2-35m/65e4c1abd95fd5facd9cdba954dec0193f79574846ac57bed527a5de64bd0b47/capsule.json",
+    "origin": "http://localhost:8000",
+    "status": 200,
+    "allowOrigin": "http://localhost:8000",
+    "contentType": "application/json",
+    "bodyStart": "{\n  \"artifacts\": [\n    {\n      \"artifactId\": \"host-source:sequence-encoding-d7abaa224ec64128.js:d7abaa224ec6\",\n      \"hash\": \"sha256:d7abaa224ec64128fb195e238b5ce3b0fabfc00b46406e5d4a0195ff1a03da15\",\n      \"path\": \"artifacts/program/host/sequence-encoding-d7abaa224ec64128.js\",\n      \"role\": \"host-source\",\n      \"sizeBytes\": 1096\n    },\n    {\n      "
+  },
+  {
+    "url": "https://storage.googleapis.com/reploid-model-artifacts/capsules/esm2-35m/65e4c1abd95fd5facd9cdba954dec0193f79574846ac57bed527a5de64bd0b47/capsule.json",
+    "origin": "http://localhost:8061",
+    "status": 200,
+    "allowOrigin": null,
+    "contentType": "application/json",
+    "bodyStart": "{\n  \"artifacts\": [\n    {\n      \"artifactId\": \"host-source:sequence-encoding-d7abaa224ec64128.js:d7abaa224ec6\",\n      \"hash\": \"sha256:d7abaa224ec64128fb195e238b5ce3b0fabfc00b46406e5d4a0195ff1a03da15\",\n      \"path\": \"artifacts/program/host/sequence-encoding-d7abaa224ec64128.js\",\n      \"role\": \"host-source\",\n      \"sizeBytes\": 1096\n    },\n    {\n      "
+  }
+]

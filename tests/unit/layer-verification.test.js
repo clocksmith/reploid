@@ -3,7 +3,10 @@ import { describe, expect, it } from 'vitest';
 import {
   classifyLayer,
   extractModuleSpecifiers,
-  findLayerViolations
+  findLayerViolations,
+  moduleEdges,
+  findCycles,
+  findRequiredModuleLeaks
 } from '../../scripts/verify-layers.js';
 
 const repoRoot = path.resolve('/workspace/reploid');
@@ -53,5 +56,35 @@ describe('layer verification', () => {
     });
 
     expect(violations).toEqual([]);
+  });
+
+  it('parses real edges without interpreting comments or strings as imports', () => {
+    expect(moduleEdges("// import './fake.js'\nconst text = \"import('./fake.js')\"; import(`./real.js`); import(loader);")).toEqual([
+      { specifier: './real.js', expression: '`./real.js`', dynamic: true },
+      { specifier: null, expression: 'loader', dynamic: true }
+    ]);
+  });
+
+  it.each([
+    ['packages/reploid/src/agent/turn.js', '../../../../self/config/models.js'],
+    ['packages/reploid/src/agent/turn.js', 'firebase-admin'],
+    ['packages/reploid/src/transport/peer.js', '../adapters/doppler.js'],
+    ['self/ui/page.js', '../../functions/index.js']
+  ])('rejects the boundary crossing from %s', (source, target) => {
+    expect(findLayerViolations({ repoRoot, sourcePath: path.join(repoRoot, source),
+      source: `export * from '${target}';` })).toHaveLength(1);
+  });
+
+  it('detects cycles through reexports and preserves acyclic shared dependencies', () => {
+    expect(findCycles(new Map([['a', ['b']], ['b', ['c']], ['c', ['a']]]))).toEqual([['a', 'b', 'c', 'a']]);
+    expect(findCycles(new Map([['a', ['c']], ['b', ['c']], ['c', []]]))).toEqual([]);
+  });
+
+  it('allows optional extensions but rejects their mandatory inclusion in Zero', () => {
+    const surface = { requiredModules: ['core'], absentModules: ['sandbox'] };
+    const modules = { core: { dependencies: [{ id: 'sandbox', optional: true }] } };
+    expect(findRequiredModuleLeaks(surface, modules)).toEqual([]);
+    modules.core.dependencies[0].optional = false;
+    expect(findRequiredModuleLeaks(surface, modules)).toEqual([['core', 'sandbox']]);
   });
 });

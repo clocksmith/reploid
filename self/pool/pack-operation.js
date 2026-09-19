@@ -2,8 +2,8 @@
 import { assertPackSession, assertPackExecutionEvidence, hashDopplerEvidence } from './executable-pack.js';
 import { createPackOperationRegistry } from './pack-operation-adapters.js';
 import { assertOperationLimits } from './pack-operation-policy.js';
-import { resolveDopplerExecutionContract } from '../config/doppler-execution-contracts.js';
-import { assertDopplerGenerationContract } from '../infrastructure/doppler-runtime-service.js';
+import { resolveDopplerOperationContract } from '../config/doppler-execution-contracts.js';
+import { assertDopplerGenerationContract, DopplerRuntimeService } from '../infrastructure/doppler-runtime-service.js';
 
 const requireValue = (value, message) => { if (!value) throw new Error(`Pack operation: ${message}`); };
 const equal = async (left, right) => await hashDopplerEvidence(left) === await hashDopplerEvidence(right);
@@ -27,7 +27,7 @@ function operationAdapter(registry, operation) {
 
 export async function assertPackOperationReceipt(binding, receipt, { request, output, runtimeVersion }) {
   await assertPackExecutionEvidence(binding, receipt);
-  requireValue(receipt.schema === resolveDopplerExecutionContract(binding.schema).receiptSchema, 'receipt schema mismatch');
+  requireValue(receipt.schema === resolveDopplerOperationContract(binding.schema, request.schema).receiptSchema, 'receipt schema mismatch');
   const { receiptDigest, ...payload } = receipt;
   requireValue(receiptDigest === await hashDopplerEvidence(payload), 'receipt digest mismatch');
   requireValue(typeof runtimeVersion === 'string' && runtimeVersion.length > 0 && receipt.runtimeVersion === runtimeVersion, 'runtime version mismatch');
@@ -50,7 +50,7 @@ export async function assertPackOperationReceipt(binding, receipt, { request, ou
 
 export function assertPackOperationRequest(binding, request, registry = createPackOperationRegistry()) {
   const adapter = operationAdapter(registry, request.operation);
-  requireValue(request.schema === resolveDopplerExecutionContract(binding.schema).requestSchema && binding.requiredOperation === request.operation.name, 'request operation binding mismatch');
+  requireValue(request.schema === resolveDopplerOperationContract(binding.schema, request.schema).requestSchema && binding.requiredOperation === request.operation.name, 'request operation binding mismatch');
   requireValue(Object.keys(request).every((key) => ['schema', 'operation', 'input', 'options', 'assignment', 'limits', 'adapterSet'].includes(key)), 'unknown request field');
   requireValue(request.assignment === null || (request.assignment && typeof request.assignment === 'object' && !Array.isArray(request.assignment)), 'explicit assignment or null required');
   for (const key of ['maxInputBytes', 'maxOutputBytes', 'deadlineAt']) requireValue(Number.isSafeInteger(request.limits?.[key]) && request.limits[key] > 0, `${key} required`);
@@ -59,13 +59,29 @@ export function assertPackOperationRequest(binding, request, registry = createPa
   adapter.validateRequest(request);
 }
 
+export async function createPackOperationStream(binding, request, runtimeVersion, runtimeService = DopplerRuntimeService) {
+  return resolveDopplerOperationContract(binding.schema, request.schema).incremental
+    ? runtimeService.createStreamAccumulator(request, { bindingSchema: binding.schema, runtimeVersion }) : null;
+}
+
 /** Shared stream verifier for local execution and signed remote delivery. */
 export async function assertPackOperationEvent({ binding, request, runtimeVersion, event,
-  eventIndex, previousEventDigest, registry = createPackOperationRegistry() }) {
+  eventIndex, previousEventDigest, registry = createPackOperationRegistry(), streamAccumulator = null }) {
   const adapter = operationAdapter(registry, request.operation);
+  const contract = resolveDopplerOperationContract(binding.schema, request.schema);
   const { eventDigest, ...payload } = event;
-  requireValue(event.schema === resolveDopplerExecutionContract(binding.schema).eventSchema && ['partial', 'completed'].includes(event.status), 'event schema or status mismatch');
+  requireValue(event.schema === contract.eventSchema && ['partial', 'completed'].includes(event.status), 'event schema or status mismatch');
   requireValue(event.status !== 'partial' || adapter.definition.streaming.partial, 'operation policy forbids partial output');
+  if (contract.incremental) {
+    requireValue(streamAccumulator, 'incremental stream reconstruction is required');
+    requireValue(event.eventIndex === eventIndex && event.previousEventDigest === previousEventDigest, 'duplicate, missing, or reordered event');
+    streamAccumulator.accept(event);
+    if (event.status === 'completed') {
+      adapter.validateOutput(event.output, request, { completed: true });
+      await assertPackOperationReceipt(binding, event.receipt, { request, output: event.output, runtimeVersion });
+    }
+    return;
+  }
   requireValue(eventDigest === await hashDopplerEvidence(payload), 'event digest mismatch');
   requireValue(event.eventIndex === eventIndex && event.previousEventDigest === previousEventDigest, 'duplicate, missing, or reordered event');
   requireValue(event.requestHash === await hashDopplerEvidence(request)
@@ -78,7 +94,7 @@ export async function assertPackOperationEvent({ binding, request, runtimeVersio
 }
 
 export async function runPackOperation({ binding: bindingInput, session, request: requestInput, runtimeVersion,
-  registry = createPackOperationRegistry(), signal = null, adapterArtifactStore = null, onPartial = null, beforeExecute = null, assertCurrent = async () => {} }) {
+  registry = createPackOperationRegistry(), signal = null, adapterArtifactStore = null, onPartial = null, beforeExecute = null, assertCurrent = async () => {}, runtimeService = DopplerRuntimeService }) {
   const binding = snapshotPackOperationData(bindingInput);
   const request = snapshotPackOperationData(requestInput);
   assertPackOperationRequest(binding, request, registry);
@@ -96,6 +112,7 @@ export async function runPackOperation({ binding: bindingInput, session, request
   await assertPackSession(binding, session);
   if (request.operation.name === 'generate') assertDopplerGenerationContract(session);
   requireValue(typeof session.executeOperation === 'function', 'public executeOperation is required; no legacy operation fallback');
+  const streamAccumulator = await createPackOperationStream(binding, request, runtimeVersion, runtimeService);
   await beforeExecute?.();
   await current();
   let previousEventDigest = null;
@@ -109,7 +126,7 @@ export async function runPackOperation({ binding: bindingInput, session, request
     streamBytes += new TextEncoder().encode(JSON.stringify(event)).length;
     requireValue(eventCount < definition.maximumLimits.maxEvents && streamBytes <= definition.maximumLimits.maxStreamBytes,
       'configured operation stream limit exceeded');
-    await assertPackOperationEvent({ binding, request, runtimeVersion, event, eventIndex: eventCount, previousEventDigest, registry });
+    await assertPackOperationEvent({ binding, request, runtimeVersion, event, eventIndex: eventCount, previousEventDigest, registry, streamAccumulator });
     await current();
     if (event.status === 'completed') {
       completed = event;
@@ -122,6 +139,7 @@ export async function runPackOperation({ binding: bindingInput, session, request
   // Do not expose completion until iterator cleanup and the current-attempt check finish.
   await current();
   requireValue(completed, 'stream ended without completion');
+  streamAccumulator?.finish();
   return Object.freeze({ request, output: completed.output, receipt: completed.receipt, eventCount, finalEventDigest: previousEventDigest, completion: completed });
 }
 

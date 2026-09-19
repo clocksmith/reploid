@@ -9,19 +9,8 @@ import {
   getToolNamesForSurfaceIds
 } from '../config/tool-surfaces.js';
 import { requireSurfaceIntent } from '../config/surface-intents.js';
-import {
-  defineLabProfile,
-  extendLabProfile
-} from './surface.js';
-import {
-  ZERO_RUNTIME_UI,
-  PROTO_RUNTIME_UI
-} from './runtime-ui.js';
-import {
-  ZERO_RUNTIME_SELF_MIRROR_RULES,
-  PROTO_RUNTIME_SELF_MIRROR_RULES,
-  buildRuntimeSelfMirrors
-} from './mirrors.js';
+import { defineLabProfile } from './surface.js';
+import { buildRuntimeSelfMirrors } from './mirrors.js';
 
 const ZERO_INTENT = requireSurfaceIntent('zero');
 const X_INTENT = requireSurfaceIntent('x');
@@ -57,23 +46,13 @@ const makeBootSpec = (profile) => Object.freeze({
   productFacing: false
 });
 
-export const ZERO_LAB_PROFILE = defineLabProfile({
-  ...intentProfileFields(ZERO_INTENT),
-  runtimeUi: ZERO_RUNTIME_UI,
-  runtimeSelfMirrorRules: ZERO_RUNTIME_SELF_MIRROR_RULES,
-  toolSurfaceIds: ZERO_INTENT.toolSurfaceIds,
-  requiredModules: ZERO_INTENT.requiredModules,
-  forbiddenModules: ZERO_INTENT.forbiddenModules,
-  forbiddenTools: ZERO_FORBIDDEN_TOOLS
+const resolvedProfile = intent => defineLabProfile({
+  ...intent,
+  ...intentProfileFields(intent),
+  forbiddenTools: intent.id === 'zero' ? ZERO_FORBIDDEN_TOOLS : []
 });
-
-export const X_LAB_PROFILE = extendLabProfile(ZERO_LAB_PROFILE, {
-  ...intentProfileFields(X_INTENT),
-  runtimeUi: PROTO_RUNTIME_UI,
-  additionalToolSurfaceIds: X_INTENT.additionalToolSurfaceIds,
-  additionalRequiredModules: X_INTENT.additionalRequiredModules,
-  additionalRuntimeSelfMirrorRules: PROTO_RUNTIME_SELF_MIRROR_RULES
-});
+export const ZERO_LAB_PROFILE = resolvedProfile(ZERO_INTENT);
+export const X_LAB_PROFILE = resolvedProfile(X_INTENT);
 
 export const LAB_ROUTE_PROFILES = Object.freeze({
   zero: ZERO_LAB_PROFILE,

@@ -1,0 +1,526 @@
+[
+  {
+    "id": "reploid@0.1.0",
+    "name": "reploid",
+    "version": "0.1.0",
+    "size": 140372,
+    "unpackedSize": 596331,
+    "shasum": "d4e438adf2aa015587175643f87e924bc1ea6b9b",
+    "integrity": "sha512-aDRH44S8y9yqwtRvo3Jiy12MLg8NFOKQPNFqGzn3bGE1SI2MoeG2N/hqF6lM3AD1EoHIe/xNgtbQm2Gej8ekDw==",
+    "filename": "reploid-0.1.0.tgz",
+    "files": [
+      {
+        "path": "LICENSE",
+        "size": 1077,
+        "mode": 420
+      },
+      {
+        "path": "README.md",
+        "size": 11974,
+        "mode": 420
+      },
+      {
+        "path": "package.json",
+        "size": 1988,
+        "mode": 420
+      },
+      {
+        "path": "src/adapters/browser.d.ts",
+        "size": 491,
+        "mode": 420
+      },
+      {
+        "path": "src/adapters/browser.js",
+        "size": 4135,
+        "mode": 420
+      },
+      {
+        "path": "src/adapters/doppler-stream.js",
+        "size": 4049,
+        "mode": 420
+      },
+      {
+        "path": "src/adapters/doppler.d.ts",
+        "size": 2553,
+        "mode": 420
+      },
+      {
+        "path": "src/adapters/doppler.js",
+        "size": 6346,
+        "mode": 420
+      },
+      {
+        "path": "src/agent/cancellation.d.ts",
+        "size": 96,
+        "mode": 420
+      },
+      {
+        "path": "src/agent/cancellation.js",
+        "size": 621,
+        "mode": 420
+      },
+      {
+        "path": "src/agent/cycle-artifacts.d.ts",
+        "size": 702,
+        "mode": 420
+      },
+      {
+        "path": "src/agent/cycle-artifacts.js",
+        "size": 5047,
+        "mode": 420
+      },
+      {
+        "path": "src/agent/index.d.ts",
+        "size": 4017,
+        "mode": 420
+      },
+      {
+        "path": "src/agent/index.js",
+        "size": 7814,
+        "mode": 420
+      },
+      {
+        "path": "src/agent/legacy-loop.d.ts",
+        "size": 1247,
+        "mode": 420
+      },
+      {
+        "path": "src/agent/legacy-loop.js",
+        "size": 98603,
+        "mode": 420
+      },
+      {
+        "path": "src/agent/lifecycle.js",
+        "size": 2440,
+        "mode": 420
+      },
+      {
+        "path": "src/agent/protocol.json",
+        "size": 346,
+        "mode": 420
+      },
+      {
+        "path": "src/agent/provider-recovery.js",
+        "size": 1986,
+        "mode": 420
+      },
+      {
+        "path": "src/agent/response-parser.d.ts",
+        "size": 628,
+        "mode": 420
+      },
+      {
+        "path": "src/agent/response-parser.js",
+        "size": 20123,
+        "mode": 420
+      },
+      {
+        "path": "src/agent/runtime.d.ts",
+        "size": 748,
+        "mode": 420
+      },
+      {
+        "path": "src/agent/runtime.js",
+        "size": 48570,
+        "mode": 420
+      },
+      {
+        "path": "src/agent/tool-dispatch.js",
+        "size": 891,
+        "mode": 420
+      },
+      {
+        "path": "src/agent/tool-runner.d.ts",
+        "size": 875,
+        "mode": 420
+      },
+      {
+        "path": "src/agent/tool-runner.js",
+        "size": 3182,
+        "mode": 420
+      },
+      {
+        "path": "src/artifacts/canonical-json.js",
+        "size": 482,
+        "mode": 420
+      },
+      {
+        "path": "src/artifacts/checkpoint.d.ts",
+        "size": 347,
+        "mode": 420
+      },
+      {
+        "path": "src/artifacts/checkpoint.js",
+        "size": 1187,
+        "mode": 420
+      },
+      {
+        "path": "src/artifacts/custody/runtime.d.ts",
+        "size": 324,
+        "mode": 420
+      },
+      {
+        "path": "src/artifacts/custody/runtime.js",
+        "size": 21601,
+        "mode": 420
+      },
+      {
+        "path": "src/artifacts/identity.d.ts",
+        "size": 1010,
+        "mode": 420
+      },
+      {
+        "path": "src/artifacts/identity.js",
+        "size": 4299,
+        "mode": 420
+      },
+      {
+        "path": "src/artifacts/job-journal.d.ts",
+        "size": 65,
+        "mode": 420
+      },
+      {
+        "path": "src/artifacts/job-journal.js",
+        "size": 15003,
+        "mode": 420
+      },
+      {
+        "path": "src/artifacts/receipt.d.ts",
+        "size": 1372,
+        "mode": 420
+      },
+      {
+        "path": "src/artifacts/receipt.js",
+        "size": 4190,
+        "mode": 420
+      },
+      {
+        "path": "src/artifacts/signatures.js",
+        "size": 3725,
+        "mode": 420
+      },
+      {
+        "path": "src/artifacts/store.d.ts",
+        "size": 1214,
+        "mode": 420
+      },
+      {
+        "path": "src/artifacts/store.js",
+        "size": 4707,
+        "mode": 420
+      },
+      {
+        "path": "src/config/defaults.json",
+        "size": 2465,
+        "mode": 420
+      },
+      {
+        "path": "src/config/index.d.ts",
+        "size": 3582,
+        "mode": 420
+      },
+      {
+        "path": "src/config/index.js",
+        "size": 11638,
+        "mode": 420
+      },
+      {
+        "path": "src/config/profiles/local.json",
+        "size": 70,
+        "mode": 420
+      },
+      {
+        "path": "src/config/request-overrides.json",
+        "size": 166,
+        "mode": 420
+      },
+      {
+        "path": "src/config/schema.json",
+        "size": 11367,
+        "mode": 420
+      },
+      {
+        "path": "src/config/transport-defaults.json",
+        "size": 206,
+        "mode": 420
+      },
+      {
+        "path": "src/contracts/config/doppler-execution-contracts.d.ts",
+        "size": 1184,
+        "mode": 420
+      },
+      {
+        "path": "src/contracts/config/doppler-generation-contract.d.ts",
+        "size": 2429,
+        "mode": 420
+      },
+      {
+        "path": "src/contracts/infrastructure/doppler-runtime-service.d.ts",
+        "size": 1925,
+        "mode": 420
+      },
+      {
+        "path": "src/contracts/infrastructure/pack-job-storage.d.ts",
+        "size": 3852,
+        "mode": 420
+      },
+      {
+        "path": "src/contracts/pool/adapter-execution.d.ts",
+        "size": 1956,
+        "mode": 420
+      },
+      {
+        "path": "src/contracts/pool/local-pack-executor.d.ts",
+        "size": 2727,
+        "mode": 420
+      },
+      {
+        "path": "src/contracts/pool/operation-acceptance.d.ts",
+        "size": 1513,
+        "mode": 420
+      },
+      {
+        "path": "src/contracts/pool/pack-operation-adapters.d.ts",
+        "size": 3026,
+        "mode": 420
+      },
+      {
+        "path": "src/contracts/pool/pack-operation.d.ts",
+        "size": 4369,
+        "mode": 420
+      },
+      {
+        "path": "src/contracts/pool/peer-adapter-execution.d.ts",
+        "size": 1299,
+        "mode": 420
+      },
+      {
+        "path": "src/contracts/pool/peer-capabilities.d.ts",
+        "size": 3859,
+        "mode": 420
+      },
+      {
+        "path": "src/contracts/pool/peer-pack-custody.d.ts",
+        "size": 1889,
+        "mode": 420
+      },
+      {
+        "path": "src/contracts/pool/peer-pack-job-policy.d.ts",
+        "size": 2229,
+        "mode": 420
+      },
+      {
+        "path": "src/contracts/pool/peer-pack-job.d.ts",
+        "size": 6315,
+        "mode": 420
+      },
+      {
+        "path": "src/contracts/pool/peer-pack-provider.d.ts",
+        "size": 1898,
+        "mode": 420
+      },
+      {
+        "path": "src/contracts/pool/peer-pack-requester.d.ts",
+        "size": 2319,
+        "mode": 420
+      },
+      {
+        "path": "src/contracts/pool/peer-planning.d.ts",
+        "size": 2133,
+        "mode": 420
+      },
+      {
+        "path": "src/improvement/episodes.d.ts",
+        "size": 3825,
+        "mode": 420
+      },
+      {
+        "path": "src/improvement/episodes.js",
+        "size": 49450,
+        "mode": 420
+      },
+      {
+        "path": "src/improvement/index.d.ts",
+        "size": 703,
+        "mode": 420
+      },
+      {
+        "path": "src/improvement/index.js",
+        "size": 448,
+        "mode": 420
+      },
+      {
+        "path": "src/index.d.ts",
+        "size": 97,
+        "mode": 420
+      },
+      {
+        "path": "src/index.js",
+        "size": 187,
+        "mode": 420
+      },
+      {
+        "path": "src/mesh/contribution.d.ts",
+        "size": 1395,
+        "mode": 420
+      },
+      {
+        "path": "src/mesh/contribution.js",
+        "size": 4974,
+        "mode": 420
+      },
+      {
+        "path": "src/mesh/index.d.ts",
+        "size": 750,
+        "mode": 420
+      },
+      {
+        "path": "src/mesh/index.js",
+        "size": 2442,
+        "mode": 420
+      },
+      {
+        "path": "src/mesh/jobs/contracts.d.ts",
+        "size": 173,
+        "mode": 420
+      },
+      {
+        "path": "src/mesh/jobs/contracts.js",
+        "size": 20565,
+        "mode": 420
+      },
+      {
+        "path": "src/mesh/jobs/episode.d.ts",
+        "size": 256,
+        "mode": 420
+      },
+      {
+        "path": "src/mesh/jobs/episode.js",
+        "size": 5070,
+        "mode": 420
+      },
+      {
+        "path": "src/mesh/jobs/index.d.ts",
+        "size": 508,
+        "mode": 420
+      },
+      {
+        "path": "src/mesh/jobs/index.js",
+        "size": 304,
+        "mode": 420
+      },
+      {
+        "path": "src/mesh/jobs/provider.d.ts",
+        "size": 234,
+        "mode": 420
+      },
+      {
+        "path": "src/mesh/jobs/provider.js",
+        "size": 18466,
+        "mode": 420
+      },
+      {
+        "path": "src/mesh/jobs/requester.d.ts",
+        "size": 239,
+        "mode": 420
+      },
+      {
+        "path": "src/mesh/jobs/requester.js",
+        "size": 10360,
+        "mode": 420
+      },
+      {
+        "path": "src/mesh/legacy-generation.d.ts",
+        "size": 1560,
+        "mode": 420
+      },
+      {
+        "path": "src/mesh/legacy-generation.js",
+        "size": 16873,
+        "mode": 420
+      },
+      {
+        "path": "src/mesh/swarm-coordination.d.ts",
+        "size": 1929,
+        "mode": 420
+      },
+      {
+        "path": "src/mesh/swarm-coordination.js",
+        "size": 4290,
+        "mode": 420
+      },
+      {
+        "path": "src/rules/contribution.rules.json",
+        "size": 167,
+        "mode": 420
+      },
+      {
+        "path": "src/rules/routing.rules.json",
+        "size": 313,
+        "mode": 420
+      },
+      {
+        "path": "src/transport/assignment.d.ts",
+        "size": 1948,
+        "mode": 420
+      },
+      {
+        "path": "src/transport/assignment.js",
+        "size": 17404,
+        "mode": 420
+      },
+      {
+        "path": "src/transport/index.d.ts",
+        "size": 258,
+        "mode": 420
+      },
+      {
+        "path": "src/transport/index.js",
+        "size": 381,
+        "mode": 420
+      },
+      {
+        "path": "src/transport/retry-policy.d.ts",
+        "size": 392,
+        "mode": 420
+      },
+      {
+        "path": "src/transport/retry-policy.js",
+        "size": 1186,
+        "mode": 420
+      },
+      {
+        "path": "src/transport/room.d.ts",
+        "size": 439,
+        "mode": 420
+      },
+      {
+        "path": "src/transport/room.js",
+        "size": 14699,
+        "mode": 420
+      },
+      {
+        "path": "src/transport/signaling.d.ts",
+        "size": 2538,
+        "mode": 420
+      },
+      {
+        "path": "src/transport/signaling.js",
+        "size": 16210,
+        "mode": 420
+      },
+      {
+        "path": "src/transport/swarm.d.ts",
+        "size": 1354,
+        "mode": 420
+      },
+      {
+        "path": "src/transport/swarm.js",
+        "size": 29453,
+        "mode": 420
+      }
+    ],
+    "entryCount": 102,
+    "bundled": []
+  }
+]

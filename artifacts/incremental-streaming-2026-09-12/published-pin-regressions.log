@@ -1,0 +1,13 @@
+
+ RUN  v4.1.10 /home/x/deco/worktrees/reploid-consumer-streaming
+
+ ✓ tests/unit/doppler-local-models.test.js (4 tests) 4ms
+ ✓ tests/unit/runtime-config-sync.test.js (6 tests) 6ms
+ ✓ tests/unit/browser-library-config.test.js (2 tests) 5ms
+ ✓ tests/unit/doppler-runtime-service.test.js (10 tests) 8ms
+ ✓ tests/unit/pool-doppler-runtime.test.js (23 tests) 36ms
+
+ Test Files  5 passed (5)
+      Tests  45 passed (45)
+   Start at  23:37:19
+   Duration  562ms (transform 234ms, setup 0ms, import 390ms, tests 58ms, environment 959ms)

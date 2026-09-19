@@ -149,7 +149,7 @@ const MetricsDashboard = {
     const buildChart = (canvasId, configFactory) => {
       const canvas = document.getElementById(canvasId);
       if (!canvas) return null;
-      return new Chart(canvas.getContext('2d'), configFactory());
+      return new globalThis.Chart(canvas.getContext('2d'), configFactory());
     };
 
     const baseOptions = (overrides = {}) => {

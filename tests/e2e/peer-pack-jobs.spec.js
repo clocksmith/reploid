@@ -60,13 +60,13 @@ for (const schema of ['doppler.pack/v2', 'doppler.capsule/v2']) test(`reviewed p
       await window.fixture.start({ role, roomId, schema });
     }, { role: index === 0 ? 'provider' : 'requester', roomId: 'document-delegation-proof', schema });
     const configuration = await provider.evaluate(() => window.fixture.configuration());
-    await provider.locator('[data-operation-sharing] summary').click();
+    await provider.locator('[data-operation-model]').selectOption('');
     await provider.locator('[data-operation-settings]').setInputFiles({ name: 'models.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(configuration)) });
     await provider.locator('[data-operation-toggle]').click();
-    await expect(provider.locator('[data-operation-status]')).toHaveText('Confirm publisher trust and sharing first');
+    await expect(provider.locator('[data-operation-status]')).toHaveText('Approve the publisher and public-input execution first');
     await provider.locator('[data-operation-approve]').check();
     await provider.locator('[data-operation-toggle]').click();
-    await expect(provider.locator('[data-operation-status]')).toHaveText('Sharing fixture');
+    await expect(provider.locator('[data-operation-status]')).toHaveText(/Offering .*Jobs load the exact model when needed\./);
     const task = 'PUBLIC-TASK-TRIPWIRE: Suggest a concise answer structure.';
     await requester.locator('[data-document-share] summary').click();
     await expect(requester.locator('[data-document-share-task]')).toHaveValue('');
@@ -158,9 +158,24 @@ test('Verification Worker accepts complete-job modules and modified execution bo
       snapshot[`/pool/${file}`] = await (await fetch(`/self/pool/${file}`)).text();
     }
     snapshot['/infrastructure/pack-job-storage.js'] = await (await fetch('/self/infrastructure/pack-job-storage.js')).text();
+    snapshot['/pool/p2p-transport.js'] = await (await fetch('/self/pool/p2p-transport.js')).text();
+    snapshot['/vendor/reploid/transport/assignment.js'] = await (await fetch('/self/vendor/reploid/transport/assignment.js')).text();
+    for (const file of ['core/vfs.js', 'core/verification-worker.js', 'vendor/reploid/artifacts/store.js', 'vendor/reploid/adapters/browser.js']) {
+      snapshot[`/${file}`] = await (await fetch(`/self/${file}`)).text();
+    }
     for (const file of ['infrastructure/doppler-runtime-service.js', 'config/doppler-execution-contracts.js']) snapshot[`/${file}`] = await (await fetch(`/self/${file}`)).text();
     for (const file of ['document-search.js', 'index.js', 'view.js', 'operation-sharing.js']) snapshot[`/ui/pool-home/${file}`] = await (await fetch(`/self/ui/pool-home/${file}`)).text();
-    for (const file of ['peer-pack-operation.js', 'peer-pack-job-browser.js', 'peer-pack-browser.js', 'peer-pack-remote-execution.js', 'peer-pack-journal-browser.js']) snapshot[`/tests/fixtures/${file}`] = await (await fetch(`/tests/fixtures/${file}`)).text();
+    for (const file of ['peer-pack-operation.js', 'peer-pack-job-browser.js', 'peer-pack-browser.js', 'peer-pack-remote-execution.js', 'peer-pack-journal-browser.js', 'doppler-installed-peer-browser.js']) snapshot[`/tests/fixtures/${file}`] = await (await fetch(`/tests/fixtures/${file}`)).text();
+    for (const file of [
+      'host/work-session.js', 'host/work-task.js', 'host/work-view.js', 'host/work-repository.js',
+      'providers/work-provider.js', 'config/surface-intents.js', 'config/surface-resources.js',
+      'vendor/reploid/agent/lifecycle.js', 'vendor/reploid/agent/tool-dispatch.js',
+      'vendor/reploid/agent/provider-recovery.js', 'vendor/reploid/agent/index.js',
+      'vendor/reploid/agent/runtime.js', 'vendor/reploid/agent/legacy-loop.js',
+      'vendor/reploid/artifacts/job-journal.js', 'vendor/reploid/artifacts/custody/runtime.js',
+      'vendor/reploid/mesh/jobs/contracts.js', 'vendor/reploid/mesh/jobs/provider.js',
+      'vendor/reploid/mesh/jobs/requester.js', 'vendor/reploid/mesh/jobs/episode.js'
+    ]) snapshot[`/${file}`] = await (await fetch(`/self/${file}`)).text();
     const worker = new Worker('/core/verification-worker.js');
     return new Promise((resolve, reject) => {
       const timer = setTimeout(() => { worker.terminate(); reject(new Error('Verification Worker timeout')); }, 10000);
@@ -335,7 +350,7 @@ test('legacy unfinished records migrate as interrupted and never become runnable
     const { PACK_JOB_POLICY } = await import('/self/pool/peer-pack-job-policy.js');
     const policy = PACK_JOB_POLICY.persistence, hash = `sha256:${'a'.repeat(64)}`, name = crypto.randomUUID();
     const value = { requesterId: hash, jobId: 'legacy-job', attemptId: 'legacy-attempt', jobHash: hash, expiresAt: Date.now() + 30000 };
-    const opening = indexedDB.open(`${name}:${hash}`, policy.databaseVersion);
+    const opening = indexedDB.open(`${name}:${hash}`, 1);
     opening.onupgradeneeded = () => opening.result.createObjectStore(policy.storeName, { keyPath: 'key' });
     const db = await new Promise((resolve, reject) => { opening.onsuccess = () => resolve(opening.result); opening.onerror = () => reject(opening.error); });
     const tx = db.transaction(policy.storeName, 'readwrite');
@@ -353,6 +368,43 @@ test('legacy unfinished records migrate as interrupted and never become runnable
   expect(result.created).toBe(false); expect(result.schema).toBe('reploid.pack-job-journal/v2');
   expect(result.status).toBe('interrupted'); expect(result.outcome).toBe('legacy-interrupted');
   expect(result.retainUntil).toBe(result.expectedRetention);
+});
+
+test('cumulative v2 journal migration preserves updates and rejects corrupt stream metadata', async ({ page }) => {
+  await page.goto(origin);
+  const result = await page.evaluate(async () => {
+    const { openPackJobJournal } = await import('/self/infrastructure/pack-job-storage.js');
+    const { PACK_JOB_POLICY } = await import('/self/pool/peer-pack-job-policy.js');
+    const policy = PACK_JOB_POLICY.persistence, hash = `sha256:${'a'.repeat(64)}`, name = crypto.randomUUID();
+    const request = op => new Promise((resolve, reject) => { op.onsuccess = () => resolve(op.result); op.onerror = () => reject(op.error); });
+    const done = tx => new Promise((resolve, reject) => { tx.oncomplete = resolve; tx.onabort = () => reject(tx.error); });
+    const value = { requesterId: hash, jobId: 'migrate', attemptId: 'one', jobHash: hash, expiresAt: Date.now() + 60000,
+      binding: { requestHash: hash, assignmentId: 'migration', operation: { name: 'generate', version: 1 }, model: {}, adapterSet: [], attemptNumber: 1 } };
+    const key = JSON.stringify([hash, value.jobId, value.attemptId]);
+    const updates = ['partial', 'completed'].map((status, index) => ({ messageHash: hash, signature: `retained-${index}`,
+      body: { jobHash: hash, requestHash: hash, updateIndex: index, previousUpdateHash: index ? hash : null, status, text: 'é' } }));
+    const opening = indexedDB.open(`${name}:${hash}`, 1);
+    opening.onupgradeneeded = () => opening.result.createObjectStore(policy.storeName, { keyPath: 'key' });
+    let db = await request(opening), tx = db.transaction(policy.storeName, 'readwrite');
+    tx.objectStore(policy.storeName).put({ schema: policy.recordSchema, key, ...value, owner: 'writer', status: 'completed',
+      outcome: 'completed', retainUntil: value.expiresAt + policy.retentionMs, updates });
+    await done(tx); db.close();
+    let journal = await openPackJobJournal({ providerId: hash, policy, name });
+    const migrated = await journal.claim(value, 'restored'); journal.close();
+    journal = await openPackJobJournal({ providerId: hash, policy, name });
+    const reopened = await journal.claim(value, 'restored'); journal.close();
+    db = await request(indexedDB.open(`${name}:${hash}`, policy.databaseVersion));
+    tx = db.transaction(policy.storeName, 'readwrite');
+    const record = await request(tx.objectStore(policy.storeName).get(key));
+    record._stream.count = -1; tx.objectStore(policy.storeName).put(record); await done(tx); db.close();
+    journal = await openPackJobJournal({ providerId: hash, policy, name });
+    let error = null;
+    try { await journal.getStats(); } catch (failure) { error = failure.message; } finally { journal.close(); }
+    return { updates, migrated: migrated.record.updates, reopened: reopened.record.updates,
+      privateFieldsExposed: '_stream' in migrated.record, error };
+  });
+  expect(result.migrated).toEqual(result.updates); expect(result.reopened).toEqual(result.updates);
+  expect(result.privateFieldsExposed).toBe(false); expect(result.error).toContain('corrupt update metadata');
 });
 
 test('a stalled native transaction aborts within configured storage bounds', async ({ page }) => {
@@ -422,16 +474,18 @@ test('a corrupted durable response cannot enter provider replay even after anoth
   }).toBe(true);
   await page.evaluate(async providerId => {
     await window.journalFixture.close();
-    const opening = indexedDB.open(`reploid-pack-jobs-v1:${providerId}`, 1);
+    const { PACK_JOB_POLICY } = await import('/self/pool/peer-pack-job-policy.js');
+    const policy = PACK_JOB_POLICY.persistence;
+    const opening = indexedDB.open(`${policy.databaseName}:${providerId}`, policy.databaseVersion);
     const db = await new Promise((resolve, reject) => { opening.onsuccess = () => resolve(opening.result); opening.onerror = () => reject(opening.error); });
     try {
       await new Promise((resolve, reject) => {
-        const tx = db.transaction('attempts', 'readwrite');
+        const tx = db.transaction(policy.updatesStoreName, 'readwrite');
         tx.oncomplete = resolve; tx.onabort = () => reject(tx.error);
-        const store = tx.objectStore('attempts'), read = store.getAll();
+        const store = tx.objectStore(policy.updatesStoreName), read = store.getAll();
         read.onsuccess = () => {
-          const record = read.result[0];
-          record.updates.at(-1).body.event.output.embeddings[0].embedding[0] = 999;
+          const record = read.result.at(-1);
+          record.message.body.event.output.embeddings[0].embedding[0] = 999;
           store.put(record);
         };
       });
@@ -448,4 +502,51 @@ test('a corrupted durable response cannot enter provider replay even after anoth
   expect(state.errors).toHaveLength(2);
   expect(state.attempts).toBe(0);
   await page.evaluate(() => window.journalFixture.close());
+});
+
+test('journal delta appends transfer approximately linear bytes', async ({ page }, testInfo) => {
+  await page.goto(origin);
+  const results = await page.evaluate(async () => {
+    const { openPackJobJournal } = await import('/self/infrastructure/pack-job-storage.js');
+    const { PACK_JOB_POLICY } = await import('/self/pool/peer-pack-job-policy.js');
+    const hash = `sha256:${'a'.repeat(64)}`, rows = [];
+    const originalPut = IDBObjectStore.prototype.put, originalAdd = IDBObjectStore.prototype.add, originalGetAll = IDBObjectStore.prototype.getAll;
+    let writes = 0, reads = 0;
+    const bytes = value => new TextEncoder().encode(JSON.stringify(value)).length;
+    IDBObjectStore.prototype.put = function(value, ...rest) { writes += bytes(value); return originalPut.call(this, value, ...rest); };
+    IDBObjectStore.prototype.add = function(value, ...rest) { writes += bytes(value); return originalAdd.call(this, value, ...rest); };
+    IDBObjectStore.prototype.getAll = function(...args) {
+      const request = originalGetAll.apply(this, args);
+      request.addEventListener('success', () => { reads += bytes(request.result); });
+      return request;
+    };
+    try {
+      for (const count of [64, 128, 256]) {
+        const journal = await openPackJobJournal({ providerId: hash, policy: PACK_JOB_POLICY.persistence, name: crypto.randomUUID() });
+        const value = { requesterId: hash, jobId: 'linear', attemptId: 'one', jobHash: hash, expiresAt: Date.now() + 60000,
+          binding: { requestHash: hash, assignmentId: 'linear-assignment', operation: { name: 'generate', version: 1 }, model: {}, adapterSet: [], attemptNumber: 1 } };
+        try {
+          await journal.claim(value, 'writer'); await journal.markRunning(value, 'writer');
+          writes = 0; reads = 0;
+          let previousUpdateHash = null;
+          for (let i = 0; i < count; i++) {
+            const messageHash = `sha256:${String(i).padStart(64, '0')}`;
+            await journal.append(value, 'writer', { messageHash, body: { jobHash: hash, requestHash: hash, updateIndex: i,
+              previousUpdateHash, status: i === count - 1 ? 'completed' : 'partial', event: { delta: { text: 'x', tokenIds: [1] } } } }, { snapshot: false });
+            previousUpdateHash = messageHash;
+          }
+          rows.push({ count, writes, reads });
+          const replay = await journal.claim(value, 'writer');
+          if (replay.record.updates.length !== count) throw new Error('Durable replay lost updates');
+        } finally { journal.close(); }
+      }
+    } finally { IDBObjectStore.prototype.put = originalPut; IDBObjectStore.prototype.add = originalAdd; IDBObjectStore.prototype.getAll = originalGetAll; }
+    return rows;
+  });
+  await testInfo.attach('journal-copy-volume', { body: JSON.stringify(results, null, 2), contentType: 'application/json' });
+  console.log(JSON.stringify({ journalCopyVolume: results }));
+  for (let i = 1; i < results.length; i++) {
+    expect(results[i].writes / results[i - 1].writes).toBeLessThan(2.3);
+    expect(results[i].reads / results[i - 1].reads).toBeLessThan(2.3);
+  }
 });

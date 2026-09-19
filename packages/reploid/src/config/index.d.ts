@@ -8,7 +8,7 @@ export interface AgentPolicy {
 export interface Configuration {
   schema: 'reploid.config/v1';
   agent: AgentPolicy;
-  legacyAgent: { discoveryLimit: number; maxToolCalls: number };
+  legacyAgent: { discoveryLimit: number; maxToolCalls: number; settings: null | { providerThrottle: Json; cycleIntervalMs: number; functionGemma: Json } };
   tools: { allowed: string[]; allowDynamic: boolean; parallelSafe: string[]; ordered: string[]; exclusive: string[]; loaderId: string | null };
   memory: { storeId: string | null; checkpointPrefix: string; maxCheckpointBytes: number };
   models: { providerId: string | null; contract: Record<string, Json> | null };

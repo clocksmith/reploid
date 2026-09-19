@@ -40,7 +40,23 @@
       "import": "./src/config/index.js"
     },
     "./config/schema.json": "./src/config/schema.json",
-    "./config/profiles/local.json": "./src/config/profiles/local.json"
+    "./config/profiles/local.json": "./src/config/profiles/local.json",
+    "./agent": {
+      "types": "./src/agent/index.d.ts",
+      "import": "./src/agent/index.js"
+    },
+    "./legacy": {
+      "types": "./src/agent/legacy-loop.d.ts",
+      "import": "./src/agent/legacy-loop.js"
+    },
+    "./jobs": {
+      "types": "./src/mesh/jobs/index.d.ts",
+      "import": "./src/mesh/jobs/index.js"
+    },
+    "./custody": {
+      "types": "./src/artifacts/custody/runtime.d.ts",
+      "import": "./src/artifacts/custody/runtime.js"
+    }
   },
   "files": [
     "src",

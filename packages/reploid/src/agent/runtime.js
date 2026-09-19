@@ -1,5 +1,7 @@
+import { isTransientProviderFailure, providerRetryDelay } from './provider-recovery.js';
+import { dispatchTool } from './tool-dispatch.js';
+import { executeTurns, createAttemptLifecycle, TURN_NEXT, TURN_STOP, TURN_RETURN } from './lifecycle.js';
 import { requireResolvedConfig, snapshotJson } from '../config/index.js';
-import { abortable } from './cancellation.js';
 
 export function createAgentRuntime(options) {
   const policy = requireResolvedConfig(options.config);
@@ -51,32 +53,11 @@ const truncateString = (value, limit) => {
 
 const getErrorMessage = (error) => String(error?.message || error || '').trim();
 
-const parseRetryDelayMs = (message) => {
-  const match = String(message || '').match(/retry in\s+([0-9]+(?:\.[0-9]+)?)\s*(ms|milliseconds?|s|secs?|seconds?|m|mins?|minutes?)?/i);
-  if (!match) return null;
-
-  const value = Number(match[1]);
-  if (!Number.isFinite(value) || value < 0) return null;
-
-  const unit = String(match[2] || 's').toLowerCase();
-  const multiplier = unit.startsWith('ms')
-    ? 1
-    : unit.startsWith('m') && unit !== 'ms'
-      ? 60000
-      : 1000;
-  return Math.min(Math.ceil(value * multiplier), MAX_GENERATION_RETRY_DELAY_MS);
-};
-
-const getRetryableGenerationError = (error) => {
-  const message = getErrorMessage(error);
-  if (!message) return null;
-  const retryable = /quota|rate[-\s]?limit|too many requests|resource exhausted|retry in|429/i.test(message);
-  if (!retryable) return null;
-  return {
-    message,
-    retryDelayMs: parseRetryDelayMs(message) ?? DEFAULT_GENERATION_RETRY_DELAY_MS
-  };
-};
+const getRetryableGenerationError = error => isTransientProviderFailure(error) ? {
+  message: getErrorMessage(error),
+  retryDelayMs: providerRetryDelay(error, { baseMs: DEFAULT_GENERATION_RETRY_DELAY_MS,
+    maxMs: MAX_GENERATION_RETRY_DELAY_MS })
+} : null;
 
 const sanitizeToolValue = (value, depth = 0, seen = new WeakSet()) => {
   if (typeof value === 'string') {
@@ -680,7 +661,8 @@ const goal = String(options.goal || '').trim();
   let closed = false;
   let activeRun = null;
   let controller = null;
-  const wait = (operation) => abortable(operation, controller.signal);
+  const lifecycle = createAttemptLifecycle();
+  const wait = operation => lifecycle.invoke(operation, controller.signal);
   const listeners = new Set();
 
   let running = false;
@@ -1120,7 +1102,7 @@ const goal = String(options.goal || '').trim();
 
   const stop = () => {
     clearGenerationRetryTimer();
-    controller?.abort(new Error('Agent cancelled'));
+    lifecycle.cancel(new Error('Agent cancelled'));
     stopped = true;
     running = false;
     parked = false;
@@ -1183,13 +1165,13 @@ const goal = String(options.goal || '').trim();
     draft = '';
     notify();
 
-    while (!stopped && cycle < MAX_CYCLES) {
+    if (await executeTurns({ signal: controller.signal, canContinue: () => !stopped && cycle < MAX_CYCLES, turn: async () => {
       if (messages.reduce((size, message) => size + String(message.content).length, 0) > policy.agent.maxContextChars) {
         status = 'LIMIT';
         activity = 'Context budget exceeded';
         running = false;
         notify();
-        return;
+        return TURN_RETURN;
       }
       cycle += 1;
       if (await refreshRgrArchiveAnchors()) {
@@ -1208,7 +1190,7 @@ const goal = String(options.goal || '').trim();
           notify();
         }, { signal: controller.signal }));
       } catch (error) {
-        if (stopped || closed || controller.signal.aborted) return;
+        if (stopped || closed || controller.signal.aborted) return TURN_RETURN;
         const retryableGenerationError = getRetryableGenerationError(error);
         if (retryableGenerationError) {
           errorCount += 1;
@@ -1222,7 +1204,7 @@ const goal = String(options.goal || '').trim();
           running = false;
           scheduleGenerationRetry(retryableGenerationError.retryDelayMs);
           parkRuntime('Provider quota or rate limit', 'generation-retry');
-          return;
+          return TURN_RETURN;
         }
 
         errorCount += 1;
@@ -1234,7 +1216,7 @@ const goal = String(options.goal || '').trim();
         activity = 'Generation failed';
         draft = '';
         notify();
-        return;
+        return TURN_RETURN;
       }
 
       const assistantText = String(response?.raw || response?.content || '').trim();
@@ -1258,7 +1240,7 @@ const goal = String(options.goal || '').trim();
         repeatedMilestoneCount = 0;
         lastMilestoneReason = '';
         notify();
-        continue;
+        return TURN_NEXT;
       }
 
       if (directive.type === 'done') {
@@ -1287,10 +1269,10 @@ const goal = String(options.goal || '').trim();
           repeatedMilestoneCount = 0;
           lastMilestoneReason = '';
           notify();
-          return;
+          return TURN_RETURN;
         }
         notify();
-        continue;
+        return TURN_NEXT;
       }
 
       if (directive.type === 'idle') {
@@ -1302,7 +1284,7 @@ const goal = String(options.goal || '').trim();
         repeatedMilestoneCount = 0;
         lastMilestoneReason = '';
         notify();
-        return;
+        return TURN_RETURN;
       }
 
       const requestedCalls = Array.isArray(directive.calls) ? directive.calls : [];
@@ -1344,15 +1326,9 @@ const goal = String(options.goal || '').trim();
         }
 
         try {
-          if (!policy.tools.allowed.includes(call.name) && !(policy.tools.allowDynamic && bridge.listToolNames?.().includes(call.name))) throw new Error(`Tool is not permitted by configuration: ${call.name}`);
-          const result = await wait(async () => {
-            if (typeof bridge.authorize !== 'function'
-              || await bridge.authorize({ action: 'tool.execute', name: call.name, args: snapshotJson(call.args), instanceId }) !== true) {
-              throw new Error(`Host denied tool: ${call.name}`);
-            }
-            controller.signal.throwIfAborted();
-            return bridge.executeTool(call.name, call.args, { signal: controller.signal });
-          });
+          const result = await wait(() => dispatchTool({ call, policy, instanceId,
+            listToolNames: () => bridge.listToolNames?.() || [], authorize: request => bridge.authorize?.(request),
+            execute: (name, args, control) => bridge.executeTool(name, args, control), signal: controller.signal }));
           return {
             call,
             kind: 'RESULT',
@@ -1418,11 +1394,12 @@ const goal = String(options.goal || '').trim();
         tokenUsage += estimateTokens(parkNotice);
         parkRuntime(directive.idleReason);
         notify();
-        return;
+        return TURN_RETURN;
       }
 
       notify();
-    }
+
+    } }) === TURN_RETURN) return;
 
     running = false;
     status = stopped ? 'IDLE' : 'LIMIT';
@@ -1434,7 +1411,6 @@ const goal = String(options.goal || '').trim();
   const start = () => {
     if (closed) return Promise.reject(new Error('Agent is closed'));
     if (activeRun) return activeRun;
-    controller = new AbortController();
     stopped = false;
     const deadline = setTimeout(() => {
       stop();
@@ -1442,7 +1418,10 @@ const goal = String(options.goal || '').trim();
       activity = 'Execution deadline reached';
       notify();
     }, policy.agent.timeoutMs);
-    activeRun = Promise.resolve().then(run).finally(() => {
+    activeRun = lifecycle.start(async signal => {
+      controller = { signal };
+      return run();
+    }).finally(() => {
       clearTimeout(deadline);
       activeRun = null;
     });
@@ -1455,7 +1434,7 @@ const goal = String(options.goal || '').trim();
     stop();
     for (const unsubscribe of subscriptions.splice(0)) unsubscribe?.();
     listeners.clear();
-    await activeRun?.catch(() => {});
+    await lifecycle.close();
   };
 
   const checkpoint = () => {

@@ -497,6 +497,12 @@
         "maxToolCalls": {
           "type": "integer",
           "default": 8
+        },
+        "settings": {
+          "type": [
+            "object",
+            "null"
+          ]
         }
       }
     }

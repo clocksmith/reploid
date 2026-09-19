@@ -8,7 +8,7 @@ Distribute, execute, coordinate; adjudicate public-protein evidence.
 
 ## Authority
 - Owns discovery/admission, assignment, recovery and accounting integration.
-- Adapts package WebRTC/signaling; Pack-job/custody extraction remains incomplete. Swarm cannot substitute.
+- Composes package transport/jobs/custody with host policy. Swarm stays distinct.
 - Doppler owns Pack signatures/integrity, verified caching/execution.
 - Excludes truth, relays, RSI, private delegation.
 
@@ -42,7 +42,7 @@ Outputs:
 - Numeric uncertainty requires versioned methods/cohorts; vector metrics.
 - Provenance-bound imports: orders/public execution, labs/capability/safety, policies/resolution; never truth.
 - Campaigns order disagreement, not volume or biological priority.
-- Zero proposes; X evaluates frozen cohorts; Poolday admits. Separate promotion authorities.
+- Zero proposes; independent evaluators assess frozen cohorts; Poolday admits. Separate promotion authorities.
 - Value requires approved actions, reviewed outcomes, evaluation, causality, independent acceptance.
 
 ## Acceptance

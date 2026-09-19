@@ -5,6 +5,7 @@ export function createMemoryStore() {
   let closed = false;
   const check = () => { if (closed) throw new Error('Store is closed'); };
   return Object.freeze({
+    async init() { check(); return true; },
     async get(key) { check(); return entries.has(key) ? snapshotJson(entries.get(key)) : null; },
     async set(key, value) { check(); entries.set(String(key), snapshotJson(value)); },
     async delete(key) { check(); return entries.delete(String(key)); },
@@ -13,15 +14,19 @@ export function createMemoryStore() {
   });
 }
 
-export function createVfs({ store, now = Date.now, emit = () => {} }) {
+export function createVfs({ store, ownsStore = false, now = Date.now, emit = () => {} }) {
   if (!store?.get || !store?.set || !store?.keys) throw new TypeError('VFS requires a store port');
+  let closed = false, closing = null;
+  const check = () => { if (closed) throw new Error('VFS is closed'); };
   const normalize = path => {
-    if (typeof path !== 'string' || !path.trim()) throw new TypeError('VFS path is required');
+    check();
+    if (typeof path !== 'string' || !path.trim()) throw new TypeError('Invalid path: VFS requires a nonempty string');
     const value = '/' + path.trim().replace(/\\/g, '/').replace(/^\/+/, '');
     if (value.split('/').some(part => part === '..' || part === '.')) throw new TypeError('VFS path traversal is not allowed');
     return value;
   };
   const changed = event => {
+    check();
     emit('vfs:file_changed', event);
     emit('vfs:file-changed', event);
   };
@@ -48,8 +53,8 @@ export function createVfs({ store, now = Date.now, emit = () => {} }) {
     const prefix = normalize(path).replace(/\/$/, '') + '/';
     return store.keys(prefix);
   };
-  return Object.freeze({
-    init: async () => true, read, write, list, stat,
+  const operations = {
+    init: async () => { await store.init?.(); return true; }, read, write, list, stat,
     exists: async path => !!await stat(path),
     async delete(path) {
       const key = normalize(path), previous = await stat(key);
@@ -78,6 +83,21 @@ export function createVfs({ store, now = Date.now, emit = () => {} }) {
       if (clearFirst) for (const path of await store.keys('/')) await store.delete(path);
       for (const [path, content] of entries) await write(path, content);
       return entries.length;
+    }
+  };
+  const guarded = Object.fromEntries(Object.entries(operations).map(([name, operation]) => [name, async (...args) => {
+    check();
+    const result = await operation(...args);
+    check();
+    return result;
+  }]));
+  return Object.freeze({ ...guarded,
+    close() {
+      if (!closing) {
+        closed = true;
+        closing = Promise.resolve().then(() => ownsStore ? store.close() : undefined);
+      }
+      return closing;
     }
   });
 }

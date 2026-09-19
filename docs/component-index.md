@@ -36,5 +36,9 @@ Recursive authority charters discovered from the repository root.
 | Reploid Product Interface | [`self/ui/pool-home/CATSCAN.md`](../self/ui/pool-home/CATSCAN.md) | Browser Interfaces | Pursue bounded goals, share compute, inspect improvement evidence. |
 | X Operator Workbench | [`self/ui/proto/CATSCAN.md`](../self/ui/proto/CATSCAN.md) | Browser Interfaces | Let operators inspect the full causal improvement episode, compare generations, quarantine, replay, promote, and roll back substrate candidates without crossing into product admission. |
 | Zero Proposal Interface | [`self/ui/zero/CATSCAN.md`](../self/ui/zero/CATSCAN.md) | Browser Interfaces | Give Zero operators a focused interface for objectives, tool-growing experiments, and candidate proposals. |
+| Agent Execution | [`packages/reploid/src/agent/CATSCAN.md`](../packages/reploid/src/agent/CATSCAN.md) | Reploid Browser Library | Provide reusable agent execution with explicit host ports and bounded lifecycle. |
+| Peer Transport | [`packages/reploid/src/transport/CATSCAN.md`](../packages/reploid/src/transport/CATSCAN.md) | Reploid Browser Library | Provide reusable peer transport with explicit host ports and bounded lifecycle. |
+| Artifact Custody | [`packages/reploid/src/artifacts/custody/CATSCAN.md`](../packages/reploid/src/artifacts/custody/CATSCAN.md) | Reploid Browser Library | Provide reusable artifact custody with explicit host ports and bounded lifecycle. |
+| Complete Peer Jobs | [`packages/reploid/src/mesh/jobs/CATSCAN.md`](../packages/reploid/src/mesh/jobs/CATSCAN.md) | Reploid Browser Library | Provide reusable complete peer jobs with explicit host ports and bounded lifecycle. |
 
 *Generated from CATSCAN.md files.*

@@ -108,7 +108,7 @@ export function createFirestorePoolStore({ firestore, collectionPrefix = '' } = 
   };
   const hasActiveAssignment = async (providerId) => {
     if (!providerId) return false;
-    const snapshots = await Promise.all(expirableAssignmentStatuses.map((status) => (
+    const snapshots = await Promise.all(EXPIRABLE_ASSIGNMENT_STATUSES.map((status) => (
       collection(COLLECTIONS.assignments)
         .where('providerId', '==', providerId)
         .where('status', '==', status)

@@ -6,7 +6,7 @@ export const MAX_AGENT_ITERATIONS = 256;
 export const MANAGED_SERVER_PROXY_TYPE = 'firebase-function';
 export const MANAGED_SERVER_PROXY_MAX_ITERATIONS = 99;
 export const MANAGED_SERVER_PROXY_REJECT_STATUSES = new Set([400, 413]);
-export const TRANSIENT_PROVIDER_STATUSES = new Set([408, 429, 500, 502, 503, 504]);
+export { TRANSIENT_PROVIDER_STATUSES, getProviderErrorStatus, getProviderRetryAfterMs } from '../vendor/reploid/agent/provider-recovery.js';
 
 export const DEFAULT_PROVIDER_THROTTLE = Object.freeze({
   minProviderRequestIntervalMs: 0,
@@ -304,24 +304,6 @@ export function renderModelContextForTrace(messages = [], tools = []) {
     ? `\n\n## Tools offered\n${toolNames.map((name) => `- ${name}`).join('\n')}`
     : '\n\n## Tools offered\n- none';
   return `${renderedMessages}${toolText}`;
-}
-
-export function getProviderErrorStatus(error) {
-  const direct = Number(error?.status ?? error?.details?.status ?? error?.details?.statusCode);
-  if (Number.isFinite(direct)) return direct;
-  const match = String(error?.message || error || '').match(/\b([45]\d\d)\b/);
-  return match ? Number(match[1]) : null;
-}
-
-export function getProviderRetryAfterMs(error, now = Date.now()) {
-  const direct = Number(error?.retryAfterMs ?? error?.details?.retryAfterMs);
-  if (Number.isFinite(direct) && direct >= 0) return direct;
-  const retryAfter = error?.retryAfter ?? error?.details?.retryAfter;
-  if (retryAfter === undefined || retryAfter === null) return null;
-  const seconds = Number(retryAfter);
-  if (Number.isFinite(seconds) && seconds >= 0) return seconds * 1000;
-  const retryAt = Date.parse(String(retryAfter));
-  return Number.isFinite(retryAt) ? Math.max(0, retryAt - now) : null;
 }
 
 export function parseWaitDirective(content = '') {

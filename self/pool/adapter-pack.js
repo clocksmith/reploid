@@ -2,7 +2,7 @@
  * @fileoverview Immutable governed-adapter identity used by Poolday.
  */
 
-import { hashJson } from './inference-receipt.js';
+import { hashJson } from '../vendor/reploid/artifacts/signatures.js';
 import { validateArtifactOrigin } from './artifact-origin.js';
 
 export const ADAPTER_PACK_SCHEMA = 'reploid.pool.adapter-pack/v2';

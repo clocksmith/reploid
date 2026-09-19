@@ -74,6 +74,14 @@ function validate(config) {
       }
     }
   }
+  if (config.legacyAgent.settings !== null) {
+    const settings = config.legacyAgent.settings;
+    if (!settings || typeof settings !== 'object' || Array.isArray(settings)
+      || Object.keys(settings).some(key => !['providerThrottle', 'cycleIntervalMs', 'functionGemma'].includes(key))
+      || !Number.isSafeInteger(settings.cycleIntervalMs) || settings.cycleIntervalMs < 0) {
+      throw new ConfigurationError('legacyAgent.settings', 'invalid attempt settings');
+    }
+  }
   for (const key of ['enabled', 'executeJobs', 'supplyArtifacts', 'shareCandidates']) requireType(config.mesh[key], 'boolean', `mesh.${key}`);
   requireType(config.tools.allowDynamic, 'boolean', 'tools.allowDynamic');
   requireType(config.webrtc.dataChannelOptions?.ordered, 'boolean', 'webrtc.dataChannelOptions.ordered');

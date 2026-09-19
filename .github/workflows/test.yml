@@ -23,9 +23,8 @@ jobs:
     - name: Install dependencies
       run: npm ci
 
-    - name: Run linter (if configured)
-      run: npm run lint --if-present
-      continue-on-error: true
+    - name: Check JavaScript correctness
+      run: npm run lint
 
     - name: Run tests
       run: npm test
@@ -35,6 +34,7 @@ jobs:
         npm run verify:catscan
         npm run verify:surface-claims
         npm run verify:layers
+        npm run verify:library-types
         npm run verify:module-system
         npm run verify:registry
         npm run verify:runtime-config
@@ -43,6 +43,15 @@ jobs:
         npm run verify:change-passport:pilot
         npm exec -- tsc -p tsconfig.change-passport.json --noEmit
         npm run verify:pool
+
+    - name: Install contract browser
+      run: npx playwright install --with-deps chromium
+
+    - name: Browser storage, surfaces, peer lifecycle and verification
+      run: npx playwright test tests/e2e/vfs-storage-contract.spec.js tests/e2e/boot.spec.js tests/e2e/peer-pack-jobs.spec.js --project=chromium --workers=2
+
+    - name: Installed package acceptance
+      run: node tests/library-package-acceptance.js
 
     - name: Archive test results
       uses: actions/upload-artifact@v4
@@ -53,6 +62,7 @@ jobs:
           coverage/
           test-results/
           playwright-report/
+          artifacts/library-acceptance/
 
   lint:
     runs-on: ubuntu-latest

@@ -1,0 +1,61 @@
+{
+  "schema": "reploid.vfs-readiness-acceptance/v1",
+  "passed": true,
+  "sourceRevision": "173f1e8ec16426dbda0658077bc34bdc0a82edb5",
+  "sourceTree": "67d1a3d560404e7db88488c4a1e2d9c72e160209",
+  "archiveSha256": "c21230a20471c8beb9fa414a326b7a2da889a4ef9d07c13f3f23e8db9a1ca962",
+  "environment": {
+    "node": "v22.22.1",
+    "platform": "linux",
+    "browser": "145.0.7632.6",
+    "nativeStorage": "Chromium IndexedDB",
+    "gpuQualification": false
+  },
+  "checks": {
+    "vfsIntegration": 36,
+    "nativeIndexedDb": 4,
+    "verificationWorker": 2,
+    "installedReploid": true,
+    "installedPublicTransport": true
+  },
+  "before": {
+    "nativeReadinessFailures": 2,
+    "generatedStorageOwnerRejected": true,
+    "existingInlineKeyPersistence": "passed; migration hypothesis ruled out",
+    "abortedWrite": "passed"
+  },
+  "fullSuitePassed": false,
+  "fullSuiteComparison": "vfs-full-suite-comparison.json",
+  "changedFileSha256": {
+    "packages/reploid/README.md": "b439b8315baad307d0cd71bbb9b8344707fa3d6d8f4a69e2aa6f95be2934960b",
+    "packages/reploid/src/adapters/browser.d.ts": "f4de9a519a0565b57935d9bcd25002700c86eb04d5d6d941637a1250b72facda",
+    "packages/reploid/src/adapters/browser.js": "76bc9b00598a459510061024cd03180196b1bf7f3ec0ed352d803fdd1a1a0f8e",
+    "packages/reploid/src/artifacts/store.d.ts": "b2f1d8f8cd6ffc829beaa88ae2c192f2031b3e786cf99332a01a98dcd6965adc",
+    "packages/reploid/src/artifacts/store.js": "3aacddc3ead348682880a5fbb0b308728518895c824caf59b77e3e281003168c",
+    "self/config/browser-bundle-manifest.json": "01c9bd8eeb89ebc6ce3a9020617dcba80f704cff3ae5f5f417769d3906818fdb",
+    "self/config/module-inventory.json": "cbf20b4edd86b1ecc89aef2d77ada58d6ef80b1492457da69208e02e61814e4e",
+    "self/core/verification-worker.js": "d9ca566f2b9069198a07840689f4ac0c9d5829bbf0757e1dd092bfbbed4e0f2f",
+    "self/core/vfs.js": "e11c439ade35b139bc61570b3ab264aa6d766af3dfb6cb878f29929320cffec3",
+    "self/vendor/reploid/adapters/browser.d.ts": "f4de9a519a0565b57935d9bcd25002700c86eb04d5d6d941637a1250b72facda",
+    "self/vendor/reploid/adapters/browser.js": "76bc9b00598a459510061024cd03180196b1bf7f3ec0ed352d803fdd1a1a0f8e",
+    "self/vendor/reploid/artifacts/store.d.ts": "b2f1d8f8cd6ffc829beaa88ae2c192f2031b3e786cf99332a01a98dcd6965adc",
+    "self/vendor/reploid/artifacts/store.js": "3aacddc3ead348682880a5fbb0b308728518895c824caf59b77e3e281003168c",
+    "self/vendor/reploid/package-assets.json": "ae7ab2377eb1c55956ae91d6481ef13b04cb26a892806f88b480d1749941b95d",
+    "tests/e2e/peer-pack-jobs.spec.js": "618ae2e66d50990a0b13c0d61d6486fdc961c03222f5f0d7f6f35bba723fd489",
+    "tests/e2e/vfs-storage-contract.spec.js": "7a301b24f54aa6e8f87e008784f4327da0c402ca72a9027b4565bda30d2fb230",
+    "tests/integration/vfs.test.js": "c43e5315bf949b83c9c0e0bf81f7b7a35fa07d7c3b6bfd684f856b6723a23eb1"
+  },
+  "evidenceSha256": {
+    "vfs-native-before.log": "3791c859ac4c70a6561188bcc62690325f809a170d0142ca34a53a267beb4567",
+    "vfs-verifier-before.log": "ea6a5d8166b38c7040dbb14009af755065107060624466f88d54d37a8bef9aab",
+    "vfs-native-after.log": "2925d56a09f9ac810fec8f3f8f5b3088d3a0ae728c4c15e7b763bdff786aeb46",
+    "vfs-regressions.log": "d0662281a7329139302d9a93e9755ce70ebc843542694447a5527a4a16c25708",
+    "vfs-catscan.log": "6e394cc75c76307e27e3cc13788aec90d84c3b2bec21fea3a624f215b6650ba2",
+    "vfs-full-suite.log": "46687d19fe29e22aafb08161c18623334105f16cda3fc7362dd49a72dfa0f502",
+    "vfs-full-suite-comparison.json": "f12d8bf75a273d1d657661d43e81794184e16e67adbdbb56bda6de1556cc8c4d",
+    "vfs-installed-reploid.json": "06d7bbea2c5ef7b9decbf57ecac066dd5bcaec085c22e37273892d1826deda13",
+    "vfs-installed-browser.json": "d5ea52ccb4a81576015a72ed8cb39880e837febccda74e8c3537848470a957d5",
+    "vfs-remote-reploid.log": "40e3fea185061873b028b6a6db2cc4eda3d00d1974d66803b0153a4f66709ec3"
+  },
+  "scope": "Storage readiness, existing database compatibility, transaction commit/abort and isolated connection cleanup; public installed Doppler contracts use injected programs. Verification policy remains an isolated draft candidate, not approved or activated self-modification. Physical model receipts retain their original revisions."
+}

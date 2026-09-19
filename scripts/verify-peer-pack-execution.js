@@ -211,7 +211,7 @@ export async function verifyPeerPackExecution(config) {
       await page.goto(origin + '/proof');
       const identity = await page.evaluate(async ({ id, restored }) => {
         globalThis.proofPeer = await import('/tests/fixtures/peer-pack-browser.js');
-        return proofPeer.identity(id, restored);
+        return globalThis.proofPeer.identity(id, restored);
       }, { id: peerId, restored });
       pages.set(peerId, page);
       return identity;
@@ -231,7 +231,7 @@ export async function verifyPeerPackExecution(config) {
             ? artifact.artifactId.startsWith('weight-shard:') && chunk.index < 2
             : chunk.index % 2 === position - 1).map((chunk) => chunk.index) })) };
       allowedChunks.set(peer.peerId, new Set(inventory.artifacts.flatMap((artifact) => artifact.chunkIndexes.map((chunk) => `${artifact.artifactId}:${chunk}`))));
-      const supplier = await pages.get(peer.peerId).evaluate((options) => proofPeer.configure(options),
+      const supplier = await pages.get(peer.peerId).evaluate((options) => globalThis.proofPeer.configure(options),
         { authorization, index, inventory, limits: config.transportLimits, faulty: position === 0 });
       inventories.push(supplier.inventory);
       report.suppliers.push({ peerId: peer.peerId, ...supplier });
@@ -248,15 +248,15 @@ export async function verifyPeerPackExecution(config) {
     report.receiverCache = await requester.evaluate(async () => ({ databases: await indexedDB.databases(),
       opfsEntries: await (async () => { const entries = []; for await (const [name] of (await navigator.storage.getDirectory()).entries()) entries.push(name); return entries; })() }));
     assert(report.receiverCache.databases.length === 0 && report.receiverCache.opfsEntries.length === 0, 'Receiver is not fresh');
-    await requester.evaluate((options) => proofPeer.configure(options), { limits: config.transportLimits });
+    await requester.evaluate((options) => globalThis.proofPeer.configure(options), { limits: config.transportLimits });
     report.stage = 'data-channel-connect';
     const connect = async () => {
       for (const peer of authorization.suppliers) {
-        const offer = await requester.evaluate((id) => proofPeer.offer(id), peer.peerId);
-        const answer = await pages.get(peer.peerId).evaluate(({ id, offer }) => proofPeer.answer(id, offer), { id: 'requester', offer });
-        await requester.evaluate(({ id, answer }) => proofPeer.accept(id, answer), { id: peer.peerId, answer });
+        const offer = await requester.evaluate((id) => globalThis.proofPeer.offer(id), peer.peerId);
+        const answer = await pages.get(peer.peerId).evaluate(({ id, offer }) => globalThis.proofPeer.answer(id, offer), { id: 'requester', offer });
+        await requester.evaluate(({ id, answer }) => globalThis.proofPeer.accept(id, answer), { id: peer.peerId, answer });
       }
-      await requester.waitForFunction(() => proofPeer.ready());
+      await requester.waitForFunction(() => globalThis.proofPeer.ready());
     };
     await connect();
     report.stage = 'peer-acquire-and-execute';
@@ -270,9 +270,9 @@ export async function verifyPeerPackExecution(config) {
         operationLimits: config.operationLimits, remoteResources: config.remoteOperation?.resources ?? null,
       };
       if (config.restart) {
-        const retainedKeys = await requester.evaluate(() => proofPeer.retainIdentityForRestart());
+        const retainedKeys = await requester.evaluate(() => globalThis.proofPeer.retainIdentityForRestart());
         const beforePid = requesterPid;
-        const interrupted = await requester.evaluate(options => proofPeer.execute(options),
+        const interrupted = await requester.evaluate(options => globalThis.proofPeer.execute(options),
           { ...executionOptions, interruptAfterWeightResponses: config.restart.afterWeightResponses });
         report.restart = { interrupted, beforePid };
         assert(!interrupted.passed && interrupted.injectedDisconnection
@@ -287,13 +287,13 @@ export async function verifyPeerPackExecution(config) {
         assert(requesterPid !== beforePid, 'Requester process was not replaced');
         requester = pages.get('requester');
         await requester.evaluate(async ({ limits, sources }) => {
-          await proofPeer.configure({ limits });
+          await globalThis.proofPeer.configure({ limits });
           const { registerShaderSources } = await import('/doppler/src/gpu/kernels/shader-cache.js');
           registerShaderSources(sources);
         }, { limits: config.transportLimits, sources: runtimeBootstrap.sources });
         await connect();
       }
-      const executing = requester.evaluate((options) => proofPeer.execute(options),
+      const executing = requester.evaluate((options) => globalThis.proofPeer.execute(options),
         { ...executionOptions, serveRemoteOperation: !!config.remoteOperation }).then(execution => {
         report.execution = execution;
         return execution;
@@ -306,23 +306,23 @@ export async function verifyPeerPackExecution(config) {
         // It receives no locally generated replacement output from the coordinator.
         const remoteRequester = pages.get(identities[2].peerId);
         try {
-          await Promise.race([requester.waitForFunction(() => proofPeer.remoteReady()), executing.then(execution => {
+          await Promise.race([requester.waitForFunction(() => globalThis.proofPeer.remoteReady()), executing.then(execution => {
             throw new Error(execution.error || 'Model execution ended before remote provider readiness');
           })]);
           await remoteRequester.evaluate(async ({ model, reference, sequence, resources }) => {
             window.remoteOperation = await import('/tests/fixtures/peer-pack-remote-execution.js');
-            await remoteOperation.startRequester(model, { reference, sequence, resources });
+            await globalThis.remoteOperation.startRequester(model, { reference, sequence, resources });
           }, { model: { modelId: reference.modelId, modelHash: binding.semanticRoot, manifestHash: binding.envelopeDigest,
             runtime: 'doppler', backend: 'browser-webgpu', runtimeVersion: config.dopplerVersion,
             executionMode: 'complete_pack_browser', workload: 'sequence.embedding.v1', executablePack: binding },
           reference: remoteReference.output, sequence: reference.input.sequence, resources: config.remoteOperation.resources });
-          const offer = await remoteRequester.evaluate(() => remoteOperation.offer());
-          const answer = await requester.evaluate(offer => proofPeer.remoteAnswer(offer), offer);
-          await remoteRequester.evaluate(answer => remoteOperation.accept(answer), answer);
-          const advert = await requester.evaluate(() => proofPeer.remoteAdvert());
-          report.remoteOperation = await remoteRequester.evaluate(advert => remoteOperation.run(advert), advert);
+          const offer = await remoteRequester.evaluate(() => globalThis.remoteOperation.offer());
+          const answer = await requester.evaluate(offer => globalThis.proofPeer.remoteAnswer(offer), offer);
+          await remoteRequester.evaluate(answer => globalThis.remoteOperation.accept(answer), answer);
+          const advert = await requester.evaluate(() => globalThis.proofPeer.remoteAdvert());
+          report.remoteOperation = await remoteRequester.evaluate(advert => globalThis.remoteOperation.run(advert), advert);
         } finally {
-          report.remoteProvider = await requester.evaluate(() => proofPeer.remoteFinish());
+          report.remoteProvider = await requester.evaluate(() => globalThis.proofPeer.remoteFinish());
           report.remoteRequester = await remoteRequester.evaluate(() => window.remoteOperation?.finish());
           await executing;
         }
@@ -337,7 +337,7 @@ export async function verifyPeerPackExecution(config) {
       }
     } finally { clearTimeout(timer); }
     report.peers = [];
-    for (const page of pages.values()) report.peers.push(await page.evaluate(() => proofPeer.observations()));
+    for (const page of pages.values()) report.peers.push(await page.evaluate(() => globalThis.proofPeer.observations()));
     if (report.execution.passed) {
       const output = report.execution.result;
       const transferAttempts = [...(report.restart?.interrupted.custody.attempts ?? []), ...report.execution.custody.attempts];

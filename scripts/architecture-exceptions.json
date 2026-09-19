@@ -1,0 +1,197 @@
+{
+  "loaders": [
+    {
+      "source": "self/boot-helpers/modules.js",
+      "expression": "resolveModulePath(entryFile)",
+      "owner": "self/host/CATSCAN.md",
+      "contract": "Configured boot/module registry entry or versioned resolved lab UI entry; source fallback is controlled by the host boot profile."
+    },
+    {
+      "source": "self/config/zero-inference.js",
+      "expression": "urls.app",
+      "owner": "self/config/CATSCAN.md",
+      "contract": "Host-configured Firebase SDK URLs; credential bootstrap only. No agent-selected module input."
+    },
+    {
+      "source": "self/config/zero-inference.js",
+      "expression": "urls.auth",
+      "owner": "self/config/CATSCAN.md",
+      "contract": "Host-configured Firebase SDK URLs; credential bootstrap only. No agent-selected module input."
+    },
+    {
+      "source": "self/config/zero-inference.js",
+      "expression": "urls.appCheck",
+      "owner": "self/config/CATSCAN.md",
+      "contract": "Host-configured Firebase SDK URLs; credential bootstrap only. No agent-selected module input."
+    },
+    {
+      "source": "self/core/vfs-module-loader.js",
+      "expression": "importUrl.url",
+      "owner": "self/core/CATSCAN.md",
+      "contract": "Host-authorized VFS module loader creates and revokes its blob/data URL; rewrites imports through the declared VFS resolver."
+    },
+    {
+      "source": "self/experimental/openclaw-audit/audit-mesh.js",
+      "expression": "TRYSTERO_MODULE_URL",
+      "owner": "self/CATSCAN.md",
+      "contract": "Fixed TRYSTERO_MODULE_URL experiment dependency; no candidate supplied specifier."
+    },
+    {
+      "source": "self/host/seed-vfs.js",
+      "expression": "buildCandidateUrl(path)",
+      "owner": "self/host/CATSCAN.md",
+      "contract": "Configured boot/module registry entry or versioned resolved lab UI entry; source fallback is controlled by the host boot profile."
+    },
+    {
+      "source": "self/host/start-app.js",
+      "expression": "withBootstrapQuery(SELF_BOOT_SPEC.runtime.runtimeEntry, getCurrentReploidPeerQuery())",
+      "owner": "self/host/CATSCAN.md",
+      "contract": "Configured boot/module registry entry or versioned resolved lab UI entry; source fallback is controlled by the host boot profile."
+    },
+    {
+      "source": "self/host/start-app.js",
+      "expression": "withBootstrapQuery(SELF_BOOT_SPEC.runtime.uiEntry, getCurrentReploidPeerQuery())",
+      "owner": "self/host/CATSCAN.md",
+      "contract": "Configured boot/module registry entry or versioned resolved lab UI entry; source fallback is controlled by the host boot profile."
+    },
+    {
+      "source": "self/host/start-app.js",
+      "expression": "withSelfQuery(SELF_BOOT_SPEC.runtime.uiEntry, query)",
+      "owner": "self/host/CATSCAN.md",
+      "contract": "Configured boot/module registry entry or versioned resolved lab UI entry; source fallback is controlled by the host boot profile."
+    },
+    {
+      "source": "self/host/start-app.js",
+      "expression": "withBootstrapQuery(SELF_BOOT_SPEC.runtime.uiEntry, query)",
+      "owner": "self/host/CATSCAN.md",
+      "contract": "Configured boot/module registry entry or versioned resolved lab UI entry; source fallback is controlled by the host boot profile."
+    },
+    {
+      "source": "self/host/start-app.js",
+      "expression": "vfsUrl",
+      "owner": "self/host/CATSCAN.md",
+      "contract": "Configured boot/module registry entry or versioned resolved lab UI entry; source fallback is controlled by the host boot profile."
+    },
+    {
+      "source": "self/host/start-app.js",
+      "expression": "withQuery(spec.sourceModulePath, { v: version, ...peerQuery })",
+      "owner": "self/host/CATSCAN.md",
+      "contract": "Configured boot/module registry entry or versioned resolved lab UI entry; source fallback is controlled by the host boot profile."
+    },
+    {
+      "source": "self/host/start-app.js",
+      "expression": "withQuery('/ui/pool-home/index.js', getCurrentReploidPeerQuery())",
+      "owner": "self/host/CATSCAN.md",
+      "contract": "Configured boot/module registry entry or versioned resolved lab UI entry; source fallback is controlled by the host boot profile."
+    },
+    {
+      "source": "self/host/start-app.js",
+      "expression": "withQuery('/ui/reploid-home/index.js', getCurrentReploidPeerQuery())",
+      "owner": "self/host/CATSCAN.md",
+      "contract": "Configured boot/module registry entry or versioned resolved lab UI entry; source fallback is controlled by the host boot profile."
+    },
+    {
+      "source": "self/host/start-app.js",
+      "expression": "withQuery('/ui/zero-home/index.js', getCurrentReploidPeerQuery())",
+      "owner": "self/host/CATSCAN.md",
+      "contract": "Configured boot/module registry entry or versioned resolved lab UI entry; source fallback is controlled by the host boot profile."
+    },
+    {
+      "source": "self/host/start-app.js",
+      "expression": "withQuery('/ui/boot-home/index.js', getCurrentReploidPeerQuery())",
+      "owner": "self/host/CATSCAN.md",
+      "contract": "Configured boot/module registry entry or versioned resolved lab UI entry; source fallback is controlled by the host boot profile."
+    },
+    {
+      "source": "self/host/start-app.js",
+      "expression": "withQuery('/ui/boot-wizard/index.js', getCurrentReploidPeerQuery())",
+      "owner": "self/host/CATSCAN.md",
+      "contract": "Configured boot/module registry entry or versioned resolved lab UI entry; source fallback is controlled by the host boot profile."
+    },
+    {
+      "source": "self/host/start-reploid.js",
+      "expression": "withSourceQuery(SELF_BOOT_SPEC.runtime.runtimeEntry, {\n        bootstrapper: 1,\n        ...getCurrentReploidPeerQuery()\n      })",
+      "owner": "self/host/CATSCAN.md",
+      "contract": "Configured boot/module registry entry or versioned resolved lab UI entry; source fallback is controlled by the host boot profile."
+    },
+    {
+      "source": "self/host/start-reploid.js",
+      "expression": "withSourceQuery(SELF_BOOT_SPEC.runtime.uiEntry, {\n        bootstrapper: 1,\n        ...getCurrentReploidPeerQuery()\n      })",
+      "owner": "self/host/CATSCAN.md",
+      "contract": "Configured boot/module registry entry or versioned resolved lab UI entry; source fallback is controlled by the host boot profile."
+    },
+    {
+      "source": "self/host/start-reploid.js",
+      "expression": "withVfsQuery(SELF_BOOT_SPEC.runtime.uiEntry, query)",
+      "owner": "self/host/CATSCAN.md",
+      "contract": "Configured boot/module registry entry or versioned resolved lab UI entry; source fallback is controlled by the host boot profile."
+    },
+    {
+      "source": "self/host/start-reploid.js",
+      "expression": "withSourceQuery(SELF_BOOT_SPEC.runtime.uiEntry, {\n    bootstrapper: 1,\n    ...query\n  })",
+      "owner": "self/host/CATSCAN.md",
+      "contract": "Configured boot/module registry entry or versioned resolved lab UI entry; source fallback is controlled by the host boot profile."
+    },
+    {
+      "source": "self/host/start-reploid.js",
+      "expression": "withSourceQuery('/ui/pool-home/index.js', {\n    ...getCurrentReploidPeerQuery()\n  })",
+      "owner": "self/host/CATSCAN.md",
+      "contract": "Configured boot/module registry entry or versioned resolved lab UI entry; source fallback is controlled by the host boot profile."
+    },
+    {
+      "source": "self/host/start-reploid.js",
+      "expression": "withSourceQuery('/ui/reploid-home/index.js', {\n    ...getCurrentReploidPeerQuery()\n  })",
+      "owner": "self/host/CATSCAN.md",
+      "contract": "Configured boot/module registry entry or versioned resolved lab UI entry; source fallback is controlled by the host boot profile."
+    },
+    {
+      "source": "self/infrastructure/doppler-runtime-service.js",
+      "expression": "globalThis.REPLOID_DOPPLER_MODULE_URL || DOPPLER_MODULE_URL",
+      "owner": "self/providers/CATSCAN.md",
+      "contract": "Explicit host Doppler module/tooling URL and pinned model-runtime contract; invoked only by the provider adapter."
+    },
+    {
+      "source": "self/kernel/boot.js",
+      "expression": "seedEntry",
+      "owner": "self/kernel/CATSCAN.md",
+      "contract": "Immutable boot seed entry from the protected boot specification."
+    },
+    {
+      "source": "self/pool/doppler-runtime.js",
+      "expression": "specifier",
+      "owner": "self/providers/CATSCAN.md",
+      "contract": "Explicit host Doppler module/tooling URL and pinned model-runtime contract; invoked only by the provider adapter."
+    },
+    {
+      "source": "self/pool/firebase-auth.js",
+      "expression": "urls.app",
+      "owner": "self/pool/CATSCAN.md",
+      "contract": "Host-configured Firebase SDK URLs; credential bootstrap only. No agent-selected module input."
+    },
+    {
+      "source": "self/pool/firebase-auth.js",
+      "expression": "urls.auth",
+      "owner": "self/pool/CATSCAN.md",
+      "contract": "Host-configured Firebase SDK URLs; credential bootstrap only. No agent-selected module input."
+    },
+    {
+      "source": "self/providers/doppler-reploid.js",
+      "expression": "toolingUrl",
+      "owner": "self/providers/CATSCAN.md",
+      "contract": "Explicit host Doppler module/tooling URL and pinned model-runtime contract; invoked only by the provider adapter."
+    },
+    {
+      "source": "self/providers/doppler-reploid.js",
+      "expression": "resolveDopplerModuleUrl()",
+      "owner": "self/providers/CATSCAN.md",
+      "contract": "Explicit host Doppler module/tooling URL and pinned model-runtime contract; invoked only by the provider adapter."
+    },
+    {
+      "source": "self/ui/proto/index.js",
+      "expression": "spec",
+      "owner": "self/ui/proto/CATSCAN.md",
+      "contract": "Only ./template.js with the current VFS revision query."
+    }
+  ],
+  "cycles": []
+}

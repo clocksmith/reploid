@@ -1,3 +1,5 @@
+import { ZERO_SEED_PREFIXES, X_ADDITIONAL_SEED_PREFIXES, ZERO_RUNTIME_SELF_MIRROR_RULES,
+  PROTO_RUNTIME_SELF_MIRROR_RULES, ZERO_RUNTIME_UI, PROTO_RUNTIME_UI } from './surface-resources.js';
 /**
  * @fileoverview Canonical route intent for Reploid lab surfaces.
  */
@@ -42,7 +44,7 @@ const X_ADDITIONAL_TOOL_SURFACE_IDS = Object.freeze(
 
 const createSurfaceIntentRegistry = () => Object.create(null);
 
-const defineSurfaceIntent = (intent, registry = createSurfaceIntentRegistry()) => {
+export const defineSurfaceIntent = (intent, registry = createSurfaceIntentRegistry()) => {
   const baseIntent = intent.extends && Object.hasOwn(registry, intent.extends)
     ? registry[intent.extends]
     : null;
@@ -61,7 +63,12 @@ const defineSurfaceIntent = (intent, registry = createSurfaceIntentRegistry()) =
     additionalToolSurfaceIds,
     requiredModules,
     additionalRequiredModules,
-    forbiddenModules: freezeArray(intent.forbiddenModules)
+    absentModules: freezeArray(intent.forbiddenModules),
+    forbiddenModules: freezeArray(intent.forbiddenModules),
+    seedPrefixes: extendIds(baseIntent?.seedPrefixes || [], intent.seedPrefixes || []),
+    runtimeSelfMirrorRules: freezeArray([...(baseIntent?.runtimeSelfMirrorRules || []), ...(intent.runtimeSelfMirrorRules || [])]),
+    authorityCeiling: extendIds(baseIntent?.authorityCeiling || [], intent.authorityCeiling || []),
+    hostGrants: freezeArray(intent.hostGrants || [])
   });
 };
 
@@ -69,6 +76,10 @@ const surfaceIntents = createSurfaceIntentRegistry();
 
 surfaceIntents.zero = defineSurfaceIntent({
     id: 'zero',
+    seedPrefixes: ZERO_SEED_PREFIXES,
+    runtimeSelfMirrorRules: ZERO_RUNTIME_SELF_MIRROR_RULES,
+    runtimeUi: ZERO_RUNTIME_UI,
+    authorityCeiling: ['candidate.selfApprove', 'candidate.modifyEvaluator', 'permissions.escalate'],
     label: 'Zero',
     route: '/zero',
     mode: 'zero',
@@ -91,6 +102,9 @@ surfaceIntents.zero = defineSurfaceIntent({
 
 surfaceIntents.x = defineSurfaceIntent({
     id: 'x',
+    seedPrefixes: X_ADDITIONAL_SEED_PREFIXES,
+    runtimeSelfMirrorRules: PROTO_RUNTIME_SELF_MIRROR_RULES,
+    runtimeUi: PROTO_RUNTIME_UI,
     label: 'X',
     route: '/x',
     mode: 'x',
@@ -123,4 +137,10 @@ export function requireSurfaceIntent(id) {
     throw new Error(`Missing surface intent: ${String(id || '').trim() || '(empty)'}`);
   }
   return intent;
+}
+
+/** Feature availability never grants authority; each operation also needs host consent. */
+export async function authorizeSurfaceOperation(surface, request, hostAuthorize) {
+  if (surface.authorityCeiling.includes(request.action)) return false;
+  return typeof hostAuthorize === 'function' && await hostAuthorize(request) === true;
 }

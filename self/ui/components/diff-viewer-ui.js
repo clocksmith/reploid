@@ -345,11 +345,11 @@ const DiffViewerUI = {
 
     // Apply syntax highlighting
     const highlightCode = (code, language) => {
-      if (typeof Prism === 'undefined' || !Prism.languages[language]) {
+      if (!globalThis.Prism || !globalThis.Prism.languages[language]) {
         return escapeHtml(code);
       }
       try {
-        return Prism.highlight(code, Prism.languages[language], language);
+        return globalThis.Prism.highlight(code, globalThis.Prism.languages[language], language);
       } catch (err) {
         return escapeHtml(code);
       }

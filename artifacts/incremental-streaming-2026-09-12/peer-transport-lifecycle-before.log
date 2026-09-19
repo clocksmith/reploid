@@ -1,0 +1,82 @@
+
+ RUN  v4.1.10 /home/x/deco/worktrees/reploid-consumer-streaming
+
+ ❯ tests/unit/p2p-transport-lifecycle.test.js (4 tests | 4 failed) 17ms
+     × settles connect while offer setup is pending 10ms
+     × settles connect while description setup is pending 2ms
+     × ignores a pending answer after remote close 2ms
+     × does not reopen or dispatch queued events after close 2ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 4 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/unit/p2p-transport-lifecycle.test.js > assignment transport cancellation > settles connect while offer setup is pending
+ FAIL  tests/unit/p2p-transport-lifecycle.test.js > assignment transport cancellation > settles connect while description setup is pending
+AssertionError: expected null to match object { …(2) }
+
+- Expected:
+{
+  "code": "webrtc_connection_failed",
+  "diagnostics": ObjectContaining {
+    "state": "closing",
+  },
+}
+
++ Received:
+null
+
+ ❯ tests/unit/p2p-transport-lifecycle.test.js:74:23
+     72|     await Promise.resolve();
+     73|     try {
+     74|       expect(outcome).toMatchObject({
+       |                       ^
+     75|         code: 'webrtc_connection_failed',
+     76|         diagnostics: expect.objectContaining({ state: 'closing' })
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/4]⎯
+
+ FAIL  tests/unit/p2p-transport-lifecycle.test.js > assignment transport cancellation > ignores a pending answer after remote close
+AssertionError: expected "vi.fn()" to be called 1 times, but got 2 times
+ ❯ tests/unit/p2p-transport-lifecycle.test.js:102:24
+    100|     await Promise.resolve();
+    101|     expect(f.signaling.sendAnswer).not.toHaveBeenCalled();
+    102|     expect(f.pc.close).toHaveBeenCalledTimes(1);
+       |                        ^
+    103|     expect(f.unsubscribe).toHaveBeenCalledTimes(1);
+    104|     expect(f.states).toEqual(['connecting', 'closed']);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/4]⎯
+
+ FAIL  tests/unit/p2p-transport-lifecycle.test.js > assignment transport cancellation > does not reopen or dispatch queued events after close
+AssertionError: expected "vi.fn()" to not be called at all, but actually been called 1 times
+
+Received:
+
+  1st vi.fn() call:
+
+    Array [
+      Object {
+        "candidate": "candidate:late",
+        "sdpMLineIndex": undefined,
+        "sdpMid": undefined,
+        "usernameFragment": undefined,
+      },
+    ]
+
+
+Number of calls: 1
+
+ ❯ tests/unit/p2p-transport-lifecycle.test.js:120:46
+    118|     lateCandidate({ candidate: { candidate: 'candidate:late' } });
+    119|     await f.transport.close();
+    120|     expect(f.signaling.sendIceCandidate).not.toHaveBeenCalled();
+       |                                              ^
+    121|     expect(f.signaling.sendClose).toHaveBeenCalledTimes(1);
+    122|     expect(f.channel.close).toHaveBeenCalledTimes(1);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/4]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  4 failed (4)
+   Start at  00:44:31
+   Duration  443ms (transform 58ms, setup 0ms, import 83ms, tests 17ms, environment 171ms)
