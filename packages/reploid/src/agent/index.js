@@ -81,12 +81,13 @@ export function createReploid({ config, ports }) {
     }
     prepared = { goal, environment: String(request.environment || '') };
     runtime = createAgentRuntime({ config, ports: makePorts(), instanceId,
-      responseParser: parser, ...prepared });
+      responseParser: parser, onExecutionEvent: ports.onExecutionEvent, ...prepared });
     runtimeSubscription = runtime.subscribe(notify);
     return getSnapshot();
   };
   return Object.freeze({
     config, instanceId, prepare, getSnapshot, on,
+    getExecutionEvents: () => runtime?.getExecutionEvents() || [],
     subscribe(listener) {
       check();
       if (typeof listener !== 'function') throw new TypeError('Listener must be a function');

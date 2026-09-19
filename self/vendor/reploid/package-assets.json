@@ -97,29 +97,44 @@
       "sha256": "9670e9ec292df78de19f2cee9fdcbde9e818eb5af1627c4f5fa1e1741d7916f1"
     },
     {
+      "path": "agent/engine-contracts.d.ts",
+      "bytes": 1240,
+      "sha256": "ae521d37076e9d3f3514e4db4c0fc9d4cdf14fc562d3c4d4e6ee85b405c09fee"
+    },
+    {
+      "path": "agent/engine.js",
+      "bytes": 10695,
+      "sha256": "740acfaf5483bc0b3dc6ddf23b71bf4fb9abbf9c1b7b97e37c4feda9f3f7e77f"
+    },
+    {
       "path": "agent/index.d.ts",
-      "bytes": 4017,
-      "sha256": "3fe14c9a9f48ccb83954a1ae6209cc0352e89fc2ff27f3ebf573f504fd679ff5"
+      "bytes": 4911,
+      "sha256": "bf97abc0a11ca7fa6b7b1d6762a2e245eac5224eefcdad5c6c1a7524b8d50de6"
     },
     {
       "path": "agent/index.js",
-      "bytes": 7814,
-      "sha256": "00e22f506ff8c64d1e4fe0b7e1d6a684611f3376868a200c0933a1bfcb8d59a1"
+      "bytes": 7923,
+      "sha256": "3123be76d5c695abe276503d359fc40424971635d0daaccff9ad492b15407202"
+    },
+    {
+      "path": "agent/lab-strategy.js",
+      "bytes": 96991,
+      "sha256": "a89280b943e807129d0d548526a2b16c3331748d08769ee295e1882b1960a760"
     },
     {
       "path": "agent/legacy-loop.d.ts",
-      "bytes": 1247,
-      "sha256": "f01eb6d419a4bbe18bd4eb1e8c325126e981bdcf9443cbe4b945476fb3c766b5"
+      "bytes": 1574,
+      "sha256": "2c6b9a4bcf4a4e6fe83c63ad5a3cd155c3a4e99698181cd8fd10b5e80956e4e6"
     },
     {
       "path": "agent/legacy-loop.js",
-      "bytes": 98603,
-      "sha256": "3df62d1d4310d8c4bd8ad096210700cef5932a67da74c4760393dfabb5054795"
+      "bytes": 120,
+      "sha256": "32e9a2f9a08f0a86b81a9dcc7b43176405ce32a03be3e9b4914c5bef51c43b05"
     },
     {
       "path": "agent/lifecycle.js",
-      "bytes": 2440,
-      "sha256": "e37a217502b1e04df72fad4b97cc9db7586eec4a680fe5e8860872eedd70fe22"
+      "bytes": 2656,
+      "sha256": "9fffc98a8e6870d50bea18e09bba805c4dc9fe2e4b94c8900fd859e465f18c80"
     },
     {
       "path": "agent/protocol.json",
@@ -128,8 +143,8 @@
     },
     {
       "path": "agent/provider-recovery.js",
-      "bytes": 1986,
-      "sha256": "22c70d9e205d6f9f00811fd4dc9b262a76afd2bf45ca61daae0b1e5259a95d59"
+      "bytes": 2654,
+      "sha256": "7d71a53341d6b103c1aa7dc0301865a883e941bee83e3b826e6e954a07eed3d5"
     },
     {
       "path": "agent/response-parser.d.ts",
@@ -143,18 +158,28 @@
     },
     {
       "path": "agent/runtime.d.ts",
-      "bytes": 748,
-      "sha256": "192f46cfcd46d68f682c41f28a7f8ebca7393d0af19bf978ea5ff68c103f91c0"
+      "bytes": 901,
+      "sha256": "c7c654e9f3471ccdb6cd1ebb267e39fcd7bfc1cd42dc9abf2027fd5d1c764f9c"
     },
     {
       "path": "agent/runtime.js",
-      "bytes": 48570,
-      "sha256": "bb305ae351e3a6e7a628bedef4711e1040bf61705f4ab7678e5fdb4904fe3c4b"
+      "bytes": 150,
+      "sha256": "d27249cef2ee26efed736bb0531043b9246d484ada9945662564ad0a8785402d"
+    },
+    {
+      "path": "agent/task-strategy.js",
+      "bytes": 48312,
+      "sha256": "7551141754db18a36572eaebe37342a2f5a3e27aa9190c922e3d9ae9d81b54a8"
     },
     {
       "path": "agent/tool-dispatch.js",
-      "bytes": 891,
-      "sha256": "2a38a2173bf90968deb119a522fc01982c4350a7960c141d969880e94306e4bb"
+      "bytes": 980,
+      "sha256": "5d6715a209e26493c3ff4aeb009f24304b249d211e5cb928d5be0be51a6113ec"
+    },
+    {
+      "path": "agent/tool-retry.js",
+      "bytes": 994,
+      "sha256": "2ae0f2aa04a4d21e7be003e70f6d152fcdb159a89fb8a447389aac23fd01fb83"
     },
     {
       "path": "agent/tool-runner.d.ts",
@@ -183,8 +208,8 @@
     },
     {
       "path": "artifacts/custody/runtime.d.ts",
-      "bytes": 324,
-      "sha256": "60a50ba7b7345b369a21d663967f1d416ab962acf34255b18d6e81e83b1131ee"
+      "bytes": 563,
+      "sha256": "77f453b4d480aa5b494d43479c2f7779b101f31a54c403ef33c45b76012565e8"
     },
     {
       "path": "artifacts/custody/runtime.js",
@@ -280,6 +305,11 @@
       "path": "contracts/config/doppler-generation-contract.d.ts",
       "bytes": 2429,
       "sha256": "ca4101e02943528bc67ccc7c6c9df38c25fa64218238da83fe822fa945e5b299"
+    },
+    {
+      "path": "contracts/host-ports.d.ts",
+      "bytes": 1547,
+      "sha256": "eec6cf8ff1e5a7065931dae47eb09974f66ca6281c047e0835575244a420504b"
     },
     {
       "path": "contracts/infrastructure/doppler-runtime-service.d.ts",
@@ -408,8 +438,8 @@
     },
     {
       "path": "mesh/jobs/contracts.d.ts",
-      "bytes": 173,
-      "sha256": "55c46f0144eeb9712bbfc6fde5320a2c9c4ad5e3d225f7f0f9f67379b3eb7556"
+      "bytes": 2406,
+      "sha256": "c4e28c93454959393b9761cdf2f0814eececc69822f69af7b1e659f3855daa1d"
     },
     {
       "path": "mesh/jobs/contracts.js",
@@ -418,8 +448,8 @@
     },
     {
       "path": "mesh/jobs/episode.d.ts",
-      "bytes": 256,
-      "sha256": "670ace3b4b1f038df7975b2eaeb8eb4b6fc9629d1bb865cc9adb8fa681bbcfcb"
+      "bytes": 2726,
+      "sha256": "23be460016ea07a90cc2e79a96be1f18a1ec4c7e27dc346ef1b7f170c61df99a"
     },
     {
       "path": "mesh/jobs/episode.js",
@@ -438,8 +468,8 @@
     },
     {
       "path": "mesh/jobs/provider.d.ts",
-      "bytes": 234,
-      "sha256": "da85415f7ae4950867634cb831c5fbc660accc086297636f21c788a787dc155c"
+      "bytes": 2606,
+      "sha256": "1ed83a4c3eb6b225882370cbc13626815dc3ee46f38092126bcf686fdcc7dbd5"
     },
     {
       "path": "mesh/jobs/provider.js",
@@ -448,8 +478,8 @@
     },
     {
       "path": "mesh/jobs/requester.d.ts",
-      "bytes": 239,
-      "sha256": "cb66a84257ddfeb5d77d7a143df78ee2b8c01e3120b5e7448d867b7c39e02bfb"
+      "bytes": 2406,
+      "sha256": "8521aa26ab27d2d03d364acf07b2e85496b3b27cd37e566aefe7ca95018a1e17"
     },
     {
       "path": "mesh/jobs/requester.js",

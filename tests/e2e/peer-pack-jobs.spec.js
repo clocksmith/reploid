@@ -172,6 +172,9 @@ test('Verification Worker accepts complete-job modules and modified execution bo
       'vendor/reploid/agent/lifecycle.js', 'vendor/reploid/agent/tool-dispatch.js',
       'vendor/reploid/agent/provider-recovery.js', 'vendor/reploid/agent/index.js',
       'vendor/reploid/agent/runtime.js', 'vendor/reploid/agent/legacy-loop.js',
+      'vendor/reploid/agent/engine.js', 'vendor/reploid/agent/tool-retry.js',
+      'vendor/reploid/agent/task-strategy.js', 'vendor/reploid/agent/lab-strategy.js',
+      'infrastructure/tool-executor.js',
       'vendor/reploid/artifacts/job-journal.js', 'vendor/reploid/artifacts/custody/runtime.js',
       'vendor/reploid/mesh/jobs/contracts.js', 'vendor/reploid/mesh/jobs/provider.js',
       'vendor/reploid/mesh/jobs/requester.js', 'vendor/reploid/mesh/jobs/episode.js'

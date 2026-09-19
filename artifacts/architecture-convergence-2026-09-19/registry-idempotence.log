@@ -1,0 +1,36 @@
+Generated application library assets: 105 files
+
+[module-inventory] Wrote /home/clocksmith/deco/reploid/self/config/module-inventory.json with 421 modules
+
+[genesis-manifest] Skipping /home/clocksmith/deco/reploid/self/experimental/openclaw-audit/index.js: document is not defined
+[genesis-manifest] Wrote /home/clocksmith/deco/reploid/self/config/genesis-levels.json
+
+[blueprint-registry] Unchanged registry: 106 executable owners, 176 declarations
+
+[module-registry] Unchanged /home/clocksmith/deco/reploid/self/config/module-registry.json
+
+[vfs-manifest] Wrote /home/clocksmith/deco/reploid/self/config/vfs-manifest.json
+
+[validate] {"sourceFiles":421,"modules":68,"blueprintDeclarations":176,"executableOwners":106,"unresolved":0}
+[validate] Inventoried helpers: 243; modules without an architectural blueprint: 18
+
+[browser-bundle] Wrote /home/clocksmith/deco/reploid/self/config/browser-bundle-manifest.json with 778 served files as sha256:d6f2f3e2f593bf38200e015c1462384ff515edc0fcdac10db36b71e52b53a3bb
+Generated application library assets: 105 files
+
+[module-inventory] Wrote /home/clocksmith/deco/reploid/self/config/module-inventory.json with 421 modules
+
+[genesis-manifest] Skipping /home/clocksmith/deco/reploid/self/experimental/openclaw-audit/index.js: document is not defined
+[genesis-manifest] Wrote /home/clocksmith/deco/reploid/self/config/genesis-levels.json
+
+[blueprint-registry] Unchanged registry: 106 executable owners, 176 declarations
+
+[module-registry] Unchanged /home/clocksmith/deco/reploid/self/config/module-registry.json
+
+[vfs-manifest] Wrote /home/clocksmith/deco/reploid/self/config/vfs-manifest.json
+
+[validate] {"sourceFiles":421,"modules":68,"blueprintDeclarations":176,"executableOwners":106,"unresolved":0}
+[validate] Inventoried helpers: 243; modules without an architectural blueprint: 18
+
+[browser-bundle] Wrote /home/clocksmith/deco/reploid/self/config/browser-bundle-manifest.json with 778 served files as sha256:d6f2f3e2f593bf38200e015c1462384ff515edc0fcdac10db36b71e52b53a3bb
+
+Second generation run byte-identical.

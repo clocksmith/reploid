@@ -7,6 +7,7 @@ Parent: [Browser Runtime](../CATSCAN.md)
 Supply auditable lifecycle, dependency, policy, recovery, telemetry, and human-approval services to browser components.
 
 ## Authority
+- Agent tool retries and settlement belong to the library execution engine; ToolExecutor supplies single-attempt formatting and diagnostics to that engine and retains its standalone worker API.
 - Owns shared event, audit, dependency-injection, replay, recovery, telemetry, and approval mechanisms.
 - Does not own domain decisions, scientific acceptance, or candidate promotion criteria.
 

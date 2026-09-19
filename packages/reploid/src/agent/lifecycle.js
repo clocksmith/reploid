@@ -37,7 +37,7 @@ export function createAttemptLifecycle() {
     }).finally(() => { active = null; });
     return active;
   };
-  /** @param {() => unknown | Promise<unknown>} operation @param {AbortSignal | undefined} [signal] */
+  /** @template T @param {() => T | Promise<T>} operation @param {AbortSignal | undefined} [signal] @returns {Promise<T>} */
   const invoke = (operation, signal = controller?.signal) => {
     if (closed) return Promise.reject(new Error('Agent is closed'));
     signal?.throwIfAborted();
@@ -49,7 +49,10 @@ export function createAttemptLifecycle() {
   /** @param {Error} [reason] */
   const cancel = reason => controller?.abort(reason || new Error('Execution cancelled'));
   return Object.freeze({ start, invoke, cancel,
+    get isActive() { return active !== null; },
+    get pendingCount() { return pending.size; },
     get signal() { return controller?.signal; },
+    async whenIdle() { await active?.catch(() => {}); await Promise.allSettled([...pending]); },
     async settle() { await Promise.allSettled([...pending]); },
     async close() {
       closed = true;

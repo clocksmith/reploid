@@ -1,8 +1,28 @@
 {
   "compilerOptions": {
-    "target": "ES2023", "module": "NodeNext", "moduleResolution": "NodeNext",
-    "lib": ["ES2023", "DOM", "DOM.Iterable"], "strict": true, "noEmit": true,
-    "allowJs": true, "checkJs": true, "skipLibCheck": false, "types": ["node"]
+    "target": "ES2023",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "lib": [
+      "ES2023",
+      "DOM",
+      "DOM.Iterable"
+    ],
+    "strict": true,
+    "noEmit": true,
+    "allowJs": true,
+    "checkJs": true,
+    "skipLibCheck": false,
+    "types": [
+      "node"
+    ]
   },
-  "include": ["tests/types/library-contracts.ts", "packages/reploid/src/agent/lifecycle.js", "packages/reploid/src/agent/cancellation.js"]
+  "include": [
+    "tests/types/library-contracts.ts",
+    "packages/reploid/src/agent/lifecycle.js",
+    "packages/reploid/src/agent/cancellation.js",
+    "packages/reploid/src/agent/engine.js",
+    "packages/reploid/src/agent/tool-dispatch.js",
+    "packages/reploid/src/agent/provider-recovery.js"
+  ]
 }

@@ -55,6 +55,8 @@ export function findLayerViolations({ repoRoot, sourcePath, source }) {
     if (sourceLayer === 'packages/reploid/src' &&
       (resolved ? !target.startsWith('packages/reploid/src/') : !(relative === 'packages/reploid/src/adapters/doppler.js' && specifier === 'doppler-gpu'))) reason = 'library must remain independent of host and Node services';
     if (forbidden[sourceLayer]?.includes(targetLayer)) reason = 'forbidden layer dependency';
+    if (/packages\/reploid\/src\/agent\/(task-strategy|lab-strategy)\.js$/.test(relative)
+      && /\/(lifecycle|cancellation|tool-dispatch)\.js$/.test(target)) reason = 'strategies must use the execution engine';
     if (relative.startsWith('packages/reploid/src/transport/') && /\/(adapters|agent|mesh|improvement)\//.test(target)) reason = 'transport cannot own execution or application policy';
     return reason ? [{ source: relative, sourceLayer, specifier, target, targetLayer, reason }] : [];
   });
@@ -92,12 +94,30 @@ export function findRequiredModuleLeaks(surface, modules) {
   for (const id of surface.requiredModules) visit(id, []);
   return leaks;
 }
+export function findExecutionOwnerViolations(relative, source) {
+  const errors = [];
+  const adapter = /packages\/reploid\/src\/agent\/(runtime|legacy-loop)\.js$/.test(relative);
+  const strategy = /packages\/reploid\/src\/agent\/(task-strategy|lab-strategy)\.js$/.test(relative);
+  if (!adapter && !strategy) return errors;
+  const tree = parse(source, { ecmaVersion: 'latest', sourceType: 'module' });
+  if (adapter && tree.body.some(node => !['ExportNamedDeclaration', 'ExportAllDeclaration'].includes(node.type) || !node.source)) {
+    errors.push({ source: relative, reason: 'compatibility entries must only forward exports' });
+  }
+  walk(tree, node => {
+    if (strategy && node.type === 'CallExpression' && node.callee.type === 'Identifier'
+      && ['setTimeout', 'clearTimeout', 'createAttemptLifecycle', 'dispatchTool', 'executeTurns'].includes(node.callee.name)) {
+      errors.push({ source: relative, reason: `execution engine owns ${node.callee.name}` });
+    }
+  });
+  return errors;
+}
 export function verifyRepositoryLayers(repoRoot) {
   const violations = [], graph = new Map();
   const exceptionsFile = path.join(repoRoot, 'scripts/architecture-exceptions.json');
   const exceptions = fs.existsSync(exceptionsFile) ? JSON.parse(fs.readFileSync(exceptionsFile, 'utf8')) : { loaders: [], cycles: [] };
   for (const sourceRoot of ['packages/reploid/src', 'self', 'functions', 'server']) for (const file of filesUnder(path.join(repoRoot, sourceRoot))) {
     const relative = posix(path.relative(repoRoot, file)), source = fs.readFileSync(file, 'utf8');
+    violations.push(...findExecutionOwnerViolations(relative, source));
     violations.push(...findLayerViolations({ repoRoot, sourcePath: file, source }));
     const edges = moduleEdges(source);
     graph.set(relative, edges.filter(edge => edge.specifier).map(edge => resolveEdge(repoRoot, file, edge.specifier))
