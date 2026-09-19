@@ -519,7 +519,6 @@ describe('Poolday record ledgers', () => {
 
     const recordsHtml = renderRouteDetail('records');
     const historyAliasHtml = renderRouteDetail('history');
-    const networkAliasHtml = renderRouteDetail('network');
 
     expect(recordsHtml).toContain('No lookup yet.');
     expect(recordsHtml).toContain('No answers saved yet.');
@@ -531,8 +530,8 @@ describe('Poolday record ledgers', () => {
     expect(recordsHtml).toContain('No local scores yet.');
     expect(recordsHtml).toContain('Find by receipt hash');
     expect(historyAliasHtml).toContain('Peer identities');
-    expect(networkAliasHtml).toContain('Saved answer receipts');
-    expect(networkAliasHtml).toContain('Peer activity and retries');
+    expect(historyAliasHtml).toContain('Saved answer receipts');
+    expect(historyAliasHtml).toContain('Peer activity and retries');
     expect(recordsHtml).not.toContain('data-pool-research-room');
   });
 

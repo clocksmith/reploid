@@ -316,16 +316,26 @@ const ResponseParser = {
         const planMatch = line.match(PLAN_DIRECTIVE_REGEX);
         if (planMatch) {
           index++;
-          try {
-            const parsed = readPlanJson(lines, index, planMatch[1]);
-            calls.push(...parsePlanCalls(parsed.value));
-            index = parsed.nextIndex;
-          } catch (error) {
-            calls.push({
-              name: 'Plan',
-              args: {},
-              error: error.message
-            });
+          const planRest = String(planMatch[1] || '').trim();
+          let nextNonEmpty = planRest;
+          if (!nextNonEmpty) {
+            for (let i = index; i < lines.length; i++) {
+              const trimmed = lines[i].trim();
+              if (trimmed) { nextNonEmpty = trimmed; break; }
+            }
+          }
+          if (nextNonEmpty.startsWith('[') || nextNonEmpty.startsWith('{')) {
+            try {
+              const parsed = readPlanJson(lines, index, planMatch[1]);
+              calls.push(...parsePlanCalls(parsed.value));
+              index = parsed.nextIndex;
+            } catch (error) {
+              calls.push({
+                name: 'Plan',
+                args: {},
+                error: error.message
+              });
+            }
           }
           continue;
         }

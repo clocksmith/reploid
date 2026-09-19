@@ -146,7 +146,7 @@ const AUTO_START_OLLAMA = appConfig?.ollama?.autoStart || process.env.AUTO_START
 const SSE_DONE = 'data: [DONE]';
 const POOL_BACKEND_ONLY = process.env.POOL_BACKEND_ONLY === 'true';
 const SERVER_ACCESS_TOKEN = process.env.REPLOID_SERVER_ACCESS_TOKEN || null;
-const ALLOW_UNAUTHENTICATED_LOOPBACK = process.env.REPLOID_ALLOW_UNAUTHENTICATED_LOOPBACK === 'true';
+const ALLOW_UNAUTHENTICATED_LOOPBACK = process.env.REPLOID_ALLOW_UNAUTHENTICATED_LOOPBACK !== 'false';
 const getGeminiHeaders = () => ({
   'Content-Type': 'application/json',
   Referer: GEMINI_REFERER
@@ -753,6 +753,98 @@ app.post('/api/gemini/*', requireServerAccess, async (req, res) => {
       error: 'Failed to proxy request to Gemini API',
       details: error.message
     });
+  }
+});
+
+// Zero / X compatibility endpoint (matches hosted Cloud Function contract)
+app.get('/zero/gemini', (req, res) => {
+  res.status(200).json({
+    ok: true,
+    functionBacked: true,
+    zeroOnly: true,
+    providers: ['gemini'],
+    configuredProviders: ['gemini'],
+    primaryProvider: 'gemini',
+    primaryModel: process.env.GEMINI_MODEL || 'gemini-3.8-flash',
+    hasApiKey: !!GEMINI_API_KEY,
+    limits: {
+      maxMessages: 64,
+      maxInputChars: 120000,
+      maxOutputTokens: 8192,
+      clientRequestsPerMinute: 60,
+      globalRequestsPerMinute: 300
+    }
+  });
+});
+
+app.post('/zero/gemini', async (req, res) => {
+  if (!GEMINI_API_KEY) {
+    return res.status(500).json({ error: 'Server is not configured with Gemini API key' });
+  }
+
+  const model = String(req.body?.model || process.env.GEMINI_MODEL || 'gemini-3.8-flash').trim();
+  const maxOutputTokens = Number(req.body?.max_tokens || req.body?.maxOutputTokens || 8192);
+
+  const geminiMessages = (req.body?.messages || [])
+    .filter(m => String(m.content || '').trim())
+    .map(m => ({
+      role: m.role === 'assistant' ? 'model' : 'user',
+      parts: [{ text: typeof m.content === 'string' ? m.content : JSON.stringify(m.content) }]
+    }));
+
+  const systemMsg = (req.body?.messages || []).find(m => m.role === 'system');
+
+  const payload = {
+    contents: geminiMessages,
+    generationConfig: {
+      maxOutputTokens: Math.max(1, Math.min(8192, maxOutputTokens))
+    }
+  };
+  if (systemMsg?.content) {
+    payload.system_instruction = {
+      parts: [{ text: typeof systemMsg.content === 'string' ? systemMsg.content : JSON.stringify(systemMsg.content) }]
+    };
+  }
+
+  const callGemini = async (targetModel) => {
+    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(targetModel)}:generateContent?key=${GEMINI_API_KEY}`;
+    return fetch(endpoint, {
+      method: 'POST',
+      headers: getGeminiHeaders(),
+      body: JSON.stringify(payload)
+    });
+  };
+
+  try {
+    let response = await callGemini(model);
+    if (response.status === 404 && model !== 'gemini-2.5-flash' && model !== 'gemini-2.0-flash') {
+      console.warn(`[Proxy /zero/gemini] Model ${model} returned 404, falling back to gemini-2.5-flash`);
+      response = await callGemini('gemini-2.5-flash');
+    }
+
+    if (!response.ok) {
+      const errText = await response.text();
+      let errJson;
+      try { errJson = JSON.parse(errText); } catch { errJson = { error: errText }; }
+      return res.status(response.status).json(errJson);
+    }
+
+    const data = await response.json();
+    const content = (data.candidates?.[0]?.content?.parts || [])
+      .map(part => part.text || '')
+      .join('\n');
+
+    res.status(200).json({
+      content,
+      raw: content,
+      provider: 'gemini',
+      model,
+      timestamp: Date.now(),
+      usage: data.usageMetadata || null
+    });
+  } catch (error) {
+    console.error('[Proxy /zero/gemini] Request failed:', error);
+    res.status(502).json({ error: error?.message || 'Gemini request failed.' });
   }
 });
 

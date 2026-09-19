@@ -34,7 +34,7 @@ describe('poolday home navigation', () => {
   });
   it('links Zero and X from a homepage-only experiments footer, outside primary navigation', () => {
     const host = document.createElement('div');
-    host.innerHTML = renderNav('home') + renderRoutePanel('home');
+    host.innerHTML = renderNav('examples') + renderRoutePanel('examples');
     const footer = host.querySelector('footer.pool-experiments-footer');
     expect(footer).not.toBeNull();
     expect(footer.querySelector('nav').getAttribute('aria-label')).toBe('Experiments');
@@ -125,23 +125,29 @@ describe('poolday home navigation', () => {
     expect(POOLDAY_ROUTE_DEFINITIONS.map((route) => route.id)).toEqual([
       'home',
       'ask',
+      'network',
       'compute',
+      'improve',
+      'examples',
       'records',
       'room-1'
     ]);
     expect(POOLDAY_NAV_ROUTES).toEqual([
-      { id: 'home', path: '/', label: 'Run a model' },
-      { id: 'compute', path: '/compute', label: 'Share compute' },
-      { id: 'records', path: '/records', label: 'Recent jobs' }
+      { id: 'home', path: '/', label: 'Work' },
+      { id: 'network', path: '/network', label: 'Network' },
+      { id: 'improve', path: '/improve', label: 'Improve' }
     ]);
     expect(PRODUCT_ROUTES).toEqual({
       '/': 'home',
       '/ask': 'ask',
+      '/network': 'network',
       '/compute': 'compute',
+      '/improve': 'improve',
+      '/examples': 'examples',
       '/records': 'records',
       '/room-1': 'room-1',
       '/history': 'records',
-      '/network': 'records'
+      '/work': 'home'
     });
     expect(PRODUCT_ROUTES['/run']).toBeUndefined();
     expect(PRODUCT_ROUTES['/mesh']).toBeUndefined();
@@ -149,36 +155,36 @@ describe('poolday home navigation', () => {
     expect(PRODUCT_ROUTES['/agents']).toBeUndefined();
     expect(ROUTE_COPY.compute).toEqual({
       eyebrow: 'Browser AI',
-      title: 'Share compute',
-      body: 'Let this browser help with jobs.'
+      title: 'Sequence provider',
+      body: 'Legacy sequence execution and artifact participation.'
     });
   });
 
   it('renders exactly three primary destinations and a compact network state', () => {
-    const html = renderNav('compute');
+    const html = renderNav('network');
 
     expect(html).toContain('<nav class="pool-nav-rail pool-primary-nav" aria-label="Reploid">');
     expect(html).toContain('class="pool-primary-brand"');
     expect(html).toContain('aria-label="Reploid home"');
-    expect(html).toContain('>Run a model</a>');
-    expect(html).toContain('>Share compute</a>');
-    expect(html).toContain('>Recent jobs</a>');
+    expect(html).toContain('>Work</a>');
+    expect(html).toContain('>Network</a>');
+    expect(html).toContain('>Improve</a>');
     expect(html).toContain('data-pool-network-state="simulation"');
     expect(html).not.toContain('pool-nav-toggle');
     expect(html).not.toContain('pool-drawer-section');
     expect(html).not.toContain('Research Room');
     expect(html).toContain('href="/?room=reploid-default" data-pool-route-link="/?room=reploid-default"');
-    expect(html).toMatch(/href="\/compute\?room=reploid-default"[\s\S]*data-pool-route-link="\/compute\?room=reploid-default"[\s\S]*aria-current="page"/);
-    expect(html).toMatch(/href="\/records\?room=reploid-default"[\s\S]*data-pool-route-link="\/records\?room=reploid-default"/);
+    expect(html).toMatch(/href="\/network\?room=reploid-default"[\s\S]*data-pool-route-link="\/network\?room=reploid-default"[\s\S]*aria-current="page"/);
+    expect(html).toMatch(/href="\/improve\?room=reploid-default"[\s\S]*data-pool-route-link="\/improve\?room=reploid-default"/);
     expect(html).toContain('data-pool-network-label>Searching</span>');
     expect((html.match(/class="pool-nav-link/g) || [])).toHaveLength(3);
   });
 
   it('does not reintroduce drawer chrome when legacy open options are supplied', () => {
-    const html = renderNav('records', { open: true });
+    const html = renderNav('improve', { open: true });
 
     expect(html).toContain('class="pool-nav-link pool-segment is-active"');
-    expect(html).toContain('>Recent jobs</a>');
+    expect(html).toContain('>Improve</a>');
     expect(html).toContain('aria-current="page"');
     expect(html).not.toContain('is-open');
     expect(html).not.toContain('aria-expanded');
@@ -189,17 +195,17 @@ describe('poolday home navigation', () => {
     const original = `${window.location.pathname}${window.location.search}`;
     window.history.replaceState({}, '', '/records?room=canonical-room');
     try {
-      const html = renderNav('records', { open: true });
+      const html = renderNav('improve', { open: true });
       expect(html).toContain('href="/?room=canonical-room" data-pool-route-link="/?room=canonical-room"');
-      expect(html).toMatch(/href="\/compute\?room=canonical-room"[\s\S]*data-pool-route-link="\/compute\?room=canonical-room"/);
-      expect(html).toMatch(/href="\/records\?room=canonical-room"[\s\S]*data-pool-route-link="\/records\?room=canonical-room"/);
+      expect(html).toMatch(/href="\/network\?room=canonical-room"[\s\S]*data-pool-route-link="\/network\?room=canonical-room"/);
+      expect(html).toMatch(/href="\/improve\?room=canonical-room"[\s\S]*data-pool-route-link="\/improve\?room=canonical-room"/);
     } finally {
       window.history.replaceState({}, '', original || '/');
     }
   });
 
   it('renders the main home calls to action', () => {
-    const html = renderRoutePanel('home');
+    const html = renderRoutePanel('examples');
     expect(html).toContain('class="pool-home-stage pool-home-stage--focused"');
     expect(html).toContain('class="pool-home-toolbar"');
     expect(html).toContain('class="pool-home-toolbar-leading pool-home-overlay"');
@@ -215,7 +221,7 @@ describe('poolday home navigation', () => {
     expect(html).not.toContain('data-pool-hot-path');
     expect(html).toContain('class="pool-home-title-lockup"');
     expect(html).toContain('<h1 class="type-h1 pool-home-brand-word">Reploid<span class="pool-power-tower"');
-    expect(html).toContain('Run AI with connected browsers.');
+    expect(html).toContain(ROUTE_COPY.examples.body);
     expect(html).not.toContain('>View room</a>');
     expect(html).toContain('id="pool-home-request-model"');
     expect(html).toContain('<span>Model</span>');
@@ -268,9 +274,9 @@ describe('poolday home navigation', () => {
 
     expect(html).toContain('class="pool-nav-rail pool-primary-nav"');
     expect((html.match(/class="pool-nav-link/g) || [])).toHaveLength(3);
-    expect(html).toContain('>Run a model</a>');
-    expect(html).toContain('>Share compute</a>');
-    expect(html).toContain('>Recent jobs</a>');
+    expect(html).toContain('>Work</a>');
+    expect(html).toContain('>Network</a>');
+    expect(html).toContain('>Improve</a>');
     expect(html).not.toContain('pool-control-drawer');
     expect(html).not.toContain('data-pool-drawer-section');
     expect(PRODUCT_ROUTES['/ask']).toBe('ask');
@@ -342,8 +348,8 @@ describe('poolday home navigation', () => {
     }
 
     const syntheticSmoke = readFileSync('scripts/pool-browser-smoke.js', 'utf8');
-    expect(syntheticSmoke).toContain('.pool-home-stage[data-pool-lane="sequence"]');
-    expect(syntheticSmoke).toContain("'/': '#pool-home-ask-form'");
+    expect(syntheticSmoke).toContain("'/': '[data-work-form]'");
+    expect(syntheticSmoke).toContain("'/examples': '#pool-home-ask-form'");
     expect(syntheticSmoke).toContain("'/ask': '#pool-run-prompt'");
     expect(syntheticSmoke).toContain("'/compute': '#pool-provider-worker-toggle'");
     expect(syntheticSmoke).toContain("'/room-1': '#pool-room-1-request'");

@@ -97,8 +97,8 @@
     },
     {
       "path": "agent/response-parser.js",
-      "bytes": 19687,
-      "sha256": "b01e15d8de74f6f14b034eac94695a5c3a6be9e075099a5b02b9b3e59a1e5921"
+      "bytes": 20123,
+      "sha256": "d471cea833366760f63159ec6c510c62c195b15978b509327108a9c0b3f264d0"
     },
     {
       "path": "agent/runtime.d.ts",

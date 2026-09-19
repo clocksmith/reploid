@@ -1375,7 +1375,7 @@
     {
       "path": "pool/operation-participation.js",
       "owner": "pool",
-      "sha256": "sha256:88a7d1498fea8d6010e282105a811e0459c533cf8c0734d2533d7d1c8518fbf9",
+      "sha256": "sha256:5a2da868dbf8f81ebcd4cd9edc10bc5deabc316d2f83edb8b40c330618efc0c5",
       "imports": [
         "./adapter-execution.js",
         "./executable-pack.js",
@@ -1981,13 +1981,13 @@
     {
       "path": "self/cloud-access-status.js",
       "owner": "self",
-      "sha256": "sha256:a2b877955614ad0d019b2fa6c8cbb4031cf3224fe9baf2d0c81c99a2b4efcd27",
+      "sha256": "sha256:4db234acb23073eadd635361629d07968f2ecf783e08a83719d1377bad1030a7",
       "imports": []
     },
     {
       "path": "self/cloud-access-windows.js",
       "owner": "self",
-      "sha256": "sha256:770b7fd71e9fcae8c89379ce0904a2bfffd07d1f63843b1c6836fd8174c2867a",
+      "sha256": "sha256:8d2fe2389d11f0e5cc5ca23959a7a67846df88315cff1a1f9e716fe8a4220ddd",
       "imports": []
     },
     {
@@ -2064,6 +2064,46 @@
       "imports": [
         "../boot-spec.js",
         "../instance.js"
+      ]
+    },
+    {
+      "path": "self/host/work-inputs.js",
+      "owner": "self",
+      "sha256": "sha256:7ee257c0cf1e7d41726b52313c664c28134180a909ca2f3909e3bbc64c933307",
+      "imports": [
+        "../config/work-profile.json"
+      ]
+    },
+    {
+      "path": "self/host/work-peer-jobs.js",
+      "owner": "self",
+      "sha256": "sha256:f508544823c6c0e6b5f38e8b9c0c3f7765fd5cac3a7708f19124128ee69e6d12",
+      "imports": [
+        "../config/work-profile.json",
+        "../pool/executable-pack.js",
+        "../pool/model-contract.js",
+        "../pool/operation-model.js",
+        "../pool/pack-operation-adapters.js",
+        "../pool/pack-operation.js",
+        "../pool/peer-capabilities.js",
+        "../pool/peer-pack-episode.js",
+        "../pool/peer-pack-job-policy.js",
+        "../pool/peer-pack-job.js",
+        "../pool/pool-config.json"
+      ]
+    },
+    {
+      "path": "self/host/work-session.js",
+      "owner": "self",
+      "sha256": "sha256:1eb2796f564577eabeb0bbbf4360c1459853eac3d72571ebf00dd4248eebbda8",
+      "imports": [
+        "../config/doppler-local-models.js",
+        "../config/work-profile.json",
+        "../infrastructure/doppler-runtime-service.js",
+        "../vendor/reploid/agent/protocol.json",
+        "../vendor/reploid/config/index.js",
+        "../vendor/reploid/index.js",
+        "./work-inputs.js"
       ]
     },
     {
@@ -2720,7 +2760,7 @@
     {
       "path": "ui/pool-home/constants.js",
       "owner": "ui",
-      "sha256": "sha256:7ef644d44b983b7e4f3daef9e9a149c98373b2d57ac0204b9e41c97300485579",
+      "sha256": "sha256:6b69385ae8b5b4c2b8e567137907e6542821b866d498efeb7b79d1d0e4582add",
       "imports": []
     },
     {
@@ -2769,8 +2809,11 @@
     {
       "path": "ui/pool-home/index.js",
       "owner": "ui",
-      "sha256": "sha256:89c3643bb61b1084b52b4d8a6ec24c07598d3afa939de27a4b3dfab7c8addb25",
+      "sha256": "sha256:c98c113ceb786eec91b2f1fd5a8e54d42ec4a538605d177b5119e572765a5d70",
       "imports": [
+        "../../host/work-peer-jobs.js",
+        "../../host/work-session.js",
+        "../../instance.js",
         "../../pool/document-delegation.js",
         "../../pool/doppler-runtime.js",
         "../../pool/identity.js",
@@ -2789,7 +2832,8 @@
         "./prism.js",
         "./research-store.js",
         "./research-view.js",
-        "./view.js"
+        "./view.js",
+        "./work.js"
       ]
     },
     {
@@ -2809,8 +2853,10 @@
     {
       "path": "ui/pool-home/operation-sharing.js",
       "owner": "ui",
-      "sha256": "sha256:7d45c7f96c8247c15e9c5fe6d851aa6095359a82d8f8dadf1abd14af99e7b71f",
+      "sha256": "sha256:96e1120e9b92437742608e9c1b4999c03b60f38e8866ed06d7b81196734b6ce2",
       "imports": [
+        "../../pool/model-contract.js",
+        "../../pool/operation-model.js",
         "../../pool/pool-config.json"
       ]
     },
@@ -2987,7 +3033,7 @@
     {
       "path": "ui/pool-home/view.js",
       "owner": "ui",
-      "sha256": "sha256:8f7d38d241f731c816954208b2f9b0b4fe791e12b7081a953fc2eb3987e24c4d",
+      "sha256": "sha256:49059b1874c6612ad24bbb0627bfa110c95dae19a6b3018e1fed96b10dfb96a9",
       "imports": [
         "../../config/surface-intents.js",
         "../../pool/model-contract.js",
@@ -3008,7 +3054,64 @@
         "./research-store.js",
         "./research-view.js",
         "./room-record-projection.js",
-        "./room-view.js"
+        "./room-view.js",
+        "./work.js"
+      ]
+    },
+    {
+      "path": "ui/pool-home/work-activity-list.js",
+      "owner": "ui",
+      "sha256": "sha256:86bd18633b82c9ac311c0999eac1ae3d3575b631568fa89d3cf82e8708511ddc",
+      "imports": []
+    },
+    {
+      "path": "ui/pool-home/work-approval-panel.js",
+      "owner": "ui",
+      "sha256": "sha256:b4dcc4e78981f0fbc3b15f015f225eb9d242fa2927904b9b6b420cb88913b288",
+      "imports": []
+    },
+    {
+      "path": "ui/pool-home/work-goal-composer.js",
+      "owner": "ui",
+      "sha256": "sha256:61c48174be43d02456c9066150a195d378bcb89ecf45a22ae7d214fae718891a",
+      "imports": [
+        "../../config/doppler-local-models.js",
+        "../../config/work-profile.json"
+      ]
+    },
+    {
+      "path": "ui/pool-home/work-result-view.js",
+      "owner": "ui",
+      "sha256": "sha256:77c85bb17a1e92b83f47d1a02cc94c294bef9a47f565674048ae252c40336410",
+      "imports": []
+    },
+    {
+      "path": "ui/pool-home/work-task-header.js",
+      "owner": "ui",
+      "sha256": "sha256:49cc5529fd5a1dbe835c01e8cad73ce9bb9c6be9e71046fc45d5adf535949fee",
+      "imports": []
+    },
+    {
+      "path": "ui/pool-home/work-task-history.js",
+      "owner": "ui",
+      "sha256": "sha256:b94c55c2bd544beeb07488060923ac672f9853aedf0fd941d81baa44362834c7",
+      "imports": []
+    },
+    {
+      "path": "ui/pool-home/work.js",
+      "owner": "ui",
+      "sha256": "sha256:557036a9b30e43f8797d75eff5be9f3dc834ba5f3d8d42af04722030e74673d4",
+      "imports": [
+        "../../config/doppler-local-models.js",
+        "../../config/work-profile.json",
+        "../../host/work-session.js",
+        "./operation-sharing.js",
+        "./work-activity-list.js",
+        "./work-approval-panel.js",
+        "./work-goal-composer.js",
+        "./work-result-view.js",
+        "./work-task-header.js",
+        "./work-task-history.js"
       ]
     },
     {
@@ -3186,7 +3289,7 @@
     {
       "path": "vendor/reploid/agent/response-parser.js",
       "owner": "vendor",
-      "sha256": "sha256:b01e15d8de74f6f14b034eac94695a5c3a6be9e075099a5b02b9b3e59a1e5921",
+      "sha256": "sha256:d471cea833366760f63159ec6c510c62c195b15978b509327108a9c0b3f264d0",
       "imports": []
     },
     {

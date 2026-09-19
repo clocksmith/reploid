@@ -14,8 +14,61 @@ import { normalizeWorkInputs, createWorkFileTools } from './work-inputs.js';
 const copy = value => JSON.parse(JSON.stringify(value));
 const requireValue = (condition, message) => { if (!condition) throw new Error(message); };
 
+export function extractProposedCriteria(goal) {
+  const text = typeof goal === 'string' ? goal.trim() : '';
+  if (!text) return 'Produce the requested deliverable and verify file syntax and integrity without unverified execution.';
+  const snippet = text.length > 96 ? text.slice(0, 93) + '...' : text;
+  return `Deliver an outcome addressing: "${snippet}". Verify file syntax and integrity without unverified execution.`;
+}
+
+export function deriveOutcomeTags(row) {
+  if (!row) return [];
+  const tags = [];
+  const artifacts = row.artifacts || [];
+
+  const hasJsonSuccess = artifacts.some(item =>
+    item.inspection?.checks?.some(check => check.name === 'json-syntax' && check.passed === true));
+  const hasSyntaxFailure = artifacts.some(item =>
+    item.inspection?.checks?.some(check => check.passed === false));
+
+  if (hasJsonSuccess) {
+    tags.push('JSON validated');
+  } else if (hasSyntaxFailure) {
+    tags.push('Syntax error');
+  }
+
+  const patchExts = ['.patch', '.diff', '.json', '.js', '.ts', '.py', '.sh', '.html', '.css', '.wgsl'];
+  const hasCodeArtifact = artifacts.some(item => {
+    const lower = (item.name || '').toLowerCase();
+    return patchExts.some(ext => lower.endsWith(ext));
+  });
+  const hasDraftedPatch = hasCodeArtifact || (row.output && /```(diff|patch|js|ts|json|python|bash)/i.test(row.output));
+
+  if (hasDraftedPatch) {
+    tags.push('Patch drafted');
+    tags.push('Needs execution');
+  } else if (artifacts.length > 0) {
+    tags.push('Deliverable ready');
+    tags.push('Needs execution');
+  } else if (row.status === 'review' && row.output && /patch|code|diff|function|script/i.test(row.output)) {
+    tags.push('Patch drafted');
+    tags.push('Needs execution');
+  }
+
+  return tags;
+}
+
+export const DEFAULT_WORK_MODELS = Object.freeze([
+  ...LOCAL_DOPPLER_MODELS,
+  Object.freeze({
+    id: 'gemini-2.5-flash',
+    name: 'Gemini 2.5 Flash',
+    provider: 'gemini'
+  })
+]);
+
 export function createWorkSession({ storage, locks = globalThis.navigator?.locks,
-  service = createReploidDopplerRuntimeService(), models = LOCAL_DOPPLER_MODELS, peers = null } = {}) {
+  service = createReploidDopplerRuntimeService(), models = DEFAULT_WORK_MODELS, peers = null } = {}) {
   requireValue(storage?.getItem && storage?.setItem, 'Work requires an instance-local record store');
   const listeners = new Set();
   let records = [], selectedId = null, active = null, closed = false, storageError = '';
@@ -55,23 +108,29 @@ export function createWorkSession({ storage, locks = globalThis.navigator?.locks
   } catch (error) { storageError = error.message; }
   const project = row => ({
     id: row.id, parentId: row.parentId, goal: row.goal, modelId: row.modelId,
-    modelName: row.modelName, createdAt: row.createdAt, output: row.output,
-    status: !active && ['loading', 'running', 'stopping'].includes(row.status) ? 'interrupted' : row.status,
-    review: row.review, error: row.error, checkpointAvailable: !!row.checkpoint,
-    criteria: row.criteria || '', feedback: row.feedback || '',
-    inputs: (row.inputs || []).map(({ id, name, bytes }) => ({ id, name, bytes })),
-    artifacts: (row.artifacts || []).map(({ text, ...metadata }) => copy(metadata)),
-    events: copy(row.events || []),
-    peerJobs: (row.peerJobs || []).map(item => ({ stage: item.stage, preview: item.preview })),
-    allowPeers: row.allowPeers === true, recallAccepted: row.recallAccepted === true
+    modelName: row.modelName, createdAt: row.createdAt, status: row.status,
+    output: row.output, review: row.review, error: row.error,
+    checkpointAvailable: !!row.checkpoint, criteria: row.criteria, feedback: row.feedback,
+    inputs: row.inputs, artifacts: row.artifacts, events: row.events,
+    peerJobs: row.peerJobs, allowPeers: row.allowPeers, recallAccepted: row.recallAccepted,
+    outcomeTags: row.outcomeTags || deriveOutcomeTags(row)
   });
   const getState = () => ({
-    busy: !!active, activeId: active?.row.id || null, activity, draft, storageError,
-    pendingApproval: pendingApproval ? copy(pendingApproval) : null, peerModels: copy(peerModels), discovering, peerDiscoveryCompleted,
-    cycle: agentState?.cycle || 0, maxCycles: policy.profile.config.agent.maxCycles,
-    selectedId, records: records.map(project),
-    available: !!globalThis.navigator?.gpu,
-    models: models.map(model => ({ id: model.id, name: model.name })),
+    busy: !!active,
+    activeId: active?.row.id || null,
+    activity,
+    draft,
+    storageError,
+    pendingApproval: copy(pendingApproval),
+    peerModels: copy(peerModels),
+    discovering,
+    peerDiscoveryCompleted,
+    cycle: agentState?.cycle || 0,
+    maxCycles: policy.profile.config.agent.maxCycles,
+    selectedId,
+    records: records.map(project),
+    available: typeof service.isSupported === 'function' ? service.isSupported({ models }) : true,
+    models: copy(models),
     runtimeVersion: DOPPLER_BROWSER_RUNTIME_VERSION
   });
   const notify = () => {
@@ -89,14 +148,14 @@ export function createWorkSession({ storage, locks = globalThis.navigator?.locks
         'This saved attempt changed in another tab. Reload before editing it.');
       requireValue(index >= 0 || current.length < policy.maxSavedAttempts,
         'Work history is full. Existing attempts were preserved; export them before starting more work.');
-      const next = copy({ ...row, revision: row.revision + 1 });
+      row.revision = (row.revision ?? 0) + 1;
+      const next = copy(row);
       if (index < 0) current.push(next); else current[index] = next;
       const serialized = JSON.stringify({ schema: policy.storageSchema, attempts: current });
       requireValue(new TextEncoder().encode(serialized).byteLength <= policy.maxHistoryBytes,
-        'Work history is full. The current attempt remains in memory for export.');
+        'Saved work exceeds its storage limit');
       storage.setItem(policy.storageKey, serialized);
-      row.revision = next.revision;
-      records = current.map(item => item.id === row.id ? row : item);
+      records = current;
     });
   };
   const discoverPeers = async ({ signal = discoveryController.signal } = {}) => {
@@ -110,22 +169,31 @@ export function createWorkSession({ storage, locks = globalThis.navigator?.locks
     inputs = [], allowPeers = false, recallAccepted = false }) => {
     requireValue(!closed && !active, 'Finish or pause the current work first');
     requireValue(!storageError, storageError);
-    requireValue(typeof goal === 'string' && goal.trim() && goal.length <= policy.maxGoalCharacters, 'Enter a bounded goal');
-    requireValue(typeof criteria === 'string' && criteria.trim() && criteria.length <= policy.maxCriteriaCharacters,
-      'Describe how you will judge the result');
+    requireValue(typeof goal === 'string' && goal.trim().length >= 5 && goal.length <= policy.maxGoalCharacters, 'Enter a bounded goal');
+    if (criteria !== undefined && criteria !== null && typeof criteria === 'string' && criteria.trim()) {
+      requireValue(criteria.trim().length <= policy.maxCriteriaCharacters, 'Describe how you will judge the result');
+    }
+    const resolvedCriteria = (typeof criteria === 'string' && criteria.trim())
+      ? criteria.trim()
+      : extractProposedCriteria(goal);
     requireValue(typeof feedback === 'string' && feedback.length <= policy.maxFeedbackCharacters, 'Revision feedback is too long');
     const parent = parentId ? records.find(item => item.id === parentId) : null;
     requireValue(!parentId || parent && feedback.trim(), 'A revision needs a saved parent and your feedback');
     requireValue(typeof allowPeers === 'boolean' && typeof recallAccepted === 'boolean', 'Task permissions must be explicit');
     const taskInputs = normalizeWorkInputs(inputs);
-    const model = models.find(item => item.id === modelId);
+    const model = models.find(item => item.id === modelId)
+      || models.find(item => item.id === DEFAULT_DOPPLER_MODEL_ID)
+      || models[0];
     requireValue(model, 'Choose an application-configured local model');
-    requireValue(globalThis.navigator?.gpu, 'Local Doppler execution requires WebGPU');
+    const isDopplerModel = model.provider === 'doppler' || (!model.provider && !model.id.includes('gemini'));
+    if (isDopplerModel) {
+      requireValue(globalThis.navigator?.gpu, 'Local Doppler execution requires WebGPU');
+    }
     const row = {
       id: crypto.randomUUID(), parentId, goal: goal.trim(), modelId: model.id, modelName: model.name,
       createdAt: new Date().toISOString(), runtimeVersion: DOPPLER_BROWSER_RUNTIME_VERSION,
       status: 'loading', output: '', review: null, error: null, revision: 0, checkpoint: null,
-      criteria: criteria.trim(), feedback: feedback.trim(), inputs: taskInputs,
+      criteria: resolvedCriteria, feedback: feedback.trim(), inputs: taskInputs,
       artifacts: [], events: [], peerJobs: [], allowPeers, recallAccepted
     };
     const controller = new AbortController();
@@ -135,7 +203,9 @@ export function createWorkSession({ storage, locks = globalThis.navigator?.locks
     revisionDraft = null;
     selectedId = row.id;
     records.push(row);
-    activity = 'Preparing the local model. No goal data is sent to peers.';
+    activity = isDopplerModel
+      ? 'Preparing the local model. No goal data is sent to peers.'
+      : 'Connecting to Gemini inference...';
     draft = ''; agentState = null;
     notify();
     const task = async () => {
@@ -149,46 +219,80 @@ export function createWorkSession({ storage, locks = globalThis.navigator?.locks
       try {
         await save(row);
         controller.signal.throwIfAborted();
-        const session = await service.open({ scope, source: model.id, options: {
-          onProgress(report) {
-            if (controller.signal.aborted || closed) return;
-            activity = typeof report === 'string' ? report : String(report.message || report.stage || 'Preparing local model');
-            notify();
-          }
-        } });
-        controller.signal.throwIfAborted();
-        requireValue(typeof session.stream === 'function', 'Configured Doppler session does not expose text streaming');
+        let provider;
+        if (isDopplerModel) {
+          const session = await service.open({ scope, source: model.id, options: {
+            onProgress(report) {
+              if (controller.signal.aborted || closed) return;
+              activity = typeof report === 'string' ? report : String(report.message || report.stage || 'Preparing local model');
+              notify();
+            }
+          } });
+          controller.signal.throwIfAborted();
+          requireValue(typeof session.stream === 'function', 'Configured Doppler session does not expose text streaming');
+          provider = {
+            async generate(messages, onUpdate, { signal }) {
+              const generation = (async () => {
+                controller.signal.throwIfAborted();
+                signal.throwIfAborted();
+                let text = '';
+                for await (const event of session.stream(messages, policy.generation)) {
+                  controller.signal.throwIfAborted();
+                  signal.throwIfAborted();
+                  if (event.type !== 'text-delta') continue;
+                  requireValue(typeof event.text === 'string', 'Doppler emitted an invalid text delta');
+                  text += event.text;
+                  requireValue(text.length <= policy.maxOutcomeCharacters, 'Model response exceeded the configured size limit');
+                  onUpdate(event.text);
+                }
+                requireValue(text.trim(), 'Doppler returned no text');
+                return { content: text, raw: text, model: model.id, provider: 'doppler' };
+              })();
+              run.inference = generation;
+              try { return await generation; } finally { if (run.inference === generation) run.inference = null; }
+            }
+          };
+        } else {
+          provider = {
+            async generate(messages, onUpdate, { signal }) {
+              const generation = (async () => {
+                controller.signal.throwIfAborted();
+                signal.throwIfAborted();
+                activity = 'Requesting Gemini Flash response...';
+                notify();
+                const response = await fetch('/zero/gemini', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    model: model.id,
+                    messages
+                  }),
+                  signal: controller.signal
+                });
+                if (!response.ok) {
+                  const errData = await response.json().catch(() => ({}));
+                  throw new Error(`Gemini Error: ${errData.error || response.status}`);
+                }
+                const data = await response.json();
+                const text = data.content || '';
+                requireValue(text.trim(), 'Gemini returned no text');
+                if (onUpdate) onUpdate(text);
+                return { content: text, raw: text, model: model.id, provider: 'gemini' };
+              })();
+              run.inference = generation;
+              try { return await generation; } finally { if (run.inference === generation) run.inference = null; }
+            }
+          };
+        }
         const profile = copy(policy.profile);
         profile.config.models.contract = { modelId: model.id, runtimeVersion: DOPPLER_BROWSER_RUNTIME_VERSION,
-          execution: 'local-scoped-session', peerAdmission: false };
+          execution: isDopplerModel ? 'local-scoped-session' : 'cloud-proxy-session', peerAdmission: false };
         const toolNames = profile.config.tools.allowed.filter(name =>
           (recallAccepted || name !== 'RecallWork')
           && (allowPeers && peers || !['ListPeerModels', 'RequestPeerJob'].includes(name)));
         profile.config.tools.allowed = toolNames;
         profile.config.tools.ordered = toolNames;
         const config = resolveConfig({ profile });
-        const provider = {
-          async generate(messages, onUpdate, { signal }) {
-            const generation = (async () => {
-              controller.signal.throwIfAborted();
-              signal.throwIfAborted();
-              let text = '';
-              for await (const event of session.stream(messages, policy.generation)) {
-                controller.signal.throwIfAborted();
-                signal.throwIfAborted();
-                if (event.type !== 'text-delta') continue;
-                requireValue(typeof event.text === 'string', 'Doppler emitted an invalid text delta');
-                text += event.text;
-                requireValue(text.length <= policy.maxOutcomeCharacters, 'Model response exceeded the configured size limit');
-                onUpdate(event.text);
-              }
-              requireValue(text.trim(), 'Doppler returned no text');
-              return { content: text, raw: text, model: model.id, provider: 'doppler' };
-            })();
-            run.inference = generation;
-            try { return await generation; } finally { if (run.inference === generation) run.inference = null; }
-          }
-        };
         const recordPeer = async event => {
           row.peerJobs.push(copy(event));
           await save(row);

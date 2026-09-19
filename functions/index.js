@@ -239,25 +239,49 @@ export const zeroGemini = onRequest({
       body: JSON.stringify(payload)
     });
 
-    if (!response.ok) {
-      const retryAfter = response.headers?.get?.('retry-after');
+    let geminiResponse = response;
+    let effectiveModel = model;
+
+    if (!geminiResponse.ok && geminiResponse.status === 404 && model !== 'gemini-2.5-flash' && model !== 'gemini-2.0-flash') {
+      const fallbackModel = 'gemini-2.5-flash';
+      const fallbackEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(fallbackModel)}:generateContent?key=${key}`;
+      try {
+        const fallbackResponse = await fetch(fallbackEndpoint, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Referer': process.env.GEMINI_REFERER || DEFAULT_REFERER
+          },
+          body: JSON.stringify(payload)
+        });
+        if (fallbackResponse.ok) {
+          geminiResponse = fallbackResponse;
+          effectiveModel = fallbackModel;
+        }
+      } catch {
+        // Retain original response if fallback attempt fails
+      }
+    }
+
+    if (!geminiResponse.ok) {
+      const retryAfter = geminiResponse.headers?.get?.('retry-after');
       if (retryAfter) {
         res.set('Retry-After', retryAfter);
       }
-      res.status(response.status).json({
-        error: await readError(response),
+      res.status(geminiResponse.status).json({
+        error: await readError(geminiResponse),
         retryAfter: retryAfter || null
       });
       return;
     }
 
-    const data = await response.json();
+    const data = await geminiResponse.json();
     const content = extractGeminiContent(data);
     res.status(200).json({
       content,
       raw: content,
       provider: PROVIDER,
-      model,
+      model: effectiveModel,
       timestamp: Date.now(),
       usage: data.usageMetadata || null
     });
