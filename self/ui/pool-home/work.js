@@ -1,68 +1,62 @@
-/** Views request host actions; task execution and disclosure enforcement live in the host. */
+/**
+ * Views request host actions; task execution and disclosure enforcement live in the host.
+ * Refactored into decomposed sub-components within a centered reading layout.
+ */
 import policy from '../../config/work-profile.json' with { type: 'json' };
-import { LOCAL_DOPPLER_MODELS } from '../../config/doppler-local-models.js';
+import { DEFAULT_WORK_MODELS, deriveOutcomeTags } from '../../host/work-session.js';
 import { renderOperationSharing } from './operation-sharing.js';
+import { renderGoalComposer } from './work-goal-composer.js';
+import { renderTaskHeader } from './work-task-header.js';
+import { renderActivityList } from './work-activity-list.js';
+import { renderResultView } from './work-result-view.js';
+import { renderApprovalPanel } from './work-approval-panel.js';
+import { renderTaskHistory } from './work-task-history.js';
 
-const escapeHtml = value => String(value ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;')
-  .replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+export {
+  renderGoalComposer,
+  renderTaskHeader,
+  renderActivityList,
+  renderResultView,
+  renderApprovalPanel,
+  renderTaskHistory
+};
+
+export function renderZeroCallout() {
+  return [
+    '<aside class="pool-work-zero-callout" aria-label="Zero autonomous agent">',
+    '  <div class="pool-work-zero-badge-row">',
+    '    <span class="pool-zero-pill">ZERO</span>',
+    '    <span class="pool-work-zero-desc">Autonomous browser agent</span>',
+    '  </div>',
+    '  <div class="pool-work-zero-content">',
+    '    <h2 class="pool-work-zero-title"><a href="/zero" class="pool-work-zero-link" data-pool-substrate-route="zero">Reploid Zero</a></h2>',
+    '    <p class="type-caption pool-work-zero-subtext">Autonomous tabula-rasa loop that synthesizes and tests its own tools in browser storage.</p>',
+    '  </div>',
+    '  <a href="/zero" class="btn btn-primary pool-work-zero-btn" data-pool-substrate-route="zero">Launch Zero &rarr;</a>',
+    '</aside>'
+  ].join('\n');
+}
+
 const route = (path, label) => '<a href="' + path + '" data-pool-route-link="' + path + '">' + label + '</a>';
 const links = () => '<nav class="pool-work-links" aria-label="More in Reploid">'
   + route('/examples', 'Model examples') + route('/records', 'Peer job records')
-  + '<a href="/zero" data-pool-substrate-route="zero">Minimal agent</a></nav>';
-const history = () => '<section class="pool-work-history"><div class="pool-work-section-heading">'
-  + '<h2 class="type-h2">Your work</h2><button class="btn btn-ghost" type="button" data-work-export>Export all evidence</button></div>'
-  + '<div data-work-history></div></section>';
-const approval = () => '<section class="pool-work-approval" data-work-approval hidden aria-labelledby="work-approval-title">'
-  + '<h2 id="work-approval-title" class="type-h2">Review before sending</h2>'
-  + '<p>The agent proposed a peer operation. Only the payload below will be sent; nothing has been sent yet.</p>'
-  + '<p class="type-caption" data-work-approval-identity></p><pre data-work-approval-payload></pre>'
-  + '<label class="pool-consent-row"><input type="checkbox" data-work-public><span>I approve sharing this exact input with this provider as public data.</span></label>'
-  + '<div class="pool-work-actions"><button class="btn btn-primary" type="button" data-work-send disabled>Send this payload</button>'
-  + '<button class="btn btn-ghost" type="button" data-work-decline>Keep it local</button></div></section>';
-const outcome = () => '<section class="pool-work-output" data-work-output aria-label="Task result">'
-  + '<div class="pool-work-section-heading"><h2 class="type-h2">Result</h2><span class="type-caption" data-work-review-status></span></div>'
-  + '<p class="type-caption" data-work-result-criteria></p><div data-work-answer></div>'
-  + '<div class="pool-work-artifacts" data-work-artifacts></div>'
-  + '<div class="pool-work-actions" data-work-review-actions hidden>'
-  + '<button class="btn btn-ghost" type="button" data-work-accept>Accept result</button>'
-  + '<button class="btn btn-ghost" type="button" data-work-reject>Needs changes</button>'
-  + '<button class="btn btn-ghost" type="button" data-work-revise-selected>Revise with feedback</button></div>'
-  + '<details class="pool-work-progress" data-work-progress><summary>Activity &amp; checks</summary>'
-  + '<ol data-work-events></ol><pre data-work-draft></pre></details></section>';
+  + '<a href="/zero" data-pool-substrate-route="zero">Zero: Autonomous browser agent</a></nav>';
 
 export function renderWorkSurface() {
   return [
     '<section class="pool-work-shell" data-work-surface aria-label="Work">',
-    '<p class="pool-work-error" role="alert" data-work-error hidden></p>',
-    '<div class="pool-work-grid"><div class="pool-work-primary">',
-    '<form class="pool-work-composer" data-work-form>',
-    '<label for="work-goal">Goal</label><textarea id="work-goal" data-work-goal rows="4" maxlength="' + policy.maxGoalCharacters
-      + '" required placeholder="What do you want accomplished?"></textarea>',
-    '<label for="work-criteria">A useful result must...</label>',
-    '<textarea id="work-criteria" data-work-criteria rows="2" maxlength="' + policy.maxCriteriaCharacters
-      + '" required placeholder="Name the deliverable, constraints, and checks that matter."></textarea>',
-    '<div class="pool-work-inputs"><label for="work-files">Working material <span class="type-caption">optional, stays on this device</span></label>',
-    '<input id="work-files" type="file" multiple accept=".txt,.md,.csv,.json,.js,.ts,.html,.css,.wgsl,.xml,.yaml,.yml,.log" data-work-files>',
-    '<p class="type-caption">UTF-8 text or source files. Up to ' + policy.files.maxInputs + ' files, '
-      + (policy.files.maxInputBytes / 1024) + ' KiB total. No automatic code execution.</p>',
-    '<ul data-work-input-list></ul><button class="btn btn-ghost" type="button" data-work-clear-inputs hidden>Remove files</button></div>',
-    '<div data-work-revision hidden><label for="work-feedback">What should change from the earlier attempt?</label>',
-    '<textarea id="work-feedback" data-work-feedback rows="2" maxlength="' + policy.maxFeedbackCharacters + '"></textarea>'
-      + '<p class="type-caption">The earlier outcome, your feedback, and the supplied files become context for a new attempt. The original stays intact.</p></div>',
-    '<details class="pool-work-settings"><summary>Model &amp; permissions</summary>',
-    '<label for="work-model">Local model<select id="work-model" data-work-model>',
-    ...LOCAL_DOPPLER_MODELS.map(model => '<option value="' + escapeHtml(model.id) + '">' + escapeHtml(model.name) + ' / Doppler</option>'),
-    '</select></label><p class="type-caption">First use downloads model weights. Model computation runs on this device.</p>',
-    '<label class="pool-consent-row"><input type="checkbox" data-work-peers><span>Let the agent propose peer assistance. Ask me before every payload is sent.</span></label>',
-    '<label class="pool-consent-row"><input type="checkbox" data-work-recall><span>Allow recall of earlier results I accepted on this device.</span></label></details>',
-    '<div class="pool-work-actions"><button class="btn btn-primary" type="submit" data-work-start>Start work</button>',
-    '<button class="btn btn-ghost" type="button" data-work-cancel hidden>Stop work</button>',
-    '<button class="btn btn-ghost" type="button" data-work-new>New task</button></div></form>',
-    '<div class="pool-work-section-heading"><p class="pool-work-status" role="status" aria-live="polite" data-work-status></p>',
-    '<span class="type-caption" data-work-budget></span></div></div>',
-    '<div class="pool-work-results">', outcome(), '</div>', approval(), '</div>',
-    history(), links(), '</section>'
-  ].join('');
+    '  <p class="pool-work-error" role="alert" data-work-error hidden></p>',
+    '  <div class="pool-work-column">',
+    renderZeroCallout(),
+    renderTaskHeader(),
+    renderGoalComposer({ models: DEFAULT_WORK_MODELS }),
+    renderApprovalPanel(),
+    renderResultView(),
+    renderTaskHistory(),
+    links(),
+    '  </div>',
+    '</section>'
+  ].join('\n');
 }
 
 export function renderNetworkSurface() {
@@ -86,20 +80,21 @@ export function renderNetworkSurface() {
     + '<p class="pool-control-help">Execution, artifact distribution, and improvement adoption have separate permissions.</p>'
     + '<p class="pool-control-help">These controls offer whole operations, not a model split across GPUs. '
     + route('/compute', 'Legacy sequence provider controls') + ' remain available.</p></aside>'
-    + approval() + links() + '</section>';
+    + renderApprovalPanel() + links() + '</section>';
 }
 
 export function renderImproveSurface() {
   return '<section class="pool-work-shell" data-work-surface aria-label="Improve">'
     + '<p class="pool-work-error" role="alert" data-work-error hidden></p>'
+    + '<div class="pool-work-column">'
     + '<section class="pool-work-comparison" data-work-comparison hidden><h2 class="type-h2">Earlier attempt</h2>'
     + '<p data-work-parent-feedback></p><pre data-work-parent-output></pre></section>'
-    + outcome() + history()
+    + renderResultView() + renderTaskHistory()
     + '<aside class="pool-work-boundary"><h2 class="type-h2">Changing the agent is a separate decision.</h2>'
     + '<p>Task revisions and your acceptance are not independent evaluation or proof of recursive improvement. '
     + 'This view does not alter the agent or adopt candidate code.</p>'
     + '<a href="/x" data-pool-substrate-route="x">Open governed improvement workspace</a></aside>'
-    + links() + '</section>';
+    + links() + '</div></section>';
 }
 
 const download = (name, text, type) => {
@@ -117,8 +112,10 @@ export function bindWorkSurface(root, application) {
   const setText = (selector, text) => { const node = find(selector); if (node) node.textContent = text; };
   const error = value => {
     const node = find('[data-work-error]');
-    node.textContent = String(value?.message || value || '');
-    node.hidden = !node.textContent;
+    if (node) {
+      node.textContent = String(value?.message || value || '');
+      node.hidden = !node.textContent;
+    }
   };
   const act = operation => { Promise.resolve().then(operation).catch(error); };
   let inputs = [], parentId = null, reading = false, fileRevision = 0, approvalId = null;
@@ -133,7 +130,21 @@ export function bindWorkSurface(root, application) {
       li.textContent = item.name + ' / ' + (item.bytes ?? new TextEncoder().encode(item.text).byteLength) + ' bytes';
       list.append(li);
     }
-    find('[data-work-clear-inputs]').hidden = !items.length;
+    const clearBtn = find('[data-work-clear-inputs]');
+    if (clearBtn) clearBtn.hidden = !items.length;
+  };
+  const updateModelPills = modelId => {
+    if (!modelId) return;
+    for (const pill of root.querySelectorAll('[data-work-model-select]')) {
+      const active = pill.dataset.workModelSelect === modelId;
+      pill.classList.toggle('is-active', active);
+      pill.setAttribute('aria-pressed', String(active));
+    }
+    const badge = find('[data-work-active-model-name]');
+    if (badge) {
+      const activePill = root.querySelector('[data-work-model-select="' + modelId + '"] .pool-model-pill-name');
+      if (activePill) badge.textContent = activePill.textContent;
+    }
   };
   const fillDraft = draft => {
     if (!form) return;
@@ -146,6 +157,7 @@ export function bindWorkSurface(root, application) {
     find('[data-work-revision]').hidden = !parentId;
     find('[data-work-peers]').checked = false; find('[data-work-recall]').checked = false;
     showInputs(inputs);
+    updateModelPills(draft.modelId);
   };
   const revise = id => {
     const draft = application.prepareRevision(id);
@@ -161,11 +173,27 @@ export function bindWorkSurface(root, application) {
     const row = state.records.find(item => item.id === state.selectedId);
     setText('[data-work-status]', state.activity);
     if (state.storageError) error(state.storageError);
+    const currentModel = find('[data-work-model]')?.value;
+    if (currentModel) updateModelPills(currentModel);
+
+    // Mode calculation
+    const surface = find('[data-work-surface]');
+    const mode = state.pendingApproval ? 'approval' : state.busy ? 'during' : row?.output ? 'after' : 'before';
+    surface?.setAttribute('data-work-mode', mode);
+
+    // Task Header
+    const taskHeader = find('[data-work-task-header]');
+    if (taskHeader) {
+      taskHeader.hidden = !state.busy && !row;
+      setText('[data-work-active-goal]', row?.goal || (state.busy ? 'Active task' : ''));
+      setText('[data-work-active-model]', row?.modelName || '');
+    }
+
     if (form) {
       form.setAttribute('aria-busy', String(state.busy || reading));
       for (const node of form.querySelectorAll('input,textarea,select,[data-work-new],[data-work-clear-inputs]')) node.disabled = state.busy || reading;
       find('[data-work-start]').disabled = state.busy || reading || !state.available || !!state.storageError;
-      find('[data-work-cancel]').hidden = !state.busy;
+      for (const btn of root.querySelectorAll('[data-work-cancel]')) btn.hidden = !state.busy;
       setText('[data-work-budget]', state.cycle + ' / ' + state.maxCycles + ' steps');
       if (!state.available) setText('[data-work-status]', 'Local work requires WebGPU. You can still inspect results and discover peer capabilities.');
       if (state.busy) showInputs(state.records.find(item => item.id === state.activeId)?.inputs || []);
@@ -214,10 +242,31 @@ export function bindWorkSurface(root, application) {
           : row.review.accepted ? 'Accepted by you' : 'Changes requested');
         find('[data-work-review-actions]').hidden = !row?.output;
         for (const button of root.querySelectorAll('[data-work-accept],[data-work-reject],[data-work-revise-selected]')) button.disabled = state.busy;
+
+        // Render outcome tags
+        const tagsContainer = find('[data-work-outcome-tags]');
+        if (tagsContainer) {
+          tagsContainer.replaceChildren();
+          const tags = row?.outcomeTags || deriveOutcomeTags(row);
+          for (const tag of tags) {
+            const badge = document.createElement('span');
+            badge.className = 'pool-work-badge ' + (
+              tag === 'JSON validated' ? 'pool-work-badge--json' :
+              tag === 'Patch drafted' ? 'pool-work-badge--patch' :
+              tag === 'Needs execution' ? 'pool-work-badge--execution' :
+              'pool-work-badge--status'
+            );
+            badge.textContent = tag;
+            tagsContainer.append(badge);
+          }
+        }
+
+        // Render artifacts
         const artifacts = find('[data-work-artifacts]');
         artifacts.replaceChildren();
         for (const artifact of row?.artifacts || []) {
           const item = document.createElement('div'), button = document.createElement('button'), meta = document.createElement('p');
+          item.className = 'pool-work-artifact-item';
           button.type = 'button'; button.className = 'btn btn-ghost';
           button.textContent = 'Download ' + artifact.name; button.dataset.workArtifact = artifact.id;
           meta.className = 'type-caption';
@@ -226,12 +275,37 @@ export function bindWorkSurface(root, application) {
           if (artifact.inspection) meta.title = artifact.inspection.scope + ' SHA-256: ' + artifact.inspection.sha256;
           item.append(button, meta); artifacts.append(item);
         }
+
+        // Render audit metadata
+        const auditMeta = find('[data-work-audit-metadata]');
+        if (auditMeta) {
+          auditMeta.replaceChildren();
+          if (row) {
+            const metaContainer = document.createElement('div');
+            metaContainer.className = 'pool-work-meta-list';
+            const pId = document.createElement('p'); pId.className = 'type-caption';
+            pId.textContent = 'Attempt ID: ' + row.id + ' | Model: ' + row.modelName + ' (' + row.modelId + ')';
+            metaContainer.append(pId);
+            for (const artifact of row.artifacts || []) {
+              if (artifact.inspection?.sha256) {
+                const pDigest = document.createElement('p'); pDigest.className = 'type-caption pool-work-hash';
+                pDigest.textContent = artifact.name + ' SHA-256: ' + artifact.inspection.sha256;
+                metaContainer.append(pDigest);
+              }
+            }
+            auditMeta.append(metaContainer);
+          }
+        }
+
+        // Render events
         const events = find('[data-work-events]');
-        events.replaceChildren();
-        for (const event of row?.events || []) {
-          const li = document.createElement('li');
-          li.textContent = event.tool + ' / ' + event.status + (event.error ? ': ' + event.error : '');
-          events.append(li);
+        if (events) {
+          events.replaceChildren();
+          for (const event of row?.events || []) {
+            const li = document.createElement('li');
+            li.textContent = event.tool + ' / ' + event.status + (event.error ? ': ' + event.error : '');
+            events.append(li);
+          }
         }
         const comparison = find('[data-work-comparison]');
         if (comparison) {
@@ -306,11 +380,38 @@ export function bindWorkSurface(root, application) {
     act(() => application.start(request));
   }, options);
   find('[data-work-public]')?.addEventListener('change', () => render(application.getState()), options);
+  find('[data-work-model]')?.addEventListener('change', event => updateModelPills(event.target.value), options);
   root.addEventListener('click', event => {
     const control = event.target.closest('button');
     if (!control || !root.contains(control)) return;
     act(async () => {
-      if (control.hasAttribute('data-work-cancel')) application.cancel();
+      if (control.dataset.workModelSelect) {
+        const modelId = control.dataset.workModelSelect;
+        const select = find('[data-work-model]');
+        if (select) {
+          select.value = modelId;
+          select.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+        updateModelPills(modelId);
+      } else if (control.dataset.goalPreset) {
+        const preset = control.dataset.goalPreset;
+        const goalInput = find('[data-work-goal]');
+        const criteriaInput = find('[data-work-criteria]');
+        if (preset === 'patch') {
+          if (goalInput) goalInput.value = 'Analyze code and draft a unified diff patch to fix bug.';
+          if (criteriaInput) criteriaInput.value = 'Provide a valid unified diff with clear explanation.';
+        } else if (preset === 'json') {
+          if (goalInput) goalInput.value = 'Validate and reformat JSON input payload.';
+          if (criteriaInput) criteriaInput.value = 'Ensure valid JSON syntax and schema conformance.';
+        } else if (preset === 'benchmark') {
+          if (goalInput) goalInput.value = 'Run inference benchmark and report tokens/sec.';
+          if (criteriaInput) criteriaInput.value = 'Measure latency and generation throughput.';
+        }
+        if (goalInput) {
+          goalInput.dispatchEvent(new Event('input', { bubbles: true }));
+          goalInput.focus();
+        }
+      } else if (control.hasAttribute('data-work-cancel')) application.cancel();
       else if (control.dataset.workSelect) application.select(control.dataset.workSelect);
       else if (control.dataset.workRevise) revise(control.dataset.workRevise);
       else if (control.hasAttribute('data-work-revise-selected')) revise(lastState.selectedId);

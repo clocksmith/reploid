@@ -1,0 +1,8 @@
+{
+  "id": "restored-accepted-work",
+  "provider": "deterministic-fixture",
+  "status": "failed",
+  "error": "page.evaluate: TypeError: service.isSupported is not a function\n    at getState (http://127.0.0.1:51891/application/host/work-session.js:132:24)\n    at Object.subscribe (http://127.0.0.1:51891/application/host/work-session.js:461:61)\n    at bindWorkSurface (http://127.0.0.1:51891/application/ui/pool-home/work.js:350:35)\n    at mountWorkGoalJourney (http://127.0.0.1:51891/work-goal-journey.js:103:19)\n    at eval (eval at evaluate (:290:30), <anonymous>:3:47)\n    at async <anonymous>:316:30\n    at /Users/xyz/deco/reploid/tests/library-package-acceptance.js:315:26\n    at async check (/Users/xyz/deco/reploid/tests/library-package-acceptance.js:31:20)\n    at async file:///Users/xyz/deco/reploid/tests/library-package-acceptance.js:298:7",
+  "pageErrors": [],
+  "durationMs": 26.465292000000318
+}

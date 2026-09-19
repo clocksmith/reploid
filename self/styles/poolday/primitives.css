@@ -35,6 +35,7 @@
   --pool-surface-page: var(--pool-color-page);
   --pool-surface-ink: var(--pool-color-ink);
   --pool-surface-shape: var(--pool-gradient-shape-surface);
+  --pool-surface-ambient-mesh: var(--pool-gradient-ambient-mesh);
 
   /* === FRAMES === */
   /* Paired fill/border vars for the recurring double-background
@@ -107,6 +108,8 @@
   --pool-metric-nav-rail: var(--pool-size-nav-rail);
   --pool-metric-nav-item: var(--pool-size-nav-item);
   --pool-metric-nav-panel: var(--pool-size-nav-panel);
+  --pool-metric-work-shell: var(--pool-dim-1120);
+  --pool-metric-work-column: var(--pool-dim-760);
 
   /* === TYPOGRAPHY (EXTENDED) === */
   --pool-type-tracking-set: var(--font-set-tracking);
@@ -204,6 +207,18 @@
   --pool-tint-violet-7: rgb(var(--pool-color-spectrum-violet-rgb) / 7%);
   --pool-tint-violet-78: rgb(var(--pool-color-spectrum-violet-rgb) / 78%);
   --pool-tint-violet-8: rgb(var(--pool-color-spectrum-violet-rgb) / 8%);
+  --pool-tint-white-4: rgb(var(--pool-color-white-rgb) / 4%);
+  --pool-tint-white-6: rgb(var(--pool-color-white-rgb) / 6%);
+  --pool-tint-white-8: rgb(var(--pool-color-white-rgb) / 8%);
+  --pool-tint-white-10: rgb(var(--pool-color-white-rgb) / 10%);
+  --pool-tint-white-12: rgb(var(--pool-color-white-rgb) / 12%);
+  --pool-tint-white-15: rgb(var(--pool-color-white-rgb) / 15%);
+  --pool-tint-white-20: rgb(var(--pool-color-white-rgb) / 20%);
+  --pool-tint-white-25: rgb(var(--pool-color-white-rgb) / 25%);
+  --pool-tint-white-30: rgb(var(--pool-color-white-rgb) / 30%);
+  --pool-tint-teal-6: rgb(var(--pool-color-spectrum-teal-rgb) / 6%);
+  --pool-tint-green-8: rgb(var(--pool-color-spectrum-green-rgb) / 8%);
+  --pool-tint-gold-8: rgb(var(--pool-color-gold-rgb) / 8%);
   --pool-tint-white-52: rgb(var(--pool-color-white-rgb) / 52%);
   --pool-tint-white-65: rgb(var(--pool-color-white-rgb) / 65%);
   --pool-tint-white-66: rgb(var(--pool-color-white-rgb) / 66%);
@@ -235,6 +250,7 @@
   --pool-px-1-5: var(--pool-dim-1-5);
   --pool-px-10: var(--pool-dim-10);
   --pool-px-11: var(--pool-dim-11);
+  --pool-px-1120: var(--pool-dim-1120);
   --pool-px-1180: var(--pool-dim-1180);
   --pool-px-12: var(--pool-dim-12);
   --pool-px-13: var(--pool-dim-13);
@@ -276,6 +292,7 @@
   --pool-px-64: var(--pool-dim-64);
   --pool-px-640: var(--pool-dim-640);
   --pool-px-7: var(--pool-dim-7);
+  --pool-px-760: var(--pool-dim-760);
   --pool-px-8: var(--pool-dim-8);
   --pool-px-84: var(--pool-dim-84);
   --pool-px-9: var(--pool-dim-9);

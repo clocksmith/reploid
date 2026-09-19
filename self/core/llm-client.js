@@ -633,7 +633,10 @@ const LLMClient = {
 
           response = await fetchWithTransientRetry(endpoint, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+              'Content-Type': 'application/json',
+              'Referer': 'https://replo.id'
+            },
             body: JSON.stringify(requestBody),
             signal: controller.signal
           }, 'Gemini API');

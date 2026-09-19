@@ -240,7 +240,7 @@ export function createReploidDopplerProvider(baseProvider, {
   const chat = async (messages, modelConfig, requestId) => {
     const { provider, modelId } = await ensureModelLoaded(modelConfig);
     const result = await provider.chat(messages, modelConfig);
-    const content = result?.content ?? '';
+    const content = result?.content ?? result?.outputText ?? (typeof result === 'string' ? result : '');
 
     return {
       requestId,

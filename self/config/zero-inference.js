@@ -135,6 +135,12 @@ const bootstrapZeroAccess = async () => {
 };
 
 export async function getZeroAccessHeaders() {
+  if (isLoopbackHost() && !globalThis.REPLOID_ZERO_FIREBASE_CONFIG && !globalThis.REPLOID_FIREBASE_CONFIG) {
+    return Object.freeze({
+      Authorization: 'Bearer dev-loopback',
+      'X-Firebase-AppCheck': 'dev-loopback'
+    });
+  }
   if (!zeroAccessPromise) {
     zeroAccessPromise = bootstrapZeroAccess().catch((error) => {
       zeroAccessPromise = null;

@@ -12,16 +12,16 @@
    ============================================ */
 
 .pool-home {
-  --pool-color-page: #f0f0f0;
-  --pool-color-ink: #242424;
-  --pool-color-raised: #f7f7f7;
-  --pool-color-inset: #ebebeb;
-  --pool-color-line: #c9c9c9;
-  --pool-color-control-line: #858585;
-  --pool-color-muted: #5b5b5b;
-  --pool-color-focus: #252525;
-  --pool-dim-shadow-raised: 10px 10px 28px #d9d9d9, -10px -10px 28px #ffffff;
-  --pool-dim-shadow-inset: inset 3px 3px 7px #d8d8d8, inset -3px -3px 7px #ffffff;
+  --pool-color-page: #08080b;
+  --pool-color-ink: #f4f4f7;
+  --pool-color-raised: #111116;
+  --pool-color-inset: #09090d;
+  --pool-color-line: #22222c;
+  --pool-color-control-line: #353545;
+  --pool-color-muted: #8d8d9d;
+  --pool-color-focus: #ffffff;
+  --pool-dim-shadow-raised: 6px 6px 18px rgb(0 0 0 / 75%), -2px -2px 10px rgb(255 255 255 / 4%);
+  --pool-dim-shadow-inset: inset 3px 3px 8px rgb(0 0 0 / 80%), inset -2px -2px 6px rgb(255 255 255 / 3%);
   --pool-dim-radius-control: var(--radius-control);
   --pool-dim-radius-panel: var(--radius-panel);
   --pool-dim-wordmark: 64px;
@@ -30,7 +30,7 @@
   --pool-dim-hero-width: 1100px;
   --pool-dim-nav-width: 1280px;
 
-  --pool-gradient-hex-grid: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2284%22%20height%3D%22145.5%22%20viewBox%3D%220%200%2084%20145.5%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-opacity%3D%22.025%22%20stroke-width%3D%22.7%22%3E%3Cpath%20d%3D%22M42%200%2084%2024.25v48.5L42%2097%200%2072.75v-48.5Z%20M0%2072.75%2042%2097v48.5L0%20169.75%20M84%2072.75%2042%2097%20M42%20145.5%2084%20169.75%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E");
+  --pool-gradient-hex-grid: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2284%22%20height%3D%22145.5%22%20viewBox%3D%220%200%2084%20145.5%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22white%22%20stroke-opacity%3D%22.025%22%20stroke-width%3D%22.7%22%3E%3Cpath%20d%3D%22M42%200%2084%2024.25v48.5L42%2097%200%2072.75v-48.5Z%20M0%2072.75%2042%2097v48.5L0%20169.75%20M84%2072.75%2042%2097%20M42%20145.5%2084%20169.75%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E");
 
   /* === BRAND COLORS === */
   --pool-color-cyan: #507b72;
@@ -59,27 +59,31 @@
   --pool-color-black-rgb: 0 0 0;
 
   /* === GRADIENTS === */
+  --pool-gradient-ambient-mesh: radial-gradient(circle at 12% 8%, rgb(0 240 255 / 8%), transparent 35%),
+    radial-gradient(circle at 88% 12%, rgb(176 38 255 / 8%), transparent 40%),
+    radial-gradient(circle at 50% 92%, rgb(245 158 11 / 5%), transparent 45%),
+    radial-gradient(circle at 80% 68%, rgb(68 199 217 / 6%), transparent 35%);
   --pool-gradient-prism-border-soft: linear-gradient(122deg, rgb(246 82 118 / 20%), rgb(247 139 83 / 16%) 22%, rgb(238 197 82 / 18%) 40%, rgb(105 210 153 / 20%) 58%, rgb(68 199 217 / 27%) 74%, rgb(174 122 238 / 22%));
   --pool-gradient-prism-border-hover: linear-gradient(122deg, rgb(246 82 118 / 31%), rgb(247 139 83 / 24%) 22%, rgb(238 197 82 / 25%) 40%, rgb(105 210 153 / 28%) 58%, rgb(68 199 217 / 40%) 74%, rgb(174 122 238 / 34%));
   --pool-gradient-prism-border-selected: linear-gradient(122deg, rgb(246 82 118 / 48%), rgb(247 139 83 / 38%) 22%, rgb(238 197 82 / 39%) 40%, rgb(105 210 153 / 43%) 58%, rgb(68 199 217 / 58%) 74%, rgb(174 122 238 / 50%));
-  --pool-gradient-prism-fill-idle: linear-gradient(rgb(255 255 255 / 97%), rgb(255 255 255 / 97%));
+  --pool-gradient-prism-fill-idle: linear-gradient(rgb(17 17 22 / 96%), rgb(17 17 22 / 96%));
   --pool-gradient-prism-fill-hover: linear-gradient(122deg, rgb(68 199 217 / 7%), rgb(174 122 238 / 5%), rgb(247 139 83 / 5%));
   --pool-gradient-prism-fill-selected: linear-gradient(122deg, rgb(68 199 217 / 9%), rgb(105 210 153 / 6%), rgb(174 122 238 / 8%));
   --pool-gradient-shape-border: linear-gradient(
     137deg,
-    rgb(0 0 0 / 82%) 0%,
-    rgb(246 82 118 / 62%) 13%,
-    rgb(247 139 83 / 32%) 24%,
-    rgb(238 197 82 / 48%) 37%,
-    rgb(105 210 153 / 38%) 51%,
-    rgb(68 199 217 / 60%) 66%,
-    rgb(174 122 238 / 48%) 81%,
-    rgb(0 0 0 / 76%) 100%
+    rgb(255 255 255 / 15%) 0%,
+    rgb(246 82 118 / 45%) 13%,
+    rgb(247 139 83 / 28%) 24%,
+    rgb(238 197 82 / 36%) 37%,
+    rgb(105 210 153 / 32%) 51%,
+    rgb(68 199 217 / 48%) 66%,
+    rgb(174 122 238 / 42%) 81%,
+    rgb(255 255 255 / 8%) 100%
   );
-  --pool-gradient-shape-surface: radial-gradient(circle at 26% 16%, rgb(255 255 255 / 96%) 0 14%, transparent 34%),
-    radial-gradient(ellipse at 82% 18%, rgb(68 199 217 / 12%) 0 16%, transparent 44%),
-    radial-gradient(ellipse at 20% 88%, rgb(246 82 118 / 8%) 0 18%, transparent 52%),
-    linear-gradient(145deg, #fff 0%, #f7f8f8 43%, #eceff1 100%);
+  --pool-gradient-shape-surface: radial-gradient(circle at 26% 16%, rgb(255 255 255 / 8%) 0 14%, transparent 34%),
+    radial-gradient(ellipse at 82% 18%, rgb(68 199 217 / 10%) 0 16%, transparent 44%),
+    radial-gradient(ellipse at 20% 88%, rgb(246 82 118 / 7%) 0 18%, transparent 52%),
+    linear-gradient(145deg, #131319 0%, #101015 43%, #09090d 100%);
 
   /* === SIZES === */
   --pool-size-home-action: 48px;
@@ -126,6 +130,7 @@
   --pool-dim-1-5: 1.5px;
   --pool-dim-10: 10px;
   --pool-dim-11: 11px;
+  --pool-dim-1120: 1120px;
   --pool-dim-1180: 1180px;
   --pool-dim-12: 12px;
   --pool-dim-13: 13px;
@@ -167,6 +172,7 @@
   --pool-dim-64: 64px;
   --pool-dim-640: 640px;
   --pool-dim-7: 7px;
+  --pool-dim-760: 760px;
   --pool-dim-8: 8px;
   --pool-dim-84: 84px;
   --pool-dim-9: 9px;

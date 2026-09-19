@@ -493,6 +493,20 @@ PLAN:
         });
       });
 
+      it('should ignore prose PLAN directive without treating it as an invalid tool call', () => {
+        const text = `PLAN: Inspect configuration, establish units, repair and inspect.
+REPLOID/0
+TOOL: ListInputs`;
+
+        const calls = responseParser.parseToolCalls(text);
+
+        expect(calls).toHaveLength(1);
+        expect(calls[0]).toEqual({
+          name: 'ListInputs',
+          args: {}
+        });
+      });
+
       it('should parse a single tool call with simple args', () => {
         const text = `I'll read the file now.
 

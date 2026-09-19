@@ -1,0 +1,386 @@
+{
+  "id": "unsupported-peer-observation",
+  "provider": "deterministic-fixture",
+  "status": "failed",
+  "error": "AssertionError [ERR_ASSERTION]: No reviewable outcome\n+ actual - expected\n\n+ 'loading'\n- 'review'\n\n    at file:///Users/xyz/deco/reploid/tests/library-package-acceptance.js:373:22\n    at async check (file:///Users/xyz/deco/reploid/tests/library-package-acceptance.js:31:20)\n    at async file:///Users/xyz/deco/reploid/tests/library-package-acceptance.js:298:7",
+  "observation": {
+    "state": {
+      "busy": false,
+      "activeId": null,
+      "activity": "This saved attempt changed in another tab. Reload before editing it.",
+      "draft": "",
+      "storageError": "This saved attempt changed in another tab. Reload before editing it.",
+      "pendingApproval": null,
+      "peerModels": [],
+      "discovering": false,
+      "peerDiscoveryCompleted": false,
+      "cycle": 0,
+      "maxCycles": 12,
+      "selectedId": "def0f8ac-5af8-462d-950b-07ee067c0e1f",
+      "records": [
+        {
+          "id": "e1fdad88-082c-4a41-9b46-63eafbfe181b",
+          "parentId": null,
+          "goal": "Repair the legacy timeout configuration. Produce repaired.json with a single timeoutMs field only when its source unit is established. Otherwise identify the missing or contradictory evidence. Retain the method used.",
+          "modelId": "qwen-3-5-2b-q4k-ehaf16",
+          "modelName": "Qwen 3.5 2B",
+          "createdAt": "2026-09-17T21:43:37.361Z",
+          "output": "",
+          "status": "interrupted",
+          "review": null,
+          "error": null,
+          "checkpointAvailable": false,
+          "criteria": "The timeoutMs value must preserve the observed duration. Do not guess the source unit. Inspect the JSON result. Keep private notes local.",
+          "feedback": "",
+          "inputs": [
+            {
+              "id": "input-1",
+              "name": "settings.json",
+              "bytes": 61
+            }
+          ],
+          "artifacts": [],
+          "events": [],
+          "peerJobs": [],
+          "allowPeers": false,
+          "recallAccepted": false,
+          "outcomeTags": []
+        },
+        {
+          "id": "7108585c-d7a4-4524-a8e1-80bf2ef4f2e3",
+          "parentId": null,
+          "goal": "Repair the legacy timeout configuration. Produce repaired.json with a single timeoutMs field only when its source unit is established. Otherwise identify the missing or contradictory evidence. Retain the method used.",
+          "modelId": "qwen-3-5-2b-q4k-ehaf16",
+          "modelName": "Qwen 3.5 2B",
+          "createdAt": "2026-09-17T21:43:37.461Z",
+          "output": "",
+          "status": "interrupted",
+          "review": null,
+          "error": null,
+          "checkpointAvailable": false,
+          "criteria": "The timeoutMs value must preserve the observed duration. Do not guess the source unit. Inspect the JSON result. Keep private notes local.",
+          "feedback": "",
+          "inputs": [
+            {
+              "id": "input-1",
+              "name": "settings.json",
+              "bytes": 78
+            }
+          ],
+          "artifacts": [],
+          "events": [],
+          "peerJobs": [],
+          "allowPeers": false,
+          "recallAccepted": false,
+          "outcomeTags": []
+        },
+        {
+          "id": "33e14b46-6bf2-4b3a-ac38-e0b20f90d57c",
+          "parentId": null,
+          "goal": "Repair the legacy timeout configuration. Produce repaired.json with a single timeoutMs field only when its source unit is established. Otherwise identify the missing or contradictory evidence. Retain the method used.",
+          "modelId": "qwen-3-5-2b-q4k-ehaf16",
+          "modelName": "Qwen 3.5 2B",
+          "createdAt": "2026-09-17T21:44:07.679Z",
+          "output": "",
+          "status": "interrupted",
+          "review": null,
+          "error": null,
+          "checkpointAvailable": false,
+          "criteria": "The timeoutMs value must preserve the observed duration. Do not guess the source unit. Inspect the JSON result. Keep private notes local.",
+          "feedback": "",
+          "inputs": [
+            {
+              "id": "input-1",
+              "name": "settings.json",
+              "bytes": 61
+            }
+          ],
+          "artifacts": [],
+          "events": [],
+          "peerJobs": [],
+          "allowPeers": true,
+          "recallAccepted": false,
+          "outcomeTags": []
+        },
+        {
+          "id": "def0f8ac-5af8-462d-950b-07ee067c0e1f",
+          "parentId": null,
+          "goal": "Repair the legacy timeout configuration. Produce repaired.json with a single timeoutMs field only when its source unit is established. Otherwise identify the missing or contradictory evidence. Retain the method used.",
+          "modelId": "qwen-3-5-2b-q4k-ehaf16",
+          "modelName": "Qwen 3.5 2B",
+          "createdAt": "2026-09-17T21:44:37.877Z",
+          "output": "",
+          "status": "interrupted",
+          "review": null,
+          "error": null,
+          "checkpointAvailable": false,
+          "criteria": "The timeoutMs value must preserve the observed duration. Do not guess the source unit. Inspect the JSON result. Keep private notes local.",
+          "feedback": "",
+          "inputs": [
+            {
+              "id": "input-1",
+              "name": "settings.json",
+              "bytes": 61
+            }
+          ],
+          "artifacts": [],
+          "events": [],
+          "peerJobs": [],
+          "allowPeers": true,
+          "recallAccepted": false,
+          "outcomeTags": []
+        }
+      ],
+      "available": true,
+      "models": [
+        {
+          "id": "gemini-2.5-flash",
+          "name": "Gemini 2.5 Flash",
+          "provider": "gemini"
+        },
+        {
+          "id": "qwen-3-5-2b-q4k-ehaf16",
+          "name": "Qwen 3.5 2B",
+          "provider": "doppler"
+        }
+      ],
+      "runtimeVersion": "0.6.0"
+    },
+    "records": {
+      "schema": "reploid.work-history/v1",
+      "attempts": [
+        {
+          "id": "e1fdad88-082c-4a41-9b46-63eafbfe181b",
+          "parentId": null,
+          "goal": "Repair the legacy timeout configuration. Produce repaired.json with a single timeoutMs field only when its source unit is established. Otherwise identify the missing or contradictory evidence. Retain the method used.",
+          "modelId": "qwen-3-5-2b-q4k-ehaf16",
+          "modelName": "Qwen 3.5 2B",
+          "createdAt": "2026-09-17T21:43:37.361Z",
+          "runtimeVersion": "0.6.0",
+          "status": "loading",
+          "output": "",
+          "review": null,
+          "error": null,
+          "revision": 1,
+          "checkpoint": null,
+          "criteria": "The timeoutMs value must preserve the observed duration. Do not guess the source unit. Inspect the JSON result. Keep private notes local.",
+          "feedback": "",
+          "inputs": [
+            {
+              "id": "input-1",
+              "name": "settings.json",
+              "text": "{\"timeout\":4,\"privateNote\":\"PRIVATE_WORK_NOTE_NOT_FOR_PEERS\"}",
+              "bytes": 61
+            }
+          ],
+          "artifacts": [],
+          "events": [],
+          "peerJobs": [],
+          "allowPeers": false,
+          "recallAccepted": false
+        },
+        {
+          "id": "7108585c-d7a4-4524-a8e1-80bf2ef4f2e3",
+          "parentId": null,
+          "goal": "Repair the legacy timeout configuration. Produce repaired.json with a single timeoutMs field only when its source unit is established. Otherwise identify the missing or contradictory evidence. Retain the method used.",
+          "modelId": "qwen-3-5-2b-q4k-ehaf16",
+          "modelName": "Qwen 3.5 2B",
+          "createdAt": "2026-09-17T21:43:37.461Z",
+          "runtimeVersion": "0.6.0",
+          "status": "loading",
+          "output": "",
+          "review": null,
+          "error": null,
+          "revision": 1,
+          "checkpoint": null,
+          "criteria": "The timeoutMs value must preserve the observed duration. Do not guess the source unit. Inspect the JSON result. Keep private notes local.",
+          "feedback": "",
+          "inputs": [
+            {
+              "id": "input-1",
+              "name": "settings.json",
+              "text": "{\"timeout\":4,\"unit\":\"seconds\",\"privateNote\":\"PRIVATE_WORK_NOTE_NOT_FOR_PEERS\"}",
+              "bytes": 78
+            }
+          ],
+          "artifacts": [],
+          "events": [],
+          "peerJobs": [],
+          "allowPeers": false,
+          "recallAccepted": false
+        },
+        {
+          "id": "33e14b46-6bf2-4b3a-ac38-e0b20f90d57c",
+          "parentId": null,
+          "goal": "Repair the legacy timeout configuration. Produce repaired.json with a single timeoutMs field only when its source unit is established. Otherwise identify the missing or contradictory evidence. Retain the method used.",
+          "modelId": "qwen-3-5-2b-q4k-ehaf16",
+          "modelName": "Qwen 3.5 2B",
+          "createdAt": "2026-09-17T21:44:07.679Z",
+          "runtimeVersion": "0.6.0",
+          "status": "loading",
+          "output": "",
+          "review": null,
+          "error": null,
+          "revision": 1,
+          "checkpoint": null,
+          "criteria": "The timeoutMs value must preserve the observed duration. Do not guess the source unit. Inspect the JSON result. Keep private notes local.",
+          "feedback": "",
+          "inputs": [
+            {
+              "id": "input-1",
+              "name": "settings.json",
+              "text": "{\"timeout\":4,\"privateNote\":\"PRIVATE_WORK_NOTE_NOT_FOR_PEERS\"}",
+              "bytes": 61
+            }
+          ],
+          "artifacts": [],
+          "events": [],
+          "peerJobs": [],
+          "allowPeers": true,
+          "recallAccepted": false
+        },
+        {
+          "id": "def0f8ac-5af8-462d-950b-07ee067c0e1f",
+          "parentId": null,
+          "goal": "Repair the legacy timeout configuration. Produce repaired.json with a single timeoutMs field only when its source unit is established. Otherwise identify the missing or contradictory evidence. Retain the method used.",
+          "modelId": "qwen-3-5-2b-q4k-ehaf16",
+          "modelName": "Qwen 3.5 2B",
+          "createdAt": "2026-09-17T21:44:37.877Z",
+          "runtimeVersion": "0.6.0",
+          "status": "loading",
+          "output": "",
+          "review": null,
+          "error": null,
+          "revision": 1,
+          "checkpoint": null,
+          "criteria": "The timeoutMs value must preserve the observed duration. Do not guess the source unit. Inspect the JSON result. Keep private notes local.",
+          "feedback": "",
+          "inputs": [
+            {
+              "id": "input-1",
+              "name": "settings.json",
+              "text": "{\"timeout\":4,\"privateNote\":\"PRIVATE_WORK_NOTE_NOT_FOR_PEERS\"}",
+              "bytes": 61
+            }
+          ],
+          "artifacts": [],
+          "events": [],
+          "peerJobs": [],
+          "allowPeers": true,
+          "recallAccepted": false
+        }
+      ],
+      "storageError": "This saved attempt changed in another tab. Reload before editing it."
+    },
+    "before": {
+      "schema": "reploid.work-history/v1",
+      "attempts": [
+        {
+          "id": "e1fdad88-082c-4a41-9b46-63eafbfe181b",
+          "parentId": null,
+          "goal": "Repair the legacy timeout configuration. Produce repaired.json with a single timeoutMs field only when its source unit is established. Otherwise identify the missing or contradictory evidence. Retain the method used.",
+          "modelId": "qwen-3-5-2b-q4k-ehaf16",
+          "modelName": "Qwen 3.5 2B",
+          "createdAt": "2026-09-17T21:43:37.361Z",
+          "runtimeVersion": "0.6.0",
+          "status": "loading",
+          "output": "",
+          "review": null,
+          "error": null,
+          "revision": 1,
+          "checkpoint": null,
+          "criteria": "The timeoutMs value must preserve the observed duration. Do not guess the source unit. Inspect the JSON result. Keep private notes local.",
+          "feedback": "",
+          "inputs": [
+            {
+              "id": "input-1",
+              "name": "settings.json",
+              "text": "{\"timeout\":4,\"privateNote\":\"PRIVATE_WORK_NOTE_NOT_FOR_PEERS\"}",
+              "bytes": 61
+            }
+          ],
+          "artifacts": [],
+          "events": [],
+          "peerJobs": [],
+          "allowPeers": false,
+          "recallAccepted": false
+        },
+        {
+          "id": "7108585c-d7a4-4524-a8e1-80bf2ef4f2e3",
+          "parentId": null,
+          "goal": "Repair the legacy timeout configuration. Produce repaired.json with a single timeoutMs field only when its source unit is established. Otherwise identify the missing or contradictory evidence. Retain the method used.",
+          "modelId": "qwen-3-5-2b-q4k-ehaf16",
+          "modelName": "Qwen 3.5 2B",
+          "createdAt": "2026-09-17T21:43:37.461Z",
+          "runtimeVersion": "0.6.0",
+          "status": "loading",
+          "output": "",
+          "review": null,
+          "error": null,
+          "revision": 1,
+          "checkpoint": null,
+          "criteria": "The timeoutMs value must preserve the observed duration. Do not guess the source unit. Inspect the JSON result. Keep private notes local.",
+          "feedback": "",
+          "inputs": [
+            {
+              "id": "input-1",
+              "name": "settings.json",
+              "text": "{\"timeout\":4,\"unit\":\"seconds\",\"privateNote\":\"PRIVATE_WORK_NOTE_NOT_FOR_PEERS\"}",
+              "bytes": 78
+            }
+          ],
+          "artifacts": [],
+          "events": [],
+          "peerJobs": [],
+          "allowPeers": false,
+          "recallAccepted": false
+        },
+        {
+          "id": "33e14b46-6bf2-4b3a-ac38-e0b20f90d57c",
+          "parentId": null,
+          "goal": "Repair the legacy timeout configuration. Produce repaired.json with a single timeoutMs field only when its source unit is established. Otherwise identify the missing or contradictory evidence. Retain the method used.",
+          "modelId": "qwen-3-5-2b-q4k-ehaf16",
+          "modelName": "Qwen 3.5 2B",
+          "createdAt": "2026-09-17T21:44:07.679Z",
+          "runtimeVersion": "0.6.0",
+          "status": "loading",
+          "output": "",
+          "review": null,
+          "error": null,
+          "revision": 1,
+          "checkpoint": null,
+          "criteria": "The timeoutMs value must preserve the observed duration. Do not guess the source unit. Inspect the JSON result. Keep private notes local.",
+          "feedback": "",
+          "inputs": [
+            {
+              "id": "input-1",
+              "name": "settings.json",
+              "text": "{\"timeout\":4,\"privateNote\":\"PRIVATE_WORK_NOTE_NOT_FOR_PEERS\"}",
+              "bytes": 61
+            }
+          ],
+          "artifacts": [],
+          "events": [],
+          "peerJobs": [],
+          "allowPeers": true,
+          "recallAccepted": false
+        }
+      ],
+      "storageError": ""
+    },
+    "transcript": {
+      "scope": "work-host-test",
+      "actualModelInference": false,
+      "peerImplementation": "deterministic-port-fixture",
+      "generations": [],
+      "proposals": [],
+      "executions": [],
+      "observedScopes": [
+        "reploid:work:def0f8ac-5af8-462d-950b-07ee067c0e1f"
+      ]
+    },
+    "openScopes": 0
+  },
+  "pageErrors": [],
+  "durationMs": 72.63900000000285
+}
