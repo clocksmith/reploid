@@ -43,6 +43,12 @@ npm start
 Open `http://localhost:8000`. The managed Gemini path requires `GEMINI_API_KEY`
 in `.env` before starting.
 
+Start with a task and choose local Qwen 3.5 2B or the configured Gemini cloud
+model. Optional controls enable helper agents, approved peer requests, and tested
+tool improvements. Network connects participating devices; Improve shows
+candidate code, test comparisons, adoption, and rollback. Try **Improve a tool**
+for the registered JSON formatter. See the [workflow and its limits](docs/work-collaboration.md).
+
 The product surface is:
 
 | Surface | Route | Use |

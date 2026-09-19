@@ -1,0 +1,26 @@
+{
+  "schema": "reploid.work-evolution/v1",
+  "storageKey": "reploid.work-evolution.v1",
+  "maxCandidates": 24,
+  "maxCodeCharacters": 16000,
+  "maxStoredBytes": 2097152,
+  "timeoutMs": 1500,
+  "verificationTimeoutMs": 10000,
+  "maxResultBytes": 65536,
+  "maxHelpers": 3,
+  "helperMaxCycles": 4,
+  "helperMaxCharacters": 6000,
+  "targets": [{
+    "id": "FormatJson",
+    "description": "Turn JSON text into a formatted JSON string without changing values. May learn to handle a byte order mark or a single Markdown JSON code fence. Invalid JSON must throw. Takes {text}; returns a string.",
+    "code": "({text}) => JSON.stringify(JSON.parse(text), null, 2)",
+    "tests": [
+      {"input":{"text":"{\"count\":2,\"enabled\":false}"},"expected":"{\n  \"count\": 2,\n  \"enabled\": false\n}"},
+      {"input":{"text":"[null,1,\"a\"]"},"expected":"[\n  null,\n  1,\n  \"a\"\n]"},
+      {"input":{"text":"```json\n{\"items\":[3,5]}\n```"},"expected":"{\n  \"items\": [\n    3,\n    5\n  ]\n}"},
+      {"input":{"text":"﻿{\"name\":\"sample\"}"},"expected":"{\n  \"name\": \"sample\"\n}"},
+      {"input":{"text":"{bad json}"},"throws":true},
+      {"input":{"text":"{\"value\":\"```json\"}"},"expected":"{\n  \"value\": \"```json\"\n}"}
+    ]
+  }]
+}

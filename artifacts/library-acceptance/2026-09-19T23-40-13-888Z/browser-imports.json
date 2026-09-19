@@ -1,0 +1,191 @@
+{
+  "entries": [
+    {
+      "name": "reploid",
+      "ok": true,
+      "exports": [
+        "AgentLoop",
+        "CYCLE_ARTIFACT_ROOT",
+        "ResponseParser",
+        "createAgentRuntime",
+        "createCycleArtifactWriter",
+        "createReploid",
+        "createToolRunner",
+        "getCycleArtifactPath",
+        "getCycleId"
+      ]
+    },
+    {
+      "name": "reploid/mesh",
+      "ok": true,
+      "exports": [
+        "DEFAULT_REWARD_POLICY",
+        "SWARM_ROLES",
+        "applyReceiptToContribution",
+        "buildSwarmState",
+        "chooseProviderPeer",
+        "contributionPolicy",
+        "createContributionSummary",
+        "createGenerationRequest",
+        "createGenerationResult",
+        "createIntelligenceMesh",
+        "createLegacyGenerationMesh",
+        "createPeerAdvertisement",
+        "createSwarmController",
+        "decayContributionScore",
+        "deriveContributionDelta",
+        "deriveSwarmRole",
+        "getPairReceiptCount",
+        "isReceiptEligible",
+        "rankProviderPeers",
+        "swarmCoordination"
+      ]
+    },
+    {
+      "name": "reploid/webrtc",
+      "ok": true,
+      "exports": [
+        "DEFAULT_SIGNAL_FAILURE_THRESHOLD",
+        "DEFAULT_SIGNAL_POLL_BACKOFF_BASE_MS",
+        "DEFAULT_SIGNAL_POLL_BACKOFF_MAX_MS",
+        "DEFAULT_SIGNAL_POLL_TIMEOUT_MS",
+        "P2P_TRANSPORT_STATES",
+        "SIGNAL_TYPES",
+        "boundedRetryDelay",
+        "candidateToPayload",
+        "createCallbackSignalingAdapter",
+        "createFirestoreLikeSignalingAdapter",
+        "createP2PTransport",
+        "createPollingSignalingAdapter",
+        "createPoolSdkSignalingAdapter",
+        "createSignalId",
+        "createSignalMessage",
+        "createSignalingChannel",
+        "createSwarmTransport",
+        "createWebRTCSwarm",
+        "defaultDeserialize",
+        "defaultSerialize",
+        "descriptionToPayload",
+        "isSignalForPeer",
+        "normalizeSignalMessage",
+        "retryAfterMsFromError",
+        "retryPolicy"
+      ]
+    },
+    {
+      "name": "reploid/browser",
+      "ok": true,
+      "exports": [
+        "canonicalizeReceiptPayload",
+        "countersignReceipt",
+        "createIndexedDbStore",
+        "createMemoryStore",
+        "createPeerIdFromPublicJwk",
+        "createReceiptDraft",
+        "createSigningIdentity",
+        "createVfs",
+        "encodeBytes",
+        "fromBase64Url",
+        "getIdentityImportAlgorithm",
+        "getIdentitySignAlgorithm",
+        "getReceiptPayload",
+        "importSigningKey",
+        "importVerificationKey",
+        "receipt",
+        "signReceiptDraft",
+        "toBase64Url",
+        "verifyReceipt"
+      ]
+    },
+    {
+      "name": "reploid/doppler",
+      "ok": true,
+      "exports": [
+        "createDopplerProvider",
+        "openDopplerProvider"
+      ]
+    },
+    {
+      "name": "reploid/improve",
+      "ok": true,
+      "exports": [
+        "ALGORITHM_MANIFEST_SCHEMA",
+        "ALGORITHM_REGISTRY_PATH",
+        "IMPROVEMENT_EPISODE_ROOT",
+        "IMPROVEMENT_EPISODE_SCHEMA",
+        "IMPROVEMENT_EVENT_SCHEMA",
+        "ImprovementEpisodeLedger",
+        "assessPromotionReadiness",
+        "canonicalJson",
+        "createCodeEvolution",
+        "createImprovementLedger",
+        "hashImprovementValue",
+        "validateAlgorithmManifest",
+        "validateHypothesisReflection",
+        "validateImprovementEpisodePromotionEvidence",
+        "validateMetricDefinition",
+        "verifyImprovementEvents"
+      ]
+    },
+    {
+      "name": "reploid/config",
+      "ok": true,
+      "exports": [
+        "ConfigurationError",
+        "freezeJson",
+        "hashConfiguration",
+        "requireResolvedConfig",
+        "resolveConfig",
+        "snapshotJson"
+      ]
+    },
+    {
+      "name": "reploid/agent",
+      "ok": true,
+      "exports": [
+        "CYCLE_ARTIFACT_ROOT",
+        "ResponseParser",
+        "createAgentRuntime",
+        "createCycleArtifactWriter",
+        "createReploid",
+        "createToolRunner",
+        "getCycleArtifactPath",
+        "getCycleId"
+      ]
+    },
+    {
+      "name": "reploid/diagnostics",
+      "ok": true,
+      "exports": [
+        "createBeliefPlanner",
+        "createDiagnosticInvestigation"
+      ]
+    },
+    {
+      "name": "reploid/legacy",
+      "ok": true,
+      "exports": [
+        "default"
+      ]
+    },
+    {
+      "name": "reploid/jobs",
+      "ok": true,
+      "exports": [
+        "createPackEpisodeVerifier",
+        "createPackJobContracts",
+        "createPackProviderFactory",
+        "createPackRequesterFactory",
+        "openPackJobJournal"
+      ]
+    },
+    {
+      "name": "reploid/custody",
+      "ok": true,
+      "exports": [
+        "createCustodyContracts"
+      ]
+    }
+  ],
+  "sideEffects": []
+}

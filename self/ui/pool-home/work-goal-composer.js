@@ -12,7 +12,7 @@ export function renderGoalComposer({ models = DEFAULT_WORK_MODELS, defaultModelI
     <div class="pool-work-composer-shell">
       <header class="pool-work-hero">
         <h1 class="pool-work-hero-title">What do you want to get done?</h1>
-        <p class="pool-work-promise">Give Reploid a task. It can work with your files and produce a result for you to review.</p>
+        <p class="pool-work-promise">Use tools, ask other agents for help, and test better tools. You choose what it can do.</p>
       </header>
       <form class="pool-work-composer" data-work-form>
         <div class="pool-work-field">
@@ -24,6 +24,7 @@ export function renderGoalComposer({ models = DEFAULT_WORK_MODELS, defaultModelI
           <button type="button" class="pool-preset-btn" data-goal-preset="patch">Draft a patch</button>
           <button type="button" class="pool-preset-btn" data-goal-preset="json">Check JSON</button>
           <button type="button" class="pool-preset-btn" data-goal-preset="summary">Summarize a file</button>
+          <button type="button" class="pool-preset-btn" data-goal-preset="improve">Improve a tool</button>
         </div>
         <details class="pool-work-attachments" data-work-attachments>
           <summary>Add files <span class="type-caption" data-work-file-count>optional</span></summary>
@@ -51,13 +52,18 @@ export function renderGoalComposer({ models = DEFAULT_WORK_MODELS, defaultModelI
           <button class="btn btn-ghost" type="button" data-work-cancel hidden>Stop work</button>
         </div>
         <p class="pool-work-status" role="status" aria-live="polite" data-work-start-status hidden></p>
+        <fieldset class="pool-work-capabilities"><legend>Allow this task to</legend>
+          <label><input type="checkbox" data-work-helpers> Use helper agents</label>
+          <label><input type="checkbox" data-work-peers> Ask peers</label>
+          <label><input type="checkbox" data-work-improvement> Test tool improvements</label>
+        </fieldset>
+        <p class="pool-control-help">Helpers use the selected model, up to three per task. Peer data and tool adoption always need your approval.</p>
         <details class="pool-work-settings">
           <summary>Success criteria &amp; permissions</summary>
           <div class="pool-work-drawer-body">
             <label for="work-criteria">A useful result must... <span class="type-caption">optional</span></label>
             <textarea id="work-criteria" data-work-criteria rows="2" maxlength="${policy.maxCriteriaCharacters}"
               placeholder="Name the result and checks that matter. Otherwise Reploid will propose them."></textarea>
-            <label class="pool-consent-row"><input type="checkbox" data-work-peers><span>Allow peer assistance requests. Ask me before sending any task data.</span></label>
             <label class="pool-consent-row"><input type="checkbox" data-work-recall><span>Use earlier results I accepted on this device.</span></label>
           </div>
         </details>

@@ -3,11 +3,12 @@
 Parent: [Browser Interfaces](../CATSCAN.md)
 
 ## Target
-Pursue bounded goals, share compute, inspect improvement evidence.
+Pursue goals with helpers, share compute, and review tested tool changes.
 
 ## Authority
 - Owns Work, Network, Improve, examples, and Room-1 presentation.
 - Host composes reusable agent; owns execution and review.
+- Requests operator adoption/rollback for host-registered tools; never judges candidates.
 - Excludes Pack validation, admission, transport, receipt validation, scientific interpretation.
 
 ## Scope
@@ -18,7 +19,7 @@ Inputs: [runtime](../../pool/CATSCAN.md), deterministic [room state](room-projec
 Outputs: [markup](view.js), [Room-1](room-view.js).
 
 ## Invariants
-- Brand Reploid; preserve internal Poolday identities.
+- Brand Reploid; preserve Poolday identities.
 - Primary navigation: Work, Network, Improve, compact network indicator.
 - Protein/document examples preserve execution.
 - Connected rooms never authorize private-goal sharing.
@@ -26,8 +27,8 @@ Outputs: [markup](view.js), [Room-1](room-view.js).
 - Missing admission/evaluators remain visible.
 - Preserve request, execution, comparison, acceptance, receipt lifecycle.
 - Interrupted jobs expose valid recovery only.
-- Inspect available Pack, runtime, provider, declared hardware, fallback, timing, output, agreement.
-- Records Advanced contains only execution evidence, peer identities, retries, recovery.
+- Inspect Pack, runtime, provider, declared hardware, fallback, timing, output, agreement.
+- Records Advanced contains execution evidence, peer identities, retries, recovery.
 - Research administration stays in Room-1; generic Packs inherit no research fields.
 - Disclose the selected provider's execution location; preview and explicitly approve each exact public peer payload.
 - Acceptance names policy; receipts are not hardware attestation.

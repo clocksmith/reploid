@@ -9,6 +9,7 @@ Guide to all documentation in the REPLOID project.
 1. **[/README.md](../README.md)** - Project overview, quick start, RSI concepts
 2. **[docs/QUICK-START.md](./QUICK-START.md)** - Detailed setup and first run
 3. **[docs/CONFIGURATION.md](./CONFIGURATION.md)** - Connection modes and boot configuration
+4. **[Work, helpers, peers, and tool improvement](./work-collaboration.md)** - Models, optional collaboration, evaluated tool changes, and operator controls
 
 ---
 
@@ -40,7 +41,7 @@ Guide to all documentation in the REPLOID project.
 - **[docs/change-passport/pilot-manifest.json](./change-passport/pilot-manifest.json)** - Machine-readable pilot readiness and fail-closed freeze gate
 - **[docs/change-passport/runtime-contract.md](./change-passport/runtime-contract.md)** - Hosted storage, authentication, GitHub App, endpoint, and deployment boundary
 - **[Ouroboros documentation authority](https://github.com/clocksmith/ouroboros/blob/main/docs/authority/README.md)** - Cross-project record routing; Reploid remains canonical for product and runtime behavior
-- **[docs/poolday/product-intent.md](./poolday/product-intent.md)** - Primary Poolday execution and improved-decision goal; optional scientific workflow; secondary Zero/X boundaries
+- **[docs/poolday/product-intent.md](./poolday/product-intent.md)** - Optional peer infrastructure, network proof, and separately scoped scientific workflows
 - **[docs/poolday/discovery-contract.md](./poolday/discovery-contract.md)** - Target atomic active-science object, action-value boundary, epistemic updates, replication, and closure
 
 ### Reference

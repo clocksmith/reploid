@@ -8,3 +8,4 @@ export function createImprovementLedger(ports) {
   }
   return ImprovementEpisodeLedger.factory(ports);
 }
+export { createCodeEvolution } from './code-evolution.js';

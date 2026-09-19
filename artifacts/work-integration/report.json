@@ -1,0 +1,133 @@
+{
+  "schema": "reploid.work-integration-evidence/v1",
+  "recordedAt": "2026-09-19T23:42:16.870Z",
+  "baseRevision": "16f5303de018f3d55745f591a6bb5cd99b8cbd9f",
+  "committed": false,
+  "deployed": false,
+  "component": [
+    "Work host and UI",
+    "Compatibility text swarm",
+    "Library code evolution",
+    "Browser candidate sandbox"
+  ],
+  "intent": "Deliberately integrates existing agent and peer engines with host-controlled pure-tool evaluation and operator adoption; repository mission and Zero/X definitions preserved.",
+  "behavior": [
+    "Task-scoped bounded helper agents use the shared engine and selected provider",
+    "Exact text-peer disclosure approval before dispatch",
+    "Real WebRTC complete text-request transport across two browser contexts",
+    "FormatJson candidate is paired against baseline in opaque workers, then separately approved or rejected",
+    "Active tool versions are pinned, signed, persisted and recoverable; rollback retained",
+    "Work/Network/Improve task-first mobile and desktop UI"
+  ],
+  "evidence": {
+    "vitest": {
+      "passed": 2629,
+      "skipped": 36,
+      "failed": 0,
+      "report": "vitest.json",
+      "note": "Full suite followed by focused checks after final integrity and UI edits"
+    },
+    "targetedFinal": {
+      "log": "targeted-final.log",
+      "passed": 33
+    },
+    "chromium": {
+      "broaderPassed": 40,
+      "finalFocusedPassed": 10,
+      "log": "browser.log",
+      "finalLog": "browser-final.log",
+      "inference": "deterministic injected responses",
+      "transport": "real WebRTC, independent browser contexts, same machine",
+      "isolation": "real browser opaque-frame workers",
+      "verificationWorker": true
+    },
+    "installedPackage": {
+      "passed": true,
+      "checks": 16,
+      "report": "artifacts/library-acceptance/2026-09-19T23-40-13-888Z/report.json"
+    },
+    "registry": {
+      "unresolved": 0,
+      "idempotent": true,
+      "log": "registry.log",
+      "informational": {
+        "helpers": 251,
+        "modulesWithoutBlueprint": 18
+      },
+      "existingGeneratorExclusion": "experimental/openclaw-audit import requires document; omitted by existing genesis generator"
+    },
+    "screenshots": [
+      "work-desktop.png",
+      "work-mobile.png",
+      "network-desktop.png",
+      "candidate-review.png"
+    ],
+    "staticChecks": {
+      "passed": true,
+      "commands": [
+        "npm run lint",
+        "npm run verify:catscan",
+        "npm run verify:layers",
+        "npm run verify:library-types",
+        "npm run verify:pool:css",
+        "npm run verify:module-system",
+        "npm run verify:surface-claims",
+        "npm run verify:runtime-config",
+        "npm run verify:registry",
+        "npm run verify:browser-bundle:local",
+        "git diff --check"
+      ]
+    }
+  },
+  "boundaries": [
+    "Library owns evaluation orchestration and signed improvement state; host owns suite, isolation, storage and activation permission",
+    "Text swarm remains separate from signed Pack jobs and qualification",
+    "UI requests host actions; it neither evaluates candidates nor grants its own authority"
+  ],
+  "limits": [
+    "Registered pure-tool replacement; no arbitrary repository self-modification",
+    "No tensor or layer partitioning across peers",
+    "No physical GPU experiment or model-quality qualification in this evidence",
+    "Finite suite improvement is not a recursive A -> B -> C demonstration or a measured network benefit",
+    "No deployment, push, independent-operator proof or hardware attestation"
+  ],
+  "sourceSha256": {
+    "README.md": "d86ef2dc46e29eaccdc53a59f04e3148a6ef6f03a88bd733367dd3351d0f5ea1",
+    "docs/INDEX.md": "9f1b5c6d9c3a18891bb9d9b0e5b690d800cf05d55e5ce01dccec65839ed4707c",
+    "docs/component-index.md": "de6f41c77ae0cf7e4272d138fe3773c818307b1aace2bfda8d362235665d4418",
+    "packages/reploid/src/improvement/index.d.ts": "d80932c3abfaa1c53d94f8f467e81f5c7160fc7dfe9184b14f4181890d4eaa58",
+    "packages/reploid/src/improvement/index.js": "b291f290197871f2d81b7affcbbc4cdc27364f220601cbc42037d0d2d762fc8b",
+    "self/config/browser-bundle-manifest.json": "5b6303b89fb14ed6b8771676cb6666469679e6bb8446521130cf9ef29fbd484b",
+    "self/config/module-inventory.json": "90a222de902f7b10cdcdfff2abda25fa40ccce0b4637a5ba0b48ccb9b314d810",
+    "self/config/vfs-manifest.json": "b5d8f2bd5d67f73bcc6b1751a7b2a0611171168e620844a6da59fc40c9a2a1d9",
+    "self/config/work-profile.json": "2df4a737835a8b4437118e25c1b8701e9d005ce90a8a4e940da8bb82a77e3def",
+    "self/host/CATSCAN.md": "3c7ab5296d425aaea35c0aa9bf58ffbeb7dbb85a56074ccb2a94e7f02e5df29f",
+    "self/host/work-session.js": "a2dd3b3c1e3e1ff59128a2311340bc5036f588325342369c0b7d68e01048d6b8",
+    "self/host/work-view.js": "924209532f2acdba4c3b70a2c165f66064c3bdaed0b1cb63e1a3356c2d888517",
+    "self/infrastructure/CATSCAN.md": "f9a4911357887754a724fb3f9238d53716939ba60cdd4d4580f759c70e71acd5",
+    "self/styles/poolday/components.css": "867394c3d2673f65ffa4620745ea411c2562dfb0d8e50c5266eb8e01af09c5b3",
+    "self/ui/pool-home/CATSCAN.md": "1c441fefa609e529cff14d0ec42907ea1cadd91566f805045d024585a9beb099",
+    "self/ui/pool-home/index.js": "77991e7edc4289be16da61b0fa023ad8c909004acce7a2fa26f57a65b71d87e5",
+    "self/ui/pool-home/view.js": "e7ee39893da661f3c4adc74e5f1d895a8f7bd24e29c7807b5a1a79d7cfbd30f1",
+    "self/ui/pool-home/work-goal-composer.js": "9face668ba90d9b86dce8412dce08b6aa7874c905d6a5ef7f90b07064fc0d726",
+    "self/ui/pool-home/work-result-view.js": "d3bc02ccd1532ddf072f4a766977465260ad7f8c1378e8b5064afcecf1055eef",
+    "self/ui/pool-home/work.js": "e68237d984624d5673632d8179d1dbd57e9d8e87d1931e9016f3588a8aadba49",
+    "self/vendor/reploid/improvement/index.d.ts": "d80932c3abfaa1c53d94f8f467e81f5c7160fc7dfe9184b14f4181890d4eaa58",
+    "self/vendor/reploid/improvement/index.js": "b291f290197871f2d81b7affcbbc4cdc27364f220601cbc42037d0d2d762fc8b",
+    "self/vendor/reploid/package-assets.json": "f52128f99f8bed184caa6924840a535821883d16c06eb51d4298cc02bdfa3cf5",
+    "tests/e2e/work-clarity.spec.js": "0548a0847884273e1e5d61b874b5cab25911b40a796aa0c0e68231f5f03282de",
+    "docs/work-collaboration.md": "be79af13ea4790fe974a952a9bbf888b998bc9844e95515526c14de0ab7a1cbb",
+    "packages/reploid/src/improvement/code-evolution.d.ts": "64f78c212bfd4028a2b8471687e223a99eae1e9c39280d4ddbe4bf80d23d7072",
+    "packages/reploid/src/improvement/code-evolution.js": "0c9c23cd20727ae0ef7f08b48f23d80020e03661dec70a6a457dcfe68d1f4b5b",
+    "self/config/work-evolution.json": "edf387f3ed89213715558c623f4905c8ef592e1c98467d8f69f31a094e44b6fa",
+    "self/host/work-evolution.js": "d79c32cae1203759c9fd4dcf31d4ec35d2607991dea757eb68696d2e3423b231",
+    "self/host/work-helpers.js": "b4e3c5ec6305ed956033cd4b1f3a7cecc70f434c0622ec05139f7eb064e97c2b",
+    "self/host/work-swarm.js": "c6800c7427a97540700341ddebde856fe9eb44b4e3de99774b5c84a5bdd02aa2",
+    "self/infrastructure/code-sandbox.js": "15fc0489ba8146eb6b53f6d0d184fa66ac078f8ea62fac7315eba29e81764968",
+    "self/ui/pool-home/work-capabilities.js": "c791795d15b83088b1706c6fc1fd78962470237edb39f01bbb7f679ceee9504b",
+    "self/vendor/reploid/improvement/code-evolution.d.ts": "64f78c212bfd4028a2b8471687e223a99eae1e9c39280d4ddbe4bf80d23d7072",
+    "self/vendor/reploid/improvement/code-evolution.js": "0c9c23cd20727ae0ef7f08b48f23d80020e03661dec70a6a457dcfe68d1f4b5b",
+    "tests/e2e/work-integration.spec.js": "6907b1e7fd667a54925c4dbc1a183396c805558232d4cb1418514aa477490f9a",
+    "tests/unit/code-evolution.test.js": "cd0d0cbc4d3f37cd40220c28ab76dbd88c2f15cb77cd758ecbca5e465a01a207"
+  }
+}

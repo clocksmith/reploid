@@ -8,7 +8,8 @@ Materialize the configured browser runtime from trusted seed assets and hand con
 
 ## Authority
 - Owns VFS seeding, service-worker module loading, application startup, and application-selected task tools.
-- Composes the reusable agent with local work retention and exact-payload peer approval.
+- Composes the agent with local work retention and exact-payload peer approval.
+- Composes helpers, compatibility text swarms, isolated tools, protected suites and operator activation separately from admitted Pack jobs.
 - Work task contracts own validation, the repository owns committed revisions, providers own execution adaptation, and views expose detached immutable state.
 - Does not own product policy, module semantics, or recovery-root immutability.
 
@@ -31,6 +32,7 @@ Outputs:
 - Host loading cannot silently substitute missing or unverified modules.
 - Task files cannot grant permissions; file inspection does not establish execution correctness.
 - Peer operations require fresh host approval, exact execution identities, and retained acceptance evidence.
+- Candidates cannot read protected tests or self-activate; attempts pin versions and retain rollback sources.
 
 ## Acceptance
 - Seeded modules are complete and the VFS round trip is valid.

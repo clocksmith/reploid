@@ -1,0 +1,65 @@
+{
+  "schema": "reploid.work-lifecycle-acceptance/v1",
+  "sourceHashes": {
+    "self/host/work-session.js": "a2dd3b3c1e3e1ff59128a2311340bc5036f588325342369c0b7d68e01048d6b8",
+    "self/host/work-inputs.js": "7ee257c0cf1e7d41726b52313c664c28134180a909ca2f3909e3bbc64c933307",
+    "self/ui/pool-home/work.js": "732ea8c8b7e24e28249013649519abb547797fe2c691ccf604a2851f6fefe9e1",
+    "self/config/work-profile.json": "2df4a737835a8b4437118e25c1b8701e9d005ce90a8a4e940da8bb82a77e3def",
+    "tests/fixtures/work-goal-journey.js": "22136aee2cbe493da6f27a203b0c01fae801dc0e1ec4bdf1430f82cfd878d998",
+    "tests/fixtures/work-goal-cases.json": "4df3dc28b41fe8df8474ddc16102767a79153676e01fe2cf86ad5037356e4c85"
+  },
+  "cases": [
+    {
+      "id": "local-missing-unit",
+      "status": "passed",
+      "durationMs": 465.7103210000005,
+      "evidence": "work-local-missing-unit.json"
+    },
+    {
+      "id": "local-completion",
+      "status": "passed",
+      "durationMs": 392.7931150000004,
+      "evidence": "work-local-completion.json"
+    },
+    {
+      "id": "approved-assistance",
+      "status": "passed",
+      "durationMs": 1079.1740020000016,
+      "evidence": "work-approved-assistance.json"
+    },
+    {
+      "id": "counterfactual-assistance",
+      "status": "passed",
+      "durationMs": 580.4403619999994,
+      "evidence": "work-counterfactual-assistance.json"
+    },
+    {
+      "id": "denied-assistance",
+      "status": "passed",
+      "durationMs": 692.2720239999999,
+      "evidence": "work-denied-assistance.json"
+    },
+    {
+      "id": "unsupported-peer-observation",
+      "status": "passed",
+      "durationMs": 522.8943550000004,
+      "evidence": "work-unsupported-peer-observation.json"
+    },
+    {
+      "id": "restored-accepted-work",
+      "status": "passed",
+      "durationMs": 513.2091089999994,
+      "evidence": "work-restored-accepted-work.json"
+    }
+  ],
+  "claim": "Installed agent and actual Work host/UI obey the exercised fixture lifecycle",
+  "qualifications": {
+    "actualModelInference": false,
+    "actualPeerTransport": false,
+    "independentOperators": false,
+    "learnedProblemSolving": false,
+    "recursiveImprovement": false
+  },
+  "causalControl": "The same configuration produces 4000 ms or 4 ms when the reported unit changes.",
+  "retainedHistoryControl": "Recall is delivered to the next invocation; no performance improvement is inferred."
+}

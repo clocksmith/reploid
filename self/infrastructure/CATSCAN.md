@@ -29,6 +29,7 @@ Outputs:
 ## Invariants
 - Audit, replay, and rollback records cannot silently rewrite the events they describe.
 - Service failures remain observable and fail closed at governed boundaries.
+- Candidate functions run in disposable workers within opaque-origin frames, without network, storage or host authority; host timeouts terminate owned execution.
 - Poolday owns job admission and response verification; storage cannot authorize execution.
 
 ## Acceptance
