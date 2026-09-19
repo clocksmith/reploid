@@ -28,7 +28,7 @@ Outputs:
 - Accepted means admissible under a named policy, never globally true.
 - Receipt, agreement, review, laboratory, and biological claims remain distinct.
 - Public-sequence support cannot imply private-sequence protection.
-- The product loop adds improved later decisions and repeat independent use to request, execution, comparison, acceptance, and retained receipts.
+- Network-benefit claims require declared comparisons; learned-routing activation has a separate gate from ordinary participation and execution.
 - Doppler Pack identity and qualification remain distinct from peer availability and successful execution.
 - Work, Network, and Improve are product navigation; Poolday is an internal network name.
 - Recent jobs remains execution-only; scientific Room-1 administration has a separate non-primary route.

@@ -40,14 +40,14 @@ export function renderZeroCallout() {
 const route = (path, label) => '<a href="' + path + '" data-pool-route-link="' + path + '">' + label + '</a>';
 const links = () => '<nav class="pool-work-links" aria-label="More in Reploid">'
   + route('/examples', 'Model examples') + route('/records', 'Peer job records')
-  + '<a href="/zero" data-pool-substrate-route="zero">Zero: Autonomous browser agent</a></nav>';
+  + '<span class="pool-work-experiment-links">Experiments: <a href="/zero" data-pool-substrate-route="zero">Zero</a>'
+  + ' <a href="/x" data-pool-substrate-route="x">X</a></span></nav>';
 
 export function renderWorkSurface() {
   return [
     '<section class="pool-work-shell" data-work-surface aria-label="Work">',
     '  <p class="pool-work-error" role="alert" data-work-error hidden></p>',
     '  <div class="pool-work-column">',
-    renderZeroCallout(),
     renderTaskHeader(),
     renderGoalComposer({ models: DEFAULT_WORK_MODELS }),
     renderApprovalPanel(),
@@ -62,24 +62,27 @@ export function renderWorkSurface() {
 export function renderNetworkSurface() {
   return '<section class="pool-work-shell" data-work-surface aria-label="Network">'
     + '<p class="pool-work-error" role="alert" data-work-error hidden></p>'
+    + '<header class="pool-work-hero"><h1 class="pool-work-hero-title">Give or get a hand.</h1>'
+    + '<p class="pool-work-promise">Share this device\'s AI compute, or find another device that can help with a task. You choose what to share.</p></header>'
     + '<div class="pool-work-grid pool-network-grid">'
     + '<section class="pool-control-panel" aria-labelledby="network-provide-title">'
     + '<h2 class="type-h2" id="network-provide-title">Provide compute</h2>'
+    + '<p class="pool-control-help">Let this device run public jobs for others. Sharing stays off until you turn it on.</p>'
     + renderOperationSharing() + '</section>'
     + '<section class="pool-control-panel" aria-labelledby="network-request-title">'
     + '<h2 class="type-h2" id="network-request-title">Request assistance</h2>'
     + '<div class="pool-control-stack">'
-    + '<p class="pool-control-help">Discovery sends no task inputs. An available model is not a connected, qualified executor.</p>'
+    + '<p class="pool-control-help">See what other devices can run. Looking for peers sends no task inputs; each job needs your approval.</p>'
     + '<div class="pool-control-actions">'
     + '<button class="btn btn-ghost" type="button" data-work-discover>Find compatible peers</button>'
     + '<p class="pool-control-status" role="status" aria-live="polite" data-work-peer-status>Discovery has not run.</p></div>'
     + '<div class="pool-control-group" data-work-peer-models></div>'
     + '<div class="pool-control-footer">'
-    + route('/', 'Use approved peer operations from a task') + '</div></div></section></div>'
-    + '<aside class="pool-network-notes" aria-label="Sharing boundaries">'
+    + route('/', 'Start a task with peer assistance') + '</div></div></section></div>'
+    + '<details class="pool-network-notes"><summary>How sharing works</summary>'
     + '<p class="pool-control-help">Execution, artifact distribution, and improvement adoption have separate permissions.</p>'
     + '<p class="pool-control-help">These controls offer whole operations, not a model split across GPUs. '
-    + route('/compute', 'Legacy sequence provider controls') + ' remain available.</p></aside>'
+    + route('/compute', 'Legacy sequence provider controls') + ' remain available.</p></details>'
     + renderApprovalPanel() + links() + '</section>';
 }
 
@@ -87,6 +90,10 @@ export function renderImproveSurface() {
   return '<section class="pool-work-shell" data-work-surface aria-label="Improve">'
     + '<p class="pool-work-error" role="alert" data-work-error hidden></p>'
     + '<div class="pool-work-column">'
+    + '<header class="pool-work-hero"><h1 class="pool-work-hero-title">Review what worked.</h1>'
+    + '<p class="pool-work-promise">Revisit saved results, ask for changes, and compare attempts. Changes to the agent itself need separate evaluation.</p></header>'
+    + '<div class="pool-work-empty" data-work-empty hidden><h2 class="type-h2">No work to review yet.</h2>'
+    + '<p>Start a task, then come back to review its result or try a revision.</p>' + route('/', 'Start your first task') + '</div>'
     + '<section class="pool-work-comparison" data-work-comparison hidden><h2 class="type-h2">Earlier attempt</h2>'
     + '<p data-work-parent-feedback></p><pre data-work-parent-output></pre></section>'
     + renderResultView() + renderTaskHistory()
@@ -120,8 +127,10 @@ export function bindWorkSurface(root, application) {
   const act = operation => { Promise.resolve().then(operation).catch(error); };
   let inputs = [], parentId = null, reading = false, fileRevision = 0, approvalId = null;
   let historyIdentity = '', resultIdentity = '', lastState = null;
+  let showSelected = true;
   const form = find('[data-work-form]');
   const showInputs = items => {
+    setText('[data-work-file-count]', items.length ? items.length + ' attached' : 'optional');
     const list = find('[data-work-input-list]');
     if (!list) return;
     list.replaceChildren();
@@ -133,18 +142,12 @@ export function bindWorkSurface(root, application) {
     const clearBtn = find('[data-work-clear-inputs]');
     if (clearBtn) clearBtn.hidden = !items.length;
   };
-  const updateModelPills = modelId => {
+  const updateModelDescription = modelId => {
     if (!modelId) return;
-    for (const pill of root.querySelectorAll('[data-work-model-select]')) {
-      const active = pill.dataset.workModelSelect === modelId;
-      pill.classList.toggle('is-active', active);
-      pill.setAttribute('aria-pressed', String(active));
-    }
-    const badge = find('[data-work-active-model-name]');
-    if (badge) {
-      const activePill = root.querySelector('[data-work-model-select="' + modelId + '"] .pool-model-pill-name');
-      if (activePill) badge.textContent = activePill.textContent;
-    }
+    const model = (lastState?.models || DEFAULT_WORK_MODELS).find(item => item.id === modelId);
+    setText('[data-work-location]', model?.provider === 'gemini'
+      ? 'Cloud model: your task and files may be sent to this provider. Peer sharing still requires your approval.'
+      : 'On-device model: may download on first use. Peer sharing is off unless you enable and approve it.');
   };
   const fillDraft = draft => {
     if (!form) return;
@@ -157,11 +160,14 @@ export function bindWorkSurface(root, application) {
     find('[data-work-revision]').hidden = !parentId;
     find('[data-work-peers]').checked = false; find('[data-work-recall]').checked = false;
     showInputs(inputs);
-    updateModelPills(draft.modelId);
+    updateModelDescription(draft.modelId);
   };
   const revise = id => {
     const draft = application.prepareRevision(id);
-    if (form) { fillDraft(draft); find('[data-work-feedback]').focus(); }
+    if (form) {
+      showSelected = false; fillDraft(draft); render(application.getState());
+      find('[data-work-feedback]').focus();
+    }
     else {
       const link = document.createElement('a');
       link.href = '/'; link.dataset.poolRouteLink = '/';
@@ -170,11 +176,21 @@ export function bindWorkSurface(root, application) {
   };
   const render = state => {
     lastState = state;
-    const row = state.records.find(item => item.id === state.selectedId);
+    if (state.busy) showSelected = true;
+    const row = showSelected ? state.records.find(item => item.id === state.selectedId) : null;
     setText('[data-work-status]', state.activity);
     if (state.storageError) error(state.storageError);
     const currentModel = find('[data-work-model]')?.value;
-    if (currentModel) updateModelPills(currentModel);
+    if (currentModel) updateModelDescription(currentModel);
+    const output = find('[data-work-output]');
+    if (output) output.hidden = !row && !state.busy;
+    const composer = find('.pool-work-composer-shell');
+    if (composer) composer.hidden = !!row || state.busy;
+    const history = find('.pool-work-history');
+    if (history) history.hidden = !state.records.length;
+    const empty = find('[data-work-empty]');
+    if (empty) empty.hidden = !!state.records.length || state.busy;
+    for (const button of root.querySelectorAll('[data-work-new]')) button.hidden = !row || state.busy;
 
     // Mode calculation
     const surface = find('[data-work-surface]');
@@ -191,11 +207,17 @@ export function bindWorkSurface(root, application) {
 
     if (form) {
       form.setAttribute('aria-busy', String(state.busy || reading));
-      for (const node of form.querySelectorAll('input,textarea,select,[data-work-new],[data-work-clear-inputs]')) node.disabled = state.busy || reading;
+      for (const node of form.querySelectorAll('input,textarea,select,[data-work-new],[data-work-clear-inputs],[data-goal-preset]')) node.disabled = state.busy || reading;
       find('[data-work-start]').disabled = state.busy || reading || !state.available || !!state.storageError;
       for (const btn of root.querySelectorAll('[data-work-cancel]')) btn.hidden = !state.busy;
       setText('[data-work-budget]', state.cycle + ' / ' + state.maxCycles + ' steps');
       if (!state.available) setText('[data-work-status]', 'Local work requires WebGPU. You can still inspect results and discover peer capabilities.');
+      const startStatus = find('[data-work-start-status]');
+      if (startStatus) {
+        startStatus.hidden = state.available && !reading;
+        startStatus.textContent = reading ? 'Reading your files...'
+          : 'No model is available in this browser. Check the selected model or use a supported browser.';
+      }
       if (state.busy) showInputs(state.records.find(item => item.id === state.activeId)?.inputs || []);
     }
     const pending = state.pendingApproval;
@@ -318,7 +340,7 @@ export function bindWorkSurface(root, application) {
     }
     const list = find('[data-work-history]');
     if (!list) return;
-    const signature = JSON.stringify([state.busy, state.selectedId, state.records]);
+    const signature = JSON.stringify([showSelected, state.busy, state.selectedId, state.records]);
     if (signature === historyIdentity) return;
     historyIdentity = signature; list.replaceChildren();
     if (!state.records.length) {
@@ -330,7 +352,7 @@ export function bindWorkSurface(root, application) {
       item.className = 'pool-work-attempt';
       title.type = 'button'; title.className = 'pool-work-attempt-title';
       title.textContent = attempt.goal; title.dataset.workSelect = attempt.id;
-      title.setAttribute('aria-pressed', String(attempt.id === state.selectedId));
+      title.setAttribute('aria-pressed', String(showSelected && attempt.id === state.selectedId));
       const metadata = document.createElement('p'), button = document.createElement('button');
       metadata.className = 'type-caption';
       metadata.textContent = [attempt.status, attempt.modelName, new Date(attempt.createdAt).toLocaleString(),
@@ -346,7 +368,7 @@ export function bindWorkSurface(root, application) {
     }
   };
   const draft = application.getDraft();
-  if (draft) fillDraft(draft);
+  if (draft) { showSelected = false; fillDraft(draft); }
   const unsubscribe = application.subscribe(render);
   find('[data-work-files]')?.addEventListener('change', async event => {
     const revision = ++fileRevision, selected = Array.from(event.target.files);
@@ -380,20 +402,12 @@ export function bindWorkSurface(root, application) {
     act(() => application.start(request));
   }, options);
   find('[data-work-public]')?.addEventListener('change', () => render(application.getState()), options);
-  find('[data-work-model]')?.addEventListener('change', event => updateModelPills(event.target.value), options);
+  find('[data-work-model]')?.addEventListener('change', event => updateModelDescription(event.target.value), options);
   root.addEventListener('click', event => {
     const control = event.target.closest('button');
     if (!control || !root.contains(control)) return;
     act(async () => {
-      if (control.dataset.workModelSelect) {
-        const modelId = control.dataset.workModelSelect;
-        const select = find('[data-work-model]');
-        if (select) {
-          select.value = modelId;
-          select.dispatchEvent(new Event('change', { bubbles: true }));
-        }
-        updateModelPills(modelId);
-      } else if (control.dataset.goalPreset) {
+      if (control.dataset.goalPreset) {
         const preset = control.dataset.goalPreset;
         const goalInput = find('[data-work-goal]');
         const criteriaInput = find('[data-work-criteria]');
@@ -402,23 +416,28 @@ export function bindWorkSurface(root, application) {
           if (criteriaInput) criteriaInput.value = 'Provide a valid unified diff with clear explanation.';
         } else if (preset === 'json') {
           if (goalInput) goalInput.value = 'Validate and reformat JSON input payload.';
-          if (criteriaInput) criteriaInput.value = 'Ensure valid JSON syntax and schema conformance.';
-        } else if (preset === 'benchmark') {
-          if (goalInput) goalInput.value = 'Run inference benchmark and report tokens/sec.';
-          if (criteriaInput) criteriaInput.value = 'Measure latency and generation throughput.';
+          if (criteriaInput) criteriaInput.value = 'Check JSON syntax, preserve the supplied values, and explain any repairs.';
+        } else if (preset === 'summary') {
+          if (goalInput) goalInput.value = 'Summarize the attached file. Identify its main points and anything that needs attention.';
+          if (criteriaInput) criteriaInput.value = 'Use only the supplied material. Distinguish facts from uncertainty.';
         }
+        const attachments = find('[data-work-attachments]');
+        if (attachments) attachments.open = true;
         if (goalInput) {
           goalInput.dispatchEvent(new Event('input', { bubbles: true }));
           goalInput.focus();
         }
       } else if (control.hasAttribute('data-work-cancel')) application.cancel();
-      else if (control.dataset.workSelect) application.select(control.dataset.workSelect);
+      else if (control.dataset.workSelect) { showSelected = true; application.select(control.dataset.workSelect); }
       else if (control.dataset.workRevise) revise(control.dataset.workRevise);
       else if (control.hasAttribute('data-work-revise-selected')) revise(lastState.selectedId);
       else if (control.hasAttribute('data-work-new')) {
         fileRevision++; parentId = null; inputs = []; form.reset(); showInputs([]);
         find('[data-work-revision]').hidden = true; find('[data-work-feedback]').required = false;
-        application.clearDraft(); error(''); find('[data-work-goal]').focus();
+        application.clearDraft(); error('');
+        showSelected = false; render(application.getState());
+        find('[data-work-goal]').focus();
+        updateModelDescription(find('[data-work-model]').value);
       } else if (control.hasAttribute('data-work-clear-inputs')) {
         fileRevision++; inputs = []; find('[data-work-files]').value = ''; showInputs([]);
       } else if (control.hasAttribute('data-work-send')) {

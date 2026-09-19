@@ -1551,7 +1551,7 @@ export const renderNav = (activeRoute) => {
   };
   return `
     <nav class="pool-nav-rail pool-primary-nav" aria-label="${escapeHtml(POOLDAY_NAME)}">
-      <a class="pool-primary-brand" aria-label="${escapeHtml(POOLDAY_NAME)} home" href="${escapeHtml(roomHref('/', getPeerRoomId()))}" data-pool-route-link="${escapeHtml(roomHref('/', getPeerRoomId()))}">${renderPowerTower()}</a>
+      <a class="pool-primary-brand" aria-label="${escapeHtml(POOLDAY_NAME)} home" href="${escapeHtml(roomHref('/', getPeerRoomId()))}" data-pool-route-link="${escapeHtml(roomHref('/', getPeerRoomId()))}">${renderPowerTower()}<span class="pool-primary-wordmark">${escapeHtml(POOLDAY_NAME)}</span></a>
       <div class="pool-nav-menu pool-segmented" id="pool-nav-menu">
         ${POOLDAY_NAV_ROUTES.map(renderItem).join('')}
       </div>

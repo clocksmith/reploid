@@ -8,21 +8,33 @@ Developers and autonomous systems need goal-directed problem-solving agents that
 
 ## Target
 
-Deliver an evolving agent that executes goals through authorized tools, collaborates with peers over Poolday WebRTC, and iteratively improves problem-solving capabilities through independently evaluated recursive self-improvement (RSI).
+Deliver an evolving agent that executes goals through authorized models and tools, remains useful alone, optionally collaborates over Poolday WebRTC, and improves its problem-solving methods through independently evaluated recursive self-improvement (RSI).
 
 ## Invariants
 
-- Problem-solving and recursive improvement loops operate under strict physical and lifecycle separation.
+- Candidate execution, protected evaluation, and active user work have explicit isolation and lifecycle boundaries. Separate machines are required where a particular proof demands them.
 - Candidate improvements cannot modify hidden acceptance tests, escalate permissions, erase failure histories, or self-approve.
 - The reusable browser agent library in `packages/reploid/` remains completely independent of specific UI frameworks.
 - Local inference uses Doppler and executes locally; peer collaboration via Poolday is optional and capability-governed.
-- Free adoption counts as full technical success; commercial milestones do not gate technical completion.
+- Zero is the minimal starting configuration; X extends it with explicit capabilities. Proposer, evaluator, approver, and activator are separately authorized roles, not route identities.
+- Free adoption counts as adoption evidence; commercial outcomes do not gate technical completion. Capability claims still require their stated acceptance evidence.
 
-## Evidence
+## Required checks
 
-- Passing CATSCAN charter repository verification via `npx vitest run tests/unit/catscan.test.js`.
-- Clean execution of unit, integration, and peer protocol suites in `tests/`.
-- Validated surface claims in `docs/status/surface-claim-index.json`.
+- Run CATSCAN charter verification via `npx vitest run tests/unit/catscan.test.js`.
+- Run applicable unit, integration, browser, and peer protocol checks in `tests/`.
+- Validate claim references with `npm run verify:surface-claims`.
+
+## Recorded evidence
+
+The [surface claim index](docs/status/surface-claim-index.json) bounds claims by
+their evidence and blockers. The versioned
+[architecture convergence report](artifacts/architecture-convergence-2026-09-19/report.json)
+records shared-engine, contract, browser, and installed-package checks for its
+identified sources. It does not demonstrate the full recursive-improvement
+mission or physical GPU qualification. Each capability or improvement claim
+requires its own versioned observations and declared comparison; passing the
+required checks alone is not evidence that the mission has been achieved.
 
 ## Non-goals
 

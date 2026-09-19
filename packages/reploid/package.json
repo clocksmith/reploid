@@ -45,6 +45,10 @@
       "types": "./src/agent/index.d.ts",
       "import": "./src/agent/index.js"
     },
+    "./diagnostics": {
+      "types": "./src/agent/diagnostic-strategy.d.ts",
+      "import": "./src/agent/diagnostic-strategy.js"
+    },
     "./legacy": {
       "types": "./src/agent/legacy-loop.d.ts",
       "import": "./src/agent/legacy-loop.js"

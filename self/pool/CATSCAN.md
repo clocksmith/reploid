@@ -42,7 +42,7 @@ Outputs:
 - Numeric uncertainty requires versioned methods/cohorts; vector metrics.
 - Provenance-bound imports: orders/public execution, labs/capability/safety, policies/resolution; never truth.
 - Campaigns order disagreement, not volume or biological priority.
-- Zero proposes; independent evaluators assess frozen cohorts; Poolday admits. Separate promotion authorities.
+- Scientific-policy: Zero proposes; independent X evaluates frozen cohorts; Poolday separately admits.
 - Value requires approved actions, reviewed outcomes, evaluation, causality, independent acceptance.
 
 ## Acceptance

@@ -1,8 +1,9 @@
 # Reploid Agent Release Passport Product Intent
 
-Portfolio status: inactive alternative. Poolday is primary; Zero and X are
-secondary RSI browser agents. Preserve this implementation and its independent
-proof criteria without treating it as Reploid's selected commercial priority.
+Portfolio status: inactive alternative. Reploid's evolving problem-solving agent
+is primary; Poolday supplies optional collaboration. Zero and X are minimal and
+extended configurations of the same agent. Preserve this implementation and its
+independent proof criteria without treating it as Reploid's selected commercial priority.
 
 ## Product statement
 
@@ -144,10 +145,12 @@ paired evaluation, promotion replay, and rollback evidence. It is not the
 external customer schema.
 
 Change Passport uses a separate generic contract and authority surface. Zero
-and X may produce and evaluate a passport through adapters, but external users
-must not need either surface. Poolday retains scientific evidence authority
-only. Room-1 remains the scientific proof of contradiction-preserving decision
-memory.
+and X instances may produce or evaluate a passport through adapters when
+separately authorized; their profile names do not establish evaluator independence.
+External users must not need either surface. Poolday supplies optional peer
+collaboration and execution with workflow-specific evidence admission; it does
+not acquire generic change-control authority. Room-1 remains the separately
+scoped scientific proof of contradiction-preserving decision memory.
 
 ## First proof
 
@@ -178,4 +181,4 @@ record completeness under predeclared definitions.
 
 ---
 
-*Last updated: August 2026*
+*Last updated: September 2026*

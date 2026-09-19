@@ -33,3 +33,12 @@ void [native, escalation, invalidEvent, invalidOutcome];
 createPackProviderFactory({});
 // @ts-expect-error custody cannot exist without signature and artifact-validation ports
 createCustodyContracts({ hashDopplerEvidence: async () => 'sha256:fixture' });
+
+import { createBeliefPlanner, createDiagnosticInvestigation, type DiagnosticPolicy } from '../../packages/reploid/src/agent/diagnostic-strategy.js';
+const diagnosticPolicy: DiagnosticPolicy = { schema: 'reploid.diagnostic-policy/v1', objective: 'decision-value',
+  costBudget: 1, maxActions: 2, informationWeight: 0, minimumScore: 0 };
+// @ts-expect-error calibrated status is not granted by choosing a policy
+const invalidDiagnosticPolicy: DiagnosticPolicy = { ...diagnosticPolicy, objective: 'calibrated' };
+// @ts-expect-error observations require evidence identity
+const invalidDiagnosticObservation: import('../../packages/reploid/src/agent/diagnostic-strategy.js').DiagnosticObservation = { outcomeId: 'ok' };
+void [createBeliefPlanner, createDiagnosticInvestigation, invalidDiagnosticPolicy, invalidDiagnosticObservation];

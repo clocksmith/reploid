@@ -153,6 +153,7 @@ does not create Markdown blueprints unless a module introduces an architectural 
 3. [blueprints/0x000015-dynamic-tool-creation.md](../self/blueprints/0x000015-dynamic-tool-creation.md) - Tool creation
 4. [blueprints/0x00005B-recursive-goal-decomposition.md](../self/blueprints/0x00005B-recursive-goal-decomposition.md) - Recursive goal decomposition
 5. [blueprints/0x00007F-recursive-gepa-ring.md](../self/blueprints/0x00007F-recursive-gepa-ring.md) - Recursive GEPA Ring whole-system recursive improvement blueprint
+6. [diagnostic-planning.md](./diagnostic-planning.md) - Optional belief-based investigation strategy and bounded comparison evidence
 
 ### For Security Researchers
 1. [SECURITY.md](./SECURITY.md) - Security model and containment

@@ -7,7 +7,7 @@ Parent: none
 Deliver a goal-directed agent using Doppler inference, Poolday collaboration, and evaluated recursive improvement.
 
 ## Authority
-- Owns library, application, and UI boundaries: `packages/reploid/` implements reusable behavior; applications compose APIs; UI requests actions.
+- Owns boundaries: `packages/reploid/` implements behavior; applications compose APIs; UI requests actions.
 - Extraction proves neither qualification, publication nor deployment.
 - Owns repository product boundaries, precedence, and proof requirements.
 - Does not turn model output or infrastructure into biological truth.
@@ -32,7 +32,7 @@ Outputs:
 - Problem-solving and improvement loops operate with strict separation.
 - Candidates cannot modify hidden acceptance tests, escalate permissions, or self-approve.
 - Claims stay bounded by recorded acceptance evidence.
-- Free adoption counts; commercial outcomes do not gate completion.
+- Free adoption counts as adoption evidence; capability claims require acceptance evidence, independent of commercial outcomes.
 - Existing code cannot silently overrule a charter.
 
 ## Acceptance

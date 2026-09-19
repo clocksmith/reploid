@@ -1,0 +1,9 @@
+{
+  "id": "denied-assistance",
+  "provider": "deterministic-fixture",
+  "status": "failed",
+  "error": "locator.fill: Target page, context or browser has been closed\nCall log:\n\u001b[2m  - waiting for locator('[data-work-goal]')\u001b[22m\n\u001b[2m    - locator resolved to <textarea rows=\"4\" required=\"\" id=\"work-goal\" maxlength=\"4000\" data-work-goal=\"\" placeholder=\"For example: find the problem in this code and draft a patch.\"></textarea>\u001b[22m\n\u001b[2m    - fill(\"Repair the legacy timeout configuration. Produce repaired.json with a single timeoutMs field only when its source unit is established. Otherwise identify the missing or contradictory evidence. Retain the method used.\")\u001b[22m\n\u001b[2m  - attempting fill action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and editable\u001b[22m\n\u001b[2m      - element is not visible\u001b[22m\n\u001b[2m    - retrying fill action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and editable\u001b[22m\n\u001b[2m      - element is not visible\u001b[22m\n\u001b[2m    - retrying fill action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    53 × waiting for element to be visible, enabled and editable\u001b[22m\n\u001b[2m       - element is not visible\u001b[22m\n\u001b[2m     - retrying fill action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n\n    at /home/clocksmith/deco/reploid/tests/library-package-acceptance.js:344:56\n    at async check (/home/clocksmith/deco/reploid/tests/library-package-acceptance.js:31:20)\n    at async file:///home/clocksmith/deco/reploid/tests/library-package-acceptance.js:317:7",
+  "observation": null,
+  "pageErrors": [],
+  "durationMs": 26572.673408000002
+}

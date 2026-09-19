@@ -1,0 +1,68 @@
+7
+7
+Work
+Network
+Improve
+0 peers
+ZERO
+Autonomous browser agent
+Reploid Zero
+
+Autonomous tabula-rasa loop that synthesizes and tests its own tools in browser storage.
+
+Launch Zero →
+Reploid Compute Pool
+
+Reploid connects browser nodes to share local AI compute, verify signed results, and run agent tasks peer-to-peer.
+
+●
+Mesh Node:
+Active
+⚡
+Provider:
+Ready
+⚢
+Room:
+default
+INFERENCE MODEL:
+⎈
+Qwen 3.5 2B
+Local
+⚡
+gemini-3.8-flash
+Cloud
+Quick goals:
+✦
+Draft Patch
+✦
+Validate JSON
+✦
+Benchmark Model
+Goal
+Working material optional, stays on device
+
+UTF-8 text or source files. Up to 8 files, 128 KiB total.
+
+Criteria & constraints (optional)
+A useful result must...
+Advanced permissions & fallback
+●
+Model: Qwen 3.5 2B
+•
+Browser sandbox isolation
+•
+No unapproved network/code execution
+Start work
+New task
+Result
+
+The result and downloadable files will appear here.
+Administrative & audit details
+Your work
+Export all evidence
+
+No saved work yet. Completed, failed, and stopped attempts will stay here.
+
+Model examples
+Peer job records
+Zero: Autonomous browser agent

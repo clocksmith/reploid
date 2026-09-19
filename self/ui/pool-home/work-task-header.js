@@ -15,6 +15,7 @@ export function renderTaskHeader() {
     '  <div class="pool-work-task-status-row">',
     '    <p class="pool-work-status" role="status" aria-live="polite" data-work-status></p>',
     '    <button class="btn btn-ghost" type="button" data-work-cancel hidden>Stop work</button>',
+    '    <button class="btn btn-ghost" type="button" data-work-new hidden>New task</button>',
     '  </div>',
     '</div>'
   ].join('\n');
