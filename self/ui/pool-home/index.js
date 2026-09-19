@@ -275,7 +275,7 @@ export function initPoolHome(mount, { operationNetwork = null } = {}) {
     const rootPath = (window.location.pathname || '/').replace(/\/+$/, '') || '/';
     document.title = rootPath === '/'
       ? POOLDAY_NAME
-      : `${POOLDAY_NAME} - ${ROUTE_COPY[routeId]?.eyebrow || 'Verified Browser Inference'}`;
+      : `${POOLDAY_NAME} - ${ROUTE_COPY[routeId]?.title || 'Work'}`;
     if (!mount.querySelector('.pool-route-content')) mount.innerHTML = `
       <main class="pool-home" data-pool-route-id="${routeId}">
         ${renderNav(routeId, {

@@ -32,8 +32,8 @@ uses authorized tools or assistance, evaluates what it observes, and takes a
 subsequent action that depends on the result. It delivers an outcome that can
 be checked against acceptance tests outside candidate control.
 
-The same goal must run locally, either finishing or naming the specific missing
-capability. Network membership expands available actions; it is not a
+The same goal must run without peer participation, either finishing or naming
+the specific missing capability. Network membership expands available actions; it is not a
 prerequisite for usefulness. Human and programmatic interfaces invoke the same
 goal lifecycle. Screens display it rather than implementing another agent loop.
 
@@ -81,8 +81,8 @@ under comparable models, tools, budgets, evaluator access, and attempt counts.
 Ancestry, additional attempts, outside assistance, or adoption alone cannot
 establish that B's change contributed to C.
 
-Reploid may propose changes to planning, context selection, tool procedures,
-prompts, and permitted implementation. Protected evaluation, permission
+Reploid may propose and implement changes to planning, context selection, tool
+procedures, prompts, and permitted implementation. Protected evaluation, permission
 ceilings, explicit activation, and recoverable prior versions stay outside
 candidate authority. Stable work continues on an identified version while
 candidates run separately. Peers may evaluate and optionally adopt changes;
@@ -150,6 +150,13 @@ Revoked, stale, duplicate, and insufficient history have explicit negative tests
 This is a learned-routing activation gate, not a universal prerequisite for
 agent evolution. Independently evaluated planning, context, or tool-procedure
 improvements need not wait for learned routing to outperform its baselines.
+
+Claims that networking improves capability, reliability, cost, or later decisions
+require comparison against an appropriate declared baseline under comparable
+conditions. Ordinary authorized participation and exploration do not depend on
+completing that experiment. Independent operation is a target to demonstrate;
+provider keys and signed records alone do not establish distinct operators,
+machines, or honest browser execution.
 
 Voluntary independent repeat use counts even when free. Protocols remain
 forkable and evidence exportable. Revenue, acquisition, and hosting economics
@@ -408,10 +415,29 @@ closure authority.
 
 ## Product principles
 
-1. Lead with the most informative next action and the evidence that justifies it.
+1. Pursue useful goals through authorized actions, observed outcomes, and revision;
+   remain useful without peer participation.
+2. Keep participation, artifact supply, execution, and disclosure permissions
+   explicit and separate. Availability does not grant authority.
+3. Bind peer computations to exact assignments, model artifacts, operations,
+   limits, runtime identities, policy, receipts, and requester acceptance.
+4. Preserve failures, cancellation, recovery, and provenance. Fail closed when
+   required contract or integrity evidence does not match.
+5. Separate execution records, task acceptance, independent evaluation, approval,
+   and activation. Signatures do not establish correctness or independence.
+6. Require declared comparisons for benefit claims and preserve the specific
+   activation gates for learned routing and promoted capabilities.
+
+### Research Room principles
+
+These additional safeguards apply to scientific investigations. They do not
+make laboratory protocols, biological uncertainty, or scientific-policy promotion
+requirements part of every Reploid task or peer job.
+
+1. Lead with a useful, justified next scientific action and its supporting evidence.
 2. Keep competing hypotheses explicit. Preserve disagreement when the evidence
    does not justify resolution.
-3. Bind every computation to the assignment, exact model artifacts, workload,
+3. Bind every Research Room computation to the assignment, exact model artifacts, workload,
    runtime profile, policy, route, provider signature, and requester decision.
 4. Bind every experiment before any laboratory claim to its exact protocol,
    conditions, controls, readouts, normalization, analysis identity, allowed
@@ -427,9 +453,9 @@ closure authority.
 8. Keep model facts, human claims, experimental outcomes, and policy evaluations
    separate. None becomes truth or training data merely by being signed.
 9. Require demonstrated prospective improvement before a scientific decision
-   policy enters Poolday.
-10. Keep experimental Zero and X evidence separate from Poolday product evidence
-    until a capability passes the promotion boundary below.
+   policy is admitted to the Research Room.
+10. Keep experimental Zero and X evidence separate from admitted Research Room
+    evidence until a scientific capability passes the promotion boundary below.
 
 ## P2P boundary
 
@@ -508,17 +534,23 @@ promotion gates.
 ## Reploid surface hierarchy
 
 Work, Network, and Improve are the primary navigation within the Reploid
-application. Zero and X remain separately governed execution surfaces:
+application. Zero and X are configurations of the same agent foundation:
 
-| Surface | Current authority | Active-science role |
+| Surface | Configuration and purpose | Authority boundary |
 | --- | --- | --- |
-| Reploid `/` | Goal lifecycle, authorized tools, local outcomes, optional peer assignments, execution evidence, and user review. | Optional Research Room owns Discovery Contracts, uncertainty projections, replication state, and promoted scientific policy. |
-| Zero `/zero` | Zero-local tools, state, verification, and recovery evidence. | Propose hypothesis decompositions, analyses, uncertainty estimators, experiment-ranking methods, and contradiction detectors. |
-| X `/x` | Candidate, validation, promotion, quarantine, replay, and rollback evidence. | Evaluate candidate scientific decision policies in Shadow against frozen historical and prospective contracts. |
+| Reploid `/` | Goal pursuit through Work, optional Network assistance, and Improve. | Host-owned permissions and review; optional Research Room contracts apply only to that workflow. |
+| Zero `/zero` | Minimal starting configuration; grows authorized tools from CreateTool and supports implementing candidate improvements. | Local state and recovery; proposal, evaluation and activation require separately assigned roles. |
+| X `/x` | Zero with selected executable extensions and blueprints for memory, experiments, workers, peers and verification; shares the same improvement mission. | Prepared capabilities grant no evaluator, approval or activation authority. |
 
-Zero or X evidence never substantiates a Reploid product claim by itself.
-Candidate proposal, independent evaluation, and application-owned activation
-remain distinct.
+The current Zero profile uses server-proxy inference by default and optionally
+local Doppler; browser residence does not imply offline inference. See the
+[surface definitions](../../self/config/surface-intents.js).
+
+An X instance may propose and implement improvements. An independently
+controlled evaluator may use an appropriately configured instance, but a route
+does not establish that independence. Candidate proposal, protected evaluation,
+approval and application-owned activation remain distinct. Lab records require
+the acceptance evidence for the particular claim they are used to support.
 
 ## Scientific-policy promotion boundary
 
@@ -526,6 +558,11 @@ Zero and X are discovery engines for candidate automation, self-improvement, and
 new capabilities. A candidate scientific policy must remain in Shadow until it
 shows a measured improvement against a predeclared baseline and held-out
 contracts.
+
+The following is the named Research Room scientific-policy protocol's role
+assignment, not a definition of the Zero or X configurations. It retains its
+distinct proposer, evaluator, human approver and policy owner, regardless of
+which capabilities other workflows make available on those surfaces.
 
 ```text
 Zero candidate method or policy

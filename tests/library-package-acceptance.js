@@ -341,14 +341,17 @@ try {
                 allowPeers: scenario.allowPeers, recallAccepted: scenario.recallAccepted === true
               };
               if (scenario.via === 'ui') {
+                const newTask = page.locator('[data-work-new]');
+                if (await newTask.isVisible()) await newTask.click();
                 await page.locator('[data-work-goal]').fill(request.goal);
+                await page.locator('.pool-work-settings > summary').click();
                 await page.locator('[data-work-criteria]').fill(request.criteria);
+                await page.locator('[data-work-attachments] > summary').click();
                 await page.locator('[data-work-files]').setInputFiles({
                   name: 'settings.json', mimeType: 'application/json', buffer: Buffer.from(request.inputs[0].text)
                 });
                 await page.waitForFunction(() => !document.querySelector('[data-work-start]').disabled
                   && document.querySelector('[data-work-input-list]').textContent.includes('settings.json'));
-                await page.locator('.pool-work-settings').evaluate(node => { node.open = true; });
                 await page.locator('[data-work-peers]').setChecked(request.allowPeers);
                 await page.locator('[data-work-recall]').setChecked(request.recallAccepted);
                 await page.locator('[data-work-start]').click();

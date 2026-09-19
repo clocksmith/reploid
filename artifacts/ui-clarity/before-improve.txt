@@ -1,0 +1,23 @@
+7
+7
+Work
+Network
+Improve
+0 peers
+Result
+
+The result and downloadable files will appear here.
+Administrative & audit details
+Your work
+Export all evidence
+
+No saved work yet. Completed, failed, and stopped attempts will stay here.
+
+Changing the agent is a separate decision.
+
+Task revisions and your acceptance are not independent evaluation or proof of recursive improvement. This view does not alter the agent or adopt candidate code.
+
+Open governed improvement workspace
+Model examples
+Peer job records
+Zero: Autonomous browser agent

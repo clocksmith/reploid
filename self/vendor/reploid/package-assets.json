@@ -37,6 +37,10 @@
       "types": "./src/agent/index.d.ts",
       "import": "./src/agent/index.js"
     },
+    "./diagnostics": {
+      "types": "./src/agent/diagnostic-strategy.d.ts",
+      "import": "./src/agent/diagnostic-strategy.js"
+    },
     "./legacy": {
       "types": "./src/agent/legacy-loop.d.ts",
       "import": "./src/agent/legacy-loop.js"
@@ -77,6 +81,11 @@
       "sha256": "c501651b645e3f47248449413be0a3b75a4644daaa7424ca139829fe099963ef"
     },
     {
+      "path": "agent/belief-planner.js",
+      "bytes": 6875,
+      "sha256": "377b69a5b291b8e7867abb265ef0bbdfc672fcc3854332c95ba9eb80225dd486"
+    },
+    {
       "path": "agent/cancellation.d.ts",
       "bytes": 96,
       "sha256": "604bdedf590f80e78eb339f16cfa7e89fdac598b81a89b40226046cad8bb8e1b"
@@ -95,6 +104,16 @@
       "path": "agent/cycle-artifacts.js",
       "bytes": 5047,
       "sha256": "9670e9ec292df78de19f2cee9fdcbde9e818eb5af1627c4f5fa1e1741d7916f1"
+    },
+    {
+      "path": "agent/diagnostic-strategy.d.ts",
+      "bytes": 3263,
+      "sha256": "e57950e7fff2d96af4f8871409bfb96d8e3230bf929a9cb02bcec1b5c097b36f"
+    },
+    {
+      "path": "agent/diagnostic-strategy.js",
+      "bytes": 5776,
+      "sha256": "0053a32bccbfb4a7b544747ceb2d4745d28d65904b48117ec692a2364ca68f9a"
     },
     {
       "path": "agent/engine-contracts.d.ts",

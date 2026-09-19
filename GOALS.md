@@ -2,7 +2,7 @@
 
 ## Product aim
 
-Reploid is an evolving problem-solving agent that collaborates with other agents over WebRTC and runs model inference through Doppler.
+Reploid is an evolving problem-solving agent for humans and other agents. It uses authorized models and tools, remains useful without peers, and develops improvements to its own methods. Doppler supplies local model execution; Poolday supplies optional peer collaboration.
 
 Its purpose is:
 **Reploid pursues goals for humans and agents, acquires and uses available intelligence, collaborates with peers, and improves its own problem-solving methods through independently evaluated experience.**
@@ -36,7 +36,7 @@ Reploid operates through two distinct, connected loops:
 2. **The improvement loop (RSI):**
    ```text
    identify recurring weakness
-   -> propose a candidate change to Reploid itself
+   -> propose and implement a candidate change to Reploid itself
    -> test the candidate version in isolation
    -> compare against the frozen current baseline
    -> obtain required approval
@@ -72,7 +72,7 @@ Self-modifying agents have prior art: the Darwin Gödel Machine modifies its own
 
 Task success, time, computation, and human intervention are measured against the frozen original agent. The underlying model and resource budgets remain comparable. External assistance is recorded rather than attributed to autonomous improvement.
 
-The recursive claim requires the improved agent to participate in producing its next improvement. Repeated human patches, downloading a stronger model, or accumulating logs do not establish this experiment.
+The recursive claim requires the improved agent to participate in producing its next improvement. Compare B's changed improvement machinery enabled and disabled under comparable models, tools, budgets, evaluator access, and attempt counts. Ancestry, repeated human patches, downloading a stronger model, or accumulating logs do not establish this experiment. Peer transfer demonstrates an additional benefit; a local planning or tool-recovery improvement does not require peer participation.
 
 ### Separation of RSI and AGI
 
@@ -117,7 +117,7 @@ It does not self-admit a catalog override. Publishing a qualified Pack, pinning
 its released Doppler API, and enabling that exact catalog row remain release
 gates, not claims established by these contract tests.
 
-Current enabled execution:
+Current enabled scientific peer execution:
 
 - Public protein sequences only.
 - The enabled ESM-2 35M exact model contract.
@@ -148,7 +148,7 @@ outcome does not establish physical inference, peer execution, or improvement.
 
 ### Primary proof: Evolving problem-solving agent and recursive improvement
 
-The primary proof demonstrates an agent that solves useful problems, discovers weaknesses in its own approach, produces better descendants, and shares improvements that help other independently operated agents over Poolday:
+The primary proof demonstrates an agent that solves useful problems, discovers weaknesses in its own approach, and produces better descendants. Optional sharing over Poolday tests whether improvements also help other independently operated agents:
 
 1. **Self-improvement chain ($A \to B \to C$):**
    - **Version A** encounters a recurring problem in its problem-solving loop (such as selecting irrelevant context, unhandled tool failures, or looping plans). It proposes and implements a general improvement. Independent, isolated sandbox tests establish that **Version B** solves previously unseen tasks better.
@@ -274,9 +274,13 @@ continuously improving decision-policy loop remain target capabilities.
 
 ## Initial users and market constraints
 
-The primary user is a requester with repeated, independently demanded exact
-work and a separately operated peer provider. Freeze the ordinary hosted or
-mirror-backed baseline, costs, correctness oracle, and reason to return before
+The primary user is a human or another agent with useful work to complete and
+explicit success criteria and permissions. Local tasks and recurring weaknesses
+in planning, context use, or tool recovery can establish the agent's value.
+
+For the supporting network proof, the participants are a requester with repeated,
+independently demanded exact work and a separately operated peer provider.
+Freeze the ordinary hosted or mirror-backed baseline, costs, correctness oracle, and reason to return before
 claiming that a network is preferable.
 
 The alternative Change Passport user is an AI platform, developer infrastructure,
@@ -339,7 +343,7 @@ resource, permission, model, network, failure, and stop controls. Policy and
 security operators need separate queues and incident evidence. These surfaces
 serve the room without competing with it as researcher-facing products.
 
-## Evidence before architecture
+## Research Room evidence before architecture
 
 Browser peers are one governed execution source, not the scientific product.
 The Research Room should be able to reference evidence produced by qualified
@@ -357,9 +361,9 @@ condition-aware comparison, and a question-specific interpretation boundary.
 Governance around an output does not substitute for proving that the output
 helps the user decide.
 
-## Evidence architecture
+## Research Room evidence architecture
 
-Reploid needs two projections over one immutable archive:
+The Research Room needs two projections over one immutable archive:
 
 - The complete evidence archive retains accepted, provisional, disputed,
   rejected, failed, corrected, revoked, and superseded material with its state
@@ -379,11 +383,22 @@ work.
 
 ## Measurement
 
-The primary governing objective is a measurable improvement in a subsequent
-assignment or investigation caused by retained admissible evidence, alongside
-repeat independent use of exact peer execution. Report accepted jobs, providers,
-peer-served bytes, rejected contributions, reproduced outputs, and route changes
-separately; activity totals do not establish this outcome.
+The primary governing objective is successful pursuit of useful goals and
+demonstrated improvement in the agent's problem-solving methods. Measure task
+success, quality, resource cost, and human intervention against declared
+baselines under comparable conditions. Recursive-improvement claims additionally
+require the causal A -> B -> C comparison above; adoption alone is insufficient.
+
+The supporting network objective is useful, authorized peer assistance. Claims
+that networking improves capability, reliability, cost, or later decisions
+require appropriate declared baselines under comparable conditions. Ordinary
+participation, artifact exchange, and exploration do not require a completed
+network-benefit experiment. Enabling learned routing retains its separate gate:
+retained admissible evidence must improve subsequent assignments against its
+frozen controls. Independently operated repeat use is adoption evidence;
+signatures alone establish neither operator independence nor honest execution.
+Report accepted jobs, providers, peer-served bytes, rejected contributions,
+reproduced outputs, and route changes separately.
 
 The alternative Change Passport objective is:
 
@@ -426,11 +441,34 @@ metrics. They are not product success.
 
 ## Zero, X, and improvement authority
 
-Zero and X are the research and evaluation surfaces implementing the Improvement Loop:
+Zero and X are configurations of the same agent foundation and share Reploid's
+problem-solving and recursive-improvement mission:
 
-- **Zero** proposes candidate prompt updates, retrieval methods, contradiction detectors, planning procedures, and tool wrappers.
-- **X** evaluates candidates against frozen evidence in isolated sandboxes with evaluator separation, quarantine, replay, Genesis rollback, and required human approval.
-- **Poolday** shares signed improvement episodes and receipts across WebRTC peers, allowing independent agents to verify and adopt promoted capabilities.
+- **Zero** is the minimal starting configuration. It begins with CreateTool and
+  grows the reader, writer, loader, and other authorized tools and procedures
+  needed to pursue objectives. It provides the minimal starting point for
+  experiments that propose and implement improvements. Its current profile uses
+  server-proxy inference by default, with optional local Doppler execution.
+- **X** extends Zero with explicitly selected, preassembled executable
+  capabilities and supporting blueprints, including memory, experimentation,
+  workers, peer collaboration, and verification. It may also propose and
+  implement improvements. These extensions do not grant evaluation, approval,
+  or activation authority.
+- **Poolday** supplies optional discovery, authorized artifact exchange, bounded
+  computation, recovery, and reusable experience. It can carry signed improvement
+  episodes for independently authorized evaluation and adoption; signed records
+  do not replace correctness checks.
+
+Proposer, evaluator, approver, and activator are separately assigned roles with
+explicit permissions and isolation requirements. A route or profile never
+establishes evaluator independence. Candidates cannot control protected tests,
+their evaluator, permission ceilings, approval, or activation.
+
+The named [scientific-policy promotion workflow](docs/poolday/product-intent.md#scientific-policy-promotion-boundary)
+assigns a Zero proposer, a distinct X evaluator, a human approver, and a Poolday
+policy owner. Those are that protocol's role assignments, not definitions of
+Zero and X. Its frozen cohorts, protected evaluation, review, revocation and
+rollback requirements remain intact.
 
 Change Passport retains separate generic change-control authority. An external producer or evaluator can use it independently. A passport may deterministically reopen a decision when a verified trigger matches its frozen rule. Blocking a merge, activating a deployment, revoking authority, or requesting rollback remains a separately authorized effect. Approval state, evidence validity, and deployed effect state must never be collapsed.
 
@@ -466,6 +504,8 @@ Room is an organizing hypothesis, not the product moat.
 
 Every proposed subsystem should answer at least one of these questions:
 
+- Does it help the agent complete useful goals or improve its methods under
+  independent evaluation, including when no peers participate?
 - Does it shorten the path from uncertainty to a justified next decision?
 - Does it make the evidence behind that decision more inspectable or reusable?
 - Does it expose a disagreement, failure, or missing dependency that the
@@ -502,4 +542,4 @@ External baseline references:
 
 ---
 
-*Last updated: August 2026*
+*Last updated: September 2026*

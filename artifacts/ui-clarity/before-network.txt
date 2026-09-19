@@ -1,0 +1,39 @@
+7
+7
+Work
+Network
+Improve
+0 peers
+Provide compute
+Executable capability
+ESM-2 35M (Protein) / encodeSequence
+Import an exact model descriptor
+
+Only admitted catalog operations appear here. A language model is not available to peers just because it can run locally.
+
+Declared limits: 1 simultaneous job; 2 GiB GPU allowance; 4 GiB maximum model download.
+
+I trust the selected publisher and allow this device to execute public inputs for this operation.
+Share this capability
+
+Not sharing
+
+Weights may load on the first job. This does not expose private work or enable candidate adoption.
+
+Request assistance
+
+Discovery sends no task inputs. An available model is not a connected, qualified executor.
+
+Find compatible peers
+
+Discovery has not run.
+
+Use approved peer operations from a task
+
+Execution, artifact distribution, and improvement adoption have separate permissions.
+
+These controls offer whole operations, not a model split across GPUs. Legacy sequence provider controls remain available.
+
+Model examples
+Peer job records
+Zero: Autonomous browser agent

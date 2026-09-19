@@ -1,0 +1,15 @@
+
+Running 6 tests using 1 worker
+
+(node:395244) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:395244) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 [chromium] › tests/e2e/work-clarity.spec.js:4:1 › Work leads with a task and makes optional disclosure explicit (706ms)
+  ✓  2 [chromium] › tests/e2e/work-clarity.spec.js:26:1 › Network explains its purpose and sharing still requires approval (610ms)
+  ✓  3 [chromium] › tests/e2e/work-clarity.spec.js:37:1 › Improve gives new users a useful empty state (661ms)
+  ✓  4 [chromium] › tests/e2e/work-clarity.spec.js:45:1 › mobile Work fits the viewport and keeps Start near the task (498ms)
+  ✓  5 [chromium] › tests/e2e/work-clarity.spec.js:59:1 › view state retains activity, cancellation, saved results and a clean new task (651ms)
+  ✓  6 [chromium] › tests/e2e/work-clarity.spec.js:116:1 › Verification Worker accepts the changed UI modules (353ms)
+
+  6 passed (4.5s)

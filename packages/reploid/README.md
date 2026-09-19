@@ -11,6 +11,7 @@ these software contract checks.
 | --- | --- |
 | reploid | Compatibility root, including the legacy export |
 | reploid/agent | Minimal task agent entry and shared execution lifecycle |
+| reploid/diagnostics | Optional finite belief model, diagnostic action selection and shared-engine investigation |
 | reploid/legacy | Lab strategy compatibility adapter |
 | reploid/jobs | Complete-job contracts, requester, provider, verification and durable journal |
 | reploid/custody | Authorized artifact transfer and reconstruction |
@@ -45,6 +46,15 @@ Closing rejects subsequent operations. Cancellation waits for owned activity to
 settle; it does not claim to terminate borrowed GPU or JavaScript execution.
 
 ## Configuration and ports
+
+Diagnostic hosts can explicitly import `createBeliefPlanner` and
+`createDiagnosticInvestigation` from `reploid/diagnostics`. Models and policies
+are validated JSON; likelihoods and costs are host-supplied. The investigation
+uses the same execution engine and authorization gates. It returns a terminal
+decision recommendation, not permission to execute a repair. The comparison
+fixture is synthetic and does not establish GPU diagnosis or calibration.
+The repository's `docs/diagnostic-planning.md` documents the full contract,
+example composition and retained comparison evidence.
 
 Precedence: schema defaults -> configuration chain -> selected profile ->
 application overrides -> allowlisted request overrides. Arrays replace arrays.

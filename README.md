@@ -3,14 +3,17 @@
 [![Test Suite](https://img.shields.io/github/actions/workflow/status/clocksmith/reploid/test.yml?branch=main&label=tests)](https://github.com/clocksmith/reploid/actions/workflows/test.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-Reploid implements Poolday, its primary peer-execution product. The goal is
-repeat independent use of exact Doppler capabilities and retained evidence that
-measurably improves later assignments or investigations. Current enabled work
-is narrower: public protein inputs and the pinned ESM-2 model contract.
+Reploid is an evolving problem-solving agent for humans and other agents. It
+pursues useful outcomes through authorized models, tools, observations, and
+revision, and develops improvements to its own methods under independent
+evaluation. It remains useful without peer participation.
 
-Zero and X are secondary RSI browser agents. Change Passport remains an inactive
-alternative; Research Room-1 is an optional scientific workflow. Each retains
-its own evidence and activation authority.
+Zero is its minimal starting configuration; X extends Zero with explicit
+capabilities and supporting blueprints. Poolday supplies optional discovery,
+artifact exchange, bounded peer computation, recovery, and reusable experience.
+Evaluation, approval, and activation are separately authorized roles.
+Change Passport remains an inactive alternative; Research Room-1 is an optional
+scientific workflow with its own evidence and admission requirements.
 
 ## Who uses it
 
@@ -20,6 +23,8 @@ Poolday's user workflow and evidence boundary live in its
 
 The repository serves:
 
+- Humans and agents pursuing bounded goals through authorized tools and models.
+- Experimenters testing capability acquisition and recursive improvement in Zero or X.
 - Public protein catalog curators testing a disputed family or domain annotation.
 - Research Room requesters, compute contributors, and accountable reviewers.
 - Runtime and product contributors working on browser execution and room state.
@@ -42,11 +47,13 @@ The product surface is:
 
 | Surface | Route | Use |
 | --- | --- | --- |
-| [Poolday](docs/poolday/product-intent.md) | `/` | Run a model, Share compute, and Recent jobs. |
-| Zero | `/zero` | Secondary, minimal self-loading RSI browser agent. |
-| X | `/x` | Secondary RSI browser agent with the full substrate. |
+| [Reploid](docs/poolday/product-intent.md) | `/` | Work, Network, and Improve. |
+| Zero | `/zero` | Minimal self-loading configuration for problem-solving and improvement experiments. |
+| X | `/x` | Zero with prepared executable extensions and supporting blueprints. |
 
-Poolday is the public product name; Reploid is its implementation repository.
+Poolday is an internal name for optional peer infrastructure, not a separate
+public product. Zero's current inference default is the server proxy, with
+optional local Doppler execution; a browser agent does not imply offline inference.
 The signed executable-Pack path requires a qualified catalog entry and matching
 released Doppler API. Existing model-name loading and adapter sharing do not
 prove base-model Pack delivery.
@@ -65,19 +72,22 @@ support claims and their evidence paths.
 | `sealed-credentials` | `npm start` can build sealed access windows; client artifacts omit the plaintext key. |
 | `public-mesh` | Blocked as a signaling-free claim while cross-host rendezvous requires signaling. |
 
-The current main product provides receipt-backed browser inference. Model
-execution and agent state stay in the browser. Compatibility services may handle
+The peer-execution path provides receipt-backed browser inference. Its claimed
+local model execution and browser agent state stay in the browser; explicitly
+selected cloud providers have their own execution boundary. Services may handle
 authentication, rendezvous, policy enforcement, receipt anchors, and ledger
 projections; they do not perform the claimed browser-local model execution.
-Users can also provide their own browser inference.
+The current enabled scientific peer catalog covers public protein inputs and
+the pinned ESM-2 contract; that scope does not define every Reploid task.
 
 ## Limits and status
 
 Reploid does not claim hardware attestation, independently trustworthy
 browser/GPU execution, or guaranteed honest providers. Relay acknowledgement proves receipt of a relay
-record, not execution truth. Experimental runtime capabilities remain outside
-Poolday product authority until prospective evidence and Poolday-owned
-admission allow them. Read the claim index row before repeating a capability statement.
+record, not execution truth. Capability claims require their declared evidence;
+ordinary networking and experimental use do not establish improvement. Learned
+routing and scientific-policy promotion retain their specific admission gates.
+Read the claim index row before repeating a capability statement.
 
 ## Repository map
 

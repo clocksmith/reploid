@@ -1,0 +1,31 @@
+[module-inventory] Wrote /home/clocksmith/deco/reploid/self/config/module-inventory.json with 423 modules
+
+[genesis-manifest] Wrote /home/clocksmith/deco/reploid/self/config/genesis-levels.json
+
+[blueprint-registry] Unchanged registry: 106 executable owners, 176 declarations
+
+[module-registry] Unchanged /home/clocksmith/deco/reploid/self/config/module-registry.json
+
+[vfs-manifest] Wrote /home/clocksmith/deco/reploid/self/config/vfs-manifest.json
+
+[validate] {"sourceFiles":423,"modules":68,"blueprintDeclarations":176,"executableOwners":106,"unresolved":0}
+[validate] Inventoried helpers: 245; modules without an architectural blueprint: 18
+
+[browser-bundle] Wrote /home/clocksmith/deco/reploid/self/config/browser-bundle-manifest.json with 781 served files as sha256:d43ac87983e7e0ee61c5678643596946efbcae5ae4560c0a594e2ed3d5a3bc92
+
+[module-inventory] Wrote /home/clocksmith/deco/reploid/self/config/module-inventory.json with 423 modules
+
+[genesis-manifest] Wrote /home/clocksmith/deco/reploid/self/config/genesis-levels.json
+
+[blueprint-registry] Unchanged registry: 106 executable owners, 176 declarations
+
+[module-registry] Unchanged /home/clocksmith/deco/reploid/self/config/module-registry.json
+
+[vfs-manifest] Wrote /home/clocksmith/deco/reploid/self/config/vfs-manifest.json
+
+[validate] {"sourceFiles":423,"modules":68,"blueprintDeclarations":176,"executableOwners":106,"unresolved":0}
+[validate] Inventoried helpers: 245; modules without an architectural blueprint: 18
+
+[browser-bundle] Wrote /home/clocksmith/deco/reploid/self/config/browser-bundle-manifest.json with 781 served files as sha256:d43ac87983e7e0ee61c5678643596946efbcae5ae4560c0a594e2ed3d5a3bc92
+
+Idempotence: passed

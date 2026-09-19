@@ -23,7 +23,7 @@ Recursive authority charters discovered from the repository root.
 | Runtime Host | [`self/host/CATSCAN.md`](../self/host/CATSCAN.md) | Browser Runtime | Materialize the configured browser runtime from trusted seed assets and hand control to the selected application surface. |
 | Runtime Infrastructure | [`self/infrastructure/CATSCAN.md`](../self/infrastructure/CATSCAN.md) | Browser Runtime | Supply auditable lifecycle, dependency, policy, recovery, telemetry, and human-approval services to browser components. |
 | Genesis Kernel | [`self/kernel/CATSCAN.md`](../self/kernel/CATSCAN.md) | Browser Runtime | Provide the smallest immutable browser boot and recovery path from which the mutable runtime can be restored safely. |
-| Lab Surface Composition | [`self/lab/CATSCAN.md`](../self/lab/CATSCAN.md) | Browser Runtime | Compose Zero and X operator surfaces from explicit profiles while preserving their separate proposal and evaluation authority. |
+| Lab Surface Composition | [`self/lab/CATSCAN.md`](../self/lab/CATSCAN.md) | Browser Runtime | Compose minimal Zero and extended X from explicit profiles; assign experimental authority separately. |
 | Poolday Evidence Runtime | [`self/pool/CATSCAN.md`](../self/pool/CATSCAN.md) | Browser Runtime | Distribute, execute, coordinate; adjudicate public-protein evidence. |
 | Model Providers | [`self/providers/CATSCAN.md`](../self/providers/CATSCAN.md) | Browser Runtime | Adapt named model providers into explicit runtime contracts with bounded identity, configuration, and failure semantics. |
 | Agent Tools | [`self/tools/CATSCAN.md`](../self/tools/CATSCAN.md) | Browser Runtime | Expose bounded, schema-defined operations that agents can invoke without bypassing verification, staging, or promotion controls. |

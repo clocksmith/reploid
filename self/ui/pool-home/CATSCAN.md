@@ -29,7 +29,7 @@ Outputs: [markup](view.js), [Room-1](room-view.js).
 - Inspect available Pack, runtime, provider, declared hardware, fallback, timing, output, agreement.
 - Records Advanced contains only execution evidence, peer identities, retries, recovery.
 - Research administration stays in Room-1; generic Packs inherit no research fields.
-- Task data stays local; preview and explicitly approve each exact public payload.
+- Disclose the selected provider's execution location; preview and explicitly approve each exact public peer payload.
 - Acceptance names policy; receipts are not hardware attestation.
 - Archive and decision memory remain distinct.
 - Zero/X remain reachable without inheriting mutation authority.

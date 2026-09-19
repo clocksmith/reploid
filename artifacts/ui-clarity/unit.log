@@ -1,0 +1,20 @@
+
+ RUN  v4.1.10 /home/clocksmith/deco/reploid
+
+ ✓ tests/unit/pool-home-record.test.js (22 tests) 159ms
+POST http://localhost:3000/pool/research/records 401 (Unauthorized)
+ ✓ tests/unit/poolday-css-layers.test.js (1 test) 103ms
+ ✓ tests/unit/pool-home-simulation.test.js (30 tests) 2484ms
+     ✓ keeps flow speed and width bounded across repeated frames  1641ms
+ ✓ tests/unit/work-contracts.test.js (9 tests) 17ms
+ ✓ tests/unit/pool-home-nav.test.js (22 tests) 121ms
+ ✓ tests/unit/design-system-css.test.js (3 tests) 14ms
+ ✓ tests/unit/pool-home-ask-controls.test.js (31 tests) 2055ms
+     ✓ preserves the signed public research submission before peer compute can fail  454ms
+ ✓ tests/unit/work-session.test.js (4 tests) 6ms
+
+ Test Files  8 passed (8)
+      Tests  122 passed (122)
+   Start at  17:43:31
+   Duration  4.99s (transform 2.79s, setup 0ms, import 4.89s, tests 4.96s, environment 3.20s)
+

@@ -5676,3 +5676,99 @@ body[data-pool-route-id='home'] #app {
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+/* Work, Network and Improve lead with purpose, task controls and real state. */
+.pool-home:is([data-pool-route-id='home'], [data-pool-route-id='network'], [data-pool-route-id='improve']) {
+  background: var(--pool-surface-page);
+}
+.pool-home:is([data-pool-route-id='home'], [data-pool-route-id='network'], [data-pool-route-id='improve'])::before {
+  display: none;
+}
+.pool-home[data-pool-route-id='home'] .pool-work-shell { padding-top: var(--pool-px-48); }
+.pool-home .pool-nav-rail.pool-primary-nav { border-color: var(--pool-surface-line); box-shadow: none; }
+.pool-primary-wordmark { margin-left: var(--pool-space-sm); letter-spacing: normal; }
+.pool-work-hero {
+  padding: var(--pool-space-md) 0 var(--pool-space-lg);
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  gap: var(--pool-space-sm);
+}
+.pool-work-hero-title {
+  font-family: var(--pool-type-ui-family);
+  font-size: clamp(var(--pool-px-26), 3vw, var(--pool-px-36));
+  letter-spacing: normal;
+  line-height: var(--pool-type-leading-tight);
+}
+.pool-work-promise {
+  max-width: var(--pool-metric-work-column);
+  font-size: var(--pool-px-16);
+  line-height: var(--pool-type-leading-snug);
+}
+.pool-work-shell .btn,
+.pool-work-shell .pool-control-panel,
+.pool-work-shell .pool-work-composer,
+.pool-work-shell .pool-work-output,
+.pool-work-shell .pool-work-task-header {
+  box-shadow: none;
+  text-shadow: none;
+}
+.pool-work-shell .btn {
+  min-height: var(--pool-px-44);
+  border: var(--pool-border-hairline) solid var(--pool-surface-control-line);
+  background: var(--pool-surface-raised);
+  color: var(--pool-surface-ink);
+}
+.pool-work-shell .btn-primary {
+  background: var(--pool-surface-ink);
+  color: var(--pool-surface-page);
+}
+.pool-work-shell .btn:hover { border-color: var(--pool-surface-focus); }
+.pool-work-shell .btn:focus-visible,
+.pool-work-shell summary:focus-visible {
+  outline: var(--pool-px-2) solid var(--pool-surface-focus);
+  outline-offset: var(--pool-px-4);
+}
+.pool-work-composer { gap: var(--pool-space-md); }
+.pool-work-composer textarea,
+.pool-work-shell select,
+.pool-work-shell input[type='file'] {
+  background: var(--pool-surface-inset);
+  color: var(--pool-surface-ink);
+  border: var(--pool-border-hairline) solid var(--pool-surface-control-line);
+  border-radius: var(--pool-radius-control);
+  box-shadow: none;
+  font: inherit;
+}
+.pool-work-composer textarea::placeholder { color: var(--pool-surface-muted); opacity: 1; }
+.pool-work-composer [data-work-goal] { min-height: calc(var(--pool-px-36) * 4); }
+.pool-work-attachments { border-bottom: var(--pool-border-hairline) solid var(--pool-surface-line); padding-bottom: var(--pool-space-md); }
+.pool-work-attachments > summary { cursor: pointer; }
+.pool-work-attachments input { max-width: 100%; }
+.pool-work-model-row { display: flex; gap: var(--pool-space-md); align-items: center; }
+.pool-work-model-row select { flex: 1; }
+.pool-work-model-row label { flex: none; }
+.pool-work-composer .pool-goal-presets { gap: var(--pool-space-sm); margin: 0; }
+.pool-work-composer .pool-preset-btn {
+  min-height: var(--pool-px-36);
+  border-color: var(--pool-surface-control-line);
+  color: var(--pool-surface-ink);
+  box-shadow: none;
+}
+.pool-work-network-hint { color: var(--pool-surface-muted); font-size: var(--pool-text-sm); line-height: var(--pool-type-leading-snug); margin: var(--pool-space-lg) 0; }
+.pool-work-shell a { color: var(--pool-surface-ink); text-underline-offset: var(--pool-px-4); }
+.pool-work-links { color: var(--pool-surface-muted); }
+.pool-work-experiment-links { margin-left: auto; }
+.pool-work-experiment-links a { margin-left: var(--pool-space-sm); }
+.pool-work-empty { padding: var(--pool-space-xl); border: var(--pool-border-hairline) solid var(--pool-surface-line); border-radius: var(--pool-radius-panel); }
+.pool-work-empty p { color: var(--pool-surface-muted); }
+@media (max-width: 760px) {
+  .pool-home[data-pool-route-id='home'] .pool-work-shell { padding-top: var(--pool-space-lg); }
+  .pool-network-grid { grid-template-columns: 1fr; }
+  .pool-work-experiment-links { margin-left: 0; }
+  .pool-work-shell .pool-work-composer { padding: var(--pool-space-md); }
+  .pool-work-hero { padding-top: 0; }
+  .pool-work-composer [data-work-goal] { height: calc(var(--pool-px-36) * 3); min-height: calc(var(--pool-px-36) * 3); }
+  .pool-work-model-row { flex-direction: column; align-items: stretch; gap: var(--pool-space-xs); }
+}

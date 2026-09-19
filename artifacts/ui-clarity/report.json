@@ -1,0 +1,56 @@
+{
+  "createdAt": "2026-09-19T21:44:16.365Z",
+  "component": "Work, Network and Improve UI",
+  "intent": "preserved",
+  "boundaryEffects": "Presentation and view state changed; host execution and authorization retained.",
+  "baseRevision": "199b2381c640f333d1a1dd7f95647005b57292eb",
+  "sourceHashes": {
+    "self/ui/pool-home/work.js": "5a5e64476e9c99d838309fbb58753a8b2957587a131a950d38b97aecc3d795c7",
+    "self/ui/pool-home/work-goal-composer.js": "3666726970936ca9b354b02efa247bcb7fa16415b2cf5135194cf261604d8290",
+    "self/ui/pool-home/work-task-header.js": "e619560fef075ce6a27bfe2bb7beb9a58bed7e2d023bf46888938da38833c560",
+    "self/ui/pool-home/work-result-view.js": "82caed30b0cd4bdd0e0cf27cae7d38e10c757d2b9e361536b67197db13980e7c",
+    "self/ui/pool-home/index.js": "6cc16e21c7a6a1f5ebdf8958f3e09ec8353a1866cc8fb17cf3e8f7b61a4ff95c",
+    "self/ui/pool-home/view.js": "22e81270e4b5245d0311b1db778eb4fa4b1861e42715a39622358bd24ad293c9",
+    "self/ui/pool-home/operation-sharing.js": "c7edeec2c412f27fcade3b357e3971485bfaffdf234c4598ff246e067d2089fd",
+    "self/styles/poolday/components.css": "efb9c9c54f9af39c83fa5d5d21359888046b2d8a4faa1ffe171cd9b255df1d5b"
+  },
+  "checks": {
+    "unit": {
+      "passed": 122,
+      "files": 8,
+      "log": "unit.log"
+    },
+    "browser": {
+      "passed": 6,
+      "log": "browser.log",
+      "includes": "Chromium Verification Worker for all seven changed UI modules"
+    },
+    "installedPackage": {
+      "evidence": "artifacts/library-acceptance/2026-09-19T21-43-06-876Z/report.json",
+      "log": "installed-package.log"
+    },
+    "eslint": "passed",
+    "cssLayers": "passed",
+    "architectureLayers": "passed",
+    "catscan": "passed",
+    "registry": {
+      "unresolved": 0,
+      "idempotent": true,
+      "log": "registry.log"
+    },
+    "pageErrors": []
+  },
+  "screenshots": [
+    "before-work.png",
+    "before-network.png",
+    "before-improve.png",
+    "after-work.png",
+    "after-network.png",
+    "after-improve.png",
+    "after-mobile.png"
+  ],
+  "limitations": [
+    "Local browser evidence; no deployment.",
+    "Injected model and peer fixtures prove UI and host workflows, not physical inference performance."
+  ]
+}

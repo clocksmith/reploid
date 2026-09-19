@@ -9,12 +9,11 @@ const models = () => listPoolModels({ enabledOnly: true }).filter(model => valid
 export const renderOperationSharing = () => [
   '<div class="pool-control-stack" data-operation-sharing>',
   '<div class="pool-control-group">',
-  '<label class="pool-field" for="operation-model"><span>Executable capability</span>',
+  '<label class="pool-field" for="operation-model"><span>Model to share</span>',
   '<select id="operation-model" data-operation-model aria-describedby="operation-model-help">',
-  ...models().map(model => '<option value="' + escapeHtml(model.modelId) + '">' + escapeHtml(model.label || model.modelId)
-    + ' / ' + escapeHtml(model.executablePack.requiredOperation) + '</option>'),
+  ...models().map(model => '<option value="' + escapeHtml(model.modelId) + '">' + escapeHtml(model.label || model.modelId) + '</option>'),
   '<option value="">Import an exact model descriptor</option></select></label>',
-  '<p class="pool-control-help" id="operation-model-help">Only admitted catalog operations appear here. A language model is not available to peers just because it can run locally.</p></div>',
+  '<p class="pool-control-help" id="operation-model-help">These models are approved for peer jobs. Choose what this device can offer.</p></div>',
   '<div class="pool-control-group" data-operation-import hidden>',
   '<label class="pool-field"><span>Signed model descriptor (.json)</span>',
   '<input type="file" accept=".json" data-operation-settings aria-describedby="operation-import-help"></label>',

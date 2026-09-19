@@ -1,0 +1,94 @@
+{
+  "schema": "reploid.diagnostic-planning-acceptance/v1",
+  "component": "Agent diagnostic planning",
+  "intent": "deliberately changed: optional strategy using shared execution engine",
+  "sourceState": "uncommitted working tree",
+  "sourceHashes": {
+    "packages/reploid/src/agent/belief-planner.js": "sha256:377b69a5b291b8e7867abb265ef0bbdfc672fcc3854332c95ba9eb80225dd486",
+    "packages/reploid/src/agent/diagnostic-strategy.js": "sha256:0053a32bccbfb4a7b544747ceb2d4745d28d65904b48117ec692a2364ca68f9a",
+    "self/pool/discovery-candidate-action.js": "sha256:f64d0494f9d1367f2a4a3f5b4e35c93376e1fa31547ec49f289ccdb484e52e2b",
+    "tests/fixtures/diagnostic-model.js": "sha256:291d14c8c9c6f1fb51f6cd7f81f6dea89b84a386d3fdd6858f6808c328c99904",
+    "tests/diagnostic-planning-comparison.js": "sha256:d5ea87e9f9ad3784d44d85e9702eee00b597abc1663f19b33879974362988772",
+    "packages/reploid/src/agent/diagnostic-strategy.d.ts": "sha256:e57950e7fff2d96af4f8871409bfb96d8e3230bf929a9cb02bcec1b5c097b36f",
+    "tests/unit/belief-planner.test.js": "sha256:bc424173b15070b51292ccc9d703f6009aebcf79e63c5b0f0884009347b0f92e",
+    "tests/integration/diagnostic-strategy.test.js": "sha256:ba3c9ee3ee5fdbf3e2d2716937197bd7ca3f8965165fe2a91bb7b75c61226149",
+    "tests/e2e/diagnostic-strategy.spec.js": "sha256:654b72331af390b8109d101b5f03bcb864a533781d916bd5b9a38d8337a2d1f5",
+    "packages/reploid/package.json": "sha256:83f63897654d5c03741cc0519c3117643246691f7275d37a3bf8f2cb82a87297",
+    "docs/diagnostic-planning.md": "sha256:593986459d8c9c8f55900864c1598f3e6e38aee8aff78b0b82367b1c47de04dc"
+  },
+  "vitest": {
+    "passed": 2623,
+    "failed": 0,
+    "skipped": 36,
+    "report": "artifacts/diagnostic-planning/vitest.json"
+  },
+  "browser": {
+    "passed": 2,
+    "log": "artifacts/diagnostic-planning/browser.log",
+    "scope": "Chromium diagnostic execution and Verification Worker"
+  },
+  "installedPackage": {
+    "passed": 16,
+    "failed": 0,
+    "report": "artifacts/library-acceptance/2026-09-19T21-14-28-712Z/report.json"
+  },
+  "comparison": {
+    "report": "artifacts/diagnostic-planning/comparison.json",
+    "results": [
+      {
+        "objective": "task-value",
+        "accuracy": 0.25,
+        "meanCost": 0,
+        "meanActions": 0,
+        "meanBrier": 0.75,
+        "meanNetUtility": 0.25
+      },
+      {
+        "objective": "existing-heuristic",
+        "accuracy": 0.5,
+        "meanCost": 0.060000000000000026,
+        "meanActions": 2,
+        "meanBrier": 0.5,
+        "meanNetUtility": 0.43999999999999995
+      },
+      {
+        "objective": "decision-value",
+        "accuracy": 1,
+        "meanCost": 0.11000000000000004,
+        "meanActions": 2,
+        "meanBrier": 0,
+        "meanNetUtility": 0.8900000000000002
+      },
+      {
+        "objective": "utility-information",
+        "accuracy": 0.5,
+        "meanCost": 0.060000000000000026,
+        "meanActions": 2,
+        "meanBrier": 0.5,
+        "meanNetUtility": 0.43999999999999995
+      }
+    ]
+  },
+  "checks": [
+    "lint",
+    "verify:library-types",
+    "verify:layers",
+    "verify:catscan",
+    "verify:registry",
+    "verify:browser-bundle:local",
+    "verify:runtime-config",
+    "verify:surface-claims",
+    "registry generator byte idempotence",
+    "git diff --check"
+  ],
+  "boundaries": [
+    "No default profile change",
+    "Host permissions and observation admission retained",
+    "Library owns planning and shared execution",
+    "No learned likelihoods, empirical calibration, physical GPU diagnoses, deployment or scientific acceptance claim"
+  ],
+  "ouroboros": {
+    "changed": "docs/projects/reploid.md: canonical diagnostic documentation pointer",
+    "check": "check-docs.mjs reports two pre-existing template links in unchanged deco/docs/intent.md: ../INTENT.md and CATSCAN.md"
+  }
+}

@@ -4,11 +4,11 @@ Parent: [Browser Runtime](../CATSCAN.md)
 
 ## Target
 
-Compose Zero and X operator surfaces from explicit profiles while preserving their separate proposal and evaluation authority.
+Compose minimal Zero and extended X from explicit profiles; assign experimental authority separately.
 
 ## Authority
 - Owns lab route profiles, mirrors, runtime surface assembly, and operator-facing lab selection.
-- Does not let Zero approve candidates, let X admit Poolday policy, or merge lab records with research evidence.
+- Does not let candidates self-approve, grant Poolday policy authority through a route, or merge lab records with research evidence.
 
 ## Scope
 
