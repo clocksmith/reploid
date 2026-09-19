@@ -16,3 +16,20 @@ const agent = createReploid({ config: resolveConfig(), ports: { instanceId: 'typ
 const checkpoint: Promise<AgentCheckpoint> = agent.checkpoint();
 void [status, invalid, empty, checkpoint, createPackProviderFactory, createCustodyContracts];
 export function acceptedJob(result: PackPeerJobResult): string { return result.job.messageHash; }
+
+import type { AuthorizationRequest, ExecutionEvent, ToolOutcome } from '../../packages/reploid/src/agent/index.js';
+import type { AgentRuntime } from '../../packages/reploid/src/agent/runtime.js';
+const native: GenerationResult = { content: '', toolCalls: [{ name: 'ReadFile', args: { path: '/x' } }] };
+// @ts-expect-error callbacks cannot invent an authority escalation action
+const escalation: AuthorizationRequest = { action: 'permissions.escalate' };
+// @ts-expect-error lifecycle events have an explicit vocabulary
+const invalidEvent: ExecutionEvent = { sequence: 1, type: 'self.approved' };
+// @ts-expect-error completed outcomes must carry their value
+const invalidOutcome: ToolOutcome = { status: 'completed' };
+export function checkpointGoal(runtime: AgentRuntime): string { return runtime.checkpoint().goal; }
+export async function savedCycle() { return (await agent.checkpoint()).state.cycle; }
+void [native, escalation, invalidEvent, invalidOutcome];
+// @ts-expect-error reusable job factories require explicit host contracts
+createPackProviderFactory({});
+// @ts-expect-error custody cannot exist without signature and artifact-validation ports
+createCustodyContracts({ hashDopplerEvidence: async () => 'sha256:fixture' });

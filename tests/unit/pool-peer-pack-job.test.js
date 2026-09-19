@@ -3,7 +3,7 @@ import { createAdapterRegistry } from '../../self/pool/adapter-registry.js';
 import { createAdapterRevocation } from '../../self/pool/adapter-publication.js';
 import { createPeerAdapterResolver } from '../../self/pool/peer-adapter-execution.js';
 // @vitest-environment node
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { operationFixture, operationCapabilities, operationResources, packPeerIdentity } from '../fixtures/peer-pack-operation.js';
 import fifthDefinition from '../fixtures/pack-operation-fifth.json' with { type: 'json' };
 import poolConfig from '../../self/pool/pool-config.json' with { type: 'json' };
@@ -106,24 +106,42 @@ describe('signed remote Pack jobs with synthetic model outputs', () => {
       expect(active.calls()).toBe(1);
     } finally { await active.close(); }
   });
-  it.each(['doppler.pack/v2', 'doppler.capsule/v2'])('executes an exact adapter and replays its durable result without reactivation (%s)', async schema => {
+  it.each(['doppler.pack/v2', 'doppler.capsule/v2'].flatMap(schema => [false, true].map(dropFirstRequest => ({ schema, dropFirstRequest }))))('executes an exact adapter and replays its durable result without reactivation ($schema, lost request: $dropFirstRequest)', async ({ schema, dropFirstRequest }) => {
     let dropped = false;
-    const f = await setup('generate', undefined, { schema, adapted: true, dropResponse(message) {
-      if (!dropped && message.body.status === 'completed') { dropped = true; return true; }
+    const requestDropped = deferred(), completionDropped = deferred();
+    const f = await setup('generate', undefined, { schema, adapted: true,
+      dropRequest(message, delivery) {
+        if (dropFirstRequest && delivery === 1) { requestDropped.resolve(); return true; }
+        return false;
+      },
+      dropResponse(message) {
+      if (!dropped && message.body.status === 'completed') { dropped = true; completionDropped.resolve(); return true; }
       return false;
     } });
+    // Advance the retry clock only after each injected loss. Real WebCrypto
+    // work must not consume this fixture's small delivery budget under CI load.
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
     try {
-      const result = await f.requester.run({ ...f.args, acceptanceMode: 'execution', comparisonPolicy: null, reference: null });
+      const running = f.requester.run({ ...f.args, acceptanceMode: 'execution', comparisonPolicy: null, reference: null });
+      if (dropFirstRequest) { await requestDropped.promise; await vi.advanceTimersByTimeAsync(100); }
+      await completionDropped.promise;
+      await vi.advanceTimersByTimeAsync(100);
+      const result = await running;
       expect(result.execution.receipt.adapterReceipts[0].identity).toBe(f.entry.identity);
       const api = schema === 'doppler.capsule/v2' ? 'capsule' : 'pack';
       expect(result.execution.receipt.schema).toBe(`doppler.${api}-operation-receipt/v1`);
       expect(result.execution.request.adapterSet[0].schema).toBe(`doppler.${api}-adapter/v1`);
       expect(result.execution.request.adapterSet[0].baseModel.semanticRoot).toBe(f.model.executablePack.semanticRoot);
       expect(f.calls()).toBe(1);
-      expect(f.sent.filter(message => message.body.schema === 'reploid.peer.pack_job/v4')).toHaveLength(2);
+      const deliveries = f.sent.filter(message => message.body.schema === 'reploid.peer.pack_job/v4');
+      // The protocol promises bounded redelivery, not a timing-dependent exact count.
+      expect(deliveries.length).toBeGreaterThanOrEqual(dropFirstRequest ? 3 : 2);
+      expect(deliveries.length).toBeLessThanOrEqual(3);
+      for (const delivery of deliveries) expect(delivery).toEqual(result.job);
+      expect(new Set(deliveries.map(message => message.messageHash)).size).toBe(1);
       expect((await verifyPackPeerEpisode({ job: result.job, updates: result.updates,
         acceptance: result.acceptance, reference: null, models: [f.model] })).accepted).toBe(true);
-    } finally { await f.close(); }
+    } finally { await f.close(); vi.useRealTimers(); }
   });
 
   it('accepts ordinary generation without a reference and retains its weaker claim', async () => {
@@ -257,14 +275,27 @@ describe('signed remote Pack jobs with synthetic model outputs', () => {
   });
 
   it('retries a lost request and replays lost responses without calculating twice', async () => {
-    for (const tweaks of [{ dropRequest: (_m, index) => index === 1 }, { dropResponse: (_m, index) => index <= 2 }]) {
+    for (const loss of ['request', 'responses']) {
+      const dropped = deferred();
+      const tweaks = loss === 'request' ? {
+        dropRequest: (_message, index) => { if (index === 1) { dropped.resolve(); return true; } return false; }
+      } : {
+        dropResponse: (_message, index) => { if (index === 2) dropped.resolve(); return index <= 2; }
+      };
       const f = await setup('embed', undefined, tweaks);
+      vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
       try {
-        const result = await f.requester.run(f.args);
-        expect(result.accounting.deliveries).toBe(2);
+        const running = f.requester.run(f.args);
+        await dropped.promise;
+        await vi.advanceTimersByTimeAsync(100);
+        const result = await running;
+        const deliveries = f.sent.filter(message => message.body.schema === 'reploid.peer.pack_job/v4');
+        expect(result.accounting.deliveries).toBe(deliveries.length);
+        expect(deliveries.length).toBeGreaterThanOrEqual(2);
+        expect(deliveries.length).toBeLessThanOrEqual(3);
         expect(f.calls()).toBe(1);
-        expect(f.sent[0].messageHash).toBe(f.sent[1].messageHash);
-      } finally { await f.close(); }
+        for (const delivery of deliveries) expect(delivery).toEqual(result.job);
+      } finally { await f.close(); vi.useRealTimers(); }
     }
   });
 

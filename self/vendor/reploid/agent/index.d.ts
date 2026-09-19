@@ -1,3 +1,5 @@
+import type { ExecutionEvent, ToolCall } from './engine-contracts.js';
+export type { ExecutionEvent, ExecutionEventType, ToolCall, ToolAuthorization } from './engine-contracts.js';
 import type { Json, ResolvedConfig } from '../config/index.js';
 import type { Store } from '../artifacts/store.js';
 import type { ResponseParserInstance } from '../agent/response-parser.js';
@@ -9,17 +11,26 @@ export interface Message { role: string; content: string; origin?: string }
 export type AgentStatus = 'IDLE' | 'RUNNING' | 'PARKED' | 'LIMIT' | 'ERROR' | 'CLOSED';
 /** Evidence from a generic host provider is untrusted until narrowed by its adapter. */
 export interface GenerationResult {
-  content: string; raw?: string; model?: string | null; requestedModel?: string;
+  content: string; raw?: string; toolCalls?: ToolCall[]; model?: string | null; requestedModel?: string;
   provider?: string | null; execution?: 'compatibility' | 'verified-operation' | 'local-scoped-session' | 'cloud-proxy-session';
   evidence?: unknown;
 }
 export type ToolOutcome<T = Json> = { status: 'completed'; value: T } | { status: 'failed' | 'denied' | 'cancelled'; error: string };
 export interface DisclosureRequest { action: 'peer.disclose'; providerId: string; payloadDigest: string; expiresAt: number }
-export interface AgentCheckpoint { schema: 'reploid.checkpoint/v1'; instanceId: string; configHash: string; digest: string; state: Json }
+export interface AgentCheckpointState {
+  schema: 'reploid.agent-checkpoint/v1'; instanceId: string; goal: string; environment: string;
+  cycle: number; messages: Message[]; tokenUsage: number; rgrArchive: Json[];
+  latestRgrReceiptPath: string; candidateCount: number; toolCallCount: number; errorCount: number;
+}
+export interface AgentCheckpoint { schema: 'reploid.checkpoint/v1'; instanceId: string; configHash: string; digest: string; state: AgentCheckpointState }
 export interface Control { signal?: AbortSignal }
 export interface GenerationProvider { generate(messages: Message[], onUpdate?: ((chunk: string) => void) | null, control?: Control): Promise<GenerationResult> }
 export interface Closable { close(): void | Promise<void> }
-export type Authorize = (request: Record<string, unknown>) => boolean | Promise<boolean>;
+export type AuthorizationRequest =
+  | { action: 'agent.execute'; instanceId: string; goal: string }
+  | { action: 'mesh.connect'; instanceId: string; roomId: string | null }
+  | { action: 'tool.execute'; instanceId?: string; name: string; args: Record<string, unknown> };
+export type Authorize = (request: AuthorizationRequest) => boolean | Promise<boolean>;
 export interface AgentPorts {
   initialContext(request: { goal: string; environment: string; swarmEnabled: boolean; signal: AbortSignal }): Promise<Message[]>;
   generate: GenerationProvider['generate'];
@@ -41,7 +52,7 @@ export interface AgentSnapshot {
   [field: string]: unknown;
 }
 export interface ReploidPorts {
-  instanceId: string; authorize: Authorize; agent?: AgentPorts; responseParser?: ResponseParserInstance;
+  instanceId: string; authorize: Authorize; onExecutionEvent?(event: ExecutionEvent): void; agent?: AgentPorts; responseParser?: ResponseParserInstance;
   providers?: Record<string, GenerationProvider>; mesh?: GenerationProvider & { connect(): Promise<unknown>; describe?(): unknown };
   tools?: Record<string, (args: Record<string, unknown>, control?: Control) => unknown | Promise<unknown>>;
   initialContext?: AgentPorts['initialContext']; stores?: Record<string, Store>; crypto?: Crypto; owned?: Closable[];
@@ -53,7 +64,7 @@ export interface ReploidInstance extends Closable {
   connect(): Promise<unknown>;
   on(event: string, listener: (value: unknown) => void): () => void;
   subscribe(listener: (snapshot: AgentSnapshot) => void): () => void;
-  getSnapshot(): AgentSnapshot; cancel(): void;
+  getSnapshot(): AgentSnapshot; getExecutionEvents(): ExecutionEvent[]; cancel(): void;
   checkpoint(): Promise<AgentCheckpoint>; restore(checkpoint: AgentCheckpoint): Promise<AgentSnapshot>;
   close(): Promise<void>;
 }

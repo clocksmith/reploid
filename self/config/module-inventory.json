@@ -824,8 +824,10 @@
     {
       "path": "infrastructure/tool-executor.js",
       "owner": "infrastructure",
-      "sha256": "sha256:a552bb1f25c32372660fad95d015308a5c5ecbfc8addb73687a1fd2b30ca5790",
-      "imports": []
+      "sha256": "sha256:560d6a185a25cd003222e674dd2a24cedd5ca59e119c721543975f94f90ad98f",
+      "imports": [
+        "../vendor/reploid/agent/tool-retry.js"
+      ]
     },
     {
       "path": "infrastructure/trace-store.js",
@@ -3351,9 +3353,21 @@
       "imports": []
     },
     {
+      "path": "vendor/reploid/agent/engine.js",
+      "owner": "vendor",
+      "sha256": "sha256:740acfaf5483bc0b3dc6ddf23b71bf4fb9abbf9c1b7b97e37c4feda9f3f7e77f",
+      "imports": [
+        "../config/index.js",
+        "./lifecycle.js",
+        "./provider-recovery.js",
+        "./tool-dispatch.js",
+        "./tool-retry.js"
+      ]
+    },
+    {
       "path": "vendor/reploid/agent/index.js",
       "owner": "vendor",
-      "sha256": "sha256:00e22f506ff8c64d1e4fe0b7e1d6a684611f3376868a200c0933a1bfcb8d59a1",
+      "sha256": "sha256:3123be76d5c695abe276503d359fc40424971635d0daaccff9ad492b15407202",
       "imports": [
         "../agent/cycle-artifacts.js",
         "../agent/protocol.json",
@@ -3365,21 +3379,28 @@
       ]
     },
     {
-      "path": "vendor/reploid/agent/legacy-loop.js",
+      "path": "vendor/reploid/agent/lab-strategy.js",
       "owner": "vendor",
-      "sha256": "sha256:3df62d1d4310d8c4bd8ad096210700cef5932a67da74c4760393dfabb5054795",
+      "sha256": "sha256:a89280b943e807129d0d548526a2b16c3331748d08769ee295e1882b1960a760",
       "imports": [
         "../config/index.js",
         "./cycle-artifacts.js",
-        "./lifecycle.js",
-        "./provider-recovery.js",
-        "./tool-dispatch.js"
+        "./engine.js",
+        "./provider-recovery.js"
+      ]
+    },
+    {
+      "path": "vendor/reploid/agent/legacy-loop.js",
+      "owner": "vendor",
+      "sha256": "sha256:32e9a2f9a08f0a86b81a9dcc7b43176405ce32a03be3e9b4914c5bef51c43b05",
+      "imports": [
+        "./lab-strategy.js"
       ]
     },
     {
       "path": "vendor/reploid/agent/lifecycle.js",
       "owner": "vendor",
-      "sha256": "sha256:e37a217502b1e04df72fad4b97cc9db7586eec4a680fe5e8860872eedd70fe22",
+      "sha256": "sha256:9fffc98a8e6870d50bea18e09bba805c4dc9fe2e4b94c8900fd859e465f18c80",
       "imports": [
         "./cancellation.js"
       ]
@@ -3387,7 +3408,7 @@
     {
       "path": "vendor/reploid/agent/provider-recovery.js",
       "owner": "vendor",
-      "sha256": "sha256:22c70d9e205d6f9f00811fd4dc9b262a76afd2bf45ca61daae0b1e5259a95d59",
+      "sha256": "sha256:7d71a53341d6b103c1aa7dc0301865a883e941bee83e3b826e6e954a07eed3d5",
       "imports": []
     },
     {
@@ -3399,21 +3420,34 @@
     {
       "path": "vendor/reploid/agent/runtime.js",
       "owner": "vendor",
-      "sha256": "sha256:bb305ae351e3a6e7a628bedef4711e1040bf61705f4ab7678e5fdb4904fe3c4b",
+      "sha256": "sha256:d27249cef2ee26efed736bb0531043b9246d484ada9945662564ad0a8785402d",
+      "imports": [
+        "./task-strategy.js"
+      ]
+    },
+    {
+      "path": "vendor/reploid/agent/task-strategy.js",
+      "owner": "vendor",
+      "sha256": "sha256:7551141754db18a36572eaebe37342a2f5a3e27aa9190c922e3d9ae9d81b54a8",
       "imports": [
         "../config/index.js",
-        "./lifecycle.js",
-        "./provider-recovery.js",
-        "./tool-dispatch.js"
+        "./engine.js",
+        "./provider-recovery.js"
       ]
     },
     {
       "path": "vendor/reploid/agent/tool-dispatch.js",
       "owner": "vendor",
-      "sha256": "sha256:2a38a2173bf90968deb119a522fc01982c4350a7960c141d969880e94306e4bb",
+      "sha256": "sha256:5d6715a209e26493c3ff4aeb009f24304b249d211e5cb928d5be0be51a6113ec",
       "imports": [
         "../config/index.js"
       ]
+    },
+    {
+      "path": "vendor/reploid/agent/tool-retry.js",
+      "owner": "vendor",
+      "sha256": "sha256:2ae0f2aa04a4d21e7be003e70f6d152fcdb159a89fb8a447389aac23fd01fb83",
+      "imports": []
     },
     {
       "path": "vendor/reploid/agent/tool-runner.js",

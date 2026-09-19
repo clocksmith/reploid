@@ -1,0 +1,29 @@
+
+ RUN  v4.1.10 /home/clocksmith/deco/reploid
+
+ ✓ tests/integration/agent-surface-contract.test.js (10 tests) 313ms
+ ✓ tests/unit/execution-engine.test.js (8 tests) 44ms
+ ✓ tests/integration/agent-loop.test.js (53 tests) 3555ms
+       ✓ circuit-breaks LoadModule after repeated module load failures  929ms
+       ✓ should handle tool errors gracefully  313ms
+       ✓ should skip tool when circuit is open after repeated failures  925ms
+       ✓ should log reflections on tool error  319ms
+ ✓ tests/unit/self-runtime.test.js (20 tests) 9596ms
+     ✓ auto-resumes a parked remote slot when a peer host appears  1173ms
+     ✓ records done as a milestone and continues running  1087ms
+     ✓ accepts DONE as a milestone alias and records it  830ms
+     ✓ ignores plain text and continues running  712ms
+     ✓ caps large tool observations before feeding them back into context  505ms
+     ✓ executes batched tool calls and caps the batch at five  945ms
+     ✓ counts only bridge-verified anchor observations toward qAnchor  754ms
+     ✓ starts adjacent read-only tools through one scheduler group  608ms
+     ✓ keeps mutation tools as barriers between read groups  707ms
+     ✓ honors PLAN after dependencies before running dependent tools  746ms
+     ✓ records a milestone when tools and done are sent in the same response  633ms
+     ✓ does not record a milestone for a plain tool batch with no done directive  781ms
+
+ Test Files  4 passed (4)
+      Tests  91 passed (91)
+   Start at  16:34:07
+   Duration  13.07s (transform 2.80s, setup 0ms, import 4.50s, tests 13.51s, environment 4.26s)
+

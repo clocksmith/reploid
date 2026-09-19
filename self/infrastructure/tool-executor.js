@@ -1,3 +1,4 @@
+import { isRetryableToolError } from '../vendor/reploid/agent/tool-retry.js';
 /**
  * @fileoverview Tool Executor - Shared tool execution with retry, timeout, and batching
  * Used by AgentLoop and WorkerManager for consistent tool execution behavior.
@@ -21,34 +22,7 @@ const ToolExecutor = {
     const DEFAULT_TIMEOUT_MS = 30000;  // 30s per tool
     const DEFAULT_MAX_RETRIES = 2;
     const DEFAULT_RETRY_DELAY_MS = 100;
-    const NON_RETRYABLE_ERROR_PATTERNS = [
-      /^File not found:/i,
-      /^File not found in VFS:/i,
-      /^Missing .+ argument/i,
-      /^Invalid (backend|mode|offset|length)/i,
-      /^Path traversal is not allowed/i,
-      /^OPFS path not allowed:/i,
-      /^VFS supports text mode only/i,
-      /^offset\/length are only supported/i,
-      /^Read range exceeds file size/i,
-      /^Read length exceeds maxBytes/i,
-      /^maxBytes /i,
-      /^File too large/i,
-      /^Unsupported VFS entry type/i,
-      /^Tool not found:/i,
-      /^Tool '.+' not permitted/i,
-      /^LoadModule only supports promoted \/self paths/i,
-      /^Tool module has a leading pipe literal marker/i,
-      /^Policy violation:/i,
-      /^Operation rejected by user/i
-    ];
-
-    const isRetryableError = (error) => {
-      const message = String(error?.message || '');
-      if (!message) return true;
-      if (message.includes('timeout')) return false;
-      return !NON_RETRYABLE_ERROR_PATTERNS.some((pattern) => pattern.test(message));
-    };
+    const isRetryableError = isRetryableToolError;
 
     /**
      * Execute a single tool with timeout
@@ -68,7 +42,7 @@ const ToolExecutor = {
 
       try {
         const result = await Promise.race([
-          ToolRunner.execute(name, args, options),
+          (options.invoke || (operation => operation()))(() => ToolRunner.execute(name, args, options)),
           timeoutPromise
         ]);
         return result;
@@ -109,10 +83,13 @@ const ToolExecutor = {
       }
 
       for (let attempt = 0; attempt <= maxRetries; attempt++) {
+        options.signal?.throwIfAborted();
         try {
           const toolStartTime = Date.now();
           rawResult = await executeWithTimeout(call.name, call.args, {
             timeoutMs,
+            signal: options.signal,
+            invoke: options.invoke,
             workerId,
             allowedTools,
             trace: trace ? { ...trace, skipRunner: true } : { skipRunner: true }
@@ -156,6 +133,7 @@ const ToolExecutor = {
           }
           break;
         } catch (err) {
+          options.signal?.throwIfAborted();
           lastError = err;
           const isTimeout = err.message?.includes('timeout');
 

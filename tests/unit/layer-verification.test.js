@@ -4,6 +4,7 @@ import {
   classifyLayer,
   extractModuleSpecifiers,
   findLayerViolations,
+  findExecutionOwnerViolations,
   moduleEdges,
   findCycles,
   findRequiredModuleLeaks
@@ -87,4 +88,13 @@ describe('layer verification', () => {
     modules.core.dependencies[0].optional = false;
     expect(findRequiredModuleLeaks(surface, modules)).toEqual([['core', 'sandbox']]);
   });
+  it('keeps compatibility entries inert and strategies behind the engine', () => {
+    const root = 'packages/reploid/src/agent/';
+    expect(findExecutionOwnerViolations(root + 'runtime.js', "export { createTaskStrategy as createAgentRuntime } from './task-strategy.js';")).toEqual([]);
+    expect(findExecutionOwnerViolations(root + 'runtime.js', 'export function loop() { while (true) {} }')).toHaveLength(1);
+    expect(findExecutionOwnerViolations(root + 'lab-strategy.js', 'setTimeout(resume, 10)')).toHaveLength(1);
+    expect(findLayerViolations({ repoRoot, sourcePath: path.join(repoRoot, root + 'task-strategy.js'),
+      source: "import { dispatchTool } from './tool-dispatch.js'" })).toHaveLength(1);
+  });
+
 });

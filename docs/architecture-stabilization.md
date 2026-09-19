@@ -7,11 +7,22 @@ transport, installed-package and storage changes. Neither branch replaces the ot
 
 ## Execution and authority
 
-`packages/reploid/src/agent/lifecycle.js` owns attempts, turn scheduling,
-cancellation and settlement. Both the task runtime and compatibility lab strategy
-use it, the shared tool dispatcher and provider recovery rules. Strategies retain
-context construction, optional cognition and presentation policies. The root
-export remains compatible; `reploid/agent` avoids importing the legacy adapter.
+`packages/reploid/src/agent/engine.js` owns attempts, provider invocation and
+fallback, response interpretation, authorization on every tool attempt, batch
+execution, retry timers, operational events and checkpoint readiness. Its
+lifecycle tracks borrowed operations through cancellation and settlement.
+`task-strategy.js` and `lab-strategy.js` supply context, plans, optional cognition
+and presentation. `runtime.js` and `legacy-loop.js` only forward compatible public
+exports; the architecture verifier enforces those forwarding and execution-owner
+boundaries. The root export remains compatible; `reploid/agent` avoids importing
+the lab strategy.
+
+Tool retries reauthorize each attempt. The lab's ToolExecutor formats single
+attempts and emits its existing diagnostics; retry scheduling belongs to the
+engine. Tool timeouts retain pending raw work, and checkpointing and replacement
+execution cannot treat that work as settled. X coordinator calls use the same
+provider lifecycle, and cancellation cannot initiate fallback. Native tool calls
+and textual tool calls enter the same interpreter on all three surfaces.
 
 The host resolves mutable settings before each lab attempt. Resumption retains
 that configuration and authority profile. Tool configuration and host permission
@@ -61,7 +72,7 @@ including when commit/reveal was selected automatically.
 
 ## Continuous acceptance
 
-CI requires JavaScript correctness lint, strict public declaration checks,
+CI requires JavaScript correctness lint, strict public declaration checks and JavaScript checking of the execution engine, lifecycle, dispatcher and recovery policies,
 parsed import/reexport/dynamic-import boundaries, declared dynamic loaders,
 cycle detection and byte-identical generated library delivery. The dependency
 check rejects mandatory X capabilities in Zero. Browser and installed-package
@@ -96,3 +107,19 @@ scientific correctness, a deployed release, or a complete autonomous improvement
 process. Existing integration GPU artifacts retain their original provenance.
 
 Retained stabilization evidence: [report](../artifacts/architecture-stabilization-2026-09-19/report.json).
+
+Execution convergence evidence additionally runs
+`tests/integration/agent-surface-contract.test.js` against the Zero and X host
+adapters and the Work library entry, and `tests/unit/execution-engine.test.js`
+against retry authorization, borrowed-work settlement, bounded follow-ups and
+checkpoint readiness. Surface strategies deliberately retain different terminal
+semantics: lab DONE completes its goal; Work IDLE parks for review. Dynamic tool
+growth and provider fixtures are deterministic contract evidence; browser boot,
+Verification Worker, IndexedDB and installed Work journeys are separate checks.
+
+Retained execution-convergence evidence: [report](../artifacts/architecture-convergence-2026-09-19/report.json).
+
+The peer replay regression checks bounded redelivery of the identical signed job,
+including loss of both a request and a completion. It asserts one executor call
+and verifies the accepted episode; wall-clock signing latency cannot make an
+exact transport delivery count part of the execution contract.

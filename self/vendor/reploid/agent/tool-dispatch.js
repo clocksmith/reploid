@@ -1,6 +1,8 @@
 import { snapshotJson } from '../config/index.js';
 
-/** Configuration and host authorization are independent gates on every tool invocation. */
+/** Configuration and host authorization are independent gates on every tool invocation.
+ * @param {import('./engine-contracts.js').ToolRequest & {signal: AbortSignal}} request
+ */
 export async function dispatchTool({ call, policy, listToolNames = () => [], authorize, execute, signal, instanceId }) {
   signal.throwIfAborted();
   if (!policy.tools.allowed.includes(call.name)
