@@ -1,6 +1,8 @@
 import { getZeroAccessHeaders } from '../../config/zero-inference.js';
 import { createOperationRoomNetwork } from '../../pool/operation-room-network.js';
 import { createWorkSession } from '../../host/work-session.js';
+import { createWorkEvolution } from '../../host/work-evolution.js';
+import { createWorkSwarm } from '../../host/work-swarm.js';
 import { createWorkPeerJobs } from '../../host/work-peer-jobs.js';
 import { getCurrentReploidStorage } from '../../instance.js';
 import { bindWorkSurface } from './work.js';
@@ -221,10 +223,15 @@ export function initPoolHome(mount, { operationNetwork = null } = {}) {
   let disposeDocumentView = () => {};
   let disposeOperationSharing = () => {};
   let disposeWorkView = () => {};
-  const work = createWorkSession({ credentials: getZeroAccessHeaders, storage: getCurrentReploidStorage(),
+  const workStorage = getCurrentReploidStorage();
+  const swarm = createWorkSwarm({ storage: workStorage });
+  let work;
+  const evolution = createWorkEvolution({ storage: workStorage, isBusy: () => work?.getState().busy === true });
+  work = createWorkSession({ credentials: getZeroAccessHeaders, storage: workStorage, swarm, evolution,
     peers: createWorkPeerJobs({ getNetwork: () => operationNetwork }) });
   const onPageHide = event => {
     work.cancel();
+    void (event.persisted ? swarm.stop() : swarm.close()).catch(error => console.error('[Reploid Swarm] Shutdown failed', error));
     void operationSharing.stop().catch(error => console.error('[Reploid Network] Shutdown failed', error));
     if (!event.persisted) {
       disposeWorkView();
@@ -307,7 +314,7 @@ export function initPoolHome(mount, { operationNetwork = null } = {}) {
     window.REPLOID_POOL_PRISM_STOP = bindPoolPrism(mount);
     disposeDocumentView = bindDocumentSearch(mount, documents);
     disposeOperationSharing = bindOperationSharing(mount, operationSharing);
-    disposeWorkView = bindWorkSurface(mount, work);
+    disposeWorkView = bindWorkSurface(mount, work, { evolution, swarm });
     if (routeId === 'records') renderLocalDocumentHistory(mount, documents.getState());
     bindPoolDashboardControls();
     bindCapabilityAssessmentControls();

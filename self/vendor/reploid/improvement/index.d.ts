@@ -7,3 +7,4 @@ export type ImprovementDecision =
   | { status: 'rejected' | 'inconclusive'; candidateId: string; evaluatorId: string; evidenceDigests: readonly string[] }
   | { status: 'approved'; candidateId: string; evaluatorId: string; approvalId: string; baselineId: string; evidenceDigests: readonly string[] }
   | { status: 'adopted' | 'rolled-back'; candidateId: string; approvalId: string; activationId: string; rollbackTarget: string };
+export * from './code-evolution.js';

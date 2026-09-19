@@ -28,6 +28,7 @@ test('Network explains its purpose and sharing still requires approval', async (
   await expect(page.getByRole('heading', { name: 'Give or get a hand.' })).toBeVisible();
   await expect(page.locator('[data-operation-status]')).toHaveText('Not sharing');
   await expect(page.locator('[data-operation-approve]')).not.toBeChecked();
+  await page.getByText('Specialized model jobs', { exact: true }).click();
   await page.locator('[data-operation-toggle]').click();
   await expect(page.locator('[data-operation-status]')).toHaveText('Approve the publisher and public-input execution first');
   await expect(page.locator('[data-operation-toggle]')).toHaveAttribute('aria-pressed', 'false');

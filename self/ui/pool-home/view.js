@@ -1558,6 +1558,7 @@ export const renderNav = (activeRoute) => {
       <details class="pool-primary-network" data-pool-network-state="simulation">
         <summary aria-label="Network availability">
           <span class="pool-primary-network-dot" aria-hidden="true"></span>
+          <span data-work-helper-count hidden></span>
           <span data-pool-network-label>Searching</span>
           <span data-pool-network-count hidden>0</span>
         </summary>

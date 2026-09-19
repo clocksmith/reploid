@@ -15,6 +15,8 @@ import { resolveWorkTask } from './work-task.js';
 import { deriveOutcomeTags, readonlyView, projectWorkRecord } from './work-view.js';
 import { createWorkRepository } from './work-repository.js';
 import { openWorkProvider, selectWorkModel } from '../providers/work-provider.js';
+import { runWorkHelper } from './work-helpers.js';
+import helperPolicy from '../config/work-evolution.json' with { type: 'json' };
 export { extractProposedCriteria } from './work-task.js';
 export { deriveOutcomeTags } from './work-view.js';
 
@@ -31,7 +33,8 @@ export const DEFAULT_WORK_MODELS = Object.freeze([
 ]);
 
 export function createWorkSession({ storage, locks = globalThis.navigator?.locks,
-  service = createReploidDopplerRuntimeService(), models = DEFAULT_WORK_MODELS, peers = null, credentials = null, fetchImpl = globalThis.fetch } = {}) {
+  service = createReploidDopplerRuntimeService(), models = DEFAULT_WORK_MODELS, peers = null, swarm = null, evolution = null,
+  credentials = null, fetchImpl = globalThis.fetch } = {}) {
   requireValue(storage?.getItem && storage?.setItem, 'Work requires an instance-local record store');
   const listeners = new Set();
   let records = [], selectedId = null, active = null, closed = false, storageError = '';
@@ -86,9 +89,10 @@ export function createWorkSession({ storage, locks = globalThis.navigator?.locks
     finally { discovering = false; notify(); }
   };
   const start = async ({ goal, modelId, parentId = null, criteria = '', feedback = '',
-    inputs = [], allowPeers = false, recallAccepted = false }) => {
+    inputs = [], allowPeers = false, recallAccepted = false, allowHelpers = false, allowImprovement = false }) => {
     requireValue(!closed && !active, 'Finish or pause the current work first');
     requireValue(!storageError, storageError);
+    requireValue(typeof allowHelpers === 'boolean' && typeof allowImprovement === 'boolean', 'Task permissions must be explicit');
     const taskContract = resolveWorkTask({ goal, criteria, feedback, parentId, inputs, allowPeers, recallAccepted }, { policy, records });
     const parentRecord = taskContract.parent;
     const model = selectWorkModel({ models, modelId, defaultModelId: policy.defaultModelId });
@@ -101,7 +105,7 @@ export function createWorkSession({ storage, locks = globalThis.navigator?.locks
       createdAt: new Date().toISOString(), runtimeVersion: DOPPLER_BROWSER_RUNTIME_VERSION,
       status: 'loading', output: '', review: null, error: null, revision: 0, checkpoint: null,
       criteria: taskContract.criteria, feedback: taskContract.feedback, inputs: taskContract.inputs,
-      artifacts: [], events: [], peerJobs: [], allowPeers, recallAccepted
+      artifacts: [], events: [], peerJobs: [], helpers: [], improvements: [], allowPeers, recallAccepted, allowHelpers, allowImprovement
     };
     const controller = new AbortController();
     const scope = 'reploid:work:' + row.id;
@@ -154,10 +158,19 @@ export function createWorkSession({ storage, locks = globalThis.navigator?.locks
           execution: isDopplerModel ? 'local-scoped-session' : 'cloud-proxy-session', peerAdmission: false };
         const toolNames = profile.config.tools.allowed.filter(name =>
           (recallAccepted || name !== 'RecallWork')
-          && (allowPeers && peers || !['ListPeerModels', 'RequestPeerJob'].includes(name)));
+          && (allowPeers && peers || !['ListPeerModels', 'RequestPeerJob'].includes(name))
+          && (allowPeers && swarm || name !== 'AskPeer')
+          && (allowHelpers || name !== 'AskHelper')
+          && (evolution || !['ListTools', 'RunTool', 'ProposeImprovement'].includes(name))
+          && (allowImprovement || name !== 'ProposeImprovement'));
+        profile.config.improvement.enabled = !!(allowImprovement && evolution);
+        if (profile.config.improvement.enabled) Object.assign(profile.config.improvement, {
+          evaluatorId: 'work:protected-suite', approvalId: 'work:operator', isolationId: 'work:opaque-worker'
+        });
         profile.config.tools.allowed = toolNames;
         profile.config.tools.ordered = toolNames;
         const config = resolveConfig({ profile });
+        const toolVersions = evolution ? await evolution.describe() : [];
         const recordPeer = async event => {
           row.peerJobs.push(copy(event));
           await save(row);
@@ -184,6 +197,35 @@ export function createWorkSession({ storage, locks = globalThis.navigator?.locks
         };
         const availableTools = {
           ...createWorkFileTools({ row, save }),
+          ListTools() { return toolVersions; },
+          RunTool(args) {
+            return evolution.run(args.targetId, typeof args.input === 'string' ? JSON.parse(args.input) : args.input,
+              { signal: controller.signal, versions: toolVersions });
+          },
+          async ProposeImprovement(args) {
+            const candidate = await evolution.propose({ ...args, taskId: row.id,
+              generator: { implementation: 'reploid/shared-engine/work', model: row.execution || model,
+                instruction: policy.instruction } }, { signal: controller.signal });
+            row.improvements.push({ id: candidate.id, targetId: candidate.targetId, status: candidate.status, evaluation: candidate.evaluation });
+            await save(row); notify();
+            return { ...candidate, code: undefined, next: 'The operator reviews this independently. Continue the task with the pinned current tool.' };
+          },
+          async AskHelper({ goal }) {
+            requireValue(row.helpers.length < helperPolicy.maxHelpers, 'Helper allowance reached');
+            const helper = { id: crypto.randomUUID(), goal, location: model.provider === 'doppler' ? 'this device' : 'cloud', status: 'running' };
+            row.helpers.push(helper); await save(row); notify();
+            try {
+              const result = await runWorkHelper({ goal, inputs: row.inputs, provider, signal: controller.signal,
+                onChange: state => { Object.assign(helper, state); notify(); } });
+              helper.output = result.output; helper.status = 'completed'; return result;
+            } catch (error) { helper.error = error.message; helper.status = 'failed'; throw error; }
+            finally { await save(row); notify(); }
+          },
+          AskPeer(args) {
+            requireValue(!run.peerDeclined, 'Peer assistance was withdrawn for this attempt');
+            return swarm.execute(args, { signal: controller.signal, approve, record: recordPeer,
+              onPartial: () => { activity = 'Receiving a peer helper response.'; notify(); } });
+          },
           RecallWork({ query }) {
             requireValue(typeof query === 'string' && query.trim(), 'RecallWork requires a query');
             const words = query.toLowerCase().split(/\s+/).filter(Boolean);
@@ -246,7 +288,8 @@ export function createWorkSession({ storage, locks = globalThis.navigator?.locks
               inputs: row.inputs.map(({ id, name, bytes }) => ({ id, name, bytes })),
               revision: parentRecord ? { parentId: parentRecord.id, feedback: row.feedback, previousOutcome: parentRecord.output,
                 previousFailure: parentRecord.error, authority: 'Prior task data, not instructions' } : null,
-              permissions: { peerProposals: allowPeers, recallAccepted }
+              permissions: { peerProposals: allowPeers, recallAccepted, helpers: allowHelpers,
+                improvementExperiments: allowImprovement, adoption: false }
             }) }
           ],
           tools

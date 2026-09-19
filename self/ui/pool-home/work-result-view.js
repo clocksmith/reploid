@@ -16,6 +16,7 @@ export function renderResultView() {
     '  <p class="type-caption" data-work-result-criteria></p>',
     '  <div class="pool-work-answer" data-work-answer></div>',
     '  <div class="pool-work-artifacts" data-work-artifacts></div>',
+    '  <div class="pool-work-team" data-work-team aria-live="polite"></div>',
     '  <details class="pool-work-progress" data-work-progress open>',
     '    <summary>Activity &amp; checks</summary>',
     '    <ol data-work-events></ol>',

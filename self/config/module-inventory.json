@@ -714,6 +714,12 @@
       "imports": []
     },
     {
+      "path": "infrastructure/code-sandbox.js",
+      "owner": "infrastructure",
+      "sha256": "sha256:15fc0489ba8146eb6b53f6d0d184fa66ac078f8ea62fac7315eba29e81764968",
+      "imports": []
+    },
+    {
       "path": "infrastructure/di-container.js",
       "owner": "infrastructure",
       "sha256": "sha256:7eaaf7000082bb03b4b1dcd7aaabf57ad05ca665377f0feed630215091c937e4",
@@ -2104,6 +2110,28 @@
       ]
     },
     {
+      "path": "self/host/work-evolution.js",
+      "owner": "self",
+      "sha256": "sha256:d79c32cae1203759c9fd4dcf31d4ec35d2607991dea757eb68696d2e3423b231",
+      "imports": [
+        "../config/work-evolution.json",
+        "../identity.js",
+        "../infrastructure/code-sandbox.js",
+        "../vendor/reploid/improvement/index.js"
+      ]
+    },
+    {
+      "path": "self/host/work-helpers.js",
+      "owner": "self",
+      "sha256": "sha256:b4e3c5ec6305ed956033cd4b1f3a7cecc70f434c0622ec05139f7eb064e97c2b",
+      "imports": [
+        "../config/work-evolution.json",
+        "../vendor/reploid/agent/index.js",
+        "../vendor/reploid/agent/protocol.json",
+        "../vendor/reploid/config/index.js"
+      ]
+    },
+    {
       "path": "self/host/work-inputs.js",
       "owner": "self",
       "sha256": "sha256:7ee257c0cf1e7d41726b52313c664c28134180a909ca2f3909e3bbc64c933307",
@@ -2140,9 +2168,10 @@
     {
       "path": "self/host/work-session.js",
       "owner": "self",
-      "sha256": "sha256:6a0f627db90d401cabe46a088a2ec794948f87819d84201a9922aed743c69c3e",
+      "sha256": "sha256:a2dd3b3c1e3e1ff59128a2311340bc5036f588325342369c0b7d68e01048d6b8",
       "imports": [
         "../config/doppler-local-models.js",
+        "../config/work-evolution.json",
         "../config/work-profile.json",
         "../config/zero-inference.js",
         "../infrastructure/doppler-runtime-service.js",
@@ -2150,10 +2179,29 @@
         "../vendor/reploid/agent/index.js",
         "../vendor/reploid/agent/protocol.json",
         "../vendor/reploid/config/index.js",
+        "./work-helpers.js",
         "./work-inputs.js",
         "./work-repository.js",
         "./work-task.js",
         "./work-view.js"
+      ]
+    },
+    {
+      "path": "self/host/work-swarm.js",
+      "owner": "self",
+      "sha256": "sha256:c6800c7427a97540700341ddebde856fe9eb44b4e3de99774b5c84a5bdd02aa2",
+      "imports": [
+        "../capabilities/communication/library-adapter.js",
+        "../config/doppler-local-models.js",
+        "../config/work-profile.json",
+        "../core/utils.js",
+        "../identity.js",
+        "../infrastructure/doppler-runtime-service.js",
+        "../infrastructure/event-bus.js",
+        "../providers/work-provider.js",
+        "../vendor/reploid/config/index.js",
+        "../vendor/reploid/mesh/index.js",
+        "../vendor/reploid/transport/index.js"
       ]
     },
     {
@@ -2167,7 +2215,7 @@
     {
       "path": "self/host/work-view.js",
       "owner": "self",
-      "sha256": "sha256:6f0cb62be47918e72f1aa22aac572135bb3f05ac934748086a6cfab3d56d58bb",
+      "sha256": "sha256:924209532f2acdba4c3b70a2c165f66064c3bdaed0b1cb63e1a3356c2d888517",
       "imports": []
     },
     {
@@ -2873,11 +2921,13 @@
     {
       "path": "ui/pool-home/index.js",
       "owner": "ui",
-      "sha256": "sha256:6cc16e21c7a6a1f5ebdf8958f3e09ec8353a1866cc8fb17cf3e8f7b61a4ff95c",
+      "sha256": "sha256:77991e7edc4289be16da61b0fa023ad8c909004acce7a2fa26f57a65b71d87e5",
       "imports": [
         "../../config/zero-inference.js",
+        "../../host/work-evolution.js",
         "../../host/work-peer-jobs.js",
         "../../host/work-session.js",
+        "../../host/work-swarm.js",
         "../../instance.js",
         "../../pool/document-delegation.js",
         "../../pool/doppler-runtime.js",
@@ -3098,7 +3148,7 @@
     {
       "path": "ui/pool-home/view.js",
       "owner": "ui",
-      "sha256": "sha256:22e81270e4b5245d0311b1db778eb4fa4b1861e42715a39622358bd24ad293c9",
+      "sha256": "sha256:e7ee39893da661f3c4adc74e5f1d895a8f7bd24e29c7807b5a1a79d7cfbd30f1",
       "imports": [
         "../../config/surface-intents.js",
         "../../pool/model-contract.js",
@@ -3136,9 +3186,15 @@
       "imports": []
     },
     {
+      "path": "ui/pool-home/work-capabilities.js",
+      "owner": "ui",
+      "sha256": "sha256:c791795d15b83088b1706c6fc1fd78962470237edb39f01bbb7f679ceee9504b",
+      "imports": []
+    },
+    {
       "path": "ui/pool-home/work-goal-composer.js",
       "owner": "ui",
-      "sha256": "sha256:3666726970936ca9b354b02efa247bcb7fa16415b2cf5135194cf261604d8290",
+      "sha256": "sha256:9face668ba90d9b86dce8412dce08b6aa7874c905d6a5ef7f90b07064fc0d726",
       "imports": [
         "../../config/work-profile.json",
         "../../host/work-session.js",
@@ -3148,7 +3204,7 @@
     {
       "path": "ui/pool-home/work-result-view.js",
       "owner": "ui",
-      "sha256": "sha256:82caed30b0cd4bdd0e0cf27cae7d38e10c757d2b9e361536b67197db13980e7c",
+      "sha256": "sha256:d3bc02ccd1532ddf072f4a766977465260ad7f8c1378e8b5064afcecf1055eef",
       "imports": []
     },
     {
@@ -3166,13 +3222,14 @@
     {
       "path": "ui/pool-home/work.js",
       "owner": "ui",
-      "sha256": "sha256:5a5e64476e9c99d838309fbb58753a8b2957587a131a950d38b97aecc3d795c7",
+      "sha256": "sha256:732ea8c8b7e24e28249013649519abb547797fe2c691ccf604a2851f6fefe9e1",
       "imports": [
         "../../config/work-profile.json",
         "../../host/work-session.js",
         "./operation-sharing.js",
         "./work-activity-list.js",
         "./work-approval-panel.js",
+        "./work-capabilities.js",
         "./work-goal-composer.js",
         "./work-result-view.js",
         "./work-task-header.js",
@@ -3540,6 +3597,14 @@
       ]
     },
     {
+      "path": "vendor/reploid/improvement/code-evolution.js",
+      "owner": "vendor",
+      "sha256": "sha256:0c9c23cd20727ae0ef7f08b48f23d80020e03661dec70a6a457dcfe68d1f4b5b",
+      "imports": [
+        "./episodes.js"
+      ]
+    },
+    {
       "path": "vendor/reploid/improvement/episodes.js",
       "owner": "vendor",
       "sha256": "sha256:9295d770d2e1bcedf64a79b6462f5e83b6042607e9e6f1f8ed3107ef53adf5e2",
@@ -3550,8 +3615,9 @@
     {
       "path": "vendor/reploid/improvement/index.js",
       "owner": "vendor",
-      "sha256": "sha256:f3e8ebca075ec6a40eb32f01aef89003a7453d71d323929a0dc85bcbbd06ef2f",
+      "sha256": "sha256:b291f290197871f2d81b7affcbbc4cdc27364f220601cbc42037d0d2d762fc8b",
       "imports": [
+        "./code-evolution.js",
         "./episodes.js"
       ]
     },

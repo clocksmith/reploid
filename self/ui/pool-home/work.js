@@ -11,6 +11,7 @@ import { renderActivityList } from './work-activity-list.js';
 import { renderResultView } from './work-result-view.js';
 import { renderApprovalPanel } from './work-approval-panel.js';
 import { renderTaskHistory } from './work-task-history.js';
+import { renderToolExperiments, renderTextSwarm, bindWorkCapabilities } from './work-capabilities.js';
 
 export {
   renderGoalComposer,
@@ -52,6 +53,7 @@ export function renderWorkSurface() {
     renderGoalComposer({ models: DEFAULT_WORK_MODELS }),
     renderApprovalPanel(),
     renderResultView(),
+    renderToolExperiments(),
     renderTaskHistory(),
     links(),
     '  </div>',
@@ -64,7 +66,8 @@ export function renderNetworkSurface() {
     + '<p class="pool-work-error" role="alert" data-work-error hidden></p>'
     + '<header class="pool-work-hero"><h1 class="pool-work-hero-title">Give or get a hand.</h1>'
     + '<p class="pool-work-promise">Share this device\'s AI compute, or find another device that can help with a task. You choose what to share.</p></header>'
-    + '<div class="pool-work-grid pool-network-grid">'
+    + renderTextSwarm()
+    + '<details class="pool-work-settings"><summary>Specialized model jobs</summary><div class="pool-work-grid pool-network-grid">'
     + '<section class="pool-control-panel" aria-labelledby="network-provide-title">'
     + '<h2 class="type-h2" id="network-provide-title">Provide compute</h2>'
     + '<p class="pool-control-help">Let this device run public jobs for others. Sharing stays off until you turn it on.</p>'
@@ -78,7 +81,7 @@ export function renderNetworkSurface() {
     + '<p class="pool-control-status" role="status" aria-live="polite" data-work-peer-status>Discovery has not run.</p></div>'
     + '<div class="pool-control-group" data-work-peer-models></div>'
     + '<div class="pool-control-footer">'
-    + route('/', 'Start a task with peer assistance') + '</div></div></section></div>'
+    + route('/', 'Start a task with peer assistance') + '</div></div></section></div></details>'
     + '<details class="pool-network-notes"><summary>How sharing works</summary>'
     + '<p class="pool-control-help">Execution, artifact distribution, and improvement adoption have separate permissions.</p>'
     + '<p class="pool-control-help">These controls offer whole operations, not a model split across GPUs. '
@@ -96,10 +99,10 @@ export function renderImproveSurface() {
     + '<p>Start a task, then come back to review its result or try a revision.</p>' + route('/', 'Start your first task') + '</div>'
     + '<section class="pool-work-comparison" data-work-comparison hidden><h2 class="type-h2">Earlier attempt</h2>'
     + '<p data-work-parent-feedback></p><pre data-work-parent-output></pre></section>'
-    + renderResultView() + renderTaskHistory()
+    + renderToolExperiments() + renderResultView() + renderTaskHistory()
     + '<aside class="pool-work-boundary"><h2 class="type-h2">Changing the agent is a separate decision.</h2>'
     + '<p>Task revisions and your acceptance are not independent evaluation or proof of recursive improvement. '
-    + 'This view does not alter the agent or adopt candidate code.</p>'
+    + 'Tool candidates above use protected tests and require your separate approval. Adoption applies to new tasks and retains the previous version.</p>'
     + '<a href="/x" data-pool-substrate-route="x">Open governed improvement workspace</a></aside>'
     + links() + '</div></section>';
 }
@@ -112,9 +115,10 @@ const download = (name, text, type) => {
   setTimeout(() => URL.revokeObjectURL(url), 0);
 };
 
-export function bindWorkSurface(root, application) {
+export function bindWorkSurface(root, application, services = {}) {
   if (!root.querySelector('[data-work-surface]')) return () => {};
   const controller = new AbortController(), options = { signal: controller.signal };
+  const disposeCapabilities = bindWorkCapabilities(root, application, services);
   const find = selector => root.querySelector(selector);
   const setText = (selector, text) => { const node = find(selector); if (node) node.textContent = text; };
   const error = value => {
@@ -159,6 +163,7 @@ export function bindWorkSurface(root, application) {
     find('[data-work-feedback]').required = !!parentId;
     find('[data-work-revision]').hidden = !parentId;
     find('[data-work-peers]').checked = false; find('[data-work-recall]').checked = false;
+    find('[data-work-helpers]').checked = false; find('[data-work-improvement]').checked = false;
     showInputs(inputs);
     updateModelDescription(draft.modelId);
   };
@@ -329,6 +334,19 @@ export function bindWorkSurface(root, application) {
             events.append(li);
           }
         }
+        const team = find('[data-work-team]');
+        if (team) {
+          team.replaceChildren();
+          for (const helper of row?.helpers || []) {
+            const p = document.createElement('p');
+            p.textContent = 'Helper · ' + helper.location + ' · ' + helper.status + ': ' + helper.goal
+              + (helper.error ? ' — ' + helper.error : ''); team.append(p);
+          }
+          for (const job of row?.peerJobs || []) {
+            const p = document.createElement('p'); p.textContent = 'Peer · ' + job.stage + ' · '
+              + (job.preview?.modelId || '') + ' · ' + (job.preview?.providerId || '').slice(0, 16); team.append(p);
+          }
+        }
         const comparison = find('[data-work-comparison]');
         if (comparison) {
           const parent = state.records.find(item => item.id === row?.parentId);
@@ -398,7 +416,8 @@ export function bindWorkSurface(root, application) {
     if (reading) return;
     const request = { goal: find('[data-work-goal]').value, criteria: find('[data-work-criteria]').value,
       modelId: find('[data-work-model]').value, inputs, parentId, feedback: find('[data-work-feedback]').value,
-      allowPeers: find('[data-work-peers]').checked, recallAccepted: find('[data-work-recall]').checked };
+      allowPeers: find('[data-work-peers]').checked, recallAccepted: find('[data-work-recall]').checked,
+      allowHelpers: find('[data-work-helpers]').checked, allowImprovement: find('[data-work-improvement]').checked };
     act(() => application.start(request));
   }, options);
   find('[data-work-public]')?.addEventListener('change', () => render(application.getState()), options);
@@ -420,9 +439,13 @@ export function bindWorkSurface(root, application) {
         } else if (preset === 'summary') {
           if (goalInput) goalInput.value = 'Summarize the attached file. Identify its main points and anything that needs attention.';
           if (criteriaInput) criteriaInput.value = 'Use only the supplied material. Distinguish facts from uncertainty.';
+        } else if (preset === 'improve') {
+          goalInput.value = 'Improve the JSON formatter: handle Markdown code fences and byte order marks, preserve valid values, and reject broken JSON. Ask a helper to check the approach, test the change, and show the comparison for my review.';
+          criteriaInput.value = 'More protected cases pass without regressions. The current tool stays active until I approve a replacement.';
+          find('[data-work-helpers]').checked = true; find('[data-work-improvement]').checked = true;
         }
         const attachments = find('[data-work-attachments]');
-        if (attachments) attachments.open = true;
+        if (attachments) attachments.open = preset !== 'improve';
         if (goalInput) {
           goalInput.dispatchEvent(new Event('input', { bubbles: true }));
           goalInput.focus();
@@ -455,5 +478,5 @@ export function bindWorkSurface(root, application) {
       }
     });
   }, options);
-  return () => { fileRevision++; controller.abort(); unsubscribe(); };
+  return () => { fileRevision++; controller.abort(); unsubscribe(); disposeCapabilities(); };
 }
