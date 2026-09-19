@@ -7,10 +7,10 @@ Parent: none
 Deliver a goal-directed agent using Doppler inference, Poolday WebRTC collaboration, and independently evaluated recursive improvement.
 
 ## Authority
-- Owns library/application/UI boundaries: `packages/reploid/` implements reusable behavior; applications compose public APIs; UI requests actions.
-- Extraction proves neither qualification, independent evaluation, publication nor deployment.
-- Owns repository-wide product boundaries, component precedence, and proof requirements.
-- Does not turn infrastructure activity, model output, or accepted evidence into biological truth.
+- Owns library, application, and UI boundaries: `packages/reploid/` implements reusable behavior; applications compose APIs; UI requests actions.
+- Extraction proves neither qualification, publication nor deployment.
+- Owns repository product boundaries, precedence, and proof requirements.
+- Does not turn model output or infrastructure into biological truth.
 
 ## Scope
 
@@ -20,6 +20,7 @@ Deliver a goal-directed agent using Doppler inference, Poolday WebRTC collaborat
 
 Inputs:
 - Strategic intent from [GOALS.md](GOALS.md).
+- Human purpose and invariants from [INTENT.md](INTENT.md).
 - Current claim status from the [surface claim index](docs/status/surface-claim-index.json).
 
 Outputs:
@@ -27,15 +28,16 @@ Outputs:
 - Recursive component authority in the [component index](docs/component-index.md).
 
 ## Invariants
-- The agent is the product; chat is an interface, domains are application targets, Poolday is peer collaboration infrastructure, and Doppler is independent model execution.
+- The agent is the product; chat is an interface, domains are targets, Poolday is peer infrastructure, Doppler is model execution.
 - Problem-solving and improvement loops operate with strict separation.
-- Candidates cannot modify hidden acceptance tests, escalate permissions, erase failures, or self-approve.
+- Candidates cannot modify hidden acceptance tests, escalate permissions, or self-approve.
 - Claims stay bounded by recorded acceptance evidence.
-- Free adoption counts; commercial outcomes do not gate technical completion.
+- Free adoption counts; commercial outcomes do not gate completion.
 - Existing code cannot silently overrule a charter.
 
 ## Acceptance
 - The charter graph validates, its index is current, and targeted work can resolve its full authority chain.
+- Acceptance evidence verifies that [INTENT.md](INTENT.md) and [GOALS.md](GOALS.md) remain supported.
 - Evidence: [CATSCAN validator tests](tests/unit/catscan.test.js).
 
 ## Non-goals
