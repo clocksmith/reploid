@@ -47,7 +47,9 @@ test('task uses a helper and approved peer, evaluates code, requires adoption, a
   },candidateCode);
   await page.locator('[data-work-goal]').fill('Improve the JSON tool without changing its valid outputs');
   await page.locator('[data-work-model]').selectOption(await page.evaluate(()=>window.integratedWork.model));
-  await page.locator('[data-work-helpers]').check(); await page.locator('[data-work-improvement]').check();
+  await page.locator('[data-work-helpers]').check();
+  await page.locator('[data-work-attachments] summary').click();
+  await page.locator('[data-work-improvement]').check();
   await page.locator('[data-work-peers]').check();
   await page.locator('[data-work-start]').click();
   await expect(page.locator('[data-work-approval-payload]')).toContainText('Check public JSON formatter edge cases.');

@@ -3,7 +3,7 @@ import { renderAgentNetwork, refreshAgentNetwork } from './agent-network.js';
 import { renderToolOfferImport, bindToolOffers } from './work-tool-offers.js';
 const escape = value => String(value ?? '').replace(/[&<>"']/g, value => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[value]);
 export const renderToolExperiments = () => '<section class="pool-work-experiments" id="reploid-improvements" data-work-experiments aria-label="Tool improvements">'
-  + '<h2 class="type-h2">Improvements</h2><p class="pool-control-help" data-improvement-empty>No tool changes yet.</p>'
+  + '<h2 class="type-h2">Changes</h2><p class="pool-control-help" data-improvement-empty>No tool changes yet.</p>'
   + renderToolOfferImport() + '<div data-work-candidates></div><p role="status" data-experiment-status></p></section>';
 export const renderTextSwarm = renderAgentNetwork;
 const candidateState = item => ({ evaluating: 'Testing', 'awaiting-approval': 'Tested · approval needed',
@@ -27,6 +27,8 @@ export function bindWorkCapabilities(root, application, { evolution, swarm } = {
         root.querySelector('[data-improvement-empty]').hidden = candidates.length > 0;
         const identity = JSON.stringify([candidates, active, state.busy, state.records.map(row => [row.id, row.goal, row.improvements])]);
         if (candidateIdentity !== identity) { candidateIdentity = identity;
+        const disclosure = view.closest('.pool-work-secondary');
+        if (disclosure && candidates.some(item => ['awaiting-approval', 'failed'].includes(item.status))) disclosure.open = true;
         list.innerHTML = [...candidates].reverse().map(item => {
           const evaluation = item.evaluation;
           const busy = state.busy ? ' disabled' : '';
@@ -55,7 +57,12 @@ export function bindWorkCapabilities(root, application, { evolution, swarm } = {
             + (item.status === 'adopted' && active.some(version => version.episodeId === item.id) ? '<button class="btn btn-ghost" data-candidate-rollback="' + escape(item.id) + '"' + busy + '>Restore previous version</button>' : '') + '</article>';
         }).join('');
         }
-      } catch (error) { if (!controller.signal.aborted) { view.hidden = false; status(error.message); } }
+      } catch (error) { if (!controller.signal.aborted) {
+        view.hidden = false;
+        const disclosure = view.closest('.pool-work-secondary');
+        if (disclosure) disclosure.open = true;
+        status(error.message);
+      } }
     }
     refreshSwarm();
   };

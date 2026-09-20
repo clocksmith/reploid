@@ -60,8 +60,8 @@
   --pool-space-xl: var(--space-xl);
 
   /* === TYPE SCALE PASSTHROUGH === */
-  --pool-text-xs: var(--font-size-xs);
-  --pool-text-sm: var(--font-size-sm);
+  --pool-text-xs: var(--pool-dim-12);
+  --pool-text-sm: var(--pool-dim-14);
   --pool-text-base: var(--font-size-base);
   --pool-text-lg: var(--font-size-lg);
   --pool-text-xl: var(--font-size-xl);

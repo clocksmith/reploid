@@ -16,15 +16,10 @@ export function renderGoalComposer({ models = DEFAULT_WORK_MODELS, defaultModelI
           <textarea id="work-goal" data-work-goal rows="3" maxlength="${policy.maxGoalCharacters}" required
             placeholder="Describe the result you want..."></textarea>
         </div>
-        <div class="pool-goal-presets" aria-label="Example tasks">
-          <button type="button" class="pool-preset-btn" data-goal-preset="patch">Draft a patch</button>
-          <button type="button" class="pool-preset-btn" data-goal-preset="json">Check JSON</button>
-          <button type="button" class="pool-preset-btn" data-goal-preset="summary">Summarize a file</button>
-        </div>
         <div class="pool-work-launch-row">
           <div class="pool-work-model-group">
             <div class="pool-work-model-row">
-              <label for="work-model">Model</label>
+              <label for="work-model">Models</label>
               <select id="work-model" data-work-model aria-describedby="work-execution-location">
                 ${models.map(model => `<option value="${escapeHtml(model.id)}"${model.id === defaultModel.id ? ' selected' : ''}>${escapeHtml(model.name)} · ${model.provider === 'gemini' ? 'Cloud' : 'On this device'}</option>`).join('')}
               </select>
@@ -37,8 +32,8 @@ export function renderGoalComposer({ models = DEFAULT_WORK_MODELS, defaultModelI
           </div>
         </div>
         <p class="pool-work-status" role="status" aria-live="polite" data-work-start-status hidden></p>
-            <fieldset class="pool-work-capabilities"><legend>Participation for this task</legend>
-              <label><input type="checkbox" data-work-helpers> Use helper agents</label>
+            <fieldset class="pool-work-capabilities"><legend>Agents</legend>
+              <label><input type="checkbox" data-work-helpers> Use helpers</label>
               <label><input type="checkbox" data-work-peers> Ask peers</label>
             </fieldset>
         <details class="pool-work-options pool-work-attachments pool-work-settings" data-work-attachments>

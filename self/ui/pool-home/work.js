@@ -23,22 +23,6 @@ export {
   renderTaskHistory
 };
 
-export function renderZeroCallout() {
-  return [
-    '<aside class="pool-work-zero-callout" aria-label="Zero autonomous agent">',
-    '  <div class="pool-work-zero-badge-row">',
-    '    <span class="pool-zero-pill">ZERO</span>',
-    '    <span class="pool-work-zero-desc">Autonomous browser agent</span>',
-    '  </div>',
-    '  <div class="pool-work-zero-content">',
-    '    <h2 class="pool-work-zero-title"><a href="/zero" class="pool-work-zero-link" data-pool-substrate-route="zero">Reploid Zero</a></h2>',
-    '    <p class="type-caption pool-work-zero-subtext">Autonomous tabula-rasa loop that synthesizes and tests its own tools in browser storage.</p>',
-    '  </div>',
-    '  <a href="/zero" class="btn btn-primary pool-work-zero-btn" data-pool-substrate-route="zero">Launch Zero &rarr;</a>',
-    '</aside>'
-  ].join('\n');
-}
-
 const route = (path, label) => '<a href="' + path + '" data-pool-route-link="' + path + '">' + label + '</a>';
 const links = () => '<details class="pool-work-more"><summary>More</summary>'
   + '<nav class="pool-work-links" aria-label="More in Reploid">'
@@ -49,7 +33,6 @@ const links = () => '<details class="pool-work-more"><summary>More</summary>'
 export function renderWorkSurface() {
   return [
     '<section class="pool-work-shell pool-connected-shell" data-work-surface aria-label="Agent network">',
-    renderWorkHeading('Distributed intelligence', 'What shall we work on?', 'Your objective. Connected agents. Results you can inspect.'),
     '  <p class="pool-work-error" role="alert" data-work-error hidden></p>',
     '<div class="pool-connected-layout">',
     '  <div class="pool-work-column" id="reploid-activity">',
@@ -57,11 +40,13 @@ export function renderWorkSurface() {
     renderGoalComposer({ models: DEFAULT_WORK_MODELS }),
     renderApprovalPanel(),
     renderResultView(),
-    '<details class="pool-work-secondary"><summary>Evaluated changes</summary>' + renderToolExperiments() + '</details>',
-    renderTaskHistory(),
-    links(),
     '  </div>',
     renderTextSwarm(),
+    '<div class="pool-work-followup">',
+    '<details class="pool-work-secondary"><summary>Changes</summary>' + renderToolExperiments() + '</details>',
+    renderTaskHistory(),
+    links(),
+    '</div>',
     '</div>',
     '</section>'
   ].join('\n');
@@ -70,7 +55,7 @@ export function renderWorkSurface() {
 export function renderNetworkSurface() {
   return '<section class="pool-work-shell" data-work-surface aria-label="Network">'
     + '<p class="pool-work-error" role="alert" data-work-error hidden></p>'
-    + renderWorkHeading('Network', 'Choose your collaborators.', 'Connect peers. Offer compute. Control what leaves this device.')
+    + renderWorkHeading('Network')
     + renderTextSwarm()
     + '<details class="pool-work-settings"><summary>Specialized model jobs</summary><div class="pool-work-grid pool-network-grid">'
     + '<section class="pool-control-panel" aria-labelledby="network-provide-title">'
@@ -98,7 +83,7 @@ export function renderImproveSurface() {
   return '<section class="pool-work-shell" data-work-surface aria-label="Improve">'
     + '<p class="pool-work-error" role="alert" data-work-error hidden></p>'
     + '<div class="pool-work-column">'
-    + renderWorkHeading('Improve', 'Evidence before adoption.', 'Compare attempts. Review changes. Keep the version that earns it.')
+    + renderWorkHeading('Changes')
     + '<div class="pool-work-empty" data-work-empty hidden><h2 class="type-h2">No work to review yet.</h2>'
     + '<p>Start a task, then come back to review its result or try a revision.</p>' + route('/', 'Start your first task') + '</div>'
     + '<section class="pool-work-comparison" data-work-comparison hidden><h2 class="type-h2">Earlier attempt</h2>'
@@ -155,7 +140,7 @@ export function bindWorkSurface(root, application, services = {}) {
     const model = (lastState?.models || DEFAULT_WORK_MODELS).find(item => item.id === modelId);
     setText('[data-work-location]', model?.provider === 'gemini'
       ? 'Cloud model: sends task and files to this provider.'
-      : 'On-device model · downloads on first use.');
+      : 'This device · download on first use');
   };
   const fillDraft = draft => {
     if (!form) return;
@@ -216,7 +201,7 @@ export function bindWorkSurface(root, application, services = {}) {
 
     if (form) {
       form.setAttribute('aria-busy', String(state.busy || reading));
-      for (const node of form.querySelectorAll('input,textarea,select,[data-work-new],[data-work-clear-inputs],[data-goal-preset]')) node.disabled = state.busy || reading;
+      for (const node of form.querySelectorAll('input,textarea,select,[data-work-new],[data-work-clear-inputs]')) node.disabled = state.busy || reading;
       find('[data-work-start]').disabled = state.busy || reading || !state.available || !!state.storageError;
       for (const btn of root.querySelectorAll('[data-work-cancel]')) btn.hidden = !state.busy;
       setText('[data-work-budget]', state.cycle + ' / ' + state.maxCycles + ' steps');
@@ -272,7 +257,7 @@ export function bindWorkSurface(root, application, services = {}) {
         const answer = find('[data-work-answer]');
         if (answer) answer.hidden = !answer.textContent;
         const resultHeading = find('[data-work-result-title]');
-        if (resultHeading) resultHeading.textContent = row?.output ? 'Result' : 'Shared activity';
+        if (resultHeading) resultHeading.textContent = row?.output ? 'Results' : 'Activity';
         setText('[data-work-review-status]', !row?.output ? '' : !row.review ? 'Needs your review'
           : row.review.accepted ? 'Accepted by you' : 'Changes requested');
         find('[data-work-review-actions]').hidden = !row?.output;
@@ -434,31 +419,7 @@ export function bindWorkSurface(root, application, services = {}) {
     const control = event.target.closest('button');
     if (!control || !root.contains(control)) return;
     act(async () => {
-      if (control.dataset.goalPreset) {
-        const preset = control.dataset.goalPreset;
-        const goalInput = find('[data-work-goal]');
-        const criteriaInput = find('[data-work-criteria]');
-        if (preset === 'patch') {
-          if (goalInput) goalInput.value = 'Analyze code and draft a unified diff patch to fix bug.';
-          if (criteriaInput) criteriaInput.value = 'Provide a valid unified diff with clear explanation.';
-        } else if (preset === 'json') {
-          if (goalInput) goalInput.value = 'Validate and reformat JSON input payload.';
-          if (criteriaInput) criteriaInput.value = 'Check JSON syntax, preserve the supplied values, and explain any repairs.';
-        } else if (preset === 'summary') {
-          if (goalInput) goalInput.value = 'Summarize the attached file. Identify its main points and anything that needs attention.';
-          if (criteriaInput) criteriaInput.value = 'Use only the supplied material. Distinguish facts from uncertainty.';
-        } else if (preset === 'improve') {
-          goalInput.value = 'Improve the JSON formatter: handle Markdown code fences and byte order marks, preserve valid values, and reject broken JSON. Ask a helper to check the approach, test the change, and show the comparison for my review.';
-          criteriaInput.value = 'More protected cases pass without regressions. The current tool stays active until I approve a replacement.';
-          find('[data-work-helpers]').checked = true; find('[data-work-improvement]').checked = true;
-        }
-        const attachments = find('[data-work-attachments]');
-        if (attachments) attachments.open = true;
-        if (goalInput) {
-          goalInput.dispatchEvent(new Event('input', { bubbles: true }));
-          goalInput.focus();
-        }
-      } else if (control.hasAttribute('data-work-cancel')) application.cancel();
+      if (control.hasAttribute('data-work-cancel')) application.cancel();
       else if (control.dataset.workSelect) { showSelected = true; application.select(control.dataset.workSelect); }
       else if (control.dataset.workRevise) revise(control.dataset.workRevise);
       else if (control.hasAttribute('data-work-revise-selected')) revise(lastState.selectedId);

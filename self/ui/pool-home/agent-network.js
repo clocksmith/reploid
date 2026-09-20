@@ -46,7 +46,7 @@ export function refreshAgentNetwork(root, work, swarm = {}) {
 
 export const renderAgentNetwork = () => `
   <section class="pool-agent-network" id="reploid-agents" aria-label="Agents and models">
-    <div class="pool-network-heading"><h2 class="type-h2">Participants</h2>
+    <div class="pool-network-heading"><h2 class="type-h2">Agents</h2>
       <button class="btn btn-ghost" type="button" data-swarm-invite>Invite</button></div>
     <ul class="pool-agent-list" data-agent-list></ul>
     <div data-swarm-peers hidden></div>
@@ -54,16 +54,16 @@ export const renderAgentNetwork = () => `
     <button class="btn btn-ghost" type="button" data-swarm-connect>Connect peers</button>
     <p data-swarm-invitation hidden></p>
     <div class="pool-contribution">
-      <div class="pool-network-heading"><h3>This device</h3>
+      <div class="pool-network-heading"><h3>Contribution</h3>
         <button class="btn btn-ghost" type="button" data-swarm-stop hidden>Stop sharing</button></div>
       <p class="pool-control-help" data-contribution-status>Not sharing</p>
+      <p class="pool-control-help" data-contribution-model></p>
+      <p class="pool-control-help" data-contribution-limits></p>
       <details class="pool-work-settings" data-contribution-settings><summary>Share compute</summary>
         <div class="pool-work-drawer-body">
-          <p data-contribution-model></p>
           <label class="pool-consent-row"><input type="checkbox" data-swarm-consent>
             <span>Run other agents’ public prompts on this device.</span></label>
           <button class="btn btn-primary" type="button" data-swarm-share>Start sharing</button>
-          <p class="pool-control-help" data-contribution-limits></p>
           <p class="pool-control-help">Model loads on request. Each peer runs a whole request; models are not split across GPUs.</p>
         </div>
       </details>

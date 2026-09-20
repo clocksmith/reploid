@@ -3,10 +3,8 @@ const escape = value => String(value).replace(/[&<>"']/g, character => ({
   '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
 })[character]);
 
-export function renderWorkHeading(section, title, description) {
+export function renderWorkHeading(title) {
   return `<header class="pool-connected-heading">
-    <p class="pool-work-eyebrow">${escape(section)}</p>
     <h1>${escape(title)}</h1>
-    <p>${escape(description)}</p>
   </header>`;
 }

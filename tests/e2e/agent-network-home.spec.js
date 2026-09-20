@@ -85,7 +85,7 @@ for (const width of [1440, 390, 320]) {
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     await page.getByRole('link', { name: 'Activity', exact: true }).click();
     await expect(page.locator('[data-work-goal]')).toBeInViewport();
-    await page.getByRole('link', { name: 'Improvements', exact: true }).click();
+    await page.getByRole('link', { name: 'Changes', exact: true }).click();
     await expect(page.locator('[data-work-experiments]')).toBeInViewport();
     await page.getByRole('link', { name: 'Agents', exact: true }).click();
     await expect(page.locator('[data-swarm-connect]')).toBeInViewport();

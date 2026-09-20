@@ -9,7 +9,7 @@ export function renderApprovalPanel() {
     '    <h2 id="work-approval-title" class="type-h2">Review before sending</h2>',
     '    <span class="pool-work-badge pool-work-badge--approval">&#9675; Approval required</span>',
     '  </div>',
-    '  <p class="pool-work-approval-intro">The agent proposed a peer operation. Only the payload below will be sent; nothing has been sent yet.</p>',
+    '  <p class="pool-work-approval-intro">Nothing sent. Approval sends this exact payload to the named peer as public data.</p>',
     '  <p class="type-caption" data-work-approval-identity></p>',
     '  <pre data-work-approval-payload></pre>',
     '  <label class="pool-consent-row">',
