@@ -4551,11 +4551,24 @@ body[data-pool-route-id='home'] #app {
   background: var(--pool-tint-white-74);
 }
 
+.pool-home:not([data-pool-theme='light']) .pool-segment:hover {
+  background: rgb(255 255 255 / 5%);
+}
+
 .pool-home .pool-segment[aria-current='page'],
 .pool-home .pool-segment[aria-pressed='true'] {
   color: var(--pool-surface-ink);
   background: var(--pool-surface-raised);
   box-shadow: 0 var(--pool-px-2) var(--pool-px-6) var(--pool-tint-black-9), inset 0 var(--pool-px-1) 0 var(--pool-tint-white-96);
+}
+
+.pool-home:not([data-pool-theme='light']) .pool-segment[aria-current='page'],
+.pool-home:not([data-pool-theme='light']) .pool-segment[aria-pressed='true'] {
+  background: linear-gradient(145deg, rgb(27 30 40 / 98%), rgb(16 18 25 / 98%));
+  box-shadow:
+    5px 5px 12px rgb(0 0 0 / 72%),
+    -4px -4px 10px rgb(66 76 100 / 28%),
+    inset 1px 1px 0 rgb(255 255 255 / 9%);
 }
 
 .pool-home .pool-segment:focus-visible,
@@ -5694,6 +5707,12 @@ body[data-pool-route-id='home'] #app {
 .pool-home:is([data-pool-route-id='home'], [data-pool-route-id='network'], [data-pool-route-id='improve']) {
   background: var(--pool-surface-page);
 }
+.pool-home:not([data-pool-theme='light']):is([data-pool-route-id='home'], [data-pool-route-id='network'], [data-pool-route-id='improve']) {
+  background:
+    var(--pool-surface-ambient-mesh),
+    var(--pool-surface-page);
+  background-attachment: fixed;
+}
 .pool-home:is([data-pool-route-id='home'], [data-pool-route-id='network'], [data-pool-route-id='improve'])::before {
   display: none;
 }
@@ -5710,6 +5729,9 @@ body[data-pool-route-id='home'] #app {
     border-color var(--pool-motion-time-240) ease,
     background var(--pool-motion-time-240) ease,
     box-shadow var(--pool-motion-time-240) ease;
+}
+.pool-home:not([data-pool-theme='light']) .pool-nav-rail.pool-primary-nav {
+  background: linear-gradient(145deg, rgb(24 27 37 / 96%), rgb(13 15 21 / 96%));
 }
 .pool-primary-wordmark { margin-left: var(--pool-space-sm); letter-spacing: normal; }
 .pool-work-hero {
@@ -5763,6 +5785,17 @@ body[data-pool-route-id='home'] #app {
   color: var(--pool-surface-page);
 }
 .pool-work-shell .btn:hover { border-color: var(--pool-surface-focus); }
+.pool-home:not([data-pool-theme='light']) .pool-work-shell .btn:not(.btn-primary):hover {
+  background: linear-gradient(145deg, rgb(27 31 42 / 98%), rgb(16 18 25 / 98%));
+  box-shadow:
+    14px 14px 30px rgb(0 0 0 / 74%),
+    -10px -10px 24px rgb(66 76 100 / 30%),
+    inset 1px 1px 0 rgb(255 255 255 / 10%);
+}
+.pool-home:not([data-pool-theme='light']) .pool-work-shell .btn:not(.btn-primary):active {
+  background: var(--pool-surface-inset);
+  box-shadow: var(--pool-surface-shadow-inset);
+}
 .pool-work-shell .btn:focus-visible,
 .pool-work-shell summary:focus-visible {
   outline: var(--pool-px-2) solid var(--pool-surface-focus);
