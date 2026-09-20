@@ -97,6 +97,7 @@ test('view state retains activity, cancellation, saved results and a clean new t
   await page.locator('[data-work-revise-selected]').click();
   await expect(page.locator('[data-work-feedback]')).toBeVisible();
   await expect(page.locator('[data-work-goal]')).toHaveValue('Inspect notes');
+  await page.locator('.pool-work-history > summary').click();
   await page.locator('[data-work-select]').click();
   await page.locator('[data-work-new]').click();
   await expect(page.locator('[data-work-output]')).toBeHidden();
@@ -117,7 +118,7 @@ test('view state retains activity, cancellation, saved results and a clean new t
 });
 
 test('Verification Worker accepts the changed UI modules', async ({ page }) => {
-  const names = ['index.js', 'view.js', 'work.js', 'work-goal-composer.js', 'work-task-header.js', 'work-result-view.js', 'work-approval-panel.js', 'work-layout.js', 'operation-sharing.js', 'theme.js', 'agent-network.js', 'work-capabilities.js'];
+  const names = ['index.js', 'view.js', 'work.js', 'work-goal-composer.js', 'work-task-header.js', 'work-result-view.js', 'work-task-history.js', 'work-approval-panel.js', 'work-layout.js', 'operation-sharing.js', 'theme.js', 'agent-network.js', 'work-capabilities.js'];
   const snapshot = Object.fromEntries(await Promise.all(names.map(async name => [
     `/ui/pool-home/${name}`, await readFile(`self/ui/pool-home/${name}`, 'utf8')
   ])));

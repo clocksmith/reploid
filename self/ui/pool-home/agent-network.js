@@ -44,28 +44,32 @@ export function refreshAgentNetwork(root, work, swarm = {}) {
   }));
 }
 
-export const renderAgentNetwork = () => `
+export const renderAgentNetwork = ({ footer = '' } = {}) => `
   <section class="pool-agent-network" id="reploid-agents" aria-label="Agents and models">
     <div class="pool-network-heading"><h2 class="type-h2">Agents</h2>
       <button class="btn btn-ghost" type="button" data-swarm-invite>Invite</button></div>
     <ul class="pool-agent-list" data-agent-list></ul>
     <div data-swarm-peers hidden></div>
-    <p class="pool-control-help" data-swarm-status role="status">No peers connected.</p>
-    <button class="btn btn-ghost" type="button" data-swarm-connect>Connect peers</button>
+    <div class="pool-network-heading">
+      <p class="pool-control-help" data-swarm-status role="status">No peers connected.</p>
+      <button class="btn btn-ghost" type="button" data-swarm-connect>Connect peers</button>
+    </div>
     <p data-swarm-invitation hidden></p>
-    <div class="pool-contribution">
-      <div class="pool-network-heading"><h3>Contribution</h3>
-        <button class="btn btn-ghost" type="button" data-swarm-stop hidden>Stop sharing</button></div>
-      <p class="pool-control-help" data-contribution-status>Not sharing</p>
-      <p class="pool-control-help" data-contribution-model></p>
-      <p class="pool-control-help" data-contribution-limits></p>
-      <details class="pool-work-settings" data-contribution-settings><summary>Share compute</summary>
+    <details class="pool-contribution pool-work-secondary" data-contribution-panel>
+      <summary>Contribution <span class="type-caption" data-contribution-status>Not sharing</span></summary>
+      <div class="pool-work-drawer-body">
+        <p class="pool-control-help" data-contribution-model></p>
+        <p class="pool-control-help" data-contribution-limits></p>
+        <button class="btn btn-ghost" type="button" data-swarm-stop hidden>Stop sharing</button>
+        <div data-contribution-settings>
         <div class="pool-work-drawer-body">
           <label class="pool-consent-row"><input type="checkbox" data-swarm-consent>
             <span>Run other agents’ public prompts on this device.</span></label>
           <button class="btn btn-primary" type="button" data-swarm-share>Start sharing</button>
           <p class="pool-control-help">Model loads on request. Each peer runs a whole request; models are not split across GPUs.</p>
         </div>
-      </details>
-    </div>
+        </div>
+      </div>
+    </details>
+    ${footer}
   </section>`;

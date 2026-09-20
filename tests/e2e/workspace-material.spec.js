@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 
 const phase = process.env.REPLOID_VISUAL_PHASE || 'after';
-const evidence = 'artifacts/monochrome-workspace-2026-09-20';
+const evidence = process.env.REPLOID_E2E_ARTIFACT_DIR || 'artifacts/monochrome-workspace-2026-09-20';
 
 test('header and workspace retain aligned gutters during viewport changes', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
@@ -57,7 +57,8 @@ async function installWorkspace(page, theme) {
     };
     window.setVisualState = mode => {
       const busy = mode === 'active' || mode === 'approval';
-      const current = { ...record, status: busy ? 'running' : 'review',
+      const current = { ...record, status: busy ? 'running' : mode === 'paused' ? 'paused' : 'review',
+        error: mode === 'paused' ? 'Pause execution before checkpointing' : null,
         output: mode === 'completed' ? 'The formatter preserves valid values and rejects malformed JSON. Two edge cases need a tool change.' : '',
         helpers: record.helpers.map(helper => ({ ...helper, status: busy ? 'running' : 'completed' })),
         events: record.events.map(event => ({ ...event, status: busy ? event.status : 'completed' })) };
@@ -83,15 +84,17 @@ for (const theme of ['light', 'dark']) for (const width of [1440, 390]) {
     await page.goto('/');
     await expect(page.locator('[data-work-goal]')).toBeVisible();
     await installWorkspace(page, theme);
-    for (const state of ['empty', 'active', 'approval', 'completed']) {
+    for (const state of ['empty', 'active', 'approval', 'completed', 'paused']) {
       await page.evaluate(state => window.setVisualState(state), state);
       await expect(page.locator('[data-agent-list]')).toContainText('peer-eas');
       if (phase !== 'before') {
         await expect(page.locator('.pool-connected-heading, [data-goal-preset], .pool-work-zero-callout')).toHaveCount(0);
         expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-        await expect(page.locator('[data-contribution-limits]')).toBeVisible();
+        if (state === 'active' || state === 'approval') await expect(page.locator('[data-contribution-limits]')).toBeVisible();
+        else await expect(page.locator('[data-contribution-limits]')).toBeHidden();
+        await expect(page.locator('.pool-work-history')).not.toHaveAttribute('open');
         const material = await page.evaluate(() => {
-          const selectors = ['.pool-agent-network', '[data-work-form]', '[data-work-output]', '[data-work-approval]'];
+          const selectors = ['.pool-agent-network', '.pool-work-task', '[data-work-approval]'];
           const panels = selectors.map(selector => getComputedStyle(document.querySelector(selector)));
           const input = getComputedStyle(document.querySelector('[data-work-goal]'));
           const select = getComputedStyle(document.querySelector('[data-work-model]'));
@@ -111,6 +114,8 @@ for (const theme of ['light', 'dark']) for (const width of [1440, 390]) {
           expect(channels[0]).toBe(channels[1]); expect(channels[1]).toBe(channels[2]);
         }
         if (state === 'active' || state === 'approval') {
+          await page.locator('[data-contribution-panel]').evaluate(node => { node.open = false; });
+          await expect(page.locator('[data-contribution-panel]')).toHaveAttribute('open', '');
           await expect(page.locator('[data-work-task-header] [data-work-cancel]')).toBeVisible();
           await expect(page.locator('[data-swarm-stop]')).toBeVisible();
         }
@@ -120,11 +125,26 @@ for (const theme of ['light', 'dark']) for (const width of [1440, 390]) {
           await expect(page.locator('[data-work-decline]')).toBeVisible();
         }
         if (state === 'completed') await expect(page.locator('[data-work-answer]')).toBeVisible();
+        if (state === 'paused') await expect(page.locator('[data-work-result-error]')).toHaveText('Pause execution before checkpointing');
+        const grid = await page.evaluate(() => {
+          const rect = selector => document.querySelector(selector).getBoundingClientRect().toJSON();
+          return { task: rect('.pool-work-task'), agents: rect('.pool-agent-network'), nav: rect('.pool-primary-nav') };
+        });
+        expect(grid.task.left).toBe(grid.nav.left);
+        if (width === 1440) {
+          expect(grid.task.top).toBe(grid.agents.top);
+          expect(grid.task.bottom).toBe(grid.agents.bottom);
+          expect(grid.task.width).toBe(grid.agents.width);
+          expect(grid.agents.right).toBe(grid.nav.right);
+        } else {
+          expect(grid.agents.width).toBe(grid.task.width);
+          expect(grid.agents.top - grid.task.bottom).toBe(32);
+        }
         if (state === 'empty') {
           const controls = await page.evaluate(() => {
             const rect = selector => document.querySelector(selector).getBoundingClientRect();
             return { model: rect('[data-work-model]').height, start: rect('[data-work-start]').height,
-              composer: rect('[data-work-form]').toJSON(), agents: rect('.pool-agent-network').toJSON(),
+              composer: rect('.pool-work-task').toJSON(), agents: rect('.pool-agent-network').toJSON(),
               nav: rect('.pool-primary-nav').toJSON() };
           });
           expect(controls.model).toBe(controls.start);

@@ -2,9 +2,9 @@
  * Compact task header shown during active work or reviewing.
  * Displays collapsed goal, model identity, step budget counter, and stop button.
  */
-export function renderTaskHeader() {
+export function renderTaskHeader({ embedded = false } = {}) {
   return [
-    '<div class="pool-work-task-header" data-work-task-header hidden>',
+    '<div class="pool-work-task-header' + (embedded ? ' pool-work-embedded' : '') + '" data-work-task-header hidden>',
     '  <div class="pool-work-task-summary">',
     '    <p class="pool-work-task-goal" data-work-active-goal></p>',
     '    <div class="pool-work-task-meta">',

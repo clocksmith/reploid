@@ -2884,7 +2884,7 @@
     {
       "path": "ui/pool-home/agent-network.js",
       "owner": "ui",
-      "sha256": "sha256:04ece192071711979a9c7a0f844795459091eed44cf20bd66121abe22edbaf86",
+      "sha256": "sha256:50bfc75caa8beb2839778c93d90550e067232eced35afd9434244d5b9c7e028c",
       "imports": []
     },
     {
@@ -3213,7 +3213,7 @@
     {
       "path": "ui/pool-home/work-capabilities.js",
       "owner": "ui",
-      "sha256": "sha256:fb806b5bf4201f57e78c14ed4498911f72b346d773fdef68ab8a53e3e248e992",
+      "sha256": "sha256:a65e024e3f7bbdf9fda49cf7baa5c8385886c9ce56ff7a8e8b62266541108807",
       "imports": [
         "./agent-network.js",
         "./work-tool-offers.js"
@@ -3222,7 +3222,7 @@
     {
       "path": "ui/pool-home/work-goal-composer.js",
       "owner": "ui",
-      "sha256": "sha256:b1e7f4168ba3aaed07df45275043698f05ba1839f6c1f7a4116dd0dad835903e",
+      "sha256": "sha256:4377c700199a45257807ea11637fbb0b928399065dcdfe2150f26047c66c61fc",
       "imports": [
         "../../config/work-profile.json",
         "../../host/work-session.js",
@@ -3238,19 +3238,19 @@
     {
       "path": "ui/pool-home/work-result-view.js",
       "owner": "ui",
-      "sha256": "sha256:c33da36beab23d3410307bef2c066dd8b52719a6281e08a3d51935d29ef8995e",
+      "sha256": "sha256:e5510f8e51c9e3d77e10dc9bf70f76945c2d18129be1f4b6f61a2479e7bf8d9e",
       "imports": []
     },
     {
       "path": "ui/pool-home/work-task-header.js",
       "owner": "ui",
-      "sha256": "sha256:e619560fef075ce6a27bfe2bb7beb9a58bed7e2d023bf46888938da38833c560",
+      "sha256": "sha256:07665b4eadcb38ec5ca38f54008c1866000cc4c5e67c450fcffdf1a77ead3fff",
       "imports": []
     },
     {
       "path": "ui/pool-home/work-task-history.js",
       "owner": "ui",
-      "sha256": "sha256:b94c55c2bd544beeb07488060923ac672f9853aedf0fd941d81baa44362834c7",
+      "sha256": "sha256:60c8135dfe2093e18f32337bdf21c8d2071fa24814ac9c0f73d7789592f9eb4a",
       "imports": []
     },
     {
@@ -3262,7 +3262,7 @@
     {
       "path": "ui/pool-home/work.js",
       "owner": "ui",
-      "sha256": "sha256:c27bb24065fd20d60c05351a614b09282b51b5ff48381f60d46a689c1015a6f2",
+      "sha256": "sha256:d72c741789dbb99adbe55d5d5b77392df21bde3b4b6dbae1c63b72b69cb99654",
       "imports": [
         "../../config/work-profile.json",
         "../../host/work-session.js",

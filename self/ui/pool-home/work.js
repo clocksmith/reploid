@@ -35,18 +35,15 @@ export function renderWorkSurface() {
     '<section class="pool-work-shell pool-connected-shell" data-work-surface aria-label="Agent network">',
     '  <p class="pool-work-error" role="alert" data-work-error hidden></p>',
     '<div class="pool-connected-layout">',
-    '  <div class="pool-work-column" id="reploid-activity">',
-    renderTaskHeader(),
-    renderGoalComposer({ models: DEFAULT_WORK_MODELS }),
     renderApprovalPanel(),
-    renderResultView(),
-    '  </div>',
-    renderTextSwarm(),
-    '<div class="pool-work-followup">',
-    '<details class="pool-work-secondary"><summary>Changes</summary>' + renderToolExperiments() + '</details>',
-    renderTaskHistory(),
-    links(),
-    '</div>',
+    '  <section class="pool-work-task" id="reploid-activity" aria-label="Task">',
+    renderTaskHeader({ embedded: true }),
+    renderGoalComposer({ models: DEFAULT_WORK_MODELS, embedded: true }),
+    renderResultView({ embedded: true }),
+    '  </section>',
+    renderTextSwarm({ footer: '<div class="pool-work-library">'
+      + '<details class="pool-work-secondary"><summary>Changes</summary>' + renderToolExperiments() + '</details>'
+      + renderTaskHistory({ collapsed: true }) + links() + '</div>' }),
     '</div>',
     '</section>'
   ].join('\n');
@@ -120,6 +117,7 @@ export function bindWorkSurface(root, application, services = {}) {
   const act = operation => { Promise.resolve().then(operation).catch(error); };
   let inputs = [], parentId = null, reading = false, fileRevision = 0, approvalId = null;
   let historyIdentity = '', resultIdentity = '', lastState = null;
+  let progressRecordId = null, progressBusy = false;
   let showSelected = true;
   const form = find('[data-work-form]');
   const showInputs = items => {
@@ -172,7 +170,8 @@ export function bindWorkSurface(root, application, services = {}) {
     lastState = state;
     if (state.busy) showSelected = true;
     const row = showSelected ? state.records.find(item => item.id === state.selectedId) : null;
-    setText('[data-work-status]', state.activity);
+    setText('[data-work-status]', state.busy ? state.activity
+      : row ? (row.status || 'Saved').replace(/^./, value => value.toUpperCase()) : state.activity);
     if (state.storageError) error(state.storageError);
     const currentModel = find('[data-work-model]')?.value;
     if (currentModel) updateModelDescription(currentModel);
@@ -247,17 +246,27 @@ export function bindWorkSurface(root, application, services = {}) {
     }
     if (find('[data-work-output]')) {
       setText('[data-work-draft]', state.draft);
+      const progress = find('[data-work-progress]');
+      if (progress) {
+        progress.hidden = !(row?.events?.length || row?.helpers?.length || row?.peerJobs?.length || state.draft);
+        if (progressRecordId !== row?.id || progressBusy !== state.busy) {
+          progress.open = !!state.busy || !!row?.events?.some(event => event.error)
+            || !!row?.helpers?.some(helper => helper.error);
+        }
+        progressRecordId = row?.id;
+        progressBusy = state.busy;
+      }
       const identity = JSON.stringify([row, state.busy]);
       if (identity !== resultIdentity) {
         resultIdentity = identity;
-        setText('[data-work-answer]', row?.output || (state.busy ? ''
-          : row ? 'This attempt did not deliver an outcome. Its activity and failure record are retained.'
-            : 'The result and downloadable files will appear here.'));
+        setText('[data-work-answer]', row?.output || (state.busy || row?.error ? '' : row ? 'No result.' : ''));
+        setText('[data-work-result-error]', row?.error || '');
+        find('[data-work-result-error]').hidden = !row?.error;
         setText('[data-work-result-criteria]', row?.criteria ? 'Success criteria: ' + row.criteria : '');
         const answer = find('[data-work-answer]');
         if (answer) answer.hidden = !answer.textContent;
         const resultHeading = find('[data-work-result-title]');
-        if (resultHeading) resultHeading.textContent = row?.output ? 'Results' : 'Activity';
+        if (resultHeading) resultHeading.hidden = !row?.output;
         setText('[data-work-review-status]', !row?.output ? '' : !row.review ? 'Needs your review'
           : row.review.accepted ? 'Accepted by you' : 'Changes requested');
         find('[data-work-review-actions]').hidden = !row?.output;

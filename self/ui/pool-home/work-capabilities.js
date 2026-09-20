@@ -11,6 +11,10 @@ const candidateState = item => ({ evaluating: 'Testing', 'awaiting-approval': 'T
 
 export function bindWorkCapabilities(root, application, { evolution, swarm } = {}) {
   const controller = new AbortController();
+  const contributionPanel = root.querySelector('[data-contribution-panel]');
+  contributionPanel?.addEventListener('toggle', () => {
+    if (contributionPanel.dataset.active === 'true') contributionPanel.open = true;
+  }, { signal: controller.signal });
   let revision = 0, swarmError = '', candidateIdentity = '';
   const status = message => { const node = root.querySelector('[data-experiment-status]'); if (node) node.textContent = message; };
   const refresh = async () => {
@@ -92,6 +96,12 @@ export function bindWorkCapabilities(root, application, { evolution, swarm } = {
     if (stop) { stop.hidden = !state.sharing && !state.stopping; stop.disabled = state.stopping; }
     const settings = root.querySelector('[data-contribution-settings]');
     if (settings) settings.hidden = !!state.sharing || !!state.stopping;
+    const contribution = root.querySelector('[data-contribution-panel]');
+    if (contribution) {
+      const active = !!state.sharing || !!state.stopping;
+      if (active || (contribution.dataset.active === 'true' && !active)) contribution.open = active;
+      contribution.dataset.active = String(active);
+    }
 
     const share = root.querySelector('[data-swarm-share]');
     if (share) { share.textContent = state.sharing ? 'Stop sharing' : 'Start sharing'; share.disabled = !!state.stopping || !swarm; }

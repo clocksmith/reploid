@@ -6,11 +6,11 @@ import { selectWorkModel } from '../../providers/work-provider.js';
 const escapeHtml = value => String(value ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;')
   .replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 
-export function renderGoalComposer({ models = DEFAULT_WORK_MODELS, defaultModelId = policy.defaultModelId } = {}) {
+export function renderGoalComposer({ models = DEFAULT_WORK_MODELS, defaultModelId = policy.defaultModelId, embedded = false } = {}) {
   const defaultModel = selectWorkModel({ models, defaultModelId });
   return `
     <div class="pool-work-composer-shell">
-      <form class="pool-work-composer" data-work-form>
+      <form class="pool-work-composer${embedded ? ' pool-work-embedded' : ''}" data-work-form>
         <div class="pool-work-field">
           <label for="work-goal" class="pool-work-label">Objective</label>
           <textarea id="work-goal" data-work-goal rows="3" maxlength="${policy.maxGoalCharacters}" required
