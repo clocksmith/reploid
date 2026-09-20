@@ -1,6 +1,40 @@
 import { test, expect } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 
+test('new threads show one of 16 random hints without inserting or submitting a goal', async ({ page }) => {
+  await page.goto('/');
+  const choices = await page.evaluate(async () => {
+    const { pickGoalPlaceholder } = await import('/ui/pool-home/work-goal-composer.js');
+    const random = Math.random;
+    try {
+      return Array.from({ length: 16 }, (_, index) => {
+        Math.random = () => (index + 0.5) / 16;
+        return pickGoalPlaceholder();
+      });
+    } finally { Math.random = random; }
+  });
+  expect(new Set(choices).size).toBe(16);
+  const goal = page.locator('[data-work-goal]');
+  const first = await goal.getAttribute('placeholder');
+  expect(choices).toContain(first);
+  await goal.fill('My own objective');
+  await page.locator('[data-work-attachments] summary').click();
+  await expect(goal).toHaveValue('My own objective');
+  await expect(goal).toHaveAttribute('placeholder', first);
+  let previous = first;
+  for (let index = 0; index < 16; index++) {
+    await page.locator('[data-work-new]').click();
+    const current = await goal.getAttribute('placeholder');
+    expect(choices).toContain(current);
+    expect(current).not.toBe(previous);
+    await expect(goal).toBeVisible();
+    await expect(goal).toBeFocused();
+    await expect(goal).toHaveValue('');
+    previous = current;
+  }
+  await expect(page.locator('[data-work-select]')).toHaveCount(0);
+});
+
 test('Home connects agents and tasks with explicit disclosure', async ({ page }) => {
   await page.goto('/');
   await expect(page.getByRole('heading', { name: 'Threads', exact: true })).toBeVisible();
@@ -74,7 +108,7 @@ test('view state retains activity, cancellation, saved results and a clean new t
     const application = {
       getDraft: () => null, getState: () => state,
       subscribe(callback) { listener = callback; callback(state); return () => {}; },
-      select(id) { state = { ...state, selectedId: id }; listener(state); },
+      select(id) { state = { ...state, selectedId: id }; listener?.(state); },
       clearDraft() {},
       prepareRevision(id) { return { parentId: id, goal: record.goal, criteria: 'Keep the main points',
         modelId: record.modelId, inputs: [], feedback: '' }; },
@@ -88,6 +122,9 @@ test('view state retains activity, cancellation, saved results and a clean new t
       bindWorkSurface(root, application);
     };
   });
+  await expect(page.locator('[data-work-goal]')).toBeVisible();
+  await expect(page.locator('[data-work-output]')).toBeHidden();
+  await page.locator('[data-work-select]').click();
   await expect(page.locator('[data-work-answer]')).toHaveText('A saved result.');
   await expect(page.locator('[data-work-form]')).toBeHidden();
   await expect(page.locator('[data-work-events]')).toContainText('ReadInput / completed');

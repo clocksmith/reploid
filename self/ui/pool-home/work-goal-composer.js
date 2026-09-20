@@ -6,6 +6,30 @@ import { selectWorkModel } from '../../providers/work-provider.js';
 const escapeHtml = value => String(value ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;')
   .replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 
+const goalPlaceholders = Object.freeze([
+  'Find the bug and propose a fix...',
+  'Compare these approaches and explain the tradeoffs...',
+  'Turn these notes into a concrete plan...',
+  'Check this argument for gaps...',
+  'Find the edge cases my tests missed...',
+  'Explain how this code works...',
+  'Summarize the decisions in these notes...',
+  'Review this patch for regressions...',
+  'Look for patterns in this data...',
+  'Design a test for this hypothesis...',
+  'Simplify this without changing its behavior...',
+  'Check whether these results support the conclusion...',
+  'Explore different solutions to this problem...',
+  'Turn this specification into test cases...',
+  'Identify what evidence would resolve this question...',
+  'Challenge this plan and suggest improvements...'
+]);
+
+export function pickGoalPlaceholder(previous = '') {
+  const choices = goalPlaceholders.filter(text => text !== previous);
+  return choices[Math.floor(Math.random() * choices.length)];
+}
+
 export function renderGoalComposer({ models = DEFAULT_WORK_MODELS, defaultModelId = policy.defaultModelId, embedded = false } = {}) {
   const defaultModel = selectWorkModel({ models, defaultModelId });
   return `
@@ -14,7 +38,7 @@ export function renderGoalComposer({ models = DEFAULT_WORK_MODELS, defaultModelI
         <div class="pool-work-field">
           <label for="work-goal" class="pool-work-label">New thread</label>
           <textarea id="work-goal" data-work-goal rows="3" maxlength="${policy.maxGoalCharacters}" required
-            placeholder="Describe the result you want..."></textarea>
+            placeholder="${escapeHtml(pickGoalPlaceholder())}"></textarea>
         </div>
         <div class="pool-work-actions">
           <button class="btn btn-primary" type="submit" data-work-start>Start thread</button>

@@ -5,7 +5,7 @@
 import policy from '../../config/work-profile.json' with { type: 'json' };
 import { DEFAULT_WORK_MODELS, deriveOutcomeTags } from '../../host/work-session.js';
 import { renderOperationSharing } from './operation-sharing.js';
-import { renderGoalComposer } from './work-goal-composer.js';
+import { renderGoalComposer, pickGoalPlaceholder } from './work-goal-composer.js';
 import { renderTaskHeader } from './work-task-header.js';
 import { renderActivityList } from './work-activity-list.js';
 import { renderResultView } from './work-result-view.js';
@@ -395,6 +395,7 @@ export function bindWorkSurface(root, application, services = {}) {
   };
   const draft = application.getDraft();
   if (draft) { showSelected = false; fillDraft(draft); application.select(null); }
+  else if (form) application.select(null);
   const unsubscribe = application.subscribe(render);
   find('[data-work-files]')?.addEventListener('change', async event => {
     const revision = ++fileRevision, selected = Array.from(event.target.files);
@@ -440,6 +441,8 @@ export function bindWorkSurface(root, application, services = {}) {
       else if (control.hasAttribute('data-work-revise-selected')) revise(lastState.selectedId);
       else if (control.hasAttribute('data-work-new')) {
         fileRevision++; parentId = null; inputs = []; form.reset(); showInputs([]);
+        const goal = find('[data-work-goal]');
+        goal.placeholder = pickGoalPlaceholder(goal.placeholder);
         find('[data-work-revision]').hidden = true; find('[data-work-feedback]').required = false;
         application.clearDraft(); error('');
         showSelected = false; application.select(null);

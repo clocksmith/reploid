@@ -47,6 +47,10 @@ test('two real host threads keep their objectives, approvals and cancellation se
   await expect(page.locator('[data-work-select]').filter({ hasText: 'second objective' })).toContainText('review');
   await page.reload();
   await expect(page.locator('[data-work-select]')).toHaveCount(2);
+  await expect(page.locator('[data-work-goal]')).toBeVisible();
+  await expect(page.locator('[data-work-goal]')).toHaveValue('');
+  await expect(page.locator('[data-work-output]')).toBeHidden();
+  await page.locator('[data-work-select]').filter({ hasText: 'second objective' }).click();
   await expect(page.locator('[data-work-answer]')).toHaveText('Independent result');
 });
 
