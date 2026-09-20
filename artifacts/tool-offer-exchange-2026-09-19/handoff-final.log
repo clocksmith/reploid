@@ -1,0 +1,11 @@
+
+Running 2 tests using 1 worker
+
+(node:464953) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:464953) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 [chromium] › tests/e2e/tool-offer-exchange.spec.js:6:1 › another browser imports code, evaluates locally, approves separately and can restore its baseline (2.6s)
+  ✓  2 [chromium] › tests/e2e/tool-offer-exchange.spec.js:69:1 › candidate handoff modules pass Verification Worker (380ms)
+
+  2 passed (4.0s)

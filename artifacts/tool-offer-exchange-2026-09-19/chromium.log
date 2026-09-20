@@ -1,0 +1,26 @@
+
+Running 17 tests using 1 worker
+
+(node:461242) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:461242) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   1 [chromium] › tests/e2e/agent-network-home.spec.js:3:1 › home exposes voluntary participation without sending work or loading a model (754ms)
+  ✓   2 [chromium] › tests/e2e/agent-network-home.spec.js:23:1 › one page shows live agents, task collaborators, contribution settlement and linked improvements (1.1s)
+  ✓   3 [chromium] › tests/e2e/agent-network-home.spec.js:80:3 › network home fits 1440px and retains direct access to each activity (1.2s)
+  ✓   4 [chromium] › tests/e2e/agent-network-home.spec.js:80:3 › network home fits 390px and retains direct access to each activity (831ms)
+  ✓   5 [chromium] › tests/e2e/agent-network-home.spec.js:80:3 › network home fits 320px and retains direct access to each activity (766ms)
+  ✓   6 [chromium] › tests/e2e/tool-offer-exchange.spec.js:6:1 › another browser imports code, evaluates locally, approves separately and can restore its baseline (2.9s)
+  ✓   7 [chromium] › tests/e2e/tool-offer-exchange.spec.js:68:1 › candidate handoff modules pass Verification Worker (370ms)
+  ✓   8 [chromium] › tests/e2e/work-clarity.spec.js:4:1 › Home connects agents and tasks with explicit disclosure (657ms)
+  ✓   9 [chromium] › tests/e2e/work-clarity.spec.js:26:1 › Network explains its purpose and sharing still requires approval (633ms)
+  ✓  10 [chromium] › tests/e2e/work-clarity.spec.js:38:1 › Improve gives new users a useful empty state (664ms)
+  ✓  11 [chromium] › tests/e2e/work-clarity.spec.js:46:1 › mobile network and task controls fit the viewport (583ms)
+  ✓  12 [chromium] › tests/e2e/work-clarity.spec.js:61:1 › view state retains activity, cancellation, saved results and a clean new task (724ms)
+  ✓  13 [chromium] › tests/e2e/work-clarity.spec.js:118:1 › Verification Worker accepts the changed UI modules (397ms)
+  ✓  14 [chromium] › tests/e2e/work-integration.spec.js:6:1 › task uses a helper and approved peer, evaluates code, requires adoption, and restores the old version (1.7s)
+  ✓  15 [chromium] › tests/e2e/work-integration.spec.js:75:1 › candidate isolation blocks network and storage and terminates looping work (510ms)
+  ✓  16 [chromium] › tests/e2e/work-integration.spec.js:88:1 › new integration modules pass the Verification Worker (402ms)
+  ✓  17 [chromium] › tests/e2e/work-integration.spec.js:101:1 › two browsers exchange an approved text request over WebRTC and settle sharing (908ms)
+
+  17 passed (16.4s)

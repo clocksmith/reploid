@@ -35,7 +35,21 @@ export function createCodeEvolution({ targets, policy, ports }) {
       return { passed: test.throws === true && error.candidateException === true, error: String(error.message || error) };
     }
   };
-  return Object.freeze({
+  const readOffer = async text => {
+    assert(policy.offers && typeof text === 'string' && new TextEncoder().encode(text).byteLength <= policy.offers.maxBytes,
+      'Candidate file exceeds its allowance or exchange is disabled');
+    const offer = JSON.parse(text);
+    assert(offer && typeof offer === 'object' && !Array.isArray(offer)
+      && Object.keys(offer).sort().join(',') === 'code,codeHash,reason,schema,targetId'
+      && offer.schema === 'reploid.tool-offer/v1', 'Unsupported candidate file');
+    targetFor(offer.targetId);
+    assert(typeof offer.code === 'string' && offer.code.length > 0 && offer.code.length <= policy.maxCodeCharacters, 'Candidate code exceeds its allowance');
+    assert(typeof offer.reason === 'string' && offer.reason.trim() && offer.reason.length <= policy.offers.maxReasonCharacters, 'Candidate description exceeds its allowance');
+    assert(offer.codeHash === await hash(offer.code), 'Candidate file code hash does not match');
+    return offer;
+  };
+  const api = {
+    offerLimits: policy.offers ? Object.freeze(copy(policy.offers)) : null,
     async describe() {
       const state = await load();
       for (const [id, active] of Object.entries(state.active)) await verifyActive(active, targetFor(id));
@@ -59,11 +73,12 @@ export function createCodeEvolution({ targets, policy, ports }) {
       await verifyActive(selected, target);
       return ports.execute(selected.code, copy(input), { signal });
     },
-    async propose({ targetId, code, reason, baselineGeneration, taskId, generator }, { signal } = {}) {
+    async propose({ targetId, code, reason, baselineGeneration, taskId, generator }, { signal, importedOfferHash } = {}) {
       assert(typeof code === 'string' && code.length > 0 && code.length <= policy.maxCodeCharacters, 'Candidate code exceeds its allowance');
       assert(typeof reason === 'string' && reason.trim(), 'Explain the proposed improvement');
       return ports.lock(async () => {
         signal?.throwIfAborted();
+        if (importedOfferHash) assert(await ports.authorize({ action: 'improvement.import', targetId, sourceHash: importedOfferHash }) === true, 'Host denied candidate import');
         const state = await load(), target = targetFor(targetId), baseline = version(state, target);
         await verifyActive(baseline, target);
         assert(baseline.generationId === baselineGeneration, 'Tool version changed; inspect the current tool before proposing');
@@ -71,6 +86,8 @@ export function createCodeEvolution({ targets, policy, ports }) {
         const id = 'candidate:' + crypto.randomUUID(), generationId = targetId + ':' + crypto.randomUUID();
         const record = { id, targetId, taskId, code, reason, baseline: copy(baseline), generationId,
           status: 'evaluating', createdAt: new Date().toISOString(), error: null };
+        if (importedOfferHash) record.origin = { kind: 'candidate-file', sourceHash: importedOfferHash };
+        const proposerAuthority = importedOfferHash ? 'work:operator-import' : 'work:agent';
         state.candidates.push(record); await commit(state);
         const candidateHash = await hash(code), baselineHash = await hash(baseline.code);
         const suiteHash = await hash(target.tests), budgetHash = await hash(policy);
@@ -83,8 +100,8 @@ export function createCodeEvolution({ targets, policy, ports }) {
             objective: { objectiveId: targetId, statement: target.description, successMetricId: 'additional-cases' },
             baseline: { generationId: baseline.generationId, hashes: { code: baselineHash, config: budgetHash,
               model: await hash(generator.model), prompt: await hash(generator.instruction), artifacts: baselineHash, contract: contractHash } },
-            proposer: { authorityId: 'work:agent' },
-            generator: { authorityId: 'work:agent', implementation: generator.implementation, implementationHash: generatorHash, frozenBeforeCandidate: true },
+            proposer: { authorityId: proposerAuthority },
+            generator: { authorityId: proposerAuthority, implementation: generator.implementation, implementationHash: generatorHash, frozenBeforeCandidate: true },
             evaluator: { evaluatorId: 'work:protected-suite', authorityId: 'work:evaluator', version: '1', evaluatorHash,
               testSuiteDigest: suiteHash, protectedPaths: ['/config/work-evolution.json', '/host/work-evolution.js', '/infrastructure/code-sandbox.js'],
               heldOut: true, frozenBeforeCandidate: true, frozenAt },
@@ -102,14 +119,14 @@ export function createCodeEvolution({ targets, policy, ports }) {
               allowedCandidatePaths: ['/shadow/work-tools'], allowedEffectKinds: ['tool_activation'], frozenBeforeCandidate: true },
             reopeningConditions: [{ conditionId: 'operator-rollback', observationKind: 'tool_failure', targetId,
               sensorAuthorityId: 'work:operator', action: 'rollback_request' }] });
-          await ledger.recordDiagnosis(id, { authorityId: 'work:agent', diagnosis: reason, hypothesis: {
+          await ledger.recordDiagnosis(id, { authorityId: proposerAuthority, diagnosis: reason, hypothesis: {
             observation: reason, suspectedCause: 'The current tool does not cover the requested input',
             alternativeExplanations: ['The task may be outside this tool contract'], proposedDiagnostic: 'Compare both versions on the frozen host suite',
             candidateIntervention: 'Replace the registered pure tool implementation', expectedResult: 'More passing cases without regressions',
             falsifyingResult: 'No improvement or any regression' } });
           await ledger.proposeCandidate(id, { candidateId: id, candidateHash, patchHash: await hash({ before: baseline.code, after: code }),
             generationId, parentGenerationId: baseline.generationId, changedFiles: [path], semanticScope: [targetId], expectedBehavior: reason,
-            affectedInvariants: ['Preserve valid inputs'], falsifier: 'A contract case fails', generatorAuthorityId: 'work:agent', generatorHash });
+            affectedInvariants: ['Preserve valid inputs'], falsifier: 'A contract case fails', generatorAuthorityId: proposerAuthority, generatorHash });
           const verification = await ports.verify(code, signal);
           await ledger.recordVerification(id, { passed: verification.passed === true, verifierId: 'work:verification-worker', evidencePaths: [evidencePath], checks: verification });
           assert(verification.passed, 'Candidate failed static verification: ' + JSON.stringify(verification.errors));
@@ -178,6 +195,31 @@ export function createCodeEvolution({ targets, policy, ports }) {
       assert(record, 'Candidate not found');
       return { candidate: copy(record), episode: await ledger.getEpisode(id), events: await ledger.readEvents(id) };
     },
+    async exportOffer(id) {
+      assert(await ports.authorize({ action: 'improvement.export', candidateId: id }) === true, 'Host denied candidate export');
+      const record = (await load()).candidates.find(item => item.id === id);
+      assert(record, 'Candidate not found');
+      const episode = await ledger.getEpisode(id);
+      const codeHash = await hash(record.code);
+      assert(episode?.integrity?.valid && episode.candidate?.candidateHash === codeHash, 'Candidate bytes differ from signed proposal');
+      return readOffer(JSON.stringify({ schema: 'reploid.tool-offer/v1', targetId: record.targetId,
+        code: record.code, reason: record.reason, codeHash }));
+    },
+    async inspectOffer(text) {
+      const offer = await readOffer(text);
+      const state = await load(), target = targetFor(offer.targetId), baseline = version(state, target);
+      await verifyActive(baseline, target);
+      return { ...offer, baselineGeneration: baseline.generationId, sourceHash: await hash(offer) };
+    },
+    async importOffer(text, { baselineGeneration, signal } = {}) {
+      const offer = await readOffer(text), sourceHash = await hash(offer);
+      signal?.throwIfAborted();
+      return api.propose({ targetId: offer.targetId, code: offer.code, reason: offer.reason, baselineGeneration,
+        taskId: 'import:' + sourceHash,
+        generator: { implementation: 'reploid:operator-import', model: null,
+          instruction: 'Operator-imported candidate file ' + sourceHash + '; authorship and prior performance are unverified.' } },
+      { signal, importedOfferHash: sourceHash });
+    },
     async rollback(id) {
       return ports.lock(async () => {
         const state = await load(), record = state.candidates.find(item => item.id === id);
@@ -190,5 +232,6 @@ export function createCodeEvolution({ targets, policy, ports }) {
         return publicCandidate(record);
       });
     }
-  });
+  };
+  return Object.freeze(api);
 }

@@ -3201,9 +3201,10 @@
     {
       "path": "ui/pool-home/work-capabilities.js",
       "owner": "ui",
-      "sha256": "sha256:b16076a5ba2a1270834d8a3f8d19616dd6b24171d66c55880eeebeea8084d700",
+      "sha256": "sha256:826b9d554b51ef700d88fab9c0ef001fef2853af3b817fc6d7d20ceca0c38c33",
       "imports": [
-        "./agent-network.js"
+        "./agent-network.js",
+        "./work-tool-offers.js"
       ]
     },
     {
@@ -3232,6 +3233,12 @@
       "path": "ui/pool-home/work-task-history.js",
       "owner": "ui",
       "sha256": "sha256:b94c55c2bd544beeb07488060923ac672f9853aedf0fd941d81baa44362834c7",
+      "imports": []
+    },
+    {
+      "path": "ui/pool-home/work-tool-offers.js",
+      "owner": "ui",
+      "sha256": "sha256:ef85295572865f6ba4ba669f15f63718c95b5fb3bf8ea72d6849e8bfa6227a8f",
       "imports": []
     },
     {
@@ -3614,7 +3621,7 @@
     {
       "path": "vendor/reploid/improvement/code-evolution.js",
       "owner": "vendor",
-      "sha256": "sha256:0c9c23cd20727ae0ef7f08b48f23d80020e03661dec70a6a457dcfe68d1f4b5b",
+      "sha256": "sha256:77dad8932fb93e063eea0676628df1c97d50c15bf7b537a3ee12fcf384530bba",
       "imports": [
         "./episodes.js"
       ]

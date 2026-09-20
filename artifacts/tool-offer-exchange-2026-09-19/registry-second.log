@@ -1,0 +1,8 @@
+[module-inventory] Wrote /home/clocksmith/deco/reploid/self/config/module-inventory.json with 432 modules
+[genesis-manifest] Skipping /home/clocksmith/deco/reploid/self/experimental/openclaw-audit/index.js: document is not defined
+[genesis-manifest] Wrote /home/clocksmith/deco/reploid/self/config/genesis-levels.json
+[blueprint-registry] Unchanged registry: 106 executable owners, 176 declarations
+[module-registry] Unchanged /home/clocksmith/deco/reploid/self/config/module-registry.json
+[vfs-manifest] Wrote /home/clocksmith/deco/reploid/self/config/vfs-manifest.json
+[validate] {"sourceFiles":432,"modules":68,"blueprintDeclarations":176,"executableOwners":106,"unresolved":0}
+[validate] Inventoried helpers: 254; modules without an architectural blueprint: 18

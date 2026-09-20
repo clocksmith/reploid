@@ -5896,7 +5896,7 @@ body[data-pool-route-id='home'] #app {
 .pool-work-experiments { border: var(--pool-border-hairline) solid var(--pool-surface-line); border-radius: var(--pool-radius-panel); padding: var(--pool-space-lg); background: var(--pool-surface-raised); }
 .pool-work-candidate { padding: var(--pool-space-md) 0; border-top: var(--pool-border-hairline) solid var(--pool-surface-line); }
 .pool-work-candidate h3 { margin: 0; }
-.pool-work-candidate pre { white-space: pre-wrap; overflow-wrap: anywhere; max-height: calc(var(--pool-px-64) * 5); overflow: auto; }
+.pool-work-experiments pre { white-space: pre-wrap; overflow-wrap: anywhere; max-height: calc(var(--pool-px-64) * 5); overflow: auto; }
 .pool-work-team { border-left: var(--pool-px-2) solid var(--pool-surface-line); padding-left: var(--pool-space-md); }
 .pool-work-team:empty { display: none; }
 
