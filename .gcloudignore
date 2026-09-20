@@ -1,0 +1,24 @@
+# Cloud Build receives only the files needed to render deployment environment
+# and build the commit-bound Cloud Run runtime image.
+**
+
+!.gcloudignore
+!.dockerignore
+!Dockerfile
+!package.json
+!package-lock.json
+
+!server/
+!server/**
+server/logs/
+server/logs/**
+
+!self/
+!self/**
+
+!scripts/
+!scripts/print-pool-env.js
+
+!deploy/
+!deploy/cloudbuild.yaml
+!deploy/env.production.json
