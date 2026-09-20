@@ -1,0 +1,45 @@
+
+ RUN  v4.1.10 /home/clocksmith/deco/reploid
+
+ ❯ tests/unit/code-evolution.test.js (16 tests | 1 failed | 15 skipped) 53ms
+     × evaluates a replacement after a rejected candidate against the same baseline 51ms
+     ↓ supports successive latency improvements after correctness saturates and binds the frozen objective
+     ↓ rejects noise, held-out failures and invalid objective clocks even when correctness cases pass
+     ↓ preserves cancellation during paired measurement without approving partial samples
+     ↓ allows declining a pending candidate after its evaluation policy changes
+     ↓ does not count a sandbox timeout as correct rejection of invalid input
+     ↓ keeps passing candidates inactive until approval and restores their baseline
+     ↓ rejects a candidate that improves nothing and preserves evaluation failures
+     ↓ cannot bypass the host adoption permission or change an evaluated candidate
+     ↓ retries failed persistence after approval without activating an uncommitted version
+     ↓ refuses changed active bytes and recovers interrupted evaluations
+     ↓ exchanges only code and description, then independently evaluates and requires local adoption
+     ↓ rejects malformed, oversized, tampered and authority-bearing files before any execution
+     ↓ enforces host import/export authorization and a fresh recipient baseline
+     ↓ uses the recipient suite even when the sender adopted the candidate
+     ↓ preserves cancellation evidence and leaves the active tool unchanged
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/unit/code-evolution.test.js > governed code evolution > evaluates a replacement after a rejected candidate against the same baseline
+AssertionError: expected 'failed' to be 'awaiting-approval' // Object.is equality
+
+Expected: "awaiting-approval"
+Received: "failed"
+
+ ❯ tests/unit/code-evolution.test.js:31:32
+     29|     expect(rejected.status).toBe('rejected');
+     30|     const replacement = await f.propose();
+     31|     expect(replacement.status).toBe('awaiting-approval');
+       |                                ^
+     32|     const first = await f.engine.export(rejected.id), second = await f…
+     33|     expect(first.episode.integrity.valid).toBe(true);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 15 skipped (16)
+   Start at  09:39:51
+   Duration  459ms (transform 98ms, setup 0ms, import 135ms, tests 53ms, environment 173ms)
+

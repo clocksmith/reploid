@@ -1,0 +1,21 @@
+
+Running 12 tests using 1 worker
+
+(node:514679) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:514679) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   1 [chromium] › tests/e2e/continuing-tool-objectives.spec.js:6:1 › a fully correct tool can improve measured latency, require approval, survive reload and roll back (4.6s)
+  ✓   2 [chromium] › tests/e2e/continuing-tool-objectives.spec.js:50:1 › continuing objective modules pass Verification Worker (403ms)
+  ✓   3 [chromium] › tests/e2e/peer-tool-offer.spec.js:6:1 › WebRTC delivers a refused offer then a preview that survives restart and needs local evaluation and adoption (8.2s)
+  ✓   4 [chromium] › tests/e2e/peer-tool-offer.spec.js:74:1 › peer candidate modules pass Verification Worker (423ms)
+  ✓   5 [chromium] › tests/e2e/peer-tool-offer.spec.js:89:1 › Verification Worker distinguishes dynamic imports from JSDoc and quoted examples (382ms)
+  ✓   6 [chromium] › tests/e2e/tool-offer-exchange.spec.js:7:1 › another browser imports code, evaluates locally, approves separately and can restore its baseline (3.4s)
+  ✓   7 [chromium] › tests/e2e/tool-offer-exchange.spec.js:70:1 › candidate handoff modules pass Verification Worker (439ms)
+  ✓   8 [chromium] › tests/e2e/work-integration.spec.js:7:1 › task uses a helper and approved peer, evaluates code, requires adoption, and restores the old version (2.4s)
+  ✓   9 [chromium] › tests/e2e/work-integration.spec.js:81:1 › candidate isolation blocks network and storage and terminates looping work (527ms)
+  ✓  10 [chromium] › tests/e2e/work-integration.spec.js:94:1 › new integration modules pass the Verification Worker (446ms)
+  ✓  11 [chromium] › tests/e2e/work-integration.spec.js:107:1 › timed-out work waits for borrowed inference, preserves the failure and reloads its checkpoint (753ms)
+  ✓  12 [chromium] › tests/e2e/work-integration.spec.js:142:1 › two browsers exchange an approved text request over WebRTC and settle sharing (837ms)
+
+  12 passed (24.1s)

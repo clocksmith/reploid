@@ -1,0 +1,11 @@
+Generated application library assets: 113 files
+[module-inventory] Wrote /home/clocksmith/deco/reploid/self/config/module-inventory.json with 435 modules
+[genesis-manifest] Skipping /home/clocksmith/deco/reploid/self/experimental/openclaw-audit/index.js: document is not defined
+[genesis-manifest] Wrote /home/clocksmith/deco/reploid/self/config/genesis-levels.json
+[blueprint-registry] Unchanged registry: 106 executable owners, 176 declarations
+[module-registry] Unchanged /home/clocksmith/deco/reploid/self/config/module-registry.json
+[vfs-manifest] Wrote /home/clocksmith/deco/reploid/self/config/vfs-manifest.json
+[browser-bundle] Wrote /home/clocksmith/deco/reploid/self/config/browser-bundle-manifest.json with 796 served files as sha256:8b975fbc56e76495b7ac0fb90c1bdc97a8258c4dc8c185b6332f74c74e913dff
+[validate] {"sourceFiles":435,"modules":68,"blueprintDeclarations":176,"executableOwners":106,"unresolved":0}
+[validate] Inventoried helpers: 257; modules without an architectural blueprint: 18
+Second generation is byte-identical.

@@ -1,0 +1,8 @@
+file:///home/clocksmith/deco/reploid/tests/actual-tool-transfer.js:15
+  throw new Error('Report does not bind a qualifying candidate to unchanged model output');
+        ^
+
+Error: Report does not bind a qualifying candidate to unchanged model output
+    at file:///home/clocksmith/deco/reploid/tests/actual-tool-transfer.js:15:9
+
+Node.js v22.23.2
