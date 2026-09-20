@@ -8,7 +8,8 @@ test('home exposes voluntary participation without sending work or loading a mod
   await expect(page.locator('[data-contribution-status]')).toHaveText('Not sharing');
   await expect(page.locator('[data-work-improvement]')).not.toBeChecked();
   await expect(page.locator('[data-work-peers]')).not.toBeChecked();
-  await page.locator('[data-contribution-settings] summary').click();
+  await expect(page.locator('[data-contribution-limits]')).toBeHidden();
+  await page.locator('[data-contribution-panel] summary').click();
   await expect(page.locator('[data-contribution-limits]')).toContainText('1 request at a time');
   await page.locator('[data-swarm-share]').click();
   await expect(page.locator('[data-swarm-status]')).toContainText('Approve public prompt execution');

@@ -77,7 +77,8 @@
 }
 .pool-work-grid { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: var(--pool-space-xl); align-items: start; }
 .pool-work-primary, .pool-work-results { min-width: 0; display: grid; gap: var(--pool-space-lg); align-content: start; }
-.pool-work-composer, .pool-work-output, .pool-work-approval, .pool-work-task-header, .pool-control-panel, .pool-agent-network {
+.pool-work-composer:not(.pool-work-embedded), .pool-work-output:not(.pool-work-embedded),
+.pool-work-task-header:not(.pool-work-embedded), .pool-work-task, .pool-work-approval, .pool-control-panel, .pool-agent-network {
   min-width: 0;
   padding: var(--pool-space-lg);
   border: var(--pool-border-hairline) solid var(--pool-surface-line);
@@ -257,10 +258,10 @@
 .pool-work-task-header {
   display: grid;
   gap: var(--pool-space-sm);
-  padding: var(--pool-space-md) var(--pool-space-lg);
 }
 .pool-work-task-summary {
   display: flex;
+  min-height: var(--pool-px-44);
   justify-content: space-between;
   align-items: center;
   gap: var(--pool-space-md);
@@ -5595,19 +5596,25 @@ body[data-pool-route-id='home'] #app {
 .pool-work-team:empty { display: none; }
 
 /* One composition for work, participants and contribution. */
-.pool-connected-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--pool-space-xl); align-items: start; }
-.pool-connected-layout > .pool-work-column { max-width: none; margin: 0; min-width: 0; }
-.pool-work-followup { grid-column: 1 / -1; display: grid; gap: var(--pool-space-lg); min-width: 0; }
+.pool-connected-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--pool-space-xl); align-items: stretch; }
+.pool-work-task { display: grid; align-content: start; gap: var(--pool-space-lg); }
+.pool-work-embedded { min-width: 0; }
+.pool-work-library { display: flex; flex-wrap: wrap; align-items: start; gap: var(--pool-space-sm) var(--pool-space-lg); margin-top: auto; padding-top: var(--pool-space-md); }
+.pool-work-library > details[open] { flex-basis: 100%; }
+.pool-work-library > details > summary { min-height: var(--pool-px-44); padding-block: var(--pool-space-sm); font-size: var(--pool-text-sm); }
 .pool-connected-heading h1 { margin: 0; font-size: var(--pool-text-xl); line-height: var(--pool-type-leading-snug); }
 .pool-network-heading { display: flex; min-height: var(--pool-px-44); align-items: center; justify-content: space-between; gap: var(--pool-space-sm); }
 .pool-network-heading h2, .pool-network-heading h3 { margin: 0; font-size: var(--pool-text-base); }
-.pool-agent-list { list-style: none; margin: var(--pool-space-lg) 0; padding: 0; display: grid; gap: var(--pool-space-lg); }
+.pool-agent-network { display: flex; flex-direction: column; gap: var(--pool-space-md); }
+.pool-agent-list { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--pool-space-md); }
 .pool-agent-row { display: grid; gap: var(--pool-space-xs); border-left: var(--pool-px-2) solid var(--pool-surface-line); padding-left: var(--pool-space-md); overflow-wrap: anywhere; }
 .pool-agent-row span, .pool-agent-row small { font-size: var(--pool-text-sm); color: var(--pool-surface-muted); }
 .pool-agent-row strong { font-size: var(--pool-text-base); }
-.pool-contribution { display: grid; gap: var(--pool-space-sm); margin-top: var(--pool-space-lg); padding-top: var(--pool-space-md); border-top: var(--pool-border-hairline) solid var(--pool-surface-line); }
+.pool-contribution { border-top: var(--pool-border-hairline) solid var(--pool-surface-line); }
+.pool-contribution summary span { margin-left: var(--pool-space-sm); }
+.pool-contribution[data-active='true'] > summary { pointer-events: none; }
 .pool-agent-network p:empty { display: none; }
-.pool-agent-network [data-swarm-status] { margin-bottom: var(--pool-space-sm); }
+.pool-agent-network [data-swarm-status] { margin: 0; }
 .pool-agent-network [data-swarm-invitation] { overflow-wrap: anywhere; }
 .pool-work-secondary > summary { cursor: pointer; min-height: var(--pool-px-44); padding-block: var(--pool-space-sm); font-size: var(--pool-text-base); }
 .pool-candidate-origin { color: var(--pool-surface-muted); text-align: left; text-decoration: underline; font-size: var(--pool-text-sm); min-height: var(--pool-px-44); overflow-wrap: anywhere; }

@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Reploid: simpler workspace</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 24px; background: #eee; color: #222; font: 16px/1.5 system-ui; }
+  nav { display: flex; gap: 24px; margin-bottom: 24px; flex-wrap: wrap; }
+  label { display: grid; gap: 4px; }
+  select { font: inherit; padding: 8px; }
+  main { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; }
+  figure { margin: 0; min-width: 0; }
+  img { width: 100%; display: block; }
+</style>
+<h1>Simpler workspace</h1>
+<p>Presentation fixtures, not inference evidence. Before: df1ae1e7. After: two aligned panels, collapsed idle contribution and history.</p>
+<nav>
+  <label>Theme<select id="theme"><option>light</option><option>dark</option></select></label>
+  <label>Viewport<select id="width"><option>1440</option><option>390</option></select></label>
+  <label>State<select id="state"><option>empty</option><option>active</option><option>approval</option><option>completed</option></select></label>
+</nav>
+<main><figure><figcaption>Before</figcaption><img id="before" alt="Before simplification"></figure>
+<figure><figcaption>After</figcaption><img id="after" alt="After simplification"></figure></main>
+<p>Also captured: <a href="after-light-1440-paused.png">paused desktop</a>, <a href="after-dark-390-paused.png">paused mobile</a>. The exact failure remains visible; the repeated history row is collapsed.</p>
+<script>
+  const controls = ['theme', 'width', 'state'].map(id => document.getElementById(id));
+  function update() {
+    const name = `after-${controls.map(node => node.value).join('-')}.png`;
+    document.getElementById('before').src = `../monochrome-workspace-2026-09-20/${name}`;
+    document.getElementById('after').src = name;
+  }
+  controls.forEach(node => node.addEventListener('change', update));
+  update();
+</script>
+</html>

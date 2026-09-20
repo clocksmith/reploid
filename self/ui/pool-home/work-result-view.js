@@ -3,9 +3,9 @@
  * Displays distinction badges ("Patch drafted", "JSON validated", "Needs execution"),
  * artifact downloads, review actions, and an audit details disclosure.
  */
-export function renderResultView() {
+export function renderResultView({ embedded = false } = {}) {
   return [
-    '<section class="pool-work-output" data-work-output aria-label="Task result">',
+    '<section class="pool-work-output' + (embedded ? ' pool-work-embedded' : '') + '" data-work-output aria-label="Task result">',
     '  <div class="pool-work-section-heading">',
     '    <div class="pool-work-heading-group">',
     '      <h2 class="type-h2" data-work-result-title>Results</h2>',
@@ -14,10 +14,11 @@ export function renderResultView() {
     '    <span class="type-caption" data-work-review-status></span>',
     '  </div>',
     '  <div class="pool-work-answer" data-work-answer></div>',
+    '  <p class="pool-work-error" role="alert" data-work-result-error hidden></p>',
     '  <div class="pool-work-artifacts" data-work-artifacts></div>',
-    '  <div class="pool-work-team" data-work-team aria-live="polite"></div>',
-    '  <details class="pool-work-progress" data-work-progress open>',
+    '  <details class="pool-work-progress" data-work-progress>',
     '    <summary>Activity</summary>',
+    '    <div class="pool-work-team" data-work-team aria-live="polite"></div>',
     '    <ol data-work-events></ol>',
     '    <pre data-work-draft></pre>',
     '  </details>',
