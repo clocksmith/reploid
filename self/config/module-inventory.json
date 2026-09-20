@@ -1554,8 +1554,9 @@
     {
       "path": "pool/peer-capabilities.js",
       "owner": "pool",
-      "sha256": "sha256:8800f118ed27a8411281cf24896a498037e4b4fbd61be58dd0b1b51065e4b665",
+      "sha256": "sha256:eefff719db34a7ba82add77ccd24745811863f55c83cb1c974f98b66a07ec108",
       "imports": [
+        "../vendor/reploid/mesh/placement-beliefs.js",
         "./pack-operation-policy.js"
       ]
     },
@@ -1729,8 +1730,9 @@
     {
       "path": "pool/peer-planning.js",
       "owner": "pool",
-      "sha256": "sha256:5ac047288b8a07152144178c2a31d8ef18370b71a15004e7a8d45dc30b2cd632",
+      "sha256": "sha256:4ba29729528463682df0d81b6832c339faa123068887fe86d14b6593a5141b2a",
       "imports": [
+        "../vendor/reploid/mesh/placement-beliefs.js",
         "./config.js",
         "./inference-receipt.js",
         "./model-contract.js",
@@ -3680,19 +3682,20 @@
     {
       "path": "vendor/reploid/mesh/index.js",
       "owner": "vendor",
-      "sha256": "sha256:b11a0b6a0d903093ba0220e247ccafd339ccf86b03e2127fc639bbe4468f3da0",
+      "sha256": "sha256:1f84e33402c1c6ce956abff4dddfb33f3fdb4778eab42399762232c23b0fde02",
       "imports": [
         "../config/index.js",
         "../rules/routing.rules.json",
         "./contribution.js",
         "./legacy-generation.js",
+        "./placement-beliefs.js",
         "./swarm-coordination.js"
       ]
     },
     {
       "path": "vendor/reploid/mesh/jobs/contracts.js",
       "owner": "vendor",
-      "sha256": "sha256:1db10a42b21f063c152d1f9a6583ee1fbe5e4ff515c5a097aafdd1cbe8df3aed",
+      "sha256": "sha256:63b6679e9601d48a6baefb1c559c16b2a88896a08194bc0055b6a0e1f284336b",
       "imports": []
     },
     {
@@ -3734,6 +3737,14 @@
         "../config/index.js",
         "./contribution.js",
         "./swarm-coordination.js"
+      ]
+    },
+    {
+      "path": "vendor/reploid/mesh/placement-beliefs.js",
+      "owner": "vendor",
+      "sha256": "sha256:4e40796672e4569b8ddbfee1171a84c057cb87630286e77de026976050713efa",
+      "imports": [
+        "../config/index.js"
       ]
     },
     {

@@ -93,15 +93,16 @@ async function createPackProviderAdvert({ identity, models, limits, capabilities
 }
 
 /** Verify signed observations before handing an immutable snapshot to the pure planner. */
-async function planPackPeerProviders({ adverts, requirements, now, registry = createPackOperationRegistry(), policy = PACK_JOB_POLICY }) {
-  ({ adverts, requirements } = snapshot({ adverts, requirements }));
+async function planPackPeerProviders({ adverts, requirements, now, observations = null, registry = createPackOperationRegistry(), policy = PACK_JOB_POLICY }) {
+  policy = resolvePackJobPolicy(policy);
+  ({ adverts, requirements, observations } = snapshot({ adverts, requirements, observations }));
   requirePackJob(Array.isArray(adverts) && adverts.length > 0 && adverts.length <= policy.assignmentPolicy.maxCandidates, 'bounded provider advertisements required');
   const candidates = [];
   for (const advert of adverts) {
     await verifyPackPeerMessage(advert, { type: PEER_MESSAGE_TYPES.PROVIDER_ADVERT, now, policy });
     candidates.push(await checkAdvertCapabilities(advert, { registry, policy, now }));
   }
-  return planOperationProviders({ requirements, candidates, now, observations: null,
+  return planOperationProviders({ requirements, candidates, now, observations,
     policy: policy.assignmentPolicy, capabilitySchema: policy.providerCapabilitySchema });
 }
 
@@ -145,7 +146,8 @@ async function jobParts({ requesterId, advert, intent, input, options, registry,
     else await normalizeExecutionAdapterSet(intent.adapterSet, { model, policy: policy.execution.adapters });
     if (policy.version >= 2) {
       const requirements = await workRequirements(intent, operation);
-      const plan = await planPackPeerProviders({ adverts: intent.planning.adverts, requirements, now: intent.selectedAt, registry, policy });
+      const plan = await planPackPeerProviders({ adverts: intent.planning.adverts, requirements, now: intent.selectedAt,
+        observations: intent.planning.observations ?? null, registry, policy });
       requirePackJob(await equal(plan, intent.planning.plan) && plan.selectedProviderId === advert.fromPeerId
         && plan.candidates.some(row => row.providerId === advert.fromPeerId && row.advertHash === advert.messageHash), 'assignment differs from deterministic provider plan');
     }
@@ -176,7 +178,7 @@ async function jobParts({ requesterId, advert, intent, input, options, registry,
 }
 
 async function createPackPeerJob({ identity, advert, adverts, model, input, options = {}, limits, consent, comparisonPolicy, resources,
-  acceptanceMode, requestSchema = null, jobId = crypto.randomUUID(), attemptId = crypto.randomUUID(), attemptNumber, adapterSet,
+  acceptanceMode, observations = null, requestSchema = null, jobId = crypto.randomUUID(), attemptId = crypto.randomUUID(), attemptNumber, adapterSet,
   registry = createPackOperationRegistry(), policy: policyInput = PACK_JOB_POLICY }) {
   const policy = resolvePackJobPolicy(policyInput);
   if (acceptanceMode === undefined) acceptanceMode = policy.acceptance.defaultMode;
@@ -185,7 +187,7 @@ async function createPackPeerJob({ identity, advert, adverts, model, input, opti
   // Snapshot before the first await, including nested policy and model objects.
   requirePackJob(policy.version === 3, 'new work requires current adapter execution policy');
   const data = snapshot({ adverts: adverts === undefined ? [advert] : adverts, model: packPeerModel(model, registry), input, options, limits, consent,
-    comparisonPolicy, acceptanceMode, requestSchema, resources, jobId, attemptId, attemptNumber, adapterSet });
+    comparisonPolicy, acceptanceMode, requestSchema, resources, jobId, attemptId, attemptNumber, adapterSet, observations });
   const intent = { ...(data.requestSchema === null ? {} : { requestSchema: data.requestSchema }), model: data.model, limits: data.limits, consent: data.consent, comparisonPolicy: data.comparisonPolicy,
     jobId, attemptId, attemptNumber, adapterSet: data.adapterSet, inputClass: registry[data.model.executablePack.requiredOperation].definition.inputClasses.defaultRemote,
     operationPolicy: registry[data.model.executablePack.requiredOperation].policy, jobPolicy: policy,
@@ -196,11 +198,12 @@ async function createPackPeerJob({ identity, advert, adverts, model, input, opti
   const operation = { name: data.model.executablePack.requiredOperation, version: registry[data.model.executablePack.requiredOperation].version };
   intent.acceptance = await resolveOperationAcceptance({ mode: data.acceptanceMode, operation, comparisonPolicy: data.comparisonPolicy, policy: policy.acceptance });
   const requirements = await workRequirements(intent, operation);
-  const plan = await planPackPeerProviders({ adverts: data.adverts, requirements, now: intent.selectedAt, registry, policy });
+  const plan = await planPackPeerProviders({ adverts: data.adverts, requirements, now: intent.selectedAt,
+    observations: data.observations, registry, policy });
   requirePackJob(plan.selectedProviderId, `no eligible provider for declared work: ${[...new Set(plan.candidates.flatMap(row => row.reasons))].join(', ')}`);
   const selectedHash = plan.candidates.find(row => row.providerId === plan.selectedProviderId).advertHash;
   advert = data.adverts.find(row => row.messageHash === selectedHash);
-  intent.planning = { adverts: data.adverts, plan };
+  intent.planning = { adverts: data.adverts, plan, ...(policy.assignmentPolicy.history.enabled ? { observations: data.observations } : {}) };
   const parts = await jobParts({ requesterId: identity.keyId, advert, intent, input: data.input, options: data.options, registry, policy });
   return signPackPeerMessage({ identity, type: PEER_MESSAGE_TYPES.ASSIGNMENT_CLAIM, recipient: advert.fromPeerId,
     expiresAt: data.limits.deadlineAt, policy, body: { schema: PACK_JOB_SCHEMA, advert, intent, ...parts } });

@@ -11,13 +11,22 @@ import { POOLDAY_MODEL_WORKLOADS } from './model-contract.js';
 import { agreementFieldForWorkload } from './sequence-workload.js';
 import { freezeOperationPolicy as snapshot } from './pack-operation-policy.js';
 import { resolveProviderCapabilitySchema, resolvePeerAssignmentPolicy, validateProviderCapabilities, validateWorkRequirements } from './peer-capabilities.js';
+import { projectPlacementBeliefs } from '../vendor/reploid/mesh/placement-beliefs.js';
+
+/** Host cohort scopes workload size/classification; pins and reported environment
+ * prevent reusing a posterior for another execution context. This is not attestation. */
+export async function operationPlacementContext(requirements, capabilities, cohortId) {
+  const { providerIds: _providers, ...work } = requirements;
+  return hashJson(snapshot({ work, gpuIdentity: capabilities.gpuIdentity, cohortId }));
+}
 
 /** Pure projection of already verified advertisements. All time and policy are inputs. */
 export async function planOperationProviders({ requirements: workInput, candidates: candidateInput, policy: policyInput,
   capabilitySchema: schemaInput, now, observations }) {
   const requirements = validateWorkRequirements(workInput), schema = resolveProviderCapabilitySchema(schemaInput);
   const policy = resolvePeerAssignmentPolicy(policyInput, schema), candidates = snapshot(candidateInput);
-  if (observations !== null) throw new Error('Peer planning: historical selection is disabled by resolved policy');
+  if (!policy.history.enabled && observations !== null) throw new Error('Peer planning: historical selection is disabled by resolved policy');
+  const history = policy.history.enabled ? snapshot(observations) : null;
   if (!Array.isArray(candidates) || candidates.length > policy.maxCandidates || !Number.isSafeInteger(now)) throw new Error('Peer planning: bounded candidates and explicit time required');
   const lexical = (a, b) => a < b ? -1 : a > b ? 1 : 0;
   const latest = new Map();
@@ -61,7 +70,18 @@ export async function planOperationProviders({ requirements: workInput, candidat
         queuedJobs: resource.queuedJobs, gpuBudgetBytes: freeGpu, bandwidthBytesPerSecond: resource.bandwidthBytesPerSecond, providerId },
       unknownMemory: { gpu: resource.gpuFreeBytes === null, storage: resource.storageFreeBytes === null } };
   }).sort((a, b) => lexical(a.providerId, b.providerId));
+  let beliefs = null;
+  if (policy.history.enabled) {
+    const contexts = await Promise.all(rows.filter(row => row.eligible).map(async row => ({ providerId: row.providerId,
+      contextId: await operationPlacementContext(requirements, latest.get(row.providerId).capabilities, policy.history.beliefPolicy.cohortId) })));
+    beliefs = projectPlacementBeliefs({ policy: policy.history.beliefPolicy, observations: history, candidates: contexts, now });
+  }
+  const scores = new Map(beliefs?.candidates.map(row => [row.providerId, row.expectedUtility]) ?? []);
   const ordered = rows.filter(row => row.eligible).sort((a, b) => {
+    if (beliefs) {
+      const difference = scores.get(b.providerId) - scores.get(a.providerId);
+      if (difference) return difference;
+    }
     for (const { metric, order } of policy.ranking) {
       const difference = lexical(a.metrics[metric], b.metrics[metric]);
       if (difference) return order === 'asc' ? difference : -difference;
@@ -70,7 +90,8 @@ export async function planOperationProviders({ requirements: workInput, candidat
   });
   return snapshot({ schema: 'reploid.pool.operation-assignment-plan/v1', policyId: policy.policyId,
     policyDigest: await hashJson(policy), requirementsDigest: await hashJson(requirements), selectedAt: now,
-    historyProjectionDigest: null, candidates: rows, orderedProviderIds: ordered.map(row => row.providerId),
+    historyProjectionDigest: beliefs ? await hashJson(beliefs) : null, ...(beliefs ? { beliefs } : {}),
+    candidates: rows, orderedProviderIds: ordered.map(row => row.providerId),
     selectedProviderId: ordered[0]?.providerId ?? null });
 }
 

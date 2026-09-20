@@ -292,6 +292,22 @@ try {
           return results;
         } finally { await page.close(); }
       });
+      await check('installed-bayesian-placement', async () => {
+        const { placementBeliefPolicy } = await import('./fixtures/placement-beliefs.js');
+        const page = await browser.newPage();
+        try {
+          await page.goto(base + '/imports.html');
+          const result = await page.evaluate(async policy => {
+            const { projectPlacementBeliefs } = await import('reploid/mesh');
+            return projectPlacementBeliefs({ policy, now: 1, candidates: [{ providerId: 'peer', contextId: 'context' }],
+              observations: [{ evidenceId: 'trial', dependencyId: 'trial', providerId: 'peer', contextId: 'context',
+                observedAt: 0, outcomeId: 'fast' }] });
+          }, placementBeliefPolicy);
+          assert.deepEqual(result.candidates[0].posterior.map(row => row.alpha), [2, 1, 1]);
+          assert.equal(result.candidates[0].completionProbability, 0.75);
+          return { executionClass: 'synthetic-observations-installed-browser', result };
+        } finally { await page.close(); }
+      });
       for (const route of ['/', '/nested/app/', '/nested/app/cross-origin.html']) await check('deterministic-browser-consumer:' + route, async () => {
         const page = await browser.newPage();
         const errors = [];

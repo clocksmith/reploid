@@ -1,0 +1,25 @@
+
+Running 15 tests using 1 worker
+
+(node:519417) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:519417) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   1 [chromium] › tests/e2e/peer-pack-jobs.spec.js:26:1 › Bayesian assignments replay locally without CI and reject unauthorized history (804ms)
+  ✓   2 [chromium] › tests/e2e/peer-pack-jobs.spec.js:53:1 › verified adapter bytes survive browser replacement with the supplier unavailable (1.6s)
+  ✓   3 [chromium] › tests/e2e/peer-pack-jobs.spec.js:77:65 › reviewed public task uses room discovery and WebRTC while private retrieval stays local (doppler.pack/v2) (3.1s)
+  ✓   4 [chromium] › tests/e2e/peer-pack-jobs.spec.js:77:65 › reviewed public task uses room discovery and WebRTC while private retrieval stays local (doppler.capsule/v2) (2.9s)
+  ✓   5 [chromium] › tests/e2e/peer-pack-jobs.spec.js:141:1 › common operations cross real WebRTC between browser contexts, with bounded large-message framing (5.4s)
+  ✓   6 [chromium] › tests/e2e/peer-pack-jobs.spec.js:178:1 › Verification Worker accepts complete-job modules and modified execution boundaries (1.2s)
+  ✓   7 [chromium] › tests/e2e/peer-pack-jobs.spec.js:220:1 › durable provider responses survive a complete browser-process replacement (11.8s)
+  ✓   8 [chromium] › tests/e2e/peer-pack-jobs.spec.js:297:1 › native attempt claims fence concurrent writers and enforce retention limits (277ms)
+  ✓   9 [chromium] › tests/e2e/peer-pack-jobs.spec.js:335:1 › native attempt states bind numbered requests and retain expiry before cleanup (272ms)
+  ✓  10 [chromium] › tests/e2e/peer-pack-jobs.spec.js:376:1 › legacy unfinished records migrate as interrupted and never become runnable (253ms)
+  ✓  11 [chromium] › tests/e2e/peer-pack-jobs.spec.js:403:1 › cumulative v2 journal migration preserves updates and rejects corrupt stream metadata (303ms)
+  ✓  12 [chromium] › tests/e2e/peer-pack-jobs.spec.js:440:1 › a stalled native transaction aborts within configured storage bounds (263ms)
+  ✓  13 [chromium] › tests/e2e/peer-pack-jobs.spec.js:465:1 › a replacement provider prevents the still-running writer from publishing completion (1.2s)
+  ✓  14 [chromium] › tests/e2e/peer-pack-jobs.spec.js:493:1 › a corrupted durable response cannot enter provider replay even after another delivery (880ms)
+{"journalCopyVolume":[{"count":64,"writes":99991,"reads":56532},{"count":128,"writes":200172,"reads":113200},{"count":256,"writes":400858,"reads":226717}]}
+  ✓  15 [chromium] › tests/e2e/peer-pack-jobs.spec.js:537:1 › journal delta appends transfer approximately linear bytes (1.3s)
+
+  15 passed (34.0s)

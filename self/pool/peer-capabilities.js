@@ -1,5 +1,6 @@
 /** Capability observations and assignment policy. No discovery, execution or model-family rules. */
 import { freezeOperationPolicy as snapshot } from './pack-operation-policy.js';
+import { resolvePlacementBeliefPolicy } from '../vendor/reploid/mesh/placement-beliefs.js';
 const assert = (ok, message) => { if (!ok) throw new Error(`Peer capabilities: ${message}`); };
 const integer = value => Number.isSafeInteger(value) && value >= 0;
 const digest = value => typeof value === 'string' && /^sha256:[0-9a-f]{64}$/.test(value);
@@ -29,7 +30,11 @@ export function resolvePeerAssignmentPolicy(input, capabilitySchema) {
   assert(integer(policy.maxCandidates) && policy.maxCandidates > 0, 'bounded candidate count required');
   assert(['reject', 'budget-only'].includes(policy.unknownFreeMemory), 'unknown memory policy required');
   assert(policy.duplicateProviders === 'newest-observation-then-message-hash' && policy.invalidAdvertisement === 'reject', 'supported advertisement handling required');
-  assert(policy.history?.enabled === false, 'history routing requires separate qualified policy');
+  assert(typeof policy.history?.enabled === 'boolean', 'explicit history policy required');
+  if (policy.history.enabled) {
+    assert(Object.keys(policy.history).every(key => ['enabled', 'beliefPolicy'].includes(key)), 'unknown history policy field');
+    resolvePlacementBeliefPolicy(policy.history.beliefPolicy);
+  }
   const metrics = ['modelAvailability', 'adapterAvailability', 'activeJobs', 'queuedJobs', 'gpuBudgetBytes', 'bandwidthBytesPerSecond', 'providerId'];
   assert(Array.isArray(policy.ranking) && policy.ranking.length > 0 && unique(policy.ranking.map(row => row.metric))
     && policy.ranking.every(row => metrics.includes(row.metric) && ['asc', 'desc'].includes(row.order))

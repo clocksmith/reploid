@@ -107,14 +107,45 @@ do not establish execution of model partitions. Peer expert-identity metadata
 likewise establishes no such capability. Reploid must consume an executable
 public contract rather than import private model kernels or invent the math.
 
-`self/pool/peer-planning.js` explicitly rejects historical observations;
-`packages/reploid/src/mesh/index.js` uses configured whole-request placement.
-Neither implements the Bayesian controller below. The existing evolution owner
+At that revision, `self/pool/peer-planning.js` rejected historical observations;
+`packages/reploid/src/mesh/index.js` used configured whole-request placement.
+The existing evolution owner
 evaluates bounded tool candidates; its manual recipient approval path does not
 implement a general preauthorized adoption policy. Continuing correctness/latency
 objectives are covered by development tests, but successful actual-model
 cross-device improvement remains unproved; see the
 [continuing-improvement report](../../artifacts/continuing-improvement-2026-09-20/report.json).
+
+### First Bayesian placement implementation
+
+`packages/reploid/src/mesh/placement-beliefs.js` now owns a pure categorical
+likelihood/Dirichlet posterior projection. The complete-job planner consumes it
+only when its host policy enables history. Outcomes carry declared completion,
+latency and total-cost estimates; expected utility subtracts total cost and the
+declared time charge from completion value. It reports posterior probabilities
+and variance, expected completion, latency, cost and utility. These outcome
+estimates require calibration; they are not raw hardware measurements.
+
+Observation context binds the workload cohort, exact model/adapter/operation,
+limits and reported GPU environment. Environment labels are not attestation.
+The host owns classification, admission, revocation and persistence of observations.
+Replay rebuilds beliefs from the supplied admissible window, so removed evidence
+does not remain in a hidden accumulated score. Identical evidence is counted once;
+copies sharing a dependency count once. Conflicting dependent reports require a
+joint model and are rejected. Expired, unrelated and censored observations do not
+update counts. Censoring is not modeled as failure; informative cancellation can
+bias the remaining sample and must be assessed before making performance claims.
+
+Compatibility, permission and resource checks precede ranking. Policy, observations,
+contexts and the posterior projection are bound to the signed assignment and
+replayed by its verifier. No CI call or promotion result gates that computation.
+This is opt-in whole-job Bayesian selection, not yet automatic observation
+collection, partition placement, a failure-cause model or an information-gain
+controller. The existing diagnostic planner remains a distinct finite hypothesis
+model. Synthetic tests verify these contracts, not real-world calibration or gains.
+The [Bayesian placement report](../../artifacts/bayesian-placement-2026-09-20/report.json)
+retains source identities, signed browser replay, Verification Worker results and
+installed-package checks for this implementation.
 
 ## Partition and learning implementation contracts
 
