@@ -1,0 +1,81 @@
+{
+  "component": "Portable tool candidates, library evaluation, and Reploid import/export UI",
+  "intent": "preserved",
+  "baseRevision": "6fabd00add63c2003ee39959bca84ebf6bc04b7f",
+  "sourceSha256": {
+    "docs/work-collaboration.md": "eda5e93bb06ac6b203eb820b549c7c4dfa29b410c3a1dd6ff04f2ee6b02a737a",
+    "packages/reploid/src/improvement/code-evolution.d.ts": "e7af4c3a77bf8fb31c7d6da4f1c881cfd49c14c546f34d4413b685e9987270b7",
+    "packages/reploid/src/improvement/code-evolution.js": "77dad8932fb93e063eea0676628df1c97d50c15bf7b537a3ee12fcf384530bba",
+    "self/config/browser-bundle-manifest.json": "e44048d42251fd7243c860bf3cf72f30b7afd1dae9bbf83b1e6f3c59208742f1",
+    "self/config/module-inventory.json": "5a26b0e45c1783186c4f31973e521c408dff411f5aa1873df3f41825512212ae",
+    "self/config/vfs-manifest.json": "ad4cc96f56c8ca4cbf0e26a6aa9ecca002823ca14f51deacbcbb238ee60673ec",
+    "self/config/work-evolution.json": "8e0dab82612a5a078e08ab3fd9ad36311403718a08d2bc4d3553fabd1372a15b",
+    "self/styles/poolday/components.css": "f5ded2c3105d6233ec2266c6bcaa78b1182d4c8ff01a4967b59e9addb3a52c7a",
+    "self/ui/pool-home/work-capabilities.js": "826b9d554b51ef700d88fab9c0ef001fef2853af3b817fc6d7d20ceca0c38c33",
+    "self/vendor/reploid/improvement/code-evolution.d.ts": "e7af4c3a77bf8fb31c7d6da4f1c881cfd49c14c546f34d4413b685e9987270b7",
+    "self/vendor/reploid/improvement/code-evolution.js": "77dad8932fb93e063eea0676628df1c97d50c15bf7b537a3ee12fcf384530bba",
+    "self/vendor/reploid/package-assets.json": "cea23bc6ded92c3a2737902edb19194e20428d69f8e5e419337931586790d236",
+    "tests/library-package-acceptance.js": "ae04c7ee21209669959227bdaa8760bc327aadc221fa6907d67e5a5b12e90318",
+    "tests/unit/code-evolution.test.js": "859b603a0aeccc7a53f4bbf46bc75495b30fdadcf1d420258952b4ff9cbc0d38",
+    "self/ui/pool-home/work-tool-offers.js": "ef85295572865f6ba4ba669f15f63718c95b5fb3bf8ea72d6849e8bfa6227a8f",
+    "tests/e2e/tool-offer-exchange.spec.js": "a472c600280ce8e48cdfdc291da5a2289a234df728ccb06b91dfc73c51046634"
+  },
+  "browserBundle": "sha256:53c6b70bdc25cdb78dec8159d56036920415fd201046475f7a78e177178a2578",
+  "acceptance": {
+    "vitest": {
+      "command": "npx vitest run",
+      "passed": 2642,
+      "skipped": 36,
+      "failed": 0,
+      "log": "vitest.log"
+    },
+    "chromium": {
+      "command": "npx playwright test tests/e2e/tool-offer-exchange.spec.js tests/e2e/agent-network-home.spec.js tests/e2e/work-clarity.spec.js tests/e2e/work-integration.spec.js --project=chromium --timeout=60000",
+      "passed": 17,
+      "failed": 0,
+      "log": "chromium.log",
+      "verificationWorker": "passed"
+    },
+    "handoffFinal": {
+      "passed": 2,
+      "failed": 0,
+      "reason": "Repeat after correcting screenshot scroll position",
+      "log": "handoff-final.log"
+    },
+    "installed": {
+      "command": "node tests/library-package-acceptance.js",
+      "passed": 16,
+      "failed": 0,
+      "report": "../library-acceptance/2026-09-20T03-02-29-713Z/report.json",
+      "priorFailure": "../library-acceptance/2026-09-20T03-01-29-345Z/report.json",
+      "repair": "Scoped obsolete settings locator to task attachments and removed duplicate disclosure toggle. Outcome, disclosure and resource checks unchanged."
+    },
+    "static": {
+      "status": "passed",
+      "scripts": [
+        "lint",
+        "verify:library-types",
+        "verify:catscan",
+        "verify:layers",
+        "verify:runtime-config",
+        "verify:surface-claims",
+        "verify:pool:css",
+        "verify:browser-bundle:local"
+      ]
+    },
+    "registry": {
+      "unresolved": 0,
+      "sourceFiles": 432,
+      "secondRunIdempotent": true
+    },
+    "visual": "awaiting-local-approval.png"
+  },
+  "boundaryEffects": "Library owns bounded candidate-file parsing, integrity, local baseline comparison and host authorization. UI requests preview, evaluation, and separate adoption. Sender approval, tests, task records and result claims are not imported.",
+  "limitations": [
+    "File handoff, not automatic WebRTC candidate transfer.",
+    "Two isolated browser contexts on one machine; not independent operators or machines.",
+    "Candidate source supplied by test; no actual inference qualification.",
+    "Finite protected tool suite and one additional input; not recursive improvement or a generalization comparison.",
+    "Not deployed."
+  ]
+}

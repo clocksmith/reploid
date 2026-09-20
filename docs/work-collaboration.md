@@ -1,6 +1,6 @@
 # Work, helpers, peers, and tool improvement
 
-Reploid's Work screen starts with a task, optional files, and an explicit model.
+Reploid's main page connects agents, models, tasks, contribution, and improvements.
 The local choice is Qwen 3.5 2B (`qwen-3-5-2b-q4k-ehaf16`) through
 `doppler-gpu@0.6.1` and WebGPU. The model selector also offers the configured
 Gemini cloud provider; its credential and execution boundary remains explicit.
@@ -58,6 +58,24 @@ authorize arbitrary repository edits or demonstrate recursive A -> B -> C
 improvement, generalization beyond the suite, or that collaboration beats a
 single-agent baseline. Those claims retain the comparisons required by GOALS.md.
 
+## Exchange a candidate
+
+Open a candidate’s **Code & sharing** disclosure and inspect its code and
+description before choosing **Download candidate**. The file includes those
+fields, the target, format version, and code hash. It excludes task records,
+protected tests, evaluation claims, and approval records. The hash checks byte
+integrity; it does not establish authorship or correctness.
+
+On another device, use **Import a tool** under Improvements. Loading the file
+only displays its contents. **Evaluate on this device** runs the recipient’s
+protected suite against its current tool and the imported candidate. A changed
+baseline requires a fresh preview. Failures remain recorded; passing candidates
+still require **Use this version** and retain rollback. Imported code is recorded
+as an operator-imported artifact, not as locally generated agent work.
+
+This is an explicit file handoff. It does not transfer candidates automatically
+over WebRTC or establish improvement across independent machines.
+
 ## Acceptance evidence
 
 `tests/e2e/work-integration.spec.js` exercises the Work helper/evaluation/adoption
@@ -67,3 +85,6 @@ in these tests; they do not qualify physical GPU execution or model task quality
 `tests/unit/code-evolution.test.js` covers signed authority, interrupted work,
 tampering, failed persistence, and rollback. `tests/e2e/work-clarity.spec.js`
 checks task visibility, mobile layout, and disclosure controls.
+`tests/e2e/tool-offer-exchange.spec.js` exercises file download, preview, local
+evaluation, separate adoption, reload, rollback, and tampering rejection across
+two isolated browser contexts. Candidate code is supplied by the test, not a model.

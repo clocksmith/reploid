@@ -1,0 +1,17 @@
+pack-and-detached-install: passed
+published-assets-and-application-copy: passed
+migrated-adapters-use-public-entries: passed
+installed-node-public-imports: passed
+installed-core-declarations-without-doppler: passed
+installed-configuration-regression: passed
+doppler-fixture-install: passed
+installed-declarations-with-doppler: passed
+installed-doppler-public-contract: passed
+browser-launch: passed
+installed-browser-public-imports: passed
+deterministic-browser-consumer:/: passed
+deterministic-browser-consumer:/nested/app/: passed
+deterministic-browser-consumer:/nested/app/cross-origin.html: passed
+installed-work-goal-lifecycle: passed
+provider-verification-worker: passed
+Evidence: /home/clocksmith/deco/reploid/artifacts/library-acceptance/2026-09-20T03-02-29-713Z/report.json

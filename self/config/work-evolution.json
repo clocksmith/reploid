@@ -4,6 +4,7 @@
   "maxCandidates": 24,
   "maxCodeCharacters": 16000,
   "maxStoredBytes": 2097152,
+  "offers": { "maxBytes": 131072, "maxReasonCharacters": 4000 },
   "timeoutMs": 1500,
   "verificationTimeoutMs": 10000,
   "maxResultBytes": 65536,

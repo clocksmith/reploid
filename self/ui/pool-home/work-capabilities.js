@@ -1,9 +1,10 @@
 /** Views of host-owned helpers, peer participation and protected tool experiments. */
 import { renderAgentNetwork, refreshAgentNetwork } from './agent-network.js';
+import { renderToolOfferImport, bindToolOffers } from './work-tool-offers.js';
 const escape = value => String(value ?? '').replace(/[&<>"']/g, value => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[value]);
 export const renderToolExperiments = () => '<section class="pool-work-experiments" id="reploid-improvements" data-work-experiments aria-label="Tool improvements">'
   + '<h2 class="type-h2">Improvements</h2><p class="pool-control-help" data-improvement-empty>No tool changes yet.</p>'
-  + '<div data-work-candidates></div><p role="status" data-experiment-status></p></section>';
+  + renderToolOfferImport() + '<div data-work-candidates></div><p role="status" data-experiment-status></p></section>';
 export const renderTextSwarm = renderAgentNetwork;
 const candidateState = item => ({ evaluating: 'Testing', 'awaiting-approval': 'Tested · approval needed',
   adopted: 'Adopted on this device', rejected: 'Not adopted', 'rolled-back': 'Reverted', failed: 'Test failed', cancelled: 'Testing stopped' })[item.status] || item.status;
@@ -32,12 +33,15 @@ export function bindWorkCapabilities(root, application, { evolution, swarm } = {
           const origin = state.records.find(row => row.improvements?.some(change => change.id === item.id));
           return '<article class="pool-work-candidate"><h3>' + escape(item.targetId) + ' <span class="type-caption">' + escape(candidateState(item)) + '</span></h3>'
             + (origin ? '<button class="pool-candidate-origin" data-work-select="' + escape(origin.id) + '">From task: ' + escape(origin.goal) + '</button>' : '')
+            + (item.origin?.kind === 'candidate-file' ? '<p class="type-caption">Imported candidate · local evaluation</p>' : '')
             + '<p>' + escape(item.reason) + '</p>'
             + (evaluation ? '<p>Current: ' + evaluation.baselinePassed + '/' + evaluation.total + ' checks. Candidate: '
               + evaluation.candidatePassed + '/' + evaluation.total + ' checks.</p>' : '')
             + (item.error ? '<p class="pool-work-error">' + escape(item.error) + '</p>' : '')
-            + '<details><summary>Inspect proposed code</summary><pre>' + escape(item.code) + '</pre></details>'
-            + '<button class="btn btn-ghost" data-candidate-export="' + escape(item.id) + '">Download evaluation</button>'
+            + '<details><summary>Code &amp; sharing</summary><pre>' + escape(item.code) + '</pre>'
+            + (evolution.offerLimits ? '<p class="pool-control-help">The candidate file includes this code and description. Check both before sharing.</p>'
+              + '<button class="btn btn-ghost" data-tool-offer-export="' + escape(item.id) + '"' + busy + '>Download candidate</button>' : '')
+            + '<button class="btn btn-ghost" data-candidate-export="' + escape(item.id) + '">Download evaluation</button></details>'
             + (item.status === 'awaiting-approval' ? '<div class="pool-work-actions"><button class="btn btn-primary" data-candidate-adopt="' + escape(item.id) + '"' + busy + '>Use this version</button>'
               + '<button class="btn btn-ghost" data-candidate-reject="' + escape(item.id) + '"' + busy + '>Keep current version</button></div>' : '')
             + (item.status === 'adopted' && active.some(version => version.episodeId === item.id) ? '<button class="btn btn-ghost" data-candidate-rollback="' + escape(item.id) + '"' + busy + '>Restore previous version</button>' : '') + '</article>';
@@ -124,5 +128,6 @@ export function bindWorkCapabilities(root, application, { evolution, swarm } = {
   root.addEventListener('change', refreshSwarm, { signal: controller.signal });
   const unsubscribe = application.subscribe(() => { void refresh(); });
   const timer = setInterval(refreshSwarm, 1000);
-  return () => { revision++; controller.abort(); unsubscribe(); clearInterval(timer); };
+  const unbindOffers = bindToolOffers(root, application, evolution, refresh);
+  return () => { revision++; controller.abort(); unsubscribe(); unbindOffers(); clearInterval(timer); };
 }

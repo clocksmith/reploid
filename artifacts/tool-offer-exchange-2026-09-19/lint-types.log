@@ -1,0 +1,8 @@
+
+> reploid@0.1.0 lint
+> eslint .
+
+
+> reploid@0.1.0 verify:library-types
+> tsc -p tsconfig.library.json
+
