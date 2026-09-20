@@ -5601,7 +5601,7 @@ body[data-pool-route-id='home'] #app {
 .pool-work-embedded { min-width: 0; }
 .pool-work-library { display: flex; flex-wrap: wrap; align-items: start; gap: var(--pool-space-sm) var(--pool-space-lg); margin-top: auto; padding-top: var(--pool-space-md); }
 .pool-work-library > details[open] { flex-basis: 100%; }
-.pool-work-library > details > summary { min-height: var(--pool-px-44); padding-block: var(--pool-space-sm); font-size: var(--pool-text-sm); }
+.pool-work-library > details > summary { min-height: var(--pool-px-44); padding-block: var(--pool-space-sm); font-size: var(--pool-text-base); }
 .pool-connected-heading h1 { margin: 0; font-size: var(--pool-text-xl); line-height: var(--pool-type-leading-snug); }
 .pool-network-heading { display: flex; min-height: var(--pool-px-44); align-items: center; justify-content: space-between; gap: var(--pool-space-sm); }
 .pool-network-heading h2, .pool-network-heading h3 { margin: 0; font-size: var(--pool-text-base); }
