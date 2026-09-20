@@ -16,7 +16,7 @@ import {
   DOPPLER_STORAGE_TOOLING_URL
 } from '../config/doppler-local-models.js';
 
-const BUILD_VERSION = '2026081002';
+const BUILD_VERSION = '2026091901';
 const IMPORTMAP_ID = 'reploid-doppler-importmap';
 const BASE_ID = 'reploid-base';
 const CORE_STYLE_ID = 'reploid-core-style';

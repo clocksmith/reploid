@@ -400,6 +400,23 @@
 
 }
 
+.pool-home[data-pool-theme='light'] {
+  --pool-surface-page: var(--pool-color-light-page);
+  --pool-surface-ink: var(--pool-color-light-ink);
+  --pool-surface-raised: var(--pool-color-light-raised);
+  --pool-surface-inset: var(--pool-color-light-inset);
+  --pool-surface-line: var(--pool-color-light-line);
+  --pool-surface-control-line: var(--pool-color-light-control-line);
+  --pool-surface-muted: var(--pool-color-light-muted);
+  --pool-surface-focus: var(--pool-color-light-focus);
+  --pool-surface-shadow-raised: var(--pool-dim-light-shadow-raised);
+  --pool-surface-shadow-inset: var(--pool-dim-light-shadow-inset);
+  --pool-surface-ambient-mesh: var(--pool-gradient-light-ambient-mesh);
+  --pool-frame-fill-idle: var(--pool-gradient-light-prism-fill-idle);
+  --pool-frame-fill-hover: var(--pool-gradient-light-prism-fill-hover);
+  --pool-frame-fill-selected: var(--pool-gradient-light-prism-fill-selected);
+}
+
 /* === MOTION PATTERNS === */
 
 @keyframes pool-cursor-blink {

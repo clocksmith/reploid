@@ -653,6 +653,7 @@
     "ui/pool-home/simulation-flow-transition.js",
     "ui/pool-home/simulation-frame-state.js",
     "ui/pool-home/simulation-renderer.js",
+    "ui/pool-home/theme.js",
     "ui/pool-home/view.js",
     "ui/pool-home/work-activity-list.js",
     "ui/pool-home/work-approval-panel.js",

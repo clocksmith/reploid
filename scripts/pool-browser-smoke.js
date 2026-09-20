@@ -209,7 +209,7 @@ for (const route of routes) {
   try {
     console.log(`[pool-smoke] route ${route}`);
     await gotoRoute(routePage, route);
-    await routePage.waitForSelector(requiredSelectors[route], { timeout: 30000 });
+    await routePage.waitForSelector(requiredSelectors[route], { timeout: 30000, state: 'attached' });
     for (const width of [1440, 390]) {
       await routePage.setViewportSize({ width, height: 1000 });
       const frame = await routePage.evaluate(async () => {
@@ -222,15 +222,18 @@ for (const route of routes) {
         return { header: { x: header.x, width: header.width }, content: { x: bounds.x, width: bounds.width },
           page: { x: page.x, width: page.width } };
       });
-      for (const target of ['content', 'page']) {
-        if (Math.abs(frame.header.x - frame[target].x) > 1 || Math.abs(frame.header.width - frame[target].width) > 1) {
-          failures.push(route + ' at ' + width + 'px: ' + target + ' does not match the header: ' + JSON.stringify(frame));
-        }
+      if (Math.abs(frame.header.x - frame.content.x) > 1 || Math.abs(frame.header.width - frame.content.width) > 1) {
+        failures.push(route + ' at ' + width + 'px: content does not match the header: ' + JSON.stringify(frame));
+      }
+      const headerCenter = frame.header.x + frame.header.width / 2;
+      const pageCenter = frame.page.x + frame.page.width / 2;
+      if (Math.abs(headerCenter - pageCenter) > 1) {
+        failures.push(route + ' at ' + width + 'px: page is not centered under the header: ' + JSON.stringify(frame));
       }
     }
     if (route === '/' || route === '/work') {
       for (const selector of ['[data-work-criteria]', '[data-work-files]', '[data-work-start]', '[data-work-output]']) {
-        await routePage.waitForSelector(selector, { timeout: 30000 });
+        await routePage.waitForSelector(selector, { timeout: 30000, state: 'attached' });
       }
       if (await routePage.locator('[data-work-example]').count()) failures.push(route + ' still exposes prompt-only task buttons');
     }

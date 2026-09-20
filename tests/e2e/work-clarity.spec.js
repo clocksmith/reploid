@@ -3,7 +3,7 @@ import { readFile } from 'node:fs/promises';
 
 test('Work leads with a task and makes optional disclosure explicit', async ({ page }) => {
   await page.goto('/');
-  await expect(page.getByRole('heading', { name: 'What do you want to get done?' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'What can I help with?' })).toBeVisible();
   await expect(page.locator('[data-work-output]')).toBeHidden();
   await expect(page.locator('.pool-work-history')).toBeHidden();
   await expect(page.getByText('Mesh Node: Active', { exact: true })).toHaveCount(0);
@@ -115,7 +115,7 @@ test('view state retains activity, cancellation, saved results and a clean new t
 });
 
 test('Verification Worker accepts the changed UI modules', async ({ page }) => {
-  const names = ['index.js', 'view.js', 'work.js', 'work-goal-composer.js', 'work-task-header.js', 'work-result-view.js', 'operation-sharing.js'];
+  const names = ['index.js', 'view.js', 'work.js', 'work-goal-composer.js', 'work-task-header.js', 'work-result-view.js', 'operation-sharing.js', 'theme.js'];
   const snapshot = Object.fromEntries(await Promise.all(names.map(async name => [
     `/ui/pool-home/${name}`, await readFile(`self/ui/pool-home/${name}`, 'utf8')
   ])));
