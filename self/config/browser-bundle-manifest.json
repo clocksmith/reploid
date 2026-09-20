@@ -2020,8 +2020,8 @@
     },
     {
       "path": "pool/CATSCAN.md",
-      "byteLength": 3137,
-      "sha256": "sha256:15538d046331a2545e66acba67e84123c2d13fd60ecf7e9f408ab30b1dd68672"
+      "byteLength": 3119,
+      "sha256": "sha256:c80926fe4b4d879ac5bdf463c7a3a14b0a89d28c811df00450fa62ff4059c5fb"
     },
     {
       "path": "pool/complete-forecast.js",
@@ -3989,5 +3989,5 @@
       "sha256": "sha256:ca1208dd2f96d1b7ffb5464c7676a22aa849ec31936abde0809fc208bbd971c9"
     }
   ],
-  "bundleHash": "sha256:8b975fbc56e76495b7ac0fb90c1bdc97a8258c4dc8c185b6332f74c74e913dff"
+  "bundleHash": "sha256:b08e1e63925ed4a6c9a868320e31d413f585705ca4f359e65d33541927f47499"
 }

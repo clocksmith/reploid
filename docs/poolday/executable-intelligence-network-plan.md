@@ -6,19 +6,19 @@ Network owner: Reploid through Poolday
 
 ## Outcome
 
-Build a governed executable-intelligence network in which Doppler supplies
-exact executable model programs, Poolday coordinates artifact exchange and
-bounded peer execution, and Reploid controls which reviewed outcomes become
-reusable network memory.
+Build a network that improves problem solving and the organization of its own
+computation through participation. Doppler defines and executes valid model
+partitions; Reploid places eligible work and learns from observations; Poolday
+provides authorized transfers and recovery.
 
-Run one product with three independently testable loops: model distribution,
-complete-job remote execution, and learned coordination. Establish failure
-handling within each loop, then connect them. Additional participants must
+Run one product with three distinct distribution mechanisms: model storage,
+model computation and agent work. Whole-job remote execution is one option;
+Bayesian learning should improve decisions across these mechanisms. Additional participants must
 improve availability or useful capacity after coordination costs. Reviewed
 history must improve held-out decisions beyond a competent frozen scheduler.
 Free usefulness counts; payment is not a technical acceptance gate.
 
-## First implementation boundary
+## Existing whole-job boundary
 
 Generalize `model identity + operation + input + limits + acceptance rule` for
 `generate`, `embed`, `rerank`, and `encodeSequence`. Each operation owns input and
@@ -32,7 +32,25 @@ Generation stays on one peer for the complete attempt, including streaming and
 working state. A retry never splices another peer's unfinished answer into it.
 Embeddings and reranking can distribute independent complete batches.
 
-## Flagship
+## First collective-improvement demonstration
+
+1. Execute a small model split across two devices through a public Doppler
+   partition contract. Compare with the same model unsplit, including numerical
+   correctness, full communication costs, cancellation and participant loss.
+2. Let agents observe a recurring inefficiency, generate a permitted scheduling
+   or problem-solving change and evaluate it on unfamiliar work. Another
+   participant receives the candidate, independently evaluates it and benefits
+   after adoption under its own grant.
+3. Compare the changed machinery enabled and disabled while producing another
+   improvement, keeping models, resources, evaluator access and assistance
+   comparable. Another patch or posterior update alone is not recursive proof.
+
+These experiments are active development targets. Neither whole-job success,
+tool-repair completion nor a new UI is a prerequisite to starting the bounded
+partition implementation. The interface preserves the causal connection between
+agents, models, shared execution, contributions, weaknesses, changes and outcomes.
+
+## Existing application workload
 
 Run a free local document/research assistant continuously: acquire models,
 embed a corpus, rerank retrieved passages, and generate referenced answers.
@@ -45,9 +63,10 @@ control. It is not the organizing principle for model admission.
 
 | Authority | Owner |
 | --- | --- |
-| Model semantics, ModelIR, TargetPlans, Pack identity, and model execution | Doppler |
-| Peer advertisements, discovery, artifact-source selection, assignments, WebRTC sessions, comparison, quorum, and reputation | Poolday |
-| Evidence admission, disagreement, correction, revocation, reopening, and reusable decision memory | Reploid |
+| Model semantics, valid partitions, tensor contracts, numerical requirements, state ownership and execution | Doppler |
+| Peer discovery, authorized artifact/activation transfer, job delivery and recovery | Poolday |
+| Eligible placement, agent coordination, Bayesian beliefs, budgets and candidate improvement mechanisms | Reploid library |
+| Credentials, disclosure grants, evaluator isolation and bounded adoption policy | Application/operator |
 | Optional source-to-hardware execution implementation | Doe, only after separate qualification |
 | Application or requester acceptance | The requester |
 
@@ -79,7 +98,103 @@ The following remain unproved:
 - a causal evidence-to-routing improvement on later work;
 - distributed model training.
 
-## Connected proof
+### Inspected implementation gaps (2026-09-20)
+
+At Reploid `ac20aba5`, installed `doppler-gpu` 0.6.1 exposes whole-model scoped
+sessions. No public partition-execution API was found in its client contracts.
+Doppler's distributed-plan parser/validator and internal GPU buffer partitions
+do not establish execution of model partitions. Peer expert-identity metadata
+likewise establishes no such capability. Reploid must consume an executable
+public contract rather than import private model kernels or invent the math.
+
+`self/pool/peer-planning.js` explicitly rejects historical observations;
+`packages/reploid/src/mesh/index.js` uses configured whole-request placement.
+Neither implements the Bayesian controller below. The existing evolution owner
+evaluates bounded tool candidates; its manual recipient approval path does not
+implement a general preauthorized adoption policy. Continuing correctness/latency
+objectives are covered by development tests, but successful actual-model
+cross-device improvement remains unproved; see the
+[continuing-improvement report](../../artifacts/continuing-improvement-2026-09-20/report.json).
+
+## Partition and learning implementation contracts
+
+The following are required contracts, not names of available APIs.
+
+### Doppler executable partition boundary
+
+- Bind exact model artifacts, execution-plan identity, valid partition IDs and
+  dependencies. Specify typed tensor shapes, byte bounds, numerical tolerances,
+  state ownership and legal continuation points.
+- Execute only partitions admitted by Doppler. Define initialization, input
+  upload, execution, output readback, cancellation settlement and owned-resource
+  close. Logical cancellation must not imply immediate termination of borrowed
+  JavaScript or GPU work.
+- Choose a small model and partition shape Doppler can actually execute. Layer
+  groups need not wait for an expert boundary. Preserve learned expert choices,
+  attention/KV semantics and unsplit numerical behavior.
+
+### Reploid placement and Poolday delivery
+
+- Place only eligible, contract-matching partitions within operator budgets.
+  Bind sender, recipient, plan, partition, dependency, attempt, deadline and
+  input/output identity. A retry cannot silently reuse stale attempt outputs.
+- Carry activations as bounded opaque bytes under explicit input-derived
+  disclosure grants. Artifact possession and room discovery grant neither
+  execution nor disclosure. Current public-sequence catalog admission is not
+  broadened by adding a partition experiment.
+- Reuse bounded at-least-once transfer and backpressure. Deduplicate effects by
+  attempt/output identity; receipt acknowledgement is not execution acceptance.
+  Recover only from a Doppler-defined continuation point or restart the affected
+  computation. Settle owned work on cancellation, expiry or participant loss.
+- Record compute, readback, serialization, network, relay, upload, queue and
+  recovery costs separately. Preserve actual transferred bytes and failures.
+  Replaceable signaling and relay services do not own execution semantics.
+
+### Inspectable Bayesian controller
+
+- Begin with explicit completion and latency models conditioned on operation,
+  model, environment and workload size. Bind priors, likelihood/update versions,
+  posterior state and observed/censored outcomes to decision records.
+- Deduplicate shared observation identities and preserve dependency cohorts.
+  Retransmitted receipts and repeated reports of the same run are not independent
+  trials. Reject evidence outside its policy or conditioning scope.
+- Compare eligible actions using expected task value after complete costs.
+  Treat information gain as a separately evaluated objective; uncertainty about
+  an irrelevant variable need not justify an experiment. Beliefs and preferences
+  remain distinct from observed facts.
+- Updating the posterior follows the current granted algorithm. Replacing the
+  updater, scheduler, planner or decomposition method requires a candidate,
+  protected evaluation and separately authorized adoption.
+
+### Runtime adoption policy
+
+- Operators may grant bounded reversible adoption for named targets/objectives,
+  fixed evaluator identity, resource limits, expiry and rollback conditions.
+  Bind each decision to that policy, candidate, baseline and evaluation result.
+- Candidates cannot edit the policy, protected evaluation or prior failure
+  records. New permissions/disclosures require new authorization. Changed
+  baselines invalidate stale evaluation; recovery retains prior active versions.
+- Reasoning, networking, local evaluation and adoption within valid grants must
+  work with CI unavailable. A service outage cannot become a runtime gate.
+  Repository checks verify this implementation; passing them is not an adoption
+  authority. Specific scientific or release workflows keep their separate gates.
+
+### Required execution evidence
+
+Compare split and unsplit execution on identified hardware with exact artifacts
+and inputs. Exercise malformed tensors, rejected disclosure, duplicate delivery,
+interruption, cancellation and participant loss. Retain all attempts and total
+costs, including GPU transfers. A browser simulation is a contract test, not
+two-device evidence. Independent recipient evaluation and unfamiliar workloads
+are required for transferable improvement claims; the causal enabled/disabled
+comparison is additionally required for recursion. Do not assume partitioning
+will be faster: retain slower and inconclusive outcomes.
+
+## Existing custody and whole-job comparison
+
+N0-N7 below define a separate bounded experiment. Its frozen history comparison
+tests a benefit claim; it does not gate authorized runtime belief updates,
+participation, partition experiments or adoption under an existing operator grant.
 
 Retain ESM-2 as a bounded systems control while adding the assistant operations. It
 does not establish biological truth or the separate Research Room scientific
@@ -145,8 +260,8 @@ outcome, the intelligence-sharing claim fails even when the archive grows.
 
 - Preserve exact model, manifest, runtime, backend, workload, and adapter
   matching.
-- Continue whole-model execution. Keep layer scheduling and shard negotiation
-  outside claims until integrated execution evidence exists.
+- Preserve whole-model execution while implementing the separate Doppler
+  partition boundary above. Neither artifact shards nor whole-job tests qualify it.
 - Separate artifact-serving identities from inference-provider identities even
   when one participant performs both roles.
 
@@ -190,7 +305,7 @@ Stop or narrow the network strategy when:
 - the network requires claims of physical independence or honest hardware that
   its evidence cannot establish.
 
-## Repository work queue
+## Existing custody and whole-job work queue
 
 1. Generalize Pack invocation, admission, receipts, and operation adapters.
    Preserve the existing public catalog and all separate research functionality.
@@ -203,11 +318,11 @@ Stop or narrow the network strategy when:
 6. Freeze the 1,000-job history and unseen cohort; run N6a/N6b with all controls.
 7. Establish independent repeat use without broadening unsupported claims.
 
-The requested two-engineer allocation is 40% generalized execution, 30% custody,
-20% remote-job reliability, and 10% learned routing. It does not authorize
-recruitment, deployment, or publication. Do not add tokens, payments, global
-reputation, model splitting, Doe integration, social features, or autonomous
-self-improvement to this milestone. Existing unrelated capabilities remain.
+This queue scopes the custody and whole-job comparison, not the complete product.
+The active partition/learning/adoption contracts above may proceed alongside it.
+Tokens, payments, global reputation, Doe integration and social features remain
+outside these demonstrations. No allocation here authorizes recruitment,
+deployment or publication.
 
 Mutable support and deployment status remain owned by the surface claim index,
 Poolday configuration, runtime contracts, tests, and retained evidence.
