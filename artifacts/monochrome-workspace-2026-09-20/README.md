@@ -9,7 +9,7 @@ and consent visibility, not actual inference or independent providers.
 
 ## Acceptance
 
-- 20 Chromium checks passed across `workspace-material`, `work-clarity`,
+- 21 Chromium checks passed across `workspace-material`, `work-clarity`,
   `agent-network-home`, and `work-integration`: aligned surfaces/control sizing,
   grayscale colors, depth, 320px overflow, exact-payload approval, stop controls,
   Verification Worker, WebRTC exchange, evaluation/adoption/reload/rollback.
@@ -21,12 +21,14 @@ and consent visibility, not actual inference or independent providers.
   unfiltered lint includes pre-existing archived deployment copies.
 - Registry audit: zero unresolved issues, generated JSON parses, second generation
   pass is idempotent. Browser bundle: 799 files,
-  `sha256:01b6ae61a405abb9116a18e1af386e610b5240f452e74021adfd3c0ebedba1c3`.
+  `sha256:4328b6301539cfec5eb59ec8cecb7360aafcbceeb939c66a49fc247d0923d4d4`.
 - UI charter is within the 250-word limit. Repository charter validation still
   reports the pre-existing 267-word `self/pool/CATSCAN.md`.
-- The full Vitest run passed 2660 tests and exposed two stale navigation-label
-  expectations, now updated to the requested `Changes` label; the other failure
-  is the runtime charter limit above. The focused navigation rerun passes.
+- The full Vitest rerun passed 2662 tests, with 36 skipped and one failure:
+  the runtime charter limit above. All 22 navigation assertions pass.
+- Live smoke exposed inherited drawer width/padding transitions on the primary
+  header during viewport changes. Restricted that transition to the drawer;
+  the new resize regression fails before the repair and passes afterward.
 
 Reproduce browser checks without replacing historical evidence:
 

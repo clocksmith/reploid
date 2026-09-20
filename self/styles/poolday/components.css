@@ -735,6 +735,9 @@ body[data-pool-route-id='home'] #app {
   overflow: visible;
   box-sizing: border-box;
   backdrop-filter: blur(var(--pool-px-14));
+}
+
+.pool-nav-rail:not(.pool-primary-nav) {
   transition:
     width var(--pool-motion-nav-duration) var(--pool-motion-nav-easing),
     padding var(--pool-motion-nav-duration) var(--pool-motion-nav-easing),

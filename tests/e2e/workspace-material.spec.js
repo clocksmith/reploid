@@ -3,6 +3,23 @@ import { test, expect } from '@playwright/test';
 const phase = process.env.REPLOID_VISUAL_PHASE || 'after';
 const evidence = 'artifacts/monochrome-workspace-2026-09-20';
 
+test('header and workspace retain aligned gutters during viewport changes', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.goto('/');
+  await expect(page.locator('[data-work-goal]')).toBeVisible();
+  for (const width of [390, 1440, 320, 390]) {
+    await page.setViewportSize({ width, height: 1000 });
+    const bounds = await page.evaluate(async () => {
+      await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+      const nav = document.querySelector('.pool-primary-nav').getBoundingClientRect();
+      const content = document.querySelector('.pool-route-content').getBoundingClientRect();
+      return { nav: nav.toJSON(), content: content.toJSON() };
+    });
+    expect(bounds.nav.left).toBe(bounds.content.left);
+    expect(bounds.nav.width).toBe(bounds.content.width);
+  }
+});
+
 // Host-state fixtures exercise presentation and disclosure, not actual inference.
 async function installWorkspace(page, theme) {
   await page.evaluate(async theme => {
