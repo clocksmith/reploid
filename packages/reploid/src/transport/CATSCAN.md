@@ -3,7 +3,7 @@
 Parent: [Reploid Browser Library](../../CATSCAN.md)
 
 ## Target
-Provide reusable peer transport with explicit host ports and bounded lifecycle.
+Provide Poolday's WebRTC connections and authorized exchange among independently controlled network participants.
 
 ## Authority
 Owns bounded transport setup, delivery and recovery. Has no model, domain, UI, evaluation or adoption authority. Legacy swarm and complete-job assignment protocols remain distinct.
@@ -20,11 +20,12 @@ Outputs: bounded operations, state, failures and retained evidence.
 - Candidates cannot expand permissions or approve their own output.
 - Cancellation does not claim termination of borrowed work.
 - Preserve record identities and recovery compatibility.
+- Storage shards, complete requests and intermediate tensors remain distinct payload contracts. Transfers do not authorize execution or prove partition compatibility.
 - Candidate transfers bind endpoints, room, contract, bytes and expiry. Retried delivery is bounded at-least-once; acknowledgements establish retained preview only.
 
 ## Acceptance
 Evidence: [contract tests](../../../../tests/unit/p2p-transport-lifecycle.test.js).
-Run tests/unit/p2p-transport-lifecycle.test.js, tests/e2e/peer-pack-jobs.spec.js from the repository root.
+Run tests/unit/p2p-transport-lifecycle.test.js, tests/e2e/peer-pack-jobs.spec.js. Account for transferred bytes, retries, cancellation and participant loss.
 
 ## Non-goals
 Application catalogs, credentials, product UI, scientific truth and deployment claims.

@@ -4,7 +4,7 @@ Parent: none
 
 ## Target
 
-Deliver independently useful agents distributing computation and improving individual methods and collective efficiency.
+Deliver a distributed intelligence network whose collaboration and evaluated experience expand capability or improve quality, reliability, or total cost. Standalone usefulness belongs to participants.
 
 ## Authority
 - Owns boundaries: `packages/reploid/` implements behavior; applications compose APIs; UI requests actions.
@@ -32,13 +32,14 @@ Outputs:
 - Problem-solving and improvement loops operate with strict separation.
 - Candidates cannot modify hidden acceptance tests, escalate permissions, or self-approve.
 - Claims stay bounded by recorded acceptance evidence.
-- Runtime adaptation and bounded preauthorized adoption are CI-independent. Algorithm changes require protected evaluation; candidates cannot change grants.
+- Require identified artifacts, declared numerical tolerances, allocation budgets and cancellation settlement, not universal determinism or immediate GPU termination.
+- Bayesian adaptation preserves uncertainty/provenance. Algorithm changes require independent evaluation; weight changes require separate evaluation. Granted runtime adaptation/adoption remain CI-independent; candidates cannot change grants.
 - Adoption is not capability proof; commercial outcomes do not gate completion.
 - Existing code cannot silently overrule a charter.
 
 ## Acceptance
-- Charter graph/index validate; work resolves its authority chain.
-- Evidence supports [INTENT.md](INTENT.md) and [GOALS.md](GOALS.md).
+- Measure against the strongest feasible local alternative and, separately, equivalent centralized resources. Include communication, verification, failures, and human intervention.
+- Charter graph/index and evidence support [INTENT.md](INTENT.md) and [GOALS.md](GOALS.md).
 - Evidence: [CATSCAN validator tests](tests/unit/catscan.test.js).
 
 ## Non-goals

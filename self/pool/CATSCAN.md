@@ -4,7 +4,7 @@ Parent: [Browser Runtime](../CATSCAN.md)
 
 ## Target
 
-Distribute storage/computation/work and improve coordination; separately adjudicate public-protein evidence.
+Compose Reploid's intelligence network through Poolday: authorized storage, computation, work and evaluated coordination; separately adjudicate public-protein evidence.
 
 ## Authority
 - Owns admission, assignment, recovery and accounting integration.
@@ -33,7 +33,7 @@ Outputs:
 ## Invariants
 - Receipts prove signed records/identities only.
 - Adapters own input/output/comparison; networking remains generic.
-- JSON owns policy; Doppler owns mathematics.
+- JSON owns policy; Doppler owns mathematics. Bayesian placement retains uncertainty, provenance, dependencies and communication costs.
 - Private inputs/activations require disclosure grants; custody never authorizes execution.
 - Archive/decision memory remain distinct.
 - Agreement/context never prove truth/relevance; reuse requires review.

@@ -12,15 +12,14 @@ export function renderGoalComposer({ models = DEFAULT_WORK_MODELS, defaultModelI
     <div class="pool-work-composer-shell">
       <form class="pool-work-composer" data-work-form>
         <div class="pool-work-field">
-          <label for="work-goal" class="pool-work-label">Give the agents a task</label>
+          <label for="work-goal" class="pool-work-label">Objective</label>
           <textarea id="work-goal" data-work-goal rows="3" maxlength="${policy.maxGoalCharacters}" required
-            placeholder="What should the agents work on?"></textarea>
+            placeholder="Describe the result you want..."></textarea>
         </div>
         <div class="pool-goal-presets" aria-label="Example tasks">
           <button type="button" class="pool-preset-btn" data-goal-preset="patch">Draft a patch</button>
           <button type="button" class="pool-preset-btn" data-goal-preset="json">Check JSON</button>
           <button type="button" class="pool-preset-btn" data-goal-preset="summary">Summarize a file</button>
-          <button type="button" class="pool-preset-btn" data-goal-preset="improve">Improve a tool</button>
         </div>
         <div class="pool-work-launch-row">
           <div class="pool-work-model-group">
@@ -33,18 +32,17 @@ export function renderGoalComposer({ models = DEFAULT_WORK_MODELS, defaultModelI
             <p id="work-execution-location" class="pool-control-help" data-work-location></p>
           </div>
           <div class="pool-work-actions">
-            <button class="btn btn-primary" type="submit" data-work-start>Start</button>
+            <button class="btn btn-primary" type="submit" data-work-start>Start work</button>
             <button class="btn btn-ghost" type="button" data-work-cancel hidden>Stop</button>
           </div>
         </div>
         <p class="pool-work-status" role="status" aria-live="polite" data-work-start-status hidden></p>
-            <fieldset class="pool-work-capabilities"><legend>Allow for this task</legend>
+            <fieldset class="pool-work-capabilities"><legend>Participation for this task</legend>
               <label><input type="checkbox" data-work-helpers> Use helper agents</label>
               <label><input type="checkbox" data-work-peers> Ask peers</label>
-              <label><input type="checkbox" data-work-improvement> Test tool improvements</label>
             </fieldset>
         <details class="pool-work-options pool-work-attachments pool-work-settings" data-work-attachments>
-          <summary>Files &amp; task settings <span class="type-caption" data-work-file-count></span></summary>
+          <summary>Task settings <span class="type-caption" data-work-file-count></span></summary>
           <div class="pool-work-drawer-body">
             <label for="work-files">Text or source files</label>
             <input id="work-files" type="file" multiple accept=".txt,.md,.csv,.json,.js,.ts,.html,.css,.wgsl,.xml,.yaml,.yml,.log" data-work-files>
@@ -55,6 +53,7 @@ export function renderGoalComposer({ models = DEFAULT_WORK_MODELS, defaultModelI
             <textarea id="work-criteria" data-work-criteria rows="2" maxlength="${policy.maxCriteriaCharacters}"
               placeholder="Add checks that matter, or let Reploid propose them."></textarea>
             <label class="pool-consent-row"><input type="checkbox" data-work-recall><span>Use earlier results I accepted on this device.</span></label>
+            <label class="pool-consent-row"><input type="checkbox" data-work-improvement><span>Test tool improvements. Adoption requires separate approval.</span></label>
           </div>
         </details>
         <div data-work-revision hidden>

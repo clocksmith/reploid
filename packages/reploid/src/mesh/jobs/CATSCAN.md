@@ -3,7 +3,7 @@
 Parent: [Reploid Browser Library](../../../CATSCAN.md)
 
 ## Target
-Provide reusable complete peer jobs with explicit host ports and bounded lifecycle.
+Delegate complete requests to authorized network participants with explicit host ports and bounded lifecycle.
 
 ## Authority
 Owns bounded request, provider, cancellation, replay and episode verification algorithms. The host supplies pinned operation contracts, policy, consent, model admission and execution ports. Transport delivery is bounded at-least-once.
@@ -20,6 +20,7 @@ Outputs: bounded operations, state, failures and retained evidence.
 - Candidates cannot expand permissions or approve their own output.
 - Cancellation does not claim termination of borrowed work.
 - Preserve record identities and recovery compatibility.
+- Whole-request delegation does not prove model partitioning. Doppler owns valid layer/expert partitions; placement cannot change model semantics or expert selection.
 
 ## Acceptance
 Evidence: [contract tests](../../../../../tests/e2e/peer-pack-jobs.spec.js).

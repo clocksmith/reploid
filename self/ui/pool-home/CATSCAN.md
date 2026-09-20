@@ -3,7 +3,7 @@
 Parent: [Browser Interfaces](../CATSCAN.md)
 
 ## Target
-Connect agents, models, shared tasks, contribution, results, and tested improvements.
+Present the intelligence network: objectives, participants, models, shared work, results and evaluated improvement. Standalone use remains a participant property.
 
 ## Authority
 - Owns product and Room-1 presentation.
@@ -19,7 +19,7 @@ Inputs: [runtime](../../pool/CATSCAN.md), deterministic [room state](room-projec
 Outputs: [markup](view.js), [Room-1](room-view.js).
 
 ## Invariants
-- Brand Reploid; preserve Poolday identities.
+- Brand Reploid; preserve Poolday identities. Keep copy brief and workflows uncluttered.
 - Work, Network, Improve are activities, not required destinations.
 - Selected, preparing, executing, offered remain observed states.
 - Link tasks, helpers, jobs, results, candidates. Expose sharing stop.
@@ -30,7 +30,8 @@ Outputs: [markup](view.js), [Room-1](room-view.js).
 - Preserve request, execution, comparison, acceptance, receipt lifecycle.
 - Interrupted jobs expose valid recovery only.
 - Inspect Pack, runtime, provider, declared hardware, fallback, timing, output, agreement.
-- Advanced: execution evidence, identities, retries, recovery.
+- Shared components/tokens; consistent spacing; accessible light/dark themes; responsive scrolling; futuristic, subtly neumorphic styling.
+- Disclose detailed settings/evidence progressively; never conceal grants, failures or stop controls.
 - Research administration stays in Room-1; generic Packs inherit no research fields.
 - Disclose execution location; preview and approve each exact public peer payload.
 - Acceptance names policy; receipts are not hardware attestation.
@@ -38,7 +39,7 @@ Outputs: [markup](view.js), [Room-1](room-view.js).
 - Zero/X remain reachable without inheriting mutation authority.
 
 ## Acceptance
-- Goals, criteria, inputs, downloads, revisions, sharing, jobs, evidence remain usable.
+- Goals, criteria, sharing, jobs and evidence remain usable. Show outcome benefit and total cost against local and centralized baselines only when measured.
 - Injected providers prove neither local nor peer inference.
 - Evidence: [navigation](../../../tests/unit/pool-home-nav.test.js), [requests](../../../tests/unit/pool-home-ask-controls.test.js), [records](../../../tests/unit/pool-home-record.test.js), [peers](../../../tests/e2e/p2p-mesh.spec.js).
 

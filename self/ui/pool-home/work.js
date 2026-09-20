@@ -12,6 +12,7 @@ import { renderResultView } from './work-result-view.js';
 import { renderApprovalPanel } from './work-approval-panel.js';
 import { renderTaskHistory } from './work-task-history.js';
 import { renderToolExperiments, renderTextSwarm, bindWorkCapabilities } from './work-capabilities.js';
+import { renderWorkHeading } from './work-layout.js';
 
 export {
   renderGoalComposer,
@@ -48,19 +49,20 @@ const links = () => '<details class="pool-work-more"><summary>More</summary>'
 export function renderWorkSurface() {
   return [
     '<section class="pool-work-shell pool-connected-shell" data-work-surface aria-label="Agent network">',
-    '<header class="pool-connected-heading"><h1>Agents working together.</h1><p>Run models. Share work. Test improvements.</p></header>',
+    renderWorkHeading('Distributed intelligence', 'What shall we work on?', 'Your objective. Connected agents. Results you can inspect.'),
     '  <p class="pool-work-error" role="alert" data-work-error hidden></p>',
     '<div class="pool-connected-layout">',
-    renderTextSwarm(),
     '  <div class="pool-work-column" id="reploid-activity">',
     renderTaskHeader(),
     renderGoalComposer({ models: DEFAULT_WORK_MODELS }),
     renderApprovalPanel(),
     renderResultView(),
-    renderToolExperiments(),
+    '<details class="pool-work-secondary"><summary>Evaluated changes</summary>' + renderToolExperiments() + '</details>',
     renderTaskHistory(),
     links(),
-    '  </div></div>',
+    '  </div>',
+    renderTextSwarm(),
+    '</div>',
     '</section>'
   ].join('\n');
 }
@@ -68,8 +70,7 @@ export function renderWorkSurface() {
 export function renderNetworkSurface() {
   return '<section class="pool-work-shell" data-work-surface aria-label="Network">'
     + '<p class="pool-work-error" role="alert" data-work-error hidden></p>'
-    + '<header class="pool-work-hero"><h1 class="pool-work-hero-title">Give or get a hand.</h1>'
-    + '<p class="pool-work-promise">Share this device\'s AI compute, or find another device that can help with a task. You choose what to share.</p></header>'
+    + renderWorkHeading('Network', 'Choose your collaborators.', 'Connect peers. Offer compute. Control what leaves this device.')
     + renderTextSwarm()
     + '<details class="pool-work-settings"><summary>Specialized model jobs</summary><div class="pool-work-grid pool-network-grid">'
     + '<section class="pool-control-panel" aria-labelledby="network-provide-title">'
@@ -97,17 +98,16 @@ export function renderImproveSurface() {
   return '<section class="pool-work-shell" data-work-surface aria-label="Improve">'
     + '<p class="pool-work-error" role="alert" data-work-error hidden></p>'
     + '<div class="pool-work-column">'
-    + '<header class="pool-work-hero"><h1 class="pool-work-hero-title">Review what worked.</h1>'
-    + '<p class="pool-work-promise">Revisit saved results, ask for changes, and compare attempts. Changes to the agent itself need separate evaluation.</p></header>'
+    + renderWorkHeading('Improve', 'Evidence before adoption.', 'Compare attempts. Review changes. Keep the version that earns it.')
     + '<div class="pool-work-empty" data-work-empty hidden><h2 class="type-h2">No work to review yet.</h2>'
     + '<p>Start a task, then come back to review its result or try a revision.</p>' + route('/', 'Start your first task') + '</div>'
     + '<section class="pool-work-comparison" data-work-comparison hidden><h2 class="type-h2">Earlier attempt</h2>'
     + '<p data-work-parent-feedback></p><pre data-work-parent-output></pre></section>'
     + renderToolExperiments() + renderResultView() + renderTaskHistory()
-    + '<aside class="pool-work-boundary"><h2 class="type-h2">Changing the agent is a separate decision.</h2>'
+    + '<details class="pool-work-boundary"><summary>What counts as improvement?</summary>'
     + '<p>Task revisions and your acceptance are not independent evaluation or proof of recursive improvement. '
     + 'Tool candidates above use protected tests and require your separate approval. Adoption applies to new tasks and retains the previous version.</p>'
-    + '<a href="/x" data-pool-substrate-route="x">Open governed improvement workspace</a></aside>'
+    + '<a href="/x" data-pool-substrate-route="x">Open governed improvement workspace</a></details>'
     + links() + '</div></section>';
 }
 

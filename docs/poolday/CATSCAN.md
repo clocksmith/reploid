@@ -4,41 +4,50 @@ Parent: [Documentation](../CATSCAN.md)
 
 ## Target
 
-Apply Reploid's mission to voluntary distributed storage, computation, agent work and evaluated collective improvement.
+Define Reploid's network product through voluntary storage, computation, agent
+work and evaluated improvement. Standalone usefulness belongs to participants.
 
 ## Authority
-- Owns the network's application of Reploid intent, user workflow, evidence semantics, and claim boundaries.
-- Does not own implementation status, deployment status, or repository-wide strategy outside Poolday.
+
+Owns network workflows, evidence semantics and claim boundaries. Does not own
+implementation/deployment status or repository-wide strategy.
 
 ## Scope
 
-- Includes this directory and unchartered descendants.
+This directory and unchartered descendants.
 
 ## Contracts
 
-Inputs:
-- Durable repository goals from [GOALS.md](../../GOALS.md).
-- Implemented evidence behavior from the [Poolday runtime charter](../../self/pool/CATSCAN.md).
-
-Outputs:
-- Canonical product direction in [product-intent.md](product-intent.md).
-- Bounded public claims in [claims-and-nonclaims.md](claims-and-nonclaims.md).
+Inputs: [goals](../../GOALS.md) and [runtime charter](../../self/pool/CATSCAN.md).
+Outputs: [product direction](product-intent.md) and [bounded claims](claims-and-nonclaims.md).
 
 ## Invariants
-- Accepted means admissible under a named policy, never globally true.
-- Receipt, agreement, review, laboratory, and biological claims remain distinct.
+
+- Accepted means admissible under a named policy, not globally true.
+- Receipt, agreement, review, laboratory and biological claims remain distinct.
 - Public-sequence support cannot imply private-sequence protection.
-- Benefit claims require comparisons; algorithm changes require protected evaluation and authorized adoption. Runtime adaptation and bounded preauthorized adoption are CI-independent.
-- Doppler Pack identity and qualification remain distinct from peer availability and successful execution.
-- Work, Network, and Improve are connected activities in one main view; Poolday is an internal network name.
-- Recent jobs remains execution-only; scientific Room-1 administration has a separate non-primary route.
+- Distinguish shard custody, whole requests, computational partitions and agent subtasks.
+- Bayesian coordination preserves uncertainty, provenance and dependent observations.
+- Mechanism changes require independent evaluation and authorized adoption; weight changes require separate evaluation. Granted adaptation/adoption are CI-independent.
+- Pack identity and qualification differ from availability and successful execution.
+- Work, Network and Improve are connected activities; Poolday is an internal network name.
+- Recent jobs remains execution-only; Room-1 administration stays separate.
 
 ## Acceptance
-- Product contracts remain compatible with peer-job, recovery, research-cycle, and surface-claim behavior.
-- Evidence: [peer-room tests](../../tests/unit/pool-peer-room.test.js), [research-cycle tests](../../tests/unit/pool-research-cycle.test.js), and [surface claim tests](../../tests/unit/surface-claim-index.test.js).
+
+Measure capability and efficiency against strongest feasible local execution and,
+separately, equivalent centralized resources. Count communication, verification,
+failures and human intervention.
+Preserve job/recovery/research/claim contracts.
+Evidence: [peer-room](../../tests/unit/pool-peer-room.test.js),
+[research-cycle](../../tests/unit/pool-research-cycle.test.js) and
+[surface-claim](../../tests/unit/surface-claim-index.test.js) tests.
 
 ## Non-goals
-- Advertising Zero, X, peer count, a trustless marketplace, hardware attestation, or scientific truth as the product.
+
+Advertising Zero, X, peer count, trustlessness, hardware attestation or scientific
+truth as the product.
 
 ## Freedom
-Any mechanism is permitted if it preserves these boundaries and passes the acceptance evidence.
+
+Preserve boundaries and evidence.

@@ -183,6 +183,17 @@ The following are required contracts, not names of available APIs.
 
 ### Inspectable Bayesian controller
 
+- Among authorized, compatible actions within resource budgets, choose the
+  greatest expected task utility after total costs expressed on a common utility
+  scale. Permissions and hard limits are eligibility constraints, never penalties
+  that a high score can outweigh.
+- Preserve the implemented categorical/Dirichlet placement projection and separate
+  finite diagnostic hypotheses. Beta-Bernoulli, Normal-Gamma, and automatic
+  uncertainty-weight decay are replaceable proposals, not current capabilities
+  or architectural requirements. Calibrate before adding complexity.
+- Information gain is a separately evaluated objective or approximation of future
+  decision value. Exploration need not decrease permanently: changing workloads
+  and participants introduce new uncertainty.
 - Begin with explicit completion and latency models conditioned on operation,
   model, environment and workload size. Bind priors, likelihood/update versions,
   posterior state and observed/censored outcomes to decision records.
@@ -220,6 +231,36 @@ two-device evidence. Independent recipient evaluation and unfamiliar workloads
 are required for transferable improvement claims; the causal enabled/disabled
 comparison is additionally required for recursion. Do not assume partitioning
 will be faster: retain slower and inconclusive outcomes.
+
+Use identified artifacts and qualified execution with declared numerical tolerances,
+not blanket determinism. Allocation budgets cover application-controlled resources;
+WebGPU limits are not exact total physical-memory accounting. Track work that has
+been cancelled but has not settled, including borrowed resources.
+
+Recovery binds model version, execution plan, partition, token position and
+attention-cache ownership. A disconnected participant requires a valid checkpoint,
+state reconstruction, or a fresh attempt. Merely selecting another peer cannot
+establish a valid continuation.
+
+### Charter ownership for implementation
+
+Preserve the existing shared agent engine and existing protocol identities.
+Concrete input/output contracts belong to the owning component, not a new
+parallel execution loop.
+
+| Owner under packages/reploid/src | Contract responsibility |
+| --- | --- |
+| agent/ | Goal pursuit, subtask plans, result interpretation and diagnostic strategies through engine.js. |
+| artifacts/custody/ | Authorized inventories, chunk identities, resumable acquisition, reconstruction and retention; possession grants no computation permission. |
+| transport/ | Connections, framing, bounded queues, backpressure, delivery and reconnection using host-supplied signaling/relay configuration; tensors remain opaque bytes. |
+| mesh/jobs/ | Whole-operation attempts, streaming, retained completion, cancellation and replay; not partition execution. |
+| mesh/ | Eligible placement, reservations, workload-conditioned beliefs, observation provenance and cost-aware selection; retain placement-beliefs.js as the owner. |
+| mesh/partitions/ (proposed) | Coordinate Doppler-defined dependencies, attempts, tensor delivery and valid recovery points; add its charter with implementation, not as evidence of an existing subsystem. |
+| improvement/ | Candidate identity, protected evaluation, policy-bound adoption, rollback and lineage; separately qualify model/adapter changes. |
+
+New mesh and improvement charters should follow these existing owners. Generate
+the component index from actual charters rather than hand-authoring entries for
+proposed implementation.
 
 ## Existing custody and whole-job comparison
 
@@ -275,6 +316,9 @@ outcome, the intelligence-sharing claim fails even when the archive grows.
 
 ### Base-Pack exchange
 
+- Reuse verified content and reduce repeated acquisition, without prohibiting
+  deliberate replicas. Choose retention and sources using capacity, demand,
+  availability, permissions and observed costs; account for replication transfers.
 - Extend Poolday advertisements with exact Pack availability and authorized
   shard-source capability.
 - Reuse Doppler's Pack and shard verification through a narrow interface. Do

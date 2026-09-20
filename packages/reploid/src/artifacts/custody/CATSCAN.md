@@ -3,7 +3,7 @@
 Parent: [Reploid Browser Library](../../../CATSCAN.md)
 
 ## Target
-Provide reusable artifact custody with explicit host ports and bounded lifecycle.
+Exchange authorized model shards and retain useful pieces across network participants without redundant downloads where verified custody permits reuse.
 
 ## Authority
 Owns authorized chunk requests, integrity, checkpoints and artifact reconstruction. Custody does not grant execution or redistribution authority; Doppler verifies final Pack bytes.
@@ -20,6 +20,7 @@ Outputs: bounded operations, state, failures and retained evidence.
 - Candidates cannot expand permissions or approve their own output.
 - Cancellation does not claim termination of borrowed work.
 - Preserve record identities and recovery compatibility.
+- Storage shards do not establish computational partitions. Retention and redistribution remain bounded by participant grants; placement cannot infer execution permission from possession.
 
 ## Acceptance
 Evidence: [contract tests](../../../../../tests/unit/pool-peer-pack-custody.test.js).

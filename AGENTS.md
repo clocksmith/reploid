@@ -105,6 +105,8 @@ npm start                   # Start server
 ## Intent-First Operations
 
 - Treat Reploid intent as distinct surfaces with distinct authority: Poolday, Zero, and X must not be mentally merged.
+- Follow computation ownership: Doppler defines partitions, tensors, numerical contracts and model semantics; Reploid places eligible computation and orchestrates agents/improvement; Poolday moves authorized data. Scheduling never substitutes a different learned expert.
+- Separate targets from qualified capabilities. Declare numerical tolerances, application allocation budgets and cancellation settlement; do not promise universal determinism, physical-memory accounting or immediate GPU termination.
 - If the user asks what a route or UI does, inspect the actual route files, boot profile, VFS seed, and rendered state before proposing names or navigation changes.
 - The user controls public naming and product copy. Do not rename routes, labels, buttons, or trust language without direction.
 - For Poolday, claim only browser inference backed by signed records, audits, reputation, policy, and deterministic comparison. Do not imply trustless compute, hardware attestation, or guaranteed honest browser/GPU execution.
