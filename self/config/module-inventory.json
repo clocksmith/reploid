@@ -2884,7 +2884,7 @@
     {
       "path": "ui/pool-home/agent-network.js",
       "owner": "ui",
-      "sha256": "sha256:7a2eb3fa5abb7e2d6feafff7b18e9dc19fbf90837ec99bc72f28325387bee1fc",
+      "sha256": "sha256:be23e1f76ddf0383e223dc34c184cc233db900d2a52f885d041b2caaa142b24b",
       "imports": []
     },
     {
@@ -2939,7 +2939,7 @@
     {
       "path": "ui/pool-home/index.js",
       "owner": "ui",
-      "sha256": "sha256:2e9762b1b5e1edff5bc1628ce1c8f7a1878c8bdd716fc43a99b4faf4132430a1",
+      "sha256": "sha256:66ae2b3249e71ba7caabe81075c22a238d718fe2abd37bae87977c4971aa438c",
       "imports": [
         "../../config/zero-inference.js",
         "../../host/work-evolution.js",
@@ -3222,12 +3222,18 @@
     {
       "path": "ui/pool-home/work-goal-composer.js",
       "owner": "ui",
-      "sha256": "sha256:d5ed3afd5d533ca3de7ab50bc87c7b716649f03b647c82343a7bc73edd996ffb",
+      "sha256": "sha256:7b33b15f9c6f76f6a108998f634f184dd3c571debee30ed6257dd6b25088c765",
       "imports": [
         "../../config/work-profile.json",
         "../../host/work-session.js",
         "../../providers/work-provider.js"
       ]
+    },
+    {
+      "path": "ui/pool-home/work-layout.js",
+      "owner": "ui",
+      "sha256": "sha256:864f5fc607f9247bcb70a093aa6254fd74f3f726b3c32a43c3575acb17b5b841",
+      "imports": []
     },
     {
       "path": "ui/pool-home/work-result-view.js",
@@ -3256,7 +3262,7 @@
     {
       "path": "ui/pool-home/work.js",
       "owner": "ui",
-      "sha256": "sha256:5f421468657edbdf502190044a2ceaebac69e7fb5bb6f8994deb2a57a57ac473",
+      "sha256": "sha256:08bfc8bf3b2560811187325a26f36230649fed28bbc124a82e40e4a26d025222",
       "imports": [
         "../../config/work-profile.json",
         "../../host/work-session.js",
@@ -3265,6 +3271,7 @@
         "./work-approval-panel.js",
         "./work-capabilities.js",
         "./work-goal-composer.js",
+        "./work-layout.js",
         "./work-result-view.js",
         "./work-task-header.js",
         "./work-task-history.js"
