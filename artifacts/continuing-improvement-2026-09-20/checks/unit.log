@@ -1,0 +1,10 @@
+
+ RUN  v4.1.10 /home/clocksmith/deco/reploid
+
+ ✓ tests/unit/code-evolution.test.js (16 tests) 1007ms
+
+ Test Files  1 passed (1)
+      Tests  16 passed (16)
+   Start at  09:40:06
+   Duration  1.42s (transform 100ms, setup 0ms, import 137ms, tests 1.01s, environment 183ms)
+
