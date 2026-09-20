@@ -1,0 +1,283 @@
+{
+  "schema": "reploid.peer-tool-offer-acceptance/v1",
+  "baseRevision": "dfcba9d4590d667b26a1915ea12d1cbc20c08d8e",
+  "bundle": "sha256:eebb9b823caa11d18e52801da09ef24f66800a852a855eb549cfe9922b819b54",
+  "component": "Peer candidate exchange, task settlement, connected navigation and required CI coverage",
+  "intent": "preserved",
+  "boundaryEffects": [
+    "Library owns transport and settlement",
+    "Host owns custody and consent",
+    "Evaluation and adoption remain separate"
+  ],
+  "checks": [
+    {
+      "name": "Full Vitest suite",
+      "passed": 2650,
+      "skipped": 36,
+      "log": "full-suite.log"
+    },
+    {
+      "name": "Final focused protocol, verifier, lifecycle and Work contracts",
+      "passed": 75,
+      "log": "focused.log"
+    },
+    {
+      "name": "Required Chromium browser suites",
+      "passed": 86,
+      "log": "browser.log"
+    },
+    {
+      "name": "Installed package acceptance",
+      "passed": 16,
+      "report": "../library-acceptance/2026-09-20T03-38-19-147Z/report.json"
+    },
+    {
+      "name": "Static checks",
+      "status": "passed",
+      "log": "static.log"
+    },
+    {
+      "name": "Registry",
+      "unresolved": 0,
+      "idempotent": true,
+      "log": "registry.log"
+    }
+  ],
+  "qualification": {
+    "transport": "Real WebRTC between isolated browser contexts on one machine",
+    "candidate": "Handwritten test fixture; not model-generated",
+    "physicalIndependence": false,
+    "recursiveImprovement": false,
+    "deployed": false
+  },
+  "sources": [
+    {
+      "path": "packages/reploid/src/transport/tool-offer-channel.d.ts",
+      "sha256": "sha256:f440141ffdc282373aa50c1a16b92093b2507864e0bfafa7bced95f1a9588376"
+    },
+    {
+      "path": "packages/reploid/src/transport/tool-offer-channel.js",
+      "sha256": "sha256:ca1208dd2f96d1b7ffb5464c7676a22aa849ec31936abde0809fc208bbd971c9"
+    },
+    {
+      "path": "self/host/work-peer-offers.js",
+      "sha256": "sha256:28f198ff78083c228a15fd4e23297a0984d87cdb1fb7fd5b5aba1185ed50c00e"
+    },
+    {
+      "path": "self/vendor/reploid/transport/tool-offer-channel.d.ts",
+      "sha256": "sha256:f440141ffdc282373aa50c1a16b92093b2507864e0bfafa7bced95f1a9588376"
+    },
+    {
+      "path": "self/vendor/reploid/transport/tool-offer-channel.js",
+      "sha256": "sha256:ca1208dd2f96d1b7ffb5464c7676a22aa849ec31936abde0809fc208bbd971c9"
+    },
+    {
+      "path": "tests/actual-work-improvement.js",
+      "sha256": "sha256:b4bb1326edb1c80447c649bf6f826cdde253f477dfa8577e9e5a6e2cf560d6b3"
+    },
+    {
+      "path": "tests/e2e/peer-tool-offer.spec.js",
+      "sha256": "sha256:b87dc02f4e4648bcd2dc2eac812d1c02ee5ae27a792b00337703652585df9f5c"
+    },
+    {
+      "path": "tests/unit/tool-offer-channel.test.js",
+      "sha256": "sha256:1666bc1559ac8e84c47baa5db9cc2c19bef729cdb474eb365fcbe31ee9226de0"
+    },
+    {
+      "path": ".github/workflows/test.yml",
+      "sha256": "sha256:ba746180c2f4cc014c60fca50e3e8180b98e9ca8a7652e2b28edd97a82e4d17d"
+    },
+    {
+      "path": "docs/component-index.md",
+      "sha256": "sha256:8c9f98e3336710b88d11e146cfe19fe61b9f290a24e11814d758a5d700384e9f"
+    },
+    {
+      "path": "docs/work-collaboration.md",
+      "sha256": "sha256:4864e16d085b943c801e6ddf3840111e95f65125b08917eb0a96881c4c65bf7a"
+    },
+    {
+      "path": "packages/reploid/src/agent/engine.js",
+      "sha256": "sha256:95d3efd7b679162026872697528f299ee772915c52486ef072192e6ffc9fec2f"
+    },
+    {
+      "path": "packages/reploid/src/agent/index.d.ts",
+      "sha256": "sha256:b2de06eb3eacac6121548a32b9a52f449f6d63b58273a8a00c3840ed1bb2b373"
+    },
+    {
+      "path": "packages/reploid/src/agent/index.js",
+      "sha256": "sha256:18a66d0f904b311a7fb3221f76996d7c33cf7b683974c133dd453cf348425f92"
+    },
+    {
+      "path": "packages/reploid/src/agent/runtime.d.ts",
+      "sha256": "sha256:735244db71aa1f3ff2e7794c3267eb965d718c8bdc7af6837bfcd0da1101c9e3"
+    },
+    {
+      "path": "packages/reploid/src/agent/task-strategy.js",
+      "sha256": "sha256:4410d8ebe275926e6d7e4bf03466bae00d7765eb8ac44a302762c8d1265e9b00"
+    },
+    {
+      "path": "packages/reploid/src/improvement/code-evolution.d.ts",
+      "sha256": "sha256:561c53b4995659c0142b8d9b72e155a10d7e2dadf6f616eaf11e722f56955408"
+    },
+    {
+      "path": "packages/reploid/src/improvement/code-evolution.js",
+      "sha256": "sha256:d46de1f133ef48a7f9669ce50fb80f0ba081a70755220341f86f18bbf1aebc9c"
+    },
+    {
+      "path": "packages/reploid/src/transport/CATSCAN.md",
+      "sha256": "sha256:b885342b1667695b9bc5ba1d054ca606884d62b5b92a1a0172947e8155b98e18"
+    },
+    {
+      "path": "packages/reploid/src/transport/index.d.ts",
+      "sha256": "sha256:8d628a47d478e6723d751d195e1852e27ff49affc80d2b434ad7d1f2849073bb"
+    },
+    {
+      "path": "packages/reploid/src/transport/index.js",
+      "sha256": "sha256:259c64f745135714993c473609b99986f6b7286972ee9c453c55e750661c5d9f"
+    },
+    {
+      "path": "packages/reploid/src/transport/room.js",
+      "sha256": "sha256:a302b7f65daba0999c8081d47888769fb455cf79d5dbf428361c958426adae5f"
+    },
+    {
+      "path": "packages/reploid/src/transport/swarm.js",
+      "sha256": "sha256:ef8393e95db2fb6035f6153d04cd50492c6078bb53282a25534de94dcbca1e28"
+    },
+    {
+      "path": "self/config/browser-bundle-manifest.json",
+      "sha256": "sha256:ddfa1a9e3d099eea9ae9f3f312a61f47d920f2c4a091ed326db2b1e3b4162910"
+    },
+    {
+      "path": "self/config/module-inventory.json",
+      "sha256": "sha256:8d96f976eeeb5296cce6129f30188fde88d90cb68e0ce2d32a697c5707c0d134"
+    },
+    {
+      "path": "self/config/vfs-manifest.json",
+      "sha256": "sha256:825b381a1862ebbba71cad13b06683da50962622e767e233874177be62ad1583"
+    },
+    {
+      "path": "self/config/work-evolution.json",
+      "sha256": "sha256:bf19cf08a3259ae6309373da0829bf5504be1060c12e08a61e1d0ae7209ee273"
+    },
+    {
+      "path": "self/core/verification-worker.js",
+      "sha256": "sha256:c068148fce8abd006d11eceeb6ba9e88cab08f882900f1ea2c6d1237ab25abd7"
+    },
+    {
+      "path": "self/host/CATSCAN.md",
+      "sha256": "sha256:2d3fbcb1abf03fec563d18ced50fb6a826d3647eeb79b40bc4d5f6259e46b475"
+    },
+    {
+      "path": "self/host/work-session.js",
+      "sha256": "sha256:e6674a6cae1eb78c04b31a05e245f9692892110b10af46eddf74b1df45cf4a40"
+    },
+    {
+      "path": "self/host/work-swarm.js",
+      "sha256": "sha256:aacac94dbf57c697d465d0bc5ef4df7c4d2de6421a8a3129f72dc73914eecbfc"
+    },
+    {
+      "path": "self/styles/poolday/components.css",
+      "sha256": "sha256:7c9b9d3e55a7dd0fba2598929287017b0393927e7b699eee05028c26e6e7e03f"
+    },
+    {
+      "path": "self/ui/pool-home/CATSCAN.md",
+      "sha256": "sha256:245c51627be94a7b6896b1537a422d141aac4cfa4e49268b14c0151f8425b43f"
+    },
+    {
+      "path": "self/ui/pool-home/index.js",
+      "sha256": "sha256:2e9762b1b5e1edff5bc1628ce1c8f7a1878c8bdd716fc43a99b4faf4132430a1"
+    },
+    {
+      "path": "self/ui/pool-home/work-capabilities.js",
+      "sha256": "sha256:8954d8919ec172083af2fc5054712c2cc494f2c634b95777b2f2236abe001324"
+    },
+    {
+      "path": "self/ui/pool-home/work-tool-offers.js",
+      "sha256": "sha256:c1f98b9ef7d4439d0aa2615ac9221588d8fe8d515c1382c1f07e916ec90f25aa"
+    },
+    {
+      "path": "self/vendor/reploid/agent/engine.js",
+      "sha256": "sha256:95d3efd7b679162026872697528f299ee772915c52486ef072192e6ffc9fec2f"
+    },
+    {
+      "path": "self/vendor/reploid/agent/index.d.ts",
+      "sha256": "sha256:b2de06eb3eacac6121548a32b9a52f449f6d63b58273a8a00c3840ed1bb2b373"
+    },
+    {
+      "path": "self/vendor/reploid/agent/index.js",
+      "sha256": "sha256:18a66d0f904b311a7fb3221f76996d7c33cf7b683974c133dd453cf348425f92"
+    },
+    {
+      "path": "self/vendor/reploid/agent/runtime.d.ts",
+      "sha256": "sha256:735244db71aa1f3ff2e7794c3267eb965d718c8bdc7af6837bfcd0da1101c9e3"
+    },
+    {
+      "path": "self/vendor/reploid/agent/task-strategy.js",
+      "sha256": "sha256:4410d8ebe275926e6d7e4bf03466bae00d7765eb8ac44a302762c8d1265e9b00"
+    },
+    {
+      "path": "self/vendor/reploid/improvement/code-evolution.d.ts",
+      "sha256": "sha256:561c53b4995659c0142b8d9b72e155a10d7e2dadf6f616eaf11e722f56955408"
+    },
+    {
+      "path": "self/vendor/reploid/improvement/code-evolution.js",
+      "sha256": "sha256:d46de1f133ef48a7f9669ce50fb80f0ba081a70755220341f86f18bbf1aebc9c"
+    },
+    {
+      "path": "self/vendor/reploid/package-assets.json",
+      "sha256": "sha256:e2e5676a950ed90efd12359df406e39ed8b3959374da905b462e2ac88f956fbc"
+    },
+    {
+      "path": "self/vendor/reploid/transport/index.d.ts",
+      "sha256": "sha256:8d628a47d478e6723d751d195e1852e27ff49affc80d2b434ad7d1f2849073bb"
+    },
+    {
+      "path": "self/vendor/reploid/transport/index.js",
+      "sha256": "sha256:259c64f745135714993c473609b99986f6b7286972ee9c453c55e750661c5d9f"
+    },
+    {
+      "path": "self/vendor/reploid/transport/room.js",
+      "sha256": "sha256:a302b7f65daba0999c8081d47888769fb455cf79d5dbf428361c958426adae5f"
+    },
+    {
+      "path": "self/vendor/reploid/transport/swarm.js",
+      "sha256": "sha256:ef8393e95db2fb6035f6153d04cd50492c6078bb53282a25534de94dcbca1e28"
+    },
+    {
+      "path": "tests/e2e/agent-network-home.spec.js",
+      "sha256": "sha256:e5bed0319475d5d93dbc28dbc28b7adbee89bf8e330ec83d10111d0f621e7b44"
+    },
+    {
+      "path": "tests/e2e/boot.spec.js",
+      "sha256": "sha256:64f43fcb55256f12d942bddaca9e889e9a985730a0461445629d2d62cc1df4db"
+    },
+    {
+      "path": "tests/e2e/tool-offer-exchange.spec.js",
+      "sha256": "sha256:190f00ec7f2015ee570c38d028c120b941e947e7a16d18bc025c5cbb570c51ef"
+    },
+    {
+      "path": "tests/e2e/work-integration.spec.js",
+      "sha256": "sha256:87b74cfc209cfcc873ca7eaf28dfc50188e61e8189e235031688770132f8b96d"
+    },
+    {
+      "path": "tests/unit/agent-lifecycle.test.js",
+      "sha256": "sha256:63c14698a9e11fae76ff40199fc76ad9b1ec6555a1d31a945a747a69187a84ac"
+    },
+    {
+      "path": "tests/unit/work-contracts.test.js",
+      "sha256": "sha256:a4617ade39d9c59026551bfbadb3440a920439e2a98a37548d4e0fa095b85179"
+    }
+  ],
+  "actualRun": {
+    "report": "../actual-work-improvement/2026-09-20T03-44-22-819Z/report.json",
+    "model": "qwen-3-5-2b-q4k-ehaf16",
+    "runtime": "doppler-gpu@0.6.1",
+    "hardware": "Intel gen-12lp; fallback adapter false",
+    "taskStatus": "paused",
+    "error": "Work deadline reached",
+    "checkpointAvailable": true,
+    "candidateCount": 0,
+    "completedTask": false,
+    "interpretation": "Actual model load and deadline recovery verified; no completed task or improvement."
+  }
+}

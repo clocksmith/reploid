@@ -163,6 +163,19 @@ const parseModuleSyntax = (source) => {
   });
 };
 
+const hasDynamicImport = (syntax) => {
+  const pending = [syntax];
+  while (pending.length) {
+    const node = pending.pop();
+    if (node?.type === 'ImportExpression') return true;
+    for (const value of Object.values(node || {})) {
+      if (Array.isArray(value)) pending.push(...value.filter(item => item?.type));
+      else if (value?.type) pending.push(value);
+    }
+  }
+  return false;
+};
+
 // ============================================================================
 // DANGEROUS PATTERNS (25+ categorized)
 // ============================================================================
@@ -823,9 +836,10 @@ self.onmessage = async (e) => {
         // ----------------------------------------------------------------
         // A. SYNTAX CHECK (without execution)
         // ----------------------------------------------------------------
+        let syntax;
         try {
           // Parse the original module without rewriting or executing it.
-          parseModuleSyntax(code);
+          syntax = parseModuleSyntax(code);
         } catch (err) {
           errors.push(`Syntax Error in ${path}: ${err.message}`);
           events.push(createEvent('verification:syntax_error', { path, error: err.message }));
@@ -836,7 +850,7 @@ self.onmessage = async (e) => {
         // B. DANGEROUS PATTERN DETECTION (regex-based)
         // ----------------------------------------------------------------
         for (const pattern of DANGEROUS_PATTERNS) {
-          if (!pattern.regex.test(code)) continue;
+          if (pattern.id === 'dynamic_import' ? !hasDynamicImport(syntax) : !pattern.regex.test(code)) continue;
 
           // Check if this pattern requires a capability that the path has
           if (pattern.requiresCap && caps[pattern.requiresCap]) continue;

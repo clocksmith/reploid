@@ -33,7 +33,7 @@ export function bindWorkCapabilities(root, application, { evolution, swarm } = {
           const origin = state.records.find(row => row.improvements?.some(change => change.id === item.id));
           return '<article class="pool-work-candidate"><h3>' + escape(item.targetId) + ' <span class="type-caption">' + escape(candidateState(item)) + '</span></h3>'
             + (origin ? '<button class="pool-candidate-origin" data-work-select="' + escape(origin.id) + '">From task: ' + escape(origin.goal) + '</button>' : '')
-            + (item.origin?.kind === 'candidate-file' ? '<p class="type-caption">Imported candidate · local evaluation</p>' : '')
+            + (item.origin ? '<p class="type-caption">Imported candidate · local evaluation</p>' : '')
             + '<p>' + escape(item.reason) + '</p>'
             + (evaluation ? '<p>Current: ' + evaluation.baselinePassed + '/' + evaluation.total + ' checks. Candidate: '
               + evaluation.candidatePassed + '/' + evaluation.total + ' checks.</p>' : '')
@@ -41,6 +41,8 @@ export function bindWorkCapabilities(root, application, { evolution, swarm } = {
             + '<details><summary>Code &amp; sharing</summary><pre>' + escape(item.code) + '</pre>'
             + (evolution.offerLimits ? '<p class="pool-control-help">The candidate file includes this code and description. Check both before sharing.</p>'
               + '<button class="btn btn-ghost" data-tool-offer-export="' + escape(item.id) + '"' + busy + '>Download candidate</button>' : '')
+            + (swarm && evolution.offerLimits ? '<div class="pool-work-actions"><label>Recipient <select data-tool-peer="' + escape(item.id) + '"><option value="">Connect a peer</option></select></label>'
+              + '<button class="btn btn-ghost" data-tool-offer-send="' + escape(item.id) + '" disabled>Send candidate</button></div>' : '')
             + '<button class="btn btn-ghost" data-candidate-export="' + escape(item.id) + '">Download evaluation</button></details>'
             + (item.status === 'awaiting-approval' ? '<div class="pool-work-actions"><button class="btn btn-primary" data-candidate-adopt="' + escape(item.id) + '"' + busy + '>Use this version</button>'
               + '<button class="btn btn-ghost" data-candidate-reject="' + escape(item.id) + '"' + busy + '>Keep current version</button></div>' : '')
@@ -128,6 +130,6 @@ export function bindWorkCapabilities(root, application, { evolution, swarm } = {
   root.addEventListener('change', refreshSwarm, { signal: controller.signal });
   const unsubscribe = application.subscribe(() => { void refresh(); });
   const timer = setInterval(refreshSwarm, 1000);
-  const unbindOffers = bindToolOffers(root, application, evolution, refresh);
+  const unbindOffers = bindToolOffers(root, application, evolution, refresh, swarm);
   return () => { revision++; controller.abort(); unsubscribe(); unbindOffers(); clearInterval(timer); };
 }

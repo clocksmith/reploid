@@ -120,6 +120,11 @@ export function createReploid({ config, ports }) {
       return ports.mesh.connect();
     },
     cancel() { executionEpoch += 1; runtime?.stop(); },
+    async settle() {
+      check();
+      await execution?.catch(() => {});
+      await runtime?.settle();
+    },
     async checkpoint() {
       check();
       if (!runtime || execution) throw new Error('Pause active execution before checkpointing');

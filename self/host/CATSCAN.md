@@ -4,13 +4,13 @@ Parent: [Browser Runtime](../CATSCAN.md)
 
 ## Target
 
-Materialize the configured browser runtime from trusted seed assets and hand control to the selected application surface.
+Materialize the configured browser runtime from trusted seeds and start the selected surface.
 
 ## Authority
 - Owns VFS seeding, service-worker module loading, application startup, and application-selected task tools.
 - Composes the agent with local work retention and exact-payload peer approval.
-- Composes helpers, compatibility text swarms, isolated tools, protected suites and operator activation separately from admitted Pack jobs.
-- Work task contracts own validation, the repository owns committed revisions, providers own execution adaptation, and views expose detached immutable state.
+- Composes helpers, text swarms, candidate previews, isolated tools, protected suites and operator activation separately from admitted Pack jobs.
+- Task contracts own validation; repositories own committed revisions; providers adapt execution; views expose detached immutable state.
 - Does not own product policy, module semantics, or recovery-root immutability.
 
 ## Scope
@@ -30,7 +30,8 @@ Outputs:
 ## Invariants
 - Seed identity and destination remain explicit.
 - Host loading cannot silently substitute missing or unverified modules.
-- Task files cannot grant permissions; file inspection does not establish execution correctness.
+- Received files cannot grant permissions or prove correctness.
+- Peer candidate delivery grants no evaluation or adoption authority.
 - Peer operations require fresh host approval, exact execution identities, and retained acceptance evidence.
 - Candidates cannot read protected tests or self-activate; attempts pin versions and retain rollback sources.
 

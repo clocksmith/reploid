@@ -5,6 +5,8 @@
   "maxCodeCharacters": 16000,
   "maxStoredBytes": 2097152,
   "offers": { "maxBytes": 131072, "maxReasonCharacters": 4000 },
+  "peerOffers": { "storageKey": "reploid.tool-transfers.v1", "maxBytes": 24576, "maxRecords": 32,
+    "maxPending": 16, "ttlMs": 300000, "maxAttempts": 3, "maxStoredBytes": 2097152 },
   "timeoutMs": 1500,
   "verificationTimeoutMs": 10000,
   "maxResultBytes": 65536,

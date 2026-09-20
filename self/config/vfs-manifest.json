@@ -507,6 +507,7 @@
     "self/host/work-helpers.js",
     "self/host/work-inputs.js",
     "self/host/work-peer-jobs.js",
+    "self/host/work-peer-offers.js",
     "self/host/work-repository.js",
     "self/host/work-session.js",
     "self/host/work-swarm.js",
@@ -793,6 +794,8 @@
     "vendor/reploid/transport/signaling.d.ts",
     "vendor/reploid/transport/signaling.js",
     "vendor/reploid/transport/swarm.d.ts",
-    "vendor/reploid/transport/swarm.js"
+    "vendor/reploid/transport/swarm.js",
+    "vendor/reploid/transport/tool-offer-channel.d.ts",
+    "vendor/reploid/transport/tool-offer-channel.js"
   ]
 }

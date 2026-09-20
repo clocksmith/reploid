@@ -305,16 +305,17 @@ export function createWorkSession({ storage, locks = globalThis.navigator?.locks
         row.status = 'running';
         await save(row);
         controller.signal.throwIfAborted();
+        run.started = true;
         const result = await agent.execute({ goal: row.goal });
         row.status = controller.signal.aborted ? 'paused' : result.status === 'ERROR' ? 'failed'
           : row.output ? 'review' : 'paused';
         if (result.status === 'ERROR') row.error = result.context.filter(item => item.origin === 'system').at(-1)?.content || result.activity;
-        row.checkpoint = await agent.checkpoint();
+        if (controller.signal.aborted) row.error = String(controller.signal.reason?.message || 'Work paused');
         activity = row.status === 'review' ? 'Outcome ready for your review.'
           : row.status === 'failed' ? 'Work stopped with an error.' : 'Work paused. No completed outcome is being claimed.';
       } catch (error) {
         row.status = controller.signal.aborted ? 'paused' : 'failed';
-        row.error = String(error.message || error);
+        row.error = String(controller.signal.aborted ? controller.signal.reason?.message || error.message : error.message || error);
         activity = row.error;
       } finally {
         clearTimeout(timer);
@@ -323,8 +324,11 @@ export function createWorkSession({ storage, locks = globalThis.navigator?.locks
         // Keep ownership until an outstanding inference settles, then release.
         try {
           await run.inference?.catch(() => {});
-          await run.agent?.close();
-        } catch (error) { row.error = String(error.message || error); row.status = 'failed'; }
+          await run.agent?.settle();
+          if (run.started) row.checkpoint = await run.agent.checkpoint();
+        } catch (error) { row.error = [row.error, String(error.message || error)].filter(Boolean).join('; '); row.status = 'failed'; }
+        try { await run.agent?.close(); }
+        catch (error) { row.error = [row.error, String(error.message || error)].filter(Boolean).join('; '); row.status = 'failed'; }
         try { if (isDopplerModel) await service.close(scope); }
         catch (error) { row.error = String(error.message || error); row.status = 'failed'; }
         try { await save(row); } catch (error) { storageError = String(error.message || error); }

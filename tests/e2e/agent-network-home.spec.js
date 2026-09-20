@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+const evidenceDir = process.env.REPLOID_E2E_ARTIFACT_DIR || 'artifacts/network-home-2026-09-19';
 
 test('home exposes voluntary participation without sending work or loading a model', async ({ page }) => {
   await page.goto('/');
@@ -73,7 +74,7 @@ test('one page shows live agents, task collaborators, contribution settlement an
   await expect(page.locator('[data-work-candidates]')).toContainText('Tested · approval needed');
   await page.locator('.pool-candidate-origin').click();
   expect(await page.evaluate(() => window.selectedTask)).toBe('task');
-  await page.screenshot({ path: 'artifacts/network-home-2026-09-19/connected-fixture.png', fullPage: true });
+  await page.screenshot({ path: `${evidenceDir}/connected-fixture.png`, fullPage: true });
 });
 
 for (const width of [1440, 390, 320]) {
@@ -89,11 +90,11 @@ for (const width of [1440, 390, 320]) {
     await page.getByRole('link', { name: 'Agents', exact: true }).click();
     await expect(page.locator('[data-swarm-connect]')).toBeInViewport();
     await page.evaluate(() => window.scrollTo(0, 0));
-    await page.screenshot({ path: `artifacts/network-home-2026-09-19/home-${width}.png`, fullPage: true });
+    await page.screenshot({ path: `${evidenceDir}/home-${width}.png`, fullPage: true });
     if (width === 1440) {
       await page.getByRole('button', { name: 'Dark', exact: true }).click();
       await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }));
-      await page.screenshot({ path: 'artifacts/network-home-2026-09-19/home-dark.png', fullPage: true, animations: 'disabled' });
+      await page.screenshot({ path: `${evidenceDir}/home-dark.png`, fullPage: true, animations: 'disabled' });
     }
   });
 }

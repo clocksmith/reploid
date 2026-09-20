@@ -122,18 +122,18 @@
     },
     {
       "path": "agent/engine.js",
-      "bytes": 10695,
-      "sha256": "740acfaf5483bc0b3dc6ddf23b71bf4fb9abbf9c1b7b97e37c4feda9f3f7e77f"
+      "bytes": 10735,
+      "sha256": "95d3efd7b679162026872697528f299ee772915c52486ef072192e6ffc9fec2f"
     },
     {
       "path": "agent/index.d.ts",
-      "bytes": 4911,
-      "sha256": "bf97abc0a11ca7fa6b7b1d6762a2e245eac5224eefcdad5c6c1a7524b8d50de6"
+      "bytes": 5029,
+      "sha256": "b2de06eb3eacac6121548a32b9a52f449f6d63b58273a8a00c3840ed1bb2b373"
     },
     {
       "path": "agent/index.js",
-      "bytes": 7923,
-      "sha256": "3123be76d5c695abe276503d359fc40424971635d0daaccff9ad492b15407202"
+      "bytes": 8037,
+      "sha256": "18a66d0f904b311a7fb3221f76996d7c33cf7b683974c133dd453cf348425f92"
     },
     {
       "path": "agent/lab-strategy.js",
@@ -177,8 +177,8 @@
     },
     {
       "path": "agent/runtime.d.ts",
-      "bytes": 901,
-      "sha256": "c7c654e9f3471ccdb6cd1ebb267e39fcd7bfc1cd42dc9abf2027fd5d1c764f9c"
+      "bytes": 926,
+      "sha256": "735244db71aa1f3ff2e7794c3267eb965d718c8bdc7af6837bfcd0da1101c9e3"
     },
     {
       "path": "agent/runtime.js",
@@ -187,8 +187,8 @@
     },
     {
       "path": "agent/task-strategy.js",
-      "bytes": 48312,
-      "sha256": "7551141754db18a36572eaebe37342a2f5a3e27aa9190c922e3d9ae9d81b54a8"
+      "bytes": 48339,
+      "sha256": "4410d8ebe275926e6d7e4bf03466bae00d7765eb8ac44a302762c8d1265e9b00"
     },
     {
       "path": "agent/tool-dispatch.js",
@@ -407,13 +407,13 @@
     },
     {
       "path": "improvement/code-evolution.d.ts",
-      "bytes": 3023,
-      "sha256": "e7af4c3a77bf8fb31c7d6da4f1c881cfd49c14c546f34d4413b685e9987270b7"
+      "bytes": 3334,
+      "sha256": "561c53b4995659c0142b8d9b72e155a10d7e2dadf6f616eaf11e722f56955408"
     },
     {
       "path": "improvement/code-evolution.js",
-      "bytes": 18857,
-      "sha256": "77dad8932fb93e063eea0676628df1c97d50c15bf7b537a3ee12fcf384530bba"
+      "bytes": 19248,
+      "sha256": "d46de1f133ef48a7f9669ce50fb80f0ba081a70755220341f86f18bbf1aebc9c"
     },
     {
       "path": "improvement/episodes.d.ts",
@@ -557,13 +557,13 @@
     },
     {
       "path": "transport/index.d.ts",
-      "bytes": 258,
-      "sha256": "3b5437abf6b6559d79a9311e7ca7503b8b1ac30c67ba2d8ccfc6bbd5a4b292f2"
+      "bytes": 299,
+      "sha256": "8d628a47d478e6723d751d195e1852e27ff49affc80d2b434ad7d1f2849073bb"
     },
     {
       "path": "transport/index.js",
-      "bytes": 381,
-      "sha256": "95416d718144bb1a9ae271c1a531738efc5c8e1ab29d50bf4e5d33be67fa611e"
+      "bytes": 483,
+      "sha256": "259c64f745135714993c473609b99986f6b7286972ee9c453c55e750661c5d9f"
     },
     {
       "path": "transport/retry-policy.d.ts",
@@ -582,8 +582,8 @@
     },
     {
       "path": "transport/room.js",
-      "bytes": 14699,
-      "sha256": "af50d369348e5e125b642a603dac67e09f4468ce55507e5db7167a7393b7379d"
+      "bytes": 14749,
+      "sha256": "a302b7f65daba0999c8081d47888769fb455cf79d5dbf428361c958426adae5f"
     },
     {
       "path": "transport/signaling.d.ts",
@@ -602,8 +602,18 @@
     },
     {
       "path": "transport/swarm.js",
-      "bytes": 29453,
-      "sha256": "95a905e7fda60b4ebd1f29df134200be366b06dd9361520f3d112a787679c269"
+      "bytes": 29503,
+      "sha256": "ef8393e95db2fb6035f6153d04cd50492c6078bb53282a25534de94dcbca1e28"
+    },
+    {
+      "path": "transport/tool-offer-channel.d.ts",
+      "bytes": 2165,
+      "sha256": "f440141ffdc282373aa50c1a16b92093b2507864e0bfafa7bced95f1a9588376"
+    },
+    {
+      "path": "transport/tool-offer-channel.js",
+      "bytes": 8865,
+      "sha256": "ca1208dd2f96d1b7ffb5464c7676a22aa849ec31936abde0809fc208bbd971c9"
     }
   ]
 }

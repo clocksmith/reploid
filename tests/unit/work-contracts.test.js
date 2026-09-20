@@ -24,6 +24,29 @@ const providerFixture = async overrides => {
 const generate = provider => provider.generate([], () => {}, { signal: new AbortController().signal });
 
 describe('Work contracts', () => {
+  it('retains the deadline and a checkpoint after borrowed inference settles', async () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+    let started, release;
+    const entered = new Promise(resolve => { started = resolve; });
+    const borrowed = new Promise(resolve => { release = resolve; });
+    const ports = storageFixture();
+    const session = createWorkSession({ ...ports, models: [model], service: { isSupported: () => true },
+      credentials: async () => ({ Authorization: 'Bearer fixture', 'X-Firebase-AppCheck': 'fixture' }),
+      fetchImpl: () => { started(); return borrowed; } });
+    try {
+      const task = session.start({ goal: 'Repair the input', modelId: model.id });
+      await entered;
+      await vi.advanceTimersByTimeAsync(policy.profile.config.agent.timeoutMs);
+      expect(session.getState().busy).toBe(true);
+      release(new Response(JSON.stringify({ content: 'late', model: model.id })));
+      const result = await task;
+      expect(result).toMatchObject({ status: 'paused', error: 'Work deadline reached', checkpointAvailable: true, output: '' });
+      await session.close();
+      const restored = createWorkSession({ ...ports, models: [model], service: { isSupported: () => true } });
+      expect(restored.getState().records[0]).toMatchObject({ status: 'paused', error: 'Work deadline reached', checkpointAvailable: true });
+      await restored.close();
+    } finally { release?.(new Response('{}')); vi.useRealTimers(); await session.close(); }
+  });
   it('binds revision context to a detached saved parent and requires text criteria', () => {
     const parent = row();
     const request = { goal: 'Repair the input', criteria: '', parentId: parent.id, feedback: 'Use milliseconds',

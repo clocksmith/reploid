@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+const evidenceDir = process.env.REPLOID_E2E_ARTIFACT_DIR || 'artifacts/tool-offer-exchange-2026-09-19';
 import { readFile } from 'node:fs/promises';
 
 const code = '({text}) => { let s = text.replace(/^\\uFEFF/, "").trim(); if(s.startsWith("```json\\n") && s.endsWith("\\n```")) s=s.slice(8,-4); return JSON.stringify(JSON.parse(s),null,2); }';
@@ -37,7 +38,7 @@ test('another browser imports code, evaluates locally, approves separately and c
     await expect(receiver.locator('[data-work-candidates]')).toContainText('Current: 4/6 checks. Candidate: 6/6 checks.');
     await expect(receiver.locator('[data-work-candidates]')).toContainText('Imported candidate');
     await receiver.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }));
-    await receiver.screenshot({ path: 'artifacts/tool-offer-exchange-2026-09-19/awaiting-local-approval.png', fullPage: true, animations: 'disabled' });
+    await receiver.screenshot({ path: `${evidenceDir}/awaiting-local-approval.png`, fullPage: true, animations: 'disabled' });
     expect(await receiver.evaluate(async () => {
       const { createWorkEvolution } = await import('/host/work-evolution.js');
       window.receivingEvolution = createWorkEvolution({ storage: localStorage, isBusy: () => false });

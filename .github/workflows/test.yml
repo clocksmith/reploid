@@ -47,8 +47,20 @@ jobs:
     - name: Install contract browser
       run: npx playwright install --with-deps chromium
 
-    - name: Browser storage, surfaces, peer lifecycle and verification
-      run: npx playwright test tests/e2e/vfs-storage-contract.spec.js tests/e2e/boot.spec.js tests/e2e/peer-pack-jobs.spec.js --project=chromium --workers=2
+    - name: Browser infrastructure and product contracts
+      env:
+        REPLOID_E2E_ARTIFACT_DIR: artifacts/product-browser-ci
+      run: >-
+        npx playwright test
+        tests/e2e/vfs-storage-contract.spec.js
+        tests/e2e/boot.spec.js
+        tests/e2e/peer-pack-jobs.spec.js
+        tests/e2e/work-integration.spec.js
+        tests/e2e/work-clarity.spec.js
+        tests/e2e/agent-network-home.spec.js
+        tests/e2e/tool-offer-exchange.spec.js
+        tests/e2e/peer-tool-offer.spec.js
+        --project=chromium --workers=1
 
     - name: Installed package acceptance
       run: node tests/library-package-acceptance.js
@@ -63,6 +75,7 @@ jobs:
           test-results/
           playwright-report/
           artifacts/library-acceptance/
+          artifacts/product-browser-ci/
 
   lint:
     runs-on: ubuntu-latest
