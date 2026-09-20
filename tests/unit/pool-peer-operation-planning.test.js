@@ -1,6 +1,7 @@
 // @vitest-environment node
 import { describe, it, expect } from 'vitest';
-import { planOperationProviders } from '../../self/pool/peer-planning.js';
+import { planOperationProviders, operationPlacementContext } from '../../self/pool/peer-planning.js';
+import { placementBeliefPolicy } from '../fixtures/placement-beliefs.js';
 import { resolveProviderCapabilitySchema, resolvePeerAssignmentPolicy, validateProviderCapabilities } from '../../self/pool/peer-capabilities.js';
 import { PACK_JOB_POLICY } from '../../self/pool/peer-pack-job-policy.js';
 import { operationFixture, operationCapabilities, operationResources } from '../fixtures/peer-pack-operation.js';
@@ -22,6 +23,41 @@ async function fixture(operation = 'embed') {
 }
 
 describe('operation-independent deterministic provider planning', () => {
+  it('uses scoped Bayesian outcomes only after eligibility, preserving deterministic replay', async () => {
+    const args = await fixture();
+    args.policy.history = { enabled: true, beliefPolicy: placementBeliefPolicy };
+    const contextId = await operationPlacementContext(args.requirements, args.candidates[0].capabilities, placementBeliefPolicy.cohortId);
+    args.observations = [1, 2, 3].map(i => ({ evidenceId: `trial-${i}`, dependencyId: `trial-${i}`,
+      providerId: hash('b'), contextId, observedAt: args.now - 1, outcomeId: 'fast' }));
+    const plan = await planOperationProviders(args);
+    expect(plan.selectedProviderId).toBe(hash('b'));
+    expect(plan.historyProjectionDigest).toMatch(/^sha256:/);
+    expect(plan.beliefs.candidates[1].completionProbability).toBeCloseTo(5 / 6);
+    expect(await planOperationProviders({ ...args, observations: [...args.observations].reverse(), candidates: [...args.candidates].reverse() })).toEqual(plan);
+    args.requirements.providerIds = [hash('a')];
+    const restricted = await planOperationProviders(args);
+    expect(restricted.selectedProviderId).toBe(hash('a'));
+    expect(restricted.candidates[1].reasons).toContain('provider-not-permitted');
+    args.requirements.providerIds.push(hash('b'));
+    args.candidates[1].capabilities.resources.gpuBudgetBytes = 0;
+    expect((await planOperationProviders(args)).selectedProviderId).toBe(hash('a'));
+  });
+
+  it('charges total cost and time rather than ranking by successful completion alone', async () => {
+    const args = await fixture();
+    args.policy.history = { enabled: true, beliefPolicy: placementBeliefPolicy };
+    const contextId = await operationPlacementContext(args.requirements, args.candidates[0].capabilities, placementBeliefPolicy.cohortId);
+    args.observations = args.candidates.map((row, i) => ({ evidenceId: `trial-${i}`, dependencyId: `trial-${i}`,
+      providerId: row.providerId, contextId, observedAt: args.now, outcomeId: i ? 'fast' : 'slow' }));
+    const plan = await planOperationProviders(args);
+    expect(plan.beliefs.candidates[0].completionProbability).toBe(plan.beliefs.candidates[1].completionProbability);
+    expect(plan.selectedProviderId).toBe(hash('b'));
+    args.requirements.limits.maxInputBytes += 1;
+    // Keep eligibility but change the workload context; history cannot follow it.
+    args.candidates.forEach(row => { row.limits = { ...args.requirements.limits }; });
+    expect((await planOperationProviders(args)).selectedProviderId).toBe(hash('a'));
+  });
+
   for (const name of ['generate', 'embed', 'rerank', 'encodeSequence']) it(`plans ${name} from the same capability contract`, async () => {
     const args = await fixture(name);
     args.candidates[0].capabilities.models[0].availability = 'fetchable';

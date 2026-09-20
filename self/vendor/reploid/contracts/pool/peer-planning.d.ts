@@ -1,4 +1,5 @@
 import type { AssignmentMetric, PeerAssignmentPolicy, ProviderCapabilities, ProviderCapabilitySchema, WorkRequirements } from './peer-capabilities.js';
+import type { PlacementObservation, PlacementBeliefProjection } from '../../mesh/placement-beliefs.js';
 export interface OperationProviderCandidate {
   readonly providerId: string;
   readonly advertHash: string;
@@ -19,13 +20,15 @@ export interface OperationAssignmentPlan {
   readonly policyDigest: string;
   readonly requirementsDigest: string;
   readonly selectedAt: number;
-  readonly historyProjectionDigest: null;
+  readonly historyProjectionDigest: string | null;
+  readonly beliefs?: PlacementBeliefProjection;
   readonly candidates: readonly OperationCandidateAssessment[];
   readonly orderedProviderIds: readonly string[];
   readonly selectedProviderId: string | null;
 }
 export function planOperationProviders(input: { requirements: WorkRequirements; candidates: readonly OperationProviderCandidate[];
-  policy: PeerAssignmentPolicy; capabilitySchema: ProviderCapabilitySchema; now: number; observations: null }): Promise<OperationAssignmentPlan>;
+  policy: PeerAssignmentPolicy; capabilitySchema: ProviderCapabilitySchema; now: number; observations: readonly PlacementObservation[] | null }): Promise<OperationAssignmentPlan>;
+export function operationPlacementContext(requirements: WorkRequirements, capabilities: ProviderCapabilities, cohortId: string): Promise<string>;
 type LegacyObject = Record<string, unknown>;
 export function peerIdForMessage(message?: LegacyObject): string | undefined;
 export function selectRuntimeCompatibleAdverts(options?: LegacyObject): LegacyObject;

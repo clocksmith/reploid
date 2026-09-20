@@ -372,8 +372,8 @@
     },
     {
       "path": "contracts/pool/peer-capabilities.d.ts",
-      "bytes": 3859,
-      "sha256": "17b4ca40ff1ef6389ec961e0c7fd7de43354e6f5144018295caee39b6f014cd8"
+      "bytes": 4012,
+      "sha256": "f16f83d72a2474a2e3d07232d1b945aa020152328908a8fb119ef5fb433d4f05"
     },
     {
       "path": "contracts/pool/peer-pack-custody.d.ts",
@@ -387,8 +387,8 @@
     },
     {
       "path": "contracts/pool/peer-pack-job.d.ts",
-      "bytes": 6315,
-      "sha256": "8cc7b05dbbb9364fb694d3f6005cd5a940ee1e294442e4c50d966123b65b911c"
+      "bytes": 6565,
+      "sha256": "12c47092c333efc6c176ee7db0b3bb02b1a59048e125385aa0c8a066760549b8"
     },
     {
       "path": "contracts/pool/peer-pack-provider.d.ts",
@@ -402,8 +402,8 @@
     },
     {
       "path": "contracts/pool/peer-planning.d.ts",
-      "bytes": 2133,
-      "sha256": "2287b551bf4f610d7bbdbd6becd8642266ccfa4b24a51e6f37ba849a50d15c0d"
+      "bytes": 2474,
+      "sha256": "0264f2b72073b15898e5ce2c2cca190cc62940c8ff9fbe426fb5f03bae504068"
     },
     {
       "path": "improvement/code-evolution.d.ts",
@@ -462,13 +462,13 @@
     },
     {
       "path": "mesh/index.d.ts",
-      "bytes": 750,
-      "sha256": "77b0d1a1c1335b32513ccef490587521f16ceabf67b7caa7c31f2abb9bfabc64"
+      "bytes": 790,
+      "sha256": "e25596b0c89a169539972175e9d4d1f9c5b8ff5337ac6fd62d8d4a2ce1ca2a85"
     },
     {
       "path": "mesh/index.js",
-      "bytes": 2442,
-      "sha256": "b11a0b6a0d903093ba0220e247ccafd339ccf86b03e2127fc639bbe4468f3da0"
+      "bytes": 2538,
+      "sha256": "1f84e33402c1c6ce956abff4dddfb33f3fdb4778eab42399762232c23b0fde02"
     },
     {
       "path": "mesh/jobs/contracts.d.ts",
@@ -477,8 +477,8 @@
     },
     {
       "path": "mesh/jobs/contracts.js",
-      "bytes": 20565,
-      "sha256": "1db10a42b21f063c152d1f9a6583ee1fbe5e4ff515c5a097aafdd1cbe8df3aed"
+      "bytes": 20870,
+      "sha256": "63b6679e9601d48a6baefb1c559c16b2a88896a08194bc0055b6a0e1f284336b"
     },
     {
       "path": "mesh/jobs/episode.d.ts",
@@ -529,6 +529,16 @@
       "path": "mesh/legacy-generation.js",
       "bytes": 16873,
       "sha256": "af5bea1ce268c0ff86df6da3ef7d37ee33dd752e1a3d72203ac7deb69d16feee"
+    },
+    {
+      "path": "mesh/placement-beliefs.d.ts",
+      "bytes": 2101,
+      "sha256": "a82c025090dfea42e64e0999f3e83310a67bd72f490f93448bc10dd1c30d6649"
+    },
+    {
+      "path": "mesh/placement-beliefs.js",
+      "bytes": 6986,
+      "sha256": "4e40796672e4569b8ddbfee1171a84c057cb87630286e77de026976050713efa"
     },
     {
       "path": "mesh/swarm-coordination.d.ts",

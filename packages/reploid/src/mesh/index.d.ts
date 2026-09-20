@@ -1,4 +1,5 @@
 export { createLegacyGenerationMesh } from './legacy-generation.js';
+export * from './placement-beliefs.js';
 export * from './swarm-coordination.js';
 export * from './contribution.js';
 export { default as contributionPolicy } from './contribution.js';

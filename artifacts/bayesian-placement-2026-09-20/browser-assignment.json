@@ -1,0 +1,331 @@
+{
+  "executionClass": "synthetic-observations-real-signatures",
+  "operatorCount": 1,
+  "ciAccess": false,
+  "result": {
+    "initialProviderId": "sha256:5b7f1eae89567434e384a26d6074285d702773e629f4b522c06af0f98679696b",
+    "selectedProviderId": "sha256:dacdb173464bb85b988a8f14ca1eaa0a598061e907955d1c7d2b6710a54a6d2e",
+    "target": "sha256:dacdb173464bb85b988a8f14ca1eaa0a598061e907955d1c7d2b6710a54a6d2e",
+    "observations": [
+      {
+        "evidenceId": "measured-trial-1",
+        "dependencyId": "trial-1",
+        "contextId": "sha256:ba17ea264da1f8736f2a3d1cbaa1173d7c1676fc129f90c59da049fcae7f264d",
+        "providerId": "sha256:dacdb173464bb85b988a8f14ca1eaa0a598061e907955d1c7d2b6710a54a6d2e",
+        "observedAt": 1789913556364,
+        "outcomeId": "fast"
+      },
+      {
+        "evidenceId": "measured-trial-2",
+        "dependencyId": "trial-2",
+        "contextId": "sha256:ba17ea264da1f8736f2a3d1cbaa1173d7c1676fc129f90c59da049fcae7f264d",
+        "providerId": "sha256:dacdb173464bb85b988a8f14ca1eaa0a598061e907955d1c7d2b6710a54a6d2e",
+        "observedAt": 1789913556364,
+        "outcomeId": "fast"
+      },
+      {
+        "evidenceId": "measured-trial-3",
+        "dependencyId": "trial-3",
+        "contextId": "sha256:ba17ea264da1f8736f2a3d1cbaa1173d7c1676fc129f90c59da049fcae7f264d",
+        "providerId": "sha256:dacdb173464bb85b988a8f14ca1eaa0a598061e907955d1c7d2b6710a54a6d2e",
+        "observedAt": 1789913556364,
+        "outcomeId": "fast"
+      }
+    ],
+    "plan": {
+      "schema": "reploid.pool.operation-assignment-plan/v1",
+      "policyId": "complete-operation-resident-load-v1",
+      "policyDigest": "sha256:e6f7528229a93c49037614eb7c6a27e7258f93232f975658effc5e10eb4cd997",
+      "requirementsDigest": "sha256:806cf6252d4322bc9b0c4b9ffa954d59356abbeda021c8de4dbe56a81c5e5941",
+      "selectedAt": 1789913556365,
+      "historyProjectionDigest": "sha256:f93a6b2b960dae027cf0dca917d009ad86646e852f521b9ef25cc53e76fdbfcb",
+      "beliefs": {
+        "schema": "reploid.placement-beliefs/v1",
+        "policy": {
+          "cohortId": "public-small-v1",
+          "completionValue": 100,
+          "costUnit": "task-utility",
+          "id": "test-placement-v1",
+          "maxAgeMs": 60000,
+          "maxObservations": 100,
+          "outcomes": [
+            {
+              "completed": true,
+              "id": "fast",
+              "latencyMs": 100,
+              "prior": 1,
+              "totalCost": 1
+            },
+            {
+              "completed": true,
+              "id": "slow",
+              "latencyMs": 1000,
+              "prior": 1,
+              "totalCost": 20
+            },
+            {
+              "completed": false,
+              "id": "failed",
+              "latencyMs": 2000,
+              "prior": 1,
+              "totalCost": 30
+            }
+          ],
+          "schema": "reploid.placement-belief-policy/v1",
+          "timeCostPerMs": 0.01
+        },
+        "selectedAt": 1789913556365,
+        "candidates": [
+          {
+            "contextId": "sha256:ba17ea264da1f8736f2a3d1cbaa1173d7c1676fc129f90c59da049fcae7f264d",
+            "providerId": "sha256:5b7f1eae89567434e384a26d6074285d702773e629f4b522c06af0f98679696b",
+            "evidenceIds": [],
+            "posterior": [
+              {
+                "outcomeId": "fast",
+                "alpha": 1,
+                "probability": 0.3333333333333333,
+                "probabilityVariance": 0.05555555555555556
+              },
+              {
+                "outcomeId": "slow",
+                "alpha": 1,
+                "probability": 0.3333333333333333,
+                "probabilityVariance": 0.05555555555555556
+              },
+              {
+                "outcomeId": "failed",
+                "alpha": 1,
+                "probability": 0.3333333333333333,
+                "probabilityVariance": 0.05555555555555556
+              }
+            ],
+            "completionProbability": 0.6666666666666666,
+            "expectedLatencyMs": 1033.3333333333333,
+            "expectedTotalCost": 17,
+            "expectedUtility": 39.333333333333336,
+            "utilityVariance": 1030.2222222222222
+          },
+          {
+            "contextId": "sha256:ba17ea264da1f8736f2a3d1cbaa1173d7c1676fc129f90c59da049fcae7f264d",
+            "providerId": "sha256:dacdb173464bb85b988a8f14ca1eaa0a598061e907955d1c7d2b6710a54a6d2e",
+            "evidenceIds": [
+              "measured-trial-1",
+              "measured-trial-2",
+              "measured-trial-3"
+            ],
+            "posterior": [
+              {
+                "outcomeId": "fast",
+                "alpha": 4,
+                "probability": 0.6666666666666666,
+                "probabilityVariance": 0.03174603174603175
+              },
+              {
+                "outcomeId": "slow",
+                "alpha": 1,
+                "probability": 0.16666666666666666,
+                "probabilityVariance": 0.019841269841269844
+              },
+              {
+                "outcomeId": "failed",
+                "alpha": 1,
+                "probability": 0.16666666666666666,
+                "probabilityVariance": 0.019841269841269844
+              }
+            ],
+            "completionProbability": 0.8333333333333333,
+            "expectedLatencyMs": 566.6666666666666,
+            "expectedTotalCost": 9,
+            "expectedUtility": 68.66666666666667,
+            "utilityVariance": 417.26984126984127
+          }
+        ],
+        "ignored": []
+      },
+      "candidates": [
+        {
+          "providerId": "sha256:5b7f1eae89567434e384a26d6074285d702773e629f4b522c06af0f98679696b",
+          "advertHash": "sha256:bde284c825e1b673dbf7e566239beadeb91f523ccc6818450e292dd5878bffc2",
+          "eligible": true,
+          "reasons": [],
+          "metrics": {
+            "modelAvailability": 0,
+            "adapterAvailability": 0,
+            "activeJobs": 0,
+            "queuedJobs": 0,
+            "gpuBudgetBytes": 1048576,
+            "bandwidthBytesPerSecond": 1048576,
+            "providerId": "sha256:5b7f1eae89567434e384a26d6074285d702773e629f4b522c06af0f98679696b"
+          },
+          "unknownMemory": {
+            "gpu": true,
+            "storage": true
+          }
+        },
+        {
+          "providerId": "sha256:dacdb173464bb85b988a8f14ca1eaa0a598061e907955d1c7d2b6710a54a6d2e",
+          "advertHash": "sha256:79370595c138b0d045c603d0bed7a4949244ee9d86a83a0c95be0b0d5de2a2a0",
+          "eligible": true,
+          "reasons": [],
+          "metrics": {
+            "modelAvailability": 0,
+            "adapterAvailability": 0,
+            "activeJobs": 0,
+            "queuedJobs": 0,
+            "gpuBudgetBytes": 1048576,
+            "bandwidthBytesPerSecond": 1048576,
+            "providerId": "sha256:dacdb173464bb85b988a8f14ca1eaa0a598061e907955d1c7d2b6710a54a6d2e"
+          },
+          "unknownMemory": {
+            "gpu": true,
+            "storage": true
+          }
+        }
+      ],
+      "orderedProviderIds": [
+        "sha256:dacdb173464bb85b988a8f14ca1eaa0a598061e907955d1c7d2b6710a54a6d2e",
+        "sha256:5b7f1eae89567434e384a26d6074285d702773e629f4b522c06af0f98679696b"
+      ],
+      "selectedProviderId": "sha256:dacdb173464bb85b988a8f14ca1eaa0a598061e907955d1c7d2b6710a54a6d2e"
+    },
+    "errors": [
+      {
+        "change": "tamper",
+        "error": "Peer Pack job: assignment differs from deterministic provider plan"
+      },
+      {
+        "change": "ungranted",
+        "error": "Peer Pack job: assignment policy differs from resolved configuration"
+      }
+    ]
+  },
+  "verification": {
+    "passed": true,
+    "errors": [],
+    "warnings": [
+      "Warning in /self/vendor/reploid/mesh/placement-beliefs.js: Path traversal pattern detected (../) - potential security risk",
+      "Warning in /self/vendor/reploid/mesh/jobs/contracts.js:5: Dynamic property write detected: [name] - verify input sanitization",
+      "File has 23 functions (max 20) - consider modularizing",
+      "Warning in /self/pool/peer-capabilities.js: Path traversal pattern detected (../) - potential security risk",
+      "Warning in /self/pool/peer-capabilities.js:27: Dynamic property write detected: [key] - verify input sanitization",
+      "Warning in /self/pool/peer-capabilities.js:64: Dynamic property write detected: [key] - verify input sanitization",
+      "Warning in /self/pool/peer-capabilities.js:69: Dynamic property write detected: [field] - verify input sanitization",
+      "Warning in /self/pool/peer-planning.js: Path traversal pattern detected (../) - potential security risk"
+    ],
+    "events": [
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1789913556521,
+        "path": "/self/vendor/reploid/mesh/placement-beliefs.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1789913556558,
+        "path": "/self/vendor/reploid/mesh/jobs/contracts.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [name] - verify input sanitization",
+        "line": 5,
+        "severity": "warning"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1789913556560,
+        "metric": "functions",
+        "value": 23,
+        "threshold": 20,
+        "message": "File has 23 functions (max 20) - consider modularizing",
+        "path": "/self/vendor/reploid/mesh/jobs/contracts.js"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1789913556568,
+        "path": "/self/pool/peer-capabilities.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1789913556568,
+        "path": "/self/pool/peer-capabilities.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [key] - verify input sanitization",
+        "line": 27,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1789913556568,
+        "path": "/self/pool/peer-capabilities.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [key] - verify input sanitization",
+        "line": 64,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1789913556568,
+        "path": "/self/pool/peer-capabilities.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [field] - verify input sanitization",
+        "line": 69,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1789913556581,
+        "path": "/self/pool/peer-planning.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      }
+    ],
+    "details": {
+      "patternViolations": [
+        {
+          "path": "/self/vendor/reploid/mesh/placement-beliefs.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        },
+        {
+          "path": "/self/pool/peer-capabilities.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        },
+        {
+          "path": "/self/pool/peer-planning.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        }
+      ],
+      "complexityWarnings": [
+        {
+          "type": "complexity",
+          "metric": "functions",
+          "value": 23,
+          "threshold": 20,
+          "message": "File has 23 functions (max 20) - consider modularizing",
+          "path": "/self/vendor/reploid/mesh/jobs/contracts.js"
+        }
+      ],
+      "filesAnalyzed": 4
+    }
+  }
+}

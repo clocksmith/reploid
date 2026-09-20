@@ -1,3 +1,4 @@
+import type { PlacementBeliefPolicy } from '../../mesh/placement-beliefs.js';
 export type ArtifactAvailability = 'resident' | 'cached' | 'fetchable';
 export interface ProviderCapabilitySchema {
   readonly schema: 'reploid.pool.capability-policy/v1';
@@ -56,7 +57,7 @@ export interface PeerAssignmentPolicy {
   readonly unknownFreeMemory: 'reject' | 'budget-only';
   readonly duplicateProviders: 'newest-observation-then-message-hash';
   readonly invalidAdvertisement: 'reject';
-  readonly history: { readonly enabled: false };
+  readonly history: { readonly enabled: false } | { readonly enabled: true; readonly beliefPolicy: PlacementBeliefPolicy };
   readonly ranking: readonly { readonly metric: AssignmentMetric; readonly order: 'asc' | 'desc' }[];
 }
 export interface WorkRequirements {

@@ -779,6 +779,8 @@
     "vendor/reploid/mesh/jobs/requester.js",
     "vendor/reploid/mesh/legacy-generation.d.ts",
     "vendor/reploid/mesh/legacy-generation.js",
+    "vendor/reploid/mesh/placement-beliefs.d.ts",
+    "vendor/reploid/mesh/placement-beliefs.js",
     "vendor/reploid/mesh/swarm-coordination.d.ts",
     "vendor/reploid/mesh/swarm-coordination.js",
     "vendor/reploid/package-assets.json",

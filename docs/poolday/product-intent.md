@@ -197,8 +197,11 @@ This experiment establishes a specific benefit claim. It does not gate ordinary
 authorized belief updates, participation or bounded experiments. Replacing a
 routing algorithm requires protected local evaluation and adoption under an
 operator grant or preauthorized policy; neither depends on CI availability.
-Current planning rejects historical observations, so this direction requires
-runtime implementation rather than a change to the description of its behavior.
+Whole-job planning now accepts a versioned opt-in categorical belief policy and
+host-admitted observations. It projects completion, latency, cost and uncertainty
+after eligibility checks, binding its replay to the signed job. The default
+policy does not consume history. Calibration, collection of operational outcomes,
+partition placement and measured network benefit require separate evidence.
 
 Claims that networking improves capability, reliability, cost, or later decisions
 require comparison against an appropriate declared baseline under comparable

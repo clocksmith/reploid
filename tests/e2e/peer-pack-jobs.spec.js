@@ -23,6 +23,33 @@ test.beforeAll(async () => {
 });
 test.afterAll(async () => { await new Promise(resolve => { server.close(resolve); server.closeAllConnections(); }); });
 
+test('Bayesian assignments replay locally without CI and reject unauthorized history', async ({ page }, testInfo) => {
+  await page.route('**/*', route => new URL(route.request().url()).origin === origin ? route.continue() : route.abort());
+  await page.goto(origin);
+  const result = await page.evaluate(async () => {
+    const { bayesianPeerJobFixture } = await import('/tests/fixtures/bayesian-peer-job.js');
+    return bayesianPeerJobFixture();
+  });
+  expect(result.selectedProviderId).toBe(result.target);
+  expect(result.selectedProviderId).not.toBe(result.initialProviderId);
+  expect(result.errors.map(row => row.change)).toEqual(['tamper', 'ungranted']);
+  const verification = await page.evaluate(async () => {
+    const files = ['/self/vendor/reploid/mesh/placement-beliefs.js', '/self/vendor/reploid/mesh/jobs/contracts.js',
+      '/self/pool/peer-capabilities.js', '/self/pool/peer-planning.js'];
+    const snapshot = Object.fromEntries(await Promise.all(files.map(async file => [file, await (await fetch(file)).text()])));
+    return new Promise((resolve, reject) => {
+      const worker = new Worker('/core/verification-worker.js');
+      const timer = setTimeout(() => { worker.terminate(); reject(new Error('Verification Worker timeout')); }, 10000);
+      worker.onmessage = event => { clearTimeout(timer); worker.terminate(); resolve(event.data); };
+      worker.onerror = event => { clearTimeout(timer); worker.terminate(); reject(new Error(event.message)); };
+      worker.postMessage({ type: 'VERIFY', snapshot });
+    });
+  });
+  expect(verification.passed, JSON.stringify(verification)).toBe(true);
+  await testInfo.attach('bayesian-placement', { body: JSON.stringify({ executionClass: 'synthetic-observations-real-signatures',
+    operatorCount: 1, ciAccess: false, result, verification }, null, 2), contentType: 'application/json' });
+});
+
 test('verified adapter bytes survive browser replacement with the supplier unavailable', async ({}, testInfo) => {
   const profile = await mkdtemp(path.join(tmpdir(), 'reploid-adapter-restart-'));
   let context;

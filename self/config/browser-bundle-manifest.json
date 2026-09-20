@@ -1285,8 +1285,8 @@
     },
     {
       "path": "config/module-inventory.json",
-      "byteLength": 118742,
-      "sha256": "sha256:fc4d1367220727c170a3d8d730ba0c38460a4241685afd187306f545173c59c2"
+      "byteLength": 119129,
+      "sha256": "sha256:c3208fe776a05b259e8ae5ae0c892b411d386bec877b6f670d8116f397d3e526"
     },
     {
       "path": "config/module-registry.json",
@@ -1325,8 +1325,8 @@
     },
     {
       "path": "config/vfs-manifest.json",
-      "byteLength": 32307,
-      "sha256": "sha256:50dd74903a9308e9c5fdb01b2646f06e4121c25e1bbdf119533b2402c412579d"
+      "byteLength": 32405,
+      "sha256": "sha256:55a7aaab5618ea128083a92952ee6de54cc92edd2929b4fe6f1e2a9219c243d5"
     },
     {
       "path": "config/vfs-policy.js",
@@ -2345,8 +2345,8 @@
     },
     {
       "path": "pool/peer-capabilities.js",
-      "byteLength": 7251,
-      "sha256": "sha256:8800f118ed27a8411281cf24896a498037e4b4fbd61be58dd0b1b51065e4b665"
+      "byteLength": 7564,
+      "sha256": "sha256:eefff719db34a7ba82add77ccd24745811863f55c83cb1c974f98b66a07ec108"
     },
     {
       "path": "pool/peer-control-plane.js",
@@ -2445,8 +2445,8 @@
     },
     {
       "path": "pool/peer-planning.js",
-      "byteLength": 10789,
-      "sha256": "sha256:5ac047288b8a07152144178c2a31d8ef18370b71a15004e7a8d45dc30b2cd632"
+      "byteLength": 12166,
+      "sha256": "sha256:4ba29729528463682df0d81b6832c339faa123068887fe86d14b6593a5141b2a"
     },
     {
       "path": "pool/peer-protocol.js",
@@ -3735,8 +3735,8 @@
     },
     {
       "path": "vendor/reploid/contracts/pool/peer-capabilities.d.ts",
-      "byteLength": 3859,
-      "sha256": "sha256:17b4ca40ff1ef6389ec961e0c7fd7de43354e6f5144018295caee39b6f014cd8"
+      "byteLength": 4012,
+      "sha256": "sha256:f16f83d72a2474a2e3d07232d1b945aa020152328908a8fb119ef5fb433d4f05"
     },
     {
       "path": "vendor/reploid/contracts/pool/peer-pack-custody.d.ts",
@@ -3750,8 +3750,8 @@
     },
     {
       "path": "vendor/reploid/contracts/pool/peer-pack-job.d.ts",
-      "byteLength": 6315,
-      "sha256": "sha256:8cc7b05dbbb9364fb694d3f6005cd5a940ee1e294442e4c50d966123b65b911c"
+      "byteLength": 6565,
+      "sha256": "sha256:12c47092c333efc6c176ee7db0b3bb02b1a59048e125385aa0c8a066760549b8"
     },
     {
       "path": "vendor/reploid/contracts/pool/peer-pack-provider.d.ts",
@@ -3765,8 +3765,8 @@
     },
     {
       "path": "vendor/reploid/contracts/pool/peer-planning.d.ts",
-      "byteLength": 2133,
-      "sha256": "sha256:2287b551bf4f610d7bbdbd6becd8642266ccfa4b24a51e6f37ba849a50d15c0d"
+      "byteLength": 2474,
+      "sha256": "sha256:0264f2b72073b15898e5ce2c2cca190cc62940c8ff9fbe426fb5f03bae504068"
     },
     {
       "path": "vendor/reploid/improvement/code-evolution.d.ts",
@@ -3825,13 +3825,13 @@
     },
     {
       "path": "vendor/reploid/mesh/index.d.ts",
-      "byteLength": 750,
-      "sha256": "sha256:77b0d1a1c1335b32513ccef490587521f16ceabf67b7caa7c31f2abb9bfabc64"
+      "byteLength": 790,
+      "sha256": "sha256:e25596b0c89a169539972175e9d4d1f9c5b8ff5337ac6fd62d8d4a2ce1ca2a85"
     },
     {
       "path": "vendor/reploid/mesh/index.js",
-      "byteLength": 2442,
-      "sha256": "sha256:b11a0b6a0d903093ba0220e247ccafd339ccf86b03e2127fc639bbe4468f3da0"
+      "byteLength": 2538,
+      "sha256": "sha256:1f84e33402c1c6ce956abff4dddfb33f3fdb4778eab42399762232c23b0fde02"
     },
     {
       "path": "vendor/reploid/mesh/jobs/contracts.d.ts",
@@ -3840,8 +3840,8 @@
     },
     {
       "path": "vendor/reploid/mesh/jobs/contracts.js",
-      "byteLength": 20565,
-      "sha256": "sha256:1db10a42b21f063c152d1f9a6583ee1fbe5e4ff515c5a097aafdd1cbe8df3aed"
+      "byteLength": 20870,
+      "sha256": "sha256:63b6679e9601d48a6baefb1c559c16b2a88896a08194bc0055b6a0e1f284336b"
     },
     {
       "path": "vendor/reploid/mesh/jobs/episode.d.ts",
@@ -3894,6 +3894,16 @@
       "sha256": "sha256:af5bea1ce268c0ff86df6da3ef7d37ee33dd752e1a3d72203ac7deb69d16feee"
     },
     {
+      "path": "vendor/reploid/mesh/placement-beliefs.d.ts",
+      "byteLength": 2101,
+      "sha256": "sha256:a82c025090dfea42e64e0999f3e83310a67bd72f490f93448bc10dd1c30d6649"
+    },
+    {
+      "path": "vendor/reploid/mesh/placement-beliefs.js",
+      "byteLength": 6986,
+      "sha256": "sha256:4e40796672e4569b8ddbfee1171a84c057cb87630286e77de026976050713efa"
+    },
+    {
       "path": "vendor/reploid/mesh/swarm-coordination.d.ts",
       "byteLength": 1929,
       "sha256": "sha256:23fa25335162f036ba64c1f1418d15f3dce88b1412feaeb1a55e06ca894a94c5"
@@ -3905,8 +3915,8 @@
     },
     {
       "path": "vendor/reploid/package-assets.json",
-      "byteLength": 19695,
-      "sha256": "sha256:28133721edb4fa8a844d6a3e519c3e4ff05b23ec519850c2b930f344a2d1c063"
+      "byteLength": 20017,
+      "sha256": "sha256:8afe8557cd50c12f30ab32dfd600f4ab1f8bf60733d9194dc7b1ed269296af82"
     },
     {
       "path": "vendor/reploid/rules/contribution.rules.json",
@@ -3989,5 +3999,5 @@
       "sha256": "sha256:ca1208dd2f96d1b7ffb5464c7676a22aa849ec31936abde0809fc208bbd971c9"
     }
   ],
-  "bundleHash": "sha256:b08e1e63925ed4a6c9a868320e31d413f585705ca4f359e65d33541927f47499"
+  "bundleHash": "sha256:7d57def0ef719e924603f09071b458a713b09c1bf13234faa3a376f7433ee9a9"
 }

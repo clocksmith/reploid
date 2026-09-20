@@ -273,9 +273,10 @@ order and combination semantics. Remote experts remain disabled until an
 explicit policy admits exact model/layer/expert identities, bounded activation
 disclosure, failure handling and qualified Doppler execution. Layer groups or
 other partitions likewise require Doppler's explicit executable contracts;
-neither is an implicit fallback. Current planning rejects historical observations.
-Implement authorized Bayesian adaptation without relaxing compatibility or
-disclosure gates. Operational evidence stays distinct from scientific evidence.
+neither is an implicit fallback. Whole-job planning supports explicitly configured
+Bayesian completion/cost beliefs over host-admitted observations; default policy
+does not consume history. Compatibility and disclosure gates still apply before
+ranking. Operational evidence stays distinct from scientific evidence.
 The frozen comparison establishes a benefit claim, not permission for an
 already-authorized agent to reason or conduct a bounded experiment.
 

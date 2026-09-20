@@ -1,0 +1,116 @@
+{
+  "schema": "reploid.bayesian-placement-acceptance/v1",
+  "date": "2026-09-20",
+  "baselineCommit": "e0c8a85e0d92d0e9ef3ab4e0c1620040dbf1e299",
+  "sourceHashes": {
+    "GOALS.md": "203e161720046a9dd0b64b64a54ebea5991f37720f6cf0b7b165824f8676ac3c",
+    "docs/poolday/executable-intelligence-network-plan.md": "4aa4a6edb36781c2bbc5735eb8f67dfa1e173d2170ad6986fe0c639ff76c73ce",
+    "docs/poolday/product-intent.md": "de5d3ea24ec7aa47c672636d6575b7df6e4325b5059dab34c07b92b6f4bd45ee",
+    "packages/reploid/src/contracts/pool/peer-capabilities.d.ts": "f16f83d72a2474a2e3d07232d1b945aa020152328908a8fb119ef5fb433d4f05",
+    "packages/reploid/src/contracts/pool/peer-pack-job.d.ts": "12c47092c333efc6c176ee7db0b3bb02b1a59048e125385aa0c8a066760549b8",
+    "packages/reploid/src/contracts/pool/peer-planning.d.ts": "0264f2b72073b15898e5ce2c2cca190cc62940c8ff9fbe426fb5f03bae504068",
+    "packages/reploid/src/mesh/index.d.ts": "e25596b0c89a169539972175e9d4d1f9c5b8ff5337ac6fd62d8d4a2ce1ca2a85",
+    "packages/reploid/src/mesh/index.js": "1f84e33402c1c6ce956abff4dddfb33f3fdb4778eab42399762232c23b0fde02",
+    "packages/reploid/src/mesh/jobs/contracts.js": "63b6679e9601d48a6baefb1c559c16b2a88896a08194bc0055b6a0e1f284336b",
+    "packages/reploid/src/mesh/placement-beliefs.d.ts": "a82c025090dfea42e64e0999f3e83310a67bd72f490f93448bc10dd1c30d6649",
+    "packages/reploid/src/mesh/placement-beliefs.js": "4e40796672e4569b8ddbfee1171a84c057cb87630286e77de026976050713efa",
+    "self/config/browser-bundle-manifest.json": "91b18c2713c0b2f2d006e5332436174219fa72d9ddd31eb04abca98da4c34f2b",
+    "self/config/module-inventory.json": "c3208fe776a05b259e8ae5ae0c892b411d386bec877b6f670d8116f397d3e526",
+    "self/config/vfs-manifest.json": "55a7aaab5618ea128083a92952ee6de54cc92edd2929b4fe6f1e2a9219c243d5",
+    "self/pool/peer-capabilities.js": "eefff719db34a7ba82add77ccd24745811863f55c83cb1c974f98b66a07ec108",
+    "self/pool/peer-planning.js": "4ba29729528463682df0d81b6832c339faa123068887fe86d14b6593a5141b2a",
+    "self/vendor/reploid/contracts/pool/peer-capabilities.d.ts": "f16f83d72a2474a2e3d07232d1b945aa020152328908a8fb119ef5fb433d4f05",
+    "self/vendor/reploid/contracts/pool/peer-pack-job.d.ts": "12c47092c333efc6c176ee7db0b3bb02b1a59048e125385aa0c8a066760549b8",
+    "self/vendor/reploid/contracts/pool/peer-planning.d.ts": "0264f2b72073b15898e5ce2c2cca190cc62940c8ff9fbe426fb5f03bae504068",
+    "self/vendor/reploid/mesh/index.d.ts": "e25596b0c89a169539972175e9d4d1f9c5b8ff5337ac6fd62d8d4a2ce1ca2a85",
+    "self/vendor/reploid/mesh/index.js": "1f84e33402c1c6ce956abff4dddfb33f3fdb4778eab42399762232c23b0fde02",
+    "self/vendor/reploid/mesh/jobs/contracts.js": "63b6679e9601d48a6baefb1c559c16b2a88896a08194bc0055b6a0e1f284336b",
+    "self/vendor/reploid/mesh/placement-beliefs.d.ts": "a82c025090dfea42e64e0999f3e83310a67bd72f490f93448bc10dd1c30d6649",
+    "self/vendor/reploid/mesh/placement-beliefs.js": "4e40796672e4569b8ddbfee1171a84c057cb87630286e77de026976050713efa",
+    "self/vendor/reploid/package-assets.json": "8afe8557cd50c12f30ab32dfd600f4ab1f8bf60733d9194dc7b1ed269296af82",
+    "tests/e2e/peer-pack-jobs.spec.js": "d4d2043f063b3ede51b74fef79c490431b0fba0b15e1338d0cd26bf998ad56a7",
+    "tests/fixtures/bayesian-peer-job.js": "5aa3819891257d3b03e7f9173bb9ff84aed9aa7f1f7f46d5c1159dc32010c790",
+    "tests/fixtures/placement-beliefs.js": "139f34c155680713b9e23f731b0a6e55254f14b50e13506ac32c197e9f02d1bf",
+    "tests/library-package-acceptance.js": "e2f88d9be481bb797cedf1b700c8e350ac26aae918a5ae0dab70e8e3b66ebe4e",
+    "tests/unit/placement-beliefs.test.js": "155164024fa7dd3da7543b9c700ebdadb0a6756f4c87cf3d7accde238e8a1b31",
+    "tests/unit/pool-bayesian-job.test.js": "b77fc533e49ab265172321f44134d96eb96e0f56adb16f85d68603fcfbae2f95",
+    "tests/unit/pool-peer-operation-planning.test.js": "d2a12742262e74235cfed756f101bdf4d2d5530e176c76da024d5891096b39d4"
+  },
+  "scope": "Opt-in categorical Bayesian whole-job provider selection; signed requester policy and observation replay; no authority from CI.",
+  "checks": [
+    {
+      "command": "npx vitest run",
+      "passed": 2663,
+      "skipped": 36,
+      "log": "vitest.log"
+    },
+    {
+      "command": "npx playwright test tests/e2e/peer-pack-jobs.spec.js --project=chromium",
+      "passed": 15,
+      "log": "browser.log",
+      "evidence": "browser-assignment.json"
+    },
+    {
+      "command": "node tests/library-package-acceptance.js",
+      "passed": 17,
+      "report": "artifacts/library-acceptance/2026-09-20T14-12-10-754Z/report.json"
+    },
+    {
+      "command": "npm run lint",
+      "status": "passed"
+    },
+    {
+      "command": "npm run verify:library-types",
+      "status": "passed"
+    },
+    {
+      "command": "npm run verify:layers",
+      "status": "passed"
+    },
+    {
+      "command": "npm run verify:module-system",
+      "status": "passed"
+    },
+    {
+      "command": "npm run verify:catscan",
+      "status": "passed"
+    },
+    {
+      "command": "npm run verify:surface-claims",
+      "status": "passed"
+    },
+    {
+      "command": "npm run verify:runtime-config",
+      "status": "passed"
+    },
+    {
+      "command": "npm run verify:browser-bundle:local",
+      "status": "passed"
+    },
+    {
+      "command": "registry regeneration and validation",
+      "status": "passed",
+      "unresolved": 0,
+      "idempotent": true,
+      "log": "registry.log"
+    }
+  ],
+  "behavior": [
+    "Eligibility precedes expected utility ranking",
+    "Outcome costs and latency remain explicit host estimates",
+    "Dirichlet posterior probabilities and variance remain inspectable",
+    "Copies of the same evidence/dependency count once; conflicting dependent reports reject",
+    "Different-context, stale and censored observations do not update counts",
+    "Signed job verification replays policy, observations and projection",
+    "Default host policy remains history-disabled; an explicit host policy enables observation use"
+  ],
+  "nonClaims": [
+    "Outcome calibration or measured network performance benefit",
+    "Automatic operational observation collection",
+    "Model partition execution",
+    "Successful model-generated cross-device improvement",
+    "General preauthorized adoption runtime",
+    "Independent operators or honest hardware",
+    "Deployment"
+  ]
+}

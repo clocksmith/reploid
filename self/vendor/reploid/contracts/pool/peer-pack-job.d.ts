@@ -5,6 +5,7 @@ import type { PackOperationRequest } from './pack-operation.js';
 import type { PackJobPolicy, CurrentPackJobPolicy } from './peer-pack-job-policy.js';
 import type { ProviderCapabilities, WorkRequirements } from './peer-capabilities.js';
 import type { OperationAssignmentPlan } from './peer-planning.js';
+import type { PlacementObservation } from '../../mesh/placement-beliefs.js';
 type JsonObject = Readonly<Record<string, JsonValue>>;
 export interface PackPeerIdentity {
   readonly keyId: string;
@@ -64,7 +65,8 @@ export interface PackPeerJobIntent {
   readonly selectedAt: number;
   readonly inputHash: string;
   readonly resources: WorkRequirements['resources'];
-  readonly planning: { readonly adverts: readonly SignedPackPeerMessage<PackProviderAdvertBody>[]; readonly plan: OperationAssignmentPlan };
+  readonly planning: { readonly adverts: readonly SignedPackPeerMessage<PackProviderAdvertBody>[]; readonly plan: OperationAssignmentPlan;
+    readonly observations?: readonly PlacementObservation[] };
 }
 export interface PackPeerJobBody {
   readonly schema: 'reploid.peer.pack_job/v4';
@@ -88,9 +90,10 @@ export function verifyPackPeerMessage<Body>(message: SignedPackPeerMessage<Body>
 export function createPackProviderAdvert(options: { identity: PackPeerIdentity; models: readonly JsonObject[];
   capabilities: ProviderCapabilities; limits: PackPeerLimits; expiresAt: number; registry?: PackOperationRegistry; policy?: CurrentPackJobPolicy }): Promise<SignedPackPeerMessage<PackProviderAdvertBody>>;
 export function planPackPeerProviders(options: { adverts: readonly SignedPackPeerMessage<PackProviderAdvertBody>[];
-  requirements: WorkRequirements; now: number; registry?: PackOperationRegistry; policy?: CurrentPackJobPolicy }): Promise<OperationAssignmentPlan>;
+  requirements: WorkRequirements; now: number; observations?: readonly PlacementObservation[] | null;
+  registry?: PackOperationRegistry; policy?: CurrentPackJobPolicy }): Promise<OperationAssignmentPlan>;
 export function createPackPeerJob(options: { requestSchema?: PackOperationRequest['schema'] | null; identity: PackPeerIdentity; advert?: SignedPackPeerMessage<PackProviderAdvertBody>;
-  adverts?: readonly SignedPackPeerMessage<PackProviderAdvertBody>[]; resources: WorkRequirements['resources'];
+  adverts?: readonly SignedPackPeerMessage<PackProviderAdvertBody>[]; resources: WorkRequirements['resources']; observations?: readonly PlacementObservation[] | null;
   model: JsonObject; input: JsonObject; options?: JsonObject; limits: PackPeerJobIntent['limits']; consent: PackPeerConsent;
   comparisonPolicy: JsonObject | null; acceptanceMode?: 'reference' | 'execution'; jobId?: string; attemptId?: string; attemptNumber?: number; adapterSet?: readonly ExecutionAdapter[];
   registry?: PackOperationRegistry; policy?: CurrentPackJobPolicy }): Promise<SignedPackPeerMessage<PackPeerJobBody>>;
