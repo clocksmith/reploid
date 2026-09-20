@@ -1,30 +1,50 @@
-# INTENT: reploid
+# INTENT: Reploid
 
 Parent: none
 
 ## Need
 
-Users need agents that complete useful work without making experimental self-changes part of the trusted system by default.
+Humans and agents need to combine distributed models, resources, and expertise
+without surrendering control of their data, devices, or evolving software.
 
 ## Target
 
-Preserve independently useful collaborating agents, configurable browser-library boundaries, Bayesian adaptation, Doppler-defined distributed computation, and separately evaluated recursive improvement.
+A visible intelligence network of collaborating agents, not a solitary assistant
+with hidden networking. Use uncluttered workflows, brief copy, shared components
+and tokens, accessible light/dark themes, responsive scrolling, and futuristic,
+subtly neumorphic styling.
 
 ## Invariants
 
-Keep problem-solving and improvement loops separate. Doppler owns execution and Poolday peer infrastructure. Proposers cannot modify hidden evaluations, escalate permissions, or approve themselves. Applications compose library APIs; UI and Zero/X identity do not grant approval authority. Bounded preauthorized adoption fixes criteria, budgets, expiry, and rollback. Candidates cannot change its policy.
+- Doppler owns model computation; Poolday owns peer infrastructure; Reploid owns
+  orchestration and improvement.
+- Custody grants no execution permission. Whole jobs prove no partitioning.
+  Intermediate tensors require disclosure grants; placement preserves model semantics.
+- Budgets and permissions constrain eligibility. Declare numerical tolerances and
+  cancellation settlement, not universal determinism or immediate termination.
+- Belief updates, strategy changes, and weight changes are distinct.
+  Preserve uncertainty, provenance, and observation dependencies.
+- Candidates cannot control evaluators, adoption authority, or grants.
+- Runtime operation within valid grants does not depend on CI.
+- Signed records do not establish correct computation.
 
 ## Evidence
 
-Compare identified baselines and candidates on protected work, including cost, failures, and human help. Improvement requires B to outperform A and B's changed machinery to contribute to C. Partition execution requires correctness and complete communication-cost comparisons. Version uncertain beliefs and provenance; correlated observations are not independent trials. Reproduction, adoption, publication, and deployment remain separate proofs.
+Compare useful outcomes with the strongest feasible local alternative and,
+separately, equivalent centralized resources. Count communication, verification,
+failures, and human intervention. Test transfer to unfamiliar subsequent tasks.
+Recursive benefit additionally requires causal A-to-B-to-C evidence: B improves
+on A and its changed machinery contributes to C.
 
 ## Non-goals
 
-No capability claims from peer count, mutation volume, fixed-model inference, or package extraction alone. Preserve scientific and commercial alternatives rather than choosing one through a charter edit.
+Activity, reproduction, receipts, adoption, and UI polish alone prove neither
+network benefit nor recursive improvement.
 
 ## Truth
 
-[GOVERNANCE_DETAILS.md](GOVERNANCE_DETAILS.md) retains the complete requirements and dated evidence references. Signed improvement episodes, protected comparisons, and explicit adoption decisions establish their respective claims. Current gaps cannot be removed by weakening the acceptance boundary.
+These are targets. The [claim index](docs/status/surface-claim-index.json) bounds
+qualification; [detailed requirements](GOVERNANCE_DETAILS.md) preserve separate acceptance boundaries.
 
 Related: [GOALS.md](GOALS.md), [CATSCAN.md](CATSCAN.md).
 
@@ -32,5 +52,3 @@ Related: [GOALS.md](GOALS.md), [CATSCAN.md](CATSCAN.md).
 <a id="required-checks"></a>
 <a id="development-checks"></a>
 <a id="recorded-evidence"></a>
-
-Detailed requirements: [GOVERNANCE_DETAILS.md](GOVERNANCE_DETAILS.md).
