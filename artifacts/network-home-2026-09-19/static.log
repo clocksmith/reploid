@@ -1,0 +1,38 @@
+
+> reploid@0.1.0 lint
+> eslint .
+
+
+> reploid@0.1.0 verify:catscan
+> node scripts/verify-catscan.js
+
+[catscan] 35 component charters and generated index passed
+
+> reploid@0.1.0 verify:layers
+> node scripts/verify-layers.js
+
+Layer, loader, cycle and canonical delivery verification passed.
+
+> reploid@0.1.0 verify:runtime-config
+> node scripts/sync-runtime-config.js
+
+Runtime config verified for browser doppler-gpu@0.6.1 with npm tooling 0.6.1.
+
+> reploid@0.1.0 verify:surface-claims
+> node scripts/verify-surface-claim-index.js
+
+[verify-surface-claims] 14 claim rows passed
+
+> reploid@0.1.0 verify:pool:css
+> node scripts/verify-poolday-css-layers.js
+
+[poolday-css-layers] OK: layering contract holds across tokens/primitives/components
+
+> reploid@0.1.0 verify:library-types
+> tsc -p tsconfig.library.json
+
+
+> reploid@0.1.0 verify:browser-bundle:local
+> node scripts/build-browser-bundle-manifest.js --check
+
+[browser-bundle] 791 served files match sha256:3ae85e30fb0653f2a5fde2ccf1492e7146e3c78f046cdc926b212fb9c97d2fd4
