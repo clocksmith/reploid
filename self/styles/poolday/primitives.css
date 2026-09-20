@@ -428,3 +428,12 @@
     opacity: 0;
   }
 }
+
+.pool-home {
+  --pool-surface-dark-hover: var(--pool-color-dark-hover);
+  --pool-surface-dark-selected: var(--pool-gradient-dark-selected);
+  --pool-surface-dark-selected-shadow: var(--pool-dim-dark-selected-shadow);
+  --pool-surface-dark-nav: var(--pool-gradient-dark-nav);
+  --pool-surface-dark-button: var(--pool-gradient-dark-button);
+  --pool-surface-dark-button-shadow: var(--pool-dim-dark-button-shadow);
+}

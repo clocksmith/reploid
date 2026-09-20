@@ -5,7 +5,7 @@ Recursive authority charters discovered from the repository root.
 
 | Component | Charter | Parent | Target |
 | --- | --- | --- | --- |
-| Reploid | [`CATSCAN.md`](../CATSCAN.md) | None | Deliver a goal-directed agent using Doppler inference, Poolday collaboration, and evaluated recursive improvement. |
+| Reploid | [`CATSCAN.md`](../CATSCAN.md) | None | Deliver collaborating, independently useful agents using Doppler, Poolday coordination, and evaluated recursive improvement. |
 | Deployment Configuration | [`deploy/CATSCAN.md`](../deploy/CATSCAN.md) | Reploid | Declare reproducible hosted deployment inputs and service boundaries for Reploid runtime surfaces. |
 | Documentation | [`docs/CATSCAN.md`](CATSCAN.md) | Reploid | Keep product intent, contracts, mechanisms, claims, and current evidence discoverable without conflating their authority. |
 | Hosted Zero Function | [`functions/CATSCAN.md`](../functions/CATSCAN.md) | Reploid | Expose the bounded Gemini-backed Zero function with explicit authentication, App Check, input, quota, and failure contracts. |
@@ -13,7 +13,7 @@ Recursive authority charters discovered from the repository root.
 | Hosted Services | [`server/CATSCAN.md`](../server/CATSCAN.md) | Reploid | Provide bounded authentication, rendezvous, relay, proxy, and compatibility services without becoming authority for browser-local claims. |
 | Verification Evidence | [`tests/CATSCAN.md`](../tests/CATSCAN.md) | Reploid | Produce reproducible evidence about declared behavior, boundaries, regressions, and failure handling. |
 | Change Passport Documentation | [`docs/change-passport/CATSCAN.md`](change-passport/CATSCAN.md) | Documentation | Preserve Change Passport as an inactive commercial alternative with independent workflow, evidence, and decision-state contracts. |
-| Poolday Product Contracts | [`docs/poolday/CATSCAN.md`](poolday/CATSCAN.md) | Documentation | Apply Reploid's goal-first mission to optional peer execution, evidence boundaries, and scientific non-claims. |
+| Poolday Product Contracts | [`docs/poolday/CATSCAN.md`](poolday/CATSCAN.md) | Documentation | Apply Reploid's collaborating-agent mission to voluntary peer execution, evidence boundaries, and scientific non-claims. |
 | Evidence Status | [`docs/status/CATSCAN.md`](status/CATSCAN.md) | Documentation | Record current, evidence-linked claim status without turning observations into strategy or stronger assertions. |
 | Reploid Browser Library | [`packages/reploid/CATSCAN.md`](../packages/reploid/CATSCAN.md) | Reploid | Provide reusable browser agent, networking, coordination, persistence and governed improvement services. Applications consume public APIs. |
 | Blueprint Registry | [`self/blueprints/CATSCAN.md`](../self/blueprints/CATSCAN.md) | Browser Runtime | Preserve discoverable design records for runtime modules without substituting design descriptions for current proof. |
@@ -33,7 +33,7 @@ Recursive authority charters discovered from the repository root.
 | Hosted Poolday Services | [`server/pool/CATSCAN.md`](../server/pool/CATSCAN.md) | Hosted Services | Authenticate and relay immutable Poolday records while maintaining rebuildable hosted projections and bounded coordination. |
 | Shared Change Passport Contract | [`self/shared/change-passport/CATSCAN.md`](../self/shared/change-passport/CATSCAN.md) | Browser Runtime | Provide one browser-safe Change Passport contract, policy, Zero/X source adapter, and Visual Feedback Bridge receipt adapter to browser, server, SDK, action, and verifier consumers. |
 | Change Passport Interface | [`self/ui/change-passport/CATSCAN.md`](../self/ui/change-passport/CATSCAN.md) | Browser Interfaces | Let authorized operators inspect and act on Change Passports without collapsing evidence validity, decision state, deployed effect state, or source authority. |
-| Reploid Product Interface | [`self/ui/pool-home/CATSCAN.md`](../self/ui/pool-home/CATSCAN.md) | Browser Interfaces | Pursue goals with helpers, share compute, and review tested tool changes. |
+| Reploid Product Interface | [`self/ui/pool-home/CATSCAN.md`](../self/ui/pool-home/CATSCAN.md) | Browser Interfaces | Connect agents, models, shared tasks, contribution, results, and tested improvements. |
 | X Operator Workbench | [`self/ui/proto/CATSCAN.md`](../self/ui/proto/CATSCAN.md) | Browser Interfaces | Let operators inspect the full causal improvement episode, compare generations, quarantine, replay, promote, and roll back substrate candidates without crossing into product admission. |
 | Zero Proposal Interface | [`self/ui/zero/CATSCAN.md`](../self/ui/zero/CATSCAN.md) | Browser Interfaces | Give Zero operators a focused interface for objectives, tool-growing experiments, and candidate proposals. |
 | Agent Execution | [`packages/reploid/src/agent/CATSCAN.md`](../packages/reploid/src/agent/CATSCAN.md) | Reploid Browser Library | Provide reusable agent execution with explicit host ports and bounded lifecycle. |

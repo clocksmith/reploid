@@ -1,20 +1,20 @@
 import { test, expect } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 
-test('Work leads with a task and makes optional disclosure explicit', async ({ page }) => {
+test('Home connects agents and tasks with explicit disclosure', async ({ page }) => {
   await page.goto('/');
-  await expect(page.getByRole('heading', { name: 'What can I help with?' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Agents working together.' })).toBeVisible();
   await expect(page.locator('[data-work-output]')).toBeHidden();
   await expect(page.locator('.pool-work-history')).toBeHidden();
   await expect(page.getByText('Mesh Node: Active', { exact: true })).toHaveCount(0);
   await expect(page.getByText('Provider: Ready', { exact: true })).toHaveCount(0);
-  await expect(page.locator('.pool-work-settings')).not.toHaveAttribute('open');
+  await expect(page.locator('[data-work-attachments]')).not.toHaveAttribute('open');
   await expect(page.locator('[data-work-peers]')).not.toBeChecked();
   await expect(page.locator('[data-work-location]')).toContainText('On-device model');
   const cloudId = await page.locator('[data-work-model] option').evaluateAll(options =>
     options.find(option => option.textContent.includes('Cloud')).value);
   await page.locator('[data-work-model]').selectOption(cloudId);
-  await expect(page.locator('[data-work-location]')).toContainText('your task and files may be sent');
+  await expect(page.locator('[data-work-location]')).toContainText('sends task and files');
   await page.getByRole('button', { name: 'Summarize a file', exact: true }).click();
   await expect(page.locator('[data-work-goal]')).toHaveValue(/Summarize the attached file/);
   await expect(page.locator('[data-work-files]')).toBeVisible();
@@ -43,7 +43,7 @@ test('Improve gives new users a useful empty state', async ({ page }) => {
   await expect(page.locator('[data-work-goal]')).toBeVisible();
 });
 
-test('mobile Work fits the viewport and keeps Start near the task', async ({ page }) => {
+test('mobile network and task controls fit the viewport', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/');
   await expect(page.locator('[data-work-start]')).toBeVisible();
@@ -54,7 +54,8 @@ test('mobile Work fits the viewport and keeps Start near the task', async ({ pag
     height: innerHeight
   }));
   expect(geometry.width).toBeLessThanOrEqual(geometry.viewport);
-  expect(geometry.startBottom).toBeLessThanOrEqual(geometry.height);
+  await page.locator('[data-work-start]').scrollIntoViewIfNeeded();
+  await expect(page.locator('[data-work-start]')).toBeInViewport();
 });
 
 test('view state retains activity, cancellation, saved results and a clean new task', async ({ page }) => {
@@ -115,7 +116,7 @@ test('view state retains activity, cancellation, saved results and a clean new t
 });
 
 test('Verification Worker accepts the changed UI modules', async ({ page }) => {
-  const names = ['index.js', 'view.js', 'work.js', 'work-goal-composer.js', 'work-task-header.js', 'work-result-view.js', 'operation-sharing.js', 'theme.js'];
+  const names = ['index.js', 'view.js', 'work.js', 'work-goal-composer.js', 'work-task-header.js', 'work-result-view.js', 'operation-sharing.js', 'theme.js', 'agent-network.js', 'work-capabilities.js'];
   const snapshot = Object.fromEntries(await Promise.all(names.map(async name => [
     `/ui/pool-home/${name}`, await readFile(`self/ui/pool-home/${name}`, 'utf8')
   ])));

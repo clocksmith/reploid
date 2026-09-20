@@ -57,9 +57,9 @@ test('task uses a helper and approved peer, evaluates code, requires adoption, a
   await expect(page.locator('[data-work-team]')).toContainText('completed');
   await expect(page.locator('[data-work-candidates]')).toContainText('Current: 4/6 checks. Candidate: 6/6 checks.');
   expect((await page.evaluate(()=>window.integratedWork.evolution.describe()))[0].generationId).toBe('FormatJson:genesis');
-  await page.screenshot({path:'artifacts/work-integration/candidate-review.png',fullPage:true});
+  await page.screenshot({path:'artifacts/network-home-2026-09-19/candidate-review.png',fullPage:true});
   await page.locator('[data-candidate-adopt]').click();
-  await expect(page.locator('[data-work-candidates]')).toContainText('adopted');
+  await expect(page.locator('[data-work-candidates]')).toContainText('Adopted on this device');
   expect(await page.evaluate(()=>window.integratedWork.evolution.run('FormatJson',{text:'```json\n{"a":2}\n```'}))).toBe('{\n  "a": 2\n}');
   await page.reload();
   const restored=await page.evaluate(async()=>{
@@ -113,7 +113,7 @@ test('two browsers exchange an approved text request over WebRTC and settle shar
       const {createWorkSwarm}=await import('/host/work-swarm.js');
       window.providerCalls=0;window.providerScopes=new Set();
       window.testSwarm=createWorkSwarm({storage:localStorage,service:{
-        async open({scope}) {window.providerScopes.add(scope);return {async *stream(){window.providerCalls++;yield {type:'text-delta',text:'A peer checked the proposed approach.'};}};},
+        async open({scope}) {window.providerScopes.add(scope);await new Promise(resolve=>{window.releaseModel=resolve;});return {async *stream(){window.providerCalls++;await new Promise(resolve=>{window.releaseGeneration=resolve;});yield {type:'text-delta',text:'A peer checked the proposed approach.'};}};},
         async close(scope){window.providerScopes.delete(scope);}
       }});
       await window.testSwarm.share('qwen-3-5-2b-q4k-ehaf16',true);
@@ -128,7 +128,13 @@ test('two browsers exchange an approved text request over WebRTC and settle shar
     });
     await expect.poll(()=>requester.evaluate(()=>!!window.pendingPeer)).toBe(true);
     expect(await provider.evaluate(()=>window.providerCalls)).toBe(0);
-    const result=await requester.evaluate(async()=>{window.decidePeer(true);return window.peerResult;});
+    await requester.evaluate(()=>window.decidePeer(true));
+    await expect.poll(()=>provider.evaluate(()=>window.testSwarm.getState().contribution.phase)).toBe('loading');
+    await provider.evaluate(()=>window.releaseModel());
+    await expect.poll(()=>provider.evaluate(()=>window.testSwarm.getState().contribution.phase)).toBe('executing');
+    await provider.evaluate(()=>window.releaseGeneration());
+    const result=await requester.evaluate(()=>window.peerResult);
+    await expect.poll(()=>provider.evaluate(()=>window.testSwarm.getState().contribution.completed)).toBe(1);
     expect(result.output).toBe('A peer checked the proposed approach.');
     expect(result.claim).toBe('legacy-compatibility-result');
     expect(await requester.evaluate(()=>window.peerEvents.map(e=>e.stage))).toEqual(['proposed','approved','completed']);
@@ -136,6 +142,7 @@ test('two browsers exchange an approved text request over WebRTC and settle shar
     await provider.evaluate(()=>window.testSwarm.stop());
     expect(await provider.evaluate(()=>window.providerScopes.size)).toBe(0);
   }finally{
+    await provider.evaluate(()=>{window.releaseModel?.();window.releaseGeneration?.();}).catch(()=>{});
     await Promise.all([provider.evaluate(()=>window.testSwarm?.close()).catch(()=>{}),requester.evaluate(()=>window.testSwarm?.close()).catch(()=>{})]);
     await providerContext.close();await requesterContext.close();await signaling.close();
   }

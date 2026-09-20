@@ -1,0 +1,93 @@
+{
+  "component": "Reploid network home, host contribution telemetry, and product intent",
+  "intent": "deliberately changed",
+  "baseRevision": "7e954bc3adb6cca549ee52db58a30f887c23d2aa",
+  "sourceSha256": {
+    "CATSCAN.md": "d787236cc3358b0047c5246b345ba318f5bef04536d188e94a0f99248ac51818",
+    "GOALS.md": "f5022395be0374417d683faa306315d6a187d9917382fc42100e10037d00fec0",
+    "INTENT.md": "df12e34debc97fcf2d388b37214eaf327eb0e635b3bff58cf71f981ba52936d8",
+    "README.md": "17da22e1fdfabf53b1151dd5803db061228f5a197733894a07d105e9656ef3e7",
+    "docs/component-index.md": "30a7de417169bb2e22db62ddaae142f8a7e370a62d11be7582378a0148974816",
+    "docs/poolday/CATSCAN.md": "2188cadbe50844f8ec78d4146ac7b37c22ff15a5ba9ebe13e475d885021a6626",
+    "docs/poolday/product-intent.md": "86b756d7f20ef7a0b0af164e9719243ece58aada3e5e7b41b4350dbb3ebfa9d1",
+    "docs/work-collaboration.md": "7b2d6577a197f7a30fec502d2a71775e5efc5207f130d275a2630f340bc9e739",
+    "self/config/browser-bundle-manifest.json": "dafac1f292fe2fe15007cf134dac4c3898f868a0160771ded05e942cc3739f3e",
+    "self/config/module-inventory.json": "d37b2f24fd1eefe3a374bc881653c64e1bf49e1083d42be2abc02743ee69f4d3",
+    "self/config/vfs-manifest.json": "f129f8d453682b2e5328389a948efa63b64aaa2a9ffb200bd2d299d94d94cc8f",
+    "self/host/work-swarm.js": "b6d94b4a59413e7426e4eaf4a1df0347f79a4e3a24c7901b9af7c35a62f66570",
+    "self/styles/poolday/components.css": "dbf1df463421f83441406007d4c6f7daa8710e66df6a595c439fdf0c7e439aca",
+    "self/styles/poolday/primitives.css": "066d53b470360c97cfa32a232b9c41b19d99e8bbe7daaef428ab84ed4fca1955",
+    "self/styles/poolday/tokens.css": "eaeca5b1025edbc9eacb6fe6badb2a6d9f75cb49a5c83a272c4b5800ac0ed37c",
+    "self/ui/pool-home/CATSCAN.md": "d3d36f49ca915e2302ccac5829e355fd81be45d06e09979aa657bf0365605950",
+    "self/ui/pool-home/constants.js": "74013678a091283faff6f3ff0f1d5f9386a5064f5f62aa755da9b9951cadcb53",
+    "self/ui/pool-home/view.js": "290d3d719cd4b134309fd14ad40f4d2f1468c65b1feea9de68511faf1cca916a",
+    "self/ui/pool-home/work-capabilities.js": "b16076a5ba2a1270834d8a3f8d19616dd6b24171d66c55880eeebeea8084d700",
+    "self/ui/pool-home/work-goal-composer.js": "d5ed3afd5d533ca3de7ab50bc87c7b716649f03b647c82343a7bc73edd996ffb",
+    "self/ui/pool-home/work-result-view.js": "ad89c9e10082d5d26db4bf50192cd6d4d479604d467145fc5b5a94f9409dde77",
+    "self/ui/pool-home/work.js": "5f421468657edbdf502190044a2ceaebac69e7fb5bb6f8994deb2a57a57ac473",
+    "tests/e2e/work-clarity.spec.js": "4bdeeb42e1d2349937784650216d415afc42adef7cfe6896787ec4e577bfba4a",
+    "tests/e2e/work-integration.spec.js": "25df73b205cf7f094caf21fb1bc7e59a09985c4ec4a76dfde1dd53651f10db66",
+    "tests/unit/pool-home-nav.test.js": "04fd14ae8ba162bbfbd60487a751d72e260286c72ee690b6794ea9bcaccef59d",
+    "self/ui/pool-home/agent-network.js": "7a2eb3fa5abb7e2d6feafff7b18e9dc19fbf90837ec99bc72f28325387bee1fc",
+    "tests/unit/agent-network.test.js": "ae666c9c3b18ea139208bfe59c9d6b414a3db1d856e383e1766717c7a6a2af8c",
+    "tests/e2e/agent-network-home.spec.js": "112a90a02f15b82097cd6a998e900c702bcb45fdc57cdd82be51a1855713c732"
+  },
+  "browserBundle": "sha256:3ae85e30fb0653f2a5fde2ccf1492e7146e3c78f046cdc926b212fb9c97d2fd4",
+  "acceptance": {
+    "vitest": {
+      "command": "npx vitest run",
+      "passed": 2637,
+      "skipped": 36,
+      "failed": 0,
+      "log": "vitest.log"
+    },
+    "chromium": {
+      "command": "npx playwright test tests/e2e/agent-network-home.spec.js tests/e2e/work-clarity.spec.js tests/e2e/work-integration.spec.js --project=chromium --timeout=60000",
+      "passed": 15,
+      "failed": 0,
+      "log": "chromium.log",
+      "verificationWorker": "changed modules accepted"
+    },
+    "static": {
+      "scripts": [
+        "lint",
+        "verify:catscan",
+        "verify:layers",
+        "verify:runtime-config",
+        "verify:surface-claims",
+        "verify:pool:css",
+        "verify:library-types",
+        "verify:browser-bundle:local"
+      ],
+      "status": "passed",
+      "log": "static.log"
+    },
+    "registry": {
+      "unresolved": 0,
+      "sourceFiles": 431,
+      "secondRunIdempotent": true,
+      "logs": [
+        "registry.log",
+        "registry-second.log"
+      ]
+    },
+    "visual": {
+      "inspected": [
+        "home-1440.png",
+        "home-390.png",
+        "home-dark.png"
+      ],
+      "additionalResponsiveCapture": "home-320.png",
+      "fixtureProjection": "connected-fixture.png",
+      "hostCandidateEvaluation": "candidate-review.png"
+    }
+  },
+  "boundaryEffects": "Main UI combines activities and projects host state. Hosts retain participation, disclosure, evaluation, adoption, and rollback authority. Zero/X routes and focused network/improvement routes remain available.",
+  "limitations": [
+    "WebRTC test uses real browser transport on one machine with injected model output.",
+    "Candidate test covers FormatJson and protected tool evaluation, not general recursive improvement.",
+    "No independent-machine experiment, actual Doppler inference qualification, or physical GPU correctness experiment was run.",
+    "Local validation does not certify remote CI.",
+    "Not deployed."
+  ]
+}

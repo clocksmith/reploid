@@ -21,8 +21,8 @@ Each task can enable three independent capabilities:
 
 ## Connect another device
 
-Open Network and create an invitation. Open the invitation on the participating
-devices, then use **Find helper devices**. A contributor can explicitly offer
+On the main page, choose **Invite** beside Agents & models. Open the invitation on the participating
+devices, then use **Connect peers**. A contributor can explicitly offer
 the local Qwen model and stop sharing at any time. Cross-device connections use
 the configured signaling service for rendezvous and WebRTC for transport.
 Without a cross-device room, discovery is limited to the same browser.
@@ -46,7 +46,7 @@ the expected answer or evaluation suite. Timeouts, cancellation, and host failur
 cannot count as successful rejection of invalid input. Protected tests are
 host-controlled, although their source is public in this repository.
 
-Work and Improve show the baseline and candidate scores, source, and an evaluation
+The main page and the focused improvement history show the baseline and candidate scores, source, and an evaluation
 download. A candidate must pass every case, regress none, and improve the score.
 Use **Use this version** to adopt it after the active task settles, or keep the
 current version. **Restore previous version** rolls back an adopted change.

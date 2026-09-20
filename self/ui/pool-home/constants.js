@@ -20,9 +20,9 @@ export const POOLDAY_ROUTE_DEFINITIONS = Object.freeze([
   createPooldayRoute({
     id: 'home',
     path: '/',
-    label: 'Work',
+    label: 'Overview',
     eyebrow: POOLDAY_PROTOCOL,
-    title: 'Work',
+    title: 'Agent network',
     body: 'Pursue goals with local intelligence and explicitly shared compute.'
   }),
   createPooldayRoute({
@@ -36,6 +36,7 @@ export const POOLDAY_ROUTE_DEFINITIONS = Object.freeze([
   }),
   createPooldayRoute({
     id: 'network',
+    primary: false,
     path: '/network',
     label: 'Network',
     eyebrow: POOLDAY_PROTOCOL,
@@ -53,6 +54,7 @@ export const POOLDAY_ROUTE_DEFINITIONS = Object.freeze([
   }),
   createPooldayRoute({
     id: 'improve',
+    primary: false,
     path: '/improve',
     label: 'Improve',
     eyebrow: POOLDAY_PROTOCOL,
