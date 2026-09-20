@@ -30,6 +30,7 @@ Guide to all documentation in the REPLOID project.
 
 ### Vision and Contracts
 - **[GOALS.md](../GOALS.md)** - Repository mission, value, and durable strategic goals
+- **[INTENT.md](../INTENT.md)** - Collective capability, participant control, semantic preservation, and evaluated evolution
 - **[CATSCAN.md](../CATSCAN.md)** - Root component purpose, authority, boundaries, and acceptance contract
 - **[docs/component-index.md](./component-index.md)** - Generated recursive index of component charters
 - **[docs/substrate.md](./substrate.md)** - Substrate + Ouroboros contract
@@ -125,8 +126,8 @@ reploid/
 Read and maintain documentation by authority rather than by file count:
 
 1. `GOALS.md` defines repository mission, value, and durable strategy.
-2. The recursive `CATSCAN.md` chain defines component outcomes, authority, invariants, acceptance, and non-goals.
-3. Product intent defines the user workflow and win condition for a product surface.
+2. `INTENT.md` protects collective capability, participant control, semantic preservation, and evaluated evolution.
+3. The recursive `CATSCAN.md` chain assigns component ownership, interfaces, constraints, and acceptance checks; surface product intents define their user workflows and win conditions.
 4. The claim index records what may currently be claimed and its evidence.
 5. Runtime contracts define implemented behavior.
 6. Protocol documents define exact schemas and wire rules.
@@ -184,4 +185,4 @@ does not create Markdown blueprints unless a module introduces an architectural 
 
 ---
 
-*Last updated: August 2026*
+*Last updated: September 2026*

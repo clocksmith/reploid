@@ -19,8 +19,9 @@ This directory and unchartered descendants.
 
 ## Contracts
 
-Inputs: immutable policy and explicit host ports.
-Outputs: bounded operations, state, failures and evidence.
+Inputs: immutable policy, authorized subtask objectives, budgets, completion
+criteria and explicit host ports.
+Outputs: bounded operations, subtask results, state, failures and attributed evidence.
 
 Compatibility entries runtime.js and legacy-loop.js forward exports. Task, lab
 and diagnostic strategies use engine.js. Lab formatting runs single attempts;
@@ -34,8 +35,9 @@ Hosts supply diagnostic likelihood provenance, costs, tools and authorization.
 - Cancellation does not prove borrowed-work termination.
 - Preserve identities and recovery compatibility.
 - Preferences cannot alter likelihoods. Completed observations update beliefs;
-  retain uncertainty, dependencies and provenance.
-- Decisions include benefit, communication and participant limits. Information
+  retain uncertainty, dependencies and provenance; duplicates count once.
+- Apply permissions and participant limits before ranking expected task value,
+  including completion, latency, transfer costs and approach effectiveness. Information
   gain, calibration and actual outcome improvement remain distinct.
 
 ## Acceptance
@@ -55,3 +57,5 @@ Application catalogs, credentials, UI, scientific truth or deployment claims.
 ## Freedom
 
 Preserve boundaries and executable acceptance.
+
+*Last updated: September 2026*
