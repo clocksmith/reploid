@@ -161,7 +161,7 @@ describe('poolday home navigation', () => {
   it('links activities within the same home rather than separate destinations', () => {
     const host = document.createElement('div'); host.innerHTML = renderNav('home');
     const links = [...host.querySelectorAll('.pool-nav-link')];
-    expect(links.map(link => link.textContent)).toEqual(['Agents', 'Activity', 'Improvements']);
+    expect(links.map(link => link.textContent)).toEqual(['Agents', 'Activity', 'Changes']);
     expect(links.map(link => link.getAttribute('href'))).toEqual(['#reploid-agents', '#reploid-activity', '#reploid-improvements']);
     expect(links.every(link => !link.hasAttribute('data-pool-route-link'))).toBe(true);
     expect(host.querySelector('[aria-label="Reploid home"]')).not.toBeNull();
@@ -256,7 +256,7 @@ describe('poolday home navigation', () => {
     expect((html.match(/class="pool-nav-link/g) || [])).toHaveLength(3);
     expect(html).toContain('>Agents</a>');
     expect(html).toContain('>Activity</a>');
-    expect(html).toContain('>Improvements</a>');
+    expect(html).toContain('>Changes</a>');
     expect(html).not.toContain('pool-control-drawer');
     expect(html).not.toContain('data-pool-drawer-section');
     expect(PRODUCT_ROUTES['/ask']).toBe('ask');
