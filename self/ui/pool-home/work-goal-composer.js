@@ -12,33 +12,31 @@ export function renderGoalComposer({ models = DEFAULT_WORK_MODELS, defaultModelI
     <div class="pool-work-composer-shell">
       <form class="pool-work-composer${embedded ? ' pool-work-embedded' : ''}" data-work-form>
         <div class="pool-work-field">
-          <label for="work-goal" class="pool-work-label">Objective</label>
+          <label for="work-goal" class="pool-work-label">New thread</label>
           <textarea id="work-goal" data-work-goal rows="3" maxlength="${policy.maxGoalCharacters}" required
             placeholder="Describe the result you want..."></textarea>
         </div>
-        <div class="pool-work-launch-row">
+        <div class="pool-work-actions">
+          <button class="btn btn-primary" type="submit" data-work-start>Start thread</button>
+          <button class="btn btn-ghost" type="button" data-work-cancel hidden>Stop</button>
+        </div>
+        <p class="pool-work-status" role="status" aria-live="polite" data-work-start-status hidden></p>
+        <details class="pool-work-options pool-work-attachments pool-work-settings" data-work-attachments>
+          <summary>Options <span class="type-caption" data-work-file-count></span></summary>
+          <div class="pool-work-drawer-body">
           <div class="pool-work-model-group">
             <div class="pool-work-model-row">
               <label for="work-model">Models</label>
               <select id="work-model" data-work-model aria-describedby="work-execution-location">
-                ${models.map(model => `<option value="${escapeHtml(model.id)}"${model.id === defaultModel.id ? ' selected' : ''}>${escapeHtml(model.name)} · ${model.provider === 'gemini' ? 'Cloud' : 'On this device'}</option>`).join('')}
+                ${models.map(model => `<option value="${escapeHtml(model.id)}"${model.id === defaultModel.id ? ' selected' : ''}>${escapeHtml(model.name)}</option>`).join('')}
               </select>
             </div>
             <p id="work-execution-location" class="pool-control-help" data-work-location></p>
           </div>
-          <div class="pool-work-actions">
-            <button class="btn btn-primary" type="submit" data-work-start>Start work</button>
-            <button class="btn btn-ghost" type="button" data-work-cancel hidden>Stop</button>
-          </div>
-        </div>
-        <p class="pool-work-status" role="status" aria-live="polite" data-work-start-status hidden></p>
             <fieldset class="pool-work-capabilities"><legend>Agents</legend>
-              <label><input type="checkbox" data-work-helpers> Use helpers</label>
-              <label><input type="checkbox" data-work-peers> Ask peers</label>
+              <label><input type="checkbox" data-work-helpers checked> Delegate subtasks</label>
+              <label><input type="checkbox" data-work-peers checked> Propose peer jobs</label>
             </fieldset>
-        <details class="pool-work-options pool-work-attachments pool-work-settings" data-work-attachments>
-          <summary>Task settings <span class="type-caption" data-work-file-count></span></summary>
-          <div class="pool-work-drawer-body">
             <label for="work-files">Text or source files</label>
             <input id="work-files" type="file" multiple accept=".txt,.md,.csv,.json,.js,.ts,.html,.css,.wgsl,.xml,.yaml,.yml,.log" data-work-files>
             <ul data-work-input-list></ul>

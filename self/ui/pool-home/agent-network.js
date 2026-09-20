@@ -3,9 +3,17 @@ export function projectAgents(work, swarm = {}, selectedModelId) {
   const active = work.records?.find(row => work.busy && row.id === work.activeId);
   const model = work.models?.find(item => item.id === (active?.modelId || selectedModelId));
   const rows = [{ id: 'local', name: 'Your agent', model: active?.modelName || model?.name || 'Choose a model',
-    location: model?.provider === 'gemini' ? 'Cloud' : 'This device',
+    location: active?.execution?.peerId ? 'Peer ' + active.execution.peerId.slice(0, 8)
+      : model?.provider === 'gemini' ? 'Cloud' : active && !active.execution ? 'Scheduling' : 'This device',
     state: active?.status === 'loading' ? 'Preparing model' : active ? (work.pendingApproval ? 'Awaiting approval' : work.activity || 'Working')
       : work.available === false ? 'Model unavailable' : model ? 'Idle · model selected' : 'No model selected' }];
+  for (const thread of work.records || []) {
+    if (thread.id === active?.id || !work.runningIds?.includes(thread.id)) continue;
+    rows.push({ id: thread.id, name: thread.goal, model: thread.modelName,
+      location: thread.execution?.peerId ? 'Peer ' + thread.execution.peerId.slice(0, 8)
+        : thread.execution?.kind === 'local-scoped-session' ? 'This device' : 'Scheduling',
+      state: work.approvalThreadIds?.includes(thread.id) ? 'Awaiting approval' : thread.status });
+  }
   const seen = new Set([swarm.consumer?.peerId, swarm.supplier?.peerId]);
   for (const snapshot of [swarm.consumer, swarm.supplier]) for (const peer of snapshot?.peers || []) {
     if (seen.has(peer.peerId)) continue;

@@ -8,6 +8,7 @@ export const DEFAULT_REWARD_POLICY = Object.freeze(policy);
 const roundScore = (value) => Math.round(Number(value || 0) * 1000) / 1000;
 
 export function createContributionSummary(input = {}) {
+  input = input || {};
   return {
     score: roundScore(input.score || 0),
     providedInputTokens: Math.max(0, Number(input.providedInputTokens || 0)),

@@ -51,7 +51,7 @@ describe('poolday home navigation', () => {
       expect(link.getAttribute('href')).not.toContain('?');
     }
     expect(footer.previousElementSibling.classList.contains('pool-home-task')).toBe(true);
-    expect(host.querySelectorAll('.pool-primary-nav .pool-nav-link')).toHaveLength(1);
+    expect(host.querySelectorAll('.pool-primary-nav .pool-nav-link')).toHaveLength(3);
     for (const route of ['ask', 'compute', 'records', 'room-1']) {
       expect(renderRoutePanel(route) + renderRouteDetail(route)).not.toContain('pool-experiments-footer');
     }
@@ -133,7 +133,9 @@ describe('poolday home navigation', () => {
       'room-1'
     ]);
     expect(POOLDAY_NAV_ROUTES).toEqual([
-      { id: 'home', path: '/', label: 'Overview' }
+      { id: 'home', path: '/', label: 'Work' },
+      { id: 'network', path: '/network', label: 'Network' },
+      { id: 'improve', path: '/improve', label: 'Changes' }
     ]);
     expect(PRODUCT_ROUTES).toEqual({
       '/': 'home',
@@ -158,18 +160,18 @@ describe('poolday home navigation', () => {
     });
   });
 
-  it('links activities within the same home rather than separate destinations', () => {
+  it('keeps the workspace and its network and change controls reachable', () => {
     const host = document.createElement('div'); host.innerHTML = renderNav('home');
     const links = [...host.querySelectorAll('.pool-nav-link')];
-    expect(links.map(link => link.textContent)).toEqual(['Agents', 'Activity', 'Changes']);
-    expect(links.map(link => link.getAttribute('href'))).toEqual(['#reploid-agents', '#reploid-activity', '#reploid-improvements']);
-    expect(links.every(link => !link.hasAttribute('data-pool-route-link'))).toBe(true);
+    expect(links.map(link => link.textContent)).toEqual(['Work', 'Network', 'Changes']);
+    expect(links.map(link => new URL(link.href).pathname)).toEqual(['/', '/network', '/improve']);
+    expect(links.every(link => link.hasAttribute('data-pool-route-link'))).toBe(true);
     expect(host.querySelector('[aria-label="Reploid home"]')).not.toBeNull();
   });
 
   it('keeps a path back from focused routes without legacy drawer chrome', () => {
     const html = renderNav('improve', { open: true });
-    expect(html).toContain('>Overview</a>');
+    expect(html).toContain('>Work</a>');
     expect(html).not.toContain('is-open');
     expect(html).not.toContain('aria-expanded');
     expect(html).not.toContain('pool-nav-description');
@@ -254,8 +256,8 @@ describe('poolday home navigation', () => {
 
     expect(html).toContain('class="pool-nav-rail pool-primary-nav"');
     expect((html.match(/class="pool-nav-link/g) || [])).toHaveLength(3);
-    expect(html).toContain('>Agents</a>');
-    expect(html).toContain('>Activity</a>');
+    expect(html).toContain('>Work</a>');
+    expect(html).toContain('>Network</a>');
     expect(html).toContain('>Changes</a>');
     expect(html).not.toContain('pool-control-drawer');
     expect(html).not.toContain('data-pool-drawer-section');

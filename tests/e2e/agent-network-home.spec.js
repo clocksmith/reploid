@@ -7,8 +7,9 @@ test('home exposes voluntary participation without sending work or loading a mod
   await expect(page.locator('[data-agent-list]')).toContainText('Idle · model selected');
   await expect(page.locator('[data-contribution-status]')).toHaveText('Not sharing');
   await expect(page.locator('[data-work-improvement]')).not.toBeChecked();
-  await expect(page.locator('[data-work-peers]')).not.toBeChecked();
+  await expect(page.locator('[data-work-peers]')).toBeChecked();
   await expect(page.locator('[data-contribution-limits]')).toBeHidden();
+  await page.locator('[data-network-disclosure] > summary').click();
   await page.locator('[data-contribution-panel] summary').click();
   await expect(page.locator('[data-contribution-limits]')).toContainText('1 request at a time');
   await page.locator('[data-swarm-share]').click();
@@ -27,6 +28,7 @@ test('one page shows live agents, task collaborators, contribution settlement an
   // Injected records exercise presentation and consent controls, not inference quality.
   await page.evaluate(async () => {
     const { renderWorkSurface, bindWorkSurface } = await import('/ui/pool-home/work.js');
+    const { renderToolExperiments } = await import('/ui/pool-home/work-capabilities.js');
     const { DEFAULT_WORK_MODELS } = await import('/host/work-session.js');
     const model = DEFAULT_WORK_MODELS[0];
     const record = { id: 'task', goal: 'Repair the formatter', modelId: model.id, modelName: model.name,
@@ -34,7 +36,7 @@ test('one page shows live agents, task collaborators, contribution settlement an
       helpers: [{ id: 'helper', goal: 'Check malformed JSON', location: 'this device', status: 'running' }],
       peerJobs: [{ stage: 'completed', preview: { id: 'peer-job', modelId: 'Peer model', providerId: 'peer-one' } }],
       improvements: [{ id: 'candidate' }] };
-    let state = { busy: true, activeId: 'task', selectedId: 'task', records: [record], models: DEFAULT_WORK_MODELS,
+    let state = { busy: true, anyBusy: true, activeId: 'task', selectedId: 'task', records: [record], models: DEFAULT_WORK_MODELS,
       available: true, cycle: 2, maxCycles: 12, activity: 'Checking a tool', peerModels: [], draft: '' };
     let snapshot = { models: [model], sharing: true, stopping: false, contribution: { phase: 'loading', completed: 0 },
       limits: { maxInboundJobs: 1, maxOutputTokens: 1024 }, consumer: { transport: 'webrtc', peers: [{ peerId: 'peer-one', role: 'provider', model: 'Peer model' }] } };
@@ -44,7 +46,7 @@ test('one page shows live agents, task collaborators, contribution settlement an
       select(id) { window.selectedTask = id; }, cancel() {} };
     window.updateNetworkFixture = value => { snapshot = { ...snapshot, ...value }; listeners.forEach(fn => fn(state)); };
     window.completeNetworkTask = () => {
-      state = { ...state, busy: false, activity: 'Finished', records: [{ ...record, status: 'review', output: 'Formatter candidate ready.' }] };
+      state = { ...state, busy: false, anyBusy: false, activity: 'Finished', records: [{ ...record, status: 'review', output: 'Formatter candidate ready.' }] };
       listeners.forEach(fn => fn(state));
     };
     const swarm = { getState: () => snapshot, async stop() {
@@ -54,7 +56,7 @@ test('one page shows live agents, task collaborators, contribution settlement an
     } };
     const evolution = { async list() { return [{ id: 'candidate', targetId: 'FormatJson', status: 'awaiting-approval', reason: 'Handle fenced JSON',
       code: 'input => input', evaluation: { baselinePassed: 4, candidatePassed: 6, total: 6 } }]; }, async describe() { return []; } };
-    const root = document.createElement('main'); root.className = 'pool-home'; root.innerHTML = renderWorkSurface();
+    const root = document.createElement('main'); root.className = 'pool-home'; root.innerHTML = renderWorkSurface() + renderToolExperiments();
     document.body.replaceChildren(root); bindWorkSurface(root, app, { swarm, evolution });
   });
   await expect(page.locator('[data-agent-list]')).toContainText('Peer model · WebRTC peer');
@@ -84,11 +86,11 @@ for (const width of [1440, 390, 320]) {
     await page.goto('/');
     await expect(page.locator('[data-agent-list] li')).toHaveCount(1);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-    await page.getByRole('link', { name: 'Activity', exact: true }).click();
     await expect(page.locator('[data-work-goal]')).toBeInViewport();
-    await page.getByRole('link', { name: 'Changes', exact: true }).click();
+    await page.locator('[data-pool-nav-id="improve"]').click();
     await expect(page.locator('[data-work-experiments]')).toBeInViewport();
-    await page.getByRole('link', { name: 'Agents', exact: true }).click();
+    await page.locator('[data-pool-nav-id="home"]').click();
+    await page.locator('[data-network-disclosure] > summary').click();
     await expect(page.locator('[data-swarm-connect]')).toBeInViewport();
     await page.evaluate(() => window.scrollTo(0, 0));
     await page.screenshot({ path: `${evidenceDir}/home-${width}.png`, fullPage: true });

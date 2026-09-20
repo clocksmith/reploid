@@ -457,8 +457,8 @@
     },
     {
       "path": "mesh/contribution.js",
-      "bytes": 4974,
-      "sha256": "7b8dabbc928c944c0aebdf762279ae84595dc634d56be95e1b8ee74953351d07"
+      "bytes": 4997,
+      "sha256": "653e256f8586cf2c5741abf9c12b3aec1a0d190e34ecc2905fdcc2fe97b210d5"
     },
     {
       "path": "mesh/index.d.ts",
@@ -522,13 +522,13 @@
     },
     {
       "path": "mesh/legacy-generation.d.ts",
-      "bytes": 1560,
-      "sha256": "b093f02bb65894c571c33e8c090025a6259f56206b0de20c550ab77ee9727ec6"
+      "bytes": 1818,
+      "sha256": "019f7ec966b1c104ab0967c37ef0c1abc66bf1fed130cba874b27ae8739722ed"
     },
     {
       "path": "mesh/legacy-generation.js",
-      "bytes": 16873,
-      "sha256": "af5bea1ce268c0ff86df6da3ef7d37ee33dd752e1a3d72203ac7deb69d16feee"
+      "bytes": 19185,
+      "sha256": "00283edca6ff4cbc62250097c9b20e931b41aa8d43c93a01d438e8ff056c7215"
     },
     {
       "path": "mesh/placement-beliefs.d.ts",

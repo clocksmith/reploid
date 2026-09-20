@@ -29,13 +29,13 @@ export function bindWorkCapabilities(root, application, { evolution, swarm } = {
         const list = root.querySelector('[data-work-candidates]');
         view.hidden = false;
         root.querySelector('[data-improvement-empty]').hidden = candidates.length > 0;
-        const identity = JSON.stringify([candidates, active, state.busy, state.records.map(row => [row.id, row.goal, row.improvements])]);
+        const identity = JSON.stringify([candidates, active, state.anyBusy, state.records.map(row => [row.id, row.goal, row.improvements])]);
         if (candidateIdentity !== identity) { candidateIdentity = identity;
         const disclosure = view.closest('.pool-work-secondary');
         if (disclosure && candidates.some(item => ['awaiting-approval', 'failed'].includes(item.status))) disclosure.open = true;
         list.innerHTML = [...candidates].reverse().map(item => {
           const evaluation = item.evaluation;
-          const busy = state.busy ? ' disabled' : '';
+          const busy = state.anyBusy ? ' disabled' : '';
           const origin = state.records.find(row => row.improvements?.some(change => change.id === item.id));
           return '<article class="pool-work-candidate"><h3>' + escape(item.targetId) + ' <span class="type-caption">' + escape(candidateState(item)) + '</span></h3>'
             + (origin ? '<button class="pool-candidate-origin" data-work-select="' + escape(origin.id) + '">From task: ' + escape(origin.goal) + '</button>' : '')
@@ -75,6 +75,12 @@ export function bindWorkCapabilities(root, application, { evolution, swarm } = {
     const state = swarm?.getState?.() || {}, node = root.querySelector('[data-swarm-status]');
     refreshAgentNetwork(root, application.getState(), state);
     const snapshot = state.consumer || state.supplier;
+    const summary = root.querySelector('[data-network-summary]');
+    const peerCount = snapshot?.peers?.length || 0;
+    if (summary) summary.textContent = peerCount + (peerCount === 1 ? ' peer' : ' peers')
+      + (state.sharing ? ' · sharing' : '') + (state.stopping ? ' · stopping' : '');
+    const disclosure = root.querySelector('[data-network-disclosure]');
+    if (disclosure && (state.sharing || state.stopping || state.error || swarmError)) disclosure.open = true;
     const helperCount = root.querySelector('[data-work-helper-count]');
     if (helperCount) {
       const count = snapshot?.providerCount || 0;

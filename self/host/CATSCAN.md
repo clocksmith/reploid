@@ -8,7 +8,7 @@ Boot configured browser surfaces from trusted seeds.
 
 ## Authority
 - Owns VFS seeding, module loading, startup and application tools.
-- Composes the agent with local work retention and exact-payload peer approval.
+- Composes concurrent agent threads with retained objectives and per-thread exact-payload approval.
 - Composes helpers, swarms, candidate previews, isolation, evaluation and activation separately from Pack jobs.
 - Task contracts own validation; repositories own committed revisions; providers adapt execution; views expose detached immutable state.
 - Does not own product policy, module semantics, or recovery-root immutability.
@@ -31,17 +31,18 @@ Outputs:
 - Seed identity and destination remain explicit.
 - Host loading cannot silently substitute missing or unverified modules.
 - Received files cannot grant permissions or prove correctness.
+- Viewing or stopping one thread cannot change another's objective, grants or execution.
 - Peer candidate delivery grants no evaluation or adoption authority.
 - Peer operations require fresh host approval, exact execution identities, and retained acceptance evidence.
 - Candidates cannot read protected tests or self-activate; attempts pin versions and retain rollback sources.
 - Selects versioned objectives and measures outside candidate isolation; changed objectives require reevaluation.
 
 ## Acceptance
-- Seeded modules are complete and the VFS round trip is valid.
+- Seeded modules are complete; VFS round trips succeed.
 - Evidence: [boot-seed test](../../tests/unit/boot-seed.test.js) and [VFS integration test](../../tests/integration/vfs.test.js).
 
 ## Non-goals
 - Choosing the scientific question, model policy, or promotion outcome.
 
 ## Freedom
-Any mechanism is permitted if it preserves these boundaries and passes the acceptance evidence.
+Preserve boundaries and acceptance evidence.

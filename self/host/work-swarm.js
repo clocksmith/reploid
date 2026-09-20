@@ -10,12 +10,15 @@ import { LOCAL_DOPPLER_MODELS } from '../config/doppler-local-models.js';
 import profile from '../config/work-profile.json' with { type: 'json' };
 import { createReploidDopplerRuntimeService } from '../infrastructure/doppler-runtime-service.js';
 import { openWorkProvider } from '../providers/work-provider.js';
+import { withWorkDevice } from '../providers/work-network-provider.js';
 import { createWorkPeerOffers } from './work-peer-offers.js';
 
 export function createWorkSwarm({ storage, evolution, onChange = () => {}, service = createReploidDopplerRuntimeService(), networkOptions = createLegacyNetworkOptions }) {
   const utils = Utils.factory({}), eventBus = EventBus.factory({ Utils: utils });
   const options = networkOptions({ Utils: utils, EventBus: eventBus }, { enabled: true });
-  let consumer = null, supplier = null, pending = null, closed = false, sharing = false, stopping = false, connecting = false, error = '';
+  let consumer = null, supplier = null, closed = false, sharing = false, stopping = false, connecting = false, error = '';
+  let connection = null;
+  const requests = new Map();
   const owned = new Set();
   let consumerTransport = null;
   const contribution = { phase: 'idle', completed: 0 };
@@ -46,6 +49,7 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
         if (closed) return false;
         if (request.action === 'mesh.connect') return true;
         if (request.action === 'mesh.execute') return sharing && !!model;
+        const pending = requests.get(request.requestContext?.id);
         if (request.action !== 'mesh.dispatch' || !pending) return false;
         const peer = consumer.getSwarmSnapshot().peers.find(item => item.peerId === request.peerId);
         if (!peer) return false;
@@ -65,7 +69,7 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
       async generate(messages, onUpdate, { signal }) {
         const scope = 'work-shared:' + crypto.randomUUID();
         contribution.phase = 'loading'; notify();
-        const operation = (async () => {
+        const operation = withWorkDevice(service, signal, async () => {
           try {
             const adapter = await openWorkProvider({ model, service, scope, signal, generation: profile.generation,
               maxOutcomeCharacters: profile.maxOutcomeCharacters });
@@ -73,16 +77,15 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
             return await adapter.generate(messages, onUpdate, { signal });
           }
           finally { try { await service.close(scope); } finally { contribution.phase = 'idle'; notify(); } }
-        })();
+        });
         owned.add(operation);
         try { const result = await operation; contribution.completed++; notify(); return result; }
         finally { owned.delete(operation); }
       }
     } });
   };
-  const connect = async () => {
+  const connectOnce = async () => {
     if (closed) throw new Error('Text swarm is closed');
-    if (connecting) throw new Error('Already connecting');
     connecting = true; error = ''; notify();
     try {
       if (!consumer) {
@@ -95,7 +98,39 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
     catch (cause) { peerOffers?.close(); await consumer?.close(); consumer = null; consumerTransport = null; error = cause.message; throw cause; }
     finally { connecting = false; notify(); }
   };
+  const connect = () => {
+    if (!connection) connection = connectOnce().finally(() => { connection = null; });
+    return connection;
+  };
+  const generate = async (messages, controls) => {
+    if (new TextEncoder().encode(JSON.stringify(messages)).byteLength > profile.peers.maxInferencePayloadBytes) {
+      throw new Error('Request exceeds the peer disclosure allowance');
+    }
+    controls.signal.throwIfAborted();
+    const id = crypto.randomUUID(), pending = { ...controls };
+    requests.set(id, pending);
+    try {
+      await connect();
+      const result = await consumer.generate(messages, controls.onPartial, {
+        signal: controls.signal, modelId: controls.modelId, requestContext: { id }
+      });
+      controls.signal.throwIfAborted();
+      if (typeof result.content !== 'string' || !result.content.trim() || result.content.length > profile.maxOutcomeCharacters) {
+        throw new Error('Peer response exceeds the text result contract');
+      }
+      await controls.record({ stage: 'completed', preview: pending.preview, protocol: 'swarm/v1',
+        result: { model: result.model, provider: result.provider, content: result.content }, claim: 'legacy-compatibility-result' });
+      return { ...result, requestedModel: controls.modelId || pending.preview?.modelId,
+        peerId: pending.preview?.providerId, execution: 'peer-whole-request' };
+    } catch (cause) {
+      await controls.record({ stage: controls.signal.aborted ? 'cancelled' : 'failed', preview: pending.preview || null,
+        protocol: 'swarm/v1', error: cause.message });
+      throw cause;
+    } finally { requests.delete(id); }
+  };
   return Object.freeze({ getState, connect,
+    generate,
+    hasProvider: modelId => !!consumer?.hasAvailableProvider(modelId),
     allowCandidateOffers: allowed => peerOffers?.allowReceiving(allowed),
     sendCandidate: (candidateId, recipient) => peerOffers.send(candidateId, recipient),
     retryCandidate: transferId => peerOffers.retry(transferId),
@@ -119,24 +154,10 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
       finally { stopping = false; notify(); }
     },
     async execute({ task }, controls) {
-      if (pending) throw new Error('A peer helper is already running');
       if (typeof task !== 'string' || !task.trim() || new TextEncoder().encode(task).byteLength > profile.peers.maxPayloadBytes) throw new Error('Peer helper task exceeds the disclosure allowance');
-      controls.signal.throwIfAborted();
-      pending = controls;
-      try {
-        if (!consumer) await connect();
-        if (!consumer.hasAvailableProvider()) throw new Error('No helper device is available. Connect peers, then retry.');
-        const result = await consumer.generate([{ role: 'user', content: task }], controls.onPartial, { signal: controls.signal });
-        controls.signal.throwIfAborted();
-        await controls.record({ stage: 'completed', preview: pending.preview, protocol: 'swarm/v1',
-          result: { model: result.model, provider: result.provider, content: result.content }, claim: 'legacy-compatibility-result' });
+        const result = await generate([{ role: 'user', content: task }], controls);
         return { output: String(result.content || '').slice(0, profile.peers.maxToolResultCharacters),
           model: result.model, claim: 'legacy-compatibility-result', authority: 'Untrusted peer response; not independently verified correctness or signed Pack qualification' };
-      } catch (cause) {
-        await controls.record({ stage: controls.signal.aborted ? 'cancelled' : 'failed', preview: pending?.preview || null,
-          protocol: 'swarm/v1', error: cause.message });
-        throw cause;
-      } finally { pending = null; }
     },
     async close() { closed = true; sharing = false; peerOffers?.close(); await consumer?.close(); await supplier?.close(); await Promise.allSettled([...owned]); notify(); }
   });

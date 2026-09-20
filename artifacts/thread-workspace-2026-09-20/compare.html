@@ -1,0 +1,26 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Reploid thread workspace comparison</title>
+<style>
+body { margin: 24px; background: #ddd; color: #222; font: 16px system-ui; }
+section { margin-bottom: 48px; }
+.pair { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; }
+figure { margin: 0; } img { width: 100%; } figcaption { padding: 12px 0; }
+</style>
+<h1>Workspace comparison</h1>
+<p>Injected presentation states, not inference evidence. Previous layout on the left; concurrent-thread workspace on the right.</p>
+<main></main>
+<script>
+for (const theme of ['light', 'dark']) for (const width of [1440, 390]) for (const state of ['empty', 'active', 'approval', 'completed', 'paused']) {
+  const section = document.createElement('section');
+  const heading = document.createElement('h2'); heading.textContent = `${theme} · ${width}px · ${state}`;
+  const pair = document.createElement('div'); pair.className = 'pair';
+  for (const [directory, label] of [['../simple-workspace-2026-09-20/', 'Before'], ['./', 'After']]) {
+    const figure = document.createElement('figure'), caption = document.createElement('figcaption'), image = document.createElement('img');
+    caption.textContent = label; image.alt = `${label}: ${theme}, ${width}px, ${state}`;
+    image.src = `${directory}after-${theme}-${width}-${state}.png`;
+    figure.append(caption, image); pair.append(figure);
+  }
+  section.append(heading, pair); document.querySelector('main').append(section);
+}
+</script>

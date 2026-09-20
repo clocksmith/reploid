@@ -22,12 +22,14 @@ export function createLegacyGenerationMesh({ config, ports }) {
   const pendingRemoteRequests = new Map(), inbound = new Map(), completed = new Map();
   const subscriptions = [];
   const providerWaiters = new Set();
+  const reservedProviders = new Set();
   let closed = false, identityBundle = null, swarmTransport = ports.transport || null;
   let pendingFreshIdentity = ports.forceFreshIdentity === true;
   let swarmInitPromise = null, swarmInitialized = false, swarmHandlersRegistered = false;
-  const chooseCompatibleProvider = () => rankProviderPeers(swarmController.listPeers())
-    .find(peer => policy.models.contract === null
-      || JSON.stringify(snapshotJson(peer.modelContract ?? null)) === JSON.stringify(policy.models.contract)) || null;
+  const chooseCompatibleProvider = (modelId, includeBusy = false) => rankProviderPeers(swarmController.listPeers())
+    .find(peer => (!modelId || peer.model === modelId) && (includeBusy || (!reservedProviders.has(peer.peerId) && peer.availableSlots !== 0))
+      && (policy.models.contract === null
+      || JSON.stringify(snapshotJson(peer.modelContract ?? null)) === JSON.stringify(policy.models.contract))) || null;
 
   const getTransportState = () => ({
     connectionState: swarmTransport?.getConnectionState?.() || 'disconnected',
@@ -57,7 +59,7 @@ export function createLegacyGenerationMesh({ config, ports }) {
   const syncIdentityDocument = async () => ports.identity.sync(identityBundle, { instanceId, swarmEnabled, hasInference: !!modelConfig });
 
   const advertiseSelf = () => {
-    if (!swarmEnabled || !swarmTransport || !identityBundle) return null;
+    if (closed || !swarmEnabled || !swarmTransport || !identityBundle) return null;
     const advertisement = createPeerAdvertisement({
       peerId: identityBundle.peerId,
       swarmEnabled,
@@ -67,6 +69,7 @@ export function createLegacyGenerationMesh({ config, ports }) {
       updatedAt: Date.now()
     });
     advertisement.model = modelConfig?.id || null;
+    advertisement.availableSlots = Math.max(0, policy.mesh.maxInboundJobs - inbound.size);
     advertisement.modelContract = policy.models.contract;
     swarmTransport.broadcast('reploid:peer-advertisement', advertisement);
     return advertisement;
@@ -99,28 +102,33 @@ export function createLegacyGenerationMesh({ config, ports }) {
     await syncIdentityDocument();
   };
 
-  const waitForProvider = (timeoutMs = REMOTE_GENERATION_TIMEOUT_MS) => {
-    if (chooseCompatibleProvider()) return Promise.resolve(true);
+  const waitForProvider = (modelId, signal, timeoutMs = REMOTE_GENERATION_TIMEOUT_MS) => {
+    if (chooseCompatibleProvider(modelId)) return Promise.resolve(true);
     return new Promise(resolve => {
       let unsubscribe = () => {};
       const finish = available => {
-        clearTimeout(timer); unsubscribe(); providerWaiters.delete(finish); resolve(available);
+        clearTimeout(timer); unsubscribe(); signal?.removeEventListener('abort', abort);
+        providerWaiters.delete(finish); resolve(available);
       };
+      const abort = () => finish(false);
       const timer = setTimeout(() => finish(false), timeoutMs);
       providerWaiters.add(finish);
-      unsubscribe = bridgeEvents.on('provider-ready', () => { if (chooseCompatibleProvider()) finish(true); });
+      unsubscribe = bridgeEvents.on('provider-ready', () => { if (chooseCompatibleProvider(modelId)) finish(true); });
+      signal?.addEventListener('abort', abort, { once: true });
+      if (signal?.aborted) finish(false);
     });
   };
 
-  const chooseProvider = async () => {
-    const snapshot = getSwarmSnapshot();
-    if (snapshot.providerCount > 0) {
-      return chooseCompatibleProvider();
+  const chooseProvider = async (modelId, signal) => {
+    const deadline = Date.now() + REMOTE_GENERATION_TIMEOUT_MS;
+    while (!closed && Date.now() < deadline) {
+      signal?.throwIfAborted();
+      const provider = chooseCompatibleProvider(modelId);
+      if (provider) { reservedProviders.add(provider.peerId); return provider; }
+      if (!await waitForProvider(modelId, signal, deadline - Date.now())) break;
     }
-
-    const available = await waitForProvider();
-    if (!available) return null;
-    return swarmController.chooseProvider(Date.now());
+    signal?.throwIfAborted();
+    return null;
   };
 
   const handlePeerAdvertisement = (remotePeerId, payload = {}) => {
@@ -130,6 +138,7 @@ export function createLegacyGenerationMesh({ config, ports }) {
     });
     if (next) {
       next.model = payload.model || null;
+      next.availableSlots = payload.availableSlots === undefined ? 1 : Math.max(0, Number(payload.availableSlots) || 0);
       next.modelContract = payload.modelContract || null;
     }
     if (next?.role === 'provider') {
@@ -166,9 +175,20 @@ export function createLegacyGenerationMesh({ config, ports }) {
       pending.reject(new Error('Remote execution receipt is missing'));
       return;
     }
+    if (closed || pendingRemoteRequests.get(pending.requestId) !== pending) return;
     clearTimeout(pending.timeoutId);
     pendingRemoteRequests.delete(pending.requestId);
 
+    const response = payload.response && typeof payload.response === 'object'
+      ? payload.response
+      : { content: String(payload.content || ''), raw: String(payload.raw || payload.content || ''),
+          model: payload.model || null, provider: payload.provider || null, timestamp: payload.timestamp || Date.now() };
+    if (pending.modelId && response.model !== pending.modelId) {
+      pending.reject(new Error('Remote response substituted the requested model'));
+      return;
+    }
+
+    try {
     if (payload.receipt && identityBundle && swarmTransport) {
       const countersigned = await countersignReceipt(payload.receipt, identityBundle);
       swarmTransport.sendToPeer(remotePeerId, 'reploid:receipt', {
@@ -177,17 +197,8 @@ export function createLegacyGenerationMesh({ config, ports }) {
       await updateConsumerReceiptCount();
     }
 
-    const response = payload.response && typeof payload.response === 'object'
-      ? payload.response
-      : {
-          content: String(payload.content || ''),
-          raw: String(payload.raw || payload.content || ''),
-          model: payload.model || null,
-          provider: payload.provider || null,
-          timestamp: payload.timestamp || Date.now()
-        };
-
     pending.resolve(response);
+    } catch (error) { pending.reject(error); }
   };
 
   const handleGenerationError = (remotePeerId, payload = {}) => {
@@ -216,6 +227,10 @@ export function createLegacyGenerationMesh({ config, ports }) {
 
     if (!requestId || !messages.length) return;
     if (targetProvider && targetProvider !== identityBundle.peerId && targetProvider !== swarmTransport._getPeerId?.()) return;
+    if (payload.model && payload.model !== modelConfig.id) {
+      swarmTransport.sendToPeer(remotePeerId, 'reploid:generation-error', { requestId, error: 'Requested model is unavailable' });
+      return;
+    }
     if (policy.models.contract !== null && JSON.stringify(snapshotJson(payload.modelContract ?? null)) !== JSON.stringify(policy.models.contract)) return;
     if (await ports.authorize({ action: 'mesh.execute', peerId: remotePeerId, request: snapshotJson(payload) }) !== true) return;
     const key = `${remotePeerId}:${requestId}`;
@@ -223,9 +238,14 @@ export function createLegacyGenerationMesh({ config, ports }) {
       swarmTransport.sendToPeer(remotePeerId, 'reploid:generation-result', completed.get(key));
       return;
     }
-    if (inbound.has(key) || inbound.size >= policy.mesh.maxInboundJobs) return;
+    if (inbound.has(key)) return;
+    if (inbound.size >= policy.mesh.maxInboundJobs) {
+      swarmTransport.sendToPeer(remotePeerId, 'reploid:generation-error', { requestId, error: 'Provider is busy' });
+      return;
+    }
     const controller = new AbortController();
     inbound.set(key, controller);
+    advertiseSelf();
     const deadline = setTimeout(() => controller.abort(new Error('Remote job deadline exceeded')), policy.mesh.generationTimeoutMs);
 
     try {
@@ -261,6 +281,7 @@ export function createLegacyGenerationMesh({ config, ports }) {
     } finally {
       clearTimeout(deadline);
       inbound.delete(key);
+      advertiseSelf();
     }
   };
 
@@ -297,6 +318,9 @@ export function createLegacyGenerationMesh({ config, ports }) {
         swarmTransport.onMessage('reploid:generation-update', handleGenerationUpdate);
         swarmTransport.onMessage('reploid:generation-result', handleGenerationResult);
         swarmTransport.onMessage('reploid:generation-error', handleGenerationError);
+        swarmTransport.onMessage('reploid:generation-cancel', (peerId, payload = {}) => {
+          inbound.get(`${peerId}:${String(payload.requestId || '')}`)?.abort(new Error('Requester stopped this job'));
+        });
         swarmTransport.onMessage('reploid:receipt', handleReceipt);
 
         subscriptions.push(eventBus.on('swarm:peer-connected', () => {
@@ -347,10 +371,13 @@ export function createLegacyGenerationMesh({ config, ports }) {
   };
 
 
-  const generate = async (messages, onUpdate, { signal } = {}) => {
+  const generate = async (messages, onUpdate, { signal, modelId, requestContext = null } = {}) => {
     if (closed) throw new Error('Mesh is closed');
     signal?.throwIfAborted();
+    messages = snapshotJson(messages);
+    requestContext = snapshotJson(requestContext);
     if (modelConfig) {
+      if (modelId && modelId !== modelConfig.id) throw new Error('Requested model is unavailable');
       return ports.generate(messages, onUpdate || null, { signal });
     }
 
@@ -359,18 +386,21 @@ export function createLegacyGenerationMesh({ config, ports }) {
     }
 
     await initialize();
-    const provider = await chooseProvider();
+    const provider = await chooseProvider(modelId, signal);
     if (!provider?.peerId || !swarmTransport || !identityBundle) {
       throw new Error('No remote host slot available');
     }
 
+    try {
     if (pendingRemoteRequests.size >= policy.mesh.maxPendingJobs) throw new Error('Pending remote job limit exceeded');
-    if (await ports.authorize({ action: 'mesh.dispatch', peerId: provider.peerId, messages: snapshotJson(messages) }) !== true) {
+    if (await ports.authorize({ action: 'mesh.dispatch', peerId: provider.peerId, messages: snapshotJson(messages),
+      requestContext: snapshotJson(requestContext) }) !== true) {
       throw new Error('Host denied remote prompt disclosure');
     }
     signal?.throwIfAborted();
+    if (closed) throw new Error('Mesh is closed');
     const requestId = utils.generateId('swarmreq');
-    return new Promise((resolve, reject) => {
+    return await new Promise((resolve, reject) => {
       const timeoutId = setTimeout(() => {
         const pending = pendingRemoteRequests.get(requestId);
         pendingRemoteRequests.delete(requestId);
@@ -380,12 +410,14 @@ export function createLegacyGenerationMesh({ config, ports }) {
       const abort = () => {
         clearTimeout(timeoutId);
         pendingRemoteRequests.delete(requestId);
+        swarmTransport.sendToPeer(provider.peerId, 'reploid:generation-cancel', { requestId });
         reject(signal.reason);
       };
       signal?.addEventListener('abort', abort, { once: true });
       const settle = fn => value => { signal?.removeEventListener('abort', abort); fn(value); };
       pendingRemoteRequests.set(requestId, {
         requestId,
+        modelId,
         providerPeerId: provider.peerId,
         onUpdate,
         chunks: [],
@@ -398,7 +430,7 @@ export function createLegacyGenerationMesh({ config, ports }) {
         requestId,
         consumer: identityBundle.peerId,
         provider: provider.peerId,
-        model: provider.model || null,
+        model: modelId || provider.model || null,
         modelContract: policy.models.contract,
         messages
       });
@@ -409,6 +441,10 @@ export function createLegacyGenerationMesh({ config, ports }) {
         settle(reject)(new Error('Failed to send swarm generation request'));
       }
     });
+    } finally {
+      reservedProviders.delete(provider.peerId);
+      emitSwarmState();
+    }
   };
 
 
@@ -430,5 +466,5 @@ export function createLegacyGenerationMesh({ config, ports }) {
     swarmTransport?.disconnect();
   };
   return Object.freeze({ connect: initialize, initialize, generate, rotateIdentity, getSwarmSnapshot,
-    hasAvailableProvider: () => !!chooseCompatibleProvider(), close, on: bridgeEvents.on });
+    hasAvailableProvider: modelId => !closed && !!chooseCompatibleProvider(modelId, true), close, on: bridgeEvents.on });
 }
