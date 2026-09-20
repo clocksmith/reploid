@@ -1553,7 +1553,7 @@ export const renderNav = (activeRoute) => {
     <nav class="pool-nav-rail pool-primary-nav" aria-label="${escapeHtml(POOLDAY_NAME)}">
       <a class="pool-primary-brand" aria-label="${escapeHtml(POOLDAY_NAME)} home" href="${escapeHtml(roomHref('/', getPeerRoomId()))}" data-pool-route-link="${escapeHtml(roomHref('/', getPeerRoomId()))}">${renderPowerTower()}<span class="pool-primary-wordmark">${escapeHtml(POOLDAY_NAME)}</span></a>
       <div class="pool-nav-menu pool-segmented" id="pool-nav-menu">
-        ${activeRoute === 'home' ? '<a class="pool-nav-link pool-segment" href="#reploid-agents">Agents</a><a class="pool-nav-link pool-segment" href="#reploid-activity">Activity</a><a class="pool-nav-link pool-segment" href="#reploid-improvements">Improvements</a>' : POOLDAY_NAV_ROUTES.map(renderItem).join('')}
+        ${activeRoute === 'home' ? '<a class="pool-nav-link pool-segment" href="#reploid-agents">Agents</a><a class="pool-nav-link pool-segment" href="#reploid-activity">Activity</a><a class="pool-nav-link pool-segment" href="#reploid-improvements">Changes</a>' : POOLDAY_NAV_ROUTES.map(renderItem).join('')}
       </div>
       <details class="pool-primary-network" data-pool-network-state="simulation">
         <summary aria-label="Network availability">

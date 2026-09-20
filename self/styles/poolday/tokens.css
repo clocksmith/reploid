@@ -12,25 +12,16 @@
    ============================================ */
 
 .pool-home {
-  --pool-color-page: #0a0b10;
-  --pool-color-ink: #f4f4f7;
-  --pool-color-raised: #151821;
-  --pool-color-inset: #080a0f;
-  --pool-color-line: #282d39;
-  --pool-color-control-line: #3a4252;
-  --pool-color-muted: #999baa;
+  --pool-color-page: #202020;
+  --pool-color-ink: #f4f4f4;
+  --pool-color-raised: #242424;
+  --pool-color-inset: #1b1b1b;
+  --pool-color-line: #303030;
+  --pool-color-control-line: #454545;
+  --pool-color-muted: #b4b4b4;
   --pool-color-focus: #ffffff;
-  --pool-dim-shadow-raised:
-    12px 12px 28px rgb(0 0 0 / 72%),
-    -10px -10px 24px rgb(61 70 92 / 28%),
-    inset 1px 1px 0 rgb(255 255 255 / 8%),
-    inset -1px -1px 0 rgb(0 0 0 / 58%),
-    0 0 32px rgb(68 199 217 / 3%);
-  --pool-dim-shadow-inset:
-    inset 6px 6px 14px rgb(0 0 0 / 78%),
-    inset -5px -5px 12px rgb(61 70 92 / 24%),
-    inset 1px 1px 2px rgb(0 0 0 / 72%),
-    0 1px 0 rgb(255 255 255 / 3%);
+  --pool-dim-shadow-raised: 10px 10px 24px rgb(0 0 0 / 48%), -8px -8px 20px rgb(80 80 80 / 26%), inset 1px 1px 0 rgb(255 255 255 / 5%);
+  --pool-dim-shadow-inset: inset 5px 5px 12px rgb(0 0 0 / 55%), inset -4px -4px 10px rgb(75 75 75 / 22%);
   --pool-dim-radius-control: var(--radius-control);
   --pool-dim-radius-panel: var(--radius-panel);
   --pool-dim-wordmark: 64px;
@@ -41,58 +32,55 @@
 
   --pool-gradient-hex-grid: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2284%22%20height%3D%22145.5%22%20viewBox%3D%220%200%2084%20145.5%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22white%22%20stroke-opacity%3D%22.025%22%20stroke-width%3D%22.7%22%3E%3Cpath%20d%3D%22M42%200%2084%2024.25v48.5L42%2097%200%2072.75v-48.5Z%20M0%2072.75%2042%2097v48.5L0%20169.75%20M84%2072.75%2042%2097%20M42%20145.5%2084%20169.75%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E");
 
-  /* === BRAND COLORS === */
-  --pool-color-cyan: #507b72;
-  --pool-color-magenta: #9584a6;
-  --pool-color-gold: #f2b95f;
-  --pool-color-cyan-a12: rgba(80, 123, 114, 0.12);
-  --pool-color-gold-a12: rgba(242, 185, 95, 0.12);
+  /* Legacy accent names retain neutral values for existing component consumers. */
+  --pool-color-cyan: #717171;
+  --pool-color-magenta: #8a8a8a;
+  --pool-color-gold: #bfbfbf;
+  --pool-color-cyan-a12: rgba(113, 113, 113, 0.12);
+  --pool-color-gold-a12: rgba(191, 191, 191, 0.12);
 
-  /* === SPECTRUM COLORS === */
+  /* === NEUTRAL CONTRAST STEPS === */
   /* Six recurring stops shared by the prism/shape gradients.
      -rgb triplets exist so primitives can compose alpha tints via
      rgb(var(--pool-color-*-rgb) / N%). */
-  --pool-color-spectrum-red: #f65276;
-  --pool-color-spectrum-orange: #f78b53;
-  --pool-color-spectrum-yellow: #eec552;
-  --pool-color-spectrum-green: #69d299;
-  --pool-color-spectrum-teal: #44c7d9;
-  --pool-color-spectrum-violet: #ae7aee;
-  --pool-color-spectrum-red-rgb: 246 82 118;
-  --pool-color-spectrum-orange-rgb: 247 139 83;
-  --pool-color-spectrum-yellow-rgb: 238 197 82;
-  --pool-color-spectrum-green-rgb: 105 210 153;
-  --pool-color-spectrum-teal-rgb: 68 199 217;
-  --pool-color-spectrum-violet-rgb: 174 122 238;
+  --pool-color-spectrum-red: #777777;
+  --pool-color-spectrum-orange: #9e9e9e;
+  --pool-color-spectrum-yellow: #c5c5c5;
+  --pool-color-spectrum-green: #b8b8b8;
+  --pool-color-spectrum-teal: #acacac;
+  --pool-color-spectrum-violet: #8d8d8d;
+  --pool-color-spectrum-red-rgb: 119 119 119;
+  --pool-color-spectrum-orange-rgb: 158 158 158;
+  --pool-color-spectrum-yellow-rgb: 197 197 197;
+  --pool-color-spectrum-green-rgb: 184 184 184;
+  --pool-color-spectrum-teal-rgb: 172 172 172;
+  --pool-color-spectrum-violet-rgb: 141 141 141;
   --pool-color-white-rgb: 255 255 255;
   --pool-color-black-rgb: 0 0 0;
 
   /* === GRADIENTS === */
-  --pool-gradient-ambient-mesh: radial-gradient(circle at 12% 8%, rgb(0 240 255 / 8%), transparent 35%),
-    radial-gradient(circle at 88% 12%, rgb(176 38 255 / 8%), transparent 40%),
-    radial-gradient(circle at 50% 92%, rgb(245 158 11 / 5%), transparent 45%),
-    radial-gradient(circle at 80% 68%, rgb(68 199 217 / 6%), transparent 35%);
-  --pool-gradient-prism-border-soft: linear-gradient(122deg, rgb(246 82 118 / 20%), rgb(247 139 83 / 16%) 22%, rgb(238 197 82 / 18%) 40%, rgb(105 210 153 / 20%) 58%, rgb(68 199 217 / 27%) 74%, rgb(174 122 238 / 22%));
-  --pool-gradient-prism-border-hover: linear-gradient(122deg, rgb(246 82 118 / 31%), rgb(247 139 83 / 24%) 22%, rgb(238 197 82 / 25%) 40%, rgb(105 210 153 / 28%) 58%, rgb(68 199 217 / 40%) 74%, rgb(174 122 238 / 34%));
-  --pool-gradient-prism-border-selected: linear-gradient(122deg, rgb(246 82 118 / 48%), rgb(247 139 83 / 38%) 22%, rgb(238 197 82 / 39%) 40%, rgb(105 210 153 / 43%) 58%, rgb(68 199 217 / 58%) 74%, rgb(174 122 238 / 50%));
-  --pool-gradient-prism-fill-idle: linear-gradient(145deg, rgb(24 27 37 / 98%), rgb(15 17 24 / 98%));
-  --pool-gradient-prism-fill-hover: linear-gradient(122deg, rgb(68 199 217 / 7%), rgb(174 122 238 / 5%), rgb(247 139 83 / 5%));
-  --pool-gradient-prism-fill-selected: linear-gradient(122deg, rgb(68 199 217 / 9%), rgb(105 210 153 / 6%), rgb(174 122 238 / 8%));
+  --pool-gradient-ambient-mesh: none;
+  --pool-gradient-prism-border-soft: linear-gradient(122deg, rgb(119 119 119 / 20%), rgb(158 158 158 / 16%) 22%, rgb(197 197 197 / 18%) 40%, rgb(184 184 184 / 20%) 58%, rgb(172 172 172 / 27%) 74%, rgb(141 141 141 / 22%));
+  --pool-gradient-prism-border-hover: linear-gradient(122deg, rgb(119 119 119 / 31%), rgb(158 158 158 / 24%) 22%, rgb(197 197 197 / 25%) 40%, rgb(184 184 184 / 28%) 58%, rgb(172 172 172 / 40%) 74%, rgb(141 141 141 / 34%));
+  --pool-gradient-prism-border-selected: linear-gradient(122deg, rgb(119 119 119 / 48%), rgb(158 158 158 / 38%) 22%, rgb(197 197 197 / 39%) 40%, rgb(184 184 184 / 43%) 58%, rgb(172 172 172 / 58%) 74%, rgb(141 141 141 / 50%));
+  --pool-gradient-prism-fill-idle: linear-gradient(145deg, rgb(27 27 27 / 98%), rgb(17 17 17 / 98%));
+  --pool-gradient-prism-fill-hover: linear-gradient(122deg, rgb(172 172 172 / 7%), rgb(141 141 141 / 5%), rgb(158 158 158 / 5%));
+  --pool-gradient-prism-fill-selected: linear-gradient(122deg, rgb(172 172 172 / 9%), rgb(184 184 184 / 6%), rgb(141 141 141 / 8%));
   --pool-gradient-shape-border: linear-gradient(
     137deg,
     rgb(255 255 255 / 15%) 0%,
-    rgb(246 82 118 / 45%) 13%,
-    rgb(247 139 83 / 28%) 24%,
-    rgb(238 197 82 / 36%) 37%,
-    rgb(105 210 153 / 32%) 51%,
-    rgb(68 199 217 / 48%) 66%,
-    rgb(174 122 238 / 42%) 81%,
+    rgb(119 119 119 / 45%) 13%,
+    rgb(158 158 158 / 28%) 24%,
+    rgb(197 197 197 / 36%) 37%,
+    rgb(184 184 184 / 32%) 51%,
+    rgb(172 172 172 / 48%) 66%,
+    rgb(141 141 141 / 42%) 81%,
     rgb(255 255 255 / 8%) 100%
   );
   --pool-gradient-shape-surface: radial-gradient(circle at 26% 16%, rgb(255 255 255 / 8%) 0 14%, transparent 34%),
-    radial-gradient(ellipse at 82% 18%, rgb(68 199 217 / 10%) 0 16%, transparent 44%),
-    radial-gradient(ellipse at 20% 88%, rgb(246 82 118 / 7%) 0 18%, transparent 52%),
-    linear-gradient(145deg, #131319 0%, #101015 43%, #09090d 100%);
+    radial-gradient(ellipse at 82% 18%, rgb(172 172 172 / 10%) 0 16%, transparent 44%),
+    radial-gradient(ellipse at 20% 88%, rgb(119 119 119 / 7%) 0 18%, transparent 52%),
+    linear-gradient(145deg, #131313 0%, #101010 43%, #090909 100%);
 
   /* === SIZES === */
   --pool-size-home-action: 48px;
@@ -113,24 +101,24 @@
   --pool-font-weight-semibold: 600;
 
   /* === BRAND RGB TRIPLETS === */
-  --pool-color-cyan-rgb: 80 123 114;
-  --pool-color-magenta-rgb: 149 132 166;
-  --pool-color-gold-rgb: 242 185 95;
+  --pool-color-cyan-rgb: 113 113 113;
+  --pool-color-magenta-rgb: 138 138 138;
+  --pool-color-gold-rgb: 191 191 191;
 
   /* === SURFACE / TEXT ACCENT COLORS === */
-  --pool-color-mist-1: #f7f8f8;
-  --pool-color-mist-2: #edf0f1;
-  --pool-color-wine: #a42339;
-  --pool-color-slate: #2c4050;
-  --pool-color-slate-deep: #182b36;
-  --pool-color-paper-a96: rgb(250 251 251 / 96%);
-  --pool-color-frost-a82: rgb(251 253 255 / 82%);
-  --pool-color-frost-a88: rgb(246 253 255 / 88%);
-  --pool-color-frost-a80: rgb(249 253 255 / 80%);
-  --pool-color-pine-a72: rgba(18, 28, 26, 0.72);
-  --pool-color-pine-a92: rgba(18, 28, 26, 0.92);
-  --pool-color-moss-a66: rgba(23, 32, 29, 0.66);
-  --pool-color-fern-a14: rgba(26, 49, 47, 0.14);
+  --pool-color-mist-1: #f8f8f8;
+  --pool-color-mist-2: #efefef;
+  --pool-color-wine: #404040;
+  --pool-color-slate: #3d3d3d;
+  --pool-color-slate-deep: #282828;
+  --pool-color-paper-a96: rgb(251 251 251 / 96%);
+  --pool-color-frost-a82: rgb(253 253 253 / 82%);
+  --pool-color-frost-a88: rgb(252 252 252 / 88%);
+  --pool-color-frost-a80: rgb(252 252 252 / 80%);
+  --pool-color-pine-a72: rgba(26, 26, 26, 0.72);
+  --pool-color-pine-a92: rgba(26, 26, 26, 0.92);
+  --pool-color-moss-a66: rgba(30, 30, 30, 0.66);
+  --pool-color-fern-a14: rgba(44, 44, 44, 0.14);
 
   /* === DIMENSIONS === */
   /* Hoisted verbatim from component rules (pixel-parity migration).
@@ -290,34 +278,32 @@
 }
 
 .pool-home {
-  --pool-color-light-page: #e7ebf0;
-  --pool-color-light-ink: #151a21;
-  --pool-color-light-raised: #e9edf2;
-  --pool-color-light-inset: #dce2e8;
-  --pool-color-light-line: #c5ccd5;
-  --pool-color-light-control-line: #b7c0ca;
-  --pool-color-light-muted: #66717d;
-  --pool-color-light-focus: #10151c;
-  --pool-dim-light-shadow-raised: 10px 10px 24px rgb(111 121 132 / 24%), -10px -10px 24px rgb(255 255 255 / 82%);
-  --pool-dim-light-shadow-inset: inset 4px 4px 10px rgb(111 121 132 / 20%), inset -4px -4px 10px rgb(255 255 255 / 78%);
-  --pool-gradient-light-ambient-mesh: radial-gradient(circle at 12% 8%, rgb(68 199 217 / 12%), transparent 35%),
-    radial-gradient(circle at 88% 12%, rgb(174 122 238 / 10%), transparent 40%),
-    radial-gradient(circle at 50% 92%, rgb(242 185 95 / 9%), transparent 45%);
-  --pool-gradient-light-prism-fill-idle: linear-gradient(rgb(233 237 242 / 96%), rgb(233 237 242 / 96%));
-  --pool-gradient-light-prism-fill-hover: linear-gradient(122deg, rgb(68 199 217 / 10%), rgb(174 122 238 / 7%), rgb(247 139 83 / 7%));
-  --pool-gradient-light-prism-fill-selected: linear-gradient(122deg, rgb(68 199 217 / 14%), rgb(105 210 153 / 10%), rgb(174 122 238 / 11%));
+  --pool-color-light-page: #e7e7e7;
+  --pool-color-light-ink: #242424;
+  --pool-color-light-raised: #e7e7e7;
+  --pool-color-light-inset: #e1e1e1;
+  --pool-color-light-line: #dedede;
+  --pool-color-light-control-line: #bdbdbd;
+  --pool-color-light-muted: #5e5e5e;
+  --pool-color-light-focus: #242424;
+  --pool-dim-light-shadow-raised: 10px 10px 24px rgb(120 120 120 / 27%), -10px -10px 24px rgb(255 255 255 / 88%), inset 1px 1px 0 rgb(255 255 255 / 45%);
+  --pool-dim-light-shadow-inset: inset 5px 5px 12px rgb(120 120 120 / 24%), inset -5px -5px 12px rgb(255 255 255 / 85%);
+  --pool-gradient-light-ambient-mesh: none;
+  --pool-gradient-light-prism-fill-idle: linear-gradient(rgb(237 237 237 / 96%), rgb(237 237 237 / 96%));
+  --pool-gradient-light-prism-fill-hover: linear-gradient(122deg, rgb(172 172 172 / 10%), rgb(141 141 141 / 7%), rgb(158 158 158 / 7%));
+  --pool-gradient-light-prism-fill-selected: linear-gradient(122deg, rgb(172 172 172 / 14%), rgb(184 184 184 / 10%), rgb(141 141 141 / 11%));
 }
 
 /* Preserve the dark appearance with values owned by the token layer. */
 .pool-home {
   --pool-color-dark-hover: rgb(255 255 255 / 5%);
-  --pool-gradient-dark-selected: linear-gradient(145deg, rgb(27 30 40 / 98%), rgb(16 18 25 / 98%));
+  --pool-gradient-dark-selected: linear-gradient(145deg, rgb(30 30 30 / 98%), rgb(18 18 18 / 98%));
   --pool-dim-dark-selected-shadow: 5px 5px 12px rgb(0 0 0 / 72%),
-    -4px -4px 10px rgb(66 76 100 / 28%),
+    -4px -4px 10px rgb(76 76 76 / 28%),
     inset 1px 1px 0 rgb(255 255 255 / 9%);
-  --pool-gradient-dark-nav: linear-gradient(145deg, rgb(24 27 37 / 96%), rgb(13 15 21 / 96%));
-  --pool-gradient-dark-button: linear-gradient(145deg, rgb(27 31 42 / 98%), rgb(16 18 25 / 98%));
+  --pool-gradient-dark-nav: linear-gradient(145deg, rgb(27 27 27 / 96%), rgb(15 15 15 / 96%));
+  --pool-gradient-dark-button: linear-gradient(145deg, rgb(31 31 31 / 98%), rgb(18 18 18 / 98%));
   --pool-dim-dark-button-shadow: 14px 14px 30px rgb(0 0 0 / 74%),
-    -10px -10px 24px rgb(66 76 100 / 30%),
+    -10px -10px 24px rgb(76 76 76 / 30%),
     inset 1px 1px 0 rgb(255 255 255 / 10%);
 }

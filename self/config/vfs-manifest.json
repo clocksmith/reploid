@@ -537,7 +537,6 @@
     "styles/capsule.css",
     "styles/landing-mono.css",
     "styles/poolday/components.css",
-    "styles/poolday/network.css",
     "styles/poolday/primitives.css",
     "styles/poolday/tokens.css",
     "styles/proto/components.css",

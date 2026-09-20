@@ -3,29 +3,30 @@ import { readFile } from 'node:fs/promises';
 
 test('Home connects agents and tasks with explicit disclosure', async ({ page }) => {
   await page.goto('/');
-  await expect(page.getByRole('heading', { name: 'Agents working together.' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Agents', exact: true })).toBeVisible();
+  await expect(page.locator('.pool-connected-heading, [data-goal-preset]')).toHaveCount(0);
   await expect(page.locator('[data-work-output]')).toBeHidden();
   await expect(page.locator('.pool-work-history')).toBeHidden();
   await expect(page.getByText('Mesh Node: Active', { exact: true })).toHaveCount(0);
   await expect(page.getByText('Provider: Ready', { exact: true })).toHaveCount(0);
   await expect(page.locator('[data-work-attachments]')).not.toHaveAttribute('open');
   await expect(page.locator('[data-work-peers]')).not.toBeChecked();
-  await expect(page.locator('[data-work-location]')).toContainText('On-device model');
+  await expect(page.locator('[data-work-location]')).toContainText('This device');
   const cloudId = await page.locator('[data-work-model] option').evaluateAll(options =>
     options.find(option => option.textContent.includes('Cloud')).value);
   await page.locator('[data-work-model]').selectOption(cloudId);
   await expect(page.locator('[data-work-location]')).toContainText('sends task and files');
-  await page.getByRole('button', { name: 'Summarize a file', exact: true }).click();
-  await expect(page.locator('[data-work-goal]')).toHaveValue(/Summarize the attached file/);
+  await page.locator('[data-work-goal]').fill('Summarize the attached file.');
+  await page.locator('[data-work-attachments] summary').click();
   await expect(page.locator('[data-work-files]')).toBeVisible();
   await page.locator('[data-work-files]').setInputFiles({ name: 'notes.txt', mimeType: 'text/plain', buffer: Buffer.from('A short note.') });
   await expect(page.locator('[data-work-file-count]')).toHaveText('1 attached');
   await expect(page.locator('[data-work-peers]')).not.toBeChecked();
 });
 
-test('Network explains its purpose and sharing still requires approval', async ({ page }) => {
+test('Network exposes sharing controls and still requires approval', async ({ page }) => {
   await page.goto('/network');
-  await expect(page.getByRole('heading', { name: 'Give or get a hand.' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Network', exact: true })).toBeVisible();
   await expect(page.locator('[data-operation-status]')).toHaveText('Not sharing');
   await expect(page.locator('[data-operation-approve]')).not.toBeChecked();
   await page.getByText('Specialized model jobs', { exact: true }).click();
@@ -116,7 +117,7 @@ test('view state retains activity, cancellation, saved results and a clean new t
 });
 
 test('Verification Worker accepts the changed UI modules', async ({ page }) => {
-  const names = ['index.js', 'view.js', 'work.js', 'work-goal-composer.js', 'work-task-header.js', 'work-result-view.js', 'operation-sharing.js', 'theme.js', 'agent-network.js', 'work-capabilities.js'];
+  const names = ['index.js', 'view.js', 'work.js', 'work-goal-composer.js', 'work-task-header.js', 'work-result-view.js', 'work-approval-panel.js', 'work-layout.js', 'operation-sharing.js', 'theme.js', 'agent-network.js', 'work-capabilities.js'];
   const snapshot = Object.fromEntries(await Promise.all(names.map(async name => [
     `/ui/pool-home/${name}`, await readFile(`self/ui/pool-home/${name}`, 'utf8')
   ])));

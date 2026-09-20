@@ -221,13 +221,6 @@ const bindPoolRouteControls = (mount, render, {
 
 export function initPoolHome(mount, { operationNetwork = null } = {}) {
   if (!mount) return;
-  if (!document.getElementById('reploid-network-styles')) {
-    const stylesheet = document.createElement('link');
-    stylesheet.id = 'reploid-network-styles';
-    stylesheet.rel = 'stylesheet';
-    stylesheet.href = new URL('../../styles/poolday/network.css', import.meta.url).href;
-    document.head.append(stylesheet);
-  }
   stopPoolHomeBackground();
   mount.replaceChildren();
   resetPoolLedgerStore();
@@ -304,7 +297,7 @@ export function initPoolHome(mount, { operationNetwork = null } = {}) {
       ? POOLDAY_NAME
       : `${POOLDAY_NAME} - ${ROUTE_COPY[routeId]?.title || 'Work'}`;
     if (!mount.querySelector('.pool-route-content')) mount.innerHTML = `
-      <main class="pool-home pool-mesh-ui" data-pool-route-id="${routeId}">
+      <main class="pool-home" data-pool-route-id="${routeId}">
         ${renderNav(routeId, {
           open: navOpen,
           dashboard: routeId === 'home',

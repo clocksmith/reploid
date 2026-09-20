@@ -3,13 +3,12 @@
 Parent: [Browser Interfaces](../CATSCAN.md)
 
 ## Target
-Present the intelligence network: objectives, participants, models, shared work, results and evaluated improvement. Standalone use remains a participant property.
+Present connected objectives, agents, models, work, results and evaluated changes.
 
 ## Authority
-- Owns product and Room-1 presentation.
-- Host owns execution and review.
-- Requests candidate transfer, evaluation and adoption/rollback; never judges candidates.
-- Excludes Pack validation, admission, transport, receipt validation, scientific interpretation.
+Owns product/Room-1 presentation. Hosts own execution/review. Requests candidate
+transfer, evaluation, adoption/rollback; never judges. Excludes Pack/receipt
+validation, admission, transport and scientific interpretation.
 
 ## Scope
 This tree.
@@ -19,28 +18,23 @@ Inputs: [runtime](../../pool/CATSCAN.md), deterministic [room state](room-projec
 Outputs: [markup](view.js), [Room-1](room-view.js).
 
 ## Invariants
-- Brand Reploid; preserve Poolday identities. Keep copy brief and workflows uncluttered.
-- Work, Network, Improve are activities, not required destinations.
-- Selected, preparing, executing, offered remain observed states.
-- Link tasks, helpers, jobs, results, candidates. Expose sharing stop.
-- Protein/document examples preserve execution.
-- Connected rooms never authorize private-goal sharing.
-- User review is not evaluation or promotion.
-- Missing admission/evaluators remain visible.
-- Preserve request, execution, comparison, acceptance, receipt lifecycle.
-- Interrupted jobs expose valid recovery only.
-- Inspect Pack, runtime, provider, declared hardware, fallback, timing, output, agreement.
-- Shared components/tokens; consistent spacing; accessible light/dark themes; responsive scrolling; futuristic, subtly neumorphic styling.
-- Disclose detailed settings/evidence progressively; never conceal grants, failures or stop controls.
+
+- Preserve monochrome neumorphism. No promotional banners, stacked slogans, or preset-prompt grids on the main workspace. Communicate through live state and concise controls.
+- Preserve Reploid/Poolday identities, shared components/tokens, aligned gutters,
+  accessible themes and responsive scrolling. Activities prescribe no navigation hierarchy.
+- Link tasks/helpers/jobs/results/candidates; show observed states and missing admission/evaluators.
+- Preserve execution in protein/document examples and request/execution/comparison/acceptance/receipt lifecycles. Recovery requires valid state.
+- Disclose execution location; approve exact outgoing public payloads. Room membership grants no disclosure.
+- Keep failures, grants and stop controls visible; disclose details progressively.
+- Inspect Pack/runtime/provider/hardware/fallback/timing/output/agreement. Review grants no evaluation/promotion; receipts prove no hardware attestation; acceptance names policy.
 - Research administration stays in Room-1; generic Packs inherit no research fields.
-- Disclose execution location; preview and approve each exact public peer payload.
-- Acceptance names policy; receipts are not hardware attestation.
-- Archive and decision memory remain distinct.
-- Zero/X remain reachable without inheriting mutation authority.
+- Archive/decision memory remain distinct; Zero/X grant no mutation authority.
 
 ## Acceptance
-- Goals, criteria, sharing, jobs and evidence remain usable. Show outcome benefit and total cost against local and centralized baselines only when measured.
-- Injected providers prove neither local nor peer inference.
+
+- Compare measured benefit/cost against local/centralized baselines. Injected providers prove no inference.
+- Desktop/mobile, both themes: compare empty, active, approval and completed screenshots.
+- Evidence: [visual states](../../../tests/e2e/workspace-material.spec.js).
 - Evidence: [navigation](../../../tests/unit/pool-home-nav.test.js), [requests](../../../tests/unit/pool-home-ask-controls.test.js), [records](../../../tests/unit/pool-home-record.test.js), [peers](../../../tests/e2e/p2p-mesh.spec.js).
 
 ## Non-goals

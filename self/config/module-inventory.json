@@ -2884,7 +2884,7 @@
     {
       "path": "ui/pool-home/agent-network.js",
       "owner": "ui",
-      "sha256": "sha256:be23e1f76ddf0383e223dc34c184cc233db900d2a52f885d041b2caaa142b24b",
+      "sha256": "sha256:04ece192071711979a9c7a0f844795459091eed44cf20bd66121abe22edbaf86",
       "imports": []
     },
     {
@@ -2939,7 +2939,7 @@
     {
       "path": "ui/pool-home/index.js",
       "owner": "ui",
-      "sha256": "sha256:66ae2b3249e71ba7caabe81075c22a238d718fe2abd37bae87977c4971aa438c",
+      "sha256": "sha256:2e9762b1b5e1edff5bc1628ce1c8f7a1878c8bdd716fc43a99b4faf4132430a1",
       "imports": [
         "../../config/zero-inference.js",
         "../../host/work-evolution.js",
@@ -3173,7 +3173,7 @@
     {
       "path": "ui/pool-home/view.js",
       "owner": "ui",
-      "sha256": "sha256:290d3d719cd4b134309fd14ad40f4d2f1468c65b1feea9de68511faf1cca916a",
+      "sha256": "sha256:284ca1812d2fe0a241c49336437fe00e5a01ca7f75c6d2bb8c64eb590182dc0c",
       "imports": [
         "../../config/surface-intents.js",
         "../../pool/model-contract.js",
@@ -3207,13 +3207,13 @@
     {
       "path": "ui/pool-home/work-approval-panel.js",
       "owner": "ui",
-      "sha256": "sha256:b4dcc4e78981f0fbc3b15f015f225eb9d242fa2927904b9b6b420cb88913b288",
+      "sha256": "sha256:7fd2eda48c72b149f128aeec60d95968f627a7ee16392d77fecdd3bedd2c4449",
       "imports": []
     },
     {
       "path": "ui/pool-home/work-capabilities.js",
       "owner": "ui",
-      "sha256": "sha256:b708d3fe3bd74066484f46cd9f9e31e4ce894fc119db00d8fd39e18c595020c8",
+      "sha256": "sha256:fb806b5bf4201f57e78c14ed4498911f72b346d773fdef68ab8a53e3e248e992",
       "imports": [
         "./agent-network.js",
         "./work-tool-offers.js"
@@ -3222,7 +3222,7 @@
     {
       "path": "ui/pool-home/work-goal-composer.js",
       "owner": "ui",
-      "sha256": "sha256:7b33b15f9c6f76f6a108998f634f184dd3c571debee30ed6257dd6b25088c765",
+      "sha256": "sha256:b1e7f4168ba3aaed07df45275043698f05ba1839f6c1f7a4116dd0dad835903e",
       "imports": [
         "../../config/work-profile.json",
         "../../host/work-session.js",
@@ -3232,13 +3232,13 @@
     {
       "path": "ui/pool-home/work-layout.js",
       "owner": "ui",
-      "sha256": "sha256:864f5fc607f9247bcb70a093aa6254fd74f3f726b3c32a43c3575acb17b5b841",
+      "sha256": "sha256:492cc1586e92a49d641fc8fc09d34844b97748463c093d27e19d1f9d1985408c",
       "imports": []
     },
     {
       "path": "ui/pool-home/work-result-view.js",
       "owner": "ui",
-      "sha256": "sha256:ad89c9e10082d5d26db4bf50192cd6d4d479604d467145fc5b5a94f9409dde77",
+      "sha256": "sha256:c33da36beab23d3410307bef2c066dd8b52719a6281e08a3d51935d29ef8995e",
       "imports": []
     },
     {
@@ -3262,7 +3262,7 @@
     {
       "path": "ui/pool-home/work.js",
       "owner": "ui",
-      "sha256": "sha256:08bfc8bf3b2560811187325a26f36230649fed28bbc124a82e40e4a26d025222",
+      "sha256": "sha256:c27bb24065fd20d60c05351a614b09282b51b5ff48381f60d46a689c1015a6f2",
       "imports": [
         "../../config/work-profile.json",
         "../../host/work-session.js",
