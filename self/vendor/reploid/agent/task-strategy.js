@@ -1445,6 +1445,7 @@ const goal = String(options.goal || '').trim();
   return {
     subscribe,
     close,
+    settle: engine.settle,
     checkpoint,
     getExecutionEvents: engine.getEvents,
     restore,

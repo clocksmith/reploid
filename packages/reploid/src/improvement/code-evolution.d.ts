@@ -4,12 +4,13 @@ export interface ToolVersion { id: string; description: string; code: string; ge
 export interface ToolCandidate {
   id: string; targetId: string; taskId: string; code: string; reason: string; generationId: string;
   baselineGeneration: string; createdAt: string; error: string | null;
-  origin?: {kind: 'candidate-file'; sourceHash: string};
+  origin?: {kind: 'candidate-file' | 'peer-transfer'; sourceHash: string; transport?: ToolOfferProvenance};
   status: 'evaluating' | 'awaiting-approval' | 'rejected' | 'failed' | 'cancelled' | 'adopted' | 'rolled-back';
   evaluation?: {baselinePassed: number; candidatePassed: number; total: number; regressions: number[]; suiteHash: string; candidateHash: string; baselineHash: string; contractHash: string};
 }
 /** Code transfer only: neither authorship nor evaluation/adoption authority. */
 export interface ToolOffer { schema: 'reploid.tool-offer/v1'; targetId: string; code: string; reason: string; codeHash: string }
+export interface ToolOfferProvenance { transferId: string; sender: string; recipient: string; roomId: string; envelopeHash: string; receivedAt: number; targetContract: string }
 export function createCodeEvolution(options: {
   targets: EvolutionTarget[]; policy: {maxCodeCharacters: number; maxCandidates: number; offers?: {maxBytes: number; maxReasonCharacters: number}; [key: string]: unknown};
   ports: {ledger: ImprovementLedger; load(): Promise<unknown>; save(state: unknown): Promise<void>;
@@ -22,6 +23,7 @@ export function createCodeEvolution(options: {
   }
 }): {
   readonly offerLimits: Readonly<{maxBytes: number; maxReasonCharacters: number}> | null;
+  describeContract(id: string): Promise<string>;
   describe(): Promise<ToolVersion[]>; list(): Promise<ToolCandidate[]>;
   run(id: string, input: unknown, options?: {signal?: AbortSignal; versions?: ToolVersion[]}): Promise<unknown>;
   propose(candidate: {targetId: string; code: string; reason: string; baselineGeneration: string; taskId: string;
@@ -30,5 +32,5 @@ export function createCodeEvolution(options: {
   export(id: string): Promise<{candidate: unknown; episode: unknown; events: unknown[]}>;
   exportOffer(id: string): Promise<ToolOffer>;
   inspectOffer(text: string): Promise<ToolOffer & {baselineGeneration: string; sourceHash: string}>;
-  importOffer(text: string, control: {baselineGeneration: string; signal?: AbortSignal}): Promise<ToolCandidate>;
+  importOffer(text: string, control: {baselineGeneration: string; signal?: AbortSignal; provenance?: ToolOfferProvenance}): Promise<ToolCandidate>;
 };

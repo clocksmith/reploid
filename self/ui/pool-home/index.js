@@ -179,21 +179,32 @@ const bindPoolRouteControls = (mount, render, {
   mount.querySelectorAll('[data-pool-route], [data-pool-route-link]').forEach((control) => {
     if (control.dataset.poolRouteBound === 'true') return;
     control.dataset.poolRouteBound = 'true';
-    control.addEventListener('click', (event) => {
-      if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey
-        || control.hasAttribute('download') || (control.target && control.target !== '_self')) return;
-      const path = control.dataset.poolRoute || control.dataset.poolRouteLink || control.getAttribute('href');
-      const nextUrl = new URL(path, window.location.origin);
-      if (nextUrl.origin !== window.location.origin || !isProductPath(nextUrl.pathname)) return;
-      event.preventDefault();
+    const path = control.dataset.poolRoute || control.dataset.poolRouteLink || control.getAttribute('href');
+    const nextUrl = new URL(path, window.location.origin);
+    if (nextUrl.origin !== window.location.origin || !isProductPath(nextUrl.pathname)) return;
+    const resolvePath = () => {
+      const destination = new URL(nextUrl);
       const currentUrl = new URL(window.location.href);
-      for (const key of ['room', 'relay']) {
-        if (!nextUrl.searchParams.has(key) && currentUrl.searchParams.has(key)) {
-          nextUrl.searchParams.set(key, currentUrl.searchParams.get(key));
+      for (const key of ['room', 'relay', 'swarm', 'swarmToken', 'signaling', 'instance']) {
+        if (!destination.searchParams.has(key) && currentUrl.searchParams.has(key)) {
+          destination.searchParams.set(key, currentUrl.searchParams.get(key));
         }
       }
-      const nextPath = `${nextUrl.pathname}${nextUrl.search}`;
-      if (`${window.location.pathname}${window.location.search}` !== nextPath) {
+      if (!destination.searchParams.has('room')) destination.searchParams.set('room', getPeerRoomId());
+      return `${destination.pathname}${destination.search}${destination.hash}`;
+    };
+    // Native new-tab navigation must retain the same context as an ordinary click.
+    const refreshHref = () => { if (control.tagName === 'A') control.setAttribute('href', resolvePath()); };
+    refreshHref();
+    control.addEventListener('pointerdown', refreshHref);
+    control.addEventListener('focus', refreshHref);
+    control.addEventListener('click', (event) => {
+      refreshHref();
+      if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey
+        || control.hasAttribute('download') || (control.target && control.target !== '_self')) return;
+      event.preventDefault();
+      const nextPath = resolvePath();
+      if (`${window.location.pathname}${window.location.search}${window.location.hash}` !== nextPath) {
         window.history.pushState({ reploidPoolRoute: nextPath }, '', nextPath);
       }
       setNavOpen(false);
@@ -226,9 +237,9 @@ export function initPoolHome(mount, { operationNetwork = null } = {}) {
   let disposeOperationSharing = () => {};
   let disposeWorkView = () => {};
   const workStorage = getCurrentReploidStorage();
-  const swarm = createWorkSwarm({ storage: workStorage });
   let work;
   const evolution = createWorkEvolution({ storage: workStorage, isBusy: () => work?.getState().busy === true });
+  const swarm = createWorkSwarm({ storage: workStorage, evolution });
   work = createWorkSession({ credentials: getZeroAccessHeaders, storage: workStorage, swarm, evolution,
     peers: createWorkPeerJobs({ getNetwork: () => operationNetwork }) });
   const onPageHide = event => {
@@ -297,6 +308,7 @@ export function initPoolHome(mount, { operationNetwork = null } = {}) {
         ${renderThemeSelector()}
       </main>
     `;
+    else mount.querySelector('.pool-primary-nav').outerHTML = renderNav(routeId);
     theme.sync();
     mount.querySelector('.pool-home').dataset.poolRouteId = routeId;
     mount.querySelectorAll('[data-pool-nav-id]').forEach((link) => {

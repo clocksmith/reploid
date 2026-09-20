@@ -50,6 +50,10 @@ export function createCodeEvolution({ targets, policy, ports }) {
   };
   const api = {
     offerLimits: policy.offers ? Object.freeze(copy(policy.offers)) : null,
+    async describeContract(id) {
+      const target = targetFor(id);
+      return hash({ id: target.id, description: target.description, contract: target.contract || null });
+    },
     async describe() {
       const state = await load();
       for (const [id, active] of Object.entries(state.active)) await verifyActive(active, targetFor(id));
@@ -73,7 +77,7 @@ export function createCodeEvolution({ targets, policy, ports }) {
       await verifyActive(selected, target);
       return ports.execute(selected.code, copy(input), { signal });
     },
-    async propose({ targetId, code, reason, baselineGeneration, taskId, generator }, { signal, importedOfferHash } = {}) {
+    async propose({ targetId, code, reason, baselineGeneration, taskId, generator }, { signal, importedOfferHash, provenance } = {}) {
       assert(typeof code === 'string' && code.length > 0 && code.length <= policy.maxCodeCharacters, 'Candidate code exceeds its allowance');
       assert(typeof reason === 'string' && reason.trim(), 'Explain the proposed improvement');
       return ports.lock(async () => {
@@ -86,7 +90,8 @@ export function createCodeEvolution({ targets, policy, ports }) {
         const id = 'candidate:' + crypto.randomUUID(), generationId = targetId + ':' + crypto.randomUUID();
         const record = { id, targetId, taskId, code, reason, baseline: copy(baseline), generationId,
           status: 'evaluating', createdAt: new Date().toISOString(), error: null };
-        if (importedOfferHash) record.origin = { kind: 'candidate-file', sourceHash: importedOfferHash };
+        if (importedOfferHash) record.origin = { kind: provenance ? 'peer-transfer' : 'candidate-file', sourceHash: importedOfferHash,
+          ...(provenance ? { transport: copy(provenance) } : {}) };
         const proposerAuthority = importedOfferHash ? 'work:operator-import' : 'work:agent';
         state.candidates.push(record); await commit(state);
         const candidateHash = await hash(code), baselineHash = await hash(baseline.code);
@@ -211,14 +216,15 @@ export function createCodeEvolution({ targets, policy, ports }) {
       await verifyActive(baseline, target);
       return { ...offer, baselineGeneration: baseline.generationId, sourceHash: await hash(offer) };
     },
-    async importOffer(text, { baselineGeneration, signal } = {}) {
+    async importOffer(text, { baselineGeneration, signal, provenance } = {}) {
       const offer = await readOffer(text), sourceHash = await hash(offer);
       signal?.throwIfAborted();
       return api.propose({ targetId: offer.targetId, code: offer.code, reason: offer.reason, baselineGeneration,
         taskId: 'import:' + sourceHash,
         generator: { implementation: 'reploid:operator-import', model: null,
-          instruction: 'Operator-imported candidate file ' + sourceHash + '; authorship and prior performance are unverified.' } },
-      { signal, importedOfferHash: sourceHash });
+          instruction: 'Operator-imported candidate ' + sourceHash + '; authorship and prior performance are unverified.'
+            + (provenance ? ' Transport record: ' + await hash(provenance) : '') } },
+      { signal, importedOfferHash: sourceHash, provenance });
     },
     async rollback(id) {
       return ports.lock(async () => {

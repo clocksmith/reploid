@@ -115,7 +115,7 @@ test.describe('Route Entry Points', () => {
     await expect(page.locator('.pool-boot-failure')).toHaveCount(0);
   });
 
-  test('home keeps the Work composer below minimal navigation', async ({ page }) => {
+  test('home keeps the task composer below connected activity navigation', async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 1100 });
     await page.goto(PRODUCT_HOME_PATH);
     await page.waitForSelector('.pool-home', { timeout: 20000 });
@@ -134,13 +134,13 @@ test.describe('Route Entry Points', () => {
     expect(layout.formInsideViewport).toBe(true);
     await page.locator('[data-work-start]').scrollIntoViewIfNeeded();
     await expect(page.locator('[data-work-start]')).toBeInViewport();
-    await expect(page.locator('[data-work-start]')).toHaveText('Start work');
+    await expect(page.locator('[data-work-start]')).toHaveText('Start');
     const nav = page.getByRole('navigation', { name: 'Reploid', exact: true });
     await expect(nav.locator('.pool-nav-link')).toHaveCount(3);
-    await expect(nav.getByRole('link', { name: 'Work', exact: true })).toHaveAttribute('aria-current', 'page');
-    await expect(nav.getByRole('link', { name: 'Network', exact: true })).toBeVisible();
-    await expect(nav.getByRole('link', { name: 'Improve', exact: true })).toBeVisible();
-    await expect(nav.locator('[data-pool-network-state]')).toBeVisible();
+    await expect(nav.getByRole('link', { name: 'Agents', exact: true })).toHaveAttribute('href', '#reploid-agents');
+    await expect(nav.getByRole('link', { name: 'Activity', exact: true })).toHaveAttribute('href', '#reploid-activity');
+    await expect(nav.getByRole('link', { name: 'Improvements', exact: true })).toHaveAttribute('href', '#reploid-improvements');
+    await expect(page.locator('[data-agent-list]')).toBeVisible();
     await expect(page.locator('[data-pool-drawer-section]')).toHaveCount(0);
   });
 
@@ -153,7 +153,7 @@ test.describe('Route Entry Points', () => {
     await expect(page.locator('[data-work-model]')).toHaveValue('qwen-3-5-2b-q4k-ehaf16');
     await expect(page.locator('[data-work-peers]')).not.toBeChecked();
     await expect(page.locator('[data-work-recall]')).not.toBeChecked();
-    await expect(page.locator('[data-work-start]')).toHaveText('Start work');
+    await expect(page.locator('[data-work-start]')).toHaveText('Start');
     await expect(page.locator('[data-work-details]')).not.toHaveAttribute('open', '');
     await expect(page.locator('[data-pool-research-room]')).toHaveCount(0);
   });
@@ -165,9 +165,9 @@ test.describe('Route Entry Points', () => {
       const nav = page.getByRole('navigation', { name: 'Reploid', exact: true });
       await expect(nav).toBeVisible();
       await expect(nav.locator('.pool-nav-link')).toHaveCount(3);
-      await expect(nav.getByRole('link', { name: 'Work', exact: true })).toBeVisible();
-      await expect(nav.getByRole('link', { name: 'Network', exact: true })).toBeVisible();
-      await expect(nav.getByRole('link', { name: 'Improve', exact: true })).toBeVisible();
+      await expect(nav.getByRole('link', { name: 'Agents', exact: true })).toBeVisible();
+      await expect(nav.getByRole('link', { name: 'Activity', exact: true })).toBeVisible();
+      await expect(nav.getByRole('link', { name: 'Improvements', exact: true })).toBeVisible();
       await expect(nav.locator('.pool-nav-toggle')).toHaveCount(0);
 
       const geometry = await page.evaluate(() => {
@@ -186,12 +186,35 @@ test.describe('Route Entry Points', () => {
       expect(geometry.overflowX).toBe(false);
     }
 
-    await page.getByRole('link', { name: 'Network', exact: true }).click();
+    await page.locator('.pool-work-more > summary').click();
+    await page.getByRole('link', { name: 'Network settings', exact: true }).click();
     await expect(page).toHaveURL(/\/network\?room=reploid-default$/);
-    await expect(page.getByRole('link', { name: 'Network', exact: true })).toHaveAttribute('aria-current', 'page');
-    await page.getByRole('link', { name: 'Improve', exact: true }).click();
+    await expect(page.locator('.pool-home')).toHaveAttribute('data-pool-route-id', 'network');
+    await page.locator('.pool-work-more > summary').click();
+    await page.getByRole('link', { name: 'Improvement history', exact: true }).click();
     await expect(page).toHaveURL(/\/improve\?room=reploid-default$/);
-    await expect(page.getByRole('link', { name: 'Improve', exact: true })).toHaveAttribute('aria-current', 'page');
+    await expect(page.locator('.pool-home')).toHaveAttribute('data-pool-route-id', 'improve');
+    await expect(page.getByRole('link', { name: 'Overview', exact: true })).toBeVisible();
+  });
+
+  test('product routes retain peer and storage context through navigation and reload', async ({ page }) => {
+    const context = { room: 'navigation-room', swarm: 'navigation-swarm',
+      swarmToken: 'navigation-test-capability-0123456789', instance: 'navigation-instance' };
+    await page.goto('/?' + new URLSearchParams(context));
+    for (const [label, path] of [['Network settings', '/network'], ['Improvement history', '/improve']]) {
+      await page.locator('.pool-work-more > summary').click();
+      const link = page.getByRole('link', { name: label, exact: true });
+      const target = new URL(await link.getAttribute('href'), page.url());
+      for (const [key, value] of Object.entries(context)) expect(target.searchParams.get(key)).toBe(value);
+      await link.click();
+      expect(new URL(page.url()).pathname).toBe(path);
+      await page.reload();
+      await expect(page.locator('.pool-home')).toHaveAttribute('data-pool-route-id', path.slice(1));
+      for (const [key, value] of Object.entries(context)) expect(new URL(page.url()).searchParams.get(key)).toBe(value);
+    }
+    await page.getByRole('link', { name: 'Overview', exact: true }).click();
+    await expect(page.getByRole('region', { name: 'Agent network', exact: true })).toBeVisible();
+    for (const [key, value] of Object.entries(context)) expect(new URL(page.url()).searchParams.get(key)).toBe(value);
   });
 
   test('desktop navigation leaves the task column unobstructed', async ({ page }) => {
@@ -331,7 +354,7 @@ test.describe('Route Entry Points', () => {
     await page.goto('/compute');
     await page.waitForSelector('.pool-home', { timeout: 20000 });
     await expect(page.locator('.pool-home')).toHaveAttribute('data-pool-route-id', 'compute');
-    await expect(page.getByRole('link', { name: 'Network', exact: true })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Overview', exact: true })).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Sequence provider', exact: true })).toBeVisible();
     await expect(page.locator('.pool-page-heading .pool-eyebrow')).toHaveCount(0);
     await expect(page.locator('[data-pool-simulation]')).toHaveCount(0);
@@ -361,8 +384,9 @@ test.describe('Route Entry Points', () => {
     await page.goto('/network');
     await page.waitForSelector('.pool-home', { timeout: 20000 });
     await expect(page.getByRole('region', { name: 'Network', exact: true })).toBeVisible();
+    await page.getByText('Specialized model jobs', { exact: true }).click();
     await expect(page.locator('[data-operation-sharing]')).toBeVisible();
-    await expect(page.getByRole('link', { name: 'Network', exact: true })).toHaveAttribute('aria-current', 'page');
+    await expect(page.getByRole('link', { name: 'Overview', exact: true })).toBeVisible();
   });
 
   test('home route boots without early VFS misses for instance-scoped runtime modules', async ({ page }) => {

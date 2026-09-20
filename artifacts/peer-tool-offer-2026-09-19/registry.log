@@ -1,0 +1,44 @@
+Generated application library assets: 112 files
+[module-inventory] Wrote /home/clocksmith/deco/reploid/self/config/module-inventory.json with 434 modules
+[genesis-manifest] Skipping /home/clocksmith/deco/reploid/self/experimental/openclaw-audit/index.js: document is not defined
+[genesis-manifest] Wrote /home/clocksmith/deco/reploid/self/config/genesis-levels.json
+[blueprint-registry] Unchanged registry: 106 executable owners, 176 declarations
+[module-registry] Unchanged /home/clocksmith/deco/reploid/self/config/module-registry.json
+[vfs-manifest] Wrote /home/clocksmith/deco/reploid/self/config/vfs-manifest.json
+[browser-bundle] Wrote /home/clocksmith/deco/reploid/self/config/browser-bundle-manifest.json with 795 served files as sha256:eebb9b823caa11d18e52801da09ef24f66800a852a855eb549cfe9922b819b54
+Generated application library assets: 112 files
+[module-inventory] Wrote /home/clocksmith/deco/reploid/self/config/module-inventory.json with 434 modules
+[genesis-manifest] Skipping /home/clocksmith/deco/reploid/self/experimental/openclaw-audit/index.js: document is not defined
+[genesis-manifest] Wrote /home/clocksmith/deco/reploid/self/config/genesis-levels.json
+[blueprint-registry] Unchanged registry: 106 executable owners, 176 declarations
+[module-registry] Unchanged /home/clocksmith/deco/reploid/self/config/module-registry.json
+[vfs-manifest] Wrote /home/clocksmith/deco/reploid/self/config/vfs-manifest.json
+[browser-bundle] Wrote /home/clocksmith/deco/reploid/self/config/browser-bundle-manifest.json with 795 served files as sha256:eebb9b823caa11d18e52801da09ef24f66800a852a855eb549cfe9922b819b54
+[validate] {"sourceFiles":434,"modules":68,"blueprintDeclarations":176,"executableOwners":106,"unresolved":0}
+[validate] Inventoried helpers: 256; modules without an architectural blueprint: 18
+Second generation identical.
+
+> reploid@0.1.0 verify:catscan
+> node scripts/verify-catscan.js
+
+[catscan] 35 component charters and generated index passed
+
+> reploid@0.1.0 verify:layers
+> node scripts/verify-layers.js
+
+Layer, loader, cycle and canonical delivery verification passed.
+
+> reploid@0.1.0 verify:module-system
+> node scripts/verify-module-system.js
+
+[verify-module-system] All checks passed
+
+> reploid@0.1.0 verify:surface-claims
+> node scripts/verify-surface-claim-index.js
+
+[verify-surface-claims] 14 claim rows passed
+
+> reploid@0.1.0 verify:browser-bundle:local
+> node scripts/build-browser-bundle-manifest.js --check
+
+[browser-bundle] 795 served files match sha256:eebb9b823caa11d18e52801da09ef24f66800a852a855eb549cfe9922b819b54

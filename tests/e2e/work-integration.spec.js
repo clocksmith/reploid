@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+const evidenceDir = process.env.REPLOID_E2E_ARTIFACT_DIR || 'artifacts/network-home-2026-09-19';
 import { readFile } from 'node:fs/promises';
 
 const candidateCode = '({text}) => { let s = text.replace(/^\\uFEFF/, "").trim(); if(s.startsWith("```json\\n") && s.endsWith("\\n```")) s=s.slice(8,-4); return JSON.stringify(JSON.parse(s),null,2); }';
@@ -57,7 +58,7 @@ test('task uses a helper and approved peer, evaluates code, requires adoption, a
   await expect(page.locator('[data-work-team]')).toContainText('completed');
   await expect(page.locator('[data-work-candidates]')).toContainText('Current: 4/6 checks. Candidate: 6/6 checks.');
   expect((await page.evaluate(()=>window.integratedWork.evolution.describe()))[0].generationId).toBe('FormatJson:genesis');
-  await page.screenshot({path:'artifacts/network-home-2026-09-19/candidate-review.png',fullPage:true});
+  await page.screenshot({path:`${evidenceDir}/candidate-review.png`,fullPage:true});
   await page.locator('[data-candidate-adopt]').click();
   await expect(page.locator('[data-work-candidates]')).toContainText('Adopted on this device');
   expect(await page.evaluate(()=>window.integratedWork.evolution.run('FormatJson',{text:'```json\n{"a":2}\n```'}))).toBe('{\n  "a": 2\n}');
@@ -96,6 +97,41 @@ test('new integration modules pass the Verification Worker',async({page})=>{
     worker.onmessage=({data})=>{clearTimeout(timer);worker.terminate();resolve(data);};worker.postMessage({type:'VERIFY',snapshot});
   }),snapshot);
   expect(result.errors).toEqual([]);expect(result.passed).toBe(true);
+});
+
+test('timed-out work waits for borrowed inference, preserves the failure and reloads its checkpoint', async ({ page }) => {
+  await page.goto('/');
+  await page.clock.install();
+  const timeoutMs = await page.evaluate(async () => {
+    const { createWorkSession, DEFAULT_WORK_MODELS } = await import('/host/work-session.js');
+    const { default: policy } = await import('/config/work-profile.json', { with: { type: 'json' } });
+    let release;
+    const borrowed = new Promise(resolve => { release = resolve; });
+    window.recoveryFixture = { entered: false, release };
+    const model = DEFAULT_WORK_MODELS.find(item => item.provider === 'gemini');
+    const app = createWorkSession({ storage: localStorage,
+      credentials: async () => ({ Authorization: 'Bearer fixture', 'X-Firebase-AppCheck': 'fixture' }),
+      fetchImpl: () => { window.recoveryFixture.entered = true; return borrowed; } });
+    Object.assign(window.recoveryFixture, { app, model });
+    window.recoveryFixture.task = app.start({ goal: 'Exercise timeout recovery', modelId: model.id });
+    return policy.profile.config.agent.timeoutMs;
+  });
+  await expect.poll(() => page.evaluate(() => window.recoveryFixture.entered)).toBe(true);
+  await page.clock.fastForward(timeoutMs);
+  expect(await page.evaluate(() => window.recoveryFixture.app.getState().busy)).toBe(true);
+  const result = await page.evaluate(async () => {
+    const { release, model, task } = window.recoveryFixture;
+    release(new Response(JSON.stringify({ content: 'late response', model: model.id })));
+    return task;
+  });
+  expect(result).toMatchObject({ status: 'paused', error: 'Work deadline reached', checkpointAvailable: true, output: '' });
+  await page.reload();
+  const restored = await page.evaluate(async () => {
+    const { createWorkSession } = await import('/host/work-session.js');
+    const app = createWorkSession({ storage: localStorage });
+    const record = app.getState().records[0]; await app.close(); return record;
+  });
+  expect(restored).toMatchObject({ status: 'paused', error: 'Work deadline reached', checkpointAvailable: true });
 });
 
 test('two browsers exchange an approved text request over WebRTC and settle sharing',async({browser})=>{

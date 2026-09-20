@@ -10,18 +10,23 @@ import { LOCAL_DOPPLER_MODELS } from '../config/doppler-local-models.js';
 import profile from '../config/work-profile.json' with { type: 'json' };
 import { createReploidDopplerRuntimeService } from '../infrastructure/doppler-runtime-service.js';
 import { openWorkProvider } from '../providers/work-provider.js';
+import { createWorkPeerOffers } from './work-peer-offers.js';
 
-export function createWorkSwarm({ storage, onChange = () => {}, service = createReploidDopplerRuntimeService(), networkOptions = createLegacyNetworkOptions }) {
+export function createWorkSwarm({ storage, evolution, onChange = () => {}, service = createReploidDopplerRuntimeService(), networkOptions = createLegacyNetworkOptions }) {
   const utils = Utils.factory({}), eventBus = EventBus.factory({ Utils: utils });
   const options = networkOptions({ Utils: utils, EventBus: eventBus }, { enabled: true });
   let consumer = null, supplier = null, pending = null, closed = false, sharing = false, stopping = false, connecting = false, error = '';
   const owned = new Set();
+  let consumerTransport = null;
   const contribution = { phase: 'idle', completed: 0 };
   const getState = () => ({ sharing, stopping, connecting, error, models: LOCAL_DOPPLER_MODELS,
     contribution: { ...contribution }, limits: { maxInboundJobs: 1, maxOutputTokens: profile.generation.maxTokens },
-    consumer: consumer?.getSwarmSnapshot() || null, supplier: supplier?.getSwarmSnapshot() || null });
+    consumer: consumer?.getSwarmSnapshot() || null, supplier: supplier?.getSwarmSnapshot() || null,
+    offers: peerOffers?.getState() || null });
   const notify = () => onChange(getState());
-  const build = model => {
+  const peerOffers = evolution ? createWorkPeerOffers({ storage, evolution, roomId: options.config.value.mesh.roomId,
+    getTransport: () => consumerTransport, onChange: notify }) : null;
+  const build = (model, peerId) => {
     const instanceId = 'work-swarm:' + crypto.randomUUID();
     const events = EventBus.factory({ Utils: utils });
     events.on('swarm-state', notify);
@@ -29,7 +34,11 @@ export function createWorkSwarm({ storage, onChange = () => {}, service = create
       enabled: true, executeJobs: !!model, maxInboundJobs: 1 } } });
     return createLegacyGenerationMesh({ config, ports: {
       instanceId, modelConfig: model, utils, eventBus, events,
-      createTransport: () => createSwarmTransport({ ...options, config }),
+      createTransport: () => {
+        const transport = createSwarmTransport({ ...options, config, ...(peerId ? { peerId } : {}) });
+        if (!model) consumerTransport = transport;
+        return transport;
+      },
       identity: { ensure: input => ensureIdentityBundle({ ...input, storage }),
         save: bundle => saveIdentityBundle(bundle, storage, { instanceId }),
         rotate: input => rotateIdentityBundle({ ...input, storage }), sync: async () => {} },
@@ -75,12 +84,24 @@ export function createWorkSwarm({ storage, onChange = () => {}, service = create
     if (closed) throw new Error('Text swarm is closed');
     if (connecting) throw new Error('Already connecting');
     connecting = true; error = ''; notify();
-    try { consumer ||= build(null); await consumer.connect(); return getState(); }
-    catch (cause) { error = cause.message; throw cause; }
+    try {
+      if (!consumer) {
+        const peerId = await peerOffers?.acquire();
+        if (closed) throw new Error('Text swarm is closed');
+        consumer = build(null, peerId); await consumer.connect(); await peerOffers?.attach();
+      } else await consumer.connect();
+      return getState();
+    }
+    catch (cause) { peerOffers?.close(); await consumer?.close(); consumer = null; consumerTransport = null; error = cause.message; throw cause; }
     finally { connecting = false; notify(); }
   };
   return Object.freeze({ getState, connect,
-    async disconnect() { const previous = consumer; consumer = null; await previous?.close(); notify(); },
+    allowCandidateOffers: allowed => peerOffers?.allowReceiving(allowed),
+    sendCandidate: (candidateId, recipient) => peerOffers.send(candidateId, recipient),
+    retryCandidate: transferId => peerOffers.retry(transferId),
+    previewCandidate: transferId => peerOffers.preview(transferId),
+    dismissCandidate: transferId => peerOffers.dismiss(transferId),
+    async disconnect() { const previous = consumer; consumer = null; peerOffers?.close(); consumerTransport = null; await previous?.close(); notify(); },
     async share(modelId, approved) {
       if (closed || supplier || stopping) throw new Error('Stop existing sharing first');
       if (approved !== true) throw new Error('Approve public prompt execution before sharing');
@@ -117,6 +138,6 @@ export function createWorkSwarm({ storage, onChange = () => {}, service = create
         throw cause;
       } finally { pending = null; }
     },
-    async close() { closed = true; sharing = false; await consumer?.close(); await supplier?.close(); await Promise.allSettled([...owned]); notify(); }
+    async close() { closed = true; sharing = false; peerOffers?.close(); await consumer?.close(); await supplier?.close(); await Promise.allSettled([...owned]); notify(); }
   });
 }

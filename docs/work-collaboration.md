@@ -73,8 +73,31 @@ baseline requires a fresh preview. Failures remain recorded; passing candidates
 still require **Use this version** and retain rollback. Imported code is recorded
 as an operator-imported artifact, not as locally generated agent work.
 
-This is an explicit file handoff. It does not transfer candidates automatically
-over WebRTC or establish improvement across independent machines.
+The file handoff remains available without joining a network.
+
+## Send a candidate to a peer
+
+Connect peers using the same invitation. A recipient opens **Import a tool** and
+enables **Receive tool offers from connected peers** for this connection. The
+sender inspects **Code & sharing**, selects that peer, and chooses **Send candidate**.
+Only the candidate code and description are sent, bound to sender, recipient,
+room, transfer identity, expiry, byte size, and target-contract identity.
+
+The receiving device stores a preview. **Preview candidate**, **Evaluate on this
+device**, and **Use this version** remain separate actions. Delivery never imports
+the sender’s evaluation or approval. Local evaluation retains transport provenance
+and rejects a changed baseline. **Dismiss** leaves the current tool unchanged.
+
+Peer delivery allows up to 24 KiB per offer, three explicitly requested attempts,
+and five minutes for delivery. Receipts confirm retained previews only. A retry
+reuses the transfer identity; duplicate delivery does not create another preview.
+Missing receipts remain unconfirmed, and expired transfers cannot be retried.
+Transfer records and identity persist across reload; reconnect to recover them.
+Receiving permission resets on disconnect. A second tab cannot own the same peer
+identity concurrently. Transport does not evaluate, adopt, or execute candidates.
+
+These are bounded delivery and local tool-evaluation contracts, not evidence of
+independently operated machines or network-caused capability improvement.
 
 ## Acceptance evidence
 
@@ -88,3 +111,30 @@ checks task visibility, mobile layout, and disclosure controls.
 `tests/e2e/tool-offer-exchange.spec.js` exercises file download, preview, local
 evaluation, separate adoption, reload, rollback, and tampering rejection across
 two isolated browser contexts. Candidate code is supplied by the test, not a model.
+`tests/e2e/peer-tool-offer.spec.js` adds real WebRTC delivery, recipient refusal,
+restart recovery, local evaluation, adoption and rollback. Protocol unit tests
+exercise redelivery, lost receipts, failed persistence, tampering, expiry and
+identity binding. The required CI test job runs these product suites alongside
+storage, boot and peer-job contracts, and archives browser and package evidence.
+
+Cancellation stops observation before borrowed model work necessarily finishes.
+The agent's `settle()` operation waits for that work; the Work host then checkpoints
+and closes its owned scope. Timeout reasons survive checkpointing and reload.
+The browser recovery test deliberately delays an injected provider after timeout
+to exercise this boundary without claiming a real model result.
+
+For the real local leg, run a current local server, then:
+
+```sh
+REPLOID_E2E_ACTUAL_INFERENCE=1 node tests/actual-work-improvement.js
+```
+
+This uses the configured recommended Doppler model, the unchanged task budget,
+and a fenced JSON input. No provider output or candidate code is injected. It
+verifies served source hashes, retains task/checkpoint and candidate records,
+and records model loading, failures and operator guidance. An incomplete task
+exits nonzero. Evidence is written under `artifacts/actual-work-improvement/`;
+`REPLOID_E2E_BASE_URL` and `REPLOID_ACTUAL_EVIDENCE_DIR` select the server and
+output directory. This is one machine, not the independent-recipient proof or
+the controlled network-benefit comparison. Never adopt a candidate merely
+because this runner recorded it.

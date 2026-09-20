@@ -72,4 +72,26 @@ describe('shared execution lifecycle', () => {
     const checkpoint = await agent.checkpoint(); expect(checkpoint.schema).toBe('reploid.checkpoint/v1');
     await agent.close();
   });
+  it('settles cancelled provider work before producing a restorable checkpoint', async () => {
+    const started = deferred(), borrowed = deferred();
+    const config = resolveConfig({ overrides: { models: { providerId: 'test' } } });
+    const ports = { instanceId: 'cancelled-work', authorize: () => true,
+      providers: { test: { generate: () => { started.resolve(); return borrowed.promise; } } } };
+    const agent = createReploid({ config, ports });
+    const attempt = agent.execute({ goal: 'Observe cancellation' });
+    await started.promise; agent.cancel(); await attempt;
+    await expect(agent.checkpoint()).rejects.toThrow('Pause');
+    let settled = false;
+    const settlement = agent.settle().then(() => { settled = true; });
+    await Promise.resolve(); expect(settled).toBe(false);
+    borrowed.resolve({ content: 'Late output must not enter the checkpoint' });
+    await settlement;
+    const checkpoint = await agent.checkpoint();
+    expect(JSON.stringify(checkpoint)).not.toContain('Late output');
+    await agent.close();
+    const restored = createReploid({ config, ports });
+    await restored.restore(checkpoint);
+    expect(restored.getSnapshot().cycle).toBe(1);
+    await restored.close();
+  });
 });

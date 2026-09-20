@@ -1,0 +1,249 @@
+{
+  "schema": "reploid.actual-work-attempt/v1",
+  "startedAt": "2026-09-20T03:28:55.585Z",
+  "model": "qwen-3-5-2b-q4k-ehaf16",
+  "doppler": "0.6.1",
+  "injectedInference": false,
+  "independentMachines": false,
+  "humanAssistance": [
+    "Task prompt requests exercising FormatJson and proposing a repair if needed; no candidate code supplied."
+  ],
+  "responses": [
+    {
+      "url": "https://cdn.jsdelivr.net/npm/doppler-gpu@0.6.1/src/formats/rdrr/manifest.js",
+      "status": 200
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/npm/doppler-gpu@0.6.1/src/loader/manifest-config.js",
+      "status": 200
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/npm/doppler-gpu@0.6.1/src/config/schema/manifest.schema.js",
+      "status": 200
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/npm/doppler-gpu@0.6.1/src/config/forecast-manifest.js",
+      "status": 200
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/npm/doppler-gpu@0.6.1/src/config/manifest-inference-validation.js",
+      "status": 200
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/npm/doppler-gpu@0.6.1/src/converter/manifest-builder.js",
+      "status": 200
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/npm/doppler-gpu@0.6.1/src/converter/tokenizer-manifest.js",
+      "status": 200
+    },
+    {
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/manifest.json",
+      "status": 307
+    },
+    {
+      "url": "https://huggingface.co/api/resolve-cache/models/clocksmith/rdrr/977d145bf2478a7fb542e6aca65030585620ca60/models%2Fqwen-3-5-2b-q4k-ehaf16%2Fmanifest.json?%2Fclocksmith%2Frdrr%2Fresolve%2F977d145bf2478a7fb542e6aca65030585620ca60%2Fmodels%2Fqwen-3-5-2b-q4k-ehaf16%2Fmanifest.json=&etag=%22c4b3096f35bbb5ed1951dd33eef7dd4594975e88%22",
+      "status": 200
+    }
+  ],
+  "console": [
+    {
+      "type": "log",
+      "text": "[14057.2ms][Tokenizer] Loading bundled tokenizer from tokenizer.json"
+    },
+    {
+      "type": "log",
+      "text": "[14455.8ms][Tokenizer] HuggingFace model.type=\"BPE\", using type=\"bpe\""
+    },
+    {
+      "type": "log",
+      "text": "[14585.1ms][Tokenizer] Loaded HuggingFace 248070 tokens (bpe), 26 special patterns, 247587 merges"
+    },
+    {
+      "type": "log",
+      "text": "[14585.3ms][Pipeline] Tokenizer vocabSize=248070 differs from model=248320, using model size"
+    },
+    {
+      "type": "log",
+      "text": "[14586.3ms][Pipeline] KV cache allocated: kvDtype=f16, maxSeqLen=4096, layout=contiguous, modelMaxSeqLen=262144, requestedKvDtype=f16, requestedMaxSeqLen=4096"
+    },
+    {
+      "type": "log",
+      "text": "[21094.6ms][ShardCache] Custom shard loader configured"
+    },
+    {
+      "type": "log",
+      "text": "[21094.9ms][Loader] Initializing..."
+    },
+    {
+      "type": "log",
+      "text": "[21184.0ms][Loader] Initialized (f16, subgroups)"
+    },
+    {
+      "type": "log",
+      "text": "[21184.6ms][Loader] Loading: qwen-3-5-2b-q4k-ehaf16"
+    },
+    {
+      "type": "log",
+      "text": "[21185.9ms][Loader] [0.0s] Memory (start): | Heap=1.05 GB/1.05 GB (limit=3.50 GB) | GPU=0 B (0 active, 0 pooled, peak=0 B) | ShardCache=0 B (0 shards) | Layers=0, GPUBuffers=0"
+    },
+    {
+      "type": "warning",
+      "text": "[21186.4ms][Loader] Dense model on discrete GPU - performance limited. Consider MoE model."
+    },
+    {
+      "type": "log",
+      "text": "[21189.2ms][Loader] Embedding \"model.language_model.embed_tokens.weight\" GPU-resident: shouldStreamLargeWeight returned false."
+    },
+    {
+      "type": "log",
+      "text": "[51187.1ms][Loader] [30.0s] Memory (loading): | Heap=1.05 GB/1.05 GB (limit=3.50 GB) | GPU=970.00 MB (1 active, 0 pooled, peak=970.00 MB) | ShardCache=0 B (0 shards) | Layers=0, GPUBuffers=0"
+    },
+    {
+      "type": "log",
+      "text": "[81187.5ms][Loader] [60.0s] Memory (loading): | Heap=1.05 GB/1.05 GB (limit=3.50 GB) | GPU=970.00 MB (1 active, 0 pooled, peak=970.00 MB) | ShardCache=0 B (0 shards) | Layers=0, GPUBuffers=0"
+    },
+    {
+      "type": "log",
+      "text": "[111187.2ms][Loader] [90.0s] Memory (loading): | Heap=1.05 GB/1.05 GB (limit=3.50 GB) | GPU=970.00 MB (1 active, 0 pooled, peak=970.00 MB) | ShardCache=0 B (0 shards) | Layers=0, GPUBuffers=0"
+    },
+    {
+      "type": "log",
+      "text": "[128945.4ms][Loader] Embeddings tensor loaded: name=model.language_model.embed_tokens.weight, hasShape=true, shape=[248320,2048], isWeightBuffer=true"
+    },
+    {
+      "type": "log",
+      "text": "[128946.7ms][Loader] Layers: 0-23"
+    },
+    {
+      "type": "log",
+      "text": "[141186.6ms][Loader] [120.0s] Memory (loading): | Heap=1.05 GB/1.05 GB (limit=3.50 GB) | GPU=1.15 GB (101 active, 0 pooled, peak=1.15 GB) | ShardCache=0 B (0 shards) | Layers=6, GPUBuffers=100"
+    },
+    {
+      "type": "log",
+      "text": "[169153.6ms][Loader] Layers: 24 complete (40.21s)"
+    },
+    {
+      "type": "log",
+      "text": "[171186.9ms][Loader] [150.0s] Memory (loading): | Heap=1.05 GB/1.05 GB (limit=3.50 GB) | GPU=1.94 GB (345 active, 0 pooled, peak=1.94 GB) | ShardCache=0 B (0 shards) | Layers=24, GPUBuffers=344"
+    },
+    {
+      "type": "log",
+      "text": "[201187.0ms][Loader] [180.0s] Memory (loading): | Heap=1.05 GB/1.05 GB (limit=3.50 GB) | GPU=1.94 GB (345 active, 0 pooled, peak=1.94 GB) | ShardCache=0 B (0 shards) | Layers=24, GPUBuffers=344"
+    },
+    {
+      "type": "log",
+      "text": "[216410.9ms][Loader] Complete: 1.94 GB in 195.22s (10.15 MB/s)"
+    },
+    {
+      "type": "log",
+      "text": "[216412.2ms][Loader] [195.2s] Memory (complete): | Heap=1.05 GB/1.05 GB (limit=3.50 GB) | GPU=1.94 GB (345 active, 0 pooled, peak=1.94 GB) | ShardCache=0 B (0 shards) | Layers=24, GPUBuffers=345"
+    },
+    {
+      "type": "log",
+      "text": "[216507.3ms][Pipeline] Model loaded successfully (202461ms)"
+    },
+    {
+      "type": "log",
+      "text": "[300875.4ms][Pipeline] Unloaded"
+    }
+  ],
+  "adapter": {
+    "vendor": "intel",
+    "architecture": "gen-12lp",
+    "device": "",
+    "description": "",
+    "isFallbackAdapter": false
+  },
+  "bundle": "sha256:9ac849c2b54167be6a37c312fb1ed869ea08b9abc7ec1920aa5c8fcc45cd2350",
+  "observation": {
+    "task": {
+      "goal": "Use the existing FormatJson tool to format the attached JSON text, preserving its values. If that tool fails on the input, investigate the failure and propose a repair to that tool. Record what actually happened. Do not adopt a candidate or invent test results.",
+      "criteria": "The attached JSON values are preserved. Any proposed tool change must pass the host checks and remain pending operator approval.",
+      "modelId": "qwen-3-5-2b-q4k-ehaf16",
+      "allowImprovement": true,
+      "inputs": [
+        {
+          "name": "example.txt",
+          "text": "```json\n{\"service\":\"worker\",\"retry\":3,\"enabled\":true}\n```"
+        }
+      ]
+    },
+    "state": {
+      "busy": false,
+      "activeId": null,
+      "activity": "Pause execution before checkpointing",
+      "draft": "",
+      "storageError": "",
+      "pendingApproval": null,
+      "peerModels": [],
+      "discovering": false,
+      "peerDiscoveryCompleted": false,
+      "cycle": 1,
+      "maxCycles": 12,
+      "selectedId": "bd5b8eba-fc00-4123-a192-642dade7b238",
+      "records": [
+        {
+          "revision": 3,
+          "persistence": {
+            "state": "committed",
+            "error": null
+          },
+          "id": "bd5b8eba-fc00-4123-a192-642dade7b238",
+          "parentId": null,
+          "goal": "Use the existing FormatJson tool to format the attached JSON text, preserving its values. If that tool fails on the input, investigate the failure and propose a repair to that tool. Record what actually happened. Do not adopt a candidate or invent test results.",
+          "modelId": "qwen-3-5-2b-q4k-ehaf16",
+          "modelName": "Qwen 3.5 2B",
+          "createdAt": "2026-09-20T03:28:55.975Z",
+          "status": "paused",
+          "output": "",
+          "review": null,
+          "error": "Pause execution before checkpointing",
+          "checkpointAvailable": false,
+          "criteria": "The attached JSON values are preserved. Any proposed tool change must pass the host checks and remain pending operator approval.",
+          "feedback": "",
+          "inputs": [
+            {
+              "id": "input-1",
+              "name": "example.txt",
+              "text": "```json\n{\"service\":\"worker\",\"retry\":3,\"enabled\":true}\n```",
+              "bytes": 57
+            }
+          ],
+          "artifacts": [],
+          "events": [],
+          "peerJobs": [],
+          "allowPeers": false,
+          "recallAccepted": false,
+          "helpers": [],
+          "improvements": [],
+          "allowHelpers": false,
+          "allowImprovement": true,
+          "outcomeTags": []
+        }
+      ],
+      "available": true,
+      "models": [
+        {
+          "id": "qwen-3-5-2b-q4k-ehaf16",
+          "name": "Qwen 3.5 2B",
+          "size": "Q4K",
+          "recommended": true,
+          "provider": "doppler",
+          "packageName": "doppler-gpu",
+          "packageVersion": "0.6.1"
+        },
+        {
+          "id": "gemini-3.8-flash",
+          "name": "gemini-3.8-flash",
+          "provider": "gemini"
+        }
+      ],
+      "runtimeVersion": "0.6.1"
+    },
+    "settled": true,
+    "error": null
+  },
+  "candidates": [],
+  "finishedAt": "2026-09-20T03:33:57.169Z"
+}

@@ -1,0 +1,13 @@
+
+ RUN  v4.1.10 /home/clocksmith/deco/reploid
+
+ ✓ tests/unit/verification-manager.test.js (50 tests) 73ms
+ ✓ tests/unit/agent-lifecycle.test.js (8 tests) 36ms
+ ✓ tests/unit/work-contracts.test.js (10 tests) 40ms
+ ✓ tests/unit/tool-offer-channel.test.js (7 tests) 32ms
+
+ Test Files  4 passed (4)
+      Tests  75 passed (75)
+   Start at  23:45:27
+   Duration  1.32s (transform 603ms, setup 0ms, import 869ms, tests 181ms, environment 1.66s)
+

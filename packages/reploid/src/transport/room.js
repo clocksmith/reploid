@@ -19,6 +19,7 @@ const MESSAGE_TYPES = new Set([
   'reploid:generation-request', 'reploid:generation-update',
   'reploid:generation-result', 'reploid:generation-error',
   'reploid:receipt',
+  'reploid:tool-offer', 'reploid:tool-offer-ack',
   'ping', 'pong', 'peer-announce', 'peer-leave',
   'raft:request-vote', 'raft:request-vote-response',
   'raft:append-entries', 'raft:append-entries-response',

@@ -65,6 +65,8 @@ export interface ReploidInstance extends Closable {
   on(event: string, listener: (value: unknown) => void): () => void;
   subscribe(listener: (snapshot: AgentSnapshot) => void): () => void;
   getSnapshot(): AgentSnapshot; getExecutionEvents(): ExecutionEvent[]; cancel(): void;
+  /** Wait for the attempt and borrowed operations; cancel first to stop further turns. */
+  settle(): Promise<void>;
   checkpoint(): Promise<AgentCheckpoint>; restore(checkpoint: AgentCheckpoint): Promise<AgentSnapshot>;
   close(): Promise<void>;
 }

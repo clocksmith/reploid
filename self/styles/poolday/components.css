@@ -5920,6 +5920,7 @@ body[data-pool-route-id='home'] #app {
 .pool-connected-shell .pool-work-composer { padding: var(--pool-space-lg); border-radius: var(--pool-radius-panel); box-shadow: none; background: var(--pool-surface-raised); }
 .pool-connected-shell .pool-work-label { font-size: var(--pool-text-base); }
 .pool-connected-shell .pool-work-composer textarea { min-height: calc(var(--pool-px-36) * 2); }
+.pool-connected-shell .pool-work-launch-row .btn { min-height: var(--pool-px-48); }
 .pool-connected-shell .pool-work-capabilities { gap: 0 var(--pool-space-md); }
 .pool-connected-shell .pool-work-capabilities legend { margin-bottom: 0; }
 .pool-connected-shell .pool-work-capabilities label { font-size: var(--pool-text-xs); }

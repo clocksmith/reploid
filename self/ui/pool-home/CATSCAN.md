@@ -6,9 +6,9 @@ Parent: [Browser Interfaces](../CATSCAN.md)
 Connect agents, models, shared tasks, contribution, results, and tested improvements.
 
 ## Authority
-- Owns main, focused-route, example, and Room-1 presentation.
+- Owns product and Room-1 presentation.
 - Host owns execution and review.
-- Requests tool adoption/rollback; never judges candidates.
+- Requests candidate transfer, evaluation and adoption/rollback; never judges candidates.
 - Excludes Pack validation, admission, transport, receipt validation, scientific interpretation.
 
 ## Scope
@@ -22,7 +22,7 @@ Outputs: [markup](view.js), [Room-1](room-view.js).
 - Brand Reploid; preserve Poolday identities.
 - Work, Network, Improve are activities, not required destinations.
 - Selected, preparing, executing, offered remain observed states.
-- Link tasks, helpers, jobs, results, candidates. Keep sharing stop visible.
+- Link tasks, helpers, jobs, results, candidates. Expose sharing stop.
 - Protein/document examples preserve execution.
 - Connected rooms never authorize private-goal sharing.
 - User review is not evaluation or promotion.

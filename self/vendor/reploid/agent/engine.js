@@ -229,6 +229,7 @@ export function createExecutionEngine({ onEvent } = {}) {
     get retryPending() { return retryWaiting; },
     /** @param {Error} [reason] */
     cancel(reason) { cancelRetry(); lifecycle.cancel(reason); },
+    settle: () => lifecycle.whenIdle(),
     /** @template {import('../config/index.js').Json} T @param {T} state @returns {T} */
     checkpoint(state) {
       if (lifecycle.isActive || retryWaiting || lifecycle.pendingCount > 0) throw new Error('Pause execution before checkpointing');
