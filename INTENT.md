@@ -8,14 +8,15 @@ Developers and autonomous systems need goal-directed problem-solving agents that
 
 ## Target
 
-Deliver an evolving agent that executes goals through authorized models and tools, remains useful alone, optionally collaborates over Poolday WebRTC, and improves its problem-solving methods through independently evaluated recursive self-improvement (RSI).
+Reploid is a network of agents that run models, coordinate work over WebRTC, and develop, test, and exchange improvements to their own problem-solving methods. Each agent remains useful independently, and each participant controls what it shares and contributes.
 
 ## Invariants
 
 - Candidate execution, protected evaluation, and active user work have explicit isolation and lifecycle boundaries. Separate machines are required where a particular proof demands them.
 - Candidate improvements cannot modify hidden acceptance tests, escalate permissions, erase failure histories, or self-approve.
 - The reusable browser agent library in `packages/reploid/` remains completely independent of specific UI frameworks.
-- Local inference uses Doppler and executes locally; peer collaboration via Poolday is optional and capability-governed.
+- Doppler owns model execution; Poolday owns capability-governed peer collaboration. Participation is voluntary and visible alongside tasks and tested improvements.
+- One connected interface exposes actual agents, model locations, shared work, contribution controls, and improvement states. It never fabricates activity or merges evaluation with adoption authority.
 - Zero is the minimal starting configuration; X extends it with explicit capabilities. Proposer, evaluator, approver, and activator are separately authorized roles, not route identities.
 - Free adoption counts as adoption evidence; commercial outcomes do not gate technical completion. Capability claims still require their stated acceptance evidence.
 

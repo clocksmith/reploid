@@ -41,15 +41,18 @@ export function renderZeroCallout() {
 const route = (path, label) => '<a href="' + path + '" data-pool-route-link="' + path + '">' + label + '</a>';
 const links = () => '<details class="pool-work-more"><summary>More</summary>'
   + '<nav class="pool-work-links" aria-label="More in Reploid">'
-  + route('/examples', 'Model examples') + route('/records', 'Peer job records')
+  + route('/network', 'Network settings') + route('/improve', 'Improvement history') + route('/examples', 'Model examples') + route('/records', 'Peer job records')
   + '<span class="pool-work-experiment-links">Experiments: <a href="/zero" data-pool-substrate-route="zero">Zero</a>'
   + ' <a href="/x" data-pool-substrate-route="x">X</a></span></nav></details>';
 
 export function renderWorkSurface() {
   return [
-    '<section class="pool-work-shell" data-work-surface aria-label="Work">',
+    '<section class="pool-work-shell pool-connected-shell" data-work-surface aria-label="Agent network">',
+    '<header class="pool-connected-heading"><h1>Agents working together.</h1><p>Run models. Share work. Test improvements.</p></header>',
     '  <p class="pool-work-error" role="alert" data-work-error hidden></p>',
-    '  <div class="pool-work-column">',
+    '<div class="pool-connected-layout">',
+    renderTextSwarm(),
+    '  <div class="pool-work-column" id="reploid-activity">',
     renderTaskHeader(),
     renderGoalComposer({ models: DEFAULT_WORK_MODELS }),
     renderApprovalPanel(),
@@ -57,7 +60,7 @@ export function renderWorkSurface() {
     renderToolExperiments(),
     renderTaskHistory(),
     links(),
-    '  </div>',
+    '  </div></div>',
     '</section>'
   ].join('\n');
 }
@@ -151,8 +154,8 @@ export function bindWorkSurface(root, application, services = {}) {
     if (!modelId) return;
     const model = (lastState?.models || DEFAULT_WORK_MODELS).find(item => item.id === modelId);
     setText('[data-work-location]', model?.provider === 'gemini'
-      ? 'Cloud model: your task and files may be sent to this provider. Peer sharing still requires your approval.'
-      : 'On-device model: may download on first use. Peer sharing is off unless you enable and approve it.');
+      ? 'Cloud model: sends task and files to this provider.'
+      : 'On-device model · downloads on first use.');
   };
   const fillDraft = draft => {
     if (!form) return;
@@ -262,10 +265,14 @@ export function bindWorkSurface(root, application, services = {}) {
       const identity = JSON.stringify([row, state.busy]);
       if (identity !== resultIdentity) {
         resultIdentity = identity;
-        setText('[data-work-answer]', row?.output || (state.busy ? 'Work is in progress. No outcome has been recorded yet.'
+        setText('[data-work-answer]', row?.output || (state.busy ? ''
           : row ? 'This attempt did not deliver an outcome. Its activity and failure record are retained.'
             : 'The result and downloadable files will appear here.'));
         setText('[data-work-result-criteria]', row?.criteria ? 'Success criteria: ' + row.criteria : '');
+        const answer = find('[data-work-answer]');
+        if (answer) answer.hidden = !answer.textContent;
+        const resultHeading = find('[data-work-result-title]');
+        if (resultHeading) resultHeading.textContent = row?.output ? 'Result' : 'Shared activity';
         setText('[data-work-review-status]', !row?.output ? '' : !row.review ? 'Needs your review'
           : row.review.accepted ? 'Accepted by you' : 'Changes requested');
         find('[data-work-review-actions]').hidden = !row?.output;

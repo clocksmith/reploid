@@ -1,8 +1,9 @@
 # Reploid Product Intent and Network Boundary
 
-Reploid is an evolving problem-solving agent that can collaborate with peers.
-Doppler owns model execution. Poolday is the internal name for Reploid's optional
-peer participation mechanisms, not a separate public product.
+Reploid is a network of agents that run models, coordinate work over WebRTC, and develop, test, and exchange improvements to their own problem-solving methods. Each agent remains useful independently, and each participant controls what it shares and contributes.
+
+Doppler owns model execution. Poolday is the internal name for peer participation
+mechanisms, not a separate public product.
 
 This document applies the repository mission in [`GOALS.md`](../../GOALS.md) to
 goal pursuit, optional networking, and the authority boundary with Zero and X.
@@ -22,7 +23,11 @@ goal -> plan -> authorized action -> observed result -> revised approach
 ```
 
 These are intended outcomes, not a declaration that the complete system is
-qualified. The primary product structure is Work, Network, and Improve.
+qualified. Work, Network, and Improve are connected activities within one main
+view, not a requirement for three destinations. Agents and models, shared
+activity, device contribution, results, and tested changes stay visible together.
+A task links the agents and models used to its result and resulting candidates.
+Detailed evidence expands beneath that relationship.
 
 ### Work: pursue the outcome
 
@@ -43,7 +48,7 @@ establish improved problem solving. See the [Work acceptance contract](../work-a
 
 ### Network: authorize and inspect assistance
 
-The detailed model-acquisition and peer-job sequence belongs beneath Network:
+Model acquisition and peer jobs remain visible alongside the task they serve:
 
 ```text
 acquire -> verify -> execute locally or explicitly delegate -> compare -> accept -> retain
@@ -57,8 +62,8 @@ result with a signed receipt. Recent jobs preserve recovery and verification
 state after refresh, disconnect, peer loss, timeout, or cancellation.
 
 Run a model, Share compute, and Recent jobs remain actions or secondary views,
-not competing product definitions. Network availability is a compact, meaningful indicator. Recent jobs
-Advanced details contain execution receipts, comparison evidence, peer
+not competing product definitions. Agent availability, model location, and contribution controls stay visible on the main page.
+Recent jobs advanced details contain execution receipts, comparison evidence, peer
 identities, retries, and recovery only. Research Room-1 is a separate
 non-primary route for hypotheses, scientific policies, cohorts, adjudication,
 and laboratory evidence; generic Pack execution does not inherit those fields.
@@ -472,8 +477,8 @@ validity, or final contract acceptance.
 
 ## Current product boundary
 
-- Reploid owns goal pursuit through Work, Network, and Improve. Poolday supplies
-  optional peer participation within that product.
+- Reploid connects goal pursuit, peer collaboration, and tested improvement in
+  one main view. Poolday supplies voluntary peer participation.
 - The configured launch model is the enabled ESM-2 35M protein-sequence model.
   The exact model, manifest, tokenizer, artifact, workload, and runtime identity
   come from `pool-config.json`.
@@ -533,12 +538,12 @@ promotion gates.
 
 ## Reploid surface hierarchy
 
-Work, Network, and Improve are the primary navigation within the Reploid
+Work, Network, and Improve are connected activities within the Reploid
 application. Zero and X are configurations of the same agent foundation:
 
 | Surface | Configuration and purpose | Authority boundary |
 | --- | --- | --- |
-| Reploid `/` | Goal pursuit through Work, optional Network assistance, and Improve. | Host-owned permissions and review; optional Research Room contracts apply only to that workflow. |
+| Reploid `/` | Agents, models, shared tasks, contribution, and tested improvements together. | Host-owned permissions and review; optional Research Room contracts apply only to that workflow. |
 | Zero `/zero` | Minimal starting configuration; grows authorized tools from CreateTool and supports implementing candidate improvements. | Local state and recovery; proposal, evaluation and activation require separately assigned roles. |
 | X `/x` | Zero with selected executable extensions and blueprints for memory, experiments, workers, peers and verification; shares the same improvement mission. | Prepared capabilities grant no evaluator, approval or activation authority. |
 

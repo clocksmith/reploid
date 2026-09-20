@@ -4,7 +4,7 @@ Parent: [Documentation](../CATSCAN.md)
 
 ## Target
 
-Apply Reploid's goal-first mission to optional peer execution, evidence boundaries, and scientific non-claims.
+Apply Reploid's collaborating-agent mission to voluntary peer execution, evidence boundaries, and scientific non-claims.
 
 ## Authority
 - Owns the network's application of Reploid intent, user workflow, evidence semantics, and claim boundaries.
@@ -30,7 +30,7 @@ Outputs:
 - Public-sequence support cannot imply private-sequence protection.
 - Network-benefit claims require declared comparisons; learned-routing activation has a separate gate from ordinary participation and execution.
 - Doppler Pack identity and qualification remain distinct from peer availability and successful execution.
-- Work, Network, and Improve are product navigation; Poolday is an internal network name.
+- Work, Network, and Improve are connected activities in one main view; Poolday is an internal network name.
 - Recent jobs remains execution-only; scientific Room-1 administration has a separate non-primary route.
 
 ## Acceptance

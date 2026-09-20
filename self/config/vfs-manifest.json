@@ -625,6 +625,7 @@
     "ui/panels/cognition-panel.js",
     "ui/panels/metrics-panel.js",
     "ui/pool-home/CATSCAN.md",
+    "ui/pool-home/agent-network.js",
     "ui/pool-home/constants.js",
     "ui/pool-home/contribution-state.js",
     "ui/pool-home/controls.js",

@@ -16,7 +16,9 @@ export function createWorkSwarm({ storage, onChange = () => {}, service = create
   const options = networkOptions({ Utils: utils, EventBus: eventBus }, { enabled: true });
   let consumer = null, supplier = null, pending = null, closed = false, sharing = false, stopping = false, connecting = false, error = '';
   const owned = new Set();
+  const contribution = { phase: 'idle', completed: 0 };
   const getState = () => ({ sharing, stopping, connecting, error, models: LOCAL_DOPPLER_MODELS,
+    contribution: { ...contribution }, limits: { maxInboundJobs: 1, maxOutputTokens: profile.generation.maxTokens },
     consumer: consumer?.getSwarmSnapshot() || null, supplier: supplier?.getSwarmSnapshot() || null });
   const notify = () => onChange(getState());
   const build = model => {
@@ -53,16 +55,19 @@ export function createWorkSwarm({ storage, onChange = () => {}, service = create
       },
       async generate(messages, onUpdate, { signal }) {
         const scope = 'work-shared:' + crypto.randomUUID();
+        contribution.phase = 'loading'; notify();
         const operation = (async () => {
           try {
             const adapter = await openWorkProvider({ model, service, scope, signal, generation: profile.generation,
               maxOutcomeCharacters: profile.maxOutcomeCharacters });
+            contribution.phase = 'executing'; notify();
             return await adapter.generate(messages, onUpdate, { signal });
           }
-          finally { await service.close(scope); }
+          finally { try { await service.close(scope); } finally { contribution.phase = 'idle'; notify(); } }
         })();
         owned.add(operation);
-        try { return await operation; } finally { owned.delete(operation); }
+        try { const result = await operation; contribution.completed++; notify(); return result; }
+        finally { owned.delete(operation); }
       }
     } });
   };
@@ -99,7 +104,7 @@ export function createWorkSwarm({ storage, onChange = () => {}, service = create
       pending = controls;
       try {
         if (!consumer) await connect();
-        if (!consumer.hasAvailableProvider()) throw new Error('No helper device is available. Find peers in Network, then retry.');
+        if (!consumer.hasAvailableProvider()) throw new Error('No helper device is available. Connect peers, then retry.');
         const result = await consumer.generate([{ role: 'user', content: task }], controls.onPartial, { signal: controls.signal });
         controls.signal.throwIfAborted();
         await controls.record({ stage: 'completed', preview: pending.preview, protocol: 'swarm/v1',

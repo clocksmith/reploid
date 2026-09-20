@@ -3,10 +3,7 @@
 [![Test Suite](https://img.shields.io/github/actions/workflow/status/clocksmith/reploid/test.yml?branch=main&label=tests)](https://github.com/clocksmith/reploid/actions/workflows/test.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-Reploid is an evolving problem-solving agent for humans and other agents. It
-pursues useful outcomes through authorized models, tools, observations, and
-revision, and develops improvements to its own methods under independent
-evaluation. It remains useful without peer participation.
+Reploid is a network of agents that run models, coordinate work over WebRTC, and develop, test, and exchange improvements to their own problem-solving methods. Each agent remains useful independently, and each participant controls what it shares and contributes.
 
 Zero is its minimal starting configuration; X extends Zero with explicit
 capabilities and supporting blueprints. Poolday supplies optional discovery,
@@ -45,7 +42,7 @@ in `.env` before starting.
 
 Start with a task and choose local Qwen 3.5 2B or the configured Gemini cloud
 model. Optional controls enable helper agents, approved peer requests, and tested
-tool improvements. Network connects participating devices; Improve shows
+tool improvements. The same page connects participating devices and shows
 candidate code, test comparisons, adoption, and rollback. Try **Improve a tool**
 for the registered JSON formatter. See the [workflow and its limits](docs/work-collaboration.md).
 
@@ -53,7 +50,7 @@ The product surface is:
 
 | Surface | Route | Use |
 | --- | --- | --- |
-| [Reploid](docs/poolday/product-intent.md) | `/` | Work, Network, and Improve. |
+| [Reploid](docs/poolday/product-intent.md) | `/` | Agents, models, shared tasks, contribution, and tested improvements together. |
 | Zero | `/zero` | Minimal self-loading configuration for problem-solving and improvement experiments. |
 | X | `/x` | Zero with prepared executable extensions and supporting blueprints. |
 

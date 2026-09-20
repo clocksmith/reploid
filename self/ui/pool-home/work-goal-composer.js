@@ -10,15 +10,11 @@ export function renderGoalComposer({ models = DEFAULT_WORK_MODELS, defaultModelI
   const defaultModel = selectWorkModel({ models, defaultModelId });
   return `
     <div class="pool-work-composer-shell">
-      <header class="pool-work-hero">
-        <h1 class="pool-work-hero-title">What can I help with?</h1>
-        <p class="pool-work-promise">Describe the outcome. Reploid can clarify the rest.</p>
-      </header>
       <form class="pool-work-composer" data-work-form>
         <div class="pool-work-field">
-          <label for="work-goal" class="pool-work-label">Message Reploid</label>
+          <label for="work-goal" class="pool-work-label">Give the agents a task</label>
           <textarea id="work-goal" data-work-goal rows="3" maxlength="${policy.maxGoalCharacters}" required
-            placeholder="Ask a question or describe something to get done."></textarea>
+            placeholder="What should the agents work on?"></textarea>
         </div>
         <div class="pool-goal-presets" aria-label="Example tasks">
           <button type="button" class="pool-preset-btn" data-goal-preset="patch">Draft a patch</button>
@@ -42,18 +38,19 @@ export function renderGoalComposer({ models = DEFAULT_WORK_MODELS, defaultModelI
           </div>
         </div>
         <p class="pool-work-status" role="status" aria-live="polite" data-work-start-status hidden></p>
+            <fieldset class="pool-work-capabilities"><legend>Allow for this task</legend>
+              <label><input type="checkbox" data-work-helpers> Use helper agents</label>
+              <label><input type="checkbox" data-work-peers> Ask peers</label>
+              <label><input type="checkbox" data-work-improvement> Test tool improvements</label>
+            </fieldset>
         <details class="pool-work-options pool-work-attachments pool-work-settings" data-work-attachments>
-          <summary>Options <span class="type-caption" data-work-file-count>files, permissions, success criteria</span></summary>
+          <summary>Files &amp; task settings <span class="type-caption" data-work-file-count></span></summary>
           <div class="pool-work-drawer-body">
             <label for="work-files">Text or source files</label>
             <input id="work-files" type="file" multiple accept=".txt,.md,.csv,.json,.js,.ts,.html,.css,.wgsl,.xml,.yaml,.yml,.log" data-work-files>
             <ul data-work-input-list></ul>
             <button class="btn btn-ghost" type="button" data-work-clear-inputs hidden>Remove files</button>
-            <fieldset class="pool-work-capabilities"><legend>Allow this task to</legend>
-              <label><input type="checkbox" data-work-helpers> Use helper agents</label>
-              <label><input type="checkbox" data-work-peers> Ask peers</label>
-              <label><input type="checkbox" data-work-improvement> Test tool improvements</label>
-            </fieldset>
+
             <label for="work-criteria">A useful result must... <span class="type-caption">optional</span></label>
             <textarea id="work-criteria" data-work-criteria rows="2" maxlength="${policy.maxCriteriaCharacters}"
               placeholder="Add checks that matter, or let Reploid propose them."></textarea>

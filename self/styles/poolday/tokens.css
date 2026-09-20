@@ -307,3 +307,17 @@
   --pool-gradient-light-prism-fill-hover: linear-gradient(122deg, rgb(68 199 217 / 10%), rgb(174 122 238 / 7%), rgb(247 139 83 / 7%));
   --pool-gradient-light-prism-fill-selected: linear-gradient(122deg, rgb(68 199 217 / 14%), rgb(105 210 153 / 10%), rgb(174 122 238 / 11%));
 }
+
+/* Preserve the dark appearance with values owned by the token layer. */
+.pool-home {
+  --pool-color-dark-hover: rgb(255 255 255 / 5%);
+  --pool-gradient-dark-selected: linear-gradient(145deg, rgb(27 30 40 / 98%), rgb(16 18 25 / 98%));
+  --pool-dim-dark-selected-shadow: 5px 5px 12px rgb(0 0 0 / 72%),
+    -4px -4px 10px rgb(66 76 100 / 28%),
+    inset 1px 1px 0 rgb(255 255 255 / 9%);
+  --pool-gradient-dark-nav: linear-gradient(145deg, rgb(24 27 37 / 96%), rgb(13 15 21 / 96%));
+  --pool-gradient-dark-button: linear-gradient(145deg, rgb(27 31 42 / 98%), rgb(16 18 25 / 98%));
+  --pool-dim-dark-button-shadow: 14px 14px 30px rgb(0 0 0 / 74%),
+    -10px -10px 24px rgb(66 76 100 / 30%),
+    inset 1px 1px 0 rgb(255 255 255 / 10%);
+}

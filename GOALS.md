@@ -2,20 +2,20 @@
 
 ## Product aim
 
-Reploid is an evolving problem-solving agent for humans and other agents. It uses authorized models and tools, remains useful without peers, and develops improvements to its own methods. Doppler supplies local model execution; Poolday supplies optional peer collaboration.
+Reploid is a network of agents that run models, coordinate work over WebRTC, and develop, test, and exchange improvements to their own problem-solving methods. Each agent remains useful independently, and each participant controls what it shares and contributes.
 
 Its purpose is:
 **Reploid pursues goals for humans and agents, acquires and uses available intelligence, collaborates with peers, and improves its own problem-solving methods through independently evaluated experience.**
 
-### The agent is the product
+### The collaborating agent system is the product
 
 A person gives Reploid an outcome: investigate a failure, answer a question, improve an application, or examine a scientific hypothesis. Another agent can submit the same kind of request programmatically.
 
-Reploid determines what information, models, tools, and assistance it needs. Doppler supplies local generation, embeddings, reranking, adapters, and specialized model execution. Peers optionally contribute missing capabilities, computation, observations, and tested improvements.
+Reploid determines what information, models, tools, and assistance it needs. Doppler supplies local generation, embeddings, reranking, adapters, and specialized model execution. Participating peers contribute missing capabilities, computation, observations, and tested improvements.
 
 One Reploid is useful alone. Connected Reploids accomplish more or learn something they would otherwise miss. Neither Doppler inference nor Reploid's basic operation depends on joining the network.
 
-Chat is an interface. Coding, document investigation, and scientific research are application domains. Peer computing is infrastructure. The persistent agent connects them.
+Chat is an interface. Coding, document investigation, and scientific research are application domains. Poolday owns peer infrastructure; collaboration is a first-class part of the product. Independent operation provides resilience, not a reason to hide the network.
 
 ### Two connected loops
 
@@ -63,6 +63,8 @@ This is an executable extraction, not an iframe wrapper or a Simulatte integrati
 - **Policy and budgets:** Reside in checked configuration. JavaScript implements agent behavior and peer coordination; Doppler owns model computation.
 
 ### Recursive improvement as the primary milestone
+
+Coding is the first proving ground, not the permanent product boundary. The target demonstration uses actual model execution and independently operated machines: a peer contributes a missing observation, agents repair a tool, protected tests evaluate it, and another agent adopts it for an unfamiliar task. Compare against competent standalone and centralized coordination baselines under comparable resources, counting failures, transfers, evaluation, and human assistance. Injected inference and a single tool replacement do not establish this result.
 
 Self-modifying agents have prior art: the Darwin Gödel Machine modifies its own code and evaluates descendants on coding tasks. Reploid's distinctive demonstration combines recursive self-improvement with peer collaboration and independently reusable improvements:
 
@@ -133,11 +135,15 @@ artifact. Multiple matching executions establish declared execution agreement.
 They do not prove honest browser execution, distinct devices or organizations,
 independent model evidence, biological correctness, or scientific replication.
 
-Reploid's primary interface is Work, Network, and Improve. Work begins with a
-bounded user goal and an explicitly selected execution capability. Network owns
-participation controls, available models, limits, and peer jobs. Improve keeps
-attempts, independent evaluation, adoption, and rollback distinct. Poolday is an
-internal implementation name, not another product. Protein analysis and document
+Reploid's main interface presents agents, models, shared activity, device
+contribution, results, and tested improvements together. Work, Network, and
+Improve describe connected activities, not mandatory separate destinations.
+A task remains connected to its executing agents, actual model identities,
+peer jobs, result, and any resulting candidate changes. Participation is
+voluntary; discovery never grants disclosure or execution permission.
+Detailed configuration and evidence remain expandable. Existing routes remain
+available for focused inspection. Poolday is an internal implementation name.
+Protein analysis and document
 search are examples. Ask, Records, History, and Research Room-1 remain accessible
 secondary routes. Recent jobs expose execution receipts, comparison evidence,
 peer identities, retries, and recovery without inheriting scientific authority.

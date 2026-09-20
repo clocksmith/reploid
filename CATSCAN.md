@@ -4,7 +4,7 @@ Parent: none
 
 ## Target
 
-Deliver a goal-directed agent using Doppler inference, Poolday collaboration, and evaluated recursive improvement.
+Deliver collaborating, independently useful agents using Doppler, Poolday coordination, and evaluated recursive improvement.
 
 ## Authority
 - Owns boundaries: `packages/reploid/` implements behavior; applications compose APIs; UI requests actions.
@@ -28,7 +28,7 @@ Outputs:
 - Recursive component authority in the [component index](docs/component-index.md).
 
 ## Invariants
-- The agent is the product; chat is an interface, domains are targets, Poolday is peer infrastructure, Doppler is model execution.
+- The collaborating agent system is the product; agents remain independently useful. Poolday owns peer infrastructure and Doppler owns model execution.
 - Problem-solving and improvement loops operate with strict separation.
 - Candidates cannot modify hidden acceptance tests, escalate permissions, or self-approve.
 - Claims stay bounded by recorded acceptance evidence.

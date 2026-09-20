@@ -51,7 +51,7 @@ describe('poolday home navigation', () => {
       expect(link.getAttribute('href')).not.toContain('?');
     }
     expect(footer.previousElementSibling.classList.contains('pool-home-task')).toBe(true);
-    expect(host.querySelectorAll('.pool-primary-nav .pool-nav-link')).toHaveLength(3);
+    expect(host.querySelectorAll('.pool-primary-nav .pool-nav-link')).toHaveLength(1);
     for (const route of ['ask', 'compute', 'records', 'room-1']) {
       expect(renderRoutePanel(route) + renderRouteDetail(route)).not.toContain('pool-experiments-footer');
     }
@@ -133,9 +133,7 @@ describe('poolday home navigation', () => {
       'room-1'
     ]);
     expect(POOLDAY_NAV_ROUTES).toEqual([
-      { id: 'home', path: '/', label: 'Work' },
-      { id: 'network', path: '/network', label: 'Network' },
-      { id: 'improve', path: '/improve', label: 'Improve' }
+      { id: 'home', path: '/', label: 'Overview' }
     ]);
     expect(PRODUCT_ROUTES).toEqual({
       '/': 'home',
@@ -160,48 +158,30 @@ describe('poolday home navigation', () => {
     });
   });
 
-  it('renders exactly three primary destinations and a compact network state', () => {
-    const html = renderNav('network');
-
-    expect(html).toContain('<nav class="pool-nav-rail pool-primary-nav" aria-label="Reploid">');
-    expect(html).toContain('class="pool-primary-brand"');
-    expect(html).toContain('aria-label="Reploid home"');
-    expect(html).toContain('>Work</a>');
-    expect(html).toContain('>Network</a>');
-    expect(html).toContain('>Improve</a>');
-    expect(html).toContain('data-pool-network-state="simulation"');
-    expect(html).not.toContain('pool-nav-toggle');
-    expect(html).not.toContain('pool-drawer-section');
-    expect(html).not.toContain('Research Room');
-    expect(html).toContain('href="/?room=reploid-default" data-pool-route-link="/?room=reploid-default"');
-    expect(html).toMatch(/href="\/network\?room=reploid-default"[\s\S]*data-pool-route-link="\/network\?room=reploid-default"[\s\S]*aria-current="page"/);
-    expect(html).toMatch(/href="\/improve\?room=reploid-default"[\s\S]*data-pool-route-link="\/improve\?room=reploid-default"/);
-    expect(html).toContain('data-pool-network-label>Searching</span>');
-    expect((html.match(/class="pool-nav-link/g) || [])).toHaveLength(3);
+  it('links activities within the same home rather than separate destinations', () => {
+    const host = document.createElement('div'); host.innerHTML = renderNav('home');
+    const links = [...host.querySelectorAll('.pool-nav-link')];
+    expect(links.map(link => link.textContent)).toEqual(['Agents', 'Activity', 'Improvements']);
+    expect(links.map(link => link.getAttribute('href'))).toEqual(['#reploid-agents', '#reploid-activity', '#reploid-improvements']);
+    expect(links.every(link => !link.hasAttribute('data-pool-route-link'))).toBe(true);
+    expect(host.querySelector('[aria-label="Reploid home"]')).not.toBeNull();
   });
 
-  it('does not reintroduce drawer chrome when legacy open options are supplied', () => {
+  it('keeps a path back from focused routes without legacy drawer chrome', () => {
     const html = renderNav('improve', { open: true });
-
-    expect(html).toContain('class="pool-nav-link pool-segment is-active"');
-    expect(html).toContain('>Improve</a>');
-    expect(html).toContain('aria-current="page"');
+    expect(html).toContain('>Overview</a>');
     expect(html).not.toContain('is-open');
     expect(html).not.toContain('aria-expanded');
     expect(html).not.toContain('pool-nav-description');
   });
 
-  it('renders the active room query on every compatibility navigation link', () => {
+  it('preserves room identity when returning from a focused route', () => {
     const original = `${window.location.pathname}${window.location.search}`;
     window.history.replaceState({}, '', '/records?room=canonical-room');
     try {
-      const html = renderNav('improve', { open: true });
+      const html = renderNav('improve');
       expect(html).toContain('href="/?room=canonical-room" data-pool-route-link="/?room=canonical-room"');
-      expect(html).toMatch(/href="\/network\?room=canonical-room"[\s\S]*data-pool-route-link="\/network\?room=canonical-room"/);
-      expect(html).toMatch(/href="\/improve\?room=canonical-room"[\s\S]*data-pool-route-link="\/improve\?room=canonical-room"/);
-    } finally {
-      window.history.replaceState({}, '', original || '/');
-    }
+    } finally { window.history.replaceState({}, '', original || '/'); }
   });
 
   it('renders the main home calls to action', () => {
@@ -274,9 +254,9 @@ describe('poolday home navigation', () => {
 
     expect(html).toContain('class="pool-nav-rail pool-primary-nav"');
     expect((html.match(/class="pool-nav-link/g) || [])).toHaveLength(3);
-    expect(html).toContain('>Work</a>');
-    expect(html).toContain('>Network</a>');
-    expect(html).toContain('>Improve</a>');
+    expect(html).toContain('>Agents</a>');
+    expect(html).toContain('>Activity</a>');
+    expect(html).toContain('>Improvements</a>');
     expect(html).not.toContain('pool-control-drawer');
     expect(html).not.toContain('data-pool-drawer-section');
     expect(PRODUCT_ROUTES['/ask']).toBe('ask');
