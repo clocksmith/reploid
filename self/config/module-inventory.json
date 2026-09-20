@@ -3231,7 +3231,7 @@
     {
       "path": "ui/pool-home/work-goal-composer.js",
       "owner": "ui",
-      "sha256": "sha256:7dcb99c658dee90abe6838a1d4f4b44944712d8914798ceab7eeb0bceef229fe",
+      "sha256": "sha256:01042be81c52ae7146794cebd6a61615d104780ffeb439686f993646cae330fb",
       "imports": [
         "../../config/work-profile.json",
         "../../host/work-session.js",
@@ -3271,7 +3271,7 @@
     {
       "path": "ui/pool-home/work.js",
       "owner": "ui",
-      "sha256": "sha256:ba0135296e318c65b71aaf6160189f7f78da7676bb0eac165a1ddd02f2b440b6",
+      "sha256": "sha256:ea278da5db890cfe99ab3d7c69530cbdc82281c301669abe8752b36a6df650ef",
       "imports": [
         "../../config/work-profile.json",
         "../../host/work-session.js",

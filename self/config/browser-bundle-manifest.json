@@ -1286,7 +1286,7 @@
     {
       "path": "config/module-inventory.json",
       "byteLength": 119663,
-      "sha256": "sha256:840e909c57e8527f283665d858be6608cab1435ec767fdc9f8016ef0ba86c2ef"
+      "sha256": "sha256:90e8506c3a2575956701e88cc6a9fe505d44ae3e2fed02ebd945eba4cca997fa"
     },
     {
       "path": "config/module-registry.json",
@@ -3300,8 +3300,8 @@
     },
     {
       "path": "ui/pool-home/work-goal-composer.js",
-      "byteLength": 3896,
-      "sha256": "sha256:7dcb99c658dee90abe6838a1d4f4b44944712d8914798ceab7eeb0bceef229fe"
+      "byteLength": 4888,
+      "sha256": "sha256:01042be81c52ae7146794cebd6a61615d104780ffeb439686f993646cae330fb"
     },
     {
       "path": "ui/pool-home/work-layout.js",
@@ -3330,8 +3330,8 @@
     },
     {
       "path": "ui/pool-home/work.js",
-      "byteLength": 26640,
-      "sha256": "sha256:ba0135296e318c65b71aaf6160189f7f78da7676bb0eac165a1ddd02f2b440b6"
+      "byteLength": 26817,
+      "sha256": "sha256:ea278da5db890cfe99ab3d7c69530cbdc82281c301669abe8752b36a6df650ef"
     },
     {
       "path": "ui/proto.js",
@@ -4009,5 +4009,5 @@
       "sha256": "sha256:ca1208dd2f96d1b7ffb5464c7676a22aa849ec31936abde0809fc208bbd971c9"
     }
   ],
-  "bundleHash": "sha256:f2d5e6ccc264bc77f1e57c8ad466de609ff02e5836d58c65119a2294f791073d"
+  "bundleHash": "sha256:942ff9309c85cc3d26f2dfcf26c26cd4d54df6838450df80739a18f366315a81"
 }
