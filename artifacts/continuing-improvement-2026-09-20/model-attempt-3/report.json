@@ -1,0 +1,1512 @@
+{
+  "schema": "reploid.actual-tool-repair/v1",
+  "startedAt": "2026-09-20T13:34:36.075Z",
+  "base": "http://localhost:8000",
+  "sourceRevision": "ef28345e3530b81664992ad9f14d4f542600b1d9",
+  "injectedInference": false,
+  "independentMachines": false,
+  "automaticAdoption": false,
+  "qualification": "Focused diagnostic generation with bounded feedback, not the full Work planner or independent-machine proof.",
+  "humanAssistance": [
+    "Operator selects an observed FormatJson failure and specifies the required function signature. No candidate implementation or protected cases supplied."
+  ],
+  "maxAttempts": 4,
+  "diagnosticTimeoutMs": 600000,
+  "sources": [
+    {
+      "path": "host/work-evolution.js",
+      "sha256": "sha256:d79c32cae1203759c9fd4dcf31d4ec35d2607991dea757eb68696d2e3423b231"
+    },
+    {
+      "path": "providers/work-provider.js",
+      "sha256": "sha256:54ef4838b440364134f5e03ae3b1cdfc518d9e4e0f951ae1b738e09d4a246a33"
+    },
+    {
+      "path": "infrastructure/code-sandbox.js",
+      "sha256": "sha256:15fc0489ba8146eb6b53f6d0d184fa66ac078f8ea62fac7315eba29e81764968"
+    },
+    {
+      "path": "infrastructure/doppler-runtime-service.js",
+      "sha256": "sha256:a4af3944dc573c6155661662ad9206f7d2dc35b053418bedcab64a961624a9c1"
+    },
+    {
+      "path": "config/work-evolution.json",
+      "sha256": "sha256:898d14bf74378938038adb3c2ce22fcefe7ae9084c08e5197967df4b0097a76b"
+    },
+    {
+      "path": "config/work-profile.json",
+      "sha256": "sha256:2df4a737835a8b4437118e25c1b8701e9d005ce90a8a4e940da8bb82a77e3def"
+    },
+    {
+      "path": "config/doppler-local-models.js",
+      "sha256": "sha256:1db3deb3cc1967adc58fc19a7e3deaf3848c27230e58af83cd8c47bec2ce06e3"
+    },
+    {
+      "path": "vendor/reploid/improvement/code-evolution.js",
+      "sha256": "sha256:4bc9d6770ab61fbcc5e5d784f962e893904ad43c3a1b5865bd58cc2e261c2d9c"
+    },
+    {
+      "path": "vendor/reploid/improvement/tool-objective.js",
+      "sha256": "sha256:0d3e15bcf07469adb49668f77f9533e3a60abf836fafd4a724775c32d5927d85"
+    }
+  ],
+  "console": [
+    {
+      "at": "2026-09-20T13:34:39.059Z",
+      "type": "log",
+      "text": "[2676.3ms][Platform] No specific platform matched for adapter (vendor=intel, arch=gen-12lp), falling back to generic"
+    },
+    {
+      "at": "2026-09-20T13:34:39.149Z",
+      "type": "log",
+      "text": "[GPU] intel gen-12lp, f16/subgroups, 4.0GB, submit probe: 8.5ms"
+    },
+    {
+      "at": "2026-09-20T13:34:45.845Z",
+      "type": "log",
+      "text": "[9470.5ms][Pipeline] Execution v1 enabled (steps=35, kernelPathInline=yes, pipelineInline=no)"
+    },
+    {
+      "at": "2026-09-20T13:34:45.845Z",
+      "type": "log",
+      "text": "[9471.0ms][Config] Using manifest-first config (source of truth)"
+    },
+    {
+      "at": "2026-09-20T13:34:45.848Z",
+      "type": "log",
+      "text": "[9474.4ms][Pipeline] Resolved session applied (qwen-3-5-2b-q4k-ehaf16): batchSize=12, stopCheckMode=batch, readbackInterval=32, disableCommandBatching=false"
+    },
+    {
+      "at": "2026-09-20T13:34:45.849Z",
+      "type": "log",
+      "text": "[9475.2ms][Pipeline] KernelPath: qwen-3-5-2b-q4k-ehaf16-execution-inline (15 decode steps, 11 kernels, source=execution-v1)"
+    },
+    {
+      "at": "2026-09-20T13:34:45.849Z",
+      "type": "log",
+      "text": "[9475.7ms][Pipeline] 24L/2048H/8heads (256dim), kernelPath=qwen-3-5-2b-q4k-ehaf16-execution-inline"
+    },
+    {
+      "at": "2026-09-20T13:34:45.850Z",
+      "type": "log",
+      "text": "[9476.1ms][Tokenizer] Loading bundled tokenizer from tokenizer.json"
+    },
+    {
+      "at": "2026-09-20T13:34:46.132Z",
+      "type": "log",
+      "text": "[9756.6ms][Tokenizer] HuggingFace model.type=\"BPE\", using type=\"bpe\""
+    },
+    {
+      "at": "2026-09-20T13:34:46.274Z",
+      "type": "log",
+      "text": "[9900.4ms][Tokenizer] Loaded HuggingFace 248070 tokens (bpe), 26 special patterns, 247587 merges"
+    },
+    {
+      "at": "2026-09-20T13:34:46.274Z",
+      "type": "log",
+      "text": "[9900.7ms][Pipeline] Tokenizer vocabSize=248070 differs from model=248320, using model size"
+    },
+    {
+      "at": "2026-09-20T13:34:46.275Z",
+      "type": "log",
+      "text": "[9901.7ms][Pipeline] KV cache allocated: kvDtype=f16, maxSeqLen=4096, layout=contiguous, modelMaxSeqLen=262144, requestedKvDtype=f16, requestedMaxSeqLen=4096"
+    },
+    {
+      "at": "2026-09-20T13:34:46.276Z",
+      "type": "log",
+      "text": "[9902.7ms][Pipeline] Execution plan: active=primary, dtype=f32, kernelPath=qwen-3-5-2b-q4k-ehaf16-execution-inline"
+    },
+    {
+      "at": "2026-09-20T13:34:51.617Z",
+      "type": "log",
+      "text": "[15243.5ms][ShardCache] Custom shard loader configured"
+    },
+    {
+      "at": "2026-09-20T13:34:51.617Z",
+      "type": "log",
+      "text": "[15243.8ms][Loader] Initializing..."
+    },
+    {
+      "at": "2026-09-20T13:34:51.701Z",
+      "type": "log",
+      "text": "[15324.4ms][HeapManager] Allocated segment 0: 1024MB"
+    },
+    {
+      "at": "2026-09-20T13:34:51.701Z",
+      "type": "log",
+      "text": "[15324.7ms][HeapManager] Segmented heap: 1GB per segment"
+    },
+    {
+      "at": "2026-09-20T13:34:51.701Z",
+      "type": "log",
+      "text": "[15324.7ms][HeapManager] Initialized with strategy: SEGMENTED"
+    },
+    {
+      "at": "2026-09-20T13:34:51.701Z",
+      "type": "log",
+      "text": "[15324.9ms][Loader] Initialized (f16, subgroups)"
+    },
+    {
+      "at": "2026-09-20T13:34:51.701Z",
+      "type": "log",
+      "text": "[15325.4ms][Loader] Loading: qwen-3-5-2b-q4k-ehaf16"
+    },
+    {
+      "at": "2026-09-20T13:34:51.701Z",
+      "type": "log",
+      "text": "[15326.7ms][Loader] [0.0s] Memory (start): | Heap=1.05 GB/1.05 GB (limit=3.50 GB) | GPU=0 B (0 active, 0 pooled, peak=0 B) | ShardCache=0 B (0 shards) | Layers=0, GPUBuffers=0"
+    },
+    {
+      "at": "2026-09-20T13:34:51.701Z",
+      "type": "warning",
+      "text": "[15327.1ms][Loader] Dense model on discrete GPU - performance limited. Consider MoE model."
+    },
+    {
+      "at": "2026-09-20T13:34:51.703Z",
+      "type": "log",
+      "text": "[15329.6ms][Loader] Embedding \"model.language_model.embed_tokens.weight\" GPU-resident: shouldStreamLargeWeight returned false."
+    },
+    {
+      "at": "2026-09-20T13:35:21.702Z",
+      "type": "log",
+      "text": "[45327.5ms][Loader] [30.0s] Memory (loading): | Heap=1.05 GB/1.05 GB (limit=3.50 GB) | GPU=970.00 MB (1 active, 0 pooled, peak=970.00 MB) | ShardCache=0 B (0 shards) | Layers=0, GPUBuffers=0"
+    },
+    {
+      "at": "2026-09-20T13:35:51.711Z",
+      "type": "log",
+      "text": "[75328.0ms][Loader] [60.0s] Memory (loading): | Heap=1.05 GB/1.05 GB (limit=3.50 GB) | GPU=970.00 MB (1 active, 0 pooled, peak=970.00 MB) | ShardCache=0 B (0 shards) | Layers=0, GPUBuffers=0"
+    },
+    {
+      "at": "2026-09-20T13:36:21.702Z",
+      "type": "log",
+      "text": "[105327.5ms][Loader] [90.0s] Memory (loading): | Heap=1.05 GB/1.05 GB (limit=3.50 GB) | GPU=970.00 MB (1 active, 0 pooled, peak=970.00 MB) | ShardCache=0 B (0 shards) | Layers=0, GPUBuffers=0"
+    },
+    {
+      "at": "2026-09-20T13:36:25.592Z",
+      "type": "log",
+      "text": "[109217.1ms][Loader] Embeddings tensor loaded: name=model.language_model.embed_tokens.weight, hasShape=true, shape=[248320,2048], isWeightBuffer=true"
+    },
+    {
+      "at": "2026-09-20T13:36:25.592Z",
+      "type": "log",
+      "text": "[109217.8ms][Loader] Layers: 0-23"
+    },
+    {
+      "at": "2026-09-20T13:36:51.703Z",
+      "type": "log",
+      "text": "[135328.1ms][Loader] [120.0s] Memory (loading): | Heap=1.05 GB/1.05 GB (limit=3.50 GB) | GPU=1.48 GB (258 active, 0 pooled, peak=1.48 GB) | ShardCache=0 B (0 shards) | Layers=17, GPUBuffers=258"
+    },
+    {
+      "at": "2026-09-20T13:37:00.575Z",
+      "type": "log",
+      "text": "[144201.1ms][Loader] Layers: 24 complete (34.98s)"
+    },
+    {
+      "at": "2026-09-20T13:37:21.702Z",
+      "type": "log",
+      "text": "[165328.0ms][Loader] [150.0s] Memory (loading): | Heap=1.05 GB/1.05 GB (limit=3.50 GB) | GPU=1.94 GB (345 active, 0 pooled, peak=1.94 GB) | ShardCache=0 B (0 shards) | Layers=24, GPUBuffers=344"
+    },
+    {
+      "at": "2026-09-20T13:37:42.549Z",
+      "type": "log",
+      "text": "[186175.1ms][Loader] Complete: 1.94 GB in 170.85s (11.60 MB/s)"
+    },
+    {
+      "at": "2026-09-20T13:37:42.550Z",
+      "type": "log",
+      "text": "[186176.3ms][Loader] [170.8s] Memory (complete): | Heap=1.05 GB/1.05 GB (limit=3.50 GB) | GPU=1.94 GB (345 active, 0 pooled, peak=1.94 GB) | ShardCache=0 B (0 shards) | Layers=24, GPUBuffers=345"
+    },
+    {
+      "at": "2026-09-20T13:37:42.623Z",
+      "type": "log",
+      "text": "[186248.6ms][Pipeline] Model loaded successfully (176781ms)"
+    },
+    {
+      "at": "2026-09-20T13:37:42.780Z",
+      "type": "log",
+      "text": "[186404.9ms][KernelSelect] matmul variant=q4_fused_widetile reason=path_override"
+    },
+    {
+      "at": "2026-09-20T13:37:42.827Z",
+      "type": "log",
+      "text": "[186453.2ms][KernelSelect] matmul variant=f16w_f32a_tiled reason=default"
+    },
+    {
+      "at": "2026-09-20T13:37:43.141Z",
+      "type": "log",
+      "text": "[186766.3ms][KernelSelect] attention variant=prefill_head256_f16kv reason=path_override:tiled_small"
+    },
+    {
+      "at": "2026-09-20T13:37:47.971Z",
+      "type": "log",
+      "text": "[191594.8ms][KernelSelect] matmul variant=q4_fused_batched_multicol_shared reason=path_override"
+    },
+    {
+      "at": "2026-09-20T13:37:48.236Z",
+      "type": "log",
+      "text": "[191862.2ms][KernelSelect] matmul variant=q4_fused_gemv reason=path_override"
+    },
+    {
+      "at": "2026-09-20T13:37:48.270Z",
+      "type": "log",
+      "text": "[191896.3ms][KernelSelect] matmul variant=gemv_subgroup_vec4 reason=gemv"
+    },
+    {
+      "at": "2026-09-20T13:37:48.345Z",
+      "type": "log",
+      "text": "[191971.8ms][KernelSelect] attention variant=decode_online_f16kv reason=path_override:subgroup"
+    },
+    {
+      "at": "2026-09-20T13:37:53.986Z",
+      "type": "log",
+      "text": "[197607.4ms][Perf] Load: 176781ms | TTFT: 5606ms | Prefill: 5589ms | Decode: 5748ms (16 tokens @ 2.8 tok/s)"
+    },
+    {
+      "at": "2026-09-20T13:38:06.039Z",
+      "type": "log",
+      "text": "[209664.1ms][Perf] Load: 176781ms | TTFT: 6500ms | Prefill: 6483ms | Decode: 5484ms (20 tokens @ 3.6 tok/s)"
+    },
+    {
+      "at": "2026-09-20T13:38:19.757Z",
+      "type": "log",
+      "text": "[223382.5ms][Perf] Load: 176781ms | TTFT: 7822ms | Prefill: 7799ms | Decode: 5891ms (16 tokens @ 2.7 tok/s)"
+    },
+    {
+      "at": "2026-09-20T13:38:34.408Z",
+      "type": "log",
+      "text": "[238034.1ms][Perf] Load: 176781ms | TTFT: 9113ms | Prefill: 9097ms | Decode: 5532ms (20 tokens @ 3.6 tok/s)"
+    },
+    {
+      "at": "2026-09-20T13:38:34.419Z",
+      "type": "log",
+      "text": "[238045.4ms][Pipeline] Unloaded"
+    }
+  ],
+  "progress": [
+    {
+      "at": "2026-09-20T13:34:37.392Z",
+      "settled": false,
+      "phase": "loading",
+      "attempts": 0,
+      "text": ""
+    },
+    {
+      "at": "2026-09-20T13:34:39.394Z",
+      "settled": false,
+      "phase": "Fetching manifest",
+      "attempts": 0,
+      "text": ""
+    },
+    {
+      "at": "2026-09-20T13:34:47.405Z",
+      "settled": false,
+      "phase": "Loading weights",
+      "attempts": 0,
+      "text": ""
+    },
+    {
+      "at": "2026-09-20T13:34:53.413Z",
+      "settled": false,
+      "phase": "Loading embeddings...",
+      "attempts": 0,
+      "text": ""
+    },
+    {
+      "at": "2026-09-20T13:36:27.545Z",
+      "settled": false,
+      "phase": "Layer 1/24",
+      "attempts": 0,
+      "text": ""
+    },
+    {
+      "at": "2026-09-20T13:36:29.548Z",
+      "settled": false,
+      "phase": "Layer 2/24",
+      "attempts": 0,
+      "text": ""
+    },
+    {
+      "at": "2026-09-20T13:36:31.551Z",
+      "settled": false,
+      "phase": "Layer 3/24",
+      "attempts": 0,
+      "text": ""
+    },
+    {
+      "at": "2026-09-20T13:36:33.565Z",
+      "settled": false,
+      "phase": "Layer 4/24",
+      "attempts": 0,
+      "text": ""
+    },
+    {
+      "at": "2026-09-20T13:36:35.568Z",
+      "settled": false,
+      "phase": "Layer 6/24",
+      "attempts": 0,
+      "text": ""
+    },
+    {
+      "at": "2026-09-20T13:36:37.593Z",
+      "settled": false,
+      "phase": "Layer 8/24",
+      "attempts": 0,
+      "text": ""
+    },
+    {
+      "at": "2026-09-20T13:36:39.621Z",
+      "settled": false,
+      "phase": "Layer 9/24",
+      "attempts": 0,
+      "text": ""
+    },
+    {
+      "at": "2026-09-20T13:36:41.623Z",
+      "settled": false,
+      "phase": "Layer 10/24",
+      "attempts": 0,
+      "text": ""
+    },
+    {
+      "at": "2026-09-20T13:36:43.654Z",
+      "settled": false,
+      "phase": "Layer 11/24",
+      "attempts": 0,
+      "text": ""
+    },
+    {
+      "at": "2026-09-20T13:36:45.656Z",
+      "settled": false,
+      "phase": "Layer 13/24",
+      "attempts": 0,
+      "text": ""
+    },
+    {
+      "at": "2026-09-20T13:36:47.659Z",
+      "settled": false,
+      "phase": "Layer 15/24",
+      "attempts": 0,
+      "text": ""
+    },
+    {
+      "at": "2026-09-20T13:36:49.662Z",
+      "settled": false,
+      "phase": "Layer 16/24",
+      "attempts": 0,
+      "text": ""
+    },
+    {
+      "at": "2026-09-20T13:36:51.666Z",
+      "settled": false,
+      "phase": "Layer 17/24",
+      "attempts": 0,
+      "text": ""
+    },
+    {
+      "at": "2026-09-20T13:36:53.668Z",
+      "settled": false,
+      "phase": "Layer 19/24",
+      "attempts": 0,
+      "text": ""
+    },
+    {
+      "at": "2026-09-20T13:36:55.670Z",
+      "settled": false,
+      "phase": "Layer 20/24",
+      "attempts": 0,
+      "text": ""
+    },
+    {
+      "at": "2026-09-20T13:36:57.674Z",
+      "settled": false,
+      "phase": "Layer 21/24",
+      "attempts": 0,
+      "text": ""
+    },
+    {
+      "at": "2026-09-20T13:36:59.676Z",
+      "settled": false,
+      "phase": "Layer 23/24",
+      "attempts": 0,
+      "text": ""
+    },
+    {
+      "at": "2026-09-20T13:37:01.679Z",
+      "settled": false,
+      "phase": "Loading final weights...",
+      "attempts": 0,
+      "text": ""
+    },
+    {
+      "at": "2026-09-20T13:37:43.772Z",
+      "settled": false,
+      "phase": "generating",
+      "attempts": 0,
+      "text": ""
+    },
+    {
+      "at": "2026-09-20T13:37:49.781Z",
+      "settled": false,
+      "phase": "generating",
+      "attempts": 0,
+      "text": "{"
+    },
+    {
+      "at": "2026-09-20T13:37:55.787Z",
+      "settled": false,
+      "phase": "generating",
+      "attempts": 1,
+      "text": ""
+    },
+    {
+      "at": "2026-09-20T13:38:01.795Z",
+      "settled": false,
+      "phase": "generating",
+      "attempts": 1,
+      "text": "({"
+    },
+    {
+      "at": "2026-09-20T13:38:07.812Z",
+      "settled": false,
+      "phase": "generating",
+      "attempts": 2,
+      "text": ""
+    },
+    {
+      "at": "2026-09-20T13:38:15.822Z",
+      "settled": false,
+      "phase": "generating",
+      "attempts": 2,
+      "text": "{"
+    },
+    {
+      "at": "2026-09-20T13:38:19.825Z",
+      "settled": false,
+      "phase": "generating",
+      "attempts": 3,
+      "text": ""
+    },
+    {
+      "at": "2026-09-20T13:38:29.836Z",
+      "settled": false,
+      "phase": "generating",
+      "attempts": 3,
+      "text": "({"
+    },
+    {
+      "at": "2026-09-20T13:38:35.845Z",
+      "settled": true,
+      "phase": "settled",
+      "attempts": 4,
+      "text": "({text} => {const parsed = JSON.parse(text);return JSON.stringify(parsed,null,2)})"
+    }
+  ],
+  "browser": "145.0.7632.6",
+  "platform": "linux",
+  "model": {
+    "id": "qwen-3-5-2b-q4k-ehaf16",
+    "name": "Qwen 3.5 2B",
+    "size": "Q4K",
+    "recommended": true,
+    "provider": "doppler",
+    "packageName": "doppler-gpu",
+    "packageVersion": "0.6.1"
+  },
+  "device": {
+    "vendor": "intel",
+    "architecture": "gen-12lp",
+    "description": ""
+  },
+  "generation": {
+    "maxTokens": 512,
+    "temperature": 0,
+    "topK": 1,
+    "topP": 1,
+    "stopSequences": [],
+    "useChatTemplate": true
+  },
+  "timeoutMs": 600000,
+  "input": {
+    "text": "```json\n{\"service\":\"worker\",\"retry\":3,\"enabled\":true}\n```"
+  },
+  "observation": {
+    "error": "Unexpected token '`', \"```json\n{\"\"... is not valid JSON"
+  },
+  "initialMessages": [
+    {
+      "role": "system",
+      "content": "Write a JavaScript function expression that replaces the supplied broken function. Your answer must begin with ({text}) => { and end with }. Put all statements inside that function body. Preserve the stated contract. Return code only, without Markdown, explanation, tests, network, or storage."
+    },
+    {
+      "role": "user",
+      "content": "{\"contract\":\"Turn JSON text into a formatted JSON string without changing values. May learn to handle a byte order mark or a single Markdown JSON code fence. Invalid JSON must throw. Takes {text}; returns a string.\",\"currentCode\":\"({text}) => JSON.stringify(JSON.parse(text), null, 2)\",\"input\":{\"text\":\"```json\\n{\\\"service\\\":\\\"worker\\\",\\\"retry\\\":3,\\\"enabled\\\":true}\\n```\"},\"observation\":{\"error\":\"Unexpected token '`', \\\"```json\\n{\\\"\\\"... is not valid JSON\"}}"
+    }
+  ],
+  "result": {
+    "settled": true,
+    "phase": "settled",
+    "attempts": [
+      {
+        "instruction": [
+          {
+            "role": "system",
+            "content": "Write a JavaScript function expression that replaces the supplied broken function. Your answer must begin with ({text}) => { and end with }. Put all statements inside that function body. Preserve the stated contract. Return code only, without Markdown, explanation, tests, network, or storage."
+          },
+          {
+            "role": "user",
+            "content": "{\"contract\":\"Turn JSON text into a formatted JSON string without changing values. May learn to handle a byte order mark or a single Markdown JSON code fence. Invalid JSON must throw. Takes {text}; returns a string.\",\"currentCode\":\"({text}) => JSON.stringify(JSON.parse(text), null, 2)\",\"input\":{\"text\":\"```json\\n{\\\"service\\\":\\\"worker\\\",\\\"retry\\\":3,\\\"enabled\\\":true}\\n```\"},\"observation\":{\"error\":\"Unexpected token '`', \\\"```json\\n{\\\"\\\"... is not valid JSON\"}}"
+          }
+        ],
+        "response": {
+          "content": "{(\"text\") => JSON.stringify(JSON.parse(text), null, 2)}",
+          "raw": "{(\"text\") => JSON.stringify(JSON.parse(text), null, 2)}",
+          "requestedModel": "qwen-3-5-2b-q4k-ehaf16",
+          "model": "qwen-3-5-2b-q4k-ehaf16",
+          "provider": "doppler",
+          "execution": "local-scoped-session"
+        },
+        "code": "{(\"text\") => JSON.stringify(JSON.parse(text), null, 2)}",
+        "candidate": {
+          "id": "candidate:cd58e146-a7d7-4229-af36-3c867b70a6df",
+          "targetId": "FormatJson",
+          "taskId": "actual-focused-repair",
+          "code": "{(\"text\") => JSON.stringify(JSON.parse(text), null, 2)}",
+          "reason": "Repair the observed JSON wrapper failure while preserving values",
+          "generationId": "FormatJson:92bb6052-26a4-4fc7-a520-cf520ead0100",
+          "status": "failed",
+          "createdAt": "2026-09-20T13:37:53.989Z",
+          "error": "Candidate failed static verification: [\"Syntax Error in /tools/candidate.js: Unexpected token (1:17)\"]",
+          "baselineGeneration": "FormatJson:genesis"
+        },
+        "evidence": {
+          "candidate": {
+            "id": "candidate:cd58e146-a7d7-4229-af36-3c867b70a6df",
+            "targetId": "FormatJson",
+            "taskId": "actual-focused-repair",
+            "code": "{(\"text\") => JSON.stringify(JSON.parse(text), null, 2)}",
+            "reason": "Repair the observed JSON wrapper failure while preserving values",
+            "baseline": {
+              "code": "({text}) => JSON.stringify(JSON.parse(text), null, 2)",
+              "generationId": "FormatJson:genesis",
+              "episodeId": null
+            },
+            "generationId": "FormatJson:92bb6052-26a4-4fc7-a520-cf520ead0100",
+            "status": "failed",
+            "createdAt": "2026-09-20T13:37:53.989Z",
+            "error": "Candidate failed static verification: [\"Syntax Error in /tools/candidate.js: Unexpected token (1:17)\"]"
+          },
+          "episode": {
+            "schema": "rsi.improvement-episode/v1",
+            "episodeId": "candidate:cd58e146-a7d7-4229-af36-3c867b70a6df",
+            "parentEpisodeId": null,
+            "groupId": "actual-focused-repair",
+            "surface": "other",
+            "status": "inconclusive",
+            "objective": {
+              "objectiveId": "FormatJson",
+              "statement": "Turn JSON text into a formatted JSON string without changing values. May learn to handle a byte order mark or a single Markdown JSON code fence. Invalid JSON must throw. Takes {text}; returns a string.",
+              "successMetricId": "qualified-improvement",
+              "definition": {
+                "id": "format-json-repair-or-latency",
+                "version": 1,
+                "kind": "repair-or-latency",
+                "samples": 12,
+                "minimumAbsoluteGainMs": 5,
+                "minimumRelativeGain": 0.2,
+                "minimumFasterPairs": 11,
+                "cases": [
+                  {
+                    "input": {
+                      "text": "```json\n{\"nested\":{\"empty\":[],\"ok\":true},\"text\":\"keep \\\"quotes\\\"\"}\n```"
+                    },
+                    "expected": "{\n  \"nested\": {\n    \"empty\": [],\n    \"ok\": true\n  },\n  \"text\": \"keep \\\"quotes\\\"\"\n}"
+                  },
+                  {
+                    "input": {
+                      "text": "﻿[false,{\"n\":-1.5},\"\\u03bb\"]"
+                    },
+                    "expected": "[\n  false,\n  {\n    \"n\": -1.5\n  },\n  \"λ\"\n]"
+                  },
+                  {
+                    "input": {
+                      "text": "{\"a\":1,\"a\":2,\"fence\":\"```json\"}"
+                    },
+                    "expected": "{\n  \"a\": 2,\n  \"fence\": \"```json\"\n}"
+                  },
+                  {
+                    "input": {
+                      "text": "```json\n{broken}\n```"
+                    },
+                    "throws": true
+                  }
+                ]
+              },
+              "digest": "sha256:b3a247d25ae4fab0ae2f703b8f7a08a7400808c7e3ffda0899de02038a5e59ac"
+            },
+            "baseline": {
+              "generationId": "FormatJson:genesis",
+              "hashes": {
+                "code": "sha256:2c32f4668352a3ed53c1e6238feb467e63cf6a5980cd062ce336f1a399d3088d",
+                "config": "sha256:15573e9f7323c462f074753d941a6262b41291120507989e3ef8b83d7eaf98d6",
+                "model": "sha256:791cc4ad081e34b905037ba5868f9b2c489b1f90bb7ff175b062a438b3862367",
+                "prompt": "sha256:fc59aaabdfd107dfd672843645eab18d01ceab5051ca75ff42af32fc5b17304b",
+                "artifacts": "sha256:2c32f4668352a3ed53c1e6238feb467e63cf6a5980cd062ce336f1a399d3088d",
+                "contract": "sha256:6784dcc9a905503eab8275fb5bcdb1484bc65ec58c23ead417fb6d778bce4c77"
+              },
+              "hashSemantics": {},
+              "snapshotPath": null
+            },
+            "proposer": {
+              "authorityId": "work:agent"
+            },
+            "generator": {
+              "authorityId": "work:agent",
+              "implementation": "actual-doppler-diagnostic",
+              "implementationHash": "sha256:21eacd0f04063778b2f77b9b55866a26a0e1720b3d14df32a27a483663f5a1d8",
+              "frozenBeforeCandidate": true
+            },
+            "evaluator": {
+              "evaluatorId": "work:protected-suite",
+              "authorityId": "work:evaluator",
+              "version": "2",
+              "evaluatorHash": "sha256:be606ffe2668f1e0d3791d3ae2fa1899525e7870e5c2c88d4de8cb0285989f23",
+              "testSuiteDigest": "sha256:21a51f8e75db4899bd57e5c6a70c62e8b14559b99214762cd8290820bdd2e543",
+              "protectedPaths": [
+                "/config/work-evolution.json",
+                "/host/work-evolution.js",
+                "/infrastructure/code-sandbox.js"
+              ],
+              "heldOut": true,
+              "frozenBeforeCandidate": true,
+              "frozenAt": "2026-09-20T13:34:37.346Z"
+            },
+            "metrics": [
+              {
+                "metricId": "qualified-improvement",
+                "unit": "qualified comparison",
+                "direction": "maximize",
+                "measurementSource": "/artifacts/work-improvements/candidate:cd58e146-a7d7-4229-af36-3c867b70a6df.json",
+                "aggregationRule": "All candidate correctness and separate workload cases pass; repair adds passing cases or latency satisfies every frozen threshold.",
+                "validityConditions": [
+                  "All candidate cases pass",
+                  "No previously passing case fails"
+                ],
+                "noiseModel": "Alternating paired host wall-clock samples; absolute, relative and faster-pair thresholds. No generalization claim.",
+                "minimumSampleSize": 6,
+                "promotionThreshold": {
+                  "operator": ">=",
+                  "value": 1
+                },
+                "operational": false
+              }
+            ],
+            "algorithm": {
+              "algorithmId": "FormatJson",
+              "version": "FormatJson:genesis",
+              "sourceModules": [
+                "/shadow/work-tools/candidate:cd58e146-a7d7-4229-af36-3c867b70a6df.js"
+              ],
+              "inputs": [
+                "JSON task input"
+              ],
+              "outputs": [
+                "JSON tool result"
+              ],
+              "invariants": [
+                "No host access or side effects",
+                "Protected tests are never candidate-controlled"
+              ],
+              "complexity": "Bounded by host timeout",
+              "resourceAssumptions": [
+                "Browser sandbox available"
+              ],
+              "knownFailureModes": [
+                "Timeout",
+                "Incorrect output"
+              ],
+              "evaluationSuites": [
+                "sha256:21a51f8e75db4899bd57e5c6a70c62e8b14559b99214762cd8290820bdd2e543"
+              ],
+              "dependencies": [],
+              "status": "candidate",
+              "schema": "rsi.algorithm-manifest/v1",
+              "historicalRevisions": [],
+              "candidateAlternatives": []
+            },
+            "environment": {
+              "runtime": "opaque-origin-frame-worker",
+              "qualification": "local finite-suite evaluation"
+            },
+            "corpus": {
+              "digest": "sha256:21a51f8e75db4899bd57e5c6a70c62e8b14559b99214762cd8290820bdd2e543",
+              "heldOut": true,
+              "frozenBeforeCandidate": true
+            },
+            "resourceBudget": {
+              "schema": "reploid.work-evolution/v1",
+              "storageKey": "reploid.work-evolution.v1",
+              "maxCandidates": 24,
+              "maxCodeCharacters": 16000,
+              "maxStoredBytes": 2097152,
+              "offers": {
+                "maxBytes": 131072,
+                "maxReasonCharacters": 4000
+              },
+              "peerOffers": {
+                "storageKey": "reploid.tool-transfers.v1",
+                "maxBytes": 24576,
+                "maxRecords": 32,
+                "maxPending": 16,
+                "ttlMs": 300000,
+                "maxAttempts": 3,
+                "maxStoredBytes": 2097152
+              },
+              "timeoutMs": 1500,
+              "verificationTimeoutMs": 10000,
+              "maxResultBytes": 65536,
+              "maxHelpers": 3,
+              "helperMaxCycles": 4,
+              "helperMaxCharacters": 6000,
+              "maxObjectiveSamples": 24,
+              "digest": "sha256:15573e9f7323c462f074753d941a6262b41291120507989e3ef8b83d7eaf98d6",
+              "frozenBeforeCandidate": true
+            },
+            "promotionAuthority": {
+              "repositoryId": "clocksmith/reploid",
+              "authorityId": "work:operator",
+              "scope": "registered-pure-tools",
+              "allowedCandidatePaths": [
+                "/shadow/work-tools"
+              ],
+              "allowedEffectKinds": [
+                "tool_activation"
+              ],
+              "frozenBeforeCandidate": true
+            },
+            "reopeningConditions": [
+              {
+                "conditionId": "operator-rollback",
+                "observationKind": "tool_failure",
+                "targetId": "FormatJson",
+                "sensorAuthorityId": "work:operator",
+                "action": "rollback_request"
+              }
+            ],
+            "diagnosis": "Repair the observed JSON wrapper failure while preserving values",
+            "hypothesis": {
+              "observation": "Repair the observed JSON wrapper failure while preserving values",
+              "suspectedCause": "The current tool may fail required inputs or use avoidable execution time",
+              "alternativeExplanations": [
+                "The task may be outside this tool contract"
+              ],
+              "proposedDiagnostic": "Compare both versions on the frozen host suite",
+              "candidateIntervention": "Replace the registered pure tool implementation",
+              "expectedResult": "Meet the frozen improvement objective without regressions",
+              "falsifyingResult": "No improvement or any regression",
+              "followUpHypothesis": null
+            },
+            "negativeEvidence": [],
+            "candidate": {
+              "candidateId": "candidate:cd58e146-a7d7-4229-af36-3c867b70a6df",
+              "candidateHash": "sha256:4e0dfade00086daefc982f2b35b7f18c8fbb8fca041f100d94f1345d1f422237",
+              "patchHash": "sha256:02debd244f3ad18b76f7400713e5e6523755a4220a416da4f561f099fed67833",
+              "generationId": "FormatJson:92bb6052-26a4-4fc7-a520-cf520ead0100",
+              "parentGenerationId": "FormatJson:genesis",
+              "changedFiles": [
+                "/shadow/work-tools/candidate:cd58e146-a7d7-4229-af36-3c867b70a6df.js"
+              ],
+              "semanticScope": [
+                "FormatJson"
+              ],
+              "expectedBehavior": "Repair the observed JSON wrapper failure while preserving values",
+              "affectedInvariants": [
+                "Preserve valid inputs"
+              ],
+              "falsifier": "A contract case fails",
+              "generatorAuthorityId": "work:agent",
+              "generatorHash": "sha256:21eacd0f04063778b2f77b9b55866a26a0e1720b3d14df32a27a483663f5a1d8"
+            },
+            "execution": null,
+            "verification": {
+              "passed": false,
+              "verifierId": "work:verification-worker",
+              "evidencePaths": [
+                "/artifacts/work-improvements/candidate:cd58e146-a7d7-4229-af36-3c867b70a6df.json"
+              ],
+              "checks": {
+                "passed": false,
+                "errors": [
+                  "Syntax Error in /tools/candidate.js: Unexpected token (1:17)"
+                ],
+                "warnings": [],
+                "events": [
+                  {
+                    "type": "verification:syntax_error",
+                    "timestamp": 1789911474046,
+                    "path": "/tools/candidate.js",
+                    "error": "Unexpected token (1:17)"
+                  }
+                ],
+                "details": {
+                  "patternViolations": [],
+                  "complexityWarnings": [],
+                  "filesAnalyzed": 1
+                },
+                "reason": "Verification Failed"
+              }
+            },
+            "evaluation": null,
+            "comparison": null,
+            "promotionRequest": null,
+            "reviews": [],
+            "decision": {
+              "state": "inconclusive",
+              "reasons": [
+                "Candidate failed static verification: [\"Syntax Error in /tools/candidate.js: Unexpected token (1:17)\"]"
+              ],
+              "authorityId": "work:operator"
+            },
+            "effects": [],
+            "outcomes": [],
+            "reopenings": [],
+            "rollback": null,
+            "reflections": [],
+            "generation": {
+              "baseline": "FormatJson:genesis",
+              "candidate": "FormatJson:92bb6052-26a4-4fc7-a520-cf520ead0100",
+              "current": "FormatJson:genesis"
+            },
+            "createdAt": "2026-09-20T13:37:53.993Z",
+            "updatedAt": "2026-09-20T13:37:54.050Z",
+            "integrity": {
+              "valid": true,
+              "eventCount": 5,
+              "validSignatures": 5,
+              "headHash": "sha256:1b7d162e20fd26e3dfb08ae18f9978cb1f1f39c1c7d4fb7479f06eb27b741357",
+              "reasons": []
+            }
+          },
+          "events": [
+            {
+              "schema": "rsi.improvement-episode-event/v1",
+              "episodeId": "candidate:cd58e146-a7d7-4229-af36-3c867b70a6df",
+              "sequence": 1,
+              "type": "episode.started",
+              "timestamp": "2026-09-20T13:37:53.993Z",
+              "previousEventHash": null,
+              "actor": {
+                "authorityId": "work:agent",
+                "role": "proposer"
+              },
+              "payload": {
+                "episodeId": "candidate:cd58e146-a7d7-4229-af36-3c867b70a6df",
+                "parentEpisodeId": null,
+                "groupId": "actual-focused-repair",
+                "surface": "other",
+                "objective": {
+                  "objectiveId": "FormatJson",
+                  "statement": "Turn JSON text into a formatted JSON string without changing values. May learn to handle a byte order mark or a single Markdown JSON code fence. Invalid JSON must throw. Takes {text}; returns a string.",
+                  "successMetricId": "qualified-improvement",
+                  "definition": {
+                    "id": "format-json-repair-or-latency",
+                    "version": 1,
+                    "kind": "repair-or-latency",
+                    "samples": 12,
+                    "minimumAbsoluteGainMs": 5,
+                    "minimumRelativeGain": 0.2,
+                    "minimumFasterPairs": 11,
+                    "cases": [
+                      {
+                        "input": {
+                          "text": "```json\n{\"nested\":{\"empty\":[],\"ok\":true},\"text\":\"keep \\\"quotes\\\"\"}\n```"
+                        },
+                        "expected": "{\n  \"nested\": {\n    \"empty\": [],\n    \"ok\": true\n  },\n  \"text\": \"keep \\\"quotes\\\"\"\n}"
+                      },
+                      {
+                        "input": {
+                          "text": "﻿[false,{\"n\":-1.5},\"\\u03bb\"]"
+                        },
+                        "expected": "[\n  false,\n  {\n    \"n\": -1.5\n  },\n  \"λ\"\n]"
+                      },
+                      {
+                        "input": {
+                          "text": "{\"a\":1,\"a\":2,\"fence\":\"```json\"}"
+                        },
+                        "expected": "{\n  \"a\": 2,\n  \"fence\": \"```json\"\n}"
+                      },
+                      {
+                        "input": {
+                          "text": "```json\n{broken}\n```"
+                        },
+                        "throws": true
+                      }
+                    ]
+                  },
+                  "digest": "sha256:b3a247d25ae4fab0ae2f703b8f7a08a7400808c7e3ffda0899de02038a5e59ac"
+                },
+                "baseline": {
+                  "generationId": "FormatJson:genesis",
+                  "hashes": {
+                    "code": "sha256:2c32f4668352a3ed53c1e6238feb467e63cf6a5980cd062ce336f1a399d3088d",
+                    "config": "sha256:15573e9f7323c462f074753d941a6262b41291120507989e3ef8b83d7eaf98d6",
+                    "model": "sha256:791cc4ad081e34b905037ba5868f9b2c489b1f90bb7ff175b062a438b3862367",
+                    "prompt": "sha256:fc59aaabdfd107dfd672843645eab18d01ceab5051ca75ff42af32fc5b17304b",
+                    "artifacts": "sha256:2c32f4668352a3ed53c1e6238feb467e63cf6a5980cd062ce336f1a399d3088d",
+                    "contract": "sha256:6784dcc9a905503eab8275fb5bcdb1484bc65ec58c23ead417fb6d778bce4c77"
+                  },
+                  "hashSemantics": {},
+                  "snapshotPath": null
+                },
+                "proposer": {
+                  "authorityId": "work:agent"
+                },
+                "generator": {
+                  "authorityId": "work:agent",
+                  "implementation": "actual-doppler-diagnostic",
+                  "implementationHash": "sha256:21eacd0f04063778b2f77b9b55866a26a0e1720b3d14df32a27a483663f5a1d8",
+                  "frozenBeforeCandidate": true
+                },
+                "evaluator": {
+                  "evaluatorId": "work:protected-suite",
+                  "authorityId": "work:evaluator",
+                  "version": "2",
+                  "evaluatorHash": "sha256:be606ffe2668f1e0d3791d3ae2fa1899525e7870e5c2c88d4de8cb0285989f23",
+                  "testSuiteDigest": "sha256:21a51f8e75db4899bd57e5c6a70c62e8b14559b99214762cd8290820bdd2e543",
+                  "protectedPaths": [
+                    "/config/work-evolution.json",
+                    "/host/work-evolution.js",
+                    "/infrastructure/code-sandbox.js"
+                  ],
+                  "heldOut": true,
+                  "frozenBeforeCandidate": true,
+                  "frozenAt": "2026-09-20T13:34:37.346Z"
+                },
+                "metrics": [
+                  {
+                    "metricId": "qualified-improvement",
+                    "unit": "qualified comparison",
+                    "direction": "maximize",
+                    "measurementSource": "/artifacts/work-improvements/candidate:cd58e146-a7d7-4229-af36-3c867b70a6df.json",
+                    "aggregationRule": "All candidate correctness and separate workload cases pass; repair adds passing cases or latency satisfies every frozen threshold.",
+                    "validityConditions": [
+                      "All candidate cases pass",
+                      "No previously passing case fails"
+                    ],
+                    "noiseModel": "Alternating paired host wall-clock samples; absolute, relative and faster-pair thresholds. No generalization claim.",
+                    "minimumSampleSize": 6,
+                    "promotionThreshold": {
+                      "operator": ">=",
+                      "value": 1
+                    },
+                    "operational": false
+                  }
+                ],
+                "algorithm": {
+                  "algorithmId": "FormatJson",
+                  "version": "FormatJson:genesis",
+                  "sourceModules": [
+                    "/shadow/work-tools/candidate:cd58e146-a7d7-4229-af36-3c867b70a6df.js"
+                  ],
+                  "inputs": [
+                    "JSON task input"
+                  ],
+                  "outputs": [
+                    "JSON tool result"
+                  ],
+                  "invariants": [
+                    "No host access or side effects",
+                    "Protected tests are never candidate-controlled"
+                  ],
+                  "complexity": "Bounded by host timeout",
+                  "resourceAssumptions": [
+                    "Browser sandbox available"
+                  ],
+                  "knownFailureModes": [
+                    "Timeout",
+                    "Incorrect output"
+                  ],
+                  "evaluationSuites": [
+                    "sha256:21a51f8e75db4899bd57e5c6a70c62e8b14559b99214762cd8290820bdd2e543"
+                  ],
+                  "dependencies": [],
+                  "status": "candidate",
+                  "schema": "rsi.algorithm-manifest/v1",
+                  "historicalRevisions": [],
+                  "candidateAlternatives": []
+                },
+                "environment": {
+                  "runtime": "opaque-origin-frame-worker",
+                  "qualification": "local finite-suite evaluation"
+                },
+                "corpus": {
+                  "digest": "sha256:21a51f8e75db4899bd57e5c6a70c62e8b14559b99214762cd8290820bdd2e543",
+                  "heldOut": true,
+                  "frozenBeforeCandidate": true
+                },
+                "resourceBudget": {
+                  "schema": "reploid.work-evolution/v1",
+                  "storageKey": "reploid.work-evolution.v1",
+                  "maxCandidates": 24,
+                  "maxCodeCharacters": 16000,
+                  "maxStoredBytes": 2097152,
+                  "offers": {
+                    "maxBytes": 131072,
+                    "maxReasonCharacters": 4000
+                  },
+                  "peerOffers": {
+                    "storageKey": "reploid.tool-transfers.v1",
+                    "maxBytes": 24576,
+                    "maxRecords": 32,
+                    "maxPending": 16,
+                    "ttlMs": 300000,
+                    "maxAttempts": 3,
+                    "maxStoredBytes": 2097152
+                  },
+                  "timeoutMs": 1500,
+                  "verificationTimeoutMs": 10000,
+                  "maxResultBytes": 65536,
+                  "maxHelpers": 3,
+                  "helperMaxCycles": 4,
+                  "helperMaxCharacters": 6000,
+                  "maxObjectiveSamples": 24,
+                  "digest": "sha256:15573e9f7323c462f074753d941a6262b41291120507989e3ef8b83d7eaf98d6",
+                  "frozenBeforeCandidate": true
+                },
+                "promotionAuthority": {
+                  "repositoryId": "clocksmith/reploid",
+                  "authorityId": "work:operator",
+                  "scope": "registered-pure-tools",
+                  "allowedCandidatePaths": [
+                    "/shadow/work-tools"
+                  ],
+                  "allowedEffectKinds": [
+                    "tool_activation"
+                  ],
+                  "frozenBeforeCandidate": true
+                },
+                "reopeningConditions": [
+                  {
+                    "conditionId": "operator-rollback",
+                    "observationKind": "tool_failure",
+                    "targetId": "FormatJson",
+                    "sensorAuthorityId": "work:operator",
+                    "action": "rollback_request"
+                  }
+                ]
+              },
+              "eventHash": "sha256:cb029f2c72b88a4360b98a9a8f3662b6a7c9643d4c2d6b992112865913aabdb7",
+              "signature": {
+                "signerId": "peer:a2b468c53099afc46eedda6a",
+                "algorithm": "Ed25519",
+                "publicJwk": {
+                  "alg": "Ed25519",
+                  "crv": "Ed25519",
+                  "ext": true,
+                  "key_ops": [
+                    "verify"
+                  ],
+                  "kty": "OKP",
+                  "x": "todYlXX4nWBzuzniu8lf5aMQY5bthQZW3hKzIYKJGFQ"
+                },
+                "value": "UldPafyg_FBzeQRrdEOK51ugLCy_42nyrPsGsaclKyfc4U6cqXMrsrhTG8McChr_kPfa3YoxU7uqJ8RtwJ0WBA"
+              }
+            },
+            {
+              "schema": "rsi.improvement-episode-event/v1",
+              "episodeId": "candidate:cd58e146-a7d7-4229-af36-3c867b70a6df",
+              "sequence": 2,
+              "type": "diagnosis.recorded",
+              "timestamp": "2026-09-20T13:37:53.997Z",
+              "previousEventHash": "sha256:cb029f2c72b88a4360b98a9a8f3662b6a7c9643d4c2d6b992112865913aabdb7",
+              "actor": {
+                "authorityId": "work:agent",
+                "role": "proposer"
+              },
+              "payload": {
+                "diagnosis": "Repair the observed JSON wrapper failure while preserving values",
+                "hypothesis": {
+                  "observation": "Repair the observed JSON wrapper failure while preserving values",
+                  "suspectedCause": "The current tool may fail required inputs or use avoidable execution time",
+                  "alternativeExplanations": [
+                    "The task may be outside this tool contract"
+                  ],
+                  "proposedDiagnostic": "Compare both versions on the frozen host suite",
+                  "candidateIntervention": "Replace the registered pure tool implementation",
+                  "expectedResult": "Meet the frozen improvement objective without regressions",
+                  "falsifyingResult": "No improvement or any regression",
+                  "followUpHypothesis": null
+                }
+              },
+              "eventHash": "sha256:4edb035f74046d0b55edec94a45dc220c4496a842ddcb27250cd360843077d2e",
+              "signature": {
+                "signerId": "peer:a2b468c53099afc46eedda6a",
+                "algorithm": "Ed25519",
+                "publicJwk": {
+                  "alg": "Ed25519",
+                  "crv": "Ed25519",
+                  "ext": true,
+                  "key_ops": [
+                    "verify"
+                  ],
+                  "kty": "OKP",
+                  "x": "todYlXX4nWBzuzniu8lf5aMQY5bthQZW3hKzIYKJGFQ"
+                },
+                "value": "Ksf-t2amii0OO_1j8aJrRZTU9VQVAmqDujzbcb2WFiEG7AkCtnA8TIYzswgdgYKqb9Uc3NglyCrkQlWl59TkAQ"
+              }
+            },
+            {
+              "schema": "rsi.improvement-episode-event/v1",
+              "episodeId": "candidate:cd58e146-a7d7-4229-af36-3c867b70a6df",
+              "sequence": 3,
+              "type": "candidate.proposed",
+              "timestamp": "2026-09-20T13:37:53.999Z",
+              "previousEventHash": "sha256:4edb035f74046d0b55edec94a45dc220c4496a842ddcb27250cd360843077d2e",
+              "actor": {
+                "authorityId": "work:agent",
+                "role": "proposer"
+              },
+              "payload": {
+                "candidateId": "candidate:cd58e146-a7d7-4229-af36-3c867b70a6df",
+                "candidateHash": "sha256:4e0dfade00086daefc982f2b35b7f18c8fbb8fca041f100d94f1345d1f422237",
+                "patchHash": "sha256:02debd244f3ad18b76f7400713e5e6523755a4220a416da4f561f099fed67833",
+                "generationId": "FormatJson:92bb6052-26a4-4fc7-a520-cf520ead0100",
+                "parentGenerationId": "FormatJson:genesis",
+                "changedFiles": [
+                  "/shadow/work-tools/candidate:cd58e146-a7d7-4229-af36-3c867b70a6df.js"
+                ],
+                "semanticScope": [
+                  "FormatJson"
+                ],
+                "expectedBehavior": "Repair the observed JSON wrapper failure while preserving values",
+                "affectedInvariants": [
+                  "Preserve valid inputs"
+                ],
+                "falsifier": "A contract case fails",
+                "generatorAuthorityId": "work:agent",
+                "generatorHash": "sha256:21eacd0f04063778b2f77b9b55866a26a0e1720b3d14df32a27a483663f5a1d8"
+              },
+              "eventHash": "sha256:00ea81a412eccbc40b30d2206081567f82b38eae2dd68653cf7cafe805fa6e78",
+              "signature": {
+                "signerId": "peer:a2b468c53099afc46eedda6a",
+                "algorithm": "Ed25519",
+                "publicJwk": {
+                  "alg": "Ed25519",
+                  "crv": "Ed25519",
+                  "ext": true,
+                  "key_ops": [
+                    "verify"
+                  ],
+                  "kty": "OKP",
+                  "x": "todYlXX4nWBzuzniu8lf5aMQY5bthQZW3hKzIYKJGFQ"
+                },
+                "value": "lXgd2KJm9L-WLpG3RyJ5BuJorpDsRoYN1BsqpRhmOUIAQnC0rGCb0_nLUGpH6wOxGZOY_wD9ZZHyf7ZJdPg9AQ"
+              }
+            },
+            {
+              "schema": "rsi.improvement-episode-event/v1",
+              "episodeId": "candidate:cd58e146-a7d7-4229-af36-3c867b70a6df",
+              "sequence": 4,
+              "type": "verification.recorded",
+              "timestamp": "2026-09-20T13:37:54.047Z",
+              "previousEventHash": "sha256:00ea81a412eccbc40b30d2206081567f82b38eae2dd68653cf7cafe805fa6e78",
+              "actor": {
+                "authorityId": "work:verification-worker",
+                "role": "verifier"
+              },
+              "payload": {
+                "passed": false,
+                "verifierId": "work:verification-worker",
+                "evidencePaths": [
+                  "/artifacts/work-improvements/candidate:cd58e146-a7d7-4229-af36-3c867b70a6df.json"
+                ],
+                "checks": {
+                  "passed": false,
+                  "errors": [
+                    "Syntax Error in /tools/candidate.js: Unexpected token (1:17)"
+                  ],
+                  "warnings": [],
+                  "events": [
+                    {
+                      "type": "verification:syntax_error",
+                      "timestamp": 1789911474046,
+                      "path": "/tools/candidate.js",
+                      "error": "Unexpected token (1:17)"
+                    }
+                  ],
+                  "details": {
+                    "patternViolations": [],
+                    "complexityWarnings": [],
+                    "filesAnalyzed": 1
+                  },
+                  "reason": "Verification Failed"
+                }
+              },
+              "eventHash": "sha256:ce761e27a523bce8dec5591d13afac1e827c7b2822ca4211f5613ec8710ee0f8",
+              "signature": {
+                "signerId": "peer:a2b468c53099afc46eedda6a",
+                "algorithm": "Ed25519",
+                "publicJwk": {
+                  "alg": "Ed25519",
+                  "crv": "Ed25519",
+                  "ext": true,
+                  "key_ops": [
+                    "verify"
+                  ],
+                  "kty": "OKP",
+                  "x": "todYlXX4nWBzuzniu8lf5aMQY5bthQZW3hKzIYKJGFQ"
+                },
+                "value": "5JWNH-dM7CQWIYrkpAVt3q-pb-PtzJq6f5hxsZ6w-k-YDAdupTLpi1IL-JEVFjPUEFhRhDsFlm3JqLUN_JoNBQ"
+              }
+            },
+            {
+              "schema": "rsi.improvement-episode-event/v1",
+              "episodeId": "candidate:cd58e146-a7d7-4229-af36-3c867b70a6df",
+              "sequence": 5,
+              "type": "decision.recorded",
+              "timestamp": "2026-09-20T13:37:54.050Z",
+              "previousEventHash": "sha256:ce761e27a523bce8dec5591d13afac1e827c7b2822ca4211f5613ec8710ee0f8",
+              "actor": {
+                "authorityId": "work:operator",
+                "role": "promotion-policy"
+              },
+              "payload": {
+                "state": "inconclusive",
+                "reasons": [
+                  "Candidate failed static verification: [\"Syntax Error in /tools/candidate.js: Unexpected token (1:17)\"]"
+                ],
+                "authorityId": "work:operator"
+              },
+              "eventHash": "sha256:1b7d162e20fd26e3dfb08ae18f9978cb1f1f39c1c7d4fb7479f06eb27b741357",
+              "signature": {
+                "signerId": "peer:a2b468c53099afc46eedda6a",
+                "algorithm": "Ed25519",
+                "publicJwk": {
+                  "alg": "Ed25519",
+                  "crv": "Ed25519",
+                  "ext": true,
+                  "key_ops": [
+                    "verify"
+                  ],
+                  "kty": "OKP",
+                  "x": "todYlXX4nWBzuzniu8lf5aMQY5bthQZW3hKzIYKJGFQ"
+                },
+                "value": "MLk0NS__qJjVDWekmrmQSEasjKpyvTnaXbC-3774BiydeIsZy1gNeusiCPSH6YCAdJk5U4KmYqjGoD10u-HUAw"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "instruction": [
+          {
+            "role": "system",
+            "content": "Write a JavaScript function expression that replaces the supplied broken function. Your answer must begin with ({text}) => { and end with }. Put all statements inside that function body. Preserve the stated contract. Return code only, without Markdown, explanation, tests, network, or storage."
+          },
+          {
+            "role": "user",
+            "content": "{\"contract\":\"Turn JSON text into a formatted JSON string without changing values. May learn to handle a byte order mark or a single Markdown JSON code fence. Invalid JSON must throw. Takes {text}; returns a string.\",\"currentCode\":\"({text}) => JSON.stringify(JSON.parse(text), null, 2)\",\"input\":{\"text\":\"```json\\n{\\\"service\\\":\\\"worker\\\",\\\"retry\\\":3,\\\"enabled\\\":true}\\n```\"},\"observation\":{\"error\":\"Unexpected token '`', \\\"```json\\n{\\\"\\\"... is not valid JSON\"}}"
+          },
+          {
+            "role": "assistant",
+            "content": "{(\"text\") => JSON.stringify(JSON.parse(text), null, 2)}"
+          },
+          {
+            "role": "user",
+            "content": "The host rejected that candidate: Candidate failed static verification: [\"Syntax Error in /tools/candidate.js: Unexpected token (1:17)\"]\nReturn a corrected function expression only."
+          }
+        ],
+        "response": {
+          "content": "({text} => {const parsed = JSON.parse(text);return JSON.stringify(parsed,null,2)})",
+          "raw": "({text} => {const parsed = JSON.parse(text);return JSON.stringify(parsed,null,2)})",
+          "requestedModel": "qwen-3-5-2b-q4k-ehaf16",
+          "model": "qwen-3-5-2b-q4k-ehaf16",
+          "provider": "doppler",
+          "execution": "local-scoped-session"
+        },
+        "code": "({text} => {const parsed = JSON.parse(text);return JSON.stringify(parsed,null,2)})",
+        "candidate": {
+          "id": "candidate:8ddc32be-eeec-4b86-a279-b9dea4a90245",
+          "targetId": "FormatJson",
+          "taskId": "actual-focused-repair",
+          "code": "({text} => {const parsed = JSON.parse(text);return JSON.stringify(parsed,null,2)})",
+          "reason": "Repair the observed JSON wrapper failure while preserving values",
+          "generationId": "FormatJson:7f4f962a-bc78-472a-ac26-2b0286ac8dfd",
+          "status": "failed",
+          "createdAt": "2026-09-20T13:38:06.038Z",
+          "error": "Algorithm version is immutable and already has different contents",
+          "baselineGeneration": "FormatJson:genesis"
+        },
+        "evidence": {
+          "candidate": {
+            "id": "candidate:8ddc32be-eeec-4b86-a279-b9dea4a90245",
+            "targetId": "FormatJson",
+            "taskId": "actual-focused-repair",
+            "code": "({text} => {const parsed = JSON.parse(text);return JSON.stringify(parsed,null,2)})",
+            "reason": "Repair the observed JSON wrapper failure while preserving values",
+            "baseline": {
+              "code": "({text}) => JSON.stringify(JSON.parse(text), null, 2)",
+              "generationId": "FormatJson:genesis",
+              "episodeId": null
+            },
+            "generationId": "FormatJson:7f4f962a-bc78-472a-ac26-2b0286ac8dfd",
+            "status": "failed",
+            "createdAt": "2026-09-20T13:38:06.038Z",
+            "error": "Algorithm version is immutable and already has different contents"
+          },
+          "episode": null,
+          "events": []
+        }
+      },
+      {
+        "instruction": [
+          {
+            "role": "system",
+            "content": "Write a JavaScript function expression that replaces the supplied broken function. Your answer must begin with ({text}) => { and end with }. Put all statements inside that function body. Preserve the stated contract. Return code only, without Markdown, explanation, tests, network, or storage."
+          },
+          {
+            "role": "user",
+            "content": "{\"contract\":\"Turn JSON text into a formatted JSON string without changing values. May learn to handle a byte order mark or a single Markdown JSON code fence. Invalid JSON must throw. Takes {text}; returns a string.\",\"currentCode\":\"({text}) => JSON.stringify(JSON.parse(text), null, 2)\",\"input\":{\"text\":\"```json\\n{\\\"service\\\":\\\"worker\\\",\\\"retry\\\":3,\\\"enabled\\\":true}\\n```\"},\"observation\":{\"error\":\"Unexpected token '`', \\\"```json\\n{\\\"\\\"... is not valid JSON\"}}"
+          },
+          {
+            "role": "assistant",
+            "content": "{(\"text\") => JSON.stringify(JSON.parse(text), null, 2)}"
+          },
+          {
+            "role": "user",
+            "content": "The host rejected that candidate: Candidate failed static verification: [\"Syntax Error in /tools/candidate.js: Unexpected token (1:17)\"]\nReturn a corrected function expression only."
+          },
+          {
+            "role": "assistant",
+            "content": "({text} => {const parsed = JSON.parse(text);return JSON.stringify(parsed,null,2)})"
+          },
+          {
+            "role": "user",
+            "content": "The host rejected that candidate: Algorithm version is immutable and already has different contents\nReturn a corrected function expression only."
+          }
+        ],
+        "response": {
+          "content": "{(\"text\") => JSON.stringify(JSON.parse(text), null, 2)}",
+          "raw": "{(\"text\") => JSON.stringify(JSON.parse(text), null, 2)}",
+          "requestedModel": "qwen-3-5-2b-q4k-ehaf16",
+          "model": "qwen-3-5-2b-q4k-ehaf16",
+          "provider": "doppler",
+          "execution": "local-scoped-session"
+        },
+        "code": "{(\"text\") => JSON.stringify(JSON.parse(text), null, 2)}",
+        "candidate": {
+          "id": "candidate:cee863ce-a0f9-44f9-adde-b7935d9f62e5",
+          "targetId": "FormatJson",
+          "taskId": "actual-focused-repair",
+          "code": "{(\"text\") => JSON.stringify(JSON.parse(text), null, 2)}",
+          "reason": "Repair the observed JSON wrapper failure while preserving values",
+          "generationId": "FormatJson:1e8a517a-20e1-464f-80c3-fe1bb10f21b2",
+          "status": "failed",
+          "createdAt": "2026-09-20T13:38:19.757Z",
+          "error": "Algorithm version is immutable and already has different contents",
+          "baselineGeneration": "FormatJson:genesis"
+        },
+        "evidence": {
+          "candidate": {
+            "id": "candidate:cee863ce-a0f9-44f9-adde-b7935d9f62e5",
+            "targetId": "FormatJson",
+            "taskId": "actual-focused-repair",
+            "code": "{(\"text\") => JSON.stringify(JSON.parse(text), null, 2)}",
+            "reason": "Repair the observed JSON wrapper failure while preserving values",
+            "baseline": {
+              "code": "({text}) => JSON.stringify(JSON.parse(text), null, 2)",
+              "generationId": "FormatJson:genesis",
+              "episodeId": null
+            },
+            "generationId": "FormatJson:1e8a517a-20e1-464f-80c3-fe1bb10f21b2",
+            "status": "failed",
+            "createdAt": "2026-09-20T13:38:19.757Z",
+            "error": "Algorithm version is immutable and already has different contents"
+          },
+          "episode": null,
+          "events": []
+        }
+      },
+      {
+        "instruction": [
+          {
+            "role": "system",
+            "content": "Write a JavaScript function expression that replaces the supplied broken function. Your answer must begin with ({text}) => { and end with }. Put all statements inside that function body. Preserve the stated contract. Return code only, without Markdown, explanation, tests, network, or storage."
+          },
+          {
+            "role": "user",
+            "content": "{\"contract\":\"Turn JSON text into a formatted JSON string without changing values. May learn to handle a byte order mark or a single Markdown JSON code fence. Invalid JSON must throw. Takes {text}; returns a string.\",\"currentCode\":\"({text}) => JSON.stringify(JSON.parse(text), null, 2)\",\"input\":{\"text\":\"```json\\n{\\\"service\\\":\\\"worker\\\",\\\"retry\\\":3,\\\"enabled\\\":true}\\n```\"},\"observation\":{\"error\":\"Unexpected token '`', \\\"```json\\n{\\\"\\\"... is not valid JSON\"}}"
+          },
+          {
+            "role": "assistant",
+            "content": "{(\"text\") => JSON.stringify(JSON.parse(text), null, 2)}"
+          },
+          {
+            "role": "user",
+            "content": "The host rejected that candidate: Candidate failed static verification: [\"Syntax Error in /tools/candidate.js: Unexpected token (1:17)\"]\nReturn a corrected function expression only."
+          },
+          {
+            "role": "assistant",
+            "content": "({text} => {const parsed = JSON.parse(text);return JSON.stringify(parsed,null,2)})"
+          },
+          {
+            "role": "user",
+            "content": "The host rejected that candidate: Algorithm version is immutable and already has different contents\nReturn a corrected function expression only."
+          },
+          {
+            "role": "assistant",
+            "content": "{(\"text\") => JSON.stringify(JSON.parse(text), null, 2)}"
+          },
+          {
+            "role": "user",
+            "content": "The host rejected that candidate: Algorithm version is immutable and already has different contents\nReturn a corrected function expression only."
+          }
+        ],
+        "response": {
+          "content": "({text} => {const parsed = JSON.parse(text);return JSON.stringify(parsed,null,2)})",
+          "raw": "({text} => {const parsed = JSON.parse(text);return JSON.stringify(parsed,null,2)})",
+          "requestedModel": "qwen-3-5-2b-q4k-ehaf16",
+          "model": "qwen-3-5-2b-q4k-ehaf16",
+          "provider": "doppler",
+          "execution": "local-scoped-session"
+        },
+        "code": "({text} => {const parsed = JSON.parse(text);return JSON.stringify(parsed,null,2)})",
+        "candidate": {
+          "id": "candidate:b7a0fcce-7cd6-4da4-8f48-7c27d28740b7",
+          "targetId": "FormatJson",
+          "taskId": "actual-focused-repair",
+          "code": "({text} => {const parsed = JSON.parse(text);return JSON.stringify(parsed,null,2)})",
+          "reason": "Repair the observed JSON wrapper failure while preserving values",
+          "generationId": "FormatJson:6910e529-382e-49fe-beb8-e496d0280789",
+          "status": "failed",
+          "createdAt": "2026-09-20T13:38:34.408Z",
+          "error": "Algorithm version is immutable and already has different contents",
+          "baselineGeneration": "FormatJson:genesis"
+        },
+        "evidence": {
+          "candidate": {
+            "id": "candidate:b7a0fcce-7cd6-4da4-8f48-7c27d28740b7",
+            "targetId": "FormatJson",
+            "taskId": "actual-focused-repair",
+            "code": "({text} => {const parsed = JSON.parse(text);return JSON.stringify(parsed,null,2)})",
+            "reason": "Repair the observed JSON wrapper failure while preserving values",
+            "baseline": {
+              "code": "({text}) => JSON.stringify(JSON.parse(text), null, 2)",
+              "generationId": "FormatJson:genesis",
+              "episodeId": null
+            },
+            "generationId": "FormatJson:6910e529-382e-49fe-beb8-e496d0280789",
+            "status": "failed",
+            "createdAt": "2026-09-20T13:38:34.408Z",
+            "error": "Algorithm version is immutable and already has different contents"
+          },
+          "episode": null,
+          "events": []
+        }
+      }
+    ],
+    "text": "({text} => {const parsed = JSON.parse(text);return JSON.stringify(parsed,null,2)})",
+    "error": null,
+    "qualified": false
+  },
+  "finishedAt": "2026-09-20T13:38:35.865Z"
+}

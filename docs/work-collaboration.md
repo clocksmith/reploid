@@ -47,16 +47,50 @@ cannot count as successful rejection of invalid input. Protected tests are
 host-controlled, although their source is public in this repository.
 
 The main page and the focused improvement history show the baseline and candidate scores, source, and an evaluation
-download. A candidate must pass every case, regress none, and improve the score.
+download. A candidate must pass every correctness and separate workload case,
+regress none, and satisfy the host's frozen improvement objective.
 Use **Use this version** to adopt it after the active task settles, or keep the
 current version. **Restore previous version** rolls back an adopted change.
 Active tasks pin their tool versions. Local records retain failed and rejected
 candidates, signed episodes, ancestry, and evaluation observations across reloads.
+Each proposal registers its own immutable algorithm generation. A rejected
+candidate does not occupy the baseline's registry identity or prevent a retry.
 
 This implements evaluated replacement of registered pure tools. It does not
 authorize arbitrary repository edits or demonstrate recursive A -> B -> C
 improvement, generalization beyond the suite, or that collaboration beats a
 single-agent baseline. Those claims retain the comparisons required by GOALS.md.
+
+### Continuing objectives
+
+`work-evolution.json` selects `format-json-repair-or-latency/v1` before generation.
+The original six correctness cases remain mandatory. Four additional workload
+cases are host-controlled and omitted from candidate inputs and generation
+prompts; public source means they are not secret. A repair must add passing
+correctness cases. Once correctness reaches 6/6, another version can qualify by
+reducing measured execution time while preserving all required outputs.
+
+The host measures 12 paired samples, alternating baseline/candidate order in
+fresh sandboxes. Timing includes sandbox startup and returned-value validation.
+Latency qualification requires all three thresholds: at least 5 ms median paired
+gain, 20% median relative gain, and a faster candidate in at least 11 of 12 pairs.
+Invalid clocks, incomplete samples, identical source and failed workload results
+cannot qualify as latency improvements. This measures local end-to-end tool
+latency, not isolated algorithm complexity or performance on other devices.
+
+The signed episode retains the objective version, full definition, evaluator
+identity and raw paired observations. Changing the objective, budgets or
+evaluator invalidates pending adoption and requires fresh evaluation. It does
+not silently deactivate an already approved version. Adoption and rollback
+remain separate operator actions. The **Measured execution** disclosure shows
+the local result without adding another primary dashboard.
+
+`tests/e2e/continuing-tool-objectives.spec.js` verifies repair followed by latency
+improvement, approval, reload, use on another input, and rollback with handwritten
+fixtures. Unit tests exercise two successive latency improvements, noise,
+workload failures, invalid clocks, cancellation and changed objectives. This
+removes the fixed-score ceiling; it does not promise endless improvements or
+establish that an improvement helps generate its successor.
 
 ## Exchange a candidate
 
@@ -138,3 +172,47 @@ exits nonzero. Evidence is written under `artifacts/actual-work-improvement/`;
 output directory. This is one machine, not the independent-recipient proof or
 the controlled network-benefit comparison. Never adopt a candidate merely
 because this runner recorded it.
+
+A shorter diagnostic isolates candidate generation from the full Work planner:
+
+```sh
+REPLOID_E2E_ACTUAL_INFERENCE=1 node tests/actual-tool-repair.js
+```
+
+It executes the failing tool, supplies the observed exception and public contract
+to the configured Qwen model, and permits up to four responses within a declared
+budget, including model loading. The default is 300 seconds;
+`REPLOID_ACTUAL_TIMEOUT_MS` declares a different diagnostic allowance, up to
+900000 ms, before the run. It does not change the Work task budget or evaluator
+thresholds. Failed responses feed their actual
+rejection back to the model. Syntactically valid candidates also run against the
+original task input, and that diagnostic result enters the next prompt. The
+harness never repairs generated code or supplies
+protected cases. The production Verification Worker and evaluator decide whether
+any candidate qualifies. Every response, prompt, rejection, served source hash and
+signed episode is retained. A passing candidate is exported for preview; it is
+never automatically adopted. This diagnostic is not a replacement agent loop or
+a completed cross-device demonstration.
+
+Once that report contains a qualifying candidate, replay its unchanged model
+output through the product UI and real WebRTC:
+
+```sh
+REPLOID_ACTUAL_CANDIDATE_REPORT=artifacts/actual-tool-repair/<run>/report.json node tests/actual-tool-transfer.js
+```
+
+The transfer runner checks the candidate against the recorded response, sends it
+between disposable browser contexts, evaluates it again, exercises explicit UI
+adoption, runs a subsequent input, reloads, and rolls back. It retains the source
+report hash, transport provenance, local evaluation and rollback evidence.
+These are scripted operator actions on one machine. For the independent-device
+milestone, another operator must instead receive the exported candidate through
+the invitation flow, evaluate and choose adoption on their own computer, run a
+subsequent task, and retain that device's evidence. Neither two contexts nor a
+receipt establishes that independent operation.
+
+The [September 20 evidence report](../artifacts/continuing-improvement-2026-09-20/report.json)
+records the continuing-objective and retry regressions separately from six local
+Qwen runs. Those runs produced 18 candidates and no qualifying repair. A
+successful model-generated transfer, independent-recipient adoption and recursive
+improvement remain unproved.

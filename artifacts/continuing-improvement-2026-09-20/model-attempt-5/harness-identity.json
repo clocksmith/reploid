@@ -1,0 +1,5 @@
+{
+  "scope": "Harness bytes retained while attempt 5 was running, before subsequent instrumentation changes",
+  "path": "artifacts/continuing-improvement-2026-09-20/model-attempt-5/harness.js",
+  "sha256": "sha256:af78078fee353fe2ca7f92c5a25ad6d66532ab32bbdf4dacc24a3a5b8e3fca77"
+}

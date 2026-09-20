@@ -1,4 +1,5 @@
 import { hashImprovementValue as hash } from './episodes.js';
+import { validateToolObjective, measureToolLatency, toolMeasurementIdentity } from './tool-objective.js';
 
 const copy = value => JSON.parse(JSON.stringify(value));
 const assert = (ok, message) => { if (!ok) throw new Error(message); };
@@ -7,8 +8,12 @@ const assert = (ok, message) => { if (!ok) throw new Error(message); };
 export function createCodeEvolution({ targets, policy, ports }) {
   policy = Object.freeze(copy(policy));
   const registry = copy(targets), frozenAt = new Date().toISOString();
+  for (const target of registry) validateToolObjective(target.objective, policy.maxObjectiveSamples);
   const { ledger } = ports;
   const targetFor = id => { const target = registry.find(item => item.id === id); assert(target, 'Unknown improvement target'); return target; };
+  const evaluationContract = async target => hash({ target: target.id, description: target.description,
+    suiteHash: await hash(target.tests), budgetHash: await hash(policy),
+    ...(target.objective ? { objectiveHash: await hash(target.objective) } : {}) });
   const load = async () => (await ports.load()) || { revision: 0, active: {}, candidates: [] };
   const commit = async state => { await ports.save(copy({ ...state, revision: state.revision + 1 })); state.revision++; ports.onChange?.(); };
   const version = (state, target) => state.active[target.id] || { code: target.code, generationId: target.id + ':genesis', episodeId: null };
@@ -29,12 +34,16 @@ export function createCodeEvolution({ targets, policy, ports }) {
   const runCase = async (code, test, signal) => {
     try {
       const actual = await ports.execute(code, copy(test.input), { signal });
+      signal?.throwIfAborted();
       return { passed: !test.throws && JSON.stringify(actual) === JSON.stringify(test.expected), actual };
     } catch (error) {
       signal?.throwIfAborted();
       return { passed: test.throws === true && error.candidateException === true, error: String(error.message || error) };
     }
   };
+  const evaluatorIdentity = async target => hash({ implementation: runCase.toString(), version: 2,
+    suiteHash: await hash(target.tests), objectiveHash: target.objective ? await hash(target.objective) : null,
+    measurement: toolMeasurementIdentity(), adjudication: api.propose.toString() });
   const readOffer = async text => {
     assert(policy.offers && typeof text === 'string' && new TextEncoder().encode(text).byteLength <= policy.offers.maxBytes,
       'Candidate file exceeds its allowance or exchange is disabled');
@@ -57,7 +66,10 @@ export function createCodeEvolution({ targets, policy, ports }) {
     async describe() {
       const state = await load();
       for (const [id, active] of Object.entries(state.active)) await verifyActive(active, targetFor(id));
-      return registry.map(target => ({ id: target.id, description: target.description, ...version(state, target) }));
+      return registry.map(target => ({ id: target.id, description: target.description, ...version(state, target),
+        ...(target.objective ? { objective: { id: target.objective.id, version: target.objective.version,
+          kind: target.objective.kind, minimumAbsoluteGainMs: target.objective.minimumAbsoluteGainMs,
+          minimumRelativeGain: target.objective.minimumRelativeGain } } : {}) }));
     },
     async list() {
       return ports.lock(async () => {
@@ -96,25 +108,29 @@ export function createCodeEvolution({ targets, policy, ports }) {
         state.candidates.push(record); await commit(state);
         const candidateHash = await hash(code), baselineHash = await hash(baseline.code);
         const suiteHash = await hash(target.tests), budgetHash = await hash(policy);
-        const generatorHash = await hash(generator), contractHash = await hash({ target: target.id, description: target.description, suiteHash, budgetHash });
-        const evaluatorHash = await hash({ implementation: runCase.toString(), version: 1, suiteHash });
+        const generatorHash = await hash(generator), contractHash = await evaluationContract(target);
+        const objectiveHash = target.objective ? await hash(target.objective) : null;
+        const evaluatorHash = await evaluatorIdentity(target);
+        const metricId = target.objective ? 'qualified-improvement' : 'additional-cases';
         const path = '/shadow/work-tools/' + id + '.js';
         const evidencePath = '/artifacts/work-improvements/' + id + '.json';
         try {
           await ledger.begin({ episodeId: id, parentEpisodeId: baseline.episodeId, groupId: taskId, surface: 'other',
-            objective: { objectiveId: targetId, statement: target.description, successMetricId: 'additional-cases' },
+            objective: { objectiveId: targetId, statement: target.description, successMetricId: metricId,
+              ...(target.objective ? { definition: copy(target.objective), digest: objectiveHash } : {}) },
             baseline: { generationId: baseline.generationId, hashes: { code: baselineHash, config: budgetHash,
               model: await hash(generator.model), prompt: await hash(generator.instruction), artifacts: baselineHash, contract: contractHash } },
             proposer: { authorityId: proposerAuthority },
             generator: { authorityId: proposerAuthority, implementation: generator.implementation, implementationHash: generatorHash, frozenBeforeCandidate: true },
-            evaluator: { evaluatorId: 'work:protected-suite', authorityId: 'work:evaluator', version: '1', evaluatorHash,
+            evaluator: { evaluatorId: 'work:protected-suite', authorityId: 'work:evaluator', version: '2', evaluatorHash,
               testSuiteDigest: suiteHash, protectedPaths: ['/config/work-evolution.json', '/host/work-evolution.js', '/infrastructure/code-sandbox.js'],
               heldOut: true, frozenBeforeCandidate: true, frozenAt },
-            metrics: [{ metricId: 'additional-cases', unit: 'cases', direction: 'maximize', measurementSource: evidencePath,
-              aggregationRule: 'Candidate passes minus baseline passes; no baseline regressions.',
-              validityConditions: ['All candidate cases pass', 'No previously passing case fails'], noiseModel: 'Deterministic finite contract suite; no generalization claim',
+            metrics: [{ metricId, unit: target.objective ? 'qualified comparison' : 'cases', direction: 'maximize', measurementSource: evidencePath,
+              aggregationRule: target.objective ? 'All candidate correctness and separate workload cases pass; repair adds passing cases or latency satisfies every frozen threshold.' : 'Candidate passes minus baseline passes; no baseline regressions.',
+              validityConditions: ['All candidate cases pass', 'No previously passing case fails'],
+              noiseModel: target.objective ? 'Alternating paired host wall-clock samples; absolute, relative and faster-pair thresholds. No generalization claim.' : 'Deterministic finite contract suite; no generalization claim',
               minimumSampleSize: target.tests.length, promotionThreshold: { operator: '>=', value: 1 }, operational: false }],
-            algorithm: { algorithmId: targetId, version: baseline.generationId, sourceModules: [path], inputs: ['JSON task input'], outputs: ['JSON tool result'],
+            algorithm: { algorithmId: targetId, version: generationId, sourceModules: [path], inputs: ['JSON task input'], outputs: ['JSON tool result'],
               invariants: ['No host access or side effects', 'Protected tests are never candidate-controlled'], complexity: 'Bounded by host timeout',
               resourceAssumptions: ['Browser sandbox available'], knownFailureModes: ['Timeout', 'Incorrect output'], evaluationSuites: [suiteHash], dependencies: [], status: 'candidate' },
             environment: { runtime: 'opaque-origin-frame-worker', qualification: 'local finite-suite evaluation' },
@@ -125,9 +141,9 @@ export function createCodeEvolution({ targets, policy, ports }) {
             reopeningConditions: [{ conditionId: 'operator-rollback', observationKind: 'tool_failure', targetId,
               sensorAuthorityId: 'work:operator', action: 'rollback_request' }] });
           await ledger.recordDiagnosis(id, { authorityId: proposerAuthority, diagnosis: reason, hypothesis: {
-            observation: reason, suspectedCause: 'The current tool does not cover the requested input',
+            observation: reason, suspectedCause: 'The current tool may fail required inputs or use avoidable execution time',
             alternativeExplanations: ['The task may be outside this tool contract'], proposedDiagnostic: 'Compare both versions on the frozen host suite',
-            candidateIntervention: 'Replace the registered pure tool implementation', expectedResult: 'More passing cases without regressions',
+            candidateIntervention: 'Replace the registered pure tool implementation', expectedResult: 'Meet the frozen improvement objective without regressions',
             falsifyingResult: 'No improvement or any regression' } });
           await ledger.proposeCandidate(id, { candidateId: id, candidateHash, patchHash: await hash({ before: baseline.code, after: code }),
             generationId, parentGenerationId: baseline.generationId, changedFiles: [path], semanticScope: [targetId], expectedBehavior: reason,
@@ -146,18 +162,26 @@ export function createCodeEvolution({ targets, policy, ports }) {
             regressions: observations.filter(item => item.baseline.passed && !item.candidate.passed).map(item => item.index),
             suiteHash, candidateHash, baselineHash, contractHash };
           const e = record.evaluation;
-          const improved = e.candidatePassed === e.total && !e.regressions.length && e.candidatePassed > e.baselinePassed;
+          const correct = e.candidatePassed === e.total && !e.regressions.length;
+          const changed = candidateHash !== baselineHash;
+          if (correct && changed && target.objective) e.latency = await measureToolLatency({ objective: target.objective,
+            baseline: baseline.code, candidate: code, runCase, now: ports.now || (() => performance.now()), signal });
+          const repaired = correct && changed && e.candidatePassed > e.baselinePassed && (!target.objective || e.latency.candidateValid);
+          const faster = correct && e.baselinePassed === e.total && e.latency?.improved === true;
+          const improved = repaired || faster;
+          e.objectiveHash = objectiveHash; e.improvementKind = repaired ? 'correctness' : faster ? 'latency' : null;
+          const rawObservations = [...observations, ...(e.latency?.observations || [])];
           await ports.writeEvidence(evidencePath, { observations, evaluation: e });
-          await ledger.recordExecution(id, { isolated: true, sandboxId: 'opaque-worker:' + id, runtimeIdentity: 'browser:opaque-origin-worker', resourceUse: { samples: observations.length * 2 } });
+          await ledger.recordExecution(id, { isolated: true, sandboxId: 'opaque-worker:' + id, runtimeIdentity: 'browser:opaque-origin-worker', resourceUse: { samples: rawObservations.length * 2 } });
           await ledger.recordNegativeEvidence(id, { evidenceId: 'baseline-cases', kind: 'baseline_comparison', digest: await hash(observations),
             summary: `${e.baselinePassed}/${e.total} baseline cases passed`, retained: true, sourcePath: evidencePath });
           await ledger.recordEvaluation(id, { baselineContractHash: contractHash, candidateContractHash: contractHash, evaluatorHash,
-            sampleCount: observations.length, rawObservations: observations,
-            metrics: [{ metricId: 'additional-cases', value: e.candidatePassed - e.baselinePassed, valid: improved }] });
-          await ledger.recordComparison(id, { authorityId: 'work:evaluator', primaryMetricId: 'additional-cases',
+            sampleCount: rawObservations.length, rawObservations,
+            metrics: [{ metricId, value: target.objective ? Number(improved) : e.candidatePassed - e.baselinePassed, valid: improved }] });
+          await ledger.recordComparison(id, { authorityId: 'work:evaluator', primaryMetricId: metricId,
             tradeoffs: [e], regressions: e.regressions, conclusion: improved ? 'improved' : 'not-improved' });
           if (improved) { await ledger.requestPromotion(id, { authorityId: 'work:operator', evidencePath }); record.status = 'awaiting-approval'; }
-          else { await ledger.recordDecision(id, { state: 'rejected', reasons: ['The candidate did not improve every required contract boundary'] }); record.status = 'rejected'; }
+          else { await ledger.recordDecision(id, { state: 'rejected', reasons: ['The candidate did not satisfy the frozen correctness and improvement objective'] }); record.status = 'rejected'; }
         } catch (error) {
           record.status = signal?.aborted ? 'cancelled' : 'failed'; record.error = String(error.message || error);
           try { await ledger.recordDecision(id, { state: 'inconclusive', reasons: [record.error] }); } catch { /* Preserve the original failure in the host record. */ }
@@ -176,6 +200,10 @@ export function createCodeEvolution({ targets, policy, ports }) {
         assert(await ports.authorize({ action: 'improvement.adopt', candidateId: id, accepted }) === true, 'Host denied adoption');
         const episode = await ledger.getEpisode(id);
         assert(ledger.assessPromotionReadiness(episode).ready, 'Signed evaluation is not adoption-ready');
+        if (accepted) {
+          assert(episode.baseline.hashes.contract === await evaluationContract(target), 'Evaluation objective or policy changed; evaluate a fresh candidate');
+          assert(episode.evaluator.evaluatorHash === await evaluatorIdentity(target), 'Evaluator changed; evaluate a fresh candidate');
+        }
         assert(episode.objective.objectiveId === target.id && episode.candidate.generationId === record.generationId
           && episode.baseline.generationId === record.baseline.generationId
           && episode.baseline.hashes.code === await hash(version(state, target).code), 'Candidate target or baseline differs from evaluation');

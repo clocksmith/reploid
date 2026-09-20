@@ -206,9 +206,15 @@ export function createWorkSession({ storage, locks = globalThis.navigator?.locks
             const candidate = await evolution.propose({ ...args, taskId: row.id,
               generator: { implementation: 'reploid/shared-engine/work', model: row.execution || model,
                 instruction: policy.instruction } }, { signal: controller.signal });
-            row.improvements.push({ id: candidate.id, targetId: candidate.targetId, status: candidate.status, evaluation: candidate.evaluation });
+            // Raw workload outputs stay with the evaluator, outside the agent's feedback context.
+            const evaluation = candidate.evaluation ? { ...candidate.evaluation } : undefined;
+            if (evaluation?.latency) {
+              const { observations, ...summary } = evaluation.latency;
+              evaluation.latency = summary;
+            }
+            row.improvements.push({ id: candidate.id, targetId: candidate.targetId, status: candidate.status, evaluation });
             await save(row); notify();
-            return { ...candidate, code: undefined, next: 'The operator reviews this independently. Continue the task with the pinned current tool.' };
+            return { ...candidate, evaluation, code: undefined, next: 'The operator reviews this independently. Continue the task with the pinned current tool.' };
           },
           async AskHelper({ goal }) {
             requireValue(row.helpers.length < helperPolicy.maxHelpers, 'Helper allowance reached');

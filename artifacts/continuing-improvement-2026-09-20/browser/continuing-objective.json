@@ -1,0 +1,2778 @@
+{
+  "report": {
+    "rejected": {
+      "id": "candidate:c74c207b-67a2-4b24-bf97-ca9f78292a5c",
+      "targetId": "FormatJson",
+      "taskId": "continuing-objective-fixture",
+      "code": "() => null",
+      "reason": "Exercise continuing objective",
+      "generationId": "FormatJson:500447c8-572f-4d68-a29a-f00d692592c8",
+      "status": "rejected",
+      "createdAt": "2026-09-20T13:45:22.935Z",
+      "error": null,
+      "evaluation": {
+        "baselinePassed": 4,
+        "candidatePassed": 0,
+        "total": 6,
+        "regressions": [
+          0,
+          1,
+          4,
+          5
+        ],
+        "suiteHash": "sha256:21a51f8e75db4899bd57e5c6a70c62e8b14559b99214762cd8290820bdd2e543",
+        "candidateHash": "sha256:9b72da90fb0dc736dcf7e9de5cab1078d8534ae07e9c83896b24076fa856ab56",
+        "baselineHash": "sha256:2c32f4668352a3ed53c1e6238feb467e63cf6a5980cd062ce336f1a399d3088d",
+        "contractHash": "sha256:e7e19cc1ff90e07c2a1fc40ee20d555d031083ae543c6d22b76ecd98b11fea2e",
+        "objectiveHash": "sha256:b3a247d25ae4fab0ae2f703b8f7a08a7400808c7e3ffda0899de02038a5e59ac",
+        "improvementKind": null
+      },
+      "baselineGeneration": "FormatJson:genesis"
+    },
+    "first": {
+      "id": "candidate:66d69b7f-8653-43ae-be50-0528512099b8",
+      "targetId": "FormatJson",
+      "taskId": "continuing-objective-fixture",
+      "code": "({text})=>{const end=Date.now()+80;while(Date.now()<end){} let s=text.replace(/^\\uFEFF/, \"\").trim(); if(s.startsWith(\"```json\\n\")&&s.endsWith(\"\\n```\"))s=s.slice(8,-4); return JSON.stringify(JSON.parse(s),null,2);}",
+      "reason": "Exercise continuing objective",
+      "generationId": "FormatJson:958c7fa1-f693-4dbf-b444-e9bf22b45355",
+      "status": "awaiting-approval",
+      "createdAt": "2026-09-20T13:45:23.153Z",
+      "error": null,
+      "evaluation": {
+        "baselinePassed": 4,
+        "candidatePassed": 6,
+        "total": 6,
+        "regressions": [],
+        "suiteHash": "sha256:21a51f8e75db4899bd57e5c6a70c62e8b14559b99214762cd8290820bdd2e543",
+        "candidateHash": "sha256:fa54846777fd9fc754854fa4613b6b121b39de78c0bb5c3f053c197480a5011a",
+        "baselineHash": "sha256:2c32f4668352a3ed53c1e6238feb467e63cf6a5980cd062ce336f1a399d3088d",
+        "contractHash": "sha256:e7e19cc1ff90e07c2a1fc40ee20d555d031083ae543c6d22b76ecd98b11fea2e",
+        "latency": {
+          "objectiveId": "format-json-repair-or-latency",
+          "objectiveVersion": 1,
+          "observations": [
+            {
+              "index": 0,
+              "testIndex": 0,
+              "order": [
+                "baseline",
+                "candidate"
+              ],
+              "baseline": {
+                "passed": false,
+                "error": "Unexpected token '`', \"```json\n{\"\"... is not valid JSON",
+                "elapsedMs": 7.700000762939453
+              },
+              "candidate": {
+                "passed": true,
+                "actual": "{\n  \"nested\": {\n    \"empty\": [],\n    \"ok\": true\n  },\n  \"text\": \"keep \\\"quotes\\\"\"\n}",
+                "elapsedMs": 88
+              }
+            },
+            {
+              "index": 1,
+              "testIndex": 1,
+              "order": [
+                "candidate",
+                "baseline"
+              ],
+              "candidate": {
+                "passed": true,
+                "actual": "[\n  false,\n  {\n    \"n\": -1.5\n  },\n  \"λ\"\n]",
+                "elapsedMs": 89.10000038146973
+              },
+              "baseline": {
+                "passed": false,
+                "error": "Unexpected token '﻿', \"﻿[false,{\"\"... is not valid JSON",
+                "elapsedMs": 9
+              }
+            },
+            {
+              "index": 2,
+              "testIndex": 2,
+              "order": [
+                "baseline",
+                "candidate"
+              ],
+              "baseline": {
+                "passed": true,
+                "actual": "{\n  \"a\": 2,\n  \"fence\": \"```json\"\n}",
+                "elapsedMs": 9.59999942779541
+              },
+              "candidate": {
+                "passed": true,
+                "actual": "{\n  \"a\": 2,\n  \"fence\": \"```json\"\n}",
+                "elapsedMs": 87.20000076293945
+              }
+            },
+            {
+              "index": 3,
+              "testIndex": 3,
+              "order": [
+                "candidate",
+                "baseline"
+              ],
+              "candidate": {
+                "passed": true,
+                "error": "Expected property name or '}' in JSON at position 1 (line 1 column 2)",
+                "elapsedMs": 89.89999961853027
+              },
+              "baseline": {
+                "passed": true,
+                "error": "Unexpected token '`', \"```json\n{broken}\n```\" is not valid JSON",
+                "elapsedMs": 11.300000190734863
+              }
+            },
+            {
+              "index": 4,
+              "testIndex": 0,
+              "order": [
+                "baseline",
+                "candidate"
+              ],
+              "baseline": {
+                "passed": false,
+                "error": "Unexpected token '`', \"```json\n{\"\"... is not valid JSON",
+                "elapsedMs": 18.40000057220459
+              },
+              "candidate": {
+                "passed": true,
+                "actual": "{\n  \"nested\": {\n    \"empty\": [],\n    \"ok\": true\n  },\n  \"text\": \"keep \\\"quotes\\\"\"\n}",
+                "elapsedMs": 91.39999961853027
+              }
+            },
+            {
+              "index": 5,
+              "testIndex": 1,
+              "order": [
+                "candidate",
+                "baseline"
+              ],
+              "candidate": {
+                "passed": true,
+                "actual": "[\n  false,\n  {\n    \"n\": -1.5\n  },\n  \"λ\"\n]",
+                "elapsedMs": 88.10000038146973
+              },
+              "baseline": {
+                "passed": false,
+                "error": "Unexpected token '﻿', \"﻿[false,{\"\"... is not valid JSON",
+                "elapsedMs": 7.800000190734863
+              }
+            },
+            {
+              "index": 6,
+              "testIndex": 2,
+              "order": [
+                "baseline",
+                "candidate"
+              ],
+              "baseline": {
+                "passed": true,
+                "actual": "{\n  \"a\": 2,\n  \"fence\": \"```json\"\n}",
+                "elapsedMs": 7.5
+              },
+              "candidate": {
+                "passed": true,
+                "actual": "{\n  \"a\": 2,\n  \"fence\": \"```json\"\n}",
+                "elapsedMs": 87.89999961853027
+              }
+            },
+            {
+              "index": 7,
+              "testIndex": 3,
+              "order": [
+                "candidate",
+                "baseline"
+              ],
+              "candidate": {
+                "passed": true,
+                "error": "Expected property name or '}' in JSON at position 1 (line 1 column 2)",
+                "elapsedMs": 89.80000019073486
+              },
+              "baseline": {
+                "passed": true,
+                "error": "Unexpected token '`', \"```json\n{broken}\n```\" is not valid JSON",
+                "elapsedMs": 7.899999618530273
+              }
+            },
+            {
+              "index": 8,
+              "testIndex": 0,
+              "order": [
+                "baseline",
+                "candidate"
+              ],
+              "baseline": {
+                "passed": false,
+                "error": "Unexpected token '`', \"```json\n{\"\"... is not valid JSON",
+                "elapsedMs": 7.399999618530273
+              },
+              "candidate": {
+                "passed": true,
+                "actual": "{\n  \"nested\": {\n    \"empty\": [],\n    \"ok\": true\n  },\n  \"text\": \"keep \\\"quotes\\\"\"\n}",
+                "elapsedMs": 87.30000019073486
+              }
+            },
+            {
+              "index": 9,
+              "testIndex": 1,
+              "order": [
+                "candidate",
+                "baseline"
+              ],
+              "candidate": {
+                "passed": true,
+                "actual": "[\n  false,\n  {\n    \"n\": -1.5\n  },\n  \"λ\"\n]",
+                "elapsedMs": 89
+              },
+              "baseline": {
+                "passed": false,
+                "error": "Unexpected token '﻿', \"﻿[false,{\"\"... is not valid JSON",
+                "elapsedMs": 8.5
+              }
+            },
+            {
+              "index": 10,
+              "testIndex": 2,
+              "order": [
+                "baseline",
+                "candidate"
+              ],
+              "baseline": {
+                "passed": true,
+                "actual": "{\n  \"a\": 2,\n  \"fence\": \"```json\"\n}",
+                "elapsedMs": 7.5
+              },
+              "candidate": {
+                "passed": true,
+                "actual": "{\n  \"a\": 2,\n  \"fence\": \"```json\"\n}",
+                "elapsedMs": 87.10000038146973
+              }
+            },
+            {
+              "index": 11,
+              "testIndex": 3,
+              "order": [
+                "candidate",
+                "baseline"
+              ],
+              "candidate": {
+                "passed": true,
+                "error": "Expected property name or '}' in JSON at position 1 (line 1 column 2)",
+                "elapsedMs": 89
+              },
+              "baseline": {
+                "passed": true,
+                "error": "Unexpected token '`', \"```json\n{broken}\n```\" is not valid JSON",
+                "elapsedMs": 8.59999942779541
+              }
+            }
+          ],
+          "valid": false,
+          "candidateValid": true,
+          "baselineMedianMs": 8.199999809265137,
+          "candidateMedianMs": 88.55000019073486,
+          "medianGainMs": -80.19999980926514,
+          "medianRelativeGain": -9.882729901438339,
+          "fasterPairs": 0,
+          "improved": false
+        },
+        "objectiveHash": "sha256:b3a247d25ae4fab0ae2f703b8f7a08a7400808c7e3ffda0899de02038a5e59ac",
+        "improvementKind": "correctness"
+      },
+      "baselineGeneration": "FormatJson:genesis"
+    },
+    "second": {
+      "id": "candidate:758a412e-32e2-4349-a77f-3f85e723becd",
+      "targetId": "FormatJson",
+      "taskId": "continuing-objective-fixture",
+      "code": "({text})=>{let s=text.replace(/^\\uFEFF/, \"\").trim(); if(s.startsWith(\"```json\\n\")&&s.endsWith(\"\\n```\"))s=s.slice(8,-4); return JSON.stringify(JSON.parse(s),null,2);}",
+      "reason": "Exercise continuing objective",
+      "generationId": "FormatJson:3116f840-de71-4a0d-9e1f-f30b8a63fdaf",
+      "status": "awaiting-approval",
+      "createdAt": "2026-09-20T13:45:25.002Z",
+      "error": null,
+      "evaluation": {
+        "baselinePassed": 6,
+        "candidatePassed": 6,
+        "total": 6,
+        "regressions": [],
+        "suiteHash": "sha256:21a51f8e75db4899bd57e5c6a70c62e8b14559b99214762cd8290820bdd2e543",
+        "candidateHash": "sha256:c33644c61227c7c033f80d40b1992e64a8bacdbf67a725a6c95c83cc55ef1e8a",
+        "baselineHash": "sha256:fa54846777fd9fc754854fa4613b6b121b39de78c0bb5c3f053c197480a5011a",
+        "contractHash": "sha256:e7e19cc1ff90e07c2a1fc40ee20d555d031083ae543c6d22b76ecd98b11fea2e",
+        "latency": {
+          "objectiveId": "format-json-repair-or-latency",
+          "objectiveVersion": 1,
+          "observations": [
+            {
+              "index": 0,
+              "testIndex": 0,
+              "order": [
+                "baseline",
+                "candidate"
+              ],
+              "baseline": {
+                "passed": true,
+                "actual": "{\n  \"nested\": {\n    \"empty\": [],\n    \"ok\": true\n  },\n  \"text\": \"keep \\\"quotes\\\"\"\n}",
+                "elapsedMs": 87.60000038146973
+              },
+              "candidate": {
+                "passed": true,
+                "actual": "{\n  \"nested\": {\n    \"empty\": [],\n    \"ok\": true\n  },\n  \"text\": \"keep \\\"quotes\\\"\"\n}",
+                "elapsedMs": 11
+              }
+            },
+            {
+              "index": 1,
+              "testIndex": 1,
+              "order": [
+                "candidate",
+                "baseline"
+              ],
+              "candidate": {
+                "passed": true,
+                "actual": "[\n  false,\n  {\n    \"n\": -1.5\n  },\n  \"λ\"\n]",
+                "elapsedMs": 8.199999809265137
+              },
+              "baseline": {
+                "passed": true,
+                "actual": "[\n  false,\n  {\n    \"n\": -1.5\n  },\n  \"λ\"\n]",
+                "elapsedMs": 88.80000019073486
+              }
+            },
+            {
+              "index": 2,
+              "testIndex": 2,
+              "order": [
+                "baseline",
+                "candidate"
+              ],
+              "baseline": {
+                "passed": true,
+                "actual": "{\n  \"a\": 2,\n  \"fence\": \"```json\"\n}",
+                "elapsedMs": 88
+              },
+              "candidate": {
+                "passed": true,
+                "actual": "{\n  \"a\": 2,\n  \"fence\": \"```json\"\n}",
+                "elapsedMs": 8
+              }
+            },
+            {
+              "index": 3,
+              "testIndex": 3,
+              "order": [
+                "candidate",
+                "baseline"
+              ],
+              "candidate": {
+                "passed": true,
+                "error": "Expected property name or '}' in JSON at position 1 (line 1 column 2)",
+                "elapsedMs": 8.199999809265137
+              },
+              "baseline": {
+                "passed": true,
+                "error": "Expected property name or '}' in JSON at position 1 (line 1 column 2)",
+                "elapsedMs": 87.69999980926514
+              }
+            },
+            {
+              "index": 4,
+              "testIndex": 0,
+              "order": [
+                "baseline",
+                "candidate"
+              ],
+              "baseline": {
+                "passed": true,
+                "actual": "{\n  \"nested\": {\n    \"empty\": [],\n    \"ok\": true\n  },\n  \"text\": \"keep \\\"quotes\\\"\"\n}",
+                "elapsedMs": 88
+              },
+              "candidate": {
+                "passed": true,
+                "actual": "{\n  \"nested\": {\n    \"empty\": [],\n    \"ok\": true\n  },\n  \"text\": \"keep \\\"quotes\\\"\"\n}",
+                "elapsedMs": 11.59999942779541
+              }
+            },
+            {
+              "index": 5,
+              "testIndex": 1,
+              "order": [
+                "candidate",
+                "baseline"
+              ],
+              "candidate": {
+                "passed": true,
+                "actual": "[\n  false,\n  {\n    \"n\": -1.5\n  },\n  \"λ\"\n]",
+                "elapsedMs": 10.100000381469727
+              },
+              "baseline": {
+                "passed": true,
+                "actual": "[\n  false,\n  {\n    \"n\": -1.5\n  },\n  \"λ\"\n]",
+                "elapsedMs": 88.19999980926514
+              }
+            },
+            {
+              "index": 6,
+              "testIndex": 2,
+              "order": [
+                "baseline",
+                "candidate"
+              ],
+              "baseline": {
+                "passed": true,
+                "actual": "{\n  \"a\": 2,\n  \"fence\": \"```json\"\n}",
+                "elapsedMs": 92
+              },
+              "candidate": {
+                "passed": true,
+                "actual": "{\n  \"a\": 2,\n  \"fence\": \"```json\"\n}",
+                "elapsedMs": 8.90000057220459
+              }
+            },
+            {
+              "index": 7,
+              "testIndex": 3,
+              "order": [
+                "candidate",
+                "baseline"
+              ],
+              "candidate": {
+                "passed": true,
+                "error": "Expected property name or '}' in JSON at position 1 (line 1 column 2)",
+                "elapsedMs": 9.09999942779541
+              },
+              "baseline": {
+                "passed": true,
+                "error": "Expected property name or '}' in JSON at position 1 (line 1 column 2)",
+                "elapsedMs": 89
+              }
+            },
+            {
+              "index": 8,
+              "testIndex": 0,
+              "order": [
+                "baseline",
+                "candidate"
+              ],
+              "baseline": {
+                "passed": true,
+                "actual": "{\n  \"nested\": {\n    \"empty\": [],\n    \"ok\": true\n  },\n  \"text\": \"keep \\\"quotes\\\"\"\n}",
+                "elapsedMs": 88.10000038146973
+              },
+              "candidate": {
+                "passed": true,
+                "actual": "{\n  \"nested\": {\n    \"empty\": [],\n    \"ok\": true\n  },\n  \"text\": \"keep \\\"quotes\\\"\"\n}",
+                "elapsedMs": 18.800000190734863
+              }
+            },
+            {
+              "index": 9,
+              "testIndex": 1,
+              "order": [
+                "candidate",
+                "baseline"
+              ],
+              "candidate": {
+                "passed": true,
+                "actual": "[\n  false,\n  {\n    \"n\": -1.5\n  },\n  \"λ\"\n]",
+                "elapsedMs": 10.5
+              },
+              "baseline": {
+                "passed": true,
+                "actual": "[\n  false,\n  {\n    \"n\": -1.5\n  },\n  \"λ\"\n]",
+                "elapsedMs": 89.59999942779541
+              }
+            },
+            {
+              "index": 10,
+              "testIndex": 2,
+              "order": [
+                "baseline",
+                "candidate"
+              ],
+              "baseline": {
+                "passed": true,
+                "actual": "{\n  \"a\": 2,\n  \"fence\": \"```json\"\n}",
+                "elapsedMs": 88.19999980926514
+              },
+              "candidate": {
+                "passed": true,
+                "actual": "{\n  \"a\": 2,\n  \"fence\": \"```json\"\n}",
+                "elapsedMs": 7.600000381469727
+              }
+            },
+            {
+              "index": 11,
+              "testIndex": 3,
+              "order": [
+                "candidate",
+                "baseline"
+              ],
+              "candidate": {
+                "passed": true,
+                "error": "Expected property name or '}' in JSON at position 1 (line 1 column 2)",
+                "elapsedMs": 7.600000381469727
+              },
+              "baseline": {
+                "passed": true,
+                "error": "Expected property name or '}' in JSON at position 1 (line 1 column 2)",
+                "elapsedMs": 87.59999942779541
+              }
+            }
+          ],
+          "valid": true,
+          "candidateValid": true,
+          "baselineMedianMs": 88.15000009536743,
+          "candidateMedianMs": 9,
+          "medianGainMs": 79.7000002861023,
+          "medianRelativeGain": 0.9005068393818156,
+          "fasterPairs": 12,
+          "improved": true
+        },
+        "objectiveHash": "sha256:b3a247d25ae4fab0ae2f703b8f7a08a7400808c7e3ffda0899de02038a5e59ac",
+        "improvementKind": "latency"
+      },
+      "baselineGeneration": "FormatJson:958c7fa1-f693-4dbf-b444-e9bf22b45355"
+    },
+    "beforeApproval": {
+      "id": "FormatJson",
+      "description": "Turn JSON text into a formatted JSON string without changing values. Must handle plain JSON, an optional initial byte order mark, and a single outer Markdown JSON code fence. Preserve fence-like text inside JSON string values. Invalid JSON must throw. Takes an object {text}; returns a string formatted with two-space indentation.",
+      "code": "({text})=>{const end=Date.now()+80;while(Date.now()<end){} let s=text.replace(/^\\uFEFF/, \"\").trim(); if(s.startsWith(\"```json\\n\")&&s.endsWith(\"\\n```\"))s=s.slice(8,-4); return JSON.stringify(JSON.parse(s),null,2);}",
+      "generationId": "FormatJson:958c7fa1-f693-4dbf-b444-e9bf22b45355",
+      "episodeId": "candidate:66d69b7f-8653-43ae-be50-0528512099b8",
+      "objective": {
+        "id": "format-json-repair-or-latency",
+        "version": 1,
+        "kind": "repair-or-latency",
+        "minimumAbsoluteGainMs": 5,
+        "minimumRelativeGain": 0.2
+      }
+    },
+    "episode": {
+      "candidate": {
+        "id": "candidate:758a412e-32e2-4349-a77f-3f85e723becd",
+        "targetId": "FormatJson",
+        "taskId": "continuing-objective-fixture",
+        "code": "({text})=>{let s=text.replace(/^\\uFEFF/, \"\").trim(); if(s.startsWith(\"```json\\n\")&&s.endsWith(\"\\n```\"))s=s.slice(8,-4); return JSON.stringify(JSON.parse(s),null,2);}",
+        "reason": "Exercise continuing objective",
+        "baseline": {
+          "code": "({text})=>{const end=Date.now()+80;while(Date.now()<end){} let s=text.replace(/^\\uFEFF/, \"\").trim(); if(s.startsWith(\"```json\\n\")&&s.endsWith(\"\\n```\"))s=s.slice(8,-4); return JSON.stringify(JSON.parse(s),null,2);}",
+          "generationId": "FormatJson:958c7fa1-f693-4dbf-b444-e9bf22b45355",
+          "episodeId": "candidate:66d69b7f-8653-43ae-be50-0528512099b8"
+        },
+        "generationId": "FormatJson:3116f840-de71-4a0d-9e1f-f30b8a63fdaf",
+        "status": "awaiting-approval",
+        "createdAt": "2026-09-20T13:45:25.002Z",
+        "error": null,
+        "evaluation": {
+          "baselinePassed": 6,
+          "candidatePassed": 6,
+          "total": 6,
+          "regressions": [],
+          "suiteHash": "sha256:21a51f8e75db4899bd57e5c6a70c62e8b14559b99214762cd8290820bdd2e543",
+          "candidateHash": "sha256:c33644c61227c7c033f80d40b1992e64a8bacdbf67a725a6c95c83cc55ef1e8a",
+          "baselineHash": "sha256:fa54846777fd9fc754854fa4613b6b121b39de78c0bb5c3f053c197480a5011a",
+          "contractHash": "sha256:e7e19cc1ff90e07c2a1fc40ee20d555d031083ae543c6d22b76ecd98b11fea2e",
+          "latency": {
+            "objectiveId": "format-json-repair-or-latency",
+            "objectiveVersion": 1,
+            "observations": [
+              {
+                "index": 0,
+                "testIndex": 0,
+                "order": [
+                  "baseline",
+                  "candidate"
+                ],
+                "baseline": {
+                  "passed": true,
+                  "actual": "{\n  \"nested\": {\n    \"empty\": [],\n    \"ok\": true\n  },\n  \"text\": \"keep \\\"quotes\\\"\"\n}",
+                  "elapsedMs": 87.60000038146973
+                },
+                "candidate": {
+                  "passed": true,
+                  "actual": "{\n  \"nested\": {\n    \"empty\": [],\n    \"ok\": true\n  },\n  \"text\": \"keep \\\"quotes\\\"\"\n}",
+                  "elapsedMs": 11
+                }
+              },
+              {
+                "index": 1,
+                "testIndex": 1,
+                "order": [
+                  "candidate",
+                  "baseline"
+                ],
+                "candidate": {
+                  "passed": true,
+                  "actual": "[\n  false,\n  {\n    \"n\": -1.5\n  },\n  \"λ\"\n]",
+                  "elapsedMs": 8.199999809265137
+                },
+                "baseline": {
+                  "passed": true,
+                  "actual": "[\n  false,\n  {\n    \"n\": -1.5\n  },\n  \"λ\"\n]",
+                  "elapsedMs": 88.80000019073486
+                }
+              },
+              {
+                "index": 2,
+                "testIndex": 2,
+                "order": [
+                  "baseline",
+                  "candidate"
+                ],
+                "baseline": {
+                  "passed": true,
+                  "actual": "{\n  \"a\": 2,\n  \"fence\": \"```json\"\n}",
+                  "elapsedMs": 88
+                },
+                "candidate": {
+                  "passed": true,
+                  "actual": "{\n  \"a\": 2,\n  \"fence\": \"```json\"\n}",
+                  "elapsedMs": 8
+                }
+              },
+              {
+                "index": 3,
+                "testIndex": 3,
+                "order": [
+                  "candidate",
+                  "baseline"
+                ],
+                "candidate": {
+                  "passed": true,
+                  "error": "Expected property name or '}' in JSON at position 1 (line 1 column 2)",
+                  "elapsedMs": 8.199999809265137
+                },
+                "baseline": {
+                  "passed": true,
+                  "error": "Expected property name or '}' in JSON at position 1 (line 1 column 2)",
+                  "elapsedMs": 87.69999980926514
+                }
+              },
+              {
+                "index": 4,
+                "testIndex": 0,
+                "order": [
+                  "baseline",
+                  "candidate"
+                ],
+                "baseline": {
+                  "passed": true,
+                  "actual": "{\n  \"nested\": {\n    \"empty\": [],\n    \"ok\": true\n  },\n  \"text\": \"keep \\\"quotes\\\"\"\n}",
+                  "elapsedMs": 88
+                },
+                "candidate": {
+                  "passed": true,
+                  "actual": "{\n  \"nested\": {\n    \"empty\": [],\n    \"ok\": true\n  },\n  \"text\": \"keep \\\"quotes\\\"\"\n}",
+                  "elapsedMs": 11.59999942779541
+                }
+              },
+              {
+                "index": 5,
+                "testIndex": 1,
+                "order": [
+                  "candidate",
+                  "baseline"
+                ],
+                "candidate": {
+                  "passed": true,
+                  "actual": "[\n  false,\n  {\n    \"n\": -1.5\n  },\n  \"λ\"\n]",
+                  "elapsedMs": 10.100000381469727
+                },
+                "baseline": {
+                  "passed": true,
+                  "actual": "[\n  false,\n  {\n    \"n\": -1.5\n  },\n  \"λ\"\n]",
+                  "elapsedMs": 88.19999980926514
+                }
+              },
+              {
+                "index": 6,
+                "testIndex": 2,
+                "order": [
+                  "baseline",
+                  "candidate"
+                ],
+                "baseline": {
+                  "passed": true,
+                  "actual": "{\n  \"a\": 2,\n  \"fence\": \"```json\"\n}",
+                  "elapsedMs": 92
+                },
+                "candidate": {
+                  "passed": true,
+                  "actual": "{\n  \"a\": 2,\n  \"fence\": \"```json\"\n}",
+                  "elapsedMs": 8.90000057220459
+                }
+              },
+              {
+                "index": 7,
+                "testIndex": 3,
+                "order": [
+                  "candidate",
+                  "baseline"
+                ],
+                "candidate": {
+                  "passed": true,
+                  "error": "Expected property name or '}' in JSON at position 1 (line 1 column 2)",
+                  "elapsedMs": 9.09999942779541
+                },
+                "baseline": {
+                  "passed": true,
+                  "error": "Expected property name or '}' in JSON at position 1 (line 1 column 2)",
+                  "elapsedMs": 89
+                }
+              },
+              {
+                "index": 8,
+                "testIndex": 0,
+                "order": [
+                  "baseline",
+                  "candidate"
+                ],
+                "baseline": {
+                  "passed": true,
+                  "actual": "{\n  \"nested\": {\n    \"empty\": [],\n    \"ok\": true\n  },\n  \"text\": \"keep \\\"quotes\\\"\"\n}",
+                  "elapsedMs": 88.10000038146973
+                },
+                "candidate": {
+                  "passed": true,
+                  "actual": "{\n  \"nested\": {\n    \"empty\": [],\n    \"ok\": true\n  },\n  \"text\": \"keep \\\"quotes\\\"\"\n}",
+                  "elapsedMs": 18.800000190734863
+                }
+              },
+              {
+                "index": 9,
+                "testIndex": 1,
+                "order": [
+                  "candidate",
+                  "baseline"
+                ],
+                "candidate": {
+                  "passed": true,
+                  "actual": "[\n  false,\n  {\n    \"n\": -1.5\n  },\n  \"λ\"\n]",
+                  "elapsedMs": 10.5
+                },
+                "baseline": {
+                  "passed": true,
+                  "actual": "[\n  false,\n  {\n    \"n\": -1.5\n  },\n  \"λ\"\n]",
+                  "elapsedMs": 89.59999942779541
+                }
+              },
+              {
+                "index": 10,
+                "testIndex": 2,
+                "order": [
+                  "baseline",
+                  "candidate"
+                ],
+                "baseline": {
+                  "passed": true,
+                  "actual": "{\n  \"a\": 2,\n  \"fence\": \"```json\"\n}",
+                  "elapsedMs": 88.19999980926514
+                },
+                "candidate": {
+                  "passed": true,
+                  "actual": "{\n  \"a\": 2,\n  \"fence\": \"```json\"\n}",
+                  "elapsedMs": 7.600000381469727
+                }
+              },
+              {
+                "index": 11,
+                "testIndex": 3,
+                "order": [
+                  "candidate",
+                  "baseline"
+                ],
+                "candidate": {
+                  "passed": true,
+                  "error": "Expected property name or '}' in JSON at position 1 (line 1 column 2)",
+                  "elapsedMs": 7.600000381469727
+                },
+                "baseline": {
+                  "passed": true,
+                  "error": "Expected property name or '}' in JSON at position 1 (line 1 column 2)",
+                  "elapsedMs": 87.59999942779541
+                }
+              }
+            ],
+            "valid": true,
+            "candidateValid": true,
+            "baselineMedianMs": 88.15000009536743,
+            "candidateMedianMs": 9,
+            "medianGainMs": 79.7000002861023,
+            "medianRelativeGain": 0.9005068393818156,
+            "fasterPairs": 12,
+            "improved": true
+          },
+          "objectiveHash": "sha256:b3a247d25ae4fab0ae2f703b8f7a08a7400808c7e3ffda0899de02038a5e59ac",
+          "improvementKind": "latency"
+        }
+      },
+      "episode": {
+        "schema": "rsi.improvement-episode/v1",
+        "episodeId": "candidate:758a412e-32e2-4349-a77f-3f85e723becd",
+        "parentEpisodeId": "candidate:66d69b7f-8653-43ae-be50-0528512099b8",
+        "groupId": "continuing-objective-fixture",
+        "surface": "other",
+        "status": "awaiting_promotion",
+        "objective": {
+          "objectiveId": "FormatJson",
+          "statement": "Turn JSON text into a formatted JSON string without changing values. Must handle plain JSON, an optional initial byte order mark, and a single outer Markdown JSON code fence. Preserve fence-like text inside JSON string values. Invalid JSON must throw. Takes an object {text}; returns a string formatted with two-space indentation.",
+          "successMetricId": "qualified-improvement",
+          "definition": {
+            "id": "format-json-repair-or-latency",
+            "version": 1,
+            "kind": "repair-or-latency",
+            "samples": 12,
+            "minimumAbsoluteGainMs": 5,
+            "minimumRelativeGain": 0.2,
+            "minimumFasterPairs": 11,
+            "cases": [
+              {
+                "input": {
+                  "text": "```json\n{\"nested\":{\"empty\":[],\"ok\":true},\"text\":\"keep \\\"quotes\\\"\"}\n```"
+                },
+                "expected": "{\n  \"nested\": {\n    \"empty\": [],\n    \"ok\": true\n  },\n  \"text\": \"keep \\\"quotes\\\"\"\n}"
+              },
+              {
+                "input": {
+                  "text": "﻿[false,{\"n\":-1.5},\"\\u03bb\"]"
+                },
+                "expected": "[\n  false,\n  {\n    \"n\": -1.5\n  },\n  \"λ\"\n]"
+              },
+              {
+                "input": {
+                  "text": "{\"a\":1,\"a\":2,\"fence\":\"```json\"}"
+                },
+                "expected": "{\n  \"a\": 2,\n  \"fence\": \"```json\"\n}"
+              },
+              {
+                "input": {
+                  "text": "```json\n{broken}\n```"
+                },
+                "throws": true
+              }
+            ]
+          },
+          "digest": "sha256:b3a247d25ae4fab0ae2f703b8f7a08a7400808c7e3ffda0899de02038a5e59ac"
+        },
+        "baseline": {
+          "generationId": "FormatJson:958c7fa1-f693-4dbf-b444-e9bf22b45355",
+          "hashes": {
+            "code": "sha256:fa54846777fd9fc754854fa4613b6b121b39de78c0bb5c3f053c197480a5011a",
+            "config": "sha256:15573e9f7323c462f074753d941a6262b41291120507989e3ef8b83d7eaf98d6",
+            "model": "sha256:30a0924a3360be687d1df9fcbbfdff62c01bc0fd14036ab9076cf7f451568666",
+            "prompt": "sha256:39c781ab950f2e5ba48650b026d3d419ea7f1f3cf12345cc16eabf42a69c28fc",
+            "artifacts": "sha256:fa54846777fd9fc754854fa4613b6b121b39de78c0bb5c3f053c197480a5011a",
+            "contract": "sha256:e7e19cc1ff90e07c2a1fc40ee20d555d031083ae543c6d22b76ecd98b11fea2e"
+          },
+          "hashSemantics": {},
+          "snapshotPath": null
+        },
+        "proposer": {
+          "authorityId": "work:agent"
+        },
+        "generator": {
+          "authorityId": "work:agent",
+          "implementation": "handwritten-browser-fixture",
+          "implementationHash": "sha256:561664f4c9bbc7a73c1165dcf3910f6ad3cd684f57a1ca6bbdcafad29b043248",
+          "frozenBeforeCandidate": true
+        },
+        "evaluator": {
+          "evaluatorId": "work:protected-suite",
+          "authorityId": "work:evaluator",
+          "version": "2",
+          "evaluatorHash": "sha256:e3424bc46dbc64628cbfa43707c73d889585b8ca31578914ac51767421f1d48b",
+          "testSuiteDigest": "sha256:21a51f8e75db4899bd57e5c6a70c62e8b14559b99214762cd8290820bdd2e543",
+          "protectedPaths": [
+            "/config/work-evolution.json",
+            "/host/work-evolution.js",
+            "/infrastructure/code-sandbox.js"
+          ],
+          "heldOut": true,
+          "frozenBeforeCandidate": true,
+          "frozenAt": "2026-09-20T13:45:22.928Z"
+        },
+        "metrics": [
+          {
+            "metricId": "qualified-improvement",
+            "unit": "qualified comparison",
+            "direction": "maximize",
+            "measurementSource": "/artifacts/work-improvements/candidate:758a412e-32e2-4349-a77f-3f85e723becd.json",
+            "aggregationRule": "All candidate correctness and separate workload cases pass; repair adds passing cases or latency satisfies every frozen threshold.",
+            "validityConditions": [
+              "All candidate cases pass",
+              "No previously passing case fails"
+            ],
+            "noiseModel": "Alternating paired host wall-clock samples; absolute, relative and faster-pair thresholds. No generalization claim.",
+            "minimumSampleSize": 6,
+            "promotionThreshold": {
+              "operator": ">=",
+              "value": 1
+            },
+            "operational": false
+          }
+        ],
+        "algorithm": {
+          "algorithmId": "FormatJson",
+          "version": "FormatJson:3116f840-de71-4a0d-9e1f-f30b8a63fdaf",
+          "sourceModules": [
+            "/shadow/work-tools/candidate:758a412e-32e2-4349-a77f-3f85e723becd.js"
+          ],
+          "inputs": [
+            "JSON task input"
+          ],
+          "outputs": [
+            "JSON tool result"
+          ],
+          "invariants": [
+            "No host access or side effects",
+            "Protected tests are never candidate-controlled"
+          ],
+          "complexity": "Bounded by host timeout",
+          "resourceAssumptions": [
+            "Browser sandbox available"
+          ],
+          "knownFailureModes": [
+            "Timeout",
+            "Incorrect output"
+          ],
+          "evaluationSuites": [
+            "sha256:21a51f8e75db4899bd57e5c6a70c62e8b14559b99214762cd8290820bdd2e543"
+          ],
+          "dependencies": [],
+          "status": "candidate",
+          "schema": "rsi.algorithm-manifest/v1",
+          "historicalRevisions": [],
+          "candidateAlternatives": []
+        },
+        "environment": {
+          "runtime": "opaque-origin-frame-worker",
+          "qualification": "local finite-suite evaluation"
+        },
+        "corpus": {
+          "digest": "sha256:21a51f8e75db4899bd57e5c6a70c62e8b14559b99214762cd8290820bdd2e543",
+          "heldOut": true,
+          "frozenBeforeCandidate": true
+        },
+        "resourceBudget": {
+          "schema": "reploid.work-evolution/v1",
+          "storageKey": "reploid.work-evolution.v1",
+          "maxCandidates": 24,
+          "maxCodeCharacters": 16000,
+          "maxStoredBytes": 2097152,
+          "offers": {
+            "maxBytes": 131072,
+            "maxReasonCharacters": 4000
+          },
+          "peerOffers": {
+            "storageKey": "reploid.tool-transfers.v1",
+            "maxBytes": 24576,
+            "maxRecords": 32,
+            "maxPending": 16,
+            "ttlMs": 300000,
+            "maxAttempts": 3,
+            "maxStoredBytes": 2097152
+          },
+          "timeoutMs": 1500,
+          "verificationTimeoutMs": 10000,
+          "maxResultBytes": 65536,
+          "maxHelpers": 3,
+          "helperMaxCycles": 4,
+          "helperMaxCharacters": 6000,
+          "maxObjectiveSamples": 24,
+          "digest": "sha256:15573e9f7323c462f074753d941a6262b41291120507989e3ef8b83d7eaf98d6",
+          "frozenBeforeCandidate": true
+        },
+        "promotionAuthority": {
+          "repositoryId": "clocksmith/reploid",
+          "authorityId": "work:operator",
+          "scope": "registered-pure-tools",
+          "allowedCandidatePaths": [
+            "/shadow/work-tools"
+          ],
+          "allowedEffectKinds": [
+            "tool_activation"
+          ],
+          "frozenBeforeCandidate": true
+        },
+        "reopeningConditions": [
+          {
+            "conditionId": "operator-rollback",
+            "observationKind": "tool_failure",
+            "targetId": "FormatJson",
+            "sensorAuthorityId": "work:operator",
+            "action": "rollback_request"
+          }
+        ],
+        "diagnosis": "Exercise continuing objective",
+        "hypothesis": {
+          "observation": "Exercise continuing objective",
+          "suspectedCause": "The current tool may fail required inputs or use avoidable execution time",
+          "alternativeExplanations": [
+            "The task may be outside this tool contract"
+          ],
+          "proposedDiagnostic": "Compare both versions on the frozen host suite",
+          "candidateIntervention": "Replace the registered pure tool implementation",
+          "expectedResult": "Meet the frozen improvement objective without regressions",
+          "falsifyingResult": "No improvement or any regression",
+          "followUpHypothesis": null
+        },
+        "negativeEvidence": [
+          {
+            "evidenceId": "baseline-cases",
+            "kind": "baseline_comparison",
+            "digest": "sha256:428f7d3a6da2fb46a4529dcac0e2e975b3a21410f17e77c4009fb3b6128a05fb",
+            "summary": "6/6 baseline cases passed",
+            "retained": true,
+            "sourcePath": "/artifacts/work-improvements/candidate:758a412e-32e2-4349-a77f-3f85e723becd.json"
+          }
+        ],
+        "candidate": {
+          "candidateId": "candidate:758a412e-32e2-4349-a77f-3f85e723becd",
+          "candidateHash": "sha256:c33644c61227c7c033f80d40b1992e64a8bacdbf67a725a6c95c83cc55ef1e8a",
+          "patchHash": "sha256:ae7ec18dac7f392bcc82f9df486e81c35cfe0e0114497751da82dd63fbb5987d",
+          "generationId": "FormatJson:3116f840-de71-4a0d-9e1f-f30b8a63fdaf",
+          "parentGenerationId": "FormatJson:958c7fa1-f693-4dbf-b444-e9bf22b45355",
+          "changedFiles": [
+            "/shadow/work-tools/candidate:758a412e-32e2-4349-a77f-3f85e723becd.js"
+          ],
+          "semanticScope": [
+            "FormatJson"
+          ],
+          "expectedBehavior": "Exercise continuing objective",
+          "affectedInvariants": [
+            "Preserve valid inputs"
+          ],
+          "falsifier": "A contract case fails",
+          "generatorAuthorityId": "work:agent",
+          "generatorHash": "sha256:561664f4c9bbc7a73c1165dcf3910f6ad3cd684f57a1ca6bbdcafad29b043248"
+        },
+        "execution": {
+          "isolated": true,
+          "sandboxId": "opaque-worker:candidate:758a412e-32e2-4349-a77f-3f85e723becd",
+          "runtimeIdentity": "browser:opaque-origin-worker",
+          "resourceUse": {
+            "samples": 36
+          }
+        },
+        "verification": {
+          "passed": true,
+          "verifierId": "work:verification-worker",
+          "evidencePaths": [
+            "/artifacts/work-improvements/candidate:758a412e-32e2-4349-a77f-3f85e723becd.json"
+          ],
+          "checks": {
+            "passed": true,
+            "errors": [],
+            "warnings": [],
+            "events": [],
+            "details": {
+              "patternViolations": [],
+              "complexityWarnings": [],
+              "filesAnalyzed": 1
+            }
+          }
+        },
+        "evaluation": {
+          "baselineContractHash": "sha256:e7e19cc1ff90e07c2a1fc40ee20d555d031083ae543c6d22b76ecd98b11fea2e",
+          "candidateContractHash": "sha256:e7e19cc1ff90e07c2a1fc40ee20d555d031083ae543c6d22b76ecd98b11fea2e",
+          "evaluatorHash": "sha256:e3424bc46dbc64628cbfa43707c73d889585b8ca31578914ac51767421f1d48b",
+          "sampleCount": 18,
+          "rawObservations": [
+            {
+              "index": 0,
+              "baseline": {
+                "passed": true,
+                "actual": "{\n  \"count\": 2,\n  \"enabled\": false\n}"
+              },
+              "candidate": {
+                "passed": true,
+                "actual": "{\n  \"count\": 2,\n  \"enabled\": false\n}"
+              },
+              "valid": true
+            },
+            {
+              "index": 1,
+              "baseline": {
+                "passed": true,
+                "actual": "[\n  null,\n  1,\n  \"a\"\n]"
+              },
+              "candidate": {
+                "passed": true,
+                "actual": "[\n  null,\n  1,\n  \"a\"\n]"
+              },
+              "valid": true
+            },
+            {
+              "index": 2,
+              "baseline": {
+                "passed": true,
+                "actual": "{\n  \"items\": [\n    3,\n    5\n  ]\n}"
+              },
+              "candidate": {
+                "passed": true,
+                "actual": "{\n  \"items\": [\n    3,\n    5\n  ]\n}"
+              },
+              "valid": true
+            },
+            {
+              "index": 3,
+              "baseline": {
+                "passed": true,
+                "actual": "{\n  \"name\": \"sample\"\n}"
+              },
+              "candidate": {
+                "passed": true,
+                "actual": "{\n  \"name\": \"sample\"\n}"
+              },
+              "valid": true
+            },
+            {
+              "index": 4,
+              "baseline": {
+                "passed": true,
+                "error": "Expected property name or '}' in JSON at position 1 (line 1 column 2)"
+              },
+              "candidate": {
+                "passed": true,
+                "error": "Expected property name or '}' in JSON at position 1 (line 1 column 2)"
+              },
+              "valid": true
+            },
+            {
+              "index": 5,
+              "baseline": {
+                "passed": true,
+                "actual": "{\n  \"value\": \"```json\"\n}"
+              },
+              "candidate": {
+                "passed": true,
+                "actual": "{\n  \"value\": \"```json\"\n}"
+              },
+              "valid": true
+            },
+            {
+              "index": 0,
+              "testIndex": 0,
+              "order": [
+                "baseline",
+                "candidate"
+              ],
+              "baseline": {
+                "passed": true,
+                "actual": "{\n  \"nested\": {\n    \"empty\": [],\n    \"ok\": true\n  },\n  \"text\": \"keep \\\"quotes\\\"\"\n}",
+                "elapsedMs": 87.60000038146973
+              },
+              "candidate": {
+                "passed": true,
+                "actual": "{\n  \"nested\": {\n    \"empty\": [],\n    \"ok\": true\n  },\n  \"text\": \"keep \\\"quotes\\\"\"\n}",
+                "elapsedMs": 11
+              }
+            },
+            {
+              "index": 1,
+              "testIndex": 1,
+              "order": [
+                "candidate",
+                "baseline"
+              ],
+              "candidate": {
+                "passed": true,
+                "actual": "[\n  false,\n  {\n    \"n\": -1.5\n  },\n  \"λ\"\n]",
+                "elapsedMs": 8.199999809265137
+              },
+              "baseline": {
+                "passed": true,
+                "actual": "[\n  false,\n  {\n    \"n\": -1.5\n  },\n  \"λ\"\n]",
+                "elapsedMs": 88.80000019073486
+              }
+            },
+            {
+              "index": 2,
+              "testIndex": 2,
+              "order": [
+                "baseline",
+                "candidate"
+              ],
+              "baseline": {
+                "passed": true,
+                "actual": "{\n  \"a\": 2,\n  \"fence\": \"```json\"\n}",
+                "elapsedMs": 88
+              },
+              "candidate": {
+                "passed": true,
+                "actual": "{\n  \"a\": 2,\n  \"fence\": \"```json\"\n}",
+                "elapsedMs": 8
+              }
+            },
+            {
+              "index": 3,
+              "testIndex": 3,
+              "order": [
+                "candidate",
+                "baseline"
+              ],
+              "candidate": {
+                "passed": true,
+                "error": "Expected property name or '}' in JSON at position 1 (line 1 column 2)",
+                "elapsedMs": 8.199999809265137
+              },
+              "baseline": {
+                "passed": true,
+                "error": "Expected property name or '}' in JSON at position 1 (line 1 column 2)",
+                "elapsedMs": 87.69999980926514
+              }
+            },
+            {
+              "index": 4,
+              "testIndex": 0,
+              "order": [
+                "baseline",
+                "candidate"
+              ],
+              "baseline": {
+                "passed": true,
+                "actual": "{\n  \"nested\": {\n    \"empty\": [],\n    \"ok\": true\n  },\n  \"text\": \"keep \\\"quotes\\\"\"\n}",
+                "elapsedMs": 88
+              },
+              "candidate": {
+                "passed": true,
+                "actual": "{\n  \"nested\": {\n    \"empty\": [],\n    \"ok\": true\n  },\n  \"text\": \"keep \\\"quotes\\\"\"\n}",
+                "elapsedMs": 11.59999942779541
+              }
+            },
+            {
+              "index": 5,
+              "testIndex": 1,
+              "order": [
+                "candidate",
+                "baseline"
+              ],
+              "candidate": {
+                "passed": true,
+                "actual": "[\n  false,\n  {\n    \"n\": -1.5\n  },\n  \"λ\"\n]",
+                "elapsedMs": 10.100000381469727
+              },
+              "baseline": {
+                "passed": true,
+                "actual": "[\n  false,\n  {\n    \"n\": -1.5\n  },\n  \"λ\"\n]",
+                "elapsedMs": 88.19999980926514
+              }
+            },
+            {
+              "index": 6,
+              "testIndex": 2,
+              "order": [
+                "baseline",
+                "candidate"
+              ],
+              "baseline": {
+                "passed": true,
+                "actual": "{\n  \"a\": 2,\n  \"fence\": \"```json\"\n}",
+                "elapsedMs": 92
+              },
+              "candidate": {
+                "passed": true,
+                "actual": "{\n  \"a\": 2,\n  \"fence\": \"```json\"\n}",
+                "elapsedMs": 8.90000057220459
+              }
+            },
+            {
+              "index": 7,
+              "testIndex": 3,
+              "order": [
+                "candidate",
+                "baseline"
+              ],
+              "candidate": {
+                "passed": true,
+                "error": "Expected property name or '}' in JSON at position 1 (line 1 column 2)",
+                "elapsedMs": 9.09999942779541
+              },
+              "baseline": {
+                "passed": true,
+                "error": "Expected property name or '}' in JSON at position 1 (line 1 column 2)",
+                "elapsedMs": 89
+              }
+            },
+            {
+              "index": 8,
+              "testIndex": 0,
+              "order": [
+                "baseline",
+                "candidate"
+              ],
+              "baseline": {
+                "passed": true,
+                "actual": "{\n  \"nested\": {\n    \"empty\": [],\n    \"ok\": true\n  },\n  \"text\": \"keep \\\"quotes\\\"\"\n}",
+                "elapsedMs": 88.10000038146973
+              },
+              "candidate": {
+                "passed": true,
+                "actual": "{\n  \"nested\": {\n    \"empty\": [],\n    \"ok\": true\n  },\n  \"text\": \"keep \\\"quotes\\\"\"\n}",
+                "elapsedMs": 18.800000190734863
+              }
+            },
+            {
+              "index": 9,
+              "testIndex": 1,
+              "order": [
+                "candidate",
+                "baseline"
+              ],
+              "candidate": {
+                "passed": true,
+                "actual": "[\n  false,\n  {\n    \"n\": -1.5\n  },\n  \"λ\"\n]",
+                "elapsedMs": 10.5
+              },
+              "baseline": {
+                "passed": true,
+                "actual": "[\n  false,\n  {\n    \"n\": -1.5\n  },\n  \"λ\"\n]",
+                "elapsedMs": 89.59999942779541
+              }
+            },
+            {
+              "index": 10,
+              "testIndex": 2,
+              "order": [
+                "baseline",
+                "candidate"
+              ],
+              "baseline": {
+                "passed": true,
+                "actual": "{\n  \"a\": 2,\n  \"fence\": \"```json\"\n}",
+                "elapsedMs": 88.19999980926514
+              },
+              "candidate": {
+                "passed": true,
+                "actual": "{\n  \"a\": 2,\n  \"fence\": \"```json\"\n}",
+                "elapsedMs": 7.600000381469727
+              }
+            },
+            {
+              "index": 11,
+              "testIndex": 3,
+              "order": [
+                "candidate",
+                "baseline"
+              ],
+              "candidate": {
+                "passed": true,
+                "error": "Expected property name or '}' in JSON at position 1 (line 1 column 2)",
+                "elapsedMs": 7.600000381469727
+              },
+              "baseline": {
+                "passed": true,
+                "error": "Expected property name or '}' in JSON at position 1 (line 1 column 2)",
+                "elapsedMs": 87.59999942779541
+              }
+            }
+          ],
+          "metrics": [
+            {
+              "metricId": "qualified-improvement",
+              "value": 1,
+              "valid": true
+            }
+          ]
+        },
+        "comparison": {
+          "authorityId": "work:evaluator",
+          "primaryMetricId": "qualified-improvement",
+          "tradeoffs": [
+            {
+              "baselinePassed": 6,
+              "candidatePassed": 6,
+              "total": 6,
+              "regressions": [],
+              "suiteHash": "sha256:21a51f8e75db4899bd57e5c6a70c62e8b14559b99214762cd8290820bdd2e543",
+              "candidateHash": "sha256:c33644c61227c7c033f80d40b1992e64a8bacdbf67a725a6c95c83cc55ef1e8a",
+              "baselineHash": "sha256:fa54846777fd9fc754854fa4613b6b121b39de78c0bb5c3f053c197480a5011a",
+              "contractHash": "sha256:e7e19cc1ff90e07c2a1fc40ee20d555d031083ae543c6d22b76ecd98b11fea2e",
+              "latency": {
+                "objectiveId": "format-json-repair-or-latency",
+                "objectiveVersion": 1,
+                "observations": [
+                  {
+                    "index": 0,
+                    "testIndex": 0,
+                    "order": [
+                      "baseline",
+                      "candidate"
+                    ],
+                    "baseline": {
+                      "passed": true,
+                      "actual": "{\n  \"nested\": {\n    \"empty\": [],\n    \"ok\": true\n  },\n  \"text\": \"keep \\\"quotes\\\"\"\n}",
+                      "elapsedMs": 87.60000038146973
+                    },
+                    "candidate": {
+                      "passed": true,
+                      "actual": "{\n  \"nested\": {\n    \"empty\": [],\n    \"ok\": true\n  },\n  \"text\": \"keep \\\"quotes\\\"\"\n}",
+                      "elapsedMs": 11
+                    }
+                  },
+                  {
+                    "index": 1,
+                    "testIndex": 1,
+                    "order": [
+                      "candidate",
+                      "baseline"
+                    ],
+                    "candidate": {
+                      "passed": true,
+                      "actual": "[\n  false,\n  {\n    \"n\": -1.5\n  },\n  \"λ\"\n]",
+                      "elapsedMs": 8.199999809265137
+                    },
+                    "baseline": {
+                      "passed": true,
+                      "actual": "[\n  false,\n  {\n    \"n\": -1.5\n  },\n  \"λ\"\n]",
+                      "elapsedMs": 88.80000019073486
+                    }
+                  },
+                  {
+                    "index": 2,
+                    "testIndex": 2,
+                    "order": [
+                      "baseline",
+                      "candidate"
+                    ],
+                    "baseline": {
+                      "passed": true,
+                      "actual": "{\n  \"a\": 2,\n  \"fence\": \"```json\"\n}",
+                      "elapsedMs": 88
+                    },
+                    "candidate": {
+                      "passed": true,
+                      "actual": "{\n  \"a\": 2,\n  \"fence\": \"```json\"\n}",
+                      "elapsedMs": 8
+                    }
+                  },
+                  {
+                    "index": 3,
+                    "testIndex": 3,
+                    "order": [
+                      "candidate",
+                      "baseline"
+                    ],
+                    "candidate": {
+                      "passed": true,
+                      "error": "Expected property name or '}' in JSON at position 1 (line 1 column 2)",
+                      "elapsedMs": 8.199999809265137
+                    },
+                    "baseline": {
+                      "passed": true,
+                      "error": "Expected property name or '}' in JSON at position 1 (line 1 column 2)",
+                      "elapsedMs": 87.69999980926514
+                    }
+                  },
+                  {
+                    "index": 4,
+                    "testIndex": 0,
+                    "order": [
+                      "baseline",
+                      "candidate"
+                    ],
+                    "baseline": {
+                      "passed": true,
+                      "actual": "{\n  \"nested\": {\n    \"empty\": [],\n    \"ok\": true\n  },\n  \"text\": \"keep \\\"quotes\\\"\"\n}",
+                      "elapsedMs": 88
+                    },
+                    "candidate": {
+                      "passed": true,
+                      "actual": "{\n  \"nested\": {\n    \"empty\": [],\n    \"ok\": true\n  },\n  \"text\": \"keep \\\"quotes\\\"\"\n}",
+                      "elapsedMs": 11.59999942779541
+                    }
+                  },
+                  {
+                    "index": 5,
+                    "testIndex": 1,
+                    "order": [
+                      "candidate",
+                      "baseline"
+                    ],
+                    "candidate": {
+                      "passed": true,
+                      "actual": "[\n  false,\n  {\n    \"n\": -1.5\n  },\n  \"λ\"\n]",
+                      "elapsedMs": 10.100000381469727
+                    },
+                    "baseline": {
+                      "passed": true,
+                      "actual": "[\n  false,\n  {\n    \"n\": -1.5\n  },\n  \"λ\"\n]",
+                      "elapsedMs": 88.19999980926514
+                    }
+                  },
+                  {
+                    "index": 6,
+                    "testIndex": 2,
+                    "order": [
+                      "baseline",
+                      "candidate"
+                    ],
+                    "baseline": {
+                      "passed": true,
+                      "actual": "{\n  \"a\": 2,\n  \"fence\": \"```json\"\n}",
+                      "elapsedMs": 92
+                    },
+                    "candidate": {
+                      "passed": true,
+                      "actual": "{\n  \"a\": 2,\n  \"fence\": \"```json\"\n}",
+                      "elapsedMs": 8.90000057220459
+                    }
+                  },
+                  {
+                    "index": 7,
+                    "testIndex": 3,
+                    "order": [
+                      "candidate",
+                      "baseline"
+                    ],
+                    "candidate": {
+                      "passed": true,
+                      "error": "Expected property name or '}' in JSON at position 1 (line 1 column 2)",
+                      "elapsedMs": 9.09999942779541
+                    },
+                    "baseline": {
+                      "passed": true,
+                      "error": "Expected property name or '}' in JSON at position 1 (line 1 column 2)",
+                      "elapsedMs": 89
+                    }
+                  },
+                  {
+                    "index": 8,
+                    "testIndex": 0,
+                    "order": [
+                      "baseline",
+                      "candidate"
+                    ],
+                    "baseline": {
+                      "passed": true,
+                      "actual": "{\n  \"nested\": {\n    \"empty\": [],\n    \"ok\": true\n  },\n  \"text\": \"keep \\\"quotes\\\"\"\n}",
+                      "elapsedMs": 88.10000038146973
+                    },
+                    "candidate": {
+                      "passed": true,
+                      "actual": "{\n  \"nested\": {\n    \"empty\": [],\n    \"ok\": true\n  },\n  \"text\": \"keep \\\"quotes\\\"\"\n}",
+                      "elapsedMs": 18.800000190734863
+                    }
+                  },
+                  {
+                    "index": 9,
+                    "testIndex": 1,
+                    "order": [
+                      "candidate",
+                      "baseline"
+                    ],
+                    "candidate": {
+                      "passed": true,
+                      "actual": "[\n  false,\n  {\n    \"n\": -1.5\n  },\n  \"λ\"\n]",
+                      "elapsedMs": 10.5
+                    },
+                    "baseline": {
+                      "passed": true,
+                      "actual": "[\n  false,\n  {\n    \"n\": -1.5\n  },\n  \"λ\"\n]",
+                      "elapsedMs": 89.59999942779541
+                    }
+                  },
+                  {
+                    "index": 10,
+                    "testIndex": 2,
+                    "order": [
+                      "baseline",
+                      "candidate"
+                    ],
+                    "baseline": {
+                      "passed": true,
+                      "actual": "{\n  \"a\": 2,\n  \"fence\": \"```json\"\n}",
+                      "elapsedMs": 88.19999980926514
+                    },
+                    "candidate": {
+                      "passed": true,
+                      "actual": "{\n  \"a\": 2,\n  \"fence\": \"```json\"\n}",
+                      "elapsedMs": 7.600000381469727
+                    }
+                  },
+                  {
+                    "index": 11,
+                    "testIndex": 3,
+                    "order": [
+                      "candidate",
+                      "baseline"
+                    ],
+                    "candidate": {
+                      "passed": true,
+                      "error": "Expected property name or '}' in JSON at position 1 (line 1 column 2)",
+                      "elapsedMs": 7.600000381469727
+                    },
+                    "baseline": {
+                      "passed": true,
+                      "error": "Expected property name or '}' in JSON at position 1 (line 1 column 2)",
+                      "elapsedMs": 87.59999942779541
+                    }
+                  }
+                ],
+                "valid": true,
+                "candidateValid": true,
+                "baselineMedianMs": 88.15000009536743,
+                "candidateMedianMs": 9,
+                "medianGainMs": 79.7000002861023,
+                "medianRelativeGain": 0.9005068393818156,
+                "fasterPairs": 12,
+                "improved": true
+              },
+              "objectiveHash": "sha256:b3a247d25ae4fab0ae2f703b8f7a08a7400808c7e3ffda0899de02038a5e59ac",
+              "improvementKind": "latency"
+            }
+          ],
+          "regressions": [],
+          "conclusion": "improved"
+        },
+        "promotionRequest": {
+          "authorityId": "work:operator",
+          "evidencePath": "/artifacts/work-improvements/candidate:758a412e-32e2-4349-a77f-3f85e723becd.json",
+          "requestedAt": "2026-09-20T13:45:26.813Z",
+          "readiness": {
+            "ready": true,
+            "reasons": []
+          }
+        },
+        "reviews": [],
+        "decision": null,
+        "effects": [],
+        "outcomes": [],
+        "reopenings": [],
+        "rollback": null,
+        "reflections": [],
+        "generation": {
+          "baseline": "FormatJson:958c7fa1-f693-4dbf-b444-e9bf22b45355",
+          "candidate": "FormatJson:3116f840-de71-4a0d-9e1f-f30b8a63fdaf",
+          "current": "FormatJson:958c7fa1-f693-4dbf-b444-e9bf22b45355"
+        },
+        "createdAt": "2026-09-20T13:45:25.005Z",
+        "updatedAt": "2026-09-20T13:45:26.814Z",
+        "integrity": {
+          "valid": true,
+          "eventCount": 9,
+          "validSignatures": 9,
+          "headHash": "sha256:c81f3618da8369073786281e90f69a60ee98dd8da68b1eded3359ac02ad4cef0",
+          "reasons": []
+        }
+      },
+      "events": [
+        {
+          "schema": "rsi.improvement-episode-event/v1",
+          "episodeId": "candidate:758a412e-32e2-4349-a77f-3f85e723becd",
+          "sequence": 1,
+          "type": "episode.started",
+          "timestamp": "2026-09-20T13:45:25.005Z",
+          "previousEventHash": null,
+          "actor": {
+            "authorityId": "work:agent",
+            "role": "proposer"
+          },
+          "payload": {
+            "episodeId": "candidate:758a412e-32e2-4349-a77f-3f85e723becd",
+            "parentEpisodeId": "candidate:66d69b7f-8653-43ae-be50-0528512099b8",
+            "groupId": "continuing-objective-fixture",
+            "surface": "other",
+            "objective": {
+              "objectiveId": "FormatJson",
+              "statement": "Turn JSON text into a formatted JSON string without changing values. Must handle plain JSON, an optional initial byte order mark, and a single outer Markdown JSON code fence. Preserve fence-like text inside JSON string values. Invalid JSON must throw. Takes an object {text}; returns a string formatted with two-space indentation.",
+              "successMetricId": "qualified-improvement",
+              "definition": {
+                "id": "format-json-repair-or-latency",
+                "version": 1,
+                "kind": "repair-or-latency",
+                "samples": 12,
+                "minimumAbsoluteGainMs": 5,
+                "minimumRelativeGain": 0.2,
+                "minimumFasterPairs": 11,
+                "cases": [
+                  {
+                    "input": {
+                      "text": "```json\n{\"nested\":{\"empty\":[],\"ok\":true},\"text\":\"keep \\\"quotes\\\"\"}\n```"
+                    },
+                    "expected": "{\n  \"nested\": {\n    \"empty\": [],\n    \"ok\": true\n  },\n  \"text\": \"keep \\\"quotes\\\"\"\n}"
+                  },
+                  {
+                    "input": {
+                      "text": "﻿[false,{\"n\":-1.5},\"\\u03bb\"]"
+                    },
+                    "expected": "[\n  false,\n  {\n    \"n\": -1.5\n  },\n  \"λ\"\n]"
+                  },
+                  {
+                    "input": {
+                      "text": "{\"a\":1,\"a\":2,\"fence\":\"```json\"}"
+                    },
+                    "expected": "{\n  \"a\": 2,\n  \"fence\": \"```json\"\n}"
+                  },
+                  {
+                    "input": {
+                      "text": "```json\n{broken}\n```"
+                    },
+                    "throws": true
+                  }
+                ]
+              },
+              "digest": "sha256:b3a247d25ae4fab0ae2f703b8f7a08a7400808c7e3ffda0899de02038a5e59ac"
+            },
+            "baseline": {
+              "generationId": "FormatJson:958c7fa1-f693-4dbf-b444-e9bf22b45355",
+              "hashes": {
+                "code": "sha256:fa54846777fd9fc754854fa4613b6b121b39de78c0bb5c3f053c197480a5011a",
+                "config": "sha256:15573e9f7323c462f074753d941a6262b41291120507989e3ef8b83d7eaf98d6",
+                "model": "sha256:30a0924a3360be687d1df9fcbbfdff62c01bc0fd14036ab9076cf7f451568666",
+                "prompt": "sha256:39c781ab950f2e5ba48650b026d3d419ea7f1f3cf12345cc16eabf42a69c28fc",
+                "artifacts": "sha256:fa54846777fd9fc754854fa4613b6b121b39de78c0bb5c3f053c197480a5011a",
+                "contract": "sha256:e7e19cc1ff90e07c2a1fc40ee20d555d031083ae543c6d22b76ecd98b11fea2e"
+              },
+              "hashSemantics": {},
+              "snapshotPath": null
+            },
+            "proposer": {
+              "authorityId": "work:agent"
+            },
+            "generator": {
+              "authorityId": "work:agent",
+              "implementation": "handwritten-browser-fixture",
+              "implementationHash": "sha256:561664f4c9bbc7a73c1165dcf3910f6ad3cd684f57a1ca6bbdcafad29b043248",
+              "frozenBeforeCandidate": true
+            },
+            "evaluator": {
+              "evaluatorId": "work:protected-suite",
+              "authorityId": "work:evaluator",
+              "version": "2",
+              "evaluatorHash": "sha256:e3424bc46dbc64628cbfa43707c73d889585b8ca31578914ac51767421f1d48b",
+              "testSuiteDigest": "sha256:21a51f8e75db4899bd57e5c6a70c62e8b14559b99214762cd8290820bdd2e543",
+              "protectedPaths": [
+                "/config/work-evolution.json",
+                "/host/work-evolution.js",
+                "/infrastructure/code-sandbox.js"
+              ],
+              "heldOut": true,
+              "frozenBeforeCandidate": true,
+              "frozenAt": "2026-09-20T13:45:22.928Z"
+            },
+            "metrics": [
+              {
+                "metricId": "qualified-improvement",
+                "unit": "qualified comparison",
+                "direction": "maximize",
+                "measurementSource": "/artifacts/work-improvements/candidate:758a412e-32e2-4349-a77f-3f85e723becd.json",
+                "aggregationRule": "All candidate correctness and separate workload cases pass; repair adds passing cases or latency satisfies every frozen threshold.",
+                "validityConditions": [
+                  "All candidate cases pass",
+                  "No previously passing case fails"
+                ],
+                "noiseModel": "Alternating paired host wall-clock samples; absolute, relative and faster-pair thresholds. No generalization claim.",
+                "minimumSampleSize": 6,
+                "promotionThreshold": {
+                  "operator": ">=",
+                  "value": 1
+                },
+                "operational": false
+              }
+            ],
+            "algorithm": {
+              "algorithmId": "FormatJson",
+              "version": "FormatJson:3116f840-de71-4a0d-9e1f-f30b8a63fdaf",
+              "sourceModules": [
+                "/shadow/work-tools/candidate:758a412e-32e2-4349-a77f-3f85e723becd.js"
+              ],
+              "inputs": [
+                "JSON task input"
+              ],
+              "outputs": [
+                "JSON tool result"
+              ],
+              "invariants": [
+                "No host access or side effects",
+                "Protected tests are never candidate-controlled"
+              ],
+              "complexity": "Bounded by host timeout",
+              "resourceAssumptions": [
+                "Browser sandbox available"
+              ],
+              "knownFailureModes": [
+                "Timeout",
+                "Incorrect output"
+              ],
+              "evaluationSuites": [
+                "sha256:21a51f8e75db4899bd57e5c6a70c62e8b14559b99214762cd8290820bdd2e543"
+              ],
+              "dependencies": [],
+              "status": "candidate",
+              "schema": "rsi.algorithm-manifest/v1",
+              "historicalRevisions": [],
+              "candidateAlternatives": []
+            },
+            "environment": {
+              "runtime": "opaque-origin-frame-worker",
+              "qualification": "local finite-suite evaluation"
+            },
+            "corpus": {
+              "digest": "sha256:21a51f8e75db4899bd57e5c6a70c62e8b14559b99214762cd8290820bdd2e543",
+              "heldOut": true,
+              "frozenBeforeCandidate": true
+            },
+            "resourceBudget": {
+              "schema": "reploid.work-evolution/v1",
+              "storageKey": "reploid.work-evolution.v1",
+              "maxCandidates": 24,
+              "maxCodeCharacters": 16000,
+              "maxStoredBytes": 2097152,
+              "offers": {
+                "maxBytes": 131072,
+                "maxReasonCharacters": 4000
+              },
+              "peerOffers": {
+                "storageKey": "reploid.tool-transfers.v1",
+                "maxBytes": 24576,
+                "maxRecords": 32,
+                "maxPending": 16,
+                "ttlMs": 300000,
+                "maxAttempts": 3,
+                "maxStoredBytes": 2097152
+              },
+              "timeoutMs": 1500,
+              "verificationTimeoutMs": 10000,
+              "maxResultBytes": 65536,
+              "maxHelpers": 3,
+              "helperMaxCycles": 4,
+              "helperMaxCharacters": 6000,
+              "maxObjectiveSamples": 24,
+              "digest": "sha256:15573e9f7323c462f074753d941a6262b41291120507989e3ef8b83d7eaf98d6",
+              "frozenBeforeCandidate": true
+            },
+            "promotionAuthority": {
+              "repositoryId": "clocksmith/reploid",
+              "authorityId": "work:operator",
+              "scope": "registered-pure-tools",
+              "allowedCandidatePaths": [
+                "/shadow/work-tools"
+              ],
+              "allowedEffectKinds": [
+                "tool_activation"
+              ],
+              "frozenBeforeCandidate": true
+            },
+            "reopeningConditions": [
+              {
+                "conditionId": "operator-rollback",
+                "observationKind": "tool_failure",
+                "targetId": "FormatJson",
+                "sensorAuthorityId": "work:operator",
+                "action": "rollback_request"
+              }
+            ]
+          },
+          "eventHash": "sha256:8beaa063f5a990538d05ad10bbef962818ce1ca0f663efaaba73a67e1e55e2c8",
+          "signature": {
+            "signerId": "peer:4d372b62309e7d34997dc66d",
+            "algorithm": "Ed25519",
+            "publicJwk": {
+              "alg": "Ed25519",
+              "crv": "Ed25519",
+              "ext": true,
+              "key_ops": [
+                "verify"
+              ],
+              "kty": "OKP",
+              "x": "zQzy-rUf7aD0aBZy10XQqDWw46ikBr93O4E3qvn5GdA"
+            },
+            "value": "o-PKX70aYJy5ioQGHn5YNkPcK0nXJogYti4HCuQ4lssZOcwvnePeGS389yXbiKkTOrtH09JCrch_PaI68yRxCA"
+          }
+        },
+        {
+          "schema": "rsi.improvement-episode-event/v1",
+          "episodeId": "candidate:758a412e-32e2-4349-a77f-3f85e723becd",
+          "sequence": 2,
+          "type": "diagnosis.recorded",
+          "timestamp": "2026-09-20T13:45:25.006Z",
+          "previousEventHash": "sha256:8beaa063f5a990538d05ad10bbef962818ce1ca0f663efaaba73a67e1e55e2c8",
+          "actor": {
+            "authorityId": "work:agent",
+            "role": "proposer"
+          },
+          "payload": {
+            "diagnosis": "Exercise continuing objective",
+            "hypothesis": {
+              "observation": "Exercise continuing objective",
+              "suspectedCause": "The current tool may fail required inputs or use avoidable execution time",
+              "alternativeExplanations": [
+                "The task may be outside this tool contract"
+              ],
+              "proposedDiagnostic": "Compare both versions on the frozen host suite",
+              "candidateIntervention": "Replace the registered pure tool implementation",
+              "expectedResult": "Meet the frozen improvement objective without regressions",
+              "falsifyingResult": "No improvement or any regression",
+              "followUpHypothesis": null
+            }
+          },
+          "eventHash": "sha256:e5cec6764122f0b8a0c842c714193628fc7d2977c567b140e101bc8052407efe",
+          "signature": {
+            "signerId": "peer:4d372b62309e7d34997dc66d",
+            "algorithm": "Ed25519",
+            "publicJwk": {
+              "alg": "Ed25519",
+              "crv": "Ed25519",
+              "ext": true,
+              "key_ops": [
+                "verify"
+              ],
+              "kty": "OKP",
+              "x": "zQzy-rUf7aD0aBZy10XQqDWw46ikBr93O4E3qvn5GdA"
+            },
+            "value": "H-BXOpseAtx1y_vymGu-krhPG4VlTO-Eb3ZBBgTZZycvf6Fv5CijjuI6bP9V6wLgb5u8Yby2Fox82ZHY-4LKBQ"
+          }
+        },
+        {
+          "schema": "rsi.improvement-episode-event/v1",
+          "episodeId": "candidate:758a412e-32e2-4349-a77f-3f85e723becd",
+          "sequence": 3,
+          "type": "candidate.proposed",
+          "timestamp": "2026-09-20T13:45:25.007Z",
+          "previousEventHash": "sha256:e5cec6764122f0b8a0c842c714193628fc7d2977c567b140e101bc8052407efe",
+          "actor": {
+            "authorityId": "work:agent",
+            "role": "proposer"
+          },
+          "payload": {
+            "candidateId": "candidate:758a412e-32e2-4349-a77f-3f85e723becd",
+            "candidateHash": "sha256:c33644c61227c7c033f80d40b1992e64a8bacdbf67a725a6c95c83cc55ef1e8a",
+            "patchHash": "sha256:ae7ec18dac7f392bcc82f9df486e81c35cfe0e0114497751da82dd63fbb5987d",
+            "generationId": "FormatJson:3116f840-de71-4a0d-9e1f-f30b8a63fdaf",
+            "parentGenerationId": "FormatJson:958c7fa1-f693-4dbf-b444-e9bf22b45355",
+            "changedFiles": [
+              "/shadow/work-tools/candidate:758a412e-32e2-4349-a77f-3f85e723becd.js"
+            ],
+            "semanticScope": [
+              "FormatJson"
+            ],
+            "expectedBehavior": "Exercise continuing objective",
+            "affectedInvariants": [
+              "Preserve valid inputs"
+            ],
+            "falsifier": "A contract case fails",
+            "generatorAuthorityId": "work:agent",
+            "generatorHash": "sha256:561664f4c9bbc7a73c1165dcf3910f6ad3cd684f57a1ca6bbdcafad29b043248"
+          },
+          "eventHash": "sha256:41c167fd208ddbfa3c627cd8ef4c7039a37a46660611fdb45770ee1c6ab99704",
+          "signature": {
+            "signerId": "peer:4d372b62309e7d34997dc66d",
+            "algorithm": "Ed25519",
+            "publicJwk": {
+              "alg": "Ed25519",
+              "crv": "Ed25519",
+              "ext": true,
+              "key_ops": [
+                "verify"
+              ],
+              "kty": "OKP",
+              "x": "zQzy-rUf7aD0aBZy10XQqDWw46ikBr93O4E3qvn5GdA"
+            },
+            "value": "mWEhyDFGY4BLvBpOhAzMoJoaouukOgvWnO9YHxNGOWfafd47URzkxw2sSv_B160kTAWj6jl8p6jtijjedZXlAQ"
+          }
+        },
+        {
+          "schema": "rsi.improvement-episode-event/v1",
+          "episodeId": "candidate:758a412e-32e2-4349-a77f-3f85e723becd",
+          "sequence": 4,
+          "type": "verification.recorded",
+          "timestamp": "2026-09-20T13:45:25.030Z",
+          "previousEventHash": "sha256:41c167fd208ddbfa3c627cd8ef4c7039a37a46660611fdb45770ee1c6ab99704",
+          "actor": {
+            "authorityId": "work:verification-worker",
+            "role": "verifier"
+          },
+          "payload": {
+            "passed": true,
+            "verifierId": "work:verification-worker",
+            "evidencePaths": [
+              "/artifacts/work-improvements/candidate:758a412e-32e2-4349-a77f-3f85e723becd.json"
+            ],
+            "checks": {
+              "passed": true,
+              "errors": [],
+              "warnings": [],
+              "events": [],
+              "details": {
+                "patternViolations": [],
+                "complexityWarnings": [],
+                "filesAnalyzed": 1
+              }
+            }
+          },
+          "eventHash": "sha256:177b7f5861442db9ebfb78e61473060372f958a699404154973f38bac97f275a",
+          "signature": {
+            "signerId": "peer:4d372b62309e7d34997dc66d",
+            "algorithm": "Ed25519",
+            "publicJwk": {
+              "alg": "Ed25519",
+              "crv": "Ed25519",
+              "ext": true,
+              "key_ops": [
+                "verify"
+              ],
+              "kty": "OKP",
+              "x": "zQzy-rUf7aD0aBZy10XQqDWw46ikBr93O4E3qvn5GdA"
+            },
+            "value": "pwFvcox8VawYelkPDBPXUuYFEC75bQLYokBHerxYliBwadl3DBqJ8vZco9QpXtzE_dyC3XwIjT8jGZwEHuRVAg"
+          }
+        },
+        {
+          "schema": "rsi.improvement-episode-event/v1",
+          "episodeId": "candidate:758a412e-32e2-4349-a77f-3f85e723becd",
+          "sequence": 5,
+          "type": "execution.recorded",
+          "timestamp": "2026-09-20T13:45:26.799Z",
+          "previousEventHash": "sha256:177b7f5861442db9ebfb78e61473060372f958a699404154973f38bac97f275a",
+          "actor": {
+            "authorityId": "reploid:x:sandbox",
+            "role": "executor"
+          },
+          "payload": {
+            "isolated": true,
+            "sandboxId": "opaque-worker:candidate:758a412e-32e2-4349-a77f-3f85e723becd",
+            "runtimeIdentity": "browser:opaque-origin-worker",
+            "resourceUse": {
+              "samples": 36
+            }
+          },
+          "eventHash": "sha256:88063255d88b860f5dd2baa9c660812c37306dc38655a4072bb742b07c424969",
+          "signature": {
+            "signerId": "peer:4d372b62309e7d34997dc66d",
+            "algorithm": "Ed25519",
+            "publicJwk": {
+              "alg": "Ed25519",
+              "crv": "Ed25519",
+              "ext": true,
+              "key_ops": [
+                "verify"
+              ],
+              "kty": "OKP",
+              "x": "zQzy-rUf7aD0aBZy10XQqDWw46ikBr93O4E3qvn5GdA"
+            },
+            "value": "cz3ZCUIkelUT4H2XPjrGMWnMH3qTaGWzeR_uVI7_BLTSzDo2n0_tZG--hZYTcDupEkG8Eb2UsJUJO5U-4Li3AQ"
+          }
+        },
+        {
+          "schema": "rsi.improvement-episode-event/v1",
+          "episodeId": "candidate:758a412e-32e2-4349-a77f-3f85e723becd",
+          "sequence": 6,
+          "type": "negative-evidence.recorded",
+          "timestamp": "2026-09-20T13:45:26.802Z",
+          "previousEventHash": "sha256:88063255d88b860f5dd2baa9c660812c37306dc38655a4072bb742b07c424969",
+          "actor": {
+            "authorityId": "reploid:x:evaluator",
+            "role": "evidence-producer"
+          },
+          "payload": {
+            "evidenceId": "baseline-cases",
+            "kind": "baseline_comparison",
+            "digest": "sha256:428f7d3a6da2fb46a4529dcac0e2e975b3a21410f17e77c4009fb3b6128a05fb",
+            "summary": "6/6 baseline cases passed",
+            "retained": true,
+            "sourcePath": "/artifacts/work-improvements/candidate:758a412e-32e2-4349-a77f-3f85e723becd.json"
+          },
+          "eventHash": "sha256:41708a0ed4b4b3585754c7adb220a431fa4befd01b6eba23c18fe6d5b193b3c4",
+          "signature": {
+            "signerId": "peer:4d372b62309e7d34997dc66d",
+            "algorithm": "Ed25519",
+            "publicJwk": {
+              "alg": "Ed25519",
+              "crv": "Ed25519",
+              "ext": true,
+              "key_ops": [
+                "verify"
+              ],
+              "kty": "OKP",
+              "x": "zQzy-rUf7aD0aBZy10XQqDWw46ikBr93O4E3qvn5GdA"
+            },
+            "value": "fqlw1VWgRZcz79pYupjy6IOe4EYxuF2pq-ash1dkXrPUCBGspHu3JiA3jn04XT3vlY1_qsb1cjY9ajC2FwB3Bg"
+          }
+        },
+        {
+          "schema": "rsi.improvement-episode-event/v1",
+          "episodeId": "candidate:758a412e-32e2-4349-a77f-3f85e723becd",
+          "sequence": 7,
+          "type": "evaluation.recorded",
+          "timestamp": "2026-09-20T13:45:26.805Z",
+          "previousEventHash": "sha256:41708a0ed4b4b3585754c7adb220a431fa4befd01b6eba23c18fe6d5b193b3c4",
+          "actor": {
+            "authorityId": "work:evaluator",
+            "role": "evaluator"
+          },
+          "payload": {
+            "baselineContractHash": "sha256:e7e19cc1ff90e07c2a1fc40ee20d555d031083ae543c6d22b76ecd98b11fea2e",
+            "candidateContractHash": "sha256:e7e19cc1ff90e07c2a1fc40ee20d555d031083ae543c6d22b76ecd98b11fea2e",
+            "evaluatorHash": "sha256:e3424bc46dbc64628cbfa43707c73d889585b8ca31578914ac51767421f1d48b",
+            "sampleCount": 18,
+            "rawObservations": [
+              {
+                "index": 0,
+                "baseline": {
+                  "passed": true,
+                  "actual": "{\n  \"count\": 2,\n  \"enabled\": false\n}"
+                },
+                "candidate": {
+                  "passed": true,
+                  "actual": "{\n  \"count\": 2,\n  \"enabled\": false\n}"
+                },
+                "valid": true
+              },
+              {
+                "index": 1,
+                "baseline": {
+                  "passed": true,
+                  "actual": "[\n  null,\n  1,\n  \"a\"\n]"
+                },
+                "candidate": {
+                  "passed": true,
+                  "actual": "[\n  null,\n  1,\n  \"a\"\n]"
+                },
+                "valid": true
+              },
+              {
+                "index": 2,
+                "baseline": {
+                  "passed": true,
+                  "actual": "{\n  \"items\": [\n    3,\n    5\n  ]\n}"
+                },
+                "candidate": {
+                  "passed": true,
+                  "actual": "{\n  \"items\": [\n    3,\n    5\n  ]\n}"
+                },
+                "valid": true
+              },
+              {
+                "index": 3,
+                "baseline": {
+                  "passed": true,
+                  "actual": "{\n  \"name\": \"sample\"\n}"
+                },
+                "candidate": {
+                  "passed": true,
+                  "actual": "{\n  \"name\": \"sample\"\n}"
+                },
+                "valid": true
+              },
+              {
+                "index": 4,
+                "baseline": {
+                  "passed": true,
+                  "error": "Expected property name or '}' in JSON at position 1 (line 1 column 2)"
+                },
+                "candidate": {
+                  "passed": true,
+                  "error": "Expected property name or '}' in JSON at position 1 (line 1 column 2)"
+                },
+                "valid": true
+              },
+              {
+                "index": 5,
+                "baseline": {
+                  "passed": true,
+                  "actual": "{\n  \"value\": \"```json\"\n}"
+                },
+                "candidate": {
+                  "passed": true,
+                  "actual": "{\n  \"value\": \"```json\"\n}"
+                },
+                "valid": true
+              },
+              {
+                "index": 0,
+                "testIndex": 0,
+                "order": [
+                  "baseline",
+                  "candidate"
+                ],
+                "baseline": {
+                  "passed": true,
+                  "actual": "{\n  \"nested\": {\n    \"empty\": [],\n    \"ok\": true\n  },\n  \"text\": \"keep \\\"quotes\\\"\"\n}",
+                  "elapsedMs": 87.60000038146973
+                },
+                "candidate": {
+                  "passed": true,
+                  "actual": "{\n  \"nested\": {\n    \"empty\": [],\n    \"ok\": true\n  },\n  \"text\": \"keep \\\"quotes\\\"\"\n}",
+                  "elapsedMs": 11
+                }
+              },
+              {
+                "index": 1,
+                "testIndex": 1,
+                "order": [
+                  "candidate",
+                  "baseline"
+                ],
+                "candidate": {
+                  "passed": true,
+                  "actual": "[\n  false,\n  {\n    \"n\": -1.5\n  },\n  \"λ\"\n]",
+                  "elapsedMs": 8.199999809265137
+                },
+                "baseline": {
+                  "passed": true,
+                  "actual": "[\n  false,\n  {\n    \"n\": -1.5\n  },\n  \"λ\"\n]",
+                  "elapsedMs": 88.80000019073486
+                }
+              },
+              {
+                "index": 2,
+                "testIndex": 2,
+                "order": [
+                  "baseline",
+                  "candidate"
+                ],
+                "baseline": {
+                  "passed": true,
+                  "actual": "{\n  \"a\": 2,\n  \"fence\": \"```json\"\n}",
+                  "elapsedMs": 88
+                },
+                "candidate": {
+                  "passed": true,
+                  "actual": "{\n  \"a\": 2,\n  \"fence\": \"```json\"\n}",
+                  "elapsedMs": 8
+                }
+              },
+              {
+                "index": 3,
+                "testIndex": 3,
+                "order": [
+                  "candidate",
+                  "baseline"
+                ],
+                "candidate": {
+                  "passed": true,
+                  "error": "Expected property name or '}' in JSON at position 1 (line 1 column 2)",
+                  "elapsedMs": 8.199999809265137
+                },
+                "baseline": {
+                  "passed": true,
+                  "error": "Expected property name or '}' in JSON at position 1 (line 1 column 2)",
+                  "elapsedMs": 87.69999980926514
+                }
+              },
+              {
+                "index": 4,
+                "testIndex": 0,
+                "order": [
+                  "baseline",
+                  "candidate"
+                ],
+                "baseline": {
+                  "passed": true,
+                  "actual": "{\n  \"nested\": {\n    \"empty\": [],\n    \"ok\": true\n  },\n  \"text\": \"keep \\\"quotes\\\"\"\n}",
+                  "elapsedMs": 88
+                },
+                "candidate": {
+                  "passed": true,
+                  "actual": "{\n  \"nested\": {\n    \"empty\": [],\n    \"ok\": true\n  },\n  \"text\": \"keep \\\"quotes\\\"\"\n}",
+                  "elapsedMs": 11.59999942779541
+                }
+              },
+              {
+                "index": 5,
+                "testIndex": 1,
+                "order": [
+                  "candidate",
+                  "baseline"
+                ],
+                "candidate": {
+                  "passed": true,
+                  "actual": "[\n  false,\n  {\n    \"n\": -1.5\n  },\n  \"λ\"\n]",
+                  "elapsedMs": 10.100000381469727
+                },
+                "baseline": {
+                  "passed": true,
+                  "actual": "[\n  false,\n  {\n    \"n\": -1.5\n  },\n  \"λ\"\n]",
+                  "elapsedMs": 88.19999980926514
+                }
+              },
+              {
+                "index": 6,
+                "testIndex": 2,
+                "order": [
+                  "baseline",
+                  "candidate"
+                ],
+                "baseline": {
+                  "passed": true,
+                  "actual": "{\n  \"a\": 2,\n  \"fence\": \"```json\"\n}",
+                  "elapsedMs": 92
+                },
+                "candidate": {
+                  "passed": true,
+                  "actual": "{\n  \"a\": 2,\n  \"fence\": \"```json\"\n}",
+                  "elapsedMs": 8.90000057220459
+                }
+              },
+              {
+                "index": 7,
+                "testIndex": 3,
+                "order": [
+                  "candidate",
+                  "baseline"
+                ],
+                "candidate": {
+                  "passed": true,
+                  "error": "Expected property name or '}' in JSON at position 1 (line 1 column 2)",
+                  "elapsedMs": 9.09999942779541
+                },
+                "baseline": {
+                  "passed": true,
+                  "error": "Expected property name or '}' in JSON at position 1 (line 1 column 2)",
+                  "elapsedMs": 89
+                }
+              },
+              {
+                "index": 8,
+                "testIndex": 0,
+                "order": [
+                  "baseline",
+                  "candidate"
+                ],
+                "baseline": {
+                  "passed": true,
+                  "actual": "{\n  \"nested\": {\n    \"empty\": [],\n    \"ok\": true\n  },\n  \"text\": \"keep \\\"quotes\\\"\"\n}",
+                  "elapsedMs": 88.10000038146973
+                },
+                "candidate": {
+                  "passed": true,
+                  "actual": "{\n  \"nested\": {\n    \"empty\": [],\n    \"ok\": true\n  },\n  \"text\": \"keep \\\"quotes\\\"\"\n}",
+                  "elapsedMs": 18.800000190734863
+                }
+              },
+              {
+                "index": 9,
+                "testIndex": 1,
+                "order": [
+                  "candidate",
+                  "baseline"
+                ],
+                "candidate": {
+                  "passed": true,
+                  "actual": "[\n  false,\n  {\n    \"n\": -1.5\n  },\n  \"λ\"\n]",
+                  "elapsedMs": 10.5
+                },
+                "baseline": {
+                  "passed": true,
+                  "actual": "[\n  false,\n  {\n    \"n\": -1.5\n  },\n  \"λ\"\n]",
+                  "elapsedMs": 89.59999942779541
+                }
+              },
+              {
+                "index": 10,
+                "testIndex": 2,
+                "order": [
+                  "baseline",
+                  "candidate"
+                ],
+                "baseline": {
+                  "passed": true,
+                  "actual": "{\n  \"a\": 2,\n  \"fence\": \"```json\"\n}",
+                  "elapsedMs": 88.19999980926514
+                },
+                "candidate": {
+                  "passed": true,
+                  "actual": "{\n  \"a\": 2,\n  \"fence\": \"```json\"\n}",
+                  "elapsedMs": 7.600000381469727
+                }
+              },
+              {
+                "index": 11,
+                "testIndex": 3,
+                "order": [
+                  "candidate",
+                  "baseline"
+                ],
+                "candidate": {
+                  "passed": true,
+                  "error": "Expected property name or '}' in JSON at position 1 (line 1 column 2)",
+                  "elapsedMs": 7.600000381469727
+                },
+                "baseline": {
+                  "passed": true,
+                  "error": "Expected property name or '}' in JSON at position 1 (line 1 column 2)",
+                  "elapsedMs": 87.59999942779541
+                }
+              }
+            ],
+            "metrics": [
+              {
+                "metricId": "qualified-improvement",
+                "value": 1,
+                "valid": true
+              }
+            ]
+          },
+          "eventHash": "sha256:19c1ddeef7d2201f94aebf82fd787d558f251f15186789cb1c05e00548411127",
+          "signature": {
+            "signerId": "peer:4d372b62309e7d34997dc66d",
+            "algorithm": "Ed25519",
+            "publicJwk": {
+              "alg": "Ed25519",
+              "crv": "Ed25519",
+              "ext": true,
+              "key_ops": [
+                "verify"
+              ],
+              "kty": "OKP",
+              "x": "zQzy-rUf7aD0aBZy10XQqDWw46ikBr93O4E3qvn5GdA"
+            },
+            "value": "JiXA-pzdbGN2g8tns2E8YnX5BVLxDuy9D4Xfapw-ER-TX2GqrKahSXVLHyeAfFp-cKex0B3XK_4PN_M6qw74Dw"
+          }
+        },
+        {
+          "schema": "rsi.improvement-episode-event/v1",
+          "episodeId": "candidate:758a412e-32e2-4349-a77f-3f85e723becd",
+          "sequence": 8,
+          "type": "comparison.recorded",
+          "timestamp": "2026-09-20T13:45:26.808Z",
+          "previousEventHash": "sha256:19c1ddeef7d2201f94aebf82fd787d558f251f15186789cb1c05e00548411127",
+          "actor": {
+            "authorityId": "work:evaluator",
+            "role": "evaluator"
+          },
+          "payload": {
+            "authorityId": "work:evaluator",
+            "primaryMetricId": "qualified-improvement",
+            "tradeoffs": [
+              {
+                "baselinePassed": 6,
+                "candidatePassed": 6,
+                "total": 6,
+                "regressions": [],
+                "suiteHash": "sha256:21a51f8e75db4899bd57e5c6a70c62e8b14559b99214762cd8290820bdd2e543",
+                "candidateHash": "sha256:c33644c61227c7c033f80d40b1992e64a8bacdbf67a725a6c95c83cc55ef1e8a",
+                "baselineHash": "sha256:fa54846777fd9fc754854fa4613b6b121b39de78c0bb5c3f053c197480a5011a",
+                "contractHash": "sha256:e7e19cc1ff90e07c2a1fc40ee20d555d031083ae543c6d22b76ecd98b11fea2e",
+                "latency": {
+                  "objectiveId": "format-json-repair-or-latency",
+                  "objectiveVersion": 1,
+                  "observations": [
+                    {
+                      "index": 0,
+                      "testIndex": 0,
+                      "order": [
+                        "baseline",
+                        "candidate"
+                      ],
+                      "baseline": {
+                        "passed": true,
+                        "actual": "{\n  \"nested\": {\n    \"empty\": [],\n    \"ok\": true\n  },\n  \"text\": \"keep \\\"quotes\\\"\"\n}",
+                        "elapsedMs": 87.60000038146973
+                      },
+                      "candidate": {
+                        "passed": true,
+                        "actual": "{\n  \"nested\": {\n    \"empty\": [],\n    \"ok\": true\n  },\n  \"text\": \"keep \\\"quotes\\\"\"\n}",
+                        "elapsedMs": 11
+                      }
+                    },
+                    {
+                      "index": 1,
+                      "testIndex": 1,
+                      "order": [
+                        "candidate",
+                        "baseline"
+                      ],
+                      "candidate": {
+                        "passed": true,
+                        "actual": "[\n  false,\n  {\n    \"n\": -1.5\n  },\n  \"λ\"\n]",
+                        "elapsedMs": 8.199999809265137
+                      },
+                      "baseline": {
+                        "passed": true,
+                        "actual": "[\n  false,\n  {\n    \"n\": -1.5\n  },\n  \"λ\"\n]",
+                        "elapsedMs": 88.80000019073486
+                      }
+                    },
+                    {
+                      "index": 2,
+                      "testIndex": 2,
+                      "order": [
+                        "baseline",
+                        "candidate"
+                      ],
+                      "baseline": {
+                        "passed": true,
+                        "actual": "{\n  \"a\": 2,\n  \"fence\": \"```json\"\n}",
+                        "elapsedMs": 88
+                      },
+                      "candidate": {
+                        "passed": true,
+                        "actual": "{\n  \"a\": 2,\n  \"fence\": \"```json\"\n}",
+                        "elapsedMs": 8
+                      }
+                    },
+                    {
+                      "index": 3,
+                      "testIndex": 3,
+                      "order": [
+                        "candidate",
+                        "baseline"
+                      ],
+                      "candidate": {
+                        "passed": true,
+                        "error": "Expected property name or '}' in JSON at position 1 (line 1 column 2)",
+                        "elapsedMs": 8.199999809265137
+                      },
+                      "baseline": {
+                        "passed": true,
+                        "error": "Expected property name or '}' in JSON at position 1 (line 1 column 2)",
+                        "elapsedMs": 87.69999980926514
+                      }
+                    },
+                    {
+                      "index": 4,
+                      "testIndex": 0,
+                      "order": [
+                        "baseline",
+                        "candidate"
+                      ],
+                      "baseline": {
+                        "passed": true,
+                        "actual": "{\n  \"nested\": {\n    \"empty\": [],\n    \"ok\": true\n  },\n  \"text\": \"keep \\\"quotes\\\"\"\n}",
+                        "elapsedMs": 88
+                      },
+                      "candidate": {
+                        "passed": true,
+                        "actual": "{\n  \"nested\": {\n    \"empty\": [],\n    \"ok\": true\n  },\n  \"text\": \"keep \\\"quotes\\\"\"\n}",
+                        "elapsedMs": 11.59999942779541
+                      }
+                    },
+                    {
+                      "index": 5,
+                      "testIndex": 1,
+                      "order": [
+                        "candidate",
+                        "baseline"
+                      ],
+                      "candidate": {
+                        "passed": true,
+                        "actual": "[\n  false,\n  {\n    \"n\": -1.5\n  },\n  \"λ\"\n]",
+                        "elapsedMs": 10.100000381469727
+                      },
+                      "baseline": {
+                        "passed": true,
+                        "actual": "[\n  false,\n  {\n    \"n\": -1.5\n  },\n  \"λ\"\n]",
+                        "elapsedMs": 88.19999980926514
+                      }
+                    },
+                    {
+                      "index": 6,
+                      "testIndex": 2,
+                      "order": [
+                        "baseline",
+                        "candidate"
+                      ],
+                      "baseline": {
+                        "passed": true,
+                        "actual": "{\n  \"a\": 2,\n  \"fence\": \"```json\"\n}",
+                        "elapsedMs": 92
+                      },
+                      "candidate": {
+                        "passed": true,
+                        "actual": "{\n  \"a\": 2,\n  \"fence\": \"```json\"\n}",
+                        "elapsedMs": 8.90000057220459
+                      }
+                    },
+                    {
+                      "index": 7,
+                      "testIndex": 3,
+                      "order": [
+                        "candidate",
+                        "baseline"
+                      ],
+                      "candidate": {
+                        "passed": true,
+                        "error": "Expected property name or '}' in JSON at position 1 (line 1 column 2)",
+                        "elapsedMs": 9.09999942779541
+                      },
+                      "baseline": {
+                        "passed": true,
+                        "error": "Expected property name or '}' in JSON at position 1 (line 1 column 2)",
+                        "elapsedMs": 89
+                      }
+                    },
+                    {
+                      "index": 8,
+                      "testIndex": 0,
+                      "order": [
+                        "baseline",
+                        "candidate"
+                      ],
+                      "baseline": {
+                        "passed": true,
+                        "actual": "{\n  \"nested\": {\n    \"empty\": [],\n    \"ok\": true\n  },\n  \"text\": \"keep \\\"quotes\\\"\"\n}",
+                        "elapsedMs": 88.10000038146973
+                      },
+                      "candidate": {
+                        "passed": true,
+                        "actual": "{\n  \"nested\": {\n    \"empty\": [],\n    \"ok\": true\n  },\n  \"text\": \"keep \\\"quotes\\\"\"\n}",
+                        "elapsedMs": 18.800000190734863
+                      }
+                    },
+                    {
+                      "index": 9,
+                      "testIndex": 1,
+                      "order": [
+                        "candidate",
+                        "baseline"
+                      ],
+                      "candidate": {
+                        "passed": true,
+                        "actual": "[\n  false,\n  {\n    \"n\": -1.5\n  },\n  \"λ\"\n]",
+                        "elapsedMs": 10.5
+                      },
+                      "baseline": {
+                        "passed": true,
+                        "actual": "[\n  false,\n  {\n    \"n\": -1.5\n  },\n  \"λ\"\n]",
+                        "elapsedMs": 89.59999942779541
+                      }
+                    },
+                    {
+                      "index": 10,
+                      "testIndex": 2,
+                      "order": [
+                        "baseline",
+                        "candidate"
+                      ],
+                      "baseline": {
+                        "passed": true,
+                        "actual": "{\n  \"a\": 2,\n  \"fence\": \"```json\"\n}",
+                        "elapsedMs": 88.19999980926514
+                      },
+                      "candidate": {
+                        "passed": true,
+                        "actual": "{\n  \"a\": 2,\n  \"fence\": \"```json\"\n}",
+                        "elapsedMs": 7.600000381469727
+                      }
+                    },
+                    {
+                      "index": 11,
+                      "testIndex": 3,
+                      "order": [
+                        "candidate",
+                        "baseline"
+                      ],
+                      "candidate": {
+                        "passed": true,
+                        "error": "Expected property name or '}' in JSON at position 1 (line 1 column 2)",
+                        "elapsedMs": 7.600000381469727
+                      },
+                      "baseline": {
+                        "passed": true,
+                        "error": "Expected property name or '}' in JSON at position 1 (line 1 column 2)",
+                        "elapsedMs": 87.59999942779541
+                      }
+                    }
+                  ],
+                  "valid": true,
+                  "candidateValid": true,
+                  "baselineMedianMs": 88.15000009536743,
+                  "candidateMedianMs": 9,
+                  "medianGainMs": 79.7000002861023,
+                  "medianRelativeGain": 0.9005068393818156,
+                  "fasterPairs": 12,
+                  "improved": true
+                },
+                "objectiveHash": "sha256:b3a247d25ae4fab0ae2f703b8f7a08a7400808c7e3ffda0899de02038a5e59ac",
+                "improvementKind": "latency"
+              }
+            ],
+            "regressions": [],
+            "conclusion": "improved"
+          },
+          "eventHash": "sha256:37eec84cdbc54286463c39548a0d057daef39bee833eb446cda58a402c56a71a",
+          "signature": {
+            "signerId": "peer:4d372b62309e7d34997dc66d",
+            "algorithm": "Ed25519",
+            "publicJwk": {
+              "alg": "Ed25519",
+              "crv": "Ed25519",
+              "ext": true,
+              "key_ops": [
+                "verify"
+              ],
+              "kty": "OKP",
+              "x": "zQzy-rUf7aD0aBZy10XQqDWw46ikBr93O4E3qvn5GdA"
+            },
+            "value": "m1OcMtATiQ1jso7jH6NcSPZqGhMKfO52_ObDinP1VIio_Ii7uvNUF1nTns8KX9CO3yuZyPZ_2MLfclTrxu5IDA"
+          }
+        },
+        {
+          "schema": "rsi.improvement-episode-event/v1",
+          "episodeId": "candidate:758a412e-32e2-4349-a77f-3f85e723becd",
+          "sequence": 9,
+          "type": "promotion.requested",
+          "timestamp": "2026-09-20T13:45:26.814Z",
+          "previousEventHash": "sha256:37eec84cdbc54286463c39548a0d057daef39bee833eb446cda58a402c56a71a",
+          "actor": {
+            "authorityId": "work:operator",
+            "role": "promotion-policy"
+          },
+          "payload": {
+            "authorityId": "work:operator",
+            "evidencePath": "/artifacts/work-improvements/candidate:758a412e-32e2-4349-a77f-3f85e723becd.json",
+            "requestedAt": "2026-09-20T13:45:26.813Z",
+            "readiness": {
+              "ready": true,
+              "reasons": []
+            }
+          },
+          "eventHash": "sha256:c81f3618da8369073786281e90f69a60ee98dd8da68b1eded3359ac02ad4cef0",
+          "signature": {
+            "signerId": "peer:4d372b62309e7d34997dc66d",
+            "algorithm": "Ed25519",
+            "publicJwk": {
+              "alg": "Ed25519",
+              "crv": "Ed25519",
+              "ext": true,
+              "key_ops": [
+                "verify"
+              ],
+              "kty": "OKP",
+              "x": "zQzy-rUf7aD0aBZy10XQqDWw46ikBr93O4E3qvn5GdA"
+            },
+            "value": "sHyj8A8rh1jVded_aMQHmWr9K36zqpwlWjcczXSoERQhOdil1aX3gtcoVM_qxu_MkI8azc5QzttRrz8rV7h9BQ"
+          }
+        }
+      ]
+    },
+    "qualification": "Real sandbox timings of handwritten fixtures on one browser"
+  },
+  "restored": {
+    "active": {
+      "id": "FormatJson",
+      "description": "Turn JSON text into a formatted JSON string without changing values. Must handle plain JSON, an optional initial byte order mark, and a single outer Markdown JSON code fence. Preserve fence-like text inside JSON string values. Invalid JSON must throw. Takes an object {text}; returns a string formatted with two-space indentation.",
+      "code": "({text})=>{let s=text.replace(/^\\uFEFF/, \"\").trim(); if(s.startsWith(\"```json\\n\")&&s.endsWith(\"\\n```\"))s=s.slice(8,-4); return JSON.stringify(JSON.parse(s),null,2);}",
+      "generationId": "FormatJson:3116f840-de71-4a0d-9e1f-f30b8a63fdaf",
+      "episodeId": "candidate:758a412e-32e2-4349-a77f-3f85e723becd",
+      "objective": {
+        "id": "format-json-repair-or-latency",
+        "version": 1,
+        "kind": "repair-or-latency",
+        "minimumAbsoluteGainMs": 5,
+        "minimumRelativeGain": 0.2
+      }
+    },
+    "output": "{\n  \"subsequent\": [\n    true,\n    9\n  ]\n}",
+    "rolledBack": {
+      "id": "FormatJson",
+      "description": "Turn JSON text into a formatted JSON string without changing values. Must handle plain JSON, an optional initial byte order mark, and a single outer Markdown JSON code fence. Preserve fence-like text inside JSON string values. Invalid JSON must throw. Takes an object {text}; returns a string formatted with two-space indentation.",
+      "code": "({text})=>{const end=Date.now()+80;while(Date.now()<end){} let s=text.replace(/^\\uFEFF/, \"\").trim(); if(s.startsWith(\"```json\\n\")&&s.endsWith(\"\\n```\"))s=s.slice(8,-4); return JSON.stringify(JSON.parse(s),null,2);}",
+      "generationId": "FormatJson:958c7fa1-f693-4dbf-b444-e9bf22b45355",
+      "episodeId": "candidate:66d69b7f-8653-43ae-be50-0528512099b8",
+      "objective": {
+        "id": "format-json-repair-or-latency",
+        "version": 1,
+        "kind": "repair-or-latency",
+        "minimumAbsoluteGainMs": 5,
+        "minimumRelativeGain": 0.2
+      }
+    }
+  }
+}

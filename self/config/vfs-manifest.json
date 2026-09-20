@@ -760,6 +760,7 @@
     "vendor/reploid/improvement/episodes.js",
     "vendor/reploid/improvement/index.d.ts",
     "vendor/reploid/improvement/index.js",
+    "vendor/reploid/improvement/tool-objective.js",
     "vendor/reploid/index.d.ts",
     "vendor/reploid/index.js",
     "vendor/reploid/mesh/contribution.d.ts",

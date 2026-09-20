@@ -23,6 +23,120 @@ async function fixture() {
 }
 
 describe('governed code evolution',()=>{
+  it('evaluates a replacement after a rejected candidate against the same baseline', async () => {
+    const f = await fixture();
+    const rejected = await f.propose('() => "wrong"');
+    expect(rejected.status).toBe('rejected');
+    const replacement = await f.propose();
+    expect(replacement.status).toBe('awaiting-approval');
+    const first = await f.engine.export(rejected.id), second = await f.engine.export(replacement.id);
+    expect(first.episode.integrity.valid).toBe(true);
+    expect(first.episode.decision.state).toBe('rejected');
+    expect(second.episode.algorithm.version).toBe(replacement.generationId);
+    expect(second.episode.baseline.generationId).toBe(first.episode.baseline.generationId);
+    await f.engine.decide(replacement.id, true);
+    expect(await f.engine.run('Normalize', { value: ' Later ' })).toBe('later');
+  });
+
+  it('supports successive latency improvements after correctness saturates and binds the frozen objective', async () => {
+    const f = await fixture();
+    const target = f.options.targets[0];
+    target.code = '({value}) => value.trim().toLowerCase() /* slow */';
+    target.objective = { id: 'normalize-latency', version: 1, kind: 'repair-or-latency', samples: 8,
+      minimumAbsoluteGainMs: 5, minimumRelativeGain: 0.2, minimumFasterPairs: 7,
+      cases: [{ input: { value: ' NEW ' }, expected: 'new' }] };
+    f.options.policy.maxObjectiveSamples = 8;
+    let time = 0;
+    const execute = f.options.ports.execute;
+    f.options.ports.execute = async (code, input) => {
+      time += code.includes('slow') ? 100 : code.includes('medium') ? 50 : 20;
+      return execute(code, input);
+    };
+    f.options.ports.now = () => time;
+    const engine = createCodeEvolution(f.options);
+    const propose = async code => engine.propose({ targetId: target.id, code, reason: 'Reduce tool latency',
+      baselineGeneration: (await engine.describe())[0].generationId, taskId: 'timed-task',
+      generator: { implementation: 'fixture', model: 'fixture', instruction: 'Reduce tool latency' } });
+    const first = await propose(candidate + ' /* medium */');
+    expect(first.status).toBe('awaiting-approval');
+    expect(first.evaluation).toMatchObject({ baselinePassed: 2, candidatePassed: 2, improvementKind: 'latency' });
+    expect(first.evaluation.latency).toMatchObject({ fasterPairs: 8, medianGainMs: 50, medianRelativeGain: 0.5 });
+    expect(first.evaluation.latency.observations[1].order).toEqual(['candidate', 'baseline']);
+    const changed = structuredClone(target.objective); changed.version++;
+    const changedEngine = createCodeEvolution({ ...f.options, targets: [{ ...target, objective: changed }] });
+    await expect(changedEngine.decide(first.id, true)).rejects.toThrow('objective or policy changed');
+    // Caller mutation after construction cannot rewrite the objective of the active evaluator.
+    target.objective.minimumAbsoluteGainMs = 999;
+    await engine.decide(first.id, true);
+    const second = await propose(candidate);
+    expect(second.status).toBe('awaiting-approval');
+    await engine.decide(second.id, true);
+    const unchanged = await propose(candidate);
+    expect(unchanged.status).toBe('rejected');
+    expect(unchanged.evaluation.latency).toBeUndefined();
+    const episode = (await engine.export(second.id)).episode;
+    expect(episode.integrity.valid).toBe(true);
+    expect(episode.parentEpisodeId).toBe(first.id);
+    expect(episode.objective.definition.minimumAbsoluteGainMs).toBe(5);
+    await engine.rollback(second.id);
+    expect((await engine.describe())[0].generationId).toBe(first.generationId);
+  });
+
+  it('rejects noise, held-out failures and invalid objective clocks even when correctness cases pass', async () => {
+    for (const failure of ['noise', 'held-out', 'clock']) {
+      const f = await fixture(), target = f.options.targets[0];
+      target.code = candidate + ' /* baseline */';
+      target.objective = { id: 'normalize-latency', version: 1, kind: 'repair-or-latency', samples: 8,
+        minimumAbsoluteGainMs: 5, minimumRelativeGain: 0.2, minimumFasterPairs: 7,
+        cases: [{ input: { value: ' NEW ' }, expected: 'new' }] };
+      f.options.policy.maxObjectiveSamples = 8;
+      let time = 0, calls = 0;
+      const execute = f.options.ports.execute;
+      f.options.ports.now = () => failure === 'clock' ? NaN : time;
+      f.options.ports.execute = async (code, input) => {
+        const baseline = code.includes('baseline');
+        time += baseline ? 100 : failure === 'noise' && ++calls % 2 ? 110 : 50;
+        if (!baseline && failure === 'held-out' && input.value === ' NEW ') return 'wrong';
+        return execute(code, input);
+      };
+      const engine = createCodeEvolution(f.options);
+      const result = await engine.propose({ targetId: target.id, code: candidate, reason: 'Test objective failure',
+        baselineGeneration: 'Normalize:genesis', taskId: 'failed-objective',
+        generator: { implementation: 'fixture', model: 'fixture', instruction: 'Test objective' } });
+      expect(result.status).toBe(failure === 'clock' ? 'failed' : 'rejected');
+      expect((await engine.describe())[0].generationId).toBe('Normalize:genesis');
+    }
+  });
+  it('preserves cancellation during paired measurement without approving partial samples', async () => {
+    const f = await fixture(), controller = new AbortController(), target = f.options.targets[0];
+    target.code = candidate + ' /* baseline */';
+    target.objective = { id: 'cancelled-latency', version: 1, kind: 'repair-or-latency', samples: 4,
+      minimumAbsoluteGainMs: 5, minimumRelativeGain: 0.2, minimumFasterPairs: 3,
+      cases: [{ input: { value: ' NEW ' }, expected: 'new' }] };
+    f.options.policy.maxObjectiveSamples = 4;
+    const execute = f.options.ports.execute;
+    f.options.ports.execute = async (code, input) => {
+      if (input.value === ' NEW ') controller.abort(new Error('Stopped benchmark'));
+      return execute(code, input);
+    };
+    const engine = createCodeEvolution(f.options);
+    const result = await engine.propose({ targetId: target.id, code: candidate, reason: 'Cancelled timing',
+      baselineGeneration: 'Normalize:genesis', taskId: 'cancelled-objective',
+      generator: { implementation: 'fixture', model: 'fixture', instruction: 'Measure' } }, { signal: controller.signal });
+    expect(result.status).toBe('cancelled');
+    expect(result.error).toBe('Stopped benchmark');
+    expect((await engine.describe())[0].generationId).toBe('Normalize:genesis');
+    expect((await engine.export(result.id)).episode.decision.state).toBe('inconclusive');
+  });
+
+  it('allows declining a pending candidate after its evaluation policy changes', async () => {
+    const f = await fixture(), proposed = await f.propose();
+    const changed = createCodeEvolution({ ...f.options, policy: { ...f.options.policy, maxCandidates: 7 } });
+    await expect(changed.decide(proposed.id, true)).rejects.toThrow('objective or policy changed');
+    expect((await changed.decide(proposed.id, false)).status).toBe('rejected');
+    expect((await changed.describe())[0].generationId).toBe('Normalize:genesis');
+  });
+
   it('does not count a sandbox timeout as correct rejection of invalid input',async()=>{
     const f=await fixture();
     f.options.targets[0].tests.push({input:{invalid:true},throws:true});

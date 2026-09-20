@@ -60,6 +60,7 @@ jobs:
         tests/e2e/agent-network-home.spec.js
         tests/e2e/tool-offer-exchange.spec.js
         tests/e2e/peer-tool-offer.spec.js
+        tests/e2e/continuing-tool-objectives.spec.js
         --project=chromium --workers=1
 
     - name: Installed package acceptance
