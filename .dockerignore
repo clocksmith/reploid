@@ -1,9 +1,15 @@
-.git
-node_modules
-playwright-report
-test-results
-coverage
-.DS_Store
-.env
-.env.*
-npm-debug.log*
+# The image contains exactly the files covered by the coordinator runtime
+# identity in server/pool/release-identity.js.
+**
+
+!Dockerfile
+!package.json
+!package-lock.json
+
+!server/
+!server/**
+server/logs/
+server/logs/**
+
+!self/
+!self/**
