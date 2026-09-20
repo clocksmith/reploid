@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { extractProposedCriteria, deriveOutcomeTags, createWorkSession } from '../../self/host/work-session.js';
+import { resolveWorkTask } from '../../self/host/work-task.js';
 
 describe('work-session helpers', () => {
   it('extracts proposed criteria from a non-empty goal', () => {
@@ -52,9 +53,14 @@ describe('work-session helpers', () => {
     expect(errorTags).toContain('Needs execution');
   });
 
-  it('rejects goals shorter than 5 characters', async () => {
-    const storage = { getItem: () => null, setItem: () => {} };
-    const session = createWorkSession({ storage });
-    await expect(session.start({ goal: 'fix' })).rejects.toThrow('Enter a bounded goal');
+  it('accepts conversational short messages and rejects empty input', async () => {
+    const options = { policy: { maxGoalCharacters: 4000, maxCriteriaCharacters: 2000,
+      maxFeedbackCharacters: 2000, files: { maxInputs: 8, maxNameCharacters: 96,
+        maxFileBytes: 65536, maxInputBytes: 131072 } }, records: [] };
+    expect(resolveWorkTask({ goal: 'hi', criteria: '', feedback: '', parentId: null,
+      inputs: [], allowPeers: false, recallAccepted: false }, options)).toMatchObject({ goal: 'hi' });
+    expect(() => resolveWorkTask({ goal: '   ', criteria: '', feedback: '', parentId: null,
+      inputs: [], allowPeers: false, recallAccepted: false }, options))
+      .toThrow('Tell Reploid what you want help with');
   });
 });

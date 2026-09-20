@@ -39,10 +39,11 @@ export function renderZeroCallout() {
 }
 
 const route = (path, label) => '<a href="' + path + '" data-pool-route-link="' + path + '">' + label + '</a>';
-const links = () => '<nav class="pool-work-links" aria-label="More in Reploid">'
+const links = () => '<details class="pool-work-more"><summary>More</summary>'
+  + '<nav class="pool-work-links" aria-label="More in Reploid">'
   + route('/examples', 'Model examples') + route('/records', 'Peer job records')
   + '<span class="pool-work-experiment-links">Experiments: <a href="/zero" data-pool-substrate-route="zero">Zero</a>'
-  + ' <a href="/x" data-pool-substrate-route="x">X</a></span></nav>';
+  + ' <a href="/x" data-pool-substrate-route="x">X</a></span></nav></details>';
 
 export function renderWorkSurface() {
   return [
@@ -445,7 +446,7 @@ export function bindWorkSurface(root, application, services = {}) {
           find('[data-work-helpers]').checked = true; find('[data-work-improvement]').checked = true;
         }
         const attachments = find('[data-work-attachments]');
-        if (attachments) attachments.open = preset !== 'improve';
+        if (attachments) attachments.open = true;
         if (goalInput) {
           goalInput.dispatchEvent(new Event('input', { bubbles: true }));
           goalInput.focus();

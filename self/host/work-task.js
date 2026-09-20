@@ -9,7 +9,7 @@ export function extractProposedCriteria(goal) {
 
 
 export function resolveWorkTask({ goal, criteria, feedback, parentId, inputs, allowPeers, recallAccepted }, { policy, records }) {
-  requireValue(typeof goal === 'string' && goal.trim().length >= 5 && goal.length <= policy.maxGoalCharacters, 'Enter a bounded goal');
+  requireValue(typeof goal === 'string' && goal.trim().length > 0 && goal.length <= policy.maxGoalCharacters, 'Tell Reploid what you want help with');
   requireValue(criteria == null || typeof criteria === 'string', 'Criteria must be text');
   if (criteria !== undefined && criteria !== null && typeof criteria === 'string' && criteria.trim()) {
     requireValue(criteria.trim().length <= policy.maxCriteriaCharacters, 'Describe how you will judge the result');

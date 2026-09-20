@@ -55,6 +55,7 @@ import {
   bindRunControls
 } from './controls.js';
 import { bindPoolPrism } from './prism.js';
+import { bindThemeSelector, renderThemeSelector } from './theme.js';
 import { bindResearchRoomActions, bindResearchWorkspace, hydrateAndBindResearchWorkspace } from './research-view.js';
 import { resetResearchStore } from './research-store.js';
 
@@ -217,6 +218,7 @@ export function initPoolHome(mount, { operationNetwork = null } = {}) {
   window.REPLOID_DOPPLER_RUNTIME = runtime;
   window.REPLOID_POOL_ATTACH_DOPPLER_HANDLE = (handle, model = null, runtimeInfo = null) => runtime.attachHandle(handle, model, runtimeInfo);
   mount.style.display = 'block';
+  const theme = bindThemeSelector(mount);
   bindRecordStorageSync();
   bindResearchStoreSync();
   let navOpen = false;
@@ -292,8 +294,10 @@ export function initPoolHome(mount, { operationNetwork = null } = {}) {
         })}
         ${renderContributionStatusBar()}
         <div class="pool-route-content"></div>
+        ${renderThemeSelector()}
       </main>
     `;
+    theme.sync();
     mount.querySelector('.pool-home').dataset.poolRouteId = routeId;
     mount.querySelectorAll('[data-pool-nav-id]').forEach((link) => {
       const active = link.dataset.poolNavId === (routeId === 'ask' ? 'home' : routeId);

@@ -2207,7 +2207,7 @@
     {
       "path": "self/host/work-task.js",
       "owner": "self",
-      "sha256": "sha256:ae407218b34f567947b213efc6ac288313f3c7bab2f57f5b7ba4d2029b1d539a",
+      "sha256": "sha256:923dc1ef066ca2c353023b11f574d65b94a188c21a298e36d950fb49bfce2ff4",
       "imports": [
         "./work-inputs.js"
       ]
@@ -2255,7 +2255,7 @@
     {
       "path": "self/kernel/boot.js",
       "owner": "self",
-      "sha256": "sha256:f3042cc8731748a9126dc52d0378875d51a56d8c1a83a7792801406939db9110",
+      "sha256": "sha256:099947c6ee0e2be41ad335d88f08ad1f8bf6e21ac59f50305cbbf5d010c2ddfa",
       "imports": [
         "../boot-spec.js",
         "../config/doppler-local-models.js",
@@ -2921,7 +2921,7 @@
     {
       "path": "ui/pool-home/index.js",
       "owner": "ui",
-      "sha256": "sha256:77991e7edc4289be16da61b0fa023ad8c909004acce7a2fa26f57a65b71d87e5",
+      "sha256": "sha256:1fc206d1605bca222fcdee2505353152f3bb341d2b3aadbc9e00fa2d57b74ef2",
       "imports": [
         "../../config/zero-inference.js",
         "../../host/work-evolution.js",
@@ -2947,6 +2947,7 @@
         "./prism.js",
         "./research-store.js",
         "./research-view.js",
+        "./theme.js",
         "./view.js",
         "./work.js"
       ]
@@ -3146,6 +3147,12 @@
       "imports": []
     },
     {
+      "path": "ui/pool-home/theme.js",
+      "owner": "ui",
+      "sha256": "sha256:fdc447f85c7892862368d2d4c351a66de23595f8be354c4c84d4aa822555bb33",
+      "imports": []
+    },
+    {
       "path": "ui/pool-home/view.js",
       "owner": "ui",
       "sha256": "sha256:e7ee39893da661f3c4adc74e5f1d895a8f7bd24e29c7807b5a1a79d7cfbd30f1",
@@ -3194,7 +3201,7 @@
     {
       "path": "ui/pool-home/work-goal-composer.js",
       "owner": "ui",
-      "sha256": "sha256:9face668ba90d9b86dce8412dce08b6aa7874c905d6a5ef7f90b07064fc0d726",
+      "sha256": "sha256:dc83ebe362d450e56c42a88f2df5b87de31e3a1c5540ddfa6e2b14033dd4c8e9",
       "imports": [
         "../../config/work-profile.json",
         "../../host/work-session.js",
@@ -3222,7 +3229,7 @@
     {
       "path": "ui/pool-home/work.js",
       "owner": "ui",
-      "sha256": "sha256:732ea8c8b7e24e28249013649519abb547797fe2c691ccf604a2851f6fefe9e1",
+      "sha256": "sha256:090f8cae9ef499719458abcd8a5249ce2a087987816308a23295742269d0f881",
       "imports": [
         "../../config/work-profile.json",
         "../../host/work-session.js",
