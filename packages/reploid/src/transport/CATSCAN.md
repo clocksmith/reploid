@@ -20,7 +20,7 @@ Outputs: bounded operations, state, failures and retained evidence.
 - Candidates cannot expand permissions or approve their own output.
 - Cancellation does not claim termination of borrowed work.
 - Preserve record identities and recovery compatibility.
-- Storage shards, complete requests and intermediate tensors remain distinct payload contracts. Transfers do not authorize execution or prove partition compatibility.
+- Storage shards, complete requests, partition tensors/continuation state and agent subtask messages retain distinct payload contracts. Transfers do not authorize execution or prove partition compatibility.
 - Candidate transfers bind endpoints, room, contract, bytes and expiry. Retried delivery is bounded at-least-once; acknowledgements establish retained preview only.
 
 ## Acceptance
@@ -32,3 +32,5 @@ Application catalogs, credentials, product UI, scientific truth and deployment c
 
 ## Freedom
 Preserve these boundaries and executable acceptance.
+
+*Last updated: September 2026*
