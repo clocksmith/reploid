@@ -45,4 +45,4 @@ Outputs:
 - Treating peer count, mutation volume, inference volume, or raw activity as product outcomes.
 
 ## Freedom
-Any mechanism is permitted if it preserves these boundaries and passes acceptance evidence.
+Implementation is free within these boundaries and acceptance requirements.
