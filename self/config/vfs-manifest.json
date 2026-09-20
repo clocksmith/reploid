@@ -487,6 +487,7 @@
     "prompts/kernel.md",
     "providers/CATSCAN.md",
     "providers/doppler-reploid.js",
+    "providers/work-network-provider.js",
     "providers/work-provider.js",
     "reset.html",
     "self/boot-spec.js",

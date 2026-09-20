@@ -1,11 +1,22 @@
 # Work, helpers, peers, and tool improvement
 
-Reploid's main page connects agents, models, tasks, contribution, and improvements.
-The local choice is Qwen 3.5 2B (`qwen-3-5-2b-q4k-ehaf16`) through
-`doppler-gpu@0.6.1` and WebGPU. The model selector also offers the configured
-Gemini cloud provider; its credential and execution boundary remains explicit.
+Reploid's main workspace contains a thread list and the selected thread, with
+network state in a disclosure. The operator defines each thread's objective;
+agents may define bounded subtasks within that thread's grants, not replace its
+objective. Up to eight threads can remain active independently. Selecting a
+thread does not stop another. Stop and public-payload approvals are thread-scoped;
+background approvals remain visible in the thread list.
 
-Each task can enable three independent capabilities:
+The workspace uses Doppler models, not a local/cloud mode switch. It places whole
+inference requests on connected peers advertising the selected model, or this
+device when no matching peer is connected. Remote inference requires exact-payload
+approval for each dispatch, including the conversation context. Refusal and peer
+failure never silently retry on another participant or model. The default model
+is Qwen 3.5 2B (`qwen-3-5-2b-q4k-ehaf16`) through `doppler-gpu@0.6.1`.
+This device serializes its borrowed GPU operations across threads and contributions;
+concurrent agent threads do not promise simultaneous execution on one GPU.
+
+Thread Options contain independent grants:
 
 - **Use helper agents:** the main agent can assign up to three bounded subtasks.
   Helpers use the selected model and the shared Reploid engine, with read-only
@@ -21,7 +32,7 @@ Each task can enable three independent capabilities:
 
 ## Connect another device
 
-On the main page, choose **Invite** beside Agents & models. Open the invitation on the participating
+Open **Network**, then choose **Invite**. Open the invitation on the participating
 devices, then use **Connect peers**. A contributor can explicitly offer
 the local Qwen model and stop sharing at any time. Cross-device connections use
 the configured signaling service for rendezvous and WebRTC for transport.
@@ -35,7 +46,8 @@ Signaling and local model availability remain deployment prerequisites.
 
 ## Improve a tool
 
-Choose **Improve a tool** on Work. The initial registered target is `FormatJson`:
+Enable **Test tool improvements** in thread Options. Review candidates in **Changes**.
+The initial registered target is `FormatJson`:
 its baseline handles ordinary JSON, while the protected host suite also checks
 Markdown fences, byte order marks, malformed input, and preservation of values.
 The agent can implement a candidate function and run a paired comparison.
@@ -46,10 +58,10 @@ the expected answer or evaluation suite. Timeouts, cancellation, and host failur
 cannot count as successful rejection of invalid input. Protected tests are
 host-controlled, although their source is public in this repository.
 
-The main page and the focused improvement history show the baseline and candidate scores, source, and an evaluation
+The Changes page shows the baseline and candidate scores, source, and an evaluation
 download. A candidate must pass every correctness and separate workload case,
 regress none, and satisfy the host's frozen improvement objective.
-Use **Use this version** to adopt it after the active task settles, or keep the
+Use **Use this version** to adopt it after all active threads settle, or keep the
 current version. **Restore previous version** rolls back an adopted change.
 Active tasks pin their tool versions. Local records retain failed and rejected
 candidates, signed episodes, ancestry, and evaluation observations across reloads.
@@ -134,6 +146,14 @@ These are bounded delivery and local tool-evaluation contracts, not evidence of
 independently operated machines or network-caused capability improvement.
 
 ## Acceptance evidence
+
+`tests/unit/work-threads.test.js` and `tests/e2e/work-threads.spec.js` exercise two
+concurrent host threads, view switching, separate approvals, stopping one without
+stopping the other, and retained results after reload. Inference is injected.
+The browser thread suite also runs primary inference through two real WebRTC
+participants with injected responses and no local requester model.
+`tests/unit/legacy-generation-threads.test.js` covers compatible-peer reservations,
+queued requests, model-substitution rejection, and request-scoped cancellation.
 
 `tests/e2e/work-integration.spec.js` exercises the Work helper/evaluation/adoption
 flow, browser isolation, Verification Worker, and approved text exchange between

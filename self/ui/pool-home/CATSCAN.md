@@ -25,7 +25,7 @@ Outputs: [markup](view.js), [Room-1](room-view.js).
 - Link tasks/helpers/jobs/results/candidates; show observed states and missing admission/evaluators.
 - Preserve execution in protein/document examples and request/execution/comparison/acceptance/receipt lifecycles. Recovery requires valid state.
 - Disclose execution location; approve exact outgoing public payloads. Room membership grants no disclosure.
-- Keep failures, grants and stop controls visible; disclose details progressively.
+- Keep thread failures, approvals and stop visible; selection never stops background threads.
 - Inspect Pack/runtime/provider/hardware/fallback/timing/output/agreement. Review grants no evaluation/promotion; receipts prove no hardware attestation; acceptance names policy.
 - Research administration stays in Room-1; generic Packs inherit no research fields.
 - Archive/decision memory remain distinct; Zero/X grant no mutation authority.

@@ -3,25 +3,22 @@ import { readFile } from 'node:fs/promises';
 
 test('Home connects agents and tasks with explicit disclosure', async ({ page }) => {
   await page.goto('/');
-  await expect(page.getByRole('heading', { name: 'Agents', exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Threads', exact: true })).toBeVisible();
   await expect(page.locator('.pool-connected-heading, [data-goal-preset]')).toHaveCount(0);
   await expect(page.locator('[data-work-output]')).toBeHidden();
-  await expect(page.locator('.pool-work-history')).toBeHidden();
+  await expect(page.locator('[data-work-history]')).toHaveText('No threads yet');
   await expect(page.getByText('Mesh Node: Active', { exact: true })).toHaveCount(0);
   await expect(page.getByText('Provider: Ready', { exact: true })).toHaveCount(0);
   await expect(page.locator('[data-work-attachments]')).not.toHaveAttribute('open');
-  await expect(page.locator('[data-work-peers]')).not.toBeChecked();
-  await expect(page.locator('[data-work-location]')).toContainText('This device');
-  const cloudId = await page.locator('[data-work-model] option').evaluateAll(options =>
-    options.find(option => option.textContent.includes('Cloud')).value);
-  await page.locator('[data-work-model]').selectOption(cloudId);
-  await expect(page.locator('[data-work-location]')).toContainText('sends task and files');
+  await expect(page.locator('[data-work-peers]')).toBeChecked();
+  await expect(page.locator('[data-work-model] option')).not.toContainText(['Cloud']);
+  await expect(page.locator('[data-work-model]')).toBeHidden();
   await page.locator('[data-work-goal]').fill('Summarize the attached file.');
   await page.locator('[data-work-attachments] summary').click();
   await expect(page.locator('[data-work-files]')).toBeVisible();
   await page.locator('[data-work-files]').setInputFiles({ name: 'notes.txt', mimeType: 'text/plain', buffer: Buffer.from('A short note.') });
   await expect(page.locator('[data-work-file-count]')).toHaveText('1 attached');
-  await expect(page.locator('[data-work-peers]')).not.toBeChecked();
+  await expect(page.locator('[data-work-peers]')).toBeChecked();
 });
 
 test('Network exposes sharing controls and still requires approval', async ({ page }) => {
@@ -97,7 +94,6 @@ test('view state retains activity, cancellation, saved results and a clean new t
   await page.locator('[data-work-revise-selected]').click();
   await expect(page.locator('[data-work-feedback]')).toBeVisible();
   await expect(page.locator('[data-work-goal]')).toHaveValue('Inspect notes');
-  await page.locator('.pool-work-history > summary').click();
   await page.locator('[data-work-select]').click();
   await page.locator('[data-work-new]').click();
   await expect(page.locator('[data-work-output]')).toBeHidden();

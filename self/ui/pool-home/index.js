@@ -1,4 +1,4 @@
-import { getZeroAccessHeaders } from '../../config/zero-inference.js';
+import { createReploidDopplerRuntimeService } from '../../infrastructure/doppler-runtime-service.js';
 import { createOperationRoomNetwork } from '../../pool/operation-room-network.js';
 import { createWorkSession } from '../../host/work-session.js';
 import { createWorkEvolution } from '../../host/work-evolution.js';
@@ -238,12 +238,13 @@ export function initPoolHome(mount, { operationNetwork = null } = {}) {
   let disposeWorkView = () => {};
   const workStorage = getCurrentReploidStorage();
   let work;
-  const evolution = createWorkEvolution({ storage: workStorage, isBusy: () => work?.getState().busy === true });
-  const swarm = createWorkSwarm({ storage: workStorage, evolution });
-  work = createWorkSession({ credentials: getZeroAccessHeaders, storage: workStorage, swarm, evolution,
+  const service = createReploidDopplerRuntimeService();
+  const evolution = createWorkEvolution({ storage: workStorage, isBusy: () => work?.getState().anyBusy === true });
+  const swarm = createWorkSwarm({ storage: workStorage, evolution, service });
+  work = createWorkSession({ service, storage: workStorage, swarm, evolution,
     peers: createWorkPeerJobs({ getNetwork: () => operationNetwork }) });
   const onPageHide = event => {
-    work.cancel();
+    work.cancelAll();
     void (event.persisted ? swarm.stop() : swarm.close()).catch(error => console.error('[Reploid Swarm] Shutdown failed', error));
     void operationSharing.stop().catch(error => console.error('[Reploid Network] Shutdown failed', error));
     if (!event.persisted) {

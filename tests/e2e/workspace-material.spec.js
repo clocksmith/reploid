@@ -48,8 +48,8 @@ async function installWorkspace(page, theme) {
       approvePeer(value) { window.visualApproved = value; }
     };
     const swarm = {
-      getState: () => ({ models: [model], sharing: state.busy,
-        contribution: { phase: state.busy ? 'executing' : 'idle', completed: 2 },
+      getState: () => ({ models: [model], sharing: false,
+        contribution: { phase: 'idle', completed: 2 },
         limits: { maxInboundJobs: 1, maxOutputTokens: 1024 },
         consumer: { transport: 'webrtc', providerCount: 1, peerId: 'local',
           peers: [{ peerId: 'peer-east', role: 'provider', model: 'Qwen 3.5 2B' }] } }),
@@ -62,9 +62,12 @@ async function installWorkspace(page, theme) {
         output: mode === 'completed' ? 'The formatter preserves valid values and rejects malformed JSON. Two edge cases need a tool change.' : '',
         helpers: record.helpers.map(helper => ({ ...helper, status: busy ? 'running' : 'completed' })),
         events: record.events.map(event => ({ ...event, status: busy ? event.status : 'completed' })) };
-      state = { models: DEFAULT_WORK_MODELS, records: mode === 'empty' ? [] : [current],
+      state = { models: DEFAULT_WORK_MODELS, records: mode === 'empty' ? [] : [current,
+        { ...record, id: 'second-thread', goal: 'Compare two planning approaches', status: busy ? 'running' : 'paused' }],
         selectedId: mode === 'empty' ? null : current.id, activeId: busy ? current.id : null,
-        busy, available: true, cycle: 2, maxCycles: 12, peerModels: [],
+        busy, anyBusy: busy, runningIds: busy ? [current.id, 'second-thread'] : [],
+        approvalThreadIds: mode === 'approval' ? [current.id] : [], maxConcurrentThreads: 8,
+        available: true, cycle: 2, maxCycles: 12, peerModels: [],
         activity: busy ? 'Checking edge cases' : 'Finished',
         draft: mode === 'active' ? 'Comparing the helper findings with the local checks…' : '',
         pendingApproval: mode === 'approval' ? { id: 'approval', operation: 'generate',
@@ -90,11 +93,11 @@ for (const theme of ['light', 'dark']) for (const width of [1440, 390]) {
       if (phase !== 'before') {
         await expect(page.locator('.pool-connected-heading, [data-goal-preset], .pool-work-zero-callout')).toHaveCount(0);
         expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-        if (state === 'active' || state === 'approval') await expect(page.locator('[data-contribution-limits]')).toBeVisible();
-        else await expect(page.locator('[data-contribution-limits]')).toBeHidden();
-        await expect(page.locator('.pool-work-history')).not.toHaveAttribute('open');
+        await expect(page.locator('[data-network-disclosure]')).not.toHaveAttribute('open');
+        await expect(page.locator('[data-work-model]')).toBeHidden();
+        await expect(page.locator('.pool-thread-list')).toBeVisible();
         const material = await page.evaluate(() => {
-          const selectors = ['.pool-agent-network', '.pool-work-task', '[data-work-approval]'];
+          const selectors = ['.pool-thread-list', '.pool-work-task', '[data-work-approval]'];
           const panels = selectors.map(selector => getComputedStyle(document.querySelector(selector)));
           const input = getComputedStyle(document.querySelector('[data-work-goal]'));
           const select = getComputedStyle(document.querySelector('[data-work-model]'));
@@ -114,10 +117,9 @@ for (const theme of ['light', 'dark']) for (const width of [1440, 390]) {
           expect(channels[0]).toBe(channels[1]); expect(channels[1]).toBe(channels[2]);
         }
         if (state === 'active' || state === 'approval') {
-          await page.locator('[data-contribution-panel]').evaluate(node => { node.open = false; });
-          await expect(page.locator('[data-contribution-panel]')).toHaveAttribute('open', '');
           await expect(page.locator('[data-work-task-header] [data-work-cancel]')).toBeVisible();
-          await expect(page.locator('[data-swarm-stop]')).toBeVisible();
+          await expect(page.locator('[data-work-new]')).toBeEnabled();
+          await expect(page.locator('[data-work-select]')).toHaveCount(2);
         }
         if (state === 'approval') {
           await expect(page.locator('[data-work-approval-payload]')).toBeVisible();
@@ -128,32 +130,21 @@ for (const theme of ['light', 'dark']) for (const width of [1440, 390]) {
         if (state === 'paused') await expect(page.locator('[data-work-result-error]')).toHaveText('Pause execution before checkpointing');
         const grid = await page.evaluate(() => {
           const rect = selector => document.querySelector(selector).getBoundingClientRect().toJSON();
-          return { task: rect('.pool-work-task'), agents: rect('.pool-agent-network'), nav: rect('.pool-primary-nav') };
+          return { task: rect('.pool-work-task'), threads: rect('.pool-thread-list'), nav: rect('.pool-primary-nav') };
         });
-        expect(grid.task.left).toBe(grid.nav.left);
+        expect(grid.threads.left).toBe(grid.nav.left);
+        expect(grid.task.right).toBe(grid.nav.right);
         if (width === 1440) {
-          expect(grid.task.top).toBe(grid.agents.top);
-          expect(grid.task.bottom).toBe(grid.agents.bottom);
-          expect(grid.task.width).toBe(grid.agents.width);
-          expect(grid.agents.right).toBe(grid.nav.right);
+          expect(grid.task.top).toBe(grid.threads.top);
+          expect(grid.task.bottom).toBe(grid.threads.bottom);
+          expect(Math.abs(grid.task.width / grid.threads.width - 3)).toBeLessThan(0.02);
         } else {
-          expect(grid.agents.width).toBe(grid.task.width);
-          expect(grid.agents.top - grid.task.bottom).toBe(32);
+          expect(grid.threads.width).toBe(grid.task.width);
+          expect(grid.task.top - grid.threads.bottom).toBe(32);
         }
         if (state === 'empty') {
-          const controls = await page.evaluate(() => {
-            const rect = selector => document.querySelector(selector).getBoundingClientRect();
-            return { model: rect('[data-work-model]').height, start: rect('[data-work-start]').height,
-              composer: rect('.pool-work-task').toJSON(), agents: rect('.pool-agent-network').toJSON(),
-              nav: rect('.pool-primary-nav').toJSON() };
-          });
-          expect(controls.model).toBe(controls.start);
-          expect(controls.composer.left).toBe(controls.nav.left);
-          if (width === 1440) {
-            expect(controls.composer.top).toBe(controls.agents.top);
-            expect(controls.composer.width).toBe(controls.agents.width);
-            expect(controls.agents.right).toBe(controls.nav.right);
-          }
+          await expect(page.locator('[data-work-start]')).toBeVisible();
+          await expect(page.locator('[data-work-attachments]')).not.toHaveAttribute('open');
         }
       }
       await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }));

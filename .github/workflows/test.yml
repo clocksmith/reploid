@@ -56,6 +56,8 @@ jobs:
         tests/e2e/boot.spec.js
         tests/e2e/peer-pack-jobs.spec.js
         tests/e2e/work-integration.spec.js
+        tests/e2e/work-threads.spec.js
+        tests/e2e/workspace-material.spec.js
         tests/e2e/work-clarity.spec.js
         tests/e2e/agent-network-home.spec.js
         tests/e2e/tool-offer-exchange.spec.js
