@@ -24,6 +24,9 @@ and consent visibility, not actual inference or independent providers.
   `sha256:01b6ae61a405abb9116a18e1af386e610b5240f452e74021adfd3c0ebedba1c3`.
 - UI charter is within the 250-word limit. Repository charter validation still
   reports the pre-existing 267-word `self/pool/CATSCAN.md`.
+- The full Vitest run passed 2660 tests and exposed two stale navigation-label
+  expectations, now updated to the requested `Changes` label; the other failure
+  is the runtime charter limit above. The focused navigation rerun passes.
 
 Reproduce browser checks without replacing historical evidence:
 
