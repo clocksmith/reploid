@@ -2177,7 +2177,7 @@
     {
       "path": "self/host/work-session.js",
       "owner": "self",
-      "sha256": "sha256:e6674a6cae1eb78c04b31a05e245f9692892110b10af46eddf74b1df45cf4a40",
+      "sha256": "sha256:e559c42b0bc40330c85f60967bdc7e3fc915a3ae0cef17ad3f37f5c9990adda8",
       "imports": [
         "../config/doppler-local-models.js",
         "../config/work-evolution.json",
@@ -3211,7 +3211,7 @@
     {
       "path": "ui/pool-home/work-capabilities.js",
       "owner": "ui",
-      "sha256": "sha256:8954d8919ec172083af2fc5054712c2cc494f2c634b95777b2f2236abe001324",
+      "sha256": "sha256:b708d3fe3bd74066484f46cd9f9e31e4ce894fc119db00d8fd39e18c595020c8",
       "imports": [
         "./agent-network.js",
         "./work-tool-offers.js"
@@ -3631,9 +3631,10 @@
     {
       "path": "vendor/reploid/improvement/code-evolution.js",
       "owner": "vendor",
-      "sha256": "sha256:d46de1f133ef48a7f9669ce50fb80f0ba081a70755220341f86f18bbf1aebc9c",
+      "sha256": "sha256:ddbab4ca17d2fc0b17147ce3d27d494412edd700ee6caed421e81b51b65011b5",
       "imports": [
-        "./episodes.js"
+        "./episodes.js",
+        "./tool-objective.js"
       ]
     },
     {
@@ -3652,6 +3653,12 @@
         "./code-evolution.js",
         "./episodes.js"
       ]
+    },
+    {
+      "path": "vendor/reploid/improvement/tool-objective.js",
+      "owner": "vendor",
+      "sha256": "sha256:0d3e15bcf07469adb49668f77f9533e3a60abf836fafd4a724775c32d5927d85",
+      "imports": []
     },
     {
       "path": "vendor/reploid/index.js",

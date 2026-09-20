@@ -29,6 +29,7 @@ Outputs:
 - Configuration cannot broaden host authorization.
 - Artifact supply, execution and candidate sharing require separate permissions.
 - Candidates cannot control evaluators, self-approve or erase failures.
+- Continuing tool objectives bind versioned host workloads, thresholds and evaluator identity before generation; correctness remains mandatory.
 - Ancestry, reproduction, adoption, heuristics and agreement are not intelligence proofs.
 - Close owned resources, never borrowed ones.
 - Migration requires protocol compatibility evidence; extraction proves neither acceptance nor publication.

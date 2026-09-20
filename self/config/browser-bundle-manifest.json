@@ -1285,8 +1285,8 @@
     },
     {
       "path": "config/module-inventory.json",
-      "byteLength": 118500,
-      "sha256": "sha256:8d96f976eeeb5296cce6129f30188fde88d90cb68e0ce2d32a697c5707c0d134"
+      "byteLength": 118742,
+      "sha256": "sha256:fc4d1367220727c170a3d8d730ba0c38460a4241685afd187306f545173c59c2"
     },
     {
       "path": "config/module-registry.json",
@@ -1325,8 +1325,8 @@
     },
     {
       "path": "config/vfs-manifest.json",
-      "byteLength": 32255,
-      "sha256": "sha256:825b381a1862ebbba71cad13b06683da50962622e767e233874177be62ad1583"
+      "byteLength": 32307,
+      "sha256": "sha256:50dd74903a9308e9c5fdb01b2646f06e4121c25e1bbdf119533b2402c412579d"
     },
     {
       "path": "config/vfs-policy.js",
@@ -1335,8 +1335,8 @@
     },
     {
       "path": "config/work-evolution.json",
-      "byteLength": 1495,
-      "sha256": "sha256:bf19cf08a3259ae6309373da0829bf5504be1060c12e08a61e1d0ae7209ee273"
+      "byteLength": 3201,
+      "sha256": "sha256:d5a0dc7e12b18235c736c335e176f2d5cf707b2f50168f1961f900db8214b4a5"
     },
     {
       "path": "config/work-profile.json",
@@ -1620,8 +1620,8 @@
     },
     {
       "path": "host/CATSCAN.md",
-      "byteLength": 1972,
-      "sha256": "sha256:2d3fbcb1abf03fec563d18ced50fb6a826d3647eeb79b40bc4d5f6259e46b475"
+      "byteLength": 1969,
+      "sha256": "sha256:2ebd0963c995b7b43727edeea0cfff3cea1482ba6e54da380d915c18c6e9b8e5"
     },
     {
       "path": "host/seed-vfs.js",
@@ -1680,8 +1680,8 @@
     },
     {
       "path": "host/work-session.js",
-      "byteLength": 21265,
-      "sha256": "sha256:e6674a6cae1eb78c04b31a05e245f9692892110b10af46eddf74b1df45cf4a40"
+      "byteLength": 21617,
+      "sha256": "sha256:e559c42b0bc40330c85f60967bdc7e3fc915a3ae0cef17ad3f37f5c9990adda8"
     },
     {
       "path": "host/work-swarm.js",
@@ -3290,8 +3290,8 @@
     },
     {
       "path": "ui/pool-home/work-capabilities.js",
-      "byteLength": 10982,
-      "sha256": "sha256:8954d8919ec172083af2fc5054712c2cc494f2c634b95777b2f2236abe001324"
+      "byteLength": 11784,
+      "sha256": "sha256:b708d3fe3bd74066484f46cd9f9e31e4ce894fc119db00d8fd39e18c595020c8"
     },
     {
       "path": "ui/pool-home/work-goal-composer.js",
@@ -3770,13 +3770,13 @@
     },
     {
       "path": "vendor/reploid/improvement/code-evolution.d.ts",
-      "byteLength": 3334,
-      "sha256": "sha256:561c53b4995659c0142b8d9b72e155a10d7e2dadf6f616eaf11e722f56955408"
+      "byteLength": 4520,
+      "sha256": "sha256:8224047d917483e498892b3ead42385a7c3f016ad2a226566289d6fbec72a991"
     },
     {
       "path": "vendor/reploid/improvement/code-evolution.js",
-      "byteLength": 19248,
-      "sha256": "sha256:d46de1f133ef48a7f9669ce50fb80f0ba081a70755220341f86f18bbf1aebc9c"
+      "byteLength": 21961,
+      "sha256": "sha256:ddbab4ca17d2fc0b17147ce3d27d494412edd700ee6caed421e81b51b65011b5"
     },
     {
       "path": "vendor/reploid/improvement/episodes.d.ts",
@@ -3797,6 +3797,11 @@
       "path": "vendor/reploid/improvement/index.js",
       "byteLength": 507,
       "sha256": "sha256:b291f290197871f2d81b7affcbbc4cdc27364f220601cbc42037d0d2d762fc8b"
+    },
+    {
+      "path": "vendor/reploid/improvement/tool-objective.js",
+      "byteLength": 3865,
+      "sha256": "sha256:0d3e15bcf07469adb49668f77f9533e3a60abf836fafd4a724775c32d5927d85"
     },
     {
       "path": "vendor/reploid/index.d.ts",
@@ -3900,8 +3905,8 @@
     },
     {
       "path": "vendor/reploid/package-assets.json",
-      "byteLength": 19531,
-      "sha256": "sha256:e2e5676a950ed90efd12359df406e39ed8b3959374da905b462e2ac88f956fbc"
+      "byteLength": 19695,
+      "sha256": "sha256:28133721edb4fa8a844d6a3e519c3e4ff05b23ec519850c2b930f344a2d1c063"
     },
     {
       "path": "vendor/reploid/rules/contribution.rules.json",
@@ -3984,5 +3989,5 @@
       "sha256": "sha256:ca1208dd2f96d1b7ffb5464c7676a22aa849ec31936abde0809fc208bbd971c9"
     }
   ],
-  "bundleHash": "sha256:eebb9b823caa11d18e52801da09ef24f66800a852a855eb549cfe9922b819b54"
+  "bundleHash": "sha256:8b975fbc56e76495b7ac0fb90c1bdc97a8258c4dc8c185b6332f74c74e913dff"
 }

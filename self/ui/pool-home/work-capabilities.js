@@ -37,6 +37,12 @@ export function bindWorkCapabilities(root, application, { evolution, swarm } = {
             + '<p>' + escape(item.reason) + '</p>'
             + (evaluation ? '<p>Current: ' + evaluation.baselinePassed + '/' + evaluation.total + ' checks. Candidate: '
               + evaluation.candidatePassed + '/' + evaluation.total + ' checks.</p>' : '')
+            + (evaluation?.latency ? '<details><summary>Measured execution</summary><p>Current: '
+              + evaluation.latency.baselineMedianMs.toFixed(1) + ' ms. Candidate: ' + evaluation.latency.candidateMedianMs.toFixed(1)
+              + ' ms. ' + (evaluation.improvementKind === 'latency' ? 'Qualifying latency improvement.' : evaluation.improvementKind === 'correctness' ? 'Qualified by correctness repair.' : 'No qualifying improvement.')
+              + '</p><p class="pool-control-help">Objective ' + escape(evaluation.latency.objectiveId) + ' v'
+              + evaluation.latency.objectiveVersion + '. Host measurements include sandbox startup. '
+              + evaluation.latency.fasterPairs + '/' + evaluation.latency.observations.length + ' pairs were faster.</p></details>' : '')
             + (item.error ? '<p class="pool-work-error">' + escape(item.error) + '</p>' : '')
             + '<details><summary>Code &amp; sharing</summary><pre>' + escape(item.code) + '</pre>'
             + (evolution.offerLimits ? '<p class="pool-control-help">The candidate file includes this code and description. Check both before sharing.</p>'

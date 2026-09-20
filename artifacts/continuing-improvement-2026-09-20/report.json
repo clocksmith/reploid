@@ -1,0 +1,263 @@
+{
+  "schema": "reploid.continuing-improvement-evidence/v1",
+  "recordedAt": "2026-09-20T13:54:25.370432+00:00",
+  "baseRevision": "ef28345e3530b81664992ad9f14d4f542600b1d9",
+  "sourceBinding": "Individual model runs retain served source bytes and hashes; baseRevision alone does not identify uncommitted implementation changes.",
+  "bundleHash": "sha256:8b975fbc56e76495b7ac0fb90c1bdc97a8258c4dc8c185b6332f74c74e913dff",
+  "milestones": {
+    "continuingObjectives": true,
+    "modelGeneratedPassingCandidate": false,
+    "independentCrossDeviceImprovement": false,
+    "recursiveImprovement": false
+  },
+  "implementation": [
+    "Host-selected repair-or-latency objective with versioned workloads and thresholds; all six correctness cases remain mandatory.",
+    "12 alternating paired timings; at least 5 ms median gain, 20 percent median relative gain and 11 faster pairs required for latency qualification.",
+    "Objective and evaluator changes invalidate pending adoption; separate approval, reload recovery and rollback remain enforced.",
+    "Raw workload outputs stay outside agent feedback; each proposal owns its immutable algorithm generation so rejected proposals cannot block retries."
+  ],
+  "checks": {
+    "fullSuite": {
+      "passed": 2656,
+      "skipped": 36,
+      "log": "checks/full.log"
+    },
+    "focusedUnit": {
+      "passed": 16,
+      "log": "checks/unit.log"
+    },
+    "broadChromium": {
+      "passed": 88,
+      "scope": "Before the final retry identity fix and contract clarification; affected suites rerun afterward.",
+      "log": "checks/browser-all.log"
+    },
+    "finalAffectedChromium": {
+      "passed": 12,
+      "log": "checks/browser-final.log"
+    },
+    "installedPackage": {
+      "passed": 16,
+      "report": "../library-acceptance/2026-09-20T13-40-54-539Z/report.json"
+    },
+    "static": "checks/static.json",
+    "generators": {
+      "idempotent": true,
+      "unresolved": 0,
+      "log": "checks/registry-idempotence.log"
+    },
+    "retryRegression": {
+      "reproducedBeforeFix": true,
+      "log": "checks/retry-regression-before.log"
+    },
+    "transferRunner": {
+      "failedCandidateRefused": true,
+      "positiveModelTransferExercised": false,
+      "log": "checks/failed-offer-refusal.log"
+    }
+  },
+  "fixtures": "Continuing latency improvements and browser peer-transfer checks use explicitly handwritten candidate fixtures; they are not model or independent-machine evidence.",
+  "actualModel": {
+    "id": "qwen-3-5-2b-q4k-ehaf16",
+    "runtime": "doppler-gpu@0.6.1",
+    "hardware": "Chromium WebGPU, Intel gen-12lp",
+    "injectedInference": false,
+    "runs": [
+      {
+        "path": "artifacts/continuing-improvement-2026-09-20/model-attempt-1/report.json",
+        "sha256": "sha256:7909c238e4bd3d0087e2240dd5ac1133a37379986bb297c08066c489c3c1352b",
+        "startedAt": "2026-09-20T13:22:02.726Z",
+        "finishedAt": "2026-09-20T13:26:03.947Z",
+        "qualified": false,
+        "error": null,
+        "candidates": [
+          {
+            "id": "candidate:11d55495-c3cb-409f-919e-1671d05db675",
+            "status": "failed",
+            "error": "Candidate failed static verification: [\"Syntax Error in /tools/candidate.js: Unexpected token (1:202)\"]",
+            "baselinePassed": null,
+            "candidatePassed": null
+          }
+        ]
+      },
+      {
+        "path": "artifacts/continuing-improvement-2026-09-20/model-attempt-2/report.json",
+        "sha256": "sha256:d8772ec15167b8c90771af4895ae926eaca4292f2234013ffc6c82dfd906cbcd",
+        "startedAt": "2026-09-20T13:28:56.290Z",
+        "finishedAt": "2026-09-20T13:34:11.680Z",
+        "qualified": false,
+        "error": "Error: Diagnostic deadline reached\n    at eval (eval at evaluate (:290:30), <anonymous>:22:89)",
+        "candidates": [
+          {
+            "id": "candidate:9c59492c-fefc-472b-b1bf-3c24b95cbe7b",
+            "status": "failed",
+            "error": "Candidate failed static verification: [\"Syntax Error in /tools/candidate.js: Unexpected token (1:16)\"]",
+            "baselinePassed": null,
+            "candidatePassed": null
+          }
+        ]
+      },
+      {
+        "path": "artifacts/continuing-improvement-2026-09-20/model-attempt-3/report.json",
+        "sha256": "sha256:bbf8c33d053e603990c5a0f119921b8d787d72aad2dd4eb950ed610e4b97a404",
+        "startedAt": "2026-09-20T13:34:36.075Z",
+        "finishedAt": "2026-09-20T13:38:35.865Z",
+        "qualified": false,
+        "error": null,
+        "candidates": [
+          {
+            "id": "candidate:cd58e146-a7d7-4229-af36-3c867b70a6df",
+            "status": "failed",
+            "error": "Candidate failed static verification: [\"Syntax Error in /tools/candidate.js: Unexpected token (1:17)\"]",
+            "baselinePassed": null,
+            "candidatePassed": null
+          },
+          {
+            "id": "candidate:8ddc32be-eeec-4b86-a279-b9dea4a90245",
+            "status": "failed",
+            "error": "Algorithm version is immutable and already has different contents",
+            "baselinePassed": null,
+            "candidatePassed": null
+          },
+          {
+            "id": "candidate:cee863ce-a0f9-44f9-adde-b7935d9f62e5",
+            "status": "failed",
+            "error": "Algorithm version is immutable and already has different contents",
+            "baselinePassed": null,
+            "candidatePassed": null
+          },
+          {
+            "id": "candidate:b7a0fcce-7cd6-4da4-8f48-7c27d28740b7",
+            "status": "failed",
+            "error": "Algorithm version is immutable and already has different contents",
+            "baselinePassed": null,
+            "candidatePassed": null
+          }
+        ]
+      },
+      {
+        "path": "artifacts/continuing-improvement-2026-09-20/model-attempt-4/report.json",
+        "sha256": "sha256:7ad8f3ecf8994bd6d675137aea9f625de71888b40d52066fdaf8862aaf8ad7e2",
+        "startedAt": "2026-09-20T13:40:21.650Z",
+        "finishedAt": "2026-09-20T13:44:04.879Z",
+        "qualified": false,
+        "error": null,
+        "candidates": [
+          {
+            "id": "candidate:bc12c630-5dca-4363-893d-5e06fc1f8cb4",
+            "status": "failed",
+            "error": "Candidate failed static verification: [\"Syntax Error in /tools/candidate.js: Unexpected token (1:17)\"]",
+            "baselinePassed": null,
+            "candidatePassed": null
+          },
+          {
+            "id": "candidate:ff999ea7-f58f-423d-ad91-640daf101c48",
+            "status": "failed",
+            "error": "Candidate failed static verification: [\"Syntax Error in /tools/candidate.js: Unexpected token (1:24)\"]",
+            "baselinePassed": null,
+            "candidatePassed": null
+          },
+          {
+            "id": "candidate:5ff8f1ff-6940-4966-9e26-f370ecb41bc5",
+            "status": "failed",
+            "error": "Candidate failed static verification: [\"Syntax Error in /tools/candidate.js: Unexpected token (1:17)\"]",
+            "baselinePassed": null,
+            "candidatePassed": null
+          },
+          {
+            "id": "candidate:471e0303-e002-402c-b88e-32d4f1b73ae1",
+            "status": "failed",
+            "error": "Candidate failed static verification: [\"Syntax Error in /tools/candidate.js: Unexpected token (1:24)\"]",
+            "baselinePassed": null,
+            "candidatePassed": null
+          }
+        ]
+      },
+      {
+        "path": "artifacts/continuing-improvement-2026-09-20/model-attempt-5/report.json",
+        "sha256": "sha256:605a8d68c241afde9e2812426580261eab88492517c81e4741256f214b22473b",
+        "startedAt": "2026-09-20T13:44:50.727Z",
+        "finishedAt": "2026-09-20T13:48:39.734Z",
+        "qualified": false,
+        "error": null,
+        "candidates": [
+          {
+            "id": "candidate:d9cf561a-293a-44ff-9f19-6bec895f95dd",
+            "status": "rejected",
+            "error": null,
+            "baselinePassed": 4,
+            "candidatePassed": 1
+          },
+          {
+            "id": "candidate:5c876dbf-e573-4ab1-85bd-3c15ed437aa9",
+            "status": "rejected",
+            "error": null,
+            "baselinePassed": 4,
+            "candidatePassed": 1
+          },
+          {
+            "id": "candidate:5fe8f507-ecff-4721-a8b0-da0f60531dcf",
+            "status": "rejected",
+            "error": null,
+            "baselinePassed": 4,
+            "candidatePassed": 1
+          },
+          {
+            "id": "candidate:f7f25b63-3d3b-445c-a243-5a459dd3f1d1",
+            "status": "rejected",
+            "error": null,
+            "baselinePassed": 4,
+            "candidatePassed": 1
+          }
+        ]
+      },
+      {
+        "path": "artifacts/continuing-improvement-2026-09-20/model-attempt-6/report.json",
+        "sha256": "sha256:7c6f57fd936b09fca2c8073631db33a46440d7cb5606a7a013f6a54fae6ffde6",
+        "startedAt": "2026-09-20T13:49:15.448Z",
+        "finishedAt": "2026-09-20T13:53:12.697Z",
+        "qualified": false,
+        "error": null,
+        "candidates": [
+          {
+            "id": "candidate:82c4e61f-58f3-442e-8417-9022bbfd6ef7",
+            "status": "rejected",
+            "error": null,
+            "baselinePassed": 4,
+            "candidatePassed": 1
+          },
+          {
+            "id": "candidate:21f3fc8d-fb75-4de2-a8ba-fc1aec11ed64",
+            "status": "rejected",
+            "error": null,
+            "baselinePassed": 4,
+            "candidatePassed": 1
+          },
+          {
+            "id": "candidate:bff24449-c22d-4f03-8eac-5733148b95db",
+            "status": "rejected",
+            "error": null,
+            "baselinePassed": 4,
+            "candidatePassed": 1
+          },
+          {
+            "id": "candidate:35f63aed-c7e8-466c-8520-c94ddc32ea55",
+            "status": "rejected",
+            "error": null,
+            "baselinePassed": 4,
+            "candidatePassed": 1
+          }
+        ]
+      }
+    ],
+    "candidateCount": 18,
+    "passingCandidates": 0,
+    "adoptedCandidates": 0,
+    "peerTransfers": 0
+  },
+  "unresolved": [
+    "Configured Qwen did not produce a qualifying tool repair in these bounded attempts. The last two runs reached correctness evaluation and scored 1/6.",
+    "No second independently operated device/operator was available. Two browser contexts cannot substitute for that evidence.",
+    "No standalone-versus-network comparison or A-to-B-to-C causal improvement demonstration was performed."
+  ],
+  "deployment": "Not deployed."
+}

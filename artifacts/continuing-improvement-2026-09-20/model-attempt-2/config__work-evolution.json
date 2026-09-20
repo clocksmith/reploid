@@ -1,0 +1,107 @@
+{
+  "schema": "reploid.work-evolution/v1",
+  "storageKey": "reploid.work-evolution.v1",
+  "maxCandidates": 24,
+  "maxCodeCharacters": 16000,
+  "maxStoredBytes": 2097152,
+  "offers": {
+    "maxBytes": 131072,
+    "maxReasonCharacters": 4000
+  },
+  "peerOffers": {
+    "storageKey": "reploid.tool-transfers.v1",
+    "maxBytes": 24576,
+    "maxRecords": 32,
+    "maxPending": 16,
+    "ttlMs": 300000,
+    "maxAttempts": 3,
+    "maxStoredBytes": 2097152
+  },
+  "timeoutMs": 1500,
+  "verificationTimeoutMs": 10000,
+  "maxResultBytes": 65536,
+  "maxHelpers": 3,
+  "helperMaxCycles": 4,
+  "helperMaxCharacters": 6000,
+  "targets": [
+    {
+      "id": "FormatJson",
+      "description": "Turn JSON text into a formatted JSON string without changing values. May learn to handle a byte order mark or a single Markdown JSON code fence. Invalid JSON must throw. Takes {text}; returns a string.",
+      "code": "({text}) => JSON.stringify(JSON.parse(text), null, 2)",
+      "tests": [
+        {
+          "input": {
+            "text": "{\"count\":2,\"enabled\":false}"
+          },
+          "expected": "{\n  \"count\": 2,\n  \"enabled\": false\n}"
+        },
+        {
+          "input": {
+            "text": "[null,1,\"a\"]"
+          },
+          "expected": "[\n  null,\n  1,\n  \"a\"\n]"
+        },
+        {
+          "input": {
+            "text": "```json\n{\"items\":[3,5]}\n```"
+          },
+          "expected": "{\n  \"items\": [\n    3,\n    5\n  ]\n}"
+        },
+        {
+          "input": {
+            "text": "﻿{\"name\":\"sample\"}"
+          },
+          "expected": "{\n  \"name\": \"sample\"\n}"
+        },
+        {
+          "input": {
+            "text": "{bad json}"
+          },
+          "throws": true
+        },
+        {
+          "input": {
+            "text": "{\"value\":\"```json\"}"
+          },
+          "expected": "{\n  \"value\": \"```json\"\n}"
+        }
+      ],
+      "objective": {
+        "id": "format-json-repair-or-latency",
+        "version": 1,
+        "kind": "repair-or-latency",
+        "samples": 12,
+        "minimumAbsoluteGainMs": 5,
+        "minimumRelativeGain": 0.2,
+        "minimumFasterPairs": 11,
+        "cases": [
+          {
+            "input": {
+              "text": "```json\n{\"nested\":{\"empty\":[],\"ok\":true},\"text\":\"keep \\\"quotes\\\"\"}\n```"
+            },
+            "expected": "{\n  \"nested\": {\n    \"empty\": [],\n    \"ok\": true\n  },\n  \"text\": \"keep \\\"quotes\\\"\"\n}"
+          },
+          {
+            "input": {
+              "text": "﻿[false,{\"n\":-1.5},\"\\u03bb\"]"
+            },
+            "expected": "[\n  false,\n  {\n    \"n\": -1.5\n  },\n  \"λ\"\n]"
+          },
+          {
+            "input": {
+              "text": "{\"a\":1,\"a\":2,\"fence\":\"```json\"}"
+            },
+            "expected": "{\n  \"a\": 2,\n  \"fence\": \"```json\"\n}"
+          },
+          {
+            "input": {
+              "text": "```json\n{broken}\n```"
+            },
+            "throws": true
+          }
+        ]
+      }
+    }
+  ],
+  "maxObjectiveSamples": 24
+}

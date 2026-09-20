@@ -1,0 +1,65 @@
+[
+  {
+    "command": "npm run lint",
+    "startedAt": "2026-09-20T13:51:07.452Z",
+    "output": "\n> reploid@0.1.0 lint\n> eslint .\n\n",
+    "passed": true,
+    "finishedAt": "2026-09-20T13:51:14.044Z"
+  },
+  {
+    "command": "npm run verify:library-types",
+    "startedAt": "2026-09-20T13:51:14.045Z",
+    "output": "\n> reploid@0.1.0 verify:library-types\n> tsc -p tsconfig.library.json\n\n",
+    "passed": true,
+    "finishedAt": "2026-09-20T13:51:16.355Z"
+  },
+  {
+    "command": "npm run verify:catscan",
+    "startedAt": "2026-09-20T13:51:16.356Z",
+    "output": "\n> reploid@0.1.0 verify:catscan\n> node scripts/verify-catscan.js\n\n[catscan] 35 component charters and generated index passed\n",
+    "passed": true,
+    "finishedAt": "2026-09-20T13:51:16.503Z"
+  },
+  {
+    "command": "npm run verify:surface-claims",
+    "startedAt": "2026-09-20T13:51:16.503Z",
+    "output": "\n> reploid@0.1.0 verify:surface-claims\n> node scripts/verify-surface-claim-index.js\n\n[verify-surface-claims] 14 claim rows passed\n",
+    "passed": true,
+    "finishedAt": "2026-09-20T13:51:16.613Z"
+  },
+  {
+    "command": "npm run verify:layers",
+    "startedAt": "2026-09-20T13:51:16.614Z",
+    "output": "\n> reploid@0.1.0 verify:layers\n> node scripts/verify-layers.js\n\nLayer, loader, cycle and canonical delivery verification passed.\n",
+    "passed": true,
+    "finishedAt": "2026-09-20T13:51:17.841Z"
+  },
+  {
+    "command": "npm run verify:module-system",
+    "startedAt": "2026-09-20T13:51:17.841Z",
+    "output": "\n> reploid@0.1.0 verify:module-system\n> node scripts/verify-module-system.js\n\n[verify-module-system] All checks passed\n",
+    "passed": true,
+    "finishedAt": "2026-09-20T13:51:18.199Z"
+  },
+  {
+    "command": "npm run verify:registry",
+    "startedAt": "2026-09-20T13:51:18.200Z",
+    "output": "\n> reploid@0.1.0 verify:registry\n> node scripts/build-blueprint-registry.js --check && node scripts/validate-registry.js\n\n[blueprint-registry] 176 declarations and 106 executable owners are current\n[validate] {\"sourceFiles\":435,\"modules\":68,\"blueprintDeclarations\":176,\"executableOwners\":106,\"unresolved\":0}\n[validate] Inventoried helpers: 257; modules without an architectural blueprint: 18\n",
+    "passed": true,
+    "finishedAt": "2026-09-20T13:51:18.586Z"
+  },
+  {
+    "command": "npm run verify:runtime-config",
+    "startedAt": "2026-09-20T13:51:18.586Z",
+    "output": "\n> reploid@0.1.0 verify:runtime-config\n> node scripts/sync-runtime-config.js\n\nRuntime config verified for browser doppler-gpu@0.6.1 with npm tooling 0.6.1.\n",
+    "passed": true,
+    "finishedAt": "2026-09-20T13:51:18.698Z"
+  },
+  {
+    "command": "npm run verify:browser-bundle:local",
+    "startedAt": "2026-09-20T13:51:18.699Z",
+    "output": "\n> reploid@0.1.0 verify:browser-bundle:local\n> node scripts/build-browser-bundle-manifest.js --check\n\n[browser-bundle] 796 served files match sha256:8b975fbc56e76495b7ac0fb90c1bdc97a8258c4dc8c185b6332f74c74e913dff\n",
+    "passed": true,
+    "finishedAt": "2026-09-20T13:51:18.930Z"
+  }
+]

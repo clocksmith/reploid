@@ -28,6 +28,7 @@ test('task uses a helper and approved peer, evaluates code, requires adoption, a
     app=createWorkSession({storage:localStorage,swarm,credentials:async()=>({'Authorization':'Bearer browser-fixture','X-Firebase-AppCheck':'browser-fixture'}),
       evolution,fetchImpl:async(_url,request)=>{
         const {messages,model}=JSON.parse(request.body);
+        if(result(messages,'ProposeImprovement')) window.improvementFeedback=result(messages,'ProposeImprovement');
         let content;
         if(messages.some(m=>m.content?.includes('You are a bounded helper.'))) {
           content=result(messages,'ReportResult')?'REPLOID/0\nIDLE: Done.':tool('ReportResult',{text:'Strip only the outer fence and initial byte order mark; preserve values and reject invalid JSON.'});
@@ -58,6 +59,10 @@ test('task uses a helper and approved peer, evaluates code, requires adoption, a
   await expect(page.locator('[data-work-team]')).toContainText('completed');
   await expect(page.locator('[data-work-candidates]')).toContainText('Current: 4/6 checks. Candidate: 6/6 checks.');
   expect((await page.evaluate(()=>window.integratedWork.evolution.describe()))[0].generationId).toBe('FormatJson:genesis');
+  const feedback = await page.evaluate(() => window.improvementFeedback);
+  expect(feedback.evaluation.improvementKind).toBe('correctness');
+  expect(feedback.evaluation.latency.observations).toBeUndefined();
+  expect(await page.evaluate(async () => (await window.integratedWork.evolution.list())[0].evaluation.latency.observations.length)).toBe(12);
   await page.screenshot({path:`${evidenceDir}/candidate-review.png`,fullPage:true});
   await page.locator('[data-candidate-adopt]').click();
   await expect(page.locator('[data-work-candidates]')).toContainText('Adopted on this device');

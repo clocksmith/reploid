@@ -20,7 +20,7 @@ Recursive authority charters discovered from the repository root.
 | Optional Capabilities | [`self/capabilities/CATSCAN.md`](../self/capabilities/CATSCAN.md) | Browser Runtime | Package optional optimization, reflection, memory, and swarm behaviors behind explicit runtime and verification boundaries. |
 | Runtime Configuration | [`self/config/CATSCAN.md`](../self/config/CATSCAN.md) | Browser Runtime | Declare reproducible boot, route, module, environment, and capability configuration for each Reploid surface. |
 | Agent Core | [`self/core/CATSCAN.md`](../self/core/CATSCAN.md) | Browser Runtime | Execute bounded agent cycles and tool calls under explicit verification and resource contracts. |
-| Runtime Host | [`self/host/CATSCAN.md`](../self/host/CATSCAN.md) | Browser Runtime | Materialize the configured browser runtime from trusted seeds and start the selected surface. |
+| Runtime Host | [`self/host/CATSCAN.md`](../self/host/CATSCAN.md) | Browser Runtime | Boot configured browser surfaces from trusted seeds. |
 | Runtime Infrastructure | [`self/infrastructure/CATSCAN.md`](../self/infrastructure/CATSCAN.md) | Browser Runtime | Supply auditable lifecycle, dependency, policy, recovery, telemetry, and human-approval services to browser components. |
 | Genesis Kernel | [`self/kernel/CATSCAN.md`](../self/kernel/CATSCAN.md) | Browser Runtime | Provide the smallest immutable browser boot and recovery path from which the mutable runtime can be restored safely. |
 | Lab Surface Composition | [`self/lab/CATSCAN.md`](../self/lab/CATSCAN.md) | Browser Runtime | Compose minimal Zero and extended X from explicit profiles; assign experimental authority separately. |

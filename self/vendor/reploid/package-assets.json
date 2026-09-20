@@ -407,13 +407,13 @@
     },
     {
       "path": "improvement/code-evolution.d.ts",
-      "bytes": 3334,
-      "sha256": "561c53b4995659c0142b8d9b72e155a10d7e2dadf6f616eaf11e722f56955408"
+      "bytes": 4520,
+      "sha256": "8224047d917483e498892b3ead42385a7c3f016ad2a226566289d6fbec72a991"
     },
     {
       "path": "improvement/code-evolution.js",
-      "bytes": 19248,
-      "sha256": "d46de1f133ef48a7f9669ce50fb80f0ba081a70755220341f86f18bbf1aebc9c"
+      "bytes": 21961,
+      "sha256": "ddbab4ca17d2fc0b17147ce3d27d494412edd700ee6caed421e81b51b65011b5"
     },
     {
       "path": "improvement/episodes.d.ts",
@@ -434,6 +434,11 @@
       "path": "improvement/index.js",
       "bytes": 507,
       "sha256": "b291f290197871f2d81b7affcbbc4cdc27364f220601cbc42037d0d2d762fc8b"
+    },
+    {
+      "path": "improvement/tool-objective.js",
+      "bytes": 3865,
+      "sha256": "0d3e15bcf07469adb49668f77f9533e3a60abf836fafd4a724775c32d5927d85"
     },
     {
       "path": "index.d.ts",

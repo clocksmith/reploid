@@ -1,25 +1,40 @@
 import type { ImprovementLedger } from './episodes.js';
-export interface EvolutionTarget { id: string; description: string; code: string; tests: Array<{input: unknown; expected?: unknown; throws?: boolean}> }
-export interface ToolVersion { id: string; description: string; code: string; generationId: string; episodeId: string | null }
+export interface ToolCase { input: unknown; expected?: unknown; throws?: boolean }
+export interface ToolObjective {
+  id: string; version: number; kind: 'repair-or-latency'; samples: number;
+  minimumAbsoluteGainMs: number; minimumRelativeGain: number; minimumFasterPairs: number; cases: ToolCase[];
+}
+export interface EvolutionTarget { id: string; description: string; code: string; contract?: unknown; tests: ToolCase[]; objective?: ToolObjective }
+export interface ToolVersion { id: string; description: string; code: string; generationId: string; episodeId: string | null;
+  objective?: Pick<ToolObjective, 'id' | 'version' | 'kind' | 'minimumAbsoluteGainMs' | 'minimumRelativeGain'> }
+export interface ToolLatencyEvaluation {
+  objectiveId: string; objectiveVersion: number; valid: boolean; candidateValid: boolean; improved: boolean;
+  baselineMedianMs: number; candidateMedianMs: number; medianGainMs: number; medianRelativeGain: number; fasterPairs: number;
+  observations: Array<{index: number; testIndex: number; order: string[];
+    baseline: {passed: boolean; elapsedMs: number; actual?: unknown; error?: string};
+    candidate: {passed: boolean; elapsedMs: number; actual?: unknown; error?: string}}>;
+}
 export interface ToolCandidate {
   id: string; targetId: string; taskId: string; code: string; reason: string; generationId: string;
   baselineGeneration: string; createdAt: string; error: string | null;
   origin?: {kind: 'candidate-file' | 'peer-transfer'; sourceHash: string; transport?: ToolOfferProvenance};
   status: 'evaluating' | 'awaiting-approval' | 'rejected' | 'failed' | 'cancelled' | 'adopted' | 'rolled-back';
-  evaluation?: {baselinePassed: number; candidatePassed: number; total: number; regressions: number[]; suiteHash: string; candidateHash: string; baselineHash: string; contractHash: string};
+  evaluation?: {baselinePassed: number; candidatePassed: number; total: number; regressions: number[]; suiteHash: string; candidateHash: string; baselineHash: string; contractHash: string;
+    objectiveHash?: string | null; improvementKind?: 'correctness' | 'latency' | null; latency?: ToolLatencyEvaluation};
 }
 /** Code transfer only: neither authorship nor evaluation/adoption authority. */
 export interface ToolOffer { schema: 'reploid.tool-offer/v1'; targetId: string; code: string; reason: string; codeHash: string }
 export interface ToolOfferProvenance { transferId: string; sender: string; recipient: string; roomId: string; envelopeHash: string; receivedAt: number; targetContract: string }
 export function createCodeEvolution(options: {
-  targets: EvolutionTarget[]; policy: {maxCodeCharacters: number; maxCandidates: number; offers?: {maxBytes: number; maxReasonCharacters: number}; [key: string]: unknown};
+  targets: EvolutionTarget[]; policy: {maxCodeCharacters: number; maxCandidates: number; maxObjectiveSamples?: number; offers?: {maxBytes: number; maxReasonCharacters: number}; [key: string]: unknown};
   ports: {ledger: ImprovementLedger; load(): Promise<unknown>; save(state: unknown): Promise<void>;
     lock<T>(operation: () => Promise<T>): Promise<T>;
     /** Only exceptions thrown by candidate code carry candidateException: true. Timeouts and host failures must not. */
     execute(code: string, input: unknown, control: {signal?: AbortSignal}): Promise<unknown>;
     verify(code: string, signal?: AbortSignal): Promise<{passed: boolean; errors?: unknown[]}>;
     writeEvidence(path: string, value: unknown): Promise<void>; authorize(request: {action: string; candidateId?: string; targetId?: string; sourceHash?: string; accepted?: boolean}): Promise<boolean>;
-    onChange?(): void;
+    /** Host clock, outside candidate isolation. Defaults to performance.now(). */
+    now?(): number; onChange?(): void;
   }
 }): {
   readonly offerLimits: Readonly<{maxBytes: number; maxReasonCharacters: number}> | null;
