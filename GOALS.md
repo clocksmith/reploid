@@ -2,10 +2,10 @@
 
 ## Product aim
 
-Reploid is a network of agents that run models, coordinate work over WebRTC, and develop, test, and exchange improvements to their own problem-solving methods. Each agent remains useful independently, and each participant controls what it shares and contributes.
+Reploid is a peer-to-peer network of agents that runs and distributes model computation, coordinates problem solving, and improves individual agents and collective efficiency through Bayesian learning and evaluated experiments. Each agent remains useful independently, and each participant controls what it shares and contributes. This is the intended system; supported capabilities require their own execution evidence.
 
 Its purpose is:
-**Reploid pursues goals for humans and agents, acquires and uses available intelligence, collaborates with peers, and improves its own problem-solving methods through independently evaluated experience.**
+**Reploid pursues goals for humans and agents while learning to solve problems and organize shared computation more effectively.**
 
 ### The collaborating agent system is the product
 
@@ -39,11 +39,46 @@ Reploid operates through two distinct, connected loops:
    -> propose and implement a candidate change to Reploid itself
    -> test the candidate version in isolation
    -> compare against the frozen current baseline
-   -> obtain required approval
+   -> satisfy an operator grant or bounded preauthorized adoption policy
    -> adopt or reject
    -> let the accepted version produce subsequent improvements
    ```
    This separation matters operationally. Users receive work from a stable, identified version while candidate versions undergo bounded experiments. Failed experiments cannot corrupt active goals or silently alter their permissions.
+
+### Distribution and learning
+
+Three mechanisms are first-class: authorized model storage and artifact reuse;
+execution of Doppler-defined computational partitions across devices; and agent
+work divided into subtasks. Whole-job delegation remains one execution option.
+Storing shards or advertising experts does not establish partitioned computation.
+
+Doppler defines valid partitions, tensor contracts, numerical requirements and
+state ownership. Reploid places eligible partitions and coordinates budgets,
+transfers and recovery through Poolday. Placement cannot change learned expert
+selection or model semantics. Intermediate representations require input-derived
+disclosure authorization. Measurements include GPU readback, serialization,
+network transfer and receiving-device upload. Signaling and relay remain
+replaceable connection infrastructure.
+
+The controller should maintain inspectable uncertain beliefs over completion,
+latency, failure causes and candidate benefit. Version priors, likelihoods and
+evidence provenance; correlated or copied observations must not count as
+independent trials. Select actions for expected task value after total costs.
+Evaluate whether an information-seeking objective improves useful outcomes.
+LLM confidence and signed receipts are not calibrated likelihoods by themselves.
+
+Updating a posterior is ordinary adaptation. Replacing its updater, planner or
+scheduler is a candidate change requiring protected evaluation. Agent evolution
+changes context selection, planning, diagnosis and improvement generation;
+system evolution changes placement, batching, caching, replication, decomposition
+and collaborator selection. Both belong to Reploid's mission.
+
+Operators may preauthorize bounded, reversible adoption with fixed targets,
+evaluation criteria, budgets, expiry and rollback. Candidates cannot alter that
+policy; new permissions or disclosure scopes require new authorization. Runtime
+reasoning, collaboration, evaluation and adoption within existing grants do not
+depend on CI, a repository release or a manual button press for every change.
+Development checks verify implementations; they do not govern a running agent.
 
 ### Component responsibilities
 
@@ -58,13 +93,23 @@ This is an executable extraction, not an iframe wrapper or a Simulatte integrati
 
 - **Reploid's browser library (`packages/reploid/`):** Owns reusable goals, planning, tool execution, persistence, peer mechanics, coordination and improvement services. Legacy application modules forward to extracted owners during migration; application seed content and policies stay in `self/`.
 - **Poolday network (`self/pool/`):** Serves the agent: discovers peers over WebRTC, exchanges authorized artifacts, assigns bounded work, moves messages, recovers interrupted delivery, and retains outcomes.
-- **Doppler runtime:** The independently useful model execution system (local generation, embeddings, reranking, adapters, specialized WebGPU execution). Reploid consumes Doppler; acceptance into Doppler follows Doppler's own correctness and release requirements.
+- **Doppler runtime:** Owns model mathematics, valid computational partitions and execution. Reploid consumes public contracts and owns placement, not another model implementation. Changes to Doppler itself follow its own acceptance process; running approved computations does not require a software release.
 - **Evaluation and authorization:** Outside candidate control. A proposed improvement cannot rewrite hidden acceptance tests, escalate its own permissions, erase failures, or declare itself approved.
 - **Policy and budgets:** Reside in checked configuration. JavaScript implements agent behavior and peer coordination; Doppler owns model computation.
 
 ### Recursive improvement as the primary milestone
 
-Coding is the first proving ground, not the permanent product boundary. The target demonstration uses actual model execution and independently operated machines: a peer contributes a missing observation, agents repair a tool, protected tests evaluate it, and another agent adopts it for an unfamiliar task. Compare against competent standalone and centralized coordination baselines under comparable resources, counting failures, transfers, evaluation, and human assistance. Injected inference and a single tool replacement do not establish this result.
+The next demonstration connects distributed computation with collective improvement.
+First partition a small model across two devices and compare with unsplit execution:
+correctness, complete communication costs, cancellation and participant loss.
+Then let agents identify an inefficiency, generate a permitted scheduling or
+problem-solving change, evaluate it on unfamiliar work and exchange it. Another
+participant independently evaluates it and benefits after adoption. Finally test
+whether the changed machinery contributes to producing a subsequent improvement.
+Compare with competent standalone and centralized coordination baselines on
+comparable resources, counting failures, transfers, evaluation and human help.
+Tool repair is one bounded fixture, not the definition of evolution. Injected
+inference or handwritten candidates do not establish model-generated improvement.
 
 Self-modifying agents have prior art: the Darwin Gödel Machine modifies its own code and evaluates descendants on coding tasks. Reploid's distinctive demonstration combines recursive self-improvement with peer collaboration and independently reusable improvements:
 
@@ -80,7 +125,10 @@ The recursive claim requires the improved agent to participate in producing its 
 
 Recursive self-improvement concerns how the system improves itself. General intelligence concerns the breadth and level of capabilities it demonstrates. Reploid pursues bounded, reproducible recursive self-improvement first, then tests whether improvements transfer across unfamiliar coding, information-analysis, planning, and scientific tasks.
 
-Document assistant citation formatting, coding LoRA acquisition, and distributed MoE are application and infrastructure tracks; they are not blocking prerequisites for this primary milestone.
+Bounded model decomposition is an active implementation track alongside agent
+and system evolution. It need not wait for interface polish or tool-repair
+completion. Start with the smallest partition contract Doppler can execute and
+verify; expert partitioning is not a mandatory precursor to layer groups.
 
 ## Current supported boundary
 
@@ -154,7 +202,9 @@ outcome does not establish physical inference, peer execution, or improvement.
 
 ### Primary proof: Evolving problem-solving agent and recursive improvement
 
-The primary proof demonstrates an agent that solves useful problems, discovers weaknesses in its own approach, and produces better descendants. Optional sharing over Poolday tests whether improvements also help other independently operated agents:
+The primary proof demonstrates a network that improves useful problem solving
+and organization of computation through participation. Independent operation
+remains a control and resilience requirement. The recursive part requires:
 
 1. **Self-improvement chain ($A \to B \to C$):**
    - **Version A** encounters a recurring problem in its problem-solving loop (such as selecting irrelevant context, unhandled tool failures, or looping plans). It proposes and implements a general improvement. Independent, isolated sandbox tests establish that **Version B** solves previously unseen tasks better.
@@ -167,7 +217,13 @@ The primary proof demonstrates an agent that solves useful problems, discovers w
 
 ### Supporting capability proof: Poolday peer network and Doppler runtime
 
-Poolday and Doppler provide the infrastructure supporting the agent: model distribution, complete-job remote execution, and peer coordination. The execution contract binds exact model identity, operation, input, limits, and acceptance rules (`generate`, `embed`, `rerank`, `encodeSequence`). Operation adapters own input/output validation, streaming, cancellation, and comparison; shared networking owns discovery, assignment, transport, retries, accounting, and evidence.
+Poolday and Doppler support artifact distribution, partitioned computation and
+agent coordination. The existing complete-job execution contract binds exact
+model identity, operation, input, limits, and acceptance rules (`generate`,
+`embed`, `rerank`, `encodeSequence`). Operation adapters own validation,
+streaming, cancellation, and comparison; shared networking owns discovery,
+assignment, transport, retries, accounting, and evidence. The following custody
+and whole-job experiment has its own scope; it is not a partition-execution proof.
 
 Document search, protein sequence investigation, and code modification serve as application domains exercising the agent's problem-solving loop; they are not blocking prerequisites for the recursive improvement proof.
 
@@ -204,9 +260,9 @@ history does not improve later work, its acceptance gate stays unproved even
 when artifact sharing and execution capacity work.
 Predeclare peer-byte percentage, time-to-runnable, duplicate bytes, recovery,
 memory, completion, retries, latency, and total resource cost where applicable.
-Do not add payments, tokens, global reputation, arbitrary layer partitioning, Doe, social
-features, or autonomous self-improvement to this milestone. Existing unrelated
-capabilities remain separate and usable.
+Keep payments, tokens, global reputation, Doe and social features outside this
+custody and whole-job comparison. Partition execution and autonomous improvement
+have their separate contracts and controls in the active demonstration above.
 
 The September execution specification adds exact LoRA artifact sets and an
 explicitly configured remote MoE expert boundary to implementation scope.
@@ -215,11 +271,13 @@ Reploid coordinates immutable requests and failures; Doppler owns model math.
 LoRA never duplicates the base model. Adapter combinations require declared
 order and combination semantics. Remote experts remain disabled until an
 explicit policy admits exact model/layer/expert identities, bounded activation
-disclosure, failure handling and qualified Doppler execution. Arbitrary layer
-partitioning follows a demonstrated expert boundary, not an implicit fallback.
-Operational routing evidence remains separate from scientific evidence and
-disabled for selection until a frozen comparison demonstrates useful benefit.
-Ordinary compatible scheduling and complete-job execution work without history.
+disclosure, failure handling and qualified Doppler execution. Layer groups or
+other partitions likewise require Doppler's explicit executable contracts;
+neither is an implicit fallback. Current planning rejects historical observations.
+Implement authorized Bayesian adaptation without relaxing compatibility or
+disclosure gates. Operational evidence stays distinct from scientific evidence.
+The frozen comparison establishes a benefit claim, not permission for an
+already-authorized agent to reason or conduct a bounded experiment.
 
 ### Alternative proof: Change Passport
 
@@ -390,7 +448,7 @@ work.
 ## Measurement
 
 The primary governing objective is successful pursuit of useful goals and
-demonstrated improvement in the agent's problem-solving methods. Measure task
+demonstrated improvement in agent methods and collective computation. Measure task
 success, quality, resource cost, and human intervention against declared
 baselines under comparable conditions. Recursive-improvement claims additionally
 require the causal A -> B -> C comparison above; adoption alone is insufficient.
@@ -399,9 +457,10 @@ The supporting network objective is useful, authorized peer assistance. Claims
 that networking improves capability, reliability, cost, or later decisions
 require appropriate declared baselines under comparable conditions. Ordinary
 participation, artifact exchange, and exploration do not require a completed
-network-benefit experiment. Enabling learned routing retains its separate gate:
-retained admissible evidence must improve subsequent assignments against its
-frozen controls. Independently operated repeat use is adoption evidence;
+network-benefit experiment. Candidate routing algorithms require protected local
+evaluation and authorized adoption; ordinary belief updates follow the granted
+policy. Claims of better routing require improvement against frozen controls.
+Independently operated repeat use is adoption evidence;
 signatures alone establish neither operator independence nor honest execution.
 Report accepted jobs, providers, peer-served bytes, rejected contributions,
 reproduced outputs, and route changes separately.

@@ -1,9 +1,12 @@
 # Reploid Product Intent and Network Boundary
 
-Reploid is a network of agents that run models, coordinate work over WebRTC, and develop, test, and exchange improvements to their own problem-solving methods. Each agent remains useful independently, and each participant controls what it shares and contributes.
+Reploid is a peer-to-peer network of agents that runs and distributes model computation, coordinates problem solving, and improves individual agents and collective efficiency through Bayesian learning and evaluated experiments. Each agent remains useful independently, and each participant controls what it shares and contributes. This is the target, not a claim of completed implementation.
 
-Doppler owns model execution. Poolday is the internal name for peer participation
-mechanisms, not a separate public product.
+Doppler defines and executes valid computational partitions, including numerical
+requirements and state ownership. Reploid selects eligible placements and
+coordinates transfers, budgets and recovery through Poolday, the internal name
+for peer participation mechanisms. Placement cannot change model semantics or
+learned expert selection.
 
 This document applies the repository mission in [`GOALS.md`](../../GOALS.md) to
 goal pursuit, optional networking, and the authority boundary with Zero and X.
@@ -14,8 +17,8 @@ tiers, routes, and transport requirements remain owned by
 
 ## Product goal
 
-The product goal is to pursue a useful outcome through authorized actions,
-observations, revision, and independently evaluated experience:
+The product goal is a network that improves useful problem solving and its own
+organization of computation through authorized actions and evaluated experience:
 
 ```text
 goal -> plan -> authorized action -> observed result -> revised approach
@@ -53,6 +56,18 @@ Model acquisition and peer jobs remain visible alongside the task they serve:
 ```text
 acquire -> verify -> execute locally or explicitly delegate -> compare -> accept -> retain
 ```
+
+Distinguish three forms of distribution: authorized model storage and artifact
+reuse; parts of one model computation; and agent work divided into subtasks.
+Whole-job delegation below describes an existing execution option. It is not
+the network's permanent boundary. Stored shards and advertised expert identities
+alone do not establish partition execution.
+
+For partitioned execution, intermediate tensors are input-derived private
+material. Authorization must cover the receiving participant and disclosure
+scope. WebRTC transfers bytes, not shared GPU memory: GPU readback,
+serialization, transport and upload costs belong in the comparison. Connection
+negotiation and relay infrastructure remain replaceable.
 
 A requester selects a signed Doppler Pack, supplies input, reviews disclosure
 and execution requirements, submits a job, watches assignment and progress,
@@ -94,6 +109,25 @@ candidates run separately. Peers may evaluate and optionally adopt changes;
 signatures or majority agreement cannot replace task correctness tests.
 Doppler changes remain governed by Doppler's independent acceptance process.
 
+Agent evolution changes planning, context, tool use, diagnosis or improvement
+generation. System evolution changes placement, batching, caching, replication,
+task decomposition or collaborator selection. Updating beliefs under an existing
+policy is adaptation; replacing the algorithms doing so is an evaluated change.
+Operators may preauthorize bounded reversible adoption with fixed targets,
+criteria, budgets, expiry and rollback. Candidates cannot edit that policy or
+broaden permissions or disclosures. Local evaluation and adoption within those
+grants do not require CI, a software release or a manual action for each candidate.
+This authorization model is a target; existing manual approval paths remain
+manual until the policy is implemented and enforced.
+
+The next demonstration partitions a small model across two devices, establishes
+correctness against unsplit execution, measures full communication costs and
+handles cancellation and participant loss. Agents then generate and evaluate a
+scheduling or problem-solving improvement, exchange it and establish benefit
+on unfamiliar work after independent recipient evaluation. The subsequent
+recursive comparison tests whether improved machinery contributes to another
+improvement. Tool repair alone does not establish this sequence.
+
 ### Optional Research Room
 
 The proof-carrying Research Room-1 remains an optional governed workflow over
@@ -123,9 +157,16 @@ hardware-attested execution, or guaranteed scientific correctness.
 
 ## Optimization objective
 
-Within Network, the objective is reproducible execution that supports Reploid
-goals. It has three independently testable loops: model distribution, whole-job remote
-execution, and learned coordination. The execution contract is model identity,
+Within Network, the objective is better task outcomes after total resource and
+coordination costs. Model storage, model computation and agent work are distinct
+distribution mechanisms; Bayesian learning should inform choices across them.
+Use small inspectable probability models for completion, latency, failure causes
+and candidate benefit. Version priors, update methods and observation provenance;
+shared evidence must not become independent repeated trials. Evaluate whether
+information-seeking actions improve task value rather than assuming that more
+information is always useful. Verbal confidence is not a calibrated likelihood.
+
+The existing whole-job execution contract is model identity,
 operation, input, limits, and acceptance rule. Generalize it first for `generate`,
 `embed`, `rerank`, and `encodeSequence`; adding an operation must not require
 networking changes. A local document assistant exercises acquisition, corpus
@@ -143,7 +184,7 @@ and departure with both origin and mirrors unavailable. Acquire from persistent
 local cache, authorized peers, mirrors, then origin. Compare execution with a
 conventional queue on the same machines, counting coordination costs.
 
-Enabling learned routing requires retained admissible evidence to improve held-out assignments against both
+The declared historical-routing benefit experiment requires retained admissible evidence to improve held-out assignments against both
 random no-history and competent frozen reliability/load schedulers without relaxing
 correctness. Freeze policies before evaluation; history precedes the held-out
 jobs. Freeze 1,000 historical jobs before evaluating unseen work. Keep jobs,
@@ -152,9 +193,12 @@ identical. Predeclare meaningful outcomes, report uncertainty, and charge all
 attempts, transfers, verification, replication, retries, relay traffic, and review.
 Revoked, stale, duplicate, and insufficient history have explicit negative tests.
 
-This is a learned-routing activation gate, not a universal prerequisite for
-agent evolution. Independently evaluated planning, context, or tool-procedure
-improvements need not wait for learned routing to outperform its baselines.
+This experiment establishes a specific benefit claim. It does not gate ordinary
+authorized belief updates, participation or bounded experiments. Replacing a
+routing algorithm requires protected local evaluation and adoption under an
+operator grant or preauthorized policy; neither depends on CI availability.
+Current planning rejects historical observations, so this direction requires
+runtime implementation rather than a change to the description of its behavior.
 
 Claims that networking improves capability, reliability, cost, or later decisions
 require comparison against an appropriate declared baseline under comparable
@@ -430,8 +474,9 @@ closure authority.
    required contract or integrity evidence does not match.
 5. Separate execution records, task acceptance, independent evaluation, approval,
    and activation. Signatures do not establish correctness or independence.
-6. Require declared comparisons for benefit claims and preserve the specific
-   activation gates for learned routing and promoted capabilities.
+6. Require declared comparisons for benefit claims. Protect evaluation and
+   authorization for changed algorithms; permit adaptation and bounded adoption
+   within operator grants independently of CI or a repository release.
 
 ### Research Room principles
 

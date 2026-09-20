@@ -4,7 +4,7 @@ Parent: [Documentation](../CATSCAN.md)
 
 ## Target
 
-Apply Reploid's collaborating-agent mission to voluntary peer execution, evidence boundaries, and scientific non-claims.
+Apply Reploid's mission to voluntary distributed storage, computation, agent work and evaluated collective improvement.
 
 ## Authority
 - Owns the network's application of Reploid intent, user workflow, evidence semantics, and claim boundaries.
@@ -28,7 +28,7 @@ Outputs:
 - Accepted means admissible under a named policy, never globally true.
 - Receipt, agreement, review, laboratory, and biological claims remain distinct.
 - Public-sequence support cannot imply private-sequence protection.
-- Network-benefit claims require declared comparisons; learned-routing activation has a separate gate from ordinary participation and execution.
+- Benefit claims require comparisons; algorithm changes require protected evaluation and authorized adoption. Runtime adaptation and bounded preauthorized adoption are CI-independent.
 - Doppler Pack identity and qualification remain distinct from peer availability and successful execution.
 - Work, Network, and Improve are connected activities in one main view; Poolday is an internal network name.
 - Recent jobs remains execution-only; scientific Room-1 administration has a separate non-primary route.

@@ -4,12 +4,12 @@ Parent: none
 
 ## Target
 
-Deliver collaborating, independently useful agents using Doppler, Poolday coordination, and evaluated recursive improvement.
+Deliver independently useful agents distributing computation and improving individual methods and collective efficiency.
 
 ## Authority
 - Owns boundaries: `packages/reploid/` implements behavior; applications compose APIs; UI requests actions.
 - Extraction proves neither qualification, publication nor deployment.
-- Owns repository product boundaries, precedence, and proof requirements.
+- Owns product boundaries, precedence, and proof requirements.
 - Does not turn model output or infrastructure into biological truth.
 
 ## Scope
@@ -28,16 +28,17 @@ Outputs:
 - Recursive component authority in the [component index](docs/component-index.md).
 
 ## Invariants
-- The collaborating agent system is the product; agents remain independently useful. Poolday owns peer infrastructure and Doppler owns model execution.
+- Doppler defines executable partitions/math; Reploid places eligible work; Poolday transfers and recovers. Placement preserves semantics and disclosure grants.
 - Problem-solving and improvement loops operate with strict separation.
 - Candidates cannot modify hidden acceptance tests, escalate permissions, or self-approve.
 - Claims stay bounded by recorded acceptance evidence.
-- Free adoption counts as adoption evidence; capability claims require acceptance evidence, independent of commercial outcomes.
+- Runtime adaptation and bounded preauthorized adoption are CI-independent. Algorithm changes require protected evaluation; candidates cannot change grants.
+- Adoption is not capability proof; commercial outcomes do not gate completion.
 - Existing code cannot silently overrule a charter.
 
 ## Acceptance
-- The charter graph validates, its index is current, and targeted work resolves its authority chain.
-- Acceptance evidence verifies that [INTENT.md](INTENT.md) and [GOALS.md](GOALS.md) remain supported.
+- Charter graph/index validate; work resolves its authority chain.
+- Evidence supports [INTENT.md](INTENT.md) and [GOALS.md](GOALS.md).
 - Evidence: [CATSCAN validator tests](tests/unit/catscan.test.js).
 
 ## Non-goals
