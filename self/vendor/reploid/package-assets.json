@@ -3,6 +3,10 @@
   "package": "reploid",
   "version": "0.1.0",
   "exports": {
+    "./chat": {
+      "types": "./src/chat/index.d.ts",
+      "import": "./src/chat/index.js"
+    },
     ".": {
       "types": "./src/index.d.ts",
       "import": "./src/index.js"
@@ -279,6 +283,31 @@
       "path": "artifacts/store.js",
       "bytes": 4707,
       "sha256": "79a72d7e22c6c6229714aa5c75de2de0ac006cd0ab47c85e66021f8e7af2b4c1"
+    },
+    {
+      "path": "chat/index.d.ts",
+      "bytes": 4394,
+      "sha256": "682b5ff08889c0977737098cd2f240b457692c45ea725b00c5760aedf7ddb4f1"
+    },
+    {
+      "path": "chat/index.js",
+      "bytes": 108,
+      "sha256": "4e5272eb50e3a8f7cb2fbf50cda40e770833d7dc80e23bc208a831ea63e06f6a"
+    },
+    {
+      "path": "chat/policy.json",
+      "bytes": 362,
+      "sha256": "1627b87ee2c728269f5e273720cad344c2b4f1ef29fb5a95f8c646dc33f58fa2"
+    },
+    {
+      "path": "chat/scheduler.js",
+      "bytes": 8111,
+      "sha256": "da3059f28471bfa99cff4d7ce1581ef4935fb058decc583738d4e8297595b4f5"
+    },
+    {
+      "path": "chat/workspace.js",
+      "bytes": 12839,
+      "sha256": "eb397708bd8e0f0f33d2c3051783b6a722c5f4da09e1ed09e000510351016bcc"
     },
     {
       "path": "config/defaults.json",
