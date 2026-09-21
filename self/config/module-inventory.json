@@ -3637,6 +3637,31 @@
       ]
     },
     {
+      "path": "vendor/reploid/chat/index.js",
+      "owner": "vendor",
+      "sha256": "sha256:4e5272eb50e3a8f7cb2fbf50cda40e770833d7dc80e23bc208a831ea63e06f6a",
+      "imports": [
+        "./scheduler.js",
+        "./workspace.js"
+      ]
+    },
+    {
+      "path": "vendor/reploid/chat/scheduler.js",
+      "owner": "vendor",
+      "sha256": "sha256:da3059f28471bfa99cff4d7ce1581ef4935fb058decc583738d4e8297595b4f5",
+      "imports": [
+        "./policy.json"
+      ]
+    },
+    {
+      "path": "vendor/reploid/chat/workspace.js",
+      "owner": "vendor",
+      "sha256": "sha256:eb397708bd8e0f0f33d2c3051783b6a722c5f4da09e1ed09e000510351016bcc",
+      "imports": [
+        "./policy.json"
+      ]
+    },
+    {
       "path": "vendor/reploid/config/index.js",
       "owner": "vendor",
       "sha256": "sha256:4f4b3494d4fff00021a3dd9c5b1710f903fe5fa7b6ac80a1abbe5955e481d1c9",

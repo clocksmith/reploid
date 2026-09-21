@@ -10,6 +10,7 @@ Guide to all documentation in the REPLOID project.
 2. **[docs/QUICK-START.md](./QUICK-START.md)** - Detailed setup and first run
 3. **[docs/CONFIGURATION.md](./CONFIGURATION.md)** - Connection modes and boot configuration
 4. **[Work, helpers, peers, and tool improvement](./work-collaboration.md)** - Models, optional collaboration, evaluated tool changes, and operator controls
+5. **[Concurrent mesh chat MVP](./chat-mvp.md)** - Required conversation, file, adapter, inference and physical-device acceptance boundaries
 
 ---
 

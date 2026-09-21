@@ -21,6 +21,10 @@ subtly neumorphic styling.
 - Participation provides an otherwise unavailable capability, better results,
   greater reliability, or lower total resource cost. Each participant controls
   its contribution, disclosures, and adoption of changes, and can stop contributing.
+- Conversations have independent membership, history, permissions and attempts.
+  Selecting, closing or cancelling one cannot stop unrelated conversations.
+  Requesting intelligence and contributing storage or execution are separate grants.
+  The participant's device is part of the mesh, not a competing local product.
 - Doppler owns model computation; Poolday owns peer infrastructure; Reploid owns
   orchestration and improvement.
 - Weight-shard storage, whole-request inference, computational partitions, and

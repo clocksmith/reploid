@@ -11,6 +11,10 @@
   },
   "sideEffects": false,
   "exports": {
+    "./chat": {
+      "types": "./src/chat/index.d.ts",
+      "import": "./src/chat/index.js"
+    },
     ".": {
       "types": "./src/index.d.ts",
       "import": "./src/index.js"

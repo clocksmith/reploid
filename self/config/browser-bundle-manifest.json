@@ -1285,8 +1285,8 @@
     },
     {
       "path": "config/module-inventory.json",
-      "byteLength": 119663,
-      "sha256": "sha256:90e8506c3a2575956701e88cc6a9fe505d44ae3e2fed02ebd945eba4cca997fa"
+      "byteLength": 120376,
+      "sha256": "sha256:7484b8fc06dd8daa3a2789cdef8fc54f7f2a0a1a5084c107d52acd9d97e1e257"
     },
     {
       "path": "config/module-registry.json",
@@ -1325,8 +1325,8 @@
     },
     {
       "path": "config/vfs-manifest.json",
-      "byteLength": 32482,
-      "sha256": "sha256:3c79a2d6c1da86b13ac5b2d92f0aa171f375b9bb834478ae10ace8f5ca7243a8"
+      "byteLength": 32675,
+      "sha256": "sha256:81766dc9352b68a1dec22a2aaad214bed53a2180863bcdeb70abc87710945f64"
     },
     {
       "path": "config/vfs-policy.js",
@@ -3654,6 +3654,31 @@
       "sha256": "sha256:79a72d7e22c6c6229714aa5c75de2de0ac006cd0ab47c85e66021f8e7af2b4c1"
     },
     {
+      "path": "vendor/reploid/chat/index.d.ts",
+      "byteLength": 4394,
+      "sha256": "sha256:682b5ff08889c0977737098cd2f240b457692c45ea725b00c5760aedf7ddb4f1"
+    },
+    {
+      "path": "vendor/reploid/chat/index.js",
+      "byteLength": 108,
+      "sha256": "sha256:4e5272eb50e3a8f7cb2fbf50cda40e770833d7dc80e23bc208a831ea63e06f6a"
+    },
+    {
+      "path": "vendor/reploid/chat/policy.json",
+      "byteLength": 362,
+      "sha256": "sha256:1627b87ee2c728269f5e273720cad344c2b4f1ef29fb5a95f8c646dc33f58fa2"
+    },
+    {
+      "path": "vendor/reploid/chat/scheduler.js",
+      "byteLength": 8111,
+      "sha256": "sha256:da3059f28471bfa99cff4d7ce1581ef4935fb058decc583738d4e8297595b4f5"
+    },
+    {
+      "path": "vendor/reploid/chat/workspace.js",
+      "byteLength": 12839,
+      "sha256": "sha256:eb397708bd8e0f0f33d2c3051783b6a722c5f4da09e1ed09e000510351016bcc"
+    },
+    {
       "path": "vendor/reploid/config/defaults.json",
       "byteLength": 2465,
       "sha256": "sha256:be33034450522fc660312d2f177286e58c50002ec40b193837f7be423d56b6f4"
@@ -3925,8 +3950,8 @@
     },
     {
       "path": "vendor/reploid/package-assets.json",
-      "byteLength": 20017,
-      "sha256": "sha256:549723cced499813bb5ee94da7d9a50bddca77f679b21a4e38286b6ffda09aab"
+      "byteLength": 20870,
+      "sha256": "sha256:2c61c4921e9a0661afadd8eab3bddf5405816985bc5a4da117149334f939caed"
     },
     {
       "path": "vendor/reploid/rules/contribution.rules.json",
@@ -4009,5 +4034,5 @@
       "sha256": "sha256:ca1208dd2f96d1b7ffb5464c7676a22aa849ec31936abde0809fc208bbd971c9"
     }
   ],
-  "bundleHash": "sha256:942ff9309c85cc3d26f2dfcf26c26cd4d54df6838450df80739a18f366315a81"
+  "bundleHash": "sha256:b7c3667a8c933758fbc1ba4bde03908120d5acb94e0b1d71c755018401ebfb24"
 }

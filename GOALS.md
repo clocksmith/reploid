@@ -40,6 +40,10 @@ browser library without inheriting a particular interface or credential system.
    Use shared components and design tokens, consistent spacing, accessible light
    and dark themes, responsive scrolling, and futuristic styling with subtle
    neumorphic depth rather than decorative activity or obstructive motion.
+   Conversations are concurrent and independently owned: each thread retains its
+   purpose, history, permissions and execution state. No global objective owns
+   the workspace. Participants use models supplied by the mesh without needing
+   a complete model on every requesting device.
 5. Improve prompts, tools, planning, placement, caching, and the algorithms
    governing those decisions. Demonstrate independently evaluated improvements
    that transfer to unfamiliar subsequent tasks. Separately demonstrate causal

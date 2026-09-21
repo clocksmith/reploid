@@ -1,0 +1,14 @@
+{
+  "maxThreads": 64,
+  "maxMessagesPerThread": 256,
+  "maxMessageCharacters": 16384,
+  "maxResponseCharacters": 32768,
+  "maxConcurrentAttempts": 8,
+  "attemptTimeoutMs": 300000,
+  "maxQueuedRequests": 32,
+  "maxRecordedAttempts": 4096,
+  "maxRequestsPerParticipant": 2,
+  "maxOutputTokens": 1024,
+  "participantTokenBudget": 8192,
+  "budgetWindowMs": 600000
+}
