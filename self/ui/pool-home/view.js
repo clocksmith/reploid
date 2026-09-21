@@ -3,6 +3,7 @@
  */
 import { renderOperationSharing } from './operation-sharing.js';
 import { renderWorkSurface, renderNetworkSurface, renderImproveSurface } from './work.js';
+import { renderConversationWorkspace } from './conversation-workspace.js';
 
 import {
   LAUNCH_MODEL,
@@ -63,7 +64,7 @@ import {
   recordTimeMs
 } from './room-record-projection.js';
 
-export { resolvePoolNetworkVisualState };
+export { resolvePoolNetworkVisualState, renderConversationWorkspace };
 
 const ledgerStore = getPoolLedgerStore();
 
@@ -1999,7 +2000,7 @@ const renderHomeSimulation = ({ dashboardView = 'home' } = {}) => {
 };
 
 export const renderRoutePanel = (routeId, options = {}) => {
-  if (routeId === 'home') return renderWorkSurface();
+  if (routeId === 'home') return renderConversationWorkspace();
   if (routeId === 'network') return renderNetworkSurface();
   if (routeId === 'improve') return renderImproveSurface();
   if (routeId === 'examples') return renderHomeSimulation(options);

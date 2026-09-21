@@ -4,8 +4,10 @@ import { createWorkSession } from '../../host/work-session.js';
 import { createWorkEvolution } from '../../host/work-evolution.js';
 import { createWorkSwarm } from '../../host/work-swarm.js';
 import { createWorkPeerJobs } from '../../host/work-peer-jobs.js';
+import { createChatSession } from '../../host/chat-session.js';
 import { getCurrentReploidStorage } from '../../instance.js';
 import { bindWorkSurface } from './work.js';
+import { bindConversationWorkspace } from './conversation-workspace.js';
 import { createOperationParticipation } from '../../pool/operation-participation.js';
 import { bindOperationSharing, refreshOperationSharing } from './operation-sharing.js';
 import { createRequesterClient } from '../../pool/requester-client.js';
@@ -236,21 +238,28 @@ export function initPoolHome(mount, { operationNetwork = null } = {}) {
   let disposeDocumentView = () => {};
   let disposeOperationSharing = () => {};
   let disposeWorkView = () => {};
+  let disposeChatWorkspace = () => {};
   const workStorage = getCurrentReploidStorage();
   let work;
+  let chatSession;
   const service = createReploidDopplerRuntimeService();
   const evolution = createWorkEvolution({ storage: workStorage, isBusy: () => work?.getState().anyBusy === true });
   const swarm = createWorkSwarm({ storage: workStorage, evolution, service });
   work = createWorkSession({ service, storage: workStorage, swarm, evolution,
     peers: createWorkPeerJobs({ getNetwork: () => operationNetwork }) });
+  chatSession = createChatSession({ service, storage: workStorage, swarm,
+    peers: createWorkPeerJobs({ getNetwork: () => operationNetwork }) });
   const onPageHide = event => {
     work.cancelAll();
+    chatSession?.cancelAll?.();
     void (event.persisted ? swarm.stop() : swarm.close()).catch(error => console.error('[Reploid Swarm] Shutdown failed', error));
     void operationSharing.stop().catch(error => console.error('[Reploid Network] Shutdown failed', error));
     if (!event.persisted) {
       disposeWorkView();
+      disposeChatWorkspace();
       window.removeEventListener('pagehide', onPageHide);
       void work.close().catch(error => console.error('[Reploid Work] Shutdown failed', error));
+      void chatSession?.close().catch(error => console.error('[Reploid Chat] Shutdown failed', error));
     }
   };
   window.addEventListener('pagehide', onPageHide);
@@ -284,6 +293,7 @@ export function initPoolHome(mount, { operationNetwork = null } = {}) {
 
   const render = (options = {}) => {
     disposeWorkView();
+    disposeChatWorkspace();
     disposeDocumentView();
     disposeOperationSharing();
     if (documents.getState().busy) documents.cancel();
@@ -331,7 +341,11 @@ export function initPoolHome(mount, { operationNetwork = null } = {}) {
     window.REPLOID_POOL_PRISM_STOP = bindPoolPrism(mount);
     disposeDocumentView = bindDocumentSearch(mount, documents);
     disposeOperationSharing = bindOperationSharing(mount, operationSharing);
-    disposeWorkView = bindWorkSurface(mount, work, { evolution, swarm });
+    if (routeId === 'home') {
+      disposeChatWorkspace = bindConversationWorkspace(mount, chatSession);
+    } else {
+      disposeWorkView = bindWorkSurface(mount, work, { evolution, swarm });
+    }
     if (routeId === 'records') renderLocalDocumentHistory(mount, documents.getState());
     bindPoolDashboardControls();
     bindCapabilityAssessmentControls();
