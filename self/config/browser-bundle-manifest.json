@@ -1171,12 +1171,12 @@
     {
       "path": "cloud-access-status.js",
       "byteLength": 7022,
-      "sha256": "sha256:422d69fed245f294f89b0891930c1ce4b5a9e1603efa8efdcba20cba7ea300aa"
+      "sha256": "sha256:e909cb19c84b27e2094854600f2d6a2bf668fe89e85244f43869b7bca36e2505"
     },
     {
       "path": "cloud-access-windows.js",
       "byteLength": 194595,
-      "sha256": "sha256:ba6b706872ff70201191a5b0d22480872384c5cc8d56e5a2e280d1ae400df97a"
+      "sha256": "sha256:11665860d56332e2562f694d3a544b3277fe95611599d9bebc469a5afc00c3e4"
     },
     {
       "path": "cloud-access.js",
@@ -1765,8 +1765,8 @@
     },
     {
       "path": "infrastructure/doppler-runtime-service.js",
-      "byteLength": 10458,
-      "sha256": "sha256:a4af3944dc573c6155661662ad9206f7d2dc35b053418bedcab64a961624a9c1"
+      "byteLength": 10786,
+      "sha256": "sha256:3aa48fffbf7e9a0555f35bab8b981eb523c22f35d5f592a882f9a9c3cabe1bd9"
     },
     {
       "path": "infrastructure/error-store.js",
@@ -1925,8 +1925,8 @@
     },
     {
       "path": "pool-entry.html",
-      "byteLength": 3451,
-      "sha256": "sha256:cedd6a7bd565ad4086bec6c5b8ba73a16d4e7cd98cb0b84f766b45a9560f42df"
+      "byteLength": 4309,
+      "sha256": "sha256:01ed735a421573a76d63e2c8fb948c9bd4018edea1a3d0e87165ec9008bf185e"
     },
     {
       "path": "pool/adapter-canary-publication.js",
@@ -2690,8 +2690,8 @@
     },
     {
       "path": "styles/poolday/tokens.css",
-      "byteLength": 12032,
-      "sha256": "sha256:12b194c6769708f10775ed6566e0b8e854fc8c3015a1a1bf4e98400fa3cb8a11"
+      "byteLength": 12018,
+      "sha256": "sha256:c15785db3e50c38f0f91d4d8ca423c893d1b6e11656af2420d3825514ac73b62"
     },
     {
       "path": "styles/proto/components.css",
@@ -4044,5 +4044,5 @@
       "sha256": "sha256:ca1208dd2f96d1b7ffb5464c7676a22aa849ec31936abde0809fc208bbd971c9"
     }
   ],
-  "bundleHash": "sha256:ded9b90818a9afbe1aa443f77858870df45f7c140607e4f4d7a17c3e23f6baf4"
+  "bundleHash": "sha256:f21cedfe8befb87a805daa95923339b49a3de1e07e1cb316844d2a65b3b29129"
 }

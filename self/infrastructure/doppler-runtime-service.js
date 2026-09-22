@@ -103,8 +103,14 @@ const resolveLegacyTestRuntime = (module) => {
 };
 
 const defaultLoadModule = async () => {
-  globalThis.__DOPPLER_KERNEL_BASE_PATH__ = String(DOPPLER_KERNEL_BASE_URL).replace(/\/+$/, '');
-  return import(globalThis.REPLOID_DOPPLER_MODULE_URL || DOPPLER_MODULE_URL);
+  const isLocal = typeof location !== 'undefined'
+    && (location.hostname === 'localhost' || location.hostname === '127.0.0.1');
+  const kernelBase = globalThis.REPLOID_DOPPLER_KERNEL_BASE_URL
+    || (isLocal ? '/doppler/src/gpu/kernels' : DOPPLER_KERNEL_BASE_URL);
+  globalThis.__DOPPLER_KERNEL_BASE_PATH__ = String(kernelBase).replace(/\/+$/, '');
+  const moduleUrl = globalThis.REPLOID_DOPPLER_MODULE_URL
+    || (isLocal ? '/doppler/src/index.js' : DOPPLER_MODULE_URL);
+  return import(moduleUrl);
 };
 
 export function createReploidDopplerRuntimeService({
