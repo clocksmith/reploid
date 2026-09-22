@@ -1,6 +1,6 @@
 {
   "schema": "reploid.pool.config/v1",
-  "configVersion": "2026-09-06.remote-adapters.v1.doppler-0.6.1.esm2-capsule-v2",
+  "configVersion": "2026-09-06.remote-adapters.v1.doppler-0.6.2.esm2-capsule-v2",
   "claim": "receipt-backed, audit-backed, reputation-backed, policy-controlled browser inference",
   "forbiddenClaims": [
     "trustless",
@@ -151,7 +151,7 @@
           "whenMissingWebGpuFeatures": [
             "shader-f16"
           ],
-          "runtime": "doppler-gpu@0.6.1",
+          "runtime": "doppler-gpu@0.6.2",
           "transform": "widenToF32Activations",
           "prefillProjectionKernel": "fused_matmul_q4_batched_multicol_shared.wgsl",
           "kvDtype": "f32",
@@ -159,7 +159,7 @@
         }
       ],
       "fallbackStatus": "doppler_0_4_9_manifest_capability_remap",
-      "capabilityAction": "Use doppler-gpu@0.6.1 or newer with capability-aware kernelPathPolicy; browsers without shader-f16 run the declared f32 fallback lane."
+      "capabilityAction": "Use doppler-gpu@0.6.2 or newer with capability-aware kernelPathPolicy; browsers without shader-f16 run the declared f32 fallback lane."
     },
     "label": "Qwen 3.5 0.8B",
     "enabled": false
@@ -176,9 +176,9 @@
     "useSpeculative": false
   },
   "browserRuntime": {
-    "dopplerModuleUrl": "https://cdn.jsdelivr.net/npm/doppler-gpu@0.6.1/src/index.js",
-    "dopplerStorageModuleUrl": "https://cdn.jsdelivr.net/npm/doppler-gpu@0.6.1/src/tooling-exports/storage.js",
-    "dopplerKernelBaseUrl": "https://cdn.jsdelivr.net/npm/doppler-gpu@0.6.1/src/gpu/kernels",
+    "dopplerModuleUrl": "https://cdn.jsdelivr.net/npm/doppler-gpu@0.6.2/src/index.js",
+    "dopplerStorageModuleUrl": "https://cdn.jsdelivr.net/npm/doppler-gpu@0.6.2/src/tooling-exports/storage.js",
+    "dopplerKernelBaseUrl": "https://cdn.jsdelivr.net/npm/doppler-gpu@0.6.2/src/gpu/kernels",
     "modelBaseUrl": "https://storage.googleapis.com/reploid-model-artifacts/models",
     "loadOptions": {
       "cache": "opfs",
@@ -897,7 +897,7 @@
             "whenMissingWebGpuFeatures": [
               "shader-f16"
             ],
-            "runtime": "doppler-gpu@0.6.1",
+            "runtime": "doppler-gpu@0.6.2",
             "transform": "widenToF32Activations",
             "prefillProjectionKernel": "fused_matmul_q4_batched_multicol_shared.wgsl",
             "kvDtype": "f32",
@@ -905,9 +905,73 @@
           }
         ],
         "fallbackStatus": "doppler_0_4_9_manifest_capability_remap",
-        "capabilityAction": "Use doppler-gpu@0.6.1 or newer with capability-aware kernelPathPolicy; browsers without shader-f16 run the declared f32 fallback lane."
+        "capabilityAction": "Use doppler-gpu@0.6.2 or newer with capability-aware kernelPathPolicy; browsers without shader-f16 run the declared f32 fallback lane."
       },
       "label": "Qwen 3.5 0.8B",
+      "enabled": false
+    },
+    {
+      "modelId": "qwen-3-5-2b-q4k-ehaf16",
+      "modelHash": "sha256:502fbd6d4c9ed6a890931665995c8ebb42a30e5cda23aa2cfd8e680bee7fa5bc",
+      "manifestHash": "sha256:502fbd6d4c9ed6a890931665995c8ebb42a30e5cda23aa2cfd8e680bee7fa5bc",
+      "tokenizerHash": "sha256:8fc3b6de02de5a8e21d3867aba335e2d9a3c2263201f55daaed1feab3541bea4",
+      "contextLength": 262144,
+      "quantization": "q4k",
+      "artifactIdentity": {
+        "sourceCheckpointId": "Qwen/Qwen3.5-2B",
+        "sourceRepo": "Qwen/Qwen3.5-2B",
+        "sourceRevision": "15852e8c16360a2fea060d615a32b45270f8a8fc",
+        "weightPackId": "qwen-3-5-2b-q4k-ehaf16-wp-catalog-v1",
+        "weightPackHash": "sha256:502fbd6d4c9ed6a890931665995c8ebb42a30e5cda23aa2cfd8e680bee7fa5bc",
+        "manifestVariantId": "qwen-3-5-2b-q4k-ehaf16-mv-exec-v1",
+        "conversionConfigDigest": "sha256:3e7ba069df0392b4e464a80055b4be6cb1099400bbc84b73fc9bed8ec8966e9a",
+        "conversionConfigPath": "src/config/conversion/qwen3/qwen-3-5-2b-q4k-ehaf16.json",
+        "materializationProfile": "auto",
+        "modalitySet": [
+          "text",
+          "vision"
+        ],
+        "sourceFormat": "safetensors",
+        "artifactCompleteness": "complete"
+      },
+      "runtime": "doppler",
+      "backend": "browser-webgpu",
+      "browserCapability": {
+        "minimumTier": "standard",
+        "minimumScore": 50,
+        "basis": "bounded_webgpu_profile_v1"
+      },
+      "dopplerLoadRef": "qwen-3-5-2b-q4k-ehaf16",
+      "loadInput": {
+        "url": "https://storage.googleapis.com/reploid-model-artifacts/models/qwen-3-5-2b-q4k-ehaf16"
+      },
+      "artifactPolicy": {
+        "transport": "offloaded_content_addressed",
+        "cache": "browser_opfs",
+        "baseUrl": "https://storage.googleapis.com/reploid-model-artifacts/models/qwen-3-5-2b-q4k-ehaf16",
+        "identityFields": [
+          "modelId",
+          "modelHash",
+          "manifestHash",
+          "tokenizerHash",
+          "artifactIdentity",
+          "runtime",
+          "backend"
+        ],
+        "pathTemplate": "",
+        "paths": {
+          "manifest": "manifest.json",
+          "tokenizer": "tokenizer.json",
+          "shards": ""
+        }
+      },
+      "runtimeCompatibility": {
+        "requiredWebGpuFeatures": [],
+        "capabilityFallbacks": [],
+        "fallbackStatus": "supported",
+        "capabilityAction": "Requires WebGPU device with split-8 GPU embedding gather support."
+      },
+      "label": "Qwen 3.5 2B",
       "enabled": false
     },
     {
@@ -1329,7 +1393,7 @@
           "sha256:e43896c678483b03b8bc1127829a771cc5086be17c92b6502b9cae805436fbec"
         ]
       },
-      "runtimeVersion": "0.6.1",
+      "runtimeVersion": "0.6.2",
       "packSource": "https://storage.googleapis.com/reploid-model-artifacts/capsules/esm2-35m/65e4c1abd95fd5facd9cdba954dec0193f79574846ac57bed527a5de64bd0b47/capsule.json",
       "packOpenOptions": {
         "trustedSigners": {

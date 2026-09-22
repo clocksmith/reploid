@@ -9,7 +9,9 @@ import {
   DOPPLER_STORAGE_TOOLING_URL,
   DOPPLER_PACKAGE_INTEGRITY,
   DOPPLER_PACKAGE_TARBALL_URL,
-  DOPPLER_PACKAGE_SPEC
+  DOPPLER_PACKAGE_SPEC,
+  DOPPLER_PACKAGE_VERSION,
+  DOPPLER_BROWSER_RUNTIME_VERSION
 } from '../../self/config/doppler-local-models.js';
 
 const createFixture = () => ({
@@ -51,7 +53,7 @@ const createFixture = () => ({
     packages: {
       '': { dependencies: { 'doppler-gpu': DOPPLER_PACKAGE_SPEC } },
       'node_modules/doppler-gpu': {
-        version: '0.6.1',
+        version: DOPPLER_PACKAGE_VERSION,
         resolved: DOPPLER_PACKAGE_TARBALL_URL,
         integrity: DOPPLER_PACKAGE_INTEGRITY
       }
@@ -63,10 +65,10 @@ describe('runtime config synchronization', () => {
   it('projects the canonical Doppler runtime into Pool and deployment mirrors', () => {
     const synchronized = synchronizeRuntimeConfig(createFixture());
 
-    expect(synchronized.poolConfig.configVersion).toBe('2026-07-24.doppler-0.6.1.v1');
+    expect(synchronized.poolConfig.configVersion).toBe(`2026-07-24.doppler-${DOPPLER_BROWSER_RUNTIME_VERSION}.v1`);
     expect(synchronized.poolConfig.launchModel.runtimeCompatibility).toMatchObject({
-      capabilityFallbacks: [{ runtime: 'doppler-gpu@0.6.1' }],
-      capabilityAction: 'Use doppler-gpu@0.6.1 or newer.'
+      capabilityFallbacks: [{ runtime: `doppler-gpu@${DOPPLER_BROWSER_RUNTIME_VERSION}` }],
+      capabilityAction: `Use doppler-gpu@${DOPPLER_BROWSER_RUNTIME_VERSION} or newer.`
     });
     expect(synchronized.deploymentConfig.runtimeEnv).toMatchObject({
       REPLOID_POOL_MODEL_BASE_URL: 'https://models.example.test',
@@ -90,7 +92,7 @@ describe('runtime config synchronization', () => {
     const synchronized = synchronizeRuntimeConfig(fixture);
 
     expect(synchronized.poolConfig.configVersion)
-      .toBe('2026-08-01.sequence-model-contracts.v1.doppler-0.6.1');
+      .toBe(`2026-08-01.sequence-model-contracts.v1.doppler-${DOPPLER_BROWSER_RUNTIME_VERSION}`);
   });
 
   it('rejects package metadata that is not an exact integrity-bound pin', () => {
@@ -114,8 +116,8 @@ describe('runtime config synchronization', () => {
       executionMode: 'complete_pack_browser', runtimeVersion: '0.6.0' }];
     expect(() => synchronizeRuntimeConfig(fixture)).toThrow('Explicitly update and qualify the model runtime pin');
     expect(fixture.poolConfig.modelCatalog[0].runtimeVersion).toBe('0.6.0');
-    fixture.poolConfig.modelCatalog[0].runtimeVersion = '0.6.1';
-    expect(synchronizeRuntimeConfig(fixture).poolConfig.modelCatalog[0].runtimeVersion).toBe('0.6.1');
+    fixture.poolConfig.modelCatalog[0].runtimeVersion = DOPPLER_BROWSER_RUNTIME_VERSION;
+    expect(synchronizeRuntimeConfig(fixture).poolConfig.modelCatalog[0].runtimeVersion).toBe(DOPPLER_BROWSER_RUNTIME_VERSION);
   });
 
   it('preserves disabled model runtime pins during a browser upgrade', () => {
