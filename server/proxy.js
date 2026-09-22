@@ -90,7 +90,12 @@ const execPromise = promisify(exec);
 // ESM equivalent of __dirname
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const dopplerRootDir = path.join(__dirname, '..', 'doppler');
+const candidateDopplerDirs = [
+  path.join(__dirname, '..', '..', 'doppler'),
+  path.join(__dirname, '..', 'node_modules', 'doppler-gpu'),
+  path.join(__dirname, '..', 'doppler')
+];
+const dopplerRootDir = candidateDopplerDirs.find((dir) => fs.existsSync(dir)) || candidateDopplerDirs[0];
 const protoRootDir = path.join(__dirname, '..', '..', 'proto');
 const dopplerDemoDir = path.join(dopplerRootDir, 'demo');
 const dopplerKernelDir = path.join(dopplerRootDir, 'src', 'gpu', 'kernels');

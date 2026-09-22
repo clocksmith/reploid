@@ -20,8 +20,8 @@
   --pool-color-control-line: #454545;
   --pool-color-muted: #b4b4b4;
   --pool-color-focus: #ffffff;
-  --pool-dim-shadow-raised: 10px 10px 24px rgb(0 0 0 / 24%), -8px -8px 20px rgb(80 80 80 / 13%), inset 1px 1px 0 rgb(255 255 255 / 2.5%);
-  --pool-dim-shadow-inset: inset 5px 5px 12px rgb(0 0 0 / 27.5%), inset -4px -4px 10px rgb(75 75 75 / 11%);
+  --pool-dim-shadow-raised: 6px 6px 14px rgb(0 0 0 / 13%), -4px -4px 11px rgb(80 80 80 / 7%), inset 1px 1px 0 rgb(255 255 255 / 1.5%);
+  --pool-dim-shadow-inset: inset 3px 3px 7px rgb(0 0 0 / 15%), inset -2px -2px 6px rgb(75 75 75 / 6%);
   --pool-dim-radius-control: var(--radius-control);
   --pool-dim-radius-panel: var(--radius-panel);
   --pool-dim-wordmark: 64px;
@@ -298,12 +298,12 @@
 .pool-home {
   --pool-color-dark-hover: rgb(255 255 255 / 5%);
   --pool-gradient-dark-selected: linear-gradient(145deg, rgb(30 30 30 / 98%), rgb(18 18 18 / 98%));
-  --pool-dim-dark-selected-shadow: 5px 5px 12px rgb(0 0 0 / 36%),
-    -4px -4px 10px rgb(76 76 76 / 14%),
-    inset 1px 1px 0 rgb(255 255 255 / 4.5%);
+  --pool-dim-dark-selected-shadow: 3px 3px 7px rgb(0 0 0 / 20%),
+    -2px -2px 6px rgb(76 76 76 / 8%),
+    inset 1px 1px 0 rgb(255 255 255 / 2.5%);
   --pool-gradient-dark-nav: linear-gradient(145deg, rgb(27 27 27 / 96%), rgb(15 15 15 / 96%));
   --pool-gradient-dark-button: linear-gradient(145deg, rgb(31 31 31 / 98%), rgb(18 18 18 / 98%));
-  --pool-dim-dark-button-shadow: 14px 14px 30px rgb(0 0 0 / 37%),
-    -10px -10px 24px rgb(76 76 76 / 15%),
-    inset 1px 1px 0 rgb(255 255 255 / 5%);
+  --pool-dim-dark-button-shadow: 8px 8px 16px rgb(0 0 0 / 20%),
+    -5px -5px 13px rgb(76 76 76 / 8%),
+    inset 1px 1px 0 rgb(255 255 255 / 2.5%);
 }
