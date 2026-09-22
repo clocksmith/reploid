@@ -1171,12 +1171,12 @@
     {
       "path": "cloud-access-status.js",
       "byteLength": 7022,
-      "sha256": "sha256:4db234acb23073eadd635361629d07968f2ecf783e08a83719d1377bad1030a7"
+      "sha256": "sha256:422d69fed245f294f89b0891930c1ce4b5a9e1603efa8efdcba20cba7ea300aa"
     },
     {
       "path": "cloud-access-windows.js",
       "byteLength": 194595,
-      "sha256": "sha256:8d2fe2389d11f0e5cc5ca23959a7a67846df88315cff1a1f9e716fe8a4220ddd"
+      "sha256": "sha256:ba6b706872ff70201191a5b0d22480872384c5cc8d56e5a2e280d1ae400df97a"
     },
     {
       "path": "cloud-access.js",
@@ -1285,8 +1285,8 @@
     },
     {
       "path": "config/module-inventory.json",
-      "byteLength": 120376,
-      "sha256": "sha256:7484b8fc06dd8daa3a2789cdef8fc54f7f2a0a1a5084c107d52acd9d97e1e257"
+      "byteLength": 121117,
+      "sha256": "sha256:dd8c88bb3f627d61c1e0709bf57bda6e327da2886fbb1bd763fca58bea556e72"
     },
     {
       "path": "config/module-registry.json",
@@ -1325,8 +1325,8 @@
     },
     {
       "path": "config/vfs-manifest.json",
-      "byteLength": 32675,
-      "sha256": "sha256:81766dc9352b68a1dec22a2aaad214bed53a2180863bcdeb70abc87710945f64"
+      "byteLength": 32754,
+      "sha256": "sha256:2b3cb75afe696d1135c39bb08744a3fd2aeaaf0d664d4794678fdb4d3342bd6d"
     },
     {
       "path": "config/vfs-policy.js",
@@ -1622,6 +1622,11 @@
       "path": "host/CATSCAN.md",
       "byteLength": 2020,
       "sha256": "sha256:77f66a08f22d395360a73c10c0c4739019ebddd9edeacabf1f3efefb8c2c1021"
+    },
+    {
+      "path": "host/chat-session.js",
+      "byteLength": 8799,
+      "sha256": "sha256:68f4f546d9368de69af4fab2efb163ed7ef723ad5ac7306ac3422906e281c722"
     },
     {
       "path": "host/seed-vfs.js",
@@ -2020,8 +2025,8 @@
     },
     {
       "path": "pool/CATSCAN.md",
-      "byteLength": 3269,
-      "sha256": "sha256:ae0e4f48ff36887c7bb089819c67c9414697f9f2c0f3d471fabb454911b92d7e"
+      "byteLength": 2967,
+      "sha256": "sha256:a79f58a2194cafaa4cda4a33afb9c76e66bc85504530e787df47155ac1d3661f"
     },
     {
       "path": "pool/complete-forecast.js",
@@ -2675,8 +2680,8 @@
     },
     {
       "path": "styles/poolday/components.css",
-      "byteLength": 161941,
-      "sha256": "sha256:b87126639e34f56e96250af28c50904a3ce9b70f2cf54e266d4a659a1ac1ec3d"
+      "byteLength": 169262,
+      "sha256": "sha256:064f94ae3b389ef767769cfc5cbbce35a0d15960e22f2b38ef5d4f9595abc1a0"
     },
     {
       "path": "styles/poolday/primitives.css",
@@ -2685,8 +2690,8 @@
     },
     {
       "path": "styles/poolday/tokens.css",
-      "byteLength": 12021,
-      "sha256": "sha256:6ea4f9a258726a819afccfdd87eb30f2845e6f849e771663039b7b44aefe23f6"
+      "byteLength": 12032,
+      "sha256": "sha256:12b194c6769708f10775ed6566e0b8e854fc8c3015a1a1bf4e98400fa3cb8a11"
     },
     {
       "path": "styles/proto/components.css",
@@ -3149,14 +3154,19 @@
       "sha256": "sha256:b540d42b3c0250f9df4522cff03296859cf3db75f36beaa4f138838f25c66483"
     },
     {
+      "path": "ui/pool-home/conversation-workspace.js",
+      "byteLength": 14179,
+      "sha256": "sha256:20561fb3236618323a008eb1768d481bc3b3a44e71abb0e4477277c7299b4b81"
+    },
+    {
       "path": "ui/pool-home/document-search.js",
       "byteLength": 15624,
       "sha256": "sha256:2711093516a779bd47de7f289e3b73e78bd943b7dc6668b2baaf1bba21f4aef2"
     },
     {
       "path": "ui/pool-home/index.js",
-      "byteLength": 18114,
-      "sha256": "sha256:77fce3c42343de59eb47d01fbb300f4ca2710e8bc60856248a6f95ebf32b5533"
+      "byteLength": 18885,
+      "sha256": "sha256:8b5292ee31a635281e0b795603da1f9bbe0796a3f971ee70ed26151a13a3c5de"
     },
     {
       "path": "ui/pool-home/ledger-store.js",
@@ -3280,8 +3290,8 @@
     },
     {
       "path": "ui/pool-home/view.js",
-      "byteLength": 100857,
-      "sha256": "sha256:e7ee39893da661f3c4adc74e5f1d895a8f7bd24e29c7807b5a1a79d7cfbd30f1"
+      "byteLength": 100971,
+      "sha256": "sha256:edd6d3b2f94a55274c467eec7c1c88b14da9e9c596a3d92b515644918b5c81e0"
     },
     {
       "path": "ui/pool-home/work-activity-list.js",
@@ -4034,5 +4044,5 @@
       "sha256": "sha256:ca1208dd2f96d1b7ffb5464c7676a22aa849ec31936abde0809fc208bbd971c9"
     }
   ],
-  "bundleHash": "sha256:b7c3667a8c933758fbc1ba4bde03908120d5acb94e0b1d71c755018401ebfb24"
+  "bundleHash": "sha256:a451747a053c8af6dfb7e509d0d5f05f01ef9b6a1df025fbd131bc896b67c8c6"
 }

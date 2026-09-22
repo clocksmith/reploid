@@ -27,6 +27,7 @@ import {
   bindRecordStorageSync,
   getPoolDashboardView,
   getPeerRoomId,
+  getPeerInviteUrl,
   getPeerRoomBusFactory,
   getRouteId,
   isProductPath,
@@ -244,7 +245,8 @@ export function initPoolHome(mount, { operationNetwork = null } = {}) {
   let chatSession;
   const service = createReploidDopplerRuntimeService();
   const evolution = createWorkEvolution({ storage: workStorage, isBusy: () => work?.getState().anyBusy === true });
-  const swarm = createWorkSwarm({ storage: workStorage, evolution, service });
+  const swarm = createWorkSwarm({ storage: workStorage, evolution, service,
+    onChange: () => chatSession?.refreshNetwork() });
   work = createWorkSession({ service, storage: workStorage, swarm, evolution,
     peers: createWorkPeerJobs({ getNetwork: () => operationNetwork }) });
   chatSession = createChatSession({ service, storage: workStorage, swarm,
@@ -342,7 +344,7 @@ export function initPoolHome(mount, { operationNetwork = null } = {}) {
     disposeDocumentView = bindDocumentSearch(mount, documents);
     disposeOperationSharing = bindOperationSharing(mount, operationSharing);
     if (routeId === 'home') {
-      disposeChatWorkspace = bindConversationWorkspace(mount, chatSession);
+      disposeChatWorkspace = bindConversationWorkspace(mount, chatSession, { getInviteUrl: getPeerInviteUrl });
     } else {
       disposeWorkView = bindWorkSurface(mount, work, { evolution, swarm });
     }

@@ -2034,13 +2034,13 @@
     {
       "path": "self/cloud-access-status.js",
       "owner": "self",
-      "sha256": "sha256:4db234acb23073eadd635361629d07968f2ecf783e08a83719d1377bad1030a7",
+      "sha256": "sha256:422d69fed245f294f89b0891930c1ce4b5a9e1603efa8efdcba20cba7ea300aa",
       "imports": []
     },
     {
       "path": "self/cloud-access-windows.js",
       "owner": "self",
-      "sha256": "sha256:8d2fe2389d11f0e5cc5ca23959a7a67846df88315cff1a1f9e716fe8a4220ddd",
+      "sha256": "sha256:ba6b706872ff70201191a5b0d22480872384c5cc8d56e5a2e280d1ae400df97a",
       "imports": []
     },
     {
@@ -2066,6 +2066,17 @@
       "sha256": "sha256:2a235a7b565440eb705df2cf23fd0a72688b4d7a0023f465c57cd3a156455edd",
       "imports": [
         "./config/reploid-environments.js"
+      ]
+    },
+    {
+      "path": "self/host/chat-session.js",
+      "owner": "self",
+      "sha256": "sha256:68f4f546d9368de69af4fab2efb163ed7ef723ad5ac7306ac3422906e281c722",
+      "imports": [
+        "../config/work-profile.json",
+        "../infrastructure/doppler-runtime-service.js",
+        "../providers/work-network-provider.js",
+        "../vendor/reploid/chat/index.js"
       ]
     },
     {
@@ -2938,6 +2949,14 @@
       ]
     },
     {
+      "path": "ui/pool-home/conversation-workspace.js",
+      "owner": "ui",
+      "sha256": "sha256:20561fb3236618323a008eb1768d481bc3b3a44e71abb0e4477277c7299b4b81",
+      "imports": [
+        "./work-goal-composer.js"
+      ]
+    },
+    {
       "path": "ui/pool-home/document-search.js",
       "owner": "ui",
       "sha256": "sha256:2711093516a779bd47de7f289e3b73e78bd943b7dc6668b2baaf1bba21f4aef2",
@@ -2948,8 +2967,9 @@
     {
       "path": "ui/pool-home/index.js",
       "owner": "ui",
-      "sha256": "sha256:77fce3c42343de59eb47d01fbb300f4ca2710e8bc60856248a6f95ebf32b5533",
+      "sha256": "sha256:8b5292ee31a635281e0b795603da1f9bbe0796a3f971ee70ed26151a13a3c5de",
       "imports": [
+        "../../host/chat-session.js",
         "../../host/work-evolution.js",
         "../../host/work-peer-jobs.js",
         "../../host/work-session.js",
@@ -2968,6 +2988,7 @@
         "./constants.js",
         "./contribution-state.js",
         "./controls.js",
+        "./conversation-workspace.js",
         "./document-search.js",
         "./ledger-store.js",
         "./operation-sharing.js",
@@ -3182,7 +3203,7 @@
     {
       "path": "ui/pool-home/view.js",
       "owner": "ui",
-      "sha256": "sha256:e7ee39893da661f3c4adc74e5f1d895a8f7bd24e29c7807b5a1a79d7cfbd30f1",
+      "sha256": "sha256:edd6d3b2f94a55274c467eec7c1c88b14da9e9c596a3d92b515644918b5c81e0",
       "imports": [
         "../../config/surface-intents.js",
         "../../pool/model-contract.js",
@@ -3194,6 +3215,7 @@
         "../../pool/sdk.js",
         "./constants.js",
         "./contribution-state.js",
+        "./conversation-workspace.js",
         "./document-search.js",
         "./ledger-store.js",
         "./network-projection.js",
