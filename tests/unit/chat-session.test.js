@@ -1,155 +1,129 @@
 import { describe, it, expect, vi } from 'vitest';
 import { createChatSession, CANONICAL_CHAT_MODELS } from '../../self/host/chat-session.js';
-
-const mockStorage = () => {
-  let store = {};
-  return {
-    getItem: key => store[key] || null,
-    setItem: (key, val) => { store[key] = String(val); },
-    clear: () => { store = {}; }
-  };
+import { createChatTestService } from '../fixtures/chat-service.js';
+const storage = () => {
+  const values = new Map();
+  return { getItem: key => values.get(key), setItem: (key, value) => values.set(key, value) };
 };
 
-describe('Host ChatSession', () => {
-  it('creates threads, handles multi-turn conversation and persists history', async () => {
-    const storage = mockStorage();
-    const session = createChatSession({ storage });
-
-    const threadId = session.createThread({
-      model: CANONICAL_CHAT_MODELS[0],
-      purpose: 'Testing multi-turn chat',
-      sharingScope: 'local'
+describe('Chat host with injected execution, not actual inference', () => {
+  it('accepts structured Doppler loader progress without losing local execution state', async () => {
+    const session = createChatSession({ storage: null, service: createChatTestService() });
+    const id = session.createThread(), states = [];
+    session.subscribe(snapshot => {
+      const attempt = snapshot.activeThread?.attempts.at(-1);
+      if (attempt) states.push(attempt);
     });
-
-    expect(threadId).toBeDefined();
-    let state = session.getState();
-    expect(state.threads).toHaveLength(1);
-    expect(state.selectedId).toBe(threadId);
-
-    // Send first message
-    const attempt1 = await session.send(threadId, 'First user message');
-    expect(attempt1.status).toBe('completed');
-
-    state = session.getState();
-    const thread = state.threads[0];
-    expect(thread.messages).toHaveLength(2); // user + assistant
-    expect(thread.messages[0].content).toBe('First user message');
-    expect(thread.messages[1].role).toBe('assistant');
-    expect(thread.messages[1].content).toContain('First user message');
-
-    // Send second message (follow up)
-    const attempt2 = await session.send(threadId, 'Follow up message');
-    expect(attempt2.status).toBe('completed');
-
-    state = session.getState();
-    expect(state.threads[0].messages).toHaveLength(4);
-
-    await session.close();
-
-    // Verify recovery across session reload
-    const reloaded = createChatSession({ storage });
-    const reloadedState = reloaded.getState();
-    expect(reloadedState.threads).toHaveLength(1);
-    expect(reloadedState.threads[0].messages).toHaveLength(4);
-    expect(reloadedState.threads[0].messages[2].content).toBe('Follow up message');
-    await reloaded.close();
-  });
-
-  it('runs multiple threads concurrently without cross-contamination', async () => {
-    const storage = mockStorage();
-    const session = createChatSession({ storage });
-
-    const threadA = session.createThread({ model: CANONICAL_CHAT_MODELS[0] });
-    const threadB = session.createThread({ model: CANONICAL_CHAT_MODELS[1] });
-
-    const [resA, resB] = await Promise.all([
-      session.send(threadA, 'Message to A'),
-      session.send(threadB, 'Message to B')
-    ]);
-
-    expect(resA.status).toBe('completed');
-    expect(resB.status).toBe('completed');
-
-    const state = session.getState();
-    const tA = state.threads.find(t => t.id === threadA);
-    const tB = state.threads.find(t => t.id === threadB);
-
-    expect(tA.messages.at(-1).content).toContain('Message to A');
-    expect(tB.messages.at(-1).content).toContain('Message to B');
-    expect(tA.messages.at(-1).content).not.toContain('Message to B');
-
+    const result = await session.send(id, 'hi');
+    expect(result.error).toBeFalsy();
+    expect(result.status).toBe('completed');
+    const loading = states.filter(attempt => attempt.status === 'loading');
+    expect(loading.length).toBeGreaterThanOrEqual(3);
+    expect(loading.every(attempt => attempt.execution?.placement === 'local-webgpu')).toBe(true);
+    expect(session.getState().activeThread.messages.at(-1).content).toBe('Fixture: hi');
     await session.close();
   });
 
-  it('cancels one thread without affecting another running thread', async () => {
-    const storage = mockStorage();
-    let resolveB;
-    const gateB = new Promise(r => { resolveB = r; });
+  it('persists multiple turns and restores history without dispatching', async () => {
+    const store = storage(), service = createChatTestService();
+    const session = createChatSession({ storage: store, service });
+    const id = session.createThread();
+    expect((await session.send(id, 'First')).status).toBe('completed');
+    expect((await session.send(id, 'Second')).status).toBe('completed');
+    expect(service.calls[0].source).toBe(CANONICAL_CHAT_MODELS[1].id);
+    expect(service.closed).toHaveLength(2);
+    await session.close();
+    const restored = createChatSession({ storage: store, service });
+    expect(restored.getState().threads[0].messages).toHaveLength(4);
+    expect(service.calls).toHaveLength(2);
+    await restored.close();
+  });
 
-    const service = {
-      isSupported: () => true,
-      open: async model => ({
-        stream: async function* (messages, { signal }) {
-          const prompt = messages.at(-1).content;
-          if (prompt.includes('cancel-me')) {
-            yield { text: 'Starting... ' };
-            // Wait until aborted
-            await new Promise((_, reject) => {
-              signal.addEventListener('abort', () => reject(new Error('Cancelled')));
-            });
-          } else {
-            yield { text: 'Running B' };
-            await gateB;
-            yield { text: ' Finished B' };
-          }
-        },
-        close: async () => {}
-      })
+  it('shares the existing device queue and isolates thread histories', async () => {
+    const service = createChatTestService(), session = createChatSession({ storage: null, service });
+    const a = session.createThread(), b = session.createThread();
+    const results = await Promise.all([session.send(a, 'Only A'), session.send(b, 'Only B')]);
+    expect(results.map(row => row.status)).toEqual(['completed', 'completed']);
+    const threads = session.getState().threads;
+    expect(threads[0].messages.at(-1).content).toBe('Fixture: Only A');
+    expect(threads[1].messages.at(-1).content).toBe('Fixture: Only B');
+    await session.close();
+  });
+
+  it('retains failed execution and never substitutes a simulated response', async () => {
+    const service = { open: vi.fn(async () => { throw new Error('No GPU'); }), close: vi.fn() };
+    const session = createChatSession({ storage: null, service });
+    const id = session.createThread(), attempt = await session.send(id, 'Hello');
+    expect(attempt.status).toBe('failed'); expect(attempt.error).toBe('No GPU');
+    expect(session.getState().activeThread.messages.at(-1).content).toBe('');
+    expect(service.close).toHaveBeenCalled();
+    await session.close();
+  });
+
+  it('includes attached text in execution and stored conversation context', async () => {
+    const session = createChatSession({ storage: null, service: createChatTestService() });
+    const id = session.createThread();
+    await session.send(id, 'Read this', [{ name: 'notes.txt', text: 'Actual attached text' }]);
+    expect(session.getState().activeThread.messages[0].content).toContain('Actual attached text');
+    expect(session.getState().activeThread.messages[1].content).toContain('Actual attached text');
+    expect(() => session.send(id, 'Too big', [{ name: 'large', text: 'x'.repeat(65537) }])).toThrow();
+    await session.close();
+  });
+
+  it('cancels one request without cancelling the queued conversation', async () => {
+    const session = createChatSession({ storage: null, service: createChatTestService() });
+    const a = session.createThread(), b = session.createThread();
+    const first = session.send(a, 'Cancel'), second = session.send(b, 'Continue');
+    session.cancel(a);
+    expect((await first).status).toBe('cancelled');
+    expect((await second).status).toBe('completed');
+    await session.close();
+  });
+
+  it('requires scoped approval before a peer receives the conversation', async () => {
+    let disclosed = false;
+    const swarm = {
+      getState: () => ({ sharing: false }), connect: async () => {}, hasProvider: () => true,
+      async generate(messages, controls) {
+        const preview = { id: 'preview', providerId: 'peer-B', input: messages, expiresAt: Date.now() + 10000 };
+        if (!await controls.approve(preview)) throw new Error('Declined');
+        disclosed = true;
+        await controls.record({ stage: 'approved', preview });
+        controls.onPartial('Peer answer');
+        return { model: controls.modelId, provider: 'doppler', peerId: 'peer-B', content: 'Peer answer' };
+      }
     };
-
-    const session = createChatSession({ storage, service });
-
-    const threadA = session.createThread({ model: CANONICAL_CHAT_MODELS[0] });
-    const threadB = session.createThread({ model: CANONICAL_CHAT_MODELS[0] });
-
-    const sendA = session.send(threadA, 'Please cancel-me now');
-    const sendB = session.send(threadB, 'Keep running B');
-
-    // Wait for A to start streaming
-    await new Promise(r => setTimeout(r, 20));
-
-    // Cancel thread A
-    await session.cancel(threadA);
-    const resA = await sendA;
-    expect(resA.status).toBe('cancelled');
-
-    // Finish thread B
-    resolveB();
-    const resB = await sendB;
-    expect(resB.status).toBe('completed');
-
-    const state = session.getState();
-    const tA = state.threads.find(t => t.id === threadA);
-    const tB = state.threads.find(t => t.id === threadB);
-
-    expect(tA.messages.at(-1).status).toBe('cancelled');
-    expect(tB.messages.at(-1).status).toBe('completed');
-    expect(tB.messages.at(-1).content).toBe('Running B Finished B');
-
+    const service = createChatTestService(), session = createChatSession({ storage: null, service, swarm });
+    const id = session.createThread(), completion = session.send(id, 'Public question');
+    await vi.waitFor(() => expect(session.getState().activeThread.attempts[0].status).toBe('approval'));
+    expect(disclosed).toBe(false);
+    const attempt = session.getState().activeThread.attempts[0];
+    session.approve(id, attempt.id, attempt.approval.id, true);
+    expect((await completion).status).toBe('completed');
+    expect(disclosed).toBe(true); expect(service.calls).toHaveLength(0);
     await session.close();
   });
 
-  it('manages contribution pause state and limits', () => {
-    const session = createChatSession({ storage: mockStorage() });
-    let state = session.getState();
-    expect(state.contribution.paused).toBe(false);
+  it('contribution invokes the owner and requires explicit consent', async () => {
+    let sharing = false;
+    const swarm = { getState: () => ({ sharing }), share: vi.fn(async () => { sharing = true; }), stop: vi.fn(async () => { sharing = false; }) };
+    const session = createChatSession({ storage: null, service: createChatTestService(), swarm });
+    expect(session.getState().network.sharing).toBe(false);
+    await expect(session.setSharing(true, 'model', false)).rejects.toThrow('Approve');
+    expect(swarm.share).not.toHaveBeenCalled();
+    await session.setSharing(true, 'model', true);
+    expect(session.getState().network.sharing).toBe(true);
+    await session.setSharing(false);
+    expect(swarm.stop).toHaveBeenCalled();
+    await session.close();
+  });
 
-    session.setContributionPaused(true);
-    state = session.getState();
-    expect(state.contribution.paused).toBe(true);
-
-    session.updateContributionLimits({ maxStorageMb: 2048 });
-    state = session.getState();
-    expect(state.contribution.limits.maxStorageMb).toBe(2048);
+  it('does not advertise or silently execute the fabricated adapter', async () => {
+    expect(CANONICAL_CHAT_MODELS.every(model => !model.adapters.length)).toBe(true);
+    const service = createChatTestService(), session = createChatSession({ storage: null, service });
+    const id = session.createThread({ model: { ...CANONICAL_CHAT_MODELS[0], adapters: [{ identity: 'sha256:' + 'c'.repeat(64) }] } });
+    expect((await session.send(id, 'Hello')).status).toBe('failed');
+    expect(service.calls).toHaveLength(0);
+    await session.close();
   });
 });
