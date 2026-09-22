@@ -3,7 +3,7 @@
  * and Poolday peer execution. Manages multithreaded conversations, persistent scopes,
  * fair device scheduling, and truthful execution placement.
  */
-import { createChatWorkspace } from '../vendor/reploid/chat/index.js';
+import { createChatWorkspace, createChatScheduler } from '../vendor/reploid/chat/index.js';
 import { createReploidDopplerRuntimeService } from '../infrastructure/doppler-runtime-service.js';
 import { createWorkNetworkProvider } from '../providers/work-network-provider.js';
 import profile from '../config/work-profile.json' with { type: 'json' };
@@ -27,7 +27,7 @@ export const CANONICAL_CHAT_MODELS = Object.freeze([
   Object.freeze({
     id: 'qwen-3-5-2b-q4k-ehaf16',
     name: 'Qwen 3.5 2B',
-    identity: 'sha256:8b975fbc56e76495b7ac0fb90c1bdc97a8258c4dc8c185b6332f74c74e913dff',
+    identity: 'sha256:502fbd6d4c9ed6a890931665995c8ebb42a30e5cda23aa2cfd8e680bee7fa5bc',
     provider: 'doppler',
     contextLength: 262144,
     quantization: 'q4k',
@@ -40,6 +40,7 @@ export function createChatSession({
   service = createReploidDopplerRuntimeService(),
   peers = null,
   swarm = null,
+  scheduler = null,
   participantId = 'local-user',
   meshId = 'reploid-local-mesh',
   models = CANONICAL_CHAT_MODELS,
@@ -70,13 +71,78 @@ export function createChatSession({
   // Track active execution placements and latencies per thread
   const threadPlacements = new Map();
 
+  const sessionScheduler = scheduler || (typeof service?.openCapsule === 'function' ? createChatScheduler({
+    open: async (reqModel, { signal }) => {
+      const capsule = await service.openCapsule({
+        scope: 'chat-resident:' + reqModel.id,
+        source: reqModel.id,
+        options: { signal }
+      });
+      return {
+        run: async (req, { signal: runSignal, onDelta }) => {
+          let text = '';
+          for await (const event of capsule.stream(req.messages, profile.generation)) {
+            runSignal?.throwIfAborted();
+            if (event.type === 'text-delta') {
+              text += event.text;
+              onDelta(event.text);
+            }
+          }
+          return {
+            content: text,
+            modelId: reqModel.id,
+            modelIdentity: reqModel.identity,
+            adapterIdentities: (reqModel.adapters || []).map(a => a.identity)
+          };
+        },
+        reset: async () => { if (typeof capsule.reset === 'function') await capsule.reset(); },
+        setAdapters: async (adapters) => { if (typeof capsule.setAdapters === 'function') await capsule.setAdapters(adapters); },
+        close: async () => { await service.close('chat-resident:' + reqModel.id); }
+      };
+    },
+    observe: () => {}
+  }) : null);
+
   // Reuse the existing network provider. No simulated production responses.
   const execute = async (request, controls) => {
     const { threadId, attemptId, model } = request;
-    assert(!(model.adapters || []).length, 'This execution path cannot apply the selected adapter');
     assert(model.provider === 'doppler', 'Chat requires a Doppler participant');
+    const catalogModel = getCatalogModels().find(m => m.id === model.id);
+    const allowedAdapters = catalogModel?.adapters || [];
+    for (const adapter of model.adapters || []) {
+      const verified = allowedAdapters.some(a => a.identity === adapter.identity);
+      assert(verified, 'This execution path cannot apply the selected adapter');
+    }
     let sequence = 0;
     const state = (status, execution) => controls.onState({ threadId, attemptId, status, execution });
+
+    if (sessionScheduler && (request.permissions?.sharingScope === 'local' || !swarm?.hasProvider?.(model.id))) {
+      const maxOutputTokens = Math.min(
+        request.maxOutputTokens || profile.generation?.maxTokens || 1024,
+        4096
+      );
+      state('queued', { provider: 'doppler', placement: 'local-webgpu' });
+      const result = await sessionScheduler.schedule({
+        ...request,
+        maxOutputTokens
+      }, {
+        signal: controls.signal,
+        onDelta: text => controls.onDelta({ threadId, attemptId, sequence: sequence++, text }),
+        onState: status => state(status, { provider: 'doppler', placement: 'local-webgpu' })
+      });
+      const execution = { provider: 'doppler', placement: 'local-webgpu' };
+      threadPlacements.set(threadId, execution);
+      return {
+        threadId,
+        attemptId,
+        modelId: model.id,
+        modelIdentity: model.identity,
+        adapterIdentities: (model.adapters || []).map(a => a.identity),
+        content: result.content,
+        execution
+      };
+    }
+
     const provider = createWorkNetworkProvider({
       model, service, scope: 'chat:' + attemptId, signal: controls.signal,
       swarm: request.permissions?.sharingScope === 'local' ? null : swarm,
@@ -107,7 +173,7 @@ export function createChatSession({
       : { provider: 'doppler', placement: 'local-webgpu' };
     threadPlacements.set(threadId, execution);
     return { threadId, attemptId, modelId: model.id, modelIdentity: model.identity,
-      adapterIdentities: [], content: result.content, execution };
+      adapterIdentities: (model.adapters || []).map(a => a.identity), content: result.content, execution };
   };
 
   const workspace = createChatWorkspace({
@@ -140,6 +206,7 @@ export function createChatSession({
       defaultModel: getCatalogModels().find(model => model.id === profile.defaultModelId) || getCatalogModels()[0] || null,
       discovering,
       network: copy(swarm?.getState?.() || { sharing: false, consumer: null }),
+      scheduler: sessionScheduler?.getState() || null,
       placements: Object.fromEntries(threadPlacements.entries())
     };
   };
@@ -246,8 +313,10 @@ export function createChatSession({
       } finally { notifyAll(); }
     },
     async close() {
+      if (sessionScheduler) await sessionScheduler.close();
       await workspace.close();
       listeners.clear();
-    }
+    },
+    scheduler: sessionScheduler
   });
 }

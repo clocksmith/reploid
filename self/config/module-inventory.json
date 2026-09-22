@@ -279,7 +279,7 @@
     {
       "path": "config/doppler-local-models.js",
       "owner": "config",
-      "sha256": "sha256:1db3deb3cc1967adc58fc19a7e3deaf3848c27230e58af83cd8c47bec2ce06e3",
+      "sha256": "sha256:6cb7e99e5858558349b85cff38098f91f548940f80a49b1716615c679c8a4b94",
       "imports": []
     },
     {
@@ -2071,7 +2071,7 @@
     {
       "path": "self/host/chat-session.js",
       "owner": "self",
-      "sha256": "sha256:68f4f546d9368de69af4fab2efb163ed7ef723ad5ac7306ac3422906e281c722",
+      "sha256": "sha256:75522bcb4f68f353cbb851d0faf406a9505825926db05cf7defc088b09a6b413",
       "imports": [
         "../config/work-profile.json",
         "../infrastructure/doppler-runtime-service.js",
