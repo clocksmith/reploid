@@ -1,0 +1,35 @@
+export {
+  openModelStore,
+  openModelReadSession,
+  openModelStoreSession,
+  writeShard,
+  loadManifestFromStore,
+  loadShard,
+  loadTensorsFromStore,
+  saveManifest,
+  saveTensorsToStore,
+  saveTokenizer,
+  saveTokenizerModel,
+  saveAuxFile,
+  loadTokenizerFromStore,
+  loadTokenizerModelFromStore,
+  listFilesInStore,
+  loadFileFromStore,
+  streamFileFromStore,
+  computeHash,
+  deleteModel,
+  listModels,
+} from '../storage/shard-manager.js';
+export { listRegisteredModels, registerModel, removeRegisteredModel } from '../storage/registry.js';
+export { listStorageInventory, deleteStorageEntry } from '../storage/inventory.js';
+export { formatBytes, getQuotaInfo } from '../storage/quota.js';
+export { exportModelToDirectory } from '../storage/export.js';
+export { ensureModelCached, ensureModelCachedSource } from '../tooling/opfs-cache.js';
+export { createOpfsStore } from '../storage/backends/opfs-store.js';
+export { downloadShardWithOptionalDistribution } from '../tooling/distribution-shard-transport.js';
+export type { OpfsStore, OpfsStoreConfig } from '../storage/backends/opfs-store.js';
+export {
+  buildManifestVersionSet,
+  inspectModelDownloadResume,
+} from '../storage/download/resume-inspection.js';
+export type { ModelDownloadResumeInspection } from '../storage/download/resume-inspection.js';

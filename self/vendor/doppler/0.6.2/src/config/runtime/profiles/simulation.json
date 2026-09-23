@@ -1,0 +1,29 @@
+{
+  "id": "profiles/simulation",
+  "name": "simulation",
+  "description": "Simulation profile for GH200/GB200 pod emulation",
+  "intent": "verify",
+  "compatibleIntents": ["verify"],
+  "stability": "canonical",
+  "owner": "doppler-core",
+  "createdAtUtc": "2026-02-25T00:00:00Z",
+  "extends": "profiles/default",
+  "runtime": {
+    "shared": {
+      "harness": {
+        "mode": "simulation",
+        "workload": "inference",
+        "autorun": true,
+        "skipLoad": false,
+        "modelId": null
+      }
+    },
+    "emulation": {
+      "enabled": true,
+      "targetChip": "gh200",
+      "timingMode": "functional",
+      "statsEnabled": true,
+      "logOperations": false
+    }
+  }
+}

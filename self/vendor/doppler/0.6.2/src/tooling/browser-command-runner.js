@@ -1,0 +1,126 @@
+import {
+  loadRuntimeConfigFromRef,
+  loadRuntimeConfigFromUrl,
+  loadRuntimeProfile,
+} from '../inference/browser-harness/runtime-config.js';
+import {
+  getRuntimeConfig,
+  setRuntimeConfig,
+  resetRuntimeConfig,
+} from '../config/runtime.js';
+import {
+  normalizeToolingCommandRequest,
+  ensureCommandSupportedOnSurface,
+} from './command-api.js';
+import {
+  createToolingSuccessEnvelope,
+  normalizeToToolingCommandError,
+} from './command-envelope.js';
+import { assertCommandRequestIsObject, normalizeCommandOptions } from './command-validation.js';
+import {
+  applyRuntimeInputs,
+  buildSuiteOptions,
+  runWithRuntimeIsolation,
+} from './command-runtime-execution.js';
+import {
+  getActiveKernelPath,
+  getActiveKernelPathPolicy,
+  getActiveKernelPathSource,
+  setActiveKernelPath,
+} from '../config/kernel-path-loader.js';
+import { validateProgramBundle } from '../config/schema/program-bundle.schema.js';
+
+let browserHarnessModulePromise = null;
+
+async function loadBrowserHarnessModule() {
+  browserHarnessModulePromise ??= import('../inference/browser-harness.js');
+  return browserHarnessModulePromise;
+}
+
+export async function runBrowserCommand(commandRequest, options = {}) {
+  assertCommandRequestIsObject(commandRequest, 'browser');
+  const validatedOptions = normalizeCommandOptions(options, 'browser');
+  let request = null;
+  try {
+    ({ request } = ensureCommandSupportedOnSurface(commandRequest, 'browser'));
+
+    if (
+      request.command === 'verify'
+      && request.workload === 'inference'
+      && request.workloadType === 'program-bundle'
+    ) {
+      if (request.programBundlePath) {
+        throw new Error('browser command: program-bundle parity requires inline programBundle; programBundlePath is Node-only.');
+      }
+      const providers = request.parityProviders;
+      const unsupported = providers.filter((provider) => provider !== 'browser-webgpu');
+      if (unsupported.length > 0) {
+        throw new Error(
+          `browser command: program-bundle parity provider(s) ${unsupported.join(', ')} are Node-only.`
+        );
+      }
+      if (request.programBundleParityMode !== 'contract') {
+        throw new Error('browser command: Program Bundle execution is not implemented; use explicit contract mode.');
+      }
+      const bundle = validateProgramBundle(request.programBundle);
+      const result = {
+        schema: 'doppler.program-bundle-parity/v2',
+        ok: true,
+        mode: 'contract',
+        schemaValid: true,
+        bundleId: bundle.bundleId,
+        modelId: bundle.modelId,
+        executionGraphHash: bundle.sources.executionGraph.hash,
+        providers: [
+          {
+            provider: 'browser-webgpu',
+            status: 'available-unexecuted',
+            schemaValid: true,
+            providerAvailable: typeof navigator !== 'undefined' && !!navigator.gpu,
+            executed: false,
+            transcriptMatched: false,
+          },
+        ],
+      };
+      return createToolingSuccessEnvelope({
+        surface: 'browser',
+        request,
+        result,
+      });
+    }
+
+    const runtimeBridge = {
+      loadRuntimeConfigFromRef,
+      loadRuntimeProfile,
+      loadRuntimeConfigFromUrl,
+      getRuntimeConfig,
+      setRuntimeConfig,
+      resetRuntimeConfig,
+      getActiveKernelPath,
+      getActiveKernelPathPolicy,
+      getActiveKernelPathSource,
+      setActiveKernelPath,
+    };
+
+    const result = await runWithRuntimeIsolation(runtimeBridge, async () => {
+      const { runBrowserSuite } = await loadBrowserHarnessModule();
+      await applyRuntimeInputs(request, runtimeBridge, validatedOptions.runtimeLoadOptions || {});
+      return runBrowserSuite(buildSuiteOptions(request, 'browser'));
+    });
+
+    return createToolingSuccessEnvelope({
+      surface: 'browser',
+      request,
+      result,
+    });
+  } catch (error) {
+    throw normalizeToToolingCommandError(error, {
+      surface: 'browser',
+      request,
+    });
+  }
+}
+
+export function normalizeBrowserCommand(commandRequest) {
+  return normalizeToolingCommandRequest(commandRequest);
+}

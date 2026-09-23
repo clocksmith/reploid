@@ -5,6 +5,9 @@
 !Dockerfile
 !package.json
 !package-lock.json
+!deploy/
+!deploy/artifacts/
+!deploy/artifacts/doppler-gpu-0.6.2.tgz
 
 !server/
 !server/**

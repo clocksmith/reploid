@@ -5,6 +5,7 @@
 
 import { toSourceWebPath } from '../boot-spec.js';
 import { getCurrentReploidInstanceId, getScopedReploidVfsDbName } from '../instance.js';
+import { resolveDopplerBrowserAssets } from '../config/doppler-local-models.js';
 
 const DB_NAME = 'reploid-vfs-v0';
 const STORE_FILES = 'files';
@@ -20,15 +21,10 @@ export function getVfsDatabaseName(instanceId = getCurrentReploidInstanceId()) {
 
 const getDopplerBaseUrl = () => {
   if (typeof window === 'undefined') return null;
-  const direct = window.DOPPLER_BASE_URL;
-  if (direct && typeof direct === 'string') return direct;
-  try {
-    const stored = window.localStorage?.getItem('DOPPLER_BASE_URL');
-    if (stored && typeof stored === 'string') return stored;
-  } catch {
-    return null;
-  }
-  return null;
+  let storedBase;
+  try { storedBase = window.localStorage?.getItem('DOPPLER_BASE_URL'); } catch {}
+  return resolveDopplerBrowserAssets({ pageUrl: window.location.href,
+    explicitBase: window.DOPPLER_BASE_URL, storedBase }).baseUrl;
 };
 
 const buildDopplerUrl = (path) => {

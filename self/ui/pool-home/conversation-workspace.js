@@ -116,7 +116,12 @@ export function bindConversationWorkspace(root, session, { getInviteUrl } = {}) 
     const network = state.network || {}, peers = network.consumer?.peers || network.supplier?.peers || [];
     find('[data-mesh-peers]').textContent = peers.length + (peers.length === 1 ? ' peer' : ' peers');
     find('[data-insp-device-list]').innerHTML = '<li>This device</li>' + peers.map(peer => `<li>Peer ${escape(peer.peerId?.slice(0, 8))}${peer.model ? ' · ' + escape(peer.model) : ''}</li>`).join('');
-    find('[data-mesh-connect]').disabled = !!network.connecting;
+    const discoveryState = network.consumer?.connectionState;
+    const activeDiscovery = network.connecting || ['connected', 'connecting', 'retrying'].includes(discoveryState);
+    const connectControl = find('[data-mesh-connect]');
+    connectControl.disabled = false;
+    connectControl.dataset.disconnect = String(!!activeDiscovery);
+    connectControl.textContent = activeDiscovery ? 'Disconnect' : network.error ? 'Retry' : 'Connect';
     const message = find('[data-network-message]');
     message.textContent = network.error || (network.connecting ? 'Connecting…' : ''); message.hidden = !message.textContent;
     find('[data-contrib-label]').textContent = network.stopping ? 'Stopping' : network.sharing ? 'Sharing' : 'Not sharing';
@@ -160,7 +165,8 @@ export function bindConversationWorkspace(root, session, { getInviteUrl } = {}) 
   on('[data-attachments-preview]', 'click', event => { const button = event.target.closest('[data-remove-file]'); if (button) { files.splice(Number(button.dataset.removeFile), 1); showFiles(); } });
   on('[data-toggle-inspector]', 'click', () => setNetworkOpen(find('[data-contextual-inspector]').hidden));
   on('[data-close-inspector]', 'click', () => setNetworkOpen(false));
-  on('[data-mesh-connect]', 'click', () => act(() => session.connect()));
+  on('[data-mesh-connect]', 'click', () => act(() => find('[data-mesh-connect]').dataset.disconnect === 'true'
+    ? session.disconnect() : session.connect()));
   on('[data-mesh-invite]', 'click', () => act(async () => {
     if (!getInviteUrl) throw new Error('Mesh invitation is unavailable');
     await navigator.clipboard.writeText(getInviteUrl());

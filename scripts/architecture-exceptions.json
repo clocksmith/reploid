@@ -146,9 +146,9 @@
     },
     {
       "source": "self/infrastructure/doppler-runtime-service.js",
-      "expression": "globalThis.REPLOID_DOPPLER_MODULE_URL || DOPPLER_MODULE_URL",
-      "owner": "self/providers/CATSCAN.md",
-      "contract": "Explicit host Doppler module/tooling URL and pinned model-runtime contract; invoked only by the provider adapter."
+      "expression": "moduleUrl",
+      "owner": "self/infrastructure/CATSCAN.md",
+      "contract": "Explicit host Doppler URL or pinned same-origin package; scoped runtime loading checks the expected Doppler version and session schema. No implicit alternate runtime fallback."
     },
     {
       "source": "self/kernel/boot.js",
@@ -182,9 +182,9 @@
     },
     {
       "source": "self/providers/doppler-reploid.js",
-      "expression": "resolveDopplerModuleUrl()",
+      "expression": "url",
       "owner": "self/providers/CATSCAN.md",
-      "contract": "Explicit host Doppler module/tooling URL and pinned model-runtime contract; invoked only by the provider adapter."
+      "contract": "Resolved host Doppler URL passed to the public provider adapter; defaults to the pinned same-origin package without implicit fallback. No agent-selected specifier."
     },
     {
       "source": "self/ui/proto/index.js",

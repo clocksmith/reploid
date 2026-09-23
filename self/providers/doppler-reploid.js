@@ -362,10 +362,14 @@ let publicAdapterPromise = null;
 const ensurePublicAdapter = async () => {
   if (publicAdapter) return publicAdapter;
   if (!publicAdapterPromise) {
-    publicAdapterPromise = import(resolveDopplerModuleUrl())
-      .then((module) => createDopplerPublicProviderAdapter(module, {
+    const primaryUrl = resolveDopplerModuleUrl();
+    const tryImport = async (url) => {
+      const module = await import(url);
+      return createDopplerPublicProviderAdapter(module, {
         Errors: { ConfigError: DopplerConfigError }
-      }))
+      });
+    };
+    publicAdapterPromise = tryImport(primaryUrl)
       .then((value) => {
         publicAdapter = value;
         return value;

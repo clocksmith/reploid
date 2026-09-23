@@ -1,0 +1,666 @@
+import { DEFAULT_MANIFEST_INFERENCE } from './schema/manifest.schema.js';
+import { chooseDefined, chooseDefinedWithSource } from './merge/value-selection.js';
+import { log } from '../debug/index.js';
+
+// =============================================================================
+// Merge Implementation
+// =============================================================================
+
+function overlay(
+  path,
+  manifestValue,
+  runtimeValue,
+  sources
+) {
+  return chooseDefinedWithSource(path, runtimeValue, manifestValue, sources);
+}
+
+function mergeAttention(
+  manifest,
+  runtime,
+  sources
+) {
+  const prefix = 'inference.attention';
+  return {
+    queryScale: overlay(
+      `${prefix}.queryScale`,
+      manifest.queryScale,
+      runtime?.queryScale,
+      sources
+    ),
+    queryPreAttnScalar: overlay(
+      `${prefix}.queryPreAttnScalar`,
+      manifest.queryPreAttnScalar,
+      runtime?.queryPreAttnScalar,
+      sources
+    ),
+    attentionBias: overlay(
+      `${prefix}.attentionBias`,
+      manifest.attentionBias,
+      runtime?.attentionBias,
+      sources
+    ),
+    attnLogitSoftcapping: overlay(
+      `${prefix}.attnLogitSoftcapping`,
+      manifest.attnLogitSoftcapping,
+      runtime?.attnLogitSoftcapping,
+      sources
+    ),
+    slidingWindow: overlay(
+      `${prefix}.slidingWindow`,
+      manifest.slidingWindow,
+      runtime?.slidingWindow,
+      sources
+    ),
+    queryKeyNorm: overlay(
+      `${prefix}.queryKeyNorm`,
+      manifest.queryKeyNorm,
+      runtime?.queryKeyNorm,
+      sources
+    ),
+    queryKeyNormType: overlay(
+      `${prefix}.queryKeyNormType`,
+      manifest.queryKeyNormType,
+      runtime?.queryKeyNormType,
+      sources
+    ),
+    queryKeyNormAxis: overlay(
+      `${prefix}.queryKeyNormAxis`,
+      manifest.queryKeyNormAxis,
+      runtime?.queryKeyNormAxis,
+      sources
+    ),
+    queryKeyNormLayers: overlay(
+      `${prefix}.queryKeyNormLayers`,
+      manifest.queryKeyNormLayers,
+      runtime?.queryKeyNormLayers,
+      sources
+    ),
+    queryKeyNormWeightLayers: overlay(
+      `${prefix}.queryKeyNormWeightLayers`,
+      manifest.queryKeyNormWeightLayers,
+      runtime?.queryKeyNormWeightLayers,
+      sources
+    ),
+    valueNorm: overlay(
+      `${prefix}.valueNorm`,
+      manifest.valueNorm,
+      runtime?.valueNorm,
+      sources
+    ),
+    attentionOutputGate: overlay(
+      `${prefix}.attentionOutputGate`,
+      manifest.attentionOutputGate,
+      runtime?.attentionOutputGate,
+      sources
+    ),
+    outputGateType: overlay(
+      `${prefix}.outputGateType`,
+      manifest.outputGateType,
+      runtime?.outputGateType,
+      sources
+    ),
+    causal: overlay(
+      `${prefix}.causal`,
+      manifest.causal,
+      runtime?.causal,
+      sources
+    ),
+  };
+}
+
+function mergeNormalization(
+  manifest,
+  runtime,
+  sources
+) {
+  const prefix = 'inference.normalization';
+  return {
+    type: overlay(
+      `${prefix}.type`,
+      manifest.type,
+      runtime?.type,
+      sources
+    ),
+    rmsNormEps: overlay(
+      `${prefix}.rmsNormEps`,
+      manifest.rmsNormEps,
+      runtime?.rmsNormEps,
+      sources
+    ),
+    rmsNormWeightOffset: overlay(
+      `${prefix}.rmsNormWeightOffset`,
+      manifest.rmsNormWeightOffset,
+      runtime?.rmsNormWeightOffset,
+      sources
+    ),
+    postNormEps: overlay(
+      `${prefix}.postNormEps`,
+      manifest.postNormEps,
+      runtime?.postNormEps,
+      sources
+    ),
+    postNormWeightOffset: overlay(
+      `${prefix}.postNormWeightOffset`,
+      manifest.postNormWeightOffset,
+      runtime?.postNormWeightOffset,
+      sources
+    ),
+    postAttentionNorm: overlay(
+      `${prefix}.postAttentionNorm`,
+      manifest.postAttentionNorm,
+      runtime?.postAttentionNorm,
+      sources
+    ),
+    preFeedforwardNorm: overlay(
+      `${prefix}.preFeedforwardNorm`,
+      manifest.preFeedforwardNorm,
+      runtime?.preFeedforwardNorm,
+      sources
+    ),
+    postFeedforwardNorm: overlay(
+      `${prefix}.postFeedforwardNorm`,
+      manifest.postFeedforwardNorm,
+      runtime?.postFeedforwardNorm,
+      sources
+    ),
+    finalNormBiasTensor: overlay(
+      `${prefix}.finalNormBiasTensor`,
+      manifest.finalNormBiasTensor,
+      runtime?.finalNormBiasTensor,
+      sources
+    ),
+  };
+}
+
+function mergeFFN(
+  manifest,
+  runtime,
+  sources
+) {
+  const prefix = 'inference.ffn';
+  return {
+    activation: overlay(
+      `${prefix}.activation`,
+      manifest.activation,
+      runtime?.activation,
+      sources
+    ),
+    gatedActivation: overlay(
+      `${prefix}.gatedActivation`,
+      manifest.gatedActivation,
+      runtime?.gatedActivation,
+      sources
+    ),
+    branchMode: overlay(
+      `${prefix}.branchMode`,
+      manifest.branchMode,
+      runtime?.branchMode,
+      sources
+    ),
+    useDoubleWideMlp: overlay(
+      `${prefix}.useDoubleWideMlp`,
+      manifest.useDoubleWideMlp,
+      runtime?.useDoubleWideMlp,
+      sources
+    ),
+    swigluLimit: overlay(
+      `${prefix}.swigluLimit`,
+      manifest.swigluLimit,
+      runtime?.swigluLimit,
+      sources
+    ),
+  };
+}
+
+function mergeRoPE(
+  manifest,
+  runtime,
+  sources
+) {
+  const prefix = 'inference.rope';
+  if (runtime?.ropeInverseFrequencies !== undefined) {
+    throw new Error('inference.rope.ropeInverseFrequencies is source-owned; re-convert the model to change it.');
+  }
+  return {
+    ropeTheta: overlay(
+      `${prefix}.ropeTheta`,
+      manifest.ropeTheta,
+      runtime?.ropeTheta,
+      sources
+    ),
+    ropeLocalTheta: overlay(
+      `${prefix}.ropeLocalTheta`,
+      manifest.ropeLocalTheta,
+      runtime?.ropeLocalTheta,
+      sources
+    ),
+    disabledLayers: overlay(
+      `${prefix}.disabledLayers`,
+      manifest.disabledLayers,
+      runtime?.disabledLayers,
+      sources
+    ),
+    ropeInterleaved: overlay(
+      `${prefix}.ropeInterleaved`,
+      manifest.ropeInterleaved,
+      runtime?.ropeInterleaved,
+      sources
+    ),
+    mropeInterleaved: overlay(
+      `${prefix}.mropeInterleaved`,
+      manifest.mropeInterleaved,
+      runtime?.mropeInterleaved,
+      sources
+    ),
+    mropeSection: overlay(
+      `${prefix}.mropeSection`,
+      manifest.mropeSection,
+      runtime?.mropeSection,
+      sources
+    ),
+    partialRotaryFactor: overlay(
+      `${prefix}.partialRotaryFactor`,
+      manifest.partialRotaryFactor,
+      runtime?.partialRotaryFactor,
+      sources
+    ),
+    ropeLocalPartialRotaryFactor: overlay(
+      `${prefix}.ropeLocalPartialRotaryFactor`,
+      manifest.ropeLocalPartialRotaryFactor,
+      runtime?.ropeLocalPartialRotaryFactor,
+      sources
+    ),
+    ropeInverseFrequencies: overlay(
+      `${prefix}.ropeInverseFrequencies`,
+      manifest.ropeInverseFrequencies ?? DEFAULT_MANIFEST_INFERENCE.rope.ropeInverseFrequencies,
+      undefined,
+      sources
+    ),
+    ropeFrequencyBaseDim: overlay(
+      `${prefix}.ropeFrequencyBaseDim`,
+      manifest.ropeFrequencyBaseDim,
+      runtime?.ropeFrequencyBaseDim,
+      sources
+    ),
+    ropeLocalFrequencyBaseDim: overlay(
+      `${prefix}.ropeLocalFrequencyBaseDim`,
+      manifest.ropeLocalFrequencyBaseDim,
+      runtime?.ropeLocalFrequencyBaseDim,
+      sources
+    ),
+    ropeScalingType: overlay(
+      `${prefix}.ropeScalingType`,
+      manifest.ropeScalingType,
+      runtime?.ropeScalingType,
+      sources
+    ),
+    ropeScalingFactor: overlay(
+      `${prefix}.ropeScalingFactor`,
+      manifest.ropeScalingFactor,
+      runtime?.ropeScalingFactor,
+      sources
+    ),
+    ropeLocalScalingType: overlay(
+      `${prefix}.ropeLocalScalingType`,
+      manifest.ropeLocalScalingType,
+      runtime?.ropeLocalScalingType,
+      sources
+    ),
+    ropeLocalScalingFactor: overlay(
+      `${prefix}.ropeLocalScalingFactor`,
+      manifest.ropeLocalScalingFactor,
+      runtime?.ropeLocalScalingFactor,
+      sources
+    ),
+    yarnBetaFast: overlay(
+      `${prefix}.yarnBetaFast`,
+      manifest.yarnBetaFast,
+      runtime?.yarnBetaFast,
+      sources
+    ),
+    yarnBetaSlow: overlay(
+      `${prefix}.yarnBetaSlow`,
+      manifest.yarnBetaSlow,
+      runtime?.yarnBetaSlow,
+      sources
+    ),
+    yarnOriginalMaxPos: overlay(
+      `${prefix}.yarnOriginalMaxPos`,
+      manifest.yarnOriginalMaxPos,
+      runtime?.yarnOriginalMaxPos,
+      sources
+    ),
+    longropeShortFactor: overlay(
+      `${prefix}.longropeShortFactor`,
+      manifest.longropeShortFactor,
+      runtime?.longropeShortFactor,
+      sources
+    ),
+    longropeLongFactor: overlay(
+      `${prefix}.longropeLongFactor`,
+      manifest.longropeLongFactor,
+      runtime?.longropeLongFactor,
+      sources
+    ),
+    longropeOriginalMaxPos: overlay(
+      `${prefix}.longropeOriginalMaxPos`,
+      manifest.longropeOriginalMaxPos,
+      runtime?.longropeOriginalMaxPos,
+      sources
+    ),
+    ropeLocalYarnBetaFast: overlay(
+      `${prefix}.ropeLocalYarnBetaFast`,
+      manifest.ropeLocalYarnBetaFast,
+      runtime?.ropeLocalYarnBetaFast,
+      sources
+    ),
+    ropeLocalYarnBetaSlow: overlay(
+      `${prefix}.ropeLocalYarnBetaSlow`,
+      manifest.ropeLocalYarnBetaSlow,
+      runtime?.ropeLocalYarnBetaSlow,
+      sources
+    ),
+    ropeLocalYarnOriginalMaxPos: overlay(
+      `${prefix}.ropeLocalYarnOriginalMaxPos`,
+      manifest.ropeLocalYarnOriginalMaxPos,
+      runtime?.ropeLocalYarnOriginalMaxPos,
+      sources
+    ),
+  };
+}
+
+function mergeOutput(
+  manifest,
+  runtime,
+  sources
+) {
+  const prefix = 'inference.output';
+  return {
+    finalLogitSoftcapping: overlay(
+      `${prefix}.finalLogitSoftcapping`,
+      manifest.finalLogitSoftcapping,
+      runtime?.finalLogitSoftcapping,
+      sources
+    ),
+    tieWordEmbeddings: overlay(
+      `${prefix}.tieWordEmbeddings`,
+      manifest.tieWordEmbeddings,
+      runtime?.tieWordEmbeddings,
+      sources
+    ),
+    scaleEmbeddings: overlay(
+      `${prefix}.scaleEmbeddings`,
+      manifest.scaleEmbeddings,
+      runtime?.scaleEmbeddings,
+      sources
+    ),
+    embeddingScale: overlay(
+      `${prefix}.embeddingScale`,
+      manifest.embeddingScale,
+      runtime?.embeddingScale,
+      sources
+    ),
+    embeddingNormalization: overlay(
+      `${prefix}.embeddingNormalization`,
+      manifest.embeddingNormalization,
+      runtime?.embeddingNormalization,
+      sources
+    ),
+    logitInputScale: overlay(
+      `${prefix}.logitInputScale`,
+      manifest.logitInputScale,
+      runtime?.logitInputScale,
+      sources
+    ),
+    logitOutputScale: overlay(
+      `${prefix}.logitOutputScale`,
+      manifest.logitOutputScale,
+      runtime?.logitOutputScale,
+      sources
+    ),
+    embeddingTranspose: overlay(
+      `${prefix}.embeddingTranspose`,
+      manifest.embeddingTranspose,
+      runtime?.embeddingTranspose,
+      sources
+    ),
+    embeddingVocabSize: overlay(
+      `${prefix}.embeddingVocabSize`,
+      manifest.embeddingVocabSize,
+      runtime?.embeddingVocabSize,
+      sources
+    ),
+    embeddingPostprocessor: overlay(
+      `${prefix}.embeddingPostprocessor`,
+      manifest.embeddingPostprocessor,
+      runtime?.embeddingPostprocessor,
+      sources
+    ),
+  };
+}
+
+function mergeChatTemplate(
+  manifest,
+  runtime,
+  sources
+) {
+  const prefix = 'inference.chatTemplate';
+  return {
+    type: overlay(
+      `${prefix}.type`,
+      manifest?.type,
+      runtime?.type,
+      sources
+    ),
+    enabled: overlay(
+      `${prefix}.enabled`,
+      manifest?.enabled,
+      runtime?.enabled,
+      sources
+    ),
+    thinking: overlay(
+      `${prefix}.thinking`,
+      manifest?.thinking,
+      runtime?.thinking,
+      sources
+    ),
+  };
+}
+
+function mergeSession(
+  manifest,
+  runtime,
+  sources
+) {
+  const prefix = 'inference.session';
+  // If both are absent, the merged session stays null (legacy/no-session path).
+  if (manifest === undefined && runtime === undefined) return null;
+  const manifestSession = manifest ?? {};
+  const runtimeSession = runtime ?? {};
+  return {
+    compute: overlay(`${prefix}.compute`, manifestSession.compute, runtimeSession.compute, sources),
+    kvcache: overlay(`${prefix}.kvcache`, manifestSession.kvcache, runtimeSession.kvcache, sources),
+    decodeLoop: overlay(`${prefix}.decodeLoop`, manifestSession.decodeLoop, runtimeSession.decodeLoop, sources),
+    perLayerInputs: overlay(`${prefix}.perLayerInputs`, manifestSession.perLayerInputs, runtimeSession.perLayerInputs, sources),
+    speculation: overlay(`${prefix}.speculation`, manifestSession.speculation, runtimeSession.speculation, sources),
+    prefillChunkSubmitMode: overlay(`${prefix}.prefillChunkSubmitMode`, manifestSession.prefillChunkSubmitMode, runtimeSession.prefillChunkSubmitMode, sources),
+    prefillTokenChunkSize: overlay(`${prefix}.prefillTokenChunkSize`, manifestSession.prefillTokenChunkSize, runtimeSession.prefillTokenChunkSize, sources),
+    skipEmbeddingKVCacheWrites: overlay(`${prefix}.skipEmbeddingKVCacheWrites`, manifestSession.skipEmbeddingKVCacheWrites, runtimeSession.skipEmbeddingKVCacheWrites, sources),
+    useFlashPrefillAttention: overlay(`${prefix}.useFlashPrefillAttention`, manifestSession.useFlashPrefillAttention, runtimeSession.useFlashPrefillAttention, sources),
+    useLargeBatchF16F32FusedGateUp: overlay(`${prefix}.useLargeBatchF16F32FusedGateUp`, manifestSession.useLargeBatchF16F32FusedGateUp, runtimeSession.useLargeBatchF16F32FusedGateUp, sources),
+    useWideTileQ4KPrefill: overlay(`${prefix}.useWideTileQ4KPrefill`, manifestSession.useWideTileQ4KPrefill, runtimeSession.useWideTileQ4KPrefill, sources),
+    useWideTileQ4KDecode: overlay(`${prefix}.useWideTileQ4KDecode`, manifestSession.useWideTileQ4KDecode, runtimeSession.useWideTileQ4KDecode, sources),
+    useSandwichRMSNormPairFusion: overlay(`${prefix}.useSandwichRMSNormPairFusion`, manifestSession.useSandwichRMSNormPairFusion, runtimeSession.useSandwichRMSNormPairFusion, sources),
+    usePostFfnNextInputRMSNormPairFusion: overlay(`${prefix}.usePostFfnNextInputRMSNormPairFusion`, manifestSession.usePostFfnNextInputRMSNormPairFusion, runtimeSession.usePostFfnNextInputRMSNormPairFusion, sources),
+    usePostAttnNormFusedGateUp: overlay(`${prefix}.usePostAttnNormFusedGateUp`, manifestSession.usePostAttnNormFusedGateUp, runtimeSession.usePostAttnNormFusedGateUp, sources),
+    fusedFfnQ4K: overlay(`${prefix}.fusedFfnQ4K`, manifestSession.fusedFfnQ4K, runtimeSession.fusedFfnQ4K, sources),
+    lmHeadArgmaxQ4K: overlay(`${prefix}.lmHeadArgmaxQ4K`, manifestSession.lmHeadArgmaxQ4K, runtimeSession.lmHeadArgmaxQ4K, sources),
+    attentionDecodeOnline: overlay(`${prefix}.attentionDecodeOnline`, manifestSession.attentionDecodeOnline, runtimeSession.attentionDecodeOnline, sources),
+    useLinearAttentionABProjectionFusion: overlay(`${prefix}.useLinearAttentionABProjectionFusion`, manifestSession.useLinearAttentionABProjectionFusion, runtimeSession.useLinearAttentionABProjectionFusion, sources),
+    useLinearAttentionQKVZProjectionFusion: overlay(`${prefix}.useLinearAttentionQKVZProjectionFusion`, manifestSession.useLinearAttentionQKVZProjectionFusion, runtimeSession.useLinearAttentionQKVZProjectionFusion, sources),
+    useLinearAttentionFusedDecodeCore: overlay(`${prefix}.useLinearAttentionFusedDecodeCore`, manifestSession.useLinearAttentionFusedDecodeCore, runtimeSession.useLinearAttentionFusedDecodeCore, sources),
+    useWideTileResidualFusion: overlay(`${prefix}.useWideTileResidualFusion`, manifestSession.useWideTileResidualFusion, runtimeSession.useWideTileResidualFusion, sources),
+    useFusedRmsnormWideTile: overlay(`${prefix}.useFusedRmsnormWideTile`, manifestSession.useFusedRmsnormWideTile, runtimeSession.useFusedRmsnormWideTile, sources),
+    useFusedQKVSplitQKNorm: overlay(`${prefix}.useFusedQKVSplitQKNorm`, manifestSession.useFusedQKVSplitQKNorm, runtimeSession.useFusedQKVSplitQKNorm, sources),
+    useFusedQKVSplitQKNormRoPE: overlay(`${prefix}.useFusedQKVSplitQKNormRoPE`, manifestSession.useFusedQKVSplitQKNormRoPE, runtimeSession.useFusedQKVSplitQKNormRoPE, sources),
+    retainQ4KMaterialization: overlay(`${prefix}.retainQ4KMaterialization`, manifestSession.retainQ4KMaterialization, runtimeSession.retainQ4KMaterialization, sources),
+  };
+}
+
+function mergeLargeWeights(manifest, runtime, sources) {
+  const prefix = 'inference.largeWeights';
+  if (manifest === undefined && runtime === undefined) return null;
+  return {
+    gpuResidentOverrides: overlay(
+      `${prefix}.gpuResidentOverrides`,
+      manifest?.gpuResidentOverrides,
+      runtime?.gpuResidentOverrides,
+      sources
+    ),
+  };
+}
+
+function mergeDiffusionGemmaContract(manifest, sources) {
+  sources.set('inference.diffusionGemma', 'manifest');
+  return manifest ?? null;
+}
+
+// =============================================================================
+// Main Merge Function
+// =============================================================================
+
+export function mergeConfig(
+  manifest,
+  runtimeOverrides
+) {
+  const sources = new Map();
+  const manifestInf = manifest.inference;
+
+  // Merge layerPattern with source tracking.
+  let layerPattern = manifestInf.layerPattern;
+  const runtimeLayerPattern = runtimeOverrides?.layerPattern;
+  if (runtimeLayerPattern !== undefined) {
+    layerPattern = runtimeLayerPattern;
+    sources.set('inference.layerPattern', 'runtime');
+  } else {
+    sources.set('inference.layerPattern', 'manifest');
+  }
+
+  // Merge chatTemplate with source tracking.
+  const chatTemplate = mergeChatTemplate(
+    manifestInf.chatTemplate,
+    runtimeOverrides?.chatTemplate,
+    sources
+  );
+
+  let pipeline = manifestInf.pipeline;
+  const runtimePipeline = runtimeOverrides?.pipeline;
+  if (runtimePipeline !== undefined) {
+    pipeline = runtimePipeline;
+    sources.set('inference.pipeline', 'runtime');
+  } else {
+    sources.set('inference.pipeline', 'manifest');
+  }
+
+  const inference = {
+    attention: mergeAttention(manifestInf.attention, runtimeOverrides?.attention, sources),
+    normalization: mergeNormalization(manifestInf.normalization, runtimeOverrides?.normalization, sources),
+    ffn: mergeFFN(manifestInf.ffn, runtimeOverrides?.ffn, sources),
+    rope: mergeRoPE(manifestInf.rope, runtimeOverrides?.rope, sources),
+    output: mergeOutput(manifestInf.output, runtimeOverrides?.output, sources),
+    session: mergeSession(manifestInf.session, runtimeOverrides?.session, sources),
+    largeWeights: mergeLargeWeights(manifestInf.largeWeights, runtimeOverrides?.largeWeights, sources),
+    diffusionGemma: mergeDiffusionGemmaContract(manifestInf.diffusionGemma, sources),
+    pipeline,
+    layerPattern,
+    chatTemplate,
+  };
+
+  return {
+    modelId: manifest.modelId,
+    inference,
+    architecture: manifest.architecture,
+    config: manifest.config ?? null,
+    quantization_config: manifest.quantization_config ?? null,
+    vision_config: runtimeOverrides?.vision_config ?? null,
+    audio_config: runtimeOverrides?.audio_config ?? null,
+    _sources: sources,
+  };
+}
+
+// =============================================================================
+// Debug Utilities
+// =============================================================================
+
+export function formatConfigSources(merged) {
+  if (!merged || !merged._sources || !(merged._sources instanceof Map)) {
+    log.debug('Merge', 'formatConfigSources: input missing or has no valid _sources Map');
+    return '';
+  }
+
+  const lines = [];
+
+  for (const [path, source] of merged._sources) {
+    const pathParts = path.split('.');
+    let value = merged;
+    for (const part of pathParts) {
+      value = value?.[part];
+    }
+
+    const valueStr = typeof value === 'object' ? JSON.stringify(value) : String(value);
+    lines.push(`${path}: ${valueStr} (${source})`);
+  }
+
+  return lines.sort().join('\n');
+}
+
+export function getValuesBySource(
+  merged,
+  source
+) {
+  if (!merged?._sources || !(merged._sources instanceof Map)) {
+    log.debug('Merge', 'getValuesBySource: input missing or has no valid _sources Map');
+    return [];
+  }
+  const result = [];
+
+  for (const [path, src] of merged._sources) {
+    if (src === source) {
+      const pathParts = path.split('.');
+      let value = merged;
+      for (const part of pathParts) {
+        value = value?.[part];
+      }
+      result.push([path, value]);
+    }
+  }
+
+  return result;
+}
+
+export function summarizeSources(merged) {
+  if (!merged?._sources || !(merged._sources instanceof Map)) {
+    log.debug('Merge', 'summarizeSources: input missing or has no valid _sources Map');
+    return { manifest: 0, runtime: 0 };
+  }
+  let manifest = 0;
+  let runtime = 0;
+  for (const source of merged._sources.values()) {
+    if (source === 'manifest') manifest++;
+    else if (source === 'runtime') runtime++;
+  }
+  return { manifest, runtime };
+}
+
+export function dumpConfigSources(mergedConfig) {
+  const result = {};
+  const sources = mergedConfig?._sources;
+  if (!sources || typeof sources.forEach !== 'function') {
+    return result;
+  }
+  sources.forEach((source, path) => {
+    result[path] = source;
+  });
+  return result;
+}

@@ -1,0 +1,55 @@
+/**
+ * Type definitions for logits computation.
+ *
+ * Contains interfaces for configuration, weights, and debug flags
+ * used throughout the logits computation pipeline.
+ *
+ * @module inference/pipelines/text/logits/types
+ */
+
+import type { LargeWeightConfigSchema, KernelPathSchema } from '../../../../config/schema/index.js';
+import type { ExecutionV1PoliciesSchema } from '../../../../config/schema/execution-v1.schema.js';
+import type { WeightBuffer, CpuWeightBuffer, SplitWeightBuffer } from '../../../../gpu/weight-buffer.js';
+
+/**
+ * Configuration for logits computation.
+ */
+export interface LogitsConfig {
+  hiddenSize: number;
+  vocabSize: number;
+  normalizationType: 'rmsnorm' | 'layernorm';
+  finalNormBiasTensor: string | null;
+  rmsNormEps: number;
+  useTiedEmbeddings: boolean;
+  embeddingVocabSize: number | null;
+  finalLogitSoftcapping: number | null;  // Gemma 2: 30.0 - applies tanh(x/cap)*cap
+  logitInputScale: number;
+  logitOutputScale: number;
+  largeWeights?: LargeWeightConfigSchema;
+  /** Dtype for hidden state activations */
+  activationDtype?: 'f16' | 'f32';
+  /** Explicit kernel-path context for variant selection. */
+  kernelPath?: KernelPathSchema | null;
+  /** Execution-v1 fail-fast policies for dtype transitions. */
+  executionPolicies?: ExecutionV1PoliciesSchema | null;
+  /** Gemma 2 RMS scaling: (1+w)*x */
+  rmsNormWeightOffset?: boolean;
+}
+
+/**
+ * Weights required for logits computation.
+ */
+export interface LogitsWeights {
+  finalNorm: GPUBuffer | Float32Array;
+  finalNormBias?: Float32Array | null;
+  lmHead: GPUBuffer | Float32Array | WeightBuffer | CpuWeightBuffer | SplitWeightBuffer;
+  lmHeadBias?: Float32Array | null;
+}
+
+/**
+ * Debug flags for logits computation.
+ */
+export interface LogitsDebugFlags {
+  finalNormDebugDone?: boolean;
+  afterFinalNormDebugDone?: boolean;
+}

@@ -1,0 +1,268 @@
+
+
+import { getDevice } from './device.js';
+import { isDeviceLost, observeDeviceLoss, registerBufferDevice } from './device-state.js';
+import { getRuntimeConfig } from '../config/runtime.js';
+
+const uniformOwners = new WeakMap();
+
+
+function hashUniformBytes(view) {
+  let hash = 2166136261; // FNV offset basis
+
+  for (let i = 0; i < view.length; i++) {
+    hash ^= view[i];
+    hash = Math.imul(hash, 16777619); // FNV prime
+  }
+
+  // Convert to hex string for Map key
+  return (hash >>> 0).toString(16).padStart(8, '0');
+}
+
+function copyUniformBytes(view) {
+  return new Uint8Array(view);
+}
+
+export function toUniformArrayBuffer(data) {
+  if (data instanceof ArrayBuffer) {
+    return data;
+  }
+  if (ArrayBuffer.isView(data)) {
+    if (data.byteOffset === 0 && data.byteLength === data.buffer.byteLength) {
+      return data.buffer;
+    }
+    return data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength);
+  }
+  throw new Error('Uniform data must be ArrayBuffer or ArrayBufferView.');
+}
+
+function equalUniformBytes(a, b) {
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) {
+    if (a[i] !== b[i]) return false;
+  }
+  return true;
+}
+
+
+export class UniformBufferCache {
+  
+  #cache = new Map();
+
+  
+  #stats = {
+    hits: 0,
+    misses: 0,
+    evictions: 0,
+    currentSize: 0,
+  };
+
+  
+  #pendingDestruction = [];
+
+  
+  #maxEntries;
+
+  
+  #maxAgeMs;
+  #device;
+
+  
+  constructor(
+    maxEntries = getRuntimeConfig().shared.gpuCache.uniformCacheMaxEntries,
+    maxAgeMs = getRuntimeConfig().shared.gpuCache.uniformCacheMaxAgeMs,
+    device = getDevice()
+  ) {
+    this.#maxEntries = maxEntries;
+    this.#maxAgeMs = maxAgeMs;
+    this.#device = device;
+    observeDeviceLoss(device);
+    device?.lost?.then(() => this.clear(), () => this.clear());
+  }
+
+  
+  getOrCreate(data, label) {
+    if (isDeviceLost(this.#device)) throw new Error('Uniform cache GPU device is lost.');
+    const dataView = new Uint8Array(data);
+    const baseKey = `${data.byteLength}:${hashUniformBytes(dataView)}`;
+    let key = baseKey;
+    let suffix = 0;
+    let existing = this.#cache.get(key);
+
+    while (existing) {
+      if (equalUniformBytes(existing.bytes, dataView)) {
+        existing.lastUsed = performance.now();
+        existing.refCount++;
+        this.#stats.hits++;
+        return existing.buffer;
+      }
+      suffix += 1;
+      key = `${baseKey}#${suffix}`;
+      existing = this.#cache.get(key);
+    }
+
+    const dataBytes = copyUniformBytes(dataView);
+
+    // Cache miss - create new buffer
+    this.#stats.misses++;
+
+    const device = this.#device;
+    if (!device) {
+      throw new Error('GPU device not initialized');
+    }
+
+    const buffer = device.createBuffer({
+      label: `${label}_cached`,
+      size: data.byteLength,
+      usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+    });
+    try {
+      registerBufferDevice(buffer, device);
+      device.queue.writeBuffer(buffer, 0, data);
+    } catch (error) {
+      buffer.destroy();
+      throw error;
+    }
+    uniformOwners.set(buffer, this);
+
+    // Evict if at capacity
+    if (this.#cache.size >= this.#maxEntries) {
+      this.#evictLRU();
+    }
+
+    this.#cache.set(key, {
+      buffer,
+      bytes: dataBytes,
+      lastUsed: performance.now(),
+      refCount: 1,
+    });
+    this.#stats.currentSize = this.#cache.size;
+
+    return buffer;
+  }
+
+  
+  release(buffer) {
+    // Find entry by buffer reference
+    for (const [hash, entry] of this.#cache) {
+      if (entry.buffer === buffer) {
+        entry.refCount = Math.max(0, entry.refCount - 1);
+        return;
+      }
+    }
+    // Buffer not in cache - it may have been created outside the cache
+    // Don't destroy it here; caller is responsible
+  }
+
+  
+  #evictLRU() {
+    
+    let oldestHash = null;
+    let oldestTime = Infinity;
+
+    for (const [hash, entry] of this.#cache) {
+      // Prefer evicting entries with refCount 0
+      if (entry.refCount === 0 && entry.lastUsed < oldestTime) {
+        oldestTime = entry.lastUsed;
+        oldestHash = hash;
+      }
+    }
+
+    // If all entries are in use, evict oldest anyway
+    if (oldestHash === null) {
+      for (const [hash, entry] of this.#cache) {
+        if (entry.lastUsed < oldestTime) {
+          oldestTime = entry.lastUsed;
+          oldestHash = hash;
+        }
+      }
+    }
+
+    if (oldestHash) {
+      const entry = this.#cache.get(oldestHash);
+      if (entry) {
+        // DON'T destroy immediately - defer until GPU work completes
+        this.#pendingDestruction.push(entry.buffer);
+        this.#cache.delete(oldestHash);
+        this.#stats.evictions++;
+        this.#stats.currentSize = this.#cache.size;
+      }
+    }
+  }
+
+
+  clear() {
+    // Flush pending destruction first
+    this.flushPendingDestruction();
+
+    // Destroy all cached buffers
+    for (const entry of this.#cache.values()) {
+      entry.buffer.destroy();
+    }
+    this.#cache.clear();
+    this.#stats.currentSize = 0;
+  }
+
+  
+  flushPendingDestruction() {
+    const count = this.#pendingDestruction.length;
+    for (const buffer of this.#pendingDestruction) {
+      buffer.destroy();
+    }
+    this.#pendingDestruction = [];
+    return count;
+  }
+
+
+  
+  isCached(buffer) {
+    for (const entry of this.#cache.values()) {
+      if (entry.buffer === buffer) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  
+  getStats() {
+    const total = this.#stats.hits + this.#stats.misses;
+    const hitRate = total > 0 ? ((this.#stats.hits / total) * 100).toFixed(1) + '%' : '0%';
+    return { ...this.#stats, hitRate, pendingDestruction: this.#pendingDestruction.length };
+  }
+}
+
+
+export function releaseUniformBuffer(buffer) {
+  const cache = uniformOwners.get(buffer);
+  if (cache) {
+    cache.release(buffer);
+  } else {
+    buffer.destroy();
+  }
+}
+
+// Global singleton instance
+
+const deviceUniformCaches = new WeakMap();
+
+
+export function getUniformCache(device = getDevice()) {
+  if (!device || isDeviceLost(device)) throw new Error('Uniform cache requires a live GPU device.');
+  let cache = deviceUniformCaches.get(device);
+  if (!cache) {
+    cache = new UniformBufferCache(undefined, undefined, device);
+    deviceUniformCaches.set(device, cache);
+  }
+  return cache;
+}
+
+export function getUniformCacheStats(device = getDevice()) {
+  return deviceUniformCaches.get(device)?.getStats() ?? null;
+}
+
+
+export function resetUniformCache(device = getDevice()) {
+  deviceUniformCaches.get(device)?.clear();
+  if (device) deviceUniformCaches.delete(device);
+}

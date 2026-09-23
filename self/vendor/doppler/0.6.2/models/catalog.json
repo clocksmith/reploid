@@ -1,0 +1,2402 @@
+{
+  "version": 1,
+  "lifecycleSchemaVersion": 1,
+  "updatedAt": "2026-07-19",
+  "models": [
+    {
+      "modelId": "gemma-3-270m-it-q4k-ehf16-af32",
+      "family": "gemma3",
+      "classification": {
+        "domain": "language",
+        "tasks": [
+          "generation"
+        ],
+        "architectureRole": "autoregressive-decoder",
+        "inputs": [
+          "text"
+        ],
+        "outputs": [
+          "text"
+        ]
+      },
+      "label": "Gemma 3 270M Instruct (Q4K/F32a)",
+      "description": "Gemma 3 270M text model. Q4K weights, F16 embeddings/head, F32 accumulation.",
+      "modes": [
+        "text"
+      ],
+      "aliases": [
+        "gemma3-270m",
+        "google/gemma-3-270m-it",
+        "gemma-3-270m-it-wq4k-ef16",
+        "gemma-3-270m-it-wq4k-ef16-hf16",
+        "gemma-3-270m-it-wq4k-ef16-hf16-f32"
+      ],
+      "artifact": {
+        "format": "rdrr"
+      },
+      "hf": {
+        "repoId": "clocksmith/rdrr",
+        "revision": "a8591b20bce7c22d75becde1315482e76ff85fc9",
+        "path": "models/gemma-3-270m-it-q4k-ehf16-af32"
+      },
+      "baseUrl": null,
+      "quickstart": true,
+      "demoVisible": true,
+      "demoLabel": "Gemma 3 270M",
+      "demoRole": "Stable F32 browser lane",
+      "demoSortOrder": 10,
+      "sizeBytes": 418518521,
+      "recommended": false,
+      "sortOrder": 10,
+      "lifecycle": {
+        "availability": {
+          "curated": false,
+          "local": true,
+          "hf": true
+        },
+        "status": {
+          "runtime": "active",
+          "conversion": "ready",
+          "demo": "none",
+          "tested": "verified"
+        },
+        "tested": {
+          "suite": "inference",
+          "surface": [
+            "browser",
+            "node"
+          ],
+          "result": "pass",
+          "lastVerifiedAt": "2026-06-24",
+          "source": "runtime-verify",
+          "notes": "Browser/WebGPU quickstart smoke is package-visible at reports/release-claims/gemma-3-270m-it-q4k-ehf16-af32/2026-06-24T01-11-24.275Z.json. The report produced a coherent sky-color answer, stopReason=stop-token, executionContractOk=true, and decodeTokensPerSec > 0.",
+          "contracts": {
+            "executionContractOk": true
+          }
+        }
+      },
+      "vendorBenchmark": {
+        "transformersjs": {
+          "repoId": "onnx-community/gemma-3-270m-it-ONNX",
+          "dtype": "q4f16"
+        }
+      },
+      "benchmarkEvidence": {
+        "status": "benchmark-selected",
+        "localClaimLaneId": "gemma-3-270m-it-q4k-rdrr",
+        "runtimeReport": "reports/release-claims/gemma-3-270m-it-q4k-ehf16-af32/2026-06-24T01-11-24.275Z.json",
+        "compareResult": "benchmarks/vendors/results/compare_20260627T200811.json",
+        "summarySvg": "benchmarks/vendors/results/gemma-3-270m-it-q4k-rdrr-browser-p512-d128-t0-k1-strix-halo-20260627T200811.svg"
+      },
+      "sourceCheckpointId": "google/gemma-3-270m-it",
+      "weightCapsuleId": "gemma-3-270m-it-q4k-ehf16-af32-wp-catalog-v1",
+      "manifestVariantId": "gemma-3-270m-it-q4k-ehf16-af32-mv-exec-v1",
+      "artifactCompleteness": "complete",
+      "runtimePromotionState": "manifest-owned",
+      "weightsRefAllowed": false
+    },
+    {
+      "modelId": "gemma-3-270m-it-f16-af32",
+      "family": "gemma3",
+      "classification": {
+        "domain": "language",
+        "tasks": [
+          "generation"
+        ],
+        "architectureRole": "autoregressive-decoder",
+        "inputs": [
+          "text"
+        ],
+        "outputs": [
+          "text"
+        ]
+      },
+      "label": "Gemma 3 270M Instruct (F16/F32a)",
+      "description": "Gemma 3 270M text model. F16 weights, F16 embeddings/head, F32 accumulation.",
+      "modes": [
+        "text"
+      ],
+      "aliases": [
+        "gemma-3-270m-it-f16",
+        "gemma-3-270m-it-f16-hf16",
+        "gemma-3-270m-it-f16-hf16-f32"
+      ],
+      "artifact": {
+        "format": "rdrr"
+      },
+      "hf": {
+        "repoId": "clocksmith/rdrr",
+        "revision": null,
+        "path": "models/gemma-3-270m-it-f16-af32"
+      },
+      "baseUrl": null,
+      "quickstart": false,
+      "sizeBytes": 540000000,
+      "recommended": false,
+      "sortOrder": 9,
+      "lifecycle": {
+        "availability": {
+          "curated": false,
+          "local": true,
+          "hf": false
+        },
+        "status": {
+          "runtime": "active",
+          "conversion": "ready",
+          "demo": "none",
+          "tested": "verified"
+        },
+        "tested": {
+          "suite": "inference",
+          "surface": [
+            "node"
+          ],
+          "result": "pass",
+          "lastVerifiedAt": "2026-06-29",
+          "source": "runtime-verify",
+          "notes": "Node/WebGPU verification is package-visible at reports/release-claims/gemma-3-270m-it-f16-af32/2026-06-29T22-02-14.821Z.json. The report produced the coherent answer \"The sky is blue.\", stopReason=stop-token, executionContractOk=true, and decodeTokensPerSec > 0.",
+          "contracts": {
+            "executionContractOk": true
+          }
+        }
+      },
+      "sourceCheckpointId": "google/gemma-3-270m-it",
+      "weightCapsuleId": "gemma-3-270m-it-f16-af32-wp-catalog-v1",
+      "manifestVariantId": "gemma-3-270m-it-f16-af32-mv-exec-v1",
+      "artifactCompleteness": "complete",
+      "runtimePromotionState": "manifest-owned",
+      "weightsRefAllowed": false
+    },
+    {
+      "modelId": "google-embeddinggemma-300m-q4k-ehf16-af32",
+      "family": "embeddinggemma",
+      "classification": {
+        "domain": "language",
+        "tasks": [
+          "embedding"
+        ],
+        "architectureRole": "decoder-embedding-encoder",
+        "inputs": [
+          "text"
+        ],
+        "outputs": [
+          "pooled-embedding"
+        ]
+      },
+      "label": "EmbeddingGemma 300M (Q4K)",
+      "description": "EmbeddingGemma 300M sentence embedding model. Q4K weights, F16 embeddings/head, F32 accumulation.",
+      "modes": [
+        "embedding"
+      ],
+      "aliases": [
+        "embeddinggemma-300m",
+        "google/embeddinggemma-300m",
+        "google-embeddinggemma-300m-wq4k-ef16"
+      ],
+      "artifact": {
+        "format": "rdrr"
+      },
+      "hf": {
+        "repoId": "clocksmith/rdrr",
+        "revision": "95f0b29ec73dea70394c6bcfa8407bc6796df6c9",
+        "path": "models/google-embeddinggemma-300m-q4k-ehf16-af32"
+      },
+      "baseUrl": null,
+      "quickstart": true,
+      "sizeBytes": 480563695,
+      "recommended": true,
+      "sortOrder": 11,
+      "lifecycle": {
+        "availability": {
+          "curated": false,
+          "local": true,
+          "hf": true
+        },
+        "status": {
+          "runtime": "active",
+          "conversion": "ready",
+          "demo": "none",
+          "tested": "verified"
+        },
+        "tested": {
+          "suite": "embedding",
+          "surface": [
+            "node"
+          ],
+          "result": "pass",
+          "lastVerifiedAt": "2026-06-24",
+          "source": "runtime-verify",
+          "contracts": {
+            "executionContractOk": true
+          },
+          "notes": "Node/WebGPU embedding verification is package-visible at reports/release-claims/google-embeddinggemma-300m-q4k-ehf16-af32/2026-06-24T01-42-03.814Z.json. The report produced finite 768-dimensional unit-norm embeddings and passed the semantic retrieval/pair suite thresholds. Registry verification uses profiles/vector-stability so the manifest-owned f32 KV-cache contract is preserved."
+        }
+      },
+      "vendorBenchmark": {
+        "transformersjs": {
+          "repoId": "onnx-community/embeddinggemma-300m-ONNX",
+          "dtype": "q4"
+        }
+      },
+      "sourceCheckpointId": "google/embeddinggemma-300m",
+      "weightCapsuleId": "google-embeddinggemma-300m-q4k-ehf16-af32-wp-catalog-v1",
+      "manifestVariantId": "google-embeddinggemma-300m-q4k-ehf16-af32-mv-exec-v1",
+      "artifactCompleteness": "complete",
+      "runtimePromotionState": "manifest-owned",
+      "weightsRefAllowed": false
+    },
+    {
+      "modelId": "gemma-3-1b-it-q4k-ehf16-af32",
+      "family": "gemma3",
+      "classification": {
+        "domain": "language",
+        "tasks": [
+          "generation"
+        ],
+        "architectureRole": "autoregressive-decoder",
+        "inputs": [
+          "text"
+        ],
+        "outputs": [
+          "text"
+        ]
+      },
+      "label": "Gemma 3 1B Instruct (Q4K/F32a)",
+      "description": "Gemma 3 1B text model. Q4K weights, F16 embeddings/head, F32 accumulation.",
+      "modes": [
+        "text"
+      ],
+      "aliases": [
+        "gemma3-1b",
+        "google/gemma-3-1b-it",
+        "gemma-3-1b-it-wq4k-ef16-hf16"
+      ],
+      "artifact": {
+        "format": "rdrr"
+      },
+      "hf": {
+        "repoId": "clocksmith/rdrr",
+        "revision": "7c3d30e300bcb02cbd68fb0db3eee64fbf738f99",
+        "path": "models/gemma-3-1b-it-q4k-ehf16-af32"
+      },
+      "baseUrl": null,
+      "quickstart": true,
+      "demoLabel": "Gemma 3 1B",
+      "demoRole": "Larger Gemma text model",
+      "sizeBytes": 1044786820,
+      "recommended": false,
+      "sortOrder": 12,
+      "lifecycle": {
+        "availability": {
+          "curated": false,
+          "local": true,
+          "hf": true
+        },
+        "status": {
+          "runtime": "active",
+          "conversion": "ready",
+          "demo": "none",
+          "tested": "verified"
+        },
+        "tested": {
+          "suite": "inference",
+          "surface": [
+            "node"
+          ],
+          "result": "pass",
+          "lastVerifiedAt": "2026-06-24",
+          "source": "runtime-verify",
+          "notes": "Node/WebGPU quickstart smoke is package-visible at reports/release-claims/gemma-3-1b-it-q4k-ehf16-af32/2026-06-24T01-23-10.494Z.json. The report produced coherent text, executionContractOk=true, and decodeTokensPerSec > 0.",
+          "contracts": {
+            "executionContractOk": true
+          }
+        }
+      },
+      "vendorBenchmark": {
+        "transformersjs": {
+          "repoId": "onnx-community/gemma-3-1b-it-ONNX-GQA",
+          "dtype": "q4f16"
+        }
+      },
+      "sourceCheckpointId": "google/gemma-3-1b-it",
+      "weightCapsuleId": "gemma-3-1b-it-q4k-ehf16-af32-wp-catalog-v1",
+      "manifestVariantId": "gemma-3-1b-it-q4k-ehf16-af32-mv-exec-v1",
+      "artifactCompleteness": "complete",
+      "runtimePromotionState": "manifest-owned",
+      "weightsRefAllowed": false
+    },
+    {
+      "modelId": "gemma-4-e2b-it-q4k-ehf16-af32",
+      "family": "gemma4",
+      "classification": {
+        "domain": "language",
+        "tasks": [
+          "generation"
+        ],
+        "architectureRole": "autoregressive-decoder",
+        "inputs": [
+          "text",
+          "image",
+          "audio"
+        ],
+        "outputs": [
+          "text"
+        ]
+      },
+      "label": "Gemma 4 E2B Instruct (Q4K/F32a)",
+      "description": "Gemma 4 E2B multimodal model. Q4K weights, F16 embeddings/head/vision/audio/projector, F32 accumulation.",
+      "modes": [
+        "text",
+        "vision"
+      ],
+      "aliases": [
+        "gemma4-e2b",
+        "google/gemma-4-e2b-it"
+      ],
+      "artifact": {
+        "format": "rdrr"
+      },
+      "hf": {
+        "repoId": "clocksmith/rdrr",
+        "revision": "2070777c77047d54e6eae105f6dcb1891cf6f21a",
+        "path": "models/gemma-4-e2b-it-q4k-ehf16-af32"
+      },
+      "baseUrl": null,
+      "quickstart": true,
+      "demoVisible": false,
+      "sizeBytes": 7094076955,
+      "recommended": false,
+      "sortOrder": 13,
+      "lifecycle": {
+        "availability": {
+          "curated": false,
+          "local": true,
+          "hf": true
+        },
+        "status": {
+          "runtime": "active",
+          "conversion": "ready",
+          "demo": "none",
+          "tested": "verified"
+        },
+        "tested": {
+          "suite": "inference",
+          "surface": [
+            "node"
+          ],
+          "result": "pass",
+          "lastVerifiedAt": "2026-04-18",
+          "source": "runtime-verify",
+          "notes": "Package-visible runtime evidence is staged at reports/release-claims/gemma-4-e2b-it-q4k-ehf16-af32/2026-04-18T19-17-45.997Z.json. Browser and Electron remain unverified in the Gemma 4 target matrix until same-surface runtime receipts are promoted.",
+          "contracts": {
+            "executionContractOk": true
+          }
+        }
+      },
+      "vendorBenchmark": {
+        "transformersjs": {
+          "repoId": "onnx-community/gemma-4-E2B-it-ONNX",
+          "dtype": "q4f16"
+        }
+      },
+      "sourceCheckpointId": "google/gemma-4-E2B-it",
+      "weightCapsuleId": "gemma-4-e2b-it-q4k-ehf16-af32-wp-catalog-v1",
+      "manifestVariantId": "gemma-4-e2b-it-q4k-ehf16-af32-mv-exec-v1",
+      "artifactCompleteness": "complete",
+      "runtimePromotionState": "manifest-owned",
+      "weightsRefAllowed": false
+    },
+    {
+      "modelId": "gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
+      "family": "gemma4",
+      "classification": {
+        "domain": "language",
+        "tasks": [
+          "generation"
+        ],
+        "architectureRole": "autoregressive-decoder",
+        "inputs": [
+          "text",
+          "image",
+          "audio"
+        ],
+        "outputs": [
+          "text"
+        ]
+      },
+      "label": "Gemma 4 E2B Instruct (Q4K/F32a/INT4 PLE)",
+      "description": "Gemma 4 E2B multimodal model. Q4K weights, INT4 per-layer embeddings with per-row F32 scales, F16 embeddings/head/vision/audio/projector, F32 accumulation.",
+      "modes": [
+        "text",
+        "vision"
+      ],
+      "aliases": [
+        "gemma4-e2b-int4ple",
+        "gemma-4-e2b-int4ple"
+      ],
+      "artifact": {
+        "format": "rdrr"
+      },
+      "hf": {
+        "repoId": "clocksmith/rdrr",
+        "path": "models/gemma-4-e2b-it-q4k-ehf16-af32-int4ple",
+        "revision": "16256bf16dc8f92b8fe5105b07628cef91587f0a"
+      },
+      "baseUrl": null,
+      "quickstart": true,
+      "demoLabel": "Gemma 4 E2B",
+      "demoRole": "Gemma 4 text and vision",
+      "demoSortOrder": 14,
+      "demoPreferredVariantId": "gemma-4-e2b-it-q4k-ehf16-af16-int4ple",
+      "sizeBytes": 4009916310,
+      "recommended": false,
+      "sortOrder": 14,
+      "lifecycle": {
+        "availability": {
+          "curated": false,
+          "local": true,
+          "hf": true
+        },
+        "status": {
+          "runtime": "active",
+          "conversion": "ready",
+          "demo": "none",
+          "tested": "verified"
+        },
+        "tested": {
+          "suite": "inference",
+          "surface": [
+            "node"
+          ],
+          "result": "pass",
+          "lastVerifiedAt": "2026-04-22",
+          "source": "runtime-verify",
+          "notes": "Committed program-bundle reference reports/program-bundles/gemma-4-e2b-it-q4k-ehf16-af32-int4ple/2026-04-22T18-09-10.471Z.reference.json decodes the sky prompt to blue with executionContractOk=true. Browser and Electron remain unverified in the Gemma 4 target matrix until same-surface runtime receipts are promoted.",
+          "contracts": {
+            "executionContractOk": true,
+            "layerPatternContractOk": true
+          }
+        }
+      },
+      "vendorBenchmark": {
+        "transformersjs": {
+          "repoId": "onnx-community/gemma-4-E2B-it-ONNX",
+          "dtype": "q4f16"
+        }
+      },
+      "sourceCheckpointId": "google/gemma-4-E2B-it",
+      "weightCapsuleId": "gemma-4-e2b-it-q4k-ehf16-af32-int4ple-wp-catalog-v1",
+      "manifestVariantId": "gemma-4-e2b-it-q4k-ehf16-af32-int4ple-mv-exec-v1",
+      "artifactCompleteness": "complete",
+      "runtimePromotionState": "manifest-owned",
+      "weightsRefAllowed": false
+    },
+    {
+      "modelId": "gemma-4-e2b-it-q4k-ehf16-af16-int4ple",
+      "family": "gemma4",
+      "classification": {
+        "domain": "language",
+        "tasks": [
+          "generation"
+        ],
+        "architectureRole": "autoregressive-decoder",
+        "inputs": [
+          "text",
+          "image",
+          "audio"
+        ],
+        "outputs": [
+          "text"
+        ]
+      },
+      "label": "Gemma 4 E2B Instruct (Q4K/F16a/INT4 PLE)",
+      "description": "Gemma 4 E2B multimodal Doppler/WebGPU f16 activation variant. Shares the existing Q4K/INT4 PLE weight capsule and falls back to AF32 when capability rules reject AF16.",
+      "modes": [
+        "text",
+        "vision"
+      ],
+      "aliases": [
+        "gemma4-e2b-int4ple-f16",
+        "gemma4-e2b-af16-int4ple",
+        "gemma-4-e2b-af16-int4ple"
+      ],
+      "artifact": {
+        "format": "rdrr"
+      },
+      "hf": {
+        "repoId": "clocksmith/rdrr",
+        "revision": "2d326649ae3d04b83323de0e6247e1e42fb1d9af",
+        "path": "models/gemma-4-e2b-it-q4k-ehf16-af16-int4ple"
+      },
+      "baseUrl": null,
+      "quickstart": false,
+      "demoVisible": false,
+      "sizeBytes": 4009916310,
+      "recommended": false,
+      "sortOrder": 15,
+      "lifecycle": {
+        "availability": {
+          "curated": false,
+          "local": true,
+          "hf": true
+        },
+        "status": {
+          "runtime": "active",
+          "conversion": "ready",
+          "demo": "none",
+          "tested": "verified"
+        },
+        "tested": {
+          "suite": "inference",
+          "surface": [
+            "node"
+          ],
+          "result": "pass",
+          "lastVerifiedAt": "2026-05-07",
+          "source": "manifest-variant-identity",
+          "notes": "F16 activation sibling over the verified Gemma 4 E2B INT4 PLE weight capsule. Package-visible runtime evidence is staged at reports/release-claims/gemma-4-e2b-it-q4k-ehf16-af16-int4ple/2026-05-07T20-15-34.710Z.json; Apple Metal capability resolution still fails closed to the AF32 primary when this lane is incompatible.",
+          "contracts": {
+            "executionContractOk": true
+          }
+        }
+      },
+      "vendorBenchmark": {
+        "transformersjs": {
+          "repoId": "onnx-community/gemma-4-E2B-it-ONNX",
+          "dtype": "q4f16"
+        }
+      },
+      "sourceCheckpointId": "google/gemma-4-E2B-it",
+      "weightCapsuleId": "gemma-4-e2b-it-q4k-ehf16-af32-int4ple-wp-catalog-v1",
+      "manifestVariantId": "gemma-4-e2b-it-q4k-ehf16-af16-int4ple-mv-f16-activations-v1",
+      "artifactCompleteness": "weights-ref",
+      "runtimePromotionState": "manifest-owned",
+      "weightsRefAllowed": true
+    },
+    {
+      "modelId": "gemma-4-12b-it-text-q4k-ehf16-af32",
+      "family": "gemma4",
+      "classification": {
+        "domain": "language",
+        "tasks": [
+          "generation"
+        ],
+        "architectureRole": "autoregressive-decoder",
+        "inputs": [
+          "text"
+        ],
+        "outputs": [
+          "text"
+        ]
+      },
+      "label": "Gemma 4 12B Instruct Text (Q4K/F32a)",
+      "description": "Gemma 4 12B text-only local RDRR lane. Q4K weights, F16 embeddings/head, F32 activation contract.",
+      "modes": [
+        "text"
+      ],
+      "aliases": [
+        "gemma4-12b",
+        "google/gemma-4-12b-it"
+      ],
+      "artifact": {
+        "format": "rdrr"
+      },
+      "hf": {
+        "repoId": "clocksmith/rdrr",
+        "revision": null,
+        "path": "models/gemma-4-12b-it-text-q4k-ehf16-af32"
+      },
+      "baseUrl": null,
+      "quickstart": false,
+      "demoVisible": false,
+      "sizeBytes": 8159955902,
+      "recommended": false,
+      "sortOrder": 15.5,
+      "lifecycle": {
+        "availability": {
+          "curated": false,
+          "local": true,
+          "hf": false
+        },
+        "status": {
+          "runtime": "active",
+          "conversion": "ready",
+          "demo": "none",
+          "tested": "verified"
+        },
+        "tested": {
+          "suite": "inference",
+          "surface": [
+            "node"
+          ],
+          "result": "pass",
+          "lastVerifiedAt": "2026-06-29",
+          "source": "runtime-verify",
+          "notes": "Node/WebGPU verification is package-visible at reports/release-claims/gemma-4-12b-it-text-q4k-ehf16-af32/2026-06-29T22-13-57.102Z.json. The safe-single report produced a coherent sky-color answer, stopReason=max-tokens, executionContractOk=true, and decodeTokensPerSec > 0.",
+          "contracts": {
+            "executionContractOk": true
+          }
+        }
+      },
+      "vendorBenchmark": null,
+      "sourceCheckpointId": "google/gemma-4-12B-it",
+      "weightCapsuleId": "gemma-4-12b-it-text-q4k-ehf16-af32-wp-catalog-v1",
+      "manifestVariantId": "gemma-4-12b-it-text-q4k-ehf16-af32-mv-q4-fused-v1",
+      "artifactCompleteness": "complete",
+      "runtimePromotionState": "manifest-owned",
+      "weightsRefAllowed": false
+    },
+    {
+      "modelId": "gemma-4-12b-it-text-q4k-ehf16-af16",
+      "family": "gemma4",
+      "classification": {
+        "domain": "language",
+        "tasks": [
+          "generation"
+        ],
+        "architectureRole": "autoregressive-decoder",
+        "inputs": [
+          "text"
+        ],
+        "outputs": [
+          "text"
+        ]
+      },
+      "label": "Gemma 4 12B Instruct Text (Q4K/F16a)",
+      "description": "Gemma 4 12B text-only local f16 activation sibling over the existing Q4K weight capsule.",
+      "modes": [
+        "text"
+      ],
+      "aliases": [
+        "gemma4-12b-f16",
+        "gemma4-12b-af16"
+      ],
+      "artifact": {
+        "format": "rdrr"
+      },
+      "hf": {
+        "repoId": "clocksmith/rdrr",
+        "revision": null,
+        "path": "models/gemma-4-12b-it-text-q4k-ehf16-af16"
+      },
+      "baseUrl": null,
+      "quickstart": false,
+      "demoVisible": false,
+      "sizeBytes": 8159955902,
+      "recommended": false,
+      "sortOrder": 15.6,
+      "lifecycle": {
+        "availability": {
+          "curated": false,
+          "local": true,
+          "hf": false
+        },
+        "status": {
+          "runtime": "active",
+          "conversion": "ready",
+          "demo": "none",
+          "tested": "verified"
+        },
+        "tested": {
+          "suite": "inference",
+          "surface": [
+            "node"
+          ],
+          "result": "pass",
+          "lastVerifiedAt": "2026-06-29",
+          "source": "runtime-verify",
+          "notes": "Node/WebGPU verification is package-visible at reports/release-claims/gemma-4-12b-it-text-q4k-ehf16-af16/2026-06-29T22-14-43.963Z.json. The f16 activation safe-single report produced a coherent sky-color answer, stopReason=max-tokens, executionContractOk=true, and decodeTokensPerSec > 0.",
+          "contracts": {
+            "executionContractOk": true
+          }
+        }
+      },
+      "vendorBenchmark": null,
+      "sourceCheckpointId": "google/gemma-4-12B-it",
+      "weightCapsuleId": "gemma-4-12b-it-text-q4k-ehf16-af32-wp-catalog-v1",
+      "manifestVariantId": "gemma-4-12b-it-text-q4k-ehf16-af16-mv-f16-activations-v1",
+      "artifactCompleteness": "weights-ref",
+      "runtimePromotionState": "manifest-owned",
+      "weightsRefAllowed": true
+    },
+    {
+      "modelId": "gemma-4-12b-it-text-w4a16-ct-ehf16-af16",
+      "family": "gemma4",
+      "classification": {
+        "domain": "language",
+        "tasks": [
+          "generation"
+        ],
+        "architectureRole": "autoregressive-decoder",
+        "inputs": [
+          "text"
+        ],
+        "outputs": [
+          "text"
+        ]
+      },
+      "label": "Gemma 4 12B Instruct Text (W4A16 QAT/F16a)",
+      "description": "Gemma 4 12B text-only RDRR lane from Google's W4A16 QAT compressed-tensors checkpoint. W4A16 weights, F16 embeddings/head, F16 activation contract.",
+      "modes": [
+        "text"
+      ],
+      "aliases": [
+        "gemma4-12b-w4a16",
+        "gemma4-12b-qat-w4a16",
+        "google/gemma-4-12B-it-qat-w4a16-ct"
+      ],
+      "artifact": {
+        "format": "rdrr"
+      },
+      "hf": {
+        "repoId": "clocksmith/rdrr",
+        "revision": null,
+        "path": "models/gemma-4-12b-it-text-w4a16-ct-ehf16-af16"
+      },
+      "baseUrl": null,
+      "quickstart": false,
+      "demoVisible": false,
+      "sizeBytes": 10173636932,
+      "recommended": false,
+      "sortOrder": 15.7,
+      "lifecycle": {
+        "availability": {
+          "curated": false,
+          "local": true,
+          "hf": false
+        },
+        "status": {
+          "runtime": "active",
+          "conversion": "ready",
+          "demo": "none",
+          "tested": "verified"
+        },
+        "tested": {
+          "suite": "inference",
+          "surface": [
+            "node"
+          ],
+          "result": "pass",
+          "lastVerifiedAt": "2026-06-29",
+          "source": "runtime-verify",
+          "notes": "Node/WebGPU verification is package-visible at reports/release-claims/gemma-4-12b-it-text-w4a16-ct-ehf16-af16/2026-06-29T22-04-29.156Z.json. The report produced a coherent sky-color answer, stopReason=max-tokens, executionContractOk=true, and decodeTokensPerSec > 0.",
+          "contracts": {
+            "executionContractOk": true
+          }
+        }
+      },
+      "vendorBenchmark": null,
+      "sourceCheckpointId": "google/gemma-4-12B-it-qat-w4a16-ct",
+      "weightCapsuleId": "gemma-4-12b-it-text-w4a16-ct-ehf16-af16-wp-catalog-v1",
+      "manifestVariantId": "gemma-4-12b-it-text-w4a16-ct-ehf16-af16-mv-w4a16-ct-reference-f16-dequant-v1",
+      "artifactCompleteness": "complete",
+      "runtimePromotionState": "manifest-owned",
+      "weightsRefAllowed": false
+    },
+    {
+      "modelId": "diffusiongemma-26b-a4b-it-q4k-ehf16-af16",
+      "family": "diffusiongemma",
+      "classification": {
+        "domain": "language",
+        "tasks": [
+          "generation"
+        ],
+        "architectureRole": "block-diffusion-decoder",
+        "inputs": [
+          "text"
+        ],
+        "outputs": [
+          "text"
+        ]
+      },
+      "label": "DiffusionGemma 26B A4B Instruct (Q4K/F16a)",
+      "description": "DiffusionGemma 26B A4B text-only block-diffusion MoE artifact. Q4K weights, F16 embeddings/head, F16 activation contract, and DiffusionGemma throughput runtime profile.",
+      "modes": [
+        "diffusion",
+        "text"
+      ],
+      "aliases": [
+        "diffusiongemma",
+        "diffusiongemma-26b",
+        "google/diffusiongemma-26B-A4B-it"
+      ],
+      "artifact": {
+        "format": "rdrr"
+      },
+      "hf": null,
+      "baseUrl": null,
+      "quickstart": false,
+      "demoVisible": false,
+      "sizeBytes": 15694066921,
+      "recommended": false,
+      "sortOrder": 15.8,
+      "lifecycle": {
+        "availability": {
+          "curated": false,
+          "local": true,
+          "hf": false
+        },
+        "status": {
+          "runtime": "experimental",
+          "conversion": "ready",
+          "demo": "none",
+          "tested": "none"
+        },
+        "tested": null
+      },
+      "vendorBenchmark": null,
+      "sourceCheckpointId": "google/diffusiongemma-26B-A4B-it",
+      "weightCapsuleId": "diffusiongemma-26b-a4b-it-q4k-ehf16-af16-wp-34a45084026a",
+      "manifestVariantId": "diffusiongemma-26b-a4b-it-q4k-ehf16-af16-mv-f5de4fbe6653",
+      "artifactCompleteness": "complete",
+      "runtimePromotionState": "manifest-owned",
+      "weightsRefAllowed": false
+    },
+    {
+      "modelId": "gemma-4-31b-it-text-q4k-ehf16-af32",
+      "family": "gemma4",
+      "classification": {
+        "domain": "language",
+        "tasks": [
+          "generation"
+        ],
+        "architectureRole": "autoregressive-decoder",
+        "inputs": [
+          "text"
+        ],
+        "outputs": [
+          "text"
+        ]
+      },
+      "label": "Gemma 4 31B Instruct Text (Q4K/F32a)",
+      "description": "Gemma 4 31B text-only model. Q4K weights, F16 embeddings/head, F32 accumulation.",
+      "modes": [
+        "text"
+      ],
+      "aliases": [
+        "gemma4-31b",
+        "google/gemma-4-31b-it"
+      ],
+      "artifact": {
+        "format": "rdrr"
+      },
+      "hf": {
+        "repoId": "clocksmith/rdrr",
+        "revision": null,
+        "path": "models/gemma-4-31b-it-text-q4k-ehf16-af32"
+      },
+      "baseUrl": null,
+      "quickstart": false,
+      "demoVisible": false,
+      "demoPreferredVariantId": "gemma-4-31b-it-text-q4k-ehf16-af16",
+      "demoWarningBadges": [
+        "19.3 GB / High RAM"
+      ],
+      "demoWarningText": "Large download. Use a high-RAM machine.",
+      "sizeBytes": 19295019640,
+      "recommended": false,
+      "sortOrder": 16,
+      "lifecycle": {
+        "availability": {
+          "curated": false,
+          "local": true,
+          "hf": false
+        },
+        "status": {
+          "runtime": "active",
+          "conversion": "ready",
+          "demo": "none",
+          "tested": "verified"
+        },
+        "tested": {
+          "suite": "inference",
+          "surface": [
+            "node"
+          ],
+          "result": "pass",
+          "lastVerifiedAt": "2026-06-29",
+          "source": "runtime-verify",
+          "notes": "Node/WebGPU verification is package-visible at reports/release-claims/gemma-4-31b-it-text-q4k-ehf16-af32/2026-06-29T22-07-45.149Z.json. The safe single-token report produced the coherent completion \"blue\", stopReason=stop-token, executionContractOk=true, and decodeTokensPerSec > 0.",
+          "contracts": {
+            "executionContractOk": true
+          }
+        }
+      },
+      "vendorBenchmark": null,
+      "sourceCheckpointId": "google/gemma-4-31B-it",
+      "weightCapsuleId": "gemma-4-31b-it-text-q4k-ehf16-af32-wp-catalog-v1",
+      "manifestVariantId": "gemma-4-31b-it-text-q4k-ehf16-af32-mv-q4-fused-v1",
+      "artifactCompleteness": "complete",
+      "runtimePromotionState": "manifest-owned",
+      "weightsRefAllowed": false
+    },
+    {
+      "modelId": "gemma-4-31b-it-text-q4k-ehf16-af16",
+      "family": "gemma4",
+      "classification": {
+        "domain": "language",
+        "tasks": [
+          "generation"
+        ],
+        "architectureRole": "autoregressive-decoder",
+        "inputs": [
+          "text"
+        ],
+        "outputs": [
+          "text"
+        ]
+      },
+      "label": "Gemma 4 31B Instruct Text (Q4K/F16a)",
+      "description": "Gemma 4 31B text-only Doppler/WebGPU f16 activation variant. Shares the existing Q4K/F16 embedding and head weight capsule; Doe/Cerebras f16 CSL lowering is intentionally unsupported.",
+      "modes": [
+        "text"
+      ],
+      "aliases": [
+        "gemma4-31b-f16",
+        "gemma4-31b-af16"
+      ],
+      "artifact": {
+        "format": "rdrr"
+      },
+      "hf": {
+        "repoId": "clocksmith/rdrr",
+        "revision": null,
+        "path": "models/gemma-4-31b-it-text-q4k-ehf16-af16"
+      },
+      "baseUrl": null,
+      "quickstart": false,
+      "demoVisible": false,
+      "sizeBytes": 19295019640,
+      "recommended": false,
+      "sortOrder": 17,
+      "lifecycle": {
+        "availability": {
+          "curated": false,
+          "local": true,
+          "hf": false
+        },
+        "status": {
+          "runtime": "active",
+          "conversion": "ready",
+          "demo": "none",
+          "tested": "verified"
+        },
+        "tested": {
+          "suite": "inference",
+          "surface": [
+            "node"
+          ],
+          "result": "pass",
+          "lastVerifiedAt": "2026-06-29",
+          "source": "runtime-verify",
+          "notes": "Node/WebGPU verification is package-visible at reports/release-claims/gemma-4-31b-it-text-q4k-ehf16-af16/2026-06-29T22-09-42.445Z.json. The f16 activation report produced the coherent completion \"blue\", stopReason=stop-token, executionContractOk=true, and decodeTokensPerSec > 0.",
+          "contracts": {
+            "executionContractOk": true
+          }
+        }
+      },
+      "vendorBenchmark": null,
+      "sourceCheckpointId": "google/gemma-4-31B-it",
+      "weightCapsuleId": "gemma-4-31b-it-text-q4k-ehf16-af32-wp-catalog-v1",
+      "manifestVariantId": "gemma-4-31b-it-text-q4k-ehf16-af16-mv-f16-activations-v1",
+      "artifactCompleteness": "weights-ref",
+      "runtimePromotionState": "manifest-owned",
+      "weightsRefAllowed": true
+    },
+    {
+      "modelId": "translategemma-4b-1b-enes-q4k-ehf16-af32",
+      "family": "translategemma",
+      "classification": {
+        "domain": "language",
+        "tasks": [
+          "translation"
+        ],
+        "architectureRole": "autoregressive-decoder",
+        "inputs": [
+          "text"
+        ],
+        "outputs": [
+          "text"
+        ]
+      },
+      "label": "TranslateGemma 1B EN/ES Student (NativeKD2 Q4K)",
+      "description": "Experimental-tier English/Spanish translation specialist distilled from TranslateGemma 4B into Gemma 3 1B. The hosted Q4K artifact has deterministic WMT13 and browser/WebGPU evidence; quality and performance claims remain limited to the recorded EN/ES and Radeon/Vulkan receipts.",
+      "modes": [
+        "translate"
+      ],
+      "aliases": [
+        "translategemma-enes-1b",
+        "translategemma-nativekd2-enes-1b",
+        "translategemma-1b-translation-student"
+      ],
+      "artifact": {
+        "format": "rdrr"
+      },
+      "hf": {
+        "repoId": "clocksmith/rdrr",
+        "path": "models/translategemma-4b-1b-enes-q4k-ehf16-af32",
+        "revision": "1e2c047357f07dfe45a8effc2fa915acd73999ee"
+      },
+      "baseUrl": null,
+      "quickstart": false,
+      "demoVisible": true,
+      "demoLabel": "TranslateGemma EN/ES",
+      "demoRole": "English and Spanish translation",
+      "sizeBytes": 1025493248,
+      "recommended": false,
+      "sortOrder": 14.9,
+      "lifecycle": {
+        "availability": {
+          "curated": false,
+          "local": true,
+          "hf": true
+        },
+        "status": {
+          "runtime": "active",
+          "conversion": "ready",
+          "demo": "compare",
+          "tested": "verified"
+        },
+        "tested": {
+          "suite": "translation-quality",
+          "surface": [
+            "browser",
+            "node"
+          ],
+          "result": "pass",
+          "lastVerifiedAt": "2026-07-11",
+          "source": "runtime-verify",
+          "notes": "The exact Q4K artifact passed shard integrity, deterministic EN/ES smoke outputs, 8/8 repeated-token checks, and a 128-row WMT13 evaluation at 31.9149 BLEU / 58.2124 chrF. Baseline and optimized Doppler outputs match 128/128. The pinned hosted revision also passed browser/WebGPU verification and a 2+3-run optimized benchmark with exact expected output. Experimental visibility preserves the measured 2.2748 BLEU / 1.7264 chrF Q4K gap to the source BF16 checkpoint and does not imply Apple Metal evidence.",
+          "contracts": {
+            "executionContractOk": true
+          }
+        }
+      },
+      "vendorBenchmark": null,
+      "sourceCheckpointId": "clocksmith/gamma-translategemma-4b-1b-enes-nativekd2@sha256:c567331d8eb9d3da65205b83f4e0af06568c47ba81a7927005c1c2e72444bc87",
+      "weightCapsuleId": "translategemma-4b-1b-enes-q4k-ehf16-af32-wp-16acf07340bd",
+      "manifestVariantId": "translategemma-4b-1b-enes-q4k-ehf16-af32-mv-b3c719ee90e7",
+      "artifactCompleteness": "complete",
+      "runtimePromotionState": "manifest-owned",
+      "weightsRefAllowed": false
+    },
+    {
+      "modelId": "translategemma-4b-it-q4k-ehf16-af32",
+      "family": "translategemma",
+      "classification": {
+        "domain": "language",
+        "tasks": [
+          "translation"
+        ],
+        "architectureRole": "autoregressive-decoder",
+        "inputs": [
+          "text"
+        ],
+        "outputs": [
+          "text"
+        ]
+      },
+      "label": "TranslateGemma 4B Instruct (Q4K)",
+      "description": "TranslateGemma 4B translation model. Q4K weights, F16 embeddings/head, F32 accumulation.",
+      "modes": [
+        "translate"
+      ],
+      "aliases": [
+        "translategemma-4b",
+        "translategemma",
+        "google/translategemma-4b-it",
+        "translategemma-4b-it-wq4k-ef16-hf16"
+      ],
+      "artifact": {
+        "format": "rdrr"
+      },
+      "hf": {
+        "repoId": "clocksmith/rdrr",
+        "revision": "6fc46049882e961a57d1690ba1ffde21677d001a",
+        "path": "models/translategemma-4b-it-q4k-ehf16-af32"
+      },
+      "baseUrl": null,
+      "sizeBytes": 3167500395,
+      "recommended": false,
+      "sortOrder": 15,
+      "lifecycle": {
+        "availability": {
+          "curated": false,
+          "local": true,
+          "hf": true
+        },
+        "status": {
+          "runtime": "active",
+          "conversion": "ready",
+          "demo": "compare",
+          "tested": "verified"
+        },
+        "tested": {
+          "suite": "debug",
+          "surface": [
+            "browser",
+            "node"
+          ],
+          "result": "pass",
+          "lastVerifiedAt": "2026-03-20",
+          "source": "manual-review",
+          "notes": "Browser/WebGPU on Apple M3 and Node/WebGPU on AMD RDNA-3 verified through 2026-03-20 with structured TranslateGemma requests. en->fr 'Hello world.' -> 'Bonjour le monde.' The working Q4K path is gemma3-q4k-dequant-f32w-f32a-online; the prior failure remained isolated to the older q4k_dequant F16-weight path.",
+          "contracts": {
+            "executionContractOk": true
+          }
+        }
+      },
+      "vendorBenchmark": {
+        "transformersjs": {
+          "repoId": "onnx-community/translategemma-text-4b-it-ONNX",
+          "dtype": "q4f16"
+        }
+      },
+      "sourceCheckpointId": "google/translategemma-4b-it",
+      "weightCapsuleId": "translategemma-4b-it-q4k-ehf16-af32-wp-catalog-v1",
+      "manifestVariantId": "translategemma-4b-it-q4k-ehf16-af32-mv-exec-v1",
+      "artifactCompleteness": "complete",
+      "runtimePromotionState": "manifest-owned",
+      "weightsRefAllowed": false
+    },
+    {
+      "modelId": "qwen-3-embedding-0-6b-q4k-ehf16-af32",
+      "family": "qwen3",
+      "classification": {
+        "domain": "language",
+        "tasks": [
+          "embedding"
+        ],
+        "architectureRole": "decoder-embedding-encoder",
+        "inputs": [
+          "text"
+        ],
+        "outputs": [
+          "pooled-embedding"
+        ]
+      },
+      "label": "Qwen3 Embedding 0.6B (Q4K/F32a)",
+      "description": "Qwen3 0.6B SentenceTransformers embedding target with manifest-owned last-token pooling, prompt inclusion, and L2 normalization. Node/WebGPU verification passes semantic retrieval and pair thresholds; the local compare lane cites the Transformers.js ONNX WebGPU baseline.",
+      "modes": [
+        "embedding"
+      ],
+      "aliases": [
+        "qwen3-embedding-0.6b",
+        "qwen3-embedding-0-6b",
+        "Qwen/Qwen3-Embedding-0.6B"
+      ],
+      "artifact": {
+        "format": "rdrr"
+      },
+      "hf": {
+        "repoId": "clocksmith/rdrr",
+        "revision": "049000f49325dca7db2ed2c9de2c8881bd0f4603",
+        "path": "models/qwen-3-embedding-0-6b-q4k-ehf16-af32"
+      },
+      "baseUrl": null,
+      "quickstart": false,
+      "demoVisible": false,
+      "sizeBytes": 1191586416,
+      "recommended": false,
+      "sortOrder": 19,
+      "lifecycle": {
+        "availability": {
+          "curated": false,
+          "local": true,
+          "hf": true
+        },
+        "status": {
+          "runtime": "active",
+          "conversion": "ready",
+          "demo": "none",
+          "tested": "verified"
+        },
+        "tested": {
+          "suite": "embedding",
+          "surface": [
+            "browser",
+            "node"
+          ],
+          "result": "pass",
+          "lastVerifiedAt": "2026-07-05",
+          "source": "runtime-verify",
+          "contracts": {
+            "executionContractOk": true
+          },
+          "notes": "Fresh hosted registry verify receipts pass on node (reports/release-claims/qwen-3-embedding-0-6b-q4k-ehf16-af32/2026-07-05T16-24-38.048Z.node.json) and browser (reports/release-claims/qwen-3-embedding-0-6b-q4k-ehf16-af32/2026-07-05T16-26-35.664Z.browser.json). Semantic retrieval top-1 accuracy 0.90, semantic pair accuracy 0.7143, finite ratio 1.0, 1024-dimensional unit-norm embeddings. Fresh speed evidence: node embeddingMs 144.14, browser embeddingMs 184.70, and local comparable benchmark benchmarks/vendors/results/embedding_compare_qwen-3-embedding-0-6b-q4k-ehf16-af32_20260705T152659.json (Doppler medianEmbeddingMs 67.60; Transformers.js q4f16 medianEmbeddingMs 155.68; correctnessOk true)."
+        }
+      },
+      "verify": {
+        "workload": "embedding",
+        "runtimeConfig": {
+          "inference": {
+            "prompt": "A small red cube rests on a wooden table beside a blue sphere."
+          }
+        }
+      },
+      "vendorBenchmark": {
+        "transformersjs": {
+          "repoId": "onnx-community/Qwen3-Embedding-0.6B-ONNX",
+          "dtype": "q4f16"
+        }
+      },
+      "sourceCheckpointId": "Qwen/Qwen3-Embedding-0.6B",
+      "weightCapsuleId": "qwen-3-embedding-0-6b-q4k-ehf16-af32-wp-catalog-v1",
+      "manifestVariantId": "qwen-3-embedding-0-6b-q4k-ehf16-af32-mv-exec-v1",
+      "artifactCompleteness": "complete",
+      "runtimePromotionState": "manifest-owned",
+      "weightsRefAllowed": false
+    },
+    {
+      "modelId": "qwen-3-reranker-0-6b-q4k-ehf16-af32",
+      "family": "qwen3",
+      "classification": {
+        "domain": "language",
+        "tasks": [
+          "reranking"
+        ],
+        "architectureRole": "decoder-cross-encoder",
+        "inputs": [
+          "text-pair"
+        ],
+        "outputs": [
+          "relevance-score"
+        ]
+      },
+      "label": "Qwen3 Reranker 0.6B (Q4K/F32a)",
+      "description": "Qwen3 0.6B SentenceTransformers CrossEncoder reranker target with Q4K attention, F16 MLP projections, and manifest-owned true-logit scoring. The hosted registry lane passes semantic rerank verification and has an external Transformers.js ONNX compare profile for fair rerank receipts.",
+      "modes": [
+        "rerank"
+      ],
+      "aliases": [
+        "qwen3-reranker-0.6b-q4k",
+        "qwen3-reranker-0-6b-q4k",
+        "Qwen/Qwen3-Reranker-0.6B:q4k"
+      ],
+      "artifact": {
+        "format": "rdrr"
+      },
+      "hf": {
+        "repoId": "clocksmith/rdrr",
+        "revision": "f86fe245b9bbc275cd69af46b1d45d47ea685a55",
+        "path": "models/qwen-3-reranker-0-6b-q4k-ehf16-af32"
+      },
+      "baseUrl": null,
+      "quickstart": false,
+      "demoVisible": false,
+      "sizeBytes": 938321920,
+      "recommended": false,
+      "sortOrder": 19.1,
+      "lifecycle": {
+        "availability": {
+          "curated": false,
+          "local": true,
+          "hf": true
+        },
+        "status": {
+          "runtime": "active",
+          "conversion": "ready",
+          "demo": "none",
+          "tested": "verified"
+        },
+        "tested": {
+          "suite": "rerank",
+          "surface": [
+            "browser",
+            "node"
+          ],
+          "result": "pass",
+          "lastVerifiedAt": "2026-07-05",
+          "source": "runtime-verify",
+          "contracts": {
+            "executionContractOk": true
+          },
+          "notes": "Fresh hosted registry verify receipts pass on node (reports/release-claims/qwen-3-reranker-0-6b-q4k-ehf16-af32/2026-07-05T16-28-17.169Z.node.json) and browser (reports/release-claims/qwen-3-reranker-0-6b-q4k-ehf16-af32/2026-07-05T16-30-58.312Z.browser.json). Semantic pair accuracy 1.0 (5/5) on both receipts, WebGPU query topDocumentIndex 0, rerankMs 1665.34 on node and 1797.80 in browser for the three-document smoke request. Speed evidence: reports/release-claims/qwen-3-reranker-0-6b-q4k-ehf16-af32/2026-07-04T18-43-20.530Z.bench.json (medianRerankMs 1546.27 for the same request). External reranker receipts compare against onnx-community/Qwen3-Reranker-0.6B-ONNX using the q4 ONNX artifact and must not be summarized as a Doppler speed win unless the saved receipt says Doppler leads."
+        }
+      },
+      "verify": {
+        "workload": "rerank",
+        "runtimeProfile": "profiles/rerank-stability",
+        "runtimeConfig": {
+          "inference": {
+            "rerank": {
+              "query": "What API exposes GPU hardware for browser compute workloads?",
+              "documents": [
+                "WebGPU provides low-level access to graphics processors for compute workloads.",
+                "WebSocket provides full-duplex communication over TCP.",
+                "CSS grid arranges page layout rows and columns."
+              ]
+            }
+          }
+        }
+      },
+      "vendorBenchmark": {
+        "transformersjs": {
+          "repoId": "onnx-community/Qwen3-Reranker-0.6B-ONNX",
+          "dtype": "q4",
+          "format": "onnx"
+        }
+      },
+      "sourceCheckpointId": "Qwen/Qwen3-Reranker-0.6B",
+      "weightCapsuleId": "qwen-3-reranker-0-6b-q4k-ehf16-af32-wp-catalog-v2",
+      "manifestVariantId": "qwen-3-reranker-0-6b-q4k-ehf16-af32-mv-exec-v2",
+      "artifactCompleteness": "complete",
+      "runtimePromotionState": "manifest-owned",
+      "weightsRefAllowed": false
+    },
+    {
+      "modelId": "qwen-3-reranker-0-6b-f16-af32",
+      "family": "qwen3",
+      "classification": {
+        "domain": "language",
+        "tasks": [
+          "reranking"
+        ],
+        "architectureRole": "decoder-cross-encoder",
+        "inputs": [
+          "text-pair"
+        ],
+        "outputs": [
+          "relevance-score"
+        ]
+      },
+      "label": "Qwen3 Reranker 0.6B (F16/F32a)",
+      "description": "Qwen3 0.6B SentenceTransformers CrossEncoder reranker target with manifest-owned true/false token scoring. The F16 lane passes the semantic rerank suite and is the supported reranker variant for publication.",
+      "modes": [
+        "rerank"
+      ],
+      "aliases": [
+        "qwen3-reranker-0.6b",
+        "qwen3-reranker-0-6b",
+        "qwen3-reranker-0.6b-f16",
+        "Qwen/Qwen3-Reranker-0.6B"
+      ],
+      "artifact": {
+        "format": "rdrr"
+      },
+      "hf": {
+        "repoId": "clocksmith/rdrr",
+        "revision": "cc1fafff8cda609372b608cd92e487f6a2c32bc8",
+        "path": "models/qwen-3-reranker-0-6b-f16-af32"
+      },
+      "baseUrl": null,
+      "quickstart": false,
+      "demoVisible": false,
+      "sizeBytes": 1191553024,
+      "recommended": false,
+      "sortOrder": 19.2,
+      "lifecycle": {
+        "availability": {
+          "curated": false,
+          "local": true,
+          "hf": true
+        },
+        "status": {
+          "runtime": "active",
+          "conversion": "ready",
+          "demo": "none",
+          "tested": "verified"
+        },
+        "tested": {
+          "suite": "rerank",
+          "surface": [
+            "node"
+          ],
+          "result": "pass",
+          "lastVerifiedAt": "2026-07-04",
+          "source": "runtime-verify",
+          "contracts": {
+            "executionContractOk": true
+          },
+          "notes": "Release evidence: reports/release-claims/qwen-3-reranker-0-6b-f16-af32/2026-07-04T02-00-00.000Z.json. Semantic pair accuracy 1.0 (5/5), WebGPU query topDocumentIndex 0, rerankMs 4057.56 for the three-document smoke request. No separate benchmark receipt is promoted for this f16 reranker lane."
+        }
+      },
+      "verify": {
+        "workload": "rerank",
+        "runtimeConfig": {
+          "inference": {
+            "rerank": {
+              "query": "What API exposes GPU hardware for browser compute workloads?",
+              "documents": [
+                "WebGPU provides low-level access to graphics processors for compute workloads.",
+                "WebSocket provides full-duplex communication over TCP.",
+                "CSS grid arranges page layout rows and columns."
+              ]
+            }
+          }
+        }
+      },
+      "vendorBenchmark": null,
+      "sourceCheckpointId": "Qwen/Qwen3-Reranker-0.6B",
+      "weightCapsuleId": "qwen-3-reranker-0-6b-f16-af32-wp-catalog-v1",
+      "manifestVariantId": "qwen-3-reranker-0-6b-f16-af32-mv-exec-v1",
+      "artifactCompleteness": "complete",
+      "runtimePromotionState": "manifest-owned",
+      "weightsRefAllowed": false
+    },
+    {
+      "modelId": "minicpm4-0-5b-f16-af32",
+      "family": "minicpm",
+      "classification": {
+        "domain": "language",
+        "tasks": [
+          "generation"
+        ],
+        "architectureRole": "autoregressive-decoder",
+        "inputs": [
+          "text"
+        ],
+        "outputs": [
+          "text"
+        ]
+      },
+      "label": "MiniCPM4 0.5B (F16/F32a)",
+      "description": "MiniCPM4 0.5B text onboarding artifact. The manifest and shards are complete, but the deterministic smoke prompt produced incoherent text, so this lane is not a supported generation model yet.",
+      "modes": [
+        "text"
+      ],
+      "aliases": [
+        "minicpm4-0.5b",
+        "minicpm4-0-5b",
+        "openbmb/MiniCPM4-0.5B"
+      ],
+      "artifact": {
+        "format": "rdrr"
+      },
+      "hf": null,
+      "baseUrl": null,
+      "quickstart": false,
+      "demoVisible": false,
+      "sizeBytes": 867747840,
+      "recommended": false,
+      "sortOrder": 19.3,
+      "lifecycle": {
+        "availability": {
+          "curated": false,
+          "local": true,
+          "hf": false
+        },
+        "status": {
+          "runtime": "experimental",
+          "conversion": "ready",
+          "demo": "none",
+          "tested": "failed"
+        },
+        "tested": {
+          "suite": "inference",
+          "surface": [
+            "node"
+          ],
+          "result": "fail",
+          "lastVerifiedAt": "2026-07-04",
+          "source": "runtime-verify",
+          "contracts": {
+            "executionContractOk": true
+          },
+          "notes": "Failure evidence: reports/release-claims/minicpm4-0-5b-f16-af32/2026-07-04T01-07-00.000Z.failed.json. The prompt \"Q: What color is the sky on a clear day? A:\" produced \"This problem question: When是我国 an an\", so the artifact remains local-only until tokenizer/template/config correctness is fixed."
+        }
+      },
+      "vendorBenchmark": null,
+      "sourceCheckpointId": "openbmb/MiniCPM4-0.5B",
+      "weightCapsuleId": "minicpm4-0-5b-f16-af32-wp-catalog-v1",
+      "manifestVariantId": "minicpm4-0-5b-f16-af32-mv-exec-v1",
+      "artifactCompleteness": "complete",
+      "runtimePromotionState": "unpromoted",
+      "weightsRefAllowed": false
+    },
+    {
+      "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+      "family": "qwen3",
+      "classification": {
+        "domain": "language",
+        "tasks": [
+          "generation"
+        ],
+        "architectureRole": "autoregressive-decoder",
+        "inputs": [
+          "text"
+        ],
+        "outputs": [
+          "text"
+        ]
+      },
+      "label": "Qwen 3.5 0.8B (Q4K)",
+      "description": "Qwen 3.5 0.8B text model with hybrid linear attention. Q4K weights, F16 embeddings, Q4 tied LM head, F32 accumulation.",
+      "modes": [
+        "text"
+      ],
+      "aliases": [
+        "qwen3-0.8b",
+        "qwen-3-5-0-8b",
+        "Qwen/Qwen3.5-0.8B",
+        "qwen-3-5-0-8b-wq4k-ef16-hf16-f16"
+      ],
+      "artifact": {
+        "format": "rdrr"
+      },
+      "hf": {
+        "repoId": "clocksmith/rdrr",
+        "revision": "80d7716270b6371d541de979eff3370edaf34e13",
+        "path": "models/qwen-3-5-0-8b-q4k-ehaf16"
+      },
+      "baseUrl": null,
+      "quickstart": true,
+      "demoVisible": true,
+      "demoLabel": "Qwen 3.5 0.8B",
+      "demoRole": "Compact general text",
+      "demoSortOrder": 20,
+      "sizeBytes": 1155348912,
+      "recommended": false,
+      "sortOrder": 20,
+      "lifecycle": {
+        "availability": {
+          "curated": false,
+          "local": true,
+          "hf": true
+        },
+        "status": {
+          "runtime": "active",
+          "conversion": "ready",
+          "demo": "none",
+          "tested": "verified"
+        },
+        "tested": {
+          "suite": "inference",
+          "surface": [
+            "browser",
+            "node"
+          ],
+          "result": "pass",
+          "lastVerifiedAt": "2026-06-15",
+          "source": "local-node-webgpu-verify",
+          "notes": "Browser/Node release evidence is package-visible at reports/release-claims/qwen-3-5-0-8b-q4k-ehaf16/2026-05-10T02-22-04.891Z.json. The hosted clocksmith/rdrr artifact is approved for quickstart resolution with explicit stop-token metadata.",
+          "contracts": {
+            "executionContractOk": true
+          }
+        }
+      },
+      "vendorBenchmark": {
+        "transformersjs": {
+          "repoId": "onnx-community/Qwen3.5-0.8B-ONNX",
+          "dtype": "q4f16"
+        }
+      },
+      "verify": {
+        "workload": "inference",
+        "runtimeConfig": {
+          "inference": {
+            "prompt": "The color of the sky is",
+            "generation": {
+              "maxTokens": 8
+            },
+            "sampling": {
+              "temperature": 0,
+              "topK": 1,
+              "topP": 1,
+              "repetitionPenalty": 1,
+              "greedyThreshold": 0
+            }
+          }
+        }
+      },
+      "sourceCheckpointId": "Qwen/Qwen3.5-0.8B",
+      "weightCapsuleId": "qwen-3-5-0-8b-q4k-ehaf16-wp-catalog-v1",
+      "manifestVariantId": "qwen-3-5-0-8b-q4k-ehaf16-mv-exec-v1",
+      "artifactCompleteness": "complete",
+      "runtimePromotionState": "manifest-owned",
+      "weightsRefAllowed": false
+    },
+    {
+      "modelId": "qwen-3-5-2b-q4k-ehaf16",
+      "family": "qwen3",
+      "classification": {
+        "domain": "language",
+        "tasks": [
+          "generation"
+        ],
+        "architectureRole": "autoregressive-decoder",
+        "inputs": [
+          "text"
+        ],
+        "outputs": [
+          "text"
+        ]
+      },
+      "label": "Qwen 3.5 2B (Q4K)",
+      "description": "Qwen 3.5 2B text model with hybrid linear attention. Q4K weights, F16 embeddings, Q4 tied LM head, F32 accumulation.",
+      "modes": [
+        "text"
+      ],
+      "aliases": [
+        "qwen3-2b",
+        "qwen-3-5-2b",
+        "Qwen/Qwen3.5-2B",
+        "qwen-3-5-2b-wq4k-ef16-hf16-f16"
+      ],
+      "artifact": {
+        "format": "rdrr"
+      },
+      "hf": {
+        "repoId": "clocksmith/rdrr",
+        "revision": "977d145bf2478a7fb542e6aca65030585620ca60",
+        "path": "models/qwen-3-5-2b-q4k-ehaf16"
+      },
+      "baseUrl": null,
+      "quickstart": true,
+      "demoVisible": true,
+      "demoLabel": "Qwen 3.5 2B",
+      "demoRole": "Higher-capacity text",
+      "demoSortOrder": 30,
+      "sizeBytes": 2496068973,
+      "recommended": false,
+      "sortOrder": 21,
+      "lifecycle": {
+        "availability": {
+          "curated": false,
+          "local": true,
+          "hf": true
+        },
+        "status": {
+          "runtime": "active",
+          "conversion": "ready",
+          "demo": "none",
+          "tested": "verified"
+        },
+        "tested": {
+          "suite": "inference",
+          "surface": [
+            "browser",
+            "node"
+          ],
+          "result": "pass",
+          "lastVerifiedAt": "2026-06-15",
+          "source": "local-node-webgpu-verify",
+          "notes": "Browser/Node release evidence is package-visible at reports/release-claims/qwen-3-5-2b-q4k-ehaf16/2026-05-03T02-33-21.397Z.json. The execution-v1 lane keeps the fixed fused-Q4 decode path and q4 LM-head/prefill kernels; the hosted clocksmith/rdrr artifact is approved for quickstart resolution with explicit stop-token metadata.",
+          "contracts": {
+            "executionContractOk": true
+          }
+        }
+      },
+      "vendorBenchmark": {
+        "transformersjs": {
+          "repoId": "onnx-community/Qwen3.5-2B-ONNX",
+          "dtype": "q4f16"
+        }
+      },
+      "sourceCheckpointId": "Qwen/Qwen3.5-2B",
+      "weightCapsuleId": "qwen-3-5-2b-q4k-ehaf16-wp-catalog-v1",
+      "manifestVariantId": "qwen-3-5-2b-q4k-ehaf16-mv-exec-v1",
+      "artifactCompleteness": "complete",
+      "runtimePromotionState": "manifest-owned",
+      "weightsRefAllowed": false
+    },
+    {
+      "modelId": "qwen-3-6-27b-q4k-ehaf16",
+      "family": "qwen3",
+      "classification": {
+        "domain": "language",
+        "tasks": [
+          "generation"
+        ],
+        "architectureRole": "autoregressive-decoder",
+        "inputs": [
+          "text"
+        ],
+        "outputs": [
+          "text"
+        ]
+      },
+      "label": "Qwen 3.6 27B (Q4K)",
+      "description": "Qwen 3.6 27B text model with hybrid linear attention. Q4K weights, F16 embeddings, F32 accumulation.",
+      "modes": [
+        "text"
+      ],
+      "aliases": [
+        "qwen3.6-27b",
+        "qwen-3-6-27b",
+        "Qwen/Qwen3.6-27B"
+      ],
+      "artifact": {
+        "format": "rdrr"
+      },
+      "hf": {
+        "repoId": "clocksmith/rdrr",
+        "revision": "b402f6f27837857d51636da5f78c12bcd47e2a03",
+        "path": "models/qwen-3-6-27b-q4k-ehaf16"
+      },
+      "baseUrl": null,
+      "quickstart": false,
+      "demoVisible": false,
+      "demoPreferredVariantId": "qwen-3-6-27b-q4k-eaf16",
+      "demoWarningBadges": [
+        "15.8 GB / High RAM"
+      ],
+      "demoWarningText": "Large download. Use a high-RAM machine.",
+      "sizeBytes": 16994352128,
+      "recommended": false,
+      "sortOrder": 22,
+      "lifecycle": {
+        "availability": {
+          "curated": false,
+          "local": true,
+          "hf": true
+        },
+        "status": {
+          "runtime": "active",
+          "conversion": "ready",
+          "demo": "none",
+          "tested": "verified"
+        },
+        "tested": {
+          "suite": "inference",
+          "surface": [
+            "browser"
+          ],
+          "result": "pass",
+          "lastVerifiedAt": "2026-04-28",
+          "source": "browser-webgpu-smoke",
+          "notes": "Committed program-bundle reference reports/program-bundles/qwen-3-6-27b-q4k-ehaf16/2026-04-28T01-19-10.497Z.reference.json captured a deterministic reference transcript and executionContractOk=true. Hosted artifact is enabled for web demo download; quickstart remains disabled.",
+          "contracts": {
+            "executionContractOk": true
+          }
+        }
+      },
+      "vendorBenchmark": null,
+      "sourceCheckpointId": "Qwen/Qwen3.6-27B",
+      "weightCapsuleId": "qwen-3-6-27b-q4k-ehaf16-wp-catalog-v1",
+      "manifestVariantId": "qwen-3-6-27b-q4k-ehaf16-mv-exec-v1",
+      "artifactCompleteness": "complete",
+      "runtimePromotionState": "manifest-owned",
+      "weightsRefAllowed": false
+    },
+    {
+      "modelId": "qwen-3-6-27b-q4k-eaf16",
+      "family": "qwen3",
+      "classification": {
+        "domain": "language",
+        "tasks": [
+          "generation"
+        ],
+        "architectureRole": "autoregressive-decoder",
+        "inputs": [
+          "text"
+        ],
+        "outputs": [
+          "text"
+        ]
+      },
+      "label": "Qwen 3.6 27B (Q4K/F16a)",
+      "description": "Qwen 3.6 27B text-only Doppler/WebGPU f16 lane. Shares the existing Q4K/F16 embedding weight capsule; Doe/Cerebras f16 CSL lowering is intentionally unsupported.",
+      "modes": [
+        "text"
+      ],
+      "aliases": [
+        "qwen3.6-27b-f16",
+        "qwen-3-6-27b-af16"
+      ],
+      "artifact": {
+        "format": "rdrr"
+      },
+      "hf": {
+        "repoId": "clocksmith/rdrr",
+        "revision": "3dee21b3b12d65ac7fef9b24cbf759cacc953a67",
+        "path": "models/qwen-3-6-27b-q4k-eaf16"
+      },
+      "baseUrl": null,
+      "quickstart": false,
+      "demoVisible": false,
+      "sizeBytes": 16994352128,
+      "recommended": false,
+      "sortOrder": 23,
+      "lifecycle": {
+        "availability": {
+          "curated": false,
+          "local": true,
+          "hf": true
+        },
+        "status": {
+          "runtime": "active",
+          "conversion": "ready",
+          "demo": "none",
+          "tested": "verified"
+        },
+        "tested": {
+          "suite": "inference",
+          "surface": [
+            "browser",
+            "node"
+          ],
+          "result": "pass",
+          "lastVerifiedAt": "2026-04-29",
+          "source": "browser-node-webgpu-smoke",
+          "notes": "Committed program-bundle reference reports/program-bundles/qwen-3-6-27b-q4k-eaf16/capture.node.reference.json produces coherent sky prompt output with f16 compute.",
+          "contracts": {
+            "executionContractOk": true
+          }
+        }
+      },
+      "vendorBenchmark": null,
+      "sourceCheckpointId": "Qwen/Qwen3.6-27B",
+      "weightCapsuleId": "qwen-3-6-27b-q4k-ehaf16-wp-catalog-v1",
+      "manifestVariantId": "qwen-3-6-27b-q4k-eaf16-mv-exec-v1",
+      "artifactCompleteness": "weights-ref",
+      "runtimePromotionState": "manifest-owned",
+      "weightsRefAllowed": true
+    },
+    {
+      "modelId": "qwen3-8-27b-text-f16-af32",
+      "family": "qwen3",
+      "classification": {
+        "domain": "language",
+        "tasks": [
+          "generation"
+        ],
+        "architectureRole": "autoregressive-decoder",
+        "inputs": [
+          "text"
+        ],
+        "outputs": [
+          "text"
+        ]
+      },
+      "label": "Qwen 3.8 27B (F16/F32a)",
+      "description": "Qwen 3.8 27B text model with hybrid linear attention. The manifest-owned F16/F32 lane passes deterministic source-token parity and signed Capsule execution qualification.",
+      "modes": [
+        "text"
+      ],
+      "aliases": [
+        "qwen3.8-27b",
+        "qwen3-8-27b",
+        "Qwen/Qwen3.8-27B"
+      ],
+      "artifact": {
+        "format": "rdrr"
+      },
+      "hf": null,
+      "baseUrl": null,
+      "quickstart": false,
+      "demoVisible": false,
+      "sizeBytes": 53791996928,
+      "recommended": false,
+      "sortOrder": 24,
+      "lifecycle": {
+        "availability": {
+          "curated": false,
+          "local": true,
+          "hf": false
+        },
+        "status": {
+          "runtime": "active",
+          "conversion": "ready",
+          "demo": "none",
+          "tested": "verified"
+        },
+        "tested": {
+          "suite": "source-parity-and-capsule",
+          "surface": [
+            "node"
+          ],
+          "result": "pass",
+          "lastVerifiedAt": "2026-08-23",
+          "source": "model-ir-v2-release-to-javascript",
+          "notes": "Node/WebGPU generated all 128 pinned greedy tokens with exact source parity, and the signed Capsule v2 qualification passed. Evidence: reports/model-ir-v2/qwen3.8-27b.node-webgpu-qualification.json and reports/model-ir-v2/qwen3.8-27b.release-to-javascript-receipt.json. The artifact remains local-only until publication is separately approved.",
+          "contracts": {
+            "executionContractOk": true
+          }
+        }
+      },
+      "vendorBenchmark": null,
+      "sourceCheckpointId": "Qwen/Qwen3.8-27B",
+      "weightCapsuleId": "qwen3-8-27b-text-f16-af32-wp-990c3ddb1675",
+      "manifestVariantId": "qwen3-8-27b-text-f16-af32-mv-4f6c6b282ab6",
+      "artifactCompleteness": "complete",
+      "runtimePromotionState": "manifest-owned",
+      "weightsRefAllowed": false
+    },
+    {
+      "modelId": "muse-glimmer-30b-text-f16-af32",
+      "family": "muse-glimmer",
+      "classification": {
+        "domain": "language",
+        "tasks": [
+          "generation"
+        ],
+        "architectureRole": "autoregressive-decoder",
+        "inputs": [
+          "text"
+        ],
+        "outputs": [
+          "text"
+        ]
+      },
+      "label": "Muse Glimmer 30B (F16/F32a)",
+      "description": "Muse Glimmer 30B text onboarding artifact. Semantic lowering and the execution contract pass, but deterministic generation still diverges from the pinned source transcript, so this lane is not promoted.",
+      "modes": [
+        "text"
+      ],
+      "aliases": [
+        "muse-glimmer-30b",
+        "muse-glimmer-30b-f16",
+        "meta-models/Muse-Glimmer-30B"
+      ],
+      "artifact": {
+        "format": "rdrr"
+      },
+      "hf": null,
+      "baseUrl": null,
+      "quickstart": false,
+      "demoVisible": false,
+      "sizeBytes": 55709561856,
+      "recommended": false,
+      "sortOrder": 25,
+      "lifecycle": {
+        "availability": {
+          "curated": false,
+          "local": true,
+          "hf": false
+        },
+        "status": {
+          "runtime": "experimental",
+          "conversion": "ready",
+          "demo": "none",
+          "tested": "failed"
+        },
+        "tested": {
+          "suite": "source-parity",
+          "surface": [
+            "node"
+          ],
+          "result": "fail",
+          "lastVerifiedAt": "2026-08-23",
+          "source": "model-ir-v2-qualification",
+          "notes": "The execution contract passes, but the retained F16 candidate diverges from the pinned source transcript at generated token index 7. Evidence: reports/model-ir-v2/glimmer-30b.node-candidate-11-f16kv-qualification.json. Keep this artifact local-only and unpromoted while physical parity is investigated.",
+          "contracts": {
+            "executionContractOk": true
+          }
+        }
+      },
+      "vendorBenchmark": null,
+      "sourceCheckpointId": "meta-models/Muse-Glimmer-30B",
+      "weightCapsuleId": "muse-glimmer-30b-text-f16-af32-wp-da829391e53b",
+      "manifestVariantId": "muse-glimmer-30b-text-f16-af32-mv-4b07f1d027c2",
+      "artifactCompleteness": "complete",
+      "runtimePromotionState": "unpromoted",
+      "weightsRefAllowed": false
+    },
+    {
+      "modelId": "muse-glimmer-30b-text-bf16-af32",
+      "family": "muse-glimmer",
+      "classification": {
+        "domain": "language",
+        "tasks": [
+          "generation"
+        ],
+        "architectureRole": "autoregressive-decoder",
+        "inputs": [
+          "text"
+        ],
+        "outputs": [
+          "text"
+        ]
+      },
+      "label": "Muse Glimmer 30B (BF16/F32a)",
+      "description": "Muse Glimmer 30B BF16-weight onboarding artifact. The selected BF16 kernel path materializes stored BF16 weights directly, but deterministic generation still diverges from the pinned source transcript, so this lane is not promoted.",
+      "modes": [
+        "text"
+      ],
+      "aliases": [
+        "muse-glimmer-30b-bf16"
+      ],
+      "artifact": {
+        "format": "rdrr"
+      },
+      "hf": null,
+      "baseUrl": null,
+      "quickstart": false,
+      "demoVisible": false,
+      "sizeBytes": 55709561856,
+      "recommended": false,
+      "sortOrder": 26,
+      "lifecycle": {
+        "availability": {
+          "curated": false,
+          "local": true,
+          "hf": false
+        },
+        "status": {
+          "runtime": "experimental",
+          "conversion": "ready",
+          "demo": "none",
+          "tested": "failed"
+        },
+        "tested": {
+          "suite": "source-parity",
+          "surface": [
+            "node"
+          ],
+          "result": "fail",
+          "lastVerifiedAt": "2026-08-23",
+          "source": "model-ir-v2-qualification",
+          "notes": "The execution contract passes and the BF16 candidate matches the pinned source through generated token index 6, then diverges at index 7. Evidence: reports/model-ir-v2/glimmer-30b.node-candidate-24-bf16w-qualification.json. Keep this artifact local-only and unpromoted while physical parity is investigated.",
+          "contracts": {
+            "executionContractOk": true
+          }
+        }
+      },
+      "vendorBenchmark": null,
+      "sourceCheckpointId": "meta-models/Muse-Glimmer-30B",
+      "weightCapsuleId": "muse-glimmer-30b-text-bf16-af32-wp-dcc50556375d",
+      "manifestVariantId": "muse-glimmer-30b-text-bf16-af32-mv-080be51060ba",
+      "artifactCompleteness": "complete",
+      "runtimePromotionState": "unpromoted",
+      "weightsRefAllowed": false
+    },
+    {
+      "modelId": "lfm2-5-1-2b-instruct-q4k-ehf16-af32",
+      "family": "lfm2",
+      "classification": {
+        "domain": "language",
+        "tasks": [
+          "generation"
+        ],
+        "architectureRole": "autoregressive-decoder",
+        "inputs": [
+          "text"
+        ],
+        "outputs": [
+          "text"
+        ]
+      },
+      "label": "LFM2.5 1.2B Instruct (Q4K/F32a)",
+      "description": "Liquid AI LFM2.5 1.2B Instruct text model. Q4K weights, F16 embeddings/head, F32 accumulation.",
+      "modes": [
+        "text"
+      ],
+      "aliases": [
+        "lfm2.5-1.2b-instruct",
+        "lfm2-1.2b-instruct",
+        "LiquidAI/LFM2.5-1.2B-Instruct"
+      ],
+      "artifact": {
+        "format": "rdrr"
+      },
+      "hf": null,
+      "baseUrl": null,
+      "quickstart": false,
+      "sizeBytes": 853551378,
+      "recommended": false,
+      "sortOrder": 35,
+      "lifecycle": {
+        "availability": {
+          "curated": false,
+          "local": true,
+          "hf": false
+        },
+        "status": {
+          "runtime": "experimental",
+          "conversion": "ready",
+          "demo": "none",
+          "tested": "none"
+        },
+        "tested": null
+      },
+      "vendorBenchmark": null,
+      "sourceCheckpointId": "LiquidAI/LFM2.5-1.2B-Instruct",
+      "weightCapsuleId": "lfm2-5-1-2b-instruct-q4k-ehf16-af32-wp-catalog-v1",
+      "manifestVariantId": "lfm2-5-1-2b-instruct-q4k-ehf16-af32-mv-exec-v1",
+      "artifactCompleteness": "incomplete",
+      "runtimePromotionState": "unpromoted",
+      "weightsRefAllowed": false
+    },
+    {
+      "modelId": "amplify-120m-f16-af32",
+      "family": "amplify",
+      "classification": {
+        "domain": "protein",
+        "tasks": [
+          "embedding",
+          "masked-token-prediction"
+        ],
+        "architectureRole": "bidirectional-encoder",
+        "inputs": [
+          "protein-sequence"
+        ],
+        "outputs": [
+          "token-embedding",
+          "pooled-embedding",
+          "token-logits"
+        ]
+      },
+      "label": "AMPLIFY 120M Protein Encoder (F16/F32a)",
+      "description": "AMPLIFY 120M protein-sequence encoder with F16 weights and F32 activations.",
+      "modes": [
+        "embedding"
+      ],
+      "aliases": [
+        "amplify-120m",
+        "chandar-lab/AMPLIFY_120M"
+      ],
+      "artifact": {
+        "format": "rdrr"
+      },
+      "hf": {
+        "repoId": "clocksmith/rdrr",
+        "path": "models/amplify-120m-f16-af32",
+        "revision": "990de206946a0972cc92e9dbcc9726399d257cac"
+      },
+      "baseUrl": null,
+      "quickstart": false,
+      "sizeBytes": 236647491,
+      "recommended": false,
+      "sortOrder": 36,
+      "lifecycle": {
+        "availability": {
+          "curated": false,
+          "local": false,
+          "hf": true
+        },
+        "status": {
+          "runtime": "active",
+          "conversion": "ready",
+          "demo": "none",
+          "tested": "verified"
+        },
+        "tested": {
+          "suite": "sequence-embedding",
+          "surface": [
+            "node"
+          ],
+          "result": "pass",
+          "lastVerifiedAt": "2026-07-19",
+          "source": "runtime-verify",
+          "notes": "Hosted Node/WebGPU sequence parity and synthetic q_proj LoRA lifecycle passed at docs/status/amplify-120m-sequence-hosted-webgpu-lora-qualification-2026-07-19.json. This is not a downstream biological-task quality claim.",
+          "contracts": {
+            "executionContractOk": true
+          }
+        }
+      },
+      "sourceCheckpointId": "chandar-lab/AMPLIFY_120M@d918a9e8c64dc43f6ec4996022c3deba14d66470",
+      "weightCapsuleId": "amplify-120m-f16-af32-wp-v1",
+      "manifestVariantId": "amplify-120m-f16-af32-mv-exec-v1",
+      "artifactCompleteness": "complete",
+      "runtimePromotionState": "manifest-owned",
+      "weightsRefAllowed": false
+    },
+    {
+      "modelId": "esm2-t12-35m-ur50d-f32-af32",
+      "family": "esm",
+      "classification": {
+        "domain": "protein",
+        "tasks": [
+          "embedding"
+        ],
+        "architectureRole": "bidirectional-encoder",
+        "inputs": [
+          "protein-sequence"
+        ],
+        "outputs": [
+          "token-embedding",
+          "pooled-embedding"
+        ]
+      },
+      "label": "ESM-2 35M Protein Encoder (F32)",
+      "description": "ESM-2 35M protein-sequence encoder with F32 weights and activations.",
+      "modes": [
+        "embedding"
+      ],
+      "aliases": [
+        "esm2-35m",
+        "facebook/esm2_t12_35M_UR50D"
+      ],
+      "artifact": {
+        "format": "rdrr"
+      },
+      "hf": {
+        "repoId": "clocksmith/rdrr",
+        "path": "models/esm2-t12-35m-ur50d-f32-af32",
+        "revision": "feea324bae6c06c9d129ce39e188a75478ccdbbc"
+      },
+      "baseUrl": null,
+      "quickstart": false,
+      "sizeBytes": 133159807,
+      "recommended": false,
+      "sortOrder": 37,
+      "lifecycle": {
+        "availability": {
+          "curated": false,
+          "local": false,
+          "hf": true
+        },
+        "status": {
+          "runtime": "active",
+          "conversion": "ready",
+          "demo": "none",
+          "tested": "verified"
+        },
+        "tested": {
+          "suite": "sequence-embedding",
+          "surface": [
+            "node"
+          ],
+          "result": "pass",
+          "lastVerifiedAt": "2026-07-19",
+          "source": "runtime-verify",
+          "notes": "Hosted Node/WebGPU sequence parity and synthetic q_proj LoRA lifecycle passed at docs/status/esm2-t12-35m-sequence-hosted-webgpu-lora-qualification-2026-07-19.json. The initial lane exposes embeddings, not masked-token logits or downstream biological quality.",
+          "contracts": {
+            "executionContractOk": true
+          }
+        }
+      },
+      "sourceCheckpointId": "facebook/esm2_t12_35M_UR50D@6fbf070e65b0b7291e7bbcd451118c216cff79d8",
+      "weightCapsuleId": "esm2-t12-35m-ur50d-f32-af32-wp-v1",
+      "manifestVariantId": "esm2-t12-35m-ur50d-f32-af32-mv-exec-v1",
+      "artifactCompleteness": "complete",
+      "runtimePromotionState": "manifest-owned",
+      "weightsRefAllowed": false
+    },
+    {
+      "modelId": "esmc-300m-f32-af32",
+      "family": "esmc",
+      "classification": {
+        "domain": "protein",
+        "tasks": [
+          "embedding"
+        ],
+        "architectureRole": "bidirectional-encoder",
+        "inputs": [
+          "protein-sequence"
+        ],
+        "outputs": [
+          "token-embedding",
+          "pooled-embedding"
+        ]
+      },
+      "label": "ESMC 300M Protein Encoder (F32)",
+      "description": "ESMC 300M protein-sequence encoder with F32 weights and activations.",
+      "modes": [
+        "embedding"
+      ],
+      "aliases": [
+        "esmc-300m",
+        "biohub/ESMC-300M"
+      ],
+      "artifact": {
+        "format": "rdrr"
+      },
+      "hf": {
+        "repoId": "clocksmith/rdrr",
+        "path": "models/esmc-300m-f32-af32",
+        "revision": "8354795dc544798ca7a4419bf00f844648f4b6f0"
+      },
+      "baseUrl": null,
+      "quickstart": false,
+      "sizeBytes": 1328207519,
+      "recommended": false,
+      "sortOrder": 38,
+      "lifecycle": {
+        "availability": {
+          "curated": false,
+          "local": false,
+          "hf": true
+        },
+        "status": {
+          "runtime": "active",
+          "conversion": "ready",
+          "demo": "none",
+          "tested": "verified"
+        },
+        "tested": {
+          "suite": "sequence-embedding",
+          "surface": [
+            "node"
+          ],
+          "result": "pass",
+          "lastVerifiedAt": "2026-07-19",
+          "source": "runtime-verify",
+          "notes": "Hosted Node/WebGPU sequence parity and synthetic q_proj LoRA lifecycle passed at docs/status/esmc-300m-sequence-hosted-webgpu-lora-qualification-2026-07-19.json. The initial lane exposes embeddings, not masked-token logits or downstream biological quality.",
+          "contracts": {
+            "executionContractOk": true
+          }
+        }
+      },
+      "sourceCheckpointId": "biohub/ESMC-300M@a59b831785f907e96e6a246b1d142bfb76df31ee",
+      "weightCapsuleId": "esmc-300m-f32-af32-wp-v1",
+      "manifestVariantId": "esmc-300m-f32-af32-mv-exec-v1",
+      "artifactCompleteness": "complete",
+      "runtimePromotionState": "manifest-owned",
+      "weightsRefAllowed": false
+    },
+    {
+      "modelId": "nucleotide-transformer-v2-50m-f32-af32",
+      "family": "nucleotide-transformer",
+      "classification": {
+        "domain": "nucleotide",
+        "tasks": [
+          "embedding"
+        ],
+        "architectureRole": "bidirectional-encoder",
+        "inputs": [
+          "dna-sequence"
+        ],
+        "outputs": [
+          "token-embedding",
+          "pooled-embedding"
+        ]
+      },
+      "label": "Nucleotide Transformer v2 50M DNA Encoder (F32)",
+      "description": "Nucleotide Transformer v2 50M DNA-sequence encoder with F32 weights and activations.",
+      "modes": [
+        "embedding"
+      ],
+      "aliases": [
+        "nucleotide-transformer-v2-50m",
+        "InstaDeepAI/nucleotide-transformer-v2-50m-multi-species"
+      ],
+      "artifact": {
+        "format": "rdrr"
+      },
+      "hf": {
+        "repoId": "clocksmith/rdrr",
+        "path": "models/nucleotide-transformer-v2-50m-f32-af32",
+        "revision": "a5703ef6971cc883438a393d73f2f54dccf94976"
+      },
+      "baseUrl": null,
+      "quickstart": false,
+      "sizeBytes": 210074179,
+      "recommended": false,
+      "sortOrder": 39,
+      "lifecycle": {
+        "availability": {
+          "curated": false,
+          "local": false,
+          "hf": true
+        },
+        "status": {
+          "runtime": "active",
+          "conversion": "ready",
+          "demo": "none",
+          "tested": "verified"
+        },
+        "tested": {
+          "suite": "sequence-embedding",
+          "surface": [
+            "node"
+          ],
+          "result": "pass",
+          "lastVerifiedAt": "2026-07-19",
+          "source": "runtime-verify",
+          "notes": "Hosted Node/WebGPU sequence parity and synthetic q_proj LoRA lifecycle passed at docs/status/nucleotide-transformer-v2-50m-sequence-hosted-webgpu-lora-qualification-2026-07-19.json. The initial lane exposes embeddings, not masked-token logits or downstream biological quality; upstream use is CC-BY-NC-SA-4.0.",
+          "contracts": {
+            "executionContractOk": true
+          }
+        }
+      },
+      "sourceCheckpointId": "InstaDeepAI/nucleotide-transformer-v2-50m-multi-species@81b29e5786726d891dbf929404ef20adca5b36f1",
+      "weightCapsuleId": "nucleotide-transformer-v2-50m-f32-af32-wp-v1",
+      "manifestVariantId": "nucleotide-transformer-v2-50m-f32-af32-mv-exec-v1",
+      "artifactCompleteness": "complete",
+      "runtimePromotionState": "manifest-owned",
+      "weightsRefAllowed": false
+    }
+  ]
+}

@@ -1,0 +1,53 @@
+import type { InferencePipeline } from '../../inference/pipelines/text.js';
+import type { RDRRManifest } from '../../formats/rdrr/index.js';
+import type {
+  TextModelConfig,
+  LoadProgressEvent,
+  LoRAManifest,
+} from './types.js';
+
+export declare function getPipeline(): InferencePipeline | null;
+
+export declare function getCurrentModelId(): string | null;
+
+export declare function verifyExplicitModelUrlMatch(
+  localManifest: RDRRManifest | Record<string, unknown> | null | undefined,
+  modelUrl: string | null | undefined,
+  fetchRemoteManifest?: (modelUrl: string) => Promise<RDRRManifest | Record<string, unknown> | null>
+): Promise<void>;
+
+export declare function extractTextModelConfig(manifest: RDRRManifest): TextModelConfig;
+
+export declare function readOPFSFile(path: string): Promise<ArrayBuffer>;
+
+export declare function writeOPFSFile(path: string, data: ArrayBuffer): Promise<void>;
+
+export declare function fetchArrayBuffer(url: string): Promise<ArrayBuffer>;
+
+export declare function loadModel(
+  modelId: string,
+  modelUrl?: string | null,
+  onProgress?: ((event: LoadProgressEvent) => void) | null,
+  localPath?: string | null
+): Promise<boolean>;
+
+export declare function activateLoRAFromTrainingOutput(
+  trainingOutput:
+    | string
+    | {
+      adapter?: LoRAManifest | RDRRManifest | string;
+      adapterManifest?: LoRAManifest | RDRRManifest;
+      adapterManifestJson?: string;
+      adapterManifestUrl?: string;
+      adapterManifestPath?: string;
+    }
+    | null
+    | undefined
+): Promise<{
+  activated: boolean;
+  adapterName: string | null;
+  source: string | null;
+  reason: string | null;
+}>;
+
+export declare function getActiveLoRA(): string | null;

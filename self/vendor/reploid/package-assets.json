@@ -496,8 +496,8 @@
     },
     {
       "path": "mesh/index.js",
-      "bytes": 2538,
-      "sha256": "1f84e33402c1c6ce956abff4dddfb33f3fdb4778eab42399762232c23b0fde02"
+      "bytes": 2588,
+      "sha256": "0adc1dce8331d9e9df643196dc45aa89adde9c8a4855dbc2852f9d0e4a2542ca"
     },
     {
       "path": "mesh/jobs/contracts.d.ts",
@@ -558,6 +558,11 @@
       "path": "mesh/legacy-generation.js",
       "bytes": 19185,
       "sha256": "00283edca6ff4cbc62250097c9b20e931b41aa8d43c93a01d438e8ff056c7215"
+    },
+    {
+      "path": "mesh/partitions/partition-runner.js",
+      "bytes": 5326,
+      "sha256": "b734a97e48ac70840712b27c1c8b03f02f8f994da76164696befbb3707605637"
     },
     {
       "path": "mesh/placement-beliefs.d.ts",
@@ -626,8 +631,8 @@
     },
     {
       "path": "transport/room.js",
-      "bytes": 14749,
-      "sha256": "a302b7f65daba0999c8081d47888769fb455cf79d5dbf428361c958426adae5f"
+      "bytes": 15222,
+      "sha256": "2249314d3267ec3869a8b388109488501b26b034a401ad8ee17719d4aba91ae8"
     },
     {
       "path": "transport/signaling.d.ts",
@@ -646,8 +651,8 @@
     },
     {
       "path": "transport/swarm.js",
-      "bytes": 29503,
-      "sha256": "ef8393e95db2fb6035f6153d04cd50492c6078bb53282a25534de94dcbca1e28"
+      "bytes": 31354,
+      "sha256": "5b3089a77b019c5a2562984a4407cd5f50354e44a76bf54bc1a46c068d9d9fe8"
     },
     {
       "path": "transport/tool-offer-channel.d.ts",

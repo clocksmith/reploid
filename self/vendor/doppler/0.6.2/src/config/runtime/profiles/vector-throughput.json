@@ -1,0 +1,29 @@
+{
+  "id": "profiles/vector-throughput",
+  "name": "vector-throughput",
+  "description": "Repeated embedding profile tuned for stable latency measurements.",
+  "intent": "investigate",
+  "compatibleIntents": ["investigate"],
+  "stability": "canonical",
+  "owner": "doppler-core",
+  "createdAtUtc": "2026-03-20T00:00:00Z",
+  "extends": "profiles/vector-stability",
+  "runtime": {
+    "shared": {
+      "debug": {
+        "logOutput": {
+          "stdout": false
+        }
+      }
+    },
+    "inference": {
+      "prompt": "Search query: local-first AI with WebGPU inference.",
+      "batching": {
+        "maxTokens": 1
+      },
+      "generation": {
+        "embeddingMode": "mean"
+      }
+    }
+  }
+}

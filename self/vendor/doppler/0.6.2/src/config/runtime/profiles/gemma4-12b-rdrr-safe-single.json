@@ -1,0 +1,44 @@
+{
+  "id": "profiles/gemma4-12b-rdrr-safe-single",
+  "name": "gemma4-12b-rdrr-safe-single",
+  "description": "Gemma 4 12B RDRR safe single-token decode cadence for coherent local QAT runs on consumer hardware.",
+  "intent": "investigate",
+  "compatibleIntents": ["investigate"],
+  "stability": "experimental",
+  "owner": "doppler-core",
+  "createdAtUtc": "2026-06-08T00:00:00Z",
+  "extends": "profiles/default",
+  "runtime": {
+    "shared": {
+      "debug": {
+        "logLevel": {
+          "defaultLogLevel": "info"
+        },
+        "trace": {
+          "enabled": false
+        }
+      }
+    },
+    "inference": {
+      "largeWeights": {
+        "lmHeadChunkRows": 16384
+      },
+      "session": {
+        "prefillTokenChunkSize": 64,
+        "decodeLoop": {
+          "batchSize": 1,
+          "stopCheckMode": "batch",
+          "readbackInterval": 1,
+          "readbackMode": "sequential",
+          "ringTokens": 1,
+          "ringStop": 1,
+          "ringStaging": 2,
+          "disableCommandBatching": true
+        },
+        "kvcache": {
+          "maxSeqLen": 1024
+        }
+      }
+    }
+  }
+}

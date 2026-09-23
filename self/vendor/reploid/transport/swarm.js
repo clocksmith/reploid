@@ -69,6 +69,7 @@ const WebRTCSwarm = {
     let _reconnectTimer = null;
     let _heartbeatTimer = null;
     let _manualStop = false;
+    let _cancelConnect = null;
     let _peers = new Map(); // peerId -> { connection, dataChannel, metadata, status, lastSeen }
     let _messageHandlers = new Map(); // type -> handler function
     let _logicalClock = 0;
@@ -222,11 +223,12 @@ const WebRTCSwarm = {
           return;
         }
 
-        if (_signalingWs) {
-          _signalingWs.close();
-        }
+        if (_manualStop) return resolve(false);
+        _cancelConnect?.();
+        if (_signalingWs) { const old = _signalingWs; _signalingWs = null; old.close(); }
 
         setConnectionState('connecting');
+        if (_manualStop) return resolve(false);
         logger.info(`[WebRTCSwarm] Connecting to ${CONFIG.signalingServer}`);
 
         try {
@@ -234,11 +236,27 @@ const WebRTCSwarm = {
           _signalingWs = signalingWs;
 
           let settled = false;
+          let joinTimer;
           const settle = (value) => {
             if (settled) return;
             settled = true;
+            clearTimeout(joinTimer);
+            if (_cancelConnect === cancel) _cancelConnect = null;
             resolve(value);
           };
+          const cancel = () => settle(false);
+          _cancelConnect = cancel;
+          const fail = (error) => {
+            if (_signalingWs !== signalingWs) return settle(false);
+            logger.warn('[WebRTCSwarm] Signaling failed:', error);
+            _signalingWs = null;
+            settle(false);
+            stopHeartbeat();
+            clearPeers();
+            signalingWs.close();
+            if (!_manualStop) scheduleReconnect();
+          };
+          joinTimer = setTimeout(() => fail(new Error('Signaling join acknowledgement timed out')), policy.webrtc.connectTimeoutMs);
 
           signalingWs.onopen = () => {
             if (_signalingWs !== signalingWs) {
@@ -251,17 +269,7 @@ const WebRTCSwarm = {
               settle(false);
               return;
             }
-            logger.info('[WebRTCSwarm] Connected to signaling server');
-            setConnectionState('connected');
-            _reconnectAttempt = 0;
-
-            // Clear any pending reconnect
-            if (_reconnectTimer) {
-              clearTimeout(_reconnectTimer);
-              _reconnectTimer = null;
-            }
-
-            // Join with the private room capability, never a value derived from the room ID.
+            // An open socket is not proof of namespace admission.
             sendSignaling({
               type: 'join',
               peerId: _peerId,
@@ -270,19 +278,27 @@ const WebRTCSwarm = {
               metadata: { capabilities: [] }
             });
 
-            // Start heartbeat
-            startHeartbeat();
-
-            settle(true);
           };
 
-          signalingWs.onmessage = (event) => {
-            if (_signalingWs !== signalingWs) return;
+          signalingWs.onmessage = async (event) => {
+            if (_signalingWs !== signalingWs || _manualStop) return;
             try {
               const message = JSON.parse(event.data);
-              handleSignalingMessage(message);
+              if (message.type === 'error') throw new Error(message.error || 'Signaling rejected the request');
+              if (message.type === 'joined') {
+                if (message.peerId !== _peerId || message.roomId !== _roomId || !Array.isArray(message.peers)
+                  || message.peers.some(id => typeof id !== 'string')) throw new Error('Invalid join acknowledgement');
+                if (settled) return;
+                setConnectionState('connected');
+                if (_manualStop || _signalingWs !== signalingWs) return settle(false);
+                _reconnectAttempt = 0;
+                clearTimeout(_reconnectTimer); _reconnectTimer = null;
+                startHeartbeat();
+                settle(true);
+              } else if (!settled && message.type !== 'welcome') throw new Error('Signaling before join acknowledgement');
+              await handleSignalingMessage(message);
             } catch (e) {
-              logger.error('[WebRTCSwarm] Failed to parse signaling message:', e);
+              fail(e);
             }
           };
 
@@ -291,11 +307,7 @@ const WebRTCSwarm = {
               settle(false);
               return;
             }
-            logger.error('[WebRTCSwarm] WebSocket error:', error);
-            settle(false);
-            // Browsers normally follow an error with close. Cover the rare
-            // non-closing failure too, while onopen can cancel this timer.
-            if (!_manualStop) scheduleReconnect();
+            fail(error);
           };
 
           signalingWs.onclose = () => {
@@ -383,6 +395,7 @@ const WebRTCSwarm = {
           logger.info(`[WebRTCSwarm] Joined room ${message.roomId}, existing peers: ${message.peers?.length || 0}`);
           // Connect to existing peers
           for (const remotePeerId of (message.peers || [])) {
+            if (_manualStop) return;
             await connectToPeer(remotePeerId);
           }
           break;
@@ -433,6 +446,7 @@ const WebRTCSwarm = {
      * Connect to a remote peer
      */
     const connectToPeer = async (remotePeerId) => {
+      if (_manualStop) return;
       // Skip if already connected or connecting
       const existingPeer = _peers.get(remotePeerId);
       if (existingPeer) {
@@ -463,7 +477,7 @@ const WebRTCSwarm = {
 
       // ICE candidate handler
       connection.onicecandidate = (event) => {
-        if (event.candidate) {
+        if (event.candidate && !_manualStop && _peers.get(remotePeerId) === peer) {
           sendSignaling({
             type: 'ice-candidate',
             peerId: _peerId,
@@ -486,7 +500,9 @@ const WebRTCSwarm = {
 
       // Create and send offer
       const offer = await connection.createOffer();
+      if (_manualStop || _peers.get(remotePeerId) !== peer) return;
       await connection.setLocalDescription(offer);
+      if (_manualStop || _peers.get(remotePeerId) !== peer) return;
 
       sendSignaling({
         type: 'offer',
@@ -500,9 +516,10 @@ const WebRTCSwarm = {
      * Handle incoming WebRTC offer
      */
     const handleOffer = async (remotePeerId, offer) => {
+      if (_manualStop) return;
       logger.info(`[WebRTCSwarm] Received offer from: ${remotePeerId}`);
 
-      const connection = new RTCPeerConnection({ iceServers: CONFIG.iceServers });
+      const connection = new RTCPeerConnection(deps.rtcConfig || policy.webrtc.rtcConfig);
 
       const peer = {
         id: remotePeerId,
@@ -517,7 +534,7 @@ const WebRTCSwarm = {
 
       // ICE candidate handler
       connection.onicecandidate = (event) => {
-        if (event.candidate) {
+        if (event.candidate && !_manualStop && _peers.get(remotePeerId) === peer) {
           sendSignaling({
             type: 'ice-candidate',
             peerId: _peerId,
@@ -529,15 +546,19 @@ const WebRTCSwarm = {
 
       // Wait for incoming data channel
       connection.ondatachannel = (event) => {
+        if (_manualStop || _peers.get(remotePeerId) !== peer) { event.channel.close(); return; }
         peer.dataChannel = event.channel;
         setupDataChannel(event.channel, remotePeerId, peer);
       };
 
       // Set remote description and create answer
       await connection.setRemoteDescription(offer);
+      if (_manualStop || _peers.get(remotePeerId) !== peer) return;
       await flushPendingIceCandidates(remotePeerId, connection);
       const answer = await connection.createAnswer();
+      if (_manualStop || _peers.get(remotePeerId) !== peer) return;
       await connection.setLocalDescription(answer);
+      if (_manualStop || _peers.get(remotePeerId) !== peer) return;
 
       sendSignaling({
         type: 'answer',
@@ -597,6 +618,7 @@ const WebRTCSwarm = {
      */
     const setupDataChannel = (dataChannel, remotePeerId, peer) => {
       dataChannel.onopen = () => {
+        if (_manualStop || _peers.get(remotePeerId) !== peer) { dataChannel.close(); return; }
         logger.info(`[WebRTCSwarm] Data channel opened with ${remotePeerId}`);
         peer.status = 'connected';
         EventBus.emit('swarm:peer-connected', { peerId: remotePeerId });
@@ -606,6 +628,7 @@ const WebRTCSwarm = {
       };
 
       dataChannel.onmessage = (event) => {
+        if (_manualStop || _peers.get(remotePeerId) !== peer) return;
         handlePeerMessage(remotePeerId, event.data);
       };
 
@@ -862,6 +885,7 @@ const WebRTCSwarm = {
      */
     const disconnect = () => {
       _manualStop = true;
+      _cancelConnect?.();
       if (_reconnectTimer) {
         clearTimeout(_reconnectTimer);
         _reconnectTimer = null;

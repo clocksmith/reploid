@@ -1,0 +1,30 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Reploid asset-delivery check</title>
+<pre id="result">Checking pinned runtime assets...</pre>
+<script type="module">
+  import { resolveDopplerBrowserAssets } from '/config/doppler-local-models.js';
+  const assets = resolveDopplerBrowserAssets({ pageUrl: location.href });
+  window.__DOPPLER_KERNEL_BASE_PATH__ = assets.kernelBaseUrl;
+  window.repairReady = (async () => {
+    const runtime = await import(assets.moduleUrl);
+    await import(assets.storageModuleUrl);
+    await import(assets.baseUrl + '/src/tooling-exports.browser.js');
+    const manifest = await (await fetch('/config/browser-bundle-manifest.json')).json();
+    const files = manifest.files.filter(file => file.path.startsWith('vendor/doppler/0.6.2/src/gpu/kernels/') && file.path.endsWith('.wgsl'));
+    if (!files.length) throw new Error('Bundle contains no Doppler shaders');
+    let next = 0;
+    await Promise.all(Array.from({ length: 8 }, async () => {
+      while (next < files.length) {
+        const file = files[next++];
+        const response = await fetch('/' + file.path);
+        const text = await response.text();
+        if (!response.ok || !text.trim() || /<!doctype|<html/i.test(text)) throw new Error('Invalid shader response: ' + file.path);
+      }
+    }));
+    const result = { version: runtime.DOPPLER_VERSION, shaders: files.length, baseUrl: assets.baseUrl };
+    document.getElementById('result').textContent = JSON.stringify(result);
+    return result;
+  })();
+  window.repairReady.catch(error => { document.getElementById('result').textContent = error.message; });
+</script>

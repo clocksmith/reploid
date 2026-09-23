@@ -28,6 +28,8 @@ Outputs:
 - Secrets are referenced, never committed as configuration values.
 - Checked-in configuration is not proof that a matching revision is live.
 - Runtime and build identities remain separately verifiable.
+- In-memory public discovery requires one rendezvous process and unsplit revision traffic; scaling requires shared rendezvous.
+- Backend and Hosting share the exact integrity-verified Doppler package, never an unpinned replacement.
 
 ## Acceptance
 - Runtime configuration and cloud-access generation remain synchronized with declared sources.

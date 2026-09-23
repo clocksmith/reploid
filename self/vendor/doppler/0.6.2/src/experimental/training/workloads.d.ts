@@ -1,0 +1,205 @@
+export type TrainingWorkloadKind = 'lora' | 'distill' | 'ul';
+export type TrainingSurfaceSupport = 'node' | 'browser' | 'both';
+export type TrainingSelectionGoal = 'max' | 'min';
+export type TrainingRowOrder = 'dataset_order' | 'seed_hash_sorted_v1';
+export type TrainingEvalKind =
+  | 'translation'
+  | 'text_generation'
+  | 'classification'
+  | 'retrieval'
+  | 'custom';
+
+export type TrainingAgentEvalCategory =
+  | 'js_patching'
+  | 'wgsl_review'
+  | 'manifest_config_review'
+  | 'reploid_vfs_status_tool_loop'
+  | 'patch_applies'
+  | 'no_hallucinated_files_tools';
+
+export interface TrainingAgentEvalConfig {
+  suiteId: string;
+  categories: TrainingAgentEvalCategory[];
+  minPassRate: number;
+  requirePatchApplies: boolean;
+  requireNoHallucinatedFiles: boolean;
+  requireNoHallucinatedTools: boolean;
+  allowedFiles: string[];
+  allowedTools: string[];
+}
+
+export interface TrainingEvalDataset {
+  id: string;
+  datasetPath: string;
+  evalKind: TrainingEvalKind;
+  metrics: string[];
+  decodePolicy: {
+    maxTokens: number | null;
+    stopOnEos: boolean;
+  } | null;
+  scoreboardColumns: string[];
+  quality: {
+    baseline: string;
+    requireImprovement: boolean;
+    minAbsoluteImprovement: number;
+    minRelativeImprovement: number;
+  } | null;
+  agentEval: TrainingAgentEvalConfig | null;
+  sourceLangs: string[] | null;
+  targetLangs: string[] | null;
+  pairAllowlist: string[] | null;
+}
+
+export interface TrainingOptimizerConfig {
+  type: string;
+  lr: number;
+  beta1: number;
+  beta2: number;
+  eps: number;
+  weightDecay: number;
+  scheduler: {
+    enabled: boolean;
+    type: string;
+    warmupSteps: number;
+    stepSize: number;
+    gamma: number;
+    totalSteps: number;
+    minLr: number;
+  };
+}
+
+export interface TrainingWorkloadTrainingConfig {
+  optimizer: TrainingOptimizerConfig;
+  batchSize: number;
+  accumSteps: number;
+  steps: number;
+  precision: {
+    activations: string;
+    gradients: string;
+    loraParams: string;
+  };
+  gradientClipping: {
+    maxNorm: number;
+  };
+}
+
+export interface LoRAWorkloadPipelineConfig {
+  datasetFormat: string;
+  taskType: string;
+  baseModelRef: string | null;
+  baseModelRevision: string | null;
+  maxLength: number | null;
+  sequenceLength: number | null;
+  joinWith: string | null;
+  rowOrder?: TrainingRowOrder;
+  adapter: {
+    rank: number;
+    alpha: number;
+    dropout: number;
+    targetModules: string[];
+  };
+  freeze: {
+    encoder: boolean;
+    prior: boolean;
+    decoder: boolean;
+    base: boolean;
+    lora: boolean;
+  };
+  export: {
+    enabled: boolean;
+    atCheckpoints: boolean;
+    select: string;
+    id: string | null;
+    name: string | null;
+    format: string;
+  } | null;
+  activation: {
+    enabled: boolean;
+    autoActivate: boolean;
+    smokePrompt: string | null;
+  } | null;
+  trainer: {
+    modulePath: string;
+    exportName: string;
+    runnerId: string | null;
+  } | null;
+}
+
+export interface DistillStagePlanEntry {
+  id: string;
+  trainingStage: string;
+  objective: string;
+  steps: number;
+  checkpointEvery: number;
+  selectionMetric: string;
+  selectionGoal: TrainingSelectionGoal;
+  evalSchedule: string;
+}
+
+export interface DistillWorkloadPipelineConfig {
+  stagePlan: DistillStagePlanEntry[];
+  studentGraphMode: string;
+  temperature: number;
+  alphaKd: number;
+  alphaCe: number;
+  tripletMargin: number;
+  sourceLangs: string[] | null;
+  targetLangs: string[] | null;
+  pairAllowlist: string[] | null;
+  strictPairContract: boolean;
+  subsetSpec: Record<string, unknown> | null;
+  sftLora: LoRAWorkloadPipelineConfig | null;
+}
+
+export interface TrainingWorkloadCapsule {
+  schemaVersion: number;
+  kind: TrainingWorkloadKind;
+  id: string;
+  description: string;
+  claimBoundary: string;
+  seed: number;
+  baseModelId: string;
+  studentModelId: string | null;
+  teacherModelId: string | null;
+  datasetId: string;
+  datasetPath: string | null;
+  evalDatasets: TrainingEvalDataset[];
+  trainingSchemaVersion: number;
+  checkpointEvery: number;
+  selectionMetric: string;
+  selectionGoal: TrainingSelectionGoal;
+  surfaceSupport: TrainingSurfaceSupport;
+  training: TrainingWorkloadTrainingConfig;
+  pipeline: LoRAWorkloadPipelineConfig | DistillWorkloadPipelineConfig | Record<string, unknown>;
+  configHash: string;
+}
+
+export interface LoadedTrainingWorkload {
+  absolutePath: string;
+  path: string;
+  raw: string;
+  workloadSha256: string;
+  workload: TrainingWorkloadCapsule;
+}
+
+export declare const TRAINING_WORKLOAD_SCHEMA_VERSION: number;
+export declare const TRAINING_WORKLOAD_KINDS: readonly TrainingWorkloadKind[];
+export declare const TRAINING_WORKLOAD_SURFACE_SUPPORT: readonly TrainingSurfaceSupport[];
+export declare const TRAINING_SELECTION_GOALS: readonly TrainingSelectionGoal[];
+export declare const TRAINING_ROW_ORDERS: readonly TrainingRowOrder[];
+export declare const TRAINING_EVAL_KINDS: readonly TrainingEvalKind[];
+export declare const TRAINING_AGENT_EVAL_CATEGORIES: readonly TrainingAgentEvalCategory[];
+
+export declare function normalizeTrainingWorkloadCapsule(
+  payload: Record<string, unknown>,
+  context?: { label?: string }
+): TrainingWorkloadCapsule;
+
+export declare function loadTrainingWorkloadCapsule(
+  input: string,
+  options?: { registryPath?: string | null }
+): Promise<LoadedTrainingWorkload>;
+
+export declare function serializeTrainingWorkloadLock(
+  loadedWorkload: LoadedTrainingWorkload
+): string;

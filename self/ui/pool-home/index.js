@@ -3,6 +3,10 @@ import { createOperationRoomNetwork } from '../../pool/operation-room-network.js
 import { createWorkSession } from '../../host/work-session.js';
 import { createWorkEvolution } from '../../host/work-evolution.js';
 import { createWorkSwarm } from '../../host/work-swarm.js';
+import { startSwarmAutoconnect } from '../../host/swarm-autoconnect.js';
+import swarmPolicy from '../../config/swarm-bootstrap.json' with { type: 'json' };
+
+let disposeSwarmWorkspace = null;
 import { createWorkPeerJobs } from '../../host/work-peer-jobs.js';
 import { createChatSession } from '../../host/chat-session.js';
 import { getCurrentReploidStorage } from '../../instance.js';
@@ -193,7 +197,6 @@ const bindPoolRouteControls = (mount, render, {
           destination.searchParams.set(key, currentUrl.searchParams.get(key));
         }
       }
-      if (!destination.searchParams.has('room')) destination.searchParams.set('room', getPeerRoomId());
       return `${destination.pathname}${destination.search}${destination.hash}`;
     };
     // Native new-tab navigation must retain the same context as an ordinary click.
@@ -224,6 +227,7 @@ const bindPoolRouteControls = (mount, render, {
 
 export function initPoolHome(mount, { operationNetwork = null } = {}) {
   if (!mount) return;
+  disposeSwarmWorkspace?.();
   stopPoolHomeBackground();
   mount.replaceChildren();
   resetPoolLedgerStore();
@@ -251,20 +255,37 @@ export function initPoolHome(mount, { operationNetwork = null } = {}) {
     peers: createWorkPeerJobs({ getNetwork: () => operationNetwork }) });
   chatSession = createChatSession({ service, storage: workStorage, swarm,
     peers: createWorkPeerJobs({ getNetwork: () => operationNetwork }) });
+  const autoconnect = startSwarmAutoconnect({
+    connect: options => swarm.connect(options), enabled: () => swarm.autoConnectEnabled(),
+    isConnected: () => {
+      const state = swarm.getState();
+      return state.connecting || ['connected', 'connecting', 'retrying'].includes(state.consumer?.connectionState);
+    },
+    policy: swarmPolicy, eventTarget: window,
+    onError: error => console.warn('[Reploid Swarm] Discovery connection failed', error)
+  });
+  const onPageShow = event => { if (event.persisted) autoconnect.resume(); };
+  const dispose = () => {
+    autoconnect.close();
+    window.removeEventListener('pagehide', onPageHide);
+    window.removeEventListener('pageshow', onPageShow);
+    disposeWorkView(); disposeChatWorkspace();
+    void Promise.allSettled([swarm.close(), work.close(), chatSession.close()]);
+    if (disposeSwarmWorkspace === dispose) disposeSwarmWorkspace = null;
+  };
+  disposeSwarmWorkspace = dispose;
   const onPageHide = event => {
+    autoconnect.pause();
     work.cancelAll();
     chatSession?.cancelAll?.();
-    void (event.persisted ? swarm.stop() : swarm.close()).catch(error => console.error('[Reploid Swarm] Shutdown failed', error));
+    void (event.persisted ? swarm.disconnect({ automatic: true }) : swarm.close()).catch(error => console.error('[Reploid Swarm] Shutdown failed', error));
     void operationSharing.stop().catch(error => console.error('[Reploid Network] Shutdown failed', error));
     if (!event.persisted) {
-      disposeWorkView();
-      disposeChatWorkspace();
-      window.removeEventListener('pagehide', onPageHide);
-      void work.close().catch(error => console.error('[Reploid Work] Shutdown failed', error));
-      void chatSession?.close().catch(error => console.error('[Reploid Chat] Shutdown failed', error));
+      dispose();
     }
   };
   window.addEventListener('pagehide', onPageHide);
+  window.addEventListener('pageshow', onPageShow);
   const operationSharing = createOperationParticipation({ networkOptions: () => ({ roomId: getPeerRoomId(),
     roomBusFactory: getPeerRoomBusFactory(), rtcConfig: resolveRtcConfig() }),
     onChange: state => refreshOperationSharing(mount, state) });
@@ -344,7 +365,7 @@ export function initPoolHome(mount, { operationNetwork = null } = {}) {
     disposeDocumentView = bindDocumentSearch(mount, documents);
     disposeOperationSharing = bindOperationSharing(mount, operationSharing);
     if (routeId === 'home') {
-      disposeChatWorkspace = bindConversationWorkspace(mount, chatSession, { getInviteUrl: getPeerInviteUrl });
+      disposeChatWorkspace = bindConversationWorkspace(mount, chatSession, { getInviteUrl: () => swarm.getInviteUrl() });
     } else {
       disposeWorkView = bindWorkSurface(mount, work, { evolution, swarm });
     }

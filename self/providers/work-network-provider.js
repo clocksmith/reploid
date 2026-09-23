@@ -44,7 +44,7 @@ export function createWorkNetworkProvider(options) {
       }
       let connectionError = null;
       if (swarm?.generate) {
-        try { await swarm.connect(); }
+        try { await swarm.connect({ automatic: true }); }
         catch (error) { connectionError = error; }
         combined.throwIfAborted();
         if (!connectionError && swarm.hasProvider(model.id)) {

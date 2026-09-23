@@ -20,6 +20,8 @@ Outputs: bounded operations, state, failures and retained evidence.
 - Candidates cannot expand permissions or approve their own output.
 - Cancellation does not claim termination of borrowed work.
 - Preserve record identities and recovery compatibility.
+- WebRTC discovery is joined only after matching acknowledgement; peer counts require open data channels. Manual disconnect cancels pending joins and reconnects.
+- WebRTC-only callers never silently fall back to BroadcastChannel.
 - Storage shards, complete requests, partition tensors/continuation state and agent subtask messages retain distinct payload contracts. Transfers do not authorize execution or prove partition compatibility.
 - Candidate transfers bind endpoints, room, contract, bytes and expiry. Retried delivery is bounded at-least-once; acknowledgements establish retained preview only.
 

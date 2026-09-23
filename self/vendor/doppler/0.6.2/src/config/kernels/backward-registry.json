@@ -1,0 +1,110 @@
+{
+  "ops": {
+    "embed": {
+      "backward": "embed_backward",
+      "grads": ["weight"],
+      "notes": "Uses scatter_add for gradient accumulation"
+    },
+    "matmul": {
+      "backward": "matmul_backward",
+      "grads": ["input", "weight"],
+      "requires_transpose": true
+    },
+    "rmsnorm": {
+      "backward": "rmsnorm_backward",
+      "grads": ["input", "gamma"],
+      "params": ["numTokens", "hiddenSize", "eps", "rmsNormWeightOffset"]
+    },
+    "residual_add": {
+      "backward": "residual_add_backward",
+      "grads": ["a", "b"]
+    },
+    "reshape": {
+      "backward": "reshape_backward",
+      "grads": ["input"],
+      "params": ["shape"],
+      "notes": "Autograd metadata-only tensor view; no compute kernel"
+    },
+    "row_slice": {
+      "backward": "row_slice_backward",
+      "grads": ["input"],
+      "params": ["rows", "cols", "rowIndex"]
+    },
+    "layernorm": {
+      "backward": "layernorm_backward",
+      "grads": ["input", "weight", "bias"],
+      "params": ["numTokens", "hiddenSize", "eps"]
+    },
+    "attention": {
+      "backward": "attention_backward",
+      "grads": ["q", "k", "v"],
+      "params": ["seqLen", "numHeads", "numKVHeads", "headDim", "scale"],
+      "notes": "Includes causal masking backward"
+    },
+    "softmax": {
+      "backward": "softmax_backward",
+      "grads": ["input"],
+      "params": ["rows", "cols"]
+    },
+    "silu": {
+      "backward": "silu_backward",
+      "grads": ["input"]
+    },
+    "silu_rowsplit": {
+      "backward": "silu_rowsplit_backward",
+      "grads": ["input"],
+      "params": ["numTokens", "dim", "activation", "swigluLimit"]
+    },
+    "silu_gated": {
+      "backward": "silu_gated_backward",
+      "grads": ["gate", "up"],
+      "params": ["count", "swigluLimit", "gateActivation"]
+    },
+    "gelu": {
+      "backward": "gelu_backward",
+      "grads": ["input"]
+    },
+    "rope": {
+      "backward": "rope_backward",
+      "grads": ["input"],
+      "params": ["seqLen", "numHeads", "headDim", "startPos"]
+    },
+    "scale": {
+      "backward": "scale_backward",
+      "grads": ["input"],
+      "params": ["scale"],
+      "notes": "For LoRA alpha scaling"
+    },
+    "cross_entropy": {
+      "backward": "cross_entropy_backward",
+      "grads": ["logits"],
+      "params": ["numTokens", "vocabSize"],
+      "notes": "Loss function, returns scalar loss + logit gradients"
+    },
+    "bias_add": {
+      "backward": "bias_add_backward",
+      "grads": ["bias"],
+      "params": ["numTokens", "dim"]
+    },
+    "upsample2d": {
+      "backward": "upsample2d_backward",
+      "grads": ["input"],
+      "params": ["channels", "inHeight", "inWidth", "outHeight", "outWidth", "scale"]
+    },
+    "pixel_shuffle": {
+      "backward": "pixel_shuffle_backward",
+      "grads": ["input"],
+      "params": ["outChannels", "outHeight", "outWidth", "gridWidth", "gridHeight", "patchSize", "patchChannels"]
+    },
+    "groupnorm": {
+      "backward": "groupnorm_backward",
+      "grads": ["input", "weight", "bias"],
+      "params": ["channels", "height", "width", "numGroups", "eps"]
+    },
+    "conv2d": {
+      "backward": "conv2d_backward",
+      "grads": ["input", "weight"],
+      "params": ["inChannels", "outChannels", "height", "width", "outHeight", "outWidth", "kernelH", "kernelW", "stride", "pad"]
+    }
+  }
+}

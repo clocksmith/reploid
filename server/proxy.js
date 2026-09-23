@@ -10,6 +10,7 @@ import { fileURLToPath } from 'url';
 import { spawn, exec } from 'child_process';
 import { promisify } from 'util';
 import SignalingServer, { isLoopbackAddress } from './signaling-server.js';
+import { PublicSwarmServer } from './public-swarm-server.js';
 import AgentBridge from './agent-bridge.js';
 import fetch from 'node-fetch';
 import createPoolRouter from './pool/routes.js';
@@ -1742,6 +1743,7 @@ app.use((req, res) => {
 
 // Create HTTP server (needed for WebSocket)
 const server = http.createServer(app);
+const publicSwarmServer = new PublicSwarmServer();
 
 if (!POOL_BACKEND_ONLY) {
   // Initialize WebRTC Signaling Server
@@ -1795,6 +1797,10 @@ if (!POOL_BACKEND_ONLY) {
 
 // Register upgrade handler after both servers are initialized
 server.on('upgrade', (req, socket, head) => {
+  if (publicSwarmServer.shouldHandle(req)) {
+    publicSwarmServer.handleUpgrade(req, socket, head);
+    return;
+  }
   if (signalingServer?.shouldHandle(req)) {
     signalingServer.handleUpgrade(req, socket, head);
     return;
@@ -1837,6 +1843,7 @@ const gracefulShutdown = (signal) => {
   console.log(`${signal} received, shutting down gracefully...`);
 
   stopGPUMonitoring();
+  publicSwarmServer.close();
 
   if (ollamaProcess) {
     console.log('[Ollama] Stopping managed Ollama process...');

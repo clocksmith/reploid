@@ -21,6 +21,7 @@ Package source, declarations, schemas and assets.
 ## Contracts
 
 Inputs: validated JSON and host ports.
+Partition runners require host-supplied Doppler codecs/comparison; mesh imports never load Doppler.
 Outputs: explicit ESM APIs, distinct assignment/swarm protocols and signed
 rsi.improvement-episode/v1 evidence.
 

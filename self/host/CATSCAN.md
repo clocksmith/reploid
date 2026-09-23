@@ -9,19 +9,17 @@ Boot configured browser surfaces from trusted seeds.
 ## Authority
 - Owns VFS seeding, module loading, startup and application tools.
 - Composes concurrent agent threads with retained objectives and per-thread exact-payload approval.
-- Composes helpers, swarms, candidate previews, isolation, evaluation and activation separately from Pack jobs.
-- Task contracts own validation; repositories own committed revisions; providers adapt execution; views expose detached immutable state.
+- Composes helpers, swarms, previews, isolation, evaluation and activation separately from Pack jobs.
+- Tasks own validation; repositories own revisions; providers adapt execution; views expose immutable state.
 - Does not own product policy, module semantics, or recovery-root immutability.
 
 ## Scope
 
-- Includes this directory and unchartered descendants.
+- This tree.
 
 ## Contracts
 
-Inputs:
-- Seed declarations from [boot seed](../config/boot-seed.js).
-- Host entry logic from [start-app.js](start-app.js).
+Inputs: [boot seed](../config/boot-seed.js), [start-app.js](start-app.js).
 
 Outputs:
 - Seeded virtual files through [seed-vfs.js](seed-vfs.js).
@@ -30,6 +28,7 @@ Outputs:
 ## Invariants
 - Seed identity and destination remain explicit.
 - Host loading cannot silently substitute missing or unverified modules.
+- Automatic discovery is cancellable; disconnect prevents background rejoin. Joining grants no compute, disclosure, file or improvement authority.
 - Received files cannot grant permissions or prove correctness.
 - Viewing or stopping one thread cannot change another's objective, grants or execution.
 - Peer candidate delivery grants no evaluation or adoption authority.
