@@ -81,6 +81,9 @@ sessions/
 output/
 *.ndjson
 
+# Pinned packages are complete archives, including shipped output helpers.
+!self/vendor/doppler/**
+
 # Exported session runs (ignore most, keep showcase runs)
 showcase/runs/*.json
 !showcase/runs/reploid-gemini3-run.json

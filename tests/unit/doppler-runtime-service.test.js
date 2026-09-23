@@ -178,4 +178,33 @@ describe('Reploid DopplerRuntimeService', () => {
     expect(service.get('pool:provider')).toBeNull();
     expect(session.close).toHaveBeenCalledTimes(1);
   });
+
+  it('recovers after load failure on localhost when retried with local fallback', async () => {
+    let callCount = 0;
+    const session = {
+      schema: 'doppler.scoped-session/v1',
+      loaded: true,
+      close: vi.fn(async () => {})
+    };
+    const service = createReploidDopplerRuntimeService({
+      expectedVersion: '0.6.2',
+      loadModule: async () => {
+        callCount++;
+        if (callCount === 1) {
+          throw new Error('Failed to fetch dynamically imported module: http://localhost:8011/src/index.js');
+        }
+        return {
+          DOPPLER_VERSION: '0.6.2',
+          dr: {
+            open: vi.fn(async () => session)
+          }
+        };
+      }
+    });
+
+    await expect(service.open({ scope: 'documents', source: 'model' })).rejects.toThrow('8011');
+    const recovered = await service.open({ scope: 'documents', source: 'model' });
+    expect(recovered).toBe(session);
+    await service.closeAll();
+  });
 });

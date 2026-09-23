@@ -26,6 +26,8 @@ Outputs:
 
 ## Invariants
 - Configuration must fail closed when required identity or policy is absent.
+- Shared discovery policy selects public rendezvous, not execution authority; private invitations require room-scoped capabilities.
+- Doppler defaults are pinned origin-relative assets; Node synchronization never serializes file URLs.
 - Poolday, Zero, and X profiles cannot silently inherit one another's authority.
 
 ## Acceptance

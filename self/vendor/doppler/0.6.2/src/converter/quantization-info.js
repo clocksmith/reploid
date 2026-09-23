@@ -1,0 +1,650 @@
+
+import { DEFAULT_QUANTIZATION_DEFAULTS, DEFAULT_Q4K_LAYOUT } from '../config/index.js';
+import { classifyTensorRole } from '../formats/rdrr/index.js';
+
+// Default quantization tag when no explicit dtype is provided.
+// F16 is the canonical unquantized storage format for WebGPU inference.
+const DEFAULT_QUANT_TAG = 'f16';
+
+// Quantization tag aliases mapped to canonical names.
+// Add new aliases here rather than adding if/else branches.
+const QUANT_TAG_ALIASES = {
+  // Q4_K_M variants
+  'q4_k_m': 'q4k',
+  'q4k': 'q4k',
+  'q4': 'q4k',
+  'q4km': 'q4k',
+  // Q4_0 variants
+  'q4_0': 'q4_0',
+  'q4-0': 'q4_0',
+  'gguf-q4_0': 'q4_0',
+  'gguf_q4_0': 'q4_0',
+  // Q6_K variants
+  'q6_k': 'q6k',
+  'q6k': 'q6k',
+  'q6': 'q6k',
+  // Q8_0 variants
+  'q8_0': 'q8_0',
+  'q8': 'q8_0',
+  // Compressed-tensors / mobile QAT variants
+  'w4a16': 'w4a16',
+  'w4a16-ct': 'w4a16',
+  'w4a16_ct': 'w4a16',
+  'compressed-tensors-w4a16': 'w4a16',
+  'compressed_tensors_w4a16': 'w4a16',
+  'wna8o8': 'wna8o8',
+  'wna8-o8': 'wna8o8',
+  'wna8_o8': 'wna8o8',
+  // MXFP4 variants
+  'mxfp4': 'mxfp4',
+  'mxp4': 'mxfp4',
+  // F16 variants
+  'f16': 'f16',
+  'fp16': 'f16',
+  'float16': 'f16',
+  // BF16 variants
+  'bf16': 'bf16',
+  'bfloat16': 'bf16',
+  // F32 variants
+  'f32': 'f32',
+  'fp32': 'f32',
+  'float32': 'f32',
+  // FP8 E4M3 variants
+  'fp8e4': 'fp8e4',
+  'fp8e4m3': 'fp8e4',
+  'e4m3': 'fp8e4',
+  // FP8 E5M2 variants
+  'fp8e5': 'fp8e5',
+  'fp8e5m2': 'fp8e5',
+  'e5m2': 'fp8e5',
+  // Integer variants
+  'i8': 'i8',
+  'int8': 'i8',
+  'i4': 'i4',
+  'int4': 'i4',
+};
+
+const PER_LAYER_EMBEDDING_QUANT_ALIASES = {
+  'int4_per_row': 'int4_per_row',
+  'int4-per-row': 'int4_per_row',
+  'i4-per-row': 'int4_per_row',
+  'i4_per_row': 'int4_per_row',
+};
+
+// Human-facing variant suffixes for naming-only artifacts.
+const PER_LAYER_EMBEDDING_VARIANT_TAGS = {
+  int4_per_row: 'int4ple',
+};
+
+const SOURCE_TRAINING_QUANTIZATION_ALIASES = {
+  'qat': 'qat',
+  'quantization-aware-training': 'qat',
+  'quantization_aware_training': 'qat',
+  'ptq': 'ptq',
+  'post-training-quantization': 'ptq',
+  'post_training_quantization': 'ptq',
+};
+
+const SOURCE_QUANTIZATION_TARGET_ALIASES = {
+  'q4_0': 'q4_0',
+  'q4-0': 'q4_0',
+  'gguf-q4_0': 'q4_0',
+  'gguf_q4_0': 'q4_0',
+  'w4a16': 'w4a16',
+  'w4a16-ct': 'w4a16',
+  'w4a16_ct': 'w4a16',
+  'compressed-tensors-w4a16': 'w4a16',
+  'compressed_tensors_w4a16': 'w4a16',
+  'wna8o8': 'wNa8o8',
+  'wna8-o8': 'wNa8o8',
+  'wna8_o8': 'wNa8o8',
+};
+
+const SOURCE_QUANTIZATION_TARGET_TAGS = {
+  q4_0: 'q4_0',
+  w4a16: 'w4a16',
+  wNa8o8: 'wna8o8',
+};
+
+const SOURCE_QUANTIZATION_FORMAT_ALIASES = {
+  'compressed-tensors': 'compressed-tensors',
+  'compressed_tensors': 'compressed-tensors',
+  'compressedtensors': 'compressed-tensors',
+  'ct': 'compressed-tensors',
+  'gguf': 'gguf',
+};
+
+export function normalizeQuantTag(value) {
+  if (!value) return DEFAULT_QUANT_TAG;
+  const lower = String(value).trim().toLowerCase();
+  return QUANT_TAG_ALIASES[lower] ?? lower;
+}
+
+function validateQuantType(value, source) {
+  if (!value) return;
+  const normalized = normalizeQuantTag(value);
+
+  const supported = ['q4k', 'q4_0', 'w4a16', 'wna8o8', 'f16', 'bf16', 'f32'];
+  if (supported.includes(normalized)) return;
+
+  const planned = ['q6k', 'q8_0', 'fp8e4', 'fp8e5', 'i4', 'i8'];
+  if (planned.includes(normalized)) {
+    throw new Error(
+      `Quantization type "${normalized}" is not yet implemented.\n` +
+      `Supported types: ${supported.join(', ')}\n` +
+      `Planned types: ${planned.join(', ')}`
+    );
+  }
+
+  throw new Error(`Unknown quantization type: "${value}" (source: ${source})`);
+}
+
+function normalizePerLayerEmbeddingQuant(value) {
+  if (value == null) return null;
+  const normalized = String(value).trim().toLowerCase().replace(/\s+/g, '_');
+  if (!normalized) return null;
+  const canonical = PER_LAYER_EMBEDDING_QUANT_ALIASES[normalized];
+  if (canonical) return canonical;
+  throw new Error(
+    `converter.quantization.perLayerEmbeddings must be "int4_per_row" or null; got ${JSON.stringify(value)}.`
+  );
+}
+
+function perLayerEmbeddingVariantTag(value) {
+  if (!value) return null;
+  return PER_LAYER_EMBEDDING_VARIANT_TAGS[value] ?? null;
+}
+
+function normalizeSourceTrainingQuantization(value) {
+  if (value == null) return null;
+  const normalized = String(value).trim().toLowerCase().replace(/\s+/g, '-');
+  if (!normalized) return null;
+  const canonical = SOURCE_TRAINING_QUANTIZATION_ALIASES[normalized];
+  if (canonical) return canonical;
+  throw new Error(
+    `converter.quantization.sourceTrainingQuantization must be "qat", "ptq", or null; got ${JSON.stringify(value)}.`
+  );
+}
+
+function normalizeSourceQuantizationTarget(value) {
+  if (value == null) return null;
+  const normalized = String(value).trim().toLowerCase().replace(/\s+/g, '-');
+  if (!normalized) return null;
+  const canonical = SOURCE_QUANTIZATION_TARGET_ALIASES[normalized];
+  if (canonical) return canonical;
+  throw new Error(
+    `converter.quantization.sourceQuantizationTarget must be "q4_0", "w4a16", "wNa8o8", or null; got ${JSON.stringify(value)}.`
+  );
+}
+
+function normalizeSourceQuantizationFormat(value) {
+  if (value == null) return null;
+  const normalized = String(value).trim().toLowerCase().replace(/\s+/g, '-');
+  if (!normalized) return null;
+  const canonical = SOURCE_QUANTIZATION_FORMAT_ALIASES[normalized];
+  if (canonical) return canonical;
+  throw new Error(
+    `converter.quantization.sourceQuantizationFormat must be "compressed-tensors", "gguf", or null; got ${JSON.stringify(value)}.`
+  );
+}
+
+function sourceTargetQuantTag(sourceQuantizationTarget) {
+  if (!sourceQuantizationTarget) return null;
+  return SOURCE_QUANTIZATION_TARGET_TAGS[sourceQuantizationTarget]
+    ?? normalizeQuantTag(sourceQuantizationTarget);
+}
+
+function applySourceQuantizationMetadata(info, sourceTrainingQuantization, sourceQuantizationTarget, sourceQuantizationFormat) {
+  if (sourceQuantizationTarget && !sourceTrainingQuantization) {
+    throw new Error(
+      'converter.quantization.sourceQuantizationTarget requires ' +
+      'converter.quantization.sourceTrainingQuantization.'
+    );
+  }
+  if (sourceTrainingQuantization) {
+    info.sourceTrainingQuantization = sourceTrainingQuantization;
+  } else {
+    delete info.sourceTrainingQuantization;
+  }
+  if (sourceQuantizationTarget) {
+    info.sourceQuantizationTarget = sourceQuantizationTarget;
+  } else {
+    delete info.sourceQuantizationTarget;
+  }
+  if (sourceQuantizationFormat) {
+    info.sourceQuantizationFormat = sourceQuantizationFormat;
+  } else {
+    delete info.sourceQuantizationFormat;
+  }
+  if (sourceTrainingQuantization !== 'qat' || !sourceQuantizationTarget) {
+    return;
+  }
+
+  const targetQuant = sourceTargetQuantTag(sourceQuantizationTarget);
+  const weightQuant = normalizeQuantTag(info.weights);
+  if (weightQuant !== targetQuant) {
+    throw new Error(
+      `QAT sourceQuantizationTarget="${sourceQuantizationTarget}" requires ` +
+      `quantizationInfo.weights="${targetQuant}"; got "${weightQuant}".`
+    );
+  }
+
+  const lmHeadQuant = normalizeQuantTag(info.lmHead ?? info.embeddings ?? info.weights);
+  const embeddingQuant = normalizeQuantTag(info.embeddings ?? info.weights);
+  const allowsDenseTiedW4A16Head = (
+    sourceQuantizationTarget === 'w4a16'
+    && sourceQuantizationFormat === 'compressed-tensors'
+    && lmHeadQuant === 'f16'
+    && embeddingQuant === 'f16'
+  );
+  if (lmHeadQuant !== targetQuant) {
+    if (allowsDenseTiedW4A16Head) {
+      info.lmHead = 'f16';
+      return;
+    }
+    throw new Error(
+      `QAT sourceQuantizationTarget="${sourceQuantizationTarget}" requires ` +
+      `quantizationInfo.lmHead="${targetQuant}" so the LM head stays quantized; got "${lmHeadQuant}".`
+    );
+  }
+  info.lmHead = targetQuant;
+}
+
+
+// Canonical dtype to manifest format mapping.
+const MANIFEST_QUANT_NAMES = {
+  'q4k': 'Q4_K_M',
+  'q4_0': 'Q4_0',
+  'q6k': 'Q6_K',
+  'q8_0': 'Q8_0',
+  'w4a16': 'W4A16',
+  'wna8o8': 'WNA8O8',
+};
+
+export function resolveManifestQuantization(quantize, fallback) {
+  if (!quantize) return fallback;
+  const normalized = normalizeQuantTag(quantize);
+  return MANIFEST_QUANT_NAMES[normalized] ?? normalized.toUpperCase();
+}
+
+
+function buildVariantTag(info) {
+  const weights = info.weights;
+  const embeddings = info.embeddings ?? weights;
+  const lmHead = info.lmHead ?? embeddings;
+  const compute = info.compute ? normalizeQuantTag(info.compute) : null;
+  const experts = info.experts ?? null;
+  const layout = info.layout ?? null;
+
+  // For Q4K weights, include layout in tag
+  // 'row' = fused kernel compatible (fast), 'col' = dequant fallback
+  const weightTag = weights === 'q4k' && layout
+    ? `${weights}${layout === 'row' ? '' : '-col'}`
+    : weights;
+
+  const parts = [weightTag];
+  const groupedRolesByDtype = new Map();
+  const GROUPED_ROLE_ORDER = ['e', 'h', 'a'];
+
+  const addGroupedRole = (role, dtype) => {
+    if (!dtype || dtype === weights) return;
+    const existing = groupedRolesByDtype.get(dtype) ?? [];
+    if (!existing.includes(role)) {
+      existing.push(role);
+      groupedRolesByDtype.set(dtype, existing);
+    }
+  };
+
+  addGroupedRole('e', embeddings);
+  addGroupedRole('h', lmHead);
+  addGroupedRole('a', compute);
+
+  for (const [dtype, roles] of groupedRolesByDtype.entries()) {
+    const orderedRoles = GROUPED_ROLE_ORDER.filter((role) => roles.includes(role));
+    parts.push(`${orderedRoles.join('')}${dtype}`);
+  }
+
+  if (experts && experts !== weights) {
+    parts.push(`x${experts}`);
+  }
+
+  if (info.vision && info.vision !== weights) {
+    parts.push(`v${info.vision}`);
+  }
+  if (info.audio && info.audio !== weights) {
+    parts.push(`audio${info.audio}`);
+  }
+  if (info.tts && info.tts !== weights) {
+    parts.push(`tts${info.tts}`);
+  }
+  if (info.projector && info.projector !== weights) {
+    parts.push(`p${info.projector}`);
+  }
+
+  const perLayerTag = perLayerEmbeddingVariantTag(info.perLayerEmbeddings);
+  if (perLayerTag) {
+    parts.push(perLayerTag);
+  }
+
+  return parts.join('-');
+}
+
+function resolveExpertQuantization(modelConfig) {
+  if (!modelConfig) return null;
+  const quantMethod = modelConfig.quantization_config?.quant_method;
+  if (!quantMethod) return null;
+  return normalizeQuantTag(quantMethod);
+}
+
+function resolveExpertFormat(modelConfig, expertQuant) {
+  if (!modelConfig) return null;
+  if (expertQuant === 'mxfp4') return 'gpt-oss';
+  const rawType = (
+    modelConfig.model_type ??
+    modelConfig.text_config?.model_type ??
+    ''
+  ).toLowerCase();
+  if (rawType.includes('gpt_oss') || rawType.includes('gpt-oss') || rawType.includes('gptoss')) {
+    return 'gpt-oss';
+  }
+  const hasExperts = Boolean(
+    modelConfig.num_local_experts ||
+    modelConfig.num_experts ||
+    modelConfig.expertCount
+  );
+  return hasExperts ? 'mixtral' : null;
+}
+
+
+// Q4K layout aliases mapped to canonical names.
+const Q4K_LAYOUT_ALIASES = {
+  'row': 'row',
+  'rowwise': 'row',
+  'col': 'col',
+  'column': 'col',
+  'columnwise': 'col',
+};
+
+export function normalizeQ4KLayout(value) {
+  if (value == null) return null;
+  const lower = String(value).trim().toLowerCase().replace(/_/g, '');
+  if (!lower) return null;
+  const normalized = Q4K_LAYOUT_ALIASES[lower];
+  if (!normalized) {
+    throw new Error(
+      `converter.quantization.q4kLayout must be "row" or "col"; got ${JSON.stringify(value)}.`
+    );
+  }
+  return normalized;
+}
+
+export function buildQuantizationInfo(
+  opts,
+  originalDtype,
+  embedDtype,
+  lmHeadDtype,
+  hasVision = false,
+  hasAudio = false,
+  hasProjector = false,
+  modelConfig = null
+) {
+  const config = opts?.converterConfig ?? opts ?? {};
+  const quantization = { ...(config.quantization ?? {}) };
+
+  if (opts?.weightQuant !== undefined) quantization.weights = opts.weightQuant;
+  if (opts?.embedQuant !== undefined) quantization.embeddings = opts.embedQuant;
+  if (opts?.headQuant !== undefined) quantization.lmHead = opts.headQuant;
+  if (opts?.visionQuant !== undefined) quantization.vision = opts.visionQuant;
+  if (opts?.audioQuant !== undefined) quantization.audio = opts.audioQuant;
+  if (opts?.projectorQuant !== undefined) quantization.projector = opts.projectorQuant;
+  if (opts?.computePrecision !== undefined) quantization.computePrecision = opts.computePrecision;
+
+  const textOnly = opts?.textOnly !== undefined
+    ? opts.textOnly
+    : config.output?.textOnly ?? false;
+  const allowMultimodal = !textOnly;
+
+  const weightQuant = quantization.weights ?? null;
+  const embedQuant = quantization.embeddings ?? null;
+  const headQuant = quantization.lmHead ?? null;
+  const visionQuant = quantization.vision ?? null;
+  const audioQuant = quantization.audio ?? null;
+  const projectorQuant = quantization.projector ?? null;
+  const computePrecision = quantization.computePrecision ?? null;
+  const perLayerEmbeddings = normalizePerLayerEmbeddingQuant(quantization.perLayerEmbeddings ?? null);
+  const sourceTrainingQuantization = normalizeSourceTrainingQuantization(
+    quantization.sourceTrainingQuantization ?? null
+  );
+  const sourceQuantizationTarget = normalizeSourceQuantizationTarget(
+    quantization.sourceQuantizationTarget ?? null
+  );
+  const sourceQuantizationFormat = normalizeSourceQuantizationFormat(
+    quantization.sourceQuantizationFormat ?? null
+  );
+
+  validateQuantType(weightQuant, 'converter.quantization.weights');
+  validateQuantType(embedQuant, 'converter.quantization.embeddings');
+  validateQuantType(headQuant, 'converter.quantization.lmHead');
+  validateQuantType(visionQuant, 'converter.quantization.vision');
+  validateQuantType(audioQuant, 'converter.quantization.audio');
+  validateQuantType(projectorQuant, 'converter.quantization.projector');
+
+  // Preserve requested/storage dtypes in manifest + shard planning.
+  // Kernel-path selection performs its own dtype normalization separately.
+  const asStorageQuant = (dtype) => normalizeQuantTag(dtype);
+
+  const weights = asStorageQuant(weightQuant ?? originalDtype);
+
+  let embeddings;
+  if (embedQuant) {
+    embeddings = asStorageQuant(embedQuant);
+  } else {
+    embeddings = asStorageQuant(embedDtype || originalDtype);
+  }
+
+  let lmHead;
+  if (headQuant) {
+    lmHead = asStorageQuant(headQuant);
+  } else if (lmHeadDtype) {
+    lmHead = asStorageQuant(lmHeadDtype);
+  } else {
+    lmHead = embeddings;
+  }
+
+  const info = {
+    weights,
+    embeddings,
+    lmHead: lmHead !== embeddings ? lmHead : undefined,
+  };
+
+  const hasExperts = Boolean(
+    modelConfig?.num_local_experts ||
+    modelConfig?.num_experts ||
+    modelConfig?.expertCount
+  );
+  if (hasExperts) {
+    const expertQuant = resolveExpertQuantization(modelConfig) ?? weights;
+    info.experts = expertQuant;
+    const expertFormat = resolveExpertFormat(modelConfig, expertQuant);
+    if (expertFormat) {
+      info.expertsFormat = expertFormat;
+    }
+  }
+
+  if (hasVision && allowMultimodal) {
+    if (visionQuant) {
+      info.vision = normalizeQuantTag(visionQuant);
+    } else {
+      info.vision = DEFAULT_QUANTIZATION_DEFAULTS.visionDtype;
+    }
+  }
+
+  if (hasAudio && allowMultimodal) {
+    if (audioQuant) {
+      info.audio = normalizeQuantTag(audioQuant);
+    } else {
+      info.audio = DEFAULT_QUANTIZATION_DEFAULTS.audioDtype;
+    }
+  }
+
+  if (hasProjector && allowMultimodal) {
+    if (projectorQuant) {
+      info.projector = normalizeQuantTag(projectorQuant);
+    } else {
+      info.projector = DEFAULT_QUANTIZATION_DEFAULTS.projectorDtype;
+    }
+  }
+
+  if (computePrecision) {
+    info.compute = computePrecision;
+  }
+  if (perLayerEmbeddings) {
+    info.perLayerEmbeddings = perLayerEmbeddings;
+  }
+  applySourceQuantizationMetadata(
+    info,
+    sourceTrainingQuantization,
+    sourceQuantizationTarget,
+    sourceQuantizationFormat
+  );
+
+  // Q4K layout: 'row' (fused kernel compatible) or 'col' (dequant fallback)
+  // Default to 'row' for Q4K weights since that's the performant path
+  const q4kLayoutRaw = opts?.q4kLayout ?? quantization.q4kLayout ?? null;
+  if (weights === 'q4k') {
+    info.layout = normalizeQ4KLayout(q4kLayoutRaw) ?? DEFAULT_Q4K_LAYOUT;
+  }
+
+  info.variantTag = buildVariantTag(info);
+  return info;
+}
+
+
+export function resolveModelId(modelId, baseName, variantTag) {
+  const sanitize = (id) => {
+    return id.toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
+  };
+
+  const base = modelId ? sanitize(modelId) : sanitize(baseName);
+  if (!variantTag) return base;
+  return base.endsWith(variantTag) ? base : `${base}-${variantTag}`;
+}
+
+
+// Canonical dtype to WebGPU dtype mapping.
+const WEBGPU_DTYPE_NAMES = {
+  'q4k': 'Q4_K_M',
+  'q4_0': 'Q4_0',
+  'w4a16': 'W4A16',
+  'wna8o8': 'WNA8O8',
+  // Manifests describe stored artifact truth, not the materialized shader type.
+  // The loader may expand BF16 into an admitted execution dtype, but narrowing
+  // the manifest declaration to F16 would erase the signed source precision.
+  'bf16': 'BF16',
+};
+
+export function toWebGPUDtype(dtype) {
+  return WEBGPU_DTYPE_NAMES[dtype] ?? dtype.toUpperCase();
+}
+
+function normalizeStoredDtype(value) {
+  if (!value) return null;
+  const upper = String(value).trim().toUpperCase();
+  if (!upper) return null;
+  if (upper === 'Q4_K' || upper === 'Q4_K_M') return 'q4k';
+  if (upper === 'Q4_0') return 'q4_0';
+  if (upper === 'Q6_K') return 'q6k';
+  if (upper === 'Q8_0') return 'q8_0';
+  if (upper === 'W4A16') return 'w4a16';
+  if (upper === 'WNA8O8') return 'wna8o8';
+  if (upper === 'BF16') return 'bf16';
+  if (upper === 'F16') return 'f16';
+  if (upper === 'F32') return 'f32';
+  return normalizeQuantTag(upper);
+}
+
+function normalizeRole(role, name) {
+  if (role && typeof role === 'string') return role;
+  if (typeof name !== 'string' || !name) return null;
+  return classifyTensorRole(name);
+}
+
+export function resolveEffectiveQuantizationInfo(baseInfo, tensors) {
+  const base = (baseInfo && typeof baseInfo === 'object') ? baseInfo : {};
+  const entries = Array.isArray(tensors) ? tensors : [];
+
+  const detectedWeightDtypes = new Set();
+  let detectedEmbeddings = null;
+  let detectedLmHead = null;
+  let detectedLayout = null;
+
+  for (const tensor of entries) {
+    const dtype = normalizeStoredDtype(tensor?.dtype);
+    if (!dtype) continue;
+    const role = normalizeRole(tensor?.role, tensor?.name);
+    if (!role) continue;
+
+    if (role === 'embedding') {
+      detectedEmbeddings = detectedEmbeddings ?? dtype;
+      continue;
+    }
+    if (role === 'lm_head') {
+      detectedLmHead = detectedLmHead ?? dtype;
+      continue;
+    }
+    if (role === 'matmul' || role === 'expert' || role === 'router') {
+      detectedWeightDtypes.add(dtype);
+      if (detectedLayout == null && (dtype === 'q4k') && tensor?.layout) {
+        detectedLayout = normalizeQ4KLayout(tensor.layout);
+      }
+    }
+  }
+
+  const baseWeights = normalizeQuantTag(base.weights ?? 'f16');
+  let weights = baseWeights;
+  if (detectedWeightDtypes.size === 1) {
+    weights = [...detectedWeightDtypes][0];
+  } else if (detectedWeightDtypes.size > 1) {
+    if (detectedWeightDtypes.has(baseWeights)) {
+      weights = baseWeights;
+    } else {
+      throw new Error(
+        `Ambiguous converted weight dtypes: ${[...detectedWeightDtypes].sort().join(', ')}. ` +
+        `Configured quantizationInfo.weights="${baseWeights}" is not present in converted matmul tensors.`
+      );
+    }
+  }
+  const embeddings = detectedEmbeddings
+    ?? normalizeQuantTag(base.embeddings ?? weights);
+  const lmHead = detectedLmHead
+    ?? normalizeQuantTag(base.lmHead ?? embeddings);
+
+  const resolved = {
+    ...base,
+    weights,
+    embeddings,
+  };
+
+  if (lmHead !== embeddings) {
+    resolved.lmHead = lmHead;
+  } else {
+    delete resolved.lmHead;
+  }
+
+  if (weights === 'q4k') {
+    resolved.layout = detectedLayout
+      ?? normalizeQ4KLayout(base.layout)
+      ?? DEFAULT_Q4K_LAYOUT;
+  } else {
+    delete resolved.layout;
+  }
+
+  applySourceQuantizationMetadata(
+    resolved,
+    normalizeSourceTrainingQuantization(base.sourceTrainingQuantization ?? null),
+    normalizeSourceQuantizationTarget(base.sourceQuantizationTarget ?? null),
+    normalizeSourceQuantizationFormat(base.sourceQuantizationFormat ?? null)
+  );
+  resolved.variantTag = buildVariantTag(resolved);
+  return resolved;
+}

@@ -1,0 +1,18 @@
+{
+  "schema": "reploid.swarm-bootstrap/v1",
+  "publicRoomId": "reploid-swarm-public",
+  "publicJoinMarker": "reploid-public-namespace-not-a-secret-v1",
+  "path": "/swarm",
+  "signalingUrl": "wss://reploid-pool-kbxuhkisna-uc.a.run.app/swarm",
+  "autoConnect": true,
+  "retryMs": [1000, 2000, 4000, 8000, 16000, 30000],
+  "healthCheckMs": 10000,
+  "allowedOrigins": ["https://replo.id", "https://reploid.web.app", "https://reploid.firebaseapp.com", "http://localhost:8000", "http://127.0.0.1:8000"],
+  "server": {
+    "heartbeatInterval": 30000, "peerTimeout": 60000, "maxMessageBytes": 65536,
+    "maxPeersPerRoom": 64, "maxPeersTotal": 256, "maxRooms": 128,
+    "maxMessagesPerWindow": 512, "rateLimitWindowMs": 1000,
+    "maxConnections": 320, "maxConnectionsPerWindow": 128,
+    "connectionWindowMs": 1000, "joinTimeoutMs": 10000
+  }
+}

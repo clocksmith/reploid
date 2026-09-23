@@ -15,6 +15,8 @@
     "reploid-config": "./bin/reploid-config"
   },
   "scripts": {
+    "verify:swarm-bootstrap": "node --test scripts/repair-checks/swarm-join.test.js",
+    "smoke:swarm-bootstrap": "node scripts/verify-swarm-runtime.js",
     "sync:library": "node scripts/sync-reploid-library.js",
     "start": "npx tsx bin/reploid-cli.ts start",
     "start:signaling": "node server/reploid-signaling.js",

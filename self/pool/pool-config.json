@@ -176,9 +176,9 @@
     "useSpeculative": false
   },
   "browserRuntime": {
-    "dopplerModuleUrl": "https://cdn.jsdelivr.net/npm/doppler-gpu@0.6.2/src/index.js",
-    "dopplerStorageModuleUrl": "https://cdn.jsdelivr.net/npm/doppler-gpu@0.6.2/src/tooling-exports/storage.js",
-    "dopplerKernelBaseUrl": "https://cdn.jsdelivr.net/npm/doppler-gpu@0.6.2/src/gpu/kernels",
+    "dopplerModuleUrl": "/vendor/doppler/0.6.2/src/index.js",
+    "dopplerStorageModuleUrl": "/vendor/doppler/0.6.2/src/tooling-exports/storage.js",
+    "dopplerKernelBaseUrl": "/vendor/doppler/0.6.2/src/gpu/kernels",
     "modelBaseUrl": "https://storage.googleapis.com/reploid-model-artifacts/models",
     "loadOptions": {
       "cache": "opfs",

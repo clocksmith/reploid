@@ -277,15 +277,19 @@ const SwarmTransport = {
     /**
      * Initialize WebRTC transport via existing WebRTCSwarm
      */
-    const initWebRTC = async () => {
+    const initWebRTC = async (version) => {
       _transport = 'webrtc';
 
       try {
-        _webrtcSwarm = deps.createWebRTCSwarm
+        const transport = deps.createWebRTCSwarm
           ? await deps.createWebRTCSwarm()
           : createWebRTCSwarm(deps);
-        const initialized = await _webrtcSwarm.init();
-        if (!initialized) { _webrtcSwarm.disconnect(); _webrtcSwarm = null; return false; }
+        if (version !== initVersion) { transport.disconnect(); return false; }
+        _webrtcSwarm = transport;
+        for (const [type, handler] of _messageHandlers.entries()) transport.onMessage(type, handler);
+        const initialized = await transport.init();
+        if (version !== initVersion) { transport.disconnect(); return false; }
+        if (!initialized && policy.webrtc.transportOrder.length !== 1) { transport.disconnect(); _webrtcSwarm = null; return false; }
 
         if (_webrtcSwarm) {
           _peerId = _webrtcSwarm._getPeerId();
@@ -297,7 +301,7 @@ const SwarmTransport = {
           return true;
         }
       } catch (e) {
-        logger.warn(`[SwarmTransport] WebRTCSwarm not available, falling back to BroadcastChannel`);
+        logger.warn('[SwarmTransport] WebRTC initialization failed', e);
       }
 
       return false;
@@ -312,8 +316,8 @@ const SwarmTransport = {
      */
     const init = async () => {
       if (!isEnabled()) return false;
+      if (_webrtcSwarm || _connectionState === 'connected') return true;
       const version = ++initVersion;
-      if (_connectionState === 'connected') return true;
       _peerId = deps.peerId || generateId('peer');
       _roomId = getRoomId();
       for (const transport of policy.webrtc.transportOrder) {
@@ -321,9 +325,9 @@ const SwarmTransport = {
           initBroadcastChannel();
           return true;
         }
-        if (transport === 'webrtc' && await checkSignalingServer()) {
+        if (transport === 'webrtc' && (policy.webrtc.transportOrder.length === 1 || await checkSignalingServer())) {
           if (version !== initVersion) return false;
-          if (await initWebRTC()) return version === initVersion;
+          if (await initWebRTC(version)) return version === initVersion;
         }
         if (version !== initVersion) return false;
       }
@@ -396,7 +400,8 @@ const SwarmTransport = {
     /**
      * Get connection state
      */
-    const getConnectionState = () => _connectionState;
+    const getConnectionState = () => _transport === 'webrtc' && _webrtcSwarm
+      ? _webrtcSwarm.getConnectionState() : _connectionState;
 
     /**
      * Get transport type
@@ -457,7 +462,7 @@ const SwarmTransport = {
         peerId: _peerId,
         roomId: _roomId,
         transport: _transport,
-        connectionState: _connectionState,
+        connectionState: getConnectionState(),
         connectedPeers: _peers.size,
         clock: _logicalClock
       };

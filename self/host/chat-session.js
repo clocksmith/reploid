@@ -303,6 +303,10 @@ export function createChatSession({
       assert(swarm?.connect, 'Peer connection is unavailable');
       try { await swarm.connect(); } finally { notifyAll(); }
     },
+    async disconnect() {
+      assert(swarm?.disconnect, 'Peer disconnection is unavailable');
+      try { await swarm.disconnect(); } finally { notifyAll(); }
+    },
     async setSharing(enabled, modelId, approved) {
       assert(swarm, 'Contribution is unavailable');
       try {

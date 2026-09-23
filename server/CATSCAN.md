@@ -27,9 +27,11 @@ Outputs:
 - Relay acknowledgement proves receipt of that relay record, not final acceptance.
 - Authentication and transport success cannot be represented as model or scientific validity.
 - Hosted failures remain explicit.
+- `/swarm` is bounded discovery only: exact origins, namespace admission, destination membership, heartbeat and unjoined expiry. No application relay or virtual inference peers; origin is not authentication.
 
 ## Acceptance
 - Signaling and public-inference admission preserve their declared boundaries.
+- Evidence: [public discovery tests](../tests/integration/public-swarm-server.test.js).
 - Evidence: [signaling integration tests](../tests/integration/signaling-server.test.js) and [public inference admission tests](../tests/integration/public-inference-admission.test.js).
 
 ## Non-goals

@@ -7,24 +7,23 @@
  * - Device B executes Group 1 (layers k..N-1 + norm + lmHead), streaming output deltas.
  */
 
-import {
-  LAYER_PARTITION_SCHEMA,
-  ACTIVATION_TENSOR_SCHEMA,
-  PARTITION_COMPARISON_SCHEMA,
-  serializeActivationFrame,
-  deserializeActivationFrame,
-  comparePartitionExecution
-} from 'doppler-gpu';
-
 const assert = (ok, message) => { if (!ok) throw new Error(message); };
 
 export function createLayerPartitionRunner({
+  runtime,
   plan,
   deviceA,
   deviceB,
   transport,
   authorize = async () => true
 }) {
+  // The host supplies Doppler; importing the mesh never loads an inference engine.
+  assert(runtime && typeof runtime.LAYER_PARTITION_SCHEMA === 'string'
+    && typeof runtime.ACTIVATION_TENSOR_SCHEMA === 'string'
+    && typeof runtime.serializeActivationFrame === 'function'
+    && typeof runtime.deserializeActivationFrame === 'function', 'Doppler partition runtime required');
+  const { LAYER_PARTITION_SCHEMA, ACTIVATION_TENSOR_SCHEMA,
+    serializeActivationFrame, deserializeActivationFrame } = runtime;
   assert(plan && plan.schema === LAYER_PARTITION_SCHEMA, 'Valid Doppler layer partition plan required');
   assert(typeof deviceA?.executeGroup0 === 'function', 'Device A must expose executeGroup0');
   assert(typeof deviceB?.executeGroup1 === 'function', 'Device B must expose executeGroup1');
@@ -117,12 +116,14 @@ export function createLayerPartitionRunner({
  * Validates split partition execution against an unsplit single-device reference execution.
  */
 export async function verifySplitParity({
+  runtime,
   splitRunner,
   referenceRunner,
   tokenIds,
   disclosureGrant,
   tolerance = 1e-4
 }) {
+  assert(typeof runtime?.comparePartitionExecution === 'function', 'Doppler comparison runtime required');
   const [splitResult, refResult] = await Promise.all([
     splitRunner.execute({ tokenIds, disclosureGrant }),
     referenceRunner.execute({ tokenIds })
@@ -130,7 +131,7 @@ export async function verifySplitParity({
 
   assert(splitResult.logits && refResult.logits, 'Both runners must provide output logits for numerical comparison');
 
-  const comparison = comparePartitionExecution({
+  const comparison = runtime.comparePartitionExecution({
     splitOutput: splitResult.logits,
     referenceOutput: refResult.logits,
     tolerance

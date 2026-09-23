@@ -18,11 +18,14 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
   const options = networkOptions({ Utils: utils, EventBus: eventBus }, { enabled: true });
   let consumer = null, supplier = null, closed = false, sharing = false, stopping = false, connecting = false, error = '';
   let connection = null;
+  let disconnecting = null, sharingConnection = null, generation = 0, paused = false;
+  let automaticAllowed = options.autoConnect !== false;
   const requests = new Map();
   const owned = new Set();
   let consumerTransport = null;
   const contribution = { phase: 'idle', completed: 0 };
-  const getState = () => ({ sharing, stopping, connecting, error, models: LOCAL_DOPPLER_MODELS,
+  const getState = () => ({ sharing, stopping, connecting, paused, error, models: LOCAL_DOPPLER_MODELS,
+    discoveryScope: options.discoveryScope,
     contribution: { ...contribution }, limits: { maxInboundJobs: 1, maxOutputTokens: profile.generation.maxTokens },
     consumer: consumer?.getSwarmSnapshot() || null, supplier: supplier?.getSwarmSnapshot() || null,
     offers: peerOffers?.getState() || null });
@@ -30,6 +33,7 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
   const peerOffers = evolution ? createWorkPeerOffers({ storage, evolution, roomId: options.config.value.mesh.roomId,
     getTransport: () => consumerTransport, onChange: notify }) : null;
   const build = (model, peerId) => {
+    const version = generation;
     const instanceId = 'work-swarm:' + crypto.randomUUID();
     const events = EventBus.factory({ Utils: utils });
     events.on('swarm-state', notify);
@@ -38,6 +42,7 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
     return createLegacyGenerationMesh({ config, ports: {
       instanceId, modelConfig: model, utils, eventBus, events,
       createTransport: () => {
+        if (closed || paused || version !== generation) throw new Error('Text swarm connection stopped');
         const transport = createSwarmTransport({ ...options, config, ...(peerId ? { peerId } : {}) });
         if (!model) consumerTransport = transport;
         return transport;
@@ -86,19 +91,31 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
   };
   const connectOnce = async () => {
     if (closed) throw new Error('Text swarm is closed');
+    const version = generation;
     connecting = true; error = ''; notify();
     try {
       if (!consumer) {
         const peerId = await peerOffers?.acquire();
-        if (closed) throw new Error('Text swarm is closed');
-        consumer = build(null, peerId); await consumer.connect(); await peerOffers?.attach();
+        if (closed || paused || version !== generation) throw new Error('Text swarm connection stopped');
+        consumer = build(null, peerId);
+        const active = consumer;
+        await active.connect();
+        if (closed || paused || version !== generation) { await active.close(); throw new Error('Text swarm connection stopped'); }
+        await peerOffers?.attach();
       } else await consumer.connect();
       return getState();
     }
-    catch (cause) { peerOffers?.close(); await consumer?.close(); consumer = null; consumerTransport = null; error = cause.message; throw cause; }
+    catch (cause) { peerOffers?.close(); await consumer?.close(); consumer = null; consumerTransport = null; if (version === generation) error = cause.message; throw cause; }
     finally { connecting = false; notify(); }
   };
-  const connect = () => {
+  const connect = async ({ automatic = false } = {}) => {
+    if (disconnecting) await disconnecting;
+    if (closed) throw new Error('Text swarm is closed');
+    if (automatic && (!automaticAllowed || paused)) return getState();
+    if (!automatic) {
+      paused = false; automaticAllowed = true;
+      storage?.setItem('REPLOID_SWARM_ENABLED', 'true');
+    }
     if (!connection) connection = connectOnce().finally(() => { connection = null; });
     return connection;
   };
@@ -110,7 +127,8 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
     const id = crypto.randomUUID(), pending = { ...controls };
     requests.set(id, pending);
     try {
-      await connect();
+      await connect({ automatic: true });
+      if (!consumer) throw new Error('Peer discovery is stopped');
       const result = await consumer.generate(messages, controls.onPartial, {
         signal: controls.signal, modelId: controls.modelId, requestContext: { id }
       });
@@ -128,7 +146,25 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
       throw cause;
     } finally { requests.delete(id); }
   };
-  return Object.freeze({ getState, connect,
+  const disconnect = ({ automatic = false } = {}) => {
+    if (!automatic) { paused = true; storage?.setItem('REPLOID_SWARM_ENABLED', 'false'); }
+    if (disconnecting) return disconnecting;
+    generation++; sharing = false;
+    const previousConsumer = consumer, previousSupplier = supplier;
+    consumer = null; supplier = null; consumerTransport?.disconnect(); consumerTransport = null;
+    peerOffers?.close();
+    const pending = [connection, sharingConnection, previousConsumer?.close(), previousSupplier?.close()];
+    disconnecting = (async () => {
+      await Promise.allSettled(pending);
+      peerOffers?.close();
+      await Promise.allSettled([...owned]);
+    })().finally(() => { disconnecting = null; connecting = false; notify(); });
+    notify();
+    return disconnecting;
+  };
+  return Object.freeze({ getState, connect, disconnect,
+    autoConnectEnabled: () => !closed && !paused && automaticAllowed,
+    getInviteUrl: () => options.getInviteUrl(),
     generate,
     hasProvider: modelId => !!consumer?.hasAvailableProvider(modelId),
     allowCandidateOffers: allowed => peerOffers?.allowReceiving(allowed),
@@ -136,16 +172,19 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
     retryCandidate: transferId => peerOffers.retry(transferId),
     previewCandidate: transferId => peerOffers.preview(transferId),
     dismissCandidate: transferId => peerOffers.dismiss(transferId),
-    async disconnect() { const previous = consumer; consumer = null; peerOffers?.close(); consumerTransport = null; await previous?.close(); notify(); },
     async share(modelId, approved) {
       if (closed || supplier || stopping) throw new Error('Stop existing sharing first');
       if (approved !== true) throw new Error('Approve public prompt execution before sharing');
       const model = LOCAL_DOPPLER_MODELS.find(item => item.id === modelId);
       if (!model) throw new Error('Select an available local model');
       if (!navigator.gpu) throw new Error('This browser does not support WebGPU');
+      if (disconnecting || paused) throw new Error('Connect before contributing compute');
       sharing = true; error = ''; supplier = build(model); notify();
-      try { await supplier.connect(); } catch (cause) { await supplier.close(); supplier = null; sharing = false; error = cause.message; throw cause; }
-      finally { notify(); }
+      const active = supplier, version = generation;
+      sharingConnection = active.connect();
+      try { await sharingConnection; if (closed || version !== generation) await active.close(); }
+      catch (cause) { await active.close(); if (supplier === active) supplier = null; sharing = false; error = cause.message; throw cause; }
+      finally { sharingConnection = null; notify(); }
     },
     async stop() {
       sharing = false; stopping = true; notify();
@@ -159,6 +198,6 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
         return { output: String(result.content || '').slice(0, profile.peers.maxToolResultCharacters),
           model: result.model, claim: 'legacy-compatibility-result', authority: 'Untrusted peer response; not independently verified correctness or signed Pack qualification' };
     },
-    async close() { closed = true; sharing = false; peerOffers?.close(); await consumer?.close(); await supplier?.close(); await Promise.allSettled([...owned]); notify(); }
+    async close() { closed = true; await disconnect({ automatic: true }); }
   });
 }

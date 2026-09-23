@@ -1,6 +1,7 @@
 export { createLegacyGenerationMesh } from './legacy-generation.js';
 export { projectPlacementBeliefs, resolvePlacementBeliefPolicy } from './placement-beliefs.js';
 export * from './swarm-coordination.js';
+export * from './partitions/partition-runner.js';
 export * from './contribution.js';
 export { default as contributionPolicy } from './contribution.js';
 export { default as swarmCoordination } from './swarm-coordination.js';

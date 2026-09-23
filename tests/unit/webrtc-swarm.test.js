@@ -6,6 +6,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import UtilsModule from '../../core/utils.js';
 import EventBusModule from '../../infrastructure/event-bus.js';
 import WebRTCSwarmModule from '../../capabilities/communication/webrtc-swarm.js';
+import { resolveConfig } from '../../self/vendor/reploid/config/index.js';
 
 // Constants matching the module
 const PROTOCOL_VERSION = 1;
@@ -253,10 +254,11 @@ describe('WebRTCSwarm', () => {
   });
 
   describe('Feature Flag', () => {
-    it('captures REPLOID_SWARM_ENABLED when constructing the instance', async () => {
+    it('honors an explicitly disabled transport configuration', async () => {
       mockLocalStorage['REPLOID_SWARM_ENABLED'] = 'false';
       swarm.disconnect();
-      swarm = WebRTCSwarmModule.factory({ Utils: utils, EventBus: eventBus });
+      swarm = WebRTCSwarmModule.factory({ Utils: utils, EventBus: eventBus,
+        config: resolveConfig({ overrides: { mesh: { enabled: false } } }) });
       mockLocalStorage['REPLOID_SWARM_ENABLED'] = 'true';
 
       const result = await swarm.init();

@@ -22,3 +22,5 @@ server/logs/**
 !deploy/
 !deploy/cloudbuild.yaml
 !deploy/env.production.json
+!deploy/artifacts/
+!deploy/artifacts/doppler-gpu-0.6.2.tgz

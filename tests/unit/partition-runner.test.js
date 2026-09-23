@@ -1,4 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
+import * as runtime from 'doppler-gpu';
 import {
   createLayerPartitionPlan,
   serializeActivationFrame,
@@ -33,6 +34,17 @@ describe('Layer Partition Runner & WebRTC Activation Transfer', () => {
     scope: 'intermediate-activation',
     expiresAt: Date.now() + 60000
   };
+
+  it('requires an explicit Doppler runtime before constructing or evaluating partitions', async () => {
+    const deviceA = { executeGroup0: vi.fn() };
+    const deviceB = { executeGroup1: vi.fn() };
+    const transport = { transferActivation: vi.fn() };
+    expect(() => createLayerPartitionRunner({ plan, deviceA, deviceB, transport })).toThrow('Doppler partition runtime');
+    const execute = vi.fn();
+    await expect(verifySplitParity({ splitRunner: { execute }, referenceRunner: { execute } }))
+      .rejects.toThrow('Doppler comparison runtime');
+    expect(execute).not.toHaveBeenCalled();
+  });
 
   it('coordinates Device A, WebRTC transport, and Device B for two-device split execution', async () => {
     const tokenIds = [101, 2054, 2003, 102];
@@ -83,6 +95,7 @@ describe('Layer Partition Runner & WebRTC Activation Transfer', () => {
     };
 
     const runner = createLayerPartitionRunner({
+      runtime,
       plan,
       deviceA,
       deviceB,
@@ -107,6 +120,7 @@ describe('Layer Partition Runner & WebRTC Activation Transfer', () => {
 
   it('rejects partition execution when disclosure grant is absent or declined', async () => {
     const runner = createLayerPartitionRunner({
+      runtime,
       plan,
       deviceA: { executeGroup0: vi.fn() },
       deviceB: { executeGroup1: vi.fn() },
@@ -153,6 +167,7 @@ describe('Layer Partition Runner & WebRTC Activation Transfer', () => {
     };
 
     const parity = await verifySplitParity({
+      runtime,
       splitRunner,
       referenceRunner,
       tokenIds,
