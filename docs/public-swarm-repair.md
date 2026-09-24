@@ -14,6 +14,10 @@ reconnects, persists opt-out, and is distinct from Stop sharing.
   redirect ordinary startup. Public invitations contain no private capability.
 - `swarm-autoconnect.js` owns application retry timers; the existing transport owns
   socket reconnects. Importing either module does not start discovery.
+- Hosted peer negotiation obtains short-lived authorized ICE configuration from
+  the existing authenticated Poolday RTC endpoint through a host port. The library
+  does not mint or persist TURN credentials. Loopback development and explicit
+  host configuration remain independent. Credential failure uses bounded retry.
 - `PublicSwarmServer` admits exact origins and bounded public/private negotiation
   on `/swarm`. It rejects application relay payloads and cross-namespace targets.
   Origin admission is not authentication. Existing job and resource grants apply.
@@ -55,3 +59,8 @@ establishing WebRTC and checking disconnect and separate contribution consent.
 Asset delivery and discovery evidence does not qualify model generation, LoRA
 application or distributed layer execution. Server-side asset verifiers must use an
 explicit public application origin to resolve origin-relative configuration.
+
+Follow-up [physical-device evidence](../artifacts/physical-swarm-2026-09-23.md)
+records a TURN-relayed connection with local patched modules, persistent opt-out,
+private isolation, and a **failed** real chat attempt during cold model loading.
+It does not qualify the patched modules as deployed or chat as working.

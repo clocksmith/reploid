@@ -331,9 +331,12 @@ export function createLegacyGenerationMesh({ config, ports }) {
           advertiseSelf();
           emitSwarmState();
         }, 'self-bridge'));
-        subscriptions.push(eventBus.on('swarm:peer-left', () => {
+        const retirePeer = ({ peerId }) => {
+          swarmController.removePeer(peerId);
           emitSwarmState();
-        }, 'self-bridge'));
+        };
+        subscriptions.push(eventBus.on('swarm:peer-left', retirePeer, 'self-bridge'));
+        subscriptions.push(eventBus.on('swarm:peer-disconnected', retirePeer, 'self-bridge'));
         subscriptions.push(eventBus.on('swarm:state-change', () => {
           emitSwarmState();
         }, 'self-bridge'));
@@ -404,6 +407,7 @@ export function createLegacyGenerationMesh({ config, ports }) {
       const timeoutId = setTimeout(() => {
         const pending = pendingRemoteRequests.get(requestId);
         pendingRemoteRequests.delete(requestId);
+        if (pending) swarmTransport.sendToPeer(provider.peerId, 'reploid:generation-cancel', { requestId });
         pending?.reject(new Error('Timed out waiting for remote host slot response'));
       }, REMOTE_GENERATION_TIMEOUT_MS);
 

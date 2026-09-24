@@ -4,6 +4,7 @@ import { getCurrentReploidStorage } from '../../instance.js';
 import policy from '../../config/swarm-bootstrap.json' with { type: 'json' };
 import { resolveSwarmJoin, resolveSwarmSignalingUrl } from './swarm-join-policy.js';
 import { resolveRtcConfig } from '../../pool/p2p-transport.js';
+import { getPoolRtcConfig } from '../../pool/rtc-config.js';
 
 export function createLegacyNetworkOptions(deps = {}, { enabled } = {}) {
   const win = globalThis.window;
@@ -19,6 +20,15 @@ export function createLegacyNetworkOptions(deps = {}, { enabled } = {}) {
   } });
   return {
     ...deps, config, rtcConfig: deps.rtcConfig || resolveRtcConfig(),
+    // Fetch expiring credentials at negotiation, not import or discovery time.
+    // Explicit host configuration and loopback development remain independent.
+    getRtcConfig: deps.getRtcConfig || (() => {
+      if (deps.rtcConfig || globalThis.REPLOID_POOL_RTC_CONFIG
+        || ['localhost', '127.0.0.1', '[::1]'].includes(new URL(location.href).hostname)) {
+        return deps.rtcConfig || resolveRtcConfig();
+      }
+      return getPoolRtcConfig();
+    }),
     autoConnect: join.autoConnect && enabled !== false, discoveryScope: join.scope,
     getInviteUrl() {
       const url = new URL(location.href);

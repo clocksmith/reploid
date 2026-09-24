@@ -140,3 +140,88 @@ test('a disconnect from a state listener cannot start a late socket', async () =
   assert.equal(await fixture.transport.init(), false);
   assert.equal(fixture.sockets.length, 0);
 });
+
+test('both negotiation roles obtain fresh host RTC credentials without persisting them', async () => {
+  const configurations = [];
+  let calls = 0;
+  class PeerConnection {
+    constructor(config) { configurations.push(config); }
+    createDataChannel() { return { close() {} }; }
+    async createOffer() { return {}; }
+    async setLocalDescription() {}
+    async setRemoteDescription() {}
+    async createAnswer() { return {}; }
+    close() {}
+  }
+  const { transport, sockets } = transportFixture({ RTCPeerConnection: PeerConnection,
+    getRtcConfig: async () => ({ iceServers: [{ urls: 'turn:test.invalid', credential: String(++calls) }] }) });
+  try {
+    const pending = transport.init(); sockets[0].open();
+    await sockets[0].message({ type: 'joined', peerId: 'peer-test', roomId: policy.publicRoomId, peers: ['first'] });
+    assert.equal(await pending, true);
+    await sockets[0].message({ type: 'offer', peerId: 'second', offer: {} });
+    assert.deepEqual(configurations.map(c => c.iceServers[0].credential), ['1', '2']);
+    assert.equal(JSON.stringify(transport.getStats()).includes('turn:test.invalid'), false);
+  } finally { transport.disconnect(); }
+});
+
+test('disconnect retires a pending RTC credential request before it can construct a peer', async () => {
+  let resolveRtc;
+  let constructions = 0;
+  const { transport, sockets } = transportFixture({
+    getRtcConfig: () => new Promise(resolve => { resolveRtc = resolve; }),
+    RTCPeerConnection: class { constructor() { constructions++; } }
+  });
+  const pending = transport.init(); sockets[0].open();
+  const negotiating = sockets[0].message({ type: 'joined', peerId: 'peer-test', roomId: policy.publicRoomId, peers: ['other'] });
+  assert.equal(await pending, true);
+  transport.disconnect();
+  resolveRtc({ iceServers: [] });
+  await negotiating;
+  assert.equal(constructions, 0);
+  assert.equal(transport.getConnectionState(), 'stopped');
+});
+
+test('RTC credential failures use the existing reconnect lifecycle without an uncredentialed fallback', async () => {
+  let constructions = 0;
+  const { transport, sockets } = transportFixture({
+    getRtcConfig: async () => { throw new Error('RTC authorization unavailable'); },
+    RTCPeerConnection: class { constructor() { constructions++; } }
+  });
+  const pending = transport.init(); sockets[0].open();
+  await sockets[0].message({ type: 'joined', peerId: 'peer-test', roomId: policy.publicRoomId, peers: ['other'] });
+  await pending;
+  assert.equal(constructions, 0);
+  assert.equal(transport.getConnectionState(), 'retrying');
+  transport.disconnect();
+});
+
+test('WebRTC carries request cancellation to the peer job owner', async () => {
+  const channel = { close() {} };
+  const disconnected = [];
+  class PeerConnection {
+    createDataChannel() { return channel; }
+    async createOffer() { return {}; }
+    async setLocalDescription() {}
+    close() {}
+  }
+  const { transport, sockets } = transportFixture({ RTCPeerConnection: PeerConnection,
+    EventBus: { emit(type, payload) { if (type === 'swarm:peer-disconnected') disconnected.push(payload.peerId); } } });
+  const delivered = [];
+  transport.onMessage('reploid:generation-cancel', (peer, payload) => delivered.push({ peer, payload }));
+  try {
+    const pending = transport.init(); sockets[0].open();
+    await sockets[0].message({ type: 'joined', peerId: 'peer-test', roomId: policy.publicRoomId, peers: ['other'] });
+    await pending;
+    const payload = { requestId: 'only-this-attempt' };
+    channel.onmessage({ data: JSON.stringify({ protocolVersion: 1, type: 'reploid:generation-cancel',
+      peerId: 'other', timestamp: 1, payload, payloadSize: JSON.stringify(payload).length }) });
+    assert.deepEqual(delivered, [{ peer: 'other', payload }]);
+    assert.equal(transport.getStats().rejected, 0);
+    channel.onopen();
+    assert.equal(transport.getConnectedPeers().length, 1);
+    channel.onclose();
+    assert.deepEqual(disconnected, ['other']);
+    assert.deepEqual(transport.getConnectedPeers(), []);
+  } finally { transport.disconnect(); }
+});

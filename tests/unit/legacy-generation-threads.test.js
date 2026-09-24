@@ -2,14 +2,14 @@ import { it, expect, vi } from 'vitest';
 import { createLegacyGenerationMesh } from '../../packages/reploid/src/mesh/legacy-generation.js';
 import { resolveConfig } from '../../packages/reploid/src/config/index.js';
 
-function fixture() {
+function fixture(meshOverrides = {}) {
   const handlers = new Map(), listeners = new Map(), sent = [];
   const events = {
     on(name, fn) { if (!listeners.has(name)) listeners.set(name, new Set()); listeners.get(name).add(fn); return () => listeners.get(name).delete(fn); },
     emit(name, value) { for (const fn of listeners.get(name) || []) fn(value); }
   };
   const authorize = vi.fn(async () => true);
-  const mesh = createLegacyGenerationMesh({ config: resolveConfig({ overrides: { mesh: { enabled: true, roomId: 'test' } } }), ports: {
+  const mesh = createLegacyGenerationMesh({ config: resolveConfig({ overrides: { mesh: { enabled: true, roomId: 'test', ...meshOverrides } } }), ports: {
     instanceId: 'test', modelConfig: null, authorize, generate: async () => {},
     utils: { generateId: () => crypto.randomUUID() }, events, eventBus: events,
     identity: { ensure: async () => ({ peerId: 'requester' }), sync: async () => {}, save: async () => {} },
@@ -21,7 +21,7 @@ function fixture() {
     { hasInference: true, swarmEnabled: true, model, updatedAt: Date.now() });
   const respond = (request, model = request.payload.model) => handlers.get('reploid:generation-result')(request.peer,
     { requestId: request.payload.requestId, response: { model, content: 'response' } });
-  return { mesh, sent, advertise, respond, authorize };
+  return { mesh, sent, advertise, respond, authorize, events };
 }
 
 it('reserves separate compatible peers during concurrent approval and binds host context without putting it on the wire', async () => {
@@ -61,4 +61,34 @@ it('cancels a waiter without dispatch and cancels only the matching remote reque
   a.abort(new Error('Stop first')); await stoppedFirst;
   expect(f.sent[1]).toMatchObject({ peer: 'east', name: 'reploid:generation-cancel', payload: { requestId: f.sent[0].payload.requestId } });
   await f.mesh.close();
+});
+
+it('expires a request with a matching remote cancellation and ignores a late result', async () => {
+  vi.useFakeTimers();
+  const f = fixture({ generationTimeoutMs: 1000 });
+  try {
+    await f.mesh.connect(); f.advertise('east', 'qwen');
+    const request = f.mesh.generate([], null, { modelId: 'qwen' });
+    const failed = expect(request).rejects.toThrow('Timed out');
+    await vi.advanceTimersByTimeAsync(0);
+    expect(f.sent).toHaveLength(1);
+    await vi.advanceTimersByTimeAsync(1000);
+    await failed;
+    expect(f.sent[1]).toEqual({ peer: 'east', name: 'reploid:generation-cancel',
+      payload: { requestId: f.sent[0].payload.requestId } });
+    await f.respond(f.sent[0]);
+    expect(f.sent).toHaveLength(2);
+  } finally { await f.mesh.close(); vi.useRealTimers(); }
+});
+
+it('retires disconnected and departed advertisements from counts and placement', async () => {
+  const f = fixture(); await f.mesh.connect();
+  try {
+    f.advertise('east', 'qwen'); f.advertise('west', 'qwen');
+    f.events.emit('swarm:peer-disconnected', { peerId: 'east' });
+    expect(f.mesh.getSwarmSnapshot().peers.map(p => p.peerId)).toEqual(['west']);
+    f.events.emit('swarm:peer-left', { peerId: 'west' });
+    expect(f.mesh.getSwarmSnapshot().peerCount).toBe(0);
+    expect(f.mesh.hasAvailableProvider('qwen')).toBe(false);
+  } finally { await f.mesh.close(); }
 });

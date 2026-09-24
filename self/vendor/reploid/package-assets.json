@@ -556,8 +556,8 @@
     },
     {
       "path": "mesh/legacy-generation.js",
-      "bytes": 19185,
-      "sha256": "00283edca6ff4cbc62250097c9b20e931b41aa8d43c93a01d438e8ff056c7215"
+      "bytes": 19484,
+      "sha256": "49526d89d5fb209f81682c223a27f46fa4ba1a262abaacbc3d2eaecf4861c9c6"
     },
     {
       "path": "mesh/partitions/partition-runner.js",
@@ -651,8 +651,8 @@
     },
     {
       "path": "transport/swarm.js",
-      "bytes": 31354,
-      "sha256": "5b3089a77b019c5a2562984a4407cd5f50354e44a76bf54bc1a46c068d9d9fe8"
+      "bytes": 32204,
+      "sha256": "40291d43e5e5fd3c0713d6ae27bed5260c91a0382c6d5247988252b646a24493"
     },
     {
       "path": "transport/tool-offer-channel.d.ts",

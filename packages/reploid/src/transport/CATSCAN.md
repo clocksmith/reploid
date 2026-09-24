@@ -13,6 +13,8 @@ This directory and unchartered descendants.
 
 ## Contracts
 Inputs: immutable policy and explicit host ports.
+An optional asynchronous `getRtcConfig` host port supplies fresh authorized ICE
+configuration for each negotiation; the transport neither issues nor persists credentials.
 Outputs: bounded operations, state, failures and retained evidence.
 
 ## Invariants
