@@ -1,0 +1,4052 @@
+{
+  "started": "2026-09-23T19:40:45.853Z",
+  "url": "https://replo.id",
+  "devices": {
+    "remote": {
+      "host": "suby",
+      "browser": "136.0.7103.59"
+    },
+    "local": {
+      "browser": "153.0.8010.53"
+    }
+  },
+  "events": [
+    {
+      "label": "local",
+      "type": "joined",
+      "roomId": "reploid-swarm-public",
+      "peerId": "12eb6bba-21a2-4640-a4de-4d0e8cf07d5f"
+    },
+    {
+      "label": "local",
+      "type": "joined",
+      "roomId": "reploid-swarm-public",
+      "peerId": "4fa495fd-ff66-4446-bfa0-32444792cc9b"
+    },
+    {
+      "label": "local",
+      "console": "[WARN] [WebRTCSwarm] Registering handler for unknown type: reploid:generation-cancel"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Initializing - peerId: 4fa495fd-ff66-4446-bfa0-32444792cc9b, room: reploid-swarm-public"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Connecting to wss://reploid-pool-kbxuhkisna-uc.a.run.app/swarm?scope=public"
+    },
+    {
+      "label": "local",
+      "console": "[DEBUG] [WebRTCSwarm] Received welcome from signaling server"
+    },
+    {
+      "label": "local",
+      "type": "joined",
+      "roomId": "reploid-swarm-public",
+      "peerId": "4fa495fd-ff66-4446-bfa0-32444792cc9b"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Joined room reploid-swarm-public, existing peers: 0"
+    },
+    {
+      "label": "local",
+      "console": "[WARN] [WebRTCSwarm] Registering handler for unknown type: reploid:generation-cancel"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [SwarmTransport] Using WebRTC transport via WebRTCSwarm"
+    },
+    {
+      "label": "local",
+      "console": "[WARN] [WebRTCSwarm] Registering handler for unknown type: reploid:generation-cancel"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Initializing - peerId: 12eb6bba-21a2-4640-a4de-4d0e8cf07d5f, room: reploid-swarm-public"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Connecting to wss://reploid-pool-kbxuhkisna-uc.a.run.app/swarm?scope=public"
+    },
+    {
+      "label": "local",
+      "console": "[DEBUG] [WebRTCSwarm] Received welcome from signaling server"
+    },
+    {
+      "label": "local",
+      "type": "joined",
+      "roomId": "reploid-swarm-public",
+      "peerId": "12eb6bba-21a2-4640-a4de-4d0e8cf07d5f"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Joined room reploid-swarm-public, existing peers: 1"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Connecting to peer: 4fa495fd-ff66-4446-bfa0-32444792cc9b"
+    },
+    {
+      "label": "local",
+      "console": "[WARN] [WebRTCSwarm] Registering handler for unknown type: reploid:generation-cancel"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [SwarmTransport] Using WebRTC transport via WebRTCSwarm"
+    },
+    {
+      "label": "local",
+      "console": "[WARN] [WebRTCSwarm] Cannot send to 4fa495fd-ff66-4446-bfa0-32444792cc9b: not connected"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Peer joined: 12eb6bba-21a2-4640-a4de-4d0e8cf07d5f"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Received offer from: 12eb6bba-21a2-4640-a4de-4d0e8cf07d5f"
+    },
+    {
+      "label": "local",
+      "console": "[DEBUG] [WebRTCSwarm] Connection state with 4fa495fd-ff66-4446-bfa0-32444792cc9b: connecting"
+    },
+    {
+      "label": "local",
+      "console": "[DEBUG] [WebRTCSwarm] Connection state with 4fa495fd-ff66-4446-bfa0-32444792cc9b: failed"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Data channel closed with 4fa495fd-ff66-4446-bfa0-32444792cc9b"
+    },
+    {
+      "label": "local",
+      "console": "[WARN] [WebRTCSwarm] Cannot send to 12eb6bba-21a2-4640-a4de-4d0e8cf07d5f: not connected"
+    },
+    {
+      "label": "local",
+      "console": "[WARN] [WebRTCSwarm] Registering handler for unknown type: reploid:generation-cancel"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Initializing - peerId: 4fa495fd-ff66-4446-bfa0-32444792cc9b, room: reploid-swarm-public"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Connecting to wss://reploid-pool-kbxuhkisna-uc.a.run.app/swarm?scope=public"
+    },
+    {
+      "label": "local",
+      "console": "[DEBUG] [WebRTCSwarm] Received welcome from signaling server"
+    },
+    {
+      "label": "local",
+      "type": "joined",
+      "roomId": "reploid-swarm-public",
+      "peerId": "4fa495fd-ff66-4446-bfa0-32444792cc9b"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Joined room reploid-swarm-public, existing peers: 0"
+    },
+    {
+      "label": "local",
+      "console": "[WARN] [WebRTCSwarm] Registering handler for unknown type: reploid:generation-cancel"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [SwarmTransport] Using WebRTC transport via WebRTCSwarm"
+    },
+    {
+      "label": "local",
+      "console": "[WARN] [WebRTCSwarm] Registering handler for unknown type: reploid:generation-cancel"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Initializing - peerId: 12eb6bba-21a2-4640-a4de-4d0e8cf07d5f, room: reploid-swarm-public"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Connecting to wss://reploid-pool-kbxuhkisna-uc.a.run.app/swarm?scope=public"
+    },
+    {
+      "label": "local",
+      "console": "[DEBUG] [WebRTCSwarm] Received welcome from signaling server"
+    },
+    {
+      "label": "local",
+      "type": "joined",
+      "roomId": "reploid-swarm-public",
+      "peerId": "12eb6bba-21a2-4640-a4de-4d0e8cf07d5f"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Joined room reploid-swarm-public, existing peers: 1"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Connecting to peer: 4fa495fd-ff66-4446-bfa0-32444792cc9b"
+    },
+    {
+      "label": "local",
+      "console": "[WARN] [WebRTCSwarm] Registering handler for unknown type: reploid:generation-cancel"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [SwarmTransport] Using WebRTC transport via WebRTCSwarm"
+    },
+    {
+      "label": "local",
+      "console": "[WARN] [WebRTCSwarm] Cannot send to 4fa495fd-ff66-4446-bfa0-32444792cc9b: not connected"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Peer joined: 12eb6bba-21a2-4640-a4de-4d0e8cf07d5f"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Received offer from: 12eb6bba-21a2-4640-a4de-4d0e8cf07d5f"
+    },
+    {
+      "label": "local",
+      "console": "[DEBUG] [WebRTCSwarm] Connection state with 4fa495fd-ff66-4446-bfa0-32444792cc9b: connecting"
+    },
+    {
+      "label": "local",
+      "console": "[DEBUG] [WebRTCSwarm] Connection state with 4fa495fd-ff66-4446-bfa0-32444792cc9b: failed"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Data channel closed with 4fa495fd-ff66-4446-bfa0-32444792cc9b"
+    },
+    {
+      "label": "local",
+      "console": "[WARN] [WebRTCSwarm] Cannot send to 12eb6bba-21a2-4640-a4de-4d0e8cf07d5f: not connected"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Peer left: 12eb6bba-21a2-4640-a4de-4d0e8cf07d5f"
+    },
+    {
+      "label": "local",
+      "console": "[WARN] [WebRTCSwarm] Registering handler for unknown type: reploid:generation-cancel"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Initializing - peerId: 12eb6bba-21a2-4640-a4de-4d0e8cf07d5f, room: reploid-swarm-public"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Connecting to wss://reploid-pool-kbxuhkisna-uc.a.run.app/swarm?scope=public"
+    },
+    {
+      "label": "local",
+      "console": "[DEBUG] [WebRTCSwarm] Received welcome from signaling server"
+    },
+    {
+      "label": "local",
+      "type": "joined",
+      "roomId": "reploid-swarm-public",
+      "peerId": "12eb6bba-21a2-4640-a4de-4d0e8cf07d5f"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Joined room reploid-swarm-public, existing peers: 0"
+    },
+    {
+      "label": "local",
+      "console": "[WARN] [WebRTCSwarm] Registering handler for unknown type: reploid:generation-cancel"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [SwarmTransport] Using WebRTC transport via WebRTCSwarm"
+    },
+    {
+      "label": "local",
+      "console": "[WARN] [WebRTCSwarm] Registering handler for unknown type: reploid:generation-cancel"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Initializing - peerId: 4fa495fd-ff66-4446-bfa0-32444792cc9b, room: reploid-swarm-public"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Connecting to wss://reploid-pool-kbxuhkisna-uc.a.run.app/swarm?scope=public"
+    },
+    {
+      "label": "local",
+      "console": "[DEBUG] [WebRTCSwarm] Received welcome from signaling server"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Peer joined: 4fa495fd-ff66-4446-bfa0-32444792cc9b"
+    },
+    {
+      "label": "local",
+      "type": "joined",
+      "roomId": "reploid-swarm-public",
+      "peerId": "4fa495fd-ff66-4446-bfa0-32444792cc9b"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Joined room reploid-swarm-public, existing peers: 1"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Connecting to peer: 12eb6bba-21a2-4640-a4de-4d0e8cf07d5f"
+    },
+    {
+      "label": "local",
+      "console": "[WARN] [WebRTCSwarm] Registering handler for unknown type: reploid:generation-cancel"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [SwarmTransport] Using WebRTC transport via WebRTCSwarm"
+    },
+    {
+      "label": "local",
+      "console": "[WARN] [WebRTCSwarm] Cannot send to 12eb6bba-21a2-4640-a4de-4d0e8cf07d5f: not connected"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Received offer from: 4fa495fd-ff66-4446-bfa0-32444792cc9b"
+    },
+    {
+      "label": "local",
+      "console": "[DEBUG] [WebRTCSwarm] Connection state with 12eb6bba-21a2-4640-a4de-4d0e8cf07d5f: connecting"
+    },
+    {
+      "label": "local",
+      "console": "[DEBUG] [WebRTCSwarm] Connection state with 12eb6bba-21a2-4640-a4de-4d0e8cf07d5f: connected"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Data channel opened with 12eb6bba-21a2-4640-a4de-4d0e8cf07d5f"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Data channel opened with 4fa495fd-ff66-4446-bfa0-32444792cc9b"
+    },
+    {
+      "label": "local",
+      "console": "[DEBUG] [WebRTCSwarm] Latency to 4fa495fd-ff66-4446-bfa0-32444792cc9b: 176ms"
+    },
+    {
+      "label": "local",
+      "console": "[DEBUG] [WebRTCSwarm] Latency to 12eb6bba-21a2-4640-a4de-4d0e8cf07d5f: 75ms"
+    },
+    {
+      "label": "local",
+      "console": "[DEBUG] [WebRTCSwarm] Latency to 4fa495fd-ff66-4446-bfa0-32444792cc9b: 170ms"
+    },
+    {
+      "label": "local",
+      "console": "[DEBUG] [WebRTCSwarm] Latency to 12eb6bba-21a2-4640-a4de-4d0e8cf07d5f: 76ms"
+    },
+    {
+      "label": "local",
+      "console": "[DEBUG] [WebRTCSwarm] Latency to 4fa495fd-ff66-4446-bfa0-32444792cc9b: 173ms"
+    },
+    {
+      "label": "local",
+      "console": "[DEBUG] [WebRTCSwarm] Latency to 12eb6bba-21a2-4640-a4de-4d0e8cf07d5f: 72ms"
+    },
+    {
+      "label": "local",
+      "console": "[WARN] [WebRTCSwarm] Registering handler for unknown type: reploid:generation-cancel"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Initializing - peerId: 12eb6bba-21a2-4640-a4de-4d0e8cf07d5f, room: reploid-swarm-public"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Connecting to wss://reploid-pool-kbxuhkisna-uc.a.run.app/swarm?scope=public"
+    },
+    {
+      "label": "local",
+      "console": "[DEBUG] [WebRTCSwarm] Received welcome from signaling server"
+    },
+    {
+      "label": "local",
+      "type": "joined",
+      "roomId": "reploid-swarm-public",
+      "peerId": "12eb6bba-21a2-4640-a4de-4d0e8cf07d5f"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Joined room reploid-swarm-public, existing peers: 0"
+    },
+    {
+      "label": "local",
+      "console": "[WARN] [WebRTCSwarm] Registering handler for unknown type: reploid:generation-cancel"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [SwarmTransport] Using WebRTC transport via WebRTCSwarm"
+    },
+    {
+      "label": "local",
+      "console": "[WARN] [WebRTCSwarm] Registering handler for unknown type: reploid:generation-cancel"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Initializing - peerId: 4fa495fd-ff66-4446-bfa0-32444792cc9b, room: reploid-swarm-public"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Connecting to wss://reploid-pool-kbxuhkisna-uc.a.run.app/swarm?scope=public"
+    },
+    {
+      "label": "local",
+      "console": "[DEBUG] [WebRTCSwarm] Received welcome from signaling server"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Peer joined: 4fa495fd-ff66-4446-bfa0-32444792cc9b"
+    },
+    {
+      "label": "local",
+      "type": "joined",
+      "roomId": "reploid-swarm-public",
+      "peerId": "4fa495fd-ff66-4446-bfa0-32444792cc9b"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Joined room reploid-swarm-public, existing peers: 1"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Connecting to peer: 12eb6bba-21a2-4640-a4de-4d0e8cf07d5f"
+    },
+    {
+      "label": "local",
+      "console": "[WARN] [WebRTCSwarm] Registering handler for unknown type: reploid:generation-cancel"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [SwarmTransport] Using WebRTC transport via WebRTCSwarm"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Received offer from: 4fa495fd-ff66-4446-bfa0-32444792cc9b"
+    },
+    {
+      "label": "local",
+      "console": "[DEBUG] [WebRTCSwarm] Connection state with 12eb6bba-21a2-4640-a4de-4d0e8cf07d5f: connecting"
+    },
+    {
+      "label": "local",
+      "console": "[DEBUG] [WebRTCSwarm] Connection state with 12eb6bba-21a2-4640-a4de-4d0e8cf07d5f: connected"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Data channel opened with 4fa495fd-ff66-4446-bfa0-32444792cc9b"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Data channel opened with 12eb6bba-21a2-4640-a4de-4d0e8cf07d5f"
+    },
+    {
+      "label": "local",
+      "console": "[DEBUG] [WebRTCSwarm] Latency to 4fa495fd-ff66-4446-bfa0-32444792cc9b: 154ms"
+    },
+    {
+      "label": "local",
+      "console": "[DEBUG] [WebRTCSwarm] Latency to 12eb6bba-21a2-4640-a4de-4d0e8cf07d5f: 74ms"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Data channel closed with 12eb6bba-21a2-4640-a4de-4d0e8cf07d5f"
+    },
+    {
+      "label": "local",
+      "console": "[ERROR] [WebRTCSwarm] Data channel error with 4fa495fd-ff66-4446-bfa0-32444792cc9b: RTCErrorEvent"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Data channel closed with 4fa495fd-ff66-4446-bfa0-32444792cc9b"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Peer left: 4fa495fd-ff66-4446-bfa0-32444792cc9b"
+    },
+    {
+      "label": "local",
+      "console": "[WARN] [WebRTCSwarm] Registering handler for unknown type: reploid:generation-cancel"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Initializing - peerId: 4fa495fd-ff66-4446-bfa0-32444792cc9b, room: reploid-swarm-public"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Connecting to wss://reploid-pool-kbxuhkisna-uc.a.run.app/swarm?scope=public"
+    },
+    {
+      "label": "local",
+      "console": "[DEBUG] [WebRTCSwarm] Received welcome from signaling server"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Peer joined: 4fa495fd-ff66-4446-bfa0-32444792cc9b"
+    },
+    {
+      "label": "local",
+      "type": "joined",
+      "roomId": "reploid-swarm-public",
+      "peerId": "4fa495fd-ff66-4446-bfa0-32444792cc9b"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Joined room reploid-swarm-public, existing peers: 1"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Connecting to peer: 12eb6bba-21a2-4640-a4de-4d0e8cf07d5f"
+    },
+    {
+      "label": "local",
+      "console": "[WARN] [WebRTCSwarm] Registering handler for unknown type: reploid:generation-cancel"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [SwarmTransport] Using WebRTC transport via WebRTCSwarm"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Received offer from: 4fa495fd-ff66-4446-bfa0-32444792cc9b"
+    },
+    {
+      "label": "local",
+      "console": "[DEBUG] [WebRTCSwarm] Connection state with 12eb6bba-21a2-4640-a4de-4d0e8cf07d5f: connecting"
+    },
+    {
+      "label": "local",
+      "console": "[DEBUG] [WebRTCSwarm] Connection state with 12eb6bba-21a2-4640-a4de-4d0e8cf07d5f: connected"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Data channel opened with 12eb6bba-21a2-4640-a4de-4d0e8cf07d5f"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Data channel opened with 4fa495fd-ff66-4446-bfa0-32444792cc9b"
+    },
+    {
+      "label": "local",
+      "console": "[DEBUG] [WebRTCSwarm] Latency to 4fa495fd-ff66-4446-bfa0-32444792cc9b: 92ms"
+    },
+    {
+      "label": "local",
+      "console": "[DEBUG] [WebRTCSwarm] Latency to 12eb6bba-21a2-4640-a4de-4d0e8cf07d5f: 70ms"
+    },
+    {
+      "label": "local",
+      "console": "[WARN] [WebRTCSwarm] Registering handler for unknown type: reploid:generation-cancel"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Initializing - peerId: peer_mueim585_le6164rc, room: reploid-swarm-public"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Connecting to wss://reploid-pool-kbxuhkisna-uc.a.run.app/swarm?scope=public"
+    },
+    {
+      "label": "local",
+      "console": "[DEBUG] [WebRTCSwarm] Received welcome from signaling server"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Peer joined: peer_mueim585_le6164rc"
+    },
+    {
+      "label": "local",
+      "type": "joined",
+      "roomId": "reploid-swarm-public",
+      "peerId": "peer_mueim585_le6164rc"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Joined room reploid-swarm-public, existing peers: 2"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Connecting to peer: 12eb6bba-21a2-4640-a4de-4d0e8cf07d5f"
+    },
+    {
+      "label": "local",
+      "console": "[WARN] [WebRTCSwarm] Registering handler for unknown type: reploid:generation-cancel"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [SwarmTransport] Using WebRTC transport via WebRTCSwarm"
+    },
+    {
+      "label": "local",
+      "console": "[WARN] [WebRTCSwarm] Cannot send to 12eb6bba-21a2-4640-a4de-4d0e8cf07d5f: not connected"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Connecting to peer: 4fa495fd-ff66-4446-bfa0-32444792cc9b"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Peer joined: peer_mueim585_le6164rc"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Received offer from: peer_mueim585_le6164rc"
+    },
+    {
+      "label": "local",
+      "console": "[DEBUG] [WebRTCSwarm] Connection state with 12eb6bba-21a2-4640-a4de-4d0e8cf07d5f: connecting"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Received offer from: peer_mueim585_le6164rc"
+    },
+    {
+      "label": "local",
+      "console": "[DEBUG] [WebRTCSwarm] Connection state with 12eb6bba-21a2-4640-a4de-4d0e8cf07d5f: connected"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Data channel opened with 12eb6bba-21a2-4640-a4de-4d0e8cf07d5f"
+    },
+    {
+      "label": "local",
+      "console": "[WARN] [WebRTCSwarm] Cannot send to peer_mueim585_le6164rc: not connected"
+    },
+    {
+      "label": "local",
+      "console": "[WARN] [WebRTCSwarm] Cannot send to 4fa495fd-ff66-4446-bfa0-32444792cc9b: not connected"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Data channel opened with peer_mueim585_le6164rc"
+    },
+    {
+      "label": "local",
+      "console": "[WARN] [WebRTCSwarm] Cannot send to 4fa495fd-ff66-4446-bfa0-32444792cc9b: not connected"
+    },
+    {
+      "label": "local",
+      "console": "[DEBUG] [WebRTCSwarm] Connection state with 4fa495fd-ff66-4446-bfa0-32444792cc9b: connecting"
+    },
+    {
+      "label": "local",
+      "console": "[DEBUG] [WebRTCSwarm] Connection state with 4fa495fd-ff66-4446-bfa0-32444792cc9b: connected"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Data channel opened with 4fa495fd-ff66-4446-bfa0-32444792cc9b"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Data channel opened with peer_mueim585_le6164rc"
+    },
+    {
+      "label": "local",
+      "console": "[DEBUG] [WebRTCSwarm] Latency to peer_mueim585_le6164rc: 3ms"
+    },
+    {
+      "label": "local",
+      "console": "[DEBUG] [WebRTCSwarm] Latency to 4fa495fd-ff66-4446-bfa0-32444792cc9b: 210ms"
+    },
+    {
+      "label": "local",
+      "console": "[DEBUG] [WebRTCSwarm] Latency to peer_mueim585_le6164rc: 70ms"
+    },
+    {
+      "label": "local",
+      "console": "[DEBUG] [WebRTCSwarm] Latency to 12eb6bba-21a2-4640-a4de-4d0e8cf07d5f: 70ms"
+    },
+    {
+      "label": "local",
+      "console": "[DEBUG] [WebRTCSwarm] Latency to 12eb6bba-21a2-4640-a4de-4d0e8cf07d5f: 2ms"
+    },
+    {
+      "label": "local",
+      "console": "[DEBUG] [WebRTCSwarm] Latency to 4fa495fd-ff66-4446-bfa0-32444792cc9b: 112ms"
+    },
+    {
+      "label": "local",
+      "console": "[DEBUG] [WebRTCSwarm] Latency to peer_mueim585_le6164rc: 2ms"
+    },
+    {
+      "label": "local",
+      "console": "[DEBUG] [WebRTCSwarm] Latency to 4fa495fd-ff66-4446-bfa0-32444792cc9b: 188ms"
+    },
+    {
+      "label": "local",
+      "console": "[DEBUG] [WebRTCSwarm] Latency to 12eb6bba-21a2-4640-a4de-4d0e8cf07d5f: 68ms"
+    },
+    {
+      "label": "local",
+      "console": "[DEBUG] [WebRTCSwarm] Latency to peer_mueim585_le6164rc: 70ms"
+    },
+    {
+      "label": "local",
+      "console": "[DEBUG] [WebRTCSwarm] Latency to 12eb6bba-21a2-4640-a4de-4d0e8cf07d5f: 3ms"
+    },
+    {
+      "label": "local",
+      "console": "[DEBUG] [WebRTCSwarm] Latency to 4fa495fd-ff66-4446-bfa0-32444792cc9b: 571ms"
+    },
+    {
+      "device": "local",
+      "level": "log",
+      "message": "[177143.9ms][Loader] Initializing..."
+    },
+    {
+      "device": "local",
+      "level": "log",
+      "message": "[177169.4ms][Loader] Initialized (f16, subgroups, unified)"
+    },
+    {
+      "device": "local",
+      "level": "log",
+      "message": "[177169.6ms][Loader] Loading: qwen-3-5-2b-q4k-ehaf16"
+    },
+    {
+      "device": "local",
+      "level": "log",
+      "message": "[177170.8ms][Loader] [0.0s] Memory (start): | Heap=2.04 GB/2.04 GB (limit=4.09 GB) | GPU=0 B (0 active, 0 pooled, peak=0 B) | ShardCache=0 B (0 shards) | Layers=0, GPUBuffers=0"
+    },
+    {
+      "device": "local",
+      "level": "log",
+      "message": "[177172.2ms][Loader] Embedding \"model.language_model.embed_tokens.weight\" GPU-resident: shouldStreamLargeWeight returned false."
+    },
+    {
+      "label": "local",
+      "console": "[DEBUG] [WebRTCSwarm] Latency to peer_mueim585_le6164rc: 2ms"
+    },
+    {
+      "label": "local",
+      "console": "[DEBUG] [WebRTCSwarm] Latency to 4fa495fd-ff66-4446-bfa0-32444792cc9b: 80ms"
+    },
+    {
+      "label": "local",
+      "console": "[DEBUG] [WebRTCSwarm] Latency to peer_mueim585_le6164rc: 594ms"
+    },
+    {
+      "label": "local",
+      "console": "[DEBUG] [WebRTCSwarm] Latency to 12eb6bba-21a2-4640-a4de-4d0e8cf07d5f: 594ms"
+    },
+    {
+      "label": "local",
+      "console": "[DEBUG] [WebRTCSwarm] Latency to 12eb6bba-21a2-4640-a4de-4d0e8cf07d5f: 1ms"
+    },
+    {
+      "label": "local",
+      "console": "[DEBUG] [WebRTCSwarm] Latency to 4fa495fd-ff66-4446-bfa0-32444792cc9b: 71ms"
+    },
+    {
+      "device": "local",
+      "level": "log",
+      "message": "[207182.7ms][Loader] [30.0s] Memory (loading): | Heap=1.13 GB/1.13 GB (limit=4.09 GB) | GPU=970.00 MB (1 active, 0 pooled, peak=970.00 MB) | ShardCache=0 B (0 shards) | Layers=0, GPUBuffers=0"
+    },
+    {
+      "label": "local",
+      "console": "[DEBUG] [WebRTCSwarm] Latency to peer_mueim585_le6164rc: 2ms"
+    },
+    {
+      "label": "local",
+      "console": "[DEBUG] [WebRTCSwarm] Latency to 4fa495fd-ff66-4446-bfa0-32444792cc9b: 179ms"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Data channel closed with 12eb6bba-21a2-4640-a4de-4d0e8cf07d5f"
+    },
+    {
+      "label": "local",
+      "console": "[ERROR] [WebRTCSwarm] Data channel error with peer_mueim585_le6164rc: RTCErrorEvent"
+    },
+    {
+      "device": "local",
+      "level": "error",
+      "message": "[ERROR] [WebRTCSwarm] Data channel error with peer_mueim585_le6164rc: RTCErrorEvent"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Data channel closed with peer_mueim585_le6164rc"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Data channel closed with 4fa495fd-ff66-4446-bfa0-32444792cc9b"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Peer left: peer_mueim585_le6164rc"
+    },
+    {
+      "label": "local",
+      "console": "[ERROR] [WebRTCSwarm] Data channel error with peer_mueim585_le6164rc: RTCErrorEvent"
+    },
+    {
+      "device": "remote",
+      "level": "error",
+      "message": "[ERROR] [WebRTCSwarm] Data channel error with peer_mueim585_le6164rc: RTCErrorEvent"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Data channel closed with peer_mueim585_le6164rc"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Peer left: peer_mueim585_le6164rc"
+    },
+    {
+      "label": "local",
+      "console": "[DEBUG] [WebRTCSwarm] Latency to 12eb6bba-21a2-4640-a4de-4d0e8cf07d5f: 570ms"
+    },
+    {
+      "device": "local",
+      "level": "log",
+      "message": "[237178.9ms][Loader] [60.0s] Memory (loading): | Heap=1.09 GB/1.10 GB (limit=4.09 GB) | GPU=970.00 MB (1 active, 0 pooled, peak=970.00 MB) | ShardCache=0 B (0 shards) | Layers=0, GPUBuffers=0"
+    },
+    {
+      "label": "local",
+      "console": "[DEBUG] [WebRTCSwarm] Latency to 4fa495fd-ff66-4446-bfa0-32444792cc9b: 286ms"
+    },
+    {
+      "label": "local",
+      "console": "[DEBUG] [WebRTCSwarm] Latency to 12eb6bba-21a2-4640-a4de-4d0e8cf07d5f: 673ms"
+    },
+    {
+      "device": "local",
+      "level": "log",
+      "message": "[267181.1ms][Loader] [90.0s] Memory (loading): | Heap=1.09 GB/1.09 GB (limit=4.09 GB) | GPU=970.00 MB (1 active, 0 pooled, peak=970.00 MB) | ShardCache=0 B (0 shards) | Layers=0, GPUBuffers=0"
+    },
+    {
+      "label": "local",
+      "console": "[DEBUG] [WebRTCSwarm] Latency to 4fa495fd-ff66-4446-bfa0-32444792cc9b: 155ms"
+    },
+    {
+      "label": "local",
+      "console": "[DEBUG] [WebRTCSwarm] Latency to 12eb6bba-21a2-4640-a4de-4d0e8cf07d5f: 642ms"
+    },
+    {
+      "device": "local",
+      "level": "log",
+      "message": "[297178.7ms][Loader] [120.0s] Memory (loading): | Heap=1.10 GB/1.10 GB (limit=4.09 GB) | GPU=970.00 MB (1 active, 0 pooled, peak=970.00 MB) | ShardCache=0 B (0 shards) | Layers=0, GPUBuffers=0"
+    },
+    {
+      "label": "local",
+      "console": "[ERROR] [WebRTCSwarm] Data channel error with 4fa495fd-ff66-4446-bfa0-32444792cc9b: RTCErrorEvent"
+    },
+    {
+      "device": "local",
+      "level": "error",
+      "message": "[ERROR] [WebRTCSwarm] Data channel error with 4fa495fd-ff66-4446-bfa0-32444792cc9b: RTCErrorEvent"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Data channel closed with 4fa495fd-ff66-4446-bfa0-32444792cc9b"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Peer left: 4fa495fd-ff66-4446-bfa0-32444792cc9b"
+    },
+    {
+      "label": "local",
+      "console": "[WARN] [WebRTCSwarm] Registering handler for unknown type: reploid:generation-cancel"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Initializing - peerId: 4fa495fd-ff66-4446-bfa0-32444792cc9b, room: reploid-swarm-public"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Connecting to wss://reploid-pool-kbxuhkisna-uc.a.run.app/swarm?scope=public"
+    },
+    {
+      "label": "local",
+      "console": "[DEBUG] [WebRTCSwarm] Received welcome from signaling server"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Peer joined: 4fa495fd-ff66-4446-bfa0-32444792cc9b"
+    },
+    {
+      "label": "local",
+      "type": "joined",
+      "roomId": "reploid-swarm-public",
+      "peerId": "4fa495fd-ff66-4446-bfa0-32444792cc9b"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Joined room reploid-swarm-public, existing peers: 1"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Connecting to peer: 12eb6bba-21a2-4640-a4de-4d0e8cf07d5f"
+    },
+    {
+      "label": "local",
+      "console": "[WARN] [WebRTCSwarm] Registering handler for unknown type: reploid:generation-cancel"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [SwarmTransport] Using WebRTC transport via WebRTCSwarm"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Peer left: 4fa495fd-ff66-4446-bfa0-32444792cc9b"
+    },
+    {
+      "label": "local",
+      "console": "[WARN] [WebRTCSwarm] Disconnected from signaling server"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Reconnecting in 1000ms (attempt 1)"
+    },
+    {
+      "label": "local",
+      "console": "[WARN] [WebRTCSwarm] Registering handler for unknown type: reploid:generation-cancel"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Initializing - peerId: 132a62af-4f9c-4706-92b2-c525482c76bd, room: reploid-swarm-physical-0e8d5674-b28c-476b-8d07-6676b4e59e4f"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Connecting to wss://reploid-pool-kbxuhkisna-uc.a.run.app/swarm?scope=private"
+    },
+    {
+      "label": "local",
+      "console": "[DEBUG] [WebRTCSwarm] Received welcome from signaling server"
+    },
+    {
+      "label": "local",
+      "type": "joined",
+      "roomId": "reploid-swarm-physical-0e8d5674-b28c-476b-8d07-6676b4e59e4f",
+      "peerId": "132a62af-4f9c-4706-92b2-c525482c76bd"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Joined room reploid-swarm-physical-0e8d5674-b28c-476b-8d07-6676b4e59e4f, existing peers: 0"
+    },
+    {
+      "label": "local",
+      "console": "[WARN] [WebRTCSwarm] Registering handler for unknown type: reploid:generation-cancel"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [SwarmTransport] Using WebRTC transport via WebRTCSwarm"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Connecting to wss://reploid-pool-kbxuhkisna-uc.a.run.app/swarm?scope=public"
+    },
+    {
+      "label": "local",
+      "console": "[DEBUG] [WebRTCSwarm] Received welcome from signaling server"
+    },
+    {
+      "label": "local",
+      "type": "joined",
+      "roomId": "reploid-swarm-public",
+      "peerId": "12eb6bba-21a2-4640-a4de-4d0e8cf07d5f"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Joined room reploid-swarm-public, existing peers: 0"
+    },
+    {
+      "label": "local",
+      "console": "[WARN] [WebRTCSwarm] Registering handler for unknown type: reploid:generation-cancel"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Initializing - peerId: a3feafe8-c043-43df-941b-fb29719777df, room: reploid-swarm-physical-0e8d5674-b28c-476b-8d07-6676b4e59e4f"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Connecting to wss://reploid-pool-kbxuhkisna-uc.a.run.app/swarm?scope=private"
+    },
+    {
+      "label": "local",
+      "console": "[DEBUG] [WebRTCSwarm] Received welcome from signaling server"
+    },
+    {
+      "label": "local",
+      "type": "joined",
+      "roomId": "reploid-swarm-physical-0e8d5674-b28c-476b-8d07-6676b4e59e4f",
+      "peerId": "a3feafe8-c043-43df-941b-fb29719777df"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Joined room reploid-swarm-physical-0e8d5674-b28c-476b-8d07-6676b4e59e4f, existing peers: 1"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Connecting to peer: 132a62af-4f9c-4706-92b2-c525482c76bd"
+    },
+    {
+      "label": "local",
+      "console": "[WARN] [WebRTCSwarm] Registering handler for unknown type: reploid:generation-cancel"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [SwarmTransport] Using WebRTC transport via WebRTCSwarm"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Peer joined: a3feafe8-c043-43df-941b-fb29719777df"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Received offer from: a3feafe8-c043-43df-941b-fb29719777df"
+    },
+    {
+      "label": "local",
+      "console": "[DEBUG] [WebRTCSwarm] Connection state with 132a62af-4f9c-4706-92b2-c525482c76bd: connecting"
+    },
+    {
+      "label": "local",
+      "console": "[DEBUG] [WebRTCSwarm] Connection state with 132a62af-4f9c-4706-92b2-c525482c76bd: connected"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Data channel opened with 132a62af-4f9c-4706-92b2-c525482c76bd"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Data channel opened with a3feafe8-c043-43df-941b-fb29719777df"
+    },
+    {
+      "label": "local",
+      "console": "[DEBUG] [WebRTCSwarm] Latency to a3feafe8-c043-43df-941b-fb29719777df: 184ms"
+    },
+    {
+      "label": "local",
+      "console": "[DEBUG] [WebRTCSwarm] Latency to 132a62af-4f9c-4706-92b2-c525482c76bd: 113ms"
+    },
+    {
+      "label": "local",
+      "console": "[DEBUG] [WebRTCSwarm] Latency to a3feafe8-c043-43df-941b-fb29719777df: 81ms"
+    },
+    {
+      "label": "local",
+      "console": "[DEBUG] [WebRTCSwarm] Latency to 132a62af-4f9c-4706-92b2-c525482c76bd: 119ms"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Peer left: a3feafe8-c043-43df-941b-fb29719777df"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Data channel closed with a3feafe8-c043-43df-941b-fb29719777df"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Initializing - peerId: a3feafe8-c043-43df-941b-fb29719777df, room: reploid-swarm-physical-0e8d5674-b28c-476b-8d07-6676b4e59e4f"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Connecting to wss://reploid-pool-kbxuhkisna-uc.a.run.app/swarm?scope=private"
+    },
+    {
+      "label": "local",
+      "console": "[DEBUG] [WebRTCSwarm] Received welcome from signaling server"
+    },
+    {
+      "label": "local",
+      "type": "joined",
+      "roomId": "reploid-swarm-physical-0e8d5674-b28c-476b-8d07-6676b4e59e4f",
+      "peerId": "a3feafe8-c043-43df-941b-fb29719777df"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Joined room reploid-swarm-physical-0e8d5674-b28c-476b-8d07-6676b4e59e4f, existing peers: 0"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [SwarmTransport] Using WebRTC transport via WebRTCSwarm"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Initializing - peerId: 132a62af-4f9c-4706-92b2-c525482c76bd, room: reploid-swarm-physical-0e8d5674-b28c-476b-8d07-6676b4e59e4f"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Connecting to wss://reploid-pool-kbxuhkisna-uc.a.run.app/swarm?scope=private"
+    },
+    {
+      "label": "local",
+      "console": "[DEBUG] [WebRTCSwarm] Received welcome from signaling server"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Peer joined: 132a62af-4f9c-4706-92b2-c525482c76bd"
+    },
+    {
+      "label": "local",
+      "type": "joined",
+      "roomId": "reploid-swarm-physical-0e8d5674-b28c-476b-8d07-6676b4e59e4f",
+      "peerId": "132a62af-4f9c-4706-92b2-c525482c76bd"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Joined room reploid-swarm-physical-0e8d5674-b28c-476b-8d07-6676b4e59e4f, existing peers: 1"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Connecting to peer: a3feafe8-c043-43df-941b-fb29719777df"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [SwarmTransport] Using WebRTC transport via WebRTCSwarm"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Received offer from: 132a62af-4f9c-4706-92b2-c525482c76bd"
+    },
+    {
+      "label": "local",
+      "console": "[DEBUG] [WebRTCSwarm] Connection state with a3feafe8-c043-43df-941b-fb29719777df: connecting"
+    },
+    {
+      "label": "local",
+      "console": "[DEBUG] [WebRTCSwarm] Connection state with a3feafe8-c043-43df-941b-fb29719777df: connected"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Data channel opened with a3feafe8-c043-43df-941b-fb29719777df"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Data channel opened with 132a62af-4f9c-4706-92b2-c525482c76bd"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Peer left: 132a62af-4f9c-4706-92b2-c525482c76bd"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Initializing - peerId: 4fa495fd-ff66-4446-bfa0-32444792cc9b, room: reploid-swarm-public"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Connecting to wss://reploid-pool-kbxuhkisna-uc.a.run.app/swarm?scope=public"
+    },
+    {
+      "label": "local",
+      "console": "[DEBUG] [WebRTCSwarm] Received welcome from signaling server"
+    },
+    {
+      "label": "local",
+      "type": "joined",
+      "roomId": "reploid-swarm-public",
+      "peerId": "4fa495fd-ff66-4446-bfa0-32444792cc9b"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Joined room reploid-swarm-public, existing peers: 0"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [SwarmTransport] Using WebRTC transport via WebRTCSwarm"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Initializing - peerId: 12eb6bba-21a2-4640-a4de-4d0e8cf07d5f, room: reploid-swarm-public"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Connecting to wss://reploid-pool-kbxuhkisna-uc.a.run.app/swarm?scope=public"
+    },
+    {
+      "label": "local",
+      "console": "[DEBUG] [WebRTCSwarm] Received welcome from signaling server"
+    },
+    {
+      "label": "local",
+      "type": "joined",
+      "roomId": "reploid-swarm-public",
+      "peerId": "12eb6bba-21a2-4640-a4de-4d0e8cf07d5f"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Joined room reploid-swarm-public, existing peers: 1"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Connecting to peer: 4fa495fd-ff66-4446-bfa0-32444792cc9b"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [SwarmTransport] Using WebRTC transport via WebRTCSwarm"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Peer joined: 12eb6bba-21a2-4640-a4de-4d0e8cf07d5f"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Received offer from: 12eb6bba-21a2-4640-a4de-4d0e8cf07d5f"
+    },
+    {
+      "label": "local",
+      "console": "[DEBUG] [WebRTCSwarm] Connection state with 4fa495fd-ff66-4446-bfa0-32444792cc9b: connecting"
+    },
+    {
+      "label": "local",
+      "console": "[DEBUG] [WebRTCSwarm] Connection state with 4fa495fd-ff66-4446-bfa0-32444792cc9b: connected"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Data channel opened with 4fa495fd-ff66-4446-bfa0-32444792cc9b"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Data channel opened with 12eb6bba-21a2-4640-a4de-4d0e8cf07d5f"
+    },
+    {
+      "label": "local",
+      "console": "[DEBUG] [WebRTCSwarm] Latency to 12eb6bba-21a2-4640-a4de-4d0e8cf07d5f: 74ms"
+    },
+    {
+      "label": "local",
+      "console": "[DEBUG] [WebRTCSwarm] Latency to 4fa495fd-ff66-4446-bfa0-32444792cc9b: 79ms"
+    },
+    {
+      "label": "local",
+      "console": "[DEBUG] [WebRTCSwarm] Latency to 12eb6bba-21a2-4640-a4de-4d0e8cf07d5f: 72ms"
+    },
+    {
+      "label": "local",
+      "console": "[ERROR] [WebRTCSwarm] Data channel error with 4fa495fd-ff66-4446-bfa0-32444792cc9b: RTCErrorEvent"
+    },
+    {
+      "device": "local",
+      "level": "error",
+      "message": "[ERROR] [WebRTCSwarm] Data channel error with 4fa495fd-ff66-4446-bfa0-32444792cc9b: RTCErrorEvent"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Data channel closed with 4fa495fd-ff66-4446-bfa0-32444792cc9b"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Peer left: 4fa495fd-ff66-4446-bfa0-32444792cc9b"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Initializing - peerId: 4fa495fd-ff66-4446-bfa0-32444792cc9b, room: reploid-swarm-public"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Connecting to wss://reploid-pool-kbxuhkisna-uc.a.run.app/swarm?scope=public"
+    },
+    {
+      "label": "local",
+      "console": "[DEBUG] [WebRTCSwarm] Received welcome from signaling server"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Peer joined: 4fa495fd-ff66-4446-bfa0-32444792cc9b"
+    },
+    {
+      "label": "local",
+      "type": "joined",
+      "roomId": "reploid-swarm-public",
+      "peerId": "4fa495fd-ff66-4446-bfa0-32444792cc9b"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Joined room reploid-swarm-public, existing peers: 1"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Connecting to peer: 12eb6bba-21a2-4640-a4de-4d0e8cf07d5f"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [SwarmTransport] Using WebRTC transport via WebRTCSwarm"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Received offer from: 4fa495fd-ff66-4446-bfa0-32444792cc9b"
+    },
+    {
+      "label": "local",
+      "console": "[DEBUG] [WebRTCSwarm] Connection state with 12eb6bba-21a2-4640-a4de-4d0e8cf07d5f: connecting"
+    },
+    {
+      "label": "local",
+      "console": "[DEBUG] [WebRTCSwarm] Connection state with 12eb6bba-21a2-4640-a4de-4d0e8cf07d5f: connected"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Data channel opened with 12eb6bba-21a2-4640-a4de-4d0e8cf07d5f"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Data channel opened with 4fa495fd-ff66-4446-bfa0-32444792cc9b"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Peer left: 4fa495fd-ff66-4446-bfa0-32444792cc9b"
+    },
+    {
+      "label": "local",
+      "console": "[WARN] [WebRTCSwarm] Disconnected from signaling server"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Reconnecting in 1000ms (attempt 1)"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Connecting to wss://reploid-pool-kbxuhkisna-uc.a.run.app/swarm?scope=public"
+    },
+    {
+      "label": "local",
+      "console": "[WARN] [WebRTCSwarm] Signaling failed: Event"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Reconnecting in 2000ms (attempt 2)"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Connecting to wss://reploid-pool-kbxuhkisna-uc.a.run.app/swarm?scope=public"
+    },
+    {
+      "label": "local",
+      "console": "[WARN] [WebRTCSwarm] Signaling failed: Event"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Reconnecting in 4000ms (attempt 3)"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Connecting to wss://reploid-pool-kbxuhkisna-uc.a.run.app/swarm?scope=public"
+    },
+    {
+      "label": "local",
+      "console": "[WARN] [WebRTCSwarm] Signaling failed: Event"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Reconnecting in 8000ms (attempt 4)"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Connecting to wss://reploid-pool-kbxuhkisna-uc.a.run.app/swarm?scope=public"
+    },
+    {
+      "label": "local",
+      "console": "[WARN] [WebRTCSwarm] Signaling failed: Event"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Reconnecting in 16000ms (attempt 5)"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Connecting to wss://reploid-pool-kbxuhkisna-uc.a.run.app/swarm?scope=public"
+    },
+    {
+      "label": "local",
+      "console": "[DEBUG] [WebRTCSwarm] Received welcome from signaling server"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Peer joined: 4fa495fd-ff66-4446-bfa0-32444792cc9b"
+    },
+    {
+      "label": "local",
+      "type": "joined",
+      "roomId": "reploid-swarm-public",
+      "peerId": "4fa495fd-ff66-4446-bfa0-32444792cc9b"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Joined room reploid-swarm-public, existing peers: 1"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Connecting to peer: 12eb6bba-21a2-4640-a4de-4d0e8cf07d5f"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Received offer from: 4fa495fd-ff66-4446-bfa0-32444792cc9b"
+    },
+    {
+      "label": "local",
+      "console": "[DEBUG] [WebRTCSwarm] Connection state with 12eb6bba-21a2-4640-a4de-4d0e8cf07d5f: connecting"
+    },
+    {
+      "label": "local",
+      "console": "[DEBUG] [WebRTCSwarm] Connection state with 12eb6bba-21a2-4640-a4de-4d0e8cf07d5f: connected"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Data channel opened with 12eb6bba-21a2-4640-a4de-4d0e8cf07d5f"
+    },
+    {
+      "label": "local",
+      "console": "[INFO] [WebRTCSwarm] Data channel opened with 4fa495fd-ff66-4446-bfa0-32444792cc9b"
+    },
+    {
+      "label": "local",
+      "console": "[DEBUG] [WebRTCSwarm] Latency to 4fa495fd-ff66-4446-bfa0-32444792cc9b: 95ms"
+    },
+    {
+      "label": "local",
+      "console": "[DEBUG] [WebRTCSwarm] Latency to 12eb6bba-21a2-4640-a4de-4d0e8cf07d5f: 78ms"
+    },
+    {
+      "label": "local",
+      "console": "[DEBUG] [WebRTCSwarm] Latency to 4fa495fd-ff66-4446-bfa0-32444792cc9b: 196ms"
+    },
+    {
+      "label": "local",
+      "console": "[DEBUG] [WebRTCSwarm] Latency to 12eb6bba-21a2-4640-a4de-4d0e8cf07d5f: 79ms"
+    },
+    {
+      "label": "local",
+      "console": "[DEBUG] [WebRTCSwarm] Latency to 4fa495fd-ff66-4446-bfa0-32444792cc9b: 99ms"
+    }
+  ],
+  "requests": [
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/manifest.json"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/api/resolve-cache/models/clocksmith/rdrr/977d145bf2478a7fb542e6aca65030585620ca60/models%2Fqwen-3-5-2b-q4k-ehaf16%2Fmanifest.json"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00000.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/88ddb1d833f2d153d96218e72113e77f6b7b8bb5758e1d579978e0adbc8efacb"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00001.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/84c433284e790e68b8bd0bbc151caaebe7adbb31a4422d03505ebe051809c32f"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00002.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/91dff65b9e75eec35ea6bb28bf2d4ff71bbf8ee2c0c52adde820ea4594487824"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00003.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/84b00321319035cf97595e56524001d11aff134e430ff308a2e5d495675d55c3"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00004.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/d54e16c987b9900d653250f07961a14ed25fbe58da6ea82725aa6e162cd0c7b1"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00005.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/308d146310cecff95f97b142cdeb9861878f503aa62e91d9cebe727b2068c0a1"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00006.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/95bb8ed619ebe2eb486844e747ea34b3339c3eb597e277e02d2b5da1f8620398"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00007.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/8fa413b3d69d33d9f3c5f9181092b8a979dc834d304d1ea84b9b076b54b4312b"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00008.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/856425a73e5829cc0b53af538ccf6ffdc93be9920711bae2f78acf63b37e7fb7"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00009.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/3a82b1ba8630338aa69475a35330bc21cb2de4f851ab36a10901b0f473bacd3c"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00010.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/e01669a93f4101fd9a508406207a7dd300976aa01c685fd597265a61b324f056"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00011.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/884ffa6543e02eceed8eead7ac110786fb9e7dcc4a90fea188559d98170baa9b"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00012.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/04624571cd5d7f85297ce519643f563d538556e85f45af53205fa77af819891d"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00013.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/10de8195eb99233c76da623f6c2b2e5327aafd3c5cce67438acd8005c313dcc0"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00014.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/70b6f3419f299f334d8703fffd36dbee394f22c5bdc3956f49b304d56b7bca5a"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00015.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/c65c21a11cea0a397d67eef5a8f9b93789fa2abb6339cf83d603b2ea86565c01"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00016.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/a6f5b2f655a4d9bbefadef5178b95e86068799377b5c368bcd11245722bc363b"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00017.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/fce853db91bfbc8407bfab39d788c1d3c342e456d4b476173c60753e63e4240b"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00018.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/5ec3cc08b26d8121281d54e44faee6985253cb9960bba3ff6ef27ae05115169c"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00019.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/a059f43a18380777835a013d90a262136b676bdaddda34a033cb9f946101ac79"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00020.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/ca1eaa26a703afa42430660c96f5e1158e3f8b30f43db62738b8e5b05d948141"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00021.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/5c1553abb6f2ede76cb7e6bfdfbe6a5ce4dcef42286903b04429e679723bd1a1"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00022.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/2962c134221cb4d64d688426879ec1ac3c68a5ab8794dc3b3897ccd20be0ee91"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00023.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/2a415cb07d23974d7565e6bb97af6ea99c646e3f299f224b9cda77963418a074"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00024.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/5d9086c482d9b3974c2f8402a62946654134ad63d0d1b289c2c104d5192e2135"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00025.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/d1c5ecd6930944b9f9b49191114c4cf0c1a0d5fb1c65b81a4e8eee7e22381ec4"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00026.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/c976ba7d585f07c8dfb3b98f71ef746cd43a7e30f7b9a26a095e06e2d34c10a8"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00027.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/ca74d8a9d168cdb764cfe49a00f5e270872a8455aafc2d77649c5bf534f83e2d"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00028.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/e63532ede0c061a7152b3b2f22317aa251348f2812f9fe527f52e992d259cd86"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00029.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/e9bc56e6f1f25614ae841923746c6870fbee437ae6e3cd06bcdb67841e98ac15"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00030.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/aabad50e9272842651afb2573de06e87fa2db65d8c9921db13c994559356f45e"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00031.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/aded8ae2c15541216f92e47bc012be2cb0eea0bfbf9c2c6cafd4c21efcb3745f"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/tokenizer.json"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/api/resolve-cache/models/clocksmith/rdrr/977d145bf2478a7fb542e6aca65030585620ca60/models%2Fqwen-3-5-2b-q4k-ehaf16%2Ftokenizer.json"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/tokenizer.json"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/api/resolve-cache/models/clocksmith/rdrr/977d145bf2478a7fb542e6aca65030585620ca60/models%2Fqwen-3-5-2b-q4k-ehaf16%2Ftokenizer.json"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00000.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/88ddb1d833f2d153d96218e72113e77f6b7b8bb5758e1d579978e0adbc8efacb"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00001.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/84c433284e790e68b8bd0bbc151caaebe7adbb31a4422d03505ebe051809c32f"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00002.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/91dff65b9e75eec35ea6bb28bf2d4ff71bbf8ee2c0c52adde820ea4594487824"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00003.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/84b00321319035cf97595e56524001d11aff134e430ff308a2e5d495675d55c3"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00004.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/d54e16c987b9900d653250f07961a14ed25fbe58da6ea82725aa6e162cd0c7b1"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00005.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/308d146310cecff95f97b142cdeb9861878f503aa62e91d9cebe727b2068c0a1"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00006.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/95bb8ed619ebe2eb486844e747ea34b3339c3eb597e277e02d2b5da1f8620398"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00007.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/8fa413b3d69d33d9f3c5f9181092b8a979dc834d304d1ea84b9b076b54b4312b"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00008.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/856425a73e5829cc0b53af538ccf6ffdc93be9920711bae2f78acf63b37e7fb7"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00009.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/3a82b1ba8630338aa69475a35330bc21cb2de4f851ab36a10901b0f473bacd3c"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00010.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/e01669a93f4101fd9a508406207a7dd300976aa01c685fd597265a61b324f056"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00011.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/884ffa6543e02eceed8eead7ac110786fb9e7dcc4a90fea188559d98170baa9b"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00012.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/04624571cd5d7f85297ce519643f563d538556e85f45af53205fa77af819891d"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00013.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/10de8195eb99233c76da623f6c2b2e5327aafd3c5cce67438acd8005c313dcc0"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00014.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/70b6f3419f299f334d8703fffd36dbee394f22c5bdc3956f49b304d56b7bca5a"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00015.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/c65c21a11cea0a397d67eef5a8f9b93789fa2abb6339cf83d603b2ea86565c01"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00016.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/a6f5b2f655a4d9bbefadef5178b95e86068799377b5c368bcd11245722bc363b"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00017.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/fce853db91bfbc8407bfab39d788c1d3c342e456d4b476173c60753e63e4240b"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00018.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/5ec3cc08b26d8121281d54e44faee6985253cb9960bba3ff6ef27ae05115169c"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00019.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/a059f43a18380777835a013d90a262136b676bdaddda34a033cb9f946101ac79"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00020.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/ca1eaa26a703afa42430660c96f5e1158e3f8b30f43db62738b8e5b05d948141"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00021.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/5c1553abb6f2ede76cb7e6bfdfbe6a5ce4dcef42286903b04429e679723bd1a1"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00022.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/2962c134221cb4d64d688426879ec1ac3c68a5ab8794dc3b3897ccd20be0ee91"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00023.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/2a415cb07d23974d7565e6bb97af6ea99c646e3f299f224b9cda77963418a074"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00024.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/5d9086c482d9b3974c2f8402a62946654134ad63d0d1b289c2c104d5192e2135"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00025.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/d1c5ecd6930944b9f9b49191114c4cf0c1a0d5fb1c65b81a4e8eee7e22381ec4"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00026.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/c976ba7d585f07c8dfb3b98f71ef746cd43a7e30f7b9a26a095e06e2d34c10a8"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00027.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/ca74d8a9d168cdb764cfe49a00f5e270872a8455aafc2d77649c5bf534f83e2d"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00028.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/e63532ede0c061a7152b3b2f22317aa251348f2812f9fe527f52e992d259cd86"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00029.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/e9bc56e6f1f25614ae841923746c6870fbee437ae6e3cd06bcdb67841e98ac15"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00030.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/aabad50e9272842651afb2573de06e87fa2db65d8c9921db13c994559356f45e"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00031.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/aded8ae2c15541216f92e47bc012be2cb0eea0bfbf9c2c6cafd4c21efcb3745f"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/tokenizer.json"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/api/resolve-cache/models/clocksmith/rdrr/977d145bf2478a7fb542e6aca65030585620ca60/models%2Fqwen-3-5-2b-q4k-ehaf16%2Ftokenizer.json"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00000.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/88ddb1d833f2d153d96218e72113e77f6b7b8bb5758e1d579978e0adbc8efacb"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00000.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/88ddb1d833f2d153d96218e72113e77f6b7b8bb5758e1d579978e0adbc8efacb"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00000.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/88ddb1d833f2d153d96218e72113e77f6b7b8bb5758e1d579978e0adbc8efacb"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00000.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/88ddb1d833f2d153d96218e72113e77f6b7b8bb5758e1d579978e0adbc8efacb"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00000.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/88ddb1d833f2d153d96218e72113e77f6b7b8bb5758e1d579978e0adbc8efacb"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00000.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/88ddb1d833f2d153d96218e72113e77f6b7b8bb5758e1d579978e0adbc8efacb"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00000.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/88ddb1d833f2d153d96218e72113e77f6b7b8bb5758e1d579978e0adbc8efacb"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00000.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/88ddb1d833f2d153d96218e72113e77f6b7b8bb5758e1d579978e0adbc8efacb"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00000.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/88ddb1d833f2d153d96218e72113e77f6b7b8bb5758e1d579978e0adbc8efacb"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00000.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/88ddb1d833f2d153d96218e72113e77f6b7b8bb5758e1d579978e0adbc8efacb"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00000.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/88ddb1d833f2d153d96218e72113e77f6b7b8bb5758e1d579978e0adbc8efacb"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00000.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/88ddb1d833f2d153d96218e72113e77f6b7b8bb5758e1d579978e0adbc8efacb"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00000.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/88ddb1d833f2d153d96218e72113e77f6b7b8bb5758e1d579978e0adbc8efacb"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00000.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/88ddb1d833f2d153d96218e72113e77f6b7b8bb5758e1d579978e0adbc8efacb"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00000.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/88ddb1d833f2d153d96218e72113e77f6b7b8bb5758e1d579978e0adbc8efacb"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00000.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/88ddb1d833f2d153d96218e72113e77f6b7b8bb5758e1d579978e0adbc8efacb"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00001.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/84c433284e790e68b8bd0bbc151caaebe7adbb31a4422d03505ebe051809c32f"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00001.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/84c433284e790e68b8bd0bbc151caaebe7adbb31a4422d03505ebe051809c32f"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00001.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/84c433284e790e68b8bd0bbc151caaebe7adbb31a4422d03505ebe051809c32f"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00001.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/84c433284e790e68b8bd0bbc151caaebe7adbb31a4422d03505ebe051809c32f"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00001.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/84c433284e790e68b8bd0bbc151caaebe7adbb31a4422d03505ebe051809c32f"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00001.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/84c433284e790e68b8bd0bbc151caaebe7adbb31a4422d03505ebe051809c32f"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00001.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/84c433284e790e68b8bd0bbc151caaebe7adbb31a4422d03505ebe051809c32f"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00001.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/84c433284e790e68b8bd0bbc151caaebe7adbb31a4422d03505ebe051809c32f"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00001.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/84c433284e790e68b8bd0bbc151caaebe7adbb31a4422d03505ebe051809c32f"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00001.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/84c433284e790e68b8bd0bbc151caaebe7adbb31a4422d03505ebe051809c32f"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00001.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/84c433284e790e68b8bd0bbc151caaebe7adbb31a4422d03505ebe051809c32f"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00001.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/84c433284e790e68b8bd0bbc151caaebe7adbb31a4422d03505ebe051809c32f"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00001.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/84c433284e790e68b8bd0bbc151caaebe7adbb31a4422d03505ebe051809c32f"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00001.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/84c433284e790e68b8bd0bbc151caaebe7adbb31a4422d03505ebe051809c32f"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00001.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/84c433284e790e68b8bd0bbc151caaebe7adbb31a4422d03505ebe051809c32f"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00001.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/84c433284e790e68b8bd0bbc151caaebe7adbb31a4422d03505ebe051809c32f"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00002.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/91dff65b9e75eec35ea6bb28bf2d4ff71bbf8ee2c0c52adde820ea4594487824"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00002.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/91dff65b9e75eec35ea6bb28bf2d4ff71bbf8ee2c0c52adde820ea4594487824"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00002.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/91dff65b9e75eec35ea6bb28bf2d4ff71bbf8ee2c0c52adde820ea4594487824"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00002.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/91dff65b9e75eec35ea6bb28bf2d4ff71bbf8ee2c0c52adde820ea4594487824"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00002.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/91dff65b9e75eec35ea6bb28bf2d4ff71bbf8ee2c0c52adde820ea4594487824"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00002.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/91dff65b9e75eec35ea6bb28bf2d4ff71bbf8ee2c0c52adde820ea4594487824"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00002.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/91dff65b9e75eec35ea6bb28bf2d4ff71bbf8ee2c0c52adde820ea4594487824"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00002.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/91dff65b9e75eec35ea6bb28bf2d4ff71bbf8ee2c0c52adde820ea4594487824"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00002.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/91dff65b9e75eec35ea6bb28bf2d4ff71bbf8ee2c0c52adde820ea4594487824"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00002.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/91dff65b9e75eec35ea6bb28bf2d4ff71bbf8ee2c0c52adde820ea4594487824"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00002.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/91dff65b9e75eec35ea6bb28bf2d4ff71bbf8ee2c0c52adde820ea4594487824"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00002.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/91dff65b9e75eec35ea6bb28bf2d4ff71bbf8ee2c0c52adde820ea4594487824"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00002.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/91dff65b9e75eec35ea6bb28bf2d4ff71bbf8ee2c0c52adde820ea4594487824"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00002.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/91dff65b9e75eec35ea6bb28bf2d4ff71bbf8ee2c0c52adde820ea4594487824"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00002.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/91dff65b9e75eec35ea6bb28bf2d4ff71bbf8ee2c0c52adde820ea4594487824"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00002.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/91dff65b9e75eec35ea6bb28bf2d4ff71bbf8ee2c0c52adde820ea4594487824"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00003.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/84b00321319035cf97595e56524001d11aff134e430ff308a2e5d495675d55c3"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00003.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/84b00321319035cf97595e56524001d11aff134e430ff308a2e5d495675d55c3"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00003.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/84b00321319035cf97595e56524001d11aff134e430ff308a2e5d495675d55c3"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00003.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/84b00321319035cf97595e56524001d11aff134e430ff308a2e5d495675d55c3"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00003.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/84b00321319035cf97595e56524001d11aff134e430ff308a2e5d495675d55c3"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00003.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/84b00321319035cf97595e56524001d11aff134e430ff308a2e5d495675d55c3"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00003.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/84b00321319035cf97595e56524001d11aff134e430ff308a2e5d495675d55c3"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00003.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/84b00321319035cf97595e56524001d11aff134e430ff308a2e5d495675d55c3"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00003.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/84b00321319035cf97595e56524001d11aff134e430ff308a2e5d495675d55c3"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00003.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/84b00321319035cf97595e56524001d11aff134e430ff308a2e5d495675d55c3"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00003.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/84b00321319035cf97595e56524001d11aff134e430ff308a2e5d495675d55c3"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00003.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/84b00321319035cf97595e56524001d11aff134e430ff308a2e5d495675d55c3"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00003.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/84b00321319035cf97595e56524001d11aff134e430ff308a2e5d495675d55c3"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00003.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/84b00321319035cf97595e56524001d11aff134e430ff308a2e5d495675d55c3"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00003.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/84b00321319035cf97595e56524001d11aff134e430ff308a2e5d495675d55c3"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00003.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/84b00321319035cf97595e56524001d11aff134e430ff308a2e5d495675d55c3"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00004.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/d54e16c987b9900d653250f07961a14ed25fbe58da6ea82725aa6e162cd0c7b1"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00004.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/d54e16c987b9900d653250f07961a14ed25fbe58da6ea82725aa6e162cd0c7b1"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00004.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/d54e16c987b9900d653250f07961a14ed25fbe58da6ea82725aa6e162cd0c7b1"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00004.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/d54e16c987b9900d653250f07961a14ed25fbe58da6ea82725aa6e162cd0c7b1"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00004.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/d54e16c987b9900d653250f07961a14ed25fbe58da6ea82725aa6e162cd0c7b1"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00004.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/d54e16c987b9900d653250f07961a14ed25fbe58da6ea82725aa6e162cd0c7b1"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00004.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/d54e16c987b9900d653250f07961a14ed25fbe58da6ea82725aa6e162cd0c7b1"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00004.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/d54e16c987b9900d653250f07961a14ed25fbe58da6ea82725aa6e162cd0c7b1"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00004.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/d54e16c987b9900d653250f07961a14ed25fbe58da6ea82725aa6e162cd0c7b1"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00004.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/d54e16c987b9900d653250f07961a14ed25fbe58da6ea82725aa6e162cd0c7b1"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00004.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/d54e16c987b9900d653250f07961a14ed25fbe58da6ea82725aa6e162cd0c7b1"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00004.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/d54e16c987b9900d653250f07961a14ed25fbe58da6ea82725aa6e162cd0c7b1"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00004.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/d54e16c987b9900d653250f07961a14ed25fbe58da6ea82725aa6e162cd0c7b1"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00004.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/d54e16c987b9900d653250f07961a14ed25fbe58da6ea82725aa6e162cd0c7b1"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00004.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/d54e16c987b9900d653250f07961a14ed25fbe58da6ea82725aa6e162cd0c7b1"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00004.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/d54e16c987b9900d653250f07961a14ed25fbe58da6ea82725aa6e162cd0c7b1"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00005.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/308d146310cecff95f97b142cdeb9861878f503aa62e91d9cebe727b2068c0a1"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00005.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/308d146310cecff95f97b142cdeb9861878f503aa62e91d9cebe727b2068c0a1"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00005.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/308d146310cecff95f97b142cdeb9861878f503aa62e91d9cebe727b2068c0a1"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00005.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/308d146310cecff95f97b142cdeb9861878f503aa62e91d9cebe727b2068c0a1"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00005.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/308d146310cecff95f97b142cdeb9861878f503aa62e91d9cebe727b2068c0a1"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00005.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/308d146310cecff95f97b142cdeb9861878f503aa62e91d9cebe727b2068c0a1"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00005.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/308d146310cecff95f97b142cdeb9861878f503aa62e91d9cebe727b2068c0a1"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00005.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/308d146310cecff95f97b142cdeb9861878f503aa62e91d9cebe727b2068c0a1"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00005.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/308d146310cecff95f97b142cdeb9861878f503aa62e91d9cebe727b2068c0a1"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00005.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/308d146310cecff95f97b142cdeb9861878f503aa62e91d9cebe727b2068c0a1"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00005.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/308d146310cecff95f97b142cdeb9861878f503aa62e91d9cebe727b2068c0a1"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00005.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/308d146310cecff95f97b142cdeb9861878f503aa62e91d9cebe727b2068c0a1"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00005.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/308d146310cecff95f97b142cdeb9861878f503aa62e91d9cebe727b2068c0a1"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00005.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/308d146310cecff95f97b142cdeb9861878f503aa62e91d9cebe727b2068c0a1"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00005.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/308d146310cecff95f97b142cdeb9861878f503aa62e91d9cebe727b2068c0a1"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00005.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/308d146310cecff95f97b142cdeb9861878f503aa62e91d9cebe727b2068c0a1"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00006.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/95bb8ed619ebe2eb486844e747ea34b3339c3eb597e277e02d2b5da1f8620398"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00006.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/95bb8ed619ebe2eb486844e747ea34b3339c3eb597e277e02d2b5da1f8620398"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00006.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/95bb8ed619ebe2eb486844e747ea34b3339c3eb597e277e02d2b5da1f8620398"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00006.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/95bb8ed619ebe2eb486844e747ea34b3339c3eb597e277e02d2b5da1f8620398"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00006.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/95bb8ed619ebe2eb486844e747ea34b3339c3eb597e277e02d2b5da1f8620398"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00006.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/95bb8ed619ebe2eb486844e747ea34b3339c3eb597e277e02d2b5da1f8620398"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00006.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/95bb8ed619ebe2eb486844e747ea34b3339c3eb597e277e02d2b5da1f8620398"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00006.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/95bb8ed619ebe2eb486844e747ea34b3339c3eb597e277e02d2b5da1f8620398"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00006.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/95bb8ed619ebe2eb486844e747ea34b3339c3eb597e277e02d2b5da1f8620398"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00006.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/95bb8ed619ebe2eb486844e747ea34b3339c3eb597e277e02d2b5da1f8620398"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00006.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/95bb8ed619ebe2eb486844e747ea34b3339c3eb597e277e02d2b5da1f8620398"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00006.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/95bb8ed619ebe2eb486844e747ea34b3339c3eb597e277e02d2b5da1f8620398"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00006.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/95bb8ed619ebe2eb486844e747ea34b3339c3eb597e277e02d2b5da1f8620398"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00006.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/95bb8ed619ebe2eb486844e747ea34b3339c3eb597e277e02d2b5da1f8620398"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00006.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/95bb8ed619ebe2eb486844e747ea34b3339c3eb597e277e02d2b5da1f8620398"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00006.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/95bb8ed619ebe2eb486844e747ea34b3339c3eb597e277e02d2b5da1f8620398"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00007.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/8fa413b3d69d33d9f3c5f9181092b8a979dc834d304d1ea84b9b076b54b4312b"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00007.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/8fa413b3d69d33d9f3c5f9181092b8a979dc834d304d1ea84b9b076b54b4312b"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00007.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/8fa413b3d69d33d9f3c5f9181092b8a979dc834d304d1ea84b9b076b54b4312b"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00007.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/8fa413b3d69d33d9f3c5f9181092b8a979dc834d304d1ea84b9b076b54b4312b"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00007.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/8fa413b3d69d33d9f3c5f9181092b8a979dc834d304d1ea84b9b076b54b4312b"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00007.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/8fa413b3d69d33d9f3c5f9181092b8a979dc834d304d1ea84b9b076b54b4312b"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00007.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/8fa413b3d69d33d9f3c5f9181092b8a979dc834d304d1ea84b9b076b54b4312b"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00007.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/8fa413b3d69d33d9f3c5f9181092b8a979dc834d304d1ea84b9b076b54b4312b"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00007.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/8fa413b3d69d33d9f3c5f9181092b8a979dc834d304d1ea84b9b076b54b4312b"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00007.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/8fa413b3d69d33d9f3c5f9181092b8a979dc834d304d1ea84b9b076b54b4312b"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00007.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/8fa413b3d69d33d9f3c5f9181092b8a979dc834d304d1ea84b9b076b54b4312b"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00007.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/8fa413b3d69d33d9f3c5f9181092b8a979dc834d304d1ea84b9b076b54b4312b"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00007.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/8fa413b3d69d33d9f3c5f9181092b8a979dc834d304d1ea84b9b076b54b4312b"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00007.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/8fa413b3d69d33d9f3c5f9181092b8a979dc834d304d1ea84b9b076b54b4312b"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00007.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/8fa413b3d69d33d9f3c5f9181092b8a979dc834d304d1ea84b9b076b54b4312b"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00007.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/8fa413b3d69d33d9f3c5f9181092b8a979dc834d304d1ea84b9b076b54b4312b"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00008.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/856425a73e5829cc0b53af538ccf6ffdc93be9920711bae2f78acf63b37e7fb7"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00008.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/856425a73e5829cc0b53af538ccf6ffdc93be9920711bae2f78acf63b37e7fb7"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00008.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/856425a73e5829cc0b53af538ccf6ffdc93be9920711bae2f78acf63b37e7fb7"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00008.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/856425a73e5829cc0b53af538ccf6ffdc93be9920711bae2f78acf63b37e7fb7"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00008.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/856425a73e5829cc0b53af538ccf6ffdc93be9920711bae2f78acf63b37e7fb7"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00008.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/856425a73e5829cc0b53af538ccf6ffdc93be9920711bae2f78acf63b37e7fb7"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00008.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/856425a73e5829cc0b53af538ccf6ffdc93be9920711bae2f78acf63b37e7fb7"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00008.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/856425a73e5829cc0b53af538ccf6ffdc93be9920711bae2f78acf63b37e7fb7"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00008.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/856425a73e5829cc0b53af538ccf6ffdc93be9920711bae2f78acf63b37e7fb7"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00008.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/856425a73e5829cc0b53af538ccf6ffdc93be9920711bae2f78acf63b37e7fb7"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00008.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/856425a73e5829cc0b53af538ccf6ffdc93be9920711bae2f78acf63b37e7fb7"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00008.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/856425a73e5829cc0b53af538ccf6ffdc93be9920711bae2f78acf63b37e7fb7"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00008.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/856425a73e5829cc0b53af538ccf6ffdc93be9920711bae2f78acf63b37e7fb7"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00008.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/856425a73e5829cc0b53af538ccf6ffdc93be9920711bae2f78acf63b37e7fb7"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00008.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/856425a73e5829cc0b53af538ccf6ffdc93be9920711bae2f78acf63b37e7fb7"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00008.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/856425a73e5829cc0b53af538ccf6ffdc93be9920711bae2f78acf63b37e7fb7"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00009.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/3a82b1ba8630338aa69475a35330bc21cb2de4f851ab36a10901b0f473bacd3c"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00009.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/3a82b1ba8630338aa69475a35330bc21cb2de4f851ab36a10901b0f473bacd3c"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00009.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/3a82b1ba8630338aa69475a35330bc21cb2de4f851ab36a10901b0f473bacd3c"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00009.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/3a82b1ba8630338aa69475a35330bc21cb2de4f851ab36a10901b0f473bacd3c"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00009.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/3a82b1ba8630338aa69475a35330bc21cb2de4f851ab36a10901b0f473bacd3c"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00009.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/3a82b1ba8630338aa69475a35330bc21cb2de4f851ab36a10901b0f473bacd3c"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00009.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/3a82b1ba8630338aa69475a35330bc21cb2de4f851ab36a10901b0f473bacd3c"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00009.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/3a82b1ba8630338aa69475a35330bc21cb2de4f851ab36a10901b0f473bacd3c"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00009.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/3a82b1ba8630338aa69475a35330bc21cb2de4f851ab36a10901b0f473bacd3c"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00009.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/3a82b1ba8630338aa69475a35330bc21cb2de4f851ab36a10901b0f473bacd3c"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00009.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/3a82b1ba8630338aa69475a35330bc21cb2de4f851ab36a10901b0f473bacd3c"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00009.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/3a82b1ba8630338aa69475a35330bc21cb2de4f851ab36a10901b0f473bacd3c"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00009.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/3a82b1ba8630338aa69475a35330bc21cb2de4f851ab36a10901b0f473bacd3c"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00009.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/3a82b1ba8630338aa69475a35330bc21cb2de4f851ab36a10901b0f473bacd3c"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00009.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/3a82b1ba8630338aa69475a35330bc21cb2de4f851ab36a10901b0f473bacd3c"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00009.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/3a82b1ba8630338aa69475a35330bc21cb2de4f851ab36a10901b0f473bacd3c"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00010.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/e01669a93f4101fd9a508406207a7dd300976aa01c685fd597265a61b324f056"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00010.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/e01669a93f4101fd9a508406207a7dd300976aa01c685fd597265a61b324f056"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00010.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/e01669a93f4101fd9a508406207a7dd300976aa01c685fd597265a61b324f056"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00010.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/e01669a93f4101fd9a508406207a7dd300976aa01c685fd597265a61b324f056"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00010.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/e01669a93f4101fd9a508406207a7dd300976aa01c685fd597265a61b324f056"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00010.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/e01669a93f4101fd9a508406207a7dd300976aa01c685fd597265a61b324f056"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00010.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/e01669a93f4101fd9a508406207a7dd300976aa01c685fd597265a61b324f056"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00010.bin"
+    },
+    {
+      "label": "local",
+      "url": "https://us.aws.cdn.hf.co/xet-bridge-us/69a84541e1b0210851db34ff/e01669a93f4101fd9a508406207a7dd300976aa01c685fd597265a61b324f056"
+    },
+    {
+      "label": "local",
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/shard_00010.bin"
+    }
+  ],
+  "errors": [],
+  "turnDiagnostic": {
+    "remote": [
+      {
+        "state": "connected",
+        "ice": "connected",
+        "signaling": "stable",
+        "data": [
+          {
+            "label": "reploid",
+            "state": "open",
+            "messagesSent": 8,
+            "messagesReceived": 7
+          }
+        ],
+        "pairs": [
+          {
+            "nominated": true,
+            "localType": "srflx",
+            "remoteType": "relay",
+            "protocol": "udp"
+          }
+        ]
+      }
+    ],
+    "local": [
+      {
+        "state": "connected",
+        "ice": "connected",
+        "signaling": "stable",
+        "data": [
+          {
+            "label": "reploid",
+            "state": "open",
+            "messagesSent": 7,
+            "messagesReceived": 8
+          }
+        ],
+        "pairs": [
+          {
+            "nominated": true,
+            "localType": "relay",
+            "remoteType": "srflx",
+            "protocol": "udp"
+          }
+        ]
+      }
+    ],
+    "modelRequests": 0
+  },
+  "patchedDiscovery": {
+    "at": "2026-09-23T19:46:54.671Z",
+    "source": "local adapter and generated transport overlaid on deployed application",
+    "remote": [
+      {
+        "state": "connected",
+        "ice": "connected",
+        "signaling": "stable",
+        "data": [
+          {
+            "label": "reploid",
+            "state": "open",
+            "messagesSent": 4,
+            "messagesReceived": 4
+          }
+        ],
+        "pairs": [
+          {
+            "nominated": true,
+            "localType": "srflx",
+            "remoteType": "relay",
+            "protocol": "udp"
+          }
+        ]
+      }
+    ],
+    "local": [
+      {
+        "state": "connected",
+        "ice": "connected",
+        "signaling": "stable",
+        "data": [
+          {
+            "label": "reploid",
+            "state": "open",
+            "messagesSent": 4,
+            "messagesReceived": 4
+          }
+        ],
+        "pairs": [
+          {
+            "nominated": true,
+            "localType": "relay",
+            "remoteType": "srflx",
+            "protocol": "udp"
+          }
+        ]
+      }
+    ],
+    "remotePeers": "1 peer",
+    "localPeers": "1 peer",
+    "remoteContribution": "Not sharing",
+    "localContribution": "Not sharing",
+    "modelRequests": 0
+  },
+  "disconnect": {
+    "observedMs": 14022,
+    "control": "Connect",
+    "rtc": [
+      {
+        "state": "closed",
+        "ice": "closed",
+        "signaling": "closed",
+        "data": [],
+        "pairs": []
+      }
+    ],
+    "reload": {
+      "preference": "false",
+      "connections": 0,
+      "control": "Connect"
+    }
+  },
+  "reconnect": {
+    "remote": [
+      {
+        "state": "connected",
+        "ice": "connected",
+        "signaling": "stable",
+        "data": [
+          {
+            "label": "reploid",
+            "state": "open",
+            "messagesSent": 3,
+            "messagesReceived": 3
+          }
+        ],
+        "pairs": [
+          {
+            "nominated": true,
+            "localType": "relay",
+            "remoteType": "prflx",
+            "protocol": "udp"
+          },
+          {
+            "nominated": true,
+            "localType": "srflx",
+            "remoteType": "relay",
+            "protocol": "udp"
+          }
+        ]
+      }
+    ],
+    "local": [
+      {
+        "state": "closed",
+        "ice": "closed",
+        "signaling": "closed",
+        "data": [],
+        "pairs": []
+      },
+      {
+        "state": "connected",
+        "ice": "connected",
+        "signaling": "stable",
+        "data": [
+          {
+            "label": "reploid",
+            "state": "open",
+            "messagesSent": 3,
+            "messagesReceived": 3
+          }
+        ],
+        "pairs": [
+          {
+            "nominated": true,
+            "localType": "relay",
+            "remoteType": "relay",
+            "protocol": "udp"
+          },
+          {
+            "nominated": true,
+            "localType": "relay",
+            "remoteType": "srflx",
+            "protocol": "udp"
+          }
+        ]
+      }
+    ]
+  },
+  "interruption": {
+    "kind": "Playwright browser offline emulation on physical Suby",
+    "elapsedMs": 15063,
+    "during": [
+      {
+        "state": "connected",
+        "ice": "connected",
+        "signaling": "stable",
+        "data": [
+          {
+            "label": "reploid",
+            "state": "open",
+            "messagesSent": 4,
+            "messagesReceived": 4
+          }
+        ],
+        "pairs": [
+          {
+            "nominated": true,
+            "localType": "relay",
+            "remoteType": "prflx",
+            "protocol": "udp"
+          },
+          {
+            "nominated": true,
+            "localType": "srflx",
+            "remoteType": "relay",
+            "protocol": "udp"
+          }
+        ]
+      }
+    ],
+    "after": [
+      {
+        "state": "connected",
+        "ice": "connected",
+        "signaling": "stable",
+        "data": [
+          {
+            "label": "reploid",
+            "state": "open",
+            "messagesSent": 7,
+            "messagesReceived": 9
+          }
+        ],
+        "pairs": [
+          {
+            "nominated": true,
+            "localType": "srflx",
+            "remoteType": "relay",
+            "protocol": "udp"
+          }
+        ]
+      },
+      {
+        "state": "connected",
+        "ice": "connected",
+        "signaling": "stable",
+        "data": [
+          {
+            "label": "reploid",
+            "state": "open",
+            "messagesSent": 2,
+            "messagesReceived": 2
+          }
+        ],
+        "pairs": []
+      }
+    ]
+  },
+  "chat": {
+    "requesterText": "You\nReply with a short greeting. This is a physical peer chat test.\nAssistant",
+    "status": "Peer peer_mue · failed",
+    "error": "Timed out waiting for remote host slot response",
+    "storage": {
+      "schema": "reploid.chat-workspace/v1",
+      "meshId": "reploid-local-mesh",
+      "participantId": "local-user",
+      "threads": [
+        {
+          "id": "29bf1c47-9dd7-4a71-ac27-14eba0058f83",
+          "model": {
+            "id": "qwen-3-5-2b-q4k-ehaf16",
+            "name": "Qwen 3.5 2B",
+            "identity": "sha256:502fbd6d4c9ed6a890931665995c8ebb42a30e5cda23aa2cfd8e680bee7fa5bc",
+            "provider": "doppler",
+            "contextLength": 262144,
+            "quantization": "q4k",
+            "adapters": []
+          },
+          "purpose": "",
+          "members": [
+            "local-user"
+          ],
+          "permissions": {
+            "sharingScope": "invited-mesh"
+          },
+          "messages": [
+            {
+              "id": "2a84cf59-8072-403d-88e1-4a5c53a23c11",
+              "role": "user",
+              "content": "Reply with a short greeting. This is a physical peer chat test.",
+              "status": "completed"
+            },
+            {
+              "id": "f8870094-a3f2-4c4f-94aa-bae656d9ce2e",
+              "attemptId": "e3bd683f-8f00-42a8-8927-cef1f980d1cd",
+              "role": "assistant",
+              "content": "",
+              "status": "failed"
+            }
+          ],
+          "attempts": [
+            {
+              "id": "e3bd683f-8f00-42a8-8927-cef1f980d1cd",
+              "threadId": "29bf1c47-9dd7-4a71-ac27-14eba0058f83",
+              "userMessageId": "2a84cf59-8072-403d-88e1-4a5c53a23c11",
+              "responseId": "f8870094-a3f2-4c4f-94aa-bae656d9ce2e",
+              "retryOf": null,
+              "status": "failed",
+              "createdAt": 1790192886770,
+              "finishedAt": 1790192953657,
+              "error": "Timed out waiting for remote host slot response",
+              "approval": null,
+              "execution": {
+                "provider": "peer",
+                "placement": "peer-whole-request",
+                "peerId": "peer_mueim585_le6164rc"
+              },
+              "request": {
+                "model": {
+                  "id": "qwen-3-5-2b-q4k-ehaf16",
+                  "name": "Qwen 3.5 2B",
+                  "identity": "sha256:502fbd6d4c9ed6a890931665995c8ebb42a30e5cda23aa2cfd8e680bee7fa5bc",
+                  "provider": "doppler",
+                  "contextLength": 262144,
+                  "quantization": "q4k",
+                  "adapters": []
+                },
+                "permissions": {
+                  "sharingScope": "invited-mesh"
+                },
+                "members": [
+                  "local-user"
+                ],
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "Reply with a short greeting. This is a physical peer chat test."
+                  }
+                ]
+              }
+            }
+          ],
+          "closed": false,
+          "createdAt": 1790192886766
+        }
+      ]
+    },
+    "requesterUsage": {
+      "quota": 2071125417,
+      "usage": 18651,
+      "usageDetails": {
+        "indexedDB": 18651
+      }
+    },
+    "requests": {
+      "remote": 0,
+      "local": 318
+    },
+    "reloaded": {
+      "historyRetained": true,
+      "threadCount": 1,
+      "threadList": "Reply with a short greeting. This is a physical peer chat test.\nfailed"
+    }
+  },
+  "privateIsolation": {
+    "remotePeers": "0 peers",
+    "remoteRtc": [],
+    "publicLocalRtc": [
+      {
+        "state": "closed",
+        "ice": "closed",
+        "signaling": "closed",
+        "data": [],
+        "pairs": []
+      },
+      {
+        "state": "closed",
+        "ice": "closed",
+        "signaling": "closed",
+        "data": [],
+        "pairs": []
+      },
+      {
+        "state": "closed",
+        "ice": "closed",
+        "signaling": "closed",
+        "data": [],
+        "pairs": []
+      },
+      {
+        "state": "closed",
+        "ice": "closed",
+        "signaling": "closed",
+        "data": [],
+        "pairs": []
+      },
+      {
+        "state": "closed",
+        "ice": "closed",
+        "signaling": "closed",
+        "data": [],
+        "pairs": []
+      }
+    ],
+    "publicLocalDisplayedPeers": "2 peers"
+  },
+  "privatePair": {
+    "remote": [
+      {
+        "state": "connected",
+        "ice": "connected",
+        "signaling": "stable",
+        "data": [
+          {
+            "label": "reploid",
+            "state": "open",
+            "messagesSent": 6,
+            "messagesReceived": 6
+          }
+        ],
+        "pairs": [
+          {
+            "nominated": true,
+            "localType": "srflx",
+            "remoteType": "relay",
+            "protocol": "udp"
+          }
+        ]
+      }
+    ],
+    "local": [
+      {
+        "state": "connected",
+        "ice": "connected",
+        "signaling": "stable",
+        "data": [
+          {
+            "label": "reploid",
+            "state": "open",
+            "messagesSent": 6,
+            "messagesReceived": 6
+          }
+        ],
+        "pairs": [
+          {
+            "nominated": true,
+            "localType": "relay",
+            "remoteType": "srflx",
+            "protocol": "udp"
+          }
+        ]
+      }
+    ]
+  },
+  "finalIsolation": {
+    "privatePeers": "0 peers",
+    "privateRTC": [
+      {
+        "state": "closed",
+        "ice": "closed",
+        "signaling": "closed",
+        "data": [],
+        "pairs": []
+      }
+    ],
+    "publicRTC": []
+  },
+  "verification": {
+    "passed": true,
+    "errors": [],
+    "warnings": [
+      "Warning in /capabilities/communication/library-adapter.js: Path traversal pattern detected (../) - potential security risk",
+      "Warning in /vendor/reploid/transport/swarm.js: Path traversal pattern detected (../) - potential security risk",
+      "File exceeds 500 lines (1002) - consider splitting",
+      "File has 78 functions (max 20) - consider modularizing",
+      "Nesting depth of 8 exceeds 5 - refactor nested code",
+      "Warning in /vendor/reploid/mesh/legacy-generation.js: Path traversal pattern detected (../) - potential security risk",
+      "File has 47 functions (max 20) - consider modularizing",
+      "Nesting depth of 6 exceeds 5 - refactor nested code"
+    ],
+    "events": [
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1790193212778,
+        "path": "/capabilities/communication/library-adapter.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1790193212794,
+        "path": "/vendor/reploid/transport/swarm.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1790193212798,
+        "metric": "lines",
+        "value": 1002,
+        "threshold": 500,
+        "message": "File exceeds 500 lines (1002) - consider splitting",
+        "path": "/vendor/reploid/transport/swarm.js"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1790193212798,
+        "metric": "functions",
+        "value": 78,
+        "threshold": 20,
+        "message": "File has 78 functions (max 20) - consider modularizing",
+        "path": "/vendor/reploid/transport/swarm.js"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1790193212798,
+        "metric": "nesting",
+        "value": 8,
+        "threshold": 5,
+        "message": "Nesting depth of 8 exceeds 5 - refactor nested code",
+        "path": "/vendor/reploid/transport/swarm.js"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1790193212804,
+        "path": "/vendor/reploid/mesh/legacy-generation.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1790193212806,
+        "metric": "functions",
+        "value": 47,
+        "threshold": 20,
+        "message": "File has 47 functions (max 20) - consider modularizing",
+        "path": "/vendor/reploid/mesh/legacy-generation.js"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1790193212806,
+        "metric": "nesting",
+        "value": 6,
+        "threshold": 5,
+        "message": "Nesting depth of 6 exceeds 5 - refactor nested code",
+        "path": "/vendor/reploid/mesh/legacy-generation.js"
+      }
+    ],
+    "details": {
+      "patternViolations": [
+        {
+          "path": "/capabilities/communication/library-adapter.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        },
+        {
+          "path": "/vendor/reploid/transport/swarm.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        },
+        {
+          "path": "/vendor/reploid/mesh/legacy-generation.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        }
+      ],
+      "complexityWarnings": [
+        {
+          "type": "complexity",
+          "metric": "lines",
+          "value": 1002,
+          "threshold": 500,
+          "message": "File exceeds 500 lines (1002) - consider splitting",
+          "path": "/vendor/reploid/transport/swarm.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "functions",
+          "value": 78,
+          "threshold": 20,
+          "message": "File has 78 functions (max 20) - consider modularizing",
+          "path": "/vendor/reploid/transport/swarm.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "nesting",
+          "value": 8,
+          "threshold": 5,
+          "message": "Nesting depth of 8 exceeds 5 - refactor nested code",
+          "path": "/vendor/reploid/transport/swarm.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "functions",
+          "value": 47,
+          "threshold": 20,
+          "message": "File has 47 functions (max 20) - consider modularizing",
+          "path": "/vendor/reploid/mesh/legacy-generation.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "nesting",
+          "value": 6,
+          "threshold": 5,
+          "message": "Nesting depth of 6 exceeds 5 - refactor nested code",
+          "path": "/vendor/reploid/mesh/legacy-generation.js"
+        }
+      ],
+      "filesAnalyzed": 3
+    }
+  },
+  "finalPublic": {
+    "remote": [
+      {
+        "state": "connected",
+        "ice": "connected",
+        "signaling": "stable",
+        "data": [
+          {
+            "label": "reploid",
+            "state": "open",
+            "messagesSent": 2,
+            "messagesReceived": 2
+          }
+        ],
+        "pairs": [
+          {
+            "nominated": true,
+            "localType": "srflx",
+            "remoteType": "relay",
+            "protocol": "udp"
+          },
+          {
+            "nominated": true,
+            "localType": "srflx",
+            "remoteType": "relay",
+            "protocol": "udp"
+          }
+        ]
+      }
+    ],
+    "local": [
+      {
+        "state": "connected",
+        "ice": "connected",
+        "signaling": "stable",
+        "data": [
+          {
+            "label": "reploid",
+            "state": "open",
+            "messagesSent": 2,
+            "messagesReceived": 2
+          }
+        ],
+        "pairs": [
+          {
+            "nominated": true,
+            "localType": "relay",
+            "remoteType": "srflx",
+            "protocol": "udp"
+          }
+        ]
+      }
+    ],
+    "remotePeers": "1 peer",
+    "localPeers": "1 peer"
+  },
+  "recovery": {
+    "kind": "Close signaling socket while browser offline, then restore network",
+    "offlineMs": 18515,
+    "during": [
+      {
+        "state": "closed",
+        "ice": "closed",
+        "signaling": "closed",
+        "data": [],
+        "pairs": []
+      }
+    ],
+    "after": [
+      {
+        "state": "closed",
+        "ice": "closed",
+        "signaling": "closed",
+        "data": [],
+        "pairs": []
+      },
+      {
+        "state": "connected",
+        "ice": "connected",
+        "signaling": "stable",
+        "data": [
+          {
+            "label": "reploid",
+            "state": "open",
+            "messagesSent": 2,
+            "messagesReceived": 2
+          }
+        ],
+        "pairs": [
+          {
+            "nominated": true,
+            "localType": "srflx",
+            "remoteType": "relay",
+            "protocol": "udp"
+          }
+        ]
+      }
+    ]
+  },
+  "sourceHashes": {
+    "capabilities/communication/library-adapter.js": "370242d25accd72308f14cb376e21950081a3fd5626e13ca56ec15c5f0d32eaf",
+    "vendor/reploid/transport/swarm.js": "40291d43e5e5fd3c0713d6ae27bed5260c91a0382c6d5247988252b646a24493",
+    "vendor/reploid/mesh/legacy-generation.js": "49526d89d5fb209f81682c223a27f46fa4ba1a262abaacbc3d2eaecf4861c9c6"
+  },
+  "browserBundle": "sha256:d272231af08c05cbbae699b6cf490a165c03bddf335a6804851b88c47b575773",
+  "finished": "2026-09-23T19:56:18.750Z",
+  "checks": {
+    "bootstrap": 13,
+    "vitest": 61,
+    "playwright": 3,
+    "registryUnresolved": 0
+  },
+  "distinctObservedNatAddresses": true
+}

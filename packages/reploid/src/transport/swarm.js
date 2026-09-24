@@ -16,6 +16,7 @@ const MESSAGE_TYPES = new Set([
   'reploid:peer-advertisement',
   'reploid:generation-request', 'reploid:generation-update',
   'reploid:generation-result', 'reploid:generation-error',
+  'reploid:generation-cancel',
   'reploid:receipt',
   'reploid:tool-offer', 'reploid:tool-offer-ack',
   'ping', 'pong',
@@ -461,7 +462,10 @@ const WebRTCSwarm = {
 
       logger.info(`[WebRTCSwarm] Connecting to peer: ${remotePeerId}`);
 
-      const connection = new RTCPeerConnection(deps.rtcConfig || policy.webrtc.rtcConfig);
+      const signalingWs = _signalingWs;
+      const rtcConfig = deps.getRtcConfig ? await deps.getRtcConfig() : deps.rtcConfig || policy.webrtc.rtcConfig;
+      if (_manualStop || _signalingWs !== signalingWs) return;
+      const connection = new RTCPeerConnection(rtcConfig);
       const dataChannel = connection.createDataChannel('reploid', CONFIG.channelOptions);
 
       const peer = {
@@ -489,6 +493,7 @@ const WebRTCSwarm = {
 
       // Connection state monitoring
       connection.onconnectionstatechange = () => {
+        if (_peers.get(remotePeerId) !== peer) return;
         logger.debug(`[WebRTCSwarm] Connection state with ${remotePeerId}: ${connection.connectionState}`);
         if (connection.connectionState === 'failed' || connection.connectionState === 'disconnected') {
           removePeer(remotePeerId);
@@ -519,7 +524,10 @@ const WebRTCSwarm = {
       if (_manualStop) return;
       logger.info(`[WebRTCSwarm] Received offer from: ${remotePeerId}`);
 
-      const connection = new RTCPeerConnection(deps.rtcConfig || policy.webrtc.rtcConfig);
+      const signalingWs = _signalingWs;
+      const rtcConfig = deps.getRtcConfig ? await deps.getRtcConfig() : deps.rtcConfig || policy.webrtc.rtcConfig;
+      if (_manualStop || _signalingWs !== signalingWs) return;
+      const connection = new RTCPeerConnection(rtcConfig);
 
       const peer = {
         id: remotePeerId,
@@ -549,6 +557,12 @@ const WebRTCSwarm = {
         if (_manualStop || _peers.get(remotePeerId) !== peer) { event.channel.close(); return; }
         peer.dataChannel = event.channel;
         setupDataChannel(event.channel, remotePeerId, peer);
+      };
+      connection.onconnectionstatechange = () => {
+        if (_peers.get(remotePeerId) !== peer) return;
+        if (connection.connectionState === 'failed' || connection.connectionState === 'disconnected') {
+          removePeer(remotePeerId);
+        }
       };
 
       // Set remote description and create answer
@@ -637,8 +651,9 @@ const WebRTCSwarm = {
       };
 
       dataChannel.onclose = () => {
+        if (_peers.get(remotePeerId) !== peer) return;
         logger.info(`[WebRTCSwarm] Data channel closed with ${remotePeerId}`);
-        peer.status = 'disconnected';
+        removePeer(remotePeerId);
       };
     };
 
@@ -674,13 +689,14 @@ const WebRTCSwarm = {
     const removePeer = (remotePeerId) => {
       const peer = _peers.get(remotePeerId);
       if (peer) {
+        _peers.delete(remotePeerId);
         try {
           if (peer.dataChannel) peer.dataChannel.close();
           if (peer.connection) peer.connection.close();
         } catch (e) {
           // Ignore cleanup errors
         }
-        _peers.delete(remotePeerId);
+        EventBus.emit('swarm:peer-disconnected', { peerId: remotePeerId });
       }
       _pendingIceCandidates.delete(remotePeerId);
       _latencyByPeer.delete(remotePeerId);

@@ -1080,8 +1080,8 @@
     },
     {
       "path": "capabilities/communication/library-adapter.js",
-      "byteLength": 2204,
-      "sha256": "sha256:681bedd887922f87384f86b704087f49ec0e9ed1acda07cb04481e077bee6083"
+      "byteLength": 2730,
+      "sha256": "sha256:370242d25accd72308f14cb376e21950081a3fd5626e13ca56ec15c5f0d32eaf"
     },
     {
       "path": "capabilities/communication/signaling-config.js",
@@ -1290,8 +1290,8 @@
     },
     {
       "path": "config/module-inventory.json",
-      "byteLength": 496336,
-      "sha256": "sha256:786cbc55ba5ce9664b8562c41ae9e44c235c152c697f8cb1b0b6d7066d9cbfd6"
+      "byteLength": 496372,
+      "sha256": "sha256:457f3fde748498778350196f51afb59727059dfaacccbada5cff599a82e1970f"
     },
     {
       "path": "config/module-registry.json",
@@ -13280,8 +13280,8 @@
     },
     {
       "path": "vendor/reploid/mesh/legacy-generation.js",
-      "byteLength": 19185,
-      "sha256": "sha256:00283edca6ff4cbc62250097c9b20e931b41aa8d43c93a01d438e8ff056c7215"
+      "byteLength": 19484,
+      "sha256": "sha256:49526d89d5fb209f81682c223a27f46fa4ba1a262abaacbc3d2eaecf4861c9c6"
     },
     {
       "path": "vendor/reploid/mesh/partitions/partition-runner.js",
@@ -13311,7 +13311,7 @@
     {
       "path": "vendor/reploid/package-assets.json",
       "byteLength": 21040,
-      "sha256": "sha256:c036da0583fba5bb315b79f454e482f8761192cb0337dd0c6d94b3f74ca9826a"
+      "sha256": "sha256:95f3a5b5974770c58601b31cef3032af692541ae3b8f466479cf897d86821d0c"
     },
     {
       "path": "vendor/reploid/rules/contribution.rules.json",
@@ -13380,8 +13380,8 @@
     },
     {
       "path": "vendor/reploid/transport/swarm.js",
-      "byteLength": 31354,
-      "sha256": "sha256:5b3089a77b019c5a2562984a4407cd5f50354e44a76bf54bc1a46c068d9d9fe8"
+      "byteLength": 32204,
+      "sha256": "sha256:40291d43e5e5fd3c0713d6ae27bed5260c91a0382c6d5247988252b646a24493"
     },
     {
       "path": "vendor/reploid/transport/tool-offer-channel.d.ts",
@@ -13394,5 +13394,5 @@
       "sha256": "sha256:ca1208dd2f96d1b7ffb5464c7676a22aa849ec31936abde0809fc208bbd971c9"
     }
   ],
-  "bundleHash": "sha256:267eb545c4292a7a19dd627be484fed761bae0e8193f1cbeddeab0bec7ae97dd"
+  "bundleHash": "sha256:d272231af08c05cbbae699b6cf490a165c03bddf335a6804851b88c47b575773"
 }

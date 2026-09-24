@@ -145,12 +145,13 @@
     {
       "path": "capabilities/communication/library-adapter.js",
       "owner": "capabilities",
-      "sha256": "sha256:681bedd887922f87384f86b704087f49ec0e9ed1acda07cb04481e077bee6083",
+      "sha256": "sha256:370242d25accd72308f14cb376e21950081a3fd5626e13ca56ec15c5f0d32eaf",
       "imports": [
         "../../config/reploid-library.json",
         "../../config/swarm-bootstrap.json",
         "../../instance.js",
         "../../pool/p2p-transport.js",
+        "../../pool/rtc-config.js",
         "../../vendor/reploid/config/index.js",
         "./swarm-join-policy.js"
       ]
@@ -14622,7 +14623,7 @@
     {
       "path": "vendor/reploid/mesh/legacy-generation.js",
       "owner": "vendor",
-      "sha256": "sha256:00283edca6ff4cbc62250097c9b20e931b41aa8d43c93a01d438e8ff056c7215",
+      "sha256": "sha256:49526d89d5fb209f81682c223a27f46fa4ba1a262abaacbc3d2eaecf4861c9c6",
       "imports": [
         "../artifacts/receipt.js",
         "../config/index.js",
@@ -14702,7 +14703,7 @@
     {
       "path": "vendor/reploid/transport/swarm.js",
       "owner": "vendor",
-      "sha256": "sha256:5b3089a77b019c5a2562984a4407cd5f50354e44a76bf54bc1a46c068d9d9fe8",
+      "sha256": "sha256:40291d43e5e5fd3c0713d6ae27bed5260c91a0382c6d5247988252b646a24493",
       "imports": [
         "../config/index.js"
       ]
