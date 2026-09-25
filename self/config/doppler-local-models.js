@@ -1,6 +1,7 @@
 /**
  * @fileoverview Reploid local Doppler model contract.
  */
+import chatModels from './chat-models.json' with { type: 'json' };
 
 export const DOPPLER_PACKAGE_NAME = 'doppler-gpu';
 export const DOPPLER_PACKAGE_VERSION = '0.6.2';
@@ -41,17 +42,10 @@ export function resolveDopplerBrowserAssets({ pageUrl, explicitBase, storedBase 
 
 export const DEFAULT_DOPPLER_MODEL_ID = 'qwen-3-5-2b-q4k-ehaf16';
 
-export const LOCAL_DOPPLER_MODELS = Object.freeze([
-  Object.freeze({
-    id: DEFAULT_DOPPLER_MODEL_ID,
-    name: 'Qwen 3.5 2B',
-    size: 'Q4K',
-    recommended: true,
-    provider: 'doppler',
-    packageName: DOPPLER_PACKAGE_NAME,
-    packageVersion: DOPPLER_BROWSER_RUNTIME_VERSION
-  })
-]);
+export const LOCAL_DOPPLER_MODELS = Object.freeze(chatModels.map(model => Object.freeze({
+  ...model, adapters: Object.freeze(model.adapters),
+  packageName: DOPPLER_PACKAGE_NAME, packageVersion: DOPPLER_BROWSER_RUNTIME_VERSION
+})));
 
 export function getLocalDopplerModel(modelId) {
   const id = String(modelId || '').trim();
@@ -69,6 +63,7 @@ export function buildLocalDopplerModelConfig(modelId) {
   return {
     id: model.id,
     name: model.name,
+    identity: model.identity,
     provider: model.provider,
     hostType: 'browser-local',
     packageName: model.packageName,

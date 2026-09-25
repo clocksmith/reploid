@@ -17,12 +17,12 @@ describe('independent work threads', () => {
       async generate(messages, control) {
         const step = deferred(); pending.push(step); controls.push(control);
         const accepted = await control.approve({ id: crypto.randomUUID(), input: messages,
-          providerId: 'peer-' + controls.length, modelId: DEFAULT_WORK_MODELS[0].id, expiresAt: Date.now() + 30000 });
+          providerId: 'peer-' + controls.length, modelId: control.modelId, expiresAt: Date.now() + 30000 });
         control.signal.throwIfAborted();
         if (!accepted) throw new Error('Disclosure declined');
         const text = await step.promise;
         control.signal.throwIfAborted();
-        return { content: text, model: DEFAULT_WORK_MODELS[0].id, provider: 'doppler', execution: 'peer-whole-request' };
+        return { content: text, model: control.modelId, provider: 'doppler', execution: 'peer-whole-request' };
       } };
     const app = createWorkSession({ ...ports, service, swarm });
     const first = app.start({ goal: 'First objective' }), firstId = app.getState().selectedId;
@@ -81,15 +81,14 @@ describe('independent work threads', () => {
     expect(DEFAULT_WORK_MODELS.every(model => model.provider === 'doppler')).toBe(true);
   });
 
-  it('allows independent device execution when discovery fails, retaining the connection failure', async () => {
+  it('does not load on the requester when discovery fails', async () => {
     const service = { isSupported: () => true, close: vi.fn(),
       open: async () => ({ async *stream() { yield { type: 'text-delta', text: 'device answer' }; } }) };
     const swarm = { connect: async () => { throw new Error('Signaling unavailable'); }, generate: vi.fn(), hasProvider: () => false };
     const provider = createWorkNetworkProvider({ model: DEFAULT_WORK_MODELS[0], service, swarm, scope: 'test',
       signal: new AbortController().signal, generation: {}, maxOutcomeCharacters: 100 });
-    expect(await provider.generate([], () => {})).toMatchObject({ content: 'device answer',
-      execution: 'local-scoped-session', connectionError: 'Signaling unavailable' });
+    await expect(provider.generate([], () => {})).rejects.toThrow('Signaling unavailable');
     expect(swarm.generate).not.toHaveBeenCalled();
-    expect(service.close).toHaveBeenCalledWith('test');
+    expect(service.close).not.toHaveBeenCalled();
   });
 });

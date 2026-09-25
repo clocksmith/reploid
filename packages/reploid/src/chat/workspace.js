@@ -1,5 +1,6 @@
 /** Conversation state only. Execution, trust and transport are explicit host ports. */
 import defaults from './policy.json' with { type: 'json' };
+import { disclosureScope, matchingThreadGrant, validateThreadGrants } from './thread-grants.js';
 
 const copy = value => structuredClone(value);
 const assert = (ok, message) => { if (!ok) throw new Error(message); };
@@ -9,7 +10,7 @@ export function createChatWorkspace({ meshId, participantId, store, execute,
   policy = defaults, now = Date.now, id = () => crypto.randomUUID() }) {
   assert(typeof meshId === 'string' && meshId && typeof participantId === 'string' && participantId, 'Mesh and participant identities required');
   assert(typeof store?.load === 'function' && typeof store?.save === 'function' && typeof execute === 'function', 'Workspace host ports required');
-  for (const name of ['maxThreads', 'maxMessagesPerThread', 'maxMessageCharacters', 'maxResponseCharacters', 'maxConcurrentAttempts', 'attemptTimeoutMs']) {
+  for (const name of ['maxThreads', 'maxThreadGrants', 'maxMessagesPerThread', 'maxMessageCharacters', 'maxResponseCharacters', 'maxConcurrentAttempts', 'attemptTimeoutMs']) {
     assert(Number.isSafeInteger(policy[name]) && policy[name] > 0, `Invalid ${name}`);
   }
   assert(policy.attemptTimeoutMs <= 2147483647, 'Attempt timeout exceeds timer range');
@@ -24,6 +25,8 @@ export function createChatWorkspace({ meshId, participantId, store, execute,
   for (const thread of threads) {
     assert(typeof thread.id === 'string' && Array.isArray(thread.messages) && Array.isArray(thread.attempts)
       && Array.isArray(thread.members) && thread.messages.length <= limits.maxMessagesPerThread, 'Invalid stored conversation');
+    thread.grants ??= [];
+    validateThreadGrants(thread.grants, thread.id, meshId, limits.maxThreadGrants);
     for (const attempt of thread.attempts) if (activeStatuses.has(attempt.status)) {
       attempt.status = 'interrupted'; attempt.error = 'Connection interrupted. Retry starts a new attempt.';
       attempt.approval = null; attempt.finishedAt = now();
@@ -33,7 +36,9 @@ export function createChatWorkspace({ meshId, participantId, store, execute,
   }
   const snapshot = () => copy({ schema: 'reploid.chat-workspace/v1', meshId, participantId,
     selectedId, threads, runningIds: [...runs.keys()], storageError });
-  const notify = () => { for (const listener of listeners) listener(snapshot()); };
+  const notify = () => { for (const listener of listeners) {
+    try { listener(snapshot()); } catch (error) { console.error('[ChatWorkspace] listener failed', error); }
+  } };
   const persist = () => {
     try { store.save(copy({ schema: 'reploid.chat-workspace/v1', meshId, participantId, threads })); storageError = null; }
     catch (error) { storageError = String(error.message || error); throw error; }
@@ -60,7 +65,7 @@ export function createChatWorkspace({ meshId, participantId, store, execute,
     const controller = new AbortController();
     const attempt = { id: id(), threadId: thread.id, userMessageId, responseId: id(), retryOf,
       status: 'queued', createdAt: now(), finishedAt: null, error: null, approval: null,
-      execution: null, request: copy(request) };
+      execution: null, authorization: null, request: copy(request) };
     const response = { id: attempt.responseId, attemptId: attempt.id, role: 'assistant', content: '', status: 'queued' };
     thread.attempts.push(attempt); thread.messages.push(response);
     const run = { controller, approval: null, completion: null, nextSequence: 0 };
@@ -102,7 +107,13 @@ export function createChatWorkspace({ meshId, participantId, store, execute,
               && typeof preview.peerId === 'string' && preview.peerId && Number.isFinite(preview.expiresAt)
               && preview.expiresAt > now(), 'Invalid conversation disclosure');
             assert(!run.approval, 'An approval is already pending');
-            attempt.status = 'approval'; attempt.approval = copy(preview);
+            const scope = disclosureScope(request, preview), grant = matchingThreadGrant(thread.grants, scope);
+            if (grant) {
+              attempt.authorization = { kind: 'thread-grant', grantId: grant.id, peerId: preview.peerId, ...copy(scope) };
+              persist(); controller.signal.throwIfAborted();
+              return true;
+            }
+            attempt.status = 'approval'; attempt.approval = { ...copy(preview), reusable: !!scope };
             return new Promise(resolve => {
               const expiry = setTimeout(() => finish(false), Math.min(limits.attemptTimeoutMs, preview.expiresAt - now()));
               const finish = accepted => {
@@ -144,7 +155,7 @@ export function createChatWorkspace({ meshId, participantId, store, execute,
       assert(typeof purpose === 'string' && purpose.length <= limits.maxMessageCharacters, 'Invalid conversation purpose');
       assert(Array.isArray(members) && members.every(member => typeof member === 'string' && member), 'Invalid conversation members');
       const thread = { id: id(), model: modelIdentity(model), purpose, members: [...new Set([participantId, ...members])],
-        permissions: copy(permissions), messages: [], attempts: [], closed: false, createdAt: now() };
+        permissions: copy(permissions), grants: [], messages: [], attempts: [], closed: false, createdAt: now() };
       threads.push(thread); selectedId = thread.id; persist(); return thread.id;
     },
     select(threadId) { current(); if (threadId !== null) find(threadId); selectedId = threadId; notify(); },
@@ -169,11 +180,39 @@ export function createChatWorkspace({ meshId, participantId, store, execute,
       assert(!thread.closed && attempt?.id === attemptId && ['cancelled', 'failed', 'interrupted'].includes(attempt.status), 'Only the latest interrupted or unsuccessful response can be retried');
       return start(thread, attempt.request, attempt.userMessageId, attempt.id);
     },
-    approve(threadId, attemptId, previewId, accepted) {
+    approve(threadId, attemptId, previewId, accepted, { remember = false } = {}) {
       current(); const thread = find(threadId), attempt = thread.attempts.at(-1), run = runs.get(threadId);
       assert(attempt?.id === attemptId && attempt.approval?.id === previewId && run?.approval, 'Approval no longer matches this attempt');
+      assert(!run.deciding, 'Approval is already being recorded');
       const allowed = accepted === true && attempt.approval.expiresAt > now() && !run.controller.signal.aborted;
-      run.approval(allowed);
+      if (allowed) {
+        const scope = disclosureScope(attempt.request, attempt.approval);
+        let grant = null;
+        if (remember) {
+          assert(scope, 'Reusable disclosure requires a verified recipient and exact execution identity');
+          assert(thread.grants.length < limits.maxThreadGrants, 'Conversation grant limit reached');
+          grant = { id: id(), meshId, threadId, ...scope, createdAt: now(), revokedAt: null };
+          thread.grants.push(grant);
+        }
+        attempt.authorization = { kind: remember ? 'thread-grant' : 'once', grantId: grant?.id || null,
+          peerId: attempt.approval.peerId, recipientIdentity: attempt.approval.recipientIdentity || null };
+        run.deciding = true;
+        try { persist(); }
+        catch (error) { if (grant) thread.grants.pop(); attempt.authorization = null; run.approval?.(false); throw error; }
+        finally { run.deciding = false; }
+      }
+      if (!run.approval) return; // A state observer may have revoked the grant or cancelled.
+      run.approval(allowed && !run.controller.signal.aborted);
+    },
+    revokeGrant(threadId, grantId) {
+      assert(!closed, 'Workspace is closed');
+      const thread = find(threadId), grant = thread.grants.find(item => item.id === grantId);
+      assert(grant, 'Conversation grant not found');
+      if (grant.revokedAt !== null) return;
+      grant.revokedAt = now();
+      const attempt = thread.attempts.at(-1), run = runs.get(threadId);
+      if (attempt?.authorization?.grantId === grantId) run?.controller.abort(new Error('Conversation grant revoked'));
+      persist();
     },
     cancel(threadId) { const run = runs.get(threadId); run?.controller.abort(new Error('Response stopped')); return run?.completion || Promise.resolve(); },
     async close() {

@@ -1,0 +1,5 @@
+0 PHYSICAL fetching qwen35-0.8b-ner-json-lora
+0 PHYSICAL fetching base-manifest
+1 PHYSICAL loading base model
+1 PHYSICAL applying transferred adapter
+{"ok":true,"resumedBytes":43298426,"cachedBytes":43560570}

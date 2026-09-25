@@ -3,12 +3,11 @@
 Parent: [Reploid Browser Library](../../CATSCAN.md)
 
 ## Target
-Concurrent conversations supplied by an authorized peer mesh, without a global objective.
+Concurrent conversations from authorized peers, without a global objective.
 
 ## Authority
-Owns conversation history, membership, per-thread permissions, attempt identities,
-stream projection and fair device scheduling. Hosts supply authenticated identities,
-durable stores, admission, disclosure and Doppler sessions. No agent loop.
+Owns history, membership, thread permissions, attempts, streams and fair scheduling.
+Hosts supply authenticated identities, persistence, admission, disclosure and Doppler sessions.
 
 ## Scope
 This directory.
@@ -19,14 +18,17 @@ Outputs: isolated conversations, bounded attempts and provenance-bound observati
 Compose existing custody and whole-request jobs; file possession grants no execution.
 
 ## Invariants
-- Selecting or closing a thread does not cancel execution; cancelling affects only its attempt.
-- Every stream update binds thread and attempt. Retries create new attempts, never append to old generations.
+- Thread selection/closure never cancels execution; cancellation affects one attempt.
+- Stream updates bind thread/attempt. Retries create new attempts, never append to old generations.
 - Restore history and mark unfinished attempts interrupted; never silently resend.
 - Permissions precede placement. Model and adapter identity remain exact.
-- Share bounded model residency across threads; reset conversation and adapter state between executions.
-- Fairness uses host-authenticated participant identity, not requester-chosen thread IDs.
+- Explicit reusable disclosure grants bind verified recipient, mesh, thread, model,
+  adapters and scope. Persist before use; revocation cancels affected attempts and
+  prevents reuse. Grants authorize no contribution, artifact supply, evaluation or adoption.
+- Share bounded residency; reset conversation/adapter state between executions.
+- Fairness uses host-authenticated participants, never requester-chosen thread IDs.
 - Cancellation retains the device slot until execution and cleanup settle.
-- Record queue, load, execution and failure observations with unique attempt identity.
+- Bind queue/load/execution/failure observations to unique attempts.
 - Verified files, compatible adapters, whole requests and Doppler-defined splits remain distinct capabilities.
 
 ## Acceptance
@@ -36,7 +38,7 @@ Initial integration uses isolated tabs: concurrent conversations, resumed file/a
 exchange, refresh recovery and execution-peer loss. Physical-device qualification remains separate.
 
 ## Non-goals
-Model mathematics, transport reimplementation, admission or qualification by UI.
+Agent loops, model mathematics, transport reimplementation, admission or qualification by UI.
 
 ## Freedom
 Preserve boundaries and acceptance.

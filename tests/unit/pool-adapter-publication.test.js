@@ -256,3 +256,70 @@ describe('Poolday adapter publication and use consent', () => {
     expect(JSON.stringify(acquired.acquisition)).not.toContain('X-Goog-Signature');
   });
 });
+
+it('keeps verified publications and cached bytes private from callers', async () => {
+  const f = await createFixture(), registry = createAdapterRegistry();
+  const expectedBytes = f.bytes.slice(), expectedPublication = structuredClone(f.publication);
+  await registry.cache({ publication: f.publication, bytes: f.bytes });
+  f.bytes[0] ^= 255; f.publication.pack.runtimeManifest.rank = 999;
+  expect(registry.getPublication(f.pack.packHash)).toEqual(expectedPublication);
+  const first = await registry.getArtifact(f.pack.packHash);
+  expect(first.bytes).toEqual(expectedBytes);
+  first.bytes[0] ^= 255; first.publication.pack.runtimeManifest.rank = 888;
+  registry.list()[0].revoked = true;
+  expect((await registry.getArtifact(f.pack.packHash)).bytes).toEqual(expectedBytes);
+  expect(registry.getPublication(f.pack.packHash)).toEqual(expectedPublication);
+});
+
+it('retains revocation when the original signed publication is replayed', async () => {
+  const f = await createFixture(), registry = createAdapterRegistry();
+  await registry.cache({ publication: f.publication, bytes: f.bytes });
+  const revocation = await createAdapterRevocation({ publication: f.publication, reason: 'Withdrawn', privateKey: f.publisherKeys.privateKey });
+  await registry.revoke(f.pack.packHash, revocation);
+  await expect(registry.publish(f.publication)).rejects.toThrow('revoked');
+  await expect(registry.cache({ publication: f.publication, bytes: f.bytes })).rejects.toThrow('revoked');
+  expect(await registry.getArtifact(f.pack.packHash)).toBeNull();
+});
+
+it('rejects a mismatched assignment even when the requested adapter is cached', async () => {
+  const f = await createFixture(), registry = createAdapterRegistry();
+  await registry.cache({ publication: f.publication, bytes: f.bytes });
+  const requirement = adapterRequirementFromPublication(f.publication);
+  await expect(acquireAdapterForAssignment({ registry, assignment: { adapter: { ...requirement, adapterSha256: fakeHash('f') } } }))
+    .rejects.toThrow('cached publication does not match assignment requirement');
+});
+
+it('orders revocation deletion after a pending write and rejects the late cache result', async () => {
+  const f = await createFixture();
+  let release, entered;
+  const writing = new Promise(resolve => { entered = resolve; });
+  const gate = new Promise(resolve => { release = resolve; });
+  const disk = new Map();
+  const registry = createAdapterRegistry({
+    async writeBytes(key, bytes) { entered(); await gate; disk.set(key, bytes); },
+    async deleteBytes(key) { disk.delete(key); }
+  });
+  const caching = registry.cache({ publication: f.publication, bytes: f.bytes });
+  const rejected = expect(caching).rejects.toThrow('changed or revoked');
+  await writing;
+  const revocation = await createAdapterRevocation({ publication: f.publication, reason: 'Withdrawn', privateKey: f.publisherKeys.privateKey });
+  const revoked = registry.revoke(f.pack.packHash, revocation);
+  // Observe the synchronous in-memory revocation without releasing its disk queue.
+  while (registry.getPublication(f.pack.packHash)) await new Promise(resolve => setTimeout(resolve, 0));
+  expect(await registry.getArtifact(f.pack.packHash)).toBeNull();
+  release(); await rejected; await revoked;
+  expect(disk.size).toBe(0);
+});
+
+it('does not return a disk read that finishes after revocation', async () => {
+  const f = await createFixture();
+  let release;
+  const gate = new Promise(resolve => { release = resolve; });
+  const registry = createAdapterRegistry({ readBytes: () => gate });
+  await registry.publish(f.publication);
+  const reading = registry.getArtifact(f.pack.packHash);
+  const revocation = await createAdapterRevocation({ publication: f.publication, reason: 'Withdrawn', privateKey: f.publisherKeys.privateKey });
+  await registry.revoke(f.pack.packHash, revocation);
+  release(f.bytes);
+  expect(await reading).toBeNull(); expect(await registry.hasCached(f.pack.packHash)).toBe(false);
+});

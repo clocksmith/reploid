@@ -8,10 +8,12 @@ Boot configured browser surfaces from trusted seeds.
 
 ## Authority
 - Owns VFS seeding, module loading, startup and application tools.
-- Composes concurrent agent threads with retained objectives and per-thread exact-payload approval.
-- Composes helpers, swarms, previews, isolation, evaluation and activation separately from Pack jobs.
-- Tasks own validation; repositories own revisions; providers adapt execution; views expose immutable state.
-- Does not own product policy, module semantics, or recovery-root immutability.
+- Composes agent threads with retained objectives and exact-payload approval.
+  Conversations may use explicit revocable grants bound to verified recipient,
+  mesh, thread, model and adapters.
+- Separates helpers/swarms/previews/isolation/evaluation/activation from Pack jobs.
+- Tasks validate; repositories version; providers execute; views expose immutable state.
+- Excludes product policy, module semantics and recovery-root immutability.
 
 ## Scope
 
@@ -26,15 +28,16 @@ Outputs:
 - Application startup through [start-reploid.js](start-reploid.js).
 
 ## Invariants
-- Seed identity and destination remain explicit.
-- Host loading cannot silently substitute missing or unverified modules.
+- Keep seed identity/destination explicit.
+- Never substitute missing or unverified modules.
 - Automatic discovery is cancellable; disconnect prevents background rejoin. Joining grants no compute, disclosure, file or improvement authority.
 - Received files cannot grant permissions or prove correctness.
-- Viewing or stopping one thread cannot change another's objective, grants or execution.
+- Viewing/stopping threads cannot change another's objective, grants or execution.
 - Peer candidate delivery grants no evaluation or adoption authority.
-- Peer operations require fresh host approval, exact execution identities, and retained acceptance evidence.
+- Peer operations require current authorization, exact execution identities and retained evidence.
+  Thread grants authorize disclosure only; new recipients/execution identities require approval.
 - Candidates cannot read protected tests or self-activate; attempts pin versions and retain rollback sources.
-- Selects versioned objectives and measures outside candidate isolation; changed objectives require reevaluation.
+- Version objectives/measures outside candidate isolation; changed objectives require reevaluation.
 
 ## Acceptance
 - Seeded modules are complete; VFS round trips succeed.

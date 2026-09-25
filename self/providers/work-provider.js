@@ -17,7 +17,29 @@ export async function openWorkProvider({ model, service, scope, signal, credenti
   signal.throwIfAborted();
   if (session) requireValue(typeof session.stream === 'function', 'Configured Doppler session does not expose text streaming');
   else requireValue(typeof credentials === 'function', 'Firebase Auth and App Check credentials are required');
+  let healthy = true;
+  const executionIdentity = () => {
+    if (!session) return null;
+    requireValue(healthy, 'Doppler session requires replacement after failed cleanup');
+    requireValue(session.loaded === true && typeof session.modelId === 'string', 'Doppler session is not ready');
+    const hash = String(session.manifestHash || '').replace(/^sha256:/, '');
+    requireValue(/^[a-f0-9]{64}$/.test(hash), 'Doppler session is missing its manifest identity');
+    requireValue(session.modelId === model.id, 'Doppler loaded a different model');
+    requireValue(!model.identity || model.identity === 'sha256:' + hash, 'Doppler loaded a different model artifact');
+    requireValue(!session.activeLoRA, 'This execution path requires an unadapted model');
+    return { model: session.modelId, modelIdentity: 'sha256:' + hash, adapterIdentities: [] };
+  };
+  if (session) executionIdentity();
+  const reset = async () => {
+    if (!session) return;
+    requireValue(typeof session.resetGenerationState === 'function', 'Doppler session cannot reset conversation state');
+    try { await session.resetGenerationState(); }
+    catch (error) { healthy = false; throw error; }
+  };
   return Object.freeze({
+    getIdentity: executionIdentity,
+    isReady: () => healthy && session?.loaded === true,
+    reset,
     async generate(messages, onUpdate = () => {}, { signal: attemptSignal }) {
       const combined = AbortSignal.any([signal, attemptSignal]);
       combined.throwIfAborted();
@@ -31,10 +53,15 @@ export async function openWorkProvider({ model, service, scope, signal, credenti
       };
       if (session) {
         // Raw compatibility sessions cancel cooperatively; the host waits for settlement.
-        for await (const event of session.stream(messages, generation)) {
-          combined.throwIfAborted();
-          if (event.type === 'text-delta') update(event.text);
-        }
+        await reset();
+        try {
+          executionIdentity();
+          for await (const event of session.stream(messages, generation)) {
+            combined.throwIfAborted();
+            if (event.type === 'text-delta') update(event.text);
+          }
+        } finally { await reset(); }
+        actualModel = executionIdentity().model;
       } else {
         const headers = new Headers(await credentials({ signal: combined }));
         requireValue(/^Bearer\s+\S+$/i.test(headers.get('Authorization') || '')
@@ -66,6 +93,7 @@ export async function openWorkProvider({ model, service, scope, signal, credenti
       combined.throwIfAborted();
       requireValue(text.trim(), 'Provider returned no text');
       return { content: text, raw: text, requestedModel: model.id, model: actualModel,
+        ...(session ? executionIdentity() : {}),
         provider: model.provider, execution: session ? 'local-scoped-session' : 'cloud-proxy-session' };
     }
   });

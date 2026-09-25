@@ -14,6 +14,7 @@ const MESSAGE_TYPES = new Set([
   'goal-update', 'reflection-share',
   'artifact-announce', 'artifact-request', 'artifact-chunk', 'artifact-ack',
   'reploid:peer-advertisement',
+  'reploid:identity-challenge', 'reploid:identity-proof',
   'reploid:generation-request', 'reploid:generation-update',
   'reploid:generation-result', 'reploid:generation-error',
   'reploid:generation-cancel',
@@ -986,6 +987,17 @@ const WebRTCSwarm = {
       onMessage,
       getConnectionState,
       getConnectedPeers,
+      getPeerBinding(remotePeerId) {
+        const peer = _peers.get(remotePeerId);
+        if (peer?.dataChannel?.readyState !== 'open') return null;
+        const fingerprint = description => {
+          const values = [...new Set((description?.sdp || '').split(/\r?\n/)
+            .filter(line => /^a=fingerprint:sha-256 /i.test(line)).map(line => line.slice(14).trim().toLowerCase()))];
+          return values.length === 1 && /^sha-256 (?:[a-f0-9]{2}:){31}[a-f0-9]{2}$/.test(values[0]) ? values[0] : null;
+        };
+        const local = fingerprint(peer.connection?.localDescription), remote = fingerprint(peer.connection?.remoteDescription);
+        return local && remote ? { local, remote } : null;
+      },
       getStats,
       getClock,
       tick, // Expose for SwarmSync to increment clock on local writes

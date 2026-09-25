@@ -1,0 +1,7 @@
+0 PHYSICAL fetching qwen35-0.8b-ner-json-lora
+0 PHYSICAL fetching base-manifest
+page.evaluate: Error: Doppler source digest mismatch
+    at check (eval at evaluate (:290:30), <anonymous>:11:61)
+    at Object.execute (eval at evaluate (:290:30), <anonymous>:90:11)
+    at async <anonymous>:316:30
+{"ok":false,"failure":"page.evaluate: Error: Doppler source digest mismatch\n    at check (eval at evaluate (:290:30), <anonymous>:11:61)\n    at Object.execute (eval at evaluate (:290:30), <anonymous>:90:11)\n    at async <anonymous>:316:30","resumedBytes":43298426,"cachedBytes":43560570}

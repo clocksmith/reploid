@@ -24,7 +24,9 @@ Outputs: [markup](view.js), [Room-1](room-view.js).
   accessible themes and responsive scrolling. Activities prescribe no navigation hierarchy.
 - Link tasks/helpers/jobs/results/candidates; show observed states and missing admission/evaluators.
 - Preserve execution in protein/document examples and request/execution/comparison/acceptance/receipt lifecycles. Recovery requires valid state.
-- Disclose execution location; approve exact outgoing public payloads. Room membership grants no disclosure.
+- Disclose execution location; approve exact public payloads or explicitly grant
+  future disclosure to the verified recipient for that thread/model. Show and
+  revoke grants. Membership grants no disclosure.
 - Keep thread failures, approvals and stop visible; selection never stops background threads.
 - Inspect Pack/runtime/provider/hardware/fallback/timing/output/agreement. Review grants no evaluation/promotion; receipts prove no hardware attestation; acceptance names policy.
 - Research administration stays in Room-1; generic Packs inherit no research fields.

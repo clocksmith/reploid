@@ -9,8 +9,7 @@ import EventBus from '../infrastructure/event-bus.js';
 import { LOCAL_DOPPLER_MODELS } from '../config/doppler-local-models.js';
 import profile from '../config/work-profile.json' with { type: 'json' };
 import { createReploidDopplerRuntimeService } from '../infrastructure/doppler-runtime-service.js';
-import { openWorkProvider } from '../providers/work-provider.js';
-import { withWorkDevice } from '../providers/work-network-provider.js';
+import { createWorkResidentProvider } from '../providers/work-resident-provider.js';
 import { createWorkPeerOffers } from './work-peer-offers.js';
 
 export function createWorkSwarm({ storage, evolution, onChange = () => {}, service = createReploidDopplerRuntimeService(), networkOptions = createLegacyNetworkOptions }) {
@@ -21,9 +20,9 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
   let disconnecting = null, sharingConnection = null, generation = 0, paused = false;
   let automaticAllowed = options.autoConnect !== false;
   const requests = new Map();
-  const owned = new Set();
   let consumerTransport = null;
-  const contribution = { phase: 'idle', completed: 0 };
+  let contributor = null, stoppingContribution = null;
+  let contribution = { phase: 'idle', completed: 0, modelId: null, modelIdentity: null, progress: null };
   const getState = () => ({ sharing, stopping, connecting, paused, error, models: LOCAL_DOPPLER_MODELS,
     discoveryScope: options.discoveryScope,
     contribution: { ...contribution }, limits: { maxInboundJobs: 1, maxOutputTokens: profile.generation.maxTokens },
@@ -32,7 +31,7 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
   const notify = () => onChange(getState());
   const peerOffers = evolution ? createWorkPeerOffers({ storage, evolution, roomId: options.config.value.mesh.roomId,
     getTransport: () => consumerTransport, onChange: notify }) : null;
-  const build = (model, peerId) => {
+  const build = (model, peerId, execution = null) => {
     const version = generation;
     const instanceId = 'work-swarm:' + crypto.randomUUID();
     const events = EventBus.factory({ Utils: utils });
@@ -41,6 +40,11 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
       enabled: true, executeJobs: !!model, maxInboundJobs: 1 } } });
     return createLegacyGenerationMesh({ config, ports: {
       instanceId, modelConfig: model, utils, eventBus, events,
+      getExecutionState: () => {
+        const state = execution?.getState();
+        return { phase: sharing && state?.ready ? 'ready' : state?.phase || 'idle',
+          modelIdentity: state?.modelIdentity || null };
+      },
       createTransport: () => {
         if (closed || paused || version !== generation) throw new Error('Text swarm connection stopped');
         const transport = createSwarmTransport({ ...options, config, ...(peerId ? { peerId } : {}) });
@@ -53,13 +57,14 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
       async authorize(request) {
         if (closed) return false;
         if (request.action === 'mesh.connect') return true;
-        if (request.action === 'mesh.execute') return sharing && !!model;
+        if (request.action === 'mesh.execute') return sharing && contributor === execution && execution?.getState().ready === true;
         const pending = requests.get(request.requestContext?.id);
         if (request.action !== 'mesh.dispatch' || !pending) return false;
         const peer = consumer.getSwarmSnapshot().peers.find(item => item.peerId === request.peerId);
         if (!peer) return false;
         const preview = { id: crypto.randomUUID(), operation: 'generate', modelId: peer.model || 'advertised text model',
-          modelIdentity: 'legacy swarm advertisement; not signed Pack qualification', providerId: peer.peerId,
+          modelIdentity: peer.modelIdentity, adapterIdentities: [], providerId: peer.peerId,
+          recipientIdentity: request.recipientIdentity || null, disclosure: 'public',
           input: request.messages, options: {}, limits: { maxJobMs: config.value.mesh.generationTimeoutMs },
           expiresAt: Date.now() + profile.peers.maxPreviewMs };
         pending.signal.throwIfAborted();
@@ -71,21 +76,9 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
         await pending.record({ stage: 'approved', preview, protocol: 'swarm/v1' });
         return true;
       },
-      async generate(messages, onUpdate, { signal }) {
-        const scope = 'work-shared:' + crypto.randomUUID();
-        contribution.phase = 'loading'; notify();
-        const operation = withWorkDevice(service, signal, async () => {
-          try {
-            const adapter = await openWorkProvider({ model, service, scope, signal, generation: profile.generation,
-              maxOutcomeCharacters: profile.maxOutcomeCharacters });
-            contribution.phase = 'executing'; notify();
-            return await adapter.generate(messages, onUpdate, { signal });
-          }
-          finally { try { await service.close(scope); } finally { contribution.phase = 'idle'; notify(); } }
-        });
-        owned.add(operation);
-        try { const result = await operation; contribution.completed++; notify(); return result; }
-        finally { owned.delete(operation); }
+      generate: (messages, onUpdate, controls) => {
+        if (!sharing || contributor !== execution) throw new Error('Contributor model is not ready');
+        return execution.generate(messages, onUpdate, controls);
       }
     } });
   };
@@ -130,7 +123,7 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
       await connect({ automatic: true });
       if (!consumer) throw new Error('Peer discovery is stopped');
       const result = await consumer.generate(messages, controls.onPartial, {
-        signal: controls.signal, modelId: controls.modelId, requestContext: { id }
+        signal: controls.signal, modelId: controls.modelId, modelIdentity: controls.modelIdentity, requestContext: { id }
       });
       controls.signal.throwIfAborted();
       if (typeof result.content !== 'string' || !result.content.trim() || result.content.length > profile.maxOutcomeCharacters) {
@@ -146,18 +139,35 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
       throw cause;
     } finally { requests.delete(id); }
   };
+  const stopContribution = () => {
+    if (stoppingContribution) return stoppingContribution;
+    sharing = false; stopping = true;
+    contribution = { ...contribution, phase: 'stopping' };
+    const previous = supplier, execution = contributor, pending = sharingConnection;
+    supplier = null; contributor = null;
+    // Invalidate the resident before waiting for transport or loader settlement.
+    const retiring = execution?.close();
+    stoppingContribution = (async () => {
+      const results = await Promise.allSettled([retiring, previous?.close(), pending]);
+      const cleanupFailure = results[0]?.status === 'rejected' ? results[0].reason : null;
+      contribution = { ...contribution, phase: cleanupFailure ? 'failed' : 'idle' };
+      if (cleanupFailure) { error = cleanupFailure.message; throw cleanupFailure; }
+    })().finally(() => { stoppingContribution = null; stopping = false; notify(); });
+    notify(); return stoppingContribution;
+  };
   const disconnect = ({ automatic = false } = {}) => {
     if (!automatic) { paused = true; storage?.setItem('REPLOID_SWARM_ENABLED', 'false'); }
     if (disconnecting) return disconnecting;
-    generation++; sharing = false;
-    const previousConsumer = consumer, previousSupplier = supplier;
-    consumer = null; supplier = null; consumerTransport?.disconnect(); consumerTransport = null;
+    generation++;
+    const contributionStop = stopContribution();
+    const previousConsumer = consumer;
+    consumer = null; consumerTransport?.disconnect(); consumerTransport = null;
     peerOffers?.close();
-    const pending = [connection, sharingConnection, previousConsumer?.close(), previousSupplier?.close()];
+    const pending = [connection, contributionStop, previousConsumer?.close()];
     disconnecting = (async () => {
-      await Promise.allSettled(pending);
+      const results = await Promise.allSettled(pending);
       peerOffers?.close();
-      await Promise.allSettled([...owned]);
+      if (results[1].status === 'rejected') throw results[1].reason;
     })().finally(() => { disconnecting = null; connecting = false; notify(); });
     notify();
     return disconnecting;
@@ -173,25 +183,40 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
     previewCandidate: transferId => peerOffers.preview(transferId),
     dismissCandidate: transferId => peerOffers.dismiss(transferId),
     async share(modelId, approved) {
-      if (closed || supplier || stopping) throw new Error('Stop existing sharing first');
+      if (closed || supplier || stopping || sharingConnection) throw new Error('Stop existing sharing first');
       if (approved !== true) throw new Error('Approve public prompt execution before sharing');
       const model = LOCAL_DOPPLER_MODELS.find(item => item.id === modelId);
       if (!model) throw new Error('Select an available local model');
       if (!navigator.gpu) throw new Error('This browser does not support WebGPU');
       if (disconnecting || paused) throw new Error('Connect before contributing compute');
-      sharing = true; error = ''; supplier = build(model); notify();
-      const active = supplier, version = generation;
-      sharingConnection = active.connect();
-      try { await sharingConnection; if (closed || version !== generation) await active.close(); }
-      catch (cause) { await active.close(); if (supplier === active) supplier = null; sharing = false; error = cause.message; throw cause; }
-      finally { sharingConnection = null; notify(); }
+      const version = generation;
+      const execution = createWorkResidentProvider({ model, service, generation: profile.generation,
+        maxOutcomeCharacters: profile.maxOutcomeCharacters, onChange(state) {
+          if (contributor !== execution || version !== generation) return;
+          contribution = state;
+          if (state.phase === 'failed') error = state.error;
+          supplier?.refreshAdvertisement(); notify();
+        } });
+      contributor = execution; sharing = true; error = '';
+      contribution = { ...execution.getState(), phase: 'loading' };
+      const active = build(model, undefined, execution); supplier = active; notify();
+      sharingConnection = (async () => {
+        try {
+          await active.connect();
+          if (closed || contributor !== execution || version !== generation) throw new Error('Contribution stopped');
+          await execution.prepare();
+        } catch (cause) {
+          await Promise.allSettled([active.close(), execution.close()]);
+          if (supplier === active) {
+            supplier = null; contributor = null; sharing = false;
+            contribution = { ...execution.getState(), phase: 'failed' }; error = cause.message;
+          }
+          throw cause;
+        } finally { sharingConnection = null; notify(); }
+      })();
+      await sharingConnection;
     },
-    async stop() {
-      sharing = false; stopping = true; notify();
-      const previous = supplier; supplier = null;
-      try { await previous?.close(); await Promise.allSettled([...owned]); }
-      finally { stopping = false; notify(); }
-    },
+    stop: stopContribution,
     async execute({ task }, controls) {
       if (typeof task !== 'string' || !task.trim() || new TextEncoder().encode(task).byteLength > profile.peers.maxPayloadBytes) throw new Error('Peer helper task exceeds the disclosure allowance');
         const result = await generate([{ role: 'user', content: task }], controls);

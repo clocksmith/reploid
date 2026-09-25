@@ -178,6 +178,7 @@ describe('Self Bridge', () => {
 
     await bridge.initialize();
     transportHandlers.get('reploid:peer-advertisement')?.('peer-provider', {
+      readiness: 'ready', availableSlots: 1, updatedAt: Date.now(),
       peerId: 'peer-provider',
       role: 'provider',
       swarmEnabled: true,

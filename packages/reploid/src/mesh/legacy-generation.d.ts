@@ -4,13 +4,15 @@ import type { SigningIdentity } from '../artifacts/identity.js';
 import type { SwarmTransport, SwarmOptions } from '../transport/swarm.js';
 export interface LegacyGenerationMesh extends GenerationProvider {
   connect(): Promise<unknown>; initialize(): Promise<unknown>; close(): Promise<void>;
+  refreshAdvertisement(): Record<string, unknown>;
   generate(messages: Message[], onUpdate?: ((chunk: string) => void) | null,
-    control?: { signal?: AbortSignal; modelId?: string; requestContext?: import('../config/index.js').Json }): Promise<GenerationResult>;
+    control?: { signal?: AbortSignal; modelId?: string; modelIdentity?: string | null; requestContext?: import('../config/index.js').Json }): Promise<GenerationResult>;
   rotateIdentity(input?: object): Promise<unknown>; getSwarmSnapshot(): Record<string, unknown>; hasAvailableProvider(modelId?: string): boolean;
   on(event: string, handler: (event: unknown) => void): () => void;
 }
 export interface LegacyMeshPorts {
   instanceId: string; modelConfig: Record<string, unknown> | null; utils: SwarmOptions['Utils'];
+  getExecutionState?(): { phase: string; modelIdentity: string | null };
   authorize: Authorize; createTransport(): SwarmTransport; generate: GenerationProvider['generate'];
   transport?: SwarmTransport | null; forceFreshIdentity?: boolean;
   events: { emit(event: string, data: unknown): void; on(event: string, handler: (event: unknown) => void): () => void };

@@ -1,0 +1,7 @@
+0 PHYSICAL fetching qwen35-0.8b-ner-json-lora
+0 PHYSICAL fetching base-manifest
+page.evaluate: Error: Origin artifact hash mismatch
+    at check (eval at evaluate (:290:30), <anonymous>:11:61)
+    at Object.provision (eval at evaluate (:290:30), <anonymous>:34:13)
+    at async <anonymous>:316:30
+{"ok":false,"failure":"page.evaluate: Error: Origin artifact hash mismatch\n    at check (eval at evaluate (:290:30), <anonymous>:11:61)\n    at Object.provision (eval at evaluate (:290:30), <anonymous>:34:13)\n    at async <anonymous>:316:30"}

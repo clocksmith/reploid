@@ -5,35 +5,18 @@
  */
 import { createChatWorkspace, createChatScheduler } from '../vendor/reploid/chat/index.js';
 import { createReploidDopplerRuntimeService } from '../infrastructure/doppler-runtime-service.js';
+import { createWorkResidentProvider } from '../providers/work-resident-provider.js';
 import { createWorkNetworkProvider } from '../providers/work-network-provider.js';
 import profile from '../config/work-profile.json' with { type: 'json' };
+import { LOCAL_DOPPLER_MODELS } from '../config/doppler-local-models.js';
 
 const copy = value => structuredClone(value);
 const assert = (ok, message) => { if (!ok) throw new Error(message); };
 
 const STORAGE_KEY = 'reploid.chat-workspace:v1';
 
-// Canonical fallback model identities for verified catalog compatibility
-export const CANONICAL_CHAT_MODELS = Object.freeze([
-  Object.freeze({
-    id: 'qwen-3-5-0-8b-q4k-ehaf16',
-    name: 'Qwen 3.5 0.8B',
-    identity: 'sha256:fab133e49d6dc67912fc3a087222ec44ca1941d9b7bc36c60cb1379863a6dd4f',
-    provider: 'doppler',
-    contextLength: 262144,
-    quantization: 'q4k',
-    adapters: []
-  }),
-  Object.freeze({
-    id: 'qwen-3-5-2b-q4k-ehaf16',
-    name: 'Qwen 3.5 2B',
-    identity: 'sha256:502fbd6d4c9ed6a890931665995c8ebb42a30e5cda23aa2cfd8e680bee7fa5bc',
-    provider: 'doppler',
-    contextLength: 262144,
-    quantization: 'q4k',
-    adapters: []
-  })
-]);
+// Requesters and contributors use one artifact catalog.
+export const CANONICAL_CHAT_MODELS = LOCAL_DOPPLER_MODELS;
 
 export function createChatSession({
   storage = globalThis.localStorage,
@@ -71,37 +54,20 @@ export function createChatSession({
   // Track active execution placements and latencies per thread
   const threadPlacements = new Map();
 
-  const sessionScheduler = scheduler || (typeof service?.openCapsule === 'function' ? createChatScheduler({
-    open: async (reqModel, { signal }) => {
-      const capsule = await service.openCapsule({
-        scope: 'chat-resident:' + reqModel.id,
-        source: reqModel.id,
-        options: { signal }
-      });
+  const sessionScheduler = scheduler || createChatScheduler({
+    open: async reqModel => {
+      const resident = createWorkResidentProvider({ service, model: reqModel,
+        generation: profile.generation, maxOutcomeCharacters: profile.maxOutcomeCharacters });
+      await resident.prepare();
       return {
-        run: async (req, { signal: runSignal, onDelta }) => {
-          let text = '';
-          for await (const event of capsule.stream(req.messages, profile.generation)) {
-            runSignal?.throwIfAborted();
-            if (event.type === 'text-delta') {
-              text += event.text;
-              onDelta(event.text);
-            }
-          }
-          return {
-            content: text,
-            modelId: reqModel.id,
-            modelIdentity: reqModel.identity,
-            adapterIdentities: (reqModel.adapters || []).map(a => a.identity)
-          };
-        },
-        reset: async () => { if (typeof capsule.reset === 'function') await capsule.reset(); },
-        setAdapters: async (adapters) => { if (typeof capsule.setAdapters === 'function') await capsule.setAdapters(adapters); },
-        close: async () => { await service.close('chat-resident:' + reqModel.id); }
+        run: (req, { signal: runSignal, onDelta }) => resident.generate(req.messages, onDelta, { signal: runSignal }),
+        reset: async () => assert(resident.getState().ready, 'Resident session requires replacement'),
+        setAdapters: async adapters => assert(!adapters.length, 'This execution path cannot apply adapters'),
+        close: resident.close
       };
     },
     observe: () => {}
-  }) : null);
+  });
 
   // Reuse the existing network provider. No simulated production responses.
   const execute = async (request, controls) => {
@@ -116,7 +82,7 @@ export function createChatSession({
     let sequence = 0;
     const state = (status, execution) => controls.onState({ threadId, attemptId, status, execution });
 
-    if (sessionScheduler && (request.permissions?.sharingScope === 'local' || !swarm?.hasProvider?.(model.id))) {
+    if (request.permissions?.sharingScope === 'local') {
       const maxOutputTokens = Math.min(
         request.maxOutputTokens || profile.generation?.maxTokens || 1024,
         4096
@@ -130,19 +96,21 @@ export function createChatSession({
         onDelta: text => controls.onDelta({ threadId, attemptId, sequence: sequence++, text }),
         onState: status => state(status, { provider: 'doppler', placement: 'local-webgpu' })
       });
-      const execution = { provider: 'doppler', placement: 'local-webgpu' };
+      const execution = { provider: 'doppler', placement: 'local-webgpu', modelId: result.model,
+        modelIdentity: result.modelIdentity, adapterIdentities: result.adapterIdentities };
       threadPlacements.set(threadId, execution);
       return {
         threadId,
         attemptId,
-        modelId: model.id,
-        modelIdentity: model.identity,
-        adapterIdentities: (model.adapters || []).map(a => a.identity),
+        modelId: result.model,
+        modelIdentity: result.modelIdentity,
+        adapterIdentities: result.adapterIdentities,
         content: result.content,
         execution
       };
     }
 
+    assert(swarm?.generate, 'No connected participant can execute this model');
     const provider = createWorkNetworkProvider({
       model, service, scope: 'chat:' + attemptId, signal: controls.signal,
       swarm: request.permissions?.sharingScope === 'local' ? null : swarm,
@@ -171,9 +139,10 @@ export function createChatSession({
     const execution = result.peerId
       ? { provider: 'peer', placement: 'peer-whole-request', peerId: result.peerId }
       : { provider: 'doppler', placement: 'local-webgpu' };
+    Object.assign(execution, { modelId: result.model, modelIdentity: result.modelIdentity, adapterIdentities: result.adapterIdentities });
     threadPlacements.set(threadId, execution);
-    return { threadId, attemptId, modelId: model.id, modelIdentity: model.identity,
-      adapterIdentities: (model.adapters || []).map(a => a.identity), content: result.content, execution };
+    return { threadId, attemptId, modelId: result.model, modelIdentity: result.modelIdentity,
+      adapterIdentities: result.adapterIdentities, content: result.content, execution };
   };
 
   const workspace = createChatWorkspace({
@@ -186,7 +155,14 @@ export function createChatSession({
   });
 
   const getCatalogModels = () => {
-    return copy([...models, ...peerModels]);
+    const peers = swarm?.getState?.().consumer?.peers || [];
+    return copy([...models, ...peerModels].map(model => {
+      const compatible = peers.filter(peer => peer.model === model.id && peer.modelIdentity === model.identity);
+      const ready = compatible.filter(peer => peer.readiness === 'ready' && peer.hasInference);
+      const loading = peers.some(peer => peer.model === model.id && peer.readiness === 'loading');
+      return { ...model, availability: ready.length ? (ready.some(peer => peer.availableSlots > 0) ? 'ready' : 'busy')
+        : loading ? 'loading' : 'unavailable', providerIds: ready.map(peer => peer.peerId) };
+    }));
   };
 
   const notifyAll = () => {
@@ -271,10 +247,11 @@ export function createChatSession({
       notifyAll();
       return res;
     },
-    approve(threadId, attemptId, previewId, accepted) {
-      workspace.approve(threadId, attemptId, previewId, accepted);
+    approve(threadId, attemptId, previewId, accepted, options) {
+      workspace.approve(threadId, attemptId, previewId, accepted, options);
       notifyAll();
     },
+    revokeGrant(threadId, grantId) { workspace.revokeGrant(threadId, grantId); },
     closeThread(threadId) {
       workspace.closeThread(threadId);
       notifyAll();
@@ -317,8 +294,8 @@ export function createChatSession({
       } finally { notifyAll(); }
     },
     async close() {
-      if (sessionScheduler) await sessionScheduler.close();
       await workspace.close();
+      if (sessionScheduler) await sessionScheduler.close();
       listeners.clear();
     },
     scheduler: sessionScheduler

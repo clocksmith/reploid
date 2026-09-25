@@ -283,3 +283,25 @@ describe('peer-only exact Pack dependency custody', () => {
     finally { store.close(); }
   });
 });
+
+it('does not expose verified reconstruction bytes or chunk commitments to checkpoint mutation', async () => {
+  const f = await fixture();
+  const store = await createPeerPackArtifactStore({ ...f.options, inventories: f.options.inventories.slice(1), checkpoints: {
+    async getChunk(chunk) { chunk.offset = 999; return null; },
+    async putChunk(chunk, bytes) { chunk.offset = 999; bytes.fill(0); },
+    async deleteChunk() {}
+  } });
+  try { expect(await read(store, f)).toEqual(f.artifactBytes.get('weights')); }
+  finally { store.close(); }
+});
+
+it('fails malformed checkpoint bytes without producing invalid transfer accounting', async () => {
+  const f = await fixture();
+  const store = await createPeerPackArtifactStore({ ...f.options, checkpoints: {
+    async getChunk() { return {}; }, async putChunk() {}, async deleteChunk() {}
+  } });
+  try {
+    await expect(read(store, f)).rejects.toThrow('checkpoint returned invalid bytes');
+    expect(store.getReceipt().verificationBytes).toBe(0);
+  } finally { store.close(); }
+});

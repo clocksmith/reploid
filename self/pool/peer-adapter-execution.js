@@ -32,6 +32,8 @@ export function createPeerAdapterResolver({ registry, resolveCustody, policy: in
         signal?.throwIfAborted();
         assert(!closed, 'acquisition closed');
         await assertPublicationsCurrent({ adapterSet: entries, model });
+        signal?.throwIfAborted();
+        assert(!closed, 'acquisition closed');
       };
       const close = () => {
         closed = true;
@@ -71,8 +73,10 @@ export function createPeerAdapterResolver({ registry, resolveCustody, policy: in
         await assertCurrent();
         return Object.freeze({ adapterSet: entries, receipts: Object.freeze(receipts), assertCurrent, close,
           artifactStore: Object.freeze({ async readArtifact(artifact) {
+            artifact = structuredClone(artifact);
             await assertCurrent();
             const bytes = bytesByArtifact.get(await hashDopplerEvidence(artifact));
+            await assertCurrent();
             assert(bytes, 'artifact outside resolved adapter set');
             return bytes.slice();
           } }) });
