@@ -1,0 +1,29 @@
+{
+  "startedAt": "2026-09-24T03:07:00.170Z",
+  "physicalDevices": 1,
+  "sourceHashes": {
+    "self/vendor/reploid/artifacts/custody/runtime.js": "ebe1e8da9fcfbc604e03c6a831f1ac3668361e15072b77f432d9ecc01f4f40a9",
+    "self/pool/peer-pack-data-channel.js": "7efc1728b482d3739722c587565d4178427400f02cfee116722730d47e45a1f3",
+    "self/infrastructure/pack-transfer-storage.js": "8f4a918e2a0226de9561ffdc0369042703b4d342fc5aab9438e3a0eb869a891f",
+    "self/infrastructure/doppler-runtime-service.js": "b99e396ce704e67aae141ec4a2baafb11592244d2e029dcd0338ba921110e14b"
+  },
+  "errors": [],
+  "executionClass": "real-signed-custody-real-adapter-real-webgpu",
+  "runtimeVersion": "0.6.2",
+  "model": {
+    "id": "qwen-3-5-0-8b-q4k-ehaf16",
+    "identity": "sha256:fab133e49d6dc67912fc3a087222ec44ca1941d9b7bc36c60cb1379863a6dd4f",
+    "url": "https://huggingface.co/clocksmith/rdrr/resolve/80d7716270b6371d541de979eff3370edaf34e13/models/qwen-3-5-0-8b-q4k-ehaf16/manifest.json"
+  },
+  "adapter": {
+    "id": "qwen35-0.8b-ner-json-lora",
+    "sha256": "dfed3509fdd54c04e80e362b6b14f98d9c326a8e732f539996a137086dc4f636",
+    "sizeBytes": 43346432,
+    "origin": "https://huggingface.co/Mike0021/qwen35-0.8b-ner-json-lora/resolve/6d4e4cf3ebe7d8df10897b9f44cbf1e647386bcb/adapter_model.safetensors"
+  },
+  "recipientAdapterOriginRequests": 0,
+  "ok": false,
+  "failure": "page.evaluate: Error: Origin artifact hash mismatch\n    at check (eval at evaluate (:290:30), <anonymous>:11:61)\n    at Object.provision (eval at evaluate (:290:30), <anonymous>:34:13)\n    at async <anonymous>:316:30",
+  "sourceStable": true,
+  "finishedAt": "2026-09-24T03:07:02.271Z"
+}

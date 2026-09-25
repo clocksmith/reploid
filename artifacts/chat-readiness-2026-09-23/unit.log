@@ -1,0 +1,23 @@
+
+ RUN  v4.1.10 /home/clocksmith/deco/reploid
+
+ ✓ tests/unit/legacy-generation-threads.test.js (9 tests) 450ms
+ ✓ tests/unit/work-swarm-lifecycle.test.js (5 tests) 360ms
+ ✓ tests/integration/public-swarm-server.test.js (5 tests) 663ms
+     ✓ isolates private capabilities and denies public/private cross-scope joins and offers  315ms
+ ✓ tests/unit/chat-session.test.js (12 tests) 192ms
+ ✓ tests/unit/chat-scheduler.test.js (5 tests) 121ms
+ ✓ tests/unit/work-threads.test.js (4 tests) 137ms
+ ✓ tests/unit/webrtc-swarm.test.js (44 tests) 105ms
+ ✓ tests/unit/work-contracts.test.js (10 tests) 41ms
+ ✓ tests/unit/self-bridge.test.js (10 tests) 64ms
+ ✓ tests/unit/chat-workspace.test.js (8 tests) 28ms
+ ✓ tests/unit/work-resident-provider.test.js (6 tests) 22ms
+ ✓ tests/unit/remote-generation-requests.test.js (3 tests) 13ms
+ ✓ tests/unit/swarm-rtc-config.test.js (3 tests) 11ms
+
+ Test Files  13 passed (13)
+      Tests  124 passed (124)
+   Start at  22:28:52
+   Duration  4.02s (transform 1.09s, setup 0ms, import 2.16s, tests 2.21s, environment 5.00s)
+

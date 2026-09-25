@@ -1,0 +1,38 @@
+adapter {
+  vendor: 'intel',
+  architecture: 'gen-12lp',
+  device: '',
+  description: '',
+  fallback: false
+}
+peer discovery 0
+model preparation 0
+model preparation 10
+model preparation 20
+model preparation 30
+model preparation 40
+model preparation 51
+model preparation 61
+model preparation 71
+model preparation 81
+model preparation 91
+model preparation 101
+model preparation 111
+model preparation 121
+model preparation 131
+model preparation 141
+model preparation 152
+model preparation 162
+ready 169570 Qwen 3.5 0.8B · unavailable
+Qwen 3.5 2B · ready
+two completions 0
+remembered grant after refresh 0
+one-time approval after revocation 0
+real stream started 0
+resident reusable after cancel 0
+post-cancel generation 0
+real stream started 0
+settlement after requester reload 0
+real stream started 0
+resident cleanup 0
+{"ok":true,"loadMs":169570,"requesterModelRequests":0,"contributorModelRequests":1842}

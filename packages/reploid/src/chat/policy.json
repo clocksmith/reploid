@@ -1,5 +1,6 @@
 {
   "maxThreads": 64,
+  "maxThreadGrants": 32,
   "maxMessagesPerThread": 256,
   "maxMessageCharacters": 16384,
   "maxResponseCharacters": 32768,

@@ -1,0 +1,14 @@
+Local-only follow-up; no deployment requested or performed.
+
+Negative regressions reproduced before repair:
+- Adapter publication and cached byte mutation escaped into verified registry state.
+- Replaying the original signed adapter publication revived a revoked entry.
+- Cached adapter acquisition ignored a changed assignment adapter digest.
+
+Preserved qualification attempts:
+- rejected-adapter-mirror: configured mirror returned HTTP 401; the recorded upstream revision returned HTTP 200 with matching 43,346,432-byte SHA-256.
+- rejected-old-model-identity: chat's former Qwen 0.8B identity did not match the pinned runtime catalog artifact. Direct runtime execution confirmed the corrected edeb69dd... manifest identity.
+- rejected-harness-identity-field: the test incorrectly expected a sourceDigest field on Doppler's compact execution identity. The pinned implementation binds sourceDigest inside the digest and exposes schema/id/name/tensorCount/digest. The harness now verifies raw bytes independently and compares the runtime's execution digest.
+- rejected-browser-port: the test server on port 8001 was outside the existing public-signaling origin allowlist. No production policy was broadened; final browser verification uses the allowed localhost:8000 origin.
+
+The physical adapter harness consumes the peer-delivered manifest via Doppler's documented inline manifestText/manifestHash source. Model weight shards still come from the pinned origin. The adapter's bytes arrive only through signed peer custody and verified checkpoints. No execution is simulated.

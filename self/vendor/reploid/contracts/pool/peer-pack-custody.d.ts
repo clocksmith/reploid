@@ -28,4 +28,4 @@ export interface PeerPackArtifactStore {
 export function createPeerPackArtifactStore(options: CustodyPorts): Promise<PeerPackArtifactStore>;
 export function createPeerPackSupplier(options: { authorization: JsonObject; index: JsonObject; peerId: string; privateKey: CryptoKey;
   inventory: JsonObject; readChunk(artifactId: string, chunk: CustodyChunk): Promise<Uint8Array>; now?: () => number }): Promise<{
-    inventory: JsonObject; serve(request: JsonObject): Promise<{ message: JsonObject; bytes: Uint8Array }> }>;
+    inventory: JsonObject; close(): void; serve(request: JsonObject): Promise<{ message: JsonObject; bytes: Uint8Array }> }>;

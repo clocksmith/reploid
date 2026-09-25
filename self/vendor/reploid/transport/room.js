@@ -481,6 +481,7 @@ const SwarmTransport = {
       onMessage,
       getConnectionState,
       getConnectedPeers,
+      getPeerBinding: peerId => _webrtcSwarm?.getPeerBinding?.(peerId) || null,
       getTransportType,
       getStats,
       getClock,

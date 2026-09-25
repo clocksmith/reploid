@@ -1,0 +1,15 @@
+
+ RUN  v4.1.10 /home/clocksmith/deco/reploid
+
+ ✓ tests/unit/chat-session.test.js (12 tests) 167ms
+ ✓ tests/unit/work-threads.test.js (4 tests) 121ms
+ ✓ tests/unit/work-swarm-lifecycle.test.js (5 tests) 360ms
+ ✓ tests/unit/work-resident-provider.test.js (6 tests) 18ms
+ ✓ tests/unit/doppler-local-models.test.js (4 tests) 7ms
+ ✓ tests/unit/self-bridge.test.js (10 tests) 28ms
+
+ Test Files  6 passed (6)
+      Tests  41 passed (41)
+   Start at  23:13:02
+   Duration  1.85s (transform 855ms, setup 0ms, import 1.42s, tests 701ms, environment 2.00s)
+

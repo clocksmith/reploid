@@ -288,8 +288,10 @@
     {
       "path": "config/doppler-local-models.js",
       "owner": "config",
-      "sha256": "sha256:a8e6ad3770e892159af7b0b9cf563ff385ddf44adf1526795cf914c6c596e6d0",
-      "imports": []
+      "sha256": "sha256:a16ad5741ad8aea73ce93d65426d56e4d8347906da195304d548b10843184cf7",
+      "imports": [
+        "./chat-models.json"
+      ]
     },
     {
       "path": "config/immutability.js",
@@ -955,7 +957,7 @@
     {
       "path": "pool/adapter-registry.js",
       "owner": "pool",
-      "sha256": "sha256:3238949b2580fd63ab4dd80e611845735a4d772456db78b1e27b37e0f141c9d3",
+      "sha256": "sha256:bdf6a909b6813d5892f0da12ca5182b5b64e4d23b28d4e6acd46d63ca872f82c",
       "imports": [
         "./adapter-publication.js",
         "./artifact-origin.js",
@@ -1534,7 +1536,7 @@
     {
       "path": "pool/peer-adapter-execution.js",
       "owner": "pool",
-      "sha256": "sha256:2a230a1faea5bc9991e1285cc32de56f3a60287873daacfcf2239757ac437a99",
+      "sha256": "sha256:36ad0f7fad4fe2c4aae82cbefbfc5fef830413242e591ba59014174076a911d2",
       "imports": [
         "../infrastructure/pack-transfer-storage.js",
         "./adapter-execution.js",
@@ -1990,18 +1992,34 @@
       ]
     },
     {
+      "path": "providers/work-device.js",
+      "owner": "providers",
+      "sha256": "sha256:6c4a4ee40c7e20877d301e731d81695baeb93ff47a9f50b0d99fb290b8a3d5f8",
+      "imports": []
+    },
+    {
       "path": "providers/work-network-provider.js",
       "owner": "providers",
-      "sha256": "sha256:bb0bb059ef32c02576b07a98c7736fcd3f24ff3d81e9563a70d774ed510b7827",
+      "sha256": "sha256:51030b5b7fb1396341cb0b48630a37985cf1ca5f2d6daf653878f3d475dd0b21",
       "imports": [
+        "./work-device.js",
         "./work-provider.js"
       ]
     },
     {
       "path": "providers/work-provider.js",
       "owner": "providers",
-      "sha256": "sha256:54ef4838b440364134f5e03ae3b1cdfc518d9e4e0f951ae1b738e09d4a246a33",
+      "sha256": "sha256:752e18f7ce6dcd8693dd84e69965674eb48b6e01dbbfe1be68fe2e0bbf44f2f4",
       "imports": []
+    },
+    {
+      "path": "providers/work-resident-provider.js",
+      "owner": "providers",
+      "sha256": "sha256:026d66062e8c3f067f161f633455e4d736d2f8c8440b044335f03b01c2615e1a",
+      "imports": [
+        "./work-device.js",
+        "./work-provider.js"
+      ]
     },
     {
       "path": "self/boot-spec.js",
@@ -2080,11 +2098,13 @@
     {
       "path": "self/host/chat-session.js",
       "owner": "self",
-      "sha256": "sha256:a563900e429eb2a9167af3cd73ae11c0cb9e62769273958a6afae4e64b400a9d",
+      "sha256": "sha256:8626739ce0e858ec6a6183347eb8e92c90d31fc44a8ea2b381c8340c065222f8",
       "imports": [
+        "../config/doppler-local-models.js",
         "../config/work-profile.json",
         "../infrastructure/doppler-runtime-service.js",
         "../providers/work-network-provider.js",
+        "../providers/work-resident-provider.js",
         "../vendor/reploid/chat/index.js"
       ]
     },
@@ -2235,7 +2255,7 @@
     {
       "path": "self/host/work-swarm.js",
       "owner": "self",
-      "sha256": "sha256:206ef79fbb1353fc191104af16002d1c64ec061a54bcf9ebdf7a9d7cd54195c1",
+      "sha256": "sha256:ec27bd933c70ad1d369bf52231257e5f259a9236de9cd4e2c222fc3fbc8ae98f",
       "imports": [
         "../capabilities/communication/library-adapter.js",
         "../config/doppler-local-models.js",
@@ -2244,8 +2264,7 @@
         "../identity.js",
         "../infrastructure/doppler-runtime-service.js",
         "../infrastructure/event-bus.js",
-        "../providers/work-network-provider.js",
-        "../providers/work-provider.js",
+        "../providers/work-resident-provider.js",
         "../vendor/reploid/config/index.js",
         "../vendor/reploid/mesh/index.js",
         "../vendor/reploid/transport/index.js",
@@ -2967,7 +2986,7 @@
     {
       "path": "ui/pool-home/conversation-workspace.js",
       "owner": "ui",
-      "sha256": "sha256:1400fba2b283d36deea8d45ee85b326080e192cc1737523af1164ebc64741613",
+      "sha256": "sha256:96f119847d0bd53c84f9341480ff179553a44a4dd97e7774244d78f884f65cf5",
       "imports": [
         "./work-goal-composer.js"
       ]
@@ -14447,7 +14466,7 @@
     {
       "path": "vendor/reploid/artifacts/custody/runtime.js",
       "owner": "vendor",
-      "sha256": "sha256:cf74bec4261413c938285e2371146453eb6c2f1d56f5ad2f1f107d07f2f60cc2",
+      "sha256": "sha256:ebe1e8da9fcfbc604e03c6a831f1ac3668361e15072b77f432d9ecc01f4f40a9",
       "imports": []
     },
     {
@@ -14504,11 +14523,18 @@
       ]
     },
     {
+      "path": "vendor/reploid/chat/thread-grants.js",
+      "owner": "vendor",
+      "sha256": "sha256:9f8287c9f1640409a70788a2b7a529c8d5573c4d30a62af83ae77d494e6698ce",
+      "imports": []
+    },
+    {
       "path": "vendor/reploid/chat/workspace.js",
       "owner": "vendor",
-      "sha256": "sha256:eb397708bd8e0f0f33d2c3051783b6a722c5f4da09e1ed09e000510351016bcc",
+      "sha256": "sha256:69978c3a2343ffa64ce4ced23020c9ed1d61c911859375b06bd6e09cfe2e9e38",
       "imports": [
-        "./policy.json"
+        "./policy.json",
+        "./thread-grants.js"
       ]
     },
     {
@@ -14623,11 +14649,13 @@
     {
       "path": "vendor/reploid/mesh/legacy-generation.js",
       "owner": "vendor",
-      "sha256": "sha256:49526d89d5fb209f81682c223a27f46fa4ba1a262abaacbc3d2eaecf4861c9c6",
+      "sha256": "sha256:0f8732c46c28e55afeef290203860b424445b4f704f1f019176bd0a32451cc37",
       "imports": [
         "../artifacts/receipt.js",
         "../config/index.js",
         "./contribution.js",
+        "./peer-identity.js",
+        "./remote-generation-requests.js",
         "./swarm-coordination.js"
       ]
     },
@@ -14638,12 +14666,27 @@
       "imports": []
     },
     {
+      "path": "vendor/reploid/mesh/peer-identity.js",
+      "owner": "vendor",
+      "sha256": "sha256:825f2a0397d7da4d37bee4e786e4aa941f578b35b110af93e83aa19fb06ad6db",
+      "imports": [
+        "../artifacts/identity.js",
+        "./remote-generation-requests.js"
+      ]
+    },
+    {
       "path": "vendor/reploid/mesh/placement-beliefs.js",
       "owner": "vendor",
       "sha256": "sha256:4e40796672e4569b8ddbfee1171a84c057cb87630286e77de026976050713efa",
       "imports": [
         "../config/index.js"
       ]
+    },
+    {
+      "path": "vendor/reploid/mesh/remote-generation-requests.js",
+      "owner": "vendor",
+      "sha256": "sha256:7d71aa099f035a11560f30e89685cb8974a2f5e8bf8433b842e1ccd51049cd07",
+      "imports": []
     },
     {
       "path": "vendor/reploid/mesh/swarm-coordination.js",
@@ -14684,7 +14727,7 @@
     {
       "path": "vendor/reploid/transport/room.js",
       "owner": "vendor",
-      "sha256": "sha256:2249314d3267ec3869a8b388109488501b26b034a401ad8ee17719d4aba91ae8",
+      "sha256": "sha256:868686eba88ab315c8027dbefe03f4533db356b5906e6e59b221b537411d1a36",
       "imports": [
         "../config/index.js",
         "./swarm.js"
@@ -14703,7 +14746,7 @@
     {
       "path": "vendor/reploid/transport/swarm.js",
       "owner": "vendor",
-      "sha256": "sha256:40291d43e5e5fd3c0713d6ae27bed5260c91a0382c6d5247988252b646a24493",
+      "sha256": "sha256:40fe404f863cd5267405fd8cd648bcd45eef7db6f5234f50d6226191339c0f25",
       "imports": [
         "../config/index.js"
       ]

@@ -7,6 +7,7 @@ export interface ChatModel {
 }
 export interface ChatPolicy {
   maxThreads: number;
+  maxThreadGrants: number;
   maxMessagesPerThread: number;
   maxMessageCharacters: number;
   maxResponseCharacters: number;
@@ -34,7 +35,12 @@ export interface ChatRequest {
 }
 export interface ChatEnvelope { threadId: string; attemptId: string }
 export interface ChatApproval extends ChatEnvelope {
-  id: string; peerId: string; expiresAt: number; [key: string]: unknown;
+  id: string; peerId: string; expiresAt: number; recipientIdentity?: string | null; reusable?: boolean; [key: string]: unknown;
+}
+export interface ChatThreadGrant {
+  id: string; meshId: string; threadId: string; recipientIdentity: string;
+  modelId: string; modelIdentity: string; adapterIdentities: string[];
+  sharingScope: string; disclosure: 'public'; createdAt: number; revokedAt: number | null;
 }
 export interface ChatResult extends ChatEnvelope {
   modelId: string; modelIdentity: string; adapterIdentities: string[];
@@ -51,12 +57,13 @@ export interface ChatAttempt {
   finishedAt: number | null;
   error: string | null;
   approval: ChatApproval | null;
+  authorization: { kind: 'once' | 'thread-grant'; grantId: string | null; peerId: string; recipientIdentity?: string | null } | null;
   execution: Record<string, unknown> | null;
   request: ChatRequest;
 }
 export interface ChatThread {
   id: string; model: ChatModel; purpose: string; members: string[];
-  permissions: Record<string, unknown>; messages: ChatMessage[];
+  permissions: Record<string, unknown>; grants: ChatThreadGrant[]; messages: ChatMessage[];
   attempts: ChatAttempt[]; closed: boolean; createdAt: number;
 }
 export interface ChatState {
@@ -83,7 +90,8 @@ export function createChatWorkspace(options: {
   reopenThread(threadId: string): void;
   send(threadId: string, content: string): Promise<ChatAttempt>;
   retry(threadId: string, attemptId: string): Promise<ChatAttempt>;
-  approve(threadId: string, attemptId: string, previewId: string, accepted: boolean): void;
+  approve(threadId: string, attemptId: string, previewId: string, accepted: boolean, options?: { remember?: boolean }): void;
+  revokeGrant(threadId: string, grantId: string): void;
   cancel(threadId: string): Promise<unknown>;
   close(): Promise<void>;
 };

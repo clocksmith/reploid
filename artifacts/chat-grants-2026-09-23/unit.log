@@ -1,0 +1,30 @@
+
+ RUN  v4.1.10 /home/clocksmith/deco/reploid
+
+ ✓ tests/unit/legacy-generation-threads.test.js (9 tests) 489ms
+ ✓ tests/integration/public-swarm-server.test.js (5 tests) 767ms
+     ✓ joins the shared namespace and forwards negotiation only between its members  303ms
+     ✓ isolates private capabilities and denies public/private cross-scope joins and offers  323ms
+ ✓ tests/unit/work-swarm-lifecycle.test.js (5 tests) 388ms
+ ✓ tests/unit/chat-session.test.js (12 tests) 233ms
+ ✓ tests/unit/pool-peer-pack-custody.test.js (17 tests) 536ms
+ ✓ tests/unit/work-threads.test.js (4 tests) 178ms
+ ✓ tests/unit/chat-scheduler.test.js (5 tests) 133ms
+ ✓ tests/unit/webrtc-swarm.test.js (44 tests) 177ms
+ ✓ tests/unit/pool-peer-adapter-execution.test.js (3 tests) 251ms
+ ✓ tests/unit/work-contracts.test.js (10 tests) 61ms
+ ✓ tests/unit/chat-thread-grants.test.js (6 tests) 35ms
+ ✓ tests/unit/pool-adapter-publication.test.js (9 tests) 67ms
+ ✓ tests/unit/mesh-peer-identity.test.js (4 tests) 57ms
+ ✓ tests/unit/chat-workspace.test.js (8 tests) 28ms
+ ✓ tests/unit/self-bridge.test.js (10 tests) 114ms
+ ✓ tests/unit/work-resident-provider.test.js (6 tests) 38ms
+ ✓ tests/unit/remote-generation-requests.test.js (3 tests) 29ms
+ ✓ tests/unit/swarm-rtc-config.test.js (3 tests) 19ms
+ ✓ tests/unit/doppler-local-models.test.js (4 tests) 7ms
+
+ Test Files  19 passed (19)
+      Tests  167 passed (167)
+   Start at  23:13:36
+   Duration  8.61s (transform 3.00s, setup 0ms, import 5.65s, tests 3.61s, environment 10.36s)
+

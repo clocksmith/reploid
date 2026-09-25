@@ -31,7 +31,7 @@ async function installFixture(page) {
       listener?.(state);
     };
     window.setConversationPhase('empty');
-    bindConversationWorkspace(root, session);
+    bindConversationWorkspace(root, { ...session, createThread: options => session.createThread({ ...options, sharingScope: 'local' }) });
   });
 }
 
@@ -66,7 +66,7 @@ for (const theme of ['light', 'dark']) for (const width of [1440, 390]) {
         await expect(page.locator('[data-approval-send]')).toBeDisabled();
         await page.locator('[data-approval-consent]').check();
         await page.locator('[data-approval-send]').click();
-        expect(await page.evaluate(() => window.approvedAttempt)).toEqual(['thread-A', 'attempt-A', 'preview-A', true]);
+        expect(await page.evaluate(() => window.approvedAttempt)).toEqual(['thread-A', 'attempt-A', 'preview-A', true, { remember: undefined }]);
       }
       if (phase === 'active') {
         await page.locator('[data-composer-stop]').click();
@@ -103,15 +103,16 @@ test('browser host preserves files and followups across reload with injected exe
     await page.evaluate(async () => {
     const { createChatSession } = await import('/host/chat-session.js');
     const { renderConversationWorkspace, bindConversationWorkspace } = await import('/ui/pool-home/conversation-workspace.js');
-    const service = { async open({ options }) {
-      options.onProgress({ stage: 'manifest', progress: 0.05, message: 'Parsing manifest...' });
-      options.onProgress({ stage: 'weights', progress: 0.5, message: 'Loading weights...' });
-      return { async *stream(messages) {
+    const service = { async open({ options, source }) {
+      options.onProgress?.({ stage: 'manifest', progress: 0.05, message: 'Parsing manifest...' });
+      options.onProgress?.({ stage: 'weights', progress: 0.5, message: 'Loading weights...' });
+      return { loaded: true, modelId: source, manifestHash: '502fbd6d4c9ed6a890931665995c8ebb42a30e5cda23aa2cfd8e680bee7fa5bc',
+      resetGenerationState() {}, async *stream(messages) {
       yield { type: 'text-delta', text: 'Injected answer: ' + messages.at(-1).content };
     } }; }, async close() {} };
     const session = createChatSession({ service, storage: localStorage });
     const root = document.querySelector('.pool-route-content'); root.innerHTML = renderConversationWorkspace();
-    bindConversationWorkspace(root, session);
+    bindConversationWorkspace(root, { ...session, createThread: options => session.createThread({ ...options, sharingScope: 'local' }) });
     });
   };
   await page.goto('/'); await install();

@@ -59,3 +59,19 @@ describe('remote adapter composition and shared custody', () => {
     second.close();
   });
 });
+
+it('rechecks cancellation after asynchronous publication validation before releasing adapter bytes', async () => {
+  const f = await fixture(), base = createAdapterRegistry(), controller = new AbortController();
+  await base.cache({ publication: f.publication, bytes: f.bytes });
+  let cancelDuringValidation = false;
+  const registry = { ...base, getPublication(identity) {
+    const publication = base.getPublication(identity);
+    if (cancelDuringValidation) controller.abort(new Error('Adapter permission withdrawn'));
+    return publication;
+  } };
+  const resolver = createPeerAdapterResolver({ registry, policy });
+  const prepared = await resolver.prepare({ model: packPeerModel(f.model), adapterSet: [f.entry], signal: controller.signal });
+  cancelDuringValidation = true;
+  await expect(prepared.artifactStore.readArtifact(executionAdapterArtifact(f.entry))).rejects.toThrow('Adapter permission withdrawn');
+  prepared.close();
+});

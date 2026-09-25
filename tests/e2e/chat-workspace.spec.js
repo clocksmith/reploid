@@ -33,7 +33,7 @@ test('browser chat owner retains separate conversations across reload without re
 });
 
 test('Verification Worker accepts the conversation and scheduler modules', async ({ page }) => {
-  const files = ['index.js', 'workspace.js', 'scheduler.js'];
+  const files = ['index.js', 'workspace.js', 'scheduler.js', 'thread-grants.js'];
   const snapshot = Object.fromEntries(await Promise.all(files.map(async file => [
     '/vendor/reploid/chat/' + file, await readFile('packages/reploid/src/chat/' + file, 'utf8')
   ])));

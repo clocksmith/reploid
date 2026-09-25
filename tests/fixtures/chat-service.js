@@ -7,7 +7,10 @@ export function createChatTestService() {
       calls.push(options);
       options.options?.onProgress?.({ stage: 'manifest', progress: 0.05, message: 'Parsing manifest...' });
       options.options?.onProgress?.({ stage: 'weights', progress: 0.5, message: 'Loading weights...' });
-      return { async *stream(messages) {
+      return { loaded: true, modelId: options.source,
+        manifestHash: '502fbd6d4c9ed6a890931665995c8ebb42a30e5cda23aa2cfd8e680bee7fa5bc',
+        resetGenerationState() {},
+        async *stream(messages) {
         await new Promise(resolve => setTimeout(resolve, 10));
         yield { type: 'text-delta', text: 'Fixture: ' + messages.at(-1).content };
       } };

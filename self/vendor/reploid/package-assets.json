@@ -236,8 +236,8 @@
     },
     {
       "path": "artifacts/custody/runtime.js",
-      "bytes": 21601,
-      "sha256": "cf74bec4261413c938285e2371146453eb6c2f1d56f5ad2f1f107d07f2f60cc2"
+      "bytes": 21764,
+      "sha256": "ebe1e8da9fcfbc604e03c6a831f1ac3668361e15072b77f432d9ecc01f4f40a9"
     },
     {
       "path": "artifacts/identity.d.ts",
@@ -286,8 +286,8 @@
     },
     {
       "path": "chat/index.d.ts",
-      "bytes": 4394,
-      "sha256": "682b5ff08889c0977737098cd2f240b457692c45ea725b00c5760aedf7ddb4f1"
+      "bytes": 5001,
+      "sha256": "09bd49370ecd8012ab2dcb610a446199309263a4766526f90e77d6d40a1af186"
     },
     {
       "path": "chat/index.js",
@@ -296,8 +296,8 @@
     },
     {
       "path": "chat/policy.json",
-      "bytes": 362,
-      "sha256": "1627b87ee2c728269f5e273720cad344c2b4f1ef29fb5a95f8c646dc33f58fa2"
+      "bytes": 387,
+      "sha256": "b5f49827839e0070e7ca5dc0218f15a51aa11c5a15a89b62481f761422305cfc"
     },
     {
       "path": "chat/scheduler.js",
@@ -305,9 +305,14 @@
       "sha256": "da3059f28471bfa99cff4d7ce1581ef4935fb058decc583738d4e8297595b4f5"
     },
     {
+      "path": "chat/thread-grants.js",
+      "bytes": 2215,
+      "sha256": "9f8287c9f1640409a70788a2b7a529c8d5573c4d30a62af83ae77d494e6698ce"
+    },
+    {
       "path": "chat/workspace.js",
-      "bytes": 12839,
-      "sha256": "eb397708bd8e0f0f33d2c3051783b6a722c5f4da09e1ed09e000510351016bcc"
+      "bytes": 15258,
+      "sha256": "69978c3a2343ffa64ce4ced23020c9ed1d61c911859375b06bd6e09cfe2e9e38"
     },
     {
       "path": "config/defaults.json",
@@ -406,8 +411,8 @@
     },
     {
       "path": "contracts/pool/peer-pack-custody.d.ts",
-      "bytes": 1889,
-      "sha256": "bbcd40a1272d44c376d0b6e41980e4ba33c4bbf66147063c3c10e73c816b291c"
+      "bytes": 1904,
+      "sha256": "3273bffc8e6afb462d31b42b3dbce35a5c428be47b24743ad74a28c899d84ce4"
     },
     {
       "path": "contracts/pool/peer-pack-job-policy.d.ts",
@@ -551,18 +556,23 @@
     },
     {
       "path": "mesh/legacy-generation.d.ts",
-      "bytes": 1818,
-      "sha256": "019f7ec966b1c104ab0967c37ef0c1abc66bf1fed130cba874b27ae8739722ed"
+      "bytes": 1973,
+      "sha256": "6ad0db4131e77d845681ebc931205a7f73b436f273ddec864ff3c90c791f7874"
     },
     {
       "path": "mesh/legacy-generation.js",
-      "bytes": 19484,
-      "sha256": "49526d89d5fb209f81682c223a27f46fa4ba1a262abaacbc3d2eaecf4861c9c6"
+      "bytes": 21619,
+      "sha256": "0f8732c46c28e55afeef290203860b424445b4f704f1f019176bd0a32451cc37"
     },
     {
       "path": "mesh/partitions/partition-runner.js",
       "bytes": 5326,
       "sha256": "b734a97e48ac70840712b27c1c8b03f02f8f994da76164696befbb3707605637"
+    },
+    {
+      "path": "mesh/peer-identity.js",
+      "bytes": 3834,
+      "sha256": "825f2a0397d7da4d37bee4e786e4aa941f578b35b110af93e83aa19fb06ad6db"
     },
     {
       "path": "mesh/placement-beliefs.d.ts",
@@ -573,6 +583,11 @@
       "path": "mesh/placement-beliefs.js",
       "bytes": 6986,
       "sha256": "4e40796672e4569b8ddbfee1171a84c057cb87630286e77de026976050713efa"
+    },
+    {
+      "path": "mesh/remote-generation-requests.js",
+      "bytes": 2611,
+      "sha256": "7d71aa099f035a11560f30e89685cb8974a2f5e8bf8433b842e1ccd51049cd07"
     },
     {
       "path": "mesh/swarm-coordination.d.ts",
@@ -631,8 +646,8 @@
     },
     {
       "path": "transport/room.js",
-      "bytes": 15222,
-      "sha256": "2249314d3267ec3869a8b388109488501b26b034a401ad8ee17719d4aba91ae8"
+      "bytes": 15302,
+      "sha256": "868686eba88ab315c8027dbefe03f4533db356b5906e6e59b221b537411d1a36"
     },
     {
       "path": "transport/signaling.d.ts",
@@ -646,13 +661,13 @@
     },
     {
       "path": "transport/swarm.d.ts",
-      "bytes": 1354,
-      "sha256": "573a782c7ac74b1304fa1482aec7a3bde4f1ea83e51900b81068998b05c97265"
+      "bytes": 1431,
+      "sha256": "fcf617bb0cddd30af463b2bd1eceed2455efea90537b6e2732d5ab673bea48dc"
     },
     {
       "path": "transport/swarm.js",
-      "bytes": 32204,
-      "sha256": "40291d43e5e5fd3c0713d6ae27bed5260c91a0382c6d5247988252b646a24493"
+      "bytes": 32981,
+      "sha256": "40fe404f863cd5267405fd8cd648bcd45eef7db6f5234f50d6226191339c0f25"
     },
     {
       "path": "transport/tool-offer-channel.d.ts",

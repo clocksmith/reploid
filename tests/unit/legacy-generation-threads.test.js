@@ -17,11 +17,12 @@ function fixture(meshOverrides = {}) {
       onMessage(name, fn) { handlers.set(name, fn); },
       sendToPeer(peer, name, payload) { sent.push({ peer, name, payload }); return true; } })
   } });
-  const advertise = (id, model) => handlers.get('reploid:peer-advertisement')(id,
-    { hasInference: true, swarmEnabled: true, model, updatedAt: Date.now() });
+  const advertise = (id, model, overrides = {}) => handlers.get('reploid:peer-advertisement')(id,
+    { hasInference: true, swarmEnabled: true, readiness: 'ready', availableSlots: 1, model, updatedAt: Date.now(), ...overrides });
   const respond = (request, model = request.payload.model) => handlers.get('reploid:generation-result')(request.peer,
     { requestId: request.payload.requestId, response: { model, content: 'response' } });
-  return { mesh, sent, advertise, respond, authorize, events };
+  return { mesh, sent, advertise, respond, authorize, events,
+    update: (request, chunk) => handlers.get('reploid:generation-update')(request.peer, { requestId: request.payload.requestId, chunk }) };
 }
 
 it('reserves separate compatible peers during concurrent approval and binds host context without putting it on the wire', async () => {
@@ -91,4 +92,49 @@ it('retires disconnected and departed advertisements from counts and placement',
     expect(f.mesh.getSwarmSnapshot().peerCount).toBe(0);
     expect(f.mesh.hasAvailableProvider('qwen')).toBe(false);
   } finally { await f.mesh.close(); }
+});
+
+it('never places on loading or unidentified advertisements and waits for the exact ready model', async () => {
+  const f = fixture(); await f.mesh.connect();
+  const identity = 'sha256:' + 'a'.repeat(64);
+  f.advertise('loading', 'qwen', { readiness: 'loading', availableSlots: 0, hasInference: false });
+  f.advertise('wrong-artifact', 'qwen', { modelIdentity: 'sha256:' + 'b'.repeat(64) });
+  const request = f.mesh.generate([], null, { modelId: 'qwen', modelIdentity: identity });
+  await new Promise(resolve => setTimeout(resolve, 10)); expect(f.sent).toHaveLength(0);
+  f.advertise('ready', 'qwen', { modelIdentity: identity });
+  await vi.waitFor(() => expect(f.sent).toHaveLength(1)); expect(f.sent[0].peer).toBe('ready');
+  const failed = expect(request).rejects.toThrow('substituted');
+  await f.respond(f.sent[0]); await failed; await f.mesh.close();
+});
+
+it('settles a lost execution peer without redispatching the prompt', async () => {
+  const f = fixture(); await f.mesh.connect(); f.advertise('east', 'qwen');
+  const request = f.mesh.generate([], null, { modelId: 'qwen' });
+  const failed = expect(request).rejects.toThrow('peer disconnected');
+  await vi.waitFor(() => expect(f.sent).toHaveLength(1));
+  f.events.emit('swarm:peer-disconnected', { peerId: 'east' });
+  await failed; await f.respond(f.sent[0]); expect(f.sent).toHaveLength(1); await f.mesh.close();
+});
+
+it('rechecks provider readiness after approval without disclosing to a replacement', async () => {
+  const f = fixture(); await f.mesh.connect(); f.advertise('east', 'qwen');
+  let approve;
+  f.authorize.mockImplementation(request => request.action === 'mesh.dispatch'
+    ? new Promise(resolve => { approve = resolve; }) : true);
+  const request = f.mesh.generate([], null, { modelId: 'qwen' });
+  const failed = expect(request).rejects.toThrow('no longer ready');
+  await vi.waitFor(() => expect(approve).toBeTypeOf('function'));
+  f.advertise('east', 'qwen', { readiness: 'loading', hasInference: false, availableSlots: 0 });
+  f.advertise('west', 'qwen'); approve(true);
+  await failed; expect(f.sent).toHaveLength(0); await f.mesh.close();
+});
+
+
+it('cancels and settles when a stream consumer throws, without retaining a dead request', async () => {
+  const f = fixture(); await f.mesh.connect(); f.advertise('east', 'qwen');
+  const request = f.mesh.generate([], () => { throw new Error('consumer failed'); }, { modelId: 'qwen' });
+  const failed = expect(request).rejects.toThrow('consumer failed');
+  await vi.waitFor(() => expect(f.sent).toHaveLength(1)); f.update(f.sent[0], 'chunk'); await failed;
+  expect(f.sent[1].name).toBe('reploid:generation-cancel');
+  f.update(f.sent[0], 'late'); await f.respond(f.sent[0]); expect(f.sent).toHaveLength(2); await f.mesh.close();
 });

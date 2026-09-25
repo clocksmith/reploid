@@ -1,0 +1,1790 @@
+{
+  "executionClass": "same-device-real-model-real-webrtc",
+  "physicalDevices": 1,
+  "startedAt": "2026-09-24T02:57:39.177Z",
+  "errors": [],
+  "requesterModelRequests": 0,
+  "contributorModelRequests": 1842,
+  "sourceHashes": {
+    "self/host/work-swarm.js": "ec27bd933c70ad1d369bf52231257e5f259a9236de9cd4e2c222fc3fbc8ae98f",
+    "self/host/chat-session.js": "6f17ad1e9a8a9b30974ae5131a6eb41a1bc4f786e48021358c04994b2ecb1711",
+    "self/providers/work-provider.js": "752e18f7ce6dcd8693dd84e69965674eb48b6e01dbbfe1be68fe2e0bbf44f2f4",
+    "self/providers/work-network-provider.js": "51030b5b7fb1396341cb0b48630a37985cf1ca5f2d6daf653878f3d475dd0b21",
+    "self/providers/work-resident-provider.js": "026d66062e8c3f067f161f633455e4d736d2f8c8440b044335f03b01c2615e1a",
+    "self/providers/work-device.js": "6c4a4ee40c7e20877d301e731d81695baeb93ff47a9f50b0d99fb290b8a3d5f8",
+    "self/vendor/reploid/chat/workspace.js": "69978c3a2343ffa64ce4ced23020c9ed1d61c911859375b06bd6e09cfe2e9e38",
+    "self/vendor/reploid/chat/thread-grants.js": "9f8287c9f1640409a70788a2b7a529c8d5573c4d30a62af83ae77d494e6698ce",
+    "self/vendor/reploid/mesh/peer-identity.js": "825f2a0397d7da4d37bee4e786e4aa941f578b35b110af93e83aa19fb06ad6db",
+    "self/vendor/reploid/transport/room.js": "868686eba88ab315c8027dbefe03f4533db356b5906e6e59b221b537411d1a36",
+    "self/vendor/reploid/transport/swarm.js": "40fe404f863cd5267405fd8cd648bcd45eef7db6f5234f50d6226191339c0f25",
+    "self/vendor/reploid/mesh/remote-generation-requests.js": "7d71aa099f035a11560f30e89685cb8974a2f5e8bf8433b842e1ccd51049cd07",
+    "self/vendor/reploid/mesh/legacy-generation.js": "0f8732c46c28e55afeef290203860b424445b4f704f1f019176bd0a32451cc37",
+    "self/ui/pool-home/conversation-workspace.js": "96f119847d0bd53c84f9341480ff179553a44a4dd97e7774244d78f884f65cf5"
+  },
+  "observation": "Runtime service open/close calls are counted by a transparent module wrapper; all loads and inference delegate to the unchanged runtime.",
+  "adapter": {
+    "vendor": "intel",
+    "architecture": "gen-12lp",
+    "device": "",
+    "description": "",
+    "fallback": false
+  },
+  "loadMs": 159049,
+  "preparedProbe": {
+    "opens": [
+      {
+        "scope": "work-resident:5d32b4ea-59d1-4331-8f35-f6b0c23c5185",
+        "source": "qwen-3-5-2b-q4k-ehaf16"
+      }
+    ],
+    "closes": [],
+    "runs": []
+  },
+  "requestsAfterPreparation": 1842,
+  "catalog": "Qwen 3.5 0.8B · unavailable\nQwen 3.5 2B · ready",
+  "history": {
+    "schema": "reploid.chat-workspace/v1",
+    "meshId": "reploid-local-mesh",
+    "participantId": "local-user",
+    "threads": [
+      {
+        "id": "9ab27541-ef70-446e-8ba8-777e03c38a1e",
+        "model": {
+          "id": "qwen-3-5-2b-q4k-ehaf16",
+          "name": "Qwen 3.5 2B",
+          "identity": "sha256:502fbd6d4c9ed6a890931665995c8ebb42a30e5cda23aa2cfd8e680bee7fa5bc",
+          "provider": "doppler",
+          "contextLength": 262144,
+          "quantization": "q4k",
+          "adapters": [],
+          "availability": "ready",
+          "providerIds": [
+            "peer_muexyvdq_voefdj8s"
+          ]
+        },
+        "purpose": "",
+        "members": [
+          "local-user"
+        ],
+        "permissions": {
+          "sharingScope": "invited-mesh"
+        },
+        "grants": [
+          {
+            "id": "56d758e7-bdc3-414b-994f-8b6109f726eb",
+            "meshId": "reploid-local-mesh",
+            "threadId": "9ab27541-ef70-446e-8ba8-777e03c38a1e",
+            "recipientIdentity": "peer:3e83bd4e1f81cbe9f3949c86",
+            "modelId": "qwen-3-5-2b-q4k-ehaf16",
+            "modelIdentity": "sha256:502fbd6d4c9ed6a890931665995c8ebb42a30e5cda23aa2cfd8e680bee7fa5bc",
+            "adapterIdentities": [],
+            "sharingScope": "invited-mesh",
+            "disclosure": "public",
+            "createdAt": 1790218820147,
+            "revokedAt": null
+          }
+        ],
+        "messages": [
+          {
+            "id": "2efa1259-402a-43bc-b1a0-bb024920f0c9",
+            "role": "user",
+            "content": "Reply with exactly the word ALPHA. Do not explain. /no_think",
+            "status": "completed"
+          },
+          {
+            "id": "26c11d1f-c24c-4b1b-a099-2f299a1c9f08",
+            "attemptId": "f9998e18-3172-465a-b550-f798e0a1872f",
+            "role": "assistant",
+            "content": "ALPHA",
+            "status": "completed"
+          }
+        ],
+        "attempts": [
+          {
+            "id": "f9998e18-3172-465a-b550-f798e0a1872f",
+            "threadId": "9ab27541-ef70-446e-8ba8-777e03c38a1e",
+            "userMessageId": "2efa1259-402a-43bc-b1a0-bb024920f0c9",
+            "responseId": "26c11d1f-c24c-4b1b-a099-2f299a1c9f08",
+            "retryOf": null,
+            "status": "completed",
+            "createdAt": 1790218820023,
+            "finishedAt": 1790218828713,
+            "error": null,
+            "approval": null,
+            "execution": {
+              "provider": "peer",
+              "placement": "peer-whole-request",
+              "peerId": "peer_muexyvdq_voefdj8s",
+              "modelId": "qwen-3-5-2b-q4k-ehaf16",
+              "modelIdentity": "sha256:502fbd6d4c9ed6a890931665995c8ebb42a30e5cda23aa2cfd8e680bee7fa5bc",
+              "adapterIdentities": []
+            },
+            "authorization": {
+              "kind": "thread-grant",
+              "grantId": "56d758e7-bdc3-414b-994f-8b6109f726eb",
+              "peerId": "peer_muexyvdq_voefdj8s",
+              "recipientIdentity": "peer:3e83bd4e1f81cbe9f3949c86"
+            },
+            "request": {
+              "model": {
+                "id": "qwen-3-5-2b-q4k-ehaf16",
+                "name": "Qwen 3.5 2B",
+                "identity": "sha256:502fbd6d4c9ed6a890931665995c8ebb42a30e5cda23aa2cfd8e680bee7fa5bc",
+                "provider": "doppler",
+                "contextLength": 262144,
+                "quantization": "q4k",
+                "adapters": [],
+                "availability": "ready",
+                "providerIds": [
+                  "peer_muexyvdq_voefdj8s"
+                ]
+              },
+              "permissions": {
+                "sharingScope": "invited-mesh"
+              },
+              "members": [
+                "local-user"
+              ],
+              "messages": [
+                {
+                  "role": "user",
+                  "content": "Reply with exactly the word ALPHA. Do not explain. /no_think"
+                }
+              ]
+            }
+          }
+        ],
+        "closed": false,
+        "createdAt": 1790218820020
+      },
+      {
+        "id": "e73b1fcf-786c-4664-8b61-9b88a89b486b",
+        "model": {
+          "id": "qwen-3-5-2b-q4k-ehaf16",
+          "name": "Qwen 3.5 2B",
+          "identity": "sha256:502fbd6d4c9ed6a890931665995c8ebb42a30e5cda23aa2cfd8e680bee7fa5bc",
+          "provider": "doppler",
+          "contextLength": 262144,
+          "quantization": "q4k",
+          "adapters": [],
+          "availability": "busy",
+          "providerIds": [
+            "peer_muexyvdq_voefdj8s"
+          ]
+        },
+        "purpose": "",
+        "members": [
+          "local-user"
+        ],
+        "permissions": {
+          "sharingScope": "invited-mesh"
+        },
+        "grants": [],
+        "messages": [
+          {
+            "id": "4c3d0384-1d38-4cd8-9e71-087a75e90e0e",
+            "role": "user",
+            "content": "Reply with exactly the word BETA. Do not explain. /no_think",
+            "status": "completed"
+          },
+          {
+            "id": "9f220151-af76-46dd-a279-67d41f6dd4b3",
+            "attemptId": "4dd92995-9029-4738-8175-0fafdaf7f9b0",
+            "role": "assistant",
+            "content": "BETA",
+            "status": "completed"
+          }
+        ],
+        "attempts": [
+          {
+            "id": "4dd92995-9029-4738-8175-0fafdaf7f9b0",
+            "threadId": "e73b1fcf-786c-4664-8b61-9b88a89b486b",
+            "userMessageId": "4c3d0384-1d38-4cd8-9e71-087a75e90e0e",
+            "responseId": "9f220151-af76-46dd-a279-67d41f6dd4b3",
+            "retryOf": null,
+            "status": "completed",
+            "createdAt": 1790218820288,
+            "finishedAt": 1790218836974,
+            "error": null,
+            "approval": null,
+            "execution": {
+              "provider": "peer",
+              "placement": "peer-whole-request",
+              "peerId": "peer_muexyvdq_voefdj8s",
+              "modelId": "qwen-3-5-2b-q4k-ehaf16",
+              "modelIdentity": "sha256:502fbd6d4c9ed6a890931665995c8ebb42a30e5cda23aa2cfd8e680bee7fa5bc",
+              "adapterIdentities": []
+            },
+            "authorization": {
+              "kind": "once",
+              "grantId": null,
+              "peerId": "peer_muexyvdq_voefdj8s",
+              "recipientIdentity": "peer:3e83bd4e1f81cbe9f3949c86"
+            },
+            "request": {
+              "model": {
+                "id": "qwen-3-5-2b-q4k-ehaf16",
+                "name": "Qwen 3.5 2B",
+                "identity": "sha256:502fbd6d4c9ed6a890931665995c8ebb42a30e5cda23aa2cfd8e680bee7fa5bc",
+                "provider": "doppler",
+                "contextLength": 262144,
+                "quantization": "q4k",
+                "adapters": [],
+                "availability": "busy",
+                "providerIds": [
+                  "peer_muexyvdq_voefdj8s"
+                ]
+              },
+              "permissions": {
+                "sharingScope": "invited-mesh"
+              },
+              "members": [
+                "local-user"
+              ],
+              "messages": [
+                {
+                  "role": "user",
+                  "content": "Reply with exactly the word BETA. Do not explain. /no_think"
+                }
+              ]
+            }
+          }
+        ],
+        "closed": false,
+        "createdAt": 1790218820285
+      }
+    ]
+  },
+  "completedProbe": {
+    "opens": [
+      {
+        "scope": "work-resident:5d32b4ea-59d1-4331-8f35-f6b0c23c5185",
+        "source": "qwen-3-5-2b-q4k-ehaf16"
+      }
+    ],
+    "closes": [],
+    "runs": [
+      {
+        "messages": [
+          {
+            "content": "Reply with exactly the word ALPHA. Do not explain. /no_think",
+            "role": "user"
+          }
+        ],
+        "modelId": "qwen-3-5-2b-q4k-ehaf16",
+        "manifestHash": "502fbd6d4c9ed6a890931665995c8ebb42a30e5cda23aa2cfd8e680bee7fa5bc"
+      },
+      {
+        "messages": [
+          {
+            "content": "Reply with exactly the word BETA. Do not explain. /no_think",
+            "role": "user"
+          }
+        ],
+        "modelId": "qwen-3-5-2b-q4k-ehaf16",
+        "manifestHash": "502fbd6d4c9ed6a890931665995c8ebb42a30e5cda23aa2cfd8e680bee7fa5bc"
+      }
+    ]
+  },
+  "requestsAfterGeneration": 1842,
+  "overlappingAttempts": true,
+  "exactResponses": true,
+  "beforeReload": {
+    "schema": "reploid.chat-workspace/v1",
+    "meshId": "reploid-local-mesh",
+    "participantId": "local-user",
+    "threads": [
+      {
+        "id": "9ab27541-ef70-446e-8ba8-777e03c38a1e",
+        "model": {
+          "id": "qwen-3-5-2b-q4k-ehaf16",
+          "name": "Qwen 3.5 2B",
+          "identity": "sha256:502fbd6d4c9ed6a890931665995c8ebb42a30e5cda23aa2cfd8e680bee7fa5bc",
+          "provider": "doppler",
+          "contextLength": 262144,
+          "quantization": "q4k",
+          "adapters": [],
+          "availability": "ready",
+          "providerIds": [
+            "peer_muexyvdq_voefdj8s"
+          ]
+        },
+        "purpose": "",
+        "members": [
+          "local-user"
+        ],
+        "permissions": {
+          "sharingScope": "invited-mesh"
+        },
+        "grants": [
+          {
+            "id": "56d758e7-bdc3-414b-994f-8b6109f726eb",
+            "meshId": "reploid-local-mesh",
+            "threadId": "9ab27541-ef70-446e-8ba8-777e03c38a1e",
+            "recipientIdentity": "peer:3e83bd4e1f81cbe9f3949c86",
+            "modelId": "qwen-3-5-2b-q4k-ehaf16",
+            "modelIdentity": "sha256:502fbd6d4c9ed6a890931665995c8ebb42a30e5cda23aa2cfd8e680bee7fa5bc",
+            "adapterIdentities": [],
+            "sharingScope": "invited-mesh",
+            "disclosure": "public",
+            "createdAt": 1790218820147,
+            "revokedAt": null
+          }
+        ],
+        "messages": [
+          {
+            "id": "2efa1259-402a-43bc-b1a0-bb024920f0c9",
+            "role": "user",
+            "content": "Reply with exactly the word ALPHA. Do not explain. /no_think",
+            "status": "completed"
+          },
+          {
+            "id": "26c11d1f-c24c-4b1b-a099-2f299a1c9f08",
+            "attemptId": "f9998e18-3172-465a-b550-f798e0a1872f",
+            "role": "assistant",
+            "content": "ALPHA",
+            "status": "completed"
+          }
+        ],
+        "attempts": [
+          {
+            "id": "f9998e18-3172-465a-b550-f798e0a1872f",
+            "threadId": "9ab27541-ef70-446e-8ba8-777e03c38a1e",
+            "userMessageId": "2efa1259-402a-43bc-b1a0-bb024920f0c9",
+            "responseId": "26c11d1f-c24c-4b1b-a099-2f299a1c9f08",
+            "retryOf": null,
+            "status": "completed",
+            "createdAt": 1790218820023,
+            "finishedAt": 1790218828713,
+            "error": null,
+            "approval": null,
+            "execution": {
+              "provider": "peer",
+              "placement": "peer-whole-request",
+              "peerId": "peer_muexyvdq_voefdj8s",
+              "modelId": "qwen-3-5-2b-q4k-ehaf16",
+              "modelIdentity": "sha256:502fbd6d4c9ed6a890931665995c8ebb42a30e5cda23aa2cfd8e680bee7fa5bc",
+              "adapterIdentities": []
+            },
+            "authorization": {
+              "kind": "thread-grant",
+              "grantId": "56d758e7-bdc3-414b-994f-8b6109f726eb",
+              "peerId": "peer_muexyvdq_voefdj8s",
+              "recipientIdentity": "peer:3e83bd4e1f81cbe9f3949c86"
+            },
+            "request": {
+              "model": {
+                "id": "qwen-3-5-2b-q4k-ehaf16",
+                "name": "Qwen 3.5 2B",
+                "identity": "sha256:502fbd6d4c9ed6a890931665995c8ebb42a30e5cda23aa2cfd8e680bee7fa5bc",
+                "provider": "doppler",
+                "contextLength": 262144,
+                "quantization": "q4k",
+                "adapters": [],
+                "availability": "ready",
+                "providerIds": [
+                  "peer_muexyvdq_voefdj8s"
+                ]
+              },
+              "permissions": {
+                "sharingScope": "invited-mesh"
+              },
+              "members": [
+                "local-user"
+              ],
+              "messages": [
+                {
+                  "role": "user",
+                  "content": "Reply with exactly the word ALPHA. Do not explain. /no_think"
+                }
+              ]
+            }
+          }
+        ],
+        "closed": false,
+        "createdAt": 1790218820020
+      },
+      {
+        "id": "e73b1fcf-786c-4664-8b61-9b88a89b486b",
+        "model": {
+          "id": "qwen-3-5-2b-q4k-ehaf16",
+          "name": "Qwen 3.5 2B",
+          "identity": "sha256:502fbd6d4c9ed6a890931665995c8ebb42a30e5cda23aa2cfd8e680bee7fa5bc",
+          "provider": "doppler",
+          "contextLength": 262144,
+          "quantization": "q4k",
+          "adapters": [],
+          "availability": "busy",
+          "providerIds": [
+            "peer_muexyvdq_voefdj8s"
+          ]
+        },
+        "purpose": "",
+        "members": [
+          "local-user"
+        ],
+        "permissions": {
+          "sharingScope": "invited-mesh"
+        },
+        "grants": [],
+        "messages": [
+          {
+            "id": "4c3d0384-1d38-4cd8-9e71-087a75e90e0e",
+            "role": "user",
+            "content": "Reply with exactly the word BETA. Do not explain. /no_think",
+            "status": "completed"
+          },
+          {
+            "id": "9f220151-af76-46dd-a279-67d41f6dd4b3",
+            "attemptId": "4dd92995-9029-4738-8175-0fafdaf7f9b0",
+            "role": "assistant",
+            "content": "BETA",
+            "status": "completed"
+          }
+        ],
+        "attempts": [
+          {
+            "id": "4dd92995-9029-4738-8175-0fafdaf7f9b0",
+            "threadId": "e73b1fcf-786c-4664-8b61-9b88a89b486b",
+            "userMessageId": "4c3d0384-1d38-4cd8-9e71-087a75e90e0e",
+            "responseId": "9f220151-af76-46dd-a279-67d41f6dd4b3",
+            "retryOf": null,
+            "status": "completed",
+            "createdAt": 1790218820288,
+            "finishedAt": 1790218836974,
+            "error": null,
+            "approval": null,
+            "execution": {
+              "provider": "peer",
+              "placement": "peer-whole-request",
+              "peerId": "peer_muexyvdq_voefdj8s",
+              "modelId": "qwen-3-5-2b-q4k-ehaf16",
+              "modelIdentity": "sha256:502fbd6d4c9ed6a890931665995c8ebb42a30e5cda23aa2cfd8e680bee7fa5bc",
+              "adapterIdentities": []
+            },
+            "authorization": {
+              "kind": "once",
+              "grantId": null,
+              "peerId": "peer_muexyvdq_voefdj8s",
+              "recipientIdentity": "peer:3e83bd4e1f81cbe9f3949c86"
+            },
+            "request": {
+              "model": {
+                "id": "qwen-3-5-2b-q4k-ehaf16",
+                "name": "Qwen 3.5 2B",
+                "identity": "sha256:502fbd6d4c9ed6a890931665995c8ebb42a30e5cda23aa2cfd8e680bee7fa5bc",
+                "provider": "doppler",
+                "contextLength": 262144,
+                "quantization": "q4k",
+                "adapters": [],
+                "availability": "busy",
+                "providerIds": [
+                  "peer_muexyvdq_voefdj8s"
+                ]
+              },
+              "permissions": {
+                "sharingScope": "invited-mesh"
+              },
+              "members": [
+                "local-user"
+              ],
+              "messages": [
+                {
+                  "role": "user",
+                  "content": "Reply with exactly the word BETA. Do not explain. /no_think"
+                }
+              ]
+            }
+          }
+        ],
+        "closed": false,
+        "createdAt": 1790218820285
+      }
+    ]
+  },
+  "afterReload": {
+    "schema": "reploid.chat-workspace/v1",
+    "meshId": "reploid-local-mesh",
+    "participantId": "local-user",
+    "threads": [
+      {
+        "id": "9ab27541-ef70-446e-8ba8-777e03c38a1e",
+        "model": {
+          "id": "qwen-3-5-2b-q4k-ehaf16",
+          "name": "Qwen 3.5 2B",
+          "identity": "sha256:502fbd6d4c9ed6a890931665995c8ebb42a30e5cda23aa2cfd8e680bee7fa5bc",
+          "provider": "doppler",
+          "contextLength": 262144,
+          "quantization": "q4k",
+          "adapters": [],
+          "availability": "ready",
+          "providerIds": [
+            "peer_muexyvdq_voefdj8s"
+          ]
+        },
+        "purpose": "",
+        "members": [
+          "local-user"
+        ],
+        "permissions": {
+          "sharingScope": "invited-mesh"
+        },
+        "grants": [
+          {
+            "id": "56d758e7-bdc3-414b-994f-8b6109f726eb",
+            "meshId": "reploid-local-mesh",
+            "threadId": "9ab27541-ef70-446e-8ba8-777e03c38a1e",
+            "recipientIdentity": "peer:3e83bd4e1f81cbe9f3949c86",
+            "modelId": "qwen-3-5-2b-q4k-ehaf16",
+            "modelIdentity": "sha256:502fbd6d4c9ed6a890931665995c8ebb42a30e5cda23aa2cfd8e680bee7fa5bc",
+            "adapterIdentities": [],
+            "sharingScope": "invited-mesh",
+            "disclosure": "public",
+            "createdAt": 1790218820147,
+            "revokedAt": null
+          }
+        ],
+        "messages": [
+          {
+            "id": "2efa1259-402a-43bc-b1a0-bb024920f0c9",
+            "role": "user",
+            "content": "Reply with exactly the word ALPHA. Do not explain. /no_think",
+            "status": "completed"
+          },
+          {
+            "id": "26c11d1f-c24c-4b1b-a099-2f299a1c9f08",
+            "attemptId": "f9998e18-3172-465a-b550-f798e0a1872f",
+            "role": "assistant",
+            "content": "ALPHA",
+            "status": "completed"
+          }
+        ],
+        "attempts": [
+          {
+            "id": "f9998e18-3172-465a-b550-f798e0a1872f",
+            "threadId": "9ab27541-ef70-446e-8ba8-777e03c38a1e",
+            "userMessageId": "2efa1259-402a-43bc-b1a0-bb024920f0c9",
+            "responseId": "26c11d1f-c24c-4b1b-a099-2f299a1c9f08",
+            "retryOf": null,
+            "status": "completed",
+            "createdAt": 1790218820023,
+            "finishedAt": 1790218828713,
+            "error": null,
+            "approval": null,
+            "execution": {
+              "provider": "peer",
+              "placement": "peer-whole-request",
+              "peerId": "peer_muexyvdq_voefdj8s",
+              "modelId": "qwen-3-5-2b-q4k-ehaf16",
+              "modelIdentity": "sha256:502fbd6d4c9ed6a890931665995c8ebb42a30e5cda23aa2cfd8e680bee7fa5bc",
+              "adapterIdentities": []
+            },
+            "authorization": {
+              "kind": "thread-grant",
+              "grantId": "56d758e7-bdc3-414b-994f-8b6109f726eb",
+              "peerId": "peer_muexyvdq_voefdj8s",
+              "recipientIdentity": "peer:3e83bd4e1f81cbe9f3949c86"
+            },
+            "request": {
+              "model": {
+                "id": "qwen-3-5-2b-q4k-ehaf16",
+                "name": "Qwen 3.5 2B",
+                "identity": "sha256:502fbd6d4c9ed6a890931665995c8ebb42a30e5cda23aa2cfd8e680bee7fa5bc",
+                "provider": "doppler",
+                "contextLength": 262144,
+                "quantization": "q4k",
+                "adapters": [],
+                "availability": "ready",
+                "providerIds": [
+                  "peer_muexyvdq_voefdj8s"
+                ]
+              },
+              "permissions": {
+                "sharingScope": "invited-mesh"
+              },
+              "members": [
+                "local-user"
+              ],
+              "messages": [
+                {
+                  "role": "user",
+                  "content": "Reply with exactly the word ALPHA. Do not explain. /no_think"
+                }
+              ]
+            }
+          }
+        ],
+        "closed": false,
+        "createdAt": 1790218820020
+      },
+      {
+        "id": "e73b1fcf-786c-4664-8b61-9b88a89b486b",
+        "model": {
+          "id": "qwen-3-5-2b-q4k-ehaf16",
+          "name": "Qwen 3.5 2B",
+          "identity": "sha256:502fbd6d4c9ed6a890931665995c8ebb42a30e5cda23aa2cfd8e680bee7fa5bc",
+          "provider": "doppler",
+          "contextLength": 262144,
+          "quantization": "q4k",
+          "adapters": [],
+          "availability": "busy",
+          "providerIds": [
+            "peer_muexyvdq_voefdj8s"
+          ]
+        },
+        "purpose": "",
+        "members": [
+          "local-user"
+        ],
+        "permissions": {
+          "sharingScope": "invited-mesh"
+        },
+        "grants": [],
+        "messages": [
+          {
+            "id": "4c3d0384-1d38-4cd8-9e71-087a75e90e0e",
+            "role": "user",
+            "content": "Reply with exactly the word BETA. Do not explain. /no_think",
+            "status": "completed"
+          },
+          {
+            "id": "9f220151-af76-46dd-a279-67d41f6dd4b3",
+            "attemptId": "4dd92995-9029-4738-8175-0fafdaf7f9b0",
+            "role": "assistant",
+            "content": "BETA",
+            "status": "completed"
+          }
+        ],
+        "attempts": [
+          {
+            "id": "4dd92995-9029-4738-8175-0fafdaf7f9b0",
+            "threadId": "e73b1fcf-786c-4664-8b61-9b88a89b486b",
+            "userMessageId": "4c3d0384-1d38-4cd8-9e71-087a75e90e0e",
+            "responseId": "9f220151-af76-46dd-a279-67d41f6dd4b3",
+            "retryOf": null,
+            "status": "completed",
+            "createdAt": 1790218820288,
+            "finishedAt": 1790218836974,
+            "error": null,
+            "approval": null,
+            "execution": {
+              "provider": "peer",
+              "placement": "peer-whole-request",
+              "peerId": "peer_muexyvdq_voefdj8s",
+              "modelId": "qwen-3-5-2b-q4k-ehaf16",
+              "modelIdentity": "sha256:502fbd6d4c9ed6a890931665995c8ebb42a30e5cda23aa2cfd8e680bee7fa5bc",
+              "adapterIdentities": []
+            },
+            "authorization": {
+              "kind": "once",
+              "grantId": null,
+              "peerId": "peer_muexyvdq_voefdj8s",
+              "recipientIdentity": "peer:3e83bd4e1f81cbe9f3949c86"
+            },
+            "request": {
+              "model": {
+                "id": "qwen-3-5-2b-q4k-ehaf16",
+                "name": "Qwen 3.5 2B",
+                "identity": "sha256:502fbd6d4c9ed6a890931665995c8ebb42a30e5cda23aa2cfd8e680bee7fa5bc",
+                "provider": "doppler",
+                "contextLength": 262144,
+                "quantization": "q4k",
+                "adapters": [],
+                "availability": "busy",
+                "providerIds": [
+                  "peer_muexyvdq_voefdj8s"
+                ]
+              },
+              "permissions": {
+                "sharingScope": "invited-mesh"
+              },
+              "members": [
+                "local-user"
+              ],
+              "messages": [
+                {
+                  "role": "user",
+                  "content": "Reply with exactly the word BETA. Do not explain. /no_think"
+                }
+              ]
+            }
+          }
+        ],
+        "closed": false,
+        "createdAt": 1790218820285
+      }
+    ]
+  },
+  "ok": true,
+  "grantedFollowup": {
+    "id": "9ab27541-ef70-446e-8ba8-777e03c38a1e",
+    "model": {
+      "id": "qwen-3-5-2b-q4k-ehaf16",
+      "name": "Qwen 3.5 2B",
+      "identity": "sha256:502fbd6d4c9ed6a890931665995c8ebb42a30e5cda23aa2cfd8e680bee7fa5bc",
+      "provider": "doppler",
+      "contextLength": 262144,
+      "quantization": "q4k",
+      "adapters": [],
+      "availability": "ready",
+      "providerIds": [
+        "peer_muexyvdq_voefdj8s"
+      ]
+    },
+    "purpose": "",
+    "members": [
+      "local-user"
+    ],
+    "permissions": {
+      "sharingScope": "invited-mesh"
+    },
+    "grants": [
+      {
+        "id": "56d758e7-bdc3-414b-994f-8b6109f726eb",
+        "meshId": "reploid-local-mesh",
+        "threadId": "9ab27541-ef70-446e-8ba8-777e03c38a1e",
+        "recipientIdentity": "peer:3e83bd4e1f81cbe9f3949c86",
+        "modelId": "qwen-3-5-2b-q4k-ehaf16",
+        "modelIdentity": "sha256:502fbd6d4c9ed6a890931665995c8ebb42a30e5cda23aa2cfd8e680bee7fa5bc",
+        "adapterIdentities": [],
+        "sharingScope": "invited-mesh",
+        "disclosure": "public",
+        "createdAt": 1790218820147,
+        "revokedAt": null
+      }
+    ],
+    "messages": [
+      {
+        "id": "2efa1259-402a-43bc-b1a0-bb024920f0c9",
+        "role": "user",
+        "content": "Reply with exactly the word ALPHA. Do not explain. /no_think",
+        "status": "completed"
+      },
+      {
+        "id": "26c11d1f-c24c-4b1b-a099-2f299a1c9f08",
+        "attemptId": "f9998e18-3172-465a-b550-f798e0a1872f",
+        "role": "assistant",
+        "content": "ALPHA",
+        "status": "completed"
+      },
+      {
+        "id": "9e034991-4111-4bed-b84b-67120948713b",
+        "role": "user",
+        "content": "Reply with exactly the word DELTA. Do not explain. /no_think",
+        "status": "completed"
+      },
+      {
+        "id": "a5ccac51-a8e2-4113-b41f-3f032e5a9785",
+        "attemptId": "67914d14-0829-45f9-93e2-e9d11af7c1b4",
+        "role": "assistant",
+        "content": "DELTA",
+        "status": "completed"
+      }
+    ],
+    "attempts": [
+      {
+        "id": "f9998e18-3172-465a-b550-f798e0a1872f",
+        "threadId": "9ab27541-ef70-446e-8ba8-777e03c38a1e",
+        "userMessageId": "2efa1259-402a-43bc-b1a0-bb024920f0c9",
+        "responseId": "26c11d1f-c24c-4b1b-a099-2f299a1c9f08",
+        "retryOf": null,
+        "status": "completed",
+        "createdAt": 1790218820023,
+        "finishedAt": 1790218828713,
+        "error": null,
+        "approval": null,
+        "execution": {
+          "provider": "peer",
+          "placement": "peer-whole-request",
+          "peerId": "peer_muexyvdq_voefdj8s",
+          "modelId": "qwen-3-5-2b-q4k-ehaf16",
+          "modelIdentity": "sha256:502fbd6d4c9ed6a890931665995c8ebb42a30e5cda23aa2cfd8e680bee7fa5bc",
+          "adapterIdentities": []
+        },
+        "authorization": {
+          "kind": "thread-grant",
+          "grantId": "56d758e7-bdc3-414b-994f-8b6109f726eb",
+          "peerId": "peer_muexyvdq_voefdj8s",
+          "recipientIdentity": "peer:3e83bd4e1f81cbe9f3949c86"
+        },
+        "request": {
+          "model": {
+            "id": "qwen-3-5-2b-q4k-ehaf16",
+            "name": "Qwen 3.5 2B",
+            "identity": "sha256:502fbd6d4c9ed6a890931665995c8ebb42a30e5cda23aa2cfd8e680bee7fa5bc",
+            "provider": "doppler",
+            "contextLength": 262144,
+            "quantization": "q4k",
+            "adapters": [],
+            "availability": "ready",
+            "providerIds": [
+              "peer_muexyvdq_voefdj8s"
+            ]
+          },
+          "permissions": {
+            "sharingScope": "invited-mesh"
+          },
+          "members": [
+            "local-user"
+          ],
+          "messages": [
+            {
+              "role": "user",
+              "content": "Reply with exactly the word ALPHA. Do not explain. /no_think"
+            }
+          ]
+        }
+      },
+      {
+        "id": "67914d14-0829-45f9-93e2-e9d11af7c1b4",
+        "threadId": "9ab27541-ef70-446e-8ba8-777e03c38a1e",
+        "userMessageId": "9e034991-4111-4bed-b84b-67120948713b",
+        "responseId": "a5ccac51-a8e2-4113-b41f-3f032e5a9785",
+        "retryOf": null,
+        "status": "completed",
+        "createdAt": 1790218837487,
+        "finishedAt": 1790218844844,
+        "error": null,
+        "approval": null,
+        "execution": {
+          "provider": "peer",
+          "placement": "peer-whole-request",
+          "peerId": "peer_muexyvdq_voefdj8s",
+          "modelId": "qwen-3-5-2b-q4k-ehaf16",
+          "modelIdentity": "sha256:502fbd6d4c9ed6a890931665995c8ebb42a30e5cda23aa2cfd8e680bee7fa5bc",
+          "adapterIdentities": []
+        },
+        "authorization": {
+          "kind": "thread-grant",
+          "grantId": "56d758e7-bdc3-414b-994f-8b6109f726eb",
+          "peerId": "peer_muexyvdq_voefdj8s",
+          "recipientIdentity": "peer:3e83bd4e1f81cbe9f3949c86",
+          "modelId": "qwen-3-5-2b-q4k-ehaf16",
+          "modelIdentity": "sha256:502fbd6d4c9ed6a890931665995c8ebb42a30e5cda23aa2cfd8e680bee7fa5bc",
+          "adapterIdentities": [],
+          "sharingScope": "invited-mesh",
+          "disclosure": "public"
+        },
+        "request": {
+          "model": {
+            "id": "qwen-3-5-2b-q4k-ehaf16",
+            "name": "Qwen 3.5 2B",
+            "identity": "sha256:502fbd6d4c9ed6a890931665995c8ebb42a30e5cda23aa2cfd8e680bee7fa5bc",
+            "provider": "doppler",
+            "contextLength": 262144,
+            "quantization": "q4k",
+            "adapters": [],
+            "availability": "ready",
+            "providerIds": [
+              "peer_muexyvdq_voefdj8s"
+            ]
+          },
+          "permissions": {
+            "sharingScope": "invited-mesh"
+          },
+          "members": [
+            "local-user"
+          ],
+          "messages": [
+            {
+              "role": "user",
+              "content": "Reply with exactly the word ALPHA. Do not explain. /no_think"
+            },
+            {
+              "role": "assistant",
+              "content": "ALPHA"
+            },
+            {
+              "role": "user",
+              "content": "Reply with exactly the word DELTA. Do not explain. /no_think"
+            }
+          ]
+        }
+      }
+    ],
+    "closed": false,
+    "createdAt": 1790218820020
+  },
+  "revocationRequiredApproval": true,
+  "afterRevocation": {
+    "id": "9ab27541-ef70-446e-8ba8-777e03c38a1e",
+    "model": {
+      "id": "qwen-3-5-2b-q4k-ehaf16",
+      "name": "Qwen 3.5 2B",
+      "identity": "sha256:502fbd6d4c9ed6a890931665995c8ebb42a30e5cda23aa2cfd8e680bee7fa5bc",
+      "provider": "doppler",
+      "contextLength": 262144,
+      "quantization": "q4k",
+      "adapters": [],
+      "availability": "ready",
+      "providerIds": [
+        "peer_muexyvdq_voefdj8s"
+      ]
+    },
+    "purpose": "",
+    "members": [
+      "local-user"
+    ],
+    "permissions": {
+      "sharingScope": "invited-mesh"
+    },
+    "grants": [
+      {
+        "id": "56d758e7-bdc3-414b-994f-8b6109f726eb",
+        "meshId": "reploid-local-mesh",
+        "threadId": "9ab27541-ef70-446e-8ba8-777e03c38a1e",
+        "recipientIdentity": "peer:3e83bd4e1f81cbe9f3949c86",
+        "modelId": "qwen-3-5-2b-q4k-ehaf16",
+        "modelIdentity": "sha256:502fbd6d4c9ed6a890931665995c8ebb42a30e5cda23aa2cfd8e680bee7fa5bc",
+        "adapterIdentities": [],
+        "sharingScope": "invited-mesh",
+        "disclosure": "public",
+        "createdAt": 1790218820147,
+        "revokedAt": 1790218845043
+      }
+    ],
+    "messages": [
+      {
+        "id": "2efa1259-402a-43bc-b1a0-bb024920f0c9",
+        "role": "user",
+        "content": "Reply with exactly the word ALPHA. Do not explain. /no_think",
+        "status": "completed"
+      },
+      {
+        "id": "26c11d1f-c24c-4b1b-a099-2f299a1c9f08",
+        "attemptId": "f9998e18-3172-465a-b550-f798e0a1872f",
+        "role": "assistant",
+        "content": "ALPHA",
+        "status": "completed"
+      },
+      {
+        "id": "9e034991-4111-4bed-b84b-67120948713b",
+        "role": "user",
+        "content": "Reply with exactly the word DELTA. Do not explain. /no_think",
+        "status": "completed"
+      },
+      {
+        "id": "a5ccac51-a8e2-4113-b41f-3f032e5a9785",
+        "attemptId": "67914d14-0829-45f9-93e2-e9d11af7c1b4",
+        "role": "assistant",
+        "content": "DELTA",
+        "status": "completed"
+      },
+      {
+        "id": "ae2b8563-9d50-4571-afa4-57564e68564a",
+        "role": "user",
+        "content": "Reply with exactly the word EPSILON. Do not explain. /no_think",
+        "status": "completed"
+      },
+      {
+        "id": "e93f6022-91e4-4fe3-8493-5e4ec03aba1c",
+        "attemptId": "319d80a5-5b15-440d-b764-aa3fe3c61b39",
+        "role": "assistant",
+        "content": "EPSILON",
+        "status": "completed"
+      }
+    ],
+    "attempts": [
+      {
+        "id": "f9998e18-3172-465a-b550-f798e0a1872f",
+        "threadId": "9ab27541-ef70-446e-8ba8-777e03c38a1e",
+        "userMessageId": "2efa1259-402a-43bc-b1a0-bb024920f0c9",
+        "responseId": "26c11d1f-c24c-4b1b-a099-2f299a1c9f08",
+        "retryOf": null,
+        "status": "completed",
+        "createdAt": 1790218820023,
+        "finishedAt": 1790218828713,
+        "error": null,
+        "approval": null,
+        "execution": {
+          "provider": "peer",
+          "placement": "peer-whole-request",
+          "peerId": "peer_muexyvdq_voefdj8s",
+          "modelId": "qwen-3-5-2b-q4k-ehaf16",
+          "modelIdentity": "sha256:502fbd6d4c9ed6a890931665995c8ebb42a30e5cda23aa2cfd8e680bee7fa5bc",
+          "adapterIdentities": []
+        },
+        "authorization": {
+          "kind": "thread-grant",
+          "grantId": "56d758e7-bdc3-414b-994f-8b6109f726eb",
+          "peerId": "peer_muexyvdq_voefdj8s",
+          "recipientIdentity": "peer:3e83bd4e1f81cbe9f3949c86"
+        },
+        "request": {
+          "model": {
+            "id": "qwen-3-5-2b-q4k-ehaf16",
+            "name": "Qwen 3.5 2B",
+            "identity": "sha256:502fbd6d4c9ed6a890931665995c8ebb42a30e5cda23aa2cfd8e680bee7fa5bc",
+            "provider": "doppler",
+            "contextLength": 262144,
+            "quantization": "q4k",
+            "adapters": [],
+            "availability": "ready",
+            "providerIds": [
+              "peer_muexyvdq_voefdj8s"
+            ]
+          },
+          "permissions": {
+            "sharingScope": "invited-mesh"
+          },
+          "members": [
+            "local-user"
+          ],
+          "messages": [
+            {
+              "role": "user",
+              "content": "Reply with exactly the word ALPHA. Do not explain. /no_think"
+            }
+          ]
+        }
+      },
+      {
+        "id": "67914d14-0829-45f9-93e2-e9d11af7c1b4",
+        "threadId": "9ab27541-ef70-446e-8ba8-777e03c38a1e",
+        "userMessageId": "9e034991-4111-4bed-b84b-67120948713b",
+        "responseId": "a5ccac51-a8e2-4113-b41f-3f032e5a9785",
+        "retryOf": null,
+        "status": "completed",
+        "createdAt": 1790218837487,
+        "finishedAt": 1790218844844,
+        "error": null,
+        "approval": null,
+        "execution": {
+          "provider": "peer",
+          "placement": "peer-whole-request",
+          "peerId": "peer_muexyvdq_voefdj8s",
+          "modelId": "qwen-3-5-2b-q4k-ehaf16",
+          "modelIdentity": "sha256:502fbd6d4c9ed6a890931665995c8ebb42a30e5cda23aa2cfd8e680bee7fa5bc",
+          "adapterIdentities": []
+        },
+        "authorization": {
+          "kind": "thread-grant",
+          "grantId": "56d758e7-bdc3-414b-994f-8b6109f726eb",
+          "peerId": "peer_muexyvdq_voefdj8s",
+          "recipientIdentity": "peer:3e83bd4e1f81cbe9f3949c86",
+          "modelId": "qwen-3-5-2b-q4k-ehaf16",
+          "modelIdentity": "sha256:502fbd6d4c9ed6a890931665995c8ebb42a30e5cda23aa2cfd8e680bee7fa5bc",
+          "adapterIdentities": [],
+          "sharingScope": "invited-mesh",
+          "disclosure": "public"
+        },
+        "request": {
+          "model": {
+            "id": "qwen-3-5-2b-q4k-ehaf16",
+            "name": "Qwen 3.5 2B",
+            "identity": "sha256:502fbd6d4c9ed6a890931665995c8ebb42a30e5cda23aa2cfd8e680bee7fa5bc",
+            "provider": "doppler",
+            "contextLength": 262144,
+            "quantization": "q4k",
+            "adapters": [],
+            "availability": "ready",
+            "providerIds": [
+              "peer_muexyvdq_voefdj8s"
+            ]
+          },
+          "permissions": {
+            "sharingScope": "invited-mesh"
+          },
+          "members": [
+            "local-user"
+          ],
+          "messages": [
+            {
+              "role": "user",
+              "content": "Reply with exactly the word ALPHA. Do not explain. /no_think"
+            },
+            {
+              "role": "assistant",
+              "content": "ALPHA"
+            },
+            {
+              "role": "user",
+              "content": "Reply with exactly the word DELTA. Do not explain. /no_think"
+            }
+          ]
+        }
+      },
+      {
+        "id": "319d80a5-5b15-440d-b764-aa3fe3c61b39",
+        "threadId": "9ab27541-ef70-446e-8ba8-777e03c38a1e",
+        "userMessageId": "ae2b8563-9d50-4571-afa4-57564e68564a",
+        "responseId": "e93f6022-91e4-4fe3-8493-5e4ec03aba1c",
+        "retryOf": null,
+        "status": "completed",
+        "createdAt": 1790218845086,
+        "finishedAt": 1790218853047,
+        "error": null,
+        "approval": null,
+        "execution": {
+          "provider": "peer",
+          "placement": "peer-whole-request",
+          "peerId": "peer_muexyvdq_voefdj8s",
+          "modelId": "qwen-3-5-2b-q4k-ehaf16",
+          "modelIdentity": "sha256:502fbd6d4c9ed6a890931665995c8ebb42a30e5cda23aa2cfd8e680bee7fa5bc",
+          "adapterIdentities": []
+        },
+        "authorization": {
+          "kind": "once",
+          "grantId": null,
+          "peerId": "peer_muexyvdq_voefdj8s",
+          "recipientIdentity": "peer:3e83bd4e1f81cbe9f3949c86"
+        },
+        "request": {
+          "model": {
+            "id": "qwen-3-5-2b-q4k-ehaf16",
+            "name": "Qwen 3.5 2B",
+            "identity": "sha256:502fbd6d4c9ed6a890931665995c8ebb42a30e5cda23aa2cfd8e680bee7fa5bc",
+            "provider": "doppler",
+            "contextLength": 262144,
+            "quantization": "q4k",
+            "adapters": [],
+            "availability": "ready",
+            "providerIds": [
+              "peer_muexyvdq_voefdj8s"
+            ]
+          },
+          "permissions": {
+            "sharingScope": "invited-mesh"
+          },
+          "members": [
+            "local-user"
+          ],
+          "messages": [
+            {
+              "role": "user",
+              "content": "Reply with exactly the word ALPHA. Do not explain. /no_think"
+            },
+            {
+              "role": "assistant",
+              "content": "ALPHA"
+            },
+            {
+              "role": "user",
+              "content": "Reply with exactly the word DELTA. Do not explain. /no_think"
+            },
+            {
+              "role": "assistant",
+              "content": "DELTA"
+            },
+            {
+              "role": "user",
+              "content": "Reply with exactly the word EPSILON. Do not explain. /no_think"
+            }
+          ]
+        }
+      }
+    ],
+    "closed": false,
+    "createdAt": 1790218820020
+  },
+  "cancelled": {
+    "id": "0efc88b5-aed5-42fc-838f-bf17afb17d34",
+    "model": {
+      "id": "qwen-3-5-2b-q4k-ehaf16",
+      "name": "Qwen 3.5 2B",
+      "identity": "sha256:502fbd6d4c9ed6a890931665995c8ebb42a30e5cda23aa2cfd8e680bee7fa5bc",
+      "provider": "doppler",
+      "contextLength": 262144,
+      "quantization": "q4k",
+      "adapters": [],
+      "availability": "ready",
+      "providerIds": [
+        "peer_muexyvdq_voefdj8s"
+      ]
+    },
+    "purpose": "",
+    "members": [
+      "local-user"
+    ],
+    "permissions": {
+      "sharingScope": "invited-mesh"
+    },
+    "grants": [],
+    "messages": [
+      {
+        "id": "fd66c227-2b62-4a3d-b6b0-5c21bc5766ac",
+        "role": "user",
+        "content": "Count every integer from one to one hundred, one per line. Do not skip any. /no_think",
+        "status": "completed"
+      },
+      {
+        "id": "dcb96968-7fdd-460b-bc6d-42dc30ddc35d",
+        "attemptId": "68657c43-2962-407b-99a9-ba520b1b8346",
+        "role": "assistant",
+        "content": "1",
+        "status": "cancelled"
+      }
+    ],
+    "attempts": [
+      {
+        "id": "68657c43-2962-407b-99a9-ba520b1b8346",
+        "threadId": "0efc88b5-aed5-42fc-838f-bf17afb17d34",
+        "userMessageId": "fd66c227-2b62-4a3d-b6b0-5c21bc5766ac",
+        "responseId": "dcb96968-7fdd-460b-bc6d-42dc30ddc35d",
+        "retryOf": null,
+        "status": "cancelled",
+        "createdAt": 1790218853206,
+        "finishedAt": 1790218854893,
+        "error": "Response stopped",
+        "approval": null,
+        "execution": {
+          "provider": "peer",
+          "placement": "peer-whole-request",
+          "peerId": "peer_muexyvdq_voefdj8s"
+        },
+        "authorization": {
+          "kind": "once",
+          "grantId": null,
+          "peerId": "peer_muexyvdq_voefdj8s",
+          "recipientIdentity": "peer:3e83bd4e1f81cbe9f3949c86"
+        },
+        "request": {
+          "model": {
+            "id": "qwen-3-5-2b-q4k-ehaf16",
+            "name": "Qwen 3.5 2B",
+            "identity": "sha256:502fbd6d4c9ed6a890931665995c8ebb42a30e5cda23aa2cfd8e680bee7fa5bc",
+            "provider": "doppler",
+            "contextLength": 262144,
+            "quantization": "q4k",
+            "adapters": [],
+            "availability": "ready",
+            "providerIds": [
+              "peer_muexyvdq_voefdj8s"
+            ]
+          },
+          "permissions": {
+            "sharingScope": "invited-mesh"
+          },
+          "members": [
+            "local-user"
+          ],
+          "messages": [
+            {
+              "role": "user",
+              "content": "Count every integer from one to one hundred, one per line. Do not skip any. /no_think"
+            }
+          ]
+        }
+      }
+    ],
+    "closed": false,
+    "createdAt": 1790218853205
+  },
+  "recovered": {
+    "id": "e610100f-d24a-4642-843f-122300b28ab7",
+    "model": {
+      "id": "qwen-3-5-2b-q4k-ehaf16",
+      "name": "Qwen 3.5 2B",
+      "identity": "sha256:502fbd6d4c9ed6a890931665995c8ebb42a30e5cda23aa2cfd8e680bee7fa5bc",
+      "provider": "doppler",
+      "contextLength": 262144,
+      "quantization": "q4k",
+      "adapters": [],
+      "availability": "ready",
+      "providerIds": [
+        "peer_muexyvdq_voefdj8s"
+      ]
+    },
+    "purpose": "",
+    "members": [
+      "local-user"
+    ],
+    "permissions": {
+      "sharingScope": "invited-mesh"
+    },
+    "grants": [],
+    "messages": [
+      {
+        "id": "fa81d124-5215-4359-b322-7bb087f12e1a",
+        "role": "user",
+        "content": "Reply with exactly the word GAMMA. Do not explain. /no_think",
+        "status": "completed"
+      },
+      {
+        "id": "8ac4ad21-cf83-4baf-ad7f-c4bf3402dd05",
+        "attemptId": "17c5de27-7bbb-44dc-a12a-e1c75d502f28",
+        "role": "assistant",
+        "content": "GAMMA",
+        "status": "completed"
+      }
+    ],
+    "attempts": [
+      {
+        "id": "17c5de27-7bbb-44dc-a12a-e1c75d502f28",
+        "threadId": "e610100f-d24a-4642-843f-122300b28ab7",
+        "userMessageId": "fa81d124-5215-4359-b322-7bb087f12e1a",
+        "responseId": "8ac4ad21-cf83-4baf-ad7f-c4bf3402dd05",
+        "retryOf": null,
+        "status": "completed",
+        "createdAt": 1790218860382,
+        "finishedAt": 1790218867045,
+        "error": null,
+        "approval": null,
+        "execution": {
+          "provider": "peer",
+          "placement": "peer-whole-request",
+          "peerId": "peer_muexyvdq_voefdj8s",
+          "modelId": "qwen-3-5-2b-q4k-ehaf16",
+          "modelIdentity": "sha256:502fbd6d4c9ed6a890931665995c8ebb42a30e5cda23aa2cfd8e680bee7fa5bc",
+          "adapterIdentities": []
+        },
+        "authorization": {
+          "kind": "once",
+          "grantId": null,
+          "peerId": "peer_muexyvdq_voefdj8s",
+          "recipientIdentity": "peer:3e83bd4e1f81cbe9f3949c86"
+        },
+        "request": {
+          "model": {
+            "id": "qwen-3-5-2b-q4k-ehaf16",
+            "name": "Qwen 3.5 2B",
+            "identity": "sha256:502fbd6d4c9ed6a890931665995c8ebb42a30e5cda23aa2cfd8e680bee7fa5bc",
+            "provider": "doppler",
+            "contextLength": 262144,
+            "quantization": "q4k",
+            "adapters": [],
+            "availability": "ready",
+            "providerIds": [
+              "peer_muexyvdq_voefdj8s"
+            ]
+          },
+          "permissions": {
+            "sharingScope": "invited-mesh"
+          },
+          "members": [
+            "local-user"
+          ],
+          "messages": [
+            {
+              "role": "user",
+              "content": "Reply with exactly the word GAMMA. Do not explain. /no_think"
+            }
+          ]
+        }
+      }
+    ],
+    "closed": false,
+    "createdAt": 1790218860380
+  },
+  "interrupted": {
+    "id": "fc7bb6de-e8e9-4da0-810e-05113b6bfc40",
+    "model": {
+      "id": "qwen-3-5-2b-q4k-ehaf16",
+      "name": "Qwen 3.5 2B",
+      "identity": "sha256:502fbd6d4c9ed6a890931665995c8ebb42a30e5cda23aa2cfd8e680bee7fa5bc",
+      "provider": "doppler",
+      "contextLength": 262144,
+      "quantization": "q4k",
+      "adapters": [],
+      "availability": "ready",
+      "providerIds": [
+        "peer_muexyvdq_voefdj8s"
+      ]
+    },
+    "purpose": "",
+    "members": [
+      "local-user"
+    ],
+    "permissions": {
+      "sharingScope": "invited-mesh"
+    },
+    "grants": [],
+    "messages": [
+      {
+        "id": "b30c553d-f568-4456-bac7-2e255d9d1e19",
+        "role": "user",
+        "content": "Count every integer from one to one hundred, one per line. Do not skip any. /no_think",
+        "status": "completed"
+      },
+      {
+        "id": "e9a70118-89b8-47b5-adad-526610779338",
+        "attemptId": "64d93622-9d1d-4be7-8567-620a1a7645e1",
+        "role": "assistant",
+        "content": "1",
+        "status": "cancelled"
+      }
+    ],
+    "attempts": [
+      {
+        "id": "64d93622-9d1d-4be7-8567-620a1a7645e1",
+        "threadId": "fc7bb6de-e8e9-4da0-810e-05113b6bfc40",
+        "userMessageId": "b30c553d-f568-4456-bac7-2e255d9d1e19",
+        "responseId": "e9a70118-89b8-47b5-adad-526610779338",
+        "retryOf": null,
+        "status": "cancelled",
+        "createdAt": 1790218867313,
+        "finishedAt": 1790218869573,
+        "error": "Response stopped",
+        "approval": null,
+        "execution": {
+          "provider": "peer",
+          "placement": "peer-whole-request",
+          "peerId": "peer_muexyvdq_voefdj8s"
+        },
+        "authorization": {
+          "kind": "once",
+          "grantId": null,
+          "peerId": "peer_muexyvdq_voefdj8s",
+          "recipientIdentity": "peer:3e83bd4e1f81cbe9f3949c86"
+        },
+        "request": {
+          "model": {
+            "id": "qwen-3-5-2b-q4k-ehaf16",
+            "name": "Qwen 3.5 2B",
+            "identity": "sha256:502fbd6d4c9ed6a890931665995c8ebb42a30e5cda23aa2cfd8e680bee7fa5bc",
+            "provider": "doppler",
+            "contextLength": 262144,
+            "quantization": "q4k",
+            "adapters": [],
+            "availability": "ready",
+            "providerIds": [
+              "peer_muexyvdq_voefdj8s"
+            ]
+          },
+          "permissions": {
+            "sharingScope": "invited-mesh"
+          },
+          "members": [
+            "local-user"
+          ],
+          "messages": [
+            {
+              "role": "user",
+              "content": "Count every integer from one to one hundred, one per line. Do not skip any. /no_think"
+            }
+          ]
+        }
+      }
+    ],
+    "closed": false,
+    "createdAt": 1790218867311
+  },
+  "noReloadRedispatch": true,
+  "peerLoss": {
+    "id": "e2a9ab39-8c54-4cb1-a45e-17d8e457cac8",
+    "model": {
+      "id": "qwen-3-5-2b-q4k-ehaf16",
+      "name": "Qwen 3.5 2B",
+      "identity": "sha256:502fbd6d4c9ed6a890931665995c8ebb42a30e5cda23aa2cfd8e680bee7fa5bc",
+      "provider": "doppler",
+      "contextLength": 262144,
+      "quantization": "q4k",
+      "adapters": [],
+      "availability": "ready",
+      "providerIds": [
+        "peer_muexyvdq_voefdj8s"
+      ]
+    },
+    "purpose": "",
+    "members": [
+      "local-user"
+    ],
+    "permissions": {
+      "sharingScope": "invited-mesh"
+    },
+    "grants": [],
+    "messages": [
+      {
+        "id": "e64279b3-9f46-44d4-a024-024065325a60",
+        "role": "user",
+        "content": "Count every integer from one to one hundred, one per line. Do not skip any. /no_think",
+        "status": "completed"
+      },
+      {
+        "id": "582353d4-312b-4e56-9e36-8f9bd07b9fe5",
+        "attemptId": "ec1ca66d-97c6-4055-b9aa-cdac0e771e91",
+        "role": "assistant",
+        "content": "1",
+        "status": "failed"
+      }
+    ],
+    "attempts": [
+      {
+        "id": "ec1ca66d-97c6-4055-b9aa-cdac0e771e91",
+        "threadId": "e2a9ab39-8c54-4cb1-a45e-17d8e457cac8",
+        "userMessageId": "e64279b3-9f46-44d4-a024-024065325a60",
+        "responseId": "582353d4-312b-4e56-9e36-8f9bd07b9fe5",
+        "retryOf": null,
+        "status": "failed",
+        "createdAt": 1790218875126,
+        "finishedAt": 1790218877148,
+        "error": "Execution peer disconnected; retry requires a new attempt",
+        "approval": null,
+        "execution": {
+          "provider": "peer",
+          "placement": "peer-whole-request",
+          "peerId": "peer_muexyvdq_voefdj8s"
+        },
+        "authorization": {
+          "kind": "once",
+          "grantId": null,
+          "peerId": "peer_muexyvdq_voefdj8s",
+          "recipientIdentity": "peer:3e83bd4e1f81cbe9f3949c86"
+        },
+        "request": {
+          "model": {
+            "id": "qwen-3-5-2b-q4k-ehaf16",
+            "name": "Qwen 3.5 2B",
+            "identity": "sha256:502fbd6d4c9ed6a890931665995c8ebb42a30e5cda23aa2cfd8e680bee7fa5bc",
+            "provider": "doppler",
+            "contextLength": 262144,
+            "quantization": "q4k",
+            "adapters": [],
+            "availability": "ready",
+            "providerIds": [
+              "peer_muexyvdq_voefdj8s"
+            ]
+          },
+          "permissions": {
+            "sharingScope": "invited-mesh"
+          },
+          "members": [
+            "local-user"
+          ],
+          "messages": [
+            {
+              "role": "user",
+              "content": "Count every integer from one to one hundred, one per line. Do not skip any. /no_think"
+            }
+          ]
+        }
+      }
+    ],
+    "closed": false,
+    "createdAt": 1790218875123
+  },
+  "recoveryProbe": {
+    "opens": [
+      {
+        "scope": "work-resident:5d32b4ea-59d1-4331-8f35-f6b0c23c5185",
+        "source": "qwen-3-5-2b-q4k-ehaf16"
+      }
+    ],
+    "closes": [],
+    "runs": [
+      {
+        "messages": [
+          {
+            "content": "Reply with exactly the word ALPHA. Do not explain. /no_think",
+            "role": "user"
+          }
+        ],
+        "modelId": "qwen-3-5-2b-q4k-ehaf16",
+        "manifestHash": "502fbd6d4c9ed6a890931665995c8ebb42a30e5cda23aa2cfd8e680bee7fa5bc"
+      },
+      {
+        "messages": [
+          {
+            "content": "Reply with exactly the word BETA. Do not explain. /no_think",
+            "role": "user"
+          }
+        ],
+        "modelId": "qwen-3-5-2b-q4k-ehaf16",
+        "manifestHash": "502fbd6d4c9ed6a890931665995c8ebb42a30e5cda23aa2cfd8e680bee7fa5bc"
+      },
+      {
+        "messages": [
+          {
+            "content": "Reply with exactly the word ALPHA. Do not explain. /no_think",
+            "role": "user"
+          },
+          {
+            "content": "ALPHA",
+            "role": "assistant"
+          },
+          {
+            "content": "Reply with exactly the word DELTA. Do not explain. /no_think",
+            "role": "user"
+          }
+        ],
+        "modelId": "qwen-3-5-2b-q4k-ehaf16",
+        "manifestHash": "502fbd6d4c9ed6a890931665995c8ebb42a30e5cda23aa2cfd8e680bee7fa5bc"
+      },
+      {
+        "messages": [
+          {
+            "content": "Reply with exactly the word ALPHA. Do not explain. /no_think",
+            "role": "user"
+          },
+          {
+            "content": "ALPHA",
+            "role": "assistant"
+          },
+          {
+            "content": "Reply with exactly the word DELTA. Do not explain. /no_think",
+            "role": "user"
+          },
+          {
+            "content": "DELTA",
+            "role": "assistant"
+          },
+          {
+            "content": "Reply with exactly the word EPSILON. Do not explain. /no_think",
+            "role": "user"
+          }
+        ],
+        "modelId": "qwen-3-5-2b-q4k-ehaf16",
+        "manifestHash": "502fbd6d4c9ed6a890931665995c8ebb42a30e5cda23aa2cfd8e680bee7fa5bc"
+      },
+      {
+        "messages": [
+          {
+            "content": "Count every integer from one to one hundred, one per line. Do not skip any. /no_think",
+            "role": "user"
+          }
+        ],
+        "modelId": "qwen-3-5-2b-q4k-ehaf16",
+        "manifestHash": "502fbd6d4c9ed6a890931665995c8ebb42a30e5cda23aa2cfd8e680bee7fa5bc"
+      },
+      {
+        "messages": [
+          {
+            "content": "Reply with exactly the word GAMMA. Do not explain. /no_think",
+            "role": "user"
+          }
+        ],
+        "modelId": "qwen-3-5-2b-q4k-ehaf16",
+        "manifestHash": "502fbd6d4c9ed6a890931665995c8ebb42a30e5cda23aa2cfd8e680bee7fa5bc"
+      },
+      {
+        "messages": [
+          {
+            "content": "Count every integer from one to one hundred, one per line. Do not skip any. /no_think",
+            "role": "user"
+          }
+        ],
+        "modelId": "qwen-3-5-2b-q4k-ehaf16",
+        "manifestHash": "502fbd6d4c9ed6a890931665995c8ebb42a30e5cda23aa2cfd8e680bee7fa5bc"
+      },
+      {
+        "messages": [
+          {
+            "content": "Count every integer from one to one hundred, one per line. Do not skip any. /no_think",
+            "role": "user"
+          }
+        ],
+        "modelId": "qwen-3-5-2b-q4k-ehaf16",
+        "manifestHash": "502fbd6d4c9ed6a890931665995c8ebb42a30e5cda23aa2cfd8e680bee7fa5bc"
+      }
+    ]
+  },
+  "stoppedProbe": {
+    "opens": [
+      {
+        "scope": "work-resident:5d32b4ea-59d1-4331-8f35-f6b0c23c5185",
+        "source": "qwen-3-5-2b-q4k-ehaf16"
+      }
+    ],
+    "closes": [
+      "work-resident:5d32b4ea-59d1-4331-8f35-f6b0c23c5185"
+    ],
+    "runs": [
+      {
+        "messages": [
+          {
+            "content": "Reply with exactly the word ALPHA. Do not explain. /no_think",
+            "role": "user"
+          }
+        ],
+        "modelId": "qwen-3-5-2b-q4k-ehaf16",
+        "manifestHash": "502fbd6d4c9ed6a890931665995c8ebb42a30e5cda23aa2cfd8e680bee7fa5bc"
+      },
+      {
+        "messages": [
+          {
+            "content": "Reply with exactly the word BETA. Do not explain. /no_think",
+            "role": "user"
+          }
+        ],
+        "modelId": "qwen-3-5-2b-q4k-ehaf16",
+        "manifestHash": "502fbd6d4c9ed6a890931665995c8ebb42a30e5cda23aa2cfd8e680bee7fa5bc"
+      },
+      {
+        "messages": [
+          {
+            "content": "Reply with exactly the word ALPHA. Do not explain. /no_think",
+            "role": "user"
+          },
+          {
+            "content": "ALPHA",
+            "role": "assistant"
+          },
+          {
+            "content": "Reply with exactly the word DELTA. Do not explain. /no_think",
+            "role": "user"
+          }
+        ],
+        "modelId": "qwen-3-5-2b-q4k-ehaf16",
+        "manifestHash": "502fbd6d4c9ed6a890931665995c8ebb42a30e5cda23aa2cfd8e680bee7fa5bc"
+      },
+      {
+        "messages": [
+          {
+            "content": "Reply with exactly the word ALPHA. Do not explain. /no_think",
+            "role": "user"
+          },
+          {
+            "content": "ALPHA",
+            "role": "assistant"
+          },
+          {
+            "content": "Reply with exactly the word DELTA. Do not explain. /no_think",
+            "role": "user"
+          },
+          {
+            "content": "DELTA",
+            "role": "assistant"
+          },
+          {
+            "content": "Reply with exactly the word EPSILON. Do not explain. /no_think",
+            "role": "user"
+          }
+        ],
+        "modelId": "qwen-3-5-2b-q4k-ehaf16",
+        "manifestHash": "502fbd6d4c9ed6a890931665995c8ebb42a30e5cda23aa2cfd8e680bee7fa5bc"
+      },
+      {
+        "messages": [
+          {
+            "content": "Count every integer from one to one hundred, one per line. Do not skip any. /no_think",
+            "role": "user"
+          }
+        ],
+        "modelId": "qwen-3-5-2b-q4k-ehaf16",
+        "manifestHash": "502fbd6d4c9ed6a890931665995c8ebb42a30e5cda23aa2cfd8e680bee7fa5bc"
+      },
+      {
+        "messages": [
+          {
+            "content": "Reply with exactly the word GAMMA. Do not explain. /no_think",
+            "role": "user"
+          }
+        ],
+        "modelId": "qwen-3-5-2b-q4k-ehaf16",
+        "manifestHash": "502fbd6d4c9ed6a890931665995c8ebb42a30e5cda23aa2cfd8e680bee7fa5bc"
+      },
+      {
+        "messages": [
+          {
+            "content": "Count every integer from one to one hundred, one per line. Do not skip any. /no_think",
+            "role": "user"
+          }
+        ],
+        "modelId": "qwen-3-5-2b-q4k-ehaf16",
+        "manifestHash": "502fbd6d4c9ed6a890931665995c8ebb42a30e5cda23aa2cfd8e680bee7fa5bc"
+      },
+      {
+        "messages": [
+          {
+            "content": "Count every integer from one to one hundred, one per line. Do not skip any. /no_think",
+            "role": "user"
+          }
+        ],
+        "modelId": "qwen-3-5-2b-q4k-ehaf16",
+        "manifestHash": "502fbd6d4c9ed6a890931665995c8ebb42a30e5cda23aa2cfd8e680bee7fa5bc"
+      }
+    ]
+  },
+  "sourceStable": true,
+  "finishedAt": "2026-09-24T03:01:22.084Z"
+}

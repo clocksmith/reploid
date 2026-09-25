@@ -64,17 +64,27 @@ Doppler's declared numerical and output comparison contract.
 ## Current implementation boundary
 
 The new `reploid/chat` library entry implements conversation lifecycle and a
-resident-device scheduling owner. Unit/browser contract tests use injected
-execution, not qualified model inference. It is not yet wired into the public
-workspace or the complete-job/custody/adapter paths. The existing website remains
-on its previous Work implementation.
+resident-device scheduling owner. The public workspace composes it with prepared
+resident contributors and the compatibility whole-request mesh. Requester and
+contributor model identities share one catalog; unavailable providers do not cause
+requester model downloads. This compatibility protocol remains distinct from
+signed complete-Pack jobs.
 
-Mandatory remaining integration is the admitted chat model/adapter catalog,
-invited-mesh host/UI, complete-job execution and verified file acquisition,
-followed by real-model three-tab acceptance and separate physical-device qualification. The bounded layer split also remains
-unimplemented. Existing text adapter descriptors with placeholder hashes cannot
-be admitted as verified artifacts. Historical single-device Qwen adapter evidence
-does not establish three-device mesh qualification.
+Conversation disclosure supports explicit, persisted, revocable thread grants.
+Grants bind the mesh, conversation, verified recipient, model, adapters and public
+disclosure scope. A fresh signing-key proof binds the recipient to the current
+WebRTC certificates before reuse. Changed recipients require approval; peers
+without this proof retain exact-payload approval. Grants authorize neither
+contribution nor artifact supply.
+
+The [same-device acceptance records](../artifacts/chat-grants-2026-09-23/README.md)
+separate actual GPU conversation/grant recovery from injected browser tests and
+actual adapter custody/application. Real adapter transfer uses the existing
+custody APIs with explicit artifact grants; it is not yet selectable adapted
+execution in the public chat UI. Model weight-shard acquisition through chat,
+signed complete-job integration, full three-participant model/adapter execution
+and independent-device qualification remain required. The bounded layer split
+remains unimplemented. Placeholder adapter hashes cannot be admitted.
 
 The [three-tab harness](../tests/e2e/chat-three-tab.spec.js) uses one browser profile,
 real WebRTC, signed custody, interrupted-transfer checkpoints and cache reuse.

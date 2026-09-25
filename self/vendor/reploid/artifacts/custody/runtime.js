@@ -234,9 +234,11 @@ async function createPeerPackArtifactStore({ authorization, index, inventories, 
     async function acquireChunk(chunk) {
       current();
       if (checkpoints) {
-        const cached = await checkpoints.getChunk(chunk, { signal: acquisition.signal });
+        const restored = await checkpoints.getChunk(clone(chunk), { signal: acquisition.signal });
         current();
-        if (cached !== null) {
+        if (restored !== null) {
+          assert(restored instanceof Uint8Array, 'checkpoint returned invalid bytes');
+          const cached = restored.slice();
           verificationBytes += cached.byteLength;
           if (cached instanceof Uint8Array && cached.byteLength === chunk.sizeBytes && await sha256Hex(cached) === chunk.hash) {
             current();
@@ -245,7 +247,7 @@ async function createPeerPackArtifactStore({ authorization, index, inventories, 
             return;
           }
           corruptCacheBytes += cached.byteLength;
-          await checkpoints.deleteChunk(chunk, { signal: acquisition.signal });
+          await checkpoints.deleteChunk(clone(chunk), { signal: acquisition.signal });
           current();
         }
       }
@@ -301,7 +303,7 @@ async function createPeerPackArtifactStore({ authorization, index, inventories, 
             // Storage failures are visible; verified output remains usable and does
             // not trigger an unnecessary download from another supplier.
             try {
-              const saved = await checkpoints.putChunk(chunk, bytes, { signal: acquisition.signal });
+              const saved = await checkpoints.putChunk(clone(chunk), bytes.slice(), { signal: acquisition.signal });
               persistedBytes += bytes.length;
               evictedBytes += saved?.evictedBytes || 0;
             } catch (error) { observation.checkpointError = String(error.message || error); }

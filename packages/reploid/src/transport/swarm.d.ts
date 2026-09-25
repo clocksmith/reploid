@@ -4,6 +4,7 @@ export interface SwarmTransport {
   broadcast(type: string, payload: unknown): number; onMessage(type: string, handler: (peerId: string, payload: Record<string, unknown>, envelope?: object) => void): void;
   getConnectionState(): string; getConnectedPeers(): object[]; getStats(): Record<string, unknown>; getClock(): number; tick(): number;
   _getPeerId(): string | null; _getSessionId(): string | null;
+  getPeerBinding?(peerId: string): { local: string; remote: string } | null;
 }
 export interface SwarmOptions {
   config: ResolvedConfig; Utils: { logger: Record<'info'|'debug'|'warn'|'error', (...args: unknown[]) => void>; generateId(prefix: string): string };

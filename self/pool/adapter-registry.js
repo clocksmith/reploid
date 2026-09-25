@@ -143,14 +143,27 @@ export function createAdapterRegistry({ readBytes = null, writeBytes = null, del
   const publications = new Map();
   const cachedBytes = new Map();
   const acquisitions = new Map();
+  const writes = new Map();
+  const copy = value => structuredClone(value);
+  const current = publication => publication?.revoked !== true && publications.get(publication?.packHash) === publication;
+  const requireCurrent = publication => {
+    if (!current(publication)) throw new Error('adapter publication changed or revoked');
+  };
+  const write = (packHash, operation) => {
+    const pending = (writes.get(packHash) || Promise.resolve()).catch(() => {}).then(operation);
+    writes.set(packHash, pending);
+    pending.finally(() => { if (writes.get(packHash) === pending) writes.delete(packHash); }).catch(() => {});
+    return pending;
+  };
 
   const loadBytes = async (packHash) => {
     if (cachedBytes.has(packHash)) return cachedBytes.get(packHash);
     if (typeof readBytes !== 'function') return null;
     const value = await readBytes(packHash);
     if (value == null) return null;
-    const bytes = toBytes(value);
-    cachedBytes.set(packHash, bytes);
+    const bytes = toBytes(value).slice();
+    // Reads that finish after revocation cannot repopulate the live cache.
+    if (publications.get(packHash)?.revoked !== true) cachedBytes.set(packHash, bytes);
     return bytes;
   };
 
@@ -162,27 +175,37 @@ export function createAdapterRegistry({ readBytes = null, writeBytes = null, del
 
   return Object.freeze({
     async publish(publication) {
+      publication = copy(publication);
       const verification = await verifyAdapterPublication(publication);
       if (!verification.ok) throw new Error(verification.reasons.join('; '));
       const existing = publications.get(publication.packHash);
+      if (existing?.revoked === true) throw new Error('adapter publication revoked');
       if (existing && existing.publicationHash !== publication.publicationHash) {
         throw new Error('adapter pack hash already has a different publication identity');
       }
-      publications.set(publication.packHash, publication);
-      return publication;
+      if (!existing) publications.set(publication.packHash, publication);
+      return copy(existing || publication);
     },
     async cache({ publication, bytes, acquisition = null } = {}) {
+      publication = copy(publication);
+      const byteView = toBytes(bytes).slice(), receipt = copy(acquisition);
       await this.publish(publication);
-      const byteView = toBytes(bytes);
+      publication = publications.get(publication.packHash);
+      requireCurrent(publication);
       if (!await artifactValid(publication, byteView)) throw new Error('adapter bytes do not match publication');
+      requireCurrent(publication);
+      if (typeof writeBytes === 'function') await write(publication.packHash, async () => {
+        requireCurrent(publication);
+        await writeBytes(publication.packHash, byteView.slice());
+      });
+      requireCurrent(publication);
       cachedBytes.set(publication.packHash, byteView);
-      if (acquisition) acquisitions.set(publication.packHash, acquisition);
-      if (typeof writeBytes === 'function') await writeBytes(publication.packHash, byteView);
+      if (receipt) acquisitions.set(publication.packHash, receipt);
       return publication.packHash;
     },
     getPublication(packHash) {
       const publication = publications.get(packHash) || null;
-      return publication?.revoked === true ? null : publication;
+      return publication?.revoked === true ? null : copy(publication);
     },
     list({ capability = null, publisherId = null, visibility = null } = {}) {
       return Array.from(publications.values()).filter((publication) => (
@@ -190,25 +213,27 @@ export function createAdapterRegistry({ readBytes = null, writeBytes = null, del
         && (!capability || publication.capabilities?.includes(capability))
         && (!publisherId || publication.publisher?.publisherId === publisherId)
         && (!visibility || publication.visibility === visibility)
-      ));
+      )).map(copy);
     },
     async hasCached(packHash) {
-      const publication = this.getPublication(packHash);
-      if (!publication) return false;
-      return artifactValid(publication, await loadBytes(packHash));
+      const publication = publications.get(packHash);
+      if (!publication || !current(publication)) return false;
+      return await artifactValid(publication, await loadBytes(packHash)) && current(publication);
     },
     async getArtifact(packHash) {
-      const publication = this.getPublication(packHash);
-      const bytes = publication ? await loadBytes(packHash) : null;
-      if (!publication || !await artifactValid(publication, bytes)) return null;
+      const publication = publications.get(packHash);
+      if (!publication || !current(publication)) return null;
+      const bytes = await loadBytes(packHash);
+      if (!await artifactValid(publication, bytes) || !current(publication)) return null;
       return {
-        publication,
-        pack: publication.pack,
-        bytes,
-        acquisition: acquisitions.get(packHash) || null
+        publication: copy(publication),
+        pack: copy(publication.pack),
+        bytes: bytes.slice(),
+        acquisition: copy(acquisitions.get(packHash) || null)
       };
     },
     async revoke(packHash, revocation) {
+      revocation = copy(revocation);
       const publication = publications.get(packHash);
       if (!publication) throw new Error('adapter publication not found');
       const verification = await verifyAdapterRevocation(revocation, publication);
@@ -216,8 +241,8 @@ export function createAdapterRegistry({ readBytes = null, writeBytes = null, del
       publications.set(packHash, { ...publication, revoked: true, revocation });
       cachedBytes.delete(packHash);
       acquisitions.delete(packHash);
-      if (typeof deleteBytes === 'function') await deleteBytes(packHash);
-      return revocation;
+      if (typeof deleteBytes === 'function') await write(packHash, () => deleteBytes(packHash));
+      return copy(revocation);
     },
     requirementMatchesPublication(requirement, publication) {
       if (!publication || publication.revoked === true) return false;
@@ -235,11 +260,15 @@ export async function acquireAdapterForAssignment({
   fetchFromPeer = null,
   fetchFromOrigin = null
 } = {}) {
+  assignment = structuredClone(assignment);
   const requirement = assignment?.adapter || assignment?.model?.requirements?.adapter || null;
   if (!requirement) return null;
   if (!registry) throw new Error('adapter registry is required');
   const cached = await registry.getArtifact(requirement.packHash);
   if (cached) {
+    if (!registry.requirementMatchesPublication(requirement, cached.publication)) {
+      throw new Error('cached publication does not match assignment requirement');
+    }
     return {
       ...cached,
       acquisition: {
