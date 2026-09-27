@@ -5,7 +5,7 @@ import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { resolveBaseModules } from '../../self/config/module-resolution.js';
 import { SHARED_FILE_TOOLS } from '../../self/config/tool-surfaces.js';
-import { LAB_ROUTE_PROFILES } from '../../self/config/lab-route-profiles.js';
+import { LAB_ROUTE_PROFILES } from '../../self/lab/profiles.js';
 
 const genesisConfig = JSON.parse(readFileSync('self/config/genesis-levels.json', 'utf8'));
 

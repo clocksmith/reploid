@@ -118,6 +118,22 @@ describe('source-owned registry contracts', () => {
     });
   });
 
+  it('rejects absent or escaping files in every genesis declaration group', async () => {
+    const selfDir = await fixture();
+    await json(path.join(selfDir, 'config/genesis-template.json'), {
+      sharedFiles: { ui: ['ui/missing.js'] },
+      moduleFiles: { OldModule: ['pool/removed.js'] },
+      levelFiles: { minimal: { styles: ['../outside.css'] } }
+    });
+    const report = await auditRegistry({ selfDir });
+    expect(report.issues.filter(issue => issue.type === 'missing_genesis_file')).toEqual([
+      expect.objectContaining({ source: 'genesis-template', scope: 'levelFiles.minimal.styles', file: '../outside.css' }),
+      expect.objectContaining({ source: 'genesis-template', scope: 'moduleFiles.OldModule', file: 'pool/removed.js' }),
+      expect.objectContaining({ source: 'genesis-template', scope: 'sharedFiles.ui', file: 'ui/missing.js' })
+    ]);
+    expect(registryExitCode(report)).toBe(1);
+  });
+
   it('fails required missing dependencies, cycles, and every unresolved severity', async () => {
     const selfDir = await fixture();
     await writeFile(path.join(selfDir, 'pool/entry.js'), source("['Missing']"));

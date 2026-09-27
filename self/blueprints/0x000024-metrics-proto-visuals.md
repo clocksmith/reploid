@@ -2,13 +2,16 @@
 
 **Classification:** Canonical Full Specification
 
-**Implementation Status:** In-Progress
+**Implementation Status:** Proposed
 
-**Verified Artifacts:** `/self/index.html`, `/self/styles/proto/index.css`, `/self/ui/dashboard/metrics-dashboard.js`
+**Verified Artifacts:** None
 
 **Planned Artifacts:** `/ui/panels/metrics-proto.js`, `Chart.js`, `metrics-proto.js`
 
-**Owned Source Files:** `ui/dashboard/metrics-dashboard.js`
+**Owned Source Files:** None
+
+The unreferenced legacy implementation was removed during the September 2026
+branch integration. This retained design is not current executable evidence.
 
 **Former Blueprint Paths:** `self/blueprints/0x000024-metrics-proto-visuals.md`
 **Objective:** Govern the Chart.js-powered proto that visualises REPLOID performance metrics in real time.

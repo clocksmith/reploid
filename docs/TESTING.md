@@ -49,12 +49,12 @@
 
 Isolated tests for individual modules with mocked dependencies.
 
-**34 test files covering:**
+Representative test areas include:
 - Infrastructure: `di-container.test.js`, `event-bus.test.js`, `context-manager.test.js`
 - Core modules: `state-manager.test.js`, `utils.test.js`, `utils-core.test.js`, `vfs-module-loader.test.js`
 - Tools: `tools/read-file.test.js`, `tools/write-file.test.js`, `tools/edit-file.test.js`, `tools/list-files.test.js`, `tools/grep.test.js`, `tools/find.test.js`
 - Execution: `tool-runner.test.js`, `response-parser.test.js`, `schema-validator.test.js`
-- UI/UX: `confirmation-modal.test.js`, `toast.test.js`, `toast-notifications.test.js`
+- UI/UX: `toast.test.js`, `doppler-optimization-ui.test.js`, `design-system-css.test.js`
 - Capabilities: `audit-logger.test.js`, `rate-limiter.test.js`, `rule-engine.test.js`, `policy-engine.test.js`, `gepa-engines.test.js`, `episodic-memory.test.js`, `hybrid-retrieval.test.js`, `knowledge-tree.test.js`, `observability.test.js`, `verification-manager.test.js`
 - Browser: `browser-apis.test.js`, `core-hardening.test.js`
 - Networking: `webrtc-swarm.test.js`, `swarm-sync.test.js`
@@ -76,7 +76,7 @@ Multi-module workflow tests with realistic state management.
 - Memory & state: `prompt-memory.test.js`, `reflection-system.test.js`, `replay-engine.test.js`, `vfs.test.js`
 - Persistence: `long-session.test.js`, `genesis-snapshot.test.js`
 - Tool execution: `tool-runner.test.js`
-- Arena (safety): `arena-harness.test.js`, `doppler-arena.test.js`
+- Arena (safety): `arena-harness.test.js`
 - Networking: `webrtc-swarm.test.js`
 - Routing: `websocket-routing.test.js`
 

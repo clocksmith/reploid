@@ -2,13 +2,16 @@
 
 **Classification:** Canonical Full Specification
 
-**Implementation Status:** In-Progress
+**Implementation Status:** Proposed
 
-**Verified Artifacts:** `/self/ui/dashboard/ui-manager.js`
+**Verified Artifacts:** None
 
 **Planned Artifacts:** `/ui/ui-manager.js`, `ui-manager.js`
 
-**Owned Source Files:** `ui/dashboard/ui-manager.js`
+**Owned Source Files:** None
+
+The unreferenced legacy implementation was removed during the September 2026
+branch integration. This retained design is not current executable evidence.
 
 **Former Blueprint Paths:** `self/blueprints/0x00000D-ui-manager.md`
 **Objective:** To detail the architecture for managing the agent's developer console UI, including rendering, event handling, and state display.

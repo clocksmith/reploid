@@ -119,6 +119,28 @@ export async function auditRegistry({ selfDir = SELF_DIR } = {}) {
     ...findOrphanModules(modules, genesis)
   ];
   const add = (type, details, severity = 'medium') => issues.push({ type, severity, ...details });
+  const template = await load('genesis-template').catch(error => {
+    if (error.code === 'ENOENT') return null;
+    throw error;
+  });
+  for (const [source, config] of Object.entries({ 'genesis-levels': genesis, 'genesis-template': template })) {
+    if (!config) continue;
+    const groups = [
+      ...Object.entries(config.sharedFiles || {}).map(([key, files]) => [`sharedFiles.${key}`, files]),
+      ...Object.entries(config.moduleFiles || {}).map(([key, files]) => [`moduleFiles.${key}`, files]),
+      ...Object.entries(config.levelFiles || {}).flatMap(([level, categories]) =>
+        Object.entries(categories || {}).map(([key, files]) => [`levelFiles.${level}.${key}`, files]))
+    ];
+    for (const [scope, files] of groups) {
+      for (const file of files || []) {
+        const resolved = path.resolve(selfDir, file);
+        const inside = resolved.startsWith(path.resolve(selfDir) + path.sep);
+        if (!inside || !await fs.stat(resolved).then(stat => stat.isFile(), () => false)) {
+          add('missing_genesis_file', { source, scope, file }, 'high');
+        }
+      }
+    }
+  }
   for (const [name, value] of Object.entries({ blueprints, registry, vfs, inventory })) {
     if (value.version !== 1) add('unsupported_registry_version', { registry: name, version: value.version ?? null });
   }

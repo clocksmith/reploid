@@ -72,9 +72,8 @@ a different route hash cannot enter agreement.
 
 Every provider still loads and runs the complete selected model. Model manifests
 and shards come from pinned artifact hosting and are cached locally by Doppler.
-The shard-negotiation module can verify that a provider has an exact manifest
-and shard set before dispatch, but the current live peer-room path does not
-relay base-model shards between browsers. Adapter chunks do have a verified
-peer-transfer path. Poolday does not claim tensor, layer, attention, or KV-cache
-sharding.
-
+The active runtime verifies the loaded manifest identity and artifact hashes
+before provider registration and assignment. The current live peer-room path
+does not relay base-model shards between browsers. Adapter chunks do have a
+verified peer-transfer path. Poolday does not claim tensor, layer, attention,
+or KV-cache sharding.

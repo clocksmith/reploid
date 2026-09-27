@@ -2,13 +2,16 @@
 
 **Classification:** Canonical Full Specification
 
-**Implementation Status:** Implemented
+**Implementation Status:** Proposed
 
-**Verified Artifacts:** `/self/ui/components/toast-notifications.js`, `/tests/unit/toast-notifications.test.js`
+**Verified Artifacts:** None
 
 **Planned Artifacts:** None
 
-**Owned Source Files:** `ui/components/toast-notifications.js`
+**Owned Source Files:** None
+
+The unreferenced legacy implementation was removed during the September 2026
+branch integration. This retained design is not current executable evidence.
 
 **Former Blueprint Paths:** `self/blueprints/0x000028-toast-notification-system.md`, `self/blueprints/0x000028-toast-notification-system.md`
 **Objective:** Define the behavioural contract for non-blocking toast notifications that surface agent status to users without halting workflows.

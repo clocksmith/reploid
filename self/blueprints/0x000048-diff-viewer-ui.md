@@ -2,13 +2,16 @@
 
 **Classification:** Canonical Full Specification
 
-**Implementation Status:** In-Progress
+**Implementation Status:** Proposed
 
-**Verified Artifacts:** `/self/ui/components/diff-viewer-ui.js`
+**Verified Artifacts:** None
 
 **Planned Artifacts:** `/self/capabilities/cognition/sentinel-tools.js`, `/self/core/dogs-parser-browser.js`
 
-**Owned Source Files:** `ui/components/diff-viewer-ui.js`
+**Owned Source Files:** None
+
+The unreferenced legacy implementation was removed during the September 2026
+branch integration. This retained design is not current executable evidence.
 
 **Former Blueprint Paths:** `self/blueprints/0x000048-diff-viewer-ui.md`, `self/blueprints/0x000048-diff-viewer-ui.md`
 **Objective:** Provide rich visual diff comparison with syntax highlighting, approval controls, and export capabilities for code changes.

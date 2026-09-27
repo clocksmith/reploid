@@ -2,7 +2,7 @@
  * @fileoverview Strict boot contract for the self-owned runtime, host, and kernel.
  */
 
-import { LAB_ROUTE_BOOT_SPECS } from './config/lab-route-profiles.js';
+import { LAB_ROUTE_BOOT_SPECS } from './lab/profiles.js';
 import { OPFS_ARTIFACT_ROOTS, WRITABLE_VFS_ROOTS } from './config/vfs-policy.js';
 
 const clone = (value) => JSON.parse(JSON.stringify(value));

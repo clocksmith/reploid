@@ -4,11 +4,11 @@
     {
       "path": "boot-helpers/config.js",
       "owner": "boot-helpers",
-      "sha256": "sha256:12e8b36a54cc437b7deb08f358a125a5a62d7fce70afa08d9edfe8ad4ff28aca",
+      "sha256": "sha256:02033c07765977cbf8d51d5ddcc6e3f4bfae9b22b7b50692d9750904ccee6a0b",
       "imports": [
         "../config/boot-modes.js",
-        "../config/lab-route-profiles.js",
         "../config/module-resolution.js",
+        "../lab/profiles.js",
         "./vfs-bootstrap.js"
       ]
     },
@@ -61,7 +61,7 @@
     {
       "path": "boot-helpers/vfs-hydrate.js",
       "owner": "boot-helpers",
-      "sha256": "sha256:27452dcb61e0c2cd7200307a72948b47ec80013cf54c43ea8610bb2e30715fe3",
+      "sha256": "sha256:4012b570da0750029d7a8621d099140afd66d809de9ca30d751ef0277250d4e2",
       "imports": [
         "../boot-spec.js",
         "../config/boot-seed.js",
@@ -101,7 +101,7 @@
     {
       "path": "capabilities/cognition/prompt-memory.js",
       "owner": "capabilities",
-      "sha256": "sha256:9fbc14f87b51cbd25b2557770f44b6b3ba57ad05e9f9070f5fafb6b94bd5f765",
+      "sha256": "sha256:8a0390b6d375aca836a1af1c5d9ff3f226d99765fdcc815ed24d08e0228e74ce",
       "imports": []
     },
     {
@@ -300,14 +300,6 @@
       "imports": []
     },
     {
-      "path": "config/lab-route-profiles.js",
-      "owner": "config",
-      "sha256": "sha256:9b3f2d6458877e721c7e266f73f507523f505a07a6eaf1786f5fdfa8327dcba2",
-      "imports": [
-        "../lab/profiles.js"
-      ]
-    },
-    {
       "path": "config/module-resolution.js",
       "owner": "config",
       "sha256": "sha256:602e355114727e6e6332e33d33d3444f1d78839db21642c303189f585c002e0a",
@@ -334,7 +326,7 @@
     {
       "path": "config/surface-resources.js",
       "owner": "config",
-      "sha256": "sha256:99d55ae0acad250b9cdc86b8b49c9c84f61ec44fbd3547f20ae1206f03be2a14",
+      "sha256": "sha256:d1ddd0cc42e09dcc90a091b1f606b133904d0e3623d2db8483ec69c9193b3a94",
       "imports": []
     },
     {
@@ -391,12 +383,6 @@
         "./agent-loop-policies.js",
         "./run-replay-bundle.js"
       ]
-    },
-    {
-      "path": "core/async-utils.js",
-      "owner": "core",
-      "sha256": "sha256:43f68d43533ec7bb035781b28770f25d2ad1ed0009039629ab66ba9af9da1900",
-      "imports": []
     },
     {
       "path": "core/change-passport-improvement-adapter.js",
@@ -1338,12 +1324,6 @@
       ]
     },
     {
-      "path": "pool/layer-scheduler.js",
-      "owner": "pool",
-      "sha256": "sha256:8f0b2257f1c264a6ed7c65c41783e754bb386b2a98c6f6b6d25b423e71856179",
-      "imports": []
-    },
-    {
       "path": "pool/local-pack-executor.js",
       "owner": "pool",
       "sha256": "sha256:afcacc937fcac0f15bd7c80a1cfc256f3d4470b4073fa213e819aaa164259691",
@@ -1776,12 +1756,6 @@
       ]
     },
     {
-      "path": "pool/peer-registry.js",
-      "owner": "pool",
-      "sha256": "sha256:fff2837ccb23249d94e46129debba1572eba992573d378a38011d3c4080383b8",
-      "imports": []
-    },
-    {
       "path": "pool/peer-rendezvous.js",
       "owner": "pool",
       "sha256": "sha256:9f24f0dc4142013c220d331222e5438038fd2bfcbf0f56f5c4ea66f7d841b67e",
@@ -1822,11 +1796,18 @@
     {
       "path": "pool/policy-router.js",
       "owner": "pool",
-      "sha256": "sha256:56b352ebdb5d190307e576da85c9f985511f9509f2628d904701a2e5ec79f898",
+      "sha256": "sha256:3b65c34c742adcc403352d9b6db51cae1b8a1ee9d656541953dfae1c82b55328",
       "imports": [
         "./config.js",
-        "./model-contract.js"
+        "./model-contract.js",
+        "./policy-validation.js"
       ]
+    },
+    {
+      "path": "pool/policy-validation.js",
+      "owner": "pool",
+      "sha256": "sha256:065735de22c55c5473c11746e20477868d578c11412a006c6280df0f5a673f26",
+      "imports": []
     },
     {
       "path": "pool/protein-investigation.js",
@@ -1994,12 +1975,6 @@
       "imports": []
     },
     {
-      "path": "pool/shard-negotiation.js",
-      "owner": "pool",
-      "sha256": "sha256:563c163e42abb3979e7488881b62cb1bdc8f4bd8ef46b2c90f718bc95d2e06c7",
-      "imports": []
-    },
-    {
       "path": "providers/doppler-reploid.js",
       "owner": "providers",
       "sha256": "sha256:ad6209c5dcef086e3285518ab090e83b5f2b6d6501eed414374506dc48cd50a9",
@@ -2049,10 +2024,10 @@
     {
       "path": "self/boot-spec.js",
       "owner": "self",
-      "sha256": "sha256:cd7b97b117bdbec440fc6e43147c6996e1fa4653d5a89ae6fa0416bc6f8ab869",
+      "sha256": "sha256:1e5f550aa87ae23467ca169ecbbc25237ad1194366e98db5ac76a84fafb81804",
       "imports": [
-        "./config/lab-route-profiles.js",
-        "./config/vfs-policy.js"
+        "./config/vfs-policy.js",
+        "./lab/profiles.js"
       ]
     },
     {
@@ -2137,7 +2112,7 @@
     {
       "path": "self/host/seed-vfs.js",
       "owner": "self",
-      "sha256": "sha256:b87b5898505455132145d0d5cf7364f0e9469ef207b81c5693ca313e502542bf",
+      "sha256": "sha256:f851b04b3837d3ed807aa9132fae5ea527af5b9a8ee3b0898b3d26524fc2a8e6",
       "imports": [
         "../boot-spec.js",
         "../config/boot-seed.js",
@@ -2381,7 +2356,7 @@
     {
       "path": "self/manifest.js",
       "owner": "self",
-      "sha256": "sha256:5c20d53f6f2a901bea6ebd4c2c2bd4849094807c4c2eba42029a855291c4aa6f",
+      "sha256": "sha256:1f2a65d0eddaf63f2a05c81ef6c258cb18078993eb7300cb786407dde7eb4e91",
       "imports": [
         "./boot-spec.js",
         "./config/tool-surfaces.js",
@@ -2502,24 +2477,6 @@
       "owner": "testing",
       "sha256": "sha256:51dd6d314c8fb6946da148c4a732b62612130d97d57abb3999a2f2060696d4c0",
       "imports": []
-    },
-    {
-      "path": "testing/arena/doppler-integration.js",
-      "owner": "testing",
-      "sha256": "sha256:fcd76020f1e42238fb95f8d134e99cd38bee2279ee315c19e5fc804543888e90",
-      "imports": []
-    },
-    {
-      "path": "testing/arena/index.js",
-      "owner": "testing",
-      "sha256": "sha256:5c557f192dbd2bbca9ee56c13cfa09d1e40b5a94d7f55283fc400040de8f9a11",
-      "imports": [
-        "./arena-harness.js",
-        "./arena-metrics.js",
-        "./competitor.js",
-        "./doppler-integration.js",
-        "./vfs-sandbox.js"
-      ]
     },
     {
       "path": "testing/arena/vfs-sandbox.js",
@@ -2851,12 +2808,6 @@
       ]
     },
     {
-      "path": "ui/boot-wizard/steps/detect.js",
-      "owner": "ui",
-      "sha256": "sha256:d1bd1cab6e3504d290064484d7b736d51f864c32524d9dea4ca2293774364ab6",
-      "imports": []
-    },
-    {
       "path": "ui/boot-wizard/steps/direct.js",
       "owner": "ui",
       "sha256": "sha256:1b4c2cc6b6d062eac04f4886230860d5a0a18e1228046d404974c771795d2da1",
@@ -2885,22 +2836,6 @@
       ]
     },
     {
-      "path": "ui/boot-wizard/zero-function.js",
-      "owner": "ui",
-      "sha256": "sha256:4f1822420c815219d7559d721c507a3c2323a9e4c099e230fd02a2fa298fe5e3",
-      "imports": [
-        "../../config/zero-inference.js"
-      ]
-    },
-    {
-      "path": "ui/capsule/index.js",
-      "owner": "ui",
-      "sha256": "sha256:4ac532af99085e4121a149a537c17c31892498264181690671bca748eadab0fe",
-      "imports": [
-        "../../capsule/index.js"
-      ]
-    },
-    {
       "path": "ui/change-passport/client.js",
       "owner": "ui",
       "sha256": "sha256:3ecdf1730ae5ad69e52eb9b477066e3e4c63b2bbe367e1b98e486301c0c48521",
@@ -2916,69 +2851,15 @@
       ]
     },
     {
-      "path": "ui/components/arena-results.js",
-      "owner": "ui",
-      "sha256": "sha256:785fdb54eb1737e31a1160ab4f9504485addff752ad3fd3cee6fbf96f9b57f25",
-      "imports": []
-    },
-    {
-      "path": "ui/components/confirmation-modal.js",
-      "owner": "ui",
-      "sha256": "sha256:8fdb0c67b61c7a1c31aaea27712ab6483b9d5ac3dc38a3198c1710b9a3fe36a8",
-      "imports": []
-    },
-    {
-      "path": "ui/components/diff-viewer-ui.js",
-      "owner": "ui",
-      "sha256": "sha256:7fe63119fe1d7602a079605b888bdb5522e68bfdb1d8175abf7f497f62686603",
-      "imports": []
-    },
-    {
-      "path": "ui/components/hitl-widget.js",
-      "owner": "ui",
-      "sha256": "sha256:149eeeb6cf2738a5da56ca865b96d84567d0fd6de9c03d7ffe483ed14c9229f1",
-      "imports": []
-    },
-    {
       "path": "ui/components/inline-chat.js",
       "owner": "ui",
       "sha256": "sha256:0d79640b4676b6c77b65f94e836b87d9b2ad712e0b46ca7ecbb4d995c0c52ade",
       "imports": []
     },
     {
-      "path": "ui/components/toast-notifications.js",
-      "owner": "ui",
-      "sha256": "sha256:becebcaa01690dbcccf0fa1e896f24e1b56090241b21aa3f790ffe44bd50e286",
-      "imports": []
-    },
-    {
-      "path": "ui/dashboard/metrics-dashboard.js",
-      "owner": "ui",
-      "sha256": "sha256:bf6f8a13608e15117cce2a0f379b3deea9b06f785b028d14d6b7181b0ce23527",
-      "imports": []
-    },
-    {
-      "path": "ui/dashboard/ui-manager.js",
-      "owner": "ui",
-      "sha256": "sha256:b4348b041353c41f9fb3c884a64db8d2818de5bba9c52556ee205ec8adb775fa",
-      "imports": []
-    },
-    {
-      "path": "ui/dashboard/vfs-explorer.js",
-      "owner": "ui",
-      "sha256": "sha256:2ed4176c1ea6265b0b58d8bd5b5897cf664264cafbb5b5c91a5696e6d3791d77",
-      "imports": []
-    },
-    {
       "path": "ui/panels/cognition-panel.js",
       "owner": "ui",
       "sha256": "sha256:de6508f0755f40d8828d5273f4fd99afcde82f503b3f5087d2062a5907d33ab3",
-      "imports": []
-    },
-    {
-      "path": "ui/panels/metrics-panel.js",
-      "owner": "ui",
-      "sha256": "sha256:e5c844cbb9e5340d17e185b37f5f08911c3e9a06429ea2c678903ba0fedf68e5",
       "imports": []
     },
     {
@@ -3391,14 +3272,6 @@
       ]
     },
     {
-      "path": "ui/proto.js",
-      "owner": "ui",
-      "sha256": "sha256:ef2999bc76df371546c5dc29a190b1d47c3edc252ddcb3d57634c8ef110df145",
-      "imports": [
-        "./proto/index.js"
-      ]
-    },
-    {
       "path": "ui/proto/index.js",
       "owner": "ui",
       "sha256": "sha256:a8e6f30a8793fa4e452d7a7b58a18179980e57a23cbef24ca106ca1c8cfff14b",
@@ -3428,12 +3301,6 @@
       "imports": [
         "./utils.js"
       ]
-    },
-    {
-      "path": "ui/proto/schemas.js",
-      "owner": "ui",
-      "sha256": "sha256:a281252326478b70d301f49f505fb03404e3fa9978e4ff6cc8deb0f8429aa90c",
-      "imports": []
     },
     {
       "path": "ui/proto/telemetry.js",
@@ -3492,14 +3359,6 @@
       "owner": "ui",
       "sha256": "sha256:52e2bb48c3a74bd5290ee140eccbe883d3cf03b7267c47a8c0c56610ad828a76",
       "imports": []
-    },
-    {
-      "path": "ui/UI.js",
-      "owner": "ui",
-      "sha256": "sha256:81a9e8f376264544fc92c3edd76440cafcc63dbcc9d7c3df58d420ab88cba9d0",
-      "imports": [
-        "./proto.js"
-      ]
     },
     {
       "path": "ui/zero-home/index.js",
@@ -14463,7 +14322,7 @@
     {
       "path": "vendor/reploid/agent/response-parser.js",
       "owner": "vendor",
-      "sha256": "sha256:5adf011adcc5e2c9e44f4606cba22cc5d53ebe7d3cd525987384cb03f921a85c",
+      "sha256": "sha256:5fb130b889145e2eb1190c880a8d6acecc2aceb47b74d05bfa8e4097454211c3",
       "imports": []
     },
     {

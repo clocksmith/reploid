@@ -63,10 +63,6 @@ This directory contains advanced capabilities organized by domain. These are NOT
 ### intelligence/
 | Module | File | Description |
 |--------|------|-------------|
-| MultiModelCoordinator | `intelligence/multi-model-coordinator.js` | Multi-model orchestration (shim to experimental) |
-| MultiModelEvaluator | `intelligence/multi-model-evaluator.js` | Multi-model evaluation harness (shim to core) |
-| FunctionGemmaOrchestrator | `intelligence/functiongemma-orchestrator.js` | Doppler multi-model execution and topology evolution |
-| NeuralCompiler | `intelligence/neural-compiler.js` | LoRA adapter routing and batching (shim to experimental) |
 | IntentBundleLoRA | `intelligence/intent-bundle-lora.js` | Intent bundle gate for LoRA adapters |
 
 ## Related
