@@ -3,100 +3,100 @@
 > node --test test/*.test.mjs
 
 TAP version 13
-# Subtest: three valid views
-ok 1 - three valid views
+# Subtest: eight valid views
+ok 1 - eight valid views
   ---
-  duration_ms: 1.55931
+  duration_ms: 2.048167
   type: 'test'
   ...
 # Subtest: ecosystem asserts precisely A–B and B–C
 ok 2 - ecosystem asserts precisely A–B and B–C
   ---
-  duration_ms: 0.580765
+  duration_ms: 0.108666
   type: 'test'
   ...
 # Subtest: mutual benefit is undirected
 ok 3 - mutual benefit is undirected
   ---
-  duration_ms: 0.085238
+  duration_ms: 0.0485
   type: 'test'
   ...
 # Subtest: Doe is optional, never a required dependency
 ok 4 - Doe is optional, never a required dependency
   ---
-  duration_ms: 0.089334
+  duration_ms: 0.046541
   type: 'test'
   ...
 # Subtest: invalid endpoints rejected
 ok 5 - invalid endpoints rejected
   ---
-  duration_ms: 0.402436
+  duration_ms: 0.395208
   type: 'test'
   ...
 # Subtest: nonfinite bounds rejected
 ok 6 - nonfinite bounds rejected
   ---
-  duration_ms: 0.867998
+  duration_ms: 0.274667
   type: 'test'
   ...
 # Subtest: duplicate view IDs rejected
 ok 7 - duplicate view IDs rejected
   ---
-  duration_ms: 0.257738
+  duration_ms: 0.345375
   type: 'test'
   ...
 # Subtest: duplicate nodes rejected
 ok 8 - duplicate nodes rejected
   ---
-  duration_ms: 0.268014
+  duration_ms: 0.2595
   type: 'test'
   ...
 # Subtest: invalid SVG colors rejected
 ok 9 - invalid SVG colors rejected
   ---
-  duration_ms: 0.382036
+  duration_ms: 0.407417
   type: 'test'
   ...
 # Subtest: unknown line style rejected
 ok 10 - unknown line style rejected
   ---
-  duration_ms: 0.387494
+  duration_ms: 0.473375
   type: 'test'
   ...
 # Subtest: inputs detached on acceptance
 ok 11 - inputs detached on acceptance
   ---
-  duration_ms: 0.316547
+  duration_ms: 0.373916
   type: 'test'
   ...
 # Subtest: graph routes from box boundaries
 ok 12 - graph routes from box boundaries
   ---
-  duration_ms: 0.201204
+  duration_ms: 0.094916
   type: 'test'
   ...
 # Subtest: sequence routes between lifeline centers
 ok 13 - sequence routes between lifeline centers
   ---
-  duration_ms: 0.073091
+  duration_ms: 0.036
   type: 'test'
   ...
 # Subtest: HTML in labels is escaped, never executable
 ok 14 - HTML in labels is escaped, never executable
   ---
-  duration_ms: 0.933978
+  duration_ms: 0.668208
   type: 'test'
   ...
 # Subtest: arrow points backward from the endpoint
 ok 15 - arrow points backward from the endpoint
   ---
-  duration_ms: 0.11284
+  duration_ms: 0.047667
   type: 'test'
   ...
 # Subtest: all views export valid bounded SVG documents
 ok 16 - all views export valid bounded SVG documents
   ---
-  duration_ms: 8.805951
+  duration_ms: 6.636042
   type: 'test'
   ...
 1..16
@@ -107,4 +107,4 @@ ok 16 - all views export valid bounded SVG documents
 # cancelled 0
 # skipped 0
 # todo 0
-# duration_ms 59.548921
+# duration_ms 49.244833

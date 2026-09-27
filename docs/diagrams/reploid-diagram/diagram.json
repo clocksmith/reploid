@@ -1,9 +1,9 @@
 {
   "format": "box-arrow-diagram/v1",
   "title": "Reploid · Doppler · Doe",
-  "subtitle": "Three responsibilities. Two asserted symbiotic relationships.",
+  "subtitle": "Products that stand alone. Cooperation that earns its benefits.",
   "status": "intended-architecture",
-  "basis": "User-provided product and architecture descriptions; not a repository audit or runtime qualification.",
+  "basis": "Revision of the supplied diagram using the user-provided product descriptions and review feedback. No repository audit, implementation certification, benchmark verification or product-roadmap verification is asserted.",
   "defaultView": "ecosystem",
   "coordinates": {
     "origin": "top-left",
@@ -27,13 +27,13 @@
       "width": 2.2
     },
     "required": {
-      "label": "Required use",
+      "label": "Required interface use",
       "stroke": "solid",
       "arrow": "target",
       "width": 1.8
     },
     "optional": {
-      "label": "Optional integration",
+      "label": "Optional provider integration",
       "stroke": "dashed",
       "arrow": "target",
       "width": 1.8
@@ -55,123 +55,168 @@
       "stroke": "dotted",
       "arrow": "target",
       "width": 1.8
+    },
+    "development": {
+      "label": "Development-time handoff",
+      "stroke": "solid",
+      "arrow": "target",
+      "width": 1.8
+    },
+    "feedback": {
+      "label": "Authorized evidence / feedback",
+      "stroke": "dotted",
+      "arrow": "target",
+      "width": 1.8
+    },
+    "conditional": {
+      "label": "Conditional execution branch",
+      "stroke": "dashed",
+      "arrow": "target",
+      "width": 1.8
+    },
+    "milestone": {
+      "label": "Planned progression",
+      "stroke": "dashed",
+      "arrow": "target",
+      "width": 1.8
     }
   },
   "entities": [
     {
       "id": "A",
       "label": "Reploid",
-      "responsibility": "Coordinate and improve the intelligence network",
+      "responsibility": "Coordinate and improve distributed intelligence; Poolday connects participants and exchanges authorized data.",
       "owns": [
-        "Concurrent conversations and agent coordination",
-        "Eligible placement and Bayesian decision-making",
-        "Poolday: peer connectivity and authorized WebRTC exchange",
-        "Independent evaluation, reversible adoption and strategy evolution"
+        "Concurrent conversations and authorized agent workflows",
+        "Placement, budgets, Bayesian decision-making and recovery choices",
+        "Poolday: peer connectivity, bounded WebRTC delivery and authorized artifact/activation exchange",
+        "Mechanisms for independent strategy evaluation and reversible adoption"
       ],
       "excludes": [
-        "Model mathematics and learned expert selection",
-        "WGSL compiler internals",
-        "Automatic disclosure or contribution merely from joining"
+        "Model mathematics, learned expert selection and tensor semantics",
+        "WGSL compiler or native GPU runtime implementation",
+        "Automatic disclosure, compute contribution or code adoption merely from joining",
+        "Other projects’ evaluator, release or adoption authority"
       ],
-      "independence": "An agent may operate independently; the collaborating network remains the product."
+      "independence": "An agent may operate independently; the collaborating network remains the product.",
+      "benefit": "Collaborate through an intelligence network that pools participating devices’ capabilities."
     },
     {
       "id": "B",
       "label": "Doppler",
-      "responsibility": "Prepare and execute model computation",
+      "responsibility": "Rig prepares and qualifies model implementations; Run executes the selected, identified implementation.",
       "owns": [
-        "Rig: source models, ModelIR, TargetPlans and qualification",
-        "Capsules: identified executable programs, weights and dependencies",
-        "Run: loading, model operations, adapters and valid partitions",
-        "Sampling, tensor contracts and generation-state semantics"
+        "Rig: source interpretation, ModelIR, TargetPlans, preparation and qualification",
+        "Capsules: identified executable implementations, weights and required dependencies",
+        "Run: resource loading, model operations, compatible adapters and valid computational partitions",
+        "Model mathematics, sampling, tensor interfaces and generation-state semantics"
       ],
       "excludes": [
-        "Application search policy",
-        "Peer membership and placement authority",
-        "Provider-specific native driver implementation"
+        "Application search or conversation policy",
+        "Peer membership, disclosure grants and network placement authority",
+        "Provider-specific native runtime internals",
+        "Silent alteration of selected model semantics during ordinary execution"
       ],
-      "independence": "Usable without Reploid and with supported WebGPU providers other than Doe."
+      "independence": "Usable without Reploid and with supported WebGPU providers other than Doe.",
+      "benefit": "Integrate and run model computation through a portable, straightforward interface."
     },
     {
       "id": "C",
       "label": "Doe",
-      "responsibility": "Compile WGSL and implement GPU execution",
+      "responsibility": "Compile WGSL and implement GPU execution while preserving declared application semantics.",
       "owns": [
         "WGSL compilation and general shader optimization",
-        "Native Metal, Vulkan and D3D12 execution paths",
-        "GPU resource ownership, synchronization and failure reporting",
-        "General diagnostics useful to unrelated applications"
+        "Native Metal, Vulkan and D3D12 execution paths as qualified",
+        "Resources, synchronization, completion and observable failure behavior",
+        "General diagnostics and independently evaluated runtime/compiler corrections"
       ],
       "excludes": [
-        "Model selection, tokenization or quantization policy",
-        "Search ranking and agent objectives",
-        "Automatic replacement of a browser’s GPU implementation"
+        "Model selection, tokenization, quantization policy, search ranking or agent goals",
+        "Application-specific exceptions used to imply general superiority",
+        "Automatic replacement of the browser’s GPU implementation by a JavaScript import"
       ],
-      "independence": "Useful to applications unrelated to Doppler; integration requires an explicit provider boundary."
+      "independence": "Useful to applications unrelated to Doppler; integration requires an explicit provider boundary.",
+      "benefit": "Make supported existing GPU applications execute better without rewriting them.",
+      "applicationAdvantage": {
+        "definition": "At least one material application-valued improvement with predeclared limits on regressions in other relevant outcomes.",
+        "possibleOutcomes": [
+          "opening / first useful result",
+          "steady-state latency or throughput",
+          "application-controlled memory allocations",
+          "CPU overhead",
+          "diagnostic usefulness and failure recovery"
+        ],
+        "notRequired": "Every metric improves at once.",
+        "validation": "Compare unchanged applications on matched hardware, include independent non-Doppler applications, retain failures and scope claims to tested environments."
+      }
     }
   ],
   "nonAssertions": [
-    "No direct Reploid–Doe cooperation or dependency is asserted.",
-    "Mutual benefit does not imply a required dependency.",
-    "This diagram does not claim demonstrated frontier-scale, partitioned inference or recursive improvement.",
-    "A WebGPU application cannot switch a browser’s underlying implementation merely by importing Doe."
+    "Only Reploid–Doppler and Doppler–Doe are asserted symbiotic package relationships. No direct Reploid–Doe cooperation or dependency is implied.",
+    "Reciprocal evidence and mutual benefit are not reciprocal source dependencies.",
+    "Doppler can use other supported providers. Doe can serve independent applications and frameworks.",
+    "The diagrams describe intended contracts and workflows, not proven distributed execution, frontier-scale capability, beneficial recursive improvement or universal performance superiority.",
+    "Native provider integration and browser-engine integration are separate. Importing Doe does not replace the browser’s WebGPU implementation.",
+    "Storage sharding, whole-request execution, model partitioning and multi-agent task decomposition are distinct mechanisms.",
+    "Signed records identify accountable claims; they do not establish honest computation or scientific truth.",
+    "A success branch, a cancellation branch and a failure branch are alternatives during one attempt, not a sequence in which failure happens after successful completion."
   ],
   "views": [
     {
       "id": "ecosystem",
       "kind": "graph",
-      "title": "Ecosystem",
-      "subtitle": "Which packages cooperate. Lines are undirected mutual benefit, not dependencies.",
-      "width": 1526,
-      "height": 610,
+      "title": "Products",
+      "subtitle": "Intended user benefits. Only A–B and B–C are asserted symbiotic relationships.",
+      "width": 1600,
+      "height": 590,
       "nodes": [
         {
           "id": "A",
-          "entity": "A",
           "label": "Reploid",
+          "subtitle": "Collaborate beyond one device",
           "x": 48,
-          "y": 180,
-          "width": 330,
-          "height": 270,
-          "subtitle": "Network coordination",
+          "y": 150,
+          "width": 360,
+          "height": 268,
           "body": [
-            "Concurrent threads + agent swarms",
-            "Poolday: WebRTC + authorized exchange",
-            "Placement + Bayesian learning",
-            "Evaluated strategy improvements"
-          ]
+            "Pool participating devices’ capabilities",
+            "Share models, compute and agent work",
+            "Improve collective problem solving"
+          ],
+          "entity": "A",
+          "footnote": "The network is the product."
         },
         {
           "id": "B",
-          "entity": "B",
           "label": "Doppler",
-          "x": 598,
-          "y": 180,
-          "width": 330,
-          "height": 270,
-          "subtitle": "Model computation",
+          "subtitle": "Integrate portable model computation",
+          "x": 620,
+          "y": 150,
+          "width": 360,
+          "height": 268,
           "body": [
-            "Rig: sources → ModelIR → TargetPlans",
-            "Capsules: executable model decisions",
-            "Run: inference, adapters + partitions",
-            "Sampling + generation state"
-          ]
+            "Use a straightforward model interface",
+            "Run identified implementations",
+            "Adopt improvements without lock-in"
+          ],
+          "entity": "B",
+          "footnote": "Useful without Reploid or Doe."
         },
         {
           "id": "C",
-          "entity": "C",
           "label": "Doe",
-          "x": 1148,
-          "y": 180,
-          "width": 330,
-          "height": 270,
-          "subtitle": "GPU execution foundation",
+          "subtitle": "Run GPU applications better",
+          "x": 1192,
+          "y": 150,
+          "width": 360,
+          "height": 268,
           "body": [
-            "WGSL compilation + optimization",
-            "Metal · Vulkan · D3D12",
-            "Resources + synchronization",
-            "Completion, failures + diagnostics"
-          ]
+            "Keep supported applications unchanged",
+            "Earn a material execution advantage",
+            "Respect declared regression limits"
+          ],
+          "entity": "C",
+          "footnote": "Useful beyond Doppler."
         }
       ],
       "edges": [
@@ -180,7 +225,7 @@
           "source": "A",
           "target": "B",
           "type": "symbiosis",
-          "label": "Requests + experience\nInference + contracts",
+          "label": "Real workloads\nBetter model execution",
           "sourceAnchor": {
             "side": "right",
             "offset": 0.5
@@ -189,25 +234,27 @@
             "side": "left",
             "offset": 0.5
           },
-          "labelPosition": {
-            "x": 488,
-            "y": 270
-          },
-          "labelWidth": 196,
+          "labelWidth": 192,
           "details": [
-            "Reploid contributes real model workloads, demand, diverse environments and measured failures.",
-            "Doppler contributes executable intelligence, public inference interfaces and valid model partitions.",
-            "Independent evaluation and release authority remain separate."
+            "Reploid supplies authorized workloads and observations. Doppler supplies portable inference and qualified computational interfaces.",
+            "The improvement view shows how this exchange becomes independently validated releases, rather than assuming benefit."
           ],
+          "labelPosition": {
+            "x": 514,
+            "y": 236
+          },
+          "relationshipId": "A-B",
+          "contractId": "reploid-doppler",
           "contractView": "interfaces",
-          "exampleView": "sequence"
+          "exampleView": "sequence",
+          "improvementView": "improvement"
         },
         {
           "id": "B-C",
           "source": "B",
           "target": "C",
           "type": "symbiosis",
-          "label": "Model workloads\nEfficient GPU execution",
+          "label": "Application pressure\nBetter GPU execution",
           "sourceAnchor": {
             "side": "right",
             "offset": 0.5
@@ -216,102 +263,145 @@
             "side": "left",
             "offset": 0.5
           },
-          "labelPosition": {
-            "x": 1038,
-            "y": 270
-          },
-          "labelWidth": 196,
+          "labelWidth": 192,
           "details": [
-            "Doppler contributes demanding applications, reproducible WGSL workloads and developer access.",
-            "Doe contributes a potentially faster, leaner and more diagnosable GPU implementation.",
-            "Gains must be measured using unchanged application semantics; mutual benefit does not make Doe a required provider."
+            "Doppler supplies reproducible model workloads and developer access. Doe supplies general compiler/runtime corrections.",
+            "Qualify a material application advantage with regression limits; do not demand or assert improvement in every metric.",
+            "Doe remains optional. Independent applications must participate in validation."
           ],
+          "labelPosition": {
+            "x": 1086,
+            "y": 236
+          },
+          "relationshipId": "B-C",
+          "contractId": "doppler-provider",
           "contractView": "interfaces",
-          "exampleView": "sequence"
+          "exampleView": "sequence",
+          "improvementView": "improvement"
         }
       ],
       "notes": [
         {
-          "id": "chain-note",
-          "x": 290,
-          "y": 505,
-          "width": 946,
-          "height": 66,
-          "label": "A — B — C",
-          "text": "Shared neighbor does not imply an A–C relationship. Each package remains independently useful."
+          "id": "independent",
+          "x": 200,
+          "y": 464,
+          "width": 1200,
+          "height": 85,
+          "label": "Independent adoption. Shared progress.",
+          "text": "Mutual benefit is not a required dependency. Sharing Doppler as a neighbor creates no direct Reploid–Doe relationship."
         }
       ],
       "legend": [
         "symbiosis"
+      ],
+      "status": "intended-architecture",
+      "relatedViews": [
+        "interfaces",
+        "improvement",
+        "adoption"
       ]
     },
     {
       "id": "interfaces",
       "kind": "graph",
       "title": "Interfaces",
-      "subtitle": "Arrows express use or information flow. Doe is an optional provider, not a mandatory Doppler dependency.",
-      "width": 1526,
-      "height": 660,
+      "subtitle": "What each product owns. Arrows mean interface use or returned information, never ownership transfer.",
+      "width": 2040,
+      "height": 1160,
       "nodes": [
         {
           "id": "A",
-          "entity": "A",
-          "label": "Reploid",
-          "x": 48,
+          "label": "Reploid + Poolday",
+          "subtitle": "Coordination and authorized exchange",
+          "x": 50,
           "y": 175,
-          "width": 330,
-          "height": 340,
-          "subtitle": "Application + coordination",
+          "width": 480,
+          "height": 430,
           "body": [
-            "Thread identity, context + permissions",
-            "Eligible model / adapter / partition",
-            "Poolday carries authorized data",
-            "Routing + recovery decisions"
+            "Owns threads, placement and strategy",
+            "Poolday carries authorized peer traffic",
+            "Host supplies credentials and grants",
+            "Excludes model math and GPU internals"
           ],
-          "footnote": "Search policy stays with the application."
+          "entity": "A",
+          "footnote": "Invokes Run on a selected execution host."
         },
         {
           "id": "B",
-          "entity": "B",
           "label": "Doppler",
-          "x": 598,
+          "subtitle": "Rig prepares. Run executes.",
+          "x": 780,
           "y": 175,
-          "width": 330,
-          "height": 340,
-          "subtitle": "Public model boundary",
+          "width": 480,
+          "height": 430,
           "body": [
-            "Rig → ModelIR → TargetPlans",
-            "Capsule: weights + program + identity",
-            "Run: generate · embed · rerank",
-            "Valid partition + continuation contracts"
+            "Rig: sources → ModelIR → TargetPlans",
+            "Capsule: identified code + weights",
+            "Run: operations, adapters and partitions",
+            "Owns tensors, sampling and model state",
+            "Excludes peer and application policy"
           ],
-          "footnote": "Owns model math, sampling and state."
+          "entity": "B",
+          "footnote": "Ordinary execution does not rewrite the model."
         },
         {
           "id": "C",
-          "entity": "C",
           "label": "Doe",
-          "x": 1148,
+          "subtitle": "Optional native execution provider",
+          "x": 1510,
           "y": 175,
-          "width": 330,
-          "height": 340,
-          "subtitle": "Optional WebGPU provider",
+          "width": 480,
+          "height": 430,
           "body": [
-            "WGSL → native programs",
-            "Buffers, queues + resource lifetime",
-            "Metal · Vulkan · D3D12",
-            "Completion + failure diagnostics"
+            "Owns WGSL compilation and GPU execution",
+            "Owns resources, queues and synchronization",
+            "Returns completion and failure diagnostics",
+            "Excludes model selection and quantization",
+            "Excludes search and conversation policy"
           ],
-          "footnote": "No model-specific policy or tokens."
+          "entity": "C",
+          "footnote": "Browser replacement requires separate integration."
+        },
+        {
+          "id": "other-provider",
+          "label": "Other GPU providers",
+          "subtitle": "Independent supported execution choice",
+          "x": 780,
+          "y": 830,
+          "width": 480,
+          "height": 268,
+          "body": [
+            "Environment-provided browser WebGPU",
+            "Other supported native implementations",
+            "No Doe dependency is introduced"
+          ],
+          "footnote": "Select by explicit compatibility, not proximity.",
+          "kindOfNode": "external-provider"
+        },
+        {
+          "id": "other-apps",
+          "label": "Other applications",
+          "subtitle": "Frameworks, compute and rendering",
+          "x": 1510,
+          "y": 830,
+          "width": 480,
+          "height": 268,
+          "body": [
+            "Use Doe without Reploid or Doppler",
+            "Validate general runtime improvements",
+            "Provide independent application evidence"
+          ],
+          "footnote": "Independent use is not a third symbiotic claim.",
+          "kindOfNode": "external-consumer"
         }
       ],
       "edges": [
         {
-          "id": "use-doppler",
+          "id": "invoke-run",
           "source": "A",
           "target": "B",
           "type": "required",
-          "label": "Public model APIs\nExact identity + limits",
+          "label": "Identified operation\nInputs + grants + limits",
           "sourceAnchor": {
             "side": "right",
             "offset": 0.28
@@ -320,23 +410,25 @@
             "side": "left",
             "offset": 0.28
           },
-          "labelPosition": {
-            "x": 488,
-            "y": 220
-          },
-          "labelWidth": 192,
+          "labelWidth": 226,
           "details": [
-            "Required execution integration within this Reploid stack. Not a requirement for Doppler to use Reploid.",
-            "Requests bind model identity, adapters, permitted operations, resource budgets and disclosure scope.",
-            "API labels describe contracts; this document does not assert specific exported function names."
-          ]
+            "Required model-execution interface use in the illustrated Reploid stack, not a reverse dependency.",
+            "Remote work enters a receiving peer’s Reploid/Poolday boundary before that peer invokes its local Doppler Run.",
+            "Model/capsule identity, attempt ID, operation, permitted inputs, resources, adapters and cancellation must remain bound."
+          ],
+          "labelPosition": {
+            "x": 655,
+            "y": 260
+          },
+          "contractId": "reploid-doppler",
+          "exampleView": "placement"
         },
         {
-          "id": "doppler-results",
+          "id": "model-events",
           "source": "B",
           "target": "A",
           "type": "information",
-          "label": "Tokens + tensors\nEvents + failure state",
+          "label": "Ordered output\nIdentity + state",
           "sourceAnchor": {
             "side": "left",
             "offset": 0.7
@@ -345,22 +437,24 @@
             "side": "right",
             "offset": 0.7
           },
-          "labelPosition": {
-            "x": 488,
-            "y": 365
-          },
-          "labelWidth": 192,
+          "labelWidth": 226,
           "details": [
-            "Result streams and execution observations return through the public model boundary.",
-            "A signature binds an accountable record; it does not establish scientific truth or honest computation."
-          ]
+            "Return accepted event envelopes and truthful failure/continuation state.",
+            "Execution identity and output acceptance do not establish scientific truth."
+          ],
+          "labelPosition": {
+            "x": 655,
+            "y": 438
+          },
+          "contractId": "stream-event",
+          "exampleView": "sequence"
         },
         {
-          "id": "use-doe",
+          "id": "native-doe",
           "source": "B",
           "target": "C",
           "type": "optional",
-          "label": "WebGPU provider\nWGSL + GPU commands",
+          "label": "Native WebGPU API\nWGSL + commands",
           "sourceAnchor": {
             "side": "right",
             "offset": 0.28
@@ -369,23 +463,24 @@
             "side": "left",
             "offset": 0.28
           },
-          "labelPosition": {
-            "x": 1038,
-            "y": 220
-          },
-          "labelWidth": 192,
+          "labelWidth": 226,
           "details": [
-            "Doppler uses Doe only when that provider is explicitly integrated and qualified.",
-            "Browser execution otherwise uses the provider actually exposed by that environment.",
-            "Selecting a package does not automatically replace browser GPU execution."
-          ]
+            "This branch exists only where Doe is explicitly supported and integrated.",
+            "Native embedding is separate from changing browser GPU ownership."
+          ],
+          "labelPosition": {
+            "x": 1385,
+            "y": 260
+          },
+          "contractId": "doppler-provider",
+          "exampleView": "adoption"
         },
         {
-          "id": "doe-results",
+          "id": "provider-events",
           "source": "C",
           "target": "B",
           "type": "information",
-          "label": "Completion + limits\nMeasurements + errors",
+          "label": "Completion + failures\nMeasurements",
           "sourceAnchor": {
             "side": "left",
             "offset": 0.7
@@ -394,263 +489,2204 @@
             "side": "right",
             "offset": 0.7
           },
-          "labelPosition": {
-            "x": 1038,
-            "y": 365
-          },
-          "labelWidth": 192,
+          "labelWidth": 226,
           "details": [
-            "Doe reports resource, compilation, execution and failure behavior to its caller.",
-            "Its interface does not acquire authority over model semantics, sampling or application policy."
-          ]
+            "General resource, execution and diagnostic information flows to Doppler. Model policy remains in Doppler."
+          ],
+          "labelPosition": {
+            "x": 1385,
+            "y": 438
+          },
+          "contractId": "doppler-provider"
+        },
+        {
+          "id": "other-provider-use",
+          "source": "B",
+          "target": "other-provider",
+          "type": "optional",
+          "label": "Alternative provider\nNo Doe required",
+          "sourceAnchor": {
+            "side": "bottom",
+            "offset": 0.5
+          },
+          "targetAnchor": {
+            "side": "top",
+            "offset": 0.5
+          },
+          "labelWidth": 224,
+          "details": [
+            "Doppler remains independently adoptable with supported providers other than Doe.",
+            "Provider selection is exclusive for the example context; this arrow does not mean every provider executes each command."
+          ],
+          "labelPosition": {
+            "x": 1146,
+            "y": 720
+          },
+          "contractId": "doppler-provider",
+          "exampleView": "placement"
+        },
+        {
+          "id": "independent-doe-use",
+          "source": "other-apps",
+          "target": "C",
+          "type": "optional",
+          "label": "Independent consumers\nNo Doppler required",
+          "sourceAnchor": {
+            "side": "top",
+            "offset": 0.5
+          },
+          "targetAnchor": {
+            "side": "bottom",
+            "offset": 0.5
+          },
+          "labelWidth": 214,
+          "details": [
+            "Other applications and frameworks may use a supported Doe integration directly.",
+            "Include independent inference, computation and rendering workloads in comparisons before broad claims."
+          ],
+          "labelPosition": {
+            "x": 1880,
+            "y": 720
+          },
+          "exampleView": "adoption"
         }
       ],
       "notes": [
         {
-          "id": "ownership-note",
-          "x": 230,
-          "y": 565,
-          "width": 1066,
-          "height": 66,
-          "label": "Shared contracts. Separate ownership.",
-          "text": "Reploid places work · Doppler preserves model semantics · Doe implements the selected GPU execution path."
+          "id": "decisions",
+          "x": 55,
+          "y": 690,
+          "width": 470,
+          "height": 125,
+          "label": "Three separate decisions",
+          "text": "Advertised capability ≠ authorized placement ≠ accepted execution."
+        },
+        {
+          "id": "separate-authority",
+          "x": 55,
+          "y": 875,
+          "width": 470,
+          "height": 140,
+          "label": "Separate authority",
+          "text": "Each project owns its evaluations and releases. Each recipient decides which version to adopt."
         }
       ],
       "legend": [
         "required",
         "optional",
         "information"
+      ],
+      "status": "intended-architecture",
+      "relatedViews": [
+        "placement",
+        "sequence",
+        "adoption"
+      ]
+    },
+    {
+      "id": "improvement",
+      "kind": "graph",
+      "title": "Improve",
+      "subtitle": "Development-time feedback: reproducible problems become independently validated, explicitly adopted improvements.",
+      "width": 1940,
+      "height": 1200,
+      "nodes": [
+        {
+          "id": "ab-source",
+          "label": "Application evidence",
+          "subtitle": "Reploid supplies authorized cases",
+          "x": 50,
+          "y": 240,
+          "width": 385,
+          "height": 240,
+          "body": [
+            "Real tasks and observed failures",
+            "Exact identities and environment",
+            "No automatic private-data export"
+          ],
+          "entity": "A"
+        },
+        {
+          "id": "ab-rig",
+          "label": "Rig correction",
+          "subtitle": "Doppler owns model-side changes",
+          "x": 535,
+          "y": 240,
+          "width": 385,
+          "height": 240,
+          "body": [
+            "Isolate planning or kernel causes",
+            "Prepare and qualify a candidate",
+            "Keep a reference and regression cases"
+          ],
+          "entity": "B"
+        },
+        {
+          "id": "ab-release",
+          "label": "Versioned Capsule",
+          "subtitle": "Separate validation and release",
+          "x": 1020,
+          "y": 240,
+          "width": 385,
+          "height": 240,
+          "body": [
+            "New identified implementation",
+            "Declared scope and measured result",
+            "No silent mutation of active Run"
+          ],
+          "entity": "B"
+        },
+        {
+          "id": "ab-adopt",
+          "label": "Application adoption",
+          "subtitle": "Reploid evaluates the new version",
+          "x": 1505,
+          "y": 240,
+          "width": 385,
+          "height": 240,
+          "body": [
+            "Test actual application benefit",
+            "Adopt under reversible host grants",
+            "Feed outcomes into strategy evaluation"
+          ],
+          "entity": "A"
+        },
+        {
+          "id": "bc-source",
+          "label": "Reproducible workload",
+          "subtitle": "Doppler supplies GPU evidence",
+          "x": 50,
+          "y": 745,
+          "width": 385,
+          "height": 240,
+          "body": [
+            "Unchanged application and inputs",
+            "Shader case plus complete workload",
+            "Opening, queries, state and failures"
+          ],
+          "entity": "B"
+        },
+        {
+          "id": "bc-doe",
+          "label": "General correction",
+          "subtitle": "Doe owns compiler/runtime fixes",
+          "x": 535,
+          "y": 745,
+          "width": 385,
+          "height": 240,
+          "body": [
+            "Correct the responsible backend layer",
+            "Preserve WGSL and application semantics",
+            "Avoid model-name special cases"
+          ],
+          "entity": "C"
+        },
+        {
+          "id": "bc-validate",
+          "label": "Independent comparison",
+          "subtitle": "Doe evaluation and versioned release",
+          "x": 1020,
+          "y": 745,
+          "width": 385,
+          "height": 240,
+          "body": [
+            "Matched hardware and fixed scope",
+            "Doppler plus independent applications",
+            "Material gain within regression limits"
+          ],
+          "entity": "C"
+        },
+        {
+          "id": "bc-adopt",
+          "label": "Provider adoption",
+          "subtitle": "Doppler evaluates the provider version",
+          "x": 1505,
+          "y": 745,
+          "width": 385,
+          "height": 240,
+          "body": [
+            "Compare the unchanged application",
+            "Select the qualified provider explicitly",
+            "Retain alternatives and rollback"
+          ],
+          "entity": "B"
+        }
+      ],
+      "edges": [
+        {
+          "id": "ab-case",
+          "source": "ab-source",
+          "target": "ab-rig",
+          "type": "development",
+          "label": "Reproduce",
+          "sourceAnchor": {
+            "side": "right",
+            "offset": 0.5
+          },
+          "targetAnchor": {
+            "side": "left",
+            "offset": 0.5
+          },
+          "labelWidth": 94,
+          "details": [],
+          "labelPosition": {
+            "x": 485,
+            "y": 205
+          },
+          "relationshipId": "A-B",
+          "contractId": "improvement-evidence"
+        },
+        {
+          "id": "ab-qualify",
+          "source": "ab-rig",
+          "target": "ab-release",
+          "type": "development",
+          "label": "Qualify",
+          "sourceAnchor": {
+            "side": "right",
+            "offset": 0.5
+          },
+          "targetAnchor": {
+            "side": "left",
+            "offset": 0.5
+          },
+          "labelWidth": 94,
+          "details": [
+            "The model implementation and its source-derived semantics have their own qualification. Changing them produces a new candidate and identity, not an in-place Run mutation."
+          ],
+          "labelPosition": {
+            "x": 970,
+            "y": 205
+          },
+          "relationshipId": "A-B"
+        },
+        {
+          "id": "ab-deliver",
+          "source": "ab-release",
+          "target": "ab-adopt",
+          "type": "development",
+          "label": "Evaluate",
+          "sourceAnchor": {
+            "side": "right",
+            "offset": 0.5
+          },
+          "targetAnchor": {
+            "side": "left",
+            "offset": 0.5
+          },
+          "labelWidth": 94,
+          "details": [
+            "A Doppler release does not automatically approve adoption by Reploid. Test unfamiliar relevant work under the application’s own requirements."
+          ],
+          "labelPosition": {
+            "x": 1455,
+            "y": 205
+          },
+          "relationshipId": "A-B"
+        },
+        {
+          "id": "ab-outcomes",
+          "source": "ab-adopt",
+          "target": "ab-source",
+          "type": "feedback",
+          "label": "Application outcomes → strategy evaluation",
+          "sourceAnchor": {
+            "side": "bottom",
+            "offset": 0.5
+          },
+          "targetAnchor": {
+            "side": "bottom",
+            "offset": 0.5
+          },
+          "labelWidth": 490,
+          "details": [
+            "Reploid may propose planning, context, tool or scheduling changes informed by authorized outcomes.",
+            "Evaluate strategy candidates separately; posterior updates, model changes and recursive improvement are different claims."
+          ],
+          "labelPosition": {
+            "x": 970,
+            "y": 555
+          },
+          "waypoints": [
+            {
+              "x": 1697.5,
+              "y": 555
+            },
+            {
+              "x": 242.5,
+              "y": 555
+            }
+          ],
+          "relationshipId": "A-B",
+          "contractId": "improvement-evidence"
+        },
+        {
+          "id": "bc-case",
+          "source": "bc-source",
+          "target": "bc-doe",
+          "type": "development",
+          "label": "Reproduce",
+          "sourceAnchor": {
+            "side": "right",
+            "offset": 0.5
+          },
+          "targetAnchor": {
+            "side": "left",
+            "offset": 0.5
+          },
+          "labelWidth": 94,
+          "details": [],
+          "labelPosition": {
+            "x": 485,
+            "y": 710
+          },
+          "relationshipId": "B-C",
+          "contractId": "improvement-evidence"
+        },
+        {
+          "id": "bc-test",
+          "source": "bc-doe",
+          "target": "bc-validate",
+          "type": "development",
+          "label": "Validate",
+          "sourceAnchor": {
+            "side": "right",
+            "offset": 0.5
+          },
+          "targetAnchor": {
+            "side": "left",
+            "offset": 0.5
+          },
+          "labelWidth": 94,
+          "details": [
+            "Measure against a credible incumbent on matched hardware. Include applications unrelated to Doppler.",
+            "Do not automatically attribute every application gain to Doe or require every metric to improve."
+          ],
+          "labelPosition": {
+            "x": 970,
+            "y": 710
+          },
+          "relationshipId": "B-C"
+        },
+        {
+          "id": "bc-release",
+          "source": "bc-validate",
+          "target": "bc-adopt",
+          "type": "development",
+          "label": "Release",
+          "sourceAnchor": {
+            "side": "right",
+            "offset": 0.5
+          },
+          "targetAnchor": {
+            "side": "left",
+            "offset": 0.5
+          },
+          "labelWidth": 94,
+          "details": [
+            "The provider release is separately versioned. Doppler and other recipients independently decide whether to use it."
+          ],
+          "labelPosition": {
+            "x": 1455,
+            "y": 710
+          },
+          "relationshipId": "B-C"
+        },
+        {
+          "id": "bc-outcomes",
+          "source": "bc-adopt",
+          "target": "bc-source",
+          "type": "feedback",
+          "label": "Application outcomes → next reproducible case",
+          "sourceAnchor": {
+            "side": "bottom",
+            "offset": 0.5
+          },
+          "targetAnchor": {
+            "side": "bottom",
+            "offset": 0.5
+          },
+          "labelWidth": 490,
+          "details": [],
+          "labelPosition": {
+            "x": 970,
+            "y": 1060
+          },
+          "waypoints": [
+            {
+              "x": 1697.5,
+              "y": 1060
+            },
+            {
+              "x": 242.5,
+              "y": 1060
+            }
+          ],
+          "relationshipId": "B-C",
+          "contractId": "improvement-evidence"
+        }
+      ],
+      "notes": [
+        {
+          "id": "cycle",
+          "x": 45,
+          "y": 95,
+          "width": 1850,
+          "height": 80,
+          "label": "Real problem → reproduce → correct owner → validate → release → benefit",
+          "text": "Corrections stay in their responsible layer. Feedback contains authorized evidence, not implicit access to private conversations."
+        },
+        {
+          "id": "loop-ab-label",
+          "x": 50,
+          "y": 165,
+          "width": 1840,
+          "height": 45,
+          "label": "Loop A ↔ B · Reploid application and Doppler implementation",
+          "text": ""
+        },
+        {
+          "id": "loop-bc-label",
+          "x": 50,
+          "y": 625,
+          "width": 1840,
+          "height": 60,
+          "label": "Loop B ↔ C · Doppler workloads and Doe execution",
+          "text": "Provider corrections stay in Doe; independent applications validate benefits; each consumer chooses adoption."
+        },
+        {
+          "id": "metrics",
+          "x": 50,
+          "y": 1100,
+          "width": 1840,
+          "height": 90,
+          "label": "Measure benefit and development efficiency",
+          "text": "Track reproduction-to-verified-improvement time, application outcomes, regressions and independent transfer. This loop is not a runtime gate."
+        }
+      ],
+      "legend": [
+        "development",
+        "feedback"
+      ],
+      "timing": "development-time",
+      "loopIds": [
+        "loop-ab",
+        "loop-bc"
+      ],
+      "status": "intended-architecture",
+      "relatedViews": [
+        "ecosystem",
+        "interfaces",
+        "adoption"
+      ]
+    },
+    {
+      "id": "placement",
+      "kind": "graph",
+      "title": "Placement",
+      "subtitle": "Products are components inside hosts. A local invocation bypasses network transport; a remote invocation enters a receiving peer.",
+      "width": 1840,
+      "height": 1120,
+      "nodes": [
+        {
+          "id": "requesting-peer",
+          "label": "Requesting peer",
+          "subtitle": "Human/agent thread · Reploid + Poolday",
+          "x": 55,
+          "y": 225,
+          "width": 500,
+          "height": 365,
+          "body": [
+            "Reploid owns thread context and placement",
+            "Poolday owns the remote request boundary",
+            "Check advertised capability separately",
+            "Bind grants, recipients and resource limits",
+            "Select local OR remote execution"
+          ],
+          "entity": "A",
+          "footnote": "Joining a mesh does not disclose a conversation.",
+          "kindOfNode": "host-boundary",
+          "components": [
+            "Reploid coordinator",
+            "Poolday requester transport",
+            "Operator grants"
+          ]
+        },
+        {
+          "id": "execution-peer",
+          "label": "Execution peer",
+          "subtitle": "Receiving coordination → Run → provider",
+          "x": 1125,
+          "y": 225,
+          "width": 655,
+          "height": 365,
+          "body": [
+            "Receiving Reploid / Poolday validates requests",
+            "Doppler Run executes the identified implementation",
+            "Doe OR another supported provider executes GPU work",
+            "Host owns this attempt’s admission and cleanup",
+            "Acceptance remains a separate requester decision"
+          ],
+          "footnote": "Doppler is not a remotely addressable peer by itself.",
+          "kindOfNode": "host-boundary",
+          "components": [
+            "Reploid receiving coordinator",
+            "Poolday receiving transport",
+            "Doppler Run",
+            "Exactly one supported GPU provider"
+          ]
+        },
+        {
+          "id": "local-execution",
+          "label": "Same requesting device",
+          "subtitle": "Local receiving interface → Run → provider",
+          "x": 55,
+          "y": 795,
+          "width": 500,
+          "height": 268,
+          "body": [
+            "No WebRTC request or payload transfer",
+            "Use the same model and state contracts",
+            "Select Doe OR another supported provider"
+          ],
+          "footnote": "Still enforce identity, budgets and cancellation.",
+          "kindOfNode": "host-boundary",
+          "hostSameAs": "requesting-peer",
+          "components": [
+            "Local receiving interface",
+            "Doppler Run",
+            "Exactly one supported GPU provider"
+          ]
+        }
+      ],
+      "edges": [
+        {
+          "id": "authorized-peer-request",
+          "source": "requesting-peer",
+          "target": "execution-peer",
+          "type": "message",
+          "label": "REMOTE · authorized request\nPoolday WebRTC → receiving interface",
+          "sourceAnchor": {
+            "side": "right",
+            "offset": 0.3
+          },
+          "targetAnchor": {
+            "side": "left",
+            "offset": 0.3
+          },
+          "labelWidth": 470,
+          "details": [
+            "The receiver validates the grant, identities, operation, resources, expiry and permitted input before invoking its local Doppler Run.",
+            "Discovery claims do not themselves authorize placement or acceptance."
+          ],
+          "labelPosition": {
+            "x": 840,
+            "y": 300
+          },
+          "contractId": "peer-request",
+          "exampleView": "sequence"
+        },
+        {
+          "id": "peer-output",
+          "source": "execution-peer",
+          "target": "requesting-peer",
+          "type": "return",
+          "label": "Ordered events → requester checks\nAccepted execution is a separate state",
+          "sourceAnchor": {
+            "side": "left",
+            "offset": 0.72
+          },
+          "targetAnchor": {
+            "side": "right",
+            "offset": 0.72
+          },
+          "labelWidth": 470,
+          "details": [
+            "Result transport does not itself establish acceptance. Bind every event to its attempt and sequence."
+          ],
+          "labelPosition": {
+            "x": 840,
+            "y": 455
+          },
+          "contractId": "stream-event"
+        },
+        {
+          "id": "local-bypass",
+          "source": "requesting-peer",
+          "target": "local-execution",
+          "type": "message",
+          "label": "LOCAL · direct invocation\nNo network transport",
+          "sourceAnchor": {
+            "side": "bottom",
+            "offset": 0.5
+          },
+          "targetAnchor": {
+            "side": "top",
+            "offset": 0.5
+          },
+          "labelWidth": 290,
+          "details": [
+            "This branch remains on the requesting device, with no outgoing WebRTC disclosure.",
+            "The local receiving interface invokes Doppler Run and the host-selected supported provider; the public model contract remains consistent."
+          ],
+          "labelPosition": {
+            "x": 480,
+            "y": 692
+          },
+          "contractId": "reploid-doppler"
+        }
+      ],
+      "notes": [
+        {
+          "id": "three-decisions",
+          "x": 120,
+          "y": 100,
+          "width": 1600,
+          "height": 70,
+          "label": "Advertised capability → authorized placement → accepted execution",
+          "text": "These are distinct states with different evidence and authority; never combine them into one “eligible” badge."
+        },
+        {
+          "id": "request-fields",
+          "x": 720,
+          "y": 650,
+          "width": 1010,
+          "height": 120,
+          "label": "Every request binds its contract",
+          "text": "Attempt and implementation/Capsule identity · operation · permitted inputs · resource limits · cancellation handle."
+        },
+        {
+          "id": "partition-boundary",
+          "x": 720,
+          "y": 825,
+          "width": 1010,
+          "height": 140,
+          "label": "Model partitioning requires additional execution hosts",
+          "text": "Each participating host owns its local Run, selected provider and state. Poolday carries authorized intermediate tensors; the whole-request example does not prove a split."
+        }
+      ],
+      "legend": [
+        "message",
+        "return"
+      ],
+      "routeChoice": "exclusive",
+      "contractIds": [
+        "peer-request",
+        "reploid-doppler",
+        "stream-event"
+      ],
+      "status": "intended-architecture",
+      "relatedViews": [
+        "interfaces",
+        "sequence",
+        "recovery"
       ]
     },
     {
       "id": "sequence",
       "kind": "sequence",
-      "title": "One operation",
-      "subtitle": "Whole-request example through an optional Doe provider. A model split requires additional execution-peer lifelines.",
-      "width": 1550,
-      "height": 1135,
+      "title": "Stream",
+      "subtitle": "Remote whole-request example. Provider is selected once: Doe OR an environment-supported alternative, never both by implication.",
+      "width": 1760,
+      "height": 1270,
       "nodes": [
         {
-          "id": "U",
-          "label": "Human / agent",
-          "subtitle": "Thread participant",
+          "id": "Q",
+          "label": "Reploid + Poolday",
+          "subtitle": "Requesting peer",
+          "x": 45,
+          "y": 150,
+          "width": 335,
+          "height": 112,
           "body": [],
-          "x": 25,
-          "y": 105,
-          "width": 230,
-          "height": 95
-        },
-        {
-          "id": "A",
           "entity": "A",
-          "label": "Reploid",
-          "x": 405,
-          "y": 105,
-          "width": 250,
-          "height": 95,
-          "subtitle": "Reploid + Poolday",
-          "body": []
+          "hostId": "requester"
         },
         {
-          "id": "B",
+          "id": "R",
+          "label": "Receiving interface",
+          "subtitle": "Execution peer · Reploid + Poolday",
+          "x": 490,
+          "y": 150,
+          "width": 335,
+          "height": 112,
+          "body": [],
+          "entity": "A",
+          "hostId": "executor"
+        },
+        {
+          "id": "RUN",
+          "label": "Doppler Run",
+          "subtitle": "Execution peer · model component",
+          "x": 935,
+          "y": 150,
+          "width": 335,
+          "height": 112,
+          "body": [],
           "entity": "B",
-          "label": "Doppler",
-          "x": 850,
-          "y": 105,
-          "width": 250,
-          "height": 95,
-          "subtitle": "Selected execution peer",
-          "body": []
+          "hostId": "executor"
         },
         {
-          "id": "C",
-          "entity": "C",
-          "label": "Doe",
-          "x": 1275,
-          "y": 105,
-          "width": 250,
-          "height": 95,
-          "subtitle": "Optional GPU provider",
-          "body": []
+          "id": "GPU",
+          "label": "Selected GPU provider",
+          "subtitle": "Doe OR a supported alternative",
+          "x": 1380,
+          "y": 150,
+          "width": 335,
+          "height": 112,
+          "body": [],
+          "hostId": "executor",
+          "providerChoiceRef": "providerChoice"
         }
       ],
       "edges": [
         {
-          "id": "s1",
-          "source": "U",
-          "target": "A",
+          "id": "request",
+          "source": "Q",
+          "target": "R",
           "type": "message",
-          "label": "1  Send message in a thread",
-          "y": 265,
-          "labelPosition": {
-            "x": 335.0,
-            "y": 246
-          },
-          "labelWidth": 356.0,
-          "details": []
-        },
-        {
-          "id": "s2",
-          "source": "A",
-          "target": "B",
-          "type": "message",
-          "label": "2  Exact request + authorized input",
+          "label": "Authorize and send exact request",
           "y": 335,
           "labelPosition": {
-            "x": 752.5,
-            "y": 316
+            "x": 435.0,
+            "y": 317
           },
-          "labelWidth": 411.0,
+          "labelWidth": 415.0,
           "details": [
-            "Reploid selects an eligible participant. Poolday carries the request over WebRTC for remote execution.",
-            "This example uses whole-request execution. A layer-split example would need separate Doppler lifelines and explicit activation transfers."
-          ]
+            "A human or authorized agent submits a message in a particular thread.",
+            "Q first distinguishes advertised capability from authorized placement. R independently validates the request before Run invocation."
+          ],
+          "exampleView": "placement",
+          "contractId": "peer-request"
         },
         {
-          "id": "s3",
-          "source": "B",
-          "target": "C",
-          "type": "optional",
-          "label": "3  Compile / dispatch WGSL",
-          "y": 405,
-          "labelPosition": {
-            "x": 1187.5,
-            "y": 386
-          },
-          "labelWidth": 391.0,
-          "details": [
-            "Only if Doe is the selected, supported provider. Other WebGPU implementations remain possible."
-          ]
-        },
-        {
-          "id": "s4",
-          "source": "C",
-          "target": "B",
-          "type": "return",
-          "label": "4  Completion + diagnostics",
-          "y": 475,
-          "labelPosition": {
-            "x": 1187.5,
-            "y": 456
-          },
-          "labelWidth": 391.0,
-          "details": []
-        },
-        {
-          "id": "s5",
-          "source": "B",
-          "target": "A",
-          "type": "return",
-          "label": "5  Token stream + execution events",
-          "y": 545,
-          "labelPosition": {
-            "x": 752.5,
-            "y": 526
-          },
-          "labelWidth": 411.0,
-          "details": []
-        },
-        {
-          "id": "s6",
-          "source": "A",
-          "target": "U",
-          "type": "return",
-          "label": "6  Append to the same conversation",
-          "y": 615,
-          "labelPosition": {
-            "x": 335.0,
-            "y": 596
-          },
-          "labelWidth": 356.0,
-          "details": []
-        },
-        {
-          "id": "s7",
-          "source": "C",
-          "target": "B",
-          "type": "return",
-          "label": "7  Device or execution failure",
-          "y": 785,
-          "labelPosition": {
-            "x": 1187.5,
-            "y": 766
-          },
-          "labelWidth": 391.0,
-          "details": []
-        },
-        {
-          "id": "s8",
-          "source": "B",
-          "target": "A",
-          "type": "return",
-          "label": "8  Report failure + invalid state",
-          "y": 855,
-          "labelPosition": {
-            "x": 752.5,
-            "y": 836
-          },
-          "labelWidth": 411.0,
-          "details": []
-        },
-        {
-          "id": "s9",
-          "source": "A",
-          "target": "B",
+          "id": "begin",
+          "source": "R",
+          "target": "RUN",
           "type": "message",
-          "label": "9  Cancel; await resource settlement",
-          "y": 925,
+          "label": "Begin identified attempt",
+          "y": 410,
           "labelPosition": {
-            "x": 752.5,
-            "y": 906
+            "x": 880.0,
+            "y": 392
           },
-          "labelWidth": 411.0,
-          "details": []
+          "labelWidth": 415.0,
+          "details": [],
+          "contractId": "reploid-doppler"
         },
         {
-          "id": "s10",
-          "source": "A",
-          "target": "B",
+          "id": "prepare",
+          "source": "RUN",
+          "target": "GPU",
           "type": "message",
-          "label": "10  Authorized recovery / new attempt",
-          "y": 995,
+          "label": "Prepare resources and programs",
+          "y": 485,
           "labelPosition": {
-            "x": 752.5,
-            "y": 976
+            "x": 1325.0,
+            "y": 467
           },
-          "labelWidth": 411.0,
+          "labelWidth": 415.0,
           "details": [
-            "Recover only from a supported continuation point; otherwise begin a new attempt from permitted context.",
-            "A journal or signed receipt does not reconstruct lost GPU generation state.",
-            "Do not splice a new generation into an old partial answer or stop unrelated threads."
-          ]
+            "The selected provider is Doe only if its integration is supported on this host. Otherwise use the environment’s other supported provider.",
+            "Preparation failures branch to recovery; they do not imply proceeding through successful streaming."
+          ],
+          "exampleView": "adoption",
+          "contractId": "doppler-provider"
         },
         {
-          "id": "s11",
-          "source": "A",
-          "target": "U",
+          "id": "ready",
+          "source": "GPU",
+          "target": "RUN",
           "type": "return",
-          "label": "11  Show interrupted or restarted result",
-          "y": 1065,
+          "label": "Ready, or branch on failure",
+          "y": 555,
           "labelPosition": {
-            "x": 335.0,
-            "y": 1046
+            "x": 1325.0,
+            "y": 537
           },
-          "labelWidth": 356.0,
-          "details": []
+          "labelWidth": 415.0,
+          "details": [],
+          "exampleView": "recovery"
+        },
+        {
+          "id": "compute",
+          "source": "RUN",
+          "target": "GPU",
+          "type": "message",
+          "label": "Submit next model computation",
+          "y": 690,
+          "labelPosition": {
+            "x": 1325.0,
+            "y": 672
+          },
+          "labelWidth": 415.0,
+          "details": [],
+          "fragmentId": "streaming-loop"
+        },
+        {
+          "id": "computed",
+          "source": "GPU",
+          "target": "RUN",
+          "type": "return",
+          "label": "Completion and observations",
+          "y": 755,
+          "labelPosition": {
+            "x": 1325.0,
+            "y": 737
+          },
+          "labelWidth": 415.0,
+          "details": [],
+          "fragmentId": "streaming-loop"
+        },
+        {
+          "id": "delta",
+          "source": "RUN",
+          "target": "R",
+          "type": "return",
+          "label": "Event {attemptId, sequence}",
+          "y": 820,
+          "labelPosition": {
+            "x": 880.0,
+            "y": 802
+          },
+          "labelWidth": 415.0,
+          "details": [],
+          "fragmentId": "streaming-loop",
+          "contractId": "stream-event"
+        },
+        {
+          "id": "deliver",
+          "source": "R",
+          "target": "Q",
+          "type": "return",
+          "label": "Bound event → same message",
+          "y": 885,
+          "labelPosition": {
+            "x": 435.0,
+            "y": 867
+          },
+          "labelWidth": 415.0,
+          "details": [
+            "Accept only the active attempt and compatible event ordering. Ignore or quarantine late output from a superseded attempt.",
+            "Cancellation or failure branches can occur during this loop, not only after it finishes."
+          ],
+          "exampleView": "cancellation",
+          "fragmentId": "streaming-loop",
+          "contractId": "stream-event"
+        },
+        {
+          "id": "complete",
+          "source": "RUN",
+          "target": "R",
+          "type": "return",
+          "label": "Final output + execution identity",
+          "y": 1020,
+          "labelPosition": {
+            "x": 880.0,
+            "y": 1002
+          },
+          "labelWidth": 415.0,
+          "details": [],
+          "fragmentId": "success",
+          "guard": "Complete computation and valid terminal event"
+        },
+        {
+          "id": "accept",
+          "source": "R",
+          "target": "Q",
+          "type": "return",
+          "label": "Completion → requester acceptance",
+          "y": 1090,
+          "labelPosition": {
+            "x": 435.0,
+            "y": 1072
+          },
+          "labelWidth": 415.0,
+          "details": [
+            "Only the success branch terminates as an accepted complete answer.",
+            "Cancellation and recovery are alternate paths starting during execution, not subsequent success steps."
+          ],
+          "fragmentId": "success",
+          "guard": "Requester checks the bound identity, event chain and declared acceptance conditions"
         }
       ],
-      "lifelineEnd": 1100,
-      "bands": [
+      "notes": [
         {
-          "y": 720,
-          "label": "IF EXECUTION FAILS · recovery is explicit, scoped and authorized"
+          "id": "hosts",
+          "x": 480,
+          "y": 95,
+          "width": 1245,
+          "height": 40,
+          "label": "Execution host contains the receiver, Run and one selected provider",
+          "text": ""
+        },
+        {
+          "id": "routes",
+          "x": 45,
+          "y": 1150,
+          "width": 1670,
+          "height": 90,
+          "label": "Alternative outcomes: success OR cancellation OR failure",
+          "text": "Local placement bypasses Poolday transport. Open Cancel or Recover for branches from the active stream; neither follows a successful answer."
         }
       ],
       "legend": [
         "message",
-        "optional",
-        "return"
+        "return",
+        "conditional"
+      ],
+      "lifelineEnd": 1110,
+      "bands": [
+        {
+          "y": 635,
+          "label": "LOOP · repeat bounded computation and ordered output; cancellation or failure may branch at any iteration"
+        },
+        {
+          "y": 955,
+          "label": "SUCCESS BRANCH ONLY · final output must meet the requester’s acceptance contract"
+        }
+      ],
+      "hostBoundaries": [
+        {
+          "id": "requester",
+          "label": "Requesting peer",
+          "nodeIds": [
+            "Q"
+          ]
+        },
+        {
+          "id": "executor",
+          "label": "Execution peer",
+          "nodeIds": [
+            "R",
+            "RUN",
+            "GPU"
+          ]
+        }
+      ],
+      "fragments": [
+        {
+          "id": "streaming-loop",
+          "operator": "loop",
+          "guard": "No terminal outcome, grants remain valid and budgets permit execution",
+          "edgeIds": [
+            "compute",
+            "computed",
+            "delta",
+            "deliver"
+          ]
+        },
+        {
+          "id": "success",
+          "operator": "alt",
+          "setId": "terminalBranches",
+          "guard": "Final output accepted",
+          "edgeIds": [
+            "complete",
+            "accept"
+          ],
+          "alternativeViews": [
+            "cancellation",
+            "recovery"
+          ]
+        }
+      ],
+      "contractIds": [
+        "peer-request",
+        "reploid-doppler",
+        "doppler-provider",
+        "stream-event"
+      ],
+      "status": "intended-architecture",
+      "relatedViews": [
+        "placement",
+        "cancellation",
+        "recovery"
       ]
+    },
+    {
+      "id": "cancellation",
+      "kind": "sequence",
+      "title": "Cancel",
+      "subtitle": "A cancellation branch during streaming. Acknowledging the request, stopping output and settling owned work are different events.",
+      "width": 1760,
+      "height": 1420,
+      "nodes": [
+        {
+          "id": "Q",
+          "label": "Reploid + Poolday",
+          "subtitle": "Requesting peer",
+          "x": 45,
+          "y": 150,
+          "width": 335,
+          "height": 112,
+          "body": [],
+          "entity": "A",
+          "hostId": "requester"
+        },
+        {
+          "id": "R",
+          "label": "Receiving interface",
+          "subtitle": "Execution peer · Reploid + Poolday",
+          "x": 490,
+          "y": 150,
+          "width": 335,
+          "height": 112,
+          "body": [],
+          "entity": "A",
+          "hostId": "executor"
+        },
+        {
+          "id": "RUN",
+          "label": "Doppler Run",
+          "subtitle": "Execution peer · model component",
+          "x": 935,
+          "y": 150,
+          "width": 335,
+          "height": 112,
+          "body": [],
+          "entity": "B",
+          "hostId": "executor"
+        },
+        {
+          "id": "GPU",
+          "label": "Selected GPU provider",
+          "subtitle": "Doe OR a supported alternative",
+          "x": 1380,
+          "y": 150,
+          "width": 335,
+          "height": 112,
+          "body": [],
+          "hostId": "executor",
+          "providerChoiceRef": "providerChoice"
+        }
+      ],
+      "edges": [
+        {
+          "id": "requester-cancel",
+          "source": "Q",
+          "target": "R",
+          "type": "message",
+          "label": "Requester asks to stop attempt",
+          "y": 340,
+          "labelPosition": {
+            "x": 435.0,
+            "y": 322
+          },
+          "labelWidth": 415.0,
+          "details": [
+            "Initiated by the human/agent controlling the thread. Q suppresses further display for this cancelled attempt while remote settlement remains pending."
+          ],
+          "fragmentId": "requester-initiated",
+          "contractId": "cancellation"
+        },
+        {
+          "id": "participant-cancel",
+          "source": "R",
+          "target": "Q",
+          "type": "return",
+          "label": "Participant stops contributed work",
+          "y": 455,
+          "labelPosition": {
+            "x": 435.0,
+            "y": 437
+          },
+          "labelWidth": 415.0,
+          "details": [
+            "Alternative initiation: the execution-device operator or its resource policy stops this attempt. It need not wait for a requester command."
+          ],
+          "fragmentId": "participant-initiated",
+          "contractId": "cancellation"
+        },
+        {
+          "id": "cancel-ack",
+          "source": "R",
+          "target": "Q",
+          "type": "return",
+          "label": "Cancellation requested: acknowledged",
+          "y": 600,
+          "labelPosition": {
+            "x": 435.0,
+            "y": 582
+          },
+          "labelWidth": 415.0,
+          "details": [],
+          "contractId": "cancellation",
+          "status": "requested"
+        },
+        {
+          "id": "cancel-run",
+          "source": "R",
+          "target": "RUN",
+          "type": "message",
+          "label": "Cancel attempt; stop further dispatch",
+          "y": 675,
+          "labelPosition": {
+            "x": 880.0,
+            "y": 657
+          },
+          "labelWidth": 415.0,
+          "details": [],
+          "contractId": "cancellation"
+        },
+        {
+          "id": "cancel-provider",
+          "source": "RUN",
+          "target": "GPU",
+          "type": "message",
+          "label": "Settle this attempt’s submitted work",
+          "y": 750,
+          "labelPosition": {
+            "x": 1325.0,
+            "y": 732
+          },
+          "labelWidth": 415.0,
+          "details": [
+            "Use the provider’s supported completion and resource-lifetime contract. Do not depict this as guaranteed GPU preemption.",
+            "Do not destroy a shared GPU device or release another thread’s resources."
+          ],
+          "contractId": "cancellation"
+        },
+        {
+          "id": "output-stop-run",
+          "source": "RUN",
+          "target": "R",
+          "type": "return",
+          "label": "Output forwarding stopped",
+          "y": 825,
+          "labelPosition": {
+            "x": 880.0,
+            "y": 807
+          },
+          "labelWidth": 415.0,
+          "details": [],
+          "status": "output-stopped"
+        },
+        {
+          "id": "output-stop-peer",
+          "source": "R",
+          "target": "Q",
+          "type": "return",
+          "label": "Output stopped; settlement pending",
+          "y": 900,
+          "labelPosition": {
+            "x": 435.0,
+            "y": 882
+          },
+          "labelWidth": 415.0,
+          "details": [
+            "This acknowledgement says no more output will be forwarded for the attempt. It does not prove submitted GPU work has finished."
+          ],
+          "status": "output-stopped"
+        },
+        {
+          "id": "gpu-settled",
+          "source": "GPU",
+          "target": "RUN",
+          "type": "return",
+          "label": "Owned GPU work reaches completion",
+          "y": 1025,
+          "labelPosition": {
+            "x": 1325.0,
+            "y": 1007
+          },
+          "labelWidth": 415.0,
+          "details": [],
+          "guard": "Provider completion is observed",
+          "status": "owned-work-settled"
+        },
+        {
+          "id": "run-settled",
+          "source": "RUN",
+          "target": "R",
+          "type": "return",
+          "label": "Attempt state and resources released",
+          "y": 1100,
+          "labelPosition": {
+            "x": 880.0,
+            "y": 1082
+          },
+          "labelWidth": 415.0,
+          "details": [],
+          "guard": "Doppler-owned per-attempt cleanup completed",
+          "status": "owned-work-settled"
+        },
+        {
+          "id": "cleanup-confirmed",
+          "source": "R",
+          "target": "Q",
+          "type": "return",
+          "label": "Cleanup confirmed for this attempt",
+          "y": 1175,
+          "labelPosition": {
+            "x": 435.0,
+            "y": 1157
+          },
+          "labelWidth": 415.0,
+          "details": [
+            "Only this confirmation establishes known remote settlement. Loss of the peer or acknowledgement leaves the requester’s cleanup knowledge unknown."
+          ],
+          "exampleView": "recovery",
+          "guard": "Confirmation delivered and bound to the same attempt",
+          "cleanup": "confirmed",
+          "contractId": "cancellation"
+        }
+      ],
+      "notes": [
+        {
+          "id": "cancel-host",
+          "x": 480,
+          "y": 95,
+          "width": 1245,
+          "height": 40,
+          "label": "Execution peer retains responsibility for its own resources",
+          "text": ""
+        },
+        {
+          "id": "unknown-cleanup",
+          "x": 90,
+          "y": 1275,
+          "width": 1570,
+          "height": 105,
+          "label": "If the peer disappears: cleanup unknown, not cleanup confirmed",
+          "text": "Keep this attempt’s late output out of replacement attempts. Cancelling one thread must not stop unrelated threads."
+        }
+      ],
+      "legend": [
+        "message",
+        "return",
+        "conditional"
+      ],
+      "lifelineEnd": 1230,
+      "bands": [
+        {
+          "y": 300,
+          "label": "ALT INITIATOR A · requester cancels during normal execution"
+        },
+        {
+          "y": 410,
+          "label": "ALT INITIATOR B · execution participant or its policy cancels; not a second mandatory command"
+        },
+        {
+          "y": 545,
+          "label": "COMMON CANCELLATION PATH · acknowledgements do not promise immediate GPU termination"
+        },
+        {
+          "y": 970,
+          "label": "SETTLEMENT · only after owned work and state have actually settled"
+        }
+      ],
+      "hostBoundaries": [
+        {
+          "id": "requester",
+          "label": "Requesting peer",
+          "nodeIds": [
+            "Q"
+          ]
+        },
+        {
+          "id": "executor",
+          "label": "Execution peer",
+          "nodeIds": [
+            "R",
+            "RUN",
+            "GPU"
+          ]
+        }
+      ],
+      "startsFrom": {
+        "view": "sequence",
+        "fragmentId": "streaming-loop"
+      },
+      "fragments": [
+        {
+          "id": "requester-initiated",
+          "operator": "alt",
+          "setId": "cancellation-initiator",
+          "edgeIds": [
+            "requester-cancel"
+          ]
+        },
+        {
+          "id": "participant-initiated",
+          "operator": "alt",
+          "setId": "cancellation-initiator",
+          "edgeIds": [
+            "participant-cancel"
+          ]
+        }
+      ],
+      "contractIds": [
+        "cancellation",
+        "stream-event"
+      ],
+      "status": "intended-architecture",
+      "relatedViews": [
+        "sequence",
+        "recovery"
+      ]
+    },
+    {
+      "id": "recovery",
+      "kind": "graph",
+      "title": "Recover",
+      "subtitle": "Failure branch from an active attempt. Local observation of a lost peer is not an acknowledgement of remote cleanup.",
+      "width": 1920,
+      "height": 1580,
+      "nodes": [
+        {
+          "id": "active",
+          "label": "Active attempt",
+          "subtitle": "Starts during preparation or streaming",
+          "x": 745,
+          "y": 125,
+          "width": 430,
+          "height": 239,
+          "body": [
+            "Bound model, plan and attempt identity",
+            "One thread; unrelated work stays isolated"
+          ],
+          "footnote": "Alternative to accepted success or cancellation."
+        },
+        {
+          "id": "device-failure",
+          "label": "Device / execution failure",
+          "subtitle": "Execution peer is still reachable",
+          "x": 75,
+          "y": 445,
+          "width": 500,
+          "height": 268,
+          "body": [
+            "Provider reports failure to Doppler Run",
+            "Run assesses state and cleanup validity",
+            "Receiver returns that assessment"
+          ],
+          "footnote": "Continuation validity belongs to Doppler."
+        },
+        {
+          "id": "peer-lost",
+          "label": "Peer disconnected",
+          "subtitle": "Observed by requester-side transport",
+          "x": 1345,
+          "y": 445,
+          "width": 500,
+          "height": 268,
+          "body": [
+            "No reliable final settlement response",
+            "Mark the attempt interrupted",
+            "Mark remote cleanup knowledge unknown"
+          ],
+          "footnote": "Do not invent an acknowledgement from a lost peer."
+        },
+        {
+          "id": "decision",
+          "label": "Recovery decision",
+          "subtitle": "Reploid rechecks evidence and grants",
+          "x": 735,
+          "y": 795,
+          "width": 450,
+          "height": 268,
+          "body": [
+            "Can the declared continuation be used?",
+            "Are plan, state, recipients and limits valid?",
+            "Resume, start a new attempt, or stay stopped"
+          ],
+          "footnote": "A stored receipt does not recreate GPU state."
+        },
+        {
+          "id": "resume",
+          "label": "Supported continuation",
+          "subtitle": "Only when Doppler declares valid state",
+          "x": 50,
+          "y": 1240,
+          "width": 535,
+          "height": 268,
+          "body": [
+            "Restore at the declared continuation point",
+            "Bind recovered state and event ordering",
+            "Preserve thread isolation and permissions"
+          ],
+          "footnote": "Record whether cleanup is confirmed or unknown."
+        },
+        {
+          "id": "restart",
+          "label": "New attempt",
+          "subtitle": "When recovery is authorized but state is invalid",
+          "x": 692.5,
+          "y": 1240,
+          "width": 535,
+          "height": 268,
+          "body": [
+            "Generate a new attempt identity",
+            "Rebuild from permitted conversation context",
+            "Keep previous partial output distinct"
+          ],
+          "footnote": "Never splice restarted text into the old answer."
+        },
+        {
+          "id": "stop",
+          "label": "Remain interrupted",
+          "subtitle": "When no valid, authorized route exists",
+          "x": 1340,
+          "y": 1240,
+          "width": 535,
+          "height": 268,
+          "body": [
+            "Keep history and the failure visible",
+            "Do not automatically broaden disclosure",
+            "Retry only when conditions permit"
+          ],
+          "footnote": "No forced fallback to a different model or provider."
+        }
+      ],
+      "edges": [
+        {
+          "id": "device-error",
+          "source": "active",
+          "target": "device-failure",
+          "type": "conditional",
+          "label": "Device error",
+          "sourceAnchor": {
+            "side": "left",
+            "offset": 0.65
+          },
+          "targetAnchor": {
+            "side": "top",
+            "offset": 0.5
+          },
+          "labelWidth": 190,
+          "details": [],
+          "labelPosition": {
+            "x": 443,
+            "y": 350
+          },
+          "waypoints": [
+            {
+              "x": 325,
+              "y": 280.35
+            }
+          ],
+          "exampleView": "sequence"
+        },
+        {
+          "id": "connection-lost",
+          "source": "active",
+          "target": "peer-lost",
+          "type": "conditional",
+          "label": "Transport loss",
+          "sourceAnchor": {
+            "side": "right",
+            "offset": 0.65
+          },
+          "targetAnchor": {
+            "side": "top",
+            "offset": 0.5
+          },
+          "labelWidth": 190,
+          "details": [
+            "This is the requester’s observation, not a response sent by an unreachable execution peer."
+          ],
+          "labelPosition": {
+            "x": 1513,
+            "y": 350
+          },
+          "waypoints": [
+            {
+              "x": 1595,
+              "y": 280.35
+            }
+          ]
+        },
+        {
+          "id": "assessed-state",
+          "source": "device-failure",
+          "target": "decision",
+          "type": "information",
+          "label": "Run reports continuation validity\nand observed cleanup status",
+          "sourceAnchor": {
+            "side": "bottom",
+            "offset": 0.5
+          },
+          "targetAnchor": {
+            "side": "left",
+            "offset": 0.4
+          },
+          "labelWidth": 395,
+          "details": [],
+          "labelPosition": {
+            "x": 460,
+            "y": 735
+          },
+          "waypoints": [
+            {
+              "x": 325,
+              "y": 902.2
+            }
+          ],
+          "contractId": "recovery"
+        },
+        {
+          "id": "unknown-state",
+          "source": "peer-lost",
+          "target": "decision",
+          "type": "information",
+          "label": "Cleanup UNKNOWN\nState availability must be established",
+          "sourceAnchor": {
+            "side": "bottom",
+            "offset": 0.5
+          },
+          "targetAnchor": {
+            "side": "right",
+            "offset": 0.4
+          },
+          "labelWidth": 395,
+          "details": [],
+          "labelPosition": {
+            "x": 1460,
+            "y": 735
+          },
+          "waypoints": [
+            {
+              "x": 1595,
+              "y": 902.2
+            }
+          ],
+          "contractId": "recovery"
+        },
+        {
+          "id": "valid-resume",
+          "source": "decision",
+          "target": "resume",
+          "type": "conditional",
+          "label": "Valid state + fresh authority",
+          "sourceAnchor": {
+            "side": "bottom",
+            "offset": 0.18
+          },
+          "targetAnchor": {
+            "side": "top",
+            "offset": 0.5
+          },
+          "labelWidth": 300,
+          "details": [],
+          "labelPosition": {
+            "x": 373,
+            "y": 1150
+          },
+          "waypoints": [
+            {
+              "x": 816,
+              "y": 1130
+            },
+            {
+              "x": 317.5,
+              "y": 1130
+            }
+          ],
+          "guard": "Doppler continuation contract is satisfied and host grants remain valid",
+          "contractId": "recovery",
+          "exampleView": "sequence"
+        },
+        {
+          "id": "new-attempt",
+          "source": "decision",
+          "target": "restart",
+          "type": "conditional",
+          "label": "No valid state; restart authorized",
+          "sourceAnchor": {
+            "side": "bottom",
+            "offset": 0.5
+          },
+          "targetAnchor": {
+            "side": "top",
+            "offset": 0.5
+          },
+          "labelWidth": 345,
+          "details": [],
+          "labelPosition": {
+            "x": 1130,
+            "y": 1168
+          },
+          "guard": "Continuation invalid or unavailable, but a fresh attempt is authorized",
+          "contractId": "recovery",
+          "exampleView": "sequence"
+        },
+        {
+          "id": "cannot-recover",
+          "source": "decision",
+          "target": "stop",
+          "type": "conditional",
+          "label": "No authorized recovery",
+          "sourceAnchor": {
+            "side": "bottom",
+            "offset": 0.82
+          },
+          "targetAnchor": {
+            "side": "top",
+            "offset": 0.5
+          },
+          "labelWidth": 300,
+          "details": [],
+          "labelPosition": {
+            "x": 1565,
+            "y": 1150
+          },
+          "waypoints": [
+            {
+              "x": 1104,
+              "y": 1110
+            },
+            {
+              "x": 1607.5,
+              "y": 1110
+            }
+          ],
+          "guard": "No compatible authorized route within budgets"
+        }
+      ],
+      "notes": [
+        {
+          "id": "unrelated",
+          "x": 665,
+          "y": 460,
+          "width": 580,
+          "height": 130,
+          "label": "Preserve other work",
+          "text": "No device-wide teardown to cancel one thread. Drop stale events by attempt identity and sequence."
+        }
+      ],
+      "legend": [
+        "conditional",
+        "information"
+      ],
+      "startsFrom": {
+        "view": "sequence",
+        "fragmentId": "streaming-loop"
+      },
+      "contractIds": [
+        "recovery",
+        "cancellation",
+        "stream-event"
+      ],
+      "status": "intended-architecture",
+      "relatedViews": [
+        "sequence",
+        "cancellation"
+      ]
+    },
+    {
+      "id": "adoption",
+      "kind": "graph",
+      "title": "Adopt",
+      "subtitle": "Proposed progression, not demonstrated capability. Native provider substitution and browser-engine integration are separate destinations.",
+      "width": 1840,
+      "height": 840,
+      "nodes": [
+        {
+          "id": "m1",
+          "label": "Ordinary execution",
+          "subtitle": "PLANNED · material advantage",
+          "x": 45,
+          "y": 245,
+          "width": 370,
+          "height": 297,
+          "body": [
+            "Run a supported unchanged application",
+            "Compare with its incumbent provider",
+            "Earn a meaningful user-valued benefit",
+            "Enforce explicit regression limits"
+          ],
+          "footnote": "Doe remains useful without the portfolio.",
+          "status": "planned",
+          "milestoneId": "ordinary-advantage"
+        },
+        {
+          "id": "m2",
+          "label": "ONNX feasibility",
+          "subtitle": "PLANNED · substitution assessment",
+          "x": 505,
+          "y": 245,
+          "width": 370,
+          "height": 297,
+          "body": [
+            "Assess ONNX Runtime integration",
+            "Identify real provider interfaces",
+            "Test compatibility and ownership",
+            "Do not assume a drop-in replacement"
+          ],
+          "footnote": "A feasibility study, not a support claim.",
+          "status": "planned",
+          "milestoneId": "onnx-feasibility"
+        },
+        {
+          "id": "m3",
+          "label": "Transfer",
+          "subtitle": "PLANNED · independent applications",
+          "x": 965,
+          "y": 245,
+          "width": 370,
+          "height": 297,
+          "body": [
+            "Qualify inference, compute and rendering",
+            "Include workloads unrelated to Doppler",
+            "Retain differing hardware outcomes",
+            "Limit claims to measured environments"
+          ],
+          "footnote": "Independent validation prevents captive tests.",
+          "status": "planned",
+          "milestoneId": "cross-domain-transfer"
+        },
+        {
+          "id": "m4",
+          "label": "Chromium boundary",
+          "subtitle": "PLANNED · bounded engine integration",
+          "x": 1425,
+          "y": 245,
+          "width": 370,
+          "height": 297,
+          "body": [
+            "Define an explicit browser-engine path",
+            "Separate delegation from replacement",
+            "Keep safety and compatibility boundaries",
+            "Measure complete application behavior"
+          ],
+          "footnote": "A JavaScript import cannot replace browser GPU.",
+          "status": "planned",
+          "milestoneId": "bounded-chromium"
+        }
+      ],
+      "edges": [
+        {
+          "id": "milestone-1-2",
+          "source": "m1",
+          "target": "m2",
+          "type": "milestone",
+          "label": "Assess",
+          "sourceAnchor": {
+            "side": "right",
+            "offset": 0.5
+          },
+          "targetAnchor": {
+            "side": "left",
+            "offset": 0.5
+          },
+          "labelWidth": 84,
+          "details": [
+            "An intended progression only. Qualification of ordinary execution does not establish ONNX Runtime substitution."
+          ],
+          "labelPosition": {
+            "x": 460,
+            "y": 205
+          }
+        },
+        {
+          "id": "milestone-2-3",
+          "source": "m2",
+          "target": "m3",
+          "type": "milestone",
+          "label": "Broaden",
+          "sourceAnchor": {
+            "side": "right",
+            "offset": 0.5
+          },
+          "targetAnchor": {
+            "side": "left",
+            "offset": 0.5
+          },
+          "labelWidth": 84,
+          "details": [
+            "Test independent applications and domains; do not infer general improvement from one inference workload."
+          ],
+          "labelPosition": {
+            "x": 920,
+            "y": 205
+          }
+        },
+        {
+          "id": "milestone-3-4",
+          "source": "m3",
+          "target": "m4",
+          "type": "milestone",
+          "label": "Integrate",
+          "sourceAnchor": {
+            "side": "right",
+            "offset": 0.5
+          },
+          "targetAnchor": {
+            "side": "left",
+            "offset": 0.5
+          },
+          "labelWidth": 84,
+          "details": [
+            "Browser-engine ownership requires an explicit bounded integration. Native provider adoption does not automatically replace browser WebGPU."
+          ],
+          "labelPosition": {
+            "x": 1380,
+            "y": 205
+          }
+        }
+      ],
+      "notes": [
+        {
+          "id": "adoption-choices",
+          "x": 100,
+          "y": 95,
+          "width": 1640,
+          "height": 90,
+          "label": "Independent adoption stays visible",
+          "text": "Doppler → other supported WebGPU providers. Other applications/frameworks → Doe. Neither product is captive to the other."
+        },
+        {
+          "id": "advantage",
+          "x": 100,
+          "y": 605,
+          "width": 1640,
+          "height": 100,
+          "label": "“Better” is an application outcome",
+          "text": "Predeclare one material advantage and acceptable regressions elsewhere. Keep model bytes, inputs and quality requirements fixed for provider comparisons."
+        },
+        {
+          "id": "release-authority",
+          "x": 100,
+          "y": 725,
+          "width": 1640,
+          "height": 75,
+          "label": "No automatic qualification inheritance",
+          "text": "Doe releases its provider. Doppler and independent applications evaluate and adopt separately. Browser integration has its own evidence."
+        }
+      ],
+      "legend": [
+        "milestone"
+      ],
+      "status": "planned",
+      "contractIds": [
+        "doppler-provider",
+        "improvement-evidence"
+      ],
+      "relatedViews": [
+        "interfaces",
+        "improvement"
+      ]
+    }
+  ],
+  "documentVersion": "2.0.0",
+  "readingOrder": [
+    "ecosystem",
+    "interfaces",
+    "improvement",
+    "placement",
+    "sequence",
+    "cancellation",
+    "recovery",
+    "adoption"
+  ],
+  "compatibility": {
+    "rendererFormat": "box-arrow-diagram/v1",
+    "requiredPrimitives": [
+      "nodes",
+      "edges",
+      "notes",
+      "bands",
+      "lifelines"
+    ],
+    "extensionPolicy": "Extra semantic fields describe contracts, guards and cross-view relationships. All essential visible content also uses existing v1 nodes, edges, notes or bands; no new drawing primitive is required.",
+    "coordinatePolicy": "Absolute diagram coordinates, x right and y down. Sequence messages are horizontal; graph edges use explicit anchors and waypoints."
+  },
+  "claimPolicy": {
+    "default": "intended, not demonstrated",
+    "milestones": "planned; require evidence before a capability claim",
+    "performance": "A material application advantage under predeclared regression limits, not simultaneous improvement in every metric.",
+    "independence": "Separate evaluation, release and adoption authority. Runtime activity under valid grants is not gated by the development-time improvement loop."
+  },
+  "relationships": [
+    {
+      "id": "A-B",
+      "entities": [
+        "A",
+        "B"
+      ],
+      "kind": "symbiosis",
+      "directed": false,
+      "contributions": [
+        {
+          "from": "A",
+          "to": "B",
+          "provides": "Authorized application workloads, demand, environment observations and reproducible failures"
+        },
+        {
+          "from": "B",
+          "to": "A",
+          "provides": "Portable model execution, valid computational contracts and newly qualified implementations"
+        }
+      ],
+      "contractId": "reploid-doppler",
+      "improvementLoopId": "loop-ab",
+      "contractView": "interfaces",
+      "exampleView": "sequence",
+      "improvementView": "improvement"
+    },
+    {
+      "id": "B-C",
+      "entities": [
+        "B",
+        "C"
+      ],
+      "kind": "symbiosis",
+      "directed": false,
+      "contributions": [
+        {
+          "from": "B",
+          "to": "C",
+          "provides": "Reproducible shader workloads, complete application comparisons and developer access"
+        },
+        {
+          "from": "C",
+          "to": "B",
+          "provides": "General compiler/runtime corrections and a qualified optional execution provider"
+        }
+      ],
+      "contractId": "doppler-provider",
+      "improvementLoopId": "loop-bc",
+      "contractView": "interfaces",
+      "exampleView": "adoption",
+      "improvementView": "improvement"
+    }
+  ],
+  "contracts": {
+    "reploid-doppler": {
+      "status": "proposed contract description; labels are not assertions of exported API names",
+      "caller": "Authorized host coordination",
+      "callee": "Doppler Run on the execution host",
+      "fields": [
+        "meshId",
+        "threadId",
+        "messageId",
+        "attemptId",
+        "implementationIdentity",
+        "capsuleIdentity when applicable",
+        "ordered adapterIdentities",
+        "operation and version",
+        "permitted input reference and digest",
+        "grant identity and allowed recipients",
+        "resource limits and deadline",
+        "execution-plan / partition identity when applicable",
+        "cancellation handle scoped to this attempt"
+      ],
+      "results": [
+        "ordered output events",
+        "verified execution identity",
+        "final output or failure",
+        "continuation validity",
+        "cleanup status"
+      ],
+      "authority": "Reploid places eligible work; Doppler defines and executes valid model computation. Ordinary Run does not silently reprepare or modify the selected implementation."
+    },
+    "peer-request": {
+      "transport": "Poolday WebRTC after authorized receiving-interface validation",
+      "fieldContract": "reploid-doppler",
+      "decisions": [
+        {
+          "state": "advertised",
+          "meaning": "A participant claims a capability; no grant or execution acceptance follows."
+        },
+        {
+          "state": "authorized",
+          "meaning": "Placement matches verified contracts, participant membership, disclosure grants, budgets and freshness."
+        },
+        {
+          "state": "accepted",
+          "meaning": "The returned execution satisfies the requester’s declared acceptance conditions; this is not a truth guarantee."
+        }
+      ],
+      "localBypass": "A local request calls local receiving/execution interfaces directly. No WebRTC transmission is required; applicable permission and identity checks still apply."
+    },
+    "doppler-provider": {
+      "selectedBy": "Execution host / environment through an explicit supported provider integration",
+      "selection": "Exactly one compatible provider for the illustrated execution context; the unselected branch emits no responses.",
+      "inputs": [
+        "WGSL",
+        "resource descriptors",
+        "commands",
+        "synchronization requirements"
+      ],
+      "outputs": [
+        "created resources",
+        "completion",
+        "limits",
+        "measurements",
+        "observable failures"
+      ],
+      "ownership": "Doppler owns model semantics. The provider owns shader compilation and GPU execution.",
+      "browserBoundary": "Use the browser’s exposed implementation unless a separately integrated browser engine supplies Doe. A package import does not replace it."
+    },
+    "stream-event": {
+      "fields": [
+        "threadId",
+        "messageId",
+        "attemptId",
+        "sequence",
+        "implementationIdentity",
+        "event kind",
+        "payload"
+      ],
+      "rules": [
+        "Bind output to the active attempt, not just the thread.",
+        "Sequence events and reject incompatible duplicates or gaps under the chosen delivery contract.",
+        "Ignore or quarantine late events from a superseded attempt.",
+        "Do not combine a restarted generation with the old partial answer."
+      ]
+    },
+    "cancellation": {
+      "initiators": [
+        "requesting human or authorized agent",
+        "execution-device operator",
+        "resource or deadline policy"
+      ],
+      "states": [
+        "requested",
+        "output-stopped",
+        "owned-work-settled"
+      ],
+      "cleanupKnowledge": [
+        "pending",
+        "confirmed",
+        "unknown"
+      ],
+      "rules": [
+        "Acknowledging a request is not confirmation of resource settlement.",
+        "Stop new dispatch and result forwarding for this attempt.",
+        "Wait for submitted or borrowed GPU work according to the execution contract.",
+        "Do not destroy a shared device or cancel unrelated threads.",
+        "If the execution peer disappears before confirmation, report cleanup unknown."
+      ]
+    },
+    "recovery": {
+      "dopplerAssesses": [
+        "whether continuation state remains valid",
+        "model / plan / adapter compatibility",
+        "token position and relevant generation-state ownership"
+      ],
+      "reploidChooses": [
+        "authorized supported continuation",
+        "new attempt from permitted context",
+        "remain interrupted"
+      ],
+      "rules": [
+        "Recheck grants and budgets before recovery.",
+        "A replacement attempt gets a new attemptId and a separate output stream.",
+        "A journal or receipt alone cannot reconstruct lost GPU state.",
+        "Continuation is allowed only through Doppler’s declared contract; otherwise restart or stop."
+      ]
+    },
+    "improvement-evidence": {
+      "timing": "development-time",
+      "inputs": [
+        "authorized reproducible case",
+        "exact application/model/provider revisions",
+        "declared hardware/environment",
+        "protected reference and acceptance conditions",
+        "measured outcomes including failed attempts"
+      ],
+      "privacy": "No automatic export of private conversations, documents, activations or credentials. Redact or replace inputs only when the resulting reproduction remains valid and authorized.",
+      "attribution": "Fix the responsible layer; preserve independent evaluator, release and adopter authority.",
+      "metrics": [
+        "time from accepted reproduction to independently verified improvement",
+        "actual application benefit",
+        "regressions and failed attempts",
+        "transfer across independent applications"
+      ],
+      "comparison": "Freeze application semantics, workload, measurement scope and budgets. A semantic/model change becomes a separately identified qualified implementation; a provider comparison keeps the application unchanged."
+    }
+  },
+  "controlFlow": {
+    "routing": {
+      "selection": "exclusive per attempt",
+      "branches": [
+        {
+          "guard": "placement is local",
+          "view": "placement",
+          "path": "local-bypass"
+        },
+        {
+          "guard": "placement is remote whole-request",
+          "view": "sequence",
+          "path": "authorized-peer-request"
+        },
+        {
+          "guard": "placement is partitioned",
+          "view": "placement",
+          "path": "additional partition participants required"
+        }
+      ]
+    },
+    "providerChoice": {
+      "selection": "exclusive",
+      "choices": [
+        {
+          "entity": "C",
+          "label": "Doe",
+          "guard": "Supported and explicitly integrated on this execution host"
+        },
+        {
+          "id": "other-provider",
+          "label": "Other supported WebGPU provider",
+          "guard": "Available in the execution environment"
+        }
+      ]
+    },
+    "terminalBranches": {
+      "branchPoint": "streaming-loop",
+      "selection": "alternative outcomes during execution",
+      "branches": [
+        {
+          "id": "success",
+          "view": "sequence",
+          "guard": "Complete output accepted under the bound contract"
+        },
+        {
+          "id": "cancel",
+          "view": "cancellation",
+          "guard": "Requester or participant initiates cancellation"
+        },
+        {
+          "id": "failure",
+          "view": "recovery",
+          "guard": "Execution error, invalid state, deadline failure or lost peer"
+        }
+      ]
+    }
+  },
+  "improvementLoops": [
+    {
+      "id": "loop-ab",
+      "relationshipId": "A-B",
+      "view": "improvement",
+      "nodes": [
+        "ab-source",
+        "ab-rig",
+        "ab-release",
+        "ab-adopt"
+      ],
+      "returnEdge": "ab-outcomes",
+      "timing": "development-time",
+      "modelChangesThrough": "Rig preparation and qualification",
+      "adoptionOwner": "Reploid application/operator"
+    },
+    {
+      "id": "loop-bc",
+      "relationshipId": "B-C",
+      "view": "improvement",
+      "nodes": [
+        "bc-source",
+        "bc-doe",
+        "bc-validate",
+        "bc-adopt"
+      ],
+      "returnEdge": "bc-outcomes",
+      "timing": "development-time",
+      "validation": "Unchanged Doppler application plus independent applications on matched hardware",
+      "releaseOwner": "Doe",
+      "adoptionOwner": "Each consuming application/provider host"
     }
   ]
 }

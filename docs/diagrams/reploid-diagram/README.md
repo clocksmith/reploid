@@ -1,12 +1,17 @@
 # Reploid · Doppler · Doe: JSON diagram and renderer
 
-`diagram.json` is the canonical editable document. It contains three views:
+`diagram.json` is the canonical editable document. It contains eight views:
 
 1. **Ecosystem:** precisely A—B and B—C, with undirected mutual-benefit edges. No A—C relationship is asserted.
 2. **Interfaces:** the selected Reploid stack uses Doppler; Doe is an optional WebGPU integration. Opposite arrows explicitly carry results and diagnostics rather than implying reciprocal software imports.
-3. **One operation:** a whole-request example with optional Doe execution, results, failure reporting, cancellation settlement and authorized recovery. This is not a diagram of a qualified distributed layer split.
+3. **Improvement:** development feedback flows through independent validation and explicit adoption.
+4. **Placement:** local and remote invocations place product components inside distinct hosts.
+5. **Stream:** a remote whole-request example selects one provider and returns events and results.
+6. **Cancel:** request acknowledgement, output stop and settlement are separate events.
+7. **Recover:** a lost peer triggers local observation and authorized recovery, without implying remote cleanup.
+8. **Adopt:** planned native provider substitution and browser-engine integration remain separate paths.
 
-The content describes the supplied **intended architecture**, not newly audited implementation or performance. Poolday belongs inside Reploid's network responsibility. Search policy stays with the application. Rig / ModelIR / TargetPlans / Capsules / Run use the terminology in the supplied description.
+The content describes the supplied **intended architecture**, not newly audited implementation or performance. Poolday belongs inside Reploid's network responsibility. Search policy stays with the application. Rig / ModelIR / TargetPlans / Capsules / Run use the terminology in the supplied description. The JSON also records contracts, control flow, claim policy and improvement loops; the viewer renders its eight diagram views.
 
 ## Immediate preview
 
@@ -81,8 +86,8 @@ When served, the viewer reads `diagram.json`. After editing canonical files, `np
 
 ## Validation performed
 
-- 16 Node tests passed: document validation, edge semantics, endpoint routing, escaping and SVG exports.
-- Browser checks passed using the embedded page in Chromium: all three views, inspector navigation, invalid JSON rejection, node dragging, JSON/SVG downloads, and mobile width. No uncaught page errors occurred in that path.
+- 16 Node tests passed for the eight-view document: document validation, edge semantics, endpoint routing, escaping and SVG exports.
+- Browser checks passed using the embedded page in Chromium: all eight views, inspector navigation, invalid JSON rejection, node dragging, JSON/SVG downloads, and mobile width. No uncaught page errors occurred in that path.
 - JavaScript syntax checks passed, including the Three.js adapter.
 - **The Three.js/WebGL path was not executed in the authoring environment because its dependency could not be downloaded.** Install the pinned dependency and inspect the engine indicator locally. The shipped static SVGs and SVG interactions were inspected; that is not a WebGL execution claim.
 
