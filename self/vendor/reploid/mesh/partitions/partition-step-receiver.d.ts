@@ -6,6 +6,7 @@ export interface PartitionStepRequest extends PartitionStep {
 }
 export interface PartitionStepReceiver {
   receive(request: PartitionStepRequest, options?: { signal?: AbortSignal }): Promise<unknown>;
+  /** Host-authorized cancellation. Retains a bounded tombstone even before first delivery. */
   closeAttempt(identity: PartitionBinding): Promise<void>;
   close(): Promise<void>;
 }

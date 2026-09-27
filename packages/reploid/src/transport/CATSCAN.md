@@ -3,7 +3,7 @@
 Parent: [Reploid Browser Library](../../CATSCAN.md)
 
 ## Target
-Provide Poolday's WebRTC connections and authorized exchange among independently controlled network participants.
+Provide Poolday's WebRTC connections and authorized peer exchange.
 
 ## Authority
 Owns bounded setup/delivery/recovery, not models/UI/evaluation/adoption. Legacy swarm and complete-job protocols remain distinct.
@@ -12,10 +12,11 @@ Owns bounded setup/delivery/recovery, not models/UI/evaluation/adoption. Legacy 
 Subtree.
 
 ## Contracts
-Inputs: immutable policy and explicit host ports.
-The asynchronous `getRtcConfig` port supplies authorized ICE configuration per
-negotiation; transport never issues/persists credentials.
-Outputs: bounded operations, state, failures and retained evidence.
+Inputs: immutable policy and host ports. `getRtcConfig` supplies authorized ICE
+configuration; transport never issues/persists credentials.
+Outputs: bounded operations and evidence.
+Partition channels transfer binary requests and bounded JSON replies through
+required host authorization. Receipt/cancellation does not establish GPU settlement.
 
 ## Invariants
 - Imports are inert and application independent.
@@ -32,12 +33,13 @@ Outputs: bounded operations, state, failures and retained evidence.
 
 ## Acceptance
 Evidence: [contract tests](../../../../tests/unit/p2p-transport-lifecycle.test.js).
-Run tests/unit/p2p-transport-lifecycle.test.js, tests/e2e/peer-pack-jobs.spec.js. Account for transferred bytes, retries, cancellation and participant loss.
+Run tests/e2e/peer-pack-jobs.spec.js and tests/unit/partition-data-channel.test.js.
+Account for bytes, retries, cancellation and peer loss.
 
 ## Non-goals
-Application catalogs, credentials, product UI, scientific truth and deployment claims.
+Catalogs, credentials, UI, scientific truth or deployment claims.
 
 ## Freedom
-Preserve these boundaries and executable acceptance.
+Preserve boundaries and acceptance.
 
 *Last updated: September 2026*

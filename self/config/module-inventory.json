@@ -25423,7 +25423,7 @@
     {
       "path": "vendor/reploid/mesh/partitions/partition-step-receiver.js",
       "owner": "vendor",
-      "sha256": "sha256:0e8252f8dbf800989c01b1d52ec748a98f66c6a023c63d64ece064215c7db6b0",
+      "sha256": "sha256:d0dc50c4ad0065e23f0c4a79940c8ca0449e28063abe757a3e28930f4ac2fc3b",
       "imports": []
     },
     {
@@ -25467,16 +25467,31 @@
       ]
     },
     {
+      "path": "vendor/reploid/transport/bounded-channel-writer.js",
+      "owner": "vendor",
+      "sha256": "sha256:059424cb0a89301b8357ee45fc1c8d901fe087a4611c968a399e10c5d07702da",
+      "imports": []
+    },
+    {
       "path": "vendor/reploid/transport/index.js",
       "owner": "vendor",
-      "sha256": "sha256:259c64f745135714993c473609b99986f6b7286972ee9c453c55e750661c5d9f",
+      "sha256": "sha256:311bff5a3bd50a5f9d038887c417626c0716b941b1b211f8e65e4fc8ecc4d7f2",
       "imports": [
         "./assignment.js",
+        "./partition-data-channel.js",
         "./retry-policy.js",
         "./room.js",
         "./signaling.js",
         "./swarm.js",
         "./tool-offer-channel.js"
+      ]
+    },
+    {
+      "path": "vendor/reploid/transport/partition-data-channel.js",
+      "owner": "vendor",
+      "sha256": "sha256:4c11e4e5e654d0a37ecf9b9606d497ec6d63b7f11ed9d05a84182b1273f5411d",
+      "imports": [
+        "./bounded-channel-writer.js"
       ]
     },
     {

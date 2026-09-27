@@ -42,3 +42,13 @@ const invalidDiagnosticPolicy: DiagnosticPolicy = { ...diagnosticPolicy, objecti
 // @ts-expect-error observations require evidence identity
 const invalidDiagnosticObservation: import('../../packages/reploid/src/agent/diagnostic-strategy.js').DiagnosticObservation = { outcomeId: 'ok' };
 void [createBeliefPlanner, createDiagnosticInvestigation, invalidDiagnosticPolicy, invalidDiagnosticObservation];
+
+import { createPartitionDataChannel, type PartitionChannelLimits } from '../../packages/reploid/src/transport/index.js';
+export function partitionTransportContract(channel: RTCDataChannel, limits: PartitionChannelLimits) {
+  const endpoint = createPartitionDataChannel({ channel, limits, localParticipantId: 'a', remoteParticipantId: 'b',
+    authorize: async ({ action }) => action === 'send', serve: async () => ({ tokenId: 1 }) });
+  const result: Promise<Record<string, unknown>> = endpoint.request({ threadId: 'one' }, new Uint8Array([1]));
+  // @ts-expect-error binary activation data must not be encoded as an untyped array
+  endpoint.request({}, [1, 2, 3]);
+  return result;
+}

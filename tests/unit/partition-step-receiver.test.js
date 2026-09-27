@@ -2,20 +2,54 @@ import { createHash } from 'node:crypto';
 import { describe, it, expect, vi } from 'vitest';
 import { createPartitionStepReceiver } from '../../packages/reploid/src/mesh/partitions/partition-step-receiver.js';
 
-function fixture() {
+function fixture(limits = { maxAttempts: 8, maxSteps: 8 }) {
   const executeStep = vi.fn(async request => ({ token: request.payload + 1 }));
   const authorize = vi.fn(async () => true);
   const settleAttempt = vi.fn(async () => {});
-  const fingerprint = async request => 'sha256:' + createHash('sha256').update(JSON.stringify(request)).digest('hex');
+  const fingerprint = vi.fn(async request => 'sha256:' + createHash('sha256').update(JSON.stringify(request)).digest('hex'));
   const receiver = createPartitionStepReceiver({ executeStep, authorize, fingerprint, settleAttempt,
-    limits: { maxAttempts: 8, maxSteps: 8 } });
+    limits });
   const request = { identity: { modelId: 'model', modelIdentity: 'hash', planId: 'plan', threadId: 'thread',
     attemptId: 'attempt', participantA: 'a', participantB: 'b' },
   step: 0, tokenPosition: 0, inputTokenCount: 3, payload: 5, grant: { id: 'grant' } };
-  return { receiver, request, executeStep, authorize, settleAttempt };
+  return { receiver, request, executeStep, authorize, fingerprint, settleAttempt };
 }
 
 describe('partition receiver ordering (injected computation)', () => {
+  it.each(['authorize', 'fingerprint'])('remembers cancellation while the first %s call is pending', async port => {
+    const f = fixture();
+    let release, enter;
+    const entered = new Promise(resolve => { enter = resolve; });
+    const original = f[port].getMockImplementation();
+    f[port].mockImplementationOnce(async request => {
+      enter(); await new Promise(resolve => { release = resolve; });
+      return original(request);
+    });
+    const pending = f.receiver.receive(f.request);
+    const rejection = expect(pending).rejects.toThrow('retired');
+    await entered;
+    await f.receiver.closeAttempt(f.request.identity);
+    release();
+    await rejection;
+    await expect(f.receiver.receive(f.request)).rejects.toThrow('retired');
+    expect(f.executeStep).not.toHaveBeenCalled();
+    await f.receiver.close();
+    expect(f.settleAttempt).not.toHaveBeenCalled();
+  });
+
+  it('binds early cancellation to the complete identity and bounds retained tombstones', async () => {
+    const f = fixture({ maxAttempts: 1, maxSteps: 8 });
+    await f.receiver.closeAttempt(f.request.identity);
+    await expect(f.receiver.closeAttempt({ ...f.request.identity, threadId: 'other' })).rejects.toThrow('identity collision');
+    await expect(f.receiver.receive(f.request)).rejects.toThrow('retired');
+    const other = { ...f.request.identity, attemptId: 'other', threadId: 'other' };
+    await expect(f.receiver.closeAttempt(other)).rejects.toThrow('budget exhausted');
+    await expect(f.receiver.receive({ ...f.request, identity: other })).rejects.toThrow('budget exhausted');
+    await expect(f.receiver.closeAttempt({ attemptId: 'invalid' })).rejects.toThrow('Invalid partition');
+    expect(f.executeStep).not.toHaveBeenCalled();
+    await f.receiver.close();
+  });
+
   it('coalesces simultaneous duplicate deliveries and returns independently copied output', async () => {
     const f = fixture();
     const [a, b] = await Promise.all([f.receiver.receive(f.request), f.receiver.receive(f.request)]);

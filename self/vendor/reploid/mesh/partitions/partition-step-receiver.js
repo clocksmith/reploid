@@ -12,6 +12,17 @@ export function createPartitionStepReceiver({ executeStep, authorize, fingerprin
   const operations = new Set();
   let closed = false;
   const identityKeys = ['modelId', 'modelIdentity', 'planId', 'threadId', 'attemptId', 'participantA', 'participantB'];
+  const validIdentity = identity => identity && typeof identity === 'object' && !Array.isArray(identity)
+    && identityKeys.every(key => typeof identity[key] === 'string'
+      && identity[key].length > 0 && identity[key].length <= 256);
+  const bindingOf = identity => JSON.stringify(identityKeys.map(key => identity[key]));
+  const registerAttempt = identity => {
+    if (attempts.size >= maxAttempts) throw new Error('Partition receiver attempt budget exhausted');
+    const state = { binding: bindingOf(identity), identity: structuredClone(identity), nextStep: 0, nextPosition: 0,
+      last: null, retired: false, controller: new AbortController(), settlement: null };
+    attempts.set(identity.attemptId, state);
+    return state;
+  };
   const permit = async request => {
     if (closed || await authorize(structuredClone(request)) !== true) throw new Error('Partition receiver authorization declined');
     if (closed) throw new Error('Partition receiver closed');
@@ -22,8 +33,7 @@ export function createPartitionStepReceiver({ executeStep, authorize, fingerprin
     if (closed) throw new Error('Partition receiver closed');
     // Host ingress validates payload shape/byte budgets before this copy or hashing.
     const request = structuredClone(input);
-    if (!request.identity || !identityKeys.every(key => typeof request.identity[key] === 'string'
-      && request.identity[key].length > 0 && request.identity[key].length <= 256)
+    if (!validIdentity(request.identity)
       || !Number.isSafeInteger(request.step) || request.step < 0 || request.step >= maxSteps
       || !Number.isSafeInteger(request.tokenPosition) || request.tokenPosition < 0
       || !Number.isSafeInteger(request.inputTokenCount) || request.inputTokenCount <= 0) {
@@ -37,14 +47,11 @@ export function createPartitionStepReceiver({ executeStep, authorize, fingerprin
       signal?.throwIfAborted();
       if (closed) throw new Error('Partition receiver closed');
       const key = request.identity.attemptId;
-      const binding = JSON.stringify(identityKeys.map(name => request.identity[name]));
+      const binding = bindingOf(request.identity);
       let state = attempts.get(key);
       if (!state) {
         if (request.step !== 0 || request.tokenPosition !== 0) throw new Error('Partition attempt must start with prefill');
-        if (attempts.size >= maxAttempts) throw new Error('Partition receiver attempt budget exhausted');
-        state = { binding, identity: structuredClone(request.identity), nextStep: 0, nextPosition: 0,
-          last: null, retired: false, controller: new AbortController(), settlement: null };
-        attempts.set(key, state);
+        state = registerAttempt(request.identity);
       }
       if (state.binding !== binding) throw new Error('Partition attempt identity collision');
       if (state.retired) throw new Error('Partition attempt retired; start a new attempt');
@@ -86,9 +93,19 @@ export function createPartitionStepReceiver({ executeStep, authorize, fingerprin
   }
 
   function closeAttempt(identity) {
-    const state = attempts.get(identity.attemptId);
-    if (!state) return Promise.resolve();
-    if (state.binding !== JSON.stringify(identityKeys.map(name => identity[name]))) {
+    if (!validIdentity(identity)) return Promise.reject(new Error('Invalid partition settlement identity'));
+    let state = attempts.get(identity.attemptId);
+    if (!state) {
+      if (closed) return Promise.resolve();
+      try { state = registerAttempt(identity); }
+      catch (error) { return Promise.reject(error); }
+      // Cancellation may overtake the first step's authorization or hashing.
+      // Keep a bounded tombstone so that delayed ingress cannot acquire state.
+      state.retired = true;
+      state.settlement = Promise.resolve();
+      return state.settlement;
+    }
+    if (state.binding !== bindingOf(identity)) {
       return Promise.reject(new Error('Partition settlement identity collision'));
     }
     if (state.settlement) return state.settlement;
