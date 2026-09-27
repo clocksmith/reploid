@@ -51,6 +51,13 @@
       text(panel,'p',entity?.responsibility??item.subtitle??'');
       if(entity){text(panel,'h3','Owns');for(const d of entity.owns??[])text(panel,'p',d);text(panel,'h3','Does not own');for(const d of entity.excludes??[])text(panel,'p',d);text(panel,'h3','Independent use');text(panel,'p',entity.independence);}
     }
+    if(view().references?.length){
+      text(panel,'h3','Contracts and evidence');
+      for(const reference of view().references){
+        const row=text(panel,'p','');text(row,'small',reference.kind+' ');
+        const link=text(row,'a',reference.label);link.href=reference.url;link.target='_blank';link.rel='noopener noreferrer';
+      }
+    }
     $('#details').hidden=false;$('#details-toggle').setAttribute('aria-expanded','true');requestDraw();
   }
   function closeDetails(){$('#details').hidden=true;$('#details-toggle').setAttribute('aria-expanded','false');selected=null;requestDraw();}

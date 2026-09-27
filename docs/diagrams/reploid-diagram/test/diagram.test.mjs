@@ -3,7 +3,19 @@ import assert from 'node:assert/strict';
 import {readFile,writeFile} from 'node:fs/promises';
 import {validateDocument,edgePoints,arrowPoints,exportSVG} from '../source/core.mjs';
 const source=JSON.parse(await readFile(new URL('../diagram.json',import.meta.url),'utf8'));
-test('eight valid views',()=>assert.deepEqual(validateDocument(source).views.map(view=>view.id),['ecosystem','interfaces','improvement','placement','sequence','cancellation','recovery','adoption']));
+test('runtime improvement and engineering have separate valid views',()=>assert.deepEqual(validateDocument(source).views.map(view=>view.id),['ecosystem','interfaces','runtime-improvement','improvement','placement','sequence','cancellation','recovery','adoption']));
+test('contract references cannot execute scripts or embed credentials',()=>{
+  for(const url of ['javascript:alert(1)','data:text/html,<script>alert(1)</script>','//example.com','https://user:secret@example.com']){
+    const d=structuredClone(source);d.views[0].references=[{label:'Untrusted reference',kind:'evidence',url}];
+    assert.throws(()=>validateDocument(d),/HTTPS URL/);
+  }
+});
+test('references distinguish intent, implementation and recorded evidence',()=>{
+  const view=source.views.find(v=>v.id==='runtime-improvement');
+  assert.deepEqual([...new Set(view.references.map(r=>r.kind))],['intent','implementation','evidence']);
+  const d=structuredClone(source);d.views[0].references=[{label:'Claim',kind:'proven',url:'https://example.com'}];
+  assert.throws(()=>validateDocument(d),/Invalid contract reference/);
+});
 test('ecosystem asserts precisely A–B and B–C',()=>assert.deepEqual(source.views[0].edges.map(e=>[e.source,e.target,e.type]),[['A','B','symbiosis'],['B','C','symbiosis']]));
 test('mutual benefit is undirected',()=>assert.equal(source.edgeTypes.symbiosis.arrow,'none'));
 test('Doe is optional, never a required dependency',()=>{const e=source.views[1].edges.find(e=>e.source==='B'&&e.target==='C');assert.equal(e.type,'optional');});

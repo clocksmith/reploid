@@ -33,7 +33,7 @@ dialog{width:min(900px,94vw);height:86dvh;background:var(--surface);border:1px s
   "title": "Reploid · Doppler · Doe",
   "subtitle": "Products that stand alone. Cooperation that earns its benefits.",
   "status": "intended-architecture",
-  "basis": "Revision of the supplied diagram using the user-provided product descriptions and review feedback. No repository audit, implementation certification, benchmark verification or product-roadmap verification is asserted.",
+  "basis": "Reploid improvement ownership checked against GOALS.md, work-collaboration.md, rsi-improvement-episodes.md and the retained continuing-improvement report at 49425e01. Diagram validation is not a rerun of product, model, performance or independent-recipient experiments.",
   "defaultView": "ecosystem",
   "coordinates": {
     "origin": "top-left",
@@ -87,7 +87,7 @@ dialog{width:min(900px,94vw);height:86dvh;background:var(--surface);border:1px s
       "width": 1.8
     },
     "development": {
-      "label": "Development-time handoff",
+      "label": "Cross-project implementation handoff",
       "stroke": "solid",
       "arrow": "target",
       "width": 1.8
@@ -107,6 +107,12 @@ dialog{width:min(900px,94vw);height:86dvh;background:var(--surface);border:1px s
     "milestone": {
       "label": "Planned progression",
       "stroke": "dashed",
+      "arrow": "target",
+      "width": 1.8
+    },
+    "improvement": {
+      "label": "Granted runtime improvement",
+      "stroke": "solid",
       "arrow": "target",
       "width": 1.8
     }
@@ -614,10 +620,332 @@ dialog{width:min(900px,94vw);height:86dvh;background:var(--surface);border:1px s
       ]
     },
     {
+      "id": "runtime-improvement",
+      "kind": "graph",
+      "title": "Evolve",
+      "subtitle": "Reploid-owned runtime improvement: protected evaluation and reversible adoption under operator grants.",
+      "width": 1940,
+      "height": 1150,
+      "nodes": [
+        {
+          "id": "rp-observe",
+          "label": "Observed problem",
+          "subtitle": "Reploid retains the task outcome",
+          "x": 60,
+          "y": 220,
+          "width": 540,
+          "height": 245,
+          "body": [
+            "Identify failure or useful opportunity",
+            "Freeze the objective and baseline",
+            "Keep provenance and resource costs"
+          ],
+          "entity": "A"
+        },
+        {
+          "id": "rp-propose",
+          "label": "Proposed change",
+          "subtitle": "Agent proposes; authority stays separate",
+          "x": 700,
+          "y": 220,
+          "width": 540,
+          "height": 245,
+          "body": [
+            "Candidate tool or strategy generation",
+            "Declare a falsifiable hypothesis",
+            "Cannot edit evaluator or grant"
+          ],
+          "entity": "A"
+        },
+        {
+          "id": "rp-compare",
+          "label": "Protected comparison",
+          "subtitle": "Independent host evaluation",
+          "x": 1340,
+          "y": 220,
+          "width": 540,
+          "height": 245,
+          "body": [
+            "Isolated baseline/candidate execution",
+            "Frozen tests, metrics and thresholds",
+            "Retain failures and paired observations"
+          ],
+          "entity": "A"
+        },
+        {
+          "id": "rp-decide",
+          "label": "Adopt or reject",
+          "subtitle": "Separate operator-controlled decision",
+          "x": 1340,
+          "y": 670,
+          "width": 540,
+          "height": 245,
+          "body": [
+            "Passing does not activate a candidate",
+            "Adopt only within explicit grants",
+            "Keep prior version for rollback"
+          ],
+          "entity": "A"
+        },
+        {
+          "id": "rp-use",
+          "label": "Subsequent use",
+          "subtitle": "Reploid executes the selected version",
+          "x": 700,
+          "y": 670,
+          "width": 540,
+          "height": 245,
+          "body": [
+            "Pin versions for active tasks",
+            "Observe outcomes on subsequent work",
+            "Transfer requires its own evidence"
+          ],
+          "entity": "A"
+        },
+        {
+          "id": "rp-retain",
+          "label": "Outcomes and rollback",
+          "subtitle": "Reploid retains complete history",
+          "x": 60,
+          "y": 670,
+          "width": 540,
+          "height": 245,
+          "body": [
+            "Keep rejected and failed candidates",
+            "Restore prior version when authorized",
+            "Use outcomes for the next hypothesis"
+          ],
+          "entity": "A"
+        }
+      ],
+      "edges": [
+        {
+          "id": "rp-hypothesis",
+          "source": "rp-observe",
+          "target": "rp-propose",
+          "label": "Propose",
+          "type": "improvement",
+          "sourceAnchor": {
+            "side": "right",
+            "offset": 0.5
+          },
+          "targetAnchor": {
+            "side": "left",
+            "offset": 0.5
+          },
+          "labelWidth": 190,
+          "details": [],
+          "labelPosition": {
+            "x": 650,
+            "y": 190
+          }
+        },
+        {
+          "id": "rp-evaluate",
+          "source": "rp-propose",
+          "target": "rp-compare",
+          "label": "Evaluate",
+          "type": "improvement",
+          "sourceAnchor": {
+            "side": "right",
+            "offset": 0.5
+          },
+          "targetAnchor": {
+            "side": "left",
+            "offset": 0.5
+          },
+          "labelWidth": 190,
+          "details": [
+            "Candidate code cannot change the evaluator, task set, audit history, adoption policy or grants. Evaluation is host-controlled; the proposer cannot self-approve."
+          ],
+          "labelPosition": {
+            "x": 1290,
+            "y": 190
+          }
+        },
+        {
+          "id": "rp-decision",
+          "source": "rp-compare",
+          "target": "rp-decide",
+          "label": "Request decision",
+          "type": "improvement",
+          "sourceAnchor": {
+            "side": "bottom",
+            "offset": 0.5
+          },
+          "targetAnchor": {
+            "side": "top",
+            "offset": 0.5
+          },
+          "labelWidth": 190,
+          "details": [
+            "Evaluation results and explicit adoption are different authorities. Authorized runtime improvement does not wait for CI."
+          ],
+          "labelPosition": {
+            "x": 1610,
+            "y": 560
+          }
+        },
+        {
+          "id": "rp-adopt",
+          "source": "rp-decide",
+          "target": "rp-use",
+          "label": "If adopted",
+          "type": "conditional",
+          "sourceAnchor": {
+            "side": "left",
+            "offset": 0.5
+          },
+          "targetAnchor": {
+            "side": "right",
+            "offset": 0.5
+          },
+          "labelWidth": 190,
+          "details": [
+            "Work currently requires a separate operator action after active threads settle. Grants do not authorize publishing Doppler releases or patching Doe in place."
+          ],
+          "labelPosition": {
+            "x": 1290,
+            "y": 640
+          }
+        },
+        {
+          "id": "rp-observed-use",
+          "source": "rp-use",
+          "target": "rp-retain",
+          "label": "Retain results",
+          "type": "feedback",
+          "sourceAnchor": {
+            "side": "left",
+            "offset": 0.5
+          },
+          "targetAnchor": {
+            "side": "right",
+            "offset": 0.5
+          },
+          "labelWidth": 190,
+          "details": [],
+          "labelPosition": {
+            "x": 650,
+            "y": 640
+          }
+        },
+        {
+          "id": "rp-next",
+          "source": "rp-retain",
+          "target": "rp-observe",
+          "label": "Next hypothesis",
+          "type": "feedback",
+          "sourceAnchor": {
+            "side": "top",
+            "offset": 0.5
+          },
+          "targetAnchor": {
+            "side": "bottom",
+            "offset": 0.5
+          },
+          "labelWidth": 190,
+          "details": [
+            "The next proposal may use retained outcomes. This arrow does not prove causal recursion or transfer to unfamiliar tasks. Rollback remains separately authorized."
+          ],
+          "labelPosition": {
+            "x": 330,
+            "y": 560
+          }
+        },
+        {
+          "id": "rp-rejected",
+          "source": "rp-decide",
+          "target": "rp-retain",
+          "label": "Rejected / failed: retain current version",
+          "type": "feedback",
+          "sourceAnchor": {
+            "side": "bottom",
+            "offset": 0.5
+          },
+          "targetAnchor": {
+            "side": "bottom",
+            "offset": 0.5
+          },
+          "labelWidth": 560,
+          "details": [],
+          "labelPosition": {
+            "x": 970,
+            "y": 1000
+          },
+          "waypoints": [
+            {
+              "x": 1610,
+              "y": 1000
+            },
+            {
+              "x": 330,
+              "y": 1000
+            }
+          ]
+        }
+      ],
+      "notes": [
+        {
+          "id": "runtime-owner",
+          "x": 60,
+          "y": 95,
+          "width": 1820,
+          "height": 80,
+          "label": "Product operation, owned by Reploid",
+          "text": "The intended scope includes tools and strategies. Work implements bounded pure-tool replacement; Zero/X has a separate internal episode lane."
+        },
+        {
+          "id": "runtime-evidence",
+          "x": 60,
+          "y": 1040,
+          "width": 1820,
+          "height": 90,
+          "label": "Intent, implementation and outcomes have separate evidence",
+          "text": "Fixture-based tool adoption is recorded. The retained model attempts did not qualify a repair; independent-recipient adoption and causal recursion remain unproved. Select a node or edge for the owning contracts and report."
+        }
+      ],
+      "legend": [
+        "improvement",
+        "conditional",
+        "feedback"
+      ],
+      "timing": "authorized-runtime",
+      "loopIds": [
+        "loop-reploid"
+      ],
+      "status": "documented-bounded-implementation",
+      "relatedViews": [
+        "improvement"
+      ],
+      "references": [
+        {
+          "label": "Reploid goals and operator authority",
+          "url": "https://github.com/clocksmith/reploid/blob/49425e01/GOALS.md",
+          "kind": "intent"
+        },
+        {
+          "label": "Work tool evaluation, adoption and rollback",
+          "url": "https://github.com/clocksmith/reploid/blob/49425e01/docs/work-collaboration.md",
+          "kind": "implementation"
+        },
+        {
+          "label": "Zero/X protected improvement episodes",
+          "url": "https://github.com/clocksmith/reploid/blob/49425e01/docs/rsi-improvement-episodes.md",
+          "kind": "implementation"
+        },
+        {
+          "label": "Retained results and unproved milestones",
+          "url": "https://github.com/clocksmith/reploid/blob/49425e01/artifacts/continuing-improvement-2026-09-20/report.json",
+          "kind": "evidence"
+        }
+      ]
+    },
+    {
       "id": "improvement",
       "kind": "graph",
       "title": "Improve",
-      "subtitle": "Development-time feedback: reproducible problems become independently validated, explicitly adopted improvements.",
+      "subtitle": "Cross-project implementation improvement: each project owns changes, validation and release; recipients choose adoption.",
       "width": 1940,
       "height": 1200,
       "nodes": [
@@ -991,23 +1319,46 @@ dialog{width:min(900px,94vw);height:86dvh;background:var(--surface);border:1px s
           "width": 1840,
           "height": 90,
           "label": "Measure benefit and development efficiency",
-          "text": "Track reproduction-to-verified-improvement time, application outcomes, regressions and independent transfer. This loop is not a runtime gate."
+          "text": "Track reproduction-to-verified-improvement time, application outcomes, regressions and independent transfer. This engineering loop does not gate granted Reploid runtime improvement."
         }
       ],
       "legend": [
         "development",
         "feedback"
       ],
-      "timing": "development-time",
+      "timing": "cross-project-engineering",
       "loopIds": [
         "loop-ab",
         "loop-bc"
       ],
       "status": "intended-architecture",
       "relatedViews": [
+        "runtime-improvement",
         "ecosystem",
         "interfaces",
         "adoption"
+      ],
+      "references": [
+        {
+          "label": "Reploid goals and operator authority",
+          "url": "https://github.com/clocksmith/reploid/blob/49425e01/GOALS.md",
+          "kind": "intent"
+        },
+        {
+          "label": "Work tool evaluation, adoption and rollback",
+          "url": "https://github.com/clocksmith/reploid/blob/49425e01/docs/work-collaboration.md",
+          "kind": "implementation"
+        },
+        {
+          "label": "Doppler Rig / Capsule / Run ownership",
+          "url": "https://github.com/clocksmith/doppler/blob/473bb358/docs/architecture.md",
+          "kind": "implementation"
+        },
+        {
+          "label": "Doe ordinary execution and integration goals",
+          "url": "https://github.com/clocksmith/doe/blob/89ecba41/GOALS.md",
+          "kind": "intent"
+        }
       ]
     },
     {
@@ -2399,10 +2750,11 @@ dialog{width:min(900px,94vw);height:86dvh;background:var(--surface);border:1px s
       ]
     }
   ],
-  "documentVersion": "2.0.0",
+  "documentVersion": "2.1.0",
   "readingOrder": [
     "ecosystem",
     "interfaces",
+    "runtime-improvement",
     "improvement",
     "placement",
     "sequence",
@@ -2426,7 +2778,7 @@ dialog{width:min(900px,94vw);height:86dvh;background:var(--surface);border:1px s
     "default": "intended, not demonstrated",
     "milestones": "planned; require evidence before a capability claim",
     "performance": "A material application advantage under predeclared regression limits, not simultaneous improvement in every metric.",
-    "independence": "Separate evaluation, release and adoption authority. Runtime activity under valid grants is not gated by the development-time improvement loop."
+    "independence": "Separate proposal, protected evaluation and reversible adoption. Reploid runtime improvement under valid grants is independent of CI and cross-project release engineering."
   },
   "relationships": [
     {
@@ -2688,6 +3040,29 @@ dialog{width:min(900px,94vw);height:86dvh;background:var(--surface);border:1px s
   },
   "improvementLoops": [
     {
+      "id": "loop-reploid",
+      "view": "runtime-improvement",
+      "nodes": [
+        "rp-observe",
+        "rp-propose",
+        "rp-compare",
+        "rp-decide",
+        "rp-use",
+        "rp-retain"
+      ],
+      "returnEdge": "rp-next",
+      "timing": "authorized-runtime",
+      "owner": "Reploid",
+      "evaluationOwner": "Protected independent host evaluator",
+      "adoptionOwner": "Recipient operator under explicit reversible grants",
+      "contracts": [
+        "GOALS.md",
+        "docs/work-collaboration.md",
+        "docs/rsi-improvement-episodes.md"
+      ],
+      "evidence": "artifacts/continuing-improvement-2026-09-20/report.json"
+    },
+    {
       "id": "loop-ab",
       "relationshipId": "A-B",
       "view": "improvement",
@@ -2698,7 +3073,7 @@ dialog{width:min(900px,94vw);height:86dvh;background:var(--surface);border:1px s
         "ab-adopt"
       ],
       "returnEdge": "ab-outcomes",
-      "timing": "development-time",
+      "timing": "cross-project-engineering",
       "modelChangesThrough": "Rig preparation and qualification",
       "adoptionOwner": "Reploid application/operator"
     },
@@ -2713,7 +3088,7 @@ dialog{width:min(900px,94vw);height:86dvh;background:var(--surface);border:1px s
         "bc-adopt"
       ],
       "returnEdge": "bc-outcomes",
-      "timing": "development-time",
+      "timing": "cross-project-engineering",
       "validation": "Unchanged Doppler application plus independent applications on matched hardware",
       "releaseOwner": "Doe",
       "adoptionOwner": "Each consuming application/provider host"
@@ -2748,6 +3123,14 @@ function validateDocument(input) {
     if (!['graph','sequence'].includes(view.kind)) fail(`Unknown view kind: ${view.kind}.`);
     if (![view.width,view.height].every(n=>finite(n)&&n>0)) fail(`Invalid view size: ${view.id}.`);
     if (!string(view.title,160)||!string(view.subtitle??'',1000)) fail('Invalid view text.');
+    if (!Array.isArray(view.references??[])||(view.references??[]).length>20) fail('Invalid view references.');
+    for (const reference of view.references??[]) {
+      if (!reference||!string(reference.label,180)||!reference.label||!string(reference.url,2000)
+        ||!['intent','implementation','evidence'].includes(reference.kind)) fail('Invalid contract reference.');
+      let url;
+      try { url=new URL(reference.url); } catch { fail('Contract references require an absolute HTTPS URL.'); }
+      if (url.protocol!=='https:'||url.username||url.password) fail('Contract references require an absolute HTTPS URL without credentials.');
+    }
     if (!Array.isArray(view.nodes)||!Array.isArray(view.edges)||view.nodes.length>500||view.edges.length>2000) fail('Too many or missing nodes/edges.');
     const ids=new Set();
     for (const n of view.nodes) {
@@ -2904,6 +3287,13 @@ function exportSVG(doc,view) {
       const entity=doc.entities?.find(e=>e.id===item.entity);
       text(panel,'p',entity?.responsibility??item.subtitle??'');
       if(entity){text(panel,'h3','Owns');for(const d of entity.owns??[])text(panel,'p',d);text(panel,'h3','Does not own');for(const d of entity.excludes??[])text(panel,'p',d);text(panel,'h3','Independent use');text(panel,'p',entity.independence);}
+    }
+    if(view().references?.length){
+      text(panel,'h3','Contracts and evidence');
+      for(const reference of view().references){
+        const row=text(panel,'p','');text(row,'small',reference.kind+' ');
+        const link=text(row,'a',reference.label);link.href=reference.url;link.target='_blank';link.rel='noopener noreferrer';
+      }
     }
     $('#details').hidden=false;$('#details-toggle').setAttribute('aria-expanded','true');requestDraw();
   }

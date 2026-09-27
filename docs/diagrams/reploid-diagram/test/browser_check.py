@@ -7,7 +7,7 @@ with sync_playwright() as p:
  errors=[];page.on('pageerror',lambda e: errors.append(str(e)))
  page.set_content((root/'index.html').read_text());page.wait_for_selector('[data-node="A"]')
  assert page.locator('[data-node]').count()==3
- assert page.get_by_role('tab').count()==8
+ assert page.get_by_role('tab').count()==9
  assert page.evaluate('window.diagramEditor.getRenderer()')=='svg'
  page.screenshot(path=str(root/'test/ecosystem-preview.png'))
  page.get_by_role('tab',name='Interfaces',exact=True).click()
@@ -17,9 +17,20 @@ with sync_playwright() as p:
  page.get_by_role('tab',name='Stream',exact=True).click();page.wait_for_timeout(150)
  assert page.locator('[data-edge]').count()==10
  page.screenshot(path=str(root/'test/sequence-preview.png'))
- for name, edge_count in [('Improve',8),('Placement',3),('Cancel',10),('Recover',7),('Adopt',3)]:
+ for name, edge_count in [('Evolve',7),('Improve',8),('Placement',3),('Cancel',10),('Recover',7),('Adopt',3)]:
   page.get_by_role('tab',name=name,exact=True).click();page.wait_for_timeout(100)
   assert page.locator('[data-edge]').count()==edge_count
+ page.get_by_role('tab',name='Evolve',exact=True).click();page.wait_for_timeout(100)
+ page.screenshot(path=str(root/'test/runtime-improvement-preview.png'))
+ page.locator('[data-edge="rp-evaluate"] text').click()
+ assert 'cannot self-approve' in page.locator('#details').inner_text()
+ references=page.locator('#details-content a')
+ assert references.count()==4
+ for link in references.all():
+  assert link.get_attribute('href').startswith('https://github.com/clocksmith/reploid/blob/49425e01/')
+  assert link.get_attribute('rel')=='noopener noreferrer'
+ assert 'Retained results and unproved milestones' in page.locator('#details').inner_text()
+ page.locator('#details-close').click()
  page.get_by_role('tab',name='Products',exact=True).click();page.wait_for_timeout(100)
  page.locator('[data-edge="A-B"]').click()
  assert page.locator('#details').is_visible()
@@ -46,4 +57,4 @@ with sync_playwright() as p:
  page.screenshot(path=str(root/'test/mobile-preview.png'))
  assert errors==[],errors
  browser.close()
-print('PASS: offline SVG; all 8 views; inspector links; JSON validation; dragging; JSON/SVG export; mobile width; no uncaught page errors.')
+print('PASS: offline SVG; all 9 views; authority and evidence links; JSON validation; dragging; JSON/SVG export; mobile width; no uncaught page errors.')

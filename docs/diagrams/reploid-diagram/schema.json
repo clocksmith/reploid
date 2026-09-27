@@ -26,6 +26,11 @@
     "entities": {"type": "array", "items": {"type": "object"}}
   },
   "$defs": {
+    "reference": {"type": "object", "required": ["label", "url", "kind"], "properties": {
+      "label": {"type": "string", "minLength": 1, "maxLength": 180},
+      "url": {"type": "string", "format": "uri", "pattern": "^https://", "maxLength": 2000},
+      "kind": {"enum": ["intent", "implementation", "evidence"]}
+    }},
     "coordinate": {"type": "number", "minimum": -100000, "maximum": 100000},
     "point": {"type": "object", "required": ["x", "y"], "properties": {"x": {"$ref": "#/$defs/coordinate"}, "y": {"$ref": "#/$defs/coordinate"}}},
     "anchor": {"type": "object", "required": ["side", "offset"], "properties": {"side": {"enum": ["top", "right", "bottom", "left"]}, "offset": {"type": "number", "minimum": 0, "maximum": 1}}},
@@ -68,6 +73,7 @@
         "height": {"type": "number", "exclusiveMinimum": 0, "maximum": 100000},
         "nodes": {"type": "array", "maxItems": 500, "items": {"$ref": "#/$defs/node"}},
         "edges": {"type": "array", "maxItems": 2000, "items": {"$ref": "#/$defs/edge"}},
+        "references": {"type": "array", "maxItems": 20, "items": {"$ref": "#/$defs/reference"}},
         "legend": {"type": "array", "items": {"type": "string"}},
         "lifelineEnd": {"type": "number", "minimum": 0, "maximum": 100000}
       },

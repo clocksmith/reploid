@@ -3,108 +3,120 @@
 > node --test test/*.test.mjs
 
 TAP version 13
-# Subtest: eight valid views
-ok 1 - eight valid views
+# Subtest: runtime improvement and engineering have separate valid views
+ok 1 - runtime improvement and engineering have separate valid views
   ---
-  duration_ms: 2.048167
+  duration_ms: 2.983533
+  type: 'test'
+  ...
+# Subtest: contract references cannot execute scripts or embed credentials
+ok 2 - contract references cannot execute scripts or embed credentials
+  ---
+  duration_ms: 3.229076
+  type: 'test'
+  ...
+# Subtest: references distinguish intent, implementation and recorded evidence
+ok 3 - references distinguish intent, implementation and recorded evidence
+  ---
+  duration_ms: 0.527344
   type: 'test'
   ...
 # Subtest: ecosystem asserts precisely A–B and B–C
-ok 2 - ecosystem asserts precisely A–B and B–C
+ok 4 - ecosystem asserts precisely A–B and B–C
   ---
-  duration_ms: 0.108666
+  duration_ms: 0.138451
   type: 'test'
   ...
 # Subtest: mutual benefit is undirected
-ok 3 - mutual benefit is undirected
+ok 5 - mutual benefit is undirected
   ---
-  duration_ms: 0.0485
+  duration_ms: 0.086874
   type: 'test'
   ...
 # Subtest: Doe is optional, never a required dependency
-ok 4 - Doe is optional, never a required dependency
+ok 6 - Doe is optional, never a required dependency
   ---
-  duration_ms: 0.046541
+  duration_ms: 0.060053
   type: 'test'
   ...
 # Subtest: invalid endpoints rejected
-ok 5 - invalid endpoints rejected
+ok 7 - invalid endpoints rejected
   ---
-  duration_ms: 0.395208
+  duration_ms: 0.498369
   type: 'test'
   ...
 # Subtest: nonfinite bounds rejected
-ok 6 - nonfinite bounds rejected
+ok 8 - nonfinite bounds rejected
   ---
-  duration_ms: 0.274667
+  duration_ms: 0.44587
   type: 'test'
   ...
 # Subtest: duplicate view IDs rejected
-ok 7 - duplicate view IDs rejected
+ok 9 - duplicate view IDs rejected
   ---
-  duration_ms: 0.345375
+  duration_ms: 0.605561
   type: 'test'
   ...
 # Subtest: duplicate nodes rejected
-ok 8 - duplicate nodes rejected
+ok 10 - duplicate nodes rejected
   ---
-  duration_ms: 0.2595
+  duration_ms: 1.130901
   type: 'test'
   ...
 # Subtest: invalid SVG colors rejected
-ok 9 - invalid SVG colors rejected
+ok 11 - invalid SVG colors rejected
   ---
-  duration_ms: 0.407417
+  duration_ms: 0.47796
   type: 'test'
   ...
 # Subtest: unknown line style rejected
-ok 10 - unknown line style rejected
+ok 12 - unknown line style rejected
   ---
-  duration_ms: 0.473375
+  duration_ms: 0.384084
   type: 'test'
   ...
 # Subtest: inputs detached on acceptance
-ok 11 - inputs detached on acceptance
+ok 13 - inputs detached on acceptance
   ---
-  duration_ms: 0.373916
+  duration_ms: 0.574002
   type: 'test'
   ...
 # Subtest: graph routes from box boundaries
-ok 12 - graph routes from box boundaries
+ok 14 - graph routes from box boundaries
   ---
-  duration_ms: 0.094916
+  duration_ms: 0.145754
   type: 'test'
   ...
 # Subtest: sequence routes between lifeline centers
-ok 13 - sequence routes between lifeline centers
+ok 15 - sequence routes between lifeline centers
   ---
-  duration_ms: 0.036
+  duration_ms: 0.049663
   type: 'test'
   ...
 # Subtest: HTML in labels is escaped, never executable
-ok 14 - HTML in labels is escaped, never executable
+ok 16 - HTML in labels is escaped, never executable
   ---
-  duration_ms: 0.668208
+  duration_ms: 1.016446
   type: 'test'
   ...
 # Subtest: arrow points backward from the endpoint
-ok 15 - arrow points backward from the endpoint
+ok 17 - arrow points backward from the endpoint
   ---
-  duration_ms: 0.047667
+  duration_ms: 0.09013
   type: 'test'
   ...
 # Subtest: all views export valid bounded SVG documents
-ok 16 - all views export valid bounded SVG documents
+ok 18 - all views export valid bounded SVG documents
   ---
-  duration_ms: 6.636042
+  duration_ms: 8.390663
   type: 'test'
   ...
-1..16
-# tests 16
+1..18
+# tests 18
 # suites 0
-# pass 16
+# pass 18
 # fail 0
 # cancelled 0
 # skipped 0
 # todo 0
-# duration_ms 49.244833
+# duration_ms 109.298083
