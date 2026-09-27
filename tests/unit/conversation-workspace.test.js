@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { renderConversationWorkspace, bindConversationWorkspace } from '../../self/ui/pool-home/conversation-workspace.js';
-import { createChatSession } from '../../self/host/chat-session.js';
+import { createChatSession, CANONICAL_CHAT_MODELS } from '../../self/host/chat-session.js';
 import { createChatTestService } from '../fixtures/chat-service.js';
 
 describe('Conversation workspace', () => {
@@ -9,7 +9,7 @@ describe('Conversation workspace', () => {
   beforeEach(() => {
     root = document.createElement('div'); document.body.append(root);
     service = createChatTestService();
-    session = createChatSession({ storage: null, service });
+    session = createChatSession({ storage: null, service, models: [CANONICAL_CHAT_MODELS[1]] });
     root.innerHTML = renderConversationWorkspace();
     dispose = bindConversationWorkspace(root, session);
   });
@@ -23,6 +23,7 @@ describe('Conversation workspace', () => {
   });
 
   it('starts directly, appends followups and pins the conversation model', async () => {
+    session.createThread({ sharingScope: 'local' });
     const submit = text => {
       find('[data-composer-input]').value = text;
       find('[data-composer-form]').dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
@@ -34,7 +35,7 @@ describe('Conversation workspace', () => {
     submit('Followup');
     await vi.waitFor(() => expect(session.getState().activeThread.messages).toHaveLength(4));
     await vi.waitFor(() => expect(session.getState().activeThread.attempts[1].status).toBe('completed'));
-    expect(service.calls[0].source).toBe('qwen-3-5-2b-q4k-ehaf16');
+    expect(service.calls[0].source).toBe(CANONICAL_CHAT_MODELS[1].id);
   });
 
   it('keeps drafts separate while selecting threads and starting a new one', () => {
@@ -59,7 +60,7 @@ describe('Conversation workspace', () => {
 
   it('surfaces execution failures instead of invented answers', async () => {
     service.open = async () => { throw new Error('GPU unavailable'); };
-    const thread = session.createThread();
+    const thread = session.createThread({ sharingScope: 'local' });
     await session.send(thread, 'Hello');
     expect(find('[data-chat-error]').hidden).toBe(false);
     expect(find('[data-chat-error]').textContent).toBe('GPU unavailable');
@@ -77,7 +78,7 @@ describe('Conversation workspace', () => {
   });
 
   it('keeps another thread running when the selected thread is cancelled', async () => {
-    const first = session.createThread(), second = session.createThread();
+    const first = session.createThread({ sharingScope: 'local' }), second = session.createThread({ sharingScope: 'local' });
     const a = session.send(first, 'First'), b = session.send(second, 'Second');
     session.select(first);
     find('[data-composer-stop]').click();

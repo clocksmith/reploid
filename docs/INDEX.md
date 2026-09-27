@@ -48,6 +48,7 @@ Guide to all documentation in the REPLOID project.
 - **[docs/poolday/discovery-contract.md](./poolday/discovery-contract.md)** - Target atomic active-science object, action-value boundary, epistemic updates, replication, and closure
 
 ### Reference
+- **[Doppler resident partition handoff](./doppler-partition-handoff.md)** - Reploid session API, ownership and executable integration/accuracy checks
 - **[Architecture stabilization](./architecture-stabilization.md)** - Integration baseline, execution ownership, persistence and verification boundaries
 - **[docs/API.md](./API.md)** - Module API documentation
 - **[docs/status/surface-claim-index.json](./status/surface-claim-index.json)** - Machine-checked surface status, evidence, blockers, and claim permission

@@ -1,0 +1,11 @@
+Generated application library assets: 145 files
+[genesis-manifest] Skipping /home/clocksmith/deco/reploid/self/experimental/openclaw-audit/index.js: document is not defined
+[genesis-manifest] Wrote /home/clocksmith/deco/reploid/self/config/genesis-levels.json
+[module-inventory] Wrote /home/clocksmith/deco/reploid/self/config/module-inventory.json with 2303 modules
+[blueprint-registry] Unchanged registry: 98 executable owners, 176 declarations
+[module-registry] Unchanged /home/clocksmith/deco/reploid/self/config/module-registry.json
+[vfs-manifest] Wrote /home/clocksmith/deco/reploid/self/config/vfs-manifest.json
+[validate] {"sourceFiles":2303,"modules":68,"blueprintDeclarations":176,"executableOwners":98,"unresolved":0}
+[validate] Inventoried helpers: 2133; modules without an architectural blueprint: 18
+[browser-bundle] Wrote /home/clocksmith/deco/reploid/self/config/browser-bundle-manifest.json with 4554 served files as sha256:9b8d0239adc3204817779f3176b0416b43f494a477381bb85eeacd5652e0b56b
+All generated manifests identical on second run.

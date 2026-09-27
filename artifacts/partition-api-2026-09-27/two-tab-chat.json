@@ -1,0 +1,1374 @@
+{
+  "scope": "Reploid integration: real RTC certificate-bound peer proofs and signed grants, injected Doppler execution",
+  "snapshots": [
+    {
+      "log": {
+        "opens": [
+          0
+        ],
+        "steps": [
+          {
+            "index": 0,
+            "threadId": "8df95204-3252-4fd0-a14b-0457c944ea1d",
+            "attemptId": "1fe3290f-5f7d-4db4-81cf-2269e0abd57e",
+            "step": 0,
+            "tokenPosition": 0,
+            "tokenIds": [
+              1
+            ]
+          },
+          {
+            "index": 0,
+            "threadId": "67e4ee01-7de5-4f4d-9310-a7ca9e1f6b6d",
+            "attemptId": "2e6c0e9c-f554-4297-9d7c-eda8e2417db2",
+            "step": 0,
+            "tokenPosition": 0,
+            "tokenIds": [
+              10
+            ]
+          },
+          {
+            "index": 0,
+            "threadId": "8df95204-3252-4fd0-a14b-0457c944ea1d",
+            "attemptId": "1fe3290f-5f7d-4db4-81cf-2269e0abd57e",
+            "step": 1,
+            "tokenPosition": 1,
+            "tokenIds": [
+              2
+            ]
+          },
+          {
+            "index": 0,
+            "threadId": "67e4ee01-7de5-4f4d-9310-a7ca9e1f6b6d",
+            "attemptId": "2e6c0e9c-f554-4297-9d7c-eda8e2417db2",
+            "step": 1,
+            "tokenPosition": 1,
+            "tokenIds": [
+              11
+            ]
+          },
+          {
+            "index": 0,
+            "threadId": "8df95204-3252-4fd0-a14b-0457c944ea1d",
+            "attemptId": "1fe3290f-5f7d-4db4-81cf-2269e0abd57e",
+            "step": 2,
+            "tokenPosition": 2,
+            "tokenIds": [
+              3
+            ]
+          },
+          {
+            "index": 0,
+            "threadId": "67e4ee01-7de5-4f4d-9310-a7ca9e1f6b6d",
+            "attemptId": "2e6c0e9c-f554-4297-9d7c-eda8e2417db2",
+            "step": 2,
+            "tokenPosition": 2,
+            "tokenIds": [
+              12
+            ]
+          },
+          {
+            "index": 0,
+            "threadId": "8df95204-3252-4fd0-a14b-0457c944ea1d",
+            "attemptId": "16bd541a-bae8-409b-ad7b-2f9b8251ae3a",
+            "step": 0,
+            "tokenPosition": 0,
+            "tokenIds": [
+              20
+            ]
+          },
+          {
+            "index": 0,
+            "threadId": "8df95204-3252-4fd0-a14b-0457c944ea1d",
+            "attemptId": "4c99173a-f613-4bcc-874d-52dc49979576",
+            "step": 0,
+            "tokenPosition": 0,
+            "tokenIds": [
+              30
+            ]
+          },
+          {
+            "index": 0,
+            "threadId": "8df95204-3252-4fd0-a14b-0457c944ea1d",
+            "attemptId": "4c99173a-f613-4bcc-874d-52dc49979576",
+            "step": 1,
+            "tokenPosition": 1,
+            "tokenIds": [
+              31
+            ]
+          },
+          {
+            "index": 0,
+            "threadId": "8df95204-3252-4fd0-a14b-0457c944ea1d",
+            "attemptId": "4c99173a-f613-4bcc-874d-52dc49979576",
+            "step": 2,
+            "tokenPosition": 2,
+            "tokenIds": [
+              32
+            ]
+          },
+          {
+            "index": 0,
+            "threadId": "67e4ee01-7de5-4f4d-9310-a7ca9e1f6b6d",
+            "attemptId": "733e1de8-fd5b-4eaf-bea0-aedc6d0ccfff",
+            "step": 0,
+            "tokenPosition": 0,
+            "tokenIds": [
+              40
+            ]
+          }
+        ],
+        "tokenizations": [
+          [
+            {
+              "role": "user",
+              "content": "1"
+            }
+          ],
+          [
+            {
+              "role": "user",
+              "content": "10"
+            }
+          ],
+          [
+            {
+              "role": "user",
+              "content": "1"
+            },
+            {
+              "role": "assistant",
+              "content": "2 3 4 "
+            },
+            {
+              "role": "user",
+              "content": "20"
+            }
+          ],
+          [
+            {
+              "role": "user",
+              "content": "1"
+            },
+            {
+              "role": "assistant",
+              "content": "2 3 4 "
+            },
+            {
+              "role": "user",
+              "content": "30"
+            }
+          ],
+          [
+            {
+              "role": "user",
+              "content": "10"
+            },
+            {
+              "role": "assistant",
+              "content": "11 12 13 "
+            },
+            {
+              "role": "user",
+              "content": "40"
+            }
+          ]
+        ],
+        "settlements": [
+          {
+            "index": 0,
+            "attemptId": "1fe3290f-5f7d-4db4-81cf-2269e0abd57e"
+          },
+          {
+            "index": 0,
+            "attemptId": "2e6c0e9c-f554-4297-9d7c-eda8e2417db2"
+          },
+          {
+            "index": 0,
+            "attemptId": "16bd541a-bae8-409b-ad7b-2f9b8251ae3a"
+          },
+          {
+            "index": 0,
+            "attemptId": "4c99173a-f613-4bcc-874d-52dc49979576"
+          },
+          {
+            "index": 0,
+            "attemptId": "733e1de8-fd5b-4eaf-bea0-aedc6d0ccfff"
+          }
+        ],
+        "closes": []
+      },
+      "proofs": [
+        "peer:ff7509d2aecde594008f6d7d"
+      ],
+      "workspace": {
+        "schema": "reploid.chat-workspace/v1",
+        "meshId": "browser-split",
+        "participantId": "peer:f0c599357c50f31052d4c18f",
+        "selectedId": "67e4ee01-7de5-4f4d-9310-a7ca9e1f6b6d",
+        "threads": [
+          {
+            "id": "8df95204-3252-4fd0-a14b-0457c944ea1d",
+            "model": {
+              "id": "partition-fixture",
+              "name": "Injected partition model",
+              "provider": "doppler",
+              "identity": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "adapters": [],
+              "selectionId": "partition-fixture/partition/sha256:9880d065e00d3c4e3d2e7da14a0a34fc8542d10540dcdff570f3601e3f9d33b6",
+              "partition": {
+                "planId": "sha256:9880d065e00d3c4e3d2e7da14a0a34fc8542d10540dcdff570f3601e3f9d33b6",
+                "participantA": "peer:f0c599357c50f31052d4c18f",
+                "participantB": "peer:ff7509d2aecde594008f6d7d"
+              },
+              "availability": "ready",
+              "providerIds": [
+                "peer:f0c599357c50f31052d4c18f",
+                "peer:ff7509d2aecde594008f6d7d"
+              ],
+              "placement": "two-device-layer-partition"
+            },
+            "purpose": "",
+            "members": [
+              "peer:f0c599357c50f31052d4c18f"
+            ],
+            "permissions": {
+              "sharingScope": "invited-mesh"
+            },
+            "grants": [
+              {
+                "id": "fa0fe86b-eb05-4100-a11b-04a21978331a",
+                "meshId": "browser-split",
+                "threadId": "8df95204-3252-4fd0-a14b-0457c944ea1d",
+                "recipientIdentity": "peer:ff7509d2aecde594008f6d7d",
+                "modelId": "partition-fixture",
+                "modelIdentity": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "adapterIdentities": [],
+                "sharingScope": "invited-mesh",
+                "disclosure": "partition-activations",
+                "planId": "sha256:9880d065e00d3c4e3d2e7da14a0a34fc8542d10540dcdff570f3601e3f9d33b6",
+                "participantA": "peer:f0c599357c50f31052d4c18f",
+                "createdAt": 1790535758987,
+                "revokedAt": 1790535760072
+              },
+              {
+                "id": "05d66e18-4e5a-4ddd-b58e-895e1fc0370d",
+                "meshId": "browser-split",
+                "threadId": "8df95204-3252-4fd0-a14b-0457c944ea1d",
+                "recipientIdentity": "peer:ff7509d2aecde594008f6d7d",
+                "modelId": "partition-fixture",
+                "modelIdentity": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "adapterIdentities": [],
+                "sharingScope": "invited-mesh",
+                "disclosure": "partition-activations",
+                "planId": "sha256:9880d065e00d3c4e3d2e7da14a0a34fc8542d10540dcdff570f3601e3f9d33b6",
+                "participantA": "peer:f0c599357c50f31052d4c18f",
+                "createdAt": 1790535761007,
+                "revokedAt": null
+              }
+            ],
+            "messages": [
+              {
+                "id": "19f73a25-40ca-4595-b1bf-e5eeba6d4cb9",
+                "role": "user",
+                "content": "1",
+                "status": "completed"
+              },
+              {
+                "id": "661af10d-1fb5-4e2c-9ed0-2c6a3a223505",
+                "attemptId": "1fe3290f-5f7d-4db4-81cf-2269e0abd57e",
+                "role": "assistant",
+                "content": "2 3 4 ",
+                "status": "completed"
+              },
+              {
+                "id": "0d8c9fe1-ecaa-43c1-96ad-cb3b6d2abb8c",
+                "role": "user",
+                "content": "20",
+                "status": "completed"
+              },
+              {
+                "id": "5f1b8330-c805-40a7-94b6-55ea6ece3b03",
+                "attemptId": "16bd541a-bae8-409b-ad7b-2f9b8251ae3a",
+                "role": "assistant",
+                "content": "",
+                "status": "cancelled"
+              },
+              {
+                "id": "9192d247-7abe-4d9b-a3fe-dffae2d5d053",
+                "role": "user",
+                "content": "30",
+                "status": "completed"
+              },
+              {
+                "id": "ce00899b-055b-4aef-b8b9-2dff4aadd306",
+                "attemptId": "4c99173a-f613-4bcc-874d-52dc49979576",
+                "role": "assistant",
+                "content": "31 32 33 ",
+                "status": "completed"
+              }
+            ],
+            "attempts": [
+              {
+                "id": "1fe3290f-5f7d-4db4-81cf-2269e0abd57e",
+                "threadId": "8df95204-3252-4fd0-a14b-0457c944ea1d",
+                "userMessageId": "19f73a25-40ca-4595-b1bf-e5eeba6d4cb9",
+                "responseId": "661af10d-1fb5-4e2c-9ed0-2c6a3a223505",
+                "retryOf": null,
+                "status": "completed",
+                "createdAt": 1790535758938,
+                "finishedAt": 1790535759104,
+                "error": null,
+                "approval": null,
+                "execution": {
+                  "schema": "reploid.mesh.partition-execution/v2",
+                  "modelId": "partition-fixture",
+                  "modelIdentity": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "planId": "sha256:9880d065e00d3c4e3d2e7da14a0a34fc8542d10540dcdff570f3601e3f9d33b6",
+                  "threadId": "8df95204-3252-4fd0-a14b-0457c944ea1d",
+                  "attemptId": "1fe3290f-5f7d-4db4-81cf-2269e0abd57e",
+                  "participantA": "peer:f0c599357c50f31052d4c18f",
+                  "participantB": "peer:ff7509d2aecde594008f6d7d",
+                  "placement": "two-device-layer-partition",
+                  "splitLayer": 2,
+                  "activationBytes": 96,
+                  "steps": [
+                    {
+                      "step": 0,
+                      "tokenPosition": 0,
+                      "inputTokenCount": 1,
+                      "tokenId": 2,
+                      "activationBytes": 32,
+                      "transferMs": null,
+                      "remoteStepMs": 16.299999237060547,
+                      "elapsedMs": 22.5
+                    },
+                    {
+                      "step": 1,
+                      "tokenPosition": 1,
+                      "inputTokenCount": 1,
+                      "tokenId": 3,
+                      "activationBytes": 32,
+                      "transferMs": null,
+                      "remoteStepMs": 10.5,
+                      "elapsedMs": 17.899999618530273
+                    },
+                    {
+                      "step": 2,
+                      "tokenPosition": 2,
+                      "inputTokenCount": 1,
+                      "tokenId": 4,
+                      "activationBytes": 32,
+                      "transferMs": null,
+                      "remoteStepMs": 7.59999942779541,
+                      "elapsedMs": 10.100000381469727
+                    }
+                  ],
+                  "provider": "peer",
+                  "transport": {
+                    "schema": "reploid.partition-channel/v1",
+                    "sentFrameBytes": 15258,
+                    "receivedFrameBytes": 4909,
+                    "sentFrames": 15,
+                    "receivedFrames": 18,
+                    "completedRequests": 9,
+                    "cancelledRequests": 0,
+                    "discardedFrames": 0,
+                    "pendingRequests": 1,
+                    "inboundRequests": 0,
+                    "reservedBytes": 32,
+                    "closed": false,
+                    "wireBytes": null,
+                    "relayBytes": null
+                  }
+                },
+                "authorization": {
+                  "kind": "thread-grant",
+                  "grantId": "fa0fe86b-eb05-4100-a11b-04a21978331a",
+                  "peerId": "peer:ff7509d2aecde594008f6d7d",
+                  "recipientIdentity": "peer:ff7509d2aecde594008f6d7d"
+                },
+                "request": {
+                  "model": {
+                    "id": "partition-fixture",
+                    "name": "Injected partition model",
+                    "provider": "doppler",
+                    "identity": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                    "adapters": [],
+                    "selectionId": "partition-fixture/partition/sha256:9880d065e00d3c4e3d2e7da14a0a34fc8542d10540dcdff570f3601e3f9d33b6",
+                    "partition": {
+                      "planId": "sha256:9880d065e00d3c4e3d2e7da14a0a34fc8542d10540dcdff570f3601e3f9d33b6",
+                      "participantA": "peer:f0c599357c50f31052d4c18f",
+                      "participantB": "peer:ff7509d2aecde594008f6d7d"
+                    },
+                    "availability": "ready",
+                    "providerIds": [
+                      "peer:f0c599357c50f31052d4c18f",
+                      "peer:ff7509d2aecde594008f6d7d"
+                    ],
+                    "placement": "two-device-layer-partition"
+                  },
+                  "permissions": {
+                    "sharingScope": "invited-mesh"
+                  },
+                  "members": [
+                    "peer:f0c599357c50f31052d4c18f"
+                  ],
+                  "messages": [
+                    {
+                      "role": "user",
+                      "content": "1"
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "16bd541a-bae8-409b-ad7b-2f9b8251ae3a",
+                "threadId": "8df95204-3252-4fd0-a14b-0457c944ea1d",
+                "userMessageId": "0d8c9fe1-ecaa-43c1-96ad-cb3b6d2abb8c",
+                "responseId": "5f1b8330-c805-40a7-94b6-55ea6ece3b03",
+                "retryOf": null,
+                "status": "cancelled",
+                "createdAt": 1790535760041,
+                "finishedAt": 1790535760090,
+                "error": "Conversation grant revoked",
+                "approval": null,
+                "execution": {
+                  "placement": "two-device-layer-partition",
+                  "planId": "sha256:9880d065e00d3c4e3d2e7da14a0a34fc8542d10540dcdff570f3601e3f9d33b6",
+                  "participantA": "peer:f0c599357c50f31052d4c18f",
+                  "participantB": "peer:ff7509d2aecde594008f6d7d"
+                },
+                "authorization": {
+                  "kind": "thread-grant",
+                  "grantId": "fa0fe86b-eb05-4100-a11b-04a21978331a",
+                  "peerId": "peer:ff7509d2aecde594008f6d7d",
+                  "recipientIdentity": "peer:ff7509d2aecde594008f6d7d",
+                  "modelId": "partition-fixture",
+                  "modelIdentity": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "adapterIdentities": [],
+                  "sharingScope": "invited-mesh",
+                  "disclosure": "partition-activations",
+                  "planId": "sha256:9880d065e00d3c4e3d2e7da14a0a34fc8542d10540dcdff570f3601e3f9d33b6",
+                  "participantA": "peer:f0c599357c50f31052d4c18f"
+                },
+                "request": {
+                  "model": {
+                    "id": "partition-fixture",
+                    "name": "Injected partition model",
+                    "provider": "doppler",
+                    "identity": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                    "adapters": [],
+                    "selectionId": "partition-fixture/partition/sha256:9880d065e00d3c4e3d2e7da14a0a34fc8542d10540dcdff570f3601e3f9d33b6",
+                    "partition": {
+                      "planId": "sha256:9880d065e00d3c4e3d2e7da14a0a34fc8542d10540dcdff570f3601e3f9d33b6",
+                      "participantA": "peer:f0c599357c50f31052d4c18f",
+                      "participantB": "peer:ff7509d2aecde594008f6d7d"
+                    },
+                    "availability": "ready",
+                    "providerIds": [
+                      "peer:f0c599357c50f31052d4c18f",
+                      "peer:ff7509d2aecde594008f6d7d"
+                    ],
+                    "placement": "two-device-layer-partition"
+                  },
+                  "permissions": {
+                    "sharingScope": "invited-mesh"
+                  },
+                  "members": [
+                    "peer:f0c599357c50f31052d4c18f"
+                  ],
+                  "messages": [
+                    {
+                      "role": "user",
+                      "content": "1"
+                    },
+                    {
+                      "role": "assistant",
+                      "content": "2 3 4 "
+                    },
+                    {
+                      "role": "user",
+                      "content": "20"
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "4c99173a-f613-4bcc-874d-52dc49979576",
+                "threadId": "8df95204-3252-4fd0-a14b-0457c944ea1d",
+                "userMessageId": "9192d247-7abe-4d9b-a3fe-dffae2d5d053",
+                "responseId": "ce00899b-055b-4aef-b8b9-2dff4aadd306",
+                "retryOf": null,
+                "status": "completed",
+                "createdAt": 1790535760990,
+                "finishedAt": 1790535761049,
+                "error": null,
+                "approval": null,
+                "execution": {
+                  "schema": "reploid.mesh.partition-execution/v2",
+                  "modelId": "partition-fixture",
+                  "modelIdentity": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "planId": "sha256:9880d065e00d3c4e3d2e7da14a0a34fc8542d10540dcdff570f3601e3f9d33b6",
+                  "threadId": "8df95204-3252-4fd0-a14b-0457c944ea1d",
+                  "attemptId": "4c99173a-f613-4bcc-874d-52dc49979576",
+                  "participantA": "peer:f0c599357c50f31052d4c18f",
+                  "participantB": "peer:ff7509d2aecde594008f6d7d",
+                  "placement": "two-device-layer-partition",
+                  "splitLayer": 2,
+                  "activationBytes": 96,
+                  "steps": [
+                    {
+                      "step": 0,
+                      "tokenPosition": 0,
+                      "inputTokenCount": 1,
+                      "tokenId": 31,
+                      "activationBytes": 32,
+                      "transferMs": null,
+                      "remoteStepMs": 8.200000762939453,
+                      "elapsedMs": 12.799999237060547
+                    },
+                    {
+                      "step": 1,
+                      "tokenPosition": 1,
+                      "inputTokenCount": 1,
+                      "tokenId": 32,
+                      "activationBytes": 32,
+                      "transferMs": null,
+                      "remoteStepMs": 6.699999809265137,
+                      "elapsedMs": 10.600000381469727
+                    },
+                    {
+                      "step": 2,
+                      "tokenPosition": 2,
+                      "inputTokenCount": 1,
+                      "tokenId": 33,
+                      "activationBytes": 32,
+                      "transferMs": null,
+                      "remoteStepMs": 4.59999942779541,
+                      "elapsedMs": 7.700000762939453
+                    }
+                  ],
+                  "provider": "peer",
+                  "transport": {
+                    "schema": "reploid.partition-channel/v1",
+                    "sentFrameBytes": 29021,
+                    "receivedFrameBytes": 9072,
+                    "sentFrames": 30,
+                    "receivedFrames": 37,
+                    "completedRequests": 18,
+                    "cancelledRequests": 1,
+                    "discardedFrames": 0,
+                    "pendingRequests": 0,
+                    "inboundRequests": 0,
+                    "reservedBytes": 0,
+                    "closed": false,
+                    "wireBytes": null,
+                    "relayBytes": null
+                  }
+                },
+                "authorization": {
+                  "kind": "thread-grant",
+                  "grantId": "05d66e18-4e5a-4ddd-b58e-895e1fc0370d",
+                  "peerId": "peer:ff7509d2aecde594008f6d7d",
+                  "recipientIdentity": "peer:ff7509d2aecde594008f6d7d"
+                },
+                "request": {
+                  "model": {
+                    "id": "partition-fixture",
+                    "name": "Injected partition model",
+                    "provider": "doppler",
+                    "identity": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                    "adapters": [],
+                    "selectionId": "partition-fixture/partition/sha256:9880d065e00d3c4e3d2e7da14a0a34fc8542d10540dcdff570f3601e3f9d33b6",
+                    "partition": {
+                      "planId": "sha256:9880d065e00d3c4e3d2e7da14a0a34fc8542d10540dcdff570f3601e3f9d33b6",
+                      "participantA": "peer:f0c599357c50f31052d4c18f",
+                      "participantB": "peer:ff7509d2aecde594008f6d7d"
+                    },
+                    "availability": "ready",
+                    "providerIds": [
+                      "peer:f0c599357c50f31052d4c18f",
+                      "peer:ff7509d2aecde594008f6d7d"
+                    ],
+                    "placement": "two-device-layer-partition"
+                  },
+                  "permissions": {
+                    "sharingScope": "invited-mesh"
+                  },
+                  "members": [
+                    "peer:f0c599357c50f31052d4c18f"
+                  ],
+                  "messages": [
+                    {
+                      "role": "user",
+                      "content": "1"
+                    },
+                    {
+                      "role": "assistant",
+                      "content": "2 3 4 "
+                    },
+                    {
+                      "role": "user",
+                      "content": "30"
+                    }
+                  ]
+                }
+              }
+            ],
+            "closed": false,
+            "createdAt": 1790535758935
+          },
+          {
+            "id": "67e4ee01-7de5-4f4d-9310-a7ca9e1f6b6d",
+            "model": {
+              "id": "partition-fixture",
+              "name": "Injected partition model",
+              "provider": "doppler",
+              "identity": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "adapters": [],
+              "selectionId": "partition-fixture/partition/sha256:9880d065e00d3c4e3d2e7da14a0a34fc8542d10540dcdff570f3601e3f9d33b6",
+              "partition": {
+                "planId": "sha256:9880d065e00d3c4e3d2e7da14a0a34fc8542d10540dcdff570f3601e3f9d33b6",
+                "participantA": "peer:f0c599357c50f31052d4c18f",
+                "participantB": "peer:ff7509d2aecde594008f6d7d"
+              },
+              "availability": "ready",
+              "providerIds": [
+                "peer:f0c599357c50f31052d4c18f",
+                "peer:ff7509d2aecde594008f6d7d"
+              ],
+              "placement": "two-device-layer-partition"
+            },
+            "purpose": "",
+            "members": [
+              "peer:f0c599357c50f31052d4c18f"
+            ],
+            "permissions": {
+              "sharingScope": "invited-mesh"
+            },
+            "grants": [
+              {
+                "id": "f0e7f151-523b-4a23-bcae-1e723f728e8c",
+                "meshId": "browser-split",
+                "threadId": "67e4ee01-7de5-4f4d-9310-a7ca9e1f6b6d",
+                "recipientIdentity": "peer:ff7509d2aecde594008f6d7d",
+                "modelId": "partition-fixture",
+                "modelIdentity": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "adapterIdentities": [],
+                "sharingScope": "invited-mesh",
+                "disclosure": "partition-activations",
+                "planId": "sha256:9880d065e00d3c4e3d2e7da14a0a34fc8542d10540dcdff570f3601e3f9d33b6",
+                "participantA": "peer:f0c599357c50f31052d4c18f",
+                "createdAt": 1790535758990,
+                "revokedAt": null
+              }
+            ],
+            "messages": [
+              {
+                "id": "ad1fbeb8-2bbe-4dc7-b4c1-d76ab4f04751",
+                "role": "user",
+                "content": "10",
+                "status": "completed"
+              },
+              {
+                "id": "7a0ae2fb-fcb8-4648-b3db-1a1cafc4ece7",
+                "attemptId": "2e6c0e9c-f554-4297-9d7c-eda8e2417db2",
+                "role": "assistant",
+                "content": "11 12 13 ",
+                "status": "completed"
+              },
+              {
+                "id": "98222854-17f7-4d8e-9490-5f63ee48e0fd",
+                "role": "user",
+                "content": "40",
+                "status": "completed"
+              },
+              {
+                "id": "06e2f66f-0e54-4ff4-b031-6334a2548a5c",
+                "attemptId": "733e1de8-fd5b-4eaf-bea0-aedc6d0ccfff",
+                "role": "assistant",
+                "content": "",
+                "status": "failed"
+              }
+            ],
+            "attempts": [
+              {
+                "id": "2e6c0e9c-f554-4297-9d7c-eda8e2417db2",
+                "threadId": "67e4ee01-7de5-4f4d-9310-a7ca9e1f6b6d",
+                "userMessageId": "ad1fbeb8-2bbe-4dc7-b4c1-d76ab4f04751",
+                "responseId": "7a0ae2fb-fcb8-4648-b3db-1a1cafc4ece7",
+                "retryOf": null,
+                "status": "completed",
+                "createdAt": 1790535758946,
+                "finishedAt": 1790535759119,
+                "error": null,
+                "approval": null,
+                "execution": {
+                  "schema": "reploid.mesh.partition-execution/v2",
+                  "modelId": "partition-fixture",
+                  "modelIdentity": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "planId": "sha256:9880d065e00d3c4e3d2e7da14a0a34fc8542d10540dcdff570f3601e3f9d33b6",
+                  "threadId": "67e4ee01-7de5-4f4d-9310-a7ca9e1f6b6d",
+                  "attemptId": "2e6c0e9c-f554-4297-9d7c-eda8e2417db2",
+                  "participantA": "peer:f0c599357c50f31052d4c18f",
+                  "participantB": "peer:ff7509d2aecde594008f6d7d",
+                  "placement": "two-device-layer-partition",
+                  "splitLayer": 2,
+                  "activationBytes": 96,
+                  "steps": [
+                    {
+                      "step": 0,
+                      "tokenPosition": 0,
+                      "inputTokenCount": 1,
+                      "tokenId": 11,
+                      "activationBytes": 32,
+                      "transferMs": null,
+                      "remoteStepMs": 9,
+                      "elapsedMs": 17.300000190734863
+                    },
+                    {
+                      "step": 1,
+                      "tokenPosition": 1,
+                      "inputTokenCount": 1,
+                      "tokenId": 12,
+                      "activationBytes": 32,
+                      "transferMs": null,
+                      "remoteStepMs": 9.399999618530273,
+                      "elapsedMs": 16.100000381469727
+                    },
+                    {
+                      "step": 2,
+                      "tokenPosition": 2,
+                      "inputTokenCount": 1,
+                      "tokenId": 13,
+                      "activationBytes": 32,
+                      "transferMs": null,
+                      "remoteStepMs": 12.200000762939453,
+                      "elapsedMs": 20.399999618530273
+                    }
+                  ],
+                  "provider": "peer",
+                  "transport": {
+                    "schema": "reploid.partition-channel/v1",
+                    "sentFrameBytes": 16782,
+                    "receivedFrameBytes": 5738,
+                    "sentFrames": 17,
+                    "receivedFrames": 22,
+                    "completedRequests": 11,
+                    "cancelledRequests": 0,
+                    "discardedFrames": 0,
+                    "pendingRequests": 0,
+                    "inboundRequests": 0,
+                    "reservedBytes": 0,
+                    "closed": false,
+                    "wireBytes": null,
+                    "relayBytes": null
+                  }
+                },
+                "authorization": {
+                  "kind": "thread-grant",
+                  "grantId": "f0e7f151-523b-4a23-bcae-1e723f728e8c",
+                  "peerId": "peer:ff7509d2aecde594008f6d7d",
+                  "recipientIdentity": "peer:ff7509d2aecde594008f6d7d"
+                },
+                "request": {
+                  "model": {
+                    "id": "partition-fixture",
+                    "name": "Injected partition model",
+                    "provider": "doppler",
+                    "identity": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                    "adapters": [],
+                    "selectionId": "partition-fixture/partition/sha256:9880d065e00d3c4e3d2e7da14a0a34fc8542d10540dcdff570f3601e3f9d33b6",
+                    "partition": {
+                      "planId": "sha256:9880d065e00d3c4e3d2e7da14a0a34fc8542d10540dcdff570f3601e3f9d33b6",
+                      "participantA": "peer:f0c599357c50f31052d4c18f",
+                      "participantB": "peer:ff7509d2aecde594008f6d7d"
+                    },
+                    "availability": "ready",
+                    "providerIds": [
+                      "peer:f0c599357c50f31052d4c18f",
+                      "peer:ff7509d2aecde594008f6d7d"
+                    ],
+                    "placement": "two-device-layer-partition"
+                  },
+                  "permissions": {
+                    "sharingScope": "invited-mesh"
+                  },
+                  "members": [
+                    "peer:f0c599357c50f31052d4c18f"
+                  ],
+                  "messages": [
+                    {
+                      "role": "user",
+                      "content": "10"
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "733e1de8-fd5b-4eaf-bea0-aedc6d0ccfff",
+                "threadId": "67e4ee01-7de5-4f4d-9310-a7ca9e1f6b6d",
+                "userMessageId": "98222854-17f7-4d8e-9490-5f63ee48e0fd",
+                "responseId": "06e2f66f-0e54-4ff4-b031-6334a2548a5c",
+                "retryOf": null,
+                "status": "failed",
+                "createdAt": 1790535762037,
+                "finishedAt": 1790535762058,
+                "error": "Partition attempt settlement failed",
+                "approval": null,
+                "execution": {
+                  "placement": "two-device-layer-partition",
+                  "planId": "sha256:9880d065e00d3c4e3d2e7da14a0a34fc8542d10540dcdff570f3601e3f9d33b6",
+                  "participantA": "peer:f0c599357c50f31052d4c18f",
+                  "participantB": "peer:ff7509d2aecde594008f6d7d"
+                },
+                "authorization": {
+                  "kind": "thread-grant",
+                  "grantId": "f0e7f151-523b-4a23-bcae-1e723f728e8c",
+                  "peerId": "peer:ff7509d2aecde594008f6d7d",
+                  "recipientIdentity": "peer:ff7509d2aecde594008f6d7d",
+                  "modelId": "partition-fixture",
+                  "modelIdentity": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "adapterIdentities": [],
+                  "sharingScope": "invited-mesh",
+                  "disclosure": "partition-activations",
+                  "planId": "sha256:9880d065e00d3c4e3d2e7da14a0a34fc8542d10540dcdff570f3601e3f9d33b6",
+                  "participantA": "peer:f0c599357c50f31052d4c18f"
+                },
+                "request": {
+                  "model": {
+                    "id": "partition-fixture",
+                    "name": "Injected partition model",
+                    "provider": "doppler",
+                    "identity": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                    "adapters": [],
+                    "selectionId": "partition-fixture/partition/sha256:9880d065e00d3c4e3d2e7da14a0a34fc8542d10540dcdff570f3601e3f9d33b6",
+                    "partition": {
+                      "planId": "sha256:9880d065e00d3c4e3d2e7da14a0a34fc8542d10540dcdff570f3601e3f9d33b6",
+                      "participantA": "peer:f0c599357c50f31052d4c18f",
+                      "participantB": "peer:ff7509d2aecde594008f6d7d"
+                    },
+                    "availability": "ready",
+                    "providerIds": [
+                      "peer:f0c599357c50f31052d4c18f",
+                      "peer:ff7509d2aecde594008f6d7d"
+                    ],
+                    "placement": "two-device-layer-partition"
+                  },
+                  "permissions": {
+                    "sharingScope": "invited-mesh"
+                  },
+                  "members": [
+                    "peer:f0c599357c50f31052d4c18f"
+                  ],
+                  "messages": [
+                    {
+                      "role": "user",
+                      "content": "10"
+                    },
+                    {
+                      "role": "assistant",
+                      "content": "11 12 13 "
+                    },
+                    {
+                      "role": "user",
+                      "content": "40"
+                    }
+                  ]
+                }
+              }
+            ],
+            "closed": false,
+            "createdAt": 1790535758944
+          }
+        ],
+        "runningIds": [],
+        "storageError": null,
+        "activeThread": {
+          "id": "67e4ee01-7de5-4f4d-9310-a7ca9e1f6b6d",
+          "model": {
+            "id": "partition-fixture",
+            "name": "Injected partition model",
+            "provider": "doppler",
+            "identity": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "adapters": [],
+            "selectionId": "partition-fixture/partition/sha256:9880d065e00d3c4e3d2e7da14a0a34fc8542d10540dcdff570f3601e3f9d33b6",
+            "partition": {
+              "planId": "sha256:9880d065e00d3c4e3d2e7da14a0a34fc8542d10540dcdff570f3601e3f9d33b6",
+              "participantA": "peer:f0c599357c50f31052d4c18f",
+              "participantB": "peer:ff7509d2aecde594008f6d7d"
+            },
+            "availability": "ready",
+            "providerIds": [
+              "peer:f0c599357c50f31052d4c18f",
+              "peer:ff7509d2aecde594008f6d7d"
+            ],
+            "placement": "two-device-layer-partition"
+          },
+          "purpose": "",
+          "members": [
+            "peer:f0c599357c50f31052d4c18f"
+          ],
+          "permissions": {
+            "sharingScope": "invited-mesh"
+          },
+          "grants": [
+            {
+              "id": "f0e7f151-523b-4a23-bcae-1e723f728e8c",
+              "meshId": "browser-split",
+              "threadId": "67e4ee01-7de5-4f4d-9310-a7ca9e1f6b6d",
+              "recipientIdentity": "peer:ff7509d2aecde594008f6d7d",
+              "modelId": "partition-fixture",
+              "modelIdentity": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "adapterIdentities": [],
+              "sharingScope": "invited-mesh",
+              "disclosure": "partition-activations",
+              "planId": "sha256:9880d065e00d3c4e3d2e7da14a0a34fc8542d10540dcdff570f3601e3f9d33b6",
+              "participantA": "peer:f0c599357c50f31052d4c18f",
+              "createdAt": 1790535758990,
+              "revokedAt": null
+            }
+          ],
+          "messages": [
+            {
+              "id": "ad1fbeb8-2bbe-4dc7-b4c1-d76ab4f04751",
+              "role": "user",
+              "content": "10",
+              "status": "completed"
+            },
+            {
+              "id": "7a0ae2fb-fcb8-4648-b3db-1a1cafc4ece7",
+              "attemptId": "2e6c0e9c-f554-4297-9d7c-eda8e2417db2",
+              "role": "assistant",
+              "content": "11 12 13 ",
+              "status": "completed"
+            },
+            {
+              "id": "98222854-17f7-4d8e-9490-5f63ee48e0fd",
+              "role": "user",
+              "content": "40",
+              "status": "completed"
+            },
+            {
+              "id": "06e2f66f-0e54-4ff4-b031-6334a2548a5c",
+              "attemptId": "733e1de8-fd5b-4eaf-bea0-aedc6d0ccfff",
+              "role": "assistant",
+              "content": "",
+              "status": "failed"
+            }
+          ],
+          "attempts": [
+            {
+              "id": "2e6c0e9c-f554-4297-9d7c-eda8e2417db2",
+              "threadId": "67e4ee01-7de5-4f4d-9310-a7ca9e1f6b6d",
+              "userMessageId": "ad1fbeb8-2bbe-4dc7-b4c1-d76ab4f04751",
+              "responseId": "7a0ae2fb-fcb8-4648-b3db-1a1cafc4ece7",
+              "retryOf": null,
+              "status": "completed",
+              "createdAt": 1790535758946,
+              "finishedAt": 1790535759119,
+              "error": null,
+              "approval": null,
+              "execution": {
+                "schema": "reploid.mesh.partition-execution/v2",
+                "modelId": "partition-fixture",
+                "modelIdentity": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "planId": "sha256:9880d065e00d3c4e3d2e7da14a0a34fc8542d10540dcdff570f3601e3f9d33b6",
+                "threadId": "67e4ee01-7de5-4f4d-9310-a7ca9e1f6b6d",
+                "attemptId": "2e6c0e9c-f554-4297-9d7c-eda8e2417db2",
+                "participantA": "peer:f0c599357c50f31052d4c18f",
+                "participantB": "peer:ff7509d2aecde594008f6d7d",
+                "placement": "two-device-layer-partition",
+                "splitLayer": 2,
+                "activationBytes": 96,
+                "steps": [
+                  {
+                    "step": 0,
+                    "tokenPosition": 0,
+                    "inputTokenCount": 1,
+                    "tokenId": 11,
+                    "activationBytes": 32,
+                    "transferMs": null,
+                    "remoteStepMs": 9,
+                    "elapsedMs": 17.300000190734863
+                  },
+                  {
+                    "step": 1,
+                    "tokenPosition": 1,
+                    "inputTokenCount": 1,
+                    "tokenId": 12,
+                    "activationBytes": 32,
+                    "transferMs": null,
+                    "remoteStepMs": 9.399999618530273,
+                    "elapsedMs": 16.100000381469727
+                  },
+                  {
+                    "step": 2,
+                    "tokenPosition": 2,
+                    "inputTokenCount": 1,
+                    "tokenId": 13,
+                    "activationBytes": 32,
+                    "transferMs": null,
+                    "remoteStepMs": 12.200000762939453,
+                    "elapsedMs": 20.399999618530273
+                  }
+                ],
+                "provider": "peer",
+                "transport": {
+                  "schema": "reploid.partition-channel/v1",
+                  "sentFrameBytes": 16782,
+                  "receivedFrameBytes": 5738,
+                  "sentFrames": 17,
+                  "receivedFrames": 22,
+                  "completedRequests": 11,
+                  "cancelledRequests": 0,
+                  "discardedFrames": 0,
+                  "pendingRequests": 0,
+                  "inboundRequests": 0,
+                  "reservedBytes": 0,
+                  "closed": false,
+                  "wireBytes": null,
+                  "relayBytes": null
+                }
+              },
+              "authorization": {
+                "kind": "thread-grant",
+                "grantId": "f0e7f151-523b-4a23-bcae-1e723f728e8c",
+                "peerId": "peer:ff7509d2aecde594008f6d7d",
+                "recipientIdentity": "peer:ff7509d2aecde594008f6d7d"
+              },
+              "request": {
+                "model": {
+                  "id": "partition-fixture",
+                  "name": "Injected partition model",
+                  "provider": "doppler",
+                  "identity": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "adapters": [],
+                  "selectionId": "partition-fixture/partition/sha256:9880d065e00d3c4e3d2e7da14a0a34fc8542d10540dcdff570f3601e3f9d33b6",
+                  "partition": {
+                    "planId": "sha256:9880d065e00d3c4e3d2e7da14a0a34fc8542d10540dcdff570f3601e3f9d33b6",
+                    "participantA": "peer:f0c599357c50f31052d4c18f",
+                    "participantB": "peer:ff7509d2aecde594008f6d7d"
+                  },
+                  "availability": "ready",
+                  "providerIds": [
+                    "peer:f0c599357c50f31052d4c18f",
+                    "peer:ff7509d2aecde594008f6d7d"
+                  ],
+                  "placement": "two-device-layer-partition"
+                },
+                "permissions": {
+                  "sharingScope": "invited-mesh"
+                },
+                "members": [
+                  "peer:f0c599357c50f31052d4c18f"
+                ],
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "10"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "733e1de8-fd5b-4eaf-bea0-aedc6d0ccfff",
+              "threadId": "67e4ee01-7de5-4f4d-9310-a7ca9e1f6b6d",
+              "userMessageId": "98222854-17f7-4d8e-9490-5f63ee48e0fd",
+              "responseId": "06e2f66f-0e54-4ff4-b031-6334a2548a5c",
+              "retryOf": null,
+              "status": "failed",
+              "createdAt": 1790535762037,
+              "finishedAt": 1790535762058,
+              "error": "Partition attempt settlement failed",
+              "approval": null,
+              "execution": {
+                "placement": "two-device-layer-partition",
+                "planId": "sha256:9880d065e00d3c4e3d2e7da14a0a34fc8542d10540dcdff570f3601e3f9d33b6",
+                "participantA": "peer:f0c599357c50f31052d4c18f",
+                "participantB": "peer:ff7509d2aecde594008f6d7d"
+              },
+              "authorization": {
+                "kind": "thread-grant",
+                "grantId": "f0e7f151-523b-4a23-bcae-1e723f728e8c",
+                "peerId": "peer:ff7509d2aecde594008f6d7d",
+                "recipientIdentity": "peer:ff7509d2aecde594008f6d7d",
+                "modelId": "partition-fixture",
+                "modelIdentity": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "adapterIdentities": [],
+                "sharingScope": "invited-mesh",
+                "disclosure": "partition-activations",
+                "planId": "sha256:9880d065e00d3c4e3d2e7da14a0a34fc8542d10540dcdff570f3601e3f9d33b6",
+                "participantA": "peer:f0c599357c50f31052d4c18f"
+              },
+              "request": {
+                "model": {
+                  "id": "partition-fixture",
+                  "name": "Injected partition model",
+                  "provider": "doppler",
+                  "identity": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "adapters": [],
+                  "selectionId": "partition-fixture/partition/sha256:9880d065e00d3c4e3d2e7da14a0a34fc8542d10540dcdff570f3601e3f9d33b6",
+                  "partition": {
+                    "planId": "sha256:9880d065e00d3c4e3d2e7da14a0a34fc8542d10540dcdff570f3601e3f9d33b6",
+                    "participantA": "peer:f0c599357c50f31052d4c18f",
+                    "participantB": "peer:ff7509d2aecde594008f6d7d"
+                  },
+                  "availability": "ready",
+                  "providerIds": [
+                    "peer:f0c599357c50f31052d4c18f",
+                    "peer:ff7509d2aecde594008f6d7d"
+                  ],
+                  "placement": "two-device-layer-partition"
+                },
+                "permissions": {
+                  "sharingScope": "invited-mesh"
+                },
+                "members": [
+                  "peer:f0c599357c50f31052d4c18f"
+                ],
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "10"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "11 12 13 "
+                  },
+                  {
+                    "role": "user",
+                    "content": "40"
+                  }
+                ]
+              }
+            }
+          ],
+          "closed": false,
+          "createdAt": 1790535758944
+        },
+        "models": [
+          {
+            "id": "partition-fixture",
+            "name": "Injected partition model",
+            "provider": "doppler",
+            "identity": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "adapters": [],
+            "availability": "unavailable",
+            "providerIds": []
+          },
+          {
+            "id": "partition-fixture",
+            "name": "Injected partition model",
+            "provider": "doppler",
+            "identity": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "adapters": [],
+            "selectionId": "partition-fixture/partition/sha256:9880d065e00d3c4e3d2e7da14a0a34fc8542d10540dcdff570f3601e3f9d33b6",
+            "partition": {
+              "planId": "sha256:9880d065e00d3c4e3d2e7da14a0a34fc8542d10540dcdff570f3601e3f9d33b6",
+              "participantA": "peer:f0c599357c50f31052d4c18f",
+              "participantB": "peer:ff7509d2aecde594008f6d7d"
+            },
+            "availability": "unavailable",
+            "providerIds": [
+              "peer:f0c599357c50f31052d4c18f",
+              "peer:ff7509d2aecde594008f6d7d"
+            ],
+            "placement": "two-device-layer-partition"
+          }
+        ],
+        "defaultModel": {
+          "id": "partition-fixture",
+          "name": "Injected partition model",
+          "provider": "doppler",
+          "identity": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "adapters": [],
+          "availability": "unavailable",
+          "providerIds": []
+        },
+        "discovering": false,
+        "network": {
+          "sharing": false,
+          "consumer": null,
+          "files": null
+        },
+        "scheduler": {
+          "queued": 0,
+          "activeAttemptId": null,
+          "residentIdentity": null,
+          "closed": false
+        },
+        "placements": {}
+      },
+      "peer": {
+        "ready": false,
+        "descriptor": null,
+        "participantId": "peer:ff7509d2aecde594008f6d7d",
+        "receipt": {
+          "schema": "reploid.partition-channel/v1",
+          "sentFrameBytes": 31375,
+          "receivedFrameBytes": 9604,
+          "sentFrames": 33,
+          "receivedFrames": 40,
+          "completedRequests": 19,
+          "cancelledRequests": 1,
+          "discardedFrames": 0,
+          "pendingRequests": 0,
+          "inboundRequests": 0,
+          "reservedBytes": 0,
+          "closed": true,
+          "wireBytes": null,
+          "relayBytes": null
+        }
+      }
+    },
+    {
+      "log": {
+        "opens": [
+          1
+        ],
+        "steps": [
+          {
+            "index": 1,
+            "threadId": "8df95204-3252-4fd0-a14b-0457c944ea1d",
+            "attemptId": "1fe3290f-5f7d-4db4-81cf-2269e0abd57e",
+            "step": 0,
+            "tokenPosition": 0,
+            "tokenIds": null
+          },
+          {
+            "index": 1,
+            "threadId": "67e4ee01-7de5-4f4d-9310-a7ca9e1f6b6d",
+            "attemptId": "2e6c0e9c-f554-4297-9d7c-eda8e2417db2",
+            "step": 0,
+            "tokenPosition": 0,
+            "tokenIds": null
+          },
+          {
+            "index": 1,
+            "threadId": "8df95204-3252-4fd0-a14b-0457c944ea1d",
+            "attemptId": "1fe3290f-5f7d-4db4-81cf-2269e0abd57e",
+            "step": 1,
+            "tokenPosition": 1,
+            "tokenIds": null
+          },
+          {
+            "index": 1,
+            "threadId": "67e4ee01-7de5-4f4d-9310-a7ca9e1f6b6d",
+            "attemptId": "2e6c0e9c-f554-4297-9d7c-eda8e2417db2",
+            "step": 1,
+            "tokenPosition": 1,
+            "tokenIds": null
+          },
+          {
+            "index": 1,
+            "threadId": "8df95204-3252-4fd0-a14b-0457c944ea1d",
+            "attemptId": "1fe3290f-5f7d-4db4-81cf-2269e0abd57e",
+            "step": 2,
+            "tokenPosition": 2,
+            "tokenIds": null
+          },
+          {
+            "index": 1,
+            "threadId": "67e4ee01-7de5-4f4d-9310-a7ca9e1f6b6d",
+            "attemptId": "2e6c0e9c-f554-4297-9d7c-eda8e2417db2",
+            "step": 2,
+            "tokenPosition": 2,
+            "tokenIds": null
+          },
+          {
+            "index": 1,
+            "threadId": "8df95204-3252-4fd0-a14b-0457c944ea1d",
+            "attemptId": "16bd541a-bae8-409b-ad7b-2f9b8251ae3a",
+            "step": 0,
+            "tokenPosition": 0,
+            "tokenIds": null
+          },
+          {
+            "index": 1,
+            "threadId": "8df95204-3252-4fd0-a14b-0457c944ea1d",
+            "attemptId": "4c99173a-f613-4bcc-874d-52dc49979576",
+            "step": 0,
+            "tokenPosition": 0,
+            "tokenIds": null
+          },
+          {
+            "index": 1,
+            "threadId": "8df95204-3252-4fd0-a14b-0457c944ea1d",
+            "attemptId": "4c99173a-f613-4bcc-874d-52dc49979576",
+            "step": 1,
+            "tokenPosition": 1,
+            "tokenIds": null
+          },
+          {
+            "index": 1,
+            "threadId": "8df95204-3252-4fd0-a14b-0457c944ea1d",
+            "attemptId": "4c99173a-f613-4bcc-874d-52dc49979576",
+            "step": 2,
+            "tokenPosition": 2,
+            "tokenIds": null
+          },
+          {
+            "index": 1,
+            "threadId": "67e4ee01-7de5-4f4d-9310-a7ca9e1f6b6d",
+            "attemptId": "733e1de8-fd5b-4eaf-bea0-aedc6d0ccfff",
+            "step": 0,
+            "tokenPosition": 0,
+            "tokenIds": null
+          }
+        ],
+        "tokenizations": [],
+        "settlements": [
+          {
+            "index": 1,
+            "attemptId": "1fe3290f-5f7d-4db4-81cf-2269e0abd57e"
+          },
+          {
+            "index": 1,
+            "attemptId": "2e6c0e9c-f554-4297-9d7c-eda8e2417db2"
+          },
+          {
+            "index": 1,
+            "attemptId": "16bd541a-bae8-409b-ad7b-2f9b8251ae3a"
+          },
+          {
+            "index": 1,
+            "attemptId": "4c99173a-f613-4bcc-874d-52dc49979576"
+          },
+          {
+            "index": 1,
+            "attemptId": "733e1de8-fd5b-4eaf-bea0-aedc6d0ccfff"
+          }
+        ],
+        "closes": []
+      },
+      "proofs": [
+        "peer:f0c599357c50f31052d4c18f"
+      ],
+      "peer": {
+        "ready": false,
+        "descriptor": null,
+        "participantId": "peer:f0c599357c50f31052d4c18f",
+        "receipt": {
+          "schema": "reploid.partition-channel/v1",
+          "sentFrameBytes": 9604,
+          "receivedFrameBytes": 31375,
+          "sentFrames": 40,
+          "receivedFrames": 33,
+          "completedRequests": 0,
+          "cancelledRequests": 0,
+          "discardedFrames": 0,
+          "pendingRequests": 0,
+          "inboundRequests": 0,
+          "reservedBytes": 0,
+          "closed": true,
+          "wireBytes": null,
+          "relayBytes": null
+        }
+      }
+    }
+  ],
+  "actualModelInference": false,
+  "physicalDevices": 1
+}

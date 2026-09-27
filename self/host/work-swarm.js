@@ -1,5 +1,5 @@
 /** Explicit compatibility text swarm, separate from admitted signed Pack operations. */
-import { createLegacyGenerationMesh } from '../vendor/reploid/mesh/index.js';
+import { createLegacyGenerationMesh, createPartitionNetwork } from '../vendor/reploid/mesh/index.js';
 import { createSwarmTransport } from '../vendor/reploid/transport/index.js';
 import { resolveConfig } from '../vendor/reploid/config/index.js';
 import { createLegacyNetworkOptions } from '../capabilities/communication/library-adapter.js';
@@ -22,7 +22,7 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
   let connection = null;
   let disconnecting = null, sharingConnection = null, generation = 0, paused = false;
   let automaticAllowed = options.autoConnect !== false;
-  const requests = new Map();
+  const requests = new Map(), partitionNetworks = new Set();
   let consumerTransport = null;
   let modelFiles = null;
   let contributor = null, stoppingContribution = null, contributionEpoch = 0;
@@ -179,12 +179,15 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
     const previousConsumer = consumer;
     consumer = null; consumerTransport?.disconnect(); consumerTransport = null;
     peerOffers?.close();
-    const pending = [connection, contributionStop, previousConsumer?.close(), fileStop];
+    const networkStops = [...partitionNetworks].map(network => network.close()); partitionNetworks.clear();
+    const pending = [connection, contributionStop, previousConsumer?.close(), fileStop, ...networkStops];
     disconnecting = (async () => {
       const results = await Promise.allSettled(pending);
       peerOffers?.close();
       if (results[1].status === 'rejected') throw results[1].reason;
       if (results[3].status === 'rejected') throw results[3].reason;
+      const partitionFailures = results.slice(4).filter(result => result.status === 'rejected').map(result => result.reason);
+      if (partitionFailures.length) throw new AggregateError(partitionFailures, 'Partition network settlement failed');
     })().finally(() => { disconnecting = null; connecting = false; notify(); });
     notify();
     return disconnecting;
@@ -202,6 +205,17 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
     retryCandidate: transferId => peerOffers.retry(transferId),
     previewCandidate: transferId => peerOffers.preview(transferId),
     dismissCandidate: transferId => peerOffers.dismiss(transferId),
+    createPartitionNetwork({ createEndpoint, maxPeers, timeoutMs, onPeer }) {
+      if (closed || paused || !consumerTransport || !consumer) throw new Error('Connect before opening partition channels');
+      const owner = consumer;
+      const network = createPartitionNetwork({ transport: consumerTransport,
+        verifyPeer: (peerId, signal) => owner.verifyPeerIdentity(peerId, signal), createEndpoint, maxPeers, timeoutMs, onPeer });
+      const ownerNetwork = Object.freeze({ ...network,
+        async close() { try { await network.close(); } finally { partitionNetworks.delete(ownerNetwork); } }
+      });
+      partitionNetworks.add(ownerNetwork);
+      return ownerNetwork;
+    },
     async share(modelId, approved, adapters = []) {
       if (closed || supplier || stopping || sharingConnection) throw new Error('Stop existing sharing first');
       if (approved !== true) throw new Error('Approve public prompt execution before sharing');

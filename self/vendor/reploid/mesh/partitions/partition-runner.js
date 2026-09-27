@@ -39,12 +39,12 @@ export function createLayerPartitionRunner({ runtime, plan: suppliedPlan, device
     && positive(plan.splitLayer) && plan.splitLayer < plan.totalLayers
     && ['f16', 'f32'].includes(plan.activationDtype), 'Invalid Doppler partition dimensions');
   assert(typeof authorize === 'function', 'A verifying host authorization port is required');
-  for (const [device, method] of [[deviceA, 'executeGroup0'], [deviceB, 'executeGroup1']]) {
+  for (const [device, method] of [[deviceA, 'executeGroup0'], [deviceB, typeof deviceB?.executeFrame === 'function' ? 'executeFrame' : 'executeGroup1']]) {
     assert(identifier(device?.id) && typeof device[method] === 'function'
       && typeof device.closeAttempt === 'function', 'Partition device identity, execution and settlement ports required');
   }
   assert(deviceA.id !== deviceB.id, 'Partition participants must be distinct');
-  assert(typeof transport?.transferActivation === 'function', 'Activation transport required');
+  assert(typeof deviceB.executeFrame === 'function' || typeof transport?.transferActivation === 'function', 'Activation transport required');
   assert(limits && ['maxTokens', 'maxPromptTokens', 'maxActivationBytes', 'maxOutputCharacters', 'maxAttempts', 'maxConcurrentAttempts']
     .every(key => positive(limits[key])), 'Explicit positive partition allocation limits required');
   const policy = Object.freeze({ ...limits });
@@ -124,21 +124,31 @@ export function createLayerPartitionRunner({ runtime, plan: suppliedPlan, device
           const sent = snapshot(frame);
           await permit('mesh.transfer_intermediate_activation', authority.activation, step);
           const transferStarted = performance.now();
-          const received = snapshot(await transport.transferActivation(frame, { identity: binding, ...step, signal: combined }));
-          combined.throwIfAborted();
-          const transferMs = performance.now() - transferStarted;
-          assert(received?.schema === runtime.ACTIVATION_TENSOR_SCHEMA
-            && sameBinding(received.metadata, metadata) && received.seqOffset === position
-            && received.step === index && received.dtype === sent.dtype
-            && JSON.stringify(received.shape) === JSON.stringify(sent.shape)
-            && received.byteLength === sent.byteLength && received.buffer instanceof ArrayBuffer
-            && received.buffer.byteLength === sent.byteLength, 'Received activation identity or shape mismatch');
-          const before = new Uint8Array(sent.buffer), after = new Uint8Array(received.buffer);
-          assert(before.every((byte, offset) => byte === after[offset]), 'Received activation bytes differ');
-          await permit('mesh.execute_partition_b', authority.executionB, step);
-          const resultB = snapshot(await deviceB.executeGroup1({ activation: runtime.deserializeActivationFrame(received),
-            continuation: continuationB, identity: binding, executionGrant: authority.executionB,
-            outputGrant: authority.output, ...step, signal: combined }));
+          let resultB, transferMs = null, remoteStepMs = null;
+          if (typeof deviceB.executeFrame === 'function') {
+            await permit('mesh.execute_partition_b', authority.executionB, step);
+            resultB = snapshot(await deviceB.executeFrame({ frame, continuation: continuationB,
+              identity: binding, executionGrant: authority.executionB, outputGrant: authority.output,
+              ...step, signal: combined }));
+            // Includes remote compute and disclosure; never label this as network-only latency.
+            remoteStepMs = performance.now() - transferStarted;
+          } else {
+            const received = snapshot(await transport.transferActivation(frame, { identity: binding, ...step, signal: combined }));
+            combined.throwIfAborted();
+            transferMs = performance.now() - transferStarted;
+            assert(received?.schema === runtime.ACTIVATION_TENSOR_SCHEMA
+              && sameBinding(received.metadata, metadata) && received.seqOffset === position
+              && received.step === index && received.dtype === sent.dtype
+              && JSON.stringify(received.shape) === JSON.stringify(sent.shape)
+              && received.byteLength === sent.byteLength && received.buffer instanceof ArrayBuffer
+              && received.buffer.byteLength === sent.byteLength, 'Received activation identity or shape mismatch');
+            const before = new Uint8Array(sent.buffer), after = new Uint8Array(received.buffer);
+            assert(before.every((byte, offset) => byte === after[offset]), 'Received activation bytes differ');
+            await permit('mesh.execute_partition_b', authority.executionB, step);
+            resultB = snapshot(await deviceB.executeGroup1({ activation: runtime.deserializeActivationFrame(received),
+              continuation: continuationB, identity: binding, executionGrant: authority.executionB,
+              outputGrant: authority.output, ...step, signal: combined }));
+          }
           combined.throwIfAborted();
           // B owns sampling, decoding and stop semantics. It must return ONE selected token.
           assert(resultB && sameBinding(resultB.identity, binding) && resultB.step === index
@@ -157,7 +167,7 @@ export function createLayerPartitionRunner({ runtime, plan: suppliedPlan, device
           content += resultB.delta;
           activationBytes += sent.byteLength;
           steps.push({ ...step, tokenId: resultB.tokenId, activationBytes: sent.byteLength,
-            transferMs, elapsedMs: performance.now() - started });
+            transferMs, remoteStepMs, elapsedMs: performance.now() - started });
           if (resultB.delta) await onDelta(resultB.delta);
           combined.throwIfAborted();
           position += input.length;

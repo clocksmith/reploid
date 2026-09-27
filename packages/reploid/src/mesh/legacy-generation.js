@@ -481,6 +481,10 @@ export function createLegacyGenerationMesh({ config, ports }) {
     swarmTransport?.disconnect();
   };
   return Object.freeze({ connect: initialize, initialize, generate, rotateIdentity, getSwarmSnapshot,
+    verifyPeerIdentity: (peerId, signal) => {
+      if (closed || !peerIdentity) throw new Error('Peer identity verification is unavailable');
+      return peerIdentity.verify(peerId, signal);
+    },
     refreshAdvertisement: () => { advertiseSelf(); return emitSwarmState(); },
     hasAvailableProvider: modelId => !closed && !!chooseCompatibleProvider(modelId, true), close, on: bridgeEvents.on });
 }

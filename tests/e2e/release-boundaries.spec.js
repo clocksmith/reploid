@@ -18,6 +18,10 @@ test('generated mesh imports without an import map or loading Doppler', async ({
 
 test('Verification Worker accepts mutable release boundary modules', async ({ page }) => {
   const paths = ['vendor/reploid/mesh/partitions/partition-runner.js',
+    'vendor/reploid/mesh/partitions/partition-contract.js', 'vendor/reploid/mesh/partitions/partition-grants.js',
+    'vendor/reploid/mesh/partitions/resident-partition.js', 'vendor/reploid/mesh/partitions/partition-peer.js',
+    'vendor/reploid/mesh/partitions/partition-network.js', 'vendor/reploid/mesh/partitions/partition-chat.js',
+    'vendor/reploid/chat/thread-grants.js',
     'vendor/reploid/mesh/partitions/partition-step-receiver.js',
     'vendor/reploid/transport/partition-data-channel.js', 'vendor/reploid/transport/bounded-channel-writer.js',
     'infrastructure/doppler-runtime-service.js', 'providers/doppler-reploid.js',

@@ -4,6 +4,7 @@ import type { SigningIdentity } from '../artifacts/identity.js';
 import type { SwarmTransport, SwarmOptions } from '../transport/swarm.js';
 export interface LegacyGenerationMesh extends GenerationProvider {
   connect(): Promise<unknown>; initialize(): Promise<unknown>; close(): Promise<void>;
+  verifyPeerIdentity(peerId: string, signal?: AbortSignal): Promise<string | null>;
   refreshAdvertisement(): Record<string, unknown>;
   generate(messages: Message[], onUpdate?: ((chunk: string) => void) | null,
     control?: { signal?: AbortSignal; modelId?: string; modelIdentity?: string | null; requestContext?: import('../config/index.js').Json }): Promise<GenerationResult>;

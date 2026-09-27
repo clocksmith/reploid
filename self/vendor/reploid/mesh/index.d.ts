@@ -12,3 +12,10 @@ import type { LegacyGenerationMesh } from './legacy-generation.js';
 export function createIntelligenceMesh(options: { config: ResolvedConfig; ports: {
   authorize: Authorize; local?: GenerationProvider; remote?: LegacyGenerationMesh;
 } }): GenerationProvider & { connect(): Promise<unknown>; describe(): Json; close(): Promise<void> };
+
+export * from './partitions/resident-partition.js';
+export * from './partitions/partition-grants.js';
+export * from './partitions/partition-peer.js';
+export * from './partitions/partition-network.js';
+export * from './partitions/partition-chat.js';
+export { partitionFingerprint } from './partitions/partition-contract.js';

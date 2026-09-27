@@ -52,3 +52,20 @@ export function partitionTransportContract(channel: RTCDataChannel, limits: Part
   endpoint.request({}, [1, 2, 3]);
   return result;
 }
+
+import { createResidentPartition, createPartitionPeer, createPartitionChat,
+  type DopplerPartitionSessionFactory, type PartitionRuntime, type PartitionPlan,
+  type PartitionLimits, type PartitionGrantAuthority } from '../../packages/reploid/src/mesh/index.js';
+import type { ChatModel } from '../../packages/reploid/src/chat/index.js';
+export function composePartitionChat(factory: DopplerPartitionSessionFactory, runtime: PartitionRuntime,
+  model: ChatModel, plan: PartitionPlan, planId: string, limits: PartitionLimits,
+  authority: PartitionGrantAuthority, channel: RTCDataChannel, channelLimits: PartitionChannelLimits) {
+  const local = createResidentPartition({ runtime: factory, model, plan, planId, limits,
+    index: 0, participantId: authority.participantId });
+  const remote = createPartitionPeer({ runtime, modelIdentity: model.identity, plan, planId,
+    authority, channel, localParticipantId: local.id, remoteParticipantId: 'peer:b',
+    limits: channelLimits, receiverLimits: { maxAttempts: 32, maxSteps: 256 } });
+  // @ts-expect-error contribution requires explicit approval
+  void local.prepare({});
+  return createPartitionChat({ runtime, model, plan, planId, limits, authority, local, remote, grantTtlMs: 60000 });
+}

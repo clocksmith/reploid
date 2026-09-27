@@ -110,7 +110,7 @@ export interface PartitionResult {
     placement: 'two-device-layer-partition';
     splitLayer: number;
     activationBytes: number;
-    steps: Array<PartitionStep & { tokenId: number; activationBytes: number; transferMs: number; elapsedMs: number }>;
+    steps: Array<PartitionStep & { tokenId: number; activationBytes: number; transferMs: number | null; remoteStepMs: number | null; elapsedMs: number }>;
   };
 }
 export interface LayerPartitionRunner {
@@ -122,8 +122,8 @@ export function createLayerPartitionRunner(options: {
   runtime: PartitionRuntime;
   plan: PartitionPlan;
   deviceA: PartitionDeviceA;
-  deviceB: PartitionDeviceB;
-  transport: { transferActivation(frame: ActivationFrame,
+  deviceB: PartitionDeviceB | import('./partition-peer.js').RemotePartitionDevice;
+  transport?: { transferActivation(frame: ActivationFrame,
     options: PartitionStep & { identity: PartitionBinding; signal: AbortSignal }): Promise<ActivationFrame> };
   /** Must verify actual recipient-bound grants; a grant's schema/name is not authorization. */
   authorize(options: PartitionBinding & PartitionStep & {

@@ -78,8 +78,9 @@ const WebRTCSwarm = {
     const retainAuxiliary = (peer, channel) => {
       let channels = auxiliaryChannels.get(peer);
       if (!channels) { channels = new Set(); auxiliaryChannels.set(peer, channels); }
-      if (channel.label !== 'reploid-custody' || channels.size >= 1) {
-        channel.close(); throw new Error('Unsupported or duplicate custody channel');
+      if (!['reploid-custody', 'reploid-partitions'].includes(channel.label)
+        || [...channels].some(existing => existing.label === channel.label)) {
+        channel.close(); throw new Error('Unsupported or duplicate auxiliary channel');
       }
       channels.add(channel);
       channel.addEventListener('close', () => channels.delete(channel), { once: true });
@@ -1014,14 +1015,14 @@ const WebRTCSwarm = {
       getConnectionState,
       getConnectedPeers,
       onDataChannel(label, handler) {
-        if (label !== 'reploid-custody' || typeof handler !== 'function') throw new Error('Explicit custody channel handler required');
+        if (!['reploid-custody', 'reploid-partitions'].includes(label) || typeof handler !== 'function') throw new Error('Explicit auxiliary channel handler required');
         auxiliaryHandlers.set(label, handler);
         return () => { if (auxiliaryHandlers.get(label) === handler) auxiliaryHandlers.delete(label); };
       },
       openDataChannel(remotePeerId, label) {
         const peer = _peers.get(remotePeerId);
-        if (_manualStop || label !== 'reploid-custody' || peer?.dataChannel?.readyState !== 'open' || !peer.connection) {
-          throw new Error('Connected WebRTC peer required for custody');
+        if (_manualStop || !['reploid-custody', 'reploid-partitions'].includes(label) || peer?.dataChannel?.readyState !== 'open' || !peer.connection) {
+          throw new Error('Connected WebRTC peer required for auxiliary transfer');
         }
         return retainAuxiliary(peer, peer.connection.createDataChannel(label, { ordered: true }));
       },
