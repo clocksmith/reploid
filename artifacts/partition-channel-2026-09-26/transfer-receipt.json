@@ -1,0 +1,49 @@
+{
+  "scope": "two local tabs, real WebRTC, injected computation and grant decisions",
+  "results": [
+    [
+      1,
+      2,
+      3
+    ],
+    [
+      11,
+      12,
+      13
+    ]
+  ],
+  "receipts": [
+    {
+      "schema": "reploid.partition-channel/v1",
+      "sentFrameBytes": 25021,
+      "receivedFrameBytes": 3739,
+      "sentFrames": 174,
+      "receivedFrames": 20,
+      "completedRequests": 9,
+      "cancelledRequests": 1,
+      "discardedFrames": 0,
+      "pendingRequests": 0,
+      "inboundRequests": 0,
+      "reservedBytes": 0,
+      "closed": false,
+      "wireBytes": null,
+      "relayBytes": null
+    },
+    {
+      "schema": "reploid.partition-channel/v1",
+      "sentFrameBytes": 3739,
+      "receivedFrameBytes": 25021,
+      "sentFrames": 20,
+      "receivedFrames": 174,
+      "completedRequests": 0,
+      "cancelledRequests": 0,
+      "discardedFrames": 0,
+      "pendingRequests": 0,
+      "inboundRequests": 0,
+      "reservedBytes": 0,
+      "closed": false,
+      "wireBytes": null,
+      "relayBytes": null
+    }
+  ]
+}

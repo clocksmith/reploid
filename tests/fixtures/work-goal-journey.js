@@ -55,16 +55,21 @@ function fixtureResponse(messages) {
 
 export function mountWorkGoalJourney({ namespace, peerUnit }) {
   const transcript = { scope: 'work-host-test', actualModelInference: false,
-    peerImplementation: 'deterministic-port-fixture', generations: [], proposals: [], executions: [], observedScopes: [] };
+    peerImplementation: 'deterministic-port-fixture', generations: [], proposals: [], executions: [], observedScopes: [], resets: 0 };
   const scopes = new Set();
   const storage = {
     getItem: key => localStorage.getItem(namespace + ':' + key),
     setItem: (key, value) => localStorage.setItem(namespace + ':' + key, value)
   };
   const service = {
-    async open({ scope }) {
+    async open({ scope, source }) {
+      const selectedModel = LOCAL_DOPPLER_MODELS.find(model => model.id === source);
+      assert(selectedModel, 'Fixture received an unexpected model');
       scopes.add(scope); transcript.observedScopes.push(scope);
       return {
+        // This is an injected compatibility session, not an artifact verification claim.
+        loaded: true, modelId: selectedModel.id, manifestHash: selectedModel.identity.replace(/^sha256:/, ''),
+        async resetGenerationState() { transcript.resets++; },
         async *stream(messages) {
           const response = fixtureResponse(messages);
           transcript.generations.push({ messages: copy(messages), response });

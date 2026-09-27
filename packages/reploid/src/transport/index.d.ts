@@ -5,3 +5,4 @@ export { createSwarmTransport } from './room.js';
 export * from './tool-offer-channel.js';
 export * from './retry-policy.js';
 export { default as retryPolicy } from './retry-policy.js';
+export * from './partition-data-channel.js';
