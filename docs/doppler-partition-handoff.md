@@ -1,7 +1,16 @@
 # Doppler resident partition handoff
 
-Reploid now consumes an explicit resident-partition API. Implement the Doppler
-side of this boundary; no Doppler source was changed in this increment.
+Reploid consumes an explicit resident-partition API. The original Reploid
+increment did not change Doppler. Subsequent numerical work is tracked in
+[Doppler's resident partition execution record](https://github.com/clocksmith/doppler/blob/main/docs/distribution/resident-partition-execution.md)
+and its [retained local diagnostic](https://github.com/clocksmith/doppler/blob/main/reports/resident-partitions/20260927/README.md).
+
+That work adds bounded GPU layer execution and assigned-layer cache allocation.
+It compares a real model split with unsplit execution on one local GPU. It does
+not yet implement this resident factory, attempt-owned continuations, signed
+Capsule partition delivery, or real model execution through this browser path.
+Keep the injected arithmetic fixture until the conformance harness below passes
+with real residents.
 
 This is a **proposed consumer contract**, not an assertion that a published
 Doppler version implements it. Existing `doppler-gpu/partitions` supplies plan,
@@ -56,6 +65,12 @@ Only return ready after the assigned weights and executable session exist. The
 model identity must come from verified loaded artifacts. Validate the plan
 against the artifact before acquisition or execution. Reploid checks identities
 and readiness again around every operation.
+
+One integration detail remains to reconcile: each runner request can choose a
+`maxTokens` below its allocation limit, but the current step interface does not
+carry that request limit. Doppler must know when to finalize its incremental
+decoder so an early runner stop does not discard pending text. Resolve this
+contract before claiming complete resident-session parity.
 
 All sessions expose idempotent asynchronous `closeAttempt({identity})` and
 `close()`. The first settles submitted work and disposes only that attempt's
@@ -165,3 +180,15 @@ artifact reads, per-token comparisons, frame costs, and the browser/GPU/runtime
 identity. A passing mock or a descriptor is not numerical or memory proof.
 Physical multi-machine and capacity-pooling qualification remain separate from
 the current local-tab phase.
+
+## Takeover checkpoint
+
+Component: Reploid documentation and Doppler integration boundary.
+Intent: preserved.
+Acceptance evidence: `npm run verify:catscan` and
+`npx vitest run tests/unit/partition-api.test.js tests/unit/surface-claim-index.test.js tests/unit/catscan.test.js`;
+retained logs are in the linked Doppler diagnostic.
+Boundary effects: documentation only; the pinned Doppler archive and browser
+arithmetic fixture remain unchanged.
+
+*Last updated: September 2026*
