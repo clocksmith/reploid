@@ -26,7 +26,7 @@ required host authorization. Receipt/cancellation does not establish GPU settlem
 - Discovery joins only after matching acknowledgement; peer counts require open channels. Disconnect cancels joins and reconnects.
 - WebRTC-only callers never silently fall back to BroadcastChannel.
 - Reconnection honors trusted host retry deadlines; disconnect cancels that wait.
-- Custody uses a bounded reliable ordered auxiliary channel, granting no permissions.
+- Custody and partitions use reliable ordered auxiliary channels, granting no permissions.
   Reject unknown labels and channels arriving after disconnect.
 - Storage shards, complete requests, partition tensors/continuation state and agent subtask messages retain distinct payload contracts. Transfers do not authorize execution or prove partition compatibility.
 - Candidate transfers bind endpoints, room, contract, bytes and expiry. Retried delivery is bounded at-least-once; acknowledgements establish retained preview only.

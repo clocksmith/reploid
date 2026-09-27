@@ -1,0 +1,45 @@
+[2m[WebServer] [22m(node:1319917) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+[2m[WebServer] [22m(node:1319940) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+[2m[WebServer] [22m(node:1319951) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+[2m[WebServer] [22m(node:1319951) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+[2m[WebServer] [22m[Proxy] Config loader not available, using environment variables
+[2m[WebServer] [22m☡  WARNING: GEMINI_API_KEY not found in .env file
+[2m[WebServer] [22m   The Gemini proxy endpoint will not work without it.
+[2m[WebServer] [22m(node:1319963) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 22 tests using 1 worker
+
+(node:1319996) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:1319996) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   1 [chromium] › tests/e2e/partition-chat.spec.js:4:1 › split chat composes real peer authentication, grants, binary transfer and persisted conversations (4.3s)
+  ✓   2 [chromium] › tests/e2e/partition-data-channel.spec.js:5:1 › two tabs transfer binary partition steps with isolated replay, cancellation and peer loss (573ms)
+  ✓   3 [chromium] › tests/e2e/partition-runtime-delivery.spec.js:5:1 › two local tabs import the pinned partition contract independently (153ms)
+  ✓   4 [chromium] › tests/e2e/peer-pack-jobs.spec.js:26:1 › Bayesian assignments replay locally without CI and reject unauthorized history (443ms)
+  ✓   5 [chromium] › tests/e2e/peer-pack-jobs.spec.js:53:1 › verified adapter bytes survive browser replacement with the supplier unavailable (1.4s)
+  ✓   6 [chromium] › tests/e2e/peer-pack-jobs.spec.js:77:65 › reviewed public task uses room discovery and WebRTC while private retrieval stays local (doppler.pack/v2) (13.3s)
+  ✓   7 [chromium] › tests/e2e/peer-pack-jobs.spec.js:77:65 › reviewed public task uses room discovery and WebRTC while private retrieval stays local (doppler.capsule/v2) (13.2s)
+  ✓   8 [chromium] › tests/e2e/peer-pack-jobs.spec.js:141:1 › common operations cross real WebRTC between browser contexts, with bounded large-message framing (3.3s)
+  ✓   9 [chromium] › tests/e2e/peer-pack-jobs.spec.js:178:1 › Verification Worker accepts complete-job modules and modified execution boundaries (483ms)
+  ✓  10 [chromium] › tests/e2e/peer-pack-jobs.spec.js:220:1 › durable provider responses survive a complete browser-process replacement (8.7s)
+  ✓  11 [chromium] › tests/e2e/peer-pack-jobs.spec.js:297:1 › native attempt claims fence concurrent writers and enforce retention limits (210ms)
+  ✓  12 [chromium] › tests/e2e/peer-pack-jobs.spec.js:335:1 › native attempt states bind numbered requests and retain expiry before cleanup (210ms)
+  ✓  13 [chromium] › tests/e2e/peer-pack-jobs.spec.js:376:1 › legacy unfinished records migrate as interrupted and never become runnable (198ms)
+  ✓  14 [chromium] › tests/e2e/peer-pack-jobs.spec.js:403:1 › cumulative v2 journal migration preserves updates and rejects corrupt stream metadata (180ms)
+  ✓  15 [chromium] › tests/e2e/peer-pack-jobs.spec.js:440:1 › journal bindings ignore object key order but reject changed values and array order (205ms)
+  ✓  16 [chromium] › tests/e2e/peer-pack-jobs.spec.js:468:1 › a stalled native transaction aborts within configured storage bounds (238ms)
+  ✓  17 [chromium] › tests/e2e/peer-pack-jobs.spec.js:493:1 › a replacement provider prevents the still-running writer from publishing completion (762ms)
+  ✓  18 [chromium] › tests/e2e/peer-pack-jobs.spec.js:521:1 › a corrupted durable response cannot enter provider replay even after another delivery (596ms)
+{"journalCopyVolume":[{"count":64,"writes":99991,"reads":56532},{"count":128,"writes":200172,"reads":113200},{"count":256,"writes":400858,"reads":226717}]}
+  ✓  19 [chromium] › tests/e2e/peer-pack-jobs.spec.js:565:1 › journal delta appends transfer approximately linear bytes (382ms)
+  ✓  20 [chromium] › tests/e2e/release-boundaries.spec.js:4:1 › generated mesh imports without an import map or loading Doppler (180ms)
+  ✓  21 [chromium] › tests/e2e/release-boundaries.spec.js:19:1 › Verification Worker accepts mutable release boundary modules (603ms)
+  ✓  22 [chromium] › tests/e2e/release-boundaries.spec.js:52:1 › Verification Worker still rejects bootstrap storage authority as mutable candidates (502ms)
+
+  22 passed (52.6s)

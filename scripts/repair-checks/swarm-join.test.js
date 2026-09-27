@@ -87,6 +87,41 @@ function transportFixture(overrides = {}) {
   return { transport, sockets };
 }
 
+test('custody and partition channels coexist, reject duplicates and release closed slots', async () => {
+  let pc;
+  const channel = label => Object.assign(new EventTarget(), { label, readyState: 'open',
+    close() { this.readyState = 'closed'; this.dispatchEvent(new Event('close')); } });
+  class PeerConnection {
+    constructor() { pc = this; }
+    createDataChannel(label) { return channel(label); }
+    async createOffer() { return {}; }
+    async setLocalDescription() {}
+    close() {}
+  }
+  const { transport, sockets } = transportFixture({ RTCPeerConnection: PeerConnection });
+  try {
+    const pending = transport.init(); sockets[0].open();
+    await sockets[0].message({ type: 'joined', peerId: 'peer-test', roomId: policy.publicRoomId, peers: ['other'] });
+    await pending;
+    const custody = transport.openDataChannel('other', 'reploid-custody');
+    const partitions = transport.openDataChannel('other', 'reploid-partitions');
+    assert.equal(custody.readyState, 'open'); assert.equal(partitions.readyState, 'open');
+    assert.throws(() => transport.openDataChannel('other', 'reploid-partitions'), /duplicate/);
+    assert.throws(() => transport.openDataChannel('other', 'unknown'), /auxiliary/);
+    let received;
+    transport.onDataChannel('reploid-partitions', (_, value) => { received = value; });
+    const duplicate = channel('reploid-partitions'); pc.ondatachannel({ channel: duplicate });
+    assert.equal(duplicate.readyState, 'closed'); assert.equal(received, undefined);
+    partitions.close();
+    const replacement = channel('reploid-partitions'); pc.ondatachannel({ channel: replacement });
+    assert.equal(received, replacement);
+    const lateHandler = pc.ondatachannel;
+    transport.disconnect();
+    const late = channel('reploid-partitions'); lateHandler({ channel: late });
+    assert.equal(late.readyState, 'closed');
+  } finally { transport.disconnect(); }
+});
+
 test('socket open is connecting; only a matching acknowledgement establishes joined', async () => {
   const { transport, sockets } = transportFixture();
   const pending = transport.init(); sockets[0].open();

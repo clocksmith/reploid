@@ -40,7 +40,7 @@ export interface ChatApproval extends ChatEnvelope {
 export interface ChatThreadGrant {
   id: string; meshId: string; threadId: string; recipientIdentity: string;
   modelId: string; modelIdentity: string; adapterIdentities: string[];
-  sharingScope: string; disclosure: 'public'; createdAt: number; revokedAt: number | null;
+  sharingScope: string; disclosure: 'public' | 'partition-activations'; planId?: string; participantA?: string; createdAt: number; revokedAt: number | null;
 }
 export interface ChatResult extends ChatEnvelope {
   modelId: string; modelIdentity: string; adapterIdentities: string[];

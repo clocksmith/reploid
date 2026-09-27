@@ -1,0 +1,100 @@
+TAP version 13
+# Subtest: public defaults ignore saved private rooms and signaling alone; opt-out is explicit
+ok 1 - public defaults ignore saved private rooms and signaling alone; opt-out is explicit
+  ---
+  duration_ms: 2.531859
+  type: 'test'
+  ...
+# Subtest: private invitations require their scoped capability and preserve their endpoint
+ok 2 - private invitations require their scoped capability and preserve their endpoint
+  ---
+  duration_ms: 1.099262
+  type: 'test'
+  ...
+# Subtest: assets stay origin-relative in Node and obsolete saved defaults cannot win
+ok 3 - assets stay origin-relative in Node and obsolete saved defaults cannot win
+  ---
+  duration_ms: 0.777933
+  type: 'test'
+  ...
+# Subtest: autoconnect coalesces retries, pauses, resumes and disposes listeners
+ok 4 - autoconnect coalesces retries, pauses, resumes and disposes listeners
+  ---
+  duration_ms: 1.548036
+  type: 'test'
+  ...
+# Subtest: custody and partition channels coexist, reject duplicates and release closed slots
+ok 5 - custody and partition channels coexist, reject duplicates and release closed slots
+  ---
+  duration_ms: 5.057934
+  type: 'test'
+  ...
+# Subtest: socket open is connecting; only a matching acknowledgement establishes joined
+ok 6 - socket open is connecting; only a matching acknowledgement establishes joined
+  ---
+  duration_ms: 1.190218
+  type: 'test'
+  ...
+# Subtest: rejected, mismatched and timed-out joins fail and disconnect prevents retry
+ok 7 - rejected, mismatched and timed-out joins fail and disconnect prevents retry
+  ---
+  duration_ms: 154.052434
+  type: 'test'
+  ...
+# Subtest: disconnect during initialization settles immediately and ignores a late acknowledgement
+ok 8 - disconnect during initialization settles immediately and ignores a late acknowledgement
+  ---
+  duration_ms: 1.431829
+  type: 'test'
+  ...
+# Subtest: asynchronous negotiation failures are caught and enter bounded reconnect
+ok 9 - asynchronous negotiation failures are caught and enter bounded reconnect
+  ---
+  duration_ms: 1.35727
+  type: 'test'
+  ...
+# Subtest: a disconnect from a state listener cannot start a late socket
+ok 10 - a disconnect from a state listener cannot start a late socket
+  ---
+  duration_ms: 1.367438
+  type: 'test'
+  ...
+# Subtest: both negotiation roles obtain fresh host RTC credentials without persisting them
+ok 11 - both negotiation roles obtain fresh host RTC credentials without persisting them
+  ---
+  duration_ms: 1.645934
+  type: 'test'
+  ...
+# Subtest: disconnect retires a pending RTC credential request before it can construct a peer
+ok 12 - disconnect retires a pending RTC credential request before it can construct a peer
+  ---
+  duration_ms: 0.995164
+  type: 'test'
+  ...
+# Subtest: RTC credential failures use the existing reconnect lifecycle without an uncredentialed fallback
+ok 13 - RTC credential failures use the existing reconnect lifecycle without an uncredentialed fallback
+  ---
+  duration_ms: 1.654514
+  type: 'test'
+  ...
+# Subtest: credential retry deadlines delay reconnect and remain cancellable
+ok 14 - credential retry deadlines delay reconnect and remain cancellable
+  ---
+  duration_ms: 216.366969
+  type: 'test'
+  ...
+# Subtest: WebRTC carries request cancellation to the peer job owner
+ok 15 - WebRTC carries request cancellation to the peer job owner
+  ---
+  duration_ms: 1.853982
+  type: 'test'
+  ...
+1..15
+# tests 15
+# suites 0
+# pass 15
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 465.402636

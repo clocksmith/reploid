@@ -21,7 +21,7 @@ export function renderConversationWorkspace() {
         <div class="chat-network-actions"><button class="btn btn-ghost" type="button" data-mesh-connect>Connect peers</button><button class="btn btn-ghost" type="button" data-mesh-invite>Invite</button></div>
         <p data-network-message role="status" hidden></p>
         <details data-thread-permissions hidden><summary>Thread permissions</summary>
-          <p>Approved recipients can receive this thread’s messages and attached text as public data, using its selected model. Revoking stops active work and future sharing; it cannot recall data already sent.</p>
+          <p data-thread-permission-description>Approved recipients can receive this thread’s messages and attached text as public data, using its selected model. Revoking stops active work and future sharing; it cannot recall data already sent.</p>
           <ul data-thread-grants></ul></details>
         <details><summary>Contribution <span data-contrib-label>Not sharing</span></summary>
           <div class="chat-contribution-controls"><p data-contribution-limits></p>
@@ -35,7 +35,7 @@ export function renderConversationWorkspace() {
       <div class="chat-message-stream" data-message-stream role="log" aria-label="Messages" aria-live="polite"></div>
       <section class="chat-approval" data-chat-approval hidden aria-label="Review before sending">
         <h2>Review before sending</h2><p data-approval-recipient></p><pre data-approval-payload></pre>
-        <label><input type="checkbox" data-approval-consent> Share this exact input with this peer as public data</label>
+        <label><input type="checkbox" data-approval-consent> <span data-approval-description>Share this exact input with this peer as public data</span></label>
         <label data-approval-remember-label hidden><input type="checkbox" data-approval-remember> Also allow future messages and attached text in this thread to this recipient, using this model, until revoked</label>
         <div class="chat-network-actions"><button class="btn btn-primary" type="button" data-approval-send disabled>Approve and send</button><button class="btn btn-ghost" type="button" data-approval-decline>Decline</button></div>
       </section>
@@ -86,7 +86,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl } = {}) 
     const current = thread?.model?.selectionId || thread?.model?.id || modelSelect.value || state.defaultModel?.id;
     const catalog = JSON.stringify(models.map(model => [model.selectionId || model.id, model.name, model.availability]));
     if (modelSelect.dataset.catalog !== catalog) {
-      modelSelect.innerHTML = models.map(model => `<option value="${escape(model.selectionId || model.id)}">${escape(model.name)}${model.availability ? ' · ' + escape(model.availability) : ''}</option>`).join('');
+      modelSelect.innerHTML = models.map(model => `<option value="${escape(model.selectionId || model.id)}">${escape(model.name)}${model.partition ? ' · split' : ''}${model.availability ? ' · ' + escape(model.availability) : ''}</option>`).join('');
       modelSelect.dataset.catalog = catalog;
     }
     modelSelect.value = current; modelSelect.disabled = !!thread;
@@ -101,7 +101,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl } = {}) 
       }).join('');
     }
     const attempt = thread?.attempts.at(-1), busy = state.runningIds.includes(thread?.id), execution = attempt?.execution;
-    const location = execution?.peerId ? 'Peer ' + execution.peerId.slice(0, 8) : execution?.placement === 'local-webgpu' ? 'This device' : '';
+    const location = execution?.placement === 'two-device-layer-partition' ? 'This device + peer ' + execution.participantB.slice(0, 12) : execution?.peerId ? 'Peer ' + execution.peerId.slice(0, 8) : execution?.placement === 'local-webgpu' ? 'This device' : '';
     find('[data-execution-state]').textContent = [location, attempt?.status].filter(Boolean).join(' · ');
     find('[data-composer-send]').hidden = busy; find('[data-composer-send]').disabled = reading || !modelSelect.value || !!state.storageError;
     find('[data-composer-stop]').hidden = !busy;
@@ -116,6 +116,9 @@ export function bindConversationWorkspace(root, session, { getInviteUrl } = {}) 
     if (key !== approvalKey) {
       approvalKey = key; find('[data-approval-consent]').checked = false; find('[data-approval-remember]').checked = false;
     }
+    find('[data-approval-description]').textContent = pending?.disclosure === 'partition-activations'
+      ? 'Share model activations derived from this input with this peer as public data'
+      : 'Share this exact input with this peer as public data';
     find('[data-approval-remember-label]').hidden = !pending?.reusable;
     find('[data-chat-approval]').hidden = !pending;
     if (pending) {
@@ -124,6 +127,9 @@ export function bindConversationWorkspace(root, session, { getInviteUrl } = {}) 
     }
     find('[data-approval-send]').disabled = !pending || !find('[data-approval-consent]').checked;
     const grants = (thread?.grants || []).filter(grant => grant.revokedAt === null);
+    find('[data-thread-permission-description]').textContent = thread?.model.partition
+      ? 'Approved recipients can receive model activations derived from this thread’s messages and attached text, for this model and split. Revoking stops active work and future sharing; it cannot recall data already sent.'
+      : 'Approved recipients can receive this thread’s messages and attached text as public data, using its selected model. Revoking stops active work and future sharing; it cannot recall data already sent.';
     find('[data-thread-permissions]').hidden = !grants.length;
     const nextGrants = JSON.stringify([thread?.id, grants]);
     if (nextGrants !== grantsKey) {

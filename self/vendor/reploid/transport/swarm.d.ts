@@ -5,8 +5,8 @@ export interface SwarmTransport {
   getConnectionState(): string; getConnectedPeers(): object[]; getStats(): Record<string, unknown>; getClock(): number; tick(): number;
   _getPeerId(): string | null; _getSessionId(): string | null;
   getPeerBinding?(peerId: string): { local: string; remote: string } | null;
-  onDataChannel(label: 'reploid-custody', handler: (peerId: string, channel: RTCDataChannel) => void): () => void;
-  openDataChannel(peerId: string, label: 'reploid-custody'): RTCDataChannel;
+  onDataChannel(label: 'reploid-custody' | 'reploid-partitions', handler: (peerId: string, channel: RTCDataChannel) => void): () => void;
+  openDataChannel(peerId: string, label: 'reploid-custody' | 'reploid-partitions'): RTCDataChannel;
 }
 export interface SwarmOptions {
   config: ResolvedConfig; Utils: { logger: Record<'info'|'debug'|'warn'|'error', (...args: unknown[]) => void>; generateId(prefix: string): string };

@@ -24,6 +24,7 @@ export function createChatSession({
   service = createReploidDopplerRuntimeService(),
   peers = null,
   swarm = null,
+  partitions = null,
   scheduler = null,
   participantId = 'local-user',
   meshId = 'reploid-local-mesh',
@@ -77,7 +78,7 @@ export function createChatSession({
   const execute = async (request, controls) => {
     const { threadId, attemptId, model } = request;
     assert(model.provider === 'doppler', 'Chat requires a Doppler participant');
-    const catalogModel = [...models, ...peerModels].find(m => m.id === model.id && m.identity === model.identity);
+    const catalogModel = [...models, ...peerModels, ...(partitions?.getModels() || [])].find(m => m.id === model.id && m.identity === model.identity);
     assert(catalogModel, 'Selected model is not in the verified catalog');
     const allowedAdapters = catalogModel.availableAdapters || [];
     for (const adapter of model.adapters || []) {
@@ -86,6 +87,13 @@ export function createChatSession({
     }
     let sequence = 0;
     const state = (status, execution) => controls.onState({ threadId, attemptId, status, execution });
+
+    if (model.partition) {
+      assert(partitions?.generate, 'Partition execution service is unavailable');
+      const result = await partitions.generate(request, controls);
+      threadPlacements.set(threadId, result.execution);
+      return result;
+    }
 
     if (request.permissions?.sharingScope === 'local') {
       const maxOutputTokens = Math.min(
@@ -171,7 +179,7 @@ export function createChatSession({
       const loading = peers.some(peer => peer.model === model.id && peer.readiness === 'loading');
       return { ...model, availability: ready.length ? (ready.some(peer => peer.availableSlots > 0) ? 'ready' : 'busy')
         : loading ? 'loading' : 'unavailable', providerIds: ready.map(peer => peer.peerId) };
-    }));
+    })).concat(copy(partitions?.getModels() || []));
   };
 
   const notifyAll = () => {
@@ -200,6 +208,8 @@ export function createChatSession({
   workspace.subscribe(() => {
     notifyAll();
   });
+
+  const unsubscribePartitions = partitions?.subscribe(notifyAll);
 
   return Object.freeze({
     getState: getSessionState,
@@ -315,6 +325,7 @@ export function createChatSession({
       } finally { notifyAll(); }
     },
     async close() {
+      unsubscribePartitions?.();
       await workspace.close();
       if (sessionScheduler) await sessionScheduler.close();
       listeners.clear();

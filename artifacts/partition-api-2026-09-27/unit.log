@@ -1,0 +1,23 @@
+
+ RUN  v4.1.10 /home/clocksmith/deco/reploid
+
+ ✓ tests/unit/conversation-workspace.test.js (7 tests) 230ms
+ ✓ tests/unit/partition-api.test.js (11 tests) 337ms
+ ✓ tests/unit/work-swarm-lifecycle.test.js (7 tests) 341ms
+ ✓ tests/unit/partition-data-channel.test.js (14 tests) 277ms
+ ✓ tests/unit/chat-session.test.js (12 tests) 182ms
+ ✓ tests/unit/webrtc-swarm.test.js (44 tests) 81ms
+ ✓ tests/unit/partition-runner.test.js (20 tests) 32ms
+ ✓ tests/unit/chat-workspace.test.js (8 tests) 13ms
+ ✓ tests/unit/partition-step-receiver.test.js (10 tests) 16ms
+ ✓ tests/unit/chat-thread-grants.test.js (6 tests) 24ms
+ ✓ tests/unit/mesh-peer-identity.test.js (4 tests) 28ms
+ ✓ tests/unit/doppler-partition-contract.test.js (4 tests) 22ms
+ ✓ tests/unit/p2p-transport-lifecycle.test.js (6 tests) 12ms
+
+ Test Files  13 passed (13)
+      Tests  153 passed (153)
+   Start at  15:02:10
+   Duration  3.08s (transform 902ms, setup 0ms, import 1.61s, tests 1.60s, environment 3.74s)
+
+JSON report written to /tmp/reploid-partition-api-unit.json
