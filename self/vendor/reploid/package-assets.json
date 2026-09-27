@@ -266,8 +266,8 @@
     },
     {
       "path": "artifacts/job-journal.js",
-      "bytes": 15003,
-      "sha256": "121334a74ec71788f56ab4fb03418a7d34454ac473e408b03a43cb65a3049c83"
+      "bytes": 15129,
+      "sha256": "57b405b0f3be55234c622c0518ad3a0eab6eb62cb14c4d23e62e97d1591bc434"
     },
     {
       "path": "artifacts/receipt.d.ts",
@@ -561,8 +561,8 @@
     },
     {
       "path": "mesh/jobs/requester.js",
-      "bytes": 10360,
-      "sha256": "ea0fdb6e59e610dd9665b61d10292b5928be57583652cd669839c2708d1e25b2"
+      "bytes": 10675,
+      "sha256": "47bb5e9876f1d903ee77661f03c6c0a04b3dab73c46f1d60fa0b5645310f596f"
     },
     {
       "path": "mesh/legacy-generation.d.ts",

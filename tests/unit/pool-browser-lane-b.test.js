@@ -263,6 +263,64 @@ describe('pool browser Lane B contract', () => {
     expect(result.commitReveal.revealResult.phase).toBe('reveal_accepted');
   });
 
+  it.each(['auto', 'required'])('waits for a delayed coordinator gate in %s mode', async (mode) => {
+    const order = [];
+    let polls = 0;
+    const sdk = {
+      registerProvider: payload => ({ ...payload, sessionId: 'session_delayed_gate' }),
+      submitAssignmentCommitment() { order.push('commit'); return { ringPhase: 'commit_submitted' }; },
+      pollJob() {
+        const ringPhase = ++polls > 6 ? 'reveal_open' : 'commit_submitted';
+        order.push(ringPhase);
+        return { job: { ringPhase } };
+      },
+      submitAssignmentReveal() {
+        order.push('reveal');
+        if (polls <= 6) throw Object.assign(new Error('ring reveal phase is not open'), { status: 409 });
+        return { phase: 'reveal_accepted' };
+      },
+      submitReceipt() { order.push('receipt'); return { verifierDecision: { accepted: true } }; },
+      reportAssignmentFailure: () => ({})
+    };
+    const provider = createProviderClient({ providerId: 'provider_lane_b', sdk, runtime: fakeRuntime(),
+      keyPair: await createSigningKeyPair(), identity: null, revealWait: { pollIntervalMs: 1, maxWaitMs: 1000 } });
+    await provider.register({});
+    const currentAssignment = await assignment();
+    // An optional legacy ring still must observe the coordinator's gate once it commits.
+    delete currentAssignment.ring.phaseProtocol;
+    const result = await provider.executeAssignment(currentAssignment, {
+      commitReveal: mode, sequence: TEST_PUBLIC_PROTEIN_SEQUENCE
+    });
+    expect(result.verifierDecision.accepted).toBe(true);
+    expect(order).toEqual(['commit', ...Array(6).fill('commit_submitted'), 'reveal_open', 'reveal', 'receipt']);
+  });
+
+  it.each(['cancel', 'timeout'])('settles a stalled reveal poll on %s and suppresses its late result', async (stop) => {
+    const controller = new AbortController();
+    let release, polled;
+    const ready = new Promise(resolve => { polled = resolve; });
+    const calls = [];
+    const sdk = {
+      registerProvider: payload => ({ ...payload, sessionId: 'session_stalled_gate' }),
+      submitAssignmentCommitment: () => ({ ringPhase: 'commit_submitted' }),
+      pollJob() { polled(); return new Promise(resolve => { release = resolve; }); },
+      submitAssignmentReveal() { calls.push('reveal'); },
+      submitReceipt() { calls.push('receipt'); },
+      reportAssignmentFailure(_id, payload) { calls.push(payload); return {}; }
+    };
+    const provider = createProviderClient({ providerId: 'provider_lane_b', sdk, runtime: fakeRuntime(),
+      keyPair: await createSigningKeyPair(), identity: null, revealWait: { pollIntervalMs: 1, maxWaitMs: 30 } });
+    await provider.register({});
+    const pending = provider.executeAssignment(await assignment(), { sequence: TEST_PUBLIC_PROTEIN_SEQUENCE, signal: controller.signal });
+    const rejected = expect(pending).rejects.toThrow(stop === 'cancel' ? 'stop reveal' : 'wait deadline');
+    await ready;
+    if (stop === 'cancel') controller.abort(new Error('stop reveal'));
+    await rejected;
+    release({ job: { ringPhase: 'reveal_open' } });
+    await new Promise(resolve => setTimeout(resolve, 5));
+    expect(calls).toEqual([expect.objectContaining({ providerFault: false })]);
+  });
+
   it('rejects an assignment whose tokenizer drifted after its exact contract key was sealed', async () => {
     const keyPair = await createSigningKeyPair();
     const provider = createProviderClient({

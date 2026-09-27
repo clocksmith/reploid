@@ -1,0 +1,2281 @@
+{
+  "schema": "reploid.agent-peer-local-acceptance/v1",
+  "passed": true,
+  "executionClass": "installed-public-runtime-injected-programs",
+  "physicalComputers": 1,
+  "localBrowserProcesses": 2,
+  "exclusions": [
+    "Physical model execution",
+    "Independent peer hardware",
+    "Publication",
+    "Deployment",
+    "Agent quality"
+  ],
+  "sourceRevision": "19bc359ef1b7606fde3132ab2f37920f4891e6e5",
+  "sourceDiffSha256": "8602f1fc36cc03db103b548454a14803d0286604f7280b34ce3c197842bb2050",
+  "imports": {
+    "doppler-gpu": "/installed/node_modules/doppler-gpu/src/capsule-runtime.js",
+    "reploid": "/installed/node_modules/reploid/src/index.js",
+    "reploid/config": "/installed/node_modules/reploid/src/config/index.js",
+    "reploid/doppler": "/installed/node_modules/reploid/src/adapters/doppler.js",
+    "reploid/browser": "/installed/node_modules/reploid/src/adapters/browser.js"
+  },
+  "fixtureSha256": "9a20090fc55fc398da80b8228d7b38f70d707bcfea351817eb7c7e45bd95ebaf",
+  "packageLockSha256": "52b747f5b2a964771ecac699baa3cb200c6fd59f922a3ba8f0812fc05f0fe24a",
+  "packages": {
+    "reploid": {
+      "version": "0.1.0",
+      "integrity": "sha512-IgfY15xKEIuJLgERXRGHpAWjeWGznKHh786OZQ5yilzdiG9ejS+7knIf65KzP1Vh40rWVHI7YPEEkRs5Oqvk/w==",
+      "resolved": "file:../../../../home/x/deco/releases/doppler-0.6.2-candidate/reploid-0.1.0.tgz",
+      "archiveSha256": "6f12af6f5d7ea31b23917d35eccc2aceacb29416a07af6441b58048d591f7a46"
+    },
+    "doppler-gpu": {
+      "version": "0.6.2",
+      "integrity": "sha512-Tvedjt9mJWka08GBAsvxtdR2H6YEOxG8yePJdOEBnXI/ez+ygyOiShA7L4eipSlqo/X7Gi6MEiofHeA7XRyANw==",
+      "resolved": "file:../../../../home/x/deco/releases/doppler-0.6.2-candidate/doppler-gpu-0.6.2.tgz",
+      "archiveSha256": "4f9689b173ab80f2d664e7006f99dea98e37eb16e6e9d5b831e2902aee6b91b7"
+    }
+  },
+  "sourceFiles": {
+    "self/pool/peer-room.js": "a95168d5526d2b95d1e71dd7f0ca1640c6ac2ef440c9d674c6225c2f80a66257",
+    "self/pool/peer-pack-requester.js": "ccaf5f98e609cc76bc348354c7b168f2619a66d68d3006510c48362d52e2302d",
+    "self/pool/provider-client.js": "8c2d1fba7a4ed46f4dbfbdcc531897460b2fd288cbc0e811829dc8d82377eddc",
+    "self/pool/pool-config.json": "46e78d5658bdb9c4b92c6ef9921929e0974c0e98ebc6ff1704435a0df9ac71f3",
+    "self/infrastructure/pack-job-storage.js": "f83b0b2bfbb6c6788d2c0628258ab931d7e0f093cd4c5671eb70164c6d1d8f96",
+    "tests/agent-peer-acceptance.js": "82d06f083bdeca0e10ce5f03a71e147a5418d8152224faf06e80bdd92717ddca",
+    "tests/fixtures/agent-peer-browser.js": "b284c1f271868ae89578e7e43dffb4c09494b1e47ebbefe5eca641917ce90037"
+  },
+  "browserVersion": "145.0.7632.6",
+  "stage": "agent uses recovered result",
+  "beforeRestart": {
+    "calls": 1,
+    "dropped": true,
+    "recovered": false,
+    "errors": [],
+    "active": false,
+    "text": "",
+    "progress": [],
+    "order": [],
+    "resumed": false,
+    "signed": 0,
+    "providerId": "sha256:c81d962a34fc3539c50c7bc9920bedd6715dc1de290bb314496e07d320adccfa",
+    "model": {
+      "modelId": "capsule-test-model",
+      "modelHash": "sha256:152e0c3028cfd4e63e96787f04253ef137ba3f3c58a5aae43e607d5d9d0bd797",
+      "manifestHash": "sha256:e2a0c78e8b66d7fa576514ae887ac86d6ba6b8285e9a5bc91036055270902293",
+      "runtime": "doppler",
+      "backend": "browser-webgpu",
+      "executionMode": "complete_pack_browser",
+      "workload": "text-generation",
+      "runtimeVersion": "0.6.2",
+      "executablePack": {
+        "schema": "doppler.capsule/v2",
+        "capsuleId": "capsule-test-model-capsule-v2-152e0c3028cfd4e6",
+        "semanticRoot": "sha256:152e0c3028cfd4e63e96787f04253ef137ba3f3c58a5aae43e607d5d9d0bd797",
+        "envelopeDigest": "sha256:e2a0c78e8b66d7fa576514ae887ac86d6ba6b8285e9a5bc91036055270902293",
+        "artifactClosureDigest": "sha256:003706c6469b01d22411d299a14ba815b3a93ec1bad07941457acf45e4af6aa7",
+        "artifacts": [
+          {
+            "artifactId": "manifest",
+            "role": "manifest",
+            "path": "manifest.json",
+            "hash": "sha256:81c2b202c185d97fca2c4015f6e93a5a0093fd67756c3882763cf2431b2c9eeb",
+            "sizeBytes": 33
+          },
+          {
+            "artifactId": "tokenizer",
+            "role": "tokenizer",
+            "path": "tokenizer.json",
+            "hash": "sha256:b002106c7a3bc734e3fda772ee6829930eccde9d34001b84df6413e7a708cbea",
+            "sizeBytes": 16
+          },
+          {
+            "artifactId": "weights",
+            "role": "weight-shard",
+            "path": "weights.bin",
+            "hash": "sha256:9f64a747e1b97f131fabb6b447296c9b6f0201e79fb3c5356e6c77e89b6a806a",
+            "sizeBytes": 4
+          },
+          {
+            "artifactId": "wgsl",
+            "role": "wgsl-source",
+            "path": "main.wgsl",
+            "hash": "sha256:95b71646ab522e330331b56411c70cce7c13de4708d428bb1ad760d0d8fe6040",
+            "sizeBytes": 41
+          },
+          {
+            "artifactId": "evidence",
+            "role": "reference-report",
+            "path": "reference.json",
+            "hash": "sha256:1ea63e7fda68e7ce49b013af8410102e9228f7591e79ef602dd23d95556d03bc",
+            "sizeBytes": 16
+          },
+          {
+            "artifactId": "program-bundle",
+            "role": "program-bundle",
+            "path": "program-bundle.json",
+            "hash": "sha256:8bfe4b33211762bcf79d6d59632fe065113b25ca57b7cbdf3f7c94047d1e47c0",
+            "sizeBytes": 39
+          }
+        ],
+        "requiredOperation": "generate",
+        "acceptedTargetPlanDigests": [
+          "sha256:e8b68d98a53349b474470d9fe0ee75a0fbd995d35699b225d7d2c0f27ee494c9"
+        ]
+      }
+    },
+    "channel": {
+      "closed": false,
+      "pendingBytes": 0,
+      "pendingMessages": 0,
+      "sentFrameBytes": 4938,
+      "receivedFrameBytes": 23552,
+      "sentMessages": 3,
+      "receivedMessages": 1,
+      "wireBytes": null
+    }
+  },
+  "agent": {
+    "state": {
+      "running": false,
+      "stopped": false,
+      "status": "PARKED",
+      "activity": "Parked: Used verified Saved peer answer.",
+      "parked": true,
+      "wakeOn": "manual",
+      "cycle": 2,
+      "instanceId": "installed-peer-agent",
+      "goal": "Use the approved peer task, then report its saved answer.",
+      "model": "doppler",
+      "tokens": {
+        "used": 173,
+        "limit": 0
+      },
+      "context": [
+        {
+          "content": "Use REPLOID/0 directives. Use TOOL: <name> followed by key: value arguments for permitted tools. Use PLAN: for a plan. Record progress with MILESTONE:. Use IDLE: <reason> to yield control. A milestone is not verified completion. Never infer permissions or claim unexecuted results.",
+          "origin": "host",
+          "role": "system"
+        },
+        {
+          "content": "Use the approved peer task, then report its saved answer.",
+          "origin": "goal",
+          "role": "user"
+        },
+        {
+          "role": "assistant",
+          "content": "REPLOID/0\nTOOL: AskPeer\ntaskId: approved",
+          "origin": "model"
+        },
+        {
+          "role": "user",
+          "content": "[TOOL AskPeer RESULT]\n{\n  \"text\": \"Saved peer answer.\",\n  \"outputHash\": \"sha256:855beb627a1595f61fb442cf1ece51d3088c4567ba7221029922e12a5f94efa9\"\n}",
+          "origin": "tool"
+        },
+        {
+          "role": "assistant",
+          "content": "REPLOID/0\nIDLE: Used verified Saved peer answer.",
+          "origin": "model"
+        },
+        {
+          "role": "user",
+          "content": "[SYSTEM]\nWaiting: Used verified Saved peer answer. Resume when new work is available. Wake condition: manual.",
+          "origin": "system"
+        }
+      ],
+      "draft": "",
+      "swarm": null,
+      "rgr": {
+        "name": "Recursive GEPA Ring",
+        "mode": "shadow",
+        "stage": "WAITING",
+        "topology": "local",
+        "role": "solo",
+        "slotMode": "local",
+        "slots": [
+          {
+            "id": "elite",
+            "placement": "local",
+            "state": "archived"
+          },
+          {
+            "id": "performance",
+            "placement": "local",
+            "state": "idle"
+          },
+          {
+            "id": "robustness",
+            "placement": "local",
+            "state": "idle"
+          },
+          {
+            "id": "repair",
+            "placement": "local",
+            "state": "repairing"
+          },
+          {
+            "id": "low-cost",
+            "placement": "local",
+            "state": "idle"
+          },
+          {
+            "id": "safety",
+            "placement": "local",
+            "state": "idle"
+          },
+          {
+            "id": "fallback",
+            "placement": "local",
+            "state": "archived"
+          }
+        ],
+        "gate": {
+          "state": "pending-anchors",
+          "anchors": 0,
+          "required": 3,
+          "reasons": [
+            "missing independent anchor observations (0/3)"
+          ]
+        },
+        "counters": {
+          "candidates": 2,
+          "toolCalls": 1,
+          "errors": 0,
+          "tokens": 173,
+          "archive": 1,
+          "replay": 1,
+          "receipts": 1
+        },
+        "archive": {
+          "count": 1,
+          "limit": 24,
+          "latest": {
+            "version": 1,
+            "id": "rgr-shadow-1-a938f71d",
+            "state": "shadow",
+            "phase": "candidate-ring",
+            "cycle": 1,
+            "instanceId": "installed-peer-agent",
+            "parentId": "seed",
+            "kind": "shadow-candidate",
+            "scheduler": {
+              "mode": "ordered",
+              "groups": 1,
+              "parallelGroups": 0
+            },
+            "summary": {
+              "tools": [
+                "AskPeer"
+              ],
+              "paths": [],
+              "count": 1,
+              "successful": 1,
+              "errors": 0,
+              "readOnly": 0,
+              "ordered": 1,
+              "exclusive": 0,
+              "kind": "shadow-candidate"
+            },
+            "score": {
+              "usefulness": 0.333,
+              "safety": 1,
+              "reversibility": 1,
+              "evidence": 0,
+              "qAnchor": 0,
+              "efficiency": 1
+            },
+            "pareto": {
+              "survives": true,
+              "comparedAgainst": 0,
+              "keys": [
+                "usefulness",
+                "safety",
+                "reversibility",
+                "evidence",
+                "qAnchor",
+                "efficiency"
+              ]
+            },
+            "gate": {
+              "state": "pending-anchors",
+              "reasons": [
+                "missing independent anchor observations (0/3)"
+              ]
+            },
+            "anchor": {
+              "required": 3,
+              "observations": [],
+              "qAnchor": 0
+            },
+            "validator": {
+              "state": "quarantined",
+              "selfApprovalAllowed": false
+            },
+            "promotion": {
+              "allowed": false,
+              "boundary": "Promote is disabled until anchored replay evidence passes."
+            },
+            "digest": "a938f71d",
+            "receiptPath": "/artifacts/rgr/rgr-shadow-1-a938f71d.json",
+            "persisted": false
+          },
+          "frontier": [
+            {
+              "id": "rgr-shadow-1-a938f71d",
+              "kind": "shadow-candidate",
+              "score": {
+                "usefulness": 0.333,
+                "safety": 1,
+                "reversibility": 1,
+                "evidence": 0,
+                "qAnchor": 0,
+                "efficiency": 1
+              },
+              "gate": {
+                "state": "pending-anchors",
+                "reasons": [
+                  "missing independent anchor observations (0/3)"
+                ]
+              },
+              "receiptPath": "/artifacts/rgr/rgr-shadow-1-a938f71d.json"
+            }
+          ]
+        },
+        "receipts": {
+          "count": 1,
+          "latestPath": "/artifacts/rgr/rgr-shadow-1-a938f71d.json"
+        },
+        "hostStatus": "local only",
+        "promotionGate": "anchor",
+        "validator": "quarantined",
+        "anchor": "version-frozen",
+        "instances": [],
+        "peerCount": 0,
+        "providerCount": 0,
+        "consumerCount": 0,
+        "transport": null,
+        "connectionState": "disconnected"
+      },
+      "ecosystem": {
+        "instances": []
+      },
+      "display": {
+        "runState": "WAITING",
+        "policy": "manual resume required"
+      },
+      "renderedBlocks": [
+        "[SYSTEM]\nWaiting: Used verified Saved peer answer. Resume when new work is available. Wake condition: manual.",
+        "[MODEL]\nREPLOID/0\nIDLE: Used verified Saved peer answer.",
+        "[TOOL AskPeer RESULT]\n{\n  \"text\": \"Saved peer answer.\",\n  \"outputHash\": \"sha256:855beb627a1595f61fb442cf1ece51d3088c4567ba7221029922e12a5f94efa9\"\n}",
+        "[MODEL]\nREPLOID/0\nTOOL: AskPeer\ntaskId: approved",
+        "[USER]\nUse the approved peer task, then report its saved answer.",
+        "[SYSTEM]\nUse REPLOID/0 directives. Use TOOL: <name> followed by key: value arguments for permitted tools. Use PLAN: for a plan. Record progress with MILESTONE:. Use IDLE: <reason> to yield control. A milestone is not verified completion. Never infer permissions or claim unexecuted results."
+      ],
+      "renderedText": "[SYSTEM]\nWaiting: Used verified Saved peer answer. Resume when new work is available. Wake condition: manual.\n\n[MODEL]\nREPLOID/0\nIDLE: Used verified Saved peer answer.\n\n[TOOL AskPeer RESULT]\n{\n  \"text\": \"Saved peer answer.\",\n  \"outputHash\": \"sha256:855beb627a1595f61fb442cf1ece51d3088c4567ba7221029922e12a5f94efa9\"\n}\n\n[MODEL]\nREPLOID/0\nTOOL: AskPeer\ntaskId: approved\n\n[USER]\nUse the approved peer task, then report its saved answer.\n\n[SYSTEM]\nUse REPLOID/0 directives. Use TOOL: <name> followed by key: value arguments for permitted tools. Use PLAN: for a plan. Record progress with MILESTONE:. Use IDLE: <reason> to yield control. A milestone is not verified completion. Never infer permissions or claim unexecuted results."
+    },
+    "result": {
+      "job": {
+        "body": {
+          "advert": {
+            "body": {
+              "capabilities": {
+                "adapters": [],
+                "experts": [],
+                "gpuIdentity": null,
+                "inputClasses": [
+                  "public_text",
+                  "public_biological_sequence"
+                ],
+                "models": [
+                  {
+                    "availability": "resident",
+                    "identity": "sha256:3a83aae3bfb0591a7cab33bd7eee8637623f77091b668684ce42aca0ae640d9c"
+                  }
+                ],
+                "observedAt": 1789434824908,
+                "operations": [
+                  {
+                    "name": "generate",
+                    "version": 1
+                  }
+                ],
+                "resources": {
+                  "activeJobs": 0,
+                  "bandwidthBytesPerSecond": 1048576,
+                  "concurrency": 1,
+                  "gpuBudgetBytes": 1048576,
+                  "gpuFreeBytes": null,
+                  "queuedJobs": 0,
+                  "storageBudgetBytes": 1048576,
+                  "storageFreeBytes": null
+                },
+                "schema": "reploid.peer.capabilities/v1"
+              },
+              "limits": {
+                "maxEvents": 32,
+                "maxInputBytes": 10000,
+                "maxJobMs": 120000,
+                "maxOutputBytes": 10000,
+                "maxStreamBytes": 500000
+              },
+              "models": [
+                {
+                  "backend": "browser-webgpu",
+                  "executablePack": {
+                    "acceptedTargetPlanDigests": [
+                      "sha256:e8b68d98a53349b474470d9fe0ee75a0fbd995d35699b225d7d2c0f27ee494c9"
+                    ],
+                    "artifactClosureDigest": "sha256:003706c6469b01d22411d299a14ba815b3a93ec1bad07941457acf45e4af6aa7",
+                    "artifacts": [
+                      {
+                        "artifactId": "manifest",
+                        "hash": "sha256:81c2b202c185d97fca2c4015f6e93a5a0093fd67756c3882763cf2431b2c9eeb",
+                        "path": "manifest.json",
+                        "role": "manifest",
+                        "sizeBytes": 33
+                      },
+                      {
+                        "artifactId": "tokenizer",
+                        "hash": "sha256:b002106c7a3bc734e3fda772ee6829930eccde9d34001b84df6413e7a708cbea",
+                        "path": "tokenizer.json",
+                        "role": "tokenizer",
+                        "sizeBytes": 16
+                      },
+                      {
+                        "artifactId": "weights",
+                        "hash": "sha256:9f64a747e1b97f131fabb6b447296c9b6f0201e79fb3c5356e6c77e89b6a806a",
+                        "path": "weights.bin",
+                        "role": "weight-shard",
+                        "sizeBytes": 4
+                      },
+                      {
+                        "artifactId": "wgsl",
+                        "hash": "sha256:95b71646ab522e330331b56411c70cce7c13de4708d428bb1ad760d0d8fe6040",
+                        "path": "main.wgsl",
+                        "role": "wgsl-source",
+                        "sizeBytes": 41
+                      },
+                      {
+                        "artifactId": "evidence",
+                        "hash": "sha256:1ea63e7fda68e7ce49b013af8410102e9228f7591e79ef602dd23d95556d03bc",
+                        "path": "reference.json",
+                        "role": "reference-report",
+                        "sizeBytes": 16
+                      },
+                      {
+                        "artifactId": "program-bundle",
+                        "hash": "sha256:8bfe4b33211762bcf79d6d59632fe065113b25ca57b7cbdf3f7c94047d1e47c0",
+                        "path": "program-bundle.json",
+                        "role": "program-bundle",
+                        "sizeBytes": 39
+                      }
+                    ],
+                    "capsuleId": "capsule-test-model-capsule-v2-152e0c3028cfd4e6",
+                    "envelopeDigest": "sha256:e2a0c78e8b66d7fa576514ae887ac86d6ba6b8285e9a5bc91036055270902293",
+                    "requiredOperation": "generate",
+                    "schema": "doppler.capsule/v2",
+                    "semanticRoot": "sha256:152e0c3028cfd4e63e96787f04253ef137ba3f3c58a5aae43e607d5d9d0bd797"
+                  },
+                  "executionMode": "complete_pack_browser",
+                  "manifestHash": "sha256:e2a0c78e8b66d7fa576514ae887ac86d6ba6b8285e9a5bc91036055270902293",
+                  "modelHash": "sha256:152e0c3028cfd4e63e96787f04253ef137ba3f3c58a5aae43e607d5d9d0bd797",
+                  "modelId": "capsule-test-model",
+                  "runtime": "doppler",
+                  "runtimeVersion": "0.6.2",
+                  "workload": "text-generation"
+                }
+              ],
+              "schema": "reploid.peer.pack_provider/v2"
+            },
+            "causalRefs": [],
+            "createdAt": "2026-09-15T01:13:44.909Z",
+            "expiresAt": "2026-09-15T01:15:44.908Z",
+            "fromPeerId": "sha256:c81d962a34fc3539c50c7bc9920bedd6715dc1de290bb314496e07d320adccfa",
+            "messageHash": "sha256:b18e96eda6d3218e88ecad69789398dd26ad65a4dcd14fa09c63a9d67ac4a201",
+            "network": "poolday",
+            "nonce": "f616c654-3436-4a82-8e54-ce94d9431ca5",
+            "peerControlVersion": "reploid_peer_control/v1",
+            "publicKey": "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEGExajozzpMjciUc7P3/NQFiZPeDZuqDfEHecwfEU7a+exaDIVBaivUY0gEB3P9cZxYU9MfJSDWCqfydA+EgtzA==",
+            "signature": "e7KdS+1NXOjK84j7QVcrKoxda27rHeCQhsdfKws4PVVwVuQNvDSS/T82zjSB24VqSKO7Ut32kFX4HrgjeoM4oA==",
+            "toPeerId": null,
+            "type": "provider_advert"
+          },
+          "assignment": {
+            "acceptancePolicyDigest": "sha256:a646c4606e9283a1c0dc4a1e708c5e6831fccdb603effdab8f4885a3465284f8",
+            "adapterSet": [],
+            "assignmentAttemptId": "98d2e27f-b4fa-4df4-968a-4068f55530c3",
+            "assignmentHash": "sha256:4a586fbac61cf363e067e98480cbfcabbd9eca2b30c7ed1e8796cde1f05a7db7",
+            "assignmentId": "peer_assignment_4a586fbac61cf363",
+            "attemptNumber": 1,
+            "comparisonPolicyDigest": "sha256:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+            "expiresAt": "2026-09-15T01:15:44.929Z",
+            "inputClass": "public_text",
+            "inputHash": "sha256:e40aeda8e968cf2968c2a3ba7743207715ca5823f87b89201fd265e52e328548",
+            "intentHash": "sha256:01b15e2cdf460898f916dd79e5c3d0fea5e65c1538bab0bcf1bf0f53bf33767e",
+            "jobId": "1c6310ca-9b55-4cbe-bafb-f365c5e3a02e",
+            "jobPolicyDigest": "sha256:0405f98c013a52d93e2cf3942d18cb680bb79da7863a519387309d442389ddb7",
+            "model": {
+              "backend": "browser-webgpu",
+              "executablePack": {
+                "acceptedTargetPlanDigests": [
+                  "sha256:e8b68d98a53349b474470d9fe0ee75a0fbd995d35699b225d7d2c0f27ee494c9"
+                ],
+                "artifactClosureDigest": "sha256:003706c6469b01d22411d299a14ba815b3a93ec1bad07941457acf45e4af6aa7",
+                "artifacts": [
+                  {
+                    "artifactId": "manifest",
+                    "hash": "sha256:81c2b202c185d97fca2c4015f6e93a5a0093fd67756c3882763cf2431b2c9eeb",
+                    "path": "manifest.json",
+                    "role": "manifest",
+                    "sizeBytes": 33
+                  },
+                  {
+                    "artifactId": "tokenizer",
+                    "hash": "sha256:b002106c7a3bc734e3fda772ee6829930eccde9d34001b84df6413e7a708cbea",
+                    "path": "tokenizer.json",
+                    "role": "tokenizer",
+                    "sizeBytes": 16
+                  },
+                  {
+                    "artifactId": "weights",
+                    "hash": "sha256:9f64a747e1b97f131fabb6b447296c9b6f0201e79fb3c5356e6c77e89b6a806a",
+                    "path": "weights.bin",
+                    "role": "weight-shard",
+                    "sizeBytes": 4
+                  },
+                  {
+                    "artifactId": "wgsl",
+                    "hash": "sha256:95b71646ab522e330331b56411c70cce7c13de4708d428bb1ad760d0d8fe6040",
+                    "path": "main.wgsl",
+                    "role": "wgsl-source",
+                    "sizeBytes": 41
+                  },
+                  {
+                    "artifactId": "evidence",
+                    "hash": "sha256:1ea63e7fda68e7ce49b013af8410102e9228f7591e79ef602dd23d95556d03bc",
+                    "path": "reference.json",
+                    "role": "reference-report",
+                    "sizeBytes": 16
+                  },
+                  {
+                    "artifactId": "program-bundle",
+                    "hash": "sha256:8bfe4b33211762bcf79d6d59632fe065113b25ca57b7cbdf3f7c94047d1e47c0",
+                    "path": "program-bundle.json",
+                    "role": "program-bundle",
+                    "sizeBytes": 39
+                  }
+                ],
+                "capsuleId": "capsule-test-model-capsule-v2-152e0c3028cfd4e6",
+                "envelopeDigest": "sha256:e2a0c78e8b66d7fa576514ae887ac86d6ba6b8285e9a5bc91036055270902293",
+                "requiredOperation": "generate",
+                "schema": "doppler.capsule/v2",
+                "semanticRoot": "sha256:152e0c3028cfd4e63e96787f04253ef137ba3f3c58a5aae43e607d5d9d0bd797"
+              },
+              "executionMode": "complete_pack_browser",
+              "manifestHash": "sha256:e2a0c78e8b66d7fa576514ae887ac86d6ba6b8285e9a5bc91036055270902293",
+              "modelHash": "sha256:152e0c3028cfd4e63e96787f04253ef137ba3f3c58a5aae43e607d5d9d0bd797",
+              "modelId": "capsule-test-model",
+              "runtime": "doppler",
+              "runtimeVersion": "0.6.2",
+              "workload": "text-generation"
+            },
+            "operationPolicyDigest": "sha256:7f8c47bcf84bf2fdf82833f9a0125151bf9957cce1da6c07c650b07911a17569",
+            "providerAdvertHash": "sha256:b18e96eda6d3218e88ecad69789398dd26ad65a4dcd14fa09c63a9d67ac4a201",
+            "providerId": "sha256:c81d962a34fc3539c50c7bc9920bedd6715dc1de290bb314496e07d320adccfa",
+            "providerLimits": {
+              "maxEvents": 32,
+              "maxInputBytes": 10000,
+              "maxJobMs": 120000,
+              "maxOutputBytes": 10000,
+              "maxStreamBytes": 500000
+            },
+            "providerParticipationProfileHash": null,
+            "providerPublicKey": "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEGExajozzpMjciUc7P3/NQFiZPeDZuqDfEHecwfEU7a+exaDIVBaivUY0gEB3P9cZxYU9MfJSDWCqfydA+EgtzA==",
+            "requesterId": "sha256:6640b49a2540930c25ce41e8c5b64e6f84305da8a1d8844532ad7f80374960ab",
+            "routeDecisionHash": "sha256:df75f88fd2268ee587618efe8ccb176a3648e4ccba7597cc937c25e8527fb95d",
+            "schema": "reploid.peer.assignment/v1"
+          },
+          "intent": {
+            "acceptance": {
+              "claim": "execution-identity-only",
+              "comparisonPolicyDigest": null,
+              "mode": "execution",
+              "operation": {
+                "name": "generate",
+                "version": 1
+              },
+              "referenceRequired": false,
+              "schema": "reploid.pool.operation-acceptance/v1"
+            },
+            "adapterSet": [],
+            "attemptId": "98d2e27f-b4fa-4df4-968a-4068f55530c3",
+            "attemptNumber": 1,
+            "comparisonPolicy": null,
+            "consent": {
+              "providerIds": [
+                "sha256:c81d962a34fc3539c50c7bc9920bedd6715dc1de290bb314496e07d320adccfa"
+              ],
+              "publicInput": true,
+              "schema": "reploid.peer.public_operation_consent/v1"
+            },
+            "inputClass": "public_text",
+            "inputHash": "sha256:e40aeda8e968cf2968c2a3ba7743207715ca5823f87b89201fd265e52e328548",
+            "jobId": "1c6310ca-9b55-4cbe-bafb-f365c5e3a02e",
+            "jobPolicy": {
+              "acceptance": {
+                "defaultMode": "reference",
+                "modes": {
+                  "execution": {
+                    "claim": "execution-identity-only",
+                    "operations": [
+                      "generate"
+                    ],
+                    "referenceRequired": false
+                  },
+                  "reference": {
+                    "claim": "bounded-reference-comparison",
+                    "operations": null,
+                    "referenceRequired": true
+                  }
+                },
+                "schema": "reploid.pool.operation-acceptance-policy/v1"
+              },
+              "assignmentPolicy": {
+                "adapterAvailabilityOrder": [
+                  "resident",
+                  "cached",
+                  "fetchable"
+                ],
+                "allowAdapterFetching": true,
+                "allowModelFetching": true,
+                "duplicateProviders": "newest-observation-then-message-hash",
+                "history": {
+                  "enabled": false
+                },
+                "invalidAdvertisement": "reject",
+                "maxCandidates": 16,
+                "maxObservationAgeMs": 30000,
+                "minimumBandwidthBytesPerSecond": 0,
+                "minimumFreeGpuBytes": 0,
+                "minimumFreeStorageBytes": 0,
+                "modelAvailabilityOrder": [
+                  "resident",
+                  "cached",
+                  "fetchable"
+                ],
+                "policyId": "complete-operation-resident-load-v1",
+                "ranking": [
+                  {
+                    "metric": "modelAvailability",
+                    "order": "asc"
+                  },
+                  {
+                    "metric": "adapterAvailability",
+                    "order": "asc"
+                  },
+                  {
+                    "metric": "activeJobs",
+                    "order": "asc"
+                  },
+                  {
+                    "metric": "queuedJobs",
+                    "order": "asc"
+                  },
+                  {
+                    "metric": "providerId",
+                    "order": "asc"
+                  }
+                ],
+                "requireAvailableSlot": true,
+                "schema": "reploid.pool.assignment-policy/v1",
+                "unknownFreeMemory": "budget-only",
+                "version": 1
+              },
+              "attempts": {
+                "initialNumber": 1,
+                "maximumNumber": 1000000
+              },
+              "execution": {
+                "adapters": {
+                  "allowedFormats": [
+                    "peft_safetensors"
+                  ],
+                  "combinations": {
+                    "allowed": false,
+                    "order": "request",
+                    "semantics": "single"
+                  },
+                  "defaultAdapterSet": [],
+                  "fetchBeforeExecute": true,
+                  "maxAdapterBytes": 67108864,
+                  "maxAdaptersPerJob": 1,
+                  "maxTotalAdapterBytes": 67108864,
+                  "schema": "reploid.pool.adapter-execution-policy/v1",
+                  "storage": {
+                    "databaseName": "reploid-adapter-transfer-v1",
+                    "maxCacheBytes": 268435456,
+                    "maxConcurrentChunks": 2
+                  }
+                },
+                "maxConcurrentJobs": 1
+              },
+              "limits": {
+                "maxClockSkewMs": 5000,
+                "maxConsentProviders": 8,
+                "maxEvents": 4096,
+                "maxIdentityCharacters": 128,
+                "maxInboxMessages": 16,
+                "maxInputBytes": 4194304,
+                "maxJobMs": 300000,
+                "maxModels": 16,
+                "maxOutputBytes": 4194304,
+                "maxPublicKeyCharacters": 1024,
+                "maxStreamBytes": 67108864,
+                "maxWireBytes": 16777216
+              },
+              "persistence": {
+                "byteCeiling": 67108864,
+                "cleanup": "expire-then-delete-after-retention",
+                "databaseName": "reploid-pack-jobs-v1",
+                "databaseVersion": 2,
+                "durability": "strict",
+                "legacyRecordSchema": "reploid.pack-job-journal/v1",
+                "legacyStates": {
+                  "busy": "interrupted",
+                  "cancelled": "cancelled",
+                  "completed": "completed",
+                  "failed": "interrupted",
+                  "interrupted": "interrupted",
+                  "running": "interrupted"
+                },
+                "maxFutureMs": 300000,
+                "maxIdentityCharacters": 128,
+                "maxRecords": 128,
+                "maxSavedBytes": 67108864,
+                "outcomeStates": {
+                  "busy": "interrupted",
+                  "cancelled": "cancelled",
+                  "completed": "completed",
+                  "failed": "interrupted",
+                  "partial": "running"
+                },
+                "recordCeiling": 256,
+                "recordSchema": "reploid.pack-job-journal/v2",
+                "retentionMs": 300000,
+                "states": [
+                  "accepted",
+                  "running",
+                  "completed",
+                  "cancelled",
+                  "interrupted",
+                  "expired"
+                ],
+                "storageFailureBehavior": "reject",
+                "storageTimeoutMs": 10000,
+                "storeName": "attempts",
+                "updatesLayoutSchema": "reploid.pack-job-updates/v1",
+                "updatesStoreName": "attempt-updates"
+              },
+              "providerCapabilitySchema": {
+                "availabilityStates": [
+                  "resident",
+                  "cached",
+                  "fetchable"
+                ],
+                "maxAdapters": 32,
+                "maxClockSkewMs": 5000,
+                "maxExperts": 128,
+                "maxIdentityCharacters": 256,
+                "maxInputClasses": 16,
+                "maxModels": 16,
+                "maxObservationAgeMs": 60000,
+                "maxOperations": 16,
+                "observationSchema": "reploid.peer.capabilities/v1",
+                "schema": "reploid.pool.capability-policy/v1",
+                "version": 1
+              },
+              "retry": {
+                "delayMs": 2000,
+                "maxDeliveries": 3,
+                "maximumDelayMs": 10000,
+                "maximumDeliveries": 8,
+                "minimumDelayMs": 100
+              },
+              "schema": "reploid.pool.peer-job-policy/v1",
+              "schemas": {
+                "cancel": "reploid.peer.pack_cancel/v1",
+                "job": "reploid.peer.pack_job/v4",
+                "legacyJob": "reploid.peer.pack_job/v1",
+                "legacyProviderAdvert": "reploid.peer.pack_provider/v1",
+                "legacyRecord": "reploid.pack-job-journal/v1",
+                "providerAdvert": "reploid.peer.pack_provider/v2",
+                "record": "reploid.pack-job-journal/v2",
+                "update": "reploid.peer.pack_update/v1"
+              },
+              "version": 3
+            },
+            "jobPolicyDigest": "sha256:0405f98c013a52d93e2cf3942d18cb680bb79da7863a519387309d442389ddb7",
+            "limits": {
+              "deadlineAt": 1789434944929,
+              "maxEvents": 32,
+              "maxInputBytes": 10000,
+              "maxJobMs": 120000,
+              "maxOutputBytes": 10000,
+              "maxStreamBytes": 500000
+            },
+            "model": {
+              "backend": "browser-webgpu",
+              "executablePack": {
+                "acceptedTargetPlanDigests": [
+                  "sha256:e8b68d98a53349b474470d9fe0ee75a0fbd995d35699b225d7d2c0f27ee494c9"
+                ],
+                "artifactClosureDigest": "sha256:003706c6469b01d22411d299a14ba815b3a93ec1bad07941457acf45e4af6aa7",
+                "artifacts": [
+                  {
+                    "artifactId": "manifest",
+                    "hash": "sha256:81c2b202c185d97fca2c4015f6e93a5a0093fd67756c3882763cf2431b2c9eeb",
+                    "path": "manifest.json",
+                    "role": "manifest",
+                    "sizeBytes": 33
+                  },
+                  {
+                    "artifactId": "tokenizer",
+                    "hash": "sha256:b002106c7a3bc734e3fda772ee6829930eccde9d34001b84df6413e7a708cbea",
+                    "path": "tokenizer.json",
+                    "role": "tokenizer",
+                    "sizeBytes": 16
+                  },
+                  {
+                    "artifactId": "weights",
+                    "hash": "sha256:9f64a747e1b97f131fabb6b447296c9b6f0201e79fb3c5356e6c77e89b6a806a",
+                    "path": "weights.bin",
+                    "role": "weight-shard",
+                    "sizeBytes": 4
+                  },
+                  {
+                    "artifactId": "wgsl",
+                    "hash": "sha256:95b71646ab522e330331b56411c70cce7c13de4708d428bb1ad760d0d8fe6040",
+                    "path": "main.wgsl",
+                    "role": "wgsl-source",
+                    "sizeBytes": 41
+                  },
+                  {
+                    "artifactId": "evidence",
+                    "hash": "sha256:1ea63e7fda68e7ce49b013af8410102e9228f7591e79ef602dd23d95556d03bc",
+                    "path": "reference.json",
+                    "role": "reference-report",
+                    "sizeBytes": 16
+                  },
+                  {
+                    "artifactId": "program-bundle",
+                    "hash": "sha256:8bfe4b33211762bcf79d6d59632fe065113b25ca57b7cbdf3f7c94047d1e47c0",
+                    "path": "program-bundle.json",
+                    "role": "program-bundle",
+                    "sizeBytes": 39
+                  }
+                ],
+                "capsuleId": "capsule-test-model-capsule-v2-152e0c3028cfd4e6",
+                "envelopeDigest": "sha256:e2a0c78e8b66d7fa576514ae887ac86d6ba6b8285e9a5bc91036055270902293",
+                "requiredOperation": "generate",
+                "schema": "doppler.capsule/v2",
+                "semanticRoot": "sha256:152e0c3028cfd4e63e96787f04253ef137ba3f3c58a5aae43e607d5d9d0bd797"
+              },
+              "executionMode": "complete_pack_browser",
+              "manifestHash": "sha256:e2a0c78e8b66d7fa576514ae887ac86d6ba6b8285e9a5bc91036055270902293",
+              "modelHash": "sha256:152e0c3028cfd4e63e96787f04253ef137ba3f3c58a5aae43e607d5d9d0bd797",
+              "modelId": "capsule-test-model",
+              "runtime": "doppler",
+              "runtimeVersion": "0.6.2",
+              "workload": "text-generation"
+            },
+            "operationPolicy": {
+              "comparisons": {
+                "exact-text": {
+                  "nonnegativeFields": [],
+                  "requiredFields": []
+                }
+              },
+              "definition": {
+                "adapterId": "generate.v1",
+                "comparisonPolicyIds": [
+                  "exact-text"
+                ],
+                "dopplerOperation": {
+                  "name": "generate",
+                  "version": 1
+                },
+                "inputClasses": {
+                  "defaultRemote": "public_text",
+                  "local": [
+                    "public_text",
+                    "private_text"
+                  ],
+                  "remote": [
+                    "public_text"
+                  ]
+                },
+                "inputContract": {
+                  "runtimeContract": "doppler.generation-contract/v1",
+                  "version": 1
+                },
+                "maximumLimits": {
+                  "maxEvents": 4096,
+                  "maxInputBytes": 4194304,
+                  "maxJobMs": 600000,
+                  "maxOutputBytes": 16777216,
+                  "maxStreamBytes": 67108864
+                },
+                "optionsContract": {
+                  "runtimeContract": "doppler.generation-contract/v1",
+                  "version": 1
+                },
+                "outputContract": {
+                  "version": 1
+                },
+                "schema": "reploid.pool.operation-definition/v1",
+                "streaming": {
+                  "partial": true
+                },
+                "version": 1,
+                "workload": "text-generation"
+              }
+            },
+            "operationPolicyDigest": "sha256:7f8c47bcf84bf2fdf82833f9a0125151bf9957cce1da6c07c650b07911a17569",
+            "planning": {
+              "adverts": [
+                {
+                  "body": {
+                    "capabilities": {
+                      "adapters": [],
+                      "experts": [],
+                      "gpuIdentity": null,
+                      "inputClasses": [
+                        "public_text",
+                        "public_biological_sequence"
+                      ],
+                      "models": [
+                        {
+                          "availability": "resident",
+                          "identity": "sha256:3a83aae3bfb0591a7cab33bd7eee8637623f77091b668684ce42aca0ae640d9c"
+                        }
+                      ],
+                      "observedAt": 1789434824908,
+                      "operations": [
+                        {
+                          "name": "generate",
+                          "version": 1
+                        }
+                      ],
+                      "resources": {
+                        "activeJobs": 0,
+                        "bandwidthBytesPerSecond": 1048576,
+                        "concurrency": 1,
+                        "gpuBudgetBytes": 1048576,
+                        "gpuFreeBytes": null,
+                        "queuedJobs": 0,
+                        "storageBudgetBytes": 1048576,
+                        "storageFreeBytes": null
+                      },
+                      "schema": "reploid.peer.capabilities/v1"
+                    },
+                    "limits": {
+                      "maxEvents": 32,
+                      "maxInputBytes": 10000,
+                      "maxJobMs": 120000,
+                      "maxOutputBytes": 10000,
+                      "maxStreamBytes": 500000
+                    },
+                    "models": [
+                      {
+                        "backend": "browser-webgpu",
+                        "executablePack": {
+                          "acceptedTargetPlanDigests": [
+                            "sha256:e8b68d98a53349b474470d9fe0ee75a0fbd995d35699b225d7d2c0f27ee494c9"
+                          ],
+                          "artifactClosureDigest": "sha256:003706c6469b01d22411d299a14ba815b3a93ec1bad07941457acf45e4af6aa7",
+                          "artifacts": [
+                            {
+                              "artifactId": "manifest",
+                              "hash": "sha256:81c2b202c185d97fca2c4015f6e93a5a0093fd67756c3882763cf2431b2c9eeb",
+                              "path": "manifest.json",
+                              "role": "manifest",
+                              "sizeBytes": 33
+                            },
+                            {
+                              "artifactId": "tokenizer",
+                              "hash": "sha256:b002106c7a3bc734e3fda772ee6829930eccde9d34001b84df6413e7a708cbea",
+                              "path": "tokenizer.json",
+                              "role": "tokenizer",
+                              "sizeBytes": 16
+                            },
+                            {
+                              "artifactId": "weights",
+                              "hash": "sha256:9f64a747e1b97f131fabb6b447296c9b6f0201e79fb3c5356e6c77e89b6a806a",
+                              "path": "weights.bin",
+                              "role": "weight-shard",
+                              "sizeBytes": 4
+                            },
+                            {
+                              "artifactId": "wgsl",
+                              "hash": "sha256:95b71646ab522e330331b56411c70cce7c13de4708d428bb1ad760d0d8fe6040",
+                              "path": "main.wgsl",
+                              "role": "wgsl-source",
+                              "sizeBytes": 41
+                            },
+                            {
+                              "artifactId": "evidence",
+                              "hash": "sha256:1ea63e7fda68e7ce49b013af8410102e9228f7591e79ef602dd23d95556d03bc",
+                              "path": "reference.json",
+                              "role": "reference-report",
+                              "sizeBytes": 16
+                            },
+                            {
+                              "artifactId": "program-bundle",
+                              "hash": "sha256:8bfe4b33211762bcf79d6d59632fe065113b25ca57b7cbdf3f7c94047d1e47c0",
+                              "path": "program-bundle.json",
+                              "role": "program-bundle",
+                              "sizeBytes": 39
+                            }
+                          ],
+                          "capsuleId": "capsule-test-model-capsule-v2-152e0c3028cfd4e6",
+                          "envelopeDigest": "sha256:e2a0c78e8b66d7fa576514ae887ac86d6ba6b8285e9a5bc91036055270902293",
+                          "requiredOperation": "generate",
+                          "schema": "doppler.capsule/v2",
+                          "semanticRoot": "sha256:152e0c3028cfd4e63e96787f04253ef137ba3f3c58a5aae43e607d5d9d0bd797"
+                        },
+                        "executionMode": "complete_pack_browser",
+                        "manifestHash": "sha256:e2a0c78e8b66d7fa576514ae887ac86d6ba6b8285e9a5bc91036055270902293",
+                        "modelHash": "sha256:152e0c3028cfd4e63e96787f04253ef137ba3f3c58a5aae43e607d5d9d0bd797",
+                        "modelId": "capsule-test-model",
+                        "runtime": "doppler",
+                        "runtimeVersion": "0.6.2",
+                        "workload": "text-generation"
+                      }
+                    ],
+                    "schema": "reploid.peer.pack_provider/v2"
+                  },
+                  "causalRefs": [],
+                  "createdAt": "2026-09-15T01:13:44.909Z",
+                  "expiresAt": "2026-09-15T01:15:44.908Z",
+                  "fromPeerId": "sha256:c81d962a34fc3539c50c7bc9920bedd6715dc1de290bb314496e07d320adccfa",
+                  "messageHash": "sha256:b18e96eda6d3218e88ecad69789398dd26ad65a4dcd14fa09c63a9d67ac4a201",
+                  "network": "poolday",
+                  "nonce": "f616c654-3436-4a82-8e54-ce94d9431ca5",
+                  "peerControlVersion": "reploid_peer_control/v1",
+                  "publicKey": "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEGExajozzpMjciUc7P3/NQFiZPeDZuqDfEHecwfEU7a+exaDIVBaivUY0gEB3P9cZxYU9MfJSDWCqfydA+EgtzA==",
+                  "signature": "e7KdS+1NXOjK84j7QVcrKoxda27rHeCQhsdfKws4PVVwVuQNvDSS/T82zjSB24VqSKO7Ut32kFX4HrgjeoM4oA==",
+                  "toPeerId": null,
+                  "type": "provider_advert"
+                }
+              ],
+              "plan": {
+                "candidates": [
+                  {
+                    "advertHash": "sha256:b18e96eda6d3218e88ecad69789398dd26ad65a4dcd14fa09c63a9d67ac4a201",
+                    "eligible": true,
+                    "metrics": {
+                      "activeJobs": 0,
+                      "adapterAvailability": 0,
+                      "bandwidthBytesPerSecond": 1048576,
+                      "gpuBudgetBytes": 1048576,
+                      "modelAvailability": 0,
+                      "providerId": "sha256:c81d962a34fc3539c50c7bc9920bedd6715dc1de290bb314496e07d320adccfa",
+                      "queuedJobs": 0
+                    },
+                    "providerId": "sha256:c81d962a34fc3539c50c7bc9920bedd6715dc1de290bb314496e07d320adccfa",
+                    "reasons": [],
+                    "unknownMemory": {
+                      "gpu": true,
+                      "storage": true
+                    }
+                  }
+                ],
+                "historyProjectionDigest": null,
+                "orderedProviderIds": [
+                  "sha256:c81d962a34fc3539c50c7bc9920bedd6715dc1de290bb314496e07d320adccfa"
+                ],
+                "policyDigest": "sha256:85f5ddfdf3336705c6d1651c1dc355e006e8bec4f973d75694155f2eaee6a684",
+                "policyId": "complete-operation-resident-load-v1",
+                "requirementsDigest": "sha256:5903c2c77bcb3b337436899cbf71f736ef66a897aa7c4aa3d8234c7d1ad4b1e9",
+                "schema": "reploid.pool.operation-assignment-plan/v1",
+                "selectedAt": 1789434824931,
+                "selectedProviderId": "sha256:c81d962a34fc3539c50c7bc9920bedd6715dc1de290bb314496e07d320adccfa"
+              }
+            },
+            "requestSchema": "doppler.capsule-operation-request/v2",
+            "resources": {
+              "bandwidthBytesPerSecond": 0,
+              "gpuBytes": 4096,
+              "storageBytes": 4096
+            },
+            "selectedAt": 1789434824931
+          },
+          "request": {
+            "assignment": {
+              "acceptancePolicyDigest": "sha256:a646c4606e9283a1c0dc4a1e708c5e6831fccdb603effdab8f4885a3465284f8",
+              "adapterSet": [],
+              "assignmentAttemptId": "98d2e27f-b4fa-4df4-968a-4068f55530c3",
+              "assignmentHash": "sha256:4a586fbac61cf363e067e98480cbfcabbd9eca2b30c7ed1e8796cde1f05a7db7",
+              "assignmentId": "peer_assignment_4a586fbac61cf363",
+              "attemptNumber": 1,
+              "comparisonPolicyDigest": "sha256:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+              "expiresAt": "2026-09-15T01:15:44.929Z",
+              "inputClass": "public_text",
+              "inputHash": "sha256:e40aeda8e968cf2968c2a3ba7743207715ca5823f87b89201fd265e52e328548",
+              "intentHash": "sha256:01b15e2cdf460898f916dd79e5c3d0fea5e65c1538bab0bcf1bf0f53bf33767e",
+              "jobId": "1c6310ca-9b55-4cbe-bafb-f365c5e3a02e",
+              "jobPolicyDigest": "sha256:0405f98c013a52d93e2cf3942d18cb680bb79da7863a519387309d442389ddb7",
+              "model": {
+                "backend": "browser-webgpu",
+                "executablePack": {
+                  "acceptedTargetPlanDigests": [
+                    "sha256:e8b68d98a53349b474470d9fe0ee75a0fbd995d35699b225d7d2c0f27ee494c9"
+                  ],
+                  "artifactClosureDigest": "sha256:003706c6469b01d22411d299a14ba815b3a93ec1bad07941457acf45e4af6aa7",
+                  "artifacts": [
+                    {
+                      "artifactId": "manifest",
+                      "hash": "sha256:81c2b202c185d97fca2c4015f6e93a5a0093fd67756c3882763cf2431b2c9eeb",
+                      "path": "manifest.json",
+                      "role": "manifest",
+                      "sizeBytes": 33
+                    },
+                    {
+                      "artifactId": "tokenizer",
+                      "hash": "sha256:b002106c7a3bc734e3fda772ee6829930eccde9d34001b84df6413e7a708cbea",
+                      "path": "tokenizer.json",
+                      "role": "tokenizer",
+                      "sizeBytes": 16
+                    },
+                    {
+                      "artifactId": "weights",
+                      "hash": "sha256:9f64a747e1b97f131fabb6b447296c9b6f0201e79fb3c5356e6c77e89b6a806a",
+                      "path": "weights.bin",
+                      "role": "weight-shard",
+                      "sizeBytes": 4
+                    },
+                    {
+                      "artifactId": "wgsl",
+                      "hash": "sha256:95b71646ab522e330331b56411c70cce7c13de4708d428bb1ad760d0d8fe6040",
+                      "path": "main.wgsl",
+                      "role": "wgsl-source",
+                      "sizeBytes": 41
+                    },
+                    {
+                      "artifactId": "evidence",
+                      "hash": "sha256:1ea63e7fda68e7ce49b013af8410102e9228f7591e79ef602dd23d95556d03bc",
+                      "path": "reference.json",
+                      "role": "reference-report",
+                      "sizeBytes": 16
+                    },
+                    {
+                      "artifactId": "program-bundle",
+                      "hash": "sha256:8bfe4b33211762bcf79d6d59632fe065113b25ca57b7cbdf3f7c94047d1e47c0",
+                      "path": "program-bundle.json",
+                      "role": "program-bundle",
+                      "sizeBytes": 39
+                    }
+                  ],
+                  "capsuleId": "capsule-test-model-capsule-v2-152e0c3028cfd4e6",
+                  "envelopeDigest": "sha256:e2a0c78e8b66d7fa576514ae887ac86d6ba6b8285e9a5bc91036055270902293",
+                  "requiredOperation": "generate",
+                  "schema": "doppler.capsule/v2",
+                  "semanticRoot": "sha256:152e0c3028cfd4e63e96787f04253ef137ba3f3c58a5aae43e607d5d9d0bd797"
+                },
+                "executionMode": "complete_pack_browser",
+                "manifestHash": "sha256:e2a0c78e8b66d7fa576514ae887ac86d6ba6b8285e9a5bc91036055270902293",
+                "modelHash": "sha256:152e0c3028cfd4e63e96787f04253ef137ba3f3c58a5aae43e607d5d9d0bd797",
+                "modelId": "capsule-test-model",
+                "runtime": "doppler",
+                "runtimeVersion": "0.6.2",
+                "workload": "text-generation"
+              },
+              "operationPolicyDigest": "sha256:7f8c47bcf84bf2fdf82833f9a0125151bf9957cce1da6c07c650b07911a17569",
+              "providerAdvertHash": "sha256:b18e96eda6d3218e88ecad69789398dd26ad65a4dcd14fa09c63a9d67ac4a201",
+              "providerId": "sha256:c81d962a34fc3539c50c7bc9920bedd6715dc1de290bb314496e07d320adccfa",
+              "providerLimits": {
+                "maxEvents": 32,
+                "maxInputBytes": 10000,
+                "maxJobMs": 120000,
+                "maxOutputBytes": 10000,
+                "maxStreamBytes": 500000
+              },
+              "providerParticipationProfileHash": null,
+              "providerPublicKey": "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEGExajozzpMjciUc7P3/NQFiZPeDZuqDfEHecwfEU7a+exaDIVBaivUY0gEB3P9cZxYU9MfJSDWCqfydA+EgtzA==",
+              "requesterId": "sha256:6640b49a2540930c25ce41e8c5b64e6f84305da8a1d8844532ad7f80374960ab",
+              "routeDecisionHash": "sha256:df75f88fd2268ee587618efe8ccb176a3648e4ccba7597cc937c25e8527fb95d",
+              "schema": "reploid.peer.assignment/v1"
+            },
+            "input": {
+              "prompt": "Approved public task."
+            },
+            "limits": {
+              "deadlineAt": 1789434944929,
+              "maxInputBytes": 10000,
+              "maxOutputBytes": 10000
+            },
+            "operation": {
+              "name": "generate",
+              "version": 1
+            },
+            "options": {
+              "maxSeqLen": 16,
+              "maxTokens": 3,
+              "presencePenalty": 0,
+              "repetitionPenalty": 1,
+              "repetitionPenaltyWindow": 1,
+              "seed": 0,
+              "temperature": 0,
+              "topK": 0,
+              "topP": 1,
+              "useChatTemplate": false
+            },
+            "schema": "doppler.capsule-operation-request/v2"
+          },
+          "schema": "reploid.peer.pack_job/v4"
+        },
+        "causalRefs": [],
+        "createdAt": "2026-09-15T01:13:44.934Z",
+        "expiresAt": "2026-09-15T01:15:44.929Z",
+        "fromPeerId": "sha256:6640b49a2540930c25ce41e8c5b64e6f84305da8a1d8844532ad7f80374960ab",
+        "messageHash": "sha256:c62069ed0196ad24f0c29b17e2901834d51c4c56806991687d4fbf5588226fa6",
+        "network": "poolday",
+        "nonce": "d9a4b7b2-3969-43e1-9538-69ce3d473828",
+        "peerControlVersion": "reploid_peer_control/v1",
+        "publicKey": "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE9QfJUaPPWBGLyjDR5jDYYI6J43SvfrSyBkqKKt1EuhDtNksBVykKdN+Pl/Gf4LNLX3bI+571XC2ddD1zsJGTwA==",
+        "signature": "ukf+Q02MBIvO2+6pOJ/dFpfnHrXk8apfv2nLXnTeS+jjXaTyQaBIB9leVlB5KT272w4fQMKjKlKKnYlSotcxNg==",
+        "toPeerId": "sha256:c81d962a34fc3539c50c7bc9920bedd6715dc1de290bb314496e07d320adccfa",
+        "type": "assignment_claim"
+      },
+      "execution": {
+        "request": {
+          "assignment": {
+            "acceptancePolicyDigest": "sha256:a646c4606e9283a1c0dc4a1e708c5e6831fccdb603effdab8f4885a3465284f8",
+            "adapterSet": [],
+            "assignmentAttemptId": "98d2e27f-b4fa-4df4-968a-4068f55530c3",
+            "assignmentHash": "sha256:4a586fbac61cf363e067e98480cbfcabbd9eca2b30c7ed1e8796cde1f05a7db7",
+            "assignmentId": "peer_assignment_4a586fbac61cf363",
+            "attemptNumber": 1,
+            "comparisonPolicyDigest": "sha256:74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+            "expiresAt": "2026-09-15T01:15:44.929Z",
+            "inputClass": "public_text",
+            "inputHash": "sha256:e40aeda8e968cf2968c2a3ba7743207715ca5823f87b89201fd265e52e328548",
+            "intentHash": "sha256:01b15e2cdf460898f916dd79e5c3d0fea5e65c1538bab0bcf1bf0f53bf33767e",
+            "jobId": "1c6310ca-9b55-4cbe-bafb-f365c5e3a02e",
+            "jobPolicyDigest": "sha256:0405f98c013a52d93e2cf3942d18cb680bb79da7863a519387309d442389ddb7",
+            "model": {
+              "backend": "browser-webgpu",
+              "executablePack": {
+                "acceptedTargetPlanDigests": [
+                  "sha256:e8b68d98a53349b474470d9fe0ee75a0fbd995d35699b225d7d2c0f27ee494c9"
+                ],
+                "artifactClosureDigest": "sha256:003706c6469b01d22411d299a14ba815b3a93ec1bad07941457acf45e4af6aa7",
+                "artifacts": [
+                  {
+                    "artifactId": "manifest",
+                    "hash": "sha256:81c2b202c185d97fca2c4015f6e93a5a0093fd67756c3882763cf2431b2c9eeb",
+                    "path": "manifest.json",
+                    "role": "manifest",
+                    "sizeBytes": 33
+                  },
+                  {
+                    "artifactId": "tokenizer",
+                    "hash": "sha256:b002106c7a3bc734e3fda772ee6829930eccde9d34001b84df6413e7a708cbea",
+                    "path": "tokenizer.json",
+                    "role": "tokenizer",
+                    "sizeBytes": 16
+                  },
+                  {
+                    "artifactId": "weights",
+                    "hash": "sha256:9f64a747e1b97f131fabb6b447296c9b6f0201e79fb3c5356e6c77e89b6a806a",
+                    "path": "weights.bin",
+                    "role": "weight-shard",
+                    "sizeBytes": 4
+                  },
+                  {
+                    "artifactId": "wgsl",
+                    "hash": "sha256:95b71646ab522e330331b56411c70cce7c13de4708d428bb1ad760d0d8fe6040",
+                    "path": "main.wgsl",
+                    "role": "wgsl-source",
+                    "sizeBytes": 41
+                  },
+                  {
+                    "artifactId": "evidence",
+                    "hash": "sha256:1ea63e7fda68e7ce49b013af8410102e9228f7591e79ef602dd23d95556d03bc",
+                    "path": "reference.json",
+                    "role": "reference-report",
+                    "sizeBytes": 16
+                  },
+                  {
+                    "artifactId": "program-bundle",
+                    "hash": "sha256:8bfe4b33211762bcf79d6d59632fe065113b25ca57b7cbdf3f7c94047d1e47c0",
+                    "path": "program-bundle.json",
+                    "role": "program-bundle",
+                    "sizeBytes": 39
+                  }
+                ],
+                "capsuleId": "capsule-test-model-capsule-v2-152e0c3028cfd4e6",
+                "envelopeDigest": "sha256:e2a0c78e8b66d7fa576514ae887ac86d6ba6b8285e9a5bc91036055270902293",
+                "requiredOperation": "generate",
+                "schema": "doppler.capsule/v2",
+                "semanticRoot": "sha256:152e0c3028cfd4e63e96787f04253ef137ba3f3c58a5aae43e607d5d9d0bd797"
+              },
+              "executionMode": "complete_pack_browser",
+              "manifestHash": "sha256:e2a0c78e8b66d7fa576514ae887ac86d6ba6b8285e9a5bc91036055270902293",
+              "modelHash": "sha256:152e0c3028cfd4e63e96787f04253ef137ba3f3c58a5aae43e607d5d9d0bd797",
+              "modelId": "capsule-test-model",
+              "runtime": "doppler",
+              "runtimeVersion": "0.6.2",
+              "workload": "text-generation"
+            },
+            "operationPolicyDigest": "sha256:7f8c47bcf84bf2fdf82833f9a0125151bf9957cce1da6c07c650b07911a17569",
+            "providerAdvertHash": "sha256:b18e96eda6d3218e88ecad69789398dd26ad65a4dcd14fa09c63a9d67ac4a201",
+            "providerId": "sha256:c81d962a34fc3539c50c7bc9920bedd6715dc1de290bb314496e07d320adccfa",
+            "providerLimits": {
+              "maxEvents": 32,
+              "maxInputBytes": 10000,
+              "maxJobMs": 120000,
+              "maxOutputBytes": 10000,
+              "maxStreamBytes": 500000
+            },
+            "providerParticipationProfileHash": null,
+            "providerPublicKey": "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEGExajozzpMjciUc7P3/NQFiZPeDZuqDfEHecwfEU7a+exaDIVBaivUY0gEB3P9cZxYU9MfJSDWCqfydA+EgtzA==",
+            "requesterId": "sha256:6640b49a2540930c25ce41e8c5b64e6f84305da8a1d8844532ad7f80374960ab",
+            "routeDecisionHash": "sha256:df75f88fd2268ee587618efe8ccb176a3648e4ccba7597cc937c25e8527fb95d",
+            "schema": "reploid.peer.assignment/v1"
+          },
+          "input": {
+            "prompt": "Approved public task."
+          },
+          "limits": {
+            "deadlineAt": 1789434944929,
+            "maxInputBytes": 10000,
+            "maxOutputBytes": 10000
+          },
+          "operation": {
+            "name": "generate",
+            "version": 1
+          },
+          "options": {
+            "maxSeqLen": 16,
+            "maxTokens": 3,
+            "presencePenalty": 0,
+            "repetitionPenalty": 1,
+            "repetitionPenaltyWindow": 1,
+            "seed": 0,
+            "temperature": 0,
+            "topK": 0,
+            "topP": 1,
+            "useChatTemplate": false
+          },
+          "schema": "doppler.capsule-operation-request/v2"
+        },
+        "output": {
+          "text": "Saved peer answer.",
+          "tokenIds": [
+            0,
+            0,
+            0
+          ],
+          "sampling": {
+            "maxTokens": 3,
+            "maxSeqLen": 16,
+            "temperature": 0,
+            "topP": 1,
+            "topK": 0,
+            "repetitionPenalty": 1,
+            "repetitionPenaltyWindow": 1,
+            "presencePenalty": 0,
+            "useChatTemplate": false,
+            "seed": 0,
+            "suppressTokenIds": [],
+            "stopSequences": []
+          },
+          "completion": {
+            "schema": "doppler.generation-completion/v1",
+            "stopReason": "max-tokens",
+            "promptTokenCount": 2,
+            "generatedTokenCount": 3
+          }
+        },
+        "receipt": {
+          "schema": "doppler.capsule-operation-receipt/v2",
+          "capsule": {
+            "schema": "doppler.capsule/v2",
+            "capsuleId": "capsule-test-model-capsule-v2-152e0c3028cfd4e6",
+            "semanticRoot": "sha256:152e0c3028cfd4e63e96787f04253ef137ba3f3c58a5aae43e607d5d9d0bd797",
+            "envelopeDigest": "sha256:e2a0c78e8b66d7fa576514ae887ac86d6ba6b8285e9a5bc91036055270902293",
+            "artifactClosureDigest": "sha256:003706c6469b01d22411d299a14ba815b3a93ec1bad07941457acf45e4af6aa7"
+          },
+          "modelId": "capsule-test-model",
+          "targetId": "webgpu-f32-portable",
+          "targetPlanDigest": "sha256:e8b68d98a53349b474470d9fe0ee75a0fbd995d35699b225d7d2c0f27ee494c9",
+          "artifactReceipts": [
+            {
+              "artifactId": "manifest",
+              "hash": "sha256:81c2b202c185d97fca2c4015f6e93a5a0093fd67756c3882763cf2431b2c9eeb",
+              "sizeBytes": 33
+            },
+            {
+              "artifactId": "tokenizer",
+              "hash": "sha256:b002106c7a3bc734e3fda772ee6829930eccde9d34001b84df6413e7a708cbea",
+              "sizeBytes": 16
+            },
+            {
+              "artifactId": "weights",
+              "hash": "sha256:9f64a747e1b97f131fabb6b447296c9b6f0201e79fb3c5356e6c77e89b6a806a",
+              "sizeBytes": 4
+            },
+            {
+              "artifactId": "wgsl",
+              "hash": "sha256:95b71646ab522e330331b56411c70cce7c13de4708d428bb1ad760d0d8fe6040",
+              "sizeBytes": 41
+            },
+            {
+              "artifactId": "evidence",
+              "hash": "sha256:1ea63e7fda68e7ce49b013af8410102e9228f7591e79ef602dd23d95556d03bc",
+              "sizeBytes": 16
+            },
+            {
+              "artifactId": "program-bundle",
+              "hash": "sha256:8bfe4b33211762bcf79d6d59632fe065113b25ca57b7cbdf3f7c94047d1e47c0",
+              "sizeBytes": 39
+            }
+          ],
+          "releaseEventDigest": null,
+          "runtimeVersion": "0.6.2",
+          "stream": {
+            "schema": "doppler.capsule-operation-event/v2",
+            "partialCount": 3,
+            "lastPartialDigest": "sha256:e3088c8ca6dd59a985954c0cb3ae4868b68e54d79a00a8742b71da6b90479989"
+          },
+          "operation": {
+            "name": "generate",
+            "version": 1
+          },
+          "requestHash": "sha256:ad0fae57cb9a481ff25fc1f81cfe7703a55572715bea9f8bad3b5c00a6405d96",
+          "assignmentHash": "sha256:d0f891f406f34a01879c8842a9ab0413643d798c9e48d8674424e072a5547f12",
+          "inputHash": "sha256:e40aeda8e968cf2968c2a3ba7743207715ca5823f87b89201fd265e52e328548",
+          "outputHash": "sha256:855beb627a1595f61fb442cf1ece51d3088c4567ba7221029922e12a5f94efa9",
+          "receiptDigest": "sha256:9eef9552aaa1747145f6cae418985fb18fbca213813061977d34e212bc05a827"
+        },
+        "completion": {
+          "schema": "doppler.capsule-operation-event/v2",
+          "operation": {
+            "name": "generate",
+            "version": 1
+          },
+          "requestHash": "sha256:ad0fae57cb9a481ff25fc1f81cfe7703a55572715bea9f8bad3b5c00a6405d96",
+          "assignmentHash": "sha256:d0f891f406f34a01879c8842a9ab0413643d798c9e48d8674424e072a5547f12",
+          "eventIndex": 3,
+          "previousEventDigest": "sha256:e3088c8ca6dd59a985954c0cb3ae4868b68e54d79a00a8742b71da6b90479989",
+          "status": "completed",
+          "output": {
+            "text": "Saved peer answer.",
+            "tokenIds": [
+              0,
+              0,
+              0
+            ],
+            "sampling": {
+              "maxTokens": 3,
+              "maxSeqLen": 16,
+              "temperature": 0,
+              "topP": 1,
+              "topK": 0,
+              "repetitionPenalty": 1,
+              "repetitionPenaltyWindow": 1,
+              "presencePenalty": 0,
+              "useChatTemplate": false,
+              "seed": 0,
+              "suppressTokenIds": [],
+              "stopSequences": []
+            },
+            "completion": {
+              "schema": "doppler.generation-completion/v1",
+              "stopReason": "max-tokens",
+              "promptTokenCount": 2,
+              "generatedTokenCount": 3
+            }
+          },
+          "receipt": {
+            "schema": "doppler.capsule-operation-receipt/v2",
+            "capsule": {
+              "schema": "doppler.capsule/v2",
+              "capsuleId": "capsule-test-model-capsule-v2-152e0c3028cfd4e6",
+              "semanticRoot": "sha256:152e0c3028cfd4e63e96787f04253ef137ba3f3c58a5aae43e607d5d9d0bd797",
+              "envelopeDigest": "sha256:e2a0c78e8b66d7fa576514ae887ac86d6ba6b8285e9a5bc91036055270902293",
+              "artifactClosureDigest": "sha256:003706c6469b01d22411d299a14ba815b3a93ec1bad07941457acf45e4af6aa7"
+            },
+            "modelId": "capsule-test-model",
+            "targetId": "webgpu-f32-portable",
+            "targetPlanDigest": "sha256:e8b68d98a53349b474470d9fe0ee75a0fbd995d35699b225d7d2c0f27ee494c9",
+            "artifactReceipts": [
+              {
+                "artifactId": "manifest",
+                "hash": "sha256:81c2b202c185d97fca2c4015f6e93a5a0093fd67756c3882763cf2431b2c9eeb",
+                "sizeBytes": 33
+              },
+              {
+                "artifactId": "tokenizer",
+                "hash": "sha256:b002106c7a3bc734e3fda772ee6829930eccde9d34001b84df6413e7a708cbea",
+                "sizeBytes": 16
+              },
+              {
+                "artifactId": "weights",
+                "hash": "sha256:9f64a747e1b97f131fabb6b447296c9b6f0201e79fb3c5356e6c77e89b6a806a",
+                "sizeBytes": 4
+              },
+              {
+                "artifactId": "wgsl",
+                "hash": "sha256:95b71646ab522e330331b56411c70cce7c13de4708d428bb1ad760d0d8fe6040",
+                "sizeBytes": 41
+              },
+              {
+                "artifactId": "evidence",
+                "hash": "sha256:1ea63e7fda68e7ce49b013af8410102e9228f7591e79ef602dd23d95556d03bc",
+                "sizeBytes": 16
+              },
+              {
+                "artifactId": "program-bundle",
+                "hash": "sha256:8bfe4b33211762bcf79d6d59632fe065113b25ca57b7cbdf3f7c94047d1e47c0",
+                "sizeBytes": 39
+              }
+            ],
+            "releaseEventDigest": null,
+            "runtimeVersion": "0.6.2",
+            "stream": {
+              "schema": "doppler.capsule-operation-event/v2",
+              "partialCount": 3,
+              "lastPartialDigest": "sha256:e3088c8ca6dd59a985954c0cb3ae4868b68e54d79a00a8742b71da6b90479989"
+            },
+            "operation": {
+              "name": "generate",
+              "version": 1
+            },
+            "requestHash": "sha256:ad0fae57cb9a481ff25fc1f81cfe7703a55572715bea9f8bad3b5c00a6405d96",
+            "assignmentHash": "sha256:d0f891f406f34a01879c8842a9ab0413643d798c9e48d8674424e072a5547f12",
+            "inputHash": "sha256:e40aeda8e968cf2968c2a3ba7743207715ca5823f87b89201fd265e52e328548",
+            "outputHash": "sha256:855beb627a1595f61fb442cf1ece51d3088c4567ba7221029922e12a5f94efa9",
+            "receiptDigest": "sha256:9eef9552aaa1747145f6cae418985fb18fbca213813061977d34e212bc05a827"
+          },
+          "eventDigest": "sha256:2802168e537484843abe66fe2baa52b7fcfd7e3450fa72c342274c83e3d89dd6"
+        },
+        "eventCount": 4,
+        "finalEventDigest": "sha256:2802168e537484843abe66fe2baa52b7fcfd7e3450fa72c342274c83e3d89dd6"
+      },
+      "assessment": {
+        "schema": "poolday.operation-assessment/v2",
+        "accepted": true,
+        "policyDigest": "sha256:a646c4606e9283a1c0dc4a1e708c5e6831fccdb603effdab8f4885a3465284f8",
+        "receiptDigest": "sha256:9eef9552aaa1747145f6cae418985fb18fbca213813061977d34e212bc05a827",
+        "claim": "execution-identity-only"
+      },
+      "acceptance": {
+        "peerControlVersion": "reploid_peer_control/v1",
+        "network": "poolday",
+        "type": "acceptance",
+        "fromPeerId": "sha256:6640b49a2540930c25ce41e8c5b64e6f84305da8a1d8844532ad7f80374960ab",
+        "toPeerId": "sha256:c81d962a34fc3539c50c7bc9920bedd6715dc1de290bb314496e07d320adccfa",
+        "publicKey": "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE9QfJUaPPWBGLyjDR5jDYYI6J43SvfrSyBkqKKt1EuhDtNksBVykKdN+Pl/Gf4LNLX3bI+571XC2ddD1zsJGTwA==",
+        "body": {
+          "schema": "reploid.peer.pack_acceptance/v1",
+          "jobHash": "sha256:c62069ed0196ad24f0c29b17e2901834d51c4c56806991687d4fbf5588226fa6",
+          "finalUpdateHash": "sha256:85db043360b3a66e9389d95e5e7aaa9fdad3b1886c56df21ce256bc966879169",
+          "assessment": {
+            "schema": "poolday.operation-assessment/v2",
+            "accepted": true,
+            "policyDigest": "sha256:a646c4606e9283a1c0dc4a1e708c5e6831fccdb603effdab8f4885a3465284f8",
+            "receiptDigest": "sha256:9eef9552aaa1747145f6cae418985fb18fbca213813061977d34e212bc05a827",
+            "claim": "execution-identity-only"
+          }
+        },
+        "createdAt": "2026-09-15T01:14:00.466Z",
+        "expiresAt": "2026-09-15T01:15:44.929Z",
+        "nonce": "8ba28d7d-a22c-41fb-a23c-e3286293806c",
+        "causalRefs": [],
+        "messageHash": "sha256:6616a022fc1b1ca46cceaaa6c5cb1a34427311376f70a3343b83e76e8b9a9205",
+        "signature": "+H6IXYHclncPvt2ebEGBaa6tnoem7/XzvBDpm7IpPHeuO2K0Z4NLi85+JLvum1TWnHV0r/Ajx5fHDk3Q7n/pCQ=="
+      },
+      "updates": [
+        {
+          "peerControlVersion": "reploid_peer_control/v1",
+          "network": "poolday",
+          "type": "execution_result",
+          "fromPeerId": "sha256:c81d962a34fc3539c50c7bc9920bedd6715dc1de290bb314496e07d320adccfa",
+          "toPeerId": "sha256:6640b49a2540930c25ce41e8c5b64e6f84305da8a1d8844532ad7f80374960ab",
+          "publicKey": "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEGExajozzpMjciUc7P3/NQFiZPeDZuqDfEHecwfEU7a+exaDIVBaivUY0gEB3P9cZxYU9MfJSDWCqfydA+EgtzA==",
+          "body": {
+            "schema": "reploid.peer.pack_update/v1",
+            "jobHash": "sha256:c62069ed0196ad24f0c29b17e2901834d51c4c56806991687d4fbf5588226fa6",
+            "requestHash": "sha256:ad0fae57cb9a481ff25fc1f81cfe7703a55572715bea9f8bad3b5c00a6405d96",
+            "updateIndex": 0,
+            "previousUpdateHash": null,
+            "status": "partial",
+            "event": {
+              "schema": "doppler.capsule-operation-event/v2",
+              "operation": {
+                "name": "generate",
+                "version": 1
+              },
+              "requestHash": "sha256:ad0fae57cb9a481ff25fc1f81cfe7703a55572715bea9f8bad3b5c00a6405d96",
+              "assignmentHash": "sha256:d0f891f406f34a01879c8842a9ab0413643d798c9e48d8674424e072a5547f12",
+              "eventIndex": 0,
+              "previousEventDigest": null,
+              "status": "partial",
+              "delta": {
+                "tokenIds": [
+                  0
+                ],
+                "text": "Saved "
+              },
+              "eventDigest": "sha256:48fbdfa201442bdfeb6a77cc692821cedddb9dcc4331498ae67d383bbe043ceb"
+            }
+          },
+          "createdAt": "2026-09-15T01:13:44.958Z",
+          "expiresAt": "2026-09-15T01:15:44.929Z",
+          "nonce": "c6e6ba85-9414-44e0-b633-c9513c256f02",
+          "causalRefs": [],
+          "messageHash": "sha256:d3bbc6db14249af49b2ac1335c3c45b744e529c335ade286592aeba09ba99dd2",
+          "signature": "deHIsJ1lgy5zQdS0DoFKZvAp81yQo8GHkciBYJMLFWHGHcC3NCNhtpOipMUy7RiXJfPtrBJhF6rjOgv5FYi50g=="
+        },
+        {
+          "peerControlVersion": "reploid_peer_control/v1",
+          "network": "poolday",
+          "type": "execution_result",
+          "fromPeerId": "sha256:c81d962a34fc3539c50c7bc9920bedd6715dc1de290bb314496e07d320adccfa",
+          "toPeerId": "sha256:6640b49a2540930c25ce41e8c5b64e6f84305da8a1d8844532ad7f80374960ab",
+          "publicKey": "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEGExajozzpMjciUc7P3/NQFiZPeDZuqDfEHecwfEU7a+exaDIVBaivUY0gEB3P9cZxYU9MfJSDWCqfydA+EgtzA==",
+          "body": {
+            "schema": "reploid.peer.pack_update/v1",
+            "jobHash": "sha256:c62069ed0196ad24f0c29b17e2901834d51c4c56806991687d4fbf5588226fa6",
+            "requestHash": "sha256:ad0fae57cb9a481ff25fc1f81cfe7703a55572715bea9f8bad3b5c00a6405d96",
+            "updateIndex": 1,
+            "previousUpdateHash": "sha256:d3bbc6db14249af49b2ac1335c3c45b744e529c335ade286592aeba09ba99dd2",
+            "status": "partial",
+            "event": {
+              "schema": "doppler.capsule-operation-event/v2",
+              "operation": {
+                "name": "generate",
+                "version": 1
+              },
+              "requestHash": "sha256:ad0fae57cb9a481ff25fc1f81cfe7703a55572715bea9f8bad3b5c00a6405d96",
+              "assignmentHash": "sha256:d0f891f406f34a01879c8842a9ab0413643d798c9e48d8674424e072a5547f12",
+              "eventIndex": 1,
+              "previousEventDigest": "sha256:48fbdfa201442bdfeb6a77cc692821cedddb9dcc4331498ae67d383bbe043ceb",
+              "status": "partial",
+              "delta": {
+                "tokenIds": [
+                  0
+                ],
+                "text": "peer "
+              },
+              "eventDigest": "sha256:028ebcd91809a5b9ab02055917cdb45f7b9a9a9e2b96b5da0963caaeb7d0c4a2"
+            }
+          },
+          "createdAt": "2026-09-15T01:13:44.961Z",
+          "expiresAt": "2026-09-15T01:15:44.929Z",
+          "nonce": "e3964b30-dacf-4c00-a7c4-f2eb43bf0f82",
+          "causalRefs": [],
+          "messageHash": "sha256:7fd0b8dd018229f253b62585d5082c72c97a63bf491ab4af16163207fc3131ee",
+          "signature": "oZ0DBbklU78+MFqpegQAcJiZGyCruHR+e4gqf92ym9WORh14EQ3ZAHoTXkGAMvgjZZrSDkkDWTEakaHFFkiHxA=="
+        },
+        {
+          "peerControlVersion": "reploid_peer_control/v1",
+          "network": "poolday",
+          "type": "execution_result",
+          "fromPeerId": "sha256:c81d962a34fc3539c50c7bc9920bedd6715dc1de290bb314496e07d320adccfa",
+          "toPeerId": "sha256:6640b49a2540930c25ce41e8c5b64e6f84305da8a1d8844532ad7f80374960ab",
+          "publicKey": "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEGExajozzpMjciUc7P3/NQFiZPeDZuqDfEHecwfEU7a+exaDIVBaivUY0gEB3P9cZxYU9MfJSDWCqfydA+EgtzA==",
+          "body": {
+            "schema": "reploid.peer.pack_update/v1",
+            "jobHash": "sha256:c62069ed0196ad24f0c29b17e2901834d51c4c56806991687d4fbf5588226fa6",
+            "requestHash": "sha256:ad0fae57cb9a481ff25fc1f81cfe7703a55572715bea9f8bad3b5c00a6405d96",
+            "updateIndex": 2,
+            "previousUpdateHash": "sha256:7fd0b8dd018229f253b62585d5082c72c97a63bf491ab4af16163207fc3131ee",
+            "status": "partial",
+            "event": {
+              "schema": "doppler.capsule-operation-event/v2",
+              "operation": {
+                "name": "generate",
+                "version": 1
+              },
+              "requestHash": "sha256:ad0fae57cb9a481ff25fc1f81cfe7703a55572715bea9f8bad3b5c00a6405d96",
+              "assignmentHash": "sha256:d0f891f406f34a01879c8842a9ab0413643d798c9e48d8674424e072a5547f12",
+              "eventIndex": 2,
+              "previousEventDigest": "sha256:028ebcd91809a5b9ab02055917cdb45f7b9a9a9e2b96b5da0963caaeb7d0c4a2",
+              "status": "partial",
+              "delta": {
+                "tokenIds": [
+                  0
+                ],
+                "text": "answer."
+              },
+              "eventDigest": "sha256:e3088c8ca6dd59a985954c0cb3ae4868b68e54d79a00a8742b71da6b90479989"
+            }
+          },
+          "createdAt": "2026-09-15T01:13:44.963Z",
+          "expiresAt": "2026-09-15T01:15:44.929Z",
+          "nonce": "62050f37-4269-4db9-b938-ed2e96a21f15",
+          "causalRefs": [],
+          "messageHash": "sha256:5a7f2e3a04667a77108698a3557dc98396f6cb8586e87018475785a8acf2bb61",
+          "signature": "UDvYW/wQM6NC0bmPzXowGcf9wUV0IbQlf8T0geUydDYXGJRUurLNesVOYRbkZs+AKbwaxMOQOX3smJOFEr8/Qw=="
+        },
+        {
+          "peerControlVersion": "reploid_peer_control/v1",
+          "network": "poolday",
+          "type": "execution_result",
+          "fromPeerId": "sha256:c81d962a34fc3539c50c7bc9920bedd6715dc1de290bb314496e07d320adccfa",
+          "toPeerId": "sha256:6640b49a2540930c25ce41e8c5b64e6f84305da8a1d8844532ad7f80374960ab",
+          "publicKey": "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEGExajozzpMjciUc7P3/NQFiZPeDZuqDfEHecwfEU7a+exaDIVBaivUY0gEB3P9cZxYU9MfJSDWCqfydA+EgtzA==",
+          "body": {
+            "schema": "reploid.peer.pack_update/v1",
+            "jobHash": "sha256:c62069ed0196ad24f0c29b17e2901834d51c4c56806991687d4fbf5588226fa6",
+            "requestHash": "sha256:ad0fae57cb9a481ff25fc1f81cfe7703a55572715bea9f8bad3b5c00a6405d96",
+            "updateIndex": 3,
+            "previousUpdateHash": "sha256:5a7f2e3a04667a77108698a3557dc98396f6cb8586e87018475785a8acf2bb61",
+            "status": "completed",
+            "event": {
+              "schema": "doppler.capsule-operation-event/v2",
+              "operation": {
+                "name": "generate",
+                "version": 1
+              },
+              "requestHash": "sha256:ad0fae57cb9a481ff25fc1f81cfe7703a55572715bea9f8bad3b5c00a6405d96",
+              "assignmentHash": "sha256:d0f891f406f34a01879c8842a9ab0413643d798c9e48d8674424e072a5547f12",
+              "eventIndex": 3,
+              "previousEventDigest": "sha256:e3088c8ca6dd59a985954c0cb3ae4868b68e54d79a00a8742b71da6b90479989",
+              "status": "completed",
+              "output": {
+                "text": "Saved peer answer.",
+                "tokenIds": [
+                  0,
+                  0,
+                  0
+                ],
+                "sampling": {
+                  "maxTokens": 3,
+                  "maxSeqLen": 16,
+                  "temperature": 0,
+                  "topP": 1,
+                  "topK": 0,
+                  "repetitionPenalty": 1,
+                  "repetitionPenaltyWindow": 1,
+                  "presencePenalty": 0,
+                  "useChatTemplate": false,
+                  "seed": 0,
+                  "suppressTokenIds": [],
+                  "stopSequences": []
+                },
+                "completion": {
+                  "schema": "doppler.generation-completion/v1",
+                  "stopReason": "max-tokens",
+                  "promptTokenCount": 2,
+                  "generatedTokenCount": 3
+                }
+              },
+              "receipt": {
+                "schema": "doppler.capsule-operation-receipt/v2",
+                "capsule": {
+                  "schema": "doppler.capsule/v2",
+                  "capsuleId": "capsule-test-model-capsule-v2-152e0c3028cfd4e6",
+                  "semanticRoot": "sha256:152e0c3028cfd4e63e96787f04253ef137ba3f3c58a5aae43e607d5d9d0bd797",
+                  "envelopeDigest": "sha256:e2a0c78e8b66d7fa576514ae887ac86d6ba6b8285e9a5bc91036055270902293",
+                  "artifactClosureDigest": "sha256:003706c6469b01d22411d299a14ba815b3a93ec1bad07941457acf45e4af6aa7"
+                },
+                "modelId": "capsule-test-model",
+                "targetId": "webgpu-f32-portable",
+                "targetPlanDigest": "sha256:e8b68d98a53349b474470d9fe0ee75a0fbd995d35699b225d7d2c0f27ee494c9",
+                "artifactReceipts": [
+                  {
+                    "artifactId": "manifest",
+                    "hash": "sha256:81c2b202c185d97fca2c4015f6e93a5a0093fd67756c3882763cf2431b2c9eeb",
+                    "sizeBytes": 33
+                  },
+                  {
+                    "artifactId": "tokenizer",
+                    "hash": "sha256:b002106c7a3bc734e3fda772ee6829930eccde9d34001b84df6413e7a708cbea",
+                    "sizeBytes": 16
+                  },
+                  {
+                    "artifactId": "weights",
+                    "hash": "sha256:9f64a747e1b97f131fabb6b447296c9b6f0201e79fb3c5356e6c77e89b6a806a",
+                    "sizeBytes": 4
+                  },
+                  {
+                    "artifactId": "wgsl",
+                    "hash": "sha256:95b71646ab522e330331b56411c70cce7c13de4708d428bb1ad760d0d8fe6040",
+                    "sizeBytes": 41
+                  },
+                  {
+                    "artifactId": "evidence",
+                    "hash": "sha256:1ea63e7fda68e7ce49b013af8410102e9228f7591e79ef602dd23d95556d03bc",
+                    "sizeBytes": 16
+                  },
+                  {
+                    "artifactId": "program-bundle",
+                    "hash": "sha256:8bfe4b33211762bcf79d6d59632fe065113b25ca57b7cbdf3f7c94047d1e47c0",
+                    "sizeBytes": 39
+                  }
+                ],
+                "releaseEventDigest": null,
+                "runtimeVersion": "0.6.2",
+                "stream": {
+                  "schema": "doppler.capsule-operation-event/v2",
+                  "partialCount": 3,
+                  "lastPartialDigest": "sha256:e3088c8ca6dd59a985954c0cb3ae4868b68e54d79a00a8742b71da6b90479989"
+                },
+                "operation": {
+                  "name": "generate",
+                  "version": 1
+                },
+                "requestHash": "sha256:ad0fae57cb9a481ff25fc1f81cfe7703a55572715bea9f8bad3b5c00a6405d96",
+                "assignmentHash": "sha256:d0f891f406f34a01879c8842a9ab0413643d798c9e48d8674424e072a5547f12",
+                "inputHash": "sha256:e40aeda8e968cf2968c2a3ba7743207715ca5823f87b89201fd265e52e328548",
+                "outputHash": "sha256:855beb627a1595f61fb442cf1ece51d3088c4567ba7221029922e12a5f94efa9",
+                "receiptDigest": "sha256:9eef9552aaa1747145f6cae418985fb18fbca213813061977d34e212bc05a827"
+              },
+              "eventDigest": "sha256:2802168e537484843abe66fe2baa52b7fcfd7e3450fa72c342274c83e3d89dd6"
+            }
+          },
+          "createdAt": "2026-09-15T01:13:44.969Z",
+          "expiresAt": "2026-09-15T01:15:44.929Z",
+          "nonce": "cec18439-d73b-4dfd-8adf-2af97853710a",
+          "causalRefs": [],
+          "messageHash": "sha256:85db043360b3a66e9389d95e5e7aaa9fdad3b1886c56df21ce256bc966879169",
+          "signature": "hRHTeHaM9xdY1Idont6GTPk0GAOV4SFgBtjveV8Ocd9hhcoajylLtahrgyHcM/kxHGqPhIK6+NWWeCT94MQtHQ=="
+        }
+      ],
+      "accounting": {
+        "deliveries": 1,
+        "sentBytes": 23480,
+        "receivedBytes": 8790
+      }
+    },
+    "text": "Saved peer answer.",
+    "progress": [
+      "Saved ",
+      "peer ",
+      "answer."
+    ],
+    "order": [
+      "approved",
+      "persisted",
+      "connected",
+      "progress",
+      "progress",
+      "progress",
+      "disconnected",
+      "approved",
+      "resuming",
+      "connected",
+      "accepted"
+    ],
+    "resumed": true,
+    "signed": 1
+  },
+  "afterRestart": {
+    "calls": 0,
+    "dropped": false,
+    "recovered": true,
+    "errors": [],
+    "active": false,
+    "text": "",
+    "progress": [],
+    "order": [],
+    "resumed": false,
+    "signed": 0,
+    "providerId": "sha256:c81d962a34fc3539c50c7bc9920bedd6715dc1de290bb314496e07d320adccfa",
+    "model": {
+      "modelId": "capsule-test-model",
+      "modelHash": "sha256:152e0c3028cfd4e63e96787f04253ef137ba3f3c58a5aae43e607d5d9d0bd797",
+      "manifestHash": "sha256:e2a0c78e8b66d7fa576514ae887ac86d6ba6b8285e9a5bc91036055270902293",
+      "runtime": "doppler",
+      "backend": "browser-webgpu",
+      "executionMode": "complete_pack_browser",
+      "workload": "text-generation",
+      "runtimeVersion": "0.6.2",
+      "executablePack": {
+        "schema": "doppler.capsule/v2",
+        "capsuleId": "capsule-test-model-capsule-v2-152e0c3028cfd4e6",
+        "semanticRoot": "sha256:152e0c3028cfd4e63e96787f04253ef137ba3f3c58a5aae43e607d5d9d0bd797",
+        "envelopeDigest": "sha256:e2a0c78e8b66d7fa576514ae887ac86d6ba6b8285e9a5bc91036055270902293",
+        "artifactClosureDigest": "sha256:003706c6469b01d22411d299a14ba815b3a93ec1bad07941457acf45e4af6aa7",
+        "artifacts": [
+          {
+            "artifactId": "manifest",
+            "role": "manifest",
+            "path": "manifest.json",
+            "hash": "sha256:81c2b202c185d97fca2c4015f6e93a5a0093fd67756c3882763cf2431b2c9eeb",
+            "sizeBytes": 33
+          },
+          {
+            "artifactId": "tokenizer",
+            "role": "tokenizer",
+            "path": "tokenizer.json",
+            "hash": "sha256:b002106c7a3bc734e3fda772ee6829930eccde9d34001b84df6413e7a708cbea",
+            "sizeBytes": 16
+          },
+          {
+            "artifactId": "weights",
+            "role": "weight-shard",
+            "path": "weights.bin",
+            "hash": "sha256:9f64a747e1b97f131fabb6b447296c9b6f0201e79fb3c5356e6c77e89b6a806a",
+            "sizeBytes": 4
+          },
+          {
+            "artifactId": "wgsl",
+            "role": "wgsl-source",
+            "path": "main.wgsl",
+            "hash": "sha256:95b71646ab522e330331b56411c70cce7c13de4708d428bb1ad760d0d8fe6040",
+            "sizeBytes": 41
+          },
+          {
+            "artifactId": "evidence",
+            "role": "reference-report",
+            "path": "reference.json",
+            "hash": "sha256:1ea63e7fda68e7ce49b013af8410102e9228f7591e79ef602dd23d95556d03bc",
+            "sizeBytes": 16
+          },
+          {
+            "artifactId": "program-bundle",
+            "role": "program-bundle",
+            "path": "program-bundle.json",
+            "hash": "sha256:8bfe4b33211762bcf79d6d59632fe065113b25ca57b7cbdf3f7c94047d1e47c0",
+            "sizeBytes": 39
+          }
+        ],
+        "requiredOperation": "generate",
+        "acceptedTargetPlanDigests": [
+          "sha256:e8b68d98a53349b474470d9fe0ee75a0fbd995d35699b225d7d2c0f27ee494c9"
+        ]
+      }
+    },
+    "channel": {
+      "closed": true,
+      "pendingBytes": 0,
+      "pendingMessages": 0,
+      "sentFrameBytes": 9058,
+      "receivedFrameBytes": 23552,
+      "sentMessages": 4,
+      "receivedMessages": 1,
+      "wireBytes": null
+    }
+  },
+  "verificationWorker": {
+    "passed": true,
+    "errors": [],
+    "warnings": [
+      "Warning in /pool/peer-room.js:847: Dynamic property write detected: [index] - verify input sanitization",
+      "Warning in /pool/peer-room.js:850: Dynamic property write detected: [index] - verify input sanitization",
+      "Warning in /pool/peer-room.js:853: Dynamic property write detected: [index] - verify input sanitization",
+      "Warning in /pool/peer-room.js:116: Suspicious variable name: MIN_DISCOVERY_EXECUTION_MARGIN_MS - may indicate code execution",
+      "Warning in /pool/peer-room.js:675: Suspicious variable name: executionStatuses - may indicate code execution",
+      "Warning in /pool/peer-room.js:715: Suspicious variable name: recordExecutionStatus - may indicate code execution",
+      "Warning in /pool/peer-room.js:1026: Suspicious variable name: pendingInputExecutions - may indicate code execution",
+      "Warning in /pool/peer-room.js:1027: Suspicious variable name: activeExecutionSessions - may indicate code execution",
+      "Warning in /pool/peer-room.js:1038: Suspicious variable name: releaseExecutionSlot - may indicate code execution",
+      "Warning in /pool/peer-room.js:1065: Suspicious variable name: queueInputExecution - may indicate code execution",
+      "Warning in /pool/peer-room.js:1132: Suspicious variable name: executeInputPayload - may indicate code execution",
+      "Warning in /pool/peer-room.js:1249: Suspicious variable name: drainQueuedInputExecutions - may indicate code execution",
+      "Warning in /pool/peer-room.js:1318: Suspicious variable name: executionEntry - may indicate code execution",
+      "File exceeds 500 lines (1540) - consider splitting",
+      "File has 90 functions (max 20) - consider modularizing",
+      "Nesting depth of 9 exceeds 5 - refactor nested code",
+      "Warning in /pool/peer-pack-requester.js: Path traversal pattern detected (../) - potential security risk",
+      "Warning in /pool/peer-pack-requester.js:86: Suspicious variable name: execution - may indicate code execution",
+      "Warning in /pool/provider-client.js:311: Suspicious variable name: execution - may indicate code execution",
+      "File exceeds 500 lines (728) - consider splitting",
+      "File has 54 functions (max 20) - consider modularizing",
+      "Nesting depth of 6 exceeds 5 - refactor nested code",
+      "Warning in /infrastructure/pack-job-storage.js:35: Dynamic property write detected: [field] - verify input sanitization"
+    ],
+    "events": [
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1789434840548,
+        "path": "/pool/peer-room.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [index] - verify input sanitization",
+        "line": 847,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1789434840548,
+        "path": "/pool/peer-room.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [index] - verify input sanitization",
+        "line": 850,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1789434840548,
+        "path": "/pool/peer-room.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [index] - verify input sanitization",
+        "line": 853,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1789434840548,
+        "path": "/pool/peer-room.js",
+        "patternId": "suspicious_variable_name",
+        "category": "structural",
+        "message": "Suspicious variable name: MIN_DISCOVERY_EXECUTION_MARGIN_MS - may indicate code execution",
+        "line": 116,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1789434840548,
+        "path": "/pool/peer-room.js",
+        "patternId": "suspicious_variable_name",
+        "category": "structural",
+        "message": "Suspicious variable name: executionStatuses - may indicate code execution",
+        "line": 675,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1789434840548,
+        "path": "/pool/peer-room.js",
+        "patternId": "suspicious_variable_name",
+        "category": "structural",
+        "message": "Suspicious variable name: recordExecutionStatus - may indicate code execution",
+        "line": 715,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1789434840548,
+        "path": "/pool/peer-room.js",
+        "patternId": "suspicious_variable_name",
+        "category": "structural",
+        "message": "Suspicious variable name: pendingInputExecutions - may indicate code execution",
+        "line": 1026,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1789434840548,
+        "path": "/pool/peer-room.js",
+        "patternId": "suspicious_variable_name",
+        "category": "structural",
+        "message": "Suspicious variable name: activeExecutionSessions - may indicate code execution",
+        "line": 1027,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1789434840548,
+        "path": "/pool/peer-room.js",
+        "patternId": "suspicious_variable_name",
+        "category": "structural",
+        "message": "Suspicious variable name: releaseExecutionSlot - may indicate code execution",
+        "line": 1038,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1789434840548,
+        "path": "/pool/peer-room.js",
+        "patternId": "suspicious_variable_name",
+        "category": "structural",
+        "message": "Suspicious variable name: queueInputExecution - may indicate code execution",
+        "line": 1065,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1789434840548,
+        "path": "/pool/peer-room.js",
+        "patternId": "suspicious_variable_name",
+        "category": "structural",
+        "message": "Suspicious variable name: executeInputPayload - may indicate code execution",
+        "line": 1132,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1789434840548,
+        "path": "/pool/peer-room.js",
+        "patternId": "suspicious_variable_name",
+        "category": "structural",
+        "message": "Suspicious variable name: drainQueuedInputExecutions - may indicate code execution",
+        "line": 1249,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1789434840548,
+        "path": "/pool/peer-room.js",
+        "patternId": "suspicious_variable_name",
+        "category": "structural",
+        "message": "Suspicious variable name: executionEntry - may indicate code execution",
+        "line": 1318,
+        "severity": "warning"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1789434840552,
+        "metric": "lines",
+        "value": 1540,
+        "threshold": 500,
+        "message": "File exceeds 500 lines (1540) - consider splitting",
+        "path": "/pool/peer-room.js"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1789434840552,
+        "metric": "functions",
+        "value": 90,
+        "threshold": 20,
+        "message": "File has 90 functions (max 20) - consider modularizing",
+        "path": "/pool/peer-room.js"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1789434840552,
+        "metric": "nesting",
+        "value": 9,
+        "threshold": 5,
+        "message": "Nesting depth of 9 exceeds 5 - refactor nested code",
+        "path": "/pool/peer-room.js"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1789434840554,
+        "path": "/pool/peer-pack-requester.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1789434840554,
+        "path": "/pool/peer-pack-requester.js",
+        "patternId": "suspicious_variable_name",
+        "category": "structural",
+        "message": "Suspicious variable name: execution - may indicate code execution",
+        "line": 86,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1789434840558,
+        "path": "/pool/provider-client.js",
+        "patternId": "suspicious_variable_name",
+        "category": "structural",
+        "message": "Suspicious variable name: execution - may indicate code execution",
+        "line": 311,
+        "severity": "warning"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1789434840559,
+        "metric": "lines",
+        "value": 728,
+        "threshold": 500,
+        "message": "File exceeds 500 lines (728) - consider splitting",
+        "path": "/pool/provider-client.js"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1789434840559,
+        "metric": "functions",
+        "value": 54,
+        "threshold": 20,
+        "message": "File has 54 functions (max 20) - consider modularizing",
+        "path": "/pool/provider-client.js"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1789434840559,
+        "metric": "nesting",
+        "value": 6,
+        "threshold": 5,
+        "message": "Nesting depth of 6 exceeds 5 - refactor nested code",
+        "path": "/pool/provider-client.js"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1789434840561,
+        "path": "/infrastructure/pack-job-storage.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [field] - verify input sanitization",
+        "line": 35,
+        "severity": "warning"
+      }
+    ],
+    "details": {
+      "patternViolations": [
+        {
+          "path": "/pool/peer-pack-requester.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        }
+      ],
+      "complexityWarnings": [
+        {
+          "type": "complexity",
+          "metric": "lines",
+          "value": 1540,
+          "threshold": 500,
+          "message": "File exceeds 500 lines (1540) - consider splitting",
+          "path": "/pool/peer-room.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "functions",
+          "value": 90,
+          "threshold": 20,
+          "message": "File has 90 functions (max 20) - consider modularizing",
+          "path": "/pool/peer-room.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "nesting",
+          "value": 9,
+          "threshold": 5,
+          "message": "Nesting depth of 9 exceeds 5 - refactor nested code",
+          "path": "/pool/peer-room.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "lines",
+          "value": 728,
+          "threshold": 500,
+          "message": "File exceeds 500 lines (728) - consider splitting",
+          "path": "/pool/provider-client.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "functions",
+          "value": 54,
+          "threshold": 20,
+          "message": "File has 54 functions (max 20) - consider modularizing",
+          "path": "/pool/provider-client.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "nesting",
+          "value": 6,
+          "threshold": 5,
+          "message": "Nesting depth of 6 exceeds 5 - refactor nested code",
+          "path": "/pool/provider-client.js"
+        }
+      ],
+      "filesAnalyzed": 4
+    }
+  }
+}

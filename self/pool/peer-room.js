@@ -27,15 +27,32 @@ import { modelSupportsAdapterRequirement, modelSupportsPoolWorkload } from './mo
 import { executablePacksMatch } from './executable-pack.js';
 import { snapshotPackOperationData } from './pack-operation.js';
 import { PACK_JOB_POLICY, resolvePackJobPolicy } from './peer-pack-job-policy.js';
+import { verifyPackPeerJob } from './peer-pack-job.js';
 
 /** Plan one normalized operation, then connect and deliver that exact signed job. */
 export async function runPeerOperationJob({ requesterClient, request, providerAdverts, connectTransport, signal = null,
-  onPartial = null, onError = () => {}, registry, policy }) {
-  if (typeof requesterClient?.createPeerOperationJob !== 'function' || typeof requesterClient?.createPeerPackRequester !== 'function'
-    || typeof connectTransport !== 'function') throw new Error('Operation requester and transport connector required');
+  onPartial = null, onPrepared = null, onError = () => {}, registry, policy }) {
+  if (typeof requesterClient?.createPeerOperationJob !== 'function') throw new Error('Operation job preparation required');
   const data = snapshotPackOperationData({ request, providerAdverts });
+  const { reference, ...options } = data.request;
+  return operatePeerJob({ requesterClient, model: data.request.model, reference, deadlineAt: data.request.limits?.deadlineAt,
+    prepare: resolvedPolicy => requesterClient.createPeerOperationJob({ ...options, adverts: data.providerAdverts, registry, policy: resolvedPolicy }),
+    connectTransport, signal, onPartial, onPrepared, onError, registry, policy });
+}
+
+/** Reconnect to the same signed attempt. Never plan or sign replacement work. */
+export async function resumePeerOperationJob({ requesterClient, job, model, reference, connectTransport, signal = null,
+  onPartial = null, onError = () => {}, registry, policy }) {
+  const data = snapshotPackOperationData({ job, model, reference });
+  return operatePeerJob({ requesterClient, model: data.model, reference: data.reference, deadlineAt: data.job.body?.intent?.limits?.deadlineAt,
+    prepare: () => data.job, connectTransport, signal, onPartial, onError, registry, policy });
+}
+
+async function operatePeerJob({ requesterClient, model, reference, deadlineAt, prepare, connectTransport, signal,
+  onPartial, onPrepared, onError, registry, policy }) {
+  if (typeof requesterClient?.createPeerPackRequester !== 'function'
+    || typeof connectTransport !== 'function') throw new Error('Operation requester and transport connector required');
   const resolvedPolicy = resolvePackJobPolicy(policy === undefined ? PACK_JOB_POLICY : policy);
-  const deadlineAt = data.request.limits?.deadlineAt;
   if (!Number.isSafeInteger(deadlineAt) || deadlineAt <= Date.now() || deadlineAt - Date.now() > resolvedPolicy.limits.maxJobMs) throw new Error('Bounded future operation deadline required');
   const controller = new AbortController(), abort = () => controller.abort(signal.reason);
   signal?.addEventListener('abort', abort, { once: true });
@@ -50,8 +67,12 @@ export async function runPeerOperationJob({ requesterClient, request, providerAd
   const current = () => controller.signal.throwIfAborted();
   try {
     current();
-    const { reference, ...options } = data.request;
-    const job = await Promise.race([requesterClient.createPeerOperationJob({ ...options, adverts: data.providerAdverts, registry, policy: resolvedPolicy }), stopped]);
+    const job = await Promise.race([prepare(resolvedPolicy), stopped]);
+    current();
+    await Promise.race([verifyPackPeerJob(job, { providerId: job.toPeerId, models: [model], registry, policy: resolvedPolicy }), stopped]);
+    current();
+    // Persist the signed attempt before any connection or delivery. Hosts own storage.
+    if (onPrepared) await Promise.race([onPrepared(snapshotPackOperationData(job)), stopped]);
     current();
     const opening = Promise.resolve().then(() => {
       current();
@@ -63,7 +84,7 @@ export async function runPeerOperationJob({ requesterClient, request, providerAd
     transport = await Promise.race([opening, stopped]);
     current();
     if (!transport?.bus || typeof transport.close !== 'function') throw new Error('Closable operation transport required');
-    const creating = Promise.resolve(requesterClient.createPeerPackRequester({ bus: transport.bus, models: [data.request.model], registry, policy: resolvedPolicy, onError }))
+    const creating = Promise.resolve(requesterClient.createPeerPackRequester({ bus: transport.bus, models: [model], registry, policy: resolvedPolicy, onError }))
       .then(value => { if (controller.signal.aborted) { value.close(); current(); } return value; });
     requester = await Promise.race([creating, stopped]);
     current();
@@ -1513,5 +1534,6 @@ export default {
   PEER_ROOM_VERSION,
   createPeerProviderNode,
   runPeerJob,
-  runPeerOperationJob
+  runPeerOperationJob,
+  resumePeerOperationJob
 };
