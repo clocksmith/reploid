@@ -2,20 +2,22 @@
  * @fileoverview Reploid local Doppler model contract.
  */
 import chatModels from './chat-models.json' with { type: 'json' };
+import dopplerPackage from './doppler-package.json' with { type: 'json' };
 
-export const DOPPLER_PACKAGE_NAME = 'doppler-gpu';
-export const DOPPLER_PACKAGE_VERSION = '0.6.2';
+export const DOPPLER_PACKAGE_NAME = dopplerPackage.name;
+export const DOPPLER_PACKAGE_VERSION = dopplerPackage.version;
+// Existing whole-model qualification remains bound to its released runtime.
+// The partition candidate has an explicit entry and is not a release promotion.
 export const DOPPLER_BROWSER_RUNTIME_VERSION = '0.6.2';
-export const DOPPLER_PACKAGE_SPEC = DOPPLER_PACKAGE_VERSION;
-export const DOPPLER_PACKAGE_TARBALL_URL =
-  `https://registry.npmjs.org/${DOPPLER_PACKAGE_NAME}/-/${DOPPLER_PACKAGE_NAME}-${DOPPLER_PACKAGE_VERSION}.tgz`;
-export const DOPPLER_PACKAGE_INTEGRITY =
-  'sha512-AoBqh/YJKu8tHXFBdhsvYTP9EoNlzls0M5bwHPudCb4QPB2lrw/1zBLtFvwftIyQ5HWPMc04WvJ5zqqp465vLw==';
+export const DOPPLER_PACKAGE_SPEC = dopplerPackage.spec;
+export const DOPPLER_PACKAGE_TARBALL_URL = dopplerPackage.resolved;
+export const DOPPLER_PACKAGE_INTEGRITY = dopplerPackage.integrity;
 export const DOPPLER_BROWSER_RELEASE_REF =
   `${DOPPLER_PACKAGE_NAME}@${DOPPLER_BROWSER_RUNTIME_VERSION}`;
 const DOPPLER_BROWSER_RELEASE_BASE_URL =
   `/vendor/doppler/${DOPPLER_BROWSER_RUNTIME_VERSION}`;
 export const DOPPLER_MODULE_URL = `${DOPPLER_BROWSER_RELEASE_BASE_URL}/src/index.js`;
+export const DOPPLER_PARTITIONS_MODULE_URL = `/vendor/doppler/${dopplerPackage.version}/src/inference/pipelines/text/layer-partition-contract.js`;
 export const DOPPLER_KERNEL_BASE_URL = `${DOPPLER_BROWSER_RELEASE_BASE_URL}/src/gpu/kernels`;
 export const DOPPLER_TOOLING_URL = `${DOPPLER_BROWSER_RELEASE_BASE_URL}/src/tooling-exports.browser.js`;
 export const DOPPLER_STORAGE_TOOLING_URL =

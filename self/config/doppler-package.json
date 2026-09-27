@@ -1,0 +1,7 @@
+{
+  "name": "doppler-gpu",
+  "version": "0.6.3-dev.split.1",
+  "spec": "file:deploy/artifacts/doppler-gpu-0.6.3-dev.split.1.tgz",
+  "resolved": "file:deploy/artifacts/doppler-gpu-0.6.3-dev.split.1.tgz",
+  "integrity": "sha512-gKMWz8nMrevyZCA/dn0ckcA80HzXUVpMTpgJIclfGUxUgLWtKETdehS9ofC5OByx5ljf+/SxogF42aV3OIQ/3Q=="
+}

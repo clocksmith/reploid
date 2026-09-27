@@ -38,9 +38,9 @@ Every token traverses both partitions; B returns one selected token to A.
 ## Acceptance
 
 Evidence: [partition tests](../../../../../tests/unit/partition-runner.test.js).
-Milestone additionally requires Doppler partial loading, binary WebRTC,
-conversation integration, numerical comparison and a physical two-device answer.
-These unit tests do not establish that milestone.
+Milestone: partial loading, binary WebRTC, chat integration, numerical parity and
+real two-tab answers. Unit tests do not qualify execution. Physical cross-device
+and capacity-pooling proof remain separate.
 
 ## Non-goals
 

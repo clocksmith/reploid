@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { readFileSync, existsSync, mkdirSync, copyFileSync } from 'node:fs';
+import { readFileSync, existsSync, mkdirSync, copyFileSync, mkdtempSync, renameSync, rmSync, writeFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import path from 'node:path';
@@ -19,9 +19,32 @@ if (listing.trim().split('\n').some(line => !['-', 'd'].includes(line[0]))) thro
 const manifest = JSON.parse(execFileSync('tar', ['-xOf', archive, 'package/package.json'], { encoding: 'utf8' }));
 if (manifest.name !== 'doppler-gpu' || manifest.version !== pin.version) throw new Error('Archive package identity mismatch');
 const target = path.join(root, 'self/vendor/doppler', pin.version);
-mkdirSync(target, { recursive: true });
-execFileSync('tar', ['-xzf', archive, '--strip-components=1', '-C', target]);
+if (!/^[0-9]+\.[0-9]+\.[0-9]+(?:-[a-zA-Z0-9.-]+)?$/.test(pin.version)) throw new Error('Invalid Doppler version');
+mkdirSync(path.dirname(target), { recursive: true });
+// Replace the complete generated tree: unpacking over an older tree leaves
+// removed modules available under an otherwise correctly identified version.
+const staging = mkdtempSync(path.join(path.dirname(target), '.doppler-'));
+const backup = `${staging}-previous`;
+let replaced = false;
+try {
+  execFileSync('tar', ['-xzf', archive, '--strip-components=1', '-C', staging]);
+  if (existsSync(target)) renameSync(target, backup);
+  try { renameSync(staging, target); replaced = true; }
+  catch (error) {
+    if (existsSync(backup)) renameSync(backup, target);
+    throw error;
+  }
+} finally {
+  rmSync(staging, { recursive: true, force: true });
+  if (replaced) rmSync(backup, { recursive: true, force: true });
+}
 const archiveDirectory = path.join(root, 'deploy/artifacts');
 mkdirSync(archiveDirectory, { recursive: true });
-copyFileSync(archive, path.join(archiveDirectory, `doppler-gpu-${pin.version}.tgz`));
+const archived = path.join(archiveDirectory, `doppler-gpu-${pin.version}.tgz`);
+if (path.resolve(archive) !== archived) copyFileSync(archive, archived);
+const packageJson = JSON.parse(readFileSync(path.join(root, 'package.json')));
+writeFileSync(path.join(root, 'self/config/doppler-package.json'), JSON.stringify({
+  name: manifest.name, version: pin.version, spec: packageJson.dependencies[manifest.name],
+  resolved: pin.resolved, integrity: pin.integrity,
+}, null, 2) + '\n');
 console.log(JSON.stringify({ version: pin.version, integrity, files: entries.length, target }));
