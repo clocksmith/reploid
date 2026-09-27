@@ -66,11 +66,13 @@ model identity must come from verified loaded artifacts. Validate the plan
 against the artifact before acquisition or execution. Reploid checks identities
 and readiness again around every operation.
 
-One integration detail remains to reconcile: each runner request can choose a
-`maxTokens` below its allocation limit, but the current step interface does not
-carry that request limit. Doppler must know when to finalize its incremental
-decoder so an early runner stop does not discard pending text. Resolve this
-contract before claiming complete resident-session parity.
+Each step carries the effective request `maxTokens`, which can be below the
+allocation ceiling. The runner preserves it through A, the activation metadata,
+and remote B. Doppler must finalize its incremental decoder and return `done`
+with its last delta at that limit. The runner rejects an unfinalized final step
+instead of silently discarding pending text. The peer rejects missing, mismatched,
+or over-budget limits. Other effective generation settings still require binding
+through the resident contract before complete session parity can be claimed.
 
 All sessions expose idempotent asynchronous `closeAttempt({identity})` and
 `close()`. The first settles submitted work and disposes only that attempt's
@@ -83,7 +85,7 @@ A additionally exposes:
 await session.tokenize({ messages, identity, signal });
 // -> { modelIdentity, tokenIds } using the exact model chat template/tokenizer
 await session.executeGroup0({
-  tokenIds, continuation, identity, step, tokenPosition, inputTokenCount,
+  tokenIds, continuation, identity, step, tokenPosition, inputTokenCount, maxTokens,
   executionGrant, signal,
 });
 // -> { activationTensor: { shape: [1, inputTokenCount, hiddenSize],
@@ -95,7 +97,7 @@ B exposes:
 
 ```js
 await session.executeGroup1({
-  activation, continuation, identity, step, tokenPosition, inputTokenCount,
+  activation, continuation, identity, step, tokenPosition, inputTokenCount, maxTokens,
   executionGrant, outputGrant, signal,
 });
 // -> { identity, step, tokenPosition, tokenId, delta, done, stopReason,
@@ -180,6 +182,29 @@ artifact reads, per-token comparisons, frame costs, and the browser/GPU/runtime
 identity. A passing mock or a descriptor is not numerical or memory proof.
 Physical multi-machine and capacity-pooling qualification remain separate from
 the current local-tab phase.
+
+The current connected qualification target uses separate tabs or browser windows
+on this same machine. Compare the installed package unsplit and split there,
+including concurrent conversations, cancellation and participant loss. Separate
+participant identities do not establish separate physical GPU capacity.
+
+## Output-limit correction
+
+The [retained execution report](../artifacts/partition-limits/20260927/report.json)
+records effective-limit propagation, immutable per-attempt limits, rejection of
+unfinalized length stops, same-machine two-tab transport, and installed-package
+checks. Browser computation remains injected. The first parallel authorization
+to finish may acquire the first token lease; the test checks alternating leases
+without assuming signature verification finishes in thread-creation order.
+
+Component: Reploid partition coordination.
+Intent: preserved.
+Acceptance evidence: the report links executed unit, browser and installed-package
+results; library types, delivery and CATSCAN checks pass.
+Boundary effects: partition step declarations, authenticated peer protocol,
+generated browser delivery, and the Doppler consumer contract. Peers lacking the
+effective request limit fail closed. This does not qualify the missing Doppler
+resident factory or update the Doppler dependency.
 
 ## Takeover checkpoint
 

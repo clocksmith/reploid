@@ -115,12 +115,30 @@ describe('partition autoregressive orchestration (injected execution)', () => {
     expect(f.deviceA.executeGroup0).toHaveBeenCalledTimes(3);
   });
 
-  it('stops at the explicit token budget even without EOS', async () => {
+  it('rejects unfinalized output at the token budget instead of losing pending decoder text', async () => {
     const f = fixture();
-    const result = await f.runner.execute({ ...f.request, maxTokens: 1 });
-    expect(result.stopReason).toBe('length');
+    await expect(f.runner.execute({ ...f.request, maxTokens: 1 })).rejects.toThrow('finalize decoding');
     expect(f.deviceA.executeGroup0).toHaveBeenCalledTimes(1);
     expect(f.deviceB.executeGroup1).toHaveBeenCalledTimes(1);
+    expect(f.deviceA.closeAttempt).toHaveBeenCalledTimes(1);
+    expect(f.deviceB.closeAttempt).toHaveBeenCalledTimes(1);
+  });
+
+  it('carries the request limit through both stages so Doppler flushes its final text', async () => {
+    const f = fixture(), deltas = [];
+    f.deviceB.executeGroup1.mockImplementation(async ({ identity, step, tokenPosition, maxTokens }) => ({
+      identity, step, tokenPosition, tokenId: 10 + step,
+      done: step + 1 === maxTokens, delta: step + 1 === maxTokens ? 'final buffered text' : '',
+      stopReason: 'max-tokens', continuation: { position: tokenPosition }
+    }));
+    const result = await f.runner.execute({ ...f.request, maxTokens: 2, onDelta: delta => deltas.push(delta) });
+    expect(result.content).toBe('final buffered text');
+    expect(result.stopReason).toBe('max-tokens');
+    expect(deltas).toEqual(['final buffered text']);
+    for (const device of [f.deviceA.executeGroup0, f.deviceB.executeGroup1]) {
+      expect(device.mock.calls.map(([request]) => request.maxTokens)).toEqual([2, 2]);
+    }
+    expect(f.transport.transferActivation.mock.calls.map(([frame]) => frame.metadata.maxTokens)).toEqual([2, 2]);
   });
 
   it('rejects activation allocations before transport', async () => {

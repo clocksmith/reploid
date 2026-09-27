@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import * as runtime from 'doppler-gpu/partitions';
 import { createSigningIdentity } from '../../packages/reploid/src/artifacts/identity.js';
-import { createPartitionGrantAuthority, createResidentPartition, createPartitionPeer,
+import { createPartitionGrantAuthority, createResidentPartition, createPartitionPeer, createLayerPartitionRunner,
   createPartitionChat, createPartitionNetwork, partitionFingerprint } from '../../packages/reploid/src/mesh/index.js';
 import { disclosureScope, matchingThreadGrant } from '../../packages/reploid/src/chat/thread-grants.js';
 import { createChatSession } from '../../self/host/chat-session.js';
@@ -102,12 +102,47 @@ describe('Reploid partition APIs with injected Doppler sessions', () => {
     expect((await Promise.all(pending)).map(r => r.status)).toEqual(['completed', 'completed']);
     expect(session.getState().threads.map(t => t.messages.at(-1).content)).toEqual(['2 3 4 ', '11 12 13 ']);
     expect(f.factory.log.opens.sort()).toEqual([0, 1]);
-    expect(f.factory.log.steps.filter(s => s.index === 0).map(s => s.threadId)).toEqual([a, b, a, b, a, b]);
+    expect(f.factory.log.steps.every(step => step.maxTokens === policy.maxTokens)).toBe(true);
+    const order = f.factory.log.steps.filter(s => s.index === 0).map(s => s.threadId);
+    expect(new Set(order.slice(0, 2))).toEqual(new Set([a, b]));
+    expect(order).toEqual([...order.slice(0, 2), ...order.slice(0, 2), ...order.slice(0, 2)]);
     expect((await session.send(a, '20')).status).toBe('completed');
     expect(session.getState().threads[0].attempts[1].authorization.kind).toBe('thread-grant');
     expect(f.factory.log.tokenizations.at(-1)).toEqual([{ role: 'user', content: '1' }, { role: 'assistant', content: '2 3 4 ' }, { role: 'user', content: '20' }]);
     expect(f.factory.log.closes).toEqual([]);
     expect(f.remote.getState().receipt.sentFrames).toBeGreaterThan(9);
+  });
+
+  it('forwards a lower request limit through authenticated binary transfer to the resident executor', async () => {
+    const f = await fixture();
+    await Promise.all([f.local.prepare({ approved: true }), f.supplier.prepare({ approved: true })]);
+    await f.remote.refresh();
+    const grant = await f.authority.issue(f.binding, policy, { approved: true, ttlMs: 10000 });
+    const runner = createLayerPartitionRunner({ runtime, plan: f.plan, deviceA: f.local, deviceB: f.remote,
+      limits: policy, authorize: request => f.authority.verify(request.grant, {
+        ...request, identity: f.binding
+      }) });
+    cleanup.push(() => runner.close());
+    const result = await runner.execute({ tokenIds: [1], identity: f.binding, maxTokens: 2,
+      grants: { executionA: grant, executionB: grant, activation: grant, output: grant } });
+    expect(result.content).toBe('2 3 ');
+    expect(result.stopReason).toBe('max-tokens');
+    expect(f.factory.log.steps.map(step => [step.index, step.maxTokens])).toEqual([[0, 2], [1, 2], [0, 2], [1, 2]]);
+  });
+
+  it.each(['missing', 'over-budget', 'mismatched'])('rejects a %s remote token limit before computation', async kind => {
+    const f = await fixture();
+    await f.supplier.prepare({ approved: true });
+    const grant = await f.authority.issue(f.binding, policy, { approved: true, ttlMs: 10000 });
+    const maxTokens = kind === 'missing' ? undefined : kind === 'over-budget' ? policy.maxTokens + 1 : 2;
+    const frame = runtime.serializeActivationFrame({ shape: [1, 1, f.plan.hiddenSize], dtype: 'f32',
+      data: new Float32Array(f.plan.hiddenSize), step: 0, seqOffset: 0,
+      metadata: { ...f.binding, maxTokens: kind === 'mismatched' ? 1 : maxTokens,
+        from: f.a.peerId, to: f.b.peerId } });
+    await expect(f.remote.executeFrame({ frame, identity: f.binding, continuation: null,
+      step: 0, tokenPosition: 0, inputTokenCount: 1, maxTokens,
+      executionGrant: grant, outputGrant: grant, signal: new AbortController().signal })).rejects.toThrow();
+    expect(f.factory.log.steps).toEqual([]);
   });
 
   it('revokes a live conversation and waits for remote settlement without mixing another attempt', async () => {

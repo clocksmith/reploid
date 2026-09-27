@@ -18,7 +18,7 @@ export function createPartitionStepReceiver({ executeStep, authorize, fingerprin
   const bindingOf = identity => JSON.stringify(identityKeys.map(key => identity[key]));
   const registerAttempt = identity => {
     if (attempts.size >= maxAttempts) throw new Error('Partition receiver attempt budget exhausted');
-    const state = { binding: bindingOf(identity), identity: structuredClone(identity), nextStep: 0, nextPosition: 0,
+    const state = { binding: bindingOf(identity), identity: structuredClone(identity), nextStep: 0, nextPosition: 0, maxTokens: null,
       last: null, retired: false, controller: new AbortController(), settlement: null };
     attempts.set(identity.attemptId, state);
     return state;
@@ -35,6 +35,7 @@ export function createPartitionStepReceiver({ executeStep, authorize, fingerprin
     const request = structuredClone(input);
     if (!validIdentity(request.identity)
       || !Number.isSafeInteger(request.step) || request.step < 0 || request.step >= maxSteps
+      || !Number.isSafeInteger(request.maxTokens) || request.maxTokens <= 0 || request.step >= request.maxTokens
       || !Number.isSafeInteger(request.tokenPosition) || request.tokenPosition < 0
       || !Number.isSafeInteger(request.inputTokenCount) || request.inputTokenCount <= 0) {
       throw new Error('Invalid partition step binding');
@@ -52,9 +53,11 @@ export function createPartitionStepReceiver({ executeStep, authorize, fingerprin
       if (!state) {
         if (request.step !== 0 || request.tokenPosition !== 0) throw new Error('Partition attempt must start with prefill');
         state = registerAttempt(request.identity);
+        state.maxTokens = request.maxTokens;
       }
       if (state.binding !== binding) throw new Error('Partition attempt identity collision');
       if (state.retired) throw new Error('Partition attempt retired; start a new attempt');
+      if (state.maxTokens !== request.maxTokens) throw new Error('Partition request token limit changed');
       if (state.last?.step === request.step) {
         if (state.last.digest !== digest) throw new Error('Partition step payload collision');
       } else {

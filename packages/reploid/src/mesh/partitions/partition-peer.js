@@ -14,13 +14,16 @@ export function createPartitionPeer({ channel, localParticipantId, remotePartici
     && identity.planId === planId;
   const validFrame = metadata => {
     const frame = metadata.frame;
-    return frame?.schema === runtime.ACTIVATION_TENSOR_SCHEMA && frame.dtype === plan.activationDtype
+    return Number.isSafeInteger(metadata.maxTokens) && metadata.maxTokens > 0
+      && metadata.maxTokens <= metadata.grant?.claim?.limits?.maxTokens && metadata.step < metadata.maxTokens
+      && frame?.schema === runtime.ACTIVATION_TENSOR_SCHEMA && frame.dtype === plan.activationDtype
       && frame.step === metadata.step && frame.seqOffset === metadata.tokenPosition
       && Array.isArray(frame.shape) && frame.shape.length === 3 && frame.shape[0] === 1
       && frame.shape[1] === metadata.inputTokenCount && frame.shape[2] === plan.hiddenSize
       && Number.isSafeInteger(frame.byteLength) && frame.byteLength > 0
       && frame.byteLength === frame.shape[1] * frame.shape[2] * (frame.dtype === 'f16' ? 2 : 4)
       && samePartitionIdentity(frame.metadata, metadata.identity)
+      && frame.metadata.maxTokens === metadata.maxTokens
       && frame.metadata.from === metadata.identity.participantA && frame.metadata.to === metadata.identity.participantB;
   };
   const verify = (metadata, action, settlement = false) => authority.verify(metadata.grant, {
@@ -38,6 +41,7 @@ export function createPartitionPeer({ channel, localParticipantId, remotePartici
       const frame = { ...request.frame, buffer: request.payload.slice().buffer };
       const result = await contributor.executeGroup1({ identity: request.identity,
         step: request.step, tokenPosition: request.tokenPosition, inputTokenCount: request.inputTokenCount,
+        maxTokens: request.maxTokens,
         activation: runtime.deserializeActivationFrame(frame), continuation: request.continuation, signal,
         executionGrant: request.grant, outputGrant: request.grant });
       assert(samePartitionIdentity(result?.identity, request.identity) && result.step === request.step

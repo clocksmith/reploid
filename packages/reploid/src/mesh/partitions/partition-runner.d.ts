@@ -23,6 +23,8 @@ export interface PartitionStep {
   step: number;
   tokenPosition: number;
   inputTokenCount: number;
+  /** Effective request limit, unchanged for every stage; Doppler owns length-stop finalization. */
+  maxTokens: number;
 }
 export interface ActivationTensor {
   shape: number[];
