@@ -1,17 +1,20 @@
 # Reploid · Doppler · Doe: JSON diagram and renderer
 
-`diagram.json` is the canonical editable document. It contains eight views:
+`diagram.json` is the canonical editable document. It contains nine views:
 
 1. **Ecosystem:** precisely A—B and B—C, with undirected mutual-benefit edges. No A—C relationship is asserted.
 2. **Interfaces:** the selected Reploid stack uses Doppler; Doe is an optional WebGPU integration. Opposite arrows explicitly carry results and diagnostics rather than implying reciprocal software imports.
-3. **Improvement:** development feedback flows through independent validation and explicit adoption.
-4. **Placement:** local and remote invocations place product components inside distinct hosts.
-5. **Stream:** a remote whole-request example selects one provider and returns events and results.
-6. **Cancel:** request acknowledgement, output stop and settlement are separate events.
-7. **Recover:** a lost peer triggers local observation and authorized recovery, without implying remote cleanup.
-8. **Adopt:** planned native provider substitution and browser-engine integration remain separate paths.
+3. **Evolve:** Reploid's runtime loop moves from observed problem to proposal, protected comparison, authorized adoption or rejection, subsequent use, and retained outcomes with rollback.
+4. **Improve:** cross-project implementation improvement keeps Reploid, Doppler and Doe changes, releases and recipient adoption separately owned.
+5. **Placement:** local and remote invocations place product components inside distinct hosts.
+6. **Stream:** a remote whole-request example selects one provider and returns events and results.
+7. **Cancel:** request acknowledgement, output stop and settlement are separate events.
+8. **Recover:** a lost peer triggers local observation and authorized recovery, without implying remote cleanup.
+9. **Adopt:** planned native provider substitution and browser-engine integration remain separate paths.
 
-The content describes the supplied **intended architecture**, not newly audited implementation or performance. Poolday belongs inside Reploid's network responsibility. Search policy stays with the application. Rig / ModelIR / TargetPlans / Capsules / Run use the terminology in the supplied description. The JSON also records contracts, control flow, claim policy and improvement loops; the viewer renders its eight diagram views.
+The product relationships describe **intended architecture**, not performance qualification. The Evolve view distinguishes that intent from documented bounded implementations and retained outcomes. Its references were inspected at Reploid `49425e01`; the inspector links separately to goals, Work's pure-tool replacement contract, Zero/X's internal improvement episodes, and the retained report. That report records fixture-based adoption tests and unsuccessful model-generated repair attempts, not independently operated recipient adoption or causal recursion. Authorized runtime improvement is part of Reploid's product and does not depend on CI. It cannot publish Doppler releases or rewrite Doe in place.
+
+Poolday belongs inside Reploid's network responsibility. Search policy stays with the application. Rig / ModelIR / TargetPlans / Capsules / Run retain their existing authorities. No new improvement engine is introduced.
 
 ## Immediate preview
 
@@ -60,6 +63,11 @@ Graph edges route from box anchors, with optional explicit `waypoints`. `labelPo
 
 `entities` holds reusable ownership and independence descriptions. View-specific `nodes` reference an entity and specify layout. `contractView` / `exampleView` are local view references, not fetched URLs or claims of actual exported APIs.
 
+Optional view `references` contain a label, HTTPS URL and `kind`: `intent`,
+`implementation`, or `evidence`. The inspector renders them as explicit links;
+loading diagram JSON never fetches them. Non-HTTPS links and embedded credentials
+are rejected. This additive field preserves existing v1 documents.
+
 `schema.json` is a JSON Schema description. `validateDocument()` also checks unique IDs, referential integrity, numerical bounds and known styles. Labels are escaped, not interpreted as HTML. JSON is never evaluated as code. Untrusted graph data does not fetch assets.
 
 ## Files
@@ -86,8 +94,8 @@ When served, the viewer reads `diagram.json`. After editing canonical files, `np
 
 ## Validation performed
 
-- 16 Node tests passed for the eight-view document: document validation, edge semantics, endpoint routing, escaping and SVG exports.
-- Browser checks passed using the embedded page in Chromium: all eight views, inspector navigation, invalid JSON rejection, node dragging, JSON/SVG downloads, and mobile width. No uncaught page errors occurred in that path.
+- Node tests cover document validation, edge semantics, endpoint routing, escaping, reference safety and SVG exports.
+- Browser checks exercise the embedded page in Chromium: all nine views, authority/evidence links, inspector navigation, invalid JSON rejection, node dragging, JSON/SVG downloads, and mobile width.
 - JavaScript syntax checks passed, including the Three.js adapter.
 - **The Three.js/WebGL path was not executed in the authoring environment because its dependency could not be downloaded.** Install the pinned dependency and inspect the engine indicator locally. The shipped static SVGs and SVG interactions were inspected; that is not a WebGL execution claim.
 
@@ -100,3 +108,5 @@ When served, the viewer reads `diagram.json`. After editing canonical files, `np
 - https://github.com/mrdoob/three.js/releases/tag/r180
 
 Three.js is a separate dependency with its own MIT license. No font assets or model weights are bundled.
+
+Follow-up validation and source scope: [runtime improvement diagram review](review-runtime-improvement.md).

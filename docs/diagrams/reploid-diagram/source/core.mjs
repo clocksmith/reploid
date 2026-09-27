@@ -25,6 +25,14 @@ export function validateDocument(input) {
     if (!['graph','sequence'].includes(view.kind)) fail(`Unknown view kind: ${view.kind}.`);
     if (![view.width,view.height].every(n=>finite(n)&&n>0)) fail(`Invalid view size: ${view.id}.`);
     if (!string(view.title,160)||!string(view.subtitle??'',1000)) fail('Invalid view text.');
+    if (!Array.isArray(view.references??[])||(view.references??[]).length>20) fail('Invalid view references.');
+    for (const reference of view.references??[]) {
+      if (!reference||!string(reference.label,180)||!reference.label||!string(reference.url,2000)
+        ||!['intent','implementation','evidence'].includes(reference.kind)) fail('Invalid contract reference.');
+      let url;
+      try { url=new URL(reference.url); } catch { fail('Contract references require an absolute HTTPS URL.'); }
+      if (url.protocol!=='https:'||url.username||url.password) fail('Contract references require an absolute HTTPS URL without credentials.');
+    }
     if (!Array.isArray(view.nodes)||!Array.isArray(view.edges)||view.nodes.length>500||view.edges.length>2000) fail('Too many or missing nodes/edges.');
     const ids=new Set();
     for (const n of view.nodes) {
