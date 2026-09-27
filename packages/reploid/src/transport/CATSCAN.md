@@ -6,15 +6,15 @@ Parent: [Reploid Browser Library](../../CATSCAN.md)
 Provide Poolday's WebRTC connections and authorized exchange among independently controlled network participants.
 
 ## Authority
-Owns bounded transport setup, delivery and recovery. Has no model, domain, UI, evaluation or adoption authority. Legacy swarm and complete-job assignment protocols remain distinct.
+Owns bounded setup/delivery/recovery, not models/UI/evaluation/adoption. Legacy swarm and complete-job protocols remain distinct.
 
 ## Scope
-This directory and unchartered descendants.
+Subtree.
 
 ## Contracts
 Inputs: immutable policy and explicit host ports.
-An optional asynchronous `getRtcConfig` host port supplies fresh authorized ICE
-configuration for each negotiation; the transport neither issues nor persists credentials.
+The asynchronous `getRtcConfig` port supplies authorized ICE configuration per
+negotiation; transport never issues/persists credentials.
 Outputs: bounded operations, state, failures and retained evidence.
 
 ## Invariants
@@ -22,8 +22,11 @@ Outputs: bounded operations, state, failures and retained evidence.
 - Candidates cannot expand permissions or approve their own output.
 - Cancellation does not claim termination of borrowed work.
 - Preserve record identities and recovery compatibility.
-- WebRTC discovery is joined only after matching acknowledgement; peer counts require open data channels. Manual disconnect cancels pending joins and reconnects.
+- Discovery joins only after matching acknowledgement; peer counts require open channels. Disconnect cancels joins and reconnects.
 - WebRTC-only callers never silently fall back to BroadcastChannel.
+- Reconnection honors trusted host retry deadlines; disconnect cancels that wait.
+- Custody uses a bounded reliable ordered auxiliary channel, granting no permissions.
+  Reject unknown labels and channels arriving after disconnect.
 - Storage shards, complete requests, partition tensors/continuation state and agent subtask messages retain distinct payload contracts. Transfers do not authorize execution or prove partition compatibility.
 - Candidate transfers bind endpoints, room, contract, bytes and expiry. Retried delivery is bounded at-least-once; acknowledgements establish retained preview only.
 

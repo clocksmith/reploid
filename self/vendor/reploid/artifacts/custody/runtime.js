@@ -1,4 +1,5 @@
 /** Reusable artifact custody behavior. The host supplies policy, protocol and execution ports. */
+export { createCustodyExchange } from './exchange.js';
 export function createCustodyContracts(ports) {
   const { hashDopplerEvidence, validateExecutablePack, executablePacksMatch, sha256Hex, signCanonical, verifyCanonicalSignature } = ports;
   for (const name of ["hashDopplerEvidence","validateExecutablePack","executablePacksMatch","sha256Hex","signCanonical","verifyCanonicalSignature"]) {

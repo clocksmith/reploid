@@ -1090,8 +1090,8 @@
     },
     {
       "path": "capabilities/communication/swarm-join-policy.js",
-      "byteLength": 1897,
-      "sha256": "sha256:2ca1316e74f4ae229a4192303d88f3e278e58b1a72025ba87961646b71cb4661"
+      "byteLength": 2027,
+      "sha256": "sha256:ddb0246696d081978a09d1e638e5333036aebb25a775af3c086efc664dfedd3a"
     },
     {
       "path": "capabilities/communication/swarm-sync.js",
@@ -1205,13 +1205,18 @@
     },
     {
       "path": "config/CATSCAN.md",
-      "byteLength": 1563,
-      "sha256": "sha256:663896ca2f88f15161717f2d6a424d65b1ad1dcfa51c91d4221ec544e19e4cd2"
+      "byteLength": 1717,
+      "sha256": "sha256:683e885ecf9aa83f8a8a2e16bd4a7c6c3940fca1556894337790049c440eddf1"
+    },
+    {
+      "path": "config/chat-files.json",
+      "byteLength": 456,
+      "sha256": "sha256:ae1e2653af96d4469a8db5bd7cb3314c878dc8cd456fa5f11609f7cb92757597"
     },
     {
       "path": "config/chat-models.json",
-      "byteLength": 600,
-      "sha256": "sha256:a70abd05e84f3ef73d60497c89870b2d3ee34034b1dabf26de438d8ef6aabd54"
+      "byteLength": 3285,
+      "sha256": "sha256:06d3537e6e24135a50df28d074adf6ffd17e2e266608e7aeeb428bd41fd22473"
     },
     {
       "path": "config/clockwork-gamma-receipts.js",
@@ -1295,8 +1300,8 @@
     },
     {
       "path": "config/module-inventory.json",
-      "byteLength": 497764,
-      "sha256": "sha256:757d89f4217b27318cc68a1da5bc87f50ddc5367842b63128862e026ba321b14"
+      "byteLength": 499234,
+      "sha256": "sha256:412d6ae53b46e71c9ac97bdb0adfe5b74e58a2b8567694f6ba15c9979c82e71c"
     },
     {
       "path": "config/module-registry.json",
@@ -1330,8 +1335,8 @@
     },
     {
       "path": "config/swarm-bootstrap.json",
-      "byteLength": 838,
-      "sha256": "sha256:bbf7f04c0b9cce05df80bb492809e2c1c37dda8500f5854f3ef121a6356ad239"
+      "byteLength": 909,
+      "sha256": "sha256:4b308abe1270b1ee51891dab9fc73ac8b71ab9a3a62d8e7a601f4ac10877d4ca"
     },
     {
       "path": "config/tool-surfaces.js",
@@ -1340,8 +1345,8 @@
     },
     {
       "path": "config/vfs-manifest.json",
-      "byteLength": 161753,
-      "sha256": "sha256:dc8b4cf65b19a95673910e21b151a0589e54f3b61572641485d14dc8623c26e4"
+      "byteLength": 162151,
+      "sha256": "sha256:d6c5e9cf6d4c645206409234ddfd44d59407658fdcdac0dfe81ebd3bbf86acdb"
     },
     {
       "path": "config/vfs-policy.js",
@@ -1355,8 +1360,8 @@
     },
     {
       "path": "config/work-profile.json",
-      "byteLength": 4670,
-      "sha256": "sha256:3cebb7f957ae8d23987798dc4cfcb2202f06fc0462c21ad5e4ebd3b989ab85b9"
+      "byteLength": 4864,
+      "sha256": "sha256:c2a73fd30a3630c7654fe5d19e424d6609b0ce23dc94d63938361ceea731f7ca"
     },
     {
       "path": "config/zero-access.json",
@@ -1635,13 +1640,13 @@
     },
     {
       "path": "host/CATSCAN.md",
-      "byteLength": 2127,
-      "sha256": "sha256:f8b482d635fe1a0d88aee81b6e6c9e7218401d04a94462bd0c65b88142486ee6"
+      "byteLength": 2306,
+      "sha256": "sha256:4da8152bc278c0617835a684f4ce08be5608581ce664f41bbce1b075ebad9c78"
     },
     {
       "path": "host/chat-session.js",
-      "byteLength": 11786,
-      "sha256": "sha256:8626739ce0e858ec6a6183347eb8e92c90d31fc44a8ea2b381c8340c065222f8"
+      "byteLength": 13297,
+      "sha256": "sha256:c1ba0e79f8c5497cee2ed3d5b43ce7ae33625efc78fde7d4e005418619a1a6c4"
     },
     {
       "path": "host/seed-vfs.js",
@@ -1689,6 +1694,11 @@
       "sha256": "sha256:7ee257c0cf1e7d41726b52313c664c28134180a909ca2f3909e3bbc64c933307"
     },
     {
+      "path": "host/work-model-files.js",
+      "byteLength": 11699,
+      "sha256": "sha256:322bfe46eb2825aa891e3dc82bd8f0b9b62bc84b0d25b3e9aa3d4b271fccb38c"
+    },
+    {
       "path": "host/work-peer-jobs.js",
       "byteLength": 7029,
       "sha256": "sha256:f508544823c6c0e6b5f38e8b9c0c3f7765fd5cac3a7708f19124128ee69e6d12"
@@ -1710,8 +1720,8 @@
     },
     {
       "path": "host/work-swarm.js",
-      "byteLength": 13595,
-      "sha256": "sha256:ec27bd933c70ad1d369bf52231257e5f259a9236de9cd4e2c222fc3fbc8ae98f"
+      "byteLength": 16168,
+      "sha256": "sha256:41131f6e9137bb17ad1df830a1f1fc2699cc96860001f245e209e0c7d8a98742"
     },
     {
       "path": "host/work-task.js",
@@ -2585,8 +2595,8 @@
     },
     {
       "path": "pool/sdk.js",
-      "byteLength": 13772,
-      "sha256": "sha256:f5a2b319ce57e9d14bbfb6cdd87ad771ded7509cccd3b7cdc25bb281e860e5b4"
+      "byteLength": 14253,
+      "sha256": "sha256:2b55d03b818376ba682eec7a75e4b1cf3148c383831983b6d2d026f1fa61f433"
     },
     {
       "path": "pool/sequence-result.js",
@@ -2615,13 +2625,18 @@
     },
     {
       "path": "providers/CATSCAN.md",
-      "byteLength": 1261,
-      "sha256": "sha256:fc26c885184cece262b5b7fa981226dbcd88e15eca0eb566e809f396cadaf47c"
+      "byteLength": 1899,
+      "sha256": "sha256:fff2d79bf19cdb7beb1b3e9d63eeab8d0d134206a4b77dd9ce746b4c2dbff2a1"
     },
     {
       "path": "providers/doppler-reploid.js",
       "byteLength": 13853,
       "sha256": "sha256:ad6209c5dcef086e3285518ab090e83b5f2b6d6501eed414374506dc48cd50a9"
+    },
+    {
+      "path": "providers/work-adapter.js",
+      "byteLength": 2529,
+      "sha256": "sha256:e0898fd4cd08b107605a0635e8b46ac3ff622d601c2d5a67a40279be2c9b21c1"
     },
     {
       "path": "providers/work-device.js",
@@ -2630,18 +2645,18 @@
     },
     {
       "path": "providers/work-network-provider.js",
-      "byteLength": 2141,
-      "sha256": "sha256:51030b5b7fb1396341cb0b48630a37985cf1ca5f2d6daf653878f3d475dd0b21"
+      "byteLength": 2452,
+      "sha256": "sha256:a4b5f7832f8bd84121005d0e13af9f82185369964fd1a73023e418b278507dd1"
     },
     {
       "path": "providers/work-provider.js",
-      "byteLength": 5483,
-      "sha256": "sha256:752e18f7ce6dcd8693dd84e69965674eb48b6e01dbbfe1be68fe2e0bbf44f2f4"
+      "byteLength": 9128,
+      "sha256": "sha256:6fcd8c5b821379585c4f69fef27ebcae3419b91ce8d79f8e9c32e5b5cef624bd"
     },
     {
       "path": "providers/work-resident-provider.js",
-      "byteLength": 4141,
-      "sha256": "sha256:026d66062e8c3f067f161f633455e4d736d2f8c8440b044335f03b01c2615e1a"
+      "byteLength": 4633,
+      "sha256": "sha256:6ffe2d8a8f807bf04049b80933bfa0657e4bb63e09835d0ca1027e5676fcd087"
     },
     {
       "path": "receipt.js",
@@ -3170,8 +3185,8 @@
     },
     {
       "path": "ui/pool-home/CATSCAN.md",
-      "byteLength": 2491,
-      "sha256": "sha256:abb194be346dc7781ab6917a98686aad0a58c3d2078ec67053e3d04afc335c5b"
+      "byteLength": 2566,
+      "sha256": "sha256:8572604282c0993838f64112e4af8aa54ba298c994b5292a39c6a5bd4aecc569"
     },
     {
       "path": "ui/pool-home/constants.js",
@@ -3190,8 +3205,8 @@
     },
     {
       "path": "ui/pool-home/conversation-workspace.js",
-      "byteLength": 16426,
-      "sha256": "sha256:96f119847d0bd53c84f9341480ff179553a44a4dd97e7774244d78f884f65cf5"
+      "byteLength": 17773,
+      "sha256": "sha256:1bd9864acea44ce9d141bb033de46483ac8400c8b7c2238f5dac90b949c1646b"
     },
     {
       "path": "ui/pool-home/document-search.js",
@@ -12969,14 +12984,24 @@
       "sha256": "sha256:0ad3d3ad274cefe1bd6030f07334ca7a23612d41d0f43fd0fef369f15de91c91"
     },
     {
+      "path": "vendor/reploid/artifacts/custody/exchange.d.ts",
+      "byteLength": 2314,
+      "sha256": "sha256:f97324f34115739ff8e342614b5ce2778838734b977fdd89a0584e36645299f3"
+    },
+    {
+      "path": "vendor/reploid/artifacts/custody/exchange.js",
+      "byteLength": 14120,
+      "sha256": "sha256:e416b9bf88ed8695ac27e7d63b915f63f286072f36a92bb9b7a42f3c8641bfa2"
+    },
+    {
       "path": "vendor/reploid/artifacts/custody/runtime.d.ts",
-      "byteLength": 563,
-      "sha256": "sha256:77f453b4d480aa5b494d43479c2f7779b101f31a54c403ef33c45b76012565e8"
+      "byteLength": 618,
+      "sha256": "sha256:ed7b48c4f8e9a01528aa33195df61639d139745c4846d8caf4723a513871bca6"
     },
     {
       "path": "vendor/reploid/artifacts/custody/runtime.js",
-      "byteLength": 21764,
-      "sha256": "sha256:ebe1e8da9fcfbc604e03c6a831f1ac3668361e15072b77f432d9ecc01f4f40a9"
+      "byteLength": 21819,
+      "sha256": "sha256:81872a51d81951c306c4478415d00183f2df586c80c5f8697c60d648969ec8d4"
     },
     {
       "path": "vendor/reploid/artifacts/identity.d.ts",
@@ -13235,13 +13260,13 @@
     },
     {
       "path": "vendor/reploid/mesh/index.d.ts",
-      "byteLength": 790,
-      "sha256": "sha256:e25596b0c89a169539972175e9d4d1f9c5b8ff5337ac6fd62d8d4a2ce1ca2a85"
+      "byteLength": 897,
+      "sha256": "sha256:5cb0bf4c91ff50cc535a15a8dd4a529ebbb42467285da8dcc1d6805609dc9b7d"
     },
     {
       "path": "vendor/reploid/mesh/index.js",
-      "byteLength": 2588,
-      "sha256": "sha256:0adc1dce8331d9e9df643196dc45aa89adde9c8a4855dbc2852f9d0e4a2542ca"
+      "byteLength": 2645,
+      "sha256": "sha256:6bd81fd64532803a8dfba6880506268538637420ed27846f93915b8b893e67c5"
     },
     {
       "path": "vendor/reploid/mesh/jobs/contracts.d.ts",
@@ -13300,13 +13325,28 @@
     },
     {
       "path": "vendor/reploid/mesh/legacy-generation.js",
-      "byteLength": 21619,
-      "sha256": "sha256:0f8732c46c28e55afeef290203860b424445b4f704f1f019176bd0a32451cc37"
+      "byteLength": 23216,
+      "sha256": "sha256:b82741e9ced978b4d8ee2bbd4048d3815bed0574fa0168308e02cf94f04c396c"
+    },
+    {
+      "path": "vendor/reploid/mesh/partitions/partition-runner.d.ts",
+      "byteLength": 5173,
+      "sha256": "sha256:d64d309d1fa7e0718457fdade1c53bcbfd9418ba306d959f62433e256acbaf0d"
     },
     {
       "path": "vendor/reploid/mesh/partitions/partition-runner.js",
-      "byteLength": 5326,
-      "sha256": "sha256:b734a97e48ac70840712b27c1c8b03f02f8f994da76164696befbb3707605637"
+      "byteLength": 13525,
+      "sha256": "sha256:b8be6235ade6a12a6f0a528ad4e79ef993fe6efc2378e84802b24966e60251cf"
+    },
+    {
+      "path": "vendor/reploid/mesh/partitions/partition-step-receiver.d.ts",
+      "byteLength": 1018,
+      "sha256": "sha256:6b65937bc243c936512883306459d74a95d41198b957b5209115bb7bfb7c6f07"
+    },
+    {
+      "path": "vendor/reploid/mesh/partitions/partition-step-receiver.js",
+      "byteLength": 6017,
+      "sha256": "sha256:0e8252f8dbf800989c01b1d52ec748a98f66c6a023c63d64ece064215c7db6b0"
     },
     {
       "path": "vendor/reploid/mesh/peer-identity.js",
@@ -13340,8 +13380,8 @@
     },
     {
       "path": "vendor/reploid/package-assets.json",
-      "byteLength": 21521,
-      "sha256": "sha256:2be1a42c9cb26cf841dce0eb2470f58679219f11bebc8d0fb54b9026bddb8239"
+      "byteLength": 22381,
+      "sha256": "sha256:7c42ce271a67e576fa092d724be942fbfb133c95c1bd2b8bb1352a2690e477d8"
     },
     {
       "path": "vendor/reploid/rules/contribution.rules.json",
@@ -13390,8 +13430,8 @@
     },
     {
       "path": "vendor/reploid/transport/room.js",
-      "byteLength": 15302,
-      "sha256": "sha256:868686eba88ab315c8027dbefe03f4533db356b5906e6e59b221b537411d1a36"
+      "byteLength": 15774,
+      "sha256": "sha256:1359c9099b69fe511747ba3e8880c01e5fe565c3c201497265f3b4b98d227f48"
     },
     {
       "path": "vendor/reploid/transport/signaling.d.ts",
@@ -13405,13 +13445,13 @@
     },
     {
       "path": "vendor/reploid/transport/swarm.d.ts",
-      "byteLength": 1431,
-      "sha256": "sha256:fcf617bb0cddd30af463b2bd1eceed2455efea90537b6e2732d5ab673bea48dc"
+      "byteLength": 1623,
+      "sha256": "sha256:bb32667a08ef0bd90a18b5aecdeac29bc86f23233b6d3bfac361f550b1c15a67"
     },
     {
       "path": "vendor/reploid/transport/swarm.js",
-      "byteLength": 32981,
-      "sha256": "sha256:40fe404f863cd5267405fd8cd648bcd45eef7db6f5234f50d6226191339c0f25"
+      "byteLength": 35290,
+      "sha256": "sha256:b80b221c585d6b7a042e4b0eca3a1f7747d583f96e7781b88b8a716f118a7c85"
     },
     {
       "path": "vendor/reploid/transport/tool-offer-channel.d.ts",
@@ -13424,5 +13464,5 @@
       "sha256": "sha256:ca1208dd2f96d1b7ffb5464c7676a22aa849ec31936abde0809fc208bbd971c9"
     }
   ],
-  "bundleHash": "sha256:2d49427718398820ff0d3a07155f24b53984873ef3ddedde6a8a5563e1578c51"
+  "bundleHash": "sha256:07efd6bd12bbf5ea8c4ce5b827f980060cfff8806b5ec76c8523a2ee86326b96"
 }

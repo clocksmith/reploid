@@ -24,5 +24,7 @@ export function resolveSwarmSignalingUrl({ location, policy, join, privateOverri
   if (url.protocol === 'http:') url.protocol = 'ws:';
   if (!['ws:', 'wss:'].includes(url.protocol)) throw new Error('Invalid swarm signaling endpoint');
   url.searchParams.set('scope', join.scope);
+  // Route to the namespace owner before the capability is sent in the join frame.
+  url.searchParams.set('roomId', join.roomId);
   return url.href;
 }

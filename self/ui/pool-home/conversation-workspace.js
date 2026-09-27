@@ -27,6 +27,10 @@ export function renderConversationWorkspace() {
           <div class="chat-contribution-controls"><p data-contribution-limits></p>
             <label><input type="checkbox" data-contribution-consent> Run peers’ public prompts on this device</label>
             <button class="btn btn-ghost" type="button" data-toggle-contribution>Start sharing</button></div></details>
+        <details><summary>Files <span data-file-contribution-label>Not sharing</span></summary>
+          <div class="chat-contribution-controls"><p>Cache this model and its selected adapter (up to 3 GiB), and distribute up to 4 GiB to peers. This does not share conversations or enable compute.</p>
+            <label><input type="checkbox" data-file-contribution-consent> Allow file storage and distribution</label>
+            <button class="btn btn-ghost" type="button" data-toggle-file-contribution>Start sharing files</button></div></details>
       </section>
       <div class="chat-message-stream" data-message-stream role="log" aria-label="Messages" aria-live="polite"></div>
       <section class="chat-approval" data-chat-approval hidden aria-label="Review before sending">
@@ -79,10 +83,10 @@ export function bindConversationWorkspace(root, session, { getInviteUrl } = {}) 
       const draft = drafts.get(selectedId); input.value = draft?.text || ''; files = draft?.files || []; showFiles();
     }
     const thread = state.activeThread, models = state.models || [];
-    const current = thread?.model?.id || modelSelect.value || state.defaultModel?.id;
-    const catalog = JSON.stringify(models.map(model => [model.id, model.name, model.availability]));
+    const current = thread?.model?.selectionId || thread?.model?.id || modelSelect.value || state.defaultModel?.id;
+    const catalog = JSON.stringify(models.map(model => [model.selectionId || model.id, model.name, model.availability]));
     if (modelSelect.dataset.catalog !== catalog) {
-      modelSelect.innerHTML = models.map(model => `<option value="${escape(model.id)}">${escape(model.name)}${model.availability ? ' · ' + escape(model.availability) : ''}</option>`).join('');
+      modelSelect.innerHTML = models.map(model => `<option value="${escape(model.selectionId || model.id)}">${escape(model.name)}${model.availability ? ' · ' + escape(model.availability) : ''}</option>`).join('');
       modelSelect.dataset.catalog = catalog;
     }
     modelSelect.value = current; modelSelect.disabled = !!thread;
@@ -144,6 +148,10 @@ export function bindConversationWorkspace(root, session, { getInviteUrl } = {}) 
     find('[data-toggle-contribution]').disabled = !!network.stopping;
     find('[data-contribution-consent]').disabled = !!network.sharing || !!network.stopping;
     find('[data-contribution-limits]').textContent = network.limits ? network.limits.maxInboundJobs + ' request at a time · ' + network.limits.maxOutputTokens + ' output tokens per request' : '';
+    const sharingFiles = network.files?.sharing || network.files?.preparing;
+    find('[data-file-contribution-label]').textContent = network.files?.error || (network.files?.preparing ? 'Preparing' : sharingFiles ? 'Sharing' : 'Not sharing');
+    find('[data-file-contribution-consent]').disabled = !!sharingFiles;
+    find('[data-toggle-file-contribution]').textContent = sharingFiles ? 'Stop sharing files' : 'Start sharing files';
   };
   const unsubscribe = session.subscribe(render);
   on('[data-new-thread]', 'click', () => { session.select(null); input.placeholder = pickGoalPlaceholder(input.placeholder); input.focus(); });
@@ -153,7 +161,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl } = {}) 
     const content = input.value.trim(), state = session.getState();
     if (!content || reading || state.runningIds.includes(state.selectedId)) return;
     act(async () => {
-      const model = state.models.find(item => item.id === modelSelect.value), attachments = files.map(file => ({ ...file }));
+      const model = state.models.find(item => (item.selectionId || item.id) === modelSelect.value), attachments = files.map(file => ({ ...file }));
       const threadId = state.selectedId || session.createThread({ model, sharingScope: 'invited-mesh' });
       input.value = content; files = attachments; showFiles();
       const completion = session.send(threadId, content, attachments);
@@ -188,6 +196,10 @@ export function bindConversationWorkspace(root, session, { getInviteUrl } = {}) 
     const node = find('[data-network-message]'); node.textContent = 'Invite copied'; node.hidden = false;
   }));
   on('[data-toggle-contribution]', 'click', () => act(() => session.setSharing(!session.getState().network?.sharing, modelSelect.value, find('[data-contribution-consent]').checked)));
+  on('[data-toggle-file-contribution]', 'click', () => act(() => {
+    const files = session.getState().network?.files;
+    return session.setFileSharing(!(files?.sharing || files?.preparing), modelSelect.value, find('[data-file-contribution-consent]').checked);
+  }));
   const approve = accepted => act(() => {
     const thread = session.getState().activeThread, attempt = thread?.attempts.at(-1);
     if (attempt?.approval) session.approve(thread.id, attempt.id, attempt.approval.id, accepted,

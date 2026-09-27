@@ -16,6 +16,9 @@
   },
   "scripts": {
     "verify:swarm-bootstrap": "node --test scripts/repair-checks/swarm-join.test.js",
+    "verify:swarm-cloudflare": "vitest run --config tests/cloudflare/vitest.config.js",
+    "build:swarm-cloudflare": "wrangler deploy --config deploy/cloudflare/wrangler.jsonc --dry-run",
+    "deploy:swarm-cloudflare": "wrangler deploy --config deploy/cloudflare/wrangler.jsonc",
     "smoke:swarm-bootstrap": "node scripts/verify-swarm-runtime.js",
     "sync:library": "node scripts/sync-reploid-library.js",
     "start": "npx tsx bin/reploid-cli.ts start",
@@ -90,6 +93,7 @@
     "doppler-gpu": "0.6.2",
     "dotenv": "^16.3.1",
     "express": "^4.22.2",
+    "jose": "6.2.12",
     "node-fetch": "^3.3.2",
     "ws": "^8.21.0"
   },
@@ -109,6 +113,7 @@
     "postcss": "^8.5.23"
   },
   "devDependencies": {
+    "@cloudflare/vitest-plugin": "1.2.8",
     "@playwright/test": "^1.57.0",
     "@types/node": "^22.0.0",
     "@vitest/coverage-v8": "4.1.10",
@@ -120,7 +125,8 @@
     "nodemon": "^3.0.1",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3",
-    "vitest": "^4.1.10"
+    "vitest": "^4.1.10",
+    "wrangler": "4.141.0"
   },
   "engines": {
     "node": ">=22.0.0"

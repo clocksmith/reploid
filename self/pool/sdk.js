@@ -10,6 +10,7 @@ import {
   sha256Hex
 } from './inference-receipt.js';
 import { getPoolAuthToken } from './identity.js';
+import swarmPolicy from '../config/swarm-bootstrap.json' with { type: 'json' };
 
 const DEFAULT_BASE_URL = '/pool';
 const POOL_CLIENT_ID_STORAGE_KEY = 'reploid.pool.clientId.v1';
@@ -62,7 +63,8 @@ async function requestJson(path, {
   method = 'GET',
   body = null,
   authTokenProvider = null,
-  clientId = null
+  clientId = null,
+  redirect = 'follow'
 } = {}) {
   const headers = body ? { 'Content-Type': 'application/json' } : {};
   const effectiveClientId = normalizeClientId(
@@ -74,6 +76,7 @@ async function requestJson(path, {
   const response = await fetch(`${baseUrl}${path}`, {
     method,
     headers,
+    redirect,
     body: body ? JSON.stringify(body) : null
   });
   const payload = await response.json().catch(() => ({}));
@@ -88,7 +91,12 @@ async function requestJson(path, {
   return payload;
 }
 
-export function createPoolSdk({ baseUrl = DEFAULT_BASE_URL, authTokenProvider = getPoolAuthToken, clientId = null } = {}) {
+export function createPoolSdk({
+  baseUrl = DEFAULT_BASE_URL,
+  authTokenProvider = getPoolAuthToken,
+  clientId = null,
+  rtcConfigUrl = baseUrl === DEFAULT_BASE_URL ? swarmPolicy.rtcConfigUrl : null
+} = {}) {
   const request = (path, options = {}) => requestJson(path, {
     baseUrl,
     authTokenProvider,
@@ -112,7 +120,11 @@ export function createPoolSdk({ baseUrl = DEFAULT_BASE_URL, authTokenProvider = 
       return request('/deployment/check');
     },
     rtcConfig() {
-      return request('/rtc-config');
+      // Only credential issuance moves hosts. All other Poolday APIs stay put.
+      // A configured issuer failure must not fall back to another relay provider.
+      return rtcConfigUrl
+        ? request('', { baseUrl: rtcConfigUrl, redirect: 'error' })
+        : request('/rtc-config', { redirect: 'error' });
     },
     publishAdapter(publication) {
       return request('/adapters', { method: 'POST', body: { publication } });

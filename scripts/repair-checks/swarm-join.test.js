@@ -20,7 +20,7 @@ test('public defaults ignore saved private rooms and signaling alone; opt-out is
   for (const query of ['?swarm=off', '?swarm=false']) assert.equal(join(query).autoConnect, false);
   assert.equal(join('', { REPLOID_SWARM_ENABLED: 'false' }).autoConnect, false);
   const publicUrl = resolveSwarmSignalingUrl({ location: location(''), policy, join: join(''), privateOverride: 'wss://evil.invalid' });
-  assert.equal(publicUrl, policy.signalingUrl + '?scope=public');
+  assert.equal(publicUrl, policy.signalingUrl + '?scope=public&roomId=' + policy.publicRoomId);
 });
 
 test('private invitations require their scoped capability and preserve their endpoint', () => {
@@ -30,7 +30,8 @@ test('private invitations require their scoped capability and preserve their end
   assert.equal(invited.scope, 'private');
   assert.equal(invited.roomId, 'reploid-swarm-private-room');
   const endpoint = resolveSwarmSignalingUrl({ location: location(''), policy, join: invited, privateOverride: 'wss://private.example/swarm' });
-  assert.equal(endpoint, 'wss://private.example/swarm?scope=private');
+  assert.equal(endpoint, 'wss://private.example/swarm?scope=private&roomId=reploid-swarm-private-room');
+  assert.equal(new URL(endpoint).searchParams.has('swarmToken'), false);
 });
 
 test('assets stay origin-relative in Node and obsolete saved defaults cannot win', () => {
@@ -194,6 +195,21 @@ test('RTC credential failures use the existing reconnect lifecycle without an un
   assert.equal(constructions, 0);
   assert.equal(transport.getConnectionState(), 'retrying');
   transport.disconnect();
+});
+
+test('credential retry deadlines delay reconnect and remain cancellable', async () => {
+  const failure = Object.assign(new Error('Credential issuer rate limited'), { retryAfterMs: 150 });
+  const { transport, sockets } = transportFixture({ getRtcConfig: async () => { throw failure; } });
+  const pending = transport.init(); sockets[0].open();
+  await sockets[0].message({ type: 'joined', peerId: 'peer-test', roomId: policy.publicRoomId, peers: ['other'] });
+  await pending;
+  assert.equal(transport.getConnectionState(), 'retrying');
+  await new Promise(resolve => setTimeout(resolve, 50));
+  assert.equal(sockets.length, 1);
+  transport.disconnect();
+  await new Promise(resolve => setTimeout(resolve, 160));
+  assert.equal(sockets.length, 1);
+  assert.equal(transport.getConnectionState(), 'stopped');
 });
 
 test('WebRTC carries request cancellation to the peer job owner', async () => {

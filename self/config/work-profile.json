@@ -7,6 +7,10 @@
   "maxHistoryBytes": 4194304,
   "maxGoalCharacters": 4000,
   "maxOutcomeCharacters": 16000,
+  "adapterQualification": {
+    "messages": [{ "role": "user", "content": "Hello." }],
+    "generation": { "maxTokens": 1, "temperature": 0, "topK": 1, "topP": 1, "useChatTemplate": true }
+  },
   "generation": {
     "maxTokens": 1024,
     "temperature": 0,

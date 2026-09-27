@@ -32,6 +32,30 @@ Generation stays on one peer for the complete attempt, including streaming and
 working state. A retry never splices another peer's unfinished answer into it.
 Embeddings and reranking can distribute independent complete batches.
 
+## Immediate milestone: split-model chat
+
+The next product proof is one conversation answer computed by two physical
+devices executing different contiguous portions of the same pinned model.
+Whole-request chat, LoRA, discovery and the existing interface stay intact;
+supporting repairs are in scope only when they block this path.
+
+A tokenizes, embeds and executes the first layer group. B executes the remaining
+layers, final normalization, projection and Doppler token selection. Every
+selected token returns to A and traverses both groups until Doppler stops.
+Neither executor loads the complete model. Original layer positions and any
+shared endpoint weights are explicit in Doppler's dependency contract.
+
+Acceptance proceeds from one conversation to two with separate state, shared
+resident weights, fair token scheduling and isolated cancellation. Compare
+boundary tensors, logits, tokens, allocations and full latency with the exact
+unsplit reference. Browser contexts establish integration only; physical devices
+establish cross-device execution. Capacity pooling needs its own constrained run.
+Learned placement follows the fixed-placement baseline, not the reverse.
+
+The partition runner and receiver have injected-execution tests. They do not
+establish partial weight loading, GPU generation, binary WebRTC, or chat wiring.
+Keep this distinction until the complete path passes through the ordinary UI.
+
 ## First collective-improvement demonstration
 
 1. Execute a small model split across two devices through a public Doppler

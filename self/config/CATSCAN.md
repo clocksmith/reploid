@@ -27,6 +27,7 @@ Outputs:
 ## Invariants
 - Configuration must fail closed when required identity or policy is absent.
 - Shared discovery policy selects public rendezvous, not execution authority; private invitations require room-scoped capabilities.
+- The shared policy may select a separate authenticated RTC credential URL; it cannot reroute other Poolday APIs or authorize a silent provider fallback.
 - Doppler defaults are pinned origin-relative assets; Node synchronization never serializes file URLs.
 - Poolday, Zero, and X profiles cannot silently inherit one another's authority.
 

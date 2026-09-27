@@ -20,7 +20,7 @@ Recursive authority charters discovered from the repository root.
 | Optional Capabilities | [`self/capabilities/CATSCAN.md`](../self/capabilities/CATSCAN.md) | Browser Runtime | Package optional optimization, reflection, memory, and swarm behaviors behind explicit runtime and verification boundaries. |
 | Runtime Configuration | [`self/config/CATSCAN.md`](../self/config/CATSCAN.md) | Browser Runtime | Declare reproducible boot, route, module, environment, and capability configuration for each Reploid surface. |
 | Agent Core | [`self/core/CATSCAN.md`](../self/core/CATSCAN.md) | Browser Runtime | Execute bounded agent cycles and tool calls under explicit verification and resource contracts. |
-| Runtime Host | [`self/host/CATSCAN.md`](../self/host/CATSCAN.md) | Browser Runtime | Boot configured browser surfaces from trusted seeds. |
+| Runtime Host | [`self/host/CATSCAN.md`](../self/host/CATSCAN.md) | Browser Runtime | Boot surfaces from trusted seeds. |
 | Runtime Infrastructure | [`self/infrastructure/CATSCAN.md`](../self/infrastructure/CATSCAN.md) | Browser Runtime | Supply auditable lifecycle, dependency, policy, recovery, telemetry, and human-approval services to browser components. |
 | Genesis Kernel | [`self/kernel/CATSCAN.md`](../self/kernel/CATSCAN.md) | Browser Runtime | Provide the smallest immutable browser boot and recovery path from which the mutable runtime can be restored safely. |
 | Lab Surface Composition | [`self/lab/CATSCAN.md`](../self/lab/CATSCAN.md) | Browser Runtime | Compose minimal Zero and extended X from explicit profiles; assign experimental authority separately. |
@@ -30,10 +30,11 @@ Recursive authority charters discovered from the repository root.
 | Browser Interfaces | [`self/ui/CATSCAN.md`](../self/ui/CATSCAN.md) | Browser Runtime | Render each declared surface's authoritative state and actions without inventing new authority or widening claims. |
 | Generated Browser Library Assets | [`self/vendor/CATSCAN.md`](../self/vendor/CATSCAN.md) | Browser Runtime | Deliver reusable browser packages to the existing static application. |
 | Change Control Service | [`server/change-control/CATSCAN.md`](../server/change-control/CATSCAN.md) | Hosted Services | Persist Change Passports under tenant, role, idempotency, GitHub, trigger, and effect boundaries. |
+| Cloudflare Discovery and TURN | [`server/cloudflare/CATSCAN.md`](../server/cloudflare/CATSCAN.md) | Hosted Services | Provide bounded public/private peer discovery and authenticated temporary TURN credentials. |
 | Hosted Poolday Services | [`server/pool/CATSCAN.md`](../server/pool/CATSCAN.md) | Hosted Services | Authenticate and relay immutable Poolday records while maintaining rebuildable hosted projections and bounded coordination. |
 | Shared Change Passport Contract | [`self/shared/change-passport/CATSCAN.md`](../self/shared/change-passport/CATSCAN.md) | Browser Runtime | Provide one browser-safe Change Passport contract, policy, Zero/X source adapter, and Visual Feedback Bridge receipt adapter to browser, server, SDK, action, and verifier consumers. |
 | Change Passport Interface | [`self/ui/change-passport/CATSCAN.md`](../self/ui/change-passport/CATSCAN.md) | Browser Interfaces | Let authorized operators inspect and act on Change Passports without collapsing evidence validity, decision state, deployed effect state, or source authority. |
-| Reploid Product Interface | [`self/ui/pool-home/CATSCAN.md`](../self/ui/pool-home/CATSCAN.md) | Browser Interfaces | Present connected objectives, agents, models, work, results and evaluated changes. |
+| Reploid Product Interface | [`self/ui/pool-home/CATSCAN.md`](../self/ui/pool-home/CATSCAN.md) | Browser Interfaces | Present connected conversations, agents, models, results and evaluated changes. |
 | X Operator Workbench | [`self/ui/proto/CATSCAN.md`](../self/ui/proto/CATSCAN.md) | Browser Interfaces | Let operators inspect the full causal improvement episode, compare generations, quarantine, replay, promote, and roll back substrate candidates without crossing into product admission. |
 | Zero Proposal Interface | [`self/ui/zero/CATSCAN.md`](../self/ui/zero/CATSCAN.md) | Browser Interfaces | Give Zero operators a focused interface for objectives, tool-growing experiments, and candidate proposals. |
 | Pinned Doppler Assets | [`self/vendor/doppler/CATSCAN.md`](../self/vendor/doppler/CATSCAN.md) | Generated Browser Library Assets | Serve the complete pinned Doppler package from the application origin. |
@@ -42,5 +43,6 @@ Recursive authority charters discovered from the repository root.
 | Peer Transport | [`packages/reploid/src/transport/CATSCAN.md`](../packages/reploid/src/transport/CATSCAN.md) | Reploid Browser Library | Provide Poolday's WebRTC connections and authorized exchange among independently controlled network participants. |
 | Artifact Custody | [`packages/reploid/src/artifacts/custody/CATSCAN.md`](../packages/reploid/src/artifacts/custody/CATSCAN.md) | Reploid Browser Library | Exchange authorized model shards and retain useful pieces across network participants without redundant downloads where verified custody permits reuse. |
 | Complete Peer Jobs | [`packages/reploid/src/mesh/jobs/CATSCAN.md`](../packages/reploid/src/mesh/jobs/CATSCAN.md) | Reploid Browser Library | Delegate complete requests to authorized network participants with explicit host ports and bounded lifecycle. |
+| Model Partition Coordination | [`packages/reploid/src/mesh/partitions/CATSCAN.md`](../packages/reploid/src/mesh/partitions/CATSCAN.md) | Reploid Browser Library | Coordinate a conversation's generation across Doppler-defined model partitions. |
 
 *Generated from CATSCAN.md files.*

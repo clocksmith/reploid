@@ -26,6 +26,16 @@ test('real WebRTC proves recipients and retains revocable grants through request
     for (const page of [supplier, requester, replacement]) {
       page.on('pageerror', error => errors.push(error.message));
       await page.route('**/infrastructure/doppler-runtime-service.js', route => route.fulfill({ contentType: 'text/javascript', body: fixture }));
+      // This test qualifies recipient grants, not artifact acquisition. The real
+      // three-tab journey separately uses the unmodified file owner and Doppler.
+      await page.route('**/host/work-model-files.js', route => route.fulfill({ contentType: 'text/javascript', body: `
+        export function createWorkModelFiles() { return {
+          attach: async () => {}, close: async () => {}, announce() {},
+          getState: () => ({ sharing: false, preparing: false }),
+          prepareSource: async model => model.id,
+          acquireAdapter: async () => { throw new Error('No fixture adapter'); }
+        }; }
+      ` }));
       await page.goto('/'); await page.locator('[data-chat-workspace]').waitFor();
     }
     const contribute = async page => {

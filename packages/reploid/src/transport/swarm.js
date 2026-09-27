@@ -20,6 +20,7 @@ const MESSAGE_TYPES = new Set([
   'reploid:generation-cancel',
   'reploid:receipt',
   'reploid:tool-offer', 'reploid:tool-offer-ack',
+  'reploid:custody-request', 'reploid:custody-response', 'reploid:custody-offer',
   'ping', 'pong',
   'raft:request-vote', 'raft:request-vote-response',
   'raft:append-entries', 'raft:append-entries-response',
@@ -73,6 +74,27 @@ const WebRTCSwarm = {
     let _manualStop = false;
     let _cancelConnect = null;
     let _peers = new Map(); // peerId -> { connection, dataChannel, metadata, status, lastSeen }
+    const auxiliaryHandlers = new Map(), auxiliaryChannels = new WeakMap();
+    const retainAuxiliary = (peer, channel) => {
+      let channels = auxiliaryChannels.get(peer);
+      if (!channels) { channels = new Set(); auxiliaryChannels.set(peer, channels); }
+      if (channel.label !== 'reploid-custody' || channels.size >= 1) {
+        channel.close(); throw new Error('Unsupported or duplicate custody channel');
+      }
+      channels.add(channel);
+      channel.addEventListener('close', () => channels.delete(channel), { once: true });
+      return channel;
+    };
+    const incomingChannel = (remotePeerId, peer, channel) => {
+      if (_manualStop || _peers.get(remotePeerId) !== peer) { channel.close(); return; }
+      if (channel.label === 'reploid' && !peer.dataChannel) {
+        peer.dataChannel = channel; setupDataChannel(channel, remotePeerId, peer); return;
+      }
+      const handler = auxiliaryHandlers.get(channel.label);
+      if (!handler) { channel.close(); return; }
+      try { handler(remotePeerId, retainAuxiliary(peer, channel)); }
+      catch (error) { channel.close(); logger.warn('[WebRTCSwarm] Auxiliary channel rejected:', error); }
+    };
     let _messageHandlers = new Map(); // type -> handler function
     let _logicalClock = 0;
     const _pendingIceCandidates = new Map();
@@ -256,7 +278,7 @@ const WebRTCSwarm = {
             stopHeartbeat();
             clearPeers();
             signalingWs.close();
-            if (!_manualStop) scheduleReconnect();
+            if (!_manualStop) scheduleReconnect(error?.retryAfterMs);
           };
           joinTimer = setTimeout(() => fail(new Error('Signaling join acknowledgement timed out')), policy.webrtc.connectTimeoutMs);
 
@@ -344,14 +366,18 @@ const WebRTCSwarm = {
     /**
      * Schedule reconnection with exponential backoff
      */
-    const scheduleReconnect = () => {
+    const scheduleReconnect = (retryAfterMs = 0) => {
       if (_manualStop || _reconnectTimer) return;
 
       _reconnectAttempt++;
-      const backoff = Math.min(
+      const exponentialBackoff = Math.min(
         CONFIG.reconnectBaseMs * Math.pow(2, _reconnectAttempt - 1),
         MAX_BACKOFF_MS
       );
+      // Trusted host failures can carry an issuer's retry deadline. A successful
+      // discovery join must not turn a rate-limited credential port into a loop.
+      const backoff = Math.max(exponentialBackoff, Number.isFinite(retryAfterMs)
+        ? Math.min(Math.max(retryAfterMs, 0), 2147483647) : 0);
 
       logger.info(`[WebRTCSwarm] Reconnecting in ${backoff}ms (attempt ${_reconnectAttempt})`);
       setConnectionState('retrying', { attempt: _reconnectAttempt });
@@ -480,6 +506,8 @@ const WebRTCSwarm = {
 
       _peers.set(remotePeerId, peer);
 
+      connection.ondatachannel = event => incomingChannel(remotePeerId, peer, event.channel);
+
       // ICE candidate handler
       connection.onicecandidate = (event) => {
         if (event.candidate && !_manualStop && _peers.get(remotePeerId) === peer) {
@@ -555,9 +583,7 @@ const WebRTCSwarm = {
 
       // Wait for incoming data channel
       connection.ondatachannel = (event) => {
-        if (_manualStop || _peers.get(remotePeerId) !== peer) { event.channel.close(); return; }
-        peer.dataChannel = event.channel;
-        setupDataChannel(event.channel, remotePeerId, peer);
+        incomingChannel(remotePeerId, peer, event.channel);
       };
       connection.onconnectionstatechange = () => {
         if (_peers.get(remotePeerId) !== peer) return;
@@ -987,6 +1013,18 @@ const WebRTCSwarm = {
       onMessage,
       getConnectionState,
       getConnectedPeers,
+      onDataChannel(label, handler) {
+        if (label !== 'reploid-custody' || typeof handler !== 'function') throw new Error('Explicit custody channel handler required');
+        auxiliaryHandlers.set(label, handler);
+        return () => { if (auxiliaryHandlers.get(label) === handler) auxiliaryHandlers.delete(label); };
+      },
+      openDataChannel(remotePeerId, label) {
+        const peer = _peers.get(remotePeerId);
+        if (_manualStop || label !== 'reploid-custody' || peer?.dataChannel?.readyState !== 'open' || !peer.connection) {
+          throw new Error('Connected WebRTC peer required for custody');
+        }
+        return retainAuxiliary(peer, peer.connection.createDataChannel(label, { ordered: true }));
+      },
       getPeerBinding(remotePeerId) {
         const peer = _peers.get(remotePeerId);
         if (peer?.dataChannel?.readyState !== 'open') return null;

@@ -56,14 +56,24 @@ const publicUrl = (relativePath, bundleHash) => {
 
 async function fetchEntry(file, bundleHash) {
   const url = publicUrl(file.path, bundleHash);
-  const response = await fetch(url, {
-    headers: {
-      Accept: '*/*',
-      'Cache-Control': 'no-cache'
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      const response = await fetch(url, {
+        signal: AbortSignal.timeout(30000),
+        headers: { Accept: '*/*', 'Cache-Control': 'no-cache' }
+      });
+      if (!response.ok) {
+        await response.body?.cancel();
+        throw Object.assign(new Error(`HTTP ${response.status}`), { status: response.status });
+      }
+      return { path: file.path, bytes: new Uint8Array(await response.arrayBuffer()) };
+    } catch (error) {
+      const transient = !error.status || error.status === 429 || error.status >= 500;
+      if (!transient || attempt === 3) throw new Error(`${file.path}: ${error.message}`, { cause: error });
+      console.warn(`[browser-bundle] ${file.path}: ${error.message}; retry ${attempt}/2`);
+      await new Promise(resolve => setTimeout(resolve, attempt * 500));
     }
-  });
-  if (!response.ok) throw new Error(`${file.path} returned HTTP ${response.status}`);
-  return { path: file.path, bytes: new Uint8Array(await response.arrayBuffer()) };
+  }
 }
 
 async function fetchAll(files, bundleHash, concurrency = 8) {

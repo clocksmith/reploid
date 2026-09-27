@@ -1,0 +1,11 @@
+{
+  "leaseMs": 90000,
+  "turnTtlSeconds": 600,
+  "turnTimeoutMs": 8000,
+  "turnRetrySeconds": 10,
+  "turnMaxResponseBytes": 16384,
+  "turnWindowMs": 60000,
+  "turnPerSubject": 6,
+  "turnTotalPerWindow": 128,
+  "turnMaxSubjects": 256
+}

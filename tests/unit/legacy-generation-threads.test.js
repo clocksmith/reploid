@@ -49,6 +49,30 @@ it('queues a second thread on a busy peer and rejects model substitution', async
   await f.respond(f.sent[1], 'other'); await rejected; await f.mesh.close();
 });
 
+it('places adapted requests only on compatible peers and binds the selection to approval and completion', async () => {
+  const f = fixture(), adapter = 'sha256:' + 'b'.repeat(64); await f.mesh.connect();
+  f.advertise('base-only', 'qwen'); f.advertise('adapted', 'qwen', { adapterIdentities: [adapter] });
+  const request = f.mesh.generate([], null, { modelId: 'qwen', adapterIdentities: [adapter] });
+  const failed = expect(request).rejects.toThrow('substituted the requested adapter');
+  await vi.waitFor(() => expect(f.sent).toHaveLength(1));
+  expect(f.sent[0]).toMatchObject({ peer: 'adapted', payload: { adapterIdentities: [adapter] } });
+  expect(f.authorize).toHaveBeenCalledWith(expect.objectContaining({ action: 'mesh.dispatch', adapterIdentities: [adapter] }));
+  await f.respond(f.sent[0]); await failed; await f.mesh.close();
+});
+
+it('does not disclose if an adapter is withdrawn while approval is pending', async () => {
+  const f = fixture(), adapter = 'sha256:' + 'b'.repeat(64); await f.mesh.connect();
+  f.advertise('east', 'qwen', { adapterIdentities: [adapter] });
+  let approve;
+  f.authorize.mockImplementation(request => request.action === 'mesh.dispatch'
+    ? new Promise(resolve => { approve = resolve; }) : true);
+  const request = f.mesh.generate([], null, { modelId: 'qwen', adapterIdentities: [adapter] });
+  const failed = expect(request).rejects.toThrow('no longer ready');
+  await vi.waitFor(() => expect(approve).toBeTypeOf('function'));
+  f.advertise('east', 'qwen', { adapterIdentities: [] }); approve(true);
+  await failed; expect(f.sent).toHaveLength(0); await f.mesh.close();
+});
+
 it('cancels a waiter without dispatch and cancels only the matching remote request', async () => {
   const f = fixture(); await f.mesh.connect(); f.advertise('east', 'qwen');
   const a = new AbortController(), b = new AbortController();

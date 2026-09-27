@@ -45,6 +45,9 @@ test-results/
 # Temporary files
 *.tmp
 .cache/
+.wrangler/
+.dev.vars
+.dev.vars.*
 
 # Firebase
 .firebase/
