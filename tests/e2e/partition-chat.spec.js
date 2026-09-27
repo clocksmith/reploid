@@ -58,6 +58,12 @@ test('split chat composes real peer authentication, grants, binary transfer and 
     expect(await a.evaluate(() => window.partitionTest.session.getState().threads)).toEqual(before);
     expect(await a.evaluate(() => window.partitionTest.factory.log.opens)).toEqual([0]);
     expect(await b.evaluate(() => window.partitionTest.factory.log.opens)).toEqual([1]);
+    const limits = await Promise.all([a, b].map(page => page.evaluate(() =>
+      window.partitionTest.factory.log.steps.map(step => step.maxTokens))));
+    expect(limits[0].length).toBeGreaterThan(0);
+    expect(limits[1].length).toBeGreaterThan(0);
+    expect(limits.flat().every(value => Number.isSafeInteger(value) && value > 0)).toBe(true);
+    expect([...new Set(limits[0])]).toEqual([...new Set(limits[1])]);
 
     await b.evaluate(() => { window.partitionTest.held = true; window.partitionTest.entered = false; });
     await a.evaluate(id => window.partitionTest.send('40', id), threads[1]);

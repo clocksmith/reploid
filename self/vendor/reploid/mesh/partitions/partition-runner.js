@@ -102,7 +102,7 @@ export function createLayerPartitionRunner({ runtime, plan: suppliedPlan, device
       for (let index = 0; index < maxTokens; index++) {
         const terminal = await lease(async () => {
           combined.throwIfAborted();
-          const step = Object.freeze({ step: index, tokenPosition: position, inputTokenCount: input.length });
+          const step = Object.freeze({ step: index, tokenPosition: position, inputTokenCount: input.length, maxTokens });
           const started = performance.now();
           // Both execution recipients must be eligible before exposing any input.
           await permit('mesh.execute_partition_a', authority.executionA, step);
@@ -159,6 +159,7 @@ export function createLayerPartitionRunner({ runtime, plan: suppliedPlan, device
           assert(!('tokenIds' in resultB) && !('content' in resultB), 'Independent generation from B is forbidden');
           assert(content.length + resultB.delta.length <= policy.maxOutputCharacters, 'Partition output exceeds allocation');
           if (resultB.done) assert(identifier(resultB.stopReason), 'Doppler stopping reason required');
+          assert(index + 1 < maxTokens || resultB.done, 'Doppler must finalize decoding at the request token limit');
           await permit('mesh.transfer_partition_output', authority.output, step);
           continuationA = resultA.continuation;
           continuationB = resultB.continuation;

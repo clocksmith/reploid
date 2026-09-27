@@ -15,7 +15,8 @@ export function createPartitionRuntimeFixture({ beforeStep = async () => {} } = 
       const expected = positions.get(request.identity.attemptId) || { step: 0, position: 0 };
       if (expected.step !== request.step || expected.position !== request.tokenPosition) throw new Error('Fixture mixed generation state');
       log.steps.push({ index, threadId: request.identity.threadId, attemptId: request.identity.attemptId,
-        step: request.step, tokenPosition: request.tokenPosition, tokenIds: request.tokenIds || null });
+        step: request.step, tokenPosition: request.tokenPosition, maxTokens: request.maxTokens,
+        tokenIds: request.tokenIds || null });
       await beforeStep(request, index);
       positions.set(request.identity.attemptId, { step: request.step + 1, position: request.tokenPosition + request.inputTokenCount });
     }
@@ -37,7 +38,8 @@ export function createPartitionRuntimeFixture({ beforeStep = async () => {} } = 
         await step(request);
         const tokenId = request.activation.tensorData[0] + 1;
         return { identity: request.identity, step: request.step, tokenPosition: request.tokenPosition,
-          tokenId, delta: String(tokenId) + ' ', done: request.step === 2, stopReason: 'fixture-eos', logits: [tokenId, -tokenId],
+          tokenId, delta: String(tokenId) + ' ', done: request.step === 2 || request.step + 1 === request.maxTokens,
+          stopReason: request.step === 2 ? 'fixture-eos' : 'max-tokens', logits: [tokenId, -tokenId],
           continuation: { position: request.tokenPosition + request.inputTokenCount } };
       },
       async closeAttempt({ identity }) {

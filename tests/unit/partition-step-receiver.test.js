@@ -11,11 +11,23 @@ function fixture(limits = { maxAttempts: 8, maxSteps: 8 }) {
     limits });
   const request = { identity: { modelId: 'model', modelIdentity: 'hash', planId: 'plan', threadId: 'thread',
     attemptId: 'attempt', participantA: 'a', participantB: 'b' },
-  step: 0, tokenPosition: 0, inputTokenCount: 3, payload: 5, grant: { id: 'grant' } };
+  step: 0, tokenPosition: 0, inputTokenCount: 3, maxTokens: 8, payload: 5, grant: { id: 'grant' } };
   return { receiver, request, executeStep, authorize, fingerprint, settleAttempt };
 }
 
 describe('partition receiver ordering (injected computation)', () => {
+  it('binds the output limit before execution and rejects a changed limit on a later step', async () => {
+    const f = fixture();
+    for (const maxTokens of [undefined, 0, -1, 1.5]) {
+      await expect(f.receiver.receive({ ...f.request, maxTokens })).rejects.toThrow('Invalid partition step');
+    }
+    expect(f.executeStep).not.toHaveBeenCalled();
+    await f.receiver.receive(f.request);
+    await expect(f.receiver.receive({ ...f.request, step: 1, tokenPosition: 3, inputTokenCount: 1,
+      maxTokens: 4 })).rejects.toThrow('token limit changed');
+    expect(f.executeStep).toHaveBeenCalledTimes(1);
+    await f.receiver.close();
+  });
   it.each(['authorize', 'fingerprint'])('remembers cancellation while the first %s call is pending', async port => {
     const f = fixture();
     let release, enter;

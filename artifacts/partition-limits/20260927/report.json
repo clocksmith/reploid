@@ -1,0 +1,43 @@
+{
+  "scope": "Reploid effective output-limit propagation and decoder-finalization contract",
+  "baseCommit": "3fd2f42fba78535e79879ea7514f8631a92114b4",
+  "dopplerDependency": {
+    "name": "doppler-gpu",
+    "version": "0.6.3-dev.split.1",
+    "spec": "file:deploy/artifacts/doppler-gpu-0.6.3-dev.split.1.tgz",
+    "resolved": "file:deploy/artifacts/doppler-gpu-0.6.3-dev.split.1.tgz",
+    "integrity": "sha512-gKMWz8nMrevyZCA/dn0ckcA80HzXUVpMTpgJIclfGUxUgLWtKETdehS9ofC5OByx5ljf+/SxogF42aV3OIQ/3Q=="
+  },
+  "files": {
+    "packages/reploid/src/mesh/partitions/partition-runner.js": "c1e8d2f18910e33a0277f45ef2c07c8b557bb8e745f37eb4a51892f2a900b720",
+    "packages/reploid/src/mesh/partitions/partition-runner.d.ts": "92e98d6b6e0c4b6c5a9515269ccf8dcfdf6c5f5c10667c2f57ea0676c50255a6",
+    "packages/reploid/src/mesh/partitions/partition-peer.js": "c8f5da370b152f0be43ee233c6bcbc5c586dc71ffef8e58194f2908b3eab2c45",
+    "packages/reploid/src/mesh/partitions/partition-step-receiver.js": "283c0fd1554246de92becd8832b4328fb986ae7bc4cfe2f9f20b5a475e555dfe",
+    "self/vendor/reploid/package-assets.json": "b9fdba23238b9a42fcf85fbf7052e6ef303accdab9dc7fb918e4eee719557418",
+    "tests/e2e/partition-chat.spec.js": "9192dd27da8e72a7415397ac53d371cf3fc270ad7fbde0b61e91d8065283b6d8",
+    "tests/fixtures/partition-runtime.js": "3b906842489b093102d32076d51049f00d506a898a0e99cb43a72d85eb99efb9",
+    "tests/unit/partition-api.test.js": "8607049794be17d4d9cf2dfd58a66ee097dd2fe446d0901fe57da5e1952c37f1",
+    "tests/unit/partition-runner.test.js": "95c5c7156a4ce713f20091047f366b21225d53a736b50a644d278f8855becc6e",
+    "tests/unit/partition-step-receiver.test.js": "ad034e878b1e3c34211dc16235cef12791351cec2e68bab25e93e6c8f87f5587"
+  },
+  "tests": {
+    "unit": "unit-tests.json",
+    "twoTabChromium": "browser-tests.json",
+    "installedPackage": "../../library-acceptance/2026-09-27T21-07-43-419Z/report.json"
+  },
+  "checks": {
+    "catscan": "passed",
+    "libraryTypes": "passed",
+    "libraryDelivery": "passed",
+    "diffCheck": "passed"
+  },
+  "actualModelInference": false,
+  "physicalHosts": 1,
+  "limitations": [
+    "Browser computation is injected arithmetic.",
+    "Doppler resident factory and attempt-owned GPU state remain unimplemented.",
+    "Effective sampling settings beyond maxTokens remain to be carried.",
+    "Doppler dependency and whole-model browser assets still need unification.",
+    "No numerical parity, GPU residency, cross-device benefit, or Bayesian improvement is qualified."
+  ]
+}
