@@ -1,0 +1,252 @@
+{
+  "config": {
+    "configFile": "/home/clocksmith/deco/reploid/playwright.config.js",
+    "rootDir": "/home/clocksmith/deco/reploid/tests/e2e",
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/home/clocksmith/deco/reploid/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "chromium",
+        "name": "chromium",
+        "testDir": "/home/clocksmith/deco/reploid/tests/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 300000
+      },
+      {
+        "outputDir": "/home/clocksmith/deco/reploid/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "chromium-swiftshader",
+        "name": "chromium-swiftshader",
+        "testDir": "/home/clocksmith/deco/reploid/tests/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 300000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "html",
+        {
+          "open": "never"
+        }
+      ],
+      [
+        "json",
+        {
+          "outputFile": "test-results/e2e-results.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "runAgents": "none",
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.58.0",
+    "workers": 1,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "partition-runtime-delivery.spec.js",
+      "file": "partition-runtime-delivery.spec.js",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "two local tabs import the pinned partition contract independently",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 300000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 241,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-27T01:37:10.780Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "partition-delivery.json",
+                      "contentType": "application/json",
+                      "body": "ewogICJzY29wZSI6ICJ0d28tdGFiIHBhY2thZ2UgZGVsaXZlcnkgb25seTsgbm8gaW5mZXJlbmNlIG9yIHRyYW5zcG9ydCBleGVjdXRpb24iLAogICJtb2R1bGVVcmwiOiAiL3ZlbmRvci9kb3BwbGVyLzAuNi4zLWRldi5zcGxpdC4xL3NyYy9pbmZlcmVuY2UvcGlwZWxpbmVzL3RleHQvbGF5ZXItcGFydGl0aW9uLWNvbnRyYWN0LmpzIiwKICAicmVzdWx0cyI6IFsKICAgIHsKICAgICAgImV4cG9ydHMiOiBbCiAgICAgICAgIkFDVElWQVRJT05fVEVOU09SX1NDSEVNQSIsCiAgICAgICAgIkRFRkFVTFRfQ09TSU5FX1NJTUlMQVJJVFlfTUlOIiwKICAgICAgICAiREVGQVVMVF9OVU1FUklDQUxfVE9MRVJBTkNFIiwKICAgICAgICAiTEFZRVJfUEFSVElUSU9OX1NDSEVNQSIsCiAgICAgICAgIlBBUlRJVElPTl9DT01QQVJJU09OX1NDSEVNQSIsCiAgICAgICAgImNvbXBhcmVQYXJ0aXRpb25FeGVjdXRpb24iLAogICAgICAgICJjcmVhdGVMYXllclBhcnRpdGlvblBsYW4iLAogICAgICAgICJjcmVhdGVQYXJ0aXRpb25Db250aW51YXRpb24iLAogICAgICAgICJkZXNlcmlhbGl6ZUFjdGl2YXRpb25GcmFtZSIsCiAgICAgICAgInJlc29sdmVMYXllclBhcnRpdGlvbiIsCiAgICAgICAgInNlcmlhbGl6ZUFjdGl2YXRpb25GcmFtZSIsCiAgICAgICAgInZhbGlkYXRlQWN0aXZhdGlvblRlbnNvclNoYXBlIgogICAgICBdLAogICAgICAicGxhbiI6IHsKICAgICAgICAic2NoZW1hIjogImRvcHBsZXIubGF5ZXItcGFydGl0aW9uLWNvbnRyYWN0L3YxIiwKICAgICAgICAibW9kZWxJZCI6ICJkZWxpdmVyeS1jb250cmFjdCIsCiAgICAgICAgInRvdGFsTGF5ZXJzIjogNCwKICAgICAgICAiaGlkZGVuU2l6ZSI6IDIsCiAgICAgICAgInZvY2FiU2l6ZSI6IDgsCiAgICAgICAgInNwbGl0TGF5ZXIiOiAyLAogICAgICAgICJhY3RpdmF0aW9uRHR5cGUiOiAiZjMyIiwKICAgICAgICAicGFydGl0aW9ucyI6IFsKICAgICAgICAgIHsKICAgICAgICAgICAgImluZGV4IjogMCwKICAgICAgICAgICAgImxheWVyUmFuZ2UiOiBbCiAgICAgICAgICAgICAgMCwKICAgICAgICAgICAgICAxCiAgICAgICAgICAgIF0sCiAgICAgICAgICAgICJsYXllckNvdW50IjogMiwKICAgICAgICAgICAgImhhc0VtYmVkZGluZyI6IHRydWUsCiAgICAgICAgICAgICJoYXNMbUhlYWQiOiBmYWxzZSwKICAgICAgICAgICAgImlucHV0Q29udHJhY3QiOiB7CiAgICAgICAgICAgICAgInR5cGUiOiAidG9rZW4taWRzIiwKICAgICAgICAgICAgICAicmFuayI6IDIsCiAgICAgICAgICAgICAgInNoYXBlRGVzY3JpcHRpb24iOiAiW2JhdGNoU2l6ZSwgc2VxTGVuXSIsCiAgICAgICAgICAgICAgImR0eXBlIjogImkzMiIKICAgICAgICAgICAgfSwKICAgICAgICAgICAgIm91dHB1dENvbnRyYWN0IjogewogICAgICAgICAgICAgICJ0eXBlIjogImFjdGl2YXRpb24tdGVuc29yIiwKICAgICAgICAgICAgICAicmFuayI6IDMsCiAgICAgICAgICAgICAgInNoYXBlRGVzY3JpcHRpb24iOiAiW2JhdGNoU2l6ZSwgc2VxTGVuLCBoaWRkZW5TaXplXSIsCiAgICAgICAgICAgICAgImhpZGRlblNpemUiOiAyLAogICAgICAgICAgICAgICJkdHlwZSI6ICJmMzIiCiAgICAgICAgICAgIH0KICAgICAgICAgIH0sCiAgICAgICAgICB7CiAgICAgICAgICAgICJpbmRleCI6IDEsCiAgICAgICAgICAgICJsYXllclJhbmdlIjogWwogICAgICAgICAgICAgIDIsCiAgICAgICAgICAgICAgMwogICAgICAgICAgICBdLAogICAgICAgICAgICAibGF5ZXJDb3VudCI6IDIsCiAgICAgICAgICAgICJoYXNFbWJlZGRpbmciOiBmYWxzZSwKICAgICAgICAgICAgImhhc0xtSGVhZCI6IHRydWUsCiAgICAgICAgICAgICJpbnB1dENvbnRyYWN0IjogewogICAgICAgICAgICAgICJ0eXBlIjogImFjdGl2YXRpb24tdGVuc29yIiwKICAgICAgICAgICAgICAicmFuayI6IDMsCiAgICAgICAgICAgICAgInNoYXBlRGVzY3JpcHRpb24iOiAiW2JhdGNoU2l6ZSwgc2VxTGVuLCBoaWRkZW5TaXplXSIsCiAgICAgICAgICAgICAgImhpZGRlblNpemUiOiAyLAogICAgICAgICAgICAgICJkdHlwZSI6ICJmMzIiCiAgICAgICAgICAgIH0sCiAgICAgICAgICAgICJvdXRwdXRDb250cmFjdCI6IHsKICAgICAgICAgICAgICAidHlwZSI6ICJsb2dpdHMiLAogICAgICAgICAgICAgICJyYW5rIjogMywKICAgICAgICAgICAgICAic2hhcGVEZXNjcmlwdGlvbiI6ICJbYmF0Y2hTaXplLCBzZXFMZW4sIHZvY2FiU2l6ZV0iLAogICAgICAgICAgICAgICJ2b2NhYlNpemUiOiA4LAogICAgICAgICAgICAgICJkdHlwZSI6ICJmMzIiCiAgICAgICAgICAgIH0KICAgICAgICAgIH0KICAgICAgICBdCiAgICAgIH0sCiAgICAgICJ2YWx1ZXMiOiBbCiAgICAgICAgMSwKICAgICAgICAyCiAgICAgIF0KICAgIH0sCiAgICB7CiAgICAgICJleHBvcnRzIjogWwogICAgICAgICJBQ1RJVkFUSU9OX1RFTlNPUl9TQ0hFTUEiLAogICAgICAgICJERUZBVUxUX0NPU0lORV9TSU1JTEFSSVRZX01JTiIsCiAgICAgICAgIkRFRkFVTFRfTlVNRVJJQ0FMX1RPTEVSQU5DRSIsCiAgICAgICAgIkxBWUVSX1BBUlRJVElPTl9TQ0hFTUEiLAogICAgICAgICJQQVJUSVRJT05fQ09NUEFSSVNPTl9TQ0hFTUEiLAogICAgICAgICJjb21wYXJlUGFydGl0aW9uRXhlY3V0aW9uIiwKICAgICAgICAiY3JlYXRlTGF5ZXJQYXJ0aXRpb25QbGFuIiwKICAgICAgICAiY3JlYXRlUGFydGl0aW9uQ29udGludWF0aW9uIiwKICAgICAgICAiZGVzZXJpYWxpemVBY3RpdmF0aW9uRnJhbWUiLAogICAgICAgICJyZXNvbHZlTGF5ZXJQYXJ0aXRpb24iLAogICAgICAgICJzZXJpYWxpemVBY3RpdmF0aW9uRnJhbWUiLAogICAgICAgICJ2YWxpZGF0ZUFjdGl2YXRpb25UZW5zb3JTaGFwZSIKICAgICAgXSwKICAgICAgInBsYW4iOiB7CiAgICAgICAgInNjaGVtYSI6ICJkb3BwbGVyLmxheWVyLXBhcnRpdGlvbi1jb250cmFjdC92MSIsCiAgICAgICAgIm1vZGVsSWQiOiAiZGVsaXZlcnktY29udHJhY3QiLAogICAgICAgICJ0b3RhbExheWVycyI6IDQsCiAgICAgICAgImhpZGRlblNpemUiOiAyLAogICAgICAgICJ2b2NhYlNpemUiOiA4LAogICAgICAgICJzcGxpdExheWVyIjogMiwKICAgICAgICAiYWN0aXZhdGlvbkR0eXBlIjogImYzMiIsCiAgICAgICAgInBhcnRpdGlvbnMiOiBbCiAgICAgICAgICB7CiAgICAgICAgICAgICJpbmRleCI6IDAsCiAgICAgICAgICAgICJsYXllclJhbmdlIjogWwogICAgICAgICAgICAgIDAsCiAgICAgICAgICAgICAgMQogICAgICAgICAgICBdLAogICAgICAgICAgICAibGF5ZXJDb3VudCI6IDIsCiAgICAgICAgICAgICJoYXNFbWJlZGRpbmciOiB0cnVlLAogICAgICAgICAgICAiaGFzTG1IZWFkIjogZmFsc2UsCiAgICAgICAgICAgICJpbnB1dENvbnRyYWN0IjogewogICAgICAgICAgICAgICJ0eXBlIjogInRva2VuLWlkcyIsCiAgICAgICAgICAgICAgInJhbmsiOiAyLAogICAgICAgICAgICAgICJzaGFwZURlc2NyaXB0aW9uIjogIltiYXRjaFNpemUsIHNlcUxlbl0iLAogICAgICAgICAgICAgICJkdHlwZSI6ICJpMzIiCiAgICAgICAgICAgIH0sCiAgICAgICAgICAgICJvdXRwdXRDb250cmFjdCI6IHsKICAgICAgICAgICAgICAidHlwZSI6ICJhY3RpdmF0aW9uLXRlbnNvciIsCiAgICAgICAgICAgICAgInJhbmsiOiAzLAogICAgICAgICAgICAgICJzaGFwZURlc2NyaXB0aW9uIjogIltiYXRjaFNpemUsIHNlcUxlbiwgaGlkZGVuU2l6ZV0iLAogICAgICAgICAgICAgICJoaWRkZW5TaXplIjogMiwKICAgICAgICAgICAgICAiZHR5cGUiOiAiZjMyIgogICAgICAgICAgICB9CiAgICAgICAgICB9LAogICAgICAgICAgewogICAgICAgICAgICAiaW5kZXgiOiAxLAogICAgICAgICAgICAibGF5ZXJSYW5nZSI6IFsKICAgICAgICAgICAgICAyLAogICAgICAgICAgICAgIDMKICAgICAgICAgICAgXSwKICAgICAgICAgICAgImxheWVyQ291bnQiOiAyLAogICAgICAgICAgICAiaGFzRW1iZWRkaW5nIjogZmFsc2UsCiAgICAgICAgICAgICJoYXNMbUhlYWQiOiB0cnVlLAogICAgICAgICAgICAiaW5wdXRDb250cmFjdCI6IHsKICAgICAgICAgICAgICAidHlwZSI6ICJhY3RpdmF0aW9uLXRlbnNvciIsCiAgICAgICAgICAgICAgInJhbmsiOiAzLAogICAgICAgICAgICAgICJzaGFwZURlc2NyaXB0aW9uIjogIltiYXRjaFNpemUsIHNlcUxlbiwgaGlkZGVuU2l6ZV0iLAogICAgICAgICAgICAgICJoaWRkZW5TaXplIjogMiwKICAgICAgICAgICAgICAiZHR5cGUiOiAiZjMyIgogICAgICAgICAgICB9LAogICAgICAgICAgICAib3V0cHV0Q29udHJhY3QiOiB7CiAgICAgICAgICAgICAgInR5cGUiOiAibG9naXRzIiwKICAgICAgICAgICAgICAicmFuayI6IDMsCiAgICAgICAgICAgICAgInNoYXBlRGVzY3JpcHRpb24iOiAiW2JhdGNoU2l6ZSwgc2VxTGVuLCB2b2NhYlNpemVdIiwKICAgICAgICAgICAgICAidm9jYWJTaXplIjogOCwKICAgICAgICAgICAgICAiZHR5cGUiOiAiZjMyIgogICAgICAgICAgICB9CiAgICAgICAgICB9CiAgICAgICAgXQogICAgICB9LAogICAgICAidmFsdWVzIjogWwogICAgICAgIDEsCiAgICAgICAgMgogICAgICBdCiAgICB9CiAgXQp9"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "9d282a0862d747621339-0d2cbeeb165ac7f205c7",
+          "file": "partition-runtime-delivery.spec.js",
+          "line": 5,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "release-boundaries.spec.js",
+      "file": "release-boundaries.spec.js",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "generated mesh imports without an import map or loading Doppler",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 300000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 249,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-27T01:37:11.224Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "ed37bd4682d3c6c729b8-89fd3cf4da423da97396",
+          "file": "release-boundaries.spec.js",
+          "line": 4,
+          "column": 1
+        },
+        {
+          "title": "Verification Worker accepts mutable release boundary modules",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 300000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 803,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-27T01:37:11.487Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "ed37bd4682d3c6c729b8-7b009f0785333e21f0c2",
+          "file": "release-boundaries.spec.js",
+          "line": 19,
+          "column": 1
+        },
+        {
+          "title": "Verification Worker still rejects bootstrap storage authority as mutable candidates",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 300000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 753,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-27T01:37:12.309Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "ed37bd4682d3c6c729b8-1cd30beb68def1db501f",
+          "file": "release-boundaries.spec.js",
+          "line": 47,
+          "column": 1
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-09-27T01:37:09.037Z",
+    "duration": 4141.998,
+    "expected": 4,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

@@ -1,0 +1,521 @@
+
+
+import { getDevice, getKernelCapabilities } from '../device.js';
+import { acquireBuffer, releaseBuffer } from '../../memory/buffer-pool.js';
+import { createTensor } from '../tensor.js';
+import { GPU_LIMITS, TILE_SIZES, WORKGROUP_SIZES, DEQUANT_DISPATCH } from './constants.js';
+import { Q6K_BLOCK_BYTES } from '../../formats/quantization-constants.js';
+import { dispatch, recordDispatch } from './dispatch.js';
+import {
+  getPipelineFast,
+  getOrCreateBindGroupLayout,
+} from './pipeline-cache.js';
+import { createUniformBufferWithView } from './uniform-utils.js';
+import { getKernelConfig } from './kernel-configs.js';
+import { releaseUniformBuffer } from '../uniform-cache.js';
+import { selectRuleValue as selectKernelRuleValue } from './rule-registry.js';
+import { selectRuleValue as selectSharedRuleValue } from '../../rules/rule-registry.js';
+
+function requireOutputDtype(value, label) {
+  if (value !== 'f16' && value !== 'f32') {
+    throw new Error(`[${label}] outputDtype is required and must be "f16" or "f32", got ${String(value)}.`);
+  }
+  return value;
+}
+
+export function selectDequantKernel(options = {}) {
+  const capabilities = getKernelCapabilities();
+  const { useVec4 = true } = options;
+  const outputDtype = requireOutputDtype(options.outputDtype, 'selectDequantKernel');
+
+  const wantsF16Out = outputDtype === 'f16' && capabilities.hasF16;
+  return selectKernelRuleValue(
+    'dequant',
+    'variant',
+    { hasSubgroups: capabilities.hasSubgroups, wantsF16Out, useVec4 }
+  );
+}
+
+
+function calculateDequantWorkgroups(variant, numBlocks) {
+  const config = getKernelConfig('dequant', variant);
+  const dispatchMode = config.variantMetadata?.dispatchMode;
+
+  let workgroups;
+  if (dispatchMode === 'per_block') {
+    workgroups = numBlocks;
+  } else {
+    const QK_K = TILE_SIZES.Q4K_SUPER_BLOCK_SIZE;
+    workgroups = Math.ceil((numBlocks * QK_K) / (WORKGROUP_SIZES.DEFAULT / DEQUANT_DISPATCH.SCALAR_ELEMENTS_PER_THREAD));
+  }
+
+  const maxWorkgroups = GPU_LIMITS.MAX_WORKGROUPS;
+  if (workgroups <= maxWorkgroups) {
+    return [workgroups, 1, 1];
+  }
+
+  const wgY = Math.ceil(workgroups / maxWorkgroups);
+  const wgX = Math.min(workgroups, maxWorkgroups);
+  return [wgX, wgY, 1];
+}
+
+
+export function createDequantBindGroupLayout() {
+  return getOrCreateBindGroupLayout('dequant_bind_group_layout', [
+    {
+      binding: 0,
+      visibility: GPUShaderStage.COMPUTE,
+      buffer: { type: 'uniform' },
+    },
+    {
+      binding: 1,
+      visibility: GPUShaderStage.COMPUTE,
+      buffer: { type: 'read-only-storage' },
+    },
+    {
+      binding: 2,
+      visibility: GPUShaderStage.COMPUTE,
+      buffer: { type: 'storage' },
+    },
+  ]);
+}
+
+function cleanupDequantResources(uniformBuffer, ownedBuffers) {
+  if (uniformBuffer) {
+    releaseUniformBuffer(uniformBuffer);
+  }
+  for (const buffer of ownedBuffers) {
+    if (buffer) {
+      releaseBuffer(buffer);
+    }
+  }
+}
+
+
+export async function dequantize(
+  quantized,
+  numBlocks,
+  options = {}
+) {
+  const device = getDevice();
+  const capabilities = getKernelCapabilities();
+  const {
+    outputOffset = 0,
+    outputBuffer = null,
+  } = options;
+  const outputDtype = requireOutputDtype(options.outputDtype, 'dequantize');
+
+  if (outputDtype === 'f16' && capabilities?.hasF16 !== true) {
+    throw new Error('[dequantize] f16 output requires shader-f16 support.');
+  }
+
+  // Select kernel
+  const variant = selectDequantKernel({ ...options, outputDtype });
+  const pipeline = await getPipelineFast('dequant', variant);
+
+  // Q4_K_M: 256 elements per block
+  const QK_K = TILE_SIZES.Q4K_SUPER_BLOCK_SIZE;
+  const bytesPerElem = outputDtype === 'f16' ? 2 : 4;
+  const outputSize = numBlocks * QK_K * bytesPerElem;
+
+  // Create output buffer if not provided
+  const ownedOutput = outputBuffer ? null : acquireBuffer(outputSize, undefined, 'dequant_output');
+  const output = outputBuffer || ownedOutput;
+
+  // Create uniform buffer
+  const uniformBuffer = createUniformBufferWithView(
+    'dequant_uniforms',
+    16,
+    (view) => {
+      view.setUint32(0, numBlocks, true);
+      view.setUint32(4, outputOffset, true);
+      view.setUint32(8, 0, true); // padding
+      view.setUint32(12, 0, true); // padding
+    },
+    null,
+    device
+  );
+
+  try {
+    const bindGroup = device.createBindGroup({
+      label: 'dequant_bind_group',
+      layout: pipeline.getBindGroupLayout(0),
+      entries: [
+        { binding: 0, resource: { buffer: uniformBuffer } },
+        { binding: 1, resource: { buffer: quantized } },
+        { binding: 2, resource: { buffer: output } },
+      ],
+    });
+
+    const workgroups = calculateDequantWorkgroups(variant, numBlocks);
+    dispatch(device, pipeline, bindGroup, workgroups, 'dequant');
+  } catch (error) {
+    cleanupDequantResources(uniformBuffer, [ownedOutput]);
+    throw error;
+  }
+
+  releaseUniformBuffer(uniformBuffer);
+
+  
+  const dtype = selectSharedRuleValue('shared', 'dtype', 'f16OrF32FromDtype', { dtype: outputDtype });
+  return createTensor(output, dtype, [numBlocks * QK_K], 'dequant_output');
+}
+
+
+// Row-wise dequant is required when K is not aligned to 256; the standard
+// dequant output uses padded stride (blocksPerRow * 256), but matmul expects K.
+export async function dequantizeRowwise(
+  quantized,
+  rows,
+  K,
+  options = {}
+) {
+  const device = getDevice();
+  const capabilities = getKernelCapabilities();
+  const { outputBuffer = null } = options;
+  const outputDtype = requireOutputDtype(options.outputDtype, 'dequantizeRowwise');
+  if (outputDtype === 'f16' && capabilities?.hasF16 !== true) {
+    throw new Error('[dequantizeRowwise] f16 output requires shader-f16 support.');
+  }
+  const finalOutputDtype = selectSharedRuleValue('shared', 'dtype', 'f16OrF32FromDtype', { dtype: outputDtype });
+  const pipelineVariant = selectKernelRuleValue(
+    'dequant',
+    'rowwiseVariant',
+    { wantsF16Out: finalOutputDtype === 'f16' }
+  );
+
+  const QK_K = TILE_SIZES.Q4K_SUPER_BLOCK_SIZE;
+  const blocksPerRow = Math.ceil(K / QK_K);
+  const numBlocks = rows * blocksPerRow;
+
+  const pipeline = await getPipelineFast('dequant', pipelineVariant);
+
+  const bytesPerElem = finalOutputDtype === 'f16' ? 2 : 4;
+  const outputSize = rows * K * bytesPerElem;
+
+  const ownedOutput = outputBuffer ? null : acquireBuffer(outputSize, undefined, 'dequant_rowwise_output');
+  const output = outputBuffer || ownedOutput;
+
+  const uniformBuffer = createUniformBufferWithView(
+    'dequant_rowwise_uniforms',
+    16,
+    (view) => {
+      view.setUint32(0, numBlocks, true);
+      view.setUint32(4, blocksPerRow, true);
+      view.setUint32(8, K, true);
+      view.setUint32(12, rows, true);
+    },
+    null,
+    device
+  );
+
+  try {
+    const bindGroup = device.createBindGroup({
+      label: 'dequant_rowwise_bind_group',
+      layout: pipeline.getBindGroupLayout(0),
+      entries: [
+        { binding: 0, resource: { buffer: uniformBuffer } },
+        { binding: 1, resource: { buffer: quantized } },
+        { binding: 2, resource: { buffer: output } },
+      ],
+    });
+
+    const workgroups = [numBlocks, 1, 1];
+    dispatch(device, pipeline, bindGroup, workgroups, 'dequant_rowwise');
+  } catch (error) {
+    cleanupDequantResources(uniformBuffer, [ownedOutput]);
+    throw error;
+  }
+
+  releaseUniformBuffer(uniformBuffer);
+
+  const dtype = selectSharedRuleValue('shared', 'dtype', 'f16OrF32FromDtype', { dtype: finalOutputDtype });
+  return createTensor(output, dtype, [rows, K], 'dequant_rowwise_output');
+}
+
+
+export async function dequantizeMXFP4(
+  blocks,
+  scales,
+  totalElements,
+  numGroups,
+  options = {}
+) {
+  const device = getDevice();
+  const {
+    outputBuffer = null,
+    groupSize = 32,  // 32 elements per group (16 bytes * 2 nibbles)
+  } = options;
+
+  const pipeline = await getPipelineFast('dequant', 'mxfp4');
+
+  const outputSize = totalElements * 4; // F32 output
+  const ownedOutput = outputBuffer ? null : acquireBuffer(outputSize, undefined, 'mxfp4_dequant_output');
+  const output = outputBuffer || ownedOutput;
+
+  // Create uniform buffer
+  const uniformBuffer = createUniformBufferWithView(
+    'mxfp4_dequant_uniforms',
+    16,
+    (view) => {
+      view.setUint32(0, totalElements, true);
+      view.setUint32(4, numGroups, true);
+      view.setUint32(8, groupSize, true);
+      view.setUint32(12, numGroups * groupSize, true); // row_stride
+    },
+    null,
+    device
+  );
+
+  try {
+    const bindGroup = device.createBindGroup({
+      label: 'mxfp4_dequant_bind_group',
+      layout: pipeline.getBindGroupLayout(0),
+      entries: [
+        { binding: 0, resource: { buffer: uniformBuffer } },
+        { binding: 1, resource: { buffer: blocks } },
+        { binding: 2, resource: { buffer: scales } },
+        { binding: 3, resource: { buffer: output } },
+      ],
+    });
+
+    const workgroups = Math.ceil(totalElements / WORKGROUP_SIZES.DEFAULT);
+    const dispatchSize = [
+      Math.min(workgroups, GPU_LIMITS.MAX_WORKGROUPS),
+      Math.max(1, Math.ceil(workgroups / GPU_LIMITS.MAX_WORKGROUPS)),
+      1,
+    ];
+    dispatch(device, pipeline, bindGroup, dispatchSize, 'mxfp4_dequant');
+  } catch (error) {
+    cleanupDequantResources(uniformBuffer, [ownedOutput]);
+    throw error;
+  }
+
+  releaseUniformBuffer(uniformBuffer);
+
+  return createTensor(output, 'f32', [totalElements], 'mxfp4_dequant_output');
+}
+
+
+export async function dequantizeMXFP4Expert(
+  blocks,
+  scales,
+  expertIdx,
+  numExperts,
+  outDim,
+  numGroups,
+  options = {}
+) {
+  const device = getDevice();
+  const {
+    outputBuffer = null,
+    modelType = null,
+    groupSize = 32,
+    dequantTileShape = 'scalar',
+  } = options;
+  const outputDtype = requireOutputDtype(options.outputDtype, 'dequantizeMXFP4Expert');
+  const caps = getKernelCapabilities();
+
+  const variant = selectKernelRuleValue('dequant', 'mxfp4ExpertVariant', {
+    modelType,
+    outputDtype,
+    groupSize,
+    dequantTileShape,
+    hasF16: caps?.hasF16 ?? false,
+    hasSubgroups: caps?.hasSubgroups ?? false,
+  });
+  const pipeline = await getPipelineFast('dequant', variant);
+
+  // Output is [out_dim, num_groups * 32] as F32
+  const totalOutput = outDim * numGroups * 32;
+  const bytesPerElement = outputDtype === 'f16' ? 2 : 4;
+  const outputSize = totalOutput * bytesPerElement;
+  const ownedOutput = outputBuffer ? null : acquireBuffer(outputSize, undefined, 'mxfp4_expert_output');
+  const output = outputBuffer || ownedOutput;
+
+  // Create uniform buffer
+  const uniformBuffer = createUniformBufferWithView(
+    'mxfp4_expert_uniforms',
+    32,
+    (view) => {
+      view.setUint32(0, expertIdx, true);
+      view.setUint32(4, numExperts, true);
+      view.setUint32(8, outDim, true);
+      view.setUint32(12, numGroups, true);
+      view.setUint32(16, totalOutput, true);
+    },
+    null,
+    device
+  );
+
+  try {
+    const bindGroup = device.createBindGroup({
+      label: 'mxfp4_expert_bind_group',
+      layout: pipeline.getBindGroupLayout(0),
+      entries: [
+        { binding: 0, resource: { buffer: uniformBuffer } },
+        { binding: 1, resource: { buffer: blocks } },
+        { binding: 2, resource: { buffer: scales } },
+        { binding: 3, resource: { buffer: output } },
+      ],
+    });
+
+    const workgroups = Math.ceil(totalOutput / WORKGROUP_SIZES.DEFAULT);
+    const dispatchSize = [
+      Math.min(workgroups, GPU_LIMITS.MAX_WORKGROUPS),
+      Math.max(1, Math.ceil(workgroups / GPU_LIMITS.MAX_WORKGROUPS)),
+      1,
+    ];
+    dispatch(device, pipeline, bindGroup, dispatchSize, 'mxfp4_expert');
+  } catch (error) {
+    cleanupDequantResources(uniformBuffer, [ownedOutput]);
+    throw error;
+  }
+
+  releaseUniformBuffer(uniformBuffer);
+
+  const dtype = selectSharedRuleValue('shared', 'dtype', 'f16OrF32FromDtype', { dtype: outputDtype });
+  return createTensor(output, dtype, [outDim, numGroups * 32], 'mxfp4_expert_output');
+}
+
+
+export async function dequantizeQ6K(
+  quantized,
+  numBlocks,
+  options = {}
+) {
+  const device = getDevice();
+  const {
+    outputOffset = 0,
+    outputBuffer = null,
+  } = options;
+  const outputDtype = requireOutputDtype(options.outputDtype, 'dequantizeQ6K');
+  if (outputDtype !== 'f16') {
+    throw new Error(`[dequantizeQ6K] outputDtype must be "f16", got ${outputDtype}.`);
+  }
+
+  // Q6_K only has f16 output kernel currently
+  const pipeline = await getPipelineFast('dequant', 'q6k_f16out');
+
+  // Q6_K: 256 elements per block
+  const QK_K = TILE_SIZES.Q4K_SUPER_BLOCK_SIZE;
+  const bytesPerElem = outputDtype === 'f16' ? 2 : 4;
+  const outputSize = numBlocks * QK_K * bytesPerElem;
+
+  // Create output buffer if not provided
+  const ownedOutput = outputBuffer ? null : acquireBuffer(outputSize, undefined, 'q6k_dequant_output');
+  const output = outputBuffer || ownedOutput;
+
+  // Calculate workgroups for 2D dispatch
+  const maxWorkgroups = GPU_LIMITS.MAX_WORKGROUPS;
+  const workgroupsX = Math.min(numBlocks, maxWorkgroups);
+
+  // Create uniform buffer
+  const uniformBuffer = createUniformBufferWithView(
+    'q6k_dequant_uniforms',
+    16,
+    (view) => {
+      view.setUint32(0, numBlocks, true);
+      view.setUint32(4, outputOffset, true);
+      view.setUint32(8, workgroupsX, true); // workgroups_x for 2D dispatch
+      view.setUint32(12, 0, true); // padding
+    },
+    null,
+    device
+  );
+
+  try {
+    const bindGroup = device.createBindGroup({
+      label: 'q6k_dequant_bind_group',
+      layout: pipeline.getBindGroupLayout(0),
+      entries: [
+        { binding: 0, resource: { buffer: uniformBuffer } },
+        { binding: 1, resource: { buffer: quantized } },
+        { binding: 2, resource: { buffer: output } },
+      ],
+    });
+
+    const workgroups = [
+      workgroupsX,
+      numBlocks > maxWorkgroups ? Math.ceil(numBlocks / maxWorkgroups) : 1,
+      1
+    ];
+
+    dispatch(device, pipeline, bindGroup, workgroups, 'q6k_dequant');
+  } catch (error) {
+    cleanupDequantResources(uniformBuffer, [ownedOutput]);
+    throw error;
+  }
+
+  releaseUniformBuffer(uniformBuffer);
+
+  
+  const dtype = selectSharedRuleValue('shared', 'dtype', 'f16OrF32FromDtype', { dtype: outputDtype });
+  return createTensor(output, dtype, [numBlocks * QK_K], 'q6k_dequant_output');
+}
+
+
+
+
+export async function recordDequantize(
+  recorder,
+  quantized,
+  numBlocks,
+  options = {}
+) {
+  const device = recorder.device;
+  const {
+    outputOffset = 0,
+    outputBuffer = null,
+  } = options;
+  const outputDtype = requireOutputDtype(options.outputDtype, 'recordDequantize');
+
+  // Select kernel
+  const variant = selectDequantKernel({ ...options, outputDtype });
+  const pipeline = await getPipelineFast('dequant', variant);
+
+  // Q4_K: 256 elements per block
+  const QK_K = TILE_SIZES.Q4K_SUPER_BLOCK_SIZE;
+  const bytesPerElem = outputDtype === 'f16' ? 2 : 4;
+  const outputSize = numBlocks * QK_K * bytesPerElem;
+
+  // Output buffer
+  const ownedOutput = outputBuffer ? null : acquireBuffer(outputSize, undefined, 'dequant_output');
+  const output = outputBuffer || ownedOutput;
+
+  // Uniform buffer
+  const uniformBuffer = createUniformBufferWithView(
+    'dequant_uniforms',
+    16,
+    (view) => {
+      view.setUint32(0, numBlocks, true);
+      view.setUint32(4, outputOffset, true);
+    },
+    recorder
+  );
+
+  // Bind group
+  try {
+    const bindGroup = device.createBindGroup({
+      label: 'dequant_bind_group',
+      layout: pipeline.getBindGroupLayout(0),
+      entries: [
+        { binding: 0, resource: { buffer: uniformBuffer } },
+        { binding: 1, resource: { buffer: quantized } },
+        { binding: 2, resource: { buffer: output } },
+      ],
+    });
+
+    const workgroups = calculateDequantWorkgroups(variant, numBlocks);
+    recordDispatch(recorder, pipeline, bindGroup, workgroups, 'dequant');
+  } catch (error) {
+    if (ownedOutput) {
+      releaseBuffer(ownedOutput);
+    }
+    throw error;
+  }
+
+  
+  const dtype = selectSharedRuleValue('shared', 'dtype', 'f16OrF32FromDtype', { dtype: outputDtype });
+  return createTensor(output, dtype, [numBlocks * QK_K], 'dequant_output');
+}

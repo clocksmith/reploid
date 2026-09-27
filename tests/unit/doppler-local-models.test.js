@@ -27,8 +27,8 @@ const packageLock = JSON.parse(readFileSync('package-lock.json', 'utf8'));
 describe('local Doppler model contract', () => {
   it('exposes the same identified Qwen models for requests and contribution', () => {
     expect(DOPPLER_PACKAGE_NAME).toBe('doppler-gpu');
-    expect(DOPPLER_PACKAGE_VERSION).toBe('0.6.2');
-    expect(DOPPLER_BROWSER_RUNTIME_VERSION).toBe(DOPPLER_PACKAGE_VERSION);
+    expect(DOPPLER_PACKAGE_VERSION).toBe('0.6.3-dev.split.1');
+    expect(DOPPLER_BROWSER_RUNTIME_VERSION).toBe('0.6.2');
     expect(DOPPLER_BROWSER_RELEASE_REF).toBe('doppler-gpu@0.6.2');
     expect(DOPPLER_MODULE_URL).toBe('/vendor/doppler/0.6.2/src/index.js');
     expect(DOPPLER_KERNEL_BASE_URL).toBe('/vendor/doppler/0.6.2/src/gpu/kernels');

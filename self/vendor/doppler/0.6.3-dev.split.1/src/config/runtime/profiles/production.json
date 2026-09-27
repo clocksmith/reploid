@@ -1,0 +1,46 @@
+{
+  "id": "profiles/production",
+  "name": "production",
+  "description": "Production configuration with optimized settings",
+  "intent": "verify",
+  "compatibleIntents": ["verify"],
+  "stability": "canonical",
+  "owner": "doppler-core",
+  "createdAtUtc": "2026-02-25T00:00:00Z",
+  "extends": "profiles/default",
+  "runtime": {
+    "shared": {
+      "debug": {
+        "logOutput": {
+          "stdout": false,
+          "file": null
+        },
+        "logLevel": {
+          "defaultLogLevel": "error"
+        },
+        "logHistory": {
+          "maxLogHistoryEntries": 100
+        },
+        "trace": {
+          "enabled": false
+        }
+      }
+    },
+    "inference": {
+      "batching": {
+        "maxTokens": 4096
+      },
+      "sampling": {
+        "temperature": 0.7
+      },
+      "kvcache": {
+        "kvDtype": "f16"
+      },
+      "session": {
+        "kvcache": {
+          "kvDtype": "f16"
+        }
+      }
+    }
+  }
+}
