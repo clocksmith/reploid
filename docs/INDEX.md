@@ -18,6 +18,7 @@ Guide to all documentation in the REPLOID project.
 
 ### Architecture
 - **[docs/system-architecture.md](./system-architecture.md)** - Complete system design
+- **[Reploid, Doppler, and Doe diagram](./diagrams/reploid-diagram/README.md)** - Editable interactive views of intended relationships and one example operation; not implementation evidence
 - **[Blueprint inventory](../self/blueprints/canonical-inventory.md)** - Generated sitemap of maintained architectural decisions; file enumeration belongs to the [source inventory](../self/config/module-inventory.json)
 
 **Key Blueprints:**

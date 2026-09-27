@@ -1,0 +1,233 @@
+{
+  "format": "box-arrow-diagram/v1",
+  "title": "Reploid · Doppler · Doe",
+  "status": "intended-architecture",
+  "coordinates": {
+    "origin": "top-left",
+    "x": "right",
+    "y": "down",
+    "unit": "diagram-pixel"
+  },
+  "edgeTypes": {
+    "symbiosis": {
+      "label": "Mutual benefit",
+      "stroke": "solid",
+      "arrow": "none",
+      "width": 2.2
+    },
+    "required": {
+      "label": "Required use",
+      "stroke": "solid",
+      "arrow": "target",
+      "width": 1.8
+    },
+    "optional": {
+      "label": "Optional integration",
+      "stroke": "dashed",
+      "arrow": "target",
+      "width": 1.8
+    },
+    "information": {
+      "label": "Information / result",
+      "stroke": "dotted",
+      "arrow": "target",
+      "width": 1.8
+    },
+    "message": {
+      "label": "Request / command",
+      "stroke": "solid",
+      "arrow": "target",
+      "width": 1.8
+    },
+    "return": {
+      "label": "Response / event",
+      "stroke": "dotted",
+      "arrow": "target",
+      "width": 1.8
+    }
+  },
+  "defaultView": "ecosystem",
+  "views": [
+    {
+      "id": "ecosystem",
+      "kind": "graph",
+      "title": "Ecosystem",
+      "subtitle": "Which packages cooperate. Lines are undirected mutual benefit, not dependencies.",
+      "width": 1526,
+      "height": 610,
+      "nodes": [
+        {
+          "id": "A",
+          "entity": "A",
+          "label": "Reploid",
+          "x": 48,
+          "y": 180,
+          "width": 330,
+          "height": 270,
+          "subtitle": "Network coordination",
+          "body": [
+            "Concurrent threads + agent swarms",
+            "Poolday: WebRTC + authorized exchange",
+            "Placement + Bayesian learning",
+            "Evaluated strategy improvements"
+          ]
+        },
+        {
+          "id": "B",
+          "entity": "B",
+          "label": "Doppler",
+          "x": 598,
+          "y": 180,
+          "width": 330,
+          "height": 270,
+          "subtitle": "Model computation",
+          "body": [
+            "Rig: sources → ModelIR → TargetPlans",
+            "Capsules: executable model decisions",
+            "Run: inference, adapters + partitions",
+            "Sampling + generation state"
+          ]
+        },
+        {
+          "id": "C",
+          "entity": "C",
+          "label": "Doe",
+          "x": 1148,
+          "y": 180,
+          "width": 330,
+          "height": 270,
+          "subtitle": "GPU execution foundation",
+          "body": [
+            "WGSL compilation + optimization",
+            "Metal · Vulkan · D3D12",
+            "Resources + synchronization",
+            "Completion, failures + diagnostics"
+          ]
+        }
+      ],
+      "edges": [
+        {
+          "id": "A-B",
+          "source": "A",
+          "target": "B",
+          "type": "symbiosis",
+          "label": "Requests + experience\nInference + contracts",
+          "sourceAnchor": {
+            "side": "right",
+            "offset": 0.5
+          },
+          "targetAnchor": {
+            "side": "left",
+            "offset": 0.5
+          },
+          "labelPosition": {
+            "x": 488,
+            "y": 270
+          },
+          "labelWidth": 196,
+          "details": [
+            "Reploid contributes real model workloads, demand, diverse environments and measured failures.",
+            "Doppler contributes executable intelligence, public inference interfaces and valid model partitions.",
+            "Independent evaluation and release authority remain separate."
+          ],
+          "contractView": "interfaces",
+          "exampleView": "sequence"
+        },
+        {
+          "id": "B-C",
+          "source": "B",
+          "target": "C",
+          "type": "symbiosis",
+          "label": "Model workloads\nEfficient GPU execution",
+          "sourceAnchor": {
+            "side": "right",
+            "offset": 0.5
+          },
+          "targetAnchor": {
+            "side": "left",
+            "offset": 0.5
+          },
+          "labelPosition": {
+            "x": 1038,
+            "y": 270
+          },
+          "labelWidth": 196,
+          "details": [
+            "Doppler contributes demanding applications, reproducible WGSL workloads and developer access.",
+            "Doe contributes a potentially faster, leaner and more diagnosable GPU implementation.",
+            "Gains must be measured using unchanged application semantics; mutual benefit does not make Doe a required provider."
+          ],
+          "contractView": "interfaces",
+          "exampleView": "sequence"
+        }
+      ],
+      "notes": [
+        {
+          "id": "chain-note",
+          "x": 290,
+          "y": 505,
+          "width": 946,
+          "height": 66,
+          "label": "A — B — C",
+          "text": "Shared neighbor does not imply an A–C relationship. Each package remains independently useful."
+        }
+      ],
+      "legend": [
+        "symbiosis"
+      ]
+    }
+  ],
+  "entities": [
+    {
+      "id": "A",
+      "label": "Reploid",
+      "responsibility": "Coordinate and improve the intelligence network",
+      "owns": [
+        "Concurrent conversations and agent coordination",
+        "Eligible placement and Bayesian decision-making",
+        "Poolday: peer connectivity and authorized WebRTC exchange",
+        "Independent evaluation, reversible adoption and strategy evolution"
+      ],
+      "excludes": [
+        "Model mathematics and learned expert selection",
+        "WGSL compiler internals",
+        "Automatic disclosure or contribution merely from joining"
+      ],
+      "independence": "An agent may operate independently; the collaborating network remains the product."
+    },
+    {
+      "id": "B",
+      "label": "Doppler",
+      "responsibility": "Prepare and execute model computation",
+      "owns": [
+        "Rig: source models, ModelIR, TargetPlans and qualification",
+        "Capsules: identified executable programs, weights and dependencies",
+        "Run: loading, model operations, adapters and valid partitions",
+        "Sampling, tensor contracts and generation-state semantics"
+      ],
+      "excludes": [
+        "Application search policy",
+        "Peer membership and placement authority",
+        "Provider-specific native driver implementation"
+      ],
+      "independence": "Usable without Reploid and with supported WebGPU providers other than Doe."
+    },
+    {
+      "id": "C",
+      "label": "Doe",
+      "responsibility": "Compile WGSL and implement GPU execution",
+      "owns": [
+        "WGSL compilation and general shader optimization",
+        "Native Metal, Vulkan and D3D12 execution paths",
+        "GPU resource ownership, synchronization and failure reporting",
+        "General diagnostics useful to unrelated applications"
+      ],
+      "excludes": [
+        "Model selection, tokenization or quantization policy",
+        "Search ranking and agent objectives",
+        "Automatic replacement of a browser’s GPU implementation"
+      ],
+      "independence": "Useful to applications unrelated to Doppler; integration requires an explicit provider boundary."
+    }
+  ]
+}

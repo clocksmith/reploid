@@ -1,0 +1,17 @@
+{
+  "name": "reploid-doppler-doe-diagram",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node build.mjs && node server.mjs",
+    "test": "node --test test/*.test.mjs",
+    "build": "node build.mjs"
+  },
+  "dependencies": {
+    "three": "0.180.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

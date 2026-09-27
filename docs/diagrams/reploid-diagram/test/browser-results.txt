@@ -1,0 +1,1 @@
+PASS: offline SVG; all 3 views; inspector links; JSON validation; dragging; JSON/SVG export; mobile width; no uncaught page errors.

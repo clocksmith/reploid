@@ -1,0 +1,77 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Box and arrow diagram v1",
+  "description": "A small renderer-neutral application schema, not Three.js ObjectLoader JSON.",
+  "type": "object",
+  "required": ["format", "title", "edgeTypes", "views"],
+  "properties": {
+    "format": {"const": "box-arrow-diagram/v1"},
+    "title": {"type": "string", "maxLength": 180},
+    "defaultView": {"type": "string"},
+    "status": {"type": "string"},
+    "edgeTypes": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object", "required": ["label", "stroke", "arrow", "width"],
+        "properties": {
+          "label": {"type": "string"},
+          "stroke": {"enum": ["solid", "dashed", "dotted"]},
+          "arrow": {"enum": ["none", "target", "both"]},
+          "width": {"type": "number", "exclusiveMinimum": 0, "maximum": 8}
+        }
+      }
+    },
+    "views": {"type": "array", "minItems": 1, "maxItems": 20, "items": {"$ref": "#/$defs/view"}},
+    "theme": {"type": "object", "additionalProperties": {"type": "string", "pattern": "^#[0-9A-Fa-f]{6}$"}},
+    "entities": {"type": "array", "items": {"type": "object"}}
+  },
+  "$defs": {
+    "coordinate": {"type": "number", "minimum": -100000, "maximum": 100000},
+    "point": {"type": "object", "required": ["x", "y"], "properties": {"x": {"$ref": "#/$defs/coordinate"}, "y": {"$ref": "#/$defs/coordinate"}}},
+    "anchor": {"type": "object", "required": ["side", "offset"], "properties": {"side": {"enum": ["top", "right", "bottom", "left"]}, "offset": {"type": "number", "minimum": 0, "maximum": 1}}},
+    "node": {
+      "type": "object", "required": ["id", "label", "x", "y", "width", "height"],
+      "properties": {
+        "id": {"type": "string", "minLength": 1, "maxLength": 100},
+        "entity": {"type": ["string", "null"]},
+        "label": {"type": "string", "maxLength": 180},
+        "subtitle": {"type": "string", "maxLength": 500},
+        "body": {"type": "array", "maxItems": 12, "items": {"type": "string", "maxLength": 600}},
+        "footnote": {"type": "string", "maxLength": 500},
+        "x": {"$ref": "#/$defs/coordinate"}, "y": {"$ref": "#/$defs/coordinate"},
+        "width": {"type": "number", "minimum": 60, "maximum": 100000},
+        "height": {"type": "number", "minimum": 40, "maximum": 100000}
+      }
+    },
+    "edge": {
+      "type": "object", "required": ["id", "source", "target", "type", "label"],
+      "properties": {
+        "id": {"type": "string", "minLength": 1, "maxLength": 100},
+        "source": {"type": "string"}, "target": {"type": "string"}, "type": {"type": "string"},
+        "label": {"type": "string", "maxLength": 1000},
+        "sourceAnchor": {"$ref": "#/$defs/anchor"}, "targetAnchor": {"$ref": "#/$defs/anchor"},
+        "labelPosition": {"$ref": "#/$defs/point"},
+        "labelWidth": {"type": "number", "exclusiveMinimum": 0, "maximum": 100000},
+        "waypoints": {"type": "array", "maxItems": 40, "items": {"$ref": "#/$defs/point"}},
+        "y": {"$ref": "#/$defs/coordinate"},
+        "details": {"type": "array", "items": {"type": "string", "maxLength": 5000}},
+        "contractView": {"type": "string"}, "exampleView": {"type": "string"}
+      }
+    },
+    "view": {
+      "type": "object", "required": ["id", "kind", "title", "width", "height", "nodes", "edges"],
+      "properties": {
+        "id": {"type": "string", "minLength": 1, "maxLength": 100},
+        "kind": {"enum": ["graph", "sequence"]}, "title": {"type": "string", "maxLength": 160},
+        "subtitle": {"type": "string", "maxLength": 1000},
+        "width": {"type": "number", "exclusiveMinimum": 0, "maximum": 100000},
+        "height": {"type": "number", "exclusiveMinimum": 0, "maximum": 100000},
+        "nodes": {"type": "array", "maxItems": 500, "items": {"$ref": "#/$defs/node"}},
+        "edges": {"type": "array", "maxItems": 2000, "items": {"$ref": "#/$defs/edge"}},
+        "legend": {"type": "array", "items": {"type": "string"}},
+        "lifelineEnd": {"type": "number", "minimum": 0, "maximum": 100000}
+      },
+      "allOf": [{"if": {"properties": {"kind": {"const": "sequence"}}}, "then": {"required": ["lifelineEnd"], "properties": {"edges": {"items": {"required": ["y"]}}}}}]
+    }
+  }
+}
