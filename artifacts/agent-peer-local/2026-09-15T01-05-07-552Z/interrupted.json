@@ -1,0 +1,5 @@
+{
+  "passed": false,
+  "reason": "Initial harness had an unbounded browser evaluate during setup; interrupted to add bounded stage diagnostics.",
+  "physicalModelExecution": false
+}

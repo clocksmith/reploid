@@ -2,7 +2,6 @@
  * @fileoverview Browser provider client for fastest-receipt pool jobs.
  */
 
-import poolConfig from './pool-config.json' with { type: 'json' };
 import { createPoolSdk } from './sdk.js';
 import { buildPoolReceipt, createSigningKeyPair, exportPublicKey, hashJson, sha256Hex, signProviderReceipt } from './inference-receipt.js';
 import { createDopplerRuntime } from './doppler-runtime.js';
@@ -37,6 +36,7 @@ import {
   buildAssignmentRevealPayload
 } from './p2p-payload.js';
 import { createPackPeerProvider } from './peer-pack-provider.js';
+import { getRingPhaseProtocol } from './config.js';
 
 export function createProviderClient({
   providerId,
@@ -47,11 +47,21 @@ export function createProviderClient({
   adapterRegistry = createAdapterRegistry(),
   fetchAdapterFromPeer = null,
   fetchAdapterFromOrigin = null,
-  revealPolling = poolConfig.ringPhaseProtocols.polling
+  revealWait = getRingPhaseProtocol().revealWait,
+  revealPolling = null
 } = {}) {
-  const { maxPolls, intervalMs } = revealPolling;
-  if (!Number.isSafeInteger(maxPolls) || maxPolls < 1 || !Number.isSafeInteger(intervalMs) || intervalMs < 1) {
-    throw new Error('Reveal polling requires positive bounded poll count and interval');
+  const revealWaitPolicy = { ...revealWait };
+  if (revealPolling !== null) {
+    const { maxPolls, intervalMs } = revealPolling;
+    if (!Number.isSafeInteger(maxPolls) || maxPolls < 1 || !Number.isSafeInteger(intervalMs) || intervalMs < 1) {
+      throw new Error('Reveal polling requires positive bounded poll count and interval');
+    }
+    revealWaitPolicy.pollIntervalMs = intervalMs;
+  }
+  for (const field of ['pollIntervalMs', 'maxWaitMs']) {
+    if (!Number.isSafeInteger(revealWaitPolicy[field]) || revealWaitPolicy[field] <= 0) {
+      throw new Error(`Positive reveal wait ${field} required`);
+    }
   }
   let activeKeyPair = keyPair;
   let publicKey = null;
@@ -342,7 +352,8 @@ export function createProviderClient({
     };
   };
 
-  const waitForRevealGate = async ({ assignment, commitmentResult }) => {
+  const waitForRevealGate = async ({ assignment, commitmentResult, signal }) => {
+    signal?.throwIfAborted();
     if (commitmentResult?.revealOpen === true
       || commitmentResult?.phase === 'reveal_open'
       || commitmentResult?.ringPhase === 'reveal_open') {
@@ -352,40 +363,57 @@ export function createProviderClient({
         commitmentResult
       };
     }
-    const expiresAt = Date.parse(assignment.expiresAt);
-    for (let poll = 0; poll < maxPolls; poll += 1) {
-      if (Number.isFinite(expiresAt) && Date.now() >= expiresAt) break;
-      if (poll > 0) await new Promise(resolve => setTimeout(resolve, intervalMs));
-      if (Number.isFinite(expiresAt) && Date.now() >= expiresAt) break;
-      const jobResponse = await sdk.pollJob(assignment.jobId);
-      const job = jobResponse?.job || jobResponse;
-      if (job?.ringPhase === 'reveal_open' || job?.ringPhase === 'reveal_submitted') {
-        return {
-          revealOpen: true,
-          source: 'job_ring_phase',
-          job
-        };
+    const expiresAt = assignment.expiresAt == null ? Infinity : Date.parse(assignment.expiresAt);
+    if (Number.isNaN(expiresAt)) throw new Error('Invalid assignment reveal deadline');
+    const deadlineAt = Math.min(expiresAt, Date.now() + revealWaitPolicy.maxWaitMs);
+    let rejectStopped, delayTimer;
+    const stopped = new Promise((_resolve, reject) => { rejectStopped = reject; });
+    const abort = () => rejectStopped(signal.reason);
+    const timeout = () => rejectStopped(Object.assign(new Error('Coordinator did not open reveal phase before the assignment wait deadline'),
+      { code: 'REVEAL_GATE_TIMEOUT' }));
+    const timer = setTimeout(timeout, Math.max(0, deadlineAt - Date.now()));
+    signal?.addEventListener('abort', abort, { once: true });
+    if (signal?.aborted) abort();
+    let poll = 0;
+    try {
+      while (Date.now() < deadlineAt && (!revealPolling || poll < revealPolling.maxPolls)) {
+        signal?.throwIfAborted();
+        if (Date.now() >= deadlineAt) { timeout(); await stopped; }
+        const jobResponse = await Promise.race([Promise.resolve().then(() => sdk.pollJob(assignment.jobId)), stopped]);
+        signal?.throwIfAborted();
+        if (Date.now() >= deadlineAt) { timeout(); await stopped; }
+        const job = jobResponse?.job || jobResponse;
+        recordHistory({ eventType: 'reveal_gate_observed', assignmentId: assignment.assignmentId,
+          jobId: assignment.jobId, poll: ++poll, ringPhase: job?.ringPhase ?? null, deadlineAt });
+        if (job?.ringPhase === 'reveal_open' || job?.ringPhase === 'reveal_submitted') {
+          return {
+            revealOpen: true,
+            source: 'job_ring_phase',
+            job
+          };
+        }
+        const phase = job?.assignmentPhases?.[assignment.assignmentId]
+          || job?.commitReveal?.assignments?.[assignment.assignmentId]
+          || null;
+        if (phase?.revealOpen === true || phase?.phase === 'reveal_open') {
+          return {
+            revealOpen: true,
+            source: 'job_phase',
+            phase,
+            job
+          };
+        }
+        await Promise.race([new Promise(resolve => { delayTimer = setTimeout(resolve, revealWaitPolicy.pollIntervalMs); }), stopped]);
       }
-      const phase = job?.assignmentPhases?.[assignment.assignmentId]
-        || job?.commitReveal?.assignments?.[assignment.assignmentId]
-        || null;
-      if (phase?.revealOpen === true || phase?.phase === 'reveal_open') {
-        return {
-          revealOpen: true,
-          source: 'job_phase',
-          phase,
-          job
-        };
-      }
+      timeout();
+      return await stopped;
+    } finally {
+      clearTimeout(timer); clearTimeout(delayTimer); signal?.removeEventListener('abort', abort);
     }
-    return {
-      revealOpen: false,
-      source: 'poll_limit',
-      commitmentResult
-    };
   };
 
-  const runCommitReveal = async ({ assignment, execution, receipt, mode = 'auto' }) => {
+  const runCommitReveal = async ({ assignment, execution, receipt, mode = 'auto', signal }) => {
+    signal?.throwIfAborted();
     const commitReveal = commitRevealModeFor(assignment, mode);
     if (!commitReveal.enabled) {
       return {
@@ -420,10 +448,7 @@ export function createProviderClient({
       }
       throw error;
     }
-    const revealGate = await waitForRevealGate({ assignment, commitmentResult });
-    if (!revealGate.revealOpen) {
-      throw new Error('Coordinator did not open reveal phase within the configured assignment bounds');
-    }
+    const revealGate = await waitForRevealGate({ assignment, commitmentResult, signal });
     const reveal = await buildAssignmentRevealPayload({
       assignment,
       providerId,
@@ -432,6 +457,7 @@ export function createProviderClient({
       salt,
       commitmentHash: commitment.commitmentHash
     });
+    signal?.throwIfAborted();
     const revealResult = await sdk.submitAssignmentReveal(assignment.assignmentId, reveal);
     return {
       enabled: true,
@@ -579,8 +605,10 @@ export function createProviderClient({
           assignment,
           execution,
           receipt: signedReceipt,
-          mode: commitReveal
+          mode: commitReveal,
+          signal: inputOptions.signal
         });
+        inputOptions.signal?.throwIfAborted();
         const result = await sdk.submitReceipt(assignment.assignmentId, {
           outputText: execution.outputText,
           tokenIds: execution.tokenIds || [],
@@ -624,7 +652,7 @@ export function createProviderClient({
           failureReport = await sdk.reportAssignmentFailure(assignment.assignmentId, {
             providerId: registration?.providerId || assignment.providerId,
             reason: error.message,
-            providerFault: true
+            providerFault: error.code !== 'REVEAL_GATE_TIMEOUT' && !inputOptions.signal?.aborted
           });
         } catch (reportError) {
           failureReport = {

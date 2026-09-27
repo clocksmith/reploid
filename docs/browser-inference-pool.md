@@ -607,6 +607,16 @@ POST /pool/assignments/:assignmentId/receipt
 
 Provider execution computes the output privately, signs the receipt payload, builds the server-compatible commitment hash over assignment id, job id, ring attempt id, provider id, output hash, token ids hash, transcript hash, and salt, then submits that commitment. The browser commitment envelope also carries policy id, assignment attempt id, and receipt hash metadata for inspection, but those fields are not part of the canonical commitment hash. If the coordinator opens reveal, the browser submits the reveal payload containing the salt, raw output artifact, token ids, transcript, and signed receipt. Receipt submission follows reveal. If a coordinator has not yet implemented commit/reveal and the assignment does not mark it required, the browser records the unsupported phase and continues through the current receipt route for backwards compatibility.
 
+After a supported commitment, both optional and required modes wait for an open
+coordinator gate. `ringPhaseProtocols.protocols.commit_reveal_v1.revealWait` owns
+`pollIntervalMs` (250) and `maxWaitMs` (60000). The assignment expiry can shorten
+that wait. Polling and pending responses stop on the caller's abort signal or
+the deadline; late responses cannot submit a reveal. A wait timeout does not
+attribute a computation fault to the provider. The bounded provider history
+records each observed phase, poll number and deadline. The deterministic delayed
+gate, stalled poll and cancellation regressions live in
+`tests/unit/pool-browser-lane-b.test.js`.
+
 ## Receipt verification
 
 The server verifier checks:

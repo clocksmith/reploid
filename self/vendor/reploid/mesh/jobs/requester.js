@@ -114,7 +114,15 @@ function createPackPeerRequester({ identity, bus, models, registry = createPackO
         .catch(error => { if (active === record) cancel(record, error); }).finally(() => { record.queued--; record.queuedBytes -= bytes; });
     } catch (error) { cancel(record, error); }
   });
-  const disconnected = bus.onDisconnect?.(() => { if (active) cancel(active, new Error('requester transport disconnected')); });
+  const disconnected = bus.onDisconnect?.(() => {
+    if (!active) return;
+    const record = active;
+    const error = Object.assign(new Error('requester transport disconnected'), { code: 'PACK_TRANSPORT_DISCONNECTED' });
+    // Transport loss does not revoke execution. The host may resume this signed
+    // attempt; explicit cancellation still sends a signed withdrawal.
+    record.controller.abort(error);
+    finish(record, error);
+  });
   function start(input, prepared = false) {
       if (closed || active) return Promise.reject(new Error('Peer Pack requester is closed or busy'));
       const { signal = null, onPartial = null, reference, ...options } = input;
