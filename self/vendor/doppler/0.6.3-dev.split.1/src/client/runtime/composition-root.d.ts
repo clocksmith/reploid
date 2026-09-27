@@ -1,3 +1,4 @@
+import type { ExecutionRegistries, ResolvedExecutionRegistries } from '../../config/execution-registry-contract.js';
 import type { CapsuleAdapterArtifactStore } from './capsule-adapter-execution.js';
 import type { CapsuleV2Artifact } from '../../config/capsule-v2.js';
 import type { DopplerCapsule, CapsuleIdentity, verifyCapsule } from '../../config/capsule.js';
@@ -22,6 +23,8 @@ export { createForecastProgramFactory } from './capsule-forecast-program.js';
 export const RUN_CORE_VERSION: '2.0.0';
 
 export interface CapsuleSessionOptions extends TargetPlanSelectionPolicy, CapsuleAcquisitionOptions {
+  /** Explicit placement of the verified program; whole-model qualification does not qualify distributed execution. */
+  residentPartition?: import('../../inference/pipelines/text/resident-partition-contract.js').ResidentPartitionAllocation;
   releaseEvents?: CapsuleReleaseEvent[];
   releaseTrustedSigners?: Map<string, JsonWebKey> | Record<string, JsonWebKey>;
   releasePolicy?: CapsuleReleasePolicy;
@@ -29,6 +32,7 @@ export interface CapsuleSessionOptions extends TargetPlanSelectionPolicy, Capsul
 }
 
 export interface RunPorts {
+  registries?: ExecutionRegistries | null;
   artifactBacking?: CapsuleArtifactBacking;
   device: object;
   capsuleSource?: { fetchCapsule(id: string, options?: object): Promise<DopplerCapsule> };
@@ -36,16 +40,22 @@ export interface RunPorts {
     hashArtifact?(artifact: CapsuleV2Artifact): Promise<{ hash: string; sizeBytes: number }>;
   };
   trustedSigners: Map<string, JsonWebKey> | Record<string, JsonWebKey>;
+  /** The host's pure manifest-bound partition validator; required for resident opening. */
+  resolveResidentPartitionAllocation?: (manifest: Record<string, unknown>, manifestHash: string,
+    allocation: NonNullable<CapsuleSessionOptions['residentPartition']>) => NonNullable<CapsuleSessionOptions['residentPartition']>;
   programFactory(args: {
     capsule: DopplerCapsule; targetPlan: TargetPlan;
     artifactStore: ReturnType<typeof createVerifiedCapsuleArtifactStore>;
     deviceProfile: DeviceProfile; options: CapsuleSessionOptions;
+    registries: ResolvedExecutionRegistries | null;
+    observer: RunPorts['observer'];
   }): Promise<object>;
   cache?: { set(key: string, value: unknown): Promise<void> | void } | null;
   observer?: { observe(event: Record<string, unknown>): void } | null;
 }
 
 export interface DopplerRunSession {
+  readonly residentPartition?: import('../../inference/pipelines/text/resident-partition-contract.js').ResidentPartitionSession;
   readonly generationContract: typeof GENERATION_CONTRACT;
   schema: 'doppler.capsule-session/v1';
   readonly loaded: boolean;

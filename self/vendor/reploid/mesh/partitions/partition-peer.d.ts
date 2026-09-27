@@ -4,7 +4,8 @@ import type { PartitionChannelLimits, PartitionChannelReceipt } from '../../tran
 import type { ResidentPartition, ResidentPartitionDescriptor } from './resident-partition.js';
 import type { PartitionGrantAuthority } from './partition-grants.js';
 export interface RemotePartitionDevice extends PartitionDevice {
-  executeFrame(options: PartitionStepOptions & { frame: ActivationFrame; outputGrant: object }): ReturnType<PartitionDeviceB['executeGroup1']>;
+  executeFrame(options: PartitionStepOptions & { frame: ActivationFrame; inputTokenIds: number[];
+    outputGrant: object }): ReturnType<PartitionDeviceB['executeGroup1']>;
 }
 export interface PartitionPeerState {
   ready: boolean; descriptor: ResidentPartitionDescriptor | null; participantId: string; receipt: PartitionChannelReceipt;

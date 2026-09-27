@@ -1,4 +1,5 @@
 /** Coordinates one Doppler token step through both partitions. No model math lives here. */
+import { partitionFingerprint } from './partition-contract.js';
 const assert = (ok, message) => { if (!ok) throw new Error(message); };
 const identifier = value => typeof value === 'string' && value.length > 0 && value.length <= 256;
 const positive = value => Number.isSafeInteger(value) && value > 0;
@@ -62,22 +63,26 @@ export function createLayerPartitionRunner({ runtime, plan: suppliedPlan, device
     try { return await task(); } finally { release(); }
   };
 
-  async function execute({ tokenIds, identity, grants, maxTokens, signal, onDelta = () => {} }) {
+  async function execute({ tokenIds, generation, identity, grants, maxTokens, signal, onDelta = () => {} }) {
     assert(!closed, 'Partition runner is closed');
     signal?.throwIfAborted();
     checkTokens(tokenIds, plan.vocabSize);
     assert(tokenIds.length <= policy.maxPromptTokens, 'Prompt exceeds partition allocation');
     assert(positive(maxTokens) && maxTokens <= policy.maxTokens, 'Invalid partition output allocation');
+    assert(generation && typeof generation === 'object' && !Array.isArray(generation)
+      && generation.maxTokens === maxTokens, 'Resolved Doppler generation settings must match the effective output limit');
     assert(identity && ['modelIdentity', 'planId', 'threadId', 'attemptId'].every(key => identifier(identity[key])),
       'Exact model, plan, thread and attempt identities required');
     assert(/^sha256:[a-f0-9]{64}$/.test(identity.modelIdentity), 'Pinned model digest required');
-    assert(grants?.executionA && grants?.executionB && grants?.activation && grants?.output,
-      'Execution, intermediate disclosure and output grants are required');
+    assert(grants?.executionA && grants?.executionB && grants?.activation && grants?.tokenContext && grants?.output,
+      'Execution, activation, token-context and output grants are required');
     assert(typeof onDelta === 'function', 'onDelta must be a function');
     const binding = Object.freeze({ modelId: plan.modelId, modelIdentity: identity.modelIdentity,
       planId: identity.planId, threadId: identity.threadId, attemptId: identity.attemptId,
       participantA: participants[0], participantB: participants[1] });
     const authority = freezeRecord(snapshot(grants));
+    const settings = freezeRecord(snapshot(generation));
+    const generationDigest = await partitionFingerprint(settings);
     assert(!usedAttempts.has(binding.attemptId), 'Attempt already used; resume requires a supported checkpoint');
     assert(usedAttempts.size < policy.maxAttempts, 'Partition runner attempt budget exhausted');
     assert(active.size < policy.maxConcurrentAttempts, 'Partition concurrency budget exhausted');
@@ -102,15 +107,17 @@ export function createLayerPartitionRunner({ runtime, plan: suppliedPlan, device
       for (let index = 0; index < maxTokens; index++) {
         const terminal = await lease(async () => {
           combined.throwIfAborted();
-          const step = Object.freeze({ step: index, tokenPosition: position, inputTokenCount: input.length, maxTokens });
+          const step = Object.freeze({ step: index, tokenPosition: position, inputTokenCount: input.length,
+            maxTokens, generationDigest });
           const started = performance.now();
           // Both execution recipients must be eligible before exposing any input.
           await permit('mesh.execute_partition_a', authority.executionA, step);
           await permit('mesh.execute_partition_b', authority.executionB, step);
           await permit('mesh.transfer_intermediate_activation', authority.activation, step);
+          await permit('mesh.transfer_token_context', authority.tokenContext, step);
           await permit('mesh.transfer_partition_output', authority.output, step);
           const resultA = snapshot(await deviceA.executeGroup0({ tokenIds: [...input], continuation: continuationA,
-            identity: binding, executionGrant: authority.executionA, ...step, signal: combined }));
+            generation: settings, identity: binding, executionGrant: authority.executionA, ...step, signal: combined }));
           combined.throwIfAborted();
           const tensor = resultA?.activationTensor;
           assert(tensor && tensor.dtype === plan.activationDtype && tensor.shape?.length === 3
@@ -128,7 +135,8 @@ export function createLayerPartitionRunner({ runtime, plan: suppliedPlan, device
           if (typeof deviceB.executeFrame === 'function') {
             await permit('mesh.execute_partition_b', authority.executionB, step);
             resultB = snapshot(await deviceB.executeFrame({ frame, continuation: continuationB,
-              identity: binding, executionGrant: authority.executionB, outputGrant: authority.output,
+              inputTokenIds: [...input], generation: settings, identity: binding,
+              executionGrant: authority.executionB, outputGrant: authority.output,
               ...step, signal: combined }));
             // Includes remote compute and disclosure; never label this as network-only latency.
             remoteStepMs = performance.now() - transferStarted;
@@ -146,7 +154,8 @@ export function createLayerPartitionRunner({ runtime, plan: suppliedPlan, device
             assert(before.every((byte, offset) => byte === after[offset]), 'Received activation bytes differ');
             await permit('mesh.execute_partition_b', authority.executionB, step);
             resultB = snapshot(await deviceB.executeGroup1({ activation: runtime.deserializeActivationFrame(received),
-              continuation: continuationB, identity: binding, executionGrant: authority.executionB,
+              inputTokenIds: [...input], generation: settings, continuation: continuationB,
+              identity: binding, executionGrant: authority.executionB,
               outputGrant: authority.output, ...step, signal: combined }));
           }
           combined.throwIfAborted();
@@ -209,11 +218,11 @@ export function createLayerPartitionRunner({ runtime, plan: suppliedPlan, device
 }
 
 /** Final-logit comparison only. Full acceptance additionally compares every boundary/token. */
-export async function verifySplitParity({ runtime, splitRunner, referenceRunner, tokenIds,
+export async function verifySplitParity({ runtime, splitRunner, referenceRunner, tokenIds, generation,
   identity, grants, maxTokens, tolerance }) {
   assert(typeof runtime?.comparePartitionExecution === 'function', 'Doppler comparison runtime required');
   assert(Number.isFinite(tolerance) && tolerance >= 0, 'Explicit numerical tolerance required');
-  const splitResult = await splitRunner.execute({ tokenIds, identity, grants, maxTokens });
+  const splitResult = await splitRunner.execute({ tokenIds, generation, identity, grants, maxTokens });
   const refResult = await referenceRunner.execute({ tokenIds, maxTokens });
   assert(splitResult.logits?.length > 0 && refResult.logits?.length > 0
     && [...splitResult.logits, ...refResult.logits].every(Number.isFinite), 'Finite non-empty logits required');

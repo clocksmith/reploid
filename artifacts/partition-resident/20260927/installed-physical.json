@@ -1,0 +1,254 @@
+{
+  "scope": "resident partition execution versus supplied unsplit reference",
+  "modelIdentity": "sha256:8cffe6b1fd22442d17b9011b383526963858d66c92207c4931f01f48144a4a05",
+  "planId": "sha256:4cd502fccafb51189c6c1dfd0fb0af434bfad640b9beccad9ecbe43474043769",
+  "tolerance": 0.0001,
+  "steps": [
+    {
+      "step": 0,
+      "tokenId": 564,
+      "comparison": {
+        "schema": "doppler.partition-comparison-contract/v1",
+        "matches": true,
+        "maxDiff": 0,
+        "mse": 0,
+        "cosineSimilarity": 0.9999999999999999,
+        "tolerance": 0.0001,
+        "minCosineSimilarity": 0.9999,
+        "length": 262144
+      }
+    },
+    {
+      "step": 1,
+      "tokenId": 1006,
+      "comparison": {
+        "schema": "doppler.partition-comparison-contract/v1",
+        "matches": true,
+        "maxDiff": 0,
+        "mse": 0,
+        "cosineSimilarity": 0.9999999999999999,
+        "tolerance": 0.0001,
+        "minCosineSimilarity": 0.9999,
+        "length": 262144
+      }
+    },
+    {
+      "step": 2,
+      "tokenId": 15025,
+      "comparison": {
+        "schema": "doppler.partition-comparison-contract/v1",
+        "matches": true,
+        "maxDiff": 0,
+        "mse": 0,
+        "cosineSimilarity": 1,
+        "tolerance": 0.0001,
+        "minCosineSimilarity": 0.9999,
+        "length": 262144
+      }
+    }
+  ],
+  "descriptors": [
+    {
+      "schema": "doppler.resident-partition/v1",
+      "ready": true,
+      "modelId": "gemma-3-270m-it-f16-af32",
+      "modelIdentity": "sha256:8cffe6b1fd22442d17b9011b383526963858d66c92207c4931f01f48144a4a05",
+      "planId": "sha256:4cd502fccafb51189c6c1dfd0fb0af434bfad640b9beccad9ecbe43474043769",
+      "index": 0,
+      "layerRange": [
+        0,
+        8
+      ],
+      "residentWeightBytes": 453592064,
+      "generationDigest": "sha256:50599ef56b513db2592c97d65a2a37681674f4698100499fd706bbe2b5ae3393"
+    },
+    {
+      "schema": "doppler.resident-partition/v1",
+      "ready": true,
+      "modelId": "gemma-3-270m-it-f16-af32",
+      "modelIdentity": "sha256:8cffe6b1fd22442d17b9011b383526963858d66c92207c4931f01f48144a4a05",
+      "planId": "sha256:4cd502fccafb51189c6c1dfd0fb0af434bfad640b9beccad9ecbe43474043769",
+      "index": 1,
+      "layerRange": [
+        9,
+        17
+      ],
+      "residentWeightBytes": 453594112,
+      "generationDigest": "sha256:50599ef56b513db2592c97d65a2a37681674f4698100499fd706bbe2b5ae3393"
+    }
+  ],
+  "result": {
+    "content": " I am sorry",
+    "tokenIds": [
+      564,
+      1006,
+      15025
+    ],
+    "stopReason": "max-tokens",
+    "execution": {
+      "schema": "reploid.mesh.partition-execution/v2",
+      "modelId": "gemma-3-270m-it-f16-af32",
+      "modelIdentity": "sha256:8cffe6b1fd22442d17b9011b383526963858d66c92207c4931f01f48144a4a05",
+      "planId": "sha256:4cd502fccafb51189c6c1dfd0fb0af434bfad640b9beccad9ecbe43474043769",
+      "threadId": "conformance",
+      "attemptId": "8070eab4-aa16-4816-a33d-7eb4b73bc78c",
+      "participantA": "conformance-a",
+      "participantB": "conformance-b",
+      "placement": "two-device-layer-partition",
+      "splitLayer": 9,
+      "activationBytes": 35840,
+      "steps": [
+        {
+          "step": 0,
+          "tokenPosition": 0,
+          "inputTokenCount": 12,
+          "maxTokens": 3,
+          "generationDigest": "sha256:9682b31050686cd057edf3fb52835f184ec25735d3ff2d12ffeb345b390a3009",
+          "tokenId": 564,
+          "activationBytes": 30720,
+          "transferMs": 0.041067000000111875,
+          "remoteStepMs": null,
+          "elapsedMs": 117.46472199999994
+        },
+        {
+          "step": 1,
+          "tokenPosition": 12,
+          "inputTokenCount": 1,
+          "maxTokens": 3,
+          "generationDigest": "sha256:9682b31050686cd057edf3fb52835f184ec25735d3ff2d12ffeb345b390a3009",
+          "tokenId": 1006,
+          "activationBytes": 2560,
+          "transferMs": 0.012914000000137094,
+          "remoteStepMs": null,
+          "elapsedMs": 64.35181899999998
+        },
+        {
+          "step": 2,
+          "tokenPosition": 13,
+          "inputTokenCount": 1,
+          "maxTokens": 3,
+          "generationDigest": "sha256:9682b31050686cd057edf3fb52835f184ec25735d3ff2d12ffeb345b390a3009",
+          "tokenId": 15025,
+          "activationBytes": 2560,
+          "transferMs": 0.013484999999946012,
+          "remoteStepMs": null,
+          "elapsedMs": 68.06823699999995
+        }
+      ]
+    }
+  },
+  "additionalReference": {
+    "modelIdentity": "sha256:8cffe6b1fd22442d17b9011b383526963858d66c92207c4931f01f48144a4a05",
+    "messages": [
+      {
+        "role": "user",
+        "content": "The capital of France is"
+      }
+    ],
+    "content": " The capital of",
+    "tokenIds": [
+      669,
+      5279,
+      529
+    ]
+  },
+  "stopSequence": {
+    "content": " I",
+    "tokenIds": [
+      564
+    ],
+    "stopReason": "stop-sequence",
+    "steps": [
+      {
+        "step": 0,
+        "tokenId": 564,
+        "comparison": {
+          "schema": "doppler.partition-comparison-contract/v1",
+          "matches": true,
+          "maxDiff": 0,
+          "mse": 0,
+          "cosineSimilarity": 0.9999999999999999,
+          "tolerance": 0.0001,
+          "minCosineSimilarity": 0.9999,
+          "length": 262144
+        }
+      }
+    ]
+  },
+  "packageRoot": "/home/x/deco/reploid/node_modules/doppler-gpu",
+  "modelDirectory": "/home/x/deco/doppler/models/local/gemma-3-270m-it-f16-af32",
+  "provider": {
+    "schema": "doe.webgpu-provider-receipt/v1",
+    "contract": "doe.webgpu-provider/v1",
+    "implementation": "doppler",
+    "providers": [
+      {
+        "id": "pre-installed",
+        "kind": "global"
+      },
+      {
+        "id": "webgpu",
+        "kind": "module",
+        "module": "webgpu",
+        "gpu": {
+          "kind": "factory",
+          "path": "create",
+          "args": [
+            [
+              "enable-dawn-features=allow_unsafe_apis"
+            ]
+          ]
+        },
+        "globals": {
+          "GPUBufferUsage": "globals.GPUBufferUsage",
+          "GPUShaderStage": "globals.GPUShaderStage",
+          "GPUMapMode": "globals.GPUMapMode",
+          "GPUTextureUsage": "globals.GPUTextureUsage"
+        }
+      }
+    ],
+    "providerOrder": [
+      "pre-installed",
+      "webgpu"
+    ],
+    "adapterOptions": null,
+    "globals": {
+      "mode": "replace",
+      "installed": [
+        "GPUBufferUsage",
+        "GPUShaderStage",
+        "GPUMapMode",
+        "GPUTextureUsage",
+        "navigator.gpu"
+      ],
+      "restored": false
+    },
+    "attempts": [
+      {
+        "providerId": "pre-installed",
+        "kind": "global",
+        "module": null,
+        "ok": false,
+        "stage": "gpu.validate",
+        "code": "DOPPLER_PROVIDER_UNAVAILABLE",
+        "detail": "Selected provider does not expose GPU.requestAdapter()."
+      },
+      {
+        "providerId": "webgpu",
+        "kind": "module",
+        "module": "webgpu",
+        "ok": true,
+        "stage": "complete",
+        "code": null,
+        "detail": null
+      }
+    ],
+    "selectedProviderId": "webgpu",
+    "ok": true
+  },
+  "actualModelInference": true,
+  "publicCapsuleAcquisition": false,
+  "physicalDevices": 1,
+  "archiveIntegrity": "sha512-g5Cxf/Epo+o0GFrEZUYkLg4mtcRjciUhJ/cTqIXI8JTDneh5KZCg67EUKRANbSgG/xcbDWBZeRII818xj92kMA==",
+  "command": "DOPPLER_PARTITION_MODEL_DIR=/home/x/deco/doppler/models/local/gemma-3-270m-it-f16-af32 node tests/contracts/doppler-partition-installed-physical.js"
+}

@@ -2,21 +2,24 @@ import * as runtime from '/vendor/doppler/0.6.3-dev.split.1/src/inference/pipeli
 import { createSigningIdentity } from '/vendor/reploid/artifacts/identity.js';
 import { createMeshPeerIdentity } from '/vendor/reploid/mesh/peer-identity.js';
 import { createResidentPartition, createPartitionGrantAuthority, createPartitionPeer,
-  createPartitionNetwork, createPartitionChat, partitionFingerprint } from '/vendor/reploid/mesh/index.js';
+  createPartitionNetwork, createPartitionChat } from '/vendor/reploid/mesh/index.js';
 import { createChatSession } from '/host/chat-session.js';
 import { renderConversationWorkspace, bindConversationWorkspace } from '/ui/pool-home/conversation-workspace.js';
 import { createPartitionRuntimeFixture } from '/partition-runtime-fixture.js';
 
-export async function start(index) {
+export async function start(index, { model: suppliedModel, plan: suppliedPlan,
+  factory: suppliedFactory, policy: suppliedPolicy, channelLimits } = {}) {
   const identity = await createSigningIdentity({ algorithm: 'ECDSA' });
-  const policy = { maxTokens: 4, maxPromptTokens: 64, maxActivationBytes: 4096, maxOutputCharacters: 1024,
+  const policy = suppliedPolicy ?? { maxTokens: 4, maxPromptTokens: 64, maxActivationBytes: 4096, maxOutputCharacters: 1024,
     maxAttempts: 64, maxConcurrentAttempts: 4 };
-  const model = { id: 'partition-fixture', name: 'Injected partition model', provider: 'doppler', identity: 'sha256:' + 'a'.repeat(64), adapters: [] };
-  const plan = runtime.createLayerPartitionPlan({ modelId: model.id, numLayers: 4, hiddenSize: 8, vocabSize: 128, splitLayer: 2 });
-  const planId = await partitionFingerprint(plan);
+  const model = suppliedModel ?? { id: 'partition-fixture', name: 'Injected partition model', provider: 'doppler', identity: 'sha256:' + 'a'.repeat(64),
+    generation: { maxTokens: 4, maxSeqLen: 128, temperature: 0, topK: 0, topP: 1,
+      repetitionPenalty: 1, repetitionPenaltyWindow: 0, presencePenalty: 0, useChatTemplate: false }, adapters: [] };
+  const plan = suppliedPlan ?? runtime.createLayerPartitionPlan({ modelId: model.id, numLayers: 4, hiddenSize: 8, vocabSize: 128, splitLayer: 2 });
+  const planId = runtime.hashLayerPartitionPlan(plan);
   const state = { index, identity, model, plan, planId, session: null, chat: null, endpoint: null,
     held: false, entered: false, release: null, proofs: [] };
-  const factory = state.factory = createPartitionRuntimeFixture({ beforeStep: async (_request, group) => {
+  const factory = state.factory = suppliedFactory ?? createPartitionRuntimeFixture({ beforeStep: async (_request, group) => {
     if (state.held && group === 1) { state.entered = true; await new Promise(resolve => { state.release = resolve; }); state.held = false; }
   } });
   const resident = state.resident = createResidentPartition({ runtime: factory, model, plan, planId, index,
@@ -47,7 +50,7 @@ export async function start(index) {
     createEndpoint: ({ channel, remoteParticipantId }) => createPartitionPeer({ channel,
       localParticipantId: identity.peerId, remoteParticipantId, runtime, plan, planId, modelIdentity: model.identity,
       authority, contributor: index === 1 ? resident : null,
-      limits: { maxFrameBytes: 64, maxControlBytes: 8192, maxPayloadBytes: 4096, maxPendingBytes: 32768,
+      limits: channelLimits ?? { maxFrameBytes: 64, maxControlBytes: 8192, maxPayloadBytes: 4096, maxPendingBytes: 32768,
         maxPendingRequests: 8, maxRequestsPerChannel: 512, maxBufferedBytes: 16384, maxTransferBytes: 1048576, timeoutMs: 10000 },
       receiverLimits: { maxAttempts: 64, maxSteps: 8 } }),
     onPeer: (_peerId, endpoint) => { state.endpoint = endpoint; },
@@ -79,7 +82,7 @@ export async function start(index) {
     const attempt = state.session.getState().threads.find(thread => thread.id === threadId).attempts.at(-1);
     state.session.approve(threadId, attempt.id, attempt.approval.id, true, { remember });
   };
-  state.snapshot = () => ({ log: structuredClone(factory.log), proofs: state.proofs,
+  state.snapshot = () => ({ log: structuredClone(factory.log ?? null), proofs: state.proofs,
     workspace: state.session?.getState(), peer: state.endpoint?.getState() });
   state.close = async () => {
     state.release?.(); state.disposeView?.();

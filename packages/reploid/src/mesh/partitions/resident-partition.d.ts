@@ -8,6 +8,7 @@ export interface ResidentPartitionDescriptor {
 }
 export interface PartitionTokenization {
   modelIdentity: string; tokenIds: number[];
+  generation: Record<string, unknown> & { maxTokens: number };
 }
 export interface DopplerResidentPartitionSession {
   getDescriptor(): ResidentPartitionDescriptor;

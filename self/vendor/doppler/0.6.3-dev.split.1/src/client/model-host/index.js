@@ -1,5 +1,6 @@
+import { resolvePipelineRegistries } from '../../inference/pipelines/shader-scoped-pipeline.js';
 import { log } from '../../debug/index.js';
-import { createPipeline } from '../../generation/index.js';
+import { createPipeline } from '../../inference/pipelines/text.js';
 import { createCapsuleLoadScope, assertCapsuleLoadActive } from '../runtime/capsule-acquisition.js';
 import { listQuickstartModels } from '../doppler-registry.js';
 import {
@@ -33,6 +34,8 @@ import { runWithShaderSourceScope } from '../../gpu/kernels/shader-source-scope.
 import { createDopplerRun } from '../runtime/composition-root.js';
 import { createCapsuleArtifactBacking } from '../runtime/verified-capsule-artifact-store.js';
 import { createCapsuleProgramAdapter } from '../runtime/capsule-program-adapter.js';
+import { createResidentPartitionSession } from '../../inference/pipelines/text/resident-partition.js';
+import { resolveResidentPartitionAllocation } from '../../inference/pipelines/text/resident-partition-contract.js';
 import { createCapsuleArtifactSource } from '../runtime/capsule-artifact-source.js';
 import { resolveProgramLoadRuntimeConfig } from '../../config/initial-execution-identity.js';
 import { normalizeTargetPlanSelectionPolicy } from '../../config/target-plan.js';
@@ -181,11 +184,18 @@ export function createDopplerRuntimeService({
   ensureWebGPUAvailable,
   defaultLoadProgressLogger = null,
   resolveCapsuleInput = null,
+  ruleRegistry,
+  kernelRegistry,
+  observer = null,
 } = {}) {
   if (typeof ensureWebGPUAvailable !== 'function') {
     throw new Error('createDopplerRuntimeService requires ensureWebGPUAvailable.');
   }
 
+  const registries = resolvePipelineRegistries({ ruleRegistry, kernelRegistry });
+  ruleRegistry = registries.ruleRegistry;
+  kernelRegistry = registries.kernelRegistry;
+  const extendedRegistries = registries.isCanonical ? null : registries;
   const convenienceModelCache = new Map();
   const inFlightLoadCache = new Map();
   const capsuleArtifactBacking = createCapsuleArtifactBacking();
@@ -197,6 +207,10 @@ export function createDopplerRuntimeService({
   }
 
   async function load(model, options = {}) {
+    return (await loadProgram(model, options)).modelHandle;
+  }
+
+  async function loadProgram(model, options = {}, partition = null) {
     assertPersistentCacheMode(options.cache);
     const resolutionPolicy = resolveResolutionPolicy(options.resolutionPolicy);
     const { userProgress, pipelineProgress } = resolveLoadProgressHandlers(options, defaultLoadProgressLogger);
@@ -297,6 +311,8 @@ export function createDopplerRuntimeService({
     let pipeline;
     try {
       pipeline = await createPipeline(loadSource.manifest, {
+        partition,
+        ruleRegistry, kernelRegistry, observer,
         baseUrl: effectiveBaseUrl ?? undefined,
         storage: storageContext ?? undefined,
         runtimeConfig: options.runtimeConfig,
@@ -322,12 +338,13 @@ export function createDopplerRuntimeService({
     pipeline.revocationIdentity = revocationIdentity;
 
     emitLoadProgress(userProgress, 'ready', 100, 'Model ready');
-    return createModelHandle(pipeline, {
+    const modelHandle = createModelHandle(pipeline, {
       ...resolved,
       manifestHash: manifestPayload.manifestHash,
       persistentCache: loadSource.persistentCache ?? null,
       resolutionPolicy,
     });
+    return { pipeline, modelHandle };
   }
 
   async function getCachedModel(model, options = {}) {
@@ -364,11 +381,12 @@ export function createDopplerRuntimeService({
     if (options.modelLoadOptions !== undefined) {
       throw new Error('doppler.openCapsule() prohibits modelLoadOptions because signed TargetPlan policy is authoritative.');
     }
+    const residentPartition = options.residentPartition === undefined ? undefined : structuredClone(options.residentPartition);
     options = { ...options, ...normalizeTargetPlanSelectionPolicy({
       acceptedTargetPlanDigests: options.acceptedTargetPlanDigests,
       requiredOperations: options.requiredOperations,
       preferredTargetPlanDigests: options.preferredTargetPlanDigests,
-    }) };
+    }), residentPartition };
     const acquisition = createCapsuleLoadScope(options);
     options = acquisition.options;
     try {
@@ -405,16 +423,28 @@ export function createDopplerRuntimeService({
         artifactBacking: capsuleArtifactBacking,
         trustedSigners: options.trustedSigners ?? {},
         cache: options.verificationCache ?? null,
-        observer: options.observer ?? null,
-        async programFactory({ capsule, targetPlan, artifactStore, options: programOptions }) {
+        observer: options.observer ?? observer,
+        registries: extendedRegistries,
+        resolveResidentPartitionAllocation,
+        async programFactory({ capsule, targetPlan, artifactStore, registries: programRegistries, options: programOptions }) {
           const source = await createCapsuleArtifactSource(capsule, artifactStore);
           assertCapsuleLoadActive(programOptions.signal);
-          const modelHandle = await load(source, { ...resolveCapsuleProgramLoadOptions(targetPlan), isolatedLoader: true });
+          const allocation = programOptions.residentPartition;
+          const { pipeline, modelHandle } = await loadProgram(source,
+            { ...resolveCapsuleProgramLoadOptions(targetPlan), isolatedLoader: true },
+            allocation ? { plan: allocation.plan, index: allocation.index } : null);
           try {
             assertCapsuleLoadActive(programOptions.signal);
             await artifactStore.releaseBacking();
             assertCapsuleLoadActive(programOptions.signal);
-            return createCapsuleProgramAdapter(modelHandle, capsule, targetPlan);
+            const program = createCapsuleProgramAdapter(modelHandle, capsule, targetPlan, programRegistries);
+            if (allocation) {
+              const resident = await createResidentPartitionSession(pipeline, allocation, program, () => modelHandle.unload());
+              program.residentPartition = resident;
+              program.close = () => resident.close();
+              program.executePhase = async () => { throw new Error('A resident partition cannot execute an unsplit program phase.'); };
+            }
+            return program;
           } catch (error) {
             try { await modelHandle.unload(); } catch (cleanupError) {
               throw new AggregateError([error, cleanupError], 'Capsule program binding and cleanup failed.', { cause: error });

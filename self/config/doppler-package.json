@@ -3,5 +3,5 @@
   "version": "0.6.3-dev.split.1",
   "spec": "file:deploy/artifacts/doppler-gpu-0.6.3-dev.split.1.tgz",
   "resolved": "file:deploy/artifacts/doppler-gpu-0.6.3-dev.split.1.tgz",
-  "integrity": "sha512-gKMWz8nMrevyZCA/dn0ckcA80HzXUVpMTpgJIclfGUxUgLWtKETdehS9ofC5OByx5ljf+/SxogF42aV3OIQ/3Q=="
+  "integrity": "sha512-g5Cxf/Epo+o0GFrEZUYkLg4mtcRjciUhJ/cTqIXI8JTDneh5KZCg67EUKRANbSgG/xcbDWBZeRII818xj92kMA=="
 }

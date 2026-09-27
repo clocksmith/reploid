@@ -26,7 +26,10 @@ export function createPartitionRuntimeFixture({ beforeStep = async () => {} } = 
         log.tokenizations.push(structuredClone(messages));
         const value = Number.parseInt(messages.at(-1).content, 10);
         if (!Number.isFinite(value)) throw new Error('Fixture expects a numeric test prompt');
-        return { modelIdentity: model.identity, tokenIds: [value] };
+        return { modelIdentity: model.identity, tokenIds: [value],
+          generation: { maxTokens: model.generation?.maxTokens ?? allocation.limits.maxTokens,
+            maxSeqLen: model.generation?.maxSeqLen ?? 128, temperature: 0, topK: 0, topP: 1,
+            repetitionPenalty: 1, repetitionPenaltyWindow: 0, presencePenalty: 0, useChatTemplate: false } };
       },
       async executeGroup0(request) {
         await step(request);
