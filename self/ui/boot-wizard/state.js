@@ -289,6 +289,12 @@ const defaultState = {
     status: 'idle', // idle | generating | error | ready
     error: null
   },
+  runReplayImport: {
+    status: 'idle',
+    error: null,
+    filename: '',
+    summary: null
+  },
 
   // Advanced options
   advancedOpen: false,
@@ -393,6 +399,12 @@ export function resetWizard() {
     goalGenerator: {
       status: 'idle',
       error: null
+    },
+    runReplayImport: {
+      status: 'idle',
+      error: null,
+      filename: '',
+      summary: null
     },
     accessConfig: {
       accessCode: '',

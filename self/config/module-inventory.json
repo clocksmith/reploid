@@ -334,13 +334,13 @@
     {
       "path": "config/surface-resources.js",
       "owner": "config",
-      "sha256": "sha256:cc8ba7b4a150beba7b946a7e6a94502e1cee5f1cbfbf83dc0de22db06db9711f",
+      "sha256": "sha256:99d55ae0acad250b9cdc86b8b49c9c84f61ec44fbd3547f20ae1206f03be2a14",
       "imports": []
     },
     {
       "path": "config/tool-surfaces.js",
       "owner": "config",
-      "sha256": "sha256:d23c9e13ddea4b41b3f940e7b63f084df4ec7b7ecf35502d68767c67bb20947e",
+      "sha256": "sha256:41c63be6062ade2d5983f158b5996747c1dfd81cb3717ab7c9fd4a778c624e20",
       "imports": []
     },
     {
@@ -364,9 +364,9 @@
     {
       "path": "core/agent-context.js",
       "owner": "core",
-      "sha256": "sha256:74759c1f5b9e58d790e012992e5d6543049faa2ac137025e86566c2fe7a46f5f",
+      "sha256": "sha256:1b88f59052377b727d5c8bbcb296ee08db5d1252da61928a941b833c7d03d803",
       "imports": [
-        "../config/tool-surfaces.js"
+        "./zero-prompt.js"
       ]
     },
     {
@@ -380,7 +380,7 @@
     {
       "path": "core/agent-loop.js",
       "owner": "core",
-      "sha256": "sha256:7ba1be33b963e5e02408a9fa15f416e4e36f3efd60e990f1fc37aff5d4205621",
+      "sha256": "sha256:37a8b2bf54639d5457f3faeeca83be9f8d893d9181d99047258cf7c3d9278015",
       "imports": [
         "../config/reploid-library.json",
         "../config/surface-intents.js",
@@ -388,7 +388,8 @@
         "../vendor/reploid/agent/legacy-loop.js",
         "../vendor/reploid/config/index.js",
         "./agent-context.js",
-        "./agent-loop-policies.js"
+        "./agent-loop-policies.js",
+        "./run-replay-bundle.js"
       ]
     },
     {
@@ -488,10 +489,10 @@
     {
       "path": "core/persona-manager.js",
       "owner": "core",
-      "sha256": "sha256:45b5d4e6d7d342ef61846b9615cab4be553b4939160fdc44cc122abb57bff5ee",
+      "sha256": "sha256:9679d9cb4a51a1c3b6c35a03bb10012eb7ea4fbc595f8647cfdb113c121ce2a9",
       "imports": [
-        "../config/tool-surfaces.js",
-        "../instance.js"
+        "../instance.js",
+        "./zero-prompt.js"
       ]
     },
     {
@@ -516,6 +517,12 @@
       "imports": [
         "../vendor/reploid/index.js"
       ]
+    },
+    {
+      "path": "core/run-replay-bundle.js",
+      "owner": "core",
+      "sha256": "sha256:0d6b94b403ac0e1f5332e1e7e617784dd93f4e64914949f0e59a559152f50ec1",
+      "imports": []
     },
     {
       "path": "core/schema-registry.js",
@@ -642,6 +649,14 @@
       "owner": "core",
       "sha256": "sha256:e9aab596ad6a7be13375b57237e9cbcf8be32e16702436821ff6a3e94d65cca9",
       "imports": []
+    },
+    {
+      "path": "core/zero-prompt.js",
+      "owner": "core",
+      "sha256": "sha256:77addbf0f56d1cbe9a9301f2ff66a6170e98d864f0f2bc473f85db84a480dd46",
+      "imports": [
+        "../config/tool-surfaces.js"
+      ]
     },
     {
       "path": "entry/seed-vfs.js",
@@ -1057,7 +1072,7 @@
     {
       "path": "pool/config-contract.js",
       "owner": "pool",
-      "sha256": "sha256:46ad6c6da6d52f893e5f0b07004a01fd08c800905d305219d9dba34fb0de10ed",
+      "sha256": "sha256:1da0786384a24072a5bc7629a4bce5c2ab2c593228ed5a45453b300b23b9026d",
       "imports": [
         "./executable-pack.js",
         "./pack-operation-policy.js",
@@ -1778,7 +1793,7 @@
     {
       "path": "pool/peer-room.js",
       "owner": "pool",
-      "sha256": "sha256:34dc60f254dfd4260652e39b41cf4f28a16fc063169ed2ee8701144c32540e3d",
+      "sha256": "sha256:a95168d5526d2b95d1e71dd7f0ca1640c6ac2ef440c9d674c6225c2f80a66257",
       "imports": [
         "./config.js",
         "./executable-pack.js",
@@ -1788,6 +1803,7 @@
         "./pack-operation.js",
         "./peer-control-plane.js",
         "./peer-pack-job-policy.js",
+        "./peer-pack-job.js",
         "./peer-rendezvous.js"
       ]
     },
@@ -1835,11 +1851,12 @@
     {
       "path": "pool/provider-client.js",
       "owner": "pool",
-      "sha256": "sha256:41ab0a802ddbbc8a4bc7d101c9fa80cd6be47fc861ae88f788461f924785a26c",
+      "sha256": "sha256:26c2e1f842af85b8b79c1bdbef778f6fcf10cf129ece4bbf471e2233fab9a929",
       "imports": [
         "./adapter-pack.js",
         "./adapter-publication.js",
         "./adapter-registry.js",
+        "./config.js",
         "./doppler-runtime.js",
         "./identity.js",
         "./inference-receipt.js",
@@ -1850,7 +1867,6 @@
         "./peer-pack-provider.js",
         "./peer-protocol.js",
         "./policy-router.js",
-        "./pool-config.json",
         "./runtime-profile.js",
         "./sdk.js",
         "./sequence-workload.js"
@@ -2365,9 +2381,10 @@
     {
       "path": "self/manifest.js",
       "owner": "self",
-      "sha256": "sha256:5c139c81e7400a9293b8dec266d6b3fe3969f85fe4e738853e1af10bd46f25bb",
+      "sha256": "sha256:5c20d53f6f2a901bea6ebd4c2c2bd4849094807c4c2eba42029a855291c4aa6f",
       "imports": [
         "./boot-spec.js",
+        "./config/tool-surfaces.js",
         "./config/vfs-policy.js",
         "./environment.js",
         "./identity.js",
@@ -2708,13 +2725,14 @@
     {
       "path": "ui/boot-home/index.js",
       "owner": "ui",
-      "sha256": "sha256:72b03784c7f88dddb43a43914caa50afe63b7483ff8d263f0ab49f71a4f8f59d",
+      "sha256": "sha256:d5cf0430e67212cc95cddb857e1b153e4610e99bbff34718ec391ef88dc0bbd7",
       "imports": [
         "../../boot-helpers/vfs-bootstrap.js",
         "../../config/boot-seed.js",
         "../../config/doppler-local-models.js",
         "../../config/reploid-environments.js",
         "../../config/zero-inference.js",
+        "../../core/run-replay-bundle.js",
         "../../instance.js",
         "../../lab/profiles.js",
         "../boot-wizard/detection.js",
@@ -2795,7 +2813,7 @@
     {
       "path": "ui/boot-wizard/state.js",
       "owner": "ui",
-      "sha256": "sha256:0a40b6113dd3ef86975efc06bc8ca982194d93a94d847b570203ee723e2900c7",
+      "sha256": "sha256:0915503ec5f9b7b6c4c7c81cc96000aaf62d1760ad71f354252631caed516e8c",
       "imports": [
         "../../config/boot-modes.js",
         "../../config/doppler-local-models.js",
@@ -3464,8 +3482,10 @@
     {
       "path": "ui/shared/reploid-contract.js",
       "owner": "ui",
-      "sha256": "sha256:cc6455ec72f97bb3b2a208850e3660d61094ce110bb3476da874cfbeca645ce9",
-      "imports": []
+      "sha256": "sha256:e246744e3c71af08e32cf06effbc59bc71999d64d96a317dfea9918851a12c34",
+      "imports": [
+        "../../config/tool-surfaces.js"
+      ]
     },
     {
       "path": "ui/toast.js",
@@ -3499,10 +3519,18 @@
     {
       "path": "ui/zero/index.js",
       "owner": "ui",
-      "sha256": "sha256:f0839f1a37e68e05baa3bd3823460bc9d742420485f12ae03979781adbb865ca",
+      "sha256": "sha256:b652688715da232514396e3e106356e1a2b76ff749dc61e68f5d4bf6669ae983",
       "imports": [
-        "../../instance.js"
+        "../../core/run-replay-bundle.js",
+        "../../instance.js",
+        "./trace-view.js"
       ]
+    },
+    {
+      "path": "ui/zero/trace-view.js",
+      "owner": "ui",
+      "sha256": "sha256:154b73c7caae6f9ff9ee0d9facdea7c88baa08dbae7f2cdfd76c2be87add6957",
+      "imports": []
     },
     {
       "path": "vendor/doppler/0.6.2/src/capsule-runtime.js",
@@ -14435,7 +14463,7 @@
     {
       "path": "vendor/reploid/agent/response-parser.js",
       "owner": "vendor",
-      "sha256": "sha256:d471cea833366760f63159ec6c510c62c195b15978b509327108a9c0b3f264d0",
+      "sha256": "sha256:5adf011adcc5e2c9e44f4606cba22cc5d53ebe7d3cd525987384cb03f921a85c",
       "imports": []
     },
     {
@@ -14513,8 +14541,10 @@
     {
       "path": "vendor/reploid/artifacts/job-journal.js",
       "owner": "vendor",
-      "sha256": "sha256:121334a74ec71788f56ab4fb03418a7d34454ac473e408b03a43cb65a3049c83",
-      "imports": []
+      "sha256": "sha256:57b405b0f3be55234c622c0518ad3a0eab6eb62cb14c4d23e62e97d1591bc434",
+      "imports": [
+        "../config/index.js"
+      ]
     },
     {
       "path": "vendor/reploid/artifacts/receipt.js",
@@ -14679,7 +14709,7 @@
     {
       "path": "vendor/reploid/mesh/jobs/requester.js",
       "owner": "vendor",
-      "sha256": "sha256:ea0fdb6e59e610dd9665b61d10292b5928be57583652cd669839c2708d1e25b2",
+      "sha256": "sha256:47bb5e9876f1d903ee77661f03c6c0a04b3dab73c46f1d60fa0b5645310f596f",
       "imports": []
     },
     {

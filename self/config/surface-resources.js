@@ -78,6 +78,8 @@ export const ZERO_SEED_PREFIXES = Object.freeze([
   'core/promotion-policy.js',
   'core/provider-registry.js',
   'core/response-parser.js',
+  'core/run-replay-bundle.js',
+  'core/zero-prompt.js',
   'core/schema-registry.js',
   'core/security-config.js',
   'core/state-helpers-pure.js',
@@ -109,6 +111,7 @@ export const ZERO_SEED_PREFIXES = Object.freeze([
   'ui/zero-home/index.js',
   'ui/toast.js',
   'ui/zero/index.js',
+  'ui/zero/trace-view.js',
   ...ZERO_SEED_TOOL_FILES
 ]);
 
@@ -140,7 +143,7 @@ export const ZERO_RUNTIME_SELF_MIRROR_RULES = Object.freeze([
   { sourcePrefix: '/host/', targetPrefix: '/self/host/' },
   { sourcePrefix: '/infrastructure/', targetPrefix: '/self/infrastructure/' },
   { sourcePrefix: '/lab/', targetPrefix: '/self/lab/' },
-  { sourcePath: '/ui/zero/index.js', targetPath: '/self/ui/zero/index.js' },
+  { sourcePrefix: '/ui/zero/', targetPrefix: '/self/ui/zero/' },
   { sourcePath: '/styles/zero.css', targetPath: '/self/styles/zero.css' }
 ]);
 
