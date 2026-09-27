@@ -4,6 +4,7 @@
 
 import { cloneSelfBootSpec } from './boot-spec.js';
 import { OPFS_ARTIFACT_ROOTS, WRITABLE_VFS_ROOTS } from './config/vfs-policy.js';
+import { getVisibleToolsByMode } from './config/tool-surfaces.js';
 import { getDefaultReploidEnvironment } from './environment.js';
 import { buildIdentityDocument } from './identity.js';
 import { getCurrentReploidInstanceId } from './instance.js';
@@ -52,6 +53,8 @@ export const SELF_SOURCE_MIRRORS = Object.freeze([
   { webPath: '/core/import-rewrite.js', vfsPath: '/self/core/import-rewrite.js' },
   { webPath: '/core/promotion-policy.js', vfsPath: '/self/core/promotion-policy.js' },
   { webPath: '/capabilities/system/doppler-optimizer.js', vfsPath: '/self/capabilities/system/doppler-optimizer.js' },
+  { webPath: '/core/run-replay-bundle.js', vfsPath: '/self/core/run-replay-bundle.js' },
+  { webPath: '/core/zero-prompt.js', vfsPath: '/self/core/zero-prompt.js' },
   { webPath: '/tools/Promote.js', vfsPath: '/self/tools/Promote.js' },
   { webPath: '/manifest.js', vfsPath: '/self/manifest.js' },
   { webPath: '/environment.js', vfsPath: '/self/environment.js' },
@@ -80,6 +83,7 @@ export const SELF_SOURCE_MIRRORS = Object.freeze([
   { webPath: '/host/start-reploid.js', vfsPath: '/self/host/start-reploid.js' },
   { webPath: '/ui/pool-home/index.js', vfsPath: '/self/ui/pool-home/index.js' },
   { webPath: '/ui/zero/index.js', vfsPath: '/self/ui/zero/index.js' },
+  { webPath: '/ui/zero/trace-view.js', vfsPath: '/self/ui/zero/trace-view.js' },
   { webPath: '/styles/zero.css', vfsPath: '/self/styles/zero.css' },
   { webPath: '/pool/agent-client.js', vfsPath: '/self/pool/agent-client.js' },
   { webPath: '/pool/config.js', vfsPath: '/self/pool/config.js' },
@@ -217,11 +221,7 @@ export function buildSelfManifest(options = {}) {
     blueprintIndexPath: '/self/blueprint-index.json',
     promptPaths: [...SELF_PROMPT_PATHS],
     blueprintPaths: [...SELF_BLUEPRINT_PATHS],
-    visibleToolsByMode: {
-      zero: ['CreateTool'],
-      reploid: ['ReadFile', 'WriteFile', 'EditFile', 'ListFiles', 'Grep', 'ListTools', 'CreateTool', 'LoadModule', 'Promote'],
-      x: ['ReadFile', 'WriteFile', 'EditFile', 'ListFiles', 'Grep', 'ListTools', 'CreateTool', 'LoadModule', 'Promote', 'DopplerOptimize', 'SpawnWorker', 'AwaitWorkers']
-    },
+    visibleToolsByMode: getVisibleToolsByMode(),
     sourceRoots: [
       '/self',
       '/shadow',

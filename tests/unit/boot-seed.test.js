@@ -90,6 +90,8 @@ describe('boot seed manifest', () => {
     expect(bootFiles).toContain('ui/zero/index.js');
     expect(bootFiles).toContain('styles/zero.css');
     expect(bootFiles.some((file) => file.startsWith('styles/poolday/'))).toBe(false);
+    expect(bootFiles).toContain('core/run-replay-bundle.js');
+    expect(bootFiles).not.toContain('styles/poolday.css');
     expect(bootFiles).not.toContain('styles/rd-components.css');
     expect(bootFiles).not.toContain('styles/rd-primitives.css');
     expect(bootFiles).not.toContain('styles/rd-tokens.css');
@@ -158,7 +160,8 @@ describe('boot seed manifest', () => {
     const xBootFiles = pickBootSeedFiles(manifest.files, 'x_home');
     const xBootSet = new Set(xBootFiles);
 
-    expect(zeroBootFiles.length).toBeLessThanOrEqual(69);
+    // Prior 69-file seed plus replay export, shared Zero prompts, and trace rendering.
+    expect(zeroBootFiles.length).toBeLessThanOrEqual(72);
     for (const profile of Object.keys(BOOT_SEED_PROFILES)) {
       expect(pickBootSeedFiles(manifest.files, profile).some((file) => file.startsWith('vendor/reploid/')), profile)
         .toBe(false);

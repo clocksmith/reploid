@@ -148,7 +148,7 @@ describe('self-first boot shell', () => {
     const styles = readRepoFile('self/styles/boot.css');
 
     expect(bootHome).toContain('const renderAwakenButton = (state, options = {}) =>');
-    expect(bootHome).toContain('primaryActionHtml: renderAwakenButton');
+    expect(bootHome).toContain('primaryActionHtml: renderRunReplayImportControl(state) + renderAwakenButton');
     expect(bootHome).not.toContain('wizard-awaken-simple');
     expect(goalStep).toContain('const primaryActionHtml = options.primaryActionHtml ||');
     expect(goalStep).toContain('goal-primary-action');

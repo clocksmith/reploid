@@ -5,12 +5,14 @@ import * as Policies from './agent-loop-policies.js';
 import { buildAgentInitialContext } from './agent-context.js';
 import { requireSurfaceIntent, authorizeSurfaceOperation } from '../config/surface-intents.js';
 import profile from '../config/reploid-library.json' with { type: 'json' };
+import { buildRunReplayBundle, collectReplayVfsFiles, readImportedRunReplaySummary } from './run-replay-bundle.js';
 
 export default {
   ...AgentLoop,
   factory: deps => {
     let attemptSurface = requireSurfaceIntent('zero');
-    return AgentLoop.factory({
+    let selectedModels = [];
+    const loop = AgentLoop.factory({
     ...deps, config: resolveConfig({ profile: profile.profile }),
     Storage: getCurrentReploidStorage(), Policies, buildInitialContext: buildAgentInitialContext,
     authorizeTool(request) {
@@ -40,5 +42,32 @@ export default {
     getRuntimeMode: () => typeof globalThis.window?.getReploidMode === 'function'
       ? globalThis.window.getReploidMode() : getCurrentReploidStorage().getItem('REPLOID_MODE') || 'reploid'
   });
+    return {
+      ...loop,
+      setModel(model) {
+        loop.setModel(model);
+        selectedModels = model ? [structuredClone(model)] : [];
+      },
+      setModels(models) {
+        loop.setModels(models);
+        selectedModels = structuredClone(models || []);
+      },
+      async exportReplayBundle(options = {}) {
+        const state = deps.StateManager?.getState?.() || {};
+        const context = loop.getContext();
+        const goal = options.goal || state.currentGoal?.text
+          || context.find(message => message?.role === 'user'
+            && String(message.content || '').startsWith('Begin. Goal:'))?.content?.replace(/^Begin\. Goal:\s*/i, '') || '';
+        const storage = getCurrentReploidStorage();
+        return buildRunReplayBundle({
+          route: options.route || globalThis.window?.location?.pathname,
+          mode: options.mode || globalThis.window?.getReploidMode?.() || 'zero',
+          goal, modelConfigs: selectedModels, systemPrompt: loop.getSystemPrompt(), context,
+          messageQueue: loop.getMessageQueue(), activities: loop.getRecentActivities(), state,
+          vfsFiles: await collectReplayVfsFiles(deps.VFS, options.vfs || {}),
+          importedReplay: readImportedRunReplaySummary(storage)
+        });
+      }
+    };
   }
 };
