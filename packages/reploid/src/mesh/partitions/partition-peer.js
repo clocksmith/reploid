@@ -24,12 +24,19 @@ export function createPartitionPeer({ channel, localParticipantId, remotePartici
       && frame.byteLength === frame.shape[1] * frame.shape[2] * (frame.dtype === 'f16' ? 2 : 4)
       && samePartitionIdentity(frame.metadata, metadata.identity)
       && frame.metadata.maxTokens === metadata.maxTokens
+      && frame.metadata.generationDigest === metadata.generationDigest
+      && metadata.generation?.maxTokens === metadata.maxTokens
+      && Array.isArray(metadata.inputTokenIds) && metadata.inputTokenIds.length === metadata.inputTokenCount
+      && metadata.inputTokenIds.every(id => Number.isSafeInteger(id) && id >= 0 && id < plan.vocabSize)
       && frame.metadata.from === metadata.identity.participantA && frame.metadata.to === metadata.identity.participantB;
   };
-  const verify = (metadata, action, settlement = false) => authority.verify(metadata.grant, {
-    identity: metadata.identity, step: metadata.step, inputTokenCount: metadata.inputTokenCount,
-    action, activationBytes: metadata.frame?.byteLength,
-  }, { settlement });
+  const verify = async (metadata, action, settlement = false) => {
+    if (!settlement && (!metadata.generation || await partitionFingerprint(metadata.generation) !== metadata.generationDigest)) return false;
+    const request = { identity: metadata.identity, step: metadata.step, inputTokenCount: metadata.inputTokenCount,
+      generationDigest: metadata.generationDigest, activationBytes: metadata.frame?.byteLength };
+    if (!await authority.verify(metadata.grant, { ...request, action }, { settlement })) return false;
+    return settlement || authority.verify(metadata.grant, { ...request, action: 'mesh.transfer_token_context' });
+  };
   const receiver = createPartitionStepReceiver({ limits: receiverLimits,
     authorize: request => verify(request, 'mesh.execute_partition_b'),
     fingerprint: request => {
@@ -42,6 +49,7 @@ export function createPartitionPeer({ channel, localParticipantId, remotePartici
       const result = await contributor.executeGroup1({ identity: request.identity,
         step: request.step, tokenPosition: request.tokenPosition, inputTokenCount: request.inputTokenCount,
         maxTokens: request.maxTokens,
+        generation: request.generation, inputTokenIds: request.inputTokenIds,
         activation: runtime.deserializeActivationFrame(frame), continuation: request.continuation, signal,
         executionGrant: request.grant, outputGrant: request.grant });
       assert(samePartitionIdentity(result?.identity, request.identity) && result.step === request.step

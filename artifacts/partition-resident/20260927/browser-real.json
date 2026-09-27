@@ -1,0 +1,933 @@
+{
+  "actualModelInference": true,
+  "publicCapsuleAcquisition": false,
+  "physicalDevices": 1,
+  "requester": {
+    "log": {
+      "opens": [
+        0
+      ],
+      "closes": []
+    },
+    "proofs": [
+      "peer:d8e07a039b8ece94d0ef106d"
+    ],
+    "workspace": {
+      "schema": "reploid.chat-workspace/v1",
+      "meshId": "browser-split",
+      "participantId": "peer:041e06d4eba30c3ed0bc4816",
+      "selectedId": "1b435007-43c9-49c2-be61-a783c591737e",
+      "threads": [
+        {
+          "id": "e179b72e-8359-4108-b14e-75e19f27d57b",
+          "model": {
+            "id": "gemma-3-270m-it-f16-af32",
+            "name": "Gemma 3 270M F16 split diagnostic",
+            "provider": "doppler",
+            "identity": "sha256:8cffe6b1fd22442d17b9011b383526963858d66c92207c4931f01f48144a4a05",
+            "generation": {
+              "maxTokens": 3,
+              "maxSeqLen": 128,
+              "temperature": 0,
+              "topK": 0,
+              "topP": 1,
+              "repetitionPenalty": 1.1,
+              "repetitionPenaltyWindow": 0,
+              "presencePenalty": 0.1,
+              "useChatTemplate": false
+            },
+            "adapters": [],
+            "selectionId": "gemma-3-270m-it-f16-af32/partition/sha256:4cd502fccafb51189c6c1dfd0fb0af434bfad640b9beccad9ecbe43474043769",
+            "partition": {
+              "planId": "sha256:4cd502fccafb51189c6c1dfd0fb0af434bfad640b9beccad9ecbe43474043769",
+              "participantA": "peer:041e06d4eba30c3ed0bc4816",
+              "participantB": "peer:d8e07a039b8ece94d0ef106d"
+            },
+            "availability": "ready",
+            "providerIds": [
+              "peer:041e06d4eba30c3ed0bc4816",
+              "peer:d8e07a039b8ece94d0ef106d"
+            ],
+            "placement": "two-device-layer-partition"
+          },
+          "purpose": "",
+          "members": [
+            "peer:041e06d4eba30c3ed0bc4816"
+          ],
+          "permissions": {
+            "sharingScope": "invited-mesh"
+          },
+          "grants": [
+            {
+              "id": "7c2609c8-2c04-4c32-ab36-3f7075c4103d",
+              "meshId": "browser-split",
+              "threadId": "e179b72e-8359-4108-b14e-75e19f27d57b",
+              "recipientIdentity": "peer:d8e07a039b8ece94d0ef106d",
+              "modelId": "gemma-3-270m-it-f16-af32",
+              "modelIdentity": "sha256:8cffe6b1fd22442d17b9011b383526963858d66c92207c4931f01f48144a4a05",
+              "adapterIdentities": [],
+              "sharingScope": "invited-mesh",
+              "disclosure": "partition-activations-and-tokens",
+              "planId": "sha256:4cd502fccafb51189c6c1dfd0fb0af434bfad640b9beccad9ecbe43474043769",
+              "participantA": "peer:041e06d4eba30c3ed0bc4816",
+              "createdAt": 1790551064146,
+              "revokedAt": null
+            }
+          ],
+          "messages": [
+            {
+              "id": "f05d913a-2fa6-41a6-9564-97404822b4bf",
+              "role": "user",
+              "content": "The color of the sky is",
+              "status": "completed"
+            },
+            {
+              "id": "916aeff5-41c0-4845-a59a-b7ecc58f9151",
+              "attemptId": "2845d63b-0cc5-4d38-847c-2cecff353738",
+              "role": "assistant",
+              "content": " I am sorry",
+              "status": "completed"
+            }
+          ],
+          "attempts": [
+            {
+              "id": "2845d63b-0cc5-4d38-847c-2cecff353738",
+              "threadId": "e179b72e-8359-4108-b14e-75e19f27d57b",
+              "userMessageId": "f05d913a-2fa6-41a6-9564-97404822b4bf",
+              "responseId": "916aeff5-41c0-4845-a59a-b7ecc58f9151",
+              "retryOf": null,
+              "status": "completed",
+              "createdAt": 1790551064138,
+              "finishedAt": 1790551064759,
+              "error": null,
+              "approval": null,
+              "execution": {
+                "schema": "reploid.mesh.partition-execution/v2",
+                "modelId": "gemma-3-270m-it-f16-af32",
+                "modelIdentity": "sha256:8cffe6b1fd22442d17b9011b383526963858d66c92207c4931f01f48144a4a05",
+                "planId": "sha256:4cd502fccafb51189c6c1dfd0fb0af434bfad640b9beccad9ecbe43474043769",
+                "threadId": "e179b72e-8359-4108-b14e-75e19f27d57b",
+                "attemptId": "2845d63b-0cc5-4d38-847c-2cecff353738",
+                "participantA": "peer:041e06d4eba30c3ed0bc4816",
+                "participantB": "peer:d8e07a039b8ece94d0ef106d",
+                "placement": "two-device-layer-partition",
+                "splitLayer": 9,
+                "activationBytes": 35840,
+                "steps": [
+                  {
+                    "step": 0,
+                    "tokenPosition": 0,
+                    "inputTokenCount": 12,
+                    "maxTokens": 3,
+                    "generationDigest": "sha256:9682b31050686cd057edf3fb52835f184ec25735d3ff2d12ffeb345b390a3009",
+                    "tokenId": 564,
+                    "activationBytes": 30720,
+                    "transferMs": null,
+                    "remoteStepMs": 191.69999980926514,
+                    "elapsedMs": 302
+                  },
+                  {
+                    "step": 1,
+                    "tokenPosition": 12,
+                    "inputTokenCount": 1,
+                    "maxTokens": 3,
+                    "generationDigest": "sha256:9682b31050686cd057edf3fb52835f184ec25735d3ff2d12ffeb345b390a3009",
+                    "tokenId": 1006,
+                    "activationBytes": 2560,
+                    "transferMs": null,
+                    "remoteStepMs": 50.59999990463257,
+                    "elapsedMs": 149.59999990463257
+                  },
+                  {
+                    "step": 2,
+                    "tokenPosition": 13,
+                    "inputTokenCount": 1,
+                    "maxTokens": 3,
+                    "generationDigest": "sha256:9682b31050686cd057edf3fb52835f184ec25735d3ff2d12ffeb345b390a3009",
+                    "tokenId": 15025,
+                    "activationBytes": 2560,
+                    "transferMs": null,
+                    "remoteStepMs": 20.300000190734863,
+                    "elapsedMs": 33.39999961853027
+                  }
+                ],
+                "provider": "peer",
+                "transport": {
+                  "schema": "reploid.partition-channel/v1",
+                  "sentFrameBytes": 83049,
+                  "receivedFrameBytes": 5536,
+                  "sentFrames": 16,
+                  "receivedFrames": 18,
+                  "completedRequests": 9,
+                  "cancelledRequests": 0,
+                  "discardedFrames": 0,
+                  "pendingRequests": 0,
+                  "inboundRequests": 0,
+                  "reservedBytes": 0,
+                  "closed": false,
+                  "wireBytes": null,
+                  "relayBytes": null
+                }
+              },
+              "authorization": {
+                "kind": "thread-grant",
+                "grantId": "7c2609c8-2c04-4c32-ab36-3f7075c4103d",
+                "peerId": "peer:d8e07a039b8ece94d0ef106d",
+                "recipientIdentity": "peer:d8e07a039b8ece94d0ef106d"
+              },
+              "request": {
+                "model": {
+                  "id": "gemma-3-270m-it-f16-af32",
+                  "name": "Gemma 3 270M F16 split diagnostic",
+                  "provider": "doppler",
+                  "identity": "sha256:8cffe6b1fd22442d17b9011b383526963858d66c92207c4931f01f48144a4a05",
+                  "generation": {
+                    "maxTokens": 3,
+                    "maxSeqLen": 128,
+                    "temperature": 0,
+                    "topK": 0,
+                    "topP": 1,
+                    "repetitionPenalty": 1.1,
+                    "repetitionPenaltyWindow": 0,
+                    "presencePenalty": 0.1,
+                    "useChatTemplate": false
+                  },
+                  "adapters": [],
+                  "selectionId": "gemma-3-270m-it-f16-af32/partition/sha256:4cd502fccafb51189c6c1dfd0fb0af434bfad640b9beccad9ecbe43474043769",
+                  "partition": {
+                    "planId": "sha256:4cd502fccafb51189c6c1dfd0fb0af434bfad640b9beccad9ecbe43474043769",
+                    "participantA": "peer:041e06d4eba30c3ed0bc4816",
+                    "participantB": "peer:d8e07a039b8ece94d0ef106d"
+                  },
+                  "availability": "ready",
+                  "providerIds": [
+                    "peer:041e06d4eba30c3ed0bc4816",
+                    "peer:d8e07a039b8ece94d0ef106d"
+                  ],
+                  "placement": "two-device-layer-partition"
+                },
+                "permissions": {
+                  "sharingScope": "invited-mesh"
+                },
+                "members": [
+                  "peer:041e06d4eba30c3ed0bc4816"
+                ],
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "The color of the sky is"
+                  }
+                ]
+              }
+            }
+          ],
+          "closed": false,
+          "createdAt": 1790551064136
+        },
+        {
+          "id": "1b435007-43c9-49c2-be61-a783c591737e",
+          "model": {
+            "id": "gemma-3-270m-it-f16-af32",
+            "name": "Gemma 3 270M F16 split diagnostic",
+            "provider": "doppler",
+            "identity": "sha256:8cffe6b1fd22442d17b9011b383526963858d66c92207c4931f01f48144a4a05",
+            "generation": {
+              "maxTokens": 3,
+              "maxSeqLen": 128,
+              "temperature": 0,
+              "topK": 0,
+              "topP": 1,
+              "repetitionPenalty": 1.1,
+              "repetitionPenaltyWindow": 0,
+              "presencePenalty": 0.1,
+              "useChatTemplate": false
+            },
+            "adapters": [],
+            "selectionId": "gemma-3-270m-it-f16-af32/partition/sha256:4cd502fccafb51189c6c1dfd0fb0af434bfad640b9beccad9ecbe43474043769",
+            "partition": {
+              "planId": "sha256:4cd502fccafb51189c6c1dfd0fb0af434bfad640b9beccad9ecbe43474043769",
+              "participantA": "peer:041e06d4eba30c3ed0bc4816",
+              "participantB": "peer:d8e07a039b8ece94d0ef106d"
+            },
+            "availability": "ready",
+            "providerIds": [
+              "peer:041e06d4eba30c3ed0bc4816",
+              "peer:d8e07a039b8ece94d0ef106d"
+            ],
+            "placement": "two-device-layer-partition"
+          },
+          "purpose": "",
+          "members": [
+            "peer:041e06d4eba30c3ed0bc4816"
+          ],
+          "permissions": {
+            "sharingScope": "invited-mesh"
+          },
+          "grants": [
+            {
+              "id": "fd61bf7a-bb3a-493f-963a-e15304f5465b",
+              "meshId": "browser-split",
+              "threadId": "1b435007-43c9-49c2-be61-a783c591737e",
+              "recipientIdentity": "peer:d8e07a039b8ece94d0ef106d",
+              "modelId": "gemma-3-270m-it-f16-af32",
+              "modelIdentity": "sha256:8cffe6b1fd22442d17b9011b383526963858d66c92207c4931f01f48144a4a05",
+              "adapterIdentities": [],
+              "sharingScope": "invited-mesh",
+              "disclosure": "partition-activations-and-tokens",
+              "planId": "sha256:4cd502fccafb51189c6c1dfd0fb0af434bfad640b9beccad9ecbe43474043769",
+              "participantA": "peer:041e06d4eba30c3ed0bc4816",
+              "createdAt": 1790551064147,
+              "revokedAt": null
+            }
+          ],
+          "messages": [
+            {
+              "id": "397f36aa-c531-4bcf-a89c-09c26849be23",
+              "role": "user",
+              "content": "The capital of France is",
+              "status": "completed"
+            },
+            {
+              "id": "c1fc6d2b-c1cd-43f0-a9a3-d60e79048ec1",
+              "attemptId": "eeb0b1a6-7e7b-4425-acf5-f2a97dc96107",
+              "role": "assistant",
+              "content": " The capital of",
+              "status": "completed"
+            }
+          ],
+          "attempts": [
+            {
+              "id": "eeb0b1a6-7e7b-4425-acf5-f2a97dc96107",
+              "threadId": "1b435007-43c9-49c2-be61-a783c591737e",
+              "userMessageId": "397f36aa-c531-4bcf-a89c-09c26849be23",
+              "responseId": "c1fc6d2b-c1cd-43f0-a9a3-d60e79048ec1",
+              "retryOf": null,
+              "status": "completed",
+              "createdAt": 1790551064140,
+              "finishedAt": 1790551064784,
+              "error": null,
+              "approval": null,
+              "execution": {
+                "schema": "reploid.mesh.partition-execution/v2",
+                "modelId": "gemma-3-270m-it-f16-af32",
+                "modelIdentity": "sha256:8cffe6b1fd22442d17b9011b383526963858d66c92207c4931f01f48144a4a05",
+                "planId": "sha256:4cd502fccafb51189c6c1dfd0fb0af434bfad640b9beccad9ecbe43474043769",
+                "threadId": "1b435007-43c9-49c2-be61-a783c591737e",
+                "attemptId": "eeb0b1a6-7e7b-4425-acf5-f2a97dc96107",
+                "participantA": "peer:041e06d4eba30c3ed0bc4816",
+                "participantB": "peer:d8e07a039b8ece94d0ef106d",
+                "placement": "two-device-layer-partition",
+                "splitLayer": 9,
+                "activationBytes": 33280,
+                "steps": [
+                  {
+                    "step": 0,
+                    "tokenPosition": 0,
+                    "inputTokenCount": 11,
+                    "maxTokens": 3,
+                    "generationDigest": "sha256:9682b31050686cd057edf3fb52835f184ec25735d3ff2d12ffeb345b390a3009",
+                    "tokenId": 669,
+                    "activationBytes": 28160,
+                    "transferMs": null,
+                    "remoteStepMs": 50.5,
+                    "elapsedMs": 78.59999990463257
+                  },
+                  {
+                    "step": 1,
+                    "tokenPosition": 11,
+                    "inputTokenCount": 1,
+                    "maxTokens": 3,
+                    "generationDigest": "sha256:9682b31050686cd057edf3fb52835f184ec25735d3ff2d12ffeb345b390a3009",
+                    "tokenId": 5279,
+                    "activationBytes": 2560,
+                    "transferMs": null,
+                    "remoteStepMs": 19.59999990463257,
+                    "elapsedMs": 32.90000009536743
+                  },
+                  {
+                    "step": 2,
+                    "tokenPosition": 12,
+                    "inputTokenCount": 1,
+                    "maxTokens": 3,
+                    "generationDigest": "sha256:9682b31050686cd057edf3fb52835f184ec25735d3ff2d12ffeb345b390a3009",
+                    "tokenId": 529,
+                    "activationBytes": 2560,
+                    "transferMs": null,
+                    "remoteStepMs": 17.399999618530273,
+                    "elapsedMs": 31.200000286102295
+                  }
+                ],
+                "provider": "peer",
+                "transport": {
+                  "schema": "reploid.partition-channel/v1",
+                  "sentFrameBytes": 90154,
+                  "receivedFrameBytes": 6430,
+                  "sentFrames": 19,
+                  "receivedFrames": 22,
+                  "completedRequests": 11,
+                  "cancelledRequests": 0,
+                  "discardedFrames": 0,
+                  "pendingRequests": 0,
+                  "inboundRequests": 0,
+                  "reservedBytes": 0,
+                  "closed": false,
+                  "wireBytes": null,
+                  "relayBytes": null
+                }
+              },
+              "authorization": {
+                "kind": "thread-grant",
+                "grantId": "fd61bf7a-bb3a-493f-963a-e15304f5465b",
+                "peerId": "peer:d8e07a039b8ece94d0ef106d",
+                "recipientIdentity": "peer:d8e07a039b8ece94d0ef106d"
+              },
+              "request": {
+                "model": {
+                  "id": "gemma-3-270m-it-f16-af32",
+                  "name": "Gemma 3 270M F16 split diagnostic",
+                  "provider": "doppler",
+                  "identity": "sha256:8cffe6b1fd22442d17b9011b383526963858d66c92207c4931f01f48144a4a05",
+                  "generation": {
+                    "maxTokens": 3,
+                    "maxSeqLen": 128,
+                    "temperature": 0,
+                    "topK": 0,
+                    "topP": 1,
+                    "repetitionPenalty": 1.1,
+                    "repetitionPenaltyWindow": 0,
+                    "presencePenalty": 0.1,
+                    "useChatTemplate": false
+                  },
+                  "adapters": [],
+                  "selectionId": "gemma-3-270m-it-f16-af32/partition/sha256:4cd502fccafb51189c6c1dfd0fb0af434bfad640b9beccad9ecbe43474043769",
+                  "partition": {
+                    "planId": "sha256:4cd502fccafb51189c6c1dfd0fb0af434bfad640b9beccad9ecbe43474043769",
+                    "participantA": "peer:041e06d4eba30c3ed0bc4816",
+                    "participantB": "peer:d8e07a039b8ece94d0ef106d"
+                  },
+                  "availability": "ready",
+                  "providerIds": [
+                    "peer:041e06d4eba30c3ed0bc4816",
+                    "peer:d8e07a039b8ece94d0ef106d"
+                  ],
+                  "placement": "two-device-layer-partition"
+                },
+                "permissions": {
+                  "sharingScope": "invited-mesh"
+                },
+                "members": [
+                  "peer:041e06d4eba30c3ed0bc4816"
+                ],
+                "messages": [
+                  {
+                    "role": "user",
+                    "content": "The capital of France is"
+                  }
+                ]
+              }
+            }
+          ],
+          "closed": false,
+          "createdAt": 1790551064139
+        }
+      ],
+      "runningIds": [],
+      "storageError": null,
+      "activeThread": {
+        "id": "1b435007-43c9-49c2-be61-a783c591737e",
+        "model": {
+          "id": "gemma-3-270m-it-f16-af32",
+          "name": "Gemma 3 270M F16 split diagnostic",
+          "provider": "doppler",
+          "identity": "sha256:8cffe6b1fd22442d17b9011b383526963858d66c92207c4931f01f48144a4a05",
+          "generation": {
+            "maxTokens": 3,
+            "maxSeqLen": 128,
+            "temperature": 0,
+            "topK": 0,
+            "topP": 1,
+            "repetitionPenalty": 1.1,
+            "repetitionPenaltyWindow": 0,
+            "presencePenalty": 0.1,
+            "useChatTemplate": false
+          },
+          "adapters": [],
+          "selectionId": "gemma-3-270m-it-f16-af32/partition/sha256:4cd502fccafb51189c6c1dfd0fb0af434bfad640b9beccad9ecbe43474043769",
+          "partition": {
+            "planId": "sha256:4cd502fccafb51189c6c1dfd0fb0af434bfad640b9beccad9ecbe43474043769",
+            "participantA": "peer:041e06d4eba30c3ed0bc4816",
+            "participantB": "peer:d8e07a039b8ece94d0ef106d"
+          },
+          "availability": "ready",
+          "providerIds": [
+            "peer:041e06d4eba30c3ed0bc4816",
+            "peer:d8e07a039b8ece94d0ef106d"
+          ],
+          "placement": "two-device-layer-partition"
+        },
+        "purpose": "",
+        "members": [
+          "peer:041e06d4eba30c3ed0bc4816"
+        ],
+        "permissions": {
+          "sharingScope": "invited-mesh"
+        },
+        "grants": [
+          {
+            "id": "fd61bf7a-bb3a-493f-963a-e15304f5465b",
+            "meshId": "browser-split",
+            "threadId": "1b435007-43c9-49c2-be61-a783c591737e",
+            "recipientIdentity": "peer:d8e07a039b8ece94d0ef106d",
+            "modelId": "gemma-3-270m-it-f16-af32",
+            "modelIdentity": "sha256:8cffe6b1fd22442d17b9011b383526963858d66c92207c4931f01f48144a4a05",
+            "adapterIdentities": [],
+            "sharingScope": "invited-mesh",
+            "disclosure": "partition-activations-and-tokens",
+            "planId": "sha256:4cd502fccafb51189c6c1dfd0fb0af434bfad640b9beccad9ecbe43474043769",
+            "participantA": "peer:041e06d4eba30c3ed0bc4816",
+            "createdAt": 1790551064147,
+            "revokedAt": null
+          }
+        ],
+        "messages": [
+          {
+            "id": "397f36aa-c531-4bcf-a89c-09c26849be23",
+            "role": "user",
+            "content": "The capital of France is",
+            "status": "completed"
+          },
+          {
+            "id": "c1fc6d2b-c1cd-43f0-a9a3-d60e79048ec1",
+            "attemptId": "eeb0b1a6-7e7b-4425-acf5-f2a97dc96107",
+            "role": "assistant",
+            "content": " The capital of",
+            "status": "completed"
+          }
+        ],
+        "attempts": [
+          {
+            "id": "eeb0b1a6-7e7b-4425-acf5-f2a97dc96107",
+            "threadId": "1b435007-43c9-49c2-be61-a783c591737e",
+            "userMessageId": "397f36aa-c531-4bcf-a89c-09c26849be23",
+            "responseId": "c1fc6d2b-c1cd-43f0-a9a3-d60e79048ec1",
+            "retryOf": null,
+            "status": "completed",
+            "createdAt": 1790551064140,
+            "finishedAt": 1790551064784,
+            "error": null,
+            "approval": null,
+            "execution": {
+              "schema": "reploid.mesh.partition-execution/v2",
+              "modelId": "gemma-3-270m-it-f16-af32",
+              "modelIdentity": "sha256:8cffe6b1fd22442d17b9011b383526963858d66c92207c4931f01f48144a4a05",
+              "planId": "sha256:4cd502fccafb51189c6c1dfd0fb0af434bfad640b9beccad9ecbe43474043769",
+              "threadId": "1b435007-43c9-49c2-be61-a783c591737e",
+              "attemptId": "eeb0b1a6-7e7b-4425-acf5-f2a97dc96107",
+              "participantA": "peer:041e06d4eba30c3ed0bc4816",
+              "participantB": "peer:d8e07a039b8ece94d0ef106d",
+              "placement": "two-device-layer-partition",
+              "splitLayer": 9,
+              "activationBytes": 33280,
+              "steps": [
+                {
+                  "step": 0,
+                  "tokenPosition": 0,
+                  "inputTokenCount": 11,
+                  "maxTokens": 3,
+                  "generationDigest": "sha256:9682b31050686cd057edf3fb52835f184ec25735d3ff2d12ffeb345b390a3009",
+                  "tokenId": 669,
+                  "activationBytes": 28160,
+                  "transferMs": null,
+                  "remoteStepMs": 50.5,
+                  "elapsedMs": 78.59999990463257
+                },
+                {
+                  "step": 1,
+                  "tokenPosition": 11,
+                  "inputTokenCount": 1,
+                  "maxTokens": 3,
+                  "generationDigest": "sha256:9682b31050686cd057edf3fb52835f184ec25735d3ff2d12ffeb345b390a3009",
+                  "tokenId": 5279,
+                  "activationBytes": 2560,
+                  "transferMs": null,
+                  "remoteStepMs": 19.59999990463257,
+                  "elapsedMs": 32.90000009536743
+                },
+                {
+                  "step": 2,
+                  "tokenPosition": 12,
+                  "inputTokenCount": 1,
+                  "maxTokens": 3,
+                  "generationDigest": "sha256:9682b31050686cd057edf3fb52835f184ec25735d3ff2d12ffeb345b390a3009",
+                  "tokenId": 529,
+                  "activationBytes": 2560,
+                  "transferMs": null,
+                  "remoteStepMs": 17.399999618530273,
+                  "elapsedMs": 31.200000286102295
+                }
+              ],
+              "provider": "peer",
+              "transport": {
+                "schema": "reploid.partition-channel/v1",
+                "sentFrameBytes": 90154,
+                "receivedFrameBytes": 6430,
+                "sentFrames": 19,
+                "receivedFrames": 22,
+                "completedRequests": 11,
+                "cancelledRequests": 0,
+                "discardedFrames": 0,
+                "pendingRequests": 0,
+                "inboundRequests": 0,
+                "reservedBytes": 0,
+                "closed": false,
+                "wireBytes": null,
+                "relayBytes": null
+              }
+            },
+            "authorization": {
+              "kind": "thread-grant",
+              "grantId": "fd61bf7a-bb3a-493f-963a-e15304f5465b",
+              "peerId": "peer:d8e07a039b8ece94d0ef106d",
+              "recipientIdentity": "peer:d8e07a039b8ece94d0ef106d"
+            },
+            "request": {
+              "model": {
+                "id": "gemma-3-270m-it-f16-af32",
+                "name": "Gemma 3 270M F16 split diagnostic",
+                "provider": "doppler",
+                "identity": "sha256:8cffe6b1fd22442d17b9011b383526963858d66c92207c4931f01f48144a4a05",
+                "generation": {
+                  "maxTokens": 3,
+                  "maxSeqLen": 128,
+                  "temperature": 0,
+                  "topK": 0,
+                  "topP": 1,
+                  "repetitionPenalty": 1.1,
+                  "repetitionPenaltyWindow": 0,
+                  "presencePenalty": 0.1,
+                  "useChatTemplate": false
+                },
+                "adapters": [],
+                "selectionId": "gemma-3-270m-it-f16-af32/partition/sha256:4cd502fccafb51189c6c1dfd0fb0af434bfad640b9beccad9ecbe43474043769",
+                "partition": {
+                  "planId": "sha256:4cd502fccafb51189c6c1dfd0fb0af434bfad640b9beccad9ecbe43474043769",
+                  "participantA": "peer:041e06d4eba30c3ed0bc4816",
+                  "participantB": "peer:d8e07a039b8ece94d0ef106d"
+                },
+                "availability": "ready",
+                "providerIds": [
+                  "peer:041e06d4eba30c3ed0bc4816",
+                  "peer:d8e07a039b8ece94d0ef106d"
+                ],
+                "placement": "two-device-layer-partition"
+              },
+              "permissions": {
+                "sharingScope": "invited-mesh"
+              },
+              "members": [
+                "peer:041e06d4eba30c3ed0bc4816"
+              ],
+              "messages": [
+                {
+                  "role": "user",
+                  "content": "The capital of France is"
+                }
+              ]
+            }
+          }
+        ],
+        "closed": false,
+        "createdAt": 1790551064139
+      },
+      "models": [
+        {
+          "id": "gemma-3-270m-it-f16-af32",
+          "name": "Gemma 3 270M F16 split diagnostic",
+          "provider": "doppler",
+          "identity": "sha256:8cffe6b1fd22442d17b9011b383526963858d66c92207c4931f01f48144a4a05",
+          "generation": {
+            "maxTokens": 3,
+            "maxSeqLen": 128,
+            "temperature": 0,
+            "topK": 0,
+            "topP": 1,
+            "repetitionPenalty": 1.1,
+            "repetitionPenaltyWindow": 0,
+            "presencePenalty": 0.1,
+            "useChatTemplate": false
+          },
+          "adapters": [],
+          "availability": "unavailable",
+          "providerIds": []
+        },
+        {
+          "id": "gemma-3-270m-it-f16-af32",
+          "name": "Gemma 3 270M F16 split diagnostic",
+          "provider": "doppler",
+          "identity": "sha256:8cffe6b1fd22442d17b9011b383526963858d66c92207c4931f01f48144a4a05",
+          "generation": {
+            "maxTokens": 3,
+            "maxSeqLen": 128,
+            "temperature": 0,
+            "topK": 0,
+            "topP": 1,
+            "repetitionPenalty": 1.1,
+            "repetitionPenaltyWindow": 0,
+            "presencePenalty": 0.1,
+            "useChatTemplate": false
+          },
+          "adapters": [],
+          "selectionId": "gemma-3-270m-it-f16-af32/partition/sha256:4cd502fccafb51189c6c1dfd0fb0af434bfad640b9beccad9ecbe43474043769",
+          "partition": {
+            "planId": "sha256:4cd502fccafb51189c6c1dfd0fb0af434bfad640b9beccad9ecbe43474043769",
+            "participantA": "peer:041e06d4eba30c3ed0bc4816",
+            "participantB": "peer:d8e07a039b8ece94d0ef106d"
+          },
+          "availability": "ready",
+          "providerIds": [
+            "peer:041e06d4eba30c3ed0bc4816",
+            "peer:d8e07a039b8ece94d0ef106d"
+          ],
+          "placement": "two-device-layer-partition"
+        }
+      ],
+      "defaultModel": {
+        "id": "gemma-3-270m-it-f16-af32",
+        "name": "Gemma 3 270M F16 split diagnostic",
+        "provider": "doppler",
+        "identity": "sha256:8cffe6b1fd22442d17b9011b383526963858d66c92207c4931f01f48144a4a05",
+        "generation": {
+          "maxTokens": 3,
+          "maxSeqLen": 128,
+          "temperature": 0,
+          "topK": 0,
+          "topP": 1,
+          "repetitionPenalty": 1.1,
+          "repetitionPenaltyWindow": 0,
+          "presencePenalty": 0.1,
+          "useChatTemplate": false
+        },
+        "adapters": [],
+        "availability": "unavailable",
+        "providerIds": []
+      },
+      "discovering": false,
+      "network": {
+        "sharing": false,
+        "consumer": null,
+        "files": null
+      },
+      "scheduler": {
+        "queued": 0,
+        "activeAttemptId": null,
+        "residentIdentity": null,
+        "closed": false
+      },
+      "placements": {
+        "e179b72e-8359-4108-b14e-75e19f27d57b": {
+          "schema": "reploid.mesh.partition-execution/v2",
+          "modelId": "gemma-3-270m-it-f16-af32",
+          "modelIdentity": "sha256:8cffe6b1fd22442d17b9011b383526963858d66c92207c4931f01f48144a4a05",
+          "planId": "sha256:4cd502fccafb51189c6c1dfd0fb0af434bfad640b9beccad9ecbe43474043769",
+          "threadId": "e179b72e-8359-4108-b14e-75e19f27d57b",
+          "attemptId": "2845d63b-0cc5-4d38-847c-2cecff353738",
+          "participantA": "peer:041e06d4eba30c3ed0bc4816",
+          "participantB": "peer:d8e07a039b8ece94d0ef106d",
+          "placement": "two-device-layer-partition",
+          "splitLayer": 9,
+          "activationBytes": 35840,
+          "steps": [
+            {
+              "step": 0,
+              "tokenPosition": 0,
+              "inputTokenCount": 12,
+              "maxTokens": 3,
+              "generationDigest": "sha256:9682b31050686cd057edf3fb52835f184ec25735d3ff2d12ffeb345b390a3009",
+              "tokenId": 564,
+              "activationBytes": 30720,
+              "transferMs": null,
+              "remoteStepMs": 191.69999980926514,
+              "elapsedMs": 302
+            },
+            {
+              "step": 1,
+              "tokenPosition": 12,
+              "inputTokenCount": 1,
+              "maxTokens": 3,
+              "generationDigest": "sha256:9682b31050686cd057edf3fb52835f184ec25735d3ff2d12ffeb345b390a3009",
+              "tokenId": 1006,
+              "activationBytes": 2560,
+              "transferMs": null,
+              "remoteStepMs": 50.59999990463257,
+              "elapsedMs": 149.59999990463257
+            },
+            {
+              "step": 2,
+              "tokenPosition": 13,
+              "inputTokenCount": 1,
+              "maxTokens": 3,
+              "generationDigest": "sha256:9682b31050686cd057edf3fb52835f184ec25735d3ff2d12ffeb345b390a3009",
+              "tokenId": 15025,
+              "activationBytes": 2560,
+              "transferMs": null,
+              "remoteStepMs": 20.300000190734863,
+              "elapsedMs": 33.39999961853027
+            }
+          ],
+          "provider": "peer",
+          "transport": {
+            "schema": "reploid.partition-channel/v1",
+            "sentFrameBytes": 83049,
+            "receivedFrameBytes": 5536,
+            "sentFrames": 16,
+            "receivedFrames": 18,
+            "completedRequests": 9,
+            "cancelledRequests": 0,
+            "discardedFrames": 0,
+            "pendingRequests": 0,
+            "inboundRequests": 0,
+            "reservedBytes": 0,
+            "closed": false,
+            "wireBytes": null,
+            "relayBytes": null
+          }
+        },
+        "1b435007-43c9-49c2-be61-a783c591737e": {
+          "schema": "reploid.mesh.partition-execution/v2",
+          "modelId": "gemma-3-270m-it-f16-af32",
+          "modelIdentity": "sha256:8cffe6b1fd22442d17b9011b383526963858d66c92207c4931f01f48144a4a05",
+          "planId": "sha256:4cd502fccafb51189c6c1dfd0fb0af434bfad640b9beccad9ecbe43474043769",
+          "threadId": "1b435007-43c9-49c2-be61-a783c591737e",
+          "attemptId": "eeb0b1a6-7e7b-4425-acf5-f2a97dc96107",
+          "participantA": "peer:041e06d4eba30c3ed0bc4816",
+          "participantB": "peer:d8e07a039b8ece94d0ef106d",
+          "placement": "two-device-layer-partition",
+          "splitLayer": 9,
+          "activationBytes": 33280,
+          "steps": [
+            {
+              "step": 0,
+              "tokenPosition": 0,
+              "inputTokenCount": 11,
+              "maxTokens": 3,
+              "generationDigest": "sha256:9682b31050686cd057edf3fb52835f184ec25735d3ff2d12ffeb345b390a3009",
+              "tokenId": 669,
+              "activationBytes": 28160,
+              "transferMs": null,
+              "remoteStepMs": 50.5,
+              "elapsedMs": 78.59999990463257
+            },
+            {
+              "step": 1,
+              "tokenPosition": 11,
+              "inputTokenCount": 1,
+              "maxTokens": 3,
+              "generationDigest": "sha256:9682b31050686cd057edf3fb52835f184ec25735d3ff2d12ffeb345b390a3009",
+              "tokenId": 5279,
+              "activationBytes": 2560,
+              "transferMs": null,
+              "remoteStepMs": 19.59999990463257,
+              "elapsedMs": 32.90000009536743
+            },
+            {
+              "step": 2,
+              "tokenPosition": 12,
+              "inputTokenCount": 1,
+              "maxTokens": 3,
+              "generationDigest": "sha256:9682b31050686cd057edf3fb52835f184ec25735d3ff2d12ffeb345b390a3009",
+              "tokenId": 529,
+              "activationBytes": 2560,
+              "transferMs": null,
+              "remoteStepMs": 17.399999618530273,
+              "elapsedMs": 31.200000286102295
+            }
+          ],
+          "provider": "peer",
+          "transport": {
+            "schema": "reploid.partition-channel/v1",
+            "sentFrameBytes": 90154,
+            "receivedFrameBytes": 6430,
+            "sentFrames": 19,
+            "receivedFrames": 22,
+            "completedRequests": 11,
+            "cancelledRequests": 0,
+            "discardedFrames": 0,
+            "pendingRequests": 0,
+            "inboundRequests": 0,
+            "reservedBytes": 0,
+            "closed": false,
+            "wireBytes": null,
+            "relayBytes": null
+          }
+        }
+      }
+    },
+    "peer": {
+      "ready": true,
+      "descriptor": {
+        "schema": "doppler.resident-partition/v1",
+        "ready": true,
+        "modelId": "gemma-3-270m-it-f16-af32",
+        "modelIdentity": "sha256:8cffe6b1fd22442d17b9011b383526963858d66c92207c4931f01f48144a4a05",
+        "planId": "sha256:4cd502fccafb51189c6c1dfd0fb0af434bfad640b9beccad9ecbe43474043769",
+        "index": 1,
+        "layerRange": [
+          9,
+          17
+        ],
+        "residentWeightBytes": 453594112,
+        "generationDigest": "sha256:50599ef56b513db2592c97d65a2a37681674f4698100499fd706bbe2b5ae3393"
+      },
+      "participantId": "peer:d8e07a039b8ece94d0ef106d",
+      "receipt": {
+        "schema": "reploid.partition-channel/v1",
+        "sentFrameBytes": 90154,
+        "receivedFrameBytes": 6430,
+        "sentFrames": 19,
+        "receivedFrames": 22,
+        "completedRequests": 11,
+        "cancelledRequests": 0,
+        "discardedFrames": 0,
+        "pendingRequests": 0,
+        "inboundRequests": 0,
+        "reservedBytes": 0,
+        "closed": false,
+        "wireBytes": null,
+        "relayBytes": null
+      }
+    }
+  },
+  "contributor": {
+    "log": {
+      "opens": [
+        1
+      ],
+      "closes": []
+    },
+    "proofs": [
+      "peer:041e06d4eba30c3ed0bc4816"
+    ],
+    "peer": {
+      "ready": false,
+      "descriptor": null,
+      "participantId": "peer:041e06d4eba30c3ed0bc4816",
+      "receipt": {
+        "schema": "reploid.partition-channel/v1",
+        "sentFrameBytes": 6430,
+        "receivedFrameBytes": 90154,
+        "sentFrames": 22,
+        "receivedFrames": 19,
+        "completedRequests": 0,
+        "cancelledRequests": 0,
+        "discardedFrames": 0,
+        "pendingRequests": 0,
+        "inboundRequests": 0,
+        "reservedBytes": 0,
+        "closed": false,
+        "wireBytes": null,
+        "relayBytes": null
+      }
+    }
+  },
+  "errors": []
+}

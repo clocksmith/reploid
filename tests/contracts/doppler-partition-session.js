@@ -1,14 +1,14 @@
 /** Run with real Doppler factories/reference to qualify numerical execution.
  * Injected factories qualify this harness only. No network or physical-memory claim.
  */
-import { createResidentPartition, createLayerPartitionRunner, partitionFingerprint } from '../../packages/reploid/src/mesh/index.js';
+import { createResidentPartition, createLayerPartitionRunner } from '../../packages/reploid/src/mesh/index.js';
 
 const require = (condition, message) => { if (!condition) throw new Error(message); };
 export async function qualifyDopplerPartitionSessions({ factory, runtime, model, plan, limits, messages,
   reference, tolerance }) {
   require(typeof reference === 'function' && typeof runtime.comparePartitionExecution === 'function'
     && Number.isFinite(tolerance) && tolerance >= 0, 'Independent unsplit reference and explicit numerical tolerance required');
-  const planId = await partitionFingerprint(plan);
+  const planId = runtime.hashLayerPartitionPlan(plan);
   const [a, b] = [0, 1].map(index => createResidentPartition({ runtime: factory, model, plan, planId, index,
     participantId: index === 0 ? 'conformance-a' : 'conformance-b', limits }));
   const steps = [];
@@ -37,8 +37,9 @@ export async function qualifyDopplerPartitionSessions({ factory, runtime, model,
       transport: { transferActivation: async frame => structuredClone(frame) },
       // Isolated local qualification only. Production uses the signed grant authority.
       authorize: async () => true, limits });
-    const result = await runner.execute({ tokenIds: input.tokenIds, identity, maxTokens: limits.maxTokens,
-      grants: { executionA: {}, executionB: {}, activation: {}, output: {} } });
+    const result = await runner.execute({ tokenIds: input.tokenIds, generation: input.generation,
+      identity, maxTokens: input.generation.maxTokens,
+      grants: { executionA: {}, executionB: {}, activation: {}, tokenContext: {}, output: {} } });
     require(steps.length === unsplit.steps.length && result.content === unsplit.content, 'Completed output or stopping point differs');
     return { scope: 'resident partition execution versus supplied unsplit reference', modelIdentity: model.identity, planId,
       tolerance, steps, descriptors: [a.getState().descriptor, b.getState().descriptor], result };

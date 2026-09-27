@@ -25,6 +25,7 @@ export interface PartitionStep {
   inputTokenCount: number;
   /** Effective request limit, unchanged for every stage; Doppler owns length-stop finalization. */
   maxTokens: number;
+  generationDigest: string;
 }
 export interface ActivationTensor {
   shape: number[];
@@ -53,6 +54,7 @@ export interface PartitionGrants {
   executionA: object;
   executionB: object;
   activation: object;
+  tokenContext: object;
   output: object;
 }
 export interface PartitionLimits {
@@ -68,6 +70,7 @@ export interface PartitionStepOptions extends PartitionStep {
   /** Structured-cloneable session handle; KV/GPU resources stay at their device. */
   continuation: unknown;
   executionGrant: object;
+  generation: Record<string, unknown> & { maxTokens: number };
   signal: AbortSignal;
 }
 export interface PartitionDevice {
@@ -82,7 +85,7 @@ export interface PartitionDeviceA extends PartitionDevice {
   }>;
 }
 export interface PartitionDeviceB extends PartitionDevice {
-  executeGroup1(options: PartitionStepOptions & { activation: unknown; outputGrant: object }): Promise<{
+  executeGroup1(options: PartitionStepOptions & { activation: unknown; inputTokenIds: number[]; outputGrant: object }): Promise<{
     identity: PartitionBinding;
     step: number;
     tokenPosition: number;
@@ -96,6 +99,7 @@ export interface PartitionDeviceB extends PartitionDevice {
 }
 export interface PartitionRequest {
   tokenIds: number[];
+  generation: Record<string, unknown> & { maxTokens: number };
   identity: AttemptIdentity;
   grants: PartitionGrants;
   maxTokens: number;
@@ -130,7 +134,7 @@ export function createLayerPartitionRunner(options: {
   /** Must verify actual recipient-bound grants; a grant's schema/name is not authorization. */
   authorize(options: PartitionBinding & PartitionStep & {
     action: 'mesh.execute_partition_a' | 'mesh.execute_partition_b'
-      | 'mesh.transfer_intermediate_activation' | 'mesh.transfer_partition_output';
+      | 'mesh.transfer_intermediate_activation' | 'mesh.transfer_token_context' | 'mesh.transfer_partition_output';
     grant: object;
     plan: PartitionPlan;
     signal: AbortSignal;
@@ -151,6 +155,7 @@ export function verifySplitParity(options: {
     logits: Float32Array | number[]; tokenIds: number[];
   }> };
   tokenIds: number[];
+  generation: PartitionRequest['generation'];
   identity: AttemptIdentity;
   grants: PartitionGrants;
   maxTokens: number;

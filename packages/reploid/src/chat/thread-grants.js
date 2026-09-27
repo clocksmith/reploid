@@ -4,7 +4,7 @@ const recipient = value => typeof value === 'string' && /^peer:[a-f0-9]{24}$/.te
 
 export function disclosureScope(request, preview) {
   const adapters = (request.model.adapters || []).map(adapter => adapter.identity);
-  const partition = preview.operation === 'generate-partition' && preview.disclosure === 'partition-activations'
+  const partition = preview.operation === 'generate-partition' && preview.disclosure === 'partition-activations-and-tokens'
     && typeof preview.planId === 'string' && preview.planId === request.model.partition?.planId
     && preview.participantA === request.model.partition?.participantA
     && preview.recipientIdentity === request.model.partition?.participantB;
@@ -31,8 +31,8 @@ export function validateThreadGrants(grants, threadId, meshId, limit) {
     || grants.some(grant => !grant || typeof grant.id !== 'string' || !grant.id || grant.threadId !== threadId
       || grant.meshId !== meshId || !recipient(grant.recipientIdentity) || typeof grant.modelId !== 'string'
       || !hash(grant.modelIdentity) || !Array.isArray(grant.adapterIdentities) || !grant.adapterIdentities.every(hash)
-      || typeof grant.sharingScope !== 'string' || !['public', 'partition-activations'].includes(grant.disclosure)
-      || grant.disclosure === 'partition-activations' && (typeof grant.planId !== 'string' || !grant.planId || !recipient(grant.participantA))
+      || typeof grant.sharingScope !== 'string' || !['public', 'partition-activations', 'partition-activations-and-tokens'].includes(grant.disclosure)
+      || grant.disclosure !== 'public' && (typeof grant.planId !== 'string' || !grant.planId || !recipient(grant.participantA))
       || !Number.isFinite(grant.createdAt) || grant.revokedAt !== null && !Number.isFinite(grant.revokedAt))) {
     throw new Error('Invalid stored conversation grants');
   }

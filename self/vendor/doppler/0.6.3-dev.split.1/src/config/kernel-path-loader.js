@@ -1,5 +1,5 @@
 import { DEFAULT_ENTRY } from './schema/kernel-path.schema.js';
-import { KERNEL_CONFIGS } from './kernel-registry-contract.js';
+import { getKernelConfigs, getKernelRegistryIdentity } from './kernel-registry-contract.js';
 import { mergeKernelPathPolicy } from './merge/kernel-path-policy.js';
 
 const PATH_LOOKUP_CACHE = new WeakMap();
@@ -11,7 +11,10 @@ const MAX_KERNEL_VARIANT_CACHE_ENTRIES = 512;
 
 function getPathLookupCache(path) {
   if (!path || typeof path !== 'object') return null;
-  let cache = PATH_LOOKUP_CACHE.get(path);
+  let registries = PATH_LOOKUP_CACHE.get(path);
+  if (!registries) { registries = new WeakMap(); PATH_LOOKUP_CACHE.set(path, registries); }
+  const configs = getKernelConfigs();
+  let cache = registries.get(configs);
   if (!cache) {
     cache = {
       attentionPrecision: new Map(),
@@ -21,7 +24,7 @@ function getPathLookupCache(path) {
       matmulSteps: new Map(),
       stepPrecision: new Map(),
     };
-    PATH_LOOKUP_CACHE.set(path, cache);
+    registries.set(configs, cache);
   }
   return cache;
 }
@@ -285,7 +288,7 @@ function resolveKernelVariant(
   phase,
   constants
 ) {
-  const variants = KERNEL_CONFIGS[operation];
+  const variants = getKernelConfigs()[operation];
   if (!variants) return null;
 
   const entryMatches = [];
@@ -344,6 +347,7 @@ function findKernelVariant(
   const normalizedKernel = normalizeKernelFile(kernel);
   const normalizedEntry = entry ?? DEFAULT_ENTRY;
   const cacheKey = [
+    getKernelRegistryIdentity(),
     operation,
     normalizedKernel,
     normalizedEntry,
@@ -420,7 +424,7 @@ export function getKernelPathActivationSpec(op, phase, layerIndex, path) {
   }
   const step = steps[0];
   const variant = findKernelVariant(op, step.kernel, step.entry, phase, step.constants);
-  if (!variant || KERNEL_CONFIGS[op][variant].entryPoint !== step.entry) {
+  if (!variant || getKernelConfigs()[op][variant].entryPoint !== step.entry) {
     throw new Error(`Activation ${op} has no exact registered kernel for ${step.kernel}#${step.entry}.`);
   }
   return { variant, constants: step.constants ?? null };
@@ -610,8 +614,8 @@ export function kernelPathRequiresWeightDtype(path = undefined, weightDtype, ope
     const normalizedKernel = normalizeKernelFile(step.kernel);
     const normalizedEntry = step.entry ?? DEFAULT_ENTRY;
     const operationConfigs = operation
-      ? [KERNEL_CONFIGS[operation]]
-      : Object.values(KERNEL_CONFIGS);
+      ? [getKernelConfigs()[operation]]
+      : Object.values(getKernelConfigs());
     return operationConfigs.some((variants) => Object.values(variants ?? {}).some((config) =>
       config.shaderFile === normalizedKernel
       && config.entryPoint === normalizedEntry

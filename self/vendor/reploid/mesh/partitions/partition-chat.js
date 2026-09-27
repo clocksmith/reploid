@@ -1,5 +1,5 @@
 import { createLayerPartitionRunner } from './partition-runner.js';
-import { assertPartition as assert, canonicalPartitionJson } from './partition-contract.js';
+import { assertPartition as assert, canonicalPartitionJson, partitionFingerprint } from './partition-contract.js';
 
 /** Conversation adapter for a fixed, explicitly prepared local A and authenticated remote B. */
 export function createPartitionChat({ runtime, local, remote, authority, model, plan, planId, limits, grantTtlMs, now = Date.now }) {
@@ -37,26 +37,32 @@ export function createPartitionChat({ runtime, local, remote, authority, model, 
       const approved = await controls.requestApproval({ id: crypto.randomUUID(), threadId: request.threadId,
         attemptId: request.attemptId, peerId: remote.id, recipientIdentity: remote.id,
         modelId: selection.id, modelIdentity: selection.identity, adapterIdentities: [],
-        operation: 'generate-partition', disclosure: 'partition-activations', ...selection.partition,
+        operation: 'generate-partition', disclosure: 'partition-activations-and-tokens', ...selection.partition,
         expiresAt: now() + grantTtlMs,
-        input: { messages: structuredClone(request.messages), disclosure: 'Intermediate model activations are disclosed to the selected participant.' } });
+        input: { messages: structuredClone(request.messages),
+          disclosure: 'Intermediate model activations and prompt token context are disclosed to the selected participant for sampling.' } });
       controls.signal.throwIfAborted();
       assert(approved === true, 'Partition disclosure was declined');
-      const grant = await authority.issue(identity, policy, { approved: true, ttlMs: grantTtlMs });
+      let grant = null;
       let sequence = 0;
       try {
         const input = await local.tokenize({ messages: request.messages, identity, signal: controls.signal });
-        assert(input.modelIdentity === selection.identity, 'Doppler tokenization model identity mismatch');
+        assert(input.modelIdentity === selection.identity && input.generation
+          && Number.isSafeInteger(input.generation.maxTokens) && input.generation.maxTokens > 0
+          && input.generation.maxTokens <= policy.maxTokens, 'Doppler tokenization or generation contract mismatch');
+        grant = await authority.issue(identity, policy, { approved: true, ttlMs: grantTtlMs,
+          disclosure: 'partition-activations-and-tokens', generationDigest: await partitionFingerprint(input.generation) });
         controls.onState({ threadId: request.threadId, attemptId: request.attemptId, status: 'executing',
           execution: { placement: 'two-device-layer-partition', ...selection.partition } });
-        const result = await runner.execute({ tokenIds: input.tokenIds, identity, maxTokens: policy.maxTokens,
-          grants: { executionA: grant, executionB: grant, activation: grant, output: grant }, signal: controls.signal,
+        const result = await runner.execute({ tokenIds: input.tokenIds, generation: input.generation,
+          identity, maxTokens: input.generation.maxTokens,
+          grants: { executionA: grant, executionB: grant, activation: grant, tokenContext: grant, output: grant }, signal: controls.signal,
           onDelta: text => controls.onDelta({ threadId: request.threadId, attemptId: request.attemptId, sequence: sequence++, text }) });
         return { threadId: request.threadId, attemptId: request.attemptId, modelId: result.execution.modelId,
           modelIdentity: result.execution.modelIdentity, adapterIdentities: [], content: result.content,
           execution: { ...result.execution, provider: 'peer', transport: remote.getState().receipt } };
       } finally {
-        authority.revoke(grant);
+        if (grant) authority.revoke(grant);
         // Also settles tokenization failure before the runner acquired an attempt.
         await local.closeAttempt({ identity });
       }

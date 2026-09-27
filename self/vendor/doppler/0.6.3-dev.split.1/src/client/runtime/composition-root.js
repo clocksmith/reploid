@@ -1,4 +1,5 @@
-import { hashTargetPlan, assertQualifiedTargetOperation, normalizeTargetPlanSelectionPolicy } from '../../config/target-plan.js';
+import { resolveExecutionRegistries, assertExecutionRegistriesAccepted } from '../../config/execution-registry-contract.js';
+import { hashTargetPlan, assertQualifiedTargetOperation, assertQualifiedResidentPartition, normalizeTargetPlanSelectionPolicy } from '../../config/target-plan.js';
 import { GENERATION_CONTRACT } from '../../config/generation-contract.js';
 import { getRequiredWgslFeatures, assertWgslFeaturesSupported } from '../../config/wgsl-language-contract.js';
 import { assertInitialExecutionIdentity } from '../../config/initial-execution-identity.js';
@@ -10,7 +11,7 @@ import { createVerifiedCapsuleArtifactStore } from './verified-capsule-artifact-
 import { createResourceBinder, createDeviceAvailabilityCheck } from './resource-binder.js';
 import { createCommandExecutor } from './command-executor.js';
 import { createSessionController } from './session-controller.js';
-import { selectTargetPlan } from './target-selector.js';
+import { selectQualifiedTargetPlan as selectTargetPlan } from '../../config/target-plan.js';
 import { executeCapsuleRerank } from './capsule-rerank.js';
 import { createCapsuleOperationAdapters } from './capsule-operation-adapters.js';
 import { createCapsuleAdapterExecution } from './capsule-adapter-execution.js';
@@ -57,20 +58,23 @@ export function createDopplerRun(ports) {
   if (!ports.artifactStore) throw new Error('createDopplerRun requires an artifactStore port.');
   if (!ports.trustedSigners) throw new Error('createDopplerRun requires trustedSigners.');
   if (typeof ports.programFactory !== 'function') throw new Error('createDopplerRun requires programFactory.');
-  const { device, capsuleSource = null, artifactStore, cache = null, observer = null, trustedSigners, programFactory } = ports;
+  const registries = resolveExecutionRegistries(ports.registries);
+  const { device, capsuleSource = null, artifactStore, cache = null, observer = null, trustedSigners, programFactory,
+    resolveResidentPartitionAllocation } = ports;
 
   return {
     version: RUN_CORE_VERSION,
     ports: { device, capsuleSource, artifactStore, cache, observer },
 
     async openCapsule(capsuleOrId, options = {}) {
+      const residentPartition = options.residentPartition === undefined ? undefined : structuredClone(options.residentPartition);
       const selectionPolicy = normalizeTargetPlanSelectionPolicy({
         acceptedTargetPlanDigests: options.acceptedTargetPlanDigests,
         requiredOperations: options.requiredOperations,
         preferredTargetPlanDigests: options.preferredTargetPlanDigests,
       });
       const acquisition = createCapsuleLoadScope(options);
-      options = acquisition.options;
+      options = { ...acquisition.options, residentPartition };
       let verifiedStore;
       let program;
       try {
@@ -107,6 +111,7 @@ export function createDopplerRun(ports) {
             };
         assertCapsuleLoadActive(options.signal);
         const selectedPlan = selectTargetPlan(capsule.targetPlans, deviceProfile, selectionPolicy);
+        assertExecutionRegistriesAccepted(selectedPlan, registries);
         const assertDeviceAvailable = createDeviceAvailabilityCheck(device);
         assertDeviceAvailable();
         const targetPlanDigest = hashTargetPlan(selectedPlan);
@@ -132,8 +137,21 @@ export function createDopplerRun(ports) {
         const manifestArtifact = capsule.artifacts.find((artifact) => artifact.artifactId === capsule.program.manifestArtifactId);
         const manifest = freezeCapsuleV2(JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(await verifiedStore.readArtifact(manifestArtifact))));
         if (manifest.modelId !== capsule.modelId) throw new Error('Signed manifest model identity mismatch.');
+        const residentAllocation = options.residentPartition === undefined ? null
+          : (() => {
+            if (typeof resolveResidentPartitionAllocation !== 'function') {
+              throw new Error('Resident partition opening requires an allocation validator port.');
+            }
+            return resolveResidentPartitionAllocation(manifest, manifestArtifact.hash, options.residentPartition);
+          })();
+        if (residentAllocation) {
+          releaseAuthorization.assertAssignment(residentAllocation);
+          assertQualifiedResidentPartition(selectedPlan, deviceProfile.surface, residentAllocation);
+          if (selectedPlan.tokenSelection !== undefined) throw new Error('Resident partitions require the declared CPU sampling contract.');
+          options = { ...options, residentPartition: residentAllocation };
+        }
         let observedInitialExecutionIdentity = null;
-        program = await programFactory({ capsule, targetPlan: selectedPlan, artifactStore: verifiedStore, deviceProfile, options });
+        program = await programFactory({ capsule, targetPlan: selectedPlan, artifactStore: verifiedStore, deviceProfile, options, registries, observer });
         assertCapsuleLoadActive(options.signal);
         assertDeviceAvailable();
         if (selectedPlan.schema === 'doppler.target-plan/v2') {
@@ -312,9 +330,37 @@ export function createDopplerRun(ports) {
             });
           },
         };
+        if (residentAllocation) {
+          const resident = program.residentPartition;
+          const descriptor = resident?.getDescriptor?.();
+          if (!descriptor?.ready || descriptor.modelId !== capsule.modelId || descriptor.modelIdentity !== manifestArtifact.hash
+            || descriptor.planId !== residentAllocation.planId || descriptor.index !== residentAllocation.index
+            || JSON.stringify(descriptor.layerRange) !== JSON.stringify(residentAllocation.plan.partitions[residentAllocation.index].layerRange)
+            || descriptor.generationDigest !== computeCanonicalSha256(residentAllocation.generation)) {
+            throw new Error('Loaded resident descriptor differs from its verified Capsule allocation.');
+          }
+          const invokeResident = async (method, request) => {
+            if (closed) throw new Error('Capsule runtime session is closed.');
+            releaseAuthorization.assertAssignment(residentAllocation);
+            const { signal, ...data } = request;
+            const snapshot = { ...structuredClone(data), signal };
+            await assertExecutionCurrent();
+            try { return await resident[method](snapshot); }
+            finally { await assertExecutionCurrent(); }
+          };
+          session.residentPartition = Object.freeze({
+            getDescriptor: () => ({ ...resident.getDescriptor(), ready: !closed && resident.getDescriptor().ready }),
+            tokenize: request => invokeResident('tokenize', request),
+            executeGroup0: request => invokeResident('executeGroup0', request),
+            executeGroup1: request => invokeResident('executeGroup1', request),
+            closeAttempt: request => resident.closeAttempt(structuredClone(request)),
+            close: () => session.close(),
+          });
+        }
         // Internal adapters run under the caller's single execution lease.
         const local = { ...session };
         function requireBaseProgram() {
+          if (residentAllocation) throw new Error('A resident partition cannot execute an unsplit Capsule operation.');
           if (program.getActiveAdapterIdentity?.()) throw new Error('Capsule adapter remains active; close and reopen the session.');
         }
         const runLocal = (task, signal) => execution.run(currentSignal => {
@@ -333,6 +379,7 @@ export function createDopplerRun(ports) {
               artifactReceipts: verification.artifactReceipts, releaseEventDigest: verification.lifecycle?.event.digest ?? null,
               ...releaseAuthorization.receiptFields },
             async assertCurrent(request) {
+              if (residentAllocation) throw new Error('A resident partition cannot execute an unsplit Capsule operation.');
               if (closed) throw new Error('Capsule runtime session is closed.');
               releaseAuthorization.assertAssignment(request.assignment);
               await assertExecutionCurrent();

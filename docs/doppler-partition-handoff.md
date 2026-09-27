@@ -5,18 +5,20 @@ increment did not change Doppler. Subsequent numerical work is tracked in
 [Doppler's resident partition execution record](https://github.com/clocksmith/doppler/blob/main/docs/distribution/resident-partition-execution.md)
 and its [retained local diagnostic](https://github.com/clocksmith/doppler/blob/main/reports/resident-partitions/20260927/README.md).
 
-That work adds bounded GPU layer execution and assigned-layer cache allocation.
-It compares a real model split with unsplit execution on one local GPU. It does
-not yet implement this resident factory, attempt-owned continuations, signed
-Capsule partition delivery, or real model execution through this browser path.
-Keep the injected arithmetic fixture until the conformance harness below passes
-with real residents.
+That work adds bounded GPU layer execution, assigned-layer cache allocation,
+the resident factory, and attempt-owned continuations. It compares a real model
+split with unsplit execution on one local GPU. Signed partition qualification
+now gates Capsule opening in Doppler source, but public acquisition and real
+model execution through this browser path have not passed end-to-end acceptance.
+Keep the injected arithmetic fixture identified as such until the conformance
+harness and browser path pass with real residents.
 
-This is a **proposed consumer contract**, not an assertion that a published
-Doppler version implements it. Existing `doppler-gpu/partitions` supplies plan,
-activation and comparison contracts. The missing export is a factory exposing
-`openResidentPartition`. Keep the minimal Capsule root independent; a dedicated
-public subpath may expose the implementation.
+This is the contract consumed from the pinned Doppler archive, not a claim of
+physical network qualification. `doppler-gpu/partitions` exports the resident
+factory, plan digest, activation, and comparison contracts. The factory opens
+through the verified Capsule path; accepted signed TargetPlan evidence must
+qualify the exact partition plan and index. The minimal Capsule root remains
+independent of the partition implementation.
 
 ## Ownership
 
@@ -41,7 +43,7 @@ Existing step types: [partition-runner.d.ts](../packages/reploid/src/mesh/partit
 ```js
 const session = await factory.openResidentPartition({
   model,          // exact id, manifest identity and host-pinned source descriptor
-  plan, planId,   // Doppler plan; planId = await partitionFingerprint(plan)
+  plan, planId,   // Doppler plan; planId = hashLayerPartitionPlan(plan)
   index,          // 0 or 1
   participantId, // orchestration identity, not runtime authorization
   limits,         // output/prompt/activation/attempt/concurrency allocation ceilings
@@ -66,13 +68,15 @@ model identity must come from verified loaded artifacts. Validate the plan
 against the artifact before acquisition or execution. Reploid checks identities
 and readiness again around every operation.
 
-Each step carries the effective request `maxTokens`, which can be below the
-allocation ceiling. The runner preserves it through A, the activation metadata,
-and remote B. Doppler must finalize its incremental decoder and return `done`
-with its last delta at that limit. The runner rejects an unfinalized final step
-instead of silently discarding pending text. The peer rejects missing, mismatched,
-or over-budget limits. Other effective generation settings still require binding
-through the resident contract before complete session parity can be claimed.
+Tokenization returns resolved Doppler `generation` settings with the prompt
+tokens. Reploid binds their digest to the signed attempt grant and forwards the
+same settings through A, activation metadata, and remote B. Each step carries
+the effective `maxTokens`, which can be below the allocation ceiling. Doppler
+finalizes its incremental decoder and returns `done` with its last delta at
+that limit. Reploid rejects missing, changed, or over-budget limits and settings.
+Partition B receives prompt token context for Doppler's repetition and presence
+penalties only under a separate approval scope that names token disclosure;
+the earlier activation-only approval cannot authorize this transfer.
 
 All sessions expose idempotent asynchronous `closeAttempt({identity})` and
 `close()`. The first settles submitted work and disposes only that attempt's
@@ -83,10 +87,10 @@ A additionally exposes:
 
 ```js
 await session.tokenize({ messages, identity, signal });
-// -> { modelIdentity, tokenIds } using the exact model chat template/tokenizer
+// -> { modelIdentity, tokenIds, generation } using the exact model tokenizer
 await session.executeGroup0({
   tokenIds, continuation, identity, step, tokenPosition, inputTokenCount, maxTokens,
-  executionGrant, signal,
+  generation, executionGrant, signal,
 });
 // -> { activationTensor: { shape: [1, inputTokenCount, hiddenSize],
 //      dtype: 'f32' /* or plan f16 */, data, step, seqOffset: tokenPosition },
@@ -98,7 +102,7 @@ B exposes:
 ```js
 await session.executeGroup1({
   activation, continuation, identity, step, tokenPosition, inputTokenCount, maxTokens,
-  executionGrant, outputGrant, signal,
+  generation, inputTokenIds, executionGrant, outputGrant, signal,
 });
 // -> { identity, step, tokenPosition, tokenId, delta, done, stopReason,
 //      continuation, logits? }
@@ -123,12 +127,12 @@ runtime/model execution contract and be identical for the split and reference
 runs. Unsupported architectures or dependencies crossing the split must fail
 explicitly. Do not secretly execute a complete model on either participant.
 
-## Existing loading work to complete in Doppler
+## Selective acquisition work to complete in Doppler
 
-The candidate loader already accepts `{ partition: { plan, index } }`, keeps
-original layer indices, selects assigned decoder layers/endpoints and disables
-out-of-partition prefetch. Connect it to executable resident sessions. Allocate
-only the assigned KV/recurrent state, and explicitly handle shared/tied weights.
+The loader accepts `{ partition: { plan, index } }`, keeps original layer
+indices, selects assigned decoder layers/endpoints, and disables out-of-partition
+prefetch. The resident session uses assigned-layer attention state. Shared/tied
+weights still need explicit accounting and dependency packaging.
 
 Artifact verification can still read whole shared shards containing unrelated
 layers. Partial materialization is not selective acquisition. Preserve signature
@@ -159,8 +163,8 @@ method to populate readiness. The host owns residents, network and authority;
 closing chat settles attempts without unloading those borrowed resources.
 
 No new boot-time runtime import or automatic contribution is installed. Supply
-this factory at host composition after Doppler implements it. Calls fail closed
-when `openResidentPartition` is absent.
+the factory at host composition with a Capsule and signed partition
+qualification. Calls fail closed when `openResidentPartition` is absent.
 
 ## Executable acceptance
 
@@ -175,6 +179,19 @@ when `openResidentPartition` is absent.
   and an independent unsplit reference callback. The callback returns
   `{modelIdentity, content, steps:[{tokenId, logits}]}`. It compares every selected
   token/logit vector and the stopping point, then settles both residents.
+
+The [installed same-machine conformance receipt](../artifacts/partition-resident/20260927/README.md)
+uses real resident sessions through that harness. The adjacent real two-tab
+browser receipt exercises ordinary chat, concurrent threads, and cancellation
+through authenticated RTC with real residents. Both diagnostic paths load the
+identified local model through installed Doppler internals. Signed public
+Capsule acquisition remains unqualified, as do separate devices and capacity
+pooling.
+
+An [installed synthetic signed-opening check](../artifacts/partition-resident/20260927/installed-signed-opening.json)
+passes through the public resident factory and rejects the unqualified partition
+index before program creation. It has no executable model and does not replace
+the real chat Capsule acquisition gate.
 
 Run the numerical harness on exact identified model bytes before replacing the
 browser fixture with real execution. Record actual allocated weights/cache,
@@ -203,8 +220,8 @@ Acceptance evidence: the report links executed unit, browser and installed-packa
 results; library types, delivery and CATSCAN checks pass.
 Boundary effects: partition step declarations, authenticated peer protocol,
 generated browser delivery, and the Doppler consumer contract. Peers lacking the
-effective request limit fail closed. This does not qualify the missing Doppler
-resident factory or update the Doppler dependency.
+effective request limit fail closed. This earlier report predates the resident
+factory and dependency update described above.
 
 ## Takeover checkpoint
 
@@ -213,7 +230,7 @@ Intent: preserved.
 Acceptance evidence: `npm run verify:catscan` and
 `npx vitest run tests/unit/partition-api.test.js tests/unit/surface-claim-index.test.js tests/unit/catscan.test.js`;
 retained logs are in the linked Doppler diagnostic.
-Boundary effects: documentation only; the pinned Doppler archive and browser
-arithmetic fixture remain unchanged.
+Boundary effects at that checkpoint: documentation only. The pinned archive is
+updated in the current integration work; the browser arithmetic fixture remains.
 
 *Last updated: September 2026*

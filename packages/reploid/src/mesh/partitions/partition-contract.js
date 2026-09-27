@@ -1,7 +1,7 @@
 /** Shared orchestration bindings. Tensor semantics remain supplied by Doppler. */
 export const partitionIdentityKeys = Object.freeze(['modelId', 'modelIdentity', 'planId', 'threadId', 'attemptId', 'participantA', 'participantB']);
 export const partitionActions = Object.freeze(['mesh.execute_partition_a', 'mesh.execute_partition_b',
-  'mesh.transfer_intermediate_activation', 'mesh.transfer_partition_output']);
+  'mesh.transfer_intermediate_activation', 'mesh.transfer_token_context', 'mesh.transfer_partition_output']);
 export const assertPartition = (value, message) => { if (!value) throw new Error(message); };
 export const samePartitionIdentity = (actual, expected) => actual && partitionIdentityKeys.every(key => actual[key] === expected[key]);
 export function validatePartitionIdentity(identity) {
