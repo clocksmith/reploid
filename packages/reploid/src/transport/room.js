@@ -20,6 +20,7 @@ const MESSAGE_TYPES = new Set([
   'reploid:generation-result', 'reploid:generation-error',
   'reploid:receipt',
   'reploid:tool-offer', 'reploid:tool-offer-ack',
+  'reploid:custody-request', 'reploid:custody-response', 'reploid:custody-offer',
   'ping', 'pong', 'peer-announce', 'peer-leave',
   'raft:request-vote', 'raft:request-vote-response',
   'raft:append-entries', 'raft:append-entries-response',
@@ -481,6 +482,14 @@ const SwarmTransport = {
       onMessage,
       getConnectionState,
       getConnectedPeers,
+      onDataChannel: (label, handler) => {
+        if (!_webrtcSwarm) throw new Error('WebRTC transport is not initialized');
+        return _webrtcSwarm.onDataChannel(label, handler);
+      },
+      openDataChannel: (peerId, label) => {
+        if (!_webrtcSwarm) throw new Error('WebRTC transport is not initialized');
+        return _webrtcSwarm.openDataChannel(peerId, label);
+      },
       getPeerBinding: peerId => _webrtcSwarm?.getPeerBinding?.(peerId) || null,
       getTransportType,
       getStats,

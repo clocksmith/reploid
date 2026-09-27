@@ -14,7 +14,8 @@ const deferred = () => { let resolve; const promise = new Promise(done => { reso
 let values;
 const fixture = (service = {}) => createWorkSwarm({ service, storage: {
   getItem: key => values.get(key) ?? null, setItem: (key, value) => values.set(key, value)
-}, networkOptions: () => ({ autoConnect: true, discoveryScope: 'public',
+}, createModelFiles: () => ({ attach: async () => {}, close: async () => {}, announce() {}, getState: () => ({}),
+  prepareSource: async model => model.id }), networkOptions: () => ({ autoConnect: true, discoveryScope: 'public',
   getInviteUrl: () => 'https://replo.id/?swarm=public',
   config: resolveConfig({ overrides: { mesh: { enabled: true, roomId: 'reploid-swarm-public' } } })
 }) });
@@ -63,6 +64,32 @@ it('coalesces attempts and disconnect retires an already opening transport', asy
 });
 
 afterEach(() => vi.unstubAllGlobals());
+
+it('reserves contribution startup before connecting and stop prevents a late model load', async () => {
+  vi.stubGlobal('navigator', { gpu: {} });
+  const identity = deferred(); ports.ensure.mockReturnValue(identity.promise);
+  const transport = { init: async () => true, disconnect: vi.fn(), onMessage: vi.fn(), broadcast: vi.fn() };
+  ports.createTransport.mockReturnValue(transport);
+  const service = { open: vi.fn(), close: vi.fn() }, swarm = fixture(service);
+  const first = swarm.share('qwen-3-5-2b-q4k-ehaf16', true);
+  const failure = expect(first).rejects.toThrow('stopped');
+  await expect(swarm.share('qwen-3-5-2b-q4k-ehaf16', true)).rejects.toThrow('existing sharing');
+  await vi.waitFor(() => expect(ports.ensure).toHaveBeenCalledOnce());
+  const stop = swarm.stop(); identity.resolve({ peerId: 'fixture', contribution: {} });
+  await stop; await failure;
+  expect(service.open).not.toHaveBeenCalled(); expect(swarm.getState().sharing).toBe(false);
+  await swarm.close();
+});
+
+it('disconnect immediately after share cannot deadlock or create a late contributor', async () => {
+  vi.stubGlobal('navigator', { gpu: {} });
+  const service = { open: vi.fn(), close: vi.fn() }, swarm = fixture(service);
+  const first = swarm.share('qwen-3-5-2b-q4k-ehaf16', true);
+  const failure = expect(first).rejects.toThrow('stopped');
+  await swarm.disconnect(); await failure;
+  expect(service.open).not.toHaveBeenCalled(); expect(ports.ensure).not.toHaveBeenCalled();
+  await swarm.close();
+});
 
 async function supplierFixture() {
   const { createSigningIdentity } = await import('../../packages/reploid/src/artifacts/identity.js');

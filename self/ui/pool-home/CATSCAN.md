@@ -3,12 +3,11 @@
 Parent: [Browser Interfaces](../CATSCAN.md)
 
 ## Target
-Present connected objectives, agents, models, work, results and evaluated changes.
+Present connected conversations, agents, models, results and evaluated changes.
 
 ## Authority
-Owns product/Room-1 presentation. Hosts own execution/review. Requests candidate
-transfer, evaluation, adoption/rollback; never judges. Excludes Pack/receipt
-validation, admission, transport and scientific interpretation.
+Owns product/Room-1 presentation, not execution/review, validation/admission,
+transport or scientific interpretation. Requests candidate transfer/evaluation/adoption/rollback; never judges.
 
 ## Scope
 This tree.
@@ -28,6 +27,8 @@ Outputs: [markup](view.js), [Room-1](room-view.js).
   future disclosure to the verified recipient for that thread/model. Show and
   revoke grants. Membership grants no disclosure.
 - Keep thread failures, approvals and stop visible; selection never stops background threads.
+- Model selection includes compatible adapters. Network details separate compute
+  and bounded file consent; discovery/thread grants imply neither.
 - Inspect Pack/runtime/provider/hardware/fallback/timing/output/agreement. Review grants no evaluation/promotion; receipts prove no hardware attestation; acceptance names policy.
 - Research administration stays in Room-1; generic Packs inherit no research fields.
 - Archive/decision memory remain distinct; Zero/X grant no mutation authority.
@@ -35,12 +36,11 @@ Outputs: [markup](view.js), [Room-1](room-view.js).
 ## Acceptance
 
 - Compare measured benefit/cost against local/centralized baselines. Injected providers prove no inference.
-- Desktop/mobile, both themes: compare empty, active, approval and completed screenshots.
-- Evidence: [visual states](../../../tests/e2e/workspace-material.spec.js).
-- Evidence: [navigation](../../../tests/unit/pool-home-nav.test.js), [requests](../../../tests/unit/pool-home-ask-controls.test.js), [records](../../../tests/unit/pool-home-record.test.js), [peers](../../../tests/e2e/p2p-mesh.spec.js).
+- Desktop/mobile, both themes: empty/active/approval/completed screenshots.
+- Evidence: [visuals](../../../tests/e2e/workspace-material.spec.js), [navigation](../../../tests/unit/pool-home-nav.test.js), [requests](../../../tests/unit/pool-home-ask-controls.test.js), [records](../../../tests/unit/pool-home-record.test.js), [peers](../../../tests/e2e/p2p-mesh.spec.js).
 
 ## Non-goals
 Primary scientific administration, reputation, protocol internals.
 
 ## Freedom
-Preserve these contracts.
+Preserve contracts.

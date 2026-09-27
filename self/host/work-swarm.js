@@ -10,9 +10,12 @@ import { LOCAL_DOPPLER_MODELS } from '../config/doppler-local-models.js';
 import profile from '../config/work-profile.json' with { type: 'json' };
 import { createReploidDopplerRuntimeService } from '../infrastructure/doppler-runtime-service.js';
 import { createWorkResidentProvider } from '../providers/work-resident-provider.js';
+import { createWorkAdapterResolver } from '../providers/work-adapter.js';
 import { createWorkPeerOffers } from './work-peer-offers.js';
+import { createWorkModelFiles } from './work-model-files.js';
 
-export function createWorkSwarm({ storage, evolution, onChange = () => {}, service = createReploidDopplerRuntimeService(), networkOptions = createLegacyNetworkOptions }) {
+export function createWorkSwarm({ storage, evolution, onChange = () => {}, service = createReploidDopplerRuntimeService(), networkOptions = createLegacyNetworkOptions,
+  createModelFiles = createWorkModelFiles }) {
   const utils = Utils.factory({}), eventBus = EventBus.factory({ Utils: utils });
   const options = networkOptions({ Utils: utils, EventBus: eventBus }, { enabled: true });
   let consumer = null, supplier = null, closed = false, sharing = false, stopping = false, connecting = false, error = '';
@@ -21,7 +24,8 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
   let automaticAllowed = options.autoConnect !== false;
   const requests = new Map();
   let consumerTransport = null;
-  let contributor = null, stoppingContribution = null;
+  let modelFiles = null;
+  let contributor = null, stoppingContribution = null, contributionEpoch = 0;
   let contribution = { phase: 'idle', completed: 0, modelId: null, modelIdentity: null, progress: null };
   const getState = () => ({ sharing, stopping, connecting, paused, error, models: LOCAL_DOPPLER_MODELS,
     discoveryScope: options.discoveryScope,
@@ -31,6 +35,7 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
   const notify = () => onChange(getState());
   const peerOffers = evolution ? createWorkPeerOffers({ storage, evolution, roomId: options.config.value.mesh.roomId,
     getTransport: () => consumerTransport, onChange: notify }) : null;
+  eventBus.on('swarm:peer-connected', () => modelFiles?.announce());
   const build = (model, peerId, execution = null) => {
     const version = generation;
     const instanceId = 'work-swarm:' + crypto.randomUUID();
@@ -43,7 +48,7 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
       getExecutionState: () => {
         const state = execution?.getState();
         return { phase: sharing && state?.ready ? 'ready' : state?.phase || 'idle',
-          modelIdentity: state?.modelIdentity || null };
+          modelIdentity: state?.modelIdentity || null, adapterIdentities: state?.adapterIdentities || [] };
       },
       createTransport: () => {
         if (closed || paused || version !== generation) throw new Error('Text swarm connection stopped');
@@ -63,7 +68,7 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
         const peer = consumer.getSwarmSnapshot().peers.find(item => item.peerId === request.peerId);
         if (!peer) return false;
         const preview = { id: crypto.randomUUID(), operation: 'generate', modelId: peer.model || 'advertised text model',
-          modelIdentity: peer.modelIdentity, adapterIdentities: [], providerId: peer.peerId,
+          modelIdentity: peer.modelIdentity, adapterIdentities: request.adapterIdentities || [], providerId: peer.peerId,
           recipientIdentity: request.recipientIdentity || null, disclosure: 'public',
           input: request.messages, options: {}, limits: { maxJobMs: config.value.mesh.generationTimeoutMs },
           expiresAt: Date.now() + profile.peers.maxPreviewMs };
@@ -78,7 +83,12 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
       },
       generate: (messages, onUpdate, controls) => {
         if (!sharing || contributor !== execution) throw new Error('Contributor model is not ready');
-        return execution.generate(messages, onUpdate, controls);
+        const adapters = (controls.adapterIdentities || []).map(identity => {
+          const selected = model.adapters?.find(adapter => adapter.identity === identity);
+          if (!selected) throw new Error('Adapter contribution is not authorized');
+          return selected;
+        });
+        return execution.generate(messages, onUpdate, { ...controls, adapters });
       }
     } });
   };
@@ -95,10 +105,13 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
         await active.connect();
         if (closed || paused || version !== generation) { await active.close(); throw new Error('Text swarm connection stopped'); }
         await peerOffers?.attach();
+        modelFiles = createModelFiles({ getTransport: () => consumerTransport, onChange: notify });
+        await modelFiles.attach();
+        if (closed || paused || version !== generation) { await modelFiles.close(); throw new Error('File exchange connection stopped'); }
       } else await consumer.connect();
       return getState();
     }
-    catch (cause) { peerOffers?.close(); await consumer?.close(); consumer = null; consumerTransport = null; if (version === generation) error = cause.message; throw cause; }
+    catch (cause) { peerOffers?.close(); await modelFiles?.close(); modelFiles = null; await consumer?.close(); consumer = null; consumerTransport = null; if (version === generation) error = cause.message; throw cause; }
     finally { connecting = false; notify(); }
   };
   const connect = async ({ automatic = false } = {}) => {
@@ -123,7 +136,8 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
       await connect({ automatic: true });
       if (!consumer) throw new Error('Peer discovery is stopped');
       const result = await consumer.generate(messages, controls.onPartial, {
-        signal: controls.signal, modelId: controls.modelId, modelIdentity: controls.modelIdentity, requestContext: { id }
+        signal: controls.signal, modelId: controls.modelId, modelIdentity: controls.modelIdentity,
+        adapterIdentities: controls.adapterIdentities || [], requestContext: { id }
       });
       controls.signal.throwIfAborted();
       if (typeof result.content !== 'string' || !result.content.trim() || result.content.length > profile.maxOutcomeCharacters) {
@@ -140,6 +154,7 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
     } finally { requests.delete(id); }
   };
   const stopContribution = () => {
+    contributionEpoch++;
     if (stoppingContribution) return stoppingContribution;
     sharing = false; stopping = true;
     contribution = { ...contribution, phase: 'stopping' };
@@ -160,19 +175,24 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
     if (disconnecting) return disconnecting;
     generation++;
     const contributionStop = stopContribution();
+    const fileStop = modelFiles?.close(); modelFiles = null;
     const previousConsumer = consumer;
     consumer = null; consumerTransport?.disconnect(); consumerTransport = null;
     peerOffers?.close();
-    const pending = [connection, contributionStop, previousConsumer?.close()];
+    const pending = [connection, contributionStop, previousConsumer?.close(), fileStop];
     disconnecting = (async () => {
       const results = await Promise.allSettled(pending);
       peerOffers?.close();
       if (results[1].status === 'rejected') throw results[1].reason;
+      if (results[3].status === 'rejected') throw results[3].reason;
     })().finally(() => { disconnecting = null; connecting = false; notify(); });
     notify();
     return disconnecting;
   };
   return Object.freeze({ getState, connect, disconnect,
+    getFileState: () => modelFiles?.getState() || { sharing: false, preparing: false },
+    async shareFiles(model, approved) { await connect({ automatic: true }); await modelFiles.share(model, approved); },
+    stopFiles: () => modelFiles?.stop(),
     autoConnectEnabled: () => !closed && !paused && automaticAllowed,
     getInviteUrl: () => options.getInviteUrl(),
     generate,
@@ -182,38 +202,52 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
     retryCandidate: transferId => peerOffers.retry(transferId),
     previewCandidate: transferId => peerOffers.preview(transferId),
     dismissCandidate: transferId => peerOffers.dismiss(transferId),
-    async share(modelId, approved) {
+    async share(modelId, approved, adapters = []) {
       if (closed || supplier || stopping || sharingConnection) throw new Error('Stop existing sharing first');
       if (approved !== true) throw new Error('Approve public prompt execution before sharing');
-      const model = LOCAL_DOPPLER_MODELS.find(item => item.id === modelId);
-      if (!model) throw new Error('Select an available local model');
+      const base = LOCAL_DOPPLER_MODELS.find(item => item.id === modelId);
+      if (!base) throw new Error('Select an available local model');
+      if (!Array.isArray(adapters) || adapters.length > 1) throw new Error('Select at most one adapter');
+      const model = { ...base, adapters: adapters.map(selected => {
+        const entry = base.availableAdapters?.find(adapter => adapter.identity === selected.identity);
+        if (!entry) throw new Error('Adapter is not in the contributor catalog');
+        return structuredClone(entry);
+      }) };
       if (!navigator.gpu) throw new Error('This browser does not support WebGPU');
       if (disconnecting || paused) throw new Error('Connect before contributing compute');
       const version = generation;
-      const execution = createWorkResidentProvider({ model, service, generation: profile.generation,
-        maxOutcomeCharacters: profile.maxOutcomeCharacters, onChange(state) {
-          if (contributor !== execution || version !== generation) return;
-          contribution = state;
-          if (state.phase === 'failed') error = state.error;
-          supplier?.refreshAdvertisement(); notify();
-        } });
-      contributor = execution; sharing = true; error = '';
-      contribution = { ...execution.getState(), phase: 'loading' };
-      const active = build(model, undefined, execution); supplier = active; notify();
-      sharingConnection = (async () => {
+      const epoch = contributionEpoch;
+      sharingConnection = Promise.resolve().then(async () => {
+        let execution, active;
         try {
+          if (closed || paused || version !== generation || epoch !== contributionEpoch) throw new Error('Contribution stopped');
+          await connect({ automatic: true });
+          if (closed || paused || version !== generation || epoch !== contributionEpoch) throw new Error('Contribution stopped');
+          const files = modelFiles;
+          execution = createWorkResidentProvider({ model, service, generation: profile.generation,
+            resolveSource: (selected, controls) => files.prepareSource(selected, controls),
+            resolveAdapter: createWorkAdapterResolver({ models: [base], acquire: files.acquireAdapter }),
+            maxOutcomeCharacters: profile.maxOutcomeCharacters, onChange(state) {
+              if (contributor !== execution || version !== generation) return;
+              contribution = state;
+              if (state.phase === 'failed') error = state.error;
+              supplier?.refreshAdvertisement(); notify();
+            } });
+          contributor = execution; sharing = true; error = '';
+          contribution = { ...execution.getState(), phase: 'loading' };
+          active = build(model, undefined, execution); supplier = active; notify();
           await active.connect();
           if (closed || contributor !== execution || version !== generation) throw new Error('Contribution stopped');
           await execution.prepare();
         } catch (cause) {
-          await Promise.allSettled([active.close(), execution.close()]);
-          if (supplier === active) {
+          await Promise.allSettled([active?.close(), execution?.close()]);
+          if (active && supplier === active) {
             supplier = null; contributor = null; sharing = false;
             contribution = { ...execution.getState(), phase: 'failed' }; error = cause.message;
           }
           throw cause;
         } finally { sharingConnection = null; notify(); }
-      })();
+      });
       await sharingConnection;
     },
     stop: stopContribution,

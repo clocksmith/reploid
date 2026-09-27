@@ -1,0 +1,85 @@
+{
+  "staged": false,
+  "discoveryOnly": false,
+  "physicalDevices": 1,
+  "browserContexts": 3,
+  "discoveryEndpoint": "https://reploid-swarm.reploid.workers.dev",
+  "credentialIssuer": "https://reploid-swarm.reploid.workers.dev",
+  "credentialResponses": [
+    {
+      "status": 200,
+      "ttlSeconds": 600,
+      "noStore": true,
+      "urls": [
+        "stun:stun.cloudflare.com:3478",
+        "turn:turn.cloudflare.com:3478?transport=udp",
+        "turn:turn.cloudflare.com:3478?transport=tcp",
+        "turns:turn.cloudflare.com:5349?transport=tcp",
+        "turn:turn.cloudflare.com:443?transport=udp",
+        "turn:turn.cloudflare.com:80?transport=tcp",
+        "turns:turn.cloudflare.com:443?transport=tcp"
+      ]
+    },
+    {
+      "status": 200,
+      "ttlSeconds": 600,
+      "noStore": true,
+      "urls": [
+        "stun:stun.cloudflare.com:3478",
+        "turn:turn.cloudflare.com:3478?transport=udp",
+        "turn:turn.cloudflare.com:3478?transport=tcp",
+        "turns:turn.cloudflare.com:5349?transport=tcp",
+        "turn:turn.cloudflare.com:443?transport=udp",
+        "turn:turn.cloudflare.com:80?transport=tcp",
+        "turns:turn.cloudflare.com:443?transport=tcp"
+      ]
+    }
+  ],
+  "startedAt": "2026-09-26T17:47:03.699Z",
+  "worker": {
+    "service": "reploid-swarm",
+    "release": "cloudflare-swarm-20260926-2",
+    "discoveryOnly": true
+  },
+  "automaticDiscovery": true,
+  "candidatePairs": [
+    {
+      "local": "relay",
+      "remote": "relay",
+      "relayProtocol": "udp",
+      "bytesSent": 2525,
+      "bytesReceived": 2846
+    }
+  ],
+  "passed": false,
+  "connections": [
+    {
+      "iceErrors": [],
+      "peers": [
+        {
+          "connection": "closed",
+          "ice": "closed",
+          "gathering": "complete",
+          "candidates": [],
+          "pairs": []
+        }
+      ]
+    },
+    {
+      "iceErrors": [],
+      "peers": [
+        {
+          "connection": "closed",
+          "ice": "closed",
+          "gathering": "complete",
+          "candidates": [],
+          "pairs": []
+        }
+      ]
+    },
+    {
+      "unavailable": true
+    }
+  ],
+  "error": "page.goto: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"[URL] waiting until \"load\"\u001b[22m\n"
+}

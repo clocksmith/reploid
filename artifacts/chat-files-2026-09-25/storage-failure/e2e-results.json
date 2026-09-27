@@ -1,0 +1,183 @@
+{
+  "config": {
+    "configFile": "/Users/xyz/deco/reploid/playwright.config.js",
+    "rootDir": "/Users/xyz/deco/reploid/tests/e2e",
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/Users/xyz/deco/reploid/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "chromium",
+        "name": "chromium",
+        "testDir": "/Users/xyz/deco/reploid/tests/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 300000
+      },
+      {
+        "outputDir": "/Users/xyz/deco/reploid/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "chromium-swiftshader",
+        "name": "chromium-swiftshader",
+        "testDir": "/Users/xyz/deco/reploid/tests/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 300000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "html",
+        {
+          "open": "never"
+        }
+      ],
+      [
+        "json",
+        {
+          "outputFile": "test-results/e2e-results.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "runAgents": "none",
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.58.0",
+    "workers": 1,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "chat-real-adapter.spec.js",
+      "file": "chat-real-adapter.spec.js",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "three Chrome tabs supply files, execute Doppler and receive independent adapted and base conversations",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 1200000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 194311,
+                  "error": {
+                    "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m\"\"\u001b[39m\nReceived: \u001b[31m\"Artifact contract preflight failed: shard_00016.bin: The operation failed because it would cause the application to exceed its storage quota.\"\u001b[39m",
+                    "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m\"\"\u001b[39m\nReceived: \u001b[31m\"Artifact contract preflight failed: shard_00016.bin: The operation failed because it would cause the application to exceed its storage quota.\"\u001b[39m\n    at /Users/xyz/deco/reploid/tests/e2e/chat-real-adapter.spec.js:49:69",
+                    "location": {
+                      "file": "/Users/xyz/deco/reploid/tests/e2e/chat-real-adapter.spec.js",
+                      "column": 69,
+                      "line": 49
+                    },
+                    "snippet": "  47 |       || document.querySelector('[data-network-message]')?.textContent, null, { timeout: 600000 });\n  48 |     expect(await b.locator('[data-chat-error]').textContent()).toBe('');\n> 49 |     expect(await b.locator('[data-network-message]').textContent()).toBe('');\n     |                                                                     ^\n  50 |     await expect(b.locator('[data-contrib-label]')).toHaveText('Ready');\n  51 |     await send(specialist, 'Extract people and cities as JSON: Alice visited Bob in Paris.');\n  52 |     await send(base, 'Reply with a short greeting.');"
+                  },
+                  "errors": [
+                    {
+                      "location": {
+                        "file": "/Users/xyz/deco/reploid/tests/e2e/chat-real-adapter.spec.js",
+                        "column": 69,
+                        "line": 49
+                      },
+                      "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m\"\"\u001b[39m\nReceived: \u001b[31m\"Artifact contract preflight failed: shard_00016.bin: The operation failed because it would cause the application to exceed its storage quota.\"\u001b[39m\n\n  47 |       || document.querySelector('[data-network-message]')?.textContent, null, { timeout: 600000 });\n  48 |     expect(await b.locator('[data-chat-error]').textContent()).toBe('');\n> 49 |     expect(await b.locator('[data-network-message]').textContent()).toBe('');\n     |                                                                     ^\n  50 |     await expect(b.locator('[data-contrib-label]')).toHaveText('Ready');\n  51 |     await send(specialist, 'Extract people and cities as JSON: Alice visited Bob in Paris.');\n  52 |     await send(base, 'Reply with a short greeting.');\n    at /Users/xyz/deco/reploid/tests/e2e/chat-real-adapter.spec.js:49:69"
+                    }
+                  ],
+                  "stdout": [
+                    {
+                      "text": "[contributor] [ERROR] [WebRTCSwarm] Data channel error with peer_mugye6q6_xjtw76ra: RTCErrorEvent\n"
+                    },
+                    {
+                      "text": "[contributor] [ERROR] [WebRTCSwarm] Data channel error with beb07ecb-e8fb-46d8-9c8c-3e5ac0bb2929: RTCErrorEvent\n"
+                    }
+                  ],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-09-25T12:43:57.118Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Users/xyz/deco/reploid/test-results/chat-real-adapter-three-Ch-9e04b-pted-and-base-conversations-chromium/test-failed-3.png"
+                    },
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Users/xyz/deco/reploid/test-results/chat-real-adapter-three-Ch-9e04b-pted-and-base-conversations-chromium/test-failed-2.png"
+                    },
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "/Users/xyz/deco/reploid/test-results/chat-real-adapter-three-Ch-9e04b-pted-and-base-conversations-chromium/test-failed-1.png"
+                    }
+                  ],
+                  "errorLocation": {
+                    "file": "/Users/xyz/deco/reploid/tests/e2e/chat-real-adapter.spec.js",
+                    "column": 69,
+                    "line": 49
+                  }
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "c1f7d04655f57839c0d8-cd8b92e7de114d7a8630",
+          "file": "chat-real-adapter.spec.js",
+          "line": 4,
+          "column": 1
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-09-25T12:43:56.667Z",
+    "duration": 195115.00100000002,
+    "expected": 0,
+    "skipped": 0,
+    "unexpected": 1,
+    "flaky": 0
+  }
+}

@@ -4,16 +4,14 @@ Parent: [Browser Runtime](../CATSCAN.md)
 
 ## Target
 
-Boot configured browser surfaces from trusted seeds.
+Boot surfaces from trusted seeds.
 
 ## Authority
-- Owns VFS seeding, module loading, startup and application tools.
-- Composes agent threads with retained objectives and exact-payload approval.
-  Conversations may use explicit revocable grants bound to verified recipient,
-  mesh, thread, model and adapters.
+- Owns seeding, loading, startup, tools and independent threads.
+- Disclosure requires exact-payload approval or revocable recipient/mesh/thread/model/adapter grants.
 - Separates helpers/swarms/previews/isolation/evaluation/activation from Pack jobs.
 - Tasks validate; repositories version; providers execute; views expose immutable state.
-- Excludes product policy, module semantics and recovery-root immutability.
+- Excludes policy, module semantics and recovery-root mutation.
 
 ## Scope
 
@@ -30,18 +28,22 @@ Outputs:
 ## Invariants
 - Keep seed identity/destination explicit.
 - Never substitute missing or unverified modules.
-- Automatic discovery is cancellable; disconnect prevents background rejoin. Joining grants no compute, disclosure, file or improvement authority.
+- Disconnect prevents rejoin. Discovery grants no compute/disclosure/files/improvement authority.
 - Received files cannot grant permissions or prove correctness.
 - Viewing/stopping threads cannot change another's objective, grants or execution.
 - Peer candidate delivery grants no evaluation or adoption authority.
-- Peer operations require current authorization, exact execution identities and retained evidence.
-  Thread grants authorize disclosure only; new recipients/execution identities require approval.
+- Peer operations require current grants, exact identities and evidence; changed recipients/models/adapters require approval.
+- File contribution requires separate bounded consent. Explicit compute may acquire
+  selected files, not redistribute them. Discovery never downloads weights.
+- Host-pinned Doppler storage verifies catalog files; inventories cannot select code.
+  Resident leases include adapter application/evidence/removal and cancellation settlement.
 - Candidates cannot read protected tests or self-activate; attempts pin versions and retain rollback sources.
 - Version objectives/measures outside candidate isolation; changed objectives require reevaluation.
 
 ## Acceptance
 - Seeded modules are complete; VFS round trips succeed.
-- Evidence: [boot-seed test](../../tests/unit/boot-seed.test.js) and [VFS integration test](../../tests/integration/vfs.test.js).
+- Evidence: [boot](../../tests/unit/boot-seed.test.js), [VFS](../../tests/integration/vfs.test.js),
+  [real chat](../../tests/e2e/chat-real-adapter.spec.js), [races](../../tests/unit/work-swarm-lifecycle.test.js).
 
 ## Non-goals
 - Choosing the scientific question, model policy, or promotion outcome.

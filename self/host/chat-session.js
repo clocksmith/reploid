@@ -6,6 +6,7 @@
 import { createChatWorkspace, createChatScheduler } from '../vendor/reploid/chat/index.js';
 import { createReploidDopplerRuntimeService } from '../infrastructure/doppler-runtime-service.js';
 import { createWorkResidentProvider } from '../providers/work-resident-provider.js';
+import { createWorkAdapterResolver } from '../providers/work-adapter.js';
 import { createWorkNetworkProvider } from '../providers/work-network-provider.js';
 import profile from '../config/work-profile.json' with { type: 'json' };
 import { LOCAL_DOPPLER_MODELS } from '../config/doppler-local-models.js';
@@ -53,16 +54,19 @@ export function createChatSession({
 
   // Track active execution placements and latencies per thread
   const threadPlacements = new Map();
+  const resolveAdapter = createWorkAdapterResolver({ models });
 
   const sessionScheduler = scheduler || createChatScheduler({
     open: async reqModel => {
       const resident = createWorkResidentProvider({ service, model: reqModel,
-        generation: profile.generation, maxOutcomeCharacters: profile.maxOutcomeCharacters });
+        resolveAdapter, generation: profile.generation, maxOutcomeCharacters: profile.maxOutcomeCharacters });
       await resident.prepare();
       return {
-        run: (req, { signal: runSignal, onDelta }) => resident.generate(req.messages, onDelta, { signal: runSignal }),
+        run: (req, { signal: runSignal, onDelta }) => resident.generate(req.messages, onDelta,
+          { signal: runSignal, adapters: req.model.adapters || [] }),
         reset: async () => assert(resident.getState().ready, 'Resident session requires replacement'),
-        setAdapters: async adapters => assert(!adapters.length, 'This execution path cannot apply adapters'),
+        // The resident applies and removes adapters inside the same device lease as generation.
+        setAdapters: async () => {},
         close: resident.close
       };
     },
@@ -73,10 +77,11 @@ export function createChatSession({
   const execute = async (request, controls) => {
     const { threadId, attemptId, model } = request;
     assert(model.provider === 'doppler', 'Chat requires a Doppler participant');
-    const catalogModel = getCatalogModels().find(m => m.id === model.id);
-    const allowedAdapters = catalogModel?.adapters || [];
+    const catalogModel = [...models, ...peerModels].find(m => m.id === model.id && m.identity === model.identity);
+    assert(catalogModel, 'Selected model is not in the verified catalog');
+    const allowedAdapters = catalogModel.availableAdapters || [];
     for (const adapter of model.adapters || []) {
-      const verified = allowedAdapters.some(a => a.identity === adapter.identity);
+      const verified = allowedAdapters.some(a => a.identity === adapter.identity && a.baseModelIdentity === model.identity);
       assert(verified, 'This execution path cannot apply the selected adapter');
     }
     let sequence = 0;
@@ -156,8 +161,12 @@ export function createChatSession({
 
   const getCatalogModels = () => {
     const peers = swarm?.getState?.().consumer?.peers || [];
-    return copy([...models, ...peerModels].map(model => {
-      const compatible = peers.filter(peer => peer.model === model.id && peer.modelIdentity === model.identity);
+    const selections = [...models, ...peerModels].flatMap(model => [model, ...(model.availableAdapters || []).map(adapter => ({
+      ...model, name: adapter.name, selectionId: model.id + '/' + adapter.id, adapters: [adapter]
+    }))]);
+    return copy(selections.map(model => {
+      const compatible = peers.filter(peer => peer.model === model.id && peer.modelIdentity === model.identity
+        && (model.adapters || []).every(adapter => peer.adapterIdentities?.includes(adapter.identity)));
       const ready = compatible.filter(peer => peer.readiness === 'ready' && peer.hasInference);
       const loading = peers.some(peer => peer.model === model.id && peer.readiness === 'loading');
       return { ...model, availability: ready.length ? (ready.some(peer => peer.availableSlots > 0) ? 'ready' : 'busy')
@@ -181,7 +190,7 @@ export function createChatSession({
       models: getCatalogModels(),
       defaultModel: getCatalogModels().find(model => model.id === profile.defaultModelId) || getCatalogModels()[0] || null,
       discovering,
-      network: copy(swarm?.getState?.() || { sharing: false, consumer: null }),
+      network: copy({ ...(swarm?.getState?.() || { sharing: false, consumer: null }), files: swarm?.getFileState?.() || null }),
       scheduler: sessionScheduler?.getState() || null,
       placements: Object.fromEntries(threadPlacements.entries())
     };
@@ -266,7 +275,7 @@ export function createChatSession({
           peerModels = found.map(m => ({
             ...m,
             identity: m.identity,
-            provider: 'peer'
+            provider: 'doppler'
           }));
         }
       } catch (e) {
@@ -284,13 +293,25 @@ export function createChatSession({
       assert(swarm?.disconnect, 'Peer disconnection is unavailable');
       try { await swarm.disconnect(); } finally { notifyAll(); }
     },
-    async setSharing(enabled, modelId, approved) {
+    async setSharing(enabled, selectionId, approved) {
       assert(swarm, 'Contribution is unavailable');
       try {
         if (enabled) {
           assert(approved === true, 'Approve public prompt execution before sharing');
-          await swarm.share(modelId, true);
+          const model = getCatalogModels().find(item => (item.selectionId || item.id) === selectionId);
+          assert(model, 'Select a catalog model before contributing');
+          await swarm.share(model.id, true, model.adapters || []);
         } else await swarm.stop();
+      } finally { notifyAll(); }
+    },
+    async setFileSharing(enabled, selectionId, approved) {
+      assert(swarm?.shareFiles, 'File contribution is unavailable');
+      try {
+        if (!enabled) { swarm.stopFiles(); return; }
+        assert(approved === true, 'Approve file distribution separately from compute');
+        const model = getCatalogModels().find(item => (item.selectionId || item.id) === selectionId);
+        assert(model, 'Select a catalog model before distributing files');
+        await swarm.shareFiles(model, true);
       } finally { notifyAll(); }
     },
     async close() {

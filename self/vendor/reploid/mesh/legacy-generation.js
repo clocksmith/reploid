@@ -6,6 +6,13 @@ import { rankProviderPeers, applyReceiptToContribution } from './contribution.js
 import { createReceiptDraft, countersignReceipt, signReceiptDraft, verifyReceipt } from '../artifacts/receipt.js';
 
 const estimateTokens = text => Math.ceil((typeof text === 'string' ? text : JSON.stringify(text)).length / 4);
+const adapterSet = value => {
+  if (!Array.isArray(value) || value.length > 1 || value.some(id => !/^sha256:[a-f0-9]{64}$/.test(id))) {
+    throw new Error('Invalid adapter selection');
+  }
+  return [...value];
+};
+const supportsAdapters = (peer, selected) => selected.every(id => (peer.adapterIdentities || []).includes(id));
 
 // Preserves the legacy swarm-generation protocol. Receipts are signed records,
 // not independent evaluation, durable job replay, or hardware attestation.
@@ -34,8 +41,8 @@ export function createLegacyGenerationMesh({ config, ports }) {
   let swarmInitPromise = null, swarmInitialized = false, swarmHandlersRegistered = false;
   const executionState = () => ports.getExecutionState?.() || { phase: modelConfig ? 'ready' : 'idle', modelIdentity: null };
   const ready = () => !!modelConfig && executionState().phase === 'ready';
-  const chooseCompatibleProvider = (modelId, includeBusy = false, modelIdentity = null) => rankProviderPeers(swarmController.listPeers())
-    .find(peer => peer.readiness === 'ready' && (!modelIdentity || peer.modelIdentity === modelIdentity) && (!modelId || peer.model === modelId) && (includeBusy || (!reservedProviders.has(peer.peerId) && peer.availableSlots !== 0))
+  const chooseCompatibleProvider = (modelId, includeBusy = false, modelIdentity = null, adapters = []) => rankProviderPeers(swarmController.listPeers())
+    .find(peer => supportsAdapters(peer, adapters) && peer.readiness === 'ready' && (!modelIdentity || peer.modelIdentity === modelIdentity) && (!modelId || peer.model === modelId) && (includeBusy || (!reservedProviders.has(peer.peerId) && peer.availableSlots !== 0))
       && (policy.models.contract === null
       || JSON.stringify(snapshotJson(peer.modelContract ?? null)) === JSON.stringify(policy.models.contract))) || null;
 
@@ -79,6 +86,7 @@ export function createLegacyGenerationMesh({ config, ports }) {
     advertisement.model = modelConfig?.id || null;
     advertisement.readiness = executionState().phase;
     advertisement.modelIdentity = executionState().modelIdentity;
+    advertisement.adapterIdentities = executionState().adapterIdentities || [];
     advertisement.availableSlots = ready() ? Math.max(0, policy.mesh.maxInboundJobs - inbound.size) : 0;
     advertisement.modelContract = policy.models.contract;
     advertisement.identityProtocol = 1;
@@ -113,8 +121,8 @@ export function createLegacyGenerationMesh({ config, ports }) {
     await syncIdentityDocument();
   };
 
-  const waitForProvider = (modelId, signal, timeoutMs = REMOTE_GENERATION_TIMEOUT_MS, modelIdentity = null) => {
-    if (chooseCompatibleProvider(modelId, false, modelIdentity)) return Promise.resolve(true);
+  const waitForProvider = (modelId, signal, timeoutMs = REMOTE_GENERATION_TIMEOUT_MS, modelIdentity = null, adapters = []) => {
+    if (chooseCompatibleProvider(modelId, false, modelIdentity, adapters)) return Promise.resolve(true);
     return new Promise(resolve => {
       let unsubscribe = () => {};
       const finish = available => {
@@ -124,19 +132,19 @@ export function createLegacyGenerationMesh({ config, ports }) {
       const abort = () => finish(false);
       const timer = setTimeout(() => finish(false), timeoutMs);
       providerWaiters.add(finish);
-      unsubscribe = bridgeEvents.on('provider-ready', () => { if (chooseCompatibleProvider(modelId, false, modelIdentity)) finish(true); });
+      unsubscribe = bridgeEvents.on('provider-ready', () => { if (chooseCompatibleProvider(modelId, false, modelIdentity, adapters)) finish(true); });
       signal?.addEventListener('abort', abort, { once: true });
       if (signal?.aborted) finish(false);
     });
   };
 
-  const chooseProvider = async (modelId, signal, modelIdentity) => {
+  const chooseProvider = async (modelId, signal, modelIdentity, adapters) => {
     const deadline = Date.now() + REMOTE_GENERATION_TIMEOUT_MS;
     while (!closed && Date.now() < deadline) {
       signal?.throwIfAborted();
-      const provider = chooseCompatibleProvider(modelId, false, modelIdentity);
+      const provider = chooseCompatibleProvider(modelId, false, modelIdentity, adapters);
       if (provider) { reservedProviders.add(provider.peerId); return provider; }
-      if (!await waitForProvider(modelId, signal, deadline - Date.now(), modelIdentity)) break;
+      if (!await waitForProvider(modelId, signal, deadline - Date.now(), modelIdentity, adapters)) break;
     }
     signal?.throwIfAborted();
     return null;
@@ -146,6 +154,7 @@ export function createLegacyGenerationMesh({ config, ports }) {
     try { payload = snapshotJson(payload); } catch { return; }
     if (!payload || Array.isArray(payload) || typeof payload !== 'object') return;
     if (!Number.isFinite(payload.updatedAt)) return;
+    try { adapterSet(payload.adapterIdentities || []); } catch { return; }
     const next = swarmController.upsertPeer({
       ...payload,
       peerId: remotePeerId
@@ -154,6 +163,7 @@ export function createLegacyGenerationMesh({ config, ports }) {
       next.model = typeof payload.model === 'string' ? payload.model : null;
       next.readiness = ['loading', 'ready', 'idle', 'failed', 'stopping'].includes(payload.readiness) ? payload.readiness : 'unavailable';
       next.modelIdentity = payload.modelIdentity || null;
+      next.adapterIdentities = payload.adapterIdentities || [];
       next.availableSlots = Number.isSafeInteger(payload.availableSlots) && payload.availableSlots > 0 ? payload.availableSlots : 0;
       next.modelContract = payload.modelContract || null;
       next.identityProtocol = payload.identityProtocol === 1 ? 1 : null;
@@ -187,6 +197,9 @@ export function createLegacyGenerationMesh({ config, ports }) {
       if ((pending.modelId && response.model !== pending.modelId)
         || (pending.modelIdentity && response.modelIdentity !== pending.modelIdentity)) {
         throw new Error('Remote response substituted the requested model');
+      }
+      if (JSON.stringify(response.adapterIdentities || []) !== JSON.stringify(pending.adapterIdentities)) {
+        throw new Error('Remote response substituted the requested adapter');
       }
       if (payload.receipt) {
         const verified = await verifyReceipt(payload.receipt);
@@ -231,9 +244,12 @@ export function createLegacyGenerationMesh({ config, ports }) {
     const messages = Array.isArray(payload.messages) ? payload.messages : [];
 
     if (!requestId || !messages.length) return;
+    let adapters;
+    try { adapters = adapterSet(payload.adapterIdentities || []); } catch { return; }
     if (targetProvider && targetProvider !== identityBundle.peerId && targetProvider !== swarmTransport._getPeerId?.()) return;
     if ((payload.model && payload.model !== modelConfig.id)
-      || (payload.modelIdentity && payload.modelIdentity !== executionState().modelIdentity)) {
+      || (payload.modelIdentity && payload.modelIdentity !== executionState().modelIdentity)
+      || !supportsAdapters(executionState(), adapters)) {
       swarmTransport.sendToPeer(remotePeerId, 'reploid:generation-error', { requestId, error: 'Requested model is unavailable' });
       return;
     }
@@ -263,11 +279,14 @@ export function createLegacyGenerationMesh({ config, ports }) {
           requestId,
           chunk
         });
-      }, { signal: controller.signal });
+      }, { signal: controller.signal, adapterIdentities: adapters });
       controller.signal.throwIfAborted();
       const response = snapshotJson(generated);
       if (response.model !== modelConfig.id || (payload.modelIdentity && response.modelIdentity !== payload.modelIdentity)) {
         throw new Error('Provider execution identity mismatch');
+      }
+      if (JSON.stringify(response.adapterIdentities || []) !== JSON.stringify(adapters)) {
+        throw new Error('Provider adapter execution identity mismatch');
       }
 
       const receipt = await signReceiptDraft(
@@ -393,14 +412,16 @@ export function createLegacyGenerationMesh({ config, ports }) {
   };
 
 
-  const generate = async (messages, onUpdate, { signal, modelId, modelIdentity = null, requestContext = null } = {}) => {
+  const generate = async (messages, onUpdate, { signal, modelId, modelIdentity = null, adapterIdentities = [], requestContext = null } = {}) => {
     if (closed) throw new Error('Mesh is closed');
     signal?.throwIfAborted();
     messages = snapshotJson(messages);
     requestContext = snapshotJson(requestContext);
+    adapterIdentities = adapterSet(adapterIdentities);
     if (modelConfig) {
       if (modelId && modelId !== modelConfig.id) throw new Error('Requested model is unavailable');
-      return ports.generate(messages, onUpdate || null, { signal });
+      if (!supportsAdapters(executionState(), adapterIdentities)) throw new Error('Requested adapter is unavailable');
+      return ports.generate(messages, onUpdate || null, { signal, adapterIdentities });
     }
 
     if (!swarmEnabled) {
@@ -408,7 +429,7 @@ export function createLegacyGenerationMesh({ config, ports }) {
     }
 
     await initialize();
-    const provider = await chooseProvider(modelId, signal, modelIdentity);
+    const provider = await chooseProvider(modelId, signal, modelIdentity, adapterIdentities);
     if (!provider?.peerId || !swarmTransport || !identityBundle) {
       throw new Error('No remote host slot available');
     }
@@ -418,7 +439,7 @@ export function createLegacyGenerationMesh({ config, ports }) {
       const connectionBinding = JSON.stringify(swarmTransport.getPeerBinding?.(provider.peerId) || null);
       const recipientIdentity = provider.identityProtocol === 1 ? await peerIdentity.verify(provider.peerId, signal) : null;
       if (await ports.authorize({ action: 'mesh.dispatch', peerId: provider.peerId, messages: snapshotJson(messages),
-        recipientIdentity, requestContext: snapshotJson(requestContext) }) !== true) {
+        recipientIdentity, adapterIdentities: [...adapterIdentities], requestContext: snapshotJson(requestContext) }) !== true) {
         throw new Error('Host denied remote prompt disclosure');
       }
       signal?.throwIfAborted();
@@ -426,15 +447,16 @@ export function createLegacyGenerationMesh({ config, ports }) {
       const currentProvider = swarmController.listPeers().find(peer => peer.peerId === provider.peerId);
       if (!currentProvider || currentProvider.readiness !== 'ready' || currentProvider.availableSlots === 0
         || JSON.stringify(swarmTransport.getPeerBinding?.(provider.peerId) || null) !== connectionBinding
-        || currentProvider.model !== provider.model || currentProvider.modelIdentity !== provider.modelIdentity) {
+        || currentProvider.model !== provider.model || currentProvider.modelIdentity !== provider.modelIdentity
+        || !supportsAdapters(currentProvider, adapterIdentities)) {
         throw new Error('Selected contributor is no longer ready; retry requires new placement');
       }
       const requestId = utils.generateId('swarmreq');
-      return await remoteRequests.start({ requestId, modelId, modelIdentity,
+      return await remoteRequests.start({ requestId, modelId, modelIdentity, adapterIdentities,
         providerPeerId: provider.peerId, onUpdate, signal }, () =>
         swarmTransport.sendToPeer(provider.peerId, 'reploid:generation-request', {
           requestId, consumer: identityBundle.peerId, provider: provider.peerId,
-          model: modelId || provider.model || null, modelIdentity,
+          model: modelId || provider.model || null, modelIdentity, adapterIdentities,
           modelContract: policy.models.contract, messages
         }));
     } finally {

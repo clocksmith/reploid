@@ -1,0 +1,26 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "reploid-swarm",
+  "account_id": "a83dfba998fd42d3dab5dc607e7c6b60",
+  "main": "../../server/cloudflare/index.js",
+  "compatibility_date": "2026-09-26",
+  "workers_dev": true,
+  "preview_urls": false,
+  "durable_objects": {
+    "bindings": [
+      { "name": "ROOMS", "class_name": "SwarmRoom" },
+      { "name": "ADMISSION", "class_name": "SwarmAdmission" }
+    ]
+  },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["SwarmRoom", "SwarmAdmission"] }],
+  "vars": {
+    "FIREBASE_PROJECT_ID": "reploid",
+    "TURN_KEY_ID": "17352396aa1d4598b73065ce71b3ad8e",
+    "RELEASE_ID": "cloudflare-swarm-20260926-2"
+  },
+  "observability": {
+    "enabled": true,
+    "logs": { "enabled": true, "invocation_logs": false, "head_sampling_rate": 1 },
+    "traces": { "enabled": true, "head_sampling_rate": 0.01 }
+  }
+}

@@ -50,6 +50,34 @@ describe('Pool SDK client identity', () => {
     expect(second).toBe(first);
   });
 
+  it('routes only authenticated RTC issuance to the configured host without redirecting', async () => {
+    const fetchMock = vi.fn(async () => ({ ok: true, json: async () => ({}) }));
+    vi.stubGlobal('fetch', fetchMock);
+    const sdk = createPoolSdk({ rtcConfigUrl: 'https://worker.test/rtc-config',
+      authTokenProvider: async () => 'test-token', clientId: 'test-client' });
+    await sdk.rtcConfig(); await sdk.status();
+    expect(fetchMock.mock.calls.map(([url]) => url)).toEqual(['https://worker.test/rtc-config', '/pool/status']);
+    expect(fetchMock.mock.calls[0][1]).toMatchObject({
+      redirect: 'error', headers: { Authorization: 'Bearer test-token' }
+    });
+  });
+
+  it('does not silently fall back after RTC issuer failure', async () => {
+    const fetchMock = vi.fn(async () => ({ ok: false, status: 503, json: async () => ({ error: 'Unavailable' }) }));
+    vi.stubGlobal('fetch', fetchMock);
+    const sdk = createPoolSdk({ rtcConfigUrl: 'https://worker.test/rtc-config', authTokenProvider: null });
+    await expect(sdk.rtcConfig()).rejects.toMatchObject({ status: 503 });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(fetchMock.mock.calls[0][0]).toBe('https://worker.test/rtc-config');
+  });
+
+  it('preserves an explicitly supplied Pool API base', async () => {
+    const fetchMock = vi.fn(async () => ({ ok: true, json: async () => ({}) }));
+    vi.stubGlobal('fetch', fetchMock);
+    await createPoolSdk({ baseUrl: 'https://custom.test', authTokenProvider: null }).rtcConfig();
+    expect(fetchMock.mock.calls[0][0]).toBe('https://custom.test/rtc-config');
+  });
+
   it('uses the isolated adapter-canary publication routes', async () => {
     const fetchMock = vi.fn(async () => ({
       ok: true,

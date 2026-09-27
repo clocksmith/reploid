@@ -3,16 +3,59 @@
     "id": "qwen-3-5-0-8b-q4k-ehaf16",
     "name": "Qwen 3.5 0.8B",
     "identity": "sha256:edeb69dd65cbb26971abf773a95bf6dc219a82942c0951d65e1893d442b607c9",
+    "source": {
+      "baseUrl": "https://huggingface.co/clocksmith/rdrr/resolve/80d7716270b6371d541de979eff3370edaf34e13/models/qwen-3-5-0-8b-q4k-ehaf16/",
+      "files": [
+        { "path": "manifest.json", "role": "model-manifest", "sizeBytes": 214138, "hashAlgorithm": "sha256", "hash": "edeb69dd65cbb26971abf773a95bf6dc219a82942c0951d65e1893d442b607c9" },
+        { "path": "tokenizer.json", "role": "tokenizer", "sizeBytes": 9088480, "hashAlgorithm": "sha256", "hash": "8fc3b6de02de5a8e21d3867aba335e2d9a3c2263201f55daaed1feab3541bea4" }
+      ]
+    },
     "provider": "doppler",
     "contextLength": 262144,
     "quantization": "q4k",
     "size": "Q4K",
-    "adapters": []
+    "adapters": [],
+    "availableAdapters": [{
+      "id": "qwen35-0-8b-ner-json-lora",
+      "name": "Qwen 3.5 0.8B NER JSON LoRA",
+      "identity": "sha256:dc0248f45553e69defd8a1846619443f1ac5902a118548c70a7254c21f66f64b",
+      "baseModelIdentity": "sha256:edeb69dd65cbb26971abf773a95bf6dc219a82942c0951d65e1893d442b607c9",
+      "weightsLayout": "peft",
+      "artifact": {
+        "artifactId": "qwen35-0-8b-ner-json-lora",
+        "role": "adapter",
+        "path": "adapter_model.safetensors",
+        "sizeBytes": 43346432,
+        "hash": "sha256:dfed3509fdd54c04e80e362b6b14f98d9c326a8e732f539996a137086dc4f636",
+        "url": "https://huggingface.co/Mike0021/qwen35-0.8b-ner-json-lora/resolve/6d4e4cf3ebe7d8df10897b9f44cbf1e647386bcb/adapter_model.safetensors"
+      },
+      "manifest": {
+        "id": "qwen35-0-8b-ner-json-lora",
+        "name": "Qwen 3.5 0.8B NER JSON LoRA",
+        "version": "1.0.0",
+        "baseModel": "qwen-3-5-0-8b-q4k-ehaf16",
+        "rank": 16,
+        "alpha": 32,
+        "targetModules": ["down_proj", "o_proj", "in_proj_a", "up_proj", "in_proj_z", "gate_proj", "q_proj", "out_proj", "v_proj", "k_proj", "in_proj_b", "in_proj_qkv"],
+        "weightsFormat": "safetensors",
+        "weightsPath": "https://huggingface.co/clocksmith/lora/resolve/a618a2ccab25928a98694930376ebb3c3db241cb/adapters/network-canaries/qwen35-0.8b-ner-json-lora/adapter_model.safetensors",
+        "weightsSize": 43346432,
+        "checksum": "dfed3509fdd54c04e80e362b6b14f98d9c326a8e732f539996a137086dc4f636",
+        "checksumAlgorithm": "sha256"
+      }
+    }]
   },
   {
     "id": "qwen-3-5-2b-q4k-ehaf16",
     "name": "Qwen 3.5 2B",
     "identity": "sha256:502fbd6d4c9ed6a890931665995c8ebb42a30e5cda23aa2cfd8e680bee7fa5bc",
+    "source": {
+      "baseUrl": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/",
+      "files": [
+        { "path": "manifest.json", "role": "model-manifest", "sizeBytes": 183615, "hashAlgorithm": "sha256", "hash": "502fbd6d4c9ed6a890931665995c8ebb42a30e5cda23aa2cfd8e680bee7fa5bc" },
+        { "path": "tokenizer.json", "role": "tokenizer", "sizeBytes": 9088480, "hashAlgorithm": "sha256", "hash": "8fc3b6de02de5a8e21d3867aba335e2d9a3c2263201f55daaed1feab3541bea4" }
+      ]
+    },
     "provider": "doppler",
     "contextLength": 262144,
     "quantization": "q4k",

@@ -3,12 +3,19 @@ import { createWorkResidentProvider } from '../../self/providers/work-resident-p
 import { withWorkDevice } from '../../self/providers/work-device.js';
 const deferred = () => { let resolve; const promise = new Promise(r => { resolve = r; }); return { promise, resolve }; };
 const signal = () => new AbortController().signal;
-const fixture = (overrides = {}) => {
+const fixture = (overrides = {}, options = {}) => {
   const model = { id: 'fixture', provider: 'doppler', identity: 'sha256:' + 'a'.repeat(64) };
   const session = { loaded: true, modelId: model.id, manifestHash: 'a'.repeat(64),
+    advanced: { createIncrementalDecoder: () => ({ push: token => token, finish: () => '' }) },
+    async generate(messages, options) {
+      let outputText = '';
+      for await (const event of this.stream(messages)) { outputText += event.text; options.onToken?.(event.text); }
+      return { outputText, evidence: { runtimeProfile: { model: { modelId: this.modelId,
+        manifestHash: this.manifestHash, activeAdapterDigest: this.adapterDigest?.() || null } } } };
+    },
     resetGenerationState: vi.fn(), async *stream(messages) { yield { type: 'text-delta', text: messages[0].content }; }, ...overrides };
   const service = { open: vi.fn(async () => session), close: vi.fn(async () => {}) };
-  const owner = createWorkResidentProvider({ service, model, generation: {}, maxOutcomeCharacters: 100 });
+  const owner = createWorkResidentProvider({ service, model, generation: {}, maxOutcomeCharacters: 100, ...options });
   return { owner, service, session };
 };
 
@@ -21,6 +28,71 @@ it('coalesces preparation and retirement while preserving a resident between req
   expect(f.owner.close()).toBe(f.owner.close()); await f.owner.close();
   expect(f.service.close).toHaveBeenCalledOnce(); expect(f.owner.getState().ready).toBe(false);
   await expect(f.owner.prepare()).rejects.toThrow('stopped');
+});
+
+it('applies a verified adapter per request and restores the base model without another model load', async () => {
+  const selected = { identity: 'sha256:' + 'b'.repeat(64), baseModelIdentity: 'sha256:' + 'a'.repeat(64) };
+  let active = null;
+  const resolveAdapter = vi.fn(async () => ({ manifest: { baseModel: 'fixture' }, options: {} }));
+  const f = fixture({
+    loadLoRA: vi.fn(async () => { active = { digest: selected.identity }; }),
+    unloadLoRA: vi.fn(async () => { active = null; }),
+    async *stream(messages) { yield { type: 'text-delta', text: (active ? 'adapted ' : 'base ') + messages[0].content }; }
+  }, { resolveAdapter });
+  Object.defineProperties(f.session, {
+    activeLoRA: { get: () => active ? 'fixture-adapter' : null },
+    adapterDigest: { value: () => active?.digest }
+  });
+  await f.owner.prepare();
+  const [adapted, base] = await Promise.all([
+    f.owner.generate([{ content: 'A' }], () => {}, { signal: signal(), adapters: [selected] }),
+    f.owner.generate([{ content: 'B' }], () => {}, { signal: signal() })
+  ]);
+  expect(adapted).toMatchObject({ content: 'adapted A', adapterIdentities: [selected.identity] });
+  expect(base).toMatchObject({ content: 'base B', adapterIdentities: [] });
+  expect(f.service.open).toHaveBeenCalledOnce(); expect(active).toBeNull();
+  await f.owner.close();
+});
+
+it('rejects mismatched Doppler execution evidence and retires the session', async () => {
+  const selected = { identity: 'sha256:' + 'b'.repeat(64), baseModelIdentity: 'sha256:' + 'a'.repeat(64) };
+  let active = null; const streamed = vi.fn();
+  const f = fixture({ loadLoRA: async () => { active = { digest: 'sha256:' + 'c'.repeat(64) }; },
+    unloadLoRA: async () => { active = null; },
+    async *stream() { streamed(); yield { type: 'text-delta', text: 'must not run' }; }
+  }, { resolveAdapter: async () => ({ manifest: { baseModel: 'fixture' }, options: {} }) });
+  Object.defineProperties(f.session, { activeLoRA: { get: () => active && 'wrong' }, adapterDigest: { value: () => active?.digest } });
+  await f.owner.prepare();
+  await expect(f.owner.generate([], () => {}, { signal: signal(), adapters: [selected] })).rejects.toThrow('different adapter');
+  expect(streamed).toHaveBeenCalledOnce(); expect(active).toBeNull();
+  expect(f.owner.getState().ready).toBe(false); await f.owner.close();
+});
+
+it('qualifies adapter readiness through the pinned scoped API evidence without an identity getter', async () => {
+  const selected = { identity: 'sha256:' + 'b'.repeat(64), baseModelIdentity: 'sha256:' + 'a'.repeat(64) };
+  let active = null;
+  const f = fixture({ loadLoRA: async () => { active = selected.identity; }, unloadLoRA: async () => { active = null; } }, {
+    model: { id: 'fixture', provider: 'doppler', identity: selected.baseModelIdentity, adapters: [selected] },
+    resolveAdapter: async () => ({ manifest: { baseModel: 'fixture' }, options: {} })
+  });
+  Object.defineProperties(f.session, { activeLoRA: { get: () => active && 'adapter' }, adapterDigest: { value: () => active } });
+  expect(f.session.activeLoRAIdentity).toBeUndefined();
+  await f.owner.prepare();
+  expect(f.owner.getState()).toMatchObject({ ready: true, adapterIdentities: [selected.identity] });
+  expect(active).toBeNull(); await f.owner.close();
+});
+
+it('does not reuse a session when adapter removal fails', async () => {
+  const selected = { identity: 'sha256:' + 'b'.repeat(64), baseModelIdentity: 'sha256:' + 'a'.repeat(64) };
+  let active = null;
+  const f = fixture({ loadLoRA: async () => { active = { digest: selected.identity }; },
+    unloadLoRA: async () => { throw new Error('adapter removal failed'); }
+  }, { resolveAdapter: async () => ({ manifest: { baseModel: 'fixture' }, options: {} }) });
+  Object.defineProperties(f.session, { activeLoRA: { get: () => active && 'adapter' }, adapterDigest: { value: () => active?.digest } });
+  await f.owner.prepare();
+  await expect(f.owner.generate([{ content: 'A' }], () => {}, { signal: signal(), adapters: [selected] })).rejects.toThrow('adapter removal failed');
+  expect(f.owner.getState().ready).toBe(false); expect(f.service.close).toHaveBeenCalledOnce();
+  await f.owner.close();
 });
 
 it('retires a failed resident and prevents queued work from borrowing the retired handle', async () => {

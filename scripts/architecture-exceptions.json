@@ -1,6 +1,18 @@
 {
   "loaders": [
     {
+      "source": "self/host/work-model-files.js",
+      "expression": "globalThis.REPLOID_DOPPLER_STORAGE_MODULE_URL || DOPPLER_STORAGE_TOOLING_URL",
+      "owner": "self/host/CATSCAN.md",
+      "contract": "Pinned host-selected Doppler storage tooling verifies canonical catalog bytes. Peer inventories cannot select runtime code or URLs."
+    },
+    {
+      "source": "self/host/work-model-files.js",
+      "expression": "new URL('./storage/artifact-storage-context.js', new URL(globalThis.REPLOID_DOPPLER_MODULE_URL || DOPPLER_MODULE_URL, location.href)).href",
+      "owner": "self/host/CATSCAN.md",
+      "contract": "Pinned Doppler artifact storage context receives verified file callbacks. The path is fixed relative to the configured runtime; no peer-controlled specifier or substitute inference implementation."
+    },
+    {
       "source": "self/boot-helpers/modules.js",
       "expression": "resolveModulePath(entryFile)",
       "owner": "self/host/CATSCAN.md",

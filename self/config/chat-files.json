@@ -1,0 +1,19 @@
+{
+  "schema": "reploid.chat-files/v1",
+  "maxStoredBytes": 3221225472,
+  "maxSupplyBytes": 4294967296,
+  "maxArtifactBytes": 67108864,
+  "maxTransfers": 4,
+  "maxInventoryFiles": 128,
+  "maxReceipts": 32,
+  "grantMs": 1800000,
+  "channel": {
+    "maxFrameBytes": 16384,
+    "maxControlBytes": 32768,
+    "maxChunkBytes": 262144,
+    "maxBufferedBytes": 1048576,
+    "maxPendingRequests": 2,
+    "maxTransferBytes": 4294967296,
+    "timeoutMs": 30000
+  }
+}

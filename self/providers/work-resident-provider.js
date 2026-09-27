@@ -3,14 +3,16 @@ import { openWorkProvider } from './work-provider.js';
 import { withWorkDevice } from './work-device.js';
 
 export function createWorkResidentProvider({ service, model, generation, maxOutcomeCharacters,
-  onChange = () => {}, scope = 'work-resident:' + crypto.randomUUID() }) {
+  onChange = () => {}, scope = 'work-resident:' + crypto.randomUUID(), resolveAdapter, resolveSource, source, loadOptions }) {
   model = structuredClone(model);
   generation = structuredClone(generation);
   const lifetime = new AbortController(), operations = new Set();
   let adapter = null, identity = null, preparing = null, closing = null, cleanup = null;
   let closed = false, phase = 'idle', error = null, progress = null, completed = 0;
+  let adapterIdentities = [];
   const getState = () => ({ phase, error, progress: structuredClone(progress), completed,
     modelId: model.id, modelIdentity: identity?.modelIdentity || null,
+    adapterIdentities: [...adapterIdentities],
     ready: !closed && !!adapter && adapter.isReady() && ['ready', 'executing'].includes(phase) });
   const notify = () => {
     try { onChange(getState()); } catch (cause) { console.error('[Resident] state observer failed', cause); }
@@ -33,12 +35,14 @@ export function createWorkResidentProvider({ service, model, generation, maxOutc
     if (error) return Promise.reject(new Error(error));
     phase = 'loading';
     preparing = Promise.resolve().then(() => withWorkDevice(service, lifetime.signal, async () => {
+      const resolvedSource = resolveSource ? await resolveSource(model, { signal: lifetime.signal }) : source;
       const loaded = await openWorkProvider({ model, service, scope, signal: lifetime.signal,
-        generation, maxOutcomeCharacters, onProgress(value) {
+        generation, maxOutcomeCharacters, resolveAdapter, source: resolvedSource, loadOptions, onProgress(value) {
           if (!closed) { progress = structuredClone(value); notify(); }
         } });
       lifetime.signal.throwIfAborted();
       await loaded.reset();
+      if (model.adapters?.length) adapterIdentities = await loaded.prepareAdapters(model.adapters);
       lifetime.signal.throwIfAborted();
       identity = loaded.getIdentity(); adapter = loaded; phase = 'ready'; notify();
       return getState();
@@ -48,16 +52,17 @@ export function createWorkResidentProvider({ service, model, generation, maxOutc
     notify();
     return preparing;
   };
-  const generate = (messages, onUpdate, { signal }) => {
+  const generate = (messages, onUpdate, { signal, adapters = [] }) => {
     if (!getState().ready) return Promise.reject(new Error('Contributor model is not ready'));
     const input = structuredClone(messages);
+    const selectedAdapters = structuredClone(adapters);
     const current = adapter, combined = AbortSignal.any([lifetime.signal, signal]);
     const operation = withWorkDevice(service, combined, async () => {
       combined.throwIfAborted();
       if (adapter !== current || error) throw new Error('Resident session was retired before execution');
       phase = 'executing'; notify();
       try {
-        const result = await current.generate(input, onUpdate, { signal: combined });
+        const result = await current.generate(input, onUpdate, { signal: combined, adapters: selectedAdapters });
         combined.throwIfAborted(); completed++;
         return result;
       } catch (cause) {

@@ -1,0 +1,23 @@
+{
+  "staged": true,
+  "discoveryOnly": true,
+  "physicalDevices": 1,
+  "browserContexts": 3,
+  "discoveryEndpoint": "https://reploid-swarm.reploid.workers.dev",
+  "credentialIssuer": "existing Poolday endpoint",
+  "automaticDiscovery": true,
+  "candidatePairs": [
+    {
+      "local": "host",
+      "remote": "host",
+      "relayProtocol": null,
+      "bytesSent": 2418,
+      "bytesReceived": 2432
+    }
+  ],
+  "privateIsolation": true,
+  "disconnectPersists": true,
+  "networkRecovery": true,
+  "implicitModelDownloads": 0,
+  "passed": true
+}

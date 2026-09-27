@@ -1,0 +1,48 @@
+{
+  "staged": true,
+  "discoveryOnly": false,
+  "physicalDevices": 1,
+  "browserContexts": 3,
+  "discoveryEndpoint": "https://reploid-swarm.reploid.workers.dev",
+  "credentialIssuer": "https://reploid-swarm.reploid.workers.dev",
+  "credentialResponses": [
+    {
+      "status": 200,
+      "ttlSeconds": 600,
+      "noStore": true,
+      "urls": [
+        "stun:stun.cloudflare.com:3478",
+        "turn:turn.cloudflare.com:3478?transport=udp",
+        "turn:turn.cloudflare.com:3478?transport=tcp",
+        "turns:turn.cloudflare.com:5349?transport=tcp",
+        "turn:turn.cloudflare.com:443?transport=udp",
+        "turn:turn.cloudflare.com:80?transport=tcp",
+        "turns:turn.cloudflare.com:443?transport=tcp"
+      ]
+    },
+    {
+      "status": 200,
+      "ttlSeconds": 600,
+      "noStore": true,
+      "urls": [
+        "stun:stun.cloudflare.com:3478",
+        "turn:turn.cloudflare.com:3478?transport=udp",
+        "turn:turn.cloudflare.com:3478?transport=tcp",
+        "turns:turn.cloudflare.com:5349?transport=tcp",
+        "turn:turn.cloudflare.com:443?transport=udp",
+        "turn:turn.cloudflare.com:80?transport=tcp",
+        "turns:turn.cloudflare.com:443?transport=tcp"
+      ]
+    }
+  ],
+  "startedAt": "2026-09-26T17:41:13.687Z",
+  "worker": {
+    "service": "reploid-swarm",
+    "release": "cloudflare-swarm-20260926-1",
+    "discoveryOnly": true
+  },
+  "automaticDiscovery": true,
+  "candidatePairs": [],
+  "passed": false,
+  "error": "The expression evaluated to a falsy value:\n\n  assert.ok(record.candidatePairs.some(pair => pair.bytesReceived > 0 && pair.bytesSent > 0))\n"
+}
