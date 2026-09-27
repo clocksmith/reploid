@@ -2,13 +2,16 @@
 
 **Classification:** Canonical Full Specification
 
-**Implementation Status:** In-Progress
+**Implementation Status:** Proposed
 
-**Verified Artifacts:** `/self/ui/proto.js`
+**Verified Artifacts:** None
 
 **Planned Artifacts:** `/ui/panels/module-proto.js`, `module-proto.js`
 
-**Owned Source Files:** `ui/proto.js`
+**Owned Source Files:** None
+
+The unreferenced legacy implementation was removed during the September 2026
+branch integration. This retained design is not current executable evidence.
 
 **Former Blueprint Paths:** `self/blueprints/0x00004C-module-proto-orchestration.md`
 **Objective:** To provide a unified proto that auto-discovers and renders all module widgets with consistent layout, filtering, and interaction patterns.

@@ -81,12 +81,10 @@ export async function resetSession(vfs, genesisConfig, genesisLevel, logger) {
     // Use preserveOnReset from config, or fall back to defaults
     const preserveConfig = genesisConfig.preserveOnReset || {};
     const coreTools = buildCoreToolSet(genesisConfig, genesisLevel);
-    const coreUIFiles = new Set(preserveConfig.ui || ['proto.js', 'toast.js']);
+    const coreUIFiles = new Set(preserveConfig.ui || ['toast.js']);
     const coreStyles = new Set(preserveConfig.styles || [
       'zero.css',
       'rd.css',
-      'landing-mono.css',
-      'vfs-explorer.css',
       'index.css',
       'layout.css',
       'components.css',

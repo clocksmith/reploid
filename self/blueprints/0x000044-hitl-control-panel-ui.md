@@ -2,13 +2,16 @@
 
 **Classification:** Canonical Full Specification
 
-**Implementation Status:** In-Progress
+**Implementation Status:** Proposed
 
-**Verified Artifacts:** `/self/ui/components/hitl-widget.js`
+**Verified Artifacts:** None
 
 **Planned Artifacts:** `/ui/panels/hitl-control-panel.js`, `hitl-control-panel.js`
 
-**Owned Source Files:** `ui/components/hitl-widget.js`
+**Owned Source Files:** None
+
+The unreferenced legacy implementation was removed during the September 2026
+branch integration. This retained design is not current executable evidence.
 
 **Former Blueprint Paths:** `self/blueprints/0x000044-hitl-control-panel-ui.md`
 **Objective:** Provide a visual interface for managing Human-in-the-Loop vs Autonomous modes across modules with real-time approval queue management.

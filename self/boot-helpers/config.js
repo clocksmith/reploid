@@ -5,7 +5,7 @@
 
 import { applyModuleOverrides, normalizeOverrides, resolveBaseModules } from '../config/module-resolution.js';
 import { getDefaultGenesisLevelForMode, normalizeBootMode } from '../config/boot-modes.js';
-import { getLabRouteProfileByPath } from '../config/lab-route-profiles.js';
+import { getLabRouteProfileByPath } from '../lab/profiles.js';
 import { readVfsFile } from './vfs-bootstrap.js';
 
 const readJsonFromVfs = async (path) => {

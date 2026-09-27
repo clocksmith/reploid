@@ -59,7 +59,6 @@ export const ZERO_SEED_PREFIXES = Object.freeze([
   'config/doppler-local-models.js',
   'config/genesis-levels.json',
   'config/immutability.js',
-  'config/lab-route-profiles.js',
   'config/module-registry.json',
   'config/module-resolution.js',
   'config/reploid-environments.js',
@@ -137,7 +136,6 @@ export const X_ADDITIONAL_SEED_PREFIXES = Object.freeze([
 export const ZERO_RUNTIME_SELF_MIRROR_RULES = Object.freeze([
   { sourcePrefix: '/boot-helpers/', targetPrefix: '/self/boot-helpers/' },
   { sourcePrefix: '/capabilities/', targetPrefix: '/self/capabilities/' },
-  { sourcePath: '/config/lab-route-profiles.js', targetPath: '/self/config/lab-route-profiles.js' },
   { sourcePath: '/config/tool-surfaces.js', targetPath: '/self/config/tool-surfaces.js' },
   { sourcePrefix: '/core/', targetPrefix: '/self/core/' },
   { sourcePrefix: '/host/', targetPrefix: '/self/host/' },

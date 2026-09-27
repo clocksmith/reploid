@@ -1,0 +1,360 @@
+{
+  "schema": "reploid/zero-critical-user-journeys/v1",
+  "updated": "2026-07-27",
+  "surface": "/zero",
+  "productName": "Zero",
+  "statusDefinitions": {
+    "supported": "The outcome has an executable implementation and automated end-to-end contract coverage.",
+    "conditional": "The outcome is executable only when named model, provider, device, response-shape, or runtime prerequisites are satisfied.",
+    "limited": "A narrower runtime outcome works, but the complete operator journey is not yet proved.",
+    "blocked": "The user outcome is intentionally unavailable and has explicit blockers."
+  },
+  "releaseEvidence": {
+    "gate": "scripts/verify-critical-user-journeys.js",
+    "retainedArtifact": null,
+    "status": "not-retained",
+    "requiredArtifactFields": [
+      "journeyIds",
+      "commit",
+      "deploymentUrl",
+      "bootProfile",
+      "modelId",
+      "provider",
+      "startedAt",
+      "completedAt",
+      "cycleArtifactHashes",
+      "mutationArtifactHashes",
+      "screenshotHash",
+      "result"
+    ]
+  },
+  "journeys": [
+    {
+      "id": "configure-and-awaken-zero",
+      "actor": "operator",
+      "outcome": "Choose the managed Gemini proxy or a compatible local Doppler model, set the first objective and cycle interval, and awaken the CreateTool-only Zero runtime.",
+      "routes": [
+        "/zero"
+      ],
+      "status": "conditional",
+      "releaseCritical": true,
+      "prerequisites": [
+        "The selected proxy endpoint is reachable with the configured model, or the browser and device qualify for the selected Doppler artifact.",
+        "The objective is non-empty."
+      ],
+      "implementationPaths": [
+        "self/ui/zero-home/index.js",
+        "self/ui/boot-home/index.js",
+        "self/ui/boot-wizard/state.js",
+        "self/host/start-app.js",
+        "self/config/zero-inference.js"
+      ],
+      "testPaths": [
+        "tests/e2e/boot.spec.js",
+        "tests/e2e/boot-contract.spec.js",
+        "tests/unit/zero-goals.test.js"
+      ],
+      "limitations": [
+        "Configuration completeness enables Awaken; a successful provider preflight is not required.",
+        "The ordinary browser suite does not prove current managed-endpoint availability or current local model artifact availability."
+      ],
+      "openWorkIds": [
+        "retain-zero-release-evidence",
+        "prove-zero-inference-preflight"
+      ]
+    },
+    {
+      "id": "run-and-observe-zero-cycle",
+      "actor": "operator",
+      "outcome": "Watch model input, model output, tool execution, runtime state, tokens, cycle count, and failures update while Zero pursues the objective.",
+      "routes": [
+        "/zero"
+      ],
+      "status": "conditional",
+      "releaseCritical": true,
+      "prerequisites": [
+        "A configured inference provider returns a response understood by the agent parser.",
+        "The agent loop remains inside its iteration, context, and retry limits."
+      ],
+      "implementationPaths": [
+        "self/core/agent-loop.js",
+        "self/ui/zero/index.js",
+        "self/infrastructure/telemetry-timeline.js"
+      ],
+      "testPaths": [
+        "tests/e2e/zero-one-safe-iteration.spec.js",
+        "tests/e2e/iteration-artifacts.spec.js",
+        "tests/unit/zero-ui.test.js"
+      ],
+      "limitations": [
+        "Most deterministic cycle coverage uses a mock cognition provider.",
+        "The visible trace is capped at 80 entries and is not itself a retained release artifact.",
+        "Cycle completion proves execution and audit production, not that an arbitrary objective was solved well."
+      ],
+      "openWorkIds": [
+        "retain-zero-release-evidence",
+        "evaluate-zero-goal-quality",
+        "make-zero-trace-durable"
+      ]
+    },
+    {
+      "id": "grow-zero-tool-surface",
+      "actor": "agent",
+      "outcome": "Start with only CreateTool, activate a fixture-tested tool, replay its activation in a fresh harness, load it into the live runner, and use it in a later action.",
+      "routes": [
+        "/zero"
+      ],
+      "status": "conditional",
+      "releaseCritical": true,
+      "prerequisites": [
+        "The model emits a valid CreateTool call and complete module source.",
+        "The proposed tool declares deterministic activation checks that pass and replay with matching transcripts."
+      ],
+      "implementationPaths": [
+        "self/tools/CreateTool.js",
+        "self/core/tool-runner.js",
+        "self/config/tool-surfaces.js"
+      ],
+      "testPaths": [
+        "tests/e2e/tool-calling-smoke.spec.js",
+        "tests/e2e/zero-one-safe-iteration.spec.js",
+        "tests/e2e/zero-self-patch.spec.js",
+        "tests/unit/tools/create-tool.test.js"
+      ],
+      "limitations": [
+        "Activation proves only the declared fixture contract and replay transcript.",
+        "It does not prove the tool is generally correct, secure, or useful outside those fixtures.",
+        "Whether a real model authors the needed tool correctly remains model-dependent."
+      ],
+      "openWorkIds": [
+        "retain-zero-release-evidence",
+        "evaluate-created-tool-quality"
+      ]
+    },
+    {
+      "id": "apply-zero-self-modification",
+      "actor": "agent",
+      "outcome": "Create a capability-bearing self-write tool, preserve rollback evidence, patch a live Zero tool, UI module, or mirrored core module, and activate the result through tool load, UI reload, or document reload.",
+      "routes": [
+        "/zero"
+      ],
+      "status": "conditional",
+      "releaseCritical": true,
+      "prerequisites": [
+        "CreateTool accepts and activates a tool declaring the self:write capability.",
+        "The generated self writer preserves rollback and mutation evidence.",
+        "The patch remains bootable after activation or reload."
+      ],
+      "implementationPaths": [
+        "self/tools/CreateTool.js",
+        "self/host/start-app.js",
+        "self/config/vfs-policy.js"
+      ],
+      "testPaths": [
+        "tests/e2e/zero-self-patch.spec.js",
+        "tests/e2e/zero-ui-refresh.spec.js",
+        "tests/unit/tools/create-tool.test.js"
+      ],
+      "limitations": [
+        "Zero does not expose Promote; an activated self:write tool can write allowed live mirrors directly.",
+        "CreateTool replay validates declared fixtures, not the full application regression suite or a human approval.",
+        "The end-to-end self-patch tests drive deterministic tool calls directly rather than proving autonomous patch quality from an open-ended prompt."
+      ],
+      "openWorkIds": [
+        "retain-zero-release-evidence",
+        "strengthen-zero-self-mutation-authority",
+        "evaluate-zero-goal-quality"
+      ]
+    },
+    {
+      "id": "steer-and-stop-zero",
+      "actor": "operator",
+      "outcome": "Queue one context or correction note for the next cycle, stop an active run, cancel a pending provider retry, and manually reload the Zero UI.",
+      "routes": [
+        "/zero"
+      ],
+      "status": "limited",
+      "releaseCritical": true,
+      "prerequisites": [
+        "The Zero runtime UI is mounted.",
+        "A run or retry is active for the stop control to remain enabled."
+      ],
+      "implementationPaths": [
+        "self/ui/zero/index.js",
+        "self/core/agent-loop.js"
+      ],
+      "testPaths": [
+        "tests/unit/zero-ui.test.js",
+        "tests/e2e/zero-ui-refresh.spec.js"
+      ],
+      "limitations": [
+        "Zero has no Run or Resume control after an ordinary user stop.",
+        "The current automated UI coverage does not exercise the complete note, stop, cancel-retry, and reload journey through user input."
+      ],
+      "openWorkIds": [
+        "complete-zero-operator-control-journey"
+      ]
+    },
+    {
+      "id": "inspect-and-recover-zero-evidence",
+      "actor": "operator",
+      "outcome": "Retain writable VFS files and cycle artifacts across reload, then inspect them after rebuilding the reader capabilities needed by the minimal surface.",
+      "routes": [
+        "/zero"
+      ],
+      "status": "limited",
+      "releaseCritical": true,
+      "prerequisites": [
+        "IndexedDB and the service worker remain available for the same Zero instance.",
+        "Zero has created or recreated a reader tool capable of inspecting the files."
+      ],
+      "implementationPaths": [
+        "self/boot-helpers/vfs-bootstrap.js",
+        "self/core/vfs.js",
+        "self/ui/zero/index.js"
+      ],
+      "testPaths": [
+        "tests/e2e/boot-replay.spec.js",
+        "tests/e2e/vfs-roundtrip.spec.js",
+        "tests/e2e/iteration-artifacts.spec.js"
+      ],
+      "limitations": [
+        "The minimal Zero UI has no VFS browser, export control, or replay importer.",
+        "Persisted created tools are not proved to auto-load into a fresh ToolRunner after reload.",
+        "Recovery remains local to one browser instance."
+      ],
+      "openWorkIds": [
+        "make-zero-trace-durable",
+        "prove-zero-tool-recovery"
+      ]
+    },
+    {
+      "id": "prove-actual-local-rsi-cycle",
+      "actor": "release_reviewer",
+      "outcome": "Run a bounded Zero mutation cycle with actual Doppler WebGPU cognition and bind model identity, tool calls, cycle audits, and the produced artifact.",
+      "routes": [
+        "/zero"
+      ],
+      "status": "conditional",
+      "releaseCritical": true,
+      "prerequisites": [
+        "REPLOID_E2E_ACTUAL_RSI=1 is explicitly enabled.",
+        "Chromium WebGPU and the pinned Doppler model artifact are available.",
+        "The hardware-qualified run completes within its bounded test timeout."
+      ],
+      "implementationPaths": [
+        "self/config/doppler-local-models.js",
+        "self/core/agent-loop.js",
+        "self/tools/CreateTool.js"
+      ],
+      "testPaths": [
+        "tests/e2e/zero-actual-rsi.spec.js"
+      ],
+      "limitations": [
+        "The actual-inference lane is skipped by default.",
+        "The prompt supplies an exact desired tool transcript, so this proves the real inference and execution boundary rather than open-ended autonomous design quality.",
+        "No immutable deployed artifact from the most recent run is referenced by this registry."
+      ],
+      "openWorkIds": [
+        "retain-zero-release-evidence",
+        "evaluate-zero-goal-quality"
+      ]
+    }
+  ],
+  "openWork": [
+    {
+      "id": "retain-zero-release-evidence",
+      "state": "open",
+      "priority": "P0",
+      "journeyIds": [
+        "configure-and-awaken-zero",
+        "run-and-observe-zero-cycle",
+        "grow-zero-tool-surface",
+        "apply-zero-self-modification",
+        "prove-actual-local-rsi-cycle"
+      ],
+      "summary": "Persist an actual deployed Zero run as immutable journey evidence instead of relying on transient Playwright attachments or prose.",
+      "acceptance": "A retained artifact supplies every releaseEvidence.requiredArtifactFields value and is linked from releaseEvidence.retainedArtifact."
+    },
+    {
+      "id": "evaluate-zero-goal-quality",
+      "state": "open",
+      "priority": "P0",
+      "journeyIds": [
+        "run-and-observe-zero-cycle",
+        "apply-zero-self-modification",
+        "prove-actual-local-rsi-cycle"
+      ],
+      "summary": "Measure whether Zero solves representative open-ended objectives rather than only reproducing supplied tool transcripts.",
+      "acceptance": "A versioned objective set binds model, prompt, cycle receipts, final artifacts, machine checks, and human usefulness or recognizability verdicts."
+    },
+    {
+      "id": "strengthen-zero-self-mutation-authority",
+      "state": "open",
+      "priority": "P0",
+      "journeyIds": [
+        "apply-zero-self-modification"
+      ],
+      "summary": "Define and enforce the authority boundary for a dynamically created self:write tool that can bypass X's Promote lane.",
+      "acceptance": "The runtime enforces an explicit, tested policy for high-impact live writes, preserves rollback, and cannot self-authorize mutations to the policy or its validators."
+    },
+    {
+      "id": "prove-zero-inference-preflight",
+      "state": "open",
+      "priority": "P1",
+      "journeyIds": [
+        "configure-and-awaken-zero"
+      ],
+      "summary": "Prevent a syntactically complete but unreachable inference configuration from looking ready.",
+      "acceptance": "Awaken readiness distinguishes configured from verified, and tests cover failed proxy and failed local-model preflight with actionable recovery."
+    },
+    {
+      "id": "complete-zero-operator-control-journey",
+      "state": "open",
+      "priority": "P1",
+      "journeyIds": [
+        "steer-and-stop-zero"
+      ],
+      "summary": "Give Zero a complete, tested operator control loop after a stop.",
+      "acceptance": "Browser coverage queues a note, observes it in the next model input, stops, resumes without reloading the page, cancels a retry, and preserves correct button state."
+    },
+    {
+      "id": "make-zero-trace-durable",
+      "state": "open",
+      "priority": "P1",
+      "journeyIds": [
+        "run-and-observe-zero-cycle",
+        "inspect-and-recover-zero-evidence"
+      ],
+      "summary": "Make the operator-visible trace recoverable and exportable instead of retaining only a capped in-memory view.",
+      "acceptance": "The operator can reopen or export a cycle trace whose rows bind the corresponding VFS cycle artifacts and hashes."
+    },
+    {
+      "id": "prove-zero-tool-recovery",
+      "state": "open",
+      "priority": "P1",
+      "journeyIds": [
+        "inspect-and-recover-zero-evidence"
+      ],
+      "summary": "Prove how a tool created in one Zero session becomes available after a fresh boot.",
+      "acceptance": "An end-to-end test creates a tool, reloads without recreating it, safely restores and revalidates it, then executes it with an auditable activation receipt."
+    },
+    {
+      "id": "evaluate-created-tool-quality",
+      "state": "open",
+      "priority": "P2",
+      "journeyIds": [
+        "grow-zero-tool-surface"
+      ],
+      "summary": "Evaluate generated tools beyond their author-supplied activation fixtures.",
+      "acceptance": "Independent hidden fixtures, capability abuse checks, and held-out task checks are bound to the created tool bytes and activation evidence."
+    }
+  ],
+  "constraints": [
+    "Zero must boot with exactly CreateTool and must not silently inherit X tools or modules.",
+    "Activation replay proves declared fixture behavior, not general correctness or safety.",
+    "A mock-model browser pass must not be presented as actual inference quality evidence.",
+    "A seed or cycle artifact hash proves identity and custody, not that the objective was solved.",
+    "Zero live self-mutation claims must disclose that it does not use X's Promote tool."
+  ]
+}

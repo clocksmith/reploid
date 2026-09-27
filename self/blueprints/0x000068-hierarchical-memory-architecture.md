@@ -21,7 +21,7 @@
 
 **Category:** State & Memory
 
-**Phase:** 4 (Current - see TODO.md)
+**Phase:** 4 research design
 
 ---
 

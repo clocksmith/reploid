@@ -2,13 +2,16 @@
 
 **Classification:** Canonical Full Specification
 
-**Implementation Status:** In-Progress
+**Implementation Status:** Proposed
 
-**Verified Artifacts:** `/self/core/state-manager.js`, `/self/styles/proto/index.css`, `/self/ui/components/toast-notifications.js`, `/self/ui/dashboard/vfs-explorer.js`
+**Verified Artifacts:** None
 
 **Planned Artifacts:** `/ui/panels/vfs-explorer.js`, `vfs-explorer.js`
 
-**Owned Source Files:** `ui/dashboard/vfs-explorer.js`
+**Owned Source Files:** None
+
+The unreferenced legacy implementation was removed during the September 2026
+branch integration. This retained design is not current executable evidence.
 
 **Former Blueprint Paths:** `self/blueprints/0x000020-vfs-explorer-interaction.md`
 **Objective:** Describe the information architecture and interaction model for the REPLOID Virtual File System explorer.

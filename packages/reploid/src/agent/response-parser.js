@@ -107,8 +107,7 @@ const ResponseParser = {
 
       const pairs = [];
       const keyRegex = /(?:^|\s)([a-zA-Z0-9_.-]+)\s*:\s+/g;
-      let match;
-      while ((match = keyRegex.exec(value)) !== null) {
+      for (const match of value.matchAll(keyRegex)) {
         pairs.push({
           key: match[1],
           valueStart: match.index + match[0].length,
@@ -608,9 +607,7 @@ const ResponseParser = {
     const parseLegacyToolCalls = (text) => {
       if (!text) return [];
       const calls = [];
-      let match;
-
-      while ((match = LEGACY_TOOL_CALL_REGEX.exec(text)) !== null) {
+      for (const match of text.matchAll(LEGACY_TOOL_CALL_REGEX)) {
         const name = match[1].trim();
         const parsed = readJsonObjectAt(text, match.index + match[0].length);
         if (parsed.error) {
@@ -628,20 +625,20 @@ const ResponseParser = {
     const parseInlineLegacyToolCalls = (text) => {
       if (!text) return [];
       const calls = [];
-      let match;
-
-      while ((match = INLINE_LEGACY_TOOL_CALL_REGEX.exec(text)) !== null) {
+      let consumedUntil = 0;
+      for (const match of text.matchAll(INLINE_LEGACY_TOOL_CALL_REGEX)) {
+        if (match.index < consumedUntil) continue;
         const name = match[1].trim();
         const parsed = readJsonObjectAt(text, match.index + match[0].length);
         if (parsed.error) {
           logger.warn(`[ResponseParser] Expected inline JSON object for ${name}`);
           calls.push({ name, args: {}, error: parsed.error });
-          INLINE_LEGACY_TOOL_CALL_REGEX.lastIndex = parsed.endIdx;
+          consumedUntil = parsed.endIdx;
           continue;
         }
 
         calls.push(parseLegacyJsonArgs(name, parsed.rawArgs));
-        INLINE_LEGACY_TOOL_CALL_REGEX.lastIndex = parsed.endIdx;
+        consumedUntil = parsed.endIdx;
       }
 
       return calls;

@@ -1,5 +1,10 @@
 {
-  "schema": "reploid/surface-claim-index/v1",
+  "schema": "reploid/surface-claim-index/v2",
+  "journeyRegistries": {
+    "/": "docs/status/poolday-critical-user-journeys.json",
+    "/zero": "docs/status/zero-critical-user-journeys.json",
+    "/x": "docs/status/x-critical-user-journeys.json"
+  },
   "updated": "2026-08-23",
   "entries": [
     {
@@ -31,6 +36,7 @@
         "tests/unit/pool-research-routes.test.js",
         "tests/e2e/pool-evidence-journey.spec.js",
         "tests/unit/pool-routes.test.js",
+        "docs/status/poolday-critical-user-journeys.json",
         "docs/poolday/claims-and-nonclaims.md"
       ],
       "blockers": [],
@@ -42,7 +48,8 @@
       "evidencePaths": [
         "self/config/surface-intents.js",
         "tests/unit/surface-intents.test.js",
-        "tests/e2e/boot.spec.js"
+        "tests/e2e/boot.spec.js",
+        "docs/status/zero-critical-user-journeys.json"
       ],
       "blockers": [],
       "claimPermission": false,
@@ -54,7 +61,8 @@
       "evidencePaths": [
         "self/config/surface-intents.js",
         "tests/unit/surface-intents.test.js",
-        "tests/e2e/boot.spec.js"
+        "tests/e2e/boot.spec.js",
+        "docs/status/x-critical-user-journeys.json"
       ],
       "blockers": [],
       "claimPermission": false,

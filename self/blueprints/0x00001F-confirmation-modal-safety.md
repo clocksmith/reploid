@@ -2,13 +2,16 @@
 
 **Classification:** Canonical Full Specification
 
-**Implementation Status:** In-Progress
+**Implementation Status:** Proposed
 
-**Verified Artifacts:** `/self/infrastructure/event-bus.js`, `/self/styles/proto/index.css`, `/self/ui/components/confirmation-modal.js`
+**Verified Artifacts:** None
 
 **Planned Artifacts:** `confirmation-modal.js`
 
-**Owned Source Files:** `ui/components/confirmation-modal.js`
+**Owned Source Files:** None
+
+The unreferenced legacy implementation was removed during the September 2026
+branch integration. This retained design is not current executable evidence.
 
 **Former Blueprint Paths:** `self/blueprints/0x00001F-confirmation-modal-safety.md`
 **Objective:** Document the UX and security contract for REPLOID’s confirmation modal system that guards destructive or privileged actions.
