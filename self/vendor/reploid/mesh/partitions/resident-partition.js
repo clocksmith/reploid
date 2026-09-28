@@ -8,9 +8,12 @@ export function createResidentPartition({ runtime, model, plan, planId, index, p
     && typeof participantId === 'string' && participantId, 'Explicit resident partition allocation required');
   const allocation = structuredClone({ model, plan, planId, index, participantId, limits });
   const lifetime = new AbortController(), operations = new Set(), listeners = new Set([onChange]);
+  const attempts = new Set();
+  let draining = null, finishDrain = null;
   let phase = 'idle', error = null, session = null, preparing = null, closing = null, disposal = null, descriptor = null;
   let tail = Promise.resolve();
   const state = () => ({ phase, ready: phase === 'ready' && !lifetime.signal.aborted,
+    activeAttempts: attempts.size,
     error, descriptor: structuredClone(descriptor), index, participantId,
     modelId: allocation.model.id, modelIdentity: allocation.model.identity, planId });
   const notify = () => { for (const listener of listeners) { try { listener(state()); } catch {} } };
@@ -26,7 +29,9 @@ export function createResidentPartition({ runtime, model, plan, planId, index, p
     return structuredClone(actual);
   };
   const invoke = (method, request) => {
-    assert(phase === 'ready' && !lifetime.signal.aborted, 'Partition contributor is not ready');
+    assert((phase === 'ready' || phase === 'draining' && attempts.has(request.identity?.attemptId))
+      && !lifetime.signal.aborted, 'Partition contributor is not ready');
+    attempts.add(request.identity.attemptId);
     const { signal, ...input } = request;
     const snapshot = structuredClone(input);
     const combined = signal ? AbortSignal.any([signal, lifetime.signal]) : lifetime.signal;
@@ -37,8 +42,15 @@ export function createResidentPartition({ runtime, model, plan, planId, index, p
       return structuredClone(result);
     }).catch(async cause => {
       if (!combined.aborted) {
-        phase = 'failed'; error = String(cause.message || cause);
-        lifetime.abort(cause); notify(); await dispose();
+        try {
+          check();
+          await session.closeAttempt({ identity: snapshot.identity });
+          attempts.delete(snapshot.identity.attemptId);
+          if (!attempts.size) finishDrain?.();
+        } catch {
+          phase = 'failed'; error = String(cause.message || cause);
+          lifetime.abort(cause); notify(); await dispose();
+        }
       }
       throw cause;
     });
@@ -48,6 +60,8 @@ export function createResidentPartition({ runtime, model, plan, planId, index, p
   };
   return Object.freeze({
     id: participantId, index, getState: state,
+    canAccept(identity) { return !lifetime.signal.aborted && (phase === 'ready'
+      || phase === 'draining' && attempts.has(identity?.attemptId)); },
     subscribe(listener) { listeners.add(listener); listener(state()); return () => listeners.delete(listener); },
     prepare({ approved, signal } = {}) {
       assert(approved === true, 'Explicit partition contribution approval required');
@@ -77,7 +91,19 @@ export function createResidentPartition({ runtime, model, plan, planId, index, p
     executeGroup1(request) { assert(index === 1, 'This contributor is partition A'); return invoke('executeGroup1', request); },
     async closeAttempt({ identity }) {
       // Runtime settlement must await its submitted work without unloading shared weights.
-      if (session) await session.closeAttempt({ identity: structuredClone(identity) });
+      try { if (session) await session.closeAttempt({ identity: structuredClone(identity) }); }
+      finally { attempts.delete(identity.attemptId); if (!attempts.size) finishDrain?.(); }
+    },
+    drain() {
+      if (draining) return draining;
+      assert(phase === 'ready', 'Only a ready contributor can drain');
+      phase = 'draining'; notify();
+      draining = (async () => {
+        if (attempts.size) await new Promise(resolve => { finishDrain = resolve; });
+        await Promise.allSettled([...operations]);
+        await dispose(); phase = 'closed'; notify();
+      })();
+      return draining;
     },
     close() {
       if (closing) return closing;
@@ -86,7 +112,7 @@ export function createResidentPartition({ runtime, model, plan, planId, index, p
         await preparing?.catch(() => {});
         await Promise.allSettled([...operations]);
         try { await dispose(); phase = 'closed'; } catch (cause) { phase = 'failed'; error = String(cause.message || cause); throw cause; }
-        finally { notify(); }
+        finally { finishDrain?.(); notify(); }
       })();
       return closing;
     }

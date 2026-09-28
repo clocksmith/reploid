@@ -3,6 +3,7 @@ import * as runtime from 'doppler-gpu/partitions';
 import { createSigningIdentity } from '../../packages/reploid/src/artifacts/identity.js';
 import { createPartitionGrantAuthority, createResidentPartition, createPartitionPeer, createLayerPartitionRunner,
   createPartitionChat, createPartitionNetwork, partitionFingerprint } from '../../packages/reploid/src/mesh/index.js';
+import { createPartitionEntry, createPartitionRequester } from '../../packages/reploid/src/mesh/partitions/partition-entry.js';
 import { disclosureScope, matchingThreadGrant } from '../../packages/reploid/src/chat/thread-grants.js';
 import { createChatSession } from '../../self/host/chat-session.js';
 import { createPartitionRuntimeFixture } from '../fixtures/partition-runtime.js';
@@ -41,7 +42,7 @@ async function fixture(options = {}) {
   const remote = createPartitionPeer({ ...base, channel: left, localParticipantId: a.peerId, remoteParticipantId: b.peerId, authority });
   const server = createPartitionPeer({ ...base, channel: right, localParticipantId: b.peerId, remoteParticipantId: a.peerId,
     authority: otherAuthority, contributor: supplier });
-  const chat = createPartitionChat({ runtime, local, remote, authority, model, plan, planId, limits: policy, grantTtlMs: 10000 });
+  const chat = createPartitionChat({ runtime, local, remote, authority, model, plan, planId, limits: policy, grantTtlMs: 10000, authorizeRequester: options.authorizeRequester });
   cleanup.push(() => Promise.all([local.close(), supplier.close()]), () => Promise.all([remote.close(), server.close()]), () => chat.close());
   const binding = { modelId: model.id, modelIdentity: model.identity, planId, participantA: a.peerId, participantB: b.peerId,
     threadId: 'thread', attemptId: 'attempt' };
@@ -284,5 +285,70 @@ describe('Reploid partition APIs with injected Doppler sessions', () => {
     await Promise.resolve(); await Promise.resolve();
     expect(settled).toBe(false);
     release.resolve(); await second; expect(settled).toBe(true);
+  });
+});
+
+
+describe('weightless requester entry', () => {
+  async function entryFixture(options = {}) {
+    const requesterId = 'requester';
+    const f = await fixture({ ...options, authorizeRequester: async request => request.participantId === requesterId });
+    await f.local.prepare({ approved: true }); await f.supplier.prepare({ approved: true }); await f.chat.refresh();
+    const [left, right] = channels();
+    const inputLimits = { maxInputCharacters: 1000, maxOutputCharacters: 1024, maxAttempts: 16,
+      maxConcurrentAttempts: 2, descriptorTtlMs: 1000 };
+    const base = { limits: channelPolicy, inputLimits, authorize: async m => m.requesterId === requesterId && m.participantB === f.b.peerId };
+    const entry = createPartitionEntry({ ...base, channel: left, localParticipantId: requesterId, remoteParticipantId: f.a.peerId });
+    const server = createPartitionEntry({ ...base, channel: right, localParticipantId: f.a.peerId, remoteParticipantId: requesterId, service: f.chat });
+    cleanup.push(() => Promise.all([entry.close(), server.close()]));
+    const requester = createPartitionRequester({ entries: () => [entry], requesterId, meshId: 'mesh', modelId: f.model.id,
+      modelIdentity: f.model.identity, planId: f.planId, maxPlacements: 1, authorize: async () => true });
+    return { ...f, entry, server, requester };
+  }
+  it('runs A and B without any requester runtime, retaining requester and generation binding', async () => {
+    const f = await entryFixture();
+    const result = await f.requester.generate({ messages: [{role:'user',content:'10'}], threadId:'requester-thread' });
+    expect(result.content).toBeTruthy();
+    expect(result.execution.requesterId).toBe('requester');
+    expect(result.execution.participantA).toBe(f.a.peerId);
+    expect(result.execution.participantB).toBe(f.b.peerId);
+    expect(result.execution.activationBytes).toBeGreaterThan(0);
+    expect(result.execution.placementGeneration).toBe(0);
+    expect(f.factory.log.opens).toEqual([0,1]);
+  });
+  it('drains a resident without cancelling an already admitted generation', async () => {
+    const held = gate(), entered = gate();
+    const f = await entryFixture({ beforeStep: async (_request, index) => { if(index===1){entered.resolve();await held.promise;} } });
+    const generation = f.requester.generate({ messages:[{role:'user',content:'10'}],threadId:'drain' });
+    await entered.promise;
+    const draining = f.supplier.drain();
+    expect(f.supplier.getState().phase).toBe('draining');
+    expect(f.supplier.canAccept({...f.binding,attemptId:'unrelated'})).toBe(false);
+    await f.chat.refresh();
+    expect(f.chat.getModels()[0].availability).toBe('unavailable');
+    held.resolve();
+    expect((await generation).content).toBeTruthy(); await draining;
+    expect(f.supplier.getState().phase).toBe('closed');
+    expect(f.local.getState().ready).toBe(true);
+  });
+  it('keeps shared weights available after a single malformed input fails', async () => {
+    const f = await entryFixture();
+    await expect(f.requester.generate({ messages:[{role:'user',content:'not a number'}],threadId:'bad' })).rejects.toThrow();
+    expect(f.local.getState().ready).toBe(true);
+    expect(f.local.getState().activeAttempts).toBe(0);
+    expect(f.factory.log.closes).toEqual([]);
+    const result = await f.requester.generate({ messages:[{role:'user',content:'10'}],threadId:'healthy' });
+    expect(result.content).toBe('11 12 13 ');
+  });
+  it('restarts using a new identity on a separately approved replacement', async () => {
+    const calls = [];
+    const model={id:'m',identity:'sha256:'+ 'b'.repeat(64),availability:'ready',partition:{planId:'p',participantB:'b'}};
+    const entries=['a1','a2'].map(id=>({id,refresh:async()=>({ready:true,descriptor:{models:[model]}}),
+      generate:async request=>{calls.push(request);if(id==='a1')throw Error('executor lost');return {content:'ok',execution:request};}}));
+    const requester=createPartitionRequester({entries:()=>entries,requesterId:'r',meshId:'mesh',modelId:'m',modelIdentity:model.identity,
+      planId:'p',maxPlacements:2,authorize:async()=>true});
+    const result=await requester.generate({messages:[{role:'user',content:'go'}],threadId:'t'});
+    expect(result.recovery.attempts).toBe(2);expect(calls[0].attemptId).not.toBe(calls[1].attemptId);
+    expect(calls[1].placementGeneration).toBe(1);
   });
 });

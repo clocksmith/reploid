@@ -19,3 +19,6 @@ export * from './partitions/partition-peer.js';
 export * from './partitions/partition-network.js';
 export * from './partitions/partition-chat.js';
 export { partitionFingerprint } from './partitions/partition-contract.js';
+
+export * from './partitions/partition-entry.js';
+export * from './partitions/partition-link.js';

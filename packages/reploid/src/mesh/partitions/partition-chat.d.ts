@@ -7,10 +7,11 @@ export interface PartitionChat {
   getModels(): ChatModel[];
   subscribe(listener: (models: ChatModel[]) => void): () => void;
   refresh(options?: { signal?: AbortSignal }): Promise<ChatModel[]>;
-  generate(request: ChatRequest & ChatEnvelope & { meshId: string; participantId: string }, controls: ChatControls): Promise<ChatResult>;
+  generate(request: ChatRequest & ChatEnvelope & { meshId: string; participantId: string; placementGeneration?: number }, controls: ChatControls): Promise<ChatResult>;
   /** Cancels owned conversations, preserving borrowed residents and network endpoints. */
   close(): Promise<void>;
 }
 export function createPartitionChat(options: { runtime: PartitionRuntime; local: ResidentPartition; remote: PartitionPeer;
   authority: PartitionGrantAuthority; model: ChatModel; plan: PartitionPlan; planId: string;
-  limits: PartitionLimits; grantTtlMs: number; now?: () => number }): PartitionChat;
+  limits: PartitionLimits; grantTtlMs: number;
+  authorizeRequester?: (request: ChatRequest & { participantId: string }, signal: AbortSignal) => Promise<boolean>; now?: () => number }): PartitionChat;

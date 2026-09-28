@@ -30,12 +30,15 @@ export interface DopplerPartitionSessionFactory {
   }): Promise<DopplerResidentPartitionSession>;
 }
 export interface ResidentPartitionState {
-  phase: 'idle' | 'loading' | 'ready' | 'failed' | 'stopping' | 'closed'; ready: boolean;
+  activeAttempts: number;
+  phase: 'idle' | 'loading' | 'ready' | 'draining' | 'failed' | 'stopping' | 'closed'; ready: boolean;
   error: string | null; descriptor: ResidentPartitionDescriptor | null;
   index: 0 | 1; participantId: string; modelId: string; modelIdentity: string; planId: string;
 }
 export interface ResidentPartition extends PartitionDeviceA, PartitionDeviceB {
   readonly index: 0 | 1;
+  canAccept(identity: PartitionBinding): boolean;
+  drain(): Promise<void>;
   getState(): ResidentPartitionState;
   subscribe(listener: (state: ResidentPartitionState) => void): () => void;
   prepare(options: { approved: true; signal?: AbortSignal }): Promise<ResidentPartitionState>;
