@@ -9,6 +9,8 @@ export interface PartitionPlan {
   partitions: readonly unknown[];
 }
 export interface AttemptIdentity {
+  requesterId?: string;
+  placementGeneration?: number;
   modelIdentity: string;
   planId: string;
   threadId: string;

@@ -8,14 +8,14 @@ function deferred() {
   return { promise, resolve };
 }
 
-function fixture({ phase = null, initiator = true, onStateChange = () => {} } = {}) {
+function fixture({ phase = null, initiator = true, onStateChange = () => {}, onAuxiliaryChannel = null } = {}) {
   const pending = deferred();
   const entered = deferred();
   const states = [];
   let signal;
   let pc;
   const channel = {
-    readyState: 'connecting',
+    label: 'reploid-pool', readyState: 'connecting',
     close: vi.fn(() => {
       const wasClosed = channel.readyState === 'closed';
       channel.readyState = 'closed';
@@ -50,7 +50,7 @@ function fixture({ phase = null, initiator = true, onStateChange = () => {} } = 
   }
   const transport = createP2PTransport({
     config: resolveConfig({ overrides: { webrtc: { connectTimeoutMs: 25 } } }),
-    signaling, initiator, RTCPeerConnectionImpl: PeerConnection,
+    signaling, initiator, onAuxiliaryChannel, RTCPeerConnectionImpl: PeerConnection,
     RTCSessionDescriptionImpl: null, RTCIceCandidateImpl: null,
     onStateChange: (state) => { states.push(state); onStateChange(state); }
   });
@@ -59,6 +59,20 @@ function fixture({ phase = null, initiator = true, onStateChange = () => {} } = 
 }
 
 describe('assignment transport cancellation', () => {
+  it('keeps its primary channel when an explicit auxiliary owner accepts a channel', async () => {
+    const accepted = vi.fn(() => true);
+    const f = fixture({ initiator:false, onAuxiliaryChannel:accepted });
+    const connected = f.transport.connect();
+    f.pc.ondatachannel({channel:f.channel});
+    f.channel.readyState = 'open'; f.channel.onopen(); await connected;
+    const auxiliary = {label:'partition-data',close:vi.fn()};
+    f.pc.ondatachannel({channel:auxiliary});
+    expect(accepted).toHaveBeenCalledWith(auxiliary);
+    expect(f.transport.getDataChannel()).toBe(f.channel);
+    expect(auxiliary.close).not.toHaveBeenCalled();
+    await f.transport.close();
+  });
+
   it('honors cancellation from the connecting-state observer before allocating a peer', async () => {
     vi.useFakeTimers();
     try {

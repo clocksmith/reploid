@@ -3,12 +3,16 @@ export const partitionIdentityKeys = Object.freeze(['modelId', 'modelIdentity', 
 export const partitionActions = Object.freeze(['mesh.execute_partition_a', 'mesh.execute_partition_b',
   'mesh.transfer_intermediate_activation', 'mesh.transfer_token_context', 'mesh.transfer_partition_output']);
 export const assertPartition = (value, message) => { if (!value) throw new Error(message); };
-export const samePartitionIdentity = (actual, expected) => actual && partitionIdentityKeys.every(key => actual[key] === expected[key]);
+export const samePartitionIdentity = (actual, expected) => actual && [...partitionIdentityKeys, 'requesterId', 'placementGeneration'].every(key => actual[key] === expected[key]);
 export function validatePartitionIdentity(identity) {
   assertPartition(identity && partitionIdentityKeys.every(key => typeof identity[key] === 'string'
     && identity[key].length > 0 && identity[key].length <= 256)
     && /^sha256:[a-f0-9]{64}$/.test(identity.modelIdentity)
     && identity.participantA !== identity.participantB, 'Invalid partition identity');
+  if (identity.requesterId !== undefined || identity.placementGeneration !== undefined) {
+    assertPartition(typeof identity.requesterId === 'string' && identity.requesterId.length > 0 && identity.requesterId.length <= 256
+      && Number.isSafeInteger(identity.placementGeneration) && identity.placementGeneration >= 0, 'Invalid requester placement binding');
+  }
 }
 export function canonicalPartitionJson(value) {
   if (Array.isArray(value)) return '[' + value.map(canonicalPartitionJson).join(',') + ']';

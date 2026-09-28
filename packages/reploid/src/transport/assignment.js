@@ -23,6 +23,7 @@ export function createP2PTransport({
   onStateChange = null,
   onPeerConnection = null,
   onDataChannel = null,
+  onAuxiliaryChannel = null,
   maxPendingRemoteIceCandidates = requireResolvedConfig(config).webrtc.maxPendingRemoteIceCandidates,
   pendingRemoteIceTtlMs = requireResolvedConfig(config).webrtc.pendingRemoteIceTtlMs,
   now = () => Date.now(),
@@ -285,6 +286,10 @@ export function createP2PTransport({
     pc.ondatachannel = (event) => {
       if (!isActivePeer(pc)) {
         event.channel.close();
+        return;
+      }
+      if (event.channel.label !== dataChannelLabel && onAuxiliaryChannel) {
+        if (onAuxiliaryChannel(event.channel) !== true) event.channel.close();
         return;
       }
       if (transportInitiator) {

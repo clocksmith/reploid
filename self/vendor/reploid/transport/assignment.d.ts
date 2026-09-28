@@ -7,6 +7,8 @@ export interface P2PTransport {
   getDiagnostics(): Record<string, unknown>;
 }
 export interface P2POptions {
+  /** Returns true only for a host-owned auxiliary channel; it never replaces the primary channel. */
+  onAuxiliaryChannel?: ((channel: RTCDataChannel) => boolean) | null;
   config: ResolvedConfig; signaling: SignalingChannel; initiator: boolean; rtcConfig?: RTCConfiguration;
   dataChannelLabel?: string; dataChannelOptions?: RTCDataChannelInit;
   serialize?: (value: unknown) => string | ArrayBuffer | ArrayBufferView | Blob;

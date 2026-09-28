@@ -79,10 +79,11 @@ export function createLayerPartitionRunner({ runtime, plan: suppliedPlan, device
     assert(typeof onDelta === 'function', 'onDelta must be a function');
     const binding = Object.freeze({ modelId: plan.modelId, modelIdentity: identity.modelIdentity,
       planId: identity.planId, threadId: identity.threadId, attemptId: identity.attemptId,
-      participantA: participants[0], participantB: participants[1] });
+      participantA: participants[0], participantB: participants[1],
+      ...(identity.requesterId ? { requesterId: identity.requesterId, placementGeneration: identity.placementGeneration } : {}) });
     const authority = freezeRecord(snapshot(grants));
     const settings = freezeRecord(snapshot(generation));
-    const generationDigest = await partitionFingerprint(settings);
+    const inputTokens = [...tokenIds];
     assert(!usedAttempts.has(binding.attemptId), 'Attempt already used; resume requires a supported checkpoint');
     assert(usedAttempts.size < policy.maxAttempts, 'Partition runner attempt budget exhausted');
     assert(active.size < policy.maxConcurrentAttempts, 'Partition concurrency budget exhausted');
@@ -92,7 +93,8 @@ export function createLayerPartitionRunner({ runtime, plan: suppliedPlan, device
     let settle;
     const settled = new Promise(resolve => { settle = resolve; });
     active.set(binding.attemptId, { controller, settled });
-    let input = [...tokenIds], continuationA = null, continuationB = null;
+    const generationDigestPromise = partitionFingerprint(settings);
+    let input = inputTokens, continuationA = null, continuationB = null;
     let content = '', activationBytes = 0, position = 0, logits = null;
     let stopReason = 'length', failure = null;
     const outputTokens = [];
@@ -106,6 +108,8 @@ export function createLayerPartitionRunner({ runtime, plan: suppliedPlan, device
     try {
       for (let index = 0; index < maxTokens; index++) {
         const terminal = await lease(async () => {
+          combined.throwIfAborted();
+          const generationDigest = await generationDigestPromise;
           combined.throwIfAborted();
           const step = Object.freeze({ step: index, tokenPosition: position, inputTokenCount: input.length,
             maxTokens, generationDigest });

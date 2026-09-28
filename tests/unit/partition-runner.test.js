@@ -33,9 +33,9 @@ function fixture() {
     maxConcurrentAttempts: 2 };
   const identity = { modelIdentity: 'sha256:' + 'a'.repeat(64), planId: 'plan', threadId: 'thread', attemptId: 'attempt' };
   const grants = { executionA: { id: 'exec-a' }, executionB: { id: 'exec-b' },
-    activation: { id: 'activation' }, output: { id: 'output' } };
+    activation: { id: 'activation' }, tokenContext: { id: 'tokens' }, output: { id: 'output' } };
   const options = { runtime, plan, deviceA, deviceB, transport, authorize, limits };
-  return { ...options, calls, request: { tokenIds: [1, 2, 3], identity, grants, maxTokens: 8 },
+  return { ...options, calls, request: { tokenIds: [1, 2, 3], identity, grants, generation: { maxTokens: 8 }, maxTokens: 8 },
     runner: createLayerPartitionRunner(options) };
 }
 
@@ -117,7 +117,7 @@ describe('partition autoregressive orchestration (injected execution)', () => {
 
   it('rejects unfinalized output at the token budget instead of losing pending decoder text', async () => {
     const f = fixture();
-    await expect(f.runner.execute({ ...f.request, maxTokens: 1 })).rejects.toThrow('finalize decoding');
+    await expect(f.runner.execute({ ...f.request, generation: { maxTokens: 1 }, maxTokens: 1 })).rejects.toThrow('finalize decoding');
     expect(f.deviceA.executeGroup0).toHaveBeenCalledTimes(1);
     expect(f.deviceB.executeGroup1).toHaveBeenCalledTimes(1);
     expect(f.deviceA.closeAttempt).toHaveBeenCalledTimes(1);
@@ -131,7 +131,7 @@ describe('partition autoregressive orchestration (injected execution)', () => {
       done: step + 1 === maxTokens, delta: step + 1 === maxTokens ? 'final buffered text' : '',
       stopReason: 'max-tokens', continuation: { position: tokenPosition }
     }));
-    const result = await f.runner.execute({ ...f.request, maxTokens: 2, onDelta: delta => deltas.push(delta) });
+    const result = await f.runner.execute({ ...f.request, generation: { maxTokens: 2 }, maxTokens: 2, onDelta: delta => deltas.push(delta) });
     expect(result.content).toBe('final buffered text');
     expect(result.stopReason).toBe('max-tokens');
     expect(deltas).toEqual(['final buffered text']);

@@ -388,3 +388,5 @@ async function createPeerPackArtifactStore({ authorization, index, inventories, 
 
   return Object.freeze({ createPeerPackSupplier, createPeerPackArtifactStore });
 }
+
+export { createPieceAcquisition } from './piece-acquisition.js';

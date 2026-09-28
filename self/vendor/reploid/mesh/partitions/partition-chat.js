@@ -2,7 +2,7 @@ import { createLayerPartitionRunner } from './partition-runner.js';
 import { assertPartition as assert, canonicalPartitionJson, partitionFingerprint } from './partition-contract.js';
 
 /** Conversation adapter for a fixed, explicitly prepared local A and authenticated remote B. */
-export function createPartitionChat({ runtime, local, remote, authority, model, plan, planId, limits, grantTtlMs, now = Date.now }) {
+export function createPartitionChat({ runtime, local, remote, authority, model, plan, planId, limits, grantTtlMs, authorizeRequester = null, now = Date.now }) {
   assert(local.index === 0 && local.id === authority.participantId && remote.id !== local.id,
     'Partition chat requires the input owner at A and a distinct authenticated B');
   assert(Number.isSafeInteger(grantTtlMs) && grantTtlMs > 0, 'Explicit partition grant lifetime required');
@@ -18,22 +18,28 @@ export function createPartitionChat({ runtime, local, remote, authority, model, 
   const notify = () => { for (const listener of listeners) { try { listener(models()); } catch {} } };
   const unsubscribers = [local.subscribe(notify), remote.subscribe(notify)];
   const runner = createLayerPartitionRunner({ runtime, plan, deviceA: local, deviceB: remote, limits: policy,
-    authorize: request => local.getState().ready && remote.getState().ready
+    authorize: request => (local.canAccept ? local.canAccept(request) : local.getState().ready)
       ? authority.verify(request.grant, { ...request, identity: request }) : Promise.resolve(false) });
   return Object.freeze({
     getModels: models,
     subscribe(listener) { listeners.add(listener); listener(models()); return () => listeners.delete(listener); },
     async refresh(options) { await remote.refresh(options); notify(); return models(); },
     async generate(request, controls) {
-      assert(!closed && request.meshId === authority.meshId && request.participantId === local.id && request.model.id === selection.id
+      const delegated = request.participantId !== local.id;
+      assert(!closed && request.meshId === authority.meshId && request.model.id === selection.id
         && request.model.identity === selection.identity && !(request.model.adapters || []).length
         && request.model.partition && canonicalPartitionJson(request.model.partition) === canonicalPartitionJson(selection.partition), 'Partition chat selection mismatch');
+      if (delegated) assert(typeof authorizeRequester === 'function'
+        && await authorizeRequester(request, controls.signal) === true
+        && Number.isSafeInteger(request.placementGeneration) && request.placementGeneration >= 0,
+      'Remote input owner must authorize this execution placement');
       assert(request.permissions?.sharingScope && request.permissions.sharingScope !== 'local', 'Partition disclosure is disabled');
       controls.signal.throwIfAborted();
       await remote.refresh({ signal: controls.signal });
       assert(models()[0].availability === 'ready', 'No ready contributors for this partition plan');
       const identity = { ...selection.partition, modelId: selection.id, modelIdentity: selection.identity,
-        threadId: request.threadId, attemptId: request.attemptId };
+        threadId: request.threadId, attemptId: request.attemptId,
+        ...(delegated ? { requesterId: request.participantId, placementGeneration: request.placementGeneration } : {}) };
       const approved = await controls.requestApproval({ id: crypto.randomUUID(), threadId: request.threadId,
         attemptId: request.attemptId, peerId: remote.id, recipientIdentity: remote.id,
         modelId: selection.id, modelIdentity: selection.identity, adapterIdentities: [],

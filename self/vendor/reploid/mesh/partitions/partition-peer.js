@@ -44,7 +44,7 @@ export function createPartitionPeer({ channel, localParticipantId, remotePartici
       return partitionFingerprint(metadata, payload);
     },
     executeStep: async (request, { signal }) => {
-      assert(contributor?.getState().ready, 'Partition B is not ready');
+      assert(contributor?.canAccept ? contributor.canAccept(request.identity) : contributor?.getState().ready, 'Partition B is not ready');
       const frame = { ...request.frame, buffer: request.payload.slice().buffer };
       const result = await contributor.executeGroup1({ identity: request.identity,
         step: request.step, tokenPosition: request.tokenPosition, inputTokenCount: request.inputTokenCount,
@@ -79,7 +79,7 @@ export function createPartitionPeer({ channel, localParticipantId, remotePartici
         || metadata.identity.participantB !== (outbound ? remoteParticipantId : localParticipantId)) return false;
       if (metadata.operation === 'settle') return byteLength === 0 && verify(metadata, 'mesh.execute_partition_b', true);
       if (metadata.operation !== 'step' || !validFrame(metadata) || metadata.frame.byteLength !== byteLength) return false;
-      if (!outbound && !contributor?.getState().ready) return false;
+      if (!outbound && !(contributor?.canAccept ? contributor.canAccept(metadata.identity) : contributor?.getState().ready)) return false;
       return verify(metadata, action === 'respond' || action === 'accept'
         ? 'mesh.transfer_partition_output' : 'mesh.transfer_intermediate_activation');
     },
