@@ -14,27 +14,28 @@ function channelPair() {
   });
   return channels;
 }
-async function fixture({ afterCheckpoint = () => {} } = {}) {
-  const bytes = new Uint8Array([1, 2, 3, 4, 5]), stores = [new Map(), new Map()], callbacks = [], owners = [], receipts = [];
+async function fixture({ afterCheckpoint = () => {}, count = 2, maxPeers = 16, commitArtifact } = {}) {
+  const bytes = new Uint8Array([1, 2, 3, 4, 5]), stores = Array.from({ length: count }, () => new Map()), callbacks = [], owners = [], receipts = [];
   const file = { path: 'shard.bin', role: 'model-weights', sizeBytes: 5, hash: (await sha256Hex(bytes)).slice(7), hashAlgorithm: 'sha256' };
-  const policy = { maxTransfers: 2, maxSupplyBytes: 100, maxArtifactBytes: 20, maxInventoryFiles: 128, grantMs: 5000,
+  const policy = { maxTransfers: 2, maxPeers, maxAcquisitionAttempts: 4, maxSupplyBytes: 100, maxArtifactBytes: 20, maxInventoryFiles: 128, grantMs: 5000,
     channel: { maxFrameBytes: 128, maxControlBytes: 4096, maxChunkBytes: 2,
       maxBufferedBytes: 8192, maxPendingRequests: 2, maxTransferBytes: 1048576, timeoutMs: 1000 } };
   const reads = vi.fn(async () => bytes.slice());
-  for (let i = 0; i < 2; i++) {
+  for (let i = 0; i < count; i++) {
     const pair = await createSigningKeyPair();
     const checkpoints = new Map();
-    const transport = { getConnectedPeers: () => [{ id: String(1 - i) }],
+    const transport = { getConnectedPeers: () => stores.map((_, index) => ({ id: String(index) })).filter(peer => peer.id !== String(i)),
       onMessage: (type, handler) => stores[i].set(type, handler),
-      sendToPeer: (_, type, payload) => { queueMicrotask(() => stores[1 - i].get(type)?.(String(i), structuredClone(payload))); return true; },
-      broadcast(type, payload) { this.sendToPeer(String(1 - i), type, payload); },
+      sendToPeer: (peer, type, payload) => { queueMicrotask(() => stores[Number(peer)].get(type)?.(String(i), structuredClone(payload))); return true; },
+      broadcast(type, payload) { for (const peer of this.getConnectedPeers()) this.sendToPeer(peer.id, type, payload); },
       onDataChannel: (_, callback) => { callbacks[i] = callback; return () => {}; },
-      openDataChannel() { const [left, right] = channelPair(); callbacks[1 - i](String(i), right); return left; }
+      openDataChannel(peer) { const [left, right] = channelPair(); callbacks[Number(peer)](String(i), right); return left; }
     };
     owners.push(createCustodyExchange({ transport, identity: { peerId: String(i), privateKey: pair.privateKey, publicKey: await exportPublicKey(pair.publicKey) }, policy,
       ports: { createSupplier: createPeerPackSupplier, createStore: createPeerPackArtifactStore,
-        createChannel: createPeerPackDataChannel, readArtifact: reads,
+        createChannel: createPeerPackDataChannel, readArtifact: (file, controls) => reads(file, controls, i),
         async verifyArtifact(descriptor, data) { if (await sha256Hex(data) !== 'sha256:' + descriptor.hash) throw new Error('integrity'); },
+        commitArtifact,
         checkpoints: {
           getChunk: async chunk => checkpoints.get(chunk.hash)?.slice() || null,
           putChunk: async (chunk, data) => { checkpoints.set(chunk.hash, data.slice()); afterCheckpoint(chunk); },
@@ -115,5 +116,69 @@ it('coalesces auxiliary channel creation for simultaneous transfers in both dire
     await vi.waitFor(() => { expect(a.has(f.file)).toBe(true); expect(b.has(f.file)).toBe(true); });
     const results = await Promise.all([a, b].map(owner => owner.acquire(f.file, { signal: new AbortController().signal })));
     expect(results).toEqual([f.bytes, f.bytes]);
+  } finally { f.close(); }
+});
+
+it('recovers from supplier failure through another authorized supplier without an origin', async () => {
+  const f = await fixture({ count: 3 }), [a, b, c] = f.owners;
+  try {
+    f.reads.mockImplementation(async (_file, _controls, supplier) => {
+      if (supplier === 1) throw new Error('Supplier disappeared');
+      return f.bytes.slice();
+    });
+    b.offer([f.file]); c.offer([f.file]);
+    await vi.waitFor(() => expect(a.getState().peers).toHaveLength(2));
+    expect(await a.acquire(f.file, { signal: new AbortController().signal })).toEqual(f.bytes);
+    expect(f.reads.mock.calls.map(call => call[2])).toEqual([1, 2]);
+    expect(a.getState().pending).toBe(0);
+    expect(f.receipts).toHaveLength(1);
+  } finally { f.close(); }
+});
+
+it('does not exceed acquisition slots while streams are active or dispatch a fallback after cancellation', async () => {
+  const f = await fixture({ count: 3 }), [a, b, c] = f.owners;
+  let release;
+  const held = new Promise(resolve => { release = resolve; });
+  try {
+    f.reads.mockImplementation(async () => { await held; return f.bytes.slice(); });
+    b.offer([f.file]); c.offer([f.file]);
+    await vi.waitFor(() => expect(a.getState().peers).toHaveLength(2));
+    const controller = new AbortController();
+    const first = a.acquire(f.file, { signal: controller.signal });
+    const second = a.acquire(f.file, { signal: controller.signal });
+    const settled = Promise.allSettled([first, second]);
+    await vi.waitFor(() => expect(f.reads).toHaveBeenCalledTimes(2));
+    await expect(a.acquire(f.file, { signal: controller.signal })).rejects.toThrow('limit');
+    controller.abort(new Error('Stop this acquisition'));
+    expect((await settled).every(result => result.status === 'rejected')).toBe(true);
+    expect(f.reads.mock.calls.every(call => call[2] === 1)).toBe(true);
+    expect(a.getState().pending).toBe(0);
+  } finally { release(); f.close(); }
+});
+
+it('bounds inventory retention independently of connected peer count', async () => {
+  const f = await fixture({ count: 3, maxPeers: 1 });
+  try {
+    f.owners[1].offer([f.file]); f.owners[2].offer([f.file]);
+    await vi.waitFor(() => expect(f.owners[0].getState().peers).toHaveLength(1));
+    expect(f.owners[0].has(f.file)).toBe(true);
+    expect(f.reads).not.toHaveBeenCalled();
+  } finally { f.close(); }
+});
+
+it('releases staging bytes after verified persistence and never retries a local storage failure on another supplier', async () => {
+  const commitArtifact = vi.fn(async () => {});
+  const f = await fixture({ count: 3, commitArtifact }), [a, b, c] = f.owners;
+  try {
+    b.offer([f.file]); c.offer([f.file]);
+    await vi.waitFor(() => expect(a.getState().peers).toHaveLength(2));
+    await a.acquire(f.file, { signal: new AbortController().signal });
+    await a.acquire(f.file, { signal: new AbortController().signal });
+    expect(f.receipts.map(receipt => receipt.cacheBytes)).toEqual([0, 0]);
+    expect(commitArtifact).toHaveBeenCalledTimes(2);
+    commitArtifact.mockRejectedValueOnce(new Error('Quota exceeded'));
+    f.reads.mockClear();
+    await expect(a.acquire(f.file, { signal: new AbortController().signal })).rejects.toThrow('Verified file could not be retained');
+    expect(f.reads).toHaveBeenCalledOnce();
   } finally { f.close(); }
 });

@@ -192,11 +192,14 @@ export function createChatSession({
   const getSessionState = () => {
     const wsState = workspace.getState();
     const activeThread = wsState.threads.find(t => t.id === wsState.selectedId) || null;
+    const catalog = getCatalogModels();
+    const preferred = candidates => candidates.find(model => model.id === profile.defaultModelId) || candidates[0];
     return {
       ...wsState,
       activeThread,
-      models: getCatalogModels(),
-      defaultModel: getCatalogModels().find(model => model.id === profile.defaultModelId) || getCatalogModels()[0] || null,
+      models: catalog,
+      defaultModel: preferred(catalog.filter(model => model.availability === 'ready'))
+        || preferred(catalog.filter(model => model.availability === 'busy')) || preferred(catalog) || null,
       discovering,
       network: copy({ ...(swarm?.getState?.() || { sharing: false, consumer: null }), files: swarm?.getFileState?.() || null }),
       scheduler: sessionScheduler?.getState() || null,
@@ -219,7 +222,7 @@ export function createChatSession({
       return () => listeners.delete(listener);
     },
     refreshNetwork: notifyAll,
-    createThread({ model = getSessionState().defaultModel, purpose = '', sharingScope = 'invited-mesh' } = {}) {
+    createThread({ model = getSessionState().defaultModel, purpose = '', sharingScope = 'mesh' } = {}) {
       assert(model, 'Model required to create thread');
       const threadId = workspace.createThread({
         model,

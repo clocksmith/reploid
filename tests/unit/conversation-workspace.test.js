@@ -15,8 +15,11 @@ describe('Conversation workspace', () => {
   });
   afterEach(async () => { dispose(); await session.close(); root.remove(); });
 
-  it('opens a usable composer without slogans, fake status or a second setup step', () => {
-    expect(find('[data-composer-send]').disabled).toBe(false);
+  it('waits for available intelligence without offering unavailable catalog entries', () => {
+    expect(find('[data-composer-send]').disabled).toBe(true);
+    expect(find('[data-active-model-select]').textContent).toBe('No models available');
+    expect(find('[data-model-status]').textContent).toContain('Waiting for contributors');
+    expect(find('[data-contribution-model]').value).toBe(CANONICAL_CHAT_MODELS[1].id);
     expect(find('[data-contextual-inspector]').hidden).toBe(true);
     expect(find('[data-composer-input]').placeholder).toBeTruthy();
     expect(root.textContent).not.toMatch(/Mesh Active|Distributed Intelligence|Contributing|Scope:|Recent Improvements|LoRA/);
@@ -86,5 +89,50 @@ describe('Conversation workspace', () => {
     expect(one.status).toBe('cancelled'); expect(two.status).toBe('completed');
     session.select(second);
     expect(find('[data-message-stream]').textContent).toContain('Fixture: Second');
+  });
+
+  it('retries a failed response as a new attempt and preserves its partial text', async () => {
+    let invocation = 0;
+    const scheduler = { getState: () => ({}), close: async () => {},
+      async schedule(request, controls) {
+        controls.onDelta(invocation++ ? 'Recovered answer' : 'Partial answer');
+        if (invocation === 1) throw new Error('Contributor disconnected');
+        return { content: 'Recovered answer', model: request.model.id, modelIdentity: request.model.identity, adapterIdentities: [] };
+      } };
+    dispose(); await session.close();
+    session = createChatSession({ storage: null, service, scheduler });
+    dispose = bindConversationWorkspace(root, session);
+    const thread = session.createThread({ sharingScope: 'local' });
+    await session.send(thread, 'Keep this question');
+    expect(find('[data-message-stream]').textContent).toContain('Partial answer');
+    find('[data-retry-attempt]').click();
+    await vi.waitFor(() => expect(session.getState().activeThread.attempts.at(-1).status).toBe('completed'));
+    const result = session.getState().activeThread;
+    expect(result.attempts).toHaveLength(2);
+    expect(result.attempts[1].retryOf).toBe(result.attempts[0].id);
+    expect(result.messages.map(message => message.content)).toEqual(['Keep this question', 'Partial answer', 'Recovered answer']);
+  });
+
+  it('automatically selects newly available capacity and preserves a thread model when its peer leaves', async () => {
+    const model = CANONICAL_CHAT_MODELS[0];
+    let peers = [];
+    dispose(); await session.close();
+    session = createChatSession({ storage: null, service, swarm: { getState: () => ({ discoveryScope: 'public', consumer: { peers } }) } });
+    dispose = bindConversationWorkspace(root, session);
+    expect(find('[data-composer-send]').disabled).toBe(true);
+    peers = [{ peerId: 'ready-peer', model: model.id, modelIdentity: model.identity, readiness: 'ready', hasInference: true, availableSlots: 1 }];
+    session.refreshNetwork();
+    expect(find('[data-active-model-select]').value).toBe(model.id);
+    expect(find('[data-composer-send]').disabled).toBe(false);
+    expect(find('[data-mesh-invite]').hidden).toBe(true);
+    session.createThread();
+    peers = []; session.refreshNetwork();
+    expect(find('[data-active-model-select]').value).toBe(model.id);
+    expect(find('[data-active-model-select]').disabled).toBe(true);
+    expect(find('[data-composer-send]').disabled).toBe(true);
+    find('[data-composer-input]').value = 'Keep my draft';
+    find('[data-composer-form]').dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+    expect(find('[data-composer-input]').value).toBe('Keep my draft');
+    expect(session.getState().activeThread.attempts).toEqual([]);
   });
 });

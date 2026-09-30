@@ -1,14 +1,14 @@
 /** Discovery composition for the existing signed custody store and bounded byte channel. */
 export function createCustodyExchange({ transport, identity, policy, ports }) {
   policy = structuredClone(policy);
-  for (const name of ['maxTransfers', 'maxInventoryFiles', 'maxSupplyBytes', 'maxArtifactBytes', 'grantMs']) {
+  for (const name of ['maxTransfers', 'maxPeers', 'maxAcquisitionAttempts', 'maxInventoryFiles', 'maxSupplyBytes', 'maxArtifactBytes', 'grantMs']) {
     if (!Number.isSafeInteger(policy[name]) || policy[name] <= 0) throw new Error('Invalid custody policy: ' + name);
   }
   const { createSupplier, createStore, createChannel, readArtifact, verifyArtifact, hash, hashBytes, checkpoints } = ports;
   const peers = new Map(), pending = new Map(), suppliers = new Map(), channels = new Map(), channelWaiters = new Map();
   const lifetime = new AbortController();
   const operations = new Set();
-  let offered = [], supply = false, supplyEpoch = 0, reserved = 0, preparing = 0, closed = false;
+  let offered = [], supply = false, supplyEpoch = 0, reserved = 0, preparing = 0, acquiring = 0, closed = false;
   const key = artifact => JSON.stringify([artifact.path, artifact.hash, artifact.hashAlgorithm, artifact.sizeBytes]);
   const valid = artifact => artifact && typeof artifact === 'object'
     && typeof artifact.path === 'string' && /^[\w.-]+$/.test(artifact.path) && artifact.path.length <= 256
@@ -17,6 +17,11 @@ export function createCustodyExchange({ transport, identity, policy, ports }) {
     && ['sha256', 'blake3'].includes(artifact.hashAlgorithm)
     && Number.isSafeInteger(artifact.sizeBytes) && artifact.sizeBytes > 0 && artifact.sizeBytes <= policy.maxArtifactBytes;
   const live = () => { lifetime.signal.throwIfAborted(); };
+  const connected = () => {
+    const ids = new Set(transport.getConnectedPeers().map(peer => peer.id));
+    for (const peer of peers.keys()) if (!ids.has(peer)) peers.delete(peer);
+    return ids;
+  };
   const notify = () => ports.onChange?.();
   const announce = peer => {
     const payload = { artifacts: supply ? offered : [] };
@@ -24,7 +29,7 @@ export function createCustodyExchange({ transport, identity, policy, ports }) {
     else transport.broadcast('reploid:custody-offer', payload);
   };
   const install = (peer, channel) => {
-    if (closed || channels.has(peer)) { channel.close(); return; }
+    if (closed || channels.has(peer) || channels.size >= policy.maxPeers || !connected().has(peer)) { channel.close(); return; }
     let bus;
     const ready = new Promise((resolve, reject) => {
       const timeout = setTimeout(() => { channel.close(); reject(new Error('Custody channel open timed out')); }, policy.channel.timeoutMs);
@@ -86,6 +91,7 @@ export function createCustodyExchange({ transport, identity, policy, ports }) {
   transport.onMessage('reploid:custody-offer', (peer, message) => {
     if (closed || !Array.isArray(message?.artifacts) || message.artifacts.length > policy.maxInventoryFiles
       || !message.artifacts.every(valid)) return;
+    if (!connected().has(peer) || !peers.has(peer) && peers.size >= policy.maxPeers) return;
     const first = !peers.has(peer);
     peers.set(peer, structuredClone(message.artifacts)); if (first) announce(peer); notify();
   });
@@ -168,23 +174,7 @@ export function createCustodyExchange({ transport, identity, policy, ports }) {
     if (!transport.sendToPeer(peer, 'reploid:custody-request', { id, artifact,
       requester: { peerId: identity.peerId, publicKey: identity.publicKey } })) finish(new Error('File peer disconnected'));
   });
-  return Object.freeze({
-    announce,
-    getState: () => ({ sharing: supply, suppliedBytes: reserved, pending: pending.size, peers: [...peers.keys()] }),
-    has: artifact => [...peers.entries()].some(([peer, files]) => transport.getConnectedPeers().some(item => item.id === peer)
-      && files.some(item => key(item) === key(artifact))),
-    offer(artifacts) {
-      if (!Array.isArray(artifacts) || artifacts.length > policy.maxInventoryFiles || !artifacts.every(valid)) throw new Error('Invalid file inventory');
-      live(); stopSupply(); offered = structuredClone(artifacts); reserved = 0; supply = true; announce(); notify();
-    },
-    stopSupply,
-    async acquire(artifact, { signal }) {
-      live();
-      if (!valid(artifact)) throw new Error('Invalid file acquisition');
-      const combined = AbortSignal.any([lifetime.signal, signal]);
-      const peer = [...peers.entries()].find(([id, files]) => transport.getConnectedPeers().some(item => item.id === id)
-        && files.some(item => key(item) === key(artifact)))?.[0];
-      if (!peer) throw new Error('No authorized peer offers this file');
+  const acquireFrom = async (peer, artifact, combined) => {
       const bus = await channelFor(peer, combined);
       const result = await request(peer, artifact, combined); combined.throwIfAborted();
       const grant = result.authorization, declared = grant?.artifactSet?.artifacts?.[0];
@@ -201,12 +191,67 @@ export function createCustodyExchange({ transport, identity, policy, ports }) {
           checkpoints, signal: combined });
         const bytes = await store.readArtifact(declared);
         await verifyArtifact(artifact, bytes); combined.throwIfAborted();
+        if (ports.commitArtifact) {
+          try { await ports.commitArtifact(artifact, bytes, { signal: combined }); }
+          catch (cause) {
+            const error = new Error('Verified file could not be retained: ' + cause.message, { cause });
+            error.code = 'CUSTODY_LOCAL_COMMIT_FAILED'; throw error;
+          }
+          // Complete verified files now own durability. Keep checkpoints only
+          // for interrupted transfers, not a second copy of every model file.
+          for (const chunk of result.index.artifacts[0].chunks) {
+            try { await checkpoints?.deleteChunk(chunk, { signal: combined }); }
+            catch (error) { ports.onError?.(error); }
+          }
+          combined.throwIfAborted();
+        }
         ports.observe?.(store.getReceipt()); return bytes;
       } catch (error) {
         if (store) ports.observe?.({ ...store.getReceipt(), failure: error.message }); throw error;
       } finally {
         store?.close(); transport.sendToPeer(peer, 'reploid:custody-request', { release: grant.transferId });
       }
+  };
+  const candidates = artifact => {
+    const ids = connected();
+    return [...peers.entries()].filter(([peer, files]) => ids.has(peer) && files.some(item => key(item) === key(artifact)))
+      .map(([peer]) => peer).slice(0, policy.maxAcquisitionAttempts);
+  };
+  return Object.freeze({
+    announce,
+    getState: () => { connected(); return { sharing: supply, suppliedBytes: reserved, pending: acquiring, peers: [...peers.keys()] }; },
+    has: artifact => candidates(artifact).length > 0,
+    offer(artifacts) {
+      if (!Array.isArray(artifacts) || artifacts.length > policy.maxInventoryFiles || !artifacts.every(valid)) throw new Error('Invalid file inventory');
+      live(); stopSupply(); offered = structuredClone(artifacts); reserved = 0; supply = true; announce(); notify();
+    },
+    stopSupply,
+    async acquire(artifact, { signal }) {
+      live();
+      if (!valid(artifact)) throw new Error('Invalid file acquisition');
+      if (acquiring >= policy.maxTransfers) throw new Error('File acquisition limit reached');
+      const combined = AbortSignal.any([lifetime.signal, signal]);
+      combined.throwIfAborted();
+      const descriptor = structuredClone(artifact), eligible = candidates(descriptor);
+      if (!eligible.length) throw new Error('No authorized peer offers this file');
+      acquiring++;
+      const operation = (async () => {
+        const failures = [];
+        for (const peer of eligible) {
+          combined.throwIfAborted();
+          try { return await acquireFrom(peer, descriptor, combined); }
+          catch (error) {
+            combined.throwIfAborted();
+            if (error.code === 'CUSTODY_LOCAL_COMMIT_FAILED') throw error;
+            failures.push(error);
+          }
+        }
+        if (failures.length === 1) throw failures[0];
+        throw new AggregateError(failures, 'Available file suppliers failed: ' + failures.map(error => error.message).join('; '));
+      })();
+      operations.add(operation); notify();
+      try { return await operation; }
+      finally { acquiring--; operations.delete(operation); notify(); }
     },
     close() {
       if (closed) return Promise.allSettled([...operations]);

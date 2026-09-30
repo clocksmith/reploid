@@ -23,12 +23,13 @@ export function renderConversationWorkspace() {
         <details data-thread-permissions hidden><summary>Thread permissions</summary>
           <p data-thread-permission-description>Approved recipients can receive this thread’s messages and attached text as public data, using its selected model. Revoking stops active work and future sharing; it cannot recall data already sent.</p>
           <ul data-thread-grants></ul></details>
+        <label>Model to contribute <select data-contribution-model aria-label="Model to contribute"></select></label>
         <details><summary>Contribution <span data-contrib-label>Not sharing</span></summary>
-          <div class="chat-contribution-controls"><p data-contribution-limits></p>
+          <div class="chat-contribution-controls"><p data-contribution-limits></p><p data-contribution-progress role="status" hidden></p>
             <label><input type="checkbox" data-contribution-consent> Run peers’ public prompts on this device</label>
             <button class="btn btn-ghost" type="button" data-toggle-contribution>Start sharing</button></div></details>
         <details><summary>Files <span data-file-contribution-label>Not sharing</span></summary>
-          <div class="chat-contribution-controls"><p>Cache this model and its selected adapter (up to 3 GiB), and distribute up to 4 GiB to peers. This does not share conversations or enable compute.</p>
+          <div class="chat-contribution-controls"><p>Cache this model and its selected adapter (up to 3 GiB), and distribute up to 4 GiB to peers. This does not share conversations or enable compute.</p><p data-file-progress role="status" hidden></p>
             <label><input type="checkbox" data-file-contribution-consent> Allow file storage and distribution</label>
             <button class="btn btn-ghost" type="button" data-toggle-file-contribution>Start sharing files</button></div></details>
       </section>
@@ -40,6 +41,7 @@ export function renderConversationWorkspace() {
         <div class="chat-network-actions"><button class="btn btn-primary" type="button" data-approval-send disabled>Approve and send</button><button class="btn btn-ghost" type="button" data-approval-decline>Decline</button></div>
       </section>
       <p class="chat-error" role="alert" data-chat-error hidden></p>
+      <p data-model-status role="status" hidden></p>
       <footer class="chat-composer-area" data-composer-area><form data-composer-form>
         <label class="chat-visually-hidden" for="chat-message">Message</label>
         <textarea id="chat-message" data-composer-input rows="3" required placeholder="${escape(pickGoalPlaceholder())}"></textarea>
@@ -59,6 +61,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl } = {}) 
   const find = selector => container.querySelector(selector);
   const controller = new AbortController(), options = { signal: controller.signal };
   const input = find('[data-composer-input]'), modelSelect = find('[data-active-model-select]');
+  const contributionSelect = find('[data-contribution-model]');
   let files = [], fileRevision = 0, reading = false, approvalKey = '', messageKey = '', listKey = '', grantsKey = '';
   const drafts = new Map();
   let selectedId = session.getState().selectedId;
@@ -82,14 +85,38 @@ export function bindConversationWorkspace(root, session, { getInviteUrl } = {}) 
       drafts.set(selectedId, { text: input.value, files }); selectedId = state.selectedId; fileRevision++;
       const draft = drafts.get(selectedId); input.value = draft?.text || ''; files = draft?.files || []; showFiles();
     }
-    const thread = state.activeThread, models = state.models || [];
-    const current = thread?.model?.selectionId || thread?.model?.id || modelSelect.value || state.defaultModel?.id;
+    const thread = state.activeThread, catalogModels = state.models || [];
+    const keyFor = model => model?.selectionId || model?.id;
+    const contributionKey = contributionSelect.value || keyFor(state.defaultModel);
+    const contributionCatalog = JSON.stringify(catalogModels.filter(model => !model.partition).map(model => [keyFor(model), model.name]));
+    if (contributionSelect.dataset.catalog !== contributionCatalog) {
+      contributionSelect.innerHTML = catalogModels.filter(model => !model.partition)
+        .map(model => `<option value="${escape(keyFor(model))}">${escape(model.name)}</option>`).join('');
+      contributionSelect.dataset.catalog = contributionCatalog;
+      if ([...contributionSelect.options].some(option => option.value === contributionKey)) contributionSelect.value = contributionKey;
+    }
+    const models = catalogModels.filter(model => ['ready', 'busy'].includes(model.availability));
+    if (thread && !models.some(model => keyFor(model) === keyFor(thread.model))) {
+      models.push(catalogModels.find(model => keyFor(model) === keyFor(thread.model)) || { ...thread.model, availability: 'unavailable' });
+    }
+    const current = keyFor(thread?.model) || (models.some(model => keyFor(model) === modelSelect.value) ? modelSelect.value : null)
+      || keyFor(models.find(model => keyFor(model) === keyFor(state.defaultModel))) || keyFor(models[0]);
     const catalog = JSON.stringify(models.map(model => [model.selectionId || model.id, model.name, model.availability]));
     if (modelSelect.dataset.catalog !== catalog) {
-      modelSelect.innerHTML = models.map(model => `<option value="${escape(model.selectionId || model.id)}">${escape(model.name)}${model.partition ? ' · split' : ''}${model.availability ? ' · ' + escape(model.availability) : ''}</option>`).join('');
+      modelSelect.innerHTML = models.length ? models.map(model => `<option value="${escape(model.selectionId || model.id)}">${escape(model.name)}${model.partition ? ' · split' : ''}${model.availability ? ' · ' + escape(model.availability) : ''}</option>`).join('')
+        : '<option value="">No models available</option>';
       modelSelect.dataset.catalog = catalog;
     }
-    modelSelect.value = current; modelSelect.disabled = !!thread;
+    modelSelect.value = current || ''; modelSelect.disabled = !!thread || !models.length;
+    const usable = thread?.permissions?.sharingScope === 'local'
+      || models.some(model => keyFor(model) === current && ['ready', 'busy'].includes(model.availability));
+    const modelStatus = find('[data-model-status]');
+    const networkState = state.network?.consumer?.connectionState;
+    modelStatus.textContent = usable ? '' : state.network?.paused ? 'Disconnected. Connect from Network to find models.'
+      : catalogModels.some(model => model.availability === 'loading') ? 'A contributor is loading a model…'
+        : state.network?.connecting || ['connecting', 'retrying'].includes(networkState) ? 'Finding available models…'
+          : 'No model is ready. Waiting for contributors.';
+    modelStatus.hidden = !modelStatus.textContent;
     const threads = state.threads.filter(item => !item.closed);
     const nextList = JSON.stringify([state.selectedId, threads.map(item => [item.id, item.purpose, item.messages.find(m => m.role === 'user')?.content, item.attempts.at(-1)?.status])]);
     if (nextList !== listKey) {
@@ -103,13 +130,17 @@ export function bindConversationWorkspace(root, session, { getInviteUrl } = {}) 
     const attempt = thread?.attempts.at(-1), busy = state.runningIds.includes(thread?.id), execution = attempt?.execution;
     const location = execution?.placement === 'two-device-layer-partition' ? 'This device + peer ' + execution.participantB.slice(0, 12) : execution?.peerId ? 'Peer ' + execution.peerId.slice(0, 8) : execution?.placement === 'local-webgpu' ? 'This device' : '';
     find('[data-execution-state]').textContent = [location, attempt?.status].filter(Boolean).join(' · ');
-    find('[data-composer-send]').hidden = busy; find('[data-composer-send]').disabled = reading || !modelSelect.value || !!state.storageError;
+    find('[data-composer-send]').hidden = busy; find('[data-composer-send]').disabled = reading || !usable || !!state.storageError;
     find('[data-composer-stop]').hidden = !busy;
-    const stream = find('[data-message-stream]'), nextMessages = JSON.stringify([thread?.id, thread?.messages]);
+    const stream = find('[data-message-stream]'), nextMessages = JSON.stringify([thread?.id, thread?.messages, usable, busy]);
     if (nextMessages !== messageKey) {
       const nearBottom = stream.scrollHeight - stream.scrollTop - stream.clientHeight < 80;
       messageKey = nextMessages;
-      stream.innerHTML = (thread?.messages || []).map(m => `<article class="chat-message-row is-${m.role === 'user' ? 'user' : 'assistant'}"><span class="chat-message-author">${m.role === 'user' ? 'You' : 'Assistant'}</span><div class="chat-message-content">${escape(m.content)}</div></article>`).join('');
+      stream.innerHTML = (thread?.messages || []).map(m => {
+        const retryable = m.attemptId === attempt?.id && !busy && ['failed', 'cancelled', 'interrupted'].includes(m.status);
+        return `<article class="chat-message-row is-${m.role === 'user' ? 'user' : 'assistant'}"><span class="chat-message-author">${m.role === 'user' ? 'You' : 'Assistant'}</span><div class="chat-message-content">${escape(m.content)}</div>${retryable
+          ? `<button class="btn btn-ghost" type="button" data-retry-attempt="${escape(m.attemptId)}"${usable ? '' : ' disabled'}>Retry response</button><small>Starts a new attempt; keeps this response.</small>` : ''}</article>`;
+      }).join('');
       if (nearBottom) stream.scrollTop = stream.scrollHeight;
     }
     const pending = attempt?.approval, key = pending ? thread.id + ':' + attempt.id + ':' + pending.id : '';
@@ -138,6 +169,8 @@ export function bindConversationWorkspace(root, session, { getInviteUrl } = {}) 
     }
     error(state.storageError || attempt?.error || '');
     const network = state.network || {}, peers = network.consumer?.peers || network.supplier?.peers || [];
+    find('[data-mesh-invite]').hidden = network.discoveryScope !== 'private';
+    contributionSelect.disabled = !!network.sharing || !!network.stopping || !!network.files?.sharing || !!network.files?.preparing;
     find('[data-mesh-peers]').textContent = peers.length + (peers.length === 1 ? ' peer' : ' peers');
     find('[data-insp-device-list]').innerHTML = '<li>This device</li>' + peers.map(peer => `<li>Peer ${escape(peer.peerId?.slice(0, 8))}${peer.model ? ' · ' + escape(peer.model) : ''}</li>`).join('');
     const discoveryState = network.consumer?.connectionState;
@@ -154,8 +187,15 @@ export function bindConversationWorkspace(root, session, { getInviteUrl } = {}) 
     find('[data-toggle-contribution]').disabled = !!network.stopping;
     find('[data-contribution-consent]').disabled = !!network.sharing || !!network.stopping;
     find('[data-contribution-limits]').textContent = network.limits ? network.limits.maxInboundJobs + ' request at a time · ' + network.limits.maxOutputTokens + ' output tokens per request' : '';
+    const progress = network.contribution?.progress;
+    const progressText = typeof progress === 'string' ? progress : progress?.message || progress?.stage || progress?.phase || '';
+    const progressNode = find('[data-contribution-progress]');
+    progressNode.textContent = network.contribution?.error || progressText;
+    progressNode.hidden = !progressNode.textContent;
     const sharingFiles = network.files?.sharing || network.files?.preparing;
     find('[data-file-contribution-label]').textContent = network.files?.error || (network.files?.preparing ? 'Preparing' : sharingFiles ? 'Sharing' : 'Not sharing');
+    find('[data-file-progress]').textContent = network.files?.progress?.message || '';
+    find('[data-file-progress]').hidden = !find('[data-file-progress]').textContent;
     find('[data-file-contribution-consent]').disabled = !!sharingFiles;
     find('[data-toggle-file-contribution]').textContent = sharingFiles ? 'Stop sharing files' : 'Start sharing files';
   };
@@ -166,9 +206,10 @@ export function bindConversationWorkspace(root, session, { getInviteUrl } = {}) 
     event.preventDefault();
     const content = input.value.trim(), state = session.getState();
     if (!content || reading || state.runningIds.includes(state.selectedId)) return;
+    if (find('[data-composer-send]').disabled) return;
     act(async () => {
       const model = state.models.find(item => (item.selectionId || item.id) === modelSelect.value), attachments = files.map(file => ({ ...file }));
-      const threadId = state.selectedId || session.createThread({ model, sharingScope: 'invited-mesh' });
+      const threadId = state.selectedId || session.createThread({ model, sharingScope: 'mesh' });
       input.value = content; files = attachments; showFiles();
       const completion = session.send(threadId, content, attachments);
       input.value = ''; files = []; drafts.delete(null); drafts.delete(threadId); showFiles();
@@ -179,6 +220,10 @@ export function bindConversationWorkspace(root, session, { getInviteUrl } = {}) 
     if (event.key === 'Enter' && !event.shiftKey && !event.isComposing) { event.preventDefault(); find('[data-composer-form]').requestSubmit(); }
   });
   on('[data-composer-stop]', 'click', () => act(() => session.cancel(session.getState().selectedId)));
+  on('[data-message-stream]', 'click', event => {
+    const button = event.target.closest('[data-retry-attempt]');
+    if (button && !button.disabled) act(() => session.retry(session.getState().selectedId, button.dataset.retryAttempt));
+  });
   on('[data-composer-files]', 'change', event => {
     const chosen = [...event.target.files]; event.target.value = '';
     const revision = fileRevision; reading = true; render(session.getState());
@@ -201,10 +246,10 @@ export function bindConversationWorkspace(root, session, { getInviteUrl } = {}) 
     await navigator.clipboard.writeText(getInviteUrl());
     const node = find('[data-network-message]'); node.textContent = 'Invite copied'; node.hidden = false;
   }));
-  on('[data-toggle-contribution]', 'click', () => act(() => session.setSharing(!session.getState().network?.sharing, modelSelect.value, find('[data-contribution-consent]').checked)));
+  on('[data-toggle-contribution]', 'click', () => act(() => session.setSharing(!session.getState().network?.sharing, contributionSelect.value, find('[data-contribution-consent]').checked)));
   on('[data-toggle-file-contribution]', 'click', () => act(() => {
     const files = session.getState().network?.files;
-    return session.setFileSharing(!(files?.sharing || files?.preparing), modelSelect.value, find('[data-file-contribution-consent]').checked);
+    return session.setFileSharing(!(files?.sharing || files?.preparing), contributionSelect.value, find('[data-file-contribution-consent]').checked);
   }));
   const approve = accepted => act(() => {
     const thread = session.getState().activeThread, attempt = thread?.attempts.at(-1);

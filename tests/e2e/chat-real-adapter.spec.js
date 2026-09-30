@@ -29,16 +29,16 @@ test('three Chrome tabs supply files, execute Doppler and receive independent ad
     await Promise.all([a.goto('/'), b.goto('/'), c.goto('/')]);
     for (const page of [a, b, c]) await expect.poll(async () => parseInt(await page.locator('[data-mesh-peers]').textContent()), { timeout: 60000 }).toBeGreaterThanOrEqual(2);
     expect(modelRequests).toEqual([]); expect(executorRequests).toEqual([]);
-    await c.locator('[data-active-model-select]').selectOption(specialist);
     await c.locator('[data-toggle-inspector]').click();
+    await c.locator('[data-contribution-model]').selectOption(specialist);
     await c.locator('details').filter({ has: c.locator('[data-toggle-file-contribution]') }).locator('summary').click();
     await c.locator('[data-file-contribution-consent]').check();
     await c.locator('[data-toggle-file-contribution]').click();
     await c.waitForFunction(() => !['Not sharing', 'Preparing'].includes(document.querySelector('[data-file-contribution-label]')?.textContent), null, { timeout: 600000 });
     await expect(c.locator('[data-file-contribution-label]')).toHaveText('Sharing');
     await expect(c.locator('[data-contrib-label]')).toHaveText('Not sharing');
-    await b.locator('[data-active-model-select]').selectOption(specialist);
     await b.locator('[data-toggle-inspector]').click();
+    await b.locator('[data-contribution-model]').selectOption(specialist);
     await b.locator('details').filter({ has: b.locator('[data-toggle-contribution]') }).locator('summary').click();
     await b.locator('[data-contribution-consent]').check();
     await b.locator('[data-toggle-contribution]').click();

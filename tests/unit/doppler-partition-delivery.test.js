@@ -15,7 +15,7 @@ describe('partition candidate delivery', () => {
   it('ships identical installed and hosted contract bytes from the pinned archive', async () => {
     expect(sha512(readFileSync(archive))).toBe(pin.integrity);
     const hosted = path.resolve('self' + DOPPLER_PARTITIONS_MODULE_URL);
-    const modulePath = 'src/inference/pipelines/text/layer-partition-contract.js';
+    const modulePath = 'src/partitions.js';
     const packed = execFileSync('tar', ['-xOf', archive, 'package/' + modulePath]);
     expect(readFileSync(hosted)).toEqual(packed);
     expect(readFileSync(path.join('node_modules/doppler-gpu', modulePath))).toEqual(packed);

@@ -17,7 +17,7 @@ export const DOPPLER_BROWSER_RELEASE_REF =
 const DOPPLER_BROWSER_RELEASE_BASE_URL =
   `/vendor/doppler/${DOPPLER_BROWSER_RUNTIME_VERSION}`;
 export const DOPPLER_MODULE_URL = `${DOPPLER_BROWSER_RELEASE_BASE_URL}/src/index.js`;
-export const DOPPLER_PARTITIONS_MODULE_URL = `/vendor/doppler/${dopplerPackage.version}/src/inference/pipelines/text/layer-partition-contract.js`;
+export const DOPPLER_PARTITIONS_MODULE_URL = `/vendor/doppler/${dopplerPackage.version}/src/partitions.js`;
 export const DOPPLER_KERNEL_BASE_URL = `${DOPPLER_BROWSER_RELEASE_BASE_URL}/src/gpu/kernels`;
 export const DOPPLER_TOOLING_URL = `${DOPPLER_BROWSER_RELEASE_BASE_URL}/src/tooling-exports.browser.js`;
 export const DOPPLER_STORAGE_TOOLING_URL =

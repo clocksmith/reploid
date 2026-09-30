@@ -11,6 +11,91 @@ const validChunk = (chunk) => {
     && Number.isSafeInteger(chunk.sizeBytes) && chunk.sizeBytes > 0, 'chunk commitment required');
 };
 
+/** File-backed staging avoids retaining large deleted IndexedDB values in its
+ * journal while OPFS is simultaneously acquiring the completed model files. */
+export async function openPeerPackFileCheckpoints({ name = 'reploid-chat-checkpoints-v1', maxBytes,
+  storage = globalThis.navigator.storage, locks = globalThis.navigator.locks } = {}) {
+  assert(Number.isSafeInteger(maxBytes) && maxBytes > 0, 'explicit disk byte limit required');
+  const directory = await (await storage.getDirectory()).getDirectoryHandle(name, { create: true });
+  let closed = false;
+  const key = chunk => { validChunk(chunk); return chunk.hash.slice(7); };
+  const run = (signal, action) => locks.request(name, { ...(signal ? { signal } : {}) }, async () => {
+    assert(!closed, 'store closed'); signal?.throwIfAborted();
+    return action();
+  });
+  const entries = async () => {
+    const result = [];
+    for await (const [name, handle] of directory.entries()) if (handle.kind === 'file' && /^[a-f0-9]{64}$/.test(name)) {
+      const file = await handle.getFile(); result.push({ name, size: file.size, lastUsed: file.lastModified });
+    }
+    return result;
+  };
+  const writeIndex = async files => {
+    const writer = await (await directory.getFileHandle('index.json', { create: true })).createWritable();
+    try { await writer.write(JSON.stringify(files)); await writer.close(); }
+    catch (error) { await writer.abort().catch(() => {}); throw error; }
+  };
+  // Reconcile an interrupted previous writer once. All later operations read
+  // the shared index under the same lock, including operations from other tabs.
+  await run(null, async () => writeIndex(await entries()));
+  const readIndex = async () => JSON.parse(await (await (await directory.getFileHandle('index.json')).getFile()).text());
+  return {
+    getChunk(chunk, { signal } = {}) {
+      const name = key(chunk);
+      return run(signal, async () => {
+        try {
+          const file = await (await directory.getFileHandle(name)).getFile();
+          if (file.size !== chunk.sizeBytes) { await directory.removeEntry(name); return null; }
+          const bytes = new Uint8Array(await file.arrayBuffer()); signal?.throwIfAborted(); return bytes;
+        } catch (error) { if (error.name === 'NotFoundError') return null; throw error; }
+      });
+    },
+    async putChunk(chunk, input, { signal } = {}) {
+      const name = key(chunk);
+      assert(input instanceof Uint8Array && input.byteLength === chunk.sizeBytes && chunk.sizeBytes <= maxBytes, 'chunk size exceeds staging allowance');
+      const bytes = input.slice();
+      assert(await sha256Hex(bytes) === chunk.hash, 'chunk integrity mismatch');
+      return run(signal, async () => {
+        const index = await readIndex();
+        if (index.some(file => file.name === name && file.size === bytes.length)) {
+          // Content identity is immutable; the reader still verifies restored bytes.
+          return { storedBytes: index.reduce((sum, file) => sum + file.size, 0), evictedBytes: 0 };
+        }
+        const files = index.filter(file => file.name !== name).sort((a, b) => a.lastUsed - b.lastUsed || a.name.localeCompare(b.name));
+        let used = files.reduce((sum, file) => sum + file.size, 0), evictedBytes = 0;
+        while (used + bytes.length > maxBytes) {
+          const old = files.shift(); signal?.throwIfAborted();
+          await directory.removeEntry(old.name); used -= old.size; evictedBytes += old.size;
+        }
+        const writer = await (await directory.getFileHandle(name, { create: true })).createWritable();
+        try {
+          await writer.write(bytes); signal?.throwIfAborted(); assert(!closed, 'store closed'); await writer.close();
+          await writeIndex([...files, { name, size: bytes.length, lastUsed: Date.now() }]);
+        } catch (error) {
+          await writer.abort().catch(() => {});
+          await directory.removeEntry(name).catch(() => {});
+          await writeIndex(await entries()).catch(() => {});
+          throw error;
+        }
+        return { storedBytes: used + bytes.length, evictedBytes };
+      });
+    },
+    deleteChunk(chunk, { signal } = {}) {
+      const name = key(chunk);
+      return run(signal, async () => {
+        try { await directory.removeEntry(name); } catch (error) { if (error.name !== 'NotFoundError') throw error; }
+        await writeIndex((await readIndex()).filter(file => file.name !== name));
+      });
+    },
+    getStats() { return run(null, async () => {
+      const files = await entries();
+      return { storedBytes: files.reduce((sum, file) => sum + file.size, 0), chunks: files.length,
+        maxBytes, storage: 'opfs', persistence: 'browser-managed' };
+    }); },
+    close() { closed = true; }
+  };
+}
+
 export async function openPeerPackCheckpoints({ name = 'reploid-pack-transfer-v1', maxBytes, indexedDB = globalThis.indexedDB } = {}) {
   assert(Number.isSafeInteger(maxBytes) && maxBytes > 0, 'explicit disk byte limit required');
   assert(indexedDB, 'IndexedDB unavailable');

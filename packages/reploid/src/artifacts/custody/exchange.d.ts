@@ -9,7 +9,8 @@ export interface CustodyChannelLimits {
   maxPendingRequests: number; maxTransferBytes: number; timeoutMs: number;
 }
 export interface CustodyExchangePolicy {
-  maxTransfers: number; maxInventoryFiles: number; maxSupplyBytes: number; maxArtifactBytes: number;
+  maxTransfers: number; maxPeers: number; maxAcquisitionAttempts: number;
+  maxInventoryFiles: number; maxSupplyBytes: number; maxArtifactBytes: number;
   grantMs: number; channel: CustodyChannelLimits;
 }
 type Supplier = Awaited<ReturnType<typeof createPeerPackSupplier>>;
@@ -23,6 +24,7 @@ export interface CustodyExchangePorts {
   };
   readArtifact(file: FileDescriptor, controls: { signal: AbortSignal }): Promise<Uint8Array>;
   verifyArtifact(file: FileDescriptor, bytes: Uint8Array): Promise<void>;
+  commitArtifact?(file: FileDescriptor, bytes: Uint8Array, controls: { signal: AbortSignal }): Promise<void>;
   hash(value: unknown): Promise<string>;
   hashBytes(bytes: Uint8Array): Promise<string>;
   checkpoints?: CustodyCheckpoints;
