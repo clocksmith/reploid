@@ -35,7 +35,8 @@ export function createWorkResidentProvider({ service, model, generation, maxOutc
     if (error) return Promise.reject(new Error(error));
     phase = 'loading';
     preparing = Promise.resolve().then(() => withWorkDevice(service, lifetime.signal, async () => {
-      const resolvedSource = resolveSource ? await resolveSource(model, { signal: lifetime.signal }) : source;
+      const reportProgress = value => { if (!closed) { progress = structuredClone(value); notify(); } };
+      const resolvedSource = resolveSource ? await resolveSource(model, { signal: lifetime.signal, onProgress: reportProgress }) : source;
       const loaded = await openWorkProvider({ model, service, scope, signal: lifetime.signal,
         generation, maxOutcomeCharacters, resolveAdapter, source: resolvedSource, loadOptions, onProgress(value) {
           if (!closed) { progress = structuredClone(value); notify(); }
