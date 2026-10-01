@@ -1,0 +1,13 @@
+
+Running 4 tests using 1 worker
+
+(node:99742) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:99742) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 [chromium] › tests/e2e/chat-workspace.spec.js:4:1 › browser chat owner retains separate conversations across reload without redispatch (377ms)
+  ✓  2 [chromium] › tests/e2e/chat-workspace.spec.js:35:1 › Verification Worker accepts the conversation and scheduler modules (234ms)
+  ✓  3 [chromium] › tests/e2e/chat-workspace.spec.js:55:1 › file checkpoints remain bounded and release storage across successful transfers (133ms)
+  ✓  4 [chromium] › tests/e2e/chat-workspace.spec.js:87:1 › file checkpoints repair missing and truncated files without stale index entries (86ms)
+
+  4 passed (1.7s)

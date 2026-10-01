@@ -1,0 +1,816 @@
+
+Running 1 test using 1 worker
+
+(node:99695) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:99695) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+Exact catalog files cached by the consenting seed 20
+Contributor acquisition {
+  phase: 'Loading',
+  progress: 'Receiving from peers: manifest.json',
+  error: '',
+  storage: {
+    quota: 335544320,
+    usage: 216971,
+    usageDetails: { fileSystem: 215090, indexedDB: 1881 }
+  }
+}
+Contributor acquisition {
+  phase: 'Loading',
+  progress: 'Fetching manifest',
+  error: '',
+  storage: {
+    quota: 335544320,
+    usage: 216871,
+    usageDetails: { fileSystem: 214990, indexedDB: 1881 }
+  }
+}
+Contributor acquisition {
+  phase: 'Loading',
+  progress: 'Receiving from peers: shard_00000.bin',
+  error: '',
+  storage: {
+    quota: 335544320,
+    usage: 216871,
+    usageDetails: { fileSystem: 214990, indexedDB: 1881 }
+  }
+}
+Contributor acquisition {
+  phase: 'Loading',
+  progress: 'Receiving from peers: shard_00001.bin',
+  error: '',
+  storage: {
+    quota: 335544320,
+    usage: 67326023,
+    usageDetails: { fileSystem: 67324142, indexedDB: 1881 }
+  }
+}
+Contributor acquisition {
+  phase: 'Loading',
+  progress: 'Receiving from peers: shard_00002.bin',
+  error: '',
+  storage: {
+    quota: 335544320,
+    usage: 134435175,
+    usageDetails: { fileSystem: 134433294, indexedDB: 1881 }
+  }
+}
+Contributor acquisition {
+  phase: 'Loading',
+  progress: 'Receiving from peers: shard_00003.bin',
+  error: '',
+  storage: {
+    quota: 335544320,
+    usage: 134220749,
+    usageDetails: { fileSystem: 134218868, indexedDB: 1881 }
+  }
+}
+Contributor acquisition {
+  phase: 'Loading',
+  progress: 'Receiving from peers: shard_00004.bin',
+  error: '',
+  storage: {
+    quota: 335544320,
+    usage: 134220749,
+    usageDetails: { fileSystem: 134218868, indexedDB: 1881 }
+  }
+}
+Contributor acquisition {
+  phase: 'Loading',
+  progress: 'Receiving from peers: shard_00005.bin',
+  error: '',
+  storage: {
+    quota: 335544320,
+    usage: 134220749,
+    usageDetails: { fileSystem: 134218868, indexedDB: 1881 }
+  }
+}
+Contributor acquisition {
+  phase: 'Loading',
+  progress: 'Receiving from peers: shard_00006.bin',
+  error: '',
+  storage: {
+    quota: 335544320,
+    usage: 134220749,
+    usageDetails: { fileSystem: 134218868, indexedDB: 1881 }
+  }
+}
+Contributor acquisition {
+  phase: 'Loading',
+  progress: 'Receiving from peers: shard_00007.bin',
+  error: '',
+  storage: {
+    quota: 335544320,
+    usage: 134220749,
+    usageDetails: { fileSystem: 134218868, indexedDB: 1881 }
+  }
+}
+Contributor acquisition {
+  phase: 'Loading',
+  progress: 'Receiving from peers: shard_00008.bin',
+  error: '',
+  storage: {
+    quota: 335544320,
+    usage: 134220749,
+    usageDetails: { fileSystem: 134218868, indexedDB: 1881 }
+  }
+}
+Contributor acquisition {
+  phase: 'Loading',
+  progress: 'Receiving from peers: shard_00009.bin',
+  error: '',
+  storage: {
+    quota: 335544320,
+    usage: 134220749,
+    usageDetails: { fileSystem: 134218868, indexedDB: 1881 }
+  }
+}
+Contributor acquisition {
+  phase: 'Loading',
+  progress: 'Receiving from peers: shard_00010.bin',
+  error: '',
+  storage: {
+    quota: 335544320,
+    usage: 134220749,
+    usageDetails: { fileSystem: 134218868, indexedDB: 1881 }
+  }
+}
+Contributor acquisition {
+  phase: 'Loading',
+  progress: 'Receiving from peers: shard_00011.bin',
+  error: '',
+  storage: {
+    quota: 335544320,
+    usage: 134220749,
+    usageDetails: { fileSystem: 134218868, indexedDB: 1881 }
+  }
+}
+Contributor acquisition {
+  phase: 'Loading',
+  progress: 'Receiving from peers: shard_00012.bin',
+  error: '',
+  storage: {
+    quota: 335544320,
+    usage: 134220749,
+    usageDetails: { fileSystem: 134218868, indexedDB: 1881 }
+  }
+}
+Contributor acquisition {
+  phase: 'Loading',
+  progress: 'Receiving from peers: shard_00013.bin',
+  error: '',
+  storage: {
+    quota: 335544320,
+    usage: 134220749,
+    usageDetails: { fileSystem: 134218868, indexedDB: 1881 }
+  }
+}
+Contributor acquisition {
+  phase: 'Loading',
+  progress: 'Receiving from peers: shard_00014.bin',
+  error: '',
+  storage: {
+    quota: 335544320,
+    usage: 134220749,
+    usageDetails: { fileSystem: 134218868, indexedDB: 1881 }
+  }
+}
+Contributor acquisition {
+  phase: 'Loading',
+  progress: 'Receiving from peers: shard_00015.bin',
+  error: '',
+  storage: {
+    quota: 335544320,
+    usage: 134220749,
+    usageDetails: { fileSystem: 134218868, indexedDB: 1881 }
+  }
+}
+Contributor acquisition {
+  phase: 'Loading',
+  progress: 'Receiving from peers: shard_00016.bin',
+  error: '',
+  storage: {
+    quota: 335544320,
+    usage: 134220749,
+    usageDetails: { fileSystem: 134218868, indexedDB: 1881 }
+  }
+}
+Contributor acquisition {
+  phase: 'Loading',
+  progress: 'Receiving from peers: tokenizer.json',
+  error: '',
+  storage: {
+    quota: 335544320,
+    usage: 139419053,
+    usageDetails: { fileSystem: 139417172, indexedDB: 1881 }
+  }
+}
+Contributor acquisition {
+  phase: 'Loading',
+  progress: 'Receiving from peers: shard_00000.bin',
+  error: '',
+  storage: {
+    quota: 335544320,
+    usage: 148507821,
+    usageDetails: { fileSystem: 148505940, indexedDB: 1881 }
+  }
+}
+Contributor acquisition {
+  phase: 'Loading',
+  progress: 'Receiving from peers: shard_00001.bin',
+  error: '',
+  storage: {
+    quota: 335544320,
+    usage: 148507821,
+    usageDetails: { fileSystem: 148505940, indexedDB: 1881 }
+  }
+}
+Contributor acquisition {
+  phase: 'Loading',
+  progress: 'Receiving from peers: shard_00002.bin',
+  error: '',
+  storage: {
+    quota: 335544320,
+    usage: 148507821,
+    usageDetails: { fileSystem: 148505940, indexedDB: 1881 }
+  }
+}
+Contributor acquisition {
+  phase: 'Loading',
+  progress: 'Receiving from peers: shard_00003.bin',
+  error: '',
+  storage: {
+    quota: 335544320,
+    usage: 134220749,
+    usageDetails: { fileSystem: 134218868, indexedDB: 1881 }
+  }
+}
+Contributor acquisition {
+  phase: 'Loading',
+  progress: 'Receiving from peers: shard_00004.bin',
+  error: '',
+  storage: {
+    quota: 335544320,
+    usage: 134220749,
+    usageDetails: { fileSystem: 134218868, indexedDB: 1881 }
+  }
+}
+Contributor acquisition {
+  phase: 'Loading',
+  progress: 'Receiving from peers: shard_00005.bin',
+  error: '',
+  storage: {
+    quota: 335544320,
+    usage: 134220749,
+    usageDetails: { fileSystem: 134218868, indexedDB: 1881 }
+  }
+}
+Contributor acquisition {
+  phase: 'Loading',
+  progress: 'Receiving from peers: shard_00006.bin',
+  error: '',
+  storage: {
+    quota: 335544320,
+    usage: 134220749,
+    usageDetails: { fileSystem: 134218868, indexedDB: 1881 }
+  }
+}
+Contributor acquisition {
+  phase: 'Loading',
+  progress: 'Receiving from peers: shard_00007.bin',
+  error: '',
+  storage: {
+    quota: 335544320,
+    usage: 134220749,
+    usageDetails: { fileSystem: 134218868, indexedDB: 1881 }
+  }
+}
+Contributor acquisition {
+  phase: 'Loading',
+  progress: 'Receiving from peers: shard_00008.bin',
+  error: '',
+  storage: {
+    quota: 335544320,
+    usage: 134220749,
+    usageDetails: { fileSystem: 134218868, indexedDB: 1881 }
+  }
+}
+Contributor acquisition {
+  phase: 'Loading',
+  progress: 'Receiving from peers: shard_00009.bin',
+  error: '',
+  storage: {
+    quota: 335544320,
+    usage: 134220749,
+    usageDetails: { fileSystem: 134218868, indexedDB: 1881 }
+  }
+}
+Contributor acquisition {
+  phase: 'Loading',
+  progress: 'Receiving from peers: shard_00010.bin',
+  error: '',
+  storage: {
+    quota: 335544320,
+    usage: 134220749,
+    usageDetails: { fileSystem: 134218868, indexedDB: 1881 }
+  }
+}
+Contributor acquisition {
+  phase: 'Loading',
+  progress: 'Receiving from peers: shard_00011.bin',
+  error: '',
+  storage: {
+    quota: 335544320,
+    usage: 134220749,
+    usageDetails: { fileSystem: 134218868, indexedDB: 1881 }
+  }
+}
+Contributor acquisition {
+  phase: 'Loading',
+  progress: 'Receiving from peers: shard_00012.bin',
+  error: '',
+  storage: {
+    quota: 335544320,
+    usage: 134220749,
+    usageDetails: { fileSystem: 134218868, indexedDB: 1881 }
+  }
+}
+Contributor acquisition {
+  phase: 'Loading',
+  progress: 'Receiving from peers: shard_00013.bin',
+  error: '',
+  storage: {
+    quota: 335544320,
+    usage: 134220749,
+    usageDetails: { fileSystem: 134218868, indexedDB: 1881 }
+  }
+}
+Contributor acquisition {
+  phase: 'Loading',
+  progress: 'Receiving from peers: shard_00014.bin',
+  error: '',
+  storage: {
+    quota: 335544320,
+    usage: 134220749,
+    usageDetails: { fileSystem: 134218868, indexedDB: 1881 }
+  }
+}
+Contributor acquisition {
+  phase: 'Loading',
+  progress: 'Receiving from peers: shard_00015.bin',
+  error: '',
+  storage: {
+    quota: 335544320,
+    usage: 134220749,
+    usageDetails: { fileSystem: 134218868, indexedDB: 1881 }
+  }
+}
+Contributor acquisition {
+  phase: 'Loading',
+  progress: 'Receiving from peers: shard_00016.bin',
+  error: '',
+  storage: {
+    quota: 335544320,
+    usage: 134220749,
+    usageDetails: { fileSystem: 134218868, indexedDB: 1881 }
+  }
+}
+Contributor acquisition {
+  phase: 'Loading',
+  progress: 'Receiving from peers: tokenizer.json',
+  error: '',
+  storage: {
+    quota: 335544320,
+    usage: 139419053,
+    usageDetails: { fileSystem: 139417172, indexedDB: 1881 }
+  }
+}
+Contributor acquisition {
+  phase: 'Loading',
+  progress: 'Receiving from peers: shard_00000.bin',
+  error: '',
+  storage: {
+    quota: 335544320,
+    usage: 148507821,
+    usageDetails: { fileSystem: 148505940, indexedDB: 1881 }
+  }
+}
+Contributor acquisition {
+  phase: 'Loading',
+  progress: 'Reusing shard_00007.bin',
+  error: '',
+  storage: {
+    quota: 335544320,
+    usage: 148507821,
+    usageDetails: { fileSystem: 148505940, indexedDB: 1881 }
+  }
+}
+Contributor acquisition {
+  phase: 'Loading',
+  progress: 'Reusing shard_00000.bin',
+  error: '',
+  storage: {
+    quota: 335544320,
+    usage: 148507821,
+    usageDetails: { fileSystem: 148505940, indexedDB: 1881 }
+  }
+}
+Contributor acquisition {
+  phase: 'Loading',
+  progress: 'Reusing shard_00007.bin',
+  error: '',
+  storage: {
+    quota: 335544320,
+    usage: 148507821,
+    usageDetails: { fileSystem: 148505940, indexedDB: 1881 }
+  }
+}
+Contributor acquisition {
+  phase: 'Loading',
+  progress: 'Reusing shard_00000.bin',
+  error: '',
+  storage: {
+    quota: 335544320,
+    usage: 148507821,
+    usageDetails: { fileSystem: 148505940, indexedDB: 1881 }
+  }
+}
+Contributor acquisition {
+  phase: 'Loading',
+  progress: 'Receiving from peers: shard_00010.bin',
+  error: '',
+  storage: {
+    quota: 335544320,
+    usage: 134220749,
+    usageDetails: { fileSystem: 134218868, indexedDB: 1881 }
+  }
+}
+Contributor acquisition {
+  phase: 'Loading',
+  progress: 'Receiving from peers: shard_00000.bin',
+  error: '',
+  storage: {
+    quota: 335544320,
+    usage: 134220749,
+    usageDetails: { fileSystem: 134218868, indexedDB: 1881 }
+  }
+}
+Contributor acquisition {
+  phase: 'Loading',
+  progress: 'Reusing shard_00010.bin',
+  error: '',
+  storage: {
+    quota: 335544320,
+    usage: 134220749,
+    usageDetails: { fileSystem: 134218868, indexedDB: 1881 }
+  }
+}
+Contributor acquisition {
+  phase: 'Loading',
+  progress: 'Reusing shard_00000.bin',
+  error: '',
+  storage: {
+    quota: 335544320,
+    usage: 134220749,
+    usageDetails: { fileSystem: 134218868, indexedDB: 1881 }
+  }
+}
+Contributor acquisition {
+  phase: 'Loading',
+  progress: 'Receiving from peers: shard_00010.bin',
+  error: '',
+  storage: {
+    quota: 335544320,
+    usage: 134220749,
+    usageDetails: { fileSystem: 134218868, indexedDB: 1881 }
+  }
+}
+Contributor acquisition {
+  phase: 'Loading',
+  progress: 'Reusing shard_00011.bin',
+  error: '',
+  storage: {
+    quota: 335544320,
+    usage: 134220749,
+    usageDetails: { fileSystem: 134218868, indexedDB: 1881 }
+  }
+}
+Contributor acquisition {
+  phase: 'Loading',
+  progress: 'Receiving from peers: shard_00000.bin',
+  error: '',
+  storage: {
+    quota: 335544320,
+    usage: 134220749,
+    usageDetails: { fileSystem: 134218868, indexedDB: 1881 }
+  }
+}
+Contributor acquisition {
+  phase: 'Loading',
+  progress: 'Reusing shard_00011.bin',
+  error: '',
+  storage: {
+    quota: 335544320,
+    usage: 134220749,
+    usageDetails: { fileSystem: 134218868, indexedDB: 1881 }
+  }
+}
+Contributor acquisition {
+  phase: 'Loading',
+  progress: 'Reusing shard_00000.bin',
+  error: '',
+  storage: {
+    quota: 335544320,
+    usage: 134220749,
+    usageDetails: { fileSystem: 134218868, indexedDB: 1881 }
+  }
+}
+Contributor acquisition {
+  phase: 'Loading',
+  progress: 'Layer 9/24',
+  error: '',
+  storage: {
+    quota: 335544320,
+    usage: 134220749,
+    usageDetails: { fileSystem: 134218868, indexedDB: 1881 }
+  }
+}
+Contributor acquisition {
+  phase: 'Loading',
+  progress: 'Reusing shard_00000.bin',
+  error: '',
+  storage: {
+    quota: 335544320,
+    usage: 134220749,
+    usageDetails: { fileSystem: 134218868, indexedDB: 1881 }
+  }
+}
+Contributor acquisition {
+  phase: 'Loading',
+  progress: 'Receiving from peers: shard_00008.bin',
+  error: '',
+  storage: {
+    quota: 335544320,
+    usage: 134220749,
+    usageDetails: { fileSystem: 134218868, indexedDB: 1881 }
+  }
+}
+Contributor acquisition {
+  phase: 'Loading',
+  progress: 'Reusing shard_00000.bin',
+  error: '',
+  storage: {
+    quota: 335544320,
+    usage: 134220749,
+    usageDetails: { fileSystem: 134218868, indexedDB: 1881 }
+  }
+}
+Contributor acquisition {
+  phase: 'Loading',
+  progress: 'Reusing shard_00008.bin',
+  error: '',
+  storage: {
+    quota: 335544320,
+    usage: 134220749,
+    usageDetails: { fileSystem: 134218868, indexedDB: 1881 }
+  }
+}
+Contributor acquisition {
+  phase: 'Loading',
+  progress: 'Receiving from peers: shard_00000.bin',
+  error: '',
+  storage: {
+    quota: 335544320,
+    usage: 134220749,
+    usageDetails: { fileSystem: 134218868, indexedDB: 1881 }
+  }
+}
+Contributor acquisition {
+  phase: 'Loading',
+  progress: 'Reusing shard_00008.bin',
+  error: '',
+  storage: {
+    quota: 335544320,
+    usage: 134220749,
+    usageDetails: { fileSystem: 134218868, indexedDB: 1881 }
+  }
+}
+Contributor acquisition {
+  phase: 'Loading',
+  progress: 'Reusing shard_00000.bin',
+  error: '',
+  storage: {
+    quota: 335544320,
+    usage: 134220749,
+    usageDetails: { fileSystem: 134218868, indexedDB: 1881 }
+  }
+}
+Contributor acquisition {
+  phase: 'Loading',
+  progress: 'Layer 14/24',
+  error: '',
+  storage: {
+    quota: 335544320,
+    usage: 134220749,
+    usageDetails: { fileSystem: 134218868, indexedDB: 1881 }
+  }
+}
+Contributor acquisition {
+  phase: 'Loading',
+  progress: 'Reusing shard_00000.bin',
+  error: '',
+  storage: {
+    quota: 335544320,
+    usage: 134220749,
+    usageDetails: { fileSystem: 134218868, indexedDB: 1881 }
+  }
+}
+Contributor acquisition {
+  phase: 'Loading',
+  progress: 'Layer 18/24',
+  error: '',
+  storage: {
+    quota: 335544320,
+    usage: 134220749,
+    usageDetails: { fileSystem: 134218868, indexedDB: 1881 }
+  }
+}
+Contributor acquisition {
+  phase: 'Loading',
+  progress: 'Reusing shard_00000.bin',
+  error: '',
+  storage: {
+    quota: 335544320,
+    usage: 134220749,
+    usageDetails: { fileSystem: 134218868, indexedDB: 1881 }
+  }
+}
+Contributor acquisition {
+  phase: 'Loading',
+  progress: 'Receiving from peers: shard_00010.bin',
+  error: '',
+  storage: {
+    quota: 335544320,
+    usage: 134220749,
+    usageDetails: { fileSystem: 134218868, indexedDB: 1881 }
+  }
+}
+Contributor acquisition {
+  phase: 'Loading',
+  progress: 'Reusing shard_00000.bin',
+  error: '',
+  storage: {
+    quota: 335544320,
+    usage: 134220749,
+    usageDetails: { fileSystem: 134218868, indexedDB: 1881 }
+  }
+}
+Contributor acquisition {
+  phase: 'Loading',
+  progress: 'Receiving from peers: shard_00009.bin',
+  error: '',
+  storage: {
+    quota: 335544320,
+    usage: 134220749,
+    usageDetails: { fileSystem: 134218868, indexedDB: 1881 }
+  }
+}
+Contributor acquisition {
+  phase: 'Loading',
+  progress: 'Reusing shard_00010.bin',
+  error: '',
+  storage: {
+    quota: 335544320,
+    usage: 134220749,
+    usageDetails: { fileSystem: 134218868, indexedDB: 1881 }
+  }
+}
+Contributor acquisition {
+  phase: 'Loading',
+  progress: 'Receiving from peers: shard_00000.bin',
+  error: '',
+  storage: {
+    quota: 335544320,
+    usage: 134220749,
+    usageDetails: { fileSystem: 134218868, indexedDB: 1881 }
+  }
+}
+Contributor acquisition {
+  phase: 'Loading',
+  progress: 'Reusing shard_00010.bin',
+  error: '',
+  storage: {
+    quota: 335544320,
+    usage: 134220749,
+    usageDetails: { fileSystem: 134218868, indexedDB: 1881 }
+  }
+}
+Contributor acquisition {
+  phase: 'Loading',
+  progress: 'Reusing shard_00000.bin',
+  error: '',
+  storage: {
+    quota: 335544320,
+    usage: 134220749,
+    usageDetails: { fileSystem: 134218868, indexedDB: 1881 }
+  }
+}
+Contributor acquisition {
+  phase: 'Loading',
+  progress: 'Reusing shard_00010.bin',
+  error: '',
+  storage: {
+    quota: 335544320,
+    usage: 134220749,
+    usageDetails: { fileSystem: 134218868, indexedDB: 1881 }
+  }
+}
+Contributor acquisition {
+  phase: 'Loading',
+  progress: 'Receiving from peers: shard_00011.bin',
+  error: '',
+  storage: {
+    quota: 335544320,
+    usage: 134220749,
+    usageDetails: { fileSystem: 134218868, indexedDB: 1881 }
+  }
+}
+Contributor acquisition {
+  phase: 'Loading',
+  progress: 'Receiving from peers: shard_00014.bin',
+  error: '',
+  storage: {
+    quota: 335544320,
+    usage: 134220749,
+    usageDetails: { fileSystem: 134218868, indexedDB: 1881 }
+  }
+}
+Contributor acquisition {
+  phase: 'Loading',
+  progress: 'Receiving from peers: shard_00015.bin',
+  error: '',
+  storage: {
+    quota: 335544320,
+    usage: 134220749,
+    usageDetails: { fileSystem: 134218868, indexedDB: 1881 }
+  }
+}
+Contributor acquisition {
+  phase: 'Loading',
+  progress: 'Receiving from peers: shard_00016.bin',
+  error: '',
+  storage: {
+    quota: 335544320,
+    usage: 134220749,
+    usageDetails: { fileSystem: 134218868, indexedDB: 1881 }
+  }
+}
+Contributor acquisition {
+  phase: 'Ready',
+  progress: 'Model ready',
+  error: '',
+  storage: {
+    quota: 335544320,
+    usage: 139419053,
+    usageDetails: { fileSystem: 139417172, indexedDB: 1881 }
+  }
+}
+Real contributor ready from peer files with its origin unavailable
+  ✘  1 [chromium] › tests/e2e/chat-open-mesh-real.spec.js:8:1 › open chat discovers a real contributor, streams without requester weights, and preserves explicit retries (9.8m)
+
+
+  1) [chromium] › tests/e2e/chat-open-mesh-real.spec.js:8:1 › open chat discovers a real contributor, streams without requester weights, and preserves explicit retries 
+
+    Error: expect(received).not.toBe(expected) // Object.is equality
+
+    Expected: not ""
+
+    Call Log:
+    - Timeout 120000ms exceeded while waiting on the predicate
+
+      87 |     await requester.locator('[data-composer-send]').click();
+      88 |     await approve(requester);
+    > 89 |     await expect.poll(async () => (await history(requester)).threads[0].messages.at(-1).content, { timeout: 120000 }).not.toBe('');
+         |     ^
+      90 |     await expect.poll(async () => (await history(requester)).threads[0].attempts.at(-1).status, { timeout: 180000 }).toBe('completed');
+      91 |     const completed = await history(requester);
+      92 |     expect(completed.threads[0].attempts[0].execution).toMatchObject({ placement: 'peer-whole-request', modelIdentity: model.identity });
+        at /Users/xyz/deco/reploid/tests/e2e/chat-open-mesh-real.spec.js:89:5
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/open-mesh-real/chat-open-mesh-real-open-c-e66a8--preserves-explicit-retries-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/open-mesh-real/chat-open-mesh-real-open-c-e66a8--preserves-explicit-retries-chromium/test-failed-2.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #3: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/open-mesh-real/chat-open-mesh-real-open-c-e66a8--preserves-explicit-retries-chromium/test-failed-3.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  Slow test file: [chromium] › tests/e2e/chat-open-mesh-real.spec.js (9.8m)
+  Consider running tests from slow files in parallel. See: https://playwright.dev/docs/test-parallel
+  1 failed
+    [chromium] › tests/e2e/chat-open-mesh-real.spec.js:8:1 › open chat discovers a real contributor, streams without requester weights, and preserves explicit retries 
