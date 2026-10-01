@@ -6,7 +6,7 @@ claim of completed integration.
 
 ## Required release
 
-- An invited mesh, a thread list, the selected conversation and compact network status.
+- Automatic open mesh discovery, a thread list, the selected conversation and compact network status; no invitation, room setup or manual peer selection is required.
 - Thread-scoped messages, purpose, membership, model/adapter choice, permissions,
   approvals, cancellation and durable attempts. Answers stream into their originating thread.
 - Verified model-file acquisition from authorized peers, reuse and interrupted-transfer recovery.

@@ -55,9 +55,10 @@ export function createWorkModelFiles({ getTransport, onChange = () => {}, fetchI
       entries.push({ name, size: stored.size, touched: lastUsed.get(name) || stored.lastModified });
     }
     const estimate = await navigator.storage.estimate();
-    // OPFS and checkpoint IndexedDB share the browser quota. Leave room for
-    // staging and the temporary copy made by an atomic file replacement.
-    const remaining = estimate.quota - Math.max(0, estimate.usage - used)
+    // The estimate already includes current staging. Reserve its maximum once,
+    // plus the temporary copy made by an atomic artifact replacement.
+    const staged = checkpoints ? (await checkpoints.getStats()).storedBytes : 0;
+    const remaining = estimate.quota - Math.max(0, estimate.usage - used - staged)
       - policy.maxCheckpointBytes - policy.maxArtifactBytes;
     const budget = Math.min(policy.maxStoredBytes, Number.isFinite(remaining) ? Math.max(0, remaining) : policy.maxStoredBytes);
     const previous = entries.find(entry => entry.name === key)?.size || 0;

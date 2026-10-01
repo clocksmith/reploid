@@ -5,7 +5,7 @@ import path from 'node:path';
 // Exact catalog bytes may be supplied by a local seed. The requester/executor
 // still use the normal page, real WebRTC, signed custody and installed WebGPU.
 const directory = process.env.DOPPLER_CHAT_MODEL_DIR;
-test('open chat discovers a real contributor, streams without requester weights, and preserves explicit retries', async ({ browser }, info) => {
+test('open chat discovers a real contributor, streams without requester weights, and retains history after departure', async ({ browser }, info) => {
   test.skip(!directory, 'DOPPLER_CHAT_MODEL_DIR must contain the exact catalog Qwen 0.8B files');
   test.setTimeout(1200000);
   const model = JSON.parse(await readFile('self/config/chat-models.json', 'utf8'))[0];
@@ -86,8 +86,16 @@ test('open chat discovers a real contributor, streams without requester weights,
     await requester.locator('[data-composer-input]').fill('Reply with only the word Hello.');
     await requester.locator('[data-composer-send]').click();
     await approve(requester);
-    await expect.poll(async () => (await history(requester)).threads[0].messages.at(-1).content, { timeout: 120000 }).not.toBe('');
-    await expect.poll(async () => (await history(requester)).threads[0].attempts.at(-1).status, { timeout: 180000 }).toBe('completed');
+    const executingThread = async () => {
+      const thread = (await history(requester)).threads[0];
+      const attempt = thread.attempts.at(-1);
+      if (['failed', 'cancelled', 'interrupted'].includes(attempt.status)) {
+        throw new Error(`Real generation ${attempt.status}: ${attempt.error}`);
+      }
+      return thread;
+    };
+    await expect.poll(async () => (await executingThread()).messages.at(-1).content, { timeout: 120000 }).not.toBe('');
+    await expect.poll(async () => (await executingThread()).attempts.at(-1).status, { timeout: 180000 }).toBe('completed');
     const completed = await history(requester);
     expect(completed.threads[0].attempts[0].execution).toMatchObject({ placement: 'peer-whole-request', modelIdentity: model.identity });
     await requester.screenshot({ path: info.outputPath('answer.png'), fullPage: true });
@@ -109,5 +117,21 @@ test('open chat discovers a real contributor, streams without requester weights,
       automaticDiscovery: true, completed, acquired, storage, configuredExecutorQuotaBytes: 320 * 1024 * 1024,
       requesterWeights, contributorOrigins, seedFiles, errors
     }, null, 2) });
-  } finally { await Promise.all(contexts.map(context => context.close())); }
+  } finally {
+    // Retain the actual failed boundary as well as successful run evidence.
+    const states = await Promise.all([requester, contributor, seed].map(async page => {
+      try { return await page.evaluate(async () => ({
+        history: JSON.parse(localStorage.getItem('reploid.chat-workspace:v1')),
+        error: document.querySelector('[data-network-message]')?.textContent,
+        contribution: document.querySelector('[data-contrib-label]')?.textContent,
+        progress: document.querySelector('[data-contribution-progress]')?.textContent,
+        storage: await navigator.storage.estimate()
+      })); } catch (error) { return { diagnosticsError: error.message }; }
+    }));
+    await info.attach('state-at-exit.json', { contentType: 'application/json', body: JSON.stringify({
+      physicalDevices: 1, browserContexts: 3, browser: browser.version(), modelIdentity: model.identity,
+      states, requesterWeights, contributorOrigins, seedFiles, errors
+    }, null, 2) });
+    await Promise.all(contexts.map(context => context.close()));
+  }
 });

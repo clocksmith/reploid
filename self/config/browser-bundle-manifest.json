@@ -1210,8 +1210,8 @@
     },
     {
       "path": "config/chat-files.json",
-      "byteLength": 456,
-      "sha256": "sha256:ae1e2653af96d4469a8db5bd7cb3314c878dc8cd456fa5f11609f7cb92757597"
+      "byteLength": 539,
+      "sha256": "sha256:2d4759b19080cbcd262e299e4f4b6e0b6c72ba3313e975f07b7d99c1f225146e"
     },
     {
       "path": "config/chat-models.json",
@@ -1255,8 +1255,8 @@
     },
     {
       "path": "config/doppler-local-models.js",
-      "byteLength": 3728,
-      "sha256": "sha256:d8423cdaa4ee9e8087c37d00c57817d0cda333eecd5afa854718e2e6932a4c95"
+      "byteLength": 3689,
+      "sha256": "sha256:faf45ec39e4b89514ad9d79957090e8692424c97775108870fcbf716eb2db2fd"
     },
     {
       "path": "config/doppler-package.json",
@@ -1650,8 +1650,8 @@
     },
     {
       "path": "host/chat-session.js",
-      "byteLength": 13758,
-      "sha256": "sha256:bf83242f7f5e0fa8e5d85b1b6651ec728dd8a10bd31b6a75c033255ff310f12d"
+      "byteLength": 13966,
+      "sha256": "sha256:f2d6f2df4c767ab0a7fcbb977436dd1afb1df86abb0f4db7ffde487a278cf7c7"
     },
     {
       "path": "host/seed-vfs.js",
@@ -1700,8 +1700,8 @@
     },
     {
       "path": "host/work-model-files.js",
-      "byteLength": 11699,
-      "sha256": "sha256:322bfe46eb2825aa891e3dc82bd8f0b9b62bc84b0d25b3e9aa3d4b271fccb38c"
+      "byteLength": 14575,
+      "sha256": "sha256:67a9a9c936b574ea5936b656f85ceb0edecc06cb3646b1408d7e98cfd8d4a36b"
     },
     {
       "path": "host/work-peer-jobs.js",
@@ -1850,8 +1850,8 @@
     },
     {
       "path": "infrastructure/pack-transfer-storage.js",
-      "byteLength": 5252,
-      "sha256": "sha256:8f4a918e2a0226de9561ffdc0369042703b4d342fc5aab9438e3a0eb869a891f"
+      "byteLength": 9996,
+      "sha256": "sha256:4eec625a3a78dd61dd0e72c87e04f6bec5c66469a3cbf1745eb702504de35597"
     },
     {
       "path": "infrastructure/policy-engine.js",
@@ -2650,8 +2650,8 @@
     },
     {
       "path": "providers/work-resident-provider.js",
-      "byteLength": 4633,
-      "sha256": "sha256:6ffe2d8a8f807bf04049b80933bfa0657e4bb63e09835d0ca1027e5676fcd087"
+      "byteLength": 4766,
+      "sha256": "sha256:6b53ec2e0636b56f409bc294ad75bac68fd1c312977a6e5f124f6bc8b5440da3"
     },
     {
       "path": "receipt.js",
@@ -3115,8 +3115,8 @@
     },
     {
       "path": "ui/pool-home/conversation-workspace.js",
-      "byteLength": 18780,
-      "sha256": "sha256:23c5319f1b6c62b99d2867253c9038bf233a2d7834ccd1a94359d3a182f29333"
+      "byteLength": 22623,
+      "sha256": "sha256:401348901254bc8704956f678e1025a89f976b987736aa9c806276320efda64e"
     },
     {
       "path": "ui/pool-home/document-search.js",
@@ -22290,23 +22290,33 @@
     },
     {
       "path": "vendor/reploid/artifacts/custody/exchange.d.ts",
-      "byteLength": 2314,
-      "sha256": "sha256:f97324f34115739ff8e342614b5ce2778838734b977fdd89a0584e36645299f3"
+      "byteLength": 2476,
+      "sha256": "sha256:c8f23008912674ebaf7539a17d1c48a8e53d36afacb455cb6d33dbe139fcddba"
     },
     {
       "path": "vendor/reploid/artifacts/custody/exchange.js",
-      "byteLength": 14120,
-      "sha256": "sha256:e416b9bf88ed8695ac27e7d63b915f63f286072f36a92bb9b7a42f3c8641bfa2"
+      "byteLength": 16317,
+      "sha256": "sha256:4825e100e12d14557cadf6a68c6569f1036320c285ed6eba77e80b1b80431a1f"
+    },
+    {
+      "path": "vendor/reploid/artifacts/custody/piece-acquisition.d.ts",
+      "byteLength": 909,
+      "sha256": "sha256:9d6a4ee39abdbd7d4fb35add893a6e0e5164eb7e92d4fa7ebec33296290070dc"
+    },
+    {
+      "path": "vendor/reploid/artifacts/custody/piece-acquisition.js",
+      "byteLength": 3972,
+      "sha256": "sha256:9845e740ee6a37bef87d202953a54b37c6c344734756d6963907322763445cce"
     },
     {
       "path": "vendor/reploid/artifacts/custody/runtime.d.ts",
-      "byteLength": 618,
-      "sha256": "sha256:ed7b48c4f8e9a01528aa33195df61639d139745c4846d8caf4723a513871bca6"
+      "byteLength": 684,
+      "sha256": "sha256:ed905afe410be746830f35bd298c71174dd3fc77c84b2c2dce8c09030e735a7a"
     },
     {
       "path": "vendor/reploid/artifacts/custody/runtime.js",
-      "byteLength": 21819,
-      "sha256": "sha256:81872a51d81951c306c4478415d00183f2df586c80c5f8697c60d648969ec8d4"
+      "byteLength": 21885,
+      "sha256": "sha256:a9c3f7485f95a06d8f6d08ac01ebc768386af301e1ea3f9c9d105840e6d16414"
     },
     {
       "path": "vendor/reploid/artifacts/identity.d.ts",
@@ -22565,13 +22575,13 @@
     },
     {
       "path": "vendor/reploid/mesh/index.d.ts",
-      "byteLength": 1222,
-      "sha256": "sha256:de004a4e20a00849e3f9ca004e8bbb864a3ed7c98782806371eff4ef91e3b46a"
+      "byteLength": 1320,
+      "sha256": "sha256:5efbd88653f69550a768d7fa7b36eb337d4d3343e15eb19868de58ea37b7ce58"
     },
     {
       "path": "vendor/reploid/mesh/index.js",
-      "byteLength": 2970,
-      "sha256": "sha256:8ab4664c5e8bda99f42871d4cf2318a8bb2c180da042078ef6e52cb3ae44e557"
+      "byteLength": 3068,
+      "sha256": "sha256:66b6415af792107b78b607f17210e2e581548511330e96a32983f9235ddea12c"
     },
     {
       "path": "vendor/reploid/mesh/jobs/contracts.d.ts",
@@ -22635,13 +22645,13 @@
     },
     {
       "path": "vendor/reploid/mesh/partitions/partition-chat.d.ts",
-      "byteLength": 1150,
-      "sha256": "sha256:296630ed542cc1abfcecd6bad6ab7b23406a538f1cfcfd2ca94c9946623dbd65"
+      "byteLength": 1296,
+      "sha256": "sha256:7e7b5f214f0f245624e056cbe6d31634828b8421db89efcc8867b45e591c153b"
     },
     {
       "path": "vendor/reploid/mesh/partitions/partition-chat.js",
-      "byteLength": 5716,
-      "sha256": "sha256:31e5de6ea4b24fb432f6b40ff64d846fe4bb14822e4cb00479a86c13ad75ebe4"
+      "byteLength": 6212,
+      "sha256": "sha256:6d8163ab2bb4a1181afcbafee9b59aae7b58ce3aa52189abd1e9bc9cbde21509"
     },
     {
       "path": "vendor/reploid/mesh/partitions/partition-contract.d.ts",
@@ -22650,8 +22660,18 @@
     },
     {
       "path": "vendor/reploid/mesh/partitions/partition-contract.js",
-      "byteLength": 2088,
-      "sha256": "sha256:9e7b71525a4153e7be7cbc47b14961530dd26763758ce097ffebf8343a533470"
+      "byteLength": 2497,
+      "sha256": "sha256:9b5d531d21df3e165789bfc15cc79d0c075ae7929d48a6e4647b88641468255f"
+    },
+    {
+      "path": "vendor/reploid/mesh/partitions/partition-entry.d.ts",
+      "byteLength": 1738,
+      "sha256": "sha256:98d782952f438832909b41ee8db9fa22f7a26bdb2f7d7674368ffa75bd65571d"
+    },
+    {
+      "path": "vendor/reploid/mesh/partitions/partition-entry.js",
+      "byteLength": 8958,
+      "sha256": "sha256:df858b77aa6afa533adea8f3daad0ea33dd623e106a00da5e3dac3118f77bf77"
     },
     {
       "path": "vendor/reploid/mesh/partitions/partition-grants.d.ts",
@@ -22662,6 +22682,16 @@
       "path": "vendor/reploid/mesh/partitions/partition-grants.js",
       "byteLength": 5439,
       "sha256": "sha256:475f462ec7e6764d01350e280dd5ff338573a43a3c73ba51ba2f2ba78482b4c6"
+    },
+    {
+      "path": "vendor/reploid/mesh/partitions/partition-link.d.ts",
+      "byteLength": 735,
+      "sha256": "sha256:31d36f198ff41f359e2f5f19a6b1961240374488d02f69d14c03e2bc2bb4d330"
+    },
+    {
+      "path": "vendor/reploid/mesh/partitions/partition-link.js",
+      "byteLength": 6134,
+      "sha256": "sha256:4e0c6f5998d60c0bfd5c33ff407e0edf71050a7359c8552b0ead52ad6a39702b"
     },
     {
       "path": "vendor/reploid/mesh/partitions/partition-network.d.ts",
@@ -22680,18 +22710,18 @@
     },
     {
       "path": "vendor/reploid/mesh/partitions/partition-peer.js",
-      "byteLength": 9514,
-      "sha256": "sha256:0e90d6e748c01f7bb05124f1fb7f13207eb29603b0f0d6d4ce1b248c6742ab4a"
+      "byteLength": 9651,
+      "sha256": "sha256:03306afe8e0528dbc72515bb7f3d4dbe774d90027342e2f7aa76c34944abc3cd"
     },
     {
       "path": "vendor/reploid/mesh/partitions/partition-runner.d.ts",
-      "byteLength": 5666,
-      "sha256": "sha256:29f973b618b61dded71752828f48a6136e65b67e0275f31ff6587f211dc0cbe8"
+      "byteLength": 5722,
+      "sha256": "sha256:714d239934b023bbd37ec3f3bb4a4cddda222d1079815468f02cfde7733108d0"
     },
     {
       "path": "vendor/reploid/mesh/partitions/partition-runner.js",
-      "byteLength": 15158,
-      "sha256": "sha256:1f8d89303b693854b6778e37be0bb45dfda9cdd81a52f691ab3f3ef617873a08"
+      "byteLength": 15428,
+      "sha256": "sha256:8c974ba707e6aa3fd900465b580cd6aff251574f37c8c10524a6b1e850c54bf9"
     },
     {
       "path": "vendor/reploid/mesh/partitions/partition-step-receiver.d.ts",
@@ -22705,13 +22735,13 @@
     },
     {
       "path": "vendor/reploid/mesh/partitions/resident-partition.d.ts",
-      "byteLength": 2893,
-      "sha256": "sha256:0bd47432afebafe6dd15169b39407a911f1276a98d92a5f2d82d89d47427c8e7"
+      "byteLength": 3008,
+      "sha256": "sha256:57011555786fa531551c94264a12146e44e1c788fe306a3f651452bfd79b7ed2"
     },
     {
       "path": "vendor/reploid/mesh/partitions/resident-partition.js",
-      "byteLength": 5708,
-      "sha256": "sha256:3b06b07229b627122d2c972dbc3d39aefb4053eebf2756778bbdadd5d538ba37"
+      "byteLength": 6868,
+      "sha256": "sha256:1cddf8164f054cb01f47a2b23ccef4001fbb675a21f3bf54a37e503583113f93"
     },
     {
       "path": "vendor/reploid/mesh/peer-identity.js",
@@ -22745,8 +22775,8 @@
     },
     {
       "path": "vendor/reploid/package-assets.json",
-      "byteLength": 25118,
-      "sha256": "sha256:fe518660f8a33d69ca7619fdf5cbee29a903fc2f55e3a4112ed4918b66ef40f2"
+      "byteLength": 26142,
+      "sha256": "sha256:28c23311d9257cc8143957b7bbb4b8162bac908d8028c7fbe2fa32792baaea5c"
     },
     {
       "path": "vendor/reploid/rules/contribution.rules.json",
@@ -22760,13 +22790,13 @@
     },
     {
       "path": "vendor/reploid/transport/assignment.d.ts",
-      "byteLength": 1948,
-      "sha256": "sha256:cf80be0f84ea114e16d641f4ecbfab187fbdb0926d2582518714419432bc05d1"
+      "byteLength": 2120,
+      "sha256": "sha256:2c78371832f625b84cba9397203bee596836cfe768acfc4a8295705db44dcb2e"
     },
     {
       "path": "vendor/reploid/transport/assignment.js",
-      "byteLength": 17404,
-      "sha256": "sha256:a4d2f0e28b966ea322a27245eb4933b2fd33a412315d51c0351eb6890ecc96ee"
+      "byteLength": 17612,
+      "sha256": "sha256:5c74c09ddd080f8b905f82263294fe99e8de9d107da3d40202199c9614b86bd1"
     },
     {
       "path": "vendor/reploid/transport/bounded-channel-writer.d.ts",
@@ -22849,5 +22879,5 @@
       "sha256": "sha256:ca1208dd2f96d1b7ffb5464c7676a22aa849ec31936abde0809fc208bbd971c9"
     }
   ],
-  "bundleHash": "sha256:36d6c73f7de1be8f2a3fe7fd9198e42ead4127857be693d9f56081b47c3cc03e"
+  "bundleHash": "sha256:768eed6ba595ea186bbb684f405507e50da4dbf19213509ac36ec27ac38b9c9a"
 }

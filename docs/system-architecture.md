@@ -6,6 +6,11 @@
 
 ## Overview
 
+For the open mesh chat system, see [Open mesh architecture](open-mesh-architecture.md).
+It maps the current integration gaps and specifies discovery, model custody,
+partition placement, execution, recovery and end-to-end acceptance. The sections
+below describe the agent/VFS substrate; they do not establish mesh readiness.
+
 REPLOID includes an internal browser-native environment for bounded recursive
 self-improvement research without giving agents raw operating-system access.
 Mutation is not an improvement claim. X requires a signed causal improvement

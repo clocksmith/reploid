@@ -17,7 +17,8 @@ Guide to all documentation in the REPLOID project.
 ## Core Documentation
 
 ### Architecture
-- **[docs/system-architecture.md](./system-architecture.md)** - Complete system design
+- **[Open mesh architecture](./open-mesh-architecture.md)** - Requested chat experience, discovery, authenticated pieces, automatic placement, Doppler execution, recovery, resource bounds and ordered acceptance gates; design, not release evidence
+- **[docs/system-architecture.md](./system-architecture.md)** - Agent and VFS substrate architecture
 - **[Reploid, Doppler, and Doe diagram](./diagrams/reploid-diagram/README.md)** - Editable interactive views of intended relationships, operations, improvement and recovery; not implementation evidence
 - **[Blueprint inventory](../self/blueprints/canonical-inventory.md)** - Generated sitemap of maintained architectural decisions; file enumeration belongs to the [source inventory](../self/config/module-inventory.json)
 
