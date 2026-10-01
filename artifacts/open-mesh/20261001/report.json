@@ -1,0 +1,54 @@
+{
+  "schema": "reploid.open-mesh-checkpoint/v1",
+  "baselineCommit": "7f3f91d7d625f7dedb089c0b6fc4d6f5ef10c702",
+  "purpose": "Architecture checkpoint and bounded-storage repair; not end-to-end acceptance",
+  "topology": {
+    "physicalDevices": 1,
+    "browserContexts": 3,
+    "roles": [
+      "requester",
+      "executor",
+      "file seed"
+    ]
+  },
+  "model": "qwen-3-5-0-8b-q4k-ehaf16",
+  "executorQuotaBytes": 335544320,
+  "seedQuotaBytes": 1610612736,
+  "executorOrigin": "blocked by Playwright route",
+  "seedOrigin": "exact catalog bytes fulfilled from local model directory",
+  "result": "failed",
+  "observations": {
+    "automaticDiscovery": true,
+    "peerModelLoadReachedReady": true,
+    "executorStorageAtReadyBytes": 139419053,
+    "completedAnswer": false,
+    "displayedError": "[Embed] CPU-resident embedding gather requires a verified preloaded row; materialize a GPU or split embedding weight."
+  },
+  "checks": {
+    "vitestPassed": 2814,
+    "vitestSkipped": 29,
+    "browserGuardTestsPassed": 4,
+    "verificationWorker": "passed",
+    "libraryTypes": "passed",
+    "eslint": "passed",
+    "catscanCharters": 39
+  },
+  "sourceScope": {
+    "modelLoadRun": "Baseline plus the work-model-files.js staging-accounting correction. Checkpoint repair changes made during this run are separately covered by browser guards.",
+    "storageAccountingSha256": "67a9a9c936b574ea5936b656f85ceb0edecc06cb3646b1408d7e98cfd8d4a36b",
+    "runtimeEmbeddingSha256": "cef845f013b7526be54f42b459b962a178578d6441027a5d46c83d894791ffd3",
+    "postRunHarnessChange": "Test name now describes history/departure coverage; failures retain state and surface terminal generation errors."
+  },
+  "notEstablished": [
+    "successful normal-page end-to-end inference",
+    "physical-device partition execution",
+    "combined capacity",
+    "executor-loss continuation"
+  ],
+  "artifacts": [
+    "browser-run.log",
+    "browser-guards.log",
+    "unit-tests.log",
+    "generation-failure.png"
+  ]
+}

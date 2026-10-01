@@ -39,15 +39,25 @@ export async function openPeerPackFileCheckpoints({ name = 'reploid-chat-checkpo
   // the shared index under the same lock, including operations from other tabs.
   await run(null, async () => writeIndex(await entries()));
   const readIndex = async () => JSON.parse(await (await (await directory.getFileHandle('index.json')).getFile()).text());
+  const remove = async name => {
+    try { await directory.removeEntry(name); } catch (error) { if (error.name !== 'NotFoundError') throw error; }
+  };
+  const forget = async name => {
+    await remove(name);
+    await writeIndex((await readIndex()).filter(file => file.name !== name));
+  };
   return {
     getChunk(chunk, { signal } = {}) {
       const name = key(chunk);
       return run(signal, async () => {
         try {
           const file = await (await directory.getFileHandle(name)).getFile();
-          if (file.size !== chunk.sizeBytes) { await directory.removeEntry(name); return null; }
+          if (file.size !== chunk.sizeBytes) { await forget(name); return null; }
           const bytes = new Uint8Array(await file.arrayBuffer()); signal?.throwIfAborted(); return bytes;
-        } catch (error) { if (error.name === 'NotFoundError') return null; throw error; }
+        } catch (error) {
+          if (error.name !== 'NotFoundError') throw error;
+          await forget(name); return null;
+        }
       });
     },
     async putChunk(chunk, input, { signal } = {}) {
@@ -57,22 +67,21 @@ export async function openPeerPackFileCheckpoints({ name = 'reploid-chat-checkpo
       assert(await sha256Hex(bytes) === chunk.hash, 'chunk integrity mismatch');
       return run(signal, async () => {
         const index = await readIndex();
-        if (index.some(file => file.name === name && file.size === bytes.length)) {
-          // Content identity is immutable; the reader still verifies restored bytes.
-          return { storedBytes: index.reduce((sum, file) => sum + file.size, 0), evictedBytes: 0 };
-        }
+        // Always replace verified bytes: metadata can outlive an interrupted
+        // write or browser eviction and cannot establish that content exists.
         const files = index.filter(file => file.name !== name).sort((a, b) => a.lastUsed - b.lastUsed || a.name.localeCompare(b.name));
         let used = files.reduce((sum, file) => sum + file.size, 0), evictedBytes = 0;
-        while (used + bytes.length > maxBytes) {
-          const old = files.shift(); signal?.throwIfAborted();
-          await directory.removeEntry(old.name); used -= old.size; evictedBytes += old.size;
-        }
-        const writer = await (await directory.getFileHandle(name, { create: true })).createWritable();
+        let writer;
         try {
+          while (used + bytes.length > maxBytes) {
+            const old = files.shift(); signal?.throwIfAborted();
+            await remove(old.name); used -= old.size; evictedBytes += old.size;
+          }
+          writer = await (await directory.getFileHandle(name, { create: true })).createWritable();
           await writer.write(bytes); signal?.throwIfAborted(); assert(!closed, 'store closed'); await writer.close();
           await writeIndex([...files, { name, size: bytes.length, lastUsed: Date.now() }]);
         } catch (error) {
-          await writer.abort().catch(() => {});
+          await writer?.abort().catch(() => {});
           await directory.removeEntry(name).catch(() => {});
           await writeIndex(await entries()).catch(() => {});
           throw error;
@@ -82,10 +91,7 @@ export async function openPeerPackFileCheckpoints({ name = 'reploid-chat-checkpo
     },
     deleteChunk(chunk, { signal } = {}) {
       const name = key(chunk);
-      return run(signal, async () => {
-        try { await directory.removeEntry(name); } catch (error) { if (error.name !== 'NotFoundError') throw error; }
-        await writeIndex((await readIndex()).filter(file => file.name !== name));
-      });
+      return run(signal, () => forget(name));
     },
     getStats() { return run(null, async () => {
       const files = await entries();

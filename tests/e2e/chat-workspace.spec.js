@@ -83,3 +83,31 @@ test('file checkpoints remain bounded and release storage across successful tran
   expect(result.before).toMatchObject({ storedBytes: 2 * 1024 * 1024, chunks: 2 });
   expect(result.after).toMatchObject({ storedBytes: 0, chunks: 0 });
 });
+
+test('file checkpoints repair missing and truncated files without stale index entries', async ({ page }) => {
+  await page.goto('/config/chat-files.json');
+  const result = await page.evaluate(async () => {
+    const { openPeerPackFileCheckpoints } = await import('/infrastructure/pack-transfer-storage.js');
+    const { sha256Hex } = await import('/pool/inference-receipt.js');
+    const name = 'checkpoint-repair', bytes = new Uint8Array(32).fill(7);
+    const chunk = { hash: await sha256Hex(bytes), sizeBytes: bytes.length };
+    const store = await openPeerPackFileCheckpoints({ name, maxBytes: 64 });
+    const directory = await (await navigator.storage.getDirectory()).getDirectoryHandle(name);
+    await store.putChunk(chunk, bytes);
+    await directory.removeEntry(chunk.hash.slice(7));
+    // A put must restore the file even if nobody has noticed its eviction yet.
+    await store.putChunk(chunk, bytes);
+    const repairedMissing = [...await store.getChunk(chunk)];
+    const writer = await (await directory.getFileHandle(chunk.hash.slice(7))).createWritable();
+    await writer.write(bytes.subarray(0, 1)); await writer.close();
+    const truncated = await store.getChunk(chunk);
+    await store.putChunk(chunk, bytes);
+    const repairedTruncated = [...await store.getChunk(chunk)];
+    const stats = await store.getStats(); store.close();
+    return { repairedMissing, truncated, repairedTruncated, stats };
+  });
+  expect(result.repairedMissing).toEqual(Array(32).fill(7));
+  expect(result.truncated).toBeNull();
+  expect(result.repairedTruncated).toEqual(Array(32).fill(7));
+  expect(result.stats).toMatchObject({ storedBytes: 32, chunks: 1 });
+});
