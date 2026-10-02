@@ -1,0 +1,2311 @@
+[
+  {
+    "event": "contribution-authorized",
+    "url": "https://replo.id/",
+    "model": "qwen-3-5-0-8b-q4k-ehaf16",
+    "modelIdentity": "sha256:edeb69dd65cbb26971abf773a95bf6dc219a82942c0951d65e1893d442b607c9",
+    "contribution": "compute",
+    "profile": "/home/x/.local/share/reploid/public-compute"
+  },
+  {
+    "event": "relay-credentials",
+    "status": 200,
+    "expiresAt": "2026-10-02T22:04:49.303Z"
+  },
+  {
+    "phase": "Failed",
+    "progress": "Pipeline load phase \"tokenizer\" failed: [Tokenizer] Bundled tokenizer not found for model \"qwen-3-5-0-8b-q4k-ehaf16\". Expected tokenizer file: \"tokenizer.json\". Attempted paths: [custom-loader, OPFS:tokenizer.json]. Ensure tokenizer.json is in OPFS or model directory. Clear browser storage and re-download the model.",
+    "error": "Pipeline load phase \"tokenizer\" failed: [Tokenizer] Bundled tokenizer not found for model \"qwen-3-5-0-8b-q4k-ehaf16\". Expected tokenizer file: \"tokenizer.json\". Attempted paths: [custom-loader, OPFS:tokenizer.json]. Ensure tokenizer.json is in OPFS or model directory. Clear browser storage and re-download the model."
+  },
+  {
+    "event": "contribution-authorized",
+    "url": "https://replo.id/",
+    "model": "qwen-3-5-0-8b-q4k-ehaf16",
+    "modelIdentity": "sha256:edeb69dd65cbb26971abf773a95bf6dc219a82942c0951d65e1893d442b607c9",
+    "contribution": "compute",
+    "profile": "/home/x/.local/share/reploid/public-compute"
+  },
+  {
+    "event": "relay-credentials",
+    "status": 200,
+    "expiresAt": "2026-10-02T22:05:30.548Z"
+  },
+  {
+    "phase": "Loading",
+    "progress": "Receiving required model pieces: 8 MB verified",
+    "error": ""
+  },
+  {
+    "phase": "Loading",
+    "progress": "Receiving required model pieces: 28 MB verified",
+    "error": ""
+  },
+  {
+    "phase": "Loading",
+    "progress": "Receiving required model pieces: 56 MB verified",
+    "error": ""
+  },
+  {
+    "phase": "Loading",
+    "progress": "Receiving required model pieces: 80 MB verified",
+    "error": ""
+  },
+  {
+    "phase": "Loading",
+    "progress": "Receiving required model pieces: 112 MB verified",
+    "error": ""
+  },
+  {
+    "phase": "Loading",
+    "progress": "Receiving required model pieces: 132 MB verified",
+    "error": ""
+  },
+  {
+    "phase": "Loading",
+    "progress": "Receiving required model pieces: 156 MB verified",
+    "error": ""
+  },
+  {
+    "phase": "Loading",
+    "progress": "Receiving required model pieces: 180 MB verified",
+    "error": ""
+  },
+  {
+    "phase": "Loading",
+    "progress": "Receiving required model pieces: 204 MB verified",
+    "error": ""
+  },
+  {
+    "phase": "Loading",
+    "progress": "Receiving required model pieces: 228 MB verified",
+    "error": ""
+  },
+  {
+    "phase": "Loading",
+    "progress": "Receiving required model pieces: 256 MB verified",
+    "error": ""
+  },
+  {
+    "phase": "Loading",
+    "progress": "Receiving required model pieces: 284 MB verified",
+    "error": ""
+  },
+  {
+    "event": "resident-prepared",
+    "participantId": "peer:8859afd6087f8a96d2e43ee7",
+    "descriptor": {
+      "schema": "doppler.resident-partition/v1",
+      "ready": true,
+      "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+      "modelIdentity": "sha256:edeb69dd65cbb26971abf773a95bf6dc219a82942c0951d65e1893d442b607c9",
+      "planId": "sha256:c908ebff98a542b556e6b78417e4e6a4e4014c8c50a7c47ba36665cf4f2097a0",
+      "index": 1,
+      "layerRange": [
+        12,
+        23
+      ],
+      "residentWeightBytes": 285497344,
+      "generationDigest": "sha256:8dc76cd41787bbdda87506913b74bf058ecdcd979c6cb04a9a5cfe7c476d257f"
+    },
+    "acquisition": {
+      "indexIdentity": "sha256:02e7f90a322ed4c395e0d33f49ceae9f190f5a9dca7e9ca6f58f75c12b03ad94",
+      "manifestIdentity": "sha256:edeb69dd65cbb26971abf773a95bf6dc219a82942c0951d65e1893d442b607c9",
+      "requestedBytes": 293025600,
+      "verifiedBytes": 307887776,
+      "pieces": [
+        "sha256:c24f2833ad67aa5e9725aa892b939c54cf6a787706e85eba40b048e64ee33ce3",
+        "sha256:346fe1853e6f3241b552d6fa2cfaf4b6162c13881b508bd979fdd94ac43a3380",
+        "sha256:ab47650990a9cdfcaed1ffdb04f2f7a84d5d6512938d7e2281025afd4b0f74c9",
+        "sha256:4a0447178b701fb10ce80f67c630e60551cf4547c88b60565df1646775f6def8",
+        "sha256:6f5e1884044b88bd784637b05b23a052b001df4f23f894782e58dbb8324a4ac7",
+        "sha256:b07993d999a914692340789a2d2cd68333985a1decfc1cec9497db4355eea925",
+        "sha256:774fc0d2d49f3e2c2243649af0188e6229cacbedf3c17d5fb839c28a0400d64f",
+        "sha256:fd0d0bca4b12860fdabdb52ecf52f8a401ded70bb1b036bbd5623900afa4ccab",
+        "sha256:b22e373034aa8a318d9dd7b4aa81ab8f3c89736ce04660482afa598535c59e22",
+        "sha256:9565b7616d398cbc58b0be2aa5807ec441f3966c519abb84fe02021704982734",
+        "sha256:d21e7fd18dfad9e5b79d89c09b92127afe60ee1b64a60e1ee96826aa1387cf67",
+        "sha256:6e566ead74a0b0c389ecb532c7efd4c26c07b3b3307526136c2e18d1e5375c05",
+        "sha256:cf1c50be10f6f17ffad9921d4346cd3cabc1df4dfe82b17d3e99ff51011da51a",
+        "sha256:e1b0b828d482e6e58063f229ddc01c6868d5517763784045c17f4f260407db4c",
+        "sha256:5255474e94f75f090189aef6e5b140229a9264aac58222ca72877588bf707f5a",
+        "sha256:70ab8678be555f03f4f0f8648f64a4d44db49072aab8d82fcfe0c1ad2777d9fe",
+        "sha256:0476b3f664ebaf644e60468dba14d3a215796d0dbf91b35d83b429451845ce9c",
+        "sha256:0e1c44c90d9e120095a6b76d5e1e3830891176a883b37d8d0631c2caf060109e",
+        "sha256:6d45c8e4692a93233dde2746b83771a769c946a4a9f7864265e93af5699e2fb9",
+        "sha256:dc6d135b651a4d349bbc434053b2a8c6b1d22427177adc0e09c597eb8cc998ed",
+        "sha256:68c0b6c421854d1e2cced7a162f3fbfcd9a9e14587d6efb35cc900d0f3f860fa",
+        "sha256:52806e3e8a1864eb487f5528e403050ad4d4aa5756df01790407e556eca57333",
+        "sha256:03029e62fa273c7c886fd21700fd9d841807458146ebcb5e1bb224a91f1e260a",
+        "sha256:ff1391742b75a2f721fb5c6f1d73c3223ab21f98616dbfe88a2435d74b28673a",
+        "sha256:b623d7839bd23cfa9bdcce12a16bee1979f2c21af888fcfe6ba05321127e1a9f",
+        "sha256:c4027aee411256e845c1763dca641e28dfa517ca4b5557e5d9f324a4615f1f5d",
+        "sha256:7ac0576758fac015a4d960a26e04c79db7c4e3c82780ba1a8ffaacc16595c995",
+        "sha256:a4dd19348a52b1ab78516b5a71572308308d450ecafa431ab67d0d803ff70c13",
+        "sha256:4e24d818950a3915a89d8b48630a3679db062bc851f4288bfe613dd4c2445684",
+        "sha256:215b7fb62806e180688ad7115272870f1f97c0b0ef8c16395d38e58f0e8e158a",
+        "sha256:c2a5008849da87a2071b64d25df87e0f23a93b6eb0fa8e8908c0df8fb5df0c31",
+        "sha256:a5a7bf347311bd09ce8323fcd51e1dac8fa86914b9c993bb9bd5c24235128e04",
+        "sha256:ba8d72343f89916087d910dd72918d6675f8641da8b187172a2d5a65f8ef701c",
+        "sha256:45ce72df6ebf6b628c6e96032c66e869fcb7a96afe1b5bab28c81452a2ad6b16",
+        "sha256:5ce182ea702586612a722254e444e258a61ac9a0f8539c395cfa0e28d133713c",
+        "sha256:6b92aa05fabffb96280783037534f2484bda3707c5d166f7327162b94521d3d2",
+        "sha256:aab79acba606624a5dc8facb3dd536afac9b279edd9defadbdcf22676f50e889",
+        "sha256:c4e3a69a0d3aac9d9dc41be06fb569e011e5f209793b4d2f728f03fb05203136",
+        "sha256:e1f09eaa9c2c3bbe279052c8d1b38c434fa520ae04d2c31a987dc2441521c904",
+        "sha256:abfec87e3499c06f3e12e58040de344bbea9e249ea05d44856c8c73b390a4d86",
+        "sha256:6fef7f2b8816586d0877d2067bc4cc326b37e906f32824b83aa163962dbf7e31",
+        "sha256:cc696ab6b323ba1574fac82dc6373708a2030ace49337217f7f4cfcf1dfc5f2b",
+        "sha256:9fb5d5d94436c897cb3ea799e7cc7b82617cb2d9ecde0ed26ad76d65593ed743",
+        "sha256:3aefca869d9b1e52ebfd77371effb071e30d969ecb5f3b3674337554b7820981",
+        "sha256:499b4056a0e9267aa849d489baab322127b5e5a46cc0351d266999bc84823109",
+        "sha256:dd51a0b500012d16ad88036b5243dc0b293a36accbbc413df094a86cd279b356",
+        "sha256:cf5542c7ff4cbadbc7643f4de4c96a221c52b3800ebfafc90a165e9a3956f243",
+        "sha256:3949a09b8ccb6cd4c83a577c8602930cf1db5585fb9fd941d0214ef39bb95c81",
+        "sha256:60eea0e502ac4ceb8e3eec8394b0f59f642974376c8b81b098c7de6db238b192",
+        "sha256:4965a4bce85b3cbee0984f3c9cbfb11211457fb782f891da13faf455ce36fc26",
+        "sha256:7f50eb9552a2ab22915000212c369b9627b7e9e533bb0b4f07fd1da2cc5e46fb",
+        "sha256:5e805ac053a886bb72d3e186b348515ce914d64a17094af3b22e8653953919ea",
+        "sha256:4b8aa219419fd9906d6205531854fa52e15dedac14b68d643ae1b148f1f7f54d",
+        "sha256:d92ca673985dffec2cea89776c513f5443bb9432164d8ab8e540414ebbac053c",
+        "sha256:9791406ff61f5854f421cb7cdd95e462b8f91d1ad8b592d6e45c1b63b2038543",
+        "sha256:8c9db8ef0e94d88e22677476cecd87c07d838607ae30fa13f5058f2140a9dd57",
+        "sha256:fc3bacbe00b485ea1ca95c96145de84682c1992555b86e1d5401e2c236a7e485",
+        "sha256:35bbed8d43644e583580a9852ad2663d9b3441d92b99b0ab81b2e67740467922",
+        "sha256:697bfe22169162ab75e9f7abe281e9ff53e6274029a5d98a3a9b2b6aa2ac5879",
+        "sha256:63b365b468809046a76f4f8b05ea7d56e6795d9f50739e282fc6bf945532a03a",
+        "sha256:78983dd5d09c248186be295258bca8687c1ba844c7da570245c4abf8ed7a799c",
+        "sha256:105c862bec5fb1fa068f60ac6d4d8fdad391ce5df83f135a7f58adbe8eae4ac9",
+        "sha256:6454a5f425078360b86eddb23a9719b1ac1f3ec67fbc55cf0c0237dae9b31d1a",
+        "sha256:4cf8c46a507c32a4a1f26db050032b9fc85b3fad47c81d47be53c04d2e0e67bb",
+        "sha256:4181647712cc8710a4d414468c6578257cc5738758a537ee713efec754148cab",
+        "sha256:2ae185b430d8be6baa13f38e4a7fd61d3280f138f36c84e7238f0c829b92de45",
+        "sha256:c84c04387f71fc0307839ee32f3b651f50349dc38c0baf8e33546f10145aed04",
+        "sha256:9381a8c83a5955454c35b00be09c6200a3d36090fbd1a001215f23199af2c906",
+        "sha256:2bae67b5902b17d76c2a1250083c4a1ce2a1e1d217111ec9e6b76704df9927a8",
+        "sha256:03576ef4eca4a5992b27db5caf134bf4c6187f3a8990a76f73a33bdea36e3117",
+        "sha256:c92e84b3f4c1c8b0ab870f68925677e8de2eb71923544f3548974d6cadb64e43",
+        "sha256:797237b9a5c3a588e7cd24d36b8f3cb245bebb32dfe73f691276d824aed8cc8a",
+        "sha256:3ec8013ef636eefa75a0c5635bc0e3b02feb50863ea09fc06d78ffd5a5fa9963",
+        "sha256:4e33004ce509a9793fd2ee008266370c53ba9db9ab87bc2a970cca833db1a9d5",
+        "sha256:ff69a4e0b09735011da7aaafe68ed1c3a37414ea98b0cdf8987c9ba53d4d2bf6"
+      ],
+      "acquisitionMs": 346863.59999895096,
+      "verificationMs": 918.5000047683716,
+      "copyMs": 32.100000858306885,
+      "activeReadBytes": 0,
+      "peakReadBytes": 9088480,
+      "custody": {
+        "queueMs": 216478.59999847412,
+        "peerTransferMs": 111057.59999990463,
+        "cacheReadMs": 19251.699996948242,
+        "peerBytes": 307887776,
+        "cacheBytes": 704643072,
+        "transfers": 75,
+        "failures": 0
+      }
+    },
+    "preparation": {
+      "openMs": 121929.2000002861,
+      "acquisitionAndMaterializationMs": 118524.7000002861,
+      "memoryAtOpen": {
+        "scope": "device-gpu-buffers",
+        "maxBytes": 1420000000,
+        "liveBytes": 621068688,
+        "peakBytes": 721731984,
+        "allocations": 211,
+        "rejected": 0,
+        "categories": {
+          "weights": 285497344,
+          "attention": 0,
+          "recurrent": 0,
+          "other": 335571344
+        },
+        "labels": [
+          {
+            "label": "q4k_model.language_model.layers.12.linear_attn.out_proj.weight_1179648",
+            "category": "weights",
+            "bytes": 1179648,
+            "count": 1
+          },
+          {
+            "label": "q4k_model.language_model.layers.12.linear_attn.in_proj_z.weight_1179648",
+            "category": "weights",
+            "bytes": 1179648,
+            "count": 1
+          },
+          {
+            "label": "model.language_model.layers.12.linear_attn.in_proj_a.weight_32768",
+            "category": "weights",
+            "bytes": 32768,
+            "count": 1
+          },
+          {
+            "label": "model.language_model.layers.12.linear_attn.in_proj_b.weight_32768",
+            "category": "weights",
+            "bytes": 32768,
+            "count": 1
+          },
+          {
+            "label": "model.language_model.layers.12.linear_attn.conv1d.weight_65536",
+            "category": "weights",
+            "bytes": 65536,
+            "count": 1
+          },
+          {
+            "label": "model.language_model.layers.12.linear_attn.dt_bias_256",
+            "category": "weights",
+            "bytes": 256,
+            "count": 1
+          },
+          {
+            "label": "model.language_model.layers.12.linear_attn.A_log_256",
+            "category": "weights",
+            "bytes": 256,
+            "count": 1
+          },
+          {
+            "label": "model.language_model.layers.12.linear_attn.norm.weight_512",
+            "category": "weights",
+            "bytes": 512,
+            "count": 1
+          },
+          {
+            "label": "model.language_model.layers.12.post_attention_layernorm.weight_2048",
+            "category": "weights",
+            "bytes": 4096,
+            "count": 2
+          },
+          {
+            "label": "model.language_model.layers.12.input_layernorm.weight_2048",
+            "category": "weights",
+            "bytes": 2048,
+            "count": 1
+          },
+          {
+            "label": "q4k_model.language_model.layers.12.linear_attn.in_proj_qkv.weight_3538944",
+            "category": "weights",
+            "bytes": 3538944,
+            "count": 1
+          },
+          {
+            "label": "q4k_model.language_model.layers.12.mlp.gate_proj.weight_2097152",
+            "category": "weights",
+            "bytes": 2097152,
+            "count": 1
+          },
+          {
+            "label": "q4k_model.language_model.layers.12.mlp.up_proj.weight_2097152",
+            "category": "weights",
+            "bytes": 2097152,
+            "count": 1
+          },
+          {
+            "label": "q4k_model.language_model.layers.12.mlp.down_proj.weight_2097152",
+            "category": "weights",
+            "bytes": 2097152,
+            "count": 1
+          },
+          {
+            "label": "model.language_model.layers.13.linear_attn.in_proj_a.weight_32768",
+            "category": "weights",
+            "bytes": 32768,
+            "count": 1
+          },
+          {
+            "label": "model.language_model.layers.13.linear_attn.in_proj_b.weight_32768",
+            "category": "weights",
+            "bytes": 32768,
+            "count": 1
+          },
+          {
+            "label": "model.language_model.layers.13.linear_attn.conv1d.weight_65536",
+            "category": "weights",
+            "bytes": 65536,
+            "count": 1
+          },
+          {
+            "label": "model.language_model.layers.13.linear_attn.dt_bias_256",
+            "category": "weights",
+            "bytes": 256,
+            "count": 1
+          },
+          {
+            "label": "model.language_model.layers.13.linear_attn.A_log_256",
+            "category": "weights",
+            "bytes": 256,
+            "count": 1
+          },
+          {
+            "label": "model.language_model.layers.13.linear_attn.norm.weight_512",
+            "category": "weights",
+            "bytes": 512,
+            "count": 1
+          },
+          {
+            "label": "model.language_model.layers.13.input_layernorm.weight_2048",
+            "category": "weights",
+            "bytes": 2048,
+            "count": 1
+          },
+          {
+            "label": "q4k_model.language_model.layers.13.linear_attn.out_proj.weight_1179648",
+            "category": "weights",
+            "bytes": 1179648,
+            "count": 1
+          },
+          {
+            "label": "q4k_model.language_model.layers.13.linear_attn.in_proj_z.weight_1179648",
+            "category": "weights",
+            "bytes": 1179648,
+            "count": 1
+          },
+          {
+            "label": "model.language_model.layers.13.post_attention_layernorm.weight_2048",
+            "category": "weights",
+            "bytes": 4096,
+            "count": 2
+          },
+          {
+            "label": "q4k_model.language_model.layers.13.linear_attn.in_proj_qkv.weight_3538944",
+            "category": "weights",
+            "bytes": 3538944,
+            "count": 1
+          },
+          {
+            "label": "q4k_model.language_model.layers.13.mlp.gate_proj.weight_2097152",
+            "category": "weights",
+            "bytes": 2097152,
+            "count": 1
+          },
+          {
+            "label": "q4k_model.language_model.layers.13.mlp.up_proj.weight_2097152",
+            "category": "weights",
+            "bytes": 2097152,
+            "count": 1
+          },
+          {
+            "label": "q4k_model.language_model.layers.13.mlp.down_proj.weight_2097152",
+            "category": "weights",
+            "bytes": 2097152,
+            "count": 1
+          },
+          {
+            "label": "model.language_model.layers.14.linear_attn.in_proj_a.weight_32768",
+            "category": "weights",
+            "bytes": 32768,
+            "count": 1
+          },
+          {
+            "label": "model.language_model.layers.14.linear_attn.in_proj_b.weight_32768",
+            "category": "weights",
+            "bytes": 32768,
+            "count": 1
+          },
+          {
+            "label": "model.language_model.layers.14.linear_attn.conv1d.weight_65536",
+            "category": "weights",
+            "bytes": 65536,
+            "count": 1
+          },
+          {
+            "label": "model.language_model.layers.14.linear_attn.dt_bias_256",
+            "category": "weights",
+            "bytes": 256,
+            "count": 1
+          },
+          {
+            "label": "model.language_model.layers.14.linear_attn.A_log_256",
+            "category": "weights",
+            "bytes": 256,
+            "count": 1
+          },
+          {
+            "label": "model.language_model.layers.14.linear_attn.norm.weight_512",
+            "category": "weights",
+            "bytes": 512,
+            "count": 1
+          },
+          {
+            "label": "model.language_model.layers.14.input_layernorm.weight_2048",
+            "category": "weights",
+            "bytes": 2048,
+            "count": 1
+          },
+          {
+            "label": "q4k_model.language_model.layers.14.linear_attn.out_proj.weight_1179648",
+            "category": "weights",
+            "bytes": 1179648,
+            "count": 1
+          },
+          {
+            "label": "q4k_model.language_model.layers.14.linear_attn.in_proj_z.weight_1179648",
+            "category": "weights",
+            "bytes": 1179648,
+            "count": 1
+          },
+          {
+            "label": "model.language_model.layers.14.post_attention_layernorm.weight_2048",
+            "category": "weights",
+            "bytes": 4096,
+            "count": 2
+          },
+          {
+            "label": "q4k_model.language_model.layers.14.linear_attn.in_proj_qkv.weight_3538944",
+            "category": "weights",
+            "bytes": 3538944,
+            "count": 1
+          },
+          {
+            "label": "q4k_model.language_model.layers.14.mlp.gate_proj.weight_2097152",
+            "category": "weights",
+            "bytes": 2097152,
+            "count": 1
+          },
+          {
+            "label": "q4k_model.language_model.layers.14.mlp.up_proj.weight_2097152",
+            "category": "weights",
+            "bytes": 2097152,
+            "count": 1
+          },
+          {
+            "label": "q4k_model.language_model.layers.14.mlp.down_proj.weight_2097152",
+            "category": "weights",
+            "bytes": 2097152,
+            "count": 1
+          },
+          {
+            "label": "model.language_model.layers.15.input_layernorm.weight_2048",
+            "category": "weights",
+            "bytes": 2048,
+            "count": 1
+          },
+          {
+            "label": "model.language_model.layers.15.self_attn.q_norm.weight_512",
+            "category": "weights",
+            "bytes": 512,
+            "count": 1
+          },
+          {
+            "label": "model.language_model.layers.15.self_attn.k_norm.weight_512",
+            "category": "weights",
+            "bytes": 512,
+            "count": 1
+          },
+          {
+            "label": "model.language_model.layers.15.post_attention_layernorm.weight_2048",
+            "category": "weights",
+            "bytes": 4096,
+            "count": 2
+          },
+          {
+            "label": "q4k_model.language_model.layers.15.self_attn.q_proj.weight_2359296",
+            "category": "weights",
+            "bytes": 2359296,
+            "count": 1
+          },
+          {
+            "label": "q4k_model.language_model.layers.15.self_attn.k_proj.weight_327680",
+            "category": "weights",
+            "bytes": 327680,
+            "count": 1
+          },
+          {
+            "label": "q4k_model.language_model.layers.15.self_attn.v_proj.weight_327680",
+            "category": "weights",
+            "bytes": 327680,
+            "count": 1
+          },
+          {
+            "label": "q4k_model.language_model.layers.15.self_attn.o_proj.weight_1179648",
+            "category": "weights",
+            "bytes": 1179648,
+            "count": 1
+          },
+          {
+            "label": "q4k_model.language_model.layers.15.mlp.up_proj.weight_2097152",
+            "category": "weights",
+            "bytes": 2097152,
+            "count": 1
+          },
+          {
+            "label": "q4k_model.language_model.layers.15.mlp.down_proj.weight_2097152",
+            "category": "weights",
+            "bytes": 2097152,
+            "count": 1
+          },
+          {
+            "label": "q4k_model.language_model.layers.15.mlp.gate_proj.weight_2097152",
+            "category": "weights",
+            "bytes": 2097152,
+            "count": 1
+          },
+          {
+            "label": "raw_model.language_model.layers.16.linear_attn.in_proj_qkv.weight_3538944",
+            "category": "weights",
+            "bytes": 3538944,
+            "count": 1
+          },
+          {
+            "label": "model.language_model.layers.16.linear_attn.in_proj_a.weight_32768",
+            "category": "weights",
+            "bytes": 32768,
+            "count": 1
+          },
+          {
+            "label": "model.language_model.layers.16.linear_attn.in_proj_b.weight_32768",
+            "category": "weights",
+            "bytes": 32768,
+            "count": 1
+          },
+          {
+            "label": "model.language_model.layers.16.linear_attn.conv1d.weight_65536",
+            "category": "weights",
+            "bytes": 65536,
+            "count": 1
+          },
+          {
+            "label": "model.language_model.layers.16.linear_attn.dt_bias_256",
+            "category": "weights",
+            "bytes": 256,
+            "count": 1
+          },
+          {
+            "label": "model.language_model.layers.16.linear_attn.A_log_256",
+            "category": "weights",
+            "bytes": 256,
+            "count": 1
+          },
+          {
+            "label": "model.language_model.layers.16.linear_attn.norm.weight_512",
+            "category": "weights",
+            "bytes": 512,
+            "count": 1
+          },
+          {
+            "label": "model.language_model.layers.16.input_layernorm.weight_2048",
+            "category": "weights",
+            "bytes": 2048,
+            "count": 1
+          },
+          {
+            "label": "q4k_model.language_model.layers.16.linear_attn.in_proj_z.weight_1179648",
+            "category": "weights",
+            "bytes": 1179648,
+            "count": 1
+          },
+          {
+            "label": "model.language_model.layers.16.post_attention_layernorm.weight_2048",
+            "category": "weights",
+            "bytes": 4096,
+            "count": 2
+          },
+          {
+            "label": "q4k_model.language_model.layers.16.linear_attn.out_proj.weight_1179648",
+            "category": "weights",
+            "bytes": 1179648,
+            "count": 1
+          },
+          {
+            "label": "q4k_model.language_model.layers.16.mlp.up_proj.weight_2097152",
+            "category": "weights",
+            "bytes": 2097152,
+            "count": 1
+          },
+          {
+            "label": "q4k_model.language_model.layers.16.mlp.down_proj.weight_2097152",
+            "category": "weights",
+            "bytes": 2097152,
+            "count": 1
+          },
+          {
+            "label": "q4k_model.language_model.layers.16.mlp.gate_proj.weight_2097152",
+            "category": "weights",
+            "bytes": 2097152,
+            "count": 1
+          },
+          {
+            "label": "model.language_model.layers.17.linear_attn.in_proj_a.weight_32768",
+            "category": "weights",
+            "bytes": 32768,
+            "count": 1
+          },
+          {
+            "label": "model.language_model.layers.17.linear_attn.in_proj_b.weight_32768",
+            "category": "weights",
+            "bytes": 32768,
+            "count": 1
+          },
+          {
+            "label": "model.language_model.layers.17.linear_attn.conv1d.weight_65536",
+            "category": "weights",
+            "bytes": 65536,
+            "count": 1
+          },
+          {
+            "label": "model.language_model.layers.17.linear_attn.dt_bias_256",
+            "category": "weights",
+            "bytes": 256,
+            "count": 1
+          },
+          {
+            "label": "model.language_model.layers.17.linear_attn.A_log_256",
+            "category": "weights",
+            "bytes": 256,
+            "count": 1
+          },
+          {
+            "label": "model.language_model.layers.17.linear_attn.norm.weight_512",
+            "category": "weights",
+            "bytes": 512,
+            "count": 1
+          },
+          {
+            "label": "model.language_model.layers.17.input_layernorm.weight_2048",
+            "category": "weights",
+            "bytes": 2048,
+            "count": 1
+          },
+          {
+            "label": "q4k_model.language_model.layers.17.linear_attn.out_proj.weight_1179648",
+            "category": "weights",
+            "bytes": 1179648,
+            "count": 1
+          },
+          {
+            "label": "q4k_model.language_model.layers.17.linear_attn.in_proj_z.weight_1179648",
+            "category": "weights",
+            "bytes": 1179648,
+            "count": 1
+          },
+          {
+            "label": "model.language_model.layers.17.post_attention_layernorm.weight_2048",
+            "category": "weights",
+            "bytes": 4096,
+            "count": 2
+          },
+          {
+            "label": "q4k_model.language_model.layers.17.linear_attn.in_proj_qkv.weight_3538944",
+            "category": "weights",
+            "bytes": 3538944,
+            "count": 1
+          },
+          {
+            "label": "q4k_model.language_model.layers.17.mlp.gate_proj.weight_2097152",
+            "category": "weights",
+            "bytes": 2097152,
+            "count": 1
+          },
+          {
+            "label": "q4k_model.language_model.layers.17.mlp.down_proj.weight_2097152",
+            "category": "weights",
+            "bytes": 2097152,
+            "count": 1
+          },
+          {
+            "label": "q4k_model.language_model.layers.17.mlp.up_proj.weight_2097152",
+            "category": "weights",
+            "bytes": 2097152,
+            "count": 1
+          },
+          {
+            "label": "model.language_model.layers.18.linear_attn.in_proj_a.weight_32768",
+            "category": "weights",
+            "bytes": 32768,
+            "count": 1
+          },
+          {
+            "label": "model.language_model.layers.18.linear_attn.in_proj_b.weight_32768",
+            "category": "weights",
+            "bytes": 32768,
+            "count": 1
+          },
+          {
+            "label": "model.language_model.layers.18.linear_attn.conv1d.weight_65536",
+            "category": "weights",
+            "bytes": 65536,
+            "count": 1
+          },
+          {
+            "label": "model.language_model.layers.18.linear_attn.dt_bias_256",
+            "category": "weights",
+            "bytes": 256,
+            "count": 1
+          },
+          {
+            "label": "model.language_model.layers.18.linear_attn.A_log_256",
+            "category": "weights",
+            "bytes": 256,
+            "count": 1
+          },
+          {
+            "label": "model.language_model.layers.18.linear_attn.norm.weight_512",
+            "category": "weights",
+            "bytes": 512,
+            "count": 1
+          },
+          {
+            "label": "model.language_model.layers.18.input_layernorm.weight_2048",
+            "category": "weights",
+            "bytes": 2048,
+            "count": 1
+          },
+          {
+            "label": "q4k_model.language_model.layers.18.linear_attn.out_proj.weight_1179648",
+            "category": "weights",
+            "bytes": 1179648,
+            "count": 1
+          },
+          {
+            "label": "q4k_model.language_model.layers.18.linear_attn.in_proj_z.weight_1179648",
+            "category": "weights",
+            "bytes": 1179648,
+            "count": 1
+          },
+          {
+            "label": "model.language_model.layers.18.post_attention_layernorm.weight_2048",
+            "category": "weights",
+            "bytes": 4096,
+            "count": 2
+          },
+          {
+            "label": "q4k_model.language_model.layers.18.linear_attn.in_proj_qkv.weight_3538944",
+            "category": "weights",
+            "bytes": 3538944,
+            "count": 1
+          },
+          {
+            "label": "q4k_model.language_model.layers.18.mlp.gate_proj.weight_2097152",
+            "category": "weights",
+            "bytes": 2097152,
+            "count": 1
+          },
+          {
+            "label": "q4k_model.language_model.layers.18.mlp.down_proj.weight_2097152",
+            "category": "weights",
+            "bytes": 2097152,
+            "count": 1
+          },
+          {
+            "label": "q4k_model.language_model.layers.18.mlp.up_proj.weight_2097152",
+            "category": "weights",
+            "bytes": 2097152,
+            "count": 1
+          },
+          {
+            "label": "model.language_model.layers.19.input_layernorm.weight_2048",
+            "category": "weights",
+            "bytes": 2048,
+            "count": 1
+          },
+          {
+            "label": "model.language_model.layers.19.self_attn.q_norm.weight_512",
+            "category": "weights",
+            "bytes": 512,
+            "count": 1
+          },
+          {
+            "label": "model.language_model.layers.19.self_attn.k_norm.weight_512",
+            "category": "weights",
+            "bytes": 512,
+            "count": 1
+          },
+          {
+            "label": "model.language_model.layers.19.post_attention_layernorm.weight_2048",
+            "category": "weights",
+            "bytes": 4096,
+            "count": 2
+          },
+          {
+            "label": "q4k_model.language_model.layers.19.self_attn.q_proj.weight_2359296",
+            "category": "weights",
+            "bytes": 2359296,
+            "count": 1
+          },
+          {
+            "label": "q4k_model.language_model.layers.19.self_attn.k_proj.weight_327680",
+            "category": "weights",
+            "bytes": 327680,
+            "count": 1
+          },
+          {
+            "label": "q4k_model.language_model.layers.19.self_attn.v_proj.weight_327680",
+            "category": "weights",
+            "bytes": 327680,
+            "count": 1
+          },
+          {
+            "label": "q4k_model.language_model.layers.19.self_attn.o_proj.weight_1179648",
+            "category": "weights",
+            "bytes": 1179648,
+            "count": 1
+          },
+          {
+            "label": "q4k_model.language_model.layers.19.mlp.up_proj.weight_2097152",
+            "category": "weights",
+            "bytes": 2097152,
+            "count": 1
+          },
+          {
+            "label": "q4k_model.language_model.layers.19.mlp.down_proj.weight_2097152",
+            "category": "weights",
+            "bytes": 2097152,
+            "count": 1
+          },
+          {
+            "label": "q4k_model.language_model.layers.19.mlp.gate_proj.weight_2097152",
+            "category": "weights",
+            "bytes": 2097152,
+            "count": 1
+          },
+          {
+            "label": "model.language_model.layers.20.linear_attn.A_log_256",
+            "category": "weights",
+            "bytes": 256,
+            "count": 1
+          },
+          {
+            "label": "model.language_model.layers.20.linear_attn.norm.weight_512",
+            "category": "weights",
+            "bytes": 512,
+            "count": 1
+          },
+          {
+            "label": "q4k_model.language_model.layers.20.linear_attn.in_proj_z.weight_1179648",
+            "category": "weights",
+            "bytes": 1179648,
+            "count": 1
+          },
+          {
+            "label": "model.language_model.layers.20.linear_attn.in_proj_a.weight_32768",
+            "category": "weights",
+            "bytes": 32768,
+            "count": 1
+          },
+          {
+            "label": "model.language_model.layers.20.linear_attn.in_proj_b.weight_32768",
+            "category": "weights",
+            "bytes": 32768,
+            "count": 1
+          },
+          {
+            "label": "model.language_model.layers.20.linear_attn.conv1d.weight_65536",
+            "category": "weights",
+            "bytes": 65536,
+            "count": 1
+          },
+          {
+            "label": "model.language_model.layers.20.linear_attn.dt_bias_256",
+            "category": "weights",
+            "bytes": 256,
+            "count": 1
+          },
+          {
+            "label": "model.language_model.layers.20.post_attention_layernorm.weight_2048",
+            "category": "weights",
+            "bytes": 4096,
+            "count": 2
+          },
+          {
+            "label": "model.language_model.layers.20.input_layernorm.weight_2048",
+            "category": "weights",
+            "bytes": 2048,
+            "count": 1
+          },
+          {
+            "label": "q4k_model.language_model.layers.20.linear_attn.in_proj_qkv.weight_3538944",
+            "category": "weights",
+            "bytes": 3538944,
+            "count": 1
+          },
+          {
+            "label": "q4k_model.language_model.layers.20.linear_attn.out_proj.weight_1179648",
+            "category": "weights",
+            "bytes": 1179648,
+            "count": 1
+          },
+          {
+            "label": "raw_model.language_model.layers.20.mlp.gate_proj.weight_2097152",
+            "category": "weights",
+            "bytes": 2097152,
+            "count": 1
+          },
+          {
+            "label": "q4k_model.language_model.layers.20.mlp.up_proj.weight_2097152",
+            "category": "weights",
+            "bytes": 2097152,
+            "count": 1
+          },
+          {
+            "label": "q4k_model.language_model.layers.20.mlp.down_proj.weight_2097152",
+            "category": "weights",
+            "bytes": 2097152,
+            "count": 1
+          },
+          {
+            "label": "model.language_model.layers.21.linear_attn.in_proj_a.weight_32768",
+            "category": "weights",
+            "bytes": 32768,
+            "count": 1
+          },
+          {
+            "label": "model.language_model.layers.21.linear_attn.in_proj_b.weight_32768",
+            "category": "weights",
+            "bytes": 32768,
+            "count": 1
+          },
+          {
+            "label": "model.language_model.layers.21.linear_attn.conv1d.weight_65536",
+            "category": "weights",
+            "bytes": 65536,
+            "count": 1
+          },
+          {
+            "label": "model.language_model.layers.21.linear_attn.dt_bias_256",
+            "category": "weights",
+            "bytes": 256,
+            "count": 1
+          },
+          {
+            "label": "model.language_model.layers.21.linear_attn.A_log_256",
+            "category": "weights",
+            "bytes": 256,
+            "count": 1
+          },
+          {
+            "label": "model.language_model.layers.21.linear_attn.norm.weight_512",
+            "category": "weights",
+            "bytes": 512,
+            "count": 1
+          },
+          {
+            "label": "model.language_model.layers.21.input_layernorm.weight_2048",
+            "category": "weights",
+            "bytes": 2048,
+            "count": 1
+          },
+          {
+            "label": "q4k_model.language_model.layers.21.linear_attn.in_proj_z.weight_1179648",
+            "category": "weights",
+            "bytes": 1179648,
+            "count": 1
+          },
+          {
+            "label": "model.language_model.layers.21.post_attention_layernorm.weight_2048",
+            "category": "weights",
+            "bytes": 4096,
+            "count": 2
+          },
+          {
+            "label": "q4k_model.language_model.layers.21.linear_attn.in_proj_qkv.weight_3538944",
+            "category": "weights",
+            "bytes": 3538944,
+            "count": 1
+          },
+          {
+            "label": "q4k_model.language_model.layers.21.linear_attn.out_proj.weight_1179648",
+            "category": "weights",
+            "bytes": 1179648,
+            "count": 1
+          },
+          {
+            "label": "q4k_model.language_model.layers.21.mlp.up_proj.weight_2097152",
+            "category": "weights",
+            "bytes": 2097152,
+            "count": 1
+          },
+          {
+            "label": "q4k_model.language_model.layers.21.mlp.down_proj.weight_2097152",
+            "category": "weights",
+            "bytes": 2097152,
+            "count": 1
+          },
+          {
+            "label": "q4k_model.language_model.layers.21.mlp.gate_proj.weight_2097152",
+            "category": "weights",
+            "bytes": 2097152,
+            "count": 1
+          },
+          {
+            "label": "model.language_model.layers.22.linear_attn.in_proj_a.weight_32768",
+            "category": "weights",
+            "bytes": 32768,
+            "count": 1
+          },
+          {
+            "label": "model.language_model.layers.22.linear_attn.in_proj_b.weight_32768",
+            "category": "weights",
+            "bytes": 32768,
+            "count": 1
+          },
+          {
+            "label": "model.language_model.layers.22.linear_attn.conv1d.weight_65536",
+            "category": "weights",
+            "bytes": 65536,
+            "count": 1
+          },
+          {
+            "label": "model.language_model.layers.22.linear_attn.dt_bias_256",
+            "category": "weights",
+            "bytes": 256,
+            "count": 1
+          },
+          {
+            "label": "model.language_model.layers.22.linear_attn.A_log_256",
+            "category": "weights",
+            "bytes": 256,
+            "count": 1
+          },
+          {
+            "label": "model.language_model.layers.22.linear_attn.norm.weight_512",
+            "category": "weights",
+            "bytes": 512,
+            "count": 1
+          },
+          {
+            "label": "model.language_model.layers.22.input_layernorm.weight_2048",
+            "category": "weights",
+            "bytes": 2048,
+            "count": 1
+          },
+          {
+            "label": "q4k_model.language_model.layers.22.linear_attn.in_proj_z.weight_1179648",
+            "category": "weights",
+            "bytes": 1179648,
+            "count": 1
+          },
+          {
+            "label": "model.language_model.layers.22.post_attention_layernorm.weight_2048",
+            "category": "weights",
+            "bytes": 4096,
+            "count": 2
+          },
+          {
+            "label": "q4k_model.language_model.layers.22.linear_attn.in_proj_qkv.weight_3538944",
+            "category": "weights",
+            "bytes": 3538944,
+            "count": 1
+          },
+          {
+            "label": "q4k_model.language_model.layers.22.linear_attn.out_proj.weight_1179648",
+            "category": "weights",
+            "bytes": 1179648,
+            "count": 1
+          },
+          {
+            "label": "q4k_model.language_model.layers.22.mlp.gate_proj.weight_2097152",
+            "category": "weights",
+            "bytes": 2097152,
+            "count": 1
+          },
+          {
+            "label": "q4k_model.language_model.layers.22.mlp.down_proj.weight_2097152",
+            "category": "weights",
+            "bytes": 2097152,
+            "count": 1
+          },
+          {
+            "label": "q4k_model.language_model.layers.22.mlp.up_proj.weight_2097152",
+            "category": "weights",
+            "bytes": 2097152,
+            "count": 1
+          },
+          {
+            "label": "model.language_model.layers.23.input_layernorm.weight_2048",
+            "category": "weights",
+            "bytes": 2048,
+            "count": 1
+          },
+          {
+            "label": "model.language_model.layers.23.self_attn.q_norm.weight_512",
+            "category": "weights",
+            "bytes": 512,
+            "count": 1
+          },
+          {
+            "label": "model.language_model.layers.23.self_attn.k_norm.weight_512",
+            "category": "weights",
+            "bytes": 512,
+            "count": 1
+          },
+          {
+            "label": "model.language_model.layers.23.post_attention_layernorm.weight_2048",
+            "category": "weights",
+            "bytes": 4096,
+            "count": 2
+          },
+          {
+            "label": "q4k_model.language_model.layers.23.self_attn.q_proj.weight_2359296",
+            "category": "weights",
+            "bytes": 2359296,
+            "count": 1
+          },
+          {
+            "label": "q4k_model.language_model.layers.23.self_attn.v_proj.weight_327680",
+            "category": "weights",
+            "bytes": 327680,
+            "count": 1
+          },
+          {
+            "label": "q4k_model.language_model.layers.23.self_attn.k_proj.weight_327680",
+            "category": "weights",
+            "bytes": 327680,
+            "count": 1
+          },
+          {
+            "label": "q4k_model.language_model.layers.23.self_attn.o_proj.weight_1179648",
+            "category": "weights",
+            "bytes": 1179648,
+            "count": 1
+          },
+          {
+            "label": "q4k_model.language_model.layers.23.mlp.up_proj.weight_2097152",
+            "category": "weights",
+            "bytes": 2097152,
+            "count": 1
+          },
+          {
+            "label": "q4k_model.language_model.layers.23.mlp.down_proj.weight_2097152",
+            "category": "weights",
+            "bytes": 2097152,
+            "count": 1
+          },
+          {
+            "label": "q4k_model.language_model.layers.23.mlp.gate_proj.weight_2097152",
+            "category": "weights",
+            "bytes": 2097152,
+            "count": 1
+          },
+          {
+            "label": "model.language_model.norm.weight_2048",
+            "category": "weights",
+            "bytes": 2048,
+            "count": 1
+          },
+          {
+            "label": "raw_model.language_model.lm_head.weight_143065088",
+            "category": "weights",
+            "bytes": 143065088,
+            "count": 1
+          },
+          {
+            "label": "decode_hidden",
+            "category": "other",
+            "bytes": 4096,
+            "count": 1
+          },
+          {
+            "label": "decode_attn_output",
+            "category": "other",
+            "bytes": 4096,
+            "count": 1
+          },
+          {
+            "label": "decode_ffn_intermediate",
+            "category": "other",
+            "bytes": 14336,
+            "count": 1
+          },
+          {
+            "label": "decode_hidden_alt",
+            "category": "other",
+            "bytes": 4096,
+            "count": 1
+          },
+          {
+            "label": "finiteness_status",
+            "category": "other",
+            "bytes": 16,
+            "count": 1
+          },
+          {
+            "label": "rope_precompute_data_256",
+            "category": "other",
+            "bytes": 256,
+            "count": 1
+          },
+          {
+            "label": "rope_cos_33554432",
+            "category": "other",
+            "bytes": 33554432,
+            "count": 1
+          },
+          {
+            "label": "rope_sin_33554432",
+            "category": "other",
+            "bytes": 33554432,
+            "count": 1
+          },
+          {
+            "label": "rope_precompute_uniforms",
+            "category": "other",
+            "bytes": 128,
+            "count": 2
+          },
+          {
+            "label": "rope_cos_134217728",
+            "category": "other",
+            "bytes": 134217728,
+            "count": 1
+          },
+          {
+            "label": "rope_sin_134217728",
+            "category": "other",
+            "bytes": 134217728,
+            "count": 1
+          }
+        ]
+      }
+    }
+  },
+  {
+    "phase": "Ready",
+    "progress": "",
+    "error": ""
+  },
+  {
+    "event": "resident-ready",
+    "memory": {
+      "scope": "device-gpu-buffers",
+      "maxBytes": 1420000000,
+      "liveBytes": 621068560,
+      "peakBytes": 721731984,
+      "allocations": 211,
+      "rejected": 0,
+      "categories": {
+        "weights": 285497344,
+        "attention": 0,
+        "recurrent": 0,
+        "other": 335571216
+      },
+      "labels": [
+        {
+          "label": "q4k_model.language_model.layers.12.linear_attn.out_proj.weight_1179648",
+          "category": "weights",
+          "bytes": 1179648,
+          "count": 1
+        },
+        {
+          "label": "q4k_model.language_model.layers.12.linear_attn.in_proj_z.weight_1179648",
+          "category": "weights",
+          "bytes": 1179648,
+          "count": 1
+        },
+        {
+          "label": "model.language_model.layers.12.linear_attn.in_proj_a.weight_32768",
+          "category": "weights",
+          "bytes": 32768,
+          "count": 1
+        },
+        {
+          "label": "model.language_model.layers.12.linear_attn.in_proj_b.weight_32768",
+          "category": "weights",
+          "bytes": 32768,
+          "count": 1
+        },
+        {
+          "label": "model.language_model.layers.12.linear_attn.conv1d.weight_65536",
+          "category": "weights",
+          "bytes": 65536,
+          "count": 1
+        },
+        {
+          "label": "model.language_model.layers.12.linear_attn.dt_bias_256",
+          "category": "weights",
+          "bytes": 256,
+          "count": 1
+        },
+        {
+          "label": "model.language_model.layers.12.linear_attn.A_log_256",
+          "category": "weights",
+          "bytes": 256,
+          "count": 1
+        },
+        {
+          "label": "model.language_model.layers.12.linear_attn.norm.weight_512",
+          "category": "weights",
+          "bytes": 512,
+          "count": 1
+        },
+        {
+          "label": "model.language_model.layers.12.post_attention_layernorm.weight_2048",
+          "category": "weights",
+          "bytes": 4096,
+          "count": 2
+        },
+        {
+          "label": "model.language_model.layers.12.input_layernorm.weight_2048",
+          "category": "weights",
+          "bytes": 2048,
+          "count": 1
+        },
+        {
+          "label": "q4k_model.language_model.layers.12.linear_attn.in_proj_qkv.weight_3538944",
+          "category": "weights",
+          "bytes": 3538944,
+          "count": 1
+        },
+        {
+          "label": "q4k_model.language_model.layers.12.mlp.gate_proj.weight_2097152",
+          "category": "weights",
+          "bytes": 2097152,
+          "count": 1
+        },
+        {
+          "label": "q4k_model.language_model.layers.12.mlp.up_proj.weight_2097152",
+          "category": "weights",
+          "bytes": 2097152,
+          "count": 1
+        },
+        {
+          "label": "q4k_model.language_model.layers.12.mlp.down_proj.weight_2097152",
+          "category": "weights",
+          "bytes": 2097152,
+          "count": 1
+        },
+        {
+          "label": "model.language_model.layers.13.linear_attn.in_proj_a.weight_32768",
+          "category": "weights",
+          "bytes": 32768,
+          "count": 1
+        },
+        {
+          "label": "model.language_model.layers.13.linear_attn.in_proj_b.weight_32768",
+          "category": "weights",
+          "bytes": 32768,
+          "count": 1
+        },
+        {
+          "label": "model.language_model.layers.13.linear_attn.conv1d.weight_65536",
+          "category": "weights",
+          "bytes": 65536,
+          "count": 1
+        },
+        {
+          "label": "model.language_model.layers.13.linear_attn.dt_bias_256",
+          "category": "weights",
+          "bytes": 256,
+          "count": 1
+        },
+        {
+          "label": "model.language_model.layers.13.linear_attn.A_log_256",
+          "category": "weights",
+          "bytes": 256,
+          "count": 1
+        },
+        {
+          "label": "model.language_model.layers.13.linear_attn.norm.weight_512",
+          "category": "weights",
+          "bytes": 512,
+          "count": 1
+        },
+        {
+          "label": "model.language_model.layers.13.input_layernorm.weight_2048",
+          "category": "weights",
+          "bytes": 2048,
+          "count": 1
+        },
+        {
+          "label": "q4k_model.language_model.layers.13.linear_attn.out_proj.weight_1179648",
+          "category": "weights",
+          "bytes": 1179648,
+          "count": 1
+        },
+        {
+          "label": "q4k_model.language_model.layers.13.linear_attn.in_proj_z.weight_1179648",
+          "category": "weights",
+          "bytes": 1179648,
+          "count": 1
+        },
+        {
+          "label": "model.language_model.layers.13.post_attention_layernorm.weight_2048",
+          "category": "weights",
+          "bytes": 4096,
+          "count": 2
+        },
+        {
+          "label": "q4k_model.language_model.layers.13.linear_attn.in_proj_qkv.weight_3538944",
+          "category": "weights",
+          "bytes": 3538944,
+          "count": 1
+        },
+        {
+          "label": "q4k_model.language_model.layers.13.mlp.gate_proj.weight_2097152",
+          "category": "weights",
+          "bytes": 2097152,
+          "count": 1
+        },
+        {
+          "label": "q4k_model.language_model.layers.13.mlp.up_proj.weight_2097152",
+          "category": "weights",
+          "bytes": 2097152,
+          "count": 1
+        },
+        {
+          "label": "q4k_model.language_model.layers.13.mlp.down_proj.weight_2097152",
+          "category": "weights",
+          "bytes": 2097152,
+          "count": 1
+        },
+        {
+          "label": "model.language_model.layers.14.linear_attn.in_proj_a.weight_32768",
+          "category": "weights",
+          "bytes": 32768,
+          "count": 1
+        },
+        {
+          "label": "model.language_model.layers.14.linear_attn.in_proj_b.weight_32768",
+          "category": "weights",
+          "bytes": 32768,
+          "count": 1
+        },
+        {
+          "label": "model.language_model.layers.14.linear_attn.conv1d.weight_65536",
+          "category": "weights",
+          "bytes": 65536,
+          "count": 1
+        },
+        {
+          "label": "model.language_model.layers.14.linear_attn.dt_bias_256",
+          "category": "weights",
+          "bytes": 256,
+          "count": 1
+        },
+        {
+          "label": "model.language_model.layers.14.linear_attn.A_log_256",
+          "category": "weights",
+          "bytes": 256,
+          "count": 1
+        },
+        {
+          "label": "model.language_model.layers.14.linear_attn.norm.weight_512",
+          "category": "weights",
+          "bytes": 512,
+          "count": 1
+        },
+        {
+          "label": "model.language_model.layers.14.input_layernorm.weight_2048",
+          "category": "weights",
+          "bytes": 2048,
+          "count": 1
+        },
+        {
+          "label": "q4k_model.language_model.layers.14.linear_attn.out_proj.weight_1179648",
+          "category": "weights",
+          "bytes": 1179648,
+          "count": 1
+        },
+        {
+          "label": "q4k_model.language_model.layers.14.linear_attn.in_proj_z.weight_1179648",
+          "category": "weights",
+          "bytes": 1179648,
+          "count": 1
+        },
+        {
+          "label": "model.language_model.layers.14.post_attention_layernorm.weight_2048",
+          "category": "weights",
+          "bytes": 4096,
+          "count": 2
+        },
+        {
+          "label": "q4k_model.language_model.layers.14.linear_attn.in_proj_qkv.weight_3538944",
+          "category": "weights",
+          "bytes": 3538944,
+          "count": 1
+        },
+        {
+          "label": "q4k_model.language_model.layers.14.mlp.gate_proj.weight_2097152",
+          "category": "weights",
+          "bytes": 2097152,
+          "count": 1
+        },
+        {
+          "label": "q4k_model.language_model.layers.14.mlp.up_proj.weight_2097152",
+          "category": "weights",
+          "bytes": 2097152,
+          "count": 1
+        },
+        {
+          "label": "q4k_model.language_model.layers.14.mlp.down_proj.weight_2097152",
+          "category": "weights",
+          "bytes": 2097152,
+          "count": 1
+        },
+        {
+          "label": "model.language_model.layers.15.input_layernorm.weight_2048",
+          "category": "weights",
+          "bytes": 2048,
+          "count": 1
+        },
+        {
+          "label": "model.language_model.layers.15.self_attn.q_norm.weight_512",
+          "category": "weights",
+          "bytes": 512,
+          "count": 1
+        },
+        {
+          "label": "model.language_model.layers.15.self_attn.k_norm.weight_512",
+          "category": "weights",
+          "bytes": 512,
+          "count": 1
+        },
+        {
+          "label": "model.language_model.layers.15.post_attention_layernorm.weight_2048",
+          "category": "weights",
+          "bytes": 4096,
+          "count": 2
+        },
+        {
+          "label": "q4k_model.language_model.layers.15.self_attn.q_proj.weight_2359296",
+          "category": "weights",
+          "bytes": 2359296,
+          "count": 1
+        },
+        {
+          "label": "q4k_model.language_model.layers.15.self_attn.k_proj.weight_327680",
+          "category": "weights",
+          "bytes": 327680,
+          "count": 1
+        },
+        {
+          "label": "q4k_model.language_model.layers.15.self_attn.v_proj.weight_327680",
+          "category": "weights",
+          "bytes": 327680,
+          "count": 1
+        },
+        {
+          "label": "q4k_model.language_model.layers.15.self_attn.o_proj.weight_1179648",
+          "category": "weights",
+          "bytes": 1179648,
+          "count": 1
+        },
+        {
+          "label": "q4k_model.language_model.layers.15.mlp.up_proj.weight_2097152",
+          "category": "weights",
+          "bytes": 2097152,
+          "count": 1
+        },
+        {
+          "label": "q4k_model.language_model.layers.15.mlp.down_proj.weight_2097152",
+          "category": "weights",
+          "bytes": 2097152,
+          "count": 1
+        },
+        {
+          "label": "q4k_model.language_model.layers.15.mlp.gate_proj.weight_2097152",
+          "category": "weights",
+          "bytes": 2097152,
+          "count": 1
+        },
+        {
+          "label": "raw_model.language_model.layers.16.linear_attn.in_proj_qkv.weight_3538944",
+          "category": "weights",
+          "bytes": 3538944,
+          "count": 1
+        },
+        {
+          "label": "model.language_model.layers.16.linear_attn.in_proj_a.weight_32768",
+          "category": "weights",
+          "bytes": 32768,
+          "count": 1
+        },
+        {
+          "label": "model.language_model.layers.16.linear_attn.in_proj_b.weight_32768",
+          "category": "weights",
+          "bytes": 32768,
+          "count": 1
+        },
+        {
+          "label": "model.language_model.layers.16.linear_attn.conv1d.weight_65536",
+          "category": "weights",
+          "bytes": 65536,
+          "count": 1
+        },
+        {
+          "label": "model.language_model.layers.16.linear_attn.dt_bias_256",
+          "category": "weights",
+          "bytes": 256,
+          "count": 1
+        },
+        {
+          "label": "model.language_model.layers.16.linear_attn.A_log_256",
+          "category": "weights",
+          "bytes": 256,
+          "count": 1
+        },
+        {
+          "label": "model.language_model.layers.16.linear_attn.norm.weight_512",
+          "category": "weights",
+          "bytes": 512,
+          "count": 1
+        },
+        {
+          "label": "model.language_model.layers.16.input_layernorm.weight_2048",
+          "category": "weights",
+          "bytes": 2048,
+          "count": 1
+        },
+        {
+          "label": "q4k_model.language_model.layers.16.linear_attn.in_proj_z.weight_1179648",
+          "category": "weights",
+          "bytes": 1179648,
+          "count": 1
+        },
+        {
+          "label": "model.language_model.layers.16.post_attention_layernorm.weight_2048",
+          "category": "weights",
+          "bytes": 4096,
+          "count": 2
+        },
+        {
+          "label": "q4k_model.language_model.layers.16.linear_attn.out_proj.weight_1179648",
+          "category": "weights",
+          "bytes": 1179648,
+          "count": 1
+        },
+        {
+          "label": "q4k_model.language_model.layers.16.mlp.up_proj.weight_2097152",
+          "category": "weights",
+          "bytes": 2097152,
+          "count": 1
+        },
+        {
+          "label": "q4k_model.language_model.layers.16.mlp.down_proj.weight_2097152",
+          "category": "weights",
+          "bytes": 2097152,
+          "count": 1
+        },
+        {
+          "label": "q4k_model.language_model.layers.16.mlp.gate_proj.weight_2097152",
+          "category": "weights",
+          "bytes": 2097152,
+          "count": 1
+        },
+        {
+          "label": "model.language_model.layers.17.linear_attn.in_proj_a.weight_32768",
+          "category": "weights",
+          "bytes": 32768,
+          "count": 1
+        },
+        {
+          "label": "model.language_model.layers.17.linear_attn.in_proj_b.weight_32768",
+          "category": "weights",
+          "bytes": 32768,
+          "count": 1
+        },
+        {
+          "label": "model.language_model.layers.17.linear_attn.conv1d.weight_65536",
+          "category": "weights",
+          "bytes": 65536,
+          "count": 1
+        },
+        {
+          "label": "model.language_model.layers.17.linear_attn.dt_bias_256",
+          "category": "weights",
+          "bytes": 256,
+          "count": 1
+        },
+        {
+          "label": "model.language_model.layers.17.linear_attn.A_log_256",
+          "category": "weights",
+          "bytes": 256,
+          "count": 1
+        },
+        {
+          "label": "model.language_model.layers.17.linear_attn.norm.weight_512",
+          "category": "weights",
+          "bytes": 512,
+          "count": 1
+        },
+        {
+          "label": "model.language_model.layers.17.input_layernorm.weight_2048",
+          "category": "weights",
+          "bytes": 2048,
+          "count": 1
+        },
+        {
+          "label": "q4k_model.language_model.layers.17.linear_attn.out_proj.weight_1179648",
+          "category": "weights",
+          "bytes": 1179648,
+          "count": 1
+        },
+        {
+          "label": "q4k_model.language_model.layers.17.linear_attn.in_proj_z.weight_1179648",
+          "category": "weights",
+          "bytes": 1179648,
+          "count": 1
+        },
+        {
+          "label": "model.language_model.layers.17.post_attention_layernorm.weight_2048",
+          "category": "weights",
+          "bytes": 4096,
+          "count": 2
+        },
+        {
+          "label": "q4k_model.language_model.layers.17.linear_attn.in_proj_qkv.weight_3538944",
+          "category": "weights",
+          "bytes": 3538944,
+          "count": 1
+        },
+        {
+          "label": "q4k_model.language_model.layers.17.mlp.gate_proj.weight_2097152",
+          "category": "weights",
+          "bytes": 2097152,
+          "count": 1
+        },
+        {
+          "label": "q4k_model.language_model.layers.17.mlp.down_proj.weight_2097152",
+          "category": "weights",
+          "bytes": 2097152,
+          "count": 1
+        },
+        {
+          "label": "q4k_model.language_model.layers.17.mlp.up_proj.weight_2097152",
+          "category": "weights",
+          "bytes": 2097152,
+          "count": 1
+        },
+        {
+          "label": "model.language_model.layers.18.linear_attn.in_proj_a.weight_32768",
+          "category": "weights",
+          "bytes": 32768,
+          "count": 1
+        },
+        {
+          "label": "model.language_model.layers.18.linear_attn.in_proj_b.weight_32768",
+          "category": "weights",
+          "bytes": 32768,
+          "count": 1
+        },
+        {
+          "label": "model.language_model.layers.18.linear_attn.conv1d.weight_65536",
+          "category": "weights",
+          "bytes": 65536,
+          "count": 1
+        },
+        {
+          "label": "model.language_model.layers.18.linear_attn.dt_bias_256",
+          "category": "weights",
+          "bytes": 256,
+          "count": 1
+        },
+        {
+          "label": "model.language_model.layers.18.linear_attn.A_log_256",
+          "category": "weights",
+          "bytes": 256,
+          "count": 1
+        },
+        {
+          "label": "model.language_model.layers.18.linear_attn.norm.weight_512",
+          "category": "weights",
+          "bytes": 512,
+          "count": 1
+        },
+        {
+          "label": "model.language_model.layers.18.input_layernorm.weight_2048",
+          "category": "weights",
+          "bytes": 2048,
+          "count": 1
+        },
+        {
+          "label": "q4k_model.language_model.layers.18.linear_attn.out_proj.weight_1179648",
+          "category": "weights",
+          "bytes": 1179648,
+          "count": 1
+        },
+        {
+          "label": "q4k_model.language_model.layers.18.linear_attn.in_proj_z.weight_1179648",
+          "category": "weights",
+          "bytes": 1179648,
+          "count": 1
+        },
+        {
+          "label": "model.language_model.layers.18.post_attention_layernorm.weight_2048",
+          "category": "weights",
+          "bytes": 4096,
+          "count": 2
+        },
+        {
+          "label": "q4k_model.language_model.layers.18.linear_attn.in_proj_qkv.weight_3538944",
+          "category": "weights",
+          "bytes": 3538944,
+          "count": 1
+        },
+        {
+          "label": "q4k_model.language_model.layers.18.mlp.gate_proj.weight_2097152",
+          "category": "weights",
+          "bytes": 2097152,
+          "count": 1
+        },
+        {
+          "label": "q4k_model.language_model.layers.18.mlp.down_proj.weight_2097152",
+          "category": "weights",
+          "bytes": 2097152,
+          "count": 1
+        },
+        {
+          "label": "q4k_model.language_model.layers.18.mlp.up_proj.weight_2097152",
+          "category": "weights",
+          "bytes": 2097152,
+          "count": 1
+        },
+        {
+          "label": "model.language_model.layers.19.input_layernorm.weight_2048",
+          "category": "weights",
+          "bytes": 2048,
+          "count": 1
+        },
+        {
+          "label": "model.language_model.layers.19.self_attn.q_norm.weight_512",
+          "category": "weights",
+          "bytes": 512,
+          "count": 1
+        },
+        {
+          "label": "model.language_model.layers.19.self_attn.k_norm.weight_512",
+          "category": "weights",
+          "bytes": 512,
+          "count": 1
+        },
+        {
+          "label": "model.language_model.layers.19.post_attention_layernorm.weight_2048",
+          "category": "weights",
+          "bytes": 4096,
+          "count": 2
+        },
+        {
+          "label": "q4k_model.language_model.layers.19.self_attn.q_proj.weight_2359296",
+          "category": "weights",
+          "bytes": 2359296,
+          "count": 1
+        },
+        {
+          "label": "q4k_model.language_model.layers.19.self_attn.k_proj.weight_327680",
+          "category": "weights",
+          "bytes": 327680,
+          "count": 1
+        },
+        {
+          "label": "q4k_model.language_model.layers.19.self_attn.v_proj.weight_327680",
+          "category": "weights",
+          "bytes": 327680,
+          "count": 1
+        },
+        {
+          "label": "q4k_model.language_model.layers.19.self_attn.o_proj.weight_1179648",
+          "category": "weights",
+          "bytes": 1179648,
+          "count": 1
+        },
+        {
+          "label": "q4k_model.language_model.layers.19.mlp.up_proj.weight_2097152",
+          "category": "weights",
+          "bytes": 2097152,
+          "count": 1
+        },
+        {
+          "label": "q4k_model.language_model.layers.19.mlp.down_proj.weight_2097152",
+          "category": "weights",
+          "bytes": 2097152,
+          "count": 1
+        },
+        {
+          "label": "q4k_model.language_model.layers.19.mlp.gate_proj.weight_2097152",
+          "category": "weights",
+          "bytes": 2097152,
+          "count": 1
+        },
+        {
+          "label": "model.language_model.layers.20.linear_attn.A_log_256",
+          "category": "weights",
+          "bytes": 256,
+          "count": 1
+        },
+        {
+          "label": "model.language_model.layers.20.linear_attn.norm.weight_512",
+          "category": "weights",
+          "bytes": 512,
+          "count": 1
+        },
+        {
+          "label": "q4k_model.language_model.layers.20.linear_attn.in_proj_z.weight_1179648",
+          "category": "weights",
+          "bytes": 1179648,
+          "count": 1
+        },
+        {
+          "label": "model.language_model.layers.20.linear_attn.in_proj_a.weight_32768",
+          "category": "weights",
+          "bytes": 32768,
+          "count": 1
+        },
+        {
+          "label": "model.language_model.layers.20.linear_attn.in_proj_b.weight_32768",
+          "category": "weights",
+          "bytes": 32768,
+          "count": 1
+        },
+        {
+          "label": "model.language_model.layers.20.linear_attn.conv1d.weight_65536",
+          "category": "weights",
+          "bytes": 65536,
+          "count": 1
+        },
+        {
+          "label": "model.language_model.layers.20.linear_attn.dt_bias_256",
+          "category": "weights",
+          "bytes": 256,
+          "count": 1
+        },
+        {
+          "label": "model.language_model.layers.20.post_attention_layernorm.weight_2048",
+          "category": "weights",
+          "bytes": 4096,
+          "count": 2
+        },
+        {
+          "label": "model.language_model.layers.20.input_layernorm.weight_2048",
+          "category": "weights",
+          "bytes": 2048,
+          "count": 1
+        },
+        {
+          "label": "q4k_model.language_model.layers.20.linear_attn.in_proj_qkv.weight_3538944",
+          "category": "weights",
+          "bytes": 3538944,
+          "count": 1
+        },
+        {
+          "label": "q4k_model.language_model.layers.20.linear_attn.out_proj.weight_1179648",
+          "category": "weights",
+          "bytes": 1179648,
+          "count": 1
+        },
+        {
+          "label": "raw_model.language_model.layers.20.mlp.gate_proj.weight_2097152",
+          "category": "weights",
+          "bytes": 2097152,
+          "count": 1
+        },
+        {
+          "label": "q4k_model.language_model.layers.20.mlp.up_proj.weight_2097152",
+          "category": "weights",
+          "bytes": 2097152,
+          "count": 1
+        },
+        {
+          "label": "q4k_model.language_model.layers.20.mlp.down_proj.weight_2097152",
+          "category": "weights",
+          "bytes": 2097152,
+          "count": 1
+        },
+        {
+          "label": "model.language_model.layers.21.linear_attn.in_proj_a.weight_32768",
+          "category": "weights",
+          "bytes": 32768,
+          "count": 1
+        },
+        {
+          "label": "model.language_model.layers.21.linear_attn.in_proj_b.weight_32768",
+          "category": "weights",
+          "bytes": 32768,
+          "count": 1
+        },
+        {
+          "label": "model.language_model.layers.21.linear_attn.conv1d.weight_65536",
+          "category": "weights",
+          "bytes": 65536,
+          "count": 1
+        },
+        {
+          "label": "model.language_model.layers.21.linear_attn.dt_bias_256",
+          "category": "weights",
+          "bytes": 256,
+          "count": 1
+        },
+        {
+          "label": "model.language_model.layers.21.linear_attn.A_log_256",
+          "category": "weights",
+          "bytes": 256,
+          "count": 1
+        },
+        {
+          "label": "model.language_model.layers.21.linear_attn.norm.weight_512",
+          "category": "weights",
+          "bytes": 512,
+          "count": 1
+        },
+        {
+          "label": "model.language_model.layers.21.input_layernorm.weight_2048",
+          "category": "weights",
+          "bytes": 2048,
+          "count": 1
+        },
+        {
+          "label": "q4k_model.language_model.layers.21.linear_attn.in_proj_z.weight_1179648",
+          "category": "weights",
+          "bytes": 1179648,
+          "count": 1
+        },
+        {
+          "label": "model.language_model.layers.21.post_attention_layernorm.weight_2048",
+          "category": "weights",
+          "bytes": 4096,
+          "count": 2
+        },
+        {
+          "label": "q4k_model.language_model.layers.21.linear_attn.in_proj_qkv.weight_3538944",
+          "category": "weights",
+          "bytes": 3538944,
+          "count": 1
+        },
+        {
+          "label": "q4k_model.language_model.layers.21.linear_attn.out_proj.weight_1179648",
+          "category": "weights",
+          "bytes": 1179648,
+          "count": 1
+        },
+        {
+          "label": "q4k_model.language_model.layers.21.mlp.up_proj.weight_2097152",
+          "category": "weights",
+          "bytes": 2097152,
+          "count": 1
+        },
+        {
+          "label": "q4k_model.language_model.layers.21.mlp.down_proj.weight_2097152",
+          "category": "weights",
+          "bytes": 2097152,
+          "count": 1
+        },
+        {
+          "label": "q4k_model.language_model.layers.21.mlp.gate_proj.weight_2097152",
+          "category": "weights",
+          "bytes": 2097152,
+          "count": 1
+        },
+        {
+          "label": "model.language_model.layers.22.linear_attn.in_proj_a.weight_32768",
+          "category": "weights",
+          "bytes": 32768,
+          "count": 1
+        },
+        {
+          "label": "model.language_model.layers.22.linear_attn.in_proj_b.weight_32768",
+          "category": "weights",
+          "bytes": 32768,
+          "count": 1
+        },
+        {
+          "label": "model.language_model.layers.22.linear_attn.conv1d.weight_65536",
+          "category": "weights",
+          "bytes": 65536,
+          "count": 1
+        },
+        {
+          "label": "model.language_model.layers.22.linear_attn.dt_bias_256",
+          "category": "weights",
+          "bytes": 256,
+          "count": 1
+        },
+        {
+          "label": "model.language_model.layers.22.linear_attn.A_log_256",
+          "category": "weights",
+          "bytes": 256,
+          "count": 1
+        },
+        {
+          "label": "model.language_model.layers.22.linear_attn.norm.weight_512",
+          "category": "weights",
+          "bytes": 512,
+          "count": 1
+        },
+        {
+          "label": "model.language_model.layers.22.input_layernorm.weight_2048",
+          "category": "weights",
+          "bytes": 2048,
+          "count": 1
+        },
+        {
+          "label": "q4k_model.language_model.layers.22.linear_attn.in_proj_z.weight_1179648",
+          "category": "weights",
+          "bytes": 1179648,
+          "count": 1
+        },
+        {
+          "label": "model.language_model.layers.22.post_attention_layernorm.weight_2048",
+          "category": "weights",
+          "bytes": 4096,
+          "count": 2
+        },
+        {
+          "label": "q4k_model.language_model.layers.22.linear_attn.in_proj_qkv.weight_3538944",
+          "category": "weights",
+          "bytes": 3538944,
+          "count": 1
+        },
+        {
+          "label": "q4k_model.language_model.layers.22.linear_attn.out_proj.weight_1179648",
+          "category": "weights",
+          "bytes": 1179648,
+          "count": 1
+        },
+        {
+          "label": "q4k_model.language_model.layers.22.mlp.gate_proj.weight_2097152",
+          "category": "weights",
+          "bytes": 2097152,
+          "count": 1
+        },
+        {
+          "label": "q4k_model.language_model.layers.22.mlp.down_proj.weight_2097152",
+          "category": "weights",
+          "bytes": 2097152,
+          "count": 1
+        },
+        {
+          "label": "q4k_model.language_model.layers.22.mlp.up_proj.weight_2097152",
+          "category": "weights",
+          "bytes": 2097152,
+          "count": 1
+        },
+        {
+          "label": "model.language_model.layers.23.input_layernorm.weight_2048",
+          "category": "weights",
+          "bytes": 2048,
+          "count": 1
+        },
+        {
+          "label": "model.language_model.layers.23.self_attn.q_norm.weight_512",
+          "category": "weights",
+          "bytes": 512,
+          "count": 1
+        },
+        {
+          "label": "model.language_model.layers.23.self_attn.k_norm.weight_512",
+          "category": "weights",
+          "bytes": 512,
+          "count": 1
+        },
+        {
+          "label": "model.language_model.layers.23.post_attention_layernorm.weight_2048",
+          "category": "weights",
+          "bytes": 4096,
+          "count": 2
+        },
+        {
+          "label": "q4k_model.language_model.layers.23.self_attn.q_proj.weight_2359296",
+          "category": "weights",
+          "bytes": 2359296,
+          "count": 1
+        },
+        {
+          "label": "q4k_model.language_model.layers.23.self_attn.v_proj.weight_327680",
+          "category": "weights",
+          "bytes": 327680,
+          "count": 1
+        },
+        {
+          "label": "q4k_model.language_model.layers.23.self_attn.k_proj.weight_327680",
+          "category": "weights",
+          "bytes": 327680,
+          "count": 1
+        },
+        {
+          "label": "q4k_model.language_model.layers.23.self_attn.o_proj.weight_1179648",
+          "category": "weights",
+          "bytes": 1179648,
+          "count": 1
+        },
+        {
+          "label": "q4k_model.language_model.layers.23.mlp.up_proj.weight_2097152",
+          "category": "weights",
+          "bytes": 2097152,
+          "count": 1
+        },
+        {
+          "label": "q4k_model.language_model.layers.23.mlp.down_proj.weight_2097152",
+          "category": "weights",
+          "bytes": 2097152,
+          "count": 1
+        },
+        {
+          "label": "q4k_model.language_model.layers.23.mlp.gate_proj.weight_2097152",
+          "category": "weights",
+          "bytes": 2097152,
+          "count": 1
+        },
+        {
+          "label": "model.language_model.norm.weight_2048",
+          "category": "weights",
+          "bytes": 2048,
+          "count": 1
+        },
+        {
+          "label": "raw_model.language_model.lm_head.weight_143065088",
+          "category": "weights",
+          "bytes": 143065088,
+          "count": 1
+        },
+        {
+          "label": "decode_hidden",
+          "category": "other",
+          "bytes": 4096,
+          "count": 1
+        },
+        {
+          "label": "decode_attn_output",
+          "category": "other",
+          "bytes": 4096,
+          "count": 1
+        },
+        {
+          "label": "decode_ffn_intermediate",
+          "category": "other",
+          "bytes": 14336,
+          "count": 1
+        },
+        {
+          "label": "decode_hidden_alt",
+          "category": "other",
+          "bytes": 4096,
+          "count": 1
+        },
+        {
+          "label": "finiteness_status",
+          "category": "other",
+          "bytes": 16,
+          "count": 1
+        },
+        {
+          "label": "rope_precompute_data_256",
+          "category": "other",
+          "bytes": 256,
+          "count": 1
+        },
+        {
+          "label": "rope_cos_33554432",
+          "category": "other",
+          "bytes": 33554432,
+          "count": 1
+        },
+        {
+          "label": "rope_sin_33554432",
+          "category": "other",
+          "bytes": 33554432,
+          "count": 1
+        },
+        {
+          "label": "rope_cos_134217728",
+          "category": "other",
+          "bytes": 134217728,
+          "count": 1
+        },
+        {
+          "label": "rope_sin_134217728",
+          "category": "other",
+          "bytes": 134217728,
+          "count": 1
+        }
+      ]
+    },
+    "modelRequests": []
+  }
+]

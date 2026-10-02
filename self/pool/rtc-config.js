@@ -1,7 +1,11 @@
 import { createPoolSdk } from './sdk.js';
 import { normalizeRtcConfig } from './p2p-transport.js';
+import policy from '../config/swarm-bootstrap.json' with { type: 'json' };
 
-const REFRESH_SKEW_MS = 30000;
+const REFRESH_SKEW_MS = policy.rtcRefreshSkewMs;
+if (!Number.isSafeInteger(REFRESH_SKEW_MS) || REFRESH_SKEW_MS <= policy.server.heartbeatInterval) {
+  throw new Error('RTC credential renewal must reserve more than one heartbeat interval');
+}
 let cachedConfiguration = null;
 let pendingConfiguration = null;
 

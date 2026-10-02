@@ -1,0 +1,131 @@
+{
+  "status": "capacity and replica recovery passed; extended cross-device numerical gate failed; public qualification in progress",
+  "package": {
+    "name": "doppler-gpu",
+    "version": "0.6.3-dev.split.10",
+    "spec": "file:deploy/artifacts/doppler-gpu-0.6.3-dev.split.10.tgz",
+    "resolved": "file:deploy/artifacts/doppler-gpu-0.6.3-dev.split.10.tgz",
+    "integrity": "sha512-eApILms57GlXr3/zVDqGhts0cobIe/p9/Qch4odhO39/ldf+NjjoHw1qfUaMwFiF5ASipoYsOxYvjgwdWCcifw=="
+  },
+  "modelIdentity": "sha256:edeb69dd65cbb26971abf773a95bf6dc219a82942c0951d65e1893d442b607c9",
+  "planId": "sha256:c908ebff98a542b556e6b78417e4e6a4e4014c8c50a7c47ba36665cf4f2097a0",
+  "physicalDevices": 2,
+  "budget": {
+    "scope": "per-executor device GPUBuffer allocations; excludes CPU heap, driver memory and physical VRAM/RSS",
+    "maxBytes": 1420000000,
+    "peaks": [
+      1417398872,
+      1054584488
+    ],
+    "rejectionsDuringCooperation": [
+      0,
+      0
+    ],
+    "wholeModelDenials": [
+      {
+        "error": "Pipeline load phase \"rope\" failed: GPU memory budget exceeded: rope_sin_134217728 requires 134217728 bytes; 1339167056 live, 1420000000 allowed.",
+        "memory": {
+          "scope": "device-gpu-buffers",
+          "maxBytes": 1420000000,
+          "peakBytes": 1339167056,
+          "rejected": 1
+        }
+      },
+      {
+        "error": "Pipeline load phase \"rope\" failed: GPU memory budget exceeded: rope_sin_134217728 requires 134217728 bytes; 1339167056 live, 1420000000 allowed.",
+        "memory": {
+          "scope": "device-gpu-buffers",
+          "maxBytes": 1420000000,
+          "peakBytes": 1339167056,
+          "rejected": 1
+        }
+      }
+    ]
+  },
+  "selectiveAcquisition": [
+    {
+      "index": 0,
+      "residentWeightBytes": 650989568,
+      "requestedBytes": 658550592,
+      "verifiedBytes": 671788512,
+      "pieceCount": 161,
+      "peakOwnedHostReadBytes": 9088480,
+      "openingGpuPeakBytes": 1087224208
+    },
+    {
+      "index": 1,
+      "residentWeightBytes": 285497344,
+      "requestedBytes": 293025600,
+      "verifiedBytes": 307887776,
+      "pieceCount": 75,
+      "peakOwnedHostReadBytes": 9088480,
+      "openingGpuPeakBytes": 721731984
+    }
+  ],
+  "sharedAcquisition": {
+    "pieceCount": 9,
+    "bytes": 34254304,
+    "note": "Piece overlap includes shared metadata and shard boundary coverage; it is not a shared GPU-weight requirement. Explicit quantized output head removed unused input embedding from B."
+  },
+  "recovery": {
+    "replicaCountAdded": 1,
+    "executionParticipants": 3,
+    "physicalHosts": 2,
+    "replicaAcquiredAfterSeedStopped": true,
+    "lossToCompletedReplacementMs": 9197,
+    "observations": [
+      {
+        "failedAttempt": "607c4b28-d814-47ed-ada1-3176170aab35",
+        "replacementAttempt": "c4bd08c7-3288-436d-87dd-f4b63bf614ca",
+        "finishedToFreshAttemptMs": 21195,
+        "finishedToCompletedAnswerMs": 26854,
+        "participantsBefore": {
+          "participantA": "peer:932822c64e5ee08958240a9d",
+          "participantB": "peer:cfba1a23b7368c376abf366a"
+        },
+        "participantsAfter": {
+          "participantA": "peer:932822c64e5ee08958240a9d",
+          "participantB": "peer:cfba1a23b7368c376abf366a"
+        }
+      },
+      {
+        "failedAttempt": "76a16bc7-ceb0-4cf2-bb8b-e8ff0f6fdd34",
+        "replacementAttempt": "178a6414-743b-4486-ba60-c2263425cfb7",
+        "finishedToFreshAttemptMs": 2218,
+        "finishedToCompletedAnswerMs": 7851,
+        "participantsBefore": {
+          "participantA": "peer:932822c64e5ee08958240a9d",
+          "participantB": "peer:cfba1a23b7368c376abf366a"
+        },
+        "participantsAfter": {
+          "participantA": "peer:932822c64e5ee08958240a9d",
+          "participantB": "peer:f9b9d9b9820df04bd55fe477"
+        }
+      }
+    ],
+    "scope": "One observed contributor loss, not statistical availability or three-host fault tolerance"
+  },
+  "numerical": {
+    "comparedSteps": 55,
+    "tolerance": 0.001,
+    "maxDifference": 0.0036873817443847656,
+    "failedSteps": 25,
+    "sampledTokensAndStoppingMatch": true,
+    "sameDevice55StepMaxDifference": 0,
+    "wholeModelCrossPlatformMaxDifference": 0.003689289093017578
+  },
+  "measurementLimits": [
+    "Debugger observed token logits and exceptions during this qualification run; its total latency is diagnostic. Use public operator receipts for unpaused preparation and generation costs.",
+    "GPU categories in allocation snapshots follow allocation labels; pooled labels are allocation provenance, not a complete live logical-state census.",
+    "Physical constrained-memory hardware remains unqualified.",
+    "Direct-versus-relay comparison and selection among measured split points remain unqualified."
+  ],
+  "handoff": {
+    "components": [
+      "Doppler tensor loading and memory accounting",
+      "Reploid partition coordination and peer transport"
+    ],
+    "intent": "preserved",
+    "boundaryEffects": "Doppler still owns model computation; Reploid owns discovery, placement, grants, custody, recovery and presentation."
+  }
+}
