@@ -1,0 +1,57 @@
+{
+  "url": "https://replo.id/",
+  "at": "2026-10-02T22:17:53.356149+00:00",
+  "sourceCommit": "56aa4eb4",
+  "bundleHash": "sha256:6a453b68fc912b013baff60edfe4b64ab869254028de8ff7cc3a9ce4f0577ee1",
+  "rows": [
+    {
+      "path": "config/doppler-package.json",
+      "status": 200,
+      "exactBytes": true,
+      "sha256": "78604f3e6010e5af436cecbe8dd902cd82409c2ed704c4ca2da34068e8f758fe",
+      "cacheControl": "no-cache, no-store, must-revalidate"
+    },
+    {
+      "path": "config/partition-policy.json",
+      "status": 200,
+      "exactBytes": true,
+      "sha256": "d8302eea503c9baeea4df3b9ab9acc4ec36b91f255dfbc498f5fa1515e0ff3ae",
+      "cacheControl": "no-cache, no-store, must-revalidate"
+    },
+    {
+      "path": "config/browser-bundle-manifest.json",
+      "status": 200,
+      "exactBytes": true,
+      "sha256": "081adbf44b9e1dd25e6f5f9b4de4766f6b31b36ef83983c0eb3b4bd9d7b1e511",
+      "cacheControl": "no-cache, no-store, must-revalidate"
+    },
+    {
+      "path": "vendor/reploid/mesh/partitions/automatic-partitions.js",
+      "status": 200,
+      "exactBytes": true,
+      "sha256": "886ca90554d58fff71febb2829bf11bb7e7074346daac4de990ba261c9083e67",
+      "cacheControl": "no-cache, no-store, must-revalidate"
+    },
+    {
+      "path": "vendor/reploid/transport/partition-data-channel.js",
+      "status": 200,
+      "exactBytes": true,
+      "sha256": "3fa7644a9bb1be63a0fb08c6b43128e318ee56b9a9a8b7dcd425c78ab7a9a7ab",
+      "cacheControl": "no-cache, no-store, must-revalidate"
+    },
+    {
+      "path": "pool/rtc-config.js",
+      "status": 200,
+      "exactBytes": true,
+      "sha256": "e30de00d1d6c373327e4afae7236d380a27c5085464b45c9af411aea206b2ab9",
+      "cacheControl": "no-cache, no-store, must-revalidate"
+    },
+    {
+      "path": "config/swarm-bootstrap.json",
+      "status": 200,
+      "exactBytes": true,
+      "sha256": "80cfe0e442e874c722be0eda7b734c86c7b592642d091876208b8d4e20b20325",
+      "cacheControl": "no-cache, no-store, must-revalidate"
+    }
+  ]
+}
