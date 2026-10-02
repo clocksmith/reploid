@@ -1,0 +1,63 @@
+{
+  "pollMs": 2000,
+  "maxPeers": 8,
+  "connectTimeoutMs": 30000,
+  "grantMs": 900000,
+  "maxSeqLen": 4096,
+  "limits": {
+    "maxTokens": 1024,
+    "maxPromptTokens": 2048,
+    "maxActivationBytes": 8388608,
+    "maxOutputCharacters": 16000,
+    "maxAttempts": 128,
+    "maxConcurrentAttempts": 2
+  },
+  "executionChannel": {
+    "maxFrameBytes": 16384,
+    "maxControlBytes": 131072,
+    "maxPayloadBytes": 8388608,
+    "maxPendingBytes": 16777216,
+    "maxPendingRequests": 8,
+    "maxRequestsPerChannel": 65536,
+    "maxBufferedBytes": 1048576,
+    "maxTransferBytes": 1073741824,
+    "timeoutMs": 300000
+  },
+  "controlChannel": {
+    "maxFrameBytes": 16384,
+    "maxControlBytes": 131072,
+    "maxPayloadBytes": 8388608,
+    "maxPendingBytes": 16777216,
+    "maxPendingRequests": 8,
+    "maxRequestsPerChannel": 65536,
+    "maxBufferedBytes": 1048576,
+    "maxTransferBytes": 1073741824,
+    "timeoutMs": 10000
+  },
+  "inputChannel": {
+    "maxFrameBytes": 16384,
+    "maxControlBytes": 131072,
+    "maxPayloadBytes": 8388608,
+    "maxPendingBytes": 16777216,
+    "maxPendingRequests": 8,
+    "maxRequestsPerChannel": 65536,
+    "maxBufferedBytes": 1048576,
+    "maxTransferBytes": 1073741824,
+    "timeoutMs": 300000
+  },
+  "inputLimits": {
+    "maxInputCharacters": 48000,
+    "maxOutputCharacters": 16000,
+    "maxAttempts": 128,
+    "maxConcurrentAttempts": 2,
+    "descriptorTtlMs": 10000
+  },
+  "receiver": {
+    "maxAttempts": 128,
+    "maxSteps": 1024
+  },
+  "generation": {
+    "repetitionPenalty": 1,
+    "repetitionPenaltyWindow": 0
+  }
+}

@@ -253,7 +253,7 @@ export function initPoolHome(mount, { operationNetwork = null } = {}) {
     onChange: () => chatSession?.refreshNetwork() });
   work = createWorkSession({ service, storage: workStorage, swarm, evolution,
     peers: createWorkPeerJobs({ getNetwork: () => operationNetwork }) });
-  chatSession = createChatSession({ service, storage: workStorage, swarm,
+  chatSession = createChatSession({ service, storage: workStorage, swarm, partitions: swarm.partitions,
     peers: createWorkPeerJobs({ getNetwork: () => operationNetwork }) });
   const autoconnect = startSwarmAutoconnect({
     connect: options => swarm.connect(options), enabled: () => swarm.autoConnectEnabled(),

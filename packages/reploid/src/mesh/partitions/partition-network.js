@@ -4,7 +4,8 @@ const LABEL = 'reploid-partitions';
 const READY = 'reploid.partition-channel-ready/v1';
 
 /** Uses the existing mesh certificate/signature verifier; never trusts an advertised peer ID. */
-export function createPartitionNetwork({ transport, verifyPeer, createEndpoint, maxPeers, timeoutMs, onPeer = () => {} }) {
+export function createPartitionNetwork({ transport, verifyPeer, createEndpoint, maxPeers, timeoutMs, onPeer = () => {}, label = LABEL }) {
+  assert(/^reploid-partitions(?:-[a-z-]+)?$/.test(label) && label.length <= 80, 'Invalid partition channel label');
   assert(typeof transport?.onDataChannel === 'function' && typeof transport.getPeerBinding === 'function'
     && typeof verifyPeer === 'function' && typeof createEndpoint === 'function'
     && Number.isSafeInteger(maxPeers) && maxPeers > 0 && Number.isSafeInteger(timeoutMs) && timeoutMs > 0
@@ -76,7 +77,7 @@ export function createPartitionNetwork({ transport, verifyPeer, createEndpoint, 
     })();
     return entry.promise;
   };
-  const unsubscribe = transport.onDataChannel(LABEL, (peerId, channel) => {
+  const unsubscribe = transport.onDataChannel(label, (peerId, channel) => {
     try { attach(peerId, channel, true).catch(() => {}); } catch { channel.close(); }
   });
   return Object.freeze({
@@ -84,7 +85,7 @@ export function createPartitionNetwork({ transport, verifyPeer, createEndpoint, 
       assert(!closed, 'Partition network closed');
       if (entries.has(peerId)) return entries.get(peerId).promise;
       assert(entries.size < maxPeers, 'Partition peer limit');
-      const channel = transport.openDataChannel(peerId, LABEL);
+      const channel = transport.openDataChannel(peerId, label);
       try { return attach(peerId, channel, false); } catch (error) { channel.close(); throw error; }
     },
     close() {

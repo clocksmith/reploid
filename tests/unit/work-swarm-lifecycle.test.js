@@ -12,7 +12,8 @@ import { createWorkSwarm } from '../../self/host/work-swarm.js';
 
 const deferred = () => { let resolve; const promise = new Promise(done => { resolve = done; }); return { promise, resolve }; };
 let values;
-const fixture = (service = {}) => createWorkSwarm({ service, storage: {
+const fixture = (service = {}) => createWorkSwarm({ service,
+  createPartitions: () => ({ getModels: () => [], stop: async () => {}, close: async () => {} }), storage: {
   getItem: key => values.get(key) ?? null, setItem: (key, value) => values.set(key, value)
 }, createModelFiles: () => ({ attach: async () => {}, close: async () => {}, announce() {}, getState: () => ({}),
   prepareSource: async model => model.id }), networkOptions: () => ({ autoConnect: true, discoveryScope: 'public',
@@ -157,4 +158,17 @@ it('cancellation holds the slot through settlement, ignores duplicates and suppr
   await f.request('two', 'New context');
   expect(f.sent.filter(row => row.name === 'reploid:generation-result').map(row => row.payload.response.content)).toEqual(['New context']);
   await f.swarm.close();
+});
+
+it('stop during partition connection prevents a late contribution', async () => {
+  vi.stubGlobal('navigator', { gpu: {} });
+  const identity = deferred(); ports.ensure.mockReturnValue(identity.promise);
+  const swarm = fixture();
+  const pending = swarm.share('qwen-3-5-0-8b-q4k-ehaf16', true);
+  const failure = expect(pending).rejects.toThrow('stopped');
+  await vi.waitFor(() => expect(ports.ensure).toHaveBeenCalledOnce());
+  const stopping = swarm.disconnect(); identity.resolve({ peerId: 'fixture', contribution: {} });
+  await stopping; await failure;
+  expect(ports.createTransport).not.toHaveBeenCalled();
+  expect(swarm.getState().sharing).toBe(false);
 });

@@ -42,6 +42,7 @@ export function createCustodyExchange(options: {
   has(file: FileDescriptor): boolean;
   offer(files: FileDescriptor[]): void;
   stopSupply(): void;
-  acquire(file: FileDescriptor, controls: { signal: AbortSignal }): Promise<Uint8Array>;
+  acquire(file: FileDescriptor, controls: { signal: AbortSignal;
+    range?: { offset: number; size: number; identity: string } | null }): Promise<Uint8Array>;
   close(): Promise<PromiseSettledResult<unknown>[]>;
 };

@@ -11,6 +11,7 @@ export function createPartitionEntry({ channel, localParticipantId, remotePartic
     'maxConcurrentAttempts', 'descriptorTtlMs'].every(key => Number.isSafeInteger(inputLimits?.[key]) && inputLimits[key] > 0),
   'Entry authorization and input budgets required');
   const policy = structuredClone(inputLimits), active = new Map(), retired = new Set();
+  const deliveries = new Map();
   let draining = false, closed = false, descriptor = null, observedAt = 0;
   const valid = m => m?.operation === 'generate' && m?.schema === 'reploid.partition-input/v1' && m.requesterId !== m.participantA
     && m.participantA !== m.participantB && typeof m.attemptId === 'string' && m.attemptId.length <= 128
@@ -23,6 +24,15 @@ export function createPartitionEntry({ channel, localParticipantId, remotePartic
     async authorize({ action, metadata, byteLength }) {
       if (byteLength !== 0) return false;
       if (metadata.operation === 'describe') return true;
+      if (metadata.operation === 'delta') {
+        const sending = action === 'send' || action === 'accept';
+        const request = sending ? active.get(metadata.attemptId)?.request : deliveries.get(metadata.attemptId)?.request;
+        return !!request && metadata.requesterId === request.requesterId
+          && metadata.participantA === request.participantA && metadata.threadId === request.threadId
+          && metadata.requesterId === (sending ? remoteParticipantId : localParticipantId)
+          && Number.isSafeInteger(metadata.sequence) && metadata.sequence >= 0
+          && typeof metadata.text === 'string' && metadata.text.length <= policy.maxOutputCharacters;
+      }
       const outgoing = action === 'send' || action === 'accept';
       if (!valid(metadata) || metadata.requesterId !== (outgoing ? localParticipantId : remoteParticipantId)
         || metadata.participantA !== (outgoing ? remoteParticipantId : localParticipantId)) return false;
@@ -31,6 +41,13 @@ export function createPartitionEntry({ channel, localParticipantId, remotePartic
       return await authorize(structuredClone(metadata), { action }) === true;
     },
     async serve(m, _bytes, { signal }) {
+      if (m.operation === 'delta') {
+        const delivery = deliveries.get(m.attemptId);
+        assert(delivery && m.sequence === delivery.sequence, 'Stream delta is stale or out of order');
+        delivery.characters += m.text.length;
+        assert(delivery.characters <= policy.maxOutputCharacters, 'Stream output budget exhausted');
+        delivery.sequence++; delivery.onDelta?.(m.text); return { received: true };
+      }
       if (m.operation === 'describe') {
         if (service && !draining && !closed) await service.refresh({ signal });
         const models = service?.getModels() || [];
@@ -44,14 +61,23 @@ export function createPartitionEntry({ channel, localParticipantId, remotePartic
         && model.partition.participantB === m.participantB && model.availability === 'ready');
       assert(model, 'Requested placement is not ready');
       retired.add(m.attemptId);
-      const operation = service.generate({ meshId: m.meshId, participantId: m.requesterId,
+      const admission = { request: structuredClone(m), operation: null };
+      active.set(m.attemptId, admission);
+      let delivery = Promise.resolve(), sequence = 0;
+      const operation = Promise.resolve().then(() => service.generate({ meshId: m.meshId, participantId: m.requesterId,
         threadId: m.threadId, attemptId: m.attemptId, placementGeneration: m.placementGeneration,
         model, messages: structuredClone(m.messages), permissions: { sharingScope: 'approved-partition-path' } },
       { signal, requestApproval: async () => authorize(structuredClone(m), { action: 'execute' }),
-        onState() {}, onDelta() {} });
-      active.set(m.attemptId, operation);
+        onState() {}, onDelta({ text }) {
+          const delta = { operation: 'delta', requesterId: m.requesterId, participantA: m.participantA,
+            threadId: m.threadId, attemptId: m.attemptId, sequence: sequence++, text };
+          delivery = delivery.then(() => endpoint.request(delta, new Uint8Array(), { signal }));
+          delivery.catch(() => {});
+        } }));
+      admission.operation = operation;
       try {
         const result = await operation;
+        await delivery;
         assert(typeof result.content === 'string' && result.content.length <= policy.maxOutputCharacters
           && result.execution?.requesterId === m.requesterId
           && result.execution.attemptId === m.attemptId
@@ -71,19 +97,23 @@ export function createPartitionEntry({ channel, localParticipantId, remotePartic
         'Invalid entry descriptor');
       observedAt = now(); return this.getState();
     },
-    async generate(request, { signal } = {}) {
+    async generate(request, { signal, onDelta } = {}) {
       assert(!closed && this.getState().ready, 'Refresh an available entry before requesting execution');
       const metadata = { ...structuredClone(request), operation: 'generate', schema: 'reploid.partition-input/v1',
         requesterId: localParticipantId, participantA: remoteParticipantId };
-      const result = await endpoint.request(metadata, new Uint8Array(), { signal });
+      assert(!deliveries.has(metadata.attemptId), 'Entry attempt already streaming');
+      deliveries.set(metadata.attemptId, { request: metadata, sequence: 0, characters: 0, onDelta });
+      let result;
+      try { result = await endpoint.request(metadata, new Uint8Array(), { signal }); }
+      finally { deliveries.delete(metadata.attemptId); }
       assert(typeof result.content === 'string' && result.content.length <= policy.maxOutputCharacters
         && ['requesterId', 'participantA', 'participantB', 'modelId', 'modelIdentity', 'planId', 'threadId',
           'attemptId', 'placementGeneration'].every(key => result.execution?.[key] === metadata[key]),
       'Entry response identity mismatch');
       return result;
     },
-    async drain() { draining = true; await Promise.allSettled([...active.values()]); },
-    async close() { closed = true; endpoint.close(); await Promise.allSettled([...active.values()]); },
+    async drain() { draining = true; await Promise.allSettled([...active.values()].map(item => item.operation)); },
+    async close() { closed = true; endpoint.close(); await Promise.allSettled([...active.values()].map(item => item.operation)); deliveries.clear(); },
   });
 }
 

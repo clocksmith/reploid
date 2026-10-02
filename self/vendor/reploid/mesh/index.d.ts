@@ -22,3 +22,5 @@ export { partitionFingerprint } from './partitions/partition-contract.js';
 
 export * from './partitions/partition-entry.js';
 export * from './partitions/partition-link.js';
+
+export * from './partitions/automatic-partitions.js';
