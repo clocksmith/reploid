@@ -1,0 +1,764 @@
+
+
+import { wrapQueueForTracking, setTrackSubmits } from './submit-tracker.js';
+import { probeSubmitLatency } from './submit-probe.js';
+import { log } from '../debug/index.js';
+import { createDopplerError, ERROR_CODES } from '../errors/doppler-error.js';
+import { GB } from '../config/schema/index.js';
+import { getSharedDeviceState, isDeviceLost } from './device-state.js';
+
+// Re-export submit tracker for convenience
+export { setTrackSubmits };
+
+const sharedDeviceState = getSharedDeviceState();
+
+let gpuDevice = sharedDeviceState.gpuDevice ?? null;
+
+let kernelCapabilities = sharedDeviceState.kernelCapabilities ?? null;
+
+let resolvedPlatformConfig = sharedDeviceState.resolvedPlatformConfig ?? null;
+let lastDeviceLossInfo = sharedDeviceState.lastDeviceLossInfo ?? null;
+
+let platformInitialized = sharedDeviceState.platformInitialized === true;
+
+let deviceEpoch = Number.isInteger(sharedDeviceState.deviceEpoch)
+  ? sharedDeviceState.deviceEpoch
+  : 0;
+
+function syncSharedDeviceState() {
+  sharedDeviceState.gpuDevice = gpuDevice;
+  sharedDeviceState.kernelCapabilities = kernelCapabilities;
+  sharedDeviceState.resolvedPlatformConfig = resolvedPlatformConfig;
+  sharedDeviceState.lastDeviceLossInfo = lastDeviceLossInfo;
+  sharedDeviceState.platformInitialized = platformInitialized;
+  sharedDeviceState.deviceEpoch = deviceEpoch;
+}
+
+function hydrateDeviceState() {
+  gpuDevice = sharedDeviceState.gpuDevice ?? null;
+  kernelCapabilities = sharedDeviceState.kernelCapabilities ?? null;
+  resolvedPlatformConfig = sharedDeviceState.resolvedPlatformConfig ?? null;
+  lastDeviceLossInfo = sharedDeviceState.lastDeviceLossInfo ?? null;
+  platformInitialized = sharedDeviceState.platformInitialized === true;
+  deviceEpoch = Number.isInteger(sharedDeviceState.deviceEpoch)
+    ? sharedDeviceState.deviceEpoch
+    : 0;
+}
+
+function advanceDeviceEpoch() {
+  deviceEpoch += 1;
+  syncSharedDeviceState();
+}
+
+function clearActiveDeviceState() {
+  gpuDevice = null;
+  kernelCapabilities = null;
+  resolvedPlatformConfig = null;
+  platformInitialized = false;
+  syncSharedDeviceState();
+}
+
+function invalidateDeviceInitialization() {
+  sharedDeviceState.deviceInitPromise = null;
+}
+
+function hasUsableDeviceSlot(device) {
+  return isUsableGPUDevice(device);
+}
+
+function buildDeviceStateDiagnostics() {
+  const lastLoss = lastDeviceLossInfo
+    ? {
+        reason: lastDeviceLossInfo.reason,
+        message: lastDeviceLossInfo.message,
+        deviceEpoch: lastDeviceLossInfo.deviceEpoch,
+      }
+    : null;
+  return {
+    localDevice: hasUsableDeviceSlot(gpuDevice),
+    sharedDevice: hasUsableDeviceSlot(sharedDeviceState.gpuDevice),
+    localCapabilities: !!kernelCapabilities,
+    sharedCapabilities: !!sharedDeviceState.kernelCapabilities,
+    localPlatformInitialized: platformInitialized,
+    sharedPlatformInitialized: sharedDeviceState.platformInitialized === true,
+    deviceEpoch,
+    sharedDeviceEpoch: sharedDeviceState.deviceEpoch,
+    lastDeviceLoss: lastLoss,
+  };
+}
+
+function ensureGpuBufferConstructor(device) {
+  if (typeof globalThis.GPUBuffer !== 'undefined') {
+    return;
+  }
+  if (!device || typeof device.createBuffer !== 'function') {
+    return;
+  }
+
+  let probeBuffer = null;
+  try {
+    const usage = (globalThis.GPUBufferUsage?.COPY_SRC ?? 0x0004)
+      | (globalThis.GPUBufferUsage?.COPY_DST ?? 0x0008);
+    probeBuffer = device.createBuffer({
+      size: 4,
+      usage,
+    });
+    if (probeBuffer?.constructor && probeBuffer.constructor !== Object) {
+      globalThis.GPUBuffer = probeBuffer.constructor;
+    }
+  } catch (error) {
+    log.debug('GPU', 'GPUBuffer constructor shim unavailable: ' + error.message);
+  } finally {
+    try {
+      probeBuffer?.destroy?.();
+    } catch {}
+  }
+}
+
+// Three resolution paths, all needed and not mutually exclusive:
+// 1. Tagged fake buffer (__dopplerFakeGPUBuffer): fast path for Doppler test doubles
+//    that opt in via a known marker property.
+// 2. Duck-typed FakeBuffer: catches third-party or older test helpers that expose the
+//    correct constructor name and GPUBuffer-like interface but lack the Doppler tag.
+// 3. Native GPUBuffer instanceof: the standard runtime check. Skipped when GPUBuffer
+//    is not defined (e.g. Node without WebGPU), in which case we trust the object.
+function isValidGPUBuffer(value) {
+  if (!value) {
+    return false;
+  }
+  if (value.__dopplerFakeGPUBuffer === true) {
+    return true;
+  }
+  if (
+    typeof value === 'object'
+    && value.constructor?.name === 'FakeBuffer'
+    && typeof value.size === 'number'
+    && typeof value.usage === 'number'
+    && typeof value.destroy === 'function'
+  ) {
+    return true;
+  }
+  if (typeof GPUBuffer === 'undefined') {
+    return true;
+  }
+  return value instanceof GPUBuffer;
+}
+
+function isUsableGPUDevice(device) {
+  return !!(
+    device
+    && !isDeviceLost(device)
+    && typeof device.createBuffer === 'function'
+    && typeof device.createBindGroup === 'function'
+    && typeof device.createCommandEncoder === 'function'
+    && typeof device.createShaderModule === 'function'
+    && device.queue
+    && typeof device.queue.submit === 'function'
+  );
+}
+
+function describeBindGroupBufferValue(value) {
+  if (value === null) return 'null (explicitly set to null)';
+  if (value === undefined) return 'undefined (missing or never assigned)';
+  if (typeof GPUBuffer !== 'undefined' && value instanceof GPUBuffer) return 'GPUBuffer';
+  if (typeof value === 'object') {
+    return value.constructor?.name || 'object';
+  }
+  return typeof value;
+}
+
+function validateBindGroupDescriptor(descriptor, device) {
+  const label = descriptor?.label || 'unlabeled_bind_group';
+  const entries = Array.isArray(descriptor?.entries) ? descriptor.entries : [];
+  for (const entry of entries) {
+    const resource = entry?.resource;
+    if (!resource || typeof resource !== 'object' || !('buffer' in resource)) {
+      continue;
+    }
+    if (!isValidGPUBuffer(resource.buffer)) {
+      throw new Error(
+        `[${label}] binding ${entry.binding} requires a GPUBuffer; ` +
+        `got ${describeBindGroupBufferValue(resource.buffer)}.`
+      );
+    }
+    const owner = sharedDeviceState.bufferOwners.get(resource.buffer);
+    if (owner && owner !== device) {
+      throw new Error(
+        `[${label}] binding ${entry.binding} uses a GPUBuffer created by a different GPUDevice.`
+      );
+    }
+  }
+}
+
+function shouldValidateBindGroupDescriptors() {
+  const env = typeof process !== 'undefined' ? process?.env?.DOPPLER_VALIDATE_BIND_GROUPS : null;
+  if (env === '1' || env === 'true') {
+    return true;
+  }
+  return false;
+}
+
+function wrapDeviceCreateBuffer(device) {
+  if (
+    !device
+    || device.__dopplerBufferOwnershipWrapped
+    || typeof device.createBuffer !== 'function'
+  ) {
+    return device;
+  }
+  const originalCreateBuffer = device.createBuffer.bind(device);
+  device.createBuffer = (descriptor) => {
+    const buffer = originalCreateBuffer(descriptor);
+    if (buffer && (typeof buffer === 'object' || typeof buffer === 'function')) {
+      sharedDeviceState.bufferOwners.set(buffer, device);
+    }
+    return buffer;
+  };
+  Object.defineProperty(device, '__dopplerBufferOwnershipWrapped', {
+    value: true,
+    configurable: true,
+    enumerable: false,
+    writable: false,
+  });
+  return device;
+}
+
+function wrapDeviceCreateBindGroup(device) {
+  if (!device || device.__dopplerBindGroupValidationWrapped) {
+    return device;
+  }
+  const originalCreateBindGroup = device.createBindGroup.bind(device);
+  device.createBindGroup = (descriptor) => {
+    if (shouldValidateBindGroupDescriptors()) {
+      validateBindGroupDescriptor(descriptor, device);
+    } else {
+      const entries = Array.isArray(descriptor?.entries) ? descriptor.entries : [];
+      for (const entry of entries) {
+        const buffer = entry?.resource?.buffer;
+        if (buffer && sharedDeviceState.bufferOwners.get(buffer) !== undefined) {
+          validateBindGroupDescriptor(descriptor, device);
+          break;
+        }
+      }
+    }
+    return originalCreateBindGroup(descriptor);
+  };
+  Object.defineProperty(device, '__dopplerBindGroupValidationWrapped', {
+    value: true,
+    configurable: true,
+    enumerable: false,
+    writable: false,
+  });
+  return device;
+}
+
+function registerDeviceLostHandler(device) {
+  if (!device || device.__dopplerLossHandlerRegistered) {
+    return device;
+  }
+
+  if (device.lost && typeof device.lost.then === 'function') {
+    const trackedDevice = device;
+    device.lost.then((info) => {
+      sharedDeviceState.lostDevices.add(trackedDevice);
+      if (sharedDeviceState.gpuDevice !== trackedDevice) {
+        return;
+      }
+      hydrateDeviceState();
+      lastDeviceLossInfo = {
+        message: info?.message ?? '',
+        reason: info?.reason ?? 'unknown',
+        deviceEpoch,
+        timestampMs: Date.now(),
+        adapterInfo: kernelCapabilities?.adapterInfo ?? null,
+      };
+      log.error('GPU', 'Device lost: ' + info.message + ', Reason: ' + info.reason);
+      clearActiveDeviceState();
+      advanceDeviceEpoch();
+    }).catch((error) => {
+      sharedDeviceState.lostDevices.add(trackedDevice);
+      if (sharedDeviceState.gpuDevice !== trackedDevice) {
+        return;
+      }
+      hydrateDeviceState();
+      lastDeviceLossInfo = {
+        message: error?.message ?? String(error),
+        reason: 'device_lost_handler_failed',
+        deviceEpoch,
+        timestampMs: Date.now(),
+        adapterInfo: kernelCapabilities?.adapterInfo ?? null,
+      };
+      log.warn('GPU', 'Device lost handler failed: ' + (error?.message ?? error));
+      clearActiveDeviceState();
+      advanceDeviceEpoch();
+    });
+  }
+
+  Object.defineProperty(device, '__dopplerLossHandlerRegistered', {
+    value: true,
+    configurable: true,
+    enumerable: false,
+    writable: false,
+  });
+  return device;
+}
+
+
+export const FEATURES =  ({
+  SHADER_F16: 'shader-f16',
+  SUBGROUPS: 'subgroups',
+  TIMESTAMP_QUERY: 'timestamp-query',
+});
+
+
+async function probeShaderF16(device) {
+  try {
+    const { getShaderModule } = await import('./kernels/shader-cache.js');
+    const module = await getShaderModule(device, 'probe_shader_f16.wgsl', 'probe_shader_f16');
+    // createShaderModule is synchronous in Dawn; if it returned without
+    // throwing, the WGSL→backend translation succeeded.
+    void module;
+    return true;
+  } catch {
+    console.log('[GPU] shader-f16 feature reported but shader compilation failed; disabling f16');
+    return false;
+  }
+}
+
+
+export function isWebGPUAvailable() {
+  return typeof navigator !== 'undefined' && 'gpu' in navigator;
+}
+
+
+async function requestAdapter(options = {}) {
+  if (!isWebGPUAvailable()) {
+    return null;
+  }
+
+  // Try high-performance first, then fallback
+  
+  const adapterOptions = [
+    { powerPreference: 'high-performance', ...options },
+    { powerPreference: 'low-power', ...options },
+    { ...options }, // Default
+  ];
+
+  for (const opts of adapterOptions) {
+    try {
+      const adapter = await navigator.gpu.requestAdapter(opts);
+      if (adapter) {
+        return adapter;
+      }
+    } catch (e) {
+      // Continue to next option
+    }
+  }
+
+  return null;
+}
+
+
+function detectFeatures(adapter) {
+  const available = new Set();
+
+  for (const feature of adapter.features) {
+    available.add(feature);
+  }
+
+  return available;
+}
+
+
+function buildFeatureRequests(available) {
+  
+  const requested = [];
+
+  // Request shader-f16 for FP16 matmul kernels
+  if (available.has(FEATURES.SHADER_F16)) {
+    requested.push( (FEATURES.SHADER_F16));
+  }
+
+  // Request subgroups for efficient dequantization
+  if (available.has(FEATURES.SUBGROUPS)) {
+    requested.push( (FEATURES.SUBGROUPS));
+  }
+
+  // Request timestamp query for profiling (optional)
+  if (available.has(FEATURES.TIMESTAMP_QUERY)) {
+    requested.push( (FEATURES.TIMESTAMP_QUERY));
+  }
+
+  return requested;
+}
+
+function addFeatureRequestCandidate(candidates, seen, features) {
+  const unique = features.filter((feature, index) => features.indexOf(feature) === index);
+  const key = unique.join('|');
+  if (seen.has(key)) return;
+  seen.add(key);
+  candidates.push(unique);
+}
+
+function buildFeatureRequestCandidates(requestedFeatures) {
+  const requested = Array.isArray(requestedFeatures) ? requestedFeatures : [];
+  const candidates = [];
+  const seen = new Set();
+  addFeatureRequestCandidate(candidates, seen, requested);
+  addFeatureRequestCandidate(
+    candidates,
+    seen,
+    requested.filter((feature) => feature !== FEATURES.TIMESTAMP_QUERY)
+  );
+  addFeatureRequestCandidate(
+    candidates,
+    seen,
+    requested.filter((feature) => feature !== FEATURES.TIMESTAMP_QUERY && feature !== FEATURES.SUBGROUPS)
+  );
+  addFeatureRequestCandidate(
+    candidates,
+    seen,
+    requested.filter((feature) => feature !== FEATURES.TIMESTAMP_QUERY && feature !== FEATURES.SHADER_F16)
+  );
+  addFeatureRequestCandidate(candidates, seen, []);
+  return candidates;
+}
+
+async function requestDeviceWithFeatureFallback(adapter, requestedFeatures, limits) {
+  const candidates = buildFeatureRequestCandidates(requestedFeatures);
+  let lastError = null;
+  for (const features of candidates) {
+    try {
+      if (features.length === 0) {
+        return await adapter.requestDevice();
+      }
+      return await adapter.requestDevice({
+        requiredFeatures: features,
+        requiredLimits: limits,
+      });
+    } catch (error) {
+      lastError = error;
+      const label = features.length > 0 ? features.join(', ') : 'none';
+      log.warn('GPU', 'Failed to request device with features [' + label + ']: ' + error.message);
+    }
+  }
+  throw lastError || new Error('Failed to request WebGPU device');
+}
+
+
+function buildLimits(adapter) {
+  const adapterLimits = adapter.limits;
+
+  return {
+    // Request maximum available storage buffer size (critical for large weight tensors)
+    maxStorageBufferBindingSize: adapterLimits.maxStorageBufferBindingSize,
+    // Request maximum buffer size
+    maxBufferSize: adapterLimits.maxBufferSize,
+    // Request maximum compute workgroup sizes
+    maxComputeWorkgroupSizeX: adapterLimits.maxComputeWorkgroupSizeX,
+    maxComputeWorkgroupSizeY: adapterLimits.maxComputeWorkgroupSizeY,
+    maxComputeWorkgroupSizeZ: adapterLimits.maxComputeWorkgroupSizeZ,
+    maxComputeInvocationsPerWorkgroup: adapterLimits.maxComputeInvocationsPerWorkgroup,
+    maxComputeWorkgroupStorageSize: adapterLimits.maxComputeWorkgroupStorageSize,
+    // Binding limits
+    maxStorageBuffersPerShaderStage: adapterLimits.maxStorageBuffersPerShaderStage,
+    maxUniformBufferBindingSize: adapterLimits.maxUniformBufferBindingSize,
+  };
+}
+
+
+async function initializePlatformAndRegistry(adapter) {
+  hydrateDeviceState();
+  if (platformInitialized) {
+    return;
+  }
+
+  platformInitialized = true;
+  syncSharedDeviceState();
+
+  try {
+    // Dynamic import to avoid circular dependencies and enable hotswap
+    const [platformLoader, kernelRegistry] = await Promise.all([
+      import('../config/platforms/loader.js'),
+      import('../config/kernels/registry.js'),
+    ]);
+
+    // Initialize platform detection with the adapter
+    resolvedPlatformConfig = await platformLoader.initializePlatform(adapter);
+    syncSharedDeviceState();
+
+    // Preload kernel registry (cached for subsequent calls)
+    await kernelRegistry.getRegistry();
+
+    log.debug('GPU', 'Platform: ' + resolvedPlatformConfig.platform.name + ' (' + resolvedPlatformConfig.platform.id + ')');
+    log.debug('GPU', 'Capabilities: f16=' + resolvedPlatformConfig.capabilities.hasF16 + ', subgroups=' + resolvedPlatformConfig.capabilities.hasSubgroups);
+  } catch (e) {
+    // Platform/registry init is optional - kernel selection will use fallbacks
+    log.warn('GPU', 'Platform/registry init failed (non-fatal): ' +  (e).message);
+    resolvedPlatformConfig = null;
+    syncSharedDeviceState();
+  }
+}
+
+
+async function initializeDevice(initializationEpoch) {
+  if (!isWebGPUAvailable()) {
+    throw createDopplerError(ERROR_CODES.GPU_UNAVAILABLE, 'WebGPU is not available in this browser');
+  }
+
+  const adapter = await requestAdapter();
+  if (!adapter) {
+    throw new Error('Failed to get WebGPU adapter');
+  }
+
+  // Initialize platform loader and kernel registry early (before device creation)
+  // This allows platform-specific config to be available for kernel selection
+  await initializePlatformAndRegistry(adapter);
+
+  // Detect available features
+  const availableFeatures = detectFeatures(adapter);
+  const requestedFeatures = buildFeatureRequests(availableFeatures);
+  const limits = buildLimits(adapter);
+
+  // Get adapter info (adapter.info is synchronous in modern WebGPU)
+  const adapterInfo = adapter.info || { vendor: 'unknown', architecture: 'unknown', device: 'unknown', description: '' };
+
+  const device = await requestDeviceWithFeatureFallback(adapter, requestedFeatures, limits);
+
+  if (!device) {
+    throw createDopplerError(ERROR_CODES.GPU_DEVICE_FAILED, 'Failed to create WebGPU device');
+  }
+  ensureGpuBufferConstructor(device);
+  wrapDeviceCreateBuffer(device);
+  wrapDeviceCreateBindGroup(device);
+
+  // Wrap queue for submit tracking (when enabled)
+  wrapQueueForTracking(device.queue);
+
+  // Cache kernel capabilities
+  let hasF16 = device.features.has(FEATURES.SHADER_F16);
+  if (hasF16) {
+    hasF16 = await probeShaderF16(device);
+  }
+  const hasSubgroups = device.features.has(FEATURES.SUBGROUPS);
+
+  const capabilities = {
+    hasSubgroups,
+    wgslLanguageFeatures: [...(globalThis.navigator?.gpu?.wgslLanguageFeatures ?? [])],
+    // This is a derived compatibility bit, not a distinct WebGPU feature.
+    hasSubgroupsF16: hasSubgroups && hasF16,
+    hasF16,
+    hasTimestampQuery: device.features.has(FEATURES.TIMESTAMP_QUERY),
+    maxBufferSize: device.limits.maxStorageBufferBindingSize,
+    maxWorkgroupSize: device.limits.maxComputeInvocationsPerWorkgroup,
+    maxWorkgroupStorageSize: device.limits.maxComputeWorkgroupStorageSize,
+    adapterInfo: {
+      vendor: adapterInfo.vendor || 'unknown',
+      architecture: adapterInfo.architecture || 'unknown',
+      device: adapterInfo.device || 'unknown',
+      description: adapterInfo.description || '',
+    },
+    submitProbeMs: null,
+  };
+
+  const probeMs = await probeSubmitLatency(device);
+  capabilities.submitProbeMs = probeMs;
+
+  hydrateDeviceState();
+  if (deviceEpoch !== initializationEpoch) {
+    device.destroy?.();
+    if (isUsableGPUDevice(gpuDevice)) {
+      log.debug('GPU', 'Device initialization was superseded; using the active shared device');
+      return gpuDevice;
+    }
+    throw createDopplerError(
+      ERROR_CODES.GPU_DEVICE_FAILED,
+      'WebGPU device initialization was superseded by a device-state reset'
+    );
+  }
+
+  gpuDevice = device;
+  kernelCapabilities = capabilities;
+  lastDeviceLossInfo = null;
+  registerDeviceLostHandler(gpuDevice);
+  advanceDeviceEpoch();
+  syncSharedDeviceState();
+
+  const features = [
+    kernelCapabilities.hasF16 && 'f16',
+    kernelCapabilities.hasSubgroups && 'subgroups',
+  ].filter(Boolean).join('/') || 'basic';
+  const probeStr = probeMs != null ? ', submit probe: ' + probeMs.toFixed(1) + 'ms' : '';
+  console.log('[GPU] ' + (adapterInfo.vendor || 'unknown') + ' ' + (adapterInfo.architecture || adapterInfo.device || '') + ', ' + features + ', ' + (kernelCapabilities.maxBufferSize / GB).toFixed(1) + 'GB' + probeStr);
+
+  return gpuDevice;
+}
+
+export async function initDevice() {
+  hydrateDeviceState();
+  // Return cached device if available
+  if (gpuDevice) {
+    if (isUsableGPUDevice(gpuDevice)) {
+      return gpuDevice;
+    }
+    clearActiveDeviceState();
+    advanceDeviceEpoch();
+  }
+  if (sharedDeviceState.deviceInitPromise) {
+    const device = await sharedDeviceState.deviceInitPromise;
+    hydrateDeviceState();
+    return device;
+  }
+  const initialization = initializeDevice(deviceEpoch);
+  sharedDeviceState.deviceInitPromise = initialization;
+  try {
+    const device = await initialization;
+    hydrateDeviceState();
+    return device;
+  } finally {
+    if (sharedDeviceState.deviceInitPromise === initialization) {
+      sharedDeviceState.deviceInitPromise = null;
+    }
+  }
+}
+
+export function setDevice(device, options = {}) {
+  hydrateDeviceState();
+  if (isDeviceLost(device)) throw new Error('Cannot bind a lost GPU device. Explicitly initialize a replacement device.');
+  if (gpuDevice !== device || !device) invalidateDeviceInitialization();
+  if (!device) {
+    clearActiveDeviceState();
+    advanceDeviceEpoch();
+    return;
+  }
+
+  const deviceChanged = gpuDevice !== device;
+  gpuDevice = device;
+  lastDeviceLossInfo = null;
+  ensureGpuBufferConstructor(gpuDevice);
+  wrapDeviceCreateBuffer(gpuDevice);
+  wrapDeviceCreateBindGroup(gpuDevice);
+  registerDeviceLostHandler(gpuDevice);
+  // Session context restoration can rebind the same shared device. Advancing
+  // its generation would make the global pool destroy other sessions' buffers.
+  if (deviceChanged) advanceDeviceEpoch();
+  wrapQueueForTracking(gpuDevice.queue);
+
+  const adapterInfo = options.adapterInfo ?? {
+    vendor: 'unknown',
+    architecture: 'unknown',
+    device: 'unknown',
+    description: '',
+  };
+
+  const setDeviceHasF16 = gpuDevice.features.has(FEATURES.SHADER_F16);
+  const setDeviceHasSubgroups = gpuDevice.features.has(FEATURES.SUBGROUPS);
+
+  const previousSubmitProbeMs = kernelCapabilities?.submitProbeMs ?? null;
+
+  kernelCapabilities = {
+    hasSubgroups: setDeviceHasSubgroups,
+    wgslLanguageFeatures: [...(globalThis.navigator?.gpu?.wgslLanguageFeatures ?? [])],
+    hasSubgroupsF16: setDeviceHasSubgroups && setDeviceHasF16,
+    hasF16: setDeviceHasF16,
+    hasTimestampQuery: gpuDevice.features.has(FEATURES.TIMESTAMP_QUERY),
+    maxBufferSize: gpuDevice.limits.maxStorageBufferBindingSize,
+    maxWorkgroupSize: gpuDevice.limits.maxComputeInvocationsPerWorkgroup,
+    maxWorkgroupStorageSize: gpuDevice.limits.maxComputeWorkgroupStorageSize,
+    adapterInfo,
+    submitProbeMs: previousSubmitProbeMs,
+  };
+
+  if (options.platformConfig !== undefined) {
+    resolvedPlatformConfig = options.platformConfig;
+    platformInitialized = options.platformConfig !== null;
+  } else {
+    resolvedPlatformConfig = null;
+    platformInitialized = false;
+  }
+  syncSharedDeviceState();
+}
+
+
+export function getKernelCapabilities() {
+  hydrateDeviceState();
+  if (!kernelCapabilities) {
+    const diagnostics = buildDeviceStateDiagnostics();
+    throw new Error(
+      'Device not initialized. Call initDevice() first. ' +
+      'deviceState=' + JSON.stringify(diagnostics)
+    );
+  }
+  return { ...kernelCapabilities };
+}
+
+
+export function getDevice() {
+  hydrateDeviceState();
+  return gpuDevice;
+}
+
+export function getDeviceEpoch() {
+  hydrateDeviceState();
+  return deviceEpoch;
+}
+
+
+export function getPlatformConfig() {
+  hydrateDeviceState();
+  return resolvedPlatformConfig;
+}
+
+export function getLastDeviceLossInfo() {
+  hydrateDeviceState();
+  return lastDeviceLossInfo ? { ...lastDeviceLossInfo } : null;
+}
+
+
+export function resetDeviceState() {
+  hydrateDeviceState();
+  invalidateDeviceInitialization();
+  clearActiveDeviceState();
+  advanceDeviceEpoch();
+}
+
+
+export function destroyDevice() {
+  hydrateDeviceState();
+  invalidateDeviceInitialization();
+  if (gpuDevice) {
+    sharedDeviceState.lostDevices.add(gpuDevice);
+    gpuDevice.destroy();
+    clearActiveDeviceState();
+    advanceDeviceEpoch();
+  }
+}
+
+
+export function hasFeature(feature) {
+  hydrateDeviceState();
+  if (!gpuDevice) {
+    return false;
+  }
+  return gpuDevice.features.has( (feature));
+}
+
+
+export function getDeviceLimits() {
+  hydrateDeviceState();
+  if (!gpuDevice) {
+    return null;
+  }
+  return {
+    maxStorageBufferBindingSize: gpuDevice.limits.maxStorageBufferBindingSize,
+    maxBufferSize: gpuDevice.limits.maxBufferSize,
+    maxComputeWorkgroupSizeX: gpuDevice.limits.maxComputeWorkgroupSizeX,
+    maxComputeWorkgroupSizeY: gpuDevice.limits.maxComputeWorkgroupSizeY,
+    maxComputeWorkgroupSizeZ: gpuDevice.limits.maxComputeWorkgroupSizeZ,
+    maxComputeInvocationsPerWorkgroup: gpuDevice.limits.maxComputeInvocationsPerWorkgroup,
+    maxComputeWorkgroupStorageSize: gpuDevice.limits.maxComputeWorkgroupStorageSize,
+    maxStorageBuffersPerShaderStage: gpuDevice.limits.maxStorageBuffersPerShaderStage,
+    maxUniformBufferBindingSize: gpuDevice.limits.maxUniformBufferBindingSize,
+    maxComputeWorkgroupsPerDimension: gpuDevice.limits.maxComputeWorkgroupsPerDimension,
+  };
+}

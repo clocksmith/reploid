@@ -6,9 +6,8 @@ import dopplerPackage from './doppler-package.json' with { type: 'json' };
 
 export const DOPPLER_PACKAGE_NAME = dopplerPackage.name;
 export const DOPPLER_PACKAGE_VERSION = dopplerPackage.version;
-// Existing whole-model qualification remains bound to its released runtime.
-// The partition candidate has an explicit entry and is not a release promotion.
-export const DOPPLER_BROWSER_RUNTIME_VERSION = '0.6.2';
+// Browser generation and partitions consume the same integrity-pinned package.
+export const DOPPLER_BROWSER_RUNTIME_VERSION = dopplerPackage.version;
 export const DOPPLER_PACKAGE_SPEC = dopplerPackage.spec;
 export const DOPPLER_PACKAGE_TARBALL_URL = dopplerPackage.resolved;
 export const DOPPLER_PACKAGE_INTEGRITY = dopplerPackage.integrity;

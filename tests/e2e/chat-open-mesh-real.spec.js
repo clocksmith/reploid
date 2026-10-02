@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, chromium } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 
@@ -9,9 +9,12 @@ test('open chat discovers a real contributor, streams without requester weights,
   test.skip(!directory, 'DOPPLER_CHAT_MODEL_DIR must contain the exact catalog Qwen 0.8B files');
   test.setTimeout(1200000);
   const model = JSON.parse(await readFile('self/config/chat-models.json', 'utf8'))[0];
-  const contexts = await Promise.all([browser.newContext(), browser.newContext(), browser.newContext()]);
+  const remote = process.env.REPLOID_EXECUTOR_WS
+    ? await chromium.connect(process.env.REPLOID_EXECUTOR_WS) : null;
+  const contexts = await Promise.all([browser.newContext(), (remote || browser).newContext(), browser.newContext()]);
   const [requester, contributor, seed] = await Promise.all(contexts.map(context => context.newPage()));
   const errors = [], requesterWeights = [], contributorOrigins = [], seedFiles = [];
+  let adapterInfo = null;
   const history = page => page.evaluate(() => JSON.parse(localStorage.getItem('reploid.chat-workspace:v1')));
   const inventory = page => page.evaluate(async () => {
     const directory = await (await navigator.storage.getDirectory()).getDirectoryHandle('reploid-chat-artifacts-v1');
@@ -52,6 +55,13 @@ test('open chat discovers a real contributor, streams without requester weights,
         quotaSize: (index === 2 ? 1536 : 320) * 1024 * 1024 });
     }
     await Promise.all([requester.goto('/'), contributor.goto('/'), seed.goto('/')]);
+    adapterInfo = await contributor.evaluate(async () => {
+      const adapter = await navigator.gpu.requestAdapter();
+      if (!adapter) throw new Error('WebGPU adapter unavailable');
+      return { vendor: adapter.info.vendor, architecture: adapter.info.architecture,
+        isFallbackAdapter: adapter.info.isFallbackAdapter, shaderF16: adapter.features.has('shader-f16') };
+    });
+    if (info.project.name === 'chromium') expect(adapterInfo.isFallbackAdapter).toBe(false);
     for (const page of [requester, contributor, seed]) {
       await page.locator('[data-chat-workspace]').waitFor();
       await expect.poll(async () => parseInt(await page.locator('[data-mesh-peers]').textContent()), { timeout: 60000 }).toBeGreaterThanOrEqual(2);
@@ -96,9 +106,39 @@ test('open chat discovers a real contributor, streams without requester weights,
     };
     await expect.poll(async () => (await executingThread()).messages.at(-1).content, { timeout: 120000 }).not.toBe('');
     await expect.poll(async () => (await executingThread()).attempts.at(-1).status, { timeout: 180000 }).toBe('completed');
-    const completed = await history(requester);
+    let completed = await history(requester);
     expect(completed.threads[0].attempts[0].execution).toMatchObject({ placement: 'peer-whole-request', modelIdentity: model.identity });
     await requester.screenshot({ path: info.outputPath('answer.png'), fullPage: true });
+    const firstThreadId = completed.threads[0].id;
+    const sendNew = async prompt => {
+      await requester.locator('[data-new-thread]').click();
+      await requester.locator('[data-composer-input]').fill(prompt);
+      await requester.locator('[data-composer-send]').click();
+      await approve(requester);
+      return (await history(requester)).threads.find(thread => thread.messages[0].content === prompt).id;
+    };
+    const lastAttempt = async id => (await history(requester)).threads.find(thread => thread.id === id).attempts.at(-1);
+    const waitCompleted = async id => expect.poll(async () => {
+      const attempt = await lastAttempt(id);
+      if (['failed', 'cancelled', 'interrupted'].includes(attempt.status)) throw new Error(attempt.error || attempt.status);
+      return attempt.status;
+    }, { timeout: 180000 }).toBe('completed');
+    const secondId = await sendNew('What is two plus two? Answer briefly.');
+    await waitCompleted(secondId);
+    await expect(contributor.locator('[data-contrib-label]')).toHaveText('Ready');
+    const cancelledId = await sendNew('Count from one to one hundred, writing every number on its own line.');
+    await expect.poll(async () => (await history(requester)).threads.find(thread => thread.id === cancelledId)
+      .messages.at(-1).content, { timeout: 120000 }).not.toBe('');
+    await requester.locator('[data-composer-stop]').click();
+    await expect.poll(async () => (await lastAttempt(cancelledId)).status).toBe('cancelled');
+    await requester.locator(`[data-thread-item-id="${firstThreadId}"]`).click();
+    await requester.locator('[data-composer-input]').fill('Say goodbye briefly.');
+    await requester.locator('[data-composer-send]').click();
+    await approve(requester);
+    await waitCompleted(firstThreadId);
+    expect((await lastAttempt(secondId)).status).toBe('completed');
+    expect((await lastAttempt(cancelledId)).status).toBe('cancelled');
+    completed = await history(requester);
     // A contributor leaving never erases the completed history or changes models.
     await contributor.locator('[data-toggle-contribution]').click();
     await expect(requester.locator('[data-composer-send]')).toBeDisabled();
@@ -113,8 +153,8 @@ test('open chat discovers a real contributor, streams without requester weights,
     expect(acquired.some(file => file.name.startsWith('blake3-'))).toBe(true);
     expect(errors).toEqual([]);
     await info.attach('open-mesh-real.json', { contentType: 'application/json', body: JSON.stringify({
-      physicalDevices: 1, browserContexts: 3, actualInference: true, origin: 'identified local seed bytes; executor origin blocked',
-      automaticDiscovery: true, completed, acquired, storage, configuredExecutorQuotaBytes: 320 * 1024 * 1024,
+      physicalDevices: remote ? 2 : 1, browserContexts: 3, actualInference: true, origin: 'identified local seed bytes; executor origin blocked',
+      automaticDiscovery: true, adapterInfo, completed, acquired, storage, configuredExecutorQuotaBytes: 320 * 1024 * 1024,
       requesterWeights, contributorOrigins, seedFiles, errors
     }, null, 2) });
   } finally {
@@ -129,9 +169,10 @@ test('open chat discovers a real contributor, streams without requester weights,
       })); } catch (error) { return { diagnosticsError: error.message }; }
     }));
     await info.attach('state-at-exit.json', { contentType: 'application/json', body: JSON.stringify({
-      physicalDevices: 1, browserContexts: 3, browser: browser.version(), modelIdentity: model.identity,
+      physicalDevices: remote ? 2 : 1, browserContexts: 3, adapterInfo, browser: browser.version(), modelIdentity: model.identity,
       states, requesterWeights, contributorOrigins, seedFiles, errors
     }, null, 2) });
     await Promise.all(contexts.map(context => context.close()));
+    await remote?.close();
   }
 });

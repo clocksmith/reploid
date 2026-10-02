@@ -7,7 +7,7 @@ async function installFixture(page) {
     const { renderConversationWorkspace, bindConversationWorkspace } = await import('/ui/pool-home/conversation-workspace.js');
     const root = document.querySelector('.pool-route-content');
     root.innerHTML = renderConversationWorkspace();
-    const model = { id: 'fixture', name: 'Qwen 3.5 2B', identity: 'sha256:' + 'a'.repeat(64) };
+    const model = { id: 'fixture', name: 'Qwen 3.5 2B', identity: 'sha256:' + 'a'.repeat(64), availability: 'ready' };
     let state, listener;
     const session = {
       getState: () => state,
@@ -85,6 +85,8 @@ for (const theme of ['light', 'dark']) for (const width of [1440, 390]) {
 test('320px layout contains native inputs and allows a first message without creating a thread first', async ({ page }) => {
   await page.setViewportSize({ width: 320, height: 844 });
   await page.goto('/');
+  await page.locator('[data-composer-input]').waitFor();
+  await installFixture(page);
   await expect(page.locator('[data-composer-send]')).toBeEnabled();
   const dimensions = await page.evaluate(() => {
     const attach = document.querySelector('.chat-file-label').getBoundingClientRect();
@@ -101,16 +103,20 @@ test('browser host preserves files and followups across reload with injected exe
   const install = async () => {
     await page.locator('[data-chat-workspace]').waitFor();
     await page.evaluate(async () => {
-    const { createChatSession } = await import('/host/chat-session.js');
+    const { createChatSession, CANONICAL_CHAT_MODELS } = await import('/host/chat-session.js');
     const { renderConversationWorkspace, bindConversationWorkspace } = await import('/ui/pool-home/conversation-workspace.js');
     const service = { async open({ options, source }) {
       options.onProgress?.({ stage: 'manifest', progress: 0.05, message: 'Parsing manifest...' });
       options.onProgress?.({ stage: 'weights', progress: 0.5, message: 'Loading weights...' });
-      return { loaded: true, modelId: source, manifestHash: '502fbd6d4c9ed6a890931665995c8ebb42a30e5cda23aa2cfd8e680bee7fa5bc',
+      return { loaded: true, modelId: source, manifestHash: CANONICAL_CHAT_MODELS[0].identity.slice(7),
       resetGenerationState() {}, async *stream(messages) {
       yield { type: 'text-delta', text: 'Injected answer: ' + messages.at(-1).content };
     } }; }, async close() {} };
-    const session = createChatSession({ service, storage: localStorage });
+    // Availability is explicit test input; this fixture does not prove discovery or inference.
+    const swarm = { getState: () => ({ consumer: { peers: [{ peerId: 'fixture',
+      model: CANONICAL_CHAT_MODELS[0].id, modelIdentity: CANONICAL_CHAT_MODELS[0].identity,
+      readiness: 'ready', hasInference: true, availableSlots: 1 }] } }) };
+    const session = createChatSession({ service, swarm, storage: localStorage });
     const root = document.querySelector('.pool-route-content'); root.innerHTML = renderConversationWorkspace();
     bindConversationWorkspace(root, { ...session, createThread: options => session.createThread({ ...options, sharingScope: 'local' }) });
     });
@@ -131,7 +137,8 @@ test('browser host preserves files and followups across reload with injected exe
 });
 
 test('Verification Worker accepts repaired application modules', async ({ page }) => {
-  const paths = ['ui/pool-home/conversation-workspace.js', 'ui/pool-home/index.js', 'host/chat-session.js'];
+  const paths = ['ui/pool-home/conversation-workspace.js', 'ui/pool-home/index.js', 'host/chat-session.js',
+    'config/doppler-local-models.js'];
   const snapshot = Object.fromEntries(await Promise.all(paths.map(async path => ['/' + path, await readFile('self/' + path, 'utf8')])));
   await page.goto('/');
   const result = await page.evaluate(snapshot => new Promise((resolve, reject) => {

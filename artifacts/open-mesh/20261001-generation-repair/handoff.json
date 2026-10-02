@@ -1,0 +1,88 @@
+{
+  "components": [
+    "Reploid",
+    "Browser Configuration",
+    "Verification Evidence"
+  ],
+  "intent": "preserved",
+  "boundaryEffects": [
+    "Doppler package consumption: browser generation and partitions now use one pinned package",
+    "Poolday qualified Pack browser runtime remains its explicitly qualified 0.6.2"
+  ],
+  "package": {
+    "name": "doppler-gpu",
+    "version": "0.6.3-dev.split.4",
+    "spec": "file:deploy/artifacts/doppler-gpu-0.6.3-dev.split.4.tgz",
+    "resolved": "file:deploy/artifacts/doppler-gpu-0.6.3-dev.split.4.tgz",
+    "integrity": "sha512-F2lOURJGz32NMWMMnR5fDwKofQE0CDylkQb4ZvYnfTB/5ZTjjeEut23neYGG3/OUxMf9x5jrQR3vDONBmt/A7g=="
+  },
+  "dopplerCommit": "d8e763c0c1d0a64ee791042144f644525acb6d6c",
+  "actualExecution": {
+    "physicalDevices": 1,
+    "browserContexts": 3,
+    "placement": "peer-whole-request",
+    "adapter": {
+      "vendor": "apple",
+      "architecture": "metal-3",
+      "isFallbackAdapter": false,
+      "shaderF16": true
+    },
+    "originBlockedForExecutor": true,
+    "requesterWeightRequests": [],
+    "executorOriginRequests": [],
+    "storage": {
+      "quota": 335544320,
+      "usage": 139419053,
+      "usageDetails": {
+        "fileSystem": 139417172,
+        "indexedDB": 1881
+      }
+    },
+    "conversationEvidence": "open-mesh-real.json",
+    "completedReplies": [
+      "Hello! How can I help you today?",
+      "4",
+      "Goodbye!"
+    ],
+    "cancelledReply": "1",
+    "retainedWeights": "One contributor preparation precedes all four attempts; no contribution restart; later requests reuse its resident service session.",
+    "historyAfterDepartureAndReload": "passed"
+  },
+  "checks": {
+    "unit": "254 files passed, 3 skipped; 2814 tests passed, 29 skipped",
+    "browser": "7 conversation UI/host/Verification Worker checks passed; injected execution fixture is not model proof",
+    "realPeerJourney": "Passed in 6.4 minutes, final split.4 archive"
+  },
+  "nextBlockers": [
+    {
+      "boundary": "Doppler resident partition execution for this exact Qwen model",
+      "evidence": "Doppler reports/embedding-generation-repair/20261001/partition-final-package.json",
+      "failure": "assertPartitionExecutionSupported rejects linear_attention/recurrent layers before weight allocation.",
+      "remaining": "Implement and qualify recurrent state ownership, continuation/reset/cancellation for resident partitions; do not bypass the guard."
+    },
+    {
+      "boundary": "Reploid automatic partition placement",
+      "evidence": "self/ui/pool-home/index.js createChatSession supplies no partitions port",
+      "remaining": "Main-page automatic contributor discovery currently routes whole requests, not combined-capacity model execution."
+    },
+    {
+      "boundary": "Physical Mac requester/seed to Linux executor acquisition",
+      "package": "0.6.3-dev.split.3",
+      "evidence": "physical-devices-acquisition.log",
+      "failure": "600000 ms preparation deadline expired while receiving shard_00009.bin; generation never started.",
+      "remaining": "No physical multi-device generation or combined-capacity claim. Final split.4 was validated on the single-device three-context journey only."
+    }
+  ],
+  "reproduction": {
+    "peer": "DOPPLER_CHAT_MODEL_DIR=/path/to/exact/qwen-3-5-0-8b-q4k-ehaf16 npx playwright test tests/e2e/chat-open-mesh-real.spec.js --project=chromium",
+    "physical": "Same command with REPLOID_EXECUTOR_WS pointing to a Playwright Chrome server on the second device, which can reach the Reploid server at localhost:8000 through forwarding.",
+    "diagnostic": "With the Reploid server running: DOPPLER_CHAT_MODEL_DIR=/path/to/exact/model node artifacts/open-mesh/20261001-generation-repair/diagnose-installed-runtime.js",
+    "diagnosticScope": "Identical local bytes only, not peer-acquisition replacement; default SwiftShader reproduces original backend, METAL=1 selects Metal."
+  },
+  "limitations": [
+    "Interim split.2 conversation evidence is retained separately and not presented as final package evidence.",
+    "Local diagnostics verify an explicit stop-token result; the peer journey verifies complete streamed answers and settled attempt states.",
+    "The physical failure log is retained; the shared Playwright report was overwritten by another suite before its JSON attachment could be retained.",
+    "Data-channel error console messages occur during contributor departure/teardown; completed histories and isolated cancellation still pass."
+  ]
+}

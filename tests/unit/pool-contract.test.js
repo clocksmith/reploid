@@ -29,11 +29,6 @@ import {
   validateModelRuntimeCapabilities
 } from '../../self/pool/model-contract.js';
 import { verifyReceipt as verifyBrowserReceipt } from '../../self/pool/sdk.js';
-import {
-  DOPPLER_KERNEL_BASE_URL,
-  DOPPLER_MODULE_URL,
-  DOPPLER_STORAGE_TOOLING_URL
-} from '../../self/config/doppler-local-models.js';
 
 const PROTEIN_MODEL_ID = 'esm2-t12-35m-ur50d-f32-af32';
 const AMPLIFY_MODEL_ID = 'amplify-120m-f16-af32';
@@ -243,9 +238,10 @@ describe('Poolday protein-first sequence model contract', () => {
 
   it('keeps browser runtime deployment config aligned across server and browser', () => {
     expect(BROWSER_BROWSER_RUNTIME_CONFIG).toEqual(SERVER_BROWSER_RUNTIME_CONFIG);
-    expect(BROWSER_BROWSER_RUNTIME_CONFIG.dopplerModuleUrl).toBe(DOPPLER_MODULE_URL);
-    expect(BROWSER_BROWSER_RUNTIME_CONFIG.dopplerStorageModuleUrl).toBe(DOPPLER_STORAGE_TOOLING_URL);
-    expect(BROWSER_BROWSER_RUNTIME_CONFIG.dopplerKernelBaseUrl).toBe(DOPPLER_KERNEL_BASE_URL);
+    const runtimeBase = `/vendor/doppler/${BROWSER_LAUNCH_MODEL.runtimeVersion}`;
+    expect(BROWSER_BROWSER_RUNTIME_CONFIG.dopplerModuleUrl).toBe(`${runtimeBase}/src/index.js`);
+    expect(BROWSER_BROWSER_RUNTIME_CONFIG.dopplerStorageModuleUrl).toBe(`${runtimeBase}/src/tooling-exports/storage.js`);
+    expect(BROWSER_BROWSER_RUNTIME_CONFIG.dopplerKernelBaseUrl).toBe(`${runtimeBase}/src/gpu/kernels`);
     for (const env of [deploymentEnv.runtimeEnv, deploymentEnv.browserEnv]) {
       expect(env.REPLOID_DOPPLER_MODULE_URL).toBe(BROWSER_BROWSER_RUNTIME_CONFIG.dopplerModuleUrl);
       expect(env.REPLOID_DOPPLER_STORAGE_MODULE_URL).toBe(BROWSER_BROWSER_RUNTIME_CONFIG.dopplerStorageModuleUrl);
