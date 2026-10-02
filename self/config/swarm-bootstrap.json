@@ -5,6 +5,7 @@
   "path": "/swarm",
   "signalingUrl": "wss://reploid-swarm.reploid.workers.dev/swarm",
   "rtcConfigUrl": "https://reploid-swarm.reploid.workers.dev/rtc-config",
+  "rtcRefreshSkewMs": 60000,
   "autoConnect": true,
   "retryMs": [1000, 2000, 4000, 8000, 16000, 30000],
   "healthCheckMs": 10000,

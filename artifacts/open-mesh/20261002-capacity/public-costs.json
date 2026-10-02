@@ -1,0 +1,149 @@
+{
+  "scope": "Hosted ordinary UI; no token or exception debugger pauses",
+  "at": "2026-10-02T22:02:29.144Z",
+  "discoveredMs": 5964,
+  "firstAnswerMs": 4968,
+  "conversations": [
+    {
+      "prompt": "Reply with only the word Hello.",
+      "status": "completed",
+      "output": "Hello",
+      "attemptMs": 5155,
+      "steps": 2,
+      "prefillMs": 3740.899999976158,
+      "decodeMedianMs": 1095.1000000238419,
+      "computationA": {
+        "inputUploadMs": 0,
+        "encodeMs": 818.1999999284744,
+        "submitWaitMs": 32.300000071525574,
+        "activationReadbackMs": 0.3999999761581421,
+        "logitsMs": 0,
+        "logitsReadbackMs": 0,
+        "samplingMs": 0
+      },
+      "computationB": {
+        "inputUploadMs": 0,
+        "encodeMs": 188.60000038146973,
+        "submitWaitMs": 6.799999713897705,
+        "activationReadbackMs": 0,
+        "logitsMs": 0.3000001907348633,
+        "logitsReadbackMs": 2.4000000953674316,
+        "samplingMs": 3.4000000953674316
+      },
+      "transport": {
+        "authorizationMs": 0.2999999523162842,
+        "readyWaitMs": 15.700000047683716,
+        "payloadUploadMs": 0.19999992847442627,
+        "responseWaitMs": 221.80000007152557,
+        "acceptanceMs": 2,
+        "totalMs": 240
+      }
+    },
+    {
+      "prompt": "What is two plus two? Answer briefly.",
+      "status": "completed",
+      "output": "4",
+      "attemptMs": 615,
+      "steps": 2,
+      "prefillMs": 339.6999999284744,
+      "decodeMedianMs": 84.19999992847443,
+      "computationA": {
+        "inputUploadMs": 0,
+        "encodeMs": 13.799999952316284,
+        "submitWaitMs": 9.200000047683716,
+        "activationReadbackMs": 0.5999999046325684,
+        "logitsMs": 0,
+        "logitsReadbackMs": 0,
+        "samplingMs": 0
+      },
+      "computationB": {
+        "inputUploadMs": 0,
+        "encodeMs": 9.300000190734863,
+        "submitWaitMs": 7.300000190734863,
+        "activationReadbackMs": 0,
+        "logitsMs": 0.8999996185302734,
+        "logitsReadbackMs": 2.8000001907348633,
+        "samplingMs": 1.8999996185302734
+      },
+      "transport": {
+        "authorizationMs": 0.10000002384185791,
+        "readyWaitMs": 13.899999976158142,
+        "payloadUploadMs": 0.30000007152557373,
+        "responseWaitMs": 41.09999990463257,
+        "acceptanceMs": 1.100000023841858,
+        "totalMs": 56.5
+      }
+    },
+    {
+      "prompt": "Count from one to twenty, one number per line.",
+      "status": "completed",
+      "output": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20",
+      "attemptMs": 6152,
+      "steps": 51,
+      "prefillMs": 347.10000002384186,
+      "decodeMedianMs": 99.65000003576279,
+      "computationA": {
+        "inputUploadMs": 0.0,
+        "encodeMs": 14.0,
+        "submitWaitMs": 19.5,
+        "activationReadbackMs": 0.75,
+        "logitsMs": 0.0,
+        "logitsReadbackMs": 0.0,
+        "samplingMs": 0.0
+      },
+      "computationB": {
+        "inputUploadMs": 0.0,
+        "encodeMs": 5.900000095367432,
+        "submitWaitMs": 7.950000047683716,
+        "activationReadbackMs": 0.0,
+        "logitsMs": 0.5999999046325684,
+        "logitsReadbackMs": 2.8000001907348633,
+        "samplingMs": 1.5
+      },
+      "transport": {
+        "authorizationMs": 0.5,
+        "readyWaitMs": 15.949999988079071,
+        "payloadUploadMs": 0.7000000476837158,
+        "responseWaitMs": 40.55000001192093,
+        "acceptanceMs": 1.399999976158142,
+        "totalMs": 60.05000001192093
+      }
+    },
+    {
+      "prompt": "Return only the word YES.",
+      "status": "completed",
+      "output": "YES",
+      "attemptMs": 838,
+      "steps": 2,
+      "prefillMs": 323.60000002384186,
+      "decodeMedianMs": 103.80000007152557,
+      "computationA": {
+        "inputUploadMs": 0,
+        "encodeMs": 15.299999952316284,
+        "submitWaitMs": 19.299999952316284,
+        "activationReadbackMs": 0.7000000476837158,
+        "logitsMs": 0,
+        "logitsReadbackMs": 0,
+        "samplingMs": 0
+      },
+      "computationB": {
+        "inputUploadMs": 0,
+        "encodeMs": 7.800000190734863,
+        "submitWaitMs": 7.099999904632568,
+        "activationReadbackMs": 0,
+        "logitsMs": 1,
+        "logitsReadbackMs": 2.8000001907348633,
+        "samplingMs": 1.799999713897705
+      },
+      "transport": {
+        "authorizationMs": 0.5,
+        "readyWaitMs": 16.200000047683716,
+        "payloadUploadMs": 1,
+        "responseWaitMs": 43.89999997615814,
+        "acceptanceMs": 1.899999976158142,
+        "totalMs": 63.5
+      }
+    }
+  ],
+  "note": "Preparation, acquisition, queue and read timings may overlap. Response waiting includes remote authorization and computation. Per-phase medians do not necessarily sum to median totals."
+}

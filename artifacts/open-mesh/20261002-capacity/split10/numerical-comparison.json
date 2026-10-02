@@ -1,0 +1,552 @@
+[
+  {
+    "threadId": "580c20fa-5160-45ad-ac63-b675e10dd751",
+    "step": 0,
+    "tokenId": 9419,
+    "stopReason": null,
+    "length": 248320,
+    "maxDifference": 0.0007672309875488281,
+    "tolerance": 0.001,
+    "matches": true
+  },
+  {
+    "threadId": "580c20fa-5160-45ad-ac63-b675e10dd751",
+    "step": 1,
+    "tokenId": 248046,
+    "stopReason": "eos-token",
+    "length": 248320,
+    "maxDifference": 0.0017604827880859375,
+    "tolerance": 0.001,
+    "matches": false
+  },
+  {
+    "threadId": "3d60deb2-5fd2-4745-ada2-7364acc052a5",
+    "step": 0,
+    "tokenId": 19,
+    "stopReason": null,
+    "length": 248320,
+    "maxDifference": 0.0008578300476074219,
+    "tolerance": 0.001,
+    "matches": true
+  },
+  {
+    "threadId": "3d60deb2-5fd2-4745-ada2-7364acc052a5",
+    "step": 1,
+    "tokenId": 248046,
+    "stopReason": "eos-token",
+    "length": 248320,
+    "maxDifference": 0.0008554458618164062,
+    "tolerance": 0.001,
+    "matches": true
+  },
+  {
+    "threadId": "2ab27812-6385-4f40-985d-7f4178bc6fa1",
+    "step": 0,
+    "tokenId": 16,
+    "stopReason": null,
+    "length": 248320,
+    "maxDifference": 0.0007141828536987305,
+    "tolerance": 0.001,
+    "matches": true
+  },
+  {
+    "threadId": "2ab27812-6385-4f40-985d-7f4178bc6fa1",
+    "step": 1,
+    "tokenId": 198,
+    "stopReason": null,
+    "length": 248320,
+    "maxDifference": 0.0009179115295410156,
+    "tolerance": 0.001,
+    "matches": true
+  },
+  {
+    "threadId": "2ab27812-6385-4f40-985d-7f4178bc6fa1",
+    "step": 2,
+    "tokenId": 17,
+    "stopReason": null,
+    "length": 248320,
+    "maxDifference": 0.0008072853088378906,
+    "tolerance": 0.001,
+    "matches": true
+  },
+  {
+    "threadId": "2ab27812-6385-4f40-985d-7f4178bc6fa1",
+    "step": 3,
+    "tokenId": 198,
+    "stopReason": null,
+    "length": 248320,
+    "maxDifference": 0.001086592674255371,
+    "tolerance": 0.001,
+    "matches": false
+  },
+  {
+    "threadId": "2ab27812-6385-4f40-985d-7f4178bc6fa1",
+    "step": 4,
+    "tokenId": 18,
+    "stopReason": null,
+    "length": 248320,
+    "maxDifference": 0.0008547306060791016,
+    "tolerance": 0.001,
+    "matches": true
+  },
+  {
+    "threadId": "2ab27812-6385-4f40-985d-7f4178bc6fa1",
+    "step": 5,
+    "tokenId": 198,
+    "stopReason": null,
+    "length": 248320,
+    "maxDifference": 0.0008394718170166016,
+    "tolerance": 0.001,
+    "matches": true
+  },
+  {
+    "threadId": "2ab27812-6385-4f40-985d-7f4178bc6fa1",
+    "step": 6,
+    "tokenId": 19,
+    "stopReason": null,
+    "length": 248320,
+    "maxDifference": 0.0008418560028076172,
+    "tolerance": 0.001,
+    "matches": true
+  },
+  {
+    "threadId": "2ab27812-6385-4f40-985d-7f4178bc6fa1",
+    "step": 7,
+    "tokenId": 198,
+    "stopReason": null,
+    "length": 248320,
+    "maxDifference": 0.0009121894836425781,
+    "tolerance": 0.001,
+    "matches": true
+  },
+  {
+    "threadId": "2ab27812-6385-4f40-985d-7f4178bc6fa1",
+    "step": 8,
+    "tokenId": 20,
+    "stopReason": null,
+    "length": 248320,
+    "maxDifference": 0.0007996559143066406,
+    "tolerance": 0.001,
+    "matches": true
+  },
+  {
+    "threadId": "2ab27812-6385-4f40-985d-7f4178bc6fa1",
+    "step": 9,
+    "tokenId": 198,
+    "stopReason": null,
+    "length": 248320,
+    "maxDifference": 0.000727534294128418,
+    "tolerance": 0.001,
+    "matches": true
+  },
+  {
+    "threadId": "2ab27812-6385-4f40-985d-7f4178bc6fa1",
+    "step": 10,
+    "tokenId": 21,
+    "stopReason": null,
+    "length": 248320,
+    "maxDifference": 0.0008130073547363281,
+    "tolerance": 0.001,
+    "matches": true
+  },
+  {
+    "threadId": "2ab27812-6385-4f40-985d-7f4178bc6fa1",
+    "step": 11,
+    "tokenId": 198,
+    "stopReason": null,
+    "length": 248320,
+    "maxDifference": 0.001449882984161377,
+    "tolerance": 0.001,
+    "matches": false
+  },
+  {
+    "threadId": "2ab27812-6385-4f40-985d-7f4178bc6fa1",
+    "step": 12,
+    "tokenId": 22,
+    "stopReason": null,
+    "length": 248320,
+    "maxDifference": 0.0012511014938354492,
+    "tolerance": 0.001,
+    "matches": false
+  },
+  {
+    "threadId": "2ab27812-6385-4f40-985d-7f4178bc6fa1",
+    "step": 13,
+    "tokenId": 198,
+    "stopReason": null,
+    "length": 248320,
+    "maxDifference": 0.0009379386901855469,
+    "tolerance": 0.001,
+    "matches": true
+  },
+  {
+    "threadId": "2ab27812-6385-4f40-985d-7f4178bc6fa1",
+    "step": 14,
+    "tokenId": 23,
+    "stopReason": null,
+    "length": 248320,
+    "maxDifference": 0.0010880231857299805,
+    "tolerance": 0.001,
+    "matches": false
+  },
+  {
+    "threadId": "2ab27812-6385-4f40-985d-7f4178bc6fa1",
+    "step": 15,
+    "tokenId": 198,
+    "stopReason": null,
+    "length": 248320,
+    "maxDifference": 0.0013098716735839844,
+    "tolerance": 0.001,
+    "matches": false
+  },
+  {
+    "threadId": "2ab27812-6385-4f40-985d-7f4178bc6fa1",
+    "step": 16,
+    "tokenId": 24,
+    "stopReason": null,
+    "length": 248320,
+    "maxDifference": 0.0009696483612060547,
+    "tolerance": 0.001,
+    "matches": true
+  },
+  {
+    "threadId": "2ab27812-6385-4f40-985d-7f4178bc6fa1",
+    "step": 17,
+    "tokenId": 198,
+    "stopReason": null,
+    "length": 248320,
+    "maxDifference": 0.0010714530944824219,
+    "tolerance": 0.001,
+    "matches": false
+  },
+  {
+    "threadId": "2ab27812-6385-4f40-985d-7f4178bc6fa1",
+    "step": 18,
+    "tokenId": 16,
+    "stopReason": null,
+    "length": 248320,
+    "maxDifference": 0.0008940696716308594,
+    "tolerance": 0.001,
+    "matches": true
+  },
+  {
+    "threadId": "2ab27812-6385-4f40-985d-7f4178bc6fa1",
+    "step": 19,
+    "tokenId": 15,
+    "stopReason": null,
+    "length": 248320,
+    "maxDifference": 0.0007740259170532227,
+    "tolerance": 0.001,
+    "matches": true
+  },
+  {
+    "threadId": "2ab27812-6385-4f40-985d-7f4178bc6fa1",
+    "step": 20,
+    "tokenId": 198,
+    "stopReason": null,
+    "length": 248320,
+    "maxDifference": 0.001107722520828247,
+    "tolerance": 0.001,
+    "matches": false
+  },
+  {
+    "threadId": "2ab27812-6385-4f40-985d-7f4178bc6fa1",
+    "step": 21,
+    "tokenId": 16,
+    "stopReason": null,
+    "length": 248320,
+    "maxDifference": 0.0008306503295898438,
+    "tolerance": 0.001,
+    "matches": true
+  },
+  {
+    "threadId": "2ab27812-6385-4f40-985d-7f4178bc6fa1",
+    "step": 22,
+    "tokenId": 16,
+    "stopReason": null,
+    "length": 248320,
+    "maxDifference": 0.0006923675537109375,
+    "tolerance": 0.001,
+    "matches": true
+  },
+  {
+    "threadId": "2ab27812-6385-4f40-985d-7f4178bc6fa1",
+    "step": 23,
+    "tokenId": 198,
+    "stopReason": null,
+    "length": 248320,
+    "maxDifference": 0.0006756037473678589,
+    "tolerance": 0.001,
+    "matches": true
+  },
+  {
+    "threadId": "2ab27812-6385-4f40-985d-7f4178bc6fa1",
+    "step": 24,
+    "tokenId": 16,
+    "stopReason": null,
+    "length": 248320,
+    "maxDifference": 0.0006780624389648438,
+    "tolerance": 0.001,
+    "matches": true
+  },
+  {
+    "threadId": "2ab27812-6385-4f40-985d-7f4178bc6fa1",
+    "step": 25,
+    "tokenId": 17,
+    "stopReason": null,
+    "length": 248320,
+    "maxDifference": 0.000614166259765625,
+    "tolerance": 0.001,
+    "matches": true
+  },
+  {
+    "threadId": "2ab27812-6385-4f40-985d-7f4178bc6fa1",
+    "step": 26,
+    "tokenId": 198,
+    "stopReason": null,
+    "length": 248320,
+    "maxDifference": 0.001009225845336914,
+    "tolerance": 0.001,
+    "matches": false
+  },
+  {
+    "threadId": "2ab27812-6385-4f40-985d-7f4178bc6fa1",
+    "step": 27,
+    "tokenId": 16,
+    "stopReason": null,
+    "length": 248320,
+    "maxDifference": 0.0018301010131835938,
+    "tolerance": 0.001,
+    "matches": false
+  },
+  {
+    "threadId": "2ab27812-6385-4f40-985d-7f4178bc6fa1",
+    "step": 28,
+    "tokenId": 18,
+    "stopReason": null,
+    "length": 248320,
+    "maxDifference": 0.0036873817443847656,
+    "tolerance": 0.001,
+    "matches": false
+  },
+  {
+    "threadId": "2ab27812-6385-4f40-985d-7f4178bc6fa1",
+    "step": 29,
+    "tokenId": 198,
+    "stopReason": null,
+    "length": 248320,
+    "maxDifference": 0.0014581680297851562,
+    "tolerance": 0.001,
+    "matches": false
+  },
+  {
+    "threadId": "2ab27812-6385-4f40-985d-7f4178bc6fa1",
+    "step": 30,
+    "tokenId": 16,
+    "stopReason": null,
+    "length": 248320,
+    "maxDifference": 0.001130819320678711,
+    "tolerance": 0.001,
+    "matches": false
+  },
+  {
+    "threadId": "2ab27812-6385-4f40-985d-7f4178bc6fa1",
+    "step": 31,
+    "tokenId": 19,
+    "stopReason": null,
+    "length": 248320,
+    "maxDifference": 0.00299072265625,
+    "tolerance": 0.001,
+    "matches": false
+  },
+  {
+    "threadId": "2ab27812-6385-4f40-985d-7f4178bc6fa1",
+    "step": 32,
+    "tokenId": 198,
+    "stopReason": null,
+    "length": 248320,
+    "maxDifference": 0.0007756948471069336,
+    "tolerance": 0.001,
+    "matches": true
+  },
+  {
+    "threadId": "2ab27812-6385-4f40-985d-7f4178bc6fa1",
+    "step": 33,
+    "tokenId": 16,
+    "stopReason": null,
+    "length": 248320,
+    "maxDifference": 0.0012841224670410156,
+    "tolerance": 0.001,
+    "matches": false
+  },
+  {
+    "threadId": "2ab27812-6385-4f40-985d-7f4178bc6fa1",
+    "step": 34,
+    "tokenId": 20,
+    "stopReason": null,
+    "length": 248320,
+    "maxDifference": 0.0020918846130371094,
+    "tolerance": 0.001,
+    "matches": false
+  },
+  {
+    "threadId": "2ab27812-6385-4f40-985d-7f4178bc6fa1",
+    "step": 35,
+    "tokenId": 198,
+    "stopReason": null,
+    "length": 248320,
+    "maxDifference": 0.0007300376892089844,
+    "tolerance": 0.001,
+    "matches": true
+  },
+  {
+    "threadId": "2ab27812-6385-4f40-985d-7f4178bc6fa1",
+    "step": 36,
+    "tokenId": 16,
+    "stopReason": null,
+    "length": 248320,
+    "maxDifference": 0.0010607242584228516,
+    "tolerance": 0.001,
+    "matches": false
+  },
+  {
+    "threadId": "2ab27812-6385-4f40-985d-7f4178bc6fa1",
+    "step": 37,
+    "tokenId": 21,
+    "stopReason": null,
+    "length": 248320,
+    "maxDifference": 0.0012519359588623047,
+    "tolerance": 0.001,
+    "matches": false
+  },
+  {
+    "threadId": "2ab27812-6385-4f40-985d-7f4178bc6fa1",
+    "step": 38,
+    "tokenId": 198,
+    "stopReason": null,
+    "length": 248320,
+    "maxDifference": 0.000972747802734375,
+    "tolerance": 0.001,
+    "matches": true
+  },
+  {
+    "threadId": "2ab27812-6385-4f40-985d-7f4178bc6fa1",
+    "step": 39,
+    "tokenId": 16,
+    "stopReason": null,
+    "length": 248320,
+    "maxDifference": 0.0007466673851013184,
+    "tolerance": 0.001,
+    "matches": true
+  },
+  {
+    "threadId": "2ab27812-6385-4f40-985d-7f4178bc6fa1",
+    "step": 40,
+    "tokenId": 22,
+    "stopReason": null,
+    "length": 248320,
+    "maxDifference": 0.001529693603515625,
+    "tolerance": 0.001,
+    "matches": false
+  },
+  {
+    "threadId": "2ab27812-6385-4f40-985d-7f4178bc6fa1",
+    "step": 41,
+    "tokenId": 198,
+    "stopReason": null,
+    "length": 248320,
+    "maxDifference": 0.0011510848999023438,
+    "tolerance": 0.001,
+    "matches": false
+  },
+  {
+    "threadId": "2ab27812-6385-4f40-985d-7f4178bc6fa1",
+    "step": 42,
+    "tokenId": 16,
+    "stopReason": null,
+    "length": 248320,
+    "maxDifference": 0.0013594627380371094,
+    "tolerance": 0.001,
+    "matches": false
+  },
+  {
+    "threadId": "2ab27812-6385-4f40-985d-7f4178bc6fa1",
+    "step": 43,
+    "tokenId": 23,
+    "stopReason": null,
+    "length": 248320,
+    "maxDifference": 0.0016279220581054688,
+    "tolerance": 0.001,
+    "matches": false
+  },
+  {
+    "threadId": "2ab27812-6385-4f40-985d-7f4178bc6fa1",
+    "step": 44,
+    "tokenId": 198,
+    "stopReason": null,
+    "length": 248320,
+    "maxDifference": 0.0008761882781982422,
+    "tolerance": 0.001,
+    "matches": true
+  },
+  {
+    "threadId": "2ab27812-6385-4f40-985d-7f4178bc6fa1",
+    "step": 45,
+    "tokenId": 16,
+    "stopReason": null,
+    "length": 248320,
+    "maxDifference": 0.0011101961135864258,
+    "tolerance": 0.001,
+    "matches": false
+  },
+  {
+    "threadId": "2ab27812-6385-4f40-985d-7f4178bc6fa1",
+    "step": 46,
+    "tokenId": 24,
+    "stopReason": null,
+    "length": 248320,
+    "maxDifference": 0.0012950897216796875,
+    "tolerance": 0.001,
+    "matches": false
+  },
+  {
+    "threadId": "2ab27812-6385-4f40-985d-7f4178bc6fa1",
+    "step": 47,
+    "tokenId": 198,
+    "stopReason": null,
+    "length": 248320,
+    "maxDifference": 0.0009088516235351562,
+    "tolerance": 0.001,
+    "matches": true
+  },
+  {
+    "threadId": "2ab27812-6385-4f40-985d-7f4178bc6fa1",
+    "step": 48,
+    "tokenId": 17,
+    "stopReason": null,
+    "length": 248320,
+    "maxDifference": 0.0009222030639648438,
+    "tolerance": 0.001,
+    "matches": true
+  },
+  {
+    "threadId": "2ab27812-6385-4f40-985d-7f4178bc6fa1",
+    "step": 49,
+    "tokenId": 15,
+    "stopReason": null,
+    "length": 248320,
+    "maxDifference": 0.0007081031799316406,
+    "tolerance": 0.001,
+    "matches": true
+  },
+  {
+    "threadId": "2ab27812-6385-4f40-985d-7f4178bc6fa1",
+    "step": 50,
+    "tokenId": 248046,
+    "stopReason": "eos-token",
+    "length": 248320,
+    "maxDifference": 0.0012650489807128906,
+    "tolerance": 0.001,
+    "matches": false
+  }
+]

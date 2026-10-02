@@ -62,6 +62,7 @@ try {
     if (new URL(response.url()).pathname !== '/rtc-config') return;
     const receipt = await response.json().catch(() => null);
     console.log(JSON.stringify({ event: 'relay-credentials', status: response.status(),
+      receivedAt: new Date().toISOString(), issuedAt: receipt?.issuedAt ?? null,
       expiresAt: receipt?.expiresAt ?? null }));
   });
   const response = await context.request.get(new URL('/config/chat-models.json', url).href);
@@ -90,7 +91,7 @@ try {
   console.log(JSON.stringify({ event: 'contribution-authorized', url: url.href, model: selected.id,
     modelIdentity: selected.identity, contribution: values.contribute, profile }));
   const identity = await page.evaluate(() => Object.keys(localStorage)
-    .filter(key => key.includes('work-swarm:') && key.endsWith('REPLOID_SELF_IDENTITY_V1'))
+    .filter(key => key.includes('work-swarm') && key.endsWith('REPLOID_SELF_IDENTITY_V1'))
     .map(key => JSON.parse(localStorage.getItem(key)))
     .sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)))
     .map(({ peerId }) => ({ peerId })));

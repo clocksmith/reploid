@@ -5,11 +5,9 @@ import {
   getPoolRtcConfig
 } from '../../self/pool/rtc-config.js';
 
-describe('Pool browser RTC configuration', () => {
-  beforeEach(() => {
-    clearPoolRtcConfigCache();
-  });
+beforeEach(() => { clearPoolRtcConfigCache(); });
 
+describe('Pool browser RTC configuration', () => {
   it('caches unexpired authenticated configuration and can force relay policy', async () => {
     const rtcConfig = {
       iceTransportPolicy: 'all',
@@ -45,6 +43,16 @@ describe('Pool browser RTC configuration', () => {
       sdk,
       now: () => Date.parse('2026-07-28T12:00:00.000Z')
     })).rejects.toThrow('valid future expiry');
+  });
+
+  it('renews with a full heartbeat remaining even when credential issuance follows a tick', async () => {
+    let clock = 100000;
+    const sdk = { rtcConfig: vi.fn(async () => ({ expiresAt: new Date(clock + 600000).toISOString(),
+      rtcConfig: { iceServers: [] } })) };
+    await getPoolRtcConfig({ sdk, now: () => clock });
+    clock += 540001;
+    await getPoolRtcConfig({ sdk, now: () => clock });
+    expect(sdk.rtcConfig).toHaveBeenCalledTimes(2);
   });
 });
 

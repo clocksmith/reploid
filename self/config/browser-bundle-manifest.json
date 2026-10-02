@@ -1345,8 +1345,8 @@
     },
     {
       "path": "config/swarm-bootstrap.json",
-      "byteLength": 909,
-      "sha256": "sha256:4b308abe1270b1ee51891dab9fc73ac8b71ab9a3a62d8e7a601f4ac10877d4ca"
+      "byteLength": 938,
+      "sha256": "sha256:80cfe0e442e874c722be0eda7b734c86c7b592642d091876208b8d4e20b20325"
     },
     {
       "path": "config/tool-surfaces.js",
@@ -2585,8 +2585,8 @@
     },
     {
       "path": "pool/rtc-config.js",
-      "byteLength": 1916,
-      "sha256": "sha256:0bf1dc1f847c15bec351f6291000b861de7a157b0590c2d7e2b1ec982964d51d"
+      "byteLength": 2202,
+      "sha256": "sha256:e30de00d1d6c373327e4afae7236d380a27c5085464b45c9af411aea206b2ab9"
     },
     {
       "path": "pool/runtime-profile.js",
@@ -51189,5 +51189,5 @@
       "sha256": "sha256:ca1208dd2f96d1b7ffb5464c7676a22aa849ec31936abde0809fc208bbd971c9"
     }
   ],
-  "bundleHash": "sha256:0014f89b6d96368ef3dbb7ae8b812d1b984a3979010585b7514170376399dd88"
+  "bundleHash": "sha256:6a453b68fc912b013baff60edfe4b64ab869254028de8ff7cc3a9ce4f0577ee1"
 }
