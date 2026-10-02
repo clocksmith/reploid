@@ -1,0 +1,33 @@
+{
+  "at": "2026-10-02T22:19:05.347166+00:00",
+  "services": {
+    "id.replo.mesh-files": [
+      "state = running",
+      "runs = 1",
+      "pid = 67590",
+      "last exit code = (never exited)",
+      "state = active",
+      "state = active"
+    ],
+    "id.replo.mesh-compute": [
+      "state = running",
+      "runs = 1",
+      "pid = 67592",
+      "last exit code = (never exited)",
+      "state = active",
+      "state = active"
+    ],
+    "linux": [
+      "ActiveState=active",
+      "SubState=running",
+      "MainPID=3094599",
+      "Linger=yes"
+    ]
+  },
+  "stopCommands": {
+    "macFiles": "launchctl bootout gui/501/id.replo.mesh-files",
+    "macCompute": "launchctl bootout gui/501/id.replo.mesh-compute",
+    "linuxCompute": "systemctl --user stop reploid-mesh.service"
+  },
+  "restartIncident": "Mac launchctl immediate bootstrap after bootout returned error 5; bootstrap succeeded after teardown completed. Fresh public test then passed."
+}

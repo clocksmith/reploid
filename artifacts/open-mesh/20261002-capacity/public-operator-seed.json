@@ -8,6 +8,10 @@
     "profile": "/Users/xyz/Library/Application Support/Reploid/public-files"
   },
   {
+    "event": "participant",
+    "identities": []
+  },
+  {
     "event": "relay-credentials",
     "status": 200,
     "expiresAt": "2026-10-02T22:04:49.026Z"
@@ -31,5 +35,36 @@
     "event": "relay-credentials",
     "status": 200,
     "expiresAt": "2026-10-02T22:14:19.249Z"
+  },
+  {
+    "event": "relay-credentials",
+    "status": 200,
+    "receivedAt": "2026-10-02T22:16:32.299Z",
+    "issuedAt": "2026-10-02T22:16:32.177Z",
+    "expiresAt": "2026-10-02T22:26:32.177Z"
+  },
+  {
+    "event": "contribution-authorized",
+    "url": "https://replo.id/",
+    "model": "qwen-3-5-0-8b-q4k-ehaf16",
+    "modelIdentity": "sha256:edeb69dd65cbb26971abf773a95bf6dc219a82942c0951d65e1893d442b607c9",
+    "contribution": "files",
+    "profile": "/Users/xyz/Library/Application Support/Reploid/public-files"
+  },
+  {
+    "event": "participant",
+    "identities": [
+      {
+        "peerId": "peer:078122faabd79ee60b4ab5a5"
+      },
+      {
+        "peerId": "peer:04d9634060a402a70ae740cb"
+      }
+    ]
+  },
+  {
+    "phase": "Sharing",
+    "progress": "",
+    "error": ""
   }
 ]

@@ -1,5 +1,5 @@
 {
-  "status": "capacity and replica recovery passed; extended cross-device numerical gate failed; public qualification in progress",
+  "status": "capacity, replica recovery and public fresh-browser journeys passed; extended cross-device numerical gate failed",
   "package": {
     "name": "doppler-gpu",
     "version": "0.6.3-dev.split.10",
@@ -127,5 +127,38 @@
     ],
     "intent": "preserved",
     "boundaryEffects": "Doppler still owns model computation; Reploid owns discovery, placement, grants, custody, recovery and presentation."
+  },
+  "sourceCommits": {
+    "reploid": "56aa4eb4",
+    "doppler": "a26a292a"
+  },
+  "public": {
+    "url": "https://replo.id/",
+    "currentDeploymentReceipt": "public-final/public-answer.json",
+    "hostingReceipt": "public-hosting-final.json",
+    "firstAnswerMs": 3970,
+    "discoveredMs": 3924,
+    "completedConversations": 4,
+    "requesterModelDownloads": 0,
+    "errors": 0,
+    "credentialExpiryJourney": "public-after-expiry/public-answer.json",
+    "operators": "Mac launchd file seed + compute; Linux systemd user compute with linger enabled",
+    "availabilityLimit": "Depends on these two hosts remaining online; no availability SLA qualified."
+  },
+  "performance": {
+    "phaseCosts": "public-costs.json",
+    "custodyComparison": "custody-throughput-retained.json",
+    "transferMedianReductionPercent": 41.1,
+    "scope": "4 MiB transfer on the same retained physical WebRTC connection, six samples per one/two-chunk window; not an end-to-end answer speedup."
+  },
+  "acceptance": {
+    "dopplerUnitFilesPassed": 883,
+    "dopplerPackageSmokeFiles": 1887,
+    "dopplerPublicTypeScriptExports": 31,
+    "reploidUnitTestsPassed": 2401,
+    "reploidUnitTestsSkipped": 18,
+    "latestRelayMarginFocusedTestsPassed": 5,
+    "publicBrowserJourneysPassed": 3,
+    "physicalExtendedSuite": "failed only extended cross-device logit tolerance; capacity and recovery receipts saved before assertion"
   }
 }
