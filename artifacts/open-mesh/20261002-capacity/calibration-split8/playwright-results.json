@@ -1,0 +1,799 @@
+{
+  "config": {
+    "configFile": "/Users/xyz/deco/reploid/playwright.config.js",
+    "rootDir": "/Users/xyz/deco/reploid/tests/e2e",
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/Users/xyz/deco/reploid/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "chromium",
+        "name": "chromium",
+        "testDir": "/Users/xyz/deco/reploid/tests/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 300000
+      },
+      {
+        "outputDir": "/Users/xyz/deco/reploid/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "chromium-swiftshader",
+        "name": "chromium-swiftshader",
+        "testDir": "/Users/xyz/deco/reploid/tests/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 300000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "html",
+        {
+          "open": "never"
+        }
+      ],
+      [
+        "json",
+        {
+          "outputFile": "test-results/e2e-results.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "runAgents": "none",
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.58.0",
+    "workers": 1,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "chat-cooperative-real.spec.js",
+      "file": "chat-cooperative-real.spec.js",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "one model executes cooperatively on discovered physical peers from selectively acquired pieces",
+          "ok": false,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 300000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "chromium",
+              "projectName": "chromium",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "failed",
+                  "duration": 0,
+                  "error": {
+                    "message": "Error: worker process exited unexpectedly (code=null, signal=SIGKILL)"
+                  },
+                  "errors": [
+                    {
+                      "message": "Error: worker process exited unexpectedly (code=null, signal=SIGKILL)"
+                    }
+                  ],
+                  "stdout": [
+                    {
+                      "text": "Exact catalog files cached by the consenting seed \u001b[33m20\u001b[39m\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Sharing'\u001b[39m,\n  progress: \u001b[32m'Waiting for another contributor'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m2249\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m368\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving from peers: qwen-0-8b-pieces.json'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m216871\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m214990\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 0 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m251418\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m249537\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 4 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m4446010\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m4444129\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 8 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m9340762\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m9338881\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 12 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m13535354\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m13533473\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 16 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m17729946\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m17728065\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 20 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m21924538\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m21922657\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 24 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m26119130\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m26117249\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 28 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m30313722\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m30311841\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 32 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m34508314\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m34506433\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 36 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m38702906\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m38701025\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 40 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m42897498\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m42895617\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 44 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m47354622\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m47352741\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 48 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m51286682\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m51284801\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 52 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m55481274\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m55479393\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 56 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m59675866\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m59673985\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 60 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m63870458\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m63868577\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 64 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m68065050\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m68063169\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 68 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m72259642\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m72257761\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 72 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m76454234\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m76452353\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 76 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m80648826\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m80646945\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 80 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m84843418\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m84841537\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 84 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m89038010\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m89036129\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 88 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m93232602\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m93230721\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 92 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m97427194\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m97425313\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 96 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m101621786\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m101619905\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 100 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m105816378\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m105814497\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 104 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m110010970\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m110009089\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 108 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m114205562\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m114203681\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 112 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m118400154\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m118398273\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 116 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m122594746\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m122592865\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 120 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m126789338\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m126787457\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 124 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m130983930\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m130982049\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 128 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m135966293\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m135964412\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 132 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m139373114\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m139371233\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 136 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m143567706\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m143565825\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 140 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m147762298\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m147760417\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 144 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m151956890\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m151955009\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 148 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m156151482\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m156149601\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 152 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m160608606\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m160606725\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 156 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m164540666\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m164538785\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 160 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m168735258\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m168733377\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 164 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m172929850\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m172927969\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 168 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m177124442\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m177122561\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 172 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m181319034\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m181317153\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 176 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m185776158\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m185774277\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 180 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m189970750\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m189968869\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 184 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m196003073\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m196001192\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 188 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m198097402\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m198095521\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 192 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m199686159\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m199684278\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 196 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m197848429\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m197846548\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 200 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m198460933\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m198459052\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 204 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m197148269\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m197146388\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 208 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m198723466\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m198721585\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 212 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m197148269\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m197146388\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 216 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m199773598\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m199771717\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 220 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m197935867\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m197933986\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 224 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m198723466\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m198721585\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 228 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m197148269\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m197146388\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 232 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m197935867\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m197933986\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 236 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m197148269\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m197146388\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 240 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m198198400\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m198196519\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 244 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m197148269\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m197146388\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 248 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m198460933\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m198459052\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 252 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m197148269\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m197146388\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 256 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m199248532\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m199246651\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 260 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m197410801\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m197408920\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 264 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m198723466\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m198721585\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 268 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m197148269\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m197146388\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 272 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m198985999\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m198984118\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 276 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m197148269\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m197146388\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 280 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m198198400\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m198196519\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 284 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m197148269\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m197146388\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 288 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m197148269\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m197146388\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 292 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m197410801\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m197408920\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 296 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m198460933\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m198459052\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 300 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m199248532\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m199246651\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 304 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m197148269\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m197146388\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 308 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m199511065\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m199509184\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 312 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m197673334\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m197671453\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 316 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m197148269\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m197146388\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 320 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m198460933\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m198459052\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 324 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m197148269\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m197146388\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 328 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m197148269\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m197146388\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 332 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m197148269\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m197146388\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 336 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m198198400\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m198196519\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 340 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m197935867\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m197933986\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 344 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m197410801\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m197408920\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 348 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m198460933\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m198459052\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 352 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m198198400\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m198196519\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 356 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m197673334\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m197671453\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 360 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m198198400\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m198196519\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 364 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m197673334\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m197671453\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 368 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m197410801\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m197408920\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 372 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m197148269\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m197146388\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 376 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m197148269\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m197146388\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 380 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m197673334\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m197671453\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 384 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m197148269\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m197146388\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 388 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m197148269\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m197146388\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 392 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m197148269\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m197146388\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 396 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m197410801\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m197408920\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 400 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m198985999\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m198984118\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 404 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m197148269\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m197146388\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 408 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m198460933\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m198459052\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 412 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m197148269\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m197146388\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 416 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m198460933\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m198459052\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 420 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m197148269\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m197146388\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 424 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m198460933\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m198459052\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 428 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m197148269\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m197146388\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 432 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m198723466\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m198721585\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 436 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m197148269\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m197146388\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 440 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m197148269\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m197146388\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 444 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m198985999\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m198984118\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 448 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m197410801\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m197408920\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 452 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m197148269\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m197146388\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 456 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m197673334\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m197671453\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 460 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m198723466\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m198721585\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 464 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m197148269\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m197146388\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 468 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m198198400\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m198196519\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 472 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m197148269\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m197146388\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 476 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m197148269\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m197146388\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 480 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m197673334\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m197671453\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 484 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m198198400\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m198196519\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 488 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m197148269\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m197146388\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 492 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m197148269\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m197146388\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 496 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m197148269\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m197146388\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 500 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m197935867\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m197933986\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 504 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m197148269\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m197146388\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 508 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m197673334\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m197671453\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 512 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m197673334\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m197671453\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 516 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m197148269\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m197146388\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 520 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m197410801\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m197408920\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 524 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m197148269\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m197146388\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 528 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m197410801\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m197408920\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 532 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m197935867\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m197933986\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 536 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m197673334\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m197671453\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 540 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m197148269\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m197146388\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 544 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m197148269\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m197146388\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 548 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m197148269\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m197146388\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 552 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m197148269\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m197146388\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 556 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m198460933\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m198459052\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 560 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m197410801\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m197408920\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 564 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m199511065\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m199509184\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 568 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m197148269\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m197146388\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 572 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m198985999\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m198984118\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 576 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m197148269\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m197146388\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 580 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m198985999\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m198984118\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 584 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m197148269\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m197146388\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 588 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m197410801\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m197408920\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 592 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m199773598\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m199771717\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 596 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m197148269\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m197146388\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 600 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m197148269\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m197146388\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 604 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m197410801\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m197408920\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 608 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m198985999\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m198984118\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 612 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m197148269\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m197146388\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 616 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m197935867\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m197933986\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 620 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m197148269\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m197146388\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 624 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m197410801\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m197408920\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 628 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m198460818\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m198458937\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 632 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m197148269\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m197146388\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 636 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m197148269\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m197146388\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 640 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m197148269\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m197146388\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 644 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m197148269\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m197146388\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 648 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m198460933\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m198459052\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 652 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m197148269\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m197146388\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 656 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m198723466\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m198721585\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 660 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m197148269\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m197146388\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 664 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m198985999\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m198984118\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 668 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m197410801\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m197408920\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 672 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m197148269\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m197146388\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 676 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m197935867\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m197933986\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 680 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m197148269\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m197146388\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 684 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m197935867\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m197933986\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 688 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m198985999\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m198984118\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 692 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m197148269\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m197146388\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 696 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m197935867\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m197933986\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 700 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m197148269\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m197146388\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 704 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m197673334\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m197671453\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 708 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m198460933\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m198459052\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 712 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m197148269\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m197146388\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 716 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m197148269\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m197146388\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 720 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m199248532\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m199246651\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 724 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m197410801\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m197408920\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 728 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m197148269\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m197146388\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 732 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m197148269\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m197146388\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 736 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m200036131\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m200034250\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 740 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m197673334\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m197671453\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 744 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m197148269\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m197146388\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 748 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m198460933\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m198459052\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 752 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m197148269\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m197146388\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 756 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m198460933\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m198459052\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 760 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m197148269\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m197146388\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 764 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m197935867\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m197933986\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 768 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m197148269\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m197146388\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 772 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m198985999\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m198984118\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Loading'\u001b[39m,\n  progress: \u001b[32m'Receiving required model pieces: 776 MB verified'\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m197410801\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m197408920\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Contributor acquisition {\n  phase: \u001b[32m'Ready'\u001b[39m,\n  progress: \u001b[32m''\u001b[39m,\n  error: \u001b[32m''\u001b[39m,\n  storage: {\n    quota: \u001b[33m335544320\u001b[39m,\n    usage: \u001b[33m198152269\u001b[39m,\n    usageDetails: { fileSystem: \u001b[33m198150388\u001b[39m, indexedDB: \u001b[33m1881\u001b[39m }\n  }\n}\n"
+                    },
+                    {
+                      "text": "Real contributor ready from peer files with its origin unavailable\n"
+                    },
+                    {
+                      "text": "[browser] [ERROR] [WebRTCSwarm] Data channel error with 44ad2f11-4a9e-4531-b785-8c7eab3ded9d: RTCErrorEvent\n"
+                    },
+                    {
+                      "text": "[browser] [ERROR] [WebRTCSwarm] Data channel error with 44ad2f11-4a9e-4531-b785-8c7eab3ded9d: RTCErrorEvent\n"
+                    },
+                    {
+                      "text": "[browser] [ERROR] [WebRTCSwarm] Data channel error with 67a834fd-b25a-4318-a04d-f37ab3b53bee: RTCErrorEvent\n"
+                    },
+                    {
+                      "text": "[browser] [ERROR] [WebRTCSwarm] Data channel error with 67a834fd-b25a-4318-a04d-f37ab3b53bee: RTCErrorEvent\n"
+                    },
+                    {
+                      "text": "[browser] [ERROR] [WebRTCSwarm] Data channel error with 67a834fd-b25a-4318-a04d-f37ab3b53bee: RTCErrorEvent\n"
+                    },
+                    {
+                      "text": "[browser] [ERROR] [WebRTCSwarm] Data channel error with 31b48390-f8d7-4d23-9275-2d03565cd87c: RTCErrorEvent\n"
+                    },
+                    {
+                      "text": "[browser] [ERROR] [WebRTCSwarm] Data channel error with 31b48390-f8d7-4d23-9275-2d03565cd87c: RTCErrorEvent\n"
+                    },
+                    {
+                      "text": "[browser] [ERROR] [WebRTCSwarm] Data channel error with 67a834fd-b25a-4318-a04d-f37ab3b53bee: RTCErrorEvent\n"
+                    },
+                    {
+                      "text": "[browser] [ERROR] [WebRTCSwarm] Data channel error with 31b48390-f8d7-4d23-9275-2d03565cd87c: RTCErrorEvent\n"
+                    }
+                  ],
+                  "stderr": [
+                    {
+                      "buffer": "RGVidWdnZXIgbGlzdGVuaW5nIG9uIHdzOi8vMTI3LjAuMC4xOjkyMjkvN2NjZmZlMzMtYzMxMy00NzliLWIyNjAtODVkY2JiMDNhNTQxCkZvciBoZWxwLCBzZWU6IGh0dHBzOi8vbm9kZWpzLm9yZy9lbi9kb2NzL2luc3BlY3Rvcgo="
+                    },
+                    {
+                      "buffer": "RGVidWdnZXIgYXR0YWNoZWQuCg=="
+                    },
+                    {
+                      "buffer": "RGVidWdnZXIgZW5kaW5nIG9uIHdzOi8vMTI3LjAuMC4xOjkyMjkvN2NjZmZlMzMtYzMxMy00NzliLWIyNjAtODVkY2JiMDNhNTQxCkZvciBoZWxwLCBzZWU6IGh0dHBzOi8vbm9kZWpzLm9yZy9lbi9kb2NzL2luc3BlY3Rvcgo="
+                    },
+                    {
+                      "buffer": "RGVidWdnZXIgYXR0YWNoZWQuCg=="
+                    },
+                    {
+                      "buffer": "RGVidWdnZXIgZW5kaW5nIG9uIHdzOi8vMTI3LjAuMC4xOjkyMjkvN2NjZmZlMzMtYzMxMy00NzliLWIyNjAtODVkY2JiMDNhNTQxCkZvciBoZWxwLCBzZWU6IGh0dHBzOi8vbm9kZWpzLm9yZy9lbi9kb2NzL2luc3BlY3Rvcgo="
+                    },
+                    {
+                      "buffer": "RGVidWdnZXIgYXR0YWNoZWQuCg=="
+                    },
+                    {
+                      "buffer": "RGVidWdnZXIgZW5kaW5nIG9uIHdzOi8vMTI3LjAuMC4xOjkyMjkvN2NjZmZlMzMtYzMxMy00NzliLWIyNjAtODVkY2JiMDNhNTQxCkZvciBoZWxwLCBzZWU6IGh0dHBzOi8vbm9kZWpzLm9yZy9lbi9kb2NzL2luc3BlY3Rvcgo="
+                    },
+                    {
+                      "buffer": "RGVidWdnZXIgYXR0YWNoZWQuCg=="
+                    },
+                    {
+                      "buffer": "RGVidWdnZXIgZW5kaW5nIG9uIHdzOi8vMTI3LjAuMC4xOjkyMjkvN2NjZmZlMzMtYzMxMy00NzliLWIyNjAtODVkY2JiMDNhNTQxCkZvciBoZWxwLCBzZWU6IGh0dHBzOi8vbm9kZWpzLm9yZy9lbi9kb2NzL2luc3BlY3Rvcgo="
+                    }
+                  ],
+                  "retry": 0,
+                  "startTime": "2026-10-02T20:25:33.004Z",
+                  "annotations": [],
+                  "attachments": []
+                }
+              ],
+              "status": "unexpected"
+            }
+          ],
+          "id": "03f185efff81ca791344-dd8d3499670fb89a1dc6",
+          "file": "chat-cooperative-real.spec.js",
+          "line": 10,
+          "column": 1
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-10-02T20:25:32.505Z",
+    "duration": 773878.669,
+    "expected": 0,
+    "skipped": 0,
+    "unexpected": 1,
+    "flaky": 0
+  }
+}

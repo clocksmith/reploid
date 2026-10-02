@@ -52,6 +52,8 @@ it('acquires only an authenticated range of an approved file and rejects invalid
     const bytes = f.bytes.slice(1, 4), range = { offset: 1, size: 3, identity: await sha256Hex(bytes) };
     expect(await a.acquire(f.file, { signal: new AbortController().signal, range })).toEqual(bytes);
     expect(f.receipts.at(-1).receivedBytes).toBe(3);
+    expect(f.receipts.at(-1).maxConcurrentChunks).toBe(2);
+    expect(f.receipts.at(-1).peakInFlightBytes).toBeLessThanOrEqual(4);
     expect(f.receipts.at(-1).completed[0].sizeBytes).toBe(3);
     await expect(a.acquire(f.file, { signal: new AbortController().signal,
       range: { ...range, offset: 4 } })).rejects.toThrow('Invalid verified file range');

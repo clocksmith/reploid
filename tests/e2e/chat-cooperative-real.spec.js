@@ -1,7 +1,8 @@
 import { test, expect, chromium } from '@playwright/test';
-import { readFile } from 'node:fs/promises';
+import { readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { observeCooperativePage, compareObservedLogits } from '../fixtures/cooperative-observer.js';
+import { inspectExecutorMemory, measureStandaloneDenial, routeDiagnosticModel, inspectConnections } from '../fixtures/capacity-observer.js';
 
 // Exact catalog bytes may be supplied by a local seed. The requester/executor
 // still use the normal page, real WebRTC, signed custody and installed WebGPU.
@@ -21,8 +22,11 @@ test('one model executes cooperatively on discovered physical peers from selecti
   const observations = [1, 3].map(index => ({ physicalHost: index === 1 && remote ? 'linux-128' : 'mac', loads: [], steps: [], errors: [] }));
   const reference = process.env.DOPPLER_PARTITION_REFERENCE_OUT
     ? JSON.parse(await readFile(process.env.DOPPLER_PARTITION_REFERENCE_OUT, 'utf8')) : null;
+  const replicaEnabled = process.env.REPLOID_E2E_REPLICA === '1';
+  const executorQuotaMiB = replicaEnabled ? 1536 : 320;
+  const allPages = [requester, contributor, seed, second];
   const errors = [], requesterWeights = [], contributorOrigins = [], seedFiles = [];
-  let adapterInfo = null;
+  let adapterInfo = null, replicaObservation = null;
   const history = page => page.evaluate(() => JSON.parse(localStorage.getItem('reploid.chat-workspace:v1')));
   const inventory = page => page.evaluate(async () => {
     const directory = await (await navigator.storage.getDirectory()).getDirectoryHandle('reploid-chat-artifacts-v1');
@@ -53,7 +57,8 @@ test('one model executes cooperatively on discovered physical peers from selecti
   const approve = async page => {
     await expect.poll(async () => {
       const data = await history(page);
-      const attempt = data?.threads.find(thread => thread.id === data.selectedId)?.attempts.at(-1);
+      const activeId = await page.locator('[data-thread-item-id][aria-current="true"]').getAttribute('data-thread-item-id').catch(() => null);
+      const attempt = data?.threads.find(thread => thread.id === activeId)?.attempts.at(-1);
       if (attempt?.status === 'failed') throw new Error(attempt.error);
       return await page.locator('[data-chat-approval]').isVisible();
     }, { timeout: 30000 }).toBe(true);
@@ -65,9 +70,15 @@ test('one model executes cooperatively on discovered physical peers from selecti
     // browser storage limits, not a claim about physical memory or disk capacity.
     for (const [index, page] of [requester, contributor, seed, second].entries()) {
       const cdp = await contexts[index].newCDPSession(page);
-      if ([1, 3].includes(index)) await observeCooperativePage(cdp, observations[index === 1 ? 0 : 1]);
+      if ([1, 3].includes(index)) await observeCooperativePage(cdp, observations[index === 1 ? 0 : 1], { captureLogits: !!reference,
+        maxLogitSteps: reference?.expected.reduce((sum, item) => sum + item.steps.length, 0) || 4,
+        acceptStep: async identity => {
+          const thread = (await history(requester)).threads.find(thread => thread.id === identity.threadId);
+          return thread?.attempts[0]?.id === identity.attemptId
+            && reference.prompts.some(messages => messages.at(-1).content === thread.messages[0].content);
+        } });
       await cdp.send('Storage.overrideQuotaForOrigin', { origin: new URL(info.project.use.baseURL).origin,
-        quotaSize: (index === 2 ? 1536 : 320) * 1024 * 1024 });
+        quotaSize: (index === 2 ? 1536 : executorQuotaMiB) * 1024 * 1024 });
     }
     await Promise.all([requester, contributor, seed, second].map(page => page.goto(info.project.use.baseURL)));
     adapterInfo = await contributor.evaluate(async () => {
@@ -128,13 +139,14 @@ test('one model executes cooperatively on discovered physical peers from selecti
     expect(completed.threads[0].attempts[0].execution.activationBytes).toBeGreaterThan(0);
     expect(completed.threads[0].attempts[0].execution).toMatchObject({ placement: 'two-device-layer-partition', modelIdentity: model.identity });
     await requester.screenshot({ path: info.outputPath('answer.png'), fullPage: true });
+    const connections = await Promise.all([contributor, second].map(inspectConnections));
     const firstThreadId = completed.threads[0].id;
     const sendNew = async prompt => {
       await requester.locator('[data-new-thread]').click();
       await requester.locator('[data-composer-input]').fill(prompt);
       await requester.locator('[data-composer-send]').click();
       await approve(requester);
-      return (await history(requester)).threads.find(thread => thread.messages[0].content === prompt).id;
+      return (await history(requester)).threads.at(-1).id;
     };
     const lastAttempt = async id => (await history(requester)).threads.find(thread => thread.id === id).attempts.at(-1);
     const waitCompleted = async id => expect.poll(async () => {
@@ -146,6 +158,11 @@ test('one model executes cooperatively on discovered physical peers from selecti
     await waitCompleted(secondId);
     expect((await history(requester)).threads.find(thread => thread.id === secondId).messages.at(-1).content.trim()).toBe('4');
     await expect(contributor.locator('[data-contrib-label]')).toHaveText('Ready');
+    const concurrentId = await sendNew('Count from one to twenty, one number per line.');
+    const concurrentBriefId = await sendNew('Return only the word YES.');
+    expect((await lastAttempt(concurrentId)).status).toBe('executing');
+    await Promise.all([waitCompleted(concurrentId), waitCompleted(concurrentBriefId)]);
+    const concurrent = { long: await lastAttempt(concurrentId), brief: await lastAttempt(concurrentBriefId) };
     const cancelledId = await sendNew('Count from one to one hundred, writing every number on its own line.');
     await expect.poll(async () => (await history(requester)).threads.find(thread => thread.id === cancelledId)
       .messages.at(-1).content, { timeout: 120000 }).not.toBe('');
@@ -158,6 +175,14 @@ test('one model executes cooperatively on discovered physical peers from selecti
     await waitCompleted(firstThreadId);
     expect((await lastAttempt(secondId)).status).toBe('completed');
     expect((await lastAttempt(cancelledId)).status).toBe('cancelled');
+    if (reference) {
+      for (const messages of reference.prompts.slice(2)) {
+        const id = await sendNew(messages.at(-1).content); await waitCompleted(id);
+        const thread = (await history(requester)).threads.find(thread => thread.id === id);
+        const index = reference.prompts.indexOf(messages);
+        expect(thread.messages.at(-1).content).toBe(reference.expected[index].text);
+      }
+    }
     completed = await history(requester);
     // A stopped executor settles the attempt. Retry starts from authorized input.
     const recoveryId = await sendNew('Count from one to twenty, one number per line.');
@@ -176,6 +201,68 @@ test('one model executes cooperatively on discovered physical peers from selecti
     const recovered = completed.threads.find(thread => thread.id === recoveryId);
     expect(recovered.attempts.map(attempt => attempt.status)).toEqual(['failed', 'completed']);
     expect(recovered.messages.at(-1).content).toContain('20');
+    await writeFile(info.outputPath('pair-completed.json'), JSON.stringify({
+      physicalDevices: remote ? 2 : 1, modelIdentity: model.identity, completed, concurrent,
+      memory: await Promise.all([contributor, second].map(inspectExecutorMemory)),
+      observations: observations.map(({ steps, ...device }) => ({ ...device, steps: steps.map(({ logits, ...step }) => step) })),
+      requesterWeights, contributorOrigins, seedFiles, errors
+    }, null, 2));
+    let replica = null;
+    if (replicaEnabled) {
+      const originalPlacement = recovered.attempts.at(-1).execution;
+      const bIndex = observations.findIndex(device => device.loads[0].descriptor.index === 1);
+      const bPage = [contributor, second][bIndex];
+      const bHost = bIndex === 0 ? (remote || browser) : browser;
+      // Each executor separately authorizes redistribution of retained pieces.
+      for (const executor of [contributor, second]) {
+        await executor.locator('details').filter({ has: executor.locator('[data-toggle-file-contribution]') }).locator('summary').click();
+        await executor.locator('[data-file-contribution-consent]').check();
+        await executor.locator('[data-toggle-file-contribution]').click();
+        await expect(executor.locator('[data-file-contribution-label]')).toHaveText('Sharing', { timeout: 60000 });
+      }
+      await seed.locator('[data-toggle-file-contribution]').click();
+      await expect(seed.locator('[data-file-contribution-label]')).toHaveText('Not sharing');
+      const context = await bHost.newContext(); contexts.push(context);
+      if (process.env.REPLOID_E2E_RTC_CONFIG_FILE) {
+        const rtc = JSON.parse(await readFile(process.env.REPLOID_E2E_RTC_CONFIG_FILE, 'utf8'));
+        await context.addInitScript(config => { globalThis.REPLOID_POOL_RTC_CONFIG = config; }, rtc);
+      }
+      await context.route('https://huggingface.co/**', route => route.abort('internetdisconnected'));
+      const page = await context.newPage(); allPages.push(page);
+      page.on('request', request => { if (modelRequest(request.url())) contributorOrigins.push(request.url()); });
+      page.on('pageerror', error => errors.push(error.message));
+      const observation = { physicalHost: observations[bIndex].physicalHost, loads: [], steps: [], errors: [] };
+      replicaObservation = observation;
+      const cdp = await context.newCDPSession(page);
+      await observeCooperativePage(cdp, observation, { captureLogits: false });
+      await cdp.send('Storage.overrideQuotaForOrigin', { origin: new URL(info.project.use.baseURL).origin,
+        quotaSize: executorQuotaMiB * 1024 * 1024 });
+      await page.goto(info.project.use.baseURL); await page.locator('[data-chat-workspace]').waitFor();
+      await openContribution(page);
+      await page.locator('details').filter({ has: page.locator('[data-toggle-contribution]') }).locator('summary').click();
+      await page.locator('[data-contribution-consent]').check(); await page.locator('[data-toggle-contribution]').click();
+      await expect(page.locator('[data-contrib-label]')).toHaveText('Ready', { timeout: 1800000 });
+      expect(observation.loads[0].descriptor.index).toBe(1);
+      const pinnedId = await sendNew('Reply with only the word Hello.'); await waitCompleted(pinnedId);
+      expect((await lastAttempt(pinnedId)).execution.participantB).toBe(originalPlacement.participantB);
+      const lostId = await sendNew('Count from one to twenty, one number per line.');
+      await expect.poll(async () => (await history(requester)).threads.find(thread => thread.id === lostId)
+        .messages.at(-1).content, { timeout: 120000 }).not.toBe('');
+      const lostAt = Date.now(); await bPage.locator('[data-toggle-contribution]').click();
+      await expect.poll(async () => (await lastAttempt(lostId)).status).toBe('failed');
+      await expect(requester.locator('[data-active-model-select] option:checked')).toContainText('ready');
+      await requester.locator('[data-retry-attempt]').click(); await approve(requester); await waitCompleted(lostId);
+      const replacement = await lastAttempt(lostId);
+      expect(replacement.execution.participantA).toBe(originalPlacement.participantA);
+      expect(replacement.execution.participantB).not.toBe(originalPlacement.participantB);
+      expect((await history(requester)).threads.find(thread => thread.id === lostId).attempts.map(attempt => attempt.status)).toEqual(['failed', 'completed']);
+      expect(observation.loads).toHaveLength(1);
+      replica = { observation, memory: await inspectExecutorMemory(page), recoveryMs: Date.now() - lostAt,
+        originalPlacement: { participantA: originalPlacement.participantA, participantB: originalPlacement.participantB },
+        replacementAttempt: replacement, originalSeedStoppedBeforeAcquisition: true };
+      completed = await history(requester);
+      await page.locator('[data-toggle-contribution]').click();
+    }
     const allocations = observations.map(device => device.loads[0]);
     expect(allocations.map(load => load.descriptor.layerRange).sort((a, b) => a[0] - b[0])).toEqual([[0, 11], [12, 23]]);
     const allBytes = JSON.parse(await readFile(path.join(directory, 'manifest.json'), 'utf8')).shards.reduce((sum, shard) => sum + shard.size, 0);
@@ -184,10 +271,18 @@ test('one model executes cooperatively on discovered physical peers from selecti
       expect(allocation.acquisition.pieces.some(piece => !allocations[1 - index].acquisition.pieces.includes(piece))).toBe(true);
     }
     const numerical = reference ? compareObservedLogits(observations, completed, reference, 0.001) : null;
-    if (reference) expect(numerical).toHaveLength(4);
+    if (numerical) await writeFile(info.outputPath('numerical-comparison.json'), JSON.stringify(numerical, null, 2));
+    if (reference) expect(numerical).toHaveLength(reference.expected.reduce((sum, item) => sum + item.steps.length, 0));
     expect(observations.flatMap(device => device.errors)).toEqual([]);
+    const memory = await Promise.all([contributor, second].map(inspectExecutorMemory));
+    for (const snapshot of memory) {
+      expect(snapshot.maxBytes).toBeGreaterThan(0);
+      expect(snapshot.peakBytes).toBeLessThanOrEqual(snapshot.maxBytes);
+      expect(snapshot.rejected).toBe(0);
+    }
     // A contributor leaving never erases the completed history or changes models.
-    await contributor.locator('[data-toggle-contribution]').click();
+    const stoppingPage = replicaEnabled ? [contributor, second][observations.findIndex(device => device.loads[0].descriptor.index === 0)] : contributor;
+    await stoppingPage.locator('[data-toggle-contribution]').click();
     await expect(requester.locator('[data-composer-send]')).toBeDisabled();
     await requester.reload();
     await requester.locator('[data-thread-item-id]').first().click();
@@ -196,18 +291,42 @@ test('one model executes cooperatively on discovered physical peers from selecti
     expect(contributorOrigins).toEqual([]);
     const acquired = await inventory(contributor);
     const storage = await contributor.evaluate(() => navigator.storage.estimate());
-    expect(storage.usage).toBeLessThanOrEqual(320 * 1024 * 1024);
+    expect(storage.usage).toBeLessThanOrEqual(executorQuotaMiB * 1024 * 1024);
     expect(acquired.some(file => file.name.startsWith('sha256-'))).toBe(true);
     expect(errors).toEqual([]);
+    const cooperativeReceipt = { physicalDevices: remote ? 2 : 1, browserContexts: contexts.length,
+      modelIdentity: model.identity, completed, memory, replica, concurrent, connections,
+      observations: observations.map(({ steps, ...device }) => ({ ...device, steps: steps.map(({ logits, ...step }) => step) })),
+      numerical, requesterWeights, contributorOrigins, storage, acquired, seedFiles, errors };
+    await writeFile(info.outputPath('cooperative-completed.json'), JSON.stringify(cooperativeReceipt, null, 2));
+    const standaloneDenials = [];
+    if (process.env.REPLOID_E2E_CAPACITY === '1') {
+      for (const host of [browser, remote || browser]) {
+        const diagnostic = await host.newContext();
+        try {
+          await routeDiagnosticModel(diagnostic, model, directory);
+          const page = await diagnostic.newPage(); await page.goto(info.project.use.baseURL);
+          const denial = await measureStandaloneDenial(page, model);
+          expect(denial.error).toContain('GPU memory budget exceeded');
+          expect(denial.memory.rejected).toBeGreaterThan(0);
+          expect(denial.memory.peakBytes).toBeLessThanOrEqual(denial.maxGpuBufferBytes);
+          standaloneDenials.push(denial);
+          await writeFile(info.outputPath(`standalone-denial-${standaloneDenials.length}.json`), JSON.stringify(denial, null, 2));
+        } finally { await diagnostic.close(); }
+      }
+    }
     await info.attach('open-mesh-real.json', { contentType: 'application/json', body: JSON.stringify({
-      physicalDevices: remote ? 2 : 1, browserContexts: 4, actualInference: true, origin: 'identified local seed bytes; executor origin blocked',
-      automaticDiscovery: true, adapterInfo, completed, acquired, storage, numerical,
-      observations: observations.map(({ steps, ...device }) => ({ ...device, steps: steps.map(({ logits, ...step }) => step) })), configuredExecutorQuotaBytes: 320 * 1024 * 1024,
+      physicalDevices: remote ? 2 : 1, browserContexts: contexts.length, actualInference: true, origin: 'identified local seed bytes; executor origin blocked',
+      automaticDiscovery: true, adapterInfo, completed, acquired, storage, numerical, memory, standaloneDenials, replica, concurrent, connections,
+      observations: observations.map(({ steps, ...device }) => ({ ...device, steps: steps.map(({ logits, ...step }) => step) })), configuredExecutorQuotaBytes: executorQuotaMiB * 1024 * 1024,
       requesterWeights, contributorOrigins, seedFiles, errors
     }, null, 2) });
+    // Keep independent capacity/recovery receipts even when a longer numerical
+    // comparison fails. The frozen accuracy gate remains unchanged.
+    if (numerical) expect(numerical.filter(step => !step.matches), 'Distributed numerical tolerance failures').toEqual([]);
   } finally {
     // Retain the actual failed boundary as well as successful run evidence.
-    const states = await Promise.all([requester, contributor, seed, second].map(async page => {
+    const states = await Promise.all(allPages.map(async page => {
       try { return await page.evaluate(async () => ({
         history: JSON.parse(localStorage.getItem('reploid.chat-workspace:v1')),
         error: document.querySelector('[data-network-message]')?.textContent,
@@ -217,8 +336,8 @@ test('one model executes cooperatively on discovered physical peers from selecti
       })); } catch (error) { return { diagnosticsError: error.message }; }
     }));
     await info.attach('state-at-exit.json', { contentType: 'application/json', body: JSON.stringify({
-      physicalDevices: remote ? 2 : 1, browserContexts: 4, adapterInfo, browser: browser.version(), modelIdentity: model.identity,
-      states, requesterWeights, contributorOrigins, seedFiles, errors
+      physicalDevices: remote ? 2 : 1, browserContexts: contexts.length, adapterInfo, browser: browser.version(), modelIdentity: model.identity,
+      states, replicaObservation, observations: observations.map(({ steps, ...device }) => ({ ...device, steps: steps.map(({ logits, ...step }) => step) })), requesterWeights, contributorOrigins, seedFiles, errors
     }, null, 2) });
     await Promise.all(contexts.map(context => context.close()));
     await remote?.close();

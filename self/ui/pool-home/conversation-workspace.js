@@ -128,7 +128,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl } = {}) 
       }).join('');
     }
     const attempt = thread?.attempts.at(-1), busy = state.runningIds.includes(thread?.id), execution = attempt?.execution;
-    const location = execution?.placement === 'two-device-layer-partition' ? 'This device + peer ' + execution.participantB.slice(0, 12) : execution?.peerId ? 'Peer ' + execution.peerId.slice(0, 8) : execution?.placement === 'local-webgpu' ? 'This device' : '';
+    const location = execution?.placement === 'two-device-layer-partition' ? 'Two contributors' : execution?.peerId ? 'Peer ' + execution.peerId.slice(0, 8) : execution?.placement === 'local-webgpu' ? 'This device' : '';
     find('[data-execution-state]').textContent = [location, attempt?.status].filter(Boolean).join(' · ');
     find('[data-composer-send]').hidden = busy; find('[data-composer-send]').disabled = reading || !usable || !!state.storageError;
     find('[data-composer-stop]').hidden = !busy;

@@ -236,8 +236,8 @@
     },
     {
       "path": "artifacts/custody/exchange.js",
-      "bytes": 17293,
-      "sha256": "d9712bea8fc3d6b9f36ae3b105a128ce438da8381805511adcf5d397a2393c9c"
+      "bytes": 17476,
+      "sha256": "444be6b8987a81a6ba2ff543b564a8484c28e38948b988086627440b394008b0"
     },
     {
       "path": "artifacts/custody/piece-acquisition.d.ts",
@@ -591,8 +591,8 @@
     },
     {
       "path": "mesh/partitions/automatic-partitions.js",
-      "bytes": 12462,
-      "sha256": "ed09e82c384492ae3968ab56eb9969eba14620a3fbebbc2c3c8635ee8fa93c2e"
+      "bytes": 14382,
+      "sha256": "886ca90554d58fff71febb2829bf11bb7e7074346daac4de990ba261c9083e67"
     },
     {
       "path": "mesh/partitions/partition-chat.d.ts",
@@ -661,18 +661,18 @@
     },
     {
       "path": "mesh/partitions/partition-peer.js",
-      "bytes": 9651,
-      "sha256": "03306afe8e0528dbc72515bb7f3d4dbe774d90027342e2f7aa76c34944abc3cd"
+      "bytes": 9807,
+      "sha256": "2fd7a496aca2bdb7842caced60be182d1dd8b93de21081d96abbefd695088025"
     },
     {
       "path": "mesh/partitions/partition-runner.d.ts",
-      "bytes": 5722,
-      "sha256": "714d239934b023bbd37ec3f3bb4a4cddda222d1079815468f02cfde7733108d0"
+      "bytes": 6075,
+      "sha256": "98d93744934f20744fb21e3f11fa235a3c10fdde71944dc1c83ad288f848f3a4"
     },
     {
       "path": "mesh/partitions/partition-runner.js",
-      "bytes": 15428,
-      "sha256": "8c974ba707e6aa3fd900465b580cd6aff251574f37c8c10524a6b1e850c54bf9"
+      "bytes": 15858,
+      "sha256": "79b7b9d0ffdf211c67cc2b033913f39e82bf8fe142da0f1d05007b496a73789f"
     },
     {
       "path": "mesh/partitions/partition-step-receiver.d.ts",
@@ -766,13 +766,13 @@
     },
     {
       "path": "transport/partition-data-channel.d.ts",
-      "bytes": 2067,
-      "sha256": "4b315ce98a01ce847e8d482ee024491edb81b1c9c62bee55696036f16b6e5009"
+      "bytes": 2388,
+      "sha256": "5bac9daae5704ccee53da60c14d226ecba4e6ac6c0816ce16fb16d6dc78684c8"
     },
     {
       "path": "transport/partition-data-channel.js",
-      "bytes": 13291,
-      "sha256": "4c11e4e5e654d0a37ecf9b9606d497ec6d63b7f11ed9d05a84182b1273f5411d"
+      "bytes": 14156,
+      "sha256": "3fa7644a9bb1be63a0fb08c6b43128e318ee56b9a9a8b7dcd425c78ab7a9a7ab"
     },
     {
       "path": "transport/retry-policy.d.ts",
@@ -811,8 +811,8 @@
     },
     {
       "path": "transport/swarm.js",
-      "bytes": 35626,
-      "sha256": "90bf2f894bbda3f2e42ba1acb4014472162c02e375ee45fae5dd63729249f103"
+      "bytes": 36645,
+      "sha256": "957c62ac525dfaba282e9ee9d2f5803772f8bb7e7d39e4b8b6d7e1913b29f699"
     },
     {
       "path": "transport/tool-offer-channel.d.ts",

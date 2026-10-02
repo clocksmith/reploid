@@ -3,6 +3,7 @@ import { normalizeRtcConfig } from './p2p-transport.js';
 
 const REFRESH_SKEW_MS = 30000;
 let cachedConfiguration = null;
+let pendingConfiguration = null;
 
 const cachedConfigurationIsFresh = (now) => (
   cachedConfiguration?.expiresAtMs
@@ -24,20 +25,26 @@ export async function getPoolRtcConfig({
   if (!sdk || typeof sdk.rtcConfig !== 'function') {
     throw new TypeError('Pool SDK with rtcConfig() is required');
   }
-  const payload = await sdk.rtcConfig();
-  const expiresAtMs = Date.parse(payload?.expiresAt || '');
-  if (!Number.isFinite(expiresAtMs) || expiresAtMs <= currentTime) {
-    throw new Error('Pool TURN configuration is missing a valid future expiry');
+  if (!pendingConfiguration) {
+    const pending = Promise.resolve().then(async () => {
+      const payload = await sdk.rtcConfig();
+      const expiresAtMs = Date.parse(payload?.expiresAt || '');
+      if (!Number.isFinite(expiresAtMs) || expiresAtMs <= Number(now())) {
+        throw new Error('Pool TURN configuration is missing a valid future expiry');
+      }
+      const configuration = { expiresAtMs, rtcConfig: normalizeRtcConfig(payload.rtcConfig) };
+      if (pendingConfiguration === pending) cachedConfiguration = configuration;
+      return configuration;
+    }).finally(() => { if (pendingConfiguration === pending) pendingConfiguration = null; });
+    pendingConfiguration = pending;
   }
-  cachedConfiguration = {
-    expiresAtMs,
-    rtcConfig: normalizeRtcConfig(payload.rtcConfig)
-  };
+  const configuration = await pendingConfiguration;
   return forceRelay
-    ? normalizeRtcConfig({ ...cachedConfiguration.rtcConfig, iceTransportPolicy: 'relay' })
-    : cachedConfiguration.rtcConfig;
+    ? normalizeRtcConfig({ ...configuration.rtcConfig, iceTransportPolicy: 'relay' })
+    : configuration.rtcConfig;
 }
 
 export function clearPoolRtcConfigCache() {
   cachedConfiguration = null;
+  pendingConfiguration = null;
 }

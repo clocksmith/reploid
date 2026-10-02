@@ -237,7 +237,10 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
   return Object.freeze({ getState, connect, disconnect, partitions,
     getPartitionState: () => partitionMesh?.getState() || null,
     getFileState: () => modelFiles?.getState() || { sharing: false, preparing: false },
-    async shareFiles(model, approved) { await connect({ automatic: true }); await modelFiles.share(model, approved); },
+    async shareFiles(model, approved) {
+      await connect({ automatic: true });
+      await modelFiles.share(model, approved, { retainedOnly: contribution.partition === true });
+    },
     stopFiles: () => modelFiles?.stop(),
     autoConnectEnabled: () => !closed && !paused && automaticAllowed,
     getInviteUrl: () => options.getInviteUrl(),

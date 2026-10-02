@@ -1,0 +1,189 @@
+/**
+ * GPU implementations for logits computation.
+ *
+ * Provides GPU-accelerated implementations for computing logits,
+ * including both immediate execution and recorded (batched) variants.
+ *
+ * @module inference/pipelines/text/logits/gpu
+ */
+
+import type { Tensor } from '../../../../gpu/tensor.js';
+import type { CpuWeightBuffer, CpuTensorRangeSource, SplitWeightBuffer } from '../../../../gpu/weight-buffer.js';
+import type { CommandRecorder } from '../../../../gpu/command-recorder.js';
+import type { LargeWeightConfigSchema, ProbeConfigSchema, KernelPathSchema } from '../../../../config/schema/index.js';
+import type { LogitsConfig, LogitsWeights, LogitsDebugFlags } from './types.js';
+
+/**
+ * Resolve CPU weight buffer dimensions for LM head.
+ */
+export function resolveCpuWeightDims(lmHead: CpuWeightBuffer): { vocabSize: number; hiddenSize: number };
+
+/**
+ * Calculate the maximum rows per chunk for LM head matmul.
+ */
+export function resolveLmHeadChunkRows(
+  device: GPUDevice,
+  numTokens: number,
+  hiddenSize: number,
+  config?: LargeWeightConfigSchema
+): number;
+
+/**
+ * Extract a chunk of the LM head weight matrix.
+ */
+export function extractLmHeadChunk(
+  data: Float32Array | Uint16Array | CpuTensorRangeSource,
+  layout: 'row' | 'column',
+  hiddenSize: number,
+  vocabSize: number,
+  rowOffset: number,
+  rowCount: number,
+  sourceDtype: 'f16' | 'f32' | 'bf16'
+): Promise<Float32Array>;
+
+/**
+ * Write chunk logits to the full logits buffer.
+ */
+export function writeChunkLogits(
+  target: Float32Array,
+  chunk: Float32Array,
+  numTokens: number,
+  vocabSize: number,
+  rowOffset: number,
+  rowCount: number
+): void;
+
+/**
+ * Return true when a CPU-backed LM head may be materialized as persistent split
+ * GPU sections under runtime.inference.largeWeights.gpuResidentOverrides.
+ */
+export function shouldMaterializeSplitLmHeadGPU(
+  lmHead: CpuWeightBuffer,
+  largeWeightConfig: LargeWeightConfigSchema
+): boolean;
+
+/**
+ * Compute logits using chunked GPU matmul for large LM heads.
+ *
+ * Used when LM head weights are CPU-resident and too large
+ * to fit in a single GPU buffer binding.
+ */
+export function computeChunkedLogitsGPU(
+  normedTensor: Tensor,
+  lmHead: CpuWeightBuffer,
+  numTokens: number,
+  hiddenSize: number,
+  vocabSize: number,
+  weightVocabSize: number,
+  debugProbes: ProbeConfigSchema[] | null | undefined,
+  operatorDiagnostics: unknown,
+  largeWeightConfig: LargeWeightConfigSchema,
+  kernelPath?: KernelPathSchema | null,
+  executionPolicies?: import('../../../../config/schema/execution-v1.schema.js').ExecutionV1PoliciesSchema | null
+): Promise<Float32Array>;
+
+export function computeChunkedLogitsTensorGPU(
+  normedTensor: Tensor,
+  lmHead: CpuWeightBuffer,
+  numTokens: number,
+  hiddenSize: number,
+  vocabSize: number,
+  weightVocabSize: number,
+  debugProbes: ProbeConfigSchema[] | null | undefined,
+  operatorDiagnostics: unknown,
+  largeWeightConfig: LargeWeightConfigSchema,
+  kernelPath?: KernelPathSchema | null,
+  executionPolicies?: import('../../../../config/schema/execution-v1.schema.js').ExecutionV1PoliciesSchema | null
+): Promise<Tensor>;
+
+/**
+ * Compute logits using GPU-resident split LM-head sections.
+ */
+export function computeSplitLogitsGPU(
+  normedTensor: Tensor,
+  lmHead: SplitWeightBuffer,
+  numTokens: number,
+  hiddenSize: number,
+  vocabSize: number,
+  weightVocabSize: number,
+  debugProbes: ProbeConfigSchema[] | null | undefined,
+  operatorDiagnostics: unknown,
+  kernelPath?: KernelPathSchema | null,
+  executionPolicies?: import('../../../../config/schema/execution-v1.schema.js').ExecutionV1PoliciesSchema | null
+): Promise<Float32Array>;
+
+export function computeSplitLogitsTensorGPU(
+  normedTensor: Tensor,
+  lmHead: SplitWeightBuffer,
+  numTokens: number,
+  hiddenSize: number,
+  vocabSize: number,
+  weightVocabSize: number,
+  debugProbes: ProbeConfigSchema[] | null | undefined,
+  operatorDiagnostics: unknown,
+  kernelPath?: KernelPathSchema | null,
+  executionPolicies?: import('../../../../config/schema/execution-v1.schema.js').ExecutionV1PoliciesSchema | null
+): Promise<Tensor>;
+
+/**
+ * Compute logits and return GPU buffer directly (deferred readback).
+ *
+ * This variant avoids the ~1MB readback per token, enabling GPU-side sampling.
+ * Use with runGPUSample or runArgmax to sample directly on GPU.
+ *
+ * @param hiddenStates - Hidden states from transformer [numTokens, hiddenSize]
+ * @param numTokens - Number of tokens
+ * @param weights - Final norm and LM head weights
+ * @param config - Model configuration for logits
+ * @param debugFlags - Debug flags to prevent repeated logging (optional)
+ * @returns GPU buffer containing logits [numTokens, vocabSize]
+ */
+export function computeLogitsGPU(
+  hiddenStates: GPUBuffer | Float32Array,
+  numTokens: number,
+  weights: LogitsWeights,
+  config: LogitsConfig,
+  debugFlags?: LogitsDebugFlags,
+): Promise<{ logitsBuffer: GPUBuffer; vocabSize: number; logitsDtype: 'f16' | 'f32' } | null>;
+
+/**
+ * Record logits computation (batched, no submit).
+ *
+ * This variant uses the CommandRecorder to batch logits computation with
+ * preceding layer operations, avoiding a GPU sync point.
+ *
+ * @param recorder - CommandRecorder for batched operations
+ * @param hiddenStates - Hidden states from transformer [numTokens, hiddenSize]
+ * @param numTokens - Number of tokens
+ * @param weights - Final norm and LM head weights
+ * @param config - Model configuration for logits
+ * @returns GPU buffer containing logits [numTokens, vocabSize] and vocab size
+ */
+export function recordLogitsGPU(
+  recorder: CommandRecorder,
+  hiddenStates: GPUBuffer,
+  numTokens: number,
+  weights: LogitsWeights,
+  config: LogitsConfig,
+): Promise<{ logitsBuffer: GPUBuffer; vocabSize: number; logitsDtype: 'f16' | 'f32' }>;
+
+export interface GreedyLmHeadArgmaxOptions {
+  padTokenId: number | null;
+  logitSoftcap: number;
+  outputBuffer: GPUBuffer;
+  outputIndex: number;
+}
+
+/**
+ * Record final norm plus fused LM-head argmax for strict greedy decode.
+ *
+ * Writes the selected token id into options.outputBuffer[outputIndex].
+ */
+export function recordGreedyLmHeadArgmaxGPU(
+  recorder: CommandRecorder,
+  hiddenStates: GPUBuffer,
+  numTokens: number,
+  weights: LogitsWeights,
+  config: LogitsConfig,
+  options: GreedyLmHeadArgmaxOptions,
+): Promise<GPUBuffer>;

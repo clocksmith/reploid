@@ -148,6 +148,7 @@ export function createCustodyExchange({ transport, identity, policy, ports }) {
           requester: structuredClone(message.requester), suppliers: [{ peerId: identity.peerId, publicKey: identity.publicKey }],
           indexDigest: await hash(index), limits: { maxArtifactBytes: policy.maxArtifactBytes,
             maxChunkBytes: policy.channel.maxChunkBytes, maxTransferBytes: selected.sizeBytes,
+            maxConcurrentChunks: policy.channel.maxPendingRequests,
             requestTimeoutMs: policy.channel.timeoutMs } };
         const supplier = await createSupplier({ authorization, index, peerId: identity.peerId, privateKey: identity.privateKey,
           inventory: { expiresAt: authorization.expiresAt, maxBytes: selected.sizeBytes,
@@ -202,7 +203,8 @@ export function createCustodyExchange({ transport, identity, policy, ports }) {
       try {
         store = await createStore({ authorization: grant, index: result.index, inventories: [result.inventory],
           requesterPrivateKey: identity.privateKey, requestChunk: (_, message, controls) => bus.requestChunk(message, controls),
-          checkpoints, signal: combined });
+          checkpoints, signal: combined,
+          maxConcurrentChunks: Math.min(grant.limits.maxConcurrentChunks ?? 1, policy.channel.maxPendingRequests) });
         const bytes = await store.readArtifact(declared);
         await verifyArtifact(artifact, bytes); combined.throwIfAborted();
         if (ports.commitArtifact) {

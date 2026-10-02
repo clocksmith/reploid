@@ -1,0 +1,49 @@
+{
+  "url": "https://replo.id/",
+  "at": "2026-10-02T21:46:23.995Z",
+  "package": {
+    "name": "doppler-gpu",
+    "version": "0.6.3-dev.split.10",
+    "spec": "file:deploy/artifacts/doppler-gpu-0.6.3-dev.split.10.tgz",
+    "resolved": "file:deploy/artifacts/doppler-gpu-0.6.3-dev.split.10.tgz",
+    "integrity": "sha512-eApILms57GlXr3/zVDqGhts0cobIe/p9/Qch4odhO39/ldf+NjjoHw1qfUaMwFiF5ASipoYsOxYvjgwdWCcifw=="
+  },
+  "rows": [
+    {
+      "path": "config/doppler-package.json",
+      "status": 200,
+      "exactBytes": true,
+      "sha256": "78604f3e6010e5af436cecbe8dd902cd82409c2ed704c4ca2da34068e8f758fe"
+    },
+    {
+      "path": "config/partition-policy.json",
+      "status": 200,
+      "exactBytes": true,
+      "sha256": "d8302eea503c9baeea4df3b9ab9acc4ec36b91f255dfbc498f5fa1515e0ff3ae"
+    },
+    {
+      "path": "config/browser-bundle-manifest.json",
+      "status": 200,
+      "exactBytes": true,
+      "sha256": "91a04953de23003efca66cd3378fcc94173b2cb422b93fa58d5b01cd3965f293"
+    },
+    {
+      "path": "vendor/reploid/mesh/partitions/automatic-partitions.js",
+      "status": 200,
+      "exactBytes": true,
+      "sha256": "886ca90554d58fff71febb2829bf11bb7e7074346daac4de990ba261c9083e67"
+    },
+    {
+      "path": "vendor/reploid/transport/partition-data-channel.js",
+      "status": 200,
+      "exactBytes": true,
+      "sha256": "3fa7644a9bb1be63a0fb08c6b43128e318ee56b9a9a8b7dcd425c78ab7a9a7ab"
+    },
+    {
+      "path": "pool/rtc-config.js",
+      "status": 200,
+      "exactBytes": true,
+      "sha256": "0bf1dc1f847c15bec351f6291000b861de7a157b0590c2d7e2b1ec982964d51d"
+    }
+  ]
+}

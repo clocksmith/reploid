@@ -1,4 +1,9 @@
 export type PartitionMetadata = Record<string, unknown>;
+export interface PartitionRequestTiming {
+  authorizationMs: number; readyWaitMs: number; payloadUploadMs: number;
+  /** Includes remote authorization and computation, not pure network time. */
+  responseWaitMs: number; acceptanceMs: number; totalMs: number;
+}
 export interface PartitionChannelLimits {
   maxFrameBytes: number; maxControlBytes: number; maxPayloadBytes: number;
   maxPendingBytes: number; maxPendingRequests: number; maxRequestsPerChannel: number;
@@ -28,7 +33,9 @@ export function createPartitionDataChannel(options: {
     PartitionMetadata | Promise<PartitionMetadata>;
 }): {
   /** Metadata and activation bytes are snapshotted. Abort rejects delivery, not GPU settlement. */
-  request(metadata: PartitionMetadata, bytes: Uint8Array, options?: { signal?: AbortSignal }): Promise<PartitionMetadata>;
+  request(metadata: PartitionMetadata, bytes: Uint8Array, options?: {
+    signal?: AbortSignal; onTiming?: (timing: PartitionRequestTiming) => void;
+  }): Promise<PartitionMetadata>;
   /** Abort owned deliveries. Hosts remain responsible for settling borrowed GPU attempts. */
   close(reason?: string): void;
   getReceipt(): PartitionChannelReceipt;

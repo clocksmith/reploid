@@ -4,6 +4,8 @@
   "connectTimeoutMs": 30000,
   "grantMs": 900000,
   "maxSeqLen": 4096,
+  "maxGpuBufferBytes": 1420000000,
+  "profileGpu": false,
   "limits": {
     "maxTokens": 1024,
     "maxPromptTokens": 2048,

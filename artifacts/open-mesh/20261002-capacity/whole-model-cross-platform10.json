@@ -1,0 +1,518 @@
+{
+  "scope": "Whole-model Node WebGPU diagnostic across Mac and Linux; not a browser comparison",
+  "modelIdentity": "sha256:edeb69dd65cbb26971abf773a95bf6dc219a82942c0951d65e1893d442b607c9",
+  "generation": {
+    "maxTokens": 1024,
+    "maxSeqLen": 4096,
+    "temperature": 0,
+    "topP": 1,
+    "topK": 1,
+    "repetitionPenalty": 1,
+    "repetitionPenaltyWindow": 0,
+    "presencePenalty": 0,
+    "useChatTemplate": true,
+    "suppressTokenIds": [],
+    "stopSequences": []
+  },
+  "rows": [
+    {
+      "prompt": 0,
+      "step": 0,
+      "maxDifference": 0.0007760524749755859,
+      "rmse": 0.00018747528440116637,
+      "cosine": 0.9999999973818464,
+      "sameToken": true,
+      "sameStopping": true
+    },
+    {
+      "prompt": 0,
+      "step": 1,
+      "maxDifference": 0.001739501953125,
+      "rmse": 0.0001641470073336654,
+      "cosine": 0.9999999989397348,
+      "sameToken": true,
+      "sameStopping": true
+    },
+    {
+      "prompt": 1,
+      "step": 0,
+      "maxDifference": 0.0006890296936035156,
+      "rmse": 0.0001379368695696623,
+      "cosine": 0.9999999980067257,
+      "sameToken": true,
+      "sameStopping": true
+    },
+    {
+      "prompt": 1,
+      "step": 1,
+      "maxDifference": 0.0009799003601074219,
+      "rmse": 0.00018880230906646587,
+      "cosine": 0.9999999980180709,
+      "sameToken": true,
+      "sameStopping": true
+    },
+    {
+      "prompt": 2,
+      "step": 0,
+      "maxDifference": 0.0006899833679199219,
+      "rmse": 0.00016039289974361412,
+      "cosine": 0.9999999977313367,
+      "sameToken": true,
+      "sameStopping": true
+    },
+    {
+      "prompt": 2,
+      "step": 1,
+      "maxDifference": 0.0009529590606689453,
+      "rmse": 0.00020575400610606056,
+      "cosine": 0.9999999988959722,
+      "sameToken": true,
+      "sameStopping": true
+    },
+    {
+      "prompt": 2,
+      "step": 2,
+      "maxDifference": 0.0007801055908203125,
+      "rmse": 0.00016184553532411114,
+      "cosine": 0.9999999977119111,
+      "sameToken": true,
+      "sameStopping": true
+    },
+    {
+      "prompt": 2,
+      "step": 3,
+      "maxDifference": 0.0010341405868530273,
+      "rmse": 0.000201422405643727,
+      "cosine": 0.9999999976239611,
+      "sameToken": true,
+      "sameStopping": true
+    },
+    {
+      "prompt": 2,
+      "step": 4,
+      "maxDifference": 0.0008141994476318359,
+      "rmse": 0.0001674283897851356,
+      "cosine": 0.9999999973828313,
+      "sameToken": true,
+      "sameStopping": true
+    },
+    {
+      "prompt": 2,
+      "step": 5,
+      "maxDifference": 0.0008355975151062012,
+      "rmse": 0.000167190112936965,
+      "cosine": 0.9999999988077324,
+      "sameToken": true,
+      "sameStopping": true
+    },
+    {
+      "prompt": 2,
+      "step": 6,
+      "maxDifference": 0.0008413791656494141,
+      "rmse": 0.00016031109064043724,
+      "cosine": 0.9999999977273257,
+      "sameToken": true,
+      "sameStopping": true
+    },
+    {
+      "prompt": 2,
+      "step": 7,
+      "maxDifference": 0.0008348226547241211,
+      "rmse": 0.00017349843494843123,
+      "cosine": 0.9999999987063432,
+      "sameToken": true,
+      "sameStopping": true
+    },
+    {
+      "prompt": 2,
+      "step": 8,
+      "maxDifference": 0.0008387565612792969,
+      "rmse": 0.00016493373347262888,
+      "cosine": 0.9999999976728394,
+      "sameToken": true,
+      "sameStopping": true
+    },
+    {
+      "prompt": 2,
+      "step": 9,
+      "maxDifference": 0.0007513761520385742,
+      "rmse": 0.0001511266429595722,
+      "cosine": 0.9999999989806629,
+      "sameToken": true,
+      "sameStopping": true
+    },
+    {
+      "prompt": 2,
+      "step": 10,
+      "maxDifference": 0.0007018446922302246,
+      "rmse": 0.0001492547879891392,
+      "cosine": 0.9999999979197118,
+      "sameToken": true,
+      "sameStopping": true
+    },
+    {
+      "prompt": 2,
+      "step": 11,
+      "maxDifference": 0.0015273094177246094,
+      "rmse": 0.00020947857447156746,
+      "cosine": 0.9999999979781016,
+      "sameToken": true,
+      "sameStopping": true
+    },
+    {
+      "prompt": 2,
+      "step": 12,
+      "maxDifference": 0.0010449886322021484,
+      "rmse": 0.00021152091995793726,
+      "cosine": 0.9999999958224964,
+      "sameToken": true,
+      "sameStopping": true
+    },
+    {
+      "prompt": 2,
+      "step": 13,
+      "maxDifference": 0.0011038780212402344,
+      "rmse": 0.0002063907141301794,
+      "cosine": 0.9999999981484883,
+      "sameToken": true,
+      "sameStopping": true
+    },
+    {
+      "prompt": 2,
+      "step": 14,
+      "maxDifference": 0.0011587142944335938,
+      "rmse": 0.00022020104842311315,
+      "cosine": 0.9999999958760382,
+      "sameToken": true,
+      "sameStopping": true
+    },
+    {
+      "prompt": 2,
+      "step": 15,
+      "maxDifference": 0.0012140274047851562,
+      "rmse": 0.00018175504271179157,
+      "cosine": 0.9999999985717055,
+      "sameToken": true,
+      "sameStopping": true
+    },
+    {
+      "prompt": 2,
+      "step": 16,
+      "maxDifference": 0.0009393692016601562,
+      "rmse": 0.00019839447219054576,
+      "cosine": 0.9999999966553769,
+      "sameToken": true,
+      "sameStopping": true
+    },
+    {
+      "prompt": 2,
+      "step": 17,
+      "maxDifference": 0.0011401176452636719,
+      "rmse": 0.00018510568068881006,
+      "cosine": 0.9999999987767278,
+      "sameToken": true,
+      "sameStopping": true
+    },
+    {
+      "prompt": 2,
+      "step": 18,
+      "maxDifference": 0.0008652210235595703,
+      "rmse": 0.00018570629536180712,
+      "cosine": 0.9999999973142966,
+      "sameToken": true,
+      "sameStopping": true
+    },
+    {
+      "prompt": 2,
+      "step": 19,
+      "maxDifference": 0.0007455348968505859,
+      "rmse": 0.00022192468894387,
+      "cosine": 0.9999999989082964,
+      "sameToken": true,
+      "sameStopping": true
+    },
+    {
+      "prompt": 2,
+      "step": 20,
+      "maxDifference": 0.0011355876922607422,
+      "rmse": 0.000176744202789617,
+      "cosine": 0.9999999984793156,
+      "sameToken": true,
+      "sameStopping": true
+    },
+    {
+      "prompt": 2,
+      "step": 21,
+      "maxDifference": 0.0008461475372314453,
+      "rmse": 0.00015990857638286882,
+      "cosine": 0.9999999974035252,
+      "sameToken": true,
+      "sameStopping": true
+    },
+    {
+      "prompt": 2,
+      "step": 22,
+      "maxDifference": 0.0006549358367919922,
+      "rmse": 0.00014060686962652405,
+      "cosine": 0.9999999993618146,
+      "sameToken": true,
+      "sameStopping": true
+    },
+    {
+      "prompt": 2,
+      "step": 23,
+      "maxDifference": 0.0006929785013198853,
+      "rmse": 0.00013095722209759605,
+      "cosine": 0.999999999211143,
+      "sameToken": true,
+      "sameStopping": true
+    },
+    {
+      "prompt": 2,
+      "step": 24,
+      "maxDifference": 0.000677943229675293,
+      "rmse": 0.0001482361256898442,
+      "cosine": 0.9999999982713544,
+      "sameToken": true,
+      "sameStopping": true
+    },
+    {
+      "prompt": 2,
+      "step": 25,
+      "maxDifference": 0.0006022453308105469,
+      "rmse": 0.00012183928726971082,
+      "cosine": 0.9999999994004851,
+      "sameToken": true,
+      "sameStopping": true
+    },
+    {
+      "prompt": 2,
+      "step": 26,
+      "maxDifference": 0.0010123252868652344,
+      "rmse": 0.00018250048740832373,
+      "cosine": 0.9999999986258602,
+      "sameToken": true,
+      "sameStopping": true
+    },
+    {
+      "prompt": 2,
+      "step": 27,
+      "maxDifference": 0.0017330646514892578,
+      "rmse": 0.0003393464404583823,
+      "cosine": 0.9999999902489178,
+      "sameToken": true,
+      "sameStopping": true
+    },
+    {
+      "prompt": 2,
+      "step": 28,
+      "maxDifference": 0.003689289093017578,
+      "rmse": 0.0005555588642836341,
+      "cosine": 0.999999989480541,
+      "sameToken": true,
+      "sameStopping": true
+    },
+    {
+      "prompt": 2,
+      "step": 29,
+      "maxDifference": 0.0015442371368408203,
+      "rmse": 0.0002618742684917014,
+      "cosine": 0.9999999969892239,
+      "sameToken": true,
+      "sameStopping": true
+    },
+    {
+      "prompt": 2,
+      "step": 30,
+      "maxDifference": 0.001090407371520996,
+      "rmse": 0.0002094885893994734,
+      "cosine": 0.9999999962176762,
+      "sameToken": true,
+      "sameStopping": true
+    },
+    {
+      "prompt": 2,
+      "step": 31,
+      "maxDifference": 0.0030031204223632812,
+      "rmse": 0.0004976771571300001,
+      "cosine": 0.9999999900624427,
+      "sameToken": true,
+      "sameStopping": true
+    },
+    {
+      "prompt": 2,
+      "step": 32,
+      "maxDifference": 0.0008206367492675781,
+      "rmse": 0.000163989018587333,
+      "cosine": 0.9999999987942261,
+      "sameToken": true,
+      "sameStopping": true
+    },
+    {
+      "prompt": 2,
+      "step": 33,
+      "maxDifference": 0.0012236833572387695,
+      "rmse": 0.0002198326969195314,
+      "cosine": 0.9999999957713223,
+      "sameToken": true,
+      "sameStopping": true
+    },
+    {
+      "prompt": 2,
+      "step": 34,
+      "maxDifference": 0.001987457275390625,
+      "rmse": 0.0003432870216518548,
+      "cosine": 0.9999999952521745,
+      "sameToken": true,
+      "sameStopping": true
+    },
+    {
+      "prompt": 2,
+      "step": 35,
+      "maxDifference": 0.0008606910705566406,
+      "rmse": 0.0001557637443080051,
+      "cosine": 0.9999999989552525,
+      "sameToken": true,
+      "sameStopping": true
+    },
+    {
+      "prompt": 2,
+      "step": 36,
+      "maxDifference": 0.0010497570037841797,
+      "rmse": 0.00020860432488615534,
+      "cosine": 0.9999999960749174,
+      "sameToken": true,
+      "sameStopping": true
+    },
+    {
+      "prompt": 2,
+      "step": 37,
+      "maxDifference": 0.0013616085052490234,
+      "rmse": 0.00026106562139098597,
+      "cosine": 0.9999999972789658,
+      "sameToken": true,
+      "sameStopping": true
+    },
+    {
+      "prompt": 2,
+      "step": 38,
+      "maxDifference": 0.0010366439819335938,
+      "rmse": 0.0001662553290361635,
+      "cosine": 0.9999999986710442,
+      "sameToken": true,
+      "sameStopping": true
+    },
+    {
+      "prompt": 2,
+      "step": 39,
+      "maxDifference": 0.0007913112640380859,
+      "rmse": 0.0001709114572583458,
+      "cosine": 0.9999999972829603,
+      "sameToken": true,
+      "sameStopping": true
+    },
+    {
+      "prompt": 2,
+      "step": 40,
+      "maxDifference": 0.0015015602111816406,
+      "rmse": 0.00023209776472762284,
+      "cosine": 0.9999999976564944,
+      "sameToken": true,
+      "sameStopping": true
+    },
+    {
+      "prompt": 2,
+      "step": 41,
+      "maxDifference": 0.0012494325637817383,
+      "rmse": 0.0002334526523441467,
+      "cosine": 0.9999999977299576,
+      "sameToken": true,
+      "sameStopping": true
+    },
+    {
+      "prompt": 2,
+      "step": 42,
+      "maxDifference": 0.0013709068298339844,
+      "rmse": 0.00028568811475052894,
+      "cosine": 0.9999999929613262,
+      "sameToken": true,
+      "sameStopping": true
+    },
+    {
+      "prompt": 2,
+      "step": 43,
+      "maxDifference": 0.0015316009521484375,
+      "rmse": 0.000349805451368667,
+      "cosine": 0.9999999963545207,
+      "sameToken": true,
+      "sameStopping": true
+    },
+    {
+      "prompt": 2,
+      "step": 44,
+      "maxDifference": 0.0008790493011474609,
+      "rmse": 0.0001868034013017417,
+      "cosine": 0.9999999983452118,
+      "sameToken": true,
+      "sameStopping": true
+    },
+    {
+      "prompt": 2,
+      "step": 45,
+      "maxDifference": 0.0011070966720581055,
+      "rmse": 0.00022097071023556035,
+      "cosine": 0.9999999959656131,
+      "sameToken": true,
+      "sameStopping": true
+    },
+    {
+      "prompt": 2,
+      "step": 46,
+      "maxDifference": 0.0011491775512695312,
+      "rmse": 0.00021248707795864125,
+      "cosine": 0.999999998336155,
+      "sameToken": true,
+      "sameStopping": true
+    },
+    {
+      "prompt": 2,
+      "step": 47,
+      "maxDifference": 0.0009102821350097656,
+      "rmse": 0.0002039721557381357,
+      "cosine": 0.9999999981753706,
+      "sameToken": true,
+      "sameStopping": true
+    },
+    {
+      "prompt": 2,
+      "step": 48,
+      "maxDifference": 0.0009021759033203125,
+      "rmse": 0.00018079845720702316,
+      "cosine": 0.9999999971641735,
+      "sameToken": true,
+      "sameStopping": true
+    },
+    {
+      "prompt": 2,
+      "step": 49,
+      "maxDifference": 0.0007305145263671875,
+      "rmse": 0.0001549597377295908,
+      "cosine": 0.9999999989847642,
+      "sameToken": true,
+      "sameStopping": true
+    },
+    {
+      "prompt": 2,
+      "step": 50,
+      "maxDifference": 0.0012023448944091797,
+      "rmse": 0.00020602264000938524,
+      "cosine": 0.9999999967971331,
+      "sameToken": true,
+      "sameStopping": true
+    }
+  ],
+  "maxDifference": 0.003689289093017578,
+  "sameTokens": true,
+  "sameStopping": true,
+  "exceedsFrozenBrowserTolerance": 27
+}

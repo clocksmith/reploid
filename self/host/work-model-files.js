@@ -17,6 +17,7 @@ export function createWorkModelFiles({ getTransport, onChange = () => {}, fetchI
   const pieceWaiters = [];
   let activePieces = 0;
   const pinned = new Set(), lastUsed = new Map();
+  const retainedPieces = new Map();
   let supplyController = null;
   const lifetime = new AbortController(), operations = new Set(), receipts = [];
   const own = operation => {
@@ -184,6 +185,12 @@ export function createWorkModelFiles({ getTransport, onChange = () => {}, fetchI
   return Object.freeze({ getState, attach, announce: () => exchange?.announce(),
     async preparePartitionSource(model, { signal, onProgress }) {
       signal = AbortSignal.any([signal, lifetime.signal]);
+      const custody = { queueMs: 0, peerTransferMs: 0, cacheReadMs: 0, peerBytes: 0, cacheBytes: 0, transfers: 0, failures: 0 };
+      const retained = async file => {
+        const started = performance.now();
+        try { const bytes = await cached(file); custody.cacheBytes += bytes?.byteLength || 0; return bytes; }
+        finally { custody.cacheReadMs += performance.now() - started; }
+      };
       const { manifest, manifestText, files } = await modelFiles(model, signal, onProgress);
       const descriptor = files.find(file => file.role === 'model-piece-index');
       assert(descriptor, 'Model requires a pinned piece index for selective partition acquisition');
@@ -196,21 +203,30 @@ export function createWorkModelFiles({ getTransport, onChange = () => {}, fetchI
           assert(file, 'Piece source is not in the verified model');
           const saved = { path: `piece-${piece.identity.slice(7)}.bin`, role: file.role,
             sizeBytes: piece.size, hashAlgorithm: 'sha256', hash: piece.identity.slice(7) };
-          const existing = await cached(saved);
+          if (retainedPieces.size < policy.maxInventoryFiles) retainedPieces.set(fileKey(saved), saved);
+          const existing = await retained(saved);
           if (existing) return existing;
-          assert(exchange?.has(file), 'No peer offers the required verified model piece');
+          assert(exchange?.has(saved) || exchange?.has(file), 'No peer offers the required verified model piece');
           const combined = AbortSignal.any([signal, ...(controls.signal ? [controls.signal] : [])]);
+          const queuedAt = performance.now();
           const release = await acquirePieceSlot(combined);
+          custody.queueMs += performance.now() - queuedAt;
           try {
-            const retained = await cached(saved);
-            if (retained) return retained;
+            const present = await retained(saved);
+            if (present) return present;
             onProgress?.({ stage: 'acquiring', path: piece.path,
               message: `Receiving required model pieces: ${Math.floor(opened.getReceipt().verifiedBytes / 1048576)} MB verified` });
-            return await exchange.acquire(file, { signal: combined,
-              range: { offset: piece.offset, size: piece.size, identity: piece.identity } });
+            const started = performance.now();
+            try {
+              const bytes = exchange.has(saved) ? await exchange.acquire(saved, { signal: combined })
+                : await exchange.acquire(file, { signal: combined,
+                  range: { offset: piece.offset, size: piece.size, identity: piece.identity } });
+              custody.transfers++; custody.peerBytes += bytes.byteLength; return bytes;
+            } catch (cause) { custody.failures++; throw cause; }
+            finally { custody.peerTransferMs += performance.now() - started; }
           } finally { release(); }
         } });
-      return { manifest, storage: opened.storage, getReceipt: opened.getReceipt };
+      return { manifest, storage: opened.storage, getReceipt: () => ({ ...opened.getReceipt(), custody: { ...custody } }) };
     },
     async prepareSource(model, { signal, onProgress }) {
       const acquisition = new AbortController();
@@ -241,7 +257,7 @@ export function createWorkModelFiles({ getTransport, onChange = () => {}, fetchI
       return { manifest, manifestText, manifestHash: model.identity, storageContext };
     },
     acquireAdapter: (artifact, controls) => read({ ...artifact, hash: artifact.hash.replace(/^sha256:/, ''), hashAlgorithm: 'sha256' }, controls),
-    async share(model, approved) {
+    async share(model, approved, { retainedOnly = false } = {}) {
       assert(approved === true, 'Approve distributing model files separately from compute');
       assert(!preparing, 'File contribution is already preparing');
       preparing = true; error = ''; supplyController = new AbortController();
@@ -250,6 +266,19 @@ export function createWorkModelFiles({ getTransport, onChange = () => {}, fetchI
       try {
         await attach(); signal.throwIfAborted();
         const { files } = await modelFiles(model, signal, onProgress);
+        if (retainedOnly) {
+          const inventory = [];
+          // A compute participant redistributes only already verified, retained
+          // bytes after separate file consent. It never acquires a whole model
+          // merely to advertise coverage for its resident partition.
+          for (const file of [...files.filter(file => file.role !== 'model-weights'), ...retainedPieces.values()]) {
+            signal.throwIfAborted();
+            if (inventory.length >= policy.maxInventoryFiles) break;
+            if (await cached(file)) { inventory.push(file); pinned.add(fileKey(file)); }
+          }
+          assert(inventory.some(file => file.path.startsWith('piece-')), 'No retained model pieces are available to share');
+          signal.throwIfAborted(); exchange.offer(inventory); return;
+        }
         files.push(...(model.adapters || []).map(adapterFile));
         for (const file of files) pinned.add(fileKey(file));
         // The explicit file contribution prepares its bounded inventory, not strangers' prompts.

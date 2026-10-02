@@ -120,8 +120,10 @@ export function createLayerPartitionRunner({ runtime, plan: suppliedPlan, device
           await permit('mesh.transfer_intermediate_activation', authority.activation, step);
           await permit('mesh.transfer_token_context', authority.tokenContext, step);
           await permit('mesh.transfer_partition_output', authority.output, step);
+          const localStarted = performance.now();
           const resultA = snapshot(await deviceA.executeGroup0({ tokenIds: [...input], continuation: continuationA,
             generation: settings, identity: binding, executionGrant: authority.executionA, ...step, signal: combined }));
+          const localStepMs = performance.now() - localStarted;
           combined.throwIfAborted();
           const tensor = resultA?.activationTensor;
           assert(tensor && tensor.dtype === plan.activationDtype && tensor.shape?.length === 3
@@ -129,10 +131,12 @@ export function createLayerPartitionRunner({ runtime, plan: suppliedPlan, device
             && tensor.seqOffset === position && tensor.step === index, 'Partition A activation contract mismatch');
           assert(tensor.data?.byteLength <= policy.maxActivationBytes, 'Activation exceeds transfer allocation');
           const metadata = { ...binding, ...step, from: participants[0], to: participants[1] };
+          const serializationStarted = performance.now();
           const frame = runtime.serializeActivationFrame({ ...tensor, metadata });
           assert(frame.byteLength <= policy.maxActivationBytes, 'Activation exceeds transfer allocation');
           // Retain bytes separately: a transport cannot mutate the comparison baseline.
           const sent = snapshot(frame);
+          const serializationMs = performance.now() - serializationStarted;
           await permit('mesh.transfer_intermediate_activation', authority.activation, step);
           const transferStarted = performance.now();
           let resultB, transferMs = null, remoteStepMs = null;
@@ -181,7 +185,9 @@ export function createLayerPartitionRunner({ runtime, plan: suppliedPlan, device
           content += resultB.delta;
           activationBytes += sent.byteLength;
           steps.push({ ...step, tokenId: resultB.tokenId, activationBytes: sent.byteLength,
-            transferMs, remoteStepMs, elapsedMs: performance.now() - started });
+            localStepMs, serializationMs, computationA: resultA.metrics ?? null, computationB: resultB.metrics ?? null,
+            transferMs, remoteStepMs, transportTiming: resultB.transportTiming ?? null,
+            elapsedMs: performance.now() - started });
           if (resultB.delta) await onDelta(resultB.delta);
           combined.throwIfAborted();
           position += input.length;
