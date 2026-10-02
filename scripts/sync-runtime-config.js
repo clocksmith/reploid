@@ -159,8 +159,21 @@ if (isMain) {
     deploymentConfig: fs.readFileSync(filePaths.deploymentConfig, 'utf8'),
     cloudRunYaml: fs.readFileSync(filePaths.cloudRunYaml, 'utf8')
   };
+  const poolConfig = JSON.parse(current.poolConfig);
+  // Poolday's qualified Pack consumer keeps its own declared runtime. Updating
+  // chat/partition execution must not silently promote an unrelated Pack.
+  const versions = new Set((poolConfig.modelCatalog || [])
+    .filter(model => model.enabled !== false && model.executionMode === 'complete_pack_browser')
+    .map(model => model.runtimeVersion));
+  if (versions.size > 1 || versions.has(undefined)) throw new Error('Enabled Poolday Packs require one explicit runtime version');
+  const browserRuntimeVersion = versions.size ? [...versions][0] : DOPPLER_BROWSER_RUNTIME_VERSION;
+  const runtimeBase = `/vendor/doppler/${browserRuntimeVersion}`;
   const synchronized = synchronizeRuntimeConfig({
-    poolConfig: JSON.parse(current.poolConfig),
+    poolConfig,
+    browserRuntimeVersion,
+    moduleUrl: `${runtimeBase}/src/index.js`,
+    storageModuleUrl: `${runtimeBase}/src/tooling-exports/storage.js`,
+    kernelBaseUrl: `${runtimeBase}/src/gpu/kernels`,
     deploymentConfig: JSON.parse(current.deploymentConfig),
     cloudRunYaml: current.cloudRunYaml,
     packageManifest: JSON.parse(fs.readFileSync(filePaths.packageManifest, 'utf8')),
@@ -184,7 +197,7 @@ if (isMain) {
     process.exitCode = 1;
   } else {
     console.log(
-      `Runtime config verified for browser ${DOPPLER_PACKAGE_NAME}@${DOPPLER_BROWSER_RUNTIME_VERSION}`
+      `Runtime config verified for Poolday browser ${DOPPLER_PACKAGE_NAME}@${browserRuntimeVersion}`
       + ` with npm tooling ${DOPPLER_PACKAGE_VERSION}.`
     );
   }

@@ -10,7 +10,7 @@ const localServerPort = targetUrl.port || '8000';
 const skipLocalServer = process.env.REPLOID_E2E_SKIP_LOCAL_SERVER === '1';
 const chromiumChannel = String(process.env.REPLOID_E2E_CHROMIUM_CHANNEL || '').trim();
 const chromiumGpuArgs = process.platform === 'darwin'
-  ? ['--enable-unsafe-webgpu']
+  ? ['--enable-unsafe-webgpu', '--use-angle=metal']
   : [
       '--enable-unsafe-webgpu',
       '--enable-features=Vulkan',
