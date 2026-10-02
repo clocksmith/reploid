@@ -5,7 +5,7 @@ import { createPeerPackDataChannel } from '../pool/peer-pack-data-channel.js';
 import { createSigningKeyPair, exportPublicKey, sha256Hex } from '../pool/inference-receipt.js';
 import { hashDopplerEvidence } from '../pool/executable-pack.js';
 import { openPeerPackFileCheckpoints } from '../infrastructure/pack-transfer-storage.js';
-import { DOPPLER_MODULE_URL, DOPPLER_STORAGE_TOOLING_URL, LOCAL_DOPPLER_MODELS } from '../config/doppler-local-models.js';
+import { DOPPLER_MODULE_URL, DOPPLER_PARTITIONS_MODULE_URL, DOPPLER_STORAGE_TOOLING_URL, LOCAL_DOPPLER_MODELS } from '../config/doppler-local-models.js';
 import policy from '../config/chat-files.json' with { type: 'json' };
 
 const assert = (ok, message) => { if (!ok) throw new Error(message); };
@@ -14,12 +14,34 @@ const decoder = new TextDecoder('utf-8', { fatal: true });
 export function createWorkModelFiles({ getTransport, onChange = () => {}, fetchImpl = globalThis.fetch }) {
   let exchange = null, checkpoints = null, attaching = null, closed = false, preparing = false;
   let directory = null, tooling = null, storageFactory = null, lastFile = null, error = '', progress = null;
+  const pieceWaiters = [];
+  let activePieces = 0;
   const pinned = new Set(), lastUsed = new Map();
   let supplyController = null;
   const lifetime = new AbortController(), operations = new Set(), receipts = [];
   const own = operation => {
     operations.add(operation); operation.finally(() => operations.delete(operation)).catch(() => {}); return operation;
   };
+  const acquirePieceSlot = signal => new Promise((resolve, reject) => {
+    signal.throwIfAborted();
+    const release = () => {
+      activePieces--;
+      pieceWaiters.shift()?.start();
+    };
+    const waiter = {
+      start() { signal.removeEventListener('abort', abort); activePieces++; resolve(release); }
+    };
+    const abort = () => {
+      const index = pieceWaiters.indexOf(waiter);
+      if (index >= 0) pieceWaiters.splice(index, 1);
+      reject(signal.reason);
+    };
+    if (activePieces < policy.maxPieceAcquisitions) waiter.start();
+    else {
+      assert(pieceWaiters.length < policy.maxQueuedPieceAcquisitions, 'Assigned piece acquisition queue is full');
+      pieceWaiters.push(waiter); signal.addEventListener('abort', abort, { once: true });
+    }
+  });
   const getState = () => ({ ...(exchange?.getState() || { sharing: false, suppliedBytes: 0, pending: 0, peers: [] }),
     preparing, error, progress: structuredClone(progress), receivedBytes: receipts.reduce((sum, item) => sum + item.receivedBytes, 0),
     verifiedFiles: receipts.flatMap(item => item.completed || []).map(({ artifactId, hash, sizeBytes }) => ({ artifactId, hash, sizeBytes })),
@@ -124,7 +146,8 @@ export function createWorkModelFiles({ getTransport, onChange = () => {}, fetchI
   const modelFiles = async (model, signal, onProgress) => {
     const pinned = LOCAL_DOPPLER_MODELS.find(item => item.id === model.id && item.identity === model.identity);
     assert(pinned?.source, 'Verified model source is not in the catalog');
-    const files = pinned.source.files.map(file => ({ ...file, url: new URL(file.path, pinned.source.baseUrl).href }));
+    const files = pinned.source.files.map(file => ({ ...file,
+      url: file.url ? new URL(file.url, location.href).href : new URL(file.path, pinned.source.baseUrl).href }));
     const manifestFile = files.find(file => file.path === 'manifest.json');
     assert('sha256:' + manifestFile.hash === model.identity, 'Catalog manifest identity mismatch');
     const manifestText = decoder.decode(await read(manifestFile, { signal, onProgress })), manifest = JSON.parse(manifestText);
@@ -159,6 +182,36 @@ export function createWorkModelFiles({ getTransport, onChange = () => {}, fetchI
     return attaching;
   };
   return Object.freeze({ getState, attach, announce: () => exchange?.announce(),
+    async preparePartitionSource(model, { signal, onProgress }) {
+      signal = AbortSignal.any([signal, lifetime.signal]);
+      const { manifest, manifestText, files } = await modelFiles(model, signal, onProgress);
+      const descriptor = files.find(file => file.role === 'model-piece-index');
+      assert(descriptor, 'Model requires a pinned piece index for selective partition acquisition');
+      const indexBytes = await read(descriptor, { signal, onProgress });
+      const { createVerifiedPieceStorage } = await import(DOPPLER_PARTITIONS_MODULE_URL);
+      const opened = await createVerifiedPieceStorage({ manifestBytes: new TextEncoder().encode(manifestText).buffer,
+        indexBytes: indexBytes.slice().buffer, indexIdentity: 'sha256:' + descriptor.hash, signal,
+        async acquire(piece, controls) {
+          const file = files.find(file => file.path === piece.path);
+          assert(file, 'Piece source is not in the verified model');
+          const saved = { path: `piece-${piece.identity.slice(7)}.bin`, role: file.role,
+            sizeBytes: piece.size, hashAlgorithm: 'sha256', hash: piece.identity.slice(7) };
+          const existing = await cached(saved);
+          if (existing) return existing;
+          assert(exchange?.has(file), 'No peer offers the required verified model piece');
+          const combined = AbortSignal.any([signal, ...(controls.signal ? [controls.signal] : [])]);
+          const release = await acquirePieceSlot(combined);
+          try {
+            const retained = await cached(saved);
+            if (retained) return retained;
+            onProgress?.({ stage: 'acquiring', path: piece.path,
+              message: `Receiving required model pieces: ${Math.floor(opened.getReceipt().verifiedBytes / 1048576)} MB verified` });
+            return await exchange.acquire(file, { signal: combined,
+              range: { offset: piece.offset, size: piece.size, identity: piece.identity } });
+          } finally { release(); }
+        } });
+      return { manifest, storage: opened.storage, getReceipt: opened.getReceipt };
+    },
     async prepareSource(model, { signal, onProgress }) {
       const acquisition = new AbortController();
       signal = AbortSignal.any([signal, acquisition.signal]);

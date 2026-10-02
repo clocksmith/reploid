@@ -2,6 +2,18 @@
   "loaders": [
     {
       "source": "self/host/work-model-files.js",
+      "expression": "DOPPLER_PARTITIONS_MODULE_URL",
+      "owner": "self/host/CATSCAN.md",
+      "contract": "Pinned public Doppler partition storage API verifies selectively acquired pieces against the catalog index. Peers cannot select runtime code or module URLs."
+    },
+    {
+      "source": "self/host/work-partitions.js",
+      "expression": "DOPPLER_PARTITIONS_MODULE_URL",
+      "owner": "self/host/CATSCAN.md",
+      "contract": "Pinned public Doppler partition API owns plan and computation semantics. The host loads it only for approved compute contribution; peers cannot select runtime code or module URLs."
+    },
+    {
+      "source": "self/host/work-model-files.js",
       "expression": "globalThis.REPLOID_DOPPLER_STORAGE_MODULE_URL || DOPPLER_STORAGE_TOOLING_URL",
       "owner": "self/host/CATSCAN.md",
       "contract": "Pinned host-selected Doppler storage tooling verifies canonical catalog bytes. Peer inventories cannot select runtime code or URLs."

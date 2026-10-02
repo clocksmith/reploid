@@ -18,5 +18,7 @@
     "maxPendingRequests": 2,
     "maxTransferBytes": 4294967296,
     "timeoutMs": 30000
-  }
+  },
+  "maxPieceAcquisitions": 1,
+  "maxQueuedPieceAcquisitions": 128
 }

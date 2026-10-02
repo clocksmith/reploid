@@ -25,7 +25,7 @@ describe('Pinned Doppler asset resolution', () => {
     expect(bootJs).toContain("localStorage.removeItem('DOPPLER_BASE_URL')");
     expect(bootJs).toContain('resolveDopplerBrowserAssets({');
     expect(resolveDopplerBrowserAssets({ pageUrl: 'http://localhost:8000/' }).moduleUrl)
-      .toBe('http://localhost:8000/vendor/doppler/0.6.3-dev.split.4/src/index.js');
+      .toBe('http://localhost:8000/vendor/doppler/0.6.3-dev.split.6/src/index.js');
   });
 
   it('VFS uses the same asset owner and preserves explicit developer endpoints', () => {

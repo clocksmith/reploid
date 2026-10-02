@@ -352,3 +352,78 @@ describe('weightless requester entry', () => {
     expect(calls[1].placementGeneration).toBe(1);
   });
 });
+
+describe('automatic cooperative placement', () => {
+  it('discovers consenting executors and streams one inference to a weightless requester', async () => {
+    const { createAutomaticPartitions } = await import('../../packages/reploid/src/mesh/partitions/automatic-partitions.js');
+    const identities = await Promise.all([0, 1, 2].map(() => createSigningIdentity({ algorithm: 'ECDSA' })));
+    const registry = new Map(), meshes = [], factories = [], loaded = [];
+    const model = { id: 'fixture', name: 'Injected partition model', provider: 'doppler',
+      identity: 'sha256:' + 'a'.repeat(64), generation, adapters: [] };
+    const plan = runtime.createLayerPartitionPlan({ modelId: model.id, numLayers: 4, hiddenSize: 8, vocabSize: 128 });
+    const planId = runtime.hashLayerPartitionPlan(plan);
+    const config = { pollMs: 10, maxPeers: 4, connectTimeoutMs: 1000, grantMs: 10000, limits: policy,
+      inputChannel: channelPolicy, executionChannel: channelPolicy, controlChannel: channelPolicy,
+      receiver: { maxAttempts: 32, maxSteps: 8 },
+      inputLimits: { maxInputCharacters: 1000, maxOutputCharacters: 1024, maxAttempts: 16,
+        maxConcurrentAttempts: 2, descriptorTtlMs: 1000 } };
+    for (const [index, identity] of identities.entries()) {
+      const factory = createPartitionRuntimeFixture(); factories.push(factory);
+      const networks = new Map(); registry.set(String(index), networks);
+      meshes.push(createAutomaticPartitions({ identity, meshId: 'mesh', models: [model], policy: config,
+        peers: () => identities.map((_, i) => ({ id: String(i), localTransportId: String(index) })).filter(p => p.id !== String(index)),
+        createNetwork(options) {
+          const endpoints = new Map();
+          const network = { options, endpoints,
+            async connect(remoteId) {
+              if (endpoints.has(remoteId)) return endpoints.get(remoteId);
+              const other = registry.get(remoteId)?.get(options.label);
+              if (!other) throw Error('not yet connected');
+              const [left, right] = channels();
+              const local = options.createEndpoint({ channel: left, remoteParticipantId: identities[Number(remoteId)].peerId });
+              const remote = other.options.createEndpoint({ channel: right, remoteParticipantId: identity.peerId });
+              endpoints.set(remoteId, local); other.endpoints.set(String(index), remote);
+              options.onPeer?.(remoteId, local); other.options.onPeer?.(String(index), remote);
+              return local;
+            },
+            async close() { networks.delete(options.label); await Promise.all([...endpoints.values()].map(e => e.close())); }
+          };
+          networks.set(options.label, network); return network;
+        },
+        async loadProgram(selected, partition, controls) {
+          loaded.push({ device: index, partition });
+          const resident = createResidentPartition({ runtime: factory, model: selected, plan, planId,
+            index: partition, participantId: identity.peerId, limits: policy });
+          await resident.prepare({ approved: true, signal: controls.signal });
+          return { runtime, resident, model: selected, plan, planId };
+        }
+      }));
+    }
+    cleanup.push(() => Promise.all(meshes.map(mesh => mesh.close())));
+    await meshes[1].contribute(model.id, true); await meshes[2].contribute(model.id, true);
+    await vi.waitFor(() => expect(meshes[0].getModels().some(m => m.availability === 'ready')).toBe(true));
+    expect(loaded.map(x => x.device).sort()).toEqual([1, 2]);
+    expect(loaded.map(x => x.partition).sort()).toEqual([0, 1]);
+    expect(factories[0].log.opens).toEqual([]);
+    const deltas = [];
+    const controls = { signal: new AbortController().signal, requestApproval: async preview => {
+      expect(preview.threadId).toBeTruthy(); expect(preview.attemptId).toBe(preview.threadId); return true;
+    },
+      onDelta: delta => deltas.push(delta.text), onState() {} };
+    const run = id => meshes[0].generate({ model, threadId: id, attemptId: id,
+      messages: [{ role: 'user', content: '10' }] }, controls);
+    const result = await run('first');
+    expect(deltas.join('')).toBe(result.content);
+    expect(result.execution.participantA).not.toBe(result.execution.participantB);
+    expect(result.execution.activationBytes).toBeGreaterThan(0);
+    expect((await run('reuse')).content).toBe(result.content);
+    expect(loaded).toHaveLength(2);
+    await meshes[2].stop();
+    await vi.waitFor(() => expect(meshes[0].getModels().some(m => m.availability === 'ready')).toBe(false));
+    await expect(run('lost')).rejects.toThrow('No prepared');
+    await meshes[2].contribute(model.id, true);
+    await vi.waitFor(() => expect(meshes[0].getModels().some(m => m.availability === 'ready')).toBe(true));
+    expect((await run('restarted')).content).toBe(result.content);
+    expect(loaded).toHaveLength(3); // The still-consenting survivor retained its assigned weights.
+  });
+});

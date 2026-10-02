@@ -1,0 +1,11 @@
+{
+  "runtimeVersion": "0.6.3-dev.split.5",
+  "physicalHosts": [
+    "Mac",
+    "Linux 128"
+  ],
+  "note": "Initial physical run uncovered missing thread/attempt IDs in the requester disclosure preview. After source repair, a fresh weightless requester session was opened against the retained prepared executors. The ordinary UI then completed Hello, 4, isolated cancellation, and Goodbye. This is assisted debugging evidence, not an uninterrupted clean run.",
+  "artifactArchive": "deploy/artifacts/doppler-gpu-0.6.3-dev.split.5.tgz",
+  "publicDeployment": false,
+  "combinedPhysicalCapacityRequired": false
+}

@@ -121,14 +121,19 @@ export function createCustodyExchange({ transport, identity, policy, ports }) {
       if (!supply || preparing + suppliers.size >= policy.maxTransfers) throw new Error('File contribution unavailable');
       const descriptor = offered.find(item => key(item) === key(message.artifact));
       if (!descriptor || message.requester?.peerId !== peer || !message.requester.publicKey) throw new Error('Unapproved artifact request');
+      const selected = rangeDescriptor(descriptor, message.range);
       if (!Number.isSafeInteger(descriptor.sizeBytes) || descriptor.sizeBytes > policy.maxArtifactBytes
-        || reserved + descriptor.sizeBytes > policy.maxSupplyBytes) throw new Error('File contribution limit reached');
-      const epoch = supplyEpoch; preparing++; reserved += descriptor.sizeBytes;
+        || reserved + selected.sizeBytes > policy.maxSupplyBytes) throw new Error('File contribution limit reached');
+      const epoch = supplyEpoch; preparing++; reserved += selected.sizeBytes;
       try {
-        const bytes = await readArtifact(descriptor, { signal: lifetime.signal });
+        let bytes = await readArtifact(descriptor, { signal: lifetime.signal });
         await verifyArtifact(descriptor, bytes); live();
+        if (message.range) {
+          bytes = bytes.slice(message.range.offset, message.range.offset + message.range.size);
+          await verifyArtifact(selected, bytes);
+        }
         if (!supply || epoch !== supplyEpoch) throw new Error('File contribution stopped');
-        const artifact = { artifactId: descriptor.path, path: descriptor.path, role: descriptor.role,
+        const artifact = { artifactId: selected.path, path: selected.path, role: selected.role,
           sizeBytes: bytes.byteLength, hash: await hashBytes(bytes) };
         const artifacts = [artifact], chunks = [];
         for (let offset = 0; offset < bytes.byteLength; offset += policy.channel.maxChunkBytes) {
@@ -142,10 +147,10 @@ export function createCustodyExchange({ transport, identity, policy, ports }) {
           transferId: crypto.randomUUID(), attempt: 1, expiresAt: Date.now() + policy.grantMs,
           requester: structuredClone(message.requester), suppliers: [{ peerId: identity.peerId, publicKey: identity.publicKey }],
           indexDigest: await hash(index), limits: { maxArtifactBytes: policy.maxArtifactBytes,
-            maxChunkBytes: policy.channel.maxChunkBytes, maxTransferBytes: descriptor.sizeBytes,
+            maxChunkBytes: policy.channel.maxChunkBytes, maxTransferBytes: selected.sizeBytes,
             requestTimeoutMs: policy.channel.timeoutMs } };
         const supplier = await createSupplier({ authorization, index, peerId: identity.peerId, privateKey: identity.privateKey,
-          inventory: { expiresAt: authorization.expiresAt, maxBytes: descriptor.sizeBytes,
+          inventory: { expiresAt: authorization.expiresAt, maxBytes: selected.sizeBytes,
             artifacts: [{ artifactId: artifact.artifactId, chunkIndexes: chunks.map(chunk => chunk.index) }] },
           readChunk: async (_, chunk) => bytes.slice(chunk.offset, chunk.offset + chunk.sizeBytes) });
         if (closed || !supply || epoch !== supplyEpoch) { supplier.close(); throw new Error('File contribution stopped'); }
@@ -159,7 +164,15 @@ export function createCustodyExchange({ transport, identity, policy, ports }) {
     operations.add(operation);
     operation.finally(() => operations.delete(operation)).catch(() => {});
   });
-  const request = (peer, artifact, signal) => new Promise((resolve, reject) => {
+  const rangeDescriptor = (artifact, range) => {
+    if (range == null) return artifact;
+    if (!Number.isSafeInteger(range.offset) || range.offset < 0 || !Number.isSafeInteger(range.size)
+      || range.size < 1 || range.offset + range.size > artifact.sizeBytes
+      || !/^sha256:[a-f0-9]{64}$/.test(range.identity)) throw new Error('Invalid verified file range');
+    return { path: `piece-${range.identity.slice(7)}.bin`, role: artifact.role,
+      sizeBytes: range.size, hash: range.identity.slice(7), hashAlgorithm: 'sha256' };
+  };
+  const request = (peer, artifact, signal, range) => new Promise((resolve, reject) => {
     signal.throwIfAborted();
     if (pending.size >= policy.maxTransfers) { reject(new Error('File acquisition limit reached')); return; }
     const id = crypto.randomUUID();
@@ -171,12 +184,13 @@ export function createCustodyExchange({ transport, identity, policy, ports }) {
     const abort = () => finish(signal.reason);
     const timer = setTimeout(() => finish(new Error('File offer timed out')), policy.channel.timeoutMs);
     pending.set(id, { peer, finish }); signal.addEventListener('abort', abort, { once: true });
-    if (!transport.sendToPeer(peer, 'reploid:custody-request', { id, artifact,
+    if (!transport.sendToPeer(peer, 'reploid:custody-request', { id, artifact, range,
       requester: { peerId: identity.peerId, publicKey: identity.publicKey } })) finish(new Error('File peer disconnected'));
   });
-  const acquireFrom = async (peer, artifact, combined) => {
+  const acquireFrom = async (peer, source, combined, range) => {
+      const artifact = rangeDescriptor(source, range);
       const bus = await channelFor(peer, combined);
-      const result = await request(peer, artifact, combined); combined.throwIfAborted();
+      const result = await request(peer, source, combined, range); combined.throwIfAborted();
       const grant = result.authorization, declared = grant?.artifactSet?.artifacts?.[0];
       if (grant?.artifactSet?.artifacts?.length !== 1 || declared?.path !== artifact.path || declared?.sizeBytes !== artifact.sizeBytes
         || grant.requester?.peerId !== identity.peerId || grant.requester?.publicKey !== identity.publicKey
@@ -226,9 +240,11 @@ export function createCustodyExchange({ transport, identity, policy, ports }) {
       live(); stopSupply(); offered = structuredClone(artifacts); reserved = 0; supply = true; announce(); notify();
     },
     stopSupply,
-    async acquire(artifact, { signal }) {
+    async acquire(artifact, { signal, range = null }) {
       live();
       if (!valid(artifact)) throw new Error('Invalid file acquisition');
+      range = range == null ? null : structuredClone(range);
+      rangeDescriptor(artifact, range);
       if (acquiring >= policy.maxTransfers) throw new Error('File acquisition limit reached');
       const combined = AbortSignal.any([lifetime.signal, signal]);
       combined.throwIfAborted();
@@ -239,7 +255,7 @@ export function createCustodyExchange({ transport, identity, policy, ports }) {
         const failures = [];
         for (const peer of eligible) {
           combined.throwIfAborted();
-          try { return await acquireFrom(peer, descriptor, combined); }
+          try { return await acquireFrom(peer, descriptor, combined, range); }
           catch (error) {
             combined.throwIfAborted();
             if (error.code === 'CUSTODY_LOCAL_COMMIT_FAILED') throw error;

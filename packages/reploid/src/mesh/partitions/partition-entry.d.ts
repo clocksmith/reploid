@@ -8,7 +8,7 @@ export interface PartitionEntry {
  readonly id:string;
  getState():{ready:boolean;descriptor:{models:any[];accepting:boolean;slots:number}|null;observedAt:number;receipt:object};
  refresh(options?:{signal?:AbortSignal}):Promise<ReturnType<PartitionEntry['getState']>>;
- generate(input:PartitionInput,options?:{signal?:AbortSignal}):Promise<{content:string;execution:PartitionBinding & Record<string,unknown>}>;
+ generate(input:PartitionInput,options?:{signal?:AbortSignal;onDelta?:(text:string)=>void}):Promise<{content:string;execution:PartitionBinding & Record<string,unknown>}>;
  drain():Promise<void>;close():Promise<void>;
 }
 export function createPartitionEntry(options:{channel:RTCDataChannel;localParticipantId:string;remoteParticipantId:string;service?:PartitionChat|null;

@@ -45,6 +45,21 @@ async function fixture({ afterCheckpoint = () => {}, count = 2, maxPeers = 16, c
   }
   return { owners, file, bytes, reads, receipts, stores, close: () => owners.forEach(owner => owner.close()) };
 }
+it('acquires only an authenticated range of an approved file and rejects invalid ranges', async () => {
+  const f = await fixture(); const [a, b] = f.owners;
+  try {
+    b.offer([f.file]); await vi.waitFor(() => expect(a.has(f.file)).toBe(true));
+    const bytes = f.bytes.slice(1, 4), range = { offset: 1, size: 3, identity: await sha256Hex(bytes) };
+    expect(await a.acquire(f.file, { signal: new AbortController().signal, range })).toEqual(bytes);
+    expect(f.receipts.at(-1).receivedBytes).toBe(3);
+    expect(f.receipts.at(-1).completed[0].sizeBytes).toBe(3);
+    await expect(a.acquire(f.file, { signal: new AbortController().signal,
+      range: { ...range, offset: 4 } })).rejects.toThrow('Invalid verified file range');
+    await expect(a.acquire(f.file, { signal: new AbortController().signal,
+      range: { ...range, identity: 'sha256:' + '0'.repeat(64) } })).rejects.toThrow();
+  } finally { f.close(); }
+});
+
 it('acquires verified bytes through signed custody only after independent file contribution and releases transfer slots', async () => {
   const f = await fixture(), [a, b] = f.owners;
   try {

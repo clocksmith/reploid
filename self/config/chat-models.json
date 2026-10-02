@@ -7,7 +7,8 @@
       "baseUrl": "https://huggingface.co/clocksmith/rdrr/resolve/80d7716270b6371d541de979eff3370edaf34e13/models/qwen-3-5-0-8b-q4k-ehaf16/",
       "files": [
         { "path": "manifest.json", "role": "model-manifest", "sizeBytes": 214138, "hashAlgorithm": "sha256", "hash": "edeb69dd65cbb26971abf773a95bf6dc219a82942c0951d65e1893d442b607c9" },
-        { "path": "tokenizer.json", "role": "tokenizer", "sizeBytes": 9088480, "hashAlgorithm": "sha256", "hash": "8fc3b6de02de5a8e21d3867aba335e2d9a3c2263201f55daaed1feab3541bea4" }
+        { "path": "tokenizer.json", "role": "tokenizer", "sizeBytes": 9088480, "hashAlgorithm": "sha256", "hash": "8fc3b6de02de5a8e21d3867aba335e2d9a3c2263201f55daaed1feab3541bea4" },
+        {"path": "qwen-0-8b-pieces.json", "role": "model-piece-index", "sizeBytes": 34259, "hashAlgorithm": "sha256", "hash": "02e7f90a322ed4c395e0d33f49ceae9f190f5a9dca7e9ca6f58f75c12b03ad94", "url": "/config/model-pieces/qwen-0-8b-pieces.json"}
       ]
     },
     "provider": "doppler",

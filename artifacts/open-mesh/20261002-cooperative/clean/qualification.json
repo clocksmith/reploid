@@ -1,0 +1,84 @@
+{
+  "component": "Reploid automatic cooperative partitions with Doppler resident execution",
+  "intent": "preserved",
+  "boundaryEffects": [
+    "Doppler resident recurrent state and selective piece storage",
+    "Reploid authenticated piece custody, automatic placement and streaming input channel"
+  ],
+  "date": "2026-10-02",
+  "test": "tests/e2e/chat-cooperative-real.spec.js",
+  "result": "passed",
+  "physicalDevices": [
+    "Mac Metal GPU",
+    "Linux AMD RDNA3 GPU"
+  ],
+  "doppler": {
+    "name": "doppler-gpu",
+    "version": "0.6.3-dev.split.6",
+    "spec": "file:deploy/artifacts/doppler-gpu-0.6.3-dev.split.6.tgz",
+    "resolved": "file:deploy/artifacts/doppler-gpu-0.6.3-dev.split.6.tgz",
+    "integrity": "sha512-JXyQMp6RmnqO1iL0tWelcz6w/Uzt/TPYX7x0hrBv7MR+RDUdJIpTlsR2E9L/8Ts9xFS8ppUKFAcMfYOob5jRVg=="
+  },
+  "modelIdentity": "sha256:edeb69dd65cbb26971abf773a95bf6dc219a82942c0951d65e1893d442b607c9",
+  "wholeModelShardBytes": 1146048704,
+  "partitionAcquisition": [
+    {
+      "physicalHost": "linux-128",
+      "layerRange": [
+        12,
+        23
+      ],
+      "verifiedBytes": 815398560,
+      "pieces": 196,
+      "residentLoads": 1
+    },
+    {
+      "physicalHost": "mac",
+      "layerRange": [
+        0,
+        11
+      ],
+      "verifiedBytes": 671788512,
+      "pieces": 161,
+      "residentLoads": 2
+    }
+  ],
+  "numerical": {
+    "reference": "Doppler tests/integration/resident-partition-physical.test.js local same-model logits; generated with DOPPLER_PARTITION_CHAT=1 and DOPPLER_PARTITION_REFERENCE_OUT",
+    "referenceSha256": "27fb73c4e335bfb584ee9b957359e01874ae612079b78ce10a001fe3e40aa70c",
+    "comparedSteps": 4,
+    "vocabularySize": 248320,
+    "maxAbsoluteDifference": 0.0007619857788085938,
+    "tolerance": 0.001,
+    "sampledTokensAndEos": "identical",
+    "referenceArtifact": "reference-logits.json.gz"
+  },
+  "journey": [
+    "Four fresh browser contexts; empty executor caches",
+    "Explicit file-sharing and compute consent; automatic discovery and two-peer allocation",
+    "Executor model-origin requests blocked; verified selective pieces from local seed via authenticated WebRTC",
+    "Weightless requester receives complete Hello then separate 4 using retained weights",
+    "Cancel counting attempt; original conversation still completes Goodbye.",
+    "Stop executor during generation; attempt fails; restart contribution and explicitly retry from prompt; counts 1 through 20 and EOS",
+    "Completed histories survive contributor loss and requester reload"
+  ],
+  "humanInterventionsDuringRun": [],
+  "transport": "Physical WebRTC with configured temporary TURN credentials; local application and seed, not public deployment",
+  "limits": {
+    "executorStorageQuotaBytes": 335544320,
+    "storageBudgetIsPhysicalMemoryProof": false
+  },
+  "checks": {
+    "reploidUnit": "2817 passed, 29 skipped, 254 files",
+    "libraryTypes": "passed",
+    "dopplerGenerationContract": "passed",
+    "browserBundle": "passed",
+    "libraryDelivery": "passed"
+  },
+  "gaps": [
+    "Combined physical capacity not demonstrated: this Qwen 0.8B model fits either device independently",
+    "Only two execution partitions; broader mesh growth and replica placement are not qualified by this run",
+    "Public deployment is not exercised",
+    "Doppler broad unit suite retains two pre-existing stale-inventory failures after canonical TMPDIR reruns"
+  ]
+}
